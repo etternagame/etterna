@@ -1484,7 +1484,7 @@ struct ItvHandInfo
 	inline void set_hand_taps()
 	{
 		hand_taps = static_cast<float>(
-		  col_taps[col_left] + col_taps[col_right] + col_taps[col_ohjump]);
+		  col_taps[col_left] + col_taps[col_right]);
 	}
 
 	// meta stuff here for now
@@ -2870,12 +2870,14 @@ struct OHJ_Sequencing
 		if (now.col == col_empty)
 			return;
 
-		// allow sequences of 1 by starting any time we hit an ohjump
-		if (cur_seq_taps == 0 && now.col == col_ohjump)
-			cur_seq_taps += 2;
-		else
-			// if we haven't started a sequence yet, bail
-			return;
+		if (cur_seq_taps == 0) {
+			// if we aren't in a sequence and aren't going to start one, bail
+			if (now.col != col_ohjump)
+				return;
+			else
+				// allow sequences of 1 by starting any time we hit an ohjump
+				cur_seq_taps += 2;
+		}
 
 		// we know between the following that the latter is more
 		// difficult [12][12][12]222[12][12][12]
@@ -2912,7 +2914,10 @@ struct OHJ_Sequencing
 				// came from a jump -> single, then we have something like
 				// [12]21, which is much harder than [12]22, so penalize the
 				// sequence slightly before completing
-				cur_seq_taps -= 3;
+				if (cur_seq_taps == 2)
+					cur_seq_taps -= 1;
+				else
+					cur_seq_taps -=3;
 				complete_seq();
 				break;
 			case cc_single_single:
@@ -2921,7 +2926,7 @@ struct OHJ_Sequencing
 
 				// we have something like [12]22, complete the sequence
 				// without the penalty that the cross column incurs
-				complete_seq();	
+				complete_seq();
 				break;
 			case cc_single_jump:
 				// [12]1[12]... we broke a sequence and went right back into
@@ -2932,6 +2937,9 @@ struct OHJ_Sequencing
 				//	complete_seq();
 				// else
 				complete_seq();
+				break;
+			case cc_init:
+				// do nothing, we don't have enough info yet
 				break;
 			default:
 				ASSERT(0);
@@ -2955,11 +2963,11 @@ struct OHJumpModGuyThing
 
 	float max_seq_pool = 1.125f;
 	float max_seq_scaler = 0.65f;
-	float max_seq_jump_scaler = 1.5f;
+	float max_seq_jump_scaler = 1.f;
 	float max_seq_min = 0.f;
 	float max_seq_max = 0.65f;
 
-	float prop_pool = 1.2f;
+	float prop_pool = 1.4f;
 	float prop_scaler = 0.35f;
 	float prop_min = 0.f;
 	float prop_max = 0.35f;
@@ -3032,21 +3040,6 @@ struct OHJumpModGuyThing
 
 	inline void advance_sequencing(const metaHandInfo& now) { ohj(now); }
 
-	inline void build_prop_component(const float& prop)
-	{
-		prop_component = prop_pool - prop;
-		prop_component = CalcClamp(prop_component, min_mod, max_mod);
-	}
-
-	inline void build_seq_component()
-	{
-		max_seq_component =
-		  max_seq_scaler *
-		  (max_seq_pool - (base_seq_prop * max_seq_jump_scaler));
-		max_seq_component =
-		  CalcClamp(max_seq_component, max_seq_min, max_seq_max);
-	}
-
 	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
 										  vector<float> doot[],
 										  const int& i)
@@ -3083,7 +3076,7 @@ struct OHJumpModGuyThing
 			// need to set now
 			base_jump_prop = itvh[col_ohjump] / itvh.hand_taps;
 
-			build_prop_component(base_jump_prop);
+			prop_component = prop_pool - base_jump_prop;
 			pmod = fastsqrt(prop_component);
 			pmod = CalcClamp(base + pmod, min_mod, max_mod);
 			doot[OHJumpMod][i] = pmod;
@@ -3103,14 +3096,12 @@ struct OHJumpModGuyThing
 			floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
 			base_seq_prop = floatymcfloatface / itvh.hand_taps;
 
-			// shortcut mod calculations, we need the base props now
-			floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
-
-			base_seq_prop = floatymcfloatface / itvh.hand_taps;
-
 			// build seq component based on max sequence taps in hand taps
-			build_seq_component();
+			max_seq_component =
+			  max_seq_pool - (base_seq_prop * max_seq_jump_scaler);
 			pmod = max_seq_component;
+			pmod = fastsqrt(max_seq_component);
+			pmod = CalcClamp(base + pmod, min_mod, max_mod);
 
 			doot[OHJumpMod][i] = pmod;
 			set_debug_output(doot, i);
@@ -3118,15 +3109,6 @@ struct OHJumpModGuyThing
 		}
 
 		return false;
-	}
-
-	inline void interval_reset()
-	{
-		// reset any interval stuff here
-		cc_taps = 0;
-		max_ohjump_seq_taps = 0;
-		max_seq_component = neutral;
-		prop_component = neutral;
 	}
 
 	inline void set_debug_output(vector<float> doot[], const int& i)
@@ -3142,10 +3124,15 @@ struct OHJumpModGuyThing
 
 	void operator()(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
 	{
+		max_seq_component = neutral;
+		prop_component = neutral;
+		
 		cc_taps = itvh.cc_types[cc_left_right] + itvh.cc_types[cc_right_left];
 
 		// if cur_seq > max when we ended the interval, grab it
-		max_ohjump_seq_taps = ohj.cur_seq_taps > ohj.max_seq_taps ? ohj.cur_seq_taps : ohj.max_seq_taps;
+		max_ohjump_seq_taps = ohj.cur_seq_taps > ohj.max_seq_taps
+								? ohj.cur_seq_taps
+								: ohj.max_seq_taps;
 
 		// handle simple cases first, execute this block if nothing easy is
 		// detected, fill out non-component debug info and handle interval
@@ -3165,10 +3152,16 @@ struct OHJumpModGuyThing
 		// indicators of inflated difficulty
 
 		// build component based on max sequence relative to hand taps
-		build_seq_component();
+		max_seq_component =
+		  max_seq_pool - (base_seq_prop * max_seq_jump_scaler);
+		max_seq_component *= max_seq_scaler;
+		max_seq_component =
+		  CalcClamp(max_seq_component, max_seq_min, max_seq_max);
 
 		// do we want base seq prop here??? or jump prop??? idk
-		build_prop_component(base_seq_prop);
+		prop_component = prop_pool - base_jump_prop;
+		prop_component *= prop_scaler;
+		prop_component = CalcClamp(prop_component, prop_min, prop_max);
 
 		ASSERT(max_seq_component + prop_component < 1.05f);
 
@@ -3179,6 +3172,14 @@ struct OHJumpModGuyThing
 		set_debug_output(doot, i);
 
 		interval_reset();
+	}
+
+	inline void interval_reset()
+	{
+		// reset any interval stuff here
+		cc_taps = 0;
+		ohj.max_seq_taps = 0;
+		max_ohjump_seq_taps = 0;
 	}
 };
 
@@ -6603,7 +6604,6 @@ Hand::InitAdjDiff()
 		  WideRangeRoll,
 		  FlamJam,
 		  OHJumpMod,
-		  CJOHJump,
 		  CJQuad,
 		  WideRangeBalance,
 		},
@@ -7130,7 +7130,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 357;
+int mina_calc_version = 358;
 int
 GetCalcVersion()
 {

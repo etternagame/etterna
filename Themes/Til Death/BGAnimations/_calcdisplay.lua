@@ -235,9 +235,9 @@ local debugGroups = {
     },
 	{   -- Group 8
         OHJumpMod = true,
-        --OHJPropComp = true,
-        --OHJSeqComp = true,
-        --OHJBaseProp = true,
+        OHJPropComp = true,
+        OHJSeqComp = true,
+        OHJBaseProp = true,
 	},
     {   -- Group 9
         OHJMaxSeq = true,
