@@ -1711,13 +1711,17 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 	return false;
 }
 
-bool Song::MatchesFilter(const float rate,const StepsType type) const{
+bool
+Song::MatchesFilter(const float rate, const StepsType type) const
+{
 	vector<Steps*> steps;
-	if(type!=StepsType_Invalid) steps=GetStepsByStepsType(type);
-	else steps=GetAllSteps();
-	
-	for(const auto step : steps){
-		//Iterate over all maps of the given type
+	if (type != StepsType_Invalid)
+		steps = GetStepsByStepsType(type);
+	else
+		steps = GetAllSteps();
+
+	for (const auto step : steps) {
+		// Iterate over all maps of the given type
 		bool addsong = FILTERMAN->ExclusiveFilter;
 		/* The default behaviour of an exclusive filter is to accept
 		 * by default, (i.e. addsong=true) and reject if any
@@ -1729,21 +1733,24 @@ bool Song::MatchesFilter(const float rate,const StepsType type) const{
 			float lb = FILTERMAN->SSFilterLowerBounds[ss];
 			float ub = FILTERMAN->SSFilterUpperBounds[ss];
 			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
-				
+
 				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
 					if (FILTERMAN->HighestSkillsetsOnly)
-						if (!IsSkillsetHighestOfAnySteps(static_cast<Skillset>(ss), rate) && ss < NUM_Skillset) // The current skill is not
-											      // in highest in the chart
-								continue;
+						if (!IsSkillsetHighestOfAnySteps(
+							  static_cast<Skillset>(ss), rate) &&
+							ss < NUM_Skillset) // The current skill is not
+											   // in highest in the chart
+							continue;
 				}
 				float val;
 				if (ss < NUM_Skillset)
-					val = step->GetMSD(rate,ss);
+					val = step->GetMSD(rate, ss);
 				else {
 					TimingData* td = step->GetTimingData();
 					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
-					   td->GetElapsedTimeFromBeat(GetFirstBeat())) / rate;
-					//Rates modify the song length.
+						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
+						  rate;
+					// Rates modify the song length.
 				}
 				if (FILTERMAN->ExclusiveFilter) {
 					/* Our behaviour is to accept by default,
@@ -1767,11 +1774,11 @@ bool Song::MatchesFilter(const float rate,const StepsType type) const{
 				}
 			}
 		}
-		if(addsong) return true;
+		if (addsong)
+			return true;
 	}
 	return false;
 }
-
 
 bool
 Song::HasChartByHash(const string& hash)
@@ -1956,7 +1963,7 @@ Song::UnloadAllCalcDebugOutput()
 {
 	for (auto s : m_vpSteps)
 		s->UnloadCalcDebugOutput();
-	}
+}
 
 bool
 Song::AnyChartUsesSplitTiming() const
