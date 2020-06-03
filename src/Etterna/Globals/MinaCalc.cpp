@@ -1029,7 +1029,7 @@ determine_col_type(const unsigned& notes, const unsigned& hand_id)
 		else if (shirt == 4)
 			return col_left;
 	}
-	ASSERT(0);
+	assert(0);
 	return col_init;
 }
 
@@ -1037,7 +1037,7 @@ determine_col_type(const unsigned& notes, const unsigned& hand_id)
 inline col_type
 invert_col(const col_type& col)
 {
-	// ASSERT(col == col_left || col == col_right);
+	// assert(col == col_left || col == col_right);
 	return col == col_left ? col_right : col_left;
 }
 
@@ -1045,7 +1045,7 @@ invert_col(const col_type& col)
 inline cc_type
 invert_cc(const cc_type& cc)
 {
-	// ASSERT(cc == cc_left_right || cc == cc_right_left);
+	// assert(cc == cc_left_right || cc == cc_right_left);
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
 }
 #pragma endregion
@@ -1146,7 +1146,7 @@ struct moving_window_interval_columns_int
 	// returns window totals
 	inline float operator[](const bool& col)
 	{
-		ASSERT(col < num_cols);
+		assert(col < num_cols);
 		// we're almost always dividing these values, so cast to float
 		return static_cast<float>(_win_vals[col]);
 	}
@@ -1523,7 +1523,7 @@ struct ItvHandInfo
 				col_taps[col] += 2;
 				break;
 			default:
-				ASSERT(0);
+				assert(0);
 				break;
 		}
 	}
@@ -1531,7 +1531,7 @@ struct ItvHandInfo
 	// returns basic tap col type counts
 	inline float operator[](const col_type& col) const
 	{
-		ASSERT(col < col_num_types);
+		assert(col < col_num_types);
 		// we're almost always dividing these values, so cast to float
 		return static_cast<float>(col_taps[col]);
 	}
@@ -1748,7 +1748,7 @@ struct metaHandInfo
 				tc_ms = ms_from(col_time[0], last[0]);
 				break;
 			default:
-				ASSERT(0);
+				assert(0);
 				break;
 		}
 		return;
@@ -1778,7 +1778,7 @@ struct metaHandInfo
 			return cc_single_single;
 
 		// makes no logical sense
-		ASSERT(1 == 0);
+		assert(0);
 		return cc_init;
 	}
 
@@ -2474,14 +2474,14 @@ struct CJMod
 		// this other places ?
 		if (mitvi.basically_vibro) {
 			// we shouldn't be hitting empty intervals here
-			ASSERT(mitvi.num_var > 0);
+			assert(mitvi.num_var > 0);
 			if (mitvi.num_var == 1)
 				pmod *= 0.5f * vibro_flag;
 			else if (mitvi.num_var == 2)
 				pmod *= 0.9f * vibro_flag;
 			else if (mitvi.num_var == 3)
 				pmod *= 0.95f * vibro_flag;
-			ASSERT(mitvi.num_var < 4);
+			assert(mitvi.num_var < 4);
 		}
 
 		doot[_pmod][mitvi._idx] = pmod;
@@ -2606,7 +2606,7 @@ struct OHJ_Sequencing
 	inline void complete_seq()
 	{
 		// negative values should not be possible
-		ASSERT(cur_seq_taps >= 0);
+		assert(cur_seq_taps >= 0);
 
 		// set the largest ohj sequence
 		max_seq_taps = get_largest_seq_taps();
@@ -2658,7 +2658,7 @@ struct OHJ_Sequencing
 			case cc_left_right:
 			case cc_right_left:
 				// we should only get here if we recently broke seq
-				ASSERT(now.last_cc == cc_jump_single);
+				assert(now.last_cc == cc_jump_single);
 
 				// if we have an actual cross column tap now, and if we just
 				// came from a jump -> single, then we have something like
@@ -2672,7 +2672,7 @@ struct OHJ_Sequencing
 				break;
 			case cc_single_single:
 				// we should only get here if we recently broke seq
-				ASSERT(now.last_cc == cc_jump_single);
+				assert(now.last_cc == cc_jump_single);
 
 				// we have something like [12]22, complete the sequence
 				// without the penalty that the cross column incurs
@@ -2692,7 +2692,7 @@ struct OHJ_Sequencing
 				// do nothing, we don't have enough info yet
 				break;
 			default:
-				ASSERT(0);
+				assert(0);
 				break;
 		}
 	}
@@ -2822,7 +2822,7 @@ struct OHJumpModGuyThing
 		}
 
 		// if there was a jump, we have at least a seq of 1
-		ASSERT(max_ohjump_seq_taps > 0);
+		assert(max_ohjump_seq_taps > 0);
 
 		// no repeated oh jumps, prop scale only based on jumps taps in hand
 		// taps if the jump was immediately broken by a cross column single tap
@@ -2884,7 +2884,7 @@ struct OHJumpModGuyThing
 
 		cc_taps = itvh.cc_types[cc_left_right] + itvh.cc_types[cc_right_left];
 
-		ASSERT(cc_taps >= 0);
+		assert(cc_taps >= 0);
 
 		// if cur_seq > max when we ended the interval, grab it
 		max_ohjump_seq_taps = ohj.cur_seq_taps > ohj.max_seq_taps
@@ -4122,7 +4122,7 @@ struct RM_Sequencing
 					handle_anchor_progression();
 				break;
 			default:
-				ASSERT(1 == 0);
+				assert(0);
 				break;
 		}
 	}
@@ -4854,7 +4854,7 @@ struct WideRangeRollMod
 			if (detecc_roll(now) && handle_roll_timing_check()) {
 				if (rolling) {
 					// these should always be mutually exclusive
-					ASSERT(is_transition == false);
+					assert(is_transition == false);
 					++consecutive_roll_counter;
 				} else {
 					// we could increase the roll counter here, but really
@@ -4980,7 +4980,7 @@ struct flam
 		switch (size) {
 			case 1:
 				// can't have 1 row flams
-				ASSERT(1 == 0);
+				assert(0);
 			case 2:
 				return ms[0];
 				break;
@@ -4991,7 +4991,7 @@ struct flam
 				return ms[0] + ms[1] + ms[2];
 				break;
 			default:
-				ASSERT(1 == 0);
+				assert(0);
 				break;
 		}
 	}
@@ -5006,7 +5006,7 @@ struct flam
 	{
 		unsigned_unseen |= notes;
 
-		ASSERT(size < 5);
+		assert(size < 5);
 
 		ms[size - 1] = ms_now;
 
@@ -5059,7 +5059,7 @@ struct FJ_Sequencing
 
 	inline void complete_seq()
 	{
-		ASSERT(flim.size > 1);
+		assert(flim.size > 1);
 		mod_parts[flam_counter] = construct_mod_part();
 		++flam_counter;
 
@@ -5073,7 +5073,7 @@ struct FJ_Sequencing
 	inline bool flammin_col_check(const unsigned& notes)
 	{
 		// this function should never be used to start a flam
-		ASSERT(flim.flammin);
+		assert(flim.flammin);
 
 		// note : in order to prevent the last row of a quad flam from being
 		// elibible to start a new flam (logically it makes no sense), instead
@@ -5453,7 +5453,7 @@ struct TT_Sequencing
 				fizz.reset();
 			return;
 		}
-		ASSERT(1 == 0);
+		assert(0);
 	}
 
 	inline void reset()
