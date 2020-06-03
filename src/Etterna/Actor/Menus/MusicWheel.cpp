@@ -720,9 +720,9 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 {
 	vector<Song*> tmp;
 	
-	for (size_t i = 0; i < inv.size(); i++) {
-		/* The default behaviour of an exclusive filter, where every filter has to match
-		 * is to accept by default, (i.e. addsong=true) and reject if any filters fail.
+	for (auto song : inv) {
+		/* The default behaviour of an exclusive filter is to accept
+		 * by default, (i.e. addsong=true) and reject if any filters fail.
 		 * The default behaviour of a non-exclusive filter is the exact opposite:
 		 * reject by default (i.e. addsong=false), and accept if any filters match.
 		 */
@@ -738,7 +738,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 					currate = currate - 0.1f;
 					if (!FILTERMAN->ExclusiveFilter) { //Non-Exclusive filter
 						if (FILTERMAN->HighestSkillsetsOnly)
-							if (!inv[i]->IsSkillsetHighestOfAnySteps(
+							if (!song->IsSkillsetHighestOfAnySteps(
 								  static_cast<Skillset>(ss), currate) &&
 								  ss < NUM_Skillset
 								) //The current skill is not in highest in the chart
@@ -746,15 +746,13 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 					}
 					float val;
 					if (ss < NUM_Skillset)
-						val =
-						  inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
+						val = song->GetHighestOfSkillsetAllSteps(ss, currate);
 					else {
-						TimingData* td =
-						  inv[i]->GetAllSteps()[0]->GetTimingData();
+						TimingData* td = song->GetAllSteps()[0]->GetTimingData();
 						val = (td->GetElapsedTimeFromBeat(
-								 inv[i]->GetLastBeat()) -
+								 song->GetLastBeat()) -
 							   td->GetElapsedTimeFromBeat(
-								 inv[i]->GetFirstBeat()));
+								 song->GetFirstBeat()));
 					}
 					if(FILTERMAN->ExclusiveFilter){
 						/* Our behaviour is to accept by default,
@@ -779,7 +777,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 		}
 		// only add the song if it's cleared the gauntlet
 		if (addsong)
-			tmp.emplace_back(inv[i]);
+			tmp.emplace_back(song);
 	}
 	inv.swap(tmp);
 }
