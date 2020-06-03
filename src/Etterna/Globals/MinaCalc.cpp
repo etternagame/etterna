@@ -43,7 +43,7 @@ static const int cols_per_hand = 2;
 static const bool hand_cols[cols_per_hand] = { 0, 1 };
 static const int num_cols = 4;
 static const vector<int> col_ids = { 1, 2, 4, 8 };
-static const vector<int> hand_col_ids[2] = { { 1, 2 }, { 4, 8 } };
+static const unsigned hand_col_ids[2] = { 3, 12 };
 static const int zto3[4] = { 0, 1, 2, 3 };
 static const char note_map[16][5]{ "----", "1---", "-1--", "11--",
 								   "--1-", "1-1-", "-11-", "111-",
@@ -1007,57 +1007,37 @@ is_col_type_single_tap(const col_type& col)
 	return col == col_left || col == col_right;
 }
 
-// there are no empty rows, only empty hands
-inline bool
-is_empty_hand(const bool& a, const bool& b)
+static inline col_type
+determine_col_type(const unsigned& notes, const unsigned& hand_id)
 {
-	return !a && !b;
-}
-
-inline cc_type
-determine_cc_type(const col_type& last, const col_type& now)
-{
-	if (last == col_init)
-		return cc_init;
-
-	bool single_tap = is_col_type_single_tap(now);
-	if (last == col_ohjump) {
-		if (single_tap)
-			return cc_jump_single;
-		else
-			// can't be anything else
-			return cc_jump_jump;
-	} else if (!single_tap)
-		return cc_single_jump;
-	// if we are on left col _now_, we are right to left
-	else if (now == col_left && last == col_right)
-		return cc_right_left;
-	else if (now == col_right && last == col_left)
-		return cc_left_right;
-	else if (now == last)
-		// anchor/jack
-		return cc_single_single;
-
-	// makes no logical sense
-	ASSERT(1 == 0);
-	return cc_init;
-}
-
-inline col_type
-bool_to_col_type(const bool& lcol, const bool& rcol)
-{
-	if (is_empty_hand(lcol, rcol))
+	unsigned shirt = notes & hand_id;
+	if (shirt == 0)
 		return col_empty;
-	if (lcol - rcol)
-		return lcol ? col_left : col_right;
-	return col_ohjump;
+
+	if (hand_id == 3) {
+		if (shirt == 3)
+			return col_ohjump;
+		if (shirt == 2)
+			return col_left;
+		else if (shirt == 1)
+			return col_right;
+	} else if (hand_id == 12) {
+		if (shirt == 12)
+			return col_ohjump;
+		if (shirt == 8)
+			return col_right;
+		else if (shirt == 4)
+			return col_left;
+	}
+	ASSERT(0);
+	return col_init;
 }
 
 // inverting col state for col_left or col_right only
 inline col_type
 invert_col(const col_type& col)
 {
-	ASSERT(col == col_left || col == col_right);
+	// ASSERT(col == col_left || col == col_right);
 	return col == col_left ? col_right : col_left;
 }
 
@@ -1065,24 +1045,8 @@ invert_col(const col_type& col)
 inline cc_type
 invert_cc(const cc_type& cc)
 {
-	ASSERT(cc == cc_left_right || cc == cc_right_left);
+	// ASSERT(cc == cc_left_right || cc == cc_right_left);
 	return cc == cc_left_right ? cc_right_left : cc_left_right;
-}
-
-inline void
-update_col_time(const col_type& col, float arr[2], const float& val)
-{
-	// update both
-	if (col == col_ohjump) {
-		arr[0] = val;
-		arr[1] = val;
-		return;
-	}
-	if (col == col_left)
-		arr[0] = val;
-	else if (col == col_right)
-		arr[1] = val;
-	return;
 }
 #pragma endregion
 
@@ -1447,7 +1411,7 @@ struct ItvHandInfo
 	float hand_taps = 0.f;
 
 	// resets all the stuff that accumulates across intervals
-	inline void reset(const int& idx)
+	inline void reset()
 	{
 		// taps per col on this hand
 		for (auto& t : col_taps)
@@ -1489,7 +1453,7 @@ struct ItvHandInfo
 
 	// meta stuff here for now
 	int cc_types[cc_num_types] = { 0, 0, 0, 0, 0, 0 };
-	int meta_types[3] = { 0, 0, 0 };
+	int meta_types[5] = { 0, 0, 0, 0, 0 };
 };
 //
 // struct metaItvHandInfo
@@ -1582,7 +1546,6 @@ enum meta_type
 	meta_enigma
 };
 
-// this comment is out of date and may remain so
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
 // rm_seuqencing, and widerange scalers should track their own interval queues
@@ -1601,35 +1564,31 @@ struct metaHandInfo
 #pragma region row specific data
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
-	float col_time[2] = { s_init, s_init };
+	unsigned row_notes;
+
+	float col_time[cols_per_hand] = { s_init, s_init };
+	float col_time_no_jumps[cols_per_hand] = { s_init, s_init };
 
 	// col
 	col_type col = col_init;
-	col_type last_non_empty_col = col_init;
 	col_type last_col = col_init;
+
 	// type of cross column hit
 	cc_type cc = cc_init;
 	cc_type last_cc = cc_init;
 
+	// whomst've
 	meta_type mt = meta_init;
 	meta_type last_mt = meta_init;
 
-	// the row notes, yes, this will be redundant, maybe need a metarowinfo that
-	// contains 2 metanoteinfos? ... yes... we probably do.. uhh
-	unsigned row_notes = 0;
-	unsigned last_row_notes = 0;
-
-	// number of notes in the row
-	int row_count = 0;
-
-	// last col == col_empty
-	bool last_was_offhand_tap = false;
+	// number of offhand taps before this row
+	int offhand_taps = 0;
+	int offhand_ohjumps = 0;
 
 	// ms from last cross column note
 	float cc_ms_any = ms_init;
 
-	// ms from last cross column note, excluding jumps (unused atm... might need
-	// later)
+	// ms from last cross column note, ignoring any oh jumps
 	float cc_ms_no_jumps = ms_init;
 
 	// ms from last note in this column
@@ -1637,73 +1596,102 @@ struct metaHandInfo
 
 #pragma endregion
 
+	inline void update_col_times(const float& val)
+	{
+		// update both
+		if (col == col_ohjump) {
+			col_time[col_left] = val;
+			col_time[col_right] = val;
+			return;
+		}
+		col_time[col] = val;
+		col_time_no_jumps[col] = val;
+		return;
+	}
+
 	// sets time from last note in the same column, and last note in the
 	// opposite column, handling for jumps is not completely fleshed out yet
 	// maybe, i think any case specific handling of their timings can be done
 	// with the information already given
-	inline void set_timings(const float cur[2],
-							const float last[2],
-							const col_type& last_col)
+	inline void set_timings(const float last[], const float last_no_jumps[])
 	{
 		switch (cc) {
+			case cc_init:
 			case cc_left_right:
 			case cc_right_left:
-			case cc_jump_single:
 			case cc_single_single:
+			case cc_jump_single:
 				// either we know the end col so we know the start col, or the
 				// start col doesn't matter
-				cc_ms_any = ms_from(cur[col], last[invert_col(col)]);
+				cc_ms_any = ms_from(col_time[col], last[invert_col(col)]);
+				cc_ms_no_jumps =
+				  ms_from(col_time[col], last_no_jumps[invert_col(col)]);
 
 				// technically doesn't matter if we use last_col to index, if
 				// it's single -> single we know it's an anchor so it's more
 				// intuitive to use col twice
-				tc_ms = ms_from(cur[col], last[col]);
+				tc_ms = ms_from(col_time[col], last[col]);
 				break;
 			case cc_single_jump:
 				// tracking this for now, use the higher value of the array
 				// (lower ms time, i.e. the column closest to this jump)
 				if (last[col_left] > last[col_right])
-					cc_ms_any = ms_from(cur[col_left], last[col_right]);
+					cc_ms_any = ms_from(col_time[col_left], last[col_right]);
 				else
-					cc_ms_any = ms_from(cur[col_right], last[col_left]);
+					cc_ms_any = ms_from(col_time[col_right], last[col_left]);
+
+				// make sure this doesn't make sense
+				cc_ms_no_jumps = ms_init;
 
 				// logically the same as cc_ms_any in 1[12] 1 is the anchor
 				// timing with 1 and also the cross column timing with 2
 				tc_ms = cc_ms_any;
 				break;
 			case cc_jump_jump:
-				// not sure if we should set or leave at init value of 5000.f
-				// cc_ms_any = 0.f;
+				cc_ms_any = 0.f;
+				// make sure this doesn't make sense
+				cc_ms_no_jumps = ms_init;
 
 				// indexes don't matter-- except that we can't use col or
 				// last_col (because index 2 is outside array size)
-				tc_ms = ms_from(cur[0], last[0]);
-				break;
-			case cc_init:
+				tc_ms = ms_from(col_time[0], last[0]);
 				break;
 			default:
-				// cc_type should never be anything but the above, for any
-				// reason, if we need to ignore an empty hand on a row, we
-				// should be checking col_empty, never the old cc_empty which
-				// now doesn't exist because logically it makes no sense
-				ASSERT(1 == 0);
+				ASSERT(0);
 				break;
 		}
 		return;
 	}
 
-	// col_type is hand specific, col_left doesn't mean 1000, it means 10
-	// cc is also hand specific, and is the nature of how the last 2 notes on
-	// this hand interact
-	inline void set_col_type(const bool& lcol, const bool& rcol)
+	inline cc_type determine_cc_type(const col_type& last)
 	{
-		col = bool_to_col_type(lcol, rcol);
+		if (last == col_init)
+			return cc_init;
+
+		bool single_tap = is_col_type_single_tap(col);
+		if (last == col_ohjump) {
+			if (single_tap)
+				return cc_jump_single;
+			else
+				// can't be anything else
+				return cc_jump_jump;
+		} else if (!single_tap)
+			return cc_single_jump;
+		// if we are on left col _now_, we are right to left
+		else if (col == col_left && last == col_right)
+			return cc_right_left;
+		else if (col == col_right && last == col_left)
+			return cc_left_right;
+		else if (col == last)
+			// anchor/jack
+			return cc_single_single;
+
+		// makes no logical sense
+		ASSERT(1 == 0);
+		return cc_init;
 	}
 
-	inline void set_cc_type(const col_type& last_col)
-	{
-		cc = determine_cc_type(last_col, col);
-	}
+	inline void set_cc_type() { cc = determine_cc_type(last_col); }
 
 	inline meta_type big_brain_sequencing(const metaHandInfo& last)
 	{
@@ -1716,42 +1704,24 @@ struct metaHandInfo
 		return meta_enigma;
 	}
 
-	// TECHNICALLY WE CAN CALL THIS ONLY IF AT LEAST ONE COL HAS A NOTE, AND
-	// WE PROBABLY SHOULD, BECAUSE IT MAKES THINGS A LOT MORE OBVIOUS AND
-	// ALSO BETTER, BUT IM TIRED RN
 	inline void operator()(const metaHandInfo& last,
 						   const float& now,
-						   const bool& lcol,
-						   const bool& rcol)
+						   const col_type& ct,
+						   const unsigned& notes)
 	{
-		set_col_type(lcol, rcol);
+		col = ct;
 		row_time = now;
-		last_row_notes = last.row_notes;
-		last_was_offhand_tap = last.col == col_empty;
+		row_notes = notes;
 		last_col = last.col;
 		last_cc = last.cc;
-
 		last_mt = last.mt;
+		col_time[col_left] = last.col_time[col_left];
+		col_time[col_right] = last.col_time[col_right];
+		col_time_no_jumps[col_left] = last.col_time_no_jumps[col_left];
+		col_time_no_jumps[col_right] = last.col_time_no_jumps[col_right];
 
-		// need this to determine cc types if they are interrupted by
-		// offhand taps
-		if (col != col_empty)
-			last_non_empty_col = col;
-		else
-			last_non_empty_col = last.last_non_empty_col;
-
-		// we don't want to set lasttime, lastcol, or re-evaluate cc_type
-		// for for empty columns on this hand, carry the cc_type value
-		// forward and ignore the timing values, they should never be
-		// referenced for col == empty, but in case they are accidentally,
-		// they should make no sense
-		if (col == col_empty) {
-			cc = last_cc;
-			return;
-		}
-
-		// set updated cc type only for non-empty columns on this hand
-		set_cc_type(last.last_non_empty_col);
+		// update this hand's cc type for this row
+		set_cc_type();
 
 		// now that we have determined cc_type, we can look for more complex
 		// patterns
@@ -1768,320 +1738,9 @@ struct metaHandInfo
 		// init values of 5000 though
 
 		// we will need to update time for one or both cols
-		update_col_time(col, col_time, now);
-		set_timings(col_time, last.col_time, last.col);
+		update_col_times(now);
+		set_timings(last.col_time, last.col_time_no_jumps);
 	}
-};
-
-struct RM_Sequencing
-{
-	// params.. loaded by runningman and then set from there
-	int max_oht_len = 0;
-	int max_off_spacing = 0;
-	int max_burst_len = 0;
-	int max_jack_len = 0;
-
-	inline void set_params(const float& moht,
-						   const float& moff,
-						   const float& mburst,
-						   const float& mjack)
-	{
-		max_oht_len = static_cast<int>(moht);
-		max_off_spacing = static_cast<int>(moff);
-		max_burst_len = static_cast<int>(mburst);
-		max_jack_len = static_cast<int>(mjack);
-	}
-
-	// sequencing counters
-	// only allow this rm's anchor col to start sequences
-	bool in_the_nineties = false;
-	// try to allow 1 burst?
-	bool is_bursting = false;
-	bool had_burst = false;
-	float last_anchor_time = s_init;
-	float last_off_time = s_init;
-	int total_taps = 0;
-	int ran_taps = 0;
-	col_type anchor_col = col_init;
-	cc_type last_cc = cc_init;
-	cc_type last_last_cc = cc_init;
-	int anchor_len = 0;
-	int off_taps_same = 0;
-	int oht_taps = 0;
-	int oht_len = 0;
-	int off_taps = 0;
-	int off_len = 0;
-	int jack_taps = 0;
-	int jack_len = 0;
-	float max_ms = ms_init;
-	float off_total_ms = 0.f;
-
-	col_type now_col = col_init;
-	float now = 0.f;
-	float temp_ms = 0.f;
-
-#pragma region functions
-	inline void reset()
-	{
-		// don't reset anchor_col or last_col, we want to preserve the pattern
-		// state reset everything else tho
-
-		// now_col and now don't need to be reset either
-
-		in_the_nineties = false;
-		is_bursting = false;
-		had_burst = false;
-		// reset?? don't reset????
-		last_anchor_time = ms_init;
-		last_off_time = s_init;
-		total_taps = 0;
-		ran_taps = 0;
-
-		anchor_len = 0;
-		off_taps_same = 0;
-		oht_taps = 0;
-		oht_len = 0;
-		off_taps = 0;
-		off_len = 0;
-		jack_taps = 0;
-		jack_len = 0;
-		max_ms = ms_init;
-		off_total_ms = 0.f;
-
-		// if we are resetting and this column is the anchor col, restart again
-		if (anchor_col == now_col)
-			handle_anchor_progression();
-	}
-
-	inline void handle_off_tap()
-	{
-		if (!in_the_nineties)
-			return;
-		last_off_time = now;
-
-		++ran_taps;
-		++off_taps;
-		++off_len;
-
-		// offnote, reset jack length & oht length
-		jack_len = 0;
-
-		// off_total_ms += ms_from(now, last_anchor_time);
-
-		// handle progression for increasing off_len
-		handle_off_tap_progression();
-
-		// rolls
-		if (off_len == max_off_spacing) {
-			// ok do nothing for now i might have a better idea
-		}
-	}
-
-	inline void handle_off_tap_completion()
-	{
-		// if we end while bursting due to hitting an anchor, complete it
-		if (is_bursting) {
-			is_bursting = false;
-			had_burst = true;
-		}
-		// reset off_len counter
-		off_len = 0;
-	}
-
-	inline void handle_off_tap_progression()
-	{
-		// resume off tap progression caused by another consecutive off tap
-		// normal behavior if we have already allowed for 1 burst, reset if the
-		// offtap sequence exceeds the spacing limit; this will also catch
-		// bursts that exceed the max burst length
-		if (had_burst) {
-			if (off_len > max_off_spacing) {
-				reset();
-				return;
-			}
-			// don't care about any other behavior here
-			return;
-		}
-
-		// if we are in a burst, allow it to finish and when it does set the
-		// had_burst flag rather than resetting, if the burst continues beyond
-		// the max burst length then it will be reset via other means
-		// (we must be in a burst if off_len == max_burst_len)
-		if (off_len == max_burst_len) {
-			handle_off_tap_completion();
-			return;
-		}
-
-		// haven't had or started a burst yet, if we exceed max_off_spacing, set
-		// is_bursting to true and allow it to continue, otherwise, do nothing
-		if (off_len > max_off_spacing)
-			is_bursting = true;
-		return;
-	}
-
-	inline void handle_anchor_progression()
-	{
-		// start a sequence whenever we hit this rm's anchor col, if we aren't
-		// already in one
-		if (in_the_nineties) {
-			// break the anchor if the next note is too much slower than the
-			// lowest one, but only after we've already set the initial anchor
-			temp_ms = ms_from(now, last_anchor_time);
-			// account for float precision error and small bpm flux
-			if (temp_ms > max_ms + 5.f)
-				reset();
-			else
-				max_ms = temp_ms;
-		} else {
-			// set first anchor val
-			max_ms = 5000.f;
-			in_the_nineties = true;
-		}
-
-		last_anchor_time = now;
-		++ran_taps;
-		++anchor_len;
-
-		// handle completion of off tap progression
-		handle_off_tap_completion();
-	}
-
-	inline void handle_jack_progression()
-	{
-		++ran_taps;
-		//++anchor_len; // do this for jacks?
-		++jack_len;
-		++jack_taps;
-
-		// handle completion of off tap progression
-		handle_off_tap_completion();
-
-		// make sure to set the anchor col when resetting if we exceed max jack
-		// len
-		if (jack_len > max_jack_len)
-			reset();
-	}
-
-	inline void handle_cross_column_branching()
-	{
-		// we are comparing 2 different enum types here, but this is what we
-		// want. cc_left_right is 0, col_left is 0. if we are cc_left_right then
-		// we have landed on the right column, so if we have cc (0) ==
-		// anchor_col (0), we are entering the off column (right) of the anchor
-		// (left). perhaps left_right and right_left should be flipped in the
-		// cc_type enum to make this more intuitive (but probably not)
-
-		// NOT an anchor
-		if (anchor_col != now_col && in_the_nineties) {
-			handle_off_tap();
-			// same hand offtap
-			++off_taps_same;
-			return;
-		}
-		handle_anchor_progression();
-	}
-
-	inline void handle_oht_progression()
-	{
-		// we only care about ohts that end off-anchor
-		if (now_col != anchor_col) {
-			++oht_len;
-			++oht_taps;
-			if (oht_len > max_oht_len)
-				reset();
-		}
-	}
-
-	inline void operator()(const metaHandInfo& mhi)
-	{
-		total_taps += mhi.row_count;
-
-		now_col = mhi.col;
-		now = mhi.row_time;
-
-		// simple case to handle, can't be a jack (or doesn't really matter) and
-		// can't be oht, only reset if we exceed the spacing limit, don't do
-		// anything else
-		if (mhi.col == col_empty) {
-			// reset oht len if we hit this (not really robust buuuut)
-			oht_len = 0;
-			handle_off_tap();
-			return;
-		}
-
-		// cosmic brain
-		if (mhi.mt == meta_oht)
-			handle_oht_progression();
-
-		switch (mhi.cc) {
-			case cc_left_right:
-			case cc_right_left:
-				handle_cross_column_branching();
-				break;
-			case cc_jump_single:
-				if (mhi.last_was_offhand_tap) {
-					// if we have a jump -> single, and the last
-					// note was an offhand tap, and the single
-					// is the anchor col, then we have an anchor
-					if ((mhi.col == col_left && anchor_col == col_left) ||
-						(mhi.col == col_right && anchor_col == col_right)) {
-						handle_anchor_progression();
-					} else {
-						// otherwise we have an off anchor tap
-						handle_off_tap();
-						// same hand offtap
-						++off_taps_same;
-					}
-				} else {
-					// if we are jump -> single and the last
-					// note was not an offhand hand tap, we have
-					// a jack
-					handle_jack_progression();
-				}
-				break;
-			case cc_single_single:
-				if (mhi.last_was_offhand_tap) {
-					// if this wasn't a jack, then it's just
-					// a good ol anchor
-					handle_anchor_progression();
-				} else {
-					// a jack, not an anchor, we don't
-					// want too many of these but we
-					// don't want to allow none of them
-					handle_jack_progression();
-				}
-				break;
-			case cc_single_jump:
-				// if last note was an offhand tap, this is by
-				// definition part of the anchor
-				if (mhi.last_was_offhand_tap) {
-					handle_anchor_progression();
-				} else {
-					// if not, a jack
-					handle_jack_progression();
-				}
-				break;
-			case cc_jump_jump:
-				// this is kind of a gray area, given that
-				// the difficulty of runningmen comes from
-				// the tight turns on the same hand... we
-				// will treat this as a jack even though
-				// technically it's an "anchor" when the
-				// last tap was an offhand tap
-				handle_jack_progression();
-				break;
-			case cc_init:
-				if (now_col == anchor_col)
-					handle_anchor_progression();
-				break;
-			default:
-				ASSERT(1 == 0);
-				break;
-		}
-		last_last_cc = last_cc;
-		last_cc = mhi.cc;
-	}
-#pragma endregion
 };
 
 // pmod stuff that was being mega coopy poostered
@@ -3163,7 +2822,8 @@ struct OHJumpModGuyThing
 		set_prop_comp();
 		prop_component = CalcClamp(prop_component, 0.1f, max_mod);
 
-		pmod = weighted_average(max_seq_component, prop_component, max_seq_weight, 1.f);
+		pmod = weighted_average(
+		  max_seq_component, prop_component, max_seq_weight, 1.f);
 		pmod = CalcClamp(fastsqrt(pmod), min_mod, max_mod);
 
 		doot[OHJumpMod][i] = pmod;
@@ -4086,6 +3746,297 @@ struct ChaosMod
 	// anything
 	inline void interval_reset() { itv_rolls.clear(); }
 };
+
+struct RM_Sequencing
+{
+	// params.. loaded by runningman and then set from there
+	int max_oht_len = 0;
+	int max_off_spacing = 0;
+	int max_burst_len = 0;
+	int max_jack_len = 0;
+
+	inline void set_params(const float& moht,
+						   const float& moff,
+						   const float& mburst,
+						   const float& mjack)
+	{
+		max_oht_len = static_cast<int>(moht);
+		max_off_spacing = static_cast<int>(moff);
+		max_burst_len = static_cast<int>(mburst);
+		max_jack_len = static_cast<int>(mjack);
+	}
+
+	// sequencing counters
+	// only allow this rm's anchor col to start sequences
+	bool in_the_nineties = false;
+	// try to allow 1 burst?
+	bool is_bursting = false;
+	bool had_burst = false;
+	float last_anchor_time = s_init;
+	int ran_taps = 0;
+	col_type anchor_col = col_init;
+	int anchor_len = 0;
+	int off_taps_same = 0;
+	int oht_taps = 0;
+	int oht_len = 0;
+	int off_taps = 0;
+	int off_len = 0;
+	int jack_taps = 0;
+	int jack_len = 0;
+	float max_ms = ms_init;
+
+	col_type now_col = col_init;
+	float now = 0.f;
+	float temp_ms = 0.f;
+
+#pragma region functions
+	inline void reset()
+	{
+		// don't reset anchor_col or last_col, we want to preserve the pattern
+		// state reset everything else tho
+
+		// now_col and now don't need to be reset either
+
+		in_the_nineties = false;
+		is_bursting = false;
+		had_burst = false;
+		// reset?? don't reset????
+		last_anchor_time = ms_init;
+		ran_taps = 0;
+
+		anchor_len = 0;
+		off_taps_same = 0;
+		oht_taps = 0;
+		oht_len = 0;
+		off_taps = 0;
+		off_len = 0;
+		jack_taps = 0;
+		jack_len = 0;
+		max_ms = ms_init;
+
+		// if we are resetting and this column is the anchor col, restart again
+		if (anchor_col == now_col)
+			handle_anchor_progression();
+	}
+
+	inline void handle_off_tap()
+	{
+		if (!in_the_nineties)
+			return;
+
+		++ran_taps;
+		++off_taps;
+		++off_len;
+
+		// offnote, reset jack length & oht length
+		jack_len = 0;
+
+		// handle progression for increasing off_len
+		handle_off_tap_progression();
+	}
+
+	inline void handle_off_tap_completion()
+	{
+		// if we end while bursting due to hitting an anchor, complete it
+		if (is_bursting) {
+			is_bursting = false;
+			had_burst = true;
+		}
+		// reset off_len counter
+		off_len = 0;
+	}
+
+	inline void handle_off_tap_progression()
+	{
+		// resume off tap progression caused by another consecutive off tap
+		// normal behavior if we have already allowed for 1 burst, reset if the
+		// offtap sequence exceeds the spacing limit; this will also catch
+		// bursts that exceed the max burst length
+		if (had_burst) {
+			if (off_len > max_off_spacing) {
+				reset();
+				return;
+			}
+			// don't care about any other behavior here
+			return;
+		}
+
+		// if we are in a burst, allow it to finish and when it does set the
+		// had_burst flag rather than resetting, if the burst continues beyond
+		// the max burst length then it will be reset via other means
+		// (we must be in a burst if off_len == max_burst_len)
+		if (off_len == max_burst_len) {
+			handle_off_tap_completion();
+			return;
+		}
+
+		// haven't had or started a burst yet, if we exceed max_off_spacing, set
+		// is_bursting to true and allow it to continue, otherwise, do nothing
+		if (off_len > max_off_spacing)
+			is_bursting = true;
+		return;
+	}
+
+	inline void handle_anchor_progression()
+	{
+		// start a sequence whenever we hit this rm's anchor col, if we aren't
+		// already in one
+		if (in_the_nineties) {
+			// break the anchor if the next note is too much slower than the
+			// lowest one, but only after we've already set the initial anchor
+			temp_ms = ms_from(now, last_anchor_time);
+			// account for float precision error and small bpm flux
+			if (temp_ms > max_ms + 5.f)
+				reset();
+			else
+				max_ms = temp_ms;
+		} else {
+			// set first anchor val
+			max_ms = 5000.f;
+			in_the_nineties = true;
+		}
+
+		last_anchor_time = now;
+		++ran_taps;
+		++anchor_len;
+
+		// handle completion of off tap progression
+		handle_off_tap_completion();
+	}
+
+	inline void handle_jack_progression()
+	{
+		++ran_taps;
+		//++anchor_len; // do this for jacks?
+		++jack_len;
+		++jack_taps;
+
+		// handle completion of off tap progression
+		handle_off_tap_completion();
+
+		// make sure to set the anchor col when resetting if we exceed max jack
+		// len
+		if (jack_len > max_jack_len)
+			reset();
+	}
+
+	inline void handle_cross_column_branching()
+	{
+		// we are comparing 2 different enum types here, but this is what we
+		// want. cc_left_right is 0, col_left is 0. if we are cc_left_right then
+		// we have landed on the right column, so if we have cc (0) ==
+		// anchor_col (0), we are entering the off column (right) of the anchor
+		// (left). perhaps left_right and right_left should be flipped in the
+		// cc_type enum to make this more intuitive (but probably not)
+
+		// NOT an anchor
+		if (anchor_col != now_col && in_the_nineties) {
+			handle_off_tap();
+			// same hand offtap
+			++off_taps_same;
+			return;
+		}
+		handle_anchor_progression();
+	}
+
+	inline void handle_oht_progression()
+	{
+		// we only care about ohts that end off-anchor
+		if (now_col != anchor_col) {
+			++oht_len;
+			++oht_taps;
+			if (oht_len > max_oht_len)
+				reset();
+		}
+	}
+
+	inline void operator()(const metaHandInfo& mhi)
+	{
+
+		now_col = mhi.col;
+		now = mhi.row_time;
+
+		// play catch up, treat offhand jumps like 2 offtaps
+		if (in_the_nineties && mhi.offhand_taps > 0) {
+			// reset oht len if we hit this (not really robust buuuut)
+			oht_len = 0;
+
+			for (int i = 0; i < mhi.offhand_taps; ++i)
+				handle_off_tap();
+		}
+
+		// cosmic brain
+		if (mhi.mt == meta_oht)
+			handle_oht_progression();
+
+		switch (mhi.cc) {
+			case cc_left_right:
+			case cc_right_left:
+				handle_cross_column_branching();
+				break;
+			case cc_jump_single:
+				if (mhi.offhand_taps > 0) {
+					// if we have a jump -> single, and the last
+					// note was an offhand tap, and the single
+					// is the anchor col, then we have an anchor
+					if ((mhi.col == col_left && anchor_col == col_left) ||
+						(mhi.col == col_right && anchor_col == col_right)) {
+						handle_anchor_progression();
+					} else {
+						// otherwise we have an off anchor tap
+						handle_off_tap();
+						// same hand offtap
+						++off_taps_same;
+					}
+				} else {
+					// if we are jump -> single and the last
+					// note was not an offhand hand tap, we have
+					// a jack
+					handle_jack_progression();
+				}
+				break;
+			case cc_single_single:
+				if (mhi.offhand_taps > 0) {
+					// if this wasn't a jack, then it's just
+					// a good ol anchor
+					handle_anchor_progression();
+				} else {
+					// a jack, not an anchor, we don't
+					// want too many of these but we
+					// don't want to allow none of them
+					handle_jack_progression();
+				}
+				break;
+			case cc_single_jump:
+				// if last note was an offhand tap, this is by
+				// definition part of the anchor
+				if (mhi.offhand_taps > 0) {
+					handle_anchor_progression();
+				} else {
+					// if not, a jack
+					handle_jack_progression();
+				}
+				break;
+			case cc_jump_jump:
+				// this is kind of a gray area, given that
+				// the difficulty of runningmen comes from
+				// the tight turns on the same hand... we
+				// will treat this as a jack even though
+				// technically it's an "anchor" when the
+				// last tap was an offhand tap
+				handle_jack_progression();
+				break;
+			case cc_init:
+				if (now_col == anchor_col)
+					handle_anchor_progression();
+				break;
+			default:
+				ASSERT(1 == 0);
+				break;
+		}
+	}
+#pragma endregion
+};
 struct RunningManMod
 {
 	const CalcPatternMod _pmod = RanMan;
@@ -4243,8 +4194,7 @@ struct RunningManMod
 	inline void set_dbg(vector<float> doot[], const int& i)
 	{
 		if (debug_lmao) {
-			doot[RanLen][i] =
-			  (static_cast<float>(rm.total_taps) / 100.f) + 0.5f;
+			doot[RanLen][i] = 1.f;
 			doot[RanAnchLen][i] =
 			  (static_cast<float>(rm.anchor_len) / 30.f) + 0.5f;
 			doot[RanAnchLenMod][i] = anchor_len_comp;
@@ -4297,11 +4247,7 @@ struct RunningManMod
 
 		// taps in runningman / total taps in interval... i think? can't
 		// remember when i reset total taps tbh.. this might be useless
-		total_prop = pmod_prop(rm.ran_taps,
-							   rm.total_taps,
-							   total_prop_scaler,
-							   total_prop_min,
-							   total_prop_max);
+		total_prop = 1.f;
 
 		// number anchor taps / number of non anchor taps
 		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
@@ -5786,128 +5732,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		// multi-passes at some point
 		_ni = ni;
 	}
-	/*
-	// inline void operator()(const vector<vector<int>>& itv_rows,
-	//					   const float& rate,
-	//					   const unsigned int& t1,
-	//					   const unsigned int& t2,
-	//					   vector<float> doot[])
-	//{
-	//	// change with offset, if we do multi offset passes we want this to
-	//	// be vars, but we aren't doing it now
-	//	_rate = rate;
-	//	_itv_rows = itv_rows;
-	//	_doot = doot;
 
-	//	// changes with hand
-	//	_t1 = t1;
-	//	_t2 = t2;
-
-	//	// askdfjhaskjhfwe
-	//	if (_t1 == col_ids[0])
-	//		hand = 0;
-	//	else
-	//		hand = 1;
-
-	//	// run any setup functions for pattern mods, generally memory
-	//	// initialization and maybe some other stuff
-	//	run_pattern_mod_setups();
-
-	//	if (dbg) {
-	//		// asfasdfasjkldf, keep track by hand i guess, since values for
-	//		// hand dependent mods would have been overwritten without using
-	//		// a pushback, and pushing back 2 cycles of metanoteinfo into
-	//		// the same debug vector is kinda like... not good
-	//		if (hand == 0) {
-	//			// left hand stuffies
-	//			_mni_dbg_vec1.resize(_itv_rows.size());
-	//			for (int itv = 0; itv < _itv_rows.size(); ++itv)
-	//				_mni_dbg_vec1[itv].reserve(_itv_rows[itv].size());
-	//		} else {
-	//			// right hand stuffies
-	//			_mni_dbg_vec2.resize(_itv_rows.size());
-	//			for (int itv = 0; itv < _itv_rows.size(); ++itv)
-	//				_mni_dbg_vec2[itv].reserve(_itv_rows[itv].size());
-	//		}
-	//	}
-
-	//	// above block is controlled in the struct def, this block is run if
-	// we
-	//	// are called from minacalcdebug, allocate the string thing, we can
-	// also
-	//	// force it
-	//	if (debug_lmao || dbg)
-	//		_itv_row_string.resize(_itv_rows.size());
-
-	//	// main interval loop, pattern mods values are produced in this
-	// outer
-	//	// loop using the data aggregated/generated in the inner loop
-	//	// all pattern mod functors should use i as an argument, since it
-	// needs
-	//	// to update the pattern mod holder at the proper index
-	//	// we end up running the hand independent pattern mods twice, but
-	// i'm
-	//	// not sure it matters? they tend to be low cost, this should be
-	// split
-	//	// up properly into hand dependent/independent loops if it turns out
-	// to
-	//	// be an issue
-	//	for (int itv = 0; itv < _itv_rows.size(); ++itv) {
-	//		// reset the last mni interval data, since it gets used to
-	//		// initialize now
-	//		_mni_last->_itv_info.reset();
-
-	//		// inner loop
-	//		for (auto& row : _itv_rows[itv]) {
-	//			// ok we really should be doing separate loops for both
-	//			// hand/separate hand stuff, and this should be in the
-	// former 			if (hand == 0) 				if (debug_lmao || dbg) {
-	//					_itv_row_string[itv].append(note_map[_ni[row].notes]);
-	//					_itv_row_string[itv].append("\n");
-	//				}
-	//			if (debug_lmao)
-	//				std::cout << "\n" << _itv_row_string[itv] << std::endl;
-
-	//			// generate current metanoteinfo using stuff + last
-	// metanoteinfo
-	//			(*_mhi)(
-	//			  *_mni_last, _ni[row].rowTime, _ni[row].notes, _t1, _t2,
-	// row);
-
-	//			// should be self explanatory
-	//			handle_row_dependent_pattern_advancement();
-
-	//			if (dbg) {
-	//				_dbg(*_mni_last,
-	//					 _ni[row].rowTime,
-	//					 _ni[row].notes,
-	//					 _t1,
-	//					 _t2,
-	//					 row,
-	//					 true);
-
-	//				// left hand stuffies
-	//				if (hand == 0)
-	//					_mni_dbg_vec1[itv].push_back(_dbg);
-	//				else
-	//					// right hand stuffies
-	//					_mni_dbg_vec2[itv].push_back(_dbg);
-	//			}
-
-	//			set_mni_last();
-	//		}
-	//		// pop the last \n for the interval
-	//		if (debug_lmao || dbg)
-	//			if (hand == 0)
-	//				if (!_itv_row_string[itv].empty())
-	//					_itv_row_string[itv].pop_back();
-
-	//		// set the pattern mod values by calling the mod functors
-	//		call_pattern_mod_functors(itv);
-	//	}
-	//	run_smoothing_pass();
-	//}
-	*/
 	inline void operator()(const vector<vector<int>>& itv_rows,
 						   const float& rate,
 						   vector<float> ldoot[],
@@ -5972,6 +5797,17 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_tt._pmod], neutral);
 	}
 
+	inline void bruh_they_the_same()
+	{
+		_doots[1][_s._pmod] = _doots[0][_s._pmod];
+		_doots[1][_js._pmod] = _doots[0][_js._pmod];
+		_doots[1][_hs._pmod] = _doots[0][_hs._pmod];
+		_doots[1][_cj._pmod] = _doots[0][_cj._pmod];
+		_doots[1][_cjq._pmod] = _doots[0][_cjq._pmod];
+		_doots[1][_fj._pmod] = _doots[0][_fj._pmod];
+		_doots[1][_tt._pmod] = _doots[0][_tt._pmod];
+	}
+
 	inline void run_agnostic_pmod_loop()
 	{
 		setup_agnostic_pmods();
@@ -6008,6 +5844,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			set_agnostic_pmods(_doots[lh], itv);
 		}
 		run_agnostic_smoothing_pass(_doots[lh]);
+		bruh_they_the_same();
 	}
 #pragma endregion
 
@@ -6072,7 +5909,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		float row_time = 0.f;
 		int row_count = 0;
 		unsigned row_notes = 0;
-		bool col[2] = { false, false };
 		col_type ct = col_init;
 
 		for (auto& ids : hand_col_ids) {
@@ -6090,9 +5926,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// the pass is limited to like... a couple floats and 2 ints)
 
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
-				// reset any accumulated interval info and set cur index
-				// number
-				_itvhi.reset(itv);
+				// reset any accumulated interval info
+				_itvhi.reset();
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
@@ -6100,23 +5935,33 @@ struct TheGreatBazoinkazoinkInTheSky
 					row_notes = _ni[row].notes;
 					row_count = column_count(row_notes);
 
-					col[col_left] = row_notes & ids[col_left];
-					col[col_right] = row_notes & ids[col_right];
+					ct = determine_col_type(row_notes, ids);
 
-					ct = bool_to_col_type(col[col_left], col[col_right]);
-
-					(*_mhi)(
-					  *_last_mhi, row_time, col[col_left], col[col_right]);
-
-					if (ct != col_empty && ct != col_init) {
-						_itvhi.update_tap_counts(ct);
-						++_itvhi.cc_types[_mhi->cc];
-						++_itvhi.cc_types[_mhi->mt];
+					// log offhand tap info (could be more performance and
+					// information efficient)
+					if (ct == col_empty) {
+						++_mhi->offhand_taps;
+						if (column_count(row_notes) == 2) {
+							++_mhi->offhand_ohjumps;
+							++_mhi->offhand_taps;
+						}
 					}
 
-					handle_row_dependent_pattern_advancement();
+					// only do anything else for rows with actual stuff on this
+					// hand, especially the swap
+					if (ct != col_empty) {
+						(*_mhi)(*_last_mhi, row_time, ct, row_notes);
 
-					std::swap(_last_mhi, _mhi);
+						_itvhi.update_tap_counts(ct);
+						++_itvhi.cc_types[_mhi->cc];
+						++_itvhi.meta_types[_mhi->mt];
+
+						handle_row_dependent_pattern_advancement();
+
+						std::swap(_last_mhi, _mhi);
+						_mhi->offhand_ohjumps = 0;
+						_mhi->offhand_taps = 0;
+					}
 				}
 				// just add up col taps to get hand taps i guess
 				_itvhi.set_hand_taps();
@@ -6269,9 +6114,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// WideRangeBalanceScaler(NoteInfo, music_rate, left_hand.doot);
 	WideRangeAnchorScaler(NoteInfo, music_rate, left_hand.doot);
 
-	vector<int> bruh_they_the_same = {
-		Stream, JS, HS, CJ, CJQuad, FlamJam, TheThing, WideRangeAnchor
-	};
+	vector<int> bruh_they_the_same = { WideRangeAnchor };
 	// hand agnostic mods are the same
 	for (auto pmod : bruh_they_the_same)
 		right_hand.doot[pmod] = left_hand.doot[pmod];
@@ -7127,7 +6970,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 359;
+int mina_calc_version = 360;
 int
 GetCalcVersion()
 {
