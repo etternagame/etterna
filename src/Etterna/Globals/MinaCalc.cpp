@@ -2951,7 +2951,7 @@ struct OHJ_Sequencing
 // ok this should be more manageable now
 struct OHJumpModGuyThing
 {
-	static const CalcPatternMod _pmod = OHJumpMod;
+	const CalcPatternMod _pmod = OHJumpMod;
 	const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp, OHJSeqComp,
 										  OHJMaxSeq,   OHJCCTaps,   OHJHTaps };
 	const std::string name = "OHJumpMod";
