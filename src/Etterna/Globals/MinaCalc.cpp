@@ -990,6 +990,18 @@ enum cc_type
 	cc_init,
 };
 
+enum meta_type
+{
+	meta_oht,
+	meta_ccacc,
+	meta_acca,
+	meta_ccsjjscc,
+	meta_ccsjjscc_inverted,
+	meta_enigma,
+	meta_num_types,
+	meta_init,
+};
+
 // hand specific meaning the left two or right two columns and only for 4k
 enum col_type
 {
@@ -1544,7 +1556,7 @@ struct ItvHandInfo
 
 	// meta stuff here for now
 	int cc_types[cc_num_types] = { 0, 0, 0, 0, 0, 0 };
-	int meta_types[5] = { 0, 0, 0, 0, 0 };
+	int meta_types[meta_num_types] = { 0, 0, 0, 0, 0, 0 };
 };
 //
 // struct metaItvHandInfo
@@ -1627,15 +1639,14 @@ detecc_acca(const cc_type& a, const cc_type& b, const cc_type& c)
 	return false;
 }
 
-enum meta_type
+// WHOMST'D'VE
+inline bool
+detecc_ccsjjs(const cc_type& a, const cc_type& b, const cc_type& c)
 {
-	meta_oht,
-	meta_ccacc,
-	meta_acca,
-	meta_num_types,
-	meta_init,
-	meta_enigma
-};
+	if (c != cc_left_right && c != cc_right_left)
+		return false;
+	return b == cc_single_jump && a == cc_jump_single;
+}
 
 // this should contain most everything needed for the generic pattern mods,
 // extremely specific sequencing will take place in separate areas like with
@@ -1667,6 +1678,9 @@ struct metaHandInfo
 	// type of cross column hit
 	cc_type cc = cc_init;
 	cc_type last_cc = cc_init;
+
+	// needed for the BIGGEST BRAIN PLAYS
+	cc_type last_last_cc = cc_init;
 
 	// whomst've
 	meta_type mt = meta_init;
@@ -1726,7 +1740,7 @@ struct metaHandInfo
 			case cc_single_jump:
 				// tracking this for now, use the higher value of the array
 				// (lower ms time, i.e. the column closest to this jump)
-				if (last[col_left] > last[col_right])
+				if (last[col_left] < last[col_right])
 					cc_ms_any = ms_from(col_time[col_left], last[col_right]);
 				else
 					cc_ms_any = ms_from(col_time[col_right], last[col_left]);
@@ -1792,6 +1806,16 @@ struct metaHandInfo
 			return meta_ccacc;
 		if (detecc_acca(cc, last_cc, last.last_cc))
 			return meta_acca;
+
+		if (cc == cc_left_right || cc == cc_right_left) {
+			if (detecc_ccsjjs(last_cc, last_last_cc, last.last_last_cc)) {
+				if (cc == last.last_last_cc)
+					return meta_ccsjjscc;
+				else
+					return meta_ccsjjscc_inverted;
+			}
+		}
+
 		return meta_enigma;
 	}
 
@@ -1804,6 +1828,7 @@ struct metaHandInfo
 		row_time = now;
 		row_notes = notes;
 		last_col = last.col;
+		last_last_cc = last.last_cc;
 		last_cc = last.cc;
 		last_mt = last.mt;
 		col_time[col_left] = last.col_time[col_left];
@@ -4547,7 +4572,8 @@ struct WideRangeJumptrillMod
 		return false;
 	}
 
-	inline void bibblybop(const meta_type& mt) {
+	inline void bibblybop(const meta_type& mt)
+	{
 		++jt_counter;
 		if (bro_is_this_file_for_real)
 			++jt_counter;
@@ -4627,79 +4653,58 @@ struct WideRangeJumptrillMod
 		jt_counter = 0;
 	}
 };
-// if ccacc is cross column, anchor, cross column (1221) and we are looking for
-// (1212) then we are looking for cccccc where the inner cc is the inverse of
-// the outers, so we'll follow the rough model that wrjt setup, conveniently
-// the inner timing ratio to the outer timings should also be 3:1 when looking
-// for proper rolls, it would be 1:1 for ohts. given the much more efficient
-// new setup we can do roll detection and oht detection in separate passes
-// this is for PURE ROLLS ONLY, not rolls with maybe some jumps in it, that can
-// be done in another pass
-// refer to cccccc with an inverted center as "roll" formation, even though
-// technically it can either be roll or oht depending on spacing
+
+// ok new plan we will incloop the joomp
 struct WideRangeRollMod
 {
 	const CalcPatternMod _pmod = WideRangeRoll;
 	const std::string name = "WideRangeRollMod";
 
 #pragma region params
-	float itv_window = 4;
+	float window = 4;
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
 	float mod_pool = 1.15f;
 
 	float moving_cv_init = 0.5f;
-	float roll_cv_cutoff = 0.25f;
+	float cv_cutoff = 0.25f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "itv_window", &itv_window },
+		{ "window", &window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_pool", &mod_pool },
 
 		{ "moving_cv_init", &moving_cv_init },
-		{ "roll_cv_cutoff", &roll_cv_cutoff },
+		{ "cv_cutoff", &cv_cutoff },
 	};
 #pragma endregion params and param map
 	// taps for this hand only, we don't want to include offhand taps in
 	// determining whether this hand is a roll
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_rolls;
+	moving_window_interval_int _mw_taps;
+	moving_window_interval_int _mw_roll;
 
-	// each element is a discrete roll formation with this many taps
-	// (technically it has this many taps + 4 because it requires 1212 or
-	// 2121 to start counting, but that's fine, that's what we want and if
-	// it seems better to add later we can do that
-	vector<int> itv_rolls;
-
-	// unlike ccacc, which has a half baked implementation for chains of
-	// 122112211221, we will actually be responsible and sequence both the
-	// number of rolls and the notes contained therein
-	bool rolling = false;
-	bool is_transition = false;
-	int consecutive_roll_counter = 0;
+	int roll_counter = 0;
+	bool last_passed_check = false;
+	bool nah_this_file_aint_for_real = false;
 
 	int window_hand_taps = 0;
-	// for now we will be lazy and just add up the number of roll taps in any
-	// roll, if we leave out the initialization taps (the 4 required to identify
-	// the start) we will greatly reduce the effect of short roll bursts, not
-	// sure if this is desired behavior
 	int window_roll_taps = 0;
 	float pmod = min_mod;
 
+	vector<float> idk_ms = { 0.f, 0.f, 0.f, 0.f };
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
 	float moving_cv = moving_cv_init;
 
-	// non-empty (cc_type is now always non-empty)
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
+		_mw_taps._size = window;
+		_mw_roll._size = window;
 	}
 
 	inline XNode* make_param_node() const
@@ -4728,78 +4733,127 @@ struct WideRangeRollMod
 	}
 #pragma endregion
 
-	// should rename as it resets or completes a sequence... maybe should go
-	// look at rm_sequencing again and make roll_sequencing.. idk
-	inline void reset_sequence()
+	inline bool handle_ccacc_timing_check()
 	{
-		// only need to do this if rolling, otherwise values are false/0 anyway
-		if (rolling) {
-			itv_rolls.push_back(consecutive_roll_counter);
-			rolling = false;
-			consecutive_roll_counter = 0;
-		}
+		seq_ms[1] /= 3.f;
+		last_passed_check = cv(seq_ms) < cv_cutoff;
+		seq_ms[1] *= 3.f;
 
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
+		return last_passed_check;
 	}
 
-	// copied from wrjt, definitely needs to be tracked in metanoteinfo
-	inline bool detecc_ccacc(const metaHandInfo& now)
+	inline bool handle_acca_timing_check()
 	{
-		if (now.cc == cc_single_single)
-			return false;
+		seq_ms[1] *= 3.f;
+		last_passed_check = cv(seq_ms) < cv_cutoff;
+		seq_ms[1] /= 3.f;
 
-		if (invert_cc(now.cc) == last_last_seen_cc)
-			return true;
-
-		return false;
-	}
-
-	// should maybe move this into metanoteinfo and do the counting there, since
-	// oht will need this as well, or we could be lazy and do it twice just this
-	// once
-	inline bool detecc_roll(const metaHandInfo& now)
-	{
-		// we allow this through up to here due to transition checks
-		if (now.cc == cc_single_single)
-			return false;
-
-		// if we're here the following are true, we have a full sequence of 3 cc
-		// taps, they are non-empty, there are no jumps and no anchors. this
-		// means they are all either cc_left_right, cc_right_left
-
-		// now we know we have cc_left_right or cc_right_left, so, xy, we are
-		// looking for xyx, meaning last would be the inverion of now
-		if (invert_cc(now.cc) == last_seen_cc)
-			// now make sure that last_last is the same as now
-			if (now.cc == last_last_seen_cc)
-				// we now have 1212 or 2121
-				return true;
-		return false;
+		return last_passed_check;
 	}
 
 	inline bool handle_roll_timing_check()
 	{
-		// see ccacc timing check in wrjt for explanations, it's basically the
-		// same but we have to invert the multiplication depending on which
-		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
-		// a roll in an editor to see why)
-
-		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
-		// doesn't interfere with the next round
 		if (seq_ms[0] > seq_ms[1]) {
 			seq_ms[1] *= 3.f;
-			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			last_passed_check = cv(seq_ms) < cv_cutoff;
 			seq_ms[1] /= 3.f;
-			return moving_cv < roll_cv_cutoff;
+			return last_passed_check;
 		} else {
-			// same thing but divide
 			seq_ms[1] /= 3.f;
-			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
+			last_passed_check = cv(seq_ms) < cv_cutoff;
 			seq_ms[1] *= 3.f;
-			return moving_cv < roll_cv_cutoff;
+			return last_passed_check;
+		}
+	}
+
+	inline bool handle_ccsjjscc_timing_check(const float& now)
+	{
+		// translate over the values
+		idk_ms[2] = seq_ms[0];
+		idk_ms[1] = seq_ms[1];
+		idk_ms[0] = seq_ms[2];
+
+		// add the new value
+		idk_ms[3] = now;
+
+		// run 2 tests so we can keep a stricter cutoff
+		// need to put cv in array thingy mcboop
+		// check 1
+		idk_ms[0] *= 2.f;
+		idk_ms[3] *= 2.f;
+		last_passed_check = cv(idk_ms) < cv_cutoff / 2.f;
+		idk_ms[0] /= 2.f;
+		idk_ms[3] /= 2.f;
+
+		if (last_passed_check)
+			return true;
+
+		// test again
+		idk_ms[0] *= 3.f;
+		idk_ms[3] *= 3.f;
+		last_passed_check = cv(idk_ms) < cv_cutoff / 2.f;
+		idk_ms[0] /= 3.f;
+		idk_ms[3] /= 3.f;
+
+		if (last_passed_check)
+			return true;
+		return false;
+	}
+
+	// we might want to skip acca here
+	inline bool check_last_mt(const meta_type& mt)
+	{
+		if (mt == meta_acca || mt == meta_ccacc || mt == meta_oht ||
+			mt == meta_ccsjjscc || mt == meta_ccsjjscc_inverted)
+			if (last_passed_check)
+				return true;
+		return false;
+	}
+
+	inline void bibblybop(const meta_type& mt)
+	{
+		if (!last_passed_check)
+			nah_this_file_aint_for_real = false;
+
+		++roll_counter;
+		if (nah_this_file_aint_for_real)
+			++roll_counter;
+		if (check_last_mt(mt)) {
+			++roll_counter;
+			nah_this_file_aint_for_real = true;
+		}
+	}
+
+	inline void advance_sequencing(const metaHandInfo& now)
+	{
+		// we will let ohjumps through here
+
+		update_seq_ms(now);
+
+		// look for stuff thats jumptrillyable.. if that stuff... then leads
+		// into more stuff.. that is jumptrillyable... then .... badonk it
+		switch (now.mt) {
+			case meta_oht:
+				if (handle_roll_timing_check())
+					bibblybop(now.last_mt);
+				break;
+			case meta_ccacc:
+				if (handle_ccacc_timing_check())
+					bibblybop(now.last_mt);
+				break;
+			case meta_acca:
+				if (handle_acca_timing_check())
+					bibblybop(now.last_mt);
+				break;
+			case meta_ccsjjscc:
+			case meta_ccsjjscc_inverted:
+				if (handle_ccsjjscc_timing_check(now.cc_ms_any)) {
+					bibblybop(now.last_mt);
+					roll_counter += 2;
+				}
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -4808,76 +4862,20 @@ struct WideRangeRollMod
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
 
-		// update now, we have no anchors, so always use cc_ms_any (although we
-		// want to move this to cc_ms_no_jumps when that gets implemented, since
-		// a separate jump inclusive mod should be made to handle those cases
-		seq_ms[2] = now.cc_ms_any;
-	}
-
-	inline void advance_sequencing(const metaHandInfo& now)
-	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
-
-		// only let these cases through, since we use invert_cc, anchors are
-		// screened out later, reset otherwise
-		if (now.cc != cc_left_right && now.cc != cc_right_left &&
-			now.cc != cc_single_single) {
-			reset_sequence();
-			return;
-		}
-
-		// update timing stuff
-		update_seq_ms(now);
-
-		is_transition = false;
-		// try to catch simple transitions https:i.imgur.com/zhlBio0.png, given
-		// the constraints on ccacc we have to check last_cc for the anchor
-		if (now.last_cc == cc_single_single)
-			if (detecc_ccacc(now)) {
-				if (rolling) {
-					// don't care about any timing checks for the moment
-					is_transition = true;
-					++consecutive_roll_counter;
-				}
-			}
-
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for rolls (cc -> inverted(cc) -> cc)
-			// now.mt == meta_oht (works in trill idk wtf)
-			if (detecc_roll(now) && handle_roll_timing_check()) {
-				if (rolling) {
-					// these should always be mutually exclusive
-					assert(is_transition == false);
-					++consecutive_roll_counter;
-				} else {
-					// we could increase the roll counter here, but really
-					// all we have now is a minitrill, so lets see if it
-					// extends to at least 5 notes before doing anything
-					rolling = true;
-				}
-				// only reset here if this fails and a transition wasn't
-				// detected, if we reset here we have to assign seq_ms[2] again,
-				// yes this is asofgasfjasofdj messy
-			} else if (!is_transition) {
-				reset_sequence();
-				seq_ms[2] = now.cc_ms_any;
-			}
-
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		// update now
+		// for anchors, track tc_ms
+		if (now.cc == cc_single_single)
+			seq_ms[2] = now.tc_ms;
+		// for cc_left_right or cc_right_left, track cc_ms
+		else
+			seq_ms[2] = now.cc_ms_any;
 	}
 
 	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
-		if (window_hand_taps == 0 || window_roll_taps == 0) {
+		// no taps, no rolls
+		if (_mw_taps._win_val == 0 || _mw_roll._win_val == 0) {
 			neutral_set(_pmod, doot, i);
-			return true;
-		} else if (window_hand_taps == window_roll_taps) {
-			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
@@ -4888,57 +4886,23 @@ struct WideRangeRollMod
 						   vector<float> doot[],
 						   const int& i)
 	{
-		// drop the oldest interval values if we have reached full
-		// size
-		if (window_itv_hand_taps.size() == itv_window) {
-			window_itv_hand_taps.pop_front();
-			window_itv_rolls.pop_front();
-		}
-
-		// this is slightly hacky buuut if we have a roll that doesn't complete
-		// by the end of the interval, it should count for that interval, but we
-		// don't want the value to double up so we will reset the counter on
-		// interval end but _not_ reset the rolling bool, so it won't interfere
-		// with the detection as the sequencing passes into the next interval,
-		// and won't double up values
-		if (consecutive_roll_counter > 0) {
-			itv_rolls.push_back(consecutive_roll_counter);
-			consecutive_roll_counter = 0;
-		}
-
-		window_itv_hand_taps.push_back(itvh.hand_taps);
-		window_itv_rolls.push_back(itv_rolls);
-
-		window_hand_taps = 0;
-		for (auto& n : window_itv_hand_taps)
-			window_hand_taps += n;
-
-		window_roll_taps = 0;
-		// for now just add everything up
-		for (auto& n : window_itv_rolls)
-			for (auto& v : n)
-				window_roll_taps += v;
+		_mw_taps(itvh[col_left] + itvh[col_right]);
+		_mw_roll(roll_counter);
 
 		if (handle_case_optimizations(doot, i)) {
 			interval_reset();
 			return;
 		}
 
-		if (window_roll_taps > 0 && window_hand_taps > 0)
-			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
-							   static_cast<float>(window_hand_taps));
+		pmod = _mw_taps[true] / _mw_roll[true] * 0.85;
 
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = CalcClamp(fastsqrt(pmod), min_mod, max_mod);
 		doot[_pmod][i] = pmod;
 
 		interval_reset();
 	}
 
-	// may be unneeded for this function but it's probably good practice to have
-	// this and always reset anything that needs to be on handling case
-	// optimizations, even if the case optimizations don't require us to reset
-	// anything
-	inline void interval_reset() { itv_rolls.clear(); }
+	inline void interval_reset() { roll_counter = 0; }
 };
 
 struct flam
@@ -4990,6 +4954,8 @@ struct flam
 				assert(0);
 				break;
 		}
+		assert(0);
+		return 0.f;
 	}
 
 	inline void start(const float& ms_now, const unsigned& notes)
@@ -5976,8 +5942,11 @@ struct TheGreatBazoinkazoinkInTheSky
 						(*_mhi)(*_last_mhi, row_time, ct, row_notes);
 
 						_itvhi.update_tap_counts(ct);
-						++_itvhi.cc_types[_mhi->cc];
-						++_itvhi.meta_types[_mhi->mt];
+
+						if (ct != col_init) {
+							++_itvhi.cc_types[_mhi->cc];
+							++_itvhi.meta_types[_mhi->mt];
+						}
 
 						handle_row_dependent_pattern_advancement();
 
@@ -6993,7 +6962,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 360;
+int mina_calc_version = 361;
 int
 GetCalcVersion()
 {
