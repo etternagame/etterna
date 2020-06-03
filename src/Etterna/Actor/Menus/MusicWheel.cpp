@@ -719,87 +719,68 @@ void
 MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 {
 	vector<Song*> tmp;
-	if (!FILTERMAN->ExclusiveFilter) {
-		for (size_t i = 0; i < inv.size(); i++) {
-			bool addsong = false;
-			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
-				float lb = FILTERMAN->SSFilterLowerBounds[ss];
-				float ub = FILTERMAN->SSFilterUpperBounds[ss];
-				if (lb > 0.f || ub > 0.f) { // if either bound is active,
-											// continue to evaluation
-					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
-					do {
-						currate = currate - 0.1f;
+	
+	for (size_t i = 0; i < inv.size(); i++) {
+		/* The default behaviour of an exclusive filter, where every filter has to match
+		 * is to accept by default, (i.e. addsong=true) and reject if any filters fail.
+		 * The default behaviour of a non-exclusive filter is the exact opposite:
+		 * reject by default (i.e. addsong=false), and accept if any filters match.
+		 */
+		bool addsong = FILTERMAN->ExclusiveFilter;
+		for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
+			float lb = FILTERMAN->SSFilterLowerBounds[ss];
+			float ub = FILTERMAN->SSFilterUpperBounds[ss];
+			//If either bound is active, continue to evaluation
+			if (lb > 0.f || ub > 0.f) {
+				float currate = FILTERMAN->MaxFilterRate + 0.1f;
+				float minrate = FILTERMAN->m_pPlayerState->wtFFF;
+				do {
+					currate = currate - 0.1f;
+					if (!FILTERMAN->ExclusiveFilter) { //Non-Exclusive filter
 						if (FILTERMAN->HighestSkillsetsOnly)
 							if (!inv[i]->IsSkillsetHighestOfAnySteps(
 								  static_cast<Skillset>(ss), currate) &&
-								ss < NUM_Skillset)
-								continue;
-						float val;
-						if (ss < NUM_Skillset)
-							val =
-							  inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
-						else {
-							TimingData* td =
-							  inv[i]->GetAllSteps()[0]->GetTimingData();
-							val = (td->GetElapsedTimeFromBeat(
-									 inv[i]->GetLastBeat()) -
-								   td->GetElapsedTimeFromBeat(
-									 inv[i]->GetFirstBeat()));
-						}
-						
-						if((val > lb || !(lb > 0.f)) && (val < ub || !(ub > 0.f))){
-							/* If we're above the lower bound or it's not set and also
-							 * below the upper bound or it isn't set*/
-							addsong=true;
-						}
-					} while (currate > minrate);
-				}
-			}
-			// only add the song if it's cleared the gauntlet
-			if (addsong)
-				tmp.emplace_back(inv[i]);
-		}
-	} else {
-		for (size_t i = 0; i < inv.size(); i++) {
-			bool addsong = true;
-			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
-				/* Iterate through all skill filters. If any are *not* met, set
-				 * addsong to false*/
-				float lb = FILTERMAN->SSFilterLowerBounds[ss];
-				float ub = FILTERMAN->SSFilterUpperBounds[ss];
-				if (lb > 0.f || ub > 0.f) {
-					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
-					do {
-						currate = currate - 0.1f;
-						float val;
-						if (ss < NUM_Skillset)
-							val =
-							  inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
-						else {
-							TimingData* td =
-							  inv[i]->GetAllSteps()[0]->GetTimingData();
-							val = (td->GetElapsedTimeFromBeat(
-									 inv[i]->GetLastBeat()) -
-								   td->GetElapsedTimeFromBeat(
-									 inv[i]->GetFirstBeat()));
-						}
-						
-						if((val < lb && lb > 0.f) || (val > ub && ub > 0.f)){
+								  ss < NUM_Skillset
+								) //The current skill is not in highest in the chart
+									continue; //Reject it as a candidate
+					}
+					float val;
+					if (ss < NUM_Skillset)
+						val =
+						  inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
+					else {
+						TimingData* td =
+						  inv[i]->GetAllSteps()[0]->GetTimingData();
+						val = (td->GetElapsedTimeFromBeat(
+								 inv[i]->GetLastBeat()) -
+							   td->GetElapsedTimeFromBeat(
+								 inv[i]->GetFirstBeat()));
+					}
+					if(FILTERMAN->ExclusiveFilter){
+						/* Our behaviour is to accept by default,
+						 * but reject if any filters don't match.*/
+						if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
 							/* If we're below the lower bound and it's set,
 							 * or above the upper bound and it's set*/
 							addsong=false;
 						}
-					} while (currate > minrate);
-				}
+					}else{ //Non-Exclusive Filter
+						/* Our behaviour is to reject by default,
+						 * but accept if any filters match.*/
+						if ((val > lb || !(lb > 0.f)) && (val < ub || !(ub > 0.f))) {
+							/* If we're above the lower bound or it's not set and also
+							 * below the upper bound or it isn't set*/
+							addsong=true;
+						}
+					}
+					
+				} while (currate > minrate);
 			}
-			if (addsong)
-				tmp.emplace_back(inv[i]);
 		}
+		// only add the song if it's cleared the gauntlet
+		if (addsong)
+			tmp.emplace_back(inv[i]);
 	}
-
 	inv.swap(tmp);
 }
 
