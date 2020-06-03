@@ -732,10 +732,8 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 			float ub = FILTERMAN->SSFilterUpperBounds[ss];
 			//If either bound is active, continue to evaluation
 			if (lb > 0.f || ub > 0.f) {
-				float currate = FILTERMAN->MaxFilterRate + 0.1f;
-				float minrate = FILTERMAN->m_pPlayerState->wtFFF;
-				do {
-					currate = currate - 0.1f;
+				for(float currate = FILTERMAN->MaxFilterRate;
+					currate < FILTERMAN->m_pPlayerState->wtFFF; currate -= 0.1f) {
 					if (!FILTERMAN->ExclusiveFilter) { //Non-Exclusive filter
 						if (FILTERMAN->HighestSkillsetsOnly)
 							if (!song->IsSkillsetHighestOfAnySteps(
@@ -771,8 +769,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 							addsong=true;
 						}
 					}
-					
-				} while (currate > minrate);
+				}
 			}
 		}
 		// only add the song if it's cleared the gauntlet
