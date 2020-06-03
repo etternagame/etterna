@@ -4415,7 +4415,7 @@ struct WideRangeJumptrillMod
 	};
 #pragma endregion params and param map
 	moving_window_interval_int _mw_taps;
-	moving_window_interval_int _mw_ccacc;
+	moving_window_interval_int _mw_jt;
 	int jt_counter = 0;
 	float cv_res = 0.f;
 	bool bro_is_this_file_for_real = false;
@@ -4431,7 +4431,7 @@ struct WideRangeJumptrillMod
 	{
 		doot[_pmod].resize(size);
 		_mw_taps._size = window;
-		_mw_ccacc._size = window;
+		_mw_jt._size = window;
 	}
 
 	inline XNode* make_param_node() const
@@ -4590,14 +4590,9 @@ struct WideRangeJumptrillMod
 
 	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
-		// no taps, no ccacc
-		if (_mw_taps._win_val == 0 || _mw_ccacc._win_val == 0) {
+		// no taps, no jt
+		if (_mw_taps._win_val == 0 || _mw_jt._win_val == 0) {
 			neutral_set(_pmod, doot, i);
-			return true;
-		}
-
-		if (_mw_taps._win_val == _mw_ccacc._win_val) {
-			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
@@ -4609,14 +4604,14 @@ struct WideRangeJumptrillMod
 						   const int& i)
 	{
 		_mw_taps(itvh[col_left] + itvh[col_right]);
-		_mw_ccacc(jt_counter);
+		_mw_jt(jt_counter);
 
 		if (handle_case_optimizations(doot, i)) {
 			interval_reset();
 			return;
 		}
 
-		pmod = _mw_taps[true] / _mw_ccacc[true];
+		pmod = _mw_taps[true] / _mw_jt[true];
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
