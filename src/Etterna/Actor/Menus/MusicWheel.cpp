@@ -748,22 +748,11 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 								   td->GetElapsedTimeFromBeat(
 									 inv[i]->GetFirstBeat()));
 						}
-
-						bool isrange =
-						  lb > 0.f && ub > 0.f; // both bounds are active and
-												// create an explicit range
-						if (isrange) {
-							if (val > lb && val < ub) // if dealing with an
-													  // explicit range evaluate
-													  // as such
-								addsong = addsong || true;
-						} else {
-							if (lb > 0.f && val > lb) // must be a nicer way to
-													  // handle this but im
-													  // tired
-								addsong = addsong || true;
-							if (ub > 0.f && val < ub)
-								addsong = addsong || true;
+						
+						if((val > lb || !(lb > 0.f)) && (val < ub || !(ub > 0.f))){
+							/* If we're above the lower bound or it's not set and also
+							 * below the upper bound or it isn't set*/
+							addsong=true;
 						}
 					} while (currate > minrate);
 				}
@@ -776,16 +765,14 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 		for (size_t i = 0; i < inv.size(); i++) {
 			bool addsong = true;
 			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
-				bool pineapple = true;
+				/* Iterate through all skill filters. If any are *not* met, set
+				 * addsong to false*/
 				float lb = FILTERMAN->SSFilterLowerBounds[ss];
 				float ub = FILTERMAN->SSFilterUpperBounds[ss];
 				if (lb > 0.f || ub > 0.f) {
-					bool localaddsong;
 					float currate = FILTERMAN->MaxFilterRate + 0.1f;
 					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
-					bool toiletpaper = false;
 					do {
-						localaddsong = true;
 						currate = currate - 0.1f;
 						float val;
 						if (ss < NUM_Skillset)
@@ -799,21 +786,14 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 								   td->GetElapsedTimeFromBeat(
 									 inv[i]->GetFirstBeat()));
 						}
-						bool isrange = lb > 0.f && ub > 0.f;
-						if (isrange) {
-							if (val < lb || val > ub)
-								localaddsong = false;
-						} else {
-							if (lb > 0.f && val < lb)
-								localaddsong = false;
-							if (ub > 0.f && val > ub)
-								localaddsong = false;
+						
+						if((val < lb && lb > 0.f) || (val > ub && ub > 0.f)){
+							/* If we're below the lower bound and it's set,
+							 * or above the upper bound and it's set*/
+							addsong=false;
 						}
-						toiletpaper = localaddsong || toiletpaper;
 					} while (currate > minrate);
-					pineapple = pineapple && toiletpaper;
 				}
-				addsong = addsong && pineapple;
 			}
 			if (addsong)
 				tmp.emplace_back(inv[i]);
