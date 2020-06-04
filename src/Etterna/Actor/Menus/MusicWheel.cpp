@@ -728,8 +728,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 								 * The .01f delta is because floating points
 								 * don't like exact equivalency*/
 			if (song->MatchesFilter(currate)) {
-				// TODO: Check only relevant chart type. Currently we search
-				// all.
+				// TODO: Check only relevant chart type. (Dance, solo, etc...)
 				addsong = true;
 				break; // We don't need to keep checking rates
 			}

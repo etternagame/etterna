@@ -1712,11 +1712,12 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 }
 
 bool
-Song::MatchesFilter(const float rate, const StepsType type) const
+Song::MatchesFilter(const float rate,
+					const std::optional<const StepsType> type) const
 {
 	vector<Steps*> steps;
-	if (type != StepsType_Invalid)
-		steps = GetStepsByStepsType(type);
+	if (type)
+		steps = GetStepsByStepsType(*type);
 	else
 		steps = GetAllSteps();
 
