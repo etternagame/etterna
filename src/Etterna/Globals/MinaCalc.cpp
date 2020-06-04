@@ -1207,21 +1207,19 @@ struct moving_window_interval_int
 	}
 };
 
+enum mv_stats
+{
+	mv_total,
+	mv_mean,
+	mv_cv,
+	mv_max,
+	num_mv_stats
+};
+
 struct moving_window_interval_float
 {
-	// vals per interval over a window
-	float _itv_vals[max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
-	float _win_val = 0;
-	int _size = 0;
-
 	inline void operator()(const float& new_val)
 	{
-		// moving window of 1 is not actually a moving window
-		if (_size == 1) {
-			_win_val = new_val;
-			return;
-		}
-
 		// update the window
 		for (int i = 1; i < _size; ++i)
 			_itv_vals[i - 1] = _itv_vals[i];
@@ -1229,18 +1227,94 @@ struct moving_window_interval_float
 		// set new value at size - 1
 		_itv_vals[_size - 1] = new_val;
 
-		// update the running totals by subtracting the oldest value and adding
-		// the newest
-		_win_val -= _itv_vals[0];
-		_win_val += new_val;
+		for (auto& b : is_stat_current)
+			b = false;
 	}
 
-	// returns window totals
-	inline float operator[](const bool& bro_ur_gettin_a_float_ok)
+	inline float get_total_for_window(const int& window)
 	{
-		// we're almost always dividing these values, so cast to float
-		return static_cast<float>(_win_val);
+		if (is_stat_current[mv_total])
+			return stats[mv_total];
+
+		float o = 0;
+
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o += _itv_vals[i];
+		}
+
+		stats[mv_total] = o;
+		is_stat_current[mv_total] = true;
+
+		return o;
 	}
+
+	inline float get_mean_of_window(const int& window)
+	{
+		if (is_stat_current[mv_mean])
+			return stats[mv_mean];
+
+		float o = 0;
+
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o += _itv_vals[i];
+		}
+
+		stats[mv_mean] = o;
+		is_stat_current[mv_mean] = true;
+
+		return o / window;
+	}
+
+	inline float get_cv_of_window(const int& window)
+	{
+		if (is_stat_current[mv_cv])
+			return stats[mv_cv];
+
+		float sd = 0.f;
+		float avg = get_mean_of_window(window);
+
+		// if window is 4, we check values 6/5/4/3, since this window is always
+		// 6
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			sd += (_itv_vals[i] - avg) * (_itv_vals[i] - avg);
+		}
+
+		stats[mv_cv] = sd;
+		is_stat_current[mv_cv] = true;
+
+		return fastsqrt(sd / static_cast<float>(window)) / avg;
+	}
+
+	inline float get_max_for_window(const int& window)
+	{
+		if (is_stat_current[mv_max])
+			return stats[mv_max];
+
+		float o = 0;
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o = _itv_vals[i] > o ? _itv_vals[i] : o;
+		}
+
+		stats[mv_max] = o;
+		is_stat_current[mv_max] = true;
+
+		return o;
+	}
+
+  protected:
+	// vals per interval over a window
+	float _itv_vals[max_moving_window_size] = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	int _size = max_moving_window_size;
+	float stats[num_mv_stats] = { 0.f, 0.f, 0.f, 0.f };
+	bool is_stat_current[num_mv_stats] = { false, false, false, false };
 };
 #pragma endregion
 
