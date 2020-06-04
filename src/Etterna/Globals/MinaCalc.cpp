@@ -4857,7 +4857,7 @@ struct WideRangeRollMod
 	const std::string name = "WideRangeRollMod";
 
 #pragma region params
-	float window = 4;
+	float window = 5;
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
@@ -4959,7 +4959,7 @@ struct WideRangeRollMod
 		hi_im_a_float = cv(seq_ms);
 
 		// ok we're pretty sure it's a roll don't bother with the test
-		if (hi_im_a_float < 0.01f) {
+		if (hi_im_a_float < 0.12f) {
 			moving_cv = (hi_im_a_float + moving_cv + hi_im_a_float) / 3.f;
 			return true;
 		} else
@@ -4979,7 +4979,7 @@ struct WideRangeRollMod
 		hi_im_a_float = cv(idk_ms);
 
 		// ok we're pretty sure it's a roll don't bother with the test
-		if (hi_im_a_float < 0.01f) {
+		if (hi_im_a_float < 0.12f) {
 			moving_cv = (hi_im_a_float + moving_cv + hi_im_a_float) / 3.f;
 			return true;
 		} else
@@ -4994,8 +4994,7 @@ struct WideRangeRollMod
 	{
 		if (seq_ms[1] > seq_ms[0])
 			zoop_the_woop(1, 2.5f);
-		else
-		{
+		else {
 			seq_ms[0] /= 2.5f;
 			seq_ms[2] /= 2.5f;
 			last_passed_check = do_timing_thing(1.f);
@@ -5032,7 +5031,6 @@ struct WideRangeRollMod
 		idk_ms[1] /= 3.f;
 		idk_ms[2] /= 3.f;
 
-		
 		do_other_timing_thing(1.25f);
 
 		idk_ms[1] *= 3.f;
@@ -5057,7 +5055,7 @@ struct WideRangeRollMod
 		if (!last_passed_check) {
 			complete_seq();
 			return;
-		}	
+		}
 
 		++nah_this_file_aint_for_real;
 
@@ -5093,8 +5091,7 @@ struct WideRangeRollMod
 		// into more stuff.. that is jumptrillyable... then .... badonk it
 		switch (now.mt) {
 			case meta_acca:
-				// unlike wrjt we want to complete on this, however if we wanted
-				// to catch extremely rolly _js_ we would probably include this
+				// unlike wrjt we want to complete and reset on these
 				complete_seq();
 				break;
 			case meta_oht:
