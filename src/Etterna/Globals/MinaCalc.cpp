@@ -1326,14 +1326,33 @@ struct CalcWindow
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
-			sd += static_cast<float>(_itv_vals[i]) - avg *
-				  static_cast<float>(_itv_vals[i]) - avg;
+			sd += (static_cast<float>(_itv_vals[i]) - avg) *
+				  (static_cast<float>(_itv_vals[i]) - avg);
 		}
 
 		stats[mv_cv] = fastsqrt(sd / static_cast<float>(window)) / avg;
 		is_stat_current[mv_cv] = true;
 
 		return stats[mv_cv];
+	}
+
+	// set everything to zero
+	inline void zero()
+	{
+		for (auto& v : _itv_vals)
+			v = static_cast<T>(0);
+
+		for (auto& v : stats)
+			v = 0.f;
+
+		for (auto& v : T_stats)
+			v = static_cast<T>(0);
+
+		for (auto& v : is_stat_current)
+			v = false;
+
+		for (auto& v : is_T_stat_current)
+			v = false;
 	}
 
   protected:
