@@ -22,6 +22,8 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <optional>
+
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))
 #define WHEEL_TEXT(s)                                                          \
 	THEME->GetString("MusicWheel", ssprintf("%sText", s.c_str()));
@@ -727,8 +729,10 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 			 currate -= 0.1f) { /* Iterate over all possible rates.
 								 * The .01f delta is because floating points
 								 * don't like exact equivalency*/
-			if (song->MatchesFilter(currate)) {
-				// TODO: Check only relevant chart type. (Dance, solo, etc...)
+			std::vector<StepsType> types;
+			GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
+			// Only consider the current game chart types as possible options.
+			if (song->MatchesFilter(currate, std::make_optional(types))) {
 				addsong = true;
 				break; // We don't need to keep checking rates
 			}

@@ -304,11 +304,11 @@ class Song
 	// objects for the song at a given rate
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const;
-	/** @brief This functions returns whether it has any chart of the given type
-	   with the given rate. If no type is given  it checks all types.*/
-	bool MatchesFilter(
-	  const float rate,
-	  const std::optional<const StepsType> type = std::nullopt) const;
+	/** @brief This functions returns whether it has any chart of the given
+	   types with the given rate. If no type is given  it checks all charts.*/
+	bool MatchesFilter(const float rate,
+					   const std::optional<const std::vector<StepsType>> types =
+						 std::nullopt) const;
 
 	bool HasChartByHash(const string& hash);
 
