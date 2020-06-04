@@ -4864,8 +4864,8 @@ struct WideRangeRollMod
 	float base = 0.15f;
 	float scaler = 0.9f;
 
-	float moving_cv_reset = 2.5f;
-	float cv_cutoff = 0.3f;
+	float cv_threshold = 0.35f;
+	float other_cv_threshold = 0.3f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "window", &window },
@@ -4875,8 +4875,8 @@ struct WideRangeRollMod
 		{ "scaler", &scaler },
 		{ "base", &base },
 
-		{ "moving_cv_reset", &moving_cv_reset },
-		{ "cv_cutoff", &cv_cutoff },
+		{ "cv_threshold", &cv_threshold },
+		{ "other_cv_threshold", &other_cv_threshold },
 	};
 #pragma endregion params and param map
 	// taps for this hand only, we don't want to include offhand taps in
@@ -4894,8 +4894,8 @@ struct WideRangeRollMod
 
 	vector<float> idk_ms = { 0.f, 0.f, 0.f, 0.f };
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
-	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = 0.f;
+
+	float moving_cv = 1.f;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
@@ -4903,7 +4903,6 @@ struct WideRangeRollMod
 		doot[_pmod].resize(size);
 		_mw_taps._size = window;
 		_mw_max._size = window;
-		moving_cv = moving_cv_reset;
 	}
 
 	inline XNode* make_param_node() const
@@ -4954,40 +4953,55 @@ struct WideRangeRollMod
 	{
 		_mw_ms(seq_ms[1]);
 
+		if (_mw_ms.get_cv_of_window(window) > other_cv_threshold)
+			return false;
+
 		hi_im_a_float = cv(seq_ms);
 
 		// ok we're pretty sure it's a roll don't bother with the test
 		if (hi_im_a_float < 0.01f) {
-			moving_cv = hi_im_a_float;
+			moving_cv = (hi_im_a_float + moving_cv + hi_im_a_float) / 3.f;
 			return true;
 		} else
 			moving_cv = (hi_im_a_float + moving_cv) / 2.f;
 
-		return moving_cv < cv_cutoff / scaler;
+		return moving_cv < cv_threshold / scaler;
 	}
 
 	inline bool do_other_timing_thing(const float& scaler)
 	{
+		_mw_ms(idk_ms[1]);
+		_mw_ms(idk_ms[2]);
+
+		if (_mw_ms.get_cv_of_window(window) > other_cv_threshold)
+			return false;
+
 		hi_im_a_float = cv(idk_ms);
 
 		// ok we're pretty sure it's a roll don't bother with the test
 		if (hi_im_a_float < 0.01f) {
-			moving_cv = hi_im_a_float;
+			moving_cv = (hi_im_a_float + moving_cv + hi_im_a_float) / 3.f;
 			return true;
 		} else
 			moving_cv = (hi_im_a_float + moving_cv) / 2.f;
 
-		return moving_cv < cv_cutoff / scaler;
+		return moving_cv < cv_threshold / scaler;
 	}
 
-	inline void handle_ccacc_timing_check() { zoop_the_woop(1, 3.f, 2.f); }
+	inline void handle_ccacc_timing_check() { zoop_the_woop(1, 2.5f, 1.25f); }
 
 	inline void handle_roll_timing_check()
 	{
 		if (seq_ms[1] > seq_ms[0])
-			zoop_the_woop(1, 3.f);
+			zoop_the_woop(1, 2.5f);
 		else
-			woop_the_zoop(1, 3.f);
+		{
+			seq_ms[0] /= 2.5f;
+			seq_ms[2] /= 2.5f;
+			last_passed_check = do_timing_thing(1.f);
+			seq_ms[0] *= 2.5f;
+			seq_ms[2] *= 2.5f;
+		}
 	}
 
 	inline void handle_ccsjjscc_timing_check(const float& now)
@@ -5003,25 +5017,26 @@ struct WideRangeRollMod
 		// run 2 tests so we can keep a stricter cutoff
 		// need to put cv in array thingy mcboop
 		// check 1
-		idk_ms[0] *= 2.f;
-		idk_ms[3] *= 2.f;
+		idk_ms[1] /= 2.5f;
+		idk_ms[2] /= 2.5f;
 
-		do_other_timing_thing(3.f);
+		do_other_timing_thing(1.25f);
 
-		idk_ms[0] /= 2.f;
-		idk_ms[3] /= 2.f;
+		idk_ms[1] *= 2.5f;
+		idk_ms[2] *= 2.5f;
 
 		if (last_passed_check)
 			return;
 
 		// test again
-		idk_ms[0] *= 3.f;
-		idk_ms[3] *= 3.f;
+		idk_ms[1] /= 3.f;
+		idk_ms[2] /= 3.f;
 
-		do_other_timing_thing(3.f);
+		
+		do_other_timing_thing(1.25f);
 
-		idk_ms[0] /= 3.f;
-		idk_ms[3] /= 3.f;
+		idk_ms[1] *= 3.f;
+		idk_ms[2] *= 3.f;
 	}
 
 	inline void complete_seq()
@@ -5029,7 +5044,6 @@ struct WideRangeRollMod
 		if (nah_this_file_aint_for_real > 0)
 			max_thingy = max(max_thingy, nah_this_file_aint_for_real);
 		nah_this_file_aint_for_real = 0;
-		moving_cv = (moving_cv + moving_cv_reset) / 2.f;
 	}
 
 	inline void bibblybop(const meta_type& last_mt)
@@ -5040,8 +5054,10 @@ struct WideRangeRollMod
 		else if (last_mt == meta_meta_enigma)
 			moving_cv = (moving_cv + hi_im_a_float + hi_im_a_float) / 3.f;
 
-		if (!last_passed_check)
+		if (!last_passed_check) {
+			complete_seq();
 			return;
+		}	
 
 		++nah_this_file_aint_for_real;
 
