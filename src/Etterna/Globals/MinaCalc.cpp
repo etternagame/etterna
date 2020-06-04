@@ -3147,17 +3147,19 @@ struct RollMod
 
 	float min_mod = 0.5f;
 	float max_mod = 1.0f;
-	float mod_pool = 1.25f;
+	float pool = 1.25f;
+	float base = 0.15f;
 
 	float moving_cv_init = 0.5f;
-	float roll_cv_cutoff = 0.4f;
+	float roll_cv_cutoff = 0.25f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "itv_window", &itv_window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_pool", &mod_pool },
+		{ "pool", &pool },
+		{ "base", &base },
 
 		{ "moving_cv_init", &moving_cv_init },
 		{ "roll_cv_cutoff", &roll_cv_cutoff },
@@ -3416,10 +3418,10 @@ struct RollMod
 
 		pmod = max_mod;
 		if (window_roll_taps > 0 && window_hand_taps > 0)
-			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
-							   static_cast<float>(window_hand_taps));
+			pmod = pool - (static_cast<float>(window_roll_taps) /
+						   static_cast<float>(window_hand_taps));
 
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 		pmod = fastsqrt(pmod);
 		doot[_pmod][i] = pmod;
 
@@ -4745,17 +4747,19 @@ struct WideRangeRollMod
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
-	float mod_pool = 1.15f;
+	float base = 0.15f;
+	float scaler = 0.9f;
 
 	float moving_cv_init = 0.5f;
-	float cv_cutoff = 0.25f;
+	float cv_cutoff = 0.5f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "window", &window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_pool", &mod_pool },
+		{ "scaler", &scaler },
+		{ "base", &base },
 
 		{ "moving_cv_init", &moving_cv_init },
 		{ "cv_cutoff", &cv_cutoff },
@@ -4765,10 +4769,12 @@ struct WideRangeRollMod
 	// determining whether this hand is a roll
 	moving_window_interval_int _mw_taps;
 	moving_window_interval_int _mw_roll;
+	moving_window_interval_int _mw_max;
 
 	int roll_counter = 0;
 	bool last_passed_check = false;
-	bool nah_this_file_aint_for_real = false;
+	int nah_this_file_aint_for_real = 0;
+	int max_thingy = 0;
 
 	int window_hand_taps = 0;
 	int window_roll_taps = 0;
@@ -4777,7 +4783,7 @@ struct WideRangeRollMod
 	vector<float> idk_ms = { 0.f, 0.f, 0.f, 0.f };
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = moving_cv_init;
+	float moving_cv = 0.5f;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
@@ -4785,6 +4791,8 @@ struct WideRangeRollMod
 		doot[_pmod].resize(size);
 		_mw_taps._size = window;
 		_mw_roll._size = window;
+		_mw_max._size = window;
+		moving_cv = moving_cv_init;
 	}
 
 	inline XNode* make_param_node() const
@@ -4825,7 +4833,10 @@ struct WideRangeRollMod
 	inline bool handle_acca_timing_check()
 	{
 		seq_ms[1] *= 3.f;
-		last_passed_check = cv(seq_ms) < cv_cutoff;
+
+		moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
+		last_passed_check = moving_cv < cv_cutoff;
+
 		seq_ms[1] /= 3.f;
 
 		return last_passed_check;
@@ -4835,12 +4846,18 @@ struct WideRangeRollMod
 	{
 		if (seq_ms[0] > seq_ms[1]) {
 			seq_ms[1] *= 3.f;
-			last_passed_check = cv(seq_ms) < cv_cutoff;
+
+			moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
+			last_passed_check = moving_cv < cv_cutoff;
+
 			seq_ms[1] /= 3.f;
 			return last_passed_check;
 		} else {
 			seq_ms[1] /= 3.f;
-			last_passed_check = cv(seq_ms) < cv_cutoff;
+
+			moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
+			last_passed_check = moving_cv < cv_cutoff;
+
 			seq_ms[1] *= 3.f;
 			return last_passed_check;
 		}
@@ -4861,7 +4878,10 @@ struct WideRangeRollMod
 		// check 1
 		idk_ms[0] *= 2.f;
 		idk_ms[3] *= 2.f;
-		last_passed_check = cv(idk_ms) < cv_cutoff / 2.f;
+
+		moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
+		last_passed_check = moving_cv < cv_cutoff;
+
 		idk_ms[0] /= 2.f;
 		idk_ms[3] /= 2.f;
 
@@ -4871,7 +4891,10 @@ struct WideRangeRollMod
 		// test again
 		idk_ms[0] *= 3.f;
 		idk_ms[3] *= 3.f;
-		last_passed_check = cv(idk_ms) < cv_cutoff / 2.f;
+
+		moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
+		last_passed_check = moving_cv < cv_cutoff;
+
 		idk_ms[0] /= 3.f;
 		idk_ms[3] /= 3.f;
 
@@ -4892,15 +4915,19 @@ struct WideRangeRollMod
 
 	inline void bibblybop(const meta_type& mt)
 	{
-		if (!last_passed_check)
-			nah_this_file_aint_for_real = false;
+		if (!last_passed_check) {
+			max_thingy = max(max_thingy, nah_this_file_aint_for_real);
+			nah_this_file_aint_for_real = 0;
+		}
 
-		++roll_counter;
-		if (nah_this_file_aint_for_real)
+		
+		if (nah_this_file_aint_for_real > 0) {
 			++roll_counter;
-		if (check_last_mt(mt)) {
-			++roll_counter;
-			nah_this_file_aint_for_real = true;
+			++nah_this_file_aint_for_real;
+		}
+
+		if (check_last_mt(mt) && nah_this_file_aint_for_real == 0) {
+			++nah_this_file_aint_for_real;
 		}
 	}
 
@@ -4922,14 +4949,15 @@ struct WideRangeRollMod
 					bibblybop(now.last_mt);
 				break;
 			case meta_acca:
-				if (handle_acca_timing_check())
-					bibblybop(now.last_mt);
+				max_thingy = max(max_thingy, nah_this_file_aint_for_real);
+				nah_this_file_aint_for_real = 0;
 				break;
 			case meta_ccsjjscc:
 			case meta_ccsjjscc_inverted:
 				if (handle_ccsjjscc_timing_check(now.cc_ms_any)) {
 					bibblybop(now.last_mt);
-					roll_counter += 2;
+					if (nah_this_file_aint_for_real > 4)
+						roll_counter += 20;
 				}
 				break;
 			default:
@@ -4968,21 +4996,27 @@ struct WideRangeRollMod
 	{
 		_mw_taps(itvh[col_left] + itvh[col_right]);
 		_mw_roll(roll_counter);
+		_mw_max(max_thingy + 1);
 
 		if (handle_case_optimizations(doot, i)) {
 			interval_reset();
 			return;
 		}
-
-		pmod = _mw_taps[true] / _mw_roll[true] * 0.85;
-
-		pmod = CalcClamp(fastsqrt(pmod), min_mod, max_mod);
+		float zomg = _mw_taps[true] / _mw_max[true];
+		
+		pmod = _mw_taps[true] / _mw_roll[true] * scaler;
+		pmod *= zomg;
+		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);
 		doot[_pmod][i] = pmod;
 
 		interval_reset();
 	}
 
-	inline void interval_reset() { roll_counter = 0; }
+	inline void interval_reset()
+	{
+		roll_counter = 0;
+		max_thingy = 0;
+	}
 };
 
 struct flam
@@ -5544,7 +5578,6 @@ struct WideRangeAnchorMod
 	}
 };
 
-
 // find [xx]a[yy]b[zz]
 struct the_slip
 {
@@ -5661,8 +5694,8 @@ struct TT_Sequencing
 
 	inline void set_params(const float& gt, const float& st, const float& ms)
 	{
-		//group_tol = gt;
-		//step_tol = st;
+		// group_tol = gt;
+		// step_tol = st;
 		scaler = ms;
 	}
 
