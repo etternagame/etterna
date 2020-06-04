@@ -3779,61 +3779,28 @@ struct ChaosMod
 	const std::string name = "ChaosMod";
 
 #pragma region params
-	float itv_window = 1;
+	float window = 6;
 
 	float min_mod = 0.5f;
 	float max_mod = 1.0f;
-	float mod_pool = 1.25f;
-
-	float moving_cv_init = 0.5f;
-	float roll_cv_cutoff = 0.4f;
+	float penalty = 0.1f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "itv_window", &itv_window },
+		{ "window", &window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_pool", &mod_pool },
-
-		{ "moving_cv_init", &moving_cv_init },
-		{ "roll_cv_cutoff", &roll_cv_cutoff },
+		{ "penalty", &penalty },
 	};
 #pragma endregion params and param map
 
-	// window is currently 1 for local mod
-	// taps for this hand only, we don't want to include offhand taps in
-	// determining whether this hand is a roll
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_rolls;
+	moving_window_interval_float _u;
+	moving_window_interval_float _wot;
+	moving_window_interval_float _m8;
+	moving_window_interval_float _hekk;
 
-	// each element is a discrete roll formation with this many taps
-	// (technically it has this many taps + 4 because it requires 1212 or
-	// 2121 to start counting, but that's fine, that's what we want and if
-	// it seems better to add later we can do that
-	vector<int> itv_rolls;
-
-	// unlike ccacc, which has a half baked implementation for chains of
-	// 122112211221, we will actually be responsible and sequence both the
-	// number of rolls and the notes contained therein
-	bool rolling = false;
-	bool is_transition = false;
-	int consecutive_roll_counter = 0;
-
-	int window_hand_taps = 0;
-	// for now we will be lazy and just add up the number of roll taps in any
-	// roll, if we leave out the initialization taps (the 4 required to identify
-	// the start) we will greatly reduce the effect of short roll bursts, not
-	// sure if this is desired behavior
-	int window_roll_taps = 0;
 	float pmod = min_mod;
 
-	vector<float> seq_ms = { 0.f, 0.f, 0.f };
-	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = moving_cv_init;
-
-	// non-empty (cc_type is now always non-empty)
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
@@ -3866,144 +3833,45 @@ struct ChaosMod
 	}
 #pragma endregion
 
-	// should rename as it resets or completes a sequence... maybe should go
-	// look at rm_sequencing again and make roll_sequencing.. idk
-	inline void reset_sequence()
-	{
-		// only need to do this if rolling, otherwise values are false/0 anyway
-		if (rolling) {
-			itv_rolls.push_back(consecutive_roll_counter);
-			rolling = false;
-			consecutive_roll_counter = 0;
-		}
-
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
-	}
-
-	// copied from wrjt, definitely needs to be tracked in metanoteinfo
-	inline bool detecc_ccacc(const metaHandInfo& now)
-	{
-		if (now.cc == cc_single_single)
-			return false;
-
-		if (invert_cc(now.cc) == last_last_seen_cc)
-			return true;
-
-		return false;
-	}
-
-	// should maybe move this into metanoteinfo and do the counting there, since
-	// oht will need this as well, or we could be lazy and do it twice just this
-	// once
-	inline bool detecc_roll(const metaHandInfo& now)
-	{
-		// we allow this through up to here due to transition checks
-		if (now.cc == cc_single_single)
-			return false;
-
-		// if we're here the following are true, we have a full sequence of 3 cc
-		// taps, they are non-empty, there are no jumps and no anchors. this
-		// means they are all either cc_left_right, cc_right_left
-
-		// now we know we have cc_left_right or cc_right_left, so, xy, we are
-		// looking for xyx, meaning last would be the inverion of now
-		if (invert_cc(now.cc) == last_seen_cc)
-			// now make sure that last_last is the same as now
-			if (now.cc == last_last_seen_cc)
-				// we now have 1212 or 2121
-				return true;
-		return false;
-	}
-
-	inline bool handle_roll_timing_check()
-	{
-		// see ccacc timing check in wrjt for explanations, it's basically the
-		// same but we have to invert the multiplication depending on which
-		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
-		// a roll in an editor to see why)
-
-		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
-		// doesn't interfere with the next round
-		if (seq_ms[0] > seq_ms[1]) {
-			seq_ms[1] *= 3.f;
-			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-			seq_ms[1] /= 3.f;
-			return moving_cv < roll_cv_cutoff;
-		} else {
-			// same thing but divide
-			seq_ms[1] /= 3.f;
-			moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-			seq_ms[1] *= 3.f;
-			return moving_cv < roll_cv_cutoff;
-		}
-	}
-
-	inline void update_seq_ms(const metaHandInfo& now)
-	{
-		seq_ms[0] = seq_ms[1]; // last_last
-		seq_ms[1] = seq_ms[2]; // last
-
-		// update now, we have no anchors, so always use cc_ms_any (although we
-		// want to move this to cc_ms_no_jumps when that gets implemented, since
-		// a separate jump inclusive mod should be made to handle those cases
-		seq_ms[2] = now.cc_ms_any;
-	}
-
 	inline void advance_sequencing(const metaHandInfo& now)
 	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
+		_u(now.cc_ms_any);
 
-		// only let these cases through, since we use invert_cc, anchors are
-		// screened out later, reset otherwise
-		if (now.cc != cc_left_right && now.cc != cc_right_left) {
-			reset_sequence();
+		float high = _u[4];
+		float low = now.cc_ms_any;
+
+		if (high == 0.f || low == 0.f || high == low) {
+			_wot(1.f);
+			_m8(_wot.get_mean_of_window(window));
 			return;
 		}
 
-		// update timing stuff
-		update_seq_ms(now);
+		if (low > high)
+			std::swap(high, low);
 
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for rolls (cc -> inverted(cc) -> cc)
-			// now.mt == meta_oht (works in trill idk wtf, but it isn't working
-			// here?)
-			if (detecc_roll(now) && handle_roll_timing_check()) {
-				if (rolling) {
-					// these should always be mutually exclusive
-					++consecutive_roll_counter;
-				} else {
-					// we could increase the roll counter here, but really
-					// all we have now is a minitrill, so lets see if it
-					// extends to at least 5 notes before doing anything
-					rolling = true;
-				}
-				// only reset here if this fails and a transition wasn't
-				// detected, if we reset here we have to assign seq_ms[2] again,
-				// yes this is asofgasfjasofdj messy
-			}
+		float prop = high / low;
+		int mop = static_cast<int>(prop);
+		float flop = prop - static_cast<float>(mop);
 
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
+		if (flop == 0.f) {
+			flop = 1.f;
+		} else if (flop >= 0.5f) {
+			flop = abs(flop - 1.f) + 1.f;
+
+		} else if (flop < 0.5f) {
+			flop += 1.f;
+		}
+
+		_wot(flop);
+		_m8(_wot.get_mean_of_window(window));
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	inline bool handle_case_optimizations(const ItvInfo& itvi,
+										  vector<float> doot[],
+										  const int& i)
 	{
-		// no taps, no rolls
-		if (window_hand_taps == 0 || window_roll_taps == 0) {
+		if (itvi.total_taps == 0) {
 			neutral_set(_pmod, doot, i);
-			return true;
-		}
-
-		// full roll
-		if (window_hand_taps == window_roll_taps) {
-			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
@@ -4014,61 +3882,12 @@ struct ChaosMod
 						   vector<float> doot[],
 						   const int& i)
 	{
-		neutral_set(_pmod, doot, i);
-		return;
+		_hekk(_m8.get_mean_of_window(6));
 
-		// drop the oldest interval values if we have reached full
-		// size
-		if (window_itv_hand_taps.size() == itv_window) {
-			window_itv_hand_taps.pop_front();
-			window_itv_rolls.pop_front();
-		}
-
-		// this is slightly hacky buuut if we have a roll that doesn't complete
-		// by the end of the interval, it should count for that interval, but we
-		// don't want the value to double up so we will reset the counter on
-		// interval end but _not_ reset the rolling bool, so it won't interfere
-		// with the detection as the sequencing passes into the next interval,
-		// and won't double up values
-		if (consecutive_roll_counter > 0) {
-			itv_rolls.push_back(consecutive_roll_counter);
-			consecutive_roll_counter = 0;
-		}
-
-		window_itv_hand_taps.push_back(itvh.hand_taps);
-		window_itv_rolls.push_back(itv_rolls);
-
-		window_hand_taps = 0;
-		for (auto& n : window_itv_hand_taps)
-			window_hand_taps += n;
-
-		window_roll_taps = 0;
-		// for now just add everything up
-		for (auto& n : window_itv_rolls)
-			for (auto& v : n)
-				window_roll_taps += v;
-
-		if (handle_case_optimizations(doot, i)) {
-			interval_reset();
-			return;
-		}
-
-		pmod = max_mod;
-		if (window_roll_taps > 0 && window_hand_taps > 0)
-			pmod = mod_pool - (static_cast<float>(window_roll_taps) /
-							   static_cast<float>(window_hand_taps));
-
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		float zmod = _hekk.get_mean_of_window(window);
+		pmod = _m8.get_mean_of_window(6) - penalty;
 		doot[_pmod][i] = pmod;
-
-		interval_reset();
 	}
-
-	// may be unneeded for this function but it's probably good practice to have
-	// this and always reset anything that needs to be on handling case
-	// optimizations, even if the case optimizations don't require us to reset
-	// anything
-	inline void interval_reset() { itv_rolls.clear(); }
 };
 
 struct RM_Sequencing
@@ -6265,6 +6084,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.advance_sequencing(*_mhi);
 		_wrr.advance_sequencing(*_mhi);
 		_wrjt.advance_sequencing(*_mhi);
+		_ch.advance_sequencing(*_mhi);
 	}
 
 	inline void setup_dependent_mods(vector<float> _doot[])
