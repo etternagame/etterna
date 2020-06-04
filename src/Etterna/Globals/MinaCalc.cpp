@@ -1247,7 +1247,7 @@ struct moving_window_interval_float
 		stats[mv_total] = o;
 		is_stat_current[mv_total] = true;
 
-		return o;
+		return stats[mv_total];
 	}
 
 	inline float get_mean_of_window(const int& window)
@@ -1263,10 +1263,10 @@ struct moving_window_interval_float
 			o += _itv_vals[i];
 		}
 
-		stats[mv_mean] = o;
+		stats[mv_mean] = o / window;
 		is_stat_current[mv_mean] = true;
 
-		return o / window;
+		return stats[mv_mean];
 	}
 
 	inline float get_cv_of_window(const int& window)
@@ -1285,10 +1285,10 @@ struct moving_window_interval_float
 			sd += (_itv_vals[i] - avg) * (_itv_vals[i] - avg);
 		}
 
-		stats[mv_cv] = sd;
+		stats[mv_cv] = fastsqrt(sd / static_cast<float>(window)) / avg;
 		is_stat_current[mv_cv] = true;
 
-		return fastsqrt(sd / static_cast<float>(window)) / avg;
+		return stats[mv_cv];
 	}
 
 	inline float get_max_for_window(const int& window)
@@ -1306,7 +1306,7 @@ struct moving_window_interval_float
 		stats[mv_max] = o;
 		is_stat_current[mv_max] = true;
 
-		return o;
+		return stats[mv_max];
 	}
 
   protected:
@@ -4903,7 +4903,6 @@ struct WideRangeRollMod
 		doot[_pmod].resize(size);
 		_mw_taps._size = window;
 		_mw_max._size = window;
-		_mw_ms._size = window;
 		moving_cv = moving_cv_reset;
 	}
 
