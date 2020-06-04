@@ -1207,63 +1207,98 @@ struct moving_window_interval_int
 	}
 };
 
+// always float (sd / mean)
 enum mv_stats
 {
-	mv_total,
 	mv_mean,
 	mv_cv,
-	mv_max,
 	num_mv_stats
 };
 
-struct moving_window_interval_float
+// always T
+enum mv_stats_T
 {
-	inline void operator()(const float& new_val)
+	mv_T_total,
+	mv_T_max,
+	num_mv_T_stats
+};
+
+// idk what im doin
+template<typename T>
+struct CalcWindow
+{
+	// uhh actually i dont know why im indxing this way and should probably
+	// change it to not be stupid but whatever lets suppose i contrived a really
+	// good reason and convinced you that i'm not just lazy
+	inline void operator()(const T& new_val)
 	{
 		// update the window
-		for (int i = 1; i < _size; ++i)
+		for (int i = 1; i < max_moving_window_size; ++i)
 			_itv_vals[i - 1] = _itv_vals[i];
 
 		// set new value at size - 1
-		_itv_vals[_size - 1] = new_val;
+		_itv_vals[max_moving_window_size - 1] = new_val;
 
 		for (auto& b : is_stat_current)
 			b = false;
 	}
 
-	inline float operator[](const int& pos) const
+	// return type T
+	inline T operator[](const int& pos) const
 	{
 		assert(pos > 0 && pos < max_moving_window_size);
-
-		if (pos < _size)
-			return _itv_vals[pos];
+		return _itv_vals[pos];
 	}
 
-	inline float get_total_for_window(const int& window)
+	// return type T
+	inline T get_now() const { return _itv_vals[max_moving_window_size - 1] }
+	inline T get_last() const { return _itv_vals[max_moving_window_size - 2] }
+
+	// return type T
+	inline T get_total_for_window(const int& window)
 	{
-		if (is_stat_current[mv_total])
-			return stats[mv_total];
+		if (is_T_stat_current[mv_T_total])
+			return T_stats[mv_T_total];
 
-		float o = 0;
-
+		T o = static_cast<T>(0);
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals[i];
 		}
 
-		stats[mv_total] = o;
-		is_stat_current[mv_total] = true;
+		T_stats[mv_T_total] = o;
+		is_T_stat_current[mv_T_total] = true;
 
-		return stats[mv_total];
+		return T_stats[mv_T_total];
 	}
 
+	// return type T
+	inline T get_max_for_window(const int& window)
+	{
+		if (is_T_stat_current[mv_T_max])
+			return T_stats[mv_T_max];
+
+		T o = static_cast<T>(0);
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o = _itv_vals[i] > o ? _itv_vals[i] : o;
+		}
+
+		T_stats[mv_T_max] = o;
+		is_T_stat_current[mv_T_max] = true;
+
+		return T_stats[mv_max];
+	}
+
+	// return type float
 	inline float get_mean_of_window(const int& window)
 	{
 		if (is_stat_current[mv_mean])
 			return stats[mv_mean];
 
-		float o = 0;
+		T o = static_cast<T>(0);
 
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
@@ -1271,12 +1306,13 @@ struct moving_window_interval_float
 			o += _itv_vals[i];
 		}
 
-		stats[mv_mean] = o / window;
+		stats[mv_mean] = static_cast<float>(o) / static_cast<float>(window);
 		is_stat_current[mv_mean] = true;
 
 		return stats[mv_mean];
 	}
 
+	// return type float
 	inline float get_cv_of_window(const int& window)
 	{
 		if (is_stat_current[mv_cv])
@@ -1290,7 +1326,8 @@ struct moving_window_interval_float
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
-			sd += (_itv_vals[i] - avg) * (_itv_vals[i] - avg);
+			sd += static_cast<float>(_itv_vals[i]) - avg *
+				  static_cast<float>(_itv_vals[i]) - avg;
 		}
 
 		stats[mv_cv] = fastsqrt(sd / static_cast<float>(window)) / avg;
@@ -1299,30 +1336,15 @@ struct moving_window_interval_float
 		return stats[mv_cv];
 	}
 
-	inline float get_max_for_window(const int& window)
-	{
-		if (is_stat_current[mv_max])
-			return stats[mv_max];
-
-		float o = 0;
-		int i = max_moving_window_size;
-		while (i > max_moving_window_size - window) {
-			--i;
-			o = _itv_vals[i] > o ? _itv_vals[i] : o;
-		}
-
-		stats[mv_max] = o;
-		is_stat_current[mv_max] = true;
-
-		return stats[mv_max];
-	}
-
   protected:
-	// vals per interval over a window
-	float _itv_vals[max_moving_window_size] = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-	int _size = max_moving_window_size;
-	float stats[num_mv_stats] = { 0.f, 0.f, 0.f, 0.f };
-	bool is_stat_current[num_mv_stats] = { false, false, false, false };
+	T _itv_vals[max_moving_window_size];
+	
+	float stats[num_mv_stats] = {0.f, 0.f };
+	bool is_stat_current[num_mv_stats] = { false, false };
+
+	// how be do dis...??
+	T T_stats[num_mv_T_stats] = { static_cast<T>(0), static_cast<T>(0) };
+	bool is_T_stat_current[num_mv_T_stats] = { false, false };
 };
 #pragma endregion
 
@@ -2018,6 +2040,7 @@ struct metaHandInfo
 	}
 
 	inline void operator()(const metaHandInfo& last,
+						   const CalcWindow<float>& _mw_cc_ms_any,
 						   const float& now,
 						   const col_type& ct,
 						   const unsigned& notes)
@@ -3796,10 +3819,10 @@ struct ChaosMod
 	};
 #pragma endregion params and param map
 
-	moving_window_interval_float _u;
-	moving_window_interval_float _wot;
-	moving_window_interval_float _m8;
-	moving_window_interval_float _hekk;
+	CalcWindow<float> _u;
+	CalcWindow<float> _wot;
+	CalcWindow<float> _m8;
+	CalcWindow<float> _hekk;
 
 	float pmod = min_mod;
 
@@ -3835,16 +3858,17 @@ struct ChaosMod
 	}
 #pragma endregion
 
-	inline void advance_sequencing(const metaHandInfo& now)
+	inline void advance_sequencing(const CalcWindow<float>& _mw_cc_ms_any)
 	{
-		_u(now.cc_ms_any);
+		// most recent value
+		float high = _mw_cc_ms_any.get_now();
 
-		float high = _u[4];
-		float low = now.cc_ms_any;
+		// previous value
+		float low = _mw_cc_ms_any.get_last();
 
 		if (high == 0.f || low == 0.f || high == low) {
-			_wot(1.f);
-			_m8(_wot.get_mean_of_window(window));
+			_u(1.f);
+			_wot(_u.get_mean_of_window(window));
 			return;
 		}
 
@@ -3864,8 +3888,8 @@ struct ChaosMod
 			flop += 1.f;
 		}
 
-		_wot(flop);
-		_m8(_wot.get_mean_of_window(window));
+		_u(flop);
+		_wot(_u.get_mean_of_window(window));
 	}
 
 	inline bool handle_case_optimizations(const ItvInfo& itvi,
@@ -4716,7 +4740,9 @@ struct WideRangeRollMod
 	// determining whether this hand is a roll
 	moving_window_interval_int _mw_taps;
 	moving_window_interval_int _mw_max;
-	moving_window_interval_float _mw_ms;
+
+	// we want to keep custom adjusted ms values here
+	CalcWindow<float> _mw_ms;
 
 	bool last_passed_check = false;
 	int nah_this_file_aint_for_real = 0;
@@ -4915,8 +4941,9 @@ struct WideRangeRollMod
 
 		if (now.cc == cc_jump_jump) {
 			// its an actual jumpjack/jumptrill, don't bother with timing checks
+			// disable for now
 			if (nah_this_file_aint_for_real > 0)
-				bibblybop(now.last_mt);
+				//bibblybop(now.last_mt);
 			return;
 		}
 
@@ -5909,6 +5936,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	unique_ptr<metaHandInfo> _mhi;
 	// metaHandInfo _mhi_dbg;
 
+	// i dont want to keep doing the last swap stuff every time i add something
+	// new, so just put it here and pass it
+	CalcWindow<float> _mw_cc_ms_any;
+
 	// so we can make pattern mods
 	StreamMod _s;
 	JSMod _js;
@@ -6087,7 +6118,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.advance_sequencing(*_mhi);
 		_wrr.advance_sequencing(*_mhi);
 		_wrjt.advance_sequencing(*_mhi);
-		_ch.advance_sequencing(*_mhi);
+		_ch.advance_sequencing(_mw_cc_ms_any);
 	}
 
 	inline void setup_dependent_mods(vector<float> _doot[])
@@ -6188,7 +6219,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					_as(ct, row_time);
 
-					(*_mhi)(*_last_mhi, row_time, ct, row_notes);
+					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
 					_itvhi.update_tap_counts(ct);
 
