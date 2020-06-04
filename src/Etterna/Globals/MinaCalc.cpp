@@ -6650,18 +6650,17 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  WideRangeAnchor,
 		  TheThing,
-
+		  WideRangeRoll,
 		},
 
 		// hs
 		{
 		  HS,
-		  Chaos,
 		  OHJumpMod,
 		  TheThing,
-		  Balance,
 		  WideRangeBalance,
 		  WideRangeAnchor,
+		  WideRangeRoll,
 		},
 
 		// stam, nothing, don't handle here
@@ -6669,15 +6668,6 @@ Hand::InitAdjDiff()
 
 		// jackspeed, ignore for now
 		{
-		  Chaos,
-		  Roll,
-		  WideRangeJumptrill,
-		  WideRangeRoll,
-		  FlamJam,
-		  OHJumpMod,
-		  CJQuad,
-		  WideRangeBalance,
-		  WideRangeAnchor,
 		},
 
 		// chordjack
@@ -6929,7 +6919,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 364;
+int mina_calc_version = 365;
 int
 GetCalcVersion()
 {
