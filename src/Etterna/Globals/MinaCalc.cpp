@@ -1274,6 +1274,7 @@ struct metaItvInfo
 	int not_hs = 0;
 	int zwop = 0;
 	int shared_chord_jacks = 0;
+	bool dunk_it = false;
 
 	// we want mixed hs/js to register as hs, even at relatively sparse hand
 	// density
@@ -1326,7 +1327,7 @@ struct metaItvInfo
 
 		// see def
 		basically_vibro = true;
-
+		dunk_it = false;
 		// reset our interval info ref
 		_itvi.reset();
 	}
@@ -1484,6 +1485,10 @@ struct metaRowInfo
 				gluts_maybe = true;
 			}
 		}
+
+		if ((notes & last_notes) == 0 && count > 1 && last_count > 1)
+			if ((last_notes & last.last_notes) == 0 && last_count > 1)
+				mitvi.dunk_it = true;
 	}
 
 	inline void operator()(const metaRowInfo& last,
@@ -2233,7 +2238,8 @@ struct JSMod
 
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
-
+		if (mitvi.dunk_it)
+			pmod *= 0.925f;
 		doot[_pmod][mitvi._idx] = pmod;
 		set_dbg(doot, mitvi._idx);
 
