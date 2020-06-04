@@ -5929,7 +5929,7 @@ struct TheThingLookerFinderThing
 #pragma region params
 	float min_mod = 0.15f;
 	float max_mod = 1.f;
-	float scaler = 2.75f;
+	float scaler = 0.65f;
 	float base = 0.05f;
 
 	// params for tt_sequencing
