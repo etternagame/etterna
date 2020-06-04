@@ -1251,8 +1251,8 @@ struct CalcWindow
 	}
 
 	// return type T
-	inline T get_now() const { return _itv_vals[max_moving_window_size - 1] }
-	inline T get_last() const { return _itv_vals[max_moving_window_size - 2] }
+	inline T get_now() const { return _itv_vals[max_moving_window_size - 1]; }
+	inline T get_last() const { return _itv_vals[max_moving_window_size - 2]; }
 
 	// return type T
 	inline T get_total_for_window(const int& window)
@@ -2040,7 +2040,7 @@ struct metaHandInfo
 	}
 
 	inline void operator()(const metaHandInfo& last,
-						   const CalcWindow<float>& _mw_cc_ms_any,
+						   CalcWindow<float>& _mw_cc_ms_any,
 						   const float& now,
 						   const col_type& ct,
 						   const unsigned& notes)
@@ -2056,6 +2056,8 @@ struct metaHandInfo
 		col_time[col_right] = last.col_time[col_right];
 		col_time_no_jumps[col_left] = last.col_time_no_jumps[col_left];
 		col_time_no_jumps[col_right] = last.col_time_no_jumps[col_right];
+
+		
 
 		// update this hand's cc type for this row
 		set_cc_type();
@@ -2077,6 +2079,10 @@ struct metaHandInfo
 		// we will need to update time for one or both cols
 		update_col_times(now);
 		set_timings(last.col_time, last.col_time_no_jumps);
+
+		// keep track of these ms values here so we aren't doing it in
+		// potentially 5 different pattern mods
+		_mw_cc_ms_any(cc_ms_any);
 	}
 };
 
@@ -3822,8 +3828,6 @@ struct ChaosMod
 	CalcWindow<float> _u;
 	CalcWindow<float> _wot;
 	CalcWindow<float> _m8;
-	CalcWindow<float> _hekk;
-
 	float pmod = min_mod;
 
 #pragma region generic functions
@@ -3908,10 +3912,10 @@ struct ChaosMod
 						   vector<float> doot[],
 						   const int& i)
 	{
-		_hekk(_m8.get_mean_of_window(6));
+		_m8(_wot.get_mean_of_window(max_moving_window_size));
 
-		float zmod = _hekk.get_mean_of_window(window);
-		pmod = base + _m8.get_mean_of_window(6);
+		float zmod = _m8.get_mean_of_window(window);
+		pmod = base + _wot.get_mean_of_window(max_moving_window_size);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
 	}
