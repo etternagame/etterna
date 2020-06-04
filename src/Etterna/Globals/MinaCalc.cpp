@@ -2814,7 +2814,7 @@ struct OHJumpModGuyThing
 	float max_mod = 1.f;
 
 	float max_seq_weight = 0.65f;
-	float max_seq_pool = 1.35f;
+	float max_seq_pool = 1.25f;
 	float max_seq_scaler = 1.f;
 
 	float prop_pool = 1.4f;
@@ -3018,7 +3018,7 @@ struct OHJumpModGuyThing
 
 		pmod = weighted_average(
 		  max_seq_component, prop_component, max_seq_weight, 1.f);
-		pmod = CalcClamp(fastsqrt(pmod), min_mod, max_mod);
+		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[OHJumpMod][i] = pmod;
 		set_debug_output(doot, i);
