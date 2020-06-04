@@ -251,7 +251,8 @@ local debugGroups = {
         Chaos = true,
     },
     [12] = { -- Group 12
-
+        TheThing = true,
+        TheThing2 = true,
     },
 }
 

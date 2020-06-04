@@ -96,7 +96,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.8f, 0.83f,
-												 0.94f, 0.7675f, 0.9f, 1.075f };
+												 0.94f, 0.7675f, 0.9f, 1.f };
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -4966,7 +4966,7 @@ struct WideRangeRollMod
 			// its an actual jumpjack/jumptrill, don't bother with timing checks
 			// disable for now
 			if (nah_this_file_aint_for_real > 0)
-				//bibblybop(now.last_mt);
+				bibblybop(now.last_mt);
 			return;
 		}
 
@@ -5812,7 +5812,7 @@ struct TheThingLookerFinderThing
 #pragma region params
 	float min_mod = 0.15f;
 	float max_mod = 1.f;
-	float scaler = 0.65f;
+	float scaler = 0.15f;
 	float base = 0.05f;
 
 	// params for tt_sequencing
@@ -5914,6 +5914,297 @@ struct TheThingLookerFinderThing
 	}
 };
 
+
+
+
+
+// find [12]3[24]1[34]2[13]4[12]
+struct the_slip2
+{
+	enum to_slide_or_not_to_slide
+	{
+		slip_unbeginninged,
+		needs_single,
+		needs_door,
+		needs_blaap,
+		needs_opposing_ohjump,
+		slip_complete,
+
+	};
+
+	// what caused us to slip
+	unsigned slip = 0;
+	// are we slipping
+	bool slippin_till_ya_slips_come_true = false;
+	// how far those whomst'd've been slippinging
+	int slide = 0;
+
+	// ms values, 4 ms values = 5 rows, optimize by just recycling values
+	// without resetting and indexing up to the size counter to get duration
+	float ms[4] = {
+		0.f,
+		0.f,
+		0.f,
+		0.f,
+	};
+
+	// couldn't figure out how to make slip & slide work smh
+	inline bool the_slip_is_the_boot(const unsigned& notes)
+	{
+		switch (slide) {
+			// just started, need single note with no jack between our starting
+			// point and [23]
+			case needs_single:
+				// 1100 requires 0010
+				if (slip == 3) {
+					if (notes == 4)
+						return true;
+				} else if (notes == 2)
+					return true;
+				break;
+			case needs_door:
+				if (slip == 3) {
+					if (notes == 10)
+						return true;
+				} else if (notes == 5)
+					return true;
+				break;
+			case needs_blaap:
+				// it's alive
+
+				// requires 1000
+				if (slip == 3) {
+					if (notes == 1)
+						return true;
+				} else if (notes == 8)
+					return true;
+				break;
+			case needs_opposing_ohjump:
+				if (slip == 3) {
+					// if we started on 1100, we end on 0011
+					if (notes == 12)
+						return true;
+				} else
+				  // starting on 0011 ends on 1100
+				  if (notes == 3)
+					return true;
+				break;
+			default:
+				assert(0);
+				break;
+		}
+		return false;
+	}
+
+	inline void start(const float& ms_now, const unsigned& notes)
+	{
+		slip = notes;
+		slide = 0;
+		slippin_till_ya_slips_come_true = true;
+		grow(ms_now, notes);
+	}
+
+	inline void grow(const float& ms_now, const unsigned& notes)
+	{
+		// ms[slide] = ms_now;
+		++slide;
+	}
+
+	inline void reset() { slippin_till_ya_slips_come_true = false; }
+};
+
+// sort of the same concept as fj, slightly different implementation
+struct TT_Sequencing2
+{
+	the_slip2 fizz;
+	int slip_counter = 0;
+	static const int max_slips = 4;
+	float mod_parts[max_slips] = { 1.f, 1.f, 1.f, 1.f };
+
+	float scaler = 0.f;
+
+	inline void set_params(const float& gt, const float& st, const float& ms)
+	{
+		// group_tol = gt;
+		// step_tol = st;
+		scaler = ms;
+	}
+
+	inline void complete_slip(const float& ms_now, const unsigned& notes)
+	{
+		if (slip_counter < max_slips)
+			mod_parts[slip_counter] = construct_mod_part();
+		++slip_counter;
+
+		// any time we complete a slip we can start another slip, so just
+		// start again
+		fizz.start(ms_now, notes);
+	}
+
+	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
+	// singles
+	inline bool start_test(const unsigned& notes)
+	{
+		// either left hand jump or a hand containing left hand jump
+		// or right hand jump or a hand containing right hand jump
+		if (notes == 3 || notes == 12)
+			return true;
+		return false;
+	}
+
+	inline void operator()(const float& ms_now, const unsigned& notes)
+	{
+		// ignore quads
+		if (notes == 15) {
+			// reset if we are in a sequence
+			if (fizz.slippin_till_ya_slips_come_true)
+				fizz.reset();
+			return;
+		}
+
+		// haven't started
+		if (!fizz.slippin_till_ya_slips_come_true) {
+			// col check to start
+			if (start_test(notes))
+				fizz.start(ms_now, notes);
+			return;
+		} else {
+			// run the col checks for continuation
+			if (fizz.the_slip_is_the_boot(notes)) {
+				fizz.grow(ms_now, notes);
+				// we found... the thing
+				if (fizz.slide == 5)
+					complete_slip(ms_now, notes);
+			} else
+				// reset if we fail col check
+				fizz.reset();
+			return;
+		}
+		assert(0);
+	}
+
+	inline void reset()
+	{
+		slip_counter = 0;
+		for (auto& v : mod_parts)
+			v = 1.f;
+	}
+
+	inline float construct_mod_part() { return scaler; }
+};
+
+// the a things, they are there, we must find them...
+// probably add a timing check to this as well
+struct TheThingLookerFinderThing2
+{
+	static const CalcPatternMod _pmod = TheThing2;
+	const std::string name = "TheThing2Mod";
+
+#pragma region params
+	float min_mod = 0.15f;
+	float max_mod = 1.f;
+	float scaler = 0.15f;
+	float base = 0.05f;
+
+	// params for tt_sequencing
+	float group_tol = 35.f;
+	float step_tol = 17.5f;
+
+	const vector<pair<std::string, float*>> _params{
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "scaler", &scaler },
+		{ "base", &base },
+
+		// params for fj_sequencing
+		{ "group_tol", &group_tol },
+		{ "step_tol", &step_tol },
+	};
+#pragma endregion params and param map
+
+	// sequencer
+	TT_Sequencing2 tt2;
+	float pmod = min_mod;
+
+#pragma region generic functions
+	inline void setup(vector<float> doot[], const int& size)
+	{
+		tt2.set_params(group_tol, step_tol, scaler);
+
+		doot[_pmod].resize(size);
+		/*if (debug_lmao)
+			for (auto& mod : _dbg)
+				doot[mod].resize(size);*/
+	}
+
+	inline XNode* make_param_node() const
+	{
+		XNode* pmod = new XNode(name);
+		for (auto& p : _params)
+			pmod->AppendChild(p.first, to_string(*p.second));
+
+		return pmod;
+	}
+
+	inline void load_params_from_node(const XNode* node)
+	{
+		float boat = 0.f;
+		auto* pmod = node->GetChild(name);
+		if (pmod == NULL)
+			return;
+		for (auto& p : _params) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == NULL)
+				continue;
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
+#pragma endregion
+
+	inline void advance_sequencing(const metaRowInfo& now)
+	{
+		tt2(now.ms_now, now.notes);
+	}
+
+	inline void set_dbg(vector<float> doot[], const int& i)
+	{
+		//
+	}
+
+	inline bool handle_case_optimizations(const TT_Sequencing2& fj,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// nothing
+		// if (fj.mod_parts[0] == 1.f)
+		//	neutral_set(_pmod, doot, i);
+
+		return false;
+	}
+
+	inline void operator()(vector<float> doot[], const int& i)
+	{
+
+		if (handle_case_optimizations(tt2, doot, i)) {
+			// set_dbg(doot, i);
+			tt2.reset();
+			return;
+		}
+
+		pmod =
+		  tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] + tt2.mod_parts[3];
+		pmod /= 4.f;
+		pmod = CalcClamp(base + pmod, min_mod, max_mod);
+		doot[_pmod][i] = pmod;
+		// set_dbg(doot, i);
+
+		// reset flags n stuff
+		tt2.reset();
+	}
+};
+
 #pragma endregion
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -5970,6 +6261,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	WideRangeAnchorMod _wra;
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
+	TheThingLookerFinderThing2 _tt2;
 
 	// maybe it makes sense to move generic sequencers here
 	AnchorSequencer _as;
@@ -6021,6 +6313,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_fj.advance_sequencing(*_mri);
 		_tt.advance_sequencing(*_mri);
+		_tt2.advance_sequencing(*_mri);
 	}
 	inline void setup_agnostic_pmods()
 	{
@@ -6035,6 +6328,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			_cjq.setup(a, _itv_rows.size());
 			_fj.setup(a, _itv_rows.size());
 			_tt.setup(a, _itv_rows.size());
+			_tt2.setup(a, _itv_rows.size());
 		}
 	}
 
@@ -6051,6 +6345,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_cjq(_mitvi, doot);
 		_fj(doot, itv);
 		_tt(doot, itv);
+		_tt2(doot, itv);
 	}
 
 	inline void run_agnostic_smoothing_pass(vector<float> doot[])
@@ -6064,6 +6359,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_fj._pmod], neutral);
 		Smooth(doot[_tt._pmod], neutral);
 		Smooth(doot[_tt._pmod], neutral);
+		Smooth(doot[_tt2._pmod], neutral);
+		Smooth(doot[_tt2._pmod], neutral);
 	}
 
 	inline void bruh_they_the_same()
@@ -6075,6 +6372,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		_doots[1][_cjq._pmod] = _doots[0][_cjq._pmod];
 		_doots[1][_fj._pmod] = _doots[0][_fj._pmod];
 		_doots[1][_tt._pmod] = _doots[0][_tt._pmod];
+		_doots[1][_tt._pmod] = _doots[0][_tt._pmod];
+		_doots[1][_tt2._pmod] = _doots[0][_tt2._pmod];
+		_doots[1][_tt2._pmod] = _doots[0][_tt2._pmod];
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -6301,6 +6601,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjt.load_params_from_node(&params);
 		_wrb.load_params_from_node(&params);
 		_fj.load_params_from_node(&params);
+		_tt.load_params_from_node(&params);
+		_tt2.load_params_from_node(&params);
 	}
 
 	inline XNode* make_param_node() const
@@ -6323,6 +6625,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_wrjt.make_param_node());
 		calcparams->AppendChild(_wrb.make_param_node());
 		calcparams->AppendChild(_fj.make_param_node());
+		calcparams->AppendChild(_tt.make_param_node());
+		calcparams->AppendChild(_tt2.make_param_node());
 
 		return calcparams;
 	}
@@ -6695,9 +6999,9 @@ Hand::InitAdjDiff()
 		{
 		  JS,
 		  OHJumpMod,
-		  WideRangeBalance,
+		  Chaos,
 		  TheThing,
-		  WideRangeRoll,
+		  TheThing2,
 		},
 
 		// hs
@@ -6962,7 +7266,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 367;
+int mina_calc_version = 368;
 int
 GetCalcVersion()
 {

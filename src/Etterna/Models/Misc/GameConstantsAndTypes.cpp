@@ -257,6 +257,7 @@ StringToSkillset(const RString& s)
 	"WideRangeBalance",
 	"WideRangeAnchor",
 	"TheThing",
+	"TheThing2",
 	"RanMan",
 	"RanLen",
 	"RanAnchLen",

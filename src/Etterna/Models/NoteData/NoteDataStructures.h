@@ -63,6 +63,7 @@ enum CalcPatternMod
 	WideRangeBalance,
 	WideRangeAnchor,
 	TheThing,
+	TheThing2,
 	RanMan,
 	RanLen,
 	RanAnchLen,
