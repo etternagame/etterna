@@ -1231,7 +1231,14 @@ struct moving_window_interval_float
 			b = false;
 	}
 
-	inline float get_total_for_window(const int& window)
+	inline float operator[](const unsigned& pos) const
+	{
+		if (pos < _size)
+		return _itv_vals[pos];
+	}
+
+	  inline float
+	  get_total_for_window(const int& window)
 	{
 		if (is_stat_current[mv_total])
 			return stats[mv_total];
