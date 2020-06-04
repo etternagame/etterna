@@ -6182,6 +6182,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		unsigned row_notes = 0;
 		col_type ct = col_init;
 
+		// zero out moving windows at the start of each hand
+		_mw_cc_ms_any.zero();
+
 		for (auto& ids : hand_col_ids) {
 			setup_dependent_mods(_doots[hand]);
 
@@ -6686,15 +6689,13 @@ Hand::InitAdjDiff()
 		  FlamJam,
 		  OHJumpMod,
 		  Balance,
-		  WideRangeBalance,
-		  WideRangeAnchor,
 		},
 
 		// js
 		{
 		  JS,
 		  OHJumpMod,
-		  WideRangeAnchor,
+		  WideRangeBalance,
 		  TheThing,
 		  WideRangeRoll,
 		},
@@ -6704,7 +6705,6 @@ Hand::InitAdjDiff()
 		  HS,
 		  OHJumpMod,
 		  TheThing,
-		  WideRangeBalance,
 		  WideRangeAnchor,
 		  WideRangeRoll,
 		},
@@ -6962,7 +6962,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 366;
+int mina_calc_version = 367;
 int
 GetCalcVersion()
 {
