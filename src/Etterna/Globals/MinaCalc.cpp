@@ -3782,15 +3782,17 @@ struct ChaosMod
 	float window = 6;
 
 	float min_mod = 0.95f;
-	float max_mod = 1.1f;
-	float penalty = 0.1f;
+	float max_mod = 1.05f;
+	float base = -0.1f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "window", &window },
+
+		// special case, don't allow this to be changed
+		// { "window", &window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "penalty", &penalty },
+		{ "base", &base },
 	};
 #pragma endregion params and param map
 
@@ -3885,7 +3887,7 @@ struct ChaosMod
 		_hekk(_m8.get_mean_of_window(6));
 
 		float zmod = _hekk.get_mean_of_window(window);
-		pmod = _m8.get_mean_of_window(6) - penalty;
+		pmod = base + _m8.get_mean_of_window(6);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
 	}
