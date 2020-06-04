@@ -3781,8 +3781,8 @@ struct ChaosMod
 #pragma region params
 	float window = 6;
 
-	float min_mod = 0.5f;
-	float max_mod = 1.0f;
+	float min_mod = 0.95f;
+	float max_mod = 1.1f;
 	float penalty = 0.1f;
 
 	const vector<pair<std::string, float*>> _params{
@@ -3886,6 +3886,7 @@ struct ChaosMod
 
 		float zmod = _hekk.get_mean_of_window(window);
 		pmod = _m8.get_mean_of_window(6) - penalty;
+		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
 	}
 };
@@ -6667,13 +6668,10 @@ Hand::InitAdjDiff()
 		{},
 
 		// jackspeed, ignore for now
-		{
-		},
+		{},
 
 		// chordjack
-		{
-		  CJ
-		},
+		{ CJ },
 
 		// tech, duNNO wat im DOIN
 		{
@@ -6919,7 +6917,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 365;
+int mina_calc_version = 366;
 int
 GetCalcVersion()
 {
