@@ -1170,7 +1170,7 @@ struct moving_window_interval_columns_int
 
 struct moving_window_interval_int
 {
-	// vals per interval over a window 
+	// vals per interval over a window
 	int _itv_vals[max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
 	int _win_val = 0;
 	int _size = 0;
@@ -4594,7 +4594,7 @@ struct WideRangeJumptrillMod
 		seq_ms[1] /= 3.f;
 		last_passed_check = cv(seq_ms) < cv_cutoff;
 		seq_ms[1] *= 3.f;
-		
+
 		return last_passed_check;
 	}
 
@@ -4678,7 +4678,7 @@ struct WideRangeJumptrillMod
 				bibblybop(now.last_mt);
 				return;
 			}
-				
+
 		} else if (now.mt == meta_acca) {
 			// don't bother adding if the ms values look benign
 			if (handle_acca_timing_check()) {
@@ -5328,110 +5328,6 @@ struct FlamJamMod
 	}
 };
 
-// find [xx]a[yy]b[zz]
-struct the_slip
-{
-	enum to_slide_or_not_to_slide
-	{
-		slip_unbeginninged,
-		needs_single,
-		needs_23_jump,
-		needs_opposing_single,
-		needs_opposing_ohjump,
-		slip_complete,
-
-	};
-
-	// what caused us to slip
-	unsigned slip = 0;
-	// are we slipping
-	bool slippin_till_ya_slips_come_true = false;
-	// how far those whomst'd've been slippinging
-	int slide = 0;
-
-	// ms values, 4 ms values = 5 rows, optimize by just recycling values
-	// without resetting and indexing up to the size counter to get duration
-	float ms[4] = {
-		0.f,
-		0.f,
-		0.f,
-		0.f,
-	};
-
-	// couldn't figure out how to make slip & slide work smh
-	inline bool the_slip_is_the_boot(const unsigned& notes)
-	{
-		switch (slide) {
-			// just started, need single note with no jack between our starting
-			// point and [23]
-			case needs_single:
-				// 1100 requires 0001
-				if (slip == 3 || slip == 7) {
-					if (notes == 8)
-						return true;
-				} else
-				  // if it's not a left hand jump, it's a right hand one, we
-				  // need 1000
-				  if (notes == 1)
-					return true;
-				break;
-			case needs_23_jump:
-				// has to be [23]
-				if (notes == 6)
-					return true;
-				break;
-			case needs_opposing_single:
-				// same as 1 but reversed
-
-				// 1100
-				// 0001
-				// 0110
-				// requires 1000
-				if (slip == 3 || slip == 7) {
-					if (notes == 1)
-						return true;
-				} else
-				  // if it's not a left hand jump, it's a right hand one, we
-				  // need 0001
-				  if (notes == 8)
-					return true;
-				break;
-			case needs_opposing_ohjump:
-				if (slip == 3 || slip == 7) {
-					// if we started on 1100, we end on 0011
-					// make detecc more inclusive i guess by allowing 0100
-					if (notes & 12 || notes == 2)
-						return true;
-				} else
-				  // starting on 0011 ends on 1100
-				  // make detecc more inclusive i guess by allowing 0010
-				  if (notes & 3 || notes == 4)
-					return true;
-				break;
-			default:
-				assert(0);
-				break;
-		}
-		return false;
-	}
-
-	inline void start(const float& ms_now, const unsigned& notes)
-	{
-		slip = notes;
-		slide = 0;
-		slippin_till_ya_slips_come_true = true;
-		grow(ms_now, notes);
-	}
-
-	inline void grow(const float& ms_now, const unsigned& notes)
-	{
-		// ms[slide] = ms_now;
-		++slide;
-	}
-
-	inline void reset() { slippin_till_ya_slips_come_true = false; }
-};
-
 // this should mayb track offhand taps like the old behavior did
 struct WideRangeBalanceMod
 {
@@ -5648,6 +5544,111 @@ struct WideRangeAnchorMod
 	}
 };
 
+
+// find [xx]a[yy]b[zz]
+struct the_slip
+{
+	enum to_slide_or_not_to_slide
+	{
+		slip_unbeginninged,
+		needs_single,
+		needs_23_jump,
+		needs_opposing_single,
+		needs_opposing_ohjump,
+		slip_complete,
+
+	};
+
+	// what caused us to slip
+	unsigned slip = 0;
+	// are we slipping
+	bool slippin_till_ya_slips_come_true = false;
+	// how far those whomst'd've been slippinging
+	int slide = 0;
+
+	// ms values, 4 ms values = 5 rows, optimize by just recycling values
+	// without resetting and indexing up to the size counter to get duration
+	float ms[4] = {
+		0.f,
+		0.f,
+		0.f,
+		0.f,
+	};
+
+	// couldn't figure out how to make slip & slide work smh
+	inline bool the_slip_is_the_boot(const unsigned& notes)
+	{
+		switch (slide) {
+			// just started, need single note with no jack between our starting
+			// point and [23]
+			case needs_single:
+				// 1100 requires 0001
+				if (slip == 3 || slip == 7) {
+					if (notes == 8)
+						return true;
+				} else
+				  // if it's not a left hand jump, it's a right hand one, we
+				  // need 1000
+				  if (notes == 1)
+					return true;
+				break;
+			case needs_23_jump:
+				// has to be [23]
+				if (notes == 6)
+					return true;
+				break;
+			case needs_opposing_single:
+				// same as 1 but reversed
+
+				// 1100
+				// 0001
+				// 0110
+				// requires 1000
+				if (slip == 3 || slip == 7) {
+					if (notes == 1)
+						return true;
+				} else
+				  // if it's not a left hand jump, it's a right hand one, we
+				  // need 0001
+				  if (notes == 8)
+					return true;
+				break;
+			case needs_opposing_ohjump:
+				if (slip == 3 || slip == 7) {
+					// if we started on 1100, we end on 0011
+					// make detecc more inclusive i guess by allowing 0100
+					if (notes == 12 || notes == 14)
+						return true;
+				} else
+				  // starting on 0011 ends on 1100
+				  // make detecc more inclusive i guess by allowing 0010
+				  if (notes == 3 || notes == 7)
+					return true;
+				break;
+			default:
+				assert(0);
+				break;
+		}
+		return false;
+	}
+
+	inline void start(const float& ms_now, const unsigned& notes)
+	{
+		slip = notes;
+		slide = 0;
+		slippin_till_ya_slips_come_true = true;
+		grow(ms_now, notes);
+	}
+
+	inline void grow(const float& ms_now, const unsigned& notes)
+	{
+		// ms[slide] = ms_now;
+		++slide;
+	}
+
+	inline void reset() { slippin_till_ya_slips_come_true = false; }
+};
+
 // sort of the same concept as fj, slightly different implementation
 struct TT_Sequencing
 {
@@ -5656,11 +5657,13 @@ struct TT_Sequencing
 	static const int max_slips = 4;
 	float mod_parts[max_slips] = { 1.f, 1.f, 1.f, 1.f };
 
+	float scaler = 0.f;
+
 	inline void set_params(const float& gt, const float& st, const float& ms)
 	{
-		/*group_tol = gt;
-		step_tol = st;
-		mod_scaler = ms;*/
+		//group_tol = gt;
+		//step_tol = st;
+		scaler = ms;
 	}
 
 	inline void complete_slip(const float& ms_now, const unsigned& notes)
@@ -5723,7 +5726,7 @@ struct TT_Sequencing
 			v = 1.f;
 	}
 
-	inline float construct_mod_part() { return 0.25f; }
+	inline float construct_mod_part() { return scaler; }
 };
 
 // the a things, they are there, we must find them...
@@ -5736,7 +5739,8 @@ struct TheThingLookerFinderThing
 #pragma region params
 	float min_mod = 0.15f;
 	float max_mod = 1.f;
-	float mod_scaler = 2.75f;
+	float scaler = 2.75f;
+	float base = 0.05f;
 
 	// params for tt_sequencing
 	float group_tol = 35.f;
@@ -5745,7 +5749,8 @@ struct TheThingLookerFinderThing
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_scaler", &mod_scaler },
+		{ "scaler", &scaler },
+		{ "base", &base },
 
 		// params for fj_sequencing
 		{ "group_tol", &group_tol },
@@ -5760,7 +5765,7 @@ struct TheThingLookerFinderThing
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
-		tt.set_params(group_tol, step_tol, mod_scaler);
+		tt.set_params(group_tol, step_tol, scaler);
 
 		doot[_pmod].resize(size);
 		/*if (debug_lmao)
@@ -5827,7 +5832,7 @@ struct TheThingLookerFinderThing
 		pmod =
 		  tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
 		pmod /= 4.f;
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
 		// set_dbg(doot, i);
 
@@ -6163,14 +6168,14 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					_itvhi.update_tap_counts(ct);
 
-						if (ct != col_init) {
-							++_itvhi.cc_types[_mhi->cc];
-							++_itvhi.meta_types[_mhi->mt];
-						}
+					if (ct != col_init) {
+						++_itvhi.cc_types[_mhi->cc];
+						++_itvhi.meta_types[_mhi->mt];
+					}
 
-						handle_row_dependent_pattern_advancement();
+					handle_row_dependent_pattern_advancement();
 
-						std::swap(_last_mhi, _mhi);
+					std::swap(_last_mhi, _mhi);
 					_mhi->offhand_ohjumps = 0;
 					_mhi->offhand_taps = 0;
 				}
@@ -6624,6 +6629,7 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  WideRangeAnchor,
 		  TheThing,
+		  
 		},
 
 		// hs
