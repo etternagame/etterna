@@ -1357,8 +1357,8 @@ struct CalcWindow
 
   protected:
 	T _itv_vals[max_moving_window_size];
-	
-	float stats[num_mv_stats] = {0.f, 0.f };
+
+	float stats[num_mv_stats] = { 0.f, 0.f };
 	bool is_stat_current[num_mv_stats] = { false, false };
 
 	// how be do dis...??
@@ -2075,8 +2075,6 @@ struct metaHandInfo
 		col_time[col_right] = last.col_time[col_right];
 		col_time_no_jumps[col_left] = last.col_time_no_jumps[col_left];
 		col_time_no_jumps[col_right] = last.col_time_no_jumps[col_right];
-
-		
 
 		// update this hand's cc type for this row
 		set_cc_type();
@@ -5914,10 +5912,6 @@ struct TheThingLookerFinderThing
 	}
 };
 
-
-
-
-
 // find [12]3[24]1[34]2[13]4[12]
 struct the_slip2
 {
@@ -6193,8 +6187,8 @@ struct TheThingLookerFinderThing2
 			return;
 		}
 
-		pmod =
-		  tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] + tt2.mod_parts[3];
+		pmod = tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] +
+			   tt2.mod_parts[3];
 		pmod /= 4.f;
 		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
