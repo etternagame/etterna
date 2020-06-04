@@ -5433,84 +5433,6 @@ struct the_slip
 	inline void reset() { slippin_till_ya_slips_come_true = false; }
 };
 
-// sort of the same concept as fj, slightly different implementation
-struct TT_Sequencing
-{
-	the_slip fizz;
-	int slip_counter = 0;
-	static const int max_slips = 4;
-	float mod_parts[max_slips] = { 1.f, 1.f, 1.f, 1.f };
-
-	inline void set_params(const float& gt, const float& st, const float& ms)
-	{
-		/*group_tol = gt;
-		step_tol = st;
-		mod_scaler = ms;*/
-	}
-
-	inline void complete_slip(const float& ms_now, const unsigned& notes)
-	{
-		if (slip_counter < max_slips)
-			mod_parts[slip_counter] = construct_mod_part();
-		++slip_counter;
-
-		// any time we complete a slip we can start another slip, so just
-		// start again
-		fizz.start(ms_now, notes);
-	}
-
-	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
-	// singles
-	inline bool start_test(const unsigned& notes)
-	{
-		// either left hand jump or a hand containing left hand jump
-		// or right hand jump or a hand containing right hand jump
-		if (notes == 3 || notes == 7 || notes == 12 || notes == 14)
-			return true;
-		return false;
-	}
-
-	inline void operator()(const float& ms_now, const unsigned& notes)
-	{
-		// ignore quads
-		if (notes == 15) {
-			// reset if we are in a sequence
-			if (fizz.slippin_till_ya_slips_come_true)
-				fizz.reset();
-			return;
-		}
-
-		// haven't started
-		if (!fizz.slippin_till_ya_slips_come_true) {
-			// col check to start
-			if (start_test(notes))
-				fizz.start(ms_now, notes);
-			return;
-		} else {
-			// run the col checks for continuation
-			if (fizz.the_slip_is_the_boot(notes)) {
-				fizz.grow(ms_now, notes);
-				// we found... the thing
-				if (fizz.slide == 5)
-					complete_slip(ms_now, notes);
-			} else
-				// reset if we fail col check
-				fizz.reset();
-			return;
-		}
-		assert(0);
-	}
-
-	inline void reset()
-	{
-		slip_counter = 0;
-		for (auto& v : mod_parts)
-			v = 1.f;
-	}
-
-	inline float construct_mod_part() { return 0.25f; }
-};
-
 // this should mayb track offhand taps like the old behavior did
 struct WideRangeBalanceMod
 {
@@ -5727,7 +5649,83 @@ struct WideRangeAnchorMod
 	}
 };
 
+// sort of the same concept as fj, slightly different implementation
+struct TT_Sequencing
+{
+	the_slip fizz;
+	int slip_counter = 0;
+	static const int max_slips = 4;
+	float mod_parts[max_slips] = { 1.f, 1.f, 1.f, 1.f };
 
+	inline void set_params(const float& gt, const float& st, const float& ms)
+	{
+		/*group_tol = gt;
+		step_tol = st;
+		mod_scaler = ms;*/
+	}
+
+	inline void complete_slip(const float& ms_now, const unsigned& notes)
+	{
+		if (slip_counter < max_slips)
+			mod_parts[slip_counter] = construct_mod_part();
+		++slip_counter;
+
+		// any time we complete a slip we can start another slip, so just
+		// start again
+		fizz.start(ms_now, notes);
+	}
+
+	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
+	// singles
+	inline bool start_test(const unsigned& notes)
+	{
+		// either left hand jump or a hand containing left hand jump
+		// or right hand jump or a hand containing right hand jump
+		if (notes == 3 || notes == 7 || notes == 12 || notes == 14)
+			return true;
+		return false;
+	}
+
+	inline void operator()(const float& ms_now, const unsigned& notes)
+	{
+		// ignore quads
+		if (notes == 15) {
+			// reset if we are in a sequence
+			if (fizz.slippin_till_ya_slips_come_true)
+				fizz.reset();
+			return;
+		}
+
+		// haven't started
+		if (!fizz.slippin_till_ya_slips_come_true) {
+			// col check to start
+			if (start_test(notes))
+				fizz.start(ms_now, notes);
+			return;
+		} else {
+			// run the col checks for continuation
+			if (fizz.the_slip_is_the_boot(notes)) {
+				fizz.grow(ms_now, notes);
+				// we found... the thing
+				if (fizz.slide == 5)
+					complete_slip(ms_now, notes);
+			} else
+				// reset if we fail col check
+				fizz.reset();
+			return;
+		}
+		assert(0);
+	}
+
+	inline void reset()
+	{
+		slip_counter = 0;
+		for (auto& v : mod_parts)
+			v = 1.f;
+	}
+
+	inline float construct_mod_part() { return 0.25f; }
+};
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
