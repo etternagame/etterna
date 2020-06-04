@@ -5895,13 +5895,6 @@ struct TheThingLookerFinderThing
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
-	// debug stuff, tracks everything that was built
-	// vector<vector<metaHandInfo>> _mhi_dbg_vecs[num_hands];
-	// vector<vector<metaHandInfo>> _mri_dbg_vec;
-
-	// for generic debugging, constructs a string with the pattern formation
-	// for a given interval
-	vector<std::string> _itv_row_string;
 
 	// basic data we need
 	vector<float>* _doots[num_hands];
@@ -5918,14 +5911,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	metaItvInfo _mitvi;
 
 	// meta row info keeps track of basic pattern sequencing as we scan down
-	// the notedata rows, we'll only generate and store objects for each row
-	// when dbg is flagged, otherwise we will recyle two pointers (we want
-	// each row to be able to "look back" at the meta info generated at the
-	// last row so the mhi generation requires the last generated mhi object
-	// as an arg
+	// the notedata rows, we will recyle two pointers (we want each row to be
+	// able to "look back" at the meta info generated at the last row so the mhi
+	// generation requires the last generated mhi object as an arg
 	unique_ptr<metaRowInfo> _last_mri;
 	unique_ptr<metaRowInfo> _mri;
-	// metaRowInfo _mri_dbg;
 
 	// basic interval tracking data for hand dependent stuff, like itvinfo
 	ItvHandInfo _itvhi;
@@ -5934,7 +5924,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	// pattern progression on individual hands rather than on generic rows
 	unique_ptr<metaHandInfo> _last_mhi;
 	unique_ptr<metaHandInfo> _mhi;
-	// metaHandInfo _mhi_dbg;
 
 	// i dont want to keep doing the last swap stuff every time i add something
 	// new, so just put it here and pass it
