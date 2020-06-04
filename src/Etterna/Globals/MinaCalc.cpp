@@ -5986,6 +5986,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		Smooth(doot[_s._pmod], neutral);
 		Smooth(doot[_js._pmod], neutral);
+		Smooth(doot[_js._pmod], neutral);
 		Smooth(doot[_hs._pmod], neutral);
 		Smooth(doot[_cj._pmod], neutral);
 		Smooth(doot[_cjq._pmod], neutral);
