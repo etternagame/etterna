@@ -2360,7 +2360,7 @@ struct JSMod
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 		if (mitvi.dunk_it)
-			pmod *= 0.925f;
+			pmod *= 0.99f;
 		doot[_pmod][mitvi._idx] = pmod;
 		set_dbg(doot, mitvi._idx);
 
@@ -2532,6 +2532,9 @@ struct HSMod
 
 		pmod =
 		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+
+		if (mitvi.dunk_it)
+			pmod *= 0.99f;
 
 		doot[_pmod][mitvi._idx] = pmod;
 		set_dbg(doot, mitvi._idx);
