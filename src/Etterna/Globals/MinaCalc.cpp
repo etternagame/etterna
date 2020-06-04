@@ -5397,11 +5397,13 @@ struct the_slip
 			case needs_opposing_ohjump:
 				if (slip == 3 || slip == 7) {
 					// if we started on 1100, we end on 0011
-					if (notes == 12 || notes == 14)
+					// make detecc more inclusive i guess by allowing 0100
+					if (notes & 12 || notes == 2)
 						return true;
 				} else
 				  // starting on 0011 ends on 1100
-				  if (notes == 3 || notes == 7 || notes == 4)
+				  // make detecc more inclusive i guess by allowing 0010
+				  if (notes & 3 || notes == 4)
 					return true;
 				break;
 			default:
@@ -5503,7 +5505,7 @@ struct TT_Sequencing
 			v = 1.f;
 	}
 
-	inline float construct_mod_part() { return 0.f; }
+	inline float construct_mod_part() { return 0.25f; }
 };
 
 // this should mayb track offhand taps like the old behavior did
