@@ -248,7 +248,7 @@ local debugGroups = {
         TotalPatternMod = true,
     },
     {   -- Group 11
-
+        Chaos = true,
     },
     [12] = { -- Group 12
 
