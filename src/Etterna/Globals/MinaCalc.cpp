@@ -6662,7 +6662,7 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  WideRangeAnchor,
 		  TheThing,
-		  
+
 		},
 
 		// hs
@@ -6946,7 +6946,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 362;
+int mina_calc_version = 363;
 int
 GetCalcVersion()
 {
