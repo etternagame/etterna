@@ -1697,8 +1697,8 @@ struct AnchorSequencer
 	}
 
 	// returns max anchor length seen for the requested window
-	inline float get_avg_max_for_window_and_col(const col_type& col,
-												const int& window) const
+	inline float get_max_for_window_and_col(const col_type& col,
+											const int& window) const
 	{
 		int toilet_paper = 0;
 		// if window is 4, we check values 6/5/4/3, since this window is always
@@ -2595,6 +2595,9 @@ struct CJMod
 // i actually have no idea why i made this a separate mod instead of a prop
 // scaler like everything else but there's like a 20% chance there was a good
 // reason so i'll leave it
+
+// ok i remember now its because i wanted to smooth the mod before applying to
+// cj
 struct CJQuadMod
 {
 	const CalcPatternMod _pmod = CJQuad;
@@ -5574,6 +5577,12 @@ struct WideRangeBalanceMod
 										  vector<float> doot[],
 										  const int& i)
 	{
+		// nothing here
+		if (itvh.hand_taps == 0.f) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
 		// same number of taps on each column for this window
 		if (_mw.is_equal()) {
 			mod_set(_pmod, doot, i, min_mod);
@@ -5612,21 +5621,24 @@ struct WideRangeAnchorMod
 #pragma region params
 	int window = 4;
 
-	moving_window_interval_int _mw_taps;
-
-	float min_mod = 0.5f;
-	float max_mod = 2.5f;
-	float base = 0.65f;
+	float min_mod = 1.f;
+	float max_mod = 1.1f;
+	float base = 1.f;
+	float diff_min = 4.f;
+	float diff_max = 12.f;
 	float scaler = 0.1f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "base", &base },
-		{ "scaler", &scaler },
+		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
+		{ "diff_min", &diff_min }, { "diff_max", &diff_max },
+		{ "base", &base },		   { "scaler", &scaler },
 	};
 #pragma endregion params and param map
 
+	float high = 0.f;
+	float low = 0.f;
+	float diff = 0.f;
+	float divisor = diff_max - diff_min;
 	float pmod = min_mod;
 
 #pragma region generic functions
@@ -5634,7 +5646,7 @@ struct WideRangeAnchorMod
 	{
 		// setup should be run after loading params from disk
 		window = CalcClamp(window, 1, max_moving_window_size);
-		_mw_taps._size = window;
+		divisor = diff_max - diff_min;
 
 		doot[_pmod].resize(size);
 	}
@@ -5665,32 +5677,57 @@ struct WideRangeAnchorMod
 	}
 #pragma endregion
 
+	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+										  const AnchorSequencer& as,
+										  vector<float> doot[],
+										  const int& i)
+	{
+		// nothing here
+		if (itvh.hand_taps == 0.f) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// now we need these
+		high = as.get_max_for_window_and_col(col_left, window);
+		low = as.get_max_for_window_and_col(col_right, window);
+
+		if (low > high)
+			std::swap(low, high);
+
+		diff = high - low;
+
+		// difference won't matter
+		if (diff <= diff_min) {
+			neutral_set(_pmod, doot, i);
+			return true;
+		}
+
+		// would max anyway
+		if (diff > diff_max) {
+			mod_set(_pmod, doot, i, max_mod);
+			return true;
+		}
+
+		return false;
+	}
+
 	inline void operator()(const ItvHandInfo& itvh,
 						   const AnchorSequencer& as,
 						   vector<float> doot[],
 						   const int& i)
 	{
-		_mw_taps(itvh.hand_taps + itvh.offhand_taps);
+		if (handle_case_optimizations(itvh, as, doot, i))
+			return;
 
-		float high = as.get_avg_max_for_window_and_col(col_left, window);
-		float low = as.get_avg_max_for_window_and_col(col_right, window);
-
-		if (low > high)
-			std::swap(low, high);
-
-		float bort = 0.f;
-		
-		bort = high - low;
-
-		bort *= scaler;
-		float bailer = high / _mw_taps[true];
-		bort *= bailer;
-		pmod = bort + base;
+		pmod = base + (scaler * ((diff - diff_min) / divisor));
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[_pmod][i] = pmod;
 	}
 };
+
+
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
@@ -6580,12 +6617,15 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  Balance,
 		  WideRangeBalance,
+		  WideRangeAnchor,
 		},
 
 		// js
 		{
 		  JS,
 		  OHJumpMod,
+		  WideRangeAnchor,
+		  TheThing,
 		},
 
 		// hs
@@ -6596,6 +6636,7 @@ Hand::InitAdjDiff()
 		  TheThing,
 		  Balance,
 		  WideRangeBalance,
+		  WideRangeAnchor,
 		},
 
 		// stam, nothing, don't handle here
@@ -6611,6 +6652,7 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  CJQuad,
 		  WideRangeBalance,
+		  WideRangeAnchor,
 		},
 
 		// chordjack
@@ -6633,6 +6675,7 @@ Hand::InitAdjDiff()
 		  WideRangeRoll,
 		  FlamJam,
 		  RanMan,
+		  WideRangeAnchor,
 		},
 
 	};
