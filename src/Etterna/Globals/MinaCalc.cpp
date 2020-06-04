@@ -997,6 +997,7 @@ enum meta_type
 	meta_ccsjjscc,
 	meta_ccsjjscc_inverted,
 	meta_enigma,
+	meta_meta_enigma,
 	meta_num_types,
 	meta_init,
 };
@@ -1168,6 +1169,8 @@ struct moving_window_interval_columns_int
 	}
 };
 
+// redo this so it just inserts 5 and counts backwards to a given window length
+// like anchorsequencer does it
 struct moving_window_interval_int
 {
 	// vals per interval over a window
@@ -1176,6 +1179,42 @@ struct moving_window_interval_int
 	int _size = 0;
 
 	inline void operator()(const int& new_val)
+	{
+		// moving window of 1 is not actually a moving window
+		if (_size == 1) {
+			_win_val = new_val;
+			return;
+		}
+
+		// update the window
+		for (int i = 1; i < _size; ++i)
+			_itv_vals[i - 1] = _itv_vals[i];
+
+		// set new value at size - 1
+		_itv_vals[_size - 1] = new_val;
+
+		// update the running totals by subtracting the oldest value and adding
+		// the newest
+		_win_val -= _itv_vals[0];
+		_win_val += new_val;
+	}
+
+	// returns window totals
+	inline float operator[](const bool& bro_ur_gettin_a_float_ok)
+	{
+		// we're almost always dividing these values, so cast to float
+		return static_cast<float>(_win_val);
+	}
+};
+
+struct moving_window_interval_float
+{
+	// vals per interval over a window
+	float _itv_vals[max_moving_window_size] = { 0, 0, 0, 0, 0, 0 };
+	float _win_val = 0;
+	int _size = 0;
+
+	inline void operator()(const float& new_val)
 	{
 		// moving window of 1 is not actually a moving window
 		if (_size == 1) {
@@ -1891,7 +1930,8 @@ struct metaHandInfo
 					return meta_ccsjjscc_inverted;
 			}
 		}
-
+		if (last.mt == meta_enigma)
+			return meta_meta_enigma;
 		return meta_enigma;
 	}
 
@@ -4750,8 +4790,8 @@ struct WideRangeRollMod
 	float base = 0.15f;
 	float scaler = 0.9f;
 
-	float moving_cv_init = 0.5f;
-	float cv_cutoff = 0.5f;
+	float moving_cv_reset = 2.5f;
+	float cv_cutoff = 0.3f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "window", &window },
@@ -4761,38 +4801,36 @@ struct WideRangeRollMod
 		{ "scaler", &scaler },
 		{ "base", &base },
 
-		{ "moving_cv_init", &moving_cv_init },
+		{ "moving_cv_reset", &moving_cv_reset },
 		{ "cv_cutoff", &cv_cutoff },
 	};
 #pragma endregion params and param map
 	// taps for this hand only, we don't want to include offhand taps in
 	// determining whether this hand is a roll
 	moving_window_interval_int _mw_taps;
-	moving_window_interval_int _mw_roll;
 	moving_window_interval_int _mw_max;
+	moving_window_interval_float _mw_ms;
 
-	int roll_counter = 0;
 	bool last_passed_check = false;
 	int nah_this_file_aint_for_real = 0;
 	int max_thingy = 0;
+	float hi_im_a_float = 0.f;
 
-	int window_hand_taps = 0;
-	int window_roll_taps = 0;
 	float pmod = min_mod;
 
 	vector<float> idk_ms = { 0.f, 0.f, 0.f, 0.f };
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = 0.5f;
+	float moving_cv = 0.f;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
 		_mw_taps._size = window;
-		_mw_roll._size = window;
 		_mw_max._size = window;
-		moving_cv = moving_cv_init;
+		_mw_ms._size = window;
+		moving_cv = moving_cv_reset;
 	}
 
 	inline XNode* make_param_node() const
@@ -4821,49 +4859,65 @@ struct WideRangeRollMod
 	}
 #pragma endregion
 
-	inline bool handle_ccacc_timing_check()
+	inline void zoop_the_woop(const int& pos,
+							  const float& div,
+							  const float& scaler = 1.f)
 	{
-		seq_ms[1] /= 3.f;
-		last_passed_check = cv(seq_ms) < cv_cutoff;
-		seq_ms[1] *= 3.f;
-
-		return last_passed_check;
+		seq_ms[pos] /= div;
+		last_passed_check = do_timing_thing(scaler);
+		seq_ms[pos] *= div;
 	}
 
-	inline bool handle_acca_timing_check()
+	inline void woop_the_zoop(const int& pos,
+							  const float& mult,
+							  const float& scaler = 1.f)
 	{
-		seq_ms[1] *= 3.f;
-
-		moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
-		last_passed_check = moving_cv < cv_cutoff;
-
-		seq_ms[1] /= 3.f;
-
-		return last_passed_check;
+		seq_ms[pos] *= mult;
+		last_passed_check = do_timing_thing(scaler);
+		seq_ms[pos] /= mult;
 	}
 
-	inline bool handle_roll_timing_check()
+	inline bool do_timing_thing(const float& scaler)
 	{
-		if (seq_ms[0] > seq_ms[1]) {
-			seq_ms[1] *= 3.f;
+		_mw_ms(seq_ms[1]);
 
-			moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
-			last_passed_check = moving_cv < cv_cutoff;
+		hi_im_a_float = cv(seq_ms);
 
-			seq_ms[1] /= 3.f;
-			return last_passed_check;
-		} else {
-			seq_ms[1] /= 3.f;
+		// ok we're pretty sure it's a roll don't bother with the test
+		if (hi_im_a_float < 0.01f) {
+			moving_cv = hi_im_a_float;
+			return true;
+		} else
+			moving_cv = (hi_im_a_float + moving_cv) / 2.f;
 
-			moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
-			last_passed_check = moving_cv < cv_cutoff;
-
-			seq_ms[1] *= 3.f;
-			return last_passed_check;
-		}
+		return moving_cv < cv_cutoff / scaler;
 	}
 
-	inline bool handle_ccsjjscc_timing_check(const float& now)
+	inline bool do_other_timing_thing(const float& scaler)
+	{
+		hi_im_a_float = cv(idk_ms);
+
+		// ok we're pretty sure it's a roll don't bother with the test
+		if (hi_im_a_float < 0.01f) {
+			moving_cv = hi_im_a_float;
+			return true;
+		} else
+			moving_cv = (hi_im_a_float + moving_cv) / 2.f;
+
+		return moving_cv < cv_cutoff / scaler;
+	}
+
+	inline void handle_ccacc_timing_check() { zoop_the_woop(1, 3.f, 2.f); }
+
+	inline void handle_roll_timing_check()
+	{
+		if (seq_ms[1] > seq_ms[0])
+			zoop_the_woop(1, 3.f);
+		else
+			woop_the_zoop(1, 3.f);
+	}
+
+	inline void handle_ccsjjscc_timing_check(const float& now)
 	{
 		// translate over the values
 		idk_ms[2] = seq_ms[0];
@@ -4879,56 +4933,56 @@ struct WideRangeRollMod
 		idk_ms[0] *= 2.f;
 		idk_ms[3] *= 2.f;
 
-		moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
-		last_passed_check = moving_cv < cv_cutoff;
+		do_other_timing_thing(3.f);
 
 		idk_ms[0] /= 2.f;
 		idk_ms[3] /= 2.f;
 
 		if (last_passed_check)
-			return true;
+			return;
 
 		// test again
 		idk_ms[0] *= 3.f;
 		idk_ms[3] *= 3.f;
 
-		moving_cv = (cv(seq_ms) + moving_cv) / 2.f;
-		last_passed_check = moving_cv < cv_cutoff;
+		do_other_timing_thing(3.f);
 
 		idk_ms[0] /= 3.f;
 		idk_ms[3] /= 3.f;
-
-		if (last_passed_check)
-			return true;
-		return false;
 	}
 
-	// we might want to skip acca here
-	inline bool check_last_mt(const meta_type& mt)
+	inline void complete_seq()
 	{
-		if (mt == meta_acca || mt == meta_ccacc || mt == meta_oht ||
-			mt == meta_ccsjjscc || mt == meta_ccsjjscc_inverted)
-			if (last_passed_check)
-				return true;
-		return false;
-	}
-
-	inline void bibblybop(const meta_type& mt)
-	{
-		if (!last_passed_check) {
+		if (nah_this_file_aint_for_real > 0)
 			max_thingy = max(max_thingy, nah_this_file_aint_for_real);
-			nah_this_file_aint_for_real = 0;
-		}
+		nah_this_file_aint_for_real = 0;
+		moving_cv = (moving_cv + moving_cv_reset) / 2.f;
+	}
 
-		
-		if (nah_this_file_aint_for_real > 0) {
-			++roll_counter;
-			++nah_this_file_aint_for_real;
-		}
+	inline void bibblybop(const meta_type& last_mt)
+	{
+		// see below
+		if (last_mt == meta_enigma)
+			moving_cv = (moving_cv + hi_im_a_float) / 2.f;
+		else if (last_mt == meta_meta_enigma)
+			moving_cv = (moving_cv + hi_im_a_float + hi_im_a_float) / 3.f;
 
-		if (check_last_mt(mt) && nah_this_file_aint_for_real == 0) {
+		if (!last_passed_check)
+			return;
+
+		++nah_this_file_aint_for_real;
+
+		// if we are here and mt.last == meta enigma, we skipped 1 note
+		// before we identified a jumptrillable roll continuation, if meta
+		// meta enigma, 2
+
+		// borp it
+		if (last_mt == meta_enigma)
 			++nah_this_file_aint_for_real;
-		}
+
+		// same but even more-er
+		if (last_mt == meta_meta_enigma)
+			nah_this_file_aint_for_real += 2;
 	}
 
 	inline void advance_sequencing(const metaHandInfo& now)
@@ -4936,31 +4990,50 @@ struct WideRangeRollMod
 		// we will let ohjumps through here
 
 		update_seq_ms(now);
+		if (now.cc == cc_single_jump || now.cc == cc_jump_single)
+			return;
+
+		if (now.cc == cc_jump_jump) {
+			// its an actual jumpjack/jumptrill, don't bother with timing checks
+			if (nah_this_file_aint_for_real > 0)
+				bibblybop(now.last_mt);
+			return;
+		}
 
 		// look for stuff thats jumptrillyable.. if that stuff... then leads
 		// into more stuff.. that is jumptrillyable... then .... badonk it
 		switch (now.mt) {
+			case meta_acca:
+				// unlike wrjt we want to complete on this, however if we wanted
+				// to catch extremely rolly _js_ we would probably include this
+				complete_seq();
+				break;
 			case meta_oht:
-				if (handle_roll_timing_check())
-					bibblybop(now.last_mt);
+				handle_roll_timing_check();
+				bibblybop(now.last_mt);
 				break;
 			case meta_ccacc:
-				if (handle_ccacc_timing_check())
-					bibblybop(now.last_mt);
-				break;
-			case meta_acca:
-				max_thingy = max(max_thingy, nah_this_file_aint_for_real);
-				nah_this_file_aint_for_real = 0;
+				handle_ccacc_timing_check();
+				bibblybop(now.last_mt);
 				break;
 			case meta_ccsjjscc:
 			case meta_ccsjjscc_inverted:
-				if (handle_ccsjjscc_timing_check(now.cc_ms_any)) {
-					bibblybop(now.last_mt);
-					if (nah_this_file_aint_for_real > 4)
-						roll_counter += 20;
-				}
+				handle_ccsjjscc_timing_check(now.cc_ms_any);
+				bibblybop(now.last_mt);
+				break;
+			case meta_init:
+			case meta_enigma:
+				// this could yet be something we are interested in, but we
+				// don't know yet, so just wait and see
+				break;
+			case meta_meta_enigma:
+				// it's been too long... your vision becomes blurry.. your
+				// memory fades... why are we here again? what are we trying
+				// to do? who are we....
+				complete_seq();
 				break;
 			default:
+				assert(0);
 				break;
 		}
 	}
@@ -4982,7 +5055,7 @@ struct WideRangeRollMod
 	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
 		// no taps, no rolls
-		if (_mw_taps._win_val == 0 || _mw_roll._win_val == 0) {
+		if (_mw_taps._win_val == 0 || _mw_max._win_val == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
@@ -4994,17 +5067,19 @@ struct WideRangeRollMod
 						   vector<float> doot[],
 						   const int& i)
 	{
+		max_thingy = nah_this_file_aint_for_real > max_thingy
+					   ? nah_this_file_aint_for_real
+					   : max_thingy;
+
 		_mw_taps(itvh[col_left] + itvh[col_right]);
-		_mw_roll(roll_counter);
-		_mw_max(max_thingy + 1);
+		_mw_max(max_thingy);
 
 		if (handle_case_optimizations(doot, i)) {
 			interval_reset();
 			return;
 		}
 		float zomg = _mw_taps[true] / _mw_max[true];
-		
-		pmod = _mw_taps[true] / _mw_roll[true] * scaler;
+
 		pmod *= zomg;
 		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);
 		doot[_pmod][i] = pmod;
@@ -5012,11 +5087,7 @@ struct WideRangeRollMod
 		interval_reset();
 	}
 
-	inline void interval_reset()
-	{
-		roll_counter = 0;
-		max_thingy = 0;
-	}
+	inline void interval_reset() { max_thingy = 0; }
 };
 
 struct flam
