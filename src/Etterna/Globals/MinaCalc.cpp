@@ -3325,14 +3325,9 @@ struct RollMod
 	float cv_threshhold = 0.25f;
 
 	const vector<pair<std::string, float*>> _params{
-
-		{ "min_mod", &min_mod },
-		{ "max_mod", &max_mod },
-		{ "pool", &pool },
-		{ "base", &base },
-
-		{ "cv_reset", &cv_reset },
-		{ "cv_threshhold", &cv_threshhold },
+		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
+		{ "pool", &pool },		   { "base", &base },
+		{ "cv_reset", &cv_reset }, { "cv_threshhold", &cv_threshhold },
 	};
 #pragma endregion params and param map
 
