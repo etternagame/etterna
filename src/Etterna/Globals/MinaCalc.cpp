@@ -2459,7 +2459,7 @@ struct HSMod
 
 	float total_prop_min = min_mod;
 	float total_prop_max = max_mod;
-	float total_prop_scaler = 4.571f; // ~32/7
+	float total_prop_scaler = 5.571f; // ~32/7
 	float total_prop_base = 0.4f;
 
 	float split_hand_pool = 1.45f;
