@@ -1207,29 +1207,13 @@ struct moving_window_interval_int
 	}
 };
 
-// always float (sd / mean)
-enum mv_stats
-{
-	mv_mean,
-	mv_cv,
-	num_mv_stats
-};
-
-// always T
-enum mv_stats_T
-{
-	mv_T_total,
-	mv_T_max,
-	num_mv_T_stats
-};
-
 // idk what im doin
 template<typename T>
 struct CalcWindow
 {
-	// uhh actually i dont know why im indxing this way and should probably
-	// change it to not be stupid but whatever lets suppose i contrived a really
-	// good reason and convinced you that i'm not just lazy
+	// ok there's actually a good reason for indexing this way because it's more
+	// intuitive since we are scanning row by row the earliest values in the
+	// window are the oldest
 	inline void operator()(const T& new_val)
 	{
 		// update the window
@@ -1238,9 +1222,6 @@ struct CalcWindow
 
 		// set new value at size - 1
 		_itv_vals[max_moving_window_size - 1] = new_val;
-
-		for (auto& b : is_stat_current)
-			b = false;
 	}
 
 	// return type T
@@ -1255,11 +1236,8 @@ struct CalcWindow
 	inline T get_last() const { return _itv_vals[max_moving_window_size - 2]; }
 
 	// return type T
-	inline T get_total_for_window(const int& window)
+	inline T get_total_for_window(const int& window) const
 	{
-		if (is_T_stat_current[mv_T_total])
-			return T_stats[mv_T_total];
-
 		T o = static_cast<T>(0);
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
@@ -1267,18 +1245,12 @@ struct CalcWindow
 			o += _itv_vals[i];
 		}
 
-		T_stats[mv_T_total] = o;
-		is_T_stat_current[mv_T_total] = true;
-
-		return T_stats[mv_T_total];
+		return o;
 	}
 
 	// return type T
-	inline T get_max_for_window(const int& window)
+	inline T get_max_for_window(const int& window) const
 	{
-		if (is_T_stat_current[mv_T_max])
-			return T_stats[mv_T_max];
-
 		T o = static_cast<T>(0);
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
@@ -1286,18 +1258,12 @@ struct CalcWindow
 			o = _itv_vals[i] > o ? _itv_vals[i] : o;
 		}
 
-		T_stats[mv_T_max] = o;
-		is_T_stat_current[mv_T_max] = true;
-
-		return T_stats[mv_T_max];
+		return o;
 	}
 
 	// return type float
-	inline float get_mean_of_window(const int& window)
+	inline float get_mean_of_window(const int& window) const
 	{
-		if (is_stat_current[mv_mean])
-			return stats[mv_mean];
-
 		T o = static_cast<T>(0);
 
 		int i = max_moving_window_size;
@@ -1306,18 +1272,12 @@ struct CalcWindow
 			o += _itv_vals[i];
 		}
 
-		stats[mv_mean] = static_cast<float>(o) / static_cast<float>(window);
-		is_stat_current[mv_mean] = true;
-
-		return stats[mv_mean];
+		return static_cast<float>(o) / static_cast<float>(window);
 	}
 
 	// return type float
-	inline float get_cv_of_window(const int& window)
+	inline float get_cv_of_window(const int& window) const
 	{
-		if (is_stat_current[mv_cv])
-			return stats[mv_cv];
-
 		float sd = 0.f;
 		float avg = get_mean_of_window(window);
 
@@ -1330,10 +1290,7 @@ struct CalcWindow
 				  (static_cast<float>(_itv_vals[i]) - avg);
 		}
 
-		stats[mv_cv] = fastsqrt(sd / static_cast<float>(window)) / avg;
-		is_stat_current[mv_cv] = true;
-
-		return stats[mv_cv];
+		return fastsqrt(sd / static_cast<float>(window)) / avg;
 	}
 
 	// set everything to zero
@@ -1341,29 +1298,14 @@ struct CalcWindow
 	{
 		for (auto& v : _itv_vals)
 			v = static_cast<T>(0);
+	}
 
-		for (auto& v : stats)
-			v = 0.f;
-
-		for (auto& v : T_stats)
-			v = static_cast<T>(0);
-
-		for (auto& v : is_stat_current)
-			v = false;
-
-		for (auto& v : is_T_stat_current)
-			v = false;
+	CalcWindow() {
+		zero();
 	}
 
   protected:
 	T _itv_vals[max_moving_window_size];
-
-	float stats[num_mv_stats] = { 0.f, 0.f };
-	bool is_stat_current[num_mv_stats] = { false, false };
-
-	// how be do dis...??
-	T T_stats[num_mv_T_stats] = { static_cast<T>(0), static_cast<T>(0) };
-	bool is_T_stat_current[num_mv_T_stats] = { false, false };
 };
 #pragma endregion
 
@@ -3605,7 +3547,15 @@ struct RollMod
 	// anything
 	inline void interval_reset() { itv_rolls.clear(); }
 };
-// almost identical to wrr, refer to comments there
+
+// this is for base trill 1->2 2->1 1->2, 4 notes, 3 timings, however we can
+// extend the window for ms values such that, for example, we require 2 oht meta
+// detections, and on the third, we check a window of 5 ms values, dunno what
+// the benefits or drawbacks are of either system atm but they are both
+// implementable easily
+static const int oht_cc_window = 3;
+static const int max_trills_per_interval = 4;
+ // almost identical to wrr, refer to comments there
 struct OHTrillMod
 {
 	const CalcPatternMod _pmod = OHTrill;
