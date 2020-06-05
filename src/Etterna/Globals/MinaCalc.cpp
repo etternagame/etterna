@@ -6704,11 +6704,10 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	left_hand.InitAdjDiff();
 	right_hand.InitAdjDiff();
-	//Smooth(left_hand.base_adj_diff[Skill_Jumpstream], 1.f);
-	//Smooth(right_hand.base_adj_diff[Skill_Jumpstream], 1.f);
-	  // debug info loop
-	  if (debugmode)
-	{
+	// Smooth(left_hand.base_adj_diff[Skill_Jumpstream], 1.f);
+	// Smooth(right_hand.base_adj_diff[Skill_Jumpstream], 1.f);
+	// debug info loop
+	if (debugmode) {
 		for (auto& hp : spoopy) {
 			auto& hand = hp.first;
 
@@ -7028,11 +7027,11 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  Chaos,
 		  WideRangeJumptrill,
-		  //WideRangeBalance,
+		  // WideRangeBalance,
 		  WideRangeRoll,
 		  FlamJam,
 		  RanMan,
-		  //WideRangeAnchor,
+		  // WideRangeAnchor,
 		  TheThing,
 		  TheThing2,
 		},
@@ -7091,8 +7090,8 @@ Hand::InitAdjDiff()
 				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /= max(doot[HS][i], 1.f);
-					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.15f), 0.99f, 1.04f);
+					adj_diff *= CalcClamp(
+					  fastsqrt(doot[RanMan][i] - 0.15f), 0.99f, 1.04f);
 					adj_diff /= fastsqrt(doot[OHJumpMod][i] * 0.95f);
 					adj_diff /= fastsqrt(doot[WideRangeRoll][i]);
 					adj_diff *= fastsqrt(doot[WideRangeAnchor][i]);
