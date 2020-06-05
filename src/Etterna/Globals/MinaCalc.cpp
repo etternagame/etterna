@@ -6373,7 +6373,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(*_mhi);
 		_roll.advance_sequencing(*_mhi);
-		_oht.advance_sequencing(*_mhi);
+		_oht.advance_sequencing(*_mhi, _mw_cc_ms_any);
 		_rm.advance_sequencing(*_mhi);
 		_wrr.advance_sequencing(*_mhi);
 		_wrjt.advance_sequencing(*_mhi);
