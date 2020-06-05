@@ -30,6 +30,59 @@ using std::sqrt;
 using std::unordered_set;
 using std::vector;
 
+enum tap_size
+{
+	single,
+	jump,
+	hand,
+	quad,
+	num_tap_size
+};
+
+enum hands
+{
+	lh,
+	rh,
+	num_hands,
+};
+
+// cross column behavior between 2 notes
+enum cc_type
+{
+	cc_left_right,
+	cc_right_left,
+	cc_jump_single,
+	cc_single_single,
+	cc_single_jump,
+	cc_jump_jump,
+	num_cc_types,
+	cc_init,
+};
+
+enum meta_type
+{
+	meta_oht,
+	meta_ccacc,
+	meta_acca,
+	meta_ccsjjscc,
+	meta_ccsjjscc_inverted,
+	meta_enigma,
+	meta_meta_enigma,
+	num_meta_types,
+	meta_init,
+};
+
+// hand specific meaning the left two or right two columns and only for 4k
+enum col_type
+{
+	col_left,
+	col_right,
+	col_ohjump,
+	num_col_types,
+	col_empty,
+	col_init
+};
+
 static const std::string calc_params_xml = "Save/calc params.xml";
 // intervals are _half_ second, no point in wasting time or cpu cycles on 100
 // nps joke files
@@ -51,21 +104,6 @@ static const char note_map[16][5]{ "----", "1---", "-1--", "11--",
 								   "--11", "1-11", "-111", "1111" };
 
 static const col_type ct_loop[3] = { col_left, col_right, col_ohjump };
-enum tap_size
-{
-	single,
-	jump,
-	hand,
-	quad,
-	num_tap_size
-};
-
-enum hands
-{
-	lh,
-	rh,
-	num_hands,
-};
 
 static const float s_init = -5.f;
 static const float ms_init = 5000.f;
@@ -995,42 +1033,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 #pragma endregion
 
 #pragma region sequencing logic definitions
-// cross column behavior between 2 notes
-enum cc_type
-{
-	cc_left_right,
-	cc_right_left,
-	cc_jump_single,
-	cc_single_single,
-	cc_single_jump,
-	cc_jump_jump,
-	num_cc_types,
-	cc_init,
-};
-
-enum meta_type
-{
-	meta_oht,
-	meta_ccacc,
-	meta_acca,
-	meta_ccsjjscc,
-	meta_ccsjjscc_inverted,
-	meta_enigma,
-	meta_meta_enigma,
-	num_meta_types,
-	meta_init,
-};
-
-// hand specific meaning the left two or right two columns and only for 4k
-enum col_type
-{
-	col_left,
-	col_right,
-	col_ohjump,
-	num_col_types,
-	col_empty,
-	col_init
-};
 
 inline bool
 is_col_type_single_tap(const col_type& col)
