@@ -96,7 +96,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.8f, 0.83f,
-												 0.94f, 0.7675f, 0.9f, 0.5f };
+												 0.94f, 0.73f, 0.9f, 0.7f };
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -6550,7 +6550,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
-					the_simpsons.push_back(min(_mhi->cc_ms_any, _mhi->tc_ms));
+					the_simpsons.push_back(max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
 
 					_itvhi.update_tap_counts(ct);
 
@@ -7129,13 +7129,17 @@ Hand::InitAdjDiff()
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
 					break;
 				case Skill_Chordjack:
-					adj_diff = soap[BaseMS][i];
+					adj_diff = soap[BaseMS][i] *
+							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
+							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
+							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
+							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
+							   CalcClamp(doot[CJ][i], 0.1f, 1.f);
 					break;
 				case Skill_Technical:
-					adj_diff = soap[BaseMSD][i] * tp_mods[ss] *
-							   basescalers[ss] /
-							   fastsqrt(doot[WideRangeBalance][i]) /
-							   max(fastpow(doot[CJ][i], 2.f), 1.f);
+					adj_diff = soap[BaseMS][i] * tp_mods[ss] * basescalers[ss] /
+							   max(fastpow(doot[CJ][i], 2.f), 1.f) *
+							   max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]);
 					break;
 			}
 		}
