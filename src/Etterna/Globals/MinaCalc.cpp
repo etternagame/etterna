@@ -3616,32 +3616,31 @@ struct OHTrillMod
 		interval_reset();
 	}
 
-	inline void interval_reset() { itv_trills.clear(); }
+	inline void interval_reset() { trill_counter = 0; }
 };
-// placeholder
+
+// slightly different implementation of the old chaos mod, basically picks up
+// polyishness and tries to detect awkward transitions
 struct ChaosMod
 {
 	const CalcPatternMod _pmod = Chaos;
 	const std::string name = "ChaosMod";
 
 #pragma region params
-	float window = 6;
-
+	
 	float min_mod = 0.95f;
 	float max_mod = 1.05f;
 	float base = -0.1f;
 
 	const vector<pair<std::string, float*>> _params{
-
-		// special case, don't allow this to be changed
-		// { "window", &window },
-
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
 	};
 #pragma endregion params and param map
 
+	// don't allow this to be a modifiable param
+	const int window = 6;
 	CalcWindow<float> _u;
 	CalcWindow<float> _wot;
 	CalcWindow<float> _m8;
@@ -4028,6 +4027,7 @@ struct RM_Sequencing
 	}
 #pragma endregion
 };
+
 struct RunningManMod
 {
 	const CalcPatternMod _pmod = RanMan;
@@ -4296,27 +4296,29 @@ struct WideRangeJumptrillMod
 	const std::string name = "WideRangeJumptrillMod";
 
 #pragma region params
-	float window = 3;
+
+	float window_param = 3.f;
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
 	float base = 0.4f;
 
 	float cv_reset = 0.5f;
-	float cv_cutoff = 0.15f;
+	float cv_threshhold = 0.15f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "window", &window },
+		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
 
-		{ "cv_reset", &cv_reset},
-		{ "cv_cutoff", &cv_cutoff },
+		{ "cv_reset", &cv_reset },
+		{ "cv_threshhold", &cv_threshhold },
 	};
 #pragma endregion params and param map
 
+	int window = 0;
 	CalcWindow<int> _mw_jt;
 	int jt_counter = 0;
 
@@ -4325,13 +4327,18 @@ struct WideRangeJumptrillMod
 
 	float pmod = min_mod;
 
+	// swap to my container maybe unless it SUCKS
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
+	// put this back again? seems to work well for wrr, however wrr is already
+	// more generalized anyway
 	// float moving_cv = moving_cv_init;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
+		window =
+		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 		doot[_pmod].resize(size);
 	}
 
@@ -4387,7 +4394,7 @@ struct WideRangeJumptrillMod
 		// this pattern in just regular files
 
 		seq_ms[1] /= 3.f;
-		last_passed_check = cv(seq_ms) < cv_cutoff;
+		last_passed_check = cv(seq_ms) < cv_threshhold;
 		seq_ms[1] *= 3.f;
 
 		return last_passed_check;
@@ -4396,7 +4403,7 @@ struct WideRangeJumptrillMod
 	inline bool handle_acca_timing_check()
 	{
 		seq_ms[1] *= 3.f;
-		last_passed_check = cv(seq_ms) < cv_cutoff;
+		last_passed_check = cv(seq_ms) < cv_threshhold;
 		seq_ms[1] /= 3.f;
 
 		return last_passed_check;
@@ -4413,13 +4420,13 @@ struct WideRangeJumptrillMod
 		// doesn't interfere with the next round
 		if (seq_ms[0] > seq_ms[1]) {
 			seq_ms[1] *= 3.f;
-			last_passed_check = cv(seq_ms) < cv_cutoff;
+			last_passed_check = cv(seq_ms) < cv_threshhold;
 			seq_ms[1] /= 3.f;
 			return last_passed_check;
 		} else {
 			// same thing but divide
 			seq_ms[1] /= 3.f;
-			last_passed_check = cv(seq_ms) < cv_cutoff;
+			last_passed_check = cv(seq_ms) < cv_threshhold;
 			seq_ms[1] *= 3.f;
 			return last_passed_check;
 		}
@@ -4521,7 +4528,8 @@ struct WideRangeJumptrillMod
 			return;
 		}
 
-		pmod = itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window);
+		pmod =
+		  itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window);
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
@@ -4544,7 +4552,8 @@ struct WideRangeRollMod
 	const std::string name = "WideRangeRollMod";
 
 #pragma region params
-	float window = 5;
+
+	float window_param = 5.f;
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
@@ -4555,10 +4564,11 @@ struct WideRangeRollMod
 	float other_cv_threshold = 0.3f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "window", &window },
+		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
+
 		{ "scaler", &scaler },
 		{ "base", &base },
 
@@ -4566,10 +4576,11 @@ struct WideRangeRollMod
 		{ "other_cv_threshold", &other_cv_threshold },
 	};
 #pragma endregion params and param map
-	// taps for this hand only, we don't want to include offhand taps in
-	// determining whether this hand is a roll
-	moving_window_interval_int _mw_taps;
-	moving_window_interval_int _mw_max;
+
+	int window = 0;
+
+	// moving window of longest roll sequences seen in the interval
+	CalcWindow<int> _mw_max;
 
 	// we want to keep custom adjusted ms values here
 	CalcWindow<float> _mw_ms;
@@ -4589,9 +4600,9 @@ struct WideRangeRollMod
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
+		window =
+		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 		doot[_pmod].resize(size);
-		_mw_taps._size = window;
-		_mw_max._size = window;
 	}
 
 	inline XNode* make_param_node() const
@@ -4828,10 +4839,19 @@ struct WideRangeRollMod
 			seq_ms[2] = now.cc_ms_any;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
+										  vector<float> doot[],
+										  const int& i)
 	{
-		// no taps, no rolls
-		if (_mw_taps._win_val == 0 || _mw_max._win_val == 0) {
+		// check taps for _this_ interval, if there's none, and there was a
+		// powerful roll mod before, the roll mod will extend into the empty
+		// interval at minimum value due to 0/n, and then the smoother will push
+		// that push that into the adjecant intervals
+		// then check for the window values, perhaps we should also neutral set
+		// if a large sequence has just ended on this interval, but that may
+		// change too much and the tuning is already looking good anyway
+		if (itvhi.get_taps_nowi() == 0 || itvhi.get_taps_windowi(window) == 0 ||
+			_mw_max.get_total_for_window(window) == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
@@ -4839,7 +4859,7 @@ struct WideRangeRollMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo& itvhi,
 						   vector<float> doot[],
 						   const int& i)
 	{
@@ -4847,14 +4867,17 @@ struct WideRangeRollMod
 					   ? nah_this_file_aint_for_real
 					   : max_thingy;
 
-		_mw_taps(itvh[col_left] + itvh[col_right]);
 		_mw_max(max_thingy);
 
-		if (handle_case_optimizations(doot, i)) {
+		if (handle_case_optimizations(itvhi, doot, i)) {
 			interval_reset();
 			return;
 		}
-		float zomg = _mw_taps[true] / _mw_max[true];
+
+		// really uncertain about the using the total of _mw_max here, but
+		// that's what it was, so i'll keep it for now
+		float zomg = itvhi.get_taps_windowf(window) /
+					 _mw_max.get_total_for_windowf(window);
 
 		pmod *= zomg;
 		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);
@@ -5095,6 +5118,7 @@ struct FJ_Sequencing
 	}
 };
 
+// MAKE FLAM WIDE RANGE?
 struct FlamJamMod
 {
 	const CalcPatternMod _pmod = FlamJam;
@@ -5105,8 +5129,6 @@ struct FlamJamMod
 	float max_mod = 1.f;
 	float mod_scaler = 2.75f;
 
-	// params for rm_sequencing, these define conditions for resetting
-	// runningmen sequences
 	float group_tol = 35.f;
 	float step_tol = 17.5f;
 
@@ -5217,32 +5239,38 @@ struct WideRangeBalanceMod
 
 #pragma region params
 
-	int window = 3;
-	moving_window_interval_columns_int _mw;
+	float window_param = 3.f;
 
 	float min_mod = 0.95f;
 	float max_mod = 1.05f;
-	float mod_base = 0.4f;
+	float base = 0.4f;
+
 	float buffer = 1.f;
 	float scaler = 1.f;
 	float other_scaler = 4.f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
-		{ "mod_base", &mod_base }, { "buffer", &buffer },
-		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
+		{ "window_param", &window_param },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "base", &base },
+
+		{ "buffer", &buffer },
+		{ "scaler", &scaler },
+		{ "other_scaler", &other_scaler },
 	};
 #pragma endregion params and param map
 
+	int window = 0;
 	float pmod = min_mod;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		// setup should be run after loading params from disk
-		window = CalcClamp(window, 1, max_moving_window_size);
-		_mw._size = window;
-
+		window =
+		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 		doot[_pmod].resize(size);
 	}
 
