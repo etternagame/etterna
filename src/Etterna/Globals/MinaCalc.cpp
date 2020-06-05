@@ -3022,26 +3022,20 @@ struct OHJumpModGuyThing
 		prop_component = fastsqrt(prop_component);
 	}
 
-	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
 										  vector<float> doot[],
 										  const int& i)
 	{
-		// nothing here
-		if (itvh.get_taps_nowi() == 0) {
-			neutral_set(_pmod, doot, i);
-			dbg_neutral_set(_dbg, doot, i);
-			return true;
-		}
-
-		// no ohjumps
-		if (itvh[col_ohjump] == 0) {
+		// nothing here or there are no ohjumps
+		if (itvhi.get_taps_nowi() == 0 ||
+			itvhi.get_col_taps_nowi(col_ohjump) == 0) {
 			neutral_set(_pmod, doot, i);
 			dbg_neutral_set(_dbg, doot, i);
 			return true;
 		}
 
 		// everything in the interval is in an ohj sequence
-		if (max_ohjump_seq_taps >= itvh.get_taps_nowi()) {
+		if (max_ohjump_seq_taps >= itvhi.get_taps_nowi()) {
 			mod_set(_pmod, doot, i, min_mod);
 			set_debug_output(doot, i);
 			return true;
@@ -3056,7 +3050,8 @@ struct OHJumpModGuyThing
 		if (max_ohjump_seq_taps < 3) {
 
 			// need to set now
-			base_jump_prop = itvh[col_ohjump] / itvh.get_taps_nowf();
+			base_jump_prop =
+			  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
 			set_prop_comp();
 
 			pmod = CalcClamp(prop_component, min_mod, max_mod);
@@ -3075,7 +3070,7 @@ struct OHJumpModGuyThing
 
 			// build now
 			floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
-			base_seq_prop = floatymcfloatface / itvh.hand_taps;
+			base_seq_prop = floatymcfloatface / itvhi.get_taps_nowf();
 			set_max_seq_comp();
 
 			pmod = CalcClamp(max_seq_component, min_mod, max_mod);
@@ -3099,8 +3094,11 @@ struct OHJumpModGuyThing
 		}
 	}
 
-	void operator()(const ItvHandInfo& itvh, vector<float> doot[], const int& i)
+	void operator()(const metaItvHandInfo& mitvhi,
+					vector<float> doot[],
+					const int& i)
 	{
+		const auto& itvhi = mitvhi._itvhi;
 		// normally we only set these if we use them, bring them to 1 to avoid
 		// confusion
 		if (debug_lmao) {
@@ -3108,7 +3106,8 @@ struct OHJumpModGuyThing
 			prop_component = neutral;
 		}
 
-		cc_taps = itvh.cc_types[cc_left_right] + itvh.cc_types[cc_right_left];
+		cc_taps =
+		  mitvhi._cc_types[cc_left_right] + mitvhi._cc_types[cc_right_left];
 
 		assert(cc_taps >= 0);
 
@@ -3120,7 +3119,7 @@ struct OHJumpModGuyThing
 		// handle simple cases first, execute this block if nothing easy is
 		// detected, fill out non-component debug info and handle interval
 		// resets at end
-		if (handle_case_optimizations(itvh, doot, i)) {
+		if (handle_case_optimizations(mitvhi._itvhi, doot, i)) {
 			interval_reset();
 			return;
 		}
@@ -3131,11 +3130,12 @@ struct OHJumpModGuyThing
 		// set either after case optimizations or in case optimizations, after
 		// the simple checks, for optimization
 		floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
-		base_seq_prop = floatymcfloatface / itvh.hand_taps;
+		base_seq_prop = floatymcfloatface / mitvhi._itvhi.get_taps_nowf();
 		set_max_seq_comp();
 		max_seq_component = CalcClamp(max_seq_component, 0.1f, max_mod);
 
-		base_jump_prop = itvh[col_ohjump] / itvh.hand_taps;
+		base_jump_prop =
+		  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
 		set_prop_comp();
 		prop_component = CalcClamp(prop_component, 0.1f, max_mod);
 
