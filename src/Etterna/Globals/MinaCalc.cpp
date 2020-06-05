@@ -7027,6 +7027,7 @@ Hand::InitAdjDiff()
 		  JS,
 		  OHJumpMod,
 		  Chaos,
+		  Balance,
 		  TheThing,
 		  TheThing2,
 		  WideRangeBalance,
@@ -7113,7 +7114,7 @@ Hand::InitAdjDiff()
 				// do funky special case stuff here
 				case Skill_Stream:
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 0.99f, 1.05f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -7123,6 +7124,9 @@ Hand::InitAdjDiff()
 					adj_diff /= max(doot[HS][i], 1.f);
 					adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
+					adj_diff /= fastsqrt(doot[OHJumpMod][i] * 0.95f);
+					adj_diff /= fastsqrt(doot[WideRangeRoll][i]);
+					adj_diff *= fastsqrt(doot[WideRangeAnchor][i]);
 					/*adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
@@ -7303,7 +7307,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 369;
+int mina_calc_version = 371;
 int
 GetCalcVersion()
 {
