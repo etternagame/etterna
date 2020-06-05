@@ -5296,18 +5296,18 @@ struct WideRangeBalanceMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
 										  vector<float> doot[],
 										  const int& i)
 	{
 		// nothing here
-		if (itvh.hand_taps == 0.f) {
+		if (itvhi.get_taps_nowi() == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// same number of taps on each column for this window
-		if (_mw.is_equal()) {
+		if (itvhi.cols_equal_window(window)) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
@@ -5315,20 +5315,16 @@ struct WideRangeBalanceMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo& itvhi,
 						   vector<float> doot[],
 						   const int& i)
 	{
-		// update current window values
-		for (auto& c : hand_cols)
-			_mw(c, itvh.col_taps[c]);
-
-		if (handle_case_optimizations(itvh, doot, i))
+		if (handle_case_optimizations(itvhi, doot, i))
 			return;
 
-		pmod = _mw[col_left] < _mw[col_right] ? _mw[col_left] / _mw[col_right]
-											  : _mw[col_right] / _mw[col_left];
-		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
+		pmod = itvhi.get_col_prop_high_by_low_window(window);
+
+		pmod = (base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[_pmod][i] = pmod;
