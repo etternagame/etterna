@@ -3158,6 +3158,14 @@ struct OHJumpModGuyThing
 	}
 };
 
+inline float
+div_high_by_low(float a, float b)
+{
+	if (b > a)
+		std::swap(a, b);
+	return b / a;
+}
+
 struct BalanceMod
 {
 
