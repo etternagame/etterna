@@ -985,7 +985,7 @@ enum cc_type
 	cc_single_single,
 	cc_single_jump,
 	cc_jump_jump,
-	cc_num_types,
+	num_cc_types,
 	cc_init,
 };
 
@@ -1618,7 +1618,7 @@ struct metaRowInfo
 // accumulates hand specific info across an interval as it's processed by row
 struct ItvHandInfo
 {
-	int col_taps[3] = { 0, 0, 0 };
+	int col_taps[num_col_types] = { 0, 0, 0 }; 
 	int offhand_taps = 0;
 
 	// moving window of hand_taps
