@@ -3266,19 +3266,18 @@ struct BalanceMod
 		}
 	}
 #pragma endregion
-	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
 										  vector<float> doot[],
 										  const int& i)
 	{
 		// nothing here
-		if (itvh.get_taps_nowi() == 0) {
+		if (itvhi.get_taps_nowi() == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// same number of taps on each column
-		if (itvh.get_col_taps_nowi(col_left) ==
-			itvh.get_col_taps_nowi(col_right)) {
+		if (itvhi.cols_equal_now()) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
@@ -3287,8 +3286,8 @@ struct BalanceMod
 		// verify structural changes dont change output diff
 		// jack, dunno if this is worth bothering about? it would only matter
 		// for tech and it may matter too much there? idk
-		if (itvh.get_col_taps_nowi(col_left) ||
-			itvh.get_col_taps_nowi(col_right) == 0) {
+		if (itvhi.get_col_taps_nowi(col_left) ||
+			itvhi.get_col_taps_nowi(col_right) == 0) {
 			mod_set(_pmod, doot, i, max_mod);
 			return true;
 		}
@@ -3296,49 +3295,44 @@ struct BalanceMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo& itvhi,
 						   vector<float> doot[],
 						   const int& i)
 	{
-		if (handle_case_optimizations(itvh, doot, i))
+		if (handle_case_optimizations(itvhi, doot, i))
 			return;
 
-		pmod = div_high_by_low(itvh.get_col_taps_nowf(col_left),
-							   itvh.get_col_taps_nowf(col_right));
+		pmod = itvhi.get_col_prop_high_by_low();
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[_pmod][i] = pmod;
 	}
 };
-// this will actually be different from wrr apart from the window, probably,
-// maybe
+
 struct RollMod
 {
 	const CalcPatternMod _pmod = Roll;
 	const std::string name = "RollMod";
 
 #pragma region params
-	float itv_window = 1;
-
 	float min_mod = 0.5f;
 	float max_mod = 1.0f;
 	float pool = 1.25f;
 	float base = 0.15f;
 
-	float moving_cv_init = 0.5f;
-	float roll_cv_cutoff = 0.25f;
+	float cv_reset = 0.5f;
+	float cv_threshhold = 0.25f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "itv_window", &itv_window },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "pool", &pool },
 		{ "base", &base },
 
-		{ "moving_cv_init", &moving_cv_init },
-		{ "roll_cv_cutoff", &roll_cv_cutoff },
+		{ "cv_reset", &cv_reset },
+		{ "cv_threshhold", &cv_threshhold },
 	};
 #pragma endregion params and param map
 
@@ -3346,7 +3340,7 @@ struct RollMod
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
-	float moving_cv = moving_cv_init;
+	float moving_cv = cv_reset;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
@@ -3380,11 +3374,7 @@ struct RollMod
 	}
 #pragma endregion
 
-
-	inline void advance_sequencing(const metaHandInfo& now)
-	{
-		return;
-	}
+	inline void advance_sequencing(const metaHandInfo& now) { return; }
 
 	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
 	{
