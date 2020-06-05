@@ -1289,7 +1289,7 @@ struct CalcWindow
 		T_stats[mv_T_max] = o;
 		is_T_stat_current[mv_T_max] = true;
 
-		return T_stats[mv_max];
+		return T_stats[mv_T_max];
 	}
 
 	// return type float
