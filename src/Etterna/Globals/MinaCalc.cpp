@@ -6206,6 +6206,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// basic data we need
 	vector<float>* _doots[num_hands];
+	vector<float>* _diffs[num_hands];
 	vector<NoteInfo> _ni;
 	vector<vector<int>> _itv_rows;
 	float _rate = 0.f;
@@ -6285,6 +6286,24 @@ struct TheGreatBazoinkazoinkInTheSky
 		// doesn't change with offset or anything, and we may do
 		// multi-passes at some point
 		_ni = ni;
+	}
+
+	// for cj, will be sorted from teh above, but we dont care
+	inline float CalcMSEstimateTWOOOOO(const vector<float>& input)
+	{
+		if (input.empty())
+			return 1.f;
+
+		float looloo = mean(input);
+		float doodoo = ms_to_bpm(looloo);
+		float trootroo = doodoo / 15.f;
+		return trootroo * finalscaler;
+	}
+
+	inline void heres_my_diffs(vector<float> lsoap[], vector<float> rsoap[])
+	{
+		_diffs[lh] = lsoap;
+		_diffs[rh] = rsoap;
 	}
 
 	inline void operator()(const vector<vector<int>>& itv_rows,
@@ -6492,10 +6511,11 @@ struct TheGreatBazoinkazoinkInTheSky
 			// also need to have 2 itvhandinfo objects, or just for general
 			// performance (though the redundancy on this pass vs agnostic
 			// the pass is limited to like... a couple floats and 2 ints)
-
+			vector<float> the_simpsons;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 				// reset any accumulated interval info
 				_itvhi.reset();
+				the_simpsons.clear();
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
@@ -6530,6 +6550,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
+					the_simpsons.push_back(min(_mhi->cc_ms_any, _mhi->tc_ms));
+
 					_itvhi.update_tap_counts(ct);
 
 					if (ct != col_init) {
@@ -6551,8 +6573,11 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				// run pattern mod generation for hand dependent mods
 				set_dependent_pmods(_doots[hand], itv);
+
+				_diffs[hand][BaseMS][itv] = CalcMSEstimateTWOOOOO(the_simpsons);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
+			DifficultyMSSmooth(_diffs[hand][BaseMS]);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
@@ -6693,18 +6718,24 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		hand.stam_adj_diff.resize(numitv);
 	}
 
-	ulbu_that_which_consumes_all(
-	  nervIntervals, music_rate, left_hand.doot, right_hand.doot);
-
-	// do these last since calcmsestimate modifies the interval ms values of
+		// do these last since calcmsestimate modifies the interval ms values of
 	// fingers with sort, anything that is derivative of those values that
 	// requires them to be in sequential order should be done before this
 	// point
 	left_hand.InitBaseDiff(fingers[0], fingers[1]);
 	left_hand.InitPoints(fingers[0], fingers[1]);
-	left_hand.InitAdjDiff();
+	
 	right_hand.InitBaseDiff(fingers[2], fingers[3]);
 	right_hand.InitPoints(fingers[2], fingers[3]);
+	
+
+	ulbu_that_which_consumes_all.heres_my_diffs(left_hand.soap,
+												right_hand.soap);
+
+	ulbu_that_which_consumes_all(
+	  nervIntervals, music_rate, left_hand.doot, right_hand.doot);
+
+	left_hand.InitAdjDiff();
 	right_hand.InitAdjDiff();
 
 	// debug info loop
