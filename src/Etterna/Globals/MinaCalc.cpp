@@ -95,8 +95,8 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.8f, 0.83f,
-												 0.94f, 0.73f, 0.9f, 0.7f };
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.92f, 0.83f,
+												 0.94f, 0.73f, 0.9f, 0.95f };
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -6737,8 +6737,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	left_hand.InitAdjDiff();
 	right_hand.InitAdjDiff();
-	Smooth(left_hand.base_adj_diff[Skill_Jumpstream], 1.f);
-	Smooth(right_hand.base_adj_diff[Skill_Jumpstream], 1.f);
+	//Smooth(left_hand.base_adj_diff[Skill_Jumpstream], 1.f);
+	//Smooth(right_hand.base_adj_diff[Skill_Jumpstream], 1.f);
 	  // debug info loop
 	  if (debugmode)
 	{
@@ -7061,11 +7061,13 @@ Hand::InitAdjDiff()
 		  OHJumpMod,
 		  Chaos,
 		  WideRangeJumptrill,
-		  WideRangeBalance,
+		  //WideRangeBalance,
 		  WideRangeRoll,
 		  FlamJam,
 		  RanMan,
-		  WideRangeAnchor,
+		  //WideRangeAnchor,
+		  TheThing,
+		  TheThing2,
 		},
 
 	};
@@ -7114,7 +7116,7 @@ Hand::InitAdjDiff()
 				// do funky special case stuff here
 				case Skill_Stream:
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 0.99f, 1.05f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -7123,7 +7125,7 @@ Hand::InitAdjDiff()
 				case Skill_Jumpstream:
 					adj_diff /= max(doot[HS][i], 1.f);
 					adj_diff *=
-					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.15f), 0.99f, 1.04f);
 					adj_diff /= fastsqrt(doot[OHJumpMod][i] * 0.95f);
 					adj_diff /= fastsqrt(doot[WideRangeRoll][i]);
 					adj_diff *= fastsqrt(doot[WideRangeAnchor][i]);
@@ -7143,15 +7145,14 @@ Hand::InitAdjDiff()
 					adj_diff = soap[BaseMS][i] *
 							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
 							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
-							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
-							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
 							   CalcClamp(doot[CJ][i], 0.1f, 1.f);
 					break;
 				case Skill_Technical:
 					adj_diff =
-					  soap[BaseMS][i] * tp_mods[ss] * basescalers[ss] /
+					  soap[BaseMSD][i] * tp_mods[ss] * basescalers[ss] /
 					  max(fastpow(doot[CJ][i], 2.f), 1.f) *
-					  max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]);
+					  max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]) *
+					  doot[Chaos][i] * fastsqrt(doot[RanMan][i]);
 					break;
 			}
 		}
@@ -7307,7 +7308,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 371;
+int mina_calc_version = 372;
 int
 GetCalcVersion()
 {
