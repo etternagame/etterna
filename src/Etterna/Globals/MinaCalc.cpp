@@ -3681,21 +3681,18 @@ struct ChaosMod
 	inline void advance_sequencing(const CalcWindow<float>& _mw_cc_ms_any)
 	{
 		// most recent value
-		float high = _mw_cc_ms_any.get_now();
+		float a = _mw_cc_ms_any.get_now();
 
 		// previous value
-		float low = _mw_cc_ms_any.get_last();
+		float b = _mw_cc_ms_any.get_last();
 
-		if (high == 0.f || low == 0.f || high == low) {
+		if (a == 0.f || b == 0.f || a == b) {
 			_u(1.f);
 			_wot(_u.get_mean_of_window(window));
 			return;
 		}
 
-		if (low > high)
-			std::swap(high, low);
-
-		float prop = high / low;
+		float prop = div_high_by_low(a, b);
 		int mop = static_cast<int>(prop);
 		float flop = prop - static_cast<float>(mop);
 
