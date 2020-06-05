@@ -1580,17 +1580,18 @@ struct ItvHandInfo
 	// handle end of interval behavior here
 	inline void interval_end()
 	{
-		// update mw for hand taps
+		// update interval mw for hand taps
 		_mw_hand_taps(_col_taps[col_left] + _col_taps[col_right]);
 
-		// update mws for col taps
+		// update interval mws for col taps
 		for (auto& ct : ct_loop)
 			_mw_col_taps[ct](_col_taps[ct]);
 
-		// taps per col on this hand
+		// reset taps per col on this hand
 		for (auto& t : _col_taps)
 			t = 0;
 
+		// reset offhand taps
 		_offhand_taps = 0;
 	}
 
@@ -1905,7 +1906,6 @@ struct AnchorSequencer
 // might be more convenient or clearer
 struct metaHandInfo
 {
-#pragma region row specific data
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
 	unsigned row_notes;
@@ -1941,7 +1941,33 @@ struct metaHandInfo
 	// ms from last note in this column
 	float tc_ms = ms_init;
 
-#pragma endregion
+	inline void full_reset()
+	{
+		row_time = s_init;
+		row_notes;
+
+		for (auto& v : col_time)
+			v = s_init;
+		for (auto& v : col_time_no_jumps)
+			v = s_init;
+
+		col = col_init;
+		last_col = col_init;
+
+		cc = cc_init;
+		last_cc = cc_init;
+		last_last_cc = cc_init;
+
+		mt = meta_init;
+		last_mt = meta_init;
+
+		offhand_taps = 0;
+		offhand_ohjumps = 0;
+
+		cc_ms_any = ms_init;
+		cc_ms_no_jumps = ms_init;
+		tc_ms = ms_init;
+	}
 
 	inline void update_col_times(const float& val)
 	{
@@ -2894,6 +2920,12 @@ struct OHJ_Sequencing
 		cur_seq_taps = 0;
 	}
 
+	inline void zero()
+	{
+		cur_seq_taps = 0;
+		max_seq_taps = 0;
+	}
+
 	inline void operator()(const metaHandInfo& now)
 	{
 		// do nothing for offhand taps
@@ -2987,6 +3019,7 @@ struct OHJumpModGuyThing
 	const std::string name = "OHJumpMod";
 
 #pragma region params
+
 	float min_mod = 0.75f;
 	float max_mod = 1.f;
 
@@ -3009,19 +3042,20 @@ struct OHJumpModGuyThing
 		{ "prop_scaler", &prop_scaler },
 	};
 #pragma endregion params and param map
+
 	OHJ_Sequencing ohj;
 	int max_ohjump_seq_taps = 0;
 	int cc_taps = 0;
 
 	float floatymcfloatface = 0.f;
-	float max_seq_component = 0.f;
-	float prop_component = 0.f;
-
 	// number of jumps scaled to total taps in hand
 	float base_seq_prop = 0.f;
 	// size of sequence scaled to total taps in hand
 	float base_jump_prop = 0.f;
-	float pmod = min_mod;
+
+	float max_seq_component = neutral;
+	float prop_component = neutral;
+	float pmod = neutral;
 
 #pragma region generic functions
 	inline void setup(vector<float> doot[], const int& size)
@@ -3030,6 +3064,22 @@ struct OHJumpModGuyThing
 		if (debug_lmao)
 			for (auto& mod : _dbg)
 				doot[mod].resize(size);
+	}
+
+	inline void full_reset()
+	{
+		ohj.zero();
+
+		max_ohjump_seq_taps = 0;
+		cc_taps = 0;
+
+		floatymcfloatface = 0.f;
+		base_seq_prop = 0.f;
+		base_jump_prop = 0.f;
+
+		max_seq_component = neutral;
+		prop_component = neutral;
+		pmod = neutral;
 	}
 
 	inline XNode* make_param_node() const
@@ -3219,6 +3269,7 @@ struct BalanceMod
 	const std::string name = "BalanceMod";
 
 #pragma region params
+
 	float min_mod = 0.95f;
 	float max_mod = 1.05f;
 	float mod_base = 0.325f;
@@ -3233,9 +3284,12 @@ struct BalanceMod
 	};
 #pragma endregion params and param map
 
-	float pmod = min_mod;
+	float pmod = neutral;
 
 #pragma region generic functions
+
+	inline void full_reset() { pmod = neutral; }
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
@@ -3331,13 +3385,22 @@ struct RollMod
 	};
 #pragma endregion params and param map
 
-	float pmod = min_mod;
+	float pmod = neutral;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 	// uhhh lazy way out of tracking all the floats i think
 	float moving_cv = cv_reset;
 
 #pragma region generic functions
+
+	inline void full_reset()
+	{
+		for (auto& v : seq_ms)
+			v = 0.f;
+		pmod = neutral;
+		moving_cv = cv_reset;
+	}
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
@@ -3636,12 +3699,21 @@ struct ChaosMod
 
 	// don't allow this to be a modifiable param
 	const int window = 6;
+
 	CalcWindow<float> _u;
 	CalcWindow<float> _wot;
-	CalcWindow<float> _m8;
-	float pmod = min_mod;
+
+	float pmod = neutral;
 
 #pragma region generic functions
+
+	inline void full_reset()
+	{
+		_u.zero();
+		_wot.zero();
+		pmod = neutral;
+	}
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
@@ -3720,9 +3792,6 @@ struct ChaosMod
 						   vector<float> doot[],
 						   const int& i)
 	{
-		_m8(_wot.get_mean_of_window(max_moving_window_size));
-
-		float zmod = _m8.get_mean_of_window(window);
 		pmod = base + _wot.get_mean_of_window(max_moving_window_size);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
@@ -3748,57 +3817,72 @@ struct RM_Sequencing
 		max_jack_len = static_cast<int>(mjack);
 	}
 
+	col_type anchor_col = col_init;
+	col_type now_col = col_init;
+
 	// sequencing counters
 	// only allow this rm's anchor col to start sequences
 	bool in_the_nineties = false;
 	// try to allow 1 burst?
 	bool is_bursting = false;
 	bool had_burst = false;
-	float last_anchor_time = s_init;
+
 	int ran_taps = 0;
-	col_type anchor_col = col_init;
 	int anchor_len = 0;
+
 	int off_taps_same = 0;
 	int oht_taps = 0;
 	int oht_len = 0;
 	int off_taps = 0;
 	int off_len = 0;
+
 	int jack_taps = 0;
 	int jack_len = 0;
-	float max_ms = ms_init;
 
-	col_type now_col = col_init;
+	float max_ms = ms_init;
 	float now = 0.f;
 	float temp_ms = 0.f;
+	float last_anchor_time = s_init;
 
 #pragma region functions
+
 	inline void reset()
 	{
-		// don't reset anchor_col or last_col, we want to preserve the pattern
-		// state reset everything else tho
+		// don't touch anchor col
 
 		// now_col and now don't need to be reset either
 
 		in_the_nineties = false;
 		is_bursting = false;
 		had_burst = false;
-		// reset?? don't reset????
-		last_anchor_time = ms_init;
-		ran_taps = 0;
 
+		ran_taps = 0;
 		anchor_len = 0;
+
 		off_taps_same = 0;
 		oht_taps = 0;
 		oht_len = 0;
 		off_taps = 0;
 		off_len = 0;
+
 		jack_taps = 0;
 		jack_len = 0;
+
 		max_ms = ms_init;
+		last_anchor_time = ms_init;
 
 		// if we are resetting and this column is the anchor col, restart again
 		if (anchor_col == now_col)
 			handle_anchor_progression();
+	}
+
+	inline void full_reset()
+	{
+		// don't touch anchor col
+
+		reset();
+		now = 0.f;
+		now_col = col_init;
 	}
 
 	inline void handle_off_tap()
@@ -4030,9 +4114,10 @@ struct RunningManMod
 	const std::string name = "RunningManMod";
 
 #pragma region params
+
 	float min_mod = 0.95f;
 	float max_mod = 1.35f;
-	float mod_base = 0.8f;
+	float base = 0.8f;
 	float min_anchor_len = 5.f;
 	float min_taps_in_rm = 1.f;
 	float min_off_taps_same = 1.f;
@@ -4067,9 +4152,10 @@ struct RunningManMod
 	float max_jack_len = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
+
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
+		{ "base", &base },
 
 		{ "min_anchor_len", &min_anchor_len },
 		{ "min_taps_in_rm", &min_taps_in_rm },
@@ -4109,15 +4195,38 @@ struct RunningManMod
 	RM_Sequencing rms[2];
 	// longest sequence for this interval
 	RM_Sequencing rm;
+
+	int test = 0;
 	float total_prop = 0.f;
 	float off_tap_prop = 0.f;
 	float off_tap_same_prop = 0.f;
+
 	float anchor_len_comp = 0.f;
 	float jack_bonus = 0.f;
 	float oht_bonus = 0.f;
-	float pmod = min_mod;
-	int test = 0;
+
+	float pmod = neutral;
+
 #pragma region generic functions
+
+	inline void full_reset()
+	{
+		rm.full_reset();
+		for (auto& rm : rms)
+			rm.full_reset();
+
+		test = 0;
+		total_prop = 0.f;
+		off_tap_prop = 0.f;
+		off_tap_same_prop = 0.f;
+
+		anchor_len_comp = 0.f;
+		jack_bonus = 0.f;
+		oht_bonus = 0.f;
+
+		pmod = neutral;
+	}
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		// don't try to figure out which column a prospective anchor is on, just
@@ -4266,7 +4375,7 @@ struct RunningManMod
 
 		// we could scale the anchor to speed if we want but meh
 		// that's really complicated/messy/error prone
-		pmod = anchor_len_comp + jack_bonus + oht_bonus + mod_base;
+		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
 		pmod = CalcClamp(
 		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
 		  min_mod,
@@ -4317,7 +4426,7 @@ struct WideRangeJumptrillMod
 	bool bro_is_this_file_for_real = false;
 	bool last_passed_check = false;
 
-	float pmod = min_mod;
+	float pmod = neutral;
 
 	// swap to my container maybe unless it SUCKS
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
@@ -4327,6 +4436,20 @@ struct WideRangeJumptrillMod
 	// float moving_cv = moving_cv_init;
 
 #pragma region generic functions
+
+	inline void full_reset()
+	{
+		_mw_jt.zero();
+		jt_counter = 0;
+
+		for (auto& v : seq_ms)
+			v = 0.f;
+
+		bro_is_this_file_for_real = false;
+		last_passed_check = false;
+		pmod = neutral;
+	}
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		window =
@@ -4552,6 +4675,7 @@ struct WideRangeRollMod
 	float base = 0.15f;
 	float scaler = 0.9f;
 
+	float cv_reset = 1.f;
 	float cv_threshold = 0.35f;
 	float other_cv_threshold = 0.3f;
 
@@ -4560,10 +4684,10 @@ struct WideRangeRollMod
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-
-		{ "scaler", &scaler },
 		{ "base", &base },
+		{ "scaler", &scaler },
 
+		{ "cv_reset", &cv_reset },
 		{ "cv_threshold", &cv_threshold },
 		{ "other_cv_threshold", &other_cv_threshold },
 	};
@@ -4575,21 +4699,40 @@ struct WideRangeRollMod
 	CalcWindow<int> _mw_max;
 
 	// we want to keep custom adjusted ms values here
-	CalcWindow<float> _mw_ms;
+	CalcWindow<float> _mw_adj_ms;
 
 	bool last_passed_check = false;
 	int nah_this_file_aint_for_real = 0;
 	int max_thingy = 0;
 	float hi_im_a_float = 0.f;
 
-	float pmod = min_mod;
-
 	vector<float> idk_ms = { 0.f, 0.f, 0.f, 0.f };
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
 
-	float moving_cv = 1.f;
+	float moving_cv = cv_reset;
+	float pmod = min_mod;
 
 #pragma region generic functions
+
+	inline void full_reset()
+	{
+		_mw_max.zero();
+		_mw_adj_ms.zero();
+
+		last_passed_check = false;
+		nah_this_file_aint_for_real = 0;
+		max_thingy = 0;
+		hi_im_a_float = 0.f;
+
+		for (auto& v : seq_ms)
+			v = 0.f;
+		for (auto& v : idk_ms)
+			v = 0.f;
+
+		moving_cv = cv_reset;
+		pmod = neutral;
+	}
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		window =
@@ -4643,9 +4786,9 @@ struct WideRangeRollMod
 
 	inline bool do_timing_thing(const float& scaler)
 	{
-		_mw_ms(seq_ms[1]);
+		_mw_adj_ms(seq_ms[1]);
 
-		if (_mw_ms.get_cv_of_window(window) > other_cv_threshold)
+		if (_mw_adj_ms.get_cv_of_window(window) > other_cv_threshold)
 			return false;
 
 		hi_im_a_float = cv(seq_ms);
@@ -4662,10 +4805,10 @@ struct WideRangeRollMod
 
 	inline bool do_other_timing_thing(const float& scaler)
 	{
-		_mw_ms(idk_ms[1]);
-		_mw_ms(idk_ms[2]);
+		_mw_adj_ms(idk_ms[1]);
+		_mw_adj_ms(idk_ms[2]);
 
-		if (_mw_ms.get_cv_of_window(window) > other_cv_threshold)
+		if (_mw_adj_ms.get_cv_of_window(window) > other_cv_threshold)
 			return false;
 
 		hi_im_a_float = cv(idk_ms);
@@ -5255,9 +5398,12 @@ struct WideRangeBalanceMod
 #pragma endregion params and param map
 
 	int window = 0;
-	float pmod = min_mod;
+	float pmod = neutral;
 
 #pragma region generic functions
+
+	inline void full_reset() { float pmod = neutral; }
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		// setup should be run after loading params from disk
@@ -5365,6 +5511,9 @@ struct WideRangeAnchorMod
 	float pmod = min_mod;
 
 #pragma region generic functions
+
+	inline void full_reset() { float pmod = neutral; }
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		// setup should be run after loading params from disk
@@ -5472,7 +5621,7 @@ struct the_slip
 
 	// ms values, 4 ms values = 5 rows, optimize by just recycling values
 	// without resetting and indexing up to the size counter to get duration
-	//float ms[4] = {
+	// float ms[4] = {
 	//	0.f,
 	//	0.f,
 	//	0.f,
@@ -5743,7 +5892,7 @@ struct the_slip2
 
 	// ms values, 4 ms values = 5 rows, optimize by just recycling values
 	// without resetting and indexing up to the size counter to get duration
-	//float ms[4] = {
+	// float ms[4] = {
 	//	0.f,
 	//	0.f,
 	//	0.f,
@@ -6250,13 +6399,13 @@ struct TheGreatBazoinkazoinkInTheSky
 		_ohj(_mitvhi, doot, itv);
 		_bal(_mitvhi._itvhi, doot, itv);
 		_roll(_mitvhi, doot, itv);
-		_oht(_itvhi, doot, itv);
-		_ch(_itvhi, doot, itv);
+		_oht(_mitvhi._itvhi, doot, itv);
+		_ch(_mitvhi._itvhi, doot, itv);
 		_rm(doot, itv);
-		_wrr(_itvhi, doot, itv);
+		_wrr(_mitvhi._itvhi, doot, itv);
 		_wrjt(_mitvhi._itvhi, doot, itv);
-		_wrb(_itvhi, doot, itv);
-		_wra(_itvhi, _as, doot, itv);
+		_wrb(_mitvhi._itvhi, doot, itv);
+		_wra(_mitvhi._itvhi, _as, doot, itv);
 	}
 
 	inline void run_dependent_smoothing_pass(vector<float> doot[])
@@ -6273,6 +6422,42 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_wrjt._pmod], neutral);
 	}
 
+	// reset any moving windows or values when starting the other hand, this
+	// shouldn't matter too much practically, but we should be disciplined
+	// enough to do it anyway
+	inline void full_hand_reset()
+	{
+		_ohj.full_reset();
+		_bal.full_reset();
+		_roll.full_reset();
+		_oht.full_reset();
+		_ch.full_reset();
+		_rm.full_reset();
+		_wrr.full_reset();
+		_wrjt.full_reset();
+		_wrb.full_reset();
+		_wra.full_reset();
+
+		// zero out moving windows at the start of each hand
+		_mw_cc_ms_any.zero();
+
+		_mitvhi.zero();
+		_mhi->full_reset();
+		_last_mhi->full_reset();
+	}
+
+	inline void handle_dependent_interval_end(const int& itv)
+	{
+		// invoke metaintervalhandinfo interval end FUNCTION
+		_mitvhi.interval_end();
+
+		// test putting generic sequencers here
+		_as.handle_interval_end();
+
+		// run pattern mod generation for hand dependent mods
+		set_dependent_pmods(_doots[hand], itv);
+	}
+
 	inline void run_dependent_pmod_loop()
 	{
 		float row_time = 0.f;
@@ -6280,8 +6465,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		unsigned row_notes = 0;
 		col_type ct = col_init;
 
-		// zero out moving windows at the start of each hand
-		_mw_cc_ms_any.zero();
+		full_hand_reset();
 
 		for (auto& ids : hand_col_ids) {
 			setup_dependent_mods(_doots[hand]);
@@ -6298,8 +6482,6 @@ struct TheGreatBazoinkazoinkInTheSky
 			// the pass is limited to like... a couple floats and 2 ints)
 			vector<float> the_simpsons;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
-				// reset any accumulated interval info
-				_itvhi.reset();
 				the_simpsons.clear();
 
 				// run the row by row construction for interval info
@@ -6315,14 +6497,14 @@ struct TheGreatBazoinkazoinkInTheSky
 					if (ct == col_empty) {
 
 						// think itvhi wants this as well as mhi
-						++_itvhi.offhand_taps;
+						++_mitvhi._itvhi._offhand_taps;
 						++_mhi->offhand_taps;
 
 						if (column_count(row_notes) == 2) {
 							++_mhi->offhand_ohjumps;
 							++_mhi->offhand_taps;
 
-							++_itvhi.offhand_taps;
+							++_mitvhi._itvhi._offhand_taps;
 						}
 					}
 
@@ -6338,11 +6520,11 @@ struct TheGreatBazoinkazoinkInTheSky
 					the_simpsons.push_back(
 					  max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
 
-					_itvhi.update_tap_counts(ct);
+					_mitvhi._itvhi.set_col_taps(ct);
 
 					if (ct != col_init) {
-						++_itvhi.cc_types[_mhi->cc];
-						++_itvhi.meta_types[_mhi->mt];
+						++_mitvhi._cc_types[_mhi->cc];
+						++_mitvhi._meta_types[_mhi->mt];
 					}
 
 					handle_row_dependent_pattern_advancement();
@@ -6351,14 +6533,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					_mhi->offhand_ohjumps = 0;
 					_mhi->offhand_taps = 0;
 				}
-				// just add up col taps to get hand taps i guess
-				_itvhi.set_hand_taps();
 
-				// test putting generic sequencers here
-				_as.handle_interval_end();
-
-				// run pattern mod generation for hand dependent mods
-				set_dependent_pmods(_doots[hand], itv);
+				handle_dependent_interval_end(itv);
 
 				_diffs[hand][BaseMS][itv] = CalcMSEstimateTWOOOOO(the_simpsons);
 			}
