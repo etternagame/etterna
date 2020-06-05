@@ -433,6 +433,23 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 		v_itvpoints.emplace_back(f1[ki_is_rising].size() +
 								 f2[ki_is_rising].size());
 }
+
+inline float
+div_high_by_low(float a, float b)
+{
+	if (b > a)
+		std::swap(a, b);
+	return a / b;
+}
+
+inline float
+diff_high_by_low(float a, float b)
+{
+	if (b > a)
+		std::swap(a, b);
+	return a / b;
+}
+
 #pragma endregion utils are an antipattern
 
 #pragma region CalcBodyFunctions
@@ -3158,14 +3175,6 @@ struct OHJumpModGuyThing
 		max_ohjump_seq_taps = 0;
 	}
 };
-
-inline float
-div_high_by_low(float a, float b)
-{
-	if (b > a)
-		std::swap(a, b);
-	return b / a;
-}
 
 struct BalanceMod
 {
