@@ -5338,25 +5338,34 @@ struct WideRangeAnchorMod
 	const std::string name = "WideRangeAnchorMod";
 
 #pragma region params
-	int window = 4;
+
+	float window_param = 4.f;
 
 	float min_mod = 1.f;
 	float max_mod = 1.1f;
 	float base = 1.f;
+
 	float diff_min = 4.f;
 	float diff_max = 12.f;
 	float scaler = 0.1f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
-		{ "diff_min", &diff_min }, { "diff_max", &diff_max },
-		{ "base", &base },		   { "scaler", &scaler },
+		{ "window_param", &window_param },
+
+		{ "min_mod", &min_mod },
+		{ "max_mod", &max_mod },
+		{ "base", &base },
+
+		{ "diff_min", &diff_min },
+		{ "diff_max", &diff_max },
+		{ "scaler", &scaler },
 	};
 #pragma endregion params and param map
 
-	float high = 0.f;
-	float low = 0.f;
-	float diff = 0.f;
+	int window = 0;
+	int a = 0;
+	int b = 0;
+	int diff = 0;
 	float divisor = diff_max - diff_min;
 	float pmod = min_mod;
 
@@ -5364,7 +5373,8 @@ struct WideRangeAnchorMod
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		// setup should be run after loading params from disk
-		window = CalcClamp(window, 1, max_moving_window_size);
+		window =
+		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 		divisor = diff_max - diff_min;
 
 		doot[_pmod].resize(size);
@@ -5396,25 +5406,23 @@ struct WideRangeAnchorMod
 	}
 #pragma endregion
 
-	inline bool handle_case_optimizations(const ItvHandInfo& itvh,
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
 										  const AnchorSequencer& as,
 										  vector<float> doot[],
 										  const int& i)
 	{
 		// nothing here
-		if (itvh.hand_taps == 0.f) {
+		if (itvhi.get_taps_nowi() == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// now we need these
-		high = as.get_max_for_window_and_col(col_left, window);
-		low = as.get_max_for_window_and_col(col_right, window);
+		a = as.get_max_for_window_and_col(col_left, window);
+		b = as.get_max_for_window_and_col(col_right, window);
 
-		if (low > high)
-			std::swap(low, high);
-
-		diff = high - low;
+		// will be set for use after we return from here
+		diff = diff_high_by_low(a, b);
 
 		// difference won't matter
 		if (diff <= diff_min) {
@@ -5431,15 +5439,16 @@ struct WideRangeAnchorMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo& itvhi,
 						   const AnchorSequencer& as,
 						   vector<float> doot[],
 						   const int& i)
 	{
-		if (handle_case_optimizations(itvh, as, doot, i))
+		if (handle_case_optimizations(itvhi, as, doot, i))
 			return;
 
-		pmod = base + (scaler * ((diff - diff_min) / divisor));
+		pmod =
+		  base + (scaler * ((static_cast<float>(diff) - diff_min) / divisor));
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		doot[_pmod][i] = pmod;
