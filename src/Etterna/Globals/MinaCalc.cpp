@@ -998,7 +998,7 @@ enum meta_type
 	meta_ccsjjscc_inverted,
 	meta_enigma,
 	meta_meta_enigma,
-	meta_num_types,
+	num_meta_types,
 	meta_init,
 };
 
@@ -1008,7 +1008,7 @@ enum col_type
 	col_left,
 	col_right,
 	col_ohjump,
-	col_num_types,
+	num_col_types,
 	col_empty,
 	col_init
 };
@@ -1654,20 +1654,19 @@ struct ItvHandInfo
 	// returns basic tap col type counts
 	inline float operator[](const col_type& col) const
 	{
-		assert(col < col_num_types);
+		assert(col < num_col_types);
 		// we're almost always dividing these values, so cast to float
 		return static_cast<float>(col_taps[col]);
 	}
 
 	inline void set_hand_taps()
 	{
-		hand_taps =
-		  static_cast<float>(col_taps[col_left] + col_taps[col_right]);
+		_mw_taps(col_taps[col_left] + col_taps[col_right]);
 	}
 
 	// meta stuff here for now
 	int cc_types[cc_num_types] = { 0, 0, 0, 0, 0, 0 };
-	int meta_types[meta_num_types] = { 0, 0, 0, 0, 0, 0 };
+	int meta_types[num_meta_types] = { 0, 0, 0, 0, 0, 0 };
 };
 
 // big brain stuff
