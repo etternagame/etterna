@@ -1637,6 +1637,42 @@ struct ItvHandInfo
 		  _mw_col_taps[ct].get_total_for_window(window));
 	}
 
+	// col operations
+	inline bool cols_equal_now() const
+	{
+		return get_col_taps_nowi(col_left) == get_col_taps_nowi(col_right);
+	}
+
+	inline bool cols_equal_window(const int& window) const
+	{
+		return get_col_taps_windowi(col_left, window) ==
+			   get_col_taps_windowi(col_right, window);
+	}
+
+	inline float get_col_prop_high_by_low() const
+	{
+		return div_high_by_low(get_col_taps_nowf(col_left),
+							   get_col_taps_nowf(col_right));
+	}
+
+	inline float get_col_prop_high_by_low_window(const int& window) const
+	{
+		return div_high_by_low(get_col_taps_windowf(col_left, window),
+							   get_col_taps_windowf(col_right, window));
+	}
+
+	inline int get_col_diff_high_by_low() const
+	{
+		return diff_high_by_low(get_col_taps_nowi(col_left),
+							   get_col_taps_nowi(col_right));
+	}
+
+	inline int get_col_diff_high_by_low_window(const int& window) const
+	{
+		return diff_high_by_low(get_col_taps_windowi(col_left, window),
+							   get_col_taps_windowi(col_right, window));
+	}
+
 	/* access functions for hand tap counts */
 
 	inline int get_taps_nowi() const { return _mw_hand_taps.get_now(); }
