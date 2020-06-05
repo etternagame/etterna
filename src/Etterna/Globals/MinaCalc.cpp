@@ -6193,8 +6193,9 @@ struct TheGreatBazoinkazoinkInTheSky
 	unique_ptr<metaRowInfo> _last_mri;
 	unique_ptr<metaRowInfo> _mri;
 
-	// basic interval tracking data for hand dependent stuff, like itvinfo
-	ItvHandInfo _itvhi;
+	// tracks meta hand info as well as basic interval tracking data for hand
+	// dependent stuff, like metaitvinfo and itvinfo
+	metaItvHandInfo _mitvhi;
 
 	// meta hand info is the same as meta row info, however it tracks
 	// pattern progression on individual hands rather than on generic rows
