@@ -1767,36 +1767,6 @@ struct metaItvHandInfo
 		_itvhi.zero();
 	}
 
-	// pass through access functions
-	inline int get_col_taps_nowi(const col_type& ct) const
-	{
-		return _itvhi.get_col_taps_nowi(ct);
-	}
-	inline float get_col_taps_nowf(const col_type& ct) const
-	{
-		return _itvhi.get_col_taps_nowf(ct);
-	}
-	inline int get_col_taps_windowi(const col_type& ct, const int& window) const
-	{
-		return _itvhi.get_col_taps_windowi(ct, window);
-	}
-	inline float get_col_taps_windowf(const col_type& ct,
-									  const int& window) const
-	{
-		return _itvhi.get_col_taps_windowf(ct, window);
-	}
-	inline int get_taps_nowi() const { return _itvhi.get_taps_nowi(); }
-	inline float get_taps_nowf() const { return _itvhi.get_taps_nowf(); }
-
-	inline int get_taps_windowi(const int& window) const
-	{
-		_itvhi.get_taps_windowi(window);
-	}
-	inline float get_taps_windowf(const int& window) const
-	{
-		_itvhi.get_taps_windowf(window);
-	}
-
 	int _cc_types[num_cc_types] = { 0, 0, 0, 0, 0, 0 };
 	int _meta_types[num_meta_types] = { 0, 0, 0, 0, 0, 0 };
 };
