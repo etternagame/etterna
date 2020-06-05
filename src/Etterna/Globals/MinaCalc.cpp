@@ -1188,6 +1188,19 @@ struct CalcWindow
 	}
 
 	// return type float
+	inline float get_total_for_windowf(const int& window) const
+	{
+		float o = 0.f;
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o += _itv_vals[i];
+		}
+
+		return o;
+	}
+
+	// return type float
 	inline float get_cv_of_window(const int& window) const
 	{
 		float sd = 0.f;
@@ -4239,6 +4252,8 @@ struct RunningManMod
 		rm.reset();
 	}
 };
+
+// should update detection so it's more similar to updated wrr
 // probably needs better debugoutput
 struct WideRangeJumptrillMod
 {
@@ -4250,9 +4265,9 @@ struct WideRangeJumptrillMod
 
 	float min_mod = 0.25f;
 	float max_mod = 1.f;
-	float mod_base = 0.4f;
+	float base = 0.4f;
 
-	float moving_cv_init = 0.5f;
+	float cv_reset = 0.5f;
 	float cv_cutoff = 0.15f;
 
 	const vector<pair<std::string, float*>> _params{
@@ -4260,18 +4275,19 @@ struct WideRangeJumptrillMod
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_base", &mod_base },
+		{ "base", &base },
 
-		{ "moving_cv_init", &moving_cv_init },
+		{ "cv_reset", &cv_reset},
 		{ "cv_cutoff", &cv_cutoff },
 	};
 #pragma endregion params and param map
-	moving_window_interval_int _mw_taps;
-	moving_window_interval_int _mw_jt;
+
+	CalcWindow<int> _mw_jt;
 	int jt_counter = 0;
-	float cv_res = 0.f;
+
 	bool bro_is_this_file_for_real = false;
 	bool last_passed_check = false;
+
 	float pmod = min_mod;
 
 	vector<float> seq_ms = { 0.f, 0.f, 0.f };
@@ -4282,8 +4298,6 @@ struct WideRangeJumptrillMod
 	inline void setup(vector<float> doot[], const int& size)
 	{
 		doot[_pmod].resize(size);
-		_mw_taps._size = window;
-		_mw_jt._size = window;
 	}
 
 	inline XNode* make_param_node() const
@@ -4419,32 +4433,41 @@ struct WideRangeJumptrillMod
 
 		// look for stuff thats jumptrillyable.. if that stuff... then leads
 		// into more stuff.. that is jumptrillyable... then .... badonk it
-		if (now.mt == meta_ccacc) {
-			if (handle_ccacc_timing_check()) {
-				bibblybop(now.last_mt);
-				return;
-			}
 
-		} else if (now.mt == meta_acca) {
-			// don't bother adding if the ms values look benign
-			if (handle_acca_timing_check()) {
-				bibblybop(now.last_mt);
-				return;
-			}
-
-		} else if (now.mt == meta_oht) {
-			if (handle_roll_timing_check()) {
-				bibblybop(now.last_mt);
-				return;
-			}
+		switch (now.mt) {
+			case meta_oht:
+				if (handle_roll_timing_check()) {
+					bibblybop(now.last_mt);
+					return;
+				}
+				break;
+			case meta_ccacc:
+				if (handle_ccacc_timing_check()) {
+					bibblybop(now.last_mt);
+					return;
+				}
+				break;
+			case meta_acca:
+				// don't bother adding if the ms values look benign
+				if (handle_acca_timing_check()) {
+					bibblybop(now.last_mt);
+					return;
+				}
+				break;
+			default:
+				break;
 		}
+
 		bro_is_this_file_for_real = false;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
+										  vector<float> doot[],
+										  const int& i)
 	{
 		// no taps, no jt
-		if (_mw_taps._win_val == 0 || _mw_jt._win_val == 0) {
+		if (itvhi.get_taps_windowi(window) == 0 ||
+			_mw_jt.get_total_for_window(window) == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
@@ -4452,19 +4475,18 @@ struct WideRangeJumptrillMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo& itvhi,
 						   vector<float> doot[],
 						   const int& i)
 	{
-		_mw_taps(itvh[col_left] + itvh[col_right]);
 		_mw_jt(jt_counter);
 
-		if (handle_case_optimizations(doot, i)) {
+		if (handle_case_optimizations(itvhi, doot, i)) {
 			interval_reset();
 			return;
 		}
 
-		pmod = _mw_taps[true] / _mw_jt[true];
+		pmod = itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window);
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
@@ -6222,7 +6244,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_ch(_itvhi, doot, itv);
 		_rm(doot, itv);
 		_wrr(_itvhi, doot, itv);
-		_wrjt(_itvhi, doot, itv);
+		_wrjt(_mitvhi._itvhi, doot, itv);
 		_wrb(_itvhi, doot, itv);
 		_wra(_itvhi, _as, doot, itv);
 	}
