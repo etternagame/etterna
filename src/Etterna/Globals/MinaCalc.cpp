@@ -1991,7 +1991,7 @@ struct metaHandInfo
 				tc_ms = cc_ms_any;
 				break;
 			case cc_jump_jump:
-				cc_ms_any = 0.f;
+				cc_ms_any = ms_init;
 				// make sure this doesn't make sense
 				cc_ms_no_jumps = ms_init;
 
