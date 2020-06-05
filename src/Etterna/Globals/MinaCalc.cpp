@@ -1609,10 +1609,7 @@ struct ItvHandInfo
 
 	/* access functions for hand tap counts */
 
-	inline int get_taps_nowi() const
-	{
-		return _mw_hand_taps.get_now();
-	}
+	inline int get_taps_nowi() const { return _mw_hand_taps.get_now(); }
 
 	// cast to float for divisioning and clean screen
 	inline float get_taps_nowf() const
@@ -1657,9 +1654,9 @@ struct metaItvHandInfo
 	inline void interval_end()
 	{
 		for (auto& v : _cc_types)
-			v = 0.f;
+			v = 0;
 		for (auto& v : _cc_types)
-			v = 0.f;
+			v = 0;
 
 		_itvhi.interval_end();
 	}
@@ -1670,9 +1667,9 @@ struct metaItvHandInfo
 	inline void zero()
 	{
 		for (auto& v : _cc_types)
-			v = 0.f;
+			v = 0;
 		for (auto& v : _cc_types)
-			v = 0.f;
+			v = 0;
 
 		_itvhi.zero();
 	}
@@ -1811,8 +1808,8 @@ struct AnchorSequencer
 	}
 
 	// returns max anchor length seen for the requested window
-	inline float get_max_for_window_and_col(const col_type& col,
-											const int& window) const
+	inline int get_max_for_window_and_col(const col_type& col,
+										  const int& window) const
 	{
 		int toilet_paper = 0;
 		// if window is 4, we check values 6/5/4/3, since this window is always
