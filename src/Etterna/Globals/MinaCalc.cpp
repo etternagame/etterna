@@ -39,9 +39,9 @@ static const vector<float> dimples_the_all_zero_output{ 0.f, 0.f, 0.f, 0.f,
 static const vector<float> gertrude_the_all_max_output{ 100.f, 100.f, 100.f,
 														100.f, 100.f, 100.f,
 														100.f, 100.f };
-static const int cols_per_hand = 2;
-static const bool hand_cols[cols_per_hand] = { 0, 1 };
-static const int num_cols = 4;
+static const int num_cols_per_hand = 2;
+static const bool hand_cols[num_cols_per_hand] = { 0, 1 };
+static const int num_chart_cols = 4;
 static const vector<int> col_ids = { 1, 2, 4, 8 };
 static const unsigned hand_col_ids[2] = { 3, 12 };
 static const int zto3[4] = { 0, 1, 2, 3 };
@@ -1773,11 +1773,11 @@ struct Anchor_Sequencing
 
 struct AnchorSequencer
 {
-	Anchor_Sequencing anch[2];
-	int max_seen[2] = { 0, 0 };
+	Anchor_Sequencing anch[num_cols_per_hand];
+	int max_seen[num_cols_per_hand] = { 0, 0 };
 
 	// track windows of highest anchor per col seen during an interval
-	moving_window_interval_columns_int _mw;
+	CalcWindow<int> _mw_max[num_cols_per_hand];
 
 	AnchorSequencer()
 	{
@@ -1811,26 +1811,14 @@ struct AnchorSequencer
 	inline int get_max_for_window_and_col(const col_type& col,
 										  const int& window) const
 	{
-		int toilet_paper = 0;
-		// if window is 4, we check values 6/5/4/3, since this window is always
-		// 6
-		int pineapple = max_moving_window_size;
-		while (pineapple > max_moving_window_size - window) {
-			--pineapple;
-			toilet_paper = _mw._itv_vals[col][pineapple] > toilet_paper
-							 ? _mw._itv_vals[col][pineapple]
-							 : toilet_paper;
-		}
-		return toilet_paper;
+		assert(col < num_cols_per_hand);
+		_mw_max[col].get_max_for_window(window);
 	}
 
 	inline void handle_interval_end()
 	{
-		// this is a tracker for highest seen values, not an actual moving
-		// average, so the overhead on the cumulation is kind of not needed, but
-		// whatever
 		for (auto& c : { col_left, col_right }) {
-			_mw(c, max_seen[c]);
+			_mw_max[c](max_seen[c]);
 			max_seen[c] = 0;
 		}
 	}
@@ -1856,8 +1844,8 @@ struct metaHandInfo
 	float row_time = s_init;
 	unsigned row_notes;
 
-	float col_time[cols_per_hand] = { s_init, s_init };
-	float col_time_no_jumps[cols_per_hand] = { s_init, s_init };
+	float col_time[num_cols_per_hand] = { s_init, s_init };
+	float col_time_no_jumps[num_cols_per_hand] = { s_init, s_init };
 
 	// col
 	col_type col = col_init;
