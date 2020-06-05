@@ -1671,18 +1671,18 @@ struct ItvHandInfo
 	/* access functions for col tap counts */
 	inline int get_col_taps_nowi(const col_type& ct) const
 	{
-		assert(ct < num_col_types && window < max_moving_window_size);
+		assert(ct < num_col_types);
 		return _mw_col_taps[ct].get_now();
 	}
 
 	// cast to float for divisioning and clean screen
-	inline float get_taps_nowf(const col_type& ct) const
+	inline float get_col_taps_nowf(const col_type& ct) const
 	{
-		assert(ct < num_col_types && window < max_moving_window_size);
+		assert(ct < num_col_types);
 		return static_cast<float>(_mw_col_taps[ct].get_now());
 	}
 
-	inline int get_col_windowi(const col_type& ct, const int& window) const
+	inline int get_col_taps_windowi(const col_type& ct, const int& window) const
 	{
 		assert(ct < num_col_types && window < max_moving_window_size);
 		return _mw_col_taps[ct].get_total_for_window(window);
@@ -1699,15 +1699,14 @@ struct ItvHandInfo
 
 	/* access functions for hand tap counts */
 
-	inline int get_taps_nowi() const {
-		assert(window < max_moving_window_size);
+	inline int get_taps_nowi() const
+	{
 		return _mw_hand_taps.get_now();
 	}
 
 	// cast to float for divisioning and clean screen
-	inline int get_taps_nowf() const
+	inline float get_taps_nowf() const
 	{
-		assert(window < max_moving_window_size);
 		return static_cast<float>(_mw_hand_taps.get_now());
 	}
 
@@ -1721,8 +1720,7 @@ struct ItvHandInfo
 	inline float get_taps_windowf(const int& window) const
 	{
 		assert(window < max_moving_window_size);
-		return static_cast<float>(
-		  _mw_hand_taps.get_total_for_window(window));
+		return static_cast<float>(_mw_hand_taps.get_total_for_window(window));
 	}
 
 	// uhh we uhh.. something sets this i think... this is not handled well
@@ -1740,6 +1738,7 @@ struct ItvHandInfo
 	CalcWindow<int> _mw_hand_taps;
 };
 
+// this _may_ prove to be overkill
 struct metaItvHandInfo
 {
 	ItvHandInfo _itvhi;
@@ -1768,7 +1767,36 @@ struct metaItvHandInfo
 		_itvhi.zero();
 	}
 
-	// meta stuff here for now, wait, am i even using these?
+	// pass through access functions
+	inline int get_col_taps_nowi(const col_type& ct) const
+	{
+		return _itvhi.get_col_taps_nowi(ct);
+	}
+	inline float get_col_taps_nowf(const col_type& ct) const
+	{
+		return _itvhi.get_col_taps_nowf(ct);
+	}
+	inline int get_col_taps_windowi(const col_type& ct, const int& window) const
+	{
+		return _itvhi.get_col_taps_windowi(ct, window);
+	}
+	inline float get_col_taps_windowf(const col_type& ct,
+									  const int& window) const
+	{
+		return _itvhi.get_col_taps_windowf(ct, window);
+	}
+	inline int get_taps_nowi() const { return _itvhi.get_taps_nowi(); }
+	inline float get_taps_nowf() const { return _itvhi.get_taps_nowf(); }
+
+	inline int get_taps_windowi(const int& window) const
+	{
+		_itvhi.get_taps_windowi(window);
+	}
+	inline float get_taps_windowf(const int& window) const
+	{
+		_itvhi.get_taps_windowf(window);
+	}
+
 	int _cc_types[num_cc_types] = { 0, 0, 0, 0, 0, 0 };
 	int _meta_types[num_meta_types] = { 0, 0, 0, 0, 0, 0 };
 };
