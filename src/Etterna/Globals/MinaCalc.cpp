@@ -5460,8 +5460,7 @@ struct the_slip
 		needs_23_jump,
 		needs_opposing_single,
 		needs_opposing_ohjump,
-		slip_complete,
-
+		slip_complete
 	};
 
 	// what caused us to slip
@@ -5473,12 +5472,12 @@ struct the_slip
 
 	// ms values, 4 ms values = 5 rows, optimize by just recycling values
 	// without resetting and indexing up to the size counter to get duration
-	float ms[4] = {
-		0.f,
-		0.f,
-		0.f,
-		0.f,
-	};
+	//float ms[4] = {
+	//	0.f,
+	//	0.f,
+	//	0.f,
+	//	0.f,
+	//};
 
 	// couldn't figure out how to make slip & slide work smh
 	inline bool the_slip_is_the_boot(const unsigned& notes)
@@ -5642,24 +5641,24 @@ struct TheThingLookerFinderThing
 	const std::string name = "TheThingMod";
 
 #pragma region params
+
 	float min_mod = 0.15f;
 	float max_mod = 1.f;
-	float scaler = 0.15f;
 	float base = 0.05f;
-
+	
 	// params for tt_sequencing
 	float group_tol = 35.f;
 	float step_tol = 17.5f;
+	float scaler = 0.15f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "scaler", &scaler },
 		{ "base", &base },
-
-		// params for fj_sequencing
-		{ "group_tol", &group_tol },
-		{ "step_tol", &step_tol },
+		
+		//{ "group_tol", &group_tol },
+		//{ "step_tol", &step_tol },
+		{ "scaler", &scaler },
 	};
 #pragma endregion params and param map
 
@@ -5709,37 +5708,13 @@ struct TheThingLookerFinderThing
 		tt(now.ms_now, now.notes);
 	}
 
-	inline void set_dbg(vector<float> doot[], const int& i)
-	{
-		//
-	}
-
-	inline bool handle_case_optimizations(const TT_Sequencing& fj,
-										  vector<float> doot[],
-										  const int& i)
-	{
-		// nothing
-		// if (fj.mod_parts[0] == 1.f)
-		//	neutral_set(_pmod, doot, i);
-
-		return false;
-	}
-
 	inline void operator()(vector<float> doot[], const int& i)
 	{
-
-		if (handle_case_optimizations(tt, doot, i)) {
-			// set_dbg(doot, i);
-			tt.reset();
-			return;
-		}
-
 		pmod =
 		  tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
 		pmod /= 4.f;
 		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
-		// set_dbg(doot, i);
 
 		// reset flags n stuff
 		tt.reset();
@@ -5756,8 +5731,7 @@ struct the_slip2
 		needs_door,
 		needs_blaap,
 		needs_opposing_ohjump,
-		slip_complete,
-
+		slip_complete
 	};
 
 	// what caused us to slip
@@ -5769,12 +5743,12 @@ struct the_slip2
 
 	// ms values, 4 ms values = 5 rows, optimize by just recycling values
 	// without resetting and indexing up to the size counter to get duration
-	float ms[4] = {
-		0.f,
-		0.f,
-		0.f,
-		0.f,
-	};
+	//float ms[4] = {
+	//	0.f,
+	//	0.f,
+	//	0.f,
+	//	0.f,
+	//};
 
 	// couldn't figure out how to make slip & slide work smh
 	inline bool the_slip_is_the_boot(const unsigned& notes)
@@ -5929,24 +5903,24 @@ struct TheThingLookerFinderThing2
 	const std::string name = "TheThing2Mod";
 
 #pragma region params
+
 	float min_mod = 0.15f;
 	float max_mod = 1.f;
-	float scaler = 0.15f;
 	float base = 0.05f;
-
-	// params for tt_sequencing
+	
+	// params for tt2_sequencing
 	float group_tol = 35.f;
 	float step_tol = 17.5f;
+	float scaler = 0.15f;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "scaler", &scaler },
 		{ "base", &base },
 
-		// params for fj_sequencing
-		{ "group_tol", &group_tol },
-		{ "step_tol", &step_tol },
+		/*{ "group_tol", &group_tol },
+		{ "step_tol", &step_tol },*/
+		{ "scaler", &scaler },
 	};
 #pragma endregion params and param map
 
@@ -5996,37 +5970,13 @@ struct TheThingLookerFinderThing2
 		tt2(now.ms_now, now.notes);
 	}
 
-	inline void set_dbg(vector<float> doot[], const int& i)
-	{
-		//
-	}
-
-	inline bool handle_case_optimizations(const TT_Sequencing2& fj,
-										  vector<float> doot[],
-										  const int& i)
-	{
-		// nothing
-		// if (fj.mod_parts[0] == 1.f)
-		//	neutral_set(_pmod, doot, i);
-
-		return false;
-	}
-
 	inline void operator()(vector<float> doot[], const int& i)
 	{
-
-		if (handle_case_optimizations(tt2, doot, i)) {
-			// set_dbg(doot, i);
-			tt2.reset();
-			return;
-		}
-
 		pmod = tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] +
 			   tt2.mod_parts[3];
 		pmod /= 4.f;
 		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 		doot[_pmod][i] = pmod;
-		// set_dbg(doot, i);
 
 		// reset flags n stuff
 		tt2.reset();
