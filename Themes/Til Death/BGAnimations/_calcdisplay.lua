@@ -707,6 +707,8 @@ local modnames = {
     "wrar",
     "ttl",
     "ttr",
+    "tt2l",
+    "tt2r",
     "rml",
     "rmr",
     "rll",
@@ -809,6 +811,8 @@ local modColors = {
     color("0.7,1,0.1"),		-- leme				 (right)
     color("0,0.8,1"),		-- light blue	= thething left
     color("0,0.8,1"),		-- light blue		 (right)
+    color("0,0.6,1"),       -- darkish blue = thething2 left
+    color("0,0.6,1"),       --                  (right)
 	color("0.2,1,1"),		-- light blue	= ranman left
 	color("0.2,1,1"),		-- light blue		 (right)
 	color("1,1,1"),			-- rl
