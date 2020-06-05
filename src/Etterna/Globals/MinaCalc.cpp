@@ -49,6 +49,8 @@ static const char note_map[16][5]{ "----", "1---", "-1--", "11--",
 								   "--1-", "1-1-", "-11-", "111-",
 								   "---1", "1--1", "-1-1", "11-1",
 								   "--11", "1-11", "-111", "1111" };
+
+static const col_type ct_loop[3] = { col_left, col_right, col_ohjump };
 enum tap_size
 {
 	single,
@@ -1616,34 +1618,18 @@ struct metaRowInfo
 // accumulates hand specific info across an interval as it's processed by row
 struct ItvHandInfo
 {
-	int col_taps[num_col_types] = { 0, 0, 0 }; 
-	int offhand_taps = 0;
-
-	// moving window of hand_taps
-	CalcWindow<int> _mw_taps;
-
-	// resets all the stuff that accumulates across intervals
-	inline void reset()
-	{
-		// taps per col on this hand
-		for (auto& t : col_taps)
-			t = 0;
-
-		offhand_taps = 0;
-	}
-
-	inline void update_tap_counts(const col_type& col)
+	inline void set_col_taps(const col_type& col)
 	{
 		// this could be more efficient but at least it's clear (ish)?
 		switch (col) {
 			case col_left:
 			case col_right:
-				++col_taps[col];
+				++_col_taps[col];
 				break;
 			case col_ohjump:
-				++col_taps[col_left];
-				++col_taps[col_right];
-				col_taps[col] += 2;
+				++_col_taps[col_left];
+				++_col_taps[col_right];
+				_col_taps[col] += 2;
 				break;
 			default:
 				assert(0);
@@ -1651,22 +1637,140 @@ struct ItvHandInfo
 		}
 	}
 
-	// returns basic tap col type counts
-	inline float operator[](const col_type& col) const
+	// handle end of interval behavior here
+	inline void interval_end()
 	{
-		assert(col < num_col_types);
-		// we're almost always dividing these values, so cast to float
-		return static_cast<float>(col_taps[col]);
+		// update mw for hand taps
+		_mw_hand_taps(_col_taps[col_left] + _col_taps[col_right]);
+
+		// update mws for col taps
+		for (auto& ct : ct_loop)
+			_mw_col_taps[ct](_col_taps[ct]);
+
+		// taps per col on this hand
+		for (auto& t : _col_taps)
+			t = 0;
+
+		_offhand_taps = 0;
 	}
 
-	inline void set_hand_taps()
+	// zeroes out all values for everything, complete reset for when we swap
+	// hands maybe move to constructor and reconstruct when swapping hands??
+	inline void zero()
 	{
-		_mw_taps(col_taps[col_left] + col_taps[col_right]);
+		for (auto& v : _col_taps)
+			v = 0;
+
+		_offhand_taps = 0;
+
+		for (auto& mw : _mw_col_taps)
+			mw.zero();
+		_mw_hand_taps.zero();
 	}
 
-	// meta stuff here for now
-	int cc_types[cc_num_types] = { 0, 0, 0, 0, 0, 0 };
-	int meta_types[num_meta_types] = { 0, 0, 0, 0, 0, 0 };
+	/* access functions for col tap counts */
+	inline int get_col_taps_nowi(const col_type& ct) const
+	{
+		assert(ct < num_col_types && window < max_moving_window_size);
+		return _mw_col_taps[ct].get_now();
+	}
+
+	// cast to float for divisioning and clean screen
+	inline float get_taps_nowf(const col_type& ct) const
+	{
+		assert(ct < num_col_types && window < max_moving_window_size);
+		return static_cast<float>(_mw_col_taps[ct].get_now());
+	}
+
+	inline int get_col_windowi(const col_type& ct, const int& window) const
+	{
+		assert(ct < num_col_types && window < max_moving_window_size);
+		return _mw_col_taps[ct].get_total_for_window(window);
+	}
+
+	// cast to float for divisioning and clean screen
+	inline float get_col_taps_windowf(const col_type& ct,
+									  const int& window) const
+	{
+		assert(ct < num_col_types && window < max_moving_window_size);
+		return static_cast<float>(
+		  _mw_col_taps[ct].get_total_for_window(window));
+	}
+
+	/* access functions for hand tap counts */
+
+	inline int get_taps_nowi() const {
+		assert(window < max_moving_window_size);
+		return _mw_hand_taps.get_now();
+	}
+
+	// cast to float for divisioning and clean screen
+	inline int get_taps_nowf() const
+	{
+		assert(window < max_moving_window_size);
+		return static_cast<float>(_mw_hand_taps.get_now());
+	}
+
+	inline int get_taps_windowi(const int& window) const
+	{
+		assert(window < max_moving_window_size);
+		return _mw_hand_taps.get_total_for_window(window);
+	}
+
+	// cast to float for divisioning and clean screen
+	inline float get_taps_windowf(const int& window) const
+	{
+		assert(window < max_moving_window_size);
+		return static_cast<float>(
+		  _mw_hand_taps.get_total_for_window(window));
+	}
+
+	// uhh we uhh.. something sets this i think... this is not handled well
+  public:
+	int _offhand_taps = 0;
+
+  protected:
+	int _col_taps[num_col_types] = { 0, 0, 0 };
+
+	// switch to keeping generic moving windows here, if any mod needs a moving
+	// window query for anything here, we've already saved computation. any mod
+	// that needs custom moving windows based on sequencing will have to keep
+	// its own container, but otherwise these should be referenced
+	CalcWindow<int> _mw_col_taps[num_col_types];
+	CalcWindow<int> _mw_hand_taps;
+};
+
+struct metaItvHandInfo
+{
+	ItvHandInfo _itvhi;
+
+	// handle end of interval
+	inline void interval_end()
+	{
+		for (auto& v : _cc_types)
+			v = 0.f;
+		for (auto& v : _cc_types)
+			v = 0.f;
+
+		_itvhi.interval_end();
+	}
+
+	// zero everything out for end of hand loop so the trailing values from the
+	// left hand don't end up in the start of the right (not that it would make
+	// a huge difference, but it might be abusable
+	inline void zero()
+	{
+		for (auto& v : _cc_types)
+			v = 0.f;
+		for (auto& v : _cc_types)
+			v = 0.f;
+
+		_itvhi.zero();
+	}
+
+	// meta stuff here for now, wait, am i even using these?
+	int _cc_types[num_cc_types] = { 0, 0, 0, 0, 0, 0 };
+	int _meta_types[num_meta_types] = { 0, 0, 0, 0, 0, 0 };
 };
 
 // big brain stuff
@@ -3018,7 +3122,7 @@ struct OHJumpModGuyThing
 										  const int& i)
 	{
 		// nothing here
-		if (itvh.hand_taps == 0) {
+		if (itvh.get_taps_nowi() == 0) {
 			neutral_set(_pmod, doot, i);
 			dbg_neutral_set(_dbg, doot, i);
 			return true;
@@ -3032,7 +3136,7 @@ struct OHJumpModGuyThing
 		}
 
 		// everything in the interval is in an ohj sequence
-		if (max_ohjump_seq_taps >= itvh.hand_taps) {
+		if (max_ohjump_seq_taps >= itvh.get_taps_nowi()) {
 			mod_set(_pmod, doot, i, min_mod);
 			set_debug_output(doot, i);
 			return true;
@@ -3047,7 +3151,7 @@ struct OHJumpModGuyThing
 		if (max_ohjump_seq_taps < 3) {
 
 			// need to set now
-			base_jump_prop = itvh[col_ohjump] / itvh.hand_taps;
+			base_jump_prop = itvh[col_ohjump] / itvh.get_taps_nowf();
 			set_prop_comp();
 
 			pmod = CalcClamp(prop_component, min_mod, max_mod);
