@@ -95,7 +95,7 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.f,   0.97f,   0.8f, 0.83f,
+static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.8f, 0.83f,
 												 0.94f, 0.73f, 0.9f, 0.7f };
 bool debug_lmao = false;
 
@@ -6550,7 +6550,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
-					the_simpsons.push_back(max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
+					the_simpsons.push_back(
+					  max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
 
 					_itvhi.update_tap_counts(ct);
 
@@ -6718,16 +6719,15 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		hand.stam_adj_diff.resize(numitv);
 	}
 
-		// do these last since calcmsestimate modifies the interval ms values of
+	// do these last since calcmsestimate modifies the interval ms values of
 	// fingers with sort, anything that is derivative of those values that
 	// requires them to be in sequential order should be done before this
 	// point
 	left_hand.InitBaseDiff(fingers[0], fingers[1]);
 	left_hand.InitPoints(fingers[0], fingers[1]);
-	
+
 	right_hand.InitBaseDiff(fingers[2], fingers[3]);
 	right_hand.InitPoints(fingers[2], fingers[3]);
-	
 
 	ulbu_that_which_consumes_all.heres_my_diffs(left_hand.soap,
 												right_hand.soap);
@@ -6737,9 +6737,11 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	left_hand.InitAdjDiff();
 	right_hand.InitAdjDiff();
-
-	// debug info loop
-	if (debugmode) {
+	Smooth(left_hand.base_adj_diff[Skill_Jumpstream], 1.f);
+	Smooth(right_hand.base_adj_diff[Skill_Jumpstream], 1.f);
+	  // debug info loop
+	  if (debugmode)
+	{
 		for (auto& hp : spoopy) {
 			auto& hand = hp.first;
 
@@ -7027,6 +7029,9 @@ Hand::InitAdjDiff()
 		  Chaos,
 		  TheThing,
 		  TheThing2,
+		  WideRangeBalance,
+		  WideRangeJumptrill,
+		  WideRangeRoll,
 		},
 
 		// hs
@@ -7116,6 +7121,8 @@ Hand::InitAdjDiff()
 				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /= max(doot[HS][i], 1.f);
+					adj_diff *=
+					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.125f), 1.f, 1.05f);
 					/*adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
@@ -7137,9 +7144,10 @@ Hand::InitAdjDiff()
 							   CalcClamp(doot[CJ][i], 0.1f, 1.f);
 					break;
 				case Skill_Technical:
-					adj_diff = soap[BaseMS][i] * tp_mods[ss] * basescalers[ss] /
-							   max(fastpow(doot[CJ][i], 2.f), 1.f) *
-							   max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]);
+					adj_diff =
+					  soap[BaseMS][i] * tp_mods[ss] * basescalers[ss] /
+					  max(fastpow(doot[CJ][i], 2.f), 1.f) *
+					  max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]);
 					break;
 			}
 		}
@@ -7295,7 +7303,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 368;
+int mina_calc_version = 369;
 int
 GetCalcVersion()
 {
