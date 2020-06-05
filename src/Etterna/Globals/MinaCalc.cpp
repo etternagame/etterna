@@ -3186,8 +3186,7 @@ struct BalanceMod
 		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
 	};
 #pragma endregion params and param map
-	float l_taps = 0.f;
-	float r_taps = 0.f;
+
 	float pmod = min_mod;
 
 #pragma region generic functions
@@ -3226,20 +3225,24 @@ struct BalanceMod
 										  const int& i)
 	{
 		// nothing here
-		if (itvh.hand_taps == 0) {
+		if (itvh.get_taps_nowi() == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// same number of taps on each column
-		if (itvh.col_taps[col_left] == itvh.col_taps[col_right]) {
+		if (itvh.get_col_taps_nowi(col_left) ==
+			itvh.get_col_taps_nowi(col_right)) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
 
+		// probably should NOT do this but leaving enabled for now so i can
+		// verify structural changes dont change output diff
 		// jack, dunno if this is worth bothering about? it would only matter
 		// for tech and it may matter too much there? idk
-		if (itvh.col_taps[col_left] == 0 || itvh.col_taps[col_right] == 0) {
+		if (itvh.get_col_taps_nowi(col_left) ||
+			itvh.get_col_taps_nowi(col_right) == 0) {
 			mod_set(_pmod, doot, i, max_mod);
 			return true;
 		}
@@ -3254,10 +3257,8 @@ struct BalanceMod
 		if (handle_case_optimizations(itvh, doot, i))
 			return;
 
-		l_taps = static_cast<float>(itvh.col_taps[col_left]);
-		r_taps = static_cast<float>(itvh.col_taps[col_right]);
-
-		pmod = l_taps < r_taps ? l_taps / r_taps : r_taps / l_taps;
+		pmod = div_high_by_low(itvh.get_col_taps_nowf(col_left),
+							   itvh.get_col_taps_nowf(col_right));
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
@@ -6428,9 +6429,9 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
-		_ohj(_itvhi, doot, itv);
-		_bal(_itvhi, doot, itv);
-		_roll(_itvhi, doot, itv);
+		_ohj(_mitvhi, doot, itv);
+		_bal(_mitvhi._itvhi, doot, itv);
+		_roll(_mitvhi, doot, itv);
 		_oht(_itvhi, doot, itv);
 		_ch(_itvhi, doot, itv);
 		_rm(doot, itv);
