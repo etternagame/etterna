@@ -1620,7 +1620,9 @@ struct ItvHandInfo
 {
 	int col_taps[3] = { 0, 0, 0 };
 	int offhand_taps = 0;
-	float hand_taps = 0.f;
+
+	// moving window of hand_taps
+	CalcWindow<int> _mw_taps;
 
 	// resets all the stuff that accumulates across intervals
 	inline void reset()
