@@ -561,13 +561,10 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
 					   SONGMAN->activeplaylist.c_str()));
 			return true;
-		} else if (c == '`' && m_MusicWheel.IsSettled() &&
+		} else if (c == 'p' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
 
-#ifndef USING_CALCTESTS
-			return false;
-#endif
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
 			for (auto ss : SONGMAN->testChartList) {

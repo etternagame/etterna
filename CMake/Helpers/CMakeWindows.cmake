@@ -43,3 +43,5 @@ foreach(dll ${WIN_DLLS})
 	file(REMOVE "${PROJECT_SOURCE_DIR}/Program/${dll_filename_without_path}")
 	file(COPY "${dll}" DESTINATION "${PROJECT_SOURCE_DIR}/Program/")
 endforeach()
+
+target_compile_definitions(Etterna PRIVATE $<$<CONFIG:RelWithDebInfo>:RELWITHDEBINFO>)

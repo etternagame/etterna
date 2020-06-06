@@ -5,6 +5,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageThreads.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "SongCacheIndex.h"
@@ -17,6 +18,7 @@
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <SQLiteCpp/Column.h>
 #include <SQLiteCpp/VariadicBind.h>
 #include "sqlite3.h"
 #include <mutex>
@@ -45,7 +47,7 @@
  * the directory hash) in order to find the cache file.
  */
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 239;
+const unsigned int CACHE_DB_VERSION = 240;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -264,14 +266,14 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 }
 
 int64_t
-SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
+SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 {
 	SQLite::Statement insertSteps(*db,
 								  "INSERT INTO steps VALUES (NULL, "
 								  "?, ?, ?, ?, ?, "
 								  "?, ?, ?, "
 								  "?, ?, ?, "
-								  "?, ?, ?, ?, ?)");
+								  "?, ?, ?, ?, ?, ?)");
 	vector<RString> lines;
 	int stepsIndex = 1;
 	insertSteps.bind(stepsIndex++, pSteps->GetChartName());
@@ -326,6 +328,13 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 			break;
 	}
 	insertSteps.bind(stepsIndex++, pSteps->GetFilename().c_str());
+	TimingData* td = pSteps->GetTimingData();
+	NoteData nd;
+	pSteps->GetNoteData(nd);
+	std::vector<NoteInfo> serializednd = nd.SerializeNoteData2(td);
+	insertSteps.bind(stepsIndex++,
+					 serializednd.data(),
+					 serializednd.size() * sizeof(NoteInfo));
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
 
 	try {
@@ -540,17 +549,15 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		insertSong.exec();
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
 		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
-		FOREACH_CONST(Steps*, vpStepsToSave, s)
-		{
-			const Steps* pSteps = *s;
-			if (pSteps->GetChartKey() == "") { // Avoid writing cache tags for
-											   // invalid chartkey files(empty
-											   // steps) -Mina
+		for (auto steps : vpStepsToSave) {
+			if (steps->GetChartKey() == "") { // Avoid writing cache tags for
+											  // invalid chartkey files(empty
+											  // steps) -Mina
 				LOG->Info("Not caching empty difficulty in file %s",
 						  dir.c_str());
 				continue;
 			}
-			int64_t stepsID = InsertSteps(pSteps, songID);
+			int64_t stepsID = InsertSteps(steps, songID);
 		}
 		return true;
 	} catch (std::exception& e) {
@@ -628,7 +635,7 @@ SongCacheIndex::CreateDBTables()
 		  "METER INTEGER, MSD TEXT, CHARTKEY TEXT, "
 		  "MUSIC TEXT, RADARVALUES TEXT, CREDIT TEXT, "
 		  "TIMINGDATAID INTEGER, DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, "
-		  "STEPFILENAME TEXT, SONGID INTEGER, "
+		  "STEPFILENAME TEXT, SERIALIZEDNOTEDATA BLOB, SONGID INTEGER, "
 		  "CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID), "
 		  "CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES "
 		  "timingdatas(ID), "
@@ -1107,7 +1114,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		loader.ProcessBGChanges(*song, "BGCHANGES2", dir, animationstwo);
 
 		Steps* pNewNotes = nullptr;
-		
+
 		SQLite::Statement qSteps(
 		  *db, "SELECT * FROM steps WHERE SONGID=" + to_string(songid));
 
@@ -1138,7 +1145,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			string msdsatrate;
 			while (std::getline(msds, msdsatrate, ':')) {
 				auto m = SSC::msdsplit(msdsatrate);
-				o.push_back({m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
+				o.push_back({ m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
 			}
 			pNewNotes->SetAllMSD(o);
 
@@ -1263,6 +1270,18 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			pNewNotes->TidyUpData();
 			pNewNotes->SetFilename(
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
+			SQLite::Column serialized_notedata_blob =
+			  qSteps.getColumn(stepsIndex++);
+			const NoteInfo* serialized_notedata_data =
+			  static_cast<const NoteInfo*>(serialized_notedata_blob.getBlob());
+			size_t serialized_notedata_size =
+			  serialized_notedata_blob.getBytes() / sizeof(NoteInfo);
+			// sqlite gives us null when the length is 0
+			if (serialized_notedata_data != nullptr)
+				pNewNotes->serializenotedatacache.assign(
+				  serialized_notedata_data,
+				  (const NoteInfo*)(serialized_notedata_data +
+									serialized_notedata_size));
 			song->AddSteps(pNewNotes);
 		}
 
