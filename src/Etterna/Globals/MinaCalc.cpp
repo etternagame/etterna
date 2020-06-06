@@ -477,6 +477,14 @@ div_high_by_low(float a, float b)
 }
 
 inline float
+div_low_by_high(float a, float b)
+{
+	if (b > a)
+		std::swap(a, b);
+	return b / a;
+}
+
+inline float
 diff_high_by_low(float a, float b)
 {
 	if (b > a)
@@ -1654,9 +1662,21 @@ struct ItvHandInfo
 							   get_col_taps_nowf(col_right));
 	}
 
+	inline float get_col_prop_low_by_high() const
+	{
+		return div_low_by_high(get_col_taps_nowf(col_left),
+							   get_col_taps_nowf(col_right));
+	}
+
 	inline float get_col_prop_high_by_low_window(const int& window) const
 	{
 		return div_high_by_low(get_col_taps_windowf(col_left, window),
+							   get_col_taps_windowf(col_right, window));
+	}
+
+	inline float get_col_prop_low_by_high_window(const int& window) const
+	{
+		return div_low_by_high(get_col_taps_windowf(col_left, window),
 							   get_col_taps_windowf(col_right, window));
 	}
 
@@ -3354,7 +3374,7 @@ struct BalanceMod
 		if (handle_case_optimizations(itvhi, doot, i))
 			return;
 
-		pmod = itvhi.get_col_prop_high_by_low();
+		pmod = itvhi.get_col_prop_low_by_high();
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
@@ -5497,7 +5517,7 @@ struct WideRangeBalanceMod
 		if (handle_case_optimizations(itvhi, doot, i))
 			return;
 
-		pmod = itvhi.get_col_prop_high_by_low_window(window);
+		pmod = itvhi.get_col_prop_low_by_high_window(window);
 
 		pmod = (base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
