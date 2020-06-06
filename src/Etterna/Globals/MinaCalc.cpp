@@ -1877,7 +1877,7 @@ struct AnchorSequencer
 										  const int& window) const
 	{
 		assert(col < num_cols_per_hand);
-		_mw_max[col].get_max_for_window(window);
+		return _mw_max[col].get_max_for_window(window);
 	}
 
 	inline void handle_interval_end()
