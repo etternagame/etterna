@@ -24,7 +24,6 @@ using std::max;
 using std::min;
 using std::pair;
 using std::pow;
-using std::sqrt;
 using std::vector;
 
 enum tap_size
@@ -605,7 +604,7 @@ Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 }
 static const float magic_num = 7.5F;
 inline auto
-hit_the_road(float x, float y, int mode) -> float
+hit_the_road(float x, float y, int  /*mode*/) -> float
 {
 	return (CalcClamp(
 	  magic_num - (magic_num * fastpow(x / y, 2.5F)), 0.F, magic_num));
@@ -824,7 +823,7 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 			++Interval;
 		}
 
-		if ((NoteInfo[i].notes & column) != 0u) {
+		if ((NoteInfo[i].notes & column) != 0U) {
 			// log all rows for this interval in pre-allocated mem
 			// this is clamped to stop 192nd single minijacks from having an
 			// outsize influence on anything, they aren't actually that hard in
@@ -1145,7 +1144,7 @@ is_jack_at_col(const unsigned& id,
 			   const unsigned& row_notes,
 			   const unsigned& last_row_notes) -> bool
 {
-	return ((id & row_notes) != 0u) && ((id & last_row_notes) != 0u);
+	return ((id & row_notes) != 0U) && ((id & last_row_notes) != 0U);
 }
 
 // doesn't check for jacks
@@ -1180,7 +1179,7 @@ is_alternating_chord_stream(const unsigned& a,
 		}
 	}
 	// we have either 1[n]1 or [n]1[n], check for any jacks
-	return static_cast<int>(((a & b) != 0u) && ((b & c) != 0u)) == 0;
+	return static_cast<int>(((a & b) != 0U) && ((b & c) != 0U)) == 0;
 }
 #pragma endregion
 
@@ -3591,13 +3590,13 @@ struct RollMod
 
 	static inline void advance_sequencing(const metaHandInfo& now) {}
 
-	static inline auto handle_case_optimizations(vector<float> doot[],
-												 const int& i) -> bool
+	static inline auto handle_case_optimizations(vector<float>  /*doot*/[],
+												 const int&  /*i*/) -> bool
 	{
 		return false;
 	}
 
-	inline void operator()(const metaItvHandInfo& mitvhi,
+	inline void operator()(const metaItvHandInfo&  /*mitvhi*/,
 						   vector<float> doot[],
 						   const int& i)
 	{
@@ -3999,7 +3998,7 @@ struct ChaosMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo&  /*itvh*/,
 						   vector<float> doot[],
 						   const int& i)
 	{
@@ -4607,6 +4606,9 @@ struct RunningManMod
 	}
 };
 
+// big brain stuff
+static const float wrjt_cv_factor = 3.F;
+
 // should update detection so it's more similar to updated wrr
 // probably needs better debugoutput
 struct WideRangeJumptrillMod
@@ -4730,18 +4732,18 @@ struct WideRangeJumptrillMod
 		// is a sensible cutoff that should avoid punishing happenstances of
 		// this pattern in just regular files
 
-		seq_ms[1] /= 3.F;
+		seq_ms[1] /= wrjt_cv_factor;
 		last_passed_check = cv(seq_ms) < cv_threshhold;
-		seq_ms[1] *= 3.F;
+		seq_ms[1] *= wrjt_cv_factor;
 
 		return last_passed_check;
 	}
 
 	inline auto handle_acca_timing_check() -> bool
 	{
-		seq_ms[1] *= 3.F;
+		seq_ms[1] *= wrjt_cv_factor;
 		last_passed_check = cv(seq_ms) < cv_threshhold;
-		seq_ms[1] /= 3.F;
+		seq_ms[1] /= wrjt_cv_factor;
 
 		return last_passed_check;
 	}
@@ -4756,15 +4758,15 @@ struct WideRangeJumptrillMod
 		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
 		// doesn't interfere with the next round
 		if (seq_ms[0] > seq_ms[1]) {
-			seq_ms[1] *= 3.F;
+			seq_ms[1] *= wrjt_cv_factor;
 			last_passed_check = cv(seq_ms) < cv_threshhold;
-			seq_ms[1] /= 3.F;
+			seq_ms[1] /= wrjt_cv_factor;
 			return last_passed_check;
 		}
 		// same thing but divide
-		seq_ms[1] /= 3.f;
+		seq_ms[1] /= wrjt_cv_factor;
 		last_passed_check = cv(seq_ms) < cv_threshhold;
-		seq_ms[1] *= 3.f;
+		seq_ms[1] *= wrjt_cv_factor;
 		return last_passed_check;
 	}
 
@@ -5969,7 +5971,7 @@ struct the_slip
 		grow(ms_now, notes);
 	}
 
-	inline void grow(const float& ms_now, const unsigned& notes)
+	inline void grow(const float&  /*ms_now*/, const unsigned&  /*notes*/)
 	{
 		// ms[slide] = ms_now;
 		++slide;
@@ -5988,7 +5990,7 @@ struct TT_Sequencing
 
 	float scaler = 0.F;
 
-	inline void set_params(const float& gt, const float& st, const float& ms)
+	inline void set_params(const float&  /*gt*/, const float&  /*st*/, const float& ms)
 	{
 		// group_tol = gt;
 		// step_tol = st;
@@ -6247,7 +6249,7 @@ struct the_slip2
 		grow(ms_now, notes);
 	}
 
-	inline void grow(const float& ms_now, const unsigned& notes)
+	inline void grow(const float&  /*ms_now*/, const unsigned&  /*notes*/)
 	{
 		// ms[slide] = ms_now;
 		++slide;
@@ -6266,7 +6268,7 @@ struct TT_Sequencing2
 
 	float scaler = 0.F;
 
-	inline void set_params(const float& gt, const float& st, const float& ms)
+	inline void set_params(const float&  /*gt*/, const float&  /*st*/, const float& ms)
 	{
 		// group_tol = gt;
 		// step_tol = st;
