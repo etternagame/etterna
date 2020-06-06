@@ -380,10 +380,6 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 void
 SongManager::CalcTestStuff()
 {
-#ifndef USING_CALCTESTS
-	return;
-#endif
-
 	vector<float> test_vals[NUM_Skillset];
 
 	// output calc differences for chartkeys and targets and stuff
@@ -1684,9 +1680,6 @@ CalcTestList::CreateNode() const
 void
 SongManager::LoadCalcTestNode() const
 {
-#ifndef USING_CALCTESTS
-	return;
-#endif
 	string fn = "Save/" + calctest_XML;
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
@@ -1759,9 +1752,6 @@ SongManager::SaveCalcTestCreateNode() const
 void
 SongManager::SaveCalcTestXmlToDir() const
 {
-#ifndef USING_CALCTESTS
-	return;
-#endif
 	string fn = "Save/" + calctest_XML;
 	// calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
 	unique_ptr<XNode> xml(SaveCalcTestCreateNode());
