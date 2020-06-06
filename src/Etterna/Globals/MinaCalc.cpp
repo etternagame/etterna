@@ -7302,7 +7302,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 372;
+int mina_calc_version = 373;
 int
 GetCalcVersion()
 {
