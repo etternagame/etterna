@@ -7027,6 +7027,7 @@ Hand::InitAdjDiff()
 		  WideRangeBalance,
 		  WideRangeJumptrill,
 		  WideRangeRoll,
+		  OHTrill,
 		},
 
 		// hs
@@ -7036,6 +7037,7 @@ Hand::InitAdjDiff()
 		  TheThing,
 		  WideRangeAnchor,
 		  WideRangeRoll,
+		  OHTrill,
 		},
 
 		// stam, nothing, don't handle here
