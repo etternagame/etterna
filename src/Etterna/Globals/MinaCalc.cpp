@@ -685,7 +685,6 @@ ms_to_bpm(float x) -> float
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {
-	const bool dbg = false && mode == 1;
 	// the 4 -> 5 note jack difficulty spike is well known, we aim to reflect
 	// this phenomena as best as possible. 500, 50, 50, 50, 50 should end up
 	// significantly more difficult than 50, 50, 50, 50, 50
@@ -726,9 +725,7 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 	// intervals, we don't care that we're looping through intervals because the
 	// queue we build is interval agnostic, though it does make debug output
 	// easier to accomplish
-	if (dbg) {
-		std::cout << "sequence jack on track: " << track << std::endl;
-	}
+
 	float time = 0.F;
 	float eff_ms = 0.F;
 	float eff_bpm = 0.F;
@@ -747,10 +744,6 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		for (int ind = 0; ind < f[itv].size(); ++ind) {
 			ms = f[itv][ind];
 			time += ms;
-			if (dbg) {
-				std::cout << "time now: " << time / 1000.F << std::endl;
-				std::cout << "ms now: " << ms << std::endl;
-			}
 
 			// shift older values back
 			for (int i = 1; i < window_taps.size(); ++i) {
@@ -769,14 +762,6 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 			jacks[mode][track][itv][ind] =
 			  CalcClamp(comp_diff * mode_scalers[mode], 0.F, max_diff);
-
-			if (dbg) {
-				std::cout << "base bpm: "
-						  << ms_to_bpm(sum(window_taps) / window_taps.size())
-						  << " : eff bpm: " << eff_bpm << std::endl;
-				std::cout << "fdiff: " << jacks[mode][track][itv][ind] << "\n"
-						  << std::endl;
-			}
 		}
 	}
 }
@@ -7210,7 +7195,6 @@ Calc::Chisel(float player_skill,
 
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = static_cast<float>(MaxPoints);
-			if (true) {
 //#define DEBUG_JACK_MODELS
 #ifdef DEBUG_JACK_MODELS
 				if (ss == Skill_Jumpstream) {
@@ -7259,7 +7243,6 @@ Calc::Chisel(float player_skill,
 					}
 				}
 #endif
-			}
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
 		resolution /= 2.F;
@@ -7470,6 +7453,8 @@ Hand::InitAdjDiff()
 					  max(fastpow(doot[CJ][i], 2.F), 1.F) *
 					  max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]) *
 					  doot[Chaos][i] * fastsqrt(doot[RanMan][i]);
+					break;
+				default:
 					break;
 			}
 		}
