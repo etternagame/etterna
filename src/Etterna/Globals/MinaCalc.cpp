@@ -20,14 +20,11 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-using std::deque;
 using std::max;
 using std::min;
 using std::pair;
 using std::pow;
-using std::set;
 using std::sqrt;
-using std::unordered_set;
 using std::vector;
 
 enum tap_size
