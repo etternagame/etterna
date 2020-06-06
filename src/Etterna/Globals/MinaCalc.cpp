@@ -3454,63 +3454,99 @@ struct RollMod
 	inline void interval_reset() { return; }
 };
 
-// this is for base trill 1->2 2->1 1->2, 4 notes, 3 timings, however we can
-// extend the window for ms values such that, for example, we require 2 oht meta
-// detections, and on the third, we check a window of 5 ms values, dunno what
-// the benefits or drawbacks are of either system atm but they are both
-// implementable easily
-static const int oht_cc_window = 3;
+
 static const int max_trills_per_interval = 4;
- // almost identical to wrr, refer to comments there
+// almost identical to wrr, refer to comments there
 struct OHTrillMod
 {
 	const CalcPatternMod _pmod = OHTrill;
 	const std::string name = "OHTrillMod";
 
 #pragma region params
-	float itv_window = 2;
+
+	float window_param = 3.f;
 
 	float min_mod = 0.5f;
 	float max_mod = 1.f;
-	float mod_pool = 1.25f;
+	float base = 1.35f;
+	float suppression = 0.4f;
 
-	float moving_cv_init = 0.5f;
-	float trill_cv_cutoff = 0.25f;
+	float cv_reset = 1.f;
+	float cv_threshhold = 0.45f;
+	
+	// this is for base trill 1->2 2->1 1->2, 4 notes, 3 timings, however we can
+	// extend the window for ms values such that, for example, we require 2 oht
+	// meta detections, and on the third, we check a window of 5 ms values,
+	// dunno what the benefits or drawbacks are of either system atm but they
+	// are both implementable easily
+	float oht_cc_window = 6.f;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "itv_window", &itv_window },
+		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_pool", &mod_pool },
+		{ "base", &base },
 
-		{ "moving_cv_init", &moving_cv_init },
-		{ "trill_cv_cutoff", &trill_cv_cutoff },
+		{ "cv_reset", &cv_reset },
+		{ "cv_threshhold", &cv_threshhold },
+
+		{ "oht_cc_window", &oht_cc_window },
 	};
 #pragma endregion params and param map
-	deque<int> window_itv_hand_taps;
-	deque<vector<int>> window_itv_trills;
 
-	vector<int> itv_trills;
+	int window = 0;
+	int cc_window = 0;
 
-	bool trilling = false;
-	// dunno if we want this for ohts
-	// bool is_transition = false;
-	int consecutive_trill_counter = 0;
+	bool luca_turilli = false;
 
-	int window_hand_taps = 0;
-	int window_trill_taps = 0;
+	// ok new plan, ohj, wrjt and wrr are relatively well tuned so i'll try this
+	// here, handle merging multiple sequences in a single interval into one
+	// value at interval end and keep a window of that. suppose we have two
+	// intervals of 12 notes with 8 in trill formation, one has an 8 note trill
+	// and the other has two 4 note trills at the start/end, we want to punish
+	// the 8 note trill harder, this means we _will_ be resetting the
+	// consecutive trill counter every interval, but will not be resetting the
+	// trilling flag, this way we don't have to futz around with awkward
+	// proportion math, similar to thing 1 and thing 2
+	CalcWindow<float> badjuju;
+
+	CalcWindow<int> _mw_oht_taps;
+
+	int foundyatrills[max_trills_per_interval] = { 0, 0, 0, 0 };
+
+	int found_oht = 0;
+	int oht_len = 0;
+	int oht_taps = 0;
+
+	float hello_my_name_is_goat = 0.f;
+
+	float moving_cv = cv_reset;
 	float pmod = min_mod;
 
-	vector<float> seq_ms = { 0.f, 0.f, 0.f };
-	float moving_cv = moving_cv_init;
-
-	// non-empty (cc_type is now always non-empty)
-	cc_type last_seen_cc = cc_init;
-	cc_type last_last_seen_cc = cc_init;
 #pragma region generic functions
+
+	inline void full_reset()
+	{
+		badjuju.zero();
+
+		luca_turilli = false;
+		found_oht = 0;
+		oht_len = 0;
+
+		for (auto& v : foundyatrills)
+			v = 0;
+
+		moving_cv = cv_reset;
+		pmod = neutral;
+	}
+
 	inline void setup(vector<float> doot[], const int& size)
 	{
+		window =
+		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
+		cc_window =
+		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 		doot[_pmod].resize(size);
 	}
 
@@ -3540,80 +3576,98 @@ struct OHTrillMod
 	}
 #pragma endregion
 
-	inline void reset_sequence()
+	inline float make_thing(const float& itv_taps)
 	{
-		// only need to do this if trilling, otherwise values are false/0 anyway
-		if (trilling) {
-			itv_trills.push_back(consecutive_trill_counter);
-			trilling = false;
-			consecutive_trill_counter = 0;
-		}
+		hello_my_name_is_goat = 0.f;
 
-		last_seen_cc = cc_init;
-		last_last_seen_cc = cc_init;
-		for (auto& v : seq_ms)
-			v = 0.f;
+		if (found_oht == 0)
+			return 0.f;
+
+		for (auto& v : foundyatrills) {
+			if (v == 0)
+				continue;
+
+			// water down smaller sequences
+			hello_my_name_is_goat =
+			  (static_cast<float>(v) / itv_taps) - suppression;
+		}
+		return CalcClamp(hello_my_name_is_goat, 0.1f, 1.f);
 	}
 
-	inline bool handle_trill_timing_check()
+	inline void complete_seq()
 	{
+		if (!luca_turilli || oht_len == 0)
+			return;
+
+		luca_turilli = false;
+		foundyatrills[found_oht] = oht_len;
+		oht_len = 0;
+		++found_oht;
+		moving_cv = (moving_cv + cv_reset) / 2.f;
+	}
+
+	inline bool oht_timing_check(const CalcWindow<float>& cc_ms_any)
+	{
+		moving_cv = (moving_cv + cc_ms_any.get_cv_of_window(cc_window)) / 2.f;
 		// the primary difference from wrr, just check cv on the base ms values,
-		// we are looking for values that are all close together with no
+		// we are looking for values that are all close together without any
 		// manipulation
-		moving_cv = (moving_cv + cv(seq_ms)) / 2.f;
-		return moving_cv < trill_cv_cutoff;
+		return moving_cv < cv_threshhold;
 	}
 
-	inline void update_seq_ms(const metaHandInfo& now)
+	inline void wifflewaffle()
 	{
-		seq_ms[0] = seq_ms[1]; // last_last
-		seq_ms[1] = seq_ms[2]; // last
-		seq_ms[2] = now.cc_ms_any;
-	}
-
-	inline void advance_sequencing(const metaHandInfo& now)
-	{
-		// do nothing for offhand taps
-		if (now.col == col_empty)
-			return;
-
-		// only let these cases through, don't need cc_single_single like wrr
-		if (now.cc != cc_left_right && now.cc != cc_right_left) {
-			reset_sequence();
-			return;
+		if (luca_turilli) {
+			++oht_len;
+			++oht_taps;
+		} else {
+			luca_turilli = true;
+			oht_len += 3;
+			oht_taps += 3;
 		}
-
-		// update timing stuff
-		update_seq_ms(now);
-
-		// check for a complete sequence
-		if (last_last_seen_cc != cc_init)
-			// check for trills (cc -> inverted(cc) -> cc)
-			if (now.mt == meta_oht && handle_trill_timing_check()) {
-				++consecutive_trill_counter;
-				if (!trilling) {
-					// boost slightly because we want to pick up minitrills
-					// maybe
-					++consecutive_trill_counter;
-					trilling = true;
-				}
-			}
-
-		// update sequence
-		last_last_seen_cc = last_seen_cc;
-		last_seen_cc = now.cc;
 	}
 
-	inline bool handle_case_optimizations(vector<float> doot[], const int& i)
+	inline void advance_sequencing(const metaHandInfo& now,
+								   const CalcWindow<float>& cc_ms_any)
+	{
+
+		switch (now.mt) {
+			case meta_oht:
+				if (oht_timing_check(cc_ms_any))
+					wifflewaffle();
+				else
+					complete_seq();
+				break;
+			case meta_ccacc:
+				// wait to see what happens
+				break;
+			case meta_enigma:
+			case meta_meta_enigma:
+				// also wait to see what happens, but not if last was ccacc,
+				// since we only don't complete there if we don't immediately go
+				// back into ohts
+				if (now.last_cc == meta_ccacc)
+					complete_seq();
+			default:
+				complete_seq();
+				break;
+		}
+	}
+
+	inline bool handle_case_optimizations(const ItvHandInfo& itvhi,
+										  vector<float> doot[],
+										  const int& i)
 	{
 		// no taps, no trills
-		if (window_hand_taps == 0 || window_trill_taps == 0) {
+		if (itvhi.get_taps_windowi(window) == 0 ||
+			_mw_oht_taps.get_total_for_window(window) == 0) {
 			neutral_set(_pmod, doot, i);
 			return true;
 		}
 
 		// full oht
-		if (window_hand_taps == window_trill_taps) {
+		if (itvhi.get_taps_windowi(window) ==
+			_mw_oht_taps.get_total_for_window(window)) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
@@ -3621,58 +3675,40 @@ struct OHTrillMod
 		return false;
 	}
 
-	inline void operator()(const ItvHandInfo& itvh,
+	inline void operator()(const ItvHandInfo& itvhi,
 						   vector<float> doot[],
 						   const int& i)
 	{
-		// drop the oldest interval values if we have reached full
-		// size
-		if (window_itv_hand_taps.size() == itv_window) {
-			window_itv_hand_taps.pop_front();
-			window_itv_trills.pop_front();
+		if (oht_len > 0) {
+			foundyatrills[found_oht] = oht_len;
+			++found_oht;
 		}
 
-		// this is slightly hacky buuut if we have a trill that doesn't complete
-		// by the end of the interval, it should count for that interval, but we
-		// don't want the value to double up so we will reset the counter on
-		// interval end but _not_ reset the trilling bool, so it won't interfere
-		// with the detection as the sequencing passes into the next interval,
-		// and won't double up values
-		if (consecutive_trill_counter > 0) {
-			itv_trills.push_back(consecutive_trill_counter);
-			consecutive_trill_counter = 0;
-		}
-
-		window_itv_hand_taps.push_back(itvh.hand_taps);
-		window_itv_trills.push_back(itv_trills);
-
-		window_hand_taps = 0;
-		for (auto& n : window_itv_hand_taps)
-			window_hand_taps += n;
-
-		window_trill_taps = 0;
-		// for now just add everything up
-		for (auto& n : window_itv_trills)
-			for (auto& v : n)
-				window_trill_taps += v;
-
-		if (handle_case_optimizations(doot, i)) {
-			interval_reset();
+		_mw_oht_taps(oht_taps);
+		if (handle_case_optimizations(itvhi, doot, i)) {
+			interval_end();
 			return;
 		}
 
-		pmod = max_mod;
-		if (window_trill_taps > 0 && window_hand_taps > 0)
-			pmod = mod_pool - (static_cast<float>(window_trill_taps - 4) /
-							   static_cast<float>(window_hand_taps * 4));
+		badjuju(make_thing(itvhi.get_taps_nowf()));
 
+		pmod = base - badjuju.get_mean_of_window(window);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
+
 		doot[_pmod][i] = pmod;
 
-		interval_reset();
+		interval_end();
 	}
 
-	inline void interval_reset() { trill_counter = 0; }
+	inline void interval_end()
+	{
+		for (auto& v : foundyatrills)
+			v = 0;
+
+		found_oht = 0;
+		oht_len = 0;
+		oht_taps = 0;
+	}
 };
 
 // slightly different implementation of the old chaos mod, basically picks up
