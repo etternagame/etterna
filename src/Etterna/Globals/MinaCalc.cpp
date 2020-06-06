@@ -5743,10 +5743,10 @@ struct WideRangeAnchorMod
 	float window_param = 4.F;
 
 	float min_mod = 1.F;
-	float max_mod = 1.2F;
+	float max_mod = 1.075F;
 	float base = 1.F;
 
-	float diff_min = 2.F;
+	float diff_min = 4.F;
 	float diff_max = 12.F;
 	float scaler = 0.1F;
 
