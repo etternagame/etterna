@@ -3826,10 +3826,14 @@ struct OHTrillMod
 				// also wait to see what happens, but not if last was ccacc,
 				// since we only don't complete there if we don't immediately go
 				// back into ohts
-				if (now.last_cc == meta_ccacc) {
-					complete_seq();
-				}
-				break;
+
+				// this seems to be overkill with how lose the detection is
+				// already anyway
+
+				//if (now.last_cc == meta_ccacc) {
+				//	complete_seq();
+				//}
+				//break;
 			default:
 				complete_seq();
 				break;
@@ -5750,10 +5754,10 @@ struct WideRangeAnchorMod
 	float window_param = 4.F;
 
 	float min_mod = 1.F;
-	float max_mod = 1.075F;
+	float max_mod = 1.2F;
 	float base = 1.F;
 
-	float diff_min = 4.F;
+	float diff_min = 2.F;
 	float diff_max = 12.F;
 	float scaler = 0.1F;
 
@@ -6733,8 +6737,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_ch._pmod], neutral);
 		Smooth(doot[_rm._pmod], neutral);
 		Smooth(doot[_wrr._pmod], neutral);
-		Smooth(doot[_wrb._pmod], neutral);
 		Smooth(doot[_wrjt._pmod], neutral);
+		Smooth(doot[_wrb._pmod], neutral);
+		Smooth(doot[_wra._pmod], neutral);
 	}
 
 	// reset any moving windows or values when starting the other hand, this
@@ -6908,6 +6913,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrr.load_params_from_node(&params);
 		_wrjt.load_params_from_node(&params);
 		_wrb.load_params_from_node(&params);
+		_wra.load_params_from_node(&params);
 		_fj.load_params_from_node(&params);
 		_tt.load_params_from_node(&params);
 		_tt2.load_params_from_node(&params);
@@ -6932,6 +6938,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(_wrr.make_param_node());
 		calcparams->AppendChild(_wrjt.make_param_node());
 		calcparams->AppendChild(_wrb.make_param_node());
+		calcparams->AppendChild(_wra.make_param_node());
 		calcparams->AppendChild(_fj.make_param_node());
 		calcparams->AppendChild(_tt.make_param_node());
 		calcparams->AppendChild(_tt2.make_param_node());
@@ -7630,7 +7637,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 378;
+int mina_calc_version = 380;
 auto
 GetCalcVersion() -> int
 {
