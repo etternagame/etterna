@@ -107,7 +107,6 @@ static const float ms_init = 5000.f;
 
 // neutral pattern mod value.. as opposed to min
 static const float neutral = 1.f;
-#pragma endregion
 
 // DON'T WANT TO RECOMPILE HALF THE GAME IF I EDIT THE HEADER FILE
 // global multiplier to standardize baselines
