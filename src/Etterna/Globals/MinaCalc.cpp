@@ -3338,7 +3338,7 @@ struct BalanceMod
 		// verify structural changes dont change output diff
 		// jack, dunno if this is worth bothering about? it would only matter
 		// for tech and it may matter too much there? idk
-		if (itvhi.get_col_taps_nowi(col_left) ||
+		if (itvhi.get_col_taps_nowi(col_left) == 0 ||
 			itvhi.get_col_taps_nowi(col_right) == 0) {
 			mod_set(_pmod, doot, i, max_mod);
 			return true;
