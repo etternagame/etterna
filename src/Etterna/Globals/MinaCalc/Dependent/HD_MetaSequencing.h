@@ -1,5 +1,5 @@
 #pragma once
-#include "Dependent_BasicSequencing.h"
+#include "HD_BasicSequencing.h"
 
 /* meta patterns are formed by chains of base patterns, we could pick up
  * triplets (left_right, right_left), or triple jacks (single_single,
