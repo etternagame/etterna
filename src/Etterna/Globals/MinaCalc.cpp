@@ -132,7 +132,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const float basescalers[NUM_Skillset] = { 0.f,   0.97f, 0.92f, 0.83f,
-												 0.94f, 0.73f, 0.9f,  0.95f };
+												 0.94f, 0.715f, 0.73f,  0.95f };
 bool debug_lmao = false;
 
 #pragma region stuffs
@@ -2822,8 +2822,8 @@ struct CJQuadMod
 
 #pragma region params
 	float mod_pool = 1.5f;
-	float min_mod = 0.88f;
-	float max_mod = 1.f;
+	float min_mod = 0.9f;
+	float max_mod = 1.3f;
 	float prop_scaler = 1.f;
 
 	const vector<pair<std::string, float*>> _params{
@@ -2879,18 +2879,6 @@ struct CJQuadMod
 			return true;
 		}
 
-		// no quads
-		if (itvi.taps_by_size[_tap_size] == 0) {
-			neutral_set(_pmod, doot, i);
-			return true;
-		}
-
-		// all quads
-		if (itvi.taps_by_size[_tap_size] == itvi.total_taps) {
-			mod_set(_pmod, doot, i, min_mod);
-			return true;
-		}
-
 		return false;
 	}
 
@@ -2900,11 +2888,14 @@ struct CJQuadMod
 		if (handle_case_optimizations(itvi, doot, mitvi._idx))
 			return;
 
-		// too many quads is either pure vibro or slow quadmash, downscale a bit
-		pmod = mod_pool -
-			   (static_cast<float>(itvi.taps_by_size[_tap_size] * prop_scaler) /
-				static_cast<float>(itvi.total_taps));
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		float t_taps = itvi.total_taps;
+		float a1 = static_cast<float>(itvi.taps_by_size[jump]) / t_taps;
+		float a2 = static_cast<float>(itvi.taps_by_size[hand] * 1.33f) / t_taps;
+		float a3 = static_cast<float>(itvi.taps_by_size[quad] * 2.f) / t_taps;
+
+		float aaa = a1 + a2 + a3;
+
+		pmod = CalcClamp(fastsqrt(aaa), min_mod, max_mod);
 
 		doot[_pmod][mitvi._idx] = pmod;
 		// set_dbg(doot, mitvi._idx);
@@ -6514,6 +6505,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		float row_time = 0.f;
 		int row_count = 0;
 		int last_row_count = 0;
+		int last_last_row_count = 0;
 		unsigned row_notes = 0;
 		col_type ct = col_init;
 
@@ -6569,9 +6561,11 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
-					if (last_row_count > 1)
+					if ((last_row_count > 1 && row_count > 1) || (last_row_count > 1 && last_last_row_count > 1))
 						the_simpsons.push_back(
-						  max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
+						  max(75.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
+
+					last_last_row_count = row_count;
 					last_row_count = row_count;
 
 					_mitvhi._itvhi.set_col_taps(ct);
@@ -7068,7 +7062,7 @@ Hand::InitAdjDiff()
 		{},
 
 		// chordjack
-		{ CJ },
+		{ CJ, CJQuad, WideRangeAnchor},
 
 		// tech, duNNO wat im DOIN
 		{
@@ -7159,10 +7153,8 @@ Hand::InitAdjDiff()
 					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
 					break;
 				case Skill_Chordjack:
-					adj_diff = soap[BaseMS][i] *
-							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
-							   CalcClamp(doot[CJ][i], 0.1f, 1.f) *
-							   CalcClamp(doot[CJ][i], 0.1f, 1.f);
+					adj_diff =
+					  soap[BaseMS][i] * doot[CJ][i] * tp_mods[Skill_Chordjack] * basescalers[ss] * CalcClamp(fastsqrt(doot[OHJumpMod][i]) + 0.06f, 0.f, 1.f);
 					break;
 				case Skill_Technical:
 					adj_diff =
@@ -7190,7 +7182,7 @@ Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
 	const vector<float>& v = stam ? stam_adj_diff : base_adj_diff[ss];
 	float powindromemordniwop = 1.7f;
 	if (ss == Skill_Chordjack)
-		powindromemordniwop = 1.2f;
+		powindromemordniwop = 1.7f;
 
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
