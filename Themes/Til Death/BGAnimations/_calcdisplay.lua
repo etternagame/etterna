@@ -196,7 +196,7 @@ local debugGroups = {
         CJ = true,
         CJS = true,
         CJJ = true,
-        CJQuad = true,
+        CJDensity = true,
         CJOHJump = true,
         --CJOHJPropComp = true,
         --CJOHJSeqComp = true,
@@ -665,8 +665,8 @@ local modnames = {
     "cjsr",
     "cjjl",
     "cjjr",
-    "cjql",
-    "cjqr",
+    "cjdl",
+    "cjdr",
     "ohjl",
     "ohjr",
     "ohjbpr",
@@ -769,7 +769,7 @@ local modColors = {
 	color("0,0.8,1"),		-- light blue		 (right)
 	color("1,0,0"),			-- red			= chordjack jack
 	color("1,0.2,0"),		-- orange1			 (right)
-	color("1,1,0"),			-- yellow		= cjquad left
+	color("1,1,0"),			-- yellow		= cjdensity left
     color("1,1,0"),			-- yellow			 (right)
     color("1,0.4,0"),       -- orange2		= ohjump left
     color("1,0.4,0"), 		-- orange2        	 (right)

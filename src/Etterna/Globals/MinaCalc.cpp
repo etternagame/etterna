@@ -2936,11 +2936,11 @@ struct CJMod
 
 // ok i remember now its because i wanted to smooth the mod before applying to
 // cj
-struct CJQuadMod
+struct CJDensityMod
 {
-	const CalcPatternMod _pmod = CJQuad;
+	const CalcPatternMod _pmod = CJDensity;
 	// const vector<CalcPatternMod> _dbg = { CJS, CJJ };
-	const std::string name = "CJQuadMod";
+	const std::string name = "CJDensityMod";
 	const int _tap_size = quad;
 
 #pragma region params
@@ -6478,7 +6478,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
-	CJQuadMod _cjq;
+	CJDensityMod _cjq;
 	OHJumpModGuyThing _ohj;
 	RollMod _roll;
 	BalanceMod _bal;
@@ -7352,7 +7352,7 @@ Hand::InitAdjDiff()
 		{},
 
 		// chordjack
-		{ CJ, CJQuad, WideRangeAnchor },
+		{ CJ, CJDensity, WideRangeAnchor },
 
 		// tech, duNNO wat im DOIN
 		{
