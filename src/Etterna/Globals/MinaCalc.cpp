@@ -5428,11 +5428,11 @@ struct WideRangeBalanceMod
 
 #pragma region params
 
-	float window_param = 3.f;
+	float window_param = 2.f;
 
-	float min_mod = 0.95f;
+	float min_mod = 0.94f;
 	float max_mod = 1.05f;
-	float base = 0.4f;
+	float base = 0.425f;
 
 	float buffer = 1.f;
 	float scaler = 1.f;
