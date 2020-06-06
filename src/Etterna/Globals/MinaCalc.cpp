@@ -5743,7 +5743,7 @@ struct WideRangeAnchorMod
 	float window_param = 4.F;
 
 	float min_mod = 1.F;
-	float max_mod = 1.1F;
+	float max_mod = 1.075F;
 	float base = 1.F;
 
 	float diff_min = 4.F;
@@ -7623,7 +7623,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 377;
+int mina_calc_version = 378;
 auto
 GetCalcVersion() -> int
 {
