@@ -3830,6 +3830,7 @@ struct OHTrillMod
 				if (now.last_cc == meta_ccacc) {
 					complete_seq();
 				}
+				break;
 			default:
 				complete_seq();
 				break;
