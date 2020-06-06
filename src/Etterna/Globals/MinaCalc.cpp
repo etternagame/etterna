@@ -7024,9 +7024,14 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	left_hand.InitAdjDiff();
 	right_hand.InitAdjDiff();
-	// Smooth(left_hand.base_adj_diff[Skill_Jumpstream], 1.f);
-	// Smooth(right_hand.base_adj_diff[Skill_Jumpstream], 1.f);
-	// debug info loop
+
+
+	// post pattern mod smoothing for cj
+	Smooth(left_hand.base_adj_diff[Skill_Chordjack], 1.f);
+	Smooth(right_hand.base_adj_diff[Skill_Chordjack], 1.f);
+
+
+	 // debug info loop
 	if (debugmode) {
 		for (auto& hp : spoopy) {
 			auto& hand = hp.first;
