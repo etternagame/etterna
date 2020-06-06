@@ -1887,23 +1887,15 @@ detecc_ccacc(const cc_type& a, const cc_type& b) -> bool
 
 	// now we know we have cc_left_right or cc_right_left, so, xy, we are
 	// looking for xyyx, meaning last_last would be the inverion of now
-	if (invert_cc(a) == b) {
-		return true;
-	}
-
-	return false;
+	return invert_cc(a) == b;
 }
 
 inline auto
 detecc_acca(const cc_type& a, const cc_type& b, const cc_type& c) -> bool
 {
 	// 1122, 2211, etc
-	if (a == cc_single_single && (b == cc_left_right || b == cc_right_left) &&
-		c == cc_single_single) {
-		return true;
-	}
-
-	return false;
+	return a == cc_single_single &&
+		   (b == cc_left_right || b == cc_right_left) && c == cc_single_single;
 }
 
 // WHOMST'D'VE
@@ -2030,7 +2022,7 @@ struct metaHandInfo
 {
 	// time (s) of the last seen note in each column
 	float row_time = s_init;
-	unsigned row_notes;
+	unsigned row_notes = 0;
 
 	float col_time[num_cols_per_hand] = { s_init, s_init };
 	float col_time_no_jumps[num_cols_per_hand] = { s_init, s_init };
@@ -4290,17 +4282,6 @@ struct RM_Sequencing
 				}
 				break;
 			case cc_single_single:
-				if (mhi.offhand_taps > 0) {
-					// if this wasn't a jack, then it's just
-					// a good ol anchor
-					handle_anchor_progression();
-				} else {
-					// a jack, not an anchor, we don't
-					// want too many of these but we
-					// don't want to allow none of them
-					handle_jack_progression();
-				}
-				break;
 			case cc_single_jump:
 				// if last note was an offhand tap, this is by
 				// definition part of the anchor
@@ -4557,7 +4538,8 @@ struct RunningManMod
 		if (rm.ran_taps < min_taps_in_rm) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
-		} else if (rm.off_taps_same < min_off_taps_same) {
+		}
+		if (rm.off_taps_same < min_off_taps_same) {
 			mod_set(_pmod, doot, i, min_mod);
 			return true;
 		}
@@ -5428,12 +5410,7 @@ struct FJ_Sequencing
 		// pass throgh into the next note row, no matter what the row is it will
 		// fail the xor check and be reset then, making only the row _after_ the
 		// full flam eligible for a new start
-
-		// valid continuation of flam
-		if (flim.comma_comma_coolmeleon(notes)) {
-			return true;
-		}
-		return false;
+		return flim.comma_comma_coolmeleon(notes);
 	}
 
 	// check for anything that would break the sequence
@@ -5847,6 +5824,13 @@ struct WideRangeAnchorMod
 			return true;
 		}
 
+		// set max mod if either is 0
+		if (itvhi.get_col_taps_nowi(col_left) == 0 ||
+			itvhi.get_col_taps_nowi(col_right) == 0) {
+			mod_set(_pmod, doot, i, max_mod);
+			return true;
+		}
+
 		// now we need these
 		a = as.get_max_for_window_and_col(col_left, window);
 		b = as.get_max_for_window_and_col(col_right, window);
@@ -6031,10 +6015,8 @@ struct TT_Sequencing
 	{
 		// either left hand jump or a hand containing left hand jump
 		// or right hand jump or a hand containing right hand jump
-		if (notes == 3 || notes == 7 || notes == 12 || notes == 14) {
-			return true;
-		}
-		return false;
+	
+		return notes == 3 || notes == 7 || notes == 12 || notes == 14;
 	}
 
 	inline void operator()(const float& ms_now, const unsigned& notes)
@@ -6311,10 +6293,7 @@ struct TT_Sequencing2
 	{
 		// either left hand jump or a hand containing left hand jump
 		// or right hand jump or a hand containing right hand jump
-		if (notes == 3 || notes == 12) {
-			return true;
-		}
-		return false;
+		return notes == 3 || notes == 12;
 	}
 
 	inline void operator()(const float& ms_now, const unsigned& notes)
