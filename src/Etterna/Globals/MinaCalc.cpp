@@ -702,7 +702,8 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 
 	int window_size = mode_windows[mode];
 	vector<float> window_taps;
-	for (int i = 0; i < window_size; ++i) {
+	window_taps.reserve(window_size);
+for (int i = 0; i < window_size; ++i) {
 		window_taps.push_back(1250.F);
 	}
 
@@ -1058,7 +1059,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	vector<float> yo_momma(NUM_Skillset);
 	for (int farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
 		vector<float> girls;
-		for (auto& the_hizzle_dizzle : the_hizzle_dizzles) {
+		girls.reserve(the_hizzle_dizzles.size());
+for (auto& the_hizzle_dizzle : the_hizzle_dizzles) {
 			girls.push_back(the_hizzle_dizzle[farts]);
 		}
 		yo_momma[farts] = mean(girls) * grindscaler;
@@ -6435,8 +6437,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	bool dbg = false;
 
 	// basic data we need
-	vector<float>* _doots[num_hands];
-	vector<float>* _diffs[num_hands];
+	vector<float>* _doots[num_hands]{};
+	vector<float>* _diffs[num_hands]{};
 	vector<NoteInfo> _ni;
 	vector<vector<int>> _itv_rows;
 	float _rate = 0.F;
@@ -6676,7 +6678,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(*_mhi);
-		_roll.advance_sequencing(*_mhi);
+		RollMod::advance_sequencing(*_mhi);
 		_oht.advance_sequencing(*_mhi, _mw_cc_ms_any);
 		_rm.advance_sequencing(*_mhi);
 		_wrr.advance_sequencing(*_mhi);
@@ -6740,8 +6742,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.full_reset();
 		_wrr.full_reset();
 		_wrjt.full_reset();
-		_wrb.full_reset();
-		_wra.full_reset();
+		WideRangeBalanceMod::full_reset();
+		WideRangeAnchorMod::full_reset();
 
 		// zero out moving windows at the start of each hand
 		_mw_cc_ms_any.zero();

@@ -14,9 +14,9 @@
 #define USING_NEW_CALC
 #define USING_CALCTESTS
 typedef std::vector<std::vector<float>> MinaSD;
-typedef std::vector<std::vector<float>> Finger;
-typedef std::vector<Finger> ProcessedFingers;
-typedef std::vector<float> JackSeq;
+using Finger = std::vector<std::vector<float> >;
+using ProcessedFingers = std::vector<Finger>;
+using JackSeq = std::vector<float>;
 
 // number of pattern mods yes i know this is dumb help
 // we want to group stamina adjustment with the others for
@@ -38,7 +38,7 @@ class Hand
 	/*	Spits out a rough estimate of difficulty based on the ms values within
 	the interval The vector passed to it is the vector of ms values within each
 	interval, and not the full vector of intervals. */
-	float CalcMSEstimate(std::vector<float>& input, const int& burp);
+	static auto CalcMSEstimate(std::vector<float>& input, const int& burp) -> float;
 
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps
@@ -107,12 +107,12 @@ class Calc
 	hand objects and then runs the chisel function under varying circumstances
 	to estimate difficulty for each different skillset. Currently only
 	overall/stamina are being produced. */
-	std::vector<float> CalcMain(const std::vector<NoteInfo>& NoteInfo,
+	auto CalcMain(const std::vector<NoteInfo>& NoteInfo,
 								float music_rate,
-								float score_goal);
+								float score_goal) -> std::vector<float>;
 
 	void JackStamAdjust(float x, int t, int mode, bool debug = false);
-	float JackLoss(float x, int mode, float mpl, bool stam, bool debug = false);
+	auto JackLoss(float x, int mode, float mpl, bool stam, bool debug = false) -> float;
 	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
@@ -126,20 +126,20 @@ class Calc
 	values for 500 nps joke files. Mem optimization can be better if we only
 	allow 100 maximum notes for a single half second interval, return value is
 	whether or not we should continue calculation */
-	bool InitializeHands(const std::vector<NoteInfo>& NoteInfo,
+	auto InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 						 float music_rate,
-						 float offset);
+						 float offset) -> bool;
 
 	/*	Slices the track into predefined intervals of time. All taps within each
 	interval have their ms values from the last note in the same column
 	calculated and the result is spit out
 	into a new Finger object, or vector of vectors of floats (ms from last note
 	in the track). */
-	Finger ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
+	auto ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
 						 unsigned int t,
 						 float music_rate,
 						 float offset,
-						 bool& joke_file_mon);
+						 bool& joke_file_mon) -> Finger;
 
 	// Derivative calc params
 	int MaxPoints = 0;	 // Total points achievable in the file
@@ -149,12 +149,12 @@ class Calc
 	 *  The player_skill parameter gives an initial guess and floor for player
 	 * skill. Resolution relates to how precise the answer is. Additional
 	 * parameters give specific skill sets being tested for.*/
-	float Chisel(float player_skill,
+	auto Chisel(float player_skill,
 				 float resolution,
 				 float score_goal,
 				 int ss, // skillset
 				 bool stamina,
-				 bool debugoutput = false);
+				 bool debugoutput = false) -> float;
 
 	std::vector<std::vector<float>> jacks[4][4];
 	std::vector<std::vector<float>> stam_adj_jacks[4];
@@ -167,15 +167,15 @@ class Calc
 	const float IntervalSpan = 0.5f; // Intervals of time we slice the chart at
 };
 
-MINACALC_API std::vector<float>
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal);
-MINACALC_API MinaSD
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo);
+MINACALC_API auto
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal) -> std::vector<float>;
+MINACALC_API auto
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo) -> MinaSD;
 MINACALC_API void
 MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   float musicrate,
   float goal,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo);
-MINACALC_API int
-GetCalcVersion();
+MINACALC_API auto
+GetCalcVersion() -> int;
