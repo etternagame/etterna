@@ -1274,6 +1274,7 @@ struct ItvInfo
 	int total_taps = 0;
 	int chord_taps = 0;
 	int taps_by_size[num_tap_size] = { 0, 0, 0, 0 };
+	int mixed_hs_density_tap_bonus = 0;
 
 	// resets all the stuff that accumulates across intervals
 	inline void reset()
@@ -1305,7 +1306,7 @@ struct ItvInfo
 		if (taps_by_size[hand] > 0)
 			// this seems kinda extreme? it'll add the number of jumps in the
 			// whole interval every hand? maybe it needs to be that extreme?
-			taps_by_size[hand] += taps_by_size[jump];
+			mixed_hs_density_tap_bonus += taps_by_size[jump];
 	}
 };
 // meta info for intervals
@@ -1324,10 +1325,6 @@ struct metaItvInfo
 	int zwop = 0;
 	int shared_chord_jacks = 0;
 	bool dunk_it = false;
-
-	// we want mixed hs/js to register as hs, even at relatively sparse hand
-	// density
-	int mixed_hs_density_tap_bonus = 0;
 
 	// ok new plan instead of a map, keep an array of 3, run a comparison loop
 	// that sets 0s to a new value if that value doesn't match any non 0 value,
@@ -2607,7 +2604,7 @@ struct HSMod
 		// when bark of dog into canyon scream at you
 		total_prop =
 		  total_prop_base +
-		  (static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
+		  (static_cast<float>((itvi.taps_by_size[_tap_size] + itvi.mixed_hs_density_tap_bonus) + prop_buffer) /
 		   (t_taps - prop_buffer) * total_prop_scaler);
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
@@ -6516,6 +6513,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		float row_time = 0.f;
 		int row_count = 0;
+		int last_row_count = 0;
 		unsigned row_notes = 0;
 		col_type ct = col_init;
 
@@ -6571,8 +6569,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
-					the_simpsons.push_back(
-					  max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
+					if (last_row_count > 1)
+						the_simpsons.push_back(
+						  max(40.f, min(_mhi->cc_ms_any, _mhi->tc_ms)));
+					last_row_count = row_count;
 
 					_mitvhi._itvhi.set_col_taps(ct);
 
@@ -6586,6 +6586,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					std::swap(_last_mhi, _mhi);
 					_mhi->offhand_ohjumps = 0;
 					_mhi->offhand_taps = 0;
+					
 				}
 
 				handle_dependent_interval_end(itv);
