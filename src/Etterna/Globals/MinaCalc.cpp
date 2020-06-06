@@ -1451,8 +1451,8 @@ struct metaItvInfo
 };
 struct metaRowInfo
 {
-	static const bool dbg = false && debug_lmao;
-	static const bool dbg_lv2 = false && debug_lmao;
+	static const bool dbg = false;
+	static const bool dbg_lv2 = false;
 
 	float time = s_init;
 	// time from last row (ms)
