@@ -2956,11 +2956,11 @@ struct CJQuadMod
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "base ", &base },
+		{ "base", &base },
 
-		{ "jump_scaler ", &jump_scaler },
-		{ "hand_scaler ", &hand_scaler },
-		{ "quad_scaler ", &quad_scaler },
+		{ "jump_scaler", &jump_scaler },
+		{ "hand_scaler", &hand_scaler },
+		{ "quad_scaler", &quad_scaler },
 	};
 #pragma endregion params and param map
 	float pmod = min_mod;
