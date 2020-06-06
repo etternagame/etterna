@@ -6773,7 +6773,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		int row_count = 0;
 		int last_row_count = 0;
 		int last_last_row_count = 0;
-		unsigned row_notes = 0;
+		unsigned row_notes = 0U;
+		unsigned last_row_notes = 0U;
+		unsigned last_last_row_notes = 0U;
 		col_type ct = col_init;
 
 		full_hand_reset();
@@ -6829,14 +6831,32 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
 
-					if ((last_row_count > 1 && row_count > 1) ||
-						(last_row_count > 1 && last_last_row_count > 1)) {
-						the_simpsons.push_back(
-						  max(75.F, min(_mhi->cc_ms_any, _mhi->tc_ms)));
+					bool is_cj = last_row_count > 1 &&
+								 row_count > 1;
+
+					bool was_cj = last_row_count > 1 && last_last_row_count > 1;
+					bool is_scj = (row_count == 1 && last_row_count > 1) &&
+								  (row_notes & last_row_notes);
+					bool is_at_least_3_note_anch = (row_notes & last_row_notes) & last_last_row_notes;
+
+					// pushing back ms values, so multiply to nerf
+					float pewpew = 1.25f;
+
+					if(is_at_least_3_note_anch)
+						pewpew = 1.f;
+
+					if (is_cj || was_cj || is_scj) {
+
+						the_simpsons.push_back(max(
+						  75.F,
+						  min(_mhi->cc_ms_any * pewpew, _mhi->tc_ms * pewpew)));
 					}
 
 					last_last_row_count = row_count;
 					last_row_count = row_count;
+
+					last_last_row_notes = last_row_notes;
+					last_row_notes = row_notes;
 
 					_mitvhi._itvhi.set_col_taps(ct);
 
@@ -7452,7 +7472,7 @@ Hand::InitAdjDiff()
 					break;
 				case Skill_Chordjack:
 					adj_diff =
-					  soap[BaseMS][i] * doot[CJ][i] * tp_mods[Skill_Chordjack] *
+					  soap[BaseMS][i] * tp_mods[Skill_Chordjack] *
 					  basescalers[ss] *
 					  CalcClamp(fastsqrt(doot[OHJumpMod][i]) + 0.06F, 0.F, 1.F);
 					break;
@@ -7631,7 +7651,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 380;
+int mina_calc_version = 381;
 auto
 GetCalcVersion() -> int
 {
