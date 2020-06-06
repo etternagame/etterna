@@ -2958,16 +2958,23 @@ struct CJQuadMod
 	const int _tap_size = quad;
 
 #pragma region params
-	float mod_pool = 1.5F;
+	
 	float min_mod = 0.9F;
 	float max_mod = 1.3F;
-	float prop_scaler = 1.F;
+	float base = 0.1F;
+
+	float jump_scaler = 1.F;
+	float hand_scaler = 1.33F;
+	float quad_scaler = 2.F;
 
 	const vector<pair<std::string, float*>> _params{
-		{ "mod_pool ", &mod_pool },
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "prop_scaler ", &prop_scaler },
+		{ "base ", &base },
+
+		{ "jump_scaler ", &jump_scaler },
+		{ "hand_scaler ", &hand_scaler },
+		{ "quad_scaler ", &quad_scaler },
 	};
 #pragma endregion params and param map
 	float pmod = min_mod;
@@ -3030,13 +3037,13 @@ struct CJQuadMod
 		}
 
 		float t_taps = itvi.total_taps;
-		float a1 = static_cast<float>(itvi.taps_by_size[jump]) / t_taps;
-		float a2 = static_cast<float>(itvi.taps_by_size[hand] * 1.33F) / t_taps;
-		float a3 = static_cast<float>(itvi.taps_by_size[quad] * 2.F) / t_taps;
+		float a1 = static_cast<float>(itvi.taps_by_size[jump] * jump_scaler) / t_taps;
+		float a2 = static_cast<float>(itvi.taps_by_size[hand] * hand_scaler) / t_taps;
+		float a3 = static_cast<float>(itvi.taps_by_size[quad] * quad_scaler) / t_taps;
 
 		float aaa = a1 + a2 + a3;
 
-		pmod = CalcClamp(fastsqrt(aaa), min_mod, max_mod);
+		pmod = CalcClamp(base + fastsqrt(aaa), min_mod, max_mod);
 
 		doot[_pmod][mitvi._idx] = pmod;
 		// set_dbg(doot, mitvi._idx);
