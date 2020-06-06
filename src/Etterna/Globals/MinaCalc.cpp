@@ -506,12 +506,12 @@ div_low_by_high(float a, float b) -> float
 }
 
 inline auto
-diff_high_by_low(float a, float b) -> float
+diff_high_by_low(int a, int b) -> int
 {
 	if (b > a) {
 		std::swap(a, b);
 	}
-	return a / b;
+	return a - b;
 }
 
 #pragma endregion utils are an antipattern
