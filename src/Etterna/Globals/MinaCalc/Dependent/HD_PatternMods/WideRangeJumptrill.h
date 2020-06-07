@@ -115,7 +115,8 @@ struct WideRangeJumptrillMod
 		// into more stuff.. that is jumptrillyable... then .... badonk it
 		switch (mt) {
 			case meta_cccccc:
-				if (last_passed_check = ms_any.roll_timing_check(wrjt_cv_factor, cv_threshhold)) {
+				if (last_passed_check =
+					  ms_any.roll_timing_check(wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
@@ -142,23 +143,28 @@ struct WideRangeJumptrillMod
 		bro_is_this_file_for_real = false;
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	inline void set_pmod(const ItvHandInfo& itvhi)
 	{
-		_mw_jt(jt_counter);
-
 		// no taps, no jt
 		if (itvhi.get_taps_windowi(window) == 0 ||
 			_mw_jt.get_total_for_window(window) == 0) {
-			return neutral;
+			pmod = neutral;
+			return;
 		}
 
 		pmod =
 		  itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window);
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
+	}
+
+	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	{
+		_mw_jt(jt_counter);
+
+		set_pmod(itvhi);
 
 		interval_reset();
-
 		return pmod;
 	}
 
