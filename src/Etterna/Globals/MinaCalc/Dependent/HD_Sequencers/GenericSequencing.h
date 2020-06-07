@@ -38,31 +38,27 @@ struct Anchor_Sequencing
 		_len = 0;
 	}
 
-	inline auto col_check(const col_type ct) -> bool
-	{
-		return ct == _ct || ct == col_ohjump;
-	}
-
 	inline void operator()(const col_type ct, const float& now)
 	{
-		if (col_check(ct)) {
-			_now_ms = ms_from(now, _last);
+		assert(ct == _ct);
+		_now_ms = ms_from(now, _last);
 
-			// break the anchor if the next note is too much slower than the
+		// break the anchor if the next note is too much slower than the
 			// lowest one in the sequence
 			if (_now_ms > _max_ms + anchor_buffer_ms) {
 				_len = 1;
 				_max_ms = ms_init;
 			} else {
 				// increase anchor length and set new cutoff point
-				++_len;
-				_max_ms = _now_ms;
-			}
+			++_len;
+			_max_ms = _now_ms;
 		}
 		_last = now;
 	}
 };
 
+// CURRENTLY ALSO BEING USED TO STORE THE OLD CC/TC MS VALUES IN MHI...
+// not that this is a great idea but it's appropriate for doing so 
 struct AnchorSequencer
 {
 	std::array<Anchor_Sequencing, num_cols_per_hand> anch;
