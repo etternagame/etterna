@@ -79,84 +79,6 @@ struct WideRangeJumptrillMod
 
 #pragma endregion
 
-	inline auto handle_ccacc_timing_check() -> bool
-	{
-		// we don't want to suppress actual streams that use this pattern, so we
-		// will keep a fairly tight requirement on the ms variance
-
-		// we are currently assuming we have xyyx always, and are not interested
-		// in xxyy as a part of xxyyxxyyxx transitions, given these conditions
-		// we can do some pretty neat stuff
-
-		// seq_ms 0 and 2 will both be cross column ms values, or left->right /
-		// right->left, seq_ms 1 will always be an anchor value, so,
-		// right->right for example. our interest is in hard nerfing long chains
-		// of xyyx patterns that won't get picked up by any of the roll scalers
-		// or balance scalers, but are still jumptrillable, for this condition
-		// to be true the anchor ms length has to be within a certain ratio of
-		// the cross column ms lengths, enabling the cross columns to be hit
-		// like jumptrilled flams, the optimal ratio for inflating nps is about
-		// 3:1, this is short enough that the nps boost is still high, but long
-		// enough that it doesn't become endless minijacking on the anchor
-		// given these conditions we can divide seq_ms[1] by 3 and cv check the
-		// array, with 2 identical values cc values, even if the anchor ratio
-		// floats between 2:1 and 4:1 the cv should still be below 0.25, which
-		// is a sensible cutoff that should avoid punishing happenstances of
-		// this pattern in just regular files
-
-		seq_ms[1] /= wrjt_cv_factor;
-		last_passed_check = cv(seq_ms) < cv_threshhold;
-		seq_ms[1] *= wrjt_cv_factor;
-
-		return last_passed_check;
-	}
-
-	inline auto handle_acca_timing_check() -> bool
-	{
-		seq_ms[1] *= wrjt_cv_factor;
-		last_passed_check = cv(seq_ms) < cv_threshhold;
-		seq_ms[1] /= wrjt_cv_factor;
-
-		return last_passed_check;
-	}
-
-	inline auto handle_roll_timing_check() -> bool
-	{
-		// see ccacc timing check in wrjt for explanations, it's basically the
-		// same but we have to invert the multiplication depending on which
-		// value is higher between seq_ms[0] and seq_ms[1] (easiest to dummy up
-		// a roll in an editor to see why)
-
-		// multiply seq_ms[1] by 3 for the cv check, then put it back so it
-		// doesn't interfere with the next round
-		if (seq_ms[0] > seq_ms[1]) {
-			seq_ms[1] *= wrjt_cv_factor;
-			last_passed_check = cv(seq_ms) < cv_threshhold;
-			seq_ms[1] /= wrjt_cv_factor;
-			return last_passed_check;
-		}
-		// same thing but divide
-		seq_ms[1] /= wrjt_cv_factor;
-		last_passed_check = cv(seq_ms) < cv_threshhold;
-		seq_ms[1] *= wrjt_cv_factor;
-		return last_passed_check;
-	}
-
-	inline void update_seq_ms(const base_type& bt, const float& any_ms, const float& tc_ms)
-	{
-		seq_ms[0] = seq_ms[1]; // last_last
-		seq_ms[1] = seq_ms[2]; // last
-
-		// update now
-		// for anchors, track tc_ms
-		if (bt == base_single_single) {
-			seq_ms[2] = tc_ms;
-			// for base_left_right or base_right_left, track cc_ms
-		} else {
-			seq_ms[2] = any_ms;
-		}
-	}
-
 	inline auto check_last_mt(const meta_type& mt) -> bool
 	{
 		if (mt == meta_acca || mt == meta_ccacc || mt == meta_cccccc) {
@@ -182,35 +104,35 @@ struct WideRangeJumptrillMod
 	inline void advance_sequencing(base_type& bt,
 								   const meta_type& mt,
 								   const meta_type& _last_mt,
-								   const float& any_ms,
-								   const float& tc_ms)
+								   CalcMovingWindow<float>& ms_any)
 	{
 		// ignore if we hit a jump
 		if (bt == base_jump_jump || bt == base_single_jump) {
 			return;
 		}
 
-		update_seq_ms(bt, any_ms, tc_ms);
+		// note to self, im pretty sure we can use tc_ms to do half these checks
+		// more reliably and faster, and without dropping the const qualification,
+		// but i need to think about it
 
 		// look for stuff thats jumptrillyable.. if that stuff... then leads
 		// into more stuff.. that is jumptrillyable... then .... badonk it
-
 		switch (mt) {
 			case meta_cccccc:
-				if (handle_roll_timing_check()) {
+				if (ms_any.roll_timing_check(wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
 				break;
 			case meta_ccacc:
-				if (handle_ccacc_timing_check()) {
+				if (ms_any.ccacc_timing_check(wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
 				break;
 			case meta_acca:
 				// don't bother adding if the ms values look benign
-				if (handle_acca_timing_check()) {
+				if (ms_any.acca_timing_check(wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
