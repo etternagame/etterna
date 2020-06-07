@@ -31,6 +31,19 @@ fastsqrt(float _in) -> float
 	return out;
 }
 
+// Coefficient of variation
+inline auto
+cv(const vector<float>& input) -> float
+{
+	float sd = 0.F;
+	float average = mean(input);
+	for (float i : input) {
+		sd += (i - average) * (i - average);
+	}
+
+	return fastsqrt(sd / static_cast<float>(input.size())) / average;
+}
+
 template<typename T>
 inline auto
 CalcClamp(T x, T l, T h) -> T
