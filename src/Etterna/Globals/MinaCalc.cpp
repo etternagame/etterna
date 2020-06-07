@@ -42,7 +42,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 0.95F
+	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 0.75F
 };
 
 void
@@ -163,8 +163,10 @@ hit_the_road(float x, float y, int /*mode*/) -> float
 auto
 Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug) -> float
 {
-	// mpl *= 1.5f;
-	const bool dbg = false;
+	return 0.f;
+
+	  // mpl *= 1.5f;
+	  const bool dbg = false;
 	// adjust for stam before main loop, since main loop is interval -> track
 	// and not track -> interval, we could also try doing this on the fly with
 	// an inline but i cba to mess with that atm
@@ -630,7 +632,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	//// sequence jack immediately so we can ref pass & sort in calc
 	//// msestimate without things going be wackying
-	//for (auto m : zto3) {
+	// for (auto m : zto3) {
 	//	jacks[m]->resize(4);
 	//	for (auto t : zto3) {
 	//		SequenceJack(fingers[t], t, m);
@@ -826,8 +828,8 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		}
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		soap[BaseMSD][i] =
-		  weighted_average(difficulty, nps, 7.76445F, 10.F) * finalscaler;
+		//soap[BaseMSD][i] =
+		//  weighted_average(difficulty, nps, 7.76445F, 10.F) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.F);
 	DifficultyMSSmooth(soap[BaseMS]);
@@ -854,7 +856,8 @@ Calc::Chisel(float player_skill,
 				return player_skill;
 			}
 			player_skill += resolution;
-			if (ss == Skill_Overall || ss == Skill_Stamina || ss == Skill_JackSpeed) {
+			if (ss == Skill_Overall || ss == Skill_Stamina ||
+				ss == Skill_JackSpeed) {
 				return 0.F; // not how we set these values
 			}
 
@@ -882,7 +885,7 @@ Calc::Chisel(float player_skill,
 #else
 			// jack sequencer point loss for jack speed and (maybe?)
 			// cj
-			//if (ss == Skill_JackSpeed) {
+			// if (ss == Skill_JackSpeed) {
 			//	// this is slow but gives the best results, do separate
 			//	// passes for different jack types and figure out which
 			//	// is the most prominent of the file. We _don't_ want to
@@ -895,13 +898,12 @@ Calc::Chisel(float player_skill,
 			//			  JackLoss(player_skill, 3, max_points_lost, stamina)));
 			//	gotpoints -= jloss;
 			//} else {
-				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 
-				// already can't reach goal, move on
-				if (gotpoints > reqpoints) {
-					right_hand.CalcInternal(
-					  gotpoints, player_skill, ss, stamina);
-				}
+			// already can't reach goal, move on
+			if (gotpoints > reqpoints) {
+				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			}
 			//}
 #endif
 		} while (gotpoints < reqpoints);
@@ -969,7 +971,7 @@ Hand::InitAdjDiff()
 		{
 		  Stream,
 		  OHTrill,
-		  // Roll,
+		  Roll,
 		  Chaos,
 		  WideRangeRoll,
 		  WideRangeJumptrill,
@@ -990,6 +992,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeRoll,
 		  OHTrill,
+		  Roll
 		},
 
 		// hs
@@ -1000,6 +1003,7 @@ Hand::InitAdjDiff()
 		  WideRangeAnchor,
 		  WideRangeRoll,
 		  OHTrill,
+		  Roll
 		},
 
 		// stam, nothing, don't handle here
@@ -1013,19 +1017,19 @@ Hand::InitAdjDiff()
 
 		// tech, duNNO wat im DOIN
 		{
-		  OHTrill,
-		  Balance,
-		  // Roll,
-		  OHJumpMod,
-		  Chaos,
-		  WideRangeJumptrill,
-		  // WideRangeBalance,
-		  WideRangeRoll,
-		  FlamJam,
-		  RanMan,
-		  // WideRangeAnchor,
-		  TheThing,
-		  TheThing2,
+		  //OHTrill,
+		  //Balance,
+		  //Roll,
+		  //OHJumpMod,
+		  //Chaos,
+		  //WideRangeJumptrill,
+		  //// WideRangeBalance,
+		  //WideRangeRoll,
+		  //FlamJam,
+		  //RanMan,
+		  //// WideRangeAnchor,
+		  //TheThing,
+		  //TheThing2,
 		},
 
 	};
@@ -1038,7 +1042,7 @@ Hand::InitAdjDiff()
 	// ok this loop is pretty wack i know, for each interval
 	for (int i = 0; i < soap[BaseNPS].size(); ++i) {
 		float tp_mods[NUM_Skillset] = {
-			1.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F
+			1.F, 1.F, 1.F, 1.F, 1.F, 0.1F, 1.F, 1.F
 		};
 
 		// total pattern mods for each skillset, we want this to be
@@ -1283,7 +1287,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 382;
+int mina_calc_version = 383;
 auto
 GetCalcVersion() -> int
 {

@@ -119,6 +119,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		for (auto& h : { left_hand, right_hand }) {
 			_doots[h][_ohj._pmod].resize(_itv_rows.size());
 			_doots[h][_bal._pmod].resize(_itv_rows.size());
+			_doots[h][_roll._pmod].resize(_itv_rows.size());
 			_doots[h][_oht._pmod].resize(_itv_rows.size());
 			_doots[h][_ch._pmod].resize(_itv_rows.size());
 			_doots[h][_rm._pmod].resize(_itv_rows.size());
@@ -308,6 +309,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjt.advance_sequencing(
 		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_any_ms);
 		_ch.advance_sequencing(_seq._mw_any_ms);
+		_roll.advance_sequencing(_mhi->_mt, _seq);
 	}
 
 	inline void setup_dependent_mods()
@@ -326,7 +328,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		doot[_ohj._pmod][itv] = _ohj(_mitvhi);
 		doot[_oht._pmod][itv] = _oht(_mitvhi._itvhi);
 		doot[_bal._pmod][itv] = _bal(_mitvhi._itvhi);
-		doot[_roll._pmod][itv] = _roll(_mitvhi._itvhi);
+		doot[_roll._pmod][itv] = _roll(_mitvhi._itvhi, _seq);
 		doot[_ch._pmod][itv] = _ch(_mitvhi._itvhi.get_taps_nowi());
 		doot[_rm._pmod][itv] = _rm();
 		doot[_wrb._pmod][itv] = _wrb(_mitvhi._itvhi);
@@ -380,6 +382,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(_doots[hand], itv);
+		_seq.interval_end();
 	}
 
 	inline void run_dependent_pmod_loop()
@@ -399,7 +402,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			unsigned last_row_notes = 0U;
 			unsigned last_last_row_notes = 0U;
 			col_type ct = col_init;
-
+			CalcMovingWindow<float> teheee;
 			full_hand_reset();
 
 			// so we are technically doing this again (twice) and don't to
@@ -413,8 +416,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			// performance (though the redundancy on this pass vs agnostic
 			// the pass is limited to like... a couple floats and 2 ints)
 			vector<float> the_simpsons;
+			vector<float> futurama;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 				the_simpsons.clear();
+				futurama.clear();
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
@@ -499,6 +504,38 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					/* junk in the trunk warning end */
 
+					float a = _seq.get_sc_ms_now(ct);
+					float b = ms_init;
+					if (ct == col_ohjump) {
+						b = _seq.get_sc_ms_now(ct, false);
+					} else {
+						b = _seq.get_cc_ms_now();
+					}
+
+					float c = fastsqrt(a) * fastsqrt(b);
+					teheee(c);
+					float pineapple = _seq._mw_any_ms.get_cv_of_window(4);
+					float porcupine =
+					  _seq._mw_sc_ms[col_left].get_cv_of_window(4);
+					float sequins =
+					  _seq._mw_sc_ms[col_right].get_cv_of_window(4);
+					float oioi = 0.5f;
+					pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
+					porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
+					sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
+					float pewp = cv(std::vector<float>{
+					  _seq._mw_sc_ms[col_left].get_now(),
+					  _seq._mw_sc_ms[col_right].get_now() });
+					float vertebrae = CalcClamp(
+					  mean(std::vector<float>{pineapple, porcupine, sequins}) +
+						pewp,
+					  oioi,
+					  1.F + oioi);
+
+					futurama.push_back(
+					  teheee.get_mean_of_window(2) /  vertebrae);
+
+
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
@@ -515,9 +552,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				_diffs[hand][BaseMS][itv] =
 				  CJBaseDifficultySequencing(the_simpsons);
+
+				_diffs[hand][BaseMSD][itv] =
+				  TechBaseDifficultySequencing(futurama);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][BaseMS]);
+			DifficultyMSSmooth(_diffs[hand][BaseMSD]);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
