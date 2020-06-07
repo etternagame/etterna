@@ -130,6 +130,20 @@ struct AnchorSequencer
 	}
 };
 
+
+/* keep timing stuff here instead of in mhi, use mhi exclusively for pattern
+ * detection */
+
+// every note has at least 2 ms values associated with it, the
+// ms value from the last cross column note (on the same hand),
+// and the ms value from the last note on it's/this column both
+// are useful for different things, and we want to track both.
+// for ohjumps, we will track the ms from the last non-jump on
+// either finger, there are situations where we may want to
+// consider jumps as having a cross column ms value of 0 with
+// itself, not sure if they should be set to this or left at the
+// init values of 5000 though
+
 // more stuff could/should be moved here? the only major issue with moving _all_
 // sequencers here is loading/setting their params
 struct SequencerGeneral
