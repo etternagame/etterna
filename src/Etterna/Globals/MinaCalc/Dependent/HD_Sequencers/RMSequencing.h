@@ -202,7 +202,7 @@ struct RM_Sequencer
 		// then we have landed on the right column, so if we have cc (0) ==
 		// anchor_col (0), we are entering the off column (right) of the anchor
 		// (left). perhaps left_right and right_left should be flipped in the
-		// base_pattern_type enum to make this more intuitive (but probably not)
+		// base_type enum to make this more intuitive (but probably not)
 
 		// NOT an anchor
 		if (anchor_col != now_col && in_the_nineties) {
@@ -227,7 +227,7 @@ struct RM_Sequencer
 	}
 
 	inline void operator()(const col_type& ct,
-						   const base_pattern_type& bt,
+						   const base_type& bt,
 						   const meta_type& mt,
 						   const float& row_time,
 						   const int& offhand_taps)

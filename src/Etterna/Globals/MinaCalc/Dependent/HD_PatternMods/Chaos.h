@@ -47,11 +47,6 @@ struct ChaosMod
 		pmod = neutral;
 	}
 
-	inline void setup(vector<float> doot[], const int& size)
-	{
-		doot[_pmod].resize(size);
-	}
-
 #pragma endregion
 
 	inline void advance_sequencing(const CalcMovingWindow<float>& ms_any)

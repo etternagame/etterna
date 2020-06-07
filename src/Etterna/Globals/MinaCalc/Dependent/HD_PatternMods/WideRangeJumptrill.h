@@ -6,6 +6,7 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
+
 using std::pair;
 using std::vector;
 
@@ -141,7 +142,7 @@ struct WideRangeJumptrillMod
 		return last_passed_check;
 	}
 
-	inline void update_seq_ms(const base_pattern_type& bt, const float& any_ms, const float& tc_ms)
+	inline void update_seq_ms(const base_type& bt, const float& any_ms, const float& tc_ms)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
@@ -178,9 +179,9 @@ struct WideRangeJumptrillMod
 		}
 	}
 
-	inline void advance_sequencing(base_pattern_type& bt,
+	inline void advance_sequencing(base_type& bt,
 								   const meta_type& mt,
-								   const meta_type& last_mt,
+								   const meta_type& _last_mt,
 								   const float& any_ms,
 								   const float& tc_ms)
 	{
@@ -197,20 +198,20 @@ struct WideRangeJumptrillMod
 		switch (mt) {
 			case meta_cccccc:
 				if (handle_roll_timing_check()) {
-					bibblybop(last_mt);
+					bibblybop(_last_mt);
 					return;
 				}
 				break;
 			case meta_ccacc:
 				if (handle_ccacc_timing_check()) {
-					bibblybop(last_mt);
+					bibblybop(_last_mt);
 					return;
 				}
 				break;
 			case meta_acca:
 				// don't bother adding if the ms values look benign
 				if (handle_acca_timing_check()) {
-					bibblybop(last_mt);
+					bibblybop(_last_mt);
 					return;
 				}
 				break;
@@ -221,9 +222,7 @@ struct WideRangeJumptrillMod
 		bro_is_this_file_for_real = false;
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi,
-						   vector<float> doot[],
-						   const int& i) -> float
+	inline auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		_mw_jt(jt_counter);
 
@@ -237,9 +236,10 @@ struct WideRangeJumptrillMod
 		  itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window);
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
-		doot[_pmod][i] = pmod;
 
 		interval_reset();
+
+		return pmod;
 	}
 
 	inline void interval_reset()

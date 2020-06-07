@@ -216,12 +216,12 @@ struct WideRangeRollMod
 		nah_this_file_aint_for_real = 0;
 	}
 
-	inline void bibblybop(const meta_type& last_mt)
+	inline void bibblybop(const meta_type& _last_mt)
 	{
 		// see below
-		if (last_mt == meta_enigma) {
+		if (_last_mt == meta_enigma) {
 			moving_cv = (moving_cv + hi_im_a_float) / 2.F;
-		} else if (last_mt == meta_meta_enigma) {
+		} else if (_last_mt == meta_meta_enigma) {
 			moving_cv = (moving_cv + hi_im_a_float + hi_im_a_float) / 3.F;
 		}
 
@@ -237,19 +237,19 @@ struct WideRangeRollMod
 		// meta enigma, 2
 
 		// borp it
-		if (last_mt == meta_enigma) {
+		if (_last_mt == meta_enigma) {
 			++nah_this_file_aint_for_real;
 		}
 
 		// same but even more-er
-		if (last_mt == meta_meta_enigma) {
+		if (_last_mt == meta_meta_enigma) {
 			nah_this_file_aint_for_real += 2;
 		}
 	}
 
-	inline void advance_sequencing(const base_pattern_type& bt,
+	inline void advance_sequencing(const base_type& bt,
 								   const meta_type& mt,
-								   const meta_type& last_mt,
+								   const meta_type& _last_mt,
 								   const float& any_ms,
 								   const float& tc_ms)
 	{
@@ -264,7 +264,7 @@ struct WideRangeRollMod
 			// its an actual jumpjack/jumptrill, don't bother with timing checks
 			// disable for now
 			if (nah_this_file_aint_for_real > 0) {
-				bibblybop(last_mt);
+				bibblybop(_last_mt);
 			}
 			return;
 		}
@@ -278,16 +278,16 @@ struct WideRangeRollMod
 				break;
 			case meta_cccccc:
 				handle_roll_timing_check();
-				bibblybop(last_mt);
+				bibblybop(_last_mt);
 				break;
 			case meta_ccacc:
 				handle_ccacc_timing_check();
-				bibblybop(last_mt);
+				bibblybop(_last_mt);
 				break;
 			case meta_ccsjjscc:
 			case meta_ccsjjscc_inverted:
 				handle_ccsjjscc_timing_check(any_ms);
-				bibblybop(last_mt);
+				bibblybop(_last_mt);
 				break;
 			case meta_type_init:
 			case meta_enigma:
@@ -306,7 +306,7 @@ struct WideRangeRollMod
 		}
 	}
 
-	inline void update_seq_ms(const base_pattern_type& bt, const float& any_ms, const float& tc_ms)
+	inline void update_seq_ms(const base_type& bt, const float& any_ms, const float& tc_ms)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last

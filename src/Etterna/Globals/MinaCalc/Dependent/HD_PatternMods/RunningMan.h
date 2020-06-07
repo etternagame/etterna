@@ -164,7 +164,7 @@ struct RunningManMod
 		pmod = neutral;
 	}
 
-	inline void setup(vector<float> doot[], const int& size)
+	inline void setup()
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
@@ -174,17 +174,10 @@ struct RunningManMod
 		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
 		rms[1].set_params(
 		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-
-		doot[_pmod].resize(size);
-		if (debug_lmao) {
-			for (auto& mod : _dbg) {
-				doot[mod].resize(size);
-			}
-		}
 	}
 
 	inline void advance_sequencing(const col_type& ct,
-								   const base_pattern_type& bt,
+								   const base_type& bt,
 								   const meta_type& mt,
 								   const float& row_time,
 								   const int& offhand_taps)
@@ -220,7 +213,7 @@ struct RunningManMod
 		}
 	}
 
-	inline auto operator()(vector<float> doot[], const int& i) -> float
+	inline auto operator()() -> float
 	{
 		// we could mni check for empty intervals like the other mods but it
 		// doesn't really matter and this is probably more useful for debug
@@ -235,9 +228,7 @@ struct RunningManMod
 		if (rm.anchor_len < min_anchor_len || rm.ran_taps < min_taps_in_rm ||
 			rm.off_taps_same < min_off_taps_same) {
 
-			set_dbg(doot, i);
 			rm.reset();
-
 			return min_mod;
 		}
 
@@ -288,10 +279,10 @@ struct RunningManMod
 		  min_mod,
 		  max_mod);
 
-		doot[_pmod][i] = pmod;
-		set_dbg(doot, i);
 
 		// reset interval highest when we're done
 		rm.reset();
+
+		return pmod;
 	}
 };

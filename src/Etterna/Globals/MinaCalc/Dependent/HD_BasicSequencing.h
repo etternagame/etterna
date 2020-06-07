@@ -79,7 +79,7 @@ invert_col(const col_type& col) -> col_type
 // about any notes on the other hand, we only care about sequences of notes on
 // this hand, this means that no sequencing done by the row by row sequencer
 // should take place if col == col_empty (nothing on this hand)
-enum base_pattern_type
+enum base_type
 {
 	base_left_right,
 	base_right_left,
@@ -92,7 +92,7 @@ enum base_pattern_type
 };
 
 inline auto
-determine_base_pattern_type(const col_type& now, const col_type& last) -> base_pattern_type
+determine_base_pattern_type(const col_type& now, const col_type& last) -> base_type
 {
 	if (last == col_init) {
 		return base_type_init;
@@ -127,7 +127,7 @@ determine_base_pattern_type(const col_type& now, const col_type& last) -> base_p
 // hits, as in, successive single notes that cross columns and are exclusive of
 // ohjumps
 inline auto
-is_cc_tap(const base_pattern_type& bt) -> bool
+is_cc_tap(const base_type& bt) -> bool
 {
 	return bt == base_left_right || bt == base_right_left;
 }

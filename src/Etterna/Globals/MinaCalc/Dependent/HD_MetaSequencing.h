@@ -25,9 +25,9 @@ enum meta_type
 
 /*
 inline auto
-detecc_oht(const base_pattern_type& now,
-		   const base_pattern_type& last,
-		   const base_pattern_type& c) -> bool
+detecc_oht(const base_type& now,
+		   const base_type& last,
+		   const base_type& c) -> bool
 {
 	// we are flipping b with invert col so make sure it's left_right or
 	// right_left single note, if either of the other two aren't this will fail
@@ -51,7 +51,7 @@ detecc_oht(const base_pattern_type& now,
 // base_left_right || base_right_lef,  then, if it's not cccccc, it's ccacc by
 // definition
 inline auto
-detecc_cccccc(const base_pattern_type& now, const base_pattern_type& last_last)
+detecc_cccccc(const base_type& now, const base_type& last_last)
   -> bool
 {
 	// wow it was actually cabbage brain LUL
@@ -59,9 +59,9 @@ detecc_cccccc(const base_pattern_type& now, const base_pattern_type& last_last)
 }
 
 inline auto
-detecc_acca(const base_pattern_type& a,
-			const base_pattern_type& b,
-			const base_pattern_type& c) -> bool
+detecc_acca(const base_type& a,
+			const base_type& b,
+			const base_type& c) -> bool
 {
 	// 1122, 2211, etc
 	return a == base_single_single && is_cc_tap(b) && c == base_single_single;
@@ -71,9 +71,9 @@ detecc_acca(const base_pattern_type& a,
 // 12[12]12, we'll check now for cc before entering this, so we can then
 // determine whether this is an inverted ccsjjscc or not (12[12]21)
 inline auto
-detecc_sjjscc(const base_pattern_type& last,
-			  const base_pattern_type& last_last,
-			  const base_pattern_type& last_last_last) -> bool
+detecc_sjjscc(const base_type& last,
+			  const base_type& last_last,
+			  const base_type& last_last_last) -> bool
 {
 	// check last_last_last first, if it's not cc, throw it out
 	if (!is_cc_tap(last_last_last))
@@ -86,10 +86,10 @@ detecc_sjjscc(const base_pattern_type& last,
 }
 
 inline auto
-determine_meta_type(const base_pattern_type& now,
-					const base_pattern_type& last,
-					const base_pattern_type& last_last,
-					const base_pattern_type& last_last_last) -> meta_type
+determine_meta_type(const base_type& now,
+					const base_type& last,
+					const base_type& last_last,
+					const base_type& last_last_last) -> meta_type
 {
 	// this is either cccccc or ccacc
 	if (is_cc_tap(now) && is_cc_tap(last_last)) {

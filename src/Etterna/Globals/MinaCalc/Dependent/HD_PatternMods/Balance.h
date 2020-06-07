@@ -34,9 +34,7 @@ struct BalanceMod
 
 	inline void full_reset() { pmod = neutral; }
 
-	inline auto operator()(const ItvHandInfo& itvhi,
-						   vector<float> doot[],
-						   const int& i) -> float
+	inline auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		// nothing here
 		if (itvhi.get_taps_nowi() == 0) {
@@ -61,6 +59,6 @@ struct BalanceMod
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
-		doot[_pmod][i] = pmod;
+		return pmod;
 	}
 };
