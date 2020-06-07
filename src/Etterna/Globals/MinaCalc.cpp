@@ -969,7 +969,7 @@ Hand::InitAdjDiff()
 		{
 		  Stream,
 		  OHTrill,
-		  Roll,
+		  // Roll,
 		  Chaos,
 		  WideRangeRoll,
 		  WideRangeJumptrill,
@@ -1015,7 +1015,7 @@ Hand::InitAdjDiff()
 		{
 		  OHTrill,
 		  Balance,
-		  Roll,
+		  // Roll,
 		  OHJumpMod,
 		  Chaos,
 		  WideRangeJumptrill,
