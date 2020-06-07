@@ -42,7 +42,7 @@ struct ItvInfo
 		}
 
 		// ALWAYS COUNT NUMBER OF TAPS IN CHORDS
-		taps_by_size[row_count - 1] += row_count;
+		taps_by_size.at(row_count - 1) += row_count;
 
 		// maybe move this to metaitvinfo?
 		// we want mixed hs/js to register as hs, even at relatively sparse hand

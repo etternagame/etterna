@@ -5,9 +5,6 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-using std::vector;
-using std::pair;
-
 struct JSMod
 {
 	const CalcPatternMod _pmod = JS;
@@ -68,11 +65,11 @@ struct JSMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
-	inline void set_dbg(vector<float> doot[], const int& i)
-	{
-			doot[JSS][i] = jumptrill_prop;
-			doot[JSJ][i] = jack_prop;
-	}
+	//inline void set_dbg(vector<float> doot[], const int& i)
+	//{
+	//		doot[JSS][i] = jumptrill_prop;
+	//		doot[JSJ][i] = jack_prop;
+	//}
 
 	inline void decay_mod()
 	{

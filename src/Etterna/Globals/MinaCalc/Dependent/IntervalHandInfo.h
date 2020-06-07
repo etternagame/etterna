@@ -11,12 +11,12 @@ struct ItvHandInfo
 		switch (col) {
 			case col_left:
 			case col_right:
-				++_col_taps[col];
+				++_col_taps.at(col);
 				break;
 			case col_ohjump:
-				++_col_taps[col_left];
-				++_col_taps[col_right];
-				_col_taps[col] += 2;
+				++_col_taps.at(col_left);
+				++_col_taps.at(col_right);
+				_col_taps.at(col) += 2;
 				break;
 			default:
 				assert(0);
@@ -28,7 +28,7 @@ struct ItvHandInfo
 	inline void interval_end()
 	{
 		// update interval mw for hand taps
-		_mw_hand_taps(_col_taps[col_left] + _col_taps[col_right]);
+		_mw_hand_taps(_col_taps.at(col_left) + _col_taps.at(col_right));
 
 		// update interval mws for col taps
 		for (auto& ct : ct_loop) {
@@ -176,6 +176,6 @@ struct ItvHandInfo
 	// window query for anything here, we've already saved computation. any mod
 	// that needs custom moving windows based on sequencing will have to keep
 	// its own container, but otherwise these should be referenced
-	CalcMovingWindow<int> _mw_col_taps[num_col_types];
+	std::array<CalcMovingWindow<int>, num_col_types> _mw_col_taps;
 	CalcMovingWindow<int> _mw_hand_taps;
 };

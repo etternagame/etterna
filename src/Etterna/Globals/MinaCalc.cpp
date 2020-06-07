@@ -41,8 +41,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const float basescalers[NUM_Skillset] = { 0.F,   0.97F,  0.92F, 0.83F,
-												 0.94F, 0.715F, 0.73F, 0.95F };
+static const std::array<float, NUM_Skillset> basescalers = {
+	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 0.95F
+};
 
 void
 Calc::TotalMaxPoints()

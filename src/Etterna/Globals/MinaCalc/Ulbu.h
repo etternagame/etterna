@@ -482,7 +482,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					/* junk in the trunk warning end */
 
 					if (ct != col_init) {
-						++_mitvhi._base_pattern_types[_mhi->_bt];
+						++_mitvhi._base_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 

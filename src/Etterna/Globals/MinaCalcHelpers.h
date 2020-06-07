@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-using std::vector;
 
 // enums and other definitions that won't change often
 

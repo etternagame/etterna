@@ -110,8 +110,8 @@ struct OHJumpModGuyThing
 	{
 		const auto& itvhi = mitvhi._itvhi;
 
-		cc_taps = mitvhi._base_pattern_types[base_left_right] +
-				  mitvhi._base_pattern_types[base_right_left];
+		cc_taps = mitvhi._base_types[base_left_right] +
+				  mitvhi._base_types[base_right_left];
 
 		assert(cc_taps >= 0);
 

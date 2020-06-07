@@ -77,11 +77,11 @@ struct HSMod
 		last_mod = pmod;
 	}
 
-	inline void set_dbg(vector<float> doot[], const int& i)
-	{
-		doot[HSS][i] = jumptrill_prop;
-		doot[HSJ][i] = jack_prop;
-	}
+	//inline void set_dbg(vector<float> doot[], const int& i)
+	//{
+	//	doot[HSS][i] = jumptrill_prop;
+	//	doot[HSJ][i] = jack_prop;
+	//}
 
 	inline auto operator()(const metaItvInfo& mitvi) -> float
 	{
@@ -93,7 +93,7 @@ struct HSMod
 		}
 
 		// look ma no hands
-		if (itvi.taps_by_size[_tap_size] == 0) {
+		if (itvi.taps_by_size.at(_tap_size) == 0) {
 			decay_mod();
 			return pmod;
 		}

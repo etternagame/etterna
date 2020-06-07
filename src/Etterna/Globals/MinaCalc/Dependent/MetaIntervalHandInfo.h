@@ -9,12 +9,8 @@ struct metaItvHandInfo
 	// handle end of interval
 	inline void interval_end()
 	{
-		for (auto& v : _base_pattern_types) {
-			v = 0;
-		}
-		for (auto& v : _base_pattern_types) {
-			v = 0;
-		}
+		_base_types.fill(0);
+		_meta_types.fill(0);
 
 		_itvhi.interval_end();
 	}
@@ -24,16 +20,12 @@ struct metaItvHandInfo
 	// a huge difference, but it might be abusable
 	inline void zero()
 	{
-		for (auto& v : _base_pattern_types) {
-			v = 0;
-		}
-		for (auto& v : _base_pattern_types) {
-			v = 0;
-		}
+		_base_types.fill(0);
+		_meta_types.fill(0);
 
 		_itvhi.zero();
 	}
 
-	int _base_pattern_types[num_base_types] = { 0, 0, 0, 0, 0, 0 };
-	int _meta_types[num_meta_types] = { 0, 0, 0, 0, 0, 0 };
+	std::array<int, num_base_types> _base_types = { 0, 0, 0, 0, 0, 0 };
+	std::array<int, num_meta_types> _meta_types = { 0, 0, 0, 0, 0, 0 };
 };
