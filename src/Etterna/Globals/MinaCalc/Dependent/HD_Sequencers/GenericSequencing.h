@@ -1,5 +1,5 @@
 #pragma once
-#include "HD_MetaSequencing.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_MetaSequencing.h"
 #include "Etterna/Globals/MinaCalc/CalcWindow.h"
 
 #include <array>
@@ -69,7 +69,7 @@ struct AnchorSequencer
 	std::array<int, num_cols_per_hand> max_seen = { 0, 0 };
 
 	// track windows of highest anchor per col seen during an interval
-	std::array<CalcWindow<int>, num_cols_per_hand> _mw_max;
+	std::array<CalcMovingWindow<int>, num_cols_per_hand> _mw_max;
 
 	AnchorSequencer()
 	{
@@ -136,11 +136,11 @@ struct SequencerGeneral
 {
 	// moving window of ms_any values, practically speaking, row with something
 	// in it on this hand to last row with something in it on the current hand
-	CalcWindow<float> _mw_cc_ms_any;
+	CalcMovingWindow<float> _mw_ms_any;
 
 	// moving window of tc_ms values, not used but we will probably want
 	// eventually (maybe? maybe move it? idk???)
-	std::array<CalcWindow<float>, num_cols_per_hand> _mw_tc_ms;
+	std::array<CalcMovingWindow<float>, num_cols_per_hand> _mw_tc_ms;
 
 	/* basic sequencers */
 	AnchorSequencer _as;
@@ -157,7 +157,7 @@ struct SequencerGeneral
 		}
 
 		// i guess we do this here instead??
-		_mw_cc_ms_any(ms_now);
+		_mw_ms_any(ms_now);
 	}
 
 	inline void full_reset()

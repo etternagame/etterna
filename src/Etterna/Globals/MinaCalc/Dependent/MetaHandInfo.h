@@ -163,7 +163,7 @@ struct metaHandInfo
 	}
 
 	inline void operator()(const metaHandInfo& last,
-						   CalcWindow<float>& _mw_cc_ms_any,
+						   CalcMovingWindow<float>& ms_any,
 						   const float& now,
 						   const col_type& ct,
 						   const unsigned& notes)
@@ -213,6 +213,6 @@ struct metaHandInfo
 
 		// keep track of these ms values here so we aren't doing it in
 		// potentially 5 different pattern mods
-		_mw_cc_ms_any(cc_ms_any);
+		ms_any(cc_ms_any);
 	}
 };

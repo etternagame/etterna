@@ -45,10 +45,10 @@ struct WideRangeRollMod
 	int window = 0;
 
 	// moving window of longest roll sequences seen in the interval
-	CalcWindow<int> _mw_max;
+	CalcMovingWindow<int> _mw_max;
 
 	// we want to keep custom adjusted ms values here
-	CalcWindow<float> _mw_adj_ms;
+	CalcMovingWindow<float> _mw_adj_ms;
 
 	bool last_passed_check = false;
 	int nah_this_file_aint_for_real = 0;

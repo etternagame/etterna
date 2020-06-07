@@ -181,6 +181,6 @@ struct ItvHandInfo
 	// window query for anything here, we've already saved computation. any mod
 	// that needs custom moving windows based on sequencing will have to keep
 	// its own container, but otherwise these should be referenced
-	CalcWindow<int> _mw_col_taps[num_col_types];
-	CalcWindow<int> _mw_hand_taps;
+	CalcMovingWindow<int> _mw_col_taps[num_col_types];
+	CalcMovingWindow<int> _mw_hand_taps;
 };

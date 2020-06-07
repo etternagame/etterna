@@ -43,7 +43,7 @@ struct WideRangeJumptrillMod
 #pragma endregion params and param map
 
 	int window = 0;
-	CalcWindow<int> _mw_jt;
+	CalcMovingWindow<int> _mw_jt;
 	int jt_counter = 0;
 
 	bool bro_is_this_file_for_real = false;

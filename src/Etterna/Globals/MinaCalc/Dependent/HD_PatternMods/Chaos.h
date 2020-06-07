@@ -33,8 +33,8 @@ struct ChaosMod
 	// don't allow this to be a modifiable param
 	const int window = 6;
 
-	CalcWindow<float> _u;
-	CalcWindow<float> _wot;
+	CalcMovingWindow<float> _u;
+	CalcMovingWindow<float> _wot;
 
 	float pmod = neutral;
 
@@ -54,13 +54,13 @@ struct ChaosMod
 
 #pragma endregion
 
-	inline void advance_sequencing(const CalcWindow<float>& _mw_cc_ms_any)
+	inline void advance_sequencing(const CalcMovingWindow<float>& ms_any)
 	{
 		// most recent value
-		float a = _mw_cc_ms_any.get_now();
+		float a = ms_any.get_now();
 
 		// previous value
-		float b = _mw_cc_ms_any.get_last();
+		float b = ms_any.get_last();
 
 		if (a == 0.F || b == 0.F || a == b) {
 			_u(1.F);

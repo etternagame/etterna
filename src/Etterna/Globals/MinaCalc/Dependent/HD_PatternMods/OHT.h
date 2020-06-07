@@ -14,7 +14,6 @@ using std::vector;
 
 static const int max_trills_per_interval = 4;
 
-
 // almost identical to wrr, refer to comments there
 struct OHTrillMod
 {
@@ -68,10 +67,10 @@ struct OHTrillMod
 	// consecutive trill counter every interval, but will not be resetting the
 	// trilling flag, this way we don't have to futz around with awkward
 	// proportion math, similar to thing 1 and thing 2
-	CalcWindow<float> badjuju;
-	CalcWindow<int> _mw_oht_taps;
+	CalcMovingWindow<float> badjuju;
+	CalcMovingWindow<int> _mw_oht_taps;
 
-	std::array <int, max_trills_per_interval> foundyatrills = { 0, 0, 0, 0 };
+	std::array<int, max_trills_per_interval> foundyatrills = { 0, 0, 0, 0 };
 
 	int found_oht = 0;
 	int oht_len = 0;
@@ -107,7 +106,7 @@ struct OHTrillMod
 		cc_window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 	}
-	
+
 #pragma endregion
 
 	inline auto make_thing(const float& itv_taps) -> float
@@ -143,9 +142,9 @@ struct OHTrillMod
 		moving_cv = (moving_cv + cv_reset) / 2.F;
 	}
 
-	inline auto oht_timing_check(const CalcWindow<float>& cc_ms_any) -> bool
+	inline auto oht_timing_check(const CalcMovingWindow<float>& ms_any) -> bool
 	{
-		moving_cv = (moving_cv + cc_ms_any.get_cv_of_window(cc_window)) / 2.F;
+		moving_cv = (moving_cv + ms_any.get_cv_of_window(cc_window)) / 2.F;
 		// the primary difference from wrr, just check cv on the base ms values,
 		// we are looking for values that are all close together without any
 		// manipulation
@@ -165,12 +164,12 @@ struct OHTrillMod
 	}
 
 	inline void advance_sequencing(const meta_type& mt,
-								   const CalcWindow<float>& cc_ms_any)
+								   const CalcMovingWindow<float>& ms_any)
 	{
 
 		switch (mt) {
 			case meta_cccccc:
-				if (oht_timing_check(cc_ms_any)) {
+				if (oht_timing_check(ms_any)) {
 					wifflewaffle();
 				} else {
 					complete_seq();

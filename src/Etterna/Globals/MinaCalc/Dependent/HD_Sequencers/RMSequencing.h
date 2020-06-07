@@ -1,5 +1,5 @@
 #pragma once
-#include "HD_MetaSequencing.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_MetaSequencing.h"
 
 // used by ranmen mod, for ranmen sequencing (doesn't have a sequence struct and
 // probably should?? this should just be logic only)
