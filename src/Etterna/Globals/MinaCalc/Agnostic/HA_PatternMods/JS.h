@@ -65,7 +65,7 @@ struct JSMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
-	//inline void set_dbg(vector<float> doot[], const int& i)
+	// inline void set_dbg(vector<float> doot[], const int& i)
 	//{
 	//		doot[JSS][i] = jumptrill_prop;
 	//		doot[JSJ][i] = jack_prop;
@@ -88,12 +88,12 @@ struct JSMod
 
 		// at least 1 tap but no jumps
 		if (itvi.taps_by_size[_tap_size] == 0) {
-			decay_mod();			
+			decay_mod();
 			return pmod;
 		}
 
 		/* end case optimizations */
-		
+
 		t_taps = static_cast<float>(itvi.total_taps);
 
 		// creepy banana

@@ -51,17 +51,14 @@ detecc_oht(const base_type& now,
 // base_left_right || base_right_lef,  then, if it's not cccccc, it's ccacc by
 // definition
 inline auto
-detecc_cccccc(const base_type& now, const base_type& last_last)
-  -> bool
+detecc_cccccc(const base_type& now, const base_type& last_last) -> bool
 {
 	// wow it was actually cabbage brain LUL
 	return now == last_last;
 }
 
 inline auto
-detecc_acca(const base_type& a,
-			const base_type& b,
-			const base_type& c) -> bool
+detecc_acca(const base_type& a, const base_type& b, const base_type& c) -> bool
 {
 	// 1122, 2211, etc
 	return a == base_single_single && is_cc_tap(b) && c == base_single_single;
@@ -93,7 +90,7 @@ determine_meta_type(const base_type& now,
 {
 	// this is either cccccc or ccacc
 	if (is_cc_tap(now) && is_cc_tap(last_last)) {
-		
+
 		if (detecc_cccccc(now, last_last)) {
 			// 1212, 2121, etc
 			return meta_cccccc;

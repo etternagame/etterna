@@ -66,6 +66,6 @@ struct FlamJamMod
 		// reset flags n stuff
 		fj.handle_interval_end();
 
-		return pmod;		
+		return pmod;
 	}
 };

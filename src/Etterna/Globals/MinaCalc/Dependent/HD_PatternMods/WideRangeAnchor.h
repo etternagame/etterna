@@ -55,8 +55,8 @@ struct WideRangeAnchorMod
 		divisor = diff_max - diff_min;
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi,
-						   const AnchorSequencer& as) -> float
+	inline auto operator()(const ItvHandInfo& itvhi, const AnchorSequencer& as)
+	  -> float
 	{
 		// nothing here
 		if (itvhi.get_taps_nowi() == 0) {

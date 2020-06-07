@@ -108,8 +108,8 @@ struct WideRangeJumptrillMod
 		}
 
 		// note to self, im pretty sure we can use tc_ms to do half these checks
-		// more reliably and faster, and without dropping the const qualification,
-		// but i need to think about it
+		// more reliably and faster, and without dropping the const
+		// qualification, but i need to think about it
 
 		// look for stuff thats jumptrillyable.. if that stuff... then leads
 		// into more stuff.. that is jumptrillyable... then .... badonk it

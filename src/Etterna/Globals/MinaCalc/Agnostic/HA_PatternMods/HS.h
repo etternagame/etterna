@@ -77,7 +77,7 @@ struct HSMod
 		last_mod = pmod;
 	}
 
-	//inline void set_dbg(vector<float> doot[], const int& i)
+	// inline void set_dbg(vector<float> doot[], const int& i)
 	//{
 	//	doot[HSS][i] = jumptrill_prop;
 	//	doot[HSJ][i] = jack_prop;
@@ -136,4 +136,3 @@ struct HSMod
 		return pmod;
 	}
 };
-

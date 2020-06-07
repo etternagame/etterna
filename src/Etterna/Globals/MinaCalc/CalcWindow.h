@@ -138,8 +138,7 @@ struct CalcMovingWindow
 
 	// perform cv check internally
 	[[nodiscard]] inline auto ccacc_timing_check(const float& factor,
-												 const float& threshold)
-	  -> bool
+												 const float& threshold) -> bool
 	{
 		// anchor in the center, divide by factor, 4 is the middle value of the
 		// last 3
@@ -160,8 +159,7 @@ struct CalcMovingWindow
 
 	// perform cv check internally
 	[[nodiscard]] inline auto acca_timing_check(const float& factor,
-												const float& threshold)
-	  -> bool
+												const float& threshold) -> bool
 	{
 		// cc in the center, multiply by factor
 		_itv_vals[4] *= factor;
@@ -172,8 +170,7 @@ struct CalcMovingWindow
 
 	// perform cv check internally
 	[[nodiscard]] inline auto roll_timing_check(const float& factor,
-												const float& threshold)
-	  -> bool
+												const float& threshold) -> bool
 	{
 		// we are looking at cccccc formation, which could be a roll or an oht,
 		// we don't know yet, but presumably whatever is calling this only cares

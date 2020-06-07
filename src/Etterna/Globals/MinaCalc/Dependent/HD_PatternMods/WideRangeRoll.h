@@ -303,7 +303,9 @@ struct WideRangeRollMod
 		}
 	}
 
-	inline void update_seq_ms(const base_type& bt, const float& any_ms, const float& tc_ms)
+	inline void update_seq_ms(const base_type& bt,
+							  const float& any_ms,
+							  const float& tc_ms)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last

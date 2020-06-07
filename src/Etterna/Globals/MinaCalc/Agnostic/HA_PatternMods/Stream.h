@@ -66,7 +66,9 @@ struct StreamMod
 
 		prop_component =
 		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
-		  static_cast<float>(static_cast<float>(itvi.total_taps) - prop_buffer) * prop_scaler;
+		  static_cast<float>(static_cast<float>(itvi.total_taps) -
+							 prop_buffer) *
+		  prop_scaler;
 
 		// allow for a mini/triple jack in streams.. but not more than that
 		jack_component = CalcClamp(

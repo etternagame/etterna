@@ -7,14 +7,11 @@
 #include "Etterna/Globals/MinaCalc/Dependent/MetaIntervalHandInfo.h"
 #include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/OHJSequencing.h"
 
-using std::pair;
-using std::vector;
-
 struct OHJumpModGuyThing
 {
 	const CalcPatternMod _pmod = OHJumpMod;
 	const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp, OHJSeqComp,
-										  OHJMaxSeq,   OHJCCTaps,   OHJHTaps };
+										  OHJMaxSeq,   OHJCCTaps,	OHJHTaps };
 	const std::string name = "OHJumpMod";
 
 #pragma region params
@@ -99,11 +96,11 @@ struct OHJumpModGuyThing
 
 	inline void set_debug_output(vector<float> doot[], const int& i)
 	{
-			doot[OHJSeqComp][i] = max_seq_component;
-			doot[OHJPropComp][i] = prop_component;
-			doot[OHJBaseProp][i] = base_seq_prop;
-			doot[OHJMaxSeq][i] = floatymcfloatface;
-			doot[OHJCCTaps][i] = static_cast<float>(cc_taps);
+		doot[OHJSeqComp][i] = max_seq_component;
+		doot[OHJPropComp][i] = prop_component;
+		doot[OHJBaseProp][i] = base_seq_prop;
+		doot[OHJMaxSeq][i] = floatymcfloatface;
+		doot[OHJCCTaps][i] = static_cast<float>(cc_taps);
 	}
 
 	inline auto operator()(const metaItvHandInfo& mitvhi) -> float
@@ -120,7 +117,7 @@ struct OHJumpModGuyThing
 								? ohj.cur_seq_taps
 								: ohj.max_seq_taps;
 
- 		/* case optimization start */
+		/* case optimization start */
 
 		// nothing here or there are no ohjumps
 		if (itvhi.get_taps_nowi() == 0 ||

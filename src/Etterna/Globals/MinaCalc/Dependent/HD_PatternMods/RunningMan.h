@@ -44,7 +44,7 @@ struct RunningManMod
 {
 	const std::array<CalcPatternMod, 11> _dbg{
 		RanLen,		RanAnchLen, RanAnchLenMod, RanJack,		RanOHT,		RanOffS,
-		RanPropAll, RanPropOff, RanPropOHT,	RanPropOffS, RanPropJack
+		RanPropAll, RanPropOff, RanPropOHT,	   RanPropOffS, RanPropJack
 	};
 	const CalcPatternMod _pmod = RanMan;
 	const std::string name = "RunningManMod";
@@ -278,7 +278,6 @@ struct RunningManMod
 		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
 		  min_mod,
 		  max_mod);
-
 
 		// reset interval highest when we're done
 		rm.reset();

@@ -1,7 +1,6 @@
 #pragma once
 #include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
-
 // one hand jump sequencer, not complex enough to require its own pattern struct
 // used by ohjmod
 // note we do want the occasional single ohjump in js to count as a sequence of

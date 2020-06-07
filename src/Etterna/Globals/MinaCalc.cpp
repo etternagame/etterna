@@ -224,7 +224,6 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug) -> float
 	return total_point_loss;
 }
 
-
 void
 Calc::SequenceJack(const Finger& f, int track, int mode)
 {

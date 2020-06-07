@@ -128,7 +128,7 @@ struct FJ_Sequencer
 			the_fifth_flammament = true;
 		}
 
-		  flim.reset();
+		flim.reset();
 	}
 
 	inline auto flammin_col_check(const unsigned& notes) -> bool

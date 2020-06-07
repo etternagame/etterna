@@ -15,15 +15,15 @@
 /// extremely specific sequencing will take place in separate areas like with
 /// rm_seuqencing, and widerange scalers should track their own interval queues
 /// metanoteinfo is generated per row, from current noteinfo and the previous
-/// metanoteinfo object, each metanoteinfo stores some basic information from the
-/// last object, allowing us to look back 3-4 rows into the past without having
-/// to explicitly store more than 2 mni objects, and we can recycle the pointers
-/// as we generate the info
-/// metanoteinfo is generated per _hand_, not per note or column. it contains the
-/// relevant information for determining what the column configuation of each
-/// hand is for any row, and it contains timestamp arrays for each column, so it
-/// is unnecessary to generate information per note, even though in some ways it
-/// might be more convenient or clearer
+/// metanoteinfo object, each metanoteinfo stores some basic information from
+/// the last object, allowing us to look back 3-4 rows into the past without
+/// having to explicitly store more than 2 mni objects, and we can recycle the
+/// pointers as we generate the info metanoteinfo is generated per _hand_, not
+/// per note or column. it contains the relevant information for determining
+/// what the column configuation of each hand is for any row, and it contains
+/// timestamp arrays for each column, so it is unnecessary to generate
+/// information per note, even though in some ways it might be more convenient
+/// or clearer
 
 struct metaHandInfo
 {
@@ -101,6 +101,7 @@ struct metaHandInfo
 
 		// now that we have determined base_type, we can look for more complex
 		// patterns
-		_mt = determine_meta_type(_bt, _last_bt, last_last_bt, last.last_last_bt);
+		_mt =
+		  determine_meta_type(_bt, _last_bt, last_last_bt, last.last_last_bt);
 	}
 };

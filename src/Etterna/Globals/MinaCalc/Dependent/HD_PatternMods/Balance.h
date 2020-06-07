@@ -23,7 +23,7 @@ struct BalanceMod
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
 		{ "mod_base", &mod_base }, { "buffer", &buffer },
-		{ "scaler", &scaler },	 { "other_scaler", &other_scaler },
+		{ "scaler", &scaler },	   { "other_scaler", &other_scaler },
 	};
 #pragma endregion params and param map
 

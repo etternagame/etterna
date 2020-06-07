@@ -3,7 +3,6 @@
 
 // enums and other definitions that won't change often
 
-
 // intervals are _half_ second, no point in wasting time or cpu cycles on 100
 // nps joke files
 static const int max_nps_for_single_interval = 50;
@@ -16,9 +15,7 @@ static const vector<float> gertrude_the_all_max_output{ 100.F, 100.F, 100.F,
 // global multiplier to standardize baselines
 static const float finalscaler = 3.632F;
 
-
 static const int num_chart_cols = 4;
-
 
 static const int zto3[4] = { 0, 1, 2, 3 };
 
@@ -40,7 +37,6 @@ cv(const vector<int>& input) -> float
 
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
 }
-
 
 // cv of a vector truncated to a set number of values, or if below, filled with
 // dummy values to reach the desired num_vals
@@ -139,7 +135,6 @@ AggregateScores(const vector<float>& skillsets, float rating, float resolution)
 	}
 	return rating + 2.F * resolution;
 }
-
 
 inline auto
 max_val(vector<int>& v) -> int

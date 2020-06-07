@@ -130,7 +130,6 @@ struct AnchorSequencer
 	}
 };
 
-
 /* keep timing stuff here instead of in mhi, use mhi exclusively for pattern
  * detection */
 
@@ -160,7 +159,10 @@ struct SequencerGeneral
 	AnchorSequencer _as;
 
 	// stuff
-	inline void advance_sequencing(const col_type ct, const float& row_time, const float& ms_now) {
+	inline void advance_sequencing(const col_type ct,
+								   const float& row_time,
+								   const float& ms_now)
+	{
 
 		// update sequencers
 		_as(ct, row_time);
