@@ -382,9 +382,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		for (auto& ids : hand_col_ids) {
 
-			float row_time = 0.F;
-			float last_row_time = 0.F;
-			float ms_any = 0.F;
+			float row_time = s_init;
+			float last_row_time = s_init;
+			float ms_any = ms_init;
+
 			int row_count = 0;
 			int last_row_count = 0;
 			int last_last_row_count = 0;
