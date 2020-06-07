@@ -194,6 +194,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_cj._pmod], neutral);
 		Smooth(doot[_cjq._pmod], neutral);
 		Smooth(doot[_fj._pmod], neutral);
+
+		// run twice
 		Smooth(doot[_tt._pmod], neutral);
 		Smooth(doot[_tt._pmod], neutral);
 		Smooth(doot[_tt2._pmod], neutral);
@@ -261,43 +263,37 @@ struct TheGreatBazoinkazoinkInTheSky
 	// an example, actually all sequencing should be done in objects
 	// following rm_sequencing's template and be stored in mhi, and then
 	// passed to whichever mods need them, but that's for later
-	inline void handle_row_dependent_pattern_advancement(const float& row_time, )
+	inline void handle_row_dependent_pattern_advancement(const float& row_time)
 	{
-		_ohj.advance_sequencing(_mhi->_ct, _mhi->last_ct);
-		//_roll::advance_sequencing(*_mhi);
+		_ohj.advance_sequencing(_mhi->_ct, _mhi->_last_ct);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_ms_any);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
-		_wrr.advance_sequencing(*_mhi);
-		_wrjt.advance_sequencing(*_mhi);
-		_ch.advance_sequencing(_mw_cc_ms_any);
+		_wrr.advance_sequencing(_mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
+		_wrjt.advance_sequencing(
+		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
+		_ch.advance_sequencing(_seq._mw_ms_any);
 	}
 
-	inline void setup_dependent_mods(vector<float> _doot[])
+	inline void setup_dependent_mods()
 	{
-		_ohj.setup(_doot, _itv_rows.size());
-		_bal.setup(_doot, _itv_rows.size());
-		_roll.setup(_doot, _itv_rows.size());
-		_oht.setup(_doot, _itv_rows.size());
-		_ch.setup(_doot, _itv_rows.size());
-		_rm.setup(_doot, _itv_rows.size());
-		_wrr.setup(_doot, _itv_rows.size());
-		_wrjt.setup(_doot, _itv_rows.size());
-		_wrb.setup(_doot, _itv_rows.size());
-		_wra.setup(_doot, _itv_rows.size());
+		_oht.setup();
+		_rm.setup();
+		_wrr.setup();
+		_wrjt.setup();
+		_wrb.setup();
+		_wra.setup();
 	}
 
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
-		_ohj(_mitvhi, doot, itv);
-		_bal(_mitvhi._itvhi, doot, itv);
-		_roll(_mitvhi, doot, itv);
-		_oht(_mitvhi._itvhi, doot, itv);
-		_ch(_mitvhi._itvhi, doot, itv);
-		_rm(doot, itv);
-		_wrr(_mitvhi._itvhi, doot, itv);
-		_wrjt(_mitvhi._itvhi, doot, itv);
-		_wrb(_mitvhi._itvhi, doot, itv);
-		_wra(_mitvhi._itvhi, _as, doot, itv);
+		doot[_ohj._pmod][itv] = _ohj(_mitvhi);
+		doot[_bal._pmod][itv] = _bal(_mitvhi._itvhi);
+		doot[_ch._pmod][itv] = _ch(_mitvhi._itvhi.get_taps_nowi());
+		doot[_rm._pmod][itv] = _rm();
+		doot[_wrb._pmod][itv] = _wrb(_mitvhi._itvhi);
+		doot[_wrr._pmod][itv] = _wrr(_mitvhi._itvhi);
+		doot[_wrjt._pmod][itv] = _wrjt(_mitvhi._itvhi);
+		doot[_wra._pmod][itv] = _wra(_mitvhi._itvhi, _seq._as);
 	}
 
 	inline void run_dependent_smoothing_pass(vector<float> doot[])
@@ -305,7 +301,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		// need to split upohj and cjohj into 2 pmod objects
 		Smooth(doot[_ohj._pmod], neutral);
 		Smooth(doot[_bal._pmod], neutral);
-		Smooth(doot[_roll._pmod], neutral);
 		Smooth(doot[_oht._pmod], neutral);
 		Smooth(doot[_ch._pmod], neutral);
 		Smooth(doot[_rm._pmod], neutral);
@@ -322,7 +317,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.full_reset();
 		_bal.full_reset();
-		//_roll.full_reset();
 		_oht.full_reset();
 		_ch.full_reset();
 		_rm.full_reset();
@@ -331,6 +325,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrb.full_reset();
 		_wra.full_reset();
 
+		_seq.full_reset();
 		_mitvhi.zero();
 		_mhi->full_reset();
 		_last_mhi->full_reset();
@@ -341,28 +336,28 @@ struct TheGreatBazoinkazoinkInTheSky
 		// invoke metaintervalhandinfo interval end FUNCTION
 		_mitvhi.interval_end();
 
-		// test putting generic sequencers here
-		_as.handle_interval_end();
-
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(_doots[hand], itv);
 	}
 
 	inline void run_dependent_pmod_loop()
 	{
-		float row_time = 0.F;
-		int row_count = 0;
-		int last_row_count = 0;
-		int last_last_row_count = 0;
-		unsigned row_notes = 0U;
-		unsigned last_row_notes = 0U;
-		unsigned last_last_row_notes = 0U;
-		col_type ct = col_init;
-
-		full_hand_reset();
+		setup_dependent_mods();
 
 		for (auto& ids : hand_col_ids) {
-			setup_dependent_mods(_doots[hand]);
+
+			float row_time = 0.F;
+			float last_row_time = 0.F;
+			float ms_any = 0.F;
+			int row_count = 0;
+			int last_row_count = 0;
+			int last_last_row_count = 0;
+			unsigned row_notes = 0U;
+			unsigned last_row_notes = 0U;
+			unsigned last_last_row_notes = 0U;
+			col_type ct = col_init;
+
+			full_hand_reset();
 
 			// so we are technically doing this again (twice) and don't to
 			// be doing it, but it makes debugging much less of a pita if we
@@ -383,6 +378,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					row_time = _ni[row].rowTime / _rate;
 					row_notes = _ni[row].notes;
 					row_count = column_count(row_notes);
+					ms_any = ms_from(row_time, last_row_time);
 
 					ct = determine_col_type(row_notes, ids);
 
@@ -394,7 +390,9 @@ struct TheGreatBazoinkazoinkInTheSky
 						++_mitvhi._itvhi._offhand_taps;
 						++_mhi->offhand_taps;
 
-						if (column_count(row_notes) == 2) {
+						// if ct == col_empty and row_count == 2, this is an
+						// offhand ohjump
+						if (row_count == 2) {
 							++_mhi->offhand_ohjumps;
 							++_mhi->offhand_taps;
 
@@ -408,12 +406,18 @@ struct TheGreatBazoinkazoinkInTheSky
 						continue;
 					}
 
-					_as(ct, row_time);
+					// test putting generic sequencers here
+					// this will keep track of timings from now on
+					_seq.advance_sequencing(ct, row_time, ms_any);
 
-					(*_mhi)(*_last_mhi, _mw_cc_ms_any, row_time, ct, row_notes);
+					// mhi will exclusively track pattern configurations
+					(*_mhi)(*_last_mhi, ct, row_notes);
 
+					// update interval aggregation
+					_mitvhi._itvhi.set_col_taps(ct);
+
+					/* junk in the trunk warning */
 					bool is_cj = last_row_count > 1 && row_count > 1;
-
 					bool was_cj = last_row_count > 1 && last_last_row_count > 1;
 					bool is_scj = (row_count == 1 && last_row_count > 1) &&
 								  (row_notes & last_row_notes);
@@ -430,8 +434,11 @@ struct TheGreatBazoinkazoinkInTheSky
 
 						the_simpsons.push_back(max(
 						  75.F,
-						  min(_mhi->cc_ms_any * pewpew, _mhi->tc_ms * pewpew)));
+						  min(_mhi->_ms_any * pewpew, _mhi->_tc_ms * pewpew)));
 					}
+
+					/* junk in the trunk warning end */
+					/* junk in the trunk warning */
 
 					last_last_row_count = row_count;
 					last_row_count = row_count;
@@ -439,14 +446,18 @@ struct TheGreatBazoinkazoinkInTheSky
 					last_last_row_notes = last_row_notes;
 					last_row_notes = row_notes;
 
-					_mitvhi._itvhi.set_col_taps(ct);
+					/* junk in the trunk warning end */
+
+					
 
 					if (ct != col_init) {
 						++_mitvhi._base_pattern_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
-					handle_row_dependent_pattern_advancement();
+
+
+					handle_row_dependent_pattern_advancement(row_time);
 
 					std::swap(_last_mhi, _mhi);
 					_mhi->offhand_ohjumps = 0;
@@ -466,6 +477,39 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 	}
 #pragma endregion
+
+	[[nodiscard]] inline auto make_mod_param_node(
+	  const vector<pair<std::string, float*>> param_map,
+	  const std::string& name) const -> XNode*
+	{
+		auto* pmod = new XNode(name);
+		for (auto& p : param_map) {
+			pmod->AppendChild(p.first, to_string(*p.second));
+		}
+
+		return pmod;
+	} 
+
+	inline void load_params_for_mod(
+	  const XNode* node,
+	  const vector<pair<std::string, float*>> param_map,
+	  const std::string& name)
+	{
+		float boat = 0.F;
+		auto* pmod = node->GetChild(name);
+		if (pmod == nullptr) {
+			return;
+		}
+		for (auto& p : param_map) {
+			auto* ch = pmod->GetChild(p.first);
+			if (ch == nullptr) {
+				continue;
+			}
+
+			ch->GetTextValue(boat);
+			*p.second = boat;
+		}
+	}
 
 	inline void load_calc_params_from_disk()
 	{
@@ -489,24 +533,23 @@ struct TheGreatBazoinkazoinkInTheSky
 			return;
 		}
 
-		_s.load_params_from_node(&params);
-		_js.load_params_from_node(&params);
-		_hs.load_params_from_node(&params);
-		_cj.load_params_from_node(&params);
-		_cjq.load_params_from_node(&params);
-		_ohj.load_params_from_node(&params);
-		_bal.load_params_from_node(&params);
-		_roll.load_params_from_node(&params);
-		_oht.load_params_from_node(&params);
-		_ch.load_params_from_node(&params);
-		_rm.load_params_from_node(&params);
-		_wrr.load_params_from_node(&params);
-		_wrjt.load_params_from_node(&params);
-		_wrb.load_params_from_node(&params);
-		_wra.load_params_from_node(&params);
-		_fj.load_params_from_node(&params);
-		_tt.load_params_from_node(&params);
-		_tt2.load_params_from_node(&params);
+		load_params_for_mod(&params, _s._params, _s.name);
+		load_params_for_mod(&params, _js._params, _js.name);
+		load_params_for_mod(&params, _hs._params, _hs.name);
+		load_params_for_mod(&params, _cj._params, _cj.name);
+		load_params_for_mod(&params, _cjq._params, _cjq.name);
+		load_params_for_mod(&params, _ohj._params, _ohj.name);
+		load_params_for_mod(&params, _bal._params, _bal.name);
+		load_params_for_mod(&params, _oht._params, _oht.name);
+		load_params_for_mod(&params, _ch._params, _ch.name);
+		load_params_for_mod(&params, _rm._params, _rm.name);
+		load_params_for_mod(&params, _wrb._params, _wrb.name);
+		load_params_for_mod(&params, _wrr._params, _wrr.name);
+		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
+		load_params_for_mod(&params, _wra._params, _wra.name);
+		load_params_for_mod(&params, _fj._params, _fj.name);
+		load_params_for_mod(&params, _tt._params, _tt.name);
+		load_params_for_mod(&params, _tt2._params, _tt2.name);
 	}
 
 	[[nodiscard]] inline auto make_param_node() const -> XNode*
@@ -514,24 +557,23 @@ struct TheGreatBazoinkazoinkInTheSky
 		auto* calcparams = new XNode("CalcParams");
 		calcparams->AppendAttr("vers", GetCalcVersion());
 
-		calcparams->AppendChild(_s.make_param_node());
-		calcparams->AppendChild(_js.make_param_node());
-		calcparams->AppendChild(_hs.make_param_node());
-		calcparams->AppendChild(_cj.make_param_node());
-		calcparams->AppendChild(_cjq.make_param_node());
-		calcparams->AppendChild(_ohj.make_param_node());
-		calcparams->AppendChild(_bal.make_param_node());
-		calcparams->AppendChild(_roll.make_param_node());
-		calcparams->AppendChild(_oht.make_param_node());
-		calcparams->AppendChild(_ch.make_param_node());
-		calcparams->AppendChild(_rm.make_param_node());
-		calcparams->AppendChild(_wrr.make_param_node());
-		calcparams->AppendChild(_wrjt.make_param_node());
-		calcparams->AppendChild(_wrb.make_param_node());
-		calcparams->AppendChild(_wra.make_param_node());
-		calcparams->AppendChild(_fj.make_param_node());
-		calcparams->AppendChild(_tt.make_param_node());
-		calcparams->AppendChild(_tt2.make_param_node());
+		calcparams->AppendChild(make_mod_param_node(_s._params, _s.name));
+		calcparams->AppendChild(make_mod_param_node(_js._params, _js.name));
+		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
+		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
+		calcparams->AppendChild(make_mod_param_node(_cjq._params, _cjq.name));
+		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
+		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
+		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
+		calcparams->AppendChild(make_mod_param_node(_ch._params, _ch.name));
+		calcparams->AppendChild(make_mod_param_node(_rm._params, _rm.name));
+		calcparams->AppendChild(make_mod_param_node(_wrb._params, _wrb.name));
+		calcparams->AppendChild(make_mod_param_node(_wrr._params, _wrr.name));
+		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));
+		calcparams->AppendChild(make_mod_param_node(_wra._params, _wra.name));
+		calcparams->AppendChild(make_mod_param_node(_fj._params, _fj.name));
+		calcparams->AppendChild(make_mod_param_node(_tt._params, _tt.name));
+		calcparams->AppendChild(make_mod_param_node(_tt2._params, _tt2.name));
 
 		return calcparams;
 	}
