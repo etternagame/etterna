@@ -297,8 +297,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_last_ct);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_ms_any);
-		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
-		_wrr.advance_sequencing(_mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
+		_rm.advance_sequencing(
+		  _mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
+		_wrr.advance_sequencing(
+		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
 		_wrjt.advance_sequencing(
 		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_ms_any);
 		_ch.advance_sequencing(_seq._mw_ms_any);
@@ -479,14 +481,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					/* junk in the trunk warning end */
 
-					
-
 					if (ct != col_init) {
 						++_mitvhi._base_pattern_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
-
-
 
 					handle_row_dependent_pattern_advancement(row_time);
 
@@ -497,7 +495,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 
-				_diffs[hand][BaseMS][itv] = CJBaseDifficultySequencing(the_simpsons);
+				_diffs[hand][BaseMS][itv] =
+				  CJBaseDifficultySequencing(the_simpsons);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][BaseMS]);
@@ -519,7 +518,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 
 		return pmod;
-	} 
+	}
 
 	inline void load_params_for_mod(
 	  const XNode* node,
