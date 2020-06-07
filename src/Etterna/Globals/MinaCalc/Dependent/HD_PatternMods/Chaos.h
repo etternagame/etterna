@@ -12,11 +12,11 @@ using std::vector;
 // slightly different implementation of the old chaos mod, basically picks up
 // polyishness and tries to detect awkward transitions
 
-static const CalcPatternMod _pmod = Chaos;
-static const std::string name = "ChaosMod";
-
 struct ChaosMod
 {
+	const CalcPatternMod _pmod = Chaos;
+	const std::string name = "ChaosMod";
+
 #pragma region params
 
 	float min_mod = 0.95F;

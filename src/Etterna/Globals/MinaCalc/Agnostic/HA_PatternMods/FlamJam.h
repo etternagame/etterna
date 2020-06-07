@@ -10,15 +10,12 @@
 using std::pair;
 using std::vector;
 
-static const CalcPatternMod _pmod = FlamJam;
-static const std::string name = "FlamJamMod";
-
 // MAKE FLAM WIDE RANGE?
 // ^ YES DO THIS
 struct FlamJamMod
 {
-	inline const CalcPatternMod& get_mod() { return _pmod; }
-	inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = FlamJam;
+	const std::string name = "FlamJamMod";
 
 #pragma region params
 	float min_mod = 0.5F;
@@ -43,10 +40,7 @@ struct FlamJamMod
 	FJ_Sequencer fj;
 	float pmod = neutral;
 
-	inline void setup()
-	{
-		fj.set_params(group_tol, step_tol, mod_scaler);
-	}
+	inline void setup() { fj.set_params(group_tol, step_tol, mod_scaler); }
 
 	inline void advance_sequencing(const float& ms_now, const unsigned& notes)
 	{

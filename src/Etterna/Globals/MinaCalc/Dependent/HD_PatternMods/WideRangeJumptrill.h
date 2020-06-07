@@ -4,20 +4,21 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
 using std::pair;
 using std::vector;
 
 // big brain stuff
 static const float wrjt_cv_factor = 3.F;
-static const CalcPatternMod _pmod = { WideRangeJumptrill };
-static const std::string name = "WideRangeJumptrillMod";
 
 // should update detection so it's more similar to updated wrr
 // probably needs better debugoutput
 struct WideRangeJumptrillMod
 {
+	const CalcPatternMod _pmod = { WideRangeJumptrill };
+	const std::string name = "WideRangeJumptrillMod";
+
 #pragma region params
 
 	float window_param = 3.F;

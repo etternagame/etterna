@@ -9,15 +9,12 @@
 using std::vector;
 using std::pair;
 
-static const CalcPatternMod _pmod = HS;
-static const vector<CalcPatternMod> _dbg = { HSS, HSJ };
-static const std::string name = "HSMod";
-static const int _tap_size = hand;
-
 struct HSMod
 {
-	inline const CalcPatternMod& get_mod() { return _pmod; }
-	inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = HS;
+	const vector<CalcPatternMod> _dbg = { HSS, HSJ };
+	const std::string name = "HSMod";
+	const int _tap_size = hand;
 
 #pragma region params
 

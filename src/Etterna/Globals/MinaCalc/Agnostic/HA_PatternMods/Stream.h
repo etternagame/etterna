@@ -12,14 +12,13 @@ using std::pair;
 // just - and then normalization, we will use this to depress the
 // stream rating for non-stream files.
 
-static const CalcPatternMod _pmod = Stream;
-static const std::string name = "StreamMod";
-static const int _tap_size = single;
+
 
 struct StreamMod
 {
-	inline const CalcPatternMod& get_mod() { return _pmod; }
-	inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = Stream;
+	const std::string name = "StreamMod";
+	const int _tap_size = single;
 
 #pragma region params
 	float min_mod = 0.6F;

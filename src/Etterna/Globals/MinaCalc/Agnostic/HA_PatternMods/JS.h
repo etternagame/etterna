@@ -8,15 +8,12 @@
 using std::vector;
 using std::pair;
 
-static const CalcPatternMod _pmod = JS;
-static const vector<CalcPatternMod> _dbg = { JSS, JSJ };
-static const std::string name = "JSMod";
-static const int _tap_size = jump;
-
 struct JSMod
 {
-	inline const CalcPatternMod& get_mod() { return _pmod; }
-	inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = JS;
+	const vector<CalcPatternMod> _dbg = { JSS, JSJ };
+	const std::string name = "JSMod";
+	const int _tap_size = jump;
 
 #pragma region params
 	float min_mod = 0.6F;

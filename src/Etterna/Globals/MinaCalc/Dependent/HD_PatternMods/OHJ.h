@@ -4,21 +4,18 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "MetaIntervalHandInfo.h"
-#include "OHJSequencing.h"
+#include "Etterna/Globals/MinaCalc/Dependent/MetaIntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/OHJSequencing.h"
 
 using std::pair;
 using std::vector;
 
-static const CalcPatternMod _pmod = OHJumpMod;
-static const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp,
-											 OHJSeqComp,  OHJMaxSeq,
-											 OHJCCTaps,   OHJHTaps };
-static const std::string name = "OHJumpMod";
-
 struct OHJumpModGuyThing
 {
-	
+	const CalcPatternMod _pmod = OHJumpMod;
+	const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp, OHJSeqComp,
+										  OHJMaxSeq,   OHJCCTaps,   OHJHTaps };
+	const std::string name = "OHJumpMod";
 
 #pragma region params
 

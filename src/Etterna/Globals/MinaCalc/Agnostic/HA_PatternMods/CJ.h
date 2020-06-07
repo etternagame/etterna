@@ -7,16 +7,12 @@
 
 using std::vector;
 using std::pair;
-using std::string;
-
-static const CalcPatternMod _pmod = CJ;
-static const vector<CalcPatternMod> _dbg = { CJS, CJJ };
-static const std::string name = "CJMod";
 
 struct CJMod
 {
-	inline const CalcPatternMod& get_mod() { return _pmod; }
-	inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = CJ;
+	const vector<CalcPatternMod> _dbg = { CJS, CJJ };
+	const std::string name = "CJMod";
 
 #pragma region params
 

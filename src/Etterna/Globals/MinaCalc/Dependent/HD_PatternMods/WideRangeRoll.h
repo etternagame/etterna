@@ -4,17 +4,17 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
 using std::pair;
 using std::vector;
 
-static const CalcPatternMod _pmod = WideRangeRoll;
-static const std::string name = "WideRangeRollMod";
-
 // ok new plan we will incloop the joomp
 struct WideRangeRollMod
 {
+	const CalcPatternMod _pmod = WideRangeRoll;
+	const std::string name = "WideRangeRollMod";
+
 #pragma region params
 
 	float window_param = 5.F;

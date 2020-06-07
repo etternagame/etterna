@@ -1,5 +1,5 @@
 #pragma once
-#include "HD_GenericSequencing.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
 
 // one hand jump sequencer, not complex enough to require its own pattern struct

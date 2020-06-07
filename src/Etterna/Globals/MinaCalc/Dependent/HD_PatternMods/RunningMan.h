@@ -4,19 +4,10 @@
 #include <vector>
 
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
-#include "RMSequencing.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
 
-using std::vector;
 using std::pair;
-
-
-static const std::array<CalcPatternMod, 11> _dbg{ RanLen,	  RanAnchLen, RanAnchLenMod,
-										 RanJack,	 RanOHT,	 RanOffS,
-										 RanPropAll,  RanPropOff, RanPropOHT,
-										 RanPropOffS, RanPropJack };
-static const CalcPatternMod _pmod = RanMan;
-static const std::string name = "RunningManMod";
-
+using std::vector;
 
 // moving these here because this is the only mod that uses them because i'm not
 // sure that they aren't horribly broken, and i don't want to spend time
@@ -49,9 +40,15 @@ pmod_prop(const float& pool,
 	  pool - (static_cast<float>(a) / static_cast<float>(b) * s), min, max);
 }
 
-
 struct RunningManMod
 {
+	const std::array<CalcPatternMod, 11> _dbg{
+		RanLen,		RanAnchLen, RanAnchLenMod, RanJack,		RanOHT,		RanOffS,
+		RanPropAll, RanPropOff, RanPropOHT,	RanPropOffS, RanPropJack
+	};
+	const CalcPatternMod _pmod = RanMan;
+	const std::string name = "RunningManMod";
+
 #pragma region params
 
 	float min_mod = 0.95F;
@@ -223,11 +220,6 @@ struct RunningManMod
 		}
 	}
 
-	inline auto handle_case_optimizations(const RM_Sequencer& rm) -> float
-	{
-
-	}
-
 	inline auto operator()(vector<float> doot[], const int& i) -> float
 	{
 		// we could mni check for empty intervals like the other mods but it
@@ -248,7 +240,6 @@ struct RunningManMod
 
 			return min_mod;
 		}
-
 
 		// the pmod template stuff completely broke the js/hs/cj mods.. so..
 		// these might also be broken... investigate later

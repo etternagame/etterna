@@ -8,16 +8,14 @@
 using std::pair;
 using std::vector;
 
-static const CalcPatternMod _pmod = CJDensity;
-static const std::string name = "CJDensityMod";
-static const int _tap_size = quad;
-
  // ok i remember now its because i wanted to smooth the mod before applying to
  // cj
 struct CJDensityMod
 {
-	 inline const CalcPatternMod& get_mod() { return _pmod; }
-	 inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = CJDensity;
+	const std::string name = "CJDensityMod";
+	const int _tap_size = quad;
+
 #pragma region params
 
 	float min_mod = 0.9F;

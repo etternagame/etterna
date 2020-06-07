@@ -6,18 +6,15 @@
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/ThingSequencing.h"
 
-using std::vector;
 using std::pair;
-
-static const CalcPatternMod _pmod = TheThing;
-static const std::string name = "TheThingMod";
+using std::vector;
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
 struct TheThingLookerFinderThing
 {
-	inline const CalcPatternMod& get_mod() { return _pmod; }
-	inline const std::string& get_name() { return name; }
+	const CalcPatternMod _pmod = TheThing;
+	const std::string name = "TheThingMod";
 
 #pragma region params
 
@@ -46,10 +43,7 @@ struct TheThingLookerFinderThing
 	float pmod = min_mod;
 
 #pragma region generic functions
-	inline void setup()
-	{
-		tt.set_params(group_tol, step_tol, scaler);
-	}
+	inline void setup() { tt.set_params(group_tol, step_tol, scaler); }
 
 #pragma endregion
 
@@ -76,7 +70,7 @@ struct TheThingLookerFinderThing
 // probably add a timing check to this as well
 struct TheThingLookerFinderThing2
 {
-	static const CalcPatternMod _pmod = TheThing2;
+	const CalcPatternMod _pmod = TheThing2;
 	const std::string name = "TheThing2Mod";
 
 #pragma region params
@@ -117,8 +111,8 @@ struct TheThingLookerFinderThing2
 
 	inline auto operator()() -> float
 	{
-		pmod =
-		  tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] + tt2.mod_parts[3];
+		pmod = tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] +
+			   tt2.mod_parts[3];
 		pmod /= 4.F;
 		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 

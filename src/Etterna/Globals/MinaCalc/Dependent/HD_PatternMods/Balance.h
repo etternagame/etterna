@@ -4,16 +4,16 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-using std::vector;
 using std::pair;
-
-static const CalcPatternMod _pmod = Balance;
-static const std::string name = "BalanceMod";
+using std::vector;
 
 struct BalanceMod
 {
+	const CalcPatternMod _pmod = Balance;
+	const std::string name = "BalanceMod";
+
 #pragma region params
 
 	float min_mod = 0.95F;

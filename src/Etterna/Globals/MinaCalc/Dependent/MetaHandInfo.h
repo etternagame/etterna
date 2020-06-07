@@ -1,7 +1,7 @@
 #pragma once
 #include "HD_BasicSequencing.h"
 #include "HD_MetaSequencing.h"
-#include "HD_GenericSequencing.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 #include "Etterna/Globals/MinaCalc/CalcWindow.h"
 
 /* this is a row by row sequencer that constructs basic and advanced hand based

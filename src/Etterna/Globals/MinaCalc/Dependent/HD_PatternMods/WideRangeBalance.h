@@ -4,17 +4,17 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
 using std::pair;
 using std::vector;
 
-static const CalcPatternMod _pmod = WideRangeBalance;
-static const std::string name = "WideRangeBalanceMod";
-
 // this should mayb track offhand taps like the old behavior did
 struct WideRangeBalanceMod
 {
+	const CalcPatternMod _pmod = WideRangeBalance;
+	const std::string name = "WideRangeBalanceMod";
+
 #pragma region params
 
 	float window_param = 2.F;

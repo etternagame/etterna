@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
 using std::pair;
 using std::vector;
@@ -13,12 +13,14 @@ using std::vector;
  * also a fair bit of redundancy between this, wrjt, wrr */
 
 static const int max_trills_per_interval = 4;
-static const CalcPatternMod _pmod = OHTrill;
-static const std::string name = "OHTrillMod";
+
 
 // almost identical to wrr, refer to comments there
 struct OHTrillMod
 {
+	const CalcPatternMod _pmod = OHTrill;
+	const std::string name = "OHTrillMod";
+
 #pragma region params
 
 	float window_param = 3.F;

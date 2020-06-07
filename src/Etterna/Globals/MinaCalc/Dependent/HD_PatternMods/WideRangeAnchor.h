@@ -3,19 +3,19 @@
 #include <array>
 #include <vector>
 
-#include "HD_GenericSequencing.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
 using std::pair;
 using std::vector;
 
-static const CalcPatternMod _pmod = WideRangeAnchor;
-static const std::string name = "WideRangeAnchorMod";
-
 // general mod, should maybe make cj specific one
 struct WideRangeAnchorMod
 {
+	const CalcPatternMod _pmod = WideRangeAnchor;
+	const std::string name = "WideRangeAnchorMod";
+
 #pragma region params
 
 	float window_param = 4.F;
