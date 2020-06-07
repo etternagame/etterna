@@ -46,15 +46,6 @@ struct metaHandInfo
 	int offhand_taps = 0;
 	int offhand_ohjumps = 0;
 
-	// ms from last cross column note
-	float _ms_any = ms_init;
-
-	// ms from last cross column note, ignoring any oh jumps
-	float cc_ms_no_jumps = ms_init;
-
-	// ms from last note in this column
-	float _tc_ms = ms_init;
-
 	// we need to reset everything between hands or the trailing values from the
 	// end of one will carry over into the start of the other, not a huge
 	// practical deal but it could theoretically be abused and it's good
@@ -73,10 +64,6 @@ struct metaHandInfo
 
 		offhand_taps = 0;
 		offhand_ohjumps = 0;
-
-		_ms_any = ms_init;
-		cc_ms_no_jumps = ms_init;
-		_tc_ms = ms_init;
 	}
 
 	inline void operator()(const metaHandInfo& last,
