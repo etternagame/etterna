@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <xmmintrin.h>
 
-/* generic pattern mod functions and defs */
+/* generic pattern mod functions and defs to help either agnostic or dependent
+ * mods do their stuff */
 static const float neutral = 1.F;
 
   // Relies on endiannes (significantly inaccurate)

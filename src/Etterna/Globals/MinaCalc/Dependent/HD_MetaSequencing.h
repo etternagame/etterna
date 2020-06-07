@@ -1,5 +1,6 @@
 #pragma once
 #include "HD_BasicSequencing.h"
+#include "Etterna/Globals/MinaCalc/SequencingHelpers.h"
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 
 /* meta patterns are formed by chains of base patterns, we could pick up
