@@ -64,3 +64,10 @@ diff_high_by_low(int a, int b) -> int
 	}
 	return a - b;
 }
+
+inline auto
+weighted_average(const float& a, const float& b, const float& x, const float& y)
+  -> float
+{
+	return (x * a + ((y - x) * b)) / y;
+}
