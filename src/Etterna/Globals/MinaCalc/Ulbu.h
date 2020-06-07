@@ -317,6 +317,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
 	{
 		doot[_ohj._pmod][itv] = _ohj(_mitvhi);
+		doot[_oht._pmod][itv] = _oht(_mitvhi._itvhi);
 		doot[_bal._pmod][itv] = _bal(_mitvhi._itvhi);
 		doot[_ch._pmod][itv] = _ch(_mitvhi._itvhi.get_taps_nowi());
 		doot[_rm._pmod][itv] = _rm();
