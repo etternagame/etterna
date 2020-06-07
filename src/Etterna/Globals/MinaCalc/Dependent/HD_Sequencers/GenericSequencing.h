@@ -44,12 +44,12 @@ struct Anchor_Sequencing
 		_now_ms = ms_from(now, _last);
 
 		// break the anchor if the next note is too much slower than the
-			// lowest one in the sequence
-			if (_now_ms > _max_ms + anchor_buffer_ms) {
-				_len = 1;
-				_max_ms = ms_init;
-			} else {
-				// increase anchor length and set new cutoff point
+		// lowest one in the sequence
+		if (_now_ms > _max_ms + anchor_buffer_ms) {
+			_len = 1;
+			_max_ms = ms_init;
+		} else {
+			// increase anchor length and set new cutoff point
 			++_len;
 			_max_ms = _now_ms;
 		}
@@ -99,7 +99,7 @@ struct AnchorSequencer
 
 			// update both
 			for (auto& c : ct_loop_no_jumps) {
-				anch.at(c)(ct, row_time);
+				anch.at(c)(c, row_time);
 
 				// set max seen
 				max_seen.at(c) =
