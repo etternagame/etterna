@@ -33,7 +33,7 @@ struct OHJ_Sequencer
 		max_seq_taps = 0;
 	}
 
-	inline void operator()(const col_type& now, const col_type& last)
+	inline void operator()(const col_type& now, const col_type&  /*last*/)
 	{
 		// do nothing for offhand taps
 		if (now == col_empty) {

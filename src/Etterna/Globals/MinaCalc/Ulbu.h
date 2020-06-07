@@ -453,15 +453,21 @@ struct TheGreatBazoinkazoinkInTheSky
 					bool is_cj = last_row_count > 1 && row_count > 1;
 					bool was_cj = last_row_count > 1 && last_last_row_count > 1;
 					bool is_scj = (row_count == 1 && last_row_count > 1) &&
-								  (row_notes & last_row_notes);
+								  ((row_notes & last_row_notes) != 0u);
 					bool is_at_least_3_note_anch =
-					  (row_notes & last_row_notes) & last_last_row_notes;
+					  ((row_notes & last_row_notes) & last_last_row_notes) !=
+					  0u;
 
 					// pushing back ms values, so multiply to nerf
 					float pewpew = 1.25f;
 
-					if (is_at_least_3_note_anch)
-						pewpew = 1.f;
+					if (is_at_least_3_note_anch) {
+						{
+							{
+								pewpew = 1.f;
+							}
+						}
+					}
 
 					if (is_cj || was_cj || is_scj) {
 
@@ -508,9 +514,9 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 #pragma endregion
 
-	[[nodiscard]] inline auto make_mod_param_node(
+	[[nodiscard]] static inline auto make_mod_param_node(
 	  const vector<pair<std::string, float*>>& param_map,
-	  const std::string& name) const -> XNode*
+	  const std::string& name) -> XNode*
 	{
 		auto* pmod = new XNode(name);
 		for (auto& p : param_map) {

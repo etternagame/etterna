@@ -73,8 +73,11 @@ detecc_sjjscc(const base_type& last,
 			  const base_type& last_last_last) -> bool
 {
 	// check last_last_last first, if it's not cc, throw it out
-	if (!is_cc_tap(last_last_last))
+	if (!is_cc_tap(last_last_last)) { { {
 		return false;
+}
+}
+}
 
 	// last is exiting the jump, last_last is entering it
 	// note: we don't care about the single/jump jump/single column order

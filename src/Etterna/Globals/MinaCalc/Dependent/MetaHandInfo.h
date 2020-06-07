@@ -81,7 +81,7 @@ struct metaHandInfo
 
 	inline void operator()(const metaHandInfo& last,
 						   const col_type& ct,
-						   const unsigned& notes)
+						   const unsigned&  /*notes*/)
 	{
 		// this should never ever be called on col_empty
 		assert(ct != col_empty);
