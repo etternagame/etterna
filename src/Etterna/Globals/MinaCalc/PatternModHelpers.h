@@ -37,3 +37,30 @@ CalcClamp(T x, T l, T h) -> T
 {
 	return x > h ? h : (x < l ? l : x);
 }
+
+inline auto
+div_high_by_low(float a, float b) -> float
+{
+	if (b > a) {
+		std::swap(a, b);
+	}
+	return a / b;
+}
+
+inline auto
+div_low_by_high(float a, float b) -> float
+{
+	if (b > a) {
+		std::swap(a, b);
+	}
+	return b / a;
+}
+
+inline auto
+diff_high_by_low(int a, int b) -> int
+{
+	if (b > a) {
+		std::swap(a, b);
+	}
+	return a - b;
+}
