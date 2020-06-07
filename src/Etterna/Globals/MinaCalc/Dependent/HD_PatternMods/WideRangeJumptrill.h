@@ -115,20 +115,22 @@ struct WideRangeJumptrillMod
 		// into more stuff.. that is jumptrillyable... then .... badonk it
 		switch (mt) {
 			case meta_cccccc:
-				if (ms_any.roll_timing_check(wrjt_cv_factor, cv_threshhold)) {
+				if (last_passed_check = ms_any.roll_timing_check(wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
 				break;
 			case meta_ccacc:
-				if (ms_any.ccacc_timing_check(wrjt_cv_factor, cv_threshhold)) {
+				if (last_passed_check = ms_any.ccacc_timing_check(
+					  wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
 				break;
 			case meta_acca:
 				// don't bother adding if the ms values look benign
-				if (ms_any.acca_timing_check(wrjt_cv_factor, cv_threshhold)) {
+				if (last_passed_check =
+					  ms_any.acca_timing_check(wrjt_cv_factor, cv_threshhold)) {
 					bibblybop(_last_mt);
 					return;
 				}
