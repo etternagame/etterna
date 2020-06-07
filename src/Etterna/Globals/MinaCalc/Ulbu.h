@@ -94,13 +94,39 @@ struct TheGreatBazoinkazoinkInTheSky
 	OHTrillMod _oht;
 	ChaosMod _ch;
 	RunningManMod _rm;
-	WideRangeJumptrillMod _wrjt;
-	WideRangeRollMod _wrr;
 	WideRangeBalanceMod _wrb;
+	WideRangeRollMod _wrr;
+	WideRangeJumptrillMod _wrjt;
 	WideRangeAnchorMod _wra;
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
 	TheThingLookerFinderThing2 _tt2;
+
+	inline void allocate_doot()
+	{
+		// agnostics
+		_doots[left_hand][_s._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_js._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_hs._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_cj._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_cjq._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_fj._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_tt._pmod].resize(_itv_rows.size());
+		_doots[left_hand][_tt2._pmod].resize(_itv_rows.size());
+
+		// dependents
+		for (auto& h : { left_hand, right_hand }) {
+			_doots[h][_ohj._pmod].resize(_itv_rows.size());
+			_doots[h][_bal._pmod].resize(_itv_rows.size());
+			_doots[h][_oht._pmod].resize(_itv_rows.size());
+			_doots[h][_ch._pmod].resize(_itv_rows.size());
+			_doots[h][_rm._pmod].resize(_itv_rows.size());
+			_doots[h][_wrb._pmod].resize(_itv_rows.size());
+			_doots[h][_wrr._pmod].resize(_itv_rows.size());
+			_doots[h][_wrjt._pmod].resize(_itv_rows.size());
+			_doots[h][_wra._pmod].resize(_itv_rows.size());
+		}
+	}
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
@@ -147,6 +173,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_itv_rows = itv_rows;
 		_rate = rate;
 
+		allocate_doot();
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
 	}
