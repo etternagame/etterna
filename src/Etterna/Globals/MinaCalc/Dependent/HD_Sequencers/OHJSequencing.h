@@ -33,16 +33,16 @@ struct OHJ_Sequencer
 		max_seq_taps = 0;
 	}
 
-	inline void operator()(const col_type& now, const col_type&  /*last*/)
+	inline void operator()(const col_type& ct, const base_type& bt)
 	{
 		// do nothing for offhand taps
-		if (now == col_empty) {
+		if (ct == col_empty) {
 			return;
 		}
 
 		if (cur_seq_taps == 0) {
 			// if we aren't in a sequence and aren't going to start one, bail
-			if (now != col_ohjump) {
+			if (ct != col_ohjump) {
 				return;
 			}
 			{ // allow sequences of 1 by starting any time we hit an ohjump
@@ -67,7 +67,7 @@ struct OHJ_Sequencer
 		// what comes next, if now.last_cc == base_jump_single, we have just
 		// broken a sequence (technically this can be simply something like
 		// [12]2[12]2[12]2 so the ohjumps wouldn't really be a sequence
-		switch (now) {
+		switch (bt) {
 			case base_jump_jump:
 				// continuing sequence
 				cur_seq_taps += 2;
@@ -78,9 +78,6 @@ struct OHJ_Sequencer
 				break;
 			case base_left_right:
 			case base_right_left:
-				// we should only get here if we recently broke seq
-				assert(last == base_jump_single);
-
 				// if we have an actual cross column tap now, and if we just
 				// came from a jump -> single, then we have something like
 				// [12]21, which is much harder than [12]22, so penalize the
@@ -93,9 +90,6 @@ struct OHJ_Sequencer
 				complete_seq();
 				break;
 			case base_single_single:
-				// we should only get here if we recently broke seq
-				assert(last == base_jump_single);
-
 				// we have something like [12]22, complete the sequence
 				// without the penalty that the cross column incurs
 				complete_seq();

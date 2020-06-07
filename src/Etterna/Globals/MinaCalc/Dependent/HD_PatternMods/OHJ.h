@@ -73,9 +73,9 @@ struct OHJumpModGuyThing
 
 #pragma endregion
 
-	inline void advance_sequencing(const col_type& now, const col_type& last)
+	inline void advance_sequencing(const col_type& ct, const base_type& bt)
 	{
-		ohj(now, last);
+		ohj(ct, bt);
 	}
 
 	// build component based on max sequence relative to hand taps
