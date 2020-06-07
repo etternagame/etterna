@@ -39,16 +39,7 @@ struct CJDensityMod
 
 	float pmod = neutral;
 
-	inline auto handle_case_optimizations(const ItvInfo& itvi,
-										  vector<float> doot[],
-										  const int& i) -> bool
-	{
-
-
-		return false;
-	}
-
-	inline auto operator()(const metaItvInfo& mitvi, vector<float> doot[]) -> float
+	inline auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 		if (itvi.total_taps == 0) {

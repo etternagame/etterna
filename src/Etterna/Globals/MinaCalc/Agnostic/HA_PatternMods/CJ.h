@@ -73,7 +73,7 @@ struct CJMod
 		doot[CJJ][i] = jack_prop;
 	}
 
-	inline auto operator()(const metaItvInfo& mitvi, vector<float> doot[]) -> float
+	inline auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 
@@ -127,7 +127,6 @@ struct CJMod
 			}
 		}
 
-		doot[_pmod][mitvi._idx] = pmod;
-		set_dbg(doot, mitvi._idx);
+		return pmod;
 	}
 };

@@ -86,7 +86,7 @@ struct HSMod
 		doot[HSJ][i] = jack_prop;
 	}
 
-	inline auto operator()(const metaItvInfo& mitvi, vector<float> doot[]) -> float
+	inline auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 

@@ -12,8 +12,6 @@ using std::pair;
 // just - and then normalization, we will use this to depress the
 // stream rating for non-stream files.
 
-
-
 struct StreamMod
 {
 	const CalcPatternMod _pmod = Stream;
@@ -46,7 +44,7 @@ struct StreamMod
 	float jack_component = 0.F;
 	float pmod = min_mod;
 
-	inline auto operator()(const metaItvInfo& mitvi, vector<float> doot[]) -> float
+	inline auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 
@@ -80,6 +78,6 @@ struct StreamMod
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		// actual mod
-		doot[_pmod][mitvi._idx] = pmod;
+		return pmod;
 	}
 };
