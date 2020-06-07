@@ -19,3 +19,18 @@ CJBaseDifficultySequencing(const vector<float>& input) -> float
 	float trootroo = doodoo / 15.F;
 	return trootroo * finalscaler;
 }
+
+
+
+static inline auto
+TechBaseDifficultySequencing(const vector<float>& input) -> float
+{
+	if (input.empty()) {
+		return 1.F;
+	}
+
+	float looloo = mean(input);
+	float doodoo = ms_to_bpm(looloo);
+	float trootroo = doodoo / 15.F;
+	return trootroo * finalscaler;
+}
