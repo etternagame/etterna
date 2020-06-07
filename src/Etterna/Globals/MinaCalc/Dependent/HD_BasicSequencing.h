@@ -30,7 +30,7 @@ static const int num_cols_per_hand = 2;
 static const std::array<col_type, num_col_types> ct_loop = { col_left,
 															 col_right,
 															 col_ohjump };
-static const std::array<col_type, num_col_types> ct_loop_no_jumps = {
+static const std::array<col_type, num_cols_per_hand> ct_loop_no_jumps = {
 	col_left,
 	col_right
 };
