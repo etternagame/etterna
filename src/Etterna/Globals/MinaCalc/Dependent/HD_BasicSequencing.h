@@ -24,6 +24,13 @@ enum col_type
 	col_init
 };
 
+static const int num_cols_per_hand = 2;
+static const col_type ct_loop[num_col_types] = { col_left,
+												 col_right,
+												 col_ohjump };
+static const col_type ct_loop_no_jumps[num_cols_per_hand] = { col_left,
+															  col_right };
+
 static inline auto
 determine_col_type(const unsigned& notes, const unsigned& hand_id) -> col_type
 {
