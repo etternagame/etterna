@@ -38,6 +38,9 @@
 // they're useful sometimes
 #include "UlbuAcolytes.h"
 
+// a new thing
+#include "Etterna/Globals/MinaCalc/SequencedBaseDiffCalc.h"
+
 // actual cancer
 bool debug_lmao;
 
@@ -270,7 +273,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
 		_wrr.advance_sequencing(_mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
 		_wrjt.advance_sequencing(
-		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
+		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_ms_any);
 		_ch.advance_sequencing(_seq._mw_ms_any);
 	}
 
@@ -466,7 +469,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 
-				_diffs[hand][BaseMS][itv] = CalcMSEstimateTWOOOOO(the_simpsons);
+				_diffs[hand][BaseMS][itv] = CJBaseDifficultySequencing(the_simpsons);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][BaseMS]);
