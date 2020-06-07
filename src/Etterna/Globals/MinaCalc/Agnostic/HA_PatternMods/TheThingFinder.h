@@ -22,7 +22,7 @@ struct TheThingLookerFinderThing
 	// params for tt_sequencing
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
-	float scaler = 0.15F;
+	float scaler = 0.2F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -79,7 +79,7 @@ struct TheThingLookerFinderThing2
 	// params for tt_sequencing
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
-	float scaler = 0.15F;
+	float scaler = 0.2F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
