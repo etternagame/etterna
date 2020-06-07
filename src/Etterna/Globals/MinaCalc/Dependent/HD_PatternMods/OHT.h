@@ -197,6 +197,29 @@ struct OHTrillMod
 		}
 	}
 
+	inline void set_pmod(const ItvHandInfo& itvhi)
+	{
+
+		// no taps, no trills
+		if (itvhi.get_taps_windowi(window) == 0 ||
+			_mw_oht_taps.get_total_for_window(window) == 0) {
+			pmod = neutral;
+			return;
+		}
+
+		// full oht
+		if (itvhi.get_taps_windowi(window) ==
+			_mw_oht_taps.get_total_for_window(window)) {
+			pmod = min_mod;
+			return;
+		}
+
+		badjuju(make_thing(itvhi.get_taps_nowf()));
+
+		pmod = base - badjuju.get_mean_of_window(window);
+		pmod = CalcClamp(pmod, min_mod, max_mod);
+	}
+
 	inline auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		if (oht_len > 0 && found_oht < max_trills_per_interval) {
@@ -206,25 +229,9 @@ struct OHTrillMod
 
 		_mw_oht_taps(oht_taps);
 
-		// no taps, no trills
-		if (itvhi.get_taps_windowi(window) == 0 ||
-			_mw_oht_taps.get_total_for_window(window) == 0) {
-			return neutral;
-		}
-
-		// full oht
-		if (itvhi.get_taps_windowi(window) ==
-			_mw_oht_taps.get_total_for_window(window)) {
-			return min_mod;
-		}
-
-		badjuju(make_thing(itvhi.get_taps_nowf()));
-
-		pmod = base - badjuju.get_mean_of_window(window);
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		set_pmod(itvhi);
 
 		interval_end();
-
 		return pmod;
 	}
 
