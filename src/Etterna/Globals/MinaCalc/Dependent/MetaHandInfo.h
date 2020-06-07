@@ -35,18 +35,18 @@ struct metaHandInfo
 	float col_time_no_jumps[num_cols_per_hand] = { s_init, s_init };
 
 	// col
-	col_type col = col_init;
-	col_type last_col = col_init;
+	col_type _ct = col_init;
+	col_type last_ct = col_init;
 
 	// type of cross column hit
-	base_pattern_type cc = base_type_init;
+	base_pattern_type _bt = base_type_init;
 	base_pattern_type last_cc = base_type_init;
 
 	// needed for the BIGGEST BRAIN PLAYS
 	base_pattern_type last_last_cc = base_type_init;
 
 	// whomst've
-	meta_type mt = meta_type_init;
+	meta_type _mt = meta_type_init;
 	meta_type last_mt = meta_type_init;
 
 	// number of offhand taps before this row
@@ -78,14 +78,14 @@ struct metaHandInfo
 			v = s_init;
 		}
 
-		col = col_init;
-		last_col = col_init;
+		_ct = col_init;
+		last_ct = col_init;
 
-		cc = base_type_init;
+		_bt = base_type_init;
 		last_cc = base_type_init;
 		last_last_cc = base_type_init;
 
-		mt = meta_type_init;
+		_mt = meta_type_init;
 		last_mt = meta_type_init;
 
 		offhand_taps = 0;
@@ -99,13 +99,13 @@ struct metaHandInfo
 	inline void update_col_times(const float& val)
 	{
 		// update both
-		if (col == col_ohjump) {
+		if (_ct == col_ohjump) {
 			col_time[col_left] = val;
 			col_time[col_right] = val;
 			return;
 		}
-		col_time[col] = val;
-		col_time_no_jumps[col] = val;
+		col_time[_ct] = val;
+		col_time_no_jumps[_ct] = val;
 	}
 
 	// sets time from last note in the same column, and last note in the
@@ -114,7 +114,7 @@ struct metaHandInfo
 	// with the information already given
 	inline void set_timings(const float last[], const float last_no_jumps[])
 	{
-		switch (cc) {
+		switch (_bt) {
 			case base_type_init:
 			case base_left_right:
 			case base_right_left:
@@ -122,14 +122,14 @@ struct metaHandInfo
 			case base_jump_single:
 				// either we know the end col so we know the start col, or the
 				// start col doesn't matter
-				cc_ms_any = ms_from(col_time[col], last[invert_col(col)]);
+				cc_ms_any = ms_from(col_time[_ct], last[invert_col(_ct)]);
 				cc_ms_no_jumps =
-				  ms_from(col_time[col], last_no_jumps[invert_col(col)]);
+				  ms_from(col_time[_ct], last_no_jumps[invert_col(_ct)]);
 
 				// technically doesn't matter if we use last_col to index, if
 				// it's single -> single we know it's an anchor so it's more
 				// intuitive to use col twice
-				tc_ms = ms_from(col_time[col], last[col]);
+				tc_ms = ms_from(col_time[_ct], last[_ct]);
 				break;
 			case base_single_jump:
 				// tracking this for now, use the higher value of the array
@@ -171,17 +171,17 @@ struct metaHandInfo
 		// this should never ever be called on col_empty
 		assert(ct != col_empty);
 
-		col = ct;
+		_ct = ct;
 		row_time = now;
 		row_notes = notes;
 
 		// set older values, yeah yeah, i know
-		last_col = last.col;
+		last_ct = last._ct;
 
 		last_last_cc = last.last_cc;
-		last_cc = last.cc;
+		last_cc = last._bt;
 
-		last_mt = last.mt;
+		last_mt = last._mt;
 
 		col_time[col_left] = last.col_time[col_left];
 		col_time[col_right] = last.col_time[col_right];
@@ -191,11 +191,11 @@ struct metaHandInfo
 		/* ok now actually do stuff */
 
 		// update this hand's cc type for this row
-		cc = determine_base_pattern_type(col, last_col);
+		_bt = determine_base_pattern_type(ct, last_ct);
 
 		// now that we have determined base_pattern_type, we can look for more complex
 		// patterns
-		mt = determine_meta_type(cc, last_cc, last_last_cc, last.last_last_cc);
+		_mt = determine_meta_type(_bt, last_cc, last_last_cc, last.last_last_cc);
 
 		// every note has at least 2 ms values associated with it, the
 		// ms value from the last cross column note (on the same hand),
