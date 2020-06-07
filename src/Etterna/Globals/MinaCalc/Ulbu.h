@@ -27,6 +27,7 @@
 // hand dependent pattern mods
 #include "Dependent/HD_PatternMods/OHJ.h"
 #include "Dependent/HD_PatternMods/Balance.h"
+#include "Dependent/HD_PatternMods/Roll.h"
 #include "Dependent/HD_PatternMods/OHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
 #include "Dependent/HD_PatternMods/WideRangeBalance.h"
@@ -89,7 +90,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	CJMod _cj;
 	CJDensityMod _cjq;
 	OHJumpModGuyThing _ohj;
-	// RollMod _roll;
+	RollMod _roll;
 	BalanceMod _bal;
 	OHTrillMod _oht;
 	ChaosMod _ch;
@@ -296,22 +297,23 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void handle_row_dependent_pattern_advancement(const float& row_time)
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
-		_oht.advance_sequencing(_mhi->_mt, _seq._mw_ms_any);
+		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(
 		  _mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
 		_wrr.advance_sequencing(_mhi->_bt,
 								_mhi->_mt,
 								_mhi->_last_mt,
-								_seq._mw_ms_any.get_now(),
-								_seq.get_tc_ms_now(_mhi->_ct));
+								_seq._mw_any_ms.get_now(),
+								_seq.get_sc_ms_now(_mhi->_ct));
 		_wrjt.advance_sequencing(
-		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_ms_any);
-		_ch.advance_sequencing(_seq._mw_ms_any);
+		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_any_ms);
+		_ch.advance_sequencing(_seq._mw_any_ms);
 	}
 
 	inline void setup_dependent_mods()
 	{
 		_oht.setup();
+		_roll.setup();
 		_rm.setup();
 		_wrr.setup();
 		_wrjt.setup();
@@ -324,6 +326,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		doot[_ohj._pmod][itv] = _ohj(_mitvhi);
 		doot[_oht._pmod][itv] = _oht(_mitvhi._itvhi);
 		doot[_bal._pmod][itv] = _bal(_mitvhi._itvhi);
+		doot[_roll._pmod][itv] = _roll(_mitvhi._itvhi);
 		doot[_ch._pmod][itv] = _ch(_mitvhi._itvhi.get_taps_nowi());
 		doot[_rm._pmod][itv] = _rm();
 		doot[_wrb._pmod][itv] = _wrb(_mitvhi._itvhi);
@@ -337,6 +340,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		// need to split upohj and cjohj into 2 pmod objects
 		Smooth(doot[_ohj._pmod], neutral);
 		Smooth(doot[_bal._pmod], neutral);
+		// dont do this here, testing internal smooth as advance
+		// Smooth(doot[_roll._pmod], neutral);
 		Smooth(doot[_oht._pmod], neutral);
 		Smooth(doot[_ch._pmod], neutral);
 		Smooth(doot[_rm._pmod], neutral);
@@ -353,6 +358,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.full_reset();
 		_bal.full_reset();
+		_roll.full_reset();
 		_oht.full_reset();
 		_ch.full_reset();
 		_rm.full_reset();
@@ -477,7 +483,7 @@ struct TheGreatBazoinkazoinkInTheSky
 						the_simpsons.push_back(
 						  max(75.F,
 							  min(_seq.get_any_ms_now() * pewpew,
-								  _seq.get_tc_ms_now(ct) * pewpew)));
+								  _seq.get_sc_ms_now(ct) * pewpew)));
 					}
 
 					/* junk in the trunk warning end */
