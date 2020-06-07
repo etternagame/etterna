@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <xmmintrin.h>
+#include <numeric>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
@@ -31,6 +32,20 @@ fastsqrt(float _in) -> float
 	float out;
 	_mm_store_ss(&out, _mm_mul_ss(in, _mm_rsqrt_ss(in)));
 	return out;
+}
+
+template<typename T>
+inline auto
+mean(const vector<T>& v) -> float
+{
+	return static_cast<float>(sum(v)) / static_cast<float>(v.size());
+}
+
+template<typename T>
+inline auto
+sum(const vector<T>& v) -> T
+{
+	return std::accumulate(begin(v), end(v), static_cast<T>(0));
 }
 
 // Coefficient of variation
