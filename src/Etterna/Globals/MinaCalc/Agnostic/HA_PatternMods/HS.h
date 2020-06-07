@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include "MetaIntervalInfo.h"
+#include "Etterna/Globals/MinaCalc/Agnostic/MetaIntervalInfo.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 using std::vector;
@@ -16,6 +16,9 @@ static const int _tap_size = hand;
 
 struct HSMod
 {
+	inline const CalcPatternMod& get_mod() { return _pmod; }
+	inline const std::string& get_name() { return name; }
+
 #pragma region params
 
 	float min_mod = 0.6F;

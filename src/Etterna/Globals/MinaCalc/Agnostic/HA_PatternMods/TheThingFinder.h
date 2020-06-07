@@ -4,17 +4,20 @@
 #include <vector>
 
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
-#include "ThingSequencing.h"
+#include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/ThingSequencing.h"
 
 using std::vector;
 using std::pair;
+
+static const CalcPatternMod _pmod = TheThing;
+static const std::string name = "TheThingMod";
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
 struct TheThingLookerFinderThing
 {
-	static const CalcPatternMod _pmod = TheThing;
-	const std::string name = "TheThingMod";
+	inline const CalcPatternMod& get_mod() { return _pmod; }
+	inline const std::string& get_name() { return name; }
 
 #pragma region params
 

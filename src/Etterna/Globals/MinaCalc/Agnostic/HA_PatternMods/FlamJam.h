@@ -5,7 +5,7 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
-#include "FlamSequencing.h"
+#include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/FlamSequencing.h"
 
 using std::pair;
 using std::vector;
@@ -17,6 +17,9 @@ static const std::string name = "FlamJamMod";
 // ^ YES DO THIS
 struct FlamJamMod
 {
+	inline const CalcPatternMod& get_mod() { return _pmod; }
+	inline const std::string& get_name() { return name; }
+
 #pragma region params
 	float min_mod = 0.5F;
 	float max_mod = 1.F;

@@ -3,7 +3,6 @@
 #include <array>
 #include <vector>
 
-#include "MetaIntervalInfo.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 using std::pair;
@@ -15,8 +14,10 @@ static const int _tap_size = quad;
 
  // ok i remember now its because i wanted to smooth the mod before applying to
  // cj
- struct CJDensityMod
+struct CJDensityMod
 {
+	 inline const CalcPatternMod& get_mod() { return _pmod; }
+	 inline const std::string& get_name() { return name; }
 #pragma region params
 
 	float min_mod = 0.9F;

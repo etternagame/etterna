@@ -3,7 +3,6 @@
 #include <array>
 #include <vector>
 
-#include "MetaIntervalInfo.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 using std::vector;
@@ -16,6 +15,9 @@ static const int _tap_size = jump;
 
 struct JSMod
 {
+	inline const CalcPatternMod& get_mod() { return _pmod; }
+	inline const std::string& get_name() { return name; }
+
 #pragma region params
 	float min_mod = 0.6F;
 	float max_mod = 1.1F;
