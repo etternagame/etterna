@@ -68,7 +68,8 @@ determine_col_type(const unsigned& notes, const unsigned& hand_id) -> col_type
 	return col_init;
 }
 
-// inverting col state for col_left or col_right only
+// inverting ct type for col_left or col_right only, col name here is very much
+// intentional
 inline auto
 invert_col(const col_type& col) -> col_type
 {
