@@ -628,24 +628,24 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	// sequence jack immediately so we can ref pass & sort in calc
-	// msestimate without things going be wackying
-	for (auto m : zto3) {
-		jacks[m]->resize(4);
-		for (auto t : zto3) {
-			SequenceJack(fingers[t], t, m);
+	//// sequence jack immediately so we can ref pass & sort in calc
+	//// msestimate without things going be wackying
+	//for (auto m : zto3) {
+	//	jacks[m]->resize(4);
+	//	for (auto t : zto3) {
+	//		SequenceJack(fingers[t], t, m);
 
-			// resize stam adjusted jack vecs, technically if we flattened
-			// the vector we could allocate only once for all rate passes
-			// when doing caching, but for various other reasons it was
-			// easier to keep them split by intervals in a double vector,
-			// this should maybe be changed?
-			stam_adj_jacks[t].resize(fingers[t].size());
-			for (int i = 0; i < fingers[t].size(); ++i) {
-				stam_adj_jacks[t][i].resize(fingers[t][i].size());
-			}
-		}
-	}
+	//		// resize stam adjusted jack vecs, technically if we flattened
+	//		// the vector we could allocate only once for all rate passes
+	//		// when doing caching, but for various other reasons it was
+	//		// easier to keep them split by intervals in a double vector,
+	//		// this should maybe be changed?
+	//		stam_adj_jacks[t].resize(fingers[t].size());
+	//		for (int i = 0; i < fingers[t].size(); ++i) {
+	//			stam_adj_jacks[t][i].resize(fingers[t][i].size());
+	//		}
+	//	}
+	//}
 
 	pair<Hand&, vector<int>> spoopy[2] = { { left_hand, { 1, 2 } },
 										   { right_hand, { 4, 8 } } };
@@ -854,7 +854,7 @@ Calc::Chisel(float player_skill,
 				return player_skill;
 			}
 			player_skill += resolution;
-			if (ss == Skill_Overall || ss == Skill_Stamina) {
+			if (ss == Skill_Overall || ss == Skill_Stamina || ss == Skill_JackSpeed) {
 				return 0.F; // not how we set these values
 			}
 
