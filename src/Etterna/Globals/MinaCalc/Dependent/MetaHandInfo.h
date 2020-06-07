@@ -1,7 +1,8 @@
 #pragma once
 #include "HD_BasicSequencing.h"
 #include "HD_MetaSequencing.h"
-#include "HD_GenericSequencers.h"
+#include "HD_GenericSequencing.h"
+#include "Etterna/Globals/MinaCalc/CalcWindow.h"
 
 /* this is a row by row sequencer that constructs basic and advanced hand based
  * patterns given noteinfo input for a current row, and its own output of the

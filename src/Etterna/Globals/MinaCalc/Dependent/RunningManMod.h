@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "RMSequencing.h"
 
 using std::vector;
@@ -133,9 +134,9 @@ struct RunningManMod
 	bool debug_lmao = false;
 
 	// stuff for making mod
-	RM_Sequencing rms[2];
+	RM_Sequencer rms[2];
 	// longest sequence for this interval
-	RM_Sequencing rm;
+	RM_Sequencer rm;
 
 	int test = 0;
 	float total_prop = 0.F;
@@ -223,7 +224,7 @@ struct RunningManMod
 		}
 	}
 
-	inline auto handle_case_optimizations(const RM_Sequencing& rm) -> float
+	inline auto handle_case_optimizations(const RM_Sequencer& rm) -> float
 	{
 
 	}

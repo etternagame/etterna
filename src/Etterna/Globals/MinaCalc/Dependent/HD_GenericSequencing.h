@@ -1,6 +1,6 @@
 #pragma once
 #include "HD_MetaSequencing.h"
-#include "Etterna/Globals/MinaCalcHelpers.h"
+#include "Etterna/Globals/MinaCalc/CalcWindow.h"
 
 #include <array>
 #include <initializer_list>

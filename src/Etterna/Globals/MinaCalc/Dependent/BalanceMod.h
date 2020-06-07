@@ -4,9 +4,7 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "IntervalHandInfo.h"
-#include "RMSequencing.h"
 
 using std::pair;
 using std::vector;

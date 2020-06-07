@@ -1,10 +1,9 @@
 #pragma once
-#include "Etterna/Globals/MinaCalcHelpers.h"
 #include "HD_MetaSequencing.h"
 
 // used by ranmen mod, for ranmen sequencing (doesn't have a sequence struct and
 // probably should?? this should just be logic only)
-struct RM_Sequencing
+struct RM_Sequencer
 {
 	// params.. loaded by runningman and then set from there
 	int max_oht_len = 0;
