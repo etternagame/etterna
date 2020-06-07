@@ -36,9 +36,7 @@ struct ItvHandInfo
 		}
 
 		// reset taps per col on this hand
-		for (auto& t : _col_taps) {
-			t = 0;
-		}
+		_col_taps.fill(0);
 
 		// reset offhand taps
 		_offhand_taps = 0;
@@ -48,10 +46,7 @@ struct ItvHandInfo
 	// hands maybe move to constructor and reconstruct when swapping hands??
 	inline void zero()
 	{
-		for (auto& v : _col_taps) {
-			v = 0;
-		}
-
+		_col_taps.fill(0);
 		_offhand_taps = 0;
 
 		for (auto& mw : _mw_col_taps) {
@@ -175,7 +170,7 @@ struct ItvHandInfo
 	int _offhand_taps = 0;
 
   protected:
-	int _col_taps[num_col_types] = { 0, 0, 0 };
+	std::array<int, num_col_types> _col_taps = { 0, 0, 0 };
 
 	// switch to keeping generic moving windows here, if any mod needs a moving
 	// window query for anything here, we've already saved computation. any mod
