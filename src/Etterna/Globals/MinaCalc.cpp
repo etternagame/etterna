@@ -882,22 +882,22 @@ Calc::Chisel(float player_skill,
 #else
 			// jack sequencer point loss for jack speed and (maybe?)
 			// cj
-			if (ss == Skill_JackSpeed) {
-				// this is slow but gives the best results, do separate
-				// passes for different jack types and figure out which
-				// is the most prominent of the file. We _don't_ want to
-				// do something like take the highest of a given type at
-				// multiple points throughout a file, that just results
-				// in oversaturation and bad grouping
-				jloss =
-				  max(JackLoss(player_skill, 1, max_points_lost, stamina),
-					  max(JackLoss(player_skill, 2, max_points_lost, stamina),
-						  JackLoss(player_skill, 3, max_points_lost, stamina)));
-				gotpoints -= jloss;
-			} else {
-				left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			// if (ss == Skill_JackSpeed) {
+			//	// this is slow but gives the best results, do separate
+			//	// passes for different jack types and figure out which
+			//	// is the most prominent of the file. We _don't_ want to
+			//	// do something like take the highest of a given type at
+			//	// multiple points throughout a file, that just results
+			//	// in oversaturation and bad grouping
+			//	jloss =
+			//	  max(JackLoss(player_skill, 1, max_points_lost, stamina),
+			//		  max(JackLoss(player_skill, 2, max_points_lost, stamina),
+			//			  JackLoss(player_skill, 3, max_points_lost, stamina)));
+			//	gotpoints -= jloss;
+			//} else {
+			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 
-				// already can't reach goal, move on
+			// already can't reach goal, move on
 				if (gotpoints > reqpoints) {
 					right_hand.CalcInternal(
 					  gotpoints, player_skill, ss, stamina);
