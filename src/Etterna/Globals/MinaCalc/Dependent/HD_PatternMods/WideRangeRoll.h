@@ -319,15 +319,8 @@ struct WideRangeRollMod
 			seq_ms[2] = any_ms;
 		}
 	}
-
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	inline void set_pmod(const ItvHandInfo& itvhi)
 	{
-		max_thingy = nah_this_file_aint_for_real > max_thingy
-					   ? nah_this_file_aint_for_real
-					   : max_thingy;
-
-		_mw_max(max_thingy);
-
 		// check taps for _this_ interval, if there's none, and there was a
 		// powerful roll mod before, the roll mod will extend into the empty
 		// interval at minimum value due to 0/n, and then the smoother will push
@@ -337,7 +330,8 @@ struct WideRangeRollMod
 		// change too much and the tuning is already looking good anyway
 		if (itvhi.get_taps_nowi() == 0 || itvhi.get_taps_windowi(window) == 0 ||
 			_mw_max.get_total_for_window(window) == 0) {
-			return neutral;
+			pmod = neutral;
+			return;
 		}
 
 		// really uncertain about the using the total of _mw_max here, but
@@ -347,9 +341,19 @@ struct WideRangeRollMod
 
 		pmod *= zomg;
 		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);
+	}
+
+	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	{
+		max_thingy = nah_this_file_aint_for_real > max_thingy
+					   ? nah_this_file_aint_for_real
+					   : max_thingy;
+
+		_mw_max(max_thingy);
+
+		set_pmod(itvhi);
 
 		interval_end();
-
 		return pmod;
 	}
 
