@@ -2,6 +2,7 @@
 #include <array>
 #include <cassert>
 
+static const int max_flam_jammies = 4;
 /* keep track of potential flam formation */
 struct flam
 {
@@ -119,16 +120,15 @@ struct FJ_Sequencer
 
 	inline void complete_seq()
 	{
-		assert(flim.size > 1);
-		mod_parts[flam_counter] = construct_mod_part();
-		++flam_counter;
-
-		// bro its just flams
-		if (flam_counter > 4) {
+		if (flam_counter < max_flam_jammies) {
+			mod_parts[flam_counter] = construct_mod_part();
+			++flam_counter;
+		} else {
+			// bro its just flams
 			the_fifth_flammament = true;
 		}
 
-		flim.reset();
+		  flim.reset();
 	}
 
 	inline auto flammin_col_check(const unsigned& notes) -> bool

@@ -135,8 +135,11 @@ struct OHTrillMod
 			return;
 		}
 
+		if (found_oht < max_trills_per_interval) {
+			foundyatrills[found_oht] = oht_len;
+		}
+
 		luca_turilli = false;
-		foundyatrills[found_oht] = oht_len;
 		oht_len = 0;
 		++found_oht;
 		moving_cv = (moving_cv + cv_reset) / 2.F;
@@ -199,7 +202,7 @@ struct OHTrillMod
 
 	inline auto operator()(const ItvHandInfo& itvhi) -> float
 	{
-		if (oht_len > 0) {
+		if (oht_len > 0 && found_oht < max_trills_per_interval) {
 			foundyatrills[found_oht] = oht_len;
 			++found_oht;
 		}
