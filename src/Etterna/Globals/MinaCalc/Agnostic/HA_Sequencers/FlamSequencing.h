@@ -69,7 +69,7 @@ struct flam
 
 		assert(size < 5);
 
-		ms[size - 1] = ms_now;
+		ms.at(size - 1) = ms_now;
 
 		// adjust size after setting ms, size starts at 1
 		++size;
@@ -121,7 +121,7 @@ struct FJ_Sequencer
 	inline void complete_seq()
 	{
 		if (flam_counter < max_flam_jammies) {
-			mod_parts[flam_counter] = construct_mod_part();
+			mod_parts.at(flam_counter) = construct_mod_part();
 			++flam_counter;
 		} else {
 			// bro its just flams

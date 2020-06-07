@@ -5,9 +5,6 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-using std::pair;
-using std::vector;
-
  // ok i remember now its because i wanted to smooth the mod before applying to
  // cj
 struct CJDensityMod
@@ -46,13 +43,13 @@ struct CJDensityMod
 			return neutral;
 		}
 
-		float t_taps = itvi.total_taps;
+		float t_taps = static_cast<float>(itvi.total_taps);
 		float a1 =
-		  static_cast<float>(itvi.taps_by_size[jump] * jump_scaler) / t_taps;
+		  static_cast<float>(static_cast<float>(itvi.taps_by_size[jump]) * jump_scaler) / t_taps;
 		float a2 =
-		  static_cast<float>(itvi.taps_by_size[hand] * hand_scaler) / t_taps;
+		  static_cast<float>(static_cast<float>(itvi.taps_by_size[hand]) * hand_scaler) / t_taps;
 		float a3 =
-		  static_cast<float>(itvi.taps_by_size[quad] * quad_scaler) / t_taps;
+		  static_cast<float>(static_cast<float>(itvi.taps_by_size[quad]) * quad_scaler) / t_taps;
 
 		float aaa = a1 + a2 + a3;
 

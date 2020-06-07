@@ -6,9 +6,6 @@
 #include "Etterna/Globals/MinaCalc/Agnostic/MetaIntervalInfo.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-using std::vector;
-using std::pair;
-
 struct HSMod
 {
 	const CalcPatternMod _pmod = HS;
@@ -139,3 +136,4 @@ struct HSMod
 		return pmod;
 	}
 };
+

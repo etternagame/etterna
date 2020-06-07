@@ -5,9 +5,6 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-using std::vector;
-using std::pair;
-
 struct CJMod
 {
 	const CalcPatternMod _pmod = CJ;
@@ -67,11 +64,11 @@ struct CJMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
-	inline void set_dbg(vector<float> doot[], const int& i)
-	{
-		doot[CJS][i] = not_jack_prop;
-		doot[CJJ][i] = jack_prop;
-	}
+	//inline void set_dbg(vector<float> doot[], const int& i)
+	//{
+	//	doot[CJS][i] = not_jack_prop;
+	//	doot[CJJ][i] = jack_prop;
+	//}
 
 	inline auto operator()(const metaItvInfo& mitvi) -> float
 	{
@@ -94,20 +91,20 @@ struct CJMod
 		// we also want to give enough leeway so that hyperdense chordjacks at
 		// lower bpms aren't automatically rated higher than more sparse jacks
 		// at higher bpms
-		total_prop = static_cast<float>(itvi.chord_taps + prop_buffer) /
+		total_prop = static_cast<float>(static_cast<float>(itvi.chord_taps) + prop_buffer) /
 					 (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// make sure there's at least a couple of jacks
 		jack_prop =
-		  CalcClamp(mitvi.actual_jacks_cj - jack_base, jack_min, jack_max);
+		  CalcClamp(static_cast<float>(mitvi.actual_jacks_cj) - jack_base, jack_min, jack_max);
 
 		// explicitly detect broken chordstream type stuff so we can give more
 		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
 		not_jack_prop = CalcClamp(
 		  not_jack_pool -
-			(static_cast<float>(mitvi.definitely_not_jacks * not_jack_scaler) /
+			(static_cast<float>(static_cast<float>(mitvi.definitely_not_jacks) * not_jack_scaler) /
 			 t_taps),
 		  not_jack_min,
 		  not_jack_max);

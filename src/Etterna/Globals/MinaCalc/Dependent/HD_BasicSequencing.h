@@ -27,11 +27,13 @@ enum col_type
 };
 
 static const int num_cols_per_hand = 2;
-static const col_type ct_loop[num_col_types] = { col_left,
-												 col_right,
-												 col_ohjump };
-static const col_type ct_loop_no_jumps[num_cols_per_hand] = { col_left,
-															  col_right };
+static const std::array<col_type, num_col_types> ct_loop = { col_left,
+															 col_right,
+															 col_ohjump };
+static const std::array<col_type, num_col_types> ct_loop_no_jumps = {
+	col_left,
+	col_right
+};
 
 static inline auto
 determine_col_type(const unsigned& notes, const unsigned& hand_id) -> col_type
@@ -92,7 +94,8 @@ enum base_type
 };
 
 inline auto
-determine_base_pattern_type(const col_type& now, const col_type& last) -> base_type
+determine_base_pattern_type(const col_type& now, const col_type& last)
+  -> base_type
 {
 	if (last == col_init) {
 		return base_type_init;

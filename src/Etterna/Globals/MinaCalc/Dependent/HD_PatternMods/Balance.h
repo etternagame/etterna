@@ -6,9 +6,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-using std::pair;
-using std::vector;
-
 struct BalanceMod
 {
 	const CalcPatternMod _pmod = Balance;

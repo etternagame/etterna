@@ -83,8 +83,8 @@ struct AnchorSequencer
 		max_seen.fill(0);
 
 		for (auto& c : ct_loop_no_jumps) {
-			anch[c].full_reset();
-			_mw_max[c].zero();
+			anch.at(c).full_reset();
+			_mw_max.at(c).zero();
 		}
 	}
 
@@ -94,7 +94,7 @@ struct AnchorSequencer
 	{
 		// update the one
 		if (ct == col_left || ct == col_right) {
-			anch[ct](ct, row_time);
+			anch.at(ct)(ct, row_time);
 
 			// set max seen for this col for this interval
 			max_seen[ct] =
@@ -103,11 +103,11 @@ struct AnchorSequencer
 
 			// update both
 			for (auto& c : ct_loop_no_jumps) {
-				anch[c](ct, row_time);
+				anch.at(c)(ct, row_time);
 
 				// set max seen
-				max_seen[c] =
-				  anch[c]._len > max_seen[c] ? anch[c]._len : max_seen[c];
+				max_seen.at(c) =
+				  anch.at(c)._len > max_seen[c] ? anch[c]._len : max_seen[c];
 			}
 		}
 	}

@@ -7,9 +7,6 @@
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/FlamSequencing.h"
 
-using std::pair;
-using std::vector;
-
 // MAKE FLAM WIDE RANGE?
 // ^ YES DO THIS
 struct FlamJamMod

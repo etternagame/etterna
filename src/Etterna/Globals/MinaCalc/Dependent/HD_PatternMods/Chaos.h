@@ -6,9 +6,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/CalcWindow.h"
 
-using std::pair;
-using std::vector;
-
 // slightly different implementation of the old chaos mod, basically picks up
 // polyishness and tries to detect awkward transitions
 
@@ -84,7 +81,7 @@ struct ChaosMod
 	{
 
 		if (total_taps == 0) {
-			return 1.f;
+			return neutral;
 		}
 
 		pmod = base + _wot.get_mean_of_window(max_moving_window_size);
