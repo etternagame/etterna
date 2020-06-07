@@ -3,8 +3,8 @@
 #include <array>
 #include <vector>
 
-using std::vector;
 using std::pair;
+using std::vector;
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
@@ -27,33 +27,9 @@ struct Roll_Sequencer
 {
 	RollSeq _rs;
 
-	inline void advance(const meta_type& mt)
+	inline void advance(const meta_type& mt, SequencerGeneral& _seq)
 	{
-		switch (mt) {
 
-			case meta_cccccc:
-				break;
-			case meta_ccacc:
-				break;
-			case meta_acca:
-				break;
-			case meta_ccsjjscc:
-				break;
-			case meta_ccsjjscc_inverted:
-				break;
-			case meta_enigma:
-				break;
-			case meta_meta_enigma:
-				break;
-			case meta_unknowable_enigma:
-				break;
-			case num_meta_types:
-				break;
-			case meta_type_init:
-				break;
-			default:
-				break;
-		}
 	}
 };
 
@@ -112,38 +88,28 @@ struct RollMod
 
 #pragma endregion
 
-	inline void complete_seq()
-	{
+	inline void complete_seq() {}
 
+	inline void advance_sequencing(const meta_type& mt, SequencerGeneral& _seq)
+	{
+		_roll.advance(mt, _seq);
 	}
 
+	inline void set_pmod(const ItvHandInfo& itvhi) {}
 
-
-	inline void advance_sequencing(const base_type& bt,
-								   const meta_type& mt,
-								   const meta_type& _last_mt,
-								   const float& any_ms,
-								   const float& tc_ms)
+	inline auto operator()(const ItvHandInfo& itvhi, const SequencerGeneral& _seq)
+	  -> float
 	{
-		
-	}
-
-
-	inline void set_pmod(const ItvHandInfo& itvhi)
-	{
-
-	}
-
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
-	{
-
-
-		set_pmod(itvhi);
+		auto loot = _seq.cv_check_sum;
+		auto doot = _seq.itv_row_counter;
+		float zmgoot = loot / static_cast<float>(doot + 1);
+		pmod = 0.5f + zmgoot;
+		//set_pmod(itvhi);
 
 		interval_end();
 		return pmod;
 	}
 
-	inline void interval_end() {  }
+	inline void interval_end() {}
 };
 #pragma once

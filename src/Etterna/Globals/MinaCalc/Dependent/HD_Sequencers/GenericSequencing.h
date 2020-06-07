@@ -166,6 +166,9 @@ struct SequencerGeneral
 	/* basic sequencers */
 	AnchorSequencer _as;
 
+	int itv_row_counter = 0;
+	float cv_check_sum = 0.F;
+
 	// sc_ms is the time from the current note to the last note in the same
 	// column, we've already updated the anchor sequencer and it will already
 	// contain that value in _sc_ms
@@ -224,6 +227,10 @@ struct SequencerGeneral
 		set_sc_ms(ct);
 		set_cc_ms(ct, row_time);
 		_mw_any_ms(ms_now);
+
+		cccccc_check();
+		cv_check_sum += _cv_cv();
+		++itv_row_counter;
 	}
 
 	inline auto get_sc_ms_now(const col_type& ct, bool lower = true) -> float
@@ -254,6 +261,7 @@ struct SequencerGeneral
 	}
 
 	inline auto get_any_ms_now() -> float { return _mw_any_ms.get_now(); }
+	inline auto get_cc_ms_now() -> float { return _mw_cc_ms.get_now(); }
 
 	inline void full_reset()
 	{
@@ -262,5 +270,56 @@ struct SequencerGeneral
 		}
 
 		_as.full_reset();
+	}
+
+	inline void interval_end() {
+		cv_check_sum = 0.F;
+		itv_row_counter = 0;
+	}
+
+
+	std::array<float, 6> _cv_check = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	CalcMovingWindow<float> _cv_check2;
+
+	[[nodiscard]] inline auto cccccc_check() -> float
+	{
+		float ms_now = _mw_any_ms.get_now();
+		_cv_check[5] = _mw_sc_ms[col_left].get_now();
+		_cv_check[4] = _mw_sc_ms[col_right].get_now();
+
+		float test1 = check_cv(3);
+		return test1;
+	}
+
+	inline auto _cv_cv() -> float
+	{
+		return _cv_check2.get_cv_of_window(3);
+	}
+
+	[[nodiscard]] inline auto get_cv_mean(const int& window) -> float
+	{
+		float o = 0.f;
+
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o += _cv_check.at(i);
+		}
+		_cv_check2(o);
+		return static_cast<float>(o) / static_cast<float>(window);
+	}
+
+	[[nodiscard]] inline auto check_cv(const int& window) -> float
+	{
+		float sd = 0.F;
+		float avg = get_cv_mean(window);
+		int i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			sd += (static_cast<float>(_cv_check.at(i)) - avg) *
+				  (static_cast<float>(_cv_check.at(i)) - avg);
+		}
+
+		return fastsqrt(sd / static_cast<float>(window)) / avg;
 	}
 };
