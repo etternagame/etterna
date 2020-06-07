@@ -164,11 +164,11 @@ struct WideRangeJumptrillMod
 
 		set_pmod(itvhi);
 
-		interval_reset();
+		interval_end();
 		return pmod;
 	}
 
-	inline void interval_reset()
+	inline void interval_end()
 	{
 		// we could count these in metanoteinfo but let's do it here for now,
 		// reset every interval when finished

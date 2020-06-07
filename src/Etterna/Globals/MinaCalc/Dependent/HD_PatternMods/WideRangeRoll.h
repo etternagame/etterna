@@ -348,10 +348,10 @@ struct WideRangeRollMod
 		pmod *= zomg;
 		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);
 
-		interval_reset();
+		interval_end();
 
 		return pmod;
 	}
 
-	inline void interval_reset() { max_thingy = 0; }
+	inline void interval_end() { max_thingy = 0; }
 };

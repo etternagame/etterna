@@ -193,11 +193,11 @@ struct OHJumpModGuyThing
 	{
 		set_pmod(mitvhi);
 
-		interval_reset();
+		interval_end();
 		return pmod;
 	}
 
-	inline void interval_reset()
+	inline void interval_end()
 	{
 		// reset any interval stuff here
 		cc_taps = 0;
