@@ -148,8 +148,6 @@ struct RunningManMod
 
 	float pmod = neutral;
 
-#pragma region generic functions
-
 	inline void full_reset()
 	{
 		rm.full_reset();
@@ -187,8 +185,6 @@ struct RunningManMod
 			}
 		}
 	}
-
-#pragma endregion
 
 	inline void advance_sequencing(const col_type& ct,
 								   const base_pattern_type& bt,
