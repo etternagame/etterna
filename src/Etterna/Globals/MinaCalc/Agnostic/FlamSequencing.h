@@ -1,5 +1,6 @@
 #pragma once
-#include "HD_GenericSequencing.h"
+#include <array>
+#include <cassert>
 
 /* keep track of potential flam formation */
 struct flam
@@ -18,7 +19,7 @@ struct flam
 
 	// ms values, 3 ms values = 4 rows, optimize by just recycling values
 	// without resetting and indexing up to the size counter to get duration
-	float ms[3] = {
+	std::array<float, 3> ms = {
 		0.F,
 		0.F,
 		0.F,
@@ -101,7 +102,7 @@ struct FJ_Sequencer
 	// interval proof the sequencing.. however.. it's probably not necessary to
 	// get that fancy
 
-	float mod_parts[4] = { 1.F, 1.F, 1.F, 1.F };
+	std::array<float, 4> mod_parts = { 1.F, 1.F, 1.F, 1.F };
 
 	// there's too many flams already, don't bother with new sequencing and
 	// shortcut into a minset in flamjammod
@@ -201,7 +202,7 @@ struct FJ_Sequencer
 		}
 	}
 
-	inline void reset()
+	inline void handle_interval_end()
 	{
 		// we probably don't want to do this, just let it build potential
 		// sequences across intervals
@@ -212,9 +213,7 @@ struct FJ_Sequencer
 
 		// reset everything to 1, as we build flams we will replace 1 with < 1
 		// values, the more there are, the lower (stronger) the pattern mod
-		for (auto& v : mod_parts) {
-			v = 1.F;
-		}
+		mod_parts.fill(1.F);
 	}
 
 	inline auto construct_mod_part() -> float
