@@ -33,9 +33,13 @@
 #include "Dependent/HD_PatternMods/WideRangeRoll.h"
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
 #include "Dependent/HD_PatternMods/WideRangeAnchor.h"
+#include "Dependent/HD_PatternMods/RunningMan.h"
 
 // they're useful sometimes
 #include "UlbuAcolytes.h"
+
+// actual cancer
+bool debug_lmao;
 
 // i am ulbu, the great bazoinkazoink in the sky
 struct TheGreatBazoinkazoinkInTheSky
@@ -73,9 +77,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	unique_ptr<metaHandInfo> _last_mhi;
 	unique_ptr<metaHandInfo> _mhi;
 
-	// i dont want to keep doing the last swap stuff every time i add something
-	// new, so just put it here and pass it
-	CalcWindow<float> _mw_cc_ms_any;
+	SequencerGeneral _seq;
 
 	// so we can make pattern mods
 	StreamMod _s;
@@ -84,7 +86,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	CJMod _cj;
 	CJDensityMod _cjq;
 	OHJumpModGuyThing _ohj;
-	RollMod _roll;
+	// RollMod _roll;
 	BalanceMod _bal;
 	OHTrillMod _oht;
 	ChaosMod _ch;
@@ -96,9 +98,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
 	TheThingLookerFinderThing2 _tt2;
-
-	// maybe it makes sense to move generic sequencers here
-	AnchorSequencer _as;
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
@@ -128,24 +127,10 @@ struct TheGreatBazoinkazoinkInTheSky
 		_ni = ni;
 	}
 
-	// for cj, will be sorted from teh above, but we dont care
-	static inline auto CalcMSEstimateTWOOOOO(const vector<float>& input)
-	  -> float
-	{
-		if (input.empty()) {
-			return 1.F;
-		}
-
-		float looloo = mean(input);
-		float doodoo = ms_to_bpm(looloo);
-		float trootroo = doodoo / 15.F;
-		return trootroo * finalscaler;
-	}
-
 	inline void heres_my_diffs(vector<float> lsoap[], vector<float> rsoap[])
 	{
-		_diffs[lh] = lsoap;
-		_diffs[rh] = rsoap;
+		_diffs[left_hand] = lsoap;
+		_diffs[right_hand] = rsoap;
 	}
 
 	inline void operator()(const vector<vector<int>>& itv_rows,
@@ -154,8 +139,8 @@ struct TheGreatBazoinkazoinkInTheSky
 						   vector<float> rdoot[])
 	{
 		// set interval/offset pass specific stuff
-		_doots[lh] = ldoot;
-		_doots[rh] = rdoot;
+		_doots[left_hand] = ldoot;
+		_doots[right_hand] = rdoot;
 		_itv_rows = itv_rows;
 		_rate = rate;
 
@@ -166,9 +151,9 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma region hand agnostic pmod loop
 	inline void advance_agnostic_sequencing()
 	{
-		_fj.advance_sequencing(*_mri);
-		_tt.advance_sequencing(*_mri);
-		_tt2.advance_sequencing(*_mri);
+		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
 	}
 	inline void setup_agnostic_pmods()
 	{
@@ -176,14 +161,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		// interval data, and do not need any more advanced pattern
 		// sequencing
 		for (auto& a : _doots) {
-			_s.setup(a, _itv_rows.size());
-			_js.setup(a, _itv_rows.size());
-			_hs.setup(a, _itv_rows.size());
-			_cj.setup(a, _itv_rows.size());
-			_cjq.setup(a, _itv_rows.size());
-			_fj.setup(a, _itv_rows.size());
-			_tt.setup(a, _itv_rows.size());
-			_tt2.setup(a, _itv_rows.size());
+			a->resize(_itv_rows.size());
+
+			_fj.setup();
+			_tt.setup();
+			_tt2.setup();
 		}
 	}
 
@@ -193,14 +175,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		// interval data, and do not need any more advanced pattern
 		// sequencing just set only one hand's values and we'll copy them
 		// over (or figure out how not to need to) later
-		_s(_mitvi, doot);
-		_js(_mitvi, doot);
-		_hs(_mitvi, doot);
-		_cj(_mitvi, doot);
-		_cjq(_mitvi, doot);
-		_fj(doot, itv);
-		_tt(doot, itv);
-		_tt2(doot, itv);
+		doot[_s._pmod][itv] = _s(_mitvi);
+		doot[_js._pmod][itv] = _js(_mitvi);
+		doot[_hs._pmod][itv] = _hs(_mitvi);
+		doot[_cj._pmod][itv] = _cj(_mitvi);
+		doot[_cjq._pmod][itv] = _cjq(_mitvi);
+		doot[_fj._pmod][itv] = _fj();
+		doot[_tt._pmod][itv] = _tt();
+		doot[_tt2._pmod][itv] = _tt2();
 	}
 
 	inline void run_agnostic_smoothing_pass(vector<float> doot[])
@@ -212,28 +194,22 @@ struct TheGreatBazoinkazoinkInTheSky
 		Smooth(doot[_cj._pmod], neutral);
 		Smooth(doot[_cjq._pmod], neutral);
 		Smooth(doot[_fj._pmod], neutral);
-		Smooth(doot[TheThingLookerFinderThing::_pmod], neutral);
-		Smooth(doot[TheThingLookerFinderThing::_pmod], neutral);
-		Smooth(doot[TheThingLookerFinderThing2::_pmod], neutral);
-		Smooth(doot[TheThingLookerFinderThing2::_pmod], neutral);
+		Smooth(doot[_tt._pmod], neutral);
+		Smooth(doot[_tt._pmod], neutral);
+		Smooth(doot[_tt2._pmod], neutral);
+		Smooth(doot[_tt2._pmod], neutral);
 	}
 
 	inline void bruh_they_the_same()
 	{
-		_doots[1][_s._pmod] = _doots[0][_s._pmod];
-		_doots[1][_js._pmod] = _doots[0][_js._pmod];
-		_doots[1][_hs._pmod] = _doots[0][_hs._pmod];
-		_doots[1][_cj._pmod] = _doots[0][_cj._pmod];
-		_doots[1][_cjq._pmod] = _doots[0][_cjq._pmod];
-		_doots[1][_fj._pmod] = _doots[0][_fj._pmod];
-		_doots[1][TheThingLookerFinderThing::_pmod] =
-		  _doots[0][TheThingLookerFinderThing::_pmod];
-		_doots[1][TheThingLookerFinderThing::_pmod] =
-		  _doots[0][TheThingLookerFinderThing::_pmod];
-		_doots[1][TheThingLookerFinderThing2::_pmod] =
-		  _doots[0][TheThingLookerFinderThing2::_pmod];
-		_doots[1][TheThingLookerFinderThing2::_pmod] =
-		  _doots[0][TheThingLookerFinderThing2::_pmod];
+		_doots[right_hand][_s._pmod] = _doots[left_hand][_s._pmod];
+		_doots[right_hand][_js._pmod] = _doots[left_hand][_js._pmod];
+		_doots[right_hand][_hs._pmod] = _doots[left_hand][_hs._pmod];
+		_doots[right_hand][_cj._pmod] = _doots[left_hand][_cj._pmod];
+		_doots[right_hand][_cjq._pmod] = _doots[left_hand][_cjq._pmod];
+		_doots[right_hand][_fj._pmod] = _doots[left_hand][_fj._pmod];
+		_doots[right_hand][_tt._pmod] = _doots[left_hand][_tt._pmod];
+		_doots[right_hand][_tt2._pmod] = _doots[left_hand][_tt2._pmod];
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -249,8 +225,6 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// boop
 		for (int itv = 0; itv < _itv_rows.size(); ++itv) {
-			// reset any accumulated interval info and set cur index number
-			_mitvi.reset(itv);
 
 			// run the row by row construction for interval info
 			for (auto& row : _itv_rows[itv]) {
@@ -269,9 +243,15 @@ struct TheGreatBazoinkazoinkInTheSky
 			}
 
 			// run pattern mod generation for hand agnostic mods
-			set_agnostic_pmods(_doots[lh], itv);
+			set_agnostic_pmods(_doots[left_hand], itv);
+
+			// reset any accumulated interval info and set cur index number
+			_mitvi.handle_interval_end();
 		}
-		run_agnostic_smoothing_pass(_doots[lh]);
+
+		run_agnostic_smoothing_pass(_doots[left_hand]);
+
+		// copy left -> right for agnostic mods
 		bruh_they_the_same();
 	}
 #pragma endregion
@@ -281,12 +261,12 @@ struct TheGreatBazoinkazoinkInTheSky
 	// an example, actually all sequencing should be done in objects
 	// following rm_sequencing's template and be stored in mhi, and then
 	// passed to whichever mods need them, but that's for later
-	inline void handle_row_dependent_pattern_advancement()
+	inline void handle_row_dependent_pattern_advancement(const float& row_time, )
 	{
-		_ohj.advance_sequencing(*_mhi);
-		RollMod::advance_sequencing(*_mhi);
-		_oht.advance_sequencing(*_mhi, _mw_cc_ms_any);
-		_rm.advance_sequencing(*_mhi);
+		_ohj.advance_sequencing(_mhi->_ct, _mhi->last_ct);
+		//_roll::advance_sequencing(*_mhi);
+		_oht.advance_sequencing(_mhi->_mt, _seq._mw_ms_any);
+		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
 		_wrr.advance_sequencing(*_mhi);
 		_wrjt.advance_sequencing(*_mhi);
 		_ch.advance_sequencing(_mw_cc_ms_any);
@@ -342,17 +322,14 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.full_reset();
 		_bal.full_reset();
-		_roll.full_reset();
+		//_roll.full_reset();
 		_oht.full_reset();
 		_ch.full_reset();
 		_rm.full_reset();
 		_wrr.full_reset();
 		_wrjt.full_reset();
-		WideRangeBalanceMod::full_reset();
-		WideRangeAnchorMod::full_reset();
-
-		// zero out moving windows at the start of each hand
-		_mw_cc_ms_any.zero();
+		_wrb.full_reset();
+		_wra.full_reset();
 
 		_mitvhi.zero();
 		_mhi->full_reset();
@@ -465,8 +442,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					_mitvhi._itvhi.set_col_taps(ct);
 
 					if (ct != col_init) {
-						++_mitvhi._base_pattern_types[_mhi->cc];
-						++_mitvhi._meta_types[_mhi->mt];
+						++_mitvhi._base_pattern_types[_mhi->_bt];
+						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
 					handle_row_dependent_pattern_advancement();
