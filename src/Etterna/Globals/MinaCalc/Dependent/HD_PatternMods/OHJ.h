@@ -122,11 +122,15 @@ struct OHJumpModGuyThing
 		// nothing here or there are no ohjumps
 		if (itvhi.get_taps_nowi() == 0 ||
 			itvhi.get_col_taps_nowi(col_ohjump) == 0) {
+
+			interval_reset();
 			return neutral;
 		}
 
 		// everything in the interval is in an ohj sequence
 		if (max_ohjump_seq_taps >= itvhi.get_taps_nowi()) {
+
+			interval_reset();
 			return min_mod;
 		}
 
@@ -143,6 +147,8 @@ struct OHJumpModGuyThing
 			set_prop_comp();
 
 			pmod = CalcClamp(prop_component, min_mod, max_mod);
+
+			interval_reset();
 			return pmod;
 		}
 
@@ -162,6 +168,8 @@ struct OHJumpModGuyThing
 			set_max_seq_comp();
 
 			pmod = CalcClamp(max_seq_component, min_mod, max_mod);
+
+			interval_reset();
 			return pmod;
 		}
 
@@ -187,7 +195,6 @@ struct OHJumpModGuyThing
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 
 		interval_reset();
-
 		return pmod;
 	}
 

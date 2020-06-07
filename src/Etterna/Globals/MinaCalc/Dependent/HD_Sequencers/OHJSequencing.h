@@ -35,11 +35,6 @@ struct OHJ_Sequencer
 
 	inline void operator()(const col_type& ct, const base_type& bt)
 	{
-		// do nothing for offhand taps
-		if (ct == col_empty) {
-			return;
-		}
-
 		if (cur_seq_taps == 0) {
 			// if we aren't in a sequence and aren't going to start one, bail
 			if (ct != col_ohjump) {
