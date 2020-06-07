@@ -1,7 +1,9 @@
 #pragma once
 #include <cassert>
 
-/* everything needed for basic sequencing for hand dependent patterns */
+/* everything needed for basic sequencing for hand dependent patterns, this file
+ * is dependent on nothing else and only operates on unsigned ints, and things
+ * it definess */
 
 // note: this are clearly restricted to 4k
 
