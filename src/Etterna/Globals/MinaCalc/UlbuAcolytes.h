@@ -2,17 +2,15 @@
 #include <vector>
 #include <string>
 
-using std::vector;
-
-static const std::string calc_params_xml = "Save/calc params.xml";
-static const unsigned hand_col_ids[2] = { 3, 12 };
-
 enum hands
 {
 	left_hand,
 	right_hand,
 	num_hands,
 };
+
+static const std::string calc_params_xml = "Save/calc params.xml";
+static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 
 inline void
 Smooth(vector<float>& input, float neutral)

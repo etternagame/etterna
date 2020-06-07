@@ -5,9 +5,6 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-using std::vector;
-using std::pair;
-
 // since the calc skillset balance now operates on +- rather than
 // just - and then normalization, we will use this to depress the
 // stream rating for non-stream files.
@@ -53,7 +50,7 @@ struct StreamMod
 			return neutral;
 		}
 
-		if (itvi.taps_by_size[_tap_size] == 0) {
+		if (itvi.taps_by_size.at(_tap_size) == 0) {
 			return min_mod;
 		}
 
@@ -69,7 +66,7 @@ struct StreamMod
 
 		prop_component =
 		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
-		  static_cast<float>(itvi.total_taps - prop_buffer) * prop_scaler;
+		  static_cast<float>(static_cast<float>(itvi.total_taps) - prop_buffer) * prop_scaler;
 
 		// allow for a mini/triple jack in streams.. but not more than that
 		jack_component = CalcClamp(

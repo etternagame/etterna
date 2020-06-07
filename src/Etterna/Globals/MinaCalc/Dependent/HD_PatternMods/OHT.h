@@ -6,9 +6,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-using std::pair;
-using std::vector;
-
 /* this is complex enough it should probably have its own sequencer, there's
  * also a fair bit of redundancy between this, wrjt, wrr */
 
@@ -136,7 +133,7 @@ struct OHTrillMod
 		}
 
 		if (found_oht < max_trills_per_interval) {
-			foundyatrills[found_oht] = oht_len;
+			foundyatrills.at(found_oht) = oht_len;
 		}
 
 		luca_turilli = false;
@@ -203,7 +200,7 @@ struct OHTrillMod
 	inline auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		if (oht_len > 0 && found_oht < max_trills_per_interval) {
-			foundyatrills[found_oht] = oht_len;
+			foundyatrills.at(found_oht) = oht_len;
 			++found_oht;
 		}
 

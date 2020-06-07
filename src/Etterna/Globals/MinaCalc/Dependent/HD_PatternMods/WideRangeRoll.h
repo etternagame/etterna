@@ -6,9 +6,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-using std::pair;
-using std::vector;
-
 // ok new plan we will incloop the joomp
 struct WideRangeRollMod
 {
@@ -127,7 +124,7 @@ struct WideRangeRollMod
 			return true;
 		}
 		{
-			moving_cv = (hi_im_a_float + moving_cv) / 2.f;
+			moving_cv = (hi_im_a_float + moving_cv) / 2.F;
 		}
 
 		return moving_cv < cv_threshold / scaler;
@@ -150,7 +147,7 @@ struct WideRangeRollMod
 			return true;
 		}
 		{
-			moving_cv = (hi_im_a_float + moving_cv) / 2.f;
+			moving_cv = (hi_im_a_float + moving_cv) / 2.F;
 		}
 
 		return moving_cv < cv_threshold / scaler;

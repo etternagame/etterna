@@ -130,7 +130,7 @@ struct RunningManMod
 	bool debug_lmao = false;
 
 	// stuff for making mod
-	RM_Sequencer rms[2];
+	RM_Sequencer rms[num_cols_per_hand];
 	// longest sequence for this interval
 	RM_Sequencer rm;
 
@@ -168,11 +168,11 @@ struct RunningManMod
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
-		rms[0].anchor_col = col_left;
-		rms[1].anchor_col = col_right;
-		rms[0].set_params(
+		rms[col_left].anchor_col = col_left;
+		rms[col_right].anchor_col = col_right;
+		rms[col_left].set_params(
 		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-		rms[1].set_params(
+		rms[col_right].set_params(
 		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
 	}
 

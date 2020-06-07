@@ -7,9 +7,6 @@
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 #include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
-using std::pair;
-using std::vector;
-
 // general mod, should maybe make cj specific one
 struct WideRangeAnchorMod
 {
@@ -80,7 +77,7 @@ struct WideRangeAnchorMod
 		diff = diff_high_by_low(a, b);
 
 		// difference won't matter
-		if (diff <= diff_min) {
+		if (diff <= static_cast<int>(diff_min)) {
 			return neutral;
 		}
 

@@ -6,9 +6,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-using std::pair;
-using std::vector;
-
 // this should mayb track offhand taps like the old behavior did
 struct WideRangeBalanceMod
 {

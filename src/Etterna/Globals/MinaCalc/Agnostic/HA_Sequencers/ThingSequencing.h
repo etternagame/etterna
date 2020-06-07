@@ -242,7 +242,7 @@ struct TT_Sequencing
 	inline void complete_slip(const float& ms_now, const unsigned& notes)
 	{
 		if (slip_counter < max_slips) {
-			mod_parts[slip_counter] = construct_mod_part();
+			mod_parts.at(slip_counter) = construct_mod_part();
 		}
 		++slip_counter;
 
@@ -328,7 +328,7 @@ struct TT_Sequencing2
 	inline void complete_slip(const float& ms_now, const unsigned& notes)
 	{
 		if (slip_counter < max_slips) {
-			mod_parts[slip_counter] = construct_mod_part();
+			mod_parts.at(slip_counter) = construct_mod_part();
 		}
 		++slip_counter;
 
@@ -384,7 +384,7 @@ struct TT_Sequencing2
 	inline void reset()
 	{
 		slip_counter = 0;
-		mod_parts.fill(1.f);
+		mod_parts.fill(1.F);
 	}
 
 	inline auto construct_mod_part() -> float { return scaler; }

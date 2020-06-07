@@ -509,7 +509,7 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma endregion
 
 	[[nodiscard]] inline auto make_mod_param_node(
-	  const vector<pair<std::string, float*>> param_map,
+	  const vector<pair<std::string, float*>>& param_map,
 	  const std::string& name) const -> XNode*
 	{
 		auto* pmod = new XNode(name);
@@ -520,9 +520,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		return pmod;
 	}
 
-	inline void load_params_for_mod(
+	static inline void load_params_for_mod(
 	  const XNode* node,
-	  const vector<pair<std::string, float*>> param_map,
+	  const vector<pair<std::string, float*>>& param_map,
 	  const std::string& name)
 	{
 		float boat = 0.F;

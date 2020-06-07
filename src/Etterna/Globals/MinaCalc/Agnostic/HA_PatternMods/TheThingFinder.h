@@ -6,9 +6,6 @@
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/ThingSequencing.h"
 
-using std::pair;
-using std::vector;
-
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
 struct TheThingLookerFinderThing

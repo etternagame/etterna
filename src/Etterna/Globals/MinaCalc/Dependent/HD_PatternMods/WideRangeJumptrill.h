@@ -6,10 +6,6 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-
-using std::pair;
-using std::vector;
-
 // big brain stuff
 static const float wrjt_cv_factor = 3.F;
 
@@ -64,7 +60,7 @@ struct WideRangeJumptrillMod
 	{
 		_mw_jt.zero();
 		jt_counter = 0;
-		seq_ms.fill(0.f);
+		seq_ms.fill(0.F);
 
 		bro_is_this_file_for_real = false;
 		last_passed_check = false;
@@ -101,7 +97,7 @@ struct WideRangeJumptrillMod
 		}
 	}
 
-	inline void advance_sequencing(base_type& bt,
+	inline void advance_sequencing(const base_type& bt,
 								   const meta_type& mt,
 								   const meta_type& _last_mt,
 								   CalcMovingWindow<float>& ms_any)

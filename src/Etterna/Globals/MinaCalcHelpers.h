@@ -56,7 +56,7 @@ cv_trunc_fill(const vector<float>& input,
 		for (int i = 0; i < min(moop, num_vals); ++i) {
 			average += input[i];
 		}
-		average /= num_vals;
+		average /= static_cast<float>(num_vals);
 
 		for (int i = 0; i < min(moop, num_vals); ++i) {
 			welsh_pumpkin += (input[i] - average) * (input[i] - average);
@@ -74,7 +74,7 @@ cv_trunc_fill(const vector<float>& input,
 	for (int i = 0; i < num_vals - moop; ++i) {
 		average += ms_dummy;
 	}
-	average /= num_vals;
+	average /= static_cast<float>(num_vals);
 
 	for (int i = 0; i < min(moop, num_vals); ++i) {
 		welsh_pumpkin += (input[i] - average) * (input[i] - average);
