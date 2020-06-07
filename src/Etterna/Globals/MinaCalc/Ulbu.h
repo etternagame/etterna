@@ -488,6 +488,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					last_last_row_notes = last_row_notes;
 					last_row_notes = row_notes;
 
+					last_row_time = row_time;
+
 					/* junk in the trunk warning end */
 
 					if (_mhi->_bt != base_type_init) {
