@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <xmmintrin.h>
 
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
+
 /* generic pattern mod functions and defs to help either agnostic or dependent
  * mods do their stuff */
 static const float neutral = 1.F;

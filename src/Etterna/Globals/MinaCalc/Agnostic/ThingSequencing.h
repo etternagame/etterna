@@ -226,7 +226,7 @@ struct TT_Sequencing
 	the_slip fizz;
 	int slip_counter = 0;
 	static const int max_slips = 4;
-	float mod_parts[max_slips] = { 1.F, 1.F, 1.F, 1.F };
+	std::array<float, max_slips> mod_parts = { 1.F, 1.F, 1.F, 1.F };
 
 	float scaler = 0.F;
 
@@ -299,9 +299,7 @@ struct TT_Sequencing
 	inline void reset()
 	{
 		slip_counter = 0;
-		for (auto& v : mod_parts) {
-			v = 1.F;
-		}
+		mod_parts.fill(1.f);
 	}
 
 	inline auto construct_mod_part() -> float { return scaler; }
@@ -314,7 +312,7 @@ struct TT_Sequencing2
 	the_slip2 fizz;
 	int slip_counter = 0;
 	static const int max_slips = 4;
-	float mod_parts[max_slips] = { 1.F, 1.F, 1.F, 1.F };
+	std::array<float, max_slips> mod_parts = { 1.F, 1.F, 1.F, 1.F };
 
 	float scaler = 0.F;
 
@@ -386,9 +384,7 @@ struct TT_Sequencing2
 	inline void reset()
 	{
 		slip_counter = 0;
-		for (auto& v : mod_parts) {
-			v = 1.F;
-		}
+		mod_parts.fill(1.f);
 	}
 
 	inline auto construct_mod_part() -> float { return scaler; }

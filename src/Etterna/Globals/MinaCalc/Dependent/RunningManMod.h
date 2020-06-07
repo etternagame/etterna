@@ -3,7 +3,6 @@
 #include <array>
 #include <vector>
 
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "RMSequencing.h"
 

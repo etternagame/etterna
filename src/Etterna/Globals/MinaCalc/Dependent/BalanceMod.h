@@ -6,8 +6,8 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "IntervalHandInfo.h"
 
-using std::pair;
 using std::vector;
+using std::pair;
 
 static const CalcPatternMod _pmod = Balance;
 static const std::string name = "BalanceMod";
