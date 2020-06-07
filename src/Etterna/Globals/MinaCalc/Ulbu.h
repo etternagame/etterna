@@ -295,12 +295,15 @@ struct TheGreatBazoinkazoinkInTheSky
 	// passed to whichever mods need them, but that's for later
 	inline void handle_row_dependent_pattern_advancement(const float& row_time)
 	{
-		_ohj.advance_sequencing(_mhi->_ct, _mhi->_last_ct);
+		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_ms_any);
 		_rm.advance_sequencing(
 		  _mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
-		_wrr.advance_sequencing(
-		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _mhi->_ms_any, _mhi->_tc_ms);
+		_wrr.advance_sequencing(_mhi->_bt,
+								_mhi->_mt,
+								_mhi->_last_mt,
+								_seq._mw_ms_any.get_now(),
+								_seq.get_tc_ms_now(_mhi->_ct));
 		_wrjt.advance_sequencing(
 		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_ms_any);
 		_ch.advance_sequencing(_seq._mw_ms_any);
@@ -470,10 +473,10 @@ struct TheGreatBazoinkazoinkInTheSky
 					}
 
 					if (is_cj || was_cj || is_scj) {
-
-						the_simpsons.push_back(max(
-						  75.F,
-						  min(_mhi->_ms_any * pewpew, _mhi->_tc_ms * pewpew)));
+						the_simpsons.push_back(
+						  max(75.F,
+							  min(_seq.get_any_ms_now() * pewpew,
+								  _seq.get_tc_ms_now(ct) * pewpew)));
 					}
 
 					/* junk in the trunk warning end */
@@ -487,7 +490,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					/* junk in the trunk warning end */
 
-					if (ct != col_init) {
+					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
