@@ -41,10 +41,8 @@ struct metaItvInfo
 	// end
 	bool basically_vibro = true;
 
-	// don't think the idx is necessary here? idk
-	inline void handle_interval_end(const int& idx)
+	inline void handle_interval_end()
 	{
-		_idx = idx;
 		// isn't reset, preserve behavior. this essentially just tracks longer
 		// sequences of single notes, we don't want it to be reset with
 		// intervals, also there's probably a better way to implement this setup
