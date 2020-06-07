@@ -159,7 +159,7 @@ struct SequencerGeneral
 	AnchorSequencer _as;
 
 	// stuff
-	inline void advance_sequencing(const col_type ct,
+	inline void advance_sequencing(const col_type& ct,
 								   const float& row_time,
 								   const float& ms_now)
 	{
@@ -167,13 +167,38 @@ struct SequencerGeneral
 		// update sequencers
 		_as(ct, row_time);
 
-		// set tcs ms for time now, for each column
-		for (auto& c : ct_loop_no_jumps) {
-			_mw_tc_ms[c](_as.anch[c]._now_ms);
+		// if single column, set tcs ms for time now, for this column
+		if (ct == col_left || ct == col_right)
+			_mw_tc_ms[ct](_as.anch[ct]._now_ms);
+
+		// oh jumps mean we do both
+		if (ct == col_ohjump) {
+			for (auto& c : ct_loop_no_jumps) {
+				_mw_tc_ms[c](_as.anch[c]._now_ms);
+			}
 		}
 
 		// i guess we do this here instead??
 		_mw_ms_any(ms_now);
+	}
+
+	inline auto get_tc_ms_now(const col_type& ct) -> float
+	{
+		if (ct == col_init)
+			return ms_init;
+
+		// if ohjump, grab the smaller value
+		if (ct == col_ohjump) {
+			return _mw_tc_ms[col_left].get_now() <
+					   _mw_tc_ms[col_right].get_now()
+					 ? _mw_tc_ms[col_left].get_now()
+					 : _mw_tc_ms[col_right].get_now();
+		}
+		return _mw_tc_ms[ct].get_now();
+	}
+
+	inline auto get_any_ms_now() -> float {
+		return _mw_ms_any.get_now();
 	}
 
 	inline void full_reset()
