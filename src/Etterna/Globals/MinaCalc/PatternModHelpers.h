@@ -1,0 +1,38 @@
+#pragma once
+#include <algorithm>
+#include <xmmintrin.h>
+
+/* generic pattern mod functions and defs */
+static const float neutral = 1.F;
+
+  // Relies on endiannes (significantly inaccurate)
+  inline auto
+  fastpow(double a, double b) -> float
+{
+	int u[2];
+	std::memcpy(&u, &a, sizeof a);
+	u[1] = static_cast<int>(b * (u[1] - 1072632447) + 1072632447);
+	u[0] = 0;
+	std::memcpy(&a, &u, sizeof a);
+	return static_cast<float>(a);
+}
+
+// not super accurate, good enough for our purposes
+inline auto
+fastsqrt(float _in) -> float
+{
+	if (_in == 0.F) {
+		return 0.F;
+	}
+	__m128 in = _mm_load_ss(&_in);
+	float out;
+	_mm_store_ss(&out, _mm_mul_ss(in, _mm_rsqrt_ss(in)));
+	return out;
+}
+
+template<typename T>
+inline auto
+CalcClamp(T x, T l, T h) -> T
+{
+	return x > h ? h : (x < l ? l : x);
+}
