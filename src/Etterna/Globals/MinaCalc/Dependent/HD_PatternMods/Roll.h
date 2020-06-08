@@ -102,7 +102,8 @@ struct RollMod
 
 		interval_end();
 		_mw_pmod(pmod);
-		return _mw_pmod.get_mean_of_window(window);
+		return 1.f;
+		//_mw_pmod.get_mean_of_window(window);
 	}
 
 	inline void interval_end() {}
