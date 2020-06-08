@@ -272,11 +272,11 @@ struct SequencerGeneral
 		_as.full_reset();
 	}
 
-	inline void interval_end() {
+	inline void interval_end()
+	{
 		cv_check_sum = 0.F;
 		itv_row_counter = 0;
 	}
-
 
 	std::array<float, 6> _cv_check = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	CalcMovingWindow<float> _cv_check2;
@@ -286,15 +286,15 @@ struct SequencerGeneral
 		float ms_now = _mw_any_ms.get_now();
 		_cv_check[5] = _mw_sc_ms[col_left].get_now();
 		_cv_check[4] = _mw_sc_ms[col_right].get_now();
+		// we should be doing this maybe but idk if it made things better or
+		// worse, need to look more closely
+		//_cv_check[3] = ms_now * 3.f;
 
 		float test1 = check_cv(3);
 		return test1;
 	}
 
-	inline auto _cv_cv() -> float
-	{
-		return _cv_check2.get_cv_of_window(3);
-	}
+	inline auto _cv_cv() -> float { return _cv_check2.get_cv_of_window(3); }
 
 	[[nodiscard]] inline auto get_cv_mean(const int& window) -> float
 	{

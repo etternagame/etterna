@@ -27,10 +27,7 @@ struct Roll_Sequencer
 {
 	RollSeq _rs;
 
-	inline void advance(const meta_type& mt, SequencerGeneral& _seq)
-	{
-
-	}
+	inline void advance(const meta_type& mt, SequencerGeneral& _seq) {}
 };
 
 struct RollMod
@@ -42,14 +39,11 @@ struct RollMod
 
 	float window_param = 2.F;
 
-	float min_mod = 0.25F;
-	float max_mod = 1.F;
-	float base = 0.15F;
-	float scaler = 0.9F;
+	float min_mod = 0.95F;
+	float max_mod = 1.05F;
+	float base = 0.85F;
 
 	float cv_reset = 1.F;
-	float cv_threshold = 0.35F;
-	float other_cv_threshold = 0.3F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
@@ -57,11 +51,6 @@ struct RollMod
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
-		{ "scaler", &scaler },
-
-		{ "cv_reset", &cv_reset },
-		{ "cv_threshold", &cv_threshold },
-		{ "other_cv_threshold", &other_cv_threshold },
 	};
 #pragma endregion params and param map
 
@@ -71,8 +60,6 @@ struct RollMod
 
 	float moving_cv = cv_reset;
 	float pmod = min_mod;
-
-#pragma region generic functions
 
 	inline void full_reset()
 	{
@@ -86,28 +73,36 @@ struct RollMod
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 	}
 
-#pragma endregion
-
 	inline void complete_seq() {}
 
 	inline void advance_sequencing(const meta_type& mt, SequencerGeneral& _seq)
 	{
-		_roll.advance(mt, _seq);
+		//_roll.advance(mt, _seq);
 	}
 
-	inline void set_pmod(const ItvHandInfo& itvhi) {}
-
-	inline auto operator()(const ItvHandInfo& itvhi, const SequencerGeneral& _seq)
-	  -> float
+	inline void set_pmod(const ItvHandInfo& itvhi, const SequencerGeneral& _seq)
 	{
+		if (itvhi.get_taps_nowi() == 0) {
+			pmod = neutral;
+			return;
+		}
+
 		auto loot = _seq.cv_check_sum;
 		auto doot = _seq.itv_row_counter;
 		float zmgoot = loot / static_cast<float>(doot + 1);
-		pmod = 0.5f + zmgoot;
-		//set_pmod(itvhi);
+
+		pmod = CalcClamp(base + zmgoot, min_mod, max_mod);
+	}
+
+	inline auto operator()(const ItvHandInfo& itvhi,
+						   const SequencerGeneral& _seq) -> float
+	{
+
+		set_pmod(itvhi, _seq);
 
 		interval_end();
-		return pmod;
+		_mw_pmod(pmod);
+		return _mw_pmod.get_mean_of_window(window);
 	}
 
 	inline void interval_end() {}
