@@ -513,7 +513,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					}
 
 					float c = fastsqrt(a) * fastsqrt(b);
-					teheee(c);
+
 					float pineapple = _seq._mw_any_ms.get_cv_of_window(4);
 					float porcupine =
 					  _seq._mw_sc_ms[col_left].get_cv_of_window(4);
@@ -524,7 +524,6 @@ struct TheGreatBazoinkazoinkInTheSky
 					porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
 					sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
 
-
 					float scoliosis = _seq._mw_sc_ms[col_left].get_now();
 					float poliosis = _seq._mw_sc_ms[col_right].get_now();
 					float obliosis = 0.F;
@@ -533,20 +532,17 @@ struct TheGreatBazoinkazoinkInTheSky
 					else
 						obliosis = scoliosis / poliosis;
 					obliosis = CalcClamp(obliosis, 1.f, 10.f);
-					float pewp = cv(std::vector<float>{
-					  scoliosis,
-					  poliosis});
+					float pewp = cv(std::vector<float>{ scoliosis, poliosis });
 
 					pewp /= obliosis;
-					float vertebrae = CalcClamp(
-					  mean(std::vector<float>{pineapple, porcupine, sequins}) +
-						pewp,
-					  oioi,
-					  1.F + oioi);
-
-					futurama.push_back(
-					  teheee.get_mean_of_window(2) /  vertebrae);
-
+					float vertebrae =
+					  CalcClamp(mean(std::vector<float>{
+								  pineapple, porcupine, sequins }) +
+								  pewp,
+								oioi,
+								1.F + oioi);
+					teheee(c / vertebrae);
+					futurama.push_back(teheee.get_mean_of_window(2));
 
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types[_mhi->_bt];
@@ -566,12 +562,15 @@ struct TheGreatBazoinkazoinkInTheSky
 				  CJBaseDifficultySequencing(the_simpsons);
 
 				_diffs[hand][BaseMSD][itv] =
-				  TechBaseDifficultySequencing(futurama);
+				  weighted_average(TechBaseDifficultySequencing(futurama),
+								   _diffs[hand][BaseNPS][itv],
+								   7.5f,
+								   9.f);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][BaseMS]);
-			Smooth(_diffs[hand][BaseMSD], neutral);
 			DifficultyMSSmooth(_diffs[hand][BaseMSD]);
+
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
 			++hand;
