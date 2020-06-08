@@ -1,3 +1,5 @@
+add_subdirectory(MinaCalc)
+
 list(APPEND GLOBAL_FILES_SRC
 	"MinaCalc.cpp"
 	"MinaCalcOld.cpp"
