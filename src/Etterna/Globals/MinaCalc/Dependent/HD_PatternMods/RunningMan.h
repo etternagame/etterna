@@ -6,9 +6,6 @@
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
 
-using std::pair;
-using std::vector;
-
 // moving these here because this is the only mod that uses them because i'm not
 // sure that they aren't horribly broken, and i don't want to spend time
 // figuring it out right now

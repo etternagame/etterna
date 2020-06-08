@@ -3,9 +3,6 @@
 #include <array>
 #include <vector>
 
-using std::pair;
-using std::vector;
-
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 

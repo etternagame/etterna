@@ -4,8 +4,6 @@
 
 #include "Etterna/Globals/MinaCalcHelpers.h"
 
-using std::vector;
-
 // for cj, will be sorted from teh above, but we dont care
 static inline auto
 CJBaseDifficultySequencing(const vector<float>& input) -> float
