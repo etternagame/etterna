@@ -19,3 +19,11 @@ ms_from(const float& now, const float& last) -> float
 {
 	return (now - last) * 1000.F;
 }
+
+static inline auto
+ms_to_scaled_nps(const float& ms) -> float
+{
+	float doodoo = 15000.F / ms;
+	float trootroo = doodoo / 15.F;
+	return trootroo * 3.632F;
+}

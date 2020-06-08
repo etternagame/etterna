@@ -20,8 +20,6 @@ CJBaseDifficultySequencing(const vector<float>& input) -> float
 	return trootroo * finalscaler;
 }
 
-
-
 static inline auto
 TechBaseDifficultySequencing(const vector<float>& input) -> float
 {

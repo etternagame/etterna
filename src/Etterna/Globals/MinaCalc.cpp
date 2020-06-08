@@ -42,7 +42,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 1.F
+	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 0.3F
 };
 
 void
@@ -992,7 +992,8 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeRoll,
 		  OHTrill,
-		  Roll
+		  // Roll,
+		  // WideRangeAnchor,
 		},
 
 		// hs
@@ -1090,16 +1091,16 @@ Hand::InitAdjDiff()
 				case Skill_Jumpstream:
 					adj_diff /= max(doot[HS][i], 1.F);
 					adj_diff *= CalcClamp(
-					  fastsqrt(doot[RanMan][i] - 0.15F), 0.99F, 1.04F);
+					  fastsqrt(doot[RanMan][i] - 0.125F), 0.98F, 1.06F);
 					adj_diff /= fastsqrt(doot[OHJumpMod][i] * 0.95F);
-					adj_diff /= fastsqrt(doot[WideRangeRoll][i]);
-					adj_diff *= fastsqrt(doot[WideRangeAnchor][i]);
+					
+					
 					/*adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base =
-					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
+					  max(adj_diff, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
 					break;
 				case Skill_Handstream:
 					// adj_diff /= fastsqrt(doot[OHJump][i]);
@@ -1115,9 +1116,9 @@ Hand::InitAdjDiff()
 				case Skill_Technical:
 					adj_diff =
 					  soap[BaseMSD][i] * tp_mods[ss] * basescalers[ss] /
-					  max(fastpow(doot[CJ][i], 2.F), 1.F) *
+					  max(fastpow(doot[CJ][i], 2.F), 1.F) /
 					  max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]) *
-					  doot[Chaos][i] * fastsqrt(doot[RanMan][i]);
+					  doot[Chaos][i] / fastsqrt(doot[RanMan][i]);
 					break;
 				default:
 					break;

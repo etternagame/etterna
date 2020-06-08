@@ -542,12 +542,15 @@ struct TheGreatBazoinkazoinkInTheSky
 								oioi,
 								1.F + oioi);
 					teheee(c / vertebrae);
-					futurama.push_back(teheee.get_mean_of_window(2));
+					//futurama.push_back(teheee.get_mean_of_window(2));
 
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
+
+					  futurama.push_back(
+					  _seq._as.get_highest_anchor_difficulty());
 
 					handle_row_dependent_pattern_advancement(row_time);
 
@@ -558,14 +561,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 
-				_diffs[hand][BaseMS][itv] =
-				  CJBaseDifficultySequencing(the_simpsons);
+				_diffs[hand][BaseMS][itv] = CJBaseDifficultySequencing(the_simpsons);
 
-				_diffs[hand][BaseMSD][itv] =
-				  weighted_average(TechBaseDifficultySequencing(futurama),
-								   _diffs[hand][BaseNPS][itv],
-								   7.5f,
-								   9.f);
+				_diffs[hand][BaseMSD][itv] = mean(futurama);
+				//  weighted_average(TechBaseDifficultySequencing(futurama),
+				//				   _diffs[hand][BaseNPS][itv],
+				//				   7.5f,
+				//				   9.f);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][BaseMS]);

@@ -33,6 +33,7 @@ struct Anchor_Sequencing
 
 	// row_time of last note on this col
 	float _last = s_init;
+	float _start = s_init;
 
 	int _len = 0;
 
@@ -53,14 +54,40 @@ struct Anchor_Sequencing
 		// break the anchor if the next note is too much slower than the
 		// lowest one in the sequence
 		if (_sc_ms > _max_ms + anchor_buffer_ms) {
+			_start = now;
 			_len = 1;
 			_max_ms = ms_init;
+		} else if (_sc_ms * 2.5F < _max_ms) {
+			//  i don't like hard cutoffs much but in the interest of fairness
+			//  if the current ms value is vastly lower than the _max_ms, set
+			//  the start time of the anchor to now and reset, i can't really
+			//  think of any way this can be abused in a way that inflates
+			//  files, just lots of ways it can underdetect
+			{
+				// we're resetting because we've started on something much
+				// faster, so we know the start of this anchor was actually the
+				// last note, directly reset max_ms to the current ms and len to
+				// 2
+				_start = _last;
+				_max_ms = _sc_ms;
+				_len = 2;
+			}
 		} else {
 			// increase anchor length and set new cutoff point
 			++_len;
 			_max_ms = _sc_ms;
 		}
+
 		_last = now;
+	}
+
+	inline auto get_difficulty() -> float
+	{
+		float flool = ms_from(_last, _start);
+		float glunk = CalcClamp(static_cast<float>(_len) / 6.f, 0.1f, 1.f);
+		float pule = (flool + 360.F) / static_cast<float>(_len);
+		float drool = ms_to_scaled_nps(pule);
+		return drool;
 	}
 };
 
@@ -129,6 +156,12 @@ struct AnchorSequencer
 			_mw_max[c](max_seen[c]);
 			max_seen[c] = 0;
 		}
+	}
+
+	inline auto get_highest_anchor_difficulty() -> float
+	{
+		return max(anch.at(col_left).get_difficulty(),
+				   anch[col_right].get_difficulty());
 	}
 };
 
