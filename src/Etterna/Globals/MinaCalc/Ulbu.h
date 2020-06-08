@@ -523,9 +523,21 @@ struct TheGreatBazoinkazoinkInTheSky
 					pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
 					porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
 					sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
+
+
+					float scoliosis = _seq._mw_sc_ms[col_left].get_now();
+					float poliosis = _seq._mw_sc_ms[col_right].get_now();
+					float obliosis = 0.F;
+					if (ct == col_left)
+						obliosis = poliosis / scoliosis;
+					else
+						obliosis = scoliosis / poliosis;
+					obliosis = CalcClamp(obliosis, 1.f, 10.f);
 					float pewp = cv(std::vector<float>{
-					  _seq._mw_sc_ms[col_left].get_now(),
-					  _seq._mw_sc_ms[col_right].get_now() });
+					  scoliosis,
+					  poliosis});
+
+					pewp /= obliosis;
 					float vertebrae = CalcClamp(
 					  mean(std::vector<float>{pineapple, porcupine, sequins}) +
 						pewp,
@@ -558,8 +570,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][BaseMS]);
+			Smooth(_diffs[hand][BaseMSD], neutral);
 			DifficultyMSSmooth(_diffs[hand][BaseMSD]);
-
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
 			++hand;
