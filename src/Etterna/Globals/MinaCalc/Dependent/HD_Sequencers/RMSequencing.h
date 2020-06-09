@@ -221,18 +221,6 @@ struct RM_Sequencer
 		handle_anchor_progression();
 	}
 
-	inline void handle_oht_progression()
-	{
-		// we only care about ohts that end off-anchor
-		if (now_col != _ct) {
-			++oht_len;
-			++oht_taps;
-			if (oht_len > max_oht_len) {
-				reset();
-			}
-		}
-	}
-
 	/* restart only if we have just reset and there is a valid last rm_behavior
 	 * to start from. this is so we don't restart a runningman sequence
 	 * preceeded by pure jacks, (though there is some question about allowing
@@ -394,13 +382,7 @@ struct RM_Sequencer
 				// restart if we are able to, otherwise flag the runningman
 				// as inactive
 				if (should_restart()) {
-
 					restart(as);
-
-					// technically we should only be able to restart if we
-					// have already started, meaning this would be a
-					// redundant assignment
-					_status = rm_running;
 				} else {
 					_status = rm_inactive;
 				}
@@ -454,8 +436,37 @@ struct RM_Sequencer
 		}
 	}
 
+	/* oht's are a subtype of off_tap_sh, and the behavior will just fall
+	 * through to the latter's, so don't do anything outside of oht values
+	 * or reset anything, it'll be redundant at best and bug prone at worst
+	 */
+	inline void handle_oht_behavior(const col_type& ct)
+	{
+		/* to be explicit about the goal here, given 111212111 any reasonable
+		 * player would conclude there was a 4 note oht in the middle of a
+		 * runningman, and while rare (because it's hard as shit) it's
+		 * acceptable, the same thing applies to a 6 note oht inside a
+		 * runningman, though those are even rarer, however what we care about
+		 * is the threshold at which this can be jumpjacked, which is about 8
+		 * oht taps total, dependent on speed (this is already pretty generous
+		 * and i don't want to handle diffrential speeds here). now since a 7
+		 * note ohtrill in the context of a runningman is meaningless (think
+		 * about it) we only really care about the number of consecutive
+		 * off_taps_sh */
+		if (ct != _ct) {
+
+			if (oht_len == 0)
+				++oht_len;
+			++oht_taps;
+			if (oht_len > max_oht_len) {
+				_status = rm_inactive;
+			}
+		}
+	}
+
 	inline void handle_rmb(const Anchor_Sequencing& as)
 	{
+		assert(_status == rm_running);
 		switch (_rmb) {
 			case rmb_off_tap_oh:
 				handle_off_tap_oh_behavior();
@@ -483,10 +494,18 @@ struct RM_Sequencer
 						   const int& offhand_taps,
 						   const Anchor_Sequencing& as)
 	{
+		// no matter how you slice it you can't have a runningman with 2 taps
+		if (bt == base_type_init)
+			return;
 
-		// this is an anchor
-		handle_anchor_behavior(as);
+		// THIS IS IMPOSSIBLE BECAUSE RANMEN MOD IS NEVER CALLED ON EMPTY ROWS
+		// FOR A GIVEN HAND, this is here to remind myself that the way that i'm
+		// handling fully off hand taps is garbage and should be a lot better
+		// and maybe ranmen _should_ be run independent of the col empty loop
+		// if (ct == col_empty)
+		// 	return;
 
+		// determine what we should do
 		switch (bt) {
 			case base_left_right:
 			case base_right_left:
@@ -501,8 +520,8 @@ struct RM_Sequencer
 			case base_jump_single:
 				if (offhand_taps > 0) {
 					// if we have a jump -> single, and the last note was an
-					// offhand tap, and the single is the anchor col, then we
-					// have an anchor
+					// offhand tap, and the single is the anchor col, then
+					// we have an anchor
 					if (_ct == ct) {
 						_rmb = rmb_anchor;
 					} else {
@@ -510,8 +529,8 @@ struct RM_Sequencer
 						_rmb = rmb_off_tap_sh;
 					}
 				} else {
-					// if we are jump -> single and the last note was _not_ an
-					// offhand hand tap, we have a jack
+					// if we are jump -> single and the last note was _not_
+					// an offhand hand tap, we have a jack
 					_rmb = rmb_jack;
 				}
 				break;
@@ -528,9 +547,9 @@ struct RM_Sequencer
 				break;
 			case base_jump_jump:
 				/* this is kind of a gray area, given that the difficulty of
-				 * runningmen comes from the tight turns on the same hand... we
-				 * will treat this as a jack even though technically it's an
-				 * "anchor" when the last tap was an offhand tap */
+				 * runningmen comes from the tight turns on the same hand...
+				 * we will treat this as a jack even though technically it's
+				 * an "anchor" when the last tap was an offhand tap */
 				_rmb = rmb_jack;
 				break;
 			case base_type_init:
@@ -538,6 +557,25 @@ struct RM_Sequencer
 			default:
 				assert(0);
 				break;
+		}
+
+		/* only allow same hand off taps after an anchor to begin a runningman
+		 * sequence for now, this means we are rm_inactive, we are currently
+		 * using behavior _rmb_off_tap_sh, and _last_rmb was rmb_anchor */
+		if (_status == rm_inactive) {
+			if (_rmb == rmb_off_tap_sh && _last_rmb == rmb_anchor) {
+
+				// ok we can start
+				_status == rm_running;
+
+				// apply restart behavior since it's exactly what we want (i
+				// know the naming is a bit confusing, restarting should only
+				// apply to resets that occur after already starting but w.e)
+				restart(as);
+			}
+		} else {
+			// if we're not inactive, just do normal behavior
+			handle_rmb(as);
 		}
 	}
 
