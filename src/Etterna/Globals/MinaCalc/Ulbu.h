@@ -406,6 +406,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			unsigned row_notes = 0U;
 			unsigned last_row_notes = 0U;
 			unsigned last_last_row_notes = 0U;
+			bool last_was_3_note_anch = false;
 			col_type ct = col_init;
 			CalcMovingWindow<float> teheee;
 			full_hand_reset();
@@ -482,22 +483,47 @@ struct TheGreatBazoinkazoinkInTheSky
 					  0u;
 
 					// pushing back ms values, so multiply to nerf
-					float pewpew = 1.25f;
+					float pewpew = 3.F;
 
-					if (is_at_least_3_note_anch) {
-						{
-							{
-								pewpew = 1.f;
+					if (is_at_least_3_note_anch && last_was_3_note_anch) {
+						// biggy boy anchors and beyond
+						pewpew = 0.95F;
+					} else if (is_at_least_3_note_anch) {
+						// big boy anchors
+						pewpew = 1.F;
+					} else {
+						// single note
+						if (!is_cj) {
+							if (is_scj) {
+								// was cj a little bit ago..
+								if (was_cj) {
+									// single note jack with 2 chords behind it
+									pewpew = 1.25F;
+								}
+							} else {
+								// single note, not a jack, 2 chords behind it
+								pewpew = 1.5F;
+							}
+						} else {
+							// actual cj
+							if (was_cj) {
+								// cj now and was cj before, but not necessarily
+								// with strong anchors
+								pewpew = 1.15F;
+							} else {
+								// cj now but wasn't even cj before
+								pewpew = 1.25F;
 							}
 						}
 					}
 
-					if (is_cj || was_cj || is_scj) {
-						the_simpsons.push_back(
-						  max(75.F,
-							  min(_seq.get_any_ms_now() * pewpew,
-								  _seq.get_sc_ms_now(ct) * pewpew)));
-					}
+					// single note streams / regular jacks should retain the 3x
+					// multiplier
+
+					the_simpsons.push_back(
+					  max(75.F,
+						  min(_seq.get_any_ms_now() * pewpew,
+							  _seq.get_sc_ms_now(ct) * pewpew)));
 
 					/* junk in the trunk warning end */
 					/* junk in the trunk warning */
@@ -509,6 +535,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					last_row_notes = row_notes;
 
 					last_row_time = row_time;
+					last_was_3_note_anch = is_at_least_3_note_anch;
 
 					/* junk in the trunk warning end */
 
