@@ -299,8 +299,13 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
-		_rm.advance_sequencing(
-		  _mhi->_ct, _mhi->_bt, _mhi->_mt, row_time, _mhi->offhand_taps);
+		_rm.advance_sequencing(_mhi->_ct,
+							   _mhi->_bt,
+							   _mhi->_mt,
+							   row_time,
+							   _mhi->offhand_taps,
+							   _seq._as);
+
 		_wrr.advance_sequencing(_mhi->_bt,
 								_mhi->_mt,
 								_mhi->_last_mt,
@@ -448,9 +453,12 @@ struct TheGreatBazoinkazoinkInTheSky
 						}
 					}
 
-					// only do anything else for rows with actual stuff on this
-					// hand, especially the swap
+					// handle any special cases here before moving on
 					if (ct == col_empty) {
+						_rm.advance_off_hand_sequencing();
+						if (row_count == 2) {
+							_rm.advance_off_hand_sequencing();
+						}
 						continue;
 					}
 
@@ -542,15 +550,14 @@ struct TheGreatBazoinkazoinkInTheSky
 								oioi,
 								1.F + oioi);
 					teheee(c / vertebrae);
-					//futurama.push_back(teheee.get_mean_of_window(2));
+					// futurama.push_back(teheee.get_mean_of_window(2));
 
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types[_mhi->_bt];
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
-					  futurama.push_back(
-					  _seq._as.get_highest_anchor_difficulty());
+					futurama.push_back(_rm.get_highest_anchor_difficulty());
 
 					handle_row_dependent_pattern_advancement(row_time);
 
@@ -561,7 +568,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 
-				_diffs[hand][BaseMS][itv] = CJBaseDifficultySequencing(the_simpsons);
+				_diffs[hand][BaseMS][itv] =
+				  CJBaseDifficultySequencing(the_simpsons);
 
 				_diffs[hand][BaseMSD][itv] = mean(futurama);
 				//  weighted_average(TechBaseDifficultySequencing(futurama),

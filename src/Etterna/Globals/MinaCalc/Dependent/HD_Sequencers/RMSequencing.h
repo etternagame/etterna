@@ -73,8 +73,15 @@ struct RunningMan
 		++ran_taps;
 	}
 
+	inline void add_oht_tap()
+	{
+		++oht_len;
+		++oht_taps;
+	}
+
 	inline void add_anchor_tap()
 	{
+		++_len;
 		++anch_len;
 		++ran_taps;
 	}
@@ -85,7 +92,7 @@ struct RunningMan
 		++jack_taps;
 		++ran_taps;
 	}
-	
+
 	inline void end_jack_and_anch_runs()
 	{
 		end_anch_run();
@@ -156,15 +163,11 @@ struct RM_Sequencer
 	bool is_bursting = false;
 	bool had_burst = false;
 
-	float _max_ms = ms_init;
 	float last_anchor_time = s_init;
 
 	float _start = s_init;
 
 #pragma region functions
-
-	// reset
-	inline void reset() {}
 
 	inline void full_reset()
 	{
@@ -193,11 +196,15 @@ struct RM_Sequencer
 		 * whatever is generally going on anchor_wise, we don't care about that,
 		 * so set _start from as's _last */
 		_start = as._last;
-		_rm._len = as._len;
+		_rm._len = 1;
 
 		// technically if we are restarting we know we have 3 taps, but let
 		// last_rmb handling take care of the third for clarity
-		_rm.ran_taps += 2;
+		_rm.ran_taps = 2;
+
+		// ok actually if we are just starting we only have 2 taps so...
+		if (_last_rmb == rmb_anchor)
+			_rm.ran_taps -= 1;
 
 		/* we will probably be resetting much more than we are restarting, so to
 		 * reduce computational expense, only set any values back to 0 while
@@ -232,8 +239,12 @@ struct RM_Sequencer
 	// optimization for restarting that skips max len checks
 	inline void handle_last_rmb()
 	{
-		// only viable restart mechanism for now
+		// only viable start/restart mechanisms for now
 		switch (_last_rmb) {
+			// ok this is jank af but if rmb_anchor is _last_rmb when restarting
+			// it means we've started up again from the initial start logic, and
+			// so we are _on_ rmb_off_tap_sh, so let this fall through
+			case rmb_anchor:
 			case rmb_off_tap_sh:
 				_rm.add_off_tap_sh();
 				break;
@@ -306,7 +317,8 @@ struct RM_Sequencer
 
 				break;
 			case anchoring:
-
+				// update our last anchor time
+				last_anchor_time = as._last;
 				_rm.add_anchor_tap();
 				_rm.end_off_tap_run();
 
@@ -375,11 +387,9 @@ struct RM_Sequencer
 			// explicitly track the number of off_anchor taps in the oht, so
 			// boost by 1 when we see meta_oht and oht_len == 0
 			if (_rm.oht_len == 0)
-				++_rm.oht_len;
+				_rm.add_oht_tap();
 
-			// ok i got lazy/impatient here
-			++_rm.oht_len;
-			++_rm.oht_taps;
+			_rm.add_oht_tap();
 			if (oht_len_exceeds_max()) {
 				_status = rm_inactive;
 			}
@@ -417,7 +427,7 @@ struct RM_Sequencer
 	inline void advance_off_hand_sequencing()
 	{
 		handle_off_tap_oh_behavior();
-		_last_rmb == rmb_off_tap_oh;
+		_last_rmb = rmb_off_tap_oh;
 	}
 
 	inline void operator()(const col_type& ct,
@@ -425,10 +435,6 @@ struct RM_Sequencer
 						   const meta_type& mt,
 						   const Anchor_Sequencing& as)
 	{
-		// no matter how you slice it you can't have a runningman with 2 taps
-		if (bt == base_type_init)
-			return;
-
 		// cosmic brain handling of ohts, this won't interfere with the
 		// determinations in the behavior block, but it can set rm_inactive (as
 		// it should be able to)
@@ -467,6 +473,7 @@ struct RM_Sequencer
 				break;
 			case base_single_single:
 			case base_single_jump:
+			case base_jump_jump:
 				// if last note was an offhand tap, this is by
 				// definition part of the anchor
 				if (_last_rmb == rmb_off_tap_oh) {
@@ -476,14 +483,9 @@ struct RM_Sequencer
 					_rmb = rmb_jack;
 				}
 				break;
-			case base_jump_jump:
-				/* this is kind of a gray area, given that the difficulty of
-				 * runningmen comes from the tight turns on the same hand...
-				 * we will treat this as a jack even though technically it's
-				 * an "anchor" when the last tap was an offhand tap */
-				_rmb = rmb_jack;
-				break;
 			case base_type_init:
+				// bail and don't set anything
+				return;
 				break;
 			default:
 				assert(0);
@@ -499,7 +501,7 @@ struct RM_Sequencer
 			if (_rmb == rmb_off_tap_sh && _last_rmb == rmb_anchor) {
 
 				// ok we can start
-				_status == rm_running;
+				_status = rm_running;
 
 				// apply restart behavior since it's exactly what we want (i
 				// know the naming is a bit confusing, restarting should only

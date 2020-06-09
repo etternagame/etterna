@@ -80,9 +80,10 @@ struct RunningManMod
 	// params for rm_sequencing, these define conditions for resetting
 	// runningmen sequences
 	float max_oht_len = 2.F;
-	float max_off_spacing = 2.F;
+	float max_off_spacing = 3.F;
 	float max_burst_len = 6.F;
-	float max_jack_len = 1.F;
+	float max_jack_len = 3.F;
+	float max_anch_len = 6.F;
 
 	const vector<pair<std::string, float*>> _params{
 
@@ -121,13 +122,14 @@ struct RunningManMod
 		{ "max_off_spacing", &max_off_spacing },
 		{ "max_burst_len", &max_burst_len },
 		{ "max_jack_len", &max_jack_len },
+		{ "max_anch_len", &max_anch_len },
 	};
 #pragma endregion params and param map
 
 	bool debug_lmao = false;
 
 	// stuff for making mod
-	RM_Sequencer rms[num_cols_per_hand];
+	std::array<RM_Sequencer, num_cols_per_hand> rms;
 	// longest sequence for this interval
 	RM_Sequencer rm;
 
@@ -165,120 +167,128 @@ struct RunningManMod
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
-		rms[col_left].anchor_col = col_left;
-		rms[col_right].anchor_col = col_right;
-		rms[col_left].set_params(
-		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
-		rms[col_right].set_params(
-		  max_oht_len, max_off_spacing, max_burst_len, max_jack_len);
+		rms[col_left]._ct = col_left;
+		rms[col_right]._ct = col_right;
+		rms[col_left].set_params(max_oht_len,
+								 max_off_spacing,
+								 max_burst_len,
+								 max_jack_len,
+								 max_anch_len);
+		rms[col_right].set_params(max_oht_len,
+								  max_off_spacing,
+								  max_burst_len,
+								  max_jack_len,
+								  max_anch_len);
+	}
+
+	inline void advance_off_hand_sequencing()
+	{
+		for (auto& c : ct_loop_no_jumps) {
+			rms.at(c).advance_off_hand_sequencing();
+		}
 	}
 
 	inline void advance_sequencing(const col_type& ct,
 								   const base_type& bt,
 								   const meta_type& mt,
 								   const float& row_time,
-								   const int& offhand_taps)
+								   const int& offhand_taps,
+								   const AnchorSequencer& as)
 	{
-		// sequencing objects should be moved int mhi itself
-		for (auto& rm : rms) {
-			rm(ct, bt, mt, row_time, offhand_taps);
-		}
-
-		// use the biggest anchor that has existed in this interval
-		test = rms[0].anchor_len > rms[1].anchor_len ? 0 : 1;
-
-		if (rms[test].anchor_len > rm.anchor_len) {
-			rm = rms[test];
+		for (auto& c : ct_loop_no_jumps) {
+			rms.at(c)(ct, bt, mt, as.anch[c]);
 		}
 	}
 
 	inline void set_dbg(vector<float> doot[], const int& i)
 	{
 		if (debug_lmao) {
-			doot[RanLen][i] = 1.F;
-			doot[RanAnchLen][i] =
-			  (static_cast<float>(rm.anchor_len) / 30.F) + 0.5F;
-			doot[RanAnchLenMod][i] = anchor_len_comp;
-			doot[RanOHT][i] = static_cast<float>(rm.oht_taps);
-			doot[RanOffS][i] = static_cast<float>(rm.off_taps_same);
-			doot[RanJack][i] = static_cast<float>(rm.jack_taps);
-			doot[RanPropAll][i] = total_prop;
-			doot[RanPropOff][i] = off_tap_prop;
-			doot[RanPropOffS][i] = off_tap_same_prop;
-			doot[RanPropOHT][i] = oht_bonus;
-			doot[RanPropJack][i] = jack_bonus;
+			// doot[RanLen][i] = 1.F;
+			// doot[RanAnchLen][i] = (static_cast<float>(rm._len) / 30.F) +
+			// 0.5F; doot[RanAnchLenMod][i] = anchor_len_comp; doot[RanOHT][i] =
+			// static_cast<float>(rm.oht_taps); doot[RanOffS][i] =
+			// static_cast<float>(rm.off_taps_sh); doot[RanJack][i] =
+			// static_cast<float>(rm.jack_taps); doot[RanPropAll][i] =
+			// total_prop; doot[RanPropOff][i] = off_tap_prop;
+			// doot[RanPropOffS][i] = off_tap_same_prop;
+			// doot[RanPropOHT][i] = oht_bonus;
+			// doot[RanPropJack][i] = jack_bonus;
 		}
+	}
+
+	inline auto get_highest_anchor_difficulty() -> float
+	{
+		return max(rms.at(col_left).get_difficulty(),
+				   rms.at(col_right).get_difficulty());
 	}
 
 	inline auto operator()() -> float
 	{
-		// we could mni check for empty intervals like the other mods but it
-		// doesn't really matter and this is probably more useful for debug
-		// output
+		//
+		//// we could mni check for empty intervals like the other mods but it
+		//// doesn't really matter and this is probably more useful for debug
+		//// output
 
-		// we could decay in this but it may conflict/be redundant with how
-		// runningmen sequences are constructed, if decays are used we would
-		// probably generate the mod not from the highest of any interval, but
-		// from whatever sequences are still alive by the end
+		//// we could decay in this but it may conflict/be redundant with how
+		//// runningmen sequences are constructed, if decays are used we would
+		//// probably generate the mod not from the highest of any interval, but
+		//// from whatever sequences are still alive by the end
 
-		// min mod optimization
-		if (rm.anchor_len < min_anchor_len || rm.ran_taps < min_taps_in_rm ||
-			rm.off_taps_same < min_off_taps_same) {
+		//// min mod optimization
+		// if (rm._len < min_anchor_len || rm.ran_taps < min_taps_in_rm ||
+		//	rm.off_taps_sh < min_off_taps_same) {
 
-			rm.reset();
-			return min_mod;
-		}
+		//	rm.reset();
+		//	return min_mod;
+		//}
 
-		// the pmod template stuff completely broke the js/hs/cj mods.. so..
-		// these might also be broken... investigate later
+		//// the pmod template stuff completely broke the js/hs/cj mods.. so..
+		//// these might also be broken... investigate later
 
-		// taps in runningman / total taps in interval... i think? can't
-		// remember when i reset total taps tbh.. this might be useless
-		total_prop = 1.F;
+		//// taps in runningman / total taps in interval... i think? can't
+		//// remember when i reset total taps tbh.. this might be useless
+		// total_prop = 1.F;
 
-		// number anchor taps / number of non anchor taps
-		off_tap_prop = fastpow(pmod_prop(rm.anchor_len,
-										 rm.ran_taps,
-										 off_tap_prop_scaler,
-										 off_tap_prop_min,
-										 off_tap_prop_max,
-										 off_tap_prop_base),
-							   2.F);
+		//// number anchor taps / number of non anchor taps
+		// off_tap_prop = fastpow(pmod_prop(rm._len,
+		//								 rm.ran_taps,
+		//								 off_tap_prop_scaler,
+		//								 off_tap_prop_min,
+		//								 off_tap_prop_max,
+		//								 off_tap_prop_base),
+		//					   2.F);
 
-		// number of same hand off anchor taps / anchor taps, basically stuff is
-		// really hard when this is high (a value of 0.5 is a triplet every
-		// other anchor)
-		off_tap_same_prop = pmod_prop(rm.off_taps_same,
-									  rm.anchor_len,
-									  off_tap_same_prop_scaler,
-									  off_tap_same_prop_min,
-									  off_tap_same_prop_max,
-									  off_tap_same_prop_base);
+		//// number of same hand off anchor taps / anchor taps, basically stuff
+		/// is / really hard when this is high (a value of 0.5 is a triplet
+		/// every / other anchor)
+		// off_tap_same_prop = pmod_prop(rm.off_taps_sh,
+		//							  rm._len,
+		//							  off_tap_same_prop_scaler,
+		//							  off_tap_same_prop_min,
+		//							  off_tap_same_prop_max,
+		//							  off_tap_same_prop_base);
 
-		// anchor length component
-		anchor_len_comp =
-		  static_cast<float>(rm.anchor_len) / anchor_len_divisor;
+		//// anchor length component
+		// anchor_len_comp = static_cast<float>(rm._len) / anchor_len_divisor;
 
-		// jacks in anchor component, give a small bonus i guess
-		jack_bonus =
-		  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.F;
+		//// jacks in anchor component, give a small bonus i guess
+		// jack_bonus =
+		//  rm.jack_taps >= min_jack_taps_for_bonus ? jack_bonus_base : 0.F;
 
-		// ohts in anchor component, give a small bonus i guess
-		// not done
-		oht_bonus =
-		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.F;
+		//// ohts in anchor component, give a small bonus i guess
+		//// not done
+		// oht_bonus =
+		//  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.F;
 
-		// we could scale the anchor to speed if we want but meh
-		// that's really complicated/messy/error prone
-		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
-		pmod = CalcClamp(
-		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
-		  min_mod,
-		  max_mod);
+		//// we could scale the anchor to speed if we want but meh
+		//// that's really complicated/messy/error prone
+		// pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
+		// pmod = CalcClamp(
+		//  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
+		//  min_mod,
+		//  max_mod);
 
 		// reset interval highest when we're done
-		rm.reset();
-
 		return pmod;
 	}
 };

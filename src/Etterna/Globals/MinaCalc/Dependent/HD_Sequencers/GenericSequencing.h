@@ -20,7 +20,7 @@
 
 // bpm flux float precision etc
 static const float anchor_buffer_ms = 10.F;
-static const float anchor_speed_increase_cutoff_factor = 2.1F;
+static const float anchor_speed_increase_cutoff_factor = 1.9F;
 
 enum anch_status
 {
