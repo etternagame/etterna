@@ -20,12 +20,46 @@
 
 // bpm flux float precision etc
 static const float anchor_buffer_ms = 10.F;
+static const float anchor_speed_increase_cutoff_factor = 2.1F;
+
+enum anch_status
+{
+	reset_too_slow,
+	reset_too_fast,
+
+	// _len > 2, otherwise we would be at the start of a file, or just reset due
+	// to being too fast/slow
+	anchoring,
+	anch_init,
+};
 
 // individual anchors, 2 objects per hand on 4k
+// if you are struggling with the notion that a 300 bpm oht is considered 2
+// anchors of roughly equivalent lengths (depending on where you sample) and
+// equivalent times, the difference between an anchor and a jack is that one
+// cares about the existence of notes on other columns while the other doesn't,
+// as in, it would make far less sense to call them jacks
 struct Anchor_Sequencing
 {
+	// what column this anchor is on (will be set on startup by the sequencer)
 	col_type _ct = col_init;
+	anch_status _status = anch_init;
 
+	// note: aside from the first note, _len is always at least 2
+	/* outside of note 1 we are always in a 2 note anchor of some description.
+	 * given 50, 500, 50, (4 notes), we have 2 notes, 1 and 2, 50 ms apart, and
+	 * we are in an anchor. the 500 ms then breaks it due to being too much
+	 * slower and starts a new anchor with notes 2 and 3, a 500 ms anchor. then
+	 * the same thing happens again on reaching note 4, where the 50 breaks the
+	 * 500 anchor due to being too fast, and again starts a new sequence with
+	 * 3-4, this may seem like needless quibbling but if we are using anchor
+	 * sequencing as the base for jack difficulty we want to ensure that cutoff
+	 * points are reasonable, and that any point may be queried for a jack
+	 * difficulty regardless of whether or not a human would consider it to be a
+	 * jack
+	 */
+
+	int _len = 1;
 	float _sc_ms = 0.F;
 
 	// if we exceed this + buffer, break the anchor sequence
@@ -35,15 +69,14 @@ struct Anchor_Sequencing
 	float _last = s_init;
 	float _start = s_init;
 
-	int _len = 0;
-
 	inline void full_reset()
 	{
-		// we don't need to reset col_type
+		// never reset col_type
 		_sc_ms = 0.F;
 		_max_ms = ms_init;
 		_last = s_init;
-		_len = 0;
+		_len = 1;
+		_status = anch_init;
 	}
 
 	inline void operator()(const col_type ct, const float& now)
@@ -52,39 +85,54 @@ struct Anchor_Sequencing
 		_sc_ms = ms_from(now, _last);
 
 		// break the anchor if the next note is too much slower than the
-		// lowest one in the sequence
+		// lowest one in the sequence, remember, if we reset the start of the
+		// new anchor was the last row_time, and the new max_ms should be the
+		// current ms value
+
 		if (_sc_ms > _max_ms + anchor_buffer_ms) {
-			_start = now;
-			_len = 1;
-			_max_ms = ms_init;
+			_status = reset_too_slow;
 		} else if (_sc_ms * 2.5F < _max_ms) {
-			//  i don't like hard cutoffs much but in the interest of fairness
-			//  if the current ms value is vastly lower than the _max_ms, set
-			//  the start time of the anchor to now and reset, i can't really
-			//  think of any way this can be abused in a way that inflates
-			//  files, just lots of ways it can underdetect
-			{
+			_status = reset_too_fast;
+		} else {
+			_status = anchoring;
+		}
+
+		switch (_status) {
+			case reset_too_slow:
+			case reset_too_fast:
+				//  i don't like hard cutoffs much but in the interest of
+				//  fairness
+				//  if the current ms value is vastly lower than the _max_ms,
+				//  set the start time of the anchor to now and reset, i can't
+				//  really think of any way this can be abused in a way that
+				//  inflates files, just lots of ways it can underdetect
+
 				// we're resetting because we've started on something much
-				// faster, so we know the start of this anchor was actually the
-				// last note, directly reset max_ms to the current ms and len to
-				// 2
+				// faster or slower, so we know the start of this anchor was
+				// actually the, last note, directly reset _max_ms to the
+				// current ms and len to 2
+
 				_start = _last;
 				_max_ms = _sc_ms;
 				_len = 2;
-			}
-		} else {
-			// increase anchor length and set new cutoff point
-			++_len;
-			_max_ms = _sc_ms;
+				break;
+			case anchoring:
+				// increase anchor length and set new cutoff point
+				++_len;
+				_max_ms = _sc_ms;
+				break;
+			case anch_init:
+				// nothing to do
+				break;
 		}
 
+		// update row time after any potential resets
 		_last = now;
 	}
 
 	inline auto get_difficulty() -> float
 	{
 		float flool = ms_from(_last, _start);
-		float glunk = CalcClamp(static_cast<float>(_len) / 6.f, 0.1f, 1.f);
 		float pule = (flool + 360.F) / static_cast<float>(_len);
 		float drool = ms_to_scaled_nps(pule);
 		return drool;
@@ -135,8 +183,9 @@ struct AnchorSequencer
 				anch.at(c)(c, row_time);
 
 				// set max seen
-				max_seen.at(c) =
-				  anch.at(c)._len > max_seen[c] ? anch[c]._len : max_seen[c];
+				max_seen.at(c) = anch.at(c)._len > max_seen.at(c)
+								   ? anch.at(c)._len
+								   : max_seen.at(c);
 			}
 		}
 	}
@@ -153,15 +202,15 @@ struct AnchorSequencer
 	inline void handle_interval_end()
 	{
 		for (auto& c : ct_loop_no_jumps) {
-			_mw_max[c](max_seen[c]);
-			max_seen[c] = 0;
+			_mw_max.at(c)(max_seen.at(c));
+			max_seen.at(c) = 0;
 		}
 	}
 
 	inline auto get_highest_anchor_difficulty() -> float
 	{
 		return max(anch.at(col_left).get_difficulty(),
-				   anch[col_right].get_difficulty());
+				   anch.at(col_right).get_difficulty());
 	}
 };
 
@@ -299,7 +348,7 @@ struct SequencerGeneral
 	inline void full_reset()
 	{
 		for (auto& c : ct_loop_no_jumps) {
-			_mw_sc_ms[c].zero();
+			_mw_sc_ms.at(c).zero();
 		}
 
 		_as.full_reset();
