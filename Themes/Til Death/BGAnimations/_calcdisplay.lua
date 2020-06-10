@@ -1175,9 +1175,7 @@ do -- scoping
     for i, mod in pairs(CalcDiffValue) do
         local modname = shortenEnum("CalcDiffValue", mod)
         for h = 1,2 do
-            if i == 2 or i == 4 then -- only these for now
                 o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - (h % 2)], h)
-            end
         end
     end
     i = 1
