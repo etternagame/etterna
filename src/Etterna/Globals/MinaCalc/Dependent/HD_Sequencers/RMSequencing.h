@@ -176,7 +176,7 @@ struct RM_Sequencer
 		_status = rm_inactive;
 		_rmb = rmb_init;
 		_last_rmb = rmb_init;
-		
+
 		_start = s_init;
 		last_anchor_time = s_init;
 
@@ -198,9 +198,17 @@ struct RM_Sequencer
 	{
 		assert(_last_rmb == rmb_off_tap_sh);
 		/* we are restarting the runningman sequence because the anchor sequence
-		 * has reset */
-		_start = as._start;
+		 * has reset and our last update was a same hand off tap, or because we
+		 * were inactive, had a same hand off tap last update, and are now on
+		 * the anchor col. as._last is the last seen col of the anchor, since we
+		 * can only restart when we're on an anchor col, the anchor col should
+		 * have already been updated and _last would be now, so calculate the
+		 * start time from as._sc_ms */
+		_start = as._last - (as._sc_ms / 1000.F);
+		// should always be equivalent to NOW,
 		last_anchor_time = as._last;
+
+		assert(_start < last_anchor_time);
 		_rm._len = 2;
 
 		// technically if we are restarting we know we have 3 taps, but let
@@ -226,30 +234,6 @@ struct RM_Sequencer
 
 	inline auto should_restart() -> bool { return _last_rmb == rmb_off_tap_sh; }
 
-	// called if _status == rm_inactive &&  _rmb == rmb_off_tap_sh && _last_rmb
-	// == rmb_anchor
-
-	inline void start(const Anchor_Sequencing& as)
-	{
-		assert(_last_rmb == rmb_anchor);
-		/* we are starting a new sequence */
-		_start = as._last - (as._sc_ms / 1000.F);
-		last_anchor_time = as._last;
-		_rm._len = 1;
-
-		// from this starting condition we only have 1 tap
-		_rm.ran_taps = 1;
-
-		{
-			is_bursting = false;
-			had_burst = false;
-			_rm.restart();
-		}
-
-		// retroactively handle whatever behavior allowed the restart
-		handle_last_rmb();
-	}
-
 	inline void end_off_tap_run()
 	{
 		// allow only 1 burst
@@ -269,11 +253,11 @@ struct RM_Sequencer
 			// ok this is jank af but if rmb_anchor is _last_rmb when restarting
 			// it means we've started up again from the initial start logic, and
 			// so we are _on_ rmb_off_tap_sh, so let this fall through
-			case rmb_anchor:
 			case rmb_off_tap_sh:
 				_rm.add_off_tap_sh();
 				break;
 			default:
+				assert(0);
 				break;
 		}
 	}
@@ -342,11 +326,8 @@ struct RM_Sequencer
 
 				break;
 			case anchoring:
-				// update our last anchor time
-				last_anchor_time = as._last;
 				_rm.add_anchor_tap();
 				_rm.end_off_tap_run();
-
 				return;
 			case anch_init:
 				// do nothing
@@ -467,6 +448,13 @@ struct RM_Sequencer
 			handle_oht_behavior(ct);
 		}
 
+		// update our last anchor time any time we see it, we don't handle this
+		// in the anchoring block because technically jacks can either be on the
+		// anchor column or not, and i don't want to have to split logic again
+		// between anchor column jacks and off anchor jacks on the same hand
+		if (as._ct == _ct)
+			last_anchor_time = as._last;
+
 		// determine what we should do
 		switch (bt) {
 			case base_left_right:
@@ -517,17 +505,15 @@ struct RM_Sequencer
 				break;
 		}
 
-		// do thing, maybe
-
 		/* only allow same hand off taps after an anchor to begin a runningman
 		 * sequence for now, this means we are rm_inactive, we are currently
 		 * using behavior _rmb_off_tap_sh, and _last_rmb was rmb_anchor */
 		if (_status == rm_inactive) {
-			if (_rmb == rmb_off_tap_sh && _last_rmb == rmb_anchor) {
+			if (_rmb == rmb_anchor && _last_rmb == rmb_off_tap_sh) {
 
 				// ok we can start
 				_status = rm_running;
-				start(as);
+				restart(as);
 			}
 		} else {
 			// if we're not inactive, just do normal behavior
@@ -549,10 +535,8 @@ struct RM_Sequencer
 		float glunk =
 		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 2.f, 0.1f, 1.f);
 
-		float pule = (flool + 25.F) / static_cast<float>(_rm._len);
+		float pule = (flool + 50.F) / static_cast<float>(_rm._len - 1);
 		float drool = ms_to_scaled_nps(pule) * 2.F;
-		if (isnan(drool))
-			drool = 1.f;
-		return drool * glunk;
+		return drool;
 	}
 };

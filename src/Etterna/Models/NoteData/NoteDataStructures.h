@@ -82,10 +82,11 @@ enum CalcPatternMod
 };
 enum CalcDiffValue
 {
-	BaseNPS, // unadjusted base nps difficulty
-	BaseMS,  // unadjusted base ms difficulty
-	BaseMSD, // unadjusted weighted values
-	MSD,	 // pattern and stam adjusted difficulty values
+	NPSBase, // unadjusted base nps difficulty
+	JackBase,  // unadjusted base ms difficulty
+	CJBase, // unadjusted weighted values
+	TechBase,	 // pattern and stam adjusted difficulty values
+	MSD,
 	NUM_CalcDiffValue,
 	CalcDiffValue_Invalid,
 };

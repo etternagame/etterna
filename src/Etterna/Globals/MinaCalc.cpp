@@ -549,24 +549,24 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 				if (highest_base_skillset == Skill_Technical) {
 					h.debugValues[0][TotalPatternMod].resize(numitv);
-					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+					for (int i = 0; i < h.soap[NPSBase].size(); ++i) {
 						float val = h.base_adj_diff[highest_base_skillset][i] /
-									h.soap[BaseMSD][i];
+									h.soap[TechBase][i];
 						h.debugValues[0][TotalPatternMod][i] = val;
 					}
 				} else if (highest_base_skillset == Skill_Chordjack) {
 					h.debugValues[0][TotalPatternMod].resize(numitv);
-					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+					for (int i = 0; i < h.soap[NPSBase].size(); ++i) {
 						float val = h.base_adj_diff[highest_base_skillset][i] /
-									(h.soap[BaseMSD][i] + h.soap[BaseNPS][i]) /
+									(h.soap[CJBase][i] + h.soap[NPSBase][i]) /
 									2.F;
 						h.debugValues[0][TotalPatternMod][i] = val;
 					}
 				} else {
 					h.debugValues[0][TotalPatternMod].resize(numitv);
-					for (int i = 0; i < h.soap[BaseNPS].size(); ++i) {
+					for (int i = 0; i < h.soap[NPSBase].size(); ++i) {
 						float val = h.base_adj_diff[highest_base_skillset][i] /
-									h.soap[BaseNPS][i];
+									h.soap[NPSBase][i];
 						h.debugValues[0][TotalPatternMod][i] = val;
 					}
 				}
@@ -729,10 +729,10 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		// scaler for things with higher things
 		static const float higher_thing_scaler = 1.175F;
 		float nps = 1.6F * static_cast<float>(f1[i].size() + f2[i].size());
-		soap[BaseNPS][i] = finalscaler * nps;
+		soap[NPSBase][i] = finalscaler * nps;
 	}
 
-	Smooth(soap[BaseNPS], 0.F);
+	Smooth(soap[NPSBase], 0.F);
 }
 
 // each skillset should just be a separate calc function [todo]
@@ -933,12 +933,12 @@ Hand::InitAdjDiff()
 	};
 
 	for (int i = 0; i < NUM_Skillset; ++i) {
-		base_adj_diff[i].resize(soap[BaseNPS].size());
-		base_diff_for_stam_mod[i].resize(soap[BaseNPS].size());
+		base_adj_diff[i].resize(soap[NPSBase].size());
+		base_diff_for_stam_mod[i].resize(soap[NPSBase].size());
 	}
 
 	// ok this loop is pretty wack i know, for each interval
-	for (int i = 0; i < soap[BaseNPS].size(); ++i) {
+	for (int i = 0; i < soap[NPSBase].size(); ++i) {
 		float tp_mods[NUM_Skillset] = {
 			1.F, 1.F, 1.F, 1.F, 1.F, 0.1F, 1.F, 1.F
 		};
@@ -972,7 +972,7 @@ Hand::InitAdjDiff()
 			// might need optimization, or not since this is not
 			// outside of a dumb loop now and is done once instead
 			// of a few hundred times
-			float funk = soap[BaseNPS][i] * tp_mods[ss] * basescalers[ss];
+			float funk = soap[NPSBase][i] * tp_mods[ss] * basescalers[ss];
 			adj_diff = funk;
 			stam_base = funk;
 			switch (ss) {
@@ -996,22 +996,22 @@ Hand::InitAdjDiff()
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					stam_base = max(
-					  adj_diff, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
+					  adj_diff, soap[NPSBase][i] * tp_mods[Skill_Handstream]);
 					break;
 				case Skill_Handstream:
 					// adj_diff /= fastsqrt(doot[OHJump][i]);
 					stam_base =
-					  max(funk, soap[BaseNPS][i] * tp_mods[Skill_Jumpstream]);
+					  max(funk, soap[NPSBase][i] * tp_mods[Skill_Jumpstream]);
 					break;
 				case Skill_Chordjack:
 					adj_diff =
-					  soap[BaseMS][i] * tp_mods[Skill_Chordjack] *
+					  soap[CJBase][i] * tp_mods[Skill_Chordjack] *
 					  basescalers[ss] *
 					  CalcClamp(fastsqrt(doot[OHJumpMod][i]) + 0.06F, 0.F, 1.F);
 					break;
 				case Skill_Technical:
 					adj_diff =
-					  soap[BaseMSD][i] * tp_mods[ss] * basescalers[ss] /
+					  soap[TechBase][i] * tp_mods[ss] * basescalers[ss] /
 					  max(fastpow(doot[CJ][i], 2.F), 1.F) /
 					  max(max(doot[Stream][i], doot[JS][i]), doot[HS][i]) *
 					  doot[Chaos][i] / fastsqrt(doot[RanMan][i]);

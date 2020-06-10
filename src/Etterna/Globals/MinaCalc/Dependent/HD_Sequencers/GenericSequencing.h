@@ -67,7 +67,6 @@ struct Anchor_Sequencing
 
 	// row_time of last note on this col
 	float _last = s_init;
-	float _now = s_init;
 	float _start = s_init;
 
 	inline void full_reset()
@@ -82,8 +81,6 @@ struct Anchor_Sequencing
 
 	inline void operator()(const col_type ct, const float& now)
 	{
-		_last = _now;
-
 		assert(ct == _ct);
 		_sc_ms = ms_from(now, _last);
 
@@ -134,8 +131,7 @@ struct Anchor_Sequencing
 				break;
 		}
 
-		// update row time after any potential resets
-		_now = now;
+		_last = now;
 	}
 
 	inline auto get_difficulty() -> float

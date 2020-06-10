@@ -475,6 +475,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					// update interval aggregation
 					_mitvhi._itvhi.set_col_taps(ct);
 
+					handle_row_dependent_pattern_advancement(row_time);
+
 					/* junk in the trunk warning */
 					bool is_cj = last_row_count > 1 && row_count > 1;
 					bool was_cj = last_row_count > 1 && last_last_row_count > 1;
@@ -587,9 +589,11 @@ struct TheGreatBazoinkazoinkInTheSky
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
-					futuramaTEWO.push_back(_rm.get_highest_anchor_difficulty());
+					
 
-					handle_row_dependent_pattern_advancement(row_time);
+					
+
+					futuramaTEWO.push_back(_rm.get_highest_anchor_difficulty());
 
 					std::swap(_last_mhi, _mhi);
 					_mhi->offhand_ohjumps = 0;
@@ -598,20 +602,19 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 
-				_diffs[hand][BaseMS][itv] =
+				_diffs[hand][CJBase][itv] =
 				  CJBaseDifficultySequencing(the_simpsons);
 
-				_diffs[hand][BaseMSD][itv] =
-				  (mean(futuramaTEWO) +
-				   weighted_average(TechBaseDifficultySequencing(futurama),
-									_diffs[hand][BaseNPS][itv],
-									7.5f,
-									9.f) * 2.F) /
-				  2.F;
+				float berp = TechBaseDifficultySequencing(futurama) * 2.F;
+				float scwerp = 0.F;
+				if (!futuramaTEWO.empty())
+					scwerp = mean(futuramaTEWO);
+				_diffs[hand][TechBase][itv] = scwerp;
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
-			DifficultyMSSmooth(_diffs[hand][BaseMS]);
-			DifficultyMSSmooth(_diffs[hand][BaseMSD]);
+			DifficultyMSSmooth(_diffs[hand][JackBase]);
+			DifficultyMSSmooth(_diffs[hand][CJBase]);
+			DifficultyMSSmooth(_diffs[hand][TechBase]);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
