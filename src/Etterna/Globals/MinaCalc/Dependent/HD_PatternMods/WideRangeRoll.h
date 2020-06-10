@@ -251,7 +251,7 @@ struct WideRangeRollMod
 								   const float& tc_ms)
 	{
 		// we will let ohjumps through here
-
+		
 		update_seq_ms(bt, any_ms, tc_ms);
 		if (bt == base_single_jump || bt == base_jump_single) {
 			return;
@@ -292,6 +292,7 @@ struct WideRangeRollMod
 				// don't know yet, so just wait and see
 				break;
 			case meta_meta_enigma:
+			case meta_unknowable_enigma:
 				// it's been too long... your vision becomes blurry.. your
 				// memory fades... why are we here again? what are we trying
 				// to do? who are we....

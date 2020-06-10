@@ -470,7 +470,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					_seq.advance_sequencing(ct, row_time, ms_any);
 
 					// mhi will exclusively track pattern configurations
-					(*_mhi)(*_last_mhi, ct, row_notes);
+					(*_mhi)(*_last_mhi, ct);
 
 					// update interval aggregation
 					_mitvhi._itvhi.set_col_taps(ct);
