@@ -716,73 +716,6 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	return true;
 }
 
-auto
-Hand::CalcMSEstimate(vector<float>& input, const int& burp) -> float
-{
-	static const bool dbg = false;
-
-	// how many ms values we use from here, if there are fewer than this
-	// number we'll mock up some values to water down intervals with a
-	// single extremely fast minijack, if there are more, we will truncate
-	unsigned int num_used = burp;
-
-	if (input.empty()) {
-		return 0.F;
-	}
-
-	// avoiding this for now because of smoothing
-	// single ms value, dunno if we want to do this? technically the tail
-	// end of an insanely hard burst that gets lopped off at the last note
-	// is still hard? if (input.size() < 2) return 1.f;
-
-	// sort before truncating/filling
-	sort(input.begin(), input.end());
-
-	// truncate if we have more values than what we care to sample, we're
-	// looking for a good estimate of the hardest part of this interval
-	// if above 1 and below used_ms_vals, fill up the stuff with dummies
-	// my god i was literally an idiot for doing what i was doing before
-	static const float ms_dummy = 360.F;
-
-	// mostly try to push down stuff like jumpjacks, not necessarily to push
-	// up "complex" stuff (this will push up intervals with few fast ms
-	// values kinda hard but it shouldn't matter as their base ms diff
-	// should be extremely low
-	float cv_yo = cv_trunc_fill(input, burp, ms_dummy) + 0.5F;
-	cv_yo = CalcClamp(cv_yo, 0.5F, 1.25F);
-
-	if (dbg && debug_lmao) {
-		std::string moop;
-		for (auto& v : input) {
-			moop.append(std::to_string(v));
-			moop.append(", ");
-		}
-
-		std::cout << "notes: " << moop << std::endl;
-	}
-
-	if (dbg && debug_lmao) {
-		std::cout << "cv : " << cv_yo << std::endl;
-	}
-
-	// basically doing a jank average, bigger m = lower difficulty
-	float m = sum_trunc_fill(input, burp, ms_dummy);
-
-	if (dbg && debug_lmao) {
-		std::cout << "m : " << m << std::endl;
-	}
-
-	// add 1 to num_used because some meme about sampling
-	// same thing as jack stuff, convert to bpm and then nps
-	float bpm_est = ms_to_bpm(m / (num_used + 1));
-	float nps_est = bpm_est / 15.F;
-	float fdiff = nps_est * cv_yo;
-	if (dbg && debug_lmao) {
-		std::cout << "diff : " << fdiff << std::endl;
-	}
-	return fdiff;
-}
-
 void
 Hand::InitBaseDiff(Finger& f1, Finger& f2)
 {
@@ -793,47 +726,13 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 	}
 
 	for (int i = 0; i < f1.size(); i++) {
-
-		if (dbg && debug_lmao) {
-			std::cout << "\ninterval : " << i << std::endl;
-		}
-
 		// scaler for things with higher things
 		static const float higher_thing_scaler = 1.175F;
 		float nps = 1.6F * static_cast<float>(f1[i].size() + f2[i].size());
-
-		auto do_diff_thingy = [this](vector<float>& input,
-									 const float& scaler) {
-			float mwerp = CalcMSEstimate(input, 3);
-			if (input.size() > 3) {
-				mwerp = max(mwerp, CalcMSEstimate(input, 4) * scaler);
-			}
-			if (input.size() > 4) {
-				mwerp = max(mwerp, CalcMSEstimate(input, 5) * scaler * scaler);
-			}
-			return mwerp;
-		};
-
-		float left_diff = do_diff_thingy(f1[i], higher_thing_scaler);
-		float right_diff = do_diff_thingy(f1[i], higher_thing_scaler);
-
-		float difficulty = 0.F;
-		float squiggly_line = 5.5F;
-		if (left_diff > right_diff) {
-			difficulty =
-			  weighted_average(left_diff, right_diff, squiggly_line, 9.F);
-		} else {
-			difficulty =
-			  weighted_average(right_diff, left_diff, squiggly_line, 9.F);
-		}
 		soap[BaseNPS][i] = finalscaler * nps;
-		soap[BaseMS][i] = finalscaler * difficulty;
-		// soap[BaseMSD][i] =
-		//  weighted_average(difficulty, nps, 7.76445F, 10.F) * finalscaler;
 	}
+
 	Smooth(soap[BaseNPS], 0.F);
-	DifficultyMSSmooth(soap[BaseMS]);
-	DifficultyMSSmooth(soap[BaseMSD]);
 }
 
 // each skillset should just be a separate calc function [todo]

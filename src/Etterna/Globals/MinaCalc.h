@@ -34,11 +34,6 @@ each track of the chart into their respective phalangeal parents. */
 class Hand
 {
   public:
-	/*	Spits out a rough estimate of difficulty based on the ms values within
-	the interval The vector passed to it is the vector of ms values within each
-	interval, and not the full vector of intervals. */
-	static auto CalcMSEstimate(std::vector<float>& input, const int& burp) -> float;
-
 	/*	Averages nps and ms estimates for difficulty to get a rough initial
 	value. This is relatively robust as patterns that get overrated by nps
 	estimates are underrated by ms estimates, and vice versa. Pattern modifiers

@@ -9,9 +9,9 @@
  * mods do their stuff */
 static const float neutral = 1.F;
 
-  // Relies on endiannes (significantly inaccurate)
-  inline auto
-  fastpow(double a, double b) -> float
+// Relies on endiannes (significantly inaccurate)
+inline auto
+fastpow(double a, double b) -> float
 {
 	int u[2];
 	std::memcpy(&u, &a, sizeof a);
@@ -36,16 +36,16 @@ fastsqrt(float _in) -> float
 
 template<typename T>
 inline auto
-mean(const vector<T>& v) -> float
+sum(const vector<T>& v) -> T
 {
-	return static_cast<float>(sum(v)) / static_cast<float>(v.size());
+	return std::accumulate(begin(v), end(v), static_cast<T>(0));
 }
 
 template<typename T>
 inline auto
-sum(const vector<T>& v) -> T
+mean(const vector<T>& v) -> float
 {
-	return std::accumulate(begin(v), end(v), static_cast<T>(0));
+	return static_cast<float>(sum(v)) / static_cast<float>(v.size());
 }
 
 // Coefficient of variation
