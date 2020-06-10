@@ -73,11 +73,13 @@ detecc_sjjscc(const base_type& last,
 			  const base_type& last_last_last) -> bool
 {
 	// check last_last_last first, if it's not cc, throw it out
-	if (!is_cc_tap(last_last_last)) { { {
-		return false;
-}
-}
-}
+	if (!is_cc_tap(last_last_last)) {
+		{
+			{
+				return false;
+			}
+		}
+	}
 
 	// last is exiting the jump, last_last is entering it
 	// note: we don't care about the single/jump jump/single column order
@@ -89,7 +91,8 @@ inline auto
 determine_meta_type(const base_type& now,
 					const base_type& last,
 					const base_type& last_last,
-					const base_type& last_last_last) -> meta_type
+					const base_type& last_last_last,
+					const meta_type& last_mt) -> meta_type
 {
 	// this is either cccccc or ccacc
 	if (is_cc_tap(now) && is_cc_tap(last_last)) {
@@ -135,12 +138,12 @@ determine_meta_type(const base_type& now,
 
 	// past the point of our current largest meta pattern definitions, so if we
 	// see this, we can stop waiting for something like ccsjjscc
-	if (last == meta_enigma) {
+	if (last_mt == meta_enigma) {
 		return meta_meta_enigma;
 	}
 
 	// there are probably entire packs where we won't even see one of these
-	if (last == meta_meta_enigma) {
+	if (last_mt == meta_meta_enigma) {
 		return meta_unknowable_enigma;
 	}
 

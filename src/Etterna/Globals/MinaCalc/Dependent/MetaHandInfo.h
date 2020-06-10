@@ -66,9 +66,7 @@ struct metaHandInfo
 		offhand_ohjumps = 0;
 	}
 
-	inline void operator()(const metaHandInfo& last,
-						   const col_type& ct,
-						   const unsigned&  /*notes*/)
+	inline void operator()(const metaHandInfo& last, const col_type& ct)
 	{
 		// this should never ever be called on col_empty
 		assert(ct != col_empty);
@@ -88,7 +86,7 @@ struct metaHandInfo
 
 		// now that we have determined base_type, we can look for more complex
 		// patterns
-		_mt =
-		  determine_meta_type(_bt, _last_bt, last_last_bt, last.last_last_bt);
+		_mt = determine_meta_type(
+		  _bt, _last_bt, last_last_bt, last.last_last_bt, _last_mt);
 	}
 };
