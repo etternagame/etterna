@@ -499,11 +499,12 @@ struct TheGreatBazoinkazoinkInTheSky
 								if (was_cj) {
 									// single note jack with 2 chords behind it
 									pewpew = 1.25F;
+								} else {
+									// single note, not a jack, 2 chords behind
+									// it
+									pewpew = 1.5F;
 								}
-							} else {
-								// single note, not a jack, 2 chords behind it
-								pewpew = 1.5F;
-							}
+							} 
 						} else {
 							// actual cj
 							if (was_cj) {
