@@ -7,7 +7,7 @@ static const int max_flam_jammies = 4;
 struct flam
 {
 	// cols seen
-	unsigned unsigned_unseen = 0;
+	unsigned unsigned_unseen = 0U;
 
 	// size in ROWS, not columns, if flam size == 1 we do not yet have a flam
 	// and we have no current relevant values in ms[], any that are set will be
@@ -29,7 +29,7 @@ struct flam
 	// is this row exclusively additive with the current flam sequence?
 	inline auto comma_comma_coolmeleon(const unsigned& notes) -> bool
 	{
-		return (unsigned_unseen & notes) == 0;
+		return (unsigned_unseen & notes) == 0U;
 	}
 
 	// to avoid keeping another float ??? idk
@@ -60,15 +60,17 @@ struct flam
 	inline void start(const float& ms_now, const unsigned& notes)
 	{
 		flammin = true;
+		unsigned_unseen = 0U;
+
 		grow(ms_now, notes);
 	}
 
 	inline void grow(const float& ms_now, const unsigned& notes)
 	{
+		if (size == max_flam_jammies)
+			return;
+
 		unsigned_unseen |= notes;
-
-		assert(size < 5);
-
 		ms.at(size - 1) = ms_now;
 
 		// adjust size after setting ms, size starts at 1

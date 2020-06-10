@@ -17,7 +17,8 @@ struct FlamJamMod
 #pragma region params
 	float min_mod = 0.5F;
 	float max_mod = 1.F;
-	float mod_scaler = 2.75F;
+	float scaler = 2.75F;
+	float base = 0.1F;
 
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
@@ -25,7 +26,8 @@ struct FlamJamMod
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "mod_scaler", &mod_scaler },
+		{ "scaler", &scaler },
+		{ "base", &base },
 
 		// params for fj_sequencing
 		{ "group_tol", &group_tol },
@@ -37,7 +39,7 @@ struct FlamJamMod
 	FJ_Sequencer fj;
 	float pmod = neutral;
 
-	inline void setup() { fj.set_params(group_tol, step_tol, mod_scaler); }
+	inline void setup() { fj.set_params(group_tol, step_tol, scaler); }
 
 	inline void advance_sequencing(const float& ms_now, const unsigned& notes)
 	{
@@ -51,9 +53,9 @@ struct FlamJamMod
 			return neutral;
 		}
 
-		if (fj.the_fifth_flammament) {
-			return min_mod;
-		}
+		// if (fj.the_fifth_flammament) {
+		//	return min_mod;
+		//}
 
 		// water down single flams
 		pmod = 1.F;
@@ -61,7 +63,7 @@ struct FlamJamMod
 			pmod += mp;
 		}
 		pmod /= 5.F;
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = CalcClamp(base + pmod, min_mod, max_mod);
 
 		// reset flags n stuff
 		fj.handle_interval_end();
