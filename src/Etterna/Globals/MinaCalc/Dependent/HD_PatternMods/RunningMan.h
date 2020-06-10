@@ -83,7 +83,7 @@ struct RunningManMod
 	float max_off_spacing = 3.F;
 	float max_burst_len = 6.F;
 	float max_jack_len = 3.F;
-	float max_anch_len = 6.F;
+	float max_anch_len = 3.F;
 
 	const vector<pair<std::string, float*>> _params{
 

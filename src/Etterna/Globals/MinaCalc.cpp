@@ -42,7 +42,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 0.3F
+	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.715F, 0.73F, 0.95F
 };
 
 void
@@ -165,8 +165,8 @@ Calc::JackLoss(float x, int mode, float mpl, bool stam, bool debug) -> float
 {
 	return 0.f;
 
-	  // mpl *= 1.5f;
-	  const bool dbg = false;
+	// mpl *= 1.5f;
+	const bool dbg = false;
 	// adjust for stam before main loop, since main loop is interval -> track
 	// and not track -> interval, we could also try doing this on the fly with
 	// an inline but i cba to mess with that atm
@@ -828,7 +828,7 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 		}
 		soap[BaseNPS][i] = finalscaler * nps;
 		soap[BaseMS][i] = finalscaler * difficulty;
-		//soap[BaseMSD][i] =
+		// soap[BaseMSD][i] =
 		//  weighted_average(difficulty, nps, 7.76445F, 10.F) * finalscaler;
 	}
 	Smooth(soap[BaseNPS], 0.F);
@@ -997,15 +997,13 @@ Hand::InitAdjDiff()
 		},
 
 		// hs
-		{
-		  HS,
+		{ HS,
 		  OHJumpMod,
 		  TheThing,
 		  WideRangeAnchor,
 		  WideRangeRoll,
 		  OHTrill,
-		  Roll
-		},
+		  Roll },
 
 		// stam, nothing, don't handle here
 		{},
@@ -1093,14 +1091,13 @@ Hand::InitAdjDiff()
 					adj_diff *= CalcClamp(
 					  fastsqrt(doot[RanMan][i] - 0.125F), 0.98F, 1.06F);
 					adj_diff /= fastsqrt(doot[OHJumpMod][i] * 0.95F);
-					
-					
+
 					/*adj_diff *=
 					  CalcClamp(fastsqrt(doot[RanMan][i] - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
 					// math twice
-					stam_base =
-					  max(adj_diff, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
+					stam_base = max(
+					  adj_diff, soap[BaseNPS][i] * tp_mods[Skill_Handstream]);
 					break;
 				case Skill_Handstream:
 					// adj_diff /= fastsqrt(doot[OHJump][i]);
@@ -1288,7 +1285,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 385;
+int mina_calc_version = 387;
 auto
 GetCalcVersion() -> int
 {

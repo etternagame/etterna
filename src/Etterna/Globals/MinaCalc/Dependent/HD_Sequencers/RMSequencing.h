@@ -172,7 +172,13 @@ struct RM_Sequencer
 	inline void full_reset()
 	{
 		// don't touch anchor col
+
+		_status = rm_inactive;
+		_rmb = rmb_init;
+		_last_rmb = rmb_init;
+		
 		_start = s_init;
+		last_anchor_time = s_init;
 
 		is_bursting = false;
 		had_burst = false;
@@ -190,21 +196,16 @@ struct RM_Sequencer
 	 * offtaps_samehand will be allowed to restart */
 	inline void restart(const Anchor_Sequencing& as)
 	{
-		/* we are restarting the runningman sequence, this means we know there
-		 * is something valid between now and the last note in this column to do
-		 * so, that means the _runningman_ start time might be different from
-		 * whatever is generally going on anchor_wise, we don't care about that,
-		 * so set _start from as's _last */
-		_start = as._last;
-		_rm._len = 1;
+		assert(_last_rmb == rmb_off_tap_sh);
+		/* we are restarting the runningman sequence because the anchor sequence
+		 * has reset */
+		_start = as._start;
+		last_anchor_time = as._last;
+		_rm._len = 2;
 
 		// technically if we are restarting we know we have 3 taps, but let
 		// last_rmb handling take care of the third for clarity
 		_rm.ran_taps = 2;
-
-		// ok actually if we are just starting we only have 2 taps so...
-		if (_last_rmb == rmb_anchor)
-			_rm.ran_taps -= 1;
 
 		/* we will probably be resetting much more than we are restarting, so to
 		 * reduce computational expense, only set any values back to 0 while
@@ -224,6 +225,30 @@ struct RM_Sequencer
 	}
 
 	inline auto should_restart() -> bool { return _last_rmb == rmb_off_tap_sh; }
+
+	// called if _status == rm_inactive &&  _rmb == rmb_off_tap_sh && _last_rmb
+	// == rmb_anchor
+
+	inline void start(const Anchor_Sequencing& as)
+	{
+		assert(_last_rmb == rmb_anchor);
+		/* we are starting a new sequence */
+		_start = as._last - (as._sc_ms / 1000.F);
+		last_anchor_time = as._last;
+		_rm._len = 1;
+
+		// from this starting condition we only have 1 tap
+		_rm.ran_taps = 1;
+
+		{
+			is_bursting = false;
+			had_burst = false;
+			_rm.restart();
+		}
+
+		// retroactively handle whatever behavior allowed the restart
+		handle_last_rmb();
+	}
 
 	inline void end_off_tap_run()
 	{
@@ -285,7 +310,7 @@ struct RM_Sequencer
 
 	inline auto oht_len_exceeds_max() -> bool
 	{
-		return _rm.oht_len > max_anchor_len;
+		return _rm.oht_len > max_oht_len;
 	}
 
 	// executed if incoming ct == _ct
@@ -502,11 +527,7 @@ struct RM_Sequencer
 
 				// ok we can start
 				_status = rm_running;
-
-				// apply restart behavior since it's exactly what we want (i
-				// know the naming is a bit confusing, restarting should only
-				// apply to resets that occur after already starting but w.e)
-				restart(as);
+				start(as);
 			}
 		} else {
 			// if we're not inactive, just do normal behavior
@@ -519,16 +540,19 @@ struct RM_Sequencer
 
 	inline auto get_difficulty() -> float
 	{
-		if (_status == rm_inactive)
+		if (_status == rm_inactive || _rm._len < 3)
 			return 1.f;
+
 		float flool = ms_from(last_anchor_time, _start);
 
 		// may be unnecessary
 		float glunk =
 		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 2.f, 0.1f, 1.f);
 
-		float pule = (flool + 9.F) / static_cast<float>(_rm._len);
-		float drool = ms_to_scaled_nps(pule);
+		float pule = (flool + 25.F) / static_cast<float>(_rm._len);
+		float drool = ms_to_scaled_nps(pule) * 2.F;
+		if (isnan(drool))
+			drool = 1.f;
 		return drool * glunk;
 	}
 };
