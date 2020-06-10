@@ -104,10 +104,10 @@ XToString(GameplayMode);
 LuaXType(GameplayMode);
 
 static const char* SortOrderNames[] = {
-	"Preferred", "Group",	 "Title",	 "BPM",		 "Popularity",
-	"TopGrades", "Artist",	"Genre",	 "ModeMenu",   "Recent",
-	"Favorites", "Overall",   "Stream",	"Jumpstream", "Handstream",
-	"Stamina",   "JackSpeed", "Chordjack", "Technical",  "Length"
+	"Preferred", "Group",	  "Title",	   "BPM",		 "Popularity",
+	"TopGrades", "Artist",	  "Genre",	   "ModeMenu",	 "Recent",
+	"Favorites", "Overall",	  "Stream",	   "Jumpstream", "Handstream",
+	"Stamina",	 "JackSpeed", "Chordjack", "Technical",	 "Length"
 };
 XToString(SortOrder);
 StringToX(SortOrder);
@@ -118,7 +118,7 @@ LuaFunction(SortOrderToLocalizedString,
 
 static const char* TapNoteScoreNames[] = {
 	"None", "HitMine", "AvoidMine", "CheckpointMiss", "Miss", "W5", "W4",
-	"W3",   "W2",	  "W1",		"CheckpointHit",
+	"W3",	"W2",	   "W1",		"CheckpointHit",
 };
 struct tns_conversion_helper
 {
@@ -225,7 +225,7 @@ StringToSkillset(const RString& s)
 	return Skill_Overall;
 }
 
-  static const char* CalcPatternModNames[] = {
+static const char* CalcPatternModNames[] = {
 	"Stream",
 	"JS",
 	"JSS",
@@ -275,9 +275,11 @@ StringToSkillset(const RString& s)
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 
-static const char* CalcDiffValueNames[] = {
-	"BaseNPS", "BaseMS", "BaseMSD", "MSD",
-};
+static const char* CalcDiffValueNames[] = { "NPSBase",
+											"JackBase",
+											"CJBase",
+											"TechBase",
+											"MSD" };
 XToString(CalcDiffValue);
 LuaXType(CalcDiffValue);
 
@@ -340,9 +342,9 @@ XToString(ProfileSlot);
 LuaXType(ProfileSlot);
 
 static const char* StageAwardNames[] = {
-	"FullComboW3",   "SingleDigitW3", "OneW3",		 "FullComboW2",
+	"FullComboW3",	 "SingleDigitW3", "OneW3",		 "FullComboW2",
 	"SingleDigitW2", "OneW2",		  "FullComboW1", "80PercentW3",
-	"90PercentW3",   "100PercentW3",
+	"90PercentW3",	 "100PercentW3",
 };
 
 void
@@ -418,7 +420,7 @@ StringToX(SampleMusicPreviewMode);
 LuaXType(SampleMusicPreviewMode);
 
 static const char* StageNames[] = {
-	"1st",  "2nd",   "3rd",	"4th",	"5th",   "6th",
+	"1st",	"2nd",	 "3rd",	   "4th",	 "5th",	  "6th",
 	"Next", "Final", "Extra1", "Extra2", "Event", "Demo",
 };
 XToString(Stage);
