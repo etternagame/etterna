@@ -33,15 +33,15 @@ enum Skillset
 enum CalcPatternMod
 {
 	Stream,
-	JS,   // pattern mod (values between 0-1)
-	JSS,		// pattern mod (values between 0-1)
-	JSJ,		// pattern mod (values between 0-1)
-	HS,  // pattern mod (values between 0-1)
+	JS,	 // pattern mod (values between 0-1)
+	JSS, // pattern mod (values between 0-1)
+	JSJ, // pattern mod (values between 0-1)
+	HS,	 // pattern mod (values between 0-1)
 	HSS, // pattern mod (values between 0-1)
 	HSJ, // pattern mod (values between 0-1)
-	CJ,		// pattern mod (values between 0-1)
-	CJS,		// pattern mod (values between 0-1)
-	CJJ,		// pattern mod (values between 0-1)
+	CJ,	 // pattern mod (values between 0-1)
+	CJS, // pattern mod (values between 0-1)
+	CJJ, // pattern mod (values between 0-1)
 	CJDensity,
 	OHJumpMod, // pattern mod (values between 0-1)
 	OHJBaseProp,
@@ -54,7 +54,7 @@ enum CalcPatternMod
 	CJOHJPropComp,
 	CJOHJSeqComp,
 	Balance, // pattern mod (values between 0.9 - ~ 1.1)
-	Roll,   // pattern mod (values between 0-1)
+	Roll,	 // pattern mod (values between 0-1)
 	OHTrill,
 	Chaos,
 	FlamJam,
@@ -82,10 +82,10 @@ enum CalcPatternMod
 };
 enum CalcDiffValue
 {
-	NPSBase, // unadjusted base nps difficulty
-	JackBase,  // unadjusted base ms difficulty
-	CJBase, // unadjusted weighted values
-	TechBase,	 // pattern and stam adjusted difficulty values
+	NPSBase,  // unadjusted base nps difficulty
+	JackBase, // unadjusted base ms difficulty
+	CJBase,	  // unadjusted weighted values
+	TechBase, // pattern and stam adjusted difficulty values
 	MSD,
 	NUM_CalcDiffValue,
 	CalcDiffValue_Invalid,
@@ -94,7 +94,7 @@ enum CalcDebugMisc
 {
 	PtLoss, // expected points loss (not really a diff thing but w.e)
 	JackPtLoss,
-	StamMod,// stam adjust (values between 1- ~1.15)
+	StamMod, // stam adjust (values between 1- ~1.15)
 	JackStamMod,
 	NUM_CalcDebugMisc,
 	CalcDebugMisc_Invalid,

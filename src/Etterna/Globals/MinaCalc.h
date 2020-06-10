@@ -102,11 +102,12 @@ class Calc
 	to estimate difficulty for each different skillset. Currently only
 	overall/stamina are being produced. */
 	auto CalcMain(const std::vector<NoteInfo>& NoteInfo,
-								float music_rate,
-								float score_goal) -> std::vector<float>;
+				  float music_rate,
+				  float score_goal) -> std::vector<float>;
 
 	void JackStamAdjust(float x, int t, int mode, bool debug = false);
-	auto JackLoss(float x, int mode, float mpl, bool stam, bool debug = false) -> float;
+	auto JackLoss(float x, int mode, float mpl, bool stam, bool debug = false)
+	  -> float;
 	void SequenceJack(const Finger& f, int track, int mode);
 
 	bool debugmode = false;
@@ -130,13 +131,13 @@ class Calc
 	into a new Finger object, or vector of vectors of floats (ms from last note
 	in the track). */
 	auto ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
-						 unsigned int t,
-						 float music_rate,
-						 float offset,
-						 bool& joke_file_mon) -> Finger;
+					   unsigned int t,
+					   float music_rate,
+					   float offset,
+					   bool& joke_file_mon) -> Finger;
 
 	// Derivative calc params
-	int MaxPoints = 0;	 // Total points achievable in the file
+	int MaxPoints = 0;	   // Total points achievable in the file
 	void TotalMaxPoints(); // Counts up the total points and assigns it
 
 	/*	Returns estimate of player skill needed to achieve score goal on chart.
@@ -144,11 +145,11 @@ class Calc
 	 * skill. Resolution relates to how precise the answer is. Additional
 	 * parameters give specific skill sets being tested for.*/
 	auto Chisel(float player_skill,
-				 float resolution,
-				 float score_goal,
-				 int ss, // skillset
-				 bool stamina,
-				 bool debugoutput = false) -> float;
+				float resolution,
+				float score_goal,
+				int ss, // skillset
+				bool stamina,
+				bool debugoutput = false) -> float;
 
 	std::vector<std::vector<float>> jacks[4][4];
 	std::vector<std::vector<float>> stam_adj_jacks[4];
@@ -162,7 +163,8 @@ class Calc
 };
 
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal) -> std::vector<float>;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal)
+  -> std::vector<float>;
 MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo) -> MinaSD;
 MINACALC_API void

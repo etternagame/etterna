@@ -589,10 +589,6 @@ struct TheGreatBazoinkazoinkInTheSky
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
-					
-
-					
-
 					futuramaTEWO.push_back(_rm.get_highest_anchor_difficulty());
 
 					std::swap(_last_mhi, _mhi);
