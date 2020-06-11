@@ -184,7 +184,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void advance_agnostic_sequencing()
 	{
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
-		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
+ 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
 	}
 	inline void setup_agnostic_pmods()
@@ -423,11 +423,15 @@ struct TheGreatBazoinkazoinkInTheSky
 			// the pass is limited to like... a couple floats and 2 ints)
 			vector<float> the_simpsons;
 			vector<float> futurama;
-			vector<float> futuramaTEWO;
+			vector<float> bort;
+			float futuramaTEWO = 0.f;
+			float barnie = 0.f;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 				the_simpsons.clear();
 				futurama.clear();
-				futuramaTEWO.clear();
+				bort.clear();
+				futuramaTEWO = 0.f;
+				barnie = 0.f;
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
@@ -468,6 +472,10 @@ struct TheGreatBazoinkazoinkInTheSky
 					// test putting generic sequencers here
 					// this will keep track of timings from now on
 					_seq.advance_sequencing(ct, row_time, ms_any);
+
+					bort.push_back(_seq._as.get_highest_anchor_difficulty());
+					barnie =
+					  max(barnie, _seq._as.get_highest_anchor_difficulty());
 
 					// mhi will exclusively track pattern configurations
 					(*_mhi)(*_last_mhi, ct);
@@ -589,8 +597,8 @@ struct TheGreatBazoinkazoinkInTheSky
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
-					futuramaTEWO.push_back(_rm.get_highest_anchor_difficulty());
-
+					futuramaTEWO = max(futuramaTEWO, _rm.get_highest_anchor_difficulty());
+					
 					std::swap(_last_mhi, _mhi);
 					_mhi->offhand_ohjumps = 0;
 					_mhi->offhand_taps = 0;
@@ -600,12 +608,12 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				_diffs[hand][CJBase][itv] =
 				  CJBaseDifficultySequencing(the_simpsons);
-
-				float berp = TechBaseDifficultySequencing(futurama) * 2.F;
-				float scwerp = 0.F;
-				if (!futuramaTEWO.empty())
-					scwerp = mean(futuramaTEWO);
-				_diffs[hand][TechBase][itv] = scwerp;
+				_diffs[hand][JackBase][itv] = (mean(bort) + barnie) / 2.F;
+				float berp = TechBaseDifficultySequencing(futurama);
+				float scwerp = futuramaTEWO;
+				float shlop =
+				  weighted_average(berp, _diffs[hand][NPSBase][itv], 5.5F, 9.F);
+				_diffs[hand][TechBase][itv] = max(shlop, scwerp);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][JackBase]);
