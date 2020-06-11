@@ -42,7 +42,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.95F, 0.73F, 1.F
+	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.95F, 0.83F, 1.F
 };
 
 void
@@ -869,7 +869,7 @@ Hand::InitAdjDiff()
 		},
 
 		// chordjack
-		{ CJ, CJDensity, WideRangeAnchor },
+		{ CJ, CJDensity },
 
 		// tech, duNNO wat im DOIN
 		{
@@ -967,10 +967,8 @@ Hand::InitAdjDiff()
 							   max(fastpow(doot[CJ][i], 2.F), 1.F);
 					break;
 				case Skill_Chordjack:
-					adj_diff =
-					  soap[CJBase][i] * tp_mods[Skill_Chordjack] *
-					  basescalers[ss] *
-					  CalcClamp(fastsqrt(doot[OHJumpMod][i]) + 0.06F, 0.F, 1.F);
+					adj_diff = soap[CJBase][i] * tp_mods[Skill_Chordjack] *
+							   basescalers[ss];
 					break;
 				case Skill_Technical:
 					adj_diff =
