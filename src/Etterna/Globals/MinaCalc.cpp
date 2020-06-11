@@ -678,7 +678,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	ulbu_that_which_consumes_all.heres_my_diffs(left_hand.soap,
 												right_hand.soap);
-
+	
 	ulbu_that_which_consumes_all(
 	  nervIntervals, music_rate, left_hand.doot, right_hand.doot);
 
@@ -1153,7 +1153,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 }
 #pragma endregion
 
-int mina_calc_version = 388;
+int mina_calc_version = 390;
 auto
 GetCalcVersion() -> int
 {

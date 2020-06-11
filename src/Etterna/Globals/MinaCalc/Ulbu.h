@@ -1,5 +1,7 @@
 #pragma once
 
+#include <deque>
+
 // stepmania garbage
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
@@ -184,7 +186,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void advance_agnostic_sequencing()
 	{
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
- 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
 	}
 	inline void setup_agnostic_pmods()
@@ -424,12 +426,16 @@ struct TheGreatBazoinkazoinkInTheSky
 			vector<float> the_simpsons;
 			vector<float> futurama;
 			vector<float> bort;
+			vector<float> sundae;
 			float futuramaTEWO = 0.f;
 			float barnie = 0.f;
+
+			std::deque<std::pair<int, float>> fartsmcpoopin;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 				the_simpsons.clear();
 				futurama.clear();
 				bort.clear();
+				sundae.clear();
 				futuramaTEWO = 0.f;
 				barnie = 0.f;
 
@@ -439,6 +445,19 @@ struct TheGreatBazoinkazoinkInTheSky
 					row_notes = _ni[row].notes;
 					row_count = column_count(row_notes);
 					ms_any = ms_from(row_time, last_row_time);
+
+					/* DUM STUFF */
+					std::pair<int, float> euphrates = { row_count, row_time };
+					fartsmcpoopin.push_back(euphrates);
+					while (row_time - fartsmcpoopin.front().second > 0.375F) {
+						fartsmcpoopin.pop_front();
+					}
+
+					int nps_plus_fudge = 0;
+					for (auto& r : fartsmcpoopin)
+						nps_plus_fudge += r.first;
+					sundae.push_back(nps_plus_fudge);
+					/* END DUM STUFF */
 
 					ct = determine_col_type(row_notes, ids);
 
@@ -597,28 +616,44 @@ struct TheGreatBazoinkazoinkInTheSky
 						++_mitvhi._meta_types[_mhi->_mt];
 					}
 
-					futuramaTEWO = max(futuramaTEWO, _rm.get_highest_anchor_difficulty());
-					
+					futuramaTEWO =
+					  max(futuramaTEWO, _rm.get_highest_anchor_difficulty());
+
 					std::swap(_last_mhi, _mhi);
 					_mhi->offhand_ohjumps = 0;
 					_mhi->offhand_taps = 0;
 				}
 
 				handle_dependent_interval_end(itv);
+				if (!the_simpsons.empty())
+					_diffs[hand][CJBase][itv] =
+					  CJBaseDifficultySequencing(the_simpsons);
+				else
+					_diffs[hand][CJBase][itv] = 1.F;
 
-				_diffs[hand][CJBase][itv] =
-				  CJBaseDifficultySequencing(the_simpsons);
-				_diffs[hand][JackBase][itv] = (mean(bort) + barnie) / 2.F;
-				float berp = TechBaseDifficultySequencing(futurama);
+				if (!bort.empty())
+					_diffs[hand][JackBase][itv] = (mean(bort) + barnie) / 2.F;
+				else
+					_diffs[hand][JackBase][itv] = 1.F;
+
+				float berp = 1.F; 
+				if (!futurama.empty())
+					berp = TechBaseDifficultySequencing(futurama);
+
 				float scwerp = futuramaTEWO;
 				float shlop =
 				  weighted_average(berp, _diffs[hand][NPSBase][itv], 5.5F, 9.F);
 				_diffs[hand][TechBase][itv] = max(shlop, scwerp);
+
+
+				if (!sundae.empty())
+					_diffs[hand][NPSBase][itv] = mean(sundae) * 1.6F * 1.6F * 1.35F;
+				else
+					_diffs[hand][NPSBase][itv] = 1.F;
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][JackBase]);
 			DifficultyMSSmooth(_diffs[hand][CJBase]);
-			DifficultyMSSmooth(_diffs[hand][TechBase]);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
