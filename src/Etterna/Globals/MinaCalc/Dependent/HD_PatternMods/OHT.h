@@ -21,13 +21,13 @@ struct OHTrillMod
 
 	float window_param = 3.F;
 
-	float min_mod = 0.5F;
+	float min_mod = 0.85F;
 	float max_mod = 1.F;
 	float base = 1.35F;
 	float suppression = 0.4F;
 
 	float cv_reset = 1.F;
-	float cv_threshhold = 0.45F;
+	float cv_threshhold = 0.5F;
 
 	// this is for base trill 1->2 2->1 1->2, 4 notes, 3 timings, however we can
 	// extend the window for ms values such that, for example, we require 2 oht
@@ -42,6 +42,7 @@ struct OHTrillMod
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
+		{ "suppression", &suppression },
 
 		{ "cv_reset", &cv_reset },
 		{ "cv_threshhold", &cv_threshhold },
