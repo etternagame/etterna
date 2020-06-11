@@ -52,7 +52,7 @@ struct RollMod
 #pragma endregion params and param map
 
 	int window = 0;
-	Roll_Sequencer _roll;
+	Roll_Sequencer _roll{};
 	CalcMovingWindow<float> _mw_pmod;
 
 	float moving_cv = cv_reset;
@@ -99,7 +99,7 @@ struct RollMod
 
 		interval_end();
 		_mw_pmod(pmod);
-		return 1.f;
+		return neutral;
 		//_mw_pmod.get_mean_of_window(window);
 	}
 

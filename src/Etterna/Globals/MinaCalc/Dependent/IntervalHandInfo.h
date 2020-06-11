@@ -32,14 +32,11 @@ struct ItvHandInfo
 
 		// update interval mws for col taps
 		for (auto& ct : ct_loop) {
-			_mw_col_taps[ct](_col_taps[ct]);
+			_mw_col_taps.at(ct)(_col_taps.at(ct));
 		}
 
 		// reset taps per col on this hand
 		_col_taps.fill(0);
-
-		// reset offhand taps
-		_offhand_taps = 0;
 	}
 
 	// zeroes out all values for everything, complete reset for when we swap
@@ -47,7 +44,6 @@ struct ItvHandInfo
 	inline void zero()
 	{
 		_col_taps.fill(0);
-		_offhand_taps = 0;
 
 		for (auto& mw : _mw_col_taps) {
 			mw.zero();
@@ -59,7 +55,7 @@ struct ItvHandInfo
 	[[nodiscard]] inline auto get_col_taps_nowi(const col_type& ct) const -> int
 	{
 		assert(ct < num_col_types);
-		return _mw_col_taps[ct].get_now();
+		return _mw_col_taps.at(ct).get_now();
 	}
 
 	// cast to float for divisioning and clean screen
@@ -67,7 +63,7 @@ struct ItvHandInfo
 	  -> float
 	{
 		assert(ct < num_col_types);
-		return static_cast<float>(_mw_col_taps[ct].get_now());
+		return static_cast<float>(_mw_col_taps.at(ct).get_now());
 	}
 
 	[[nodiscard]] inline auto get_col_taps_windowi(const col_type& ct,
@@ -75,7 +71,7 @@ struct ItvHandInfo
 	  -> int
 	{
 		assert(ct < num_col_types && window < max_moving_window_size);
-		return _mw_col_taps[ct].get_total_for_window(window);
+		return _mw_col_taps.at(ct).get_total_for_window(window);
 	}
 
 	// cast to float for divisioning and clean screen
@@ -85,7 +81,7 @@ struct ItvHandInfo
 	{
 		assert(ct < num_col_types && window < max_moving_window_size);
 		return static_cast<float>(
-		  _mw_col_taps[ct].get_total_for_window(window));
+		  _mw_col_taps.at(ct).get_total_for_window(window));
 	}
 
 	// col operations
@@ -165,11 +161,7 @@ struct ItvHandInfo
 		return static_cast<float>(_mw_hand_taps.get_total_for_window(window));
 	}
 
-	// uhh we uhh.. something sets this i think... this is not handled well
-  public:
-	int _offhand_taps = 0;
-
-  protected:
+  private:
 	std::array<int, num_col_types> _col_taps = { 0, 0, 0 };
 
 	// switch to keeping generic moving windows here, if any mod needs a moving

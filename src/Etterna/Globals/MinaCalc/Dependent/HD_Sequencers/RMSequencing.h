@@ -265,21 +265,19 @@ struct RM_Sequencer
 	inline auto off_len_exceeds_max() -> bool
 	{
 		// haven't exceeded anything
-		if (_rm.off_len <= max_off_spacing)
-			return false;
-
-		if (had_burst) {
-			// already had a burst and exceeding normal limit
-			return true;
-		} else if (_rm.off_len > max_burst_len) {
-			// exceeded the burst limit
-			return true;
-		} else {
-			// have exceeded the normal limit but not had a burst yet, set
-			// bursting to true and return false
-			is_bursting = true;
+		if (_rm.off_len <= max_off_spacing) {
 			return false;
 		}
+
+		// already had a burst and exceeding normal limit or exceeded the burst
+		// limit
+		if (had_burst || _rm.off_len > max_burst_len) {
+			return true;
+		}
+		// have exceeded the normal limit but not had a burst yet, set
+		// bursting to true and return false
+		is_bursting = true;
+		return false;
 	}
 
 	inline auto jack_len_exceeds_max() -> bool
@@ -392,8 +390,10 @@ struct RM_Sequencer
 			// metatype won't be set until it finds 1212, but we want to
 			// explicitly track the number of off_anchor taps in the oht, so
 			// boost by 1 when we see meta_oht and oht_len == 0
-			if (_rm.oht_len == 0)
+			if (_rm.oht_len == 0) {
+
 				_rm.add_oht_tap();
+			}
 
 			_rm.add_oht_tap();
 			if (oht_len_exceeds_max()) {
@@ -452,8 +452,10 @@ struct RM_Sequencer
 		// in the anchoring block because technically jacks can either be on the
 		// anchor column or not, and i don't want to have to split logic again
 		// between anchor column jacks and off anchor jacks on the same hand
-		if (as._ct == _ct)
+		if (as._ct == _ct) {
+
 			last_anchor_time = as._last;
+		}
 
 		// determine what we should do
 		switch (bt) {
@@ -526,14 +528,15 @@ struct RM_Sequencer
 
 	inline auto get_difficulty() -> float
 	{
-		if (_status == rm_inactive || _rm._len < 3)
-			return 1.f;
+		if (_status == rm_inactive || _rm._len < 3) {
+			return 1.F;
+		}
 
 		float flool = ms_from(last_anchor_time, _start);
 
 		// may be unnecessary
 		float glunk =
-		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 3.f, 0.1f, 1.f);
+		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 3.F, 0.1F, 1.F);
 
 		float pule = (flool + 25.F) / static_cast<float>(_rm._len - 1);
 		float drool = ms_to_scaled_nps(pule);

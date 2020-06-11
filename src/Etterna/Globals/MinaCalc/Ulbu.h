@@ -252,8 +252,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		setup_agnostic_pmods();
 
-		// don't use s_init here, we know the first row is always 0.f and
-		// therefore the first interval starts at 0.f (unless we do offset
+		// don't use s_init here, we know the first row is always 0.F and
+		// therefore the first interval starts at 0.F (unless we do offset
 		// passes but that's for later)
 		float row_time = 0.F;
 		int row_count = 0;
@@ -301,12 +301,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
-		_rm.advance_sequencing(_mhi->_ct,
-							   _mhi->_bt,
-							   _mhi->_mt,
-							   row_time,
-							   _mhi->offhand_taps,
-							   _seq._as);
+		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
 
 		_wrr.advance_sequencing(_mhi->_bt,
 								_mhi->_mt,
@@ -427,8 +422,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			vector<float> futurama;
 			vector<float> bort;
 			vector<float> sundae;
-			float futuramaTEWO = 0.f;
-			float barnie = 0.f;
+			float futuramaTEWO = 0.F;
+			float barnie = 0.F;
 
 			std::deque<std::pair<int, float>> fartsmcpoopin;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
@@ -436,8 +431,8 @@ struct TheGreatBazoinkazoinkInTheSky
 				futurama.clear();
 				bort.clear();
 				sundae.clear();
-				futuramaTEWO = 0.f;
-				barnie = 0.f;
+				futuramaTEWO = 0.F;
+				barnie = 0.F;
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
@@ -454,30 +449,13 @@ struct TheGreatBazoinkazoinkInTheSky
 					}
 
 					int nps_plus_fudge = 0;
-					for (auto& r : fartsmcpoopin)
+					for (auto& r : fartsmcpoopin) {
 						nps_plus_fudge += r.first;
+					}
 					sundae.push_back(nps_plus_fudge);
 					/* END DUM STUFF */
 
 					ct = determine_col_type(row_notes, ids);
-
-					// log offhand tap info (could be more performance and
-					// information efficient)
-					if (ct == col_empty) {
-
-						// think itvhi wants this as well as mhi
-						++_mitvhi._itvhi._offhand_taps;
-						++_mhi->offhand_taps;
-
-						// if ct == col_empty and row_count == 2, this is an
-						// offhand ohjump
-						if (row_count == 2) {
-							++_mhi->offhand_ohjumps;
-							++_mhi->offhand_taps;
-
-							++_mitvhi._itvhi._offhand_taps;
-						}
-					}
 
 					// handle any special cases here before moving on
 					if (ct == col_empty) {
@@ -594,11 +572,15 @@ struct TheGreatBazoinkazoinkInTheSky
 					float scoliosis = _seq._mw_sc_ms[col_left].get_now();
 					float poliosis = _seq._mw_sc_ms[col_right].get_now();
 					float obliosis = 0.F;
-					if (ct == col_left)
+					if (ct == col_left) {
+
 						obliosis = poliosis / scoliosis;
-					else
+
+					} else {
+
 						obliosis = scoliosis / poliosis;
-					obliosis = CalcClamp(obliosis, 1.f, 10.f);
+					}
+					obliosis = CalcClamp(obliosis, 1.f, 10.F);
 					float pewp = cv(std::vector<float>{ scoliosis, poliosis });
 
 					pewp /= obliosis;
@@ -612,8 +594,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					futurama.push_back(teheee.get_mean_of_window(2));
 
 					if (_mhi->_bt != base_type_init) {
-						++_mitvhi._base_types[_mhi->_bt];
-						++_mitvhi._meta_types[_mhi->_mt];
+						++_mitvhi._base_types.at(_mhi->_bt);
+						++_mitvhi._meta_types.at(_mhi->_mt);
 					}
 
 					futuramaTEWO =
@@ -625,31 +607,45 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 
 				handle_dependent_interval_end(itv);
-				if (!the_simpsons.empty())
+				if (!the_simpsons.empty()) {
+
 					_diffs[hand][CJBase][itv] =
 					  CJBaseDifficultySequencing(the_simpsons);
-				else
+
+				} else {
+
 					_diffs[hand][CJBase][itv] = 1.F;
+				}
 
-				if (!bort.empty())
+				if (!bort.empty()) {
+
 					_diffs[hand][JackBase][itv] = (mean(bort) + barnie) / 2.F;
-				else
-					_diffs[hand][JackBase][itv] = 1.F;
 
-				float berp = 1.F; 
-				if (!futurama.empty())
+				} else {
+
+					_diffs[hand][JackBase][itv] = 1.F;
+				}
+
+				float berp = 1.F;
+				if (!futurama.empty()) {
+
 					berp = TechBaseDifficultySequencing(futurama);
+				}
 
 				float scwerp = futuramaTEWO;
 				float shlop =
 				  weighted_average(berp, _diffs[hand][NPSBase][itv], 5.5F, 9.F);
 				_diffs[hand][TechBase][itv] = max(shlop, scwerp);
 
+				if (!sundae.empty()) {
 
-				if (!sundae.empty())
-					_diffs[hand][NPSBase][itv] = mean(sundae) * 1.6F * 1.6F * 1.35F;
-				else
+					_diffs[hand][NPSBase][itv] =
+					  mean(sundae) * 1.6F * 1.6F * 1.35F;
+
+				} else {
+
 					_diffs[hand][NPSBase][itv] = 1.F;
+				}
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][JackBase]);

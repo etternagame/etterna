@@ -299,7 +299,7 @@ struct TT_Sequencing
 	inline void reset()
 	{
 		slip_counter = 0;
-		mod_parts.fill(1.f);
+		mod_parts.fill(1.F);
 	}
 
 	inline auto construct_mod_part() -> float { return scaler; }

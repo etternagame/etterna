@@ -134,10 +134,14 @@ struct Anchor_Sequencing
 
 	inline auto get_difficulty() -> float
 	{
-		if (_len <= 2)
+		if (_len <= 2) {
+
 			return ms_to_scaled_nps(_sc_ms + 90.F);
-		if (_len == 3)
+		}
+		if (_len == 3) {
+
 			return ms_to_scaled_nps(_sc_ms + 180.F);
+		}
 		float flool = ms_from(_last, _start);
 		float pule = (flool + 270.F) / static_cast<float>(_len - 1);
 		float drool = ms_to_scaled_nps(pule);
@@ -263,8 +267,10 @@ struct SequencerGeneral
 	inline void set_sc_ms(const col_type& ct)
 	{
 		// single notes are simple
-		if (ct == col_left || ct == col_right)
+		if (ct == col_left || ct == col_right) {
+
 			_mw_sc_ms.at(ct)(_as.anch.at(ct)._sc_ms);
+		}
 
 		// oh jumps mean we do both, we will allow whatever is querying for the
 		// value to choose which column value they want (lower by default)
@@ -323,8 +329,10 @@ struct SequencerGeneral
 
 	inline auto get_sc_ms_now(const col_type& ct, bool lower = true) -> float
 	{
-		if (ct == col_init)
+		if (ct == col_init) {
+
 			return ms_init;
+		}
 
 		// if ohjump, grab the smaller value by default
 		if (ct == col_ohjump) {
@@ -366,7 +374,7 @@ struct SequencerGeneral
 		itv_row_counter = 0;
 	}
 
-	std::array<float, 6> _cv_check = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	std::array<float, 6> _cv_check = { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
 	CalcMovingWindow<float> _cv_check2;
 
 	[[nodiscard]] inline auto cccccc_check() -> float
@@ -386,7 +394,7 @@ struct SequencerGeneral
 
 	[[nodiscard]] inline auto get_cv_mean(const int& window) -> float
 	{
-		float o = 0.f;
+		float o = 0.F;
 
 		int i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {

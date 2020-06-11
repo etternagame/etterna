@@ -94,15 +94,6 @@ struct OHJumpModGuyThing
 		prop_component = fastsqrt(prop_component);
 	}
 
-	inline void set_debug_output(vector<float> doot[], const int& i)
-	{
-		doot[OHJSeqComp][i] = max_seq_component;
-		doot[OHJPropComp][i] = prop_component;
-		doot[OHJBaseProp][i] = base_seq_prop;
-		doot[OHJMaxSeq][i] = floatymcfloatface;
-		doot[OHJCCTaps][i] = static_cast<float>(cc_taps);
-	}
-
 	inline void set_pmod(const metaItvHandInfo& mitvhi)
 	{
 		const auto& itvhi = mitvhi._itvhi;

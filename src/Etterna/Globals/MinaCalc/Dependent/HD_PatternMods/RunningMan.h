@@ -191,28 +191,10 @@ struct RunningManMod
 	inline void advance_sequencing(const col_type& ct,
 								   const base_type& bt,
 								   const meta_type& mt,
-								   const float& row_time,
-								   const int& offhand_taps,
 								   const AnchorSequencer& as)
 	{
 		for (auto& c : ct_loop_no_jumps) {
 			rms.at(c)(ct, bt, mt, as.anch[c]);
-		}
-	}
-
-	inline void set_dbg(vector<float> doot[], const int& i)
-	{
-		if (debug_lmao) {
-			// doot[RanLen][i] = 1.F;
-			// doot[RanAnchLen][i] = (static_cast<float>(rm._len) / 30.F) +
-			// 0.5F; doot[RanAnchLenMod][i] = anchor_len_comp; doot[RanOHT][i] =
-			// static_cast<float>(rm.oht_taps); doot[RanOffS][i] =
-			// static_cast<float>(rm.off_taps_sh); doot[RanJack][i] =
-			// static_cast<float>(rm.jack_taps); doot[RanPropAll][i] =
-			// total_prop; doot[RanPropOff][i] = off_tap_prop;
-			// doot[RanPropOffS][i] = off_tap_same_prop;
-			// doot[RanPropOHT][i] = oht_bonus;
-			// doot[RanPropJack][i] = jack_bonus;
 		}
 	}
 

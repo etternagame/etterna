@@ -67,8 +67,9 @@ struct flam
 
 	inline void grow(const float& ms_now, const unsigned& notes)
 	{
-		if (size == max_flam_jammies)
+		if (size == max_flam_jammies) {
 			return;
+		}
 
 		unsigned_unseen |= notes;
 		ms.at(size - 1) = ms_now;

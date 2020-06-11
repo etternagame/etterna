@@ -678,7 +678,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	ulbu_that_which_consumes_all.heres_my_diffs(left_hand.soap,
 												right_hand.soap);
-	
+
 	ulbu_that_which_consumes_all(
 	  nervIntervals, music_rate, left_hand.doot, right_hand.doot);
 
@@ -726,8 +726,6 @@ Hand::InitBaseDiff(Finger& f1, Finger& f2)
 	}
 
 	for (int i = 0; i < f1.size(); i++) {
-		// scaler for things with higher things
-		static const float higher_thing_scaler = 1.175F;
 		float nps = 1.6F * static_cast<float>(f1[i].size() + f2[i].size());
 		soap[NPSBase][i] = finalscaler * nps;
 	}
@@ -747,7 +745,6 @@ Calc::Chisel(float player_skill,
 
 	float gotpoints = 0.F;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
-	float max_points_lost = static_cast<float>(MaxPoints) - reqpoints;
 	float jloss = 0.F;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {

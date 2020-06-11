@@ -17,7 +17,7 @@ static const float finalscaler = 3.632F;
 
 static const int num_chart_cols = 4;
 
-static const int zto3[4] = { 0, 1, 2, 3 };
+static const std::array<int, num_chart_cols> zto3 = { 0, 1, 2, 3 };
 
 inline auto
 ms_to_bpm(float x) -> float
@@ -53,19 +53,19 @@ AggregateScores(const vector<float>& skillsets, float rating, float resolution)
 }
 
 inline auto
-max_val(vector<int>& v) -> int
+max_val(const vector<int>& v) -> int
 {
 	return *std::max_element(v.begin(), v.end());
 }
 
 inline auto
-max_val(vector<float>& v) -> float
+max_val(const vector<float>& v) -> float
 {
 	return *std::max_element(v.begin(), v.end());
 }
 
 inline auto
-max_index(vector<float>& v) -> int
+max_index(const vector<float>& v) -> int
 {
 	return std::distance(v.begin(), std::max_element(v.begin(), v.end()));
 }
