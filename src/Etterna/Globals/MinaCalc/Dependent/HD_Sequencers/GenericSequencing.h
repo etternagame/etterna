@@ -132,20 +132,20 @@ struct Anchor_Sequencing
 		_last = now;
 	}
 
+	// returns an adjusted MS value, not converted to nps
 	inline auto get_difficulty() -> float
 	{
+		// too jank?
 		if (_len <= 2) {
-
-			return ms_to_scaled_nps(_sc_ms + 90.F);
+			return _sc_ms + 90.F;
 		}
 		if (_len == 3) {
 
-			return ms_to_scaled_nps(_sc_ms + 180.F);
+			return _sc_ms + 180.F;
 		}
 		float flool = ms_from(_last, _start);
 		float pule = (flool + 270.F) / static_cast<float>(_len - 1);
-		float drool = ms_to_scaled_nps(pule);
-		return drool;
+		return pule;
 	}
 };
 
@@ -327,7 +327,8 @@ struct SequencerGeneral
 		++itv_row_counter;
 	}
 
-	inline auto get_sc_ms_now(const col_type& ct, bool lower = true) -> float
+	inline auto get_sc_ms_now(const col_type& ct, bool lower = true) const
+	  -> float
 	{
 		if (ct == col_init) {
 
@@ -356,15 +357,18 @@ struct SequencerGeneral
 		return _mw_sc_ms[ct].get_now();
 	}
 
-	inline auto get_any_ms_now() -> float { return _mw_any_ms.get_now(); }
-	inline auto get_cc_ms_now() -> float { return _mw_cc_ms.get_now(); }
+	inline auto get_any_ms_now() const -> float { return _mw_any_ms.get_now(); }
+	inline auto get_cc_ms_now() const -> float { return _mw_cc_ms.get_now(); }
 
 	inline void full_reset()
 	{
-		for (auto& c : ct_loop_no_jumps) {
-			_mw_sc_ms.at(c).zero();
-		}
+		_mw_any_ms.fill(ms_init);
+		_mw_cc_ms.fill(ms_init);
 
+		for (auto& c : ct_loop_no_jumps) {
+			_mw_sc_ms.at(c).fill(ms_init);
+		}
+		
 		_as.full_reset();
 	}
 
@@ -377,7 +381,7 @@ struct SequencerGeneral
 	std::array<float, 6> _cv_check = { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
 	CalcMovingWindow<float> _cv_check2;
 
-	[[nodiscard]] inline auto cccccc_check() -> float
+	inline auto cccccc_check() -> float
 	{
 		float ms_now = _mw_any_ms.get_now();
 		_cv_check[5] = _mw_sc_ms[col_left].get_now();

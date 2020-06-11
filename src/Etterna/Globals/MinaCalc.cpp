@@ -317,8 +317,8 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 					bool& joke_file_mon) -> Finger
 {
 	// optimization, just allocate memory here once and recycle this vector
-	vector<float> temp_queue(max_nps_for_single_interval);
-	vector<int> temp_queue_two(max_nps_for_single_interval);
+	vector<float> temp_queue(max_rows_for_single_interval);
+	vector<int> temp_queue_two(max_rows_for_single_interval);
 	unsigned int row_counter = 0;
 	unsigned int row_counter_two = 0;
 
@@ -333,8 +333,8 @@ Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
 	for (int i = 0; i < NoteInfo.size(); i++) {
 		// we have hardcoded mem allocation for up to 100 nps, bail out on the
 		// entire file calc if we exceed that
-		if (row_counter >= max_nps_for_single_interval ||
-			row_counter_two >= max_nps_for_single_interval) {
+		if (row_counter >= max_rows_for_single_interval ||
+			row_counter_two >= max_rows_for_single_interval) {
 			// yes i know this is jank
 			joke_file_mon = true;
 			return {};
@@ -418,7 +418,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		bool continue_calc = InitializeHands(
 		  NoteInfo, music_rate, 0.1F * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
 
-		// if we exceed max_nps_for_single_interval during
+		// if we exceed max_rows_for_single_interval during
 		// processing
 		if (!continue_calc) {
 			std::cout << "skipping junk file" << std::endl;
@@ -757,7 +757,8 @@ Calc::Chisel(float player_skill,
 
 			left_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 
-			// already can't reach goal, move on
+			// only run the other hand if we're still above the reqpoints, if
+			// we're already below, there's no point
 			if (gotpoints > reqpoints) {
 				right_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
 			}

@@ -105,6 +105,9 @@ struct TheGreatBazoinkazoinkInTheSky
 	TheThingLookerFinderThing _tt;
 	TheThingLookerFinderThing2 _tt2;
 
+	// so we can apply them here
+	diffz _diffz;
+
 	inline void allocate_doot()
 	{
 		// agnostics
@@ -256,10 +259,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		// therefore the first interval starts at 0.F (unless we do offset
 		// passes but that's for later)
 		float row_time = 0.F;
-		int row_count = 0;
 		unsigned row_notes = 0;
+		int row_count = 0;
 
-		// boop
 		for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 
 			// run the row by row construction for interval info
@@ -375,16 +377,52 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mitvhi.zero();
 		_mhi->full_reset();
 		_last_mhi->full_reset();
+		_diffz.full_reset();
 	}
 
 	inline void handle_dependent_interval_end(const int& itv)
 	{
-		// invoke metaintervalhandinfo interval end FUNCTION
-		_mitvhi.interval_end();
-
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(_doots[hand], itv);
+
+		// run sequenced base difficulty generation, base diff is always hand
+		// dependent so we do it in this loop
+		set_sequenced_base_diffs(itv);
+
+		_mitvhi.interval_end();
 		_seq.interval_end();
+		_diffz.interval_end();
+	}
+
+	// update base difficulty stuff
+	inline void update_sequenced_base_diffs(const unsigned& row_notes,
+											const int& row_count,
+											const float& any_ms,
+											const col_type& ct)
+	{
+		
+		// jack speed updates with highest anchor difficulty seen
+		// _between either column_ for _this row_
+		_diffz._jk.advance_base(_seq._as.get_highest_anchor_difficulty());
+
+		// cj advances with any_ms, adjusted for basic anchors (this sucks) and
+		// not-cj screening (also probably sucks)
+		_diffz._cj.advance_base(any_ms);
+
+		// tech updates with a convoluted mess of garbage
+		_diffz._tc.advance_base(_seq, ct);
+		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
+	}
+
+	inline void set_sequenced_base_diffs(const int& itv)
+	{
+		_diffs[hand][CJBase][itv] = _diffz._cj.get_itv_diff();
+		_diffs[hand][JackBase][itv] = _diffz._jk.get_itv_diff();
+
+		// kinda jank but includes a weighted average vs nps base to prevent
+		// really silly stuff from becoming outliers
+		_diffs[hand][TechBase][itv] =
+		  _diffz._tc.get_itv_diff(_diffs[hand][NPSBase][itv]);
 	}
 
 	inline void run_dependent_pmod_loop()
@@ -392,20 +430,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		setup_dependent_mods();
 
 		for (auto& ids : hand_col_ids) {
-
 			float row_time = s_init;
 			float last_row_time = s_init;
-			float ms_any = ms_init;
+			float any_ms = ms_init;
 
-			int row_count = 0;
-			int last_row_count = 0;
-			int last_last_row_count = 0;
 			unsigned row_notes = 0U;
-			unsigned last_row_notes = 0U;
-			unsigned last_last_row_notes = 0U;
-			bool last_was_3_note_anch = false;
+			int row_count = 0;
+
 			col_type ct = col_init;
-			CalcMovingWindow<float> teheee;
 			full_hand_reset();
 
 			// so we are technically doing this again (twice) and don't to
@@ -418,31 +450,28 @@ struct TheGreatBazoinkazoinkInTheSky
 			// also need to have 2 itvhandinfo objects, or just for general
 			// performance (though the redundancy on this pass vs agnostic
 			// the pass is limited to like... a couple floats and 2 ints)
-			vector<float> the_simpsons;
-			vector<float> futurama;
-			vector<float> bort;
-			float futuramaTEWO = 0.F;
-			float barnie = 0.F;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
-				the_simpsons.clear();
-				futurama.clear();
-				bort.clear();
-				futuramaTEWO = 0.F;
-				barnie = 0.F;
 
 				// run the row by row construction for interval info
 				for (auto& row : _itv_rows[itv]) {
+
+					// derive and set the most basic information, from which
+					// everything else will be derived
 					row_time = _ni[row].rowTime / _rate;
 					row_notes = _ni[row].notes;
 					row_count = column_count(row_notes);
-					ms_any = ms_from(row_time, last_row_time);
 
-
+					// don't like having this here
+					any_ms = ms_from(row_time, last_row_time);
 
 					ct = determine_col_type(row_notes, ids);
 
-					// handle any special cases here before moving on
+					// handle any special cases that need to be executed on
+					// empty rows for this hand here before moving on, aside
+					// from whatever is in this block _nothing_ else should
+					// update unless there is a note to update with
 					if (ct == col_empty) {
+						_diffz._cj.update_flags(row_notes, row_count);
 						_rm.advance_off_hand_sequencing();
 						if (row_count == 2) {
 							_rm.advance_off_hand_sequencing();
@@ -450,180 +479,45 @@ struct TheGreatBazoinkazoinkInTheSky
 						continue;
 					}
 
-					// test putting generic sequencers here
-					// this will keep track of timings from now on
-					_seq.advance_sequencing(ct, row_time, ms_any);
+					// basically a time master, keeps track of different
+					// timings, update first
+					_seq.advance_sequencing(ct, row_time, any_ms);
 
-					bort.push_back(_seq._as.get_highest_anchor_difficulty());
-					barnie =
-					  max(barnie, _seq._as.get_highest_anchor_difficulty());
-
-					// mhi will exclusively track pattern configurations
+					// update metahandinfo, it constructs basic and advanced
+					// patterns from where we are now + recent pattern
+					// information constructed by the last iteration of itself
 					(*_mhi)(*_last_mhi, ct);
 
-					// update interval aggregation
+					// update interval aggregation of column taps
 					_mitvhi._itvhi.set_col_taps(ct);
 
+					// advance sequencing for all hand dependent mods
 					handle_row_dependent_pattern_advancement(row_time);
 
-					/* junk in the trunk warning */
-					bool is_cj = last_row_count > 1 && row_count > 1;
-					bool was_cj = last_row_count > 1 && last_last_row_count > 1;
-					bool is_scj = (row_count == 1 && last_row_count > 1) &&
-								  ((row_notes & last_row_notes) != 0u);
-					bool is_at_least_3_note_anch =
-					  ((row_notes & last_row_notes) & last_last_row_notes) !=
-					  0u;
+					// jackspeed, cj, and tech all use various adjust ms bases
+					// that are sequenced here, meaning they are order dependent
+					// (jack might not be for the moment actually)
+					// nps base is still calculated in the old way
+					update_sequenced_base_diffs(
+					  row_notes, row_count, any_ms, ct);
 
-					// pushing back ms values, so multiply to nerf
-					float pewpew = 3.F;
-
-					if (is_at_least_3_note_anch && last_was_3_note_anch) {
-						// biggy boy anchors and beyond
-						pewpew = 0.95F;
-					} else if (is_at_least_3_note_anch) {
-						// big boy anchors
-						pewpew = 1.F;
-					} else {
-						// single note
-						if (!is_cj) {
-							if (is_scj) {
-								// was cj a little bit ago..
-								if (was_cj) {
-									// single note jack with 2 chords behind it
-									pewpew = 1.25F;
-								} else {
-									// single note, not a jack, 2 chords behind
-									// it
-									pewpew = 1.5F;
-								}
-							}
-						} else {
-							// actual cj
-							if (was_cj) {
-								// cj now and was cj before, but not necessarily
-								// with strong anchors
-								pewpew = 1.15F;
-							} else {
-								// cj now but wasn't even cj before
-								pewpew = 1.25F;
-							}
-						}
-					}
-
-					// single note streams / regular jacks should retain the 3x
-					// multiplier
-
-					the_simpsons.push_back(
-					  max(75.F,
-						  min(_seq.get_any_ms_now() * pewpew,
-							  _seq.get_sc_ms_now(ct) * pewpew)));
-
-					/* junk in the trunk warning end */
-					/* junk in the trunk warning */
-
-					last_last_row_count = row_count;
-					last_row_count = row_count;
-
-					last_last_row_notes = last_row_notes;
-					last_row_notes = row_notes;
-
-					last_row_time = row_time;
-					last_was_3_note_anch = is_at_least_3_note_anch;
-
-					/* junk in the trunk warning end */
-
-					float a = _seq.get_sc_ms_now(ct);
-					float b = ms_init;
-					if (ct == col_ohjump) {
-						b = _seq.get_sc_ms_now(ct, false);
-					} else {
-						b = _seq.get_cc_ms_now();
-					}
-
-					float c = fastsqrt(a) * fastsqrt(b);
-
-					float pineapple = _seq._mw_any_ms.get_cv_of_window(4);
-					float porcupine =
-					  _seq._mw_sc_ms[col_left].get_cv_of_window(4);
-					float sequins =
-					  _seq._mw_sc_ms[col_right].get_cv_of_window(4);
-					float oioi = 0.5f;
-					pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
-					porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
-					sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
-
-					float scoliosis = _seq._mw_sc_ms[col_left].get_now();
-					float poliosis = _seq._mw_sc_ms[col_right].get_now();
-					float obliosis = 0.F;
-					if (ct == col_left) {
-
-						obliosis = poliosis / scoliosis;
-
-					} else {
-
-						obliosis = scoliosis / poliosis;
-					}
-					obliosis = CalcClamp(obliosis, 1.f, 10.F);
-					float pewp = cv(std::vector<float>{ scoliosis, poliosis });
-
-					pewp /= obliosis;
-					float vertebrae =
-					  CalcClamp(mean(std::vector<float>{
-								  pineapple, porcupine, sequins }) +
-								  pewp,
-								oioi,
-								1.F + oioi);
-					teheee(c / vertebrae);
-					futurama.push_back(teheee.get_mean_of_window(2));
-
+					// only ohj uses this atm (and probably into the future) so
+					// it might kind of be a waste?
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types.at(_mhi->_bt);
 						++_mitvhi._meta_types.at(_mhi->_mt);
 					}
 
-					futuramaTEWO =
-					  max(futuramaTEWO, _rm.get_highest_anchor_difficulty());
-
+					// cycle the pointers so now becomes last
 					std::swap(_last_mhi, _mhi);
-					_mhi->offhand_ohjumps = 0;
-					_mhi->offhand_taps = 0;
+					last_row_time = row_time;
 				}
 
 				handle_dependent_interval_end(itv);
-				if (!the_simpsons.empty()) {
 
-					_diffs[hand][CJBase][itv] =
-					  CJBaseDifficultySequencing(the_simpsons);
 
-				} else {
-
-					_diffs[hand][CJBase][itv] = 1.F;
-				}
-
-				if (!bort.empty()) {
-
-					_diffs[hand][JackBase][itv] = (mean(bort) + barnie) / 2.F;
-
-				} else {
-
-					_diffs[hand][JackBase][itv] = 1.F;
-				}
-
-				float berp = 1.F;
-				if (!futurama.empty()) {
-
-					berp = TechBaseDifficultySequencing(futurama);
-				}
-
-				float scwerp = futuramaTEWO;
-				float shlop =
-				  weighted_average(berp, _diffs[hand][NPSBase][itv], 5.5F, 9.F);
-				_diffs[hand][TechBase][itv] = max(shlop, scwerp);
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
-			DifficultyMSSmooth(_diffs[hand][JackBase]);
-			DifficultyMSSmooth(_diffs[hand][CJBase]);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand

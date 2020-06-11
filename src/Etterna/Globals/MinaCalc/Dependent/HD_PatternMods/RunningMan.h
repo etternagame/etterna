@@ -198,7 +198,7 @@ struct RunningManMod
 		}
 	}
 
-	inline auto get_highest_anchor_difficulty() -> float
+	inline auto get_highest_anchor_difficulty() const -> float
 	{
 		return max(rms.at(col_left).get_difficulty(),
 				   rms.at(col_right).get_difficulty());

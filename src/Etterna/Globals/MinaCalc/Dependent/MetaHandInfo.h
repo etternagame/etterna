@@ -61,9 +61,6 @@ struct metaHandInfo
 
 		_mt = meta_type_init;
 		_last_mt = meta_type_init;
-
-		offhand_taps = 0;
-		offhand_ohjumps = 0;
 	}
 
 	inline void operator()(const metaHandInfo& last, const col_type& ct)

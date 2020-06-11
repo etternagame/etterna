@@ -102,6 +102,8 @@ struct CalcMovingWindow
 		float sd = 0.F;
 		float avg = get_mean_of_window(window);
 
+		assert(avg > 0.F);
+
 		// if window is 4, we check values 6/5/4/3, since this window is always
 		// 6
 		int i = max_moving_window_size;
