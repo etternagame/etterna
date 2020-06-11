@@ -421,16 +421,12 @@ struct TheGreatBazoinkazoinkInTheSky
 			vector<float> the_simpsons;
 			vector<float> futurama;
 			vector<float> bort;
-			vector<float> sundae;
 			float futuramaTEWO = 0.F;
 			float barnie = 0.F;
-
-			std::deque<std::pair<int, float>> fartsmcpoopin;
 			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
 				the_simpsons.clear();
 				futurama.clear();
 				bort.clear();
-				sundae.clear();
 				futuramaTEWO = 0.F;
 				barnie = 0.F;
 
@@ -441,19 +437,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					row_count = column_count(row_notes);
 					ms_any = ms_from(row_time, last_row_time);
 
-					/* DUM STUFF */
-					std::pair<int, float> euphrates = { row_count, row_time };
-					fartsmcpoopin.push_back(euphrates);
-					while (row_time - fartsmcpoopin.front().second > 0.375F) {
-						fartsmcpoopin.pop_front();
-					}
 
-					int nps_plus_fudge = 0;
-					for (auto& r : fartsmcpoopin) {
-						nps_plus_fudge += r.first;
-					}
-					sundae.push_back(nps_plus_fudge);
-					/* END DUM STUFF */
 
 					ct = determine_col_type(row_notes, ids);
 
@@ -636,16 +620,6 @@ struct TheGreatBazoinkazoinkInTheSky
 				float shlop =
 				  weighted_average(berp, _diffs[hand][NPSBase][itv], 5.5F, 9.F);
 				_diffs[hand][TechBase][itv] = max(shlop, scwerp);
-
-				if (!sundae.empty()) {
-
-					_diffs[hand][NPSBase][itv] =
-					  mean(sundae) * 1.6F * 1.6F * 1.35F;
-
-				} else {
-
-					_diffs[hand][NPSBase][itv] = 1.F;
-				}
 			}
 			run_dependent_smoothing_pass(_doots[hand]);
 			DifficultyMSSmooth(_diffs[hand][JackBase]);
