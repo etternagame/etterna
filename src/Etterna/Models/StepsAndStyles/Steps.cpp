@@ -15,7 +15,6 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"
@@ -398,12 +397,8 @@ Steps::CalcEtternaMetadata()
 
 	if (m_StepsType == StepsType_dance_solo)
 		diffByRate = SoloCalc(cereal);
-	else {
-#ifdef USING_NEW_CALC
+	else if (m_StepsType == StepsType_dance_single) {
 		diffByRate = MinaSDCalc(cereal);
-#else
-		diffByRate = MinaSDCalc_OLD(cereal);
-#endif
 	}
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
@@ -434,7 +429,6 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
 	auto newcalc = MinaSDCalc(cereal, rate, 0.93f);
-	auto oldcalc = MinaSDCalc_OLD(cereal, rate, 0.93f);
 	float last_msd = newcalc[ss];
 	int prev_vers = GetCalcVersion() - 1;
 	if (vh.count(prev_vers))
@@ -444,7 +438,6 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 			   rate,
 			   newcalc[ss] - ev,
 			   (newcalc[ss] - ev) / ev * 100.f,
-			   newcalc[ss] - oldcalc[ss],
 			   newcalc[ss] - last_msd,
 			   m_pSong->GetMainTitle().c_str());
 

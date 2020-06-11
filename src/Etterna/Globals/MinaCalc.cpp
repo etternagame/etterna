@@ -64,8 +64,6 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 	}
 }
 
-#pragma region CalcBodyFunctions
-#pragma region JackModelFunctions
 inline void
 Calc::JackStamAdjust(float x, int t, int mode, bool debug)
 {
@@ -310,7 +308,6 @@ Calc::SequenceJack(const Finger& f, int track, int mode)
 		}
 	}
 }
-#pragma endregion
 
 auto
 Calc::ProcessFinger(const vector<NoteInfo>& NoteInfo,
@@ -608,7 +605,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	return yo_momma;
 }
-#pragma endregion
 
 auto
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
@@ -1085,10 +1081,8 @@ Hand::StamAdjust(float x, int ss, bool debug)
 		}
 	}
 }
-#pragma endregion
 
 static const float ssr_goal_cap = 0.965F; // goal cap to prevent insane scaling
-#pragma region thedoots
 // Function to generate SSR rating
 auto
 MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
@@ -1148,15 +1142,10 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 		ublov.write_params_to_disk();
 	}
 }
-#pragma endregion
 
 int mina_calc_version = 390;
 auto
 GetCalcVersion() -> int
 {
-#ifdef USING_NEW_CALC
 	return mina_calc_version;
-#else
-	return 263;
-#endif
 }

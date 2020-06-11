@@ -5,7 +5,6 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -382,12 +381,8 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (steps->m_StepsType == StepsType_dance_solo)
 		return SoloCalc(serializednd, musicrate, ssrpercent);
-	else {
-#ifdef USING_NEW_CALC
+	else if (steps->m_StepsType == StepsType_dance_single) {
 		return MinaSDCalc(serializednd, musicrate, ssrpercent);
-#else
-		return MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
-#endif
 	}
 }
 

@@ -3,7 +3,6 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -501,17 +500,12 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				}
 				const vector<NoteInfo>& serializednd = *serializednd_ptr;
 				vector<float> dakine;
-				if (steps->m_StepsType == StepsType_dance_single) {
-#ifdef USING_NEW_CALC
-					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
-#else
-					dakine =
-					  MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
-#endif
-				}
 
-				else if (steps->m_StepsType == StepsType_dance_solo)
+				if (steps->m_StepsType == StepsType_dance_single) {
+					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
+				} else if (steps->m_StepsType == StepsType_dance_solo)
 					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
+
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
