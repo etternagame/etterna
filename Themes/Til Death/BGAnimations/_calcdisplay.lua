@@ -174,6 +174,7 @@ local debugGroups = {
     {   -- Group 1
         Stream = true,
         OHTrill = true,
+        VOHTrill = true,
 		OHJumpMod = true,
 		Roll = true,
         StamMod = true,

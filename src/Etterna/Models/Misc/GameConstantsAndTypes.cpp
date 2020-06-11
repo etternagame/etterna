@@ -250,6 +250,7 @@ static const char* CalcPatternModNames[] = {
 	"Balance",
 	"Roll",
 	"OHTrill",
+	"VOHTrill",
 	"Chaos",
 	"FlamJam",
 	"WideRangeRoll",

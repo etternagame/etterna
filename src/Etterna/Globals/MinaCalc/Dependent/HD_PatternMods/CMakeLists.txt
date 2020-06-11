@@ -3,6 +3,7 @@ list(APPEND HD_PATTERN_MODS
     "Chaos.h"
     "OHJ.h"
     "OHT.h"
+    "VOHT.h"
     "Roll.h"
     "RunningMan.h"
     "WideRangeAnchor.h"

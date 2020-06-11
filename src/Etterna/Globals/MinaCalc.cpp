@@ -814,6 +814,7 @@ Hand::InitAdjDiff()
 		{
 		  Stream,
 		  OHTrill,
+		  VOHTrill,
 		  Roll,
 		  Chaos,
 		  WideRangeRoll,
@@ -835,6 +836,7 @@ Hand::InitAdjDiff()
 		  WideRangeJumptrill,
 		  WideRangeRoll,
 		  OHTrill,
+		  VOHTrill,
 		  // Roll,
 		  // WideRangeAnchor,
 		},
@@ -846,6 +848,7 @@ Hand::InitAdjDiff()
 		  WideRangeAnchor,
 		  WideRangeRoll,
 		  OHTrill,
+		  VOHTrill,
 		  Roll },
 
 		// stam, nothing, don't handle here
@@ -874,6 +877,7 @@ Hand::InitAdjDiff()
 		// tech, duNNO wat im DOIN
 		{
 		  OHTrill,
+		  VOHTrill,
 		  Balance,
 		  Roll,
 		  OHJumpMod,

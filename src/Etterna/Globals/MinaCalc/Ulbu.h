@@ -31,6 +31,7 @@
 #include "Dependent/HD_PatternMods/Balance.h"
 #include "Dependent/HD_PatternMods/Roll.h"
 #include "Dependent/HD_PatternMods/OHT.h"
+#include "Dependent/HD_PatternMods/VOHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
 #include "Dependent/HD_PatternMods/WideRangeBalance.h"
 #include "Dependent/HD_PatternMods/WideRangeRoll.h"
@@ -95,6 +96,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	RollMod _roll;
 	BalanceMod _bal;
 	OHTrillMod _oht;
+	VOHTrillMod _voht;
 	ChaosMod _ch;
 	RunningManMod _rm;
 	WideRangeBalanceMod _wrb;
@@ -126,6 +128,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			_doots[h][_bal._pmod].resize(_itv_rows.size());
 			_doots[h][_roll._pmod].resize(_itv_rows.size());
 			_doots[h][_oht._pmod].resize(_itv_rows.size());
+			_doots[h][_voht._pmod].resize(_itv_rows.size());
 			_doots[h][_ch._pmod].resize(_itv_rows.size());
 			_doots[h][_rm._pmod].resize(_itv_rows.size());
 			_doots[h][_wrb._pmod].resize(_itv_rows.size());
@@ -303,6 +306,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
+		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
 
 		_wrr.advance_sequencing(_mhi->_bt,
@@ -319,6 +323,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void setup_dependent_mods()
 	{
 		_oht.setup();
+		_voht.setup();
 		_roll.setup();
 		_rm.setup();
 		_wrr.setup();
@@ -331,6 +336,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		doot[_ohj._pmod][itv] = _ohj(_mitvhi);
 		doot[_oht._pmod][itv] = _oht(_mitvhi._itvhi);
+		doot[_voht._pmod][itv] = _voht(_mitvhi._itvhi);
 		doot[_bal._pmod][itv] = _bal(_mitvhi._itvhi);
 		doot[_roll._pmod][itv] = _roll(_mitvhi._itvhi, _seq);
 		doot[_ch._pmod][itv] = _ch(_mitvhi._itvhi.get_taps_nowi());
@@ -349,6 +355,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		// dont do this here, testing internal smooth as advance
 		// Smooth(doot[_roll._pmod], neutral);
 		Smooth(doot[_oht._pmod], neutral);
+		Smooth(doot[_voht._pmod], neutral);
 		Smooth(doot[_ch._pmod], neutral);
 		Smooth(doot[_rm._pmod], neutral);
 		Smooth(doot[_wrr._pmod], neutral);
@@ -366,6 +373,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_bal.full_reset();
 		_roll.full_reset();
 		_oht.full_reset();
+		_voht.full_reset();
 		_ch.full_reset();
 		_rm.full_reset();
 		_wrr.full_reset();
@@ -589,6 +597,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
+		load_params_for_mod(&params, _voht._params, _oht.name);
 		load_params_for_mod(&params, _ch._params, _ch.name);
 		load_params_for_mod(&params, _rm._params, _rm.name);
 		load_params_for_mod(&params, _wrb._params, _wrb.name);
@@ -613,6 +622,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
+		calcparams->AppendChild(make_mod_param_node(_voht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_ch._params, _ch.name));
 		calcparams->AppendChild(make_mod_param_node(_rm._params, _rm.name));
 		calcparams->AppendChild(make_mod_param_node(_wrb._params, _wrb.name));
