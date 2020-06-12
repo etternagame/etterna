@@ -208,19 +208,17 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		int highest_base_skillset = max_index(mcbloop);
 		float base = mcbloop[highest_base_skillset];
 
-		// rerun all with stam on, optimize by starting at
-		// the non-stam adjusted base value for each
-		// skillset we can actually set the stam floor to <
-		// 1 to shift the curve a bit
-		// do we actually need to rerun _all_ with stam on?
-		// we gain significant speed from not doing so, however the tradeoff is
-		// files that are close in 2/3 skillsets will have the stam bonus
-		// stripped from the second and third components, devaluing the file as
-		// a whole, we could run it for the 2nd/3rd highest skillsets but i'm
-		// too lazy to implement that right now, the major concern here is the
-		// cost of jack stam, so i think we can just get away with throwing out
-		// jack stam calculations for anything that isn't jackspeed (or tech
-		// since atm they're doubling up a bit)
+		/* rerun all with stam on, optimize by starting at the non-stam adjusted
+		 * base value for each skillset we can actually set the stam floor to <
+		 * 1 to shift the curve a bit do we actually need to rerun _all_ with
+		 * stam on? we gain significant speed from not doing so, however the
+		 * tradeoff is files that are close in 2/3 skillsets will have the stam
+		 * bonus stripped from the second and third components, devaluing the
+		 * file as a whole, we could run it for the 2nd/3rd highest skillsets
+		 * but i'm too lazy to implement that right now, the major concern here
+		 * is the cost of jack stam, so i think we can just get away with
+		 * throwing out jack stam calculations for anything that isn't jackspeed
+		 * (or tech since atm they're doubling up a bit) */
 		for (int i = 0; i < NUM_Skillset; ++i) {
 			if (i == Skill_JackSpeed) {
 				if (highest_base_skillset == Skill_JackSpeed ||
@@ -234,31 +232,24 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			}
 		}
 
-		// all relative scaling to specific skillsets should
-		// occur before this point, not after (it ended up
-		// this way due to the normalizers which were dumb
-		// and removed) stam is the only skillset that
-		// can/should be normalized to base values without
-		// interfering with anything else (since it's not
-		// based on a type of pattern)
+		/* all relative scaling to specific skillsets should occur before this
+		 * point, not after (it ended up this way due to the normalizers which
+		 * were dumb and removed) stam is the only skillset that can/should be
+		 * normalized to base values without interfering with anything else
+		 * (since it's not based on a type of pattern) */
 
-		// stam jams, stamina should push up the base
-		// ratings for files so files that are more
-		// difficult by virtue of being twice as long for
-		// more or less the same patterns don't get
-		// underrated, however they shouldn't be pushed up a
-		// huge amount either, we want high stream scores to
-		// be equally achieveable on longer or shorter
-		// files, ideally, the stam ratings itself is a
-		// separate consideration and will be scaled to the
-		// degree to which the stamina model affects the
-		// base rating, so while stamina should affect the
-		// base skillset ratings slightly we want the degree
-		// to which it makes files harder to be catalogued
-		// as the stamina rating scaling down stuff that has
-		// no stamina component will help preventing
-		// pollution of stamina leaderboards with charts
-		// that are just very high rated but take no stamina
+		/* stam jams, stamina should push up the base ratings for files so files
+		 * that are more difficult by virtue of being twice as long for more or
+		 * less the same patterns don't get underrated, however they shouldn't
+		 * be pushed up a huge amount either, we want high stream scores to be
+		 * equally achieveable on longer or shorter files, ideally, the stam
+		 * ratings itself is a separate consideration and will be scaled to the
+		 * degree to which the stamina model affects the base rating, so while
+		 * stamina should affect the base skillset ratings slightly we want the
+		 * degree to which it makes files harder to be catalogued as the stamina
+		 * rating scaling down stuff that has no stamina component will help
+		 * preventing pollution of stamina leaderboards with charts that are
+		 * just very high rated but take no stamina */
 		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
 		// super lazy hack to make jackspeed not give stam
@@ -266,38 +257,32 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			poodle_in_a_porta_potty *= 0.9F;
 		}
 
-		// the bigger this number the more stamina has to
-		// influence a file before it counts in the stam
-		// skillset, i.e. something that only benefits 2%
-		// from the stam modifiers will drop below the 1.0
-		// mark and move closer to 0 with the pow, resulting
-		// in a very low stamina rating (we want this),
-		// something that benefits 5.5% will have the 0.5%
-		// overflow multiplied and begin gaining some stam,
-		// and something that benefits 15% will max out the
-		// possible stam rating, which is (currently) a 1.07
-		// multiplier to the base maybe using a multiplier
-		// and not a difference would be better?
+		/* the bigger this number the more stamina has to influence a file
+		 * before it counts in the stam skillset, i.e. something that only
+		 * benefits 2% from the stam modifiers will drop below the 1.0 mark and
+		 * move closer to 0 with the pow, resulting in a very low stamina rating
+		 * (we want this), something that benefits 5.5% will have the 0.5%
+		 * overflow multiplied and begin gaining some stam, and something that
+		 * benefits 15% will max out the possible stam rating, which is
+		 * (currently) a 1.07 multiplier to the base maybe using a multiplier
+		 * and not a difference would be better? */
 		static const float stam_curve_shift = 0.015F;
 		// ends up being a multiplier between ~0.8 and ~1
 		float mcfroggerbopper =
 		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5F);
 
-		// we wanted to shift the curve down a lot before
-		// pow'ing but it was too much to balance out, so we
-		// need to give some back, this is roughly
-		// equivalent of multiplying by 1.05 but also not
-		// really because math we don't want to push up the
-		// high end stuff anymore so just add to let stuff
-		// down the curve catch up a little remember we're
-		// operating on a multiplier
+		/* we wanted to shift the curve down a lot before pow'ing but it was too
+		 * much to balance out, so we need to give some back, this is roughly
+		 * equivalent of multiplying by 1.05 but also not really because math we
+		 * don't want to push up the high end stuff anymore so just add to let
+		 * stuff down the curve catch up a little remember we're operating on a
+		 * multiplier */
 		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8F, 1.08F);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 
-		// sets the 'proper' debug output, doesn't
-		// (shouldn't) affect actual values this is the only
-		// time debugoutput arg should be set to true
+		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
+		// values this is the only time debugoutput arg should be set to true
 		if (debugmode) {
 			Chisel(mcbloop[highest_base_skillset] - 0.16F,
 				   0.32F,
@@ -307,12 +292,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				   true);
 		}
 
-		// the final push down, cap ssrs (score specific
-		// ratings) to stop vibro garbage and calc abuse
-		// from polluting leaderboards too much, a "true" 38
-		// is still unachieved so a cap of 40 [sic] is
-		// _extremely_ generous do this for SCORES only, not
-		// cached file difficulties
+		/* the final push down, cap ssrs (score specific ratings) to stop vibro
+		 * garbage and calc abuse from polluting leaderboards too much, a "true"
+		 * 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
+		 * do this for SCORES only, not cached file difficulties */
 		if (ssr) {
 			static const float ssrcap = 40.F;
 			for (auto& r : mcbloop) {
