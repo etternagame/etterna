@@ -13,7 +13,6 @@
 
 using std::max;
 using std::min;
-using std::pair;
 using std::pow;
 using std::vector;
 

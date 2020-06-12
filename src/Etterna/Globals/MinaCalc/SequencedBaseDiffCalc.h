@@ -55,15 +55,20 @@ struct vribbit
 	}
 
 	// final output difficulty for this interval
-	inline auto get_itv_diff() const -> float
+	[[nodiscard]] inline auto get_itv_diff() const -> float
 	{
 		if (row_counter == 0) {
 			return 0.F;
 		}
 
 		float ms_total = 0.F;
-		for (int i = 0; i < row_counter; ++i)
-			ms_total += jk_static.at(i);
+		for (int i = 0; i < row_counter; ++i) {
+			{
+				{
+					ms_total += jk_static.at(i);
+				}
+			}
+		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps((ms_mean + jk_itv_ms_min) / 2.F);
@@ -81,8 +86,13 @@ struct vribbit
 
 	inline void advance_jk_comp(const float& jk_diff)
 	{
-		if (row_counter >= max_rows_for_single_interval)
-			return;
+		if (row_counter >= max_rows_for_single_interval) {
+			{
+				{
+					return;
+				}
+			}
+		}
 
 		jk_static.at(row_counter) = jk_diff;
 		jk_itv_ms_min = max(jk_itv_ms_min, jk_diff);
@@ -114,8 +124,13 @@ struct ceejay
 
 	inline void advance_base(const float& any_ms)
 	{
-		if (row_counter >= max_rows_for_single_interval)
-			return;
+		if (row_counter >= max_rows_for_single_interval) {
+			{
+				{
+					return;
+				}
+			}
+		}
 
 		// pushing back ms values, so multiply to nerf
 		float pewpew = 3.F;
@@ -161,15 +176,20 @@ struct ceejay
 	}
 
 	// final output difficulty for this interval
-	inline auto get_itv_diff() const -> float
+	[[nodiscard]] inline auto get_itv_diff() const -> float
 	{
 		if (row_counter == 0) {
 			return 0.F;
 		}
 
 		float ms_total = 0.F;
-		for (int i = 0; i < row_counter; ++i)
-			ms_total += cj_static.at(i);
+		for (int i = 0; i < row_counter; ++i) {
+			{
+				{
+					ms_total += cj_static.at(i);
+				}
+			}
+		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);
@@ -212,8 +232,13 @@ struct techyo
 	// if this looks ridiculous, that's because it is
 	inline void advance_base(const SequencerGeneral& seq, const col_type& ct)
 	{
-		if (row_counter >= max_rows_for_single_interval)
-			return;
+		if (row_counter >= max_rows_for_single_interval) {
+			{
+				{
+					return;
+				}
+			}
+		}
 
 		float a = seq.get_sc_ms_now(ct);
 		float b = ms_init;
@@ -228,7 +253,7 @@ struct techyo
 		float pineapple = seq._mw_any_ms.get_cv_of_window(4);
 		float porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
 		float sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
-		float oioi = 0.5f;
+		float oioi = 0.5F;
 		pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
 		porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
 		sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
@@ -264,7 +289,7 @@ struct techyo
 
 	// final output difficulty for this interval, merges base diff, runningman
 	// anchor diff
-	inline auto get_itv_diff(const float& nps_base) const -> float
+	[[nodiscard]] inline auto get_itv_diff(const float& nps_base) const -> float
 	{
 		// for now do simple thing, for this interval either use the higher
 		// between weighted adjusted ms/nps base and runningman diff
@@ -296,15 +321,20 @@ struct techyo
 
 	// get the interval base diff, which will then be merged via weighted
 	// average with npsbase, and then compared to max_rm diff
-	inline auto get_tc_base() const -> float
+	[[nodiscard]] inline auto get_tc_base() const -> float
 	{
 		if (row_counter == 0) {
 			return 0.F;
 		}
 
 		float ms_total = 0.F;
-		for (int i = 0; i < row_counter; ++i)
-			ms_total += tc_static.at(i);
+		for (int i = 0; i < row_counter; ++i) {
+			{
+				{
+					ms_total += tc_static.at(i);
+				}
+			}
+		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);

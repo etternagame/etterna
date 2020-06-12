@@ -320,8 +320,8 @@ struct SequencerGeneral
 		_mw_any_ms(ms_now);
 	}
 
-	inline auto get_sc_ms_now(const col_type& ct, bool lower = true) const
-	  -> float
+	[[nodiscard]] inline auto get_sc_ms_now(const col_type& ct,
+											bool lower = true) const -> float
 	{
 		if (ct == col_init) {
 
@@ -350,8 +350,14 @@ struct SequencerGeneral
 		return _mw_sc_ms[ct].get_now();
 	}
 
-	inline auto get_any_ms_now() const -> float { return _mw_any_ms.get_now(); }
-	inline auto get_cc_ms_now() const -> float { return _mw_cc_ms.get_now(); }
+	[[nodiscard]] inline auto get_any_ms_now() const -> float
+	{
+		return _mw_any_ms.get_now();
+	}
+	[[nodiscard]] inline auto get_cc_ms_now() const -> float
+	{
+		return _mw_cc_ms.get_now();
+	}
 
 	inline void full_reset()
 	{

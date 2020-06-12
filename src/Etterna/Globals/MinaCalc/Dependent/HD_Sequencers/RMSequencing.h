@@ -526,7 +526,7 @@ struct RM_Sequencer
 		_last_rmb = _rmb;
 	}
 
-	inline auto get_difficulty() const -> float
+	[[nodiscard]] inline auto get_difficulty() const -> float
 	{
 		if (_status == rm_inactive || _rm._len < 3) {
 			return 1.F;

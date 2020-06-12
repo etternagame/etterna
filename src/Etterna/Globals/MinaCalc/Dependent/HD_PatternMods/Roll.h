@@ -77,7 +77,7 @@ struct RollMod
 		//_roll.advance(mt, _seq);
 	}
 
-	inline void set_pmod(const ItvHandInfo& itvhi, const SequencerGeneral& _seq)
+	inline void set_pmod(const ItvHandInfo& itvhi, const SequencerGeneral&  /*_seq*/)
 	{
 		if (itvhi.get_taps_nowi() == 0) {
 			pmod = neutral;

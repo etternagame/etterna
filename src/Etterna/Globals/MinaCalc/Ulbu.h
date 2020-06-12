@@ -173,14 +173,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		// sequencing just set only one hand's values and we'll copy them
 		// over (or figure out how not to need to) later
 
-		_pmods.set_agnostic(_s._pmod, _s(_mitvi), itv);
-		_pmods.set_agnostic(_js._pmod, _js(_mitvi), itv);
-		_pmods.set_agnostic(_hs._pmod, _hs(_mitvi), itv);
-		_pmods.set_agnostic(_cj._pmod, _cj(_mitvi), itv);
-		_pmods.set_agnostic(_cjd._pmod, _cjd(_mitvi), itv);
-		_pmods.set_agnostic(_fj._pmod, _fj(), itv);
-		_pmods.set_agnostic(_tt._pmod, _tt(), itv);
-		_pmods.set_agnostic(_tt2._pmod, _tt2(), itv);
+		PatternMods::set_agnostic(_s._pmod, _s(_mitvi), itv);
+		PatternMods::set_agnostic(_js._pmod, _js(_mitvi), itv);
+		PatternMods::set_agnostic(_hs._pmod, _hs(_mitvi), itv);
+		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv);
+		PatternMods::set_agnostic(_cjd._pmod, _cjd(_mitvi), itv);
+		PatternMods::set_agnostic(_fj._pmod, _fj(), itv);
+		PatternMods::set_agnostic(_tt._pmod, _tt(), itv);
+		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -218,10 +218,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			_mitvi.handle_interval_end();
 		}
 
-		_pmods.run_agnostic_smoothing_pass(_itv_rows.size());
+		PatternMods::run_agnostic_smoothing_pass(_itv_rows.size());
 
 		// copy left -> right for agnostic mods
-		_pmods.bruh_they_the_same(_itv_rows.size());
+		PatternMods::bruh_they_the_same(_itv_rows.size());
 	}
 
 #pragma endregion
@@ -231,7 +231,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	// an example, actually all sequencing should be done in objects
 	// following rm_sequencing's template and be stored in mhi, and then
 	// passed to whichever mods need them, but that's for later
-	inline void handle_row_dependent_pattern_advancement(const float& row_time)
+	inline void handle_row_dependent_pattern_advancement(
+	  const float& /*row_time*/)
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
@@ -263,19 +264,19 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_dependent_pmods(const int& itv)
 	{
-		_pmods.set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv);
-		_pmods.set_dependent(hand, _oht._pmod, _oht(_mitvhi._itvhi), itv);
-		_pmods.set_dependent(hand, _voht._pmod, _voht(_mitvhi._itvhi), itv);
-		_pmods.set_dependent(hand, _bal._pmod, _bal(_mitvhi._itvhi), itv);
-		_pmods.set_dependent(
+		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv);
+		PatternMods::set_dependent(hand, _oht._pmod, _oht(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(hand, _voht._pmod, _voht(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(hand, _bal._pmod, _bal(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(
 		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv);
-		_pmods.set_dependent(
+		PatternMods::set_dependent(
 		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv);
-		_pmods.set_dependent(hand, _rm._pmod, _rm(), itv);
-		_pmods.set_dependent(hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv);
-		_pmods.set_dependent(hand, _wrr._pmod, _wrr(_mitvhi._itvhi), itv);
-		_pmods.set_dependent(hand, _wrjt._pmod, _wrjt(_mitvhi._itvhi), itv);
-		_pmods.set_dependent(
+		PatternMods::set_dependent(hand, _rm._pmod, _rm(), itv);
+		PatternMods::set_dependent(hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(hand, _wrr._pmod, _wrr(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(hand, _wrjt._pmod, _wrjt(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv);
 	}
 
@@ -317,8 +318,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 	// update base difficulty stuff
-	inline void update_sequenced_base_diffs(const unsigned& row_notes,
-											const int& row_count,
+	inline void update_sequenced_base_diffs(const unsigned& /*row_notes*/,
+											const int& /*row_count*/,
 											const float& any_ms,
 											const col_type& ct)
 	{
@@ -441,7 +442,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 			}
-			_pmods.run_dependent_smoothing_pass(_itv_rows.size());
+			PatternMods::run_dependent_smoothing_pass(_itv_rows.size());
 
 			// smoothing has been built into the construction process so we
 			// probably don't need these anymore? maybe ms smooth if necessary,

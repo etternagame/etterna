@@ -4,6 +4,8 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
+/* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
+
 enum hands
 {
 	left_hand,
@@ -64,37 +66,42 @@ static const std::vector<CalcPatternMod> dependent_mods = {
 
 struct PatternMods
 {
-	inline void set_agnostic(const CalcPatternMod& pmod,
-							 const float& val,
-							 const int& pos)
+	static inline void set_agnostic(const CalcPatternMod& pmod,
+									const float& val,
+									const int& pos)
 	{
 		doot.at(left_hand).at(pmod).at(pos) = val;
 	}
 
-	inline void set_dependent(const int& hand,
-							  const CalcPatternMod& pmod,
-							  const float& val,
-							  const int& pos)
+	static inline void set_dependent(const int& hand,
+									 const CalcPatternMod& pmod,
+									 const float& val,
+									 const int& pos)
 	{
 		doot.at(hand).at(pmod).at(pos) = val;
 	}
 
-	inline void run_agnostic_smoothing_pass(const int& end_itv)
+	static inline void run_agnostic_smoothing_pass(const int& end_itv)
 	{
 		for (auto& pmod : agnostic_mods) {
 			Smooth(doot.at(left_hand).at(pmod), neutral, end_itv);
 		}
 	}
 
-	inline void run_dependent_smoothing_pass(const int& end_itv)
+	static inline void run_dependent_smoothing_pass(const int& end_itv)
 	{
 		for (auto& pmod : dependent_mods) {
-			for (auto& h : doot)
-				Smooth(h.at(pmod), neutral, end_itv);
+			for (auto& h : doot) {
+				{
+					{
+						Smooth(h.at(pmod), neutral, end_itv);
+					}
+				}
+			}
 		}
 	}
 
-	inline void bruh_they_the_same(const int& end_itv)
+	static inline void bruh_they_the_same(const int& end_itv)
 	{
 		for (auto& pmod : agnostic_mods) {
 			for (int i = 0; i < end_itv; i++) {

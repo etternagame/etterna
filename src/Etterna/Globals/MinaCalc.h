@@ -116,7 +116,7 @@ class Calc
   private:
 	std::vector<std::vector<int>> nervIntervals;
 
-	const float IntervalSpan = 0.5f; // Intervals of time we slice the chart at
+	const float IntervalSpan = 0.5F; // Intervals of time we slice the chart at
 };
 
 MINACALC_API auto
