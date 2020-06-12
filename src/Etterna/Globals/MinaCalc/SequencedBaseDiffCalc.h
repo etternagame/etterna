@@ -221,7 +221,7 @@ struct techyo
 			obliosis = scoliosis / poliosis;
 		}
 		obliosis = CalcClamp(obliosis, 1.f, 10.F);
-		float pewp = cv(std::vector<float>{ scoliosis, poliosis });
+		float pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
 		pewp /= obliosis;
 		float vertebrae = CalcClamp(

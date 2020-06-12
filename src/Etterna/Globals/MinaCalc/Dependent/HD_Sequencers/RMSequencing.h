@@ -536,7 +536,7 @@ struct RM_Sequencer
 
 		// may be unnecessary
 		float glunk =
-		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 3.F, 0.1F, 1.F);
+		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 4.F, 0.1F, 1.F);
 
 		float pule = (flool + 25.F) / static_cast<float>(_rm._len - 1);
 		float drool = ms_to_scaled_nps(pule);
