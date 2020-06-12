@@ -492,13 +492,14 @@ Hand::InitAdjDiff()
 		  Stream,
 		  OHTrill,
 		  VOHTrill,
-		  Roll,
+		  // Roll,
 		  Chaos,
 		  WideRangeRoll,
 		  WideRangeJumptrill,
 		  FlamJam,
 		  OHJumpMod,
 		  Balance,
+		  RanMan,
 		},
 
 		// js
@@ -514,19 +515,23 @@ Hand::InitAdjDiff()
 		  WideRangeRoll,
 		  OHTrill,
 		  VOHTrill,
+		  RanMan,
 		  // Roll,
 		  // WideRangeAnchor,
 		},
 
 		// hs
-		{ HS,
+		{
+		  HS,
 		  OHJumpMod,
 		  TheThing,
 		  WideRangeAnchor,
 		  WideRangeRoll,
 		  OHTrill,
 		  VOHTrill,
-		  Roll },
+		  // Roll
+		  RanMan,
+		},
 
 		// stam, nothing, don't handle here
 		{},
@@ -542,7 +547,7 @@ Hand::InitAdjDiff()
 		  OHTrill,
 		  VOHTrill,
 		  Balance,
-		  Roll,
+		  // Roll,
 		  OHJumpMod,
 		  Chaos,
 		  WideRangeJumptrill,
@@ -553,6 +558,7 @@ Hand::InitAdjDiff()
 		  WideRangeAnchor,
 		  TheThing,
 		  TheThing2,
+		  RanMan,
 		},
 
 	};

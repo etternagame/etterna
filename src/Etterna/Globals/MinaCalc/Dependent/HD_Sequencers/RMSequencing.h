@@ -274,6 +274,7 @@ struct RM_Sequencer
 		if (had_burst || _rm.off_len > max_burst_len) {
 			return true;
 		}
+
 		// have exceeded the normal limit but not had a burst yet, set
 		// bursting to true and return false
 		is_bursting = true;
