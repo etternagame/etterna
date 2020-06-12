@@ -80,7 +80,8 @@ struct RunningManMod
 	// params for rm_sequencing, these define conditions for resetting
 	// runningmen sequences
 	float max_oht_len = 2.F;
-	float max_off_spacing = 3.F;
+	float max_off_len = 3.F;
+	float max_ot_sh_len = 2.F;
 	float max_burst_len = 6.F;
 	float max_jack_len = 3.F;
 	float max_anch_len = 3.F;
@@ -119,14 +120,13 @@ struct RunningManMod
 
 		// params for rm_sequencing
 		{ "max_oht_len", &max_oht_len },
-		{ "max_off_spacing", &max_off_spacing },
+		{ "max_off_len", &max_off_len },
+		{ "max_off_len", &max_ot_sh_len },
 		{ "max_burst_len", &max_burst_len },
 		{ "max_jack_len", &max_jack_len },
 		{ "max_anch_len", &max_anch_len },
 	};
 #pragma endregion params and param map
-
-	bool debug_lmao = false;
 
 	// stuff for making mod
 	std::array<RM_Sequencer, num_cols_per_hand> rms;
@@ -164,18 +164,16 @@ struct RunningManMod
 	{
 		// don't try to figure out which column a prospective anchor is on, just
 		// run two passes with each assuming a different column
-		rms[col_left]._ct = col_left;
-		rms[col_right]._ct = col_right;
-		rms[col_left].set_params(max_oht_len,
-								 max_off_spacing,
-								 max_burst_len,
-								 max_jack_len,
-								 max_anch_len);
-		rms[col_right].set_params(max_oht_len,
-								  max_off_spacing,
-								  max_burst_len,
-								  max_jack_len,
-								  max_anch_len);
+
+		for (auto& c : ct_loop_no_jumps) {
+			rms[c]._ct = c;
+			rms[c].set_params(max_oht_len,
+							   max_off_len,
+							   max_ot_sh_len,
+							   max_burst_len,
+							   max_jack_len,
+							   max_anch_len);
+		}
 	}
 
 	inline void advance_off_hand_sequencing()

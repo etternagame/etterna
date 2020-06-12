@@ -36,6 +36,9 @@ struct RunningMan
 	// off anchor taps on the same hand, i.e. the 2s in 1211121
 	int off_taps_sh = 0;
 
+	// it's not really a runningman if the anchor is on the off column is it
+	int ot_sh_len = 0;
+
 	// jack taps (like, actual jacks in the runningman)
 	int jack_taps = 0;
 	int jack_len = 0;
@@ -63,6 +66,7 @@ struct RunningMan
 	inline void add_off_tap_sh()
 	{
 		++off_taps_sh;
+		++ot_sh_len;
 		add_off_tap();
 	}
 
@@ -131,7 +135,8 @@ struct RM_Sequencer
 {
 	// params.. loaded by runningman and then set from there
 	int max_oht_len = 0;
-	int max_off_spacing = 0;
+	int max_off_len = 0;
+	int max_ot_sh_len = 0;
 	int max_burst_len = 0;
 	int max_jack_len = 0;
 
@@ -141,12 +146,14 @@ struct RM_Sequencer
 
 	inline void set_params(const float& moht,
 						   const float& moff,
+						   const float& motsh,
 						   const float& mburst,
 						   const float& mjack,
 						   const float& manch)
 	{
 		max_oht_len = static_cast<int>(moht);
-		max_off_spacing = static_cast<int>(moff);
+		max_off_len = static_cast<int>(moff);
+		max_ot_sh_len = static_cast<int>(motsh);
 		max_burst_len = static_cast<int>(mburst);
 		max_jack_len = static_cast<int>(mjack);
 		max_anchor_len = static_cast<int>(manch);
@@ -265,7 +272,7 @@ struct RM_Sequencer
 	inline auto off_len_exceeds_max() -> bool
 	{
 		// haven't exceeded anything
-		if (_rm.off_len <= max_off_spacing) {
+		if (_rm.off_len <= max_off_len) {
 			return false;
 		}
 
@@ -279,6 +286,11 @@ struct RM_Sequencer
 		// bursting to true and return false
 		is_bursting = true;
 		return false;
+	}
+
+	inline auto ot_sh_len_exceeds_max() -> bool
+	{
+		return _rm.ot_sh_len > max_ot_sh_len;
 	}
 
 	inline auto jack_len_exceeds_max() -> bool
@@ -338,7 +350,7 @@ struct RM_Sequencer
 	{
 		// add before running length checks
 		_rm.add_off_tap_sh();
-		if (off_len_exceeds_max()) {
+		if (off_len_exceeds_max() || ot_sh_len_exceeds_max()) {
 			// don't reset anything, just flag as inactive
 			_status = rm_inactive;
 		} else {
@@ -462,6 +474,7 @@ struct RM_Sequencer
 		switch (bt) {
 			case base_left_right:
 			case base_right_left:
+			case base_single_single:
 				if (_ct == ct) {
 					// this is an anchor
 					_rmb = rmb_anchor;
@@ -487,7 +500,6 @@ struct RM_Sequencer
 					_rmb = rmb_jack;
 				}
 				break;
-			case base_single_single:
 			case base_single_jump:
 			case base_jump_jump:
 				// if last note was an offhand tap, this is by
@@ -539,8 +551,8 @@ struct RM_Sequencer
 		float glunk =
 		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 4.F, 0.1F, 1.F);
 
-		float pule = (flool + 25.F) / static_cast<float>(_rm._len - 1);
+		float pule = (flool) / static_cast<float>(_rm._len - 1);
 		float drool = ms_to_scaled_nps(pule);
-		return drool * glunk;
+		return drool /** glunk*/;
 	}
 };
