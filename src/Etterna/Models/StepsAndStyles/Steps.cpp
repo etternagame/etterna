@@ -433,7 +433,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 	int prev_vers = GetCalcVersion() - 1;
 	if (vh.count(prev_vers))
 		last_msd = vh.at(prev_vers);
-	LOG->Trace("%0.2f : %0.2fx : %+0.2f : (%+06.2f%%) : %+0.2f : %+0.2f : %s",
+	LOG->Trace("%0.2f : %0.2fx : %+0.2f : (%+06.2f%%) : %+0.2f : %s",
 			   newcalc[ss],
 			   rate,
 			   newcalc[ss] - ev,
