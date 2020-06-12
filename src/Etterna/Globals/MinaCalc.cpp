@@ -856,19 +856,6 @@ Hand::InitAdjDiff()
 
 		// jackspeed
 		{
-		  OHTrill,
-		  Balance,
-		  Roll,
-		  OHJumpMod,
-		  Chaos,
-		  WideRangeJumptrill,
-		  WideRangeBalance,
-		  WideRangeRoll,
-		  FlamJam,
-		  RanMan,
-		  WideRangeAnchor,
-		  TheThing,
-		  TheThing2,
 		},
 
 		// chordjack
