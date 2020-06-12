@@ -16,16 +16,26 @@ using std::min;
 using std::pow;
 using std::vector;
 
-static const char note_map[16][5]{ "----", "1---", "-1--", "11--",
-								   "--1-", "1-1-", "-11-", "111-",
-								   "---1", "1--1", "-1-1", "11-1",
-								   "--11", "1-11", "-111", "1111" };
+static const std::array<std::pair<unsigned, string_view>, 16> note_mapping = {
+	{ { 0U, "----" },
+	  { 1U, "1---" },
+	  { 2U, "-1--" },
+	  { 3U, "11--" },
+	  { 4U, "--1-" },
+	  { 5U, "1-1-" },
+	  { 6U, "-11-" },
+	  { 7U, "111-" },
+	  { 8U, "---1" },
+	  { 9U, "1--1" },
+	  { 10U, "-1-1" },
+	  { 11U, "11-1" },
+	  { 12U, "--11" },
+	  { 13U, "1-11" },
+	  { 14U, "-111" },
+	  { 15U, "1111" } }
+};
 
-// ***note*** if we want max control over stamina we need to have one model for
-// affecting the other skillsets to a certain degree, enough to push up longer
-// stream ratings into contention with shorter ones, and another for both a more
-// granular and influential modifier to calculate the end stamina rating with
-// so todo on that
+/* Note: if we want max control over stamina we need to have one model for affecting the other skillsets to a certain degree, enough to push up longer stream ratings into contention with shorter ones, and another for both a more granular and influential modifier to calculate the end stamina rating with so todo on that */  
 
 // Stamina Model params
 static const float stam_ceil = 1.075234F; // stamina multiplier max
