@@ -15,24 +15,10 @@
 typedef std::vector<std::vector<float>> MinaSD;
 using Finger = std::vector<std::vector<float>>;
 using ProcessedFingers = std::vector<Finger>;
-using JackSeq = std::vector<float>;
-
-// number of pattern mods yes i know this is dumb help
-// we want to group stamina adjustment with the others for
-// display purposes but we don't want it when initializing pattern arrays
-// because it doesn't get generated until after we're done
-const static int ModCount = NUM_CalcPatternMod;
 
 class Hand
 {
   public:
-	/*	Averages nps and ms estimates for difficulty to get a rough initial
-	value. This is relatively robust as patterns that get overrated by nps
-	estimates are underrated by ms estimates, and vice versa. Pattern modifiers
-	are used to adjust for circumstances in which this is not true. The result
-	is output to v_itvNPSdiff and v_itvMSdiff. */
-	void InitBaseDiff(Finger& f1, Finger& f2);
-
 	// I don't know why this was ever being done in the internal loop, only the
 	// stam adjusted difficulties were dependent on a player_skill input, these
 	// values are static. Just calculate them for each skillset after pattern
@@ -65,25 +51,12 @@ class Hand
 					  bool stam,
 					  bool debug = false);
 
-	std::vector<float> doot[ModCount];
-	std::vector<int> v_itvpoints; // Point allotment for each interval
-	std::vector<float>
-	  soap[NUM_CalcDiffValue]; // Calculated difficulty for each interval
+	// Point allotment for each interval
+	std::vector<int> v_itvpoints;
 
-	// not necessarily self extraplanetary
-	// apply stam model to these (but output is sent to stam_adj_diff, not
-	// modified here)
-	std::vector<float> base_adj_diff[NUM_Skillset];
-	// but use these as the input for model
-	std::vector<float> base_diff_for_stam_mod[NUM_Skillset];
-
-	// pattern adjusted difficulty, allocate only once, stam needs to be based
-	// on the above, and it needs to be recalculated every time the player_skill
-	// value changes, again based on the above, technically we could use the
-	// skill_stamina element of the arrays to store this and save an allocation
-	// but that might just be too confusing idk
-	std::vector<float> stam_adj_diff;
 	std::vector<std::vector<std::vector<float>>> debugValues;
+
+	int hi = 0;
 };
 
 class Calc
@@ -99,7 +72,6 @@ class Calc
 
 	bool debugmode = false;
 	bool ssr = true; // set to true for scores, false for cache
-	int numitv = 0;
 
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
 	before passing the results to the hand initialization functions. Also passes
@@ -138,8 +110,8 @@ class Calc
 				bool stamina,
 				bool debugoutput = false) -> float;
 
-	Hand left_hand;
-	Hand right_hand;
+	Hand l_hand;
+	Hand r_hand;
 
   private:
 	std::vector<std::vector<int>> nervIntervals;

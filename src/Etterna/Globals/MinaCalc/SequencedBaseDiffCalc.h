@@ -15,6 +15,30 @@ static thread_local std::array<float, max_rows_for_single_interval> jk_static;
 static thread_local std::array<float, max_rows_for_single_interval> cj_static;
 static thread_local std::array<float, max_rows_for_single_interval> tc_static;
 
+// Calculated difficulty for each interval
+static thread_local std::array<
+  std::array<std::array<float, max_intervals>, NUM_CalcDiffValue>,
+  num_hands>
+  soap;
+
+// not necessarily self extraplanetary
+// apply stam model to these (but output is sent to stam_adj_diff, not modified
+// here)
+static thread_local std::
+  array<std::array<std::array<float, max_intervals>, NUM_Skillset>, num_hands>
+	base_adj_diff;
+// but use these as the input for model
+static thread_local std::
+  array<std::array<std::array<float, max_intervals>, NUM_Skillset>, num_hands>
+	base_diff_for_stam_mod;
+
+// pattern adjusted difficulty, allocate only once, stam needs to be based
+// on the above, and it needs to be recalculated every time the player_skill
+// value changes, again based on the above, technically we could use the
+// skill_stamina element of the arrays to store this and save an allocation
+// but that might just be too confusing idk
+static thread_local std::array<float, max_intervals> stam_adj_diff;
+
 /* NOTE: all _incoming_ diffs should be stored as MS values, and only converted
  * to scaled NPS on the way out */
 

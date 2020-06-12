@@ -1,7 +1,5 @@
 #pragma once
 
-#include <deque>
-
 // stepmania garbage
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
@@ -53,9 +51,6 @@ struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 
-	// basic data we need
-	vector<float>* _doots[num_hands]{};
-	vector<float>* _diffs[num_hands]{};
 	vector<NoteInfo> _ni;
 	vector<vector<int>> _itv_rows;
 	float _rate = 0.F;
@@ -86,12 +81,12 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	SequencerGeneral _seq;
 
-	// so we can make pattern mods
+	// so we can make pattern mods with these
 	StreamMod _s;
 	JSMod _js;
 	HSMod _hs;
 	CJMod _cj;
-	CJDensityMod _cjq;
+	CJDensityMod _cjd;
 	OHJumpModGuyThing _ohj;
 	RollMod _roll;
 	BalanceMod _bal;
@@ -107,36 +102,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	TheThingLookerFinderThing _tt;
 	TheThingLookerFinderThing2 _tt2;
 
+	// and put them here
+	PatternMods _pmods;
+
 	// so we can apply them here
 	diffz _diffz;
-
-	inline void allocate_doot()
-	{
-		// agnostics
-		_doots[left_hand][_s._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_js._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_hs._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_cj._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_cjq._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_fj._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_tt._pmod].resize(_itv_rows.size());
-		_doots[left_hand][_tt2._pmod].resize(_itv_rows.size());
-
-		// dependents
-		for (auto& h : { left_hand, right_hand }) {
-			_doots[h][_ohj._pmod].resize(_itv_rows.size());
-			_doots[h][_bal._pmod].resize(_itv_rows.size());
-			_doots[h][_roll._pmod].resize(_itv_rows.size());
-			_doots[h][_oht._pmod].resize(_itv_rows.size());
-			_doots[h][_voht._pmod].resize(_itv_rows.size());
-			_doots[h][_ch._pmod].resize(_itv_rows.size());
-			_doots[h][_rm._pmod].resize(_itv_rows.size());
-			_doots[h][_wrb._pmod].resize(_itv_rows.size());
-			_doots[h][_wrr._pmod].resize(_itv_rows.size());
-			_doots[h][_wrjt._pmod].resize(_itv_rows.size());
-			_doots[h][_wra._pmod].resize(_itv_rows.size());
-		}
-	}
 
 	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
 	{
@@ -166,92 +136,51 @@ struct TheGreatBazoinkazoinkInTheSky
 		_ni = ni;
 	}
 
-	inline void heres_my_diffs(vector<float> lsoap[], vector<float> rsoap[])
-	{
-		_diffs[left_hand] = lsoap;
-		_diffs[right_hand] = rsoap;
-	}
-
 	inline void operator()(const vector<vector<int>>& itv_rows,
-						   const float& rate,
-						   vector<float> ldoot[],
-						   vector<float> rdoot[])
+						   const float& rate)
 	{
 		// set interval/offset pass specific stuff
-		_doots[left_hand] = ldoot;
-		_doots[right_hand] = rdoot;
 		_itv_rows = itv_rows;
 		_rate = rate;
 
-		allocate_doot();
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
 	}
 
 #pragma region hand agnostic pmod loop
+
 	inline void advance_agnostic_sequencing()
 	{
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
 	}
+
 	inline void setup_agnostic_pmods()
 	{
 		// these pattern mods operate on all columns, only need basic meta
 		// interval data, and do not need any more advanced pattern
 		// sequencing
-		for (auto& a : _doots) {
-			a->resize(_itv_rows.size());
-
-			_fj.setup();
-			_tt.setup();
-			_tt2.setup();
-		}
+		_fj.setup();
+		_tt.setup();
+		_tt2.setup();
 	}
 
-	inline void set_agnostic_pmods(vector<float> doot[], const int& itv)
+	inline void set_agnostic_pmods(const int& itv)
 	{
 		// these pattern mods operate on all columns, only need basic meta
 		// interval data, and do not need any more advanced pattern
 		// sequencing just set only one hand's values and we'll copy them
 		// over (or figure out how not to need to) later
-		doot[_s._pmod][itv] = _s(_mitvi);
-		doot[_js._pmod][itv] = _js(_mitvi);
-		doot[_hs._pmod][itv] = _hs(_mitvi);
-		doot[_cj._pmod][itv] = _cj(_mitvi);
-		doot[_cjq._pmod][itv] = _cjq(_mitvi);
-		doot[_fj._pmod][itv] = _fj();
-		doot[_tt._pmod][itv] = _tt();
-		doot[_tt2._pmod][itv] = _tt2();
-	}
 
-	inline void run_agnostic_smoothing_pass(vector<float> doot[])
-	{
-		Smooth(doot[_s._pmod], neutral);
-		Smooth(doot[_js._pmod], neutral);
-		Smooth(doot[_js._pmod], neutral);
-		Smooth(doot[_hs._pmod], neutral);
-		Smooth(doot[_cj._pmod], neutral);
-		Smooth(doot[_cjq._pmod], neutral);
-		Smooth(doot[_fj._pmod], neutral);
-
-		// run twice
-		Smooth(doot[_tt._pmod], neutral);
-		Smooth(doot[_tt._pmod], neutral);
-		Smooth(doot[_tt2._pmod], neutral);
-		Smooth(doot[_tt2._pmod], neutral);
-	}
-
-	inline void bruh_they_the_same()
-	{
-		_doots[right_hand][_s._pmod] = _doots[left_hand][_s._pmod];
-		_doots[right_hand][_js._pmod] = _doots[left_hand][_js._pmod];
-		_doots[right_hand][_hs._pmod] = _doots[left_hand][_hs._pmod];
-		_doots[right_hand][_cj._pmod] = _doots[left_hand][_cj._pmod];
-		_doots[right_hand][_cjq._pmod] = _doots[left_hand][_cjq._pmod];
-		_doots[right_hand][_fj._pmod] = _doots[left_hand][_fj._pmod];
-		_doots[right_hand][_tt._pmod] = _doots[left_hand][_tt._pmod];
-		_doots[right_hand][_tt2._pmod] = _doots[left_hand][_tt2._pmod];
+		_pmods.set_agnostic(_s._pmod, _s(_mitvi), itv);
+		_pmods.set_agnostic(_js._pmod, _js(_mitvi), itv);
+		_pmods.set_agnostic(_hs._pmod, _hs(_mitvi), itv);
+		_pmods.set_agnostic(_cj._pmod, _cj(_mitvi), itv);
+		_pmods.set_agnostic(_cjd._pmod, _cjd(_mitvi), itv);
+		_pmods.set_agnostic(_fj._pmod, _fj(), itv);
+		_pmods.set_agnostic(_tt._pmod, _tt(), itv);
+		_pmods.set_agnostic(_tt2._pmod, _tt2(), itv);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -259,8 +188,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		setup_agnostic_pmods();
 
 		// don't use s_init here, we know the first row is always 0.F and
-		// therefore the first interval starts at 0.F (unless we do offset
-		// passes but that's for later)
+		// therefore the first interval starts at 0.F
 		float row_time = 0.F;
 		unsigned row_notes = 0;
 		int row_count = 0;
@@ -284,17 +212,18 @@ struct TheGreatBazoinkazoinkInTheSky
 			}
 
 			// run pattern mod generation for hand agnostic mods
-			set_agnostic_pmods(_doots[left_hand], itv);
+			set_agnostic_pmods(itv);
 
 			// reset any accumulated interval info and set cur index number
 			_mitvi.handle_interval_end();
 		}
 
-		run_agnostic_smoothing_pass(_doots[left_hand]);
+		_pmods.run_agnostic_smoothing_pass(_itv_rows.size());
 
 		// copy left -> right for agnostic mods
-		bruh_they_the_same();
+		_pmods.bruh_they_the_same(_itv_rows.size());
 	}
+
 #pragma endregion
 
 #pragma region hand dependent pmod loop
@@ -332,36 +261,22 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wra.setup();
 	}
 
-	inline void set_dependent_pmods(vector<float> doot[], const int& itv)
+	inline void set_dependent_pmods(const int& itv)
 	{
-		doot[_ohj._pmod][itv] = _ohj(_mitvhi);
-		doot[_oht._pmod][itv] = _oht(_mitvhi._itvhi);
-		doot[_voht._pmod][itv] = _voht(_mitvhi._itvhi);
-		doot[_bal._pmod][itv] = _bal(_mitvhi._itvhi);
-		doot[_roll._pmod][itv] = _roll(_mitvhi._itvhi, _seq);
-		doot[_ch._pmod][itv] = _ch(_mitvhi._itvhi.get_taps_nowi());
-		doot[_rm._pmod][itv] = _rm();
-		doot[_wrb._pmod][itv] = _wrb(_mitvhi._itvhi);
-		doot[_wrr._pmod][itv] = _wrr(_mitvhi._itvhi);
-		doot[_wrjt._pmod][itv] = _wrjt(_mitvhi._itvhi);
-		doot[_wra._pmod][itv] = _wra(_mitvhi._itvhi, _seq._as);
-	}
-
-	inline void run_dependent_smoothing_pass(vector<float> doot[])
-	{
-		// need to split upohj and cjohj into 2 pmod objects
-		Smooth(doot[_ohj._pmod], neutral);
-		Smooth(doot[_bal._pmod], neutral);
-		// dont do this here, testing internal smooth as advance
-		// Smooth(doot[_roll._pmod], neutral);
-		Smooth(doot[_oht._pmod], neutral);
-		Smooth(doot[_voht._pmod], neutral);
-		Smooth(doot[_ch._pmod], neutral);
-		Smooth(doot[_rm._pmod], neutral);
-		Smooth(doot[_wrr._pmod], neutral);
-		Smooth(doot[_wrjt._pmod], neutral);
-		Smooth(doot[_wrb._pmod], neutral);
-		Smooth(doot[_wra._pmod], neutral);
+		_pmods.set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv);
+		_pmods.set_dependent(hand, _oht._pmod, _oht(_mitvhi._itvhi), itv);
+		_pmods.set_dependent(hand, _voht._pmod, _voht(_mitvhi._itvhi), itv);
+		_pmods.set_dependent(hand, _bal._pmod, _bal(_mitvhi._itvhi), itv);
+		_pmods.set_dependent(
+		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv);
+		_pmods.set_dependent(
+		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv);
+		_pmods.set_dependent(hand, _rm._pmod, _rm(), itv);
+		_pmods.set_dependent(hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv);
+		_pmods.set_dependent(hand, _wrr._pmod, _wrr(_mitvhi._itvhi), itv);
+		_pmods.set_dependent(hand, _wrjt._pmod, _wrjt(_mitvhi._itvhi), itv);
+		_pmods.set_dependent(
+		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv);
 	}
 
 	// reset any moving windows or values when starting the other hand, this
@@ -391,14 +306,13 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void handle_dependent_interval_end(const int& itv)
 	{
 		// run pattern mod generation for hand dependent mods
-		set_dependent_pmods(_doots[hand], itv);
+		set_dependent_pmods(itv);
 
 		// run sequenced base difficulty generation, base diff is always hand
 		// dependent so we do it in this loop
 		set_sequenced_base_diffs(itv);
 
 		_mitvhi.interval_end();
-		_seq.interval_end();
 		_diffz.interval_end();
 	}
 
@@ -408,7 +322,7 @@ struct TheGreatBazoinkazoinkInTheSky
 											const float& any_ms,
 											const col_type& ct)
 	{
-		
+
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
 		_diffz._jk.advance_base(_seq._as.get_highest_anchor_difficulty());
@@ -424,13 +338,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_sequenced_base_diffs(const int& itv)
 	{
-		_diffs[hand][CJBase][itv] = _diffz._cj.get_itv_diff();
-		_diffs[hand][JackBase][itv] = _diffz._jk.get_itv_diff();
+		soap.at(hand)[CJBase][itv] = _diffz._cj.get_itv_diff();
+		soap.at(hand)[JackBase][itv] = _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_diffs[hand][TechBase][itv] =
-		  _diffz._tc.get_itv_diff(_diffs[hand][NPSBase][itv]);
+		soap.at(hand)[TechBase][itv] =
+		  _diffz._tc.get_itv_diff(soap.at(hand)[NPSBase][itv]);
 	}
 
 	inline void run_dependent_pmod_loop()
@@ -447,6 +361,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			col_type ct = col_init;
 			full_hand_reset();
+
+			Smooth(soap.at(hand).at(NPSBase), 0.F, _itv_rows.size());
 
 			// so we are technically doing this again (twice) and don't to
 			// be doing it, but it makes debugging much less of a pita if we
@@ -524,10 +440,16 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 
 				handle_dependent_interval_end(itv);
-
-
 			}
-			run_dependent_smoothing_pass(_doots[hand]);
+			_pmods.run_dependent_smoothing_pass(_itv_rows.size());
+
+			// smoothing has been built into the construction process so we
+			// probably don't need these anymore? maybe ms smooth if necessary,
+			// or a new ewma
+
+			// Smooth(soap.at(hand).at(JackBase), 0.F, _itv_rows.size());
+			// Smooth(soap.at(hand).at(CJBase), 0.F, _itv_rows.size());
+			// Smooth(soap.at(hand).at(TechBase), 0.F, _itv_rows.size());
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
@@ -595,7 +517,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _js._params, _js.name);
 		load_params_for_mod(&params, _hs._params, _hs.name);
 		load_params_for_mod(&params, _cj._params, _cj.name);
-		load_params_for_mod(&params, _cjq._params, _cjq.name);
+		load_params_for_mod(&params, _cjd._params, _cjd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
@@ -620,7 +542,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_js._params, _js.name));
 		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
-		calcparams->AppendChild(make_mod_param_node(_cjq._params, _cjq.name));
+		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));

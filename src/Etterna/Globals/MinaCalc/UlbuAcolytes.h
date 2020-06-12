@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
+
 enum hands
 {
 	left_hand,
@@ -11,45 +13,94 @@ enum hands
 
 static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
+static const int max_intervals = 20000;
+
+// holds pattern mods
+static thread_local std::array<
+  std::array<std::array<float, max_intervals>, NUM_CalcPatternMod>,
+  num_hands>
+  doot;
 
 inline void
-Smooth(vector<float>& input, float neutral)
+Smooth(std::array<float, max_intervals>& input, float neutral, int end_interval)
 {
 	float f1;
 	float f2 = neutral;
 	float f3 = neutral;
 
-	for (float& i : input) {
+	for (int i = 0; i < end_interval; ++i) {
 		f1 = f2;
 		f2 = f3;
-		f3 = i;
-		i = (f1 + f2 + f3) / 3.F;
+		f3 = input.at(i);
+		input.at(i) = (f1 + f2 + f3) / 3.F;
 	}
 }
 
 inline void
-Smooth(vector<vector<float>>& input, float neutral)
+MSSmooth(std::array<float, max_intervals>& input,
+		 float neutral,
+		 int end_interval)
 {
 	float f1;
 	float f2 = neutral;
-	for (auto& itv : input) {
-		for (float& i : itv) {
-			f1 = f2;
-			f2 = i;
-			i = (f1 + f2 * 2.F) / 3.F;
+
+	for (int i = 0; i < end_interval; ++i) {
+		f1 = f2;
+		f2 = input.at(i);
+		input.at(i) = (f1 + f2) / 2.F;
+	}
+}
+
+static const std::vector<CalcPatternMod> agnostic_mods = {
+	Stream, JS, HS, CJ, CJDensity, FlamJam, TheThing, TheThing2,
+};
+
+static const std::vector<CalcPatternMod> dependent_mods = {
+	OHJumpMod,		  Balance,		 Roll,
+	OHTrill,		  VOHTrill,		 Chaos,
+	WideRangeBalance, WideRangeRoll, WideRangeJumptrill,
+	WideRangeAnchor,  RanMan,
+};
+
+struct PatternMods
+{
+	inline void set_agnostic(const CalcPatternMod& pmod,
+							 const float& val,
+							 const int& pos)
+	{
+		doot.at(left_hand).at(pmod).at(pos) = val;
+	}
+
+	inline void set_dependent(const int& hand,
+							  const CalcPatternMod& pmod,
+							  const float& val,
+							  const int& pos)
+	{
+		doot.at(hand).at(pmod).at(pos) = val;
+	}
+
+	inline void run_agnostic_smoothing_pass(const int& end_itv)
+	{
+		for (auto& pmod : agnostic_mods) {
+			Smooth(doot.at(left_hand).at(pmod), neutral, end_itv);
 		}
 	}
-}
 
-inline void
-DifficultyMSSmooth(vector<float>& input)
-{
-	float f1;
-	float f2 = 0.F;
-
-	for (float& i : input) {
-		f1 = f2;
-		f2 = i;
-		i = (f1 + f2) / 2.F;
+	inline void run_dependent_smoothing_pass(const int& end_itv)
+	{
+		for (auto& pmod : dependent_mods) {
+			for (auto& h : doot)
+				Smooth(h.at(pmod), neutral, end_itv);
+		}
 	}
-}
+
+	inline void bruh_they_the_same(const int& end_itv)
+	{
+		for (auto& pmod : agnostic_mods) {
+			for (int i = 0; i < end_itv; i++) {
+				doot.at(right_hand).at(pmod).at(i) =
+				  doot.at(left_hand).at(pmod).at(i);
+			}
+		}
+	}
+};

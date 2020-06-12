@@ -84,11 +84,7 @@ struct RollMod
 			return;
 		}
 
-		auto loot = _seq.cv_check_sum;
-		auto doot = _seq.itv_row_counter;
-		float zmgoot = loot / static_cast<float>(doot + 1);
-
-		pmod = CalcClamp(base + zmgoot, min_mod, max_mod);
+		pmod = CalcClamp(1.F, min_mod, max_mod);
 	}
 
 	inline auto operator()(const ItvHandInfo& itvhi,
