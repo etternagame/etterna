@@ -35,7 +35,11 @@ static const std::array<std::pair<unsigned, string_view>, 16> note_mapping = {
 	  { 15U, "1111" } }
 };
 
-/* Note: if we want max control over stamina we need to have one model for affecting the other skillsets to a certain degree, enough to push up longer stream ratings into contention with shorter ones, and another for both a more granular and influential modifier to calculate the end stamina rating with so todo on that */  
+/* Note: if we want max control over stamina we need to have one model for
+ * affecting the other skillsets to a certain degree, enough to push up longer
+ * stream ratings into contention with shorter ones, and another for both a more
+ * granular and influential modifier to calculate the end stamina rating with so
+ * todo on that */
 
 // Stamina Model params
 static const float stam_ceil = 1.075234F; // stamina multiplier max
