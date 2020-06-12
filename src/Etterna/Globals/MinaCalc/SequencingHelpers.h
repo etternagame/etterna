@@ -18,9 +18,22 @@ static const float finalscaler = 3.632F;
 static const int max_rows_for_single_interval = 50;
 
 inline auto
-column_count(const int& notes) -> unsigned int
+column_count(const unsigned& notes) -> int
 {
-	return notes % 2 + notes / 2 % 2 + notes / 4 % 2 + notes / 8 % 2;
+	// singles
+	if (notes == 1U || notes == 2U || notes == 4U || notes == 8U)
+		return 1;
+
+	// hands
+	if (notes == 7U || notes == 11U || notes == 13U || notes == 14U)
+		return 3;
+
+	// quad
+	if (notes == 15U)
+		return 4;
+
+	// everything else is a jump
+	return 2;
 }
 
 inline auto
