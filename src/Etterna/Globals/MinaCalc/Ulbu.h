@@ -474,12 +474,14 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					ct = determine_col_type(row_notes, ids);
 
+					// needs to be updated always
+					_diffz._cj.update_flags(row_notes, row_count);
+
 					// handle any special cases that need to be executed on
 					// empty rows for this hand here before moving on, aside
 					// from whatever is in this block _nothing_ else should
 					// update unless there is a note to update with
 					if (ct == col_empty) {
-						_diffz._cj.update_flags(row_notes, row_count);
 						_rm.advance_off_hand_sequencing();
 						if (row_count == 2) {
 							_rm.advance_off_hand_sequencing();
