@@ -368,7 +368,7 @@ struct SequencerGeneral
 		for (auto& c : ct_loop_no_jumps) {
 			_mw_sc_ms.at(c).fill(ms_init);
 		}
-		
+
 		_as.full_reset();
 	}
 
