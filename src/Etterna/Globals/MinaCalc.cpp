@@ -192,7 +192,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// processing
 		if (!continue_calc) {
 			std::cout << "skipping junk file" << std::endl;
-			return gertrude_the_all_max_output;
+			return dimples_the_all_zero_output;
 		}
 
 		TotalMaxPoints();
@@ -378,33 +378,39 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	r_hand.InitAdjDiff();
 
 	// post pattern mod smoothing for cj
-	Smooth(base_adj_diff.at(left_hand).at(Skill_Chordjack), 1.f, numitv);
-	Smooth(base_adj_diff.at(right_hand).at(Skill_Chordjack), 1.f, numitv);
+	Smooth(base_adj_diff.at(left_hand).at(Skill_Chordjack), 1.F, numitv);
+	Smooth(base_adj_diff.at(right_hand).at(Skill_Chordjack), 1.F, numitv);
 
-	//// debug info loop
-	// if (debugmode) {
-	//	for (auto& hp : spoopy) {
-	//		auto& hand = hp.first;
+	std::pair<Hand&, int> spoopy[2] = { { l_hand, 0 }, { r_hand, 1 } };
 
-	//		// pattern mods and base msd never change, set degbug output
-	//		// for them now
+	// debug info loop
+	if (debugmode) {
+		for (auto& hp : spoopy) {
+			auto& hand = hp.first;
 
-	//		// 3 = number of different debug types
-	//		hand.debugValues.resize(3);
-	//		hand.debugValues[0].resize(ModCount);
-	//		hand.debugValues[1].resize(NUM_CalcDiffValue);
-	//		hand.debugValues[2].resize(NUM_CalcDebugMisc);
+			// pattern mods and base msd never change, set degbug output
+			// for them now
 
-	//		for (int i = 0; i < ModCount; ++i) {
-	//			hand.debugValues[0][i] = doot.at(hp.second).at(i);
-	//		}
+			// 3 = number of different debug types
+			hand.debugValues.resize(3);
+			hand.debugValues[0].resize(NUM_CalcPatternMod);
+			hand.debugValues[1].resize(NUM_CalcDiffValue);
+			hand.debugValues[2].resize(NUM_CalcDebugMisc);
 
-	//		// set everything but final adjusted output here
-	//		for (int i = 0; i < NUM_CalcDiffValue - 1; ++i) {
-	//			hand.debugValues[1][i] = hand.soap.at(hi).at(i];
-	//		}
-	//	}
-	//}
+			for (int j = 0; j < numitv; ++j) {
+				for (int i = 0; i < NUM_CalcPatternMod; ++i) {
+					hand.debugValues[0][i].push_back(
+					  doot.at(hp.second).at(i).at(j));
+				}
+
+				// set everything but final adjusted output here
+				for (int i = 0; i < NUM_CalcDiffValue - 1; ++i) {
+					hand.debugValues[1][i].push_back(
+					  soap.at(hp.second).at(i).at(j));
+				}
+			}
+		}
+	}
 	return true;
 }
 
@@ -605,10 +611,6 @@ Hand::InitAdjDiff()
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
-					adj_diff *=
-					  CalcClamp(fastsqrt(doot.at(hi).at(RanMan).at(i) - 0.125F),
-								1.F,
-								1.05F);
 					break;
 
 				// test calculating stam for js/hs on max js/hs diff
@@ -616,10 +618,6 @@ Hand::InitAdjDiff()
 				// mutually exclusive
 				case Skill_Jumpstream:
 					adj_diff /= max(doot.at(hi).at(HS).at(i), 1.F);
-					adj_diff *=
-					  CalcClamp(fastsqrt(doot.at(hi).at(RanMan).at(i) - 0.125F),
-								0.98F,
-								1.06F);
 					adj_diff /=
 					  fastsqrt(doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
 
@@ -669,7 +667,11 @@ Hand::InitAdjDiff()
 // using the final difficulty as the starting point and should only
 // be executed once per chisel
 void
-Hand::CalcInternal(float& gotpoints, float& x, int ss, bool stam, bool debug)
+Hand::CalcInternal(float& gotpoints,
+				   float& x,
+				   int ss,
+				   bool stam,
+				   bool /*debug*/)
 {
 
 	if (stam && ss != Skill_JackSpeed) {

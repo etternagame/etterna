@@ -15,7 +15,9 @@ enum hands
 
 static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
-static const int max_intervals = 20000;
+
+// should be able to handle 1hr 54min easily
+static const int max_intervals = 40000;
 
 // holds pattern mods
 static thread_local std::array<
