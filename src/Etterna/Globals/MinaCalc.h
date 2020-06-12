@@ -23,14 +23,6 @@ using JackSeq = std::vector<float>;
 // because it doesn't get generated until after we're done
 const static int ModCount = NUM_CalcPatternMod;
 
-/*	The difficulties of each hand tend to be independent from one another. This
-is not absolute, as in the case of polyrhythm trilling. However the goal of the
-calculator is to estimate the difficulty of a file given the physical properties
-of such, and not to evalute the difficulty of reading (which is much less
-quantifiable). It is both less accurate and logically incorrect to attempt to
-assert a single difficulty for both hands for a given interval of time in a
-file, so most of the internal calculator operations are done after splitting up
-each track of the chart into their respective phalangeal parents. */
 class Hand
 {
   public:
@@ -105,11 +97,6 @@ class Calc
 				  float music_rate,
 				  float score_goal) -> std::vector<float>;
 
-	void JackStamAdjust(float x, int t, int mode, bool debug = false);
-	auto JackLoss(float x, int mode, float mpl, bool stam, bool debug = false)
-	  -> float;
-	void SequenceJack(const Finger& f, int track, int mode);
-
 	bool debugmode = false;
 	bool ssr = true; // set to true for scores, false for cache
 	int numitv = 0;
@@ -151,8 +138,6 @@ class Calc
 				bool stamina,
 				bool debugoutput = false) -> float;
 
-	std::vector<std::vector<float>> jacks[4][4];
-	std::vector<std::vector<float>> stam_adj_jacks[4];
 	Hand left_hand;
 	Hand right_hand;
 
