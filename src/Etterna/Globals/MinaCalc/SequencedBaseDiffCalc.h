@@ -137,7 +137,7 @@ struct ceejay
 
 		if (is_at_least_3_note_anch && last_was_3_note_anch) {
 			// biggy boy anchors and beyond
-			pewpew = 0.95F;
+			pewpew = 1.F;
 		} else if (is_at_least_3_note_anch) {
 			// big boy anchors
 			pewpew = 1.F;
