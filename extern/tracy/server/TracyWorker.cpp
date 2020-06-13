@@ -1082,7 +1082,15 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
     for( uint64_t i=0; i<sz; i++ )
     {
         auto ctx = m_slab.AllocInit<GpuCtxData>();
-        f.Read4( ctx->thread, ctx->accuracyBits, ctx->count, ctx->period );
+        if( fileVer >= FileVersion( 0, 6, 14 ) )
+        {
+            f.Read5( ctx->thread, ctx->accuracyBits, ctx->count, ctx->period, ctx->type );
+        }
+        else
+        {
+            f.Read4( ctx->thread, ctx->accuracyBits, ctx->count, ctx->period );
+            ctx->type = ctx->thread == 0 ? GpuContextType::Vulkan : GpuContextType::OpenGl;
+        }
         m_data.gpuCnt += ctx->count;
         if( fileVer >= FileVersion( 0, 5, 10 ) )
         {
@@ -1991,92 +1999,7 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
                         if( m_shutdown.load( std::memory_order_relaxed ) ) return;
                         for( auto& sd : t->samples )
                         {
-                            const auto& cs = GetCallstack( sd.callstack.Val() );
-                            const auto time = sd.time.Val();
-                            auto vec = &t->ghostZones;
-
-                            auto idx = cs.size() - 1;
-                            do
-                            {
-                                auto& entry = cs[idx];
-                                uint32_t fid;
-                                auto it = m_data.ghostFramesMap.find( entry.data );
-                                if( it == m_data.ghostFramesMap.end() )
-                                {
-                                    fid = uint32_t( m_data.ghostFrames.size() );
-                                    m_data.ghostFrames.push_back( entry );
-                                    m_data.ghostFramesMap.emplace( entry.data, fid );
-                                }
-                                else
-                                {
-                                    fid = it->second;
-                                }
-                                if( vec->empty() )
-                                {
-                                    gcnt++;
-                                    auto& zone = vec->push_next();
-                                    zone.start.SetVal( time );
-                                    zone.end.SetVal( time + m_samplingPeriod );
-                                    zone.frame.SetVal( fid );
-                                    zone.child = -1;
-                                }
-                                else
-                                {
-                                    auto& back = vec->back();
-                                    const auto backFrame = GetCallstackFrame( m_data.ghostFrames[back.frame.Val()] );
-                                    const auto thisFrame = GetCallstackFrame( entry );
-                                    bool match = false;
-                                    if( backFrame && thisFrame )
-                                    {
-                                        match = backFrame->size == thisFrame->size;
-                                        if( match )
-                                        {
-                                            for( uint8_t i=0; i<thisFrame->size; i++ )
-                                            {
-                                                if( backFrame->data[i].symAddr != thisFrame->data[i].symAddr )
-                                                {
-                                                    match = false;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if( match )
-                                    {
-                                        back.end.SetVal( time + m_samplingPeriod );
-                                    }
-                                    else
-                                    {
-                                        gcnt++;
-                                        auto ptr = &back;
-                                        for(;;)
-                                        {
-                                            ptr->end.SetVal( time );
-                                            if( ptr->child < 0 ) break;
-                                            ptr = &GetGhostChildrenMutable( ptr->child ).back();
-                                        }
-                                        auto& zone = vec->push_next_non_empty();
-                                        zone.start.SetVal( time );
-                                        zone.end.SetVal( time + m_samplingPeriod );
-                                        zone.frame.SetVal( fid );
-                                        zone.child = -1;
-                                    }
-                                }
-                                if( idx > 0 )
-                                {
-                                    auto& zone = vec->back();
-                                    if( zone.child < 0 )
-                                    {
-                                        zone.child = m_data.ghostChildren.size();
-                                        vec = &m_data.ghostChildren.push_next();
-                                    }
-                                    else
-                                    {
-                                        vec = &m_data.ghostChildren[zone.child];
-                                    }
-                                }
-                            }
-                            while( idx-- > 0 );
+                            gcnt += AddGhostZone( GetCallstack( sd.callstack.Val() ), &t->ghostZones, sd.time.Val() );
                         }
                     }
                     std::lock_guard<std::shared_mutex> lock( m_data.lock );
@@ -2122,6 +2045,7 @@ Worker::~Worker()
     LZ4_freeStreamDecode( (LZ4_streamDecode_t*)m_stream );
 
     delete[] m_frameImageBuffer;
+    delete[] m_tmpBuf;
 
     for( auto& v : m_data.threads )
     {
@@ -3028,8 +2952,12 @@ void Worker::Exec()
 
             HandlePostponedPlots();
 #ifndef TRACY_NO_STATISTICS
-            HandlePostponedSamples();
-            m_data.newFramesWereReceived = false;
+            if( m_data.newFramesWereReceived )
+            {
+                HandlePostponedSamples();
+                HandlePostponedGhostZones();
+                m_data.newFramesWereReceived = false;
+            }
 #endif
             if( m_data.newSymbolsWereAdded )
             {
@@ -3513,6 +3441,9 @@ ThreadData* Worker::NewThread( uint64_t thread )
     td->id = thread;
     td->count = 0;
     td->nextZoneId = 0;
+#ifndef TRACY_NO_STATISTICS
+    td->ghostIdx = 0;
+#endif
     m_data.threads.push_back( td );
     m_threadMap.emplace( thread, td );
     m_data.threadDataLast.first = thread;
@@ -4075,7 +4006,7 @@ void Worker::HandlePostponedPlots()
 #ifndef TRACY_NO_STATISTICS
 void Worker::HandlePostponedSamples()
 {
-    if( !m_data.newFramesWereReceived ) return;
+    assert( m_data.newFramesWereReceived );
     if( m_data.postponedSamples.empty() ) return;
     auto it = m_data.postponedSamples.begin();
     do
@@ -4083,6 +4014,133 @@ void Worker::HandlePostponedSamples()
         UpdateSampleStatisticsPostponed( it );
     }
     while( it != m_data.postponedSamples.end() );
+}
+
+void Worker::GetStackWithInlines( Vector<InlineStackData>& ret, const VarArray<CallstackFrameId>& cs )
+{
+    ret.clear();
+    int idx = cs.size() - 1;
+    do
+    {
+        auto& entry = cs[idx];
+        const auto frame = GetCallstackFrame( entry );
+        if( frame )
+        {
+            uint8_t i = frame->size;
+            do
+            {
+                i--;
+                ret.push_back( InlineStackData { frame->data[i].symAddr, entry, i } );
+            }
+            while( i != 0 );
+        }
+        else
+        {
+            ret.push_back( InlineStackData{ GetCanonicalPointer( entry ), entry, 0 } );
+        }
+    }
+    while( idx-- > 0 );
+}
+
+int Worker::AddGhostZone( const VarArray<CallstackFrameId>& cs, Vector<GhostZone>* vec, uint64_t t )
+{
+    static Vector<InlineStackData> stack;
+    GetStackWithInlines( stack, cs );
+
+    if( !vec->empty() && vec->back().end.Val() > (int64_t)t )
+    {
+        auto tmp = vec;
+        for(;;)
+        {
+            auto& back = tmp->back();
+            back.end.SetVal( t );
+            if( back.child < 0 ) break;
+            tmp = &m_data.ghostChildren[back.child];
+        }
+    }
+    const uint64_t refBackTime = vec->empty() ? 0 : vec->back().end.Val();
+    int gcnt = 0;
+    int idx = 0;
+    while( !vec->empty() && idx < stack.size() )
+    {
+        auto& back = vec->back();
+        const auto& backKey = m_data.ghostFrames[back.frame.Val()];
+        const auto backFrame = GetCallstackFrame( backKey.frame );
+        if( !backFrame ) break;
+        const auto& inlineFrame = backFrame->data[backKey.inlineFrame];
+        if( inlineFrame.symAddr != stack[idx].symAddr ) break;
+        if( back.end.Val() != refBackTime ) break;
+        back.end.SetVal( t + m_samplingPeriod );
+        if( ++idx == stack.size() ) break;
+        if( back.child < 0 )
+        {
+            back.child = m_data.ghostChildren.size();
+            vec = &m_data.ghostChildren.push_next();
+        }
+        else
+        {
+            vec = &m_data.ghostChildren[back.child];
+        }
+    }
+    while( idx < stack.size() )
+    {
+        gcnt++;
+        uint32_t fid;
+        GhostKey key { stack[idx].frame, stack[idx].inlineFrame };
+        auto it = m_data.ghostFramesMap.find( key );
+        if( it == m_data.ghostFramesMap.end() )
+        {
+            fid = uint32_t( m_data.ghostFrames.size() );
+            m_data.ghostFrames.push_back( key );
+            m_data.ghostFramesMap.emplace( key, fid );
+        }
+        else
+        {
+            fid = it->second;
+        }
+        auto& zone = vec->push_next();
+        zone.start.SetVal( t );
+        zone.end.SetVal( t + m_samplingPeriod );
+        zone.frame.SetVal( fid );
+        if( ++idx == stack.size() )
+        {
+            zone.child = -1;
+        }
+        else
+        {
+            zone.child = m_data.ghostChildren.size();
+            vec = &m_data.ghostChildren.push_next();
+        }
+    }
+    return gcnt;
+}
+
+void Worker::HandlePostponedGhostZones()
+{
+    assert( m_data.newFramesWereReceived );
+    if( !m_data.ghostZonesPostponed ) return;
+    bool postponed = false;
+    for( auto& td : m_data.threads )
+    {
+        while( td->ghostIdx != td->samples.size() )
+        {
+            const auto& sample = td->samples[td->ghostIdx];
+            const auto& cs = GetCallstack( sample.callstack.Val() );
+            const auto cssz = cs.size();
+
+            uint16_t i;
+            for( i=0; i<cssz; i++ ) if( !GetCallstackFrame( cs[i] ) ) break;
+            if( i != cssz )
+            {
+                postponed = true;
+                break;
+            }
+
+            td->ghostIdx++;
+            m_data.ghostCnt += AddGhostZone( cs, &td->ghostZones, sample.time.Val() );
+        }
+    }
+    m_data.ghostZonesPostponed = postponed;
 }
 #endif
 
@@ -4155,6 +4213,9 @@ bool Worker::Process( const QueueItem& ev )
         break;
     case QueueType::ZoneName:
         ProcessZoneName( ev.zoneText );
+        break;
+    case QueueType::ZoneValue:
+        ProcessZoneValue( ev.zoneValue );
         break;
     case QueueType::LockAnnounce:
         ProcessLockAnnounce( ev.lockAnnounce );
@@ -4730,11 +4791,18 @@ void Worker::ProcessZoneText( const QueueZoneText& ev )
         const auto str1 = it->second.ptr;
         const auto len0 = strlen( str0 );
         const auto len1 = strlen( str1 );
-        char* buf = (char*)alloca( len0+len1+1 );
+        const auto bsz = len0+len1+1;
+        if( m_tmpBufSize < bsz )
+        {
+            delete[] m_tmpBuf;
+            m_tmpBuf = new char[bsz];
+            m_tmpBufSize = bsz;
+        }
+        char* buf = m_tmpBuf;
         memcpy( buf, str0, len0 );
         buf[len0] = '\n';
         memcpy( buf+len0+1, str1, len1 );
-        extra.text = StringIdx( StoreString( buf, len0+len1+1 ).idx );
+        extra.text = StringIdx( StoreString( buf, bsz ).idx );
     }
     m_pendingCustomStrings.erase( it );
 }
@@ -4756,6 +4824,45 @@ void Worker::ProcessZoneName( const QueueZoneText& ev )
     auto& extra = RequestZoneExtra( *zone );
     extra.name = StringIdx( it->second.idx );
     m_pendingCustomStrings.erase( it );
+}
+
+void Worker::ProcessZoneValue( const QueueZoneValue& ev )
+{
+    char tmp[32];
+    const auto tsz = sprintf( tmp, "%" PRIu64, ev.value );
+
+    auto td = RetrieveThread( m_threadCtx );
+    if( !td || td->stack.empty() || td->nextZoneId != td->zoneIdStack.back() )
+    {
+        ZoneTextFailure( m_threadCtx );
+        return;
+    }
+
+    td->nextZoneId = 0;
+    auto& stack = td->stack;
+    auto zone = stack.back();
+    auto& extra = RequestZoneExtra( *zone );
+    if( !extra.text.Active() )
+    {
+        extra.text = StringIdx( StoreString( tmp, tsz ).idx );
+    }
+    else
+    {
+        const auto str0 = GetString( extra.text );
+        const auto len0 = strlen( str0 );
+        const auto bsz = len0+tsz+1;
+        if( m_tmpBufSize < bsz )
+        {
+            delete[] m_tmpBuf;
+            m_tmpBuf = new char[bsz];
+            m_tmpBufSize = bsz;
+        }
+        char* buf = m_tmpBuf;
+        memcpy( buf, str0, len0 );
+        buf[len0] = '\n';
+        memcpy( buf+len0+1, tmp, tsz );
+        extra.text = StringIdx( StoreString( buf, bsz ).idx );
+    }
 }
 
 void Worker::ProcessLockAnnounce( const QueueLockAnnounce& ev )
@@ -5113,6 +5220,7 @@ void Worker::ProcessMessageAppInfo( const QueueMessage& ev )
 void Worker::ProcessGpuNewContext( const QueueGpuNewContext& ev )
 {
     assert( !m_gpuCtxMap[ev.context] );
+    assert( ev.type != GpuContextType::Invalid );
 
     int64_t gpuTime;
     if( ev.period == 1.f )
@@ -5131,6 +5239,7 @@ void Worker::ProcessGpuNewContext( const QueueGpuNewContext& ev )
     gpu->accuracyBits = ev.accuracyBits;
     gpu->period = ev.period;
     gpu->count = 0;
+    gpu->type = ev.type;
     m_data.gpuData.push_back( gpu );
     m_gpuCtxMap[ev.context] = gpu;
 }
@@ -5167,7 +5276,7 @@ void Worker::ProcessGpuZoneBeginImpl( GpuEvent* zone, const QueueGpuZoneBegin& e
     uint64_t ztid;
     if( ctx->thread == 0 )
     {
-        // Vulkan context is not bound to any single thread.
+        // Vulkan, OpenCL and Direct3D 12 contexts are not bound to any single thread.
         zone->SetThread( CompressThread( ev.thread ) );
         ztid = ev.thread;
     }
@@ -5544,93 +5653,19 @@ void Worker::ProcessCallstackSample( const QueueCallstackSampleLean& ev )
             }
         }
     }
-    int gcnt = 0;
-    int idx = cs.size() - 1;
-    auto vec = &td->ghostZones;
-    do
-    {
-        auto& entry = cs[idx];
-        uint32_t fid;
-        auto it = m_data.ghostFramesMap.find( entry.data );
-        if( it == m_data.ghostFramesMap.end() )
-        {
-            fid = uint32_t( m_data.ghostFrames.size() );
-            m_data.ghostFrames.push_back( entry );
-            m_data.ghostFramesMap.emplace( entry.data, fid );
-        }
-        else
-        {
-            fid = it->second;
-        }
-        if( vec->empty() )
-        {
-            gcnt++;
-            auto& zone = vec->push_next();
-            zone.start.SetVal( t );
-            zone.end.SetVal( t + m_samplingPeriod );
-            zone.frame.SetVal( fid );
-            zone.child = -1;
-        }
-        else
-        {
-            auto& back = vec->back();
-            const auto backFrame = GetCallstackFrame( m_data.ghostFrames[back.frame.Val()] );
-            const auto thisFrame = GetCallstackFrame( entry );
-            bool match = false;
-            if( backFrame && thisFrame )
-            {
-                match = backFrame->size == thisFrame->size;
-                if( match )
-                {
-                    for( uint8_t i=0; i<thisFrame->size; i++ )
-                    {
-                        if( backFrame->data[i].symAddr != thisFrame->data[i].symAddr )
-                        {
-                            match = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            if( match )
-            {
-                back.end.SetVal( t + m_samplingPeriod );
-            }
-            else
-            {
-                gcnt++;
-                auto ptr = &back;
-                for(;;)
-                {
-                    ptr->end.SetVal( t );
-                    if( ptr->child < 0 ) break;
-                    ptr = &GetGhostChildrenMutable( ptr->child ).back();
-                }
-                auto& zone = vec->push_next_non_empty();
-                zone.start.SetVal( t );
-                zone.end.SetVal( t + m_samplingPeriod );
-                zone.frame.SetVal( fid );
-                zone.child = -1;
-            }
-        }
-        if( idx > 0 )
-        {
-            auto& zone = vec->back();
-            if( zone.child < 0 )
-            {
-                zone.child = m_data.ghostChildren.size();
-                vec = &m_data.ghostChildren.push_next();
-            }
-            else
-            {
-                vec = &m_data.ghostChildren[zone.child];
-            }
-        }
-    }
-    while( idx-- > 0 );
-    m_data.ghostCnt += gcnt;
 
-    UpdateSampleStatistics( m_pendingCallstackId, 1, true );
+    const auto framesKnown = UpdateSampleStatistics( m_pendingCallstackId, 1, true );
+
+    assert( td->samples.size() > td->ghostIdx );
+    if( framesKnown && td->ghostIdx + 1 == td->samples.size() )
+    {
+        td->ghostIdx++;
+        m_data.ghostCnt += AddGhostZone( cs, &td->ghostZones, t );
+    }
+    else
+    {
+        m_data.ghostZonesPostponed = true;
+    }
 #endif
 }
 
@@ -6223,7 +6258,7 @@ void Worker::ReconstructContextSwitchUsage()
     m_data.ctxUsageReady = true;
 }
 
-void Worker::UpdateSampleStatistics( uint32_t callstack, uint32_t count, bool canPostpone )
+bool Worker::UpdateSampleStatistics( uint32_t callstack, uint32_t count, bool canPostpone )
 {
     const auto& cs = GetCallstack( callstack );
     const auto cssz = cs.size();
@@ -6246,7 +6281,7 @@ void Worker::UpdateSampleStatistics( uint32_t callstack, uint32_t count, bool ca
                     it->second += count;
                 }
             }
-            return;
+            return false;
         }
         else
         {
@@ -6265,6 +6300,7 @@ void Worker::UpdateSampleStatistics( uint32_t callstack, uint32_t count, bool ca
     }
 
     UpdateSampleStatisticsImpl( frames, cssz, count, cs );
+    return true;
 }
 
 void Worker::UpdateSampleStatisticsPostponed( decltype(Worker::DataBlock::postponedSamples.begin())& it )
@@ -7031,6 +7067,7 @@ void Worker::Write( FileWrite& f )
         f.Write( &ctx->accuracyBits, sizeof( ctx->accuracyBits ) );
         f.Write( &ctx->count, sizeof( ctx->count ) );
         f.Write( &ctx->period, sizeof( ctx->period ) );
+        f.Write( &ctx->type, sizeof( ctx->type ) );
         sz = ctx->threadData.size();
         f.Write( &sz, sizeof( sz ) );
         for( auto& td : ctx->threadData )

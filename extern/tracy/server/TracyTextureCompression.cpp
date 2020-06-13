@@ -72,22 +72,39 @@ static constexpr uint8_t Dxtc4To3Table[256] = {
     165, 164, 166, 166, 161, 160, 162, 162, 169, 168, 170, 170, 169, 168, 170, 170
 };
 
+static tracy_force_inline int max3( int a, int b, int c )
+{
+    if( a > b )
+    {
+        return a > c ? a : c;
+    }
+    else
+    {
+        return b > c ? b : c;
+    }
+}
+
+static constexpr int TrTbl1[] = { 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
+static constexpr int TrTbl2[] = { 12, 12, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
+static constexpr int TrTbl3[] = { 48, 48, 48, 32, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 };
+
 void TextureCompression::Rdo( char* data, size_t blocks )
 {
     assert( blocks > 0 );
     do
     {
-        uint32_t idx;
-        memcpy( &idx, data+4, 4 );
+        uint64_t blk;
+        memcpy( &blk, data, 8 );
+
+        uint32_t idx = blk >> 32;
         if( idx == 0x55555555 )
         {
             data += 8;
             continue;
         }
 
-        uint16_t c0, c1;
-        memcpy( &c0, data, 2 );
-        memcpy( &c1, data+2, 2 );
+        uint16_t c0 = blk & 0xFFFF;
+        uint16_t c1 = ( blk >> 16 ) & 0xFFFF;
 
         const int r0b = c0 & 0xF800;
         const int g0b = c0 & 0x07E0;
@@ -109,24 +126,9 @@ void TextureCompression::Rdo( char* data, size_t blocks )
         const int dg = abs( g0 - g1 );
         const int db = abs( b0 - b1 );
 
-        const int maxChan1 = std::max( { r0-1, g0, b0-2 } );
-        const int maxDelta1 = std::max( { dr-1, dg, db-2 } );
-        const int tr1a = 16;
-        const int tr1b = 45;
-        int tr1;
-        if( maxChan1 < tr1a )
-        {
-            tr1 = 12;
-        }
-        else if( maxChan1 < tr1b )
-        {
-            tr1 = 6;
-        }
-        else
-        {
-            tr1 = 3;
-        }
-
+        const int maxChan1 = max3( r0-1, g0, b0-2 );
+        const int maxDelta1 = max3( dr-1, dg, db-2 );
+        const int tr1 = TrTbl1[maxChan1 / 4];
         if( maxDelta1 <= tr1 )
         {
             uint64_t blk =
@@ -137,24 +139,9 @@ void TextureCompression::Rdo( char* data, size_t blocks )
         }
         else
         {
-            const int maxChan23 = std::max( { r0-2, g0, b0-5 } );
-            const int maxDelta23 = std::max( { dr-2, dg, db-5 } );
-            const int tr2a = 32;
-            const int tr2b = 48;
-            int tr2 = 0;
-            if( maxChan23 < tr2a )
-            {
-                tr2 = 12;
-            }
-            else if( maxChan23 < tr2b )
-            {
-                tr2 = 6;
-            }
-            else
-            {
-                tr2 = 3;
-            }
-
+            const int maxChan23 = max3( r0-2, g0, b0-5 );
+            const int maxDelta23 = max3( dr-2, dg, db-5 );
+            const int tr2 = TrTbl2[maxChan23 / 16];
             if( maxDelta23 <= tr2 )
             {
                 idx &= 0x55555555;
@@ -162,30 +149,12 @@ void TextureCompression::Rdo( char* data, size_t blocks )
             }
             else
             {
-                const int tr3a = 48;
-                const int tr3b = 64;
-                int tr3;
-                if( maxChan23 < tr3a )
-                {
-                    tr3 = 48;
-                }
-                else if( maxChan23 < tr3b )
-                {
-                    tr3 = 32;
-                }
-                else
-                {
-                    tr3 = 24;
-                }
-
+                const int tr3 = TrTbl3[maxChan23 / 16];
                 if( maxDelta23 <= tr3 )
                 {
-                    memcpy( data, &c1, 2 );
-                    memcpy( data+2, &c0, 2 );
-                    uint8_t tmp[4];
-                    memcpy( tmp, &idx, 4 );
-                    for( int k=0; k<4; k++ ) tmp[k] = Dxtc4To3Table[tmp[k]];
-                    memcpy( data+4, tmp, 4 );
+                    uint64_t c = c1 | ( uint64_t( c0 ) << 16 );
+                    for( int k=0; k<4; k++ ) c |= uint64_t( Dxtc4To3Table[(idx >> (k*8)) & 0xFF] ) << ( 32 + k*8 );
+                    memcpy( data, &c, 8 );
                 }
             }
         }
@@ -219,10 +188,11 @@ void TextureCompression::FixOrder( char* data, size_t blocks )
     assert( blocks > 0 );
     do
     {
-        uint8_t tmp[4];
-        memcpy( tmp, data+4, 4 );
-        for( int k=0; k<4; k++ ) tmp[k] = DxtcIndexTable[(uint8_t)tmp[k]];
-        memcpy( data+4, tmp, 4 );
+        uint32_t res = 0;
+        uint32_t tmp;
+        memcpy( &tmp, data+4, 4 );
+        for( int k=0; k<4; k++ ) res |= DxtcIndexTable[(tmp >> (k*8)) & 0xFF] << (k*8);
+        memcpy( data+4, &res, 4 );
         data += 8;
     }
     while( --blocks );

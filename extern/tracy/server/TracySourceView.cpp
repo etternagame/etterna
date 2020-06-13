@@ -68,7 +68,7 @@ static SourceView::RegsX86 s_regMapX86[X86_REG_ENDING];
 enum { JumpSeparation = 6 };
 enum { JumpArrowBase = 9 };
 
-SourceView::SourceView( ImFont* font )
+SourceView::SourceView( ImFont* font, GetWindowCallback gwcb )
     : m_font( font )
     , m_file( nullptr )
     , m_fileStringIdx( 0 )
@@ -93,6 +93,7 @@ SourceView::SourceView( ImFont* font )
     , m_showJumps( true )
     , m_cpuArch( CpuArchUnknown )
     , m_showLatency( false )
+    , m_gwcb( gwcb )
 {
     m_microArchOpMap.reserve( OpsNum );
     for( int i=0; i<OpsNum; i++ )
@@ -394,6 +395,7 @@ void SourceView::OpenSource( const char* fileName, int line, const View& view, c
     m_baseAddr = 0;
     m_symAddr = 0;
     m_sourceFiles.clear();
+    m_asm.clear();
 
     ParseSource( fileName, worker, view );
     assert( !m_lines.empty() );
@@ -435,6 +437,7 @@ void SourceView::ParseSource( const char* fileName, const Worker& worker, const 
 {
     if( m_file != fileName )
     {
+        m_srcWidth = 0;
         m_file = fileName;
         m_fileStringIdx = worker.FindStringIdx( fileName );
         m_lines.clear();
@@ -475,12 +478,12 @@ void SourceView::ParseSource( const char* fileName, const Worker& worker, const 
                 if( *end == '\n' )
                 {
                     end++;
-                    if( *end == '\r' ) end++;
+                    if( end - m_data < sz && *end == '\r' ) end++;
                 }
                 else if( *end == '\r' )
                 {
                     end++;
-                    if( *end == '\n' ) end++;
+                    if( end - m_data < sz && *end == '\n' ) end++;
                 }
                 if( end - m_data == sz ) break;
                 txt = end;
@@ -509,6 +512,7 @@ bool SourceView::Disassemble( uint64_t symAddr, const Worker& worker )
     m_maxJumpLevel = 0;
     m_asmSelected = -1;
     m_asmCountBase = -1;
+    m_asmWidth = 0;
     if( symAddr == 0 ) return false;
     m_cpuArch = worker.GetCpuArch();
     if( m_cpuArch == CpuArchUnknown ) return false;
@@ -888,7 +892,8 @@ void SourceView::Render( const Worker& worker, View& view )
 
 void SourceView::RenderSimpleSourceView()
 {
-    ImGui::BeginChild( "##sourceView", ImVec2( 0, 0 ), true );
+    ImGui::SetNextWindowContentSize( ImVec2( m_srcWidth, 0 ) );
+    ImGui::BeginChild( "##sourceView", ImVec2( 0, 0 ), true, ImGuiWindowFlags_HorizontalScrollbar );
     if( m_font ) ImGui::PushFont( m_font );
 
     auto draw = ImGui::GetWindowDrawList();
@@ -914,6 +919,8 @@ void SourceView::RenderSimpleSourceView()
             }
             RenderLine( line, lineNum++, 0, 0, 0, nullptr );
         }
+        const auto win = ImGui::GetCurrentWindowRead();
+        m_srcWidth = win->DC.CursorMaxPos.x - win->DC.CursorStartPos.x;
     }
     else
     {
@@ -962,7 +969,8 @@ void SourceView::RenderSymbolView( const Worker& worker, View& view )
         ImGui::SameLine();
         ImGui::SetNextItemWidth( -1 );
         ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 0 ) );
-        if( ImGui::BeginCombo( "##functionList", worker.GetString( sym->name ), ImGuiComboFlags_HeightLarge ) )
+        const auto currSymName = m_symAddr == m_baseAddr ? "[ - self - ]" : worker.GetString( sym->name );
+        if( ImGui::BeginCombo( "##functionList", currSymName, ImGuiComboFlags_HeightLarge ) )
         {
             uint32_t totalSamples = 0;
             const auto& symStat = worker.GetSymbolStats();
@@ -1046,7 +1054,8 @@ void SourceView::RenderSymbolView( const Worker& worker, View& view )
                 auto isym = worker.GetSymbolData( v.first );
                 assert( isym );
                 ImGui::PushID( v.first );
-                if( ImGui::Selectable( worker.GetString( isym->name ), v.first == m_symAddr, ImGuiSelectableFlags_SpanAllColumns ) )
+                const auto symName = v.first == m_baseAddr ? "[ - self - ]" : worker.GetString( isym->name );
+                if( ImGui::Selectable( symName, v.first == m_symAddr, ImGuiSelectableFlags_SpanAllColumns ) )
                 {
                     m_symAddr = v.first;
                 }
@@ -1373,11 +1382,12 @@ void SourceView::RenderSymbolSourceView( uint32_t iptotal, unordered_flat_map<ui
     }
 
     const float bottom = m_srcSampleSelect.empty() ? 0 : ImGui::GetFrameHeight();
-    ImGui::BeginChild( "##sourceView", ImVec2( 0, -bottom ), true, ImGuiWindowFlags_NoMove );
+    ImGui::SetNextWindowContentSize( ImVec2( m_srcWidth, 0 ) );
+    ImGui::BeginChild( "##sourceView", ImVec2( 0, -bottom ), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar );
     if( m_font ) ImGui::PushFont( m_font );
 
     auto draw = ImGui::GetWindowDrawList();
-    const auto wpos = ImGui::GetWindowPos();
+    const auto wpos = ImGui::GetWindowPos() - ImVec2( ImGui::GetCurrentWindowRead()->Scroll.x, 0 );
     const auto wh = ImGui::GetWindowHeight();
     const auto ty = ImGui::GetFontSize();
     const auto ts = ImGui::CalcTextSize( " " ).x;
@@ -1407,6 +1417,8 @@ void SourceView::RenderSymbolSourceView( uint32_t iptotal, unordered_flat_map<ui
             }
             RenderLine( line, lineNum++, 0, iptotal, ipmax, &worker );
         }
+        const auto win = ImGui::GetCurrentWindowRead();
+        m_srcWidth = win->DC.CursorMaxPos.x - win->DC.CursorStartPos.x;
     }
     else
     {
@@ -1432,7 +1444,7 @@ void SourceView::RenderSymbolSourceView( uint32_t iptotal, unordered_flat_map<ui
         }
     }
 
-    auto win = ImGui::GetCurrentWindow();
+    const auto win = ImGui::GetCurrentWindowRead();
     if( win->ScrollbarY )
     {
         auto draw = ImGui::GetWindowDrawList();
@@ -1570,7 +1582,7 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
             TextFocused( "Disassembled bytes:", RealToString( m_disasmFail ) );
             char tmp[64];
             auto bytesLeft = std::min( 16u, m_codeLen - m_disasmFail );
-            auto code = worker.GetSymbolCode( m_symAddr, m_codeLen );
+            auto code = worker.GetSymbolCode( m_baseAddr, m_codeLen );
             assert( code );
             PrintHexBytes( tmp, (const uint8_t*)code, bytesLeft );
             TextFocused( "Failure bytes:", tmp );
@@ -1596,44 +1608,48 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
     ImGui::Spacing();
     ImGui::SameLine();
     SmallCheckbox( ICON_FA_SHARE " Jumps", &m_showJumps );
-    ImGui::SameLine();
-    ImGui::Spacing();
-    ImGui::SameLine();
-    if( SmallCheckbox( "AT&T", &m_atnt ) ) Disassemble( m_baseAddr, worker );
 
     if( m_cpuArch == CpuArchX64 || m_cpuArch == CpuArchX86 )
     {
         ImGui::SameLine();
         ImGui::Spacing();
         ImGui::SameLine();
-        float mw = 0;
-        for( auto& v : s_uArchUx )
+        if( SmallCheckbox( "AT&T", &m_atnt ) ) Disassemble( m_baseAddr, worker );
+
+        if( !m_atnt )
         {
-            const auto w = ImGui::CalcTextSize( v.uArch ).x;
-            if( w > mw ) mw = w;
-        }
-        ImGui::TextUnformatted( ICON_FA_MICROCHIP " \xce\xbc""arch:" );
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth( mw + ImGui::GetFontSize() );
-        ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 0 ) );
-        if( ImGui::BeginCombo( "##uarch", s_uArchUx[m_selMicroArch].uArch, ImGuiComboFlags_HeightLarge ) )
-        {
-            int idx = 0;
+            ImGui::SameLine();
+            ImGui::Spacing();
+            ImGui::SameLine();
+            float mw = 0;
             for( auto& v : s_uArchUx )
             {
-                if( ImGui::Selectable( v.uArch, idx == m_selMicroArch ) ) SelectMicroArchitecture( v.moniker );
-                ImGui::SameLine();
-                TextDisabledUnformatted( v.cpuName );
-                idx++;
+                const auto w = ImGui::CalcTextSize( v.uArch ).x;
+                if( w > mw ) mw = w;
             }
-            ImGui::EndCombo();
-        }
-        ImGui::PopStyleVar();
+            ImGui::TextUnformatted( ICON_FA_MICROCHIP " \xce\xbc""arch:" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( mw + ImGui::GetFontSize() );
+            ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 0 ) );
+            if( ImGui::BeginCombo( "##uarch", s_uArchUx[m_selMicroArch].uArch, ImGuiComboFlags_HeightLarge ) )
+            {
+                int idx = 0;
+                for( auto& v : s_uArchUx )
+                {
+                    if( ImGui::Selectable( v.uArch, idx == m_selMicroArch ) ) SelectMicroArchitecture( v.moniker );
+                    ImGui::SameLine();
+                    TextDisabledUnformatted( v.cpuName );
+                    idx++;
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopStyleVar();
 
-        ImGui::SameLine();
-        ImGui::Spacing();
-        ImGui::SameLine();
-        SmallCheckbox( ICON_FA_TRUCK_LOADING " Latency", &m_showLatency );
+            ImGui::SameLine();
+            ImGui::Spacing();
+            ImGui::SameLine();
+            SmallCheckbox( ICON_FA_TRUCK_LOADING " Latency", &m_showLatency );
+        }
     }
 
 #ifndef TRACY_NO_FILESELECTOR
@@ -1647,7 +1663,8 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
 #endif
 
     const float bottom = m_asmSampleSelect.empty() ? 0 : ImGui::GetFrameHeight();
-    ImGui::BeginChild( "##asmView", ImVec2( 0, -bottom ), true, ImGuiWindowFlags_NoMove );
+    ImGui::SetNextWindowContentSize( ImVec2( m_asmWidth, 0 ) );
+    ImGui::BeginChild( "##asmView", ImVec2( 0, -bottom ), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar );
     if( m_font ) ImGui::PushFont( m_font );
 
     int maxAddrLen;
@@ -1673,6 +1690,8 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
             }
             RenderAsmLine( line, 0, iptotal, ipmax, worker, jumpOut, maxAddrLen, view );
         }
+        const auto win = ImGui::GetCurrentWindowRead();
+        m_asmWidth = win->DC.CursorMaxPos.x - win->DC.CursorStartPos.x;
     }
     else
     {
@@ -1841,7 +1860,7 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
 #endif
     }
 
-    auto win = ImGui::GetCurrentWindow();
+    const auto win = ImGui::GetCurrentWindowRead();
     if( win->ScrollbarY )
     {
         auto draw = ImGui::GetWindowDrawList();
@@ -2073,7 +2092,7 @@ void SourceView::RenderLine( const Line& line, int lineNum, uint32_t ipcnt, uint
 {
     const auto ty = ImGui::GetFontSize();
     auto draw = ImGui::GetWindowDrawList();
-    const auto w = ImGui::GetWindowWidth();
+    const auto w = std::max( m_srcWidth, ImGui::GetWindowWidth() );
     const auto wpos = ImGui::GetCursorScreenPos();
     if( m_fileStringIdx == m_hoveredSource && lineNum == m_hoveredLine )
     {
@@ -2250,7 +2269,7 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
 {
     const auto ty = ImGui::GetFontSize();
     auto draw = ImGui::GetWindowDrawList();
-    const auto w = ImGui::GetWindowWidth();
+    const auto w = std::max( m_asmWidth, ImGui::GetWindowWidth() );
     const auto wpos = ImGui::GetCursorScreenPos();
     if( m_selectedAddressesHover.find( line.addr ) != m_selectedAddressesHover.end() )
     {
@@ -2427,7 +2446,7 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
             ImGui::SameLine();
             const auto lineString = RealToString( srcline );
             const auto linesz = strlen( lineString );
-            char buf[32];
+            char buf[64];
             const auto fnsz = strlen( fileName );
             if( fnsz < 30 - m_maxLine )
             {
@@ -2480,8 +2499,10 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
         else
         {
             SmallColorBox( 0 );
+            ImGui::SameLine();
+            TextDisabledUnformatted( "[unknown]" );
             ImGui::SameLine( 0, 0 );
-            ImGui::ItemSize( ImVec2( stw * 32, ty ), 0 );
+            ImGui::ItemSize( ImVec2( stw * 23, ty ), 0 );
         }
     }
     if( m_asmBytes )
@@ -2520,7 +2541,7 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
     }
 
     const AsmVar* asmVar = nullptr;
-    if( ( m_cpuArch == CpuArchX64 || m_cpuArch == CpuArchX86 ) )
+    if( !m_atnt && ( m_cpuArch == CpuArchX64 || m_cpuArch == CpuArchX86 ) )
     {
         auto uarch = MicroArchitectureData[m_idxMicroArch];
         char tmp[32];
@@ -3517,7 +3538,7 @@ void SourceView::Save( const Worker& worker, size_t start, size_t stop )
     assert( start < stop );
 
     nfdchar_t* fn;
-    auto res = NFD_SaveDialog( "asm", nullptr, &fn );
+    auto res = NFD_SaveDialog( "asm", nullptr, &fn, m_gwcb ? m_gwcb() : nullptr );
     if( res == NFD_OKAY )
     {
         FILE* f = nullptr;

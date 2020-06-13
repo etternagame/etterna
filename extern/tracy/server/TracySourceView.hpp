@@ -127,7 +127,9 @@ private:
     };
 
 public:
-    SourceView( ImFont* font );
+    using GetWindowCallback = void*(*)();
+
+    SourceView( ImFont* font, GetWindowCallback gwcb );
     ~SourceView();
 
     void SetCpuId( uint32_t cpuid );
@@ -239,6 +241,11 @@ private:
     unordered_flat_set<uint32_t> m_srcSampleSelect;
     uint32_t m_asmGroupSelect = -1;
     uint32_t m_srcGroupSelect = -1;
+
+    float m_srcWidth;
+    float m_asmWidth;
+
+    GetWindowCallback m_gwcb;
 };
 
 }

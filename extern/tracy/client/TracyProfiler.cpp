@@ -173,6 +173,7 @@ struct ThreadHandleWrapper
 #if defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64
 static inline void CpuId( uint32_t* regs, uint32_t leaf )
 {
+    memset(regs, 0, sizeof(uint32_t) * 4);
 #if defined _WIN32 || defined __CYGWIN__
     __cpuidex( (int*)regs, leaf, 0 );
 #else
@@ -222,8 +223,8 @@ static int64_t SetupHwTimer()
 {
 #ifndef TRACY_TIMER_QPC
     uint32_t regs[4];
-    CpuId( regs, 0x80000001 );
-    if( !( regs[3] & ( 1 << 27 ) ) ) InitFailure( "CPU doesn't support RDTSCP instruction." );
+    CpuId( regs, 1 );
+    if( !( regs[3] & ( 1 << 4 ) ) ) InitFailure( "CPU doesn't support RDTSC instruction." );
     CpuId( regs, 0x80000007 );
     if( !( regs[3] & ( 1 << 8 ) ) )
     {
@@ -3029,6 +3030,23 @@ TRACY_API void ___tracy_emit_zone_name( TracyCZoneCtx ctx, const char* txt, size
     {
         TracyLfqPrepareC( tracy::QueueType::ZoneName );
         tracy::MemWrite( &item->zoneText.text, (uint64_t)ptr );
+        TracyLfqCommitC;
+    }
+}
+
+TRACY_API void ___tracy_emit_zone_value( TracyCZoneCtx ctx, uint64_t value )
+{
+    if( !ctx.active ) return;
+#ifndef TRACY_NO_VERIFY
+    {
+        TracyLfqPrepareC( tracy::QueueType::ZoneValidation );
+        tracy::MemWrite( &item->zoneValidation.id, ctx.id );
+        TracyLfqCommitC;
+    }
+#endif
+    {
+        TracyLfqPrepareC( tracy::QueueType::ZoneValue );
+        tracy::MemWrite( &item->zoneValue.value, value );
         TracyLfqCommitC;
     }
 }

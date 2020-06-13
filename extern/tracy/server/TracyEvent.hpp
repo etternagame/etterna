@@ -12,6 +12,7 @@
 #include "TracyVector.hpp"
 #include "tracy_robin_hood.h"
 #include "../common/TracyForceInline.hpp"
+#include "../common/TracyQueue.hpp"
 
 namespace tracy
 {
@@ -552,6 +553,7 @@ struct ThreadData
 #ifndef TRACY_NO_STATISTICS
     Vector<int64_t> childTimeStack;
     Vector<GhostZone> ghostZones;
+    uint64_t ghostIdx;
 #endif
     Vector<SampleData> samples;
 };
@@ -571,6 +573,7 @@ struct GpuCtxData
     float period;
     unordered_flat_map<uint64_t, GpuCtxThreadData> threadData;
     short_ptr<GpuEvent> query[64*1024];
+    GpuContextType type;
 };
 
 enum { GpuCtxDataSize = sizeof( GpuCtxData ) };

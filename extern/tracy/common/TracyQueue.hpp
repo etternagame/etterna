@@ -59,6 +59,7 @@ enum class QueueType : uint8_t
     Crash,
     CrashReport,
     ZoneValidation,
+    ZoneValue,
     FrameMarkMsg,
     FrameMarkMsgStart,
     FrameMarkMsgEnd,
@@ -121,6 +122,11 @@ struct QueueZoneEnd
 struct QueueZoneValidation
 {
     uint32_t id;
+};
+
+struct QueueZoneValue
+{
+    uint64_t value;
 };
 
 struct QueueStringTransfer
@@ -252,6 +258,16 @@ struct QueueMessageColor : public QueueMessage
     uint8_t b;
 };
 
+// Don't change order, only add new entries at the end, this is also used on trace dumps!
+enum class GpuContextType : uint8_t
+{
+    Invalid,
+    OpenGl,
+    Vulkan,
+    OpenCL,
+    Direct3D12
+};
+
 struct QueueGpuNewContext
 {
     int64_t cpuTime;
@@ -260,6 +276,7 @@ struct QueueGpuNewContext
     float period;
     uint8_t context;
     uint8_t accuracyBits;
+    GpuContextType type;
 };
 
 struct QueueGpuZoneBegin
@@ -439,6 +456,7 @@ struct QueueItem
         QueueZoneBeginLean zoneBeginLean;
         QueueZoneEnd zoneEnd;
         QueueZoneValidation zoneValidation;
+        QueueZoneValue zoneValue;
         QueueStringTransfer stringTransfer;
         QueueFrameMark frameMark;
         QueueFrameImage frameImage;
@@ -538,6 +556,7 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ),                                  // crash
     sizeof( QueueHeader ) + sizeof( QueueCrashReport ),
     sizeof( QueueHeader ) + sizeof( QueueZoneValidation ),
+    sizeof( QueueHeader ) + sizeof( QueueZoneValue ),
     sizeof( QueueHeader ) + sizeof( QueueFrameMark ),       // continuous frames
     sizeof( QueueHeader ) + sizeof( QueueFrameMark ),       // start
     sizeof( QueueHeader ) + sizeof( QueueFrameMark ),       // end
