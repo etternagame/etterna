@@ -1738,6 +1738,8 @@ Song::MatchesFilter(
 		 * addsong=false), and accept if any filters match.
 		 */
 		for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
+			// Iterate over all skillsets, up to and
+			// including the placeholder NUM_Skillset
 			float lb = FILTERMAN->SSFilterLowerBounds[ss];
 			float ub = FILTERMAN->SSFilterUpperBounds[ss];
 			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
@@ -1754,6 +1756,8 @@ Song::MatchesFilter(
 				if (ss < NUM_Skillset)
 					val = step->GetMSD(rate, ss);
 				else {
+					// If we are on the placeholder skillset, look at song
+					// length instead of a skill
 					TimingData* td = step->GetTimingData();
 					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
 						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
