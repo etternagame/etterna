@@ -29,9 +29,9 @@ const int MAX_STEPS_DESCRIPTION_LENGTH = 255;
 /** @brief The different ways of displaying the BPM. */
 enum DisplayBPM
 {
-	DISPLAY_BPM_ACTUAL,	/**< Display the song's actual BPM. */
+	DISPLAY_BPM_ACTUAL,	   /**< Display the song's actual BPM. */
 	DISPLAY_BPM_SPECIFIED, /**< Display a specified value or values. */
-	DISPLAY_BPM_RANDOM,	/**< Display a random selection of BPMs. */
+	DISPLAY_BPM_RANDOM,	   /**< Display a random selection of BPMs. */
 	NUM_DisplayBPM,
 	DisplayBPM_Invalid
 };
@@ -267,6 +267,8 @@ class Steps
 	RString m_StepsTypeStr;
 	/** @brief The Song these Steps are associated with */
 	Song* m_pSong;
+
+	vector<NoteInfo> serializenotedatacache;
 
 	CachedObject<Steps> m_CachedObject;
 

@@ -1,0 +1,16 @@
+*.o
+*.dll
+*.so
+*.so*
+*.dylib
+*.a
+*.exe
+*.pc
+/bin
+/obj
+/obj-static
+/obj-shared
+/mufft_test
+/mufft_bench
+/docs
+

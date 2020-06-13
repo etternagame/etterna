@@ -5,11 +5,6 @@ set_directory_properties(PROPERTIES VS_STARTUP_PROJECT Etterna)
 # otherwise a folder would be appended with the same name as the build configuration. The gen-expression
 # is only used to prevent the appending.
 set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "$<1:${PROJECT_SOURCE_DIR}/Program>")
-set_target_properties(Etterna PROPERTIES 
-	RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
-	RUNTIME_OUTPUT_NAME_RELEASE "Etterna" # Without prefix, as this is the binary to be copied when cpack is run.
-	RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
-	RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
 
 # Universal Build Options
 set_target_properties(Etterna PROPERTIES 
@@ -42,5 +37,11 @@ list(APPEND WIN_DLLS
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll")
 
 foreach(dll ${WIN_DLLS})
+	# We remove the dlls if they exist already in /Program/ in case we run a different ARCH target before
+	# Since we get a cryptic runtime error message otherwise when windows tries to load the wrong dll
+	get_filename_component(dll_filename_without_path ${dll} NAME)
+	file(REMOVE "${PROJECT_SOURCE_DIR}/Program/${dll_filename_without_path}")
 	file(COPY "${dll}" DESTINATION "${PROJECT_SOURCE_DIR}/Program/")
 endforeach()
+
+target_compile_definitions(Etterna PRIVATE $<$<CONFIG:RelWithDebInfo>:RELWITHDEBINFO>)

@@ -404,12 +404,10 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		// For every track in the row...
 		for (int track = 0; track < pNoteData->GetNumTracks(); track++) {
 			// Find the tapnote we are on
-			TapNote* pTN = NULL;
 			NoteData::iterator iter = pNoteData->FindTapNote(track, row);
-			DEBUG_ASSERT(iter != pNoteData->end(track));
-			pTN = &iter->second;
 
 			if (iter != pNoteData->end(track)) {
+				TapNote* pTN =  &iter->second;
 				// Deal with holds here
 				if (pTN->type == TapNoteType_HoldHead) {
 					int isDropped = IsHoldDroppedInRowRangeForTrack(

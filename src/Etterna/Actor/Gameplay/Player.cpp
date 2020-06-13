@@ -1729,12 +1729,10 @@ Player::GetClosestNote(int col,
 	// So forget about them.
 	// RIP Minebug 20xx - 2019
 	if (!bAllowOldMines) {
-		TapNote* pTN = NULL;
 		NoteData::iterator iter = m_NoteData.FindTapNote(col, iPrevIndex);
-		DEBUG_ASSERT(iter != m_NoteData.end(col));
-		pTN = &iter->second;
-		if (pTN->type == TapNoteType_Mine)
-			return iNextIndex;
+		if (iter != m_NoteData.end(col))
+			if ((&iter->second)->type == TapNoteType_Mine)
+				return iNextIndex;
 	}
 
 	/* Figure out which row is closer. */
@@ -3345,13 +3343,11 @@ Player::RenderAllNotesIgnoreScores()
 	{
 		for (int track = 0; track < m_NoteData.GetNumTracks(); track++) {
 			// Find the tapnote we are on
-			TapNote* pTN = NULL;
 			NoteData::iterator iter = m_NoteData.FindTapNote(track, row);
-			DEBUG_ASSERT(iter != m_NoteData.end(track));
-			pTN = &iter->second;
 
 			// Reset the score so it can be visible
 			if (iter != m_NoteData.end(track)) {
+				TapNote* pTN = &iter->second;
 				if (pTN->type == TapNoteType_Empty)
 					continue;
 				if (pTN->HoldResult.hns != HNS_None) {

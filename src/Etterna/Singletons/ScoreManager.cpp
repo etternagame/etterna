@@ -498,13 +498,14 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				bool remarried = false;
 				{
 					ZoneNamedN(PerThread, "RecalcWife", true);
-					if (hs->wife_ver != 3 && !hs->GetChordCohesion()) {
-						steps->GetNoteData(nd);
-						auto maxpoints = nd.WifeTotalScoreCalc(td);
-						if (maxpoints <= 0)
-							continue;
-						remarried =
-						  hs->RescoreToWife3(static_cast<float>(maxpoints));
+				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
+					hs->HasReplayData()) {
+					steps->GetNoteData(nd);
+					auto maxpoints = nd.WifeTotalScoreCalc(td);
+					if (maxpoints <= 0)
+						continue;
+					remarried =
+					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 					}
 				}
 
@@ -520,18 +521,19 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				if (!remarried && hs->GetSSRCalcVersion() == GetCalcVersion())
 					continue;
 
-				{
-					ZoneNamedN(PerThread, "GetNoteData", true);
+				const vector<NoteInfo>* serializednd_ptr = nullptr;
+				if (steps->serializenotedatacache.size() != 0) {
+					serializednd_ptr = &(steps->serializenotedatacache);
+				} else {
 					// notedata hasn't been loaded yet if we didn't rescore
 					if (!remarried)
 						steps->GetNoteData(nd);
+					const auto& serializednd = nd.SerializeNoteData2(td);
+					serializednd_ptr = &serializednd;
 				}
-
-				const auto& serializednd = nd.SerializeNoteData2(td);
-				{
-					ZoneNamedN(PerThread, "Calc", true);
-					vector<float> dakine;
-					if (steps->m_StepsType == StepsType_dance_single) {
+				const vector<NoteInfo>& serializednd = *serializednd_ptr;
+				vector<float> dakine;
+				if (steps->m_StepsType == StepsType_dance_single) {
 #ifdef USING_NEW_CALC
 						dakine =
 						  MinaSDCalc(serializednd, musicrate, ssrpercent);
@@ -548,6 +550,13 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 					hs->SetSkillsetSSR(ss, ssrVals[ss]);
 					hs->SetSSRCalcVersion(GetCalcVersion());
 				}
+				else if (steps->m_StepsType == StepsType_dance_solo)
+					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
+				auto ssrVals = dakine;
+				FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, ssrVals[ss]);
+				hs->SetSSRCalcVersion(GetCalcVersion());
+
 				// we only want to upload scores that have been rescored to
 				// wife3, not generic calc changes, since the site runs its own
 				// calc anyway

@@ -19,7 +19,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.69.1
+		VERSION 0.70.0
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
@@ -36,9 +36,18 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders
 add_executable(Etterna)
 
 ## Setting Target Properties
-## macOS and Linux place binary in root directory
+### Set a different name for each output binary depending on what build configuration is.
+### Usually it is separated by directory, but since we have the same directory for every
+### binary, we need to rename the binary
+set_target_properties(Etterna PROPERTIES
+        RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
+        RUNTIME_OUTPUT_NAME_RELEASE "Etterna"
+        RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
+        RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
+
+### macOS and Linux place binary in root directory
 if(NOT WIN32)
-    set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
+    set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "$<1:${PROJECT_SOURCE_DIR}>")
 endif()
 
 ## Includes
@@ -77,7 +86,7 @@ target_link_libraries(Etterna PRIVATE luajit)
 target_link_libraries(Etterna PRIVATE discord-rpc)
 target_link_libraries(Etterna PRIVATE tomcrypt)
 target_link_libraries(Etterna PRIVATE libtommath)
-target_link_libraries(Etterna PRIVATE fftw3f)
+target_link_libraries(Etterna PRIVATE muFFT)
 target_link_libraries(Etterna PRIVATE glfw)
 target_link_libraries(Etterna PRIVATE ogg)
 target_link_libraries(Etterna PRIVATE vorbis)

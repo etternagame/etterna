@@ -44,7 +44,7 @@ add_subdirectory(stb)
 add_subdirectory(libtomcrypt)
 add_subdirectory(libtommath)
 add_subdirectory(LuaJIT-2.1.0-beta3)
-add_subdirectory(fftw-3.3.8)
+add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
@@ -62,7 +62,7 @@ endif()
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
-    discord-rpc fftw3f
+    discord-rpc muFFT
     tomcrypt libtommath
     zlib libmad pcre
     ogg vorbis glfw

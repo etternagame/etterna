@@ -405,7 +405,6 @@ Steps::CalcEtternaMetadata()
 		diffByRate = MinaSDCalc_OLD(cereal);
 #endif
 	}
-		
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
@@ -428,7 +427,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 		return 0.f;
 	auto& vh =
 	  SONGMAN->testChartList[ss].filemapping.at(ChartKey).version_history;
-	
+
 	Decompress();
 	const vector<int>& nerv = m_pNoteData->BuildAndGetNerv(GetTimingData());
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
@@ -448,7 +447,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 			   newcalc[ss] - oldcalc[ss],
 			   newcalc[ss] - last_msd,
 			   m_pSong->GetMainTitle().c_str());
-	
+
 	vh.emplace(pair<int, float>(GetCalcVersion(), newcalc[ss]));
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -1031,7 +1030,9 @@ class LunaSteps : public Luna<Steps>
 			for (int j = 0; j < 2; ++j) {
 				vector<float> poop;
 				if (!p->calcdebugoutput.empty()) // empty for non 4k
-					poop = p->calcdebugoutput[j][0][i];
+					if (!p->calcdebugoutput[j]
+						   .empty()) // empty for "garbage files"
+						poop = p->calcdebugoutput[j][0][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1048,7 +1049,9 @@ class LunaSteps : public Luna<Steps>
 			for (int j = 0; j < 2; ++j) {
 				vector<float> poop;
 				if (!p->calcdebugoutput.empty()) // empty for non 4k
-					poop = p->calcdebugoutput[j][1][i];
+					if (!p->calcdebugoutput[j]
+						   .empty()) // empty for "garbage files"
+						poop = p->calcdebugoutput[j][1][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1065,7 +1068,9 @@ class LunaSteps : public Luna<Steps>
 			for (int j = 0; j < 2; ++j) {
 				vector<float> poop;
 				if (!p->calcdebugoutput.empty()) // empty for non 4k
-					poop = p->calcdebugoutput[j][2][i];
+					if (!p->calcdebugoutput[j]
+						   .empty()) // empty for "garbage files"
+						poop = p->calcdebugoutput[j][2][i];
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
