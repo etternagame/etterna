@@ -535,21 +535,13 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				vector<float> dakine;
 				if (steps->m_StepsType == StepsType_dance_single) {
 #ifdef USING_NEW_CALC
-						dakine =
-						  MinaSDCalc(serializednd, musicrate, ssrpercent);
+					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
 #else
-						dakine =
-						  MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
+					dakine =
+					  MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
 #endif
-					}
-
-					else if (steps->m_StepsType == StepsType_dance_solo)
-						dakine = SoloCalc(serializednd, musicrate, ssrpercent);
-					auto ssrVals = dakine;
-					FOREACH_ENUM(Skillset, ss)
-					hs->SetSkillsetSSR(ss, ssrVals[ss]);
-					hs->SetSSRCalcVersion(GetCalcVersion());
 				}
+
 				else if (steps->m_StepsType == StepsType_dance_solo)
 					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
 				auto ssrVals = dakine;
