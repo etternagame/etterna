@@ -34,6 +34,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/GameSoundManager.h"
+#include "Etterna/Singletons/FilterManager.h"
 
 #include "Etterna/Singletons/GameState.h"
 #include <cfloat>
@@ -1697,16 +1698,97 @@ Song::GetHighestOfSkillsetAllSteps(int x, float rate) const
 }
 
 bool
-Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate)
+Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 {
 	vector<Steps*> vsteps = GetAllSteps();
 	FOREACH(Steps*, vsteps, steps)
 	{
-		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, true);
+		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, false);
 		if (sortedstuffs[0].first == ss)
 			return true;
 	}
 
+	return false;
+}
+
+bool
+Song::MatchesFilter(
+  const float rate,
+  const std::optional<const std::vector<StepsType>> types) const
+{
+	vector<Steps*> steps;
+	if (types) {
+		for (auto type : *types) {
+			vector<Steps*> tmp =
+			  GetStepsByStepsType(type); // Get all charts of type "type"
+			steps.insert(
+			  steps.end(), tmp.begin(), tmp.end()); // Append them to the list
+		}
+	} else {
+		steps = GetAllSteps();
+	}
+
+	for (const auto step : steps) {
+		// Iterate over all maps of the given type
+		bool addsong = FILTERMAN->ExclusiveFilter;
+		/* The default behaviour of an exclusive filter is to accept
+		 * by default, (i.e. addsong=true) and reject if any
+		 * filters fail. The default behaviour of a non-exclusive filter is
+		 * the exact opposite: reject by default (i.e.
+		 * addsong=false), and accept if any filters match.
+		 */
+		for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
+			// Iterate over all skillsets, up to and
+			// including the placeholder NUM_Skillset
+			float lb = FILTERMAN->SSFilterLowerBounds[ss];
+			float ub = FILTERMAN->SSFilterUpperBounds[ss];
+			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
+
+				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
+					if (FILTERMAN->HighestSkillsetsOnly)
+						if (!IsSkillsetHighestOfAnySteps(
+							  static_cast<Skillset>(ss), rate) &&
+							ss < NUM_Skillset) // The current skill is not
+											   // in highest in the chart
+							continue;
+				}
+				float val;
+				if (ss < NUM_Skillset)
+					val = step->GetMSD(rate, ss);
+				else {
+					// If we are on the placeholder skillset, look at song
+					// length instead of a skill
+					TimingData* td = step->GetTimingData();
+					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
+						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
+						  rate;
+					// Rates modify the song length.
+				}
+				if (FILTERMAN->ExclusiveFilter) {
+					/* Our behaviour is to accept by default,
+					 * but reject if any filters don't match.*/
+					if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
+						/* If we're below the lower bound and it's set,
+						 * or above the upper bound and it's set*/
+						addsong = false;
+						break;
+					}
+				} else { // Non-Exclusive Filter
+					/* Our behaviour is to reject by default,
+					 * but accept if any filters match.*/
+					if ((val > lb || !(lb > 0.f)) &&
+						(val < ub || !(ub > 0.f))) {
+						/* If we're above the lower bound or it's not set
+						 * and also below the upper bound or it isn't set*/
+						addsong = true;
+						break;
+					}
+				}
+			}
+		}
+		if (addsong)
+			return true;
+	}
 	return false;
 }
 
@@ -1893,7 +1975,7 @@ Song::UnloadAllCalcDebugOutput()
 {
 	for (auto s : m_vpSteps)
 		s->UnloadCalcDebugOutput();
-	}
+}
 
 bool
 Song::AnyChartUsesSplitTiming() const

@@ -9,6 +9,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include <set>
+#include <optional>
 using std::string;
 
 class Style;
@@ -62,8 +63,8 @@ StringToInstrumentTrack(const RString& s);
 struct LyricSegment
 {
 	float m_fStartTime; /** @brief When does the lyric show up? */
-	RString m_sLyric;   /** @brief The lyrics themselves. */
-	RageColor m_Color;  /** @brief The color of the lyrics. */
+	RString m_sLyric;	/** @brief The lyrics themselves. */
+	RageColor m_Color;	/** @brief The color of the lyrics. */
 };
 
 /** @brief Holds all music metadata and steps for one song. */
@@ -79,7 +80,7 @@ class Song
 	enum SelectionDisplay
 	{
 		SHOW_ALWAYS, /**< always show on the wheel. */
-		SHOW_NEVER   /**< never show on the wheel (unless song hiding is turned
+		SHOW_NEVER	 /**< never show on the wheel (unless song hiding is turned
 						off). */
 	} m_SelectionDisplay;
 
@@ -258,7 +259,7 @@ class Song
 
 	RString m_sBannerFile; // typically a 16:5 ratio graphic (e.g. 256x80)
 	RString m_sJacketFile; // typically square (e.g. 192x192, 256x256)
-	RString m_sCDFile;	 // square (e.g. 128x128 [DDR 1st-3rd])
+	RString m_sCDFile;	   // square (e.g. 128x128 [DDR 1st-3rd])
 	RString m_sDiscFile;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
 	RString m_sLyricsFile;
 	RString m_sBackgroundFile;
@@ -270,8 +271,8 @@ class Song
 	string m_sInstrumentTrackPath[NUM_InstrumentTrack];
 	string m_sBannerPath; // typically a 16:5 ratio graphic (e.g. 256x80)
 	string m_sJacketPath; // typically square (e.g. 192x192, 256x256)
-	string m_sCDPath;	 // square (e.g. 128x128 [DDR 1st-3rd])
-	string m_sDiscPath;   // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
+	string m_sCDPath;	  // square (e.g. 128x128 [DDR 1st-3rd])
+	string m_sDiscPath;	  // rectangular (e.g. 256x192 [Pump], 200x150 [MGD3])
 	string m_sLyricsPath;
 	string m_sBackgroundPath;
 	string m_sCDTitlePath;
@@ -302,7 +303,12 @@ class Song
 	// Get the highest value for a specific skillset across all the steps
 	// objects for the song at a given rate
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
-	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate);
+	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const;
+	/** @brief This functions returns whether it has any chart of the given
+	   types with the given rate. If no type is given  it checks all charts.*/
+	bool MatchesFilter(const float rate,
+					   const std::optional<const std::vector<StepsType>> types =
+						 std::nullopt) const;
 
 	bool HasChartByHash(const string& hash);
 
