@@ -1,4 +1,4 @@
-﻿/* MusicWheel - A wheel with song names used in the Select Music screen. */
+/* MusicWheel - A wheel with song names used in the Select Music screen. */
 
 #ifndef MUSIC_WHEEL_H
 #define MUSIC_WHEEL_H
@@ -65,6 +65,8 @@ class MusicWheel : public WheelBase
 
 	vector<Song*> allSongsFiltered;
 	map<RString, vector<Song*>> allSongsByGroupFiltered;
+	bool SelectSongOrCourse();
+	void SelectSongAfterSearch();
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -74,7 +76,6 @@ class MusicWheel : public WheelBase
 
 	vector<string> hashList;
 	void GetSongList(vector<Song*>& arraySongs, SortOrder so);
-	bool SelectSongOrCourse();
 	bool SelectModeMenuItem();
 
 	void FilterByStepKeys(vector<Song*>& inv);
@@ -139,7 +140,6 @@ class MusicWheel : public WheelBase
 	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 							  vector<MusicWheelItemData*>& aFilteredData,
 							  SortOrder so);
-	void SelectSongAfterSearch();
 	RString prevSongTitle;
 };
 

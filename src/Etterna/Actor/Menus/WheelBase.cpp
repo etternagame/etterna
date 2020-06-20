@@ -274,6 +274,17 @@ WheelBase::Select() // return true if this selection can end the screen
 	}
 }
 
+RString
+WheelBase::GetCurrentGroup()
+{
+	// current hovering a group
+	if (m_CurWheelItemData[m_iSelection]->m_Type == WheelItemDataType_Section)
+		return m_CurWheelItemData[m_iSelection]->m_sText;
+	else
+		// currently within a group
+		return m_sExpandedSectionName;
+}
+
 WheelItemBaseData*
 WheelBase::GetItem(unsigned int iIndex)
 {
