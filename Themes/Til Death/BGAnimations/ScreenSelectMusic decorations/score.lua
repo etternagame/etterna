@@ -112,6 +112,7 @@ end
 
 local ret =
 	Def.ActorFrame {
+	Name = "Scoretab",
 	BeginCommand = function(self)
 		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
