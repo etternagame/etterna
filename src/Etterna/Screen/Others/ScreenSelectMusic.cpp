@@ -1370,6 +1370,7 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 					   .GetTopScore()
 					   .GetScore();
 			if (m_pPreviewNoteField != nullptr) {
+				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds, *(pSteps->GetTimingData()));
 				pSteps->GetNoteData(m_PreviewNoteData);
 				m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
 			}
