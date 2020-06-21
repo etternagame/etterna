@@ -36,6 +36,8 @@ using namespace rapidjson;
 #include <intrin.h>
 #endif
 shared_ptr<DownloadManager> DLMAN = nullptr;
+static RageEvent* dlmut;
+
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static Preference<unsigned int> maxDLPerSecond(
@@ -360,10 +362,33 @@ EmptyTempDLFileDir()
 			FILEMAN->Remove(file);
 	}
 }
+
+static RageThread DLThread;
+static RageTimer downloadTimer;
+
+int
+DLThread_Start(void* dlman)
+{
+	auto dlm = static_cast<DownloadManager*>(dlman);
+	while (!dlm->stopdlman)
+	{
+		dlm->UpdateDownloads();
+	}
+	return 0;
+}
+
 DownloadManager::DownloadManager()
 {
 	EmptyTempDLFileDir();
 	curl_global_init(CURL_GLOBAL_ALL);
+
+	downloadTimer.Touch();
+	stopdlman = false;
+	dlmut = new RageEvent("DLs");
+
+	DLThread.SetName("Download thread");
+	DLThread.Create(DLThread_Start, this);
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -382,6 +407,10 @@ DownloadManager::~DownloadManager()
 	if (mHTTPHandle != nullptr)
 		curl_multi_cleanup(mHTTPHandle);
 	mHTTPHandle = nullptr;
+
+	stopdlman = true;
+	DLThread.Wait();
+
 	EmptyTempDLFileDir();
 	for (auto& dl : downloads) {
 		if (dl.second->handle != nullptr) {
@@ -393,6 +422,7 @@ DownloadManager::~DownloadManager()
 	if (LoggedIn())
 		EndSession();
 	curl_global_cleanup();
+	SAFE_DELETE(dlmut);
 }
 
 Download*
@@ -578,27 +608,20 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	return;
 }
 void
-DownloadManager::UpdatePacks(float fDeltaSeconds)
+DownloadManager::UpdateDownloads()
 {
-	timeSinceLastDownload += fDeltaSeconds;
-	if (pendingInstallDownloads.size() > 0 && !gameplay) {
-		// Install all pending packs
-		for (auto i = pendingInstallDownloads.begin();
-			 i != pendingInstallDownloads.end();
-			 i++) {
-			i->second->Install();
-			finishedDownloads[i->second->m_Url] = i->second;
-			pendingInstallDownloads.erase(i);
-		}
-		// Reload
-		auto screen = SCREENMAN->GetScreen(0);
-		if (screen && screen->GetName() == "ScreenSelectMusic")
-			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
-		else if (screen && screen->GetName() == "ScreenNetSelectMusic")
-			static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
-		else
-			SONGMAN->DifferentialReload();
-	}
+	// somethnig to know:
+	// we use curl multi perform here
+	// and its in a thread
+	// which is 100%  not what you should do
+	// because multi perform takes away the necessity for threads
+	// but you know what they say
+	// ....
+	if (!initialized)
+		init();
+	if (gameplay)
+		return;
+	dlmut->Lock();
 	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() &&
 		timeSinceLastDownload > DownloadCooldownTime) {
 		auto it = DownloadQueue.begin();
@@ -606,8 +629,6 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto pack = *it;
 		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 	}
-	if (!downloadingPacks)
-		return;
 	timeval timeout;
 	int rc, maxfd = -1;
 	CURLMcode mc;
@@ -623,6 +644,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	mc = curl_multi_fdset(mPackHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
 	if (mc != CURLM_OK) {
 		error = "curl_multi_fdset() failed, code " + to_string(mc);
+		dlmut->Unlock();
 		return;
 	}
 	if (maxfd == -1) {
@@ -634,11 +656,11 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
-				dl.second->Update(fDeltaSeconds);
+				dl.second->Update(downloadTimer.GetDeltaTime());
 			break;
 	}
 
@@ -698,7 +720,36 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		if (downloads.empty())
 			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
 	}
+
+	dlmut->Unlock();
+
 	if (installedPacks) {
+		DLMAN->passesToInstallPacks++;
+	}
+}
+
+void
+DownloadManager::UpdatePacks(float fDeltaSeconds)
+{
+	bool mustreload = false;
+	timeSinceLastDownload += fDeltaSeconds;
+	if (pendingInstallDownloads.size() > 0 && !gameplay) {
+		dlmut->Lock();
+		// Install all pending packs
+		for (auto i = pendingInstallDownloads.begin();
+			 i != pendingInstallDownloads.end();
+			 i++) {
+			i->second->Install();
+			finishedDownloads[i->second->m_Url] = i->second;
+			pendingInstallDownloads.erase(i);
+		}
+		dlmut->Unlock();
+		mustreload = true;
+	}
+
+	if (mustreload || passesToInstallPacks > 0) {
+		passesToInstallPacks = 0;
+		// Reload
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
 			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
@@ -707,7 +758,6 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	return;
 }
 
 string

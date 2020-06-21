@@ -15,6 +15,9 @@
 
 class DownloadablePack;
 
+int
+DLThread_Start(void* dlman);
+
 class ProgressData
 {
   public:
@@ -206,6 +209,7 @@ class DownloadManager
 	void RemoveFavorite(const string& chartkey);
 	void RefreshFavourites();
 	vector<string> favorites;
+	bool stopdlman = false;
 
 	void AddGoal(const string& chartkey,
 				 float wife,
@@ -243,6 +247,7 @@ class DownloadManager
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
 	void UpdateHTTP(float fDeltaSeconds);
+	void UpdateDownloads();
 	bool InstallSmzip(const string& sZipFile);
 
 	void UpdateDLSpeed();
@@ -315,6 +320,7 @@ class DownloadManager
 	const int maxPacksToDownloadAtOnce = 1;
 	const float DownloadCooldownTime = 5.f;
 	float timeSinceLastDownload = 0.f;
+	unsigned int passesToInstallPacks = 0;
 
 	// Lua
 	void PushSelf(lua_State* L);
