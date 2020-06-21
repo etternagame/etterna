@@ -28,12 +28,13 @@ t[#t + 1] =
 	OnCommand = function(self)
 		self:visible(true)
 	end,
-	TabChangedMessageCommand = function(self)
+	TabChangedMessageCommand = function(self, params)
 		self:finishtweening()
 		if getTabIndex() < 3 and GAMESTATE:GetCurrentSong() then
 			-- dont display this if the score nested tab is already online
 			-- prevents repeat 3 presses to break the display
-			if getTabIndex() == 2 and not self:GetParent():GetChild("Scoretab"):GetChild("LocalScores"):IsVisible() then
+			-- (let page 2 handle this specifically)
+			if params.to == 2 then
 				return
 			end
 			self:playcommand("On")

@@ -143,6 +143,8 @@ local ret =
 		if getTabIndex() == 2 then -- switching to this tab
 			if nestedTab == 2 then
 				self:GetParent():GetChild("StepsDisplay"):visible(false)
+			else
+				self:GetParent():GetChild("StepsDisplay"):visible(true)
 			end
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")
