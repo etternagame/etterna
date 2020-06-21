@@ -363,18 +363,14 @@ EmptyTempDLFileDir()
 	}
 }
 
-static RageThread DLThread;
 static RageTimer downloadTimer;
-
-int
-DLThread_Start(void* dlman)
+#include <iostream>
+void DownloadManager::DLThread()
 {
-	auto dlm = static_cast<DownloadManager*>(dlman);
-	while (!dlm->stopdlman)
+	while (!this->stopdlman)
 	{
-		dlm->UpdateDownloads();
+		this->UpdateDownloads();
 	}
-	return 0;
 }
 
 DownloadManager::DownloadManager()
@@ -386,8 +382,7 @@ DownloadManager::DownloadManager()
 	stopdlman = false;
 	dlmut = new RageEvent("DLs");
 
-	DLThread.SetName("Download thread");
-	DLThread.Create(DLThread_Start, this);
+	dlthread = std::thread(&DownloadManager::DLThread, this);
 
 	// Register with Lua.
 	{
@@ -409,7 +404,7 @@ DownloadManager::~DownloadManager()
 	mHTTPHandle = nullptr;
 
 	stopdlman = true;
-	DLThread.Wait();
+	dlthread.join(); // Rejoin thread.
 
 	EmptyTempDLFileDir();
 	for (auto& dl : downloads) {

@@ -12,6 +12,7 @@
 #include "curl/curl.h"
 #include "Etterna/Models/Misc/Difficulty.h"
 #include <deque>
+#include <thread>
 
 class DownloadablePack;
 
@@ -252,6 +253,9 @@ class DownloadManager
 
 	void UpdateDLSpeed();
 	void UpdateDLSpeed(bool gameplay);
+	
+	std::thread dlthread;
+	void DLThread();
 
 	string GetError() { return error; }
 	bool Error() { return error == ""; }
