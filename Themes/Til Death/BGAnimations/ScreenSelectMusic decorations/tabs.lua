@@ -13,14 +13,16 @@ local function input(event)
 					 SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic"))
 			 then
 				if event.DeviceInput.button == "DeviceButton_0" then
+					local tind = getTabIndex()
 					setTabIndex(9)
-					MESSAGEMAN:Broadcast("TabChanged")
+					MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 9})
 				else
 					for i = 1, #tabNames do
 						local numpad = event.DeviceInput.button == "DeviceButton_KP "..event.char	-- explicitly ignore numpad inputs for tab swapping (doesn't care about numlock) -mina
 						if not numpad and event.char and tonumber(event.char) and tonumber(event.char) == i then
+							local tind = getTabIndex()
 							setTabIndex(i - 1)
-							MESSAGEMAN:Broadcast("TabChanged")
+							MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = i-1})
 						end
 					end
 				end
@@ -83,8 +85,9 @@ function tabs(index)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
+				local tind = getTabIndex()
 				setTabIndex(index - 1)
-				MESSAGEMAN:Broadcast("TabChanged")
+				MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = index - 1})
 			end
 		end
 	}

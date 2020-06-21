@@ -169,16 +169,19 @@ local ret =
 	end,
 	CollapseCommand = function(self)
 		collapsed = true
+		local tind = getTabIndex()
 		resetTabIndex()
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 	end,
 	ExpandCommand = function(self)
 		collapsed = false
+		local tind = getTabIndex()
 		if getTabIndex() ~= 2 then
 			setTabIndex(2)
 		end
+		local after = getTabIndex()
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY)
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = after})
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
