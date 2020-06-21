@@ -51,7 +51,8 @@ struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 
-	vector<NoteInfo> _ni;
+	Calc& _calc;
+	const vector<NoteInfo>& _ni;
 	vector<vector<int>> _itv_rows;
 	float _rate = 0.F;
 	int hand = 0;
@@ -108,7 +109,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	// so we can apply them here
 	diffz _diffz;
 
-	inline void recieve_sacrifice(const vector<NoteInfo>& ni)
+	TheGreatBazoinkazoinkInTheSky(const vector<NoteInfo>& ni, Calc& calc)
+	  : // doesn't change with offset or anything, and we may do
+		// multi-passes at some point
+	  _ni(ni)
+	  , _calc(calc)
 	{
 #ifndef RELWITHDEBINFO
 #if NDEBUG
@@ -130,10 +135,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mri = std::make_unique<metaRowInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
-
-		// doesn't change with offset or anything, and we may do
-		// multi-passes at some point
-		_ni = ni;
 	}
 
 	inline void operator()(const vector<vector<int>>& itv_rows,
@@ -173,14 +174,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		// sequencing just set only one hand's values and we'll copy them
 		// over (or figure out how not to need to) later
 
-		PatternMods::set_agnostic(_s._pmod, _s(_mitvi), itv);
-		PatternMods::set_agnostic(_js._pmod, _js(_mitvi), itv);
-		PatternMods::set_agnostic(_hs._pmod, _hs(_mitvi), itv);
-		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv);
-		PatternMods::set_agnostic(_cjd._pmod, _cjd(_mitvi), itv);
-		PatternMods::set_agnostic(_fj._pmod, _fj(), itv);
-		PatternMods::set_agnostic(_tt._pmod, _tt(), itv);
-		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv);
+		PatternMods::set_agnostic(_s._pmod, _s(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_js._pmod, _js(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hs._pmod, _hs(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_cjd._pmod, _cjd(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
+		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
+		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
 	}
 
 	inline void run_agnostic_pmod_loop()
@@ -218,10 +219,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			_mitvi.handle_interval_end();
 		}
 
-		PatternMods::run_agnostic_smoothing_pass(_itv_rows.size());
+		PatternMods::run_agnostic_smoothing_pass(_itv_rows.size(), _calc);
 
 		// copy left -> right for agnostic mods
-		PatternMods::bruh_they_the_same(_itv_rows.size());
+		PatternMods::bruh_they_the_same(_itv_rows.size(), _calc);
 	}
 
 #pragma endregion
@@ -264,20 +265,26 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_dependent_pmods(const int& itv)
 	{
-		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv);
-		PatternMods::set_dependent(hand, _oht._pmod, _oht(_mitvhi._itvhi), itv);
-		PatternMods::set_dependent(hand, _voht._pmod, _voht(_mitvhi._itvhi), itv);
-		PatternMods::set_dependent(hand, _bal._pmod, _bal(_mitvhi._itvhi), itv);
+		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
-		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv);
+		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
-		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv);
-		PatternMods::set_dependent(hand, _rm._pmod, _rm(), itv);
-		PatternMods::set_dependent(hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv);
-		PatternMods::set_dependent(hand, _wrr._pmod, _wrr(_mitvhi._itvhi), itv);
-		PatternMods::set_dependent(hand, _wrjt._pmod, _wrjt(_mitvhi._itvhi), itv);
+		  hand, _voht._pmod, _voht(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
-		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv);
+		  hand, _bal._pmod, _bal(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
+		PatternMods::set_dependent(hand, _rm._pmod, _rm(), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _wrr._pmod, _wrr(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _wrjt._pmod, _wrjt(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
 	}
 
 	// reset any moving windows or values when starting the other hand, this
@@ -339,13 +346,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_sequenced_base_diffs(const int& itv)
 	{
-		soap.at(hand)[CJBase][itv] = _diffz._cj.get_itv_diff();
-		soap.at(hand)[JackBase][itv] = _diffz._jk.get_itv_diff();
+		_calc.soap.at(hand)[CJBase][itv] = _diffz._cj.get_itv_diff();
+		_calc.soap.at(hand)[JackBase][itv] = _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		soap.at(hand)[TechBase][itv] =
-		  _diffz._tc.get_itv_diff(soap.at(hand)[NPSBase][itv]);
+		_calc.soap.at(hand)[TechBase][itv] =
+		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase][itv]);
 	}
 
 	inline void run_dependent_pmod_loop()
@@ -363,7 +370,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			col_type ct = col_init;
 			full_hand_reset();
 
-			Smooth(soap.at(hand).at(NPSBase), 0.F, _itv_rows.size());
+			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _itv_rows.size());
 
 			// so we are technically doing this again (twice) and don't to
 			// be doing it, but it makes debugging much less of a pita if we
@@ -442,15 +449,15 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 			}
-			PatternMods::run_dependent_smoothing_pass(_itv_rows.size());
+			PatternMods::run_dependent_smoothing_pass(_itv_rows.size(), _calc);
 
 			// smoothing has been built into the construction process so we
 			// probably don't need these anymore? maybe ms smooth if necessary,
 			// or a new ewma
 
-			// Smooth(soap.at(hand).at(JackBase), 0.F, _itv_rows.size());
-			// Smooth(soap.at(hand).at(CJBase), 0.F, _itv_rows.size());
-			// Smooth(soap.at(hand).at(TechBase), 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(JackBase), 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(CJBase), 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(TechBase), 0.F, _itv_rows.size());
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand

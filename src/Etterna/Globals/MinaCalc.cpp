@@ -66,11 +66,11 @@ Hand::InitPoints(const Finger& f1, const Finger& f2)
 }
 
 inline void
-InitBaseDiff(const int& h, Finger& f1, Finger& f2)
+InitBaseDiff(const int& h, Finger& f1, Finger& f2, Calc& calc)
 {
 	for (int i = 0; i < f1.size(); i++) {
 		float nps = 1.6F * static_cast<float>(f1[i].size() + f2[i].size());
-		soap.at(h).at(NPSBase).at(i) = finalscaler * nps;
+		calc.soap.at(h).at(NPSBase).at(i) = finalscaler * nps;
 	}
 }
 
@@ -363,19 +363,18 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all;
-	ulbu_that_which_consumes_all.recieve_sacrifice(NoteInfo);
+	TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(NoteInfo, *this);
 
-	InitBaseDiff(left_hand, fingers[0], fingers[1]);
-	InitBaseDiff(right_hand, fingers[2], fingers[3]);
+	InitBaseDiff(left_hand, fingers[0], fingers[1], *this);
+	InitBaseDiff(right_hand, fingers[2], fingers[3], *this);
 
 	l_hand.InitPoints(fingers[0], fingers[1]);
 	r_hand.InitPoints(fingers[2], fingers[3]);
 
 	ulbu_that_which_consumes_all(nervIntervals, music_rate);
 
-	l_hand.InitAdjDiff();
-	r_hand.InitAdjDiff();
+	l_hand.InitAdjDiff(*this);
+	r_hand.InitAdjDiff(*this);
 
 	// post pattern mod smoothing for cj
 	Smooth(base_adj_diff.at(left_hand).at(Skill_Chordjack), 1.F, numitv);
@@ -440,12 +439,13 @@ Calc::Chisel(float player_skill,
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = static_cast<float>(MaxPoints);
 
-			l_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+			l_hand.CalcInternal(gotpoints, player_skill, ss, stamina, *this);
 
 			// only run the other hand if we're still above the reqpoints, if
 			// we're already below, there's no point
 			if (gotpoints > reqpoints) {
-				r_hand.CalcInternal(gotpoints, player_skill, ss, stamina);
+				r_hand.CalcInternal(
+				  gotpoints, player_skill, ss, stamina, *this);
 			}
 
 		} while (gotpoints < reqpoints);
@@ -458,15 +458,17 @@ Calc::Chisel(float player_skill,
 	// be recalculated with the final value already determined
 	// getting the jackstam debug output right is lame i know
 	if (debugoutput) {
-		l_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
-		r_hand.CalcInternal(gotpoints, player_skill, ss, stamina, debugoutput);
+		l_hand.CalcInternal(
+		  gotpoints, player_skill, ss, stamina, *this, debugoutput);
+		r_hand.CalcInternal(
+		  gotpoints, player_skill, ss, stamina, *this, debugoutput);
 	}
 
 	return player_skill + 2.F * resolution;
 }
 
 void
-Hand::InitAdjDiff()
+Hand::InitAdjDiff(Calc& calc)
 {
 	// new plan stop being dumb and doing this over and over again
 	// in calc internal because these values never change
@@ -586,7 +588,7 @@ Hand::InitAdjDiff()
 				continue;
 			}
 			for (auto& pmod : pmods_used[ss]) {
-				tp_mods[ss] *= doot.at(hi).at(pmod).at(i);
+				tp_mods[ss] *= calc.doot.at(hi).at(pmod).at(i);
 			}
 		}
 
@@ -598,16 +600,17 @@ Hand::InitAdjDiff()
 			}
 
 			// this should work and not be super slow?
-			auto& adj_diff = base_adj_diff.at(hi).at(ss).at(i);
-			auto& stam_base = base_diff_for_stam_mod.at(hi).at(ss).at(i);
+			float* adj_diff = &(calc.base_adj_diff.at(hi).at(ss).at(i));
+			float* stam_base =
+			  &(calc.base_diff_for_stam_mod.at(hi).at(ss).at(i));
 
 			// might need optimization, or not since this is not
 			// outside of a dumb loop now and is done once instead
 			// of a few hundred times
-			float funk =
-			  soap.at(hi).at(NPSBase).at(i) * tp_mods[ss] * basescalers.at(ss);
-			adj_diff = funk;
-			stam_base = funk;
+			float funk = calc.soap.at(hi).at(NPSBase).at(i) * tp_mods[ss] *
+						 basescalers.at(ss);
+			*adj_diff = funk;
+			*stam_base = funk;
 			switch (ss) {
 				// do funky special case stuff here
 				case Skill_Stream:
@@ -616,45 +619,51 @@ Hand::InitAdjDiff()
 				// test calculating stam for js/hs on max js/hs diff
 				// we want hs to count against js so they are
 				// mutually exclusive
-				case Skill_Jumpstream:
-					adj_diff /= max(doot.at(hi).at(HS).at(i), 1.F);
-					adj_diff /=
-					  fastsqrt(doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
+				case Skill_Jumpstream: {
+
+					*adj_diff /= max<float>(calc.doot.at(hi).at(HS).at(i), 1.F);
+					*adj_diff /=
+					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
 
 					/*adj_diff *=
 					  CalcClamp(fastsqrt(doot.at(hi).at(RanMan).at(i) -
 					  0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
 					// math twice
-					stam_base = max(adj_diff,
-									soap.at(hi).at(NPSBase).at(i) *
-									  tp_mods[Skill_Handstream]);
-					break;
-				case Skill_Handstream:
+					float a = *adj_diff;
+					float b = calc.soap.at(hi).at(NPSBase).at(i) *
+							  tp_mods[Skill_Handstream];
+					*stam_base = max<float>(a, b);
+				} break;
+				case Skill_Handstream: {
+
 					// adj_diff /= fastsqrt(doot.at(hi).at(OHJump).at(i));
-					stam_base = max(funk,
-									soap.at(hi).at(NPSBase).at(i) *
-									  tp_mods[Skill_Jumpstream]);
-					break;
+					float a = funk;
+					float b = calc.soap.at(hi).at(NPSBase).at(i) *
+							  tp_mods[Skill_Jumpstream];
+					*stam_base = max<float>(a, b);
+				} break;
 				case Skill_JackSpeed:
-					adj_diff = soap.at(hi).at(JackBase).at(i) *
-							   tp_mods[Skill_JackSpeed] * basescalers.at(ss) /
-							   max(fastpow(doot.at(hi).at(CJ).at(i), 2.F), 1.F);
+					*adj_diff =
+					  calc.soap.at(hi).at(JackBase).at(i) *
+					  tp_mods[Skill_JackSpeed] * basescalers.at(ss) /
+					  max(fastpow(calc.doot.at(hi).at(CJ).at(i), 2.F), 1.F);
 					break;
 				case Skill_Chordjack:
-					adj_diff = soap.at(hi).at(CJBase).at(i) *
-							   tp_mods[Skill_Chordjack] * basescalers.at(ss);
+					*adj_diff = calc.soap.at(hi).at(CJBase).at(i) *
+								tp_mods[Skill_Chordjack] * basescalers.at(ss);
 					break;
 				case Skill_Technical:
-					adj_diff =
-					  soap.at(hi).at(TechBase).at(i) * tp_mods[ss] *
+					*adj_diff =
+					  calc.soap.at(hi).at(TechBase).at(i) * tp_mods[ss] *
 					  basescalers.at(ss) /
-					  max(fastpow(doot.at(hi).at(CJ).at(i), 2.F), 1.F) /
-					  max(max(doot.at(hi).at(Stream).at(i),
-							  doot.at(hi).at(JS).at(i)),
-						  doot.at(hi).at(HS).at(i)) *
-					  doot.at(hi).at(Chaos).at(i) /
-					  fastsqrt(doot.at(hi).at(RanMan).at(i));
+					  max<float>(fastpow(calc.doot.at(hi).at(CJ).at(i), 2.F),
+								 1.F) /
+					  max<float>(max<float>(calc.doot.at(hi).at(Stream).at(i),
+											calc.doot.at(hi).at(JS).at(i)),
+								 calc.doot.at(hi).at(HS).at(i)) *
+					  calc.doot.at(hi).at(Chaos).at(i) /
+					  fastsqrt(calc.doot.at(hi).at(RanMan).at(i));
 					break;
 				default:
 					break;
@@ -671,15 +680,17 @@ Hand::CalcInternal(float& gotpoints,
 				   float& x,
 				   int ss,
 				   bool stam,
+				   Calc& calc,
 				   bool /*debug*/)
 {
 
 	if (stam && ss != Skill_JackSpeed) {
-		StamAdjust(x, ss);
+		StamAdjust(x, ss, calc);
 	}
 
 	// final difficulty values to use
-	const auto& v = stam ? stam_adj_diff : base_adj_diff.at(hi).at(ss);
+	const std::array<float, max_intervals>* v =
+	  &(stam ? calc.stam_adj_diff : calc.base_adj_diff.at(hi).at(ss));
 	float powindromemordniwop = 1.7F;
 	if (ss == Skill_Chordjack) {
 		powindromemordniwop = 1.7F;
@@ -705,15 +716,16 @@ Hand::CalcInternal(float& gotpoints,
 	//	}
 	//} else {
 	for (int i = 0; i < numitv; ++i) {
-		if (x < v[i]) {
+		if (x < (*v)[i]) {
 			auto pts = static_cast<float>(v_itvpoints[i]);
-			gotpoints -= (pts - (pts * fastpow(x / v[i], powindromemordniwop)));
+			gotpoints -=
+			  (pts - (pts * fastpow(x / (*v)[i], powindromemordniwop)));
 		}
 	}
 }
 
 inline void
-Hand::StamAdjust(float x, int ss, bool debug)
+Hand::StamAdjust(float x, int ss, Calc& calc, bool debug)
 {
 	float stam_floor =
 	  0.95F;		   // stamina multiplier min (increases as chart advances)
@@ -725,17 +737,19 @@ Hand::StamAdjust(float x, int ss, bool debug)
 	const float super_stam_ceil = 1.11F;
 
 	// use this to calculate the mod growth
-	const auto& base_diff = base_diff_for_stam_mod.at(hi).at(ss);
+	const std::array<float, max_intervals>* base_diff =
+	  &(calc.base_diff_for_stam_mod.at(hi).at(ss));
 	// but apply the mod growth to these values
 	// they might be the same, or not
-	const auto& diff = base_adj_diff.at(hi).at(ss);
+	const std::array<float, max_intervals>* diff =
+	  &(calc.base_adj_diff.at(hi).at(ss));
 
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug) {
 		for (int i = 0; i < numitv; i++) {
 			avs1 = avs2;
-			avs2 = base_diff.at(i);
+			avs2 = base_diff->at(i);
 			mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
 			if (mod > 0.95F) {
 				stam_floor += (mod - 0.95F) / stam_fscale;
@@ -743,13 +757,13 @@ Hand::StamAdjust(float x, int ss, bool debug)
 			local_ceil = stam_ceil * stam_floor;
 
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
-			stam_adj_diff.at(i) = diff.at(i) * mod;
+			calc.stam_adj_diff.at(i) = diff->at(i) * mod;
 			debugValues[2][StamMod][i] = mod;
 		}
 	} else {
 		for (int i = 0; i < numitv; i++) {
 			avs1 = avs2;
-			avs2 = base_diff.at(i);
+			avs2 = base_diff->at(i);
 			mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
 			if (mod > 0.95F) {
 				stam_floor += (mod - 0.95F) / stam_fscale;
@@ -757,7 +771,7 @@ Hand::StamAdjust(float x, int ss, bool debug)
 			local_ceil = stam_ceil * stam_floor;
 
 			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
-			stam_adj_diff.at(i) = diff.at(i) * mod;
+			calc.stam_adj_diff.at(i) = diff->at(i) * mod;
 		}
 	}
 }
@@ -765,30 +779,45 @@ Hand::StamAdjust(float x, int ss, bool debug)
 static const float ssr_goal_cap = 0.965F; // goal cap to prevent insane scaling
 // Function to generate SSR rating
 auto
-MinaSDCalc(const vector<NoteInfo>& NoteInfo, float musicrate, float goal)
-  -> vector<float>
+MinaSDCalc(const vector<NoteInfo>& NoteInfo,
+		   float musicrate,
+		   float goal,
+		   Calc* calc) -> vector<float>
 {
 	if (NoteInfo.size() <= 1) {
 		return dimples_the_all_zero_output;
 	}
-	return std::make_unique<Calc>()->CalcMain(
-	  NoteInfo, musicrate, min(goal, ssr_goal_cap));
+
+	std::unique_ptr<Calc> owned_calc;
+	if (!calc) {
+		owned_calc = std::make_unique<Calc>();
+		calc = owned_calc.get();
+	}
+	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
 
 // Wrap difficulty calculation for all standard rates
 auto
-MinaSDCalc(const vector<NoteInfo>& NoteInfo) -> MinaSD
+MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 {
 	MinaSD allrates;
 	int lower_rate = 7;
 	int upper_rate = 21;
 
+	std::unique_ptr<Calc> cacheRun;
+
 	if (NoteInfo.size() > 1) {
-		std::unique_ptr<Calc> cacheRun = std::make_unique<Calc>();
+		// If we're not given a calc make one just for this
+		// Must be declared outside the !calc if so it's alive when used
+		if (!calc) {
+			cacheRun = std::make_unique<Calc>();
+			calc = cacheRun.get();
+		}
+
 		cacheRun->ssr = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
-			allrates.emplace_back(cacheRun->CalcMain(
-			  NoteInfo, static_cast<float>(i) / 10.F, 0.93F));
+			allrates.emplace_back(
+			  calc->CalcMain(NoteInfo, static_cast<float>(i) / 10.F, 0.93F));
 		}
 	} else {
 		for (int i = lower_rate; i < upper_rate; i++) {
@@ -818,7 +847,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	// asdkfhjasdkfhaskdfjhasfd
 	if (!DoesFileExist(calc_params_xml)) {
-		TheGreatBazoinkazoinkInTheSky ublov;
+		TheGreatBazoinkazoinkInTheSky ublov(NoteInfo, *debugRun);
 		ublov.write_params_to_disk();
 	}
 }

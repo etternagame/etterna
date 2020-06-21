@@ -409,8 +409,8 @@ SongManager::CalcTestStuff()
 
 	// bzzzzzzzzzzzz this won't work for what i want unless we also make dummy
 	// entries in testlist for stuff and don't set an ev
-	//int counter = 0;
-	//for (auto& ohno : StepsByKey){
+	// int counter = 0;
+	// for (auto& ohno : StepsByKey){
 	//	ohno.second->DoATestThing(40.f, Skill_Overall, 1.f);
 	//	++counter;
 	//	if (counter > 500)
@@ -845,6 +845,8 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 	auto callback = [&sDir](
 					  std::pair<vectorIt<Group>, vectorIt<Group>> workload,
 					  ThreadData* data) {
+		std::unique_ptr<Calc> per_thread_calc = std::make_unique<Calc>();
+
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
 		auto ld = pair->second;
@@ -870,7 +872,8 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 				if (SONGMAN->m_SongsByDir.count(hur))
 					continue;
 				Song* pNewSong = new Song;
-				if (!pNewSong->LoadFromSongDir(sSongDirName)) {
+				if (!pNewSong->LoadFromSongDir(sSongDirName,
+											   per_thread_calc.get())) {
 					delete pNewSong;
 					continue;
 				}

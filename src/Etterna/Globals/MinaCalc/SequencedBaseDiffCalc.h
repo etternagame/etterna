@@ -15,6 +15,7 @@ static thread_local std::array<float, max_rows_for_single_interval> jk_static;
 static thread_local std::array<float, max_rows_for_single_interval> cj_static;
 static thread_local std::array<float, max_rows_for_single_interval> tc_static;
 
+/*
 // Calculated difficulty for each interval
 static thread_local std::array<
   std::array<std::array<float, max_intervals>, NUM_CalcDiffValue>,
@@ -39,6 +40,7 @@ static thread_local std::
 // but that might just be too confusing idk
 static thread_local std::array<float, max_intervals> stam_adj_diff;
 
+*/
 /* NOTE: all _incoming_ diffs should be stored as MS values, and only converted
  * to scaled NPS on the way out */
 

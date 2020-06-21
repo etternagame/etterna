@@ -304,7 +304,7 @@ static set<RString> BlacklistedImages;
  * changed.
  */
 bool
-Song::LoadFromSongDir(RString sDir, bool load_autosave)
+Song::LoadFromSongDir(RString sDir, bool load_autosave, Calc* calc)
 {
 	//	LOG->Trace( "Song::LoadFromSongDir(%s)", sDir.c_str() );
 	ASSERT_M(sDir != "", "Songs can't be loaded from an empty directory!");
@@ -346,7 +346,7 @@ Song::LoadFromSongDir(RString sDir, bool load_autosave)
 		// using the editor.
 	}
 
-	TidyUpData(false, true);
+	TidyUpData(false, true, calc);
 
 	// Don't save a cache file if the autosave is being loaded, because the
 	// cache file would contain the autosave filename. -Kyz
@@ -552,7 +552,7 @@ FixupPath(RString& path, const RString& sSongPath)
 
 // Songs in BlacklistImages will never be autodetected as song images.
 void
-Song::TidyUpData(bool from_cache, bool /* duringCache */)
+Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 {
 	// We need to do this before calling any of HasMusic, HasHasCDTitle, etc.
 	ASSERT_M(m_sSongDir.Left(3) != "../", m_sSongDir); // meaningless
@@ -1069,7 +1069,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */)
 	translitfulltitle = doot;
 	/* Generate these before we autogen notes, so the new notes can inherit
 	 * their source's values. */
-	ReCalculateRadarValuesAndLastSecond(from_cache, true);
+	ReCalculateRadarValuesAndLastSecond(from_cache, true, calc);
 	// If the music length is suspiciously shorter than the last second, adjust
 	// the length.  This prevents the ogg patch from setting a false length.
 	// -Kyz
@@ -1100,7 +1100,9 @@ Song::TranslateTitles()
 }
 
 void
-Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
+Song::ReCalculateRadarValuesAndLastSecond(bool fromCache,
+										  bool duringCache,
+										  Calc* calc)
 {
 	if (fromCache)
 		return;
@@ -1124,7 +1126,7 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache, bool duringCache)
 			// calc etterna metadata will replace the unwieldy notedata string
 			// with a compressed format for both cache and internal use but not
 			// yet
-			n->CalcEtternaMetadata();
+			n->CalcEtternaMetadata(calc);
 			n->CalculateRadarValues(m_fMusicLengthSeconds);
 
 			// calculate lastSecond

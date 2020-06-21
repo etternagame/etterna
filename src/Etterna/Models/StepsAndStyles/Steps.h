@@ -210,7 +210,7 @@ class Steps
 	vector<pair<Skillset, float>> SortSkillsetsAtRate(float x,
 													  bool includeoverall);
 
-	void CalcEtternaMetadata();
+	void CalcEtternaMetadata(Calc* calc=nullptr);
 	float DoATestThing(float ev, Skillset ss, float rate);
 	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
 	vector<vector<vector<vector<float>>>>

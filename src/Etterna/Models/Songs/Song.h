@@ -94,7 +94,7 @@ class Song
 	 * This assumes that there is no song present right now.
 	 * @param sDir the song directory from which to load. */
 	void FinalizeLoading();
-	bool LoadFromSongDir(RString sDir, bool load_autosave = false);
+	bool LoadFromSongDir(RString sDir, bool load_autosave = false, Calc* calc = nullptr);
 	// This one takes the effort to reuse Steps pointers as best as it can
 	bool ReloadFromSongDir(const RString& sDir);
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
@@ -110,7 +110,9 @@ class Song
 	 * @brief Call this after loading a song to clean up invalid data.
 	 * @param fromCache was this data loaded from the cache file?
 	 * @param duringCache was this data loaded during the cache process? */
-	void TidyUpData(bool fromCache = false, bool duringCache = false);
+	void TidyUpData(bool fromCache = false,
+					bool duringCache = false,
+					Calc* calc=nullptr);
 
 	/**
 	 * @brief Get the new radar values, and determine the last second at the
@@ -118,7 +120,8 @@ class Song
 	 * @param fromCache was this data loaded from the cache file?
 	 * @param duringCache was this data loaded during the cache process? */
 	void ReCalculateRadarValuesAndLastSecond(bool fromCache = false,
-											 bool duringCache = false);
+											 bool duringCache = false,
+											 Calc* calc=nullptr);
 	/**
 	 * @brief Translate any titles that aren't in english.
 	 * This is called by TidyUpData. */

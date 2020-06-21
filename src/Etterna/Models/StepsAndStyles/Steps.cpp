@@ -389,7 +389,7 @@ Steps::SortSkillsetsAtRate(float x, bool includeoverall)
 }
 
 void
-Steps::CalcEtternaMetadata()
+Steps::CalcEtternaMetadata(Calc* calc)
 {
 	// keep nerv, it's needed for chartkey generation, etaner isn't
 	const vector<NoteInfo>& cereal =
@@ -398,7 +398,7 @@ Steps::CalcEtternaMetadata()
 	if (m_StepsType == StepsType_dance_solo)
 		diffByRate = SoloCalc(cereal);
 	else if (m_StepsType == StepsType_dance_single) {
-		diffByRate = MinaSDCalc(cereal);
+		diffByRate = MinaSDCalc(cereal, calc);
 	}
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());

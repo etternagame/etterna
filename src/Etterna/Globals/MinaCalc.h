@@ -1,6 +1,7 @@
 #pragma once
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <vector>
+#include <array>
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
@@ -16,6 +17,18 @@ typedef std::vector<std::vector<float>> MinaSD;
 using Finger = std::vector<std::vector<float>>;
 using ProcessedFingers = std::vector<Finger>;
 
+class Calc;
+
+// should be able to handle 1hr 54min easily
+static const int max_intervals = 40000;
+
+enum hands
+{
+	left_hand,
+	right_hand,
+	num_hands,
+};
+
 class Hand
 {
   public:
@@ -25,7 +38,7 @@ class Hand
 	// mods are done. For reasons we want to calculate stam mod on a different
 	// vector than what we apply the stam mod to, so calculate those as well.
 	// Yes this makes sense.
-	void InitAdjDiff();
+	void InitAdjDiff(Calc& calc);
 
 	// Totals up the points available for each interval
 	void InitPoints(const Finger& f1, const Finger& f2);
@@ -37,7 +50,7 @@ class Hand
 	proportionate difference in player skill. */
 	// just recycle the stam_adj_diff vector directly in this function
 	// sometimes
-	void StamAdjust(float x, int ss, bool debug = false);
+	void StamAdjust(float x, int ss, Calc& calc, bool debug = false);
 
 	/*	For a given player skill level x, invokes the function used by wife
 	scoring to assert the average of the distribution of point gain for each
@@ -49,6 +62,7 @@ class Hand
 					  float& x,
 					  int ss,
 					  bool stam,
+					  Calc& calc,
 					  bool debug = false);
 
 	// Point allotment for each interval
@@ -117,13 +131,48 @@ class Calc
 	std::vector<std::vector<int>> nervIntervals;
 
 	const float IntervalSpan = 0.5F; // Intervals of time we slice the chart at
+
+  public:
+	// holds pattern mods
+	std::array<std::array<std::array<float, max_intervals>, NUM_CalcPatternMod>,
+			   num_hands>
+	  doot;
+
+	// Calculated difficulty for each interval
+	std::array<std::array<std::array<float, max_intervals>, NUM_CalcDiffValue>,
+			   num_hands>
+	  soap;
+
+	// not necessarily self extraplanetary
+	// apply stam model to these (but output is sent to stam_adj_diff, not
+	// modified here)
+	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
+			   num_hands>
+	  base_adj_diff;
+	// but use these as the input for model
+	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
+			   num_hands>
+	  base_diff_for_stam_mod;
+
+	// pattern adjusted difficulty, allocate only once, stam needs to be based
+	// on the above, and it needs to be recalculated every time the player_skill
+	// value changes, again based on the above, technically we could use the
+	// skill_stamina element of the arrays to store this and save an allocation
+	// but that might just be too confusing idk
+	std::array<float, max_intervals> stam_adj_diff;
+
+	/* NOTE: all _incoming_ diffs should be stored as MS values, and only
+	 * converted to scaled NPS on the way out */
 };
 
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal)
-  -> std::vector<float>;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   float musicrate,
+		   float goal,
+		   Calc* calc = nullptr) -> std::vector<float>;
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo) -> MinaSD;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc = nullptr)
+  -> MinaSD;
 MINACALC_API void
 MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,

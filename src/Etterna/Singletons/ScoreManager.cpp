@@ -430,6 +430,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
+			std::unique_ptr<Calc> per_thread_calc = std::make_unique<Calc>();
+
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
@@ -502,7 +504,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				vector<float> dakine;
 
 				if (steps->m_StepsType == StepsType_dance_single) {
-					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
+					// dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
+					dakine = MinaSDCalc(serializednd,
+										musicrate,
+										ssrpercent,
+										per_thread_calc.get());
 				} else if (steps->m_StepsType == StepsType_dance_solo)
 					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
 
