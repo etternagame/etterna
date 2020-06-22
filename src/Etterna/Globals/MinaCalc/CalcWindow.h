@@ -30,7 +30,7 @@ struct CalcMovingWindow
 	// return type T
 	inline auto operator[](const int& pos) const -> T
 	{
-		assert(pos > 0 && pos < max_moving_window_size);
+		assert(pos >= 0 && pos < max_moving_window_size);
 		return _itv_vals.at(pos);
 	}
 
