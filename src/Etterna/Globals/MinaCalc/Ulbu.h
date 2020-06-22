@@ -232,8 +232,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// an example, actually all sequencing should be done in objects
 	// following rm_sequencing's template and be stored in mhi, and then
 	// passed to whichever mods need them, but that's for later
-	inline void handle_row_dependent_pattern_advancement(
-	  const float& /*row_time*/)
+	inline void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
@@ -417,7 +416,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					_mitvhi._itvhi.set_col_taps(ct);
 
 					// advance sequencing for all hand dependent mods
-					handle_row_dependent_pattern_advancement(row_time);
+					handle_row_dependent_pattern_advancement();
 
 					// jackspeed, cj, and tech all use various adjust ms bases
 					// that are sequenced here, meaning they are order dependent
