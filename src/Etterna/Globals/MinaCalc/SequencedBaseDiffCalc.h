@@ -65,11 +65,7 @@ struct vribbit
 
 		float ms_total = 0.F;
 		for (int i = 0; i < row_counter; ++i) {
-			{
-				{
-					ms_total += jk_static.at(i);
-				}
-			}
+			ms_total += jk_static.at(i);
 		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
@@ -89,11 +85,7 @@ struct vribbit
 	inline void advance_jk_comp(const float& jk_diff)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
-			{
-				{
-					return;
-				}
-			}
+			return;
 		}
 
 		jk_static.at(row_counter) = jk_diff;
@@ -127,11 +119,7 @@ struct ceejay
 	inline void advance_base(const float& any_ms)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
-			{
-				{
-					return;
-				}
-			}
+			return;
 		}
 
 		// pushing back ms values, so multiply to nerf
@@ -186,11 +174,7 @@ struct ceejay
 
 		float ms_total = 0.F;
 		for (int i = 0; i < row_counter; ++i) {
-			{
-				{
-					ms_total += cj_static.at(i);
-				}
-			}
+			ms_total += cj_static.at(i);
 		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
@@ -235,11 +219,7 @@ struct techyo
 	inline void advance_base(const SequencerGeneral& seq, const col_type& ct)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
-			{
-				{
-					return;
-				}
-			}
+			return;
 		}
 
 		float a = seq.get_sc_ms_now(ct);
@@ -331,11 +311,7 @@ struct techyo
 
 		float ms_total = 0.F;
 		for (int i = 0; i < row_counter; ++i) {
-			{
-				{
-					ms_total += tc_static.at(i);
-				}
-			}
+			ms_total += tc_static.at(i);
 		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
