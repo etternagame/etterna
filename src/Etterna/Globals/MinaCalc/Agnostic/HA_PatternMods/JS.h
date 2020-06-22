@@ -8,7 +8,7 @@
 struct JSMod
 {
 	const CalcPatternMod _pmod = JS;
-	const vector<CalcPatternMod> _dbg = { JSS, JSJ };
+	// const vector<CalcPatternMod> _dbg = { JSS, JSJ };
 	const std::string name = "JSMod";
 	const int _tap_size = jump;
 

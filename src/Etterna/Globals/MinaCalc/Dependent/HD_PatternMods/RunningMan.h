@@ -39,10 +39,10 @@ pmod_prop(const float& pool,
 
 struct RunningManMod
 {
-	const std::array<CalcPatternMod, 11> _dbg{
+	/*const std::array<CalcPatternMod, 11> _dbg{
 		RanLen,		RanAnchLen, RanAnchLenMod, RanJack,		RanOHT,		RanOffS,
 		RanPropAll, RanPropOff, RanPropOHT,	   RanPropOffS, RanPropJack
-	};
+	};*/
 	const CalcPatternMod _pmod = RanMan;
 	const std::string name = "RunningManMod";
 

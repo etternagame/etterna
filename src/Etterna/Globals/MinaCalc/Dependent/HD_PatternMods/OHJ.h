@@ -10,8 +10,8 @@
 struct OHJumpModGuyThing
 {
 	const CalcPatternMod _pmod = OHJumpMod;
-	const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp, OHJSeqComp,
-										  OHJMaxSeq,   OHJCCTaps,	OHJHTaps };
+	// const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp, OHJSeqComp,
+	//									  OHJMaxSeq,   OHJCCTaps,	OHJHTaps };
 	const std::string name = "OHJumpMod";
 
 #pragma region params

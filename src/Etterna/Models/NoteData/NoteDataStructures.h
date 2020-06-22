@@ -34,25 +34,25 @@ enum CalcPatternMod
 {
 	Stream,
 	JS,	 // pattern mod (values between 0-1)
-	JSS, // pattern mod (values between 0-1)
-	JSJ, // pattern mod (values between 0-1)
+	// JSS, // pattern mod (values between 0-1)
+	// JSJ, // pattern mod (values between 0-1)
 	HS,	 // pattern mod (values between 0-1)
-	HSS, // pattern mod (values between 0-1)
-	HSJ, // pattern mod (values between 0-1)
+	// HSS, // pattern mod (values between 0-1)
+	// HSJ, // pattern mod (values between 0-1)
 	CJ,	 // pattern mod (values between 0-1)
-	CJS, // pattern mod (values between 0-1)
-	CJJ, // pattern mod (values between 0-1)
+	// CJS, // pattern mod (values between 0-1)
+	// CJJ, // pattern mod (values between 0-1)
 	CJDensity,
 	OHJumpMod, // pattern mod (values between 0-1)
-	OHJBaseProp,
-	OHJPropComp,
-	OHJSeqComp,
-	OHJMaxSeq,
-	OHJCCTaps,
-	OHJHTaps,
-	CJOHJump,
-	CJOHJPropComp,
-	CJOHJSeqComp,
+	// OHJBaseProp,
+	// OHJPropComp,
+	// OHJSeqComp,
+	// OHJMaxSeq,
+	// OHJCCTaps,
+	// OHJHTaps,
+	// CJOHJump,
+	// CJOHJPropComp,
+	// CJOHJSeqComp,
 	Balance, // pattern mod (values between 0.9 - ~ 1.1)
 	Roll,	 // pattern mod (values between 0-1)
 	OHTrill,
@@ -66,18 +66,18 @@ enum CalcPatternMod
 	TheThing,
 	TheThing2,
 	RanMan,
-	RanLen,
-	RanAnchLen,
-	RanAnchLenMod,
-	RanJack,
-	RanOHT,
-	RanOffS,
-	RanPropAll,
-	RanPropOff,
-	RanPropOHT,
-	RanPropOffS,
-	RanPropJack,
-	TotalPatternMod,
+	// RanLen,
+	// RanAnchLen,
+	// RanAnchLenMod,
+	// RanJack,
+	// RanOHT,
+	// RanOffS,
+	// RanPropAll,
+	// RanPropOff,
+	// RanPropOHT,
+	// RanPropOffS,
+	// RanPropJack,
+	// TotalPatternMod,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };
@@ -85,7 +85,7 @@ enum CalcDiffValue
 {
 	NPSBase,  // unadjusted base nps difficulty
 	JackBase, // unadjusted base ms difficulty
-	CJBase,	  // unadjusted weighted values
+	// CJBase,	  // unadjusted weighted values
 	TechBase, // pattern and stam adjusted difficulty values
 	MSD,
 	NUM_CalcDiffValue,

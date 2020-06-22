@@ -15,13 +15,13 @@ struct CJDensityMod
 
 #pragma region params
 
-	float min_mod = 0.98F;
-	float max_mod = 1.08F;
+	float min_mod = 0.9F;
+	float max_mod = 1.1F;
 	float base = 0.F;
 
-	float jump_scaler = 1.25F;
+	float jump_scaler = 1.35F;
 	float hand_scaler = 0.9F;
-	float quad_scaler = 1.15F;
+	float quad_scaler = 0.75F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },

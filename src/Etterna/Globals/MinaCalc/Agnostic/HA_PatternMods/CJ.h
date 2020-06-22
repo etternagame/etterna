@@ -8,7 +8,7 @@
 struct CJMod
 {
 	const CalcPatternMod _pmod = CJ;
-	const vector<CalcPatternMod> _dbg = { CJS, CJJ };
+	// const vector<CalcPatternMod> _dbg = { CJS, CJJ };
 	const std::string name = "CJMod";
 
 #pragma region params

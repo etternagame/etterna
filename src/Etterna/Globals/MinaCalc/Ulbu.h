@@ -330,14 +330,9 @@ struct TheGreatBazoinkazoinkInTheSky
 											const float& any_ms,
 											const col_type& ct)
 	{
-
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
 		_diffz._jk.advance_base(_seq._as.get_highest_anchor_difficulty());
-
-		// cj advances with any_ms, adjusted for basic anchors (this sucks) and
-		// not-cj screening (also probably sucks)
-		_diffz._cj.advance_base(any_ms);
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct);
@@ -346,7 +341,6 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_sequenced_base_diffs(const int& itv)
 	{
-		_calc.soap.at(hand)[CJBase][itv] = _diffz._cj.get_itv_diff();
 		_calc.soap.at(hand)[JackBase][itv] = _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
@@ -397,9 +391,6 @@ struct TheGreatBazoinkazoinkInTheSky
 					any_ms = ms_from(row_time, last_row_time);
 
 					ct = determine_col_type(row_notes, ids);
-
-					// needs to be updated always
-					_diffz._cj.update_flags(row_notes, row_count);
 
 					// handle any special cases that need to be executed on
 					// empty rows for this hand here before moving on, aside

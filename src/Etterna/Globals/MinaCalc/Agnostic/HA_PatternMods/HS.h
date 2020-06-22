@@ -9,7 +9,7 @@
 struct HSMod
 {
 	const CalcPatternMod _pmod = HS;
-	const vector<CalcPatternMod> _dbg = { HSS, HSJ };
+	// const vector<CalcPatternMod> _dbg = { HSS, HSJ };
 	const std::string name = "HSMod";
 	const int _tap_size = hand;
 
