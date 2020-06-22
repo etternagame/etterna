@@ -554,7 +554,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
-		calcparams->AppendChild(make_mod_param_node(_voht._params, _oht.name));
+		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));
 		calcparams->AppendChild(make_mod_param_node(_ch._params, _ch.name));
 		calcparams->AppendChild(make_mod_param_node(_rm._params, _rm.name));
 		calcparams->AppendChild(make_mod_param_node(_wrb._params, _wrb.name));
