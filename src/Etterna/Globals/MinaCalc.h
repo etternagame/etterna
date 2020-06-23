@@ -44,50 +44,6 @@ struct RowInfo
 	float row_time = 0.F;
 };
 
-class Hand
-{
-  public:
-	// I don't know why this was ever being done in the internal loop, only the
-	// stam adjusted difficulties were dependent on a player_skill input, these
-	// values are static. Just calculate them for each skillset after pattern
-	// mods are done. For reasons we want to calculate stam mod on a different
-	// vector than what we apply the stam mod to, so calculate those as well.
-	// Yes this makes sense.
-	void InitAdjDiff(Calc& calc);
-
-	// Totals up the points available for each interval
-	void InitPoints(const Finger& f1, const Finger& f2);
-
-	/*	The stamina model works by asserting a minimum difficulty relative to
-	the supplied player skill level for which the player's stamina begins to
-	wane. Experience in both gameplay and algorithm testing has shown the
-	appropriate value to be around 0.8. The multiplier is scaled to the
-	proportionate difference in player skill. */
-	// just recycle the stam_adj_diff vector directly in this function
-	// sometimes
-	void StamAdjust(float x, int ss, Calc& calc, bool debug = false);
-
-	/*	For a given player skill level x, invokes the function used by wife
-	scoring to assert the average of the distribution of point gain for each
-	interval and then tallies up the result to produce an average total number
-	of points achieved by this hand. */
-	// return value is true if a player can no longer reach scoregoal even if
-	// they get 100% of the remaining points
-	void CalcInternal(float& gotpoints,
-					  float& x,
-					  int ss,
-					  bool stam,
-					  Calc& calc,
-					  bool debug = false);
-
-	// Point allotment for each interval
-	std::vector<int> v_itvpoints;
-
-	std::vector<std::vector<std::vector<float>>> debugValues;
-
-	int hi = 0;
-};
-
 class Calc
 {
   public:
@@ -102,6 +58,7 @@ class Calc
 	bool debugmode = false;
 	bool ssr = true; // set to true for scores, false for cache
 
+  private:
 	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
 	before passing the results to the hand initialization functions. Also passes
 	the input timingscale value. Hardcode a limit for nps and if we hit it just
@@ -112,21 +69,6 @@ class Calc
 	auto InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 						 float music_rate,
 						 float offset) -> bool;
-
-	/*	Slices the track into predefined intervals of time. All taps within each
-	interval have their ms values from the last note in the same column
-	calculated and the result is spit out
-	into a new Finger object, or vector of vectors of floats (ms from last note
-	in the track). */
-	auto ProcessFinger(const std::vector<NoteInfo>& NoteInfo,
-					   unsigned int t,
-					   float music_rate,
-					   float offset,
-					   bool& joke_file_mon) -> Finger;
-
-	// Derivative calc params
-	int MaxPoints = 0;	   // Total points achievable in the file
-	void TotalMaxPoints(); // Counts up the total points and assigns it
 
 	/*	Returns estimate of player skill needed to achieve score goal on chart.
 	 *  The player_skill parameter gives an initial guess and floor for player
@@ -139,13 +81,7 @@ class Calc
 				bool stamina,
 				bool debugoutput = false) -> float;
 
-	Hand l_hand;
-	Hand r_hand;
-
-  private:
-	std::vector<std::vector<int>> nervIntervals;
-
-	const float IntervalSpan = 0.5F; // Intervals of time we slice the chart at
+	inline void InitAdjDiff(Calc& calc, const int& hi);
 
   public:
 	// the most basic derviations from the most basic notedata
@@ -187,9 +123,10 @@ class Calc
 	std::array<float, max_intervals> stam_adj_diff;
 
 	int numitv = 0;
+	int MaxPoints = 0; // Total points achievable in the file
 
-	/* NOTE: all _incoming_ diffs should be stored as MS values, and only
-	 * converted to scaled NPS on the way out */
+	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
+	  debugValues;
 };
 
 MINACALC_API auto

@@ -106,7 +106,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// so we can apply them here
 	diffz _diffz;
 
-	TheGreatBazoinkazoinkInTheSky(const vector<NoteInfo>& ni, Calc& calc)
+	TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
 	{
 #ifndef RELWITHDEBINFO
