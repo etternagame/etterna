@@ -322,7 +322,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_diffz._jk.advance_base(_seq._as.get_highest_anchor_difficulty());
+		_diffz._jk.advance_base(_seq._as.get_lowest_anchor_ms());
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct);

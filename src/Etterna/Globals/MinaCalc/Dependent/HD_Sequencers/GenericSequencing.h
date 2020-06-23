@@ -133,7 +133,7 @@ struct Anchor_Sequencing
 	}
 
 	// returns an adjusted MS value, not converted to nps
-	inline auto get_difficulty() -> float
+	inline auto get_ms() -> float
 	{
 		// too jank?
 		if (_len <= 2) {
@@ -184,8 +184,9 @@ struct AnchorSequencer
 			anch.at(ct)(ct, row_time);
 
 			// set max seen for this col for this interval
-			max_seen.at(ct) =
-			  anch.at(ct)._len > max_seen.at(ct) ? anch.at(ct)._len : max_seen.at(ct);
+			max_seen.at(ct) = anch.at(ct)._len > max_seen.at(ct)
+								? anch.at(ct)._len
+								: max_seen.at(ct);
 		} else if (ct == col_ohjump) {
 
 			// update both
@@ -217,10 +218,9 @@ struct AnchorSequencer
 		}
 	}
 
-	inline auto get_highest_anchor_difficulty() -> float
+	inline auto get_lowest_anchor_ms() -> float
 	{
-		return max(anch.at(col_left).get_difficulty(),
-				   anch.at(col_right).get_difficulty());
+		return min(anch.at(col_left).get_ms(), anch.at(col_right).get_ms());
 	}
 };
 
