@@ -25,6 +25,8 @@ struct StreamMod
 	float jack_comp_min = 0.5F;
 	float jack_comp_max = 1.F;
 
+	float vibro_flag = 1.F;
+
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
@@ -34,6 +36,8 @@ struct StreamMod
 		{ "jack_pool", &jack_pool },
 		{ "jack_comp_min", &jack_comp_min },
 		{ "jack_comp_max", &jack_comp_max },
+
+		{ "vibro_flag", &vibro_flag },
 	};
 #pragma endregion params and param map
 
@@ -75,6 +79,17 @@ struct StreamMod
 		  jack_pool - mitvi.actual_jacks, jack_comp_min, jack_comp_max);
 		pmod = fastsqrt(prop_component * jack_component);
 		pmod = CalcClamp(pmod, min_mod, max_mod);
+
+		if (mitvi.basically_vibro) {
+			if (mitvi.num_var == 1) {
+				pmod *= 0.5F * vibro_flag;
+			} else if (mitvi.num_var == 2) {
+				pmod *= 0.9F * vibro_flag;
+			} else if (mitvi.num_var == 3) {
+				pmod *= 0.95F * vibro_flag;
+			}
+		}
+
 
 		// actual mod
 		return pmod;
