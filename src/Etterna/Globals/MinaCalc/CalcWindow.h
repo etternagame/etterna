@@ -197,6 +197,6 @@ struct CalcMovingWindow
 	inline void zero() { _itv_vals.fill(static_cast<T>(0)); }
 	inline void fill(const T& val) { _itv_vals.fill(val); }
 
-  protected:
+  private:
 	std::array<T, max_moving_window_size> _itv_vals = { 0, 0, 0, 0, 0, 0 };
 };
