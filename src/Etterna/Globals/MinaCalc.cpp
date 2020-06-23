@@ -205,7 +205,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			static const float ssrcap = 40.F;
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
-				r = downscale_low_accuracy_scores(r, score_goal);
+				// r = downscale_low_accuracy_scores(r, score_goal);
+				if (highest_base_skillset == Skill_JackSpeed &&
+					score_goal < 0.8F)
+					r = 0.F;
 				r = CalcClamp(r, r, ssrcap);
 			}
 		}
