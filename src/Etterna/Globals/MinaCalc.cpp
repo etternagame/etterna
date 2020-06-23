@@ -340,13 +340,12 @@ CalcInternal(float& gotpoints,
 		}
 
 		for (int i = 0; i < calc.numitv; ++i) {
+			auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
+			calc.debugValues.at(hi)[2][Pts].at(i) = pts;
 			if (x < (*v).at(i)) {
-				auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
 				float lostpoints =
 				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
 				gotpoints -= lostpoints;
-
-				calc.debugValues.at(hi)[2][Pts].at(i) = pts;
 				calc.debugValues.at(hi)[2][PtLoss].at(i) = abs(lostpoints);
 			}
 		}
