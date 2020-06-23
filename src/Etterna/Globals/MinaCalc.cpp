@@ -330,6 +330,7 @@ CalcInternal(float& gotpoints,
 	// they were were too slow
 	if (debug) {
 		calc.debugValues.at(hi)[2][StamMod].resize(calc.numitv);
+		calc.debugValues.at(hi)[2][Pts].resize(calc.numitv);
 		calc.debugValues.at(hi)[2][PtLoss].resize(calc.numitv);
 		calc.debugValues.at(hi)[1][MSD].resize(calc.numitv);
 		// final debug output should always be with stam activated
@@ -344,6 +345,8 @@ CalcInternal(float& gotpoints,
 				float lostpoints =
 				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
 				gotpoints -= lostpoints;
+
+				calc.debugValues.at(hi)[2][Pts].at(i) = pts;
 				calc.debugValues.at(hi)[2][PtLoss].at(i) = abs(lostpoints);
 			}
 		}

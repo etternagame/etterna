@@ -285,7 +285,8 @@ static const char* CalcDiffValueNames[] = { "NPSBase",
 XToString(CalcDiffValue);
 LuaXType(CalcDiffValue);
 
-static const char* CalcDebugMiscNames[] = { "PtLoss",
+static const char* CalcDebugMiscNames[] = { "Pts",
+											"PtLoss",
 											"JackPtLoss",
 											"StamMod",
 											"JackStamMod" };

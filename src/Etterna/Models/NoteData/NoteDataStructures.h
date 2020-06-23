@@ -94,6 +94,7 @@ enum CalcDiffValue
 };
 enum CalcDebugMisc
 {
+	Pts,
 	PtLoss, // expected points loss (not really a diff thing but w.e)
 	JackPtLoss,
 	StamMod, // stam adjust (values between 1- ~1.15)

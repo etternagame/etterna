@@ -143,6 +143,7 @@ local miscToUpperMods = {
 -- list of all additional enums to include in the lower graph
 -- it is assumed these are members of CalcDebugMisc
 local miscToLowerMods = {
+    Pts = true,
     PtLoss = true,
     JackPtLoss = true,
 }
