@@ -11,11 +11,7 @@ static const float ms_init = 5000.F;
 // global multiplier to standardize baselines
 static const float finalscaler = 3.632F;
 
-// intervals are _half_ second, no point in wasting time or cpu cycles on 100
-// nps joke files. even at most generous, 100 nps spread across all fingers,
-// that's still 25 nps which is considerably faster than anyone can sustain
-// vibro for a full second
-static const int max_rows_for_single_interval = 50;
+
 
 inline auto
 column_count(const unsigned& notes) -> int

@@ -58,8 +58,6 @@ static const std::array<float, NUM_Skillset> basescalers = {
 	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.95F, 0.78F, 0.9F
 };
 
-static thread_local int numitv = 0;
-
 void
 Calc::TotalMaxPoints()
 {
@@ -348,6 +346,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	numitv = static_cast<int>(
 	  std::ceil(NoteInfo.back().rowTime / (music_rate * IntervalSpan)));
 
+	fastwalk(NoteInfo, music_rate, *this, offset); 
+
 	bool junk_file_mon = false;
 	ProcessedFingers fingers;
 	for (auto t : zto3) {
@@ -368,7 +368,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	l_hand.InitPoints(fingers[0], fingers[1]);
 	r_hand.InitPoints(fingers[2], fingers[3]);
 
-	ulbu_that_which_consumes_all(nervIntervals, music_rate);
+	ulbu_that_which_consumes_all();
 
 	l_hand.InitAdjDiff(*this);
 	r_hand.InitAdjDiff(*this);
@@ -569,7 +569,7 @@ Hand::InitAdjDiff(Calc& calc)
 	};
 
 	// ok this loop is pretty wack i know, for each interval
-	for (int i = 0; i < numitv; ++i) {
+	for (int i = 0; i < calc.numitv; ++i) {
 		float tp_mods[NUM_Skillset] = {
 			1.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F
 		};
@@ -708,7 +708,7 @@ Hand::CalcInternal(float& gotpoints,
 	//		}
 	//	}
 	//} else {
-	for (int i = 0; i < numitv; ++i) {
+	for (int i = 0; i < calc.numitv; ++i) {
 		if (x < (*v)[i]) {
 			auto pts = static_cast<float>(v_itvpoints[i]);
 			gotpoints -=
@@ -740,7 +740,7 @@ Hand::StamAdjust(float x, int ss, Calc& calc, bool debug)
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug) {
-		for (int i = 0; i < numitv; i++) {
+		for (int i = 0; i < calc.numitv; i++) {
 			avs1 = avs2;
 			avs2 = base_diff->at(i);
 			mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
@@ -754,7 +754,7 @@ Hand::StamAdjust(float x, int ss, Calc& calc, bool debug)
 			debugValues[2][StamMod][i] = mod;
 		}
 	} else {
-		for (int i = 0; i < numitv; i++) {
+		for (int i = 0; i < calc.numitv; i++) {
 			avs1 = avs2;
 			avs2 = base_diff->at(i);
 			mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;

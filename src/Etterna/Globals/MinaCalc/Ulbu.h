@@ -52,9 +52,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	bool dbg = false;
 
 	Calc& _calc;
-	const vector<NoteInfo>& _ni;
-	vector<vector<int>> _itv_rows;
-	float _rate = 0.F;
 	int hand = 0;
 
 	// to generate these
@@ -110,10 +107,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	diffz _diffz;
 
 	TheGreatBazoinkazoinkInTheSky(const vector<NoteInfo>& ni, Calc& calc)
-	  : // doesn't change with offset or anything, and we may do
-		// multi-passes at some point
-	  _ni(ni)
-	  , _calc(calc)
+	  : _calc(calc)
 	{
 #ifndef RELWITHDEBINFO
 #if NDEBUG
@@ -137,13 +131,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mhi = std::make_unique<metaHandInfo>();
 	}
 
-	inline void operator()(const vector<vector<int>>& itv_rows,
-						   const float& rate)
+	inline void operator()()
 	{
-		// set interval/offset pass specific stuff
-		_itv_rows = itv_rows;
-		_rate = rate;
-
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
 	}
@@ -194,15 +183,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		unsigned row_notes = 0;
 		int row_count = 0;
 
-		for (int itv = 0; itv < _itv_rows.size(); ++itv) {
+		for (int itv = 0; itv < _calc.numitv; ++itv) {
+			for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
 
-			// run the row by row construction for interval info
-			for (auto& row : _itv_rows[itv]) {
-				row_time = _ni[row].rowTime / _rate;
-				row_notes = _ni[row].notes;
-				row_count = column_count(row_notes);
-
-				(*_mri)(*_last_mri, _mitvi, row_time, row_count, row_notes);
+				const auto& ri = _calc.adj_ni.at(itv).at(row);
+				(*_mri)(
+				  *_last_mri, _mitvi, ri.row_time, ri.row_count, ri.row_notes);
 
 				advance_agnostic_sequencing();
 
@@ -219,10 +205,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			_mitvi.handle_interval_end();
 		}
 
-		PatternMods::run_agnostic_smoothing_pass(_itv_rows.size(), _calc);
+		PatternMods::run_agnostic_smoothing_pass(_calc.numitv, _calc);
 
 		// copy left -> right for agnostic mods
-		PatternMods::bruh_they_the_same(_itv_rows.size(), _calc);
+		PatternMods::bruh_they_the_same(_calc.numitv, _calc);
 	}
 
 #pragma endregion
@@ -363,31 +349,20 @@ struct TheGreatBazoinkazoinkInTheSky
 			col_type ct = col_init;
 			full_hand_reset();
 
-			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _itv_rows.size());
+			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
-			// so we are technically doing this again (twice) and don't to
-			// be doing it, but it makes debugging much less of a pita if we
-			// aren't doing something like looping over intervals, running
-			// agnostic pattern mods, then looping over hands for dependent
-			// mods in the same interval, we may still want to do that or at
-			// least have an optional set for that in case a situation
-			// arises where something might need both types of info (we'd
-			// also need to have 2 itvhandinfo objects, or just for general
-			// performance (though the redundancy on this pass vs agnostic
-			// the pass is limited to like... a couple floats and 2 ints)
-			for (int itv = 0; itv < _itv_rows.size(); ++itv) {
+			for (int itv = 0; itv < _calc.numitv; ++itv) {
+				for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
 
-				// run the row by row construction for interval info
-				for (auto& row : _itv_rows[itv]) {
-
-					// derive and set the most basic information, from which
-					// everything else will be derived
-					row_time = _ni[row].rowTime / _rate;
-					row_notes = _ni[row].notes;
-					row_count = column_count(row_notes);
+					const auto& ri = _calc.adj_ni.at(itv).at(row);
+					row_time = ri.row_time;
+					row_notes = ri.row_notes;
+					row_count = ri.row_count;
 
 					// don't like having this here
 					any_ms = ms_from(row_time, last_row_time);
+
+					assert(any_ms > 0.F);
 
 					ct = determine_col_type(row_notes, ids);
 
@@ -439,7 +414,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 			}
-			PatternMods::run_dependent_smoothing_pass(_itv_rows.size(), _calc);
+			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
 
 			// smoothing has been built into the construction process so we
 			// probably don't need these anymore? maybe ms smooth if necessary,

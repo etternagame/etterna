@@ -22,11 +22,26 @@ class Calc;
 // should be able to handle 1hr 54min easily
 static const int max_intervals = 40000;
 
+// intervals are _half_ second, no point in wasting time or cpu cycles on 100
+// nps joke files. even at most generous, 100 nps spread across all fingers,
+// that's still 25 nps which is considerably faster than anyone can sustain
+// vibro for a full second
+static const int max_rows_for_single_interval = 50;
+
 enum hands
 {
 	left_hand,
 	right_hand,
 	num_hands,
+};
+
+// uhhh
+struct RowInfo
+{
+	unsigned row_notes = 0U;
+	int row_count = 0;
+	std::array<int, num_hands> hand_counts = { 0, 0 };
+	float row_time = 0.F;
 };
 
 class Hand
@@ -133,6 +148,16 @@ class Calc
 	const float IntervalSpan = 0.5F; // Intervals of time we slice the chart at
 
   public:
+	// the most basic derviations from the most basic notedata
+	std::array<std::array<RowInfo, max_rows_for_single_interval>, max_intervals>
+	  adj_ni;
+
+	// size of each interval in rows
+	std::array<int, max_intervals> itv_size;
+
+	// Point allotment for each interval
+	std::array<std::array<int, max_intervals>, num_hands> itv_points;
+
 	// holds pattern mods
 	std::array<std::array<std::array<float, max_intervals>, NUM_CalcPatternMod>,
 			   num_hands>
@@ -160,6 +185,8 @@ class Calc
 	// skill_stamina element of the arrays to store this and save an allocation
 	// but that might just be too confusing idk
 	std::array<float, max_intervals> stam_adj_diff;
+
+	int numitv = 0;
 
 	/* NOTE: all _incoming_ diffs should be stored as MS values, and only
 	 * converted to scaled NPS on the way out */
