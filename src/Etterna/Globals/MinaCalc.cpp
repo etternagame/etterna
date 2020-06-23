@@ -666,7 +666,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 	}
 
 	std::unique_ptr<Calc> owned_calc;
-	if (!calc) {
+	if (calc == nullptr) {
 		owned_calc = std::make_unique<Calc>();
 		calc = owned_calc.get();
 	}
@@ -686,7 +686,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 	if (NoteInfo.size() > 1) {
 		// If we're not given a calc make one just for this
 		// Must be declared outside the !calc if so it's alive when used
-		if (!calc) {
+		if (calc == nullptr) {
 			cacheRun = std::make_unique<Calc>();
 			calc = cacheRun.get();
 		}
