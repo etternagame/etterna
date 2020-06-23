@@ -22,8 +22,8 @@ struct JSMod
 	float total_prop_max = max_mod;
 	float total_prop_scaler = 2.714F; // ~19/7
 
-	float split_hand_pool = 1.45F;
-	float split_hand_min = 0.85F;
+	float split_hand_pool = 1.5F;
+	float split_hand_min = 0.9F;
 	float split_hand_max = 1.F;
 	float split_hand_scaler = 1.F;
 
