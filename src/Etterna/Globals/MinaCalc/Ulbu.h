@@ -349,48 +349,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			col_type ct = col_init;
 			full_hand_reset();
 
-			/* DUMBSTUFF */
-			// keep track of notes in a window
-			CalcMovingWindow<int> notesbruh;
-
-			// basically using this to know what was there 6 rows ago
-			CalcMovingWindow<float> timebruh;
-			timebruh.fill(s_init);
-
-			vector<float> nps;
-			// another loop cause we want to smooth npsbase before merging it
-			// with tech maybe
-			for (int itv = 0; itv < _calc.numitv; ++itv) {
-				nps.clear();
-				int pts = 0;
-
-				for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
-					const auto& ri = _calc.adj_ni.at(itv).at(row);
-
-					notesbruh(ri.hand_counts.at(hand));
-					timebruh(ri.row_time);
-
-					pts += ri.hand_counts.at(hand) * 2;
-
-					auto wn =
-					  notesbruh.get_mean_of_window(max_moving_window_size);
-					float wt = ri.row_time - timebruh[0];
-					assert(wt > 0.F);
-					nps.push_back(wn / wt);
-				}
-				if (nps.empty()) {
-					_calc.soap.at(hand).at(NPSBase).at(itv) = 0.F;
-				} else {
-					_calc.soap.at(hand).at(NPSBase).at(itv) =
-					  mean(nps) * 2.F * finalscaler * 2.F;
-				}
-
-				_calc.itv_points.at(hand).at(itv) = pts;
-			}
-
+			_diffz._nps.actual_cancer(_calc, hand);
 			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
-
-			/* END DUMB STUFF */
 
 			for (int itv = 0; itv < _calc.numitv; ++itv) {
 				for (int row = 0; row < _calc.itv_size.at(itv); ++row) {

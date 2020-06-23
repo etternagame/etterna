@@ -196,6 +196,8 @@ fastwalk(const vector<NoteInfo>& ni,
 			++right;
 		}
 
+		assert(left + right == nri.row_count);
+
 		nri.hand_counts[left_hand] = left;
 		nri.hand_counts[right_hand] = right;
 

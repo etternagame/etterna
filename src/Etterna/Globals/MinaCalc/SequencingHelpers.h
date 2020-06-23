@@ -54,3 +54,21 @@ ms_to_scaled_nps(const float& ms) -> float
 {
 	return ms_to_nps(ms) * finalscaler;
 }
+
+inline auto
+max_val(const vector<int>& v) -> int
+{
+	return *std::max_element(v.begin(), v.end());
+}
+
+inline auto
+max_val(const vector<float>& v) -> float
+{
+	return *std::max_element(v.begin(), v.end());
+}
+
+inline auto
+max_index(const vector<float>& v) -> int
+{
+	return std::distance(v.begin(), std::max_element(v.begin(), v.end()));
+}

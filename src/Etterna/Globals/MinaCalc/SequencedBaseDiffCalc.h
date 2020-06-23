@@ -11,8 +11,32 @@
 
 // we've already thrown out anything that exceeeds max_rows_for_single_interval
 // before ever hitting here, so this should be safe
+static thread_local std::array<float, max_rows_for_single_interval> nps_static;
 static thread_local std::array<float, max_rows_for_single_interval> jk_static;
 static thread_local std::array<float, max_rows_for_single_interval> tc_static;
+
+struct nps
+{
+	inline void actual_cancer(Calc& calc, const int& hi)
+	{
+		for (int itv = 0; itv < calc.numitv; ++itv) {
+
+			int notes = 0;
+
+			for (int row = 0; row < calc.itv_size.at(itv); ++row) {
+				const auto& cur = calc.adj_ni.at(itv).at(row);
+				notes += cur.hand_counts.at(hi);
+			}
+
+			// nps for this interval
+			calc.soap.at(hi).at(NPSBase).at(itv) =
+			  static_cast<float>(notes) * finalscaler * 1.6F;
+
+			// set points for this interval
+			calc.itv_points.at(hi).at(itv) = notes * 2;
+		}
+	}
+};
 
 struct vribbit
 {
@@ -171,6 +195,7 @@ struct techyo
 
 struct diffz
 {
+	nps _nps;
 	vribbit _jk;
 	techyo _tc;
 
