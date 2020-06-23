@@ -104,7 +104,6 @@ class Song
 	RString GetFileHash();
 
 	bool HasAutosaveFile();
-	bool LoadAutosaveFile();
 
 	/**
 	 * @brief Call this after loading a song to clean up invalid data.

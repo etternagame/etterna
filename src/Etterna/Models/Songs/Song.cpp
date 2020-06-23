@@ -509,32 +509,6 @@ Song::HasAutosaveFile()
 	return FILEMAN->DoesFileExist(autosave_path);
 }
 
-bool
-Song::LoadAutosaveFile()
-{
-	if (m_sSongFileName.empty()) {
-		return false;
-	}
-	// Save these strings because they need to be restored after the reset.
-	// The filenames need to point to the original instead of the autosave for
-	// things like load from disk to work. -Kyz
-	RString dir = GetSongDir();
-	RString song_timing_file = m_SongTiming.m_sFile;
-	RString song_file = m_sSongFileName;
-	// Reset needs to be used to remove all the steps and other things that
-	// will be loaded from the autosave. -Kyz
-	Reset();
-	if (LoadFromSongDir(dir, true)) {
-		m_loaded_from_autosave = true;
-		m_sSongFileName = song_file;
-		m_SongTiming.m_sFile = song_timing_file;
-		return true;
-	}
-	// Loading the autosave failed, reload the original. -Kyz
-	LoadFromSongDir(dir, false);
-	return false;
-}
-
 /* Fix up song paths. If there's a leading "./", be sure to keep it: it's
  * a signal that the path is from the root directory, not the song directory.
  * Other than a leading "./", song paths must never contain "." or "..". */
