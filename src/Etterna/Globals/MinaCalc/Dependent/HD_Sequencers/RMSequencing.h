@@ -1,6 +1,8 @@
 #pragma once
 #include "Etterna/Globals/MinaCalc/Dependent/HD_MetaSequencing.h"
 
+static const float rma_diff_scaler = 1.2F;
+
 enum rm_behavior
 {
 	rmb_off_tap_oh,
@@ -550,7 +552,7 @@ struct RM_Sequencer
 		// CalcClamp(static_cast<float>(_rm.off_taps_sh) / 4.F, 0.1F, 1.F);
 
 		float pule = (flool) / static_cast<float>(_rm._len - 1);
-		float drool = ms_to_scaled_nps(pule);
+		float drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
 		return drool /** glunk*/;
 	}
 };
