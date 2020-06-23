@@ -184,8 +184,8 @@ struct AnchorSequencer
 			anch.at(ct)(ct, row_time);
 
 			// set max seen for this col for this interval
-			max_seen[ct] =
-			  anch[ct]._len > max_seen[ct] ? anch[ct]._len : max_seen[ct];
+			max_seen.at(ct) =
+			  anch.at(ct)._len > max_seen.at(ct) ? anch.at(ct)._len : max_seen.at(ct);
 		} else if (ct == col_ohjump) {
 
 			// update both
@@ -206,7 +206,7 @@ struct AnchorSequencer
 	  const int& window) const -> int
 	{
 		assert(ct < num_cols_per_hand);
-		return _mw_max[ct].get_max_for_window(window);
+		return _mw_max.at(ct).get_max_for_window(window);
 	}
 
 	inline void handle_interval_end()
@@ -347,7 +347,7 @@ struct SequencerGeneral
 		}
 
 		// simple
-		return _mw_sc_ms[ct].get_now();
+		return _mw_sc_ms.at(ct).get_now();
 	}
 
 	[[nodiscard]] inline auto get_any_ms_now() const -> float

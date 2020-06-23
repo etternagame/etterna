@@ -17,7 +17,7 @@ static thread_local std::array<float, max_rows_for_single_interval> tc_static;
 
 struct nps
 {
-	inline void actual_cancer(Calc& calc, const int& hi)
+	static inline void actual_cancer(Calc& calc, const int& hi)
 	{
 		for (int itv = 0; itv < calc.numitv; ++itv) {
 
@@ -125,7 +125,7 @@ struct techyo
 
 			obliosis = scoliosis / poliosis;
 		}
-		obliosis = CalcClamp(obliosis, 1.f, 10.F);
+		obliosis = CalcClamp(obliosis, 1.F, 10.F);
 		float pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
 		pewp /= obliosis;

@@ -81,7 +81,7 @@ class Calc
 				bool stamina,
 				bool debugoutput = false) -> float;
 
-	inline void InitAdjDiff(Calc& calc, const int& hi);
+	static inline void InitAdjDiff(Calc& calc, const int& hi);
 
   public:
 	// the most basic derviations from the most basic notedata
@@ -89,38 +89,38 @@ class Calc
 	  adj_ni;
 
 	// size of each interval in rows
-	std::array<int, max_intervals> itv_size;
+	std::array<int, max_intervals> itv_size{};
 
 	// Point allotment for each interval
-	std::array<std::array<int, max_intervals>, num_hands> itv_points;
+	std::array<std::array<int, max_intervals>, num_hands> itv_points{};
 
 	// holds pattern mods
 	std::array<std::array<std::array<float, max_intervals>, NUM_CalcPatternMod>,
 			   num_hands>
-	  doot;
+	  doot{};
 
 	// Calculated difficulty for each interval
 	std::array<std::array<std::array<float, max_intervals>, NUM_CalcDiffValue>,
 			   num_hands>
-	  soap;
+	  soap{};
 
 	// not necessarily self extraplanetary
 	// apply stam model to these (but output is sent to stam_adj_diff, not
 	// modified here)
 	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
 			   num_hands>
-	  base_adj_diff;
+	  base_adj_diff{};
 	// but use these as the input for model
 	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
 			   num_hands>
-	  base_diff_for_stam_mod;
+	  base_diff_for_stam_mod{};
 
 	// pattern adjusted difficulty, allocate only once, stam needs to be based
 	// on the above, and it needs to be recalculated every time the player_skill
 	// value changes, again based on the above, technically we could use the
 	// skill_stamina element of the arrays to store this and save an allocation
 	// but that might just be too confusing idk
-	std::array<float, max_intervals> stam_adj_diff;
+	std::array<float, max_intervals> stam_adj_diff{};
 
 	int numitv = 0;
 	int MaxPoints = 0; // Total points achievable in the file

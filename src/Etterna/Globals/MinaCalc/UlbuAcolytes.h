@@ -101,8 +101,8 @@ struct PatternMods
 
 // converts time to interval index, if there's an offset to add or a rate to
 // scale by, it should be done prior
-inline int
-time_to_itv_idx(const float& time)
+inline auto
+time_to_itv_idx(const float& time) -> int
 {
 	return static_cast<int>(time / interval_span);
 }
@@ -121,8 +121,9 @@ fastwalk(const vector<NoteInfo>& ni,
 	calc.numitv = time_to_itv_idx(ni.back().rowTime / rate) + 1;
 
 	// are there more intervals than our alloted max
-	if (calc.numitv >= max_intervals)
+	if (calc.numitv >= max_intervals) {
 		return true;
+	}
 
 	// for various reasons we actually have to do this, scan the file and make
 	// sure each successive row time is greater than the last
@@ -142,15 +143,17 @@ fastwalk(const vector<NoteInfo>& ni,
 	for (int i = 0; i < ni.size(); ++i) {
 
 		// it's at least 25 nps per finger, throw it out
-		if (row_counter >= max_rows_for_single_interval)
+		if (row_counter >= max_rows_for_single_interval) {
 			return true;
+		}
 
 		const auto& ri = ni.at(i);
 
 		float zoop = (ni.at(i).rowTime + offset) / rate;
 
-		if (i > 0)
+		if (i > 0) {
 			assert(zoop > scaled_time);
+		}
 
 		scaled_time = (ni.at(i).rowTime + offset) / rate;
 
@@ -183,16 +186,16 @@ fastwalk(const vector<NoteInfo>& ni,
 		int left = 0;
 		int right = 0;
 
-		if (ri.notes & 1) {
+		if ((ri.notes & 1U) != 0U) {
 			++left;
 		}
-		if (ri.notes & 2) {
+		if ((ri.notes & 2U) != 0U) {
 			++left;
 		}
-		if (ri.notes & 4) {
+		if ((ri.notes & 4U) != 0U) {
 			++right;
 		}
-		if (ri.notes & 8) {
+		if ((ri.notes & 8U) != 0U) {
 			++right;
 		}
 

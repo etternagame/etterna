@@ -15,16 +15,19 @@ inline auto
 column_count(const unsigned& notes) -> int
 {
 	// singles
-	if (notes == 1U || notes == 2U || notes == 4U || notes == 8U)
+	if (notes == 1U || notes == 2U || notes == 4U || notes == 8U) {
 		return 1;
+	}
 
 	// hands
-	if (notes == 7U || notes == 11U || notes == 13U || notes == 14U)
+	if (notes == 7U || notes == 11U || notes == 13U || notes == 14U) {
 		return 3;
+	}
 
 	// quad
-	if (notes == 15U)
+	if (notes == 15U) {
 		return 4;
+	}
 
 	// everything else is a jump
 	return 2;

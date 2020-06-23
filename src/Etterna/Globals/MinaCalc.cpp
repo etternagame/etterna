@@ -59,7 +59,7 @@ static const std::array<float, NUM_Skillset> basescalers = {
 };
 
 static inline auto
-TotalMaxPoints(const Calc& calc) -> float
+TotalMaxPoints(const Calc& calc) -> int
 {
 	int MaxPoints = 0;
 	for (int i = 0; i < calc.numitv; i++) {

@@ -82,7 +82,7 @@ struct WideRangeAnchorMod
 		}
 
 		// would max anyway
-		if (diff > diff_max) {
+		if (diff > static_cast<int>(diff_max)) {
 			return max_mod;
 		}
 

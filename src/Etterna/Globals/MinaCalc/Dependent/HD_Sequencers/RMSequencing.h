@@ -432,8 +432,6 @@ struct RM_Sequencer
 			case rmb_jack:
 				handle_jack_behavior();
 				break;
-			case rmb_init:
-				break;
 			default:
 				break;
 		}
@@ -548,8 +546,8 @@ struct RM_Sequencer
 		float flool = ms_from(last_anchor_time, _start);
 
 		// may be unnecessary
-		float glunk =
-		  CalcClamp(static_cast<float>(_rm.off_taps_sh) / 4.F, 0.1F, 1.F);
+		// float glunk =
+		// CalcClamp(static_cast<float>(_rm.off_taps_sh) / 4.F, 0.1F, 1.F);
 
 		float pule = (flool) / static_cast<float>(_rm._len - 1);
 		float drool = ms_to_scaled_nps(pule);

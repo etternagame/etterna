@@ -106,7 +106,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// so we can apply them here
 	diffz _diffz;
 
-	TheGreatBazoinkazoinkInTheSky(Calc& calc)
+	explicit explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
 	{
 #ifndef RELWITHDEBINFO
@@ -312,7 +312,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// update base difficulty stuff
 	inline void update_sequenced_base_diffs(const unsigned& /*row_notes*/,
 											const int& /*row_count*/,
-											const float& any_ms,
+											const float&  /*any_ms*/,
 											const col_type& ct)
 	{
 		// jack speed updates with highest anchor difficulty seen
@@ -326,12 +326,12 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_sequenced_base_diffs(const int& itv)
 	{
-		_calc.soap.at(hand)[JackBase][itv] = _diffz._jk.get_itv_diff();
+		_calc.soap.at(hand)[JackBase].at(itv) = _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_calc.soap.at(hand)[TechBase][itv] =
-		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase][itv]);
+		_calc.soap.at(hand)[TechBase].at(itv) =
+		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv));
 	}
 
 	inline void run_dependent_pmod_loop()
@@ -349,7 +349,7 @@ struct TheGreatBazoinkazoinkInTheSky
 			col_type ct = col_init;
 			full_hand_reset();
 
-			_diffz._nps.actual_cancer(_calc, hand);
+			nps::actual_cancer(_calc, hand);
 			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
 			for (int itv = 0; itv < _calc.numitv; ++itv) {
