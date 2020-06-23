@@ -110,17 +110,21 @@ class Calc
 	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
 			   num_hands>
 	  base_adj_diff{};
+
 	// but use these as the input for model
 	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
 			   num_hands>
 	  base_diff_for_stam_mod{};
 
-	// pattern adjusted difficulty, allocate only once, stam needs to be based
-	// on the above, and it needs to be recalculated every time the player_skill
-	// value changes, again based on the above, technically we could use the
-	// skill_stamina element of the arrays to store this and save an allocation
-	// but that might just be too confusing idk
+	/* pattern adjusted difficulty, allocate only once, stam needs to be based
+	 * on the above, and it needs to be recalculated every time the player_skill
+	 * value changes, again based on the above, technically we could use the
+	 * skill_stamina element of the arrays to store this and save an allocation
+	 * but that might just be too confusing idk */
 	std::array<float, max_intervals> stam_adj_diff{};
+
+	// we may want to store this value for use in other skillset passes- maybe
+	std::array<std::array<float, max_intervals>, num_hands> jack_loss{};
 
 	int numitv = 0;
 	int MaxPoints = 0; // Total points achievable in the file
