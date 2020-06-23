@@ -482,84 +482,83 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	// leaderboards, and good scores on overrated files will simply
 	// produce high ratings in every category
 
-	static const vector<int> pmods_used[NUM_Skillset] = {
-		// overall, nothing, don't handle here
-		{},
+	static const std::array<vector<int>, NUM_Skillset> pmods_used = { {
+	  // overall, nothing, don't handle here
+	  {},
 
-		// stream
-		{
-		  Stream,
-		  OHTrill,
-		  VOHTrill,
-		  // Roll,
-		  Chaos,
-		  WideRangeRoll,
-		  WideRangeJumptrill,
-		  FlamJam,
-		  OHJumpMod,
-		  Balance,
-		  RanMan,
-		},
+	  // stream
+	  {
+		Stream,
+		OHTrill,
+		VOHTrill,
+		// Roll,
+		Chaos,
+		WideRangeRoll,
+		WideRangeJumptrill,
+		FlamJam,
+		OHJumpMod,
+		Balance,
+		RanMan,
+	  },
 
-		// js
-		{
-		  JS,
-		  OHJumpMod,
-		  Chaos,
-		  Balance,
-		  TheThing,
-		  TheThing2,
-		  WideRangeBalance,
-		  WideRangeJumptrill,
-		  WideRangeRoll,
-		  OHTrill,
-		  VOHTrill,
-		  RanMan,
-		  // Roll,
-		  // WideRangeAnchor,
-		},
+	  // js
+	  {
+		JS,
+		OHJumpMod,
+		Chaos,
+		Balance,
+		TheThing,
+		TheThing2,
+		WideRangeBalance,
+		WideRangeJumptrill,
+		WideRangeRoll,
+		OHTrill,
+		VOHTrill,
+		RanMan,
+		// Roll,
+		// WideRangeAnchor,
+	  },
 
-		// hs
-		{
-		  HS,
-		  OHJumpMod,
-		  TheThing,
-		  WideRangeAnchor,
-		  WideRangeRoll,
-		  OHTrill,
-		  VOHTrill,
-		  // Roll
-		  RanMan,
-		},
+	  // hs
+	  {
+		HS,
+		OHJumpMod,
+		TheThing,
+		WideRangeAnchor,
+		WideRangeRoll,
+		OHTrill,
+		VOHTrill,
+		// Roll
+		RanMan,
+	  },
 
-		// stam, nothing, don't handle here
-		{},
+	  // stam, nothing, don't handle here
+	  {},
 
-		// jackspeed
-		{},
+	  // jackspeed
+	  {},
 
-		// chordjack
-		{ CJ, CJDensity },
+	  // chordjack
+	  { CJ, CJDensity },
 
-		// tech, duNNO wat im DOIN
-		{
-		  OHTrill,
-		  VOHTrill,
-		  Balance,
-		  // Roll,
-		  OHJumpMod,
-		  Chaos,
-		  WideRangeJumptrill,
-		  WideRangeBalance,
-		  WideRangeRoll,
-		  FlamJam,
-		  RanMan,
-		  WideRangeAnchor,
-		  TheThing,
-		  TheThing2,
-		},
-
-	};
+	  // tech, duNNO wat im DOIN
+	  {
+		OHTrill,
+		VOHTrill,
+		Balance,
+		// Roll,
+		OHJumpMod,
+		Chaos,
+		WideRangeJumptrill,
+		WideRangeBalance,
+		WideRangeRoll,
+		FlamJam,
+		RanMan,
+		WideRangeAnchor,
+		TheThing,
+		TheThing2,
+	  },
+	} };
 
 	std::array<float, NUM_Skillset> tp_mods = {};
 
@@ -577,7 +576,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 			if (ss == Skill_Overall || ss == Skill_Stamina) {
 				continue;
 			}
-			for (auto& pmod : pmods_used[ss]) {
+			for (auto& pmod : pmods_used.at(ss)) {
 				tp_mods.at(ss) *= calc.doot.at(hi).at(pmod).at(i);
 			}
 		}
