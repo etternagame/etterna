@@ -180,8 +180,5 @@ struct diffz
 		_tc.interval_end();
 	}
 
-	inline void full_reset()
-	{
-		interval_end();
-	}
+	inline void full_reset() { interval_end(); }
 };

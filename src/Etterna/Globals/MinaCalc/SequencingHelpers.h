@@ -11,8 +11,6 @@ static const float ms_init = 5000.F;
 // global multiplier to standardize baselines
 static const float finalscaler = 3.632F;
 
-
-
 inline auto
 column_count(const unsigned& notes) -> int
 {
