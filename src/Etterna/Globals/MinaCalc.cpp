@@ -539,7 +539,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	  {},
 
 	  // jackspeed
-		  {},
+	  {},
 
 	  // chordjack
 	  {
@@ -547,8 +547,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		// CJOHJump // SQRTD BELOW
 	  },
 
-			// tech, duNNO wat im DOIN
-			{
+	  // tech, duNNO wat im DOIN
+	  {
 		OHTrill,
 		VOHTrill,
 		Balance,

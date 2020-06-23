@@ -33,13 +33,13 @@ enum Skillset
 enum CalcPatternMod
 {
 	Stream,
-	JS,	 // pattern mod (values between 0-1)
+	JS, // pattern mod (values between 0-1)
 	// JSS, // pattern mod (values between 0-1)
 	// JSJ, // pattern mod (values between 0-1)
-	HS,	 // pattern mod (values between 0-1)
+	HS, // pattern mod (values between 0-1)
 	// HSS, // pattern mod (values between 0-1)
 	// HSJ, // pattern mod (values between 0-1)
-	CJ,	 // pattern mod (values between 0-1)
+	CJ, // pattern mod (values between 0-1)
 	// CJS, // pattern mod (values between 0-1)
 	// CJJ, // pattern mod (values between 0-1)
 	CJDensity,

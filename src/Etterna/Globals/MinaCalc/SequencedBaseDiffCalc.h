@@ -117,14 +117,13 @@ struct techyo
 		float scoliosis = seq._mw_sc_ms[col_left].get_now();
 		float poliosis = seq._mw_sc_ms[col_right].get_now();
 		float obliosis = 0.F;
+
 		if (ct == col_left) {
-
 			obliosis = poliosis / scoliosis;
-
 		} else {
-
 			obliosis = scoliosis / poliosis;
 		}
+
 		obliosis = CalcClamp(obliosis, 1.F, 10.F);
 		float pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
