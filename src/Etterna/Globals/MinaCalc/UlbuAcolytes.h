@@ -10,14 +10,6 @@ static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 static const float interval_span = 0.5F;
 
-// holds pattern mods
-/*
-static thread_local std::array<
-  std::array<std::array<float, max_intervals>, NUM_CalcPatternMod>,
-  num_hands>
-  doot;
-*/
-
 inline void
 Smooth(std::array<float, max_intervals>& input, float neutral, int end_interval)
 {
@@ -91,11 +83,7 @@ struct PatternMods
 	{
 		for (auto& pmod : dependent_mods) {
 			for (auto& h : calc.doot) {
-				{
-					{
-						Smooth(h.at(pmod), neutral, end_itv);
-					}
-				}
+				Smooth(h.at(pmod), neutral, end_itv);
 			}
 		}
 	}
