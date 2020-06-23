@@ -50,7 +50,7 @@ enum CalcPatternMod
 	// OHJMaxSeq,
 	// OHJCCTaps,
 	// OHJHTaps,
-	// CJOHJump,
+	CJOHJump,
 	// CJOHJPropComp,
 	// CJOHJSeqComp,
 	Balance, // pattern mod (values between 0.9 - ~ 1.1)

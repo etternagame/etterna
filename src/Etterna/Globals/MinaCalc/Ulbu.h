@@ -26,6 +26,7 @@
 
 // hand dependent pattern mods
 #include "Dependent/HD_PatternMods/OHJ.h"
+#include "Dependent/HD_PatternMods/CJOHJ.h"
 #include "Dependent/HD_PatternMods/Balance.h"
 #include "Dependent/HD_PatternMods/Roll.h"
 #include "Dependent/HD_PatternMods/OHT.h"
@@ -86,6 +87,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	CJMod _cj;
 	CJDensityMod _cjd;
 	OHJumpModGuyThing _ohj;
+	CJOHJumpMod _cjohj;
 	RollMod _roll;
 	BalanceMod _bal;
 	OHTrillMod _oht;
@@ -221,6 +223,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
+		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
@@ -251,6 +254,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void set_dependent_pmods(const int& itv)
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
+		PatternMods::set_dependent(hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -278,6 +282,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void full_hand_reset()
 	{
 		_ohj.full_reset();
+		_cjohj.full_reset();
 		_bal.full_reset();
 		_roll.full_reset();
 		_oht.full_reset();
@@ -499,6 +504,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _cj._params, _cj.name);
 		load_params_for_mod(&params, _cjd._params, _cjd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
+		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
 		load_params_for_mod(&params, _voht._params, _oht.name);
@@ -524,6 +530,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
 		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
+		calcparams->AppendChild(make_mod_param_node(_cjohj._params, _cjohj.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));

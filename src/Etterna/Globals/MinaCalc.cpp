@@ -539,13 +539,16 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	  {},
 
 	  // jackspeed
-	  {},
+		  {},
 
 	  // chordjack
-	  { CJ, CJDensity },
-
-	  // tech, duNNO wat im DOIN
 	  {
+		CJ, CJDensity,
+		// CJOHJump // SQRTD BELOW
+	  },
+
+			// tech, duNNO wat im DOIN
+			{
 		OHTrill,
 		VOHTrill,
 		Balance,
@@ -641,6 +644,9 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					  tp_mods[Skill_JackSpeed] * basescalers.at(ss) /
 					  max(fastpow(calc.doot.at(hi).at(CJ).at(i), 2.F), 1.F);
 					break;
+				case Skill_Chordjack:
+					*adj_diff *= fastsqrt(calc.doot.at(hi).at(CJOHJump).at(i));
+					break;
 				case Skill_Technical:
 					*adj_diff =
 					  calc.soap.at(hi).at(TechBase).at(i) * tp_mods.at(ss) *
@@ -732,7 +738,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 400;
+int mina_calc_version = 401;
 auto
 GetCalcVersion() -> int
 {

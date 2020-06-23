@@ -244,7 +244,7 @@ static const char* CalcPatternModNames[] = {
 	// "OHJMaxSeq",
 	// "OHJCCTaps",
 	// "OHJHTaps",
-	// "CJOHJump",
+	"CJOHJump",
 	// "CJOHJPropComp",
 	// "CJOHJSeqComp",
 	"Balance",
