@@ -314,7 +314,7 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 
 	// set interval values values and total in the same loop
 	for (int i = 0; i < calc.numitv; ++i) {
-		float loss = hit_the_road(x, calc.soap.at(hi)[JackBase].at(i));
+		float loss = hit_the_road(x, calc.base_adj_diff.at(hi)[Skill_JackSpeed].at(i));
 		total += loss;
 
 		calc.jack_loss.at(hi).at(i) = loss;
@@ -672,8 +672,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 				case Skill_JackSpeed:
 					*adj_diff =
 					  calc.soap.at(hi).at(JackBase).at(i) *
-					  tp_mods[Skill_JackSpeed] * basescalers.at(ss) /
-					  max(fastpow(calc.doot.at(hi).at(CJ).at(i), 2.F), 1.F);
+					  tp_mods[Skill_JackSpeed] * basescalers.at(ss);
 					break;
 				case Skill_Chordjack:
 					*adj_diff *= fastsqrt(calc.doot.at(hi).at(CJOHJump).at(i));
