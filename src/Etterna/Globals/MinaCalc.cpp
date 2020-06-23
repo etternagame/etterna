@@ -54,9 +54,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const std::array<float, NUM_Skillset> basescalers = { 0.F,	0.97F, 0.9F,
-															 0.82F, 0.94F, 0.95F,
-															 0.78F, 0.9F };
+static const std::array<float, NUM_Skillset> basescalers = {
+	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 1.05F, 0.84F, 0.9F
+};
 
 static inline auto
 TotalMaxPoints(const Calc& calc) -> int
@@ -292,7 +292,7 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 7.5f;
+static const float magic_num = 15.f;
 static const float magic_num_TWO = 2.5f;
 static const float gratuitously_defined_zero_value = 0.F;
 
@@ -771,7 +771,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 401;
+int mina_calc_version = 402;
 auto
 GetCalcVersion() -> int
 {
