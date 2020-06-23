@@ -185,6 +185,11 @@ struct VOHTrillMod
 			return;
 		}
 
+		if (_mw_oht_taps.get_total_for_window(window) < 10) {
+			pmod = neutral;
+			return;
+		}
+
 		// full oht
 		if (itvhi.get_taps_windowi(window) ==
 			_mw_oht_taps.get_total_for_window(window)) {
