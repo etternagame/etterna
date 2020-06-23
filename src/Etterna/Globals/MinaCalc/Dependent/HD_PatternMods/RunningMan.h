@@ -168,11 +168,11 @@ struct RunningManMod
 		for (auto& c : ct_loop_no_jumps) {
 			rms[c]._ct = c;
 			rms[c].set_params(max_oht_len,
-							   max_off_len,
-							   max_ot_sh_len,
-							   max_burst_len,
-							   max_jack_len,
-							   max_anch_len);
+							  max_off_len,
+							  max_ot_sh_len,
+							  max_burst_len,
+							  max_jack_len,
+							  max_anch_len);
 		}
 	}
 
@@ -268,10 +268,7 @@ struct RunningManMod
 		// we could scale the anchor to speed if we want but meh
 		// that's really complicated/messy/error prone
 		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
-		pmod = CalcClamp(
-		  fastsqrt(pmod * total_prop * off_tap_prop /** off_tap_same_prop*/),
-		  min_mod,
-		  max_mod);
+		pmod = CalcClamp(pmod * total_prop * off_tap_prop, min_mod, max_mod);
 
 		return pmod;
 	}
