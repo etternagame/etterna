@@ -435,8 +435,11 @@ Calc::Chisel(float player_skill,
 			CalcInternal(
 			  gotpoints, player_skill, ss, stamina, *this, left_hand);
 
-			// only run the other hand if we're still above the reqpoints,
-			// if we're already below, there's no point
+			/* only run the other hand if we're still above the reqpoints, if
+			 * we're already below, there's no point, i.e. we're so far below
+			 * the skill benchmark it's impossible to reach the goal after just
+			 * the first hand's losses are totaled */
+
 			if (gotpoints > reqpoints) {
 				CalcInternal(
 				  gotpoints, player_skill, ss, stamina, *this, right_hand);
@@ -447,10 +450,11 @@ Calc::Chisel(float player_skill,
 		resolution /= 2.F;
 	}
 
-	// these are the values for msd/stam adjusted msd/pointloss the
-	// latter two are dependent on player_skill and so should only
-	// be recalculated with the final value already determined
-	// getting the jackstam debug output right is lame i know
+	/* these are the values for msd/stam adjusted msd/pointloss the latter two
+	 * are dependent on player_skill and so should only be recalculated with the
+	 * final value already determined for clarification, player_skill value
+	 * being passed into here is the final value we've determined */
+
 	if (debugoutput) {
 		CalcInternal(
 		  gotpoints, player_skill, ss, stamina, *this, left_hand, debugoutput);
