@@ -143,11 +143,10 @@ struct Anchor_Sequencing
 	{
 		assert(_sc_ms > 0.F);
 
-		float anchor_time_buffer_ms = 90.F;
+		float anchor_time_buffer_ms = 100.F;
 
-		// STILL TOO JANK?
 		if (_len < 4)
-			anchor_time_buffer_ms = 45.F;
+			anchor_time_buffer_ms = _len * 25.F;
 
 		if (_len > len_cap)
 			return _len_cap_diff;
