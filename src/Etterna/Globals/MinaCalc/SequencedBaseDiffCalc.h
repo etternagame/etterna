@@ -143,6 +143,12 @@ struct techyo
 		rm_itv_max_diff = max(rm_itv_max_diff, rm_diff);
 	}
 
+	// for debug
+	[[nodiscard]] inline auto get_itv_rma_diff() const -> float
+	{
+		return rm_itv_max_diff;
+	}
+
 	// final output difficulty for this interval, merges base diff, runningman
 	// anchor diff
 	[[nodiscard]] inline auto get_itv_diff(const float& nps_base) const -> float
