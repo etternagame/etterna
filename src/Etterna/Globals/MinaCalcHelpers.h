@@ -18,7 +18,7 @@ downscale_low_accuracy_scores(float f, float sg) -> float
 {
 	return sg >= 0.93F
 			 ? f
-			 : min(max(f / pow(1.F + (0.93F - sg), 0.75F), 0.F), 100.F);
+			 : min(max(f / pow(1.F + (0.93F - sg), 1.25F), 0.F), 100.F);
 }
 
 inline auto
