@@ -289,6 +289,37 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
+static const float magic_num = 7.5f;
+static const float magic_num_TWO = 2.5f;
+static const float gratuitously_defined_zero_value = 0.F;
+
+inline float
+hit_the_road(const float& x, const float& y)
+{
+	if (x > y)
+		return 0.F;
+
+	return (CalcClamp(magic_num - (magic_num * fastpow(x / y, magic_num_TWO)),
+					  gratuitously_defined_zero_value,
+					  magic_num));
+}
+
+inline auto
+jackloss(const float& x, Calc& calc, const int& hi) -> float
+{
+	float total = 0.F;
+
+	// set interval values values and total in the same loop
+	for (int i = 0; i < calc.numitv; ++i) {
+		float loss = hit_the_road(x, calc.soap.at(hi)[JackBase].at(i));
+		total += loss;
+
+		calc.jack_loss.at(hi).at(i) = loss;
+	}
+
+	return total;
+}
+
 // debug bool here is NOT the one in Calc, it is passed from chisel
 // using the final difficulty as the starting point and should only
 // be executed once per chisel
@@ -319,6 +350,7 @@ CalcInternal(float& gotpoints,
 		calc.debugValues.at(hi)[2][StamMod].resize(calc.numitv);
 		calc.debugValues.at(hi)[2][Pts].resize(calc.numitv);
 		calc.debugValues.at(hi)[2][PtLoss].resize(calc.numitv);
+		calc.debugValues.at(hi)[2][JackPtLoss].resize(calc.numitv);
 		calc.debugValues.at(hi)[1][MSD].resize(calc.numitv);
 		// final debug output should always be with stam activated
 		StamAdjust(x, ss, calc, hi, true);
@@ -404,7 +436,6 @@ Calc::Chisel(float player_skill,
 
 	float gotpoints = 0.F;
 	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
-	float jloss = 0.F;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {
 			if (player_skill > 100.F) {
@@ -418,19 +449,21 @@ Calc::Chisel(float player_skill,
 			// reset tallied score, always deduct rather than accumulate now
 			gotpoints = static_cast<float>(MaxPoints);
 
-			CalcInternal(
-			  gotpoints, player_skill, ss, stamina, *this, left_hand);
+			for (auto& hi : { left_hand, right_hand }) {
 
-			/* only run the other hand if we're still above the reqpoints, if
-			 * we're already below, there's no point, i.e. we're so far below
-			 * the skill benchmark it's impossible to reach the goal after just
-			 * the first hand's losses are totaled */
-
-			if (gotpoints > reqpoints) {
-				CalcInternal(
-				  gotpoints, player_skill, ss, stamina, *this, right_hand);
+				/* only run the other hand if we're still above the reqpoints,
+				 * if we're already below, there's no point, i.e. we're so far
+				 * below the skill benchmark it's impossible to reach the goal
+				 * after just the first hand's losses are totaled */
+				if (gotpoints > reqpoints) {
+					if (ss == Skill_JackSpeed) {
+						gotpoints -= jackloss(player_skill, *this, hi);
+					} else {
+						CalcInternal(
+						  gotpoints, player_skill, ss, stamina, *this, hi);
+					}
+				}
 			}
-
 		} while (gotpoints < reqpoints);
 		player_skill -= resolution;
 		resolution /= 2.F;
@@ -442,10 +475,15 @@ Calc::Chisel(float player_skill,
 	 * being passed into here is the final value we've determined */
 
 	if (debugoutput) {
-		CalcInternal(
-		  gotpoints, player_skill, ss, stamina, *this, left_hand, debugoutput);
-		CalcInternal(
-		  gotpoints, player_skill, ss, stamina, *this, right_hand, debugoutput);
+		for (auto& hi : { left_hand, right_hand }) {
+			CalcInternal(
+			  gotpoints, player_skill, ss, stamina, *this, hi, debugoutput);
+
+			for (int i = 0; i < numitv; ++i) {
+				debugValues.at(hi)[2][JackPtLoss].at(i) =
+				  jack_loss.at(hi).at(i);
+			}
+		}
 	}
 
 	return player_skill + 2.F * resolution;
