@@ -19,8 +19,9 @@
  * other option is "cc_ms", for cross column ms */
 
 // bpm flux float precision etc
-static const float anchor_buffer_ms = 10.F;
+static const float anchor_spacing_buffer_ms = 10.F;
 static const float anchor_speed_increase_cutoff_factor = 1.9F;
+static const int len_cap = 6;
 
 enum anch_status
 {
@@ -60,10 +61,14 @@ struct Anchor_Sequencing
 	 */
 
 	int _len = 1;
-	float _sc_ms = 0.F;
+	float _sc_ms = ms_init;
 
 	// if we exceed this + buffer, break the anchor sequence
 	float _max_ms = ms_init;
+
+	// rather than a buffer cap maybe a len cap will be more scalable, track the
+	// difficulty at the cap and when queried beyond it, just return this value
+	float _len_cap_diff = ms_init;
 
 	// row_time of last note on this col
 	float _last = s_init;
@@ -72,7 +77,7 @@ struct Anchor_Sequencing
 	inline void full_reset()
 	{
 		// never reset col_type
-		_sc_ms = 0.F;
+		_sc_ms = ms_init;
 		_max_ms = ms_init;
 		_last = s_init;
 		_len = 1;
@@ -94,7 +99,7 @@ struct Anchor_Sequencing
 		// new anchor was the last row_time, and the new max_ms should be the
 		// current ms value
 
-		if (_sc_ms > _max_ms + anchor_buffer_ms) {
+		if (_sc_ms > _max_ms + anchor_spacing_buffer_ms) {
 			_status = reset_too_slow;
 		} else if (_sc_ms * 2.5F < _max_ms) {
 			_status = reset_too_fast;
@@ -128,6 +133,7 @@ struct Anchor_Sequencing
 				// nothing to do
 				break;
 		}
+
 		_max_ms = _sc_ms;
 		_last = now;
 	}
@@ -135,16 +141,23 @@ struct Anchor_Sequencing
 	// returns an adjusted MS value, not converted to nps
 	inline auto get_ms() -> float
 	{
-		// too jank?
-		if (_len <= 2) {
-			return _sc_ms + 90.F;
-		}
-		if (_len == 3) {
+		assert(_sc_ms > 0.F);
 
-			return _sc_ms + 180.F;
-		}
+		float anchor_time_buffer_ms = 90.F;
+
+		// STILL TOO JANK?
+		if (_len < 4)
+			anchor_time_buffer_ms = 45.F;
+
+		if (_len > len_cap)
+			return _len_cap_diff;
+
 		float flool = ms_from(_last, _start);
-		float pule = (flool + 270.F) / static_cast<float>(_len - 1);
+		float pule = (flool + anchor_time_buffer_ms) / static_cast<float>(_len - 1);
+
+		if (_len == len_cap)
+			_len_cap_diff = pule;
+
 		return pule;
 	}
 };

@@ -54,9 +54,9 @@ static const float stam_prop =
 // since chorded patterns have lower enps than streams, streams default to 1
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
-static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 0.95F, 0.78F, 0.9F
-};
+static const std::array<float, NUM_Skillset> basescalers = { 0.F,	0.97F, 0.9F,
+															 0.82F, 0.94F, 0.95F,
+															 0.78F, 0.9F };
 
 static inline auto
 TotalMaxPoints(const Calc& calc) -> int
@@ -132,21 +132,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * tradeoff is files that are close in 2/3 skillsets will have the stam
 		 * bonus stripped from the second and third components, devaluing the
 		 * file as a whole, we could run it for the 2nd/3rd highest skillsets
-		 * but i'm too lazy to implement that right now, the major concern here
-		 * is the cost of jack stam, so i think we can just get away with
-		 * throwing out jack stam calculations for anything that isn't jackspeed
-		 * (or tech since atm they're doubling up a bit) */
+		 * but i'm too lazy to implement that right now */
 		for (int i = 0; i < NUM_Skillset; ++i) {
-			if (i == Skill_JackSpeed) {
-				if (highest_base_skillset == Skill_JackSpeed ||
-					highest_base_skillset == Skill_Technical) {
-					mcbloop[i] =
-					  Chisel(mcbloop[i] * 1.F, 0.32F, score_goal, i, true);
-				}
-			} else {
-				mcbloop[i] =
-				  Chisel(mcbloop[i] * 0.9F, 0.32F, score_goal, i, true);
-			}
+			mcbloop[i] = Chisel(mcbloop[i] * 0.9F, 0.32F, score_goal, i, true);
 		}
 
 		/* all relative scaling to specific skillsets should occur before this
@@ -313,8 +301,7 @@ CalcInternal(float& gotpoints,
 			 int hi,
 			 bool debug = false)
 {
-
-	if (stam && ss != Skill_JackSpeed) {
+	if (stam) {
 		StamAdjust(x, ss, calc, hi);
 	}
 
