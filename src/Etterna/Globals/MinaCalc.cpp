@@ -55,7 +55,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.92F, 0.83F, 0.94F, 0.95F, 0.78F, 0.9F
+	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 0.95F, 0.78F, 0.9F
 };
 
 static inline auto
@@ -92,8 +92,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		0.4F,
 		1.F);
 
-	// for multi offset passes- super breaks stuff atm dunno why???
-	// const int fo_rizzy = ssr ? 5 : 1;
+	// for multi offset passes
+	// const int fo_rizzy = ssr ? 3 : 1;
 	const int fo_rizzy = 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
@@ -101,7 +101,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
 
 		bool continue_calc = InitializeHands(
-		  NoteInfo, music_rate, 0.1F * WHAT_IS_EVEN_HAPPEN_THE_BOMB);
+		  NoteInfo,
+		  music_rate,
+		  0.1F * static_cast<float>(WHAT_IS_EVEN_HAPPEN_THE_BOMB));
 
 		// if we exceed max_rows_for_single_interval during
 		// processing
@@ -733,7 +735,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 397;
+int mina_calc_version = 399;
 auto
 GetCalcVersion() -> int
 {
