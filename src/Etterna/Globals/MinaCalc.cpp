@@ -465,6 +465,9 @@ Calc::Chisel(float player_skill,
 						CalcInternal(
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
+					if (ss == Skill_Technical) {
+						gotpoints -= fastsqrt(jackloss(player_skill * 0.8F, *this, hi) / 1.F);
+					}
 				}
 			}
 		} while (gotpoints < reqpoints);
