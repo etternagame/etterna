@@ -181,36 +181,25 @@ local debugGroups = {
     },
     {   -- Group 2
         JS = true,
-        JSS = true,
-        JSJ = true,
         StamMod = true,
         OHJumpMod = true,
     },
 	{   -- Group 3
         HS = true,
-        HSS = true,
-        HSJ = true,
         StamMod = true,
         OHJumpMod = true,
 	},
     {   -- Group 4
         CJ = true,
-        CJS = true,
-        CJJ = true,
         CJDensity = true,
-        CJOHJump = true,
-        --CJOHJPropComp = true,
-        --CJOHJSeqComp = true,
 		StamMod = true,
     },
     {   -- Group 5
-        TotalPatternMod = true,
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
 	},
     {   -- Group 6
-        TotalPatternMod = true,
         Chaos = true,
         FlamJam = true,
         TheThing = true,
@@ -222,31 +211,15 @@ local debugGroups = {
     },
 	{   -- Group 7
         RanMan = true,
-        RanLen = true,
-        RanAnchLen = true,
-        RanAnchLenMod = true,
-        RanOHT = true,
-        RanOffS = true,
-        RanJack = true,
-        RanPropAll = true,
-        RanPropOHT = true,
-        RanPropOff = true,
-        RanPropOffS = true,
-        RanPropJack = true,
     },
 	{   -- Group 8
         OHJumpMod = true,
-        OHJPropComp = true,
-        OHJSeqComp = true,
-        OHJBaseProp = true,
 	},
     {   -- Group 9
-        OHJMaxSeq = true,
-        OHJCCTaps = true,
-        OHJHTaps = true,
+        
     },
     {   -- Group 10
-        TotalPatternMod = true,
+
     },
     {   -- Group 11
         Chaos = true,
@@ -651,44 +624,44 @@ local modnames = {
     "str",
     "jsl",
     "jsr",
-    "jssl",
-    "jssr",
-    "jsjl",
-    "jsjr",
+    --"jssl",
+    --"jssr",
+    --"jsjl",
+    --"jsjr",
     "hsl",
     "hsr",
-    "hssl",
-    "hssr",
-    "hsjl",
-    "hsjr",
+    --"hssl",
+    --"hssr",
+    --"hsjl",
+    --"hsjr",
     "cjl",
     "cjr",
-    "cjsl",
-    "cjsr",
-    "cjjl",
-    "cjjr",
+    --"cjsl",
+    --"cjsr",
+    --"cjjl",
+    --"cjjr",
     "cjdl",
     "cjdr",
     "ohjl",
     "ohjr",
-    "ohjbpr",
-    "ohjbpl",
-    "ohjpcl",
-    "ohjpcr",
-    "ohjscl",
-    "ohjscr",
-    "ohjmsl",
-    "ohjmsr",
-    "ohjcctl",
-    "ohjcctr",
-    "ohjhtl",
-    "ohjhtr",
-    "cjohjl",
-    "cjohjr",
-    "cjohjpcl",
-    "cjohjpcr",
-    "cjohjscl",
-    "cjohjscr",
+    --"ohjbpr",
+    --"ohjbpl",
+    --"ohjpcl",
+    --"ohjpcr",
+    --"ohjscl",
+    --"ohjscr",
+    --"ohjmsl",
+    --"ohjmsr",
+    --"ohjcctl",
+    --"ohjcctr",
+    --"ohjhtl",
+    --"ohjhtr",
+    --"cjohjl",
+    --"cjohjr",
+    --"cjohjpcl",
+    --"cjohjpcr",
+    --"cjohjscl",
+    --"cjohjscr",
     "blncl",
     "blncr",
     "rolll",
@@ -715,30 +688,30 @@ local modnames = {
     "tt2r",
     "rml",
     "rmr",
-    "rll",
-    "rlr",
-    "rall",
-    "ralr",
-    "ralml",
-    "ralmr",
-    "rjl",
-    "rjr",
-    "rohtl",
-    "rohtr",
-    "rosl",
-    "rosr",
-    "rpal",
-    "rpar",
-    "rpol",
-    "rpor",
-    "rpohtl",
-    "rpohtr",
-    "rposl",
-    "rposr",
-    "rpjl",
-    "rpjr",
-    "totpml",
-    "totpmr",
+    --"rll",
+    --"rlr",
+    --"rall",
+    --"ralr",
+    --"ralml",
+    --"ralmr",
+    --"rjl",
+    --"rjr",
+    --"rohtl",
+    --"rohtr",
+    --"rosl",
+    --"rosr",
+    --"rpal",
+    --"rpar",
+    --"rpol",
+    --"rpor",
+    --"rpohtl",
+    --"rpohtr",
+    --"rposl",
+    --"rposr",
+    --"rpjl",
+    --"rpjr",
+    --"totpml",
+    --"totpmr",
 
 
     -- CalcPatternMods above this line
@@ -758,44 +731,44 @@ local modColors = {
     color(".3,1.3,0.9"),	-- cyan				 (right)
 	color("1,0,1"),     	-- purple       = jumpstream left
     color("1,0.3,1"),   	-- light purple      (right)
-	color("0,1,1"),			-- cyan			= jumpstream stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= jumpstream jack
-	color("1,0.2,0"),		-- orange1			 (right)
+	--color("0,1,1"),			-- cyan			= jumpstream stream
+	--color("0,0.8,1"),		-- light blue		 (right)
+	--color("1,0,0"),			-- red			= jumpstream jack
+	--color("1,0.2,0"),		-- orange1			 (right)
     color("0.6,0.6,0"),     -- dark yellow  = handstream left
     color("0.6,0.6,0"),     -- dark yellow       (right)
-	color("0,1,1"),			-- cyan			= handstream stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= handstream jack
-	color("1,0.2,0"),		-- orange1			 (right)
+	--color("0,1,1"),			-- cyan			= handstream stream
+	--color("0,0.8,1"),		-- light blue		 (right)
+	--color("1,0,0"),			-- red			= handstream jack
+	--color("1,0.2,0"),		-- orange1			 (right)
     color("1.4,1.3,1"),     -- white 		= chordjack left
     color("1.4,1.3,0.9"),   -- white			 (right)
-	color("0,1,1"),			-- cyan			= chordjack stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= chordjack jack
-	color("1,0.2,0"),		-- orange1			 (right)
+	--color("0,1,1"),			-- cyan			= chordjack stream
+	--color("0,0.8,1"),		-- light blue		 (right)
+	--color("1,0,0"),			-- red			= chordjack jack
+	--color("1,0.2,0"),		-- orange1			 (right)
 	color("1,1,0"),			-- yellow		= cjdensity left
     color("1,1,0"),			-- yellow			 (right)
     color("1,0.4,0"),       -- orange2		= ohjump left
     color("1,0.4,0"), 		-- orange2        	 (right)
-	color("1,1,1"),			-- ohjbp
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjpc
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjsc
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjms
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjcct
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjht
-	color("1,1,1"),
-    color("1,0.4,0"),		-- orange2		= cjohj left
-    color("1,0.4,0"),		-- orange2			 (right)
-	color("1,1,1"),			-- cjohjpc
-	color("1,1,1"),
-	color("1,1,1"),			-- cjohjsc
-	color("1,1,1"),
+	--color("1,1,1"),			-- ohjbp
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjpc
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjsc
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjms
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjcct
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjht
+	--color("1,1,1"),
+    --color("1,0.4,0"),		-- orange2		= cjohj left
+    --color("1,0.4,0"),		-- orange2			 (right)
+	--color("1,1,1"),			-- cjohjpc
+	--color("1,1,1"),
+	--color("1,1,1"),			-- cjohjsc
+	--color("1,1,1"),
     color("0.2,0.2,1"),     -- blue         = balance left
     color("0.3,0.3,0.9"),   -- light blue        (right)
     color("0,1,0"),         -- green        = roll left
@@ -822,30 +795,30 @@ local modColors = {
     color("0,0.6,1"),       --                  (right)
 	color("0.2,1,1"),		-- light blue	= ranman left
 	color("0.2,1,1"),		-- light blue		 (right)
-	color("1,1,1"),			-- rl
-	color("1,1,1"),
-	color("1,1,1"),			-- ral
-	color("1,1,1"),
-	color("1,1,1"),			-- ralm
-	color("1,1,1"),
-	color("1,1,1"),			-- rj
-	color("1,1,1"),
-	color("1,1,1"),			-- roht
-	color("1,1,1"),
-	color("1,1,1"),			-- ros
-	color("1,1,1"),
-	color("1,1,1"),			-- rpa
-	color("1,1,1"),
-	color("1,1,1"),			-- rpo
-	color("1,1,1"),
-	color("1,1,1"),			-- rpoht
-	color("1,1,1"),
-	color("1,1,1"),			-- rpos
-	color("1,1,1"),
-	color("1,1,1"),			-- rpj
-    color("1,1,1"),
-    color("0.7,1,0"),		-- lime			= totalpatternmod left
-    color("0.7,1,0"),		-- lime				 (right)
+	--color("1,1,1"),			-- rl
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ral
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ralm
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rj
+	--color("1,1,1"),
+	--color("1,1,1"),			-- roht
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ros
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpa
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpo
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpoht
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpos
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpj
+    --color("1,1,1"),
+    --color("0.7,1,0"),		-- lime			= totalpatternmod left
+    --color("0.7,1,0"),		-- lime				 (right)
 
 
     -- place CalcPatternMod Colors above this line
