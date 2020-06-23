@@ -87,7 +87,7 @@ struct JSMod
 		}
 
 		// at least 1 tap but no jumps
-		if (itvi.taps_by_size[_tap_size] == 0) {
+		if (itvi.taps_by_size.at(_tap_size) == 0) {
 			decay_mod();
 			return pmod;
 		}
@@ -98,7 +98,7 @@ struct JSMod
 
 		// creepy banana
 		total_prop =
-		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(itvi.taps_by_size.at(_tap_size) + prop_buffer) /
 		  (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
 		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);

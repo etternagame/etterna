@@ -33,7 +33,7 @@ struct nps
 			  static_cast<float>(notes) * finalscaler * 1.6F;
 
 			// set points for this interval
-			calc.itv_points.at(hi).at(itv) = notes * 2.F;
+			calc.itv_points.at(hi).at(itv) = static_cast<float>(notes) * 2.F;
 		}
 	}
 };

@@ -102,7 +102,7 @@ struct HSMod
 
 		// when bark of dog into canyon scream at you
 		total_prop = total_prop_base +
-					 (static_cast<float>((itvi.taps_by_size[_tap_size] +
+					 (static_cast<float>((itvi.taps_by_size.at(_tap_size) +
 										  itvi.mixed_hs_density_tap_bonus) +
 										 prop_buffer) /
 					  (t_taps - prop_buffer) * total_prop_scaler);

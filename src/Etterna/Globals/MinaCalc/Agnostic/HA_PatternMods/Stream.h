@@ -65,7 +65,7 @@ struct StreamMod
 		// we could make better use of sequencing here since now it's easy
 
 		prop_component =
-		  static_cast<float>(itvi.taps_by_size[_tap_size] + prop_buffer) /
+		  static_cast<float>(itvi.taps_by_size.at(_tap_size) + prop_buffer) /
 		  static_cast<float>(static_cast<float>(itvi.total_taps) -
 							 prop_buffer) *
 		  prop_scaler;
