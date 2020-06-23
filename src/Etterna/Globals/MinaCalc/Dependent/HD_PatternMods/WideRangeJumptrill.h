@@ -22,19 +22,15 @@ struct WideRangeJumptrillMod
 
 	float min_mod = 0.25F;
 	float max_mod = 1.F;
-	float base = 0.4F;
 
-	float cv_reset = 0.5F;
-	float cv_threshhold = 0.15F;
+	float cv_threshhold = 0.05F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-		{ "base", &base },
 
-		{ "cv_reset", &cv_reset },
 		{ "cv_threshhold", &cv_threshhold },
 	};
 #pragma endregion params and param map
@@ -152,8 +148,13 @@ struct WideRangeJumptrillMod
 			return;
 		}
 
+		if (_mw_jt.get_total_for_window(window) < 20) {
+			pmod = neutral;
+			return;
+		}
+
 		pmod =
-		  itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window);
+		  itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window) * 0.75F;
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 	}
