@@ -193,6 +193,7 @@ local debugGroups = {
     {   -- Group 4
         CJ = true,
         CJDensity = true,
+        CJOHJump = true,
 		StamMod = true,
     },
     {   -- Group 5
