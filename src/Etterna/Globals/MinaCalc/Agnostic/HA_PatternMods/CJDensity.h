@@ -43,16 +43,16 @@ struct CJDensityMod
 			return neutral;
 		}
 
-		float t_taps = static_cast<float>(itvi.total_taps);
-		float a1 =
+		auto t_taps = static_cast<float>(itvi.total_taps);
+		auto a1 =
 		  static_cast<float>(static_cast<float>(itvi.taps_by_size[jump]) *
 							 jump_scaler) /
 		  t_taps;
-		float a2 =
+		auto a2 =
 		  static_cast<float>(static_cast<float>(itvi.taps_by_size[hand]) *
 							 hand_scaler) /
 		  t_taps;
-		float a3 =
+		auto a3 =
 		  static_cast<float>(static_cast<float>(itvi.taps_by_size[quad]) *
 							 quad_scaler) /
 		  t_taps;
