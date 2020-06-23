@@ -557,7 +557,6 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		  WideRangeAnchor,
 		  TheThing,
 		  TheThing2,
-		  RanMan,
 		},
 
 	};
@@ -646,11 +645,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					  basescalers.at(ss) /
 					  max<float>(fastpow(calc.doot.at(hi).at(CJ).at(i), 2.F),
 								 1.F) /
-					  max<float>(max<float>(calc.doot.at(hi).at(Stream).at(i),
-											calc.doot.at(hi).at(JS).at(i)),
-								 calc.doot.at(hi).at(HS).at(i)) *
-					  calc.doot.at(hi).at(Chaos).at(i) /
-					  fastsqrt(calc.doot.at(hi).at(RanMan).at(i));
+					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i));
 					break;
 				default:
 					break;
