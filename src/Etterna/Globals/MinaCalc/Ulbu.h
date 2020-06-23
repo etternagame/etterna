@@ -106,7 +106,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// so we can apply them here
 	diffz _diffz;
 
-	explicit explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
+	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
 	{
 #ifndef RELWITHDEBINFO
