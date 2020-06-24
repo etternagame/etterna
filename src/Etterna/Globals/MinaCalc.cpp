@@ -207,8 +207,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				// so 50%s on 60s don't give 35s
 				// r = downscale_low_accuracy_scores(r, score_goal);
 				if (highest_base_skillset == Skill_JackSpeed &&
-					score_goal < 0.8F)
+					score_goal < 0.8F) {
 					r = 0.F;
+				}
 				r = CalcClamp(r, r, ssrcap);
 			}
 		}
@@ -292,15 +293,16 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 15.f;
-static const float magic_num_TWO = 2.5f;
+static const float magic_num = 15.F;
+static const float magic_num_TWO = 2.5F;
 static const float gratuitously_defined_zero_value = 0.F;
 
-inline float
-hit_the_road(const float& x, const float& y)
+inline auto
+hit_the_road(const float& x, const float& y) -> float
 {
-	if (x > y)
+	if (x > y) {
 		return 0.F;
+	}
 
 	return (CalcClamp(magic_num - (magic_num * fastpow(x / y, magic_num_TWO)),
 					  gratuitously_defined_zero_value,
