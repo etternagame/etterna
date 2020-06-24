@@ -145,10 +145,6 @@ struct Anchor_Sequencing
 
 		float anchor_time_buffer_ms = 100.F;
 
-		if (_len < 4) {
-			anchor_time_buffer_ms = _len * 25.F;
-		}
-
 		if (_len > len_cap) {
 			return _len_cap_diff;
 		}
