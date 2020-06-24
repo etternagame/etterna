@@ -13,10 +13,10 @@ struct RunningManMod
 
 #pragma region params
 
-	float min_mod = 0.5F;
-	float max_mod = 1.9F;
+	float min_mod = 1.F;
+	float max_mod = 1.1F;
 	float base = 0.5F;
-	float min_anchor_len = 4.F;
+	float min_anchor_len = 5.F;
 	float min_taps_in_rm = 1.F;
 	float min_off_taps_same = 1.F;
 
@@ -32,7 +32,7 @@ struct RunningManMod
 
 	float anchor_len_divisor = 5.F;
 	float anchor_len_comp_min = 0.F;
-	float anchor_len_comp_max = 1.F;
+	float anchor_len_comp_max = 1.25F;
 
 	float min_jack_taps_for_bonus = 1.F;
 	float jack_bonus_base = 0.1F;
@@ -183,9 +183,7 @@ struct RunningManMod
 	 * that it will push up some files that don't need to be pushed up */
 	inline void set_pmod(const int& total_taps)
 	{
-		/* nothing here or both rm are inactive, we don't reset on setting an
-		 * inactive state, so we can't trust that the values we might pull below
-		 * would be correct */
+		/* nothing here */
 		if (total_taps == 0) {
 			pmod = neutral;
 			return;
@@ -252,7 +250,7 @@ struct RunningManMod
 
 		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
 		pmod = CalcClamp(
-		  pmod * off_tap_same_prop * offhand_tap_prop, min_mod, max_mod);
+		  fastsqrt(pmod * off_tap_same_prop * offhand_tap_prop), min_mod, max_mod);
 	}
 
 	[[nodiscard]] inline auto operator()(const int& total_taps) -> float
@@ -263,6 +261,5 @@ struct RunningManMod
 		return pmod;
 	}
 
-	// theoretically we shouldn't have to do this
-	inline void interval_end() { rm._len = 0; }
+	inline void interval_end() { rm.full_reset(); }
 };
