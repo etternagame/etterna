@@ -94,7 +94,7 @@ class Song
 	 * This assumes that there is no song present right now.
 	 * @param sDir the song directory from which to load. */
 	void FinalizeLoading();
-	bool LoadFromSongDir(RString sDir, bool load_autosave = false, Calc* calc = nullptr);
+	bool LoadFromSongDir(RString sDir, Calc* calc = nullptr);
 	// This one takes the effort to reuse Steps pointers as best as it can
 	bool ReloadFromSongDir(const RString& sDir);
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
@@ -102,8 +102,6 @@ class Song
 
 	RString m_sFileHash;
 	RString GetFileHash();
-
-	bool HasAutosaveFile();
 
 	/**
 	 * @brief Call this after loading a song to clean up invalid data.
@@ -132,13 +130,12 @@ class Song
 	 * @param bSavingCache a flag to determine if we're saving cache data.
 	 */
 	bool SaveToSSCFile(const RString& sPath,
-					   bool bSavingCache,
-					   bool autosave = false);
+					   bool bSavingCache);
 	bool SaveToETTFile(const RString& sPath,
-					   bool bSavingCache,
-					   bool autosave = false);
+					   bool bSavingCache);
+
 	/** @brief Save to the SSC and SM files no matter what. */
-	void Save(bool autosave = false);
+	void Save();
 	/**
 	 * @brief Save the current Song to a cache file using the preferred format.
 	 * @return its success or failure. */
@@ -151,9 +148,6 @@ class Song
 	 * @brief Save the current Song to a DWI file if possible.
 	 * @return its success or failure. */
 	bool SaveToDWIFile();
-
-	void RemoveAutosave();
-	bool WasLoadedFromAutosave() const { return m_loaded_from_autosave; }
 
 	const RString& GetSongFilePath() const;
 	RString GetCacheFilePath() const;
@@ -466,7 +460,6 @@ class Song
 	bool isfavorited = false;
 	bool permamirror = false;
 	bool hasgoal = false;
-	bool m_loaded_from_autosave;
 	/** @brief the Steps that belong to this Song. */
 	/** @brief the Steps of a particular StepsType that belong to this Song. */
 	vector<Steps*> m_vpStepsByType[NUM_StepsType];
