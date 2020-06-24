@@ -265,7 +265,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
-		PatternMods::set_dependent(hand, _rm._pmod, _rm(), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _rm._pmod, _rm(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
