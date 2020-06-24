@@ -303,6 +303,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void handle_dependent_interval_end(const int& itv)
 	{
+		/* this calls itvhi's interval end, which is what updates the hand
+		 * counts, so this _must_ be called before anything else */
+		_mitvhi.interval_end();
+
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(itv);
 
@@ -310,7 +314,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		// dependent so we do it in this loop
 		set_sequenced_base_diffs(itv);
 
-		_mitvhi.interval_end();
 		_diffz.interval_end();
 	}
 
