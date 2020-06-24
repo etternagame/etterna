@@ -63,7 +63,7 @@ struct vribbit
 		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
-		return ms_to_scaled_nps((ms_mean + jk_itv_ms_min) / 2.F);
+		return ms_to_scaled_nps((ms_mean + ms_mean + jk_itv_ms_min) / 3.F);
 	}
 
 	inline void interval_end()
