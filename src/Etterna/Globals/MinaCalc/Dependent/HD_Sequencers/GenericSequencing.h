@@ -145,17 +145,21 @@ struct Anchor_Sequencing
 
 		float anchor_time_buffer_ms = 100.F;
 
-		if (_len < 4)
+		if (_len < 4) {
 			anchor_time_buffer_ms = _len * 25.F;
+		}
 
-		if (_len > len_cap)
+		if (_len > len_cap) {
 			return _len_cap_diff;
+		}
 
 		float flool = ms_from(_last, _start);
-		float pule = (flool + anchor_time_buffer_ms) / static_cast<float>(_len - 1);
+		float pule =
+		  (flool + anchor_time_buffer_ms) / static_cast<float>(_len - 1);
 
-		if (_len == len_cap)
+		if (_len == len_cap) {
 			_len_cap_diff = pule;
+		}
 
 		return pule;
 	}
