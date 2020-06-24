@@ -384,7 +384,7 @@ local function getDebugModsForIndex(modgroup, modgroupname, extramodgroup, index
     end
 
     modText = modText:sub(1, #modText-1) -- remove the end whitespace
-
+    modText = modText .. "\n" .. index
     return modText
 end
 
