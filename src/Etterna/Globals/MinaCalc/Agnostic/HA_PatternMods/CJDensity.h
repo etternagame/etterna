@@ -19,10 +19,10 @@ struct CJDensityMod
 	float max_mod = 1.15F;
 	float base = 0.F;
 
-	float single_scaler = 1.35F;
-	float jump_scaler = 1.25F;
-	float hand_scaler = 0.9F;
-	float quad_scaler = 0.7F;
+	float single_scaler = 2.F;
+	float jump_scaler = 1.2F;
+	float hand_scaler = 1.F;
+	float quad_scaler = 1.F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },

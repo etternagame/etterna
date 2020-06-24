@@ -55,7 +55,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 1.05F, 0.84F, 0.9F
+	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 1.05F, 0.79F, 0.9F
 };
 
 static inline auto

@@ -17,12 +17,12 @@ struct CJOHJumpMod
 
 #pragma region params
 
-	float min_mod = 0.75F;
+	float min_mod = 0.65F;
 	float max_mod = 1.F;
 
 	float max_seq_weight = 0.65F;
-	float max_seq_pool = 1.25F;
-	float max_seq_scaler = 1.F;
+	float max_seq_pool = 1.2F;
+	float max_seq_scaler = 0.8F;
 
 	float prop_pool = 1.4F;
 	float prop_scaler = 1.F;
