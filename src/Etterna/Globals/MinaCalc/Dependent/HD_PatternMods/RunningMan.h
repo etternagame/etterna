@@ -16,23 +16,23 @@ struct RunningManMod
 	float min_mod = 0.5F;
 	float max_mod = 1.9F;
 	float base = 0.5F;
-	float min_anchor_len = 3.F;
+	float min_anchor_len = 4.F;
 	float min_taps_in_rm = 1.F;
 	float min_off_taps_same = 1.F;
 
 	float offhand_tap_prop_scaler = 1.F;
 	float offhand_tap_prop_min = 0.F;
 	float offhand_tap_prop_max = 1.F;
-	float offhand_tap_prop_base = 1.5F;
+	float offhand_tap_prop_base = 1.7F;
 
 	float off_tap_same_prop_scaler = 1.F;
 	float off_tap_same_prop_min = 0.F;
 	float off_tap_same_prop_max = 1.25F;
-	float off_tap_same_prop_base = 0.75F;
+	float off_tap_same_prop_base = 0.8F;
 
-	float anchor_len_divisor = 7.5F;
+	float anchor_len_divisor = 5.F;
 	float anchor_len_comp_min = 0.F;
-	float anchor_len_comp_max = 1.25F;
+	float anchor_len_comp_max = 1.F;
 
 	float min_jack_taps_for_bonus = 1.F;
 	float jack_bonus_base = 0.1F;
@@ -89,6 +89,9 @@ struct RunningManMod
 
 	// stuff for making mod
 	std::array<RM_Sequencer, num_cols_per_hand> rms;
+
+	// for an interval, active rm sequence with the highest difficulty
+	RunningMan rm;
 
 	int test = 0;
 	float offhand_tap_prop = 0.F;
@@ -147,6 +150,8 @@ struct RunningManMod
 		for (auto& c : ct_loop_no_jumps) {
 			rms.at(c)(ct, bt, mt, as.anch.at(c));
 		}
+
+		rm = get_active_rm_with_higher_difficulty();
 	}
 
 	[[nodiscard]] inline auto get_highest_anchor_difficulty() const -> float
@@ -156,7 +161,7 @@ struct RunningManMod
 	}
 
 	[[nodiscard]] inline auto get_active_rm_with_higher_difficulty() const
-	  -> const RunningMan&
+	  -> RunningMan
 	{
 		if (rms.at(col_left)._status == rm_running &&
 			rms.at(col_right)._status == rm_running) {
@@ -171,12 +176,6 @@ struct RunningManMod
 													  : rms.at(col_right)._rm;
 	}
 
-	[[nodiscard]] inline auto any_rm_active() const -> bool
-	{
-		return (rms.at(col_left)._status == rm_running ||
-				rms.at(col_right)._status == rm_running);
-	}
-
 	/* Note: this mod is only used for pushing up runningmen focused stream/js
 	 * _patterns_, the anchor difficulty isn't used here, that's used in tech.
 	 * since we don't have to push the mod to extreme levels anymore to get
@@ -187,12 +186,10 @@ struct RunningManMod
 		/* nothing here or both rm are inactive, we don't reset on setting an
 		 * inactive state, so we can't trust that the values we might pull below
 		 * would be correct */
-		if (total_taps == 0 || !any_rm_active()) {
+		if (total_taps == 0) {
 			pmod = neutral;
 			return;
 		}
-
-		const auto& rm = get_active_rm_with_higher_difficulty();
 
 		/* we could decay in this but it may conflict/be redundant with how
 		 * runningmen sequences are constructed, if decays are used we would
@@ -254,14 +251,18 @@ struct RunningManMod
 		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.F;
 
 		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
-		pmod = CalcClamp(pmod * off_tap_same_prop * offhand_tap_prop, min_mod, max_mod);
+		pmod = CalcClamp(
+		  pmod * off_tap_same_prop * offhand_tap_prop, min_mod, max_mod);
 	}
 
 	[[nodiscard]] inline auto operator()(const int& total_taps) -> float
 	{
-		// nothing else fancy to do here i guess?
 		set_pmod(total_taps);
 
+		interval_end();
 		return pmod;
 	}
+
+	// theoretically we shouldn't have to do this
+	inline void interval_end() { rm._len = 0; }
 };
