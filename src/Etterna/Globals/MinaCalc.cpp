@@ -55,7 +55,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 1.05F, 0.79F, 0.9F
+	0.F, 0.96F, 0.89F, 0.82F, 0.92F, 1.08F, 0.81F, 0.885F
 };
 
 static inline auto
@@ -773,7 +773,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 403;
+int mina_calc_version = 404;
 auto
 GetCalcVersion() -> int
 {
