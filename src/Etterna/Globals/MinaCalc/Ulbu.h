@@ -254,7 +254,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void set_dependent_pmods(const int& itv)
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
-		PatternMods::set_dependent(hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -319,10 +320,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 	// update base difficulty stuff
-	inline void update_sequenced_base_diffs(const unsigned& /*row_notes*/,
-											const int& /*row_count*/,
-											const float&  /*any_ms*/,
-											const col_type& ct)
+	inline void update_sequenced_base_diffs(const col_type& ct)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
@@ -409,12 +407,11 @@ struct TheGreatBazoinkazoinkInTheSky
 					// advance sequencing for all hand dependent mods
 					handle_row_dependent_pattern_advancement();
 
-					// jackspeed, cj, and tech all use various adjust ms bases
-					// that are sequenced here, meaning they are order dependent
-					// (jack might not be for the moment actually)
-					// nps base is still calculated in the old way
-					update_sequenced_base_diffs(
-					  row_notes, row_count, any_ms, ct);
+					/* jackspeed, and tech use various adjust ms bases that are
+					 * sequenced here, meaning they are order dependent (jack
+					 * might not be for the moment actually) nps base is still
+					 * calculated in the old way */
+					update_sequenced_base_diffs(ct);
 
 					// only ohj uses this atm (and probably into the future) so
 					// it might kind of be a waste?
@@ -534,7 +531,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
 		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
-		calcparams->AppendChild(make_mod_param_node(_cjohj._params, _cjohj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_cjohj._params, _cjohj.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));
