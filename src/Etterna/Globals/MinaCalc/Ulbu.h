@@ -508,7 +508,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
-		load_params_for_mod(&params, _voht._params, _oht.name);
+		load_params_for_mod(&params, _voht._params, _voht.name);
 		load_params_for_mod(&params, _ch._params, _ch.name);
 		load_params_for_mod(&params, _rm._params, _rm.name);
 		load_params_for_mod(&params, _wrb._params, _wrb.name);
