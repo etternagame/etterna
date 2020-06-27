@@ -70,12 +70,12 @@ struct vribbit
 	inline void interval_end()
 	{
 		row_counter = 0;
-		jk_itv_ms_min = 0.F;
+		jk_itv_ms_min = ms_init;
 	}
 
   private:
 	int row_counter = 0;
-	float jk_itv_ms_min = 0.F;
+	float jk_itv_ms_min = ms_init;
 
 	inline void advance_jk_comp(const float& jk_diff)
 	{

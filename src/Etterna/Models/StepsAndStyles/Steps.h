@@ -17,8 +17,6 @@ class NoteData;
 struct lua_State;
 class Song;
 
-using std::string;
-
 /**
  * @brief Enforce a limit on the number of chars for the description.
  *
