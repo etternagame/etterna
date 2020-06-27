@@ -35,6 +35,9 @@ local middleColumn = 1.5 -- middle column for 4k but accounting for trackvector 
 
 local handspecific = false
 local left = false
+local down = false
+local up = false
+local right = false
 local middle = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
@@ -155,14 +158,17 @@ local o =
 			if not handspecific then -- moving from none to left
 				handspecific = true
 				left = true
-			elseif handspecific and left then -- moving from left to middle
-				if oddColumns then
-					middle = true
-				end
+			elseif handspecific and left then 
+				down = true
 				left = false
-			elseif handspecific and middle then -- moving from middle to right
-				middle = false
-			elseif handspecific and not left then -- moving from right to none
+			elseif handspecific and down then 
+				down = false
+				up = true
+			elseif handspecific and up then 
+				up = false
+				right = true
+			elseif handspecific and right then -- moving from right to none
+				right = false
 				handspecific = false
 			end
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
@@ -316,19 +322,25 @@ o[#o + 1] =
 			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
 			if ntt[i] ~= "TapNoteType_Mine" then
 				if handspecific and left then
-					if ctt[i] < middleColumn then
+					if ctt[i] == 0 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight left
 					end
-				elseif handspecific and middle then
-					if ctt[i] == middleColumn then
+				elseif handspecific and down then
+					if ctt[i] == 1 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
-						setOffsetVerts(verts, x, y, cullurFaded) -- highlight middle
+						setOffsetVerts(verts, x, y, cullurFaded) 
 					end
-				elseif handspecific then
-					if ctt[i] > middleColumn then
+				elseif handspecific and up then
+					if ctt[i] == 2 then
+						setOffsetVerts(verts, x, y, cullur)
+					else
+						setOffsetVerts(verts, x, y, cullurFaded)
+					end
+				elseif handspecific and right then
+					if ctt[i] == 3 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight right
@@ -352,11 +364,13 @@ o[#o + 1] =
 			if #ntt > 0 then
 				if handspecific then
 					if left then
-						self:settext(translated_info["Left"])
-					elseif middle then
-						self:settext(translated_info["Middle"])
-					else
-						self:settext(translated_info["Right"])
+						self:settext("left")
+					elseif down then
+						self:settext("down")
+					elseif up then
+						self:settext("up")
+					elseif right then
+						self:settext("right")
 					end
 				else
 					self:settext(translated_info["Down"])
