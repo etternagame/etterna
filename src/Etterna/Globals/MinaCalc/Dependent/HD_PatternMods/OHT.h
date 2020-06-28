@@ -29,13 +29,6 @@ struct OHTrillMod
 	float cv_reset = 1.F;
 	float cv_threshhold = 0.5F;
 
-	// this is for base trill 1->2 2->1 1->2, 4 notes, 3 timings, however we can
-	// extend the window for ms values such that, for example, we require 2 oht
-	// meta detections, and on the third, we check a window of 5 ms values,
-	// dunno what the benefits or drawbacks are of either system atm but they
-	// are both implementable easily
-	float oht_cc_window = 6.F;
-
 	const vector<pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
@@ -46,8 +39,6 @@ struct OHTrillMod
 
 		{ "cv_reset", &cv_reset },
 		{ "cv_threshhold", &cv_threshhold },
-
-		{ "oht_cc_window", &oht_cc_window },
 	};
 #pragma endregion params and param map
 

@@ -316,7 +316,8 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 
 	// set interval values values and total in the same loop
 	for (int i = 0; i < calc.numitv; ++i) {
-		float loss = hit_the_road(x, calc.base_adj_diff.at(hi)[Skill_JackSpeed].at(i));
+		float loss =
+		  hit_the_road(x, calc.base_adj_diff.at(hi)[Skill_JackSpeed].at(i));
 		total += loss;
 
 		calc.jack_loss.at(hi).at(i) = loss;
@@ -468,7 +469,8 @@ Calc::Chisel(float player_skill,
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
 					if (ss == Skill_Technical) {
-						gotpoints -= fastsqrt(jackloss(player_skill * 0.8F, *this, hi) / 1.F);
+						gotpoints -= fastsqrt(
+						  jackloss(player_skill * 0.8F, *this, hi) / 1.F);
 					}
 				}
 			}
@@ -579,8 +581,10 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 
 	  // chordjack
 	  {
-		CJ, CJDensity,
+		CJ,
+		CJDensity,
 		// CJOHJump // SQRTD BELOW
+		VOHTrill,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -675,9 +679,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					*stam_base = max<float>(a, b);
 				} break;
 				case Skill_JackSpeed:
-					*adj_diff =
-					  calc.soap.at(hi).at(JackBase).at(i) *
-					  tp_mods[Skill_JackSpeed] * basescalers.at(ss);
+					*adj_diff = calc.soap.at(hi).at(JackBase).at(i) *
+								tp_mods[Skill_JackSpeed] * basescalers.at(ss);
 					break;
 				case Skill_Chordjack:
 					*adj_diff *= fastsqrt(calc.doot.at(hi).at(CJOHJump).at(i));
