@@ -1361,10 +1361,9 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 }
 
 void
-SMLoader::GetApplicableFiles(const RString& sPath,
-							 vector<RString>& out)
+SMLoader::GetApplicableFiles(const std::string& sPath, vector<std::string>& out)
 {
-	GetDirListing(sPath + RString("*" + this->GetFileExtension()), out);
+	GetDirListing(sPath + std::string("*" + this->GetFileExtension()), out);
 }
 
 void
@@ -1411,8 +1410,9 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 
 				// If the last BGA is already the song BGA, don't add a
 				// duplicate.
-				if (!bg.empty() && !bg.back().m_def.m_sFile1.CompareNoCase(
-									 song.m_sBackgroundFile))
+				if (!bg.empty() &&
+					!StdString::ssicmp(bg.back().m_def.m_sFile1.c_str(),
+									   song.m_sBackgroundFile.c_str()))
 					break;
 
 				if (!IsAFile(song.GetBackgroundPath()))

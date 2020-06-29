@@ -250,9 +250,10 @@ OsuLoader::LoadChartData(Song* song,
 }
 
 void
-OsuLoader::GetApplicableFiles(const RString& sPath, vector<RString>& out)
+OsuLoader::GetApplicableFiles(const std::string& sPath,
+							  vector<std::string>& out)
 {
-	GetDirListing(sPath + RString("*.osu"), out);
+	GetDirListing(sPath + std::string("*.osu"), out);
 }
 
 int
@@ -275,7 +276,7 @@ OsuLoader::MsToNoteRow(int ms, Song* song)
 void
 OsuLoader::LoadNoteDataFromParsedData(
   Steps* out,
-  map<string, map<string, string>> parsedData)
+  map<std::string, map<std::string, std::string>> parsedData)
 {
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
@@ -344,7 +345,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 }
 
 bool
-OsuLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
+OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	RageFile f;
 	if (!f.Open(path)) {
@@ -365,9 +366,9 @@ OsuLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 }
 
 bool
-OsuLoader::LoadFromDir(const RString& sPath_, Song& out)
+OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 {
-	vector<RString> aFileNames;
+	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
 	// const RString sPath = sPath_ + aFileNames[0];
@@ -375,7 +376,7 @@ OsuLoader::LoadFromDir(const RString& sPath_, Song& out)
 	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
 	RageFile f;
-	map<string, map<string, string>> parsedData;
+	map<std::string, map<std::string, std::string>> parsedData;
 
 	for (auto& filename : aFileNames) {
 		auto p = sPath_ + filename;

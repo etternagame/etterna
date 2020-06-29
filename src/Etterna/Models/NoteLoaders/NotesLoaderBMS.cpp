@@ -122,12 +122,13 @@ SlideDuplicateDifficulties(Song& p)
 }
 
 void
-BMSLoader::GetApplicableFiles(const RString& sPath, vector<RString>& out)
+BMSLoader::GetApplicableFiles(const std::string& sPath,
+							  vector<std::string>& out)
 {
-	GetDirListing(sPath + RString("*.bms"), out);
-	GetDirListing(sPath + RString("*.bme"), out);
-	GetDirListing(sPath + RString("*.bml"), out);
-	GetDirListing(sPath + RString("*.pms"), out);
+	GetDirListing(sPath + std::string("*.bms"), out);
+	GetDirListing(sPath + std::string("*.bme"), out);
+	GetDirListing(sPath + std::string("*.bml"), out);
+	GetDirListing(sPath + std::string("*.pms"), out);
 }
 
 /*===========================================================================*/
@@ -1731,13 +1732,13 @@ BMSLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
 }
 
 bool
-BMSLoader::LoadFromDir(const RString& sDir, Song& out)
+BMSLoader::LoadFromDir(const std::string& sDir, Song& out)
 {
 	LOG->Trace("Song::LoadFromBMSDir(%s)", sDir.c_str());
 
 	ASSERT(out.m_vsKeysoundFile.empty());
 
-	vector<RString> arrayBMSFileNames;
+	vector<std::string> arrayBMSFileNames;
 	GetApplicableFiles(sDir, arrayBMSFileNames);
 
 	/* We should have at least one; if we had none, we shouldn't have been
