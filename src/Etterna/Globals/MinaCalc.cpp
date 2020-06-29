@@ -55,7 +55,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.97F, 0.9F, 0.82F, 0.94F, 1.05F, 0.84F, 0.9F
+	0.F, 0.975F, 0.89F, 0.82F, 0.92F, 1.08F, 0.81F, 0.9F
 };
 
 static inline auto
@@ -207,8 +207,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 				// so 50%s on 60s don't give 35s
 				// r = downscale_low_accuracy_scores(r, score_goal);
 				if (highest_base_skillset == Skill_JackSpeed &&
-					score_goal < 0.8F)
+					score_goal < 0.8F) {
 					r = 0.F;
+				}
 				r = CalcClamp(r, r, ssrcap);
 			}
 		}
@@ -292,15 +293,16 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 15.f;
-static const float magic_num_TWO = 2.5f;
+static const float magic_num = 15.F;
+static const float magic_num_TWO = 2.5F;
 static const float gratuitously_defined_zero_value = 0.F;
 
-inline float
-hit_the_road(const float& x, const float& y)
+inline auto
+hit_the_road(const float& x, const float& y) -> float
 {
-	if (x > y)
+	if (x > y) {
 		return 0.F;
+	}
 
 	return (CalcClamp(magic_num - (magic_num * fastpow(x / y, magic_num_TWO)),
 					  gratuitously_defined_zero_value,
@@ -314,7 +316,8 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 
 	// set interval values values and total in the same loop
 	for (int i = 0; i < calc.numitv; ++i) {
-		float loss = hit_the_road(x, calc.base_adj_diff.at(hi)[Skill_JackSpeed].at(i));
+		float loss =
+		  hit_the_road(x, calc.base_adj_diff.at(hi)[Skill_JackSpeed].at(i));
 		total += loss;
 
 		calc.jack_loss.at(hi).at(i) = loss;
@@ -466,7 +469,8 @@ Calc::Chisel(float player_skill,
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
 					if (ss == Skill_Technical) {
-						gotpoints -= fastsqrt(jackloss(player_skill * 0.8F, *this, hi) / 1.F);
+						gotpoints -= fastsqrt(
+						  jackloss(player_skill * 0.8F, *this, hi) / 1.F);
 					}
 				}
 			}
@@ -536,6 +540,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		OHJumpMod,
 		Balance,
 		RanMan,
+		WideRangeBalance,
 	  },
 
 	  // js
@@ -577,8 +582,11 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 
 	  // chordjack
 	  {
-		CJ, CJDensity,
+		CJ,
+		CJDensity,
 		// CJOHJump // SQRTD BELOW
+		VOHTrill,
+		WideRangeAnchor,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -594,7 +602,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		WideRangeRoll,
 		FlamJam,
 		RanMan,
-		WideRangeAnchor,
+		// WideRangeAnchor,
 		TheThing,
 		TheThing2,
 	  },
@@ -673,9 +681,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					*stam_base = max<float>(a, b);
 				} break;
 				case Skill_JackSpeed:
-					*adj_diff =
-					  calc.soap.at(hi).at(JackBase).at(i) *
-					  tp_mods[Skill_JackSpeed] * basescalers.at(ss);
+					*adj_diff = calc.soap.at(hi).at(JackBase).at(i) *
+								tp_mods[Skill_JackSpeed] * basescalers.at(ss);
 					break;
 				case Skill_Chordjack:
 					*adj_diff *= fastsqrt(calc.doot.at(hi).at(CJOHJump).at(i));
@@ -771,7 +778,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 402;
+int mina_calc_version = 405;
 auto
 GetCalcVersion() -> int
 {

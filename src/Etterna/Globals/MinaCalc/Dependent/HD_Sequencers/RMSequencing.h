@@ -8,7 +8,7 @@ enum rm_behavior
 	rmb_off_tap_oh,
 	rmb_off_tap_sh,
 	rmb_anchor,
-	rmb_jack,
+	rmb_jack,	// only for the anchor col, not any col
 	rmb_init,
 };
 
@@ -26,17 +26,17 @@ struct RunningMan
 	// total length of the anchor
 	int _len = 0;
 
-	// one hand trill taps
-	int oht_taps = 0;
-	// current oht sequence length
-	int oht_len = 0;
-
 	// any off anchor taps
 	int off_taps = 0;
 	int off_len = 0;
 
 	// off anchor taps on the same hand, i.e. the 2s in 1211121
 	int off_taps_sh = 0;
+
+	// one hand trill taps
+	int oht_taps = 0;
+	// current oht sequence length
+	int oht_len = 0;
 
 	// it's not really a runningman if the anchor is on the off column is it
 	int ot_sh_len = 0;
@@ -54,10 +54,12 @@ struct RunningMan
 		_len = 0;
 
 		off_taps_sh = 0;
-		oht_taps = 0;
-		oht_len = 0;
+
 		off_taps = 0;
 		off_len = 0;
+
+		oht_taps = 0;
+		oht_len = 0;
 
 		jack_taps = 0;
 		jack_len = 0;
@@ -104,9 +106,14 @@ struct RunningMan
 		end_anch_run();
 		end_jack_run();
 	}
+
 	inline void end_anch_run() { anch_len = 0; }
 	inline void end_jack_run() { jack_len = 0; }
-	inline void end_off_tap_run() { off_len = 0; }
+	inline void end_off_tap_run()
+	{
+		off_len = 0;
+		ot_sh_len = 0;
+	}
 
 	inline void restart()
 	{
@@ -128,6 +135,40 @@ struct RunningMan
 		jack_len = 0;
 
 		anch_len = 0;
+	}
+
+	// any off taps to anchor len
+	[[nodiscard]] inline auto get_off_tap_prop() const -> float
+	{
+		// this should not be called in these cases
+		assert(off_taps > 0 && off_taps_sh > 0);
+		if (off_taps == 0)
+			return 0.F;
+
+		return (static_cast<float>(_len) / (static_cast<float>(off_taps)));
+	}
+
+	// off hand taps to anchor len
+	[[nodiscard]] inline auto get_offhand_tap_prop() const -> float
+	{
+		// this should not be called in these cases
+		assert(off_taps > 0 && off_taps_sh > 0);
+		if (off_taps - off_taps_sh <= 0)
+			return 0.F;
+
+		return ((static_cast<float>(off_taps - off_taps_sh)) /
+				static_cast<float>(_len));
+	}
+
+	// same hand taps to anchor len
+	[[nodiscard]] inline auto get_off_tap_same_prop() const -> float
+	{
+		// this should not be called in these cases
+		assert(off_taps > 0 && off_taps_sh > 0);
+		if (off_taps_sh == 0)
+			return 0.F;
+
+		return ((static_cast<float>(off_taps_sh)) / static_cast<float>(_len));
 	}
 };
 
@@ -173,7 +214,6 @@ struct RM_Sequencer
 	bool had_burst = false;
 
 	float last_anchor_time = s_init;
-
 	float _start = s_init;
 
 #pragma region functions
@@ -206,6 +246,7 @@ struct RM_Sequencer
 	inline void restart(const Anchor_Sequencing& as)
 	{
 		assert(_last_rmb == rmb_off_tap_sh);
+
 		/* we are restarting the runningman sequence because the anchor sequence
 		 * has reset and our last update was a same hand off tap, or because we
 		 * were inactive, had a same hand off tap last update, and are now on
@@ -214,6 +255,7 @@ struct RM_Sequencer
 		 * have already been updated and _last would be now, so calculate the
 		 * start time from as._sc_ms */
 		_start = as._last - (as._sc_ms / 1000.F);
+
 		// should always be equivalent to NOW,
 		last_anchor_time = as._last;
 
@@ -241,7 +283,10 @@ struct RM_Sequencer
 		handle_last_rmb();
 	}
 
-	inline auto should_restart() -> bool { return _last_rmb == rmb_off_tap_sh; }
+	inline auto should_restart() const -> bool
+	{
+		return _last_rmb == rmb_off_tap_sh;
+	}
 
 	inline void end_off_tap_run()
 	{
@@ -290,22 +335,22 @@ struct RM_Sequencer
 		return false;
 	}
 
-	inline auto ot_sh_len_exceeds_max() -> bool
+	inline auto ot_sh_len_exceeds_max() const -> bool
 	{
 		return _rm.ot_sh_len > max_ot_sh_len;
 	}
 
-	inline auto jack_len_exceeds_max() -> bool
+	inline auto jack_len_exceeds_max() const -> bool
 	{
 		return _rm.jack_len > max_jack_len;
 	}
 
-	inline auto anch_len_exceeds_max() -> bool
+	inline auto anch_len_exceeds_max() const -> bool
 	{
 		return _rm.anch_len > max_anchor_len;
 	}
 
-	inline auto oht_len_exceeds_max() -> bool
+	inline auto oht_len_exceeds_max() const -> bool
 	{
 		return _rm.oht_len > max_oht_len;
 	}
@@ -322,8 +367,6 @@ struct RM_Sequencer
 			return;
 		}
 
-		// make sure anchor sequence col is our anchor col
-		assert(as._ct == _ct);
 		switch (as._status) {
 			case reset_too_slow:
 			case reset_too_fast:
@@ -336,7 +379,6 @@ struct RM_Sequencer
 				} else {
 					_status = rm_inactive;
 				}
-
 				break;
 			case anchoring:
 				_rm.add_anchor_tap();
@@ -401,12 +443,12 @@ struct RM_Sequencer
 		 * note ohtrill in the context of a runningman is meaningless (think
 		 * about it) we only really care about the number of consecutive
 		 * off_taps_sh */
-		if (ct != _ct) {
-			// metatype won't be set until it finds 1212, but we want to
-			// explicitly track the number of off_anchor taps in the oht, so
-			// boost by 1 when we see meta_oht and oht_len == 0
-			if (_rm.oht_len == 0) {
 
+		if (ct != _ct) {
+			/* metatype won't be set until it finds 1212, but we want to
+			 * explicitly track the number of off_anchor taps in the oht, so
+			 * boost by 1 when we see meta_oht and oht_len == 0 */
+			if (_rm.oht_len == 0) {
 				_rm.add_oht_tap();
 			}
 
@@ -454,21 +496,18 @@ struct RM_Sequencer
 						   const meta_type& mt,
 						   const Anchor_Sequencing& as)
 	{
-		// cosmic brain handling of ohts, this won't interfere with the
-		// determinations in the behavior block, but it can set rm_inactive (as
-		// it should be able to)
+		/* cosmic brain handling of ohts, this won't interfere with the
+		 * determinations in the behavior block, but it can set rm_inactive (as
+		 * it should be able to) */
 		if (mt == meta_cccccc) {
 			handle_oht_behavior(ct);
 		}
 
-		// update our last anchor time any time we see it, we don't handle this
-		// in the anchoring block because technically jacks can either be on the
-		// anchor column or not, and i don't want to have to split logic again
-		// between anchor column jacks and off anchor jacks on the same hand
-		if (as._ct == _ct) {
-
-			last_anchor_time = as._last;
-		}
+		/* update our last anchor time , we don't handle this in the anchoring
+		 * block because technically jacks can either be on the anchor column or
+		 * not, and i don't want to have to split logic again between anchor
+		 * column jacks and off anchor jacks on the same hand */
+		last_anchor_time = as._last;
 
 		// determine what we should do
 		switch (bt) {
@@ -547,12 +586,8 @@ struct RM_Sequencer
 
 		float flool = ms_from(last_anchor_time, _start);
 
-		// may be unnecessary
-		// float glunk =
-		// CalcClamp(static_cast<float>(_rm.off_taps_sh) / 4.F, 0.1F, 1.F);
-
 		float pule = (flool) / static_cast<float>(_rm._len - 1);
 		float drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
-		return drool /** glunk*/;
+		return drool;
 	}
 };

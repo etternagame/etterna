@@ -9,12 +9,6 @@ struct NoteInfo
 	float rowTime;
 };
 
-struct NoteInfo2
-{
-	int notes;
-	int rowTime;
-};
-
 enum Skillset
 {
 	Skill_Overall,

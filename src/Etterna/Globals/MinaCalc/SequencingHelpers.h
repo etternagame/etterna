@@ -73,5 +73,6 @@ max_val(const vector<float>& v) -> float
 inline auto
 max_index(const vector<float>& v) -> int
 {
-	return std::distance(v.begin(), std::max_element(v.begin(), v.end()));
+	return static_cast<int>(
+	  std::distance(v.begin(), std::max_element(v.begin(), v.end())));
 }

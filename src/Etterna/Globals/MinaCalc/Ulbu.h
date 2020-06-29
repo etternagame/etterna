@@ -254,7 +254,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	inline void set_dependent_pmods(const int& itv)
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
-		PatternMods::set_dependent(hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -265,7 +266,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
-		PatternMods::set_dependent(hand, _rm._pmod, _rm(), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _rm._pmod, _rm(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _wrb._pmod, _wrb(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -303,6 +305,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void handle_dependent_interval_end(const int& itv)
 	{
+		/* this calls itvhi's interval end, which is what updates the hand
+		 * counts, so this _must_ be called before anything else */
+		_mitvhi.interval_end();
+
+		// same thing but for anchor max!!!
+		_seq.interval_end();
+
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(itv);
 
@@ -310,15 +319,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		// dependent so we do it in this loop
 		set_sequenced_base_diffs(itv);
 
-		_mitvhi.interval_end();
 		_diffz.interval_end();
 	}
 
 	// update base difficulty stuff
-	inline void update_sequenced_base_diffs(const unsigned& /*row_notes*/,
-											const int& /*row_count*/,
-											const float&  /*any_ms*/,
-											const col_type& ct)
+	inline void update_sequenced_base_diffs(const col_type& ct)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
@@ -405,12 +410,11 @@ struct TheGreatBazoinkazoinkInTheSky
 					// advance sequencing for all hand dependent mods
 					handle_row_dependent_pattern_advancement();
 
-					// jackspeed, cj, and tech all use various adjust ms bases
-					// that are sequenced here, meaning they are order dependent
-					// (jack might not be for the moment actually)
-					// nps base is still calculated in the old way
-					update_sequenced_base_diffs(
-					  row_notes, row_count, any_ms, ct);
+					/* jackspeed, and tech use various adjust ms bases that are
+					 * sequenced here, meaning they are order dependent (jack
+					 * might not be for the moment actually) nps base is still
+					 * calculated in the old way */
+					update_sequenced_base_diffs(ct);
 
 					// only ohj uses this atm (and probably into the future) so
 					// it might kind of be a waste?
@@ -507,7 +511,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
-		load_params_for_mod(&params, _voht._params, _oht.name);
+		load_params_for_mod(&params, _voht._params, _voht.name);
 		load_params_for_mod(&params, _ch._params, _ch.name);
 		load_params_for_mod(&params, _rm._params, _rm.name);
 		load_params_for_mod(&params, _wrb._params, _wrb.name);
@@ -530,7 +534,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
 		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
-		calcparams->AppendChild(make_mod_param_node(_cjohj._params, _cjohj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_cjohj._params, _cjohj.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));

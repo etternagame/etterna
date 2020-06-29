@@ -15,14 +15,14 @@ struct WideRangeAnchorMod
 
 #pragma region params
 
-	float window_param = 4.F;
+	float window_param = 2.F;
 
 	float min_mod = 1.F;
-	float max_mod = 1.075F;
+	float max_mod = 1.05F;
 	float base = 1.F;
 
 	float diff_min = 4.F;
-	float diff_max = 12.F;
+	float diff_max = 8.F;
 	float scaler = 0.1F;
 
 	const vector<pair<std::string, float*>> _params{
@@ -42,54 +42,82 @@ struct WideRangeAnchorMod
 	int a = 0;
 	int b = 0;
 	int diff = 0;
-	float divisor = diff_max - diff_min;
+
+	// set in setup
+	float divisor = 0.F;
 	float pmod = min_mod;
 
-	inline void full_reset() { pmod = neutral; }
+	inline void full_reset()
+	{
+		interval_end();
+		pmod = neutral;
+	}
 
 	inline void setup()
 	{
 		// setup should be run after loading params from disk
 		window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
-		divisor = diff_max - diff_min;
+		divisor = static_cast<float>(static_cast<int>(diff_max) - static_cast<int>(diff_min));
+
+		// /0 lul
+		if (divisor < 0.1F)
+			divisor = 0.1F;
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi, const AnchorSequencer& as)
-	  -> float
+	inline void set_pmod(const ItvHandInfo& itvhi, const AnchorSequencer& as)
 	{
-		// nothing here
-		if (itvhi.get_taps_nowi() == 0) {
-			return neutral;
-		}
-
-		// set max mod if either is 0
-		if (itvhi.get_col_taps_nowi(col_left) == 0 ||
-			itvhi.get_col_taps_nowi(col_right) == 0) {
-			return max_mod;
-		}
-
-		// now we need these
 		a = as.get_max_for_window_and_col(col_left, window);
 		b = as.get_max_for_window_and_col(col_right, window);
 
-		// will be set for use after we return from here
 		diff = diff_high_by_low(a, b);
+
+		// nothing here
+		if (a == 0 && b == 0) {
+			pmod = neutral;
+			return;
+		}
+
+		// set max mod if either is 0
+		if (a == 0 || b == 0) {
+			pmod = max_mod;
+			return;
+		}
 
 		// difference won't matter
 		if (diff <= static_cast<int>(diff_min)) {
-			return neutral;
+			pmod = min_mod;
+			return;
 		}
 
 		// would max anyway
 		if (diff > static_cast<int>(diff_max)) {
-			return max_mod;
+			pmod = max_mod;
+			return;
 		}
 
 		pmod =
 		  base + (scaler * ((static_cast<float>(diff) - diff_min) / divisor));
 		pmod = CalcClamp(pmod, min_mod, max_mod);
+	}
 
+	inline auto operator()(const ItvHandInfo& itvhi, const AnchorSequencer& as)
+	  -> float
+	{
+		set_pmod(itvhi, as);
+
+		interval_end();
 		return pmod;
+	}
+
+	/* ok technically not necessary since we don't ever do anything before these
+	 * values are updated, however, supposing we do add anything like shortcut
+	 * case handling prior to calculating these values, better this is already
+	 * in place */
+	inline void interval_end()
+	{
+		diff = 0;
+		a = 0;
+		b = 0;
 	}
 };
