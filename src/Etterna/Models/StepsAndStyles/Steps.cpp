@@ -486,7 +486,7 @@ Steps::UnloadCalcDebugOutput()
 	calcdebugoutput.shrink_to_fit();
 }
 
-RString
+std::string
 Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 {
 	RString o = "X"; // I was thinking of using "C" to indicate chart..
@@ -537,7 +537,7 @@ Steps::FillStringWithBPMs(size_t startRow,
 						  vector<int>& nerv,
 						  NoteData& nd,
 						  TimingData* td,
-						  RString& inOut)
+						  std::string& inOut)
 {
 	float bpm = 0.f;
 	for (size_t r = startRow; r < endRow; r++) {
@@ -611,7 +611,8 @@ Steps::CreateBlank(StepsType ntTo)
 }
 
 void
-Steps::SetDifficultyAndDescription(Difficulty dc, const RString& sDescription)
+Steps::SetDifficultyAndDescription(Difficulty dc,
+								   const std::string& sDescription)
 {
 	m_Difficulty = dc;
 	m_sDescription = sDescription;
@@ -620,24 +621,24 @@ Steps::SetDifficultyAndDescription(Difficulty dc, const RString& sDescription)
 }
 
 void
-Steps::SetCredit(const RString& sCredit)
+Steps::SetCredit(const std::string& sCredit)
 {
 	m_sCredit = sCredit;
 }
 
 void
-Steps::SetChartStyle(const RString& sChartStyle)
+Steps::SetChartStyle(const std::string& sChartStyle)
 {
 	m_sChartStyle = sChartStyle;
 }
 
 bool
-Steps::MakeValidEditDescription(RString& sPreferredDescription)
+Steps::MakeValidEditDescription(std::string& sPreferredDescription)
 {
 	if (static_cast<int>(sPreferredDescription.size()) >
 		MAX_STEPS_DESCRIPTION_LENGTH) {
 		sPreferredDescription =
-		  sPreferredDescription.Left(MAX_STEPS_DESCRIPTION_LENGTH);
+		  sPreferredDescription.substr(0, MAX_STEPS_DESCRIPTION_LENGTH);
 		return true;
 	}
 	return false;
@@ -672,7 +673,7 @@ Steps::HasSignificantTimingChanges() const
 	return false;
 }
 
-const RString
+const std::string&
 Steps::GetMusicPath() const
 {
 	return Song::GetSongAssetPath(m_MusicFile.empty() ? m_pSong->m_sMusicFile
@@ -680,14 +681,14 @@ Steps::GetMusicPath() const
 								  m_pSong->GetSongDir());
 }
 
-const RString&
+const std::string&
 Steps::GetMusicFile() const
 {
 	return m_MusicFile;
 }
 
 void
-Steps::SetMusicFile(const RString& file)
+Steps::SetMusicFile(const std::string& file)
 {
 	m_MusicFile = file;
 }
@@ -837,7 +838,7 @@ class LunaSteps : public Luna<Steps>
 	*/
 	static int GetChartName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetChartName());
+		lua_pushstring(L, p->GetChartName().c_str());
 		return 1;
 	}
 	static int GetDisplayBpms(T* p, lua_State* L)
