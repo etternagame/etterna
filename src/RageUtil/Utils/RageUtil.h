@@ -183,7 +183,7 @@ wife3(float maxms, float ts)
 
 	// piecewise inflection
 	float zero = 65.f * pow(ts, j_pow);
-	float dev = 22.7f *pow(ts, j_pow);
+	float dev = 22.7f * pow(ts, j_pow);
 
 	if (maxms <= zero)
 		return max_points * werwerwerwerf((zero - maxms) / dev);
@@ -690,6 +690,11 @@ split(const RString& sSource,
 	  vector<RString>& asAddIt,
 	  const bool bIgnoreEmpty = true);
 void
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
+	  vector<std::string>& asAddIt,
+	  const bool bIgnoreEmpty = true);
+void
 split(const wstring& sSource,
 	  const wstring& sDelimitor,
 	  vector<wstring>& asAddIt,
@@ -853,6 +858,8 @@ void
 TrimRight(RString& sStr, const char* szTrim = "\r\n\t ");
 void
 Trim(RString& sStr, const char* szTrim = "\r\n\t ");
+void
+Trim(std::string& sStr, const char* szTrim = "\r\n\t ");
 void
 StripCrnl(RString& sStr);
 bool
@@ -1018,6 +1025,8 @@ GetFileSizeInBytes(const RString& sFilePath);
 // call FixSlashesInPlace on any path that came from the user
 void
 FixSlashesInPlace(RString& sPath);
+void
+FixSlashesInPlace(std::string& sPath);
 void
 CollapsePath(RString& sPath, bool bRemoveLeadingDot = false);
 

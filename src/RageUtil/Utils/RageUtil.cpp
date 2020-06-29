@@ -529,11 +529,11 @@ ConvertI64FormatString(const RString& sStr)
  * We don't use 3-letter codes, so we don't bother supporting them. */
 static const LanguageInfo g_langs[] = {
 	{ "aa", "Afar" },		 { "ab", "Abkhazian" },
-	{ "af", "Afrikaans" },   { "am", "Amharic" },
+	{ "af", "Afrikaans" },	 { "am", "Amharic" },
 	{ "ar", "Arabic" },		 { "as", "Assamese" },
 	{ "ay", "Aymara" },		 { "az", "Azerbaijani" },
 	{ "ba", "Bashkir" },	 { "be", "Byelorussian" },
-	{ "bg", "Bulgarian" },   { "bh", "Bihari" },
+	{ "bg", "Bulgarian" },	 { "bh", "Bihari" },
 	{ "bi", "Bislama" },	 { "bn", "Bengali" },
 	{ "bo", "Tibetan" },	 { "br", "Breton" },
 	{ "ca", "Catalan" },	 { "co", "Corsican" },
@@ -544,56 +544,56 @@ static const LanguageInfo g_langs[] = {
 	{ "es", "Spanish" },	 { "et", "Estonian" },
 	{ "eu", "Basque" },		 { "fa", "Persian" },
 	{ "fi", "Finnish" },	 { "fj", "Fiji" },
-	{ "fo", "Faeroese" },	{ "fr", "French" },
+	{ "fo", "Faeroese" },	 { "fr", "French" },
 	{ "fy", "Frisian" },	 { "ga", "Irish" },
 	{ "gd", "Gaelic" },		 { "gl", "Galician" },
 	{ "gn", "Guarani" },	 { "gu", "Gujarati" },
 	{ "ha", "Hausa" },		 { "he", "Hebrew" },
 	{ "hi", "Hindi" },		 { "hr", "Croatian" },
-	{ "hu", "Hungarian" },   { "hy", "Armenian" },
+	{ "hu", "Hungarian" },	 { "hy", "Armenian" },
 	{ "ia", "Interlingua" }, { "id", "Indonesian" },
 	{ "ie", "Interlingue" }, { "ik", "Inupiak" },
 	{ "in", "Indonesian" }, // compatibility
-	{ "is", "Icelandic" },   { "it", "Italian" },
+	{ "is", "Icelandic" },	 { "it", "Italian" },
 	{ "iw", "Hebrew" },							  // compatibility
-	{ "ja", "Japanese" },	{ "ji", "Yiddish" }, // compatibility
-	{ "jw", "Javanese" },	{ "ka", "Georgian" },
+	{ "ja", "Japanese" },	 { "ji", "Yiddish" }, // compatibility
+	{ "jw", "Javanese" },	 { "ka", "Georgian" },
 	{ "kk", "Kazakh" },		 { "kl", "Greenlandic" },
-	{ "km", "Cambodian" },   { "kn", "Kannada" },
+	{ "km", "Cambodian" },	 { "kn", "Kannada" },
 	{ "ko", "Korean" },		 { "ks", "Kashmiri" },
 	{ "ku", "Kurdish" },	 { "ky", "Kirghiz" },
 	{ "la", "Latin" },		 { "ln", "Lingala" },
-	{ "lo", "Laothian" },	{ "lt", "Lithuanian" },
+	{ "lo", "Laothian" },	 { "lt", "Lithuanian" },
 	{ "lv", "Latvian" },	 { "mg", "Malagasy" },
 	{ "mi", "Maori" },		 { "mk", "Macedonian" },
-	{ "ml", "Malayalam" },   { "mn", "Mongolian" },
-	{ "mo", "Moldavian" },   { "mr", "Marathi" },
+	{ "ml", "Malayalam" },	 { "mn", "Mongolian" },
+	{ "mo", "Moldavian" },	 { "mr", "Marathi" },
 	{ "ms", "Malay" },		 { "mt", "Maltese" },
 	{ "my", "Burmese" },	 { "na", "Nauru" },
 	{ "ne", "Nepali" },		 { "nl", "Dutch" },
-	{ "no", "Norwegian" },   { "oc", "Occitan" },
+	{ "no", "Norwegian" },	 { "oc", "Occitan" },
 	{ "om", "Oromo" },		 { "or", "Oriya" },
 	{ "pa", "Punjabi" },	 { "pl", "Polish" },
 	{ "ps", "Pashto" },		 { "pt", "Portuguese" },
 	{ "qu", "Quechua" },	 { "rm", "Rhaeto-Romance" },
 	{ "rn", "Kirundi" },	 { "ro", "Romanian" },
 	{ "ru", "Russian" },	 { "rw", "Kinyarwanda" },
-	{ "sa", "Sanskrit" },	{ "sd", "Sindhi" },
+	{ "sa", "Sanskrit" },	 { "sd", "Sindhi" },
 	{ "sg", "Sangro" },		 { "sh", "Serbo-Croatian" },
-	{ "si", "Singhalese" },  { "sk", "Slovak" },
-	{ "sl", "Slovenian" },   { "sm", "Samoan" },
+	{ "si", "Singhalese" },	 { "sk", "Slovak" },
+	{ "sl", "Slovenian" },	 { "sm", "Samoan" },
 	{ "sn", "Shona" },		 { "so", "Somali" },
-	{ "sq", "Albanian" },	{ "sr", "Serbian" },
+	{ "sq", "Albanian" },	 { "sr", "Serbian" },
 	{ "ss", "Siswati" },	 { "st", "Sesotho" },
-	{ "su", "Sudanese" },	{ "sv", "Swedish" },
+	{ "su", "Sudanese" },	 { "sv", "Swedish" },
 	{ "sw", "Swahili" },	 { "ta", "Tamil" },
 	{ "te", "Tegulu" },		 { "tg", "Tajik" },
 	{ "th", "Thai" },		 { "ti", "Tigrinya" },
 	{ "tk", "Turkmen" },	 { "tl", "Tagalog" },
-	{ "tn", "Setswana" },	{ "to", "Tonga" },
+	{ "tn", "Setswana" },	 { "to", "Tonga" },
 	{ "tr", "Turkish" },	 { "ts", "Tsonga" },
 	{ "tt", "Tatar" },		 { "tw", "Twi" },
-	{ "uk", "Ukrainian" },   { "ur", "Urdu" },
+	{ "uk", "Ukrainian" },	 { "ur", "Urdu" },
 	{ "uz", "Uzbek" },		 { "vi", "Vietnamese" },
 	{ "vo", "Volapuk" },	 { "wo", "Wolof" },
 	{ "xh", "Xhosa" },		 { "yi", "Yiddish" },
@@ -844,6 +844,18 @@ void
 split(const RString& sSource,
 	  const RString& sDelimitor,
 	  vector<RString>& asAddIt,
+	  const bool bIgnoreEmpty)
+{
+	if (sDelimitor.size() == 1)
+		do_split(sSource, sDelimitor[0], asAddIt, bIgnoreEmpty);
+	else
+		do_split(sSource, sDelimitor, asAddIt, bIgnoreEmpty);
+}
+
+void
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
+	  vector<std::string>& asAddIt,
 	  const bool bIgnoreEmpty)
 {
 	if (sDelimitor.size() == 1)
@@ -1331,6 +1343,17 @@ Trim(RString& sStr, const char* s)
 }
 
 void
+Trim(std::string& sStr, const char* s)
+{
+	string::size_type b = 0, e = sStr.size();
+	while (b < e && strchr(s, sStr[b]))
+		++b;
+	while (b < e && strchr(s, sStr[e - 1]))
+		--e;
+	sStr.assign(sStr.substr(b, e - b));
+}
+
+void
 StripCrnl(RString& s)
 {
 	while (s.size() && (s[s.size() - 1] == '\r' || s[s.size() - 1] == '\n'))
@@ -1703,7 +1726,7 @@ utf8_get_char_len(char p)
 		return 5; /* 111110xx */
 	if (!(p & 0x02))
 		return 6; /* 1111110x */
-	return 1;	 /* 1111111x */
+	return 1;	  /* 1111111x */
 }
 
 static inline bool
@@ -2386,6 +2409,14 @@ FixSlashesInPlace(RString& sPath)
 	for (unsigned i = 0; i < sPath.size(); ++i)
 		if (sPath[i] == '\\')
 			sPath[i] = '/';
+}
+
+void
+FixSlashesInPlace(std::string& sPath)
+{
+	for (auto& c : sPath)
+		if (c == '\\')
+			c = '/';
 }
 
 /* Keep trailing slashes, since that can be used to illustrate that a path
