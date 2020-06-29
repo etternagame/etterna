@@ -226,7 +226,7 @@ Song::InitSteps(Steps* pSteps)
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
 }
 
-RString
+std::string
 Song::GetOrTryAtLeastToGetSimfileAuthor()
 {
 	if (m_sCredit != "" && m_sCredit != "cdtitle")
@@ -235,7 +235,7 @@ Song::GetOrTryAtLeastToGetSimfileAuthor()
 	size_t begin = 0;
 	size_t end = 0;
 
-	RString o = GetSongDir();
+	std::string o = GetSongDir();
 	o = o.substr(0, o.size() - 1);
 	o = o.substr(o.find_last_of('/') + 1);
 
@@ -276,14 +276,14 @@ Song::GetBackgroundAtBeat(BackgroundLayer iLayer, float fBeat) const
 	return GetBackgroundChanges(iLayer)[0];
 }
 
-RString
+std::string
 Song::GetCacheFilePath() const
 {
 	return SongCacheIndex::GetCacheFilePath("Songs", m_sSongDir);
 }
 
 // Get a path to the SM containing data for this song. It might be a cache file.
-const RString&
+const std::string&
 Song::GetSongFilePath() const
 {
 	ASSERT_M(!m_sSongFileName.empty(),
@@ -294,7 +294,7 @@ Song::GetSongFilePath() const
 
 /* Hack: This should be a parameter to TidyUpData, but I don't want to pull in
  * <set> into Song.h, which is heavily used. */
-static set<RString> BlacklistedImages;
+static set<std::string> BlacklistedImages;
 
 /* If PREFSMAN->m_bFastLoad is true, always load from cache if possible.
  * Don't read the contents of sDir if we can avoid it. That means we can't call
@@ -303,13 +303,13 @@ static set<RString> BlacklistedImages;
  * changed.
  */
 bool
-Song::LoadFromSongDir(RString sDir, Calc* calc)
+Song::LoadFromSongDir(std::string sDir, Calc* calc)
 {
 	//	LOG->Trace( "Song::LoadFromSongDir(%s)", sDir.c_str() );
 	ASSERT_M(sDir != "", "Songs can't be loaded from an empty directory!");
 
 	// make sure there is a trailing slash at the end of sDir
-	if (sDir.Right(1) != "/")
+	if (sDir.substr(0, 1) != "/")
 		sDir += "/";
 
 	// save song dir
@@ -322,7 +322,7 @@ Song::LoadFromSongDir(RString sDir, Calc* calc)
 		LOG->UserLog(
 		  "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.");
 
-		vector<RString> vs;
+		vector<std::string> vs;
 		FILEMAN->GetDirListingWithMultipleExtensions(
 		  sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
 
@@ -496,7 +496,7 @@ Song::ReloadIfNoMusic()
  * a signal that the path is from the root directory, not the song directory.
  * Other than a leading "./", song paths must never contain "." or "..". */
 void
-FixupPath(RString& path, const RString& sSongPath)
+FixupPath(std::string& path, const std::string& sSongPath)
 {
 	// Replace backslashes with slashes in all paths.
 	FixSlashesInPlace(path);
@@ -511,8 +511,6 @@ FixupPath(RString& path, const RString& sSongPath)
 void
 Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 {
-	// We need to do this before calling any of HasMusic, HasHasCDTitle, etc.
-	ASSERT_M(m_sSongDir.Left(3) != "../", m_sSongDir); // meaningless
 	FixupPath(m_sSongDir, "");
 	FixupPath(m_sMusicFile, m_sSongDir);
 	FOREACH_ENUM(InstrumentTrack, i)
@@ -577,18 +575,18 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		// particular extension or type of extension.  So fetch a list of all
 		// files in the dir once, then split that list into the different things
 		// we need. -Kyz
-		vector<RString> song_dir_listing;
+		vector<std::string> song_dir_listing;
 		FILEMAN->GetDirListing(
 		  m_sSongDir + "*", song_dir_listing, false, false);
-		vector<RString> music_list;
-		vector<RString> image_list;
-		vector<RString> movie_list;
-		vector<RString> lyric_list;
-		vector<RString> lyric_extensions(1, "lrc");
+		vector<std::string> music_list;
+		vector<std::string> image_list;
+		vector<std::string> movie_list;
+		vector<std::string> lyric_list;
+		vector<std::string> lyric_extensions(1, "lrc");
 		// Using a pair didn't work, so these two vectors have to be kept in
 		// sync instead. -Kyz
-		vector<vector<RString>*> lists_to_fill;
-		vector<const vector<RString>*> fill_exts;
+		vector<vector<std::string>*> lists_to_fill;
+		vector<const vector<std::string>*> fill_exts;
 		lists_to_fill.reserve(4);
 		fill_exts.reserve(4);
 		lists_to_fill.push_back(&music_list);
@@ -599,14 +597,14 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		fill_exts.push_back(&ActorUtil::GetTypeExtensionList(FT_Movie));
 		lists_to_fill.push_back(&lyric_list);
 		fill_exts.push_back(&lyric_extensions);
-		for (vector<RString>::iterator filename = song_dir_listing.begin();
+		for (vector<std::string>::iterator filename = song_dir_listing.begin();
 			 filename != song_dir_listing.end();
 			 ++filename) {
 			bool matched_something = false;
-			RString file_ext = GetExtension(*filename).MakeLower();
+			std::string file_ext = GetExtension(*filename).MakeLower();
 			if (!file_ext.empty()) {
 				for (size_t tf = 0; tf < lists_to_fill.size(); ++tf) {
-					for (vector<RString>::const_iterator ext =
+					for (vector<std::string>::const_iterator ext =
 						   fill_exts[tf]->begin();
 						 ext != fill_exts[tf]->end();
 						 ++ext) {
@@ -635,12 +633,13 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
-				if (music_list.size() > 1 &&
-					!m_sMusicFile.Left(5).CompareNoCase("intro")) {
+				RString loot = m_sMusicFile.substr(0, 5);
+				if (music_list.size() > 1 && (loot.MakeLower() != "intro")) {
 					m_sMusicFile = music_list[1];
 				}
 			}
 		}
+
 		// This must be done before radar calculation.
 		if (m_bHasMusic) {
 			RString error;
@@ -747,7 +746,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		// which is the CDTitle.
 
 		// For blank args to FindFirstFilenameContaining. -Kyz
-		vector<RString> empty_list;
+		vector<std::string> empty_list;
 
 		m_PreviewPath = GetSongAssetPath(m_PreviewFile, m_sSongDir);
 		if (m_PreviewPath.empty())
@@ -771,10 +770,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			// m_sBannerFile = "";
 
 			// find an image with "banner" in the file name
-			vector<RString> contains(1, "banner");
+			vector<std::string> contains(1, "banner");
 			/* Some people do things differently for the sake of being
 			 * different. Don't match eg. abnormal, numbness. */
-			vector<RString> ends_with(1, "bn");
+			vector<std::string> ends_with(1, "bn");
 			m_bHasBanner = FindFirstFilenameContaining(
 			  image_list, m_sBannerFile, empty_list, contains, ends_with);
 			if (m_bHasBanner)
@@ -785,8 +784,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			// m_sBackgroundFile = "";
 
 			// find an image with "bg" or "background" in the file name
-			vector<RString> contains(1, "background");
-			vector<RString> ends_with(1, "bg");
+			vector<std::string> contains(1, "background");
+			vector<std::string> ends_with(1, "bg");
 			m_bHasBackground = FindFirstFilenameContaining(
 			  image_list, m_sBackgroundFile, empty_list, contains, ends_with);
 			if (m_bHasBackground)
@@ -796,8 +795,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 		if (!has_jacket) {
 			// find an image with "jacket" or "albumart" in the filename.
-			vector<RString> starts_with(1, "jk_");
-			vector<RString> contains;
+			vector<std::string> starts_with(1, "jk_");
+			vector<std::string> contains;
 			contains.reserve(2);
 			contains.push_back("jacket");
 			contains.push_back("albumart");
@@ -810,7 +809,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		if (!has_cdimage) {
 			// CD image, a la ddr 1st-3rd (not to be confused with CDTitles)
 			// find an image with "-cd" at the end of the filename.
-			vector<RString> ends_with(1, "-cd");
+			vector<std::string> ends_with(1, "-cd");
 			has_cdimage = FindFirstFilenameContaining(
 			  image_list, m_sCDFile, empty_list, empty_list, ends_with);
 			if (has_cdimage)
@@ -819,7 +818,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 		if (!has_disc) {
 			// a rectangular graphic, not to be confused with CDImage above.
-			vector<RString> ends_with;
+			vector<std::string> ends_with;
 			ends_with.reserve(2);
 			ends_with.push_back(" disc");
 			ends_with.push_back(" title");
@@ -831,7 +830,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 		if (!has_cdtitle) {
 			// find an image with "cdtitle" in the file name
-			vector<RString> contains(1, "cdtitle");
+			vector<std::string> contains(1, "cdtitle");
 			has_cdtitle = FindFirstFilenameContaining(
 			  image_list, m_sCDTitleFile, empty_list, contains, empty_list);
 			if (has_cdtitle)
@@ -855,30 +854,30 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				break; // done
 
 			// ignore DWI "-char" graphics
-			RString lower = image_list[i];
-			lower.MakeLower();
+			std::string lower = image_list[i];
+			MakeLower(lower);
 			if (BlacklistedImages.find(lower) != BlacklistedImages.end())
 				continue; // skip
 
 			// Skip any image that we've already classified
 
-			if (m_bHasBanner && m_sBannerFile.EqualsNoCase(image_list[i]))
+			if (m_bHasBanner && EqualsNoCaseLUL(m_sBannerFile, image_list[i]))
 				continue; // skip
 
 			if (m_bHasBackground &&
-				m_sBackgroundFile.EqualsNoCase(image_list[i]))
+				EqualsNoCaseLUL(m_sBackgroundFile, image_list[i]))
 				continue; // skip
 
-			if (has_cdtitle && m_sCDTitleFile.EqualsNoCase(image_list[i]))
+			if (has_cdtitle && EqualsNoCaseLUL(m_sCDTitleFile, image_list[i]))
 				continue; // skip
 
-			if (has_jacket && m_sJacketFile.EqualsNoCase(image_list[i]))
+			if (has_jacket && EqualsNoCaseLUL(m_sJacketFile, image_list[i]))
 				continue; // skip
 
-			if (has_disc && m_sDiscFile.EqualsNoCase(image_list[i]))
+			if (has_disc && EqualsNoCaseLUL(m_sDiscFile, image_list[i]))
 				continue; // skip
 
-			if (has_cdimage && m_sCDFile.EqualsNoCase(image_list[i]))
+			if (has_cdimage && EqualsNoCaseLUL(m_sCDFile, image_list[i]))
 				continue; // skip
 
 			RString sPath = m_sSongDir + image_list[i];
@@ -1124,17 +1123,17 @@ Song::Save()
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
 
-	vector<RString> backedDotOldFileNames;
-	vector<RString> backedOrigFileNames;
-	vector<RString> arrayOldFileNames;
+	vector<std::string> backedDotOldFileNames;
+	vector<std::string> backedOrigFileNames;
+	vector<std::string> arrayOldFileNames;
 	GetDirListing(m_sSongDir + "*.bms", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.pms", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
 	for (unsigned i = 0; i < arrayOldFileNames.size(); i++) {
-		const RString sOldPath = m_sSongDir + arrayOldFileNames[i];
-		const RString sNewPath = sOldPath + ".old";
+		const std::string sOldPath = m_sSongDir + arrayOldFileNames[i];
+		const std::string sNewPath = sOldPath + ".old";
 
 		if (!FileCopy(sOldPath, sNewPath)) {
 			LOG->UserLog("Song file", sOldPath, "couldn't be backed up.");
@@ -1354,10 +1353,10 @@ Song::GetCacheFile(std::string sType)
 		return PreDefs[sType.c_str()].c_str();
 
 	// Get all image files and put them into a vector.
-	vector<RString> song_dir_listing;
+	vector<std::string> song_dir_listing;
 	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
-	vector<RString> image_list;
-	vector<RString> fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
+	vector<std::string> image_list;
+	vector<std::string> fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
 	for (std::string Image : song_dir_listing) {
 		std::string FileExt = GetExtension(Image);
 		transform(FileExt.begin(), FileExt.end(), FileExt.begin(), ::tolower);
@@ -1574,23 +1573,23 @@ Song::GetInstrumentTracksToVectorString() const
 	return ret;
 }
 
-RString
-Song::GetSongAssetPath(RString sPath, const RString& sSongPath)
+std::string
+Song::GetSongAssetPath(std::string sPath, const std::string& sSongPath)
 {
 	if (sPath == "")
-		return RString();
+		return std::string();
 
-	RString sRelPath = sSongPath + sPath;
+	std::string sRelPath = sSongPath + sPath;
 	if (DoesFileExist(sRelPath))
 		return sRelPath;
 
 	/* If there's no path in the file, the file is in the same directory as the
 	 * song. (This is the preferred configuration.) */
-	if (sPath.find('/') == string::npos)
+	if (sPath.find('/') == std::string::npos)
 		return sRelPath;
 
 	// The song contains a path; treat it as relative to the top SM directory.
-	if (sPath.Left(3) == "../") {
+	if (sPath.substr(0, 3) == "../") {
 		// The path begins with "../".  Resolve it wrt. the song directory.
 		sPath = sRelPath;
 	}
@@ -1599,7 +1598,7 @@ Song::GetSongAssetPath(RString sPath, const RString& sSongPath)
 
 	/* If the path still begins with "../", then there were an unreasonable
 	 * number of them at the beginning of the path. Ignore the path entirely. */
-	if (sPath.Left(3) == "../")
+	if (sPath.substr(0, 3) == "../")
 		return RString();
 
 	return sPath;
@@ -1721,22 +1720,22 @@ Song::DeleteSteps(const Steps* pSteps, bool bReAutoGen)
 }
 
 bool
-Song::Matches(const RString& sGroup, const RString& sSong) const
+Song::Matches(const std::string& sGroup, const std::string& sSong) const
 {
-	if (sGroup.size() && sGroup.CompareNoCase(this->m_sGroupName) != 0)
+	if (sGroup.size() && CompareNoCaseLUL(sGroup, this->m_sGroupName) != 0)
 		return false;
 
 	RString sDir = this->GetSongDir();
 	sDir.Replace("\\", "/");
-	vector<RString> bits;
+	vector<std::string> bits;
 	split(sDir, "/", bits);
 	ASSERT(bits.size() >= 2); // should always have at least two parts
 	const RString& sLastBit = bits[bits.size() - 1];
 
 	// match on song dir or title (ala DWI)
-	if (!sSong.CompareNoCase(sLastBit))
+	if (!CompareNoCaseLUL(sSong, sLastBit))
 		return true;
-	if (!sSong.CompareNoCase(RString(this->GetTranslitFullTitle())))
+	if (!CompareNoCaseLUL(sSong, this->GetTranslitFullTitle()))
 		return true;
 
 	return false;
@@ -1823,7 +1822,7 @@ Song::UnloadAllCalcDebugOutput()
 {
 	for (auto s : m_vpSteps)
 		s->UnloadCalcDebugOutput();
-	}
+}
 
 bool
 Song::AnyChartUsesSplitTiming() const
@@ -1958,12 +1957,12 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetGenre(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sGenre);
+		lua_pushstring(L, p->m_sGenre.c_str());
 		return 1;
 	}
 	static int GetOrigin(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sOrigin);
+		lua_pushstring(L, p->m_sOrigin.c_str());
 		return 1;
 	}
 	static int GetAllSteps(T* p, lua_State* L)
@@ -2073,7 +2072,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetSongFilePath(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetSongFilePath());
+		lua_pushstring(L, p->GetSongFilePath().c_str());
 		return 1;
 	}
 	static int IsEnabled(T* p, lua_State* L)
@@ -2083,7 +2082,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetGroupName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sGroupName);
+		lua_pushstring(L, p->m_sGroupName.c_str());
 		return 1;
 	}
 	static int MusicLengthSeconds(T* p, lua_State* L)
@@ -2306,7 +2305,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetOrTryAtLeastToGetSimfileAuthor(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor());
+		lua_pushstring(L, p->GetOrTryAtLeastToGetSimfileAuthor().c_str());
 		return 1;
 	}
 	static int PlaySampleMusicExtended(T* p, lua_State* L)

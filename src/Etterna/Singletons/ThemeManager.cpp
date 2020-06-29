@@ -263,11 +263,6 @@ ThemeManager::GetThemeAuthor(const RString& sThemeName)
 	return "[unknown author]";
 }
 
-static bool
-EqualsNoCase(const RString& s1, const RString& s2)
-{
-	return s1.EqualsNoCase(s2);
-}
 void
 ThemeManager::GetLanguages(vector<RString>& AddTo)
 {
@@ -279,7 +274,7 @@ ThemeManager::GetLanguages(vector<RString>& AddTo)
 	// remove dupes
 	sort(AddTo.begin(), AddTo.end());
 	vector<RString>::iterator it =
-	  unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
+	  unique(AddTo.begin(), AddTo.end(), EqualsNoCaseLUL);
 	AddTo.erase(it, AddTo.end());
 }
 

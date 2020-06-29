@@ -664,7 +664,8 @@ BMSSong::AllocateKeysound(RString filename, RString path)
 		dir = Dirname(path);
 
 	if (!IsAFile(dir + normalizedFilename)) {
-		vector<RString> const& exts = ActorUtil::GetTypeExtensionList(FT_Sound);
+		vector<std::string> const& exts =
+		  ActorUtil::GetTypeExtensionList(FT_Sound);
 		for (size_t i = 0; i < exts.size(); ++i) {
 			RString fn = SetExtension(normalizedFilename, exts[i]);
 			if (IsAFile(dir + fn)) {
@@ -725,7 +726,7 @@ BMSSong::GetBackground(RString filename, RString path, RString& bgfile)
 	}
 
 	if (!IsAFile(dir + normalizedFilename)) {
-		vector<RString> exts;
+		vector<std::string> exts;
 		ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 		ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
 		for (size_t i = 0; i < exts.size(); ++i) {
@@ -757,13 +758,13 @@ BMSSong::PrecacheBackgrounds(const RString& dir)
 	if (backgroundsPrecached)
 		return;
 	backgroundsPrecached = true;
-	vector<RString> arrayPossibleFiles;
+	vector<std::string> arrayPossibleFiles;
 
-	vector<RString> exts;
+	vector<std::string> exts;
 	ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 	ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
 	FILEMAN->GetDirListingWithMultipleExtensions(
-	  dir + RString("*."), exts, arrayPossibleFiles);
+	  dir + std::string("*."), exts, arrayPossibleFiles);
 
 	for (unsigned i = 0; i < arrayPossibleFiles.size(); i++) {
 		for (unsigned j = 0; j < exts.size(); j++) {

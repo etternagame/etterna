@@ -707,7 +707,7 @@ SongManager::IsSongDir(const RString& sDir)
 	// Check to see if they put a song directly inside the group folder.
 	vector<RString> arrayFiles;
 	GetDirListing(sDir + "/*", arrayFiles);
-	const vector<RString>& audio_exts =
+	const vector<std::string>& audio_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (auto& fname : arrayFiles) {
 		const RString ext = GetExtension(fname);
@@ -732,7 +732,7 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 		return false; // the group is already added
 
 	// Look for a group banner in this group folder
-	vector<RString> arrayGroupBanners;
+	vector<std::string> arrayGroupBanners;
 
 	FILEMAN->GetDirListingWithMultipleExtensions(
 	  sDir + sGroupDirName + "/",

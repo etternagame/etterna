@@ -9,8 +9,6 @@
  * Return false and leave the string unchanged if the conversion was
  * unsuccessful. */
 bool
-ConvertString(RString& str, const RString& encodings);
-bool
 ConvertString(std::string& str, const std::string& encodings);
 
 #endif

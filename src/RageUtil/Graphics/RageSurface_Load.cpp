@@ -83,8 +83,9 @@ RageSurfaceUtils::LoadFile(const RString& sPath,
 	}
 
 	set<RString> FileTypes;
-	vector<RString> const& exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (vector<RString>::const_iterator curr = exts.begin();
+	vector<std::string> const& exts =
+	  ActorUtil::GetTypeExtensionList(FT_Bitmap);
+	for (vector<std::string>::const_iterator curr = exts.begin();
 		 curr != exts.end();
 		 ++curr) {
 		FileTypes.insert(*curr);

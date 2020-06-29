@@ -286,21 +286,21 @@ sm_parser_helper_t sm_parser_helper;
 /****************************************************************/
 
 void
-SMLoader::SetSongTitle(const RString& title)
+SMLoader::SetSongTitle(const std::string& title)
 {
 	this->songTitle = title;
 }
 
-RString
+std::string
 SMLoader::GetSongTitle() const
 {
 	return this->songTitle;
 }
 
 bool
-SMLoader::LoadFromDir(const RString& sPath, Song& out)
+SMLoader::LoadFromDir(const std::string& sPath, Song& out)
 {
-	vector<RString> aFileNames;
+	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath, aFileNames);
 	return LoadFromSimfile(sPath + aFileNames[0], out);
 }
@@ -976,16 +976,21 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 
 	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
 
+	RString aaa;
 	switch (aBGChangeValues.size()) {
 		case 11:
 			change.m_def.m_sColor2 = aBGChangeValues[10];
-			change.m_def.m_sColor2.Replace('^', ',');
+			aaa = change.m_def.m_sColor2;
+			aaa.Replace('^', ',');
+			change.m_def.m_sColor2 = aaa;
 			change.m_def.m_sColor2 =
 			  RageColor::NormalizeColorString(change.m_def.m_sColor2);
 			// fall through
 		case 10:
 			change.m_def.m_sColor1 = aBGChangeValues[9];
-			change.m_def.m_sColor1.Replace('^', ',');
+			aaa = change.m_def.m_sColor1;
+			aaa.Replace('^', ',');
+			change.m_def.m_sColor1 = aaa;
 			change.m_def.m_sColor1 =
 			  RageColor::NormalizeColorString(change.m_def.m_sColor1);
 			// fall through
@@ -1387,7 +1392,7 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 		bool bHasNoSongBgTag = false;
 
 		for (unsigned i = 0; !bHasNoSongBgTag && i < bg.size(); ++i) {
-			if (!bg[i].m_def.m_sFile1.CompareNoCase(NO_SONG_BG_FILE)) {
+			if (!CompareNoCaseLUL(bg[i].m_def.m_sFile1, NO_SONG_BG_FILE)) {
 				bg.erase(bg.begin() + i);
 				bHasNoSongBgTag = true;
 			}

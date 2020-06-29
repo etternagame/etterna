@@ -94,7 +94,7 @@ class BackgroundImpl : public ActorFrame
   protected:
 	bool m_bInitted;
 	const Song* m_pSong;
-	map<RString, BackgroundTransition> m_mapNameToTransition;
+	map<std::string, BackgroundTransition> m_mapNameToTransition;
 	deque<BackgroundDef> m_RandomBGAnimations; // random background to choose
 											   // from.  These may or may not be
 											   // loaded into m_BGAnimations.
@@ -117,7 +117,7 @@ class BackgroundImpl : public ActorFrame
 		// return def of the background that was created and added to
 		// m_BGAnimations. calls CreateBackground
 		BackgroundDef CreateRandomBGA(const Song* pSong,
-									  const RString& sEffect,
+									  const std::string& sEffect,
 									  deque<BackgroundDef>& RandomBGAnimations,
 									  Actor* pParent);
 
@@ -126,7 +126,7 @@ class BackgroundImpl : public ActorFrame
 		  const Song* pSong,
 		  float fLastMusicSeconds,
 		  float fCurrentTime,
-		  const map<RString, BackgroundTransition>& mapNameToTransition);
+		  const map<std::string, BackgroundTransition>& mapNameToTransition);
 
 		map<BackgroundDef, Actor*> m_BGAnimations;
 		vector<BackgroundChange> m_aBGChanges;
@@ -199,7 +199,7 @@ BackgroundImpl::Init()
 	// load transitions
 	{
 		ASSERT(m_mapNameToTransition.empty());
-		vector<RString> vsPaths, vsNames;
+		vector<std::string> vsPaths, vsNames;
 		BackgroundUtil::GetBackgroundTransitions("", vsPaths, vsNames);
 		for (unsigned i = 0; i < vsPaths.size(); i++) {
 			const RString& sPath = vsPaths[i];
@@ -280,17 +280,17 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	ASSERT(m_BGAnimations.find(bd) == m_BGAnimations.end());
 
 	// Resolve the background names
-	vector<RString> vsToResolve;
+	vector<std::string> vsToResolve;
 	vsToResolve.push_back(bd.m_sFile1);
 	vsToResolve.push_back(bd.m_sFile2);
 
-	vector<RString> vsResolved;
+	vector<std::string> vsResolved;
 	vsResolved.resize(vsToResolve.size());
 	vector<LuaThreadVariable*> vsResolvedRef;
 	vsResolvedRef.resize(vsToResolve.size());
 
 	for (unsigned i = 0; i < vsToResolve.size(); i++) {
-		const RString& sToResolve = vsToResolve[i];
+		const std::string& sToResolve = vsToResolve[i];
 
 		if (sToResolve.empty()) {
 			if (i == 0)
@@ -304,7 +304,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		 * RandomMovies dir
 		 * BGAnimations dir.
 		 */
-		vector<RString> vsPaths, vsThrowAway;
+		vector<std::string> vsPaths, vsThrowAway;
 
 		// Look for BGAnims in the song dir
 		if (sToResolve == SONG_BACKGROUND_FILE)
@@ -328,7 +328,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 			BackgroundUtil::GetGlobalRandomMovies(
 			  pSong, sToResolve, vsPaths, vsThrowAway);
 
-		RString& sResolved = vsResolved[i];
+		std::string& sResolved = vsResolved[i];
 
 		if (!vsPaths.empty()) {
 			sResolved = vsPaths[0];
@@ -346,7 +346,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		  new LuaThreadVariable(ssprintf("File%d", i + 1), sResolved);
 	}
 
-	RString sEffect = bd.m_sEffect;
+	std::string sEffect = bd.m_sEffect;
 	if (sEffect.empty()) {
 		FileType ft = ActorUtil::GetFileType(vsResolved[0]);
 		switch (ft) {
@@ -379,14 +379,14 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 
 	// Set Lua color globals
 	LuaThreadVariable sColor1(
-	  "Color1", bd.m_sColor1.empty() ? RString("#FFFFFFFF") : bd.m_sColor1);
+	  "Color1", bd.m_sColor1.empty() ? std::string("#FFFFFFFF") : bd.m_sColor1);
 	LuaThreadVariable sColor2(
-	  "Color2", bd.m_sColor2.empty() ? RString("#FFFFFFFF") : bd.m_sColor2);
+	  "Color2", bd.m_sColor2.empty() ? std::string("#FFFFFFFF") : bd.m_sColor2);
 
 	// Resolve the effect file.
-	RString sEffectFile;
+	std::string sEffectFile;
 	for (int i = 0; i < 2; i++) {
-		vector<RString> vsPaths, vsThrowAway;
+		vector<std::string> vsPaths, vsThrowAway;
 		BackgroundUtil::GetBackgroundEffects(sEffect, vsPaths, vsThrowAway);
 		if (vsPaths.empty()) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -418,7 +418,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 
 BackgroundDef
 BackgroundImpl::Layer::CreateRandomBGA(const Song* pSong,
-									   const RString& sEffect,
+									   const std::string& sEffect,
 									   deque<BackgroundDef>& RandomBGAnimations,
 									   Actor* pParent)
 {
@@ -544,7 +544,7 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 
 	// Choose a bunch of backgrounds that we'll use for the random file marker
 	{
-		vector<RString> vsThrowAway, vsNames;
+		vector<std::string> vsThrowAway, vsNames;
 		switch (g_RandomBackgroundMode) {
 			default:
 				ASSERT_M(0,
@@ -570,7 +570,7 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 						static_cast<int>(vsNames.size()));
 		vsNames.resize(iSize);
 
-		FOREACH_CONST(RString, vsNames, s)
+		FOREACH_CONST(std::string, vsNames, s)
 		{
 			BackgroundDef bd;
 			bd.m_sFile1 = *s;
@@ -748,7 +748,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
   const Song* pSong,
   float fLastMusicSeconds,
   float fCurrentTime,
-  const map<RString, BackgroundTransition>& mapNameToTransition)
+  const map<std::string, BackgroundTransition>& mapNameToTransition)
 {
 	ASSERT(fCurrentTime != GameState::MUSIC_SECONDS_INVALID);
 
@@ -787,7 +787,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 		  m_BGAnimations.find(change.m_def);
 		if (iter == m_BGAnimations.end()) {
 			XNode* pNode = change.m_def.CreateNode();
-			RString xml = XmlFileUtil::GetXML(pNode);
+			std::string xml = XmlFileUtil::GetXML(pNode);
 			Trim(xml);
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Tried to switch to a background that was never loaded:\n%s",
@@ -806,8 +806,8 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 				m_pFadingBGA->PlayCommand("LoseFocus");
 
 				if (!change.m_sTransition.empty()) {
-					map<RString, BackgroundTransition>::const_iterator lIter =
-					  mapNameToTransition.find(change.m_sTransition);
+					map<std::string, BackgroundTransition>::const_iterator
+					  lIter = mapNameToTransition.find(change.m_sTransition);
 					if (lIter == mapNameToTransition.end()) {
 						LuaHelpers::ReportScriptErrorFmt(
 						  "'%s' is not the name of a BackgroundTransition "

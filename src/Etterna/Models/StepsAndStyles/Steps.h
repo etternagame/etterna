@@ -238,14 +238,6 @@ class Steps
 	immediately after reading it than parsing it using lua. - Mina */
 	auto GenerateChartKey(NoteData& nd, TimingData* td) -> std::string;
 
-	/* Append all of the bpms in the given range to the input std::string */
-	static void FillStringWithBPMs(size_t startRow,
-								   size_t endRow,
-								   vector<int>& nerv,
-								   NoteData& nd,
-								   TimingData* td,
-								   std::string& inOut);
-
 	/**
 	 * @brief Determine if the Steps have any major timing changes during
 	 * gameplay.
