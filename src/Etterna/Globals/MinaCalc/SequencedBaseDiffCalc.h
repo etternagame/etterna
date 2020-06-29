@@ -7,13 +7,8 @@
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
  * allocated arrays to built difficulty for each interval, and the output will
- * be placed into statically allocated arrays for base difficulties. */
-
-// we've already thrown out anything that exceeeds max_rows_for_single_interval
-// before ever hitting here, so this should be safe
-static thread_local std::array<float, max_rows_for_single_interval> nps_static;
-static thread_local std::array<float, max_rows_for_single_interval> jk_static;
-static thread_local std::array<float, max_rows_for_single_interval> tc_static;
+ * be placed into statically allocated arrays for base difficulties. (in
+ * threaded calc object now, though) */
 
 struct nps
 {
@@ -38,60 +33,12 @@ struct nps
 	}
 };
 
-struct vribbit
-{
-	// ok this is a little funky, we'll track the interval average jack speed
-	// difficulty, and also the interval max, then average the two. functionally
-	// this will give shorter jacks a bit of a boost
-	inline void advance_base(const float& jk_diff)
-	{
-		jk_itv_ms_min = min(jk_itv_ms_min, jk_diff);
-		advance_jk_comp(jk_diff);
-		++row_counter;
-	}
-
-	// final output difficulty for this interval
-	[[nodiscard]] inline auto get_itv_diff() const -> float
-	{
-		if (row_counter == 0) {
-			return 0.F;
-		}
-
-		float ms_total = 0.F;
-		for (int i = 0; i < row_counter; ++i) {
-			ms_total += jk_static.at(i);
-		}
-
-		float ms_mean = ms_total / static_cast<float>(row_counter);
-		return ms_to_scaled_nps(jk_itv_ms_min);
-		// return ms_to_scaled_nps((ms_mean + ms_mean + jk_itv_ms_min) / 3.F);
-	}
-
-	inline void interval_end()
-	{
-		row_counter = 0;
-		jk_itv_ms_min = ms_init;
-	}
-
-  private:
-	int row_counter = 0;
-	float jk_itv_ms_min = ms_init;
-
-	inline void advance_jk_comp(const float& jk_diff)
-	{
-		if (row_counter >= max_rows_for_single_interval) {
-			return;
-		}
-
-		jk_static.at(row_counter) = jk_diff;
-		jk_itv_ms_min = max(jk_itv_ms_min, jk_diff);
-	}
-};
-
 struct techyo
 {
 	// if this looks ridiculous, that's because it is
-	inline void advance_base(const SequencerGeneral& seq, const col_type& ct)
+	inline void advance_base(const SequencerGeneral& seq,
+							 const col_type& ct,
+							 Calc& calc)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
@@ -134,7 +81,7 @@ struct techyo
 
 		teehee(c / vertebrae);
 
-		tc_static.at(row_counter) = teehee.get_mean_of_window(2);
+		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(2);
 		++row_counter;
 	}
 
@@ -151,14 +98,15 @@ struct techyo
 
 	// final output difficulty for this interval, merges base diff, runningman
 	// anchor diff
-	[[nodiscard]] inline auto get_itv_diff(const float& nps_base) const -> float
+	[[nodiscard]] inline auto get_itv_diff(const float& nps_base,
+										   Calc& calc) const -> float
 	{
 		// for now do simple thing, for this interval either use the higher
 		// between weighted adjusted ms/nps base and runningman diff
 		// we definitely don't want to average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		return max(weighted_average(get_tc_base(), nps_base, 5.5F, 9.F),
+		return max(weighted_average(get_tc_base(calc), nps_base, 5.5F, 9.F),
 				   rm_itv_max_diff);
 	}
 
@@ -183,7 +131,7 @@ struct techyo
 
 	// get the interval base diff, which will then be merged via weighted
 	// average with npsbase, and then compared to max_rm diff
-	[[nodiscard]] inline auto get_tc_base() const -> float
+	[[nodiscard]] inline auto get_tc_base(Calc& calc) const -> float
 	{
 		if (row_counter == 0) {
 			return 0.F;
@@ -191,7 +139,7 @@ struct techyo
 
 		float ms_total = 0.F;
 		for (int i = 0; i < row_counter; ++i) {
-			ms_total += tc_static.at(i);
+			ms_total += calc.tc_static.at(i);
 		}
 
 		float ms_mean = ms_total / static_cast<float>(row_counter);
@@ -202,14 +150,9 @@ struct techyo
 struct diffz
 {
 	nps _nps;
-	vribbit _jk;
 	techyo _tc;
 
-	inline void interval_end()
-	{
-		_jk.interval_end();
-		_tc.interval_end();
-	}
+	inline void interval_end() { _tc.interval_end(); }
 
 	inline void full_reset() { interval_end(); }
 };
