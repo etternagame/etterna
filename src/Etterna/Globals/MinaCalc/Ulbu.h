@@ -309,6 +309,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		 * counts, so this _must_ be called before anything else */
 		_mitvhi.interval_end();
 
+		// same thing but for anchor max!!!
+		_seq.interval_end();
+
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(itv);
 

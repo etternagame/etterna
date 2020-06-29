@@ -222,7 +222,7 @@ struct AnchorSequencer
 		return _mw_max.at(ct).get_max_for_window(window);
 	}
 
-	inline void handle_interval_end()
+	inline void interval_end()
 	{
 		for (auto& c : ct_loop_no_jumps) {
 			_mw_max.at(c)(max_seen.at(c));
@@ -370,6 +370,8 @@ struct SequencerGeneral
 	{
 		return _mw_cc_ms.get_now();
 	}
+
+	inline void interval_end() { _as.interval_end(); }
 
 	inline void full_reset()
 	{
