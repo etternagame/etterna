@@ -236,13 +236,13 @@ CircularShift(vector<T>& v, int dist)
 	}
 }
 
-static bool
+static inline int
 CompareNoCaseLUL(const std::string& a, const std::string& b)
 {
-	return StdString::ssicmp(a.c_str(), b.c_str()) == 0;
+	return StdString::ssicmp(a.c_str(), b.c_str());
 }
 
-static bool
+static inline bool
 EqualsNoCaseLUL(const std::string& a, const std::string& b)
 {
 	return CompareNoCaseLUL(a.c_str(), b.c_str()) == 0;
