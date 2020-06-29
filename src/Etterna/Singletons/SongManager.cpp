@@ -156,8 +156,6 @@ SongManager::DifferentialReloadDir(string dir)
 
 	vector<RString> folders;
 	GetDirListing(dir + "*", folders, true);
-	StripCvsAndSvn(folders);
-	StripMacResourceForks(folders);
 
 	vector<Group> groups;
 	Group unknownGroup("Unknown Group");
@@ -172,8 +170,6 @@ SongManager::DifferentialReloadDir(string dir)
 		} else {
 			vector<RString> songdirs;
 			GetDirListing(dir + folder + "/*", songdirs, true, true);
-			StripCvsAndSvn(songdirs);
-			StripMacResourceForks(songdirs);
 			Group group(folder);
 			for (auto& song : songdirs) {
 				group.songs.emplace_back(SongDir(song));
@@ -752,48 +748,8 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 			sBannerPath = sDir + arrayGroupBanners[0];
 	}
 
-	/* Other group graphics are a bit trickier, and usually don't exist.
-	 * A themer has a few options, namely checking the aspect ratio and
-	 * operating on it. -aj
-	 * TODO: Once the files are implemented in Song, bring the
-	 * extensions from there into here. -aj */
-	// Group background
-
-	// vector<RString> arrayGroupBackgrounds;
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.png", arrayGroupBanners
-	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.jpg",
-	// arrayGroupBanners ); GetDirListing(
-	// sDir+sGroupDirName+"/*-bg.jpeg", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.gif", arrayGroupBanners
-	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.bmp",
-	// arrayGroupBanners );
-	/*
-		RString sBackgroundPath;
-		if( !arrayGroupBackgrounds.empty() )
-			sBackgroundPath =
-	   sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0]; else
-		{
-			// Look for a group background in the parent folder
-			GetDirListing( sDir+sGroupDirName+"-bg.png",
-	   arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.jpg",
-	   arrayGroupBackgrounds ); GetDirListing(
-	   sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.gif",
-	   arrayGroupBackgrounds ); GetDirListing(
-	   sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds
-	   ); if( !arrayGroupBackgrounds.empty() ) sBackgroundPath =
-	   sDir+arrayGroupBackgrounds[0];
-		}
-	*/
-	/*
-	LOG->Trace( "Group banner for '%s' is '%s'.", sGroupDirName.c_str(),
-				sBannerPath != ""? sBannerPath.c_str():"(none)" );
-	*/
-
 	m_sSongGroupNames.emplace_back(sGroupDirName);
 	m_sSongGroupBannerPaths.emplace_back(sBannerPath);
-	// m_sSongGroupBackgroundPaths.emplace_back( sBackgroundPath );
 	return true;
 }
 
@@ -805,8 +761,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 {
 	vector<RString> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
-	StripCvsAndSvn(songFolders);
-	StripMacResourceForks(songFolders);
 	int songCount = 0;
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
@@ -824,8 +778,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);
-			StripCvsAndSvn(group.songs);
-			StripMacResourceForks(group.songs);
 			songCount += group.songs.size();
 			groups.emplace_back(group);
 		}

@@ -1471,38 +1471,6 @@ URLEncode(const RString& sStr)
 	return sOutput;
 }
 
-// remove various version control-related files
-static bool
-CVSOrSVN(const RString& s)
-{
-	return s.Right(3).EqualsNoCase("CVS") || s.Right(4) == ".svn" ||
-		   s.Right(3).EqualsNoCase(".hg");
-}
-
-void
-StripCvsAndSvn(vector<RString>& vs)
-{
-	RemoveIf(vs, CVSOrSVN);
-}
-
-static bool
-MacResourceFork(const RString& s)
-{
-	return s.Left(2).EqualsNoCase("._") && s != "._Pulse.sm";
-}
-
-void
-StripMacResourceForks(vector<std::string>& vs)
-{
-	RemoveIf(vs, MacResourceFork);
-}
-
-void
-StripMacResourceForks(vector<RString>& vs)
-{
-	RemoveIf(vs, MacResourceFork);
-}
-
 // path is a .redir pathname. Read it and return the real one.
 RString
 DerefRedir(const RString& _path)

@@ -389,7 +389,7 @@ LoadedDriver::GetPath(const RString& sPath) const
 	return sRet;
 }
 
-static void
+static inline void
 NormalizePath(std::string& sPath)
 {
 	FixSlashesInPlace(sPath);
@@ -401,16 +401,50 @@ NormalizePath(std::string& sPath)
 	}
 }
 
-bool
+inline bool
 ilt(const RString& a, const RString& b)
 {
 	return a.CompareNoCase(b) < 0;
 }
-bool
+
+inline bool
 ieq(const RString& a, const RString& b)
 {
 	return a.CompareNoCase(b) == 0;
 }
+
+// remove various version control-related files
+static inline bool
+CVSOrSVN(const RString& s)
+{
+	return s.Right(3).EqualsNoCase("CVS") || s.Right(4) == ".svn" ||
+		   s.Right(3).EqualsNoCase(".hg");
+}
+
+inline void
+StripCvsAndSvn(vector<std::string>& vs)
+{
+	RemoveIf(vs, CVSOrSVN);
+}
+
+static inline bool
+MacResourceFork(const RString& s)
+{
+	return s.Left(2).EqualsNoCase("._") && s != "._Pulse.sm";
+}
+
+inline void
+StripMacResourceForks(vector<std::string>& vs)
+{
+	RemoveIf(vs, MacResourceFork);
+}
+
+inline void
+StripMacResourceForks(vector<RString>& vs)
+{
+	RemoveIf(vs, MacResourceFork);
+}
+
 void
 RageFileManager::GetDirListing(const std::string& sPath_,
 							   vector<std::string>& AddTo,
@@ -459,6 +493,7 @@ RageFileManager::GetDirListing(const std::string& sPath_,
 	}
 
 	UnreferenceAllDrivers(apDriverList);
+	StripCvsAndSvn(AddTo);
 	StripMacResourceForks(AddTo);
 
 	if (iDriversThatReturnedFiles > 1) {
@@ -1364,20 +1399,9 @@ class LunaRageFileManager : public Luna<RageFileManager>
 		}
 		//( Path, addTo, OnlyDirs=false, ReturnPathToo=false );
 		p->GetDirListing(SArg(1), vDirs, bOnlyDirs, bReturnPathToo);
-		StripMacResourceForks(vDirs);
 		LuaHelpers::CreateTableFromArray(vDirs, L);
 		return 1;
 	}
-	/*
-	static int GetDirListingRecursive( T* p, lua_State *L )
-	{
-		vector<RString> vDirs;
-		// (directory, match, addto)
-		GetDirListingRecursive( SArg(1), SArg(2), vDirs );
-		LuaHelpers::CreateTableFromArray(vDirs, L);
-		return 1;
-	}
-	*/
 
 	LunaRageFileManager()
 	{
@@ -1385,7 +1409,6 @@ class LunaRageFileManager : public Luna<RageFileManager>
 		ADD_METHOD(GetFileSizeBytes);
 		ADD_METHOD(GetHashForFile);
 		ADD_METHOD(GetDirListing);
-		// ADD_METHOD( GetDirListingRecursive );
 	}
 };
 

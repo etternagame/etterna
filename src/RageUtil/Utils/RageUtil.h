@@ -893,18 +893,6 @@ EndsWith(const RString& sTestThis, const RString& sEnding);
 RString
 URLEncode(const RString& sStr);
 
-void
-StripCvsAndSvn(
-  vector<std::string>& vs); // Removes various versioning system metafolders.
-void
-StripCvsAndSvn(
-  vector<RString>& vs); // Removes various versioning system metafolders.
-void
-StripMacResourceForks(
-  vector<std::string>& vs); // Removes files starting with "._"
-void
-StripMacResourceForks(vector<RString>& vs); // Removes files starting with "._"
-
 RString
 DerefRedir(const RString& sPath);
 bool
