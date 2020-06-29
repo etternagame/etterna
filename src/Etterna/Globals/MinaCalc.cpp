@@ -740,7 +740,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 			calc = cacheRun.get();
 		}
 
-		cacheRun->ssr = false;
+		calc->ssr = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(
 			  calc->CalcMain(NoteInfo, static_cast<float>(i) / 10.F, 0.93F));
