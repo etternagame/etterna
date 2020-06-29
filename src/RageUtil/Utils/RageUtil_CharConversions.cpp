@@ -55,7 +55,7 @@ AttemptJapaneseConversion(std::string& sText)
 #include <iconv.h>
 
 static bool
-ConvertFromCharset(RString& sText, const char* szCharset)
+ConvertFromCharset(std::string& sText, const char* szCharset)
 {
 	iconv_t converter = iconv_open("UTF-8", szCharset);
 	if (converter == (iconv_t)-1) {
@@ -71,7 +71,7 @@ ConvertFromCharset(RString& sText, const char* szCharset)
 	size_t iInLeft = sText.size();
 
 	/* Create a new string with enough room for the new conversion */
-	RString sBuf;
+	std::string sBuf;
 	sBuf.resize(sText.size() * 5);
 
 	char* sTextOut = const_cast<char*>(sBuf.data());
@@ -104,17 +104,17 @@ ConvertFromCharset(RString& sText, const char* szCharset)
 }
 
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return ConvertFromCharset(sText, "CP1252");
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return ConvertFromCharset(sText, "CP949");
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return ConvertFromCharset(sText, "CP932");
 }
@@ -123,7 +123,7 @@ AttemptJapaneseConversion(RString& sText)
 #include <CoreFoundation/CoreFoundation.h>
 
 static bool
-ConvertFromCP(RString& sText, int iCodePage)
+ConvertFromCP(std::string& sText, int iCodePage)
 {
 	CFStringEncoding encoding =
 	  CFStringConvertWindowsCodepageToEncoding(iCodePage);
@@ -149,17 +149,17 @@ ConvertFromCP(RString& sText, int iCodePage)
 }
 
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return ConvertFromCP(sText, 1252);
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return ConvertFromCP(sText, 949);
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return ConvertFromCP(sText, 932);
 }
@@ -168,17 +168,17 @@ AttemptJapaneseConversion(RString& sText)
 
 /* No converters are available, so all fail--we only accept UTF-8. */
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return false;
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return false;
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return false;
 }
