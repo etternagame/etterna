@@ -336,9 +336,9 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 			return false;
 		}
 		// Make sure we have a future filename figured out.
-		vector<RString> folders;
+		vector<std::string> folders;
 		split(sDir, "/", folders);
-		RString songName = folders[2] + ".ssc";
+		std::string songName = folders[2] + ".ssc";
 		this->m_sSongFileName = sDir + songName;
 		// Continue on with a blank Song so that people can make adjustments
 		// using the editor.
@@ -363,7 +363,7 @@ void
 Song::FinalizeLoading()
 {
 	// save group name
-	vector<RString> sDirectoryParts;
+	vector<std::string> sDirectoryParts;
 	split(m_sSongDir, "/", sDirectoryParts, false);
 	// ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
 	m_sGroupName =
@@ -389,7 +389,7 @@ Song::FinalizeLoading()
  * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
  * Song/Steps objects to reload themselves. -- djpohly */
 bool
-Song::ReloadFromSongDir(const RString& sDir)
+Song::ReloadFromSongDir(const std::string& sDir)
 {
 	// Remove the cache file to force the song to reload from its dir instead
 	// of loading from the cache. -Kyz
@@ -456,7 +456,7 @@ Song::ReloadFromSongDir(const RString& sDir)
 	}
 
 	// Reload any images associated with the song. -Kyz
-	vector<RString> to_reload;
+	vector<std::string> to_reload;
 	to_reload.reserve(7);
 	to_reload.push_back(m_sBannerFile);
 	to_reload.push_back(m_sJacketFile);
@@ -465,7 +465,7 @@ Song::ReloadFromSongDir(const RString& sDir)
 	to_reload.push_back(m_sBackgroundFile);
 	to_reload.push_back(m_sCDTitleFile);
 	to_reload.push_back(m_sPreviewVidFile);
-	for (vector<RString>::iterator file = to_reload.begin();
+	for (vector<std::string>::iterator file = to_reload.begin();
 		 file != to_reload.end();
 		 ++file) {
 		RageTextureID id(*file);
@@ -484,7 +484,7 @@ Song::ReloadFromSongDir(const RString& sDir)
 void
 Song::ReloadIfNoMusic()
 {
-	RString sMusicPath = GetMusicPath();
+	std::string sMusicPath = GetMusicPath();
 	if (sMusicPath.empty() || !DoesFileExist(sMusicPath)) {
 		ASSERT_M(ReloadFromSongDir(),
 				 "No music, so tried to reload from song dir but "
@@ -537,7 +537,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			this->m_sMainTitle.find_first_of('-') != string::npos) {
 			// Dancing Monkeys had a bug/feature where the artist was replaced.
 			// Restore it.
-			vector<RString> titleParts;
+			vector<std::string> titleParts;
 			split(this->m_sMainTitle, "-", titleParts);
 			this->m_sArtist = titleParts.front();
 			Trim(this->m_sArtist);
@@ -880,10 +880,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			if (has_cdimage && EqualsNoCaseLUL(m_sCDFile, image_list[i]))
 				continue; // skip
 
-			RString sPath = m_sSongDir + image_list[i];
+			std::string sPath = m_sSongDir + image_list[i];
 
 			// We only care about the dimensions.
-			RString error;
+			std::string error;
 			RageSurface* img = RageSurfaceUtils::LoadFile(sPath, error, true);
 			if (!img) {
 				LOG->UserLog("Graphic file",
@@ -1159,7 +1159,7 @@ Song::Save()
 bool
 Song::SaveToSMFile()
 {
-	const RString sPath = SetExtension(GetSongFilePath(), "sm");
+	const std::string sPath = SetExtension(GetSongFilePath(), "sm");
 	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
@@ -1194,7 +1194,7 @@ Song::GetStepsToSave(bool bSavingCache, string path)
 	return vpStepsToSave;
 }
 bool
-Song::SaveToSSCFile(const RString& sPath, bool bSavingCache)
+Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 {
 	auto path = sPath;
 	if (!bSavingCache)
@@ -1224,8 +1224,8 @@ Song::SaveToSSCFile(const RString& sPath, bool bSavingCache)
 		return false;
 
 	if (g_BackUpAllSongSaves.Get()) {
-		RString sExt = GetExtension(path);
-		RString sBackupFile = SetExtension(path, "");
+		std::string sExt = GetExtension(path);
+		std::string sBackupFile = SetExtension(path, "");
 
 		time_t cur_time;
 		time(&cur_time);
@@ -1257,9 +1257,9 @@ Song::SaveToSSCFile(const RString& sPath, bool bSavingCache)
 }
 
 bool
-Song::SaveToETTFile(const RString& sPath, bool bSavingCache)
+Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 {
-	RString path = sPath;
+	std::string path = sPath;
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ett");
 
@@ -1279,8 +1279,8 @@ Song::SaveToETTFile(const RString& sPath, bool bSavingCache)
 		return false;
 
 	if (g_BackUpAllSongSaves.Get()) {
-		RString sExt = GetExtension(path);
-		RString sBackupFile = SetExtension(path, "");
+		std::string sExt = GetExtension(path);
+		std::string sBackupFile = SetExtension(path, "");
 
 		time_t cur_time;
 		time(&cur_time);
@@ -1323,7 +1323,7 @@ Song::SaveToCacheFile()
 bool
 Song::SaveToDWIFile()
 {
-	const RString sPath = SetExtension(GetSongFilePath(), "dwi");
+	const std::string sPath = SetExtension(GetSongFilePath(), "dwi");
 	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
@@ -1400,11 +1400,11 @@ Song::GetCacheFile(std::string sType)
 	return "";
 }
 
-RString
+std::string
 Song::GetFileHash()
 {
 	if (m_sFileHash.empty()) {
-		RString sPath = SetExtension(GetSongFilePath(), "sm");
+		std::string sPath = SetExtension(GetSongFilePath(), "sm");
 		if (!IsAFile(sPath))
 			sPath = SetExtension(GetSongFilePath(), "dwi");
 		if (!IsAFile(sPath))
@@ -1528,10 +1528,10 @@ Song::GetForegroundChanges()
 	return *m_ForegroundChanges.Get();
 }
 
-vector<RString>
+vector<std::string>
 Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
-	vector<RString> ret;
+	vector<std::string> ret;
 	FOREACH_CONST(BackgroundChange, changes, bgc)
 	{
 		ret.push_back((*bgc).ToString());
@@ -1539,30 +1539,30 @@ Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 	return ret;
 }
 
-vector<RString>
+vector<std::string>
 Song::GetBGChanges1ToVectorString() const
 {
 	return this->GetChangesToVectorString(
 	  this->GetBackgroundChanges(BACKGROUND_LAYER_1));
 }
 
-vector<RString>
+vector<std::string>
 Song::GetBGChanges2ToVectorString() const
 {
 	return this->GetChangesToVectorString(
 	  this->GetBackgroundChanges(BACKGROUND_LAYER_2));
 }
 
-vector<RString>
+vector<std::string>
 Song::GetFGChanges1ToVectorString() const
 {
 	return this->GetChangesToVectorString(this->GetForegroundChanges());
 }
 
-vector<RString>
+vector<std::string>
 Song::GetInstrumentTracksToVectorString() const
 {
-	vector<RString> ret;
+	vector<std::string> ret;
 	FOREACH_ENUM(InstrumentTrack, it)
 	{
 		if (this->HasInstrumentTrack(it)) {
@@ -1599,7 +1599,7 @@ Song::GetSongAssetPath(std::string sPath, const std::string& sSongPath)
 	/* If the path still begins with "../", then there were an unreasonable
 	 * number of them at the beginning of the path. Ignore the path entirely. */
 	if (sPath.substr(0, 3) == "../")
-		return RString();
+		return std::string();
 
 	return sPath;
 }
@@ -1725,12 +1725,14 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 	if (sGroup.size() && CompareNoCaseLUL(sGroup, this->m_sGroupName) != 0)
 		return false;
 
-	RString sDir = this->GetSongDir();
-	sDir.Replace("\\", "/");
+	std::string sDir = this->GetSongDir();
+	RString voop = sDir;
+	voop.Replace("\\", "/");
+	sDir = voop;
 	vector<std::string> bits;
 	split(sDir, "/", bits);
 	ASSERT(bits.size() >= 2); // should always have at least two parts
-	const RString& sLastBit = bits[bits.size() - 1];
+	const std::string& sLastBit = bits[bits.size() - 1];
 
 	// match on song dir or title (ala DWI)
 	if (!CompareNoCaseLUL(sSong, sLastBit))
@@ -1985,87 +1987,87 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetMusicPath(T* p, lua_State* L)
 	{
-		RString s = p->GetMusicPath();
+		std::string s = p->GetMusicPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetBannerPath(T* p, lua_State* L)
 	{
-		RString s = p->GetBannerPath();
+		std::string s = p->GetBannerPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetBackgroundPath(T* p, lua_State* L)
 	{
-		RString s = p->GetBackgroundPath();
+		std::string s = p->GetBackgroundPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetPreviewVidPath(T* p, lua_State* L)
 	{
-		RString s = p->GetPreviewVidPath();
+		std::string s = p->GetPreviewVidPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetPreviewMusicPath(T* p, lua_State* L)
 	{
-		RString s = p->GetPreviewMusicPath();
-		lua_pushstring(L, s);
+		std::string s = p->GetPreviewMusicPath();
+		lua_pushstring(L, s.c_str());
 		return 1;
 	}
 	static int GetJacketPath(T* p, lua_State* L)
 	{
-		RString s = p->GetJacketPath();
+		std::string s = p->GetJacketPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetCDImagePath(T* p, lua_State* L)
 	{
-		RString s = p->GetCDImagePath();
+		std::string s = p->GetCDImagePath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetDiscPath(T* p, lua_State* L)
 	{
-		RString s = p->GetDiscPath();
+		std::string s = p->GetDiscPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetCDTitlePath(T* p, lua_State* L)
 	{
-		RString s = p->GetCDTitlePath();
+		std::string s = p->GetCDTitlePath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
 	}
 	static int GetLyricsPath(T* p, lua_State* L)
 	{
-		RString s = p->GetLyricsPath();
+		std::string s = p->GetLyricsPath();
 		if (!s.empty())
-			lua_pushstring(L, s);
+			lua_pushstring(L, s.c_str());
 		else
 			lua_pushnil(L);
 		return 1;

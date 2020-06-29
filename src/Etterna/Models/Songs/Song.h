@@ -17,8 +17,8 @@ struct BackgroundChange;
 
 void
 FixupPath(std::string& path, const std::string& sSongPath);
-RString
-GetSongAssetPath(const RString& sPath, const RString& sSongPath);
+std::string
+GetSongAssetPath(const std::string& sPath, const std::string& sSongPath);
 
 /** @brief The version of the .ssc file format. */
 const static float STEPFILE_VERSION_NUMBER = 0.83f;
@@ -52,17 +52,17 @@ enum InstrumentTrack
 	NUM_InstrumentTrack,
 	InstrumentTrack_Invalid
 };
-const RString&
+const std::string&
 InstrumentTrackToString(InstrumentTrack it);
 InstrumentTrack
-StringToInstrumentTrack(const RString& s);
+StringToInstrumentTrack(const std::string& s);
 
 /** @brief The collection of lyrics for the Song. */
 struct LyricSegment
 {
-	float m_fStartTime; /** @brief When does the lyric show up? */
-	RString m_sLyric;	/** @brief The lyrics themselves. */
-	RageColor m_Color;	/** @brief The color of the lyrics. */
+	float m_fStartTime;	  /** @brief When does the lyric show up? */
+	std::string m_sLyric; /** @brief The lyrics themselves. */
+	RageColor m_Color;	  /** @brief The color of the lyrics. */
 };
 
 /** @brief Holds all music metadata and steps for one song. */
@@ -95,12 +95,12 @@ class Song
 	void FinalizeLoading();
 	bool LoadFromSongDir(std::string sDir, Calc* calc = nullptr);
 	// This one takes the effort to reuse Steps pointers as best as it can
-	bool ReloadFromSongDir(const RString& sDir);
+	bool ReloadFromSongDir(const std::string& sDir);
 	bool ReloadFromSongDir() { return ReloadFromSongDir(GetSongDir()); }
 	void ReloadIfNoMusic();
 
-	RString m_sFileHash;
-	RString GetFileHash();
+	std::string m_sFileHash;
+	std::string GetFileHash();
 
 	/**
 	 * @brief Call this after loading a song to clean up invalid data.
@@ -128,8 +128,8 @@ class Song
 	 * @param sPath the path where we're saving the file.
 	 * @param bSavingCache a flag to determine if we're saving cache data.
 	 */
-	bool SaveToSSCFile(const RString& sPath, bool bSavingCache);
-	bool SaveToETTFile(const RString& sPath, bool bSavingCache);
+	bool SaveToSSCFile(const std::string& sPath, bool bSavingCache);
+	bool SaveToETTFile(const std::string& sPath, bool bSavingCache);
 
 	/** @brief Save to the SSC and SM files no matter what. */
 	void Save();
@@ -360,7 +360,7 @@ class Song
 	 * This must be sorted before gameplay. */
 	AutoPtrCopyOnWrite<VBackgroundChange> m_ForegroundChanges;
 
-	vector<RString> GetChangesToVectorString(
+	vector<std::string> GetChangesToVectorString(
 	  const vector<BackgroundChange>& changes) const;
 
   public:
@@ -370,11 +370,11 @@ class Song
 	const vector<BackgroundChange>& GetForegroundChanges() const;
 	vector<BackgroundChange>& GetForegroundChanges();
 
-	vector<RString> GetBGChanges1ToVectorString() const;
-	vector<RString> GetBGChanges2ToVectorString() const;
-	vector<RString> GetFGChanges1ToVectorString() const;
+	vector<std::string> GetBGChanges1ToVectorString() const;
+	vector<std::string> GetBGChanges2ToVectorString() const;
+	vector<std::string> GetFGChanges1ToVectorString() const;
 
-	vector<RString> GetInstrumentTracksToVectorString() const;
+	vector<std::string> GetInstrumentTracksToVectorString() const;
 
 	/**
 	 * @brief The list of LyricSegments.
