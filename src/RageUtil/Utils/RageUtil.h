@@ -877,6 +877,8 @@ Decrement(T a)
 void
 TrimLeft(RString& sStr, const char* szTrim = "\r\n\t ");
 void
+TrimRight(std::string& sStr, const char* szTrim = "\r\n\t ");
+void
 TrimRight(RString& sStr, const char* szTrim = "\r\n\t ");
 void
 Trim(RString& sStr, const char* szTrim = "\r\n\t ");

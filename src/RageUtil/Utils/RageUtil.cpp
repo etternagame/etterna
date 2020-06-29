@@ -1399,6 +1399,18 @@ TrimRight(RString& sStr, const char* s)
 }
 
 void
+TrimRight(std::string& sStr, const char* s)
+{
+	int n = sStr.size();
+	while (n > 0 && strchr(s, sStr[n - 1]))
+		n--;
+
+	/* Delete from n to the end. If n == sStr.size(), nothing is deleted;
+	 * if n == 0, the whole string is erased. */
+	sStr.erase(sStr.begin() + n, sStr.end());
+}
+
+void
 Trim(RString& sStr, const char* s)
 {
 	RString::size_type b = 0, e = sStr.size();
