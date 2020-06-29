@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "NotesLoader.h"
 #include "NotesLoaderBMS.h"
 #include "NotesLoaderDWI.h"
@@ -32,16 +32,15 @@ NotesLoader::GetMainAndSubTitlesFromFullTitle(const RString& sFullTitle,
 bool
 NotesLoader::LoadFromDir(const RString& sPath,
 						 Song& out,
-						 set<RString>& BlacklistedImages,
-						 bool load_autosave)
+						 set<RString>& BlacklistedImages)
 {
 	vector<RString> list;
 
 	BlacklistedImages.clear();
 	SSCLoader loaderSSC;
-	loaderSSC.GetApplicableFiles(sPath, list, load_autosave);
+	loaderSSC.GetApplicableFiles(sPath, list);
 	if (!list.empty()) {
-		if (!loaderSSC.LoadFromDir(sPath, out, load_autosave)) {
+		if (!loaderSSC.LoadFromDir(sPath, out)) {
 			return false;
 		}
 		return true;
