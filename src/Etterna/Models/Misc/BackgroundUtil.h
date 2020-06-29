@@ -126,14 +126,6 @@ GetGlobalBGAnimations(const Song* pSong,
 					  vector<std::string>& vsPathsOut,
 					  vector<std::string>& vsNamesOut);
 void
-GetGlobalRandomMovies(const Song* pSong,
-					  const std::string& sMatch,
-					  vector<std::string>& vsPathsOut,
-					  vector<std::string>& vsNamesOut,
-					  bool bTryInsideOfSongGroupAndGenreFirst = true,
-					  bool bTryInsideOfSongGroupFirst = true);
-
-void
 BakeAllBackgroundChanges(Song* pSong);
 };
 

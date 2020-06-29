@@ -104,9 +104,6 @@ BackgroundChange::ToString() const
 const std::string BACKGROUND_EFFECTS_DIR = "BackgroundEffects/";
 const std::string BACKGROUND_TRANSITIONS_DIR = "BackgroundTransitions/";
 const std::string BG_ANIMS_DIR = "BGAnimations/";
-const std::string VISUALIZATIONS_DIR = "Visualizations/";
-const std::string RANDOMMOVIES_DIR = "RandomMovies/";
-const std::string SONG_MOVIES_DIR = "SongMovies/";
 
 const std::string RANDOM_BACKGROUND_FILE = "-random-";
 const std::string NO_SONG_BG_FILE = "-nosongbg-";
@@ -118,20 +115,6 @@ const std::string SBE_StretchNormal = "StretchNormal";
 const std::string SBE_StretchNoLoop = "StretchNoLoop";
 const std::string SBE_StretchRewind = "StretchRewind";
 const std::string SBT_CrossFade = "CrossFade";
-
-static void
-StripCvsAndSvn(vector<std::string>& vsPathsToStrip,
-			   vector<std::string>& vsNamesToStrip)
-{
-	ASSERT(vsPathsToStrip.size() == vsNamesToStrip.size());
-	for (unsigned i = 0; i < vsNamesToStrip.size(); i++) {
-		if (EqualsNoCaseLUL(vsNamesToStrip[i].substr(0, 3), "CVS") ||
-			vsNamesToStrip[i] == ".svn") {
-			vsPathsToStrip.erase(vsPathsToStrip.begin() + i);
-			vsNamesToStrip.erase(vsNamesToStrip.begin() + i);
-		}
-	}
-}
 
 int
 CompareBackgroundChanges(const BackgroundChange& seg1,
@@ -176,10 +159,8 @@ BackgroundUtil::GetBackgroundEffects(const std::string& _sName,
 	  BACKGROUND_EFFECTS_DIR + sName + ".lua", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	vsNamesOut.push_back(GetFileNameWithoutExtension(*s));
-
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
+	for (auto& s : vsPathsOut)
+		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
 void
@@ -192,17 +173,14 @@ BackgroundUtil::GetBackgroundTransitions(const std::string& _sName,
 		sName = "*";
 
 	vsPathsOut.clear();
-	if (true)
-		GetDirListing(
-		  BACKGROUND_TRANSITIONS_DIR + sName + ".xml", vsPathsOut, false, true);
+	GetDirListing(
+	  BACKGROUND_TRANSITIONS_DIR + sName + ".xml", vsPathsOut, false, true);
 	GetDirListing(
 	  BACKGROUND_TRANSITIONS_DIR + sName + ".lua", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	vsNamesOut.push_back(GetFileNameWithoutExtension(*s));
-
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
+	for (auto& s : vsPathsOut)
+		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
 void
@@ -219,10 +197,8 @@ BackgroundUtil::GetSongBGAnimations(const Song* pSong,
 	}
 
 	vsNamesOut.clear();
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
-
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
+	for (auto& s : vsPathsOut)
+		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
 void
@@ -244,10 +220,8 @@ BackgroundUtil::GetSongMovies(const Song* pSong,
 	}
 
 	vsNamesOut.clear();
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
-
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
+	for (auto& s : vsPathsOut)
+		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
 void
@@ -269,10 +243,8 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 	}
 
 	vsNamesOut.clear();
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
-
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
+	for (auto& s : vsPathsOut)
+		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
 static void
@@ -322,103 +294,8 @@ BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 		GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	vsNamesOut.push_back(Basename(*s));
-
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
-}
-
-namespace {
-/**
- * @brief Fetches the appropriate path(s) for global random movies.
- */
-void
-GetGlobalRandomMoviePaths(const Song* pSong,
-						  const std::string& sMatch,
-						  vector<std::string>& vsPathsOut,
-						  bool bTryInsideOfSongGroupAndGenreFirst,
-						  bool bTryInsideOfSongGroupFirst)
-{
-	// Check for an exact match
-	if (!sMatch.empty()) {
-		GetDirListing(SONG_MOVIES_DIR + pSong->m_sGroupName + "/" + sMatch,
-					  vsPathsOut,
-					  false,
-					  true); // search in SongMovies/SongGroupName/ first
-		GetDirListing(SONG_MOVIES_DIR + sMatch, vsPathsOut, false, true);
-		GetDirListing(RANDOMMOVIES_DIR + sMatch, vsPathsOut, false, true);
-		if (vsPathsOut.empty() && sMatch != NO_SONG_BG_FILE) {
-			LOG->Warn("Background missing: %s", sMatch.c_str());
-		}
-		return;
-	}
-
-	// Search for the most appropriate background
-	set<std::string> ssFileNameWhitelist;
-	if (bTryInsideOfSongGroupAndGenreFirst && pSong && !pSong->m_sGenre.empty())
-		GetFilterToFileNames(RANDOMMOVIES_DIR, pSong, ssFileNameWhitelist);
-
-	vector<std::string> vsDirsToTry;
-	if (bTryInsideOfSongGroupFirst && pSong) {
-		ASSERT(!pSong->m_sGroupName.empty());
-		vsDirsToTry.push_back(RANDOMMOVIES_DIR + pSong->m_sGroupName + "/");
-	}
-	vsDirsToTry.push_back(RANDOMMOVIES_DIR);
-
-	FOREACH_CONST(std::string, vsDirsToTry, sDir)
-	{
-		GetDirListing(*sDir + "*.ogv", vsPathsOut, false, true);
-		GetDirListing(*sDir + "*.avi", vsPathsOut, false, true);
-		GetDirListing(*sDir + "*.mpg", vsPathsOut, false, true);
-		GetDirListing(*sDir + "*.mpeg", vsPathsOut, false, true);
-
-		if (!ssFileNameWhitelist.empty()) {
-			vector<std::string> vsMatches;
-			FOREACH_CONST(std::string, vsPathsOut, s)
-			{
-				std::string sBasename = Basename(*s);
-				bool bFound = ssFileNameWhitelist.find(sBasename) !=
-							  ssFileNameWhitelist.end();
-				if (bFound)
-					vsMatches.push_back(*s);
-			}
-			// If we found any that match the whitelist, use only them.
-			// If none match the whitelist, ignore the whitelist..
-			if (!vsMatches.empty())
-				vsPathsOut = vsMatches;
-		}
-
-		if (!vsPathsOut.empty()) {
-			// Return only the first directory found
-			return;
-		}
-	}
-}
-}
-
-void
-BackgroundUtil::GetGlobalRandomMovies(const Song* pSong,
-									  const std::string& sMatch,
-									  vector<std::string>& vsPathsOut,
-									  vector<std::string>& vsNamesOut,
-									  bool bTryInsideOfSongGroupAndGenreFirst,
-									  bool bTryInsideOfSongGroupFirst)
-{
-	vsPathsOut.clear();
-	vsNamesOut.clear();
-
-	GetGlobalRandomMoviePaths(pSong,
-							  sMatch,
-							  vsPathsOut,
-							  bTryInsideOfSongGroupAndGenreFirst,
-							  bTryInsideOfSongGroupFirst);
-
-	FOREACH_CONST(std::string, vsPathsOut, s)
-	{
-		std::string sName = s->substr(s->size() - RANDOMMOVIES_DIR.size() - 1);
-		vsNamesOut.push_back(sName);
-	}
-	StripCvsAndSvn(vsPathsOut, vsNamesOut);
+	for (auto& s : vsPathsOut)
+		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
 void

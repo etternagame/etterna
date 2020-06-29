@@ -324,9 +324,6 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		if (vsPaths.empty())
 			BackgroundUtil::GetGlobalBGAnimations(
 			  pSong, sToResolve, vsPaths, vsThrowAway);
-		if (vsPaths.empty())
-			BackgroundUtil::GetGlobalRandomMovies(
-			  pSong, sToResolve, vsPaths, vsThrowAway);
 
 		std::string& sResolved = vsResolved[i];
 
@@ -556,10 +553,6 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 			case BGMODE_ANIMATIONS:
 				BackgroundUtil::GetGlobalBGAnimations(
 				  pSong, "", vsThrowAway, vsNames);
-				break;
-			case BGMODE_RANDOMMOVIES:
-				BackgroundUtil::GetGlobalRandomMovies(
-				  pSong, "", vsThrowAway, vsNames, true, true);
 				break;
 		}
 

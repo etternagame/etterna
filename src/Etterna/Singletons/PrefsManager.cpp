@@ -56,7 +56,6 @@ LuaXType(GetRankingName);
 static const char* RandomBackgroundModeNames[] = {
 	"Off",
 	"Animations",
-	"RandomMovies",
 };
 XToString(RandomBackgroundMode);
 StringToX(RandomBackgroundMode);
@@ -80,7 +79,7 @@ StringToX(HighResolutionTextures);
 LuaXType(HighResolutionTextures);
 
 static const char* AttractSoundFrequencyNames[] = {
-	"Never",	   "EveryTime",   "Every2Times",
+	"Never",	   "EveryTime",	  "Every2Times",
 	"Every3Times", "Every4Times", "Every5Times",
 };
 XToString(AttractSoundFrequency);
