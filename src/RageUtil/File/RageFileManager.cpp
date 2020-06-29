@@ -269,7 +269,7 @@ GetDirOfExecutable(RString argv0)
 				break;
 			}
 			if (sPath.empty())
-				sPath = GetCwd();	 // What?
+				sPath = GetCwd();	  // What?
 			else if (sPath[0] != '/') // For example, if . is in $PATH.
 				sPath = GetCwd() + "/" + sPath;
 
@@ -390,7 +390,7 @@ LoadedDriver::GetPath(const RString& sPath) const
 }
 
 static void
-NormalizePath(RString& sPath)
+NormalizePath(std::string& sPath)
 {
 	FixSlashesInPlace(sPath);
 	CollapsePath(sPath, true);
@@ -412,6 +412,66 @@ ieq(const RString& a, const RString& b)
 	return a.CompareNoCase(b) == 0;
 }
 void
+RageFileManager::GetDirListing(const std::string& sPath_,
+							   vector<std::string>& AddTo,
+							   bool bOnlyDirs,
+							   bool bReturnPathToo)
+{
+	std::string sPath = sPath_;
+	NormalizePath(sPath);
+
+	// NormalizePath() calls CollapsePath() which will remove "dir/.." pairs.
+	// So if a "/.." is still present, they're trying to go below the root,
+	// which isn't valid.
+	if (sPath.find("/..") != std::string::npos)
+		return;
+
+	vector<LoadedDriver*> apDriverList;
+	ReferenceAllDrivers(apDriverList);
+
+	int iDriversThatReturnedFiles = 0;
+	int iOldSize = AddTo.size();
+	for (unsigned i = 0; i < apDriverList.size(); ++i) {
+		LoadedDriver* pLoadedDriver = apDriverList[i];
+		const RString p = pLoadedDriver->GetPath(sPath);
+		if (p.size() == 0)
+			continue;
+
+		const unsigned OldStart = AddTo.size();
+
+		pLoadedDriver->m_pDriver->GetDirListing(
+		  p, AddTo, bOnlyDirs, bReturnPathToo);
+		if (AddTo.size() != OldStart)
+			++iDriversThatReturnedFiles;
+
+		/* If returning the path, prepend the mountpoint name to the files this
+		 * driver returned. */
+		if (bReturnPathToo && pLoadedDriver->m_sMountPoint.size() > 0) {
+			RString const& mountPoint = pLoadedDriver->m_sMountPoint;
+			/* Skip the trailing slash on the mountpoint; there's already a
+			 * slash there. */
+			RString const& trimPoint =
+			  mountPoint.substr(0, mountPoint.size() - 1);
+			for (unsigned j = OldStart; j < AddTo.size(); ++j) {
+				AddTo[j] = trimPoint + AddTo[j];
+			}
+		}
+	}
+
+	UnreferenceAllDrivers(apDriverList);
+	StripMacResourceForks(AddTo);
+
+	if (iDriversThatReturnedFiles > 1) {
+		/* More than one driver returned files.  Remove duplicates
+		 * (case-insensitively). */
+		sort(AddTo.begin() + iOldSize, AddTo.end(), ilt);
+		vector<std::string>::iterator it =
+		  unique(AddTo.begin() + iOldSize, AddTo.end(), ieq);
+		AddTo.erase(it, AddTo.end());
+	}
+}
+
+void
 RageFileManager::GetDirListing(const RString& sPath_,
 							   vector<RString>& AddTo,
 							   bool bOnlyDirs,
@@ -423,7 +483,7 @@ RageFileManager::GetDirListing(const RString& sPath_,
 	// NormalizePath() calls CollapsePath() which will remove "dir/.." pairs.
 	// So if a "/.." is still present, they're trying to go below the root,
 	// which isn't valid.
-	if (sPath.find("/..") != std::string::npos)
+	if (sPath.find("/..") != RString::npos)
 		return;
 
 	vector<LoadedDriver*> apDriverList;
@@ -473,6 +533,26 @@ RageFileManager::GetDirListing(const RString& sPath_,
 
 void
 RageFileManager::GetDirListingWithMultipleExtensions(
+  const std::string& sPath,
+  vector<std::string> const& ExtensionList,
+  vector<std::string>& AddTo,
+  bool bOnlyDirs,
+  bool bReturnPathToo)
+{
+	vector<std::string> ret;
+	GetDirListing(sPath + "*", ret, bOnlyDirs, bReturnPathToo);
+	for (auto&& item : ret) {
+		std::string item_ext = GetExtension(item);
+		for (auto&& check_ext : ExtensionList) {
+			if (item_ext == check_ext) {
+				AddTo.push_back(item);
+			}
+		}
+	}
+}
+
+void
+RageFileManager::GetDirListingWithMultipleExtensions(
   const RString& sPath,
   vector<RString> const& ExtensionList,
   vector<RString>& AddTo,
@@ -482,7 +562,7 @@ RageFileManager::GetDirListingWithMultipleExtensions(
 	vector<RString> ret;
 	GetDirListing(sPath + "*", ret, bOnlyDirs, bReturnPathToo);
 	for (auto&& item : ret) {
-		std::string item_ext = GetExtension(item);
+		RString item_ext = GetExtension(item);
 		for (auto&& check_ext : ExtensionList) {
 			if (item_ext == check_ext) {
 				AddTo.push_back(item);
@@ -1134,6 +1214,15 @@ GetDirListing(const RString& sPath,
 }
 
 void
+GetDirListing(const std::string& sPath,
+			  vector<std::string>& AddTo,
+			  bool bOnlyDirs,
+			  bool bReturnPathToo)
+{
+	FILEMAN->GetDirListing(sPath, AddTo, bOnlyDirs, bReturnPathToo);
+}
+
+void
 GetDirListingRecursive(const RString& sDir,
 					   const RString& sMatch,
 					   vector<RString>& AddTo)
@@ -1261,7 +1350,7 @@ class LunaRageFileManager : public Luna<RageFileManager>
 	}
 	static int GetDirListing(T* p, lua_State* L)
 	{
-		vector<RString> vDirs;
+		vector<std::string> vDirs;
 		bool bOnlyDirs = false;
 		bool bReturnPathToo = false;
 

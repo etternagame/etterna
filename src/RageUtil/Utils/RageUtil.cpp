@@ -619,6 +619,29 @@ GetLanguageInfo(const RString& sIsoCode)
 	return NULL;
 }
 
+std::string
+join(const std::string& sDeliminator, const vector<std::string>& sSource)
+{
+	if (sSource.empty())
+		return std::string();
+
+	std::string sTmp;
+	size_t final_size = 0;
+	size_t delim_size = sDeliminator.size();
+	for (size_t n = 0; n < sSource.size() - 1; ++n) {
+		final_size += sSource[n].size() + delim_size;
+	}
+	final_size += sSource.back().size();
+	sTmp.reserve(final_size);
+
+	for (unsigned iNum = 0; iNum < sSource.size() - 1; iNum++) {
+		sTmp += sSource[iNum];
+		sTmp += sDeliminator;
+	}
+	sTmp += sSource.back();
+	return sTmp;
+}
+
 RString
 join(const RString& sDeliminator, const vector<RString>& sSource)
 {
@@ -640,6 +663,36 @@ join(const RString& sDeliminator, const vector<RString>& sSource)
 	}
 	sTmp += sSource.back();
 	return sTmp;
+}
+
+std::string
+join(const std::string& sDelimitor,
+	 vector<std::string>::const_iterator begin,
+	 vector<std::string>::const_iterator end)
+{
+	if (begin == end)
+		return std::string();
+
+	std::string sRet;
+	size_t final_size = 0;
+	size_t delim_size = sDelimitor.size();
+	for (vector<std::string>::const_iterator curr = begin; curr != end;
+		 ++curr) {
+		final_size += curr->size();
+		if (curr != end) {
+			final_size += delim_size;
+		}
+	}
+	sRet.reserve(final_size);
+
+	while (begin != end) {
+		sRet += *begin;
+		++begin;
+		if (begin != end)
+			sRet += sDelimitor;
+	}
+
+	return sRet;
 }
 
 RString
@@ -1064,15 +1117,15 @@ MakeValidFilename(RString& sName)
 }
 
 bool
-FindFirstFilenameContaining(const vector<RString>& filenames,
-							RString& out,
-							const vector<RString>& starts_with,
-							const vector<RString>& contains,
-							const vector<RString>& ends_with)
+FindFirstFilenameContaining(const vector<std::string>& filenames,
+							std::string& out,
+							const vector<std::string>& starts_with,
+							const vector<std::string>& contains,
+							const vector<std::string>& ends_with)
 {
 	for (size_t i = 0; i < filenames.size(); ++i) {
-		RString lower = GetFileNameWithoutExtension(filenames[i]);
-		lower.MakeLower();
+		std::string lower = GetFileNameWithoutExtension(filenames[i]);
+		MakeLower(lower);
 		for (size_t s = 0; s < starts_with.size(); ++s) {
 			if (!lower.compare(0, starts_with[s].size(), starts_with[s])) {
 				out = filenames[i];
@@ -1083,14 +1136,14 @@ FindFirstFilenameContaining(const vector<RString>& filenames,
 		for (size_t s = 0; s < ends_with.size(); ++s) {
 			if (lower_size >= ends_with[s].size()) {
 				size_t end_pos = lower_size - ends_with[s].size();
-				if (!lower.compare(end_pos, string::npos, ends_with[s])) {
+				if (!lower.compare(end_pos, std::string::npos, ends_with[s])) {
 					out = filenames[i];
 					return true;
 				}
 			}
 		}
 		for (size_t s = 0; s < contains.size(); ++s) {
-			if (lower.find(contains[s]) != string::npos) {
+			if (lower.find(contains[s]) != std::string::npos) {
 				out = filenames[i];
 				return true;
 			}
@@ -1203,6 +1256,20 @@ GetHashForString(const RString& s)
 	unsigned crc = 0;
 	CRC32(crc, s.data(), s.size());
 	return crc;
+}
+
+/* Return true if "dir" is empty or does not exist. */
+bool
+DirectoryIsEmpty(const std::string& sDir)
+{
+	if (sDir.empty())
+		return true;
+	if (!DoesFileExist(sDir))
+		return true;
+
+	vector<std::string> asFileNames;
+	GetDirListing(sDir, asFileNames);
+	return asFileNames.empty();
 }
 
 /* Return true if "dir" is empty or does not exist. */
@@ -1413,6 +1480,12 @@ MacResourceFork(const RString& s)
 }
 
 void
+StripMacResourceForks(vector<std::string>& vs)
+{
+	RemoveIf(vs, MacResourceFork);
+}
+
+void
 StripMacResourceForks(vector<RString>& vs)
 {
 	RemoveIf(vs, MacResourceFork);
@@ -1441,7 +1514,7 @@ DerefRedir(const RString& _path)
 
 		sPath2 += "*";
 
-		vector<RString> matches;
+		vector<std::string> matches;
 		GetDirListing(sPath2, matches, false, true);
 
 		if (matches.empty())
@@ -1684,6 +1757,34 @@ Regex::Compare(const RString& sStr, vector<RString>& asMatches)
 	return true;
 }
 
+bool
+Regex::Compare(const std::string& sStr, vector<std::string>& asMatches)
+{
+	asMatches.clear();
+
+	int iMat[128 * 3];
+	int iRet = pcre_exec(
+	  (pcre*)m_pReg, NULL, sStr.data(), sStr.size(), 0, 0, iMat, 128 * 3);
+
+	if (iRet < -1)
+		RageException::Throw("Unexpected return from pcre_exec('%s'): %i.",
+							 m_sPattern.c_str(),
+							 iRet);
+
+	if (iRet == -1)
+		return false;
+
+	for (unsigned i = 1; i < m_iBackrefs; ++i) {
+		const int iStart = iMat[i * 2], end = iMat[i * 2 + 1];
+		if (iStart == -1)
+			asMatches.push_back(std::string()); /* no match */
+		else
+			asMatches.push_back(sStr.substr(iStart, end - iStart));
+	}
+
+	return true;
+}
+
 // Arguments and behavior are the same are similar to
 // http://us3.php.net/manual/en/function.preg-replace.php
 bool
@@ -1702,6 +1803,28 @@ Regex::Replace(const RString& sReplacement,
 		RString sFrom = ssprintf("\\${%d}", i);
 		RString sTo = asMatches[i];
 		sOut.Replace(sFrom, sTo);
+	}
+
+	return true;
+}
+
+bool
+Regex::Replace(const std::string& sReplacement,
+			   const std::string& sSubject,
+			   std::string& sOut)
+{
+	vector<std::string> asMatches;
+	if (!Compare(sSubject, asMatches))
+		return false;
+
+	sOut = sReplacement;
+
+	// TODO: optimize me by iterating only once over the string
+	for (unsigned i = 0; i < asMatches.size(); i++) {
+		RString sFrom = ssprintf("\\${%d}", i);
+		RString sTo = asMatches[i];
+		RString forp = sOut;
+		forp.Replace(sFrom, sTo);
 	}
 
 	return true;
@@ -1953,6 +2076,15 @@ MakeLower(wchar_t* p, size_t iLen)
 	for (size_t i = 0; *p != L'\0' && i < iLen; i++, p++) {
 		*p = towlower(*p);
 	}
+}
+
+void
+MakeLower(std::string& data)
+{
+	std::transform(std::begin(data),
+				   std::end(data),
+				   std::begin(data),
+				   [](unsigned char c) { return std::tolower(c); });
 }
 
 int
@@ -2281,6 +2413,57 @@ Replace_Unicode_Markers(RString& sText)
 	}
 }
 
+// Replace &#nnnn; (decimal) and &xnnnn; (hex) with corresponding UTF-8
+// characters.
+void
+Replace_Unicode_Markers(std::string& sText)
+{
+	unsigned iStart = 0;
+	while (iStart < sText.size()) {
+		// Look for &#digits;
+		bool bHex = false;
+		size_t iPos = sText.find("&#", iStart);
+		if (iPos == sText.npos) {
+			bHex = true;
+			iPos = sText.find("&x", iStart);
+		}
+
+		if (iPos == sText.npos)
+			break;
+		iStart = iPos + 1;
+
+		unsigned p = iPos;
+		p += 2;
+
+		// Found &# or &x. Is it followed by digits and a semicolon?
+		if (p >= sText.size())
+			continue;
+
+		int iNumDigits = 0;
+		while (p < sText.size() && bHex ? isxdigit(sText[p])
+										: isdigit(sText[p])) {
+			p++;
+			iNumDigits++;
+		}
+
+		if (!iNumDigits)
+			continue; // must have at least one digit
+		if (p >= sText.size() || sText[p] != ';')
+			continue;
+		p++;
+
+		int iNum;
+		if (bHex)
+			sscanf(sText.c_str() + iPos, "&x%x;", &iNum);
+		else
+			sscanf(sText.c_str() + iPos, "&#%i;", &iNum);
+		if (iNum > 0xFFFF)
+			iNum = INVALID_CHAR;
+
+		sText.replace(iPos, p - iPos, WcharToUTF8(wchar_t(iNum)));
+	}
+}
+
 // Form a string to identify a wchar_t with ASCII.
 RString
 WcharDisplayText(wchar_t c)
@@ -2435,9 +2618,9 @@ FixSlashesInPlace(std::string& sPath)
  */
 
 void
-CollapsePath(RString& sPath, bool bRemoveLeadingDot)
+CollapsePath(std::string& sPath, bool bRemoveLeadingDot)
 {
-	RString sOut;
+	std::string sOut;
 	sOut.reserve(sPath.size());
 
 	size_t iPos = 0;
@@ -2445,7 +2628,7 @@ CollapsePath(RString& sPath, bool bRemoveLeadingDot)
 	for (; iPos < sPath.size(); iPos = iNext) {
 		// Find the next slash.
 		iNext = sPath.find('/', iPos);
-		if (iNext == RString::npos)
+		if (iNext == std::string::npos)
 			iNext = sPath.size();
 		else
 			++iNext;
@@ -2475,7 +2658,7 @@ CollapsePath(RString& sPath, bool bRemoveLeadingDot)
 
 			// Search backwards for the previous path element.
 			size_t iPrev = sOut.rfind('/', sOut.size() - 2);
-			if (iPrev == RString::npos)
+			if (iPrev == std::string::npos)
 				iPrev = 0;
 			else
 				++iPrev;
