@@ -55,7 +55,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.96F, 0.89F, 0.82F, 0.92F, 1.08F, 0.81F, 0.885F
+	0.F, 0.975F, 0.89F, 0.82F, 0.92F, 1.08F, 0.81F, 0.9F
 };
 
 static inline auto
@@ -540,6 +540,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		OHJumpMod,
 		Balance,
 		RanMan,
+		WideRangeBalance,
 	  },
 
 	  // js
@@ -585,6 +586,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		CJDensity,
 		// CJOHJump // SQRTD BELOW
 		VOHTrill,
+		WideRangeAnchor,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -600,7 +602,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		WideRangeRoll,
 		FlamJam,
 		RanMan,
-		WideRangeAnchor,
+		// WideRangeAnchor,
 		TheThing,
 		TheThing2,
 	  },
@@ -776,7 +778,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 404;
+int mina_calc_version = 405;
 auto
 GetCalcVersion() -> int
 {
