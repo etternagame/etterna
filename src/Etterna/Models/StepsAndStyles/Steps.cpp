@@ -872,7 +872,7 @@ class LunaSteps : public Luna<Steps>
 		lua_pushboolean(L, p->GetDisplayBPM() == DISPLAY_BPM_RANDOM);
 		return 1;
 	}
-	DEFINE_METHOD(PredictMeter, PredictMeter())
+
 	static int GetDisplayBPMType(T* p, lua_State* L)
 	{
 		LuaHelpers::Push(L, p->GetDisplayBPM());
@@ -1099,7 +1099,6 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);
 		ADD_METHOD(IsDisplayBpmRandom);
-		ADD_METHOD(PredictMeter);
 		ADD_METHOD(GetDisplayBPMType);
 		ADD_METHOD(GetRelevantSkillsetsByMSDRank);
 		ADD_METHOD(GetCDGraphVectors);

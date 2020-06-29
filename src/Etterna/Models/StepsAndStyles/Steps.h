@@ -153,7 +153,6 @@ class Steps
 							  const vector<float>& etaner,
 							  int chordsize,
 							  float rate);
-	float PredictMeter() const { return 1.f; }
 
 	unsigned GetHash() const;
 	void GetNoteData(NoteData& noteDataOut) const;
