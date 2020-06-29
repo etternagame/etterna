@@ -309,7 +309,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	ASSERT_M(sDir != "", "Songs can't be loaded from an empty directory!");
 
 	// make sure there is a trailing slash at the end of sDir
-	if (sDir.substr(0, 1) != "/")
+	if (sDir.back() != '/')
 		sDir += "/";
 
 	// save song dir
