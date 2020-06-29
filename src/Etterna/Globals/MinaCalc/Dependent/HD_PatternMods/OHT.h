@@ -7,7 +7,9 @@
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
 /* this is complex enough it should probably have its own sequencer, there's
- * also a fair bit of redundancy between this, wrjt, wrr */
+ * also a fair bit of redundancy between this, wrjt, wrr. Currently this has the
+ * best component construction for the pmod so maybe the other mods should use
+ * this as a template? */
 
 static const int max_trills_per_interval = 4;
 
