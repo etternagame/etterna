@@ -52,10 +52,10 @@ enum InstrumentTrack
 	NUM_InstrumentTrack,
 	InstrumentTrack_Invalid
 };
-const std::string&
+const RString&
 InstrumentTrackToString(InstrumentTrack it);
 InstrumentTrack
-StringToInstrumentTrack(const std::string& s);
+StringToInstrumentTrack(const RString& s);
 
 /** @brief The collection of lyrics for the Song. */
 struct LyricSegment

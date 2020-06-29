@@ -1566,8 +1566,8 @@ Song::GetInstrumentTracksToVectorString() const
 	FOREACH_ENUM(InstrumentTrack, it)
 	{
 		if (this->HasInstrumentTrack(it)) {
-			ret.push_back(InstrumentTrackToString(it) + "=" +
-						  this->m_sInstrumentTrackFile[it]);
+			ret.push_back(std::string(InstrumentTrackToString(it) + "=" +
+									  this->m_sInstrumentTrackFile[it]));
 		}
 	}
 	return ret;
