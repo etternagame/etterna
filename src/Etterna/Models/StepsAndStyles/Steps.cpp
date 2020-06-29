@@ -701,9 +701,9 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 }
 
 vector<int>
-Steps::GetNPSVector(NoteData& nd,
-					vector<int> nerv,
-					vector<float> etaner,
+Steps::GetNPSVector(const NoteData& nd,
+					const vector<int>& nerv,
+					const vector<float>& etaner,
 					float rate)
 {
 	vector<int> doot(static_cast<int>(etaner.back()));
@@ -730,9 +730,9 @@ Steps::GetNPSVector(NoteData& nd,
 }
 
 vector<int>
-Steps::GetCNPSVector(NoteData& nd,
-					 vector<int> nerv,
-					 vector<float> etaner,
+Steps::GetCNPSVector(const NoteData& nd,
+					 const vector<int>& nerv,
+					 const vector<float>& etaner,
 					 int chordsize,
 					 float rate)
 {

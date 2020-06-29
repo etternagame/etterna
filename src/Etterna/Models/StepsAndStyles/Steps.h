@@ -140,17 +140,17 @@ class Steps
 	void SetCachedRadarValues(const RadarValues& v);
 
 	// self exaplanatory -mina
-	vector<int> GetNPSVector(NoteData& nd,
-							 vector<int> nerv,
-							 vector<float> etaner,
+	vector<int> GetNPSVector(const NoteData& nd,
+							 const vector<int>& nerv,
+							 const vector<float>& etaner,
 							 float rate);
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
 	// (jumps won't count as hands, etc)
-	vector<int> GetCNPSVector(NoteData& nd,
-							  vector<int> nerv,
-							  vector<float> etaner,
+	vector<int> GetCNPSVector(const NoteData& nd,
+							  const vector<int>& nerv,
+							  const vector<float>& etaner,
 							  int chordsize,
 							  float rate);
 	float PredictMeter() const { return 1.f; }
