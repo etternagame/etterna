@@ -19,7 +19,7 @@ struct StreamMod
 	float min_mod = 0.6F;
 	float max_mod = 1.0F;
 	float prop_buffer = 1.F;
-	float prop_scaler = 1.428F; // ~10/7
+	float prop_scaler = 1.41F;
 
 	float jack_pool = 4.F;
 	float jack_comp_min = 0.5F;
@@ -58,13 +58,11 @@ struct StreamMod
 			return min_mod;
 		}
 
-		// we want very light js to register as stream,
-		// something like jumps on every other 4th, so 17/19
-		// ratio should return full points, but maybe we should
-		// allow for some leeway in bad interval slicing this
-		// maybe doesn't need to be so severe, on the other
-		// hand, maybe it doesn'ting need to be not needing'nt
-		// to be so severe
+		/* we want very light js to register as stream, something like jumps on
+		 * every other 4th, so 17/19 ratio should return full points, but maybe
+		 * we should allow for some leeway in bad interval slicing this maybe
+		 * doesn't need to be so severe, on the other hand, maybe it doesn'ting
+		 * need to be not needing'nt to be so severe */ 
 
 		// we could make better use of sequencing here since now it's easy
 
@@ -89,7 +87,6 @@ struct StreamMod
 				pmod *= 0.95F * vibro_flag;
 			}
 		}
-
 
 		// actual mod
 		return pmod;
