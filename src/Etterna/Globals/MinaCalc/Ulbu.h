@@ -47,6 +47,8 @@
 // actual cancer
 bool debug_lmao;
 
+extern const std::array<float, NUM_Skillset> basescalers;
+
 // i am ulbu, the great bazoinkazoink in the sky
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -116,12 +118,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_calc_params_from_disk();
 #endif
 #endif
-		// ok so the problem atm is the multithreading of songload, if we
-		// want to update the file on disk with new values and not just
-		// overwrite it we have to write out after loading the values player
-		// defined, so the quick hack solution to do that is to only do it
-		// during debug output generation, which is fine for the time being,
-		// though not ideal
+		/* ok so the problem atm is the multithreading of songload, if we want
+		 * to update the file on disk with new values and not just overwrite it
+		 * we have to write out after loading the values player defined, so the
+		 * quick hack solution to do that is to only do it during debug output
+		 * generation, which is fine for the time being, though not ideal */
 		if (debug_lmao) {
 			write_params_to_disk();
 		}
@@ -323,11 +324,15 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 	// update base difficulty stuff
-	inline void update_sequenced_base_diffs(const col_type& ct, const int& row)
+	inline void update_sequenced_base_diffs(const col_type& ct,
+											const int& itv,
+											const int& row)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc.jack_diff.at(hand).at(row) = _seq._as.get_lowest_anchor_ms();
+		_calc.jack_diff.at(hand).at(itv).at(row) =
+		  ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+		  basescalers[Skill_JackSpeed];
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -415,7 +420,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * sequenced here, meaning they are order dependent (jack
 					 * might not be for the moment actually) nps base is still
 					 * calculated in the old way */
-					update_sequenced_base_diffs(ct, row);
+					update_sequenced_base_diffs(ct, itv, row);
 
 					// only ohj uses this atm (and probably into the future) so
 					// it might kind of be a waste?

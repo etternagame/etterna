@@ -55,7 +55,7 @@ static const float stam_prop =
 // and chordstreams start lower
 // stam is a special case and may use normalizers again
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.975F, 0.89F, 0.82F, 0.92F, 1.08F, 0.81F, 0.9F
+	0.F, 0.975F, 0.89F, 0.82F, 0.92F, 1.F, 0.81F, 0.9F
 };
 
 static inline auto
@@ -293,37 +293,71 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 15.F;
-static const float magic_num_TWO = 2.5F;
+static const float magic_num = 6.F;
+static const float magic_num_TWO = 2.25F;
 static const float gratuitously_defined_zero_value = 0.F;
 
-inline auto
+[[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
 {
-	if (x > y) {
-		return 0.F;
-	}
-
-	return (CalcClamp(magic_num - (magic_num * fastpow(x / y, magic_num_TWO)),
-					  gratuitously_defined_zero_value,
-					  magic_num));
+	return magic_num - (magic_num * fastpow(x / y, magic_num_TWO));
 }
 
+/* ok this is a little jank, we are calculating jack loss looping over the
+ * interval and interval size loop that adj_ni uses, or each rows per interval,
+ * except we're doing it for each hand. aggregating jack diff into intervals
+ * proves too problematic, so we'll calculate it by discrete notes, calculate
+ * the point loss the same way, and then dump them into intervals just for calc
+ * debug display. this also lets us put back some sort of jack stam model.
+ * this sets pointloss debug values only, not diff. Note: jackloss should always
+ * be a positive value, and be substracted */
 inline auto
 jackloss(const float& x, Calc& calc, const int& hi) -> float
 {
 	float total = 0.F;
+	float row_loss = 0.F;
 
-	// set interval values values and total in the same loop
-	for (int i = 0; i < calc.numitv; ++i) {
-		float loss =
-		  hit_the_road(x, calc.base_adj_diff.at(hi)[Skill_JackSpeed].at(i));
-		total += loss;
+	// interval loop
+	for (int itv = 0; itv < calc.numitv; ++itv) {
+		float itv_total = 0.F;
 
-		calc.jack_loss.at(hi).at(i) = loss;
+		// rows per interval now
+		for (int row = 0; row < calc.itv_size.at(itv); ++row) {
+			const auto& y = calc.jack_diff.at(hi).at(itv).at(row);
+
+			if (x < y && x > 0.F) {
+				row_loss = hit_the_road(x, y);
+				itv_total += row_loss;
+			}
+		}
+
+		// this is per _interval_, but calculated by row scanning
+		calc.jack_loss.at(hi).at(itv) = itv_total;
+		total += itv_total;
 	}
-
 	return total;
+}
+
+// we want intervals not row values here, just average them, it's only for calc
+// display and doesn't affect internal calculations
+inline void
+set_jack_diff_debug(Calc& calc, const int& hi)
+{
+	// interval loop
+	for (int itv = 0; itv < calc.numitv; ++itv) {
+		float diff_total = 0.F;
+		int counter = 0;
+
+		// rows per interval now
+		for (int row = 0; row < calc.itv_size.at(itv); ++row) {
+			diff_total += calc.jack_diff.at(hi).at(itv).at(row);
+			++counter;
+		}
+
+		// technically this is kind of a waste of an array but whatever
+		calc.soap.at(hi)[JackBase].at(itv) =
+		  diff_total / static_cast<float>(counter);
+	}
 }
 
 // debug bool here is NOT the one in Calc, it is passed from chisel
@@ -406,8 +440,8 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// debug info loop
 	if (debugmode) {
 		for (auto& hi : { left_hand, right_hand }) {
-			// pattern mods and base msd never change, set degbug output
-			// for them now
+			// pattern mods and base msd never change, set degbug
+			// output for them now
 
 			// 3 = number of different debug types
 			debugValues.at(hi).resize(3);
@@ -422,6 +456,13 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 				// set everything but final adjusted output here
 				for (int i = 0; i < NUM_CalcDiffValue - 1; ++i) {
+
+					// these are calculated by row, so we need to aggregate them
+					// into intervals before setting the values
+					if (i == JackBase) {
+						set_jack_diff_debug(*this, hi);
+					}
+
 					debugValues.at(hi)[1][i].push_back(soap.at(hi).at(i).at(j));
 				}
 			}
@@ -452,15 +493,17 @@ Calc::Chisel(float player_skill,
 				return 0.F; // not how we set these values
 			}
 
-			// reset tallied score, always deduct rather than accumulate now
+			// reset tallied score, always deduct rather than
+			// accumulate now
 			gotpoints = static_cast<float>(MaxPoints);
 
 			for (auto& hi : { left_hand, right_hand }) {
 
-				/* only run the other hand if we're still above the reqpoints,
-				 * if we're already below, there's no point, i.e. we're so far
-				 * below the skill benchmark it's impossible to reach the goal
-				 * after just the first hand's losses are totaled */
+				/* only run the other hand if we're still above the
+				 * reqpoints, if we're already below, there's no
+				 * point, i.e. we're so far below the skill
+				 * benchmark it's impossible to reach the goal after
+				 * just the first hand's losses are totaled */
 				if (gotpoints > reqpoints) {
 					if (ss == Skill_JackSpeed) {
 						gotpoints -= jackloss(player_skill, *this, hi);
@@ -468,10 +511,10 @@ Calc::Chisel(float player_skill,
 						CalcInternal(
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
-					if (ss == Skill_Technical) {
+					/*if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(
 						  jackloss(player_skill * 0.8F, *this, hi) / 1.F);
-					}
+					}*/
 				}
 			}
 		} while (gotpoints < reqpoints);
@@ -479,10 +522,11 @@ Calc::Chisel(float player_skill,
 		resolution /= 2.F;
 	}
 
-	/* these are the values for msd/stam adjusted msd/pointloss the latter two
-	 * are dependent on player_skill and so should only be recalculated with the
-	 * final value already determined for clarification, player_skill value
-	 * being passed into here is the final value we've determined */
+	/* these are the values for msd/stam adjusted msd/pointloss the
+	 * latter two are dependent on player_skill and so should only
+	 * be recalculated with the final value already determined for
+	 * clarification, player_skill value being passed into here is
+	 * the final value we've determined */
 
 	if (debugoutput) {
 		for (auto& hi : { left_hand, right_hand }) {
@@ -502,26 +546,20 @@ Calc::Chisel(float player_skill,
 inline void
 Calc::InitAdjDiff(Calc& calc, const int& hi)
 {
-	// new plan stop being dumb and doing this over and over again
-	// in calc internal because these values never change
-
-	// the new way we wil attempt to diffrentiate skillsets rather
-	// than using normalizers is by detecting whether or not we
-	// think a file is mostly comprised of a given pattern,
-	// producing a downscaler that slightly buffs up those files and
-	// produces a downscaler for files not detected of that type.
-	// the major potential failing of this system is that it ends up
-	// such that the rating is tied directly to whether or not a
-	// file can be more or less strongly determined to be of a
-	// pattern type, e.g. splithand trills being marked as more "js"
-	// than actual js, for the moment these modifiers are still
-	// built on proportion of taps in chords / total taps, but
-	// there's a lot more give than their used to be. they should be
-	// re-done as sequential detection for best effect but i don't
-	// know if that will be necessary for basic tuning if we don't
-	// do this files may end up misclassing hard and polluting
-	// leaderboards, and good scores on overrated files will simply
-	// produce high ratings in every category
+	/* the new way we wil attempt to diffrentiate skillsets rather than using
+	 * normalizers is by detecting whether or not we think a file is mostly
+	 * comprised of a given pattern, producing a downscaler that slightly buffs
+	 * up those files and produces a downscaler for files not detected of that
+	 * type. the major potential failing of this system is that it ends up such
+	 * that the rating is tied directly to whether or not a file can be more or
+	 * less strongly determined to be of a pattern type, e.g. splithand trills
+	 * being marked as more "js" than actual js, for the moment these modifiers
+	 * are still built on proportion of taps in chords / total taps, but there's
+	 * a lot more give than their used to be. they should be re-done as
+	 * sequential detection for best effect but i don't know if that will be
+	 * necessary for basic tuning if we don't do this files may end up
+	 * misclassing hard and polluting leaderboards, and good scores on overrated
+	 * files will simply produce high ratings in every category */
 
 	static const std::array<vector<int>, NUM_Skillset> pmods_used = { {
 	  // overall, nothing, don't handle here
@@ -663,8 +701,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
 
 					/*adj_diff *=
-					  CalcClamp(fastsqrt(doot.at(hi).at(RanMan).at(i) -
-					  0.2f), 1.f, 1.05f);*/
+					  CalcClamp(fastsqrt(doot.at(hi).at(RanMan).at(i)
+					  - 0.2f), 1.f, 1.05f);*/
 					// maybe we should have 2 loops to avoid doing
 					// math twice
 					float a = *adj_diff;
@@ -674,7 +712,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 				} break;
 				case Skill_Handstream: {
 
-					// adj_diff /= fastsqrt(doot.at(hi).at(OHJump).at(i));
+					// adj_diff /=
+					// fastsqrt(doot.at(hi).at(OHJump).at(i));
 					float a = funk;
 					float b = calc.soap.at(hi).at(NPSBase).at(i) *
 							  tp_mods[Skill_Jumpstream];
@@ -734,7 +773,8 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 
 	if (NoteInfo.size() > 1) {
 		// If we're not given a calc make one just for this
-		// Must be declared outside the !calc if so it's alive when used
+		// Must be declared outside the !calc if so it's alive when
+		// used
 		if (calc == nullptr) {
 			cacheRun = std::make_unique<Calc>();
 			calc = cacheRun.get();
@@ -778,7 +818,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 405;
+int mina_calc_version = 407;
 auto
 GetCalcVersion() -> int
 {

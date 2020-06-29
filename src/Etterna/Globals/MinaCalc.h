@@ -123,8 +123,11 @@ class Calc
 	 * but that might just be too confusing idk */
 	std::array<float, max_intervals> stam_adj_diff{};
 
-	// per row, per hand, uhh, use a vector here i guess w.e
-	std::array<std::vector<float>, num_hands> jack_diff{};
+	// loop using numitv and itv size, like we do with adj_ni
+	std::array<std::array<std::array<float, max_rows_for_single_interval>,
+						  max_intervals>,
+			   num_hands>
+	  jack_diff{};
 
 	// we may want to store this value for use in other skillset passes- maybe
 	std::array<std::array<float, max_intervals>, num_hands> jack_loss{};
