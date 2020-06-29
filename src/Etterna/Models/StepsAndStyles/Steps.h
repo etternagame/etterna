@@ -33,8 +33,8 @@ enum DisplayBPM
 	NUM_DisplayBPM,
 	DisplayBPM_Invalid
 };
-const RString&
-DisplayBPMToString(DisplayBPM dbpm);
+auto
+DisplayBPMToString(DisplayBPM x) -> const RString&;
 LuaDeclareType(DisplayBPM);
 
 /**
@@ -68,56 +68,62 @@ class Steps
 	 * Edits have a special value of difficulty to make it easy to determine.
 	 * @return true if this is an edit, false otherwise.
 	 */
-	bool IsAnEdit() const { return m_Difficulty == Difficulty_Edit; }
+	auto IsAnEdit() const -> bool { return m_Difficulty == Difficulty_Edit; }
 	/**
 	 * @brief Determine if this set of Steps is a player edit.
 	 *
 	 * Player edits also have to be loaded from a player's profile slot, not the
 	 * machine.
 	 * @return true if this is a player edit, false otherwise. */
-	bool IsAPlayerEdit() const { return IsAnEdit(); }
+	auto IsAPlayerEdit() const -> bool { return IsAnEdit(); }
 	/**
 	 * @brief Determine if these steps were loaded from a player's profile.
 	 * @return true if they were from a player profile, false otherwise.
 	 */
-	bool WasLoadedFromProfile() const
+	auto WasLoadedFromProfile() const -> bool
 	{
 		return m_LoadedFromProfile != ProfileSlot_Invalid;
 	}
-	ProfileSlot GetLoadedFromProfileSlot() const { return m_LoadedFromProfile; }
+	auto GetLoadedFromProfileSlot() const -> ProfileSlot
+	{
+		return m_LoadedFromProfile;
+	}
 	/**
 	 * @brief Retrieve the description used for this edit.
 	 * @return the description used for this edit.
 	 */
-	const std::string& GetDescription() const { return m_sDescription; }
+	auto GetDescription() const -> const std::string& { return m_sDescription; }
 	/**
 	 * @brief Retrieve the ChartStyle used for this chart.
 	 * @return the description used for this chart.
 	 */
-	const std::string& GetChartStyle() const { return m_sChartStyle; }
+	auto GetChartStyle() const -> const std::string& { return m_sChartStyle; }
 	/**
 	 * @brief Retrieve the difficulty used for this edit.
 	 * @return the difficulty used for this edit.
 	 */
-	const Difficulty GetDifficulty() const { return m_Difficulty; }
+	auto GetDifficulty() const -> const Difficulty { return m_Difficulty; }
 	/**
 	 * @brief Retrieve the meter used for this edit.
 	 * @return the meter used for this edit.
 	 */
-	int GetMeter() const { return m_iMeter; }
-	const RadarValues& GetRadarValues() const { return m_CachedRadarValues; }
+	auto GetMeter() const -> int { return m_iMeter; }
+	auto GetRadarValues() const -> const RadarValues&
+	{
+		return m_CachedRadarValues;
+	}
 	/**
 	 * @brief Retrieve the author credit used for this edit.
 	 * @return the author credit used for this edit.
 	 */
-	const std::string& GetCredit() const { return m_sCredit; }
+	auto GetCredit() const -> const std::string& { return m_sCredit; }
 
-	const std::string& GetChartName() const { return chartName; }
+	auto GetChartName() const -> const std::string& { return chartName; }
 	void SetChartName(const std::string& name) { this->chartName = name; }
 	void SetFilename(const std::string& fn) { m_sFilename = fn; }
-	const std::string& GetFilename() const { return m_sFilename; }
+	auto GetFilename() const -> const std::string& { return m_sFilename; }
 	void SetSavedToDisk(bool b) { m_bSavedToDisk = b; }
-	bool GetSavedToDisk() const { return m_bSavedToDisk; }
+	auto GetSavedToDisk() const -> bool { return m_bSavedToDisk; }
 	void SetDifficulty(Difficulty dc)
 	{
 		SetDifficultyAndDescription(dc, GetDescription());
@@ -131,32 +137,32 @@ class Steps
 	void SetCredit(const std::string& sCredit);
 	void SetChartStyle(const std::string& sChartStyle);
 	void SetDupeDiff(bool state) { m_bDuplicateDifficulty = state; }
-	bool IsDupeDiff() { return m_bDuplicateDifficulty; }
-	static bool MakeValidEditDescription(
-	  std::string& sPreferredDescription); // return true if was modified
+	auto IsDupeDiff() -> bool { return m_bDuplicateDifficulty; }
+	static auto MakeValidEditDescription(std::string& sPreferredDescription)
+	  -> bool; // return true if was modified
 
 	void SetLoadedFromProfile(ProfileSlot slot) { m_LoadedFromProfile = slot; }
 	void SetMeter(int meter);
 	void SetCachedRadarValues(const RadarValues& v);
 
 	// self exaplanatory -mina
-	vector<int> GetNPSVector(const NoteData& nd,
+	static auto GetNPSVector(const NoteData& nd,
 							 const vector<int>& nerv,
 							 const vector<float>& etaner,
-							 float rate);
+							 float rate) -> vector<int>;
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
 	// (jumps won't count as hands, etc)
-	vector<int> GetCNPSVector(const NoteData& nd,
+	static auto GetCNPSVector(const NoteData& nd,
 							  const vector<int>& nerv,
 							  const vector<float>& etaner,
 							  int chordsize,
-							  float rate);
+							  float rate) -> vector<int>;
 
-	unsigned GetHash() const;
+	auto GetHash() const -> unsigned;
 	void GetNoteData(NoteData& noteDataOut) const;
-	NoteData GetNoteData() const;
+	auto GetNoteData() const -> NoteData;
 	void SetNoteData(const NoteData& noteDataNew);
 	void SetSMNoteData(const RString& notes_comp);
 	void GetSMNoteData(RString& notes_comp_out) const;
@@ -164,14 +170,14 @@ class Steps
 	/**
 	 * @brief Retrieve the NoteData from the original source.
 	 * @return true if successful, false for failure. */
-	bool GetNoteDataFromSimfile();
+	auto GetNoteDataFromSimfile() -> bool;
 
 	/**
 	 * @brief Determine if we are missing any note data.
 	 *
 	 * This takes advantage of the fact that we usually compress our data.
 	 * @return true if our notedata is empty, false otherwise. */
-	bool IsNoteDataEmpty() const;
+	auto IsNoteDataEmpty() const -> bool;
 
 	void GetETTNoteData(RString& notes_comp_out) const;
 	void TidyUpData();
@@ -186,8 +192,8 @@ class Steps
 	/**
 	 * @brief Retrieves the appropriate timing data for the Steps.  Falls
 	 * back on the Song if needed. */
-	const TimingData* GetTimingData() const;
-	TimingData* GetTimingData()
+	auto GetTimingData() const -> const TimingData*;
+	auto GetTimingData() -> TimingData*
 	{
 		return const_cast<TimingData*>(
 		  static_cast<const Steps*>(this)->GetTimingData());
@@ -196,19 +202,19 @@ class Steps
 	/* Now for half the reason I'm bothering to do this... generate a chart key
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
-	const std::string& GetChartKey() const { return ChartKey; }
+	auto GetChartKey() const -> const std::string& { return ChartKey; }
 	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
 						  dummy, dummy, dummy, dummy, dummy, dummy, dummy,
 						  dummy, dummy, dummy, dummy, dummy, dummy, dummy };
 	void SetChartKey(const std::string& k) { ChartKey = k; }
 	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
-	MinaSD GetAllMSD() const { return diffByRate; }
-	vector<pair<Skillset, float>> SortSkillsetsAtRate(float x,
-													  bool includeoverall);
+	auto GetAllMSD() const -> MinaSD { return diffByRate; }
+	auto SortSkillsetsAtRate(float x, bool includeoverall)
+	  -> vector<pair<Skillset, float>>;
 
-	void CalcEtternaMetadata(Calc* calc=nullptr);
-	float DoATestThing(float ev, Skillset ss, float rate);
+	void CalcEtternaMetadata(Calc* calc = nullptr);
+	auto DoATestThing(float ev, Skillset ss, float rate) -> float;
 	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
 	vector<vector<vector<vector<float>>>>
 	  calcdebugoutput; // probably should clear this periodically
@@ -219,36 +225,37 @@ class Steps
 
 	// this is bugged and returns true for files with negative bpms when it
 	// shouldn't - mina
-	bool IsRecalcValid();
+	auto IsRecalcValid() -> bool;
 
-	float GetMSD(float rate, int ss) const
+	auto GetMSD(float rate, int ss) const -> float
 	{
 		return GetMSD(rate, static_cast<Skillset>(ss));
 	}
-	float GetMSD(float rate, Skillset ss) const;
+	auto GetMSD(float rate, Skillset ss) const -> float;
 
 	/* This is a reimplementation of the lua version of the script to generate
 	chart keys, except this time using the notedata stored in game memory
 	immediately after reading it than parsing it using lua. - Mina */
-	std::string GenerateChartKey(NoteData& nd, TimingData* td);
+	auto GenerateChartKey(NoteData& nd, TimingData* td) -> std::string;
 
 	/* Append all of the bpms in the given range to the input std::string */
-	void FillStringWithBPMs(size_t startRow,
-							size_t endRow,
-							vector<int>& nerv,
-							NoteData& nd,
-							TimingData* td,
-							std::string& inOut);
+	static void FillStringWithBPMs(size_t startRow,
+								   size_t endRow,
+								   vector<int>& nerv,
+								   NoteData& nd,
+								   TimingData* td,
+								   std::string& inOut);
 
 	/**
 	 * @brief Determine if the Steps have any major timing changes during
 	 * gameplay.
 	 * @return true if it does, or false otherwise. */
-	bool HasSignificantTimingChanges() const;
+	auto HasSignificantTimingChanges() const -> bool;
 
-	const std::string& GetMusicPath() const; // Returns the path for loading.
-	const std::string& GetMusicFile()
-	  const; // Returns the filename for the simfile.
+	auto GetMusicPath() const
+	  -> const std::string&; // Returns the path for loading.
+	auto GetMusicFile() const
+	  -> const std::string&; // Returns the filename for the simfile.
 	void SetMusicFile(const std::string& file);
 
 	// Lua
@@ -266,11 +273,11 @@ class Steps
 	CachedObject<Steps> m_CachedObject;
 
 	void SetDisplayBPM(const DisplayBPM type) { this->displayBPMType = type; }
-	DisplayBPM GetDisplayBPM() const { return this->displayBPMType; }
+	auto GetDisplayBPM() const -> DisplayBPM { return this->displayBPMType; }
 	void SetMinBPM(const float f) { this->specifiedBPMMin = f; }
-	float GetMinBPM() const { return this->specifiedBPMMin; }
+	auto GetMinBPM() const -> float { return this->specifiedBPMMin; }
 	void SetMaxBPM(const float f) { this->specifiedBPMMax = f; }
-	float GetMaxBPM() const { return this->specifiedBPMMax; }
+	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
 	void GetDisplayBpms(DisplayBpms& addTo) const;
 
   private:

@@ -78,35 +78,38 @@ Steps::GetDisplayBpms(DisplayBpms& AddTo) const
 		AddTo.Add(this->GetMinBPM());
 		AddTo.Add(this->GetMaxBPM());
 	} else {
-		float fMinBPM, fMaxBPM;
+		float fMinBPM;
+		float fMaxBPM;
 		this->GetTimingData()->GetActualBPM(fMinBPM, fMaxBPM);
 		AddTo.Add(fMinBPM);
 		AddTo.Add(fMaxBPM);
 	}
 }
 
-unsigned
-Steps::GetHash() const
+auto
+Steps::GetHash() const -> unsigned
 {
-	if (m_iHash != 0u)
+	if (m_iHash != 0u) {
 		return m_iHash;
+	}
 	if (m_sNoteDataCompressed.empty()) {
-		if (!m_bNoteDataIsFilled)
+		if (!m_bNoteDataIsFilled) {
 			return 0; // No data, no hash.
+		}
 		NoteDataUtil::GetSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
 	}
 	m_iHash = GetHashForString(m_sNoteDataCompressed);
 	return m_iHash;
 }
 
-bool
-Steps::IsNoteDataEmpty() const
+auto
+Steps::IsNoteDataEmpty() const -> bool
 {
 	return this->m_sNoteDataCompressed.empty() && !m_bNoteDataIsFilled;
 }
 
-bool
-Steps::GetNoteDataFromSimfile()
+auto
+Steps::GetNoteDataFromSimfile() -> bool
 {
 	// Replace the line below with the Steps' cache file.
 	RString stepFile = this->GetFilename();
@@ -134,10 +137,10 @@ Steps::GetNoteDataFromSimfile()
 
 			return backup_loader.LoadNoteDataFromSimfile(transformedStepFile,
 														 *this);
-		} else {
-			return true;
 		}
-	} else if (extension == "sm") {
+		return true;
+	}
+	if (extension == "sm") {
 		SMLoader loader;
 		return loader.LoadNoteDataFromSimfile(stepFile, *this);
 	} else if (extension == "sma") {
@@ -155,11 +158,13 @@ Steps::GetNoteDataFromSimfile()
 	} else if (extension == "edit") {
 		// Try SSC, then fallback to SM.
 		SSCLoader ldSSC;
-		if (ldSSC.LoadNoteDataFromSimfile(stepFile, *this) != true) {
+		if (!ldSSC.LoadNoteDataFromSimfile(stepFile, *this)) {
 			SMLoader ldSM;
 			return ldSM.LoadNoteDataFromSimfile(stepFile, *this);
-		} else
+		}
+		{
 			return true;
+		}
 	}
 	return false;
 }
@@ -191,8 +196,8 @@ Steps::GetNoteData(NoteData& noteDataOut) const
 	}
 }
 
-NoteData
-Steps::GetNoteData() const
+auto
+Steps::GetNoteData() const -> NoteData
 {
 	NoteData tmp;
 	this->GetNoteData(tmp);
@@ -255,26 +260,29 @@ Steps::TidyUpData()
 		LOG->Warn("Detected steps with unknown style '%s' in '%s'",
 				  m_StepsTypeStr.c_str(),
 				  m_pSong->m_sSongFileName.c_str());
-	} else if (m_StepsTypeStr == "") {
+	} else if (m_StepsTypeStr.empty()) {
 		m_StepsTypeStr = GAMEMAN->GetStepsTypeInfo(m_StepsType).szName;
 	}
 
-	if (GetDifficulty() == Difficulty_Invalid)
-		SetDifficulty(StringToDifficulty(GetDescription()));
-
 	if (GetDifficulty() == Difficulty_Invalid) {
-		if (GetMeter() == 1)
-			SetDifficulty(Difficulty_Beginner);
-		else if (GetMeter() <= 3)
-			SetDifficulty(Difficulty_Easy);
-		else if (GetMeter() <= 6)
-			SetDifficulty(Difficulty_Medium);
-		else
-			SetDifficulty(Difficulty_Hard);
+		SetDifficulty(StringToDifficulty(GetDescription()));
 	}
 
-	if (GetMeter() < 1) // meter is invalid
+	if (GetDifficulty() == Difficulty_Invalid) {
+		if (GetMeter() == 1) {
+			SetDifficulty(Difficulty_Beginner);
+		} else if (GetMeter() <= 3) {
+			SetDifficulty(Difficulty_Easy);
+		} else if (GetMeter() <= 6) {
+			SetDifficulty(Difficulty_Medium);
+		} else {
+			SetDifficulty(Difficulty_Hard);
+		}
+	}
+
+	if (GetMeter() < 1) { // meter is invalid
 		SetMeter(static_cast<int>(1));
+	}
 }
 
 void
@@ -289,8 +297,9 @@ Steps::CalculateRadarValues(float fMusicLengthSeconds)
 
 	// skip anything that uhh, doesn't have any notes to calculate radar values
 	// from?
-	if (m_pNoteData->GetNumTracks() == 0)
+	if (m_pNoteData->GetNumTracks() == 0) {
 		return;
+	}
 
 	// this is only ever called from copyfrom and recalculateradarvalues
 	// the former is obsolete and in the case of the latter we know
@@ -302,7 +311,7 @@ Steps::CalculateRadarValues(float fMusicLengthSeconds)
 	NoteDataUtil::CalculateRadarValues(
 	  *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues, td);
 
-	GAMESTATE->SetProcessedTimingData(NULL);
+	GAMESTATE->SetProcessedTimingData(nullptr);
 }
 
 void
@@ -314,8 +323,9 @@ Steps::Decompress() const
 void
 Steps::Decompress()
 {
-	if (m_bNoteDataIsFilled)
+	if (m_bNoteDataIsFilled) {
 		return; // already decompressed
+	}
 
 	if (!m_sFilename.empty() && m_sNoteDataCompressed.empty()) {
 		// We have NoteData on disk and not in memory. Load it.
@@ -340,22 +350,24 @@ Steps::Decompress()
 	NoteDataUtil::LoadFromSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
 }
 
-bool
-Steps::IsRecalcValid()
+auto
+Steps::IsRecalcValid() -> bool
 {
 	if (m_StepsType != StepsType_dance_single &&
-		m_StepsType != StepsType_dance_solo)
+		m_StepsType != StepsType_dance_solo) {
 		return false;
+	}
 
 	if (m_CachedRadarValues[RadarCategory_Notes] < 200 &&
-		m_CachedRadarValues[RadarCategory_Notes] != 4)
+		m_CachedRadarValues[RadarCategory_Notes] != 4) {
 		return false;
+	}
 
 	return true;
 }
 
-float
-Steps::GetMSD(float rate, Skillset ss) const
+auto
+Steps::GetMSD(float rate, Skillset ss) const -> float
 {
 	if (rate > 2.f) // just extrapolate from 2x+
 	{
@@ -365,23 +377,26 @@ Steps::GetMSD(float rate, Skillset ss) const
 
 	int idx = static_cast<int>(rate * 10) - 7;
 	float prop = fmod(rate * 10.f, 1.f);
-	if (prop == 0 && rate <= 2.f)
+	if (prop == 0 && rate <= 2.f) {
 		return diffByRate[idx][ss];
+	}
 
 	const float pDiffL = diffByRate[idx][ss];
 	const float pDiffH = diffByRate[idx + 1][ss];
 	return lerp(prop, pDiffL, pDiffH);
 }
 
-vector<pair<Skillset, float>>
+auto
 Steps::SortSkillsetsAtRate(float x, bool includeoverall)
+  -> vector<pair<Skillset, float>>
 {
-	int idx = static_cast<int>(x * 10) - 7;
+	auto idx = static_cast<int>(x * 10) - 7;
 	vector<float> tmp = diffByRate[idx];
 	vector<pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
-	if (ss != Skill_Overall || includeoverall)
+	if (ss != Skill_Overall || includeoverall) {
 		mort.emplace_back(ss, tmp[ss]);
+	}
 	std::sort(mort.begin(), mort.end(), [](auto& a, auto& b) -> bool {
 		return a.second > b.second;
 	});
@@ -395,9 +410,9 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	const vector<NoteInfo>& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	if (m_StepsType == StepsType_dance_solo)
+	if (m_StepsType == StepsType_dance_solo) {
 		diffByRate = SoloCalc(cereal);
-	else if (m_StepsType == StepsType_dance_single) {
+	} else if (m_StepsType == StepsType_dance_single) {
 		diffByRate = MinaSDCalc(cereal, calc);
 	}
 
@@ -414,12 +429,13 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	m_pNoteData->UnsetSerializedNoteData();
 }
 
-float
-Steps::DoATestThing(float ev, Skillset ss, float rate)
+auto
+Steps::DoATestThing(float ev, Skillset ss, float rate) -> float
 {
 	// This is 4k only
-	if (m_StepsType != StepsType_dance_single)
+	if (m_StepsType != StepsType_dance_single) {
 		return 0.f;
+	}
 	auto& vh =
 	  SONGMAN->testChartList[ss].filemapping.at(ChartKey).version_history;
 
@@ -431,8 +447,9 @@ Steps::DoATestThing(float ev, Skillset ss, float rate)
 	auto newcalc = MinaSDCalc(cereal, rate, 0.93f);
 	float last_msd = newcalc[ss];
 	int prev_vers = GetCalcVersion() - 1;
-	if (vh.count(prev_vers))
+	if (vh.count(prev_vers) != 0u) {
 		last_msd = vh.at(prev_vers);
+	}
 	LOG->Trace("%0.2f : %0.2fx : %+0.2f : (%+06.2f%%) : %+0.2f : %s",
 			   newcalc[ss],
 			   rate,
@@ -461,8 +478,9 @@ Steps::GetCalcDebugOutput()
 	// function is responsible for producing debug output
 
 	// This is 4k only
-	if (m_StepsType != StepsType_dance_single)
+	if (m_StepsType != StepsType_dance_single) {
 		return;
+	}
 
 	Decompress();
 	const vector<NoteInfo>& cereal =
@@ -486,8 +504,8 @@ Steps::UnloadCalcDebugOutput()
 	calcdebugoutput.shrink_to_fit();
 }
 
-std::string
-Steps::GenerateChartKey(NoteData& nd, TimingData* td)
+auto
+Steps::GenerateChartKey(NoteData& nd, TimingData* td) -> std::string
 {
 	RString o = "X"; // I was thinking of using "C" to indicate chart..
 					 // however.. X is cooler... - Mina
@@ -506,8 +524,9 @@ Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 		keyParts.push_back("");
 		size_t start = segmentSize * curThread;
 		size_t end = start + segmentSize;
-		if (curThread + 1 == numThreads)
+		if (curThread + 1 == numThreads) {
 			end = nerv.size();
+		}
 
 		threads.push_back(std::thread(&Steps::FillStringWithBPMs,
 									  this,
@@ -520,12 +539,14 @@ Steps::GenerateChartKey(NoteData& nd, TimingData* td)
 	}
 
 	for (auto& t : threads) {
-		if (t.joinable())
+		if (t.joinable()) {
 			t.join();
+		}
 	}
 
-	for (size_t i = 0; i < numThreads; i++)
+	for (size_t i = 0; i < numThreads; i++) {
 		k += keyParts[i];
+	}
 
 	o.append(BinaryToHex(CryptManager::GetSHA1ForString(k)));
 	return o;
@@ -571,8 +592,9 @@ Steps::Compress() const
 
 	// We have no file on disk. Compress the data, if necessary.
 	if (m_sNoteDataCompressed.empty()) {
-		if (!m_bNoteDataIsFilled)
+		if (!m_bNoteDataIsFilled) {
 			return; /* no data is no data */
+		}
 		NoteDataUtil::GetSMNoteDataString(*m_pNoteData, m_sNoteDataCompressed);
 	}
 
@@ -616,8 +638,9 @@ Steps::SetDifficultyAndDescription(Difficulty dc,
 {
 	m_Difficulty = dc;
 	m_sDescription = sDescription;
-	if (GetDifficulty() == Difficulty_Edit)
+	if (GetDifficulty() == Difficulty_Edit) {
 		MakeValidEditDescription(m_sDescription);
+	}
 }
 
 void
@@ -632,8 +655,8 @@ Steps::SetChartStyle(const std::string& sChartStyle)
 	m_sChartStyle = sChartStyle;
 }
 
-bool
-Steps::MakeValidEditDescription(std::string& sPreferredDescription)
+auto
+Steps::MakeValidEditDescription(std::string& sPreferredDescription) -> bool
 {
 	if (static_cast<int>(sPreferredDescription.size()) >
 		MAX_STEPS_DESCRIPTION_LENGTH) {
@@ -650,39 +673,41 @@ Steps::SetMeter(int meter)
 	m_iMeter = meter;
 }
 
-const TimingData*
-Steps::GetTimingData() const
+auto
+Steps::GetTimingData() const -> const TimingData*
 {
 	return m_Timing.empty() ? &m_pSong->m_SongTiming : &m_Timing;
 }
 
-bool
-Steps::HasSignificantTimingChanges() const
+auto
+Steps::HasSignificantTimingChanges() const -> bool
 {
 	const TimingData* timing = GetTimingData();
 	if (timing->HasStops() || timing->HasDelays() || timing->HasWarps() ||
-		timing->HasSpeedChanges() || timing->HasScrollChanges())
+		timing->HasSpeedChanges() || timing->HasScrollChanges()) {
 		return true;
+	}
 
 	if (timing->HasBpmChanges()) {
 		// check to see if these changes are significant.
-		if ((GetMaxBPM() - GetMinBPM()) > 3.000f)
+		if ((GetMaxBPM() - GetMinBPM()) > 3.000f) {
 			return true;
+		}
 	}
 
 	return false;
 }
 
-const std::string&
-Steps::GetMusicPath() const
+auto
+Steps::GetMusicPath() const -> const std::string&
 {
 	return Song::GetSongAssetPath(m_MusicFile.empty() ? m_pSong->m_sMusicFile
 													  : m_MusicFile,
 								  m_pSong->GetSongDir());
 }
 
-const std::string&
-Steps::GetMusicFile() const
+auto
+Steps::GetMusicFile() const -> const std::string&
 {
 	return m_MusicFile;
 }
@@ -700,11 +725,11 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 	m_bAreCachedRadarValuesJustLoaded = true;
 }
 
-vector<int>
+auto
 Steps::GetNPSVector(const NoteData& nd,
 					const vector<int>& nerv,
 					const vector<float>& etaner,
-					float rate)
+					float rate) -> vector<int>
 {
 	vector<int> doot(static_cast<int>(etaner.back()));
 	int notecounter = 0;
@@ -729,12 +754,12 @@ Steps::GetNPSVector(const NoteData& nd,
 	return doot;
 }
 
-vector<int>
+auto
 Steps::GetCNPSVector(const NoteData& nd,
 					 const vector<int>& nerv,
 					 const vector<float>& etaner,
 					 int chordsize,
-					 float rate)
+					 float rate) -> vector<int>
 {
 	vector<int> doot(static_cast<int>(etaner.back()));
 	int chordnotecounter = 0; // number of NOTES inside chords of this size, so
@@ -756,8 +781,9 @@ Steps::GetCNPSVector(const NoteData& nd,
 				++notesinchord;
 			}
 		}
-		if (notesinchord == chordsize)
+		if (notesinchord == chordsize) {
 			chordnotecounter += notesinchord;
+		}
 	}
 	return doot;
 }
@@ -778,29 +804,29 @@ class LunaSteps : public Luna<Steps>
 	DEFINE_METHOD(IsAnEdit, IsAnEdit())
 	DEFINE_METHOD(IsAPlayerEdit, IsAPlayerEdit())
 
-	static int HasSignificantTimingChanges(T* p, lua_State* L)
+	static auto HasSignificantTimingChanges(T* p, lua_State* L) -> int
 	{
-		lua_pushboolean(L, p->HasSignificantTimingChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasSignificantTimingChanges()));
 		return 1;
 	}
-	static int HasAttacks(T* p, lua_State* L)
+	static auto HasAttacks(T* /*p*/, lua_State* L) -> int
 	{
 		lua_pushboolean(L, 0);
 		return 1;
 	}
-	static int GetRadarValues(T* p, lua_State* L)
+	static auto GetRadarValues(T* p, lua_State* L) -> int
 	{
 		PlayerNumber pn = PLAYER_1;
 		if (!lua_isnil(L, 1)) {
 			pn = PLAYER_1;
 		}
 
-		RadarValues& rv = const_cast<RadarValues&>(p->GetRadarValues());
+		auto& rv = const_cast<RadarValues&>(p->GetRadarValues());
 		rv.PushSelf(L);
 		return 1;
 	}
 	// Sigh -Mina
-	static int GetRelevantRadars(T* p, lua_State* L)
+	static auto GetRelevantRadars(T* p, lua_State* L) -> int
 	{
 		vector<int> relevants;
 		const RadarValues& rv = p->GetRadarValues();
@@ -816,12 +842,12 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(relevants, L);
 		return 1;
 	}
-	static int GetTimingData(T* p, lua_State* L)
+	static auto GetTimingData(T* p, lua_State* L) -> int
 	{
 		p->GetTimingData()->PushSelf(L);
 		return 1;
 	}
-	static int GetHash(T* p, lua_State* L)
+	static auto GetHash(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetHash());
 		return 1;
@@ -836,12 +862,12 @@ class LunaSteps : public Luna<Steps>
 		return 1;
 	}
 	*/
-	static int GetChartName(T* p, lua_State* L)
+	static auto GetChartName(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, p->GetChartName().c_str());
 		return 1;
 	}
-	static int GetDisplayBpms(T* p, lua_State* L)
+	static auto GetDisplayBpms(T* p, lua_State* L) -> int
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
@@ -853,48 +879,49 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(fBPMs, L);
 		return 1;
 	}
-	static int IsDisplayBpmSecret(T* p, lua_State* L)
+	static auto IsDisplayBpmSecret(T* p, lua_State* L) -> int
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
 		lua_pushboolean(L, static_cast<int>(temp.IsSecret()));
 		return 1;
 	}
-	static int IsDisplayBpmConstant(T* p, lua_State* L)
+	static auto IsDisplayBpmConstant(T* p, lua_State* L) -> int
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
 		lua_pushboolean(L, static_cast<int>(temp.BpmIsConstant()));
 		return 1;
 	}
-	static int IsDisplayBpmRandom(T* p, lua_State* L)
+	static auto IsDisplayBpmRandom(T* p, lua_State* L) -> int
 	{
-		lua_pushboolean(L, p->GetDisplayBPM() == DISPLAY_BPM_RANDOM);
+		lua_pushboolean(
+		  L, static_cast<int>(p->GetDisplayBPM() == DISPLAY_BPM_RANDOM));
 		return 1;
 	}
 
-	static int GetDisplayBPMType(T* p, lua_State* L)
+	static auto GetDisplayBPMType(T* p, lua_State* L) -> int
 	{
 		LuaHelpers::Push(L, p->GetDisplayBPM());
 		return 1;
 	}
 
-	static int GetChartKey(T* p, lua_State* L)
+	static auto GetChartKey(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, p->GetChartKey().c_str());
 		return 1;
 	}
 
-	static int GetMSD(T* p, lua_State* L)
+	static auto GetMSD(T* p, lua_State* L) -> int
 	{
 		float rate = FArg(1);
-		Skillset index = static_cast<Skillset>(IArg(2) - 1);
+		auto index = static_cast<Skillset>(IArg(2) - 1);
 		CLAMP(rate, 0.7f, 3.f);
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;
 	}
 
-	static int GetSSRs(T* p, lua_State* L)
+	static auto GetSSRs(T* p, lua_State* L) -> int
 	{
 		float rate = FArg(1);
 		float goal = FArg(2);
@@ -904,20 +931,22 @@ class LunaSteps : public Luna<Steps>
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(loot);
 		auto& ni = nd.SerializeNoteData(etaner);
-		if (ni.size() == 0)
+		if (ni.empty()) {
 			return 0;
+		}
 		std::vector<float> d;
 
-		if (p->m_StepsType == StepsType_dance_solo)
+		if (p->m_StepsType == StepsType_dance_solo) {
 			d = SoloCalc(ni, rate, goal);
-		else
+		} else {
 			d = MinaSDCalc(ni, rate, goal);
+		}
 
 		auto ssrs = d;
 		LuaHelpers::CreateTableFromArray(ssrs, L);
 		return 1;
 	}
-	static int GetRelevantSkillsetsByMSDRank(T* p, lua_State* L)
+	static auto GetRelevantSkillsetsByMSDRank(T* p, lua_State* L) -> int
 	{
 		float rate = FArg(1);
 		CLAMP(rate, 0.7f, 2.f);
@@ -926,15 +955,16 @@ class LunaSteps : public Luna<Steps>
 		float relevance_cutoff = 0.9f;
 		float rval = sortedskillsets[rank].second;
 		float highval = sortedskillsets[0].second;
-		if (rank == 0)
+		if (rank == 0) {
 			lua_pushstring(L, SkillsetToString(sortedskillsets[0].first));
-		else if (rval > highval * relevance_cutoff)
+		} else if (rval > highval * relevance_cutoff) {
 			lua_pushstring(L, SkillsetToString(sortedskillsets[rank].first));
-		else
+		} else {
 			lua_pushstring(L, "");
+		}
 		return 1;
 	}
-	static int GetNonEmptyNoteData(T* p, lua_State* L)
+	static auto GetNonEmptyNoteData(T* p, lua_State* L) -> int
 	{
 		lua_newtable(L);
 		auto nd = p->GetNoteData();
@@ -948,10 +978,11 @@ class LunaSteps : public Luna<Steps>
 			vector<int> doot;
 			for (auto r : loot) {
 				auto tn = nd.GetTapNote(i, r);
-				if (tn.type == TapNoteType_Empty)
+				if (tn.type == TapNoteType_Empty) {
 					doot.push_back(0);
-				else if (tn.type == TapNoteType_Tap)
+				} else if (tn.type == TapNoteType_Tap) {
 					doot.push_back(1);
+				}
 			}
 			LuaHelpers::CreateTableFromArray(doot, L);
 			lua_rawseti(L, -2, i + 2);
@@ -967,16 +998,18 @@ class LunaSteps : public Luna<Steps>
 		nd.UnsetNerv();
 		return 1;
 	}
-	static int GetCDGraphVectors(T* p, lua_State* L)
+	static auto GetCDGraphVectors(T* p, lua_State* L) -> int
 	{
 		float rate = FArg(1);
 		CLAMP(rate, 1.f, 3.f);
 		auto nd = p->GetNoteData();
-		if (nd.IsEmpty())
+		if (nd.IsEmpty()) {
 			return 0;
+		}
 		vector<int> nerv = nd.BuildAndGetNerv(p->GetTimingData());
-		if (nerv.back() != nd.GetLastRow())
+		if (nerv.back() != nd.GetLastRow()) {
 			nerv.emplace_back(nd.GetLastRow());
+		}
 		const vector<float>& etaner =
 		  p->GetTimingData()->BuildAndGetEtaner(nerv);
 
@@ -1006,12 +1039,12 @@ class LunaSteps : public Luna<Steps>
 		p->GetTimingData()->UnsetEtaner();
 		return 1;
 	}
-	static int GetNumColumns(T* p, lua_State* L)
+	static auto GetNumColumns(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
 		return 1;
 	}
-	static int GetCalcDebugOutput(T* p, lua_State* L)
+	static auto GetCalcDebugOutput(T* p, lua_State* L) -> int
 	{
 		p->GetCalcDebugOutput();
 		lua_newtable(L);
@@ -1023,10 +1056,12 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
 				vector<float> poop;
-				if (!p->calcdebugoutput.empty()) // empty for non 4k
+				if (!p->calcdebugoutput.empty()) { // empty for non 4k
 					if (!p->calcdebugoutput[j]
-						   .empty()) // empty for "garbage files"
+						   .empty()) { // empty for "garbage files"
 						poop = p->calcdebugoutput[j][0][i];
+					}
+				}
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1042,10 +1077,12 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
 				vector<float> poop;
-				if (!p->calcdebugoutput.empty()) // empty for non 4k
+				if (!p->calcdebugoutput.empty()) { // empty for non 4k
 					if (!p->calcdebugoutput[j]
-						   .empty()) // empty for "garbage files"
+						   .empty()) { // empty for "garbage files"
 						poop = p->calcdebugoutput[j][1][i];
+					}
+				}
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
@@ -1061,10 +1098,12 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, 2);
 			for (int j = 0; j < 2; ++j) {
 				vector<float> poop;
-				if (!p->calcdebugoutput.empty()) // empty for non 4k
+				if (!p->calcdebugoutput.empty()) { // empty for non 4k
 					if (!p->calcdebugoutput[j]
-						   .empty()) // empty for "garbage files"
+						   .empty()) { // empty for "garbage files"
 						poop = p->calcdebugoutput[j][2][i];
+					}
+				}
 				LuaHelpers::CreateTableFromArray(poop, L);
 				lua_rawseti(L, -2, j + 1);
 			}
