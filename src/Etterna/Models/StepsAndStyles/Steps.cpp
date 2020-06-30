@@ -413,7 +413,12 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	if (m_StepsType == StepsType_dance_solo) {
 		diffByRate = SoloCalc(cereal);
 	} else if (m_StepsType == StepsType_dance_single) {
-		diffByRate = MinaSDCalc(cereal, calc);
+		if (calc == nullptr) {
+			// reloading at music select
+			diffByRate = MinaSDCalc(cereal, SONGMAN->calc.get());
+		} else {
+			diffByRate = MinaSDCalc(cereal, calc);
+		}
 	}
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
