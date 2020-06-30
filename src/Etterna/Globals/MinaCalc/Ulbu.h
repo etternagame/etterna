@@ -321,11 +321,11 @@ struct TheGreatBazoinkazoinkInTheSky
 	// update base difficulty stuff
 	inline void update_sequenced_base_diffs(const col_type& ct,
 											const int& itv,
-											const int& row)
+											const int& jack_counter)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc.jack_diff.at(hand).at(itv).at(row) =
+		_calc.jack_diff.at(hand).at(itv).at(jack_counter) =
 		  ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
 		  basescalers[Skill_JackSpeed];
 
@@ -370,6 +370,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
 			for (int itv = 0; itv < _calc.numitv; ++itv) {
+
+				// asdfasfasdfasdf
+				int jack_counter = 0;
+
 				for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
 
 					const auto& ri = _calc.adj_ni.at(itv).at(row);
@@ -428,6 +432,9 @@ struct TheGreatBazoinkazoinkInTheSky
 					std::swap(_last_mhi, _mhi);
 					last_row_time = row_time;
 				}
+
+				// maybe this should go back into the diffz object...
+				_calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
 
 				handle_dependent_interval_end(itv);
 			}
