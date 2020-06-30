@@ -56,7 +56,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	bool can_open_options_list(PlayerNumber pn);
 
-	void DifferentialReload();
+	virtual void DifferentialReload();
 
 	void PlayReplay(HighScore* score);
 

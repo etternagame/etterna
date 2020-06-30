@@ -183,7 +183,7 @@ wife3(float maxms, float ts)
 
 	// piecewise inflection
 	float zero = 65.f * pow(ts, j_pow);
-	float dev = 22.7f *pow(ts, j_pow);
+	float dev = 22.7f * pow(ts, j_pow);
 
 	if (maxms <= zero)
 		return max_points * werwerwerwerf((zero - maxms) / dev);
@@ -234,6 +234,18 @@ CircularShift(vector<T>& v, int dist)
 			v.insert(v.begin(), t);
 		}
 	}
+}
+
+static inline int
+CompareNoCaseLUL(const std::string& a, const std::string& b)
+{
+	return StdString::ssicmp(a.c_str(), b.c_str());
+}
+
+static inline bool
+EqualsNoCaseLUL(const std::string& a, const std::string& b)
+{
+	return CompareNoCaseLUL(a.c_str(), b.c_str()) == 0;
 }
 
 template<typename Type, typename Ret>
@@ -608,11 +620,11 @@ void
 MakeValidFilename(RString& sName);
 
 bool
-FindFirstFilenameContaining(const vector<RString>& filenames,
-							RString& out,
-							const vector<RString>& starts_with,
-							const vector<RString>& contains,
-							const vector<RString>& ends_with);
+FindFirstFilenameContaining(const vector<std::string>& filenames,
+							std::string& out,
+							const vector<std::string>& starts_with,
+							const vector<std::string>& contains,
+							const vector<std::string>& ends_with);
 
 extern const wchar_t INVALID_CHAR;
 
@@ -634,6 +646,8 @@ void
 MakeUpper(char* p, size_t iLen);
 void
 MakeLower(char* p, size_t iLen);
+void
+MakeLower(std::string& data);
 void
 MakeUpper(wchar_t* p, size_t iLen);
 void
@@ -690,6 +704,11 @@ split(const RString& sSource,
 	  vector<RString>& asAddIt,
 	  const bool bIgnoreEmpty = true);
 void
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
+	  vector<std::string>& asAddIt,
+	  const bool bIgnoreEmpty = true);
+void
 split(const wstring& sSource,
 	  const wstring& sDelimitor,
 	  vector<wstring>& asAddIt,
@@ -726,8 +745,14 @@ split(const wstring& sSource,
 	  bool bIgnoreEmpty);
 
 // Joins a vector<RString> to create a RString according the Deliminator.
+std::string
+join(const std::string& sDelimitor, const vector<std::string>& sSource);
 RString
 join(const RString& sDelimitor, const vector<RString>& sSource);
+std::string
+join(const std::string& sDelimitor,
+	 vector<std::string>::const_iterator begin,
+	 vector<std::string>::const_iterator end);
 RString
 join(const RString& sDelimitor,
 	 vector<RString>::const_iterator begin,
@@ -777,6 +802,8 @@ unsigned int
 GetHashForDirectory(const RString& sDir); // a hash value that remains the same
 										  // as long as nothing in the directory
 										  // has changed
+bool
+DirectoryIsEmpty(const std::string& sPath);
 bool
 DirectoryIsEmpty(const RString& sPath);
 
@@ -850,9 +877,13 @@ Decrement(T a)
 void
 TrimLeft(RString& sStr, const char* szTrim = "\r\n\t ");
 void
+TrimRight(std::string& sStr, const char* szTrim = "\r\n\t ");
+void
 TrimRight(RString& sStr, const char* szTrim = "\r\n\t ");
 void
 Trim(RString& sStr, const char* szTrim = "\r\n\t ");
+void
+Trim(std::string& sStr, const char* szTrim = "\r\n\t ");
 void
 StripCrnl(RString& sStr);
 bool
@@ -861,12 +892,6 @@ bool
 EndsWith(const RString& sTestThis, const RString& sEnding);
 RString
 URLEncode(const RString& sStr);
-
-void
-StripCvsAndSvn(
-  vector<RString>& vs); // Removes various versioning system metafolders.
-void
-StripMacResourceForks(vector<RString>& vs); // Removes files starting with "._"
 
 RString
 DerefRedir(const RString& sPath);
@@ -893,9 +918,13 @@ class Regex
 	void Set(const RString& str);
 	bool Compare(const RString& sStr);
 	bool Compare(const RString& sStr, vector<RString>& asMatches);
+	bool Compare(const std::string& sStr, vector<std::string>& asMatches);
 	bool Replace(const RString& sReplacement,
 				 const RString& sSubject,
 				 RString& sOut);
+	bool Replace(const std::string& sReplacement,
+				 const std::string& sSubject,
+				 std::string& sOut);
 
   private:
 	void Compile();
@@ -914,6 +943,8 @@ void
 ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m);
 void
 ReplaceEntityText(std::string& sText, const map<char, std::string>& m);
+void
+Replace_Unicode_Markers(std::string& Text);
 void
 Replace_Unicode_Markers(RString& Text);
 RString
@@ -986,6 +1017,11 @@ typedef basic_string<char, char_traits_char_nocase> istring;
 /* Compatibility/convenience shortcuts. These are actually defined in
  * RageFileManager.h, but declared here since they're used in many places. */
 void
+GetDirListing(const std::string& sPath,
+			  vector<std::string>& AddTo,
+			  bool bOnlyDirs = false,
+			  bool bReturnPathToo = false);
+void
 GetDirListing(const RString& sPath,
 			  vector<RString>& AddTo,
 			  bool bOnlyDirs = false,
@@ -1019,7 +1055,9 @@ GetFileSizeInBytes(const RString& sFilePath);
 void
 FixSlashesInPlace(RString& sPath);
 void
-CollapsePath(RString& sPath, bool bRemoveLeadingDot = false);
+FixSlashesInPlace(std::string& sPath);
+void
+CollapsePath(std::string& sPath, bool bRemoveLeadingDot = false);
 
 /** @brief Utilities for converting the RStrings. */
 namespace StringConversion {

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFileDriver.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
@@ -45,6 +45,14 @@ RageFileDriver::GetPathValue(const RString& sPath)
 void
 RageFileDriver::GetDirListing(const RString& sPath,
 							  vector<RString>& asAddTo,
+							  bool bOnlyDirs,
+							  bool bReturnPathToo)
+{
+	FDB->GetDirListing(sPath, asAddTo, bOnlyDirs, bReturnPathToo);
+}
+void
+RageFileDriver::GetDirListing(const std::string& sPath,
+							  vector<std::string>& asAddTo,
 							  bool bOnlyDirs,
 							  bool bReturnPathToo)
 {

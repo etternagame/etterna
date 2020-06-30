@@ -10,10 +10,10 @@
 #include <set>
 
 RageSurfaceUtils::OpenResult
-RageSurface_stb_Load(const RString& sPath,
+RageSurface_stb_Load(const std::string& sPath,
 					 RageSurface*& ret,
 					 bool bHeaderOnly,
-					 RString& error)
+					 std::string& error)
 {
 	RageFile f;
 	if (!f.Open(sPath)) {
@@ -50,10 +50,10 @@ RageSurface_stb_Load(const RString& sPath,
 	return RageSurfaceUtils::OPEN_OK;
 }
 static RageSurface*
-TryOpenFile(RString sPath,
+TryOpenFile(std::string sPath,
 			bool bHeaderOnly,
-			RString& error,
-			RString format,
+			std::string& error,
+			std::string format,
 			bool& bKeepTrying)
 {
 	RageSurface* ret = nullptr;
@@ -70,8 +70,8 @@ TryOpenFile(RString sPath,
 }
 
 RageSurface*
-RageSurfaceUtils::LoadFile(const RString& sPath,
-						   RString& error,
+RageSurfaceUtils::LoadFile(const std::string& sPath,
+						   std::string& error,
 						   bool bHeaderOnly)
 {
 	{
@@ -82,16 +82,17 @@ RageSurfaceUtils::LoadFile(const RString& sPath,
 		}
 	}
 
-	set<RString> FileTypes;
-	vector<RString> const& exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (vector<RString>::const_iterator curr = exts.begin();
+	set<std::string> FileTypes;
+	vector<std::string> const& exts =
+	  ActorUtil::GetTypeExtensionList(FT_Bitmap);
+	for (vector<std::string>::const_iterator curr = exts.begin();
 		 curr != exts.end();
 		 ++curr) {
 		FileTypes.insert(*curr);
 	}
 
-	RString format = GetExtension(sPath);
-	format.MakeLower();
+	std::string format = GetExtension(sPath);
+	MakeLower(format);
 
 	bool bKeepTrying = true;
 
@@ -104,7 +105,7 @@ RageSurfaceUtils::LoadFile(const RString& sPath,
 		FileTypes.erase(format);
 	}
 
-	for (set<RString>::iterator it = FileTypes.begin();
+	for (set<std::string>::iterator it = FileTypes.begin();
 		 bKeepTrying && it != FileTypes.end();
 		 ++it) {
 		RageSurface* ret =

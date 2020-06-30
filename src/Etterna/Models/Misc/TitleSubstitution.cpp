@@ -10,8 +10,8 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 
-static const RString TRANSLATIONS_PATH = "Data/Translations.xml";
-static const RString ERASE_MARKER = "-erase-";
+static const std::string TRANSLATIONS_PATH = "Data/Translations.xml";
+static const std::string ERASE_MARKER = "-erase-";
 
 struct TitleTrans
 {
@@ -56,16 +56,16 @@ TitleTrans::LoadFromNode(const XNode* pNode)
 		/* Surround each regex with ^(...)$, to force all comparisons to default
 		 * to being a full-line match.  (Add ".*" manually if this isn't
 		 * wanted.) */
-		const RString& sKeyName = attr->first;
-		const RString sValue = attr->second->GetValue<RString>();
+		const std::string& sKeyName = attr->first;
+		const std::string sValue = attr->second->GetValue<std::string>();
 		if (sKeyName == "DontTransliterate")
 			translit = false;
 		else if (sKeyName == "TitleFrom")
-			TitleFrom = "^(" + sValue + ")$";
+			TitleFrom = RString("^(" + sValue + ")$");
 		else if (sKeyName == "ArtistFrom")
-			ArtistFrom = "^(" + sValue + ")$";
+			ArtistFrom = RString("^(" + sValue + ")$");
 		else if (sKeyName == "SubtitleFrom")
-			SubFrom = "^(" + sValue + ")$";
+			SubFrom = RString("^(" + sValue + ")$");
 		else if (sKeyName == "TitleTo")
 			Replacement.Title = sValue;
 		else if (sKeyName == "ArtistTo")
@@ -107,8 +107,8 @@ TitleSubst::Subst(TitleFields& tf)
 			tf.Title != tt->Replacement.Title) {
 			if (tt->translit)
 				tf.TitleTranslit = tf.Title;
-			tf.Title =
-			  (tt->Replacement.Title != ERASE_MARKER) ? to.Title : RString();
+			tf.Title = (tt->Replacement.Title != ERASE_MARKER) ? to.Title
+															   : std::string();
 			FontCharAliases::ReplaceMarkers(tf.Title);
 		}
 		if (!tt->Replacement.Subtitle.empty() &&
@@ -117,15 +117,16 @@ TitleSubst::Subst(TitleFields& tf)
 				tf.SubtitleTranslit = tf.Subtitle;
 			tf.Subtitle = (tt->Replacement.Subtitle != ERASE_MARKER)
 							? to.Subtitle
-							: RString();
+							: std::string();
 			FontCharAliases::ReplaceMarkers(tf.Subtitle);
 		}
 		if (!tt->Replacement.Artist.empty() &&
 			tf.Artist != tt->Replacement.Artist) {
 			if (tt->translit)
 				tf.ArtistTranslit = tf.Artist;
-			tf.Artist =
-			  (tt->Replacement.Artist != ERASE_MARKER) ? to.Artist : RString();
+			tf.Artist = (tt->Replacement.Artist != ERASE_MARKER)
+						  ? to.Artist
+						  : std::string();
 			FontCharAliases::ReplaceMarkers(tf.Artist);
 		}
 
@@ -134,20 +135,20 @@ TitleSubst::Subst(TitleFields& tf)
 		if (!tt->Replacement.TitleTranslit.empty()) {
 			tf.TitleTranslit = (tt->Replacement.TitleTranslit != ERASE_MARKER)
 								 ? tt->Replacement.TitleTranslit
-								 : RString();
+								 : std::string();
 			FontCharAliases::ReplaceMarkers(tf.TitleTranslit);
 		}
 		if (!tt->Replacement.SubtitleTranslit.empty()) {
 			tf.SubtitleTranslit =
 			  (tt->Replacement.SubtitleTranslit != ERASE_MARKER)
 				? tt->Replacement.SubtitleTranslit
-				: RString();
+				: std::string();
 			FontCharAliases::ReplaceMarkers(tf.SubtitleTranslit);
 		}
 		if (!tt->Replacement.ArtistTranslit.empty()) {
 			tf.ArtistTranslit = (tt->Replacement.ArtistTranslit != ERASE_MARKER)
 								  ? tt->Replacement.ArtistTranslit
-								  : RString();
+								  : std::string();
 			FontCharAliases::ReplaceMarkers(tf.ArtistTranslit);
 		}
 
@@ -157,13 +158,13 @@ TitleSubst::Subst(TitleFields& tf)
 	}
 }
 
-TitleSubst::TitleSubst(const RString& section)
+TitleSubst::TitleSubst(const std::string& section)
 {
 	Load(TRANSLATIONS_PATH, section);
 }
 
 void
-TitleSubst::Load(const RString& filename, const RString& section)
+TitleSubst::Load(const std::string& filename, const std::string& section)
 {
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, filename)) {

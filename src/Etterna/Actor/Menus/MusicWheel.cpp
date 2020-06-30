@@ -22,6 +22,8 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <optional>
+
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))
 #define WHEEL_TEXT(s)                                                          \
 	THEME->GetString("MusicWheel", ssprintf("%sText", s.c_str()));
@@ -719,107 +721,25 @@ void
 MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 {
 	vector<Song*> tmp;
-	if (!FILTERMAN->ExclusiveFilter) {
-		for (size_t i = 0; i < inv.size(); i++) {
-			bool addsong = false;
-			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
-				float lb = FILTERMAN->SSFilterLowerBounds[ss];
-				float ub = FILTERMAN->SSFilterUpperBounds[ss];
-				if (lb > 0.f || ub > 0.f) { // if either bound is active,
-											// continue to evaluation
-					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
-					do {
-						currate = currate - 0.1f;
-						if (FILTERMAN->HighestSkillsetsOnly)
-							if (!inv[i]->IsSkillsetHighestOfAnySteps(
-								  static_cast<Skillset>(ss), currate) &&
-								ss < NUM_Skillset)
-								continue;
-						float val;
-						if (ss < NUM_Skillset)
-							val =
-							  inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
-						else {
-							TimingData* td =
-							  inv[i]->GetAllSteps()[0]->GetTimingData();
-							val = (td->GetElapsedTimeFromBeat(
-									 inv[i]->GetLastBeat()) -
-								   td->GetElapsedTimeFromBeat(
-									 inv[i]->GetFirstBeat()));
-						}
 
-						bool isrange =
-						  lb > 0.f && ub > 0.f; // both bounds are active and
-												// create an explicit range
-						if (isrange) {
-							if (val > lb && val < ub) // if dealing with an
-													  // explicit range evaluate
-													  // as such
-								addsong = addsong || true;
-						} else {
-							if (lb > 0.f && val > lb) // must be a nicer way to
-													  // handle this but im
-													  // tired
-								addsong = addsong || true;
-							if (ub > 0.f && val < ub)
-								addsong = addsong || true;
-						}
-					} while (currate > minrate);
-				}
+	for (auto song : inv) {
+		bool addsong = false;
+		for (float currate = FILTERMAN->MaxFilterRate;
+			 currate > FILTERMAN->m_pPlayerState->wtFFF - .01f;
+			 currate -= 0.1f) { /* Iterate over all possible rates.
+								 * The .01f delta is because floating points
+								 * don't like exact equivalency*/
+			std::vector<StepsType> types;
+			GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
+			// Only consider the current game chart types as possible options.
+			if (song->MatchesFilter(currate, std::make_optional(types))) {
+				addsong = true;
+				break; // We don't need to keep checking rates
 			}
-			// only add the song if it's cleared the gauntlet
-			if (addsong)
-				tmp.emplace_back(inv[i]);
 		}
-	} else {
-		for (size_t i = 0; i < inv.size(); i++) {
-			bool addsong = true;
-			for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
-				bool pineapple = true;
-				float lb = FILTERMAN->SSFilterLowerBounds[ss];
-				float ub = FILTERMAN->SSFilterUpperBounds[ss];
-				if (lb > 0.f || ub > 0.f) {
-					bool localaddsong;
-					float currate = FILTERMAN->MaxFilterRate + 0.1f;
-					float minrate = FILTERMAN->m_pPlayerState->wtFFF;
-					bool toiletpaper = false;
-					do {
-						localaddsong = true;
-						currate = currate - 0.1f;
-						float val;
-						if (ss < NUM_Skillset)
-							val =
-							  inv[i]->GetHighestOfSkillsetAllSteps(ss, currate);
-						else {
-							TimingData* td =
-							  inv[i]->GetAllSteps()[0]->GetTimingData();
-							val = (td->GetElapsedTimeFromBeat(
-									 inv[i]->GetLastBeat()) -
-								   td->GetElapsedTimeFromBeat(
-									 inv[i]->GetFirstBeat()));
-						}
-						bool isrange = lb > 0.f && ub > 0.f;
-						if (isrange) {
-							if (val < lb || val > ub)
-								localaddsong = false;
-						} else {
-							if (lb > 0.f && val < lb)
-								localaddsong = false;
-							if (ub > 0.f && val > ub)
-								localaddsong = false;
-						}
-						toiletpaper = localaddsong || toiletpaper;
-					} while (currate > minrate);
-					pineapple = pineapple && toiletpaper;
-				}
-				addsong = addsong && pineapple;
-			}
-			if (addsong)
-				tmp.emplace_back(inv[i]);
-		}
+		if (addsong)
+			tmp.emplace_back(song);
 	}
-
 	inv.swap(tmp);
 }
 

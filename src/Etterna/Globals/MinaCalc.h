@@ -123,8 +123,19 @@ class Calc
 	 * but that might just be too confusing idk */
 	std::array<float, max_intervals> stam_adj_diff{};
 
+	std::array<std::array<std::array<float, max_rows_for_single_interval>,
+						  max_intervals>,
+			   num_hands>
+	  jack_diff{};
+
+	// number of jacks by hand for intervals
+	std::array<std::array<int, max_intervals>, num_hands> itv_jack_diff_size{};
+
 	// we may want to store this value for use in other skillset passes- maybe
 	std::array<std::array<float, max_intervals>, num_hands> jack_loss{};
+
+	// moved from sequenced basediffs
+	std::array<float, max_rows_for_single_interval> tc_static;
 
 	int numitv = 0;
 	int MaxPoints = 0; // Total points achievable in the file
@@ -137,15 +148,16 @@ MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float musicrate,
 		   float goal,
-		   Calc* calc = nullptr) -> std::vector<float>;
+		   Calc* calc) -> std::vector<float>;
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc = nullptr)
-  -> MinaSD;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD;
 MINACALC_API void
 MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   float musicrate,
   float goal,
-  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo);
+  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
+  std::vector<std::string>& debugstrings,
+  Calc& calc);
 MINACALC_API auto
 GetCalcVersion() -> int;

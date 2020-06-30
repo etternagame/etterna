@@ -143,7 +143,7 @@ struct Anchor_Sequencing
 	{
 		assert(_sc_ms > 0.F);
 
-		float anchor_time_buffer_ms = 100.F;
+		float anchor_time_buffer_ms = 45.F;
 
 		if (_len > len_cap) {
 			return _len_cap_diff;

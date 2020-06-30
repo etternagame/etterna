@@ -378,8 +378,25 @@ ScreenSelectMusic::OpenOptions()
 void
 ScreenSelectMusic::DifferentialReload()
 {
+	// reload songs
 	SONGMAN->DifferentialReload();
+
+	auto selSong = GAMESTATE->m_pCurSong;
+	auto currentHoveredGroup = m_MusicWheel.GetCurrentGroup();
+
+	// reset wheel
 	m_MusicWheel.ReloadSongList(false, "");
+
+	// place selection on the last song we were on
+	// or fall back to section in case no song selected
+	// (forces the section to open if so)
+	if (selSong != nullptr)
+		m_MusicWheel.SelectSongOrCourse();
+	else {
+		m_MusicWheel.SelectSection(currentHoveredGroup);
+		m_MusicWheel.SetOpenSection(currentHoveredGroup);
+	}
+	
 }
 
 bool
@@ -581,7 +598,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				  "",
 				  128);
 			else {
-				//SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				// SONGMAN->testChartList[foundSS].filemapping.erase(ck);
 				SCREENMAN->SystemMessage(ssprintf(
 				  "Removed this chart from the test list (skillset %d)",
 				  foundSS));
@@ -1083,8 +1100,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 							   ck.c_str(),
 							   SkillsetToString(ss).c_str()));
 					SONGMAN->SaveCalcTestXmlToDir();
-					float woo =
-					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, 1.f);
+					float woo = GAMESTATE->m_pCurSteps->DoATestThing(
+					  target, ss, 1.f, SONGMAN->calc.get());
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");
@@ -1119,8 +1136,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 							   SkillsetToString(ss).c_str(),
 							   rate));
 					SONGMAN->SaveCalcTestXmlToDir();
-					float woo =
-					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, rate);
+					float woo = GAMESTATE->m_pCurSteps->DoATestThing(
+					  target, ss, rate, SONGMAN->calc.get());
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");
@@ -1353,6 +1370,7 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 					   .GetTopScore()
 					   .GetScore();
 			if (m_pPreviewNoteField != nullptr) {
+				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds, *(pSteps->GetTimingData()));
 				pSteps->GetNoteData(m_PreviewNoteData);
 				m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
 			}

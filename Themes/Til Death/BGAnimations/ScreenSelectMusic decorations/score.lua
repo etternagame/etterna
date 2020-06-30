@@ -112,6 +112,7 @@ end
 
 local ret =
 	Def.ActorFrame {
+	Name = "Scoretab",
 	BeginCommand = function(self)
 		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
@@ -142,6 +143,8 @@ local ret =
 		if getTabIndex() == 2 then -- switching to this tab
 			if nestedTab == 2 then
 				self:GetParent():GetChild("StepsDisplay"):visible(false)
+			else
+				self:GetParent():GetChild("StepsDisplay"):visible(true)
 			end
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")
@@ -168,16 +171,19 @@ local ret =
 	end,
 	CollapseCommand = function(self)
 		collapsed = true
+		local tind = getTabIndex()
 		resetTabIndex()
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 	end,
 	ExpandCommand = function(self)
 		collapsed = false
+		local tind = getTabIndex()
 		if getTabIndex() ~= 2 then
 			setTabIndex(2)
 		end
+		local after = getTabIndex()
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY)
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = after})
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =

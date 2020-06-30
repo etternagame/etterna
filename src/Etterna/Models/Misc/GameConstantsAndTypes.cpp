@@ -271,7 +271,7 @@ static const char* CalcPatternModNames[] = {
 	// "RanPropOHT",
 	// "RanPropOffS",
 	// "RanPropJack",
-	// "TotalPatternMod",
+	"TotalPatternMod",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);

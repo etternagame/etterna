@@ -1,4 +1,4 @@
-﻿/* RageFileDriver - File driver base classes. */
+/* RageFileDriver - File driver base classes. */
 
 #ifndef RAGE_FILE_DRIVER_H
 #define RAGE_FILE_DRIVER_H
@@ -18,6 +18,10 @@ class RageFileDriver
 								int& iError) = 0;
 	virtual void GetDirListing(const RString& sPath,
 							   vector<RString>& asAddTo,
+							   bool bOnlyDirs,
+							   bool bReturnPathToo);
+	virtual void GetDirListing(const std::string& sPath,
+							   vector<std::string>& asAddTo,
 							   bool bOnlyDirs,
 							   bool bReturnPathToo);
 	virtual RageFileManager::FileType GetFileType(const RString& sPath);

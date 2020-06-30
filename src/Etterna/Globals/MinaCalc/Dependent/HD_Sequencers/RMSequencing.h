@@ -8,7 +8,7 @@ enum rm_behavior
 	rmb_off_tap_oh,
 	rmb_off_tap_sh,
 	rmb_anchor,
-	rmb_jack,	// only for the anchor col, not any col
+	rmb_jack, // only for the anchor col, not any col
 	rmb_init,
 };
 
@@ -140,8 +140,6 @@ struct RunningMan
 	// any off taps to anchor len
 	[[nodiscard]] inline auto get_off_tap_prop() const -> float
 	{
-		// this should not be called in these cases
-		assert(off_taps > 0 && off_taps_sh > 0);
 		if (off_taps == 0)
 			return 0.F;
 
@@ -151,8 +149,6 @@ struct RunningMan
 	// off hand taps to anchor len
 	[[nodiscard]] inline auto get_offhand_tap_prop() const -> float
 	{
-		// this should not be called in these cases
-		assert(off_taps > 0 && off_taps_sh > 0);
 		if (off_taps - off_taps_sh <= 0)
 			return 0.F;
 
@@ -163,8 +159,6 @@ struct RunningMan
 	// same hand taps to anchor len
 	[[nodiscard]] inline auto get_off_tap_same_prop() const -> float
 	{
-		// this should not be called in these cases
-		assert(off_taps > 0 && off_taps_sh > 0);
 		if (off_taps_sh == 0)
 			return 0.F;
 

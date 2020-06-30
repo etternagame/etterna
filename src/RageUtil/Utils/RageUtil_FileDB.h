@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_UTIL_FILEDB
+#ifndef RAGE_UTIL_FILEDB
 #define RAGE_UTIL_FILEDB
 
 #include "RageUtil/File/RageFileManager.h"
@@ -10,14 +10,14 @@
 struct FileSet;
 struct File
 {
-	RString name;
-	RString lname;
+	std::string name;
+	std::string lname;
 
-	void SetName(const RString& fn)
+	void SetName(const std::string& fn)
 	{
 		name = fn;
 		lname = name;
-		lname.MakeLower();
+		MakeLower(lname);
 	}
 
 	bool dir;
@@ -89,11 +89,19 @@ struct FileSet
 
 	FileSet() { m_bFilled = true; }
 
+	void GetFilesMatching(const std::string& sBeginning,
+						  const std::string& sContaining,
+						  const std::string& sEnding,
+						  vector<std::string>& asOut,
+						  bool bOnlyDirs) const;
 	void GetFilesMatching(const RString& sBeginning,
 						  const RString& sContaining,
 						  const RString& sEnding,
 						  vector<RString>& asOut,
 						  bool bOnlyDirs) const;
+	void GetFilesEqualTo(const std::string& pat,
+						 vector<std::string>& out,
+						 bool bOnlyDirs) const;
 	void GetFilesEqualTo(const RString& pat,
 						 vector<RString>& out,
 						 bool bOnlyDirs) const;
@@ -126,6 +134,11 @@ class FilenameDB
 							 vector<RString>& asOut,
 							 bool bOnlyDirs);
 
+	void GetFilesSimpleMatch(const std::string& sDir,
+							 const std::string& sFile,
+							 vector<std::string>& asOut,
+							 bool bOnlyDirs);
+
 	/* Search for "path" case-insensitively and replace it with the correct
 	 * case.  If only a portion of the path exists, resolve as much as possible.
 	 * Return true if the entire path was matched. */
@@ -136,6 +149,10 @@ class FilenameDB
 	int GetFileHash(const RString& sFilePath);
 	void GetDirListing(const RString& sPath,
 					   vector<RString>& asAddTo,
+					   bool bOnlyDirs,
+					   bool bReturnPathToo);
+	void GetDirListing(const std::string& sPath,
+					   vector<std::string>& asAddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
@@ -156,10 +173,20 @@ class FilenameDB
 
 	int ExpireSeconds{ -1 };
 
+	void GetFilesEqualTo(const std::string& sDir,
+						 const std::string& sName,
+						 vector<std::string>& asOut,
+						 bool bOnlyDirs);
 	void GetFilesEqualTo(const RString& sDir,
 						 const RString& sName,
 						 vector<RString>& asOut,
 						 bool bOnlyDirs);
+	void GetFilesMatching(const std::string& sDir,
+						  const std::string& sBeginning,
+						  const std::string& sContaining,
+						  const std::string& sEnding,
+						  vector<std::string>& asOut,
+						  bool bOnlyDirs);
 	void GetFilesMatching(const RString& sDir,
 						  const RString& sBeginning,
 						  const RString& sContaining,

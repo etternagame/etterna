@@ -1241,7 +1241,7 @@ sm_main(int argc, char* argv[])
 
 	FILTERMAN = new FilterManager;
 
-	DLMAN = make_shared<DownloadManager>(DownloadManager());
+	DLMAN = make_shared<DownloadManager>();
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */
