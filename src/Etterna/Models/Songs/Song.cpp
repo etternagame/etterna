@@ -1213,7 +1213,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		for (auto s : vpStepsToSave) {
 			s->Decompress();
-			s->CalcEtternaMetadata();
+			s->CalcEtternaMetadata(SONGMAN->calc.get());
 			s->SetFilename(path);
 		}
 	if (bSavingCache) {

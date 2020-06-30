@@ -709,10 +709,6 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 							  tp_mods[Skill_Jumpstream];
 					*stam_base = max<float>(a, b);
 				} break;
-				case Skill_JackSpeed:
-					*adj_diff = calc.soap.at(hi).at(JackBase).at(i) *
-								tp_mods[Skill_JackSpeed] * basescalers.at(ss);
-					break;
 				case Skill_Chordjack:
 					*adj_diff *= fastsqrt(calc.doot.at(hi).at(CJOHJump).at(i));
 					break;
@@ -743,11 +739,6 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 		return dimples_the_all_zero_output;
 	}
 
-	std::unique_ptr<Calc> owned_calc;
-	if (calc == nullptr) {
-		owned_calc = std::make_unique<Calc>();
-		calc = owned_calc.get();
-	}
 	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
 
@@ -759,17 +750,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 	int lower_rate = 7;
 	int upper_rate = 21;
 
-	std::unique_ptr<Calc> cacheRun;
-
 	if (NoteInfo.size() > 1) {
-		// If we're not given a calc make one just for this
-		// Must be declared outside the !calc if so it's alive when
-		// used
-		if (calc == nullptr) {
-			cacheRun = std::make_unique<Calc>();
-			calc = cacheRun.get();
-		}
-
 		calc->ssr = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(

@@ -581,7 +581,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				  "",
 				  128);
 			else {
-				//SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				// SONGMAN->testChartList[foundSS].filemapping.erase(ck);
 				SCREENMAN->SystemMessage(ssprintf(
 				  "Removed this chart from the test list (skillset %d)",
 				  foundSS));
@@ -1083,8 +1083,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 							   ck.c_str(),
 							   SkillsetToString(ss).c_str()));
 					SONGMAN->SaveCalcTestXmlToDir();
-					float woo =
-					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, 1.f);
+					float woo = GAMESTATE->m_pCurSteps->DoATestThing(
+					  target, ss, 1.f, SONGMAN->calc.get());
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");
@@ -1119,8 +1119,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 							   SkillsetToString(ss).c_str(),
 							   rate));
 					SONGMAN->SaveCalcTestXmlToDir();
-					float woo =
-					  GAMESTATE->m_pCurSteps->DoATestThing(target, ss, rate);
+					float woo = GAMESTATE->m_pCurSteps->DoATestThing(
+					  target, ss, rate, SONGMAN->calc.get());
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");

@@ -12,6 +12,7 @@
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/Songmanager.h"
 
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
@@ -382,7 +383,8 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 
 	// 4k
 	if (steps->m_StepsType == StepsType_dance_single) {
-		return MinaSDCalc(serializednd, musicrate, ssrpercent);
+		return MinaSDCalc(
+		  serializednd, musicrate, ssrpercent, SONGMAN->calc.get());
 	}
 
 	// solo calc

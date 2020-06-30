@@ -146,10 +146,9 @@ MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float musicrate,
 		   float goal,
-		   Calc* calc = nullptr) -> std::vector<float>;
+		   Calc* calc) -> std::vector<float>;
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc = nullptr)
-  -> MinaSD;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD;
 MINACALC_API void
 MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,

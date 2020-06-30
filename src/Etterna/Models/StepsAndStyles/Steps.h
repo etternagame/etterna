@@ -214,7 +214,7 @@ class Steps
 	  -> vector<pair<Skillset, float>>;
 
 	void CalcEtternaMetadata(Calc* calc = nullptr);
-	auto DoATestThing(float ev, Skillset ss, float rate) -> float;
+	auto DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float;
 	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
 	vector<vector<vector<vector<float>>>>
 	  calcdebugoutput; // probably should clear this periodically

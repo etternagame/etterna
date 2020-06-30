@@ -95,6 +95,9 @@ SongManager::SongManager()
 	NUM_SONG_GROUP_COLORS.Load("SongManager", "NumSongGroupColors");
 	SONG_GROUP_COLOR.Load(
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
+
+	// calc for debug/session scores
+	calc = make_unique<Calc>();
 }
 
 SongManager::~SongManager()
@@ -388,7 +391,7 @@ SongManager::CalcTestStuff()
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
 				  StepsByKey[chart.first]->DoATestThing(
-					chart.second.ev, ss, chart.second.rate));
+					chart.second.ev, ss, chart.second.rate, calc.get()));
 		}
 		LOG->Trace("\n\n");
 	}

@@ -430,7 +430,7 @@ Steps::CalcEtternaMetadata(Calc* calc)
 }
 
 auto
-Steps::DoATestThing(float ev, Skillset ss, float rate) -> float
+Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 {
 	// This is 4k only
 	if (m_StepsType != StepsType_dance_single) {
@@ -444,7 +444,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate) -> float
 	const vector<float>& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const vector<NoteInfo>& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	auto newcalc = MinaSDCalc(cereal, rate, 0.93f);
+	auto newcalc = MinaSDCalc(cereal, rate, 0.93f, calc);
 	float last_msd = newcalc[ss];
 	int prev_vers = GetCalcVersion() - 1;
 	if (vh.count(prev_vers) != 0u) {
@@ -902,7 +902,7 @@ class LunaSteps : public Luna<Steps>
 		if (p->m_StepsType == StepsType_dance_solo) {
 			d = SoloCalc(ni, rate, goal);
 		} else {
-			d = MinaSDCalc(ni, rate, goal);
+			d = MinaSDCalc(ni, rate, goal, SONGMAN->calc.get());
 		}
 
 		auto ssrs = d;
