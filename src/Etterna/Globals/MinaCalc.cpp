@@ -527,6 +527,28 @@ Calc::Chisel(float player_skill,
 				debugValues.at(hi)[2][JackPtLoss].at(i) =
 				  jack_loss.at(hi).at(i);
 			}
+
+			/* set total pattern mod value (excluding stam for now), essentially
+			 * this value is the cumulative effect of pattern mods on base nps
+			 * for everything but tech, and base tech for tech */
+
+			// techbase
+			if (ss == Skill_Technical) {
+				for (int i = 0; i < numitv; ++i) {
+					debugValues.at(hi)[0][TotalPatternMod].at(i) =
+					  soap.at(hi)[TechBase].at(i) /
+					  base_adj_diff.at(hi)[TechBase].at(i);
+				}
+			} else if (ss == Skill_JackSpeed) {
+				// no pattern mods atm, do nothing
+			} else {
+				// everything else uses nps base
+				for (int i = 0; i < numitv; ++i) {
+					debugValues.at(hi)[0][TotalPatternMod].at(i) =
+					  soap.at(hi)[NPSBase].at(i) /
+					  base_adj_diff.at(hi).at(ss).at(i);
+				}
+			}
 		}
 	}
 
