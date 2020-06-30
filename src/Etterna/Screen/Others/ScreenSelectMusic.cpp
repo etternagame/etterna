@@ -378,8 +378,25 @@ ScreenSelectMusic::OpenOptions()
 void
 ScreenSelectMusic::DifferentialReload()
 {
+	// reload songs
 	SONGMAN->DifferentialReload();
+
+	auto selSong = GAMESTATE->m_pCurSong;
+	auto currentHoveredGroup = m_MusicWheel.GetCurrentGroup();
+
+	// reset wheel
 	m_MusicWheel.ReloadSongList(false, "");
+
+	// place selection on the last song we were on
+	// or fall back to section in case no song selected
+	// (forces the section to open if so)
+	if (selSong != nullptr)
+		m_MusicWheel.SelectSongOrCourse();
+	else {
+		m_MusicWheel.SelectSection(currentHoveredGroup);
+		m_MusicWheel.SetOpenSection(currentHoveredGroup);
+	}
+	
 }
 
 bool
@@ -1353,6 +1370,7 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 					   .GetTopScore()
 					   .GetScore();
 			if (m_pPreviewNoteField != nullptr) {
+				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds, *(pSteps->GetTimingData()));
 				pSteps->GetNoteData(m_PreviewNoteData);
 				m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
 			}

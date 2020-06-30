@@ -82,8 +82,9 @@ local function scrollInput(event)
 				top:SelectCurrent(0)
 			end
 		elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_FirstPress" then
+			local tind = getTabIndex()
 			setTabIndex(7)
-			MESSAGEMAN:Broadcast("TabChanged")
+			MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 7})
 		end
 	end
 	return false

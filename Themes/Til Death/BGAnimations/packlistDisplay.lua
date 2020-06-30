@@ -70,7 +70,8 @@ local o =
 		end
 	end,
 	DFRFinishedMessageCommand = function(self)
-		self:queuecommand("PackTableRefresh")
+		packtable = packlist:GetPackTable()
+		self:queuecommand("Update")
 	end,
 	NextPageCommand = function(self)
 		ind = ind + numpacks
