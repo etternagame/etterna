@@ -245,7 +245,7 @@ class Steps
 	auto HasSignificantTimingChanges() const -> bool;
 
 	auto GetMusicPath() const
-	  -> const std::string&; // Returns the path for loading.
+	  -> const std::string; // Returns the path for loading.
 	auto GetMusicFile() const
 	  -> const std::string&; // Returns the filename for the simfile.
 	void SetMusicFile(const std::string& file);
