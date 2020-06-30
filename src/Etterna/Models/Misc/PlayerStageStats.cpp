@@ -12,7 +12,7 @@
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/Singletons/Songmanager.h"
+#include "Etterna/Singletons/SongManager.h"
 
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
