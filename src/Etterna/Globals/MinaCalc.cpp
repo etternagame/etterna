@@ -276,8 +276,8 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 6.F;
-static const float magic_num_TWO = 2.25F;
+static const float magic_num = 4.F;
+static const float magic_num_TWO = 2.5F;
 static const float gratuitously_defined_zero_value = 0.F;
 
 [[nodiscard]] inline auto
@@ -308,9 +308,9 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 		for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv); ++row) {
 			const auto& y = calc.jack_diff.at(hi).at(itv).at(row);
 
-			if (x < y && x > 0.F) {
+			if (x < y && y > 0.F) {
 				row_loss = hit_the_road(x, y);
-				itv_total += row_loss;
+				itv_total += row_loss > 0.F ? row_loss : 0.F;
 			}
 		}
 
@@ -484,9 +484,13 @@ Calc::Chisel(float player_skill,
 				return 0.F; // not how we set these values
 			}
 
-			// reset tallied score, always deduct rather than
-			// accumulate now
-			gotpoints = static_cast<float>(MaxPoints) * 1.05F;
+			// reset tallied score, always deduct rather than accumulate now
+			if (ss == Skill_JackSpeed || ss == Skill_Technical) {
+				gotpoints = static_cast<float>(MaxPoints);
+			} else {
+				// waters down scaling on generic skillsets
+				gotpoints = static_cast<float>(MaxPoints) * 1.05F;
+			}
 
 			for (auto& hi : { left_hand, right_hand }) {
 
@@ -502,10 +506,10 @@ Calc::Chisel(float player_skill,
 						CalcInternal(
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
-					/*if (ss == Skill_Technical) {
+					if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(
-						  jackloss(player_skill * 0.8F, *this, hi) / 1.F);
-					}*/
+						  jackloss(player_skill * 0.6F, *this, hi) * 0.75F);
+					}
 				}
 			}
 		} while (gotpoints < reqpoints);

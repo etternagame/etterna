@@ -311,8 +311,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(itv);
 
-		// run sequenced base difficulty generation, base diff is always hand
-		// dependent so we do it in this loop
+		// run sequenced base difficulty generation, base diff is always
+		// hand dependent so we do it in this loop
 		set_sequenced_base_diffs(itv);
 
 		_diffz.interval_end();
@@ -336,8 +336,9 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	inline void set_sequenced_base_diffs(const int& itv)
 	{
-		// this is no longer done for intervals, but per row, in the row loop
-		// _calc.soap.at(hand)[JackBase].at(itv) = _diffz._jk.get_itv_diff();
+		// this is no longer done for intervals, but per row, in the row
+		// loop _calc.soap.at(hand)[JackBase].at(itv) =
+		// _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
@@ -406,7 +407,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					// update metahandinfo, it constructs basic and advanced
 					// patterns from where we are now + recent pattern
-					// information constructed by the last iteration of itself
+					// information constructed by the last iteration of
+					// itself
 					(*_mhi)(*_last_mhi, ct);
 
 					// update interval aggregation of column taps
@@ -415,14 +417,15 @@ struct TheGreatBazoinkazoinkInTheSky
 					// advance sequencing for all hand dependent mods
 					handle_row_dependent_pattern_advancement();
 
-					/* jackspeed, and tech use various adjust ms bases that are
-					 * sequenced here, meaning they are order dependent (jack
-					 * might not be for the moment actually) nps base is still
-					 * calculated in the old way */
-					update_sequenced_base_diffs(ct, itv, row);
+					/* jackspeed, and tech use various adjust ms bases that
+					 * are sequenced here, meaning they are order dependent
+					 * (jack might not be for the moment actually) nps base
+					 * is still calculated in the old way */
+					update_sequenced_base_diffs(ct, itv, jack_counter);
+					++jack_counter;
 
-					// only ohj uses this atm (and probably into the future) so
-					// it might kind of be a waste?
+					// only ohj uses this atm (and probably into the future)
+					// so it might kind of be a waste?
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types.at(_mhi->_bt);
 						++_mitvhi._meta_types.at(_mhi->_mt);
@@ -441,12 +444,14 @@ struct TheGreatBazoinkazoinkInTheSky
 			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
 
 			// smoothing has been built into the construction process so we
-			// probably don't need these anymore? maybe ms smooth if necessary,
-			// or a new ewma
+			// probably don't need these anymore? maybe ms smooth if
+			// necessary, or a new ewma
 
-			// Smooth(_calc.soap.at(hand).at(JackBase), 0.F, _itv_rows.size());
-			// Smooth(_calc.soap.at(hand).at(CJBase), 0.F, _itv_rows.size());
-			// Smooth(_calc.soap.at(hand).at(TechBase), 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(JackBase), 0.F,
+			// _itv_rows.size()); Smooth(_calc.soap.at(hand).at(CJBase),
+			// 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(TechBase), 0.F,
+			// _itv_rows.size());
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
