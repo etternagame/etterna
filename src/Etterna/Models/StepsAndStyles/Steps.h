@@ -272,6 +272,8 @@ class Steps
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
 	void GetDisplayBpms(DisplayBpms& addTo) const;
 
+	const std::vector<std::string>& Getdebugstrings() { return debugstrings; }
+
   private:
 	std::string ChartKey = "";
 	/* We can have one or both of these; if we have both, they're always
@@ -322,6 +324,7 @@ class Steps
 	float specifiedBPMMax;
 
 	bool m_bDuplicateDifficulty = false;
+	std::vector<std::string> debugstrings;
 };
 
 #endif

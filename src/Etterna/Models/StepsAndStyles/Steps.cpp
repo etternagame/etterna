@@ -494,7 +494,9 @@ Steps::GetCalcDebugOutput()
 	MinaSDCalcDebug(cereal,
 					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 					0.93f,
-					calcdebugoutput);
+					calcdebugoutput,
+					debugstrings,
+					*SONGMAN->calc.get());
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -507,6 +509,8 @@ Steps::UnloadCalcDebugOutput()
 {
 	calcdebugoutput.clear();
 	calcdebugoutput.shrink_to_fit();
+	debugstrings.clear();
+	debugstrings.shrink_to_fit();
 }
 
 void
@@ -1080,6 +1084,11 @@ class LunaSteps : public Luna<Steps>
 		lua_rawset(L, -3);
 		return 1;
 	}
+	static auto GetDebugStrings(T* p, lua_State* L) -> int
+	{
+		LuaHelpers::CreateTableFromArray(p->Getdebugstrings(), L);
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1112,6 +1121,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
 		ADD_METHOD(GetCalcDebugOutput);
+		ADD_METHOD(GetDebugStrings);
 	}
 };
 

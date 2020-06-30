@@ -44,9 +44,6 @@
 // a new thing
 #include "Etterna/Globals/MinaCalc/SequencedBaseDiffCalc.h"
 
-// actual cancer
-bool debug_lmao;
-
 // i am ulbu, the great bazoinkazoink in the sky
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -121,7 +118,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		 * we have to write out after loading the values player defined, so the
 		 * quick hack solution to do that is to only do it during debug output
 		 * generation, which is fine for the time being, though not ideal */
-		if (debug_lmao) {
+		if (calc.debugmode) {
 			write_params_to_disk();
 		}
 

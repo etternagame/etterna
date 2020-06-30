@@ -18,21 +18,21 @@ using std::vector;
 
 static const std::array<std::pair<unsigned, string_view>, 16> note_mapping = {
 	{ { 0U, "----" },
-	  { 1U, "1---" },
-	  { 2U, "-1--" },
-	  { 3U, "11--" },
-	  { 4U, "--1-" },
-	  { 5U, "1-1-" },
-	  { 6U, "-11-" },
-	  { 7U, "111-" },
-	  { 8U, "---1" },
-	  { 9U, "1--1" },
-	  { 10U, "-1-1" },
-	  { 11U, "11-1" },
-	  { 12U, "--11" },
-	  { 13U, "1-11" },
-	  { 14U, "-111" },
-	  { 15U, "1111" } }
+	  { 1U, "x---" },
+	  { 2U, "-x--" },
+	  { 3U, "xx--" },
+	  { 4U, "--x-" },
+	  { 5U, "x-x-" },
+	  { 6U, "-xx-" },
+	  { 7U, "xxx-" },
+	  { 8U, "---x" },
+	  { 9U, "x--x" },
+	  { 10U, "-x-x" },
+	  { 11U, "xx-x" },
+	  { 12U, "--xx" },
+	  { 13U, "x-xx" },
+	  { 14U, "-xxx" },
+	  { 15U, "xxxx" } }
 };
 
 /* Note: if we want max control over stamina we need to have one model for
@@ -64,9 +64,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float music_rate,
 			   float score_goal) -> vector<float>
 {
-	// actual cancer
-	debug_lmao = debugmode;
-
 	// in flux
 	float grindscaler =
 	  CalcClamp(
@@ -95,8 +92,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		  music_rate,
 		  0.1F * static_cast<float>(WHAT_IS_EVEN_HAPPEN_THE_BOMB));
 
-		// if we exceed max_rows_for_single_interval during
-		// processing
+		// if we exceed max_rows_for_single_interval during processing
 		if (!continue_calc) {
 			std::cout << "skipping junk file" << std::endl;
 			return dimples_the_all_zero_output;
@@ -127,6 +123,8 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			mcbloop[i] = Chisel(mcbloop[i] * 0.9F, 0.32F, score_goal, i, true);
 		}
 
+		int highest_stam_adjusted_skillset = max_index(mcbloop);
+
 		/* all relative scaling to specific skillsets should occur before this
 		 * point, not after (it ended up this way due to the normalizers which
 		 * were dumb and removed) stam is the only skillset that can/should be
@@ -146,11 +144,6 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * preventing pollution of stamina leaderboards with charts that are
 		 * just very high rated but take no stamina */
 		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
-
-		// super lazy hack to make jackspeed not give stam
-		if (highest_base_skillset == Skill_JackSpeed) {
-			poodle_in_a_porta_potty *= 0.9F;
-		}
 
 		/* the bigger this number the more stamina has to influence a file
 		 * before it counts in the stam skillset, i.e. something that only
@@ -179,10 +172,10 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
 		// values this is the only time debugoutput arg should be set to true
 		if (debugmode) {
-			Chisel(mcbloop[highest_base_skillset] - 0.16F,
+			Chisel(mcbloop[highest_stam_adjusted_skillset] - 0.16F,
 				   0.32F,
 				   score_goal,
-				   highest_base_skillset,
+				   highest_stam_adjusted_skillset,
 				   true,
 				   true);
 		}
@@ -196,7 +189,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				// r = downscale_low_accuracy_scores(r, score_goal);
-				if (highest_base_skillset == Skill_JackSpeed &&
+				if (highest_stam_adjusted_skillset == Skill_JackSpeed &&
 					score_goal < 0.8F) {
 					r = 0.F;
 				}
@@ -439,21 +432,29 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			debugValues.at(hi)[1].resize(NUM_CalcDiffValue);
 			debugValues.at(hi)[2].resize(NUM_CalcDebugMisc);
 
-			for (int j = 0; j < numitv; ++j) {
-				for (int i = 0; i < NUM_CalcPatternMod; ++i) {
-					debugValues.at(hi)[0][i].push_back(doot.at(hi).at(i).at(j));
+			// pattern mods first
+			for (int pmod = 0; pmod < NUM_CalcPatternMod; ++pmod) {
+				debugValues.at(hi)[0][pmod].resize(numitv);
+
+				for (int itv = 0; itv < numitv; ++itv) {
+					debugValues.at(hi)[0][pmod][itv] =
+					  doot.at(hi).at(pmod).at(itv);
+				}
+			}
+
+			// set the base diffs - everything but final adjusted values
+			for (int diff = 0; diff < NUM_CalcDiffValue - 1; ++diff) {
+				debugValues.at(hi)[1][diff].resize(numitv);
+
+				// these are calculated by row, so we need to aggregate them
+				// into intervals before setting the values
+				if (diff == JackBase) {
+					set_jack_diff_debug(*this, hi);
 				}
 
-				// set everything but final adjusted output here
-				for (int i = 0; i < NUM_CalcDiffValue - 1; ++i) {
-
-					// these are calculated by row, so we need to aggregate them
-					// into intervals before setting the values
-					if (i == JackBase) {
-						set_jack_diff_debug(*this, hi);
-					}
-
-					debugValues.at(hi)[1][i].push_back(soap.at(hi).at(i).at(j));
+				for (int itv = 0; itv < numitv; ++itv) {
+					debugValues.at(hi)[1][diff][itv] =
+					  soap.at(hi).at(diff).at(itv);
 				}
 			}
 		}
@@ -536,8 +537,8 @@ Calc::Chisel(float player_skill,
 			if (ss == Skill_Technical) {
 				for (int i = 0; i < numitv; ++i) {
 					debugValues.at(hi)[0][TotalPatternMod].at(i) =
-					  soap.at(hi)[TechBase].at(i) /
-					  base_adj_diff.at(hi)[TechBase].at(i);
+					  base_adj_diff.at(hi)[TechBase].at(i) /
+					  soap.at(hi)[TechBase].at(i);
 				}
 			} else if (ss == Skill_JackSpeed) {
 				// no pattern mods atm, do nothing
@@ -545,8 +546,8 @@ Calc::Chisel(float player_skill,
 				// everything else uses nps base
 				for (int i = 0; i < numitv; ++i) {
 					debugValues.at(hi)[0][TotalPatternMod].at(i) =
-					  soap.at(hi)[NPSBase].at(i) /
-					  base_adj_diff.at(hi).at(ss).at(i);
+					  base_adj_diff.at(hi).at(ss).at(i) /
+					  soap.at(hi)[NPSBase].at(i);
 				}
 			}
 		}
@@ -749,6 +750,27 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	}
 }
 
+inline void
+make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
+{
+	debugstrings.resize(calc.numitv);
+
+	for (int itv = 0; itv < calc.numitv; ++itv) {
+		std::string itvstring = "";
+
+		for (int row = 0; row < calc.itv_size.at(itv); ++row) {
+			const auto& ri = calc.adj_ni.at(itv).at(row);
+
+			itvstring.append(note_mapping[ri.row_notes].second);
+			itvstring.append("\n");
+		}
+
+		if (!itvstring.empty())
+			itvstring.pop_back();
+		debugstrings.at(itv) = itvstring;
+	}
+}
+
 static const float ssr_goal_cap = 0.965F; // goal cap to prevent insane scaling
 // Function to generate SSR rating
 auto
@@ -760,6 +782,8 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 	if (NoteInfo.size() <= 1) {
 		return dimples_the_all_zero_output;
 	}
+	calc->ssr = true;
+	calc->debugmode = false;
 
 	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
@@ -774,6 +798,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 
 	if (NoteInfo.size() > 1) {
 		calc->ssr = false;
+		calc->debugmode = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(
 			  calc->CalcMain(NoteInfo, static_cast<float>(i) / 10.F, 0.93F));
@@ -791,22 +816,25 @@ void
 MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 				float musicrate,
 				float goal,
-				vector<vector<vector<vector<float>>>>& handInfo)
+				vector<vector<vector<vector<float>>>>& handInfo,
+				vector<std::string>& debugstrings,
+				Calc& calc)
 {
 	if (NoteInfo.size() <= 1) {
 		return;
 	}
 
-	std::unique_ptr<Calc> debugRun = std::make_unique<Calc>();
-	debugRun->debugmode = true;
-	debugRun->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
+	calc.debugmode = true;
+	calc.ssr = true;
+	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
+	make_debug_strings(calc, debugstrings);
 
-	handInfo.emplace_back(debugRun->debugValues.at(left_hand));
-	handInfo.emplace_back(debugRun->debugValues.at(right_hand));
+	handInfo.emplace_back(calc.debugValues.at(left_hand));
+	handInfo.emplace_back(calc.debugValues.at(right_hand));
 
 	// asdkfhjasdkfhaskdfjhasfd
 	if (!DoesFileExist(calc_params_xml)) {
-		TheGreatBazoinkazoinkInTheSky ublov(*debugRun);
+		TheGreatBazoinkazoinkInTheSky ublov(calc);
 		ublov.write_params_to_disk();
 	}
 }

@@ -154,6 +154,8 @@ MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   float musicrate,
   float goal,
-  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo);
+  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
+  std::vector<std::string>& debugstrings,
+  Calc& calc);
 MINACALC_API auto
 GetCalcVersion() -> int;
