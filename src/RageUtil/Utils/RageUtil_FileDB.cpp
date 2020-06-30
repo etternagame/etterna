@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil.h"
@@ -58,6 +58,76 @@ FileSet::GetFilesMatching(const RString& sBeginning_,
 
 		asOut.push_back(f.name);
 	}
+}
+
+void
+FileSet::GetFilesMatching(const std::string& sBeginning_,
+						  const std::string& sContaining_,
+						  const std::string& sEnding_,
+						  vector<std::string>& asOut,
+						  bool bOnlyDirs) const
+{
+	/* "files" is a case-insensitive mapping, by filename.  Use lower_bound to
+	 * figure out where to start. */
+	std::string sBeginning = sBeginning_;
+	MakeLower(sBeginning);
+	std::string sContaining = sContaining_;
+	MakeLower(sContaining);
+	std::string sEnding = sEnding_;
+	MakeLower(sEnding);
+
+	set<File>::const_iterator i = files.lower_bound(File(sBeginning));
+	for (; i != files.end(); ++i) {
+		const File& f = *i;
+
+		if (bOnlyDirs && !f.dir)
+			continue;
+
+		const std::string& sPath = f.lname;
+
+		/* Check sBeginning. Once we hit a filename that no longer matches
+		 * sBeginning, we're past all possible matches in the sort, so stop. */
+		if (sBeginning.size() > sPath.size())
+			break; /* can't start with it */
+		if (sPath.compare(0, sBeginning.size(), sBeginning))
+			break; /* doesn't start with it */
+
+		/* Position the end starts on: */
+		int end_pos = int(sPath.size()) - int(sEnding.size());
+
+		/* Check end. */
+		if (end_pos < 0)
+			continue; /* can't end with it */
+		if (sPath.compare(end_pos, std::string::npos, sEnding))
+			continue; /* doesn't end with it */
+
+		/* Check sContaining.  Do this last, since it's the slowest (substring
+		 * search instead of string match). */
+		if (!sContaining.empty()) {
+			size_t pos = sPath.find(sContaining, sBeginning.size());
+			if (pos == sPath.npos)
+				continue; /* doesn't contain it */
+			if (pos + sContaining.size() > unsigned(end_pos))
+				continue; /* found it but it overlaps with the end */
+		}
+
+		asOut.push_back(f.name);
+	}
+}
+
+void
+FileSet::GetFilesEqualTo(const std::string& sStr,
+						 vector<std::string>& asOut,
+						 bool bOnlyDirs) const
+{
+	set<File>::const_iterator i = files.find(File(sStr));
+	if (i == files.end())
+		return;
+
+	if (bOnlyDirs && !i->dir)
+		return;
+
+	asOut.push_back(i->name);
 }
 
 void
@@ -235,6 +305,34 @@ FilenameDB::GetFilesMatching(const RString& sDir,
 }
 
 void
+FilenameDB::GetFilesMatching(const std::string& sDir,
+							 const std::string& sBeginning,
+							 const std::string& sContaining,
+							 const std::string& sEnding,
+							 vector<std::string>& asOut,
+							 bool bOnlyDirs)
+{
+	ASSERT(!m_Mutex.IsLockedByThisThread());
+
+	const FileSet* fs = GetFileSet(sDir);
+	fs->GetFilesMatching(sBeginning, sContaining, sEnding, asOut, bOnlyDirs);
+	m_Mutex.Unlock(); /* locked by GetFileSet */
+}
+
+void
+FilenameDB::GetFilesEqualTo(const std::string& sDir,
+							const std::string& sFile,
+							vector<std::string>& asOut,
+							bool bOnlyDirs)
+{
+	ASSERT(!m_Mutex.IsLockedByThisThread());
+
+	const FileSet* fs = GetFileSet(sDir);
+	fs->GetFilesEqualTo(sFile, asOut, bOnlyDirs);
+	m_Mutex.Unlock(); /* locked by GetFileSet */
+}
+
+void
 FilenameDB::GetFilesEqualTo(const RString& sDir,
 							const RString& sFile,
 							vector<RString>& asOut,
@@ -245,6 +343,41 @@ FilenameDB::GetFilesEqualTo(const RString& sDir,
 	const FileSet* fs = GetFileSet(sDir);
 	fs->GetFilesEqualTo(sFile, asOut, bOnlyDirs);
 	m_Mutex.Unlock(); /* locked by GetFileSet */
+}
+
+void
+FilenameDB::GetFilesSimpleMatch(const std::string& sDir,
+								const std::string& sMask,
+								vector<std::string>& asOut,
+								bool bOnlyDirs)
+{
+	/* Does this contain a wildcard? */
+	size_t first_pos = sMask.find_first_of('*');
+	if (first_pos == sMask.npos) {
+		/* No; just do a regular search. */
+		GetFilesEqualTo(sDir, sMask, asOut, bOnlyDirs);
+		return;
+	}
+	size_t second_pos = sMask.find_first_of('*', first_pos + 1);
+	if (second_pos == sMask.npos) {
+		/* Only one *: "A*B". */
+		/* XXX: "_blank.png*.png" shouldn't match the file "_blank.png". */
+		GetFilesMatching(sDir,
+						 sMask.substr(0, first_pos),
+						 std::string(),
+						 sMask.substr(first_pos + 1),
+						 asOut,
+						 bOnlyDirs);
+		return;
+	}
+
+	/* Two *s: "A*B*C". */
+	GetFilesMatching(sDir,
+					 sMask.substr(0, first_pos),
+					 sMask.substr(first_pos + 1, second_pos - first_pos - 1),
+					 sMask.substr(second_pos + 1),
+					 asOut,
+					 bOnlyDirs);
 }
 
 void
@@ -593,19 +726,56 @@ FilenameDB::GetFilePriv(const RString& path)
 }
 
 void
-FilenameDB::GetDirListing(const RString& sPath_,
-						  vector<RString>& asAddTo,
+FilenameDB::GetDirListing(const std::string& sPath_,
+						  vector<std::string>& asAddTo,
 						  bool bOnlyDirs,
 						  bool bReturnPathToo)
 {
-	RString sPath = sPath_;
+	std::string sPath = sPath_;
 	//	LOG->Trace( "GetDirListing( %s )", sPath.c_str() );
 
 	ASSERT(!sPath.empty());
 
 	/* Strip off the last path element and use it as a mask. */
 	size_t pos = sPath.find_last_of('/');
-	RString fn;
+	std::string fn;
+	if (pos == sPath.npos) {
+		fn = sPath;
+		sPath = "";
+	} else {
+		fn = sPath.substr(pos + 1);
+		sPath = sPath.substr(0, pos + 1);
+	}
+
+	/* If the last element was empty, use "*". */
+	if (fn.size() == 0)
+		fn = "*";
+
+	unsigned iStart = asAddTo.size();
+	GetFilesSimpleMatch(sPath, fn, asAddTo, bOnlyDirs);
+
+	if (bReturnPathToo && iStart < asAddTo.size()) {
+		while (iStart < asAddTo.size()) {
+			asAddTo[iStart].insert(0, sPath);
+			iStart++;
+		}
+	}
+}
+
+void
+FilenameDB::GetDirListing(const RString& sPath_,
+						  vector<RString>& asAddTo,
+						  bool bOnlyDirs,
+						  bool bReturnPathToo)
+{
+	std::string sPath = sPath_;
+	//	LOG->Trace( "GetDirListing( %s )", sPath.c_str() );
+
+	ASSERT(!sPath.empty());
+
+	/* Strip off the last path element and use it as a mask. */
+	size_t pos = sPath.find_last_of('/');
+	std::string fn;
 	if (pos == sPath.npos) {
 		fn = sPath;
 		sPath = "";

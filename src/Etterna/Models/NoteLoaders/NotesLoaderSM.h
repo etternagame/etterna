@@ -43,8 +43,7 @@ struct SMLoader
 	 * information.
 	 * @return its success or failure.
 	 */
-	virtual bool LoadFromDir(const RString& sPath,
-							 Song& out);
+	virtual bool LoadFromDir(const std::string& sPath, Song& out);
 	/**
 	 * @brief Perform some cleanup on the loaded song.
 	 * @param song a reference to the song that may need cleaning up.
@@ -76,8 +75,8 @@ struct SMLoader
 	 * @param sPath a const reference to the path on the hard drive to check.
 	 * @param out a vector of files found in the path.
 	 */
-	virtual void GetApplicableFiles(const RString& sPath,
-									vector<RString>& out);
+	virtual void GetApplicableFiles(const std::string& sPath,
+									vector<std::string>& out);
 	virtual bool LoadEditFromFile(const RString& sEditFilePath,
 								  ProfileSlot slot,
 								  bool bAddStepsToSong,
@@ -245,18 +244,18 @@ struct SMLoader
 	/**
 	 * @brief Set the song title.
 	 * @param t the song title. */
-	virtual void SetSongTitle(const RString& title);
+	virtual void SetSongTitle(const std::string& title);
 
 	/**
 	 * @brief Get the song title.
 	 * @return the song title. */
-	virtual RString GetSongTitle() const;
+	virtual std::string GetSongTitle() const;
 
   private:
 	/** @brief The file extension in use. */
 	const RString fileExt;
 	/** @brief The song title that is being processed. */
-	RString songTitle;
+	std::string songTitle;
 };
 
 #endif

@@ -10,17 +10,17 @@
 #include "NotesLoaderOSU.h"
 
 void
-NotesLoader::GetMainAndSubTitlesFromFullTitle(const RString& sFullTitle,
-											  RString& sMainTitleOut,
-											  RString& sSubTitleOut)
+NotesLoader::GetMainAndSubTitlesFromFullTitle(const std::string& sFullTitle,
+											  std::string& sMainTitleOut,
+											  std::string& sSubTitleOut)
 {
-	const RString sLeftSeps[] = { "\t", " -", " ~", " (", " [" };
+	const std::string sLeftSeps[] = { "\t", " -", " ~", " (", " [" };
 
 	for (unsigned i = 0; i < ARRAYLEN(sLeftSeps); i++) {
 		size_t iBeginIndex = sFullTitle.find(sLeftSeps[i]);
 		if (iBeginIndex == string::npos)
 			continue;
-		sMainTitleOut = sFullTitle.Left(static_cast<int>(iBeginIndex));
+		sMainTitleOut = sFullTitle.substr(0, static_cast<int>(iBeginIndex));
 		sSubTitleOut = sFullTitle.substr(iBeginIndex + 1,
 										 sFullTitle.size() - iBeginIndex + 1);
 		return;
@@ -30,11 +30,11 @@ NotesLoader::GetMainAndSubTitlesFromFullTitle(const RString& sFullTitle,
 };
 
 bool
-NotesLoader::LoadFromDir(const RString& sPath,
+NotesLoader::LoadFromDir(const std::string& sPath,
 						 Song& out,
-						 set<RString>& BlacklistedImages)
+						 set<std::string>& BlacklistedImages)
 {
-	vector<RString> list;
+	vector<std::string> list;
 
 	BlacklistedImages.clear();
 	SSCLoader loaderSSC;

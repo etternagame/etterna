@@ -522,8 +522,8 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					split(asExtensions[i], "_", asBits);
 					RString sThisType;
 					if (asBits.size() > 2)
-						sThisType =
-						  join("_", asBits.begin(), asBits.begin() + 2);
+						sThisType = join(
+						  RString("_"), asBits.begin(), asBits.begin() + 2);
 					if (i > iNextToPrint && sThisType != sType)
 						break;
 					sType = sThisType;
@@ -541,7 +541,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					vector<RString> asBits;
 					split(asExtensions[iNextToPrint], "_", asBits);
 					RString sShortExt =
-					  join("_", asBits.begin() + 2, asBits.end());
+					  join(RString("_"), asBits.begin() + 2, asBits.end());
 					sList += sShortExt;
 					if (iNextToPrint < iLastToPrint)
 						sList += ", ";
@@ -2775,17 +2775,17 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 		pTarget = new RenderTarget_FramebufferObject;
 	else
 		pTarget = g_pWind->CreateRenderTarget();
-	
+
 	intptr_t iTexture = 0;
 	if (pTarget) {
 		pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
-		
+
 		iTexture = pTarget->GetTexture();
-		
+
 		ASSERT(g_mapRenderTargets.find(iTexture) == g_mapRenderTargets.end());
 		g_mapRenderTargets[iTexture] = pTarget;
 	}
-	
+
 	return iTexture;
 }
 

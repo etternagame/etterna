@@ -529,11 +529,11 @@ ConvertI64FormatString(const RString& sStr)
  * We don't use 3-letter codes, so we don't bother supporting them. */
 static const LanguageInfo g_langs[] = {
 	{ "aa", "Afar" },		 { "ab", "Abkhazian" },
-	{ "af", "Afrikaans" },   { "am", "Amharic" },
+	{ "af", "Afrikaans" },	 { "am", "Amharic" },
 	{ "ar", "Arabic" },		 { "as", "Assamese" },
 	{ "ay", "Aymara" },		 { "az", "Azerbaijani" },
 	{ "ba", "Bashkir" },	 { "be", "Byelorussian" },
-	{ "bg", "Bulgarian" },   { "bh", "Bihari" },
+	{ "bg", "Bulgarian" },	 { "bh", "Bihari" },
 	{ "bi", "Bislama" },	 { "bn", "Bengali" },
 	{ "bo", "Tibetan" },	 { "br", "Breton" },
 	{ "ca", "Catalan" },	 { "co", "Corsican" },
@@ -544,56 +544,56 @@ static const LanguageInfo g_langs[] = {
 	{ "es", "Spanish" },	 { "et", "Estonian" },
 	{ "eu", "Basque" },		 { "fa", "Persian" },
 	{ "fi", "Finnish" },	 { "fj", "Fiji" },
-	{ "fo", "Faeroese" },	{ "fr", "French" },
+	{ "fo", "Faeroese" },	 { "fr", "French" },
 	{ "fy", "Frisian" },	 { "ga", "Irish" },
 	{ "gd", "Gaelic" },		 { "gl", "Galician" },
 	{ "gn", "Guarani" },	 { "gu", "Gujarati" },
 	{ "ha", "Hausa" },		 { "he", "Hebrew" },
 	{ "hi", "Hindi" },		 { "hr", "Croatian" },
-	{ "hu", "Hungarian" },   { "hy", "Armenian" },
+	{ "hu", "Hungarian" },	 { "hy", "Armenian" },
 	{ "ia", "Interlingua" }, { "id", "Indonesian" },
 	{ "ie", "Interlingue" }, { "ik", "Inupiak" },
 	{ "in", "Indonesian" }, // compatibility
-	{ "is", "Icelandic" },   { "it", "Italian" },
+	{ "is", "Icelandic" },	 { "it", "Italian" },
 	{ "iw", "Hebrew" },							  // compatibility
-	{ "ja", "Japanese" },	{ "ji", "Yiddish" }, // compatibility
-	{ "jw", "Javanese" },	{ "ka", "Georgian" },
+	{ "ja", "Japanese" },	 { "ji", "Yiddish" }, // compatibility
+	{ "jw", "Javanese" },	 { "ka", "Georgian" },
 	{ "kk", "Kazakh" },		 { "kl", "Greenlandic" },
-	{ "km", "Cambodian" },   { "kn", "Kannada" },
+	{ "km", "Cambodian" },	 { "kn", "Kannada" },
 	{ "ko", "Korean" },		 { "ks", "Kashmiri" },
 	{ "ku", "Kurdish" },	 { "ky", "Kirghiz" },
 	{ "la", "Latin" },		 { "ln", "Lingala" },
-	{ "lo", "Laothian" },	{ "lt", "Lithuanian" },
+	{ "lo", "Laothian" },	 { "lt", "Lithuanian" },
 	{ "lv", "Latvian" },	 { "mg", "Malagasy" },
 	{ "mi", "Maori" },		 { "mk", "Macedonian" },
-	{ "ml", "Malayalam" },   { "mn", "Mongolian" },
-	{ "mo", "Moldavian" },   { "mr", "Marathi" },
+	{ "ml", "Malayalam" },	 { "mn", "Mongolian" },
+	{ "mo", "Moldavian" },	 { "mr", "Marathi" },
 	{ "ms", "Malay" },		 { "mt", "Maltese" },
 	{ "my", "Burmese" },	 { "na", "Nauru" },
 	{ "ne", "Nepali" },		 { "nl", "Dutch" },
-	{ "no", "Norwegian" },   { "oc", "Occitan" },
+	{ "no", "Norwegian" },	 { "oc", "Occitan" },
 	{ "om", "Oromo" },		 { "or", "Oriya" },
 	{ "pa", "Punjabi" },	 { "pl", "Polish" },
 	{ "ps", "Pashto" },		 { "pt", "Portuguese" },
 	{ "qu", "Quechua" },	 { "rm", "Rhaeto-Romance" },
 	{ "rn", "Kirundi" },	 { "ro", "Romanian" },
 	{ "ru", "Russian" },	 { "rw", "Kinyarwanda" },
-	{ "sa", "Sanskrit" },	{ "sd", "Sindhi" },
+	{ "sa", "Sanskrit" },	 { "sd", "Sindhi" },
 	{ "sg", "Sangro" },		 { "sh", "Serbo-Croatian" },
-	{ "si", "Singhalese" },  { "sk", "Slovak" },
-	{ "sl", "Slovenian" },   { "sm", "Samoan" },
+	{ "si", "Singhalese" },	 { "sk", "Slovak" },
+	{ "sl", "Slovenian" },	 { "sm", "Samoan" },
 	{ "sn", "Shona" },		 { "so", "Somali" },
-	{ "sq", "Albanian" },	{ "sr", "Serbian" },
+	{ "sq", "Albanian" },	 { "sr", "Serbian" },
 	{ "ss", "Siswati" },	 { "st", "Sesotho" },
-	{ "su", "Sudanese" },	{ "sv", "Swedish" },
+	{ "su", "Sudanese" },	 { "sv", "Swedish" },
 	{ "sw", "Swahili" },	 { "ta", "Tamil" },
 	{ "te", "Tegulu" },		 { "tg", "Tajik" },
 	{ "th", "Thai" },		 { "ti", "Tigrinya" },
 	{ "tk", "Turkmen" },	 { "tl", "Tagalog" },
-	{ "tn", "Setswana" },	{ "to", "Tonga" },
+	{ "tn", "Setswana" },	 { "to", "Tonga" },
 	{ "tr", "Turkish" },	 { "ts", "Tsonga" },
 	{ "tt", "Tatar" },		 { "tw", "Twi" },
-	{ "uk", "Ukrainian" },   { "ur", "Urdu" },
+	{ "uk", "Ukrainian" },	 { "ur", "Urdu" },
 	{ "uz", "Uzbek" },		 { "vi", "Vietnamese" },
 	{ "vo", "Volapuk" },	 { "wo", "Wolof" },
 	{ "xh", "Xhosa" },		 { "yi", "Yiddish" },
@@ -619,6 +619,29 @@ GetLanguageInfo(const RString& sIsoCode)
 	return NULL;
 }
 
+std::string
+join(const std::string& sDeliminator, const vector<std::string>& sSource)
+{
+	if (sSource.empty())
+		return std::string();
+
+	std::string sTmp;
+	size_t final_size = 0;
+	size_t delim_size = sDeliminator.size();
+	for (size_t n = 0; n < sSource.size() - 1; ++n) {
+		final_size += sSource[n].size() + delim_size;
+	}
+	final_size += sSource.back().size();
+	sTmp.reserve(final_size);
+
+	for (unsigned iNum = 0; iNum < sSource.size() - 1; iNum++) {
+		sTmp += sSource[iNum];
+		sTmp += sDeliminator;
+	}
+	sTmp += sSource.back();
+	return sTmp;
+}
+
 RString
 join(const RString& sDeliminator, const vector<RString>& sSource)
 {
@@ -640,6 +663,36 @@ join(const RString& sDeliminator, const vector<RString>& sSource)
 	}
 	sTmp += sSource.back();
 	return sTmp;
+}
+
+std::string
+join(const std::string& sDelimitor,
+	 vector<std::string>::const_iterator begin,
+	 vector<std::string>::const_iterator end)
+{
+	if (begin == end)
+		return std::string();
+
+	std::string sRet;
+	size_t final_size = 0;
+	size_t delim_size = sDelimitor.size();
+	for (vector<std::string>::const_iterator curr = begin; curr != end;
+		 ++curr) {
+		final_size += curr->size();
+		if (curr != end) {
+			final_size += delim_size;
+		}
+	}
+	sRet.reserve(final_size);
+
+	while (begin != end) {
+		sRet += *begin;
+		++begin;
+		if (begin != end)
+			sRet += sDelimitor;
+	}
+
+	return sRet;
 }
 
 RString
@@ -853,6 +906,18 @@ split(const RString& sSource,
 }
 
 void
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
+	  vector<std::string>& asAddIt,
+	  const bool bIgnoreEmpty)
+{
+	if (sDelimitor.size() == 1)
+		do_split(sSource, sDelimitor[0], asAddIt, bIgnoreEmpty);
+	else
+		do_split(sSource, sDelimitor, asAddIt, bIgnoreEmpty);
+}
+
+void
 split(const wstring& sSource,
 	  const wstring& sDelimitor,
 	  vector<wstring>& asAddIt,
@@ -1052,15 +1117,15 @@ MakeValidFilename(RString& sName)
 }
 
 bool
-FindFirstFilenameContaining(const vector<RString>& filenames,
-							RString& out,
-							const vector<RString>& starts_with,
-							const vector<RString>& contains,
-							const vector<RString>& ends_with)
+FindFirstFilenameContaining(const vector<std::string>& filenames,
+							std::string& out,
+							const vector<std::string>& starts_with,
+							const vector<std::string>& contains,
+							const vector<std::string>& ends_with)
 {
 	for (size_t i = 0; i < filenames.size(); ++i) {
-		RString lower = GetFileNameWithoutExtension(filenames[i]);
-		lower.MakeLower();
+		std::string lower = GetFileNameWithoutExtension(filenames[i]);
+		MakeLower(lower);
 		for (size_t s = 0; s < starts_with.size(); ++s) {
 			if (!lower.compare(0, starts_with[s].size(), starts_with[s])) {
 				out = filenames[i];
@@ -1071,14 +1136,14 @@ FindFirstFilenameContaining(const vector<RString>& filenames,
 		for (size_t s = 0; s < ends_with.size(); ++s) {
 			if (lower_size >= ends_with[s].size()) {
 				size_t end_pos = lower_size - ends_with[s].size();
-				if (!lower.compare(end_pos, string::npos, ends_with[s])) {
+				if (!lower.compare(end_pos, std::string::npos, ends_with[s])) {
 					out = filenames[i];
 					return true;
 				}
 			}
 		}
 		for (size_t s = 0; s < contains.size(); ++s) {
-			if (lower.find(contains[s]) != string::npos) {
+			if (lower.find(contains[s]) != std::string::npos) {
 				out = filenames[i];
 				return true;
 			}
@@ -1191,6 +1256,20 @@ GetHashForString(const RString& s)
 	unsigned crc = 0;
 	CRC32(crc, s.data(), s.size());
 	return crc;
+}
+
+/* Return true if "dir" is empty or does not exist. */
+bool
+DirectoryIsEmpty(const std::string& sDir)
+{
+	if (sDir.empty())
+		return true;
+	if (!DoesFileExist(sDir))
+		return true;
+
+	vector<std::string> asFileNames;
+	GetDirListing(sDir, asFileNames);
+	return asFileNames.empty();
 }
 
 /* Return true if "dir" is empty or does not exist. */
@@ -1320,9 +1399,32 @@ TrimRight(RString& sStr, const char* s)
 }
 
 void
+TrimRight(std::string& sStr, const char* s)
+{
+	int n = sStr.size();
+	while (n > 0 && strchr(s, sStr[n - 1]))
+		n--;
+
+	/* Delete from n to the end. If n == sStr.size(), nothing is deleted;
+	 * if n == 0, the whole string is erased. */
+	sStr.erase(sStr.begin() + n, sStr.end());
+}
+
+void
 Trim(RString& sStr, const char* s)
 {
 	RString::size_type b = 0, e = sStr.size();
+	while (b < e && strchr(s, sStr[b]))
+		++b;
+	while (b < e && strchr(s, sStr[e - 1]))
+		--e;
+	sStr.assign(sStr.substr(b, e - b));
+}
+
+void
+Trim(std::string& sStr, const char* s)
+{
+	string::size_type b = 0, e = sStr.size();
 	while (b < e && strchr(s, sStr[b]))
 		++b;
 	while (b < e && strchr(s, sStr[e - 1]))
@@ -1369,32 +1471,6 @@ URLEncode(const RString& sStr)
 	return sOutput;
 }
 
-// remove various version control-related files
-static bool
-CVSOrSVN(const RString& s)
-{
-	return s.Right(3).EqualsNoCase("CVS") || s.Right(4) == ".svn" ||
-		   s.Right(3).EqualsNoCase(".hg");
-}
-
-void
-StripCvsAndSvn(vector<RString>& vs)
-{
-	RemoveIf(vs, CVSOrSVN);
-}
-
-static bool
-MacResourceFork(const RString& s)
-{
-	return s.Left(2).EqualsNoCase("._") && s != "._Pulse.sm";
-}
-
-void
-StripMacResourceForks(vector<RString>& vs)
-{
-	RemoveIf(vs, MacResourceFork);
-}
-
 // path is a .redir pathname. Read it and return the real one.
 RString
 DerefRedir(const RString& _path)
@@ -1418,7 +1494,7 @@ DerefRedir(const RString& _path)
 
 		sPath2 += "*";
 
-		vector<RString> matches;
+		vector<std::string> matches;
 		GetDirListing(sPath2, matches, false, true);
 
 		if (matches.empty())
@@ -1661,6 +1737,34 @@ Regex::Compare(const RString& sStr, vector<RString>& asMatches)
 	return true;
 }
 
+bool
+Regex::Compare(const std::string& sStr, vector<std::string>& asMatches)
+{
+	asMatches.clear();
+
+	int iMat[128 * 3];
+	int iRet = pcre_exec(
+	  (pcre*)m_pReg, NULL, sStr.data(), sStr.size(), 0, 0, iMat, 128 * 3);
+
+	if (iRet < -1)
+		RageException::Throw("Unexpected return from pcre_exec('%s'): %i.",
+							 m_sPattern.c_str(),
+							 iRet);
+
+	if (iRet == -1)
+		return false;
+
+	for (unsigned i = 1; i < m_iBackrefs; ++i) {
+		const int iStart = iMat[i * 2], end = iMat[i * 2 + 1];
+		if (iStart == -1)
+			asMatches.push_back(std::string()); /* no match */
+		else
+			asMatches.push_back(sStr.substr(iStart, end - iStart));
+	}
+
+	return true;
+}
+
 // Arguments and behavior are the same are similar to
 // http://us3.php.net/manual/en/function.preg-replace.php
 bool
@@ -1679,6 +1783,28 @@ Regex::Replace(const RString& sReplacement,
 		RString sFrom = ssprintf("\\${%d}", i);
 		RString sTo = asMatches[i];
 		sOut.Replace(sFrom, sTo);
+	}
+
+	return true;
+}
+
+bool
+Regex::Replace(const std::string& sReplacement,
+			   const std::string& sSubject,
+			   std::string& sOut)
+{
+	vector<std::string> asMatches;
+	if (!Compare(sSubject, asMatches))
+		return false;
+
+	sOut = sReplacement;
+
+	// TODO: optimize me by iterating only once over the string
+	for (unsigned i = 0; i < asMatches.size(); i++) {
+		RString sFrom = ssprintf("\\${%d}", i);
+		RString sTo = asMatches[i];
+		RString forp = sOut;
+		forp.Replace(sFrom, sTo);
 	}
 
 	return true;
@@ -1703,7 +1829,7 @@ utf8_get_char_len(char p)
 		return 5; /* 111110xx */
 	if (!(p & 0x02))
 		return 6; /* 1111110x */
-	return 1;	 /* 1111111x */
+	return 1;	  /* 1111111x */
 }
 
 static inline bool
@@ -1930,6 +2056,15 @@ MakeLower(wchar_t* p, size_t iLen)
 	for (size_t i = 0; *p != L'\0' && i < iLen; i++, p++) {
 		*p = towlower(*p);
 	}
+}
+
+void
+MakeLower(std::string& data)
+{
+	std::transform(std::begin(data),
+				   std::end(data),
+				   std::begin(data),
+				   [](unsigned char c) { return std::tolower(c); });
 }
 
 int
@@ -2258,6 +2393,57 @@ Replace_Unicode_Markers(RString& sText)
 	}
 }
 
+// Replace &#nnnn; (decimal) and &xnnnn; (hex) with corresponding UTF-8
+// characters.
+void
+Replace_Unicode_Markers(std::string& sText)
+{
+	unsigned iStart = 0;
+	while (iStart < sText.size()) {
+		// Look for &#digits;
+		bool bHex = false;
+		size_t iPos = sText.find("&#", iStart);
+		if (iPos == sText.npos) {
+			bHex = true;
+			iPos = sText.find("&x", iStart);
+		}
+
+		if (iPos == sText.npos)
+			break;
+		iStart = iPos + 1;
+
+		unsigned p = iPos;
+		p += 2;
+
+		// Found &# or &x. Is it followed by digits and a semicolon?
+		if (p >= sText.size())
+			continue;
+
+		int iNumDigits = 0;
+		while (p < sText.size() && bHex ? isxdigit(sText[p])
+										: isdigit(sText[p])) {
+			p++;
+			iNumDigits++;
+		}
+
+		if (!iNumDigits)
+			continue; // must have at least one digit
+		if (p >= sText.size() || sText[p] != ';')
+			continue;
+		p++;
+
+		int iNum;
+		if (bHex)
+			sscanf(sText.c_str() + iPos, "&x%x;", &iNum);
+		else
+			sscanf(sText.c_str() + iPos, "&#%i;", &iNum);
+		if (iNum > 0xFFFF)
+			iNum = INVALID_CHAR;
+
+		sText.replace(iPos, p - iPos, WcharToUTF8(wchar_t(iNum)));
+	}
+}
+
 // Form a string to identify a wchar_t with ASCII.
 RString
 WcharDisplayText(wchar_t c)
@@ -2388,6 +2574,14 @@ FixSlashesInPlace(RString& sPath)
 			sPath[i] = '/';
 }
 
+void
+FixSlashesInPlace(std::string& sPath)
+{
+	for (auto& c : sPath)
+		if (c == '\\')
+			c = '/';
+}
+
 /* Keep trailing slashes, since that can be used to illustrate that a path
  * always represents a directory.
  *
@@ -2404,9 +2598,9 @@ FixSlashesInPlace(RString& sPath)
  */
 
 void
-CollapsePath(RString& sPath, bool bRemoveLeadingDot)
+CollapsePath(std::string& sPath, bool bRemoveLeadingDot)
 {
-	RString sOut;
+	std::string sOut;
 	sOut.reserve(sPath.size());
 
 	size_t iPos = 0;
@@ -2414,7 +2608,7 @@ CollapsePath(RString& sPath, bool bRemoveLeadingDot)
 	for (; iPos < sPath.size(); iPos = iNext) {
 		// Find the next slash.
 		iNext = sPath.find('/', iPos);
-		if (iNext == RString::npos)
+		if (iNext == std::string::npos)
 			iNext = sPath.size();
 		else
 			++iNext;
@@ -2444,7 +2638,7 @@ CollapsePath(RString& sPath, bool bRemoveLeadingDot)
 
 			// Search backwards for the previous path element.
 			size_t iPrev = sOut.rfind('/', sOut.size() - 2);
-			if (iPrev == RString::npos)
+			if (iPrev == std::string::npos)
 				iPrev = 0;
 			else
 				++iPrev;
