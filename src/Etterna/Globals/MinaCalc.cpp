@@ -485,7 +485,7 @@ Calc::Chisel(float player_skill,
 
 			// reset tallied score, always deduct rather than
 			// accumulate now
-			gotpoints = static_cast<float>(MaxPoints);
+			gotpoints = static_cast<float>(MaxPoints) * 1.05F;
 
 			for (auto& hi : { left_hand, right_hand }) {
 
