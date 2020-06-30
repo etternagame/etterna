@@ -47,8 +47,6 @@
 // actual cancer
 bool debug_lmao;
 
-extern const std::array<float, NUM_Skillset> basescalers;
-
 // i am ulbu, the great bazoinkazoink in the sky
 struct TheGreatBazoinkazoinkInTheSky
 {

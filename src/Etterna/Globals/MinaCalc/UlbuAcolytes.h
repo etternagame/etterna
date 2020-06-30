@@ -6,6 +6,15 @@
 
 /* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
 
+/* since we are no longer using the normalizer system we need to lower the base
+ * difficulty for each skillset and then detect pattern types to push down OR
+ * up, rather than just down and normalizing to a differential since chorded
+ * patterns have lower enps than streams, streams default to 1 and chordstreams
+ * start lower, stam is a special case and may use normalizers again */
+static const std::array<float, NUM_Skillset> basescalers = {
+	0.F, 0.975F, 0.89F, 0.82F, 0.92F, 1.F, 0.81F, 0.9F
+};
+
 static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 static const float interval_span = 0.5F;
