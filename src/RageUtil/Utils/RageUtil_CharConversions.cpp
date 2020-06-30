@@ -132,7 +132,7 @@ ConvertFromCP(std::string& sText, int iCodePage)
 		return false;
 
 	CFStringRef old =
-	  CFStringCreateWithCString(kCFAllocatorDefault, sText, encoding);
+	  CFStringCreateWithCString(kCFAllocatorDefault, sText.c_str(), encoding);
 
 	if (old == NULL)
 		return false;
