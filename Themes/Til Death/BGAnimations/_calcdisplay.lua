@@ -489,11 +489,11 @@ o[#o + 1] = Def.Quad {
             local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
             local rightEnd = self:GetTrueX() + w - (self:GetHAlign() * w)
             local perc = (mx - leftEnd) / (rightEnd - leftEnd)
-            local goodXPos = -plotWidth/2 + perc * plotWidth -110
+            local goodXPos = -plotWidth/2 + perc * plotWidth
 			
             txt:visible(true)
-			txt:x(goodXPos - 4)
-            txt:y(ypos)
+			txt:x(goodXPos + 36)
+            txt:y(ypos - 40)
 
             local index = convertPercentToIndexForMods(perc)
             txt:settext(debugstrings[index])
