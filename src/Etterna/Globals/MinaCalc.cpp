@@ -506,7 +506,7 @@ Calc::Chisel(float player_skill,
 					}
 					if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(
-						  jackloss(player_skill * 0.6F, *this, hi) * 0.75F);
+						  jackloss(player_skill * 0.625F, *this, hi) * 0.75F);
 					}
 				}
 			}
