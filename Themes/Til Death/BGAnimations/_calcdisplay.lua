@@ -745,8 +745,8 @@ local modnames = {
     --"rposr",
     --"rpjl",
     --"rpjr",
-    --"totpml",
-    --"totpmr",
+    "totpml",
+    "totpmr",
 
 
     -- CalcPatternMods above this line
@@ -852,8 +852,8 @@ local modColors = {
 	--color("1,1,1"),
 	--color("1,1,1"),			-- rpj
     --color("1,1,1"),
-    --color("0.7,1,0"),		-- lime			= totalpatternmod left
-    --color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0"),		-- lime			= totalpatternmod left
+    color("0.7,1,0"),		-- lime				 (right)
 
 
     -- place CalcPatternMod Colors above this line
