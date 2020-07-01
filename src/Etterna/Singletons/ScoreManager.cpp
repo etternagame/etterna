@@ -568,7 +568,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 void
 ScoreManager::RecalculateSSRs(const string& profileID)
 {
-	auto& scores = SCOREMAN->GetAllScores();
+	auto& scores = SCOREMAN->GetAllProfileScores(profileID);
 
 	mutex songVectorPtrMutex;
 	vector<std::uintptr_t> currentlyLockedSongs;
