@@ -164,6 +164,7 @@ local minanyms = {
 	"ban dripwarrior",
 	"dripwarrior banned",
 	"snorf AEPLUS bcborf",
+	"ulbu, the great bazoinkazoink in the sky",
 }
 
 math.random()
