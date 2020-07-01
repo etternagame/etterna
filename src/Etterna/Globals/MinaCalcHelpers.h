@@ -49,10 +49,10 @@ AggregateRatings(const vector<float>& skillsets,
 		for (auto& ss : skillsets) {
 			if (ss == Skill_Overall)
 				continue;
-			sum += max(0.0, 2.f / erfc(0.1 * (ss - rating)) - 2);
+			sum += max(0.0, 2.f / erfc(0.25 * (ss - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11)
-		return rating;
+		return rating * 1.125F;
 	return AggregateRatings(skillsets, rating - res, res / 2.f, iter + 1);
 }

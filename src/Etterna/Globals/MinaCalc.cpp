@@ -189,16 +189,16 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
-				/*if (highest_stam_adjusted_skillset == Skill_JackSpeed &&
-					score_goal < 0.8F) {
-					r = 0.F;
-				}*/
 				r = CalcClamp(r, r, ssrcap);
 			}
 		}
 
-		// finished all modifications to skillset values, set overall
-		mcbloop[Skill_Overall] = max_val(mcbloop);
+		/* finished all modifications to skillset values, set overall using
+		 * sigmoidal aggregation, but only let it buff files, don't set anything
+		 * below the highest skillset th */
+		float agg = AggregateRatings(mcbloop);
+		float highest = max_val(mcbloop);
+		mcbloop[Skill_Overall] = agg > highest ? agg : highest;
 
 		for (float bagles : mcbloop) {
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(bagles);
