@@ -565,7 +565,120 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	return;
 }
 
-// should deal with this misnomer - mina
+void
+ScoreManager::RecalculateSSRs(const string& profileID)
+{
+	auto& scores = SCOREMAN->GetAllScores();
+
+	mutex songVectorPtrMutex;
+	vector<std::uintptr_t> currentlyLockedSongs;
+	// This is meant to ensure mutual exclusion for a song
+	class SongLock
+	{
+	  public:
+		mutex& songVectorPtrMutex; // This mutex guards the vector
+		vector<std::uintptr_t>&
+		  currentlyLockedSongs; // Vector of currently locked songs
+		std::uintptr_t song;	// The song for this lock
+		SongLock(vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
+		  : currentlyLockedSongs(vec)
+		  , songVectorPtrMutex(mut)
+		  , song(k)
+		{
+			bool active = true;
+			{
+				lock_guard<mutex> lk(songVectorPtrMutex);
+				active = find(currentlyLockedSongs.begin(),
+							  currentlyLockedSongs.end(),
+							  song) != currentlyLockedSongs.end();
+				if (!active)
+					currentlyLockedSongs.emplace_back(song);
+			}
+			while (active) {
+				// TODO: Try to make this wake up from the destructor (CondVar's
+				// maybe)
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				{
+					lock_guard<mutex> lk(songVectorPtrMutex);
+					active = find(currentlyLockedSongs.begin(),
+								  currentlyLockedSongs.end(),
+								  song) != currentlyLockedSongs.end();
+					if (!active)
+						currentlyLockedSongs.emplace_back(song);
+				}
+			}
+		}
+		~SongLock()
+		{
+			lock_guard<mutex> lk(songVectorPtrMutex);
+			currentlyLockedSongs.erase(find(
+			  currentlyLockedSongs.begin(), currentlyLockedSongs.end(), song));
+		}
+	};
+	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
+				  ThreadData*)>
+	  callback =
+		[&songVectorPtrMutex, &currentlyLockedSongs](
+		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
+		  ThreadData* data) {
+			std::unique_ptr<Calc> per_thread_calc = std::make_unique<Calc>();
+
+			int scoreIndex = 0;
+			for (auto it = workload.first; it != workload.second; it++) {
+				auto hs = *it;
+				++scoreIndex;
+
+				const string& ck = hs->GetChartKey();
+				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
+
+				// check for unloaded steps, only allow 4k
+				if (steps == nullptr ||
+					steps->m_StepsType != StepsType_dance_single)
+					continue;
+
+				float ssrpercent = hs->GetSSRNormPercent();
+
+				// don't waste time on <= 0%s
+				if (ssrpercent <= 0.f || !steps->IsRecalcValid()) {
+					hs->ResetSkillsets();
+					continue;
+				}
+				SongLock lk(currentlyLockedSongs,
+							songVectorPtrMutex,
+							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
+
+				float musicrate = hs->GetMusicRate();
+
+				TimingData* td = steps->GetTimingData();
+				NoteData nd;
+				steps->GetNoteData(nd);
+
+				const auto& serializednd = nd.SerializeNoteData2(td);
+				vector<float> dakine;
+
+				if (steps->m_StepsType == StepsType_dance_single) {
+					dakine = MinaSDCalc(serializednd,
+										musicrate,
+										ssrpercent,
+										per_thread_calc.get());
+				}
+
+				auto ssrVals = dakine;
+				FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, ssrVals[ss]);
+				hs->SetSSRCalcVersion(GetCalcVersion());
+
+				td->UnsetEtaner();
+				nd.UnsetNerv();
+				nd.UnsetSerializedNoteData();
+				steps->Compress();
+			}
+		};
+
+	parallelExecution<HighScore*>(scores, callback);
+	return;
+}
+
 void
 ScoreManager::UnInvalidateAllScores()
 {
