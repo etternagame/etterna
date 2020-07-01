@@ -765,7 +765,7 @@ make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
 		for (int row = 0; row < calc.itv_size.at(itv); ++row) {
 			const auto& ri = calc.adj_ni.at(itv).at(row);
 
-			itvstring.append(note_mapping[ri.row_notes].second);
+			itvstring.append(note_mapping.at(ri.row_notes).second);
 			itvstring.append("\n");
 		}
 
