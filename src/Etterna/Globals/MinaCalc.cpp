@@ -542,7 +542,6 @@ Calc::Chisel(float player_skill,
 	 * be recalculated with the final value already determined for
 	 * clarification, player_skill value being passed into here is
 	 * the final value we've determined */
-
 	if (debugoutput) {
 		for (auto& hi : { left_hand, right_hand }) {
 			CalcInternal(
@@ -555,7 +554,9 @@ Calc::Chisel(float player_skill,
 
 			/* set total pattern mod value (excluding stam for now), essentially
 			 * this value is the cumulative effect of pattern mods on base nps
-			 * for everything but tech, and base tech for tech */
+			 * for everything but tech, and base tech for tech, this isn't 1:1
+			 * for intervals because there may be some discrepancies due to
+			 * things like smoothing */
 
 			// techbase
 			if (ss == Skill_Technical) {
@@ -580,12 +581,9 @@ Calc::Chisel(float player_skill,
 	return player_skill + 2.F * resolution;
 }
 
-inline void
-Calc::InitAdjDiff(Calc& calc, const int& hi)
-{
-	/* the new way we wil attempt to diffrentiate skillsets rather than using
-	 * normalizers is by detecting whether or not we think a file is mostly
-	 * comprised of a given pattern, producing a downscaler that slightly buffs
+/* the new way we wil attempt to diffrentiate skillsets rather than using
+ * normalizers is by detecting whether or not we think a file is mostly
+ * comprised of a given pattern, producing a downscaler that slightly buffs
 	 * up those files and produces a downscaler for files not detected of that
 	 * type. the major potential failing of this system is that it ends up such
 	 * that the rating is tied directly to whether or not a file can be more or
@@ -594,10 +592,12 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	 * are still built on proportion of taps in chords / total taps, but there's
 	 * a lot more give than their used to be. they should be re-done as
 	 * sequential detection for best effect but i don't know if that will be
-	 * necessary for basic tuning if we don't do this files may end up
-	 * misclassing hard and polluting leaderboards, and good scores on overrated
-	 * files will simply produce high ratings in every category */
-
+ * necessary for basic tuning if we don't do this files may end up
+ * misclassing hard and polluting leaderboards, and good scores on overrated
+ * files will simply produce high ratings in every category */
+inline void
+Calc::InitAdjDiff(Calc& calc, const int& hi)
+{
 	static const std::array<vector<int>, NUM_Skillset> pmods_used = { {
 	  // overall, nothing, don't handle here
 	  {},
@@ -728,20 +728,16 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 				case Skill_Stream:
 					break;
 
-				// test calculating stam for js/hs on max js/hs diff
-				// we want hs to count against js so they are
-				// mutually exclusive
+				/* test calculating stam for js/hs on max js/hs diff, also we
+				 * want hs to count against js so they are mutually exclusive,
+				 * don't know how this functionally interacts with the stam base
+				 * stuff, but it might be one reason why js is more problematic
+				 * than hs? */
 				case Skill_Jumpstream: {
-
 					*adj_diff /= max<float>(calc.doot.at(hi).at(HS).at(i), 1.F);
 					*adj_diff /=
 					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
 
-					/*adj_diff *=
-					  CalcClamp(fastsqrt(doot.at(hi).at(RanMan).at(i)
-					  - 0.2f), 1.f, 1.05f);*/
-					// maybe we should have 2 loops to avoid doing
-					// math twice
 					float a = *adj_diff;
 					float b = calc.soap.at(hi).at(NPSBase).at(i) *
 							  tp_mods[Skill_Handstream];
@@ -795,7 +791,6 @@ make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
 	}
 }
 
-static const float ssr_goal_cap = 0.965F; // goal cap to prevent insane scaling
 // Function to generate SSR rating
 auto
 MinaSDCalc(const vector<NoteInfo>& NoteInfo,
@@ -824,8 +819,8 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 		calc->ssr = false;
 		calc->debugmode = false;
 		for (int i = lower_rate; i < upper_rate; i++) {
-			allrates.emplace_back(
-			  calc->CalcMain(NoteInfo, static_cast<float>(i) / 10.F, 0.93F));
+			allrates.emplace_back(calc->CalcMain(
+			  NoteInfo, static_cast<float>(i) / 10.F, default_score_goal));
 		}
 	} else {
 		for (int i = lower_rate; i < upper_rate; i++) {
