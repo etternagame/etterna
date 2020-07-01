@@ -836,7 +836,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 1;
+int mina_calc_version = 409;
 auto
 GetCalcVersion() -> int
 {
