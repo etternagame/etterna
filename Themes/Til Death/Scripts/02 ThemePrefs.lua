@@ -237,11 +237,20 @@ local tChoices = {}
 for i = 1, 99 do
 	tChoices[i] = tostring(i) .. "%"
 end
-for i = 1, 3 do
-	tChoices[99 + i] = tostring(99 + i * 0.25) .. "%"
-end
-for i = 1, 4 do
-	tChoices[#tChoices + 1] = tostring(99.96 + i * 0.01) .. "%"
+local tChoices2 = {
+	"99.50%",
+	"99.60%",
+	"99.70%", -- AAA
+	"99.80%", -- AAA.
+	"99.90%", -- AAA:
+	"99.955%", -- AAAA
+	"99.97%", -- AAAA.
+	"99.98%", -- AAAA:
+	"99.996%", -- AAAAA
+	"100%" -- impossible
+}
+for _,v in ipairs(tChoices2) do
+	tChoices[#tChoices+1] = v
 end
 function TargetGoal()
 	local t = {

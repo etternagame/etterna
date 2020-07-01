@@ -16,6 +16,7 @@ local finalSecond = 0 -- only used if its references below are uncommented
 local graphVecs = {}
 local ssrs = {}
 local activeModGroup = 1
+local debugstrings
 
 -- bg actors for mouse hover stuff
 local topgraph = nil
@@ -208,8 +209,6 @@ local debugGroups = {
         Balance = true,
         WideRangeBalance = true,
         WideRangeAnchor = true,
-		RanMan = true,
-        TheThing = true,
     },
 	{   -- Group 7
         RanMan = true,
@@ -218,7 +217,7 @@ local debugGroups = {
         OHJumpMod = true,
 	},
     {   -- Group 9
-        
+        TotalPatternMod = true,
     },
     {   -- Group 10
 
@@ -265,6 +264,7 @@ local function updateCoolStuff()
         end
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
+        debugstrings = steps:GetDebugStrings()
 
         -- for each debug output type and its corresponding list of values
         for debugtype, sublist in pairs(CalcDebugTypes) do
@@ -468,6 +468,39 @@ local o =
             SCREENMAN:GetTopScreen():AddInputCallback(yetAnotherInputCallback)
         end
     }
+}
+
+o[#o + 1] = Def.Quad {
+    InitCommand = function(self)
+        self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
+            bgalpha
+        )
+    end,
+    DoTheThingCommand = function(self)
+        self:visible(song ~= nil)
+    end,
+    HighlightCommand = function(self)
+        local txt = self:GetParent():GetChild("DebugStringText")
+        if isOver(self) then
+            local mx = INPUTFILTER:GetMouseX()
+            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
+            
+            local w = self:GetZoomedWidth() * self:GetParent():GetTrueZoom()
+            local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
+            local rightEnd = self:GetTrueX() + w - (self:GetHAlign() * w)
+            local perc = (mx - leftEnd) / (rightEnd - leftEnd)
+            local goodXPos = -plotWidth/2 + perc * plotWidth
+			
+            txt:visible(true)
+			txt:x(goodXPos + 36)
+            txt:y(ypos - 40)
+
+            local index = convertPercentToIndexForMods(perc)
+            txt:settext(debugstrings[index])
+		else
+            txt:visible(false)
+		end
+	end
 }
 
 -- graph bg
@@ -1212,6 +1245,13 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "GraphText",
     InitCommand = function(self)
         self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
+    end
+}
+
+o[#o + 1] = LoadFont("Common Normal") .. {
+    Name = "DebugStringText",
+    InitCommand = function(self)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.5)
     end
 }
 

@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_FILE_MANAGER_H
+#ifndef RAGE_FILE_MANAGER_H
 #define RAGE_FILE_MANAGER_H
 
 /** @brief Constants for working with the RageFileManager. */
@@ -29,12 +29,26 @@ class RageFileManager
 					   vector<RString>& AddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
+
+	void GetDirListing(const std::string& sPath,
+					   vector<std::string>& AddTo,
+					   bool bOnlyDirs,
+					   bool bReturnPathToo);
+
+	void GetDirListingWithMultipleExtensions(
+	  const std::string& sPath,
+	  vector<std::string> const& ExtensionList,
+	  vector<std::string>& AddTo,
+	  bool bOnlyDirs = false,
+	  bool bReturnPathToo = false);
+
 	void GetDirListingWithMultipleExtensions(
 	  const RString& sPath,
 	  vector<RString> const& ExtensionList,
 	  vector<RString>& AddTo,
 	  bool bOnlyDirs = false,
 	  bool bReturnPathToo = false);
+
 	bool Move(const RString& sOldPath, const RString& sNewPath);
 	bool Remove(const RString& sPath);
 	bool DeleteRecursive(const RString& sPath);

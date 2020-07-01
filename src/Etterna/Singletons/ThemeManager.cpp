@@ -188,8 +188,6 @@ void
 ThemeManager::GetThemeNames(vector<RString>& AddTo)
 {
 	GetDirListing(SpecialFiles::THEMES_DIR + "*", AddTo, true);
-	StripCvsAndSvn(AddTo);
-	StripMacResourceForks(AddTo);
 }
 
 void
@@ -263,11 +261,6 @@ ThemeManager::GetThemeAuthor(const RString& sThemeName)
 	return "[unknown author]";
 }
 
-static bool
-EqualsNoCase(const RString& s1, const RString& s2)
-{
-	return s1.EqualsNoCase(s2);
-}
 void
 ThemeManager::GetLanguages(vector<RString>& AddTo)
 {
@@ -279,7 +272,7 @@ ThemeManager::GetLanguages(vector<RString>& AddTo)
 	// remove dupes
 	sort(AddTo.begin(), AddTo.end());
 	vector<RString>::iterator it =
-	  unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
+	  unique(AddTo.begin(), AddTo.end(), EqualsNoCaseLUL);
 	AddTo.erase(it, AddTo.end());
 }
 
@@ -538,8 +531,6 @@ ThemeManager::RunLuaScripts(const RString& sMask, bool bUseThemeDir)
 		vector<RString> arrayScriptDirs;
 		GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, true);
 		SortRStringArray(arrayScriptDirs);
-		StripCvsAndSvn(arrayScriptDirs);
-		StripMacResourceForks(arrayScriptDirs);
 		FOREACH_CONST(RString, arrayScriptDirs, s) // foreach dir in /Scripts/
 		{
 			// Find all Lua files in this directory, add them to asElementPaths

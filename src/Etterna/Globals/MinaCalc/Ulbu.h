@@ -44,9 +44,6 @@
 // a new thing
 #include "Etterna/Globals/MinaCalc/SequencedBaseDiffCalc.h"
 
-// actual cancer
-bool debug_lmao;
-
 // i am ulbu, the great bazoinkazoink in the sky
 struct TheGreatBazoinkazoinkInTheSky
 {
@@ -116,13 +113,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_calc_params_from_disk();
 #endif
 #endif
-		// ok so the problem atm is the multithreading of songload, if we
-		// want to update the file on disk with new values and not just
-		// overwrite it we have to write out after loading the values player
-		// defined, so the quick hack solution to do that is to only do it
-		// during debug output generation, which is fine for the time being,
-		// though not ideal
-		if (debug_lmao) {
+		/* ok so the problem atm is the multithreading of songload, if we want
+		 * to update the file on disk with new values and not just overwrite it
+		 * we have to write out after loading the values player defined, so the
+		 * quick hack solution to do that is to only do it during debug output
+		 * generation, which is fine for the time being, though not ideal */
+		if (calc.debugmode) {
 			write_params_to_disk();
 		}
 
@@ -309,36 +305,45 @@ struct TheGreatBazoinkazoinkInTheSky
 		 * counts, so this _must_ be called before anything else */
 		_mitvhi.interval_end();
 
+		// same thing but for anchor max!!!
+		_seq.interval_end();
+
 		// run pattern mod generation for hand dependent mods
 		set_dependent_pmods(itv);
 
-		// run sequenced base difficulty generation, base diff is always hand
-		// dependent so we do it in this loop
+		// run sequenced base difficulty generation, base diff is always
+		// hand dependent so we do it in this loop
 		set_sequenced_base_diffs(itv);
 
 		_diffz.interval_end();
 	}
 
 	// update base difficulty stuff
-	inline void update_sequenced_base_diffs(const col_type& ct)
+	inline void update_sequenced_base_diffs(const col_type& ct,
+											const int& itv,
+											const int& jack_counter)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_diffz._jk.advance_base(_seq._as.get_lowest_anchor_ms());
+		_calc.jack_diff.at(hand).at(itv).at(jack_counter) =
+		  ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+		  basescalers[Skill_JackSpeed];
 
 		// tech updates with a convoluted mess of garbage
-		_diffz._tc.advance_base(_seq, ct);
+		_diffz._tc.advance_base(_seq, ct, _calc);
 		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
 	}
 
 	inline void set_sequenced_base_diffs(const int& itv)
 	{
-		_calc.soap.at(hand)[JackBase].at(itv) = _diffz._jk.get_itv_diff();
+		// this is no longer done for intervals, but per row, in the row
+		// loop _calc.soap.at(hand)[JackBase].at(itv) =
+		// _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
 		_calc.soap.at(hand)[TechBase].at(itv) =
-		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv));
+		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv), _calc);
 
 		// mostly for debug output.. optimize later
 		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
@@ -366,6 +371,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
 			for (int itv = 0; itv < _calc.numitv; ++itv) {
+
+				// asdfasfasdfasdf
+				int jack_counter = 0;
+
 				for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
 
 					const auto& ri = _calc.adj_ni.at(itv).at(row);
@@ -398,7 +407,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					// update metahandinfo, it constructs basic and advanced
 					// patterns from where we are now + recent pattern
-					// information constructed by the last iteration of itself
+					// information constructed by the last iteration of
+					// itself
 					(*_mhi)(*_last_mhi, ct);
 
 					// update interval aggregation of column taps
@@ -407,14 +417,15 @@ struct TheGreatBazoinkazoinkInTheSky
 					// advance sequencing for all hand dependent mods
 					handle_row_dependent_pattern_advancement();
 
-					/* jackspeed, and tech use various adjust ms bases that are
-					 * sequenced here, meaning they are order dependent (jack
-					 * might not be for the moment actually) nps base is still
-					 * calculated in the old way */
-					update_sequenced_base_diffs(ct);
+					/* jackspeed, and tech use various adjust ms bases that
+					 * are sequenced here, meaning they are order dependent
+					 * (jack might not be for the moment actually) nps base
+					 * is still calculated in the old way */
+					update_sequenced_base_diffs(ct, itv, jack_counter);
+					++jack_counter;
 
-					// only ohj uses this atm (and probably into the future) so
-					// it might kind of be a waste?
+					// only ohj uses this atm (and probably into the future)
+					// so it might kind of be a waste?
 					if (_mhi->_bt != base_type_init) {
 						++_mitvhi._base_types.at(_mhi->_bt);
 						++_mitvhi._meta_types.at(_mhi->_mt);
@@ -425,17 +436,22 @@ struct TheGreatBazoinkazoinkInTheSky
 					last_row_time = row_time;
 				}
 
+				// maybe this should go back into the diffz object...
+				_calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
+
 				handle_dependent_interval_end(itv);
 			}
 			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
 
 			// smoothing has been built into the construction process so we
-			// probably don't need these anymore? maybe ms smooth if necessary,
-			// or a new ewma
+			// probably don't need these anymore? maybe ms smooth if
+			// necessary, or a new ewma
 
-			// Smooth(_calc.soap.at(hand).at(JackBase), 0.F, _itv_rows.size());
-			// Smooth(_calc.soap.at(hand).at(CJBase), 0.F, _itv_rows.size());
-			// Smooth(_calc.soap.at(hand).at(TechBase), 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(JackBase), 0.F,
+			// _itv_rows.size()); Smooth(_calc.soap.at(hand).at(CJBase),
+			// 0.F, _itv_rows.size());
+			// Smooth(_calc.soap.at(hand).at(TechBase), 0.F,
+			// _itv_rows.size());
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
@@ -508,7 +524,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
-		load_params_for_mod(&params, _voht._params, _oht.name);
+		load_params_for_mod(&params, _voht._params, _voht.name);
 		load_params_for_mod(&params, _ch._params, _ch.name);
 		load_params_for_mod(&params, _rm._params, _rm.name);
 		load_params_for_mod(&params, _wrb._params, _wrb.name);

@@ -486,14 +486,14 @@ ActorUtil::SortByZPosition(vector<Actor*>& vActors)
 
 static const char* FileTypeNames[] = {
 	"Bitmap", "Sprite", "Sound", "Movie", "Directory",
-	"Xml",	"Model",  "Lua",   "Ini",
+	"Xml",	  "Model",	"Lua",	 "Ini",
 };
 XToString(FileType);
 LuaXType(FileType);
 
 // convenience so the for-loop lines can be shorter.
-typedef map<RString, FileType> etft_cont_t;
-typedef map<FileType, vector<RString>> fttel_cont_t;
+typedef map<std::string, FileType> etft_cont_t;
+typedef map<FileType, vector<std::string>> fttel_cont_t;
 etft_cont_t ExtensionToFileType;
 fttel_cont_t FileTypeToExtensionList;
 
@@ -551,19 +551,19 @@ ActorUtil::InitFileTypeLists()
 	}
 }
 
-vector<RString> const&
+vector<std::string> const&
 ActorUtil::GetTypeExtensionList(FileType ft)
 {
 	return FileTypeToExtensionList[ft];
 }
 
 void
-ActorUtil::AddTypeExtensionsToList(FileType ft, vector<RString>& add_to)
+ActorUtil::AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to)
 {
 	fttel_cont_t::iterator ext_list = FileTypeToExtensionList.find(ft);
 	if (ext_list != FileTypeToExtensionList.end()) {
 		add_to.reserve(add_to.size() + ext_list->second.size());
-		for (vector<RString>::iterator curr = ext_list->second.begin();
+		for (vector<std::string>::iterator curr = ext_list->second.begin();
 			 curr != ext_list->second.end();
 			 ++curr) {
 			add_to.push_back(*curr);

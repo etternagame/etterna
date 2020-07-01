@@ -6,8 +6,7 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
 
-/* this is complex enough it should probably have its own sequencer, there's
- * also a fair bit of redundancy between this, wrjt, wrr */
+/* retuned oht mod focus tuned to for catching vibro trills like bagatelle */
 
 static const int max_vtrills_per_interval = 4;
 
@@ -27,14 +26,9 @@ struct VOHTrillMod
 	float suppression = 0.2F;
 
 	float cv_reset = 1.F;
-	float cv_threshhold = 0.15F;
+	float cv_threshhold = 0.25F;
 
-	// this is for base trill 1->2 2->1 1->2, 4 notes, 3 timings, however we can
-	// extend the window for ms values such that, for example, we require 2 oht
-	// meta detections, and on the third, we check a window of 5 ms values,
-	// dunno what the benefits or drawbacks are of either system atm but they
-	// are both implementable easily
-	float oht_cc_window = 6.F;
+	float min_len = 8.F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
@@ -47,7 +41,7 @@ struct VOHTrillMod
 		{ "cv_reset", &cv_reset },
 		{ "cv_threshhold", &cv_threshhold },
 
-		{ "oht_cc_window", &oht_cc_window },
+		{ "min_len", &min_len },
 	};
 #pragma endregion params and param map
 
@@ -185,7 +179,7 @@ struct VOHTrillMod
 			return;
 		}
 
-		if (_mw_oht_taps.get_total_for_window(window) < 10) {
+		if (_mw_oht_taps.get_total_for_window(window) < min_len) {
 			pmod = neutral;
 			return;
 		}

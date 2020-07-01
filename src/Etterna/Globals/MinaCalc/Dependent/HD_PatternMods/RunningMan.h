@@ -91,7 +91,7 @@ struct RunningManMod
 	std::array<RM_Sequencer, num_cols_per_hand> rms;
 
 	// for an interval, active rm sequence with the highest difficulty
-	RunningMan rm;
+	RM_Sequencer highest_rm;
 
 	int test = 0;
 	float offhand_tap_prop = 0.F;
@@ -151,29 +151,40 @@ struct RunningManMod
 			rms.at(c)(ct, bt, mt, as.anch.at(c));
 		}
 
-		rm = get_active_rm_with_higher_difficulty();
+		highest_rm = get_active_rm_with_higher_difficulty();
 	}
 
 	[[nodiscard]] inline auto get_highest_anchor_difficulty() const -> float
 	{
-		return max(rms.at(col_left).get_difficulty(),
-				   rms.at(col_right).get_difficulty());
+
+		/* see off_hand_tap_prop for a detailed explanation, basically only the
+		 * rm mod was downscaling rolls, short burst rolls that escaped roll
+		 * detection but flagged high on on rm diff were super overrated without
+		 * this adjustment, so we should probably calculated and apply it here
+		 * as well- this is called immediately after advance_sequencing, so
+		 * we've already determined which sequence to use as rm */
+
+		float oht_p = 1.5F - (highest_rm._rm.get_offhand_tap_prop() *
+							  offhand_tap_prop_scaler);
+
+		oht_p = CalcClamp(oht_p, 0.75F, 1.0F);
+		return highest_rm.get_difficulty() * oht_p;
 	}
 
 	[[nodiscard]] inline auto get_active_rm_with_higher_difficulty() const
-	  -> RunningMan
+	  -> RM_Sequencer
 	{
 		if (rms.at(col_left)._status == rm_running &&
 			rms.at(col_right)._status == rm_running) {
 
 			return rms.at(col_left).get_difficulty() >
 					   rms.at(col_right).get_difficulty()
-					 ? rms.at(col_left)._rm
-					 : rms.at(col_right)._rm;
+					 ? rms.at(col_left)
+					 : rms.at(col_right);
 		}
 
-		return rms.at(col_left)._status == rm_running ? rms.at(col_left)._rm
-													  : rms.at(col_right)._rm;
+		return rms.at(col_left)._status == rm_running ? rms.at(col_left)
+													  : rms.at(col_right);
 	}
 
 	/* Note: this mod is only used for pushing up runningmen focused stream/js
@@ -188,6 +199,8 @@ struct RunningManMod
 			pmod = neutral;
 			return;
 		}
+
+		const auto& rm = highest_rm._rm;
 
 		/* we could decay in this but it may conflict/be redundant with how
 		 * runningmen sequences are constructed, if decays are used we would
@@ -249,8 +262,9 @@ struct RunningManMod
 		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.F;
 
 		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
-		pmod = CalcClamp(
-		  fastsqrt(pmod * off_tap_same_prop * offhand_tap_prop), min_mod, max_mod);
+		pmod = CalcClamp(fastsqrt(pmod * off_tap_same_prop * offhand_tap_prop),
+						 min_mod,
+						 max_mod);
 	}
 
 	[[nodiscard]] inline auto operator()(const int& total_taps) -> float
@@ -261,5 +275,5 @@ struct RunningManMod
 		return pmod;
 	}
 
-	inline void interval_end() { rm.full_reset(); }
+	inline void interval_end() { highest_rm.full_reset(); }
 };

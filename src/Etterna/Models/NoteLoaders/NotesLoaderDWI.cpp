@@ -328,7 +328,7 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 				break;
 			case 1:
 				if (step2 == "") // no data
-					continue;	// skip
+					continue;	 // skip
 				sStepData = step2;
 				break;
 				DEFAULT_FAIL(pad);
@@ -566,7 +566,8 @@ ParseBrokenDWITimestamp(const RString& arg1,
 }
 
 void
-DWILoader::GetApplicableFiles(const RString& sPath, vector<RString>& out)
+DWILoader::GetApplicableFiles(const std::string& sPath,
+							  vector<std::string>& out)
 {
 	GetDirListing(sPath + RString("*.dwi"), out);
 }
@@ -612,11 +613,11 @@ DWILoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 }
 
 bool
-DWILoader::LoadFromDir(const RString& sPath_,
+DWILoader::LoadFromDir(const std::string& sPath_,
 					   Song& out,
-					   set<RString>& BlacklistedImages)
+					   set<std::string>& BlacklistedImages)
 {
-	vector<RString> aFileNames;
+	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
 	if (aFileNames.size() > 1) {
@@ -629,7 +630,7 @@ DWILoader::LoadFromDir(const RString& sPath_,
 	/* We should have exactly one; if we had none, we shouldn't have been called
 	 * to begin with. */
 	ASSERT(aFileNames.size() == 1);
-	const RString sPath = sPath_ + aFileNames[0];
+	const std::string sPath = sPath_ + aFileNames[0];
 
 	LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str());
 
@@ -738,11 +739,11 @@ DWILoader::LoadFromDir(const RString& sPath_,
 		}
 
 		else if (sValueName.EqualsNoCase("FREEZE")) {
-			vector<RString> arrayFreezeExpressions;
+			vector<std::string> arrayFreezeExpressions;
 			split(sParams[1], ",", arrayFreezeExpressions);
 
 			for (unsigned f = 0; f < arrayFreezeExpressions.size(); f++) {
-				vector<RString> arrayFreezeValues;
+				vector<std::string> arrayFreezeValues;
 				split(arrayFreezeExpressions[f], "=", arrayFreezeValues);
 				if (arrayFreezeValues.size() != 2) {
 					LOG->UserLog("Song file",
@@ -765,11 +766,11 @@ DWILoader::LoadFromDir(const RString& sPath_,
 
 		else if (sValueName.EqualsNoCase("CHANGEBPM") ||
 				 sValueName.EqualsNoCase("BPMCHANGE")) {
-			vector<RString> arrayBPMChangeExpressions;
+			vector<std::string> arrayBPMChangeExpressions;
 			split(sParams[1], ",", arrayBPMChangeExpressions);
 
 			for (unsigned b = 0; b < arrayBPMChangeExpressions.size(); b++) {
-				vector<RString> arrayBPMChangeValues;
+				vector<std::string> arrayBPMChangeValues;
 				split(arrayBPMChangeExpressions[b], "=", arrayBPMChangeValues);
 				if (arrayBPMChangeValues.size() != 2) {
 					LOG->UserLog("Song file",
@@ -815,23 +816,24 @@ DWILoader::LoadFromDir(const RString& sPath_,
 				   sValueName.EqualsNoCase("DISPLAYARTIST")) {
 			/* We don't want to support these tags.  However, we don't want
 			 * to pick up images used here as song images (eg. banners). */
-			RString param = sParams[1];
+			std::string param = sParams[1];
 			/* "{foo} ... {foo2}" */
 			size_t pos = 0;
-			while (pos < RString::npos) {
+			while (pos < std::string::npos) {
 
 				size_t startpos = param.find('{', pos);
-				if (startpos == RString::npos)
+				if (startpos == std::string::npos)
 					break;
 				size_t endpos = param.find('}', startpos);
-				if (endpos == RString::npos)
+				if (endpos == std::string::npos)
 					break;
 
-				RString sub = param.substr(startpos + 1, endpos - startpos - 1);
+				std::string sub =
+				  param.substr(startpos + 1, endpos - startpos - 1);
 
 				pos = endpos + 1;
 
-				sub.MakeLower();
+				MakeLower(sub);
 				BlacklistedImages.insert(sub);
 			}
 		} else {

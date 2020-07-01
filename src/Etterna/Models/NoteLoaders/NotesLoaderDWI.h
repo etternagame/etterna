@@ -1,4 +1,4 @@
-﻿/** @brief DWILoader - reads a Song from a .DWI file. */
+/** @brief DWILoader - reads a Song from a .DWI file. */
 
 #ifndef NOTES_LOADER_DWI_H
 #define NOTES_LOADER_DWI_H
@@ -16,7 +16,7 @@ namespace DWILoader {
  * @param out a vector of files found in the path.
  */
 void
-GetApplicableFiles(const RString& sPath, vector<RString>& out);
+GetApplicableFiles(const std::string& sPath, vector<std::string>& out);
 /**
  * @brief Attempt to load a song from a specified path.
  * @param sPath a const reference to the path on the hard drive to check.
@@ -25,7 +25,9 @@ GetApplicableFiles(const RString& sPath, vector<RString>& out);
  * @return its success or failure.
  */
 bool
-LoadFromDir(const RString& sPath, Song& out, set<RString>& BlacklistedImages);
+LoadFromDir(const std::string& sPath,
+			Song& out,
+			set<std::string>& BlacklistedImages);
 
 bool
 LoadNoteDataFromSimfile(const RString& path, Steps& out);

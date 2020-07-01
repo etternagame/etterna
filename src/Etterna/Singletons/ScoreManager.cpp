@@ -575,6 +575,26 @@ ScoreManager::EnableAllScores()
 	return;
 }
 
+inline float
+AggregateSkillsets(const vector<float>& skillsets,
+				   float rating,
+				   float res,
+				   int iter)
+{
+	double sum;
+	do {
+		rating += res;
+		sum = 0.0;
+		for (auto& ss : skillsets) {
+
+			sum += max(0.0, 2.f / erfc(0.1 * (ss - rating)) - 2);
+		}
+	} while (pow(2, rating * 0.1) < sum);
+	if (iter == 11)
+		return rating;
+	return AggregateSkillsets(skillsets, rating - res, res / 2.f, iter + 1);
+}
+
 void
 ScoreManager::CalcPlayerRating(float& prating,
 							   float* pskillsets,
@@ -590,12 +610,12 @@ ScoreManager::CalcPlayerRating(float& prating,
 			continue;
 
 		SortTopSSRPtrs(ss, profileID);
-		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1) * 1.04f;
+		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1) * 1.05f;
 		CLAMP(pskillsets[ss], 0.f, 100.f);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = std::accumulate(skillz.begin(), skillz.end(), 0.f) / 7.f;
+	prating = AggregateSkillsets(skillz, 0.f, 10.24f, 1) * 1.125f;
 }
 
 // perhaps we will need a generalized version again someday, but not today
