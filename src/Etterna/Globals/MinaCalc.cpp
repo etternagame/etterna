@@ -485,10 +485,11 @@ Calc::Chisel(float player_skill,
 			}
 
 			// reset tallied score, always deduct rather than accumulate now
-			if (ss == Skill_JackSpeed || ss == Skill_Technical) {
+			if (ss == Skill_JackSpeed || ss == Skill_Technical ||
+				ss == Skill_Stream) {
 				gotpoints = static_cast<float>(MaxPoints);
 			} else {
-				// waters down scaling on generic skillsets
+				// waters down scaling on the more generic skillsets
 				gotpoints = static_cast<float>(MaxPoints) * 1.05F;
 			}
 
