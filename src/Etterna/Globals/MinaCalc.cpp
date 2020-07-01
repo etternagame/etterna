@@ -462,6 +462,14 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	return true;
 }
 
+/* pbm = point buffer multiplier, or basically starting with a max points some
+ * degree above the actual max points as a cheap hack to water down some of the
+ * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
+static const float tech_pbm = 1.F;
+static const float jack_pbm = 1.F;
+static const float stream_pbm = 1.01F;
+static const float bad_newbie_skillsets_pbm = 1.05F;
+
 // each skillset should just be a separate calc function [todo]
 auto
 Calc::Chisel(float player_skill,
@@ -476,28 +484,39 @@ Calc::Chisel(float player_skill,
 	float reqpoints = MaxPoints * score_goal;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {
-			if (player_skill > 100.F) {
-				return 0.F;
-			}
-			player_skill += resolution;
-			if (ss == Skill_Overall || ss == Skill_Stamina) {
-				return 0.F; // not how we set these values
+			// overall and stamina are calculated differently
+			if (player_skill > max_rating || ss == Skill_Overall ||
+				ss == Skill_Stamina) {
+				return min_rating;
 			}
 
-			// reset tallied score, always deduct rather than accumulate now
-			if (ss == Skill_JackSpeed || ss == Skill_Technical ||
-				ss == Skill_Stream) {
-				gotpoints = static_cast<float>(MaxPoints);
-			} else {
-				// waters down scaling on the more generic skillsets
-				gotpoints = static_cast<float>(MaxPoints) * 1.05F;
+			player_skill += resolution;
+
+			// reset tallied score and adjust for point buffer
+			switch (ss) {
+				case Skill_Technical:
+					gotpoints = MaxPoints * tech_pbm;
+					break;
+				case Skill_JackSpeed:
+					gotpoints = MaxPoints * jack_pbm;
+					break;
+				case Skill_Stream:
+					gotpoints = MaxPoints * stream_pbm;
+					break;
+				case Skill_Jumpstream:
+				case Skill_Handstream:
+				case Skill_Chordjack:
+					gotpoints = MaxPoints * bad_newbie_skillsets_pbm;
+					break;
+				default:
+					assert(0);
+					break;
 			}
 
 			for (auto& hi : { left_hand, right_hand }) {
-
 				/* only run the other hand if we're still above the
 				 * reqpoints, if we're already below, there's no
-				 * point, i.e. we're so far below the skill
+				 * point. i.e. we're so far below the skill
 				 * benchmark it's impossible to reach the goal after
 				 * just the first hand's losses are totaled */
 				if (gotpoints > reqpoints) {
