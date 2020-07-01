@@ -5,8 +5,6 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-// ok i remember now its because i wanted to smooth the mod before applying to
-// cj
 struct CJDensityMod
 {
 	const CalcPatternMod _pmod = CJDensity;
@@ -45,7 +43,7 @@ struct CJDensityMod
 			return neutral;
 		}
 
-		auto t_taps = static_cast<float>(itvi.total_taps);
+		const auto& t_taps = static_cast<float>(itvi.total_taps);
 		auto a0 =
 		  static_cast<float>(static_cast<float>(itvi.taps_by_size[single]) *
 							 single_scaler) /

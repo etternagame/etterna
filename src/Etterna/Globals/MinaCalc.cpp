@@ -49,14 +49,14 @@ static const float stam_prop =
   0.69424F; // proportion of player difficulty at which stamina tax begins
 
 static inline auto
-TotalMaxPoints(const Calc& calc) -> int
+TotalMaxPoints(const Calc& calc) -> float
 {
 	int MaxPoints = 0;
 	for (int i = 0; i < calc.numitv; i++) {
 		MaxPoints +=
 		  calc.itv_points[left_hand].at(i) + calc.itv_points[right_hand].at(i);
 	}
-	return MaxPoints;
+	return static_cast<float>(MaxPoints);
 }
 
 auto
@@ -473,7 +473,7 @@ Calc::Chisel(float player_skill,
 {
 
 	float gotpoints = 0.F;
-	float reqpoints = static_cast<float>(MaxPoints) * score_goal;
+	float reqpoints = MaxPoints * score_goal;
 	for (int iter = 1; iter <= 8; iter++) {
 		do {
 			if (player_skill > 100.F) {
