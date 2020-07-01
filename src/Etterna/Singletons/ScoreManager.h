@@ -143,7 +143,7 @@ class ScoreManager
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void RecalculateSSRs(LoadingWindow* ld, const string& profileID);
-	void EnableAllScores();
+	void UnInvalidateAllScores();
 	void CalcPlayerRating(float& prating,
 						  float* pskillsets,
 						  const string& profileID);

@@ -567,7 +567,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 
 // should deal with this misnomer - mina
 void
-ScoreManager::EnableAllScores()
+ScoreManager::UnInvalidateAllScores()
 {
 	for (size_t i = 0; i < AllScores.size(); ++i)
 		AllScores[i]->SetEtternaValid(true);
@@ -956,7 +956,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 
 	static int ValidateAllScores(T* p, lua_State* L)
 	{
-		p->EnableAllScores();
+		p->UnInvalidateAllScores();
 		return 0;
 	}
 
