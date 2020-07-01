@@ -57,7 +57,7 @@ static const std::vector<CalcPatternMod> dependent_mods = {
 	OHJumpMod,		  Balance,		 Roll,
 	OHTrill,		  VOHTrill,		 Chaos,
 	WideRangeBalance, WideRangeRoll, WideRangeJumptrill,
-	WideRangeAnchor,  RanMan,
+	WideRangeAnchor,  RanMan,		 CJOHJump
 };
 
 struct PatternMods
