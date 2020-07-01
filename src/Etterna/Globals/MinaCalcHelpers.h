@@ -53,7 +53,7 @@ AggregateRatings(const vector<float>& skillsets,
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11)
-		return rating * 1.125F;
+		return rating * 1.11F;
 	return AggregateRatings(skillsets, rating - res, res / 2.f, iter + 1);
 }
 
