@@ -506,7 +506,7 @@ Calc::Chisel(float player_skill,
 					}
 					if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(
-						  jackloss(player_skill * 0.625F, *this, hi) * 0.75F);
+						  jackloss(player_skill * 0.651F, *this, hi) * 0.75F);
 					}
 				}
 			}
@@ -562,14 +562,14 @@ Calc::Chisel(float player_skill,
 /* the new way we wil attempt to diffrentiate skillsets rather than using
  * normalizers is by detecting whether or not we think a file is mostly
  * comprised of a given pattern, producing a downscaler that slightly buffs
-	 * up those files and produces a downscaler for files not detected of that
-	 * type. the major potential failing of this system is that it ends up such
-	 * that the rating is tied directly to whether or not a file can be more or
-	 * less strongly determined to be of a pattern type, e.g. splithand trills
-	 * being marked as more "js" than actual js, for the moment these modifiers
-	 * are still built on proportion of taps in chords / total taps, but there's
-	 * a lot more give than their used to be. they should be re-done as
-	 * sequential detection for best effect but i don't know if that will be
+ * up those files and produces a downscaler for files not detected of that
+ * type. the major potential failing of this system is that it ends up such
+ * that the rating is tied directly to whether or not a file can be more or
+ * less strongly determined to be of a pattern type, e.g. splithand trills
+ * being marked as more "js" than actual js, for the moment these modifiers
+ * are still built on proportion of taps in chords / total taps, but there's
+ * a lot more give than their used to be. they should be re-done as
+ * sequential detection for best effect but i don't know if that will be
  * necessary for basic tuning if we don't do this files may end up
  * misclassing hard and polluting leaderboards, and good scores on overrated
  * files will simply produce high ratings in every category */
@@ -836,7 +836,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 408;
+int mina_calc_version = 1;
 auto
 GetCalcVersion() -> int
 {

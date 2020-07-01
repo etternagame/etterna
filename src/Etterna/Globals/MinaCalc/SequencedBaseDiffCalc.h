@@ -106,7 +106,7 @@ struct techyo
 		// we definitely don't want to average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		return max(weighted_average(get_tc_base(calc), nps_base, 5.5F, 9.F),
+		return max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
 				   rm_itv_max_diff);
 	}
 

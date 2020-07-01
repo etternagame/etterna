@@ -1,7 +1,7 @@
 #pragma once
 #include "Etterna/Globals/MinaCalc/Dependent/HD_MetaSequencing.h"
 
-static const float rma_diff_scaler = 1.2F;
+static const float rma_diff_scaler = 1.21F;
 
 enum rm_behavior
 {
