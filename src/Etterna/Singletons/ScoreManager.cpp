@@ -586,7 +586,6 @@ AggregateSkillsets(const vector<float>& skillsets,
 		rating += res;
 		sum = 0.0;
 		for (auto& ss : skillsets) {
-
 			sum += max(0.0, 2.f / erfc(0.1 * (ss - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
