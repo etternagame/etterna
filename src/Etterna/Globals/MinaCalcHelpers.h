@@ -29,7 +29,7 @@ static const std::array<int, num_chart_cols> zto3 = { 0, 1, 2, 3 };
 inline auto
 downscale_low_accuracy_scores(float f, float sg) -> float
 {
-	return sg >= default_score_goal
+	return sg >= low_acc_cutoff
 			 ? f
 			 : min(max(f / pow(1.F + (low_acc_cutoff - sg), 1.25F), min_rating),
 				   max_rating);
