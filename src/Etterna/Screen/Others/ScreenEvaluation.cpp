@@ -252,7 +252,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			// with an inflated profile size
 			// Otherwise, you can tap away at the screenshot button without
 			// holding shift.
-			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn)) {
+			if (bHoldingShift) {
 				if (!m_bSavedScreenshot) {
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +

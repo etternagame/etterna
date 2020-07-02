@@ -571,8 +571,7 @@ ProfileManager::MoveProfilePriority(int index, bool up)
 void
 ProfileManager::IncrementToastiesCount(PlayerNumber pn)
 {
-	if (IsPersistentProfile(pn))
-		++GetProfile(pn)->m_iNumToasties;
+	++GetProfile(pn)->m_iNumToasties;
 }
 
 void
@@ -585,10 +584,9 @@ ProfileManager::AddStepTotals(PlayerNumber pn,
 							  int iNumHands,
 							  int iNumLifts)
 {
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->AddStepTotals(iNumTapsAndHolds,
-									  iNumJumps,
-									  iNumHolds,
+	GetProfile(pn)->AddStepTotals(iNumTapsAndHolds,
+								  iNumJumps,
+								  iNumHolds,
 									  iNumRolls,
 									  iNumMines,
 									  iNumHands,
@@ -642,14 +640,7 @@ ProfileManager::IncrementStepsPlayCount(const Song* pSong,
 										const Steps* pSteps,
 										PlayerNumber pn)
 {
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->IncrementStepsPlayCount(pSong, pSteps);
-}
-
-bool
-ProfileManager::IsPersistentProfile(ProfileSlot slot) const
-{
-	return true;
+	GetProfile(pn)->IncrementStepsPlayCount(pSong, pSteps);
 }
 
 void
@@ -731,9 +722,10 @@ class LunaProfileManager : public Luna<ProfileManager>
 		p->SetStatsPrefix(prefix);
 		COMMON_RETURN_SELF;
 	}
+	// concept of persistent profiles is deprecated
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsPersistentProfile(PLAYER_1));
+		lua_pushboolean(L, true);
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)

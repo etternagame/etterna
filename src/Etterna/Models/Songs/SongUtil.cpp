@@ -595,8 +595,6 @@ SongUtil::SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
 										 ProfileSlot slot,
 										 bool bDescending)
 {
-	if (!PROFILEMAN->IsPersistentProfile(slot))
-		return; // nothing to do since we don't have data
 	Profile* pProfile = PROFILEMAN->GetProfile(slot);
 	SortSongPointerArrayByNumPlays(vpSongsInOut, pProfile, bDescending);
 }

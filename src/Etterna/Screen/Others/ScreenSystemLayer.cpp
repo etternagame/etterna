@@ -54,13 +54,7 @@ GetCreditsMessage(PlayerNumber pn)
 				   CREDITS_LOADED_FROM_LAST_GOOD_APPEND.GetValue();
 		else if (PROFILEMAN->LastLoadWasTamperedOrCorrupt(pn))
 			return CREDITS_LOAD_FAILED.GetValue();
-		// Prefer the name of the profile over the name of the card.
-		else if (PROFILEMAN->IsPersistentProfile(pn))
-			return pProfile->GetDisplayNameOrHighScoreName();
-		else if (GAMESTATE->PlayersCanJoin())
-			return CREDITS_INSERT_CARD.GetValue();
-		else
-			return RString();
+		return pProfile->GetDisplayNameOrHighScoreName();
 	}
 	return RString();
 }

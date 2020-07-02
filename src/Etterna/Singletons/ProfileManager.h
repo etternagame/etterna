@@ -71,12 +71,6 @@ class ProfileManager
 					   int iNumHands,
 					   int iNumLifts);
 
-	bool IsPersistentProfile(PlayerNumber pn) const
-	{
-		return !m_sProfileDir.empty();
-	}
-	bool IsPersistentProfile(ProfileSlot slot) const;
-
 	// return a profile even if !IsUsingProfile
 	const Profile* GetProfile(PlayerNumber pn) const;
 	Profile* GetProfile(PlayerNumber pn)

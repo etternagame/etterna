@@ -647,9 +647,7 @@ StageStats::FinalizeScores(bool bSummary)
 
 	// whether or not to save scores when the stage was failed depends on if
 	// this is a course or not... it's handled below in the switch.
-	RString sPlayerGuid = PROFILEMAN->IsPersistentProfile(PLAYER_1)
-							? PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid
-							: RString("");
+	RString sPlayerGuid = PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid;
 	m_player.m_HighScore = FillInHighScore(m_player,
 										   *GAMESTATE->m_pPlayerState,
 										   RANKING_TO_FILL_IN_MARKER,

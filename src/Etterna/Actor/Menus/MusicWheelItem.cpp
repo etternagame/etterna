@@ -279,10 +279,7 @@ MusicWheelItem::RefreshGrades()
 		dc = GAMESTATE->m_PreferredDifficulty;
 
 	ProfileSlot ps;
-	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
-		ps = static_cast<ProfileSlot>(PLAYER_1);
-	else
-		return;
+	ps = static_cast<ProfileSlot>(PLAYER_1);
 
 	StepsType st;
 	if (GAMESTATE->m_pCurSteps)
@@ -295,37 +292,33 @@ MusicWheelItem::RefreshGrades()
 	HighScoreList* BestpHSL = NULL;
 	Grade gradeBest = Grade_Invalid;
 	Difficulty dcBest = Difficulty_Invalid;
-	if (PROFILEMAN->IsPersistentProfile(ps)) {
-		if (pWID->m_pSong != nullptr) {
-			bool hasCurrentStyleSteps = false;
-			FOREACH_ENUM_N(Difficulty, 6, i)
-			{
-				Steps* pSteps =
-				  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-				if (pSteps != NULL) {
-					hasCurrentStyleSteps = true;
-					Grade dcg =
-					  SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-					if (gradeBest >= dcg) {
-						dcBest = i;
-						gradeBest = dcg;
-					}
+	if (pWID->m_pSong != nullptr) {
+		bool hasCurrentStyleSteps = false;
+		FOREACH_ENUM_N(Difficulty, 6, i)
+		{
+			Steps* pSteps =
+			  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+			if (pSteps != NULL) {
+				hasCurrentStyleSteps = true;
+				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+				if (gradeBest >= dcg) {
+					dcBest = i;
+					gradeBest = dcg;
 				}
 			}
-			// If no grade was found for the current style/stepstype
-			if (!hasCurrentStyleSteps) {
-				// Get the best grade among all steps
-				auto& allSteps = pWID->m_pSong->GetAllSteps();
-				for (auto& stepsPtr : allSteps) {
-					if (stepsPtr->m_StepsType ==
-						st) // Skip already checked steps of type st
-						continue;
-					Grade dcg =
-					  SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
-					if (gradeBest >= dcg) {
-						dcBest = stepsPtr->GetDifficulty();
-						gradeBest = dcg;
-					}
+		}
+		// If no grade was found for the current style/stepstype
+		if (!hasCurrentStyleSteps) {
+			// Get the best grade among all steps
+			auto& allSteps = pWID->m_pSong->GetAllSteps();
+			for (auto& stepsPtr : allSteps) {
+				if (stepsPtr->m_StepsType ==
+					st) // Skip already checked steps of type st
+					continue;
+				Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+				if (gradeBest >= dcg) {
+					dcBest = stepsPtr->GetDifficulty();
+					gradeBest = dcg;
 				}
 			}
 		}

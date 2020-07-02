@@ -884,12 +884,6 @@ class DebugLineShowMasks : public IDebugLine
 };
 
 static ProfileSlot g_ProfileSlot = ProfileSlot_Player1;
-static bool
-IsSelectProfilePersistent()
-{
-	return PROFILEMAN->IsPersistentProfile(
-	  static_cast<PlayerNumber>(g_ProfileSlot));
-}
 
 class DebugLineProfileSlot : public IDebugLine
 {
@@ -905,7 +899,7 @@ class DebugLineProfileSlot : public IDebugLine
 				return RString();
 		}
 	}
-	bool IsEnabled() override { return IsSelectProfilePersistent(); }
+	bool IsEnabled() override { return true; }
 	RString GetPageName() const override { return "Profiles"; }
 	void DoAndLog(RString& sMessageOut) override
 	{
@@ -924,7 +918,7 @@ class DebugLineClearProfileStats : public IDebugLine
 		return CLEAR_PROFILE_STATS.GetValue();
 	}
 	RString GetDisplayValue() override { return RString(); }
-	bool IsEnabled() override { return IsSelectProfilePersistent(); }
+	bool IsEnabled() override { return true; }
 	RString GetPageName() const override { return "Profiles"; }
 	void DoAndLog(RString& sMessageOut) override
 	{
@@ -1004,7 +998,7 @@ class DebugLineFillProfileStats : public IDebugLine
 {
 	RString GetDisplayTitle() override { return FILL_PROFILE_STATS.GetValue(); }
 	RString GetDisplayValue() override { return RString(); }
-	bool IsEnabled() override { return IsSelectProfilePersistent(); }
+	bool IsEnabled() override { return true; }
 	RString GetPageName() const override { return "Profiles"; }
 	void DoAndLog(RString& sMessageOut) override
 	{
@@ -1237,7 +1231,7 @@ class DebugLineWriteProfiles : public IDebugLine
 {
 	RString GetDisplayTitle() override { return WRITE_PROFILES.GetValue(); }
 	RString GetDisplayValue() override { return RString(); }
-	bool IsEnabled() override { return IsSelectProfilePersistent(); }
+	bool IsEnabled() override { return true; }
 	RString GetPageName() const override { return "Profiles"; }
 	void DoAndLog(RString& sMessageOut) override
 	{

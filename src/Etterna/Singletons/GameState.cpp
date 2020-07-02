@@ -421,11 +421,6 @@ GameState::BeginGame()
 void
 GameState::LoadProfiles(bool bLoadEdits)
 {
-	// If a profile is already loaded, this was already called.
-	bool bPersistent = PROFILEMAN->IsPersistentProfile(PLAYER_1);
-	if (!bPersistent)
-		return;
-
 	bool bSuccess = PROFILEMAN->LoadFirstAvailableProfile(
 	  PLAYER_1, bLoadEdits); // load full profile
 
@@ -448,9 +443,6 @@ GameState::SavePlayerProfiles()
 void
 GameState::SavePlayerProfile(PlayerNumber pn)
 {
-	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-
 	// AutoplayCPU should not save scores. -aj
 	// xxx: this MAY cause issues with Multiplayer. However, without a working
 	// Multiplayer build, we'll never know. -aj
@@ -463,10 +455,6 @@ GameState::SavePlayerProfile(PlayerNumber pn)
 bool
 GameState::HaveProfileToLoad()
 {
-	// We won't load this profile if it's already loaded.
-	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
-		return false;
-
 	if (!PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Get().empty())
 		return true;
 
@@ -476,9 +464,7 @@ GameState::HaveProfileToLoad()
 bool
 GameState::HaveProfileToSave()
 {
-	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
-		return true;
-	return false;
+	return true;
 }
 
 int
@@ -593,9 +579,6 @@ GameState::FinishStage()
 void
 GameState::LoadCurrentSettingsFromProfile(PlayerNumber pn)
 {
-	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-
 	const Profile* pProfile = PROFILEMAN->GetProfile(pn);
 
 	// apply saved default modifiers if any
@@ -630,9 +613,6 @@ GameState::LoadCurrentSettingsFromProfile(PlayerNumber pn)
 void
 GameState::SaveCurrentSettingsToProfile(PlayerNumber pn)
 {
-	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-
 	Profile* pProfile = PROFILEMAN->GetProfile(pn);
 
 	pProfile->SetDefaultModifiers(
