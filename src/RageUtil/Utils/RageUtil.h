@@ -978,13 +978,6 @@ GetDirListingRecursive(RageFileDriver* prfd,
 					   const RString& sMatch,
 					   vector<RString>& AddTo); /* returns path too */
 bool
-DeleteRecursive(
-  const RString& sDir); /* delete the dir and all files/subdirs inside it */
-bool
-DeleteRecursive(
-  RageFileDriver* prfd,
-  const RString& sDir); /* delete the dir and all files/subdirs inside it */
-bool
 DoesFileExist(const RString& sPath);
 bool
 IsAFile(const RString& sPath);

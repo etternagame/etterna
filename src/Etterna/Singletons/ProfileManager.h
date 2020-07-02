@@ -41,7 +41,6 @@ class ProfileManager
 	  Profile* pProfile,
 	  const RString& sProfileID); // transfers ownership of pProfile
 	bool RenameLocalProfile(const RString& sProfileID, const RString& sNewName);
-	bool DeleteLocalProfile(const RString& sProfileID);
 	void GetLocalProfileIDs(vector<RString>& vsProfileIDsOut) const;
 	void GetLocalProfileDisplayNames(
 	  vector<RString>& vsProfileDisplayNamesOut) const;

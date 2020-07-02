@@ -51,7 +51,6 @@ class RageFileManager
 
 	bool Move(const RString& sOldPath, const RString& sNewPath);
 	bool Remove(const RString& sPath);
-	bool DeleteRecursive(const RString& sPath);
 	void CreateDir(const RString& sDir);
 
 	enum FileType

@@ -19,7 +19,6 @@ static LocalizedString NEW_PROFILE_DEFAULT_NAME("ScreenOptionsManageProfiles",
 
 AutoScreenMessage(SM_BackFromEnterNameForNew);
 AutoScreenMessage(SM_BackFromRename);
-AutoScreenMessage(SM_BackFromDeleteConfirm);
 AutoScreenMessage(SM_BackFromClearConfirm);
 AutoScreenMessage(SM_BackFromContextMenu);
 
@@ -29,7 +28,6 @@ enum ProfileAction
 	ProfileAction_SetDefaultP2,
 	ProfileAction_Edit,
 	ProfileAction_Rename,
-	ProfileAction_Delete,
 	ProfileAction_Clear,
 	ProfileAction_MergeToMachine,
 	ProfileAction_MergeToMachineSkipTotal,
@@ -43,10 +41,20 @@ enum ProfileAction
 	NUM_ProfileAction
 };
 static const char* ProfileActionNames[] = {
-	"SetDefaultP1", "SetDefaultP2", "Edit",			  "Rename",
-	"Delete",		"Clear",		"MergeToMachine", "MergeToMachineSkipTotal",
-	"MergeToP1",	"MergeToP2",	"ChangeToGuest",  "ChangeToNormal",
-	"ChangeToTest", "MoveUp",		"MoveDown",
+	"SetDefaultP1",
+	"SetDefaultP2",
+	"Edit",
+	"Rename",
+	"Clear",
+	"MergeToMachine",
+	"MergeToMachineSkipTotal",
+	"MergeToP1",
+	"MergeToP2",
+	"ChangeToGuest",
+	"ChangeToNormal",
+	"ChangeToTest",
+	"MoveUp",
+	"MoveDown",
 };
 XToString(ProfileAction);
 XToLocalizedString(ProfileAction);
@@ -247,23 +255,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 
 			SCREENMAN->SetNewScreen(this->m_sName); // reload
 		}
-	} else if (SM == SM_BackFromDeleteConfirm) {
-		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
-			// Select the profile nearest to the one that was just deleted.
-			int iIndex = -1;
-			vector<RString>::const_iterator iter =
-			  find(m_vsLocalProfileID.begin(),
-				   m_vsLocalProfileID.end(),
-				   GAMESTATE->m_sEditLocalProfileID.Get());
-			if (iter != m_vsLocalProfileID.end())
-				iIndex = iter - m_vsLocalProfileID.begin();
-			CLAMP(iIndex, 0, m_vsLocalProfileID.size() - 1);
-			GAMESTATE->m_sEditLocalProfileID.Set(m_vsLocalProfileID[iIndex]);
-
-			PROFILEMAN->DeleteLocalProfile(GetLocalProfileIDWithFocus());
-
-			SCREENMAN->SetNewScreen(this->m_sName); // reload
-		}
 	} else if (SM == SM_BackFromClearConfirm) {
 		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
 
@@ -307,13 +298,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 											   pProfile->m_sDisplayName,
 											   PROFILE_MAX_DISPLAY_NAME_LENGTH,
 											   ValidateLocalProfileName);
-				} break;
-				case ProfileAction_Delete: {
-					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf(
-					  CONFIRM_DELETE_PROFILE.GetValue(), sTitle.c_str());
-					ScreenPrompt::Prompt(
-					  SM_BackFromDeleteConfirm, sMessage, PROMPT_YES_NO);
 				} break;
 				case ProfileAction_Clear: {
 					RString sTitle = pProfile->m_sDisplayName;
@@ -421,7 +405,6 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 		} else {
 			ADD_ACTION(ProfileAction_Edit);
 			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Delete);
 			ADD_ACTION(ProfileAction_MoveUp);
 			ADD_ACTION(ProfileAction_MoveDown);
 		}

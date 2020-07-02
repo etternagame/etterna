@@ -467,44 +467,6 @@ ProfileManager::RenameLocalProfile(const RString& sProfileID,
 }
 
 bool
-ProfileManager::DeleteLocalProfile(const RString& sProfileID)
-{
-	Profile* pProfile = ProfileManager::GetLocalProfile(sProfileID);
-	ASSERT(pProfile != NULL);
-	RString sProfileDir = LocalProfileIDToDir(sProfileID);
-
-	// flush directory cache in an attempt to get this working
-	FILEMAN->FlushDirCache(sProfileDir);
-
-	FOREACH(DirAndProfile, g_vLocalProfile, i)
-	{
-		if (i->sDir == sProfileDir) {
-			if (DeleteRecursive(sProfileDir)) {
-				g_vLocalProfile.erase(i);
-
-				// Delete all references to this profileID
-				FOREACH_CONST(
-				  Preference<RString>*, m_sDefaultLocalProfileID.m_v, j)
-				{
-					if ((*j)->Get() == sProfileID)
-						(*j)->Set("");
-				}
-				return true;
-			} else {
-				LOG->Warn("[ProfileManager::DeleteLocalProfile] "
-						  "DeleteRecursive(%s) failed",
-						  sProfileID.c_str());
-				return false;
-			}
-		}
-	}
-
-	LOG->Warn("DeleteLocalProfile: ProfileID '%s' doesn't exist",
-			  sProfileID.c_str());
-	return false;
-}
-
-bool
 ProfileManager::LastLoadWasTamperedOrCorrupt(PlayerNumber pn) const
 {
 	return !m_sProfileDir.empty() && m_bLastLoadWasTamperedOrCorrupt;
