@@ -1165,6 +1165,12 @@ class LunaProfile : public Luna<Profile>
 		return 0;
 	}
 
+	static int UnInvalidateAllScores(T* p, lua_State* L)
+	{
+		SCOREMAN->UnInvalidateAllScores(p->m_sProfileID);
+		return 0;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD(AddScreenshot);
@@ -1215,6 +1221,7 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(ToggleFilter);
 		ADD_METHOD(GetFilterMode);
 		ADD_METHOD(ForceRecalcScores);
+		ADD_METHOD(UnInvalidateAllScores);
 	}
 };
 

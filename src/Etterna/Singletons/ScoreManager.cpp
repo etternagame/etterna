@@ -683,11 +683,13 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 }
 
 void
-ScoreManager::UnInvalidateAllScores()
+ScoreManager::UnInvalidateAllScores(const string& profileID)
 {
-	for (size_t i = 0; i < AllScores.size(); ++i)
-		AllScores[i]->SetEtternaValid(true);
-
+	for (auto& i : pscores[profileID]) {
+		for (auto& s : i.second.GetAllScores()) {
+			s->SetEtternaValid(true);
+		}
+	}
 	return;
 }
 

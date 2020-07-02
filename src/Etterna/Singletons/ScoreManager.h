@@ -142,7 +142,7 @@ class ScoreManager
 						  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void RecalculateSSRs(LoadingWindow* ld, const std::string& profileID);
 	void RecalculateSSRs(const std::string& profileID);
-	void UnInvalidateAllScores();
+	void UnInvalidateAllScores(const string& profileID);
 	void CalcPlayerRating(float& prating,
 						  float* pskillsets,
 						  const std::string& profileID);
