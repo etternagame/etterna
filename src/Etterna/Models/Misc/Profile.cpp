@@ -1762,6 +1762,12 @@ class LunaProfile : public Luna<Profile>
 		return 1;
 	}
 
+	static int ForceRecalcScores(T* p, lua_State* L)
+	{
+		SCOREMAN->RecalculateSSRs(p->m_sProfileID);
+		return 0;
+	}
+
 	LunaProfile()
 	{
 		ADD_METHOD(AddScreenshot);
@@ -1815,6 +1821,7 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(SortByDiff);
 		ADD_METHOD(ToggleFilter);
 		ADD_METHOD(GetFilterMode);
+		ADD_METHOD(ForceRecalcScores);
 	}
 };
 

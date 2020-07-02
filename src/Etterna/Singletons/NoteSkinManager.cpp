@@ -91,9 +91,6 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, true);
 	GetDirListing(sThemeSkinFolder + "*", asNoteSkinNames, true);
 
-	StripCvsAndSvn(asNoteSkinNames);
-	StripMacResourceForks(asNoteSkinNames);
-
 	g_mapNameToData.clear();
 	for (unsigned j = 0; j < asNoteSkinNames.size(); j++) {
 		RString sName = asNoteSkinNames[j];
@@ -312,8 +309,6 @@ NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
 			name = "dance";
 		RString sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + name + "/";
 		GetDirListing(sBaseSkinFolder + "*", AddTo, true);
-		StripCvsAndSvn(AddTo);
-		StripMacResourceForks(AddTo);
 	}
 }
 

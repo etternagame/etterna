@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "LyricsLoader.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -99,8 +99,11 @@ LyricsLoader::LoadFromLRCFile(const RString& sPath, Song& out)
 			seg.m_fStartTime = HHMMSSToSeconds(sValueName);
 			seg.m_sLyric = sValueData;
 
-			seg.m_sLyric.Replace(
-			  "|", "\n"); // Pipe symbols denote a new line in LRC files
+			RString bloo = seg.m_sLyric;
+
+			bloo.Replace("|",
+						 "\n"); // Pipe symbols denote a new line in LRC files
+			seg.m_sLyric = bloo;
 			out.AddLyricSegment(seg);
 		}
 	}

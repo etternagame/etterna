@@ -34,9 +34,6 @@ AnnouncerManager::GetAnnouncerNames(vector<RString>& AddTo)
 {
 	GetDirListing(ANNOUNCERS_DIR + "*", AddTo, true);
 
-	StripCvsAndSvn(AddTo);
-	StripMacResourceForks(AddTo);
-
 	// strip out the empty announcer folder
 	for (int i = AddTo.size() - 1; i >= 0; i--)
 		if (!strcasecmp(AddTo[i], EMPTY_ANNOUNCER_NAME))

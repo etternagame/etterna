@@ -95,6 +95,9 @@ SongManager::SongManager()
 	NUM_SONG_GROUP_COLORS.Load("SongManager", "NumSongGroupColors");
 	SONG_GROUP_COLOR.Load(
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
+
+	// calc for debug/session scores
+	calc = make_unique<Calc>();
 }
 
 SongManager::~SongManager()
@@ -156,8 +159,6 @@ SongManager::DifferentialReloadDir(string dir)
 
 	vector<RString> folders;
 	GetDirListing(dir + "*", folders, true);
-	StripCvsAndSvn(folders);
-	StripMacResourceForks(folders);
 
 	vector<Group> groups;
 	Group unknownGroup("Unknown Group");
@@ -172,8 +173,6 @@ SongManager::DifferentialReloadDir(string dir)
 		} else {
 			vector<RString> songdirs;
 			GetDirListing(dir + folder + "/*", songdirs, true, true);
-			StripCvsAndSvn(songdirs);
-			StripMacResourceForks(songdirs);
 			Group group(folder);
 			for (auto& song : songdirs) {
 				group.songs.emplace_back(SongDir(song));
@@ -380,10 +379,6 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 void
 SongManager::CalcTestStuff()
 {
-#ifndef USING_CALCTESTS
-	return;
-#endif
-
 	vector<float> test_vals[NUM_Skillset];
 
 	// output calc differences for chartkeys and targets and stuff
@@ -396,7 +391,7 @@ SongManager::CalcTestStuff()
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
 				  StepsByKey[chart.first]->DoATestThing(
-					chart.second.ev, ss, chart.second.rate));
+					chart.second.ev, ss, chart.second.rate, calc.get()));
 		}
 		LOG->Trace("\n\n");
 	}
@@ -413,8 +408,8 @@ SongManager::CalcTestStuff()
 
 	// bzzzzzzzzzzzz this won't work for what i want unless we also make dummy
 	// entries in testlist for stuff and don't set an ev
-	//int counter = 0;
-	//for (auto& ohno : StepsByKey){
+	// int counter = 0;
+	// for (auto& ohno : StepsByKey){
 	//	ohno.second->DoATestThing(40.f, Skill_Overall, 1.f);
 	//	++counter;
 	//	if (counter > 500)
@@ -711,7 +706,7 @@ SongManager::IsSongDir(const RString& sDir)
 	// Check to see if they put a song directly inside the group folder.
 	vector<RString> arrayFiles;
 	GetDirListing(sDir + "/*", arrayFiles);
-	const vector<RString>& audio_exts =
+	const vector<std::string>& audio_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (auto& fname : arrayFiles) {
 		const RString ext = GetExtension(fname);
@@ -736,7 +731,7 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 		return false; // the group is already added
 
 	// Look for a group banner in this group folder
-	vector<RString> arrayGroupBanners;
+	vector<std::string> arrayGroupBanners;
 
 	FILEMAN->GetDirListingWithMultipleExtensions(
 	  sDir + sGroupDirName + "/",
@@ -756,48 +751,8 @@ SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
 			sBannerPath = sDir + arrayGroupBanners[0];
 	}
 
-	/* Other group graphics are a bit trickier, and usually don't exist.
-	 * A themer has a few options, namely checking the aspect ratio and
-	 * operating on it. -aj
-	 * TODO: Once the files are implemented in Song, bring the
-	 * extensions from there into here. -aj */
-	// Group background
-
-	// vector<RString> arrayGroupBackgrounds;
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.png", arrayGroupBanners
-	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.jpg",
-	// arrayGroupBanners ); GetDirListing(
-	// sDir+sGroupDirName+"/*-bg.jpeg", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.gif", arrayGroupBanners
-	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.bmp",
-	// arrayGroupBanners );
-	/*
-		RString sBackgroundPath;
-		if( !arrayGroupBackgrounds.empty() )
-			sBackgroundPath =
-	   sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0]; else
-		{
-			// Look for a group background in the parent folder
-			GetDirListing( sDir+sGroupDirName+"-bg.png",
-	   arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.jpg",
-	   arrayGroupBackgrounds ); GetDirListing(
-	   sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.gif",
-	   arrayGroupBackgrounds ); GetDirListing(
-	   sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds
-	   ); if( !arrayGroupBackgrounds.empty() ) sBackgroundPath =
-	   sDir+arrayGroupBackgrounds[0];
-		}
-	*/
-	/*
-	LOG->Trace( "Group banner for '%s' is '%s'.", sGroupDirName.c_str(),
-				sBannerPath != ""? sBannerPath.c_str():"(none)" );
-	*/
-
 	m_sSongGroupNames.emplace_back(sGroupDirName);
 	m_sSongGroupBannerPaths.emplace_back(sBannerPath);
-	// m_sSongGroupBackgroundPaths.emplace_back( sBackgroundPath );
 	return true;
 }
 
@@ -809,8 +764,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 {
 	vector<RString> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
-	StripCvsAndSvn(songFolders);
-	StripMacResourceForks(songFolders);
 	int songCount = 0;
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
@@ -828,8 +781,6 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);
-			StripCvsAndSvn(group.songs);
-			StripMacResourceForks(group.songs);
 			songCount += group.songs.size();
 			groups.emplace_back(group);
 		}
@@ -849,6 +800,8 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 	auto callback = [&sDir](
 					  std::pair<vectorIt<Group>, vectorIt<Group>> workload,
 					  ThreadData* data) {
+		std::unique_ptr<Calc> per_thread_calc = std::make_unique<Calc>();
+
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
 		auto ld = pair->second;
@@ -874,7 +827,8 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 				if (SONGMAN->m_SongsByDir.count(hur))
 					continue;
 				Song* pNewSong = new Song;
-				if (!pNewSong->LoadFromSongDir(sSongDirName)) {
+				if (!pNewSong->LoadFromSongDir(sSongDirName,
+											   per_thread_calc.get())) {
 					delete pNewSong;
 					continue;
 				}
@@ -1684,9 +1638,6 @@ CalcTestList::CreateNode() const
 void
 SongManager::LoadCalcTestNode() const
 {
-#ifndef USING_CALCTESTS
-	return;
-#endif
 	string fn = "Save/" + calctest_XML;
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
@@ -1759,9 +1710,6 @@ SongManager::SaveCalcTestCreateNode() const
 void
 SongManager::SaveCalcTestXmlToDir() const
 {
-#ifndef USING_CALCTESTS
-	return;
-#endif
 	string fn = "Save/" + calctest_XML;
 	// calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
 	unique_ptr<XNode> xml(SaveCalcTestCreateNode());

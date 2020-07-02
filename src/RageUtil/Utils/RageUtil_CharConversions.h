@@ -1,4 +1,4 @@
-﻿/* ConvertString - Convert a string to UTF-8. */
+/* ConvertString - Convert a string to UTF-8. */
 
 #ifndef RAGEUTIL_CHAR_CONVERSIONS_H
 #define RAGEUTIL_CHAR_CONVERSIONS_H
@@ -9,6 +9,6 @@
  * Return false and leave the string unchanged if the conversion was
  * unsuccessful. */
 bool
-ConvertString(RString& str, const RString& encodings);
+ConvertString(std::string& str, const std::string& encodings);
 
 #endif

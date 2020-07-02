@@ -16,6 +16,7 @@ local finalSecond = 0 -- only used if its references below are uncommented
 local graphVecs = {}
 local ssrs = {}
 local activeModGroup = 1
+local debugstrings
 
 -- bg actors for mouse hover stuff
 local topgraph = nil
@@ -143,6 +144,7 @@ local miscToUpperMods = {
 -- list of all additional enums to include in the lower graph
 -- it is assumed these are members of CalcDebugMisc
 local miscToLowerMods = {
+    Pts = true,
     PtLoss = true,
     JackPtLoss = true,
 }
@@ -174,81 +176,55 @@ local debugGroups = {
     {   -- Group 1
         Stream = true,
         OHTrill = true,
+        VOHTrill = true,
 		OHJumpMod = true,
 		Roll = true,
         StamMod = true,
     },
     {   -- Group 2
         JS = true,
-        JSS = true,
-        JSJ = true,
         StamMod = true,
         OHJumpMod = true,
     },
 	{   -- Group 3
         HS = true,
-        HSS = true,
-        HSJ = true,
         StamMod = true,
         OHJumpMod = true,
 	},
     {   -- Group 4
         CJ = true,
-        CJS = true,
-        CJJ = true,
-        CJQuad = true,
+        CJDensity = true,
         CJOHJump = true,
-        --CJOHJPropComp = true,
-        --CJOHJSeqComp = true,
 		StamMod = true,
     },
     {   -- Group 5
-        TotalPatternMod = true,
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
 	},
     {   -- Group 6
-        TotalPatternMod = true,
         Chaos = true,
         FlamJam = true,
         TheThing = true,
         Balance = true,
         WideRangeBalance = true,
         WideRangeAnchor = true,
-		RanMan = true,
-        TheThing = true,
     },
 	{   -- Group 7
         RanMan = true,
-        RanLen = true,
-        RanAnchLen = true,
-        RanAnchLenMod = true,
-        RanOHT = true,
-        RanOffS = true,
-        RanJack = true,
-        RanPropAll = true,
-        RanPropOHT = true,
-        RanPropOff = true,
-        RanPropOffS = true,
-        RanPropJack = true,
     },
 	{   -- Group 8
         OHJumpMod = true,
-        OHJPropComp = true,
-        OHJSeqComp = true,
-        OHJBaseProp = true,
 	},
     {   -- Group 9
-        OHJMaxSeq = true,
-        OHJCCTaps = true,
-        OHJHTaps = true,
+        TotalPatternMod = true,
     },
     {   -- Group 10
-        TotalPatternMod = true,
+
     },
     {   -- Group 11
         Chaos = true,
+        Roll = true,
     },
     [12] = { -- Group 12
         TheThing = true,
@@ -288,6 +264,7 @@ local function updateCoolStuff()
         end
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
+        debugstrings = steps:GetDebugStrings()
 
         -- for each debug output type and its corresponding list of values
         for debugtype, sublist in pairs(CalcDebugTypes) do
@@ -407,7 +384,7 @@ local function getDebugModsForIndex(modgroup, modgroupname, extramodgroup, index
     end
 
     modText = modText:sub(1, #modText-1) -- remove the end whitespace
-
+    modText = modText .. "\n" .. index
     return modText
 end
 
@@ -434,7 +411,7 @@ local function yetAnotherInputCallback(event)
         end
 
         local CtrlPressed = INPUTFILTER:IsControlPressed()
-        if tonumber(event.char) and CtrlPressed then
+        if tonumber(event.char) and CtrlPressed and enabled then
             local num = tonumber(event.char)
             if num == 0 then
                 switchSSRGraph()
@@ -491,6 +468,39 @@ local o =
             SCREENMAN:GetTopScreen():AddInputCallback(yetAnotherInputCallback)
         end
     }
+}
+
+o[#o + 1] = Def.Quad {
+    InitCommand = function(self)
+        self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
+            bgalpha
+        )
+    end,
+    DoTheThingCommand = function(self)
+        self:visible(song ~= nil)
+    end,
+    HighlightCommand = function(self)
+        local txt = self:GetParent():GetChild("DebugStringText")
+        if isOver(self) then
+            local mx = INPUTFILTER:GetMouseX()
+            local ypos = INPUTFILTER:GetMouseY() - self:GetParent():GetY()
+            
+            local w = self:GetZoomedWidth() * self:GetParent():GetTrueZoom()
+            local leftEnd = self:GetTrueX() - (self:GetHAlign() * w)
+            local rightEnd = self:GetTrueX() + w - (self:GetHAlign() * w)
+            local perc = (mx - leftEnd) / (rightEnd - leftEnd)
+            local goodXPos = -plotWidth/2 + perc * plotWidth
+			
+            txt:visible(true)
+			txt:x(goodXPos + 36)
+            txt:y(ypos - 40)
+
+            local index = convertPercentToIndexForMods(perc)
+            txt:settext(debugstrings[index])
+		else
+            txt:visible(false)
+		end
+	end
 }
 
 -- graph bg
@@ -649,50 +659,52 @@ local modnames = {
     "str",
     "jsl",
     "jsr",
-    "jssl",
-    "jssr",
-    "jsjl",
-    "jsjr",
+    --"jssl",
+    --"jssr",
+    --"jsjl",
+    --"jsjr",
     "hsl",
     "hsr",
-    "hssl",
-    "hssr",
-    "hsjl",
-    "hsjr",
+    --"hssl",
+    --"hssr",
+    --"hsjl",
+    --"hsjr",
     "cjl",
     "cjr",
-    "cjsl",
-    "cjsr",
-    "cjjl",
-    "cjjr",
-    "cjql",
-    "cjqr",
+    --"cjsl",
+    --"cjsr",
+    --"cjjl",
+    --"cjjr",
+    "cjdl",
+    "cjdr",
     "ohjl",
     "ohjr",
-    "ohjbpr",
-    "ohjbpl",
-    "ohjpcl",
-    "ohjpcr",
-    "ohjscl",
-    "ohjscr",
-    "ohjmsl",
-    "ohjmsr",
-    "ohjcctl",
-    "ohjcctr",
-    "ohjhtl",
-    "ohjhtr",
-    "cjohjl",
-    "cjohjr",
-    "cjohjpcl",
-    "cjohjpcr",
-    "cjohjscl",
-    "cjohjscr",
-    "anchl",
-    "anchr",
+    --"ohjbpr",
+    --"ohjbpl",
+    --"ohjpcl",
+    --"ohjpcr",
+    --"ohjscl",
+    --"ohjscr",
+    --"ohjmsl",
+    --"ohjmsr",
+    --"ohjcctl",
+    --"ohjcctr",
+    --"ohjhtl",
+    --"ohjhtr",
+    --"cjohjl",
+    --"cjohjr",
+    --"cjohjpcl",
+    --"cjohjpcr",
+    --"cjohjscl",
+    --"cjohjscr",
+    "blncl",
+    "blncr",
     "rolll",
     "rollr",    
     "ohtl",
     "ohtr",
+    "vohtl",
+    "vohtr",
     "cl",
     "cr",
     "fcl",
@@ -711,34 +723,35 @@ local modnames = {
     "tt2r",
     "rml",
     "rmr",
-    "rll",
-    "rlr",
-    "rall",
-    "ralr",
-    "ralml",
-    "ralmr",
-    "rjl",
-    "rjr",
-    "rohtl",
-    "rohtr",
-    "rosl",
-    "rosr",
-    "rpal",
-    "rpar",
-    "rpol",
-    "rpor",
-    "rpohtl",
-    "rpohtr",
-    "rposl",
-    "rposr",
-    "rpjl",
-    "rpjr",
+    --"rll",
+    --"rlr",
+    --"rall",
+    --"ralr",
+    --"ralml",
+    --"ralmr",
+    --"rjl",
+    --"rjr",
+    --"rohtl",
+    --"rohtr",
+    --"rosl",
+    --"rosr",
+    --"rpal",
+    --"rpar",
+    --"rpol",
+    --"rpor",
+    --"rpohtl",
+    --"rpohtr",
+    --"rposl",
+    --"rposr",
+    --"rpjl",
+    --"rpjr",
     "totpml",
     "totpmr",
 
 
     -- CalcPatternMods above this line
-    -- CalcDebugMisc mods
+    -- CalcDebugMisc mods meant for only the top graph:
+    -- (this list should match the miscToUpperMods list)
     "sl",
     "sr",
     "jksl",
@@ -753,50 +766,52 @@ local modColors = {
     color(".3,1.3,0.9"),	-- cyan				 (right)
 	color("1,0,1"),     	-- purple       = jumpstream left
     color("1,0.3,1"),   	-- light purple      (right)
-	color("0,1,1"),			-- cyan			= jumpstream stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= jumpstream jack
-	color("1,0.2,0"),		-- orange1			 (right)
+	--color("0,1,1"),			-- cyan			= jumpstream stream
+	--color("0,0.8,1"),		-- light blue		 (right)
+	--color("1,0,0"),			-- red			= jumpstream jack
+	--color("1,0.2,0"),		-- orange1			 (right)
     color("0.6,0.6,0"),     -- dark yellow  = handstream left
     color("0.6,0.6,0"),     -- dark yellow       (right)
-	color("0,1,1"),			-- cyan			= handstream stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= handstream jack
-	color("1,0.2,0"),		-- orange1			 (right)
+	--color("0,1,1"),			-- cyan			= handstream stream
+	--color("0,0.8,1"),		-- light blue		 (right)
+	--color("1,0,0"),			-- red			= handstream jack
+	--color("1,0.2,0"),		-- orange1			 (right)
     color("1.4,1.3,1"),     -- white 		= chordjack left
     color("1.4,1.3,0.9"),   -- white			 (right)
-	color("0,1,1"),			-- cyan			= chordjack stream
-	color("0,0.8,1"),		-- light blue		 (right)
-	color("1,0,0"),			-- red			= chordjack jack
-	color("1,0.2,0"),		-- orange1			 (right)
-	color("1,1,0"),			-- yellow		= cjquad left
+	--color("0,1,1"),			-- cyan			= chordjack stream
+	--color("0,0.8,1"),		-- light blue		 (right)
+	--color("1,0,0"),			-- red			= chordjack jack
+	--color("1,0.2,0"),		-- orange1			 (right)
+	color("1,1,0"),			-- yellow		= cjdensity left
     color("1,1,0"),			-- yellow			 (right)
     color("1,0.4,0"),       -- orange2		= ohjump left
     color("1,0.4,0"), 		-- orange2        	 (right)
-	color("1,1,1"),			-- ohjbp
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjpc
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjsc
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjms
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjcct
-	color("1,1,1"),
-	color("1,1,1"),			-- ohjht
-	color("1,1,1"),
-    color("1,0.4,0"),		-- orange2		= cjohj left
-    color("1,0.4,0"),		-- orange2			 (right)
-	color("1,1,1"),			-- cjohjpc
-	color("1,1,1"),
-	color("1,1,1"),			-- cjohjsc
-	color("1,1,1"),
+	--color("1,1,1"),			-- ohjbp
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjpc
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjsc
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjms
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjcct
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ohjht
+	--color("1,1,1"),
+    --color("1,0.4,0"),		-- orange2		= cjohj left
+    --color("1,0.4,0"),		-- orange2			 (right)
+	--color("1,1,1"),			-- cjohjpc
+	--color("1,1,1"),
+	--color("1,1,1"),			-- cjohjsc
+	--color("1,1,1"),
     color("0.2,0.2,1"),     -- blue         = balance left
     color("0.3,0.3,0.9"),   -- light blue        (right)
     color("0,1,0"),         -- green        = roll left
     color("0.3,0.9,0.3"),   -- light green       (right)
     color(".8,1.3,1"),      -- whiteblue	= oht left
     color(".8,1.3,0.9"),	-- whiteblue		 (right)
+    color("1,0,1"),         -- purple       = voht left
+    color("1,0,1"),         -- purple            (right)
     color(".4,0.9,0.3"),    -- green		= chaos left
     color(".4,0.9,0.3"),	-- green			 (right)
     color(".4,0.5,0.59"),   -- teal			= flamjam left
@@ -815,34 +830,34 @@ local modColors = {
     color("0,0.6,1"),       --                  (right)
 	color("0.2,1,1"),		-- light blue	= ranman left
 	color("0.2,1,1"),		-- light blue		 (right)
-	color("1,1,1"),			-- rl
-	color("1,1,1"),
-	color("1,1,1"),			-- ral
-	color("1,1,1"),
-	color("1,1,1"),			-- ralm
-	color("1,1,1"),
-	color("1,1,1"),			-- rj
-	color("1,1,1"),
-	color("1,1,1"),			-- roht
-	color("1,1,1"),
-	color("1,1,1"),			-- ros
-	color("1,1,1"),
-	color("1,1,1"),			-- rpa
-	color("1,1,1"),
-	color("1,1,1"),			-- rpo
-	color("1,1,1"),
-	color("1,1,1"),			-- rpoht
-	color("1,1,1"),
-	color("1,1,1"),			-- rpos
-	color("1,1,1"),
-	color("1,1,1"),			-- rpj
-    color("1,1,1"),
+	--color("1,1,1"),			-- rl
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ral
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ralm
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rj
+	--color("1,1,1"),
+	--color("1,1,1"),			-- roht
+	--color("1,1,1"),
+	--color("1,1,1"),			-- ros
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpa
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpo
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpoht
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpos
+	--color("1,1,1"),
+	--color("1,1,1"),			-- rpj
+    --color("1,1,1"),
     color("0.7,1,0"),		-- lime			= totalpatternmod left
     color("0.7,1,0"),		-- lime				 (right)
 
 
     -- place CalcPatternMod Colors above this line
-    -- MISC MODS START HERE
+    -- MISC MODS START HERE (same order as miscToUpperMods)
     color("0.7,1,0"),		-- lime			= stam left
     color("0.7,1,0"),		-- lime				 (right)
     color("0.7,1,0"),		-- lime			= jackstam left
@@ -948,21 +963,6 @@ o[#o + 1] = LoadFont("Common Normal") .. {
         end
     end
 }
-
--- basemsd
-o[#o + 1] = LoadFont("Common Large") .. {
-    InitCommand = function(self)
-        self:xy(-plotWidth/2 -5, plotHeight/2 - 100):halign(1):valign(0)
-        self:zoom(0.35)
-        self:settext("")
-    end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
-            self:settextf("MSD:\n %.2f", steps:GetSSRs(getCurRateValue(), 0.93)[1] )
-        end
-    end
-}
-
 
 local dotWidth = 0
 local function setOffsetVerts(vt, x, y, c)
@@ -1174,9 +1174,7 @@ do -- scoping
     for i, mod in pairs(CalcDiffValue) do
         local modname = shortenEnum("CalcDiffValue", mod)
         for h = 1,2 do
-            if i == 2 or i == 4 then -- only these for now
                 o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - (h % 2)], h)
-            end
         end
     end
     i = 1
@@ -1247,6 +1245,13 @@ o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "GraphText",
     InitCommand = function(self)
         self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.4)
+    end
+}
+
+o[#o + 1] = LoadFont("Common Normal") .. {
+    Name = "DebugStringText",
+    InitCommand = function(self)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.5)
     end
 }
 

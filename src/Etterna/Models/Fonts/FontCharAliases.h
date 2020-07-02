@@ -4,7 +4,7 @@
 /** @brief Provides support for nonstandard characters in text. */
 namespace FontCharAliases {
 void
-ReplaceMarkers(RString& sText);
+ReplaceMarkers(std::string& sText);
 bool
 GetChar(RString& codepoint, wchar_t& ch);
 };

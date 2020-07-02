@@ -3,7 +3,6 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -431,6 +430,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
+			std::unique_ptr<Calc> per_thread_calc = std::make_unique<Calc>();
+
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
@@ -501,17 +502,16 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 				}
 				const vector<NoteInfo>& serializednd = *serializednd_ptr;
 				vector<float> dakine;
-				if (steps->m_StepsType == StepsType_dance_single) {
-#ifdef USING_NEW_CALC
-					dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
-#else
-					dakine =
-					  MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
-#endif
-				}
 
-				else if (steps->m_StepsType == StepsType_dance_solo)
+				if (steps->m_StepsType == StepsType_dance_single) {
+					// dakine = MinaSDCalc(serializednd, musicrate, ssrpercent);
+					dakine = MinaSDCalc(serializednd,
+										musicrate,
+										ssrpercent,
+										per_thread_calc.get());
+				} else if (steps->m_StepsType == StepsType_dance_solo)
 					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
+
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
 				hs->SetSkillsetSSR(ss, ssrVals[ss]);
@@ -565,14 +565,146 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& profileID)
 	return;
 }
 
-// should deal with this misnomer - mina
 void
-ScoreManager::EnableAllScores()
+ScoreManager::RecalculateSSRs(const string& profileID)
+{
+	auto& scores = SCOREMAN->GetAllProfileScores(profileID);
+
+	mutex songVectorPtrMutex;
+	vector<std::uintptr_t> currentlyLockedSongs;
+	// This is meant to ensure mutual exclusion for a song
+	class SongLock
+	{
+	  public:
+		mutex& songVectorPtrMutex; // This mutex guards the vector
+		vector<std::uintptr_t>&
+		  currentlyLockedSongs; // Vector of currently locked songs
+		std::uintptr_t song;	// The song for this lock
+		SongLock(vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
+		  : currentlyLockedSongs(vec)
+		  , songVectorPtrMutex(mut)
+		  , song(k)
+		{
+			bool active = true;
+			{
+				lock_guard<mutex> lk(songVectorPtrMutex);
+				active = find(currentlyLockedSongs.begin(),
+							  currentlyLockedSongs.end(),
+							  song) != currentlyLockedSongs.end();
+				if (!active)
+					currentlyLockedSongs.emplace_back(song);
+			}
+			while (active) {
+				// TODO: Try to make this wake up from the destructor (CondVar's
+				// maybe)
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				{
+					lock_guard<mutex> lk(songVectorPtrMutex);
+					active = find(currentlyLockedSongs.begin(),
+								  currentlyLockedSongs.end(),
+								  song) != currentlyLockedSongs.end();
+					if (!active)
+						currentlyLockedSongs.emplace_back(song);
+				}
+			}
+		}
+		~SongLock()
+		{
+			lock_guard<mutex> lk(songVectorPtrMutex);
+			currentlyLockedSongs.erase(find(
+			  currentlyLockedSongs.begin(), currentlyLockedSongs.end(), song));
+		}
+	};
+	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
+				  ThreadData*)>
+	  callback =
+		[&songVectorPtrMutex, &currentlyLockedSongs](
+		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
+		  ThreadData* data) {
+			std::unique_ptr<Calc> per_thread_calc = std::make_unique<Calc>();
+
+			int scoreIndex = 0;
+			for (auto it = workload.first; it != workload.second; it++) {
+				auto hs = *it;
+				++scoreIndex;
+
+				const string& ck = hs->GetChartKey();
+				Steps* steps = SONGMAN->GetStepsByChartkey(ck);
+
+				// check for unloaded steps, only allow 4k
+				if (steps == nullptr ||
+					steps->m_StepsType != StepsType_dance_single)
+					continue;
+
+				float ssrpercent = hs->GetSSRNormPercent();
+
+				// don't waste time on <= 0%s
+				if (ssrpercent <= 0.f || !steps->IsRecalcValid()) {
+					hs->ResetSkillsets();
+					continue;
+				}
+				SongLock lk(currentlyLockedSongs,
+							songVectorPtrMutex,
+							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
+
+				float musicrate = hs->GetMusicRate();
+
+				TimingData* td = steps->GetTimingData();
+				NoteData nd;
+				steps->GetNoteData(nd);
+
+				const auto& serializednd = nd.SerializeNoteData2(td);
+				vector<float> dakine;
+
+				if (steps->m_StepsType == StepsType_dance_single) {
+					dakine = MinaSDCalc(serializednd,
+										musicrate,
+										ssrpercent,
+										per_thread_calc.get());
+				}
+
+				auto ssrVals = dakine;
+				FOREACH_ENUM(Skillset, ss)
+				hs->SetSkillsetSSR(ss, ssrVals[ss]);
+				hs->SetSSRCalcVersion(GetCalcVersion());
+
+				td->UnsetEtaner();
+				nd.UnsetNerv();
+				nd.UnsetSerializedNoteData();
+				steps->Compress();
+			}
+		};
+
+	parallelExecution<HighScore*>(scores, callback);
+	return;
+}
+
+void
+ScoreManager::UnInvalidateAllScores()
 {
 	for (size_t i = 0; i < AllScores.size(); ++i)
 		AllScores[i]->SetEtternaValid(true);
 
 	return;
+}
+
+inline float
+AggregateSkillsets(const vector<float>& skillsets,
+				   float rating,
+				   float res,
+				   int iter)
+{
+	double sum;
+	do {
+		rating += res;
+		sum = 0.0;
+		for (auto& ss : skillsets) {
+			sum += max(0.0, 2.f / erfc(0.1 * (ss - rating)) - 2);
+		}
+	} while (pow(2, rating * 0.1) < sum);
+	if (iter == 11)
+		return rating;
+	return AggregateSkillsets(skillsets, rating - res, res / 2.f, iter + 1);
 }
 
 void
@@ -590,12 +722,12 @@ ScoreManager::CalcPlayerRating(float& prating,
 			continue;
 
 		SortTopSSRPtrs(ss, profileID);
-		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1) * 1.04f;
+		pskillsets[ss] = AggregateSSRs(ss, 0.f, 10.24f, 1) * 1.05f;
 		CLAMP(pskillsets[ss], 0.f, 100.f);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = std::accumulate(skillz.begin(), skillz.end(), 0.f) / 7.f;
+	prating = AggregateSkillsets(skillz, 0.f, 10.24f, 1) * 1.125f;
 }
 
 // perhaps we will need a generalized version again someday, but not today
@@ -937,7 +1069,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 
 	static int ValidateAllScores(T* p, lua_State* L)
 	{
-		p->EnableAllScores();
+		p->UnInvalidateAllScores();
 		return 0;
 	}
 

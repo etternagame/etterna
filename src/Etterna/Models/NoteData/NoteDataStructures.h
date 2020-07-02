@@ -9,12 +9,6 @@ struct NoteInfo
 	float rowTime;
 };
 
-struct NoteInfo2
-{
-	int notes;
-	int rowTime;
-};
-
 enum Skillset
 {
 	Skill_Overall,
@@ -33,29 +27,30 @@ enum Skillset
 enum CalcPatternMod
 {
 	Stream,
-	JS,   // pattern mod (values between 0-1)
-	JSS,		// pattern mod (values between 0-1)
-	JSJ,		// pattern mod (values between 0-1)
-	HS,  // pattern mod (values between 0-1)
-	HSS, // pattern mod (values between 0-1)
-	HSJ, // pattern mod (values between 0-1)
-	CJ,		// pattern mod (values between 0-1)
-	CJS,		// pattern mod (values between 0-1)
-	CJJ,		// pattern mod (values between 0-1)
-	CJQuad,
+	JS, // pattern mod (values between 0-1)
+	// JSS, // pattern mod (values between 0-1)
+	// JSJ, // pattern mod (values between 0-1)
+	HS, // pattern mod (values between 0-1)
+	// HSS, // pattern mod (values between 0-1)
+	// HSJ, // pattern mod (values between 0-1)
+	CJ, // pattern mod (values between 0-1)
+	// CJS, // pattern mod (values between 0-1)
+	// CJJ, // pattern mod (values between 0-1)
+	CJDensity,
 	OHJumpMod, // pattern mod (values between 0-1)
-	OHJBaseProp,
-	OHJPropComp,
-	OHJSeqComp,
-	OHJMaxSeq,
-	OHJCCTaps,
-	OHJHTaps,
+	// OHJBaseProp,
+	// OHJPropComp,
+	// OHJSeqComp,
+	// OHJMaxSeq,
+	// OHJCCTaps,
+	// OHJHTaps,
 	CJOHJump,
-	CJOHJPropComp,
-	CJOHJSeqComp,
+	// CJOHJPropComp,
+	// CJOHJSeqComp,
 	Balance, // pattern mod (values between 0.9 - ~ 1.1)
-	Roll,   // pattern mod (values between 0-1)
+	Roll,	 // pattern mod (values between 0-1)
 	OHTrill,
+	VOHTrill,
 	Chaos,
 	FlamJam,
 	WideRangeRoll,
@@ -65,35 +60,38 @@ enum CalcPatternMod
 	TheThing,
 	TheThing2,
 	RanMan,
-	RanLen,
-	RanAnchLen,
-	RanAnchLenMod,
-	RanJack,
-	RanOHT,
-	RanOffS,
-	RanPropAll,
-	RanPropOff,
-	RanPropOHT,
-	RanPropOffS,
-	RanPropJack,
+	// RanLen,
+	// RanAnchLen,
+	// RanAnchLenMod,
+	// RanJack,
+	// RanOHT,
+	// RanOffS,
+	// RanPropAll,
+	// RanPropOff,
+	// RanPropOHT,
+	// RanPropOffS,
+	// RanPropJack,
 	TotalPatternMod,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };
 enum CalcDiffValue
 {
-	BaseNPS, // unadjusted base nps difficulty
-	BaseMS,  // unadjusted base ms difficulty
-	BaseMSD, // unadjusted weighted values
-	MSD,	 // pattern and stam adjusted difficulty values
+	NPSBase,
+	JackBase,
+	// CJBase,
+	TechBase,
+	RMABase,
+	MSD,
 	NUM_CalcDiffValue,
 	CalcDiffValue_Invalid,
 };
 enum CalcDebugMisc
 {
+	Pts,
 	PtLoss, // expected points loss (not really a diff thing but w.e)
 	JackPtLoss,
-	StamMod,// stam adjust (values between 1- ~1.15)
+	StamMod, // stam adjust (values between 1- ~1.15)
 	JackStamMod,
 	NUM_CalcDebugMisc,
 	CalcDebugMisc_Invalid,
