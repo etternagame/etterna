@@ -83,7 +83,7 @@ class ScoreGoal
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
-	HighScore* GetPBUpTo();
+	HighScore* GetPBUpTo() const;
 
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal

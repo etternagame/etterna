@@ -606,7 +606,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 }
 
 HighScore*
-ScoreGoal::GetPBUpTo()
+ScoreGoal::GetPBUpTo() const
 {
 	return SCOREMAN->GetChartPBUpTo(chartkey, rate);
 }
@@ -614,7 +614,7 @@ ScoreGoal::GetPBUpTo()
 void
 ScoreGoal::CheckVacuity()
 {
-	HighScore* pb = SCOREMAN->GetChartPBAt(chartkey, rate);
+	auto pb = SCOREMAN->GetChartPBAt(chartkey, rate);
 
 	if (pb && pb->GetWifeScore() >= percent)
 		vacuous = true;
@@ -1303,7 +1303,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 
 	static int GetPBUpTo(T* p, lua_State* L)
 	{
-		HighScore* pb = p->GetPBUpTo();
+		auto* pb = p->GetPBUpTo();
 		if (pb == nullptr)
 			lua_pushnil(L);
 		else

@@ -24,20 +24,20 @@ struct ScoresAtRate
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade;
 
-	HighScore* AddScore(HighScore& hs);
+	auto AddScore(HighScore& hs) -> HighScore*;
 
-	vector<std::string> GetSortedKeys();
+	[[nodiscard]] auto GetSortedKeys() const -> const vector<std::string>;
 	void PushSelf(lua_State* L);
 
-	bool HandleNoCCPB(HighScore& hs);
+	auto HandleNoCCPB(HighScore& hs) -> bool;
 
-	XNode* CreateNode(const int& rate) const;
+	[[nodiscard]] auto CreateNode(const int& rate) const -> XNode*;
 	void LoadFromNode(const XNode* node,
-					  const std::string& key,
+					  const std::string& ck,
 					  const float& rate,
 					  const std::string& profileID);
 
-	const vector<HighScore*> GetAllScores();
+	auto GetAllScores() -> const vector<HighScore*>;
 	unordered_map<std::string, HighScore> scores;
 };
 
@@ -49,43 +49,56 @@ struct ScoresForChart
 
 	Grade bestGrade = Grade_Invalid; // best grade for any rate
 
-	HighScore* GetPBAt(float& rate);
-	HighScore* GetPBUpTo(float& rate);
+	auto GetPBAt(float rate) -> HighScore*;
+	auto GetPBUpTo(float rate) -> HighScore*;
+	auto GetAllPBPtrs() -> const vector<HighScore*>;
 
-	vector<HighScore*> GetAllPBPtrs();
+	auto AddScore(HighScore& hs) -> HighScore*;
 
-	HighScore* AddScore(HighScore& hs);
-
-	vector<float> GetPlayedRates();
-	vector<int> GetPlayedRateKeys();
-	vector<std::string> GetPlayedRateDisplayStrings();
-	std::string RateKeyToDisplayString(float rate);
-	int RateToKey(float& rate) { return lround(rate * 10000.f); }
-	float KeyToRate(int key) { return static_cast<float>(key) / 10000.f; }
+	[[nodiscard]] auto GetPlayedRates() const -> const vector<float>;
+	[[nodiscard]] auto GetPlayedRateKeys() const -> const vector<int>;
+	[[nodiscard]] auto GetPlayedRateDisplayStrings() const
+	  -> const vector<std::string>;
 
 	void PushSelf(lua_State* L);
 
 	Chart ch;
 
-	ScoresAtRate* GetScoresAtRate(const int& rate);
-	const vector<HighScore*> GetAllScores();
-	XNode* CreateNode(const std::string& ck) const;
+	auto GetScoresAtRate(const int& rate) -> ScoresAtRate*;
+	auto GetAllScores() -> const vector<HighScore*>;
+	[[nodiscard]] auto CreateNode(const std::string& ck) const -> XNode*;
 	void LoadFromNode(const XNode* node,
 					  const std::string& ck,
 					  const std::string& profileID);
 
-	ScoresAtRate operator[](const int rate) { return ScoresByRate.at(rate); }
+	auto operator[](const int rate) -> ScoresAtRate
+	{
+		return ScoresByRate.at(rate);
+	}
 
 	// Sets rate indepdendent topscore tags inside highscores. 1 = best. 2 =
 	// 2nd. 0 = the rest. -mina
 	void SetTopScores();
 
-	auto GetNumScores() const -> int { return ScoresByRate.size(); }
+	[[nodiscard]] auto GetNumScores() const -> int
+	{
+		return ScoresByRate.size();
+	}
 
 	/* It makes sense internally to have the map keys sorted highest rate to
 	lowest however my experience in lua is that it tends to be more friendly
 	to approach things in the reverse -mina */
-	map<int, ScoresAtRate, greater<int>> ScoresByRate;
+	map<int, ScoresAtRate, greater<>> ScoresByRate;
+
+	[[nodiscard]] static inline auto RateToKey(float rate) -> int
+	{
+		return lround(rate * 10000.f);
+	}
+
+	[[nodiscard]] static inline auto KeyToRate(int key) -> float
+	{
+		return static_cast<float>(key) / 10000.f;
+	}
 };
 
 class ScoreManager
@@ -94,35 +107,40 @@ class ScoreManager
 	ScoreManager();
 	~ScoreManager();
 
-	vector<vector<HighScore*>> GetAllPBPtrs(
-	  const std::string& profileID =
-		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	HighScore* GetChartPBAt(const std::string& ck,
-							float& rate,
-							const std::string& profileID =
-							  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	auto GetAllPBPtrs(const std::string& profileID =
+						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> const vector<vector<HighScore*>>;
+
+	auto GetChartPBAt(const std::string& ck,
+					  float rate,
+					  const std::string& profileID =
+						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> HighScore*;
 
 	// technically "up to and including rate: x" but that's a mouthful -mina
 	// HighScore* GetChartPBUpTo(const std::string& ck, float& rate);
-	HighScore* GetChartPBUpTo(const std::string& ck,
-							  float& rate,
-							  const std::string& profileID =
-								PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	auto GetChartPBUpTo(const std::string& ck,
+						float rate,
+						const std::string& profileID =
+						  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> HighScore*;
 
-	Grade GetBestGradeFor(const std::string& ck,
-						  const std::string& profileID =
-							PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	[[nodiscard]] auto GetBestGradeFor(
+	  const std::string& ck,
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> Grade
 	{
-		if (KeyHasScores(ck, profileID))
-			return pscores[profileID][ck].bestGrade;
+		if (KeyHasScores(ck, profileID)) {
+			return pscores.at(profileID).at(ck).bestGrade;
+		}
 		return Grade_Invalid;
 	}
 
 	// for scores achieved during this session
 	// now returns top score status because i'm bad at coding --lurker
-	int AddScore(const HighScore& hs_,
-				 const std::string& profileID =
-				   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	auto AddScore(const HighScore& hs_,
+				  const std::string& profileID =
+					PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) -> int
 	{
 		HighScore hs = hs_;
 		RegisterScoreInProfile(
@@ -134,7 +152,7 @@ class ScoreManager
 					   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
 	// don't save scores under this percentage
-	float minpercent = PREFSMAN->m_fMinPercentToSaveScores;
+	const float minpercent = PREFSMAN->m_fMinPercentToSaveScores;
 
 	// Player Rating and SSR functions
 	void SortTopSSRPtrs(Skillset ss,
@@ -146,42 +164,49 @@ class ScoreManager
 	void CalcPlayerRating(float& prating,
 						  float* pskillsets,
 						  const std::string& profileID);
-	float AggregateSSRs(Skillset ss, float rating, float res, int iter) const;
+	[[nodiscard]] auto AggregateSSRs(Skillset ss,
+									 float rating,
+									 float res,
+									 int iter) const -> float;
 
-	float GetTopSSRValue(unsigned int rank, int ss);
+	auto GetTopSSRValue(unsigned int rank, int ss) -> float;
 
-	HighScore* GetTopSSRHighScore(unsigned int rank, int ss);
+	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
 
-	bool KeyHasScores(const std::string& ck,
-					  const std::string& profileID =
-						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	[[nodiscard]] auto KeyHasScores(
+	  const std::string& ck,
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> bool
 	{
-		return pscores[profileID].count(ck) == 1;
+		return pscores.at(profileID).count(ck) == 1;
 	}
-	bool HasAnyScores() { return !AllScores.empty(); }
-	void RatingOverTime();
+	[[nodiscard]] auto HasAnyScores() const -> bool
+	{
+		return !AllScores.empty();
+	}
 
-	XNode* CreateNode(const std::string& profileID =
-						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const;
+	[[nodiscard]] auto CreateNode(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> XNode*;
 	void LoadFromNode(const XNode* node,
 					  const std::string& profileID =
 						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
-	ScoresForChart* GetScoresForChart(
-	  const std::string& ck,
-	  const std::string& profileID =
-		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	vector<std::string> GetSortedKeys();
+	auto GetScoresForChart(const std::string& ck,
+						   const std::string& profileID =
+							 PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> ScoresForChart*;
+	auto GetSortedKeys() -> const vector<std::string>;
 
 	void PushSelf(lua_State* L);
-	HighScore* GetMostRecentScore()
+	auto GetMostRecentScore() -> HighScore*
 	{
 		if (camefromreplay) {
 			ASSERT_M(tempscoreforonlinereplayviewing != nullptr,
 					 "Temp score for Replay & Practice viewing was empty.");
 			return tempscoreforonlinereplayviewing;
 		}
-		ASSERT_M(AllScores.size() != 0, "Profile has no Scores.");
+		ASSERT_M(!AllScores.empty(), "Profile has no Scores.");
 		return AllScores.back();
 	}
 	void PutScoreAtTheTop(const std::string& scorekey)
@@ -189,14 +214,14 @@ class ScoreManager
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());
 	}
-	const vector<HighScore*>& GetAllScores() { return AllScores; }
-	const unordered_map<std::string, HighScore*>& GetScoresByKey()
+	auto GetAllScores() -> const vector<HighScore*>& { return AllScores; }
+	auto GetScoresByKey() -> const unordered_map<std::string, HighScore*>&
 	{
 		return ScoresByKey;
 	}
-	const vector<HighScore*>& GetAllProfileScores(
-	  const std::string& profileID =
-		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	auto GetAllProfileScores(const std::string& profileID =
+							   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> const vector<HighScore*>&
 	{
 		return AllProfileScores[profileID];
 	}
@@ -210,9 +235,9 @@ class ScoreManager
 	void SetAllTopScores(const std::string& profileID =
 						   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void PurgeScores();
-	unordered_map<std::string, ScoresForChart>* GetProfileScores(
-	  const std::string& profileID =
-		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	auto GetProfileScores(const std::string& profileID =
+							PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> unordered_map<std::string, ScoresForChart>*
 	{
 		return &(pscores[profileID]);
 	};
@@ -221,8 +246,9 @@ class ScoreManager
 							  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void UnloadAllReplayData()
 	{
-		for (auto& s : AllScores)
+		for (auto& s : AllScores) {
 			s->UnloadReplayData();
+		}
 	}
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
