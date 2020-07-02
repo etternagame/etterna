@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageLog.h"
@@ -262,16 +262,18 @@ RageLog::UserLog(const RString& sType,
 				 const char* fmt,
 				 ...)
 {
-	va_list va;
-	va_start(va, fmt);
-	RString sBuf = vssprintf(fmt, va);
-	va_end(va);
+	return;
+	/*
+		va_list va;
+		va_start(va, fmt);
+		RString sBuf = vssprintf(fmt, va);
+		va_end(va);
 
-	if (!sType.empty())
-		sBuf = ssprintf(
-		  "%s \"%s\" %s", sType.c_str(), sElement.c_str(), sBuf.c_str());
+		if (!sType.empty())
+			sBuf = ssprintf(
+			  "%s \"%s\" %s", sType.c_str(), sElement.c_str(), sBuf.c_str());
 
-	Write(WRITE_TO_USER_LOG, sBuf);
+		Write(WRITE_TO_USER_LOG, sBuf);*/
 }
 
 void
