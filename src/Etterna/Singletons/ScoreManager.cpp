@@ -592,7 +592,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 							  currentlyLockedSongs.end(),
 							  song) != currentlyLockedSongs.end();
 				if (!active)
-					currentlyLockedSongs.emplace_back(song);
+					currentlyLockedSongs.push_back(song);
 			}
 			while (active) {
 				// TODO: Try to make this wake up from the destructor (CondVar's
@@ -604,7 +604,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 								  currentlyLockedSongs.end(),
 								  song) != currentlyLockedSongs.end();
 					if (!active)
-						currentlyLockedSongs.emplace_back(song);
+						currentlyLockedSongs.push_back(song);
 				}
 			}
 		}
