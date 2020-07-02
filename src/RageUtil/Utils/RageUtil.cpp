@@ -1805,6 +1805,7 @@ Regex::Replace(const std::string& sReplacement,
 		RString sTo = asMatches[i];
 		RString forp = sOut;
 		forp.Replace(sFrom, sTo);
+		sOut = forp;
 	}
 
 	return true;
