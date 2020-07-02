@@ -1,8 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Steps.h"
 #include "StepsUtil.h"
@@ -56,11 +56,10 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 	}
 
 	ASSERT(pProfile != NULL);
-	for (unsigned i = 0; i < vStepsPointers.size(); ++i) {
-		Steps* pSteps = vStepsPointers[i];
-		Song* pSong = mapStepsToSong[pSteps];
-		steps_sort_val[vStepsPointers[i]] =
-		  ssprintf("%9i", pProfile->GetStepsNumTimesPlayed(pSong, pSteps));
+	for (auto& steps : vStepsPointers) {
+		steps_sort_val[steps] = ssprintf(
+		  "%9i",
+		  SCOREMAN->GetScoresForChart(steps->GetChartKey())->GetNumScores());
 	}
 	stable_sort(vStepsPointers.begin(),
 				vStepsPointers.end(),

@@ -61,7 +61,7 @@ GradeToOldString(Grade g)
 			return "D";
 		case Grade_Failed:
 			return "E";
-		case Grade_NoData:
+		case Grade_Invalid:
 			return "N";
 		default:
 			return "N";
@@ -82,8 +82,8 @@ StringToGrade(const RString& sGrade)
 	else if (s == "FAILED")
 		return Grade_Failed;
 	else if (s == "NODATA")
-		return Grade_NoData;
+		return Grade_Invalid;
 
 	LOG->Warn("Invalid grade: %s", sGrade.c_str());
-	return Grade_NoData;
+	return Grade_Invalid;
 };

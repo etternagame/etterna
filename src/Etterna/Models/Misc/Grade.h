@@ -35,8 +35,6 @@ enum Grade
 	NUM_Grade,
 	Grade_Invalid,
 };
-/** @brief Have an alternative for if there is no data for grading. */
-#define Grade_NoData Grade_Invalid
 
 /**
  * @brief Convert the grade supplied to a string representation.
@@ -49,11 +47,11 @@ enum Grade
 static inline RString
 GradeToString(Grade g)
 {
-	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_NoData,
+	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_Invalid,
 			 ssprintf("grade = %d", g));
 
 	switch (g) {
-		case Grade_NoData:
+		case Grade_Invalid:
 			return "NoData";
 		case Grade_Failed:
 			return "Failed";

@@ -215,7 +215,7 @@ class LunaStatsManager : public Luna<StatsManager>
 		PlayerNumber pn = PLAYER_1;
 
 		if (!GAMESTATE->IsHumanPlayer(pn))
-			lua_pushnumber(L, Grade_NoData);
+			lua_pushnumber(L, Grade_Invalid);
 		else {
 			StageStats stats;
 			p->GetFinalEvalStageStats(stats);

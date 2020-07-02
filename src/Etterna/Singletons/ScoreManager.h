@@ -39,8 +39,6 @@ struct ScoresAtRate
 
 	const vector<HighScore*> GetAllScores();
 	unordered_map<std::string, HighScore> scores;
-
-  private:
 };
 
 // All scores for a specific chart
@@ -77,16 +75,17 @@ struct ScoresForChart
 					  const std::string& profileID);
 
 	ScoresAtRate operator[](const int rate) { return ScoresByRate.at(rate); }
-	map<int, ScoresAtRate, greater<int>> ScoresByRate;
 
 	// Sets rate indepdendent topscore tags inside highscores. 1 = best. 2 =
 	// 2nd. 0 = the rest. -mina
 	void SetTopScores();
 
-  private:
+	auto GetNumScores() const -> int { return ScoresByRate.size(); }
+
 	/* It makes sense internally to have the map keys sorted highest rate to
-	lowest however my experience in lua is that it tends to be more friendly to
-	approach things in the reverse -mina */
+	lowest however my experience in lua is that it tends to be more friendly
+	to approach things in the reverse -mina */
+	map<int, ScoresAtRate, greater<int>> ScoresByRate;
 };
 
 class ScoreManager

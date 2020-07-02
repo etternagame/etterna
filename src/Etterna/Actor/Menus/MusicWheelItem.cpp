@@ -289,7 +289,6 @@ MusicWheelItem::RefreshGrades()
 
 	m_pGradeDisplay->SetVisible(true);
 
-	HighScoreList* BestpHSL = NULL;
 	Grade gradeBest = Grade_Invalid;
 	Difficulty dcBest = Difficulty_Invalid;
 	if (pWID->m_pSong != nullptr) {
@@ -298,7 +297,7 @@ MusicWheelItem::RefreshGrades()
 		{
 			Steps* pSteps =
 			  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-			if (pSteps != NULL) {
+			if (pSteps != nullptr) {
 				hasCurrentStyleSteps = true;
 				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
 				if (gradeBest >= dcg) {
@@ -333,7 +332,7 @@ MusicWheelItem::RefreshGrades()
 		msg.SetParam("PermaMirror", 1);
 	if (pWID->m_pSong->HasGoal())
 		msg.SetParam("HasGoal", 1);
-	if (gradeBest != Grade_Invalid || (BestpHSL != nullptr)) {
+	if (gradeBest != Grade_Invalid) {
 		msg.SetParam("Grade", gradeBest);
 		msg.SetParam("Difficulty", DifficultyToString(dcBest));
 		msg.SetParam("NumTimesPlayed", 0);

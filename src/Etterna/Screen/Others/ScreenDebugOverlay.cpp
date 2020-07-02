@@ -962,36 +962,11 @@ MakeRandomHighScore(float fPercentDP)
 	return hs;
 }
 
+// was for making random scores in a profile to test stuff, used hsl etc
 static void
 FillProfileStats(Profile* pProfile)
 {
-	pProfile->InitSongScores();
-
-	static int s_iCount = 0;
-	// Choose a percent for all scores. This is useful for testing unlocks
-	// where some elements are unlocked at a certain percent complete.
-	float fPercentDP = s_iCount != 0 ? randomf(0.6f, 1.0f) : 1.0f;
-	s_iCount = (s_iCount + 1) % 2;
-
-	int iCount = 20;
-
-	vector<Song*> vpAllSongs = SONGMAN->GetAllSongs();
-	FOREACH(Song*, vpAllSongs, pSong)
-	{
-		vector<Steps*> vpAllSteps = (*pSong)->GetAllSteps();
-		FOREACH(Steps*, vpAllSteps, pSteps)
-		{
-			if (random_up_to(5)) {
-				pProfile->IncrementStepsPlayCount(*pSong, *pSteps);
-			}
-			for (int i = 0; i < iCount; i++) {
-				int iIndex = 0;
-				pProfile->AddStepsHighScore(
-				  *pSong, *pSteps, MakeRandomHighScore(fPercentDP), iIndex);
-			}
-		}
-	}
-	SCREENMAN->ZeroNextUpdate();
+	return;
 }
 
 class DebugLineFillProfileStats : public IDebugLine

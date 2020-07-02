@@ -633,8 +633,9 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 
 				// check for unloaded steps, only allow 4k
 				if (steps == nullptr ||
-					steps->m_StepsType != StepsType_dance_single)
+					steps->m_StepsType != StepsType_dance_single) {
 					continue;
+				}
 
 				float ssrpercent = hs->GetSSRNormPercent();
 
@@ -665,7 +666,9 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
-				hs->SetSkillsetSSR(ss, ssrVals[ss]);
+				{
+					hs->SetSkillsetSSR(ss, ssrVals[ss]);
+				}
 				hs->SetSSRCalcVersion(GetCalcVersion());
 
 				td->UnsetEtaner();

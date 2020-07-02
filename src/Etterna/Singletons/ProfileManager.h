@@ -57,7 +57,6 @@ class ProfileManager
 	void UnloadProfile(PlayerNumber pn);
 
 	void MergeLocalProfiles(RString const& from_id, RString const& to_id);
-	void ChangeProfileType(int index, ProfileType new_type);
 	void MoveProfilePriority(int index, bool up);
 
 	// General data
@@ -89,18 +88,6 @@ class ProfileManager
 	bool LastLoadWasTamperedOrCorrupt(PlayerNumber pn) const;
 	bool LastLoadWasFromLastGood(PlayerNumber pn) const;
 
-	// Song stats
-	int GetSongNumTimesPlayed(const Song* pSong, ProfileSlot card) const;
-	bool IsSongNew(const Song* pSong) const
-	{
-		return GetSongNumTimesPlayed(pSong, ProfileSlot_Player1) == 0;
-	}
-	void AddStepsScore(const Song* pSong,
-					   const Steps* pSteps,
-					   PlayerNumber pn,
-					   const HighScore& hs,
-					   int& iPersonalIndexOut,
-					   int& iMachineIndexOut);
 	void IncrementStepsPlayCount(const Song* pSong,
 								 const Steps* pSteps,
 								 PlayerNumber pn);
