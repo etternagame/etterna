@@ -25,36 +25,15 @@ AutoScreenMessage(SM_BackFromContextMenu);
 enum ProfileAction
 {
 	ProfileAction_SetDefaultP1,
-	ProfileAction_SetDefaultP2,
 	ProfileAction_Edit,
 	ProfileAction_Rename,
 	ProfileAction_Clear,
-	ProfileAction_MergeToMachine,
-	ProfileAction_MergeToMachineSkipTotal,
-	ProfileAction_MergeToP1,
-	ProfileAction_MergeToP2,
-	ProfileAction_ChangeToGuest,
-	ProfileAction_ChangeToNormal,
-	ProfileAction_ChangeToTest,
 	ProfileAction_MoveUp,
 	ProfileAction_MoveDown,
 	NUM_ProfileAction
 };
 static const char* ProfileActionNames[] = {
-	"SetDefaultP1",
-	"SetDefaultP2",
-	"Edit",
-	"Rename",
-	"Clear",
-	"MergeToMachine",
-	"MergeToMachineSkipTotal",
-	"MergeToP1",
-	"MergeToP2",
-	"ChangeToGuest",
-	"ChangeToNormal",
-	"ChangeToTest",
-	"MoveUp",
-	"MoveDown",
+	"SetDefaultP1", "Edit", "Rename", "Clear", "MoveUp", "MoveDown",
 };
 XToString(ProfileAction);
 XToLocalizedString(ProfileAction);
@@ -272,20 +251,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 					  ssprintf("Last row code not a valid ProfileAction: %i",
 							   ScreenMiniMenu::s_iLastRowCode));
 				case ProfileAction_SetDefaultP1:
-				case ProfileAction_SetDefaultP2: {
-					if (ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
-						  .Get() == GetLocalProfileIDWithFocus())
-						ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Set(
-						  "");
-
-					auto pn =
-					  static_cast<PlayerNumber>(ScreenMiniMenu::s_iLastRowCode -
-												ProfileAction_SetDefaultP1);
-					ProfileManager::m_sDefaultLocalProfileID[pn].Set(
-					  GetLocalProfileIDWithFocus());
-
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-				} break;
 				case ProfileAction_Edit: {
 					GAMESTATE->m_sEditLocalProfileID.Set(
 					  GetLocalProfileIDWithFocus());
@@ -306,30 +271,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 					ScreenPrompt::Prompt(
 					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
 				} break;
-				case ProfileAction_MergeToMachine:
-					break;
-				case ProfileAction_MergeToMachineSkipTotal:
-					break;
-				case ProfileAction_MergeToP1:
-					PROFILEMAN->MergeLocalProfiles(
-					  GetLocalProfileIDWithFocus(),
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
-					break;
-				case ProfileAction_ChangeToGuest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Guest);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToNormal:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Normal);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToTest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Test);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
 				case ProfileAction_MoveUp:
 					PROFILEMAN->MoveProfilePriority(
 					  GetLocalProfileIndexWithFocus(), true);
