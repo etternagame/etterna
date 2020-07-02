@@ -413,6 +413,18 @@ ieq(const RString& a, const RString& b)
 	return a.CompareNoCase(b) == 0;
 }
 
+/*
+ * Helper function to remove all objects from an STL container for which the
+ * Predicate pred is true. If you want to remove all objects for which the
+ * predicate returns false, wrap the predicate with not1().
+ */
+template<typename Container, typename Predicate>
+void
+RemoveIf(Container& c, Predicate p)
+{
+	c.erase(remove_if(c.begin(), c.end(), p), c.end());
+}
+
 // remove various version control-related files
 static inline bool
 CVSOrSVN(const RString& s)

@@ -255,24 +255,6 @@ CreateClass()
 	return new Type;
 }
 
-/*
- * Helper function to remove all objects from an STL container for which the
- * Predicate pred is true. If you want to remove all objects for which the
- * predicate returns false, wrap the predicate with not1().
- */
-template<typename Container, typename Predicate>
-void
-RemoveIf(Container& c, Predicate p)
-{
-	c.erase(remove_if(c.begin(), c.end(), p), c.end());
-}
-template<typename Container, typename Value>
-void
-RemoveIfEqual(Container& c, const Value& v)
-{
-	c.erase(remove(c.begin(), c.end(), v), c.end());
-}
-
 /* Helper for ConvertValue(). */
 template<typename TO, typename FROM>
 struct ConvertValueHelper
