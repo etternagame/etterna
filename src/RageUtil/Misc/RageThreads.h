@@ -109,6 +109,34 @@ parallelExecution(vector<T> vec,
 	parallelExecution(vec, update, exec, nullptr);
 }
 
+template<typename T>
+void
+parallelExecution(vector<T> vec,
+				  function<void(vectorRange<T>, ThreadData*)> exec)
+{
+	const int THREADS = PREFSMAN->ThreadsToUse <= 0
+						  ? std::thread::hardware_concurrency()
+						  : min((int)PREFSMAN->ThreadsToUse,
+								(int)std::thread::hardware_concurrency());
+	std::vector<vectorRange<T>> workloads =
+	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
+	ThreadData data;
+	auto threadCallback = [&data, &exec](vectorRange<T> workload) {
+		exec(workload, &data);
+		data._threadsFinished++;
+		data.setUpdated(true);
+	};
+	vector<thread> threadpool;
+	for (auto& workload : workloads)
+		threadpool.emplace_back(thread(threadCallback, workload));
+	while (data._threadsFinished < (int)workloads.size()) {
+		data.waitForUpdate();
+		data.setUpdated(false);
+	}
+	for (auto& thread : threadpool)
+		thread.join();
+}
+
 struct ThreadSlot;
 class RageTimer;
 

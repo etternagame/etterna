@@ -29,8 +29,6 @@ const int MAX_EDITS_PER_SONG_PER_PROFILE = 15;
 /** @brief How many edits for this song can be available? */
 const int MAX_EDITS_PER_SONG = MAX_EDITS_PER_SONG_PER_PROFILE * NUM_ProfileSlot;
 
-extern const int FILE_CACHE_VERSION;
-
 /** @brief The different background layers available. */
 enum BackgroundLayer
 {

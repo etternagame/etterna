@@ -1,5 +1,6 @@
 #pragma once
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include <string>
 #include <vector>
 #include <array>
 
@@ -104,14 +105,28 @@ class Calc
 			   num_hands>
 	  soap{};
 
-	// not necessarily self extraplanetary
-	// apply stam model to these (but output is sent to stam_adj_diff, not
-	// modified here)
+	/* apply stam model to these (but output is sent to stam_adj_diff, not
+	 * modified here). There are at least two valid reasons to use different
+	 * base values used for stam, the first being because something that
+	 * alternates frequently between js and hs (du und ich), and has low
+	 * detection in each skillset section for the other, will have large stam
+	 * breaks in both the js and the hs pass, even if it's roughly equivalently
+	 * stamina draining. This produces a drastically reduced stamina effect for
+	 * a file that should arguably have a _higher_ stamina tax, due to constant
+	 * pattern type swapping. As of this commit this is adjusted for in js/hs.
+	 * The second is that pattern mods that push down to extreme degrees stuff
+	 * like jumptrills, or roll walls, will also implicitly push down their
+	 * effect on stam to the point where it may be considered a "break", even
+	 * though it's really not. At best it's a very different kind of stamina
+	 * drain (trill vs anchor). As of this commit this is not accounted for in
+	 * any way, and no estimation is made on how much this actually messes with
+	 * stuff (could be minor, could be major, could be minor for most files and
+	 * major for a select few) */
 	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
 			   num_hands>
 	  base_adj_diff{};
 
-	// but use these as the input for model
+	// input that the stamina model uses to apply to the base diff
 	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
 			   num_hands>
 	  base_diff_for_stam_mod{};
@@ -134,12 +149,18 @@ class Calc
 	// we may want to store this value for use in other skillset passes- maybe
 	std::array<std::array<float, max_intervals>, num_hands> jack_loss{};
 
-	// moved from sequenced basediffs
+	// base techdifficulty per row of current interval being scanned
 	std::array<float, max_rows_for_single_interval> tc_static;
 
+	// total number of intervals for the current file/rate
 	int numitv = 0;
-	int MaxPoints = 0; // Total points achievable in the file
 
+	// Total points achievable in the current file
+	float MaxPoints = 0;
+
+	/* these are unnecessary now that the active session calc is a persistent
+	 * songman singleton, and could/should be removed and the debug values
+	 * pulled straight from the calc */
 	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
 	  debugValues;
 };

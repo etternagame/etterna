@@ -6,6 +6,17 @@
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
 
+/* Unlike other pattern mods runningman sequencing has 2 core purposes, the
+ * primary one involves tracking the anchor speed of a runningman sequence and
+ * using that plus other characteristics of the runningman to guess at a more ms
+ * oriented baseline difficulty, which gets rolled into the tech base
+ * calculations, this happens during the main row loop in ulbu, but not inside
+ * the pattern mod loop. The other is the usual pattern mod generation, which
+ * generates a pattern mod out purely the characteristics, independent of the
+ * anchor speed. This is to slightly push up small runningman anchors inside
+ * streams, or js, etc, and to fully push up much heavier runningman oriented
+ * patterns in those same skillsets (policy in the sky, etc) */
+
 struct RunningManMod
 {
 	const CalcPatternMod _pmod = RanMan;

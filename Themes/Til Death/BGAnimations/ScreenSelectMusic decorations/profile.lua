@@ -17,7 +17,8 @@ local translated_info = {
 	AssetSettings = THEME:GetString("TabProfile", "AssetSettingEntry"),
 	Success = THEME:GetString("TabProfile", "SaveSuccess"),
 	Failure = THEME:GetString("TabProfile", "SaveFail"),
-	ValidateAll = THEME:GetString("TabProfile", "ValidateAllScores")
+	ValidateAll = THEME:GetString("TabProfile", "ValidateAllScores"),
+	ForceRecalc = THEME:GetString("TabProfile", "ForceRecalcScores"),
 }
 
 local t =
@@ -743,7 +744,24 @@ local profilebuttons =
 				STATSMAN:UpdatePlayerRating()
 			end
 		end
-	}
+	},
+	LoadFont("Common Large") ..
+	{
+		InitCommand = function(self)
+			self:x(300):diffuse(getMainColor("positive")):settext(translated_info["ForceRecalc"]):zoom(0.3)
+		end
+	},
+	Def.Quad {
+	InitCommand = function(self)
+		self:x(300):zoomto(100, 20):diffusealpha(buttondiffuse)
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if ButtonActive(self) and rankingSkillset == 1 then
+			ms.ok("Recalculating Scores... this might be slow and may or may not crash")
+			profile:ForceRecalcScores()
+		end
+	end
+}
 }
 
 t[#t + 1] = profilebuttons

@@ -44,7 +44,9 @@
 // a new thing
 #include "Etterna/Globals/MinaCalc/SequencedBaseDiffCalc.h"
 
-// i am ulbu, the great bazoinkazoink in the sky
+/* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
+ * ulbu is all. Praise ulbu. */
+
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
@@ -442,16 +444,6 @@ struct TheGreatBazoinkazoinkInTheSky
 				handle_dependent_interval_end(itv);
 			}
 			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
-
-			// smoothing has been built into the construction process so we
-			// probably don't need these anymore? maybe ms smooth if
-			// necessary, or a new ewma
-
-			// Smooth(_calc.soap.at(hand).at(JackBase), 0.F,
-			// _itv_rows.size()); Smooth(_calc.soap.at(hand).at(CJBase),
-			// 0.F, _itv_rows.size());
-			// Smooth(_calc.soap.at(hand).at(TechBase), 0.F,
-			// _itv_rows.size());
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand

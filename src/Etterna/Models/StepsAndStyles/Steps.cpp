@@ -671,7 +671,7 @@ Steps::HasSignificantTimingChanges() const -> bool
 }
 
 auto
-Steps::GetMusicPath() const -> const std::string&
+Steps::GetMusicPath() const -> const std::string
 {
 	return Song::GetSongAssetPath(m_MusicFile.empty() ? m_pSong->m_sMusicFile
 													  : m_MusicFile,
