@@ -1006,7 +1006,7 @@ DownloadManager::UploadScore(HighScore* hs,
 							 &req](int status) {
 				if (status == 22) {
 					LOG->Trace("Score upload response contains error, retrying "
-							   "(http status: %d error status: %d response "
+							   "(http status: %ld error status: %d response "
 							   "body: \"%s\")",
 							   response_code,
 							   status,
@@ -1031,7 +1031,7 @@ DownloadManager::UploadScore(HighScore* hs,
 				if (status != 406 || PREFSMAN->m_verbose_log > 1)
 					LOG->Trace(
 					  "Score upload response contains error "
-					  "(http status: %d error status: %d response body: "
+					  "(http status: %ld error status: %d response body: "
 					  "\"%s\" score key: \"%s\")",
 					  response_code,
 					  status,
@@ -1054,7 +1054,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			} else {
 				LOG->Trace("Score upload response contains error and we failed "
 						   "to recognize it"
-						   "(http status: %d response body: \"%s\")",
+						   "(http status: %ld response body: \"%s\")",
 						   response_code,
 						   req.result.c_str());
 			}
@@ -1087,7 +1087,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			// HTTPRunning = response_code;// TODO: Why were we doing this?
 		} else {
 			LOG->Trace("Score upload response malformed json "
-					   "(http status: %d response body: \"%s\")",
+					   "(http status: %ld response body: \"%s\")",
 					   response_code,
 					   req.result.c_str());
 		}
@@ -1187,7 +1187,7 @@ DownloadManager::UploadScores()
 	}
 
 	if (!toUpload.empty())
-		LOG->Trace("Updating online scores. (Uploading %d scores)",
+		LOG->Trace("Updating online scores. (Uploading %zu scores)",
 				   toUpload.size());
 	else
 		return false;
@@ -1234,7 +1234,7 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 	if (startnow) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
-		LOG->Trace("Starting sequential upload of %d scores",
+		LOG->Trace("Starting sequential upload of %zu scores",
 				   this->ScoreUploadSequentialQueue.size());
 		uploadSequentially();
 	}
@@ -1253,7 +1253,7 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 	if (startnow) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
-		LOG->Trace("Starting sequential upload of %d scores",
+		LOG->Trace("Starting sequential upload of %zu scores",
 				   this->ScoreUploadSequentialQueue.size());
 		uploadSequentially();
 	}
