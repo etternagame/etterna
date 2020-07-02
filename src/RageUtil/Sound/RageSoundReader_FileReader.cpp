@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -122,9 +122,9 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 		}
 	}
 	set<RString> FileTypes;
-	vector<RString> const& sound_exts =
+	vector<std::string> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
-	for (vector<RString>::const_iterator curr = sound_exts.begin();
+	for (vector<std::string>::const_iterator curr = sound_exts.begin();
 		 curr != sound_exts.end();
 		 ++curr) {
 		FileTypes.insert(*curr);

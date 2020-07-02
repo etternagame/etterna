@@ -60,6 +60,8 @@ class WheelBase : public ActorFrame
 
 	virtual bool Select(); // return true if this selection can end the screen
 
+	RString GetCurrentGroup();
+
 	WheelState GetWheelState() { return m_WheelState; }
 	void Lock() { m_WheelState = STATE_LOCKED; }
 	bool WheelIsLocked()

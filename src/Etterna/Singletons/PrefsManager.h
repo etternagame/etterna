@@ -45,7 +45,6 @@ enum RandomBackgroundMode
 {
 	BGMODE_OFF,
 	BGMODE_ANIMATIONS,
-	BGMODE_RANDOMMOVIES,
 	NUM_RandomBackgroundMode,
 	RandomBackgroundMode_Invalid
 };

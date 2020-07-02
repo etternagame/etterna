@@ -160,6 +160,11 @@ local minanyms = {
 	"scoring justice warrior",
 	"_ring.png",
 	"cosmically infinite bullshit nova",
+	"erudite napkin",
+	"ban dripwarrior",
+	"dripwarrior banned",
+	"snorf AEPLUS bcborf",
+	"ulbu, the great bazoinkazoink in the sky",
 }
 
 math.random()

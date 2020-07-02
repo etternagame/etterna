@@ -18,7 +18,6 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "GamePreferences.h"
 

@@ -112,6 +112,7 @@ end
 
 local ret =
 	Def.ActorFrame {
+	Name = "Scoretab",
 	BeginCommand = function(self)
 		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
@@ -142,6 +143,8 @@ local ret =
 		if getTabIndex() == 2 then -- switching to this tab
 			if nestedTab == 2 then
 				self:GetParent():GetChild("StepsDisplay"):visible(false)
+			else
+				self:GetParent():GetChild("StepsDisplay"):visible(true)
 			end
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")
@@ -168,16 +171,19 @@ local ret =
 	end,
 	CollapseCommand = function(self)
 		collapsed = true
+		local tind = getTabIndex()
 		resetTabIndex()
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 	end,
 	ExpandCommand = function(self)
 		collapsed = false
+		local tind = getTabIndex()
 		if getTabIndex() ~= 2 then
 			setTabIndex(2)
 		end
+		local after = getTabIndex()
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY)
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = after})
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
@@ -722,7 +728,7 @@ l[#l + 1] =
 	{
 		Name = "TheDootButton",
 		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 70 - offsetY):zoom(0.5):halign(1):settext("")
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 45 - offsetY):zoom(0.45):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
@@ -748,7 +754,7 @@ l[#l + 1] =
 	{
 		Name = "TheDootButtonTWO",
 		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 90 - offsetY):zoom(0.5):halign(1):settext("")
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 56 - offsetY):zoom(0.45):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
 			self:settext("Upload all scores for this chart")
@@ -769,7 +775,7 @@ l[#l + 1] =
 	{
 		Name = "TheDootButtonTHREEEEEEEE",
 		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 110 - offsetY):zoom(0.5):halign(1):settext("")
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 67 - offsetY):zoom(0.45):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
 			self:settext("Upload all scores for charts in this pack")
@@ -790,7 +796,7 @@ l[#l + 1] =
 	{
 		Name = "TheDootButtonFOUR",
 		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 130 - offsetY):zoom(0.5):halign(1):settext("")
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 78 - offsetY):zoom(0.45):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
 			self:settext("MOVE EVERY ZIG")

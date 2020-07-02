@@ -6,6 +6,7 @@ class Song;
 class Style;
 class Steps;
 class PlayerOptions;
+class Calc;
 struct lua_State;
 struct GoalsForChart;
 
@@ -179,6 +180,9 @@ class SongManager
 	void LoadCalcTestNode() const;
 	void SaveCalcTestXmlToDir() const;
 	map<Skillset, CalcTestList> testChartList;
+
+	unique_ptr<Calc> calc;
+
   protected:
 	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
 	void LoadDWISongDir(const RString& sDir);

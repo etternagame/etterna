@@ -19,8 +19,6 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 	void Init() override;
 	void BeginScreen() override;
 
-	void DifferentialReload();
-
 	bool Input(const InputEventPlus& input) override;
 	void HandleScreenMessage(ScreenMessage SM) override;
 

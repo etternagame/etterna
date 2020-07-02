@@ -5,8 +5,9 @@ local function input(event)
 	if event.type ~= "InputEventType_Release" and active then
 		for i = 1, (NSMAN:IsETTP() and 2 or 3) do
 			if event.DeviceInput.button == "DeviceButton_" .. i and CtrlPressed == true then
+				local tind = getTabIndex()
 				setTabIndex(i - 1)
-				MESSAGEMAN:Broadcast("TabChanged")
+				MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = i-1})
 			end
 		end
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
@@ -119,8 +120,9 @@ function tabs(index)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
+				local tind = getTabIndex()
 				setTabIndex(index - 1)
-				MESSAGEMAN:Broadcast("TabChanged")
+				MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = index-1})
 			end
 		end
 	}

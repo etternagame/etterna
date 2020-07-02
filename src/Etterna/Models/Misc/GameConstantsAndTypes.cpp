@@ -104,10 +104,10 @@ XToString(GameplayMode);
 LuaXType(GameplayMode);
 
 static const char* SortOrderNames[] = {
-	"Preferred", "Group",	 "Title",	 "BPM",		 "Popularity",
-	"TopGrades", "Artist",	"Genre",	 "ModeMenu",   "Recent",
-	"Favorites", "Overall",   "Stream",	"Jumpstream", "Handstream",
-	"Stamina",   "JackSpeed", "Chordjack", "Technical",  "Length"
+	"Preferred", "Group",	  "Title",	   "BPM",		 "Popularity",
+	"TopGrades", "Artist",	  "Genre",	   "ModeMenu",	 "Recent",
+	"Favorites", "Overall",	  "Stream",	   "Jumpstream", "Handstream",
+	"Stamina",	 "JackSpeed", "Chordjack", "Technical",	 "Length"
 };
 XToString(SortOrder);
 StringToX(SortOrder);
@@ -118,7 +118,7 @@ LuaFunction(SortOrderToLocalizedString,
 
 static const char* TapNoteScoreNames[] = {
 	"None", "HitMine", "AvoidMine", "CheckpointMiss", "Miss", "W5", "W4",
-	"W3",   "W2",	  "W1",		"CheckpointHit",
+	"W3",	"W2",	   "W1",		"CheckpointHit",
 };
 struct tns_conversion_helper
 {
@@ -225,31 +225,32 @@ StringToSkillset(const RString& s)
 	return Skill_Overall;
 }
 
-  static const char* CalcPatternModNames[] = {
+static const char* CalcPatternModNames[] = {
 	"Stream",
 	"JS",
-	"JSS",
-	"JSJ",
+	// "JSS",
+	// "JSJ",
 	"HS",
-	"HSS",
-	"HSJ",
+	// "HSS",
+	// "HSJ",
 	"CJ",
-	"CJS",
-	"CJJ",
-	"CJQuad",
+	// "CJS",
+	// "CJJ",
+	"CJDensity",
 	"OHJumpMod",
-	"OHJBaseProp",
-	"OHJPropComp",
-	"OHJSeqComp",
-	"OHJMaxSeq",
-	"OHJCCTaps",
-	"OHJHTaps",
+	// "OHJBaseProp",
+	// "OHJPropComp",
+	// "OHJSeqComp",
+	// "OHJMaxSeq",
+	// "OHJCCTaps",
+	// "OHJHTaps",
 	"CJOHJump",
-	"CJOHJPropComp",
-	"CJOHJSeqComp",
+	// "CJOHJPropComp",
+	// "CJOHJSeqComp",
 	"Balance",
 	"Roll",
 	"OHTrill",
+	"VOHTrill",
 	"Chaos",
 	"FlamJam",
 	"WideRangeRoll",
@@ -259,29 +260,33 @@ StringToSkillset(const RString& s)
 	"TheThing",
 	"TheThing2",
 	"RanMan",
-	"RanLen",
-	"RanAnchLen",
-	"RanAnchLenMod",
-	"RanJack",
-	"RanOHT",
-	"RanOffS",
-	"RanPropAll",
-	"RanPropOff",
-	"RanPropOHT",
-	"RanPropOffS",
-	"RanPropJack",
+	// "RanLen",
+	// "RanAnchLen",
+	// "RanAnchLenMod",
+	// "RanJack",
+	// "RanOHT",
+	// "RanOffS",
+	// "RanPropAll",
+	// "RanPropOff",
+	// "RanPropOHT",
+	// "RanPropOffS",
+	// "RanPropJack",
 	"TotalPatternMod",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 
-static const char* CalcDiffValueNames[] = {
-	"BaseNPS", "BaseMS", "BaseMSD", "MSD",
-};
+static const char* CalcDiffValueNames[] = { "NPSBase",
+											"JackBase",
+											// "CJBase",
+											"TechBase",
+											"RMABase",
+											"MSD" };
 XToString(CalcDiffValue);
 LuaXType(CalcDiffValue);
 
-static const char* CalcDebugMiscNames[] = { "PtLoss",
+static const char* CalcDebugMiscNames[] = { "Pts",
+											"PtLoss",
 											"JackPtLoss",
 											"StamMod",
 											"JackStamMod" };
@@ -340,9 +345,9 @@ XToString(ProfileSlot);
 LuaXType(ProfileSlot);
 
 static const char* StageAwardNames[] = {
-	"FullComboW3",   "SingleDigitW3", "OneW3",		 "FullComboW2",
+	"FullComboW3",	 "SingleDigitW3", "OneW3",		 "FullComboW2",
 	"SingleDigitW2", "OneW2",		  "FullComboW1", "80PercentW3",
-	"90PercentW3",   "100PercentW3",
+	"90PercentW3",	 "100PercentW3",
 };
 
 void
@@ -418,7 +423,7 @@ StringToX(SampleMusicPreviewMode);
 LuaXType(SampleMusicPreviewMode);
 
 static const char* StageNames[] = {
-	"1st",  "2nd",   "3rd",	"4th",	"5th",   "6th",
+	"1st",	"2nd",	 "3rd",	   "4th",	 "5th",	  "6th",
 	"Next", "Final", "Extra1", "Extra2", "Event", "Demo",
 };
 XToString(Stage);

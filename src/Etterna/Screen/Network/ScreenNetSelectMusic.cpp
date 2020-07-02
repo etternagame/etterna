@@ -64,13 +64,6 @@ ScreenNetSelectMusic::Init()
 	m_bAllowInput = NSMAN->IsETTP();
 }
 
-void
-ScreenNetSelectMusic::DifferentialReload()
-{
-	SONGMAN->DifferentialReload();
-	m_MusicWheel.ReloadSongList(false, "");
-}
-
 bool
 ScreenNetSelectMusic::Input(const InputEventPlus& input)
 {

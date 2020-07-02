@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageFileDriverDirectHelpers.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -310,8 +310,9 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const RString& path)
 		 ++iter) {
 		if (!BeginsWith(iter->lname, IGNORE_MARKER_BEGINNING))
 			break;
-		RString sFileLNameToIgnore = iter->lname.Right(
-		  iter->lname.length() - IGNORE_MARKER_BEGINNING.length());
+		RString sFileLNameToIgnore =
+		  RString(iter->lname)
+			.Right(iter->lname.length() - IGNORE_MARKER_BEGINNING.length());
 		vsFilesToRemove.push_back(iter->name);
 		vsFilesToRemove.push_back(sFileLNameToIgnore);
 	}

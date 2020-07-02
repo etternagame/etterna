@@ -1203,70 +1203,69 @@ sm_main(int argc, char* argv[])
 		}
 	}
 #endif
-		if (!noWindow) {
-			/* Now that THEME is loaded, load the icon and splash for the
-			 * current theme into the loading window. */
-			RString sError;
-			RageSurface* pSurface = RageSurfaceUtils::LoadFile(
-			  THEME->GetPathG("Common", "window icon"), sError);
-			if (pSurface != NULL)
-				pLoadingWindow->SetIcon(pSurface);
-			delete pSurface;
-			pSurface = RageSurfaceUtils::LoadFile(
-			  THEME->GetPathG("Common", "splash"), sError);
-			if (pSurface != NULL)
-				pLoadingWindow->SetSplash(pSurface);
-			delete pSurface;
-		}
+	if (!noWindow) {
+		/* Now that THEME is loaded, load the icon and splash for the current
+		 * theme into the loading window. */
+		RString sError;
+		RageSurface* pSurface = RageSurfaceUtils::LoadFile(
+		  THEME->GetPathG("Common", "window icon"), sError);
+		if (pSurface != NULL)
+			pLoadingWindow->SetIcon(pSurface);
+		delete pSurface;
+		pSurface = RageSurfaceUtils::LoadFile(
+		  THEME->GetPathG("Common", "splash"), sError);
+		if (pSurface != NULL)
+			pLoadingWindow->SetSplash(pSurface);
+		delete pSurface;
+	}
 
-		if (PREFSMAN->m_iSoundWriteAhead)
-			LOG->Info("Sound writeahead has been overridden to %i",
-					  PREFSMAN->m_iSoundWriteAhead.Get());
+	if (PREFSMAN->m_iSoundWriteAhead)
+		LOG->Info("Sound writeahead has been overridden to %i",
+				  PREFSMAN->m_iSoundWriteAhead.Get());
 
-		SONGINDEX = new SongCacheIndex;
-		SOUNDMAN = new RageSoundManager;
-		SOUNDMAN->Init();
-		SOUNDMAN->SetMixVolume();
-		SOUND = new GameSoundManager;
-		INPUTFILTER = new InputFilter;
-		INPUTMAPPER = new InputMapper;
+	SONGINDEX = new SongCacheIndex;
+	SOUNDMAN = new RageSoundManager;
+	SOUNDMAN->Init();
+	SOUNDMAN->SetMixVolume();
+	SOUND = new GameSoundManager;
+	INPUTFILTER = new InputFilter;
+	INPUTMAPPER = new InputMapper;
 
-		StepMania::InitializeCurrentGame(GAMESTATE->GetCurrentGame());
+	StepMania::InitializeCurrentGame(GAMESTATE->GetCurrentGame());
 
-		INPUTQUEUE = new InputQueue;
-		IMAGECACHE = new ImageCache;
+	INPUTQUEUE = new InputQueue;
+	IMAGECACHE = new ImageCache;
 
-		// depends on SONGINDEX:
-		SONGMAN = new SongManager;
-		SONGINDEX->StartTransaction();
-		SONGMAN->InitAll(pLoadingWindow); // this takes a long time
-		SONGINDEX->FinishTransaction();
-		CRYPTMAN = new CryptManager; // need to do this before ProfileMan
-		if (PREFSMAN->m_bSignProfileData)
-			CRYPTMAN->GenerateGlobalKeys();
-		SCOREMAN = new ScoreManager;
-		PROFILEMAN = new ProfileManager;
-		PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
-		SONGMAN->CalcTestStuff();		  // must be after profileman init
+	// depends on SONGINDEX:
+	SONGMAN = new SongManager;
+	SONGINDEX->StartTransaction();
+	SONGMAN->InitAll(pLoadingWindow); // this takes a long time
+	SONGINDEX->FinishTransaction();
+	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
+	if (PREFSMAN->m_bSignProfileData)
+		CRYPTMAN->GenerateGlobalKeys();
+	SCOREMAN = new ScoreManager;
+	PROFILEMAN = new ProfileManager;
+	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
+	SONGMAN->CalcTestStuff();		  // must be after profileman init
 
-		SONGMAN->UpdatePreferredSort();
-		NSMAN = new NetworkSyncManager(pLoadingWindow);
-		STATSMAN = new StatsManager;
+	SONGMAN->UpdatePreferredSort();
+	NSMAN = new NetworkSyncManager(pLoadingWindow);
+	STATSMAN = new StatsManager;
 
-		FILTERMAN = new FilterManager;
+	FILTERMAN = new FilterManager;
 
-		DLMAN = make_shared<DownloadManager>(DownloadManager());
+	DLMAN = make_shared<DownloadManager>();
 
-		/* If the user has tried to quit during the loading, do it before
-		 * creating
-		 * the main window. This prevents going to full screen just to quit. */
-		if (ArchHooks::UserQuit()) {
-			ShutdownGame();
-			return 0;
-		}
-		if (!noWindow)
-			SAFE_DELETE(pLoadingWindow);
-		StartDisplay();
+	/* If the user has tried to quit during the loading, do it before creating
+	 * the main window. This prevents going to full screen just to quit. */
+	if (ArchHooks::UserQuit()) {
+		ShutdownGame();
+		return 0;
+	}
+	if (!noWindow)
+		SAFE_DELETE(pLoadingWindow);
+	StartDisplay();
 
 		StoreActualGraphicOptions();
 		LOG->Info("%s", GetActualGraphicOptionsString().c_str());

@@ -1,4 +1,4 @@
-﻿#ifndef ActorUtil_H
+#ifndef ActorUtil_H
 #define ActorUtil_H
 
 #include "Actor.h"
@@ -57,10 +57,10 @@ FileTypeToString(FileType ft);
 namespace ActorUtil {
 void
 InitFileTypeLists();
-vector<RString> const&
+vector<std::string> const&
 GetTypeExtensionList(FileType ft);
 void
-AddTypeExtensionsToList(FileType ft, vector<RString>& add_to);
+AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to);
 
 // Every screen should register its class at program initialization.
 void

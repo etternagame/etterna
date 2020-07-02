@@ -1703,7 +1703,7 @@ class LunaGameState : public Luna<GameState>
 				pSteps->m_StepsType, pSteps->GetDifficulty()));
 
 			lua_pushstring(L, sDifficulty);
-			lua_pushstring(L, pSteps->GetDescription());
+			lua_pushstring(L, pSteps->GetDescription().c_str());
 		}
 
 		return vpStepsToShow.size() * 2;
