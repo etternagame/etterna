@@ -1584,13 +1584,6 @@ SongManager::GetNumStepsLoadedFromProfile()
 	return iCount;
 }
 
-int
-SongManager::GetSongRank(Song* pSong)
-{
-	const int index =
-	  FindIndex(m_pPopularSongs.begin(), m_pPopularSongs.end(), pSong);
-	return index; // -1 means we didn't find it
-}
 void
 makePlaylist(const RString& answer)
 {
@@ -1820,23 +1813,6 @@ class LunaSongManager : public Luna<SongManager>
 	DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
 	DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
 
-	static int GetSongRank(T* p, lua_State* L)
-	{
-		Song* pSong = Luna<Song>::check(L, 1);
-		int index = p->GetSongRank(pSong);
-		if (index != -1)
-			lua_pushnumber(L, index + 1);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	/*
-	static int GetSongRankFromProfile( T* p, lua_State *L )
-	{
-		// it's like the above but also takes in a ProfileSlot as well.
-	}
-	*/
-
 	static int GetSongGroupNames(T* p, lua_State* L)
 	{
 		vector<RString> v;
@@ -1955,7 +1931,6 @@ class LunaSongManager : public Luna<SongManager>
 		ADD_METHOD(GetExtraStageInfo);
 		ADD_METHOD(GetSongColor);
 		ADD_METHOD(GetSongGroupColor);
-		ADD_METHOD(GetSongRank);
 		ADD_METHOD(GetSongGroupNames);
 		ADD_METHOD(GetSongsInGroup);
 		ADD_METHOD(ShortenGroupName);

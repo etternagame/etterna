@@ -541,10 +541,6 @@ RString
 BinaryToHex(const void* pData_, int iNumBytes);
 RString
 BinaryToHex(const RString& sString);
-bool
-HexToBinary(const RString& s, unsigned char* stringOut);
-bool
-HexToBinary(const RString& s, RString* sOut);
 float
 HHMMSSToSeconds(const RString& sHMS);
 RString
@@ -694,8 +690,6 @@ void
 GetLanguageInfos(vector<const LanguageInfo*>& vAddTo);
 const LanguageInfo*
 GetLanguageInfo(const RString& sIsoCode);
-RString
-GetLanguageNameFromISO639Code(const RString& sName);
 
 // Splits a RString into an vector<RString> according the Delimitor.
 void
@@ -809,8 +803,6 @@ DirectoryIsEmpty(const RString& sPath);
 
 bool
 CompareRStringsAsc(const RString& sStr1, const RString& sStr2);
-bool
-CompareRStringsDesc(const RString& sStr1, const RString& sStr2);
 void
 SortRStringArray(vector<RString>& asAddTo, const bool bSortAscending = true);
 
@@ -824,38 +816,6 @@ calc_mean(const float* pStart, const float* pEnd);
  * should be false to calculate the exact standard deviation. */
 float
 calc_stddev(const float* pStart, const float* pEnd, bool bSample = false);
-
-/*
- * Find the slope, intercept, and error of a linear least squares regression
- * of the points given.  Error is returned as the sqrt of the average squared
- * Y distance from the chosen line.
- * Returns true on success, false on failure.
- */
-bool
-CalcLeastSquares(const vector<pair<float, float>>& vCoordinates,
-				 float& fSlope,
-				 float& fIntercept,
-				 float& fError);
-
-/*
- * This method throws away any points that are more than fCutoff away from
- * the line defined by fSlope and fIntercept.
- */
-void
-FilterHighErrorPoints(vector<pair<float, float>>& vCoordinates,
-					  float fSlope,
-					  float fIntercept,
-					  float fCutoff);
-
-template<class T1, class T2>
-int
-FindIndex(T1 begin, T1 end, const T2* p)
-{
-	T1 iter = find(begin, end, p);
-	if (iter == end)
-		return -1;
-	return iter - begin;
-}
 
 /* Useful for objects with no operator-, eg. map::iterator (more convenient than
  * advance). */

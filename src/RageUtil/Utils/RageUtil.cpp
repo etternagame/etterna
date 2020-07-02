@@ -187,32 +187,6 @@ BinaryToHex(const RString& sString)
 	return BinaryToHex(sString.data(), sString.size());
 }
 
-bool
-HexToBinary(const RString& s, unsigned char* stringOut)
-{
-	if (!IsHexVal(s))
-		return false;
-
-	for (int i = 0; true; i++) {
-		if ((int)s.size() <= i * 2)
-			break;
-		RString sByte = s.substr(i * 2, 2);
-
-		uint8_t val = 0;
-		if (sscanf(sByte, "%hhx", &val) != 1)
-			return false;
-		stringOut[i] = val;
-	}
-	return true;
-}
-
-bool
-HexToBinary(const RString& s, RString& sOut)
-{
-	sOut.resize(s.size() / 2);
-	return HexToBinary(s, (unsigned char*)sOut.data());
-}
-
 float
 HHMMSSToSeconds(const RString& sHHMMSS)
 {
@@ -298,13 +272,6 @@ RString
 PrettyPercent(float fNumerator, float fDenominator)
 {
 	return ssprintf("%0.2f%%", fNumerator / fDenominator * 100);
-}
-
-RString
-Commify(int iNum)
-{
-	RString sNum = ssprintf("%d", iNum);
-	return Commify(sNum);
 }
 
 RString
@@ -929,20 +896,6 @@ split(const wstring& sSource,
 		do_split(sSource, sDelimitor, asAddIt, bIgnoreEmpty);
 }
 
-/* Use:
-
-RString str="a,b,c";
-int start = 0, size = -1;
-for(;;)
-{
-	do_split( str, ",", start, size );
-	if( start == str.size() )
-		break;
-	str[start] = 'Q';
-}
-
-*/
-
 template<class S>
 void
 do_split(const S& Source,
@@ -974,7 +927,7 @@ do_split(const S& Source,
 		pos = Source.find(Delimitor[0], begin);
 	else
 		pos = Source.find(Delimitor, begin);
-	if (pos == Source.npos || (int)pos > len)
+	if (pos == Source.npos || static_cast<int>(pos) > len)
 		pos = len;
 	size = pos - begin;
 }
@@ -1326,54 +1279,6 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 	fDev = sqrtf(fDev);
 
 	return fDev;
-}
-
-bool
-CalcLeastSquares(const vector<pair<float, float>>& vCoordinates,
-				 float& fSlope,
-				 float& fIntercept,
-				 float& fError)
-{
-	if (vCoordinates.empty())
-		return false;
-	float fSumXX = 0.0f, fSumXY = 0.0f, fSumX = 0.0f, fSumY = 0.0f;
-	for (unsigned i = 0; i < vCoordinates.size(); ++i) {
-		fSumXX += vCoordinates[i].first * vCoordinates[i].first;
-		fSumXY += vCoordinates[i].first * vCoordinates[i].second;
-		fSumX += vCoordinates[i].first;
-		fSumY += vCoordinates[i].second;
-	}
-	const float fDenominator = vCoordinates.size() * fSumXX - fSumX * fSumX;
-	fSlope = (vCoordinates.size() * fSumXY - fSumX * fSumY) / fDenominator;
-	fIntercept = (fSumXX * fSumY - fSumX * fSumXY) / fDenominator;
-
-	fError = 0.0f;
-	for (unsigned i = 0; i < vCoordinates.size(); ++i) {
-		const float fOneError =
-		  fIntercept + fSlope * vCoordinates[i].first - vCoordinates[i].second;
-		fError += fOneError * fOneError;
-	}
-	fError /= vCoordinates.size();
-	fError = sqrtf(fError);
-	return true;
-}
-
-void
-FilterHighErrorPoints(vector<pair<float, float>>& vCoordinates,
-					  float fSlope,
-					  float fIntercept,
-					  float fCutoff)
-{
-	unsigned int iOut = 0;
-	for (unsigned int iIn = 0; iIn < vCoordinates.size(); ++iIn) {
-		const float fError = fIntercept + fSlope * vCoordinates[iIn].first -
-							 vCoordinates[iIn].second;
-		if (fabsf(fError) < fCutoff) {
-			vCoordinates[iOut] = vCoordinates[iIn];
-			++iOut;
-		}
-	}
-	vCoordinates.resize(iOut);
 }
 
 void
@@ -2824,7 +2729,7 @@ LuaFunction(Lowercase, MakeLower(SArg(1))) static RString MakeUpper(RString s)
 	return s;
 }
 LuaFunction(Uppercase, MakeUpper(SArg(1)))
-  LuaFunction(mbstrlen, (int)RStringToWstring(SArg(1)).length())
+  LuaFunction(mbstrlen, static_cast<int>(RStringToWstring(SArg(1)).length()))
 	LuaFunction(URLEncode, URLEncode(SArg(1)));
 LuaFunction(PrettyPercent, PrettyPercent(FArg(1), FArg(2)));
 // LuaFunction( IsHexVal, IsHexVal( SArg(1) ) );
