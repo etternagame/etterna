@@ -47,7 +47,7 @@
  * the directory hash) in order to find the cache file.
  */
 const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 240;
+const unsigned int CACHE_DB_VERSION = 241;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
