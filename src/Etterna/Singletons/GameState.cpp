@@ -1753,7 +1753,6 @@ class LunaGameState : public Luna<GameState>
 		LuaHelpers::Push(L, p->m_iStageSeed);
 		return 1;
 	}
-	static int SaveLocalData(T* p, lua_State* L) { COMMON_RETURN_SELF; }
 
 	static int Reset(T* p, lua_State* L)
 	{
@@ -2003,7 +2002,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetNumStagesForCurrentSongAndStepsOrCourse);
 		ADD_METHOD(GetNumStagesLeft);
 		ADD_METHOD(GetGameSeed);
-		ADD_METHOD(SaveLocalData);
 		ADD_METHOD(Reset);
 		ADD_METHOD(JoinPlayer);
 		ADD_METHOD(UnjoinPlayer);

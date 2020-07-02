@@ -60,7 +60,6 @@ class GameState
 	void SavePlayerProfile(PlayerNumber pn);
 	bool HaveProfileToLoad();
 	bool HaveProfileToSave();
-	void SaveLocalData();
 	void AddStageToPlayer(PlayerNumber pn);
 	void LoadCurrentSettingsFromProfile(PlayerNumber pn);
 	/**
