@@ -2605,7 +2605,7 @@ class LunaActor : public Luna<Actor>
 		if (lua_isnoneornil(L, 1)) {
 			p->SetFakeParent(NULL);
 		} else {
-			Actor* fake = Luna<Actor>::check(L, 1);
+			auto fake = Luna<Actor>::check(L, 1);
 			p->SetFakeParent(fake);
 		}
 		COMMON_RETURN_SELF;

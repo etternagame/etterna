@@ -2,10 +2,8 @@
 
 #include "Etterna/Globals/global.h"
 #include "RageSoundReader_MP3.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#include <cstdio>
 #include <cerrno>
 #include <map>
 
@@ -134,7 +132,7 @@ id3_tag_query(const unsigned char* data, id3_length_t length)
 struct xing
 {
 	long flags;				/* valid fields (see below) */
-	unsigned long frames;   /* total number of frames */
+	unsigned long frames;	/* total number of frames */
 	unsigned long bytes;	/* total number of bytes */
 	unsigned char toc[100]; /* 100-point seek table */
 	long scale;				/* ?? */

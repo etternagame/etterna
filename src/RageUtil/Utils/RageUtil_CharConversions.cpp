@@ -194,26 +194,26 @@ ConvertString(std::string& str, const std::string& encodings)
 	std::vector<std::string> lst;
 	split(encodings, ",", lst);
 
-	for (unsigned i = 0; i < lst.size(); ++i) {
-		if (lst[i] == "utf-8") {
+	for (auto& s : lst) {
+		if (s == "utf-8") {
 			/* Is the string already valid utf-8? */
 			if (utf8_is_valid(str))
 				return true;
 			continue;
 		}
-		if (lst[i] == "english") {
+		if (s == "english") {
 			if (AttemptEnglishConversion(str))
 				return true;
 			continue;
 		}
 
-		if (lst[i] == "japanese") {
+		if (s == "japanese") {
 			if (AttemptJapaneseConversion(str))
 				return true;
 			continue;
 		}
 
-		if (lst[i] == "korean") {
+		if (s == "korean") {
 			if (AttemptKoreanConversion(str))
 				return true;
 			continue;
@@ -221,7 +221,7 @@ ConvertString(std::string& str, const std::string& encodings)
 
 		RageException::Throw(
 		  "Unexpected conversion string \"%s\" (string \"%s\").",
-		  lst[i].c_str(),
+		  s.c_str(),
 		  str.c_str());
 	}
 
