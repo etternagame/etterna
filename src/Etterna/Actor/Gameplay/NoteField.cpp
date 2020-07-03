@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Gameplay/ArrowEffects.h"
-#include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
@@ -444,7 +443,7 @@ NoteField::DrawBeatBar(const float fBeat, BeatBarType type, int iMeasureIndex)
 		switch (type) {
 			DEFAULT_FAIL(type);
 			case measure: // handled above
-			case beat:	// fall through
+			case beat:	  // fall through
 				fAlpha = BAR_4TH_ALPHA;
 				iState = 1;
 				break;
@@ -583,7 +582,7 @@ NoteField::set_text_measure_number_for_draw(const float beat,
 }
 
 void
-NoteField::draw_timing_segment_text(const RString& text,
+NoteField::draw_timing_segment_text(const std::string& text,
 									const float beat,
 									const float side_sign,
 									float x_offset,
@@ -599,7 +598,7 @@ NoteField::draw_timing_segment_text(const RString& text,
 
 void
 NoteField::DrawBGChangeText(const float beat,
-							const RString new_bg_name,
+							const std::string& new_bg_name,
 							const RageColor& glow)
 {
 	set_text_measure_number_for_draw(

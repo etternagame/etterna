@@ -28,7 +28,6 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "ThemeManager.h"
 #include "SongManager.h"
-#include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/Misc/Profile.h"
 
 GameState* GAMESTATE =

@@ -4,7 +4,6 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "Etterna/Globals/picosha2.h"
-#include "PlayerNumber.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RadarValues.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -13,7 +12,6 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/Misc/TimingData.h"

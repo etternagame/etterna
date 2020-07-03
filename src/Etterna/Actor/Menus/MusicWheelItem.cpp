@@ -17,8 +17,8 @@ XToString(MusicWheelItemType);
 
 MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 									   Song* pSong,
-									   RString sSectionName,
-									   RageColor color,
+									   const std::string& sSectionName,
+									   const RageColor& color,
 									   int iSectionCount)
   : WheelItemBaseData(type, sSectionName, color)
   , m_pSong(pSong)
@@ -28,7 +28,7 @@ MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 {
 }
 
-MusicWheelItem::MusicWheelItem(RString sType)
+MusicWheelItem::MusicWheelItem(const std::string& sType)
   : WheelItemBase(sType)
 {
 	FOREACH_ENUM(MusicWheelItemType, i)

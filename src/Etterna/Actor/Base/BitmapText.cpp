@@ -292,7 +292,7 @@ BitmapText::BuildChars()
 	if (m_wTextLines.empty())
 		return;
 
-	m_size.y = float(m_pFont->GetHeight() * m_wTextLines.size());
+	m_size.y = static_cast<float>(m_pFont->GetHeight() * m_wTextLines.size());
 
 	// The height (from the origin to the baseline):
 	int iPadding = m_pFont->GetLineSpacing() - m_pFont->GetHeight();

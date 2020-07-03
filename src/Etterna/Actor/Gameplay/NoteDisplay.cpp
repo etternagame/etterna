@@ -13,7 +13,6 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTexture.h"
-#include "ReceptorArrowRow.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
@@ -26,7 +25,7 @@ NoteNotePartToString(NotePart i);
 #define FOREACH_NotePart(i) FOREACH_ENUM(NotePart, i)
 
 static const char* NotePartNames[] = {
-	"TapNote",  "TapMine",	"TapLift",  "TapFake",	   "HoldHead",
+	"TapNote",	"TapMine",	  "TapLift",  "TapFake",	   "HoldHead",
 	"HoldTail", "HoldTopCap", "HoldBody", "HoldBottomCap",
 };
 XToString(NotePart);
@@ -143,10 +142,10 @@ NoteMetricCache_t::Load(const RString& sButton)
 
 struct NoteSkinAndPath
 {
-	NoteSkinAndPath(const RString sNoteSkin_,
-					const RString sPath_,
-					const PlayerNumber pn_,
-					const GameController gc_)
+	NoteSkinAndPath(const RString& sNoteSkin_,
+					const RString& sPath_,
+					const PlayerNumber& pn_,
+					const GameController& gc_)
 	  : sNoteSkin(sNoteSkin_)
 	  , sPath(sPath_)
 	  , pn(pn_)
@@ -1914,7 +1913,7 @@ NoteColumnRenderer::DrawPrimitives()
 	  m_field_render_args->last_row + 1,
 	  begin,
 	  end);
-	for (; begin != end; ++begin) {			
+	for (; begin != end; ++begin) {
 		const TapNote& tn = begin->second;
 		switch (tn.type) {
 			case TapNoteType_Empty:

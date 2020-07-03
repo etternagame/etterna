@@ -7,8 +7,6 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include <map>
-#include <list>
-#include <tuple>
 class XNode;
 struct lua_State;
 class LuaClass;
@@ -38,7 +36,7 @@ enum HorizAlign
 	HorizAlign_Left,   /**< Align to the left. */
 	HorizAlign_Center, /**< Align to the center. */
 	HorizAlign_Right,  /**< Align to the right. */
-	NUM_HorizAlign,	/**< The number of horizontal alignments. */
+	NUM_HorizAlign,	   /**< The number of horizontal alignments. */
 	HorizAlign_Invalid
 };
 LuaDeclareType(HorizAlign);
@@ -46,10 +44,10 @@ LuaDeclareType(HorizAlign);
 /** @brief The different vertical alignments. */
 enum VertAlign
 {
-	VertAlign_Top,	/**< Align to the top. */
+	VertAlign_Top,	  /**< Align to the top. */
 	VertAlign_Middle, /**< Align to the middle. */
 	VertAlign_Bottom, /**< Align to the bottom. */
-	NUM_VertAlign,	/**< The number of vertical alignments. */
+	NUM_VertAlign,	  /**< The number of vertical alignments. */
 	VertAlign_Invalid
 };
 LuaDeclareType(VertAlign);
@@ -750,7 +748,7 @@ class Actor : public MessageSubscriber
 
 	// Named commands
 	void AddCommand(const std::string& sCmdName,
-					apActorCommands apac,
+					const apActorCommands& apac,
 					bool warn = true);
 	bool HasCommand(const std::string& sCmdName) const;
 	const apActorCommands* GetCommand(const std::string& sCommandName) const;

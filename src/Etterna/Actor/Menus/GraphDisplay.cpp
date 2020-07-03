@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "GraphDisplay.h"
@@ -9,7 +9,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/FileTypes/XmlFile.h"
 
 //#define DIVIDE_LINE_WIDTH
 // THEME->GetMetricI(m_sName,"TexturedBottomHalf")
@@ -123,7 +122,7 @@ REGISTER_ACTOR_CLASS(GraphLine);
 class GraphBody : public Actor
 {
   public:
-	explicit GraphBody(RString sFile)
+	explicit GraphBody(const std::string& sFile)
 	{
 		m_pTexture = TEXTUREMAN->LoadTexture(sFile);
 

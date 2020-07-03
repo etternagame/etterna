@@ -1,4 +1,4 @@
-﻿/* RageTextureID - An identifier for a texture and associated loading
+/* RageTextureID - An identifier for a texture and associated loading
  * parameters. */
 
 #ifndef RAGE_TEXTURE_ID_H
@@ -67,7 +67,7 @@ struct RageTextureID
 	{
 		Init();
 	}
-	RageTextureID(const RString& fn)
+	RageTextureID(const std::string& fn)
 	  : filename(RString())
 	  , AdditionalTextureHints(RString())
 	{

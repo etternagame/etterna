@@ -9,7 +9,6 @@
 #include "RageUtil.h"
 #include "RageUtil/Misc/RageString.h"
 
-#include <cfloat>
 #include <ctime>
 #include <map>
 #include <numeric>

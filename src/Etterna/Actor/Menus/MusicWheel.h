@@ -57,7 +57,7 @@ class MusicWheel : public WheelBase
 		return (const MusicWheelItemData*)m_CurWheelItemData[i];
 	}
 
-	virtual void ReloadSongList(bool searching, RString findme);
+	virtual void ReloadSongList(bool searching, const std::string& findme);
 	void SetHashList(const vector<string>& newHashList);
 
 	// multiplayer common pack filtering
@@ -79,8 +79,8 @@ class MusicWheel : public WheelBase
 	bool SelectModeMenuItem();
 
 	void FilterByStepKeys(vector<Song*>& inv);
-	void FilterBySearch(vector<Song*>& inv, RString findme);
-	bool SearchGroupNames(RString& findme);
+	void FilterBySearch(vector<Song*>& inv, std::string findme_);
+	bool SearchGroupNames(const std::string& findme);
 	void FilterBySkillsets(vector<Song*>& inv);
 	RString lastvalidsearch;
 	RString groupnamesearchmatch;
@@ -88,7 +88,9 @@ class MusicWheel : public WheelBase
 	void UpdateSwitch() override;
 
 	vector<MusicWheelItemData*>& getWheelItemsData(SortOrder so);
-	void readyWheelItemsData(SortOrder so, bool searching, RString findme);
+	void readyWheelItemsData(SortOrder so,
+							 bool searching,
+							 const std::string& findme);
 
 	RString m_sLastModeMenuItem;
 	RageSound m_soundChangeSort;
@@ -136,7 +138,7 @@ class MusicWheel : public WheelBase
 	void BuildWheelItemDatas(vector<MusicWheelItemData*>& arrayWheelItems,
 							 SortOrder so,
 							 bool searching,
-							 RString findme);
+							 const std::string& findme);
 	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 							  vector<MusicWheelItemData*>& aFilteredData,
 							  SortOrder so);

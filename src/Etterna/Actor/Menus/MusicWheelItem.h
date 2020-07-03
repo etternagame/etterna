@@ -6,7 +6,6 @@
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "TextBanner.h"
-#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
 
 class Song;
@@ -33,7 +32,7 @@ MusicWheelItemTypeToString(MusicWheelItemType i);
 class MusicWheelItem : public WheelItemBase
 {
   public:
-	MusicWheelItem(RString sType = "MusicWheelItem");
+	MusicWheelItem(const std::string& sType = "MusicWheelItem");
 	MusicWheelItem(const MusicWheelItem& cpy);
 	~MusicWheelItem() override;
 	MusicWheelItem* Copy() const override { return new MusicWheelItem(*this); }
@@ -66,8 +65,8 @@ struct MusicWheelItemData : public WheelItemBaseData
 	}
 	MusicWheelItemData(WheelItemDataType type,
 					   Song* pSong,
-					   RString sSectionName,
-					   RageColor color,
+					   const std::string& sSectionName,
+					   const RageColor& color,
 					   int iSectionCount);
 
 	Song* m_pSong;

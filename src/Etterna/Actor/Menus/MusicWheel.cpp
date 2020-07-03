@@ -202,7 +202,7 @@ MusicWheel::~MusicWheel()
 
 // this is a trainwreck and i made it worse -mina
 void
-MusicWheel::ReloadSongList(bool searching, RString findme)
+MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 {
 	// if we fallthrough to pack name matching don't keep reloading if we found
 	// a match -mina
@@ -439,14 +439,14 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 	}
 }
 bool
-contains(string container, string findme)
+contains(std::string container, const std::string& findme)
 {
 	std::transform(
 	  begin(container), end(container), begin(container), ::tolower);
-	return container.find(findme) != string::npos;
+	return container.find(findme) != std::string::npos;
 }
 void
-MusicWheel::FilterBySearch(vector<Song*>& inv, RString findme)
+MusicWheel::FilterBySearch(vector<Song*>& inv, std::string findme)
 {
 
 	std::transform(begin(findme), end(findme), begin(findme), ::tolower);
@@ -699,7 +699,7 @@ MusicWheel::FilterByStepKeys(vector<Song*>& inv)
 }
 
 bool
-MusicWheel::SearchGroupNames(RString& findme)
+MusicWheel::SearchGroupNames(const std::string& findme)
 {
 	const vector<RString>& grps = SONGMAN->GetSongGroupNames();
 	for (size_t i = 0; i < grps.size(); ++i) {
@@ -748,7 +748,7 @@ MusicWheel::BuildWheelItemDatas(
   vector<MusicWheelItemData*>& arrayWheelItemDatas,
   SortOrder so,
   bool searching,
-  RString findme)
+  const std::string& findme)
 {
 
 	map<RString, Commands> commanDZ;
@@ -1043,7 +1043,9 @@ MusicWheel::getWheelItemsData(SortOrder so)
 }
 
 void
-MusicWheel::readyWheelItemsData(SortOrder so, bool searching, RString findme)
+MusicWheel::readyWheelItemsData(SortOrder so,
+								bool searching,
+								const std::string& findme)
 {
 	if (m_WheelItemDatasStatus[so] != VALID) {
 		RageTimer timer;

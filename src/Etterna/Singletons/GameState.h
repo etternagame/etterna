@@ -7,9 +7,6 @@
 #include "MessageManager.h"
 #include "Etterna/Models/Misc/ModsGroup.h"
 #include "Etterna/Models/Songs/SongPosition.h"
-#include "discord_rpc.h"
-
-#include <deque>
 
 struct Game;
 struct lua_State;

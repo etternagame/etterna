@@ -1,4 +1,4 @@
-﻿#ifndef NOTE_SKIN_MANAGER_H
+#ifndef NOTE_SKIN_MANAGER_H
 #define NOTE_SKIN_MANAGER_H
 
 #include "Etterna/Actor/Base/Actor.h"
@@ -36,7 +36,7 @@ class NoteSkinManager
 	const RString& GetCurrentNoteSkin() { return m_sCurrentNoteSkin; }
 
 	void SetLastSeenColor(RString Color) { LastColor = Color; }
-	RString GetLastSeenColor() { return LastColor; }
+	const std::string& GetLastSeenColor() { return LastColor; }
 
 	void SetPlayerNumber(PlayerNumber pn) { m_PlayerNumber = pn; }
 	void SetGameController(GameController gc) { m_GameController = gc; }
