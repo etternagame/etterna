@@ -70,10 +70,10 @@ Actor::SetBGMTime(float fTime,
 }
 
 void
-Actor::SetPlayerBGMBeat(PlayerNumber pn, float fBeat, float fBeatNoOffset)
+Actor::SetPlayerBGMBeat(float fBeat, float fBeatNoOffset)
 {
-	g_vfCurrentBGMBeatPlayer[pn] = fBeat;
-	g_vfCurrentBGMBeatPlayerNoOffset[pn] = fBeatNoOffset;
+	g_vfCurrentBGMBeatPlayer[PLAYER_1] = fBeat;
+	g_vfCurrentBGMBeatPlayerNoOffset[PLAYER_1] = fBeatNoOffset;
 }
 
 void

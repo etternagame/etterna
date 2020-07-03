@@ -767,7 +767,7 @@ RageSound::SetStopModeFromString(const RString& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
+RageSound::ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
 									   unsigned int bufSize)
 {
 	soundPlayCallback = f;
@@ -780,7 +780,7 @@ RageSound::ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
 }
 
 void
-RageSound::SetPlayBackCallback(shared_ptr<LuaReference> f, unsigned int bufSize)
+RageSound::SetPlayBackCallback(const shared_ptr<LuaReference>& f, unsigned int bufSize)
 {
 	// If we're in play callback it's safe to call this from lua, since we've
 	// locked LUA->Get() But not from C++ in another thread Invariant: The only

@@ -163,7 +163,7 @@ class RageSound : public RageSoundBase
 	void SetStopModeFromString(const RString& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
-	void SetPlayBackCallback(shared_ptr<LuaReference> f,
+	void SetPlayBackCallback(const shared_ptr<LuaReference>& f,
 							 unsigned int bufSize = 1024);
 	atomic<bool> pendingPlayBackCall{ false };
 	void ExecutePlayBackCallback(Lua* L);
@@ -191,7 +191,7 @@ class RageSound : public RageSoundBase
 	int64_t m_iStreamFrame;
 
 	void* fftBuffer{ nullptr };
-	void ActuallySetPlayBackCallback(shared_ptr<LuaReference> f,
+	void ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
 									 unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
 	std::mutex

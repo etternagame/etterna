@@ -3,7 +3,6 @@
 
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Lua/LuaReference.h"
-#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include <map>
@@ -120,9 +119,7 @@ class Actor : public MessageSubscriber
 						   float fBeat,
 						   float fTimeNoOffset,
 						   float fBeatNoOffset);
-	static void SetPlayerBGMBeat(PlayerNumber pn,
-								 float fBeat,
-								 float fBeatNoOffset);
+	static void SetPlayerBGMBeat(float fBeat, float fBeatNoOffset);
 	static void SetBGMLight(int iLightNumber, float fCabinetLights);
 
 	/**

@@ -7,6 +7,7 @@
 #include "Etterna/Models/Misc/ModsGroup.h"
 #include "Etterna/Models/Songs/SongPosition.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 
 struct Game;
 struct lua_State;
@@ -257,7 +258,6 @@ class GameState
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
-	PlayerNumber GetBestPlayer() const;
 
 	/** @brief Call this function when it's time to play a new stage. */
 	void ResetStageStatistics();

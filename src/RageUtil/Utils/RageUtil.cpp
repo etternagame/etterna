@@ -370,7 +370,7 @@ FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
 		// Grow more than linearly (e.g. 512, 1536, 3072, etc)
 		iChars += iTry * FMT_BLOCK_SIZE;
 		__try {
-			pBuf = static_cast<char*>(0);
+			pBuf = (char*)_malloca(sizeof(char) * iChars); 
 		} __except (GetExceptionCode() == STATUS_STACK_OVERFLOW) {
 			if (_resetstkoflw())
 				sm_crash("Unrecoverable Stack Overflow");
