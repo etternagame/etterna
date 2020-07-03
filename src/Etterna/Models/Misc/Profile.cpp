@@ -3,21 +3,14 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/FileTypes/IniFile.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
-#include "Etterna/Singletons/PrefsManager.h"
-#include "Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/File/RageFileDriverDeflate.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -25,32 +18,23 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/File/RageFileDriverDeflate.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
-#include "Etterna/Models/NoteData/NoteData.h"
-#include "Etterna/Singletons/ScoreManager.h"
 #include <algorithm>
-#include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Misc/XMLProfile.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "RageUtil/Misc/RageString.h"
 
 /** @brief The filename for where one can edit their personal profile
  * information. */
-const RString EDITABLE_INI = "Editable.ini";
+const std::string EDITABLE_INI = "Editable.ini";
 /** @brief A tiny file containing the type and list priority. */
-const RString TYPE_INI = "Type.ini";
+const std::string TYPE_INI = "Type.ini";
 /** @brief The filename containing the signature for STATS_XML's signature. */
-const RString PUBLIC_KEY_FILE = "public.key";
-const RString SCREENSHOTS_SUBDIR = "Screenshots/";
-const RString EDIT_STEPS_SUBDIR = "Edits/";
-// const RString UPLOAD_SUBDIR         = "Upload/";
-const RString RIVAL_SUBDIR = "Rivals/";
+const std::string PUBLIC_KEY_FILE = "public.key";
+const std::string SCREENSHOTS_SUBDIR = "Screenshots/";
+const std::string EDIT_STEPS_SUBDIR = "Edits/";
+// const std::string UPLOAD_SUBDIR         = "Upload/";
+const std::string RIVAL_SUBDIR = "Rivals/";
 
 #define GUID_SIZE_BYTES 8
 
@@ -79,12 +63,12 @@ void
 Profile::ClearStats()
 {
 	// don't reset the Guid
-	RString sGuid = m_sGuid;
+	std::string sGuid = m_sGuid;
 	InitAll();
 	m_sGuid = sGuid;
 }
 
-RString
+std::string
 Profile::MakeGuid()
 {
 	string s;
@@ -145,7 +129,7 @@ Profile::InitScreenshotData()
 	m_vScreenshots.clear();
 }
 
-RString
+std::string
 Profile::GetDisplayNameOrHighScoreName() const
 {
 	if (!m_sDisplayName.empty())
@@ -153,7 +137,7 @@ Profile::GetDisplayNameOrHighScoreName() const
 	else if (!m_sLastUsedHighScoreName.empty())
 		return m_sLastUsedHighScoreName;
 	else
-		return RString();
+		return std::string();
 }
 
 /*
@@ -168,9 +152,9 @@ Profile::GetDisplayNameOrHighScoreName() const
  */
 bool
 Profile::GetDefaultModifiers(const Game* pGameType,
-							 RString& sModifiersOut) const
+							 std::string& sModifiersOut) const
 {
-	map<RString, RString>::const_iterator it;
+	map<std::string, std::string>::const_iterator it;
 	it = m_sDefaultModifiers.find(pGameType->m_szName);
 	if (it == m_sDefaultModifiers.end())
 		return false;
@@ -179,7 +163,7 @@ Profile::GetDefaultModifiers(const Game* pGameType,
 }
 
 void
-Profile::SetDefaultModifiers(const Game* pGameType, const RString& sModifiers)
+Profile::SetDefaultModifiers(const Game* pGameType, const std::string& sModifiers)
 {
 	if (sModifiers == "")
 		m_sDefaultModifiers.erase(pGameType->m_szName);
@@ -273,7 +257,7 @@ Profile::swap(Profile& other)
 }
 
 void
-Profile::LoadCustomFunction(const RString& sDir)
+Profile::LoadCustomFunction(const std::string& sDir)
 {
 	/* Get the theme's custom load function:
 	 *   [Profile]
@@ -290,23 +274,23 @@ Profile::LoadCustomFunction(const RString& sDir)
 	LuaHelpers::Push(L, sDir);
 
 	// Run it
-	RString Error = "Error running CustomLoadFunction: ";
+	std::string Error = "Error running CustomLoadFunction: ";
 	LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
 
 	LUA->Release(L);
 }
 
 void
-Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
+Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 {
 	// Temp variables to preserve stuff across the reload.
 	// Some stuff intentionally left out because the original reason for the
 	// stats prefix was to allow scores from different game types to coexist.
-	RString display_name = m_sDisplayName;
-	RString last_high_score_name = m_sLastUsedHighScoreName;
+	std::string display_name = m_sDisplayName;
+	std::string last_high_score_name = m_sLastUsedHighScoreName;
 	int priority = m_ListPriority;
-	RString guid = m_sGuid;
-	map<RString, RString> default_mods = m_sDefaultModifiers;
+	std::string guid = m_sGuid;
+	map<std::string, std::string> default_mods = m_sDefaultModifiers;
 	SortOrder sort_order = m_SortOrder;
 	Difficulty last_diff = m_LastDifficulty;
 	StepsType last_stepstype = m_LastStepsType;
@@ -342,13 +326,12 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 
 static const float ld_update = 0.02f;
 ProfileLoadResult
-Profile::LoadAllFromDir(const RString& sDir,
+Profile::LoadAllFromDir(const std::string& sDir,
 						bool bRequireSignature,
 						LoadingWindow* ld)
 {
-	if (PREFSMAN->m_verbose_log > 0)
-		LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
-	ASSERT(sDir.Right(1) == "/");
+	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	ASSERT(sDir.back() == '/');
 
 	InitAll();
 
@@ -368,10 +351,10 @@ Profile::LoadAllFromDir(const RString& sDir,
 }
 
 void
-Profile::LoadTypeFromDir(const RString& dir)
+Profile::LoadTypeFromDir(const std::string& dir)
 {
 	m_ListPriority = 0;
-	RString fn = dir + TYPE_INI;
+	std::string fn = dir + TYPE_INI;
 	if (FILEMAN->DoesFileExist(fn)) {
 		IniFile ini;
 		if (ini.ReadFile(fn)) {
@@ -386,8 +369,7 @@ Profile::LoadTypeFromDir(const RString& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	if (PREFSMAN->m_verbose_log > 0)
-		LOG->Trace("Calculating stats from scores");
+	LOG->Trace("Calculating stats from scores");
 	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
@@ -422,7 +404,7 @@ Profile::CalculateStatsFromScores()
 }
 
 bool
-Profile::SaveAllToDir(const RString& sDir, bool bSignData) const
+Profile::SaveAllToDir(const std::string& sDir, bool bSignData) const
 {
 	m_LastPlayedDate = DateTime::GetNowDate();
 
@@ -442,7 +424,7 @@ Profile::SaveAllToDir(const RString& sDir, bool bSignData) const
 }
 
 void
-Profile::SaveTypeToDir(const RString& dir) const
+Profile::SaveTypeToDir(const std::string& dir) const
 {
 	IniFile ini;
 	ini.SetValue("ListPosition", "Priority", m_ListPriority);
@@ -450,7 +432,7 @@ Profile::SaveTypeToDir(const RString& dir) const
 }
 
 void
-Profile::SaveEditableDataToDir(const RString& sDir) const
+Profile::SaveEditableDataToDir(const std::string& sDir) const
 {
 	IniFile ini;
 
@@ -461,9 +443,9 @@ Profile::SaveEditableDataToDir(const RString& sDir) const
 }
 
 ProfileLoadResult
-Profile::LoadEditableDataFromDir(const RString& sDir)
+Profile::LoadEditableDataFromDir(const std::string& sDir)
 {
-	RString fn = sDir + EDITABLE_INI;
+	std::string fn = sDir + EDITABLE_INI;
 
 	// Don't load unreasonably large editable.xml files.
 	int iBytes = FILEMAN->GetFileSizeInBytes(fn);
@@ -585,7 +567,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 {
 	ASSERT(pNode->GetName() == "ScoreGoal");
 
-	RString s;
+	std::string s;
 
 	pNode->GetChildValue("Rate", rate);
 	pNode->GetChildValue("Percent", percent);
@@ -690,13 +672,13 @@ Profile::RemoveGoal(const string& ck, DateTime assigned)
 }
 
 void
-Profile::SaveStatsWebPageToDir(const RString& sDir) const
+Profile::SaveStatsWebPageToDir(const std::string& sDir) const
 {
 	ASSERT(PROFILEMAN != NULL);
 }
 
 void
-Profile::SaveMachinePublicKeyToDir(const RString& sDir) const
+Profile::SaveMachinePublicKeyToDir(const std::string& sDir) const
 {
 	if (PREFSMAN->m_bSignProfileData &&
 		IsAFile(CRYPTMAN->GetPublicKeyFileName()))
@@ -710,7 +692,7 @@ Profile::AddScreenshot(const Screenshot& screenshot)
 }
 
 void
-Profile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
+Profile::MoveBackupToDir(const std::string& sFromDir, const std::string& sToDir)
 {
 	XMLProfile::MoveBackupToDir(sFromDir, sToDir);
 
@@ -720,13 +702,13 @@ Profile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
 		FILEMAN->Move(sFromDir + DONT_SHARE_SIG, sToDir + DONT_SHARE_SIG);
 }
 
-RString
-Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
-									   const RString& sFileNameBeginning)
+std::string
+Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
+									   const std::string& sFileNameBeginning)
 {
 	FILEMAN->FlushDirCache(sDir);
 	// Find a file name for the screenshot
-	vector<RString> files;
+	vector<std::string> files;
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
@@ -734,7 +716,7 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 
 	for (int i = files.size() - 1; i >= 0; --i) {
 		static Regex re("^" + sFileNameBeginning + "([0-9]{5})\\....$");
-		vector<RString> matches;
+		vector<std::string> matches;
 		if (!re.Compare(files[i], matches))
 			continue;
 
@@ -746,8 +728,8 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 	return MakeFileNameNoExtension(sFileNameBeginning, iIndex);
 }
 
-RString
-Profile::MakeFileNameNoExtension(const RString& sFileNameBeginning, int iIndex)
+std::string
+Profile::MakeFileNameNoExtension(const std::string& sFileNameBeginning, int iIndex)
 {
 	return sFileNameBeginning + ssprintf("%05d", iIndex);
 }
@@ -762,7 +744,7 @@ class LunaProfile : public Luna<Profile>
 	static int AddScreenshot(T* p, lua_State* L)
 	{
 		HighScore* hs = Luna<HighScore>::check(L, 1);
-		RString filename = SArg(2);
+		std::string filename = SArg(2);
 		Screenshot screenshot;
 		screenshot.sFileName = filename;
 		screenshot.sMD5 = BinaryToHex(CRYPTMAN->GetMD5ForFile(filename));
@@ -774,7 +756,7 @@ class LunaProfile : public Luna<Profile>
 
 	static int GetDisplayName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sDisplayName);
+		lua_pushstring(L, p->m_sDisplayName.c_str());
 		return 1;
 	}
 	static int SetDisplayName(T* p, lua_State* L)
@@ -784,7 +766,7 @@ class LunaProfile : public Luna<Profile>
 	}
 	static int GetLastUsedHighScoreName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sLastUsedHighScoreName);
+		lua_pushstring(L, p->m_sLastUsedHighScoreName.c_str());
 		return 1;
 	}
 	static int SetLastUsedHighScoreName(T* p, lua_State* L)
@@ -997,10 +979,10 @@ class LunaProfile : public Luna<Profile>
 		if (p->sortmode == 3)
 			if (p->asc) {
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-					return Rage::make_lower(
+					return make_lower(
 							 SONGMAN->GetSongByChartkey(a->chartkey)
 							   ->GetDisplayMainTitle()) >
-						   Rage::make_lower(
+						   make_lower(
 							 SONGMAN->GetSongByChartkey(b->chartkey)
 							   ->GetDisplayMainTitle());
 				}; // custom operators?
@@ -1154,7 +1136,7 @@ class LunaProfile : public Luna<Profile>
 		p->m_sDisplayName = SArg(1);
 		// roundabout way to force id to be a dir
 		// sometimes its a dir and sometimes it a number
-		RString dir = "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
+		std::string dir = "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
 		p->SaveEditableDataToDir(dir);
 		return 1;
 	}
@@ -1324,7 +1306,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int AchievedBy(T* p, lua_State* L)
 	{
 		if (p->achieved)
-			lua_pushstring(L, p->scorekey);
+			lua_pushstring(L, p->scorekey.c_str());
 		else
 			lua_pushnil(L);
 		return 1;

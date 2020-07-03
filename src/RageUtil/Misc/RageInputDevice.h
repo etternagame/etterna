@@ -1,4 +1,4 @@
-﻿/* RageInputDevice - User input types. */
+/* RageInputDevice - User input types. */
 #ifndef RAGE_INPUT_DEVICE_H
 #define RAGE_INPUT_DEVICE_H
 
@@ -53,10 +53,10 @@ enum InputDevice
 };
 /** @brief A special foreach loop for each input device. */
 #define FOREACH_InputDevice(i) FOREACH_ENUM(InputDevice, i)
-const RString&
+const std::string&
 InputDeviceToString(InputDevice i);
 InputDevice
-StringToInputDevice(const RString& s);
+StringToInputDevice(const std::string& s);
 inline bool
 IsJoystick(InputDevice id)
 {
@@ -75,14 +75,14 @@ IsMouse(InputDevice id)
 
 struct InputDeviceInfo
 {
-	InputDeviceInfo(InputDevice id_, const RString& sDesc_)
+	InputDeviceInfo(InputDevice id_, const std::string& sDesc_)
 	  : id(id_)
 	  , sDesc(sDesc_)
 	{
 	}
 
 	InputDevice id;
-	RString sDesc;
+	std::string sDesc;
 };
 
 inline bool
@@ -110,7 +110,7 @@ enum InputDeviceState
 	NUM_InputDeviceState,
 	InputDeviceState_Invalid
 };
-const RString&
+const std::string&
 InputDeviceStateToString(InputDeviceState ids);
 
 /* Only raw, unshifted keys go in this table; this doesn't include
@@ -380,10 +380,10 @@ enum DeviceButton
 	DeviceButton_Invalid
 };
 
-RString
+std::string
 DeviceButtonToString(DeviceButton i);
 DeviceButton
-StringToDeviceButton(const RString& s);
+StringToDeviceButton(const std::string& s);
 
 struct DeviceInput
 {
@@ -442,8 +442,8 @@ struct DeviceInput
 	{
 	}
 
-	RString ToString() const;
-	bool FromString(const RString& s);
+	std::string ToString() const;
+	bool FromString(const std::string& s);
 
 	bool IsValid() const { return device != InputDevice_Invalid; };
 	void MakeInvalid() { device = InputDevice_Invalid; };

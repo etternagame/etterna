@@ -49,7 +49,7 @@ XToString(LayoutType);
 StringToX(LayoutType);
 LuaXType(LayoutType);
 
-RString
+std::string
 OptionRowHandler::OptionTitle() const
 {
 	bool bTheme = false;
@@ -59,17 +59,17 @@ OptionRowHandler::OptionTitle() const
 	if (m_Def.m_bAllowThemeTitle)
 		bTheme = true;
 
-	RString s = m_Def.m_sName;
+	std::string s = m_Def.m_sName;
 	if (s.empty())
 		return s;
 
 	return bTheme ? THEME->GetString("OptionTitles", s) : s;
 }
 
-RString
+std::string
 OptionRowHandler::GetThemedItemText(int iChoice) const
 {
-	RString s = m_Def.m_vsChoices[iChoice];
+	std::string s = m_Def.m_vsChoices[iChoice];
 	if (s == "")
 		return "";
 	bool bTheme = false;
@@ -92,7 +92,7 @@ OptionRowHandler::GetThemedItemText(int iChoice) const
 
 void
 OptionRowHandler::GetIconTextAndGameCommand(int iFirstSelection,
-											RString& sIconTextOut,
+											std::string& sIconTextOut,
 											GameCommand& gcOut) const
 {
 	sIconTextOut = "";
@@ -146,7 +146,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	vector<GameCommand> m_aListEntries;
 	GameCommand m_Default;
 	bool m_bUseModNameForIcon;
-	vector<RString> m_vsBroadcastOnExport;
+	vector<std::string> m_vsBroadcastOnExport;
 
 	OptionRowHandlerList() { Init(); }
 	void Init() override
@@ -160,7 +160,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
-		RString sParam = command.GetArg(1).s;
+		std::string sParam = command.GetArg(1).s;
 
 		m_bUseModNameForIcon = true;
 		m_Def.m_sName = sParam;
@@ -179,7 +179,7 @@ class OptionRowHandlerList : public OptionRowHandler
 			ROW_INVALID_IF(NumCols < 1, "Not enough entries in list.", false);
 			for (unsigned i = 1; i < lCmds.v.size(); i++) {
 				const Command& cmd = lCmds.v[i];
-				RString sName = cmd.GetName();
+				std::string sName = cmd.GetName();
 
 				if (sName == "together")
 					m_Def.m_bOneChoiceForAllPlayers = true;
@@ -200,7 +200,7 @@ class OptionRowHandlerList : public OptionRowHandler
 				} else if (sName == "enabledforplayers") {
 					m_Def.m_vEnabledForPlayers.clear();
 					for (unsigned a = 1; a < cmd.m_vsArgs.size(); a++) {
-						RString sArg = cmd.m_vsArgs[a];
+						std::string sArg = cmd.m_vsArgs[a];
 						PlayerNumber pn = (PlayerNumber)(StringToInt(sArg) - 1);
 						ASSERT(pn >= 0 && pn < NUM_PLAYERS);
 						m_Def.m_vEnabledForPlayers.insert(pn);
@@ -234,7 +234,7 @@ class OptionRowHandlerList : public OptionRowHandler
 					mc.m_sName = "";
 				}
 
-				RString why;
+				std::string why;
 				if (!mc.IsPlayable(&why)) {
 					LuaHelpers::ReportScriptErrorFmt(
 					  "\"%s\" choice %d is not playable: %s",
@@ -246,7 +246,7 @@ class OptionRowHandlerList : public OptionRowHandler
 
 				m_aListEntries.push_back(mc);
 
-				RString sChoice = mc.m_sName;
+				std::string sChoice = mc.m_sName;
 				m_Def.m_vsChoices.push_back(sChoice);
 			}
 		}
@@ -304,7 +304,7 @@ class OptionRowHandlerList : public OptionRowHandler
 		if (m_Def.m_selectType == SELECT_ONE && bUseFallbackOption) {
 			int iFallbackOption = m_Def.m_iDefault;
 			if (iFallbackOption == -1) {
-				RString s =
+				std::string s =
 				  ssprintf("No options in row \"list,%s\" were selected, "
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
@@ -330,7 +330,7 @@ class OptionRowHandlerList : public OptionRowHandler
 			if (vbSel[i])
 				m_aListEntries[i].Apply(p);
 		}
-		FOREACH_CONST(RString, m_vsBroadcastOnExport, s)
+		FOREACH_CONST(std::string, m_vsBroadcastOnExport, s)
 		MESSAGEMAN->Broadcast(*s);
 		return 0;
 	}
@@ -338,7 +338,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	int GetDefaultOption() const override { return m_Def.m_iDefault; }
 
 	void GetIconTextAndGameCommand(int iFirstSelection,
-								   RString& sIconTextOut,
+								   std::string& sIconTextOut,
 								   GameCommand& gcOut) const override
 	{
 		sIconTextOut = m_bUseModNameForIcon
@@ -347,7 +347,7 @@ class OptionRowHandlerList : public OptionRowHandler
 
 		gcOut = m_aListEntries[iFirstSelection];
 	}
-	RString GetScreen(int iChoice) const override
+	std::string GetScreen(int iChoice) const override
 	{
 		const GameCommand& gc = m_aListEntries[iChoice];
 		return gc.m_sScreen;
@@ -365,18 +365,18 @@ class OptionRowHandlerList : public OptionRowHandler
 };
 
 static void
-SortNoteSkins(vector<RString>& asSkinNames)
+SortNoteSkins(vector<std::string>& asSkinNames)
 {
-	set<RString> setSkinNames;
+	set<std::string> setSkinNames;
 	setSkinNames.insert(asSkinNames.begin(), asSkinNames.end());
 
-	vector<RString> asSorted;
+	vector<std::string> asSorted;
 	split(NOTE_SKIN_SORT_ORDER, ",", asSorted);
 
-	set<RString> setUnusedSkinNames(setSkinNames);
+	set<std::string> setUnusedSkinNames(setSkinNames);
 	asSkinNames.clear();
 
-	FOREACH(RString, asSorted, sSkin)
+	FOREACH(std::string, asSorted, sSkin)
 	{
 		if (setSkinNames.find(*sSkin) == setSkinNames.end())
 			continue;
@@ -397,7 +397,7 @@ class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 
-		vector<RString> arraySkinNames;
+		vector<std::string> arraySkinNames;
 		NOTESKIN->GetNoteSkinNames(arraySkinNames);
 		SortNoteSkins(arraySkinNames);
 
@@ -451,7 +451,7 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 			for (unsigned i = 0; i < vpSteps.size(); i++) {
 				Steps* pSteps = vpSteps[i];
 
-				RString s;
+				std::string s;
 				if (STEPS_USE_CHART_NAME) {
 					s = pSteps->GetChartName();
 				}
@@ -503,9 +503,9 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	void Init() override
 	{
 		OptionRowHandler::Init();
-		m_ppStepsToFill = NULL;
-		m_pDifficultyToFill = NULL;
-		m_pst = NULL;
+		m_ppStepsToFill = nullptr;
+		m_pDifficultyToFill = nullptr;
+		m_pst = nullptr;
 		m_vSteps.clear();
 		m_vDifficulties.clear();
 	}
@@ -513,7 +513,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
-		RString sParam = command.GetArg(1).s;
+		std::string sParam = command.GetArg(1).s;
 		CHECK_WRONG_NUM_ARGS(2);
 		CHECK_BLANK_ARG;
 
@@ -525,7 +525,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		} else if (sParam == "EditSourceSteps") {
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditSourceStepsTypeChanged));
-			if (GAMESTATE->m_pCurSteps.Get() != NULL)
+			if (GAMESTATE->m_pCurSteps.Get() != nullptr)
 				m_Def.m_vEnabledForPlayers.clear(); // hide row
 		} else {
 			ROW_INVALID_IF(
@@ -558,7 +558,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 			m_vDifficulties.resize(m_vSteps.size(), Difficulty_Edit);
 
 			if (sParam == "EditSteps") {
-				m_vSteps.push_back(NULL);
+				m_vSteps.push_back(nullptr);
 				m_vDifficulties.push_back(Difficulty_Edit);
 			}
 
@@ -566,7 +566,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 				Steps* pSteps = m_vSteps[i];
 				Difficulty dc = m_vDifficulties[i];
 
-				RString s;
+				std::string s;
 				if (dc == Difficulty_Edit) {
 					if (pSteps)
 						s = pSteps->GetDescription();
@@ -577,7 +577,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 			}
 		} else {
 			m_vDifficulties.push_back(Difficulty_Edit);
-			m_vSteps.push_back(NULL);
+			m_vSteps.push_back(nullptr);
 			m_Def.m_vsChoices.push_back("none");
 		}
 
@@ -673,7 +673,7 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 		m_Def.m_sName = "Group";
 		m_Default.m_sSongGroup = GROUP_ALL;
 
-		vector<RString> vSongGroups;
+		vector<std::string> vSongGroups;
 		SONGMAN->GetSongGroupNames(vSongGroups);
 		ASSERT(vSongGroups.size() != 0);
 
@@ -684,7 +684,7 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 			m_aListEntries.push_back(mc);
 		}
 
-		FOREACH_CONST(RString, vSongGroups, g)
+		FOREACH_CONST(std::string, vSongGroups, g)
 		{
 			m_Def.m_vsChoices.push_back(*g);
 			GameCommand mc;
@@ -718,7 +718,7 @@ class OptionRowHandlerListDifficulties : public OptionRowHandlerList
 			StepsType st =
 			  GAMEMAN->GetHowToPlayStyleForGame(GAMESTATE->m_pCurGame)
 				->m_StepsType;
-			RString s =
+			std::string s =
 			  CustomDifficultyToLocalizedString(GetCustomDifficulty(st, *d));
 
 			m_Def.m_vsChoices.push_back(s);
@@ -738,7 +738,7 @@ class OptionRowHandlerListSongsInCurrentSongGroup : public OptionRowHandlerList
 		const vector<Song*>& vpSongs =
 		  SONGMAN->GetSongs(GAMESTATE->m_sPreferredSongGroup);
 
-		if (GAMESTATE->m_pCurSong == NULL)
+		if (GAMESTATE->m_pCurSong == nullptr)
 			GAMESTATE->m_pCurSong.Set(vpSongs[0]);
 
 		m_Def.m_sName = "SongsInCurrentSongGroup";
@@ -779,7 +779,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_pLuaTable->Unset();
 	}
 
-	bool SanityCheckTable(lua_State* L, RString& RowName)
+	bool SanityCheckTable(lua_State* L, std::string& RowName)
 	{
 		if (m_pLuaTable->GetLuaType() != LUA_TTABLE) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -789,7 +789,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_pLuaTable->PushSelf(L);
 		lua_getfield(L, -1, "Name");
 		const char* pStr = lua_tostring(L, -1);
-		if (pStr == NULL) {
+		if (pStr == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "LUA_ERROR:  \"%s\" \"Name\" entry is not a string.",
 			  RowName.c_str());
@@ -799,7 +799,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 		lua_getfield(L, -1, "LayoutType");
 		pStr = lua_tostring(L, -1);
-		if (pStr == NULL || StringToLayoutType(pStr) == LayoutType_Invalid) {
+		if (pStr == nullptr || StringToLayoutType(pStr) == LayoutType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "LUA_ERROR:  \"%s\" \"LayoutType\" entry is not a string.",
 			  RowName.c_str());
@@ -809,7 +809,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 		lua_getfield(L, -1, "SelectType");
 		pStr = lua_tostring(L, -1);
-		if (pStr == NULL || StringToSelectType(pStr) == SelectType_Invalid) {
+		if (pStr == nullptr || StringToSelectType(pStr) == SelectType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "LUA_ERROR:  \"%s\" \"SelectType\" entry is not a string.",
 			  RowName.c_str());
@@ -841,7 +841,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 				return false;
 			}
 			m_pLuaTable->PushSelf(L);
-			RString error = RowName + " \"EnabledForPlayers\": ";
+			std::string error = RowName + " \"EnabledForPlayers\": ";
 			LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
 			if (!lua_istable(L, -1)) {
 				LuaHelpers::ReportScriptErrorFmt("LUA_ERROR:  \"%s\" "
@@ -943,7 +943,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		// Argument 1 (self):
 		m_pLuaTable->PushSelf(L);
 
-		RString error = "EnabledForPlayers: ";
+		std::string error = "EnabledForPlayers: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
 		m_Def.m_vEnabledForPlayers
 		  .clear(); // and fill in with supplied PlayerNumbers below
@@ -980,7 +980,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
-		RString sParam = command.GetArg(1).s;
+		std::string sParam = command.GetArg(1).s;
 		CHECK_WRONG_NUM_ARGS(2);
 		CHECK_BLANK_ARG;
 
@@ -1085,7 +1085,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 			// Argument 1: (self)
 			m_pLuaTable->PushSelf(L);
-			RString error = "Reload: ";
+			std::string error = "Reload: ";
 
 			LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
 			effect = std::max(effect, Enum::Check<ReloadChanged>(L, -1));
@@ -1148,7 +1148,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		ASSERT(lua_gettop(L) ==
 			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
-		RString error = "LoadSelections: ";
+		std::string error = "LoadSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 0, true);
 		ASSERT(lua_gettop(L) == 2);
 
@@ -1204,7 +1204,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		ASSERT(lua_gettop(L) ==
 			   6); // vbSelectedOut, m_iLuaTable, function, self, arg, arg
 
-		RString error = "SaveSelections: ";
+		std::string error = "SaveSelections: ";
 		LuaHelpers::RunScriptOnStack(L, error, 3, 1, true);
 		ASSERT(lua_gettop(L) ==
 			   3); // SaveSelections *may* return effects flags, otherwise nil
@@ -1241,7 +1241,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 			// Convert choice to a lua index so it matches up with the Choices
 			// table.
 			lua_pushinteger(L, choice + 1);
-			RString error = "NotifyOfSelection: ";
+			std::string error = "NotifyOfSelection: ";
 			LuaHelpers::RunScriptOnStack(L, error, 3, 1, true);
 			if (lua_toboolean(L, -1) != 0) {
 				lua_pop(L, 1);
@@ -1276,12 +1276,12 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	void Init() override
 	{
 		OptionRowHandler::Init();
-		m_pOpt = NULL;
+		m_pOpt = nullptr;
 	}
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
-		RString sParam = command.GetArg(1).s;
+		std::string sParam = command.GetArg(1).s;
 		CHECK_WRONG_NUM_ARGS(2);
 		CHECK_BLANK_ARG;
 
@@ -1351,14 +1351,14 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 	void Init() override
 	{
 		OptionRowHandler::Init();
-		m_pstToFill = NULL;
+		m_pstToFill = nullptr;
 		m_vStepsTypesToShow.clear();
 	}
 
 	bool LoadInternal(const Commands& cmds) override
 	{
 		const Command& command = cmds.v[0];
-		RString sParam = command.GetArg(1).s;
+		std::string sParam = command.GetArg(1).s;
 		CHECK_WRONG_NUM_ARGS(2);
 		CHECK_BLANK_ARG;
 
@@ -1368,7 +1368,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 			  MessageIDToString(Message_CurrentStepsP1Changed));
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditStepsTypeChanged));
-			if (GAMESTATE->m_pCurSteps.Get() != NULL)
+			if (GAMESTATE->m_pCurSteps.Get() != nullptr)
 				m_Def.m_vEnabledForPlayers.clear(); // hide row
 		} else {
 			ROW_INVALID_IF(
@@ -1387,7 +1387,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		m_Def.m_vsChoices.clear();
 		FOREACH_CONST(StepsType, m_vStepsTypesToShow, st)
 		{
-			RString s = GAMEMAN->GetStepsTypeInfo(*st).GetLocalizedString();
+			std::string s = GAMEMAN->GetStepsTypeInfo(*st).GetLocalizedString();
 			m_Def.m_vsChoices.push_back(s);
 		}
 
@@ -1470,13 +1470,13 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 		return 0;
 	}
 	void GetIconTextAndGameCommand(int iFirstSelection,
-								   RString& sIconTextOut,
+								   std::string& sIconTextOut,
 								   GameCommand& gcOut) const override
 	{
 		sIconTextOut = "";
 		gcOut = m_gc;
 	}
-	RString GetScreen(int iChoice) const override { return m_gc.m_sScreen; }
+	std::string GetScreen(int iChoice) const override { return m_gc.m_sScreen; }
 };
 
 class OptionRowHandlerNull : public OptionRowHandler
@@ -1490,11 +1490,11 @@ class OptionRowHandlerNull : public OptionRowHandler
 OptionRowHandler*
 OptionRowHandlerUtil::Make(const Commands& cmds)
 {
-	OptionRowHandler* pHand = NULL;
+	OptionRowHandler* pHand = nullptr;
 
 	ROW_INVALID_IF(
 	  cmds.v.size() == 0, "No commands for constructing row.", NULL);
-	const RString& name = cmds.v[0].GetName();
+	const std::string& name = cmds.v[0].GetName();
 	ROW_INVALID_IF(name != "gamecommand" && cmds.v.size() != 1,
 				   "Row must be constructed from single command.",
 				   NULL);
@@ -1510,25 +1510,25 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 	// XXX: merge these, and merge "Steps" and "list,Steps"
 	if (name == "list") {
 		const Command& command = cmds.v[0];
-		RString sParam = command.GetArg(1).s;
+		std::string sParam = command.GetArg(1).s;
 		ROW_INVALID_IF(command.m_vsArgs.size() != 2 || !sParam.size(),
 					   "list row command must be 'list,name' or 'list,type'.",
 					   NULL);
 
-		if (sParam.CompareNoCase("NoteSkins") == 0)
+		if (CompareNoCaseLUL(sParam, "NoteSkins") == 0)
 			MAKE(OptionRowHandlerListNoteSkins)
-		else if (sParam.CompareNoCase("Steps") == 0)
+		else if (CompareNoCaseLUL(sParam, "Steps") == 0)
 			MAKE(OptionRowHandlerListSteps)
-		else if (sParam.CompareNoCase("StepsLocked") == 0) {
+		else if (CompareNoCaseLUL(sParam, "StepsLocked") == 0) {
 			MAKE(OptionRowHandlerListSteps);
 			pHand->m_Def.m_bOneChoiceForAllPlayers = true;
-		} else if (sParam.CompareNoCase("Styles") == 0)
+		} else if (CompareNoCaseLUL(sParam, "Styles") == 0)
 			MAKE(OptionRowHandlerListStyles)
-		else if (sParam.CompareNoCase("Groups") == 0)
+		else if (CompareNoCaseLUL(sParam, "Groups") == 0)
 			MAKE(OptionRowHandlerListGroups)
-		else if (sParam.CompareNoCase("Difficulties") == 0)
+		else if (CompareNoCaseLUL(sParam, "Difficulties") == 0)
 			MAKE(OptionRowHandlerListDifficulties)
-		else if (sParam.CompareNoCase("SongsInCurrentSongGroup") == 0)
+		else if (CompareNoCaseLUL(sParam, "SongsInCurrentSongGroup") == 0)
 			MAKE(OptionRowHandlerListSongsInCurrentSongGroup)
 		else
 			MAKE(OptionRowHandlerList)
@@ -1549,13 +1549,13 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 	if (load_succeeded) {
 		return pHand;
 	}
-	return NULL;
+	return nullptr;
 }
 
 OptionRowHandler*
 OptionRowHandlerUtil::MakeNull()
 {
-	OptionRowHandler* pHand = NULL;
+	OptionRowHandler* pHand = nullptr;
 	bool load_succeeded = false; // Part of the MAKE macro, but unused.
 	Commands cmds;
 	MAKE(OptionRowHandlerNull)
@@ -1563,7 +1563,7 @@ OptionRowHandlerUtil::MakeNull()
 	{
 		return pHand;
 	}
-	return NULL;
+	return nullptr;
 }
 
 OptionRowHandler*
@@ -1595,8 +1595,9 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 	pHand->m_Def.m_bAllowThemeTitle = mr.bThemeTitle;
 	pHand->m_Def.m_bAllowThemeItems = mr.bThemeItems;
 
-	FOREACH(RString, pHand->m_Def.m_vsChoices, c)
-	FontCharAliases::ReplaceMarkers(*c); // Allow special characters
+	for (auto& c : pHand->m_Def.m_vsChoices) {
+		FontCharAliases::ReplaceMarkers(c); // Allow special characters
+	}
 
 	return pHand;
 }

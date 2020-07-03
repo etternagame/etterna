@@ -9,7 +9,6 @@
 #include "Etterna/Models/Songs/SongUtil.h"			 // for SongID
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h" // for StepsID
 #include "Etterna/Models/StepsAndStyles/StyleUtil.h" // for StyleID
-#include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Models/Misc/XMLProfile.h"
 #include "Etterna/Models/Misc/DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
@@ -33,7 +32,7 @@ extern const string ETT_XML;
  * systems will open the ini file in an editor.  The default association for
  * XML will open in IE.  Users have a much better chance of discovering how to
  * edit this data if they don't have to fight against the file associations. */
-extern const RString EDITABLE_INI;
+extern const std::string EDITABLE_INI;
 
 /**
  * @brief The filename containing the signature for STATS_XML's signature.
@@ -47,12 +46,12 @@ extern const RString EDITABLE_INI;
  * construct using STATS_XML but the user can't construct using STATS_XML. */
 extern const string DONT_SHARE_SIG;
 
-extern const RString PUBLIC_KEY_FILE;
-extern const RString SCREENSHOTS_SUBDIR;
-extern const RString REPLAY_SUBDIR;
-extern const RString EDIT_STEPS_SUBDIR;
-extern const RString LASTGOOD_SUBDIR;
-// extern const RString RIVAL_SUBDIR;
+extern const std::string PUBLIC_KEY_FILE;
+extern const std::string SCREENSHOTS_SUBDIR;
+extern const std::string REPLAY_SUBDIR;
+extern const std::string EDIT_STEPS_SUBDIR;
+extern const std::string LASTGOOD_SUBDIR;
+// extern const std::string RIVAL_SUBDIR;
 
 /** @brief The max number of characters that can be used in a profile. */
 const unsigned int PROFILE_MAX_DISPLAY_NAME_LENGTH = 64;
@@ -73,12 +72,12 @@ class ScoreGoal
 	bool achieved = false;
 	DateTime timeassigned;
 	DateTime timeachieved;
-	RString comment = "";
-	RString chartkey = "";
+	std::string comment = "";
+	std::string chartkey = "";
 
 	// which specific score was this goal achieved by, reminder to consider
 	// what happens when individual score deletion is possibly added -mina
-	RString scorekey = "";
+	std::string scorekey = "";
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
@@ -160,10 +159,10 @@ class Profile
 	}
 
 	// smart accessors
-	RString GetDisplayNameOrHighScoreName() const;
+	std::string GetDisplayNameOrHighScoreName() const;
 	bool GetDefaultModifiers(const Game* pGameType,
-							 RString& sModifiersOut) const;
-	void SetDefaultModifiers(const Game* pGameType, const RString& sModifiers);
+							 std::string& sModifiersOut) const;
+	void SetDefaultModifiers(const Game* pGameType, const std::string& sModifiers);
 
 	void AddStepTotals(int iNumTapsAndHolds,
 					   int iNumJumps,
@@ -179,21 +178,21 @@ class Profile
 	map<string, Playlist> allplaylists;
 
 	// Editable data
-	RString m_sDisplayName;
+	std::string m_sDisplayName;
 	// Dont edit this. Should be unique (Is it?)
-	RString m_sProfileID;
+	std::string m_sProfileID;
 	/**
 	 * @brief The last used name for high scoring purposes.
 	 *
 	 * This really shouldn't be in "editable", but it's needed in the smaller
 	 * editable file so that it can be ready quickly. */
-	RString m_sLastUsedHighScoreName;
+	std::string m_sLastUsedHighScoreName;
 
 	// General data
-	static RString MakeGuid();
-	RString* GetGuid() { return &m_sGuid; }
-	RString m_sGuid;
-	map<RString, RString> m_sDefaultModifiers;
+	static std::string MakeGuid();
+	std::string* GetGuid() { return &m_sGuid; }
+	std::string m_sGuid;
+	map<std::string, std::string> m_sDefaultModifiers;
 	SortOrder m_SortOrder{ SortOrder_Invalid };
 	Difficulty m_LastDifficulty{ Difficulty_Invalid };
 	StepsType m_LastStepsType{ StepsType_Invalid };
@@ -227,7 +226,7 @@ class Profile
 	 * This is mutable because it's overwritten on save, but is usually
 	 * const everywhere else. It was decided to keep const on the whole
 	 * save chain and keep this mutable. -Chris */
-	mutable RString m_sLastPlayedMachineGuid;
+	mutable std::string m_sLastPlayedMachineGuid;
 	mutable DateTime m_LastPlayedDate;
 	/* These stats count twice in the machine profile if two players are
 	 * playing; that's the only approach that makes sense for ByDifficulty and
@@ -296,31 +295,31 @@ class Profile
 	void swap(Profile& other);
 
 	// Loading and saving
-	void HandleStatsPrefixChange(RString dir, bool require_signature);
-	ProfileLoadResult LoadAllFromDir(const RString& sDir,
+	void HandleStatsPrefixChange(std::string dir, bool require_signature);
+	ProfileLoadResult LoadAllFromDir(const std::string& sDir,
 									 bool bRequireSignature,
 									 LoadingWindow* ld);
-	ProfileLoadResult LoadStatsFromDir(RString dir, bool require_signature);
-	void LoadTypeFromDir(const RString& dir);
-	void LoadCustomFunction(const RString& sDir);
-	bool SaveAllToDir(const RString& sDir, bool bSignData) const;
+	ProfileLoadResult LoadStatsFromDir(std::string dir, bool require_signature);
+	void LoadTypeFromDir(const std::string& dir);
+	void LoadCustomFunction(const std::string& sDir);
+	bool SaveAllToDir(const std::string& sDir, bool bSignData) const;
 
-	ProfileLoadResult LoadEditableDataFromDir(const RString& sDir);
+	ProfileLoadResult LoadEditableDataFromDir(const std::string& sDir);
 
-	void SaveTypeToDir(const RString& dir) const;
-	void SaveEditableDataToDir(const RString& sDir) const;
+	void SaveTypeToDir(const std::string& dir) const;
+	void SaveEditableDataToDir(const std::string& sDir) const;
 
 	void CalculateStatsFromScores(LoadingWindow* ld);
 	void CalculateStatsFromScores();
 
-	void SaveStatsWebPageToDir(const RString& sDir) const;
-	void SaveMachinePublicKeyToDir(const RString& sDir) const;
+	void SaveStatsWebPageToDir(const std::string& sDir) const;
+	void SaveMachinePublicKeyToDir(const std::string& sDir) const;
 
-	static void MoveBackupToDir(const RString& sFromDir, const RString& sToDir);
-	static RString MakeUniqueFileNameNoExtension(
-	  const RString& sDir,
-	  const RString& sFileNameBeginning);
-	static RString MakeFileNameNoExtension(const RString& sFileNameBeginning,
+	static void MoveBackupToDir(const std::string& sFromDir, const std::string& sToDir);
+	static std::string MakeUniqueFileNameNoExtension(
+	  const std::string& sDir,
+	  const std::string& sFileNameBeginning);
+	static std::string MakeFileNameNoExtension(const std::string& sFileNameBeginning,
 										   int iIndex);
 
 	// Lua

@@ -26,7 +26,7 @@ enum MusicWheelItemType
 	NUM_MusicWheelItemType,
 	MusicWheelItemType_Invalid,
 };
-const RString&
+const std::string&
 MusicWheelItemTypeToString(MusicWheelItemType i);
 /** @brief An item on the MusicWheel. */
 class MusicWheelItem : public WheelItemBase
@@ -75,7 +75,7 @@ struct MusicWheelItemData : public WheelItemBaseData
 	int m_iSectionCount{ 0 };
 
 	// for TYPE_SORT
-	RString m_sLabel;
+	std::string m_sLabel;
 	HiddenPtr<GameCommand> m_pAction;
 };
 

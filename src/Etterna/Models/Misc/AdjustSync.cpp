@@ -60,7 +60,7 @@ AdjustSync::IsSyncDataChanged()
 	if (GAMESTATE->IsPlaylistCourse())
 		return false;
 
-	vector<RString> vs;
+	vector< std::string> vs;
 	AdjustSync::GetSyncChangeTextGlobal(vs);
 	AdjustSync::GetSyncChangeTextSong(vs);
 	return !vs.empty();
@@ -201,7 +201,7 @@ static LocalizedString SONG_OFFSET_FROM(
   "Song offset from %+.3f to %+.3f (notes %s)");
 
 void
-AdjustSync::GetSyncChangeTextGlobal(vector<RString>& vsAddTo)
+AdjustSync::GetSyncChangeTextGlobal(vector< std::string>& vsAddTo)
 {
 	{
 		float fOld =
@@ -220,7 +220,7 @@ AdjustSync::GetSyncChangeTextGlobal(vector<RString>& vsAddTo)
 }
 
 void
-AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
+AdjustSync::GetSyncChangeTextSong(vector< std::string>& vsAddTo)
 {
 	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {
 		unsigned int iOriginalSize = vsAddTo.size();

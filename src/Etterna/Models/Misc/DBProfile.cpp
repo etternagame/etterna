@@ -598,9 +598,11 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	db->exec("DROP TABLE IF EXISTS defaultmodifiers");
 	db->exec("CREATE TABLE defaultmodifiers (id INTEGER PRIMARY KEY, "
 			 "name TEXT, value TEXT)");
-	FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-	db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it->first +
-			 "\", \"" + it->second + "\")");
+	
+	for(auto& it : profile->m_sDefaultModifiers) {
+		db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it.first +
+				 "\", \"" + it.second + "\")");	
+	}
 
 	db->exec("DROP TABLE IF EXISTS playerskillsets");
 	db->exec("CREATE TABLE playerskillsets (id INTEGER PRIMARY KEY, "

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "ModIcon.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -22,7 +22,7 @@ ModIcon::ModIcon(const ModIcon& cpy)
 }
 
 void
-ModIcon::Load(const RString& sMetricsGroup)
+ModIcon::Load(const std::string& sMetricsGroup)
 {
 	m_sprFilled.Load(THEME->GetPathG(sMetricsGroup, "Filled"));
 	m_sprFilled->SetName("Filled");
@@ -49,15 +49,15 @@ ModIcon::Load(const RString& sMetricsGroup)
 }
 
 void
-ModIcon::Set(const RString& _sText)
+ModIcon::Set(const std::string& _sText)
 {
-	RString sText = _sText;
+	std::string sText = _sText;
 
 	for (unsigned i = 0; i < m_vStopWords.size(); i++)
-		if (sText.EqualsNoCase(m_vStopWords[i]))
+		if (EqualsNoCaseLUL(sText, m_vStopWords[i]))
 			sText = "";
 
-	sText.Replace(" ", "\n");
+	s_replace(sText, (' '), '\n');
 
 	bool bVacant = (sText == "");
 	m_sprFilled->SetVisible(!bVacant);

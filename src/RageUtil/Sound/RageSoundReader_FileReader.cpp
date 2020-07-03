@@ -14,8 +14,8 @@
 
 RageSoundReader_FileReader*
 RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
-										RString& error,
-										const RString& format,
+										std::string& error,
+										const std::string& format,
 										bool& bKeepTrying)
 {
 	RageSoundReader_FileReader* Sample = NULL;
@@ -43,7 +43,7 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 	if (ret == OPEN_OK)
 		return Sample;
 
-	RString err = Sample->GetError();
+	std::string err = Sample->GetError();
 	delete Sample;
 
 	LOG->Trace("Format %s failed: %s", format.c_str(), err.c_str());
@@ -90,8 +90,8 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 #include "RageUtil/File/RageFileDriverMemory.h"
 
 RageSoundReader_FileReader*
-RageSoundReader_FileReader::OpenFile(const RString& filename,
-									 RString& error,
+RageSoundReader_FileReader::OpenFile(const std::string& filename,
+									 std::string& error,
 									 bool* pPrebuffer)
 {
 	HiddenPtr<RageFileBasic> pFile;
@@ -121,7 +121,7 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 			*pPrebuffer = false;
 		}
 	}
-	set<RString> FileTypes;
+	set<std::string> FileTypes;
 	vector<std::string> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (vector<std::string>::const_iterator curr = sound_exts.begin();
@@ -130,7 +130,7 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 		FileTypes.insert(*curr);
 	}
 
-	RString format = GetExtension(filename);
+	std::string format = GetExtension(filename);
 	format.MakeLower();
 
 	error = "";
@@ -146,7 +146,7 @@ RageSoundReader_FileReader::OpenFile(const RString& filename,
 		FileTypes.erase(format);
 	}
 
-	for (set<RString>::iterator it = FileTypes.begin();
+	for (set<std::string>::iterator it = FileTypes.begin();
 		 bKeepTrying && it != FileTypes.end();
 		 ++it) {
 		RageSoundReader_FileReader* NewSample =

@@ -5,7 +5,6 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h" // for sending SM_PlayMusicSample
 #include "Etterna/Singletons/ThemeManager.h"
@@ -250,7 +249,7 @@ WheelBase::Select() // return true if this selection can end the screen
 			m_LastSelection = m_CurWheelItemData[m_iSelection];
 			return true;
 		case WheelItemDataType_Section: {
-			RString sThisItemSectionName =
+			std::string sThisItemSectionName =
 			  m_CurWheelItemData[m_iSelection]->m_sText;
 			if (m_sExpandedSectionName ==
 				sThisItemSectionName) // already expanded
@@ -270,7 +269,7 @@ WheelBase::Select() // return true if this selection can end the screen
 	}
 }
 
-RString
+std::string
 WheelBase::GetCurrentGroup()
 {
 	// current hovering a group

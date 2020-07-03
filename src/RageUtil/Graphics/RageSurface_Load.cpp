@@ -22,7 +22,7 @@ RageSurface_stb_Load(const std::string& sPath,
 	}
 
 	int x, y, n;
-	unsigned char* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
+	unsigned char* doot = stbi_load(f.GetPath().c_str(), &x, &y, &n, 4);
 	if (doot == nullptr) {
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}

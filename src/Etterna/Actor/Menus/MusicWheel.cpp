@@ -30,23 +30,23 @@
 #define CUSTOM_ITEM_WHEEL_TEXT(s)                                              \
 	THEME->GetString("MusicWheel", ssprintf("CustomItem%sText", (s).c_str()));
 
-static RString
+static std::string
 SECTION_COLORS_NAME(size_t i)
 {
 	return ssprintf("SectionColor%d", static_cast<int>(i + 1));
 }
-static RString
-CHOICE_NAME(RString s)
+static std::string
+CHOICE_NAME(std::string s)
 {
 	return ssprintf("Choice%s", s.c_str());
 }
-static RString
-CUSTOM_WHEEL_ITEM_NAME(RString s)
+static std::string
+CUSTOM_WHEEL_ITEM_NAME(std::string s)
 {
 	return ssprintf("CustomWheelItem%s", s.c_str());
 }
-static RString
-CUSTOM_WHEEL_ITEM_COLOR(RString s)
+static std::string
+CUSTOM_WHEEL_ITEM_COLOR(std::string s)
 {
 	return ssprintf("%sColor", s.c_str());
 }
@@ -83,13 +83,13 @@ MusicWheel::Load(const string& sType)
 	HIDE_INACTIVE_SECTIONS.Load(sType, "OnlyShowActiveSection");
 	HIDE_ACTIVE_SECTION_TITLE.Load(sType, "HideActiveSectionTitle");
 	REMIND_WHEEL_POSITIONS.Load(sType, "RemindWheelPositions");
-	vector<RString> vsModeChoiceNames;
+	vector<std::string> vsModeChoiceNames;
 	split(MODE_MENU_CHOICE_NAMES, ",", vsModeChoiceNames);
 	CHOICE.Load(sType, CHOICE_NAME, vsModeChoiceNames);
 	SECTION_COLORS.Load(sType, SECTION_COLORS_NAME, NUM_SECTION_COLORS);
 
 	CUSTOM_WHEEL_ITEM_NAMES.Load(sType, "CustomWheelItemNames");
-	vector<RString> vsCustomItemNames;
+	vector<std::string> vsCustomItemNames;
 	split(CUSTOM_WHEEL_ITEM_NAMES, ",", vsCustomItemNames);
 	CUSTOM_CHOICES.Load(sType, CUSTOM_WHEEL_ITEM_NAME, vsCustomItemNames);
 	CUSTOM_CHOICE_COLORS.Load(
@@ -118,7 +118,7 @@ void
 MusicWheel::BeginScreen()
 {
 	RageTimer timer;
-	RString times;
+	std::string times;
 	FOREACH_ENUM(SortOrder, so)
 	{
 		if (m_WheelItemDatasStatus[so] != INVALID) {
@@ -250,7 +250,7 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 		}
 		Song* pSong = GAMESTATE->m_pCurSong;
 		if (pSong != nullptr) {
-			RString curSongTitle = pSong->GetDisplayMainTitle();
+			std::string curSongTitle = pSong->GetDisplayMainTitle();
 			if (GetSelectedSection() != NULL && curSongTitle != prevSongTitle) {
 				prevSongTitle = curSongTitle;
 				SelectSongAfterSearch();
@@ -299,7 +299,7 @@ MusicWheel::SelectSongOrCourse()
 }
 
 bool
-MusicWheel::SelectSection(const RString& SectionName)
+MusicWheel::SelectSection(const std::string& SectionName)
 {
 	for (unsigned int i = 0; i < m_CurWheelItemData.size(); ++i) {
 		if (m_CurWheelItemData[i]->m_sText == SectionName) {
@@ -701,9 +701,9 @@ MusicWheel::FilterByStepKeys(vector<Song*>& inv)
 bool
 MusicWheel::SearchGroupNames(const std::string& findme)
 {
-	const vector<RString>& grps = SONGMAN->GetSongGroupNames();
+	const vector<std::string>& grps = SONGMAN->GetSongGroupNames();
 	for (size_t i = 0; i < grps.size(); ++i) {
-		string lc = RString(grps[i]).MakeLower();
+		string lc = std::string(grps[i]).MakeLower();
 		size_t droop = lc.find(findme);
 		if (droop != lc.npos) {
 			groupnamesearchmatch = grps[i];
@@ -751,10 +751,10 @@ MusicWheel::BuildWheelItemDatas(
   const std::string& findme)
 {
 
-	map<RString, Commands> commanDZ;
+	map<std::string, Commands> commanDZ;
 	if (so == SORT_MODE_MENU) {
 		arrayWheelItemDatas.clear(); // clear out the previous wheel items
-		vector<RString> vsNames;
+		vector<std::string> vsNames;
 		split(MODE_MENU_CHOICE_NAMES, ",", vsNames);
 		for (unsigned i = 0; i < vsNames.size(); ++i) {
 			MusicWheelItemData wid(
@@ -936,12 +936,12 @@ MusicWheel::BuildWheelItemDatas(
 
 		if (so != SORT_GROUP) {
 			// the old code, to unbreak title sort etc -mina
-			RString sLastSection = "";
+			std::string sLastSection = "";
 			int iSectionColorIndex = 0;
 			for (unsigned i = 0; i < arraySongs.size(); i++) {
 				Song* pSong = arraySongs[i];
 				if (bUseSections) {
-					RString sThisSection =
+					std::string sThisSection =
 					  SongUtil::GetSectionNameFromSongAndSort(pSong, so);
 
 					if (sThisSection != sLastSection) {
@@ -982,7 +982,7 @@ MusicWheel::BuildWheelItemDatas(
 		} else {
 
 			// forces sections for now because who doesnt use sections wtf -mina
-			RString sLastSection = "";
+			std::string sLastSection = "";
 			int iSectionColorIndex = 0;
 
 			set<Song*> hurp;
@@ -993,7 +993,7 @@ MusicWheel::BuildWheelItemDatas(
 
 			map<string, string> shitterstrats;
 			for (auto& n : groups) {
-				shitterstrats[Rage::make_lower(n.first)] = n.first;
+				shitterstrats[make_lower(n.first)] = n.first;
 				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
 			}
 
@@ -1406,7 +1406,7 @@ MusicWheel::Select() // return true if this selection ends the screen
 }
 
 void
-MusicWheel::SetOpenSection(const RString& group)
+MusicWheel::SetOpenSection(const std::string& group)
 {
 	// LOG->Trace( "SetOpenSection %s", group.c_str() );
 	m_sExpandedSectionName = group;
@@ -1476,7 +1476,7 @@ MusicWheel::SetOpenSection(const RString& group)
 }
 
 // sm-ssc additions: jump to group
-RString
+std::string
 MusicWheel::JumpToNextGroup()
 {
 	// Thanks to Juanelote for this logic:
@@ -1518,7 +1518,7 @@ MusicWheel::JumpToNextGroup()
 	return "";
 }
 
-RString
+std::string
 MusicWheel::JumpToPrevGroup()
 {
 	if (HIDE_INACTIVE_SECTIONS) {
@@ -1624,7 +1624,7 @@ MusicWheel::GetPreferredSelectionForRandomOrPortal()
 		vDifficultiesToRequire.emplace_back(GAMESTATE->m_PreferredDifficulty);
 	}
 
-	RString sPreferredGroup = m_sExpandedSectionName;
+	std::string sPreferredGroup = m_sExpandedSectionName;
 	vector<MusicWheelItemData*>& wid =
 	  getWheelItemsData(GAMESTATE->m_SortOrder);
 

@@ -567,11 +567,11 @@ BitmapText::SetTextInternal()
 		/* "...I can add Japanese wrapping, at least. We could handle hyphens
 		 * and soft hyphens and pretty easily, too." -glenn */
 		// TODO: Move this wrapping logic into Font.
-		vector<RString> asLines;
+		vector<std::string> asLines;
 		split(m_sText, "\n", asLines, false);
 
 		for (unsigned line = 0; line < asLines.size(); ++line) {
-			vector<RString> asWords;
+			vector<std::string> asWords;
 			split(asLines[line], " ", asWords);
 
 			RString sCurLine;

@@ -36,7 +36,7 @@ class MusicWheel : public WheelBase
 		return GetCurWheelItemData(m_iSelection)->m_Type;
 	}
 	Song* GetSelectedSong();
-	RString GetSelectedSection()
+	std::string GetSelectedSection()
 	{
 		return GetCurWheelItemData(m_iSelection)->m_sText;
 	}
@@ -44,14 +44,14 @@ class MusicWheel : public WheelBase
 	Song* GetPreferredSelectionForRandomOrPortal();
 
 	bool SelectSong(const Song* p);
-	bool SelectSection(const RString& SectionName);
-	void SetOpenSection(const RString& group) override;
+	bool SelectSection(const std::string& SectionName);
+	void SetOpenSection(const std::string& group) override;
 	void ChangeMusic(int dist) override; /* +1 or -1 */ // CHECK THIS
 	void FinishChangingSorts();
 	void PlayerJoined();
 	// sm-ssc additions
-	RString JumpToNextGroup();
-	RString JumpToPrevGroup();
+	std::string JumpToNextGroup();
+	std::string JumpToPrevGroup();
 	const MusicWheelItemData* GetCurWheelItemData(int i)
 	{
 		return static_cast<const MusicWheelItemData*>(m_CurWheelItemData[i]);
@@ -64,7 +64,7 @@ class MusicWheel : public WheelBase
 	bool packlistFiltering{ false };
 
 	vector<Song*> allSongsFiltered;
-	map<RString, vector<Song*>> allSongsByGroupFiltered;
+	map<std::string, vector<Song*>> allSongsByGroupFiltered;
 	bool SelectSongOrCourse();
 	void SelectSongAfterSearch();
 
@@ -82,8 +82,8 @@ class MusicWheel : public WheelBase
 	void FilterBySearch(vector<Song*>& inv, std::string findme_);
 	bool SearchGroupNames(const std::string& findme);
 	void FilterBySkillsets(vector<Song*>& inv);
-	RString lastvalidsearch;
-	RString groupnamesearchmatch;
+	std::string lastvalidsearch;
+	std::string groupnamesearchmatch;
 
 	void UpdateSwitch() override;
 
@@ -92,7 +92,7 @@ class MusicWheel : public WheelBase
 							 bool searching,
 							 const std::string& findme);
 
-	RString m_sLastModeMenuItem;
+	std::string m_sLastModeMenuItem;
 	RageSound m_soundChangeSort;
 
 	bool WheelItemIsVisible(int n);
@@ -105,8 +105,8 @@ class MusicWheel : public WheelBase
 	ThemeMetric<bool> RANDOM_PICKS_LOCKED_SONGS;
 	ThemeMetric<int> MOST_PLAYED_SONGS_TO_SHOW;
 	ThemeMetric<int> RECENT_SONGS_TO_SHOW;
-	ThemeMetric<RString> MODE_MENU_CHOICE_NAMES;
-	ThemeMetricMap<RString> CHOICE;
+	ThemeMetric<std::string> MODE_MENU_CHOICE_NAMES;
+	ThemeMetricMap<std::string> CHOICE;
 	ThemeMetric1D<RageColor> SECTION_COLORS;
 	ThemeMetric<LuaReference> SORT_ORDERS;
 	ThemeMetric<bool> SHOW_EASY_FLAG;
@@ -120,8 +120,8 @@ class MusicWheel : public WheelBase
 	ThemeMetric<RageColor> PORTAL_COLOR;
 	ThemeMetric<RageColor> EMPTY_COLOR;
 	vector<int> m_viWheelPositions;
-	ThemeMetric<RString> CUSTOM_WHEEL_ITEM_NAMES;
-	ThemeMetricMap<RString> CUSTOM_CHOICES;
+	ThemeMetric<std::string> CUSTOM_WHEEL_ITEM_NAMES;
+	ThemeMetricMap<std::string> CUSTOM_CHOICES;
 	ThemeMetricMap<RageColor> CUSTOM_CHOICE_COLORS;
 
   private:
@@ -142,7 +142,7 @@ class MusicWheel : public WheelBase
 	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 							  vector<MusicWheelItemData*>& aFilteredData,
 							  SortOrder so);
-	RString prevSongTitle;
+	std::string prevSongTitle;
 };
 
 #endif

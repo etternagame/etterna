@@ -107,9 +107,9 @@ enum TapNoteType
 	NUM_TapNoteType,
 	TapNoteType_Invalid
 };
-const RString&
+const std::string&
 TapNoteTypeToString(TapNoteType tnt);
-const RString&
+const std::string&
 TapNoteTypeToLocalizedString(TapNoteType tnt);
 LuaDeclareType(TapNoteType);
 
@@ -123,9 +123,9 @@ enum TapNoteSubType
 	NUM_TapNoteSubType,
 	TapNoteSubType_Invalid
 };
-const RString&
+const std::string&
 TapNoteSubTypeToString(TapNoteSubType tnst);
-const RString&
+const std::string&
 TapNoteSubTypeToLocalizedString(TapNoteSubType tnst);
 LuaDeclareType(TapNoteSubType);
 
@@ -138,9 +138,9 @@ enum TapNoteSource
 	NUM_TapNoteSource,
 	TapNoteSource_Invalid
 };
-const RString&
+const std::string&
 TapNoteSourceToString(TapNoteSource tns);
-const RString&
+const std::string&
 TapNoteSourceToLocalizedString(TapNoteSource tns);
 LuaDeclareType(TapNoteSource);
 
@@ -314,9 +314,9 @@ enum NoteType
 	NUM_NoteType,
 	NoteType_Invalid
 };
-const RString&
+const std::string&
 NoteTypeToString(NoteType nt);
-const RString&
+const std::string&
 NoteTypeToLocalizedString(NoteType nt);
 LuaDeclareType(NoteType);
 float

@@ -11,12 +11,12 @@ using MenuRowUpdateEnabled = bool (*)();
 struct MenuRowDef
 {
 	int iRowCode{ 0 };
-	RString sName;
+	std::string sName;
 	bool bEnabled{ false };
 	MenuRowUpdateEnabled pfnEnabled{}; // if ! NULL, used instead of bEnabled
 
 	int iDefaultChoice{ 0 };
-	vector<RString> choices;
+	vector<std::string> choices;
 	bool bThemeTitle{ false };
 	bool bThemeItems{ false };
 
@@ -24,7 +24,7 @@ struct MenuRowDef
 	  : sName("")
 	  , choices(){};
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   MenuRowUpdateEnabled pe,
 
 			   bool bTT,
@@ -101,13 +101,13 @@ struct MenuRowDef
 	}
 
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   bool e,
 
 			   bool bTT,
 			   bool bTI,
 			   int d,
-			   vector<RString>& options)
+			   vector<std::string>& options)
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(e)
@@ -118,7 +118,7 @@ struct MenuRowDef
 	  , bThemeTitle(bTT)
 	  , bThemeItems(bTI)
 	{
-		FOREACH(RString, options, str)
+		FOREACH(std::string, options, str)
 		{
 			if (*str != "")
 				choices.push_back(*str);
@@ -126,7 +126,7 @@ struct MenuRowDef
 	}
 
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   bool e,
 
 			   bool bTT,
@@ -203,7 +203,7 @@ struct MenuRowDef
 	}
 
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   bool e,
 
 			   bool bTT,
@@ -226,16 +226,16 @@ struct MenuRowDef
 		}
 	}
 
-	void SetOneUnthemedChoice(const RString& sChoice)
+	void SetOneUnthemedChoice(const std::string& sChoice)
 	{
 		choices.resize(1);
 		choices[0] = "|" + sChoice;
 	}
 
-	bool SetDefaultChoiceIfPresent(RString sChoice)
+	bool SetDefaultChoiceIfPresent(std::string sChoice)
 	{
 		iDefaultChoice = 0;
-		FOREACH_CONST(RString, choices, s)
+		FOREACH_CONST(std::string, choices, s)
 		{
 			if (sChoice == *s) {
 				iDefaultChoice = s - choices.begin();
@@ -248,10 +248,10 @@ struct MenuRowDef
 
 struct MenuDef
 {
-	RString sClassName;
+	std::string sClassName;
 	vector<MenuRowDef> rows;
 
-	MenuDef(RString c,
+	MenuDef(std::string c,
 			MenuRowDef r0 = MenuRowDef(),
 			MenuRowDef r1 = MenuRowDef(),
 			MenuRowDef r2 = MenuRowDef(),

@@ -1,4 +1,4 @@
-﻿/** @brief ActorMultiVertex - An actor with mutiple vertices. Can be used to
+/** @brief ActorMultiVertex - An actor with mutiple vertices. Can be used to
  * create shapes that quads can't. */
 
 #ifndef ACTOR_MULTI_VERTEX_H
@@ -22,9 +22,9 @@ enum DrawMode
 	DrawMode_Invalid
 };
 
-const RString&
+const std::string&
 DrawModeToString(DrawMode cat);
-const RString&
+const std::string&
 DrawModeToLocalizedString(DrawMode cat);
 LuaDeclareType(DrawMode);
 

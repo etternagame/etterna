@@ -81,7 +81,7 @@ void
 ScreenSyncOverlay::UpdateText(bool forcedChange)
 {
 	// Update Status
-	vector<RString> vs;
+	vector< std::string> vs;
 
 	PlayerController pc = GamePreferences::m_AutoPlay.Get();
 
@@ -132,7 +132,7 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 	// Update SyncInfo
 	bool visible =
 	  GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType != AutosyncType_Off;
-	RString s;
+	 std::string s;
 	if (visible) {
 		float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 		float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;

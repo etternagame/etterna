@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "ModelTypes.h"
@@ -44,7 +44,7 @@ AnimatedTexture::Load(const RString& sTexOrIniPath)
 	else
 		m_BlendMode = BLEND_NORMAL;
 
-	if (GetExtension(sTexOrIniPath).CompareNoCase("ini") == 0) {
+	if (CompareNoCaseLUL(GetExtension(sTexOrIniPath), "ini") == 0) {
 		IniFile ini;
 		if (!ini.ReadFile(sTexOrIniPath))
 			RageException::Throw("Error reading \"%s\": %s",
