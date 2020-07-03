@@ -53,11 +53,11 @@ RageVec3AddToBounds(const RageVector3& p, RageVector3& mins, RageVector3& maxs)
 }
 
 void
-RageVec2Normalize(RageVector2* pOut, RageVector2* pV)
+RageVec2Normalize(RageVector2* pOut, const RageVector2* pV)
 {
 #ifdef _WIN32
 	D3DXVec2Normalize(reinterpret_cast<D3DXVECTOR2*>(pOut),
-					  reinterpret_cast<D3DXVECTOR2*>(pV));
+					  (D3DXVECTOR2*)pV);
 #else
 	float scale = 1.0f / sqrtf(pV->x * pV->x + pV->y * pV->y);
 	pOut->x = pV->x * scale;
@@ -66,11 +66,11 @@ RageVec2Normalize(RageVector2* pOut, RageVector2* pV)
 }
 
 void
-RageVec3Normalize(RageVector3* pOut, RageVector3* pV)
+RageVec3Normalize(RageVector3* pOut, const RageVector3* pV)
 {
 #ifdef _WIN32
 	D3DXVec3Normalize(reinterpret_cast<D3DXVECTOR3*>(pOut),
-					  reinterpret_cast<D3DXVECTOR3*>(pV));
+					  (D3DXVECTOR3*)pV);
 #else
 	float scale = 1.0f / sqrtf(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z);
 	pOut->x = pV->x * scale;
@@ -90,12 +90,12 @@ VectorFloatNormalize(vector<float>& v)
 }
 
 void
-RageVec3Cross(RageVector3* ret, RageVector3* a, RageVector3* b)
+RageVec3Cross(RageVector3* ret, const RageVector3* a, const RageVector3* b)
 {
 #ifdef _WIN32
 	D3DXVec3Cross(reinterpret_cast<D3DXVECTOR3*>(ret),
-				  reinterpret_cast<D3DXVECTOR3*>(a),
-				  reinterpret_cast<D3DXVECTOR3*>(b));
+				  (D3DXVECTOR3*)a,
+				  (D3DXVECTOR3*)b);
 #else
 	ret->x = (a->y * b->z) - (a->z * b->y);
 	ret->y = ((a->x * b->z) - (a->z * b->x));
@@ -104,12 +104,12 @@ RageVec3Cross(RageVector3* ret, RageVector3* a, RageVector3* b)
 }
 
 void
-RageVec3TransformCoord(RageVector3* pOut, RageVector3* pV, RageMatrix* pM)
+RageVec3TransformCoord(RageVector3* pOut, const RageVector3* pV, const RageMatrix* pM)
 {
 #ifdef _WIN32
 	D3DXVec3TransformCoord(reinterpret_cast<D3DXVECTOR3*>(pOut),
-						   reinterpret_cast<D3DXVECTOR3*>(pV),
-						   reinterpret_cast<D3DXMATRIX*>(pM));
+						   (D3DXVECTOR3*)pV,
+						   (D3DXMATRIX*)pM);
 #else
 	RageVector4 temp(pV->x, pV->y, pV->z, 1.0f); // translate
 	RageVec4TransformCoord(&temp, &temp, pM);
@@ -118,12 +118,12 @@ RageVec3TransformCoord(RageVector3* pOut, RageVector3* pV, RageMatrix* pM)
 }
 
 void
-RageVec3TransformNormal(RageVector3* pOut, RageVector3* pV, RageMatrix* pM)
+RageVec3TransformNormal(RageVector3* pOut, const RageVector3* pV, const RageMatrix* pM)
 {
 #ifdef _WIN32
 	D3DXVec3TransformNormal(reinterpret_cast<D3DXVECTOR3*>(pOut),
-							reinterpret_cast<D3DXVECTOR3*>(pV),
-							reinterpret_cast<D3DXMATRIX*>(pM));
+							(D3DXVECTOR3*)pV,
+							(D3DXMATRIX*)pM);
 #else
 	RageVector4 temp(pV->x, pV->y, pV->z, 0.0f); // don't translate
 	RageVec4TransformCoord(&temp, &temp, pM);
@@ -237,12 +237,12 @@ RageMatrix::GetTranspose() const
 }
 
 void
-RageMatrixMultiply(RageMatrix* pOut, RageMatrix* pA, RageMatrix* pB)
+RageMatrixMultiply(RageMatrix* pOut, const RageMatrix* pA, const RageMatrix* pB)
 {
 #ifdef _WIN32
 	D3DXMatrixMultiply(reinterpret_cast<D3DXMATRIX*>(pOut),
-					   reinterpret_cast<D3DXMATRIX*>(pB),
-					   reinterpret_cast<D3DXMATRIX*>(pA));
+					   (D3DXMATRIX*)pB,
+					   (D3DXMATRIX*)pA);
 #else
 	const RageMatrix& a = *pA;
 	const RageMatrix& b = *pB;
