@@ -190,28 +190,28 @@ class NoteData
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a tap, false otherwise. */
-	bool IsTap(const TapNote& tn, int row) const;
+	static bool IsTap(const TapNote& tn, int row);
 
 	/**
 	 * @brief Determine if the note in question should be counted as a mine.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a mine, false otherwise. */
-	bool IsMine(const TapNote& tn, int row) const;
+	static bool IsMine(const TapNote& tn, int row);
 
 	/**
 	 * @brief Determine if the note in question should be counted as a lift.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a lift, false otherwise. */
-	bool IsLift(const TapNote& tn, int row) const;
+	static bool IsLift(const TapNote& tn, int row);
 
 	/**
 	 * @brief Determine if the note in question should be counted as a fake.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a fake, false otherwise. */
-	bool IsFake(const TapNote& tn, int row) const;
+	static bool IsFake(const TapNote& tn, int row);
 
 	pair<int, int> GetNumRowsWithSimultaneousTapsTwoPlayer(
 	  int minTaps = 2,
@@ -518,6 +518,6 @@ class NoteData
 
 	// XML
 	XNode* CreateNode() const;
-	void LoadFromNode(const XNode* pNode);
+	static void LoadFromNode(const XNode* pNode);
 };
 #endif
