@@ -16,7 +16,6 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Models/NoteData/NoteData.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Style.h"
 #include <cfloat>

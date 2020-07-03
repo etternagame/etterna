@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "InputHandler_DirectInputHelper.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 #include "archutils/Win32/ErrorStrings.h"

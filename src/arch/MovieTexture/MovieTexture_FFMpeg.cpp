@@ -7,8 +7,6 @@
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Graphics/RageSurface.h"
 
-#include <cerrno>
-
 static void
 FixLilEndian()
 {

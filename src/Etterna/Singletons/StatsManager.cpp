@@ -3,17 +3,11 @@
 #include "Etterna/Models/Misc/Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
-#include "PrefsManager.h"
-#include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
-#include "RageUtil/File/RageFileManager.h"
 #include "ScoreManager.h"
 #include "StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/StepsAndStyles/StyleUtil.h"
-#include "Etterna/FileTypes/XmlFile.h"
-#include "Etterna/FileTypes/XmlFileUtil.h"
 
 StatsManager* STATSMAN =
   NULL; // global object accessible from anywhere in the program

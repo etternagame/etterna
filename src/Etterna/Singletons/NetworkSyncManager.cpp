@@ -3,30 +3,21 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
-#include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
-#include "Etterna/Actor/Menus/RoomInfoDisplay.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include <iostream>
 #include <cerrno>
 #include <chrono>
 #include <cmath>
@@ -1828,7 +1819,8 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 					.GetString()
 					.c_str());
 	writer.Key("rate");
-	writer.Int(static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	writer.Int(static_cast<int>(
+	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	writer.EndObject();
 	writer.EndObject();
 

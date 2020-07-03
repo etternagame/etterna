@@ -6,19 +6,15 @@
 #include "archutils/win32/WindowsResources.h"
 #include "archutils/win32/WindowIcon.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include <windows.h>
 #include <Commdlg.h>
 #include <tchar.h>
 #include "Dwmapi.h"
-#include "CommCtrl.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
-#include "RageUtil/Misc/RageLog.h"
 #include <wchar.h>
 #include "Etterna/Globals/ProductInfo.h"
-#include "Etterna/Models/Misc/LocalizedString.h"
 
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
 #pragma comment(lib, "Dwmapi.lib")

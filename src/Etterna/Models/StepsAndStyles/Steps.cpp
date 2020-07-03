@@ -24,7 +24,6 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSMA.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
-#include "Etterna/Models/NoteWriters/NotesWriterETT.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -32,6 +31,7 @@
 #include <algorithm>
 #include <thread>
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include "Etterna/Globals/SoloCalc.h"
 
 /* register DisplayBPM with StringConversion */
 #include "Etterna/Models/Misc/EnumHelper.h"

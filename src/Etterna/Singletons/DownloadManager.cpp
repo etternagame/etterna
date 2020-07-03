@@ -9,28 +9,22 @@
 #include "ScoreManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
-#include "RageUtil/File/RageFileManager.h"
 #include "ProfileManager.h"
 #include "SongManager.h"
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
-#include "CommandLineActions.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "RageUtil/Misc/RageString.h"
-#include <Etterna/Singletons/FilterManager.h>
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Misc/Grade.h"
-#include "SongManager.h" // i didn't want to do this but i also didn't want to figure how not to have to so... -mina
-
 #include "curl/curl.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
 using namespace rapidjson;
-#include <iostream>
 #include <unordered_set>
 #ifdef _WIN32
 #include <intrin.h>
@@ -539,7 +533,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mHTTPHandle, &HTTPRunning);
 			break;
@@ -571,7 +565,8 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 				break;
 			}
 		}
-		// Delete this here instead of within the loop to avoid iterator invalidation
+		// Delete this here instead of within the loop to avoid iterator
+		// invalidation
 		if (idx_to_delete != -1)
 			HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 	}
@@ -634,7 +629,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		case -1:
 			error = "select error" + to_string(mc);
 			break;
-		case 0:  /* timeout */
+		case 0:	 /* timeout */
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
@@ -2125,10 +2120,10 @@ DownloadManager::OnLogin()
 }
 
 void
-DownloadManager::StartSession(string user,
-							  string pass,
-							  function<void(bool loggedIn)> callback =
-								[](bool) { return; })
+DownloadManager::StartSession(
+  string user,
+  string pass,
+  function<void(bool loggedIn)> callback = [](bool) { return; })
 {
 	string url = serverURL.Get() + "/login";
 	if (loggingIn || user == "") {

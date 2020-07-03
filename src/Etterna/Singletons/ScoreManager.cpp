@@ -12,6 +12,7 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include <cstdint>
 #include <numeric>
+#include "Etterna/Globals/SoloCalc.h"
 
 ScoreManager* SCOREMAN = nullptr;
 
