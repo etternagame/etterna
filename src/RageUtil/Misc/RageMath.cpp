@@ -56,7 +56,7 @@ void
 RageVec2Normalize(RageVector2* pOut, const RageVector2* pV)
 {
 #ifdef _WIN32
-	D3DXVec2Normalize((D3DXVECTOR2*)pOut, (D3DXVECTOR2*)pV);
+	D3DXVec2Normalize(reinterpret_cast<D3DXVECTOR2*>(pOut), (D3DXVECTOR2*)pV);
 #else
 	float scale = 1.0f / sqrtf(pV->x * pV->x + pV->y * pV->y);
 	pOut->x = pV->x * scale;
@@ -68,7 +68,7 @@ void
 RageVec3Normalize(RageVector3* pOut, const RageVector3* pV)
 {
 #ifdef _WIN32
-	D3DXVec3Normalize((D3DXVECTOR3*)pOut, (D3DXVECTOR3*)pV);
+	D3DXVec3Normalize(reinterpret_cast<D3DXVECTOR3*>(pOut), (D3DXVECTOR3*)pV);
 #else
 	float scale = 1.0f / sqrtf(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z);
 	pOut->x = pV->x * scale;
@@ -91,7 +91,7 @@ void
 RageVec3Cross(RageVector3* ret, RageVector3 const* a, RageVector3 const* b)
 {
 #ifdef _WIN32
-	D3DXVec3Cross((D3DXVECTOR3*)ret, (D3DXVECTOR3*)a, (D3DXVECTOR3*)b);
+	D3DXVec3Cross(reinterpret_cast<D3DXVECTOR3*>(ret), (D3DXVECTOR3*)a, (D3DXVECTOR3*)b);
 #else
 	ret->x = (a->y * b->z) - (a->z * b->y);
 	ret->y = ((a->x * b->z) - (a->z * b->x));
@@ -101,12 +101,14 @@ RageVec3Cross(RageVector3* ret, RageVector3 const* a, RageVector3 const* b)
 
 void
 RageVec3TransformCoord(RageVector3* pOut,
-					   const RageVector3* pV,
-					   const RageMatrix* pM)
+                       const RageVector3* pV,
+                       const RageMatrix* pM)
 {
 #ifdef _WIN32
 	D3DXVec3TransformCoord(
-	  (D3DXVECTOR3*)pOut, (D3DXVECTOR3*)pV, (D3DXMATRIX*)pM);
+		reinterpret_cast<D3DXVECTOR3*>(pOut),
+		(D3DXVECTOR3*)pV,
+		(D3DXMATRIX*)pM);
 #else
 	RageVector4 temp(pV->x, pV->y, pV->z, 1.0f); // translate
 	RageVec4TransformCoord(&temp, &temp, pM);
@@ -116,12 +118,14 @@ RageVec3TransformCoord(RageVector3* pOut,
 
 void
 RageVec3TransformNormal(RageVector3* pOut,
-						const RageVector3* pV,
-						const RageMatrix* pM)
+                        const RageVector3* pV,
+                        const RageMatrix* pM)
 {
 #ifdef _WIN32
 	D3DXVec3TransformNormal(
-	  (D3DXVECTOR3*)pOut, (D3DXVECTOR3*)pV, (D3DXMATRIX*)pM);
+		reinterpret_cast<D3DXVECTOR3*>(pOut),
+		(D3DXVECTOR3*)pV,
+		(D3DXMATRIX*)pM);
 #else
 	RageVector4 temp(pV->x, pV->y, pV->z, 0.0f); // don't translate
 	RageVec4TransformCoord(&temp, &temp, pM);
@@ -148,33 +152,33 @@ RageVec3TransformNormal(RageVector3* pOut,
 
 void
 RageVec4TransformCoord(RageVector4* pOut,
-					   const RageVector4* pV,
-					   const RageMatrix* pM)
+                       const RageVector4* pV,
+                       const RageMatrix* pM)
 {
 	const RageMatrix& a = *pM;
 	const RageVector4& v = *pV;
 	*pOut = RageVector4(a.m00 * v.x + a.m10 * v.y + a.m20 * v.z + a.m30 * v.w,
-						a.m01 * v.x + a.m11 * v.y + a.m21 * v.z + a.m31 * v.w,
-						a.m02 * v.x + a.m12 * v.y + a.m22 * v.z + a.m32 * v.w,
-						a.m03 * v.x + a.m13 * v.y + a.m23 * v.z + a.m33 * v.w);
+	                    a.m01 * v.x + a.m11 * v.y + a.m21 * v.z + a.m31 * v.w,
+	                    a.m02 * v.x + a.m12 * v.y + a.m22 * v.z + a.m32 * v.w,
+	                    a.m03 * v.x + a.m13 * v.y + a.m23 * v.z + a.m33 * v.w);
 }
 
 RageMatrix::RageMatrix(float v00,
-					   float v01,
-					   float v02,
-					   float v03,
-					   float v10,
-					   float v11,
-					   float v12,
-					   float v13,
-					   float v20,
-					   float v21,
-					   float v22,
-					   float v23,
-					   float v30,
-					   float v31,
-					   float v32,
-					   float v33)
+                       float v01,
+                       float v02,
+                       float v03,
+                       float v10,
+                       float v11,
+                       float v12,
+                       float v13,
+                       float v20,
+                       float v21,
+                       float v22,
+                       float v23,
+                       float v30,
+                       float v31,
+                       float v32,
+                       float v33)
 {
 	m00 = v00;
 	m01 = v01;
@@ -198,7 +202,7 @@ void
 RageMatrixIdentity(RageMatrix* pOut)
 {
 #ifdef _WIN32
-	D3DXMatrixIdentity((D3DXMATRIX*)pOut);
+	D3DXMatrixIdentity(reinterpret_cast<D3DXMATRIX*>(pOut));
 #else
 	static float identity[16] = {
 		1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
@@ -217,28 +221,28 @@ RageMatrix
 RageMatrix::GetTranspose() const
 {
 	return RageMatrix(m00,
-					  m10,
-					  m20,
-					  m30,
-					  m01,
-					  m11,
-					  m21,
-					  m31,
-					  m02,
-					  m12,
-					  m22,
-					  m32,
-					  m03,
-					  m13,
-					  m23,
-					  m33);
+	                  m10,
+	                  m20,
+	                  m30,
+	                  m01,
+	                  m11,
+	                  m21,
+	                  m31,
+	                  m02,
+	                  m12,
+	                  m22,
+	                  m32,
+	                  m03,
+	                  m13,
+	                  m23,
+	                  m33);
 }
 
 void
 RageMatrixMultiply(RageMatrix* pOut, const RageMatrix* pA, const RageMatrix* pB)
 {
 #ifdef _WIN32
-	D3DXMatrixMultiply((D3DXMATRIX*)pOut, (D3DXMATRIX*)pB, (D3DXMATRIX*)pA);
+	D3DXMatrixMultiply(reinterpret_cast<D3DXMATRIX*>(pOut), (D3DXMATRIX*)pB, (D3DXMATRIX*)pA);
 #else
 	const RageMatrix& a = *pA;
 	const RageMatrix& b = *pB;
@@ -268,7 +272,7 @@ void
 RageMatrixTranslation(RageMatrix* pOut, float x, float y, float z)
 {
 #ifdef _WIN32
-	D3DXMatrixTranslation((D3DXMATRIX*)pOut, x, y, z);
+	D3DXMatrixTranslation(reinterpret_cast<D3DXMATRIX*>(pOut), x, y, z);
 #else
 	RageMatrixIdentity(pOut);
 	pOut->m[3][0] = x;
@@ -281,7 +285,7 @@ void
 RageMatrixScaling(RageMatrix* pOut, float x, float y, float z)
 {
 #ifdef _WIN32
-	D3DXMatrixScaling((D3DXMATRIX*)pOut, x, y, z);
+	D3DXMatrixScaling(reinterpret_cast<D3DXMATRIX*>(pOut), x, y, z);
 #else
 	RageMatrixIdentity(pOut);
 	pOut->m[0][0] = x;
@@ -315,12 +319,12 @@ RageMatrixSkewY(RageMatrix* pOut, float fAmount)
  */
 void
 RageMatrixTranslate(RageMatrix* pOut,
-					float fTransX,
-					float fTransY,
-					float fTransZ)
+                    float fTransX,
+                    float fTransY,
+                    float fTransZ)
 {
 #ifdef _WIN32
-	D3DXMatrixTranslation((D3DXMATRIX*)pOut, fTransX, fTransY, fTransZ);
+	D3DXMatrixTranslation(reinterpret_cast<D3DXMATRIX*>(pOut), fTransX, fTransY, fTransZ);
 #else
 	pOut->m00 = 1;
 	pOut->m01 = 0;
@@ -348,7 +352,7 @@ void
 RageMatrixScale(RageMatrix* pOut, float fScaleX, float fScaleY, float fScaleZ)
 {
 #ifdef _WIN32
-	D3DXMatrixScaling((D3DXMATRIX*)pOut, fScaleX, fScaleY, fScaleZ);
+	D3DXMatrixScaling(reinterpret_cast<D3DXMATRIX*>(pOut), fScaleX, fScaleY, fScaleZ);
 #else
 	pOut->m00 = fScaleX;
 	pOut->m01 = 0;
@@ -487,12 +491,14 @@ RageAARotate(RageVector3* inret, RageVector3 const* axis, float angle)
 
 void
 RageQuatMultiply(RageVector4* pOut,
-				 const RageVector4& pA,
-				 const RageVector4& pB)
+                 const RageVector4& pA,
+                 const RageVector4& pB)
 {
 #ifdef _WIN32
 	D3DXQuaternionMultiply(
-	  (D3DXQUATERNION*)pOut, (D3DXQUATERNION*)&pA, (D3DXQUATERNION*)&pB);
+		reinterpret_cast<D3DXQUATERNION*>(pOut),
+		(D3DXQUATERNION*)&pA,
+		(D3DXQUATERNION*)&pB);
 #else
 	RageVector4 out;
 	out.x = pA.w * pB.x + pA.x * pB.w + pA.y * pB.z - pA.z * pB.y;
@@ -625,32 +631,35 @@ RageMatrixFromQuat(RageMatrix* pOut, const RageVector4& q)
 	// careful.  The param order is row-major, which is the
 	// transpose of the order shown in the OpenGL docs.
 	*pOut = RageMatrix(1 - (yy + zz),
-					   xy + wz,
-					   xz - wy,
-					   0,
-					   xy - wz,
-					   1 - (xx + zz),
-					   yz + wx,
-					   0,
-					   xz + wy,
-					   yz - wx,
-					   1 - (xx + yy),
-					   0,
-					   0,
-					   0,
-					   0,
-					   1);
+	                   xy + wz,
+	                   xz - wy,
+	                   0,
+	                   xy - wz,
+	                   1 - (xx + zz),
+	                   yz + wx,
+	                   0,
+	                   xz + wy,
+	                   yz - wx,
+	                   1 - (xx + yy),
+	                   0,
+	                   0,
+	                   0,
+	                   0,
+	                   1);
 }
 
 void
 RageQuatSlerp(RageVector4* pOut,
-			  const RageVector4& from,
-			  const RageVector4& to,
-			  float t)
+              const RageVector4& from,
+              const RageVector4& to,
+              float t)
 {
 #ifdef _WIN32
 	D3DXQuaternionSlerp(
-	  (D3DXQUATERNION*)pOut, (D3DXQUATERNION*)&from, (D3DXQUATERNION*)&to, t);
+		reinterpret_cast<D3DXQUATERNION*>(pOut),
+		(D3DXQUATERNION*)&from,
+		(D3DXQUATERNION*)&to,
+		t);
 #else
 	float to1[4];
 
@@ -695,14 +704,14 @@ RageQuatSlerp(RageVector4* pOut,
 
 RageMatrix
 RageLookAt(float eyex,
-		   float eyey,
-		   float eyez,
-		   float centerx,
-		   float centery,
-		   float centerz,
-		   float upx,
-		   float upy,
-		   float upz)
+           float eyey,
+           float eyez,
+           float centerx,
+           float centery,
+           float centerz,
+           float upx,
+           float upy,
+           float upz)
 {
 	// D3DXMatrixLookAtRH is slower here
 	RageVector3 Z(eyex - centerx, eyey - centery, eyez - centerz);
@@ -711,32 +720,32 @@ RageLookAt(float eyex,
 	RageVector3 Y(upx, upy, upz);
 
 	RageVector3 X(Y[1] * Z[2] - Y[2] * Z[1],
-				  -Y[0] * Z[2] + Y[2] * Z[0],
-				  Y[0] * Z[1] - Y[1] * Z[0]);
+	              -Y[0] * Z[2] + Y[2] * Z[0],
+	              Y[0] * Z[1] - Y[1] * Z[0]);
 
 	Y = RageVector3(Z[1] * X[2] - Z[2] * X[1],
-					-Z[0] * X[2] + Z[2] * X[0],
-					Z[0] * X[1] - Z[1] * X[0]);
+	                -Z[0] * X[2] + Z[2] * X[0],
+	                Z[0] * X[1] - Z[1] * X[0]);
 
 	RageVec3Normalize(&X, &X);
 	RageVec3Normalize(&Y, &Y);
 
 	RageMatrix mat(X[0],
-				   Y[0],
-				   Z[0],
-				   0,
-				   X[1],
-				   Y[1],
-				   Z[1],
-				   0,
-				   X[2],
-				   Y[2],
-				   Z[2],
-				   0,
-				   0,
-				   0,
-				   0,
-				   1);
+	               Y[0],
+	               Z[0],
+	               0,
+	               X[1],
+	               Y[1],
+	               Z[1],
+	               0,
+	               X[2],
+	               Y[2],
+	               Z[2],
+	               0,
+	               0,
+	               0,
+	               0,
+	               1);
 
 	RageMatrix mat2;
 	RageMatrixTranslation(&mat2, -eyex, -eyey, -eyez);
@@ -777,7 +786,7 @@ void
 RageMatrixTranspose(RageMatrix* pOut, const RageMatrix* pIn)
 {
 #ifdef _WIN32
-	D3DXMatrixTranspose((D3DXMATRIX*)pOut, (D3DXMATRIX*)pIn);
+	D3DXMatrixTranspose(reinterpret_cast<D3DXMATRIX*>(pOut), (D3DXMATRIX*)pIn);
 #else
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
@@ -788,8 +797,9 @@ RageMatrixTranspose(RageMatrix* pOut, const RageMatrix* pIn)
 static const unsigned int sine_table_size = 1024;
 static const unsigned int sine_index_mod = sine_table_size * 2;
 static const double sine_table_index_mult =
-  static_cast<double>(sine_index_mod) / (PI * 2);
+	static_cast<double>(sine_index_mod) / (PI * 2);
 static float sine_table[sine_table_size];
+
 struct sine_initter
 {
 	sine_initter()
@@ -800,6 +810,7 @@ struct sine_initter
 		}
 	}
 };
+
 static sine_initter sinner;
 
 float
@@ -865,7 +876,7 @@ void
 RageQuadratic::SetFromCubic(float fX1, float fX2, float fX3, float fX4)
 {
 	m_fA = -1.0f / 6.0f * fX1 + +3.0f / 6.0f * fX2 + -3.0f / 6.0f * fX3 +
-		   1.0f / 6.0f * fX4;
+	       1.0f / 6.0f * fX4;
 	m_fB = 3.0f / 6.0f * fX1 + -6.0f / 6.0f * fX2 + 3.0f / 6.0f * fX3;
 	m_fC = -2.0f / 6.0f * fX1 + -3.0f / 6.0f * fX2 + fX3 + -1.0f / 6.0f * fX4;
 	m_fD = fX2;
@@ -908,13 +919,13 @@ RageBezier2D::EvaluateYFromX(float fX) const
 
 void
 RageBezier2D::SetFromBezier(float fC1X,
-							float fC1Y,
-							float fC2X,
-							float fC2Y,
-							float fC3X,
-							float fC3Y,
-							float fC4X,
-							float fC4Y)
+                            float fC1Y,
+                            float fC2X,
+                            float fC2Y,
+                            float fC3X,
+                            float fC3Y,
+                            float fC4X,
+                            float fC4Y)
 {
 	m_X.SetFromBezier(fC1X, fC2X, fC3X, fC4X);
 	m_Y.SetFromBezier(fC1Y, fC2Y, fC3Y, fC4Y);
@@ -929,6 +940,7 @@ struct LunaRageQuadratic : Luna<RageQuadratic>
 		lua_pushnumber(L, p->Evaluate(FArg(1)));
 		return 1;
 	}
+
 	static int get_bezier(T* p, lua_State* L)
 	{
 		float a, b, c, d;
@@ -939,31 +951,37 @@ struct LunaRageQuadratic : Luna<RageQuadratic>
 		lua_pushnumber(L, d);
 		return 4;
 	}
+
 	static int get_bezier_end(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetBezierEnd());
 		return 1;
 	}
+
 	static int get_bezier_start(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetBezierStart());
 		return 1;
 	}
+
 	static int get_slope(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetSlope(FArg(1)));
 		return 1;
 	}
+
 	static int set_from_bezier(T* p, lua_State* L)
 	{
 		p->SetFromBezier(FArg(1), FArg(2), FArg(3), FArg(4));
 		COMMON_RETURN_SELF;
 	}
+
 	static int set_from_cubic(T* p, lua_State* L)
 	{
 		p->SetFromCubic(FArg(1), FArg(2), FArg(3), FArg(4));
 		COMMON_RETURN_SELF;
 	}
+
 	LunaRageQuadratic()
 	{
 		ADD_METHOD(evaluate);
@@ -975,6 +993,7 @@ struct LunaRageQuadratic : Luna<RageQuadratic>
 		ADD_METHOD(set_from_cubic);
 	}
 };
+
 LUA_REGISTER_CLASS(RageQuadratic);
 
 struct LunaRageBezier2D : Luna<RageBezier2D>
@@ -987,38 +1006,44 @@ struct LunaRageBezier2D : Luna<RageBezier2D>
 		lua_pushnumber(L, y);
 		return 2;
 	}
+
 	static int evaluate_y_from_x(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->EvaluateYFromX(FArg(1)));
 		return 1;
 	}
+
 	static int get_x(T* p, lua_State* L)
 	{
 		p->get_x().PushSelf(L);
 		return 1;
 	}
+
 	static int get_y(T* p, lua_State* L)
 	{
 		p->get_y().PushSelf(L);
 		return 1;
 	}
+
 	static int set_from_bezier(T* p, lua_State* L)
 	{
 		p->SetFromBezier(FArg(1),
-						 FArg(2),
-						 FArg(3),
-						 FArg(4),
-						 FArg(5),
-						 FArg(6),
-						 FArg(7),
-						 FArg(8));
+		                 FArg(2),
+		                 FArg(3),
+		                 FArg(4),
+		                 FArg(5),
+		                 FArg(6),
+		                 FArg(7),
+		                 FArg(8));
 		COMMON_RETURN_SELF;
 	}
+
 	static int destroy(T* p, lua_State* L)
 	{
 		SAFE_DELETE(p);
 		return 0;
 	}
+
 	LunaRageBezier2D()
 	{
 		ADD_METHOD(destroy);
@@ -1029,10 +1054,12 @@ struct LunaRageBezier2D : Luna<RageBezier2D>
 		ADD_METHOD(set_from_bezier);
 	}
 };
+
 LUA_REGISTER_CLASS(RageBezier2D);
 
 int
 LuaFunc_create_bezier(lua_State* L);
+
 int
 LuaFunc_create_bezier(lua_State* L)
 {
@@ -1040,4 +1067,5 @@ LuaFunc_create_bezier(lua_State* L)
 	bezier->PushSelf(L);
 	return 1;
 }
+
 LUAFUNC_REGISTER_COMMON(create_bezier);
