@@ -4,7 +4,6 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMapControllers.h"
 #include "ScreenPrompt.h"

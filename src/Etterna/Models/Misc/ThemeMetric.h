@@ -3,7 +3,6 @@
 #ifndef THEME_METRIC_H
 #define THEME_METRIC_H
 
-#include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include <map>
 

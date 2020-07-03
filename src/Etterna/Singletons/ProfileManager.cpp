@@ -13,7 +13,7 @@
 #include "Etterna/Models/Misc/Foreach.h"
 
 ProfileManager* PROFILEMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 #define ID_DIGITS 8
 #define ID_DIGITS_STR "8"

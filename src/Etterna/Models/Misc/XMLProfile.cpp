@@ -1,4 +1,3 @@
-
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -14,7 +13,6 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFileManager.h"
-
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Songs/Song.h"
