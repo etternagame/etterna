@@ -3,10 +3,10 @@
 
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Models/Misc/Grade.h"
 #include "MessageManager.h"
 #include "Etterna/Models/Misc/ModsGroup.h"
 #include "Etterna/Models/Songs/SongPosition.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 struct Game;
 struct lua_State;

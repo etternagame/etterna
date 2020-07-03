@@ -94,6 +94,20 @@ static Preference<float> m_fMaxInputLatencySeconds("MaxInputLatencySeconds",
 												   0.0);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
 
+// moved out of being members of player.h
+static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
+static ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;
+static ThemeMetric<float> HOLD_JUDGMENT_Y_STANDARD;
+static ThemeMetric<float> HOLD_JUDGMENT_Y_REVERSE;
+static ThemeMetric<int> BRIGHT_GHOST_COMBO_THRESHOLD;
+static ThemeMetric<bool> TAP_JUDGMENTS_UNDER_FIELD;
+static ThemeMetric<bool> HOLD_JUDGMENTS_UNDER_FIELD;
+static ThemeMetric<bool> COMBO_UNDER_FIELD;
+static ThemeMetric<int> DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+static ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+static ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
+static ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
+
 /** @brief How much life is in a hold note when you start on it? */
 ThemeMetric<float> INITIAL_HOLD_LIFE("Player", "InitialHoldLife");
 ThemeMetric<bool> PENALIZE_TAP_SCORE_NONE("Player", "PenalizeTapScoreNone");

@@ -24,7 +24,6 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSound.h"
 #include "RageSoundManager.h"
-#include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "RageSoundUtil.h"
 #include "Etterna/Models/Lua/LuaReference.h"
