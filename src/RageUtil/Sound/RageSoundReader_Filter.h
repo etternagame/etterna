@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_Filter - simplify the creation of filter RageSoundReaders. */
+/* RageSoundReader_Filter - simplify the creation of filter RageSoundReaders. */
 
 #ifndef RAGE_SOUND_READER_FILTER_H
 #define RAGE_SOUND_READER_FILTER_H
@@ -29,7 +29,7 @@ class RageSoundReader_Filter : public RageSoundReader
 	{
 		return m_pSource->GetNumChannels();
 	}
-	bool SetProperty(const RString& sProperty, float fValue) override
+	bool SetProperty(const std::string& sProperty, float fValue) override
 	{
 		return m_pSource->SetProperty(sProperty, fValue);
 	}
@@ -42,7 +42,7 @@ class RageSoundReader_Filter : public RageSoundReader
 		return m_pSource->GetStreamToSourceRatio();
 	}
 	RageSoundReader* GetSource() override { return &*m_pSource; }
-	RString GetError() const override { return m_pSource->GetError(); }
+	std::string GetError() const override { return m_pSource->GetError(); }
 
   protected:
 	HiddenPtr<RageSoundReader> m_pSource;

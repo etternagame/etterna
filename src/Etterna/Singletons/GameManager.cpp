@@ -3,7 +3,7 @@
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GameInput.h" // for GameButton constants
-#include "Etterna/Globals/GameLoop.h"	  // for ChangeGame
+#include "Etterna/Globals/GameLoop.h"	   // for ChangeGame
 #include "GameManager.h"
 #include "NoteSkinManager.h"
 #include "RageUtil/Misc/RageInputDevice.h"
@@ -35,7 +35,7 @@ enum
 	// 16 tracks needed for beat-double7 and techno-double8
 };
 
-RString
+std::string
 StepsTypeInfo::GetLocalizedString() const
 {
 	if (THEME->HasString("StepsType", szName))
@@ -350,7 +350,7 @@ static const Game g_Game_Solo = {
 	false,				  // m_PlayersHaveSeparateStyles
 	{					  // m_InputScheme
 	  "solo",			  // m_szName
-	  NUM_SOLO_BUTTONS,   // m_iButtonsPerController
+	  NUM_SOLO_BUTTONS,	  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
@@ -440,7 +440,7 @@ static const Style g_Style_Pump_HalfDouble = {
 	false,						 // m_bUsedForDemonstration
 	false,						 // m_bUsedForHowToPlay
 	"halfdouble",				 // m_szName
-	StepsType_pump_halfdouble,   // m_StepsType
+	StepsType_pump_halfdouble,	 // m_StepsType
 	StyleType_OnePlayerTwoSides, // m_StyleType
 	6,							 // m_iColsPerPlayer
 	{
@@ -526,7 +526,7 @@ static const Game g_Game_Pump = {
 	false,				  // m_PlayersHaveSeparateStyles
 	{					  // m_InputScheme
 	  "pump",			  // m_szName
-	  NUM_PUMP_BUTTONS,   // m_iButtonsPerController
+	  NUM_PUMP_BUTTONS,	  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "UpLeft", GAME_BUTTON_UP },
@@ -617,7 +617,7 @@ static const Game g_Game_KB7 = {
 	false,				 // m_PlayersHaveSeparateStyles
 	{					 // m_InputScheme
 	  "kb7",			 // m_szName
-	  NUM_KB7_BUTTONS,   // m_iButtonsPerController
+	  NUM_KB7_BUTTONS,	 // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "Key1", GameButton_Invalid },
@@ -805,7 +805,7 @@ static const Game g_Game_Ez2 = {
 	false,				 // m_PlayersHaveSeparateStyles
 	{					 // m_InputScheme
 	  "ez2",			 // m_szName
-	  NUM_EZ2_BUTTONS,   // m_iButtonsPerController
+	  NUM_EZ2_BUTTONS,	 // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "FootUpLeft", GAME_BUTTON_UP },
@@ -826,10 +826,10 @@ static const Game g_Game_Ez2 = {
 	  { GameButtonType_Step },
 	  { GameButtonType_Step },
 	},
-	TNS_W2,   // m_mapW1To
-	TNS_W2,   // m_mapW2To
-	TNS_W2,   // m_mapW3To
-	TNS_W4,   // m_mapW4To
+	TNS_W2,	  // m_mapW1To
+	TNS_W2,	  // m_mapW2To
+	TNS_W2,	  // m_mapW3To
+	TNS_W4,	  // m_mapW4To
 	TNS_Miss, // m_mapW5To
 };
 
@@ -901,7 +901,7 @@ static const Game g_Game_DS3DDX = {
 	false,					// m_PlayersHaveSeparateStyles
 	{						// m_InputScheme
 	  "ds3ddx",				// m_szName
-	  NUM_DS3DDX_BUTTONS,   // m_iButtonsPerController
+	  NUM_DS3DDX_BUTTONS,	// m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "HandLeft", GAME_BUTTON_LEFT },
@@ -1169,7 +1169,7 @@ static const Game g_Game_Beat = {
 	false,				  // m_PlayersHaveSeparateStyles
 	{					  // m_InputScheme
 	  "beat",			  // m_szName
-	  NUM_BEAT_BUTTONS,   // m_iButtonsPerController
+	  NUM_BEAT_BUTTONS,	  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "Key1", GAME_BUTTON_LEFT },
@@ -1298,7 +1298,7 @@ static const Game g_Game_Maniax = {
 	false,					// m_PlayersHaveSeparateStyles
 	{						// m_InputScheme
 	  "maniax",				// m_szName
-	  NUM_MANIAX_BUTTONS,   // m_iButtonsPerController
+	  NUM_MANIAX_BUTTONS,	// m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "HandUpLeft", GAME_BUTTON_LEFT },
@@ -1438,7 +1438,7 @@ static const Game g_Game_Popn = {
 	false,				  // m_PlayersHaveSeparateStyles
 	{					  // m_InputScheme
 	  "popn",			  // m_szName
-	  NUM_POPN_BUTTONS,   // m_iButtonsPerController
+	  NUM_POPN_BUTTONS,	  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
 		{ "Left White", GameButton_Invalid },
@@ -1471,7 +1471,7 @@ static const Game g_Game_Popn = {
 };
 
 static const Game* g_Games[] = {
-	&g_Game_Dance, &g_Game_Pump,   &g_Game_KB7,  &g_Game_Ez2,  &g_Game_DS3DDX,
+	&g_Game_Dance, &g_Game_Pump,   &g_Game_KB7,	 &g_Game_Ez2,  &g_Game_DS3DDX,
 	&g_Game_Beat,  &g_Game_Maniax, &g_Game_Popn, &g_Game_Solo,
 };
 
@@ -1702,7 +1702,7 @@ GameManager::GetStepsTypeInfo(StepsType st)
 }
 
 StepsType
-GameManager::StringToStepsType(RString sStepsType)
+GameManager::StringToStepsType(std::string sStepsType)
 {
 	sStepsType.MakeLower();
 
@@ -1713,10 +1713,10 @@ GameManager::StringToStepsType(RString sStepsType)
 	return StepsType_Invalid;
 }
 
-RString
+std::string
 GameManager::StyleToLocalizedString(const Style* style)
 {
-	RString s = style->m_szName;
+	std::string s = style->m_szName;
 	s = Capitalize(s);
 	if (THEME->HasString("Style", s))
 		return THEME->GetString("Style", s);
@@ -1725,7 +1725,7 @@ GameManager::StyleToLocalizedString(const Style* style)
 }
 
 const Game*
-GameManager::StringToGame(const RString& sGame)
+GameManager::StringToGame(const std::string& sGame)
 {
 	for (size_t i = 0; i < ARRAYLEN(g_Games); ++i)
 		if (!sGame.CompareNoCase(g_Games[i]->m_szName))
@@ -1735,7 +1735,7 @@ GameManager::StringToGame(const RString& sGame)
 }
 
 const Style*
-GameManager::GameAndStringToStyle(const Game* game, const RString& sStyle)
+GameManager::GameAndStringToStyle(const Game* game, const std::string& sStyle)
 {
 	for (int s = 0; game->m_apStyles[s]; ++s) {
 		const Style* style = game->m_apStyles[s];
@@ -1783,7 +1783,7 @@ class LunaGameManager : public Luna<GameManager>
 	}
 	static int GetStylesForGame(T* p, lua_State* L)
 	{
-		RString game_name = SArg(1);
+		std::string game_name = SArg(1);
 		const Game* pGame = p->StringToGame(game_name);
 		if (pGame == nullptr) {
 			luaL_error(
@@ -1812,12 +1812,12 @@ class LunaGameManager : public Luna<GameManager>
 
 	static int SetGame(T* p, lua_State* L)
 	{
-		RString game_name = SArg(1);
+		std::string game_name = SArg(1);
 		const Game* pGame = p->StringToGame(game_name);
 		if (pGame == nullptr) {
 			luaL_error(L, "SetGame: Invalid Game: '%s'", game_name.c_str());
 		}
-		RString theme;
+		std::string theme;
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			theme = SArg(2);
 			if (!THEME->IsThemeSelectable(theme)) {

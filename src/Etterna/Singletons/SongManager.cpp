@@ -1389,9 +1389,7 @@ SongManager::GetRandomSong()
 Song*
 SongManager::GetSongFromDir(std::string dir) const
 {
-	if (dir.back() != '/') {
-		dir += "/";
-	}
+	ensure_slash_at_end(dir);
 
 	s_replace(dir, '\\', '/');
 	dir = make_lower(dir);

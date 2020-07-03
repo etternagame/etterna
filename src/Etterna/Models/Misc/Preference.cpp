@@ -1,5 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
-#include "Foreach.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Preference.h"
@@ -9,7 +8,7 @@
 
 static SubscriptionManager<IPreference> m_Subscribers;
 
-IPreference::IPreference(const RString& sName)
+IPreference::IPreference(const std::string& sName)
   : m_sName(sName)
   , m_bIsStatic(false)
 {
@@ -22,46 +21,49 @@ IPreference::~IPreference()
 }
 
 IPreference*
-IPreference::GetPreferenceByName(const RString& sName)
+IPreference::GetPreferenceByName(const std::string& sName)
 {
-	FOREACHS(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	{
-		if (!(*p)->GetName().CompareNoCase(sName))
-			return *p;
+	for (auto& p : *m_Subscribers.m_pSubscribers) {
+		if (!CompareNoCaseLUL(p->GetName(), sName))
+			return p;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void
 IPreference::LoadAllDefaults()
 {
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->LoadDefault();
+	for (auto& p : *m_Subscribers.m_pSubscribers) {
+		p->LoadDefault();
+	}
 }
 
 void
 IPreference::ReadAllPrefsFromNode(const XNode* pNode, bool bIsStatic)
 {
 	ASSERT(pNode != NULL);
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->ReadFrom(pNode, bIsStatic);
+	for (auto& p : *m_Subscribers.m_pSubscribers) {
+		p->ReadFrom(pNode, bIsStatic);
+	}
 }
 
 void
 IPreference::SavePrefsToNode(XNode* pNode)
 {
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->WriteTo(pNode);
+	for (auto& p : *m_Subscribers.m_pSubscribers) {
+		p->WriteTo(pNode);
+	}
 }
 
 void
 IPreference::ReadAllDefaultsFromNode(const XNode* pNode)
 {
-	if (pNode == NULL)
+	if (pNode == nullptr)
 		return;
-	FOREACHS_CONST(IPreference*, *m_Subscribers.m_pSubscribers, p)
-	(*p)->ReadDefaultFrom(pNode);
+	for (auto& p : *m_Subscribers.m_pSubscribers) {
+		p->ReadDefaultFrom(pNode);
+	}
 }
 
 void
@@ -89,7 +91,7 @@ IPreference::SetFromStack(lua_State* L)
 void
 IPreference::ReadFrom(const XNode* pNode, bool bIsStatic)
 {
-	RString sVal;
+	std::string sVal;
 	if (pNode->GetAttrValue(m_sName, sVal)) {
 		FromString(sVal);
 		m_bIsStatic = bIsStatic;
@@ -107,14 +109,14 @@ IPreference::WriteTo(XNode* pNode) const
 void
 IPreference::ReadDefaultFrom(const XNode* pNode)
 {
-	RString sVal;
+	std::string sVal;
 	if (!pNode->GetAttrValue(m_sName, sVal))
 		return;
 	SetDefaultFromString(sVal);
 }
 
 void
-BroadcastPreferenceChanged(const RString& sPreferenceName)
+BroadcastPreferenceChanged(const std::string& sPreferenceName)
 {
 	if (MESSAGEMAN)
 		MESSAGEMAN->Broadcast(sPreferenceName + "Changed");

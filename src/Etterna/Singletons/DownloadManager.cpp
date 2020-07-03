@@ -38,11 +38,11 @@ static Preference<unsigned int> maxDLPerSecond(
 static Preference<unsigned int> maxDLPerSecondGameplay(
   "maximumBytesDownloadedPerSecondDuringGameplay",
   1000000);
-static Preference<RString> packListURL(
+static Preference<std::string> packListURL(
   "PackListURL",
   "https://api.etternaonline.com/v2/packs");
-static Preference<RString> serverURL("BaseAPIURL",
-									 "https://api.etternaonline.com/v2");
+static Preference<std::string> serverURL("BaseAPIURL",
+										 "https://api.etternaonline.com/v2");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs(
   "downloadPacksToAdditionalSongs",
@@ -118,7 +118,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 {
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
 		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
-	vector<RString> v_packs;
+	vector<std::string> v_packs;
 	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
 
 	string doot = TEMP_ZIP_MOUNT_POINT;
@@ -132,7 +132,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 
 	vector<string> vsFiles;
 	{
-		vector<RString> vsRawFiles;
+		vector<std::string> vsRawFiles;
 		GetDirListingRecursive(doot, "*", vsRawFiles);
 
 		if (vsRawFiles.empty()) {
@@ -141,7 +141,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		}
 
 		vector<string> vsPrettyFiles;
-		FOREACH_CONST(RString, vsRawFiles, s)
+		FOREACH_CONST(std::string, vsRawFiles, s)
 		{
 			if (GetExtension(*s).EqualsNoCase("ctl"))
 				continue;
@@ -160,10 +160,10 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	{
 		string sDestFile = *sSrcFile;
 		sDestFile =
-		  RString(sDestFile.c_str())
+		  std::string(sDestFile.c_str())
 			.Right(sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
 
-		RString sDir, sThrowAway;
+		std::string sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
 
 		if (!FileCopy(*sSrcFile, extractTo + sDestFile)) {
@@ -252,7 +252,7 @@ addFileToForm(curl_httppost*& form,
 			  string field,
 			  string fileName,
 			  string filePath,
-			  RString& contents)
+			  std::string& contents)
 {
 	RageFile rFile;
 	if (!rFile.Open(filePath))
@@ -347,7 +347,7 @@ SetCURLFormPostField(CURL* curlHandle,
 inline void
 EmptyTempDLFileDir()
 {
-	vector<RString> files;
+	vector<std::string> files;
 	FILEMAN->GetDirListing(DL_DIR + "*", files, false, true);
 	for (auto& file : files) {
 		if (FILEMAN->IsAFile(file))
@@ -465,7 +465,7 @@ Download::Update(float fDeltaSeconds)
 Download*
 DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
-	vector<RString> packs;
+	vector<std::string> packs;
 	SONGMAN->GetSongGroupNames(packs);
 	for (auto packName : packs) {
 		if (packName == pack->name) {
@@ -1582,7 +1582,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 		if (!callback.IsNil() && callback.IsSet()) {
 			auto L = LUA->Get();
 			callback.PushSelf(L);
-			RString Error =
+			std::string Error =
 			  "Error running RequestChartLeaderBoard Finish Function: ";
 			lua_newtable(L); // dunno whats going on here -mina
 			for (unsigned i = 0; i < replayData.size(); ++i) {
@@ -1835,7 +1835,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 			Lua* L = LUA->Get();
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
-				RString Error =
+				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				lua_newtable(L);
 				for (unsigned i = 0; i < vec.size(); ++i) {
@@ -2636,7 +2636,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (!f.IsNil() && f.IsSet()) {
 				auto L = LUA->Get();
 				f.PushSelf(L);
-				RString Error =
+				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				hs->PushSelf(L);
 				LuaHelpers::RunScriptOnStack(
@@ -2667,8 +2667,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
-					RString Error = "Error running RequestChartLeaderBoard "
-									"Finish Function: ";
+					std::string Error = "Error running RequestChartLeaderBoard "
+										"Finish Function: ";
 					lua_newtable(L);
 					for (unsigned i = 0; i < leaderboardScores.size(); ++i) {
 						auto& s = leaderboardScores[i];

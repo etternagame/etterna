@@ -45,7 +45,7 @@ class GameState
 	void ResetPlayer(PlayerNumber pn);
 	void ResetPlayerOptions(PlayerNumber pn);
 	void ApplyCmdline(); // called by Reset
-	void ApplyGameCommand(const RString& sCommand,
+	void ApplyGameCommand(const std::string& sCommand,
 						  PlayerNumber pn = PLAYER_INVALID);
 	/** @brief Start the game when the first player joins in. */
 	void BeginGame();
@@ -68,7 +68,7 @@ class GameState
 	void SaveCurrentSettingsToProfile(PlayerNumber pn);
 	Song* GetDefaultSong() const;
 
-	bool CanSafelyEnterGameplay(RString& reason);
+	bool CanSafelyEnterGameplay(std::string& reason);
 	void SetCompatibleStylesForPlayers();
 	void ForceOtherPlayersToCompatibleSteps(PlayerNumber main);
 
@@ -116,7 +116,7 @@ class GameState
 	// This is set to a random number per-game/round; it can be used for a
 	// random seed.
 	int m_iGameSeed, m_iStageSeed;
-	RString m_sStageGUID;
+	std::string m_sStageGUID;
 
 	void SetNewStageSeed();
 
@@ -172,7 +172,7 @@ class GameState
 	 * @return true if we do, or false otherwise. */
 	bool ShowW1() const;
 
-	BroadcastOnChange<RString>
+	BroadcastOnChange<std::string>
 	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
 	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
 									  // song options screen
@@ -196,7 +196,7 @@ class GameState
 	 * This resets whenever a player joins or continues. */
 	int m_iPlayerStageTokens;
 
-	RString sExpandedSectionName;
+	std::string sExpandedSectionName;
 
 	static int GetNumStagesMultiplierForSong(const Song* pSong);
 	static int GetNumStagesForSongAndStyleType(const Song* pSong, StyleType st);
@@ -207,12 +207,12 @@ class GameState
 	void CommitStageStats();
 	void FinishStage();
 	int GetCourseSongIndex() const;
-	RString GetPlayerDisplayName(PlayerNumber pn) const;
+	std::string GetPlayerDisplayName(PlayerNumber pn) const;
 
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	RString GetEtternaVersion() { return "0.70.0"; }
+	std::string GetEtternaVersion() { return "0.70.0"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
@@ -239,7 +239,7 @@ class GameState
 	BroadcastOnChange<bool> m_bGameplayLeadIn;
 
 	// if re-adding noteskin changes in courses, add functions and such here -aj
-	void GetAllUsedNoteSkins(vector<RString>& out) const;
+	void GetAllUsedNoteSkins(vector<std::string>& out) const;
 
 	static const float MUSIC_SECONDS_INVALID;
 
@@ -275,12 +275,13 @@ class GameState
 	void GetDefaultPlayerOptions(PlayerOptions& po);
 	void GetDefaultSongOptions(SongOptions& so);
 	void ResetToDefaultSongOptions(ModsLevel l);
-	void ApplyPreferredModifiers(PlayerNumber pn, const RString& sModifiers);
-	void ApplyStageModifiers(PlayerNumber pn, const RString& sModifiers);
+	void ApplyPreferredModifiers(PlayerNumber pn,
+								 const std::string& sModifiers);
+	void ApplyStageModifiers(PlayerNumber pn, const std::string& sModifiers);
 	void ResetOptions();
 
 	bool CurrentOptionsDisqualifyPlayer(PlayerNumber pn);
-	bool PlayerIsUsingModifier(PlayerNumber pn, const RString& sModifier);
+	bool PlayerIsUsingModifier(PlayerNumber pn, const std::string& sModifier);
 
 	FailType GetPlayerFailType(const PlayerState* pPlayerState) const;
 
@@ -308,7 +309,7 @@ class GameState
 	 *
 	 * Different options are available depending on this setting. */
 	bool m_bIsUsingStepTiming{ true };
-	BroadcastOnChange<RString> m_sEditLocalProfileID;
+	BroadcastOnChange<std::string> m_sEditLocalProfileID;
 	Profile* GetEditLocalProfile();
 	bool m_bIsChartPreviewActive;
 
@@ -324,11 +325,11 @@ class GameState
 
 	// Discord Rich Presence
 	void discordInit();
-	void updateDiscordPresence(const RString& largeImageText,
-							   const RString& details,
-							   const RString& state,
+	void updateDiscordPresence(const std::string& largeImageText,
+							   const std::string& details,
+							   const std::string& state,
 							   const int64_t endTime);
-	void updateDiscordPresenceMenu(const RString& largeImageText);
+	void updateDiscordPresenceMenu(const std::string& largeImageText);
 
 	// Lua
 	void PushSelf(lua_State* L);

@@ -623,7 +623,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
-				RString loot = m_sMusicFile.substr(0, 5);
+				std::string loot = m_sMusicFile.substr(0, 5);
 				if (music_list.size() > 1 && (loot.MakeLower() != "intro")) {
 					m_sMusicFile = music_list[1];
 				}
@@ -632,7 +632,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 		// This must be done before radar calculation.
 		if (m_bHasMusic) {
-			RString error;
+			std::string error;
 			RageSoundReader* Sample =
 			  RageSoundReader_FileReader::OpenFile(GetMusicPath(), error);
 			/* XXX: Checking if the music file exists eliminates a warning
@@ -677,7 +677,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			m_fMusicSampleLengthSeconds <=
 			  0.00f) { // if there's a preview file and sample length isn't
 					   // specified, set sample length to length of preview file
-			RString error;
+			std::string error;
 			RageSoundReader* Sample = RageSoundReader_FileReader::OpenFile(
 			  GetPreviewMusicPath(), error);
 			if (Sample == NULL && m_sMusicFile != "") {
@@ -1796,7 +1796,7 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 		return false;
 
 	auto sDir = this->GetSongDir();
-	RString voop = sDir;
+	std::string voop = sDir;
 	voop.Replace("\\", "/");
 	sDir = voop;
 	vector<std::string> bits;

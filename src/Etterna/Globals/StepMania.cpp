@@ -1303,7 +1303,7 @@ StepMania::SaveScreenshot(const std::string& Dir,
 	// replace space with underscore.
 	s_replace(FileNameNoExtension, ' ', '_');
 	// colons are illegal in filenames.
-	s_replace(FileNameNoExtension, ':', "");
+	s_replace(FileNameNoExtension, ':', '\0');
 
 	// Save the screenshot. If writing lossy to a memcard, use
 	// SAVE_LOSSY_LOW_QUAL, so we don't eat up lots of space.

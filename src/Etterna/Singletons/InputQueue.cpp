@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "InputMapper.h"
@@ -177,15 +177,15 @@ InputQueueCode::EnteredCode(GameController controller) const
 }
 
 bool
-InputQueueCode::Load(RString sButtonsNames)
+InputQueueCode::Load(std::string sButtonsNames)
 {
 	m_aPresses.clear();
 
-	vector<RString> asPresses;
+	vector<std::string> asPresses;
 	split(sButtonsNames, ",", asPresses, false);
-	FOREACH(RString, asPresses, sPress)
+	FOREACH(std::string, asPresses, sPress)
 	{
-		vector<RString> asButtonNames;
+		vector<std::string> asButtonNames;
 
 		split(*sPress, "-", asButtonNames, false);
 
@@ -200,7 +200,7 @@ InputQueueCode::Load(RString sButtonsNames)
 		for (unsigned i = 0; i < asButtonNames.size();
 			 i++) // for each button in this code
 		{
-			RString sButtonName = asButtonNames[i];
+			std::string sButtonName = asButtonNames[i];
 
 			bool bHold = false;
 			bool bNotHold = false;

@@ -219,8 +219,7 @@ void
 GetLogs(char* pBuf, int iSize, const char* delim);
 };
 
-#define CHECKPOINT_M(m)                                                        \
-	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, m.c_str()))
+#define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
 
 /* Mutex class that follows the behavior of Windows mutexes: if the same
  * thread locks the same mutex twice, we just increase a refcount; a mutex

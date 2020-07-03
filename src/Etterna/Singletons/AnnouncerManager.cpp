@@ -102,7 +102,7 @@ static const char* aliases[][2] = {
 	{ "gameplay combo 900", "gameplay 900 combo" },
 	{ "gameplay combo 1000", "gameplay 1000 combo" },
 
-	{ NULL, NULL }
+	{ nullptr, nullptr }
 };
 
 /* Find an announcer directory with sounds in it.  First search sFolderName,
@@ -123,7 +123,7 @@ AnnouncerManager::GetPathTo(const std::string& sAnnouncerName,
 
 	/* Search for the announcer folder in the list of aliases. */
 	int i;
-	for (i = 0; aliases[i][0] != NULL; ++i) {
+	for (i = 0; aliases[i][0] != nullptr; ++i) {
 		if (!EqualsNoCaseLUL(sFolderName, aliases[i][0]))
 			continue; /* no match */
 

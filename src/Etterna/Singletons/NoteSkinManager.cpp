@@ -18,7 +18,7 @@
 
 /** @brief Have the NoteSkinManager available throughout the program. */
 NoteSkinManager* NOTESKIN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 const std::string GAME_COMMON_NOTESKIN_NAME = "common";
 const std::string GAME_BASE_NOTESKIN_NAME = "default";
@@ -47,7 +47,7 @@ static map<std::string, NoteSkinData> g_mapNameToData;
 
 NoteSkinManager::NoteSkinManager()
 {
-	m_pCurGame = NULL;
+	m_pCurGame = nullptr;
 	m_PlayerNumber = PlayerNumber_Invalid;
 	m_GameController = GameController_Invalid;
 
@@ -548,7 +548,7 @@ NoteSkinManager::LoadActor(const std::string& sButton,
 	}
 
 	unique_ptr<XNode> pNode(XmlFileUtil::XNodeFromTable(L));
-	if (pNode.get() == NULL) {
+	if (pNode.get() == nullptr) {
 		LUA->Release(L);
 		// XNode will warn about the error
 		return Sprite::NewBlankSprite();
@@ -561,7 +561,7 @@ NoteSkinManager::LoadActor(const std::string& sButton,
 	if (bSpriteOnly) {
 		// Make sure pActor is a Sprite (or something derived from Sprite).
 		auto pSprite = dynamic_cast<Sprite*>(pRet);
-		if (pSprite == NULL) {
+		if (pSprite == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt("%s: %s %s must be a Sprite",
 											 m_sCurrentNoteSkin.c_str(),
 											 sButton.c_str(),

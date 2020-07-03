@@ -203,7 +203,7 @@ SetBGChanges(SSC::SongTagInfo& info)
 void
 SetFGChanges(SSC::SongTagInfo& info)
 {
-	vector<RString> aFGChangeExpressions;
+	vector<std::string> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
 	for (size_t b = 0; b < aFGChangeExpressions.size(); ++b) {
@@ -217,7 +217,7 @@ SetFGChanges(SSC::SongTagInfo& info)
 void
 SetKeysounds(SSC::SongTagInfo& info)
 {
-	RString keysounds = (*info.params)[1];
+	std::string keysounds = (*info.params)[1];
 	if (keysounds.length() >= 2 && keysounds.substr(0, 2) == "\\#") {
 		keysounds = keysounds.substr(1);
 	}
@@ -340,7 +340,7 @@ SetStepsVersion(SSC::StepsTagInfo& info)
 void
 SetChartName(SSC::StepsTagInfo& info)
 {
-	RString name = (*info.params)[1];
+	std::string name = (*info.params)[1];
 	Trim(name);
 	info.steps->SetChartName(name);
 }
@@ -360,7 +360,7 @@ SetChartStyle(SSC::StepsTagInfo& info)
 void
 SetDescription(SSC::StepsTagInfo& info)
 {
-	RString name = (*info.params)[1];
+	std::string name = (*info.params)[1];
 	Trim(name);
 	if (info.song->m_fVersion < VERSION_CHART_NAME_TAG && !info.for_load_edit) {
 		info.steps->SetChartName(name);
@@ -385,7 +385,7 @@ void
 SetRadarValues(SSC::StepsTagInfo& info)
 {
 	if (info.from_cache || info.for_load_edit) {
-		vector<RString> values;
+		vector<std::string> values;
 		split((*info.params)[1], ",", values, true);
 		RadarValues rv;
 		rv.Zero();
@@ -554,7 +554,7 @@ SetChartKey(SSC::StepsTagInfo& info)
 }
 
 vector<float>
-SSC::msdsplit(const RString& s)
+SSC::msdsplit(const std::string& s)
 {
 	vector<float> o;
 	for (size_t i = 0; i < s.size(); i += 6)
@@ -580,9 +580,10 @@ SetMSDValues(SSC::StepsTagInfo& info)
 	info.steps->SetAllMSD(o);
 }
 
-typedef std::map<RString, steps_tag_func_t> steps_handler_map_t;
-typedef std::map<RString, song_tag_func_t> song_handler_map_t;
-typedef std::map<RString, SSC::LoadNoteDataTagIDs> load_note_data_handler_map_t;
+typedef std::map<std::string, steps_tag_func_t> steps_handler_map_t;
+typedef std::map<std::string, song_tag_func_t> song_handler_map_t;
+typedef std::map<std::string, SSC::LoadNoteDataTagIDs>
+  load_note_data_handler_map_t;
 
 struct ssc_parser_helper_t
 {
@@ -702,14 +703,14 @@ ssc_parser_helper_t parser_helper;
 
 void
 SSCLoader::ProcessBPMs(TimingData& out,
-					   const RString& sParam,
+					   const std::string& sParam,
 					   const string& songName)
 {
-	vector<RString> arrayBPMExpressions;
+	vector<std::string> arrayBPMExpressions;
 	split(sParam, ",", arrayBPMExpressions);
 
 	for (unsigned b = 0; b < arrayBPMExpressions.size(); b++) {
-		vector<RString> arrayBPMValues;
+		vector<std::string> arrayBPMValues;
 		split(arrayBPMExpressions[b], "=", arrayBPMValues);
 		if (arrayBPMValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -736,14 +737,14 @@ SSCLoader::ProcessBPMs(TimingData& out,
 
 void
 SSCLoader::ProcessStops(TimingData& out,
-						const RString& sParam,
+						const std::string& sParam,
 						const string& songName)
 {
-	vector<RString> arrayStopExpressions;
+	vector<std::string> arrayStopExpressions;
 	split(sParam, ",", arrayStopExpressions);
 
 	for (unsigned b = 0; b < arrayStopExpressions.size(); b++) {
-		vector<RString> arrayStopValues;
+		vector<std::string> arrayStopValues;
 		split(arrayStopExpressions[b], "=", arrayStopValues);
 		if (arrayStopValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -770,15 +771,15 @@ SSCLoader::ProcessStops(TimingData& out,
 
 void
 SSCLoader::ProcessWarps(TimingData& out,
-						const RString& sParam,
+						const std::string& sParam,
 						const float fVersion,
 						const string& songName)
 {
-	vector<RString> arrayWarpExpressions;
+	vector<std::string> arrayWarpExpressions;
 	split(sParam, ",", arrayWarpExpressions);
 
 	for (unsigned b = 0; b < arrayWarpExpressions.size(); b++) {
-		vector<RString> arrayWarpValues;
+		vector<std::string> arrayWarpValues;
 		split(arrayWarpExpressions[b], "=", arrayWarpValues);
 		if (arrayWarpValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -808,14 +809,14 @@ SSCLoader::ProcessWarps(TimingData& out,
 
 void
 SSCLoader::ProcessLabels(TimingData& out,
-						 const RString& sParam,
+						 const std::string& sParam,
 						 const string& songName)
 {
-	vector<RString> arrayLabelExpressions;
+	vector<std::string> arrayLabelExpressions;
 	split(sParam, ",", arrayLabelExpressions);
 
 	for (unsigned b = 0; b < arrayLabelExpressions.size(); b++) {
-		vector<RString> arrayLabelValues;
+		vector<std::string> arrayLabelValues;
 		split(arrayLabelExpressions[b], "=", arrayLabelValues);
 		if (arrayLabelValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -827,7 +828,7 @@ SSCLoader::ProcessLabels(TimingData& out,
 		}
 
 		const float fBeat = StringToFloat(arrayLabelValues[0]);
-		RString sLabel = arrayLabelValues[1];
+		std::string sLabel = arrayLabelValues[1];
 		TrimRight(sLabel);
 		if (fBeat >= 0.0f)
 			out.AddSegment(LabelSegment(BeatToNoteRow(fBeat), sLabel));
@@ -842,7 +843,7 @@ SSCLoader::ProcessLabels(TimingData& out,
 }
 void
 SSCLoader::ProcessCombos(TimingData& out,
-						 const RString& line,
+						 const std::string& line,
 						 const int rowsPerBeat)
 {
 	auto name = this->GetSongTitle();
@@ -850,15 +851,15 @@ SSCLoader::ProcessCombos(TimingData& out,
 }
 void
 SSCLoader::ProcessCombos(TimingData& out,
-						 const RString& line,
+						 const std::string& line,
 						 const string& songName,
 						 const int rowsPerBeat)
 {
-	vector<RString> arrayComboExpressions;
+	vector<std::string> arrayComboExpressions;
 	split(line, ",", arrayComboExpressions);
 
 	for (unsigned f = 0; f < arrayComboExpressions.size(); f++) {
-		vector<RString> arrayComboValues;
+		vector<std::string> arrayComboValues;
 		split(arrayComboExpressions[f], "=", arrayComboValues);
 		unsigned size = arrayComboValues.size();
 		if (size < 2) {
@@ -880,15 +881,15 @@ SSCLoader::ProcessCombos(TimingData& out,
 
 void
 SSCLoader::ProcessScrolls(TimingData& out,
-						  const RString sParam,
+						  const std::string sParam,
 						  const string& songName)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(sParam, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
+	FOREACH_CONST(std::string, vs1, s1)
 	{
-		vector<RString> vs2;
+		vector<std::string> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2.size() < 2) {
@@ -915,10 +916,9 @@ SSCLoader::ProcessScrolls(TimingData& out,
 }
 
 bool
-SSCLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
+SSCLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Loading notes from %s", cachePath.c_str());
+	LOG->Trace("Loading notes from %s", cachePath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(cachePath, true)) {
@@ -935,9 +935,8 @@ SSCLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
 
 	for (unsigned i = 0; i < values; i++) {
 		const MsdFile::value_t& params = msd.GetValue(i);
-		RString valueName = params[0];
-		valueName.MakeUpper();
-		RString matcher = params[1]; // mainly for debugging.
+		std::string valueName = make_upper(params[0]);
+		std::string matcher = params[1]; // mainly for debugging.
 		Trim(matcher);
 
 		load_note_data_handler_map_t::iterator handler =
@@ -978,7 +977,7 @@ SSCLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
 						if (out.GetDifficulty() !=
 							  StringToDifficulty(matcher) &&
 							!(out.GetDifficulty() == Difficulty_Edit &&
-							  GetExtension(cachePath).MakeLower() == "edit")) {
+							  make_lower(GetExtension(cachePath)) == "edit")) {
 							tryingSteps = false;
 						}
 						break;
@@ -1022,7 +1021,7 @@ SSCLoader::LoadNoteDataFromSimfile(const RString& cachePath, Steps& out)
 }
 
 bool
-SSCLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
+SSCLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 {
 	// LOG->Trace( "Song::LoadFromSSCFile(%s)", sPath.c_str() );
 
@@ -1038,7 +1037,7 @@ SSCLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 
 	int state = GETTING_SONG_INFO;
 	const unsigned values = msd.GetNumValues();
-	Steps* pNewNotes = NULL;
+	Steps* pNewNotes = nullptr;
 	TimingData stepsTiming;
 
 	SSC::SongTagInfo reused_song_info(&*this, &out, sPath, bFromCache);
@@ -1046,8 +1045,7 @@ SSCLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 
 	for (unsigned i = 0; i < values; i++) {
 		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		std::string sValueName = make_upper(sParams[0]);
 
 		switch (state) {
 			case GETTING_SONG_INFO: {
@@ -1056,8 +1054,7 @@ SSCLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 				  parser_helper.song_tag_handlers.find(sValueName);
 				if (handler != parser_helper.song_tag_handlers.end()) {
 					handler->second(reused_song_info);
-				} else if (sValueName.Left(strlen("BGCHANGES")) ==
-						   "BGCHANGES") {
+				} else if (head(sValueName, 9) == "BGCHANGES") {
 					SetBGChanges(reused_song_info);
 				}
 				// This tag will get us to the next section.
@@ -1113,7 +1110,7 @@ SSCLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 }
 
 bool
-SSCLoader::LoadEditFromFile(const RString& sEditFilePath,
+SSCLoader::LoadEditFromFile(const std::string& sEditFilePath,
 							ProfileSlot slot,
 							bool bAddStepsToSong,
 							Song* givenSong /* =NULL */)
@@ -1144,13 +1141,13 @@ SSCLoader::LoadEditFromFile(const RString& sEditFilePath,
 
 bool
 SSCLoader::LoadEditFromMsd(const MsdFile& msd,
-						   const RString& sEditFilePath,
+						   const std::string& sEditFilePath,
 						   ProfileSlot slot,
 						   bool bAddStepsToSong,
 						   Song* givenSong /* =NULL */)
 {
 	Song* pSong = givenSong;
-	Steps* pNewNotes = NULL;
+	Steps* pNewNotes = nullptr;
 	TimingData stepsTiming;
 
 	SSC::StepsTagInfo reused_steps_info(&*this, pSong, sEditFilePath, false);
@@ -1160,14 +1157,13 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 	for (unsigned int i = 0; i < msd.GetNumValues(); ++i) {
 		int iNumParams = msd.GetNumParams(i);
 		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		std::string sValueName = make_upper(sParams[0]);
 
-		if (pSong != NULL) {
+		if (pSong != nullptr) {
 			reused_steps_info.params = &sParams;
 			steps_handler_map_t::iterator handler =
 			  parser_helper.steps_tag_handlers.find(sValueName);
-			if (pNewNotes != NULL &&
+			if (pNewNotes != nullptr &&
 				handler != parser_helper.steps_tag_handlers.end()) {
 				handler->second(reused_steps_info);
 			} else if (sValueName == "NOTEDATA") {
@@ -1199,7 +1195,7 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 				// difficulty because IsEditAlreadyLoaded has an assert and
 				// edits shouldn't be able to add charts of other difficulties.
 				// -Kyz
-				if (pNewNotes != NULL) {
+				if (pNewNotes != nullptr) {
 					pNewNotes->SetDifficulty(Difficulty_Edit);
 					if (pSong->IsEditAlreadyLoaded(pNewNotes)) {
 						LOG->UserLog("Edit file",
@@ -1242,12 +1238,12 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 			}
 		} else {
 			if (sValueName == "SONG") {
-				RString sSongFullTitle = sParams[1];
+				std::string sSongFullTitle = sParams[1];
 				this->SetSongTitle(sParams[1]);
-				sSongFullTitle.Replace('\\', '/');
+				s_replace(sSongFullTitle, '\\', '/');
 				pSong = SONGMAN->FindSong(sSongFullTitle);
 				reused_steps_info.song = pSong;
-				if (pSong == NULL) {
+				if (pSong == nullptr) {
 					LOG->UserLog("Edit file",
 								 sEditFilePath,
 								 "requires a song \"%s\" that isn't present.",

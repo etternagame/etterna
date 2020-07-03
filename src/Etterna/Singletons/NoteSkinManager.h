@@ -50,7 +50,7 @@ class NoteSkinManager
 						   std::string Color);
 	Actor* LoadActor(const std::string& sButton,
 					 const std::string& sElement,
-					 Actor* pParent = NULL,
+					 Actor* pParent = nullptr,
 					 bool bSpriteOnly = false,
 					 std::string Color = "4th");
 
