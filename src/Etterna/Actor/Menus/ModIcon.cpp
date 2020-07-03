@@ -51,7 +51,7 @@ ModIcon::Load(const std::string& sMetricsGroup)
 void
 ModIcon::Set(const std::string& _sText)
 {
-	std::string sText = _sText;
+	auto sText = _sText;
 
 	for (unsigned i = 0; i < m_vStopWords.size(); i++)
 		if (EqualsNoCaseLUL(sText, m_vStopWords[i]))
@@ -59,7 +59,7 @@ ModIcon::Set(const std::string& _sText)
 
 	s_replace(sText, (' '), '\n');
 
-	bool bVacant = (sText == "");
+	auto bVacant = (sText == "");
 	m_sprFilled->SetVisible(!bVacant);
 	m_sprEmpty->SetVisible(bVacant);
 

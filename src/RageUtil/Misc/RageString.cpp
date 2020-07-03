@@ -10,7 +10,6 @@ make_upper(char* p, size_t len);
 void
 make_lower(char* p, size_t len);
 
-
 std::string
 Rage::join(std::string const& delimiter, std::vector<std::string> const& source)
 {
@@ -297,7 +296,7 @@ std::string
 Rage::trim(std::string const& source, std::string const& delimiters)
 {
 	std::string::size_type start = 0;
-	std::string::size_type lastPos = source.size();
+	auto lastPos = source.size();
 	auto const* d_str = delimiters.c_str();
 	while (start < lastPos && std::strchr(d_str, source[start])) {
 		++start;
@@ -311,11 +310,11 @@ Rage::trim(std::string const& source, std::string const& delimiters)
 std::string
 Rage::base_name(std::string const& dir)
 {
-	size_t iEnd = dir.find_last_not_of("/\\");
+	auto iEnd = dir.find_last_not_of("/\\");
 	if (iEnd == dir.npos) {
 		return "";
 	}
-	size_t iStart = dir.find_last_of("/\\", iEnd);
+	auto iStart = dir.find_last_of("/\\", iEnd);
 	if (iStart == dir.npos) {
 		iStart = 0;
 	} else {
@@ -354,4 +353,3 @@ Rage::dir_name(std::string const& dir)
 #define likely(x) (x)
 #define unlikely(x) (x)
 #endif
-

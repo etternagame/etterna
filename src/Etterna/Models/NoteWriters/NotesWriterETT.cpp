@@ -258,7 +258,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 	{
 		auto vs = out.GetInstrumentTracksToVectorString();
 		if (!vs.empty()) {
-			std::string s = join(",", vs);
+			auto s = join(",", vs);
 			f.PutLine("#INSTRUMENTTRACK:" + s + ";\n");
 		}
 	}
@@ -408,7 +408,7 @@ GetETTNoteData(const Song& song, Steps& in)
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
 	vector<std::string> asRadarValues;
-	const RadarValues& rv = in.GetRadarValues();
+	const auto& rv = in.GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
 	lines.emplace_back(
@@ -429,8 +429,8 @@ GetETTNoteData(const Song& song, Steps& in)
 			// write nothing
 			break;
 		case DISPLAY_BPM_SPECIFIED: {
-			float small = in.GetMinBPM();
-			float big = in.GetMaxBPM();
+			auto small = in.GetMinBPM();
+			auto big = in.GetMaxBPM();
 			if (small == big)
 				lines.emplace_back(ssprintf("#DISPLAYBPM:%.6f;", small));
 			else
@@ -489,11 +489,11 @@ NotesWriterETT::Write(std::string& sPath,
 	// Save specified Steps to this file
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
-		Steps* pSteps = *s;
+		auto pSteps = *s;
 		if (pSteps->GetChartKey() != "") { // Avoid writing cache tags for
-										   // invalid chartkey files(empty
-										   // steps) -Mina
-			std::string sTag = GetETTNoteData(out, *pSteps);
+			// invalid chartkey files(empty
+			// steps) -Mina
+			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
 			LOG->Info("Not caching empty difficulty in file %s", sPath.c_str());
