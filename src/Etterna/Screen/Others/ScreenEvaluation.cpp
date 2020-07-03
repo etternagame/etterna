@@ -411,7 +411,6 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			lua_pushnil(L);
 			return 1;
 		}
-		CHECKPOINT_M("Got replay rate");
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{

@@ -10,22 +10,16 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
-#include "Etterna/Models/NoteData/NoteDataWithScoring.h"
-#include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteData.h"
-#include "Etterna/Models/ScoreKeepers/ScoreKeeper.h"
-#include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Actor/Gameplay/Player.h"
-#include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
-
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplayReplay);
 

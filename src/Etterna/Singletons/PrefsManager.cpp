@@ -8,12 +8,6 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "ver.h"
-
-// DEFAULTS_INI_PATH	= "Data/Defaults.ini";		// these can be overridden
-// PREFERENCES_INI_PATH	// overlay on Defaults.ini, contains the user's choices
-// STATIC_INI_PATH	= "Data/Static.ini";		// overlay on the 2 above, can't
-// be overridden  TYPE_TXT_FILE	= "Data/Type.txt";
 
 PrefsManager* PREFSMAN =
   NULL; // global and accessible from anywhere in our program

@@ -4,15 +4,14 @@
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Models/Misc/CodeSet.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Singletons/InputFilter.h"
-#include "Etterna/Singletons/InputQueue.h"
-#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "ScreenMessage.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include <list>
 
 class InputEventPlus;
 class Screen;
 using CreateScreenFn = Screen* (*)(const RString&);
+
 /**
  * @brief Allow registering the screen for easier access.
  *
@@ -22,6 +21,7 @@ struct RegisterScreenClass
 {
 	RegisterScreenClass(const RString& sClassName, CreateScreenFn pfn);
 };
+
 #define REGISTER_SCREEN_CLASS(className)                                       \
 	static Screen* Create##className(const RString& sName)                     \
 	{                                                                          \
@@ -37,16 +37,22 @@ struct RegisterScreenClass
 /** @brief The different types of screens available. */
 enum ScreenType
 {
-	attract,   /**< The attract/demo mode, inviting players to play. */
-	game_menu, /**< The menu screens, where options can be set before playing.
-				*/
-	gameplay,  /**< The gameplay screen, where the actual game takes place. */
+	attract,
+	/**< The attract/demo mode, inviting players to play. */
+	game_menu,
+	/**< The menu screens, where options can be set before playing.
+				   */
+	gameplay,
+	/**< The gameplay screen, where the actual game takes place. */
 	evaluation,
-	system_menu, /**< The system/operator menu, where special options are set.
-				  */
-	NUM_ScreenType, /**< The number of screen types. */
+	system_menu,
+	/**< The system/operator menu, where special options are set.
+					 */
+	NUM_ScreenType,
+	/**< The number of screen types. */
 	ScreenType_Invalid
 };
+
 const RString&
 ScreenTypeToString(ScreenType st);
 LuaDeclareType(ScreenType);
@@ -54,7 +60,7 @@ LuaDeclareType(ScreenType);
 /** @brief Class that holds a screen-full of Actors. */
 class Screen : public ActorFrame
 {
-  public:
+public:
 	static void InitScreen(Screen* pScreen);
 
 	~Screen() override;
@@ -76,7 +82,7 @@ class Screen : public ActorFrame
 	virtual void UpdateTimedFunctions(float fDeltaTime);
 	virtual bool Input(const InputEventPlus& input);
 	virtual void HandleScreenMessage(ScreenMessage SM);
-	void SetLockInputSecs(float f) { m_fLockInputSecs = f; }
+	void SetLockInputSecs(const float f) { m_fLockInputSecs = f; }
 
 	/**
 	 * @brief Put the specified message onto the screen for a specified time.
@@ -94,7 +100,9 @@ class Screen : public ActorFrame
 	{
 		return ALLOW_OPERATOR_MENU_BUTTON ? game_menu : system_menu;
 	}
+
 	bool AllowOperatorMenuButton() const { return ALLOW_OPERATOR_MENU_BUTTON; }
+
 	/**
 	 * @brief Determine if we allow extra players to join in on this screen.
 	 * @return false, for players should never be able to join while in
@@ -104,14 +112,14 @@ class Screen : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	vector<pair<function<void(void)>, float>> delayedFunctions;
+	vector<pair<function<void()>, float>> delayedFunctions;
 	void SetTimeout(function<void()> f, float ms);
-	std::list<tuple<function<void(void)>, float, float, int>>
-	  delayedPeriodicFunctions; // This is a list to allow safe iterators
+	std::list<tuple<function<void()>, float, float, int>>
+	delayedPeriodicFunctions; // This is a list to allow safe iterators
 	vector<int> delayedPeriodicFunctionIdsToDelete;
 	void SetInterval(function<void()> f, float ms, int fRemove);
 
-  protected:
+protected:
 	/** @brief Holds the messages sent to a Screen. */
 	struct QueuedScreenMessage
 	{
@@ -120,10 +128,11 @@ class Screen : public ActorFrame
 		/** @brief How long the message is up. */
 		float fDelayRemaining;
 	};
+
 	/** @brief The list of messages that are sent to a Screen. */
 	vector<QueuedScreenMessage> m_QueuedMessages;
 	static bool SortMessagesByDelayRemaining(const QueuedScreenMessage& m1,
-											 const QueuedScreenMessage& m2);
+	                                         const QueuedScreenMessage& m2);
 
 	InputQueueCodeSet m_Codes;
 
@@ -142,12 +151,12 @@ class Screen : public ActorFrame
 	RString m_sPrevScreen;
 	ScreenMessage m_smSendOnPop;
 
-	float m_fLockInputSecs;
+	float m_fLockInputSecs = 0.F;
 
 	// If currently between BeginScreen/EndScreen calls:
-	bool m_bRunning;
+	bool m_bRunning = false;
 
-  public:
+public:
 	RString GetNextScreenName() const;
 	RString GetPrevScreen() const;
 	void SetNextScreenName(RString const& name);
@@ -167,21 +176,15 @@ class Screen : public ActorFrame
 	virtual bool MenuSelect(const InputEventPlus&) { return false; }
 	virtual bool MenuBack(const InputEventPlus&) { return false; }
 	virtual bool MenuCoin(const InputEventPlus&) { return false; }
-	// todo? -aj
-	// virtual bool LeftClick(const InputEventPlus &) { }
-	// virtual bool RightClick(const InputEventPlus &) { }
-	// virtual bool MiddleClick(const InputEventPlus &) { }
-	// virtual bool MouseWheelUp(const InputEventPlus &) { }
-	// virtual bool MouseWheelDown(const InputEventPlus &) { }
 
-  private:
+private:
 	// void* is the key so that we can use lua_topointer to find the callback
 	// to remove when removing a callback.
 	using callback_key_t = const void*;
 	map<callback_key_t, LuaReference> m_InputCallbacks;
 	vector<callback_key_t> orderedcallbacks;
 	vector<callback_key_t> m_DelayedCallbackRemovals;
-	bool m_CallingInputCallbacks;
+	bool m_CallingInputCallbacks = false;
 	void InternalRemoveCallback(callback_key_t key);
 };
 
