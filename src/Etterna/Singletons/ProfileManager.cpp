@@ -10,6 +10,7 @@
 #include "SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "DownloadManager.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 ProfileManager* PROFILEMAN =
   NULL; // global and accessible from anywhere in our program

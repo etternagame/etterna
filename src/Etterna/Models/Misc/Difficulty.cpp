@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Difficulty.h"
 #include "GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
@@ -79,18 +79,17 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 	// OPTIMIZATION OPPORTUNITY: cache these metrics and cache the splitting
 	vector<RString> vsNames;
 	split(NAMES, ",", vsNames);
-	FOREACH(RString, vsNames, sName)
-	{
+	for (auto& sName : vsNames) {
 		ThemeMetric<StepsType> STEPS_TYPE("CustomDifficulty",
-										  (*sName) + "StepsType");
+										  (sName) + "StepsType");
 		if (STEPS_TYPE == StepsType_Invalid || st == STEPS_TYPE) // match
 		{
 			ThemeMetric<Difficulty> DIFFICULTY("CustomDifficulty",
-											   (*sName) + "Difficulty");
+											   (sName) + "Difficulty");
 			if (DIFFICULTY == Difficulty_Invalid || dc == DIFFICULTY) // match
 			{
 				ThemeMetric<RString> STRING("CustomDifficulty",
-											(*sName) + "String");
+											(sName) + "String");
 				return STRING.GetValue();
 			}
 		}

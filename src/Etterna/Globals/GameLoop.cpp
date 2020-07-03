@@ -1,12 +1,10 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
-
 #include "arch/ArchHooks/ArchHooks.h"
-
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -17,8 +15,6 @@
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include <chrono>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
@@ -85,9 +81,8 @@ ChangeAppPri()
 		// This can get called before INPUTMAN is constructed.
 		if (INPUTMAN) {
 			INPUTMAN->GetDevicesAndDescriptions(vDevices);
-			FOREACH_CONST(InputDeviceInfo, vDevices, d)
-			{
-				if (d->sDesc.find("NTPAD") != string::npos) {
+			for (auto& d : vDevices) {
+				if (d.sDesc.find("NTPAD") != std::string::npos) {
 					LOG->Trace("Using NTPAD.  Don't boost priority.");
 					return false;
 				}

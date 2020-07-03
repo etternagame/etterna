@@ -3,41 +3,24 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Models/Misc/Preference.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "ScreenInstallOverlay.h"
-#include "Etterna/Singletons/ScreenManager.h"
-#include "Etterna/Globals/SpecialFiles.h"
-class Song;
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/CommandLineActions.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Singletons/GameManager.h"
-#include "Etterna/Singletons/GameState.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
-#include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <vector>
 #include <fstream>
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
+class Song;
 const RString TEMP_OS_MOUNT_POINT = "/@temp-os/";
 
 struct FileCopyResult

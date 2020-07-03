@@ -13,7 +13,6 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/NoteData/NoteData.h"
 #include "RageUtil/File/RageFileManager.h"
 
 #include "Etterna/Singletons/ScoreManager.h"
@@ -21,6 +20,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 using std::string;
 

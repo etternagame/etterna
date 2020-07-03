@@ -28,6 +28,7 @@
 #include "Etterna/Globals/StepMania.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlToLua.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 static bool g_bIsDisplayed = false;
 static bool g_bIsSlow = false;

@@ -10,10 +10,10 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenOptions.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 /*
  * These navigation types are provided:
@@ -323,8 +323,9 @@ ScreenOptions::TweenOnScreen()
 {
 	ScreenWithMenuElements::TweenOnScreen();
 
-	FOREACH(OptionRow*, m_pRows, p)
-	(*p)->RunCommands(ROW_ON_COMMAND);
+	for (auto& p : m_pRows) {
+		p->RunCommands(ROW_ON_COMMAND);
+	}
 
 	m_frameContainer.SortByDrawOrder();
 }
@@ -334,8 +335,9 @@ ScreenOptions::TweenOffScreen()
 {
 	ScreenWithMenuElements::TweenOffScreen();
 
-	FOREACH(OptionRow*, m_pRows, p)
-	(*p)->RunCommands(ROW_OFF_COMMAND);
+	for (auto& p : m_pRows) {
+		p->RunCommands(ROW_OFF_COMMAND);
+	}
 }
 
 ScreenOptions::~ScreenOptions()
@@ -669,7 +671,8 @@ ScreenOptions::PositionRows(bool bTween)
 		if (i < first_start)
 			fPos = -0.5f;
 		else if (i >= first_end && i < second_start)
-			fPos = (static_cast<int>(static_cast<int>(NUM_ROWS_SHOWN) / 2)) - 0.5f;
+			fPos =
+			  (static_cast<int>(static_cast<int>(NUM_ROWS_SHOWN) / 2)) - 0.5f;
 		else if (i >= second_end)
 			fPos = ((int)NUM_ROWS_SHOWN) - 0.5f;
 

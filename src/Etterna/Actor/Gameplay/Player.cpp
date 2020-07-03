@@ -36,6 +36,7 @@
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "HoldJudgment.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,

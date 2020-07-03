@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Gameplay/ArrowEffects.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/NoteData/NoteData.h"
@@ -16,7 +15,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include <cfloat>
 
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
@@ -145,10 +143,9 @@ NoteField::CacheAllUsedNoteSkins()
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
 	  m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin);
-	FOREACH(RString, asSkinsLower, s)
-	{
-		NOTESKIN->ValidateNoteSkinName(*s);
-		s->MakeLower();
+	for (auto& s : asSkinsLower) {
+		NOTESKIN->ValidateNoteSkinName(s);
+		s.MakeLower();
 	}
 
 	for (unsigned i = 0; i < asSkinsLower.size(); ++i) {
@@ -158,16 +155,15 @@ NoteField::CacheAllUsedNoteSkins()
 	/* If we're changing note skins in the editor, we can have old note skins
 	 * lying around.  Remove them so they don't accumulate. */
 	set<RString> setNoteSkinsToUnload;
-	FOREACHM(RString, NoteDisplayCols*, m_NoteDisplays, d)
-	{
-		bool unused =
-		  find(asSkinsLower.begin(), asSkinsLower.end(), d->first) ==
-		  asSkinsLower.end();
+	for (auto& d : m_NoteDisplays) {
+		bool unused = find(asSkinsLower.begin(), asSkinsLower.end(), d.first) ==
+					  asSkinsLower.end();
 		if (unused)
-			setNoteSkinsToUnload.insert(d->first);
+			setNoteSkinsToUnload.insert(d.first);
 	}
-	FOREACHS(RString, setNoteSkinsToUnload, s)
-	UncacheNoteSkin(*s);
+	for (auto& s : setNoteSkinsToUnload) {
+		UncacheNoteSkin(s);
+	}
 
 	RString sCurrentNoteSkinLower =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;

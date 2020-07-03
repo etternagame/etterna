@@ -3,8 +3,8 @@
 #ifndef SCREEN_MINI_MENU_H
 #define SCREEN_MINI_MENU_H
 
-#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Screen/Options/ScreenOptions.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 using MenuRowUpdateEnabled = bool (*)();
 

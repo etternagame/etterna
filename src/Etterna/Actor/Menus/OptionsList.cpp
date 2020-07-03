@@ -5,6 +5,7 @@
 #include "OptionsList.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/Songs/SongUtil.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 #define LINE(sLineName)                                                        \
 	THEME->GetMetric(m_sName, ssprintf("Line%s", (sLineName).c_str()))

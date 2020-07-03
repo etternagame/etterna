@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -12,6 +11,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 static LocalizedString EDITS_CLEARED("ScreenServiceAction",
 									 "%d edits cleared, %d errors.");
