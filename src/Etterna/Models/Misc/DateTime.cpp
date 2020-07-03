@@ -101,10 +101,11 @@ DateTime::StripTime()
 }
 
 // Common SQL/XML format: "YYYY-MM-DD HH:MM:SS"
-RString
+std::string
 DateTime::GetString() const
 {
-	RString s = ssprintf("%d-%02d-%02d", tm_year + 1900, tm_mon + 1, tm_mday);
+	std::string s =
+	  ssprintf("%d-%02d-%02d", tm_year + 1900, tm_mon + 1, tm_mday);
 
 	if (tm_hour != 0 || tm_min != 0 || tm_sec != 0) {
 		s += ssprintf(" %02d:%02d:%02d", tm_hour, tm_min, tm_sec);
@@ -114,13 +115,13 @@ DateTime::GetString() const
 }
 
 bool
-DateTime::FromString(const RString& sDateTime)
+DateTime::FromString(const std::string& sDateTime)
 {
 	Init();
 
 	int ret;
 
-	ret = sscanf(sDateTime,
+	ret = sscanf(sDateTime.c_str(),
 				 "%d-%d-%d %d:%d:%d",
 				 &tm_year,
 				 &tm_mon,
@@ -129,7 +130,8 @@ DateTime::FromString(const RString& sDateTime)
 				 &tm_min,
 				 &tm_sec);
 	if (ret != 6) {
-		ret = sscanf(sDateTime, "%d-%d-%d", &tm_year, &tm_mon, &tm_mday);
+		ret =
+		  sscanf(sDateTime.c_str(), "%d-%d-%d", &tm_year, &tm_mon, &tm_mday);
 		if (ret != 3) {
 			return false;
 		}
@@ -140,57 +142,57 @@ DateTime::FromString(const RString& sDateTime)
 	return true;
 }
 
-RString
+std::string
 DayInYearToString(int iDayInYear)
 {
 	return ssprintf("DayInYear%03d", iDayInYear);
 }
 
 int
-StringToDayInYear(const RString& sDayInYear)
+StringToDayInYear(const std::string& sDayInYear)
 {
 	int iDayInYear;
-	if (sscanf(sDayInYear, "DayInYear%d", &iDayInYear) != 1)
+	if (sscanf(sDayInYear.c_str(), "DayInYear%d", &iDayInYear) != 1)
 		return -1;
 	return iDayInYear;
 }
 
-static const RString LAST_DAYS_NAME[NUM_LAST_DAYS] = {
+static const std::string LAST_DAYS_NAME[NUM_LAST_DAYS] = {
 	"Today", "Yesterday", "Day2Ago", "Day3Ago", "Day4Ago", "Day5Ago", "Day6Ago",
 };
 
-RString
+std::string
 LastDayToString(int iLastDayIndex)
 {
 	return LAST_DAYS_NAME[iLastDayIndex];
 }
 
 static const char* DAY_OF_WEEK_TO_NAME[DAYS_IN_WEEK] = {
-	"Sunday",   "Monday", "Tuesday",  "Wednesday",
+	"Sunday",	"Monday", "Tuesday",  "Wednesday",
 	"Thursday", "Friday", "Saturday",
 };
 
-RString
+std::string
 DayOfWeekToString(int iDayOfWeekIndex)
 {
 	return DAY_OF_WEEK_TO_NAME[iDayOfWeekIndex];
 }
 
-RString
+std::string
 HourInDayToString(int iHourInDayIndex)
 {
 	return ssprintf("Hour%02d", iHourInDayIndex);
 }
 
 static const char* MonthNames[] = {
-	"January", "February", "March",		"April",   "May",	  "June",
-	"July",	"August",   "September", "October", "November", "December",
+	"January", "February", "March",		"April",   "May",	   "June",
+	"July",	   "August",   "September", "October", "November", "December",
 };
 XToString(Month);
 XToLocalizedString(Month);
 LuaXType(Month);
 
-RString
+std::string
 LastWeekToString(int iLastWeekIndex)
 {
 	switch (iLastWeekIndex) {
@@ -206,25 +208,25 @@ LastWeekToString(int iLastWeekIndex)
 	}
 }
 
-RString
+std::string
 LastDayToLocalizedString(int iLastDayIndex)
 {
-	RString s = LastDayToString(iLastDayIndex);
-	s.Replace("Day", "");
-	s.Replace("Ago", " Ago");
+	std::string s = LastDayToString(iLastDayIndex);
+	s_replace(s, 'Day', char());
+	s_replace(s, 'Ago', ' Ago');
 	return s;
 }
 
-RString
+std::string
 LastWeekToLocalizedString(int iLastWeekIndex)
 {
-	RString s = LastWeekToString(iLastWeekIndex);
-	s.Replace("Week", "");
-	s.Replace("Ago", " Ago");
+	std::string s = LastWeekToString(iLastWeekIndex);
+	s_replace(s, 'Week', char());
+	s_replace(s, 'Ago', ' Ago');
 	return s;
 }
 
-RString
+std::string
 HourInDayToLocalizedString(int iHourIndex)
 {
 	int iBeginHour = iHourIndex;

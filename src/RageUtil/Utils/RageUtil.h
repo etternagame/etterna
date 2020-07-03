@@ -249,10 +249,17 @@ EqualsNoCaseLUL(const std::string& a, const std::string& b)
 	return CompareNoCaseLUL(a.c_str(), b.c_str()) == 0;
 }
 
-void
+static inline void
 s_replace(std::string& target, char from, char to)
 {
 	std::replace(target.begin(), target.end(), from, to);
+}
+
+static inline void
+ensure_slash_at_end(std::string& s)
+{
+	if (s.back() != '/')
+		s += "/";
 }
 
 /** @brief Determine if the source string begins with the specified content. */

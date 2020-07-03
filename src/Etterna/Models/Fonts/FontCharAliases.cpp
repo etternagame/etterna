@@ -350,7 +350,7 @@ InitCharAliases()
 		{ "auxrt", INTERNAL },
 		{ "auxback", INTERNAL },
 
-		{ NULL, 0 }
+		{ nullptr, 0 }
 	};
 
 	int iNextInternalUseCodepoint = 0xE000;
@@ -365,9 +365,8 @@ InitCharAliases()
 	for (aliasmap::const_iterator i = CharAliases.begin();
 		 i != CharAliases.end();
 		 ++i) {
-		RString from = i->first;
-		RString to = WcharToUTF8(i->second);
-		from.MakeLower();
+		std::string from = make_lower(i->first);
+		std::string to = WcharToUTF8(i->second);
 		CharAliasRepl[from] = to;
 	}
 }
@@ -383,7 +382,7 @@ FontCharAliases::ReplaceMarkers(std::string& sText)
 
 // Replace all &markers; and &#NNNN;s with UTF-8.
 bool
-FontCharAliases::GetChar(RString& codepoint, wchar_t& ch)
+FontCharAliases::GetChar(std::string& codepoint, wchar_t& ch)
 {
 	InitCharAliases();
 	aliasmap::const_iterator i = CharAliases.find(codepoint);

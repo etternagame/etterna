@@ -163,7 +163,8 @@ Profile::GetDefaultModifiers(const Game* pGameType,
 }
 
 void
-Profile::SetDefaultModifiers(const Game* pGameType, const std::string& sModifiers)
+Profile::SetDefaultModifiers(const Game* pGameType,
+							 const std::string& sModifiers)
 {
 	if (sModifiers == "")
 		m_sDefaultModifiers.erase(pGameType->m_szName);
@@ -729,7 +730,8 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 }
 
 std::string
-Profile::MakeFileNameNoExtension(const std::string& sFileNameBeginning, int iIndex)
+Profile::MakeFileNameNoExtension(const std::string& sFileNameBeginning,
+								 int iIndex)
 {
 	return sFileNameBeginning + ssprintf("%05d", iIndex);
 }
@@ -979,12 +981,10 @@ class LunaProfile : public Luna<Profile>
 		if (p->sortmode == 3)
 			if (p->asc) {
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-					return make_lower(
-							 SONGMAN->GetSongByChartkey(a->chartkey)
-							   ->GetDisplayMainTitle()) >
-						   make_lower(
-							 SONGMAN->GetSongByChartkey(b->chartkey)
-							   ->GetDisplayMainTitle());
+					return make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
+										->GetDisplayMainTitle()) >
+						   make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
+										->GetDisplayMainTitle());
 				}; // custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
@@ -1136,7 +1136,8 @@ class LunaProfile : public Luna<Profile>
 		p->m_sDisplayName = SArg(1);
 		// roundabout way to force id to be a dir
 		// sometimes its a dir and sometimes it a number
-		std::string dir = "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
+		std::string dir =
+		  "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
 		p->SaveEditableDataToDir(dir);
 		return 1;
 	}
@@ -1222,7 +1223,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int WhenAchieved(T* p, lua_State* L)
 	{
 		if (p->achieved)
-			lua_pushstring(L, p->timeachieved.GetString());
+			lua_pushstring(L, p->timeachieved.GetString().c_str());
 		else
 			lua_pushnil(L);
 

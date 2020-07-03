@@ -6,12 +6,11 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Actor/GameplayAndMenus/StreamDisplay.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
-static RString
+static std::string
 LIFE_PERCENT_CHANGE_NAME(size_t i)
 {
 	return "LifePercentChange" + ScoreEventToString((ScoreEvent)i);
@@ -98,7 +97,7 @@ LifeMeterBar::LifeMeterBar()
 	MIN_STAY_ALIVE.Load("LifeMeterBar", "MinStayAlive");
 	m_fLifePercentChange.Load(
 	  "LifeMeterBar", LIFE_PERCENT_CHANGE_NAME, NUM_ScoreEvent);
-	m_pPlayerState = NULL;
+	m_pPlayerState = nullptr;
 
 	const std::string sType = "LifeMeterBar";
 
@@ -162,7 +161,8 @@ LifeMeterBar::Load(const PlayerState* pPlayerState,
 {
 	LifeMeter::Load(pPlayerState, pPlayerStageStats);
 
-	DrainType dtype = pPlayerState->m_PlayerOptions.GetStage().m_DrainType;
+	const DrainType dtype =
+	  pPlayerState->m_PlayerOptions.GetStage().m_DrainType;
 	switch (dtype) {
 		case DrainType_Normal:
 			m_fLifePercentage = INITIAL_VALUE;
@@ -247,7 +247,8 @@ void
 LifeMeterBar::ChangeLife(HoldNoteScore score, TapNoteScore tscore)
 {
 	float fDeltaLife = 0.f;
-	DrainType dtype = m_pPlayerState->m_PlayerOptions.GetSong().m_DrainType;
+	const DrainType dtype =
+	  m_pPlayerState->m_PlayerOptions.GetSong().m_DrainType;
 	switch (dtype) {
 		case DrainType_Normal:
 			switch (score) {
@@ -328,7 +329,7 @@ LifeMeterBar::ChangeLife(float fDeltaLife)
 			break;
 	}
 
-	float InitialLife = m_fLifePercentage;
+	const float InitialLife = m_fLifePercentage;
 
 	m_fLifePercentage += fDeltaLife;
 
@@ -413,8 +414,8 @@ LifeMeterBar::FillForHowToPlay(int NumW2s, int NumMisses)
 {
 	m_iProgressiveLifebar = 0; // disable progressive lifebar
 
-	float AmountForW2 = NumW2s * m_fLifeDifficulty * 0.008f;
-	float AmountForMiss = NumMisses / m_fLifeDifficulty * 0.08f;
+	const float AmountForW2 = NumW2s * m_fLifeDifficulty * 0.008f;
+	const float AmountForMiss = NumMisses / m_fLifeDifficulty * 0.08f;
 
 	m_fLifePercentage = AmountForMiss - AmountForW2;
 	CLAMP(m_fLifePercentage, 0.0f, 1.0f);

@@ -9,11 +9,11 @@ class InputScheme;
 enum GameController
 {
 	GameController_1 = 0, /**< The left controller */
-	GameController_2,	 /**< The right controller */
-	NUM_GameController,   /**< The number of controllers allowed. */
+	GameController_2,	  /**< The right controller */
+	NUM_GameController,	  /**< The number of controllers allowed. */
 	GameController_Invalid,
 };
-const RString&
+const std::string&
 GameControllerToString(GameController mp);
 LuaDeclareType(GameController);
 
@@ -22,12 +22,12 @@ enum GameButton
 {
 	GAME_BUTTON_MENULEFT,  /**< Navigate the menus to the left. */
 	GAME_BUTTON_MENURIGHT, /**< Navigate the menus to the right. */
-	GAME_BUTTON_MENUUP,	/**< Navigate the menus to the top. */
+	GAME_BUTTON_MENUUP,	   /**< Navigate the menus to the top. */
 	GAME_BUTTON_MENUDOWN,  /**< Navigate the menus to the bottom. */
 	GAME_BUTTON_START,
 	GAME_BUTTON_SELECT,
 	GAME_BUTTON_BACK,
-	GAME_BUTTON_COIN,	 /**< Insert a coin to play. */
+	GAME_BUTTON_COIN,	  /**< Insert a coin to play. */
 	GAME_BUTTON_OPERATOR, /**< Access the operator menu. */
 	GAME_BUTTON_EFFECT_UP,
 	GAME_BUTTON_EFFECT_DOWN,
@@ -56,12 +56,12 @@ enum GameButton
 	GameButton_Invalid
 };
 
-RString
+std::string
 GameButtonToString(const InputScheme* pInputs, GameButton i);
-RString
+std::string
 GameButtonToLocalizedString(const InputScheme* pInputs, GameButton i);
 GameButton
-StringToGameButton(const InputScheme* pInputs, const RString& s);
+StringToGameButton(const InputScheme* pInputs, const std::string& s);
 
 /** @brief A special way to loop through each game button. */
 #define FOREACH_GameButton_Custom(gb)                                          \
@@ -228,8 +228,8 @@ struct GameInput
 		button = GameButton_Invalid;
 	};
 
-	RString ToString(const InputScheme* pInputs) const;
-	bool FromString(const InputScheme* pInputs, const RString& s);
+	std::string ToString(const InputScheme* pInputs) const;
+	bool FromString(const InputScheme* pInputs, const std::string& s);
 };
 
 #endif

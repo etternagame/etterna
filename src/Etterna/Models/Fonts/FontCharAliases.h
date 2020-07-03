@@ -6,7 +6,7 @@ namespace FontCharAliases {
 void
 ReplaceMarkers(std::string& sText);
 bool
-GetChar(RString& codepoint, wchar_t& ch);
+GetChar(std::string& codepoint, wchar_t& ch);
 };
 
 #endif

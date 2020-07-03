@@ -1,8 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "IniFile.h"
-#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -32,11 +30,10 @@ add_extension_to_relative_path_from_found_file(std::string const& relative_path,
 std::string
 unique_name(std::string const& type)
 {
-	static char const* name_chars = "abcdefghijklmnopqrstuvwxyz";
-	static int name_count = 0;
-	int curr_name = name_count;
-	std::string ret =
-	  "xtl_" + type + "_"; // Minimize the chance of a name collision.
+	static auto name_chars = "abcdefghijklmnopqrstuvwxyz";
+	static auto name_count = 0;
+	auto curr_name = name_count;
+	auto ret = "xtl_" + type + "_"; // Minimize the chance of a name collision.
 	ret = ret + name_chars[curr_name % 26];
 	while (curr_name / 26 > 0) {
 		curr_name = curr_name / 26;
@@ -51,8 +48,7 @@ convert_xmls_in_dir(std::string const& dirname)
 {
 	vector<std::string> listing;
 	FILEMAN->GetDirListing(dirname, listing, false, true);
-	for (vector<std::string>::iterator curr_file = listing.begin();
-		 curr_file != listing.end();
+	for (auto curr_file = listing.begin(); curr_file != listing.end();
 		 ++curr_file) {
 		switch (ActorUtil::GetFileType(*curr_file)) {
 			case FT_Xml:
@@ -92,7 +88,7 @@ maybe_conv_pos(std::string pos, std::string (*conv_func)(float p))
 size_t
 after_slash_or_zero(std::string const& s)
 {
-	size_t ret = s.rfind('/');
+	auto ret = s.rfind('/');
 	if (ret != string::npos) {
 		return ret + 1;
 	}
@@ -103,9 +99,9 @@ std::string
 add_extension_to_relative_path_from_found_file(std::string const& relative_path,
 											   std::string const& found_file)
 {
-	size_t rel_last_slash = after_slash_or_zero(relative_path);
-	size_t found_last_slash = after_slash_or_zero(found_file);
-	return relative_path.Left(rel_last_slash) +
+	auto rel_last_slash = after_slash_or_zero(relative_path);
+	auto found_last_slash = after_slash_or_zero(found_file);
+	return head(relative_path, rel_last_slash) +
 		   found_file.substr(found_last_slash, string::npos);
 }
 
@@ -194,8 +190,9 @@ void
 blend_conv(vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
-	for (int i = 0; i < NUM_BlendMode; ++i) {
-		std::string blend_str = make_lower(BlendModeToString(static_cast<BlendMode>(i)));
+	for (auto i = 0; i < NUM_BlendMode; ++i) {
+		auto blend_str =
+		  make_lower(BlendModeToString(static_cast<BlendMode>(i)));
 		if (args[1] == blend_str) {
 			args[1] = "\"BlendMode_" +
 					  BlendModeToString(static_cast<BlendMode>(i)) + "\"";
@@ -207,8 +204,8 @@ void
 cull_conv(vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
-	for (int i = 0; i < NUM_CullMode; ++i) {
-		std::string cull_str = make_lower(CullModeToString(static_cast<CullMode>(i)));
+	for (auto i = 0; i < NUM_CullMode; ++i) {
+		auto cull_str = make_lower(CullModeToString(static_cast<CullMode>(i)));
 		if (args[1] == cull_str) {
 			args[1] =
 			  "\"CullMode_" + CullModeToString(static_cast<CullMode>(i)) + "\"";
@@ -259,10 +256,12 @@ init_parser_helpers()
 void
 convert_lua_chunk(std::string& chunk_text)
 {
-	for (map<std::string, std::string>::iterator chunk = chunks_to_replace.begin();
+	for (auto chunk = chunks_to_replace.begin();
 		 chunk != chunks_to_replace.end();
 		 ++chunk) {
-		replace(chunk_text, chunk->first, chunk->second);
+		s_replace(chunk_text,
+				  reinterpret_cast<char>(chunk->first.c_str()),
+				  reinterpret_cast<char>(chunk->second.c_str()));
 	}
 }
 
@@ -307,8 +306,10 @@ struct actor_template_t
 					 std::string const& suf = "");
 	void rename_field(std::string const& old_name, std::string const& new_name);
 	std::string get_field(std::string const& field_name);
-	void load_frames_from_file(std::string const& fname, std::string const& rel_path);
-	void load_model_from_file(std::string const& fname, std::string const& rel_path);
+	void load_frames_from_file(std::string const& fname,
+							   std::string const& rel_path);
+	void load_model_from_file(std::string const& fname,
+							  std::string const& rel_path);
 	void load_node(XNode const& node,
 				   std::string const& dirname,
 				   condition_set_t& conditions);
@@ -324,10 +325,11 @@ actor_template_t::make_space_for_frame(int id)
 }
 
 void
-actor_template_t::store_cmd(std::string const& cmd_name, std::string const& full_cmd)
+actor_template_t::store_cmd(std::string const& cmd_name,
+							std::string const& full_cmd)
 {
 	if (full_cmd.front() == '%') {
-		std::string cmd_text = full_cmd.Right(full_cmd.size() - 1);
+		std::string cmd_text = tail(full_cmd, full_cmd.size() - 1);
 		convert_lua_chunk(cmd_text);
 		fields[cmd_name] = cmd_text;
 		return;
@@ -338,16 +340,13 @@ actor_template_t::store_cmd(std::string const& cmd_name, std::string const& full
 	// If someone has a simfile that uses a playcommand that pushes tween
 	// states onto the queue, queue size counting will have to be made much
 	// more complex to prevent that from causing an overflow.
-	for (vector<std::string>::iterator cmd = cmds.begin(); cmd != cmds.end();
-		 ++cmd) {
+	for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd) {
 		vector<std::string> args;
 		split(*cmd, ",", args, true);
 		if (!args.empty()) {
-			for (vector<std::string>::iterator arg = args.begin();
-				 arg != args.end();
-				 ++arg) {
+			for (auto arg = args.begin(); arg != args.end(); ++arg) {
 				size_t first_nonspace = 0;
-				size_t last_nonspace = arg->size();
+				auto last_nonspace = arg->size();
 				while ((*arg)[first_nonspace] == ' ') {
 					++first_nonspace;
 				}
@@ -357,13 +356,11 @@ actor_template_t::store_cmd(std::string const& cmd_name, std::string const& full
 				*arg =
 				  arg->substr(first_nonspace, last_nonspace - first_nonspace);
 			}
-			map<std::string, arg_converter_t>::iterator conv =
-			  arg_converters.find(args[0]);
+			auto conv = arg_converters.find(args[0]);
 			if (conv != arg_converters.end()) {
 				conv->second(args);
 			}
-			map<std::string, size_t>::iterator counter =
-			  tween_counters.find(args[0]);
+			auto counter = tween_counters.find(args[0]);
 			if (counter != tween_counters.end()) {
 				queue_size += counter->second;
 			}
@@ -374,23 +371,21 @@ actor_template_t::store_cmd(std::string const& cmd_name, std::string const& full
 	// size and the real reason I saw overflows in converted files was a bug in
 	// foreground loading that ran InitCommand twice. -Kyz
 	if (queue_size >= TWEEN_QUEUE_MAX) {
-		size_t num_to_make = (queue_size / TWEEN_QUEUE_MAX) + 1;
-		size_t states_per = (queue_size / num_to_make) + 1;
+		auto num_to_make = (queue_size / TWEEN_QUEUE_MAX) + 1;
+		auto states_per = (queue_size / num_to_make) + 1;
 		size_t states_in_curr = 0;
-		std::string this_name = cmd_name;
+		auto this_name = cmd_name;
 		vector<std::string> curr_cmd;
-		for (vector<std::string>::iterator cmd = cmds.begin(); cmd != cmds.end();
-			 ++cmd) {
+		for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd) {
 			curr_cmd.push_back(*cmd);
 			vector<std::string> args;
 			split(*cmd, ",", args, true);
 			if (!args.empty()) {
-				map<std::string, size_t>::iterator counter =
-				  tween_counters.find(args[0]);
+				auto counter = tween_counters.find(args[0]);
 				if (counter != tween_counters.end()) {
 					states_in_curr += counter->second;
 					if (states_in_curr >= states_per - 1) {
-						std::string next_name = unique_name("cmd");
+						auto next_name = unique_name("cmd");
 						curr_cmd.push_back("queuecommand,\"" + next_name +
 										   "\"");
 						fields[this_name] = "cmd(" + join(";", curr_cmd) + ")";
@@ -417,12 +412,12 @@ actor_template_t::store_field(std::string const& field_name,
 							  std::string const& suf)
 {
 	// OITG apparently allowed "Oncommand" as valid.
-	if (field_name.Right(7).MakeLower() != "command") {
+	if (make_lower(tail(field_name, 7)) != "command") {
 		cmd_convert = false;
 	}
 	if (cmd_convert) {
 		std::string real_field_name =
-		  field_name.Left(field_name.size() - 7) + "Command";
+		  head(field_name, field_name.size() - 7) + "Command";
 		store_cmd(real_field_name, value);
 	} else {
 		fields[field_name] = pref + value + suf;
@@ -441,9 +436,10 @@ actor_template_t::store_field(std::string const& field_name,
 }
 
 void
-actor_template_t::rename_field(std::string const& old_name, std::string const& new_name)
+actor_template_t::rename_field(std::string const& old_name,
+							   std::string const& new_name)
 {
-	field_cont_t::iterator old_field = fields.find(old_name);
+	auto old_field = fields.find(old_name);
 	if (old_field == fields.end()) {
 		return;
 	}
@@ -454,7 +450,7 @@ actor_template_t::rename_field(std::string const& old_name, std::string const& n
 std::string
 actor_template_t::get_field(std::string const& field_name)
 {
-	field_cont_t::iterator field = fields.find(field_name);
+	auto field = fields.find(field_name);
 	if (field == fields.end()) {
 		return "";
 	}
@@ -473,20 +469,20 @@ actor_template_t::load_frames_from_file(std::string const& fname,
 		return;
 	}
 	XNode const* sprite_node = ini.GetChild("Sprite");
-	if (sprite_node != NULL) {
+	if (sprite_node != nullptr) {
 		FOREACH_CONST_Attr(sprite_node, attr)
 		{
 			// Frame and Delay fields have names of the form "Frame0000" where
 			// the "0000" part is the id of the frame.
-			std::string field_type = std::string(attr->first).Left(5);
+			std::string field_type = head(std::string(attr->first), 5);
 			if (field_type == "Frame") {
-				int id = StringToInt(
-				  std::string(attr->first).Right(attr->first.size() - 5));
+				auto id = StringToInt(
+				  tail(std::string(attr->first), attr->first.size() - 5));
 				make_space_for_frame(id);
 				attr->second->GetValue(frames[id].frame);
 			} else if (field_type == "Delay") {
-				int id = StringToInt(
-				  std::string(attr->first).Right(attr->first.size() - 5));
+				auto id = StringToInt(
+				  tail(std::string(attr->first), attr->first.size() - 5));
 				make_space_for_frame(id);
 				attr->second->GetValue(frames[id].delay);
 			} else if (field_type == "Textu") {
@@ -510,7 +506,7 @@ actor_template_t::load_model_from_file(std::string const& fname,
 		return;
 	}
 	XNode const* model_node = ini.GetChild("Model");
-	if (model_node != NULL) {
+	if (model_node != nullptr) {
 		FOREACH_CONST_Attr(model_node, attr)
 		{
 			store_field(attr->first, attr->second, false, rel_path, "");
@@ -524,7 +520,7 @@ actor_template_t::load_node(XNode const& node,
 							condition_set_t& conditions)
 {
 	type = node.GetName();
-	bool type_set_by_automagic = false;
+	auto type_set_by_automagic = false;
 #define set_type(auto_type)                                                    \
 	type_set_by_automagic = true;                                              \
 	type = auto_type;
@@ -535,7 +531,7 @@ actor_template_t::load_node(XNode const& node,
 		} else if (attr->first == "Condition") {
 			std::string cond_str;
 			attr->second->GetValue(cond_str);
-			condition_set_t::iterator cond = conditions.find(cond_str);
+			auto cond = conditions.find(cond_str);
 			if (cond == conditions.end()) {
 				condition = unique_name("cond");
 				conditions[cond_str] = condition;
@@ -555,21 +551,21 @@ actor_template_t::load_node(XNode const& node,
 		} else if (attr->first == "File") {
 			std::string relative_path;
 			attr->second->GetValue(relative_path);
-			std::string sfname = dirname + relative_path;
+			auto sfname = dirname + relative_path;
 			if (FILEMAN->IsADirectory(sfname)) {
 				set_type("LoadActor");
 				store_field("File", attr->second, false);
 			} else {
 				vector<std::string> files_in_dir;
 				FILEMAN->GetDirListing(sfname + "*", files_in_dir, false, true);
-				int handled_level = 0;
+				auto handled_level = 0;
 				std::string found_file = "";
-				for (vector<std::string>::iterator file = files_in_dir.begin();
+				for (auto file = files_in_dir.begin();
 					 file != files_in_dir.end() && handled_level < 2;
 					 ++file) {
-					std::string extension = GetExtension(*file);
-					FileType file_type = ActorUtil::GetFileType(*file);
-					std::string this_relative =
+					auto extension = GetExtension(*file);
+					auto file_type = ActorUtil::GetFileType(*file);
+					auto this_relative =
 					  add_extension_to_relative_path_from_found_file(
 						relative_path, *file);
 					switch (file_type) {
@@ -622,7 +618,7 @@ actor_template_t::load_node(XNode const& node,
 				}
 				if (!handled_level) {
 					if (!files_in_dir.empty()) {
-						std::string this_relative =
+						auto this_relative =
 						  add_extension_to_relative_path_from_found_file(
 							relative_path, files_in_dir[0]);
 						store_field("File", this_relative, false);
@@ -642,8 +638,8 @@ actor_template_t::load_node(XNode const& node,
 	if (type == "Sprite") {
 		rename_field("File", "Texture");
 	}
-	XNode const* xren = node.GetChild("children");
-	if (xren != NULL) {
+	auto xren = node.GetChild("children");
+	if (xren != nullptr) {
 		FOREACH_CONST_Child(xren, child)
 		{
 			actor_template_t chill_plate;
@@ -652,8 +648,8 @@ actor_template_t::load_node(XNode const& node,
 		}
 	}
 	if (!x.empty() || !y.empty()) {
-		std::string pos_init = "xy," + x + "," + y;
-		field_cont_t::iterator init = fields.find("InitCommand");
+		auto pos_init = "xy," + x + "," + y;
+		auto init = fields.find("InitCommand");
 		if (init != fields.end()) {
 			pos_init = pos_init + ";queuecommand,xtl_passed_initCommand";
 			fields["xtl_passed_initCommand"] = init->second;
@@ -673,26 +669,22 @@ actor_template_t::output_to_file(RageFile* file, std::string const& indent)
 	} else {
 		file->Write(indent + "Def." + type + "{\n");
 	}
-	std::string subindent = indent + "  ";
+	auto subindent = indent + "  ";
 	if (name.empty()) {
 		name = unique_name("actor");
 	}
 	file->Write(subindent + "Name= \"" + name + "\",\n");
 	if (!frames.empty()) {
 		file->Write(subindent + "Frames= {\n");
-		std::string frameindent = subindent + "  ";
-		for (vector<frame_t>::iterator frame = frames.begin();
-			 frame != frames.end();
-			 ++frame) {
+		auto frameindent = subindent + "  ";
+		for (auto frame = frames.begin(); frame != frames.end(); ++frame) {
 			file->Write(frameindent + "{Frame= " + IntToString(frame->frame) +
 						", Delay= " + FloatToString(frame->delay) + "},\n");
 		}
 		file->Write(indent + "},\n");
 	}
-	for (field_cont_t::iterator field = fields.begin(); field != fields.end();
-		 ++field) {
-		set<std::string>::iterator is_string =
-		  fields_that_are_strings.find(field->first);
+	for (auto field = fields.begin(); field != fields.end(); ++field) {
+		auto is_string = fields_that_are_strings.find(field->first);
 		if (is_string != fields_that_are_strings.end()) {
 			file->Write(subindent + field->first + "= \"" + field->second +
 						"\",\n");
@@ -701,9 +693,7 @@ actor_template_t::output_to_file(RageFile* file, std::string const& indent)
 						",\n");
 		}
 	}
-	for (vector<actor_template_t>::iterator child = children.begin();
-		 child != children.end();
-		 ++child) {
+	for (auto child = children.begin(); child != children.end(); ++child) {
 		child->output_to_file(file, subindent);
 		file->Write(",\n");
 	}
@@ -728,18 +718,16 @@ convert_xml_file(std::string const& fname, std::string const& dirname)
 	actor_template_t plate;
 	condition_set_t conditions;
 	plate.load_node(xml, dirname, conditions);
-	RageFile* file = new RageFile;
-	std::string out_name = fname.Left(fname.size() - 4) + ".lua";
+	auto file = new RageFile;
+	std::string out_name = head(fname, fname.size() - 4) + ".lua";
 	if (!file->Open(out_name, RageFile::WRITE)) {
 		LOG->Trace(
 		  "Could not open %s: %s", out_name.c_str(), file->GetError().c_str());
 		return;
 	}
 	LOG->Trace("Saving conversion to: %s", out_name.c_str());
-	for (condition_set_t::iterator cond = conditions.begin();
-		 cond != conditions.end();
-		 ++cond) {
-		std::string cond_text = cond->first;
+	for (auto cond = conditions.begin(); cond != conditions.end(); ++cond) {
+		auto cond_text = cond->first;
 		convert_lua_chunk(cond_text);
 		file->Write("local " + cond->second + "_result= " + cond_text + "\n\n");
 	}

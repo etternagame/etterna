@@ -251,7 +251,7 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 		Song* pSong = GAMESTATE->m_pCurSong;
 		if (pSong != nullptr) {
 			std::string curSongTitle = pSong->GetDisplayMainTitle();
-			if (GetSelectedSection() != NULL && curSongTitle != prevSongTitle) {
+			if (GetSelectedSection() != "" && curSongTitle != prevSongTitle) {
 				prevSongTitle = curSongTitle;
 				SelectSongAfterSearch();
 			}
@@ -703,7 +703,7 @@ MusicWheel::SearchGroupNames(const std::string& findme)
 {
 	const vector<std::string>& grps = SONGMAN->GetSongGroupNames();
 	for (size_t i = 0; i < grps.size(); ++i) {
-		string lc = std::string(grps[i]).MakeLower();
+		std::string lc = make_lower(std::string(grps[i]));
 		size_t droop = lc.find(findme);
 		if (droop != lc.npos) {
 			groupnamesearchmatch = grps[i];

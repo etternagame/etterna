@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageException.h"
 #include "RageLog.h"
 #include "RageThreads.h"
@@ -15,9 +15,9 @@ using CrashHandler::IsDebuggerPresent;
 #endif
 
 static uint64_t g_HandlerThreadID = RageThread::GetInvalidThreadID();
-static void (*g_CleanupHandler)(const RString& sError) = NULL;
+static void (*g_CleanupHandler)(const std::string& sError) = NULL;
 void
-RageException::SetCleanupHandler(void (*pHandler)(const RString& sError))
+RageException::SetCleanupHandler(void (*pHandler)(const std::string& sError))
 {
 	g_HandlerThreadID = RageThread::GetCurrentThreadID();
 	g_CleanupHandler = pHandler;
@@ -30,10 +30,10 @@ RageException::Throw(const char* sFmt, ...)
 {
 	va_list va;
 	va_start(va, sFmt);
-	RString error = vssprintf(sFmt, va);
+	std::string error = vssprintf(sFmt, va);
 	va_end(va);
 
-	RString msg =
+	std::string msg =
 	  ssprintf("\n"
 			   "//////////////////////////////////////////////////////\n"
 			   "Exception: %s\n"

@@ -458,7 +458,7 @@ Font::GetFontPaths(const std::string& sFontIniPath,
 	GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (unsigned i = 0; i < asFiles.size(); ++i) {
-		if (!asFiles[i].Right(4).EqualsNoCase(".ini"))
+		if (!EqualsNoCaseLUL(tail(asFiles[i], 4), ".ini"))
 			asTexturePathsOut.push_back(asFiles[i]);
 	}
 }
@@ -523,10 +523,8 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 	if (pNode != nullptr) {
 		FOREACH_CONST_Attr(pNode, pAttr)
 		{
-			std::string sName = pAttr->first;
+			std::string sName = make_upper(pAttr->first);
 			const XNodeValue* pValue = pAttr->second;
-
-			sName.MakeUpper();
 
 			// If val is an integer, it's a width, eg. "10=27".
 			if (IsAnInt(sName)) {
@@ -722,7 +720,7 @@ FontPageSettings::MapRange(const std::string& sMapping,
 						   int iGlyphNo,
 						   int iCount)
 {
-	if (!sMapping.CompareNoCase("Unicode")) {
+	if (!CompareNoCaseLUL(sMapping, "Unicode")) {
 		// Special case.
 		if (iCount == -1)
 			return "Can't map all of Unicode to one font page"; // don't do that
@@ -797,7 +795,7 @@ static vector<std::string> LoadStack;
 void
 Font::Load(const std::string& sIniPath, const std::string& sChars)
 {
-	if (GetExtension(sIniPath).CompareNoCase("ini")) {
+	if (CompareNoCaseLUL(GetExtension(sIniPath), "ini")) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "%s is not an ini file.  Fonts can only be loaded from ini files.",
 		  sIniPath.c_str());
@@ -925,11 +923,6 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 			it->second = 0;
 		}
 
-		//		LOG->Trace( "Adding page %s (%s) to %s; %i glyphs",
-		//			TexturePaths[i].c_str(), sPagename.c_str(),
-		//			sFontOrTextureFilePath.c_str(),
-		// pPage->m_iCharToGlyphNo.size()
-		//);
 		AddPage(pPage);
 
 		/* If this is the first font loaded, or it's called "main", this page's

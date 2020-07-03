@@ -330,8 +330,10 @@ class OptionRowHandlerList : public OptionRowHandler
 			if (vbSel[i])
 				m_aListEntries[i].Apply(p);
 		}
-		FOREACH_CONST(std::string, m_vsBroadcastOnExport, s)
-		MESSAGEMAN->Broadcast(*s);
+		for (auto& s : m_vsBroadcastOnExport) {
+			MESSAGEMAN->Broadcast(s);
+		}
+
 		return 0;
 	}
 
@@ -357,7 +359,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	{
 		// HACK: always reload "speed", to update the BPM text in the name of
 		// the speed line
-		if (!m_Def.m_sName.CompareNoCase("speed"))
+		if (!CompareNoCaseLUL(m_Def.m_sName, "speed"))
 			return RELOAD_CHANGED_ALL;
 
 		return OptionRowHandler::Reload();
@@ -376,12 +378,11 @@ SortNoteSkins(vector<std::string>& asSkinNames)
 	set<std::string> setUnusedSkinNames(setSkinNames);
 	asSkinNames.clear();
 
-	FOREACH(std::string, asSorted, sSkin)
-	{
-		if (setSkinNames.find(*sSkin) == setSkinNames.end())
+	for (auto& sSkin : asSorted) {
+		if (setSkinNames.find(sSkin) == setSkinNames.end())
 			continue;
-		asSkinNames.push_back(*sSkin);
-		setUnusedSkinNames.erase(*sSkin);
+		asSkinNames.push_back(sSkin);
+		setUnusedSkinNames.erase(sSkin);
 	}
 
 	asSkinNames.insert(
