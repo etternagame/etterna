@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenSelectLanguage.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SCREEN_CLASS(ScreenSelectLanguage);
 

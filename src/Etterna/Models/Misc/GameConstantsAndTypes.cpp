@@ -3,7 +3,6 @@
 #include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "Etterna/Singletons/GameState.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "PlayerNumber.h"

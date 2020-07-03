@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongOptions.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 static const char* AutosyncTypeNames[] = {
 	"Off",

@@ -1,20 +1,15 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "AnnouncerManager.h"
-#include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/Foreach.h"
-#include "GameManager.h"
 #include "GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/FileTypes/MsdFile.h"
 #include "NoteSkinManager.h"
 #include <algorithm>
 #include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
 #include <mutex>
-#include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
-#include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
@@ -27,7 +22,6 @@
 #include "SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "Etterna/Actor/Base/Sprite.h"
 #include "StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
@@ -1584,13 +1578,6 @@ SongManager::GetNumStepsLoadedFromProfile()
 	return iCount;
 }
 
-int
-SongManager::GetSongRank(Song* pSong)
-{
-	const int index =
-	  FindIndex(m_pPopularSongs.begin(), m_pPopularSongs.end(), pSong);
-	return index; // -1 means we didn't find it
-}
 void
 makePlaylist(const RString& answer)
 {
@@ -1820,23 +1807,6 @@ class LunaSongManager : public Luna<SongManager>
 	DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
 	DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
 
-	static int GetSongRank(T* p, lua_State* L)
-	{
-		Song* pSong = Luna<Song>::check(L, 1);
-		int index = p->GetSongRank(pSong);
-		if (index != -1)
-			lua_pushnumber(L, index + 1);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	/*
-	static int GetSongRankFromProfile( T* p, lua_State *L )
-	{
-		// it's like the above but also takes in a ProfileSlot as well.
-	}
-	*/
-
 	static int GetSongGroupNames(T* p, lua_State* L)
 	{
 		vector<RString> v;
@@ -1955,7 +1925,6 @@ class LunaSongManager : public Luna<SongManager>
 		ADD_METHOD(GetExtraStageInfo);
 		ADD_METHOD(GetSongColor);
 		ADD_METHOD(GetSongGroupColor);
-		ADD_METHOD(GetSongRank);
 		ADD_METHOD(GetSongGroupNames);
 		ADD_METHOD(GetSongsInGroup);
 		ADD_METHOD(ShortenGroupName);

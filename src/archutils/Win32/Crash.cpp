@@ -5,12 +5,11 @@
 
 #include <windows.h>
 
-#include "Etterna/Globals/global.h"
 #include "arch/Threads/Threads_Win32.h"
 #include "crash.h"
 #include "CrashHandlerInternal.h"
-#include "RageUtil/Misc/RageLog.h"      // for RageLog::GetAdditionalLog and Flush
-#include "RageUtil/Misc/RageThreads.h"  // for GetCheckpointLogs
+#include "RageUtil/Misc/RageLog.h" // for RageLog::GetAdditionalLog and Flush
+#include "RageUtil/Misc/RageThreads.h"		 // for GetCheckpointLogs
 #include "Etterna/Singletons/PrefsManager.h" // for g_bAutoRestart
 #include "RestartProgram.h"
 
@@ -150,15 +149,15 @@ StartChild(HANDLE& hProcess, HANDLE& hToStdin, HANDLE& hFromStdout)
 	strcat(szBuf, CHILD_MAGIC_PARAMETER);
 
 	PROCESS_INFORMATION pi;
-	int iRet = CreateProcess(NULL,  // pointer to name of executable module
+	int iRet = CreateProcess(NULL,	// pointer to name of executable module
 							 szBuf, // pointer to command line string
-							 NULL,  // process security attributes
-							 NULL,  // thread security attributes
-							 true,  // handle inheritance flag
+							 NULL,	// process security attributes
+							 NULL,	// thread security attributes
+							 true,	// handle inheritance flag
 							 0,		// creation flags
-							 NULL,  // pointer to new environment block
-							 cwd,   // pointer to current directory name
-							 &si,   // pointer to STARTUPINFO
+							 NULL,	// pointer to new environment block
+							 cwd,	// pointer to current directory name
+							 &si,	// pointer to STARTUPINFO
 							 &pi	// pointer to PROCESS_INFORMATION
 	);
 
@@ -313,7 +312,8 @@ MainExceptionHandler(LPVOID lpParameter)
 	 * However, once in a while some driver or library turns evil and unmasks an
 	 * exception flag on us. If this happens, re-mask it and continue execution.
 	 */
-	PEXCEPTION_POINTERS pExc = reinterpret_cast<PEXCEPTION_POINTERS>(lpParameter);
+	PEXCEPTION_POINTERS pExc =
+	  reinterpret_cast<PEXCEPTION_POINTERS>(lpParameter);
 	switch (pExc->ExceptionRecord->ExceptionCode) {
 		case EXCEPTION_FLT_INVALID_OPERATION:
 		case EXCEPTION_FLT_DENORMAL_OPERAND:
@@ -401,9 +401,13 @@ long __stdcall CrashHandler::ExceptionHandler(EXCEPTION_POINTERS* pExc)
 	/* If the stack overflowed, we have a very limited amount of stack space.
 	 * Allocate a new stack, and run the exception handler in it, to increase
 	 * the chances of success. */
-	HANDLE hExceptionHandler = CreateThread(nullptr, 1024 * 32, MainExceptionHandler, reinterpret_cast<LPVOID>(pExc), 0, nullptr);
-	if (hExceptionHandler == NULL)
-	{
+	HANDLE hExceptionHandler = CreateThread(nullptr,
+											1024 * 32,
+											MainExceptionHandler,
+											reinterpret_cast<LPVOID>(pExc),
+											0,
+											nullptr);
+	if (hExceptionHandler == NULL) {
 		TerminateProcess(GetCurrentProcess(), 0);
 		return EXCEPTION_EXECUTE_HANDLER;
 	}
@@ -478,7 +482,7 @@ IsExecutableProtection(DWORD dwProtect)
 	VirtualQuery((LPCVOID)IsExecutableProtection, &meminfo, sizeof meminfo);
 
 	switch ((unsigned char)dwProtect) {
-		case PAGE_READONLY:  // *sigh* Win9x...
+		case PAGE_READONLY:	 // *sigh* Win9x...
 		case PAGE_READWRITE: // *sigh*
 			return meminfo.Protect == PAGE_READONLY ||
 				   meminfo.Protect == PAGE_READWRITE;

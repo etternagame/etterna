@@ -2,7 +2,6 @@
 #define SONG_H
 
 #include "Etterna/Models/Misc/Difficulty.h"
-#include "Etterna/Models/Misc/EnumHelper.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"

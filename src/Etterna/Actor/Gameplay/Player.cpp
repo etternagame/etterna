@@ -36,7 +36,7 @@
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "HoldJudgment.h"
-#include "Etterna/Models/Misc/GamePreferences.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
@@ -48,7 +48,8 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 						RString& sNameOut,
 						float& defaultValueOut)
 {
-	sNameOut = "TimingWindowSeconds" + TimingWindowToString((TimingWindow)i);
+	sNameOut = "TimingWindowSeconds" +
+			   TimingWindowToString(static_cast<TimingWindow>(i));
 	switch (i) {
 		case TW_W1:
 			defaultValueOut = 0.0225f;
@@ -93,6 +94,20 @@ static Preference<float> m_fTimingWindowJump("TimingWindowJump", 0.25);
 static Preference<float> m_fMaxInputLatencySeconds("MaxInputLatencySeconds",
 												   0.0);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
+
+// moved out of being members of player.h
+static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
+static ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;
+static ThemeMetric<float> HOLD_JUDGMENT_Y_STANDARD;
+static ThemeMetric<float> HOLD_JUDGMENT_Y_REVERSE;
+static ThemeMetric<int> BRIGHT_GHOST_COMBO_THRESHOLD;
+static ThemeMetric<bool> TAP_JUDGMENTS_UNDER_FIELD;
+static ThemeMetric<bool> HOLD_JUDGMENTS_UNDER_FIELD;
+static ThemeMetric<bool> COMBO_UNDER_FIELD;
+static ThemeMetric<int> DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+static ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+static ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
+static ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
 /** @brief How much life is in a hold note when you start on it? */
 ThemeMetric<float> INITIAL_HOLD_LIFE("Player", "InitialHoldLife");
@@ -740,8 +755,8 @@ Player::SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo)
 {
 	const unsigned int iCurCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	if (iOldCombo > (unsigned int)COMBO_STOPPED_AT &&
-		iCurCombo < (unsigned int)COMBO_STOPPED_AT) {
+	if (iOldCombo > static_cast<unsigned int>(COMBO_STOPPED_AT) &&
+		iCurCombo < static_cast<unsigned int>(COMBO_STOPPED_AT)) {
 		SCREENMAN->PostMessageToTopScreen(SM_ComboStopped, 0);
 	}
 
@@ -1375,9 +1390,10 @@ Player::UpdateHoldNotes(int iSongRow,
 				// LOG->Trace("initiated note and didn't let go");
 				fLife = 1;
 				hns = HNS_Held;
-				bool bBright = m_pPlayerStageStats &&
-							   m_pPlayerStageStats->m_iCurCombo >
-								 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD;
+				bool bBright =
+				  m_pPlayerStageStats &&
+				  m_pPlayerStageStats->m_iCurCombo >
+					static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD);
 				if (m_pNoteField != nullptr) {
 					FOREACH(TrackRowTapNote, vTN, trtn)
 					{
@@ -1496,10 +1512,10 @@ Player::DrawPrimitives()
 		if (m_sprCombo != nullptr)
 			m_sprCombo->Draw();
 
-	if (!(bool)TAP_JUDGMENTS_UNDER_FIELD)
+	if (!static_cast<bool>(TAP_JUDGMENTS_UNDER_FIELD))
 		DrawTapJudgments();
 
-	if (!(bool)HOLD_JUDGMENTS_UNDER_FIELD)
+	if (!static_cast<bool>(HOLD_JUDGMENTS_UNDER_FIELD))
 		DrawHoldJudgments();
 }
 
@@ -2018,10 +2034,10 @@ Player::Step(int col,
 						m_pPlayerState->m_PlayerController != PC_AUTOPLAY) {
 						IncrementCombo();
 
-						bool bBright =
-						  m_pPlayerStageStats &&
-						  m_pPlayerStageStats->m_iCurCombo >
-							(unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD;
+						bool bBright = m_pPlayerStageStats &&
+									   m_pPlayerStageStats->m_iCurCombo >
+										 static_cast<unsigned int>(
+										   BRIGHT_GHOST_COMBO_THRESHOLD);
 						if (m_pNoteField)
 							m_pNoteField->DidHoldNote(col, HNS_Held, bBright);
 					}
@@ -2331,7 +2347,7 @@ Player::Step(int col,
 				const bool bBright =
 				  (m_pPlayerStageStats &&
 				   m_pPlayerStageStats->m_iCurCombo >
-					 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD);
+					 static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD));
 				if (m_pNoteField != nullptr)
 					m_pNoteField->DidTapNote(
 					  col, bBlind ? TNS_W1 : score, bBright);
@@ -2408,8 +2424,9 @@ Player::FlashGhostRow(int iRow)
 	const bool bBlind =
 	  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
 	const bool bBright =
-	  (m_pPlayerStageStats && m_pPlayerStageStats->m_iCurCombo >
-								(unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD);
+	  (m_pPlayerStageStats &&
+	   m_pPlayerStageStats->m_iCurCombo >
+		 static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD));
 
 	for (int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
 		const TapNote& tn = m_NoteData.GetTapNote(iTrack, iRow);
@@ -2889,9 +2906,10 @@ Player::HandleHoldCheckpoint(int iRow,
 		if (CHECKPOINTS_FLASH_ON_HOLD) {
 			FOREACH_CONST(int, viColsWithHold, i)
 			{
-				bool bBright = m_pPlayerStageStats &&
-							   m_pPlayerStageStats->m_iCurCombo >
-								 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD;
+				bool bBright =
+				  m_pPlayerStageStats &&
+				  m_pPlayerStageStats->m_iCurCombo >
+					static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD);
 				if (m_pNoteField)
 					m_pNoteField->DidHoldNote(*i, HNS_Held, bBright);
 			}

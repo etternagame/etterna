@@ -19,34 +19,21 @@ static LocalizedString NEW_PROFILE_DEFAULT_NAME("ScreenOptionsManageProfiles",
 
 AutoScreenMessage(SM_BackFromEnterNameForNew);
 AutoScreenMessage(SM_BackFromRename);
-AutoScreenMessage(SM_BackFromDeleteConfirm);
 AutoScreenMessage(SM_BackFromClearConfirm);
 AutoScreenMessage(SM_BackFromContextMenu);
 
 enum ProfileAction
 {
 	ProfileAction_SetDefaultP1,
-	ProfileAction_SetDefaultP2,
 	ProfileAction_Edit,
 	ProfileAction_Rename,
-	ProfileAction_Delete,
 	ProfileAction_Clear,
-	ProfileAction_MergeToMachine,
-	ProfileAction_MergeToMachineSkipTotal,
-	ProfileAction_MergeToP1,
-	ProfileAction_MergeToP2,
-	ProfileAction_ChangeToGuest,
-	ProfileAction_ChangeToNormal,
-	ProfileAction_ChangeToTest,
 	ProfileAction_MoveUp,
 	ProfileAction_MoveDown,
 	NUM_ProfileAction
 };
 static const char* ProfileActionNames[] = {
-	"SetDefaultP1", "SetDefaultP2", "Edit",			  "Rename",
-	"Delete",		"Clear",		"MergeToMachine", "MergeToMachineSkipTotal",
-	"MergeToP1",	"MergeToP2",	"ChangeToGuest",  "ChangeToNormal",
-	"ChangeToTest", "MoveUp",		"MoveDown",
+	"SetDefaultP1", "Edit", "Rename", "Clear", "MoveUp", "MoveDown",
 };
 XToString(ProfileAction);
 XToLocalizedString(ProfileAction);
@@ -247,23 +234,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 
 			SCREENMAN->SetNewScreen(this->m_sName); // reload
 		}
-	} else if (SM == SM_BackFromDeleteConfirm) {
-		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
-			// Select the profile nearest to the one that was just deleted.
-			int iIndex = -1;
-			vector<RString>::const_iterator iter =
-			  find(m_vsLocalProfileID.begin(),
-				   m_vsLocalProfileID.end(),
-				   GAMESTATE->m_sEditLocalProfileID.Get());
-			if (iter != m_vsLocalProfileID.end())
-				iIndex = iter - m_vsLocalProfileID.begin();
-			CLAMP(iIndex, 0, m_vsLocalProfileID.size() - 1);
-			GAMESTATE->m_sEditLocalProfileID.Set(m_vsLocalProfileID[iIndex]);
-
-			PROFILEMAN->DeleteLocalProfile(GetLocalProfileIDWithFocus());
-
-			SCREENMAN->SetNewScreen(this->m_sName); // reload
-		}
 	} else if (SM == SM_BackFromClearConfirm) {
 		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
 
@@ -281,20 +251,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 					  ssprintf("Last row code not a valid ProfileAction: %i",
 							   ScreenMiniMenu::s_iLastRowCode));
 				case ProfileAction_SetDefaultP1:
-				case ProfileAction_SetDefaultP2: {
-					if (ProfileManager::m_sDefaultLocalProfileID[PLAYER_1]
-						  .Get() == GetLocalProfileIDWithFocus())
-						ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Set(
-						  "");
-
-					auto pn =
-					  static_cast<PlayerNumber>(ScreenMiniMenu::s_iLastRowCode -
-												ProfileAction_SetDefaultP1);
-					ProfileManager::m_sDefaultLocalProfileID[pn].Set(
-					  GetLocalProfileIDWithFocus());
-
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-				} break;
 				case ProfileAction_Edit: {
 					GAMESTATE->m_sEditLocalProfileID.Set(
 					  GetLocalProfileIDWithFocus());
@@ -308,13 +264,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 											   PROFILE_MAX_DISPLAY_NAME_LENGTH,
 											   ValidateLocalProfileName);
 				} break;
-				case ProfileAction_Delete: {
-					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf(
-					  CONFIRM_DELETE_PROFILE.GetValue(), sTitle.c_str());
-					ScreenPrompt::Prompt(
-					  SM_BackFromDeleteConfirm, sMessage, PROMPT_YES_NO);
-				} break;
 				case ProfileAction_Clear: {
 					RString sTitle = pProfile->m_sDisplayName;
 					RString sMessage = ssprintf(
@@ -322,30 +271,6 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 					ScreenPrompt::Prompt(
 					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
 				} break;
-				case ProfileAction_MergeToMachine:
-					break;
-				case ProfileAction_MergeToMachineSkipTotal:
-					break;
-				case ProfileAction_MergeToP1:
-					PROFILEMAN->MergeLocalProfiles(
-					  GetLocalProfileIDWithFocus(),
-					  ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
-					break;
-				case ProfileAction_ChangeToGuest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Guest);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToNormal:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Normal);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
-				case ProfileAction_ChangeToTest:
-					PROFILEMAN->ChangeProfileType(
-					  GetLocalProfileIndexWithFocus(), ProfileType_Test);
-					SCREENMAN->SetNewScreen(this->m_sName); // reload
-					break;
 				case ProfileAction_MoveUp:
 					PROFILEMAN->MoveProfilePriority(
 					  GetLocalProfileIndexWithFocus(), true);
@@ -421,7 +346,6 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 		} else {
 			ADD_ACTION(ProfileAction_Edit);
 			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Delete);
 			ADD_ACTION(ProfileAction_MoveUp);
 			ADD_ACTION(ProfileAction_MoveDown);
 		}

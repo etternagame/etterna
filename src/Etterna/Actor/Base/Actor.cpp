@@ -2,7 +2,6 @@
 #include "Actor.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
@@ -14,10 +13,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include <typeinfo>
-#include <list>
 #include <tuple>
 #include "Etterna/Singletons/FilterManager.h"
-#include "Etterna/Models/Lua/LuaReference.h"
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -73,10 +70,10 @@ Actor::SetBGMTime(float fTime,
 }
 
 void
-Actor::SetPlayerBGMBeat(PlayerNumber pn, float fBeat, float fBeatNoOffset)
+Actor::SetPlayerBGMBeat(float fBeat, float fBeatNoOffset)
 {
-	g_vfCurrentBGMBeatPlayer[pn] = fBeat;
-	g_vfCurrentBGMBeatPlayerNoOffset[pn] = fBeatNoOffset;
+	g_vfCurrentBGMBeatPlayer[PLAYER_1] = fBeat;
+	g_vfCurrentBGMBeatPlayerNoOffset[PLAYER_1] = fBeatNoOffset;
 }
 
 void
@@ -1554,7 +1551,9 @@ Actor::QueueMessage(const std::string& sMessageName)
 }
 
 void
-Actor::AddCommand(const std::string& sCmdName, apActorCommands apac, bool warn)
+Actor::AddCommand(const std::string& sCmdName,
+				  const apActorCommands& apac,
+				  bool warn)
 {
 	if (HasCommand(sCmdName) && warn) {
 		std::string sWarning =
@@ -2606,7 +2605,7 @@ class LunaActor : public Luna<Actor>
 		if (lua_isnoneornil(L, 1)) {
 			p->SetFakeParent(NULL);
 		} else {
-			Actor* fake = Luna<Actor>::check(L, 1);
+			auto fake = Luna<Actor>::check(L, 1);
 			p->SetFakeParent(fake);
 		}
 		COMMON_RETURN_SELF;

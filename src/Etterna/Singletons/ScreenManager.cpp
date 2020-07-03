@@ -61,7 +61,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Singletons/FontManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"

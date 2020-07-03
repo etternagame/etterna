@@ -2,16 +2,12 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h" // for sending SM_PlayMusicSample
-#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelBase.h"
@@ -22,7 +18,7 @@ AutoScreenMessage(
 
 static const char* WheelStateNames[] = {
 	"Selecting",		"FlyingOffBeforeNextSort", "FlyingOnAfterNextSort",
-	"RouletteSpinning", "RouletteSlowingDown",	 "RandomSpinning",
+	"RouletteSpinning", "RouletteSlowingDown",	   "RandomSpinning",
 	"Locked",
 };
 XToString(WheelState);
@@ -114,7 +110,7 @@ WheelBase::UpdateScrollbar()
 	float fItemAt = m_iSelection - m_fPositionOffsetFromSelection;
 
 	{
-		float fSize = float(NUM_WHEEL_ITEMS) / iTotalNumItems;
+		float fSize = static_cast<float>(NUM_WHEEL_ITEMS) / iTotalNumItems;
 		float fCenter = fItemAt / iTotalNumItems;
 		fSize *= 0.5f;
 
@@ -360,7 +356,7 @@ WheelBase::Move(int n)
 		return;
 
 	m_TimeBeforeMovingBegins = 1 / 8.0f;
-	m_SpinSpeed = float(PREFSMAN->m_iMusicWheelSwitchSpeed);
+	m_SpinSpeed = static_cast<float>(PREFSMAN->m_iMusicWheelSwitchSpeed);
 	m_Moving = n;
 
 	if (m_Moving != 0)

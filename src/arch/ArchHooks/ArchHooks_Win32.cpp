@@ -10,7 +10,6 @@
 #include "archutils/win32/ErrorStrings.h"
 #include "archutils/win32/RestartProgram.h"
 #include "archutils/win32/GotoURL.h"
-#include "archutils/Win32/RegistryAccess.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
 static HANDLE g_hInstanceMutex;
@@ -155,7 +154,7 @@ ArchHooks_Win32::CheckForMultipleInstances(int argc, char* argv[])
 		SendMessage(
 		  (HWND)hWnd, // HWND hWnd = handle of destination window
 		  WM_COPYDATA,
-		  (WPARAM)NULL,  // HANDLE OF SENDING WINDOW
+		  (WPARAM)NULL,	 // HANDLE OF SENDING WINDOW
 		  (LPARAM)&cds); // 2nd msg parameter = pointer to COPYDATASTRUCT
 	}
 

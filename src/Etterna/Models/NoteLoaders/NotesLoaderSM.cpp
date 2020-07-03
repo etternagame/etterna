@@ -4,7 +4,6 @@
 #include "Etterna/FileTypes/MsdFile.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesLoaderSM.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -12,7 +11,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 // Everything from this line to the creation of sm_parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions

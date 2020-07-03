@@ -11,7 +11,9 @@ class ReceptorArrow : public ActorFrame
 {
   public:
 	ReceptorArrow();
-	void Load(const PlayerState* pPlayerState, int iColNo, std::string Type);
+	void Load(const PlayerState* pPlayerState,
+			  int iColNo,
+			  const std::string& Type);
 
 	void DrawPrimitives() override;
 	void Update(float fDeltaTime) override;

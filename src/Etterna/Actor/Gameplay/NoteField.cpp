@@ -1,7 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Gameplay/ArrowEffects.h"
-#include "Etterna/Models/Misc/BackgroundUtil.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/NoteData/NoteData.h"
@@ -17,7 +15,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include <cfloat>
 
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
@@ -146,10 +143,9 @@ NoteField::CacheAllUsedNoteSkins()
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
 	  m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin);
-	FOREACH(RString, asSkinsLower, s)
-	{
-		NOTESKIN->ValidateNoteSkinName(*s);
-		s->MakeLower();
+	for (auto& s : asSkinsLower) {
+		NOTESKIN->ValidateNoteSkinName(s);
+		s.MakeLower();
 	}
 
 	for (unsigned i = 0; i < asSkinsLower.size(); ++i) {
@@ -159,16 +155,15 @@ NoteField::CacheAllUsedNoteSkins()
 	/* If we're changing note skins in the editor, we can have old note skins
 	 * lying around.  Remove them so they don't accumulate. */
 	set<RString> setNoteSkinsToUnload;
-	FOREACHM(RString, NoteDisplayCols*, m_NoteDisplays, d)
-	{
-		bool unused =
-		  find(asSkinsLower.begin(), asSkinsLower.end(), d->first) ==
-		  asSkinsLower.end();
+	for (auto& d : m_NoteDisplays) {
+		bool unused = find(asSkinsLower.begin(), asSkinsLower.end(), d.first) ==
+					  asSkinsLower.end();
 		if (unused)
-			setNoteSkinsToUnload.insert(d->first);
+			setNoteSkinsToUnload.insert(d.first);
 	}
-	FOREACHS(RString, setNoteSkinsToUnload, s)
-	UncacheNoteSkin(*s);
+	for (auto& s : setNoteSkinsToUnload) {
+		UncacheNoteSkin(s);
+	}
 
 	RString sCurrentNoteSkinLower =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
@@ -444,7 +439,7 @@ NoteField::DrawBeatBar(const float fBeat, BeatBarType type, int iMeasureIndex)
 		switch (type) {
 			DEFAULT_FAIL(type);
 			case measure: // handled above
-			case beat:	// fall through
+			case beat:	  // fall through
 				fAlpha = BAR_4TH_ALPHA;
 				iState = 1;
 				break;
@@ -481,7 +476,7 @@ NoteField::DrawBoard(int iDrawDistanceAfterTargetsPixels,
 					 int iDrawDistanceBeforeTargetsPixels)
 {
 	// todo: make this an AutoActor instead? -aj
-	auto* pSprite = dynamic_cast<Sprite*>((Actor*)m_sprBoard);
+	auto* pSprite = dynamic_cast<Sprite*>(static_cast<Actor*>(m_sprBoard));
 	if (pSprite == NULL) {
 		m_sprBoard->Draw();
 	} else {
@@ -583,7 +578,7 @@ NoteField::set_text_measure_number_for_draw(const float beat,
 }
 
 void
-NoteField::draw_timing_segment_text(const RString& text,
+NoteField::draw_timing_segment_text(const std::string& text,
 									const float beat,
 									const float side_sign,
 									float x_offset,
@@ -599,7 +594,7 @@ NoteField::draw_timing_segment_text(const RString& text,
 
 void
 NoteField::DrawBGChangeText(const float beat,
-							const RString new_bg_name,
+							const std::string& new_bg_name,
 							const RageColor& glow)
 {
 	set_text_measure_number_for_draw(

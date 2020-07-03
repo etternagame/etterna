@@ -595,26 +595,17 @@ SongUtil::SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
 										 ProfileSlot slot,
 										 bool bDescending)
 {
-	if (!PROFILEMAN->IsPersistentProfile(slot))
-		return; // nothing to do since we don't have data
 	Profile* pProfile = PROFILEMAN->GetProfile(slot);
 	SortSongPointerArrayByNumPlays(vpSongsInOut, pProfile, bDescending);
 }
 
+// dumb and should be handled by scoreman
 void
 SongUtil::SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
 										 const Profile* pProfile,
 										 bool bDescending)
 {
-	ASSERT(pProfile != NULL);
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		g_mapSongSortVal[vpSongsInOut[i]] =
-		  ssprintf("%9i", pProfile->GetSongNumTimesPlayed(vpSongsInOut[i]));
-	stable_sort(vpSongsInOut.begin(),
-				vpSongsInOut.end(),
-				bDescending ? CompareSongPointersBySortValueDescending
-							: CompareSongPointersBySortValueAscending);
-	g_mapSongSortVal.clear();
+	return;
 }
 
 RString
@@ -697,18 +688,12 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			auto s =
 			  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
 			if (p == nullptr || s == nullptr)
-				return GradeToLocalizedString(Grade_NoData);
-			int iCounts[NUM_Grade];
-			PROFILEMAN->GetProfile(PLAYER_1)->GetGrades(
-			  pSong, s->m_StepsType, iCounts);
-			for (int i = Grade_Tier01; i < NUM_Grade; ++i) {
-				Grade g = (Grade)i;
-				if (iCounts[i] > 0)
-					return ssprintf("%4s x %d",
-									GradeToLocalizedString(g).c_str(),
-									iCounts[i]);
-			}
-			return GradeToLocalizedString(Grade_NoData);
+				return GradeToLocalizedString(Grade_Invalid);
+
+			return GradeToLocalizedString(
+					 PROFILEMAN->GetProfile(PLAYER_1)->GetBestGrade(
+					   pSong, s->m_StepsType))
+			  .c_str();
 		}
 		case SORT_MODE_MENU:
 			return RString();

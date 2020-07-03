@@ -740,7 +740,7 @@ local profilebuttons =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
-				SCOREMAN:ValidateAllScores()
+				profile:UnInvalidateAllScores()
 				STATSMAN:UpdatePlayerRating()
 			end
 		end

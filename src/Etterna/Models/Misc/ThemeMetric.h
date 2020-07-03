@@ -3,9 +3,6 @@
 #ifndef THEME_METRIC_H
 #define THEME_METRIC_H
 
-#include "Foreach.h"
-#include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include <map>
 
@@ -283,8 +280,9 @@ class ThemeMetricMap : public IThemeMetric
 			  const vector<RString>& vsValueNames)
 	{
 		m_metric.clear();
-		FOREACH_CONST(RString, vsValueNames, s)
-		m_metric[*s].Load(sGroup, pfn(*s));
+		for (auto& s : vsValueNames) {
+			m_metric[s].Load(sGroup, pfn(s));
+		}
 	}
 	void Read() override
 	{

@@ -249,7 +249,9 @@ struct bmsCommandTree
 
 		~bmsNodeS()
 		{
-			FOREACH(bmsNodeS*, branches, b) { delete *b; }
+			for (auto& b : branches) {
+				delete b;
+			}
 		}
 	};
 
@@ -360,10 +362,10 @@ struct bmsCommandTree
 						 BMSHeaders& headersOut,
 						 vector<RString>& linesOut)
 	{
-		FOREACH(bmsNodeS*, node->branches, b)
-		if (evaluateNode(*b, headersOut, linesOut)) {
-			return true;
-		}
+		for (auto& b : node->branches)
+			if (evaluateNode(b, headersOut, linesOut)) {
+				return true;
+			}
 
 		return false;
 	}

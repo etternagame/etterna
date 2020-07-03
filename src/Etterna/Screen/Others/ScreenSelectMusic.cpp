@@ -16,27 +16,18 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSelectMusic.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/ImageCache.h"
-#include "ScreenPrompt.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Actor/Menus/OptionsList.h"
-#include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
-#include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
@@ -396,7 +387,6 @@ ScreenSelectMusic::DifferentialReload()
 		m_MusicWheel.SelectSection(currentHoveredGroup);
 		m_MusicWheel.SetOpenSection(currentHoveredGroup);
 	}
-	
 }
 
 bool
@@ -1226,45 +1216,13 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 					g_bSampleMusicWaiting = true;
 					CheckBackgroundRequests(true);
 				}
-
-				const bool bIsNew =
-				  PROFILEMAN->IsSongNew(m_MusicWheel.GetSelectedSong());
-				bool bIsHard = false;
-				if (GAMESTATE->m_pCurSteps &&
-					GAMESTATE->m_pCurSteps->GetMeter() >= HARD_COMMENT_METER)
-					bIsHard = true;
-
-				// See if this song is a repeat.
-				// If we're in event mode, only check the last five songs.
-				bool bIsRepeat = false;
-				int i = 0;
-				if (GAMESTATE->IsEventMode())
-					i = max(0, int(STATSMAN->m_vPlayedStageStats.size()) - 5);
-				for (; i < (int)STATSMAN->m_vPlayedStageStats.size(); ++i)
-					if (STATSMAN->m_vPlayedStageStats[i]
-						  .m_vpPlayedSongs.back() ==
-						m_MusicWheel.GetSelectedSong())
-						bIsRepeat = true;
-
-				if (bIsRepeat)
-					SOUND->PlayOnceFromAnnouncer("select music comment repeat");
-				else if (bIsNew)
-					SOUND->PlayOnceFromAnnouncer("select music comment new");
-				else if (bIsHard)
-					SOUND->PlayOnceFromAnnouncer("select music comment hard");
-				else
-					SOUND->PlayOnceFromAnnouncer(
-					  "select music comment general");
-
 			} else {
 				// We haven't made a selection yet.
 				return false;
 			}
 			// I believe this is for those who like pump pro. -aj
 			MESSAGEMAN->Broadcast("SongChosen");
-
 			break;
-
 		case SelectionState_SelectingSteps: {
 		} break;
 	}
@@ -1363,14 +1321,11 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 		if (pSteps != nullptr)
 			GAMESTATE->SetCompatibleStyle(pSteps->m_StepsType, pn);
 
-		int iScore = 0;
 		if (pSteps) {
 			const Profile* pProfile = PROFILEMAN->GetProfile(pn);
-			iScore = pProfile->GetStepsHighScoreList(pSong, pSteps)
-					   .GetTopScore()
-					   .GetScore();
 			if (m_pPreviewNoteField != nullptr) {
-				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds, *(pSteps->GetTimingData()));
+				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
+											  *(pSteps->GetTimingData()));
 				pSteps->GetNoteData(m_PreviewNoteData);
 				m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
 			}

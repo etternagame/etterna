@@ -1,25 +1,19 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "GameState.h"
-#include "Etterna/Models/Misc/HighScore.h"
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
-#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "ThemeManager.h"
-#include "Etterna/FileTypes/XmlFile.h"
-#include "Etterna/Models/StepsAndStyles/StepsUtil.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
-#include "Etterna/Models/Misc/HighScore.h"
 #include "DownloadManager.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 ProfileManager* PROFILEMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 #define ID_DIGITS 8
 #define ID_DIGITS_STR "8"
@@ -271,12 +265,6 @@ ProfileManager::UnloadAllLocalProfiles()
 	g_vLocalProfile.clear();
 }
 
-static void
-add_category_to_global_list(vector<DirAndProfile>& cat)
-{
-	g_vLocalProfile.insert(g_vLocalProfile.end(), cat.begin(), cat.end());
-}
-
 void
 ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 {
@@ -284,70 +272,31 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 		ld->SetText("Loading Profiles");
 	UnloadAllLocalProfiles();
 
-	vector<RString> profile_ids;
+	vector<std::string> profile_ids;
 	GetDirListing(USER_PROFILES_DIR + "*", profile_ids, true, true);
-	// Profiles have 3 types:
-	// 1.  Guest profiles:
-	//   Meant for use by guests, always at the top of the list.
-	// 2.  Normal profiles:
-	//   Meant for normal use, listed after guests.
-	// e.  Test profiles:
-	//   Meant for use when testing things, listed last.
-	// If the user renames a profile directory manually, that should not be a
-	// problem. -Kyz
-	map<ProfileType, vector<DirAndProfile>> categorized_profiles;
-	// The type data for a profile is in its own file so that loading isn't
-	// slowed down by copying temporary profiles around to make sure the list
-	// is sorted.  The profiles are loaded at the end. -Kyz
-	FOREACH_CONST(RString, profile_ids, id)
-	{
+
+	for (auto& id : profile_ids) {
 		DirAndProfile derp;
-		derp.sDir = *id + "/";
+		derp.sDir = id + "/";
 		derp.profile.m_sProfileID = derp.sDir;
 		derp.profile.LoadTypeFromDir(derp.sDir);
-		map<ProfileType, vector<DirAndProfile>>::iterator category =
-		  categorized_profiles.find(derp.profile.m_Type);
-		if (category == categorized_profiles.end()) {
-			categorized_profiles[derp.profile.m_Type].push_back(derp);
-		} else {
-			bool inserted = false;
-			FOREACH(DirAndProfile, category->second, curr)
-			{
-				if (curr->profile.m_ListPriority >
-					derp.profile.m_ListPriority) {
-					category->second.insert(curr, derp);
-					inserted = true;
-					break;
-				}
-			}
-			if (!inserted) {
-				category->second.push_back(derp);
-			}
-		}
+
+		g_vLocalProfile.push_back(derp);
 	}
-	add_category_to_global_list(categorized_profiles[ProfileType_Guest]);
-	add_category_to_global_list(categorized_profiles[ProfileType_Normal]);
-	add_category_to_global_list(categorized_profiles[ProfileType_Test]);
-	FOREACH(DirAndProfile, g_vLocalProfile, curr)
-	{
-		// curr->profile.EoBatchRecalc(curr->sDir, ld);
-	}
-	FOREACH(DirAndProfile, g_vLocalProfile, curr)
-	{
-		curr->profile.LoadAllFromDir(
-		  curr->sDir, PREFSMAN->m_bSignProfileData, ld);
+
+	for (auto& p : g_vLocalProfile) {
+		p.profile.LoadAllFromDir(p.sDir, PREFSMAN->m_bSignProfileData, ld);
 	}
 }
 
 const Profile*
 ProfileManager::GetLocalProfile(const RString& sProfileID) const
 {
-	RString sDir = LocalProfileIDToDir(sProfileID);
-	FOREACH_CONST(DirAndProfile, g_vLocalProfile, dap)
-	{
-		const RString& sOther = dap->sDir;
+	string sDir = LocalProfileIDToDir(sProfileID);
+	for (auto& p : g_vLocalProfile) {
+		const string& sOther = p.sDir;
 		if (sOther == sDir)
-			return &dap->profile;
+			return &p.profile;
 	}
 
 	return dummy;
@@ -422,14 +371,7 @@ InsertProfileIntoList(DirAndProfile& derp)
 	derp.profile.m_ListPriority = 0;
 	FOREACH(DirAndProfile, g_vLocalProfile, curr)
 	{
-		if (curr->profile.m_Type > derp.profile.m_Type) {
-			derp.profile.SaveTypeToDir(derp.sDir);
-			g_vLocalProfile.insert(curr, derp);
-			inserted = true;
-			break;
-		} else if (curr->profile.m_Type == derp.profile.m_Type) {
-			++derp.profile.m_ListPriority;
-		}
+		++derp.profile.m_ListPriority;
 	}
 	if (!inserted) {
 		derp.profile.SaveTypeToDir(derp.sDir);
@@ -464,44 +406,6 @@ ProfileManager::RenameLocalProfile(const RString& sProfileID,
 
 	RString sProfileDir = LocalProfileIDToDir(sProfileID);
 	return pProfile->SaveAllToDir(sProfileDir, PREFSMAN->m_bSignProfileData);
-}
-
-bool
-ProfileManager::DeleteLocalProfile(const RString& sProfileID)
-{
-	Profile* pProfile = ProfileManager::GetLocalProfile(sProfileID);
-	ASSERT(pProfile != NULL);
-	RString sProfileDir = LocalProfileIDToDir(sProfileID);
-
-	// flush directory cache in an attempt to get this working
-	FILEMAN->FlushDirCache(sProfileDir);
-
-	FOREACH(DirAndProfile, g_vLocalProfile, i)
-	{
-		if (i->sDir == sProfileDir) {
-			if (DeleteRecursive(sProfileDir)) {
-				g_vLocalProfile.erase(i);
-
-				// Delete all references to this profileID
-				FOREACH_CONST(
-				  Preference<RString>*, m_sDefaultLocalProfileID.m_v, j)
-				{
-					if ((*j)->Get() == sProfileID)
-						(*j)->Set("");
-				}
-				return true;
-			} else {
-				LOG->Warn("[ProfileManager::DeleteLocalProfile] "
-						  "DeleteRecursive(%s) failed",
-						  sProfileID.c_str());
-				return false;
-			}
-		}
-	}
-
-	LOG->Warn("DeleteLocalProfile: ProfileID '%s' doesn't exist",
-			  sProfileID.c_str());
-	return false;
 }
 
 bool
@@ -541,33 +445,6 @@ ProfileManager::GetProfile(ProfileSlot slot) const
 }
 
 void
-ProfileManager::MergeLocalProfiles(RString const& from_id, RString const& to_id)
-{
-	Profile* from = GetLocalProfile(from_id);
-	Profile* to = GetLocalProfile(to_id);
-	if (from == NULL || to == NULL) {
-		return;
-	}
-	to->MergeScoresFromOtherProfile(
-	  from, false, LocalProfileIDToDir(from_id), LocalProfileIDToDir(to_id));
-}
-
-void
-ProfileManager::ChangeProfileType(int index, ProfileType new_type)
-{
-	if (index < 0 || static_cast<size_t>(index) >= g_vLocalProfile.size()) {
-		return;
-	}
-	if (new_type == g_vLocalProfile[index].profile.m_Type) {
-		return;
-	}
-	DirAndProfile derp = g_vLocalProfile[index];
-	g_vLocalProfile.erase(g_vLocalProfile.begin() + index);
-	derp.profile.m_Type = new_type;
-	InsertProfileIntoList(derp);
-}
-
-void
 ProfileManager::MoveProfilePriority(int index, bool up)
 {
 	if (index < 0 || static_cast<size_t>(index) >= g_vLocalProfile.size()) {
@@ -578,27 +455,22 @@ ProfileManager::MoveProfilePriority(int index, bool up)
 	// to all the profiles of the same type.
 	// bools are numbers, true evaluatues to 1.
 	int swindex = index + ((up * -2) + 1);
-	ProfileType type = g_vLocalProfile[index].profile.m_Type;
 	int priority = 0;
 	for (size_t i = 0; i < g_vLocalProfile.size(); ++i) {
 		DirAndProfile* curr = &g_vLocalProfile[i];
-		if (curr->profile.m_Type == type) {
-			if (curr->profile.m_ListPriority != priority) {
-				curr->profile.m_ListPriority = priority;
-				if (i != static_cast<size_t>(index) &&
-					i != static_cast<size_t>(swindex)) {
-					curr->profile.SaveTypeToDir(curr->sDir);
-				}
+
+		if (curr->profile.m_ListPriority != priority) {
+			curr->profile.m_ListPriority = priority;
+			if (i != static_cast<size_t>(index) &&
+				i != static_cast<size_t>(swindex)) {
+				curr->profile.SaveTypeToDir(curr->sDir);
 			}
+
 			++priority;
-		} else if (curr->profile.m_Type > type) {
-			break;
 		}
 	}
 	// Only swap if both indices are valid and the types match.
-	if (swindex >= 0 && static_cast<size_t>(swindex) < g_vLocalProfile.size() &&
-		g_vLocalProfile[swindex].profile.m_Type ==
-		  g_vLocalProfile[index].profile.m_Type) {
+	if (swindex >= 0 && static_cast<size_t>(swindex) < g_vLocalProfile.size()) {
 		g_vLocalProfile[index].swap(g_vLocalProfile[swindex]);
 	}
 }
@@ -609,8 +481,7 @@ ProfileManager::MoveProfilePriority(int index, bool up)
 void
 ProfileManager::IncrementToastiesCount(PlayerNumber pn)
 {
-	if (IsPersistentProfile(pn))
-		++GetProfile(pn)->m_iNumToasties;
+	++GetProfile(pn)->m_iNumToasties;
 }
 
 void
@@ -623,71 +494,13 @@ ProfileManager::AddStepTotals(PlayerNumber pn,
 							  int iNumHands,
 							  int iNumLifts)
 {
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->AddStepTotals(iNumTapsAndHolds,
-									  iNumJumps,
-									  iNumHolds,
-									  iNumRolls,
-									  iNumMines,
-									  iNumHands,
-									  iNumLifts);
-}
-
-//
-// Song stats
-//
-int
-ProfileManager::GetSongNumTimesPlayed(const Song* pSong, ProfileSlot slot) const
-{
-	return GetProfile(slot)->GetSongNumTimesPlayed(pSong);
-}
-
-void
-ProfileManager::AddStepsScore(const Song* pSong,
-							  const Steps* pSteps,
-							  PlayerNumber pn,
-							  const HighScore& hs_,
-							  int& iPersonalIndexOut,
-							  int& iMachineIndexOut)
-{
-	HighScore hs = hs_;
-	hs.SetPercentDP(max(0, hs.GetPercentDP())); // bump up negative scores
-
-	iPersonalIndexOut = -1;
-	iMachineIndexOut = -1;
-
-	// In event mode, set the score's name immediately to the Profile's last
-	// used name.  If no profile last used name exists, use "EVNT".
-	if (GAMESTATE->IsEventMode()) {
-		Profile* pProfile = GetProfile(pn);
-		if (pProfile && !pProfile->m_sLastUsedHighScoreName.empty())
-			hs.SetName(pProfile->m_sLastUsedHighScoreName);
-		else
-			hs.SetName("EVNT");
-	} else {
-		hs.SetName(RANKING_TO_FILL_IN_MARKER);
-	}
-
-	//
-	// save high score
-	//
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->AddStepsHighScore(pSong, pSteps, hs, iPersonalIndexOut);
-}
-
-void
-ProfileManager::IncrementStepsPlayCount(const Song* pSong,
-										const Steps* pSteps,
-										PlayerNumber pn)
-{
-	if (IsPersistentProfile(pn))
-		GetProfile(pn)->IncrementStepsPlayCount(pSong, pSteps);
-}
-
-bool
-ProfileManager::IsPersistentProfile(ProfileSlot slot) const
-{
-	return true;
+	GetProfile(pn)->AddStepTotals(iNumTapsAndHolds,
+								  iNumJumps,
+								  iNumHolds,
+								  iNumRolls,
+								  iNumMines,
+								  iNumHands,
+								  iNumLifts);
 }
 
 void
@@ -769,9 +582,10 @@ class LunaProfileManager : public Luna<ProfileManager>
 		p->SetStatsPrefix(prefix);
 		COMMON_RETURN_SELF;
 	}
+	// concept of persistent profiles is deprecated
 	static int IsPersistentProfile(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsPersistentProfile(PLAYER_1));
+		lua_pushboolean(L, true);
 		return 1;
 	}
 	static int GetProfile(T* p, lua_State* L)
@@ -833,9 +647,10 @@ class LunaProfileManager : public Luna<ProfileManager>
 		lua_pushstring(L, p->GetProfileDir(Enum::Check<ProfileSlot>(L, 1)));
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int IsSongNew(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsSongNew(Luna<Song>::check(L, 1)));
+		lua_pushboolean(L, false);
 		return 1;
 	}
 	static int LastLoadWasTamperedOrCorrupt(T* p, lua_State* L)
@@ -866,12 +681,10 @@ class LunaProfileManager : public Luna<ProfileManager>
 		lua_pushboolean(L, p->SaveLocalProfile(SArg(1)));
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int GetSongNumTimesPlayed(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L,
-		  p->GetSongNumTimesPlayed(Luna<Song>::check(L, 1),
-								   Enum::Check<ProfileSlot>(L, 2)));
+		lua_pushnumber(L, 0);
 		return 1;
 	}
 	static int GetLocalProfileIDs(T* p, lua_State* L)

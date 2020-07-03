@@ -1,11 +1,9 @@
 #include "Etterna/Globals/global.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "NoteTypes.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include "TimingData.h"
 #include <cfloat>
 
@@ -54,28 +52,6 @@ TimingData::Clear()
 	}
 	UnsetElapsedTimesAtAllRows();
 	UnsetEtaner();
-}
-
-bool
-TimingData::IsSafeFullTiming()
-{
-	static vector<TimingSegmentType> needed_segments;
-	if (needed_segments.empty()) {
-		needed_segments.push_back(SEGMENT_BPM);
-		needed_segments.push_back(SEGMENT_TIME_SIG);
-		needed_segments.push_back(SEGMENT_TICKCOUNT);
-		needed_segments.push_back(SEGMENT_COMBO);
-		needed_segments.push_back(SEGMENT_LABEL);
-		needed_segments.push_back(SEGMENT_SPEED);
-		needed_segments.push_back(SEGMENT_SCROLL);
-	}
-	vector<TimingSegment*>* segs = m_avpTimingSegments;
-	for (size_t s = 0; s < needed_segments.size(); ++s) {
-		if (segs[needed_segments[s]].empty()) {
-			return false;
-		}
-	}
-	return true;
 }
 
 TimingData::~TimingData()
@@ -136,54 +112,16 @@ TimingData::ReleaseLookup()
 	m_time_start_lookup.shrink_to_fit();
 }
 
-RString
+std::string
 SegInfoStr(const vector<TimingSegment*>& segs,
 		   unsigned int index,
-		   const RString& name)
+		   const std::string& name)
 {
 	if (index < segs.size()) {
 		return ssprintf(
 		  "%s: %d at %d", name.c_str(), index, segs[index]->GetRow());
 	}
 	return ssprintf("%s: %d at end", name.c_str(), index);
-}
-
-void
-TimingData::DumpOneTable(const beat_start_lookup_t& lookup, const RString& name)
-{
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
-	const vector<TimingSegment*>& bpms = segs[SEGMENT_BPM];
-	const vector<TimingSegment*>& warps = segs[SEGMENT_WARP];
-	const vector<TimingSegment*>& stops = segs[SEGMENT_STOP];
-	const vector<TimingSegment*>& delays = segs[SEGMENT_DELAY];
-	LOG->Trace("%s lookup table:", name.c_str());
-	for (size_t lit = 0; lit < lookup.size(); ++lit) {
-		const lookup_item_t& item = lookup[lit];
-		const GetBeatStarts& starts = item.second;
-		LOG->Trace("%zu: %f", lit, item.first);
-		RString str =
-		  ssprintf("  %s, %s, %s, %s,\n"
-				   "  last_row: %d, last_time: %.3f,\n"
-				   "  warp_destination: %.3f, is_warping: %d",
-				   SegInfoStr(bpms, starts.bpm, "bpm").c_str(),
-				   SegInfoStr(warps, starts.warp, "warp").c_str(),
-				   SegInfoStr(stops, starts.stop, "stop").c_str(),
-				   SegInfoStr(delays, starts.delay, "delay").c_str(),
-				   starts.last_row,
-				   starts.last_time,
-				   starts.warp_destination,
-				   starts.is_warping);
-		LOG->Trace("%s", str.c_str());
-	}
-}
-
-void
-TimingData::DumpLookupTables()
-{
-	LOG->Trace("Dumping timing data lookup tables for %s:", m_sFile.c_str());
-	DumpOneTable(m_beat_start_lookup, "m_beat_start_lookup");
-	DumpOneTable(m_time_start_lookup, "m_time_start_lookup");
-	LOG->Trace("Finished dumping lookup tables for %s:", m_sFile.c_str());
 }
 
 TimingData::beat_start_lookup_t::const_iterator
@@ -718,7 +656,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 }
 
 bool
-TimingData::DoesLabelExist(const RString& sLabel) const
+TimingData::DoesLabelExist(const std::string& sLabel) const
 {
 	const vector<TimingSegment*>& labels = GetTimingSegments(SEGMENT_LABEL);
 	for (unsigned i = 0; i < labels.size(); i++) {
@@ -1298,11 +1236,11 @@ TimingData::NoteRowToMeasureAndBeat(int iNoteRow,
 	FAIL_M("Failed to get measure and beat for note row");
 }
 
-vector<RString>
+vector<std::string>
 TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 {
 	const vector<TimingSegment*> segs = GetTimingSegments(tst);
-	vector<RString> ret;
+	vector<std::string> ret;
 
 	for (unsigned i = 0; i < segs.size(); i++) {
 		ret.push_back(segs[i]->ToString(dec));

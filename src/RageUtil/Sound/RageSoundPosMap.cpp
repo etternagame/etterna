@@ -4,7 +4,6 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSoundPosMap.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "RageUtil/Utils/RageUtil.h"
 
 #include <climits>
 #include <list>

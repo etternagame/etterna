@@ -18,7 +18,6 @@
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "Etterna/Models/Misc/DisplaySpec.h"
 
 #include <set>
 #include <dbt.h>

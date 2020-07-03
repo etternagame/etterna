@@ -8,7 +8,6 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
@@ -679,7 +678,7 @@ ScreenTextEntry::LoadFromTextEntrySettings(const TextEntrySettings& settings)
 						 settings.ValidateAppend,
 						 settings.FormatAnswerForDisplay,
 						 ValidateFromLua, // Validate
-						 OnOKFromLua,	 // OnOK
+						 OnOKFromLua,	  // OnOK
 						 OnCancelFromLua, // OnCancel
 						 settings.bPassword,
 						 ValidateAppendFromLua,		   // ValidateAppend

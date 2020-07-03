@@ -3,7 +3,6 @@
 #include <iostream>
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <string>
 #include <utility>
 #include <cassert>
@@ -87,13 +86,13 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
 
-		bool continue_calc = InitializeHands(
+		bool skip = InitializeHands(
 		  NoteInfo,
 		  music_rate,
 		  0.1F * static_cast<float>(WHAT_IS_EVEN_HAPPEN_THE_BOMB));
 
 		// if we exceed max_rows_for_single_interval during processing
-		if (!continue_calc) {
+		if (skip) {
 			std::cout << "skipping junk file" << std::endl;
 			return dimples_the_all_zero_output;
 		}
@@ -385,7 +384,9 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 					  float music_rate,
 					  float offset) -> bool
 {
-	fastwalk(NoteInfo, music_rate, *this, offset);
+	// do we skip this file?
+	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
+		return true;
 
 	TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(*this);
 	ulbu_that_which_consumes_all();
@@ -437,7 +438,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			}
 		}
 	}
-	return true;
+	return false;
 }
 
 /* pbm = point buffer multiplier, or basically starting with a max points some

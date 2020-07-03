@@ -4,7 +4,6 @@
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "Etterna/Globals/picosha2.h"
-#include "PlayerNumber.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RadarValues.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -13,7 +12,6 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/Misc/TimingData.h"
@@ -58,9 +56,9 @@ struct HighScoreImpl
 	vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
 	string sModifiers;
-	DateTime dateTime;   // return value of time() for when the highscore object
+	DateTime dateTime;	 // return value of time() for when the highscore object
 						 // was created (immediately after achieved)
-	string sPlayerGuid;  // who made this high score
+	string sPlayerGuid;	 // who made this high score
 	string sMachineGuid; // where this high score was made
 	string countryCode;
 	int iProductID;
@@ -203,7 +201,7 @@ HighScoreImpl::HighScoreImpl()
 	ChartKey = "";
 	ScoreKey = "";
 	SSRCalcVersion = 0;
-	grade = Grade_NoData;
+	grade = Grade_Invalid;
 	iScore = 0;
 	fPercentDP = 0.f;
 	fWifeScore = 0.f;
@@ -1257,91 +1255,6 @@ HighScore::GetDisplayName() const
 	return GetName();
 }
 
-/* begin HighScoreList */
-void
-HighScoreList::Init()
-{
-	iNumTimesPlayed = 0;
-	vHighScores.clear();
-	HighGrade = Grade_NoData;
-}
-
-void
-HighScoreList::AddHighScore(const HighScore& hs,
-							int& iIndexOut,
-							bool bIsMachine)
-{
-	int i;
-	for (i = 0; i < static_cast<int>(vHighScores.size()); i++) {
-		if (hs >= vHighScores[i])
-			break;
-	}
-	// Unlimited score saving - Mina
-	vHighScores.insert(vHighScores.begin() + i, hs);
-	iIndexOut = i;
-	// Delete extra machine high scores in RemoveAllButOneOfEachNameAndClampSize
-	// and not here so that we don't end up with fewer than iMaxScores after
-	// removing HighScores with duplicate names.
-	//
-	HighGrade = min(hs.GetWifeGrade(), HighGrade);
-}
-
-void
-HighScoreList::IncrementPlayCount(DateTime _dtLastPlayed)
-{
-	dtLastPlayed = _dtLastPlayed;
-	iNumTimesPlayed++;
-}
-
-const HighScore&
-HighScoreList::GetTopScore() const
-{
-	if (vHighScores.empty()) {
-		static HighScore hs;
-		hs = HighScore();
-		return hs;
-	} else {
-		return vHighScores[0];
-	}
-}
-
-void
-HighScoreList::RemoveAllButOneOfEachName()
-{
-	FOREACH(HighScore, vHighScores, i)
-	{
-		for (vector<HighScore>::iterator j = i + 1; j != vHighScores.end();
-			 j++) {
-			if (i->GetName() == j->GetName()) {
-				j--;
-				vHighScores.erase(j + 1);
-			}
-		}
-	}
-}
-
-void
-HighScoreList::MergeFromOtherHSL(HighScoreList& other, bool is_machine)
-{
-	iNumTimesPlayed += other.iNumTimesPlayed;
-	if (other.dtLastPlayed > dtLastPlayed) {
-		dtLastPlayed = other.dtLastPlayed;
-	}
-	if (other.HighGrade > HighGrade) {
-		HighGrade = other.HighGrade;
-	}
-	vHighScores.insert(
-	  vHighScores.end(), other.vHighScores.begin(), other.vHighScores.end());
-	std::sort(vHighScores.begin(), vHighScores.end());
-	// Remove non-unique scores because they probably come from an accidental
-	// repeated merge. -Kyz
-	vector<HighScore>::iterator unique_end =
-	  std::unique(vHighScores.begin(), vHighScores.end());
-	vHighScores.erase(unique_end, vHighScores.end());
-	// Reverse it because sort moved the lesser scores to the top.
-	std::reverse(vHighScores.begin(), vHighScores.end());
-}
-
 XNode*
 Screenshot::CreateNode() const
 {
@@ -1868,58 +1781,4 @@ class LunaHighScore : public Luna<HighScore>
 };
 
 LUA_REGISTER_CLASS(HighScore)
-
-/** @brief Allow Lua to have access to the HighScoreList. */
-class LunaHighScoreList : public Luna<HighScoreList>
-{
-  public:
-	static int GetHighScores(T* p, lua_State* L)
-	{
-		lua_newtable(L);
-		for (int i = 0; i < static_cast<int>(p->vHighScores.size()); ++i) {
-			p->vHighScores[i].PushSelf(L);
-			lua_rawseti(L, -2, i + 1);
-		}
-
-		return 1;
-	}
-
-	static int GetHighestScoreOfName(T* p, lua_State* L)
-	{
-		string name = SArg(1);
-		for (size_t i = 0; i < p->vHighScores.size(); ++i) {
-			if (name == p->vHighScores[i].GetName()) {
-				p->vHighScores[i].PushSelf(L);
-				return 1;
-			}
-		}
-		lua_pushnil(L);
-		return 1;
-	}
-
-	static int GetRankOfName(T* p, lua_State* L)
-	{
-		string name = SArg(1);
-		size_t rank = 0;
-		for (size_t i = 0; i < p->vHighScores.size(); ++i) {
-			if (name == p->vHighScores[i].GetName()) {
-				// Indices from Lua are one-indexed.  +1 to adjust.
-				rank = i + 1;
-				break;
-			}
-		}
-		// The themer is expected to check for validity before using.
-		lua_pushnumber(L, rank);
-		return 1;
-	}
-
-	LunaHighScoreList()
-	{
-		ADD_METHOD(GetHighScores);
-		ADD_METHOD(GetHighestScoreOfName);
-		ADD_METHOD(GetRankOfName);
-	}
-};
-
-LUA_REGISTER_CLASS(HighScoreList)
 // lua end

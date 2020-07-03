@@ -3,13 +3,11 @@
 
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Models/Misc/Grade.h"
 #include "MessageManager.h"
 #include "Etterna/Models/Misc/ModsGroup.h"
 #include "Etterna/Models/Songs/SongPosition.h"
-#include "discord_rpc.h"
-
-#include <deque>
+#include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Models/Misc/PlayerNumber.h"
 
 struct Game;
 struct lua_State;
@@ -60,7 +58,6 @@ class GameState
 	void SavePlayerProfile(PlayerNumber pn);
 	bool HaveProfileToLoad();
 	bool HaveProfileToSave();
-	void SaveLocalData();
 	void AddStageToPlayer(PlayerNumber pn);
 	void LoadCurrentSettingsFromProfile(PlayerNumber pn);
 	/**
@@ -214,17 +211,15 @@ class GameState
 
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
-	
-	RString GetEtternaVersion()
-	{
-		return "0.70.-" + to_string(mina_calc_version);
-	}
 
-	// is this the best place for this? it's not exactly a pref, and we shouldn't
-	// be copying and pasting these values everywhere as needed j1-j4 are now all 1.f
-	// to remove j1-3 without having to mess with expected array sizes in other areas
-	// yes i know this is lazy
-	vector<float> timingscales = { 1.00f, 1.00f, 1.00f, 1.00f, 0.84f, 0.66f, 0.50f, 0.33f, 0.20f };
+	RString GetEtternaVersion() { return "0.70.0"; }
+
+	/* is this the best place for this? it's not exactly a pref, and we
+	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
+	 * are now all 1.f to remove j1-3 without having to mess with expected array
+	 * sizes in other areas yes i know this is lazy */
+	vector<float> timingscales = { 1.00f, 1.00f, 1.00f, 1.00f, 0.84f,
+								   0.66f, 0.50f, 0.33f, 0.20f };
 	bool isplaylistcourse = false;
 	bool IsPlaylistCourse() { return isplaylistcourse; }
 	bool CountNotesSeparately();
@@ -263,7 +258,6 @@ class GameState
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
 	float m_DanceDuration;
-	PlayerNumber GetBestPlayer() const;
 
 	/** @brief Call this function when it's time to play a new stage. */
 	void ResetStageStatistics();

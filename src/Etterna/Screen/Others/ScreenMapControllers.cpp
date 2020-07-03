@@ -4,7 +4,6 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMapControllers.h"
 #include "ScreenPrompt.h"
@@ -805,9 +804,8 @@ ScreenMapControllers::SanityCheckWrapper()
 		return true;
 	}
 
-	FOREACH(RString, reasons_not_sane, reason)
-	{
-		*reason = THEME->GetString("ScreenMapControllers", *reason);
+	for (auto& reason : reasons_not_sane) {
+		reason = THEME->GetString("ScreenMapControllers", reason);
 	}
 	RString joined_reasons = join("\n", reasons_not_sane);
 	joined_reasons = THEME->GetString("ScreenMapControllers", "VitalButtons") +

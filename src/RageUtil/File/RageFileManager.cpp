@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageFile.h"
 #include "RageFileDriver.h"
@@ -413,6 +412,18 @@ ieq(const RString& a, const RString& b)
 	return a.CompareNoCase(b) == 0;
 }
 
+/*
+ * Helper function to remove all objects from an STL container for which the
+ * Predicate pred is true. If you want to remove all objects for which the
+ * predicate returns false, wrap the predicate with not1().
+ */
+template<typename Container, typename Predicate>
+void
+RemoveIf(Container& c, Predicate p)
+{
+	c.erase(remove_if(c.begin(), c.end(), p), c.end());
+}
+
 // remove various version control-related files
 static inline bool
 CVSOrSVN(const RString& s)
@@ -663,15 +674,6 @@ RageFileManager::Remove(const RString& sPath_)
 	UnreferenceAllDrivers(apDriverList);
 
 	return bDeleted;
-}
-
-bool
-RageFileManager::DeleteRecursive(const RString& sPath)
-{
-	// On some OS's, non-empty directories cannot be deleted.
-	// This is a work-around that can delete both files and non-empty
-	// directories
-	return ::DeleteRecursive(sPath);
 }
 
 void
@@ -1300,42 +1302,6 @@ GetDirListingRecursive(RageFileDriver* prfd,
 		if (prfd->GetFileType(vsFiles[i]) != RageFileManager::TYPE_DIR)
 			AddTo.push_back(vsFiles[i]);
 	}
-}
-
-bool
-DeleteRecursive(RageFileDriver* prfd, const RString& sDir)
-{
-	ASSERT(sDir.Right(1) == "/");
-
-	vector<RString> vsFiles;
-	prfd->GetDirListing(sDir + "*", vsFiles, false, true);
-	FOREACH_CONST(RString, vsFiles, s)
-	{
-		if (IsADirectory(*s))
-			DeleteRecursive(*s + "/");
-		else
-			FILEMAN->Remove(*s);
-	}
-
-	return FILEMAN->Remove(sDir);
-}
-
-bool
-DeleteRecursive(const RString& sDir)
-{
-	ASSERT(sDir.Right(1) == "/");
-
-	vector<RString> vsFiles;
-	GetDirListing(sDir + "*", vsFiles, false, true);
-	FOREACH_CONST(RString, vsFiles, s)
-	{
-		if (IsADirectory(*s))
-			DeleteRecursive(*s + "/");
-		else
-			FILEMAN->Remove(*s);
-	}
-
-	return FILEMAN->Remove(sDir);
 }
 
 unsigned int

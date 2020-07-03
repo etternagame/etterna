@@ -63,17 +63,6 @@ class Song;
 class Steps;
 struct Game;
 
-// Profile types exist for sorting the list of profiles.
-// Guest profiles at the top, test at the bottom.
-enum ProfileType
-{
-	ProfileType_Guest,
-	ProfileType_Normal,
-	ProfileType_Test,
-	NUM_ProfileType,
-	ProfileType_Invalid
-};
-
 // future goalman stuff - Mina
 class ScoreGoal
 {
@@ -94,7 +83,7 @@ class ScoreGoal
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
-	HighScore* GetPBUpTo();
+	HighScore* GetPBUpTo() const;
 
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal
@@ -148,7 +137,6 @@ class Profile
 	  , m_LastPlayedDate()
 	  , m_iNumSongsPlayedByStyle()
 	  , m_UserTable()
-	  , m_SongHighScores()
 	  , m_vScreenshots()
 	  , profiledir("")
 	{
@@ -173,16 +161,9 @@ class Profile
 
 	// smart accessors
 	RString GetDisplayNameOrHighScoreName() const;
-	int GetTotalNumSongsPassed() const;
-	int GetTotalStepsWithTopGrade(StepsType st, Difficulty d, Grade g) const;
-	float GetSongsPossible(StepsType st, Difficulty dc) const;
-	float GetSongsActual(StepsType st, Difficulty dc) const;
-	float GetSongsPercentComplete(StepsType st, Difficulty dc) const;
-	float GetSongsAndCoursesPercentCompleteAllDifficulties(StepsType st) const;
 	bool GetDefaultModifiers(const Game* pGameType,
 							 RString& sModifiersOut) const;
 	void SetDefaultModifiers(const Game* pGameType, const RString& sModifiers);
-	Song* GetMostPopularSong() const;
 
 	void AddStepTotals(int iNumTapsAndHolds,
 					   int iNumJumps,
@@ -192,7 +173,6 @@ class Profile
 					   int iNumHands,
 					   int iNumLifts);
 
-	ProfileType m_Type{ ProfileType_Normal };
 	// Profiles of the same type and priority are sorted by dir name.
 	int m_ListPriority{ 0 };
 	// Profile Playlists
@@ -239,7 +219,7 @@ class Profile
 	bool m_bNewProfile{ false };
 
 	// seriously why is this not a thing -mina
-	string profiledir;
+	std::string profiledir;
 	bool IsEtternaProfile{ false };
 	/**
 	 * @brief Which machine did we play on last, based on the Guid?
@@ -279,7 +259,7 @@ class Profile
 	unordered_map<string, GoalsForChart> goalmap;
 	void FillGoalTable();
 	vector<ScoreGoal*> goaltable;
-	int sortmode = 1;   // 1=date 2=rate 3=name 4=priority 5=diff, init to name
+	int sortmode = 1;	// 1=date 2=rate 3=name 4=priority 5=diff, init to name
 						// because that's the default- mina
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
 	bool asc = false;
@@ -293,52 +273,8 @@ class Profile
 	/* store arbitrary data for the theme within a profile */
 	LuaTable m_UserTable;
 
-	// Song high scores
-	struct HighScoresForASteps
-	{
-		HighScoreList hsl;
-		HighScoresForASteps()
-		  : hsl()
-		{
-		}
-	};
-	struct HighScoresForASong
-	{
-		std::map<StepsID, HighScoresForASteps> m_StepsHighScores;
-		int GetNumTimesPlayed() const;
-		HighScoresForASong()
-		  : m_StepsHighScores()
-		{
-		}
-	};
-	std::map<SongID, HighScoresForASong> m_SongHighScores;
-
-	void AddStepsHighScore(const Song* pSong,
-						   const Steps* pSteps,
-						   const HighScore& hs,
-						   int& iIndexOut);
-	const HighScoreList& GetStepsHighScoreList(const Song* pSong,
-											   const Steps* pSteps) const;
-	HighScoreList& GetStepsHighScoreList(const Song* pSong,
-										 const Steps* pSteps);
-	int GetStepsNumTimesPlayed(const Song* pSong, const Steps* pSteps) const;
-	void IncrementStepsPlayCount(const Song* pSong, const Steps* pSteps);
+	// this actually does use scoreman atm
 	Grade GetBestGrade(const Song* pSong, StepsType st) const;
-	void GetGrades(const Song* pSong,
-				   StepsType st,
-				   int iCounts[NUM_Grade]) const;
-	int GetSongNumTimesPlayed(const Song* pSong) const;
-	int GetSongNumTimesPlayed(const SongID& songID) const;
-	DateTime GetSongLastPlayedDateTime(const Song* pSong) const;
-	bool HasPassedSteps(const Song* pSong, const Steps* pSteps) const;
-	bool HasPassedAnyStepsInSong(const Song* pSong) const;
-
-	void GetAllUsedHighScoreNames(std::set<RString>& names);
-
-	void MergeScoresFromOtherProfile(Profile* other,
-									 bool skip_totals,
-									 RString const& from_dir,
-									 RString const& to_dir);
 
 	// Screenshot Data
 	vector<Screenshot> m_vScreenshots;
@@ -350,12 +286,10 @@ class Profile
 	{
 		InitEditableData();
 		InitGeneralData();
-		InitSongScores();
 		InitScreenshotData();
 	}
 	void InitEditableData();
 	void InitGeneralData();
-	void InitSongScores();
 	void InitScreenshotData();
 	void ClearStats();
 
@@ -393,7 +327,6 @@ class Profile
 	void PushSelf(lua_State* L);
 
   private:
-	const HighScoresForASong* GetHighScoresForASong(const SongID& songID) const;
 	XMLProfile XMLProf;
 	DBProfile DBProf;
 };

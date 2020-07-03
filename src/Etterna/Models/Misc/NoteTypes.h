@@ -4,7 +4,6 @@
 #define NOTE_TYPES_H
 
 #include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
 #include "RageUtil/Misc/RageLog.h"
 
 class XNode;
@@ -92,7 +91,7 @@ struct HoldNoteResult
 /** @brief What is the TapNote's core type? */
 enum TapNoteType
 {
-	TapNoteType_Empty,	/**< There is no note here. */
+	TapNoteType_Empty,	  /**< There is no note here. */
 	TapNoteType_Tap,	  /**< The player simply steps on this. */
 	TapNoteType_HoldHead, /**< This is graded like the Tap type, but should be
 							 held. */
@@ -252,7 +251,7 @@ struct TapReplayResult
 	int row;
 	int track;			   // column
 	float offset;		   // 0
-	TapNoteType type;	  // typically mines, holds, rolls, etc
+	TapNoteType type;	   // typically mines, holds, rolls, etc
 	int offsetAdjustedRow; // row assigned later on for full replays
 
 	TapReplayResult()
@@ -267,8 +266,8 @@ struct TapReplayResult
 
 extern TapNote TAP_EMPTY;				   // '0'
 extern TapNote TAP_ORIGINAL_TAP;		   // '1'
-extern TapNote TAP_ORIGINAL_HOLD_HEAD;	 // '2'
-extern TapNote TAP_ORIGINAL_ROLL_HEAD;	 // '4'
+extern TapNote TAP_ORIGINAL_HOLD_HEAD;	   // '2'
+extern TapNote TAP_ORIGINAL_ROLL_HEAD;	   // '4'
 extern TapNote TAP_ORIGINAL_MINE;		   // 'M'
 extern TapNote TAP_ORIGINAL_LIFT;		   // 'L'
 extern TapNote TAP_ORIGINAL_ATTACK;		   // 'A'
@@ -303,14 +302,14 @@ const int MAX_NOTE_ROW = (1 << 30);
 /** @brief The list of quantized note types allowed at present. */
 enum NoteType
 {
-	NOTE_TYPE_4TH,   /**< quarter note */
-	NOTE_TYPE_8TH,   /**< eighth note */
-	NOTE_TYPE_12TH,  /**< quarter note triplet */
-	NOTE_TYPE_16TH,  /**< sixteenth note */
-	NOTE_TYPE_24TH,  /**< eighth note triplet */
-	NOTE_TYPE_32ND,  /**< thirty-second note */
-	NOTE_TYPE_48TH,  /**< sixteenth note triplet */
-	NOTE_TYPE_64TH,  /**< sixty-fourth note */
+	NOTE_TYPE_4TH,	 /**< quarter note */
+	NOTE_TYPE_8TH,	 /**< eighth note */
+	NOTE_TYPE_12TH,	 /**< quarter note triplet */
+	NOTE_TYPE_16TH,	 /**< sixteenth note */
+	NOTE_TYPE_24TH,	 /**< eighth note triplet */
+	NOTE_TYPE_32ND,	 /**< thirty-second note */
+	NOTE_TYPE_48TH,	 /**< sixteenth note triplet */
+	NOTE_TYPE_64TH,	 /**< sixty-fourth note */
 	NOTE_TYPE_192ND, /**< sixty-fourth note triplet */
 	NUM_NoteType,
 	NoteType_Invalid

@@ -135,7 +135,6 @@ class SongManager
 	{
 		return m_sSongGroupNames[index];
 	}
-	int GetSongRank(Song* pSong);
 
 	void GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
 								   ProfileSlot slot) const;

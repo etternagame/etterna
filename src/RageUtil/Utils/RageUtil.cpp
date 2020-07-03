@@ -9,7 +9,6 @@
 #include "RageUtil.h"
 #include "RageUtil/Misc/RageString.h"
 
-#include <cfloat>
 #include <ctime>
 #include <map>
 #include <numeric>
@@ -50,7 +49,7 @@ Random(lua_State* L)
 	switch (lua_gettop(L)) {
 		/* [0..1) */
 		case 0: {
-			double r = double(g_LuaPRNG()) / DIVISOR;
+			double r = static_cast<double>(g_LuaPRNG()) / DIVISOR;
 			lua_pushnumber(L, r);
 			return 1;
 		}
@@ -187,32 +186,6 @@ BinaryToHex(const RString& sString)
 	return BinaryToHex(sString.data(), sString.size());
 }
 
-bool
-HexToBinary(const RString& s, unsigned char* stringOut)
-{
-	if (!IsHexVal(s))
-		return false;
-
-	for (int i = 0; true; i++) {
-		if ((int)s.size() <= i * 2)
-			break;
-		RString sByte = s.substr(i * 2, 2);
-
-		uint8_t val = 0;
-		if (sscanf(sByte, "%hhx", &val) != 1)
-			return false;
-		stringOut[i] = val;
-	}
-	return true;
-}
-
-bool
-HexToBinary(const RString& s, RString& sOut)
-{
-	sOut.resize(s.size() / 2);
-	return HexToBinary(s, (unsigned char*)sOut.data());
-}
-
 float
 HHMMSSToSeconds(const RString& sHHMMSS)
 {
@@ -298,13 +271,6 @@ RString
 PrettyPercent(float fNumerator, float fDenominator)
 {
 	return ssprintf("%0.2f%%", fNumerator / fDenominator * 100);
-}
-
-RString
-Commify(int iNum)
-{
-	RString sNum = ssprintf("%d", iNum);
-	return Commify(sNum);
 }
 
 RString
@@ -404,7 +370,7 @@ FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
 		// Grow more than linearly (e.g. 512, 1536, 3072, etc)
 		iChars += iTry * FMT_BLOCK_SIZE;
 		__try {
-			pBuf = (char*)_malloca(sizeof(char) * iChars);
+			pBuf = (char*)_malloca(sizeof(char) * iChars); 
 		} __except (GetExceptionCode() == STATUS_STACK_OVERFLOW) {
 			if (_resetstkoflw())
 				sm_crash("Unrecoverable Stack Overflow");
@@ -929,20 +895,6 @@ split(const wstring& sSource,
 		do_split(sSource, sDelimitor, asAddIt, bIgnoreEmpty);
 }
 
-/* Use:
-
-RString str="a,b,c";
-int start = 0, size = -1;
-for(;;)
-{
-	do_split( str, ",", start, size );
-	if( start == str.size() )
-		break;
-	str[start] = 'Q';
-}
-
-*/
-
 template<class S>
 void
 do_split(const S& Source,
@@ -974,7 +926,7 @@ do_split(const S& Source,
 		pos = Source.find(Delimitor[0], begin);
 	else
 		pos = Source.find(Delimitor, begin);
-	if (pos == Source.npos || (int)pos > len)
+	if (pos == Source.npos || static_cast<int>(pos) > len)
 		pos = len;
 	size = pos - begin;
 }
@@ -1328,59 +1280,11 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 	return fDev;
 }
 
-bool
-CalcLeastSquares(const vector<pair<float, float>>& vCoordinates,
-				 float& fSlope,
-				 float& fIntercept,
-				 float& fError)
-{
-	if (vCoordinates.empty())
-		return false;
-	float fSumXX = 0.0f, fSumXY = 0.0f, fSumX = 0.0f, fSumY = 0.0f;
-	for (unsigned i = 0; i < vCoordinates.size(); ++i) {
-		fSumXX += vCoordinates[i].first * vCoordinates[i].first;
-		fSumXY += vCoordinates[i].first * vCoordinates[i].second;
-		fSumX += vCoordinates[i].first;
-		fSumY += vCoordinates[i].second;
-	}
-	const float fDenominator = vCoordinates.size() * fSumXX - fSumX * fSumX;
-	fSlope = (vCoordinates.size() * fSumXY - fSumX * fSumY) / fDenominator;
-	fIntercept = (fSumXX * fSumY - fSumX * fSumXY) / fDenominator;
-
-	fError = 0.0f;
-	for (unsigned i = 0; i < vCoordinates.size(); ++i) {
-		const float fOneError =
-		  fIntercept + fSlope * vCoordinates[i].first - vCoordinates[i].second;
-		fError += fOneError * fOneError;
-	}
-	fError /= vCoordinates.size();
-	fError = sqrtf(fError);
-	return true;
-}
-
-void
-FilterHighErrorPoints(vector<pair<float, float>>& vCoordinates,
-					  float fSlope,
-					  float fIntercept,
-					  float fCutoff)
-{
-	unsigned int iOut = 0;
-	for (unsigned int iIn = 0; iIn < vCoordinates.size(); ++iIn) {
-		const float fError = fIntercept + fSlope * vCoordinates[iIn].first -
-							 vCoordinates[iIn].second;
-		if (fabsf(fError) < fCutoff) {
-			vCoordinates[iOut] = vCoordinates[iIn];
-			++iOut;
-		}
-	}
-	vCoordinates.resize(iOut);
-}
-
 void
 TrimLeft(RString& sStr, const char* s)
 {
 	int n = 0;
-	while (n < int(sStr.size()) && strchr(s, sStr[n]))
+	while (n < static_cast<int>(sStr.size()) && strchr(s, sStr[n]))
 		n++;
 
 	sStr.erase(sStr.begin(), sStr.begin() + n);
@@ -1632,8 +1536,8 @@ Regex::Compile()
 		RageException::Throw(
 		  "Invalid regex: \"%s\" (%s).", m_sPattern.c_str(), error);
 
-	int iRet =
-	  pcre_fullinfo((pcre*)m_pReg, NULL, PCRE_INFO_CAPTURECOUNT, &m_iBackrefs);
+	int iRet = pcre_fullinfo(
+	  static_cast<pcre*>(m_pReg), NULL, PCRE_INFO_CAPTURECOUNT, &m_iBackrefs);
 	ASSERT(iRet >= 0);
 
 	++m_iBackrefs;
@@ -1698,8 +1602,14 @@ bool
 Regex::Compare(const RString& sStr)
 {
 	int iMat[128 * 3];
-	int iRet = pcre_exec(
-	  (pcre*)m_pReg, NULL, sStr.data(), sStr.size(), 0, 0, iMat, 128 * 3);
+	int iRet = pcre_exec(static_cast<pcre*>(m_pReg),
+						 NULL,
+						 sStr.data(),
+						 sStr.size(),
+						 0,
+						 0,
+						 iMat,
+						 128 * 3);
 
 	if (iRet < -1)
 		RageException::Throw("Unexpected return from pcre_exec('%s'): %i.",
@@ -1715,8 +1625,14 @@ Regex::Compare(const RString& sStr, vector<RString>& asMatches)
 	asMatches.clear();
 
 	int iMat[128 * 3];
-	int iRet = pcre_exec(
-	  (pcre*)m_pReg, NULL, sStr.data(), sStr.size(), 0, 0, iMat, 128 * 3);
+	int iRet = pcre_exec(static_cast<pcre*>(m_pReg),
+						 NULL,
+						 sStr.data(),
+						 sStr.size(),
+						 0,
+						 0,
+						 iMat,
+						 128 * 3);
 
 	if (iRet < -1)
 		RageException::Throw("Unexpected return from pcre_exec('%s'): %i.",
@@ -1743,8 +1659,14 @@ Regex::Compare(const std::string& sStr, vector<std::string>& asMatches)
 	asMatches.clear();
 
 	int iMat[128 * 3];
-	int iRet = pcre_exec(
-	  (pcre*)m_pReg, NULL, sStr.data(), sStr.size(), 0, 0, iMat, 128 * 3);
+	int iRet = pcre_exec(static_cast<pcre*>(m_pReg),
+						 NULL,
+						 sStr.data(),
+						 sStr.size(),
+						 0,
+						 0,
+						 iMat,
+						 128 * 3);
 
 	if (iRet < -1)
 		RageException::Throw("Unexpected return from pcre_exec('%s'): %i.",
@@ -1805,6 +1727,7 @@ Regex::Replace(const std::string& sReplacement,
 		RString sTo = asMatches[i];
 		RString forp = sOut;
 		forp.Replace(sFrom, sTo);
+		sOut = forp;
 	}
 
 	return true;
@@ -1857,7 +1780,7 @@ utf8_to_wchar_ec(const RString& s, unsigned& start, wchar_t& ch)
 
 	const int first_byte_mask[] = { -1, 0x7F, 0x1F, 0x0F, 0x07, 0x03, 0x01 };
 
-	ch = wchar_t(s[start] & first_byte_mask[len]);
+	ch = static_cast<wchar_t>(s[start] & first_byte_mask[len]);
 
 	for (int i = 1; i < len; ++i) {
 		if (start + i >= s.size()) {
@@ -1881,8 +1804,8 @@ utf8_to_wchar_ec(const RString& s, unsigned& start, wchar_t& ch)
 
 	bool bValid = true;
 	{
-		unsigned c1 = (unsigned)s[start] & 0xFF;
-		unsigned c2 = (unsigned)s[start + 1] & 0xFF;
+		unsigned c1 = static_cast<unsigned>(s[start]) & 0xFF;
+		unsigned c2 = static_cast<unsigned>(s[start + 1]) & 0xFF;
 		int c = (c1 << 8) + c2;
 		if ((c & 0xFE00) == 0xC000 || (c & 0xFFE0) == 0xE080 ||
 			(c & 0xFFF0) == 0xF080 || (c & 0xFFF8) == 0xF880 ||
@@ -1952,7 +1875,7 @@ void
 wchar_to_utf8(wchar_t ch, RString& out)
 {
 	if (ch < 0x80) {
-		out.append(1, (char)ch);
+		out.append(1, static_cast<char>(ch));
 		return;
 	}
 
@@ -1971,12 +1894,13 @@ wchar_to_utf8(wchar_t ch, RString& out)
 	{
 		int shift = cbytes * 6;
 		const int init_masks[] = { 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
-		out.append(1, (char)(init_masks[cbytes - 1] | (ch >> shift)));
+		out.append(1,
+				   static_cast<char>(init_masks[cbytes - 1] | (ch >> shift)));
 	}
 
 	for (int i = 0; i < cbytes; ++i) {
 		int shift = (cbytes - i - 1) * 6;
-		out.append(1, (char)(0x80 | ((ch >> shift) & 0x3F)));
+		out.append(1, static_cast<char>(0x80 | ((ch >> shift) & 0x3F)));
 	}
 }
 
@@ -2389,7 +2313,7 @@ Replace_Unicode_Markers(RString& sText)
 		if (iNum > 0xFFFF)
 			iNum = INVALID_CHAR;
 
-		sText.replace(iPos, p - iPos, WcharToUTF8(wchar_t(iNum)));
+		sText.replace(iPos, p - iPos, WcharToUTF8(static_cast<wchar_t>(iNum)));
 	}
 }
 
@@ -2440,7 +2364,7 @@ Replace_Unicode_Markers(std::string& sText)
 		if (iNum > 0xFFFF)
 			iNum = INVALID_CHAR;
 
-		sText.replace(iPos, p - iPos, WcharToUTF8(wchar_t(iNum)));
+		sText.replace(iPos, p - iPos, WcharToUTF8(static_cast<wchar_t>(iNum)));
 	}
 }
 
@@ -2451,7 +2375,7 @@ WcharDisplayText(wchar_t c)
 	RString sChr;
 	sChr = ssprintf("U+%4.4x", c);
 	if (c < 128)
-		sChr += ssprintf(" ('%c')", char(c));
+		sChr += ssprintf(" ('%c')", static_cast<char>(c));
 	return sChr;
 }
 
@@ -2823,7 +2747,7 @@ LuaFunction(Lowercase, MakeLower(SArg(1))) static RString MakeUpper(RString s)
 	return s;
 }
 LuaFunction(Uppercase, MakeUpper(SArg(1)))
-  LuaFunction(mbstrlen, (int)RStringToWstring(SArg(1)).length())
+  LuaFunction(mbstrlen, static_cast<int>(RStringToWstring(SArg(1)).length()))
 	LuaFunction(URLEncode, URLEncode(SArg(1)));
 LuaFunction(PrettyPercent, PrettyPercent(FArg(1), FArg(2)));
 // LuaFunction( IsHexVal, IsHexVal( SArg(1) ) );

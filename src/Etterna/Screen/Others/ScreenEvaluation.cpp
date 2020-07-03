@@ -1,14 +1,11 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Models/Misc/Grade.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -252,7 +249,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			// with an inflated profile size
 			// Otherwise, you can tap away at the screenshot button without
 			// holding shift.
-			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn)) {
+			if (bHoldingShift) {
 				if (!m_bSavedScreenshot) {
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +

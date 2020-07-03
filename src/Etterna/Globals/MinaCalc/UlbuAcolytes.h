@@ -119,14 +119,14 @@ time_to_itv_idx(const float& time) -> int
 // checks to see if the noteinfo will fit in our static arrays, if it won't it's
 // some garbage joke file and we can throw it out, setting values to 0
 inline auto
-fastwalk(const vector<NoteInfo>& ni,
-		 const float& rate,
-		 Calc& calc,
-		 const float& offset = 0.F) -> bool
+fast_walk_and_check_for_skip(const vector<NoteInfo>& ni,
+							 const float& rate,
+							 Calc& calc,
+							 const float& offset = 0.F) -> bool
 {
-	// add 1 to convert index to size, we're just using this to guess due to
-	// potential float precision differences, the actual numitv will be set at
-	// the end
+	/* add 1 to convert index to size, we're just using this to guess due to
+	 * potential float precision differences, the actual numitv will be set at
+	 * the end */
 	calc.numitv = time_to_itv_idx(ni.back().rowTime / rate) + 1;
 
 	// are there more intervals than our alloted max
@@ -142,9 +142,9 @@ fastwalk(const vector<NoteInfo>& ni,
 		}
 	}
 
-	// now we can attempt to construct notinfo that includes column count and
-	// rate adjusted row time, both of which are derived data that both pmod
-	// loops require
+	/* now we can attempt to construct notinfo that includes column count and
+	 * rate adjusted row time, both of which are derived data that both pmod
+	 * loops require */
 	int itv = 0;
 	int last_itv = 0;
 	int row_counter = 0;
@@ -160,9 +160,11 @@ fastwalk(const vector<NoteInfo>& ni,
 
 		float zoop = (ni.at(i).rowTime + offset) / rate;
 
-		if (i > 0) {
+		// 90000 bpm flams may produce 0s due to float precision, we can ignore
+		// this for now, there should be no /0 errors due to it
+		/*if (i > 0) {
 			assert(zoop > scaled_time);
-		}
+		}*/
 
 		scaled_time = (ni.at(i).rowTime + offset) / rate;
 
@@ -228,6 +230,5 @@ fastwalk(const vector<NoteInfo>& ni,
 
 	// make sure we only set up to the interval/row we actually use
 	calc.numitv = itv + 1;
-
 	return false;
 }

@@ -7,7 +7,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Sound/RageSoundMixBuffer.h"
 #include "RageUtil/Sound/RageSoundReader.h"
-#include "RageUtil/Sound/RageSoundManager.h"
 
 static const int channels = 2;
 

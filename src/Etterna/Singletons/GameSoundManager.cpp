@@ -15,7 +15,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "ScreenManager.h"
-#include "GameState.h"
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"

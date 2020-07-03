@@ -28,7 +28,6 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "ThemeManager.h"
 #include "SongManager.h"
-#include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/Misc/Profile.h"
 
 GameState* GAMESTATE =
@@ -421,11 +420,6 @@ GameState::BeginGame()
 void
 GameState::LoadProfiles(bool bLoadEdits)
 {
-	// If a profile is already loaded, this was already called.
-	bool bPersistent = PROFILEMAN->IsPersistentProfile(PLAYER_1);
-	if (!bPersistent)
-		return;
-
 	bool bSuccess = PROFILEMAN->LoadFirstAvailableProfile(
 	  PLAYER_1, bLoadEdits); // load full profile
 
@@ -448,9 +442,6 @@ GameState::SavePlayerProfiles()
 void
 GameState::SavePlayerProfile(PlayerNumber pn)
 {
-	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-
 	// AutoplayCPU should not save scores. -aj
 	// xxx: this MAY cause issues with Multiplayer. However, without a working
 	// Multiplayer build, we'll never know. -aj
@@ -463,10 +454,6 @@ GameState::SavePlayerProfile(PlayerNumber pn)
 bool
 GameState::HaveProfileToLoad()
 {
-	// We won't load this profile if it's already loaded.
-	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
-		return false;
-
 	if (!PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Get().empty())
 		return true;
 
@@ -476,9 +463,7 @@ GameState::HaveProfileToLoad()
 bool
 GameState::HaveProfileToSave()
 {
-	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
-		return true;
-	return false;
+	return true;
 }
 
 int
@@ -593,9 +578,6 @@ GameState::FinishStage()
 void
 GameState::LoadCurrentSettingsFromProfile(PlayerNumber pn)
 {
-	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-
 	const Profile* pProfile = PROFILEMAN->GetProfile(pn);
 
 	// apply saved default modifiers if any
@@ -630,9 +612,6 @@ GameState::LoadCurrentSettingsFromProfile(PlayerNumber pn)
 void
 GameState::SaveCurrentSettingsToProfile(PlayerNumber pn)
 {
-	if (!PROFILEMAN->IsPersistentProfile(pn))
-		return;
-
 	Profile* pProfile = PROFILEMAN->GetProfile(pn);
 
 	pProfile->SetDefaultModifiers(
@@ -819,8 +798,7 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 
 		m_pPlayerState->m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
-		Actor::SetPlayerBGMBeat(PLAYER_1,
-								m_pPlayerState->m_Position.m_fSongBeatVisible,
+		Actor::SetPlayerBGMBeat(m_pPlayerState->m_Position.m_fSongBeatVisible,
 								m_pPlayerState->m_Position.m_fSongBeatNoOffset);
 	} else {
 		m_Position.UpdateSongPosition(fPositionSeconds, timing, timestamp);
@@ -1753,7 +1731,6 @@ class LunaGameState : public Luna<GameState>
 		LuaHelpers::Push(L, p->m_iStageSeed);
 		return 1;
 	}
-	static int SaveLocalData(T* p, lua_State* L) { COMMON_RETURN_SELF; }
 
 	static int Reset(T* p, lua_State* L)
 	{
@@ -2003,7 +1980,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetNumStagesForCurrentSongAndStepsOrCourse);
 		ADD_METHOD(GetNumStagesLeft);
 		ADD_METHOD(GetGameSeed);
-		ADD_METHOD(SaveLocalData);
 		ADD_METHOD(Reset);
 		ADD_METHOD(JoinPlayer);
 		ADD_METHOD(UnjoinPlayer);

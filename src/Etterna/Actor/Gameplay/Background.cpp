@@ -18,8 +18,8 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
-#include <cfloat>
-#include "Etterna/Singletons/GameState.h"
+#include <deque>
+#include "Etterna/Models/Misc/Foreach.h"
 
 static ThemeMetric<float> LEFT_EDGE("Background", "LeftEdge");
 static ThemeMetric<float> TOP_EDGE("Background", "TopEdge");

@@ -4,13 +4,11 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
-#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 class Profile;
 class NoteData;

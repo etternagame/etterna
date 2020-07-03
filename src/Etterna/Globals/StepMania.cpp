@@ -8,7 +8,6 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Misc/RageThreads.h"
@@ -30,7 +29,6 @@
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -48,7 +46,6 @@
 #include "Etterna/Singletons/InputQueue.h"
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "Etterna/Models/Misc/ImageCache.h"
-#include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -56,12 +53,10 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/MessageManager.h"
-#include "Etterna/Actor/Base/ModelManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "SpecialFiles.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "ver.h"
+#include "discord_rpc.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -137,7 +132,7 @@ GetActualGraphicOptionsString()
 			   params.width,
 			   params.height,
 			   params.bpp,
-			   (int)PREFSMAN->m_iTextureColorDepth,
+			   static_cast<int>(PREFSMAN->m_iTextureColorDepth),
 			   params.rate,
 			   (params.vsync ? VSYNC : NO_VSYNC).GetValue().c_str(),
 			   (PREFSMAN->m_bSmoothLines ? SMOOTH_LINES : NO_SMOOTH_LINES)
@@ -571,7 +566,7 @@ struct VideoCardDefaults
 	  256,
 	  false),
 	VideoCardDefaults("Mobility M3", // ATI Rage Mobility 128 (AKA "M3")
-					  "d3d,opengl",  // bad movie texture performance in opengl
+					  "d3d,opengl",	 // bad movie texture performance in opengl
 					  640,
 					  480,
 					  16,
@@ -1623,7 +1618,8 @@ LuaFunc_SaveScreenshot(lua_State* L)
 	if (pn == PlayerNumber_Invalid) {
 		dir = "Screenshots/";
 	} else {
-		dir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) + "Screenshots/";
+		dir = PROFILEMAN->GetProfileDir(static_cast<ProfileSlot>(pn)) +
+			  "Screenshots/";
 	}
 	RString filename =
 	  StepMania::SaveScreenshot(dir, compress, sign, prefix, suffix);
