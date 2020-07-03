@@ -59,7 +59,8 @@ class GraphLine : public Actor
 		pVerts[0] = v;
 
 		for (int i = 0; i < iSubdivisions + 1; ++i) {
-			const float fRotation = float(i) / iSubdivisions * 2 * PI;
+			const float fRotation =
+			  static_cast<float>(i) / iSubdivisions * 2 * PI;
 			const float fX = RageFastCos(fRotation) * fRadius;
 			const float fY = -RageFastSin(fRotation) * fRadius;
 			pVerts[1 + i] = v;
@@ -216,9 +217,9 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		}
 
 		if (fMinLifeSoFar > 0.0f && fMinLifeSoFar < 0.1f) {
-			float fX = SCALE(float(iMinLifeSoFarAt),
+			float fX = SCALE(static_cast<float>(iMinLifeSoFarAt),
 							 0.0f,
-							 float(VALUE_RESOLUTION - 1),
+							 static_cast<float>(VALUE_RESOLUTION - 1),
 							 m_quadVertices.left,
 							 m_quadVertices.right);
 			m_sprBarely->SetX(fX);
@@ -265,9 +266,9 @@ GraphDisplay::UpdateVerts()
 
 	RageSpriteVertex LineStrip[VALUE_RESOLUTION];
 	for (int i = 0; i < VALUE_RESOLUTION; ++i) {
-		const float fX = SCALE(float(i),
+		const float fX = SCALE(static_cast<float>(i),
 							   0.0f,
-							   float(VALUE_RESOLUTION - 1),
+							   static_cast<float>(VALUE_RESOLUTION - 1),
 							   m_quadVertices.left,
 							   m_quadVertices.right);
 		const float fY = SCALE(

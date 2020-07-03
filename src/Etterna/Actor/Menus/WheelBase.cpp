@@ -110,7 +110,7 @@ WheelBase::UpdateScrollbar()
 	float fItemAt = m_iSelection - m_fPositionOffsetFromSelection;
 
 	{
-		float fSize = float(NUM_WHEEL_ITEMS) / iTotalNumItems;
+		float fSize = static_cast<float>(NUM_WHEEL_ITEMS) / iTotalNumItems;
 		float fCenter = fItemAt / iTotalNumItems;
 		fSize *= 0.5f;
 
@@ -356,7 +356,7 @@ WheelBase::Move(int n)
 		return;
 
 	m_TimeBeforeMovingBegins = 1 / 8.0f;
-	m_SpinSpeed = float(PREFSMAN->m_iMusicWheelSwitchSpeed);
+	m_SpinSpeed = static_cast<float>(PREFSMAN->m_iMusicWheelSwitchSpeed);
 	m_Moving = n;
 
 	if (m_Moving != 0)

@@ -54,7 +54,7 @@ class MusicWheel : public WheelBase
 	RString JumpToPrevGroup();
 	const MusicWheelItemData* GetCurWheelItemData(int i)
 	{
-		return (const MusicWheelItemData*)m_CurWheelItemData[i];
+		return static_cast<const MusicWheelItemData*>(m_CurWheelItemData[i]);
 	}
 
 	virtual void ReloadSongList(bool searching, const std::string& findme);

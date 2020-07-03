@@ -592,7 +592,7 @@ Sprite::DrawTexture(const TweenState* state)
 				RageVector2(f[0], f[1]), // top left
 				RageVector2(f[2], f[3]), // bottom left
 				RageVector2(f[4], f[5]), // bottom right
-				RageVector2(f[6], f[7])  // top right
+				RageVector2(f[6], f[7])	 // top right
 			};
 
 			for (auto& i : v) {
@@ -836,7 +836,7 @@ Sprite::SetState(int iNewState)
 
 	// Never warn about setting state 0.
 	if (iNewState != 0 &&
-		(iNewState < 0 || iNewState >= (int)m_States.size())) {
+		(iNewState < 0 || iNewState >= static_cast<int>(m_States.size()))) {
 		// Don't warn about number of states in "_blank" or "_missing".
 		if (!m_pTexture ||
 			(m_pTexture->GetID().filename.find("_blank") == string::npos &&
@@ -856,7 +856,7 @@ Sprite::SetState(int iNewState)
 						   m_pTexture->GetID().filename.c_str(),
 						   this->m_sName.c_str(),
 						   iNewState + 1,
-						   unsigned(m_States.size()));
+						   static_cast<unsigned>(m_States.size()));
 			else
 				sError = ssprintf("A Sprite (\"%s\") tried to set state index "
 								  "%d, but no texture is loaded.",
@@ -866,7 +866,7 @@ Sprite::SetState(int iNewState)
 		}
 	}
 
-	CLAMP(iNewState, 0, (int)m_States.size() - 1);
+	CLAMP(iNewState, 0, static_cast<int>(m_States.size()) - 1);
 	m_iCurState = iNewState;
 	m_fSecsIntoState = 0.0f;
 }
@@ -972,7 +972,7 @@ Sprite::GetCurrentTextureCoordRect() const
 const RectF*
 Sprite::GetTextureCoordRectForState(int iState) const
 {
-	ASSERT_M(iState < (int)m_States.size(),
+	ASSERT_M(iState < static_cast<int>(m_States.size()),
 			 ssprintf("%d, %d",
 					  static_cast<int>(iState),
 					  static_cast<int>(m_States.size())));

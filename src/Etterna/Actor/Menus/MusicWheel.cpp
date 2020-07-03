@@ -1499,7 +1499,7 @@ MusicWheel::JumpToNextGroup()
 		for (unsigned int i = m_iSelection; i < m_CurWheelItemData.size();
 			 ++i) {
 			if (m_CurWheelItemData[i]->m_Type == WheelItemDataType_Section &&
-				i != (unsigned int)m_iSelection) {
+				i != static_cast<unsigned int>(m_iSelection)) {
 				m_iSelection = i;
 				return m_CurWheelItemData[i]->m_sText;
 			}
@@ -1508,7 +1508,7 @@ MusicWheel::JumpToNextGroup()
 		// the previous selection.
 		for (unsigned int i = 0; i < iLastSelection; ++i) {
 			if (m_CurWheelItemData[i]->m_Type == WheelItemDataType_Section &&
-				i != (unsigned int)m_iSelection) {
+				i != static_cast<unsigned int>(m_iSelection)) {
 				m_iSelection = i;
 				return m_CurWheelItemData[i]->m_sText;
 			}
@@ -1537,7 +1537,7 @@ MusicWheel::JumpToPrevGroup()
 	} else {
 		for (unsigned int i = m_iSelection; i > 0; --i) {
 			if (m_CurWheelItemData[i]->m_Type == WheelItemDataType_Section &&
-				i != (unsigned int)m_iSelection) {
+				i != static_cast<unsigned int>(m_iSelection)) {
 				m_iSelection = i;
 				return m_CurWheelItemData[i]->m_sText;
 			}

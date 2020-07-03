@@ -132,7 +132,7 @@ GetActualGraphicOptionsString()
 			   params.width,
 			   params.height,
 			   params.bpp,
-			   (int)PREFSMAN->m_iTextureColorDepth,
+			   static_cast<int>(PREFSMAN->m_iTextureColorDepth),
 			   params.rate,
 			   (params.vsync ? VSYNC : NO_VSYNC).GetValue().c_str(),
 			   (PREFSMAN->m_bSmoothLines ? SMOOTH_LINES : NO_SMOOTH_LINES)
@@ -1618,7 +1618,8 @@ LuaFunc_SaveScreenshot(lua_State* L)
 	if (pn == PlayerNumber_Invalid) {
 		dir = "Screenshots/";
 	} else {
-		dir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) + "Screenshots/";
+		dir = PROFILEMAN->GetProfileDir(static_cast<ProfileSlot>(pn)) +
+			  "Screenshots/";
 	}
 	RString filename =
 	  StepMania::SaveScreenshot(dir, compress, sign, prefix, suffix);

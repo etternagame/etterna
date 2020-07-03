@@ -26,7 +26,7 @@ CodePageConvert(std::string& sText, int iCodePage)
 								MB_ERR_INVALID_CHARS,
 								sText.data(),
 								sText.size(),
-								(wchar_t*)sOut.data(),
+								static_cast<wchar_t*>(sOut.data()),
 								iSize);
 	ASSERT(iSize != 0);
 

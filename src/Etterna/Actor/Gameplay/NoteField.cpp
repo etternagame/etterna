@@ -480,7 +480,7 @@ NoteField::DrawBoard(int iDrawDistanceAfterTargetsPixels,
 					 int iDrawDistanceBeforeTargetsPixels)
 {
 	// todo: make this an AutoActor instead? -aj
-	auto* pSprite = dynamic_cast<Sprite*>((Actor*)m_sprBoard);
+	auto* pSprite = dynamic_cast<Sprite*>(static_cast<Actor*>(m_sprBoard));
 	if (pSprite == NULL) {
 		m_sprBoard->Draw();
 	} else {
