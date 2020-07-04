@@ -461,7 +461,7 @@ struct VideoCardDefaults
 	}
 } const g_VideoCardDefaults[] = {
 #ifdef _WINDOWS
-	VideoCardDefaults("", "d3d, opengl", 800, 600, 32, 32, 32, 2048, true)
+	VideoCardDefaults("", "d3d, opengl", 800, 600, 32, 32, 32, 1024, false)
 #else
 	VideoCardDefaults(
 	  "Voodoo *5",
@@ -471,8 +471,8 @@ struct VideoCardDefaults
 	  32,
 	  32,
 	  32,
-	  2048,
-	  true // accelerated
+	  1024,
+	  false // accelerated
 	  ),
 	VideoCardDefaults(
 	  "Voodoo|3dfx", // all other Voodoos: some drivers don't identify which one
@@ -494,8 +494,8 @@ struct VideoCardDefaults
 	  16,
 	  16,
 	  16,
-	  2048,
-	  true // accelerated
+	  1024,
+	  false // accelerated
 	  ),
 	VideoCardDefaults("GeForce|Radeon|Wonder 9|Quadro",
 					  "opengl,d3d",
@@ -504,8 +504,8 @@ struct VideoCardDefaults
 					  32,
 					  32,
 					  32, // 32 bit textures are faster to load
-					  2048,
-					  true // hardware accelerated
+					  1024,
+					  false // hardware accelerated
 					  ),
 	VideoCardDefaults("TNT|Vanta|M64",
 					  "opengl,d3d",
@@ -515,8 +515,8 @@ struct VideoCardDefaults
 					  16,
 					  16, // Athlon 1.2+TNT demonstration w/ movies: 70fps w/
 						  // 32bit textures, 86fps w/ 16bit textures
-					  2048,
-					  true // hardware accelerated
+					  1024,
+					  false // hardware accelerated
 					  ),
 	VideoCardDefaults("G200|G250|G400",
 					  "d3d,opengl",
@@ -525,7 +525,7 @@ struct VideoCardDefaults
 					  16,
 					  16,
 					  16,
-					  2048,
+					  1024,
 					  false // broken, causes black screen
 					  ),
 	VideoCardDefaults("Savage",
@@ -538,7 +538,7 @@ struct VideoCardDefaults
 					  16,
 					  16,
 					  16,
-					  2048,
+					  1024,
 					  false),
 	VideoCardDefaults(
 	  "XPERT@PLAY|IIC|RAGE PRO|RAGE LT PRO", // Rage Pro chip, Rage IIC chip
@@ -601,7 +601,7 @@ struct VideoCardDefaults
 					  16,
 					  16,
 					  16,
-					  2048,
+					  1024,
 					  false),
 	VideoCardDefaults(
 	  // Cards that have problems with OpenGL:
@@ -617,7 +617,7 @@ struct VideoCardDefaults
 	  16,
 	  16,
 	  16,
-	  2048,
+	  1024,
 	  false),
 	VideoCardDefaults(
 	  /* Unconfirmed texture problems on this; let's try D3D, since it's
@@ -629,7 +629,7 @@ struct VideoCardDefaults
 	  16,
 	  16,
 	  16,
-	  2048,
+	  1024,
 	  false),
 	VideoCardDefaults(
 	  "OpenGL", // This matches all drivers in Mac and Linux. -Chris
@@ -639,7 +639,7 @@ struct VideoCardDefaults
 	  16,
 	  16,
 	  16,
-	  2048,
+	  1024,
 	  true // Right now, they've got to have NVidia or ATi Cards anyway..
 	  ),
 	VideoCardDefaults(
@@ -652,7 +652,7 @@ struct VideoCardDefaults
 	  32,
 	  32,
 	  32,
-	  2048,
+	  1024,
 	  false // AA is slow on some cards, so let's selectively enable HW
 			// accelerated cards.
 	  )
