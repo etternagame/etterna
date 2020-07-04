@@ -142,12 +142,14 @@ RageFileDriverDirect::Move(const RString& sOldPath_, const RString& sNewPath_)
 	int hash = FDB->GetFileHash(sOldPath);
 	TRACE(ssprintf("rename \"%s\" -> \"%s\"",
 				   (m_sRoot + sOldPath).c_str(),
-				   (m_sRoot + sNewPath).c_str()));
+				   (m_sRoot + sNewPath).c_str())
+			.c_str());
 	if (DoRename(m_sRoot + sOldPath, m_sRoot + sNewPath) == -1) {
 		WARN(ssprintf("rename(%s,%s) failed: %s",
 					  (m_sRoot + sOldPath).c_str(),
 					  (m_sRoot + sNewPath).c_str(),
-					  strerror(errno)));
+					  strerror(errno))
+			   .c_str());
 		return false;
 	}
 
@@ -164,22 +166,24 @@ RageFileDriverDirect::Remove(const RString& sPath_)
 	RageFileManager::FileType type = this->GetFileType(sPath);
 	switch (type) {
 		case RageFileManager::TYPE_FILE:
-			TRACE(ssprintf("remove '%s'", (m_sRoot + sPath).c_str()));
+			TRACE(ssprintf("remove '%s'", (m_sRoot + sPath).c_str()).c_str());
 			if (DoRemove(m_sRoot + sPath) == -1) {
 				WARN(ssprintf("remove(%s) failed: %s",
 							  (m_sRoot + sPath).c_str(),
-							  strerror(errno)));
+							  strerror(errno))
+					   .c_str());
 				return false;
 			}
 			FDB->DelFile(sPath);
 			return true;
 
 		case RageFileManager::TYPE_DIR:
-			TRACE(ssprintf("rmdir '%s'", (m_sRoot + sPath).c_str()));
+			TRACE(ssprintf("rmdir '%s'", (m_sRoot + sPath).c_str()).c_str());
 			if (rmdir(m_sRoot + sPath) == -1) {
 				WARN(ssprintf("rmdir(%s) failed: %s",
 							  (m_sRoot + sPath).c_str(),
-							  strerror(errno)));
+							  strerror(errno))
+					   .c_str());
 				return false;
 			}
 			FDB->DelFile(sPath);
@@ -308,7 +312,8 @@ RageFileObjDirect::FinalFlush()
 	if (fsync(m_iFD) == -1) {
 		WARN(ssprintf("Error synchronizing %s: %s",
 					  this->m_sPath.c_str(),
-					  strerror(errno)));
+					  strerror(errno))
+			   .c_str());
 		SetError(strerror(errno));
 		return false;
 	}
@@ -317,7 +322,8 @@ RageFileObjDirect::FinalFlush()
 	if (!FlushDir(Dirname(m_sPath), sError)) {
 		WARN(ssprintf("Error synchronizing fsync(%s dir): %s",
 					  this->m_sPath.c_str(),
-					  sError.c_str()));
+					  sError.c_str())
+			   .c_str());
 		SetError(sError);
 		return false;
 	}
@@ -331,8 +337,10 @@ RageFileObjDirect::~RageFileObjDirect()
 
 	if (m_iFD != -1) {
 		if (close(m_iFD) == -1) {
-			WARN(ssprintf(
-			  "Error closing %s: %s", this->m_sPath.c_str(), strerror(errno)));
+			WARN(ssprintf("Error closing %s: %s",
+						  this->m_sPath.c_str(),
+						  strerror(errno))
+				   .c_str());
 			SetError(strerror(errno));
 			bFailed = true;
 		}
@@ -368,7 +376,7 @@ RageFileObjDirect::~RageFileObjDirect()
 											"Error renaming \"%s\" to \"%s\"",
 											sOldPath.c_str(),
 											sNewPath.c_str());
-		WARN(ssprintf("%s", error.c_str()));
+		WARN(ssprintf("%s", error.c_str()).c_str());
 		SetError(error);
 		break;
 #else
@@ -399,10 +407,12 @@ RageFileObjDirect::~RageFileObjDirect()
 	// The write or the rename failed. Delete the incomplete temporary file.
 	int err = DoRemove(MakeTempFilename(m_sPath));
 	if (err != 0)
-		WARN(ssprintf(
-		  "On writing or renaming file, deleting temporary file failed with "
-		  "error %d",
-		  err));
+		WARN(
+		  ssprintf(
+			"On writing or renaming file, deleting temporary file failed with "
+			"error %d",
+			err)
+			.c_str());
 }
 
 int

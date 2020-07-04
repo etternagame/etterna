@@ -260,8 +260,7 @@ GetDirOfExecutable(RString argv0)
 
 			vector<RString> vPath;
 			split(path, ":", vPath);
-			for(auto& i : vPath)
-			{
+			for (auto& i : vPath) {
 				if (access(i + "/" + argv0, X_OK | R_OK))
 					continue;
 				sPath = ExtractDirectory(ReadlinkRecursive(i + "/" + argv0));
@@ -743,13 +742,15 @@ RageFileManager::Mount(const RString& sType,
 
 	CHECKPOINT_M(ssprintf("About to make a driver with \"%s\", \"%s\"",
 						  sType.c_str(),
-						  sRoot.c_str()));
+						  sRoot.c_str())
+				   .c_str());
 	RageFileDriver* pDriver = MakeFileDriver(sType, sRoot);
 	if (pDriver == NULL) {
 		CHECKPOINT_M(
 		  ssprintf("Can't mount unknown VFS type \"%s\", root \"%s\"",
 				   sType.c_str(),
-				   sRoot.c_str()));
+				   sRoot.c_str())
+			.c_str());
 
 		if (LOG)
 			LOG->Warn("Can't mount unknown VFS type \"%s\", root \"%s\"",
@@ -1317,7 +1318,7 @@ GetHashForDirectory(const RString& sDir)
 
 	hash += GetHashForString(sDir);
 
-	vector<RString> arrayFiles;
+	vector<std::string> arrayFiles;
 	GetDirListing(sDir + "*", arrayFiles, false);
 	for (unsigned i = 0; i < arrayFiles.size(); i++) {
 		const RString sFilePath = sDir + arrayFiles[i];

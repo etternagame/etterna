@@ -166,7 +166,8 @@ ThreadedFileWorker::ThreadedFileWorker(RString sPath)
 	m_pChildDriver = FILEMAN->GetFileDriver(sPath);
 	if (m_pChildDriver == NULL)
 		WARN(ssprintf("ThreadedFileWorker: Mountpoint \"%s\" not found",
-					  sPath.c_str()));
+					  sPath.c_str())
+			   .c_str());
 
 	m_pResultFile = NULL;
 	m_pRequestFile = NULL;
@@ -904,7 +905,8 @@ RageFileDriverTimeout::Move(const RString& sOldPath, const RString& sNewPath)
 	if (iRet == -1) {
 		WARN(ssprintf("RageFileDriverTimeout::Move(%s,%s) failed",
 					  sOldPath.c_str(),
-					  sNewPath.c_str()));
+					  sNewPath.c_str())
+			   .c_str());
 		return false;
 	}
 
@@ -916,8 +918,8 @@ RageFileDriverTimeout::Remove(const RString& sPath)
 {
 	int iRet = m_pWorker->Remove(sPath);
 	if (iRet == -1) {
-		WARN(
-		  ssprintf("RageFileDriverTimeout::Remove(%s) failed", sPath.c_str()));
+		WARN(ssprintf("RageFileDriverTimeout::Remove(%s) failed", sPath.c_str())
+			   .c_str());
 		return false;
 	}
 

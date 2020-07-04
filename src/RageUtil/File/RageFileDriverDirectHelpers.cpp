@@ -79,7 +79,7 @@ bool
 CreateDirectories(const RString& Path)
 {
 	// XXX: handle "//foo/bar" paths in Windows
-	vector<RString> parts;
+	vector<std::string> parts;
 	RString curpath;
 
 	// If Path is absolute, add the initial slash ("ignore empty" will remove
@@ -114,7 +114,8 @@ CreateDirectories(const RString& Path)
 		 * going. */
 		if (errno == ENOENT) {
 			WARN(ssprintf(
-			  "Couldn't create %s: %s", curpath.c_str(), strerror(errno)));
+				   "Couldn't create %s: %s", curpath.c_str(), strerror(errno))
+				   .c_str());
 			errno = EEXIST;
 		}
 #endif
@@ -124,8 +125,9 @@ CreateDirectories(const RString& Path)
 			struct stat st;
 			if (DoStat(curpath, &st) != -1 && !(st.st_mode & S_IFDIR)) {
 				WARN(ssprintf(
-				  "Couldn't create %s: path exists and is not a directory",
-				  curpath.c_str()));
+					   "Couldn't create %s: path exists and is not a directory",
+					   curpath.c_str())
+					   .c_str());
 				return false;
 			}
 
@@ -133,7 +135,8 @@ CreateDirectories(const RString& Path)
 		}
 
 		WARN(
-		  ssprintf("Couldn't create %s: %s", curpath.c_str(), strerror(errno)));
+		  ssprintf("Couldn't create %s: %s", curpath.c_str(), strerror(errno))
+			.c_str());
 		return false;
 	}
 

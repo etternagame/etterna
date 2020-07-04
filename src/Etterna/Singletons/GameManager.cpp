@@ -1757,7 +1757,8 @@ class LunaGameManager : public Luna<GameManager>
 	{
 		lua_pushstring(L,
 					   p->GetStepsTypeInfo(Enum::Check<StepsType>(L, 1))
-						 .GetLocalizedString());
+						 .GetLocalizedString()
+						 .c_str());
 		return 1;
 	}
 	static int GetFirstStepsTypeForGame(T* p, lua_State* L)

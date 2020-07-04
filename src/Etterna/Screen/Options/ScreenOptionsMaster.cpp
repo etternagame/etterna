@@ -29,7 +29,7 @@ REGISTER_SCREEN_CLASS(ScreenOptionsMaster);
 void
 ScreenOptionsMaster::Init()
 {
-	vector<RString> asLineNames;
+	vector<std::string> asLineNames;
 	split(LINE_NAMES, ",", asLineNames);
 	if (asLineNames.empty()) {
 		LuaHelpers::ReportScriptErrorFmt("\"%s:LineNames\" is empty.",
@@ -85,7 +85,8 @@ ScreenOptionsMaster::ImportOptions(int r, const PlayerNumber& vpns)
 void
 ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 {
-	CHECKPOINT_M(ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())));
+	CHECKPOINT_M(
+	  ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())).c_str());
 
 	OptionRow& row = *m_pRows[r];
 	bool bRowHasFocus = false;

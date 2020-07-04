@@ -510,7 +510,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		{
 			const char* szExtensionString =
 			  (const char*)glGetString(GL_EXTENSIONS);
-			vector<RString> asExtensions;
+			vector<std::string> asExtensions;
 			split(szExtensionString, " ", asExtensions);
 			sort(asExtensions.begin(), asExtensions.end());
 			size_t iNextToPrint = 0;
@@ -518,7 +518,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				size_t iLastToPrint = iNextToPrint;
 				RString sType;
 				for (size_t i = iNextToPrint; i < asExtensions.size(); ++i) {
-					vector<RString> asBits;
+					vector<std::string> asBits;
 					split(asExtensions[i], "_", asBits);
 					RString sThisType;
 					if (asBits.size() > 2)
@@ -538,7 +538,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 				RString sList = ssprintf("  %s: ", sType.c_str());
 				while (iNextToPrint <= iLastToPrint) {
-					vector<RString> asBits;
+					vector<std::string> asBits;
 					split(asExtensions[iNextToPrint], "_", asBits);
 					RString sShortExt =
 					  join(RString("_"), asBits.begin() + 2, asBits.end());

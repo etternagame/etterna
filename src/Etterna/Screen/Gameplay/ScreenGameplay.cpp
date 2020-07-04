@@ -1509,7 +1509,8 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 {
 	CHECKPOINT_M(
 	  ssprintf("HandleScreenMessage(%s)",
-			   ScreenMessageHelpers::ScreenMessageToString(SM).c_str()));
+			   ScreenMessageHelpers::ScreenMessageToString(SM).c_str())
+		.c_str());
 	if (SM == SM_DoneFadingIn) {
 		// If the ready animation is zero length, then playing the sound will
 		// make it overlap with the go sound.

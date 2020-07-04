@@ -371,7 +371,7 @@ GameSoundManager::StartQueuedSounds()
 		if (i + 1 == aMusicsToPlay.size())
 			StartMusic(aMusicsToPlay[i]);
 		else {
-			CHECKPOINT_M(ssprintf("Removing old sound at index %d", i));
+			CHECKPOINT_M(ssprintf("Removing old sound at index %d", i).c_str());
 			/* StopPlaying() can take a while, so don't hold the lock while we
 			 * stop the sound. */
 			g_Mutex->Lock();
@@ -610,8 +610,10 @@ GameSoundManager::Update(float fDeltaTime)
 	const float fAdjust = GetFrameTimingAdjustment(fDeltaTime);
 	if (!g_Playing->m_Music->IsPlaying()) {
 		/* There's no song playing.  Fake it. */
-		CHECKPOINT_M(ssprintf(
-		  "%f, delta %f", GAMESTATE->m_Position.m_fMusicSeconds, fDeltaTime));
+		CHECKPOINT_M(ssprintf("%f, delta %f",
+							  GAMESTATE->m_Position.m_fMusicSeconds,
+							  fDeltaTime)
+					   .c_str());
 		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
 										fDeltaTime *
 										  g_Playing->m_Music->GetPlaybackRate(),

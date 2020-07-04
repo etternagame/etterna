@@ -542,11 +542,11 @@ FilenameDB::AddFile(const RString& sPath_, int iSize, int iHash, void* pPriv)
 	if (sPath[0] != '/')
 		sPath = "/" + sPath;
 
-	vector<RString> asParts;
+	vector<std::string> asParts;
 	split(sPath, "/", asParts, false);
 
-	vector<RString>::const_iterator begin = asParts.begin();
-	vector<RString>::const_iterator end = asParts.end();
+	vector<std::string>::const_iterator begin = asParts.begin();
+	vector<std::string>::const_iterator end = asParts.end();
 
 	bool IsDir = true;
 	if (sPath[sPath.size() - 1] != '/')

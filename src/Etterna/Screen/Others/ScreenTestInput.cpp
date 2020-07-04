@@ -34,7 +34,7 @@ class InputList : public BitmapText
 	void Update(float fDeltaTime) override
 	{
 		// Update input texts
-		vector<RString> asInputs;
+		vector<std::string> asInputs;
 
 		vector<DeviceInput> DeviceInputs;
 		INPUTFILTER->GetPressedButtons(DeviceInputs);

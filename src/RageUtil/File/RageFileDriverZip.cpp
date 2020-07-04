@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Ref: http://www.info-zip.org/pub/infozip/doc/appnote-981119-iz.zip
  */
 
@@ -53,7 +53,8 @@ RageFileDriverZip::Load(const RString& sPath)
 
 	if (!pFile->Open(sPath)) {
 		WARN(ssprintf(
-		  "Couldn't open %s: %s", sPath.c_str(), pFile->GetError().c_str()));
+			   "Couldn't open %s: %s", sPath.c_str(), pFile->GetError().c_str())
+			   .c_str());
 		delete pFile;
 		return false;
 	}
@@ -94,7 +95,7 @@ RageFileDriverZip::ReadEndCentralRecord(int& iTotalEntries,
 	m_sComment = FileReading::ReadString(*m_pZip, iCommentLength, sError);
 
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()));
+		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
 		return false;
 	}
 
@@ -118,8 +119,8 @@ RageFileDriverZip::SeekToEndCentralRecord()
 
 		int iGot = m_pZip->Read(buf, sizeof(buf));
 		if (iGot == -1) {
-			WARN(
-			  ssprintf("%s: %s", m_sPath.c_str(), m_pZip->GetError().c_str()));
+			WARN(ssprintf("%s: %s", m_sPath.c_str(), m_pZip->GetError().c_str())
+				   .c_str());
 			return false;
 		}
 
@@ -139,9 +140,11 @@ bool
 RageFileDriverZip::ParseZipfile()
 {
 	if (!SeekToEndCentralRecord()) {
-		WARN(ssprintf(
-		  "Couldn't open %s: couldn't find end of central directory record",
-		  m_sPath.c_str()));
+		WARN(
+		  ssprintf(
+			"Couldn't open %s: couldn't find end of central directory record",
+			m_sPath.c_str())
+			.c_str());
 		return false;
 	}
 
@@ -172,8 +175,9 @@ RageFileDriverZip::ParseZipfile()
 	}
 
 	if (m_pFiles.size() == 0)
-		WARN(ssprintf("%s: no files found in central file header",
-					  m_sPath.c_str()));
+		WARN(
+		  ssprintf("%s: no files found in central file header", m_sPath.c_str())
+			.c_str());
 
 	return true;
 }
@@ -185,7 +189,8 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	RString sSig = FileReading::ReadString(*m_pZip, 4, sError);
 	if (sSig != "\x50\x4B\x01\x02") {
 		WARN(ssprintf("%s: central directory record signature not found",
-					  m_sPath.c_str()));
+					  m_sPath.c_str())
+			   .c_str());
 		return -1;
 	}
 
@@ -213,7 +218,7 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 
 	/* Check for errors before reading variable-length fields. */
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()));
+		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
 		return -1;
 	}
 
@@ -224,7 +229,7 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	  *m_pZip, iFileCommentLength, sError); /* skip file comment */
 
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()));
+		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
 		return -1;
 	}
 
@@ -233,7 +238,8 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	if ((iGeneralPurpose & 1) != 0) {
 		WARN(ssprintf("Skipped encrypted \"%s\" in \"%s\"",
 					  info.m_sName.c_str(),
-					  m_sPath.c_str()));
+					  m_sPath.c_str())
+			   .c_str());
 		return 0;
 	}
 
@@ -255,10 +261,11 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	if (info.m_iCompressionMethod != STORED &&
 		info.m_iCompressionMethod != DEFLATED) {
 		WARN(ssprintf(
-		  "File \"%s\" in \"%s\" uses unsupported compression method %i",
-		  info.m_sName.c_str(),
-		  m_sPath.c_str(),
-		  info.m_iCompressionMethod));
+			   "File \"%s\" in \"%s\" uses unsupported compression method %i",
+			   info.m_sName.c_str(),
+			   m_sPath.c_str(),
+			   info.m_iCompressionMethod)
+			   .c_str());
 
 		return 0;
 	}
@@ -279,14 +286,16 @@ RageFileDriverZip::ReadLocalFileHeader(FileInfo& info)
 		WARN(ssprintf("%s: error opening \"%s\": %s",
 					  m_sPath.c_str(),
 					  info.m_sName.c_str(),
-					  sError.c_str()));
+					  sError.c_str())
+			   .c_str());
 		return false;
 	}
 
 	if (sSig != "\x50\x4B\x03\x04") {
 		WARN(ssprintf("%s: local file header not found for \"%s\"",
 					  m_sPath.c_str(),
-					  info.m_sName.c_str()));
+					  info.m_sName.c_str())
+			   .c_str());
 		return false;
 	}
 
@@ -298,7 +307,7 @@ RageFileDriverZip::ReadLocalFileHeader(FileInfo& info)
 	info.m_iDataOffset = m_pZip->Tell() + iFilenameLength + iExtraFieldLength;
 
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()));
+		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
 		return false;
 	}
 

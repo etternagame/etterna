@@ -165,7 +165,8 @@ RageTexture*
 RageTextureManager::LoadTextureInternal(RageTextureID ID)
 {
 	CHECKPOINT_M(
-	  ssprintf("RageTextureManager::LoadTexture(%s).", ID.filename.c_str()));
+	  ssprintf("RageTextureManager::LoadTexture(%s).", ID.filename.c_str())
+		.c_str());
 
 	AdjustTextureID(ID);
 

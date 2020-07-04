@@ -456,7 +456,7 @@ struct CompleteCrashData
 	RString m_sAdditionalLog;
 	RString m_sCrashedThread;
 	vector<RString> m_asRecent;
-	vector<RString> m_asCheckpoints;
+	vector<std::string> m_asCheckpoints;
 };
 
 static void
@@ -870,7 +870,8 @@ CrashDialog::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 				if (xml.GetChildValue("ReportId", iID)) {
 					char sBuf[1024];
 					GetWindowText(hDlg, sBuf, 1024);
-					SetWindowText(hDlg, ssprintf("%s (#%i)", sBuf, iID));
+					SetWindowText(hDlg,
+								  ssprintf("%s (#%i)", sBuf, iID).c_str());
 				}
 
 				ShowWindow(GetDlgItem(hDlg, IDC_PROGRESS), false);

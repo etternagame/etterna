@@ -66,10 +66,10 @@ ScreenSMOnlineLogin::ImportOptions(int iRow, const PlayerNumber& vpns)
 {
 	switch (iRow) {
 		case 0: {
-			vector<RString> vsProfiles;
+			vector<std::string> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
-			vector<RString>::iterator iter =
+			vector<std::string>::iterator iter =
 			  find(vsProfiles.begin(),
 				   vsProfiles.end(),
 				   ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
@@ -85,7 +85,7 @@ ScreenSMOnlineLogin::ExportOptions(int iRow, const PlayerNumber& vpns)
 {
 	switch (iRow) {
 		case 0: {
-			vector<RString> vsProfiles;
+			vector<std::string> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
 			auto selection = m_pRows[0]->GetOneSelection(PLAYER_1);
@@ -212,7 +212,7 @@ ScreenSMOnlineLogin::MenuStart(const InputEventPlus& input)
 RString
 ScreenSMOnlineLogin::GetSelectedProfileID()
 {
-	vector<RString> vsProfiles;
+	vector<std::string> vsProfiles;
 	PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
 	const OptionRow& row = *m_pRows[GetCurrentRow()];

@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_Extend - Add looping, delay and truncation and fading. */
+/* RageSoundReader_Extend - Add looping, delay and truncation and fading. */
 
 #ifndef RAGE_SOUND_READER_EXTEND
 #define RAGE_SOUND_READER_EXTEND
@@ -12,7 +12,7 @@ class RageSoundReader_Extend : public RageSoundReader_Filter
 	int SetPosition(int iFrame) override;
 	int Read(float* pBuffer, int iFrames) override;
 	int GetNextSourceFrame() const override;
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 
 	RageSoundReader_Extend* Copy() const override
 	{

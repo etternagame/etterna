@@ -247,9 +247,10 @@ static LocalizedString INPUT_HANDLERS_EMPTY("Arch",
 void
 InputHandler::Create(const RString& drivers_, vector<InputHandler*>& Add)
 {
-	const RString drivers =
-	  drivers_.empty() ? RString(DEFAULT_INPUT_DRIVER_LIST) : drivers_;
-	vector<RString> DriversToTry;
+	const std::string drivers = drivers_.empty()
+								  ? std::string(DEFAULT_INPUT_DRIVER_LIST)
+								  : drivers_.c_str();
+	vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())

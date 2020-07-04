@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_PitchChange - change the pitch and speed of an audio stream
+/* RageSoundReader_PitchChange - change the pitch and speed of an audio stream
  * independently. */
 
 #ifndef RAGE_SOUND_READER_PITCH_CHANGE_H
@@ -16,7 +16,7 @@ class RageSoundReader_PitchChange : public RageSoundReader_Filter
 	RageSoundReader_PitchChange(const RageSoundReader_PitchChange& cpy);
 
 	int Read(float* pBuf, int iFrames) override;
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 
 	void SetSpeedRatio(float fRatio) { m_fSpeedRatio = fRatio; }
 	void SetPitchRatio(float fRatio) { m_fPitchRatio = fRatio; }

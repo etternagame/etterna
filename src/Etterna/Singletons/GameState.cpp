@@ -1609,7 +1609,7 @@ class LunaGameState : public Luna<GameState>
 	{
 		SongOptions so;
 		p->GetDefaultSongOptions(so);
-		lua_pushstring(L, so.GetString());
+		lua_pushstring(L, so.GetString().c_str());
 		return 1;
 	}
 	static int ApplyPreferredSongOptionsToOtherLevels(T* p, lua_State* L)
@@ -1677,7 +1677,7 @@ class LunaGameState : public Luna<GameState>
 			  CustomDifficultyToLocalizedString(GetCustomDifficulty(
 				pSteps->m_StepsType, pSteps->GetDifficulty()));
 
-			lua_pushstring(L, sDifficulty);
+			lua_pushstring(L, sDifficulty.c_str());
 			lua_pushstring(L, pSteps->GetDescription().c_str());
 		}
 
@@ -1758,7 +1758,7 @@ class LunaGameState : public Luna<GameState>
 
 	static int GetExpandedSectionName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->sExpandedSectionName);
+		lua_pushstring(L, p->sExpandedSectionName.c_str());
 		return 1;
 	}
 	static int AddStageToPlayer(T* p, lua_State* L)

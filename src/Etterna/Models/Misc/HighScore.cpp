@@ -1536,7 +1536,7 @@ class LunaHighScore : public Luna<HighScore>
 	}
 	static int GetDate(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDateTime().GetString());
+		lua_pushstring(L, p->GetDateTime().GetString().c_str());
 		return 1;
 	}
 	static int GetSurvivalSeconds(T* p, lua_State* L)

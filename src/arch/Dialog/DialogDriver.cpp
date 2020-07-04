@@ -20,12 +20,12 @@ DialogDriver*
 DialogDriver::Create()
 {
 	RString sDrivers = "win32,macosx,null";
-	vector<RString> asDriversToTry;
+	vector<std::string> asDriversToTry;
 	split(sDrivers, ",", asDriversToTry, true);
 
 	ASSERT(asDriversToTry.size() != 0);
 
-	FOREACH_CONST(RString, asDriversToTry, Driver)
+	FOREACH_CONST(std::string, asDriversToTry, Driver)
 	{
 		map<istring, CreateDialogDriverFn>::const_iterator iter =
 		  RegisterDialogDriver::g_pRegistrees->find(istring(*Driver));

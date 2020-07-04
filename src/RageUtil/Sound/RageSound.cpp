@@ -169,7 +169,7 @@ class RageSoundReader_Silence : public RageSoundReader
 	unsigned GetNumChannels() const override { return 1; }
 	int GetNextSourceFrame() const override { return 0; }
 	float GetStreamToSourceRatio() const override { return 1.0f; }
-	RString GetError() const override { return ""; }
+	std::string GetError() const override { return ""; }
 };
 
 bool
@@ -780,7 +780,8 @@ RageSound::ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
 }
 
 void
-RageSound::SetPlayBackCallback(const shared_ptr<LuaReference>& f, unsigned int bufSize)
+RageSound::SetPlayBackCallback(const shared_ptr<LuaReference>& f,
+							   unsigned int bufSize)
 {
 	// If we're in play callback it's safe to call this from lua, since we've
 	// locked LUA->Get() But not from C++ in another thread Invariant: The only

@@ -20,7 +20,7 @@ struct StepsTypeInfo
 	bool bAllowAutogen;
 	/** @brief The most basic StyleType that this StpesTypeInfo is used with. */
 	StepsTypeCategory m_StepsTypeCategory;
-	RString GetLocalizedString() const;
+	std::string GetLocalizedString() const;
 };
 
 class GameManager
@@ -53,16 +53,17 @@ class GameManager
 	const Game* GetGameFromIndex(int index);
 
 	const StepsTypeInfo& GetStepsTypeInfo(StepsType st);
-	StepsType StringToStepsType(RString sStepsType);
-	const Game* StringToGame(const RString& sGame);
-	const Style* GameAndStringToStyle(const Game* pGame, const RString& sStyle);
-	RString StyleToLocalizedString(const Style* s);
+	StepsType StringToStepsType(std::string sStepsType);
+	const Game* StringToGame(const std::string& sGame);
+	const Style* GameAndStringToStyle(const Game* pGame,
+									  const std::string& sStyle);
+	std::string StyleToLocalizedString(const Style* s);
 
 	bool m_bResetModifiers;
 	bool m_bResetTurns;
 	float m_fPreviousRate;
 	RString m_sModsToReset;
-	vector<RString> m_vTurnsToReset;
+	vector<std::string> m_vTurnsToReset;
 
 	// Lua
 	void PushSelf(lua_State* L);

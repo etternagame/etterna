@@ -11,7 +11,7 @@ RageFileDriver::~RageFileDriver()
 int
 RageFileDriver::GetPathValue(const RString& sPath)
 {
-	vector<RString> asParts;
+	vector<std::string> asParts;
 	split(sPath, "/", asParts, true);
 
 	RString sPartialPath;

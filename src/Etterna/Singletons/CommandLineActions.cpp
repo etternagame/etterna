@@ -38,9 +38,9 @@ Nsis()
 	if (!out.Open("nsis_strings_temp.inc", RageFile::WRITE))
 		RageException::Throw("Error opening file for write.");
 
-	vector<RString> vs;
+	vector<std::string> vs;
 	GetDirListing(INSTALLER_LANGUAGES_DIR + "*.ini", vs, false, false);
-	FOREACH_CONST(RString, vs, s)
+	FOREACH_CONST(std::string, vs, s)
 	{
 		RString sThrowAway, sLangCode;
 		splitpath(*s, sThrowAway, sLangCode, sThrowAway);

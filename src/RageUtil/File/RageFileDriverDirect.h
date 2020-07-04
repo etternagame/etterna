@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_FILE_DRIVER_DIRECT_H
+#ifndef RAGE_FILE_DRIVER_DIRECT_H
 #define RAGE_FILE_DRIVER_DIRECT_H
 
 #include "RageFile.h"
@@ -40,7 +40,7 @@ class RageFileObjDirect : public RageFileObj
 	int FlushInternal() override;
 	int SeekInternal(int offset) override;
 	RageFileObjDirect* Copy() const override;
-	RString GetDisplayPath() const override { return m_sPath; }
+	std::string GetDisplayPath() const override { return m_sPath; }
 	int GetFileSize() const override;
 	int GetFD() override;
 

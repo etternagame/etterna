@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSurface.h"
@@ -33,8 +33,9 @@ RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, RString& sError)
 
 	// stride_in_bytes is image width in bytes
 	bool success =
-	  0 != stbi_write_png(
-			 f.GetRealPath(), res->w, res->h, 4, res->pixels, res->w * 4);
+	  0 !=
+	  stbi_write_png(
+		f.GetRealPath().c_str(), res->w, res->h, 4, res->pixels, res->w * 4);
 	if (converted)
 		delete res; // If we converted then we created a new surface which we
 					// need to delete

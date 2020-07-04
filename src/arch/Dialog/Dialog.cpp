@@ -16,7 +16,7 @@ DialogDriver*
 MakeDialogDriver()
 {
 	RString sDrivers = "win32,cocoa,null";
-	vector<RString> asDriversToTry;
+	vector<std::string> asDriversToTry;
 	split(sDrivers, ",", asDriversToTry, true);
 
 	ASSERT(asDriversToTry.size() != 0);
@@ -91,7 +91,7 @@ static bool
 MessageIsIgnored(const RString& sID)
 {
 #if !defined(SMPACKAGE)
-	vector<RString> asList;
+	vector<std::string> asList;
 	split(g_sIgnoredDialogs, ",", asList);
 	for (unsigned i = 0; i < asList.size(); ++i)
 		if (!sID.CompareNoCase(asList[i]))
@@ -119,7 +119,7 @@ Dialog::IgnoreMessage(const RString& sID)
 	if (MessageIsIgnored(sID))
 		return;
 
-	vector<RString> asList;
+	vector<std::string> asList;
 	split(g_sIgnoredDialogs, ",", asList);
 	asList.push_back(sID);
 	g_sIgnoredDialogs.Set(join(",", asList));

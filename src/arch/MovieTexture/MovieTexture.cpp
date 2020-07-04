@@ -94,7 +94,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 	if (sDrivers.empty())
 		sDrivers = DEFAULT_MOVIE_DRIVER_LIST;
 
-	vector<RString> DriversToTry;
+	vector<std::string> DriversToTry;
 	split(sDrivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())
@@ -102,7 +102,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 
 	RageMovieTexture* ret = NULL;
 
-	FOREACH_CONST(RString, DriversToTry, Driver)
+	FOREACH_CONST(std::string, DriversToTry, Driver)
 	{
 		LOG->Trace("Initializing driver: %s", Driver->c_str());
 		RageDriver* pDriverBase =

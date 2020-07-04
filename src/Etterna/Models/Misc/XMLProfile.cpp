@@ -335,7 +335,8 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	{
 		XNode* pDefaultModifiers =
 		  pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
+		FOREACHM_CONST(
+		  std::string, std::string, profile->m_sDefaultModifiers, it)
 		pDefaultModifiers->AppendChild(it->first, it->second);
 	}
 

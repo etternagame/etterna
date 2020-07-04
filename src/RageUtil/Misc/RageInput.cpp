@@ -179,7 +179,7 @@ RageInput::GetDisplayDevicesString() const
 	vector<InputDeviceInfo> vDevices;
 	GetDevicesAndDescriptions(vDevices);
 
-	vector<RString> vs;
+	vector<std::string> vs;
 	for (unsigned i = 0; i < vDevices.size(); ++i) {
 		const RString& sDescription = vDevices[i].sDesc;
 		InputDevice id = vDevices[i].id;

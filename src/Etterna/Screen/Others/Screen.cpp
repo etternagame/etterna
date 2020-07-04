@@ -213,7 +213,8 @@ Screen::Update(float fDeltaTime)
 		// send this sucker!
 		CHECKPOINT_M(
 		  ssprintf("ScreenMessage(%s)",
-				   ScreenMessageHelpers::ScreenMessageToString(SM).c_str()));
+				   ScreenMessageHelpers::ScreenMessageToString(SM).c_str())
+			.c_str());
 		this->HandleScreenMessage(SM);
 
 		// If the size changed, start over.

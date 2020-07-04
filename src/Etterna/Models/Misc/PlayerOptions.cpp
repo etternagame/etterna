@@ -427,8 +427,7 @@ PlayerOptions::FromString(const std::string& sMultipleMods)
 	vector<std::string> vs;
 	split(sTemp, ",", vs, true);
 	std::string sThrowAway;
-	for(auto& s : vs)
-	{
+	for (auto& s : vs) {
 		if (!FromOneModString(s, sThrowAway)) {
 			LOG->Trace("Attempted to load a non-existing mod \'%s\' for the "
 					   "Player. Ignoring.",
@@ -438,7 +437,8 @@ PlayerOptions::FromString(const std::string& sMultipleMods)
 }
 
 bool
-PlayerOptions::FromOneModString(const std::string& sOneMod, std::string& sErrorOut)
+PlayerOptions::FromOneModString(const std::string& sOneMod,
+								std::string& sErrorOut)
 {
 	ASSERT_M(NOTESKIN != NULL,
 			 "The Noteskin Manager must be loaded in order to process mods.");
@@ -1450,7 +1450,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	{
 		int original_top = lua_gettop(L);
 		if (p->m_sNoteSkin.empty()) {
-			lua_pushstring(L, CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue());
+			lua_pushstring(
+			  L, CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue().c_str());
 		} else {
 			lua_pushstring(L, p->m_sNoteSkin.c_str());
 		}

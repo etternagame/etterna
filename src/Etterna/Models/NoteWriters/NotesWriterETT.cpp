@@ -70,26 +70,26 @@ struct TimingTagWriter
 
 	void Write(const int row, const float value)
 	{
-		Write(row, ssprintf("%.6f", value));
+		Write(row, ssprintf("%.6f", value).c_str());
 	}
 	void Write(const int row, const int value)
 	{
-		Write(row, ssprintf("%d", value));
+		Write(row, ssprintf("%d", value).c_str());
 	}
 	void Write(const int row, const int a, const int b)
 	{
-		Write(row, ssprintf("%d=%d", a, b));
+		Write(row, ssprintf("%d=%d", a, b).c_str());
 	}
 	void Write(const int row, const float a, const float b)
 	{
-		Write(row, ssprintf("%.6f=%.6f", a, b));
+		Write(row, ssprintf("%.6f=%.6f", a, b).c_str());
 	}
 	void Write(const int row,
 			   const float a,
 			   const float b,
 			   const unsigned short c)
 	{
-		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c));
+		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c).c_str());
 	}
 
 	void Init(const std::string sTag) { m_sNext = "#" + sTag + ":"; }

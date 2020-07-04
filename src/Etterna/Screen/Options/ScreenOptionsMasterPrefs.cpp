@@ -296,7 +296,8 @@ RequestedTheme(int& sel, bool ToSel, const ConfOption* pConfOption)
 	if (ToSel) {
 		sel = 0;
 		for (unsigned i = 1; i < vsThemeNames.size(); i++)
-			if (!strcasecmp(vsThemeNames[i], PREFSMAN->m_sTheme.Get()))
+			if (!strcasecmp(vsThemeNames[i].c_str(),
+							PREFSMAN->m_sTheme.Get().c_str()))
 				sel = i;
 	} else {
 		const std::string sNewTheme = vsThemeNames[sel];
@@ -322,7 +323,8 @@ Announcer(int& sel, bool ToSel, const ConfOption* pConfOption)
 	if (ToSel) {
 		sel = 0;
 		for (unsigned i = 1; i < choices.size(); i++)
-			if (!strcasecmp(choices[i], ANNOUNCER->GetCurAnnouncerName()))
+			if (!strcasecmp(choices[i].c_str(),
+							ANNOUNCER->GetCurAnnouncerName().c_str()))
 				sel = i;
 	} else {
 		const std::string sNewAnnouncer = sel ? choices[sel] : std::string("");
@@ -348,7 +350,7 @@ DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 		po.FromString(PREFSMAN->m_sDefaultModifiers);
 		sel = 0;
 		for (unsigned i = 0; i < choices.size(); i++)
-			if (!strcasecmp(choices[i], po.m_sNoteSkin))
+			if (!strcasecmp(choices[i].c_str(), po.m_sNoteSkin.c_str()))
 				sel = i;
 	} else {
 		PlayerOptions po;

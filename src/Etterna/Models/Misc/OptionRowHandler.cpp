@@ -309,7 +309,7 @@ class OptionRowHandlerList : public OptionRowHandler
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
 				LOG->Warn("%s", s.c_str());
-				CHECKPOINT_M(s);
+				CHECKPOINT_M(s.c_str());
 				iFallbackOption = 0;
 			}
 

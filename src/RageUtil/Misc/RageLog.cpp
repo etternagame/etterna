@@ -103,7 +103,7 @@ RageLog::~RageLog()
 {
 	/* Add the mapped log data to info.txt. */
 	const RString AdditionalLog = GetAdditionalLog();
-	vector<RString> AdditionalLogLines;
+	vector<std::string> AdditionalLogLines;
 	split(AdditionalLog, "\n", AdditionalLogLines);
 	for (unsigned i = 0; i < AdditionalLogLines.size(); ++i) {
 		Trim(AdditionalLogLines[i]);
@@ -283,7 +283,7 @@ RageLog::Write(int where, const RString& sLine)
 
 	const char* const sWarningSeparator =
 	  "/////////////////////////////////////////";
-	vector<RString> asLines;
+	vector<std::string> asLines;
 	split(sLine, "\n", asLines, false);
 	if (where & WRITE_LOUD) {
 		if (m_bLogToDisk && g_fileLog->IsOpen())

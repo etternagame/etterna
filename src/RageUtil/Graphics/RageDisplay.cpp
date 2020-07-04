@@ -88,7 +88,7 @@ RageDisplay::IsPredictiveFrameLimit() const
 
 static const char* RagePixelFormatNames[] = {
 	"RGBA8", "BGRA8", "RGBA4", "RGB5A1", "RGB5",
-	"RGB8",  "PAL",   "BGR8",  "A1BGR5", "X1RGB5",
+	"RGB8",	 "PAL",	  "BGR8",  "A1BGR5", "X1RGB5",
 };
 XToString(RagePixelFormat);
 
@@ -101,7 +101,7 @@ RString
 RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 {
 	RString err;
-	vector<RString> vs;
+	vector<std::string> vs;
 
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
 		return RString();

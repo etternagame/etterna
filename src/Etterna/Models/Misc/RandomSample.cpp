@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -41,7 +41,7 @@ RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
 	if (sDir.Right(1) != "/")
 		sDir += "/";
 
-	vector<RString> arraySoundFiles;
+	vector<std::string> arraySoundFiles;
 	GetDirListing(sDir + "*.mp3", arraySoundFiles);
 	GetDirListing(sDir + "*.oga", arraySoundFiles);
 	GetDirListing(sDir + "*.ogg", arraySoundFiles);

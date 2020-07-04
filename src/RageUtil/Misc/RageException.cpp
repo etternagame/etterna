@@ -43,7 +43,7 @@ RageException::Throw(const char* sFmt, ...)
 		LOG->Trace("%s", msg.c_str());
 		LOG->Flush();
 	} else {
-		puts(msg);
+		puts(msg.c_str());
 		fflush(stdout);
 	}
 

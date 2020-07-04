@@ -61,7 +61,7 @@ ValidateLocalProfileName(const RString& sAnswer, RString& sErrorOut)
 	if (pProfile != NULL && sAnswer == pProfile->m_sDisplayName)
 		return true; // unchanged
 
-	vector<RString> vsProfileNames;
+	vector<std::string> vsProfileNames;
 	PROFILEMAN->GetLocalProfileDisplayNames(vsProfileNames);
 	bool bAlreadyAProfileWithThisName =
 	  find(vsProfileNames.begin(), vsProfileNames.end(), sAnswer) !=
@@ -109,7 +109,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 
 	PROFILEMAN->GetLocalProfileIDs(m_vsLocalProfileID);
 
-	FOREACH_CONST(RString, m_vsLocalProfileID, s)
+	FOREACH_CONST(std::string, m_vsLocalProfileID, s)
 	{
 		Profile* pProfile = PROFILEMAN->GetLocalProfile(*s);
 		ASSERT(pProfile != NULL);

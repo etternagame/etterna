@@ -109,8 +109,9 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 	{
 		if (static_cast<int>(NSMAN->m_EvalPlayerData.size()) - 1 >=
 			p->m_iCurrentPlayer)
-			lua_pushstring(
-			  L, NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer].playerOptions);
+			lua_pushstring(L,
+						   NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer]
+							 .playerOptions.c_str());
 		else
 			lua_pushnil(L);
 		return 1;

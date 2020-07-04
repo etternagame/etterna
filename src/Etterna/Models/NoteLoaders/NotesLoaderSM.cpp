@@ -206,7 +206,7 @@ SMSetBGChanges(SMSongTagInfo& info)
 void
 SMSetFGChanges(SMSongTagInfo& info)
 {
-	vector<RString> aFGChangeExpressions;
+	vector<std::string> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
 	for (unsigned int b = 0; b < aFGChangeExpressions.size(); ++b) {
@@ -305,7 +305,7 @@ SMLoader::LoadFromDir(const std::string& sPath, Song& out)
 }
 
 float
-SMLoader::RowToBeat(const RString& line, const int rowsPerBeat)
+SMLoader::RowToBeat(const std::string& line, const int rowsPerBeat)
 {
 	RString trimmed = line;
 	Trim(trimmed, "r");
@@ -385,9 +385,9 @@ SMLoader::LoadFromTokens(RString sStepsType,
 
 void
 SMLoader::ProcessBGChanges(Song& out,
-						   const RString& sValueName,
-						   const RString& sPath,
-						   const RString& sParam)
+						   const std::string& sValueName,
+						   const std::string& sPath,
+						   const std::string& sParam)
 {
 	BackgroundLayer iLayer = BACKGROUND_LAYER_1;
 	if (sscanf(sValueName, "BGCHANGES%d", &*ConvertValue<int>(&iLayer)) == 1)
@@ -400,7 +400,7 @@ SMLoader::ProcessBGChanges(Song& out,
 					 "has a #BGCHANGES tag \"%s\" that is out of range.",
 					 sValueName.c_str());
 	} else {
-		vector<RString> aBGChangeExpressions;
+		vector<std::string> aBGChangeExpressions;
 		split(sParam, ",", aBGChangeExpressions);
 
 		for (unsigned b = 0; b < aBGChangeExpressions.size(); b++) {
@@ -412,13 +412,13 @@ SMLoader::ProcessBGChanges(Song& out,
 }
 
 void
-SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
+SMLoader::ProcessInstrumentTracks(Song& out, const std::string& sParam)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(sParam, ",", vs1);
-	FOREACH_CONST(RString, vs1, s)
+	FOREACH_CONST(std::string, vs1, s)
 	{
-		vector<RString> vs2;
+		vector<std::string> vs2;
 		split(*s, "=", vs2);
 		if (vs2.size() >= 2) {
 			InstrumentTrack it = StringToInstrumentTrack(vs2[0]);
@@ -430,14 +430,14 @@ SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
 
 void
 SMLoader::ParseBPMs(vector<pair<float, float>>& out,
-					const RString& line,
+					const std::string& line,
 					const int rowsPerBeat)
 {
-	vector<RString> arrayBPMChangeExpressions;
+	vector<std::string> arrayBPMChangeExpressions;
 	split(line, ",", arrayBPMChangeExpressions);
 
 	for (unsigned b = 0; b < arrayBPMChangeExpressions.size(); b++) {
-		vector<RString> arrayBPMChangeValues;
+		vector<std::string> arrayBPMChangeValues;
 		split(arrayBPMChangeExpressions[b], "=", arrayBPMChangeValues);
 		if (arrayBPMChangeValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -462,14 +462,14 @@ SMLoader::ParseBPMs(vector<pair<float, float>>& out,
 
 void
 SMLoader::ParseStops(vector<pair<float, float>>& out,
-					 const RString line,
+					 const std::string line,
 					 const int rowsPerBeat)
 {
-	vector<RString> arrayFreezeExpressions;
+	vector<std::string> arrayFreezeExpressions;
 	split(line, ",", arrayFreezeExpressions);
 
 	for (unsigned f = 0; f < arrayFreezeExpressions.size(); f++) {
-		vector<RString> arrayFreezeValues;
+		vector<std::string> arrayFreezeValues;
 		split(arrayFreezeExpressions[f], "=", arrayFreezeValues);
 		if (arrayFreezeValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -709,22 +709,22 @@ SMLoader::ProcessBPMsAndStops(TimingData& out,
 }
 void
 SMLoader::ProcessDelays(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const int rowsPerBeat)
 {
 	ProcessDelays(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessDelays(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<RString> arrayDelayExpressions;
+	vector<std::string> arrayDelayExpressions;
 	split(line, ",", arrayDelayExpressions);
 
 	for (unsigned f = 0; f < arrayDelayExpressions.size(); f++) {
-		vector<RString> arrayDelayValues;
+		vector<std::string> arrayDelayValues;
 		split(arrayDelayExpressions[f], "=", arrayDelayValues);
 		if (arrayDelayValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -753,23 +753,23 @@ SMLoader::ProcessDelays(TimingData& out,
 
 void
 SMLoader::ProcessTimeSignatures(TimingData& out,
-								const RString& line,
+								const std::string& line,
 								const int rowsPerBeat)
 {
 	ProcessTimeSignatures(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessTimeSignatures(TimingData& out,
-								const RString& line,
+								const std::string& line,
 								const string& songname,
 								const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
+	FOREACH_CONST(std::string, vs1, s1)
 	{
-		vector<RString> vs2;
+		vector<std::string> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2.size() < 3) {
@@ -819,22 +819,22 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 
 void
 SMLoader::ProcessTickcounts(TimingData& out,
-							const RString& line,
+							const std::string& line,
 							const int rowsPerBeat)
 {
 	ProcessTickcounts(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessTickcounts(TimingData& out,
-							const RString& line,
+							const std::string& line,
 							const string& songname,
 							const int rowsPerBeat)
 {
-	vector<RString> arrayTickcountExpressions;
+	vector<std::string> arrayTickcountExpressions;
 	split(line, ",", arrayTickcountExpressions);
 
 	for (unsigned f = 0; f < arrayTickcountExpressions.size(); f++) {
-		vector<RString> arrayTickcountValues;
+		vector<std::string> arrayTickcountValues;
 		split(arrayTickcountExpressions[f], "=", arrayTickcountValues);
 		if (arrayTickcountValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -855,23 +855,23 @@ SMLoader::ProcessTickcounts(TimingData& out,
 
 void
 SMLoader::ProcessSpeeds(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const int rowsPerBeat)
 {
 	ProcessSpeeds(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessSpeeds(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
+	FOREACH_CONST(std::string, vs1, s1)
 	{
-		vector<RString> vs2;
+		vector<std::string> vs2;
 		split(*s1, "=", vs2);
 
 		if (vs2[0] == 0 && vs2.size() == 2) // First one always seems to have 2.
@@ -925,22 +925,22 @@ SMLoader::ProcessSpeeds(TimingData& out,
 
 void
 SMLoader::ProcessFakes(TimingData& out,
-					   const RString& line,
+					   const std::string& line,
 					   const int rowsPerBeat)
 {
 	ProcessFakes(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessFakes(TimingData& out,
-					   const RString& line,
+					   const std::string& line,
 					   const string& songname,
 					   const int rowsPerBeat)
 {
-	vector<RString> arrayFakeExpressions;
+	vector<std::string> arrayFakeExpressions;
 	split(line, ",", arrayFakeExpressions);
 
 	for (unsigned b = 0; b < arrayFakeExpressions.size(); b++) {
-		vector<RString> arrayFakeValues;
+		vector<std::string> arrayFakeValues;
 		split(arrayFakeExpressions[b], "=", arrayFakeValues);
 		if (arrayFakeValues.size() != 2) {
 			LOG->UserLog("Song file",
@@ -968,9 +968,9 @@ SMLoader::ProcessFakes(TimingData& out,
 
 bool
 SMLoader::LoadFromBGChangesString(BackgroundChange& change,
-								  const RString& sBGChangeExpression)
+								  const std::string& sBGChangeExpression)
 {
-	vector<RString> aBGChangeValues;
+	vector<std::string> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
 	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
@@ -1056,7 +1056,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 }
 
 bool
-SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
+SMLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	MsdFile msd;
 	if (!msd.ReadFile(path, true)) // unescape
@@ -1146,7 +1146,7 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 }
 
 bool
-SMLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
+SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 {
 	// LOG->Trace( "Song::LoadFromSMFile(%s)", sPath.c_str() );
 
@@ -1217,7 +1217,7 @@ SMLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 }
 
 bool
-SMLoader::LoadEditFromFile(const RString& sEditFilePath,
+SMLoader::LoadEditFromFile(const std::string& sEditFilePath,
 						   ProfileSlot slot,
 						   bool bAddStepsToSong,
 						   Song* givenSong /* =NULL */)
@@ -1247,8 +1247,8 @@ SMLoader::LoadEditFromFile(const RString& sEditFilePath,
 }
 
 bool
-SMLoader::LoadEditFromBuffer(const RString& sBuffer,
-							 const RString& sEditFilePath,
+SMLoader::LoadEditFromBuffer(const std::string& sBuffer,
+							 const std::string& sEditFilePath,
 							 ProfileSlot slot,
 							 Song* givenSong)
 {
@@ -1259,7 +1259,7 @@ SMLoader::LoadEditFromBuffer(const RString& sBuffer,
 
 bool
 SMLoader::LoadEditFromMsd(const MsdFile& msd,
-						  const RString& sEditFilePath,
+						  const std::string& sEditFilePath,
 						  ProfileSlot slot,
 						  bool bAddStepsToSong,
 						  Song* givenSong /* =NULL */)

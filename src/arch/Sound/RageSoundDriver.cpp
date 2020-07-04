@@ -12,7 +12,7 @@ DriverList RageSoundDriver::m_pDriverList;
 RageSoundDriver*
 RageSoundDriver::Create(const RString& drivers)
 {
-	vector<RString> drivers_to_try;
+	vector<std::string> drivers_to_try;
 	if (drivers.empty()) {
 		split(DEFAULT_SOUND_DRIVER_LIST, ",", drivers_to_try);
 	} else {
@@ -39,7 +39,7 @@ RageSoundDriver::Create(const RString& drivers)
 		}
 	}
 
-	FOREACH_CONST(RString, drivers_to_try, Driver)
+	FOREACH_CONST(std::string, drivers_to_try, Driver)
 	{
 		RageDriver* pDriver = m_pDriverList.Create(*Driver);
 		if (pDriver == NULL) {

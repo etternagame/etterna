@@ -46,7 +46,7 @@ LoadFromKSFFile(const RString& sPath,
 	int iTickCount = -1;
 	// used to adapt weird tickcounts
 	// float fScrollRatio = 1.0f; -- uncomment when ready to use.
-	vector<RString> vNoteRows;
+	vector<std::string> vNoteRows;
 
 	// According to Aldo_MX, there is a default BPM and it's 60. -aj
 	bool bDoublesChart = false;
@@ -125,14 +125,14 @@ LoadFromKSFFile(const RString& sPath,
 		}
 		// new cases from Aldo_MX's fork:
 		else if (sValueName == "PLAYER") {
-			RString sPlayer = sParams[1];
+			std::string sPlayer = sParams[1];
 			sPlayer.MakeLower();
 			if (sPlayer.find("double") != string::npos)
 				bDoublesChart = true;
 		}
 		// This should always be last.
 		else if (sValueName == "STEP") {
-			RString theSteps = sParams[1];
+			std::string theSteps = sParams[1];
 			TrimLeft(theSteps);
 			split(theSteps, "\n", vNoteRows, true);
 		}
@@ -436,7 +436,7 @@ LoadTags(const RString& str, Song& out)
 	/* str is either a #TITLE or a directory component.  Fill in missing
 	 * information. str is either "title", "artist - title", or "artist - title
 	 * - difficulty". */
-	vector<RString> asBits;
+	vector<std::string> asBits;
 	split(str, " - ", asBits, false);
 	// Ignore the difficulty, since we get that elsewhere.
 	if (asBits.size() == 3 &&
@@ -513,7 +513,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 		  BPMPos3 = -1, BPM3 = -1;
 	int iTickCount = -1;
 	bKIUCompliant = false;
-	vector<RString> vNoteRows;
+	vector<std::string> vNoteRows;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		const MsdFile::value_t& sParams = msd.GetValue(i);
@@ -555,7 +555,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 			/* STEP will always be the last header in a KSF file by design. Due
 			 * to the Direct Move syntax, it is best to get the rows of notes
 			 * here. */
-			RString theSteps = sParams[1];
+			std::string theSteps = sParams[1];
 			TrimLeft(theSteps);
 			split(theSteps, "\n", vNoteRows, true);
 		} else if (sValueName == "DIFFICULTY" || sValueName == "PLAYER") {

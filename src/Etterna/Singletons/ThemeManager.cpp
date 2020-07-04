@@ -531,7 +531,8 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 		vector<std::string> arrayScriptDirs;
 		GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, true);
 		SortRStringArray(arrayScriptDirs);
-		FOREACH_CONST(std::string, arrayScriptDirs, s) // foreach dir in /Scripts/
+		FOREACH_CONST(
+		  std::string, arrayScriptDirs, s) // foreach dir in /Scripts/
 		{
 			// Find all Lua files in this directory, add them to asElementPaths
 			std::string sScriptDirName = *s;
@@ -785,11 +786,12 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	if (GetPathInfo(out, category, sNewClassName, sNewFile, true))
 		return true;
 
-	std::string sMessage = ssprintf("ThemeManager:  The redirect '%s' points to "
-								"the file '%s', which does not exist. "
-								"Verify that this redirect is correct.",
-								sPath.c_str(),
-								sNewFileName.c_str());
+	std::string sMessage =
+	  ssprintf("ThemeManager:  The redirect '%s' points to "
+			   "the file '%s', which does not exist. "
+			   "Verify that this redirect is correct.",
+			   sPath.c_str(),
+			   sNewFileName.c_str());
 
 	switch (LuaHelpers::ReportScriptError(sMessage, "", true)) {
 		case Dialog::retry:
@@ -895,10 +897,10 @@ try_element_again:
 			goto try_element_again;
 		case Dialog::ignore: {
 			std::string element = sCategory + '/' + sFileName;
-			std::string error = "could not be found in \"" +
-							GetThemeDirFromName(m_sCurThemeName) + "\" or \"" +
-							GetThemeDirFromName(SpecialFiles::BASE_THEME_NAME) +
-							"\".";
+			std::string error =
+			  "could not be found in \"" +
+			  GetThemeDirFromName(m_sCurThemeName) + "\" or \"" +
+			  GetThemeDirFromName(SpecialFiles::BASE_THEME_NAME) + "\".";
 			LOG->UserLog("Theme element", element.c_str(), "%s", error.c_str());
 			LOG->Warn("%s %s", element.c_str(), error.c_str());
 			LuaHelpers::ScriptErrorMessage("'" + element + "' " + error);
@@ -959,7 +961,8 @@ ThemeManager::GetMetricsIniPath(const std::string& sThemeName)
 }
 
 bool
-ThemeManager::HasMetric(const std::string& sMetricsGroup, const std::string& sValueName)
+ThemeManager::HasMetric(const std::string& sMetricsGroup,
+						const std::string& sValueName)
 {
 	std::string sThrowAway;
 	if (sMetricsGroup == "" || sValueName == "") {
@@ -970,7 +973,8 @@ ThemeManager::HasMetric(const std::string& sMetricsGroup, const std::string& sVa
 }
 
 bool
-ThemeManager::HasString(const std::string& sMetricsGroup, const std::string& sValueName)
+ThemeManager::HasString(const std::string& sMetricsGroup,
+						const std::string& sValueName)
 {
 	std::string sThrowAway;
 	if (sMetricsGroup == "" || sValueName == "") {
@@ -1076,9 +1080,9 @@ ThemeManager::GetMetricRaw(const IniFile& ini,
 			FAIL_M("");
 
 		std::string sMessage = ssprintf("%s \"%s::%s\" is missing.",
-									sType.c_str(),
-									sMetricsGroup.c_str(),
-									sValueName.c_str());
+										sType.c_str(),
+										sMetricsGroup.c_str(),
+										sValueName.c_str());
 
 		switch (LuaHelpers::ReportScriptError(sMessage, "", true)) {
 			case Dialog::abort: {
@@ -1123,7 +1127,8 @@ GetAndConvertMetric(const std::string& sMetricsGroup,
 
 /* Get a string metric. */
 std::string
-ThemeManager::GetMetric(const std::string& sMetricsGroup, const std::string& sValueName)
+ThemeManager::GetMetric(const std::string& sMetricsGroup,
+						const std::string& sValueName)
 {
 	std::string sRet;
 	GetAndConvertMetric(sMetricsGroup, sValueName, sRet);
@@ -1475,16 +1480,16 @@ class LunaThemeManager : public Luna<ThemeManager>
 			  L,
 			  "Cannot fetch string with empty group name or empty value name.");
 		}
-		lua_pushstring(L, p->GetString(group, name));
+		lua_pushstring(L, p->GetString(group, name).c_str());
 		return 1;
 	}
 	static int GetPathInfoB(T* p, lua_State* L)
 	{
 		ThemeManager::PathInfo pi;
 		p->GetPathInfo(pi, EC_BGANIMATIONS, SArg(1), SArg(2));
-		lua_pushstring(L, pi.sResolvedPath);
-		lua_pushstring(L, pi.sMatchingMetricsGroup);
-		lua_pushstring(L, pi.sMatchingElement);
+		lua_pushstring(L, pi.sResolvedPath.c_str());
+		lua_pushstring(L, pi.sMatchingMetricsGroup.c_str());
+		lua_pushstring(L, pi.sMatchingElement.c_str());
 		return 3;
 	}
 	// GENERAL_GET_PATH uses lua_toboolean instead of BArg because that
@@ -1493,7 +1498,9 @@ class LunaThemeManager : public Luna<ThemeManager>
 	static int get_path_name(T* p, lua_State* L)                               \
 	{                                                                          \
 		lua_pushstring(                                                        \
-		  L, p->get_path_name(SArg(1), SArg(2), lua_toboolean(L, 3) != 0));    \
+		  L,                                                                   \
+		  p->get_path_name(SArg(1), SArg(2), lua_toboolean(L, 3) != 0)         \
+			.c_str());                                                         \
 		return 1;                                                              \
 	}
 	GENERAL_GET_PATH(GetPathF);
@@ -1529,17 +1536,18 @@ class LunaThemeManager : public Luna<ThemeManager>
 	DEFINE_METHOD(GetCurLanguage, GetCurLanguage());
 	static int GetThemeDisplayName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetThemeDisplayName(p->GetCurThemeName()));
+		lua_pushstring(L, p->GetThemeDisplayName(p->GetCurThemeName()).c_str());
 		return 1;
 	}
 	static int GetRealThemeDisplayName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetThemeDisplayName(p->GetRealCurThemeName()));
+		lua_pushstring(
+		  L, p->GetThemeDisplayName(p->GetRealCurThemeName()).c_str());
 		return 1;
 	}
 	static int GetThemeAuthor(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetThemeAuthor(p->GetCurThemeName()));
+		lua_pushstring(L, p->GetThemeAuthor(p->GetCurThemeName()).c_str());
 		return 1;
 	}
 	DEFINE_METHOD(DoesThemeExist, DoesThemeExist(SArg(1)));

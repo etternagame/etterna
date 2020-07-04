@@ -96,7 +96,7 @@ class PrefsManager
 
 	void Init();
 
-	void SetCurrentGame(const RString& sGame);
+	void SetCurrentGame(const std::string& sGame);
 	RString GetCurrentGame() { return m_sCurrentGame; }
 
   protected:
@@ -122,7 +122,7 @@ class PrefsManager
 		RString m_sTheme;
 		RString m_sDefaultModifiers;
 	};
-	map<RString, GamePrefs> m_mapGameNameToGamePrefs;
+	map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
 
   public:
 	Preference<bool> m_bWindowed;
@@ -255,10 +255,10 @@ class PrefsManager
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
 
 	void ReadPrefsFromIni(const IniFile& ini,
-						  const RString& sSection,
+						  const std::string& sSection,
 						  bool bIsStatic);
-	void ReadGamePrefsFromIni(const RString& sIni);
-	void ReadDefaultsFromIni(const IniFile& ini, const RString& sSection);
+	void ReadGamePrefsFromIni(const std::string& sIni);
+	void ReadDefaultsFromIni(const IniFile& ini, const std::string& sSection);
 	void SavePrefsToIni(IniFile& ini);
 
 	void ReadPrefsFromDisk();
@@ -266,16 +266,17 @@ class PrefsManager
 
 	void ResetToFactoryDefaults();
 
-	RString GetPreferencesSection() const;
+	std::string GetPreferencesSection() const;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   protected:
-	void ReadPrefsFromFile(const RString& sIni,
-						   const RString& sSection,
+	void ReadPrefsFromFile(const std::string& sIni,
+						   const std::string& sSection,
 						   bool bIsStatic);
-	void ReadDefaultsFromFile(const RString& sIni, const RString& sSection);
+	void ReadDefaultsFromFile(const std::string& sIni,
+							  const std::string& sSection);
 };
 
 /* This is global, because it can be accessed by crash handlers and error

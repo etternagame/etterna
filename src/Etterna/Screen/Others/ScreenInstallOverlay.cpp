@@ -310,7 +310,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		lastDLProgressUpdate = 0;
 		Message msg("DLProgressAndQueueUpdate");
 
-		vector<RString> dls;
+		vector<std::string> dls;
 		for (auto& dl : DLMAN->downloads) {
 			dls.push_back(dl.second->Status());
 		}
@@ -318,7 +318,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		msg.SetParam("dlprogress", join("\n", dls));
 
 		if (!DLMAN->DownloadQueue.empty()) {
-			vector<RString> cue;
+			vector<std::string> cue;
 			for (auto& q : DLMAN->DownloadQueue) {
 				cue.push_back(q.first->name);
 			}

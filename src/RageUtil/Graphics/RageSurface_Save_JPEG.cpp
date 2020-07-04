@@ -27,8 +27,8 @@ RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)
 	int quality = bHighQual ? 100 : 70;
 
 	// returns 0 on failure
-	bool success =
-	  stbi_write_jpg(f.GetRealPath(), res->w, res->h, 3, res->pixels, quality);
+	bool success = stbi_write_jpg(
+	  f.GetRealPath().c_str(), res->w, res->h, 3, res->pixels, quality);
 
 	if (converted)
 		delete res;
