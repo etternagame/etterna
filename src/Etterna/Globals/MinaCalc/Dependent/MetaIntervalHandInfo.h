@@ -7,7 +7,7 @@ struct metaItvHandInfo
 	ItvHandInfo _itvhi;
 
 	// handle end of interval
-	inline void interval_end()
+	void interval_end()
 	{
 		_base_types.fill(0);
 		_meta_types.fill(0);
@@ -18,7 +18,7 @@ struct metaItvHandInfo
 	// zero everything out for end of hand loop so the trailing values from the
 	// left hand don't end up in the start of the right (not that it would make
 	// a huge difference, but it might be abusable
-	inline void zero()
+	void zero()
 	{
 		_base_types.fill(0);
 		_meta_types.fill(0);

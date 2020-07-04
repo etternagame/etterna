@@ -47,11 +47,11 @@ static const float stam_fscale = 500.F; // how fast the floor rises (it's lava)
 static const float stam_prop =
   0.69424F; // proportion of player difficulty at which stamina tax begins
 
-static inline auto
+static auto
 TotalMaxPoints(const Calc& calc) -> float
 {
-	int MaxPoints = 0;
-	for (int i = 0; i < calc.numitv; i++) {
+	auto MaxPoints = 0;
+	for (auto i = 0; i < calc.numitv; i++) {
 		MaxPoints +=
 		  calc.itv_points[left_hand].at(i) + calc.itv_points[right_hand].at(i);
 	}
@@ -64,7 +64,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			   float score_goal) -> vector<float>
 {
 	// in flux
-	float grindscaler =
+	const auto grindscaler =
 	  CalcClamp(
 		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 35.F) / 35.F),
 		0.9F,
@@ -80,13 +80,13 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 	// for multi offset passes
 	// const int fo_rizzy = ssr ? 3 : 1;
-	const int fo_rizzy = 1;
+	const auto fo_rizzy = 1;
 	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
-	for (int WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
+	for (auto WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
 
-		bool skip = InitializeHands(
+		const auto skip = InitializeHands(
 		  NoteInfo,
 		  music_rate,
 		  0.1F * static_cast<float>(WHAT_IS_EVEN_HAPPEN_THE_BOMB));
@@ -101,14 +101,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		vector<float> mcbloop(NUM_Skillset);
 		// overall and stam will be left as 0.f by this loop
-		for (int i = 0; i < NUM_Skillset; ++i) {
+		for (auto i = 0; i < NUM_Skillset; ++i) {
 			mcbloop[i] = Chisel(0.1F, 10.24F, score_goal, i, false);
 		}
 
 		// stam is based on which calc produced the highest
 		// output without it
-		int highest_base_skillset = max_index(mcbloop);
-		float base = mcbloop[highest_base_skillset];
+		const auto highest_base_skillset = max_index(mcbloop);
+		const auto base = mcbloop[highest_base_skillset];
 
 		/* rerun all with stam on, optimize by starting at the non-stam adjusted
 		 * base value for each skillset we can actually set the stam floor to <
@@ -118,11 +118,11 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * bonus stripped from the second and third components, devaluing the
 		 * file as a whole, we could run it for the 2nd/3rd highest skillsets
 		 * but i'm too lazy to implement that right now */
-		for (int i = 0; i < NUM_Skillset; ++i) {
+		for (auto i = 0; i < NUM_Skillset; ++i) {
 			mcbloop[i] = Chisel(mcbloop[i] * 0.9F, 0.32F, score_goal, i, true);
 		}
 
-		int highest_stam_adjusted_skillset = max_index(mcbloop);
+		const auto highest_stam_adjusted_skillset = max_index(mcbloop);
 
 		/* all relative scaling to specific skillsets should occur before this
 		 * point, not after (it ended up this way due to the normalizers which
@@ -142,7 +142,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * rating scaling down stuff that has no stamina component will help
 		 * preventing pollution of stamina leaderboards with charts that are
 		 * just very high rated but take no stamina */
-		float poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
+		const auto poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
 
 		/* the bigger this number the more stamina has to influence a file
 		 * before it counts in the stam skillset, i.e. something that only
@@ -153,9 +153,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * benefits 15% will max out the possible stam rating, which is
 		 * (currently) a 1.07 multiplier to the base maybe using a multiplier
 		 * and not a difference would be better? */
-		static const float stam_curve_shift = 0.015F;
+		static const auto stam_curve_shift = 0.015F;
 		// ends up being a multiplier between ~0.8 and ~1
-		float mcfroggerbopper =
+		auto mcfroggerbopper =
 		  pow((poodle_in_a_porta_potty / base) - stam_curve_shift, 2.5F);
 
 		/* we wanted to shift the curve down a lot before pow'ing but it was too
@@ -184,7 +184,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
 		 * do this for SCORES only, not cached file difficulties */
 		if (ssr) {
-			static const float ssrcap = 40.F;
+			static const auto ssrcap = 40.F;
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
@@ -195,16 +195,16 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		/* finished all modifications to skillset values, set overall using
 		 * sigmoidal aggregation, but only let it buff files, don't set anything
 		 * below the highest skillset th */
-		float agg = AggregateRatings(mcbloop);
-		float highest = max_val(mcbloop);
+		auto agg = AggregateRatings(mcbloop);
+		auto highest = max_val(mcbloop);
 		mcbloop[Skill_Overall] = agg > highest ? agg : highest;
 
-		for (float bagles : mcbloop) {
+		for (auto bagles : mcbloop) {
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(bagles);
 		}
 	}
 	vector<float> yo_momma(NUM_Skillset);
-	for (int farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
+	for (auto farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
 		vector<float> girls;
 		girls.reserve(the_hizzle_dizzles.size());
 		for (auto& the_hizzle_dizzle : the_hizzle_dizzles) {
@@ -226,14 +226,14 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 inline void
 StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 {
-	float stam_floor =
-	  0.95F;		   // stamina multiplier min (increases as chart advances)
-	float mod = 0.95F; // mutliplier
+	auto stam_floor =
+	  0.95F;		  // stamina multiplier min (increases as chart advances)
+	auto mod = 0.95F; // mutliplier
 
-	float avs1 = 0.F;
-	float avs2 = 0.F;
-	float local_ceil = stam_ceil;
-	const float super_stam_ceil = 1.11F;
+	auto avs1 = 0.F;
+	auto avs2 = 0.F;
+	auto local_ceil = stam_ceil;
+	const auto super_stam_ceil = 1.11F;
 
 	// use this to calculate the mod growth
 	const std::array<float, max_intervals>* base_diff =
@@ -246,7 +246,7 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug) {
-		for (int i = 0; i < calc.numitv; i++) {
+		for (auto i = 0; i < calc.numitv; i++) {
 			avs1 = avs2;
 			avs2 = base_diff->at(i);
 			mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
@@ -260,7 +260,7 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 			calc.debugValues.at(hi)[2][StamMod][i] = mod;
 		}
 	} else {
-		for (int i = 0; i < calc.numitv; i++) {
+		for (auto i = 0; i < calc.numitv; i++) {
 			avs1 = avs2;
 			avs2 = base_diff->at(i);
 			mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
@@ -277,7 +277,6 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 
 static const float magic_num = 4.F;
 static const float magic_num_TWO = 2.5F;
-static const float gratuitously_defined_zero_value = 0.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
@@ -296,15 +295,16 @@ hit_the_road(const float& x, const float& y) -> float
 inline auto
 jackloss(const float& x, Calc& calc, const int& hi) -> float
 {
-	float total = 0.F;
-	float row_loss = 0.F;
+	auto total = 0.F;
+	auto row_loss = 0.F;
 
 	// interval loop
-	for (int itv = 0; itv < calc.numitv; ++itv) {
-		float itv_total = 0.F;
+	for (auto itv = 0; itv < calc.numitv; ++itv) {
+		auto itv_total = 0.F;
 
 		// rows per interval now
-		for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv); ++row) {
+		for (auto row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
+			 ++row) {
 			const auto& y = calc.jack_diff.at(hi).at(itv).at(row);
 
 			if (x < y && y > 0.F) {
@@ -339,7 +339,7 @@ CalcInternal(float& gotpoints,
 	// final difficulty values to use
 	const std::array<float, max_intervals>* v =
 	  &(stam ? calc.stam_adj_diff : calc.base_adj_diff.at(hi).at(ss));
-	float powindromemordniwop = 1.7F;
+	auto powindromemordniwop = 1.7F;
 	if (ss == Skill_Chordjack) {
 		powindromemordniwop = 1.7F;
 	}
@@ -354,24 +354,25 @@ CalcInternal(float& gotpoints,
 		calc.debugValues.at(hi)[1][MSD].resize(calc.numitv);
 		// final debug output should always be with stam activated
 		StamAdjust(x, ss, calc, hi, true);
-		for (int i = 0; i < calc.numitv; ++i) {
+		for (auto i = 0; i < calc.numitv; ++i) {
 			calc.debugValues.at(hi)[1][MSD].at(i) = (*v).at(i);
 		}
 
-		for (int i = 0; i < calc.numitv; ++i) {
-			auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
+		for (auto i = 0; i < calc.numitv; ++i) {
+			const auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
 			calc.debugValues.at(hi)[2][Pts].at(i) = pts;
 			if (x < (*v).at(i)) {
-				float lostpoints =
+				const auto lostpoints =
 				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
 				gotpoints -= lostpoints;
 				calc.debugValues.at(hi)[2][PtLoss].at(i) = abs(lostpoints);
 			}
 		}
 	} else {
-		for (int i = 0; i < calc.numitv; ++i) {
+		for (auto i = 0; i < calc.numitv; ++i) {
 			if (x < (*v).at(i)) {
-				auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
+				const auto pts =
+				  static_cast<float>(calc.itv_points.at(hi).at(i));
 				gotpoints -=
 				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
 			}
@@ -392,7 +393,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	ulbu_that_which_consumes_all();
 
 	// main hand loop
-	for (auto& hi : { left_hand, right_hand }) {
+	for (const auto& hi : { left_hand, right_hand }) {
 		InitAdjDiff(*this, hi);
 
 		// post pattern mod smoothing for cj
@@ -401,7 +402,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 
 	// debug info loop
 	if (debugmode) {
-		for (auto& hi : { left_hand, right_hand }) {
+		for (const auto& hi : { left_hand, right_hand }) {
 			// pattern mods and base msd never change, set degbug
 			// output for them now
 
@@ -412,17 +413,17 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 			debugValues.at(hi)[2].resize(NUM_CalcDebugMisc);
 
 			// pattern mods first
-			for (int pmod = 0; pmod < NUM_CalcPatternMod; ++pmod) {
+			for (auto pmod = 0; pmod < NUM_CalcPatternMod; ++pmod) {
 				debugValues.at(hi)[0][pmod].resize(numitv);
 
-				for (int itv = 0; itv < numitv; ++itv) {
+				for (auto itv = 0; itv < numitv; ++itv) {
 					debugValues.at(hi)[0][pmod][itv] =
 					  doot.at(hi).at(pmod).at(itv);
 				}
 			}
 
 			// set the base diffs - everything but final adjusted values
-			for (int diff = 0; diff < NUM_CalcDiffValue - 1; ++diff) {
+			for (auto diff = 0; diff < NUM_CalcDiffValue - 1; ++diff) {
 				debugValues.at(hi)[1][diff].resize(numitv);
 
 				// these are calculated by row, so we need to aggregate them
@@ -431,7 +432,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 					set_jack_diff_debug(*this, hi);
 				}
 
-				for (int itv = 0; itv < numitv; ++itv) {
+				for (auto itv = 0; itv < numitv; ++itv) {
 					debugValues.at(hi)[1][diff][itv] =
 					  soap.at(hi).at(diff).at(itv);
 				}
@@ -458,10 +459,9 @@ Calc::Chisel(float player_skill,
 			 bool stamina,
 			 bool debugoutput) -> float
 {
-
-	float gotpoints = 0.F;
-	float reqpoints = MaxPoints * score_goal;
-	for (int iter = 1; iter <= 8; iter++) {
+	auto gotpoints = 0.F;
+	const auto reqpoints = MaxPoints * score_goal;
+	for (auto iter = 1; iter <= 8; iter++) {
 		do {
 			// overall and stamina are calculated differently
 			if (player_skill > max_rating || ss == Skill_Overall ||
@@ -492,7 +492,7 @@ Calc::Chisel(float player_skill,
 					break;
 			}
 
-			for (auto& hi : { left_hand, right_hand }) {
+			for (const auto& hi : { left_hand, right_hand }) {
 				/* only run the other hand if we're still above the
 				 * reqpoints, if we're already below, there's no
 				 * point. i.e. we're so far below the skill
@@ -522,11 +522,11 @@ Calc::Chisel(float player_skill,
 	 * clarification, player_skill value being passed into here is
 	 * the final value we've determined */
 	if (debugoutput) {
-		for (auto& hi : { left_hand, right_hand }) {
+		for (const auto& hi : { left_hand, right_hand }) {
 			CalcInternal(
 			  gotpoints, player_skill, ss, stamina, *this, hi, debugoutput);
 
-			for (int i = 0; i < numitv; ++i) {
+			for (auto i = 0; i < numitv; ++i) {
 				debugValues.at(hi)[2][JackPtLoss].at(i) =
 				  jack_loss.at(hi).at(i);
 			}
@@ -539,7 +539,7 @@ Calc::Chisel(float player_skill,
 
 			// techbase
 			if (ss == Skill_Technical) {
-				for (int i = 0; i < numitv; ++i) {
+				for (auto i = 0; i < numitv; ++i) {
 					debugValues.at(hi)[0][TotalPatternMod].at(i) =
 					  base_adj_diff.at(hi)[TechBase].at(i) /
 					  soap.at(hi)[TechBase].at(i);
@@ -548,7 +548,7 @@ Calc::Chisel(float player_skill,
 				// no pattern mods atm, do nothing
 			} else {
 				// everything else uses nps base
-				for (int i = 0; i < numitv; ++i) {
+				for (auto i = 0; i < numitv; ++i) {
 					debugValues.at(hi)[0][TotalPatternMod].at(i) =
 					  base_adj_diff.at(hi).at(ss).at(i) /
 					  soap.at(hi)[NPSBase].at(i);
@@ -665,41 +665,41 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	std::array<float, NUM_Skillset> tp_mods = {};
 
 	// ok this loop is pretty wack i know, for each interval
-	for (int i = 0; i < calc.numitv; ++i) {
+	for (auto i = 0; i < calc.numitv; ++i) {
 		tp_mods.fill(1.F);
 
 		// total pattern mods for each skillset, we want this to be
 		// calculated before the main skillset loop because we might
 		// want access to the total js mod while on stream, or
 		// something
-		for (int ss = 0; ss < NUM_Skillset; ++ss) {
+		for (auto ss = 0; ss < NUM_Skillset; ++ss) {
 			// is this even faster than multiplying 1.f by 1.f a
 			// billion times?
 			if (ss == Skill_Overall || ss == Skill_Stamina) {
 				continue;
 			}
-			for (auto& pmod : pmods_used.at(ss)) {
+			for (const auto& pmod : pmods_used.at(ss)) {
 				tp_mods.at(ss) *= calc.doot.at(hi).at(pmod).at(i);
 			}
 		}
 
 		// main skillset loop, for each skillset that isn't overall
 		// or stam
-		for (int ss = 0; ss < NUM_Skillset; ++ss) {
+		for (auto ss = 0; ss < NUM_Skillset; ++ss) {
 			if (ss == Skill_Overall || ss == Skill_Stamina) {
 				continue;
 			}
 
 			// this should work and not be super slow?
-			float* adj_diff = &(calc.base_adj_diff.at(hi).at(ss).at(i));
-			float* stam_base =
+			auto* adj_diff = &(calc.base_adj_diff.at(hi).at(ss).at(i));
+			auto* stam_base =
 			  &(calc.base_diff_for_stam_mod.at(hi).at(ss).at(i));
 
 			// might need optimization, or not since this is not
 			// outside of a dumb loop now and is done once instead
 			// of a few hundred times
-			float funk = calc.soap.at(hi).at(NPSBase).at(i) * tp_mods.at(ss) *
-						 basescalers.at(ss);
+			const auto funk = calc.soap.at(hi).at(NPSBase).at(i) *
+							  tp_mods.at(ss) * basescalers.at(ss);
 			*adj_diff = funk;
 			*stam_base = funk;
 			switch (ss) {
@@ -717,18 +717,18 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					*adj_diff /=
 					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
 
-					float a = *adj_diff;
-					float b = calc.soap.at(hi).at(NPSBase).at(i) *
-							  tp_mods[Skill_Handstream];
+					auto a = *adj_diff;
+					auto b = calc.soap.at(hi).at(NPSBase).at(i) *
+							 tp_mods[Skill_Handstream];
 					*stam_base = max<float>(a, b);
 				} break;
 				case Skill_Handstream: {
 
 					// adj_diff /=
 					// fastsqrt(doot.at(hi).at(OHJump).at(i));
-					float a = funk;
-					float b = calc.soap.at(hi).at(NPSBase).at(i) *
-							  tp_mods[Skill_Jumpstream];
+					auto a = funk;
+					auto b = calc.soap.at(hi).at(NPSBase).at(i) *
+							 tp_mods[Skill_Jumpstream];
 					*stam_base = max<float>(a, b);
 				} break;
 				case Skill_Chordjack:
@@ -754,10 +754,10 @@ make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
 {
 	debugstrings.resize(calc.numitv);
 
-	for (int itv = 0; itv < calc.numitv; ++itv) {
-		std::string itvstring = "";
+	for (auto itv = 0; itv < calc.numitv; ++itv) {
+		std::string itvstring;
 
-		for (int row = 0; row < calc.itv_size.at(itv); ++row) {
+		for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 			const auto& ri = calc.adj_ni.at(itv).at(row);
 
 			itvstring.append(note_mapping.at(ri.row_notes).second);
@@ -791,18 +791,18 @@ auto
 MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 {
 	MinaSD allrates;
-	int lower_rate = 7;
-	int upper_rate = 21;
+	const auto lower_rate = 7;
+	const auto upper_rate = 21;
 
 	if (NoteInfo.size() > 1) {
 		calc->ssr = false;
 		calc->debugmode = false;
-		for (int i = lower_rate; i < upper_rate; i++) {
+		for (auto i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(calc->CalcMain(
 			  NoteInfo, static_cast<float>(i) / 10.F, default_score_goal));
 		}
 	} else {
-		for (int i = lower_rate; i < upper_rate; i++) {
+		for (auto i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(dimples_the_all_zero_output);
 		}
 	}
@@ -837,7 +837,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 409;
+int mina_calc_version = 418;
 auto
 GetCalcVersion() -> int
 {

@@ -24,7 +24,7 @@ struct Roll_Sequencer
 {
 	RollSeq _rs;
 
-	inline void advance(const meta_type& mt, SequencerGeneral& _seq) {}
+	void advance(const meta_type& mt, SequencerGeneral& _seq) {}
 };
 
 struct RollMod
@@ -58,26 +58,26 @@ struct RollMod
 	float moving_cv = cv_reset;
 	float pmod = min_mod;
 
-	inline void full_reset()
+	void full_reset()
 	{
 		moving_cv = (moving_cv + cv_reset);
 		pmod = neutral;
 	}
 
-	inline void setup()
+	void setup()
 	{
 		window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
 	}
 
-	inline void complete_seq() {}
+	void complete_seq() {}
 
-	inline void advance_sequencing(const meta_type& mt, SequencerGeneral& _seq)
+	void advance_sequencing(const meta_type& mt, SequencerGeneral& _seq)
 	{
 		//_roll.advance(mt, _seq);
 	}
 
-	inline void set_pmod(const ItvHandInfo& itvhi, const SequencerGeneral&  /*_seq*/)
+	void set_pmod(const ItvHandInfo& itvhi, const SequencerGeneral& /*_seq*/)
 	{
 		if (itvhi.get_taps_nowi() == 0) {
 			pmod = neutral;
@@ -87,8 +87,8 @@ struct RollMod
 		pmod = CalcClamp(1.F, min_mod, max_mod);
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi,
-						   const SequencerGeneral& _seq) -> float
+	auto operator()(const ItvHandInfo& itvhi, const SequencerGeneral& _seq)
+	  -> float
 	{
 
 		set_pmod(itvhi, _seq);
@@ -99,6 +99,6 @@ struct RollMod
 		//_mw_pmod.get_mean_of_window(window);
 	}
 
-	inline void interval_end() {}
+	void interval_end() {}
 };
 #pragma once

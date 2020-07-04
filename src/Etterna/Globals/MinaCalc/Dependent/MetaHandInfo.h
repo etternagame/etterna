@@ -50,7 +50,7 @@ struct metaHandInfo
 	// end of one will carry over into the start of the other, not a huge
 	// practical deal but it could theoretically be abused and it's good
 	// practice to reset anyway
-	inline void full_reset()
+	void full_reset()
 	{
 		_ct = col_init;
 		_last_ct = col_init;
@@ -63,7 +63,7 @@ struct metaHandInfo
 		_last_mt = meta_type_init;
 	}
 
-	inline void operator()(const metaHandInfo& last, const col_type& ct)
+	void operator()(const metaHandInfo& last, const col_type& ct)
 	{
 		// this should never ever be called on col_empty
 		assert(ct != col_empty);

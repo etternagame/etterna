@@ -1,6 +1,5 @@
 #pragma once
 #include "HD_BasicSequencing.h"
-#include "Etterna/Globals/MinaCalc/SequencingHelpers.h"
 
 /* meta patterns are formed by chains of base patterns, we could pick up
  * triplets (left_right, right_left), or triple jacks (single_single,

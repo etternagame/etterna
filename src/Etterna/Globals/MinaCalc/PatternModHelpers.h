@@ -28,21 +28,21 @@ fastsqrt(float _in) -> float
 	if (_in == 0.F) {
 		return 0.F;
 	}
-	__m128 in = _mm_load_ss(&_in);
+	auto in = _mm_load_ss(&_in);
 	float out;
 	_mm_store_ss(&out, _mm_mul_ss(in, _mm_rsqrt_ss(in)));
 	return out;
 }
 
 template<typename T>
-inline auto
+auto
 sum(const vector<T>& v) -> T
 {
 	return std::accumulate(begin(v), end(v), static_cast<T>(0));
 }
 
 template<typename T>
-inline auto
+auto
 mean(const vector<T>& v) -> float
 {
 	return static_cast<float>(sum(v)) / static_cast<float>(v.size());
@@ -52,9 +52,9 @@ mean(const vector<T>& v) -> float
 inline auto
 cv(const vector<float>& input) -> float
 {
-	float sd = 0.F;
-	float average = mean(input);
-	for (float i : input) {
+	auto sd = 0.F;
+	auto average = mean(input);
+	for (auto i : input) {
 		sd += (i - average) * (i - average);
 	}
 
@@ -62,7 +62,7 @@ cv(const vector<float>& input) -> float
 }
 
 template<typename T>
-inline auto
+auto
 CalcClamp(T x, T l, T h) -> T
 {
 	return x > h ? h : (x < l ? l : x);

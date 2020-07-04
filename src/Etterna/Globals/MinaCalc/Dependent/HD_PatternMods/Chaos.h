@@ -37,7 +37,7 @@ struct ChaosMod
 
 #pragma region generic functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		_u.zero();
 		_wot.zero();
@@ -46,7 +46,7 @@ struct ChaosMod
 
 #pragma endregion
 
-	inline void advance_sequencing(const CalcMovingWindow<float>& ms_any)
+	void advance_sequencing(const CalcMovingWindow<float>& ms_any)
 	{
 		// most recent value
 		float a = ms_any.get_now();
@@ -77,7 +77,7 @@ struct ChaosMod
 		_wot(_u.get_mean_of_window(window));
 	}
 
-	inline auto operator()(const int& total_taps) -> float
+	auto operator()(const int& total_taps) -> float
 	{
 
 		if (total_taps == 0) {

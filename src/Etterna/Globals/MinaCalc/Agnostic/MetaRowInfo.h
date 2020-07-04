@@ -26,7 +26,7 @@ struct metaRowInfo
 	bool gluts_maybe = false; // not really used/tested yet
 	bool twas_jack = false;
 
-	inline void set_row_variations(metaItvInfo& mitvi)
+	inline void set_row_variations(metaItvInfo& mitvi) const
 	{
 		// already determined there's enough variation in this interval
 		if (!mitvi.basically_vibro) {

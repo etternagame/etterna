@@ -52,7 +52,7 @@ struct WideRangeJumptrillMod
 
 #pragma region generic functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		_mw_jt.zero();
 		jt_counter = 0;
@@ -63,7 +63,7 @@ struct WideRangeJumptrillMod
 		pmod = neutral;
 	}
 
-	inline void setup()
+	void setup()
 	{
 		window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
@@ -71,7 +71,7 @@ struct WideRangeJumptrillMod
 
 #pragma endregion
 
-	inline auto check_last_mt(const meta_type& mt) -> bool
+	auto check_last_mt(const meta_type& mt) const -> bool
 	{
 		if (mt == meta_acca || mt == meta_ccacc || mt == meta_cccccc) {
 			if (last_passed_check) {
@@ -81,7 +81,7 @@ struct WideRangeJumptrillMod
 		return false;
 	}
 
-	inline void bibblybop(const meta_type& mt)
+	void bibblybop(const meta_type& mt)
 	{
 		++jt_counter;
 		if (bro_is_this_file_for_real) {
@@ -93,10 +93,10 @@ struct WideRangeJumptrillMod
 		}
 	}
 
-	inline void advance_sequencing(const base_type& bt,
-								   const meta_type& mt,
-								   const meta_type& _last_mt,
-								   CalcMovingWindow<float>& ms_any)
+	void advance_sequencing(const base_type& bt,
+							const meta_type& mt,
+							const meta_type& _last_mt,
+							CalcMovingWindow<float>& ms_any)
 	{
 		// ignore if we hit a jump
 		if (bt == base_jump_jump || bt == base_single_jump) {
@@ -139,7 +139,7 @@ struct WideRangeJumptrillMod
 		bro_is_this_file_for_real = false;
 	}
 
-	inline void set_pmod(const ItvHandInfo& itvhi)
+	void set_pmod(const ItvHandInfo& itvhi)
 	{
 		// no taps, no jt
 		if (itvhi.get_taps_windowi(window) == 0 ||
@@ -153,13 +153,13 @@ struct WideRangeJumptrillMod
 			return;
 		}
 
-		pmod =
-		  itvhi.get_taps_windowf(window) / _mw_jt.get_total_for_windowf(window) * 0.75F;
+		pmod = itvhi.get_taps_windowf(window) /
+			   _mw_jt.get_total_for_windowf(window) * 0.75F;
 
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		_mw_jt(jt_counter);
 
@@ -169,7 +169,7 @@ struct WideRangeJumptrillMod
 		return pmod;
 	}
 
-	inline void interval_end()
+	void interval_end()
 	{
 		// we could count these in metanoteinfo but let's do it here for now,
 		// reset every interval when finished

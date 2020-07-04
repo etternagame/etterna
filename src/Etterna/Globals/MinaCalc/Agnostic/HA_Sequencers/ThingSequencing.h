@@ -36,7 +36,7 @@ struct the_slip
 	//};
 
 	// couldn't figure out how to make slip & slide work smh
-	inline auto the_slip_is_the_boot(const unsigned& notes) -> bool
+	inline auto the_slip_is_the_boot(const unsigned& notes) const -> bool
 	{
 		switch (slide) {
 			// just started, need single note with no jack between our starting
@@ -147,7 +147,7 @@ struct the_slip2
 	//};
 
 	// couldn't figure out how to make slip & slide work smh
-	inline auto the_slip_is_the_boot(const unsigned& notes) -> bool
+	inline auto the_slip_is_the_boot(const unsigned& notes) const -> bool
 	{
 		switch (slide) {
 			// just started, need single note with no jack between our starting
@@ -302,7 +302,7 @@ struct TT_Sequencing
 		mod_parts.fill(1.F);
 	}
 
-	inline auto construct_mod_part() -> float { return scaler; }
+	inline auto construct_mod_part() const -> float { return scaler; }
 };
 
 // sort of the same concept as fj, slightly different implementation
@@ -387,5 +387,5 @@ struct TT_Sequencing2
 		mod_parts.fill(1.F);
 	}
 
-	inline auto construct_mod_part() -> float { return scaler; }
+	inline auto construct_mod_part() const -> float { return scaler; }
 };
