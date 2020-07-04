@@ -37,7 +37,7 @@ IniFile::ReadFile(RageFileBasic& f)
 {
 	std::string keyname;
 	// keychild is used to cache the node that values are being added to. -Kyz
-	XNode* keychild = NULL;
+	XNode* keychild = nullptr;
 	for (;;) {
 		std::string line;
 		// Read lines until we reach a line that doesn't end in a backslash
@@ -78,18 +78,18 @@ IniFile::ReadFile(RageFileBasic& f)
 					// New section.
 					keyname = line.substr(1, line.size() - 2);
 					keychild = GetChild(keyname);
-					if (keychild == NULL) {
+					if (keychild == nullptr) {
 						keychild = AppendChild(keyname);
 					}
 					break;
 				}
 			default:
 			keyvalue:
-				if (keychild == NULL) {
+				if (keychild == nullptr) {
 					break;
 				}
 				// New value.
-				size_t iEqualIndex = line.find("=");
+				size_t iEqualIndex = line.find('=');
 				if (iEqualIndex != string::npos) {
 					std::string valuename =
 					  tail(line, static_cast<int>(iEqualIndex));
@@ -162,7 +162,7 @@ bool
 IniFile::DeleteValue(const std::string& keyname, const std::string& valuename)
 {
 	XNode* pNode = GetChild(keyname);
-	if (pNode == NULL)
+	if (pNode == nullptr)
 		return false;
 	return pNode->RemoveAttr(valuename);
 }
@@ -171,7 +171,7 @@ bool
 IniFile::DeleteKey(const std::string& keyname)
 {
 	XNode* pNode = GetChild(keyname);
-	if (pNode == NULL)
+	if (pNode == nullptr)
 		return false;
 	return RemoveChild(pNode);
 }
@@ -180,11 +180,11 @@ bool
 IniFile::RenameKey(const std::string& from, const std::string& to)
 {
 	// If to already exists, do nothing.
-	if (GetChild(to) != NULL)
+	if (GetChild(to) != nullptr)
 		return false;
 
 	XNode* pNode = GetChild(from);
-	if (pNode == NULL)
+	if (pNode == nullptr)
 		return false;
 
 	pNode->SetName(to);

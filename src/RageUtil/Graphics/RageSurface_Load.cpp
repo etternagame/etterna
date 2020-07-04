@@ -50,10 +50,10 @@ RageSurface_stb_Load(const std::string& sPath,
 	return RageSurfaceUtils::OPEN_OK;
 }
 static RageSurface*
-TryOpenFile(std::string sPath,
+TryOpenFile(const std::string& sPath,
 			bool bHeaderOnly,
 			std::string& error,
-			std::string format,
+			const std::string& format,
 			bool& bKeepTrying)
 {
 	RageSurface* ret = nullptr;

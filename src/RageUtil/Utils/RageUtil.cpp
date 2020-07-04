@@ -62,7 +62,7 @@ ends_with(std::string const& source, std::string const& target)
  * apparently /shrug */
 
 void
-replace(std::string& target, std::string const& from, std::string const& to)
+s_replace(std::string& target, std::string const& from, std::string const& to)
 {
 	std::string newString;
 	newString.reserve(target.length()); // avoids a few memory allocations
@@ -525,7 +525,7 @@ FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
 		// Grow more than linearly (e.g. 512, 1536, 3072, etc)
 		iChars += iTry * FMT_BLOCK_SIZE;
 		__try {
-			pBuf = static_cast<char*>(0);
+			pBuf = static_cast<char*>(_malloca(sizeof(char) * iChars));
 		} __except (GetExceptionCode() == STATUS_STACK_OVERFLOW) {
 			if (_resetstkoflw())
 				sm_crash("Unrecoverable Stack Overflow");
@@ -1674,7 +1674,7 @@ Regex::Replace(const std::string& sReplacement,
 	for (unsigned i = 0; i < asMatches.size(); i++) {
 		auto sFrom = ssprintf("\\${%d}", i);
 		auto sTo = asMatches[i];
-		replace(sOut, sFrom, sTo);
+		s_replace(sOut, sFrom, sTo);
 	}
 
 	return true;

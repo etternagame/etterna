@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <xstring>
+#include <string>
 
 class RageFileDriver;
 
@@ -272,14 +272,8 @@ EqualsNoCase(const std::string& a, const std::string& b)
 	return CompareNoCase(a.c_str(), b.c_str()) == 0;
 }
 
-static inline void
-s_replace(std::string& target, const char* from, const char* to)
-{
-	std::replace(target.begin(),
-				 target.end(),
-				 reinterpret_cast<char>(from),
-				 reinterpret_cast<char>(to));
-}
+void
+s_replace(std::string& target, std::string const& from, std::string const& to);
 
 static inline void
 ensure_slash_at_end(std::string& s)

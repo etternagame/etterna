@@ -46,7 +46,7 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir,
 
 		for (auto& s : vsLayerNames) {
 			const auto& sLayer = s;
-			auto pKey = pNode->GetChild(sLayer);
+			const auto* pKey = pNode->GetChild(sLayer);
 			ASSERT(pKey != nullptr);
 
 			std::string sImportDir;
@@ -73,7 +73,7 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir,
 				AddLayersFromAniDir(sImportDir, &ini2);
 			} else {
 				// import as a single layer
-				auto bgLayer = new BGAnimationLayer;
+				auto* bgLayer = new BGAnimationLayer;
 				bgLayer->LoadFromNode(pKey);
 				this->AddChild(bgLayer);
 			}
@@ -114,11 +114,11 @@ BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 
 		SortRStringArray(asImagePaths);
 
-		for (auto sPath : asImagePaths) {
+		for (auto& sPath : asImagePaths) {
 			if (Basename(sPath).front() == '_')
 				continue; // don't directly load files starting with an
 						  // underscore
-			auto pLayer = new BGAnimationLayer;
+			auto* pLayer = new BGAnimationLayer;
 			pLayer->LoadFromAniLayerFile(sPath);
 			AddChild(pLayer);
 		}

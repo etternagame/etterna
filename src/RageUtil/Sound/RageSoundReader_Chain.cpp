@@ -41,6 +41,7 @@ RageSoundReader_Chain::Copy() const
 {
 	// XXX
 	FAIL_M("unimplemented");
+	return 0;
 }
 
 /* The same sound may be used several times, and by several different chains.

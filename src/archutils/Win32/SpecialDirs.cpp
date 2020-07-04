@@ -8,7 +8,7 @@ GetSpecialFolderPath(int csidl)
 	std::string sDir;
 	TCHAR szDir[MAX_PATH] = "";
 	HRESULT hResult =
-	  SHGetFolderPath(NULL, csidl, NULL, SHGFP_TYPE_CURRENT, szDir);
+	  SHGetFolderPath(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, szDir);
 	ASSERT(hResult == S_OK);
 	sDir = szDir;
 	sDir += "/";
