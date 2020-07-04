@@ -48,14 +48,13 @@ convert_xmls_in_dir(std::string const& dirname)
 {
 	vector<std::string> listing;
 	FILEMAN->GetDirListing(dirname, listing, false, true);
-	for (auto curr_file = listing.begin(); curr_file != listing.end();
-		 ++curr_file) {
-		switch (ActorUtil::GetFileType(*curr_file)) {
+	for (auto& curr_file : listing) {
+		switch (ActorUtil::GetFileType(curr_file)) {
 			case FT_Xml:
-				convert_xml_file(*curr_file, dirname);
+				convert_xml_file(curr_file, dirname);
 				break;
 			case FT_Directory:
-				convert_xmls_in_dir((*curr_file) + "/");
+				convert_xmls_in_dir(curr_file + "/");
 				break;
 			default: // Ignore anything not xml or directory.
 				break;
@@ -256,10 +255,8 @@ init_parser_helpers()
 void
 convert_lua_chunk(std::string& chunk_text)
 {
-	for (auto chunk = chunks_to_replace.begin();
-		 chunk != chunks_to_replace.end();
-		 ++chunk) {
-		s_replace(chunk_text, chunk->first, chunk->second);
+	for (auto& chunk : chunks_to_replace) {
+		s_replace(chunk_text, chunk.first, chunk.second);
 	}
 }
 
@@ -338,21 +335,21 @@ actor_template_t::store_cmd(std::string const& cmd_name,
 	// If someone has a simfile that uses a playcommand that pushes tween
 	// states onto the queue, queue size counting will have to be made much
 	// more complex to prevent that from causing an overflow.
-	for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd) {
+	for (auto& cmd : cmds) {
 		vector<std::string> args;
-		split(*cmd, ",", args, true);
+		split(cmd, ",", args, true);
 		if (!args.empty()) {
-			for (auto arg = args.begin(); arg != args.end(); ++arg) {
+			for (auto& arg : args) {
 				size_t first_nonspace = 0;
-				auto last_nonspace = arg->size();
-				while ((*arg)[first_nonspace] == ' ') {
+				auto last_nonspace = arg.size();
+				while (arg[first_nonspace] == ' ') {
 					++first_nonspace;
 				}
-				while ((*arg)[last_nonspace] == ' ') {
+				while (arg[last_nonspace] == ' ') {
 					--last_nonspace;
 				}
-				*arg =
-				  arg->substr(first_nonspace, last_nonspace - first_nonspace);
+				arg =
+				  arg.substr(first_nonspace, last_nonspace - first_nonspace);
 			}
 			auto conv = arg_converters.find(args[0]);
 			if (conv != arg_converters.end()) {
@@ -363,7 +360,7 @@ actor_template_t::store_cmd(std::string const& cmd_name,
 				queue_size += counter->second;
 			}
 		}
-		*cmd = join(",", args);
+		cmd = join(",", args);
 	}
 	// This code is probably actually useless, OITG has the same tween queue
 	// size and the real reason I saw overflows in converted files was a bug in
@@ -374,10 +371,10 @@ actor_template_t::store_cmd(std::string const& cmd_name,
 		size_t states_in_curr = 0;
 		auto this_name = cmd_name;
 		vector<std::string> curr_cmd;
-		for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd) {
-			curr_cmd.push_back(*cmd);
+		for (auto& cmd : cmds) {
+			curr_cmd.push_back(cmd);
 			vector<std::string> args;
-			split(*cmd, ",", args, true);
+			split(cmd, ",", args, true);
 			if (!args.empty()) {
 				auto counter = tween_counters.find(args[0]);
 				if (counter != tween_counters.end()) {
@@ -675,24 +672,23 @@ actor_template_t::output_to_file(RageFile* file, std::string const& indent)
 	if (!frames.empty()) {
 		file->Write(subindent + "Frames= {\n");
 		auto frameindent = subindent + "  ";
-		for (auto frame = frames.begin(); frame != frames.end(); ++frame) {
-			file->Write(frameindent + "{Frame= " + IntToString(frame->frame) +
-						", Delay= " + FloatToString(frame->delay) + "},\n");
+		for (auto& frame : frames) {
+			file->Write(frameindent + "{Frame= " + IntToString(frame.frame) +
+						", Delay= " + FloatToString(frame.delay) + "},\n");
 		}
 		file->Write(indent + "},\n");
 	}
-	for (auto field = fields.begin(); field != fields.end(); ++field) {
-		auto is_string = fields_that_are_strings.find(field->first);
+	for (auto& field : fields) {
+		auto is_string = fields_that_are_strings.find(field.first);
 		if (is_string != fields_that_are_strings.end()) {
-			file->Write(subindent + field->first + "= \"" + field->second +
+			file->Write(subindent + field.first + "= \"" + field.second +
 						"\",\n");
 		} else {
-			file->Write(subindent + field->first + "= " + field->second +
-						",\n");
+			file->Write(subindent + field.first + "= " + field.second + ",\n");
 		}
 	}
-	for (auto child = children.begin(); child != children.end(); ++child) {
-		child->output_to_file(file, subindent);
+	for (auto& child : children) {
+		child.output_to_file(file, subindent);
 		file->Write(",\n");
 	}
 	file->Write(indent + "}");
@@ -724,10 +720,11 @@ convert_xml_file(std::string const& fname, std::string const& dirname)
 		return;
 	}
 	LOG->Trace("Saving conversion to: %s", out_name.c_str());
-	for (auto cond = conditions.begin(); cond != conditions.end(); ++cond) {
-		auto cond_text = cond->first;
+	for (auto& condition : conditions) {
+		auto cond_text = condition.first;
 		convert_lua_chunk(cond_text);
-		file->Write("local " + cond->second + "_result= " + cond_text + "\n\n");
+		file->Write("local " + condition.second + "_result= " + cond_text +
+					"\n\n");
 	}
 	if (!conditions.empty()) {
 		file->Write("local function optional_actor(cond, actor)\n"
