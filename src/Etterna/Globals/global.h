@@ -66,11 +66,8 @@ SetCheckpoint(const char* file, int line, const char* message);
 /** @brief Set a checkpoint with no message. */
 #define CHECKPOINT (Checkpoints::SetCheckpoint(__FILE__, __LINE__, NULL))
 /** @brief Set a checkpoint with a specified message. */
-inline void
-CHECKPOINT_M(const std::string& m)
-{
-	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, m.c_str()));
-}
+#define CHECKPOINT_M(m)                                                        \
+	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
 
 /**
  * @brief Define a macro to tell the compiler that a function doesn't return.
@@ -106,23 +103,20 @@ sm_crash(const char* reason = "Internal error");
  * This should probably be used instead of throwing an exception in most
  * cases we expect never to happen (but not in cases that we do expect,
  * such as DSound init failure.) */
-inline void
-FAIL_M(const std::string& msg)
-{
-	CHECKPOINT_M(msg);
-	sm_crash(msg.c_str());
-}
-inline void
-ASSERT_M(const bool COND, const std::string& msg)
-{
-	if (!COND) {
-		FAIL_M(msg.c_str());
-	}
-}
+#define FAIL_M(MESSAGE)                                                        \
+	do {                                                                       \
+		CHECKPOINT_M(std::string(MESSAGE).c_str());                            \
+		sm_crash(std::string(MESSAGE).c_str());                                \
+	} while (0)
+#define ASSERT_M(COND, MESSAGE)                                                \
+	do {                                                                       \
+		if (unlikely(!(COND))) {                                               \
+			FAIL_M(std::string(MESSAGE).c_str());                              \
+		}                                                                      \
+	} while (0)
 
 #if !defined(CO_EXIST_WITH_MFC)
-#define ASSERT(COND)                                                           \
-	ASSERT_M((COND), std::string("Assertion '" #COND "' failed"))
+#define ASSERT(COND) ASSERT_M((COND), "Assertion '" #COND "' failed")
 #endif
 
 /** @brief Use this to catch switching on invalid values */
