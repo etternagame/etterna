@@ -92,12 +92,6 @@ Push<std::string>(lua_State* L, std::string const& object)
 {
 	lua_pushlstring(L, object.data(), object.size());
 }
-template<>
-void
-Push<std::string>(lua_State* L, std::string const& object)
-{
-	lua_pushlstring(L, object.data(), object.size());
-}
 
 template<>
 bool
@@ -140,19 +134,6 @@ FromStack<unsigned long>(Lua* L, unsigned long& object, int offset)
 {
 	object = lua_tointeger(L, offset);
 	return true;
-}
-template<>
-bool
-FromStack<std::string>(Lua* L, std::string& object, int offset)
-{
-	size_t len;
-	char const* cstr = lua_tolstring(L, offset, &len);
-	if (cstr != nullptr) {
-		object.assign(cstr);
-		return true;
-	}
-	object.clear();
-	return false;
 }
 template<>
 bool

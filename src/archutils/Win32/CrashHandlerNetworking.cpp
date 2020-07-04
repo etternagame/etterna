@@ -161,7 +161,7 @@ CreateNetworkStream()
 		WSADATA WSAData;
 		WORD iVersionRequested = MAKEWORD(2, 0);
 		if (WSAStartup(iVersionRequested, &WSAData) != 0)
-			return NULL;
+			return nullptr;
 	}
 
 	return new NetworkStream_Win32;
@@ -175,9 +175,9 @@ NetworkStream_Win32::NetworkStream_Win32()
 	m_State = STATE_IDLE;
 	m_Socket = NULL;
 #ifdef _WIN32
-	m_hResolve = NULL;
-	m_hResolveHwnd = NULL;
-	m_hCompletionEvent = CreateEvent(NULL, true, false, NULL);
+	m_hResolve = nullptr;
+	m_hResolveHwnd = nullptr;
+	m_hCompletionEvent = CreateEvent(nullptr, true, false, nullptr);
 #endif
 }
 
@@ -409,22 +409,25 @@ NetworkStream_Win32::Open(const std::string& sHost,
 	m_iPort = iPort;
 
 	// Look up the hostname.
-	hostent* pHost = NULL;
+	hostent* pHost = nullptr;
 	char pBuf[MAXGETHOSTSTRUCT];
 	{
 		pHost = (hostent*)pBuf;
 
 		ResolveMessageWindow mw;
-		m_hResolve = WSAAsyncGetHostByName(
-		  mw.GetHwnd(), WM_USER, m_sHost, (char*)pHost, MAXGETHOSTSTRUCT);
+		m_hResolve = WSAAsyncGetHostByName(mw.GetHwnd(),
+										   WM_USER,
+										   m_sHost.c_str(),
+										   reinterpret_cast<char*>(pHost),
+										   MAXGETHOSTSTRUCT);
 		m_hResolveHwnd = mw.GetHwnd();
 		m_Mutex.Unlock();
 
 		mw.Run();
 
 		m_Mutex.Lock();
-		m_hResolve = NULL;
-		m_hResolveHwnd = NULL;
+		m_hResolve = nullptr;
+		m_hResolveHwnd = nullptr;
 		if (m_State == STATE_CANCELLED) {
 			m_Mutex.Unlock();
 			return;
@@ -527,7 +530,7 @@ NetworkStream_Win32::Cancel()
 	m_State = STATE_CANCELLED;
 
 	// If resolving, abort the resolve.
-	if (m_hResolve != NULL) {
+	if (m_hResolve != nullptr) {
 		/* When we cancel the request, no message at all will be sent to the
 		 * window, so we need to do it ourself to inform it that it was
 		 * cancelled. Be sure to only do this on successful cancel. */
@@ -655,7 +658,7 @@ NetworkPostData::CreateMimeData(
 		sOut += d->second;
 		sOut += "\r\n";
 	}
-	if (sOut.size())
+	if (!sOut.empty())
 		sOut += "--" + sMimeBoundaryOut + "--\r\n";
 }
 
@@ -673,11 +676,11 @@ NetworkPostData::HttpThread()
 			   "Windows NT 5.1; SV1; .NET CLR 1.1.4322)\r\n"
 			   "Host: %s\r\n"
 			   "Cache-Control: no-cache\r\n",
-			   sData.size() ? "POST" : "GET",
+			   !sData.empty() ? "POST" : "GET",
 			   m_sPath.c_str(),
 			   m_sHost.c_str());
 
-	if (sData.size()) {
+	if (!sData.empty()) {
 		// sBuf += "Content-Type: application/x-www-form-urlencoded\r\n"
 		sBuf += "Content-Type: multipart/form-data; boundary=" + sMimeBoundary +
 				"\r\n";
@@ -685,7 +688,7 @@ NetworkPostData::HttpThread()
 	}
 	sBuf += "\r\n";
 
-	if (sData.size())
+	if (!sData.empty())
 		sBuf += sData;
 
 	/* The "progress" is currently faked; it shows when we've connected, and

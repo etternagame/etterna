@@ -419,7 +419,7 @@ struct RageColor
 
 	bool FromString(const std::string& str)
 	{
-		int result = sscanf(str, "%f,%f,%f,%f", &r, &g, &b, &a);
+		int result = sscanf(str.c_str(), "%f,%f,%f,%f", &r, &g, &b, &a);
 		if (result == 3) {
 			a = 1;
 			return true;
@@ -428,7 +428,7 @@ struct RageColor
 			return true;
 
 		int ir = 255, ib = 255, ig = 255, ia = 255;
-		result = sscanf(str, "#%2x%2x%2x%2x", &ir, &ig, &ib, &ia);
+		result = sscanf(str.c_str(), "#%2x%2x%2x%2x", &ir, &ig, &ib, &ia);
 		if (result >= 3) {
 			r = ir / 255.0f;
 			g = ig / 255.0f;

@@ -30,18 +30,6 @@ class RageFileManager
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
-	void GetDirListing(const std::string& sPath,
-					   vector<std::string>& AddTo,
-					   bool bOnlyDirs,
-					   bool bReturnPathToo);
-
-	void GetDirListingWithMultipleExtensions(
-	  const std::string& sPath,
-	  vector<std::string> const& ExtensionList,
-	  vector<std::string>& AddTo,
-	  bool bOnlyDirs = false,
-	  bool bReturnPathToo = false);
-
 	void GetDirListingWithMultipleExtensions(
 	  const std::string& sPath,
 	  vector<std::string> const& ExtensionList,

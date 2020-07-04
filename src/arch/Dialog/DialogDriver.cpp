@@ -1,13 +1,12 @@
 #include "Etterna/Globals/global.h"
 #include "DialogDriver.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 
 map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
 RegisterDialogDriver::RegisterDialogDriver(const istring& sName,
 										   CreateDialogDriverFn pfn)
 {
-	if (g_pRegistrees == NULL)
+	if (g_pRegistrees == nullptr)
 		g_pRegistrees = new map<istring, CreateDialogDriverFn>;
 
 	ASSERT(g_pRegistrees->find(sName) == g_pRegistrees->end());
@@ -25,10 +24,9 @@ DialogDriver::Create()
 
 	ASSERT(asDriversToTry.size() != 0);
 
-	FOREACH_CONST(std::string, asDriversToTry, Driver)
-	{
+	for (auto& Driver : asDriversToTry) {
 		map<istring, CreateDialogDriverFn>::const_iterator iter =
-		  RegisterDialogDriver::g_pRegistrees->find(istring(*Driver));
+		  RegisterDialogDriver::g_pRegistrees->find(istring(Driver.c_str()));
 
 		if (iter == RegisterDialogDriver::g_pRegistrees->end())
 			continue;
@@ -41,8 +39,8 @@ DialogDriver::Create()
 			return pRet;
 		if (LOG)
 			LOG->Info(
-			  "Couldn't load driver %s: %s", Driver->c_str(), sError.c_str());
+			  "Couldn't load driver %s: %s", Driver.c_str(), sError.c_str());
 		SAFE_DELETE(pRet);
 	}
-	return NULL;
+	return nullptr;
 }

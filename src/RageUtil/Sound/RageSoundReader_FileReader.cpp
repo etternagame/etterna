@@ -18,28 +18,28 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 										const std::string& format,
 										bool& bKeepTrying)
 {
-	RageSoundReader_FileReader* Sample = NULL;
+	RageSoundReader_FileReader* Sample = nullptr;
 
-	if (!format.CompareNoCase("wav"))
+	if (!CompareNoCase(format, "wav"))
 		Sample = new RageSoundReader_WAV;
 
-	if (!format.CompareNoCase("mp3")) {
+	if (!CompareNoCase(format, "mp3")) {
 		if (Sample != nullptr)
 			delete Sample;
 		Sample = new RageSoundReader_MP3;
 	}
 
-	if (!format.CompareNoCase("oga") || !format.CompareNoCase("ogg")) {
+	if (!CompareNoCase(format, "oga") || !CompareNoCase(format, "ogg")) {
 		if (Sample != nullptr)
 			delete Sample;
 		Sample = new RageSoundReader_Vorbisfile;
 	}
 
 	if (!Sample)
-		return NULL;
+		return nullptr;
 
 	OpenResult ret = Sample->Open(pFile);
-	pFile = NULL; // Sample owns it now
+	pFile = nullptr; // Sample owns it now
 	if (ret == OPEN_OK)
 		return Sample;
 
@@ -84,7 +84,7 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 			break;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 #include "RageUtil/File/RageFileDriverMemory.h"
@@ -100,7 +100,7 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		if (!pFileOpen->Open(filename)) {
 			error = pFileOpen->GetError();
 			delete pFileOpen;
-			return NULL;
+			return nullptr;
 		}
 		pFile = pFileOpen;
 	}
@@ -108,10 +108,10 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 	if (pPrebuffer) {
 		if (pFile->GetFileSize() < 1024 * 50) {
 			auto* pMem = new RageFileObjMem;
-			bool bRet = FileCopy(*pFile, *pMem, error, NULL);
+			bool bRet = FileCopy(*pFile, *pMem, error, nullptr);
 			if (!bRet) {
 				delete pMem;
-				return NULL;
+				return nullptr;
 			}
 
 			pFile = pMem;
@@ -130,8 +130,7 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		FileTypes.insert(*curr);
 	}
 
-	std::string format = GetExtension(filename);
-	format.MakeLower();
+	std::string format = make_lower(GetExtension(filename));
 
 	error = "";
 
@@ -160,5 +159,5 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }

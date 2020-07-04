@@ -27,7 +27,6 @@
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
-#include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -37,6 +36,7 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "HoldJudgment.h"
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
@@ -2776,11 +2776,10 @@ Player::UpdateJudgedRows(float fDeltaTime)
 			*m_pIterUnjudgedMineRows = iter;
 		}
 
-		FOREACHS(RageSound*, setSounds, s)
-		{
+		for (auto& s : setSounds) {
 			// Only play one copy of each mine sound at a time per player.
-			(*s)->Stop();
-			(*s)->Play(false);
+			s->Stop();
+			s->Play(false);
 		}
 	}
 }

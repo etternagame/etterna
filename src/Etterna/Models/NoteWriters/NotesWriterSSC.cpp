@@ -259,7 +259,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 	write_tag(f, "#MUSIC:%s;", out.m_sMusicFile);
 	write_tag(f, "#PREVIEW:%s;", out.m_PreviewFile);
 	{
-		auto vs = out.GetInstrumentTracksToVectostd::string();
+		auto vs = out.GetInstrumentTracksToVectorString();
 		if (!vs.empty()) {
 			std::string s = join(",", vs);
 			f.PutLine("#INSTRUMENTTRACK:" + s + ";\n");

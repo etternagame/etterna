@@ -140,8 +140,7 @@ BGAnimationLayer::LoadFromAniLayerFile(const std::string& sPath)
 {
 	/* Generic BGAs are new.  Animation directories with no INI are old and
 	 * obsolete. Don't combine them. */
-	std::string lcPath = sPath;
-	lcPath.MakeLower();
+	std::string lcPath = make_lower(sPath);
 
 	if (lcPath.find("usesongbg") != std::string::npos) {
 		const Song* pSong = GAMESTATE->m_pCurSong;
@@ -421,8 +420,7 @@ BGAnimationLayer::LoadFromAniLayerFile(const std::string& sPath)
 			FAIL_M(ssprintf("Unrecognized layer effect: %i", effect));
 	}
 
-	std::string sHint = sPath;
-	sHint.MakeLower();
+	std::string sHint = make_lower(sPath);
 
 	if (sHint.find("cyclecolor") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
@@ -459,7 +457,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 	{
 		std::string type = "sprite";
 		pNode->GetAttrValue("Type", type);
-		type.MakeLower();
+		type = make_lower(type);
 
 		/* The preferred way of stretching a sprite to fit the screen is
 		 * "Type=sprite" and "stretch=1".  "type=1" is for
@@ -469,11 +467,11 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 		// Check for string match first, then do integer match.
 		// "if(StringType(type)==0)" was matching against all string matches.
 		// -Chris
-		if (type.EqualsNoCase("sprite")) {
+		if (EqualsNoCase(type, "sprite")) {
 			m_Type = TYPE_SPRITE;
-		} else if (type.EqualsNoCase("particles")) {
+		} else if (EqualsNoCase(type, "particles")) {
 			m_Type = TYPE_PARTICLES;
-		} else if (type.EqualsNoCase("tiles")) {
+		} else if (EqualsNoCase(type, "tiles")) {
 			m_Type = TYPE_TILES;
 		} else if (StringToInt(type) == 1) {
 			m_Type = TYPE_SPRITE;

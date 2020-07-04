@@ -1518,8 +1518,7 @@ Song::GetForegroundChanges()
 }
 
 vector<std::string>
-Song::GetChangesToVectostd::string(
-  const vector<BackgroundChange>& changes) const
+Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
 	vector<std::string> ret;
 	FOREACH_CONST(BackgroundChange, changes, bgc)
@@ -1530,27 +1529,27 @@ Song::GetChangesToVectostd::string(
 }
 
 vector<std::string>
-Song::GetBGChanges1ToVectostd::string() const
+Song::GetBGChanges1ToVectorString() const
 {
-	return this->GetChangesToVectostd::string(
+	return this->GetChangesToVectorString(
 	  this->GetBackgroundChanges(BACKGROUND_LAYER_1));
 }
 
 vector<std::string>
-Song::GetBGChanges2ToVectostd::string() const
+Song::GetBGChanges2ToVectorString() const
 {
-	return this->GetChangesToVectostd::string(
+	return this->GetChangesToVectorString(
 	  this->GetBackgroundChanges(BACKGROUND_LAYER_2));
 }
 
 vector<std::string>
-Song::GetFGChanges1ToVectostd::string() const
+Song::GetFGChanges1ToVectorString() const
 {
-	return this->GetChangesToVectostd::string(this->GetForegroundChanges());
+	return this->GetChangesToVectorString(this->GetForegroundChanges());
 }
 
 vector<std::string>
-Song::GetInstrumentTracksToVectostd::string() const
+Song::GetInstrumentTracksToVectorString() const
 {
 	vector<std::string> ret;
 	FOREACH_ENUM(InstrumentTrack, it)
@@ -1714,15 +1713,14 @@ bool
 Song::HasChartByHash(const string& hash)
 {
 	auto vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	{
-		if ((*steps)->GetChartKey() == hash)
+	for (auto& steps : vsteps) {
+		if (steps->GetChartKey() == hash)
 			return true;
 	}
 	return false;
 }
 
-const string&
+const std::string&
 Song::GetDisplayMainTitle() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1730,7 +1728,7 @@ Song::GetDisplayMainTitle() const
 	return m_sMainTitle;
 }
 
-const string&
+const std::string&
 Song::GetDisplaySubTitle() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1738,7 +1736,7 @@ Song::GetDisplaySubTitle() const
 	return m_sSubTitle;
 }
 
-const string&
+const std::string&
 Song::GetDisplayArtist() const
 {
 	if (!PREFSMAN->m_bShowNativeLanguage)
@@ -1746,7 +1744,7 @@ Song::GetDisplayArtist() const
 	return m_sArtist;
 }
 
-const string&
+const std::string&
 Song::GetMainTitle() const
 {
 	return m_sMainTitle;
@@ -1798,7 +1796,7 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 
 	auto sDir = this->GetSongDir();
 	std::string voop = sDir;
-	s_replace(voop, '\\', '/');
+	s_replace(voop, "\\", "/");
 	sDir = voop;
 	vector<std::string> bits;
 	split(sDir, "/", bits);

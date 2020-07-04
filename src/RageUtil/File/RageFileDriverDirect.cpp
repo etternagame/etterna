@@ -69,7 +69,7 @@ MakeFileObjDirect(std::string sPath, int iMode, int& iError)
 {
 	int iFD;
 	if ((iMode & RageFile::READ) != 0) {
-		iFD = open(sPath, O_BINARY | O_RDONLY, 0666);
+		iFD = open(sPath.c_str(), O_BINARY | O_RDONLY, 0666);
 
 		/* XXX: Windows returns EACCES if we try to open a file on a CDROM that
 		 * isn't ready, instead of something like ENODEV.  We want to return
@@ -83,12 +83,12 @@ MakeFileObjDirect(std::string sPath, int iMode, int& iError)
 			sOut = MakeTempFilename(sPath);
 
 		/* Open a temporary file for writing. */
-		iFD = open(sOut, O_BINARY | O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		iFD = open(sOut.c_str(), O_BINARY | O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 
 	if (iFD == -1) {
 		iError = errno;
-		return NULL;
+		return nullptr;
 	}
 
 #ifdef __unix__
@@ -145,7 +145,8 @@ RageFileDriverDirect::Move(const std::string& sOldPath_,
 				   (m_sRoot + sOldPath).c_str(),
 				   (m_sRoot + sNewPath).c_str())
 			.c_str());
-	if (DoRename(m_sRoot + sOldPath, m_sRoot + sNewPath) == -1) {
+	if (DoRename(std::string(m_sRoot + sOldPath).c_str(),
+				 std::string(m_sRoot + sNewPath).c_str()) == -1) {
 		WARN(ssprintf("rename(%s,%s) failed: %s",
 					  (m_sRoot + sOldPath).c_str(),
 					  (m_sRoot + sNewPath).c_str(),
@@ -155,7 +156,7 @@ RageFileDriverDirect::Move(const std::string& sOldPath_,
 	}
 
 	FDB->DelFile(sOldPath);
-	FDB->AddFile(sNewPath, size, hash, NULL);
+	FDB->AddFile(sNewPath, size, hash, nullptr);
 	return true;
 }
 
@@ -168,7 +169,7 @@ RageFileDriverDirect::Remove(const std::string& sPath_)
 	switch (type) {
 		case RageFileManager::TYPE_FILE:
 			TRACE(ssprintf("remove '%s'", (m_sRoot + sPath).c_str()).c_str());
-			if (DoRemove(m_sRoot + sPath) == -1) {
+			if (DoRemove(std::string(m_sRoot + sPath).c_str()) == -1) {
 				WARN(ssprintf("remove(%s) failed: %s",
 							  (m_sRoot + sPath).c_str(),
 							  strerror(errno))
@@ -180,7 +181,7 @@ RageFileDriverDirect::Remove(const std::string& sPath_)
 
 		case RageFileManager::TYPE_DIR:
 			TRACE(ssprintf("rmdir '%s'", (m_sRoot + sPath).c_str()).c_str());
-			if (rmdir(m_sRoot + sPath) == -1) {
+			if (rmdir(std::string(m_sRoot + sPath).c_str()) == -1) {
 				WARN(ssprintf("rmdir(%s) failed: %s",
 							  (m_sRoot + sPath).c_str(),
 							  strerror(errno))
@@ -204,7 +205,7 @@ RageFileObjDirect::Copy() const
 	int iErr;
 	RageFileObjDirect* ret = MakeFileObjDirect(m_sPath, m_iMode, iErr);
 
-	if (ret == NULL)
+	if (ret == nullptr)
 		RageException::Throw(
 		  "Couldn't reopen \"%s\": %s", m_sPath.c_str(), strerror(iErr));
 
@@ -238,7 +239,7 @@ RageFileDriverDirectReadOnly::Open(const std::string& sPath,
 {
 	if ((iMode & RageFile::WRITE) != 0) {
 		iError = EROFS;
-		return NULL;
+		return nullptr;
 	}
 
 	return RageFileDriverDirect::Open(sPath, iMode, iError);
@@ -412,7 +413,7 @@ RageFileObjDirect::~RageFileObjDirect()
 	} while (false);
 
 	// The write or the rename failed. Delete the incomplete temporary file.
-	int err = DoRemove(MakeTempFilename(m_sPath));
+	int err = DoRemove(MakeTempFilename(m_sPath).c_str());
 	if (err != 0)
 		WARN(
 		  ssprintf(

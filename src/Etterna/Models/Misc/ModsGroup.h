@@ -3,6 +3,8 @@
 
 #include "EnumHelper.h"
 #include "RageUtil/Misc/RageTimer.h"
+#include "Etterna/Models/Songs/SongOptions.h"
+
 enum ModsLevel
 {
 	ModsLevel_Preferred, // user-chosen player options.  Does not include any

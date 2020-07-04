@@ -36,10 +36,10 @@ static Preference<std::string> g_sSoundDrivers(
   "SoundDrivers",
   ""); // "" == DEFAULT_SOUND_DRIVER_LIST
 
-RageSoundManager* SOUNDMAN = NULL;
+RageSoundManager* SOUNDMAN = nullptr;
 
 RageSoundManager::RageSoundManager()
-  : m_pDriver(NULL)
+  : m_pDriver(nullptr)
 {
 }
 
@@ -50,7 +50,7 @@ void
 RageSoundManager::Init()
 {
 	m_pDriver = RageSoundDriver::Create(g_sSoundDrivers);
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		RageException::Throw("%s",
 							 COULDNT_FIND_SOUND_DRIVER.GetValue().c_str());
 }
@@ -87,21 +87,21 @@ RageSoundManager::Shutdown()
 void
 RageSoundManager::StartMixing(RageSoundBase* pSound)
 {
-	if (m_pDriver != NULL)
+	if (m_pDriver != nullptr)
 		m_pDriver->StartMixing(pSound);
 }
 
 void
 RageSoundManager::StopMixing(RageSoundBase* pSound)
 {
-	if (m_pDriver != NULL)
+	if (m_pDriver != nullptr)
 		m_pDriver->StopMixing(pSound);
 }
 
 bool
 RageSoundManager::Pause(RageSoundBase* pSound, bool bPause)
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return false;
 
 	return m_pDriver->PauseMixing(pSound, bPause);
@@ -110,7 +110,7 @@ RageSoundManager::Pause(RageSoundBase* pSound, bool bPause)
 int64_t
 RageSoundManager::GetPosition(RageTimer* pTimer) const
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return 0;
 	return m_pDriver->GetHardwareFrame(pTimer);
 }
@@ -142,14 +142,14 @@ RageSoundManager::Update()
 
 	g_SoundManMutex.Unlock(); /* finished with m_mapPreloadedSounds */
 
-	if (m_pDriver != NULL)
+	if (m_pDriver != nullptr)
 		m_pDriver->Update();
 }
 
 float
 RageSoundManager::GetPlayLatency() const
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return 0;
 
 	return m_pDriver->GetPlayLatency();
@@ -158,7 +158,7 @@ RageSoundManager::GetPlayLatency() const
 int
 RageSoundManager::GetDriverSampleRate() const
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return 44100;
 
 	return m_pDriver->GetSampleRate();
@@ -172,11 +172,11 @@ RageSoundManager::GetLoadedSound(const std::string& sPath_)
 	LockMut(g_SoundManMutex); /* lock for access to m_mapPreloadedSounds */
 
 	std::string sPath(sPath_);
-	sPath.MakeLower();
+	sPath = make_lower(sPath);
 	map<std::string, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	if (it == m_mapPreloadedSounds.end())
-		return NULL;
+		return nullptr;
 
 	return it->second->Copy();
 }
@@ -193,7 +193,7 @@ RageSoundManager::AddLoadedSound(const std::string& sPath_,
 	/* Don't AddLoadedSound a sound that's already registered.  It should have
 	 * been used in GetLoadedSound. */
 	std::string sPath(sPath_);
-	sPath.MakeLower();
+	sPath = make_lower(sPath);
 	map<std::string, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	ASSERT_M(it == m_mapPreloadedSounds.end(), sPath);

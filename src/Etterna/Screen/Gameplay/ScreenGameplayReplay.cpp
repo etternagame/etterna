@@ -20,6 +20,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplayReplay);
 

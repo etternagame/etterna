@@ -15,11 +15,12 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "ScreenManager.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"
 
-GameSoundManager* SOUND = NULL;
+GameSoundManager* SOUND = nullptr;
 
 /*
  * When playing music, automatically search for an SM file for timing data.  If
@@ -112,7 +113,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 {
 	LockMutex L(*g_Mutex);
 	if (g_Playing->m_Music->IsPlaying() &&
-		g_Playing->m_Music->GetLoadedFilePath().EqualsNoCase(ToPlay.m_sFile) &&
+		EqualsNoCase(g_Playing->m_Music->GetLoadedFilePath(), ToPlay.m_sFile) &&
 		ToPlay.HasTiming)
 		return;
 
@@ -305,8 +306,7 @@ GameSoundManager::DoPlayOnceFromDir(std::string sPath)
 		return;
 
 	// make sure there's a slash at the end of this path
-	if (sPath.Right(1) != "/")
-		sPath += "/";
+	ensure_slash_at_end((sPath));
 
 	vector<std::string> arraySoundFiles;
 	GetDirListing(sPath + "*.mp3", arraySoundFiles);
@@ -940,7 +940,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 			alignBeat = BArg(8);
 		}
 		p->PlayMusic(musicPath,
-					 NULL,
+					 nullptr,
 					 loop,
 					 musicStart,
 					 musicLength,

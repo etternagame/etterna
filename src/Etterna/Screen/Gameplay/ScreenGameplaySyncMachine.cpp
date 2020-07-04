@@ -7,8 +7,9 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "ScreenGameplaySyncMachine.h"
+
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
@@ -31,7 +32,7 @@ ScreenGameplaySyncMachine::Init()
 	// Allow themers to use either a .ssc or .sm file for this. -aj
 	SSCLoader loaderSSC;
 	SMLoader loaderSM;
-	if (sFile.Right(4) == ".ssc")
+	if (tail(sFile, 4) == ".ssc")
 		loaderSSC.LoadFromSimfile(sFile, m_Song);
 	else
 		loaderSM.LoadFromSimfile(sFile, m_Song);

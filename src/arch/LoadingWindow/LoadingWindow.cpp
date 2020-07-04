@@ -40,14 +40,14 @@ LoadingWindow::Create()
 		}
 #endif
 #ifdef USE_LOADING_WINDOW_WIN32
-		if (!DriversToTry[i].CompareNoCase("Win32")) {
+		if (!CompareNoCase(DriversToTry[i], "Win32")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_Win32;
 		}
 
 #endif
-		if (!DriversToTry[i].CompareNoCase("Null")) {
+		if (!CompareNoCase(DriversToTry[i], "Null")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_Null;

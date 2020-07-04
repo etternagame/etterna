@@ -107,7 +107,7 @@ AnimatedTexture::Update(float fDelta)
 {
 	if (vFrames.empty())
 		return;
-	ASSERT(m_iCurState < (int)vFrames.size());
+	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	m_fSecsIntoFrame += fDelta;
 	if (m_fSecsIntoFrame > vFrames[m_iCurState].fDelaySecs) {
 		m_fSecsIntoFrame -= vFrames[m_iCurState].fDelaySecs;
@@ -120,7 +120,7 @@ AnimatedTexture::GetCurrentTexture()
 {
 	if (vFrames.empty())
 		return NULL;
-	ASSERT(m_iCurState < (int)vFrames.size());
+	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	return vFrames[m_iCurState].pTexture;
 }
 
@@ -183,8 +183,8 @@ AnimatedTexture::GetSecondsIntoAnimation() const
 void
 AnimatedTexture::Unload()
 {
-	for (unsigned i = 0; i < vFrames.size(); ++i)
-		TEXTUREMAN->UnloadTexture(vFrames[i].pTexture);
+	for (auto& vFrame : vFrames)
+		TEXTUREMAN->UnloadTexture(vFrame.pTexture);
 	vFrames.clear();
 	m_iCurState = 0;
 	m_fSecsIntoFrame = 0;
@@ -200,7 +200,7 @@ AnimatedTexture::GetTextureTranslate()
 	if (vFrames.empty())
 		return v;
 
-	ASSERT(m_iCurState < (int)vFrames.size());
+	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	v += vFrames[m_iCurState].vTranslate;
 
 	return v;
@@ -234,12 +234,12 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 	while (f.GetLine(sLine) > 0) {
 		iLineNum++;
 
-		if (!strncmp(sLine, "//", 2))
+		if (!strncmp(sLine.c_str(), "//", 2))
 			continue;
 
 		// bones
 		int nNumBones = 0;
-		if (sscanf(sLine, "Bones: %d", &nNumBones) != 1)
+		if (sscanf(sLine.c_str(), "Bones: %d", &nNumBones) != 1)
 			continue;
 
 		char szName[MS_MAX_NAME];
@@ -252,7 +252,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			// name
 			if (f.GetLine(sLine) <= 0)
 				THROW;
-			if (sscanf(sLine, "\"%31[^\"]\"", szName) != 1)
+			if (sscanf(sLine.c_str(), "\"%31[^\"]\"", szName) != 1)
 				THROW;
 			Bone.sName = szName;
 
@@ -260,7 +260,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			if (f.GetLine(sLine) <= 0)
 				THROW;
 			strcpy(szName, "");
-			sscanf(sLine, "\"%31[^\"]\"", szName);
+			sscanf(sLine.c_str(), "\"%31[^\"]\"", szName);
 
 			Bone.sParentName = szName;
 
@@ -270,7 +270,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 				THROW;
 
 			int nFlags;
-			if (sscanf(sLine,
+			if (sscanf(sLine.c_str(),
 					   "%d %f %f %f %f %f %f",
 					   &nFlags,
 					   &Position[0],
@@ -291,7 +291,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			if (f.GetLine(sLine) <= 0)
 				THROW;
 			int nNumPositionKeys = 0;
-			if (sscanf(sLine, "%d", &nNumPositionKeys) != 1)
+			if (sscanf(sLine.c_str(), "%d", &nNumPositionKeys) != 1)
 				THROW;
 
 			Bone.PositionKeys.resize(nNumPositionKeys);
@@ -301,7 +301,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 					THROW;
 
 				float fTime;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &fTime,
 						   &Position[0],
@@ -320,7 +320,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			if (f.GetLine(sLine) <= 0)
 				THROW;
 			int nNumRotationKeys = 0;
-			if (sscanf(sLine, "%d", &nNumRotationKeys) != 1)
+			if (sscanf(sLine.c_str(), "%d", &nNumRotationKeys) != 1)
 				THROW;
 
 			Bone.RotationKeys.resize(nNumRotationKeys);
@@ -330,7 +330,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 					THROW;
 
 				float fTime;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &fTime,
 						   &Rotation[0],
@@ -349,14 +349,14 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 
 		// Ignore "Frames:" in file.  Calculate it ourself
 		Animation.nTotalFrames = 0;
-		for (int i = 0; i < (int)Animation.Bones.size(); i++) {
+		for (int i = 0; i < static_cast<int>(Animation.Bones.size()); i++) {
 			msBone& Bone = Animation.Bones[i];
-			for (unsigned j = 0; j < Bone.PositionKeys.size(); ++j)
-				Animation.nTotalFrames =
-				  max(Animation.nTotalFrames, (int)Bone.PositionKeys[j].fTime);
-			for (unsigned j = 0; j < Bone.RotationKeys.size(); ++j)
-				Animation.nTotalFrames =
-				  max(Animation.nTotalFrames, (int)Bone.RotationKeys[j].fTime);
+			for (auto& PositionKey : Bone.PositionKeys)
+				Animation.nTotalFrames = max(
+				  Animation.nTotalFrames, static_cast<int>(PositionKey.fTime));
+			for (auto& RotationKey : Bone.RotationKeys)
+				Animation.nTotalFrames = max(
+				  Animation.nTotalFrames, static_cast<int>(RotationKey.fTime));
 		}
 	}
 

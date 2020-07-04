@@ -249,7 +249,7 @@ class DownloadManager
 	void UpdateDLSpeed(bool gameplay);
 
 	string GetError() { return error; }
-	bool Error() { return error == ""; }
+	bool Error() { return error.empty(); }
 	bool EncodeSpaces(string& str);
 
 	void UploadScore(HighScore* hs,

@@ -229,8 +229,7 @@ const int BEATS_PER_MEASURE = 4;
 Difficulty
 DwiCompatibleStringToDifficulty(const std::string& sDC)
 {
-	std::string s2 = sDC;
-	s2.MakeLower();
+	std::string s2 = make_lower(sDC);
 	if (s2 == "beginner")
 		return Difficulty_Beginner;
 	if (s2 == "easy")
@@ -337,10 +336,10 @@ ParseNoteData(std::string& step1,
 				DEFAULT_FAIL(pad);
 		}
 
-		sStepData.Replace("\n", "");
-		sStepData.Replace("\r", "");
-		sStepData.Replace("\t", "");
-		sStepData.Replace(" ", "");
+		s_replace(sStepData, "\n", "");
+		s_replace(sStepData, "\r", "");
+		s_replace(sStepData, "\t", "");
+		s_replace(sStepData, " ", "");
 
 		double fCurrentBeat = 0;
 		double fCurrentIncrementer = 1.0 / 8 * BEATS_PER_MEASURE;
@@ -591,10 +590,10 @@ DWILoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 		const MsdFile::value_t& params = msd.GetValue(i);
 		std::string valueName = params[0];
 
-		if (valueName.EqualsNoCase("SINGLE") ||
-			valueName.EqualsNoCase("DOUBLE") ||
-			valueName.EqualsNoCase("COUPLE") ||
-			valueName.EqualsNoCase("SOLO")) {
+		if (EqualsNoCase(valueName, "SINGLE") ||
+			EqualsNoCase(valueName, "DOUBLE") ||
+			EqualsNoCase(valueName, "COUPLE") ||
+			EqualsNoCase(valueName, "SOLO")) {
 			if (out.m_StepsType != GetTypeFromMode(valueName))
 				continue;
 			if (out.GetDifficulty() !=
@@ -661,10 +660,10 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 		}
 
 		// handle the data
-		if (sValueName.EqualsNoCase("FILE"))
+		if (EqualsNoCase(sValueName, "FILE"))
 			out.m_sMusicFile = sParams[1];
 
-		else if (sValueName.EqualsNoCase("TITLE")) {
+		else if (EqualsNoCase(sValueName, "TITLE")) {
 			NotesLoader::GetMainAndSubTitlesFromFullTitle(
 			  sParams[1], out.m_sMainTitle, out.m_sSubTitle);
 
@@ -675,20 +674,20 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 			ConvertString(out.m_sSubTitle, "utf-8,english");
 		}
 
-		else if (sValueName.EqualsNoCase("ARTIST")) {
+		else if (EqualsNoCase(sValueName, "ARTIST")) {
 			out.m_sArtist = sParams[1];
 			ConvertString(out.m_sArtist, "utf-8,english");
 		}
 
-		else if (sValueName.EqualsNoCase("GENRE")) {
+		else if (EqualsNoCase(sValueName, "GENRE")) {
 			out.m_sGenre = sParams[1];
 			ConvertString(out.m_sGenre, "utf-8,english");
 		}
 
-		else if (sValueName.EqualsNoCase("CDTITLE"))
+		else if (EqualsNoCase(sValueName, "CDTITLE"))
 			out.m_sCDTitleFile = sParams[1];
 
-		else if (sValueName.EqualsNoCase("BPM")) {
+		else if (EqualsNoCase(sValueName, "BPM")) {
 			const float fBPM = StringToFloat(sParams[1]);
 
 			if (unlikely(fBPM <= 0.0f)) {
@@ -700,18 +699,18 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 			} else {
 				out.m_SongTiming.AddSegment(BPMSegment(0, fBPM));
 			}
-		} else if (sValueName.EqualsNoCase("DISPLAYBPM")) {
+		} else if (EqualsNoCase(sValueName, "DISPLAYBPM")) {
 			// #DISPLAYBPM:[xxx..xxx]|[xxx]|[*];
 			int iMin, iMax;
 			/* We can't parse this as a float with sscanf, since '.' is a valid
 			 * character in a float.  (We could do it with a regex, but it's not
 			 * worth bothering with since we don't display fractional BPM
 			 * anyway.) */
-			if (sscanf(sParams[1], "%i..%i", &iMin, &iMax) == 2) {
+			if (sscanf(sParams[1].c_str(), "%i..%i", &iMin, &iMax) == 2) {
 				out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
 				out.m_fSpecifiedBPMMin = static_cast<float>(iMin);
 				out.m_fSpecifiedBPMMax = static_cast<float>(iMax);
-			} else if (sscanf(sParams[1], "%i", &iMin) == 1) {
+			} else if (sscanf(sParams[1].c_str(), "%i", &iMin) == 1) {
 				out.m_DisplayBPMType = DISPLAY_BPM_SPECIFIED;
 				out.m_fSpecifiedBPMMin = out.m_fSpecifiedBPMMax =
 				  static_cast<float>(iMin);
@@ -720,16 +719,16 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 			}
 		}
 
-		else if (sValueName.EqualsNoCase("GAP"))
+		else if (EqualsNoCase(sValueName, "GAP"))
 			// the units of GAP is 1/1000 second
 			out.m_SongTiming.m_fBeat0OffsetInSeconds =
 			  -StringToInt(sParams[1]) / 1000.0f;
 
-		else if (sValueName.EqualsNoCase("SAMPLESTART"))
+		else if (EqualsNoCase(sValueName, "SAMPLESTART"))
 			out.m_fMusicSampleStartSeconds =
 			  ParseBrokenDWITimestamp(sParams[1], sParams[2], sParams[3]);
 
-		else if (sValueName.EqualsNoCase("SAMPLELENGTH")) {
+		else if (EqualsNoCase(sValueName, "SAMPLELENGTH")) {
 			float sampleLength =
 			  ParseBrokenDWITimestamp(sParams[1], sParams[2], sParams[3]);
 			if (sampleLength > 0 && sampleLength < 1) {
@@ -741,18 +740,18 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 
 		}
 
-		else if (sValueName.EqualsNoCase("FREEZE")) {
+		else if (EqualsNoCase(sValueName, "FREEZE")) {
 			vector<std::string> arrayFreezeExpressions;
 			split(sParams[1], ",", arrayFreezeExpressions);
 
-			for (unsigned f = 0; f < arrayFreezeExpressions.size(); f++) {
+			for (auto& arrayFreezeExpression : arrayFreezeExpressions) {
 				vector<std::string> arrayFreezeValues;
-				split(arrayFreezeExpressions[f], "=", arrayFreezeValues);
+				split(arrayFreezeExpression, "=", arrayFreezeValues);
 				if (arrayFreezeValues.size() != 2) {
 					LOG->UserLog("Song file",
 								 sPath,
 								 "has an invalid FREEZE: '%s'.",
-								 arrayFreezeExpressions[f].c_str());
+								 arrayFreezeExpression.c_str());
 					continue;
 				}
 				int iFreezeRow =
@@ -767,19 +766,19 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 			}
 		}
 
-		else if (sValueName.EqualsNoCase("CHANGEBPM") ||
-				 sValueName.EqualsNoCase("BPMCHANGE")) {
+		else if (EqualsNoCase(sValueName, "CHANGEBPM") ||
+				 EqualsNoCase(sValueName, "BPMCHANGE")) {
 			vector<std::string> arrayBPMChangeExpressions;
 			split(sParams[1], ",", arrayBPMChangeExpressions);
 
-			for (unsigned b = 0; b < arrayBPMChangeExpressions.size(); b++) {
+			for (auto& arrayBPMChangeExpression : arrayBPMChangeExpressions) {
 				vector<std::string> arrayBPMChangeValues;
-				split(arrayBPMChangeExpressions[b], "=", arrayBPMChangeValues);
+				split(arrayBPMChangeExpression, "=", arrayBPMChangeValues);
 				if (arrayBPMChangeValues.size() != 2) {
 					LOG->UserLog("Song file",
 								 sPath,
 								 "has an invalid CHANGEBPM: '%s'.",
-								 arrayBPMChangeExpressions[b].c_str());
+								 arrayBPMChangeExpression.c_str());
 					continue;
 				}
 
@@ -798,10 +797,10 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 			}
 		}
 
-		else if (sValueName.EqualsNoCase("SINGLE") ||
-				 sValueName.EqualsNoCase("DOUBLE") ||
-				 sValueName.EqualsNoCase("COUPLE") ||
-				 sValueName.EqualsNoCase("SOLO")) {
+		else if (EqualsNoCase(sValueName, "SINGLE") ||
+				 EqualsNoCase(sValueName, "DOUBLE") ||
+				 EqualsNoCase(sValueName, "COUPLE") ||
+				 EqualsNoCase(sValueName, "SOLO")) {
 			Steps* pNewNotes = out.CreateSteps();
 			LoadFromDWITokens(sParams[0],
 							  sParams[1],
@@ -815,8 +814,8 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 				out.AddSteps(pNewNotes);
 			} else
 				delete pNewNotes;
-		} else if (sValueName.EqualsNoCase("DISPLAYTITLE") ||
-				   sValueName.EqualsNoCase("DISPLAYARTIST")) {
+		} else if (EqualsNoCase(sValueName, "DISPLAYTITLE") ||
+				   EqualsNoCase(sValueName, "DISPLAYARTIST")) {
 			/* We don't want to support these tags.  However, we don't want
 			 * to pick up images used here as song images (eg. banners). */
 			std::string param = sParams[1];

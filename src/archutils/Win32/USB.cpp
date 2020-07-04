@@ -61,8 +61,8 @@ USBDevice::Open(int iVID,
 	DWORD iIndex = 0;
 
 	std::string path;
-	while ((path = GetUSBDevicePath(iIndex++)) != "") {
-		HANDLE h = CreateFile(path,
+	while (!(path = GetUSBDevicePath(iIndex++)).empty()) {
+		HANDLE h = CreateFile(path.c_str(),
 							  GENERIC_READ,
 							  FILE_SHARE_READ | FILE_SHARE_WRITE,
 							  NULL,
@@ -148,7 +148,7 @@ WindowsFileIO::Open(const std::string& path, int iBlockSize)
 	if (m_Handle != INVALID_HANDLE_VALUE)
 		CloseHandle(m_Handle);
 
-	m_Handle = CreateFile(path,
+	m_Handle = CreateFile(path.c_str(),
 						  GENERIC_READ,
 						  FILE_SHARE_READ | FILE_SHARE_WRITE,
 						  NULL,
@@ -189,7 +189,8 @@ WindowsFileIO::finish_read(void* p)
 	queue_read();
 
 	if (iRet == 0) {
-		LOG->Warn(werr_ssprintf(GetLastError(), "Error reading USB device"));
+		LOG->Warn(
+		  werr_ssprintf(GetLastError(), "Error reading USB device").c_str());
 		return -1;
 	}
 
@@ -226,7 +227,8 @@ WindowsFileIO::read_several(const vector<WindowsFileIO*>& sources,
 
 	if (ret == -1) {
 		LOG->Trace(
-		  werr_ssprintf(GetLastError(), "WaitForMultipleObjectsEx failed"));
+		  werr_ssprintf(GetLastError(), "WaitForMultipleObjectsEx failed")
+			.c_str());
 		return -1;
 	}
 

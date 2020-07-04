@@ -14,6 +14,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "PlayerReplay.h"
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
 static ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;

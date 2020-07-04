@@ -29,6 +29,7 @@
 #include "ThemeManager.h"
 #include "SongManager.h"
 #include "Etterna/Models/Misc/Profile.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 GameState* GAMESTATE =
   nullptr; // global and accessible from anywhere in our program

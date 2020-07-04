@@ -76,10 +76,10 @@ ValidateFromLua(const std::string& sAnswer,
 	func.PushSelf(L);
 
 	// Argument 1 (answer):
-	lua_pushstring(L, sAnswer);
+	lua_pushstring(L, sAnswer.c_str());
 
 	// Argument 2 (error out):
-	lua_pushstring(L, sErrorOut);
+	lua_pushstring(L, sErrorOut.c_str());
 
 	bool valid = false;
 
@@ -117,7 +117,7 @@ OnOKFromLua(const std::string& sAnswer, LuaReference func)
 
 	func.PushSelf(L);
 	// Argument 1 (answer):
-	lua_pushstring(L, sAnswer);
+	lua_pushstring(L, sAnswer.c_str());
 	std::string error = "Lua error in ScreenTextEntry OnOK: ";
 	LuaHelpers::RunScriptOnStack(L, error, 1, 0, true);
 
@@ -164,10 +164,10 @@ ValidateAppendFromLua(const std::string& sAnswerBeforeChar,
 	func.PushSelf(L);
 
 	// Argument 1 (AnswerBeforeChar):
-	lua_pushstring(L, sAnswerBeforeChar);
+	lua_pushstring(L, sAnswerBeforeChar.c_str());
 
 	// Argument 2 (Append):
-	lua_pushstring(L, sAppend);
+	lua_pushstring(L, sAppend.c_str());
 
 	bool append = false;
 
@@ -203,7 +203,7 @@ FormatAnswerForDisplayFromLua(const std::string& sAnswer, LuaReference func)
 
 	func.PushSelf(L);
 	// Argument 1 (Answer):
-	lua_pushstring(L, sAnswer);
+	lua_pushstring(L, sAnswer.c_str());
 
 	std::string answer;
 	std::string error = "Lua error in ScreenTextEntry FormatAnswerForDisplay: ";

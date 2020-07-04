@@ -71,8 +71,7 @@ GradeToOldString(Grade g)
 Grade
 StringToGrade(const std::string& sGrade)
 {
-	std::string s = sGrade;
-	s.MakeUpper();
+	std::string s = make_upper(sGrade);
 
 	// new style
 	int iTier;

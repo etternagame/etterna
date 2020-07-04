@@ -57,7 +57,7 @@ ModIcon::Set(const std::string& _sText)
 		if (EqualsNoCase(sText, m_vStopWords[i]))
 			sText = "";
 
-	s_replace(sText, (' '), '\n');
+	s_replace(sText, (" "), "\n");
 
 	auto bVacant = (sText == "");
 	m_sprFilled->SetVisible(!bVacant);

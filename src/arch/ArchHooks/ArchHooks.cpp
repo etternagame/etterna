@@ -87,7 +87,7 @@ ArchHooks::AppFocusChanged()
 }
 
 bool
-ArchHooks::GoToURL(const RString& sUrl)
+ArchHooks::GoToURL(const std::string& sUrl)
 {
 	return false;
 }
@@ -98,7 +98,7 @@ ArchHooks::Create()
 	return new ARCH_HOOKS;
 }
 
-RString
+std::string
 ArchHooks::GetClipboard()
 {
 	LOG->Warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");
@@ -127,8 +127,8 @@ class LunaArchHooks : public Luna<ArchHooks>
 {
   public:
 	DEFINE_METHOD(AppHasFocus, AppHasFocus());
-	DEFINE_METHOD(GetArchName, GetArchName());
-	DEFINE_METHOD(GetClipboard, GetClipboard());
+	DEFINE_METHOD(GetArchName, GetArchName().c_str());
+	DEFINE_METHOD(GetClipboard, GetClipboard().c_str());
 	static int ShowCursor(T* p, lua_State* L)
 	{
 		p->sShowCursor(BArg(1));

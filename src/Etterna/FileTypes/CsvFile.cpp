@@ -67,7 +67,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 				} while (true);
 
 				std::string sValue = line;
-				sValue = sValue.Left(iEnd);
+				sValue = sValue.substr(0, iEnd);
 				vs.push_back(sValue);
 
 				line.erase(line.begin(), line.begin() + iEnd);
@@ -81,7 +81,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 					  line.size(); // didn't find an end.  Take the whole line
 
 				std::string sValue = line;
-				sValue = sValue.Left(iEnd);
+				sValue = sValue.substr(0, iEnd);
 				vs.push_back(sValue);
 
 				line.erase(line.begin(), line.begin() + iEnd);
@@ -118,7 +118,7 @@ CsvFile::WriteFile(RageFileBasic& f) const
 		FOREACH_CONST(std::string, *line, value)
 		{
 			std::string sVal = *value;
-			sVal.Replace("\"", "\"\""); // escape quotes to double-quotes
+			s_replace(sVal, "\"", "\"\""); // escape quotes to double-quotes
 			sLine += "\"" + sVal + "\"";
 			if (value != line->end() - 1)
 				sLine += ",";

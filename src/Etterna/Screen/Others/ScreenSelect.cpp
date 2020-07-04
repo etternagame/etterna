@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
@@ -25,8 +24,8 @@ ScreenSelect::Init()
 
 	// Load messages to update on
 	split(UPDATE_ON_MESSAGE, ",", m_asSubscribedMessages);
-	for (unsigned i = 0; i < m_asSubscribedMessages.size(); ++i)
-		MESSAGEMAN->Subscribe(this, m_asSubscribedMessages[i]);
+	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
+		MESSAGEMAN->Subscribe(this, m_asSubscribedMessage);
 	// Subscribe to PlayerJoined, if not already.
 	if (!MESSAGEMAN->IsSubscribedToMessage(this, Message_PlayerJoined))
 		this->SubscribeToMessage(Message_PlayerJoined);
@@ -34,8 +33,8 @@ ScreenSelect::Init()
 	// Load choices
 	// Allow lua as an alternative to metrics.
 	std::string choice_names = CHOICE_NAMES;
-	if (choice_names.Left(4) == "lua,") {
-		std::string command = choice_names.Right(choice_names.size() - 4);
+	if (choice_names.substr(0, 4) == "lua,") {
+		std::string command = tail(choice_names, choice_names.size() - 4);
 		Lua* L = LUA->Get();
 		if (LuaHelpers::RunExpression(L, command, m_sName + "::ChoiceNames")) {
 			if (!lua_istable(L, 1)) {
@@ -105,8 +104,8 @@ ScreenSelect::~ScreenSelect()
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenSelect::~ScreenSelect()");
-	for (unsigned i = 0; i < m_asSubscribedMessages.size(); ++i)
-		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessages[i]);
+	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
+		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessage);
 }
 
 void

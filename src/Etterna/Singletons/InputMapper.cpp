@@ -1382,7 +1382,7 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 						 // slot
 				asValues.push_back(m_GItoDI[i][j][slot].ToString());
 
-			while (asValues.size() && asValues.back() == "")
+			while (!asValues.empty() && asValues.back().empty())
 				asValues.erase(asValues.begin() + asValues.size() - 1);
 
 			std::string sValueString = join(DEVICE_INPUT_SEPARATOR, asValues);

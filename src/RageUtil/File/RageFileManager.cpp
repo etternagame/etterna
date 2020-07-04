@@ -449,12 +449,6 @@ StripMacResourceForks(vector<std::string>& vs)
 	RemoveIf(vs, MacResourceFork);
 }
 
-inline void
-StripMacResourceForks(vector<std::string>& vs)
-{
-	RemoveIf(vs, MacResourceFork);
-}
-
 void
 RageFileManager::GetDirListing(const std::string& sPath_,
 							   vector<std::string>& AddTo,
@@ -970,7 +964,7 @@ PathUsesSlowFlush(const std::string& sPath)
 	static const char* FlushPaths[] = { "/Save/", "Save/" };
 
 	for (unsigned i = 0; i < ARRAYLEN(FlushPaths); ++i)
-		if (!strncmp(sPath, FlushPaths[i], strlen(FlushPaths[i])))
+		if (!strncmp(sPath.c_str(), FlushPaths[i], strlen(FlushPaths[i])))
 			return true;
 	return false;
 }
@@ -1171,20 +1165,11 @@ GetDirListing(const std::string& sPath,
 }
 
 void
-GetDirListing(const std::string& sPath,
-			  vector<std::string>& AddTo,
-			  bool bOnlyDirs,
-			  bool bReturnPathToo)
-{
-	FILEMAN->GetDirListing(sPath, AddTo, bOnlyDirs, bReturnPathToo);
-}
-
-void
 GetDirListingRecursive(const std::string& sDir,
 					   const std::string& sMatch,
 					   vector<std::string>& AddTo)
 {
-	ASSERT(sDir.Right(1) == "/");
+	ASSERT(sDir.back() == '/');
 	vector<std::string> vsFiles;
 	GetDirListing(sDir + sMatch, vsFiles, false, true);
 	vector<std::string> vsDirs;
@@ -1207,7 +1192,7 @@ GetDirListingRecursive(RageFileDriver* prfd,
 					   const std::string& sMatch,
 					   vector<std::string>& AddTo)
 {
-	ASSERT(sDir.Right(1) == "/");
+	ASSERT(sDir.back() == '/');
 	vector<std::string> vsFiles;
 	prfd->GetDirListing(sDir + sMatch, vsFiles, false, true);
 	vector<std::string> vsDirs;

@@ -291,7 +291,7 @@ class LunaBPMDisplay : public Luna<BPMDisplay>
 	}
 	static int GetText(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetText());
+		lua_pushstring(L, p->GetText().c_str());
 		return 1;
 	}
 

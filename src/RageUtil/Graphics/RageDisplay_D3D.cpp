@@ -662,7 +662,7 @@ RageDisplay_D3D::BeginFrame()
 			auto bIgnore = false;
 			std::string sError = SetD3DParams(bIgnore);
 			if (sError != "")
-				RageException::Throw(sError);
+				RageException::Throw(sError.c_str());
 
 			break;
 		}

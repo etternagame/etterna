@@ -179,7 +179,7 @@ RageDisplay::ProcessStatsOnFlip()
 			  0;
 			if (LOG_FPS && !(PREFSMAN->m_verbose_log > 1)) {
 				std::string sStats = GetStats();
-				sStats.Replace("\n", ", ");
+				s_replace(sStats, "\n", ", ");
 				LOG->Trace("%s", sStats.c_str());
 			}
 		}

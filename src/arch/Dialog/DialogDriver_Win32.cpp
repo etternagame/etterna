@@ -51,8 +51,8 @@ OKWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// Set static text.
 			std::string sMessage = g_sMessage;
-			sMessage.Replace("\n", "\r\n");
-			SetWindowText(GetDlgItem(hWnd, IDC_MESSAGE), sMessage);
+			s_replace(sMessage, "\n", "\r\n");
+			SetWindowText(GetDlgItem(hWnd, IDC_MESSAGE), sMessage.c_str());
 
 			// Focus is on any of the controls in the dialog by default.
 			// I'm not sure why. Set focus to the button manually. -Chris
@@ -122,7 +122,8 @@ DialogDriver_Win32::OKCancel(const std::string& sMessage,
 #if !defined(SMPACKAGE)
 	// DialogBox( handle.Get(), MAKEINTRESOURCE(IDD_OK), ::GetHwnd(), OKWndProc
 	// );
-	int result = ::MessageBox(NULL, sMessage, GetWindowTitle(), MB_OKCANCEL);
+	int result = ::MessageBox(
+	  nullptr, sMessage.c_str(), GetWindowTitle().c_str(), MB_OKCANCEL);
 #else
 	int result =
 	  ::AfxMessageBox(ConvertUTF8ToACP(sMessage).c_str(), MB_OKCANCEL, 0);
@@ -150,8 +151,8 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// Set static text
 			std::string sMessage = g_sErrorString;
-			sMessage.Replace("\n", "\r\n");
-			SetWindowText(GetDlgItem(hWnd, IDC_EDIT_ERROR), sMessage);
+			s_replace(sMessage, "\n", "\r\n");
+			SetWindowText(GetDlgItem(hWnd, IDC_EDIT_ERROR), sMessage.c_str());
 		} break;
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) {
@@ -164,15 +165,15 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					std::string sCommand = "notepad \"" + sAppDataDir +
 										   PRODUCT_ID + "/Logs/log.txt\"";
 					CreateProcess(
-					  NULL, // pointer to name of executable module
+					  nullptr, // pointer to name of executable module
 					  const_cast<char*>(
 						sCommand.c_str()), // pointer to command line string
-					  NULL,				   // process security attributes
-					  NULL,				   // thread security attributes
+					  nullptr,			   // process security attributes
+					  nullptr,			   // thread security attributes
 					  false,			   // handle inheritance flag
 					  0,				   // creation flags
-					  NULL,				   // pointer to new environment block
-					  NULL,				   // pointer to current directory name
+					  nullptr,			   // pointer to new environment block
+					  nullptr,			   // pointer to current directory name
 					  &si,				   // pointer to STARTUPINFO
 					  &pi				   // pointer to PROCESS_INFORMATION
 					);
@@ -192,7 +193,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSTATIC: {
 			HDC hdc = (HDC)wParam;
 			HWND hwndStatic = (HWND)lParam;
-			HBRUSH hbr = NULL;
+			HBRUSH hbr = nullptr;
 
 			// TODO:  Change any attributes of the DC here
 			switch (GetDlgCtrlID(hwndStatic)) {

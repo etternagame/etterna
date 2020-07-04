@@ -171,19 +171,19 @@ SetDisplayBPM(SSC::SongTagInfo& info)
 void
 SetSelectable(SSC::SongTagInfo& info)
 {
-	if ((*info.params)[1].EqualsNoCase("YES")) {
+	if (EqualsNoCase((*info.params)[1], "YES")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
-	} else if ((*info.params)[1].EqualsNoCase("NO")) {
+	} else if (EqualsNoCase((*info.params)[1], "NO")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_NEVER;
 	}
 	// ROULETTE from 3.9 is no longer in use.
-	else if ((*info.params)[1].EqualsNoCase("ROULETTE")) {
+	else if (EqualsNoCase((*info.params)[1], "ROULETTE")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
 	}
 	/* The following two cases are just fixes to make sure simfiles that
 	 * used 3.9+ features are not excluded here */
-	else if ((*info.params)[1].EqualsNoCase("ES") ||
-			 (*info.params)[1].EqualsNoCase("OMES")) {
+	else if (EqualsNoCase((*info.params)[1], "ES") ||
+			 EqualsNoCase((*info.params)[1], "OMES")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
 	} else if (StringToInt((*info.params)[1]) > 0) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
@@ -206,10 +206,9 @@ SetFGChanges(SSC::SongTagInfo& info)
 	vector<std::string> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
-	for (size_t b = 0; b < aFGChangeExpressions.size(); ++b) {
+	for (auto& aFGChangeExpression : aFGChangeExpressions) {
 		BackgroundChange change;
-		if (info.loader->LoadFromBGChangesString(change,
-												 aFGChangeExpressions[b])) {
+		if (info.loader->LoadFromBGChangesString(change, aFGChangeExpression)) {
 			info.song->AddForegroundChange(change);
 		}
 	}
@@ -709,15 +708,15 @@ SSCLoader::ProcessBPMs(TimingData& out,
 	vector<std::string> arrayBPMExpressions;
 	split(sParam, ",", arrayBPMExpressions);
 
-	for (unsigned b = 0; b < arrayBPMExpressions.size(); b++) {
+	for (auto& arrayBPMExpression : arrayBPMExpressions) {
 		vector<std::string> arrayBPMValues;
-		split(arrayBPMExpressions[b], "=", arrayBPMValues);
+		split(arrayBPMExpression, "=", arrayBPMValues);
 		if (arrayBPMValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid #BPMS value \"%s\" (must have exactly "
 						 "one '='), ignored.",
-						 arrayBPMExpressions[b].c_str());
+						 arrayBPMExpression.c_str());
 			continue;
 		}
 
@@ -743,15 +742,15 @@ SSCLoader::ProcessStops(TimingData& out,
 	vector<std::string> arrayStopExpressions;
 	split(sParam, ",", arrayStopExpressions);
 
-	for (unsigned b = 0; b < arrayStopExpressions.size(); b++) {
+	for (auto& arrayStopExpression : arrayStopExpressions) {
 		vector<std::string> arrayStopValues;
-		split(arrayStopExpressions[b], "=", arrayStopValues);
+		split(arrayStopExpression, "=", arrayStopValues);
 		if (arrayStopValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid #STOPS value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayStopExpressions[b].c_str());
+						 arrayStopExpression.c_str());
 			continue;
 		}
 
@@ -778,15 +777,15 @@ SSCLoader::ProcessWarps(TimingData& out,
 	vector<std::string> arrayWarpExpressions;
 	split(sParam, ",", arrayWarpExpressions);
 
-	for (unsigned b = 0; b < arrayWarpExpressions.size(); b++) {
+	for (auto& arrayWarpExpression : arrayWarpExpressions) {
 		vector<std::string> arrayWarpValues;
-		split(arrayWarpExpressions[b], "=", arrayWarpValues);
+		split(arrayWarpExpression, "=", arrayWarpValues);
 		if (arrayWarpValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid #WARPS value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayWarpExpressions[b].c_str());
+						 arrayWarpExpression.c_str());
 			continue;
 		}
 
@@ -815,15 +814,15 @@ SSCLoader::ProcessLabels(TimingData& out,
 	vector<std::string> arrayLabelExpressions;
 	split(sParam, ",", arrayLabelExpressions);
 
-	for (unsigned b = 0; b < arrayLabelExpressions.size(); b++) {
+	for (auto& arrayLabelExpression : arrayLabelExpressions) {
 		vector<std::string> arrayLabelValues;
-		split(arrayLabelExpressions[b], "=", arrayLabelValues);
+		split(arrayLabelExpression, "=", arrayLabelValues);
 		if (arrayLabelValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid #LABELS value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayLabelExpressions[b].c_str());
+						 arrayLabelExpression.c_str());
 			continue;
 		}
 
@@ -858,16 +857,16 @@ SSCLoader::ProcessCombos(TimingData& out,
 	vector<std::string> arrayComboExpressions;
 	split(line, ",", arrayComboExpressions);
 
-	for (unsigned f = 0; f < arrayComboExpressions.size(); f++) {
+	for (auto& arrayComboExpression : arrayComboExpressions) {
 		vector<std::string> arrayComboValues;
-		split(arrayComboExpressions[f], "=", arrayComboValues);
+		split(arrayComboExpression, "=", arrayComboValues);
 		unsigned size = arrayComboValues.size();
 		if (size < 2) {
 			LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid #COMBOS value \"%s\" (must have at "
 						 "least one '='), ignored.",
-						 arrayComboExpressions[f].c_str());
+						 arrayComboExpression.c_str());
 			continue;
 		}
 		const float fComboBeat = StringToFloat(arrayComboValues[0]);
@@ -1240,7 +1239,7 @@ SSCLoader::LoadEditFromMsd(const MsdFile& msd,
 			if (sValueName == "SONG") {
 				std::string sSongFullTitle = sParams[1];
 				this->SetSongTitle(sParams[1]);
-				s_replace(sSongFullTitle, '\\', '/');
+				s_replace(sSongFullTitle, "\\", "/");
 				pSong = SONGMAN->FindSong(sSongFullTitle);
 				reused_steps_info.song = pSong;
 				if (pSong == nullptr) {

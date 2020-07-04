@@ -1700,7 +1700,7 @@ class LunaHighScore : public Luna<HighScore>
 									p->GetTapNoteScore(TNS_W5),
 									p->GetTapNoteScore(TNS_Miss),
 									p->GetMaxCombo());
-		lua_pushstring(L, doot);
+		lua_pushstring(L, doot.c_str());
 		return 1;
 	}
 
@@ -1711,12 +1711,12 @@ class LunaHighScore : public Luna<HighScore>
 	}
 	static int GetScoreid(T* p, lua_State* L)
 	{
-		lua_pushstring(L, std::string(p->scoreid));
+		lua_pushstring(L, std::string(p->scoreid).c_str());
 		return 1;
 	}
 	static int GetAvatar(T* p, lua_State* L)
 	{
-		lua_pushstring(L, std::string(p->avatar));
+		lua_pushstring(L, std::string(p->avatar).c_str());
 		return 1;
 	}
 	static int GetWifeVers(T* p, lua_State* L)

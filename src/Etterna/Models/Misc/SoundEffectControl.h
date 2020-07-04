@@ -16,7 +16,7 @@ class SoundEffectControl
 			  const NoteData* pNoteData);
 
 	void SetSoundReader(RageSoundReader* pPlayer);
-	void ReleaseSound() { SetSoundReader(NULL); }
+	void ReleaseSound() { SetSoundReader(nullptr); }
 
 	void Update(float fDeltaTime);
 

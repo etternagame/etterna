@@ -70,10 +70,10 @@ ThreadImpl_Win32::Wait()
 
 typedef struct tagTHREADNAME_INFO
 {
-	DWORD dwType;	 // must be 0x1000
-	LPCSTR szName;	// pointer to name (in same addr space)
+	DWORD dwType;	  // must be 0x1000
+	LPCSTR szName;	  // pointer to name (in same addr space)
 	DWORD dwThreadID; // thread ID (-1 caller thread)
-	DWORD dwFlags;	// reserved for future use, must be zero
+	DWORD dwFlags;	  // reserved for future use, must be zero
 } THREADNAME_INFO;
 
 static void
@@ -264,7 +264,7 @@ MutexImpl_Win32::Unlock()
 	/* We can't ASSERT here, since this is called from checkpoints,
 	 * which is called from ASSERT. */
 	if (!ret)
-		sm_crash(werr_ssprintf(GetLastError(), "ReleaseMutex failed"));
+		sm_crash(werr_ssprintf(GetLastError(), "ReleaseMutex failed").c_str());
 }
 
 uint64_t
@@ -353,7 +353,8 @@ PortableSignalObjectAndWait(HANDLE hObjectToSignal,
 	if (bFirstParamIsMutex) {
 		const bool bRet = !!ReleaseMutex(hObjectToSignal);
 		if (!bRet)
-			sm_crash(werr_ssprintf(GetLastError(), "ReleaseMutex failed"));
+			sm_crash(
+			  werr_ssprintf(GetLastError(), "ReleaseMutex failed").c_str());
 	} else
 		SetEvent(hObjectToSignal);
 

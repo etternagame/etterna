@@ -14,9 +14,9 @@ werr_ssprintf(int err, const char* fmt, ...)
 	// Why is FormatMessage returning text ending with \r\n? (who? -aj)
 	// Perhaps it's because you're on Windows, where newlines are \r\n. -aj
 	std::string text = buf;
-	text.Replace("\n", "");
-	text.Replace("\r", " "); // foo\r\nbar -> foo bar
-	TrimRight(text);		 // "foo\r\n" -> "foo"
+	s_replace(text, "\n", "");
+	s_replace(text, "\r", " "); // foo\r\nbar -> foo bar
+	TrimRight(text);			// "foo\r\n" -> "foo"
 
 	va_list va;
 	va_start(va, fmt);

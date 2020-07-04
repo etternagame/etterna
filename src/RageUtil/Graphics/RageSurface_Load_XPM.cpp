@@ -1,4 +1,4 @@
-﻿/* This is a partial XPM reader; we only use it for reading compiled-in icons
+/* This is a partial XPM reader; we only use it for reading compiled-in icons
  * and loading splashes. */
 #include "Etterna/Globals/global.h"
 #include "RageSurface.h"
@@ -13,7 +13,7 @@
 	}
 
 RageSurface*
-RageSurface_Load_XPM(char* const* xpm, RString& error)
+RageSurface_Load_XPM(char* const* xpm, std::string& error)
 {
 	int line = 0;
 
@@ -38,25 +38,25 @@ RageSurface_Load_XPM(char* const* xpm, RString& error)
 
 	vector<RageSurfaceColor> colors;
 
-	map<RString, int> name_to_color;
+	map<std::string, int> name_to_color;
 	for (int i = 0; i < num_colors; ++i) {
 		CheckLine();
 
 		/* "id c #AABBCC"; id is color_length long.  id may contain spaces. */
-		RString color = xpm[line++];
+		std::string color = xpm[line++];
 
 		if (color_length + 4 > (int)color.size())
 			continue;
 
-		RString name;
+		std::string name;
 		name = color.substr(0, color_length);
 
 		if (color.substr(color_length, 4) != " c #")
 			continue;
 
-		RString clr = color.substr(color_length + 4);
+		std::string clr = color.substr(color_length + 4);
 		int r, g, b;
-		if (sscanf(clr, "%2x%2x%2x", &r, &g, &b) != 3)
+		if (sscanf(clr.c_str(), "%2x%2x%2x", &r, &g, &b) != 3)
 			continue;
 		RageSurfaceColor colorval;
 		colorval.r = (uint8_t)r;
@@ -86,7 +86,7 @@ RageSurface_Load_XPM(char* const* xpm, RString& error)
 			delete img;
 			return NULL;
 		}
-		const RString row = xpm[line++];
+		const std::string row = xpm[line++];
 		if ((int)row.size() != width * color_length) {
 			error = ssprintf("row %i is not expected length (%i != %i)",
 							 y,
@@ -100,8 +100,8 @@ RageSurface_Load_XPM(char* const* xpm, RString& error)
 		p += y * img->pitch;
 		int32_t* p32 = (int32_t*)p;
 		for (int x = 0; x < width; ++x) {
-			RString color_name = row.substr(x * color_length, color_length);
-			map<RString, int>::const_iterator it;
+			std::string color_name = row.substr(x * color_length, color_length);
+			map<std::string, int>::const_iterator it;
 			it = name_to_color.find(color_name);
 			if (it == name_to_color.end()) {
 				error = ssprintf(

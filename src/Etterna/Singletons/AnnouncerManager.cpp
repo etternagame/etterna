@@ -43,7 +43,7 @@ AnnouncerManager::GetAnnouncerNames(vector<std::string>& AddTo)
 bool
 AnnouncerManager::DoesAnnouncerExist(const std::string& sAnnouncerName)
 {
-	if (sAnnouncerName == "")
+	if (sAnnouncerName.empty())
 		return true;
 
 	vector<std::string> asAnnouncerNames;
@@ -113,7 +113,7 @@ std::string
 AnnouncerManager::GetPathTo(const std::string& sAnnouncerName,
 							const std::string& sFolderName)
 {
-	if (sAnnouncerName == "")
+	if (sAnnouncerName.empty())
 		return std::string(); /* announcer disabled */
 
 	const std::string AnnouncerPath = GetAnnouncerDirFromName(sAnnouncerName);
@@ -163,10 +163,10 @@ AnnouncerManager::NextAnnouncer()
 {
 	vector<std::string> as;
 	GetAnnouncerNames(as);
-	if (as.size() == 0)
+	if (as.empty())
 		return;
 
-	if (m_sCurAnnouncerName == "")
+	if (m_sCurAnnouncerName.empty())
 		SwitchAnnouncer(as[0]);
 	else {
 		unsigned i;

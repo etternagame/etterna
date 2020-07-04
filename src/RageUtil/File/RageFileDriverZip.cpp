@@ -28,7 +28,7 @@ RageFileDriverZip::RageFileDriverZip()
   , m_Mutex("RageFileDriverZip")
 {
 	m_bFileOwned = false;
-	m_pZip = NULL;
+	m_pZip = nullptr;
 }
 
 RageFileDriverZip::RageFileDriverZip(const std::string& sPath)
@@ -36,7 +36,7 @@ RageFileDriverZip::RageFileDriverZip(const std::string& sPath)
   , m_Mutex("RageFileDriverZip")
 {
 	m_bFileOwned = false;
-	m_pZip = NULL;
+	m_pZip = nullptr;
 	Load(sPath);
 }
 
@@ -334,13 +334,13 @@ RageFileDriverZip::Open(const std::string& sPath, int iMode, int& iErr)
 {
 	if ((iMode & RageFile::WRITE) != 0) {
 		iErr = ERROR_WRITING_NOT_SUPPORTED;
-		return NULL;
+		return nullptr;
 	}
 
 	auto* info = reinterpret_cast<FileInfo*>(FDB->GetFilePriv(sPath));
-	if (info == NULL) {
+	if (info == nullptr) {
 		iErr = ENOENT;
-		return NULL;
+		return nullptr;
 	}
 
 	m_Mutex.Lock();
@@ -349,7 +349,7 @@ RageFileDriverZip::Open(const std::string& sPath, int iMode, int& iErr)
 	if (info->m_iDataOffset == -1) {
 		if (!ReadLocalFileHeader(*info)) {
 			m_Mutex.Unlock();
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -373,7 +373,7 @@ RageFileDriverZip::Open(const std::string& sPath, int iMode, int& iErr)
 		default:
 			/* unknown compression method */
 			iErr = ENOSYS;
-			return NULL;
+			return nullptr;
 	}
 }
 

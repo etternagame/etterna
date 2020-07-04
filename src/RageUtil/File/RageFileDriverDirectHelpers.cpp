@@ -35,7 +35,8 @@ WinMoveFileInternal(const std::string& sOldPath, const std::string& sNewPath)
 	 * 9x, we're screwed, so just delete any existing file (we aren't going
 	 * to be robust on 9x anyway). */
 	if (!Win9x) {
-		if (MoveFileEx(sOldPath, sNewPath, MOVEFILE_REPLACE_EXISTING))
+		if (MoveFileEx(
+			  sOldPath.c_str(), sNewPath.c_str(), MOVEFILE_REPLACE_EXISTING))
 			return true;
 
 		// On Win9x, MoveFileEx is expected to fail (returns
@@ -47,16 +48,16 @@ WinMoveFileInternal(const std::string& sOldPath, const std::string& sNewPath)
 			return false;
 	}
 
-	if (MoveFile(sOldPath, sNewPath))
+	if (MoveFile(sOldPath.c_str(), sNewPath.c_str()))
 		return true;
 
 	if (GetLastError() != ERROR_ALREADY_EXISTS)
 		return false;
 
-	if (!DeleteFile(sNewPath))
+	if (!DeleteFile(sNewPath.c_str()))
 		return false;
 
-	return !!MoveFile(sOldPath, sNewPath);
+	return !!MoveFile(sOldPath.c_str(), sNewPath.c_str());
 }
 
 bool
@@ -67,7 +68,7 @@ WinMoveFile(const std::string& sOldPath, const std::string& sNewPath)
 	if (GetLastError() != ERROR_ACCESS_DENIED)
 		return false;
 	/* Try turning off the read-only bit on the file we're overwriting. */
-	SetFileAttributes(DoPathReplace(sNewPath), FILE_ATTRIBUTE_NORMAL);
+	SetFileAttributes(DoPathReplace(sNewPath).c_str(), FILE_ATTRIBUTE_NORMAL);
 
 	return WinMoveFileInternal(DoPathReplace(sOldPath),
 							   DoPathReplace(sNewPath));
@@ -84,7 +85,7 @@ CreateDirectories(const std::string& Path)
 
 	// If Path is absolute, add the initial slash ("ignore empty" will remove
 	// it).
-	if (Path.Left(1) == "/")
+	if (Path.front() == '/')
 		curpath = "/";
 
 	// Ignore empty, so eg. "/foo/bar//baz" doesn't try to create "/foo/bar"
@@ -104,7 +105,7 @@ CreateDirectories(const std::string& Path)
 		}
 #endif
 
-		if (DoMkdir(curpath, 0777) == 0)
+		if (DoMkdir(curpath.c_str(), 0777) == 0)
 			continue;
 
 #ifdef _WIN32
@@ -123,7 +124,7 @@ CreateDirectories(const std::string& Path)
 		if (errno == EEXIST) {
 			/* Make sure it's a directory. */
 			struct stat st;
-			if (DoStat(curpath, &st) != -1 && !(st.st_mode & S_IFDIR)) {
+			if (DoStat(curpath.c_str(), &st) != -1 && !(st.st_mode & S_IFDIR)) {
 				WARN(ssprintf(
 					   "Couldn't create %s: path exists and is not a directory",
 					   curpath.c_str())
@@ -155,20 +156,20 @@ DirectFilenameDB::SetRoot(const std::string& root_)
 	root = root_;
 
 	// "\abcd\" -> "/abcd/":
-	root.Replace("\\", "/");
+	s_replace(root, "\\", "/");
 
 	// "/abcd/" -> "/abcd":
-	if (root.Right(1) == "/")
+	if (root.back() == '/')
 		root.erase(root.size() - 1, 1);
 }
 
 void
 DirectFilenameDB::CacheFile(const std::string& sPath)
 {
-	CHECKPOINT_M(root + sPath);
+	CHECKPOINT_M(std::string(root + sPath).c_str());
 	std::string sDir = Dirname(sPath);
 	FileSet* pFileSet = GetFileSet(sDir, false);
-	if (pFileSet == NULL) {
+	if (pFileSet == nullptr) {
 		// This directory isn't cached so do nothing.
 		m_Mutex.Unlock(); // Locked by GetFileSet()
 		return;
@@ -179,7 +180,7 @@ DirectFilenameDB::CacheFile(const std::string& sPath)
 #ifdef _WIN32
 	// There is almost surely a better way to do this
 	WIN32_FIND_DATA fd;
-	HANDLE hFind = DoFindFirstFile(root + sPath, &fd);
+	HANDLE hFind = DoFindFirstFile(std::string(root + sPath).c_str(), &fd);
 	if (hFind == INVALID_HANDLE_VALUE) {
 		m_Mutex.Unlock(); // Locked by GetFileSet()
 		return;
@@ -226,10 +227,11 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 #ifdef _WIN32
 	WIN32_FIND_DATA fd;
 
-	if (sPath.size() > 0 && sPath.Right(1) == "/")
+	if (sPath.size() > 0 && sPath.back() == '/')
 		sPath.erase(sPath.size() - 1);
 
-	HANDLE hFind = DoFindFirstFile(root + sPath + "/*", &fd);
+	HANDLE hFind =
+	  DoFindFirstFile(std::string(root + sPath + "/*").c_str(), &fd);
 	// This crashes on multithreaded startup occasionally. -poco
 	// CHECKPOINT_M(root + sPath + "/*");
 
@@ -314,17 +316,16 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 		if (!BeginsWith(iter->lname, IGNORE_MARKER_BEGINNING))
 			break;
 		std::string sFileLNameToIgnore =
-		  std::string(iter->lname)
-			.Right(iter->lname.length() - IGNORE_MARKER_BEGINNING.length());
+		  tail(std::string(iter->lname),
+			   iter->lname.length() - IGNORE_MARKER_BEGINNING.length());
 		vsFilesToRemove.push_back(iter->name);
 		vsFilesToRemove.push_back(sFileLNameToIgnore);
 	}
 
-	FOREACH_CONST(std::string, vsFilesToRemove, iter)
-	{
+	for (auto& iter : vsFilesToRemove) {
 		// Erase the file corresponding to the ignore marker
 		File fileToDelete;
-		fileToDelete.SetName(*iter);
+		fileToDelete.SetName(iter);
 		set<File>::iterator iter2 = fs.files.find(fileToDelete);
 		if (iter2 != fs.files.end())
 			fs.files.erase(iter2);

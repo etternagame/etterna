@@ -20,6 +20,7 @@
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Misc/Grade.h"
 #include "curl/curl.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
@@ -141,14 +142,13 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		}
 
 		vector<string> vsPrettyFiles;
-		FOREACH_CONST(std::string, vsRawFiles, s)
-		{
-			if (GetExtension(*s).EqualsNoCase("ctl"))
+		for (auto& s : vsRawFiles) {
+			if (EqualsNoCase(GetExtension(s), "ctl"))
 				continue;
 
-			vsFiles.push_back(*s);
+			vsFiles.push_back(s);
 
-			string s2 = s->Right(s->length() - TEMP_ZIP_MOUNT_POINT.length());
+			string s2 = tail(s, s.length() - TEMP_ZIP_MOUNT_POINT.length());
 			vsPrettyFiles.push_back(s2);
 		}
 		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
@@ -159,9 +159,8 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	FOREACH_CONST(string, vsFiles, sSrcFile)
 	{
 		string sDestFile = *sSrcFile;
-		sDestFile =
-		  std::string(sDestFile.c_str())
-			.Right(sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
+		sDestFile = tail(std::string(sDestFile.c_str()),
+						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
 
 		std::string sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
@@ -505,7 +504,7 @@ DownloadManager::Update(float fDeltaSeconds)
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
-	if (HTTPRequests.size() == 0 || gameplay)
+	if (HTTPRequests.empty() || gameplay)
 		return;
 	timeval timeout;
 	int rc, maxfd = -1;
@@ -576,7 +575,7 @@ void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
 	timeSinceLastDownload += fDeltaSeconds;
-	if (pendingInstallDownloads.size() > 0 && !gameplay) {
+	if (!pendingInstallDownloads.empty() && !gameplay) {
 		// Install all pending packs
 		for (auto i = pendingInstallDownloads.begin();
 			 i != pendingInstallDownloads.end();
@@ -942,7 +941,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	const auto& columns = hs->GetTrackVector();
 	const auto& types = hs->GetTapNoteTypeVector();
 	const auto& rows = hs->GetNoteRowVector();
-	if (offsets.size() > 0) {
+	if (!offsets.empty()) {
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 		if (steps == nullptr) {
@@ -2126,7 +2125,7 @@ DownloadManager::StartSession(
   function<void(bool loggedIn)> callback = [](bool) { return; })
 {
 	string url = serverURL.Get() + "/login";
-	if (loggingIn || user == "") {
+	if (loggingIn || user.empty()) {
 		return;
 	}
 	DLMAN->loggingIn = true;
@@ -2204,7 +2203,7 @@ DownloadManager::GetSkillsetRating(Skillset ss)
 void
 DownloadManager::RefreshPackList(const string& url)
 {
-	if (url == "")
+	if (url.empty())
 		return;
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
@@ -2296,7 +2295,7 @@ Download::Download(string url, string filename, function<void(Download*)> done)
 	m_Url = url;
 	handle = initBasicCURLHandle();
 	m_TempFileName =
-	  DL_DIR + (filename != "" ? filename : MakeTempFileName(url));
+	  DL_DIR + (!filename.empty() ? filename : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
 	ASSERT_M(opened, p_RFWrapper.file.GetError());
 	DLMAN->EncodeSpaces(m_Url);
@@ -2663,7 +2662,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			lua_pushvalue(L, 2);
 			ref.SetFromStack(L);
 		}
-		if (leaderboardScores.size() != 0) {
+		if (!leaderboardScores.empty()) {
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
@@ -2708,7 +2707,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (p->topscoresonly &&
 				userswithscores.count(leaderboardHighScore.GetName()) == 1)
 				continue;
-			if (country != "" && country != "Global" &&
+			if (!country.empty() && country != "Global" &&
 				leaderboardHighScore.countryCode != country)
 				continue;
 
@@ -2716,7 +2715,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			userswithscores.emplace(leaderboardHighScore.GetName());
 		}
 
-		if (filteredLeaderboardScores.size() > 0 && p->currentrateonly) {
+		if (!filteredLeaderboardScores.empty() && p->currentrateonly) {
 			std::sort(filteredLeaderboardScores.begin(),
 					  filteredLeaderboardScores.end(),
 					  [](const HighScore* a, const HighScore* b) -> bool {

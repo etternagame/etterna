@@ -34,7 +34,7 @@ class RageSoundReader_Preload : public RageSoundReader
 	static bool PreloadSound(RageSoundReader*& pSound);
 
   private:
-	AutoPtrCopyOnWrite<RString> m_Buffer;
+	AutoPtrCopyOnWrite<std::string> m_Buffer;
 	bool m_bBufferIs16Bit{ false };
 
 	/* Bytes: */

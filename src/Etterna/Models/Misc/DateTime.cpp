@@ -212,8 +212,8 @@ std::string
 LastDayToLocalizedString(int iLastDayIndex)
 {
 	std::string s = LastDayToString(iLastDayIndex);
-	s_replace(s, 'Day', '\0');
-	s_replace(s, 'Ago', ' Ago');
+	s_replace(s, "Day", "");
+	s_replace(s, "Ago", " Ago");
 	return s;
 }
 
@@ -221,8 +221,8 @@ std::string
 LastWeekToLocalizedString(int iLastWeekIndex)
 {
 	std::string s = LastWeekToString(iLastWeekIndex);
-	s_replace(s, 'Week', '\0');
-	s_replace(s, 'Ago', ' Ago');
+	s_replace(s, "Week", "");
+	s_replace(s, "Ago", " Ago");
 	return s;
 }
 

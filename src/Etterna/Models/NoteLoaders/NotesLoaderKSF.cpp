@@ -255,8 +255,7 @@ LoadFromKSFFile(const std::string& sPath,
 	auto fCurBeat = 0.0f;
 	auto prevBeat = 0.0f; // Used for hold tails.
 
-	for (unsigned r = 0; r < vNoteRows.size(); r++) {
-		auto& sRowString = vNoteRows[r];
+	for (auto& sRowString : vNoteRows) {
 		StripCrnl(sRowString);
 
 		if (sRowString == "")
@@ -601,8 +600,7 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 		auto fCurBeat = 0.0f;
 		auto bDMRequired = false;
 
-		for (unsigned i = 0; i < vNoteRows.size(); ++i) {
-			auto& NoteRowString = vNoteRows[i];
+		for (auto& NoteRowString : vNoteRows) {
 			StripCrnl(NoteRowString);
 
 			if (NoteRowString == "")

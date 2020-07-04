@@ -20,6 +20,7 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include <deque>
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 static ThemeMetric<float> LEFT_EDGE("Background", "LeftEdge");
 static ThemeMetric<float> TOP_EDGE("Background", "TopEdge");
@@ -262,8 +263,8 @@ BackgroundImpl::Unload()
 void
 BackgroundImpl::Layer::Unload()
 {
-	FOREACHM(BackgroundDef, Actor*, m_BGAnimations, iter)
-	delete iter->second;
+	for (auto& iter : m_BGAnimations)
+		delete iter.second;
 	m_BGAnimations.clear();
 	m_aBGChanges.clear();
 
@@ -407,8 +408,8 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		pActor = new Actor;
 	m_BGAnimations[bd] = pActor;
 
-	for (unsigned i = 0; i < vsResolvedRef.size(); i++)
-		delete vsResolvedRef[i];
+	for (auto& i : vsResolvedRef)
+		delete i;
 
 	return true;
 }
@@ -493,12 +494,12 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 		// change BG every BPM change that is at the beginning of a measure
 		const vector<TimingSegment*>& bpms =
 		  timing.GetTimingSegments(SEGMENT_BPM);
-		for (unsigned i = 0; i < bpms.size(); i++) {
+		for (auto bpm : bpms) {
 			bool bAtBeginningOfMeasure = false;
-			for (unsigned j = 0; j < tSigs.size(); j++) {
+			for (auto tSig : tSigs) {
 				TimeSignatureSegment* ts =
-				  static_cast<TimeSignatureSegment*>(tSigs[j]);
-				if ((bpms[i]->GetRow() - ts->GetRow()) %
+				  static_cast<TimeSignatureSegment*>(tSig);
+				if ((bpm->GetRow() - ts->GetRow()) %
 					  ts->GetNoteRowsPerMeasure() ==
 					0) {
 					bAtBeginningOfMeasure = true;
@@ -511,7 +512,7 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 
 			// start so that we don't create a BGChange right on top of fEndBeat
 			bool bInRange =
-			  bpms[i]->GetRow() >= iStartRow && bpms[i]->GetRow() < iEndRow;
+			  bpm->GetRow() >= iStartRow && bpm->GetRow() < iEndRow;
 			if (!bInRange)
 				continue; // skip
 
@@ -521,7 +522,7 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 				BackgroundChange c = change;
 				c.m_def.m_sFile1 = bd.m_sFile1;
 				c.m_def.m_sFile2 = bd.m_sFile2;
-				c.m_fStartBeat = bpms[i]->GetBeat();
+				c.m_fStartBeat = bpm->GetBeat();
 				m_Layer[0].m_aBGChanges.push_back(c);
 			}
 		}
@@ -563,10 +564,9 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 						static_cast<int>(vsNames.size()));
 		vsNames.resize(iSize);
 
-		FOREACH_CONST(std::string, vsNames, s)
-		{
+		for (auto& s : vsNames) {
 			BackgroundDef bd;
-			bd.m_sFile1 = *s;
+			bd.m_sFile1 = s;
 			m_RandomBGAnimations.push_back(bd);
 		}
 	}
@@ -706,8 +706,8 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 
 	// At this point, we shouldn't have any BGChanges to "".  "" is an invalid
 	// name.
-	for (unsigned i = 0; i < mainlayer.m_aBGChanges.size(); i++)
-		ASSERT(!mainlayer.m_aBGChanges[i].m_def.m_sFile1.empty());
+	for (auto& m_aBGChange : mainlayer.m_aBGChanges)
+		ASSERT(!m_aBGChange.m_def.m_sFile1.empty());
 
 	// Re-sort.
 	BackgroundUtil::SortBackgroundChangesArray(mainlayer.m_aBGChanges);

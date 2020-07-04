@@ -92,9 +92,9 @@ IniFile::ReadFile(RageFileBasic& f)
 				size_t iEqualIndex = line.find("=");
 				if (iEqualIndex != string::npos) {
 					std::string valuename =
-					  line.Left(static_cast<int>(iEqualIndex));
+					  tail(line, static_cast<int>(iEqualIndex));
 					std::string value =
-					  line.Right(line.size() - valuename.size() - 1);
+					  tail(line, line.size() - valuename.size() - 1);
 					Trim(valuename);
 					if (!valuename.empty()) {
 						SetKeyValue(keychild, valuename, value);

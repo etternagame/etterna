@@ -102,8 +102,8 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 			std::string bloo = seg.m_sLyric;
 
 			s_replace(bloo,
-					  '|',
-					  '\n'); // Pipe symbols denote a new line in LRC files
+					  "|",
+					  "\n"); // Pipe symbols denote a new line in LRC files
 			seg.m_sLyric = bloo;
 			out.AddLyricSegment(seg);
 		}

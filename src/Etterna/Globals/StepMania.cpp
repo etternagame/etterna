@@ -201,7 +201,7 @@ update_centering()
 static void
 StartDisplay()
 {
-	if (DISPLAY != NULL)
+	if (DISPLAY != nullptr)
 		return; // already started
 
 	DISPLAY = CreateDisplay();
@@ -811,7 +811,7 @@ CreateDisplay()
 	if (asRenderers.empty())
 		RageException::Throw("%s", ERROR_NO_VIDEO_RENDERERS.GetValue().c_str());
 
-	RageDisplay* pRet = NULL;
+	RageDisplay* pRet = nullptr;
 	if (noWindow) {
 		return new RageDisplay_Null;
 	} else {
@@ -834,11 +834,12 @@ CreateDisplay()
 			} else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;
 			} else {
-				RageException::Throw(ERROR_UNKNOWN_VIDEO_RENDERER.GetValue(),
-									 sRenderer.c_str());
+				RageException::Throw(
+				  ERROR_UNKNOWN_VIDEO_RENDERER.GetValue().c_str(),
+				  sRenderer.c_str());
 			}
 
-			if (pRet == NULL)
+			if (pRet == nullptr)
 				continue;
 
 			std::string sError =
@@ -856,7 +857,7 @@ CreateDisplay()
 		}
 	}
 
-	if (pRet == NULL)
+	if (pRet == nullptr)
 		RageException::Throw("%s", error.c_str());
 
 	return pRet;
@@ -868,7 +869,7 @@ SwitchToLastPlayedGame()
 	const Game* pGame = GAMEMAN->StringToGame(PREFSMAN->GetCurrentGame());
 
 	// If the active game type isn't actually available, revert to the default.
-	if (pGame == NULL)
+	if (pGame == nullptr)
 		pGame = GAMEMAN->GetDefaultGame();
 
 	if (!GAMEMAN->IsGameEnabled(pGame) && pGame != GAMEMAN->GetDefaultGame()) {
@@ -905,7 +906,7 @@ StepMania::InitializeCurrentGame(const Game* g)
 	if (GetCommandlineArgument("game", &argCurGame) &&
 		argCurGame != sGametype) {
 		Game const* new_game = GAMEMAN->StringToGame(argCurGame);
-		if (new_game == NULL) {
+		if (new_game == nullptr) {
 			LOG->Warn("%s is not a known game type, ignoring.",
 					  argCurGame.c_str());
 		} else {
@@ -1119,7 +1120,7 @@ sm_main(int argc, char* argv[])
 	LoadingWindow* pLoadingWindow = nullptr;
 	if (!noWindow) {
 		pLoadingWindow = LoadingWindow::Create();
-		if (pLoadingWindow == NULL)
+		if (pLoadingWindow == nullptr)
 			RageException::Throw(
 			  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
 	}
@@ -1190,12 +1191,12 @@ sm_main(int argc, char* argv[])
 		std::string sError;
 		RageSurface* pSurface = RageSurfaceUtils::LoadFile(
 		  THEME->GetPathG("Common", "window icon"), sError);
-		if (pSurface != NULL)
+		if (pSurface != nullptr)
 			pLoadingWindow->SetIcon(pSurface);
 		delete pSurface;
 		pSurface = RageSurfaceUtils::LoadFile(
 		  THEME->GetPathG("Common", "splash"), sError);
-		if (pSurface != NULL)
+		if (pSurface != nullptr)
 			pLoadingWindow->SetSplash(pSurface);
 		delete pSurface;
 	}
@@ -1301,9 +1302,9 @@ StepMania::SaveScreenshot(const std::string& Dir,
 	std::string FileNameNoExtension =
 	  NamePrefix + DateTime::GetNowDateTime().GetString() + NameSuffix;
 	// replace space with underscore.
-	s_replace(FileNameNoExtension, ' ', '_');
+	s_replace(FileNameNoExtension, " ", "_");
 	// colons are illegal in filenames.
-	s_replace(FileNameNoExtension, ':', '\0');
+	s_replace(FileNameNoExtension, ":", "");
 
 	// Save the screenshot. If writing lossy to a memcard, use
 	// SAVE_LOSSY_LOW_QUAL, so we don't eat up lots of space.

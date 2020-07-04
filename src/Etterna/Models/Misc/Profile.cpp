@@ -21,6 +21,7 @@
 #include "Etterna/Models/Misc/Game.h"
 #include <algorithm>
 #include "Etterna/Models/Misc/XMLProfile.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "RageUtil/Misc/RageString.h"
 

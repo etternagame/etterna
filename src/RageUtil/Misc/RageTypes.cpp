@@ -66,7 +66,7 @@ RageColor::ToString() const
 }
 
 std::string
-RageColor::NormalizeColostd::string(const std::string& sColor)
+RageColor::NormalizeColorString(const std::string& sColor)
 {
 	if (sColor.empty())
 		return "";

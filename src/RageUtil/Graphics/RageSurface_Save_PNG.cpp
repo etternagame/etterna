@@ -11,7 +11,7 @@
 // Note: This function is only called on RageDisplay.cpp:978 and the sError
 // result is not used in the response.
 bool
-RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, RString& sError)
+RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, std::string& sError)
 {
 	// Functions from "stb_image_write.h" return 0 on failure
 	f.Close(); // The RageFile reference is already opened. Should be closed for

@@ -104,7 +104,7 @@ ScreenSelectMaster::Init()
 		{
 			std::string sElement = "Cursor" + PLAYER_APPEND_NO_SPACE(*p);
 			m_sprCursor.Load(THEME->GetPathG(m_sName, sElement));
-			s_replace(sElement, ' ', '\0');
+			s_replace(sElement, " ", "");
 			m_sprCursor->SetName(sElement);
 			this->AddChild(m_sprCursor);
 			LOAD_ALL_COMMANDS(m_sprCursor);

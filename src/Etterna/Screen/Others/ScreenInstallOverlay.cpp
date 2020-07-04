@@ -56,8 +56,8 @@ IsHTTPProtocol(const std::string& arg)
 static bool
 IsPackageFile(const std::string& arg)
 {
-	std::string ext = GetExtension(arg);
-	return ext.EqualsNoCase("smzip") || ext.EqualsNoCase("zip");
+	auto ext = GetExtension(arg);
+	return EqualsNoCase(ext, "smzip") || EqualsNoCase(ext, "zip");
 }
 
 void
@@ -70,9 +70,9 @@ EnsureSlashEnding(std::string& path)
 void
 DoInstalls(CommandLineActions::CommandLineArgs args)
 {
-	bool reload = false;
+	auto reload = false;
 	for (size_t i = 0; i < args.argv.size(); i++) {
-		std::string s = args.argv[i];
+		auto s = args.argv[i];
 		if (s == "notedataCache") {
 			// TODO: Create the directories if they dont exist
 			string packFolder = "packbanner/";
@@ -104,7 +104,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					  path.c_str(),
 					  f.GetError().c_str());
 				}
-				string p = f.GetPath();
+				auto p = f.GetPath();
 				f.Close();
 				std::ofstream dst(imgsOutputPath + packFolder + pack +
 									"_packbanner." + GetExtension(path).c_str(),
@@ -113,30 +113,24 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				dst << src.rdbuf();
 				dst.close();
 			}
-			FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), iSong)
-			{
-				Song* pSong = (*iSong);
-
+			for (auto& pSong : SONGMAN->GetAllSongs()) {
 				// Fill steps to save
 				vector<Steps*> vpStepsToSave;
-				FOREACH_CONST(Steps*, pSong->m_vpSteps, s)
-				{
-					Steps* pSteps = *s;
+				for (auto& pSteps : pSong->m_vpSteps) {
 
 					// Only save steps that weren't loaded from a profile.
 					if (pSteps->WasLoadedFromProfile())
 						continue;
 					vpStepsToSave.push_back(pSteps);
 				}
-				FOREACH_CONST(Steps*, pSong->m_UnknownStyleSteps, s)
-				{
-					vpStepsToSave.push_back(*s);
+				for (auto& s : pSong->m_UnknownStyleSteps) {
+					vpStepsToSave.push_back(s);
 				}
 				string songkey;
 				for (auto& st : vpStepsToSave)
 					songkey += st->GetChartKey();
 
-				songkey = BinaryToHex(CRYPTMAN->GetSHA1ForString(songkey));
+				songkey = BinaryToHex(CryptManager::GetSHA1ForString(songkey));
 
 				// Save ssc/sm5 cache file
 				{
@@ -146,8 +140,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					// write uses ragefile. So this way we dont have to mess
 					// with ssc writer
 					std::string tmpOutPutPath = "Cache/tmp.ssc";
-					std::string sscCacheFilePath =
-					  sscOutputPath + songkey + ".ssc";
+					auto sscCacheFilePath = sscOutputPath + songkey + ".ssc";
 
 					NotesWriterSSC::Write(
 					  tmpOutPutPath, *pSong, vpStepsToSave, true);
@@ -159,7 +152,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 						  tmpOutPutPath.c_str(),
 						  f.GetError().c_str());
 					}
-					string p = f.GetPath();
+					auto p = f.GetPath();
 					f.Close();
 					std::ofstream dst(sscCacheFilePath, std::ios::binary);
 					std::ifstream src(p, std::ios::binary);
@@ -170,7 +163,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (pSong->HasBanner()) {
 					RageFile f;
 					f.Open(pSong->GetBannerPath());
-					string p = f.GetPath();
+					auto p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
 					  imgsOutputPath + bannerFolder + songkey + "_banner." +
@@ -184,7 +177,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (pSong->HasCDTitle()) {
 					RageFile f;
 					f.Open(pSong->GetCDTitlePath());
-					string p = f.GetPath();
+					auto p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
 					  imgsOutputPath + cdtitleFolder + songkey + "_cd." +
@@ -198,7 +191,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				if (pSong->HasBackground()) {
 					RageFile f;
 					f.Open(pSong->GetBackgroundPath());
-					string p = f.GetPath();
+					auto p = f.GetPath();
 					f.Close();
 					std::ofstream dst(
 					  imgsOutputPath + bgFolder + songkey + "_bg." +
@@ -210,10 +203,8 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				}
 
 				// Save notedata
-				FOREACH_CONST(Steps*, pSong->GetAllSteps(), iSteps)
-				{
-					Steps* steps = (*iSteps);
-					TimingData* td = steps->GetTimingData();
+				for (auto& steps : pSong->GetAllSteps()) {
+					auto td = steps->GetTimingData();
 					NoteData nd;
 					steps->GetNoteData(nd);
 
@@ -222,8 +213,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					auto& etaner = td->BuildAndGetEtaner(nerv);
 					auto& serializednd = nd.SerializeNoteData(etaner);
 
-					string path =
-					  ndOutputPath + steps->GetChartKey() + ".cache";
+					auto path = ndOutputPath + steps->GetChartKey() + ".cache";
 					ofstream FILE(path, ios::out | ofstream::binary);
 					FILE.write((char*)&serializednd[0],
 							   serializednd.size() * sizeof(NoteInfo));
@@ -297,8 +287,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 {
 	Screen::Update(fDeltaTime);
 	while (CommandLineActions::ToProcess.size() > 0) {
-		CommandLineActions::CommandLineArgs args =
-		  CommandLineActions::ToProcess.back();
+		auto args = CommandLineActions::ToProcess.back();
 		CommandLineActions::ToProcess.pop_back();
 		DoInstalls(args);
 	}

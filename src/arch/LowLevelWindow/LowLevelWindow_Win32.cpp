@@ -14,21 +14,21 @@
 #include <GL/glew.h>
 
 static PIXELFORMATDESCRIPTOR g_CurrentPixelFormat;
-static HGLRC g_HGLRC = NULL;
-static HGLRC g_HGLRC_Background = NULL;
+static HGLRC g_HGLRC = nullptr;
+static HGLRC g_HGLRC_Background = nullptr;
 
 static void
 DestroyGraphicsWindowAndOpenGLContext()
 {
-	if (g_HGLRC != NULL) {
-		wglMakeCurrent(NULL, NULL);
+	if (g_HGLRC != nullptr) {
+		wglMakeCurrent(nullptr, nullptr);
 		wglDeleteContext(g_HGLRC);
-		g_HGLRC = NULL;
+		g_HGLRC = nullptr;
 	}
 
-	if (g_HGLRC_Background != NULL) {
+	if (g_HGLRC_Background != nullptr) {
 		wglDeleteContext(g_HGLRC_Background);
-		g_HGLRC_Background = NULL;
+		g_HGLRC_Background = nullptr;
 	}
 
 	ZERO(g_CurrentPixelFormat);
@@ -39,11 +39,11 @@ DestroyGraphicsWindowAndOpenGLContext()
 void*
 LowLevelWindow_Win32::GetProcAddress(const std::string& s)
 {
-	void* pRet = (void*)wglGetProcAddress(s);
-	if (pRet != NULL)
+	void* pRet = (void*)wglGetProcAddress(s.c_str());
+	if (pRet != nullptr)
 		return pRet;
 
-	return (void*)::GetProcAddress(GetModuleHandle(NULL), s);
+	return (void*)::GetProcAddress(GetModuleHandle(nullptr), s);
 }
 
 LowLevelWindow_Win32::LowLevelWindow_Win32()
@@ -157,7 +157,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 	bool bCanSetPixelFormat = true;
 
 	/* Do we have an old window? */
-	if (GraphicsWindow::GetHwnd() == NULL) {
+	if (GraphicsWindow::GetHwnd() == nullptr) {
 		/* No.  Always create and show the window before changing the video
 		 * mode. Otherwise, some other window may have focus, and changing the
 		 * video mode will cause that window to be resized. */
@@ -217,12 +217,12 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		 */
 		LOG->Trace("Mode requires new pixel format, and we've already set one; "
 				   "resetting OpenGL context");
-		if (g_HGLRC != NULL) {
-			wglMakeCurrent(NULL, NULL);
+		if (g_HGLRC != nullptr) {
+			wglMakeCurrent(nullptr, nullptr);
 			wglDeleteContext(g_HGLRC);
-			g_HGLRC = NULL;
+			g_HGLRC = nullptr;
 			wglDeleteContext(g_HGLRC_Background);
-			g_HGLRC_Background = NULL;
+			g_HGLRC_Background = nullptr;
 		}
 
 		bNewDeviceOut = true;
@@ -249,23 +249,24 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		DumpPixelFormat(g_CurrentPixelFormat);
 	}
 
-	if (g_HGLRC == NULL) {
+	if (g_HGLRC == nullptr) {
 		g_HGLRC = wglCreateContext(GraphicsWindow::GetHDC());
-		if (g_HGLRC == NULL) {
+		if (g_HGLRC == nullptr) {
 			DestroyGraphicsWindowAndOpenGLContext();
 			return hr_ssprintf(GetLastError(), "wglCreateContext");
 		}
 
 		g_HGLRC_Background = wglCreateContext(GraphicsWindow::GetHDC());
-		if (g_HGLRC_Background == NULL) {
+		if (g_HGLRC_Background == nullptr) {
 			DestroyGraphicsWindowAndOpenGLContext();
 			return hr_ssprintf(GetLastError(), "wglCreateContext");
 		}
 
 		if (!wglShareLists(g_HGLRC, g_HGLRC_Background)) {
-			LOG->Warn(werr_ssprintf(GetLastError(), "wglShareLists failed"));
+			LOG->Warn(
+			  werr_ssprintf(GetLastError(), "wglShareLists failed").c_str());
 			wglDeleteContext(g_HGLRC_Background);
-			g_HGLRC_Background = NULL;
+			g_HGLRC_Background = nullptr;
 		}
 
 		if (!wglMakeCurrent(GraphicsWindow::GetHDC(), g_HGLRC)) {
@@ -279,14 +280,14 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 bool
 LowLevelWindow_Win32::SupportsThreadedRendering()
 {
-	return g_HGLRC_Background != NULL;
+	return g_HGLRC_Background != nullptr;
 }
 
 void
 LowLevelWindow_Win32::BeginConcurrentRendering()
 {
 	if (!wglMakeCurrent(GraphicsWindow::GetHDC(), g_HGLRC_Background)) {
-		LOG->Warn(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
+		LOG->Warn(hr_ssprintf(GetLastError(), "wglMakeCurrent").c_str());
 		FAIL_M(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
 	}
 }
@@ -294,7 +295,7 @@ LowLevelWindow_Win32::BeginConcurrentRendering()
 void
 LowLevelWindow_Win32::EndConcurrentRendering()
 {
-	wglMakeCurrent(NULL, NULL);
+	wglMakeCurrent(nullptr, nullptr);
 }
 
 static LocalizedString OPENGL_NOT_AVAILABLE(
@@ -303,13 +304,9 @@ static LocalizedString OPENGL_NOT_AVAILABLE(
 bool
 LowLevelWindow_Win32::IsSoftwareRenderer(std::string& sError)
 {
-	std::string sVendor = (const char*)glGetString(GL_VENDOR);
-	std::string sRenderer = (const char*)glGetString(GL_RENDERER);
-
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("LowLevelWindow_Win32::IsSoftwareRenderer '%s', '%s'",
-				   sVendor.c_str(),
-				   sRenderer.c_str());
+	std::string sVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	std::string sRenderer =
+	  reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 
 	if (sVendor == "Microsoft Corporation" && sRenderer == "GDI Generic") {
 		sError = OPENGL_NOT_AVAILABLE;
@@ -365,8 +362,8 @@ RenderTarget_Win32::RenderTarget_Win32(LowLevelWindow_Win32* pWind)
 {
 	m_pWind = pWind;
 	m_texHandle = 0;
-	m_hOldDeviceContext = NULL;
-	m_hOldRenderContext = NULL;
+	m_hOldDeviceContext = nullptr;
+	m_hOldRenderContext = nullptr;
 }
 
 RenderTarget_Win32::~RenderTarget_Win32()
@@ -410,7 +407,7 @@ RenderTarget_Win32::Create(const RenderTargetParam& param,
 				 0,
 				 type,
 				 GL_UNSIGNED_BYTE,
-				 NULL);
+				 nullptr);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -455,8 +452,8 @@ RenderTarget_Win32::FinishRenderingTo()
 	  successful == TRUE,
 	  "wglMakeCurrent failed in RenderTarget_Win32::FinishRenderingTo()");
 
-	m_hOldDeviceContext = 0;
-	m_hOldRenderContext = 0;
+	m_hOldDeviceContext = nullptr;
+	m_hOldRenderContext = nullptr;
 }
 
 RenderTarget*

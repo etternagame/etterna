@@ -50,14 +50,6 @@ RageFileDriver::GetDirListing(const std::string& sPath,
 {
 	FDB->GetDirListing(sPath, asAddTo, bOnlyDirs, bReturnPathToo);
 }
-void
-RageFileDriver::GetDirListing(const std::string& sPath,
-							  vector<std::string>& asAddTo,
-							  bool bOnlyDirs,
-							  bool bReturnPathToo)
-{
-	FDB->GetDirListing(sPath, asAddTo, bOnlyDirs, bReturnPathToo);
-}
 
 RageFileManager::FileType
 RageFileDriver::GetFileType(const std::string& sPath)
@@ -102,7 +94,7 @@ MakeFileDriver(const std::string& sType, const std::string& sRoot)
 {
 	for (const FileDriverEntry* p = g_pFileDriverList; p != nullptr;
 		 p = p->m_pLink)
-		if (!p->m_sType.CompareNoCase(sType))
+		if (!CompareNoCase(p->m_sType, sType))
 			return p->Create(sRoot);
 	return nullptr;
 }

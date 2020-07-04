@@ -464,7 +464,7 @@ NoteSkinManager::GetPath(const std::string& sButtonName,
 				break; // done searching
 		}
 
-		if (sRealPath == "") {
+		if (sRealPath.empty()) {
 			auto message =
 			  ssprintf("NoteSkinManager:  The redirect \"%s\" points to the "
 					   "file \"%s\", which does not exist. "

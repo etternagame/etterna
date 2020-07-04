@@ -196,7 +196,7 @@ class LunaStyle : public Luna<Style>
 		ret.Set(L, "Track");
 		lua_pushnumber(L, p->m_ColumnInfo[iCol].fXOffset);
 		ret.Set(L, "XOffset");
-		lua_pushstring(L, p->ColToButtonName(iCol));
+		lua_pushstring(L, p->ColToButtonName(iCol).c_str());
 		ret.Set(L, "Name");
 
 		ret.PushSelf(L);

@@ -43,6 +43,7 @@
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 #define SONG_POSITION_METER_WIDTH                                              \
 	THEME->GetMetricF(m_sName, "SongPositionMeterWidth")

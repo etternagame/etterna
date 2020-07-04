@@ -7,6 +7,7 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 Foreground::~Foreground()
 {

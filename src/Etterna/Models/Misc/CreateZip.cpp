@@ -590,7 +590,7 @@ const ulg crc_table[256] = {
 ulg
 crc32(ulg crc, const uch* buf, size_t len)
 {
-	if (buf == NULL)
+	if (buf == nullptr)
 		return 0L;
 	crc = crc ^ 0xffffffffL;
 	while (len >= 8) {
@@ -608,7 +608,7 @@ class TZip
 {
   public:
 	TZip()
-	  : pfout(NULL)
+	  : pfout(nullptr)
 	{
 		opos = 0;
 		mapsize = 0;
@@ -618,7 +618,7 @@ class TZip
 		isize = 0;
 		ired = 0;
 		crc = 0;
-		bufin = 0;
+		bufin = nullptr;
 		lenin = 0;
 		posin = 0;
 		csize = 0;
@@ -712,7 +712,7 @@ unsigned int
 TZip::write(const char* buf, unsigned int size)
 {
 	const char* srcbuf = buf;
-	if (pfout != NULL) {
+	if (pfout != nullptr) {
 		unsigned long writ = pfout->Write(srcbuf, size);
 		return writ;
 	}
@@ -919,7 +919,7 @@ TZip::Add(const TCHAR* odstzn, const TCHAR* src, unsigned long flags)
 
 	// Initialize the local header
 	TZipFileInfo zfi;
-	zfi.nxt = NULL;
+	zfi.nxt = nullptr;
 	strcpy(zfi.name, "");
 #ifdef UNICODE
 	WideCharToMultiByte(CP_UTF8, 0, dstzn, -1, zfi.iname, MAX_PATH, 0, 0);
@@ -932,13 +932,13 @@ TZip::Add(const TCHAR* odstzn, const TCHAR* src, unsigned long flags)
 		zfi.nam++;
 	}
 	strcpy(zfi.zname, "");
-	zfi.extra = NULL;
+	zfi.extra = nullptr;
 	zfi.ext =
 	  0; // extra header to go after this compressed data, and its length
-	zfi.cextra = NULL;
+	zfi.cextra = nullptr;
 	zfi.cext = 0; // extra header to go in the central end-of-zip directory, and
 				  // its length
-	zfi.comment = NULL;
+	zfi.comment = nullptr;
 	zfi.com = 0; // comment, and its length
 	zfi.mark = 1;
 	zfi.dosflag = 0;
@@ -1043,11 +1043,11 @@ TZip::Add(const TCHAR* odstzn, const TCHAR* src, unsigned long flags)
 	zfi.cextra = cextra;
 	auto* pzfi = new TZipFileInfo;
 	memcpy(pzfi, &zfi, sizeof(zfi));
-	if (zfis == NULL)
+	if (zfis == nullptr)
 		zfis = pzfi;
 	else {
 		TZipFileInfo* z = zfis;
-		while (z->nxt != NULL)
+		while (z->nxt != nullptr)
 			z = z->nxt;
 		z->nxt = pzfi;
 	}
@@ -1062,7 +1062,7 @@ TZip::AddCentral()
 	ulg pos_at_start_of_central = writ;
 	// ulg tot_unc_size=0, tot_compressed_size=0;
 	bool okay = true;
-	for (TZipFileInfo* zfi = zfis; zfi != NULL;) {
+	for (TZipFileInfo* zfi = zfis; zfi != nullptr;) {
 		if (okay) {
 			int res = putcentral(zfi, swrite, this);
 			if (res != ZE_OK)
@@ -1075,7 +1075,7 @@ TZip::AddCentral()
 		numentries++;
 		//
 		TZipFileInfo* zfinext = zfi->nxt;
-		if (zfi->cextra != 0)
+		if (zfi->cextra != nullptr)
 			delete[] zfi->cextra;
 		delete zfi;
 		zfi = zfinext;
@@ -1086,7 +1086,7 @@ TZip::AddCentral()
 						 center_size,
 						 pos_at_start_of_central + ooffset,
 						 0,
-						 NULL,
+						 nullptr,
 						 swrite,
 						 this);
 		if (res != ZE_OK)
@@ -1102,7 +1102,7 @@ ZRESULT lasterrorZ = ZR_OK;
 
 CreateZip::CreateZip()
 {
-	hz = NULL;
+	hz = nullptr;
 }
 
 bool
@@ -1122,13 +1122,14 @@ MakeDestZipFileName(std::string fn)
 bool
 CreateZip::AddFile(std::string fn)
 {
-	lasterrorZ = hz->Add(MakeDestZipFileName(fn), fn, ZIP_FILENAME);
+	lasterrorZ =
+	  hz->Add(MakeDestZipFileName(fn).c_str(), fn.c_str(), ZIP_FILENAME);
 	return lasterrorZ == ZR_OK;
 }
 bool
 CreateZip::AddDir(std::string fn)
 {
-	lasterrorZ = hz->Add(MakeDestZipFileName(fn), NULL, ZIP_FOLDER);
+	lasterrorZ = hz->Add(MakeDestZipFileName(fn).c_str(), nullptr, ZIP_FOLDER);
 	return lasterrorZ == ZR_OK;
 }
 bool

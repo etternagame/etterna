@@ -38,7 +38,7 @@ struct RageFileObjMemFile
 
 RageFileObjMem::RageFileObjMem(RageFileObjMemFile* pFile)
 {
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		pFile = new RageFileObjMemFile;
 
 	m_pFile = pFile;
@@ -155,9 +155,9 @@ RageFileDriverMem::Open(const std::string& sPath, int mode, int& err)
 
 	RageFileObjMemFile* pFile =
 	  reinterpret_cast<RageFileObjMemFile*>(FDB->GetFilePriv(sPath));
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		err = ENOENT;
-		return NULL;
+		return nullptr;
 	}
 
 	return new RageFileObjMem(pFile);
@@ -170,7 +170,7 @@ RageFileDriverMem::Remove(const std::string& sPath)
 
 	RageFileObjMemFile* pFile =
 	  reinterpret_cast<RageFileObjMemFile*>(FDB->GetFilePriv(sPath));
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return false;
 
 	/* Unregister the file. */

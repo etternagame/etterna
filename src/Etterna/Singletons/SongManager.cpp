@@ -1391,7 +1391,7 @@ SongManager::GetSongFromDir(std::string dir) const
 {
 	ensure_slash_at_end(dir);
 
-	s_replace(dir, '\\', '/');
+	s_replace(dir, "\\", "/");
 	dir = make_lower(dir);
 	map<std::string, Song*>::const_iterator entry = m_SongsByDir.find(dir);
 	if (entry != m_SongsByDir.end()) {
@@ -1417,7 +1417,7 @@ SongManager::GetSongFromDir(std::string dir) const
 Song*
 SongManager::FindSong(std::string sPath) const
 {
-	s_replace(sPath, '\\', '/');
+	s_replace(sPath, "\\", "/");
 	vector<std::string> bits;
 	split(sPath, "/", bits);
 

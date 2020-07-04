@@ -388,7 +388,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		insertSong.bind(index++, song.m_sCDTitleFile);
 		insertSong.bind(index++, song.m_sMusicFile);
 		insertSong.bind(index++, song.m_PreviewFile);
-		auto vs = song.GetInstrumentTracksToVectostd::string();
+		auto vs = song.GetInstrumentTracksToVectorString();
 		if (!vs.empty()) {
 			std::string s = join(",", vs);
 			insertSong.bind(index++, s);
@@ -440,38 +440,32 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_STOP, 3)));
 		insertSong.bind(
 		  index++,
-		  join(",\r\n",
-			   song.m_SongTiming.ToVectorString(SEGMENT_DELAY, 3)));
+		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_DELAY, 3)));
 		insertSong.bind(
 		  index++,
 		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_WARP, 3)));
 		insertSong.bind(
 		  index++,
-		  join(",\r\n",
-			   song.m_SongTiming.ToVectorString(SEGMENT_TIME_SIG, 3)));
+		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_TIME_SIG, 3)));
 		insertSong.bind(
 		  index++,
 		  join(",\r\n",
 			   song.m_SongTiming.ToVectorString(SEGMENT_TICKCOUNT, 3)));
 		insertSong.bind(
 		  index++,
-		  join(",\r\n",
-			   song.m_SongTiming.ToVectorString(SEGMENT_COMBO, 3)));
+		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_COMBO, 3)));
 		insertSong.bind(
 		  index++,
-		  join(",\r\n",
-			   song.m_SongTiming.ToVectorString(SEGMENT_SPEED, 3)));
+		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_SPEED, 3)));
 		insertSong.bind(
 		  index++,
-		  join(",\r\n",
-			   song.m_SongTiming.ToVectorString(SEGMENT_SCROLL, 3)));
+		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_SCROLL, 3)));
 		insertSong.bind(
 		  index++,
 		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_FAKE, 3)));
 		insertSong.bind(
 		  index++,
-		  join(",\r\n",
-			   song.m_SongTiming.ToVectorString(SEGMENT_LABEL, 3)));
+		  join(",\r\n", song.m_SongTiming.ToVectorString(SEGMENT_LABEL, 3)));
 		if (song.GetSpecifiedLastSecond() > 0) {
 			insertSong.bind(index++, song.GetSpecifiedLastSecond());
 		} else {
@@ -929,7 +923,7 @@ SongCacheIndex::MangleName(const std::string& Name)
 {
 	/* We store paths in an INI.  We can't store '='. */
 	std::string ret = Name;
-	s_replace(ret, '=', '\0');
+	s_replace(ret, "=", "");
 	return ret;
 }
 

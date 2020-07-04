@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <corecrt_wstring.h>
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */
@@ -250,9 +251,9 @@ EqualsNoCase(const std::string& a, const std::string& b)
 }
 
 static inline void
-s_replace(std::string& target, char* from, char* to)
+s_replace(std::string& target, const char* from, const char* to)
 {
-	std::replace(target.begin(), target.end(), from, to);
+	std::replace(target.begin(), target.end(), char(from), char(to));
 }
 
 static inline void

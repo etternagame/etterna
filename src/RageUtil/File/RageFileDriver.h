@@ -20,10 +20,6 @@ class RageFileDriver
 							   vector<std::string>& asAddTo,
 							   bool bOnlyDirs,
 							   bool bReturnPathToo);
-	virtual void GetDirListing(const std::string& sPath,
-							   vector<std::string>& asAddTo,
-							   bool bOnlyDirs,
-							   bool bReturnPathToo);
 	virtual RageFileManager::FileType GetFileType(const std::string& sPath);
 	virtual int GetFileSizeInBytes(const std::string& sFilePath);
 	virtual int GetFileHash(const std::string& sPath);

@@ -40,7 +40,7 @@ class RageFileDriverReadAhead : public RageFileObj
 	RageFileBasic* m_pFile;
 	int m_iFilePos;
 	bool m_bFileOwned;
-	RString m_sBuffer;
+	std::string m_sBuffer;
 	int m_iPostBufferReadAhead;
 	bool m_bReadAheadNeeded = false;
 };

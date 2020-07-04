@@ -15,6 +15,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 
