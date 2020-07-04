@@ -182,7 +182,7 @@ GetTimingTags(vector<std::string>& lines,
 
 	WRITE_SEG_LOOP_OPEN(SEGMENT_LABEL, LabelSegment, "LABELS", ToLabel);
 	if (!segment->GetLabel().empty()) {
-		writer.Write(segment->GetRow(), segment->GetLabel());
+		writer.Write(segment->GetRow(), segment->GetLabel().c_str());
 	}
 	WRITE_SEG_LOOP_CLOSE;
 
@@ -445,7 +445,7 @@ GetETTNoteData(const Song& song, Steps& in)
 			break;
 	}
 
-	RString sNoteData;
+	std::string sNoteData;
 	in.GetETTNoteData(sNoteData);
 	lines.emplace_back(song.m_vsKeysoundFile.empty() ? "#NOTES:" : "#NOTES2:");
 

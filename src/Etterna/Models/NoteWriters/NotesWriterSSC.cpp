@@ -185,7 +185,7 @@ GetTimingTags(vector<std::string>& lines,
 
 	WRITE_SEG_LOOP_OPEN(SEGMENT_LABEL, LabelSegment, "LABELS", ToLabel);
 	if (!segment->GetLabel().empty()) {
-		writer.Write(segment->GetRow(), segment->GetLabel());
+		writer.Write(segment->GetRow(), segment->GetLabel().c_str());
 	}
 	WRITE_SEG_LOOP_CLOSE;
 
@@ -451,7 +451,7 @@ GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 		lines.emplace_back(
 		  ssprintf("#STEPFILENAME:%s;", in.GetFilename().c_str()));
 	} else {
-		RString sNoteData = "";
+		std::string sNoteData = "";
 
 		/* hack to ensure notedata exists when changing offset from gameplay not
 		sure what i/we could have done to mess up the original flow but all the
@@ -555,7 +555,7 @@ NotesWriterSSC::GetEditFileName(const Song* pSong, const Steps* pSteps)
 	/* Try to make a unique name. This isn't guaranteed. Edit descriptions are
 	 * case-sensitive, filenames on disk are usually not, and we decimate
 	 * certain characters for FAT filesystems. */
-	RString sFile =
+	std::string sFile =
 	  pSong->GetTranslitFullTitle() + " - " + pSteps->GetDescription();
 
 	// HACK:

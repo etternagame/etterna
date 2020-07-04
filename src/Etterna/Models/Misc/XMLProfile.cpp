@@ -48,7 +48,7 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 	}
 #define WARN_M(m)                                                              \
 	ShowWarningOrTrace(                                                        \
-	  __FILE__, __LINE__, RString("Error parsing file: ") + (m), true)
+	  __FILE__, __LINE__, std::string("Error parsing file: ") + (m), true)
 #define WARN_AND_RETURN_M(m)                                                   \
 	{                                                                          \
 		WARN_M(m);                                                             \
@@ -335,9 +335,9 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	{
 		XNode* pDefaultModifiers =
 		  pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST(
-		  std::string, std::string, profile->m_sDefaultModifiers, it)
-		pDefaultModifiers->AppendChild(it->first, it->second);
+		for (auto& it : profile->m_sDefaultModifiers) {
+			pDefaultModifiers->AppendChild(it.first, it.second);
+		}
 	}
 
 	{
@@ -495,9 +495,6 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
-		if (pScreenshot->GetName() != "Screenshot")
-			WARN_AND_CONTINUE_M(pScreenshot->GetName().c_str());
-
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
 
@@ -514,9 +511,8 @@ XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 
 	XNode* pNode = new XNode("ScreenshotData");
 
-	FOREACH_CONST(Screenshot, profile->m_vScreenshots, ss)
-	{
-		pNode->AppendChild(ss->CreateNode());
+	for (auto& ss : profile->m_vScreenshots) {
+		pNode->AppendChild(ss.CreateNode());
 	}
 
 	return pNode;
@@ -531,7 +527,6 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 		return ProfileLoadResult_FailedNoProfile;
 
 	if (xml->GetName() != "Stats") {
-		WARN_M(xml->GetName().c_str());
 		return ProfileLoadResult_FailedTampered;
 	}
 

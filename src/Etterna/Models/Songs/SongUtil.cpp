@@ -698,6 +698,7 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 		default:
 			FAIL_M(ssprintf("Invalid SortOrder: %i", so));
 	}
+	return {};
 }
 
 void

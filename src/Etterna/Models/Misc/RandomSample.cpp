@@ -15,7 +15,7 @@ RandomSample::~RandomSample()
 }
 
 bool
-RandomSample::Load(const RString& sFilePath, int iMaxToLoad)
+RandomSample::Load(const std::string& sFilePath, int iMaxToLoad)
 {
 	if (GetExtension(sFilePath) == "")
 		return LoadSoundDir(sFilePath, iMaxToLoad);
@@ -32,7 +32,7 @@ RandomSample::UnloadAll()
 }
 
 bool
-RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
+RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 {
 	if (sDir == "")
 		return true;
@@ -58,7 +58,7 @@ RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
 }
 
 bool
-RandomSample::LoadSound(const RString& sSoundFilePath)
+RandomSample::LoadSound(const std::string& sSoundFilePath)
 {
 	LOG->Trace("RandomSample::LoadSound( %s )", sSoundFilePath.c_str());
 

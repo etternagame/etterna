@@ -49,7 +49,7 @@ static LocalizedString PROFILE_NAME_CONFLICTS("ScreenEditMenu",
 											  "with another profile. Please "
 											  "use a different name.");
 static bool
-ValidateLocalProfileName(const RString& sAnswer, RString& sErrorOut)
+ValidateLocalProfileName(const std::string& sAnswer, std::string& sErrorOut)
 {
 	if (sAnswer == "") {
 		sErrorOut = PROFILE_NAME_BLANK;
@@ -114,7 +114,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 		Profile* pProfile = PROFILEMAN->GetLocalProfile(*s);
 		ASSERT(pProfile != NULL);
 
-		RString sCommand =
+		std::string sCommand =
 		  ssprintf("gamecommand;screen,ScreenOptionsCustomizeProfile;profileid,"
 				   "%s;name,dummy",
 				   s->c_str());
@@ -142,15 +142,16 @@ ScreenOptionsManageProfiles::BeginScreen()
 
 	// Save sEditLocalProfileID before calling ScreenOptions::BeginScreen,
 	// because it will get clobbered.
-	RString sEditLocalProfileID = GAMESTATE->m_sEditLocalProfileID;
+	std::string sEditLocalProfileID = GAMESTATE->m_sEditLocalProfileID;
 
 	ScreenOptions::BeginScreen();
 
 	// select the last chosen profile
 	if (!sEditLocalProfileID.empty()) {
-		vector<RString>::const_iterator iter = find(m_vsLocalProfileID.begin(),
-													m_vsLocalProfileID.end(),
-													sEditLocalProfileID);
+		vector<std::string>::const_iterator iter =
+		  find(m_vsLocalProfileID.begin(),
+			   m_vsLocalProfileID.end(),
+			   sEditLocalProfileID);
 		if (iter != m_vsLocalProfileID.end()) {
 			int iIndex = iter - m_vsLocalProfileID.begin();
 			this->MoveRowAbsolute(PLAYER_1, 1 + iIndex);
@@ -186,13 +187,13 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 			ASSERT(ScreenTextEntry::s_sLastAnswer !=
 				   ""); // validate should have assured this
 
-			RString sNewName = ScreenTextEntry::s_sLastAnswer;
+			std::string sNewName = ScreenTextEntry::s_sLastAnswer;
 			ASSERT(GAMESTATE->m_sEditLocalProfileID.Get().empty());
 
 			int iNumProfiles = PROFILEMAN->GetNumLocalProfiles();
 
 			// create
-			RString sProfileID;
+			std::string sProfileID;
 
 			// is this the correct way to go about checking the return value?
 			// -aj
@@ -204,11 +205,11 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 
 			if (iNumProfiles < NUM_PLAYERS) {
 				int iFirstUnused = -1;
-				FOREACH_CONST(Preference<RString>*,
+				FOREACH_CONST(Preference<std::string>*,
 							  PROFILEMAN->m_sDefaultLocalProfileID.m_v,
 							  i)
 				{
-					RString sLocalProfileID = (*i)->Get();
+					std::string sLocalProfileID = (*i)->Get();
 					if (sLocalProfileID.empty()) {
 						iFirstUnused =
 						  i - PROFILEMAN->m_sDefaultLocalProfileID.m_v.begin();
@@ -228,7 +229,7 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 			ASSERT(ScreenTextEntry::s_sLastAnswer !=
 				   ""); // validate should have assured this
 
-			RString sNewName = ScreenTextEntry::s_sLastAnswer;
+			std::string sNewName = ScreenTextEntry::s_sLastAnswer;
 			PROFILEMAN->RenameLocalProfile(GAMESTATE->m_sEditLocalProfileID,
 										   sNewName);
 
@@ -265,8 +266,8 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 											   ValidateLocalProfileName);
 				} break;
 				case ProfileAction_Clear: {
-					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf(
+					std::string sTitle = pProfile->m_sDisplayName;
+					std::string sMessage = ssprintf(
 					  CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str());
 					ScreenPrompt::Prompt(
 					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
@@ -311,10 +312,10 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
 	{
-		vector<RString> vsUsedNames;
+		vector<std::string> vsUsedNames;
 		PROFILEMAN->GetLocalProfileDisplayNames(vsUsedNames);
 
-		RString sPotentialName;
+		std::string sPotentialName;
 		for (int i = 1; i < 1000; i++) {
 			sPotentialName = ssprintf(
 			  "%s%04d", NEW_PROFILE_DEFAULT_NAME.GetValue().c_str(), i);
@@ -389,11 +390,11 @@ ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 	return iIndex;
 }
 
-RString
+std::string
 ScreenOptionsManageProfiles::GetLocalProfileIDWithFocus() const
 {
 	int iIndex = GetLocalProfileIndexWithFocus();
 	if (iIndex == -1)
-		return RString();
+		return std::string();
 	return m_vsLocalProfileID[iIndex];
 }
