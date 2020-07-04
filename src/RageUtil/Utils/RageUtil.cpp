@@ -13,6 +13,7 @@
 #include <numeric>
 #include <sstream>
 #include <cassert>
+#include <cctype>
 
 #ifdef _WIN32
 #include <Windows.h>
