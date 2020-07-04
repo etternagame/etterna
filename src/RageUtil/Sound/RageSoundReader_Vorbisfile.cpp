@@ -10,6 +10,8 @@
 #include <vorbis/vorbisfile.h>
 #endif
 
+#include <cstdarg>
+
 #include "RageUtil/File/RageFile.h"
 
 static size_t

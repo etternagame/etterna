@@ -5,7 +5,6 @@
 
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include <map>
 
 class FontPage;
 class RageTexture;
@@ -76,9 +75,9 @@ struct FontPageSettings
 	float m_fScaleAllWidthsBy{ 1 };
 	std::string m_sTextureHints;
 
-	map<wchar_t, int> CharToGlyphNo;
+	std::map<wchar_t, int> CharToGlyphNo;
 	// If a value is missing, the width of the texture frame is used.
-	map<int, int> m_mapGlyphWidths;
+	std::map<int, int> m_mapGlyphWidths;
 
 	/** @brief The initial settings for the FontPage. */
 	FontPageSettings()
@@ -90,16 +89,17 @@ struct FontPageSettings
 	}
 
 	/**
-	 * @brief Map a range from a character map to glyphs.
+	 * @brief Map a range from a character std::map to glyphs.
 	 * @param sMapping the intended mapping.
 	 * @param iMapOffset the number of maps to offset.
 	 * @param iGlyphOffset the number of glyphs to offset.
-	 * @param iCount the range to map. If -1, the range is the entire map.
+	 * @param iCount the range to std::map. If -1, the range is the entire
+	 * std::map.
 	 * @return the empty string on success, or an error message on failure. */
 	std::string MapRange(const std::string& sMapping,
-					 int iMapOffset,
-					 int iGlyphOffset,
-					 int iCount);
+						 int iMapOffset,
+						 int iGlyphOffset,
+						 int iCount);
 };
 
 class FontPage
@@ -125,13 +125,14 @@ class FontPage
 	std::string m_sTexturePath;
 
 	/** @brief All glyphs in this list will point to m_pTexture. */
-	vector<glyph> m_aGlyphs;
+	std::vector<glyph> m_aGlyphs;
 
-	map<wchar_t, int> m_iCharToGlyphNo;
+	std::map<wchar_t, int> m_iCharToGlyphNo;
 
   private:
 	void SetExtraPixels(int iDrawExtraPixelsLeft, int DrawExtraPixelsRight);
-	void SetTextureCoords(const vector<int>& aiWidths, int iAdvanceExtraPixels);
+	void SetTextureCoords(const std::vector<int>& aiWidths,
+						  int iAdvanceExtraPixels);
 };
 
 class Font
@@ -145,11 +146,11 @@ class Font
 
 	const glyph& GetGlyph(wchar_t c) const;
 
-	int GetLineWidthInSourcePixels(const wstring& szLine) const;
-	int GetLineHeightInSourcePixels(const wstring& szLine) const;
-	int GetGlyphsThatFit(const wstring& line, int* width) const;
+	int GetLineWidthInSourcePixels(const std::wstring& szLine) const;
+	int GetLineHeightInSourcePixels(const std::wstring& szLine) const;
+	int GetGlyphsThatFit(const std::wstring& line, int* width) const;
 
-	bool FontCompleteForString(const wstring& str) const;
+	bool FontCompleteForString(const std::wstring& str) const;
 
 	/**
 	 * @brief Add a FontPage to this font.
@@ -162,7 +163,8 @@ class Font
 	 * @param f the font whose pages we are stealing. */
 	void MergeFont(Font& f);
 
-	void Load(const std::string& sFontOrTextureFilePath, const std::string& sChars);
+	void Load(const std::string& sFontOrTextureFilePath,
+			  const std::string& sChars);
 	void Unload();
 	void Reload();
 
@@ -184,7 +186,7 @@ class Font
   private:
 	/** @brief List of pages and fonts that we use (and are responsible for
 	 * freeing). */
-	vector<FontPage*> m_apPages;
+	std::vector<FontPage*> m_apPages;
 
 	/**
 	 * @brief This is the primary fontpage of this font.
@@ -194,7 +196,7 @@ class Font
 	FontPage* m_pDefault;
 
 	/** @brief Map from characters to glyphs. */
-	map<wchar_t, glyph*> m_iCharToGlyph;
+	std::map<wchar_t, glyph*> m_iCharToGlyph;
 	/** @brief Each glyph is part of one of the pages[]. */
 	glyph* m_iCharToGlyphCache[128];
 
@@ -216,7 +218,7 @@ class Font
 							  const std::string& PageName,
 							  const std::string& sChars);
 	static void GetFontPaths(const std::string& sFontOrTextureFilePath,
-							 vector<std::string>& sTexturePaths);
+							 std::vector<std::string>& sTexturePaths);
 	std::string GetPageNameFromFileName(const std::string& sFilename);
 
 	Font(const Font& rhs);

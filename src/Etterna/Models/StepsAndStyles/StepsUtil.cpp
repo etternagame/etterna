@@ -133,8 +133,8 @@ bool
 StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 											 const Steps* pStep2)
 {
-	return StdString::ssicmp(pStep1->GetDescription().c_str(),
-							 pStep2->GetDescription().c_str()) < 0;
+	return CompareNoCase(pStep1->GetDescription(), pStep2->GetDescription()) <
+		   0;
 }
 
 void

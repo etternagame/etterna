@@ -174,7 +174,6 @@ struct CompileAssertDecl
 #define COMPILE_ASSERT(COND)                                                   \
 	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
 
-#include "StdString.h"
 /** @brief Use std::strings throughout the program. */
 using std::string;
 

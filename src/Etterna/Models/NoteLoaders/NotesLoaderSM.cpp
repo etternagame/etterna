@@ -1408,9 +1408,8 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 
 				// If the last BGA is already the song BGA, don't add a
 				// duplicate.
-				if (!bg.empty() &&
-					!StdString::ssicmp(bg.back().m_def.m_sFile1.c_str(),
-									   song.m_sBackgroundFile.c_str()))
+				if (!bg.empty() && !ssicmp(bg.back().m_def.m_sFile1.c_str(),
+										   song.m_sBackgroundFile.c_str()))
 					break;
 
 				if (!IsAFile(song.GetBackgroundPath()))

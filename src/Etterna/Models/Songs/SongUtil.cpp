@@ -1,3 +1,4 @@
+#include <functional>
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
@@ -560,7 +561,7 @@ CompareSongPointersByGroup(const Song* pSong1, const Song* pSong2)
 		return 1;
 	return 0;
 }
-std::function<int(const Song* pSong1, const Song* pSong2)>
+function<int(const Song* pSong1, const Song* pSong2)>
 CompareSongPointersByGroupAndMSD(Skillset ss)
 {
 	return [ss](const Song* pSong1, const Song* pSong2) {

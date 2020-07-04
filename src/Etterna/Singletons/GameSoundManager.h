@@ -1,6 +1,7 @@
 #ifndef RAGE_SOUNDS_H
 #define RAGE_SOUNDS_H
 
+#include <functional>
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include "MessageManager.h"
 

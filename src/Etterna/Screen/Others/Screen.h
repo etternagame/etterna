@@ -1,6 +1,8 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include <functional>
+
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Models/Misc/CodeSet.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
