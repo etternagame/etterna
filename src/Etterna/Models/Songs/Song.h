@@ -302,7 +302,7 @@ class Song
 
 	/** @brief Get the highest value for a specific skillset for the song at a
 	   given rate, within the step types of the current game mode. */
-	float HighestMSDOfSkillset(int x, float rate) const;
+	float HighestMSDOfSkillset(Skillset skill, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const;
 	/** @brief This functions returns whether it has any chart of the given
 	   types with the given rate. If no type is given  it checks all charts.*/

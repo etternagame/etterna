@@ -1686,7 +1686,7 @@ Song::GetPreviewStartSeconds() const
 }
 
 float
-Song::HighestMSDOfSkillset(int x, float rate) const
+Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 {
 	CLAMP(rate, 0.7f, 2.f);
 	float highest = 0.f;
@@ -1704,7 +1704,7 @@ Song::HighestMSDOfSkillset(int x, float rate) const
 	}
 
 	for (auto step : steps) {
-		float current = step->GetMSD(rate, x);
+		float current = step->GetMSD(rate, skill);
 		if (current > highest)
 			highest = current;
 	}
