@@ -1685,23 +1685,27 @@ Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
+const vector<Steps*>
+Song::GetStepsOfCurrentGameMode() const
+{
+	std::vector<StepsType> types;
+	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
+
+	vector<Steps*> steps;
+	for (auto type : types) {
+		vector<Steps*> tmp = GetStepsByStepsType(type);
+		steps.insert(steps.end(), tmp.begin(), tmp.end());
+	}
+	return steps;
+}
+
 float
 Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 {
 	CLAMP(rate, 0.7f, 2.f);
 	float highest = 0.f;
 
-	std::vector<StepsType> types;
-	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
-
-	// TODO: Condense this "Get steps of current game mode" into its own helper
-	// function.
-	vector<Steps*> steps;
-	for (auto type : types) {
-		vector<Steps*> tmp = GetStepsByStepsType(type);
-		steps.insert(
-		  steps.end(), tmp.begin(), tmp.end()); // Append them to the list
-	}
+	const vector<Steps*> steps = GetStepsOfCurrentGameMode();
 
 	for (auto step : steps) {
 		float current = step->GetMSD(rate, skill);
@@ -1731,8 +1735,6 @@ Song::MatchesFilter(
   const float rate,
   const std::optional<const std::vector<StepsType>> types) const
 {
-	// TODO: Condense this "Get steps of current game mode" into its own helper
-	// function.
 	vector<Steps*> steps;
 	if (types) {
 		for (auto type : *types) {

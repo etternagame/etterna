@@ -417,6 +417,8 @@ class Song
 	{
 		return m_vpStepsByType[st];
 	}
+	/** @brief Get the steps of all types within the current game mode */
+	const vector<Steps*> GetStepsOfCurrentGameMode() const;
 	bool HasEdits(StepsType st) const;
 
 	bool IsFavorited() { return isfavorited; }
