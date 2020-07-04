@@ -84,7 +84,9 @@ struct ConfOption
 		MakeOptionsListCB = nullptr;
 		m_iEffects = 0;
 		m_bAllowThemeItems = true;
-#define PUSH(c) names.push_back(c);
+#define PUSH(c)                                                                \
+	if (c)                                                                     \
+		names.push_back(c);
 		PUSH(c0);
 		PUSH(c1);
 		PUSH(c2);
@@ -106,7 +108,7 @@ struct ConfOption
 		PUSH(c18);
 		PUSH(c19);
 	}
-	void AddOption(const std::string& sName) { PUSH(sName); }
+	void AddOption(const std::string& sName) { PUSH(sName.c_str()); }
 #undef PUSH
 
 	ConfOption(const char* n,

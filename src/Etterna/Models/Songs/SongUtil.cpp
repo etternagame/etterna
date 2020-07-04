@@ -683,8 +683,8 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			  SecondsToMMSS(static_cast<float>(iMaxLength)).c_str());
 		}
 		case SORT_TOP_GRADES: {
-			auto p = PROFILEMAN->GetProfile(PLAYER_1);
-			auto s =
+			auto* p = PROFILEMAN->GetProfile(PLAYER_1);
+			const auto* s =
 			  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
 			if (p == nullptr || s == nullptr)
 				return GradeToLocalizedString(Grade_Invalid);
@@ -762,7 +762,7 @@ SongUtil::IsEditDescriptionUnique(const Song* pSong,
 								  const std::string& sPreferredDescription,
 								  const Steps* pExclude)
 {
-	for (auto& s : pSong->GetAllSteps()) {
+	for (const auto& s : pSong->GetAllSteps()) {
 		auto* pSteps = s;
 
 		if (pSteps->GetDifficulty() != Difficulty_Edit)
@@ -783,10 +783,7 @@ SongUtil::IsChartNameUnique(const Song* pSong,
 							const std::string& name,
 							const Steps* pExclude)
 {
-	FOREACH_CONST(Steps*, pSong->GetAllSteps(), s)
-	{
-		Steps* pSteps = *s;
-
+	for (const auto& pSteps : pSong->GetAllSteps()) {
 		if (pSteps->m_StepsType != st)
 			continue;
 		if (pSteps == pExclude)
@@ -810,8 +807,8 @@ SongUtil::MakeUniqueEditDescription(const Song* pSong,
 	for (int i = 0; i < 1000; i++) {
 		// make name "My Edit" -> "My Edit2"
 		std::string sNum = ssprintf("%d", i + 1);
-		sTemp = head(sPreferredDescription,
-					 MAX_STEPS_DESCRIPTION_LENGTH - sNum.size()) +
+		sTemp = sPreferredDescription.substr(
+				  0, MAX_STEPS_DESCRIPTION_LENGTH - sNum.size()) +
 				sNum;
 
 		if (IsEditDescriptionUnique(pSong, st, sTemp, nullptr))
@@ -1107,7 +1104,7 @@ SongUtil::GetStepsTypeAndDifficultyFromSortOrder(SortOrder so,
 void
 SongID::FromSong(const Song* p)
 {
-	if (p)
+	if (p != nullptr)
 		sDir = p->GetSongDir();
 	else
 		sDir = "";
@@ -1115,8 +1112,11 @@ SongID::FromSong(const Song* p)
 	// HACK for backwards compatibility:
 	// Strip off leading "/".  2005/05/21 file layer changes added a leading
 	// slash.
-	if (sDir.front() == '/')
-		sDir.erase(sDir.begin());
+	if (!sDir.empty()) {
+		if (sDir.front() == '/') {
+			sDir.erase(sDir.begin());
+		}
+	}
 
 	m_Cache.Unset();
 }

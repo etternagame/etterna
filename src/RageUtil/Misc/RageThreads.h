@@ -8,6 +8,7 @@
 #include <chrono>
 #include <condition_variable>
 #include "Etterna/Singletons/PrefsManager.h"
+#include <functional>
 
 class ThreadData
 {

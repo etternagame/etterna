@@ -92,7 +92,7 @@ IniFile::ReadFile(RageFileBasic& f)
 				size_t iEqualIndex = line.find('=');
 				if (iEqualIndex != string::npos) {
 					std::string valuename =
-					  tail(line, static_cast<int>(iEqualIndex));
+					  line.substr(0, static_cast<int>(iEqualIndex));
 					std::string value =
 					  tail(line, line.size() - valuename.size() - 1);
 					Trim(valuename);
