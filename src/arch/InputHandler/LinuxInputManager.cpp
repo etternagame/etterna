@@ -15,10 +15,10 @@
 
 #include <errno.h>
 
-RString
-getDevice(RString inputDir, RString type)
+std::string
+getDevice(std::string inputDir, std::string type)
 {
-	RString result = "";
+	std::string result = "";
 	DIR* dir = opendir(inputDir.c_str());
 	if (dir == NULL) {
 		LOG->Warn("LinuxInputManager: Couldn't open %s: %s.",
@@ -30,7 +30,7 @@ getDevice(RString inputDir, RString type)
 	struct dirent* d;
 	while ((d = readdir(dir)) != NULL)
 		if (strncmp(type.c_str(), d->d_name, type.size()) == 0) {
-			result = RString("/dev/input/") + d->d_name;
+			result = std::string("/dev/input/") + d->d_name;
 			break;
 		}
 
@@ -69,7 +69,7 @@ LinuxInputManager::LinuxInputManager()
 		if (strncmp("input", d->d_name, 5) != 0)
 			continue;
 
-		RString dName = RString("/sys/class/input/") + d->d_name;
+		std::string dName = std::string("/sys/class/input/") + d->d_name;
 
 		bool bEventPresent = getDevice(dName, "event") != "";
 		if (m_bEventEnabled && bEventPresent) {
@@ -95,9 +95,9 @@ LinuxInputManager::InitDriver(InputHandler_Linux_Event* driver)
 {
 	m_EventDriver = driver;
 
-	FOREACH(RString, m_vsPendingEventDevices, dev)
+	FOREACH(std::string, m_vsPendingEventDevices, dev)
 	{
-		RString devFile = getDevice(*dev, "event");
+		std::string devFile = getDevice(*dev, "event");
 		ASSERT(devFile != "");
 
 		if (!driver->TryDevice(devFile) && m_bJoystickEnabled &&
@@ -115,9 +115,9 @@ LinuxInputManager::InitDriver(InputHandler_Linux_Joystick* driver)
 {
 	m_JoystickDriver = driver;
 
-	FOREACH(RString, m_vsPendingJoystickDevices, dev)
+	FOREACH(std::string, m_vsPendingJoystickDevices, dev)
 	{
-		RString devFile = getDevice(*dev, "js");
+		std::string devFile = getDevice(*dev, "js");
 		ASSERT(devFile != "");
 
 		driver->TryDevice(devFile);

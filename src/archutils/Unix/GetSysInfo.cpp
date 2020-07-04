@@ -6,7 +6,7 @@
 #endif
 
 void
-GetKernel(RString& sys, int& iVersion)
+GetKernel(std::string& sys, int& iVersion)
 {
 	struct utsname uts;
 	uname(&uts);

@@ -391,7 +391,7 @@ CrashHandler::ForceCrash(const char* reason)
 }
 
 void
-CrashHandler::ForceDeadlock(RString reason, uint64_t iID)
+CrashHandler::ForceDeadlock(std::string reason, uint64_t iID)
 {
 	CrashData crash;
 	memset(&crash, 0, sizeof(crash));

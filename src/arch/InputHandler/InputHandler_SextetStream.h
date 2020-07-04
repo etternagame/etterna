@@ -38,7 +38,7 @@ class InputHandler_SextetStreamFromFile : public InputHandler_SextetStream
 	// couldn't get RageFile to work here, possibly because I haven't
 	// determined how to disable buffering on an input file.)
 	InputHandler_SextetStreamFromFile();
-	InputHandler_SextetStreamFromFile(const RString& filename);
+	InputHandler_SextetStreamFromFile(const std::string& filename);
 
 	// The file object passed here must already be open and buffering should
 	// be disabled. The file object will be closed in the destructor.

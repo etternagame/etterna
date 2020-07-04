@@ -130,7 +130,7 @@ void ArchHooks_MacOSX::Init()
 	CFRelease( path );
 }
 
-RString ArchHooks_MacOSX::GetArchName() const
+std::string ArchHooks_MacOSX::GetArchName() const
 {
 #if defined(__i386__)
 	return "Mac OS X (i386)";
@@ -144,7 +144,7 @@ RString ArchHooks_MacOSX::GetArchName() const
 void ArchHooks_MacOSX::DumpDebugInfo()
 {
 	// Get system version (like 10.x.x)
-	RString SystemVersion;
+	std::string SystemVersion;
 	{
 		// http://stackoverflow.com/a/891336
 		NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
@@ -177,7 +177,7 @@ void ArchHooks_MacOSX::DumpDebugInfo()
 	int iCPUs = 0;
 	float fFreq;
 	char freqPower;
-	RString sModel;
+	std::string sModel;
 	do {
 		char szModel[128];
 		uint64_t iFreq;
@@ -239,11 +239,11 @@ void ArchHooks_MacOSX::DumpDebugInfo()
 	LOG->Info( "Memory: %.2f %cB", fRam, ramPower );
 }
 
-RString ArchHooks::GetPreferredLanguage()
+std::string ArchHooks::GetPreferredLanguage()
 {
 	CFStringRef app = kCFPreferencesCurrentApplication;
 	CFTypeRef t = CFPreferencesCopyAppValue( CFSTR("AppleLanguages"), app );
-	RString ret = "en";
+	std::string ret = "en";
 
 	if( t == NULL )
 		return ret;
@@ -262,7 +262,7 @@ RString ArchHooks::GetPreferredLanguage()
 		// MacRoman agrees with ASCII in the low-order 7 bits.
 		const char *str = CFStringGetCStringPtr( lang, kCFStringEncodingMacRoman );
 		if( str )
-			ret = RString( str, 2 );
+			ret = std::string( str, 2 );
 		else
 			LOG->Warn( "Unable to determine system language. Using English." );
 	}
@@ -271,7 +271,7 @@ RString ArchHooks::GetPreferredLanguage()
 	return ret;
 }
 
-bool ArchHooks_MacOSX::GoToURL( const RString &sUrl )
+bool ArchHooks_MacOSX::GoToURL( const std::string &sUrl )
 {
 	CFURLRef url = CFURLCreateWithBytes( kCFAllocatorDefault, (const UInt8*)sUrl.data(),
 						 sUrl.length(), kCFStringEncodingUTF8, NULL );
@@ -313,7 +313,7 @@ static void PathForFolderType( char dir[PATH_MAX], OSType folderType )
 		FAIL_M( "FSRefMakePath() failed." );
 }
 
-void ArchHooks::MountInitialFilesystems( const RString &sDirOfExecutable )
+void ArchHooks::MountInitialFilesystems( const std::string &sDirOfExecutable )
 {
 	char dir[PATH_MAX];
 	CFURLRef dataUrl = CFBundleCopyResourceURL( CFBundleGetMainBundle(), CFSTR("StepMania"), CFSTR("smzip"), NULL );
@@ -332,7 +332,7 @@ void ArchHooks::MountInitialFilesystems( const RString &sDirOfExecutable )
 	}
 }
 
-void ArchHooks::MountUserFilesystems( const RString &sDirOfExecutable )
+void ArchHooks::MountUserFilesystems( const std::string &sDirOfExecutable )
 {
 	char dir[PATH_MAX];
 

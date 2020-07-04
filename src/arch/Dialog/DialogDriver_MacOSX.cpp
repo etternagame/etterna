@@ -10,7 +10,7 @@ REGISTER_DIALOG_DRIVER_CLASS(MacOSX);
 
 static CFOptionFlags
 ShowAlert(CFOptionFlags flags,
-		  const RString& sMessage,
+		  const std::string& sMessage,
 		  CFStringRef OK,
 		  CFStringRef alt = NULL,
 		  CFStringRef other = NULL)
@@ -20,7 +20,7 @@ ShowAlert(CFOptionFlags flags,
 	  CFStringCreateWithCString(NULL, sMessage, kCFStringEncodingUTF8);
 
 	if (text == NULL) {
-		RString error =
+		std::string error =
 		  ssprintf("CFString for dialog string \"%s\" could not be created.",
 				   sMessage.c_str());
 		WARN(error);
@@ -56,7 +56,7 @@ ShowAlert(CFOptionFlags flags,
 	CFBundleCopyLocalizedString((b), CFSTR(x), NULL, CFSTR("Localizable"))
 
 void
-DialogDriver_MacOSX::OK(const RString& sMessage, const RString& sID)
+DialogDriver_MacOSX::OK(const std::string& sMessage, const std::string& sID)
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sDSA = LSTRING(bundle, "Don't show again");
@@ -69,13 +69,13 @@ DialogDriver_MacOSX::OK(const RString& sMessage, const RString& sID)
 }
 
 void
-DialogDriver_MacOSX::Error(const RString& sError, const RString& sID)
+DialogDriver_MacOSX::Error(const std::string& sError, const std::string& sID)
 {
 	ShowAlert(kCFUserNotificationStopAlertLevel, sError, CFSTR("OK"));
 }
 
 Dialog::Result
-DialogDriver_MacOSX::OKCancel(const RString& sMessage, const RString& sID)
+DialogDriver_MacOSX::OKCancel(const std::string& sMessage, const std::string& sID)
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sOK = LSTRING(bundle, "OK");
@@ -97,8 +97,8 @@ DialogDriver_MacOSX::OKCancel(const RString& sMessage, const RString& sID)
 }
 
 Dialog::Result
-DialogDriver_MacOSX::AbortRetryIgnore(const RString& sMessage,
-									  const RString& sID)
+DialogDriver_MacOSX::AbortRetryIgnore(const std::string& sMessage,
+									  const std::string& sID)
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sIgnore = LSTRING(bundle, "Ignore");
@@ -125,7 +125,7 @@ DialogDriver_MacOSX::AbortRetryIgnore(const RString& sMessage,
 }
 
 Dialog::Result
-DialogDriver_MacOSX::AbortRetry(const RString& sMessage, const RString& sID)
+DialogDriver_MacOSX::AbortRetry(const std::string& sMessage, const std::string& sID)
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sRetry = LSTRING(bundle, "Retry");
@@ -147,7 +147,7 @@ DialogDriver_MacOSX::AbortRetry(const RString& sMessage, const RString& sID)
 }
 
 Dialog::Result
-DialogDriver_MacOSX::YesNo(const RString& sMessage, const RString& sID)
+DialogDriver_MacOSX::YesNo(const std::string& sMessage, const std::string& sID)
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	CFStringRef sYes = LSTRING(bundle, "Yes");

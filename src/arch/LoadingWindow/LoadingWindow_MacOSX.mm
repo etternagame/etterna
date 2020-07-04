@@ -123,7 +123,7 @@ LoadingWindow_MacOSX::~LoadingWindow_MacOSX()
 	[pool release];
 }
 
-void LoadingWindow_MacOSX::SetText( const RString &str )
+void LoadingWindow_MacOSX::SetText( const std::string &str )
 {
 	if( !g_Helper )
 		return;
@@ -135,8 +135,8 @@ void LoadingWindow_MacOSX::SetText( const RString &str )
 void LoadingWindow_MacOSX::SetSplash( const RageSurface *pSplash )
 {
 	RageFile f;
-	RString data;
-	vector<RString> vs;
+	std::string data;
+	vector<std::string> vs;
 
 	// Try to load a custom splash from the current theme, first.
 	GetDirListing( THEME->GetPathG( "Common", "splash"), vs, false, true );

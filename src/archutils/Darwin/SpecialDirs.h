@@ -2,7 +2,7 @@
 #define SPECIAL_DIRS_H
 
 namespace SpecialDirs {
-RString
+std::string
 GetDesktopDir();
 };
 

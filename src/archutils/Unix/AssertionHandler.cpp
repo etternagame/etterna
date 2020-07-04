@@ -17,7 +17,7 @@ __assert_fail(const char* assertion,
 			  unsigned int line,
 			  const char* function) throw()
 {
-	const RString error =
+	const std::string error =
 	  ssprintf("Assertion failure: %s: %s", function, assertion);
 
 	Checkpoints::SetCheckpoint(file, line, error);
@@ -30,7 +30,7 @@ __assert_perror_fail(int errnum,
 					 unsigned int line,
 					 const char* function) throw()
 {
-	const RString error =
+	const std::string error =
 	  ssprintf("Assertion failure: %s: %s", function, strerror(errnum));
 
 	Checkpoints::SetCheckpoint(file, line, error);
@@ -49,7 +49,7 @@ UnexpectedExceptionHandler()
 	int iStatus = -1;
 	char* pDem = abi::__cxa_demangle(pName, 0, 0, &iStatus);
 
-	const RString error =
+	const std::string error =
 	  ssprintf("Unhandled exception: %s", iStatus ? pName : pDem);
 	sm_crash(error);
 }
