@@ -10,6 +10,7 @@
 #include <memory>
 #include <algorithm>
 #include <string>
+#include <cstring>
 
 class RageFileDriver;
 
