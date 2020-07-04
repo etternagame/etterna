@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <string>
 #include <cstring>
+#include <sstream>
+#include <utility>
 
 class RageFileDriver;
 
