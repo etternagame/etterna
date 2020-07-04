@@ -13,6 +13,7 @@
 #include <cstring>
 #include <sstream>
 #include <utility>
+#include <iosfwd>
 
 class RageFileDriver;
 
