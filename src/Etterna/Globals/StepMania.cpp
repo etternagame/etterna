@@ -340,7 +340,7 @@ StepMania::ResetGame()
 		std::string sGameName = GAMESTATE->GetCurrentGame()->m_szName;
 		if (!THEME->DoesThemeExist(sGameName))
 			sGameName =
-			  PREFSMAN->m_sDefaultTheme; // was previously "default" -aj
+			  PREFSMAN->m_sDefaultTheme.Get(); // was previously "default" -aj
 		THEME->SwitchThemeAndLanguage(
 		  sGameName, THEME->GetCurLanguage(), PREFSMAN->m_bPseudoLocalize);
 		TEXTUREMAN->DoDelayedDelete();
