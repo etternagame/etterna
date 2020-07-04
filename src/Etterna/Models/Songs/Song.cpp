@@ -1731,21 +1731,9 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 }
 
 bool
-Song::MatchesFilter(
-  const float rate,
-  const std::optional<const std::vector<StepsType>> types) const
+Song::MatchesFilter(const float rate) const
 {
-	vector<Steps*> steps;
-	if (types) {
-		for (auto type : *types) {
-			vector<Steps*> tmp =
-			  GetStepsByStepsType(type); // Get all charts of type "type"
-			steps.insert(
-			  steps.end(), tmp.begin(), tmp.end()); // Append them to the list
-		}
-	} else {
-		steps = GetAllSteps();
-	}
+	vector<Steps*> steps = GetStepsOfCurrentGameMode();
 
 	for (const auto step : steps) {
 		// Iterate over all maps of the given type

@@ -9,7 +9,6 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include <set>
-#include <optional>
 using std::string;
 
 class Style;
@@ -304,11 +303,10 @@ class Song
 	   given rate, within the step types of the current game mode. */
 	float HighestMSDOfSkillset(Skillset skill, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const;
-	/** @brief This functions returns whether it has any chart of the given
-	   types with the given rate. If no type is given  it checks all charts.*/
-	bool MatchesFilter(const float rate,
-					   const std::optional<const std::vector<StepsType>> types =
-						 std::nullopt) const;
+	/** @brief This functions returns whether the song has a chart within the
+	   current game mode and of the given rate that matches the current
+	   filter.*/
+	bool MatchesFilter(const float rate) const;
 
 	bool HasChartByHash(const string& hash);
 
