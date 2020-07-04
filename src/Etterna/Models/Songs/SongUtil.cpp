@@ -381,12 +381,10 @@ static bool
 CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 {
 	// Prefer transliterations to full titles
-	float msd1 = pSong1->GetHighestOfSkillsetAllSteps(
-	  static_cast<int>(ss),
-	  GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
-	float msd2 = pSong2->GetHighestOfSkillsetAllSteps(
-	  static_cast<int>(ss),
-	  GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	float msd1 = pSong1->HighestMSDOfSkillset(
+	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	float msd2 = pSong2->HighestMSDOfSkillset(
+	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
 
 	if (msd1 < msd2)
 		return true;
