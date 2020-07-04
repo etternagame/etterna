@@ -12,6 +12,7 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include <cstring>
 
 REGISTER_ACTOR_CLASS(Model);
 
