@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "ModelTypes.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -8,6 +7,7 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include <cstring>
 
 #define MS_MAX_NAME 32
 
@@ -29,7 +29,7 @@ AnimatedTexture::~AnimatedTexture()
 void
 AnimatedTexture::LoadBlank()
 {
-	AnimatedTextureState state(NULL, 1, RageVector2(0, 0));
+	AnimatedTextureState state(nullptr, 1, RageVector2(0, 0));
 	vFrames.push_back(state);
 }
 
@@ -52,7 +52,7 @@ AnimatedTexture::Load(const std::string& sTexOrIniPath)
 								 ini.GetError().c_str());
 
 		const XNode* pAnimatedTexture = ini.GetChild("AnimatedTexture");
-		if (pAnimatedTexture == NULL)
+		if (pAnimatedTexture == nullptr)
 			RageException::Throw("The animated texture file \"%s\" doesn't "
 								 "contain a section called "
 								 "\"AnimatedTexture\".",
@@ -119,7 +119,7 @@ RageTexture*
 AnimatedTexture::GetCurrentTexture()
 {
 	if (vFrames.empty())
-		return NULL;
+		return nullptr;
 	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	return vFrames[m_iCurState].pTexture;
 }
@@ -141,8 +141,8 @@ float
 AnimatedTexture::GetAnimationLengthSeconds() const
 {
 	float fTotalSeconds = 0;
-	FOREACH_CONST(AnimatedTextureState, vFrames, ats)
-	fTotalSeconds += ats->fDelaySecs;
+	for (auto& ats : vFrames)
+		fTotalSeconds += ats.fDelaySecs;
 	return fTotalSeconds;
 }
 

@@ -5,20 +5,17 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 ModelManager* MODELMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 ModelManager::ModelManager() = default;
 
 ModelManager::~ModelManager()
 {
-	for (std::map<std::string, RageModelGeometry*>::iterator i =
-		   m_mapFileToGeometry.begin();
-		 i != m_mapFileToGeometry.end();
-		 ++i) {
-		RageModelGeometry* pGeom = i->second;
+	for (auto& i : m_mapFileToGeometry) {
+		RageModelGeometry* pGeom = i.second;
 		if (pGeom->m_iRefCount)
 			LOG->Trace("MODELMAN LEAK: '%s', RefCount = %d.",
-					   i->first.c_str(),
+					   i.first.c_str(),
 					   pGeom->m_iRefCount);
 		SAFE_DELETE(pGeom);
 	}

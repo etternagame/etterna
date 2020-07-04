@@ -96,8 +96,8 @@ Sprite::InitState()
 void
 Sprite::SetAllStateDelays(float fDelay)
 {
-	for (unsigned int i = 0; i < m_States.size(); i++) {
-		m_States[i].fDelay = fDelay;
+	for (auto& m_State : m_States) {
+		m_State.fDelay = fDelay;
 	}
 	RecalcAnimationLengthSeconds();
 }
