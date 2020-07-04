@@ -10,7 +10,7 @@
 #include "Etterna/Globals/SpecialFiles.h"
 
 PrefsManager* PREFSMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 static const char* MusicWheelUsesSectionsNames[] = {
 	"Never",
@@ -446,7 +446,7 @@ PrefsManager::SavePrefsToIni(IniFile& ini)
 		StoreGamePrefs();
 
 	XNode* pNode = ini.GetChild("Options");
-	if (pNode == NULL)
+	if (pNode == nullptr)
 		pNode = ini.AppendChild("Options");
 	IPreference::SavePrefsToNode(pNode);
 
@@ -488,7 +488,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 	{
 		std::string sName = SArg(1);
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
-		if (pPref == NULL) {
+		if (pPref == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "GetPreference: unknown preference \"%s\"", sName.c_str());
 			lua_pushnil(L);
@@ -503,7 +503,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		std::string sName = SArg(1);
 
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
-		if (pPref == NULL) {
+		if (pPref == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "SetPreference: unknown preference \"%s\"", sName.c_str());
 			COMMON_RETURN_SELF;
@@ -518,7 +518,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		std::string sName = SArg(1);
 
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
-		if (pPref == NULL) {
+		if (pPref == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "SetPreferenceToDefault: unknown preference \"%s\"",
 			  sName.c_str());
@@ -536,7 +536,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		std::string sName = SArg(1);
 
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
-		if (pPref == NULL) {
+		if (pPref == nullptr) {
 			lua_pushboolean(L, 0);
 			return 1;
 		}

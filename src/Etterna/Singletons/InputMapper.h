@@ -140,7 +140,7 @@ struct AutoMappings
 
 	// Strings used by automatic joystick mappings.
 	std::string m_sGame;		   // only used
-	std::string m_sDriverRegex;	// reported by InputHandler
+	std::string m_sDriverRegex;	   // reported by InputHandler
 	std::string m_sControllerName; // the product name of the controller
 
 	vector<AutoMappingEntry> m_vMaps;
@@ -253,11 +253,11 @@ class InputMapper
 
 	bool IsBeingPressed(const GameInput& GameI,
 						MultiPlayer mp = MultiPlayer_Invalid,
-						const DeviceInputList* pButtonState = NULL) const;
+						const DeviceInputList* pButtonState = nullptr) const;
 	bool IsBeingPressed(GameButton MenuI, PlayerNumber pn) const;
 	bool IsBeingPressed(const vector<GameInput>& GameI,
 						MultiPlayer mp = MultiPlayer_Invalid,
-						const DeviceInputList* pButtonState = NULL) const;
+						const DeviceInputList* pButtonState = nullptr) const;
 
 	void ResetKeyRepeat(const GameInput& GameI);
 	void ResetKeyRepeat(GameButton MenuI, PlayerNumber pn);

@@ -233,7 +233,7 @@ inline CURL*
 initCURLHandle(bool withBearer)
 {
 	CURL* curlHandle = initBasicCURLHandle();
-	struct curl_slist* list = NULL;
+	struct curl_slist* list = nullptr;
 	if (withBearer)
 		list = curl_slist_append(
 		  list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
