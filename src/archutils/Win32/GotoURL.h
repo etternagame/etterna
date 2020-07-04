@@ -3,6 +3,6 @@
 
 /** @brief Open URLs in a browser. */
 bool
-GotoURL(const RString& sUrl);
+GotoURL(const std::string& sUrl);
 
 #endif

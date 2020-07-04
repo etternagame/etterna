@@ -8,7 +8,7 @@
 CsvFile::CsvFile() = default;
 
 bool
-CsvFile::ReadFile(const RString& sPath)
+CsvFile::ReadFile(const std::string& sPath)
 {
 	m_sPath = sPath;
 	CHECKPOINT_M(ssprintf("Reading '%s'", m_sPath.c_str()));
@@ -32,7 +32,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 	// hi,"hi2,","""hi3"""
 
 	for (;;) {
-		RString line;
+		std::string line;
 		switch (f.GetLine(line)) {
 			case -1:
 				m_sError = f.GetError();
@@ -43,13 +43,13 @@ CsvFile::ReadFile(RageFileBasic& f)
 
 		utf8_remove_bom(line);
 
-		vector<RString> vs;
+		vector<std::string> vs;
 
 		while (!line.empty()) {
 			if (line[0] == '\"') // quoted value
 			{
 				line.erase(line.begin()); // eat open quote
-				RString::size_type iEnd = 0;
+				std::string::size_type iEnd = 0;
 				do {
 					iEnd = line.find('\"', iEnd);
 					if (iEnd == line.npos) {
@@ -66,7 +66,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 						break;
 				} while (true);
 
-				RString sValue = line;
+				std::string sValue = line;
 				sValue = sValue.Left(iEnd);
 				vs.push_back(sValue);
 
@@ -75,12 +75,12 @@ CsvFile::ReadFile(RageFileBasic& f)
 				if (!line.empty() && line[0] == '\"')
 					line.erase(line.begin());
 			} else {
-				RString::size_type iEnd = line.find(',');
+				std::string::size_type iEnd = line.find(',');
 				if (iEnd == line.npos)
 					iEnd =
 					  line.size(); // didn't find an end.  Take the whole line
 
-				RString sValue = line;
+				std::string sValue = line;
 				sValue = sValue.Left(iEnd);
 				vs.push_back(sValue);
 
@@ -96,7 +96,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 }
 
 bool
-CsvFile::WriteFile(const RString& sPath) const
+CsvFile::WriteFile(const std::string& sPath) const
 {
 	RageFile f;
 	if (!f.Open(sPath, RageFile::WRITE)) {
@@ -114,10 +114,10 @@ CsvFile::WriteFile(RageFileBasic& f) const
 {
 	FOREACH_CONST(StringVector, m_vvs, line)
 	{
-		RString sLine;
-		FOREACH_CONST(RString, *line, value)
+		std::string sLine;
+		FOREACH_CONST(std::string, *line, value)
 		{
-			RString sVal = *value;
+			std::string sVal = *value;
 			sVal.Replace("\"", "\"\""); // escape quotes to double-quotes
 			sLine += "\"" + sVal + "\"";
 			if (value != line->end() - 1)

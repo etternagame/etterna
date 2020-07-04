@@ -136,7 +136,7 @@ Style::GetWidth(PlayerNumber pn) const
 	return width + (width / static_cast<float>(m_iColsPerPlayer - 1));
 }
 
-RString
+std::string
 Style::ColToButtonName(int iCol) const
 {
 	const char* pzColumnName = m_ColumnInfo[iCol].pzName;
@@ -157,7 +157,7 @@ class LunaStyle : public Luna<Style>
   public:
 	static int GetName(T* p, lua_State* L)
 	{
-		LuaHelpers::Push(L, (RString)p->m_szName);
+		LuaHelpers::Push(L, (std::string)p->m_szName);
 		return 1;
 	}
 	DEFINE_METHOD(GetStyleType, m_StyleType)

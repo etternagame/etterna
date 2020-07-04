@@ -19,15 +19,14 @@ RandomSample::Load(const std::string& sFilePath, int iMaxToLoad)
 {
 	if (GetExtension(sFilePath) == "")
 		return LoadSoundDir(sFilePath, iMaxToLoad);
-	else
-		return LoadSound(sFilePath);
+	return LoadSound(sFilePath);
 }
 
 void
 RandomSample::UnloadAll()
 {
-	for (unsigned i = 0; i < m_pSamples.size(); i++)
-		delete m_pSamples[i];
+	for (auto& m_pSample : m_pSamples)
+		delete m_pSample;
 	m_pSamples.clear();
 }
 
@@ -38,8 +37,7 @@ RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 		return true;
 
 	// make sure there's a slash at the end of this path
-	if (sDir.Right(1) != "/")
-		sDir += "/";
+	ensure_slash_at_end(sDir);
 
 	vector<std::string> arraySoundFiles;
 	GetDirListing(sDir + "*.mp3", arraySoundFiles);
@@ -51,8 +49,8 @@ RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 	  arraySoundFiles.begin(), arraySoundFiles.end(), g_RandomNumberGenerator);
 	arraySoundFiles.resize(min(arraySoundFiles.size(), (unsigned)iMaxToLoad));
 
-	for (unsigned i = 0; i < arraySoundFiles.size(); i++)
-		LoadSound(sDir + arraySoundFiles[i]);
+	for (auto& arraySoundFile : arraySoundFiles)
+		LoadSound(sDir + arraySoundFile);
 
 	return true;
 }

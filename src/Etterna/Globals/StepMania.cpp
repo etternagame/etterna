@@ -736,8 +736,8 @@ CheckVideoDefaultSettings()
 
 		// Update last seen video card
 		PREFSMAN->m_sLastSeenVideoDriver.Set(GetVideoDriverName());
-	} else if (CompareNoCaseLUL(PREFSMAN->m_sVideoRenderers.Get(),
-								defaults.sVideoRenderers)) {
+	} else if (CompareNoCase(PREFSMAN->m_sVideoRenderers.Get(),
+							 defaults.sVideoRenderers)) {
 		LOG->Warn("Video renderer list has been changed from '%s' to '%s'",
 				  defaults.sVideoRenderers.c_str(),
 				  PREFSMAN->m_sVideoRenderers.Get().c_str());
@@ -818,20 +818,20 @@ CreateDisplay()
 		for (unsigned i = 0; i < asRenderers.size(); i++) {
 			std::string sRenderer = asRenderers[i];
 
-			if (CompareNoCaseLUL(sRenderer, "opengl") == 0) {
+			if (CompareNoCase(sRenderer, "opengl") == 0) {
 #if defined(SUPPORT_OPENGL)
 				pRet = new RageDisplay_Legacy;
 #endif
-			} else if (CompareNoCaseLUL(sRenderer, "gles2") == 0) {
+			} else if (CompareNoCase(sRenderer, "gles2") == 0) {
 #if defined(SUPPORT_GLES2)
 				pRet = new RageDisplay_GLES2;
 #endif
-			} else if (CompareNoCaseLUL(sRenderer, "d3d") == 0) {
+			} else if (CompareNoCase(sRenderer, "d3d") == 0) {
 // TODO: ANGLE/RageDisplay_Modern
 #if defined(SUPPORT_D3D)
 				pRet = new RageDisplay_D3D;
 #endif
-			} else if (CompareNoCaseLUL(sRenderer, "null") == 0) {
+			} else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;
 			} else {
 				RageException::Throw(ERROR_UNKNOWN_VIDEO_RENDERER.GetValue(),

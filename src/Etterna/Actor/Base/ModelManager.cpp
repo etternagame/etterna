@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "ModelManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -11,7 +11,7 @@ ModelManager::ModelManager() = default;
 
 ModelManager::~ModelManager()
 {
-	for (std::map<RString, RageModelGeometry*>::iterator i =
+	for (std::map<std::string, RageModelGeometry*>::iterator i =
 		   m_mapFileToGeometry.begin();
 		 i != m_mapFileToGeometry.end();
 		 ++i) {
@@ -25,9 +25,9 @@ ModelManager::~ModelManager()
 }
 
 RageModelGeometry*
-ModelManager::LoadMilkshapeAscii(const RString& sFile, bool bNeedNormals)
+ModelManager::LoadMilkshapeAscii(const std::string& sFile, bool bNeedNormals)
 {
-	std::map<RString, RageModelGeometry*>::iterator p =
+	std::map<std::string, RageModelGeometry*>::iterator p =
 	  m_mapFileToGeometry.find(sFile);
 	if (p != m_mapFileToGeometry.end()) {
 		/* Found the geometry.  Just increase the refcount and return it. */
@@ -52,7 +52,7 @@ ModelManager::UnloadModel(RageModelGeometry* m)
 	if (m->m_iRefCount)
 		return; /* Can't unload models that are still referenced. */
 
-	for (std::map<RString, RageModelGeometry*>::iterator i =
+	for (std::map<std::string, RageModelGeometry*>::iterator i =
 		   m_mapFileToGeometry.begin();
 		 i != m_mapFileToGeometry.end();
 		 ++i) {

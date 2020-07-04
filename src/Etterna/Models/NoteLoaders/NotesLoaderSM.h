@@ -28,7 +28,7 @@ struct SMLoader
 	{
 	}
 
-	SMLoader(RString ext)
+	SMLoader(std::string ext)
 	  : fileExt(ext)
 	  , songTitle()
 	{
@@ -226,12 +226,12 @@ struct SMLoader
 	 * @param radarValues the calculated radar values.
 	 * @param noteData the note data itself.
 	 * @param out the Steps getting the data. */
-	virtual void LoadFromTokens(RString sStepsType,
-								RString sDescription,
-								RString sDifficulty,
-								RString sMeter,
-								RString sRadarValues,
-								RString sNoteData,
+	virtual void LoadFromTokens(std::string sStepsType,
+								std::string sDescription,
+								std::string sDifficulty,
+								std::string sMeter,
+								std::string sRadarValues,
+								std::string sNoteData,
 								Steps& out);
 
 	/**

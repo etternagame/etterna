@@ -54,7 +54,7 @@ ModIcon::Set(const std::string& _sText)
 	auto sText = _sText;
 
 	for (unsigned i = 0; i < m_vStopWords.size(); i++)
-		if (EqualsNoCaseLUL(sText, m_vStopWords[i]))
+		if (EqualsNoCase(sText, m_vStopWords[i]))
 			sText = "";
 
 	s_replace(sText, (' '), '\n');

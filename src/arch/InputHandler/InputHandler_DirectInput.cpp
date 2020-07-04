@@ -281,10 +281,10 @@ InputHandler_DInput::WindowReset()
 static int
 TranslatePOV(DWORD value)
 {
-	const int HAT_VALS[] = { HAT_UP_MASK,	HAT_UP_MASK | HAT_RIGHT_MASK,
+	const int HAT_VALS[] = { HAT_UP_MASK,	 HAT_UP_MASK | HAT_RIGHT_MASK,
 							 HAT_RIGHT_MASK, HAT_DOWN_MASK | HAT_RIGHT_MASK,
-							 HAT_DOWN_MASK,  HAT_DOWN_MASK | HAT_LEFT_MASK,
-							 HAT_LEFT_MASK,  HAT_UP_MASK | HAT_LEFT_MASK };
+							 HAT_DOWN_MASK,	 HAT_DOWN_MASK | HAT_LEFT_MASK,
+							 HAT_LEFT_MASK,	 HAT_UP_MASK | HAT_LEFT_MASK };
 
 	if (LOWORD(value) == 0xFFFF)
 		return 0;
@@ -940,7 +940,7 @@ ScancodeAndKeysToChar(DWORD scancode, unsigned char keys[256])
 		int iNum = ToAsciiEx(vk, scancode, keys, result, 0, layout);
 		// iNum == 2 will happen only for dead keys. See MSDN for ToAsciiEx.
 		if (iNum == 1) {
-			RString s = RString() + (char)result[0];
+			std::string s = std::string() + (char)result[0];
 			return ConvertCodepageToWString(s, CP_ACP)[0];
 		}
 	}

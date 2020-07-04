@@ -15,7 +15,7 @@
 #include <map>
 
 Difficulty
-DwiCompatibleStringToDifficulty(const RString& sDC);
+DwiCompatibleStringToDifficulty(const std::string& sDC);
 
 /** @brief The different types of core DWI arrows and pads. */
 enum DanceNotes
@@ -48,7 +48,7 @@ DWIcharToNote(char c,
 			  GameController i,
 			  int& note1Out,
 			  int& note2Out,
-			  const RString& sPath)
+			  const std::string& sPath)
 {
 	switch (c) {
 		case '0':
@@ -179,7 +179,7 @@ DWIcharToNoteCol(char c,
 				 GameController i,
 				 int& col1Out,
 				 int& col2Out,
-				 const RString& sPath,
+				 const std::string& sPath,
 				 map<int, int>& mapDanceNoteToColumn)
 {
 	int note1, note2;
@@ -209,7 +209,7 @@ DWIcharToNoteCol(char c,
  * @return true if it's a 192nd note, false otherwise.
  */
 static bool
-Is192(const RString& sStepData, size_t pos)
+Is192(const std::string& sStepData, size_t pos)
 {
 	while (pos < sStepData.size()) {
 		if (sStepData[pos] == '>')
@@ -227,9 +227,9 @@ const int BEATS_PER_MEASURE = 4;
 /* We prefer the normal names; recognize a number of others, too. (They'll get
  * normalized when written to SMs, etc.) */
 Difficulty
-DwiCompatibleStringToDifficulty(const RString& sDC)
+DwiCompatibleStringToDifficulty(const std::string& sDC)
 {
-	RString s2 = sDC;
+	std::string s2 = sDC;
 	s2.MakeLower();
 	if (s2 == "beginner")
 		return Difficulty_Beginner;
@@ -272,7 +272,7 @@ DwiCompatibleStringToDifficulty(const RString& sDC)
 }
 
 static StepsType
-GetTypeFromMode(const RString& mode)
+GetTypeFromMode(const std::string& mode)
 {
 	if (mode == "SINGLE")
 		return StepsType_dance_single;
@@ -284,7 +284,10 @@ GetTypeFromMode(const RString& mode)
 }
 
 static NoteData
-ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
+ParseNoteData(std::string& step1,
+			  std::string& step2,
+			  Steps& out,
+			  const std::string& path)
 {
 	std::map<int, int> g_mapDanceNoteToNoteDataColumn;
 
@@ -321,7 +324,7 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
 
 	for (int pad = 0; pad < 2; pad++) // foreach pad
 	{
-		RString sStepData;
+		std::string sStepData;
 		switch (pad) {
 			case 0:
 				sStepData = step1;
@@ -499,13 +502,13 @@ ParseNoteData(RString& step1, RString& step2, Steps& out, const RString& path)
  * @return the success or failure of the operation.
  */
 static bool
-LoadFromDWITokens(RString sMode,
-				  RString sDescription,
-				  RString sNumFeet,
-				  RString sStepData1,
-				  RString sStepData2,
+LoadFromDWITokens(std::string sMode,
+				  std::string sDescription,
+				  std::string sNumFeet,
+				  std::string sStepData1,
+				  std::string sStepData2,
 				  Steps& out,
-				  const RString& sPath)
+				  const std::string& sPath)
 {
 	CHECKPOINT_M("DWILoader::LoadFromDWITokens()");
 
@@ -541,9 +544,9 @@ LoadFromDWITokens(RString sMode,
  * @return the proper timestamp.
  */
 static float
-ParseBrokenDWITimestamp(const RString& arg1,
-						const RString& arg2,
-						const RString& arg3)
+ParseBrokenDWITimestamp(const std::string& arg1,
+						const std::string& arg2,
+						const std::string& arg3)
 {
 	if (arg1.empty())
 		return 0;
@@ -569,11 +572,11 @@ void
 DWILoader::GetApplicableFiles(const std::string& sPath,
 							  vector<std::string>& out)
 {
-	GetDirListing(sPath + RString("*.dwi"), out);
+	GetDirListing(sPath + std::string("*.dwi"), out);
 }
 
 bool
-DWILoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
+DWILoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	MsdFile msd;
 	if (!msd.ReadFile(path, false)) // don't unescape
@@ -586,7 +589,7 @@ DWILoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
 		const MsdFile::value_t& params = msd.GetValue(i);
-		RString valueName = params[0];
+		std::string valueName = params[0];
 
 		if (valueName.EqualsNoCase("SINGLE") ||
 			valueName.EqualsNoCase("DOUBLE") ||
@@ -599,12 +602,12 @@ DWILoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 				out.GetDescription().find(
 				  DifficultyToString(
 					DwiCompatibleStringToDifficulty(params[1])) +
-				  " Edit") == RString::npos)
+				  " Edit") == std::string::npos)
 				continue;
 			if (out.GetMeter() != StringToInt(params[2]))
 				continue;
-			RString step1 = params[3];
-			RString step2 = (iNumParams == 5) ? params[4] : RString("");
+			std::string step1 = params[3];
+			std::string step2 = (iNumParams == 5) ? params[4] : std::string("");
 			out.SetNoteData(ParseNoteData(step1, step2, out, path));
 			return true;
 		}
@@ -647,7 +650,7 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
 		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
+		std::string sValueName = sParams[0];
 
 		if (iNumParams < 1) {
 			LOG->UserLog("Song file",
@@ -804,7 +807,7 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 							  sParams[1],
 							  sParams[2],
 							  sParams[3],
-							  (iNumParams == 5) ? sParams[4] : RString(""),
+							  (iNumParams == 5) ? sParams[4] : std::string(""),
 							  *pNewNotes,
 							  sPath);
 			if (pNewNotes->m_StepsType != StepsType_Invalid) {

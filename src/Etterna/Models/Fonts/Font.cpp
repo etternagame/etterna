@@ -29,7 +29,7 @@ FontPage::Load(const FontPageSettings& cfg)
 		ID1.AdditionalTextureHints = cfg.m_sTextureHints;
 
 	m_FontPageTextures.m_pTextureMain = TEXTUREMAN->LoadTexture(ID1);
-	if (m_FontPageTextures.m_pTextureMain == NULL) {
+	if (m_FontPageTextures.m_pTextureMain == nullptr) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "Failed to load main texture %s for font page.",
 		  m_sTexturePath.c_str());
@@ -40,10 +40,10 @@ FontPage::Load(const FontPageSettings& cfg)
 	RageTextureID ID2 = ID1;
 	// "arial 20 16x16 [main].png" => "arial 20 16x16 [main-stroke].png"
 	if (ID2.filename.find("]") != string::npos) {
-		ID2.filename.Replace("]", "-stroke]");
+		s_replace(ID2.filename, "]", "-stroke]");
 		if (IsAFile(ID2.filename)) {
 			m_FontPageTextures.m_pTextureStroke = TEXTUREMAN->LoadTexture(ID2);
-			if (m_FontPageTextures.m_pTextureStroke == NULL) {
+			if (m_FontPageTextures.m_pTextureStroke == nullptr) {
 				LuaHelpers::ReportScriptErrorFmt(
 				  "Failed to load stroke texture %s for font page.",
 				  ID2.filename.c_str());
@@ -238,15 +238,15 @@ FontPage::~FontPage()
 {
 	// Font texture ref time is reset when unloaded so that on screen changes
 	// farther than 30 seconds apart they can be reused -xwidghet
-	if (m_FontPageTextures.m_pTextureMain != NULL) {
+	if (m_FontPageTextures.m_pTextureMain != nullptr) {
 		m_FontPageTextures.m_pTextureMain->m_lastRefTime.Touch();
 		TEXTUREMAN->UnloadTexture(m_FontPageTextures.m_pTextureMain);
-		m_FontPageTextures.m_pTextureMain = NULL;
+		m_FontPageTextures.m_pTextureMain = nullptr;
 	}
-	if (m_FontPageTextures.m_pTextureStroke != NULL) {
+	if (m_FontPageTextures.m_pTextureStroke != nullptr) {
 		m_FontPageTextures.m_pTextureStroke->m_lastRefTime.Touch();
 		TEXTUREMAN->UnloadTexture(m_FontPageTextures.m_pTextureStroke);
-		m_FontPageTextures.m_pTextureStroke = NULL;
+		m_FontPageTextures.m_pTextureStroke = nullptr;
 	}
 }
 
@@ -293,7 +293,7 @@ Font::GetGlyphsThatFit(const wstring& line, int* width) const
 Font::Font()
   : path("")
   , m_apPages()
-  , m_pDefault(NULL)
+  , m_pDefault(nullptr)
   , m_iCharToGlyph()
   ,
   // strokes aren't shown by default, hence the Color.
@@ -316,7 +316,7 @@ Font::Unload()
 	m_apPages.clear();
 
 	m_iCharToGlyph.clear();
-	m_pDefault = NULL;
+	m_pDefault = nullptr;
 
 	/* Don't clear the refcount. We've unloaded, but that doesn't mean things
 	 * aren't still pointing to us. */
@@ -354,7 +354,7 @@ Font::MergeFont(Font& f)
 	 * page.  It'll usually be overridden later on by one of our own font
 	 * pages; this will be used only if we don't have any font pages at
 	 * all. */
-	if (m_pDefault == NULL)
+	if (m_pDefault == nullptr)
 		m_pDefault = f.m_pDefault;
 
 	for (map<wchar_t, glyph*>::iterator it = f.m_iCharToGlyph.begin();
@@ -458,7 +458,7 @@ Font::GetFontPaths(const std::string& sFontIniPath,
 	GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (unsigned i = 0; i < asFiles.size(); ++i) {
-		if (!EqualsNoCaseLUL(tail(asFiles[i], 4), ".ini"))
+		if (!EqualsNoCase(tail(asFiles[i], 4), ".ini"))
 			asTexturePathsOut.push_back(asFiles[i]);
 	}
 }
@@ -720,7 +720,7 @@ FontPageSettings::MapRange(const std::string& sMapping,
 						   int iGlyphNo,
 						   int iCount)
 {
-	if (!CompareNoCaseLUL(sMapping, "Unicode")) {
+	if (!CompareNoCase(sMapping, "Unicode")) {
 		// Special case.
 		if (iCount == -1)
 			return "Can't map all of Unicode to one font page"; // don't do that
@@ -743,7 +743,7 @@ FontPageSettings::MapRange(const std::string& sMapping,
 	}
 
 	const wchar_t* pMapping = FontCharmaps::get_char_map(sMapping);
-	if (pMapping == NULL)
+	if (pMapping == nullptr)
 		return "Unknown mapping";
 
 	while (*pMapping != 0 && (iMapOffset != 0)) {
@@ -795,7 +795,7 @@ static vector<std::string> LoadStack;
 void
 Font::Load(const std::string& sIniPath, const std::string& sChars)
 {
-	if (CompareNoCaseLUL(GetExtension(sIniPath), "ini")) {
+	if (CompareNoCase(GetExtension(sIniPath), "ini")) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "%s is not an ini file.  Fonts can only be loaded from ini files.",
 		  sIniPath.c_str());

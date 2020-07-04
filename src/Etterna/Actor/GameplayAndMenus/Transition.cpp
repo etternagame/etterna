@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Transition.h"
 
@@ -8,7 +7,7 @@ Transition::Transition()
 }
 
 void
-Transition::Load(const RString& sBGAniDir)
+Transition::Load(const std::string& sBGAniDir)
 {
 	this->RemoveAllChildren();
 
@@ -26,7 +25,7 @@ Transition::UpdateInternal(float fDeltaTime)
 
 	// Check this before running Update, so we draw the last frame of the
 	// finished transition before sending m_MessageToSendWhenDone.
-	if (m_sprTransition->GetTweenTimeLeft() == 0) // over
+	if (m_sprTransition->GetTweenTimeLeft() == 0.F) // over
 	{
 		m_State = finished;
 		SCREENMAN->SendMessageToTopScreen(m_MessageToSendWhenDone);

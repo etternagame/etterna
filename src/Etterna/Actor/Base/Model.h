@@ -1,4 +1,4 @@
-﻿/* Model - A 3D model. */
+/* Model - A 3D model. */
 
 #ifndef MODEL_H
 #define MODEL_H
@@ -19,18 +19,19 @@ class Model : public Actor
 	Model* Copy() const override;
 
 	void Clear();
-	void Load(const RString& sFile);
+	void Load(const std::string& sFile);
 
-	void LoadPieces(const RString& sMeshesPath,
-					const RString& sMaterialsPath,
-					const RString& sBomesPath);
-	void LoadMilkshapeAscii(const RString& sFile);
-	void LoadMaterialsFromMilkshapeAscii(const RString& sPath);
-	bool LoadMilkshapeAsciiBones(const RString& sAniName, const RString& sPath);
+	void LoadPieces(const std::string& sMeshesPath,
+					const std::string& sMaterialsPath,
+					const std::string& sBomesPath);
+	void LoadMilkshapeAscii(const std::string& sFile);
+	void LoadMaterialsFromMilkshapeAscii(const std::string& sPath);
+	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
+								 const std::string& sPath);
 
 	void LoadFromNode(const XNode* pNode) override;
 
-	void PlayAnimation(const RString& sAniName, float fPlayRate = 1);
+	void PlayAnimation(const std::string& sAniName, float fPlayRate = 1);
 	void SetRate(float fRate) { m_fCurAnimationRate = fRate; }
 	void SetLoop(bool b) { m_bLoop = b; }
 	void SetPosition(float fSeconds);
@@ -51,8 +52,9 @@ class Model : public Actor
 	virtual void RecalcAnimationLengthSeconds();
 	void SetSecondsIntoAnimation(float fSeconds) override;
 
-	RString GetDefaultAnimation() const { return m_sDefaultAnimation; };
-	void SetDefaultAnimation(const RString& sAnimation, float fPlayRate = 1);
+	std::string GetDefaultAnimation() const { return m_sDefaultAnimation; };
+	void SetDefaultAnimation(const std::string& sAnimation,
+							 float fPlayRate = 1);
 
 	bool MaterialsNeedNormals() const;
 
@@ -64,7 +66,7 @@ class Model : public Actor
 
 	float m_animation_length_seconds;
 	vector<msMaterial> m_Materials;
-	map<RString, msAnimation> m_mapNameToAnimation;
+	map<std::string, msAnimation> m_mapNameToAnimation;
 	const msAnimation* m_pCurAnimation;
 
 	static void SetBones(const msAnimation* pAnimation,
@@ -86,7 +88,7 @@ class Model : public Actor
 	void AdvanceFrame(float fDeltaTime);
 
 	float m_fCurFrame;
-	RString m_sDefaultAnimation;
+	std::string m_sDefaultAnimation;
 	float m_fDefaultAnimationRate;
 	float m_fCurAnimationRate;
 	bool m_bLoop;

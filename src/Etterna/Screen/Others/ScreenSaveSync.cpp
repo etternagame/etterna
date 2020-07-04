@@ -14,10 +14,10 @@ static LocalizedString WOULD_YOU_LIKE_TO_SAVE(
 static LocalizedString CHOOSING_NO_WILL_DISCARD(
   "ScreenSaveSync",
   "Choosing NO will discard your changes.");
-static RString
+static std::string
 GetPromptText()
 {
-	RString s;
+	std::string s;
 
 	{
 		vector<std::string> vs;
@@ -66,7 +66,7 @@ ScreenSaveSync::Init()
 									ANSWER_YES,
 									SaveSyncChanges,
 									RevertSyncChanges,
-									NULL);
+									nullptr);
 }
 
 void
@@ -78,5 +78,5 @@ ScreenSaveSync::PromptSaveSync(ScreenMessage sm)
 						 ANSWER_YES,
 						 SaveSyncChanges,
 						 RevertSyncChanges,
-						 NULL);
+						 nullptr);
 }

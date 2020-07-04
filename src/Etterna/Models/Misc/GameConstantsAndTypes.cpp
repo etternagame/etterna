@@ -40,7 +40,7 @@ StepsTypeToString(StepsType st)
 {
 	std::string s = GAMEMAN->GetStepsTypeInfo(st).szName; // "dance-single"
 	/* foo-bar -> Foo_Bar */
-	s_replace(s, '-', '_');
+	s_replace(s, "-", "_");
 
 	bool bCapitalizeNextLetter = true;
 	for (int i = 0; i < static_cast<int>(s.length()); i++) {

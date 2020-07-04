@@ -1,7 +1,6 @@
 #ifndef ScreenOptionsManageProfiles_H
 #define ScreenOptionsManageProfiles_H
 
-#include "Etterna/Screen/Others/ScreenMiniMenu.h"
 #include "ScreenOptions.h"
 
 class ScreenOptionsManageProfiles : public ScreenOptions
@@ -20,7 +19,7 @@ class ScreenOptionsManageProfiles : public ScreenOptions
 	void ProcessMenuStart(const InputEventPlus& input) override;
 
 	int GetLocalProfileIndexWithFocus() const;
-	RString GetLocalProfileIDWithFocus() const;
+	std::string GetLocalProfileIDWithFocus() const;
 
 	vector<std::string> m_vsLocalProfileID;
 };

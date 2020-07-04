@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageMath.h"
@@ -96,11 +96,12 @@ RageModelGeometry::HasAnyPerVertexBones() const
 						 sLine.c_str())
 
 void
-RageModelGeometry::LoadMilkshapeAscii(const RString& _sPath, bool bNeedsNormals)
+RageModelGeometry::LoadMilkshapeAscii(const std::string& _sPath,
+									  bool bNeedsNormals)
 {
-	RString sPath = _sPath;
+	std::string sPath = _sPath;
 	FixSlashesInPlace(sPath);
-	const RString sDir = Dirname(sPath);
+	const std::string sDir = Dirname(sPath);
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -109,7 +110,7 @@ RageModelGeometry::LoadMilkshapeAscii(const RString& _sPath, bool bNeedsNormals)
 		  sPath.c_str(),
 		  f.GetError().c_str());
 
-	RString sLine;
+	std::string sLine;
 	int iLineNum = 0;
 	char szName[MS_MAX_NAME];
 	int nFlags, nIndex;

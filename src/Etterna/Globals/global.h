@@ -109,8 +109,8 @@ sm_crash(const char* reason = "Internal error");
 inline void
 FAIL_M(const std::string& msg)
 {
-		CHECKPOINT_M(msg);
-		sm_crash(msg.c_str());
+	CHECKPOINT_M(msg);
+	sm_crash(msg.c_str());
 }
 inline void
 ASSERT_M(const bool COND, const std::string& msg)
@@ -121,7 +121,8 @@ ASSERT_M(const bool COND, const std::string& msg)
 }
 
 #if !defined(CO_EXIST_WITH_MFC)
-#define ASSERT(COND) ASSERT_M((COND), std::string("Assertion '" #COND "' failed"))
+#define ASSERT(COND)                                                           \
+	ASSERT_M((COND), std::string("Assertion '" #COND "' failed"))
 #endif
 
 /** @brief Use this to catch switching on invalid values */
@@ -174,8 +175,8 @@ struct CompileAssertDecl
 	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
 
 #include "StdString.h"
-/** @brief Use RStrings throughout the program. */
-using RString = StdString::CStdStringA;
+/** @brief Use std::strings throughout the program. */
+using std::string;
 
 #include "RageUtil/Misc/RageException.h"
 

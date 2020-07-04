@@ -247,7 +247,7 @@ ScreenNetSelectBase::Scroll(unsigned int movescroll)
 	return;
 }
 
-RString
+std::string
 ScreenNetSelectBase::GetPreviousMsg()
 {
 	m_sTextLastestInputsIndex += 1;
@@ -262,7 +262,7 @@ ScreenNetSelectBase::GetPreviousMsg()
 									m_sTextLastestInputsIndex];
 }
 
-RString
+std::string
 ScreenNetSelectBase::GetNextMsg()
 {
 	m_sTextLastestInputsIndex -= 1;
@@ -286,7 +286,7 @@ ScreenNetSelectBase::ShowNextMsg()
 	return;
 }
 void
-ScreenNetSelectBase::SetInputText(RString text)
+ScreenNetSelectBase::SetInputText(std::string text)
 {
 	m_sTextInput = text;
 	UpdateTextInput();

@@ -10,9 +10,9 @@ class MeterDisplay : public ActorFrame
 {
   public:
 	MeterDisplay();
-	void Load(const RString& sStreamPath,
+	void Load(const std::string& sStreamPath,
 			  float fStreamWidth,
-			  const RString& sTipPath);
+			  const std::string& sTipPath);
 	void LoadFromNode(const XNode* pNode) override;
 	MeterDisplay* Copy() const override;
 

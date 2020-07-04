@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/ProfileManager.h"
@@ -29,8 +28,8 @@ static LocalizedString PROFILE_CORRUPT(
   "The profile on P%d card contains corrupt or tampered data.");
 
 static void
-CopyEdits(const RString& sFromProfileDir,
-		  const RString& sToProfileDir,
+CopyEdits(const std::string& sFromProfileDir,
+		  const std::string& sToProfileDir,
 		  int& iNumSucceeded,
 		  int& iNumOverwritten,
 		  int& iNumIgnored,
@@ -42,16 +41,15 @@ CopyEdits(const RString& sFromProfileDir,
 	iNumErrored = 0;
 
 	{
-		RString sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
-		RString sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
+		std::string sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
+		std::string sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
 
 		vector<std::string> vsFiles;
 		GetDirListing(sFromDir + "*.edit", vsFiles, false, false);
-		FOREACH_CONST(std::string, vsFiles, i)
-		{
-			if (DoesFileExist(sToDir + *i))
+		for (auto& i : vsFiles) {
+			if (DoesFileExist(sToDir + i))
 				iNumOverwritten++;
-			bool bSuccess = FileCopy(sFromDir + *i, sToDir + *i);
+			bool bSuccess = FileCopy(sFromDir + i, sToDir + i);
 			if (bSuccess)
 				iNumSucceeded++;
 			else
@@ -72,10 +70,10 @@ static LocalizedString IGNORED("ScreenServiceAction", "%d ignored");
 static LocalizedString FAILED("ScreenServiceAction", "%d failed");
 static LocalizedString DELETED("ScreenServiceAction", "%d deleted");
 
-static RString
-CopyEdits(const RString& sFromProfileDir,
-		  const RString& sToProfileDir,
-		  const RString& sDisplayDir)
+static std::string
+CopyEdits(const std::string& sFromProfileDir,
+		  const std::string& sToProfileDir,
+		  const std::string& sDisplayDir)
 {
 	int iNumSucceeded = 0;
 	int iNumOverwritten = 0;
@@ -101,9 +99,9 @@ CopyEdits(const RString& sFromProfileDir,
 }
 
 static void
-SyncFiles(const RString& sFromDir,
-		  const RString& sToDir,
-		  const RString& sMask,
+SyncFiles(const std::string& sFromDir,
+		  const std::string& sToDir,
+		  const std::string& sMask,
 		  int& iNumAdded,
 		  int& iNumDeleted,
 		  int& iNumOverwritten,
@@ -118,8 +116,8 @@ SyncFiles(const RString& sFromDir,
 	vector<std::string> vsToDelete;
 	GetAsNotInBs(vsFilesDest, vsFilesSource, vsToDelete);
 
-	for (unsigned i = 0; i < vsToDelete.size(); ++i) {
-		RString sFile = sToDir + vsToDelete[i];
+	for (auto& i : vsToDelete) {
+		std::string sFile = sToDir + i;
 		LOG->Trace("Delete \"%s\"", sFile.c_str());
 
 		if (FILEMAN->Remove(sFile))
@@ -128,9 +126,9 @@ SyncFiles(const RString& sFromDir,
 			++iNumFailed;
 	}
 
-	for (unsigned i = 0; i < vsFilesSource.size(); ++i) {
-		RString sFileFrom = sFromDir + vsFilesSource[i];
-		RString sFileTo = sToDir + vsFilesSource[i];
+	for (auto& i : vsFilesSource) {
+		std::string sFileFrom = sFromDir + i;
+		std::string sFileTo = sToDir + i;
 		LOG->Trace("Copy \"%s\"", sFileFrom.c_str());
 		bool bOverwrite = DoesFileExist(sFileTo);
 		bool bSuccess = FileCopy(sFileFrom, sFileTo);
@@ -146,8 +144,8 @@ SyncFiles(const RString& sFromDir,
 }
 
 static void
-SyncEdits(const RString& sFromDir,
-		  const RString& sToDir,
+SyncEdits(const std::string& sFromDir,
+		  const std::string& sToDir,
 		  int& iNumAdded,
 		  int& iNumDeleted,
 		  int& iNumOverwritten,
@@ -172,7 +170,7 @@ static LocalizedString COPIED_FROM_CARD("ScreenServiceAction",
 
 static LocalizedString PREFERENCES_RESET("ScreenServiceAction",
 										 "Preferences reset.");
-static RString
+static std::string
 ResetPreferences()
 {
 	StepMania::ResetPreferences();
@@ -183,21 +181,21 @@ REGISTER_SCREEN_CLASS(ScreenServiceAction);
 void
 ScreenServiceAction::BeginScreen()
 {
-	RString sActions = THEME->GetMetric(m_sName, "Actions");
+	std::string sActions = THEME->GetMetric(m_sName, "Actions");
 	vector<std::string> vsActions;
 	split(sActions, ",", vsActions);
 
 	vector<std::string> vsResults;
 	FOREACH(std::string, vsActions, s)
 	{
-		RString (*pfn)() = NULL;
+		std::string (*pfn)() = NULL;
 
 		if (*s == "ResetPreferences")
 			pfn = ResetPreferences;
 
 		ASSERT_M(pfn != NULL, *s);
 
-		RString sResult = pfn();
+		std::string sResult = pfn();
 		vsResults.push_back(sResult);
 	}
 

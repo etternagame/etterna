@@ -16,7 +16,7 @@
 REGISTER_ACTOR_CLASS(Model);
 
 static const float FRAMES_PER_SECOND = 30;
-static const RString DEFAULT_ANIMATION_NAME = "default";
+static const std::string DEFAULT_ANIMATION_NAME = "default";
 
 Model::Model()
 {
@@ -57,13 +57,12 @@ Model::Clear()
 }
 
 void
-Model::Load(const RString& sFile)
+Model::Load(const std::string& sFile)
 {
 	if (sFile == "")
 		return;
 
-	RString sExt = GetExtension(sFile);
-	sExt.MakeLower();
+	std::string sExt = make_lower(GetExtension(sFile));
 	if (sExt == "txt")
 		LoadMilkshapeAscii(sFile);
 	RecalcAnimationLengthSeconds();
@@ -77,15 +76,15 @@ Model::Load(const RString& sFile)
 
 // TODO: Move MS3D loading into its own class. - Colby
 void
-Model::LoadMilkshapeAscii(const RString& sPath)
+Model::LoadMilkshapeAscii(const std::string& sPath)
 {
 	LoadPieces(sPath, sPath, sPath);
 }
 
 void
-Model::LoadPieces(const RString& sMeshesPath,
-				  const RString& sMaterialsPath,
-				  const RString& sBonesPath)
+Model::LoadPieces(const std::string& sMeshesPath,
+				  const std::string& sMaterialsPath,
+				  const std::string& sBonesPath)
 {
 	Clear();
 
@@ -93,13 +92,13 @@ Model::LoadPieces(const RString& sMeshesPath,
 	// materials require normals.
 	LoadMaterialsFromMilkshapeAscii(sMaterialsPath);
 
-	ASSERT(m_pGeometry == NULL);
+	ASSERT(m_pGeometry == nullptr);
 	m_pGeometry =
 	  MODELMAN->LoadMilkshapeAscii(sMeshesPath, this->MaterialsNeedNormals());
 
 	// Validate material indices.
-	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
-		const msMesh* pMesh = &m_pGeometry->m_Meshes[i];
+	for (auto& m_Meshe : m_pGeometry->m_Meshes) {
+		const msMesh* pMesh = &m_Meshe;
 
 		if (pMesh->nMaterialIndex >= static_cast<int>(m_Materials.size()))
 			RageException::Throw("Model \"%s\" mesh \"%s\" references material "
@@ -125,7 +124,7 @@ Model::LoadPieces(const RString& sMeshesPath,
 void
 Model::LoadFromNode(const XNode* pNode)
 {
-	RString s1, s2, s3;
+	std::string s1, s2, s3;
 	ActorUtil::GetAttrPath(pNode, "Meshes", s1);
 	ActorUtil::GetAttrPath(pNode, "Materials", s2);
 	ActorUtil::GetAttrPath(pNode, "Bones", s3);
@@ -139,12 +138,12 @@ Model::LoadFromNode(const XNode* pNode)
 }
 
 void
-Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
+Model::LoadMaterialsFromMilkshapeAscii(const std::string& _sPath)
 {
-	RString sPath = _sPath;
+	std::string sPath = _sPath;
 
 	FixSlashesInPlace(sPath);
-	const RString sDir = Dirname(sPath);
+	const std::string sDir = Dirname(sPath);
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -153,28 +152,28 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 		  sPath.c_str(),
 		  f.GetError().c_str());
 
-	RString sLine;
+	std::string sLine;
 	int iLineNum = 0;
 
 	while (f.GetLine(sLine) > 0) {
 		iLineNum++;
 
-		if (!strncmp(sLine, "//", 2))
+		if (!strncmp(sLine.c_str(), "//", 2))
 			continue;
 
 		int nFrame;
-		if (sscanf(sLine, "Frames: %d", &nFrame) == 1) {
+		if (sscanf(sLine.c_str(), "Frames: %d", &nFrame) == 1) {
 			// ignore
 			// m_pModel->nTotalFrames = nFrame;
 		}
-		if (sscanf(sLine, "Frame: %d", &nFrame) == 1) {
+		if (sscanf(sLine.c_str(), "Frame: %d", &nFrame) == 1) {
 			// ignore
 			// m_pModel->nFrame = nFrame;
 		}
 
 		// materials
 		int nNumMaterials = 0;
-		if (sscanf(sLine, "Materials: %d", &nNumMaterials) == 1) {
+		if (sscanf(sLine.c_str(), "Materials: %d", &nNumMaterials) == 1) {
 			m_Materials.resize(nNumMaterials);
 
 			char szName[256];
@@ -185,7 +184,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				// name
 				if (f.GetLine(sLine) <= 0)
 					THROW;
-				if (sscanf(sLine, "\"%255[^\"]\"", szName) != 1)
+				if (sscanf(sLine.c_str(), "\"%255[^\"]\"", szName) != 1)
 					THROW;
 				Material.sName = szName;
 
@@ -193,7 +192,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Ambient;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Ambient[0],
 						   &Ambient[1],
@@ -206,7 +205,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Diffuse;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Diffuse[0],
 						   &Diffuse[1],
@@ -219,7 +218,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Specular;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Specular[0],
 						   &Specular[1],
@@ -233,7 +232,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Emissive;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Emissive[0],
 						   &Emissive[1],
@@ -263,13 +262,13 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				strcpy(szName, "");
-				sscanf(sLine, "\"%255[^\"]\"", szName);
-				RString sDiffuseTexture = szName;
+				sscanf(sLine.c_str(), "\"%255[^\"]\"", szName);
+				std::string sDiffuseTexture = szName;
 
 				if (sDiffuseTexture == "") {
 					Material.diffuse.LoadBlank();
 				} else {
-					RString sTexturePath = sDir + sDiffuseTexture;
+					std::string sTexturePath = sDir + sDiffuseTexture;
 					FixSlashesInPlace(sTexturePath);
 					CollapsePath(sTexturePath);
 					if (!IsAFile(sTexturePath))
@@ -285,13 +284,13 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				strcpy(szName, "");
-				sscanf(sLine, "\"%255[^\"]\"", szName);
-				RString sAlphaTexture = szName;
+				sscanf(sLine.c_str(), "\"%255[^\"]\"", szName);
+				std::string sAlphaTexture = szName;
 
 				if (sAlphaTexture == "") {
 					Material.alpha.LoadBlank();
 				} else {
-					RString sTexturePath = sDir + sAlphaTexture;
+					std::string sTexturePath = sDir + sAlphaTexture;
 					FixSlashesInPlace(sTexturePath);
 					CollapsePath(sTexturePath);
 					if (!IsAFile(sTexturePath))
@@ -308,7 +307,8 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 }
 
 bool
-Model::LoadMilkshapeAsciiBones(const RString& sAniName, const RString& sPath)
+Model::LoadMilkshapeAsciiBones(const std::string& sAniName,
+							   const std::string& sPath)
 {
 	m_mapNameToAnimation[sAniName] = msAnimation();
 	msAnimation& Animation = m_mapNameToAnimation[sAniName];
@@ -542,14 +542,14 @@ Model::DrawMesh(int i) const
 }
 
 void
-Model::SetDefaultAnimation(const RString& sAnimation, float fPlayRate)
+Model::SetDefaultAnimation(const std::string& sAnimation, float fPlayRate)
 {
 	m_sDefaultAnimation = sAnimation;
 	m_fDefaultAnimationRate = fPlayRate;
 }
 
 void
-Model::PlayAnimation(const RString& sAniName, float fPlayRate)
+Model::PlayAnimation(const std::string& sAniName, float fPlayRate)
 {
 	if (m_mapNameToAnimation.find(sAniName) == m_mapNameToAnimation.end())
 		return;
@@ -589,14 +589,14 @@ Model::PlayAnimation(const RString& sAniName, float fPlayRate)
 	}
 
 	// subtract out the bone's resting position
-	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
-		msMesh* pMesh = &m_pGeometry->m_Meshes[i];
+	for (auto& m_Meshe : m_pGeometry->m_Meshes) {
+		msMesh* pMesh = &m_Meshe;
 		vector<RageModelVertex>& Vertices = pMesh->Vertices;
-		for (unsigned j = 0; j < Vertices.size(); j++) {
+		for (auto& Vertice : Vertices) {
 			// int iBoneIndex = (pMesh->m_iBoneIndex!=-1) ? pMesh->m_iBoneIndex
 			// : bone;
-			RageVector3& pos = Vertices[j].p;
-			int8_t bone = Vertices[j].bone;
+			RageVector3& pos = Vertice.p;
+			int8_t bone = Vertice.bone;
 			if (bone != -1) {
 				pos[0] -= m_vpBones[bone].m_Absolute.m[3][0];
 				pos[1] -= m_vpBones[bone].m_Absolute.m[3][1];
@@ -674,8 +674,8 @@ Model::SetBones(const msAnimation* pAnimation,
 
 		// search for the adjacent position keys
 		const msPositionKey *pLastPositionKey = NULL, *pThisPositionKey = NULL;
-		for (size_t j = 0; j < pBone->PositionKeys.size(); ++j) {
-			const msPositionKey* pPositionKey = &pBone->PositionKeys[j];
+		for (const auto& PositionKey : pBone->PositionKeys) {
+			const msPositionKey* pPositionKey = &PositionKey;
 			if (pPositionKey->fTime >= fFrame) {
 				pThisPositionKey = pPositionKey;
 				break;
@@ -697,8 +697,8 @@ Model::SetBones(const msAnimation* pAnimation,
 
 		// search for the adjacent rotation keys
 		const msRotationKey *pLastRotationKey = NULL, *pThisRotationKey = NULL;
-		for (size_t j = 0; j < pBone->RotationKeys.size(); ++j) {
-			const msRotationKey* pRotationKey = &pBone->RotationKeys[j];
+		for (const auto& RotationKey : pBone->RotationKeys) {
+			const msRotationKey* pRotationKey = &RotationKey;
 			if (pRotationKey->fTime >= fFrame) {
 				pThisRotationKey = pRotationKey;
 				break;
@@ -778,9 +778,9 @@ Model::Update(float fDelta)
 	Actor::Update(fDelta);
 	AdvanceFrame(fDelta);
 
-	for (unsigned i = 0; i < m_Materials.size(); ++i) {
-		m_Materials[i].diffuse.Update(fDelta);
-		m_Materials[i].alpha.Update(fDelta);
+	for (auto& m_Material : m_Materials) {
+		m_Material.diffuse.Update(fDelta);
+		m_Material.alpha.Update(fDelta);
 	}
 }
 
@@ -788,18 +788,17 @@ int
 Model::GetNumStates() const
 {
 	int iMaxStates = 0;
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	iMaxStates = max(iMaxStates, m->diffuse.GetNumStates());
+	for (auto& m : m_Materials)
+		iMaxStates = max(iMaxStates, m.diffuse.GetNumStates());
 	return iMaxStates;
 }
 
 void
 Model::SetState(int iNewState)
 {
-	FOREACH(msMaterial, m_Materials, m)
-	{
-		m->diffuse.SetState(iNewState);
-		m->alpha.SetState(iNewState);
+	for (auto& m : m_Materials) {
+		m.diffuse.SetState(iNewState);
+		m.alpha.SetState(iNewState);
 	}
 }
 
@@ -859,7 +858,7 @@ class LunaModel : public Luna<Model>
 	}
 	static int GetDefaultAnimation(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDefaultAnimation());
+		lua_pushstring(L, p->GetDefaultAnimation().c_str());
 		return 1;
 	}
 	static int loop(T* p, lua_State* L)

@@ -42,7 +42,9 @@ ActorUtil::Register(const std::string& sClassName, CreateActorFn pfn)
  * files.  Returns a path *within* the Rage filesystem, unlike the FILEMAN
  * function of the same name. */
 bool
-ActorUtil::ResolvePath(std::string& sPath, const std::string& sName, bool optional)
+ActorUtil::ResolvePath(std::string& sPath,
+					   const std::string& sName,
+					   bool optional)
 {
 	CollapsePath(sPath);
 
@@ -130,7 +132,7 @@ GetLegacyActorClass(XNode* pActor)
 	std::string sFile;
 	if (pActor->GetAttrValue("File", sFile) && sFile != "") {
 		// Backward compatibility hacks for "special" filenames
-		if (EqualsNoCaseLUL(sFile, "songbackground")) {
+		if (EqualsNoCase(sFile, "songbackground")) {
 			auto* pVal = new XNodeStringValue;
 			Song* pSong = GAMESTATE->m_pCurSong;
 			if (pSong && pSong->HasBackground())
@@ -140,7 +142,7 @@ GetLegacyActorClass(XNode* pActor)
 				  THEME->GetPathG("Common", "fallback background"));
 			pActor->AppendAttrFrom("Texture", pVal, false);
 			return "Sprite";
-		} else if (EqualsNoCaseLUL(sFile, "songbanner")) {
+		} else if (EqualsNoCase(sFile, "songbanner")) {
 			auto* pVal = new XNodeStringValue;
 			Song* pSong = GAMESTATE->m_pCurSong;
 			if (pSong && pSong->HasBanner())
@@ -182,7 +184,8 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 	if (!bHasClass && bLegacy)
 		sClass = GetLegacyActorClass(&node);
 
-	map<std::string, CreateActorFn>::iterator iter = g_pmapRegistrees->find(sClass);
+	map<std::string, CreateActorFn>::iterator iter =
+	  g_pmapRegistrees->find(sClass);
 	if (iter == g_pmapRegistrees->end()) {
 		std::string sFile;
 		if (bLegacy && node.GetAttrValue("File", sFile) && sFile != "") {
@@ -205,8 +208,8 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 
 		// sClass is invalid
 		std::string sError = ssprintf("%s: invalid Class \"%s\"",
-								  ActorUtil::GetWhere(&node).c_str(),
-								  sClass.c_str());
+									  ActorUtil::GetWhere(&node).c_str(),
+									  sClass.c_str());
 		LuaHelpers::ReportScriptError(sError);
 		return new Actor; // Return a dummy object so that we don't crash in
 						  // AutoActor later.
@@ -396,7 +399,8 @@ ActorUtil::GetAttrPath(const XNode* pNode,
 }
 
 apActorCommands
-ActorUtil::ParseActorCommands(const std::string& sCommands, const std::string& sName)
+ActorUtil::ParseActorCommands(const std::string& sCommands,
+							  const std::string& sName)
 {
 	Lua* L = LUA->Get();
 	LuaHelpers::ParseCommandList(L, sCommands, sName, false);
@@ -463,7 +467,7 @@ ActorUtil::LoadAllCommandsFromName(Actor& actor,
 		static const std::string sEnding = "Command";
 		if (EndsWith(sv, sEnding)) {
 			std::string sCommandName(sv.begin() + sName.size(),
-								 sv.end() - sEnding.size());
+									 sv.end() - sEnding.size());
 			LoadCommandFromName(actor, sMetricsGroup, sCommandName, sName);
 		}
 	}

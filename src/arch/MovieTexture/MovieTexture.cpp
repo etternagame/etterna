@@ -10,7 +10,7 @@
 #include "arch/arch_default.h"
 
 void
-ForceToAscii(RString& str)
+ForceToAscii(std::string& str)
 {
 	for (unsigned i = 0; i < str.size(); ++i)
 		if (str[i] < 0x20 || str[i] > 0x7E)
@@ -18,9 +18,11 @@ ForceToAscii(RString& str)
 }
 
 bool
-RageMovieTexture::GetFourCC(const RString& fn, RString& handler, RString& type)
+RageMovieTexture::GetFourCC(const std::string& fn,
+							std::string& handler,
+							std::string& type)
 {
-	RString ignore, ext;
+	std::string ignore, ext;
 	splitpath(fn, ignore, ignore, ext);
 	if (!ext.CompareNoCase(".mpg") || !ext.CompareNoCase(".mpeg") ||
 		!ext.CompareNoCase(".mpv") || !ext.CompareNoCase(".mpe")) {
@@ -66,9 +68,9 @@ DriverList RageMovieTextureDriver::m_pDriverList;
 
 // Helper for MakeRageMovieTexture()
 static void
-DumpAVIDebugInfo(const RString& fn)
+DumpAVIDebugInfo(const std::string& fn)
 {
-	RString type, handler;
+	std::string type, handler;
 	if (!RageMovieTexture::GetFourCC(fn, handler, type))
 		return;
 
@@ -78,7 +80,8 @@ DumpAVIDebugInfo(const RString& fn)
 			   type.c_str());
 }
 
-static Preference<RString> g_sMovieDrivers("MovieDrivers", ""); // "" == default
+static Preference<std::string> g_sMovieDrivers("MovieDrivers",
+											   ""); // "" == default
 /* Try drivers in order of preference until we find one that works. */
 static LocalizedString MOVIE_DRIVERS_EMPTY("Arch",
 										   "Movie Drivers cannot be empty.");
@@ -90,7 +93,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 {
 	DumpAVIDebugInfo(ID.filename);
 
-	RString sDrivers = g_sMovieDrivers;
+	std::string sDrivers = g_sMovieDrivers;
 	if (sDrivers.empty())
 		sDrivers = DEFAULT_MOVIE_DRIVER_LIST;
 
@@ -117,7 +120,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 		  dynamic_cast<RageMovieTextureDriver*>(pDriverBase);
 		ASSERT(pDriver != NULL);
 
-		RString sError;
+		std::string sError;
 		ret = pDriver->Create(ID, sError);
 		delete pDriver;
 

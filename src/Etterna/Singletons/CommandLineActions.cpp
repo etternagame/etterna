@@ -10,13 +10,6 @@
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
-#include "LuaManager.h"
-#include "Etterna/Globals/ProductInfo.h"
-#include "Etterna/Models/Misc/DateTime.h"
-#include "Etterna/Models/Misc/Foreach.h"
-#include "arch/Dialog/Dialog.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "Etterna/Globals/SpecialFiles.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ver.h"
 
@@ -27,7 +20,7 @@
 #endif
 
 /** @brief The directory where languages should be installed. */
-const RString INSTALLER_LANGUAGES_DIR = "Themes/_Installer/Languages/";
+const std::string INSTALLER_LANGUAGES_DIR = "Themes/_Installer/Languages/";
 
 vector<CommandLineActions::CommandLineArgs> CommandLineActions::ToProcess;
 
@@ -40,29 +33,27 @@ Nsis()
 
 	vector<std::string> vs;
 	GetDirListing(INSTALLER_LANGUAGES_DIR + "*.ini", vs, false, false);
-	FOREACH_CONST(std::string, vs, s)
-	{
-		RString sThrowAway, sLangCode;
-		splitpath(*s, sThrowAway, sLangCode, sThrowAway);
+	for (auto& s : vs) {
+		std::string sThrowAway, sLangCode;
+		splitpath(s, sThrowAway, sLangCode, sThrowAway);
 		const LanguageInfo* pLI = GetLanguageInfo(sLangCode);
 
-		RString sLangNameUpper = pLI->szEnglishName;
-		sLangNameUpper.MakeUpper();
+		std::string sLangNameUpper = make_upper(pLI->szEnglishName);
 
 		IniFile ini;
-		if (!ini.ReadFile(INSTALLER_LANGUAGES_DIR + *s))
+		if (!ini.ReadFile(INSTALLER_LANGUAGES_DIR + s))
 			RageException::Throw("Error opening file for read.");
 		FOREACH_CONST_Child(&ini, child)
 		{
 			FOREACH_CONST_Attr(child, attr)
 			{
-				RString sName = attr->first;
-				RString sValue = attr->second->GetValue<RString>();
-				sValue.Replace("\\n", "$\\n");
-				RString sLine = ssprintf("LangString %s ${LANG_%s} \"%s\"",
-										 sName.c_str(),
-										 sLangNameUpper.c_str(),
-										 sValue.c_str());
+				std::string sName = attr->first;
+				std::string sValue = attr->second->GetValue<std::string>();
+				s_replace(sValue, "\\n", "$\\n");
+				std::string sLine = ssprintf("LangString %s ${LANG_%s} \"%s\"",
+											 sName.c_str(),
+											 sLangNameUpper.c_str(),
+											 sValue.c_str());
 				out.PutLine(sLine);
 			}
 		}
@@ -94,9 +85,9 @@ static void
 Version()
 {
 #ifdef _WIN32
-	RString sProductID =
+	std::string sProductID =
 	  ssprintf("%s", (string(PRODUCT_FAMILY) + product_version).c_str());
-	RString sVersion = ssprintf("build %s", ::version_git_hash);
+	std::string sVersion = ssprintf("build %s", ::version_git_hash);
 
 	AllocConsole();
 	freopen("CONOUT$", "wb", stdout);

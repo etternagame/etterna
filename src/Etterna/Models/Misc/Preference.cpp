@@ -24,7 +24,7 @@ IPreference*
 IPreference::GetPreferenceByName(const std::string& sName)
 {
 	for (auto& p : *m_Subscribers.m_pSubscribers) {
-		if (!CompareNoCaseLUL(p->GetName(), sName))
+		if (!CompareNoCase(p->GetName(), sName))
 			return p;
 	}
 

@@ -16,16 +16,16 @@
 #include <windows.h>
 #endif
 
-RString
-DoPathReplace(const RString& sPath)
+std::string
+DoPathReplace(const std::string& sPath)
 {
-	RString TempPath = sPath;
+	std::string TempPath = sPath;
 	return TempPath;
 }
 
 #ifdef _WIN32
 static bool
-WinMoveFileInternal(const RString& sOldPath, const RString& sNewPath)
+WinMoveFileInternal(const std::string& sOldPath, const std::string& sNewPath)
 {
 	static bool Win9x = false;
 
@@ -60,7 +60,7 @@ WinMoveFileInternal(const RString& sOldPath, const RString& sNewPath)
 }
 
 bool
-WinMoveFile(const RString& sOldPath, const RString& sNewPath)
+WinMoveFile(const std::string& sOldPath, const std::string& sNewPath)
 {
 	if (WinMoveFileInternal(DoPathReplace(sOldPath), DoPathReplace(sNewPath)))
 		return true;
@@ -76,11 +76,11 @@ WinMoveFile(const RString& sOldPath, const RString& sNewPath)
 
 /* mkdir -p.  Doesn't fail if Path already exists and is a directory. */
 bool
-CreateDirectories(const RString& Path)
+CreateDirectories(const std::string& Path)
 {
 	// XXX: handle "//foo/bar" paths in Windows
 	vector<std::string> parts;
-	RString curpath;
+	std::string curpath;
 
 	// If Path is absolute, add the initial slash ("ignore empty" will remove
 	// it).
@@ -143,14 +143,14 @@ CreateDirectories(const RString& Path)
 	return true;
 }
 
-DirectFilenameDB::DirectFilenameDB(const RString& root_)
+DirectFilenameDB::DirectFilenameDB(const std::string& root_)
 {
 	ExpireSeconds = 30;
 	SetRoot(root_);
 }
 
 void
-DirectFilenameDB::SetRoot(const RString& root_)
+DirectFilenameDB::SetRoot(const std::string& root_)
 {
 	root = root_;
 
@@ -163,10 +163,10 @@ DirectFilenameDB::SetRoot(const RString& root_)
 }
 
 void
-DirectFilenameDB::CacheFile(const RString& sPath)
+DirectFilenameDB::CacheFile(const std::string& sPath)
 {
 	CHECKPOINT_M(root + sPath);
-	RString sDir = Dirname(sPath);
+	std::string sDir = Dirname(sPath);
 	FileSet* pFileSet = GetFileSet(sDir, false);
 	if (pFileSet == NULL) {
 		// This directory isn't cached so do nothing.
@@ -213,9 +213,9 @@ DirectFilenameDB::CacheFile(const RString& sPath)
 }
 
 void
-DirectFilenameDB::PopulateFileSet(FileSet& fs, const RString& path)
+DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 {
-	RString sPath = path;
+	std::string sPath = path;
 
 	// Resolve path cases (path/Path -> PATH/path).
 	ResolvePath(sPath);
@@ -304,23 +304,23 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const RString& path)
 	 * overheard due to ignore markers, delete the file instead instead of using
 	 * an ignore marker.
 	 */
-	static const RString IGNORE_MARKER_BEGINNING = "ignore-";
+	static const std::string IGNORE_MARKER_BEGINNING = "ignore-";
 
-	vector<RString> vsFilesToRemove;
+	vector<std::string> vsFilesToRemove;
 	for (set<File>::iterator iter =
 		   fs.files.lower_bound(IGNORE_MARKER_BEGINNING);
 		 iter != fs.files.end();
 		 ++iter) {
 		if (!BeginsWith(iter->lname, IGNORE_MARKER_BEGINNING))
 			break;
-		RString sFileLNameToIgnore =
-		  RString(iter->lname)
+		std::string sFileLNameToIgnore =
+		  std::string(iter->lname)
 			.Right(iter->lname.length() - IGNORE_MARKER_BEGINNING.length());
 		vsFilesToRemove.push_back(iter->name);
 		vsFilesToRemove.push_back(sFileLNameToIgnore);
 	}
 
-	FOREACH_CONST(RString, vsFilesToRemove, iter)
+	FOREACH_CONST(std::string, vsFilesToRemove, iter)
 	{
 		// Erase the file corresponding to the ignore marker
 		File fileToDelete;

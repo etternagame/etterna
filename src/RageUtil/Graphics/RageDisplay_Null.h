@@ -7,10 +7,10 @@ class RageDisplay_Null : public RageDisplay
 {
   public:
 	RageDisplay_Null();
-	RString Init(const VideoModeParams& p,
-				 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoModeParams& p,
+					 bool bAllowUnacceleratedRenderer) override;
 
-	RString GetApiDescription() const override { return "Null"; }
+	std::string GetApiDescription() const override { return "Null"; }
 	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
@@ -125,11 +125,11 @@ class RageDisplay_Null : public RageDisplay
 	}
 
 	VideoModeParams m_Params;
-	RString TryVideoMode(const VideoModeParams& p,
-						 bool& /* bNewDeviceOut */) override
+	std::string TryVideoMode(const VideoModeParams& p,
+							 bool& /* bNewDeviceOut */) override
 	{
 		m_Params = p;
-		return RString();
+		return std::string();
 	}
 	RageSurface* CreateScreenshot() override;
 	RageMatrix GetOrthoMatrix(float l,

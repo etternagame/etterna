@@ -77,8 +77,8 @@ static Preference<bool> g_bShowLyrics("ShowLyrics", false);
 
 ScreenGameplay::ScreenGameplay()
 {
-	m_pSongBackground = NULL;
-	m_pSongForeground = NULL;
+	m_pSongBackground = nullptr;
+	m_pSongForeground = nullptr;
 	m_delaying_ready_announce = false;
 
 	// Tell DownloadManager we are in Gameplay
@@ -95,7 +95,7 @@ ScreenGameplay::ScreenGameplay()
 	m_bShowScoreboard = false;
 	m_gave_up = false;
 	m_bZeroDeltaOnNextUpdate = false;
-	m_pSoundMusic = NULL;
+	m_pSoundMusic = nullptr;
 }
 
 void
@@ -129,11 +129,11 @@ ScreenGameplay::Init()
 	// specifically Normal, Practice, or Replay
 	this->FillPlayerInfo(&m_vPlayerInfo);
 
-	m_pSoundMusic = NULL;
+	m_pSoundMusic = nullptr;
 
 	// Prevent some crashes
 	// This happens when the screen changes but we dont have a song (obviously)
-	if (GAMESTATE->m_pCurSong == NULL)
+	if (GAMESTATE->m_pCurSong == nullptr)
 		return;
 
 	/* Called once per stage (single song or single course). */
@@ -213,9 +213,9 @@ ScreenGameplay::Init()
 		lua_rawseti(L, -2, next_player_slot);
 		++next_player_slot;
 		Enum::Push(L, GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StyleType);
-		RString err = "Error running MarginFunction:  ";
+		std::string err = "Error running MarginFunction:  ";
 		if (LuaHelpers::RunScriptOnStack(L, err, 2, 3, true)) {
-			RString marge = "Margin value must be a number.";
+			std::string marge = "Margin value must be a number.";
 			margins[0] = static_cast<float>(SafeFArg(L, -3, marge, 40));
 			float center = static_cast<float>(SafeFArg(L, -2, marge, 80));
 			margins[1] = center / 2.0f;
@@ -225,7 +225,7 @@ ScreenGameplay::Init()
 	}
 
 	float left_edge = 0.0f;
-	RString sName("PlayerP1");
+	std::string sName("PlayerP1");
 	m_vPlayerInfo.m_pPlayer->SetName(sName);
 	Style const* style = GAMESTATE->GetCurrentStyle(PLAYER_1);
 	float style_width = style->GetWidth(PLAYER_1);
@@ -317,7 +317,7 @@ ScreenGameplay::Init()
 	if (m_pSongBackground != nullptr)
 		m_pSongBackground->Init();
 
-	RString sType = PLAYER_TYPE;
+	std::string sType = PLAYER_TYPE;
 	if (m_vPlayerInfo.m_bIsDummy)
 		sType += "Dummy";
 	m_vPlayerInfo.m_pPlayer->Init(sType,
@@ -450,7 +450,7 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 	}
 
 	{
-		RString sType;
+		std::string sType;
 		switch (GAMESTATE->m_SongOptions.GetCurrent().m_SoundEffectType) {
 			case SoundEffectType_Off:
 				sType = "SoundEffectControl_Off";
@@ -506,7 +506,7 @@ ScreenGameplay::SetupSong(int iSongIndex)
 	}
 
 	{
-		RString sType;
+		std::string sType;
 		switch (GAMESTATE->m_SongOptions.GetCurrent().m_SoundEffectType) {
 			case SoundEffectType_Off:
 				sType = "SoundEffectControl_Off";
@@ -680,7 +680,7 @@ ScreenGameplay::LoadNextSong()
 	/* Give SoundEffectControls the new RageSoundReaders. */
 	RageSoundReader* pPlayerSound =
 	  m_AutoKeysounds.GetPlayerSound(m_vPlayerInfo.m_pn);
-	if (pPlayerSound == NULL &&
+	if (pPlayerSound == nullptr &&
 		m_vPlayerInfo.m_pn == GAMESTATE->GetMasterPlayerNumber())
 		pPlayerSound = m_AutoKeysounds.GetSharedSound();
 	m_vPlayerInfo.m_SoundEffectControl.SetSoundReader(pPlayerSound);
@@ -749,7 +749,7 @@ ScreenGameplay::PlayTicks()
 /* Play announcer "type" if it's been at least fSeconds since the last
  * announcer. */
 void
-ScreenGameplay::PlayAnnouncer(const RString& type,
+ScreenGameplay::PlayAnnouncer(const std::string& type,
 							  float fSeconds,
 							  float* fDeltaSeconds)
 {
@@ -757,7 +757,7 @@ ScreenGameplay::PlayAnnouncer(const RString& type,
 	if (m_DancingState != STATE_DANCING)
 		return;
 	if (GAMESTATE->m_pCurSong ==
-		  NULL || // this will be true on ScreenDemonstration sometimes
+		  nullptr || // this will be true on ScreenDemonstration sometimes
 		GAMESTATE->m_Position.m_fSongBeat <
 		  GAMESTATE->m_pCurSong->GetFirstBeat())
 		return;
@@ -776,7 +776,7 @@ ScreenGameplay::UpdateSongPosition(float fDeltaTime)
 		return;
 
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 	const float fAdjust = SOUND->GetFrameTimingAdjustment(fDeltaTime);
 	GAMESTATE->UpdateSongPosition(
 	  fSeconds + fAdjust, GAMESTATE->m_pCurSong->m_SongTiming, tm + fAdjust);
@@ -785,7 +785,7 @@ ScreenGameplay::UpdateSongPosition(float fDeltaTime)
 void
 ScreenGameplay::BeginScreen()
 {
-	if (GAMESTATE->m_pCurSong == NULL)
+	if (GAMESTATE->m_pCurSong == nullptr)
 		return;
 
 	ScreenWithMenuElements::BeginScreen();
@@ -807,16 +807,16 @@ ScreenGameplay::BeginScreen()
 							 ->GetPlayerStageStats()
 							 ->m_iTapNoteScores;
 
-			  RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
-									  ptns[TNS_W1],
-									  ptns[TNS_W2],
-									  ptns[TNS_W3],
-									  ptns[TNS_W4],
-									  ptns[TNS_W5],
-									  ptns[TNS_Miss],
-									  this->GetPlayerInfo(PLAYER_1)
-										->GetPlayerStageStats()
-										->m_iCurCombo);
+			  std::string doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+										  ptns[TNS_W1],
+										  ptns[TNS_W2],
+										  ptns[TNS_W3],
+										  ptns[TNS_W4],
+										  ptns[TNS_W5],
+										  ptns[TNS_Miss],
+										  this->GetPlayerInfo(PLAYER_1)
+											->GetPlayerStageStats()
+											->m_iCurCombo);
 			  auto player = this->GetPlayerInfo(PLAYER_1)->m_pPlayer;
 			  if (player->maxwifescore > 0)
 				  NSMAN->SendMPLeaderboardUpdate(
@@ -875,7 +875,7 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 void
 ScreenGameplay::Update(float fDeltaTime)
 {
-	if (GAMESTATE->m_pCurSong == NULL) {
+	if (GAMESTATE->m_pCurSong == nullptr) {
 		/* ScreenDemonstration will move us to the next screen.  We just need to
 		 * survive for one update without crashing.  We need to call
 		 * Screen::Update to make sure we receive the next-screen message. */
@@ -1215,7 +1215,7 @@ ScreenGameplay::SendCrossedMessages()
 						  ->m_PlayersHaveSeparateStyles) {
 						const Style* pStyle =
 						  GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
-						RString sButton = pStyle->ColToButtonName(t);
+						std::string sButton = pStyle->ColToButtonName(t);
 						Message msg(i == 0 ? "NoteCrossed" : "NoteWillCross");
 						msg.SetParam("ButtonName", sButton);
 						msg.SetParam("NumMessagesFromCrossed", i);
@@ -1224,7 +1224,7 @@ ScreenGameplay::SendCrossedMessages()
 					} else {
 						const Style* pStyle =
 						  GAMESTATE->GetCurrentStyle(PLAYER_INVALID);
-						RString sButton = pStyle->ColToButtonName(t);
+						std::string sButton = pStyle->ColToButtonName(t);
 						Message msg(i == 0 ? "NoteCrossed" : "NoteWillCross");
 						msg.SetParam("ButtonName", sButton);
 						msg.SetParam("NumMessagesFromCrossed", i);
@@ -1236,7 +1236,7 @@ ScreenGameplay::SendCrossedMessages()
 					MESSAGEMAN->Broadcast(
 					  static_cast<MessageID>(Message_NoteCrossed + i));
 				if (i == 0 && iNumTracksWithTapOrHoldHead >= 2) {
-					RString sMessageName = "NoteCrossedJump";
+					std::string sMessageName = "NoteCrossedJump";
 					MESSAGEMAN->Broadcast(sMessageName);
 				}
 			}
@@ -1450,7 +1450,7 @@ ScreenGameplay::SaveStats()
 	pss.m_radarPossible += rv;
 	NoteDataWithScoring::GetActualRadarValues(nd, pss, fMusicLen, rv);
 	pss.m_radarActual += rv;
-	GAMESTATE->SetProcessedTimingData(NULL);
+	GAMESTATE->SetProcessedTimingData(nullptr);
 }
 
 void
@@ -1685,7 +1685,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 	} else if (ScreenMessageHelpers::ScreenMessageToString(SM).find("0Combo") !=
 			   string::npos) {
 		int iCombo;
-		RString sCropped =
+		std::string sCropped =
 		  ScreenMessageHelpers::ScreenMessageToString(SM).substr(3);
 		sscanf(sCropped.c_str(), "%d%*s", &iCombo);
 		PlayAnnouncer(ssprintf("gameplay %d combo", iCombo), 2);
@@ -1765,7 +1765,7 @@ ScreenGameplay::HandleMessage(const Message& msg)
 										  .m_bMuteOnError) {
 
 			RageSoundReader* pSoundReader = m_AutoKeysounds.GetPlayerSound(pn);
-			if (pSoundReader == NULL)
+			if (pSoundReader == nullptr)
 				pSoundReader = m_AutoKeysounds.GetSharedSound();
 
 			HoldNoteScore hns;
@@ -1800,7 +1800,7 @@ ScreenGameplay::GetPlayerInfo(PlayerNumber pn)
 {
 	if (m_vPlayerInfo.m_pn == pn)
 		return &m_vPlayerInfo;
-	return NULL;
+	return nullptr;
 }
 
 const float
@@ -1808,7 +1808,7 @@ ScreenGameplay::GetSongPosition()
 {
 	// Really, this is the music position...
 	RageTimer tm;
-	return m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	return m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 }
 
 // lua start
@@ -1827,10 +1827,10 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		PlayerNumber pn = PLAYER_1;
 
 		PlayerInfo* pi = p->GetPlayerInfo(pn);
-		if (pi == NULL)
+		if (pi == nullptr)
 			return 0;
 		LifeMeter* pLM = pi->m_pLifeMeter;
-		if (pLM == NULL)
+		if (pLM == nullptr)
 			return 0;
 
 		pLM->PushSelf(L);
@@ -1841,7 +1841,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		PlayerNumber pn = PLAYER_1;
 
 		PlayerInfo* pi = p->GetPlayerInfo(pn);
-		if (pi == NULL)
+		if (pi == nullptr)
 			return 0;
 
 		pi->PushSelf(L);

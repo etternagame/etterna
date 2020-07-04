@@ -23,7 +23,7 @@ Shutdown();
  *
  * p will not be second-guessed, except to try disabling the refresh rate
  * setting. */
-RString
+std::string
 SetScreenMode(const VideoModeParams& p);
 
 /** @brief Create the window.

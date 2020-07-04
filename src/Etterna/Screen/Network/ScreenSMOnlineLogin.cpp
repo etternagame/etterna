@@ -112,7 +112,7 @@ static LocalizedString ENTER_YOUR_PASSWORD("ScreenSMOnlineLogin",
 void
 ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
 {
-	RString sLoginQuestion;
+	std::string sLoginQuestion;
 	//	if( GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer) )
 
 	if (SM == SM_PasswordDone) {
@@ -209,7 +209,7 @@ ScreenSMOnlineLogin::MenuStart(const InputEventPlus& input)
 	return ScreenOptions::MenuStart(input);
 }
 
-RString
+std::string
 ScreenSMOnlineLogin::GetSelectedProfileID()
 {
 	vector<std::string> vsProfiles;
@@ -218,18 +218,18 @@ ScreenSMOnlineLogin::GetSelectedProfileID()
 	const OptionRow& row = *m_pRows[GetCurrentRow()];
 	const int Selection = row.GetOneSharedSelection();
 	if (!Selection)
-		return RString();
+		return std::string();
 	return vsProfiles[Selection - 1];
 }
 
 void
-ScreenSMOnlineLogin::SendLogin(RString sPassword)
+ScreenSMOnlineLogin::SendLogin(std::string sPassword)
 {
 	SendLogin(sPassword,
 			  GAMESTATE->GetPlayerDisplayName((PlayerNumber)this->m_iPlayer));
 }
 void
-ScreenSMOnlineLogin::SendLogin(RString sPassword, RString user)
+ScreenSMOnlineLogin::SendLogin(std::string sPassword, std::string user)
 {
 	NSMAN->Login(user, sPassword);
 }

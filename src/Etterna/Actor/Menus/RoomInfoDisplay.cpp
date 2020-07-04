@@ -46,7 +46,7 @@ RoomInfoDisplay::RetractInfoBox()
 }
 
 void
-RoomInfoDisplay::Load(const RString& sType)
+RoomInfoDisplay::Load(const std::string& sType)
 {
 	DEPLOY_DELAY.Load(sType, "DeployDelay");
 	RETRACT_DELAY.Load(sType, "RetractDelay");
@@ -146,7 +146,7 @@ RoomInfoDisplay::Update(float fDeltaTime)
 }
 
 void
-RoomInfoDisplay::RequestRoomInfo(const RString& name)
+RoomInfoDisplay::RequestRoomInfo(const std::string& name)
 {
 	NSMAN->RequestRoomInfo(name);
 }

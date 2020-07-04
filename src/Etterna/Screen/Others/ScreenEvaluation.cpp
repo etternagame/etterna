@@ -41,7 +41,7 @@ REGISTER_SCREEN_CLASS(ScreenEvaluation);
 
 ScreenEvaluation::ScreenEvaluation()
 {
-	m_pStageStats = NULL;
+	m_pStageStats = nullptr;
 	m_bSavedScreenshot = false;
 }
 
@@ -219,7 +219,7 @@ ScreenEvaluation::Init()
 		  ANNOUNCER->GetPathTo("evaluation full combo W4"));
 	} else if ((bOneHasFullW1Combo || bOneHasFullW2Combo ||
 				bOneHasFullW3Combo)) {
-		RString sComboType =
+		std::string sComboType =
 		  bOneHasFullW1Combo ? "W1" : (bOneHasFullW2Combo ? "W2" : "W3");
 		SOUND->PlayOnceFromDir(
 		  ANNOUNCER->GetPathTo("evaluation full combo " + sComboType));
@@ -242,8 +242,8 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 									DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 								  INPUTFILTER->IsBeingPressed(
 									DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
-			RString sDir;
-			RString sFileName;
+			std::string sDir;
+			std::string sFileName;
 			// To save a screenshot to your own profile you must hold shift
 			// and press the button it saves compressed so you don't end up
 			// with an inflated profile size
@@ -257,7 +257,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 					sFileName = StepMania::SaveScreenshot(
 					  sDir, bHoldingShift, true, "", "");
 					if (!sFileName.empty()) {
-						RString sPath = sDir + sFileName;
+						std::string sPath = sDir + sFileName;
 
 						const HighScore& hs =
 						  m_pStageStats->m_player.m_HighScore;
@@ -321,7 +321,7 @@ ScreenEvaluation::HandleMenuStart()
 	// Reset mods
 	if (GAMEMAN->m_bResetModifiers) {
 		float oldRate = GAMEMAN->m_fPreviousRate;
-		const RString mods = GAMEMAN->m_sModsToReset;
+		const std::string mods = GAMEMAN->m_sModsToReset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;

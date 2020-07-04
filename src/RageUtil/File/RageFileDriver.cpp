@@ -9,12 +9,12 @@ RageFileDriver::~RageFileDriver()
 }
 
 int
-RageFileDriver::GetPathValue(const RString& sPath)
+RageFileDriver::GetPathValue(const std::string& sPath)
 {
 	vector<std::string> asParts;
 	split(sPath, "/", asParts, true);
 
-	RString sPartialPath;
+	std::string sPartialPath;
 
 	for (unsigned i = 0; i < asParts.size(); ++i) {
 		sPartialPath += asParts[i];
@@ -43,8 +43,8 @@ RageFileDriver::GetPathValue(const RString& sPath)
 }
 
 void
-RageFileDriver::GetDirListing(const RString& sPath,
-							  vector<RString>& asAddTo,
+RageFileDriver::GetDirListing(const std::string& sPath,
+							  vector<std::string>& asAddTo,
 							  bool bOnlyDirs,
 							  bool bReturnPathToo)
 {
@@ -60,32 +60,32 @@ RageFileDriver::GetDirListing(const std::string& sPath,
 }
 
 RageFileManager::FileType
-RageFileDriver::GetFileType(const RString& sPath)
+RageFileDriver::GetFileType(const std::string& sPath)
 {
 	return FDB->GetFileType(sPath);
 }
 
 int
-RageFileDriver::GetFileSizeInBytes(const RString& sPath)
+RageFileDriver::GetFileSizeInBytes(const std::string& sPath)
 {
 	return FDB->GetFileSize(sPath);
 }
 
 int
-RageFileDriver::GetFileHash(const RString& sPath)
+RageFileDriver::GetFileHash(const std::string& sPath)
 {
 	return FDB->GetFileHash(sPath);
 }
 
 void
-RageFileDriver::FlushDirCache(const RString& sPath)
+RageFileDriver::FlushDirCache(const std::string& sPath)
 {
 	FDB->FlushDirCache(sPath);
 }
 
-const struct FileDriverEntry* g_pFileDriverList = NULL;
+const struct FileDriverEntry* g_pFileDriverList = nullptr;
 
-FileDriverEntry::FileDriverEntry(const RString& sType)
+FileDriverEntry::FileDriverEntry(const std::string& sType)
 {
 	m_pLink = g_pFileDriverList;
 	g_pFileDriverList = this;
@@ -94,15 +94,15 @@ FileDriverEntry::FileDriverEntry(const RString& sType)
 
 FileDriverEntry::~FileDriverEntry()
 {
-	g_pFileDriverList = NULL; /* invalidate */
+	g_pFileDriverList = nullptr; /* invalidate */
 }
 
 RageFileDriver*
-MakeFileDriver(const RString& sType, const RString& sRoot)
+MakeFileDriver(const std::string& sType, const std::string& sRoot)
 {
 	for (const FileDriverEntry* p = g_pFileDriverList; p != nullptr;
 		 p = p->m_pLink)
 		if (!p->m_sType.CompareNoCase(sType))
 			return p->Create(sRoot);
-	return NULL;
+	return nullptr;
 }

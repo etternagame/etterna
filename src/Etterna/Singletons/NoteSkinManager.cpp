@@ -168,9 +168,9 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const std::string& sNoteSkinName_,
 		IniFile ini;
 		ini.ReadFile(sDir + "metrics.ini");
 
-		if (!CompareNoCaseLUL(sNoteSkinName, GAME_BASE_NOTESKIN_NAME))
+		if (!CompareNoCase(sNoteSkinName, GAME_BASE_NOTESKIN_NAME))
 			bLoadedBase = true;
-		if (!CompareNoCaseLUL(sNoteSkinName, GAME_COMMON_NOTESKIN_NAME))
+		if (!CompareNoCase(sNoteSkinName, GAME_COMMON_NOTESKIN_NAME))
 			bLoadedCommon = true;
 
 		std::string sFallback;

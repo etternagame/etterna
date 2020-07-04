@@ -115,7 +115,7 @@ MoveMap(int& sel,
 	ASSERT(pConfOption != NULL);
 	IPreference* pPref =
 	  IPreference::GetPreferenceByName(pConfOption->m_sPrefName);
-	ASSERT_M(pPref != NULL, pConfOption->m_sPrefName);
+	ASSERT_M(pPref != nullptr, pConfOption->m_sPrefName);
 
 	MoveMap(sel, *pPref, ToSel, mapping, cnt);
 }
@@ -126,7 +126,7 @@ MovePref(int& iSel, bool bToSel, const ConfOption* pConfOption)
 {
 	IPreference* pPref =
 	  IPreference::GetPreferenceByName(pConfOption->m_sPrefName);
-	ASSERT_M(pPref != NULL, pConfOption->m_sPrefName);
+	ASSERT_M(pPref != nullptr, pConfOption->m_sPrefName);
 
 	if (bToSel) {
 		// TODO: why not get the int directly from pPref?
@@ -145,7 +145,7 @@ MovePref<bool>(int& iSel, bool bToSel, const ConfOption* pConfOption)
 {
 	IPreference* pPref =
 	  IPreference::GetPreferenceByName(pConfOption->m_sPrefName);
-	ASSERT_M(pPref != NULL, pConfOption->m_sPrefName);
+	ASSERT_M(pPref != nullptr, pConfOption->m_sPrefName);
 
 	if (bToSel) {
 		// TODO: why not get the int directly from pPref?
@@ -206,7 +206,7 @@ LanguageChoices(vector<std::string>& out)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	Sortstd::stringArray(vs, true);
 
 	for (auto& s : vs) {
 		const LanguageInfo* pLI = GetLanguageInfo(s);
@@ -223,7 +223,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	Sortstd::stringArray(vs, true);
 
 	if (ToSel) {
 		sel = -1;
@@ -565,7 +565,7 @@ DisplayResolutionM(int& sel, bool ToSel, const ConfOption* pConfOption)
 		cache_display_specs();
 		FOREACHS_CONST(DisplaySpec, display_specs, iter)
 		{
-			if (iter->currentMode() != NULL) {
+			if (iter->currentMode() != nullptr) {
 				res_choices.push_back(res_t(iter->currentMode()->width,
 											iter->currentMode()->height));
 			}
@@ -1047,24 +1047,24 @@ ConfOption::GetEffects() const
 }
 
 ConfOption*
-ConfOption::Find(std::string name)
+ConfOption::Find(const std::string& name)
 {
 	InitializeConfOptions();
-	for (unsigned i = 0; i < g_ConfOptions.size(); ++i) {
-		ConfOption* opt = &g_ConfOptions[i];
+	for (auto& g_ConfOption : g_ConfOptions) {
+		ConfOption* opt = &g_ConfOption;
 		std::string match(opt->name);
-		if (match.CompareNoCase(name))
+		if (CompareNoCase(match, name))
 			continue;
 		return opt;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void
 ConfOption::UpdateAvailableOptions()
 {
-	if (MakeOptionsListCB != NULL) {
+	if (MakeOptionsListCB != nullptr) {
 		names.clear();
 		MakeOptionsListCB(names);
 	}

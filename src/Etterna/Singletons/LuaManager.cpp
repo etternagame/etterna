@@ -49,7 +49,7 @@ static Impl* pImpl = nullptr;
 namespace LuaHelpers {
 template<>
 bool
-FromStack(Lua* L, RString& object, int offset);
+FromStack(Lua* L, std::string& object, int offset);
 template<>
 void
 Push<bool>(lua_State* L, bool const& object)
@@ -94,7 +94,7 @@ Push<std::string>(lua_State* L, std::string const& object)
 }
 template<>
 void
-Push<RString>(lua_State* L, RString const& object)
+Push<std::string>(lua_State* L, std::string const& object)
 {
 	lua_pushlstring(L, object.data(), object.size());
 }
@@ -156,7 +156,7 @@ FromStack<std::string>(Lua* L, std::string& object, int offset)
 }
 template<>
 bool
-FromStack<RString>(Lua* L, RString& object, int offset)
+FromStack<std::string>(Lua* L, std::string& object, int offset)
 {
 	size_t len;
 	char const* cstr = lua_tolstring(L, offset, &len);
@@ -538,7 +538,7 @@ CreateTableFromXNodeRecursive(Lua* L, const XNode* pNode)
 
 	for (auto const& pAttr : pNode->m_attrs) {
 		lua_pushstring(L, pAttr.first.c_str()); // push key
-		pNode->PushAttrValue(L, pAttr.first);   // push value
+		pNode->PushAttrValue(L, pAttr.first);	// push value
 
 		// add key-value pair to our table
 		lua_settable(L, -3);

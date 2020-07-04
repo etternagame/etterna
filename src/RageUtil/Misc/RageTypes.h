@@ -1,4 +1,4 @@
-﻿/* RageTypes - vector and matrix types. */
+/* RageTypes - vector and matrix types. */
 
 #ifndef RAGETYPES_H
 #define RAGETYPES_H
@@ -417,7 +417,7 @@ struct RageColor
 	}
 	bool operator!=(const RageColor& other) const { return !operator==(other); }
 
-	bool FromString(const RString& str)
+	bool FromString(const std::string& str)
 	{
 		int result = sscanf(str, "%f,%f,%f,%f", &r, &g, &b, &a);
 		if (result == 3) {
@@ -447,8 +447,8 @@ struct RageColor
 		return false;
 	}
 
-	RString ToString() const;
-	static RString NormalizeColorString(const RString& sColor);
+	std::string ToString() const;
+	static std::string NormalizeColorString(const std::string& sColor);
 
 	void PushTable(lua_State* L) const;
 	void FromStack(lua_State* L, int iPos);

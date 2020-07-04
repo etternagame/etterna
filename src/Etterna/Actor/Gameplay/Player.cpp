@@ -45,7 +45,7 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
-						RString& sNameOut,
+						std::string& sNameOut,
 						float& defaultValueOut)
 {
 	sNameOut = "TimingWindowSeconds" +

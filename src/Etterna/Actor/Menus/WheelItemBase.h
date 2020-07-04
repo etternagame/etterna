@@ -11,15 +11,15 @@ struct WheelItemBaseData;
 /** @brief The different types of Wheel Items. */
 enum WheelItemDataType
 {
-	WheelItemDataType_Generic,  /**< A generic item on the Wheel. */
-	WheelItemDataType_Section,  /**< A general section on the Wheel. */
+	WheelItemDataType_Generic,	/**< A generic item on the Wheel. */
+	WheelItemDataType_Section,	/**< A general section on the Wheel. */
 	WheelItemDataType_Song,		/**< A Song on the Wheel. */
 	WheelItemDataType_Roulette, /**< The roulette section on the Wheel. */
-	WheelItemDataType_Random,   /**< The random section on the Wheel. */
-	WheelItemDataType_Portal,   /**< The portal section on the Wheel. */
-	WheelItemDataType_Course,   /**< A Course on the Wheel. */
+	WheelItemDataType_Random,	/**< The random section on the Wheel. */
+	WheelItemDataType_Portal,	/**< The portal section on the Wheel. */
+	WheelItemDataType_Course,	/**< A Course on the Wheel. */
 	WheelItemDataType_Sort,		/**< A generic sorting item on the Wheel. */
-	WheelItemDataType_Custom,   /**< A custom item on the Wheel. */
+	WheelItemDataType_Custom,	/**< A custom item on the Wheel. */
 	NUM_WheelItemDataType,
 	WheelItemDataType_Invalid
 };
@@ -29,18 +29,18 @@ struct WheelItemBaseData
 {
 	WheelItemBaseData() = default;
 	WheelItemBaseData(WheelItemDataType type,
-					  const RString& sText,
+					  const std::string& sText,
 					  const RageColor& color);
 	virtual ~WheelItemBaseData() = default;
 	WheelItemDataType m_Type;
-	RString m_sText;
+	std::string m_sText;
 	RageColor m_color; // either text color or section background color
 };
 /** @brief An item on the wheel. */
 class WheelItemBase : public ActorFrame
 {
   public:
-	WheelItemBase(const RString& sType);
+	WheelItemBase(const std::string& sType);
 	WheelItemBase(const WheelItemBase& cpy);
 	void DrawPrimitives() override;
 	WheelItemBase* Copy() const override { return new WheelItemBase(*this); }
@@ -56,7 +56,7 @@ class WheelItemBase : public ActorFrame
 
 	RageColor m_colorLocked;
 
-	const RString GetText()
+	const std::string GetText()
 	{
 		ASSERT(m_pData != NULL);
 		return m_pData->m_sText;

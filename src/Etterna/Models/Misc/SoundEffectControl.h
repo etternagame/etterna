@@ -11,7 +11,7 @@ class SoundEffectControl
 {
   public:
 	SoundEffectControl();
-	void Load(const RString& sType,
+	void Load(const std::string& sType,
 			  PlayerState* pPlayerState,
 			  const NoteData* pNoteData);
 
@@ -23,7 +23,7 @@ class SoundEffectControl
   private:
 	void HoldsBeingHeld(int iRow, int& iHoldsHeld, int& iHoldsLetGo) const;
 
-	ThemeMetric<RString> SOUND_PROPERTY;
+	ThemeMetric<std::string> SOUND_PROPERTY;
 	ThemeMetric<bool> LOCK_TO_HOLD;
 	ThemeMetric<float> PROPERTY_MIN;
 	ThemeMetric<float> PROPERTY_CENTER;

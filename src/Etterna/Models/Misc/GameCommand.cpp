@@ -406,7 +406,7 @@ GameCommand::IsPlayable(std::string* why) const
 		}
 	}
 
-	if (!CompareNoCaseLUL(m_sScreen, "ScreenEditMenu")) {
+	if (!CompareNoCase(m_sScreen, "ScreenEditMenu")) {
 		if (SONGMAN->GetNumSongs() == 0) {
 			if (why)
 				*why = "No songs are installed";

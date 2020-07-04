@@ -231,7 +231,7 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 }
 
 void
-GraphDisplay::Load(const RString& sMetricsGroup)
+GraphDisplay::Load(const std::string& sMetricsGroup)
 {
 	m_size.x =
 	  static_cast<float>(THEME->GetMetricI(sMetricsGroup, "BodyWidth"));

@@ -308,7 +308,7 @@ class DownloadManager
 	int GetSkillsetRank(Skillset ss);
 
 	// most recent single score upload result -mina
-	RString mostrecentresult = "";
+	std::string mostrecentresult = "";
 	deque<pair<DownloadablePack*, bool>> DownloadQueue; // (pack,isMirror)
 	deque<HighScore*> ScoreUploadSequentialQueue;
 	unsigned int sequentialScoreUploadTotalWorkload{ 0 };

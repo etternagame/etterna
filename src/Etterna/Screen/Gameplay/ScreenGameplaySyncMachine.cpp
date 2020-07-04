@@ -27,7 +27,7 @@ ScreenGameplaySyncMachine::Init()
 	  GAMEMAN->GetHowToPlayStyleForGame(GAMESTATE->m_pCurGame), PLAYER_INVALID);
 	AdjustSync::ResetOriginalSyncData();
 
-	RString sFile = THEME->GetPathO("ScreenGameplaySyncMachine", "music");
+	std::string sFile = THEME->GetPathO("ScreenGameplaySyncMachine", "music");
 	// Allow themers to use either a .ssc or .sm file for this. -aj
 	SSCLoader loaderSSC;
 	SMLoader loaderSM;
@@ -112,9 +112,9 @@ ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage SM)
 	ScreenGameplayNormal::HandleScreenMessage(SM);
 
 	if (SM == SM_GoToPrevScreen || SM == SM_GoToNextScreen) {
-		GAMESTATE->m_pCurSteps.Set(NULL);
-		GAMESTATE->SetCurrentStyle(NULL, PLAYER_INVALID);
-		GAMESTATE->m_pCurSong.Set(NULL);
+		GAMESTATE->m_pCurSteps.Set(nullptr);
+		GAMESTATE->SetCurrentStyle(nullptr, PLAYER_INVALID);
+		GAMESTATE->m_pCurSong.Set(nullptr);
 	}
 }
 
@@ -141,7 +141,7 @@ ScreenGameplaySyncMachine::RefreshText()
 	float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 	float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
 	float fStdDev = AdjustSync::s_fStandardDeviation;
-	RString s;
+	std::string s;
 	s += OLD_OFFSET.GetValue() + ssprintf(": %0.3f\n", fOld);
 	s += NEW_OFFSET.GetValue() + ssprintf(": %0.3f\n", fNew);
 	s += STANDARD_DEVIATION.GetValue() + ssprintf(": %0.3f\n", fStdDev);

@@ -68,8 +68,8 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 		StripCrnl(sValueData);
 
 		// handle the data
-		if (EqualsNoCaseLUL(sValueName, "COLOUR") ||
-			EqualsNoCaseLUL(sValueName, "COLOR")) {
+		if (EqualsNoCase(sValueName, "COLOUR") ||
+			EqualsNoCase(sValueName, "COLOR")) {
 			// set color var here for this segment
 			int r, g, b;
 			int result = sscanf(sValueData.c_str(), "0x%2x%2x%2x", &r, &g, &b);

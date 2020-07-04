@@ -371,8 +371,8 @@ CompareSongPointersByTitle(const Song* pSong1, const Song* pSong2)
 
 	/* The titles are the same.  Ensure we get a consistent ordering
 	 * by comparing the unique SongFilePaths. */
-	return CompareNoCaseLUL(pSong1->GetSongFilePath(),
-							pSong2->GetSongFilePath()) < 0;
+	return CompareNoCase(pSong1->GetSongFilePath(), pSong2->GetSongFilePath()) <
+		   0;
 }
 
 static bool
@@ -393,8 +393,8 @@ CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 
 	/* The titles are the same.  Ensure we get a consistent ordering
 	 * by comparing the unique SongFilePaths. */
-	return CompareNoCaseLUL(pSong1->GetSongFilePath(),
-							pSong2->GetSongFilePath()) < 0;
+	return CompareNoCase(pSong1->GetSongFilePath(), pSong2->GetSongFilePath()) <
+		   0;
 }
 void
 SongUtil::SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut)

@@ -341,13 +341,13 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	return fPercent;
 }
 
-RString
+std::string
 PlayerStageStats::FormatPercentScore(float fPercentDancePoints)
 {
 	int iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
 
-	RString s =
+	std::string s =
 	  ssprintf("%*.*f%%",
 			   iPercentTotalDigits,
 			   static_cast<int>(CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES),

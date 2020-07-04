@@ -21,16 +21,16 @@
 #include "Etterna/Models/Misc/Foreach.h"
 
 class Song;
-const RString TEMP_OS_MOUNT_POINT = "/@temp-os/";
+const std::string TEMP_OS_MOUNT_POINT = "/@temp-os/";
 
 struct FileCopyResult
 {
-	FileCopyResult(RString _sFile, RString _sComment)
+	FileCopyResult(std::string _sFile, std::string _sComment)
 	  : sFile(_sFile)
 	  , sComment(_sComment)
 	{
 	}
-	RString sFile, sComment;
+	std::string sFile, sComment;
 };
 
 void
@@ -38,7 +38,7 @@ InstallSmzipOsArg(const string& sOsZipFile)
 {
 	SCREENMAN->SystemMessage("Installing " + sOsZipFile);
 
-	RString sOsDir, sFilename, sExt;
+	std::string sOsDir, sFilename, sExt;
 	splitpath(sOsZipFile, sOsDir, sFilename, sExt);
 
 	if (!FILEMAN->Mount("dir", sOsDir, TEMP_OS_MOUNT_POINT))
@@ -48,20 +48,20 @@ InstallSmzipOsArg(const string& sOsZipFile)
 	FILEMAN->Unmount("dir", sOsDir, TEMP_OS_MOUNT_POINT);
 }
 static bool
-IsHTTPProtocol(const RString& arg)
+IsHTTPProtocol(const std::string& arg)
 {
 	return BeginsWith(arg, "http://") || BeginsWith(arg, "https://");
 }
 
 static bool
-IsPackageFile(const RString& arg)
+IsPackageFile(const std::string& arg)
 {
-	RString ext = GetExtension(arg);
+	std::string ext = GetExtension(arg);
 	return ext.EqualsNoCase("smzip") || ext.EqualsNoCase("zip");
 }
 
 void
-EnsureSlashEnding(RString& path)
+EnsureSlashEnding(std::string& path)
 {
 	if (path.back() != '/' && path.back() != '\\')
 		path.append("/");
@@ -72,7 +72,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 {
 	bool reload = false;
 	for (size_t i = 0; i < args.argv.size(); i++) {
-		RString s = args.argv[i];
+		std::string s = args.argv[i];
 		if (s == "notedataCache") {
 			// TODO: Create the directories if they dont exist
 			string packFolder = "packbanner/";
@@ -145,8 +145,9 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					// files here, im not sure if pathing is compatible And SSC
 					// write uses ragefile. So this way we dont have to mess
 					// with ssc writer
-					RString tmpOutPutPath = "Cache/tmp.ssc";
-					RString sscCacheFilePath = sscOutputPath + songkey + ".ssc";
+					std::string tmpOutPutPath = "Cache/tmp.ssc";
+					std::string sscCacheFilePath =
+					  sscOutputPath + songkey + ".ssc";
 
 					NotesWriterSSC::Write(
 					  tmpOutPutPath, *pSong, vpStepsToSave, true);
@@ -327,7 +328,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 			msg.SetParam("queuedpacks", join("\n", cue));
 		} else {
 			msg.SetParam("queuesize", 0);
-			msg.SetParam("queuedpacks", RString(""));
+			msg.SetParam("queuedpacks", std::string(""));
 		}
 		MESSAGEMAN->Broadcast(msg);
 	}

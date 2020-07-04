@@ -21,8 +21,8 @@
 static std::string
 JoinLineList(vector<std::string>& lines)
 {
-	for (unsigned i = 0; i < lines.size(); ++i)
-		TrimRight(lines[i]);
+	for (auto& line : lines)
+		TrimRight(line);
 
 	// Skip leading blanks.
 	unsigned j = 0;
@@ -256,7 +256,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 	write_tag(f, "#MUSIC:%s;", out.m_sMusicFile);
 	write_tag(f, "#PREVIEW:%s;", out.m_PreviewFile);
 	{
-		auto vs = out.GetInstrumentTracksToVectorString();
+		auto vs = out.GetInstrumentTracksToVectostd::string();
 		if (!vs.empty()) {
 			auto s = join(",", vs);
 			f.PutLine("#INSTRUMENTTRACK:" + s + ";\n");

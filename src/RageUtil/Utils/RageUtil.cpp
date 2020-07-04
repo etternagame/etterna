@@ -98,7 +98,7 @@ unicode_do_casing(char* p, size_t iLen, const unsigned char pMapping[256])
 		} else {
 			// TODO: Find another
 			// WARN( fmt::sprintf("UnicodeDoUpper: invalid character at \"%s\"",
-			// RString(p,iLen).c_str()) );
+			// std::string(p,iLen).c_str()) );
 		}
 	}
 
@@ -298,8 +298,8 @@ IsAnInt(const std::string& s)
 	if (s.empty())
 		return false;
 
-	for (size_t i = 0; i < s.size(); ++i)
-		if (s[i] < '0' || s[i] > '9')
+	for (char i : s)
+		if (i < '0' || i > '9')
 			return false;
 
 	return true;
@@ -311,9 +311,9 @@ IsHexVal(const std::string& s)
 	if (s.empty())
 		return false;
 
-	for (size_t i = 0; i < s.size(); ++i)
-		if (!(s[i] >= '0' && s[i] <= '9') &&
-			!(toupper(s[i]) >= 'A' && toupper(s[i]) <= 'F'))
+	for (char i : s)
+		if (!(i >= '0' && i <= '9') &&
+			!(toupper(i) >= 'A' && toupper(i) <= 'F'))
 			return false;
 
 	return true;
@@ -451,8 +451,8 @@ Commify(const std::string& num, const std::string& sep, const std::string& dot)
 	  (num_size % 3) + (3 * static_cast<int>((num_size % 3) == 0u)) + num_start;
 	for (size_t c = 0; c < num.size(); ++c) {
 		if (c == next_comma && c < num_end) {
-			for (size_t s = 0; s < sep.size(); ++s) {
-				ret[dest] = sep[s];
+			for (char s : sep) {
+				ret[dest] = s;
 				++dest;
 			}
 			next_comma += 3;
@@ -721,16 +721,16 @@ static const LanguageInfo g_langs[] = {
 void
 GetLanguageInfos(vector<const LanguageInfo*>& vAddTo)
 {
-	for (unsigned i = 0; i < ARRAYLEN(g_langs); ++i)
-		vAddTo.push_back(&g_langs[i]);
+	for (const auto& g_lang : g_langs)
+		vAddTo.push_back(&g_lang);
 }
 
 const LanguageInfo*
 GetLanguageInfo(const std::string& sIsoCode)
 {
-	for (unsigned i = 0; i < ARRAYLEN(g_langs); ++i) {
-		if (EqualsNoCaseLUL(sIsoCode, g_langs[i].szIsoCode))
-			return &g_langs[i];
+	for (const auto& g_lang : g_langs) {
+		if (EqualsNoCase(sIsoCode, g_lang.szIsoCode))
+			return &g_lang;
 	}
 
 	return nullptr;
@@ -1133,13 +1133,13 @@ MakeValidFilename(std::string& sName)
 {
 	auto wsName = RStringToWstring(sName);
 	wstring wsInvalid = L"/\\:*?\"<>|";
-	for (unsigned i = 0; i < wsName.size(); ++i) {
-		auto w = wsName[i];
+	for (wchar_t& i : wsName) {
+		auto w = i;
 		if (w >= 32 && w < 126 && wsInvalid.find_first_of(w) == wsInvalid.npos)
 			continue;
 
 		if (w == L'"') {
-			wsName[i] = L'\'';
+			i = L'\'';
 			continue;
 		}
 
@@ -1147,7 +1147,7 @@ MakeValidFilename(std::string& sName)
 		 * to UTF-8 NFD (decomposed) (maybe NFKD?), and see if the first
 		 * character is ASCII. This is useless for non-Western languages,
 		 * since we'll replace the whole filename. */
-		wsName[i] = '_';
+		i = '_';
 	}
 
 	sName = WStringToRString(wsName);
@@ -1160,28 +1160,28 @@ FindFirstFilenameContaining(const vector<std::string>& filenames,
 							const vector<std::string>& contains,
 							const vector<std::string>& ends_with)
 {
-	for (size_t i = 0; i < filenames.size(); ++i) {
-		auto lower = make_lower(GetFileNameWithoutExtension(filenames[i]));
+	for (const auto& filename : filenames) {
+		auto lower = make_lower(GetFileNameWithoutExtension(filename));
 
-		for (size_t s = 0; s < starts_with.size(); ++s) {
-			if (!lower.compare(0, starts_with[s].size(), starts_with[s])) {
-				out = filenames[i];
+		for (const auto& s : starts_with) {
+			if (!lower.compare(0, s.size(), s)) {
+				out = filename;
 				return true;
 			}
 		}
 		auto lower_size = lower.size();
-		for (size_t s = 0; s < ends_with.size(); ++s) {
-			if (lower_size >= ends_with[s].size()) {
-				auto end_pos = lower_size - ends_with[s].size();
-				if (!lower.compare(end_pos, std::string::npos, ends_with[s])) {
-					out = filenames[i];
+		for (const auto& s : ends_with) {
+			if (lower_size >= s.size()) {
+				auto end_pos = lower_size - s.size();
+				if (!lower.compare(end_pos, std::string::npos, s)) {
+					out = filename;
 					return true;
 				}
 			}
 		}
-		for (size_t s = 0; s < contains.size(); ++s) {
-			if (lower.find(contains[s]) != std::string::npos) {
-				out = filenames[i];
+		for (const auto& contain : contains) {
+			if (lower.find(contain) != std::string::npos) {
+				out = filename;
 				return true;
 			}
 		}
@@ -1223,7 +1223,7 @@ GetCommandlineArgument(const std::string& option,
 
 		const auto i = CurArgument.find("=");
 		auto CurOption = CurArgument.substr(0, i);
-		if (EqualsNoCaseLUL(CurOption, optstr))
+		if (EqualsNoCase(CurOption, optstr))
 			continue; // no match
 
 		// Found it.
@@ -1415,8 +1415,7 @@ std::string
 URLEncode(const std::string& sStr)
 {
 	std::string sOutput;
-	for (unsigned k = 0; k < sStr.size(); k++) {
-		auto t = sStr[k];
+	for (char t : sStr) {
 		if (t >= '!' && t <= 'z')
 			sOutput += t;
 		else
@@ -2007,8 +2006,8 @@ WStringToRString(const wstring& sStr)
 {
 	std::string sRet;
 
-	for (unsigned i = 0; i < sStr.size(); ++i)
-		wchar_to_utf8(sStr[i], sRet);
+	for (wchar_t i : sStr)
+		wchar_to_utf8(i, sRet);
 
 	return sRet;
 }
@@ -2291,9 +2290,9 @@ unsigned char g_LowerCase[256] = {
 void
 FixSlashesInPlace(std::string& sPath)
 {
-	for (unsigned i = 0; i < sPath.size(); ++i)
-		if (sPath[i] == '\\')
-			sPath[i] = '/';
+	for (char& i : sPath)
+		if (i == '\\')
+			i = '/';
 }
 
 /* Keep trailing slashes, since that can be used to illustrate that a path
@@ -2454,7 +2453,7 @@ ToString<bool>(const bool& value)
 bool
 FileCopy(const std::string& sSrcFile, const std::string& sDstFile)
 {
-	if (!CompareNoCaseLUL(sSrcFile, sDstFile)) {
+	if (!CompareNoCase(sSrcFile, sDstFile)) {
 		LOG->Warn("Tried to copy \"%s\" over itself", sSrcFile.c_str());
 		return false;
 	}

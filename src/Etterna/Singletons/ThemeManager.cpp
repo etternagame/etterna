@@ -272,7 +272,7 @@ ThemeManager::GetLanguages(vector<std::string>& AddTo)
 	// remove dupes
 	sort(AddTo.begin(), AddTo.end());
 	vector<std::string>::iterator it =
-	  unique(AddTo.begin(), AddTo.end(), EqualsNoCaseLUL);
+	  unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
 	AddTo.erase(it, AddTo.end());
 }
 

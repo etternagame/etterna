@@ -124,7 +124,8 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 				}
 			}
 			RageTimer tm;
-			const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+			const float fSeconds =
+			  m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 			if (fSeconds > fSecondsToStartTransitioningOut ||
 				fSeconds < p.m_StartSecond) {
 				// i want to make sure things are done in a very particular
@@ -147,7 +148,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 void
 ScreenGameplayPractice::Update(float fDeltaTime)
 {
-	if (GAMESTATE->m_pCurSong == NULL) {
+	if (GAMESTATE->m_pCurSong == nullptr) {
 		Screen::Update(fDeltaTime);
 		return;
 	}
@@ -286,7 +287,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 	}
 
 	{
-		RString sType;
+		std::string sType;
 		switch (GAMESTATE->m_SongOptions.GetCurrent().m_SoundEffectType) {
 			case SoundEffectType_Off:
 				sType = "SoundEffectControl_Off";
@@ -319,7 +320,7 @@ ScreenGameplayPractice::TogglePause()
 		m_pSoundMusic->Stop();
 
 		RageTimer tm;
-		const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+		const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 
 		float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 		GetMusicEndTiming(fSecondsToStartFadingOutMusic,
@@ -441,7 +442,7 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 		return rate;
 
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
@@ -514,7 +515,7 @@ ScreenGameplayPractice::ResetLoopRegion()
 
 	// Reload notedata for the entire file starting at current row
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 	auto td = GAMESTATE->m_pCurSteps->GetTimingData();
 	const float startBeat = td->GetBeatFromElapsedTime(fSeconds);
 	const int rowNow = BeatToNoteRow(startBeat);

@@ -976,7 +976,7 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 		// TODO: Invalidate the CurSteps only if they are no longer playable.
 		// That way, after music change will clamp to the nearest in the
 		// StepsDisplayList.
-		GAMESTATE->m_pCurSteps.SetWithoutBroadcast(NULL);
+		GAMESTATE->m_pCurSteps.SetWithoutBroadcast(nullptr);
 
 		/* If a course is selected, it may no longer be playable.
 		 * Let MusicWheel know about the late join. */

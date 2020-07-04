@@ -30,7 +30,7 @@ LoadFromDir(const std::string& sPath,
 			set<std::string>& BlacklistedImages);
 
 bool
-LoadNoteDataFromSimfile(const RString& path, Steps& out);
+LoadNoteDataFromSimfile(const std::string& path, Steps& out);
 }
 
 #endif

@@ -22,7 +22,7 @@
 #include <set>
 #include <dbt.h>
 
-static const RString g_sClassName = PRODUCT_ID;
+static const std::string g_sClassName = PRODUCT_ID;
 
 static HWND g_hWndMain;
 static HDC g_HDC;
@@ -40,7 +40,7 @@ static bool g_bRecreatingVideoMode = false;
 
 static UINT g_iQueryCancelAutoPlayMessage = 0;
 
-static RString
+static std::string
 GetNewWindow()
 {
 	HWND h = GetForegroundWindow();
@@ -50,7 +50,7 @@ GetNewWindow()
 	DWORD iProcessID;
 	GetWindowThreadProcessId(h, &iProcessID);
 
-	RString sName;
+	std::string sName;
 	GetProcessFileName(iProcessID, sName);
 
 	sName = Basename(sName);
@@ -80,11 +80,11 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						   bMinimized,
 						   g_bHasFocus ? "has focus" : "doesn't have focus");
 			if (!g_bHasFocus) {
-				RString sName = GetNewWindow();
-				static set<RString> sLostFocusTo;
+				std::string sName = GetNewWindow();
+				static set<std::string> sLostFocusTo;
 				sLostFocusTo.insert(sName);
-				RString sStr;
-				for (set<RString>::const_iterator it = sLostFocusTo.begin();
+				std::string sStr;
+				for (set<std::string>::const_iterator it = sLostFocusTo.begin();
 					 it != sLostFocusTo.end();
 					 ++it)
 					sStr += (sStr.size() ? ", " : "") + *it;
@@ -178,7 +178,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_COPYDATA: {
 			PCOPYDATASTRUCT pMyCDS = (PCOPYDATASTRUCT)lParam;
-			RString sCommandLine((char*)pMyCDS->lpData, pMyCDS->cbData);
+			std::string sCommandLine((char*)pMyCDS->lpData, pMyCDS->cbData);
 			CommandLineActions::CommandLineArgs args;
 			split(sCommandLine, "|", args.argv, false);
 			CommandLineActions::ToProcess.push_back(args);
@@ -191,7 +191,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (INPUTMAN->DevicesChanged()) {
 						INPUTFILTER->Reset();
 						INPUTMAN->LoadDrivers();
-						RString sMessage;
+						std::string sMessage;
 						if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(
 							  sMessage))
 							SCREENMAN->SystemMessage(sMessage);
@@ -250,14 +250,14 @@ AdjustVideoModeParams(VideoModeParams& p)
 
 /* Set the display mode to the given size, bit depth and refresh.
  * The refresh setting may be ignored. */
-RString
+std::string
 GraphicsWindow::SetScreenMode(const VideoModeParams& p)
 {
 	if (p.windowed) {
 		// We're going windowed. If we were previously fullscreen, reset.
 		ChangeDisplaySettings(NULL, 0);
 
-		return RString();
+		return std::string();
 	}
 
 	DEVMODE DevMode;
@@ -286,7 +286,7 @@ GraphicsWindow::SetScreenMode(const VideoModeParams& p)
 		return "Couldn't set screen mode";
 
 	g_FullScreenDevMode = DevMode;
-	return RString();
+	return std::string();
 }
 
 static int

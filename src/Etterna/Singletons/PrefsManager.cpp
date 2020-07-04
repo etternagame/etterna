@@ -396,8 +396,8 @@ PrefsManager::ReadGamePrefsFromIni(const std::string& sIni)
 		if (!BeginsWith(section_name, GAME_SECTION_PREFIX))
 			continue;
 
-		std::string sGame = section_name.Right(section_name.length() -
-											   GAME_SECTION_PREFIX.length());
+		std::string sGame = tail(
+		  section_name, section_name.length() - GAME_SECTION_PREFIX.length());
 		GamePrefs& gp = m_mapGameNameToGamePrefs[sGame];
 
 		// todo: read more prefs here? -aj

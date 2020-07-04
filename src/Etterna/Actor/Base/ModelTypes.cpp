@@ -34,17 +34,17 @@ AnimatedTexture::LoadBlank()
 }
 
 void
-AnimatedTexture::Load(const RString& sTexOrIniPath)
+AnimatedTexture::Load(const std::string& sTexOrIniPath)
 {
 	ASSERT(vFrames.empty()); // don't load more than once
 
-	m_bSphereMapped = sTexOrIniPath.find("sphere") != RString::npos;
+	m_bSphereMapped = sTexOrIniPath.find("sphere") != std::string::npos;
 	if (sTexOrIniPath.find("add") != string::npos)
 		m_BlendMode = BLEND_ADD;
 	else
 		m_BlendMode = BLEND_NORMAL;
 
-	if (CompareNoCaseLUL(GetExtension(sTexOrIniPath), "ini") == 0) {
+	if (CompareNoCase(GetExtension(sTexOrIniPath), "ini") == 0) {
 		IniFile ini;
 		if (!ini.ReadFile(sTexOrIniPath))
 			RageException::Throw("Error reading \"%s\": %s",
@@ -64,15 +64,15 @@ AnimatedTexture::Load(const RString& sTexOrIniPath)
 		pAnimatedTexture->GetAttrValue("TexOffsetY", m_vTexOffset.y);
 
 		for (int i = 0; i < 1000; i++) {
-			RString sFileKey = ssprintf("Frame%04d", i);
-			RString sDelayKey = ssprintf("Delay%04d", i);
+			std::string sFileKey = ssprintf("Frame%04d", i);
+			std::string sDelayKey = ssprintf("Delay%04d", i);
 
-			RString sFileName;
+			std::string sFileName;
 			float fDelay = 0;
 			if (pAnimatedTexture->GetAttrValue(sFileKey, sFileName) &&
 				pAnimatedTexture->GetAttrValue(sDelayKey, fDelay)) {
-				RString sTranslateXKey = ssprintf("TranslateX%04d", i);
-				RString sTranslateYKey = ssprintf("TranslateY%04d", i);
+				std::string sTranslateXKey = ssprintf("TranslateX%04d", i);
+				std::string sTranslateYKey = ssprintf("TranslateY%04d", i);
 
 				RageVector2 vOffset(0, 0);
 				pAnimatedTexture->GetAttrValue(sTranslateXKey, vOffset.x);
@@ -213,10 +213,11 @@ AnimatedTexture::GetTextureTranslate()
 						 sLine.c_str())
 
 bool
-msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
+msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
+									 std::string sPath)
 {
 	FixSlashesInPlace(sPath);
-	const RString sDir = Dirname(sPath);
+	const std::string sDir = Dirname(sPath);
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -224,7 +225,7 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 							 sPath.c_str(),
 							 f.GetError().c_str());
 
-	RString sLine;
+	std::string sLine;
 	int iLineNum = 0;
 
 	msAnimation& Animation = *this;

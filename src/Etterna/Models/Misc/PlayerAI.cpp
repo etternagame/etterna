@@ -21,11 +21,11 @@ map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
 map<float, vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
 map<float, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
 float PlayerAI::replayRate = 1.f;
-RString PlayerAI::replayModifiers = "";
+std::string PlayerAI::replayModifiers = "";
 bool PlayerAI::replayUsedMirror = false;
-RString PlayerAI::oldModifiers = "";
+std::string PlayerAI::oldModifiers = "";
 float PlayerAI::oldRate = 1.f;
-RString PlayerAI::oldNoteskin = "";
+std::string PlayerAI::oldNoteskin = "";
 FailType PlayerAI::oldFailType = FailType_Immediate;
 
 TapNoteScore

@@ -59,10 +59,10 @@ void
 InputHandler_Win32_Pump::HandleInput(int iDevice, int iEvent)
 {
 	static const int bits[] = {
-		/* P1 */ (1 << 9),   (1 << 12), (1 << 13),
+		/* P1 */ (1 << 9),	 (1 << 12), (1 << 13),
 		(1 << 11),			 (1 << 10),
 		/* ESC */ (1 << 16),
-		/* P1 */ (1 << 17),  (1 << 20), (1 << 21),
+		/* P1 */ (1 << 17),	 (1 << 20), (1 << 21),
 		(1 << 19),			 (1 << 18),
 	};
 
@@ -80,7 +80,7 @@ InputHandler_Win32_Pump::HandleInput(int iDevice, int iEvent)
 	}
 }
 
-RString
+std::string
 InputHandler_Win32_Pump::GetDeviceSpecificInputString(const DeviceInput& di)
 {
 	switch (di.button) {

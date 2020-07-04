@@ -52,7 +52,7 @@ class PlayerInfo
 	/**
 	 * @brief Retrieve the name of the Player based on the mode.
 	 * @return the name of the Player. */
-	RString GetName() const
+	std::string GetName() const
 	{
 		if (m_bIsDummy)
 			return ssprintf("PlayerInfoDummy");

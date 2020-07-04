@@ -10,7 +10,7 @@
  * of these. */
 struct RageTextureID
 {
-	RString filename;
+	std::string filename;
 
 	// Maximum size of the texture, per dimension.
 	int iMaxSize{ 0 };
@@ -47,7 +47,7 @@ struct RageTextureID
 	bool bHotPinkColorKey{ false }; // #FF00FF
 
 	// These hints will be used in addition to any in the filename.
-	RString AdditionalTextureHints;
+	std::string AdditionalTextureHints;
 
 	/* Used by RageTextureManager. Order is important; see
 	 * RageTextureManager.cpp. Note that this property is not considered for
@@ -62,19 +62,19 @@ struct RageTextureID
 	void Init();
 
 	RageTextureID()
-	  : filename(RString())
-	  , AdditionalTextureHints(RString())
+	  : filename(std::string())
+	  , AdditionalTextureHints(std::string())
 	{
 		Init();
 	}
 	RageTextureID(const std::string& fn)
-	  : filename(RString())
-	  , AdditionalTextureHints(RString())
+	  : filename(std::string())
+	  , AdditionalTextureHints(std::string())
 	{
 		Init();
 		SetFilename(fn);
 	}
-	void SetFilename(const RString& fn);
+	void SetFilename(const std::string& fn);
 };
 
 inline bool

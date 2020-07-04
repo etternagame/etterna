@@ -202,20 +202,20 @@ BackgroundImpl::Init()
 		vector<std::string> vsPaths, vsNames;
 		BackgroundUtil::GetBackgroundTransitions("", vsPaths, vsNames);
 		for (unsigned i = 0; i < vsPaths.size(); i++) {
-			const RString& sPath = vsPaths[i];
-			const RString& sName = vsNames[i];
+			const std::string& sPath = vsPaths[i];
+			const std::string& sName = vsNames[i];
 
 			XNode xml;
 			XmlFileUtil::LoadFromFileShowErrors(xml, sPath);
 			ASSERT(xml.GetName() == "BackgroundTransition");
 			BackgroundTransition& bgt = m_mapNameToTransition[sName];
 
-			RString sCmdLeaves;
+			std::string sCmdLeaves;
 			bool bSuccess = xml.GetAttrValue("LeavesCommand", sCmdLeaves);
 			ASSERT(bSuccess);
 			bgt.cmdLeaves = ActorUtil::ParseActorCommands(sCmdLeaves);
 
-			RString sCmdRoot;
+			std::string sCmdRoot;
 			bSuccess = xml.GetAttrValue("RootCommand", sCmdRoot);
 			ASSERT(bSuccess);
 			bgt.cmdRoot = ActorUtil::ParseActorCommands(sCmdRoot);

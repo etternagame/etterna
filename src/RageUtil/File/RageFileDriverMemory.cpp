@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileDriverMemory.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -12,7 +12,7 @@ struct RageFileObjMemFile
 	  , m_Mutex("RageFileObjMemFile")
 	{
 	}
-	RString m_sBuf;
+	std::string m_sBuf;
 	int m_iRefs;
 	RageMutex m_Mutex;
 
@@ -106,14 +106,14 @@ RageFileObjMem::Copy() const
 	return pRet;
 }
 
-const RString&
+const std::string&
 RageFileObjMem::GetString() const
 {
 	return m_pFile->m_sBuf;
 }
 
 void
-RageFileObjMem::PutString(const RString& sBuf)
+RageFileObjMem::PutString(const std::string& sBuf)
 {
 	m_pFile->m_Mutex.Lock();
 	m_pFile->m_sBuf = sBuf;
@@ -128,14 +128,13 @@ RageFileDriverMem::RageFileDriverMem()
 
 RageFileDriverMem::~RageFileDriverMem()
 {
-	for (unsigned i = 0; i < m_Files.size(); ++i) {
-		RageFileObjMemFile* pFile = m_Files[i];
+	for (auto pFile : m_Files) {
 		RageFileObjMemFile::ReleaseReference(pFile);
 	}
 }
 
 RageFileBasic*
-RageFileDriverMem::Open(const RString& sPath, int mode, int& err)
+RageFileDriverMem::Open(const std::string& sPath, int mode, int& err)
 {
 	LockMut(m_Mutex);
 
@@ -165,7 +164,7 @@ RageFileDriverMem::Open(const RString& sPath, int mode, int& err)
 }
 
 bool
-RageFileDriverMem::Remove(const RString& sPath)
+RageFileDriverMem::Remove(const std::string& sPath)
 {
 	LockMut(m_Mutex);
 
@@ -192,7 +191,7 @@ static struct FileDriverEntry_MEM : public FileDriverEntry
 	  : FileDriverEntry("MEM")
 	{
 	}
-	RageFileDriver* Create(const RString& sRoot) const
+	RageFileDriver* Create(const std::string& sRoot) const
 	{
 		return new RageFileDriverMem();
 	}

@@ -37,7 +37,7 @@ DestroyGraphicsWindowAndOpenGLContext()
 }
 
 void*
-LowLevelWindow_Win32::GetProcAddress(const RString& s)
+LowLevelWindow_Win32::GetProcAddress(const std::string& s)
 {
 	void* pRet = (void*)wglGetProcAddress(s);
 	if (pRet != NULL)
@@ -87,7 +87,7 @@ ChooseWindowPixelFormat(const VideoModeParams& p, PIXELFORMATDESCRIPTOR* pixfmt)
 void
 DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
 {
-	RString str = ssprintf("Mode: ");
+	std::string str = ssprintf("Mode: ");
 	bool bInvalidFormat = false;
 
 	if (pfd.dwFlags & PFD_GENERIC_FORMAT) {
@@ -142,7 +142,7 @@ DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
  * trying yet another video mode, so we'd just thrash the display.  On fatal
  * error, LowLevelWindow_Win32::~LowLevelWindow_Win32 will call
  * GraphicsWindow::Shutdown(). */
-RString
+std::string
 LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 								   bool& bNewDeviceOut)
 {
@@ -175,7 +175,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 	 * mode. */
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("SetScreenMode ...");
-	RString sErr = GraphicsWindow::SetScreenMode(p);
+	std::string sErr = GraphicsWindow::SetScreenMode(p);
 	if (!sErr.empty())
 		return sErr;
 
@@ -273,7 +273,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 			return hr_ssprintf(GetLastError(), "wglCreateContext");
 		}
 	}
-	return RString(); // we set the video mode successfully
+	return std::string(); // we set the video mode successfully
 }
 
 bool
@@ -301,10 +301,10 @@ static LocalizedString OPENGL_NOT_AVAILABLE(
   "LowLevelWindow_Win32",
   "OpenGL hardware acceleration is not available.");
 bool
-LowLevelWindow_Win32::IsSoftwareRenderer(RString& sError)
+LowLevelWindow_Win32::IsSoftwareRenderer(std::string& sError)
 {
-	RString sVendor = (const char*)glGetString(GL_VENDOR);
-	RString sRenderer = (const char*)glGetString(GL_RENDERER);
+	std::string sVendor = (const char*)glGetString(GL_VENDOR);
+	std::string sRenderer = (const char*)glGetString(GL_RENDERER);
 
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("LowLevelWindow_Win32::IsSoftwareRenderer '%s', '%s'",

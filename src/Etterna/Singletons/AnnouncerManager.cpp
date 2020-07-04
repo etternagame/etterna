@@ -124,7 +124,7 @@ AnnouncerManager::GetPathTo(const std::string& sAnnouncerName,
 	/* Search for the announcer folder in the list of aliases. */
 	int i;
 	for (i = 0; aliases[i][0] != nullptr; ++i) {
-		if (!EqualsNoCaseLUL(sFolderName, aliases[i][0]))
+		if (!EqualsNoCase(sFolderName, aliases[i][0]))
 			continue; /* no match */
 
 		if (!DirectoryIsEmpty(AnnouncerPath + aliases[i][1] + "/"))
@@ -171,7 +171,7 @@ AnnouncerManager::NextAnnouncer()
 	else {
 		unsigned i;
 		for (i = 0; i < as.size(); i++)
-			if (EqualsNoCaseLUL(as[i], m_sCurAnnouncerName))
+			if (EqualsNoCase(as[i], m_sCurAnnouncerName))
 				break;
 		if (i == as.size() - 1)
 			SwitchAnnouncer("");

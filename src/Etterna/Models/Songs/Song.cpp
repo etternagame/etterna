@@ -624,7 +624,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
 				std::string loot = m_sMusicFile.substr(0, 5);
-				if (music_list.size() > 1 && (loot.MakeLower() != "intro")) {
+				if (music_list.size() > 1 && (make_lower(loot) != "intro")) {
 					m_sMusicFile = music_list[1];
 				}
 			}
@@ -851,23 +851,23 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 			// Skip any image that we've already classified
 
-			if (m_bHasBanner && EqualsNoCaseLUL(m_sBannerFile, image_list[i]))
+			if (m_bHasBanner && EqualsNoCase(m_sBannerFile, image_list[i]))
 				continue; // skip
 
 			if (m_bHasBackground &&
-				EqualsNoCaseLUL(m_sBackgroundFile, image_list[i]))
+				EqualsNoCase(m_sBackgroundFile, image_list[i]))
 				continue; // skip
 
-			if (has_cdtitle && EqualsNoCaseLUL(m_sCDTitleFile, image_list[i]))
+			if (has_cdtitle && EqualsNoCase(m_sCDTitleFile, image_list[i]))
 				continue; // skip
 
-			if (has_jacket && EqualsNoCaseLUL(m_sJacketFile, image_list[i]))
+			if (has_jacket && EqualsNoCase(m_sJacketFile, image_list[i]))
 				continue; // skip
 
-			if (has_disc && EqualsNoCaseLUL(m_sDiscFile, image_list[i]))
+			if (has_disc && EqualsNoCase(m_sDiscFile, image_list[i]))
 				continue; // skip
 
-			if (has_cdimage && EqualsNoCaseLUL(m_sCDFile, image_list[i]))
+			if (has_cdimage && EqualsNoCase(m_sCDFile, image_list[i]))
 				continue; // skip
 
 			auto sPath = m_sSongDir + image_list[i];
@@ -1518,7 +1518,8 @@ Song::GetForegroundChanges()
 }
 
 vector<std::string>
-Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
+Song::GetChangesToVectostd::string(
+  const vector<BackgroundChange>& changes) const
 {
 	vector<std::string> ret;
 	FOREACH_CONST(BackgroundChange, changes, bgc)
@@ -1529,27 +1530,27 @@ Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 }
 
 vector<std::string>
-Song::GetBGChanges1ToVectorString() const
+Song::GetBGChanges1ToVectostd::string() const
 {
-	return this->GetChangesToVectorString(
+	return this->GetChangesToVectostd::string(
 	  this->GetBackgroundChanges(BACKGROUND_LAYER_1));
 }
 
 vector<std::string>
-Song::GetBGChanges2ToVectorString() const
+Song::GetBGChanges2ToVectostd::string() const
 {
-	return this->GetChangesToVectorString(
+	return this->GetChangesToVectostd::string(
 	  this->GetBackgroundChanges(BACKGROUND_LAYER_2));
 }
 
 vector<std::string>
-Song::GetFGChanges1ToVectorString() const
+Song::GetFGChanges1ToVectostd::string() const
 {
-	return this->GetChangesToVectorString(this->GetForegroundChanges());
+	return this->GetChangesToVectostd::string(this->GetForegroundChanges());
 }
 
 vector<std::string>
-Song::GetInstrumentTracksToVectorString() const
+Song::GetInstrumentTracksToVectostd::string() const
 {
 	vector<std::string> ret;
 	FOREACH_ENUM(InstrumentTrack, it)
@@ -1792,12 +1793,12 @@ Song::DeleteSteps(const Steps* pSteps, bool bReAutoGen)
 bool
 Song::Matches(const std::string& sGroup, const std::string& sSong) const
 {
-	if (sGroup.size() && CompareNoCaseLUL(sGroup, this->m_sGroupName) != 0)
+	if (sGroup.size() && CompareNoCase(sGroup, this->m_sGroupName) != 0)
 		return false;
 
 	auto sDir = this->GetSongDir();
 	std::string voop = sDir;
-	voop.Replace("\\", "/");
+	s_replace(voop, '\\', '/');
 	sDir = voop;
 	vector<std::string> bits;
 	split(sDir, "/", bits);
@@ -1805,9 +1806,9 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 	const auto& sLastBit = bits[bits.size() - 1];
 
 	// match on song dir or title (ala DWI)
-	if (!CompareNoCaseLUL(sSong, sLastBit))
+	if (!CompareNoCase(sSong, sLastBit))
 		return true;
-	if (!CompareNoCaseLUL(sSong, this->GetTranslitFullTitle()))
+	if (!CompareNoCase(sSong, this->GetTranslitFullTitle()))
 		return true;
 
 	return false;

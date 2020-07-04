@@ -354,7 +354,7 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 		return false;
 	}
 
-	RString fileRStr;
+	std::string fileRStr;
 	fileRStr.reserve(f.GetFileSize());
 	f.Read(fileRStr, -1);
 
@@ -371,7 +371,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
-	// const RString sPath = sPath_ + aFileNames[0];
+	// const std::string sPath = sPath_ + aFileNames[0];
 
 	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
@@ -384,7 +384,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		if (!f.Open(p)) {
 			continue;
 		}
-		RString fileContents;
+		std::string fileContents;
 		f.Read(fileContents, -1);
 		parsedData = ParseFileString(fileContents.c_str());
 		if (parsedData.size() == 0) {

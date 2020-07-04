@@ -205,7 +205,7 @@ OptionRow::GetRowTitle() const
 	std::string sTitle = m_pHand->OptionTitle();
 
 	// HACK: tack the BPM onto the name of the speed line
-	if (CompareNoCaseLUL(m_pHand->m_Def.m_sName, "speed") == 0) {
+	if (CompareNoCase(m_pHand->m_Def.m_sName, "speed") == 0) {
 		bool bShowBpmInSpeedTitle = m_pParentType->SHOW_BPM_IN_SPEED_TITLE;
 
 		if (bShowBpmInSpeedTitle) {

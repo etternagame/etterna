@@ -13,13 +13,13 @@ LoadingWindow::Create()
 	return new LoadingWindow_Null;
 #else
 	// Don't load NULL by default.
-	const RString drivers = "win32,macosx,gtk";
+	const std::string drivers = "win32,macosx,gtk";
 	vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	ASSERT(DriversToTry.size() != 0);
 
-	RString Driver;
+	std::string Driver;
 	LoadingWindow* ret = NULL;
 
 	for (unsigned i = 0; ret == NULL && i < DriversToTry.size(); ++i) {
@@ -56,7 +56,7 @@ LoadingWindow::Create()
 		if (ret == NULL)
 			continue;
 
-		RString sError = ret->Init();
+		std::string sError = ret->Init();
 		if (sError != "") {
 			LOG->Info("Couldn't load driver %s: %s",
 					  DriversToTry[i].c_str(),

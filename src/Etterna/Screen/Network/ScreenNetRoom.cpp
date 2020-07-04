@@ -205,9 +205,9 @@ ScreenNetRoom::UpdateRoomsList()
 }
 
 void
-ScreenNetRoom::CreateNewRoom(const RString& rName,
-							 const RString& rDesc,
-							 const RString& rPass)
+ScreenNetRoom::CreateNewRoom(const std::string& rName,
+							 const std::string& rDesc,
+							 const std::string& rPass)
 {
 	NSMAN->CreateNewRoom(rName, rDesc, rPass);
 }

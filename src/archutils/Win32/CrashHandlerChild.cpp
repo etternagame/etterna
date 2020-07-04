@@ -43,7 +43,7 @@ struct Context
 {
 	Context() { pRVAHeap = NULL; }
 	bool Loaded() const { return pRVAHeap != NULL; }
-	RString sRawBlock;
+	std::string sRawBlock;
 
 	int nBuildNumber;
 
@@ -54,7 +54,7 @@ struct Context
 	const unsigned long (*pSegments)[2];
 	int nSegments;
 	char sFilename[1024];
-	RString sError;
+	std::string sError;
 };
 
 static void
@@ -73,8 +73,8 @@ bool
 VDDebugInfoInitFromMemory(Context* pctx)
 {
 	if (pctx->sRawBlock[0] == '\x1f' && pctx->sRawBlock[1] == '\x8b') {
-		RString sBufOut;
-		RString sError;
+		std::string sBufOut;
+		std::string sError;
 		if (!GunzipString(pctx->sRawBlock, sBufOut, sError)) {
 			pctx->sError =
 			  werr_ssprintf(GetLastError(), "VDI error: %s", sError.c_str());
@@ -114,7 +114,7 @@ void
 VDDebugInfoDeinit(Context* pctx)
 {
 	if (!pctx->sRawBlock.empty())
-		pctx->sRawBlock = RString();
+		pctx->sRawBlock = std::string();
 }
 
 bool
@@ -123,10 +123,10 @@ VDDebugInfoInitFromFile(Context* pctx)
 	if (pctx->Loaded())
 		return true;
 
-	pctx->sRawBlock = RString();
+	pctx->sRawBlock = std::string();
 	pctx->pRVAHeap = NULL;
 	GetVDIPath(pctx->sFilename, ARRAYLEN(pctx->sFilename));
-	pctx->sError = RString();
+	pctx->sError = std::string();
 
 	HANDLE h = CreateFile(pctx->sFilename,
 						  GENERIC_READ,
@@ -330,7 +330,7 @@ Demangle(const char* buf)
 	return obuf;
 }
 
-RString
+std::string
 CrashChildGetModuleBaseName(HMODULE hMod)
 {
 	_write(_fileno(stdout), &hMod, sizeof(hMod));
@@ -340,7 +340,7 @@ CrashChildGetModuleBaseName(HMODULE hMod)
 	if (!ReadFromParent(iFD, &iSize, sizeof(iSize))) {
 		return "???";
 	}
-	RString sName;
+	std::string sName;
 	char* buffer = new char[iSize + 1];
 	std::fill(buffer, buffer + iSize + 1, '\0');
 	if (!ReadFromParent(iFD, buffer, iSize)) {
@@ -377,7 +377,7 @@ SymLookup(VDDebugInfo::Context* pctx, const void* ptr, char* buf)
 		return;
 	}
 
-	RString sName =
+	std::string sName =
 	  CrashChildGetModuleBaseName((HMODULE)meminfo.AllocationBase);
 
 	DWORD64 disp;
@@ -406,8 +406,8 @@ SymLookup(VDDebugInfo::Context* pctx, const void* ptr, char* buf)
 
 namespace {
 
-RString
-SpliceProgramPath(RString fn)
+std::string
+SpliceProgramPath(std::string fn)
 {
 	char szBuf[MAX_PATH];
 	GetModuleFileName(NULL, szBuf, sizeof(szBuf));
@@ -423,7 +423,7 @@ SpliceProgramPath(RString fn)
 namespace {
 VDDebugInfo::Context g_debugInfo;
 
-RString
+std::string
 ReportCallStack(const void* const* Backtrace)
 {
 	if (!g_debugInfo.Loaded())
@@ -438,7 +438,7 @@ ReportCallStack(const void* const* Backtrace)
 			g_debugInfo.sFilename, g_debugInfo.nBuildNumber, int(version_num) );
 	}
 	*/
-	RString sRet;
+	std::string sRet;
 	for (int i = 0; Backtrace[i]; ++i) {
 		char buf[10240];
 		SymbolLookup::SymLookup(&g_debugInfo, Backtrace[i], buf);
@@ -452,15 +452,15 @@ ReportCallStack(const void* const* Backtrace)
 struct CompleteCrashData
 {
 	CrashInfo m_CrashInfo;
-	RString m_sInfo;
-	RString m_sAdditionalLog;
-	RString m_sCrashedThread;
-	vector<RString> m_asRecent;
+	std::string m_sInfo;
+	std::string m_sAdditionalLog;
+	std::string m_sCrashedThread;
+	vector<std::string> m_asRecent;
 	vector<std::string> m_asCheckpoints;
 };
 
 static void
-MakeCrashReport(const CompleteCrashData& Data, RString& sOut)
+MakeCrashReport(const CompleteCrashData& Data, std::string& sOut)
 {
 	sOut += ssprintf("%s crash report (build %s)\n"
 					 "--------------------------------------\n\n",
@@ -504,9 +504,9 @@ MakeCrashReport(const CompleteCrashData& Data, RString& sOut)
 }
 
 static void
-DoSave(const RString& sReport)
+DoSave(const std::string& sReport)
 {
-	RString sName = SpliceProgramPath("../crashinfo.txt");
+	std::string sName = SpliceProgramPath("../crashinfo.txt");
 
 	SetFileAttributes(sName, FILE_ATTRIBUTE_NORMAL);
 	FILE* pFile = fopen(sName, "w+");
@@ -542,7 +542,7 @@ ReadCrashDataFromParent(int iFD, CompleteCrashData& Data)
 	char* buffer = new char[iSize + 1];
 	std::fill(buffer, buffer + iSize + 1, '\0');
 	bool wasReadSuccessful = ReadFromParent(iFD, buffer, iSize);
-	RString tmp = buffer;
+	std::string tmp = buffer;
 	delete[] buffer;
 	if (!wasReadSuccessful) {
 		return false;
@@ -660,7 +660,7 @@ LoadLocalizedStrings()
 class CrashDialog : public WindowsDialogBox
 {
   public:
-	CrashDialog(const RString& sCrashReport,
+	CrashDialog(const std::string& sCrashReport,
 				const CompleteCrashData& CrashData);
 	~CrashDialog();
 
@@ -671,12 +671,12 @@ class CrashDialog : public WindowsDialogBox
 	void SetDialogInitial();
 
 	NetworkPostData* m_pPost;
-	RString m_sUpdateURL;
-	const RString m_sCrashReport;
+	std::string m_sUpdateURL;
+	const std::string m_sCrashReport;
 	CompleteCrashData m_CrashData;
 };
 
-CrashDialog::CrashDialog(const RString& sCrashReport,
+CrashDialog::CrashDialog(const std::string& sCrashReport,
 						 const CompleteCrashData& CrashData)
   : m_sCrashReport(sCrashReport)
   , m_CrashData(CrashData)
@@ -753,7 +753,7 @@ CrashDialog::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 					// EndDialog(hDlg, TRUE); // don't always exit on ENTER
 					return TRUE;
 				case IDC_VIEW_LOG: {
-					RString sLogPath;
+					std::string sLogPath;
 					FILE* pFile =
 					  fopen(SpliceProgramPath("../Portable.ini"), "r");
 					if (pFile != NULL) {
@@ -827,8 +827,8 @@ CrashDialog::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
 				/* Grab the result, which is the data output from the HTTP
 				 * request. It's simple XML. */
-				RString sResult = m_pPost->GetResult();
-				RString sError = m_pPost->GetError();
+				std::string sResult = m_pPost->GetResult();
+				std::string sError = m_pPost->GetError();
 				if (sError.empty() && sResult.empty())
 					sError = "No data received";
 
@@ -836,7 +836,7 @@ CrashDialog::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 
 				XNode xml;
 				if (sError.empty()) {
-					RString sError;
+					std::string sError;
 					XmlFileUtil::Load(&xml, sResult, sError);
 					if (!sError.empty()) {
 						sError = ssprintf("Error parsing response: %s",
@@ -891,7 +891,7 @@ ChildProcess()
 	CompleteCrashData Data;
 	ReadCrashDataFromParent(_fileno(stdin), Data);
 
-	RString sCrashReport;
+	std::string sCrashReport;
 	VDDebugInfo::VDDebugInfoInitFromFile(&g_debugInfo);
 	MakeCrashReport(Data, sCrashReport);
 	VDDebugInfo::VDDebugInfoDeinit(&g_debugInfo);

@@ -67,8 +67,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	virtual bool UseSongBackgroundAndForeground() const { return true; }
 
-	ThemeMetric<RString> PLAYER_TYPE;
-	ThemeMetric<RString> SCORE_DISPLAY_TYPE;
+	ThemeMetric<std::string> PLAYER_TYPE;
+	ThemeMetric<std::string> SCORE_DISPLAY_TYPE;
 	ThemeMetric<apActorCommands> PLAYER_INIT_COMMAND;
 	LocalizedString GIVE_UP_START_TEXT;
 	LocalizedString GIVE_UP_BACK_TEXT;
@@ -81,7 +81,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	ThemeMetric<float> MIN_SECONDS_TO_STEP;
 	ThemeMetric<float> MIN_SECONDS_TO_MUSIC;
 	ThemeMetric<float> MIN_SECONDS_TO_STEP_NEXT_SONG;
-	ThemeMetric<RString> SONG_NUMBER_FORMAT;
+	ThemeMetric<std::string> SONG_NUMBER_FORMAT;
 
 	void SetupSong(int iSongIndex);
 	void ReloadCurrentSong();
@@ -89,10 +89,10 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic);
 	void GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 						   float& fSecondsToStartTransitioningOut);
-	void PlayAnnouncer(const RString& type,
+	void PlayAnnouncer(const std::string& type,
 					   float fSeconds,
 					   float* fDeltaSeconds);
-	void PlayAnnouncer(const RString& type, float fSeconds)
+	void PlayAnnouncer(const std::string& type, float fSeconds)
 	{
 		PlayAnnouncer(type, fSeconds, &m_fTimeSinceLastDancingComment);
 	}

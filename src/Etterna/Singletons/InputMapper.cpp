@@ -14,7 +14,8 @@
 
 #define AUTOMAPPINGS_DIR "/Data/AutoMappings/"
 
-static Preference<std::string> g_sLastSeenInputDevices("LastSeenInputDevices", "");
+static Preference<std::string> g_sLastSeenInputDevices("LastSeenInputDevices",
+													   "");
 static Preference<bool> g_bAutoMapOnJoyChange("AutoMapOnJoyChange", true);
 
 namespace {
@@ -221,9 +222,9 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
 	  AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
 	  AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
-	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),  // A
+	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),	// A
 	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false), // B
-	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),  // X
+	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),	// X
 	  AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),	// Y
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false)),
@@ -310,9 +311,9 @@ static const AutoMappings g_AutoMappings[] = {
 	  AutoMappingEntry(0, JOY_RIGHT, DANCE_BUTTON_RIGHT, false),
 	  AutoMappingEntry(0, JOY_UP, DANCE_BUTTON_UP, false),
 	  AutoMappingEntry(0, JOY_DOWN, DANCE_BUTTON_DOWN, false),
-	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),  // A
+	  AutoMappingEntry(1, JOY_BUTTON_1, DANCE_BUTTON_DOWN, false),	// A
 	  AutoMappingEntry(1, JOY_BUTTON_2, DANCE_BUTTON_RIGHT, false), // B
-	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),  // X
+	  AutoMappingEntry(1, JOY_BUTTON_3, DANCE_BUTTON_LEFT, false),	// X
 	  AutoMappingEntry(1, JOY_BUTTON_4, DANCE_BUTTON_UP, false),	// Y
 	  AutoMappingEntry(0, JOY_BUTTON_9, GAME_BUTTON_START, false),
 	  AutoMappingEntry(0, JOY_BUTTON_10, GAME_BUTTON_BACK, false)),
@@ -673,7 +674,7 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 		// hard-coded automaps
 		for (unsigned j = 0; j < ARRAYLEN(g_AutoMappings); j++) {
 			const AutoMappings& mapping = g_AutoMappings[j];
-			if (EqualsNoCaseLUL(mapping.m_sGame, m_pInputScheme->m_szName))
+			if (EqualsNoCase(mapping.m_sGame, m_pInputScheme->m_szName))
 				vAutoMappings.push_back(mapping);
 		}
 	}
@@ -724,7 +725,8 @@ InputMapper::GetInputScheme() const
 	return m_pInputScheme;
 }
 
-const std::string DEVICE_INPUT_SEPARATOR = ":"; // this isn't used in any key names
+const std::string DEVICE_INPUT_SEPARATOR =
+  ":"; // this isn't used in any key names
 
 void
 InputMapper::ReadMappingsFromDisk()
@@ -839,9 +841,10 @@ InputMapper::CheckForChangedInputDevicesAndRemap(std::string& sMessageOut)
 		if (IsJoystick(vDevices[i].id)) {
 			vsCurrentJoysticks.push_back(vDevices[i].sDesc);
 		} else {
-			vector<std::string>::iterator iter = find(vsLastSeenJoysticks.begin(),
-												  vsLastSeenJoysticks.end(),
-												  vDevices[i].sDesc);
+			vector<std::string>::iterator iter =
+			  find(vsLastSeenJoysticks.begin(),
+				   vsLastSeenJoysticks.end(),
+				   vDevices[i].sDesc);
 			if (iter != vsLastSeenJoysticks.end())
 				vsLastSeenJoysticks.erase(iter);
 		}

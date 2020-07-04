@@ -359,7 +359,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	{
 		// HACK: always reload "speed", to update the BPM text in the name of
 		// the speed line
-		if (!CompareNoCaseLUL(m_Def.m_sName, "speed"))
+		if (!CompareNoCase(m_Def.m_sName, "speed"))
 			return RELOAD_CHANGED_ALL;
 
 		return OptionRowHandler::Reload();
@@ -1516,20 +1516,20 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 					   "list row command must be 'list,name' or 'list,type'.",
 					   NULL);
 
-		if (CompareNoCaseLUL(sParam, "NoteSkins") == 0)
+		if (CompareNoCase(sParam, "NoteSkins") == 0)
 			MAKE(OptionRowHandlerListNoteSkins)
-		else if (CompareNoCaseLUL(sParam, "Steps") == 0)
+		else if (CompareNoCase(sParam, "Steps") == 0)
 			MAKE(OptionRowHandlerListSteps)
-		else if (CompareNoCaseLUL(sParam, "StepsLocked") == 0) {
+		else if (CompareNoCase(sParam, "StepsLocked") == 0) {
 			MAKE(OptionRowHandlerListSteps);
 			pHand->m_Def.m_bOneChoiceForAllPlayers = true;
-		} else if (CompareNoCaseLUL(sParam, "Styles") == 0)
+		} else if (CompareNoCase(sParam, "Styles") == 0)
 			MAKE(OptionRowHandlerListStyles)
-		else if (CompareNoCaseLUL(sParam, "Groups") == 0)
+		else if (CompareNoCase(sParam, "Groups") == 0)
 			MAKE(OptionRowHandlerListGroups)
-		else if (CompareNoCaseLUL(sParam, "Difficulties") == 0)
+		else if (CompareNoCase(sParam, "Difficulties") == 0)
 			MAKE(OptionRowHandlerListDifficulties)
-		else if (CompareNoCaseLUL(sParam, "SongsInCurrentSongGroup") == 0)
+		else if (CompareNoCase(sParam, "SongsInCurrentSongGroup") == 0)
 			MAKE(OptionRowHandlerListSongsInCurrentSongGroup)
 		else
 			MAKE(OptionRowHandlerList)

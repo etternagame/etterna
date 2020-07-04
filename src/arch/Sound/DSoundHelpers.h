@@ -17,7 +17,7 @@ class DSound
 
 	DSound();
 	~DSound();
-	RString Init();
+	std::string Init();
 
   private:
 	IDirectSound* m_pDS;
@@ -47,12 +47,12 @@ class DSoundBuf
 	};
 
 	DSoundBuf();
-	RString Init(DSound& ds,
-				 hw hardware,
-				 int iChannels,
-				 int iSampleRate,
-				 int iSampleBits,
-				 int iWriteAhead);
+	std::string Init(DSound& ds,
+					 hw hardware,
+					 int iChannels,
+					 int iSampleRate,
+					 int iSampleBits,
+					 int iWriteAhead);
 
 	bool get_output_buf(char** pBuffer, unsigned* iBuffersize, int iChunksize);
 	void release_output_buf(char* pBuffer, unsigned iBuffersize);

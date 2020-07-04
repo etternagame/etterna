@@ -42,7 +42,7 @@ ScreenProfileLoad::Continue()
 		} else if (PROFILEMAN->GetNumLocalProfiles() == 0) {
 			// but also sometimes we might have 0 profiles
 			// in that case make a new one, duh
-			RString id;
+			std::string id;
 			PROFILEMAN->CreateLocalProfile("Default Profile", id);
 			PROFILEMAN->m_sDefaultLocalProfileID[PLAYER_1].Set(id);
 			PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);

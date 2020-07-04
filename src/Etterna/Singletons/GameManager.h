@@ -62,7 +62,7 @@ class GameManager
 	bool m_bResetModifiers;
 	bool m_bResetTurns;
 	float m_fPreviousRate;
-	RString m_sModsToReset;
+	std::string m_sModsToReset;
 	vector<std::string> m_vTurnsToReset;
 
 	// Lua

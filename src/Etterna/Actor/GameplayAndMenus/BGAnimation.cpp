@@ -2,7 +2,6 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "BGAnimation.h"
 #include "BGAnimationLayer.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -30,9 +29,10 @@ CompareLayerNames(const std::string& s1, const std::string& s2)
 }
 
 void
-BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir, const XNode* pNode)
+BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir,
+								 const XNode* pNode)
 {
-	const std::string& sAniDir = _sAniDir;
+	const auto& sAniDir = _sAniDir;
 
 	{
 		vector<std::string> vsLayerNames;
@@ -44,11 +44,10 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir, const XNode* pNode
 
 		sort(vsLayerNames.begin(), vsLayerNames.end(), CompareLayerNames);
 
-		for(auto& s: vsLayerNames)
-		{
-			const std::string& sLayer = s;
-			const XNode* pKey = pNode->GetChild(sLayer);
-			ASSERT(pKey != NULL);
+		for (auto& s : vsLayerNames) {
+			const auto& sLayer = s;
+			auto pKey = pNode->GetChild(sLayer);
+			ASSERT(pKey != nullptr);
 
 			std::string sImportDir;
 			if (pKey->GetAttrValue("Import", sImportDir)) {
@@ -66,7 +65,7 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir, const XNode* pNode
 				ASSERT_M(IsADirectory(sImportDir),
 						 sImportDir + " isn't a directory");
 
-				std::string sPathToIni = sImportDir + "BGAnimation.ini";
+				auto sPathToIni = sImportDir + "BGAnimation.ini";
 
 				IniFile ini2;
 				ini2.ReadFile(sPathToIni);
@@ -74,7 +73,7 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir, const XNode* pNode
 				AddLayersFromAniDir(sImportDir, &ini2);
 			} else {
 				// import as a single layer
-				BGAnimationLayer* bgLayer = new BGAnimationLayer;
+				auto bgLayer = new BGAnimationLayer;
 				bgLayer->LoadFromNode(pKey);
 				this->AddChild(bgLayer);
 			}
@@ -90,13 +89,13 @@ BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 	if (_sAniDir.empty())
 		return;
 
-	std::string sAniDir = _sAniDir;
+	auto sAniDir = _sAniDir;
 	if (sAniDir.back() != '/')
 		sAniDir += "/";
 
 	ASSERT_M(IsADirectory(sAniDir), sAniDir + " isn't a directory");
 
-	std::string sPathToIni = sAniDir + "BGAnimation.ini";
+	auto sPathToIni = sAniDir + "BGAnimation.ini";
 	{
 		// This is an 3.0 and before-style BGAnimation (not using .ini)
 
@@ -115,13 +114,12 @@ BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 
 		SortRStringArray(asImagePaths);
 
-		for (unsigned i = 0; i < asImagePaths.size(); i++) {
-			const std::string sPath = asImagePaths[i];
+		for (auto sPath : asImagePaths) {
 			if (Basename(sPath).front() == '_')
 				continue; // don't directly load files starting with an
 						  // underscore
-			BGAnimationLayer* pLayer = new BGAnimationLayer;
-			pLayer->LoadFromAniLayerFile(asImagePaths[i]);
+			auto pLayer = new BGAnimationLayer;
+			pLayer->LoadFromAniLayerFile(sPath);
 			AddChild(pLayer);
 		}
 	}
@@ -144,7 +142,7 @@ BGAnimation::LoadFromNode(const XNode* pNode)
 		auto* pActor = new Actor;
 		pActor->SetName("BGAnimation dummy");
 		pActor->SetVisible(false);
-		apActorCommands ap =
+		auto ap =
 		  ActorUtil::ParseActorCommands(ssprintf("sleep,%f", fLengthSeconds));
 		pActor->AddCommand("On", ap);
 		AddChild(pActor);
