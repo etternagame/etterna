@@ -18,7 +18,7 @@ DriverList::Create(const std::string& sDriverName)
 		return nullptr;
 
 	map<istring, CreateRageDriverFn>::const_iterator iter =
-	  m_pRegistrees->find(istring(sDriverName));
+	  m_pRegistrees->find(istring(sDriverName.c_str()));
 	if (iter == m_pRegistrees->end())
 		return nullptr;
 	return (iter->second)();

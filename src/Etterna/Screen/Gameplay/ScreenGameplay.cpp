@@ -68,11 +68,6 @@ AutoScreenMessage(SM_DoNextScreen);
 AutoScreenMessage(SM_StartHereWeGo);
 AutoScreenMessage(SM_StopHereWeGo);
 
-// related to battle mode for triggering announcer stuff
-AutoScreenMessage(SM_BattleTrickLevel1);
-AutoScreenMessage(SM_BattleTrickLevel2);
-AutoScreenMessage(SM_BattleTrickLevel3);
-
 static Preference<bool> g_bCenter1Player("Center1Player", true);
 static Preference<bool> g_bShowLyrics("ShowLyrics", false);
 
@@ -1694,16 +1689,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
 		PlayAnnouncer("gameplay combo stopped", 2);
 	} else if (SM == SM_ComboContinuing) {
 		PlayAnnouncer("gameplay combo overflow", 2);
-	} else if (SM >= SM_BattleTrickLevel1 && SM <= SM_BattleTrickLevel3) {
-		int iTrickLevel = SM - SM_BattleTrickLevel1 + 1;
-		PlayAnnouncer(ssprintf("gameplay battle trick level%d", iTrickLevel),
-					  3);
-		if (SM == SM_BattleTrickLevel1)
-			m_soundBattleTrickLevel1.Play(false);
-		else if (SM == SM_BattleTrickLevel2)
-			m_soundBattleTrickLevel2.Play(false);
-		else if (SM == SM_BattleTrickLevel3)
-			m_soundBattleTrickLevel3.Play(false);
 	} else if (SM == SM_DoPrevScreen) {
 		SongFinished();
 		this->StageFinished(true);

@@ -19,8 +19,6 @@
 #include <sstream> // conversion for lua functions.
 #include <unordered_set>
 
-#include "RageUtil/Misc/RageString.h"
-
 #include "lua.hpp"
 
 using std::vector;
@@ -1352,7 +1350,7 @@ LuaHelpers::ParseCommandList(Lua* L,
 		for (auto const& cmd : cmds.v) {
 			std::string sCmdName = cmd.GetName();
 			if (bLegacy) {
-				sCmdName = Rage::make_lower(sCmdName);
+				sCmdName = make_lower(sCmdName);
 			}
 			s << "\tself:" << sCmdName << "(";
 
@@ -1374,7 +1372,7 @@ LuaHelpers::ParseCommandList(Lua* L,
 				if (i == 1 &&
 					bFirstParamIsString) // string literal, legacy only
 				{
-					Rage::replace(sArg, "'", "\\'"); // escape quote
+					s_replace(sArg, "'", "\\'"); // escape quote
 					s << "'" << sArg << "'";
 				} else if (sArg[0] == '#') // HTML color
 				{

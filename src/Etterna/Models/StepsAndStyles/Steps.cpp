@@ -132,7 +132,7 @@ Steps::GetNoteDataFromSimfile() -> bool
 			*/
 			SMLoader backup_loader;
 			auto transformedStepFile = stepFile;
-			s_replace(transformedStepFile, '.ssc', '.sm');
+			s_replace(transformedStepFile, ".ssc", ".sm");
 
 			return backup_loader.LoadNoteDataFromSimfile(transformedStepFile,
 														 *this);

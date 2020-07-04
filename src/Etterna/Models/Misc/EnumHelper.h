@@ -78,7 +78,7 @@ const std::string&
 EnumToString(int iVal,
 			 int iMax,
 			 const char** szNameArray,
-			 unique_ptr<std::string>* pNameCache); // XToString helper
+			 std::unique_ptr<std::string>* pNameCache); // XToString helper
 
 #define XToString(X)                                                           \
                                                                                \

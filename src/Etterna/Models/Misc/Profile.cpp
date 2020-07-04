@@ -23,7 +23,6 @@
 #include "Etterna/Models/Misc/XMLProfile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/DownloadManager.h"
-#include "RageUtil/Misc/RageString.h"
 
 /** @brief The filename for where one can edit their personal profile
  * information. */
@@ -992,10 +991,10 @@ class LunaProfile : public Luna<Profile>
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-			return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
-									  ->GetDisplayMainTitle()) <
-				   Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
-									  ->GetDisplayMainTitle());
+			return make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
+								->GetDisplayMainTitle()) <
+				   make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
+								->GetDisplayMainTitle());
 		};
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 3;

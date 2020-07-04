@@ -43,7 +43,7 @@ LowLevelWindow_Win32::GetProcAddress(const std::string& s)
 	if (pRet != nullptr)
 		return pRet;
 
-	return (void*)::GetProcAddress(GetModuleHandle(nullptr), s);
+	return (void*)::GetProcAddress(GetModuleHandle(nullptr), s.c_str());
 }
 
 LowLevelWindow_Win32::LowLevelWindow_Win32()

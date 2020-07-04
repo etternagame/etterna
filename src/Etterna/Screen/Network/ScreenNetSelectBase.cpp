@@ -350,7 +350,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 			return 0;
 		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() &&
 			IArg(1) >= 1)
-			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
+			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText().c_str());
 		else
 			lua_pushstring(L, "");
 		return 1;

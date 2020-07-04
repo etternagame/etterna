@@ -206,11 +206,7 @@ ends_with(std::string const& value, std::string const& ending)
 		return false;
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
-inline bool
-starts_with(std::string const& value, std::string const& start)
-{
-	return value.rfind(start, 0) == 0;
-}
+
 inline void
 checkProtocol(string& url)
 {

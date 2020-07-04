@@ -26,7 +26,7 @@ WheelItemBase::WheelItemBase(const WheelItemBase& cpy)
   , m_bExpanded(cpy.m_bExpanded)
 {
 	// what
-	m_pGrayBar = NULL;
+	m_pGrayBar = nullptr;
 
 	// FIXME
 	// if( cpy.m_pGrayBar == cpy.m_sprBar )
@@ -36,9 +36,9 @@ WheelItemBase::WheelItemBase(const WheelItemBase& cpy)
 WheelItemBase::WheelItemBase(const std::string& sType)
 {
 	SetName(sType);
-	m_pData = NULL;
+	m_pData = nullptr;
 	m_bExpanded = false;
-	m_pGrayBar = NULL;
+	m_pGrayBar = nullptr;
 	Load();
 }
 
@@ -81,7 +81,7 @@ WheelItemBase::DrawPrimitives()
 {
 	ActorFrame::DrawPrimitives();
 
-	if (m_pGrayBar != NULL)
+	if (m_pGrayBar != nullptr)
 		DrawGrayBar(*m_pGrayBar);
 }
 

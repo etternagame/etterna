@@ -93,14 +93,6 @@ struct FileSet
 						  const std::string& sEnding,
 						  vector<std::string>& asOut,
 						  bool bOnlyDirs) const;
-	void GetFilesMatching(const std::string& sBeginning,
-						  const std::string& sContaining,
-						  const std::string& sEnding,
-						  vector<std::string>& asOut,
-						  bool bOnlyDirs) const;
-	void GetFilesEqualTo(const std::string& pat,
-						 vector<std::string>& out,
-						 bool bOnlyDirs) const;
 	void GetFilesEqualTo(const std::string& pat,
 						 vector<std::string>& out,
 						 bool bOnlyDirs) const;

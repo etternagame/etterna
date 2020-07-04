@@ -9,20 +9,21 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <corecrt_wstring.h>
+#include <xstring>
+
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */
 #define SAFE_DELETE(p)                                                         \
 	do {                                                                       \
 		delete (p);                                                            \
-		(p) = NULL;                                                            \
+		(p) = nullptr;                                                         \
 	} while (false)
 /** @brief Safely delete array pointers. */
 #define SAFE_DELETE_ARRAY(p)                                                   \
 	do {                                                                       \
 		delete[](p);                                                           \
-		(p) = NULL;                                                            \
+		(p) = nullptr;                                                         \
 	} while (false)
 
 /** @brief Zero out the memory. */
@@ -223,7 +224,7 @@ fracf(float f)
 
 template<class T>
 void
-CircularShift(vector<T>& v, int dist)
+CircularShift(std::vector<T>& v, int dist)
 {
 	for (int i = abs(dist); i > 0; i--) {
 		if (dist > 0) {
@@ -238,13 +239,34 @@ CircularShift(vector<T>& v, int dist)
 	}
 }
 
-static inline int
-CompareNoCase(const std::string& a, const std::string& b)
+inline char
+sstolower(char ch)
 {
-	return StdString::ssicmp(a.c_str(), b.c_str());
+	return (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch + 'a' - 'A') : ch;
 }
 
-static inline bool
+template<typename CT>
+inline int
+ssicmp(const CT* pA1, const CT* pA2)
+{
+	CT f;
+	CT l;
+
+	do {
+		f = sstolower(*(pA1++));
+		l = sstolower(*(pA2++));
+	} while ((f) && (f == l));
+
+	return static_cast<int>(f - l);
+}
+
+static int
+CompareNoCase(const std::string& a, const std::string& b)
+{
+	return ssicmp(a.c_str(), b.c_str());
+}
+
+static bool
 EqualsNoCase(const std::string& a, const std::string& b)
 {
 	return CompareNoCase(a.c_str(), b.c_str()) == 0;
@@ -253,7 +275,10 @@ EqualsNoCase(const std::string& a, const std::string& b)
 static inline void
 s_replace(std::string& target, const char* from, const char* to)
 {
-	std::replace(target.begin(), target.end(), char(from), char(to));
+	std::replace(target.begin(),
+				 target.end(),
+				 reinterpret_cast<char>(from),
+				 reinterpret_cast<char>(to));
 }
 
 static inline void
@@ -634,11 +659,11 @@ void
 MakeValidFilename(std::string& sName);
 
 bool
-FindFirstFilenameContaining(const vector<std::string>& filenames,
+FindFirstFilenameContaining(const std::vector<std::string>& filenames,
 							std::string& out,
-							const vector<std::string>& starts_with,
-							const vector<std::string>& contains,
-							const vector<std::string>& ends_with);
+							const std::vector<std::string>& starts_with,
+							const std::vector<std::string>& contains,
+							const std::vector<std::string>& ends_with);
 
 extern const wchar_t INVALID_CHAR;
 
@@ -693,10 +718,10 @@ operator>>(const std::string& lhs, T& rhs)
 }
 
 std::string
-WStringToRString(const wstring& sString);
+WStringToRString(const std::wstring& sString);
 std::string
 WcharToUTF8(wchar_t c);
-wstring
+std::wstring
 RStringToWstring(const std::string& sString);
 
 struct LanguageInfo
@@ -705,20 +730,21 @@ struct LanguageInfo
 	const char* szEnglishName;
 };
 void
-GetLanguageInfos(vector<const LanguageInfo*>& vAddTo);
+GetLanguageInfos(std::vector<const LanguageInfo*>& vAddTo);
 const LanguageInfo*
 GetLanguageInfo(const std::string& sIsoCode);
 
-// Splits a std::string into an vector<std::string> according the Delimitor.
+// Splits a std::string into an std::vector<std::string> according the
+// Delimitor.
 void
 split(const std::string& sSource,
 	  const std::string& sDelimitor,
-	  vector<std::string>& asAddIt,
+	  std::vector<std::string>& asAddIt,
 	  const bool bIgnoreEmpty = true);
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
-	  vector<wstring>& asAddIt,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
+	  std::vector<std::wstring>& asAddIt,
 	  const bool bIgnoreEmpty = true);
 
 /* In-place split. */
@@ -729,8 +755,8 @@ split(const std::string& sSource,
 	  int& iSize,
 	  bool bIgnoreEmpty = true);
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  bool bIgnoreEmpty = true);
@@ -744,28 +770,28 @@ split(const std::string& sSource,
 	  int iLen,
 	  bool bIgnoreEmpty); /* no default to avoid ambiguity */
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  int iLen,
 	  bool bIgnoreEmpty);
 
-// Joins a vector<std::string> to create a std::string according the
+// Joins a std::vector<std::string> to create a std::string according the
 // Deliminator.
 std::string
-join(const std::string& sDelimitor, const vector<std::string>& sSource);
+join(const std::string& sDelimitor, const std::vector<std::string>& sSource);
 std::string
 join(const std::string& sDelimitor,
-	 vector<std::string>::const_iterator begin,
-	 vector<std::string>::const_iterator end);
+	 std::vector<std::string>::const_iterator begin,
+	 std::vector<std::string>::const_iterator end);
 
 std::string
-luajoin(const std::string& sDelimitor, const vector<std::string>& sSource);
+luajoin(const std::string& sDelimitor, const std::vector<std::string>& sSource);
 std::string
 luajoin(const std::string& sDelimitor,
-		vector<std::string>::const_iterator begin,
-		vector<std::string>::const_iterator end);
+		std::vector<std::string>::const_iterator begin,
+		std::vector<std::string>::const_iterator end);
 
 // These methods escapes a string for saving in a .sm or .crs file
 std::string
@@ -812,7 +838,7 @@ DirectoryIsEmpty(const std::string& sPath);
 bool
 CompareRStringsAsc(const std::string& sStr1, const std::string& sStr2);
 void
-SortRStringArray(vector<std::string>& asAddTo,
+SortRStringArray(std::vector<std::string>& asAddTo,
 				 const bool bSortAscending = true);
 
 /* Find the mean and standard deviation of all numbers in [start,end). */
@@ -826,8 +852,8 @@ calc_mean(const float* pStart, const float* pEnd);
 float
 calc_stddev(const float* pStart, const float* pEnd, bool bSample = false);
 
-/* Useful for objects with no operator-, eg. map::iterator (more convenient than
- * advance). */
+/* Useful for objects with no operator-, eg. std::map::iterator (more convenient
+ * than advance). */
 template<class T>
 inline T
 Increment(T a)
@@ -865,7 +891,7 @@ GetFileContents(const std::string& sPath,
 				std::string& sOut,
 				bool bOneLine = false);
 bool
-GetFileContents(const std::string& sFile, vector<std::string>& asOut);
+GetFileContents(const std::string& sFile, std::vector<std::string>& asOut);
 
 class Regex
 {
@@ -878,7 +904,7 @@ class Regex
 	bool IsSet() const { return !m_sPattern.empty(); }
 	void Set(const std::string& str);
 	bool Compare(const std::string& sStr);
-	bool Compare(const std::string& sStr, vector<std::string>& asMatches);
+	bool Compare(const std::string& sStr, std::vector<std::string>& asMatches);
 	bool Replace(const std::string& sReplacement,
 				 const std::string& sSubject,
 				 std::string& sOut);
@@ -893,9 +919,10 @@ class Regex
 };
 
 void
-ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m);
+ReplaceEntityText(std::string& sText,
+				  const std::map<std::string, std::string>& m);
 void
-ReplaceEntityText(std::string& sText, const map<char, std::string>& m);
+ReplaceEntityText(std::string& sText, const std::map<char, std::string>& m);
 void
 Replace_Unicode_Markers(std::string& Text);
 std::string
@@ -916,7 +943,7 @@ extern unsigned char g_UpperCase[256];
 extern unsigned char g_LowerCase[256];
 
 /* ASCII-only case insensitivity. */
-struct char_traits_char_nocase : public char_traits<char>
+struct char_traits_char_nocase : public std::char_traits<char>
 {
 	static bool eq(char c1, char c2)
 	{
@@ -963,24 +990,24 @@ struct char_traits_char_nocase : public char_traits<char>
 		return nullptr;
 	}
 };
-typedef basic_string<char, char_traits_char_nocase> istring;
+typedef std::basic_string<char, char_traits_char_nocase> istring;
 
 /* Compatibility/convenience shortcuts. These are actually defined in
  * RageFileManager.h, but declared here since they're used in many places. */
 void
 GetDirListing(const std::string& sPath,
-			  vector<std::string>& AddTo,
+			  std::vector<std::string>& AddTo,
 			  bool bOnlyDirs = false,
 			  bool bReturnPathToo = false);
 void
 GetDirListingRecursive(const std::string& sDir,
 					   const std::string& sMatch,
-					   vector<std::string>& AddTo); /* returns path too */
+					   std::vector<std::string>& AddTo); /* returns path too */
 void
 GetDirListingRecursive(RageFileDriver* prfd,
 					   const std::string& sDir,
 					   const std::string& sMatch,
-					   vector<std::string>& AddTo); /* returns path too */
+					   std::vector<std::string>& AddTo); /* returns path too */
 bool
 DoesFileExist(const std::string& sPath);
 bool
@@ -1046,14 +1073,16 @@ FileCopy(RageFileBasic& in,
 
 template<class T>
 void
-GetAsNotInBs(const vector<T>& as, const vector<T>& bs, vector<T>& difference)
+GetAsNotInBs(const std::vector<T>& as,
+			 const std::vector<T>& bs,
+			 std::vector<T>& difference)
 {
-	vector<T> bsUnmatched = bs;
-	// Cannot use FOREACH_CONST here because vector<T>::const_iterator is an
-	// implicit type.
-	for (typename vector<T>::const_iterator a = as.begin(); a != as.end();
+	std::vector<T> bsUnmatched = bs;
+	// Cannot use FOREACH_CONST here because std::vector<T>::const_iterator is
+	// an implicit type.
+	for (typename std::vector<T>::const_iterator a = as.begin(); a != as.end();
 		 ++a) {
-		typename vector<T>::iterator iter =
+		typename std::vector<T>::iterator iter =
 		  find(bsUnmatched.begin(), bsUnmatched.end(), *a);
 		if (iter != bsUnmatched.end())
 			bsUnmatched.erase(iter);
@@ -1064,10 +1093,10 @@ GetAsNotInBs(const vector<T>& as, const vector<T>& bs, vector<T>& difference)
 
 template<class T>
 void
-GetConnectsDisconnects(const vector<T>& before,
-					   const vector<T>& after,
-					   vector<T>& disconnects,
-					   vector<T>& connects)
+GetConnectsDisconnects(const std::vector<T>& before,
+					   const std::vector<T>& after,
+					   std::vector<T>& disconnects,
+					   std::vector<T>& connects)
 {
 	GetAsNotInBs(before, after, disconnects);
 	GetAsNotInBs(after, before, connects);

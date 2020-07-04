@@ -29,7 +29,7 @@ WheelBase::~WheelBase()
 	FOREACH(WheelItemBase*, m_WheelBaseItems, i)
 	SAFE_DELETE(*i);
 	m_WheelBaseItems.clear();
-	m_LastSelection = NULL;
+	m_LastSelection = nullptr;
 }
 
 void
@@ -40,7 +40,7 @@ WheelBase::Load(const string& sType)
 	ASSERT(this->GetNumChildren() == 0); // only load once
 
 	m_bEmpty = false;
-	m_LastSelection = NULL;
+	m_LastSelection = nullptr;
 	m_iSelection = 0;
 	m_fTimeLeftInState = 0;
 	m_fPositionOffsetFromSelection = 0;
@@ -286,7 +286,7 @@ WheelBase::GetItem(unsigned int iIndex)
 	if (!m_bEmpty && iIndex < m_CurWheelItemData.size())
 		return m_CurWheelItemData[iIndex];
 
-	return NULL;
+	return nullptr;
 }
 
 int
@@ -471,7 +471,7 @@ WheelItemBaseData*
 WheelBase::LastSelected()
 {
 	if (m_bEmpty)
-		return NULL;
+		return nullptr;
 
 	return m_LastSelection;
 }
@@ -508,7 +508,7 @@ class LunaWheelBase : public Luna<WheelBase>
 		int iItem = IArg(1);
 
 		WheelItemBase* pItem = p->GetWheelItem(iItem);
-		if (pItem == NULL) {
+		if (pItem == nullptr) {
 			luaL_error(L, "%i out of bounds", iItem);
 			lua_pushnil(L);
 		} else

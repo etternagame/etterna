@@ -206,7 +206,7 @@ LanguageChoices(vector<std::string>& out)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	Sortstd::stringArray(vs, true);
+	SortRStringArray(vs, true);
 
 	for (auto& s : vs) {
 		const LanguageInfo* pLI = GetLanguageInfo(s);
@@ -223,7 +223,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	Sortstd::stringArray(vs, true);
+	SortRStringArray(vs, true);
 
 	if (ToSel) {
 		sel = -1;

@@ -110,7 +110,7 @@ correct_non_utf_8(string* str)
 	to.reserve(f_size);
 
 	for (i = 0; i < f_size; i++) {
-		c = (unsigned char)(*str)[i];
+		c = static_cast<unsigned char>((*str)[i]);
 		if (c < 32) {							// control char
 			if (c == 9 || c == 10 || c == 13) { // allow only \t \n \r
 				to.append(1, c);
@@ -132,15 +132,15 @@ correct_non_utf_8(string* str)
 			}
 			continue;
 		} else if (c < 192) { // invalid for UTF8, converting ASCII
-			to.append(1, (unsigned char)194);
+			to.append(1, static_cast<unsigned char>(194));
 			to.append(1, c);
 			continue;
 		} else if (c < 194) { // invalid for UTF8, converting ASCII
-			to.append(1, (unsigned char)195);
+			to.append(1, static_cast<unsigned char>(195));
 			to.append(1, c - 64);
 			continue;
 		} else if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
-			c2 = (unsigned char)(*str)[i + 1];
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
 					;
@@ -152,8 +152,8 @@ correct_non_utf_8(string* str)
 				continue;
 			}
 		} else if (c < 240 && i + 2 < f_size) { // possibly 3byte UTF8
-			c2 = (unsigned char)(*str)[i + 1];
-			c3 = (unsigned char)(*str)[i + 2];
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			c3 = static_cast<unsigned char>((*str)[i + 2]);
 			if (c2 > 127 && c2 < 192 && c3 > 127 &&
 				c3 < 192) { // valid 3byte UTF8
 				to.append(1, c);
@@ -163,9 +163,9 @@ correct_non_utf_8(string* str)
 				continue;
 			}
 		} else if (c < 245 && i + 3 < f_size) { // possibly 4byte UTF8
-			c2 = (unsigned char)(*str)[i + 1];
-			c3 = (unsigned char)(*str)[i + 2];
-			c4 = (unsigned char)(*str)[i + 3];
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			c3 = static_cast<unsigned char>((*str)[i + 2]);
+			c4 = static_cast<unsigned char>((*str)[i + 3]);
 			if (c2 > 127 && c2 < 192 && c3 > 127 && c3 < 192 && c4 > 127 &&
 				c4 < 192) { // valid 4byte UTF8
 				to.append(1, c);
@@ -178,7 +178,7 @@ correct_non_utf_8(string* str)
 		}
 		// invalid UTF8, converting ASCII (c>245 || string too short for
 		// multi-byte))
-		to.append(1, (unsigned char)195);
+		to.append(1, static_cast<unsigned char>(195));
 		to.append(1, c - 64);
 	}
 	return to;
@@ -425,12 +425,7 @@ NetworkSyncManager::CloseConnection()
 	curProtocol = nullptr;
 	MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 }
-bool
-startsWith(const string& haystack, const string& needle)
-{
-	return needle.length() <= haystack.length() &&
-		   equal(needle.begin(), needle.end(), haystack.begin());
-}
+
 void
 NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 {
@@ -444,7 +439,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 		char* cEnd;
 		errno = 0;
 		auto sub = ServerIP.substr(cLoc + 1);
-		iPort = (unsigned short)strtol(sub.c_str(), &cEnd, 10);
+		iPort = static_cast<unsigned short>(strtol(sub.c_str(), &cEnd, 10));
 		if (*cEnd != 0 || errno != 0) {
 			LOG->Warn("Invalid port");
 			return;
@@ -499,10 +494,10 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	bool ws = true;
 	bool wss = true;
 	bool prepend = true;
-	if (startsWith(address, "ws://")) {
+	if (starts_with(address, "ws://")) {
 		wss = false;
 		prepend = false;
-	} else if (startsWith(address, "wss://")) {
+	} else if (starts_with(address, "wss://")) {
 		ws = false;
 		prepend = false;
 	}
@@ -747,7 +742,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	}
 	if (waitingForTimeout) {
 		clock_t now = clock();
-		double elapsed_secs = double(now - timeoutStart) / CLOCKS_PER_SEC;
+		double elapsed_secs =
+		  static_cast<double>(now - timeoutStart) / CLOCKS_PER_SEC;
 		if (elapsed_secs > timeout) {
 			onTimeout();
 			waitingForTimeout = false;
@@ -1931,7 +1927,7 @@ PacketFunctions::ReadNT()
 	// int Orig=Packet.Position;
 	std::string TempStr;
 	while ((Position < NETMAXBUFFERSIZE) && (((char*)Data)[Position] != 0))
-		TempStr = TempStr + (char)Data[Position++];
+		TempStr = TempStr + static_cast<char>(Data[Position++]);
 
 	++Position;
 	return TempStr;
@@ -1974,21 +1970,21 @@ PacketFunctions::WriteNT(const std::string& data)
 {
 	size_t index = 0;
 	while (Position < NETMAXBUFFERSIZE - 1 && index < data.size())
-		Data[Position++] = (unsigned char)(data.c_str()[index++]);
+		Data[Position++] = static_cast<unsigned char>(data.c_str()[index++]);
 	Data[Position++] = 0;
 }
 
 void
 PacketFunctions::ClearPacket()
 {
-	memset((void*)(&Data), 0, NETMAXBUFFERSIZE);
+	memset(static_cast<void*>(&Data), 0, NETMAXBUFFERSIZE);
 	Position = 0;
 }
 
 std::string
 NetworkSyncManager::MD5Hex(const std::string& sInput)
 {
-	return BinaryToHex(CryptManager::GetMD5ForString(sInput)).MakeUpper();
+	return make_upper(BinaryToHex(CryptManager::GetMD5ForString(sInput)));
 }
 
 void

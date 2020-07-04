@@ -84,9 +84,7 @@ struct ConfOption
 		MakeOptionsListCB = nullptr;
 		m_iEffects = 0;
 		m_bAllowThemeItems = true;
-#define PUSH(c)                                                                \
-	if (c)                                                                     \
-		names.push_back(c);
+#define PUSH(c) names.push_back(c);
 		PUSH(c0);
 		PUSH(c1);
 		PUSH(c2);
