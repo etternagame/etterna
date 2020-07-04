@@ -73,8 +73,8 @@ ActorFrame::ActorFrame(const ActorFrame& cpy)
 	 * them.  If not, the derived class owns the children.  This must preserve
 	 * the current order of m_SubActors. */
 	if (m_bDeleteChildren) {
-		for (unsigned i = 0; i < cpy.m_SubActors.size(); ++i) {
-			Actor* pActor = cpy.m_SubActors[i]->Copy();
+		for (auto m_SubActor : cpy.m_SubActors) {
+			Actor* pActor = m_SubActor->Copy();
 			this->AddChild(pActor);
 		}
 	}
@@ -281,16 +281,16 @@ ActorFrame::DrawPrimitives()
 	if (m_bDrawByZPosition) {
 		vector<Actor*> subs = m_SubActors;
 		ActorUtil::SortByZPosition(subs);
-		for (unsigned i = 0; i < subs.size(); i++) {
-			subs[i]->SetInternalDiffuse(diffuse);
-			subs[i]->SetInternalGlow(glow);
-			subs[i]->Draw();
+		for (auto& sub : subs) {
+			sub->SetInternalDiffuse(diffuse);
+			sub->SetInternalGlow(glow);
+			sub->Draw();
 		}
 	} else {
-		for (unsigned i = 0; i < m_SubActors.size(); i++) {
-			m_SubActors[i]->SetInternalDiffuse(diffuse);
-			m_SubActors[i]->SetInternalGlow(glow);
-			m_SubActors[i]->Draw();
+		for (auto& m_SubActor : m_SubActors) {
+			m_SubActor->SetInternalDiffuse(diffuse);
+			m_SubActor->SetInternalGlow(glow);
+			m_SubActor->Draw();
 		}
 	}
 }
@@ -469,8 +469,8 @@ void
 ActorFrame::RunCommandsRecursively(const LuaReference& cmds,
 								   const LuaReference* pParamTable)
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		m_SubActors[i]->RunCommandsRecursively(cmds, pParamTable);
+	for (auto& m_SubActor : m_SubActors)
+		m_SubActor->RunCommandsRecursively(cmds, pParamTable);
 	Actor::RunCommandsRecursively(cmds, pParamTable);
 }
 
@@ -478,16 +478,16 @@ void
 ActorFrame::RunCommandsOnChildren(const LuaReference& cmds,
 								  const LuaReference* pParamTable)
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		m_SubActors[i]->RunCommands(cmds, pParamTable);
+	for (auto& m_SubActor : m_SubActors)
+		m_SubActor->RunCommands(cmds, pParamTable);
 }
 
 void
 ActorFrame::RunCommandsOnLeaves(const LuaReference& cmds,
 								const LuaReference* pParamTable)
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		m_SubActors[i]->RunCommandsOnLeaves(cmds, pParamTable);
+	for (auto& m_SubActor : m_SubActors)
+		m_SubActor->RunCommandsOnLeaves(cmds, pParamTable);
 }
 
 bool
@@ -584,8 +584,8 @@ ActorFrame::SortByDrawOrder()
 void
 ActorFrame::DeleteAllChildren()
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		delete m_SubActors[i];
+	for (auto& m_SubActor : m_SubActors)
+		delete m_SubActor;
 	m_SubActors.clear();
 }
 
@@ -615,8 +615,7 @@ ActorFrame::HandleMessage(const Message& msg)
 	if (msg.IsBroadcast())
 		return;
 
-	for (unsigned i = 0; i < m_SubActors.size(); i++) {
-		Actor* pActor = m_SubActors[i];
+	for (auto pActor : m_SubActors) {
 		pActor->HandleMessage(msg);
 	}
 }

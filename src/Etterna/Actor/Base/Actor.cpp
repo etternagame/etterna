@@ -199,8 +199,8 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_size);
 	CPY(m_current);
 	CPY(m_start);
-	for (unsigned i = 0; i < cpy.m_Tweens.size(); ++i)
-		m_Tweens.push_back(new TweenStateAndInfo(*cpy.m_Tweens[i]));
+	for (auto m_Tween : cpy.m_Tweens)
+		m_Tweens.push_back(new TweenStateAndInfo(*m_Tween));
 
 	CPY(m_fHorizAlign);
 	CPY(m_fVertAlign);
@@ -1023,8 +1023,8 @@ Actor::BeginTweening(float time, TweenType tt)
 void
 Actor::StopTweening()
 {
-	for (unsigned i = 0; i < m_Tweens.size(); ++i)
-		delete m_Tweens[i];
+	for (auto& m_Tween : m_Tweens)
+		delete m_Tween;
 	m_Tweens.clear();
 }
 
@@ -1039,9 +1039,9 @@ Actor::FinishTweening()
 void
 Actor::HurryTweening(float factor)
 {
-	for (unsigned i = 0; i < m_Tweens.size(); ++i) {
-		m_Tweens[i]->info.m_fTimeLeftInTween *= factor;
-		m_Tweens[i]->info.m_fTweenTime *= factor;
+	for (auto& m_Tween : m_Tweens) {
+		m_Tween->info.m_fTimeLeftInTween *= factor;
+		m_Tween->info.m_fTweenTime *= factor;
 	}
 }
 
@@ -1404,8 +1404,8 @@ float
 Actor::GetTweenTimeLeft() const
 {
 	float tot = 0;
-	for (unsigned i = 0; i < m_Tweens.size(); ++i)
-		tot += m_Tweens[i]->info.m_fTimeLeftInTween;
+	for (auto m_Tween : m_Tweens)
+		tot += m_Tween->info.m_fTimeLeftInTween;
 
 	return tot;
 }
@@ -1423,10 +1423,10 @@ Actor::SetGlobalDiffuseColor(const RageColor& c)
 {
 	for (auto i = 0; i < NUM_DIFFUSE_COLORS; i++) // color, not alpha
 	{
-		for (unsigned ts = 0; ts < m_Tweens.size(); ++ts) {
-			m_Tweens[ts]->state.diffuse[i].r = c.r;
-			m_Tweens[ts]->state.diffuse[i].g = c.g;
-			m_Tweens[ts]->state.diffuse[i].b = c.b;
+		for (auto& m_Tween : m_Tweens) {
+			m_Tween->state.diffuse[i].r = c.r;
+			m_Tween->state.diffuse[i].g = c.g;
+			m_Tween->state.diffuse[i].b = c.b;
 		}
 		m_current.diffuse[i].r = c.r;
 		m_current.diffuse[i].g = c.g;
