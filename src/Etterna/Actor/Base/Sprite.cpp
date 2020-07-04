@@ -1,15 +1,12 @@
 #include "Etterna/Globals/global.h"
 #include <cassert>
 #include <cfloat>
-
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Sprite.h"
@@ -319,7 +316,7 @@ Sprite::EnableAnimation(bool bEnable)
 void
 Sprite::SetTexture(RageTexture* pTexture)
 {
-	ASSERT(pTexture != NULL);
+	ASSERT(pTexture != nullptr);
 
 	if (m_pTexture != pTexture) {
 		UnloadTexture();
@@ -875,9 +872,8 @@ void
 Sprite::RecalcAnimationLengthSeconds()
 {
 	m_animation_length_seconds = 0;
-	FOREACH_CONST(State, m_States, s)
-	{
-		m_animation_length_seconds += s->fDelay;
+	for (auto& s : m_States) {
+		m_animation_length_seconds += s.fDelay;
 	}
 }
 

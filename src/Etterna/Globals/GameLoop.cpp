@@ -186,7 +186,7 @@ void
 DoChangeGame()
 {
 	const Game* g = GAMEMAN->StringToGame(g_NewGame);
-	ASSERT(g != NULL);
+	ASSERT(g != nullptr);
 	GAMESTATE->SetCurGame(g);
 
 	bool theme_changing = false;

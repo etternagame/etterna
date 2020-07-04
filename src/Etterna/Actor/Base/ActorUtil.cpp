@@ -15,7 +15,7 @@
 #include "arch/Dialog/Dialog.h"
 
 // Actor registration
-static map<std::string, CreateActorFn>* g_pmapRegistrees = NULL;
+static map<std::string, CreateActorFn>* g_pmapRegistrees = nullptr;
 
 static bool
 IsRegistered(const std::string& sClassName)
@@ -26,7 +26,7 @@ IsRegistered(const std::string& sClassName)
 void
 ActorUtil::Register(const std::string& sClassName, CreateActorFn pfn)
 {
-	if (g_pmapRegistrees == NULL)
+	if (g_pmapRegistrees == nullptr)
 		g_pmapRegistrees = new map<std::string, CreateActorFn>;
 
 	map<std::string, CreateActorFn>::iterator iter =
@@ -126,7 +126,7 @@ GetLegacyActorClass(XNode* pActor)
 	// The non-legacy LoadFromNode has already checked the Class and
 	// Type attributes.
 
-	if (pActor->GetAttr("Text") != NULL)
+	if (pActor->GetAttr("Text") != nullptr)
 		return "BitmapText";
 
 	std::string sFile;
@@ -180,7 +180,7 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 	if (!bHasClass)
 		bHasClass = node.GetAttrValue("Type", sClass);
 
-	bool bLegacy = (node.GetAttr("_LegacyXml") != NULL);
+	bool bLegacy = (node.GetAttr("_LegacyXml") != nullptr);
 	if (!bHasClass && bLegacy)
 		sClass = GetLegacyActorClass(&node);
 
@@ -294,7 +294,7 @@ ActorUtil::MakeActor(const std::string& sPath_, Actor* pParentActor)
 	switch (ft) {
 		case FT_Lua: {
 			unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
-			if (pNode.get() == NULL) {
+			if (pNode.get() == nullptr) {
 				// XNode will warn about the error
 				return new Actor;
 			}

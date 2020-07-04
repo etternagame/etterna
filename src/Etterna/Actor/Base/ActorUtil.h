@@ -133,7 +133,8 @@ SetXYAndOnCommand(Actor& actor, const std::string& sMetricsGroup)
 	OnCommand(actor);
 }
 inline void
-LoadAllCommandsAndSetXYAndOnCommand(Actor& actor, const std::string& sMetricsGroup)
+LoadAllCommandsAndSetXYAndOnCommand(Actor& actor,
+									const std::string& sMetricsGroup)
 {
 	LoadAllCommands(actor, sMetricsGroup);
 	SetXY(actor, sMetricsGroup);
@@ -191,7 +192,8 @@ SetXYAndOnCommand(Actor* pActor, const std::string& sMetricsGroup)
 		SetXYAndOnCommand(*pActor, sMetricsGroup);
 }
 inline void
-LoadAllCommandsAndSetXYAndOnCommand(Actor* pActor, const std::string& sMetricsGroup)
+LoadAllCommandsAndSetXYAndOnCommand(Actor* pActor,
+									const std::string& sMetricsGroup)
 {
 	if (pActor)
 		LoadAllCommandsAndSetXYAndOnCommand(*pActor, sMetricsGroup);
@@ -215,7 +217,9 @@ bool
 LoadTableFromStackShowErrors(Lua* L);
 
 bool
-ResolvePath(std::string& sPath, const std::string& sName, bool optional = false);
+ResolvePath(std::string& sPath,
+			const std::string& sName,
+			bool optional = false);
 
 void
 SortByZPosition(vector<Actor*>& vActors);
