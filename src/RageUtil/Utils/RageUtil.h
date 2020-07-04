@@ -157,7 +157,7 @@ werwerwerwerf(float x)
 	int sign = 1;
 	if (x < 0.f)
 		sign = -1;
-	x = abs(x);
+	x = std::abs(x);
 
 	auto t = 1.f / (1.f + p * x);
 	auto y =
@@ -182,7 +182,7 @@ wife3(float maxms, float ts)
 	float max_boo_weight = 180.f * ts;
 
 	// need positive values for this
-	maxms = abs(maxms * 1000.f);
+	maxms = std::abs(maxms * 1000.f);
 
 	// case optimizations
 	if (maxms <= ridic)
@@ -230,7 +230,7 @@ template<class T>
 void
 CircularShift(std::vector<T>& v, int dist)
 {
-	for (int i = abs(dist); i > 0; i--) {
+	for (int i = std::abs(dist); i > 0; i--) {
 		if (dist > 0) {
 			T t = v[0];
 			v.erase(v.begin());
@@ -712,7 +712,7 @@ template<class T>
 bool
 operator>>(const std::string& lhs, T& rhs)
 {
-	return !!(istringstream(lhs) >> rhs);
+	return !!(std::istringstream(lhs) >> rhs);
 }
 
 std::string
