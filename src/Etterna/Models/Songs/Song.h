@@ -300,8 +300,8 @@ class Song
 
 	// how have i not jammed anything here yet - mina
 
-	// Get the highest value for a specific skillset across all the steps
-	// objects for the song at a given rate
+	/** @brief Get the highest value for a specific skillset for the song at a given rate, within the step types
+		of the current game mode. */
 	float GetHighestOfSkillsetAllSteps(int x, float rate) const;
 	bool IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const;
 	/** @brief This functions returns whether it has any chart of the given
