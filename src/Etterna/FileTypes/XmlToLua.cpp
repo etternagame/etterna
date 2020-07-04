@@ -256,7 +256,7 @@ init_parser_helpers()
 void
 convert_lua_chunk(std::string& chunk_text)
 {
-	for (auto& chunk = chunks_to_replace.begin();
+	for (auto chunk = chunks_to_replace.begin();
 		 chunk != chunks_to_replace.end();
 		 ++chunk) {
 		s_replace(chunk_text, chunk->first, chunk->second);
