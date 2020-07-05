@@ -3,7 +3,6 @@
 #include "BitmapText.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/FontManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -313,7 +312,7 @@ BitmapText::BuildChars()
 			reverse(sLine.begin(), sLine.end());
 		const auto iLineWidth = m_iLineWidths[i];
 
-		auto fX =
+		const auto fX =
 		  SCALE(m_fHorizAlign, 0, 1, -m_size.x / 2, m_size.x / 2 - iLineWidth);
 		int iX = lround(fX);
 
@@ -357,11 +356,11 @@ BitmapText::BuildChars()
 	}
 
 	if (m_bUsingDistortion) {
-		int iSeed = lround(RageTimer::GetTimeSinceStart() * 500000.0f);
+		const int iSeed = lround(RageTimer::GetTimeSinceStart() * 500000.0f);
 		RandomGen rnd(iSeed);
 		for (unsigned int i = 0; i < m_aVertices.size(); i += 4) {
-			auto w = m_aVertices[i + 2].p.x - m_aVertices[i].p.x;
-			auto h = m_aVertices[i + 2].p.y - m_aVertices[i].p.y;
+			const auto w = m_aVertices[i + 2].p.x - m_aVertices[i].p.x;
+			const auto h = m_aVertices[i + 2].p.y - m_aVertices[i].p.y;
 			for (unsigned int ioff = 0; ioff < 4; ++ioff) {
 				m_aVertices[i + ioff].p.x +=
 				  ((rnd() % 9) / 8.0f - .5f) * m_fDistortion * w;
@@ -430,7 +429,7 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 		  SCALE(fStopFadeRightPercent, 0, 1, 0, iNumGlyphs);
 
 		for (auto start = iStartGlyph; start < iEndGlyph; ++start) {
-			auto i = start * 4;
+			const auto i = start * 4;
 
 			auto fAlpha = 1.0f;
 			if (FadeSize.left > 0.001f) {
@@ -469,7 +468,7 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 			   m_vpFontPageTextures[end] == m_vpFontPageTextures[start])
 			end++;
 
-		auto bHaveATexture =
+		const auto bHaveATexture =
 		  !bUseStrokeTexture ||
 		  (bUseStrokeTexture && m_vpFontPageTextures[start]->m_pTextureStroke);
 		if (bHaveATexture) {
@@ -577,7 +576,7 @@ BitmapText::SetTextInternal()
 			auto iCurLineWidth = 0;
 
 			for (auto& sWord : asWords) {
-				auto iWidthWord =
+				const auto iWidthWord =
 				  m_pFont->GetLineWidthInSourcePixels(RStringToWstring(sWord));
 
 				if (sCurLine.empty()) {
@@ -586,8 +585,8 @@ BitmapText::SetTextInternal()
 					continue;
 				}
 
-				auto sToAdd = " " + sWord;
-				auto iWidthToAdd =
+				const auto sToAdd = " " + sWord;
+				const auto iWidthToAdd =
 				  m_pFont->GetLineWidthInSourcePixels(L" ") + iWidthWord;
 				if (iCurLineWidth + iWidthToAdd <=
 					m_iWrapWidthPixels) // will fit on current line
@@ -665,7 +664,7 @@ BitmapText::set_mult_attrs_with_diffuse(bool m)
 }
 
 bool
-BitmapText::get_mult_attrs_with_diffuse()
+BitmapText::get_mult_attrs_with_diffuse() const
 {
 	return m_mult_attrs_with_diffuse;
 }
@@ -705,7 +704,7 @@ BitmapText::StringWillUseAlternate(const std::string& sText,
 	ASSERT(m_pFont != nullptr);
 
 	// Can't use the alternate if there isn't one.
-	if (!sAlternateText.size())
+	if (sAlternateText.empty())
 		return false;
 
 	// False if the alternate isn't needed.
@@ -725,7 +724,7 @@ BitmapText::CropLineToWidth(size_t l, int width)
 	if (l < m_wTextLines.size()) {
 		auto used_width = width;
 		auto& line = m_wTextLines[l];
-		size_t fit = m_pFont->GetGlyphsThatFit(line, &used_width);
+		const size_t fit = m_pFont->GetGlyphsThatFit(line, &used_width);
 		if (fit < line.size()) {
 			line.erase(line.begin() + fit, line.end());
 		}
@@ -797,10 +796,10 @@ BitmapText::DrawPrimitives()
 			size_t i = 0;
 			map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
 			while (i < m_aVertices.size()) {
-				auto what = m_pTempState->diffuse[0];
-				auto is = m_pTempState->diffuse[2];
-				auto wrong = m_pTempState->diffuse[3];
-				auto withyoupeople = m_pTempState->diffuse[1];
+				const auto what = m_pTempState->diffuse[0];
+				const auto is = m_pTempState->diffuse[2];
+				const auto wrong = m_pTempState->diffuse[3];
+				const auto withyoupeople = m_pTempState->diffuse[1];
 
 				// Set the colors up to the next attribute.
 				auto iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
@@ -843,7 +842,7 @@ BitmapText::DrawPrimitives()
 		// apply jitter to verts
 		vector<RageVector3> vGlyphJitter;
 		if (m_bJitter) {
-			int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
+			const int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
 			RandomGen rnd(iSeed);
 
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
@@ -866,8 +865,6 @@ BitmapText::DrawPrimitives()
 			ASSERT(vGlyphJitter.size() == m_aVertices.size() / 4);
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
 				const auto& jitter = vGlyphJitter[i / 4];
-				;
-
 				m_aVertices[i + 0].p -= jitter; // top left
 				m_aVertices[i + 1].p -= jitter; // bottom left
 				m_aVertices[i + 2].p -= jitter; // bottom right
@@ -955,9 +952,8 @@ BitmapText::AddAttribute(size_t iPos, const Attribute& attr)
 	auto iLines = 0;
 	auto iAdjustedPos = iPos;
 
-	FOREACH_CONST(wstring, m_wTextLines, line)
-	{
-		auto length = line->length();
+	for (auto& line : m_wTextLines) {
+		const auto length = line.length();
 		if (length >= iAdjustedPos)
 			break;
 		iAdjustedPos -= length;
@@ -1019,7 +1015,7 @@ ColorBitmapText::SetText(const std::string& _sText,
 						 const std::string& _sAlternateText,
 						 int iWrapWidthPixels)
 {
-	ASSERT(m_pFont != NULL);
+	ASSERT(m_pFont != nullptr);
 
 	auto sNewText = StringWillUseAlternate(_sText, _sAlternateText)
 					  ? _sAlternateText
@@ -1042,10 +1038,10 @@ ColorBitmapText::SetText(const std::string& _sText,
 
 	m_wTextLines.clear();
 
-	std::string sCurrentLine = "";
+	std::string sCurrentLine;
 	auto iLineWidth = 0;
 
-	std::string sCurrentWord = "";
+	std::string sCurrentWord;
 	auto iWordWidth = 0;
 	auto iGlyphsSoFar = 0;
 
@@ -1152,7 +1148,7 @@ ColorBitmapText::SetText(const std::string& _sText,
 void
 ColorBitmapText::ResetText()
 {
-	ASSERT(m_pFont != NULL);
+	ASSERT(m_pFont != nullptr);
 
 	auto iWrapWidthPixels = m_iWrapWidthPixels;
 
@@ -1165,10 +1161,10 @@ ColorBitmapText::ResetText()
 
 	m_wTextLines.clear();
 
-	std::string sCurrentLine = "";
+	std::string sCurrentLine;
 	auto iLineWidth = 0;
 
-	std::string sCurrentWord = "";
+	std::string sCurrentWord;
 	auto iWordWidth = 0;
 	auto iGlyphsSoFar = 0;
 
@@ -1301,7 +1297,7 @@ ColorBitmapText::SetMaxLines(int iNumLines,
 
 		// If we already have a color set for the first char
 		// do not override it.
-		if (m_vColors.size() > 0 && m_vColors[0].l > 0) {
+		if (!m_vColors.empty() && m_vColors[0].l > 0) {
 			ColorChange tmp;
 			tmp.c = LastColor;
 			tmp.l = 0;
@@ -1420,7 +1416,7 @@ ColorBitmapText::SetMaxLines(int iNumLines, int iDirection)
 
 		// If we already have a color set for the first char
 		// do not override it.
-		if (m_vColors.size() > 0 && m_vColors[0].l > 0) {
+		if (!m_vColors.empty() && m_vColors[0].l > 0) {
 			ColorChange tmp;
 			tmp.c = LastColor;
 			tmp.l = 0;
@@ -1444,7 +1440,7 @@ class LunaBitmapText : public Luna<BitmapText>
   public:
 	static int getGlyphRect(T* p, lua_State* L)
 	{
-		auto idx =
+		const auto idx =
 		  (IArg(1) - 1) * 4; // lua idx start at 1 and 4 verts per glyph
 		if (idx < 0 || idx >= static_cast<int>(p->m_aVertices.size())) {
 			lua_pushnil(L);
@@ -1533,7 +1529,7 @@ class LunaBitmapText : public Luna<BitmapText>
 	}
 	static int AddAttribute(T* p, lua_State* L)
 	{
-		size_t iPos = IArg(1);
+		const size_t iPos = IArg(1);
 		auto attr = p->GetDefaultAttribute();
 
 		attr.FromStack(L, 2);

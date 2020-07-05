@@ -30,9 +30,9 @@ class Sprite : public Actor
 	void InitState() override;
 
 	void LoadFromNode(const XNode* pNode) override;
-	Sprite* Copy() const override;
+	[[nodiscard]] Sprite* Copy() const override;
 
-	bool EarlyAbortDraw() const override;
+	[[nodiscard]] bool EarlyAbortDraw() const override;
 	void DrawPrimitives() override;
 	void Update(float fDeltaTime) override;
 
@@ -49,14 +49,15 @@ class Sprite : public Actor
 	void SetTexture(RageTexture* pTexture);
 
 	void UnloadTexture();
-	RageTexture* GetTexture() { return m_pTexture; };
+	[[nodiscard]] RageTexture* GetTexture() const { return m_pTexture; };
 
 	void EnableAnimation(bool bEnable) override;
 
-	int GetNumStates() const override;
+	[[nodiscard]] int GetNumStates() const override;
 	void SetState(int iNewState) override;
-	int GetState() { return m_iCurState; }
-	float GetAnimationLengthSeconds() const override
+	[[nodiscard]] int GetState() const { return m_iCurState; }
+
+	[[nodiscard]] float GetAnimationLengthSeconds() const override
 	{
 		return m_animation_length_seconds;
 	}
@@ -69,15 +70,15 @@ class Sprite : public Actor
 		SetState(0);
 	}
 
-	std::string GetTexturePath() const;
+	[[nodiscard]] std::string GetTexturePath() const;
 
 	void SetCustomTextureRect(const RectF& new_texcoord_frect);
 	void SetCustomTextureCoords(float fTexCoords[8]);
 	void SetCustomImageRect(RectF rectImageCoords); // in image pixel space
 	void SetCustomImageCoords(float fImageCoords[8]);
 	void SetCustomPosCoords(float fPosCoords[8]);
-	const RectF* GetCurrentTextureCoordRect() const;
-	const RectF* GetTextureCoordRectForState(int iState) const;
+	[[nodiscard]] const RectF* GetCurrentTextureCoordRect() const;
+	[[nodiscard]] const RectF* GetTextureCoordRectForState(int iState) const;
 	void StopUsingCustomCoords();
 	void StopUsingCustomPosCoords();
 	void GetActiveTextureCoords(float fTexCoordsOut[8]) const;

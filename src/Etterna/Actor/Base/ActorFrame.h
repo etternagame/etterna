@@ -14,7 +14,7 @@ class ActorFrame : public Actor
 	/** @brief Set up the initial state. */
 	void InitState() override;
 	void LoadFromNode(const XNode* pNode) override;
-	ActorFrame* Copy() const override;
+	[[nodiscard]] ActorFrame* Copy() const override;
 
 	/**
 	 * @brief Add a new child to the ActorFrame.
@@ -26,8 +26,8 @@ class ActorFrame : public Actor
 	virtual void RemoveChild(Actor* pActor);
 	void TransferChildren(ActorFrame* pTo);
 	Actor* GetChild(const std::string& sName);
-	vector<Actor*> GetChildren() { return m_SubActors; }
-	int GetNumChildren() const { return m_SubActors.size(); }
+	[[nodiscard]] vector<Actor*> GetChildren() const { return m_SubActors; }
+	[[nodiscard]] int GetNumChildren() const { return m_SubActors.size(); }
 
 	/** @brief Remove all of the children from the frame. */
 	void RemoveAllChildren();
@@ -53,8 +53,12 @@ class ActorFrame : public Actor
 		m_UpdateFunction = UpdateFunction;
 	}
 
-	LuaReference GetDrawFunction() const { return m_DrawFunction; }
-	virtual bool AutoLoadChildren() const
+	[[nodiscard]] LuaReference GetDrawFunction() const
+	{
+		return m_DrawFunction;
+	}
+
+	[[nodiscard]] virtual bool AutoLoadChildren() const
 	{
 		return false;
 	} // derived classes override to automatically LoadChildrenFromNode
@@ -87,7 +91,7 @@ class ActorFrame : public Actor
 	void RunCommandsOnLeaves(
 	  const LuaReference& cmds,
 	  const LuaReference* pParamTable = nullptr) override; /* but not on self */
-	bool IsFirstUpdate() const;
+	[[nodiscard]] bool IsFirstUpdate() const;
 	void UpdateInternal(float fDeltaTime) override;
 	void BeginDraw() override;
 	void DrawPrimitives() override;
@@ -132,7 +136,7 @@ class ActorFrame : public Actor
 
 	/** @brief Amount of time until all tweens (and all children's tweens) have
 	 * stopped: */
-	float GetTweenTimeLeft() const override;
+	[[nodiscard]] float GetTweenTimeLeft() const override;
 
 	void HandleMessage(const Message& msg) override;
 	void RunCommands(const LuaReference& cmds,
@@ -179,8 +183,8 @@ class ActorFrameAutoDeleteChildren : public ActorFrame
 {
   public:
 	ActorFrameAutoDeleteChildren() { DeleteChildrenWhenDone(true); }
-	bool AutoLoadChildren() const override { return true; }
-	ActorFrameAutoDeleteChildren* Copy() const override;
+	[[nodiscard]] bool AutoLoadChildren() const override { return true; }
+	[[nodiscard]] ActorFrameAutoDeleteChildren* Copy() const override;
 };
 
 #endif
