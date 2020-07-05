@@ -531,7 +531,7 @@ FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
 			if (_resetstkoflw())
 				sm_crash("Unrecoverable Stack Overflow");
 		}
-		iUsed = vsnprintf(pBuf, iChars - 1, szFormat, argList);
+		iUsed = _vsnprintf(pBuf, iChars - 1, szFormat, argList);
 		++iTry;
 	} while (iUsed < 0);
 
