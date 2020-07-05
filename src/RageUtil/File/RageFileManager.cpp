@@ -301,7 +301,7 @@ ChangeToDirOfExecutable(const std::string& argv0)
 	 * dir of the symlink. */
 	if (Basename(RageFileManagerUtil::sDirOfExecutable) == "MacOS")
 		CollapsePath(RageFileManagerUtil::sDirOfExecutable += "/../../../");
-	if (chdir(RageFileManagerUtil::sDirOfExecutable))
+	if (chdir(RageFileManagerUtil::sDirOfExecutable.c_str()))
 #endif
 	{
 		LOG->Warn("Can't set current working directory to %s",
