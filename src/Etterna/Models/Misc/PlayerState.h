@@ -69,14 +69,14 @@ class PlayerState
 	 * Player::Load() be used a lot in ArrowEffects to determine the
 	 * target beat in O(log N).
 	 */
-	vector<CacheDisplayedBeat> m_CacheDisplayedBeat;
+	std::vector<CacheDisplayedBeat> m_CacheDisplayedBeat;
 
 	/**
 	 * @brief Holds a vector sorted by beat, the cumulative number of notes from
 	 *        the start of the song. This will be used by [insert more
 	 * description here]
 	 */
-	vector<CacheNoteStat> m_CacheNoteStat;
+	std::vector<CacheNoteStat> m_CacheNoteStat;
 
 	/**
 	 * @brief Change the PlayerOptions to their default.

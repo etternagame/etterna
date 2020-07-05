@@ -31,12 +31,9 @@ enum GameplayMode
 const std::string&
 SkillsetToString(Skillset ss);
 
-const std::string&
-CalcPatternModToString(CalcPatternMod);
-const std::string&
-CalcDiffValueToString(CalcDiffValue);
-const std::string&
-CalcDebugMiscToString(CalcDebugMisc);
+const std::string& CalcPatternModToString(CalcPatternMod);
+const std::string& CalcDiffValueToString(CalcDiffValue);
+const std::string& CalcDebugMiscToString(CalcDebugMisc);
 
 enum NSScoreBoardColumn
 {
@@ -165,7 +162,7 @@ LuaDeclareType(PlayMode);
 enum SortOrder
 {
 	// song sorts
-	SORT_PREFERRED,  /**< Sort by the user's preferred settings. */
+	SORT_PREFERRED,	 /**< Sort by the user's preferred settings. */
 	SORT_GROUP,		 /**< Sort by the groups the Songs are in. */
 	SORT_TITLE,		 /**< Sort by the Song's title. */
 	SORT_BPM,		 /**< Sort by the Song's BPM. */
@@ -268,9 +265,9 @@ LuaDeclareType(TapNoteScore);
 /** @brief The list of hold note scores available during play. */
 enum HoldNoteScore
 {
-	HNS_None,   /**< The HoldNote was not scored yet. */
-	HNS_LetGo,  /**< The HoldNote has passed, but the player missed it. */
-	HNS_Held,   /**< The HoldNote has passed, and was successfully held all the
+	HNS_None,	/**< The HoldNote was not scored yet. */
+	HNS_LetGo,	/**< The HoldNote has passed, but the player missed it. */
+	HNS_Held,	/**< The HoldNote has passed, and was successfully held all the
 				   way. */
 	HNS_Missed, /**< The HoldNote has passed, and was never initialized. */
 	NUM_HoldNoteScore, /**< The number of hold note scores. */
@@ -397,9 +394,9 @@ LuaDeclareType(PlayerController);
 enum HealthState
 {
 	HealthState_Hot,	/**< The health bar is very full. */
-	HealthState_Alive,  /**< The health bar is at a decent size. */
+	HealthState_Alive,	/**< The health bar is at a decent size. */
 	HealthState_Danger, /**< The health bar is about to run out. */
-	HealthState_Dead,   /**< The health bar is drained completely. */
+	HealthState_Dead,	/**< The health bar is drained completely. */
 	NUM_HealthState,
 	HealthState_Invalid
 };
@@ -443,13 +440,13 @@ struct DisplayBpms
 	/**
 	 * @brief The list of the BPMs for the song.
 	 */
-	vector<float> vfBpms;
+	std::vector<float> vfBpms;
 };
 
 /** @brief The various style types available. */
 enum StyleType
 {
-	StyleType_OnePlayerOneSide,  /**< Single style */
+	StyleType_OnePlayerOneSide,	 /**< Single style */
 	StyleType_OnePlayerTwoSides, /**< Double style */
 	NUM_StyleType,
 	StyleType_Invalid
@@ -498,21 +495,21 @@ LuaDeclareType(SampleMusicPreviewMode);
  */
 enum Stage
 {
-	Stage_1st,	/**< The first stage. */
-	Stage_2nd,	/**< The second stage. */
-	Stage_3rd,	/**< The third stage. */
-	Stage_4th,	/**< The fourth stage. */
-	Stage_5th,	/**< The fifth stage. */
-	Stage_6th,	/**< The sixth stage. */
-	Stage_Next,   /**< Somewhere between the sixth and final stage.
+	Stage_1st,	  /**< The first stage. */
+	Stage_2nd,	  /**< The second stage. */
+	Stage_3rd,	  /**< The third stage. */
+	Stage_4th,	  /**< The fourth stage. */
+	Stage_5th,	  /**< The fifth stage. */
+	Stage_6th,	  /**< The sixth stage. */
+	Stage_Next,	  /**< Somewhere between the sixth and final stage.
 				   * This won't normally happen because 7 stages is the max in the
 				   * UI. */
 	Stage_Final,  /**< The last stage. */
 	Stage_Extra1, /**< The first bonus stage, AKA the extra stage. */
 	Stage_Extra2, /**< The last bonus stage, AKA the encore extra stage. */
 	Stage_Event,  /**< Playing in event mode. */
-	Stage_Demo,   /**< Playing the demonstration. */
-	NUM_Stage,	/**< The number of stage types. */
+	Stage_Demo,	  /**< Playing the demonstration. */
+	NUM_Stage,	  /**< The number of stage types. */
 	Stage_Invalid,
 };
 const std::string&

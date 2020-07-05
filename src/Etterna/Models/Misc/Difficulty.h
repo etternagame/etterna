@@ -3,6 +3,7 @@
 
 #include "EnumHelper.h"
 #include "GameConstantsAndTypes.h"
+
 class Song;
 class Steps;
 
@@ -39,7 +40,7 @@ StepsToCustomDifficulty(const Steps* pSteps);
 
 struct Chart
 {
-	string key;
+	std::string key;
 	std::string lastsong;
 	std::string lastpack;
 	Difficulty lastdiff = Difficulty_Invalid;
@@ -50,7 +51,7 @@ struct Chart
 	bool IsLoaded() { return loaded; }
 
 	bool loaded = false;
-	void FromKey(const string& ck);
+	void FromKey(const std::string& ck);
 	XNode* CreateNode(bool includerate) const;
 	void LoadFromNode(const XNode* node);
 	void PushSelf(lua_State* L);
@@ -59,19 +60,18 @@ struct Chart
 struct Playlist
 {
 	std::string name;
-	vector<Chart> chartlist;
+	std::vector<Chart> chartlist;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
-	void AddChart(const string& ck);
+	void AddChart(const std::string& ck);
 	void SwapPosition();
 
-	void Create();
-	vector<vector<string>> courseruns;
+	std::vector<std::vector<std::string>> courseruns;
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
 	int GetNumCharts() { return chartlist.size(); }
-	vector<string> GetKeys();
-	string GetName() { return name; }
+	std::vector<std::string> GetKeys();
+	std::string GetName() { return name; }
 	float GetAverageRating();
 	void DeleteChart(int i);
 
@@ -80,16 +80,16 @@ struct Playlist
 
 struct CalcTest
 {
-	string ck;
+	std::string ck;
 	float ev;
 	float rate;
-	map<int, float> version_history;
+	std::map<int, float> version_history;
 };
 
 struct CalcTestList
 {
 	Skillset skillset;
-	map<string, CalcTest> filemapping;
+	std::map<std::string, CalcTest> filemapping;
 	XNode* CreateNode() const;
 };
 

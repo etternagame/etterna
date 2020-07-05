@@ -127,7 +127,7 @@ struct Message
 	}
 
 	template<typename T>
-	void SetParam(const std::string& sName, const vector<T>& val)
+	void SetParam(const std::string& sName, const std::vector<T>& val)
 	{
 		Lua* L = LUA->Get();
 		LuaHelpers::CreateTableFromArray(val, L);
@@ -171,10 +171,7 @@ class IMessageSubscriber
 class MessageSubscriber : public IMessageSubscriber
 {
   public:
-	MessageSubscriber()
-	  : m_vsSubscribedTo()
-	{
-	}
+	MessageSubscriber() {}
 	MessageSubscriber(const MessageSubscriber& cpy);
 	MessageSubscriber& operator=(const MessageSubscriber& cpy);
 
@@ -189,7 +186,7 @@ class MessageSubscriber : public IMessageSubscriber
 	void UnsubscribeAll();
 
   private:
-	vector<std::string> m_vsSubscribedTo;
+	std::vector<std::string> m_vsSubscribedTo;
 };
 
 /** @brief Deliver messages to any part of the program as needed. */
@@ -210,8 +207,9 @@ class MessageManager
 	void Broadcast(MessageID m) const;
 	bool IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
 							   const std::string& sMessage) const;
-	inline bool IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-									  MessageID message) const
+
+	bool IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   MessageID message) const
 	{
 		return IsSubscribedToMessage(pSubscriber, MessageIDToString(message));
 	}
@@ -265,7 +263,7 @@ class BroadcastOnChange1D
 {
   private:
 	using MyType = BroadcastOnChange<T>;
-	vector<MyType> val;
+	std::vector<MyType> val;
 
   public:
 	explicit BroadcastOnChange1D(MessageID m)
@@ -310,7 +308,7 @@ class BroadcastOnChangePtr1D
 {
   private:
 	using MyType = BroadcastOnChangePtr<T>;
-	vector<MyType> val;
+	std::vector<MyType> val;
 
   public:
 	explicit BroadcastOnChangePtr1D(MessageID m)

@@ -53,8 +53,8 @@ class SongOptions
 	SongOptions() = default;
 	void Init();
 	void Approach(const SongOptions& other, float fDeltaSeconds);
-	void GetMods(vector<std::string>& AddTo) const;
-	void GetLocalizedMods(vector<std::string>& AddTo) const;
+	void GetMods(std::vector<std::string>& AddTo) const;
+	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
 	std::string GetString() const;
 	std::string GetLocalizedString() const;
 	void FromString(const std::string& sOptions);

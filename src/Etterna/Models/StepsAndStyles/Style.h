@@ -89,7 +89,7 @@ class Style
 
 	void StyleInputToGameInput(int iCol,
 							   PlayerNumber pn,
-							   vector<GameInput>& ret) const;
+							   std::vector<GameInput>& ret) const;
 	/**
 	 * @brief Retrieve the column based on the game input.
 	 * @param GameI the game input.

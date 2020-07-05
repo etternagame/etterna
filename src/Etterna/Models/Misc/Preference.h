@@ -22,13 +22,13 @@ class IPreference
 	virtual void LoadDefault() = 0;
 	virtual void SetDefaultFromString(const std::string& s) = 0;
 
-	virtual std::string ToString() const = 0;
+	[[nodiscard]] virtual std::string ToString() const = 0;
 	virtual void FromString(const std::string& s) = 0;
 
 	virtual void SetFromStack(lua_State* L);
 	virtual void PushValue(lua_State* L) const;
 
-	const std::string& GetName() const { return m_sName; }
+	[[nodiscard]] const std::string& GetName() const { return m_sName; }
 
 	static IPreference* GetPreferenceByName(const std::string& sName);
 	static void LoadAllDefaults();
@@ -63,7 +63,7 @@ class Preference : public IPreference
 		LoadDefault();
 	}
 
-	std::string ToString() const override
+	[[nodiscard]] std::string ToString() const override
 	{
 		return StringConversion::ToString<T>(m_currentValue);
 	}
@@ -133,7 +133,7 @@ class Preference1D
 {
   public:
 	using PreferenceT = Preference<T>;
-	vector<PreferenceT*> m_v;
+	std::vector<PreferenceT*> m_v;
 
 	Preference1D(void pfn(size_t i, std::string& sNameOut, T& defaultValueOut),
 				 size_t N)
@@ -148,8 +148,8 @@ class Preference1D
 
 	~Preference1D()
 	{
-		for (size_t i = 0; i < m_v.size(); ++i)
-			SAFE_DELETE(m_v[i]);
+		for (auto& v : m_v)
+			SAFE_DELETE(v);
 	}
 	const Preference<T>& operator[](size_t i) const { return *m_v[i]; }
 	Preference<T>& operator[](size_t i) { return *m_v[i]; }

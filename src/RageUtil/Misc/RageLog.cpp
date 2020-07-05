@@ -51,7 +51,7 @@ RageLog* LOG; // global and accessible from anywhere in the program
  *
  * The identifier is never displayed, so we can use a simple local object to
  * map/unmap, using any mechanism to generate unique IDs. */
-static map<std::string, std::string> LogMaps;
+static std::map<std::string, std::string> LogMaps;
 
 #define LOG_PATH "/Logs/log.txt"
 #define INFO_PATH "/Logs/info.txt"
@@ -102,7 +102,7 @@ RageLog::~RageLog()
 {
 	/* Add the mapped log data to info.txt. */
 	const std::string AdditionalLog = GetAdditionalLog();
-	vector<std::string> AdditionalLogLines;
+	std::vector<std::string> AdditionalLogLines;
 	split(AdditionalLog, "\n", AdditionalLogLines);
 	for (auto& AdditionalLogLine : AdditionalLogLines) {
 		Trim(AdditionalLogLine);
@@ -282,7 +282,7 @@ RageLog::Write(int where, const std::string& sLine)
 
 	const char* const sWarningSeparator =
 	  "/////////////////////////////////////////";
-	vector<std::string> asLines;
+	std::vector<std::string> asLines;
 	split(sLine, "\n", asLines, false);
 	if (where & WRITE_LOUD) {
 		if (m_bLogToDisk && g_fileLog->IsOpen())

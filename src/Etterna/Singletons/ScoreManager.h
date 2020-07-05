@@ -90,12 +90,12 @@ struct ScoresForChart
 	to approach things in the reverse -mina */
 	map<int, ScoresAtRate, greater<>> ScoresByRate;
 
-	[[nodiscard]] static inline auto RateToKey(float rate) -> int
+	[[nodiscard]] static auto RateToKey(float rate) -> int
 	{
 		return lround(rate * 10000.f);
 	}
 
-	[[nodiscard]] static inline auto KeyToRate(int key) -> float
+	[[nodiscard]] static auto KeyToRate(int key) -> float
 	{
 		return static_cast<float>(key) / 10000.f;
 	}

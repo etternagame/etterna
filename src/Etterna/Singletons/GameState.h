@@ -155,7 +155,7 @@ class GameState
 	/**
 	 * @brief Set the master player number.
 	 * @param p the master player number. */
-	void SetMasterPlayerNumber(const PlayerNumber p);
+	void SetMasterPlayerNumber(PlayerNumber p);
 
 	/**
 	 * @brief Retrieve the present timing data being processed.
@@ -212,16 +212,16 @@ class GameState
 	bool m_bLoadingNextSong;
 	int GetLoadingCourseSongIndex() const;
 
-	std::string GetEtternaVersion() { return "0.70.0"; }
+	static std::string GetEtternaVersion() { return "0.70.0"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
 	 * are now all 1.f to remove j1-3 without having to mess with expected array
 	 * sizes in other areas yes i know this is lazy */
-	vector<float> timingscales = { 1.00f, 1.00f, 1.00f, 1.00f, 0.84f,
-								   0.66f, 0.50f, 0.33f, 0.20f };
+	std::vector<float> timingscales = { 1.00f, 1.00f, 1.00f, 1.00f, 0.84f,
+										0.66f, 0.50f, 0.33f, 0.20f };
 	bool isplaylistcourse = false;
-	bool IsPlaylistCourse() { return isplaylistcourse; }
+	bool IsPlaylistCourse() const { return isplaylistcourse; }
 	bool CountNotesSeparately();
 
 	// State Info used during gameplay
@@ -239,14 +239,14 @@ class GameState
 	BroadcastOnChange<bool> m_bGameplayLeadIn;
 
 	// if re-adding noteskin changes in courses, add functions and such here -aj
-	void GetAllUsedNoteSkins(vector<std::string>& out) const;
+	void GetAllUsedNoteSkins(std::vector<std::string>& out) const;
 
 	static const float MUSIC_SECONDS_INVALID;
 
 	void ResetMusicStatistics(); // Call this when it's time to play a new song.
 								 // Clears the values above.
 	void SetPaused(bool p) { m_paused = p; }
-	bool GetPaused() { return m_paused; }
+	bool GetPaused() const { return m_paused; }
 	void UpdateSongPosition(float fPositionSeconds,
 							const TimingData& timing,
 							const RageTimer& timestamp = RageZeroTimer);
@@ -278,7 +278,6 @@ class GameState
 	void ApplyPreferredModifiers(PlayerNumber pn,
 								 const std::string& sModifiers);
 	void ApplyStageModifiers(PlayerNumber pn, const std::string& sModifiers);
-	void ResetOptions();
 
 	bool CurrentOptionsDisqualifyPlayer(PlayerNumber pn);
 	bool PlayerIsUsingModifier(PlayerNumber pn, const std::string& sModifier);
@@ -315,7 +314,7 @@ class GameState
 
 	// Current mode of Gameplay
 	BroadcastOnChange<GameplayMode> m_gameplayMode;
-	GameplayMode GetGameplayMode() { return m_gameplayMode; }
+	GameplayMode GetGameplayMode() const { return m_gameplayMode; }
 	void TogglePracticeModeSafe(bool set);
 	void TogglePracticeMode(bool set);
 	bool IsPracticeMode();
@@ -328,7 +327,7 @@ class GameState
 	void updateDiscordPresence(const std::string& largeImageText,
 							   const std::string& details,
 							   const std::string& state,
-							   const int64_t endTime);
+							   int64_t endTime);
 	void updateDiscordPresenceMenu(const std::string& largeImageText);
 
 	// Lua
