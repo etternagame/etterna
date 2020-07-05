@@ -6,7 +6,7 @@
 #include "RageUtil/Misc/RageTimer.h"
 
 #include <climits>
-#include <list>
+#include <vector>
 
 /* The number of frames we should keep pos_map data for.  This being too high
  * is mostly harmless; the data is small. */
@@ -30,7 +30,7 @@ struct pos_map_t
 
 struct pos_map_impl
 {
-	list<pos_map_t> m_Queue;
+	vector<pos_map_t> m_Queue;
 	void Cleanup();
 };
 
@@ -109,12 +109,12 @@ pos_map_queue::Insert(int64_t iSourceFrame,
 		}
 	}
 
-	m_pImpl->m_Queue.push_back(pos_map_t());
-	pos_map_t& m = m_pImpl->m_Queue.back();
+	auto m = pos_map_t();
 	m.m_iSourceFrame = iSourceFrame;
 	m.m_iDestFrame = iDestFrame;
 	m.m_iFrames = iFrames;
 	m.m_fSourceToDestRatio = fSourceToDestRatio;
+	m_pImpl->m_Queue.push_back(m);
 
 	m_pImpl->Cleanup();
 }
@@ -123,7 +123,7 @@ void
 pos_map_impl::Cleanup()
 {
 	/* Scan backwards until we have at least pos_map_backlog_frames. */
-	list<pos_map_t>::iterator it = m_Queue.end();
+	auto it = m_Queue.end();
 	int iTotalFrames = 0;
 	while (iTotalFrames < pos_map_backlog_frames) {
 		if (it == m_Queue.begin())
@@ -152,10 +152,7 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	int64_t iClosestPosition = 0, iClosestPositionDist = INT_MAX;
 	const pos_map_t* pClosestBlock =
 	  &*m_pImpl->m_Queue.begin(); /* print only */
-	FOREACHL_CONST(pos_map_t, m_pImpl->m_Queue, it)
-	{
-		const pos_map_t& pm = *it;
-
+	for (auto& pm : m_pImpl->m_Queue) {
 		if (iSourceFrame >= pm.m_iSourceFrame &&
 			iSourceFrame < pm.m_iSourceFrame + pm.m_iFrames) {
 			/* iSourceFrame lies in this block; it's an exact match.  Figure

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSoundMixBuffer.h"
@@ -41,6 +41,7 @@ RageSoundReader_Chain::Copy() const
 {
 	// XXX
 	FAIL_M("unimplemented");
+	return 0;
 }
 
 /* The same sound may be used several times, and by several different chains.
@@ -56,16 +57,16 @@ RageSoundReader_Chain::AddSound(int iIndex, float fOffsetSecs, float fPan)
 	s.iIndex = iIndex;
 	s.iOffsetMS = lround(fOffsetSecs * 1000);
 	s.fPan = fPan;
-	s.pSound = NULL;
+	s.pSound = nullptr;
 	m_aSounds.push_back(s);
 }
 
 int
-RageSoundReader_Chain::LoadSound(RString sPath)
+RageSoundReader_Chain::LoadSound(std::string sPath)
 {
-	sPath.MakeLower();
+	sPath = make_lower(sPath);
 
-	map<RString, RageSoundReader*>::const_iterator it =
+	map<std::string, RageSoundReader*>::const_iterator it =
 	  m_apNamedSounds.find(sPath);
 	if (it != m_apNamedSounds.end()) {
 		const RageSoundReader* pReader = it->second;
@@ -76,11 +77,11 @@ RageSoundReader_Chain::LoadSound(RString sPath)
 		FAIL_M(sPath);
 	}
 
-	RString sError;
+	std::string sError;
 	bool bPrebuffer;
 	RageSoundReader* pReader =
 	  RageSoundReader_FileReader::OpenFile(sPath, sError, &bPrebuffer);
-	if (pReader == NULL) {
+	if (pReader == nullptr) {
 		LOG->Warn("RageSoundReader_Chain: error opening sound \"%s\": %s",
 				  sPath.c_str(),
 				  sError.c_str());
@@ -136,7 +137,7 @@ RageSoundReader_Chain::Finish()
 						  (*it)->GetNumChannels(),
 						  m_iChannels);
 				delete (*it);
-				(*it) = NULL;
+				(*it) = nullptr;
 			}
 		}
 	}
@@ -145,7 +146,7 @@ RageSoundReader_Chain::Finish()
 	for (unsigned i = 0; i < m_aSounds.size();) {
 		Sound& sound = m_aSounds[i];
 
-		if (m_apLoadedSounds[sound.iIndex] == NULL) {
+		if (m_apLoadedSounds[sound.iIndex] == nullptr) {
 			m_aSounds.erase(m_aSounds.begin() + i);
 			continue;
 		}
@@ -161,9 +162,8 @@ RageSoundReader_Chain::Finish()
 	 */
 	m_iActualSampleRate = GetSampleRateInternal();
 	if (m_iActualSampleRate == -1) {
-		FOREACH(RageSoundReader*, m_apLoadedSounds, it)
-		{
-			RageSoundReader*& pSound = (*it);
+		for (auto& it : m_apLoadedSounds) {
+			RageSoundReader*& pSound = it;
 
 			RageSoundReader_Resample_Good* pResample =
 			  new RageSoundReader_Resample_Good(pSound, m_iPreferredSampleRate);
@@ -249,13 +249,13 @@ RageSoundReader_Chain::ReleaseSound(Sound* s)
 	RageSoundReader*& pSound = s->pSound;
 
 	delete pSound;
-	pSound = NULL;
+	pSound = nullptr;
 
 	m_apActiveSounds.erase(it);
 }
 
 bool
-RageSoundReader_Chain::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_Chain::SetProperty(const std::string& sProperty, float fValue)
 {
 	bool bRet = false;
 	for (unsigned i = 0; i < m_apActiveSounds.size(); ++i) {

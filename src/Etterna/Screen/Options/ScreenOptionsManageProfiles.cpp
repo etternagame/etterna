@@ -4,7 +4,6 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenMiniMenu.h"
@@ -49,21 +48,21 @@ static LocalizedString PROFILE_NAME_CONFLICTS("ScreenEditMenu",
 											  "with another profile. Please "
 											  "use a different name.");
 static bool
-ValidateLocalProfileName(const RString& sAnswer, RString& sErrorOut)
+ValidateLocalProfileName(const std::string& sAnswer, std::string& sErrorOut)
 {
 	if (sAnswer == "") {
 		sErrorOut = PROFILE_NAME_BLANK;
 		return false;
 	}
 
-	Profile* pProfile =
+	auto pProfile =
 	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
-	if (pProfile != NULL && sAnswer == pProfile->m_sDisplayName)
+	if (pProfile != nullptr && sAnswer == pProfile->m_sDisplayName)
 		return true; // unchanged
 
-	vector<RString> vsProfileNames;
+	vector<std::string> vsProfileNames;
 	PROFILEMAN->GetLocalProfileDisplayNames(vsProfileNames);
-	bool bAlreadyAProfileWithThisName =
+	auto bAlreadyAProfileWithThisName =
 	  find(vsProfileNames.begin(), vsProfileNames.end(), sAnswer) !=
 	  vsProfileNames.end();
 	if (bAlreadyAProfileWithThisName) {
@@ -93,9 +92,9 @@ ScreenOptionsManageProfiles::BeginScreen()
 	vector<OptionRowHandler*> OptionRowHandlers;
 
 	if (SHOW_CREATE_NEW) {
-		OptionRowHandler* pHand = OptionRowHandlerUtil::Make(ParseCommands(
+		auto pHand = OptionRowHandlerUtil::Make(ParseCommands(
 		  ssprintf("gamecommand;screen,%s;name,dummy", m_sName.c_str())));
-		OptionRowDefinition& def = pHand->m_Def;
+		auto& def = pHand->m_Def;
 		def.m_layoutType = LAYOUT_SHOW_ALL_IN_ROW;
 		def.m_bAllowThemeTitle = true;
 		def.m_bAllowThemeItems = false;
@@ -109,26 +108,24 @@ ScreenOptionsManageProfiles::BeginScreen()
 
 	PROFILEMAN->GetLocalProfileIDs(m_vsLocalProfileID);
 
-	FOREACH_CONST(RString, m_vsLocalProfileID, s)
-	{
-		Profile* pProfile = PROFILEMAN->GetLocalProfile(*s);
-		ASSERT(pProfile != NULL);
+	for (auto& s : m_vsLocalProfileID) {
+		auto pProfile = PROFILEMAN->GetLocalProfile(s);
+		ASSERT(pProfile != nullptr);
 
-		RString sCommand =
+		auto sCommand =
 		  ssprintf("gamecommand;screen,ScreenOptionsCustomizeProfile;profileid,"
 				   "%s;name,dummy",
-				   s->c_str());
-		OptionRowHandler* pHand =
-		  OptionRowHandlerUtil::Make(ParseCommands(sCommand));
-		OptionRowDefinition& def = pHand->m_Def;
+				   s.c_str());
+		auto pHand = OptionRowHandlerUtil::Make(ParseCommands(sCommand));
+		auto& def = pHand->m_Def;
 		def.m_layoutType = LAYOUT_SHOW_ALL_IN_ROW;
 		def.m_bAllowThemeTitle = false;
 		def.m_bAllowThemeItems = false;
 		def.m_sName = pProfile->m_sDisplayName;
 		def.m_sExplanationName = "Select Profile";
 
-		PlayerNumber pn = PLAYER_INVALID;
-		if (*s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get())
+		auto pn = PLAYER_INVALID;
+		if (s == ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get())
 			pn = PLAYER_1;
 		if (pn != PLAYER_INVALID)
 			def.m_vsChoices.push_back(PlayerNumberToLocalizedString(pn));
@@ -142,15 +139,16 @@ ScreenOptionsManageProfiles::BeginScreen()
 
 	// Save sEditLocalProfileID before calling ScreenOptions::BeginScreen,
 	// because it will get clobbered.
-	RString sEditLocalProfileID = GAMESTATE->m_sEditLocalProfileID;
+	std::string sEditLocalProfileID = GAMESTATE->m_sEditLocalProfileID;
 
 	ScreenOptions::BeginScreen();
 
 	// select the last chosen profile
 	if (!sEditLocalProfileID.empty()) {
-		vector<RString>::const_iterator iter = find(m_vsLocalProfileID.begin(),
-													m_vsLocalProfileID.end(),
-													sEditLocalProfileID);
+		vector<std::string>::const_iterator iter =
+		  find(m_vsLocalProfileID.begin(),
+			   m_vsLocalProfileID.end(),
+			   sEditLocalProfileID);
 		if (iter != m_vsLocalProfileID.end()) {
 			int iIndex = iter - m_vsLocalProfileID.begin();
 			this->MoveRowAbsolute(PLAYER_1, 1 + iIndex);
@@ -175,8 +173,8 @@ void
 ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_GoToNextScreen) {
-		int iCurRow = m_iCurrentRow;
-		OptionRow& row = *m_pRows[iCurRow];
+		auto iCurRow = m_iCurrentRow;
+		auto& row = *m_pRows[iCurRow];
 		if (row.GetRowType() == OptionRow::RowType_Exit) {
 			this->HandleScreenMessage(SM_GoToPrevScreen);
 			return; // don't call base
@@ -186,13 +184,13 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 			ASSERT(ScreenTextEntry::s_sLastAnswer !=
 				   ""); // validate should have assured this
 
-			RString sNewName = ScreenTextEntry::s_sLastAnswer;
+			std::string sNewName = ScreenTextEntry::s_sLastAnswer;
 			ASSERT(GAMESTATE->m_sEditLocalProfileID.Get().empty());
 
-			int iNumProfiles = PROFILEMAN->GetNumLocalProfiles();
+			auto iNumProfiles = PROFILEMAN->GetNumLocalProfiles();
 
 			// create
-			RString sProfileID;
+			std::string sProfileID;
 
 			// is this the correct way to go about checking the return value?
 			// -aj
@@ -203,12 +201,12 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 			GAMESTATE->m_sEditLocalProfileID.Set(sProfileID);
 
 			if (iNumProfiles < NUM_PLAYERS) {
-				int iFirstUnused = -1;
-				FOREACH_CONST(Preference<RString>*,
+				auto iFirstUnused = -1;
+				FOREACH_CONST(Preference<std::string>*,
 							  PROFILEMAN->m_sDefaultLocalProfileID.m_v,
 							  i)
 				{
-					RString sLocalProfileID = (*i)->Get();
+					auto sLocalProfileID = (*i)->Get();
 					if (sLocalProfileID.empty()) {
 						iFirstUnused =
 						  i - PROFILEMAN->m_sDefaultLocalProfileID.m_v.begin();
@@ -228,7 +226,7 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 			ASSERT(ScreenTextEntry::s_sLastAnswer !=
 				   ""); // validate should have assured this
 
-			RString sNewName = ScreenTextEntry::s_sLastAnswer;
+			std::string sNewName = ScreenTextEntry::s_sLastAnswer;
 			PROFILEMAN->RenameLocalProfile(GAMESTATE->m_sEditLocalProfileID,
 										   sNewName);
 
@@ -241,7 +239,7 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 		}
 	} else if (SM == SM_BackFromContextMenu) {
 		if (!ScreenMiniMenu::s_bCancelled) {
-			Profile* pProfile =
+			auto pProfile =
 			  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
 			ASSERT(pProfile != NULL);
 
@@ -265,8 +263,8 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
 											   ValidateLocalProfileName);
 				} break;
 				case ProfileAction_Clear: {
-					RString sTitle = pProfile->m_sDisplayName;
-					RString sMessage = ssprintf(
+					auto sTitle = pProfile->m_sDisplayName;
+					std::string sMessage = ssprintf(
 					  CONFIRM_CLEAR_PROFILE.GetValue(), sTitle.c_str());
 					ScreenPrompt::Prompt(
 					  SM_BackFromClearConfirm, sMessage, PROMPT_YES_NO);
@@ -306,19 +304,19 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	if (IsTransitioning())
 		return;
 
-	int iCurRow = m_iCurrentRow;
-	OptionRow& row = *m_pRows[iCurRow];
+	auto iCurRow = m_iCurrentRow;
+	auto& row = *m_pRows[iCurRow];
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
 	{
-		vector<RString> vsUsedNames;
+		vector<std::string> vsUsedNames;
 		PROFILEMAN->GetLocalProfileDisplayNames(vsUsedNames);
 
-		RString sPotentialName;
-		for (int i = 1; i < 1000; i++) {
+		std::string sPotentialName;
+		for (auto i = 1; i < 1000; i++) {
 			sPotentialName = ssprintf(
 			  "%s%04d", NEW_PROFILE_DEFAULT_NAME.GetValue().c_str(), i);
-			bool bNameIsUsed =
+			auto bNameIsUsed =
 			  find(vsUsedNames.begin(), vsUsedNames.end(), sPotentialName) !=
 			  vsUsedNames.end();
 			if (!bNameIsUsed)
@@ -376,8 +374,8 @@ ScreenOptionsManageProfiles::ExportOptions(int /* iRow */,
 int
 ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 {
-	int iCurRow = m_iCurrentRow;
-	OptionRow& row = *m_pRows[iCurRow];
+	auto iCurRow = m_iCurrentRow;
+	auto& row = *m_pRows[iCurRow];
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
 		return -1;
@@ -385,15 +383,15 @@ ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 		return -1;
 
 	// a profile
-	int iIndex = iCurRow + (SHOW_CREATE_NEW ? -1 : 0);
+	auto iIndex = iCurRow + (SHOW_CREATE_NEW ? -1 : 0);
 	return iIndex;
 }
 
-RString
+std::string
 ScreenOptionsManageProfiles::GetLocalProfileIDWithFocus() const
 {
-	int iIndex = GetLocalProfileIndexWithFocus();
+	auto iIndex = GetLocalProfileIndexWithFocus();
 	if (iIndex == -1)
-		return RString();
+		return std::string();
 	return m_vsLocalProfileID[iIndex];
 }

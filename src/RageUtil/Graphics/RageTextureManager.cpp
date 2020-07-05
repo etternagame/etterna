@@ -123,14 +123,14 @@ RageTextureManager::RegisterTextureForUpdating(const RageTextureID& id,
 	m_textures_to_update[id] = tex;
 }
 
-static const RString g_sDefaultTextureName = "__blank__";
+static const std::string g_sDefaultTextureName = "__blank__";
 RageTextureID
 RageTextureManager::GetDefaultTextureID()
 {
 	return RageTextureID(g_sDefaultTextureName);
 }
 
-static const RString g_ScreenTextureName = "__screen__";
+static const std::string g_ScreenTextureName = "__screen__";
 RageTextureID
 RageTextureManager::GetScreenTextureID()
 {
@@ -165,7 +165,8 @@ RageTexture*
 RageTextureManager::LoadTextureInternal(RageTextureID ID)
 {
 	CHECKPOINT_M(
-	  ssprintf("RageTextureManager::LoadTexture(%s).", ID.filename.c_str()));
+	  ssprintf("RageTextureManager::LoadTexture(%s).", ID.filename.c_str())
+		.c_str());
 
 	AdjustTextureID(ID);
 
@@ -316,7 +317,7 @@ RageTextureManager::GarbageCollect(GCType type)
 		std::map<RageTextureID, RageTexture*>::iterator j = i;
 		i++;
 
-		RString sPath = j->first.filename;
+		std::string sPath = j->first.filename;
 		RageTexture* t = j->second;
 
 		if (t->m_iRefCount)
@@ -412,11 +413,12 @@ RageTextureManager::DiagnosticOutput() const
 		const RageTextureID& ID = i->first;
 		const RageTexture* pTex = i->second;
 
-		RString sDiags = DISPLAY->GetTextureDiagnostics(pTex->GetTexHandle());
-		RString sStr = ssprintf("%3ix%3i (%2i)",
-								pTex->GetTextureHeight(),
-								pTex->GetTextureWidth(),
-								pTex->m_iRefCount);
+		std::string sDiags =
+		  DISPLAY->GetTextureDiagnostics(pTex->GetTexHandle());
+		std::string sStr = ssprintf("%3ix%3i (%2i)",
+									pTex->GetTextureHeight(),
+									pTex->GetTextureWidth(),
+									pTex->m_iRefCount);
 
 		if (sDiags != "")
 			sStr += " " + sDiags;

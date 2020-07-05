@@ -12,7 +12,7 @@
 #pragma comment(lib, "dxguid.lib")
 #endif
 #endif
-LPDIRECTINPUT8 g_dinput = NULL;
+LPDIRECTINPUT8 g_dinput = nullptr;
 
 static int
 ConvertScancodeToKey(int scancode);
@@ -27,7 +27,7 @@ DIDevice::DIDevice()
 	dev = InputDevice_Invalid;
 	buffered = true;
 	memset(&JoystickInst, 0, sizeof(JoystickInst));
-	Device = NULL;
+	Device = nullptr;
 }
 
 bool
@@ -43,9 +43,10 @@ DIDevice::Open()
 
 	// load joystick
 	HRESULT hr =
-	  g_dinput->CreateDevice(JoystickInst.guidInstance, &tmpdevice, NULL);
+	  g_dinput->CreateDevice(JoystickInst.guidInstance, &tmpdevice, nullptr);
 	if (hr != DI_OK) {
-		LOG->Info(hr_ssprintf(hr, "OpenDevice: IDirectInput_CreateDevice"));
+		LOG->Info(
+		  hr_ssprintf(hr, "OpenDevice: IDirectInput_CreateDevice").c_str());
 		return false;
 	}
 	hr = tmpdevice->QueryInterface(IID_IDirectInputDevice8, (LPVOID*)&Device);
@@ -54,7 +55,8 @@ DIDevice::Open()
 		LOG->Info(
 		  hr_ssprintf(hr,
 					  "OpenDevice(%s): IDirectInputDevice::QueryInterface",
-					  m_sName.c_str()));
+					  m_sName.c_str())
+			.c_str());
 		return false;
 	}
 
@@ -65,9 +67,10 @@ DIDevice::Open()
 	hr = Device->SetCooperativeLevel(GraphicsWindow::GetHwnd(), coop);
 	if (hr != DI_OK) {
 		LOG->Info(hr_ssprintf(
-		  hr,
-		  "OpenDevice(%s): IDirectInputDevice2::SetCooperativeLevel",
-		  m_sName.c_str()));
+					hr,
+					"OpenDevice(%s): IDirectInputDevice2::SetCooperativeLevel",
+					m_sName.c_str())
+					.c_str());
 		return false;
 	}
 
@@ -86,7 +89,8 @@ DIDevice::Open()
 		LOG->Info(
 		  hr_ssprintf(hr,
 					  "OpenDevice(%s): IDirectInputDevice2::SetDataFormat",
-					  m_sName.c_str()));
+					  m_sName.c_str())
+			.c_str());
 		return false;
 	}
 
@@ -132,7 +136,8 @@ DIDevice::Open()
 			LOG->Info(
 			  hr_ssprintf(hr,
 						  "OpenDevice(%s): IDirectInputDevice2::SetProperty",
-						  m_sName.c_str()));
+						  m_sName.c_str())
+				.c_str());
 			return false;
 		}
 	}
@@ -149,7 +154,7 @@ DIDevice::Close()
 	Device->Unacquire();
 	Device->Release();
 
-	Device = NULL;
+	Device = nullptr;
 	buttons = axes = hats = 0;
 	Inputs.clear();
 }

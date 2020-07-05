@@ -7,7 +7,6 @@
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/Singletons/GameState.h"
 
 void
 GameplayAssist::Init()

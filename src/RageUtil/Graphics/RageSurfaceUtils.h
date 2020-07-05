@@ -1,4 +1,4 @@
-﻿/* Utility functions for RageSurfaces. */
+/* Utility functions for RageSurfaces. */
 
 #ifndef RAGE_SURFACE_UTILS_H
 #define RAGE_SURFACE_UTILS_H
@@ -90,9 +90,9 @@ void
 CorrectBorderPixels(RageSurface* img, int width, int height);
 
 bool
-SaveSurface(const RageSurface* img, const RString& file);
+SaveSurface(const RageSurface* img, const std::string& file);
 RageSurface*
-LoadSurface(const RString& file);
+LoadSurface(const std::string& file);
 
 /* Quickly palettize to an gray/alpha texture. */
 RageSurface*

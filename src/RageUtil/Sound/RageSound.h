@@ -25,7 +25,7 @@ class RageSoundBase
 									   int64_t iPosition,
 									   int iBytesRead) = 0;
 	virtual RageTimer GetStartTime() const { return RageZeroTimer; }
-	virtual RString GetLoadedFilePath() const = 0;
+	virtual std::string GetLoadedFilePath() const = 0;
 };
 
 /**
@@ -114,13 +114,13 @@ class RageSound : public RageSoundBase
 	 * they can be ignored most of the time, so we continue to work if a file
 	 * is broken or missing.
 	 */
-	bool Load(const RString& sFile,
+	bool Load(const std::string& sFile,
 			  bool bPrecache,
 			  const RageSoundLoadParams* pParams = nullptr);
 
 	/* Using this version means the "don't care" about caching. Currently,
 	 * this always will not cache the sound; this may become a preference. */
-	bool Load(const RString& sFile);
+	bool Load(const std::string& sFile);
 
 	/* Load a RageSoundReader that you've set up yourself. Sample rate
 	 * conversion will be set up only if needed. Doesn't fail. */
@@ -137,7 +137,7 @@ class RageSound : public RageSoundBase
 	void StartPlaying(float fGiven = 0, bool forcedTime = false);
 	void StopPlaying();
 
-	RString GetError() const { return m_sError; }
+	std::string GetError() const { return m_sError; }
 
 	void Play(bool is_action, const RageSoundParams* params = nullptr);
 	void PlayCopy(bool is_action,
@@ -152,15 +152,15 @@ class RageSound : public RageSoundBase
 	float GetLengthSeconds();
 	float GetPositionSeconds(bool* approximate = nullptr,
 							 RageTimer* Timestamp = nullptr) const;
-	RString GetLoadedFilePath() const override { return m_sFilePath; }
+	std::string GetLoadedFilePath() const override { return m_sFilePath; }
 	bool IsPlaying() const { return m_bPlaying; }
 
 	float GetPlaybackRate() const;
 	RageTimer GetStartTime() const override;
 	void SetParams(const RageSoundParams& p);
 	const RageSoundParams& GetParams() const { return m_Param; }
-	bool SetProperty(const RString& sProperty, float fValue);
-	void SetStopModeFromString(const RString& sStopMode);
+	bool SetProperty(const std::string& sProperty, float fValue);
+	void SetStopModeFromString(const std::string& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
 	void SetPlayBackCallback(const shared_ptr<LuaReference>& f,
@@ -181,7 +181,7 @@ class RageSound : public RageSoundBase
 	pos_map_queue m_HardwareToStreamMap;
 	pos_map_queue m_StreamToSourceMap;
 
-	RString m_sFilePath;
+	std::string m_sFilePath;
 
 	void ApplyParams();
 	RageSoundParams m_Param;
@@ -211,7 +211,7 @@ class RageSound : public RageSoundBase
 	bool m_bPlaying{ false };
 	bool m_bDeleteWhenFinished{ false };
 
-	RString m_sError;
+	std::string m_sError;
 
 	int GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 										bool* bApproximate = nullptr) const;

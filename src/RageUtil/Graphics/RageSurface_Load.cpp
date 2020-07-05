@@ -22,7 +22,7 @@ RageSurface_stb_Load(const std::string& sPath,
 	}
 
 	int x, y, n;
-	unsigned char* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
+	unsigned char* doot = stbi_load(f.GetPath().c_str(), &x, &y, &n, 4);
 	if (doot == nullptr) {
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
@@ -50,10 +50,10 @@ RageSurface_stb_Load(const std::string& sPath,
 	return RageSurfaceUtils::OPEN_OK;
 }
 static RageSurface*
-TryOpenFile(std::string sPath,
+TryOpenFile(const std::string& sPath,
 			bool bHeaderOnly,
 			std::string& error,
-			std::string format,
+			const std::string& format,
 			bool& bKeepTrying)
 {
 	RageSurface* ret = nullptr;

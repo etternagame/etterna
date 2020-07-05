@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileDriverMemory.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -12,7 +12,7 @@ struct RageFileObjMemFile
 	  , m_Mutex("RageFileObjMemFile")
 	{
 	}
-	RString m_sBuf;
+	std::string m_sBuf;
 	int m_iRefs;
 	RageMutex m_Mutex;
 
@@ -38,7 +38,7 @@ struct RageFileObjMemFile
 
 RageFileObjMem::RageFileObjMem(RageFileObjMemFile* pFile)
 {
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		pFile = new RageFileObjMemFile;
 
 	m_pFile = pFile;
@@ -106,14 +106,14 @@ RageFileObjMem::Copy() const
 	return pRet;
 }
 
-const RString&
+const std::string&
 RageFileObjMem::GetString() const
 {
 	return m_pFile->m_sBuf;
 }
 
 void
-RageFileObjMem::PutString(const RString& sBuf)
+RageFileObjMem::PutString(const std::string& sBuf)
 {
 	m_pFile->m_Mutex.Lock();
 	m_pFile->m_sBuf = sBuf;
@@ -128,14 +128,13 @@ RageFileDriverMem::RageFileDriverMem()
 
 RageFileDriverMem::~RageFileDriverMem()
 {
-	for (unsigned i = 0; i < m_Files.size(); ++i) {
-		RageFileObjMemFile* pFile = m_Files[i];
+	for (auto pFile : m_Files) {
 		RageFileObjMemFile::ReleaseReference(pFile);
 	}
 }
 
 RageFileBasic*
-RageFileDriverMem::Open(const RString& sPath, int mode, int& err)
+RageFileDriverMem::Open(const std::string& sPath, int mode, int& err)
 {
 	LockMut(m_Mutex);
 
@@ -156,22 +155,22 @@ RageFileDriverMem::Open(const RString& sPath, int mode, int& err)
 
 	RageFileObjMemFile* pFile =
 	  reinterpret_cast<RageFileObjMemFile*>(FDB->GetFilePriv(sPath));
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		err = ENOENT;
-		return NULL;
+		return nullptr;
 	}
 
 	return new RageFileObjMem(pFile);
 }
 
 bool
-RageFileDriverMem::Remove(const RString& sPath)
+RageFileDriverMem::Remove(const std::string& sPath)
 {
 	LockMut(m_Mutex);
 
 	RageFileObjMemFile* pFile =
 	  reinterpret_cast<RageFileObjMemFile*>(FDB->GetFilePriv(sPath));
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return false;
 
 	/* Unregister the file. */
@@ -192,7 +191,7 @@ static struct FileDriverEntry_MEM : public FileDriverEntry
 	  : FileDriverEntry("MEM")
 	{
 	}
-	RageFileDriver* Create(const RString& sRoot) const
+	RageFileDriver* Create(const std::string& sRoot) const
 	{
 		return new RageFileDriverMem();
 	}

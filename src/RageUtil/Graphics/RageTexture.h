@@ -1,4 +1,4 @@
-﻿/* RageTexture - Abstract class for a texture and metadata.  */
+/* RageTexture - Abstract class for a texture and metadata.  */
 
 #ifndef RAGE_TEXTURE_H
 #define RAGE_TEXTURE_H
@@ -20,7 +20,7 @@ class RageTexture
 	virtual intptr_t GetTexHandle() const = 0; // accessed by RageDisplay
 
 	// movie texture/animated texture stuff
-	virtual void SetPosition(float /* fSeconds */) {}   // seek
+	virtual void SetPosition(float /* fSeconds */) {}	// seek
 	virtual void DecodeSeconds(float /* fSeconds */) {} // decode
 	virtual void SetPlaybackRate(float) {}
 	virtual bool IsAMovie() const { return false; }
@@ -95,7 +95,7 @@ class RageTexture
 	// The ID that we were asked to load:
 	const RageTextureID& GetID() const { return m_ID; }
 
-	static void GetFrameDimensionsFromFileName(const RString& sPath,
+	static void GetFrameDimensionsFromFileName(const std::string& sPath,
 											   int* puFramesWide,
 											   int* puFramesHigh,
 											   int source_width = 0,

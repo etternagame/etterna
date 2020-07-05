@@ -11,7 +11,7 @@ class RoomInfoDisplay : public ActorFrame
   public:
 	RoomInfoDisplay();
 	~RoomInfoDisplay() override;
-	virtual void Load(const RString& sType);
+	virtual void Load(const std::string& sType);
 	void Update(float fDeltaTime) override;
 	void SetRoom(const RoomWheelItemData* roomData);
 	void SetRoomInfo(const RoomInfo& info);
@@ -19,7 +19,7 @@ class RoomInfoDisplay : public ActorFrame
 	void RetractInfoBox();
 
   private:
-	void RequestRoomInfo(const RString& name);
+	void RequestRoomInfo(const std::string& name);
 	enum RoomInfoDisplayState
 	{
 		OPEN = 0,

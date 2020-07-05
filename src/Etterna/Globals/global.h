@@ -66,7 +66,8 @@ SetCheckpoint(const char* file, int line, const char* message);
 /** @brief Set a checkpoint with no message. */
 #define CHECKPOINT (Checkpoints::SetCheckpoint(__FILE__, __LINE__, NULL))
 /** @brief Set a checkpoint with a specified message. */
-#define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
+#define CHECKPOINT_M(m)                                                        \
+	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
 
 /**
  * @brief Define a macro to tell the compiler that a function doesn't return.
@@ -104,13 +105,13 @@ sm_crash(const char* reason = "Internal error");
  * such as DSound init failure.) */
 #define FAIL_M(MESSAGE)                                                        \
 	do {                                                                       \
-		CHECKPOINT_M(MESSAGE);                                                 \
-		sm_crash(MESSAGE);                                                     \
+		CHECKPOINT_M(std::string(MESSAGE).c_str());                            \
+		sm_crash(std::string(MESSAGE).c_str());                                \
 	} while (0)
 #define ASSERT_M(COND, MESSAGE)                                                \
 	do {                                                                       \
 		if (unlikely(!(COND))) {                                               \
-			FAIL_M(MESSAGE);                                                   \
+			FAIL_M(std::string(MESSAGE).c_str());                              \
 		}                                                                      \
 	} while (0)
 
@@ -167,9 +168,8 @@ struct CompileAssertDecl
 #define COMPILE_ASSERT(COND)                                                   \
 	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
 
-#include "StdString.h"
-/** @brief Use RStrings throughout the program. */
-using RString = StdString::CStdStringA;
+/** @brief Use std::strings throughout the program. */
+using std::string;
 
 #include "RageUtil/Misc/RageException.h"
 

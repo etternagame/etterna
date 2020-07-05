@@ -304,7 +304,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 {
 	// ASSERT(pNode->GetName() == "Score");
 
-	RString s;
+	std::string s;
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
 	if (pNode->GetChildValue("Grade", s))
 		grade = StringToGrade(s);
@@ -319,7 +319,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	if (pUploadedServers != nullptr) {
 		FOREACH_CONST_Child(pUploadedServers, p)
 		{
-			RString server;
+			std::string server;
 			p->GetTextValue(server);
 			uploaded.emplace_back(server.c_str());
 		}
@@ -665,8 +665,8 @@ HighScore::LoadReplayDataFull(string dir)
 bool
 HighScore::HasReplayData()
 {
-	RString fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	RString basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	std::string fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	std::string basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
 	if (DoesFileExist(fullpath)) // check for full replays first then default to
 								 // basic replays -mina
 		return true;
@@ -1536,7 +1536,7 @@ class LunaHighScore : public Luna<HighScore>
 	}
 	static int GetDate(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDateTime().GetString());
+		lua_pushstring(L, p->GetDateTime().GetString().c_str());
 		return 1;
 	}
 	static int GetSurvivalSeconds(T* p, lua_State* L)
@@ -1692,15 +1692,15 @@ class LunaHighScore : public Luna<HighScore>
 	}
 	static int GetJudgmentString(T* p, lua_State* L)
 	{
-		RString doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
-								p->GetTapNoteScore(TNS_W1),
-								p->GetTapNoteScore(TNS_W2),
-								p->GetTapNoteScore(TNS_W3),
-								p->GetTapNoteScore(TNS_W4),
-								p->GetTapNoteScore(TNS_W5),
-								p->GetTapNoteScore(TNS_Miss),
-								p->GetMaxCombo());
-		lua_pushstring(L, doot);
+		std::string doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+									p->GetTapNoteScore(TNS_W1),
+									p->GetTapNoteScore(TNS_W2),
+									p->GetTapNoteScore(TNS_W3),
+									p->GetTapNoteScore(TNS_W4),
+									p->GetTapNoteScore(TNS_W5),
+									p->GetTapNoteScore(TNS_Miss),
+									p->GetMaxCombo());
+		lua_pushstring(L, doot.c_str());
 		return 1;
 	}
 
@@ -1711,12 +1711,12 @@ class LunaHighScore : public Luna<HighScore>
 	}
 	static int GetScoreid(T* p, lua_State* L)
 	{
-		lua_pushstring(L, RString(p->scoreid));
+		lua_pushstring(L, std::string(p->scoreid).c_str());
 		return 1;
 	}
 	static int GetAvatar(T* p, lua_State* L)
 	{
-		lua_pushstring(L, RString(p->avatar));
+		lua_pushstring(L, std::string(p->avatar).c_str());
 		return 1;
 	}
 	static int GetWifeVers(T* p, lua_State* L)

@@ -6,18 +6,18 @@
 class Command
 {
   public:
-	void Load(const RString& sCommand);
+	void Load(const std::string& sCommand);
 
-	RString GetOriginalCommandString()
+	std::string GetOriginalCommandString()
 	  const; // used when reporting an error in number of args
-	RString GetName()
+	std::string GetName()
 	  const; // the command name is the first argument in all-lowercase
 
 	void Clear() { m_vsArgs.clear(); }
 
 	struct Arg
 	{
-		RString s;
+		std::string s;
 		Arg()
 		  : s("")
 		{
@@ -25,7 +25,7 @@ class Command
 	};
 	Arg GetArg(unsigned index) const;
 
-	vector<RString> m_vsArgs;
+	vector<std::string> m_vsArgs;
 
 	Command()
 	  : m_vsArgs()
@@ -38,7 +38,7 @@ class Commands
   public:
 	vector<Command> v;
 
-	RString GetOriginalCommandString()
+	std::string GetOriginalCommandString()
 	  const; // used when reporting an error in number of args
 };
 
@@ -48,8 +48,8 @@ class Commands
 // to ParseCommands to happen during load, then execute from the parsed Command
 // structures.
 void
-ParseCommands(const RString& sCmds, Commands& vCmdsOut, bool bLegacy);
+ParseCommands(const std::string& sCmds, Commands& vCmdsOut, bool bLegacy);
 Commands
-ParseCommands(const RString& sCmds);
+ParseCommands(const std::string& sCmds);
 
 #endif

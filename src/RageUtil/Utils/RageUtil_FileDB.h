@@ -42,7 +42,7 @@ struct File
 		hash = -1;
 		priv = NULL;
 	}
-	File(const RString& fn)
+	File(const std::string& fn)
 	{
 		SetName(fn);
 		dir = false;
@@ -55,10 +55,9 @@ struct File
 	bool operator<(const File& rhs) const { return lname < rhs.lname; }
 
 	bool equal(const File& rhs) const { return lname == rhs.lname; }
-	bool equal(const RString& rhs) const
+	bool equal(const std::string& rhs) const
 	{
-		RString l = rhs;
-		l.MakeLower();
+		std::string l = make_lower(rhs);
 		return lname == l;
 	}
 };
@@ -94,21 +93,13 @@ struct FileSet
 						  const std::string& sEnding,
 						  vector<std::string>& asOut,
 						  bool bOnlyDirs) const;
-	void GetFilesMatching(const RString& sBeginning,
-						  const RString& sContaining,
-						  const RString& sEnding,
-						  vector<RString>& asOut,
-						  bool bOnlyDirs) const;
 	void GetFilesEqualTo(const std::string& pat,
 						 vector<std::string>& out,
 						 bool bOnlyDirs) const;
-	void GetFilesEqualTo(const RString& pat,
-						 vector<RString>& out,
-						 bool bOnlyDirs) const;
 
-	RageFileManager::FileType GetFileType(const RString& sPath) const;
-	int GetFileSize(const RString& sPath) const;
-	int GetFileHash(const RString& sPath) const;
+	RageFileManager::FileType GetFileType(const std::string& sPath) const;
+	int GetFileSize(const std::string& sPath) const;
+	int GetFileHash(const std::string& sPath) const;
 };
 /** @brief A container for a file listing. */
 class FilenameDB
@@ -120,20 +111,15 @@ class FilenameDB
 	}
 	virtual ~FilenameDB() { FlushDirCache(); }
 
-	void AddFile(const RString& sPath,
+	void AddFile(const std::string& sPath,
 				 int iSize,
 				 int iHash,
 				 void* pPriv = NULL);
-	void DelFile(const RString& sPath);
-	void* GetFilePriv(const RString& sPath);
+	void DelFile(const std::string& sPath);
+	void* GetFilePriv(const std::string& sPath);
 
 	/* This handles at most two * wildcards.  If we need anything more
 	 * complicated, we'll need to use fnmatch or regex. */
-	void GetFilesSimpleMatch(const RString& sDir,
-							 const RString& sFile,
-							 vector<RString>& asOut,
-							 bool bOnlyDirs);
-
 	void GetFilesSimpleMatch(const std::string& sDir,
 							 const std::string& sFile,
 							 vector<std::string>& asOut,
@@ -142,34 +128,30 @@ class FilenameDB
 	/* Search for "path" case-insensitively and replace it with the correct
 	 * case.  If only a portion of the path exists, resolve as much as possible.
 	 * Return true if the entire path was matched. */
-	bool ResolvePath(RString& sPath);
+	bool ResolvePath(std::string& sPath);
 
-	RageFileManager::FileType GetFileType(const RString& sPath);
-	int GetFileSize(const RString& sPath);
-	int GetFileHash(const RString& sFilePath);
-	void GetDirListing(const RString& sPath,
-					   vector<RString>& asAddTo,
-					   bool bOnlyDirs,
-					   bool bReturnPathToo);
+	RageFileManager::FileType GetFileType(const std::string& sPath);
+	int GetFileSize(const std::string& sPath);
+	int GetFileHash(const std::string& sFilePath);
 	void GetDirListing(const std::string& sPath,
 					   vector<std::string>& asAddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
-	void FlushDirCache(const RString& sDir = RString());
+	void FlushDirCache(const std::string& sDir = std::string());
 
-	void GetFileSetCopy(const RString& dir, FileSet& out);
+	void GetFileSetCopy(const std::string& dir, FileSet& out);
 	/* Probably slow, so override it. */
-	virtual void CacheFile(const RString& sPath);
+	virtual void CacheFile(const std::string& sPath);
 
   protected:
 	RageEvent m_Mutex;
 
-	const File* GetFile(const RString& sPath);
-	FileSet* GetFileSet(const RString& sDir, bool create = true);
+	const File* GetFile(const std::string& sPath);
+	FileSet* GetFileSet(const std::string& sDir, bool create = true);
 
 	/* Directories we have cached: */
-	map<RString, FileSet*> dirs;
+	map<std::string, FileSet*> dirs;
 
 	int ExpireSeconds{ -1 };
 
@@ -177,26 +159,19 @@ class FilenameDB
 						 const std::string& sName,
 						 vector<std::string>& asOut,
 						 bool bOnlyDirs);
-	void GetFilesEqualTo(const RString& sDir,
-						 const RString& sName,
-						 vector<RString>& asOut,
-						 bool bOnlyDirs);
+
 	void GetFilesMatching(const std::string& sDir,
 						  const std::string& sBeginning,
 						  const std::string& sContaining,
 						  const std::string& sEnding,
 						  vector<std::string>& asOut,
 						  bool bOnlyDirs);
-	void GetFilesMatching(const RString& sDir,
-						  const RString& sBeginning,
-						  const RString& sContaining,
-						  const RString& sEnding,
-						  vector<RString>& asOut,
-						  bool bOnlyDirs);
-	void DelFileSet(map<RString, FileSet*>::iterator dir);
+
+	void DelFileSet(map<std::string, FileSet*>::iterator dir);
 
 	/* The given path wasn't cached.  Cache it. */
-	virtual void PopulateFileSet(FileSet& /* fs */, const RString& /* sPath */)
+	virtual void PopulateFileSet(FileSet& /* fs */,
+								 const std::string& /* sPath */)
 	{
 	}
 };
@@ -206,7 +181,7 @@ class NullFilenameDB : public FilenameDB
 {
   public:
 	NullFilenameDB() { ExpireSeconds = -1; }
-	void CacheFile(const RString& /* sPath */) override {}
+	void CacheFile(const std::string& /* sPath */) override {}
 };
 
 #endif

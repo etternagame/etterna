@@ -148,29 +148,29 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 }
 
 static void
-AddPart(vector<RString>& AddTo, float level, RString name)
+AddPart(vector<std::string>& AddTo, float level, std::string name)
 {
 	if (level == 0)
 		return;
 
-	const RString LevelStr =
-	  (level == 1) ? RString("") : ssprintf("%ld%% ", lround(level * 100));
+	const std::string LevelStr =
+	  (level == 1) ? std::string("") : ssprintf("%ld%% ", lround(level * 100));
 
 	AddTo.push_back(LevelStr + name);
 }
 
-RString
+std::string
 PlayerOptions::GetString(bool bForceNoteSkin) const
 {
-	vector<RString> v;
+	vector<std::string> v;
 	GetMods(v, bForceNoteSkin);
 	return join(", ", v);
 }
 
 void
-PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
+PlayerOptions::GetMods(vector<std::string>& AddTo, bool bForceNoteSkin) const
 {
-	// RString sReturn;
+	// std::string sReturn;
 
 	switch (m_LifeType) {
 		case LifeType_Bar:
@@ -198,11 +198,11 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 
 	if (!m_fTimeSpacing) {
 		if (m_fMaxScrollBPM) {
-			RString s = ssprintf("m%.0f", m_fMaxScrollBPM);
+			std::string s = ssprintf("m%.0f", m_fMaxScrollBPM);
 			AddTo.push_back(s);
 		} else if (m_bSetScrollSpeed || m_fScrollSpeed != 1) {
 			/* -> 1.00 */
-			RString s = ssprintf("%2.2f", m_fScrollSpeed);
+			std::string s = ssprintf("%2.2f", m_fScrollSpeed);
 			if (s[s.size() - 1] == '0') {
 				/* -> 1.0 */
 				s.erase(s.size() - 1); // delete last char
@@ -214,7 +214,7 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 			AddTo.push_back(s + "x");
 		}
 	} else {
-		RString s = ssprintf("C%.0f", m_fScrollBPM);
+		std::string s = ssprintf("C%.0f", m_fScrollBPM);
 		AddTo.push_back(s);
 	}
 
@@ -371,14 +371,14 @@ PlayerOptions::GetMods(vector<RString>& AddTo, bool bForceNoteSkin) const
 	if (bForceNoteSkin ||
 		(!m_sNoteSkin.empty() &&
 		 m_sNoteSkin != CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue())) {
-		RString s = m_sNoteSkin;
+		std::string s = m_sNoteSkin;
 		Capitalize(s);
 		AddTo.push_back(s);
 	}
 }
 
 void
-PlayerOptions::GetTurnMods(vector<RString>& AddTo)
+PlayerOptions::GetTurnMods(vector<std::string>& AddTo)
 {
 	if (m_bTurns[TURN_MIRROR])
 		AddTo.push_back("Mirror");
@@ -400,11 +400,11 @@ PlayerOptions::GetTurnMods(vector<RString>& AddTo)
 // Do not use this for anything else.
 // It will not work.
 void
-PlayerOptions::ResetModsToStringVector(vector<RString> mods)
+PlayerOptions::ResetModsToStringVector(vector<std::string> mods)
 {
-	RString error;
+	std::string error;
 	ResetToggleableMods();
-	for (RString mod : mods) {
+	for (std::string mod : mods) {
 		FromOneModString(mod, error);
 	}
 }
@@ -421,30 +421,29 @@ PlayerOptions::ResetToggleableMods()
 /* Options are added to the current settings; call Init() beforehand if
  * you don't want this. */
 void
-PlayerOptions::FromString(const RString& sMultipleMods)
+PlayerOptions::FromString(const std::string& sMultipleMods)
 {
-	RString sTemp = sMultipleMods;
-	vector<RString> vs;
+	std::string sTemp = sMultipleMods;
+	vector<std::string> vs;
 	split(sTemp, ",", vs, true);
-	RString sThrowAway;
-	FOREACH(RString, vs, s)
-	{
-		if (!FromOneModString(*s, sThrowAway)) {
+	std::string sThrowAway;
+	for (auto& s : vs) {
+		if (!FromOneModString(s, sThrowAway)) {
 			LOG->Trace("Attempted to load a non-existing mod \'%s\' for the "
 					   "Player. Ignoring.",
-					   (*s).c_str());
+					   (s).c_str());
 		}
 	}
 }
 
 bool
-PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
+PlayerOptions::FromOneModString(const std::string& sOneMod,
+								std::string& sErrorOut)
 {
 	ASSERT_M(NOTESKIN != NULL,
 			 "The Noteskin Manager must be loaded in order to process mods.");
 
-	RString sBit = sOneMod;
-	sBit.MakeLower();
+	std::string sBit = make_lower(sOneMod);
 	Trim(sBit);
 
 	/* "drunk"
@@ -454,17 +453,17 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 
 	float level = 1;
 	float speed = 1;
-	vector<RString> asParts;
+	vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
 
-	FOREACH_CONST(RString, asParts, s)
+	FOREACH_CONST(std::string, asParts, s)
 	{
 		if (*s == "no") {
 			level = 0;
 		} else if (isdigit((*s)[0]) || (*s)[0] == '-') {
 			/* If the last character is a *, they probably said "123*" when
 			 * they meant "*123". */
-			if (s->Right(1) == "*") {
+			if (s->back() == '*') {
 				// XXX: We know what they want, is there any reason not to
 				// handle it? Yes. We should be strict in handling the format.
 				// -Chris
@@ -476,8 +475,8 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 			} else {
 				level = StringToFloat(*s) / 100.0f;
 			}
-		} else if (*s[0] == '*') {
-			sscanf(*s, "*%f", &speed);
+		} else if ((*s)[0] == '*') {
+			sscanf((*s).c_str(), "*%f", &speed);
 			if (!isfinite(speed))
 				speed = 1.0f;
 		}
@@ -493,14 +492,14 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 	const bool on = (level > 0.5f);
 
 	static Regex mult("^([0-9]+(\\.[0-9]+)?)x$");
-	vector<RString> matches;
+	vector<std::string> matches;
 	if (mult.Compare(sBit, matches)) {
 		StringConversion::FromString(matches[0], level);
 		SET_FLOAT(fScrollSpeed)
 		SET_FLOAT(fTimeSpacing)
 		m_fTimeSpacing = 0;
 		m_fMaxScrollBPM = 0;
-	} else if (sscanf(sBit, "c%f", &level) == 1) {
+	} else if (sscanf(sBit.c_str(), "c%f", &level) == 1) {
 		if (!isfinite(level) || level <= 0.0f)
 			level = CMOD_DEFAULT;
 		SET_FLOAT(fScrollBPM)
@@ -509,7 +508,7 @@ PlayerOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_fMaxScrollBPM = 0;
 	}
 	// oITG's m-mods
-	else if (sscanf(sBit, "m%f", &level) == 1) {
+	else if (sscanf(sBit.c_str(), "m%f", &level) == 1) {
 		// OpenITG doesn't have this block:
 		/*
 		if( !isfinite(level) || level <= 0.0f )
@@ -1000,8 +999,8 @@ PlayerOptions::operator==(const PlayerOptions& other) const
 	// The noteskin name needs to be compared case-insensitively because the
 	// manager forces lowercase, but some obscure part of PlayerOptions
 	// uppercases the first letter.  The previous code that used != probably
-	// relied on RString::operator!= misbehaving. -Kyz
-	if (strcasecmp(m_sNoteSkin, other.m_sNoteSkin) != 0) {
+	// relied on std::string::operator!= misbehaving. -Kyz
+	if (strcasecmp(m_sNoteSkin.c_str(), other.m_sNoteSkin.c_str()) != 0) {
 		return false;
 	}
 	for (int i = 0; i < PlayerOptions::NUM_ACCELS; ++i)
@@ -1141,17 +1140,17 @@ PlayerOptions::IsEasierForSongAndSteps(Song* pSong,
 }
 
 void
-PlayerOptions::GetLocalizedMods(vector<RString>& AddTo) const
+PlayerOptions::GetLocalizedMods(vector<std::string>& AddTo) const
 {
-	vector<RString> vMods;
+	vector<std::string> vMods;
 	GetMods(vMods);
-	FOREACH_CONST(RString, vMods, s)
+	FOREACH_CONST(std::string, vMods, s)
 	{
-		const RString& sOneMod = *s;
+		const std::string& sOneMod = *s;
 
 		ASSERT(!sOneMod.empty());
 
-		vector<RString> asTokens;
+		vector<std::string> asTokens;
 		split(sOneMod, " ", asTokens);
 
 		if (asTokens.empty())
@@ -1169,7 +1168,7 @@ PlayerOptions::GetLocalizedMods(vector<RString>& AddTo) const
 		asTokens.back() =
 		  CommonMetrics::LocalizeOptionItem(asTokens.back(), true);
 
-		RString sLocalizedMod = join(" ", asTokens);
+		std::string sLocalizedMod = join(" ", asTokens);
 		AddTo.push_back(sLocalizedMod);
 	}
 }
@@ -1195,10 +1194,10 @@ PlayerOptions::ContainsTransformOrTurn() const
 	return false;
 }
 
-vector<RString>
+vector<std::string>
 PlayerOptions::GetInvalidatingModifiers() const
 {
-	vector<RString> AddTo;
+	vector<std::string> AddTo;
 
 	if (m_bTurns[TURN_BACKWARDS])
 		AddTo.push_back("Backwards");
@@ -1239,7 +1238,7 @@ PlayerOptions::GetInvalidatingModifiers() const
 	return AddTo;
 }
 
-RString
+std::string
 PlayerOptions::GetSavedPrefsString() const
 {
 	PlayerOptions po_prefs;
@@ -1451,12 +1450,13 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	{
 		int original_top = lua_gettop(L);
 		if (p->m_sNoteSkin.empty()) {
-			lua_pushstring(L, CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue());
+			lua_pushstring(
+			  L, CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue().c_str());
 		} else {
-			lua_pushstring(L, p->m_sNoteSkin);
+			lua_pushstring(L, p->m_sNoteSkin.c_str());
 		}
 		if (original_top >= 1 && (lua_isstring(L, 1) != 0)) {
-			RString skin = SArg(1);
+			std::string skin = SArg(1);
 			if (NOTESKIN->DoesNoteSkinExist(skin)) {
 				p->m_sNoteSkin = skin;
 				lua_pushboolean(L, 1);
@@ -1702,7 +1702,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int GetInvalidatingMods(T* p, lua_State* L)
 	{
-		vector<RString> mods = p->GetInvalidatingModifiers();
+		vector<std::string> mods = p->GetInvalidatingModifiers();
 		LuaHelpers::CreateTableFromArray(mods, L);
 		return 1;
 	}

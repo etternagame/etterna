@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Foreach.h"
 #include "LocalizedString.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -14,15 +14,15 @@ class LocalizedStringImplDefault : public ILocalizedStringImpl
 		return new LocalizedStringImplDefault;
 	}
 
-	void Load(const RString& sGroup, const RString& sName) override
+	void Load(const std::string& sGroup, const std::string& sName) override
 	{
 		m_sValue = sName;
 	}
 
-	const RString& GetLocalized() const override { return m_sValue; }
+	const std::string& GetLocalized() const override { return m_sValue; }
 
   private:
-	RString m_sValue;
+	std::string m_sValue;
 };
 
 static LocalizedString::MakeLocalizer g_pMakeLocalizedStringImpl =
@@ -39,7 +39,8 @@ LocalizedString::RegisterLocalizer(MakeLocalizer pFunc)
 	}
 }
 
-LocalizedString::LocalizedString(const RString& sGroup, const RString& sName)
+LocalizedString::LocalizedString(const std::string& sGroup,
+								 const std::string& sName)
 {
 	m_Subscribers.Subscribe(this);
 
@@ -77,14 +78,14 @@ LocalizedString::CreateImpl()
 }
 
 void
-LocalizedString::Load(const RString& sGroup, const RString& sName)
+LocalizedString::Load(const std::string& sGroup, const std::string& sName)
 {
 	m_sGroup = sGroup;
 	m_sName = sName;
 	CreateImpl();
 }
 
-const RString&
+const std::string&
 LocalizedString::GetValue() const
 {
 	return m_pImpl->GetLocalized();

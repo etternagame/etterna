@@ -1,4 +1,4 @@
-﻿#ifndef RollingNumbers_H
+#ifndef RollingNumbers_H
 #define RollingNumbers_H
 
 #include "BitmapText.h"
@@ -10,7 +10,7 @@ class RollingNumbers : public BitmapText
   public:
 	RollingNumbers();
 
-	void Load(const RString& sMetricsGroup);
+	void Load(const std::string& sMetricsGroup);
 	RollingNumbers* Copy() const override;
 
 	void DrawPart(RageColor const* diffuse,
@@ -31,7 +31,7 @@ class RollingNumbers : public BitmapText
 	void PushSelf(lua_State* L) override;
 
   private:
-	ThemeMetric<RString> TEXT_FORMAT;
+	ThemeMetric<std::string> TEXT_FORMAT;
 	ThemeMetric<float> APPROACH_SECONDS;
 	ThemeMetric<bool> COMMIFY;
 	ThemeMetric<RageColor> LEADING_ZERO_MULTIPLY_COLOR;

@@ -644,7 +644,7 @@ class TimingData
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
 	vector<std::string> ToVectorString(TimingSegmentType tst,
-									   int dec = 6) const;
+										   int dec = 6) const;
 
 	/*	Wow it's almost like this should have been done a decade ago.
 	Essentially what's happening here is the results of getelapsedtimeat(row)

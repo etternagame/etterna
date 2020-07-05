@@ -54,7 +54,7 @@ ActorSound::LoadFromNode(const XNode* pNode)
 
 	Actor::LoadFromNode(pNode);
 
-	RString sFile;
+	std::string sFile;
 	if (ActorUtil::GetAttrPath(pNode, "File", sFile))
 		m_Sound.Load(sFile, bPrecache, &params);
 }

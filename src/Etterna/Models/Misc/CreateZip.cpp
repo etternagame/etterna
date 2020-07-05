@@ -86,14 +86,14 @@ using TCHAR = char;
 #define ZR_NODUPH 0x00000100   // couldn't duplicate the handle
 #define ZR_NOFILE 0x00000200   // couldn't create/open the file
 #define ZR_NOALLOC 0x00000300  // failed to allocate some resource
-#define ZR_WRITE 0x00000400	// a general error writing to the file
+#define ZR_WRITE 0x00000400	   // a general error writing to the file
 #define ZR_NOTFOUND 0x00000500 // couldn't find that file in the zip
-#define ZR_MORE 0x00000600	 // there's still more data to be unzipped
+#define ZR_MORE 0x00000600	   // there's still more data to be unzipped
 #define ZR_CORRUPT 0x00000700  // the zipfile is corrupt or not a zipfile
-#define ZR_READ 0x00000800	 // a general error reading the file
+#define ZR_READ 0x00000800	   // a general error reading the file
 // The following come from mistakes on the part of the caller
 #define ZR_CALLERMASK 0x00FF0000
-#define ZR_ARGS 0x00010000	// general mistake with the arguments
+#define ZR_ARGS 0x00010000	  // general mistake with the arguments
 #define ZR_MEMSIZE 0x00030000 // the memory size is too small
 #define ZR_FAILED                                                              \
 	0x00040000 // the thing was already failed when you called this function
@@ -106,10 +106,10 @@ using TCHAR = char;
 #define ZR_BUGMASK 0xFF000000
 #define ZR_NOTINITED 0x01000000 // initialisation didn't work
 #define ZR_SEEK 0x02000000		// trying to seek in an unseekable file
-#define ZR_NOCHANGE 0x04000000  // changed its mind on storage, but not allowed
+#define ZR_NOCHANGE 0x04000000	// changed its mind on storage, but not allowed
 #define ZR_FLATE 0x05000000		// an internal error in the de/inflation code
 
-RString
+std::string
 FormatZipMessageZ(ZRESULT code)
 {
 	const char* msg = "unknown zip result code";
@@ -178,12 +178,12 @@ FormatZipMessageZ(ZRESULT code)
 	return msg;
 }
 
-using uch = unsigned char;  // unsigned 8-bit value
+using uch = unsigned char;	// unsigned 8-bit value
 using ush = unsigned short; // unsigned 16-bit value
-using ulg = unsigned long;  // unsigned 32-bit value
+using ulg = unsigned long;	// unsigned 32-bit value
 using extent = size_t;		// file size
-using Pos = unsigned int;   // must be at least 32 bits
-using IPos = unsigned int;  // A Pos is an index in the character window. Pos is
+using Pos = unsigned int;	// must be at least 32 bits
+using IPos = unsigned int;	// A Pos is an index in the character window. Pos is
 							// used only for parameter passing
 
 #ifndef EOF
@@ -196,21 +196,21 @@ using IPos = unsigned int;  // A Pos is an index in the character window. Pos is
 #define ZE_MISS (-1) // used by procname(), zipbare()
 #define ZE_OK 0		 // success
 #define ZE_EOF 2	 // unexpected end of zip file
-#define ZE_FORM 3	// zip file structure error
+#define ZE_FORM 3	 // zip file structure error
 #define ZE_MEM 4	 // out of memory
-#define ZE_LOGIC 5   // internal logic error
+#define ZE_LOGIC 5	 // internal logic error
 #define ZE_BIG 6	 // entry too large to split
-#define ZE_NOTE 7	// invalid comment format
-#define ZE_TEST 8	// zip test (-T) failed or out of memory
-#define ZE_ABORT 9   // user interrupt or termination
-#define ZE_TEMP 10   // error using a temp file
-#define ZE_READ 11   // read or seek error
-#define ZE_NONE 12   // nothing to do
-#define ZE_NAME 13   // missing or empty zip file
-#define ZE_WRITE 14  // error writing to a file
-#define ZE_CREAT 15  // couldn't open to write
-#define ZE_PARMS 16  // bad command line
-#define ZE_OPEN 18   // could not open a specified file to read
+#define ZE_NOTE 7	 // invalid comment format
+#define ZE_TEST 8	 // zip test (-T) failed or out of memory
+#define ZE_ABORT 9	 // user interrupt or termination
+#define ZE_TEMP 10	 // error using a temp file
+#define ZE_READ 11	 // read or seek error
+#define ZE_NONE 12	 // nothing to do
+#define ZE_NAME 13	 // missing or empty zip file
+#define ZE_WRITE 14	 // error writing to a file
+#define ZE_CREAT 15	 // couldn't open to write
+#define ZE_PARMS 16	 // bad command line
+#define ZE_OPEN 18	 // could not open a specified file to read
 #define ZE_MAXERR 18 // the highest error number
 
 // internal file attribute
@@ -407,7 +407,7 @@ typedef struct zlist
 	char zname[MAX_PATH]; // External version of internal name
 	int mark;			  // Marker for files to operate on
 	int dosflag;		  // Set to force MSDOS file attributes
-	struct zlist* nxt;	// Pointer to next header in list
+	struct zlist* nxt;	  // Pointer to next header in list
 } TZipFileInfo;
 
 /*
@@ -590,7 +590,7 @@ const ulg crc_table[256] = {
 ulg
 crc32(ulg crc, const uch* buf, size_t len)
 {
-	if (buf == NULL)
+	if (buf == nullptr)
 		return 0L;
 	crc = crc ^ 0xffffffffL;
 	while (len >= 8) {
@@ -608,7 +608,7 @@ class TZip
 {
   public:
 	TZip()
-	  : pfout(NULL)
+	  : pfout(nullptr)
 	{
 		opos = 0;
 		mapsize = 0;
@@ -618,7 +618,7 @@ class TZip
 		isize = 0;
 		ired = 0;
 		crc = 0;
-		bufin = 0;
+		bufin = nullptr;
 		lenin = 0;
 		posin = 0;
 		csize = 0;
@@ -629,10 +629,10 @@ class TZip
 	// We can write to pipe, file-by-handle, file-by-name, memory-to-memmapfile
 	RageFile* pfout;	   // if valid, we'll write here (for files or pipes)
 	unsigned ooffset{ 0 }; // for pfout, this is where the pointer was initially
-	ZRESULT oerr{ 0u };	// did a write operation give rise to an error?
-	unsigned writ{ 0 };   // how have we written. This is maintained by Add, not
+	ZRESULT oerr{ 0u };	   // did a write operation give rise to an error?
+	unsigned writ{ 0 };	  // how have we written. This is maintained by Add, not
 						  // write(), to avoid confusion over seeks
-	unsigned int opos;	// current pos in the mmap
+	unsigned int opos;	  // current pos in the mmap
 	unsigned int mapsize; // the size of the map we created
 	bool hasputcen{ false }; // have we yet placed the central directory?
 	//
@@ -652,7 +652,7 @@ class TZip
 	// together, since OO didn't seem to make the design any clearer.
 	ulg attr;
 	iztimes times;
-	ulg timestamp;	// all open_* methods set these
+	ulg timestamp;	  // all open_* methods set these
 	long isize, ired; // size is not set until close() on pips
 	ulg crc;		  // crc is not set until close(). iwrit is cumulative
 	RageFile* hfin{ nullptr }; // for input files and pipes
@@ -712,7 +712,7 @@ unsigned int
 TZip::write(const char* buf, unsigned int size)
 {
 	const char* srcbuf = buf;
-	if (pfout != NULL) {
+	if (pfout != nullptr) {
 		unsigned long writ = pfout->Write(srcbuf, size);
 		return writ;
 	}
@@ -919,7 +919,7 @@ TZip::Add(const TCHAR* odstzn, const TCHAR* src, unsigned long flags)
 
 	// Initialize the local header
 	TZipFileInfo zfi;
-	zfi.nxt = NULL;
+	zfi.nxt = nullptr;
 	strcpy(zfi.name, "");
 #ifdef UNICODE
 	WideCharToMultiByte(CP_UTF8, 0, dstzn, -1, zfi.iname, MAX_PATH, 0, 0);
@@ -932,13 +932,13 @@ TZip::Add(const TCHAR* odstzn, const TCHAR* src, unsigned long flags)
 		zfi.nam++;
 	}
 	strcpy(zfi.zname, "");
-	zfi.extra = NULL;
+	zfi.extra = nullptr;
 	zfi.ext =
 	  0; // extra header to go after this compressed data, and its length
-	zfi.cextra = NULL;
+	zfi.cextra = nullptr;
 	zfi.cext = 0; // extra header to go in the central end-of-zip directory, and
 				  // its length
-	zfi.comment = NULL;
+	zfi.comment = nullptr;
 	zfi.com = 0; // comment, and its length
 	zfi.mark = 1;
 	zfi.dosflag = 0;
@@ -1043,11 +1043,11 @@ TZip::Add(const TCHAR* odstzn, const TCHAR* src, unsigned long flags)
 	zfi.cextra = cextra;
 	auto* pzfi = new TZipFileInfo;
 	memcpy(pzfi, &zfi, sizeof(zfi));
-	if (zfis == NULL)
+	if (zfis == nullptr)
 		zfis = pzfi;
 	else {
 		TZipFileInfo* z = zfis;
-		while (z->nxt != NULL)
+		while (z->nxt != nullptr)
 			z = z->nxt;
 		z->nxt = pzfi;
 	}
@@ -1062,7 +1062,7 @@ TZip::AddCentral()
 	ulg pos_at_start_of_central = writ;
 	// ulg tot_unc_size=0, tot_compressed_size=0;
 	bool okay = true;
-	for (TZipFileInfo* zfi = zfis; zfi != NULL;) {
+	for (TZipFileInfo* zfi = zfis; zfi != nullptr;) {
 		if (okay) {
 			int res = putcentral(zfi, swrite, this);
 			if (res != ZE_OK)
@@ -1075,7 +1075,7 @@ TZip::AddCentral()
 		numentries++;
 		//
 		TZipFileInfo* zfinext = zfi->nxt;
-		if (zfi->cextra != 0)
+		if (zfi->cextra != nullptr)
 			delete[] zfi->cextra;
 		delete zfi;
 		zfi = zfinext;
@@ -1086,7 +1086,7 @@ TZip::AddCentral()
 						 center_size,
 						 pos_at_start_of_central + ooffset,
 						 0,
-						 NULL,
+						 nullptr,
 						 swrite,
 						 this);
 		if (res != ZE_OK)
@@ -1102,7 +1102,7 @@ ZRESULT lasterrorZ = ZR_OK;
 
 CreateZip::CreateZip()
 {
-	hz = NULL;
+	hz = nullptr;
 }
 
 bool
@@ -1112,23 +1112,24 @@ CreateZip::Start(RageFile* f)
 	lasterrorZ = hz->Start(f);
 	return lasterrorZ == ZR_OK;
 }
-RString
-MakeDestZipFileName(RString fn)
+std::string
+MakeDestZipFileName(std::string fn)
 {
 	// strip leading slash
 	fn.erase(fn.begin(), fn.begin() + 1);
 	return fn;
 }
 bool
-CreateZip::AddFile(RString fn)
+CreateZip::AddFile(std::string fn)
 {
-	lasterrorZ = hz->Add(MakeDestZipFileName(fn), fn, ZIP_FILENAME);
+	lasterrorZ =
+	  hz->Add(MakeDestZipFileName(fn).c_str(), fn.c_str(), ZIP_FILENAME);
 	return lasterrorZ == ZR_OK;
 }
 bool
-CreateZip::AddDir(RString fn)
+CreateZip::AddDir(std::string fn)
 {
-	lasterrorZ = hz->Add(MakeDestZipFileName(fn), NULL, ZIP_FOLDER);
+	lasterrorZ = hz->Add(MakeDestZipFileName(fn).c_str(), nullptr, ZIP_FOLDER);
 	return lasterrorZ == ZR_OK;
 }
 bool
@@ -1138,7 +1139,7 @@ CreateZip::Finish()
 	return lasterrorZ == ZR_OK;
 }
 
-RString
+std::string
 CreateZip::GetError()
 {
 	return FormatZipMessageZ(lasterrorZ);

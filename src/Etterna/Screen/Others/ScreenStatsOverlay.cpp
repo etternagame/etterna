@@ -90,7 +90,8 @@ ScreenStatsOverlay::Update(float fDeltaTime)
 }
 
 void
-ScreenStatsOverlay::AddTimestampLine(const RString& txt, const RageColor& color)
+ScreenStatsOverlay::AddTimestampLine(const std::string& txt,
+									 const RageColor& color)
 {
 	m_textSkips[m_LastSkip].SetText(txt);
 	m_textSkips[m_LastSkip].StopTweening();
@@ -149,7 +150,7 @@ ScreenStatsOverlay::UpdateSkips()
 				RageColor(0, 0, 0, 0),			/* unused */
 				RageColor(1.0f, 1.0f, 1.0f, 1), /* white*/
 				RageColor(1.0f, 1.0f, 0.0f, 1), /* yellow */
-				RageColor(1.0f, 0.4f, 0.4f, 1)  /* light red */
+				RageColor(1.0f, 0.4f, 0.4f, 1)	/* light red */
 			};
 
 			AddTimestampLine(ssprintf("Lag: %.3fms", skipTime), colors[skip]);

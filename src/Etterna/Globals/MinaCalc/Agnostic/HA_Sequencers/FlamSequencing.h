@@ -27,13 +27,13 @@ struct flam
 	};
 
 	// is this row exclusively additive with the current flam sequence?
-	inline auto comma_comma_coolmeleon(const unsigned& notes) -> bool
+	auto comma_comma_coolmeleon(const unsigned& notes) const -> bool
 	{
 		return (unsigned_unseen & notes) == 0U;
 	}
 
 	// to avoid keeping another float ??? idk
-	inline auto get_dur() -> float
+	auto get_dur() -> float
 	{
 		// cba to loop
 		switch (size) {
@@ -42,13 +42,10 @@ struct flam
 				assert(0);
 			case 2:
 				return ms[0];
-				break;
 			case 3:
 				return ms[0] + ms[1];
-				break;
 			case 4:
 				return ms[0] + ms[1] + ms[2];
-				break;
 			default:
 				assert(0);
 				break;
@@ -57,7 +54,7 @@ struct flam
 		return 0.F;
 	}
 
-	inline void start(const float& ms_now, const unsigned& notes)
+	void start(const float& ms_now, const unsigned& notes)
 	{
 		flammin = true;
 		unsigned_unseen = 0U;
@@ -65,7 +62,7 @@ struct flam
 		grow(ms_now, notes);
 	}
 
-	inline void grow(const float& ms_now, const unsigned& notes)
+	void grow(const float& ms_now, const unsigned& notes)
 	{
 		if (size == max_flam_jammies) {
 			return;
@@ -78,7 +75,7 @@ struct flam
 		++size;
 	}
 
-	inline void reset()
+	void reset()
 	{
 		flammin = false;
 		size = 1;
@@ -114,14 +111,14 @@ struct FJ_Sequencer
 	// the next interval.. not sure if this is desired behavior
 	bool the_fifth_flammament = false;
 
-	inline void set_params(const float& gt, const float& st, const float& ms)
+	void set_params(const float& gt, const float& st, const float& ms)
 	{
 		group_tol = gt;
 		step_tol = st;
 		mod_scaler = ms;
 	}
 
-	inline void complete_seq()
+	void complete_seq()
 	{
 		if (flam_counter < max_flam_jammies) {
 			mod_parts.at(flam_counter) = construct_mod_part();
@@ -134,7 +131,7 @@ struct FJ_Sequencer
 		flim.reset();
 	}
 
-	inline auto flammin_col_check(const unsigned& notes) -> bool
+	auto flammin_col_check(const unsigned& notes) -> bool
 	{
 		// this function should never be used to start a flam
 		assert(flim.flammin);
@@ -149,7 +146,7 @@ struct FJ_Sequencer
 	}
 
 	// check for anything that would break the sequence
-	inline auto flammin_tol_check(const float& ms_now) -> bool
+	auto flammin_tol_check(const float& ms_now) -> bool
 	{
 		// check if ms from last row is greater than the group tolerance
 		if (ms_now > group_tol) {
@@ -166,7 +163,7 @@ struct FJ_Sequencer
 		return true;
 	}
 
-	inline void operator()(const float& ms_now, const unsigned& notes)
+	void operator()(const float& ms_now, const unsigned& notes)
 	{
 		// if we already have the max number of flams
 		// (maybe should remove this shortcut optimization)
@@ -205,7 +202,7 @@ struct FJ_Sequencer
 		}
 	}
 
-	inline void handle_interval_end()
+	void handle_interval_end()
 	{
 		// we probably don't want to do this, just let it build potential
 		// sequences across intervals
@@ -219,7 +216,7 @@ struct FJ_Sequencer
 		mod_parts.fill(1.F);
 	}
 
-	inline auto construct_mod_part() -> float
+	auto construct_mod_part() -> float
 	{
 		// total duration of flam
 		float dur = flim.get_dur();

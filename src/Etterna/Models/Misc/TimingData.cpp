@@ -1254,9 +1254,9 @@ TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 #define TIMING_DATA_RETURNS_NUMBERS                                            \
 	THEME->GetMetricB("TimingData", "GetReturnsNumbers")
 
-// This breaks encapsulation just as much as TimingData::ToVectorString does.
-// But, it exists solely for the purpose of providing lua access, so it's as
-// okay as all the other lua stuff that reaches past the encapsulation.
+// This breaks encapsulation just as much as TimingData::ToVectorString
+// does. But, it exists solely for the purpose of providing lua access, so it's
+// as okay as all the other lua stuff that reaches past the encapsulation.
 void
 TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L);
 void
@@ -1515,8 +1515,8 @@ class LunaTimingData : public Luna<TimingData>
 		if (lua_toboolean(L, 1)) {                                             \
 			TimingSegmentSetToLuaTable(p, segment_name, L);                    \
 		} else {                                                               \
-			LuaHelpers::CreateTableFromArray(p->ToVectorString(segment_name),  \
-											 L);                               \
+			LuaHelpers::CreateTableFromArray(                                  \
+			  p->ToVectorString(segment_name), L);                         \
 		}                                                                      \
 		return 1;                                                              \
 	}

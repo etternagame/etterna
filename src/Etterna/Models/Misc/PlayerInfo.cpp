@@ -15,8 +15,8 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 
-static ThemeMetric<RString> SCORE_KEEPER_CLASS("ScreenGameplay",
-											   "ScoreKeeperClass");
+static ThemeMetric<std::string> SCORE_KEEPER_CLASS("ScreenGameplay",
+												   "ScoreKeeperClass");
 
 PlayerInfo::PlayerInfo()
   : m_pn(PLAYER_INVALID)

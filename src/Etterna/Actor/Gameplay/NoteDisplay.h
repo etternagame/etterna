@@ -1,4 +1,4 @@
-﻿#ifndef NOTE_DISPLAY_H
+#ifndef NOTE_DISPLAY_H
 #define NOTE_DISPLAY_H
 
 #include "Etterna/Actor/Base/Actor.h"
@@ -39,10 +39,10 @@ enum NoteColorType
 	NUM_NoteColorType,
 	NoteColorType_Invalid
 };
-const RString&
+const std::string&
 NoteColorTypeToString(NoteColorType nct);
 NoteColorType
-StringToNoteColorType(const RString& s);
+StringToNoteColorType(const std::string& s);
 
 struct NoteResource;
 
@@ -50,30 +50,30 @@ struct NoteColorActor
 {
 	NoteColorActor();
 	~NoteColorActor();
-	void Load(const RString& sButton,
-			  const RString& sElement,
+	void Load(const std::string& sButton,
+			  const std::string& sElement,
 			  PlayerNumber,
 			  GameController,
-			  RString);
-	Actor* Get(RString);
+			  std::string);
+	Actor* Get(std::string);
 
   private:
-	map<RString, NoteResource*> g_p;
+	map<std::string, NoteResource*> g_p;
 };
 
 struct NoteColorSprite
 {
 	NoteColorSprite();
 	~NoteColorSprite();
-	void Load(const RString& sButton,
-			  const RString& sElement,
+	void Load(const std::string& sButton,
+			  const std::string& sElement,
 			  PlayerNumber,
 			  GameController,
-			  RString);
-	Sprite* Get(RString);
+			  std::string);
+	Sprite* Get(std::string);
 
   private:
-	map<RString, NoteResource*> g_p;
+	map<std::string, NoteResource*> g_p;
 };
 /** @brief What types of holds are there? */
 enum HoldType
@@ -86,7 +86,7 @@ enum HoldType
 };
 /** @brief Loop through each HoldType. */
 #define FOREACH_HoldType(i) FOREACH_ENUM(HoldType, i)
-const RString&
+const std::string&
 HoldTypeToString(HoldType ht);
 
 enum ActiveType
@@ -98,7 +98,7 @@ enum ActiveType
 };
 /** @brief Loop through each ActiveType. */
 #define FOREACH_ActiveType(i) FOREACH_ENUM(ActiveType, i)
-const RString&
+const std::string&
 ActiveTypeToString(ActiveType at);
 
 enum NoteColumnSplineMode
@@ -110,7 +110,7 @@ enum NoteColumnSplineMode
 	NoteColumnSplineMode_Invalid
 };
 
-const RString&
+const std::string&
 NoteColumnSplineModeToString(NoteColumnSplineMode ncsm);
 LuaDeclareType(NoteColumnSplineMode);
 

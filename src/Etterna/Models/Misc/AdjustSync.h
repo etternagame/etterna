@@ -33,8 +33,8 @@ class AdjustSync
 	static void RevertSyncChanges();
 	static void HandleAutosync(float fNoteOffBySeconds, float fStepTime);
 	static void AutosyncOffset();
-	static void GetSyncChangeTextGlobal(vector<RString>& vsAddTo);
-	static void GetSyncChangeTextSong(vector<RString>& vsAddTo);
+	static void GetSyncChangeTextGlobal(vector< std::string>& vsAddTo);
+	static void GetSyncChangeTextSong(vector< std::string>& vsAddTo);
 
 	/** @brief The minimum number of steps to hit for syncing purposes. */
 	static const int OFFSET_SAMPLE_COUNT = 24;

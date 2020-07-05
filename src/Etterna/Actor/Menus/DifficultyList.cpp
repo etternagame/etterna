@@ -1,6 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "DifficultyList.h"
+
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -22,10 +24,12 @@ REGISTER_ACTOR_CLASS(StepsDisplayList);
 
 StepsDisplayList::StepsDisplayList()
 {
-	m_CurSong = NULL;
+	m_CurSong = nullptr;
 	m_bShown = true;
-	SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1));
-	SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + PLAYER_1));
+	SubscribeToMessage(
+	  static_cast<MessageID>(Message_CurrentStepsP1Changed + PLAYER_1));
+	SubscribeToMessage(
+	  static_cast<MessageID>(Message_CurrentTrailP1Changed + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -46,10 +50,10 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	MOVE_COMMAND.Load(m_sName, "MoveCommand");
 
 	m_Lines.resize(MAX_METERS);
-	m_CurSong = NULL;
+	m_CurSong = nullptr;
 
 	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
-	if (pChild == NULL) {
+	if (pChild == nullptr) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "%s: StepsDisplayList: missing the node \"CursorP%d\"",
 		  ActorUtil::GetWhere(pNode).c_str(),
@@ -66,7 +70,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	 * stacks.  This means the Cursor command can't change diffuse colors; I
 	 * think we do need a diffuse color stack ... */
 	pChild = pNode->GetChild(ssprintf("CursorP%iFrame", PLAYER_1 + 1));
-	if (pChild == NULL) {
+	if (pChild == nullptr) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
 		  ActorUtil::GetWhere(pNode).c_str(),
@@ -80,7 +84,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	for (unsigned m = 0; m < m_Lines.size(); ++m) {
 		// todo: Use Row1, Row2 for names? also m_sName+"Row" -aj
 		m_Lines[m].m_Meter.SetName("Row");
-		m_Lines[m].m_Meter.Load("StepsDisplayListRow", NULL);
+		m_Lines[m].m_Meter.Load("StepsDisplayListRow", nullptr);
 		this->AddChild(&m_Lines[m].m_Meter);
 	}
 
@@ -96,7 +100,7 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 	for (unsigned i = 0; i < m_Rows.size(); i++) {
 		const Row& row = m_Rows[i];
 
-		if (GAMESTATE->m_pCurSteps == NULL) {
+		if (GAMESTATE->m_pCurSteps == nullptr) {
 			if (row.m_dc == ClosestDifficulty)
 				return i;
 		} else {
@@ -148,14 +152,14 @@ StepsDisplayList::UpdatePositions()
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, (int)Rows.size());
-	second_end = min(second_end, (int)Rows.size());
+	first_end = min(first_end, static_cast<int>(Rows.size()));
+	second_end = min(second_end, static_cast<int>(Rows.size()));
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */
 	for (;;) {
 		const int sum = (first_end - first_start) + (second_end - second_start);
-		if (sum >= (int)Rows.size() || sum >= total)
+		if (sum >= static_cast<int>(Rows.size()) || sum >= total)
 			break; // nothing more to display, or no room
 
 		/* First priority: expand the top of the second half until it meets
@@ -165,14 +169,14 @@ StepsDisplayList::UpdatePositions()
 		// Otherwise, expand either end.
 		else if (first_start > 0)
 			first_start--;
-		else if (second_end < (int)Rows.size())
+		else if (second_end < static_cast<int>(Rows.size()))
 			second_end++;
 		else
 			FAIL_M("Do we have room to grow, or don't we?");
 	}
 
 	int pos = 0;
-	for (int i = 0; i < (int)Rows.size(); i++) // foreach row
+	for (int i = 0; i < static_cast<int>(Rows.size()); i++) // foreach row
 	{
 		float ItemPosition;
 		if (i < first_start)
@@ -199,11 +203,11 @@ void
 StepsDisplayList::PositionItems()
 {
 	for (int i = 0; i < MAX_METERS; ++i) {
-		bool bUnused = (i >= (int)m_Rows.size());
+		bool bUnused = (i >= static_cast<int>(m_Rows.size()));
 		m_Lines[i].m_Meter.SetVisible(!bUnused);
 	}
 
-	for (int m = 0; m < (int)m_Rows.size(); ++m) {
+	for (int m = 0; m < static_cast<int>(m_Rows.size()); ++m) {
 		Row& row = m_Rows[m];
 		bool bHidden = row.m_bHidden;
 		if (!m_bShown)
@@ -222,7 +226,7 @@ StepsDisplayList::PositionItems()
 
 	for (int m = 0; m < MAX_METERS; ++m) {
 		bool bHidden = true;
-		if (m_bShown && m < (int)m_Rows.size())
+		if (m_bShown && m < static_cast<int>(m_Rows.size()))
 			bHidden = m_Rows[m].m_bHidden;
 
 		float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
@@ -233,7 +237,7 @@ StepsDisplayList::PositionItems()
 	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
 	float fY = 0;
-	if (iCurrentRow < (int)m_Rows.size())
+	if (iCurrentRow < static_cast<int>(m_Rows.size()))
 		fY = m_Rows[iCurrentRow].m_fY;
 
 	m_CursorFrames.PlayCommand("Change");
@@ -246,7 +250,7 @@ StepsDisplayList::SetFromGameState()
 	const Song* pSong = GAMESTATE->m_pCurSong;
 	unsigned i = 0;
 
-	if (pSong == NULL) {
+	if (pSong == nullptr) {
 		// FIXME: This clamps to between the min and the max difficulty, but
 		// it really should round to the nearest difficulty that's in
 		// DIFFICULTIES_TO_SHOW.
@@ -348,7 +352,7 @@ StepsDisplayList::Hide()
 void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
-	if (msg.GetName() == MessageIDToString((MessageID)(
+	if (msg.GetName() == MessageIDToString(static_cast<MessageID>(
 						   Message_CurrentStepsP1Changed + PLAYER_1)))
 		SetFromGameState();
 

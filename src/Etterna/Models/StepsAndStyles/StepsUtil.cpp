@@ -9,7 +9,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 
 // Sorting stuff
-map<const Steps*, RString> steps_sort_val;
+map<const Steps*, std::string> steps_sort_val;
 
 static bool
 CompareStepsPointersBySortValueAscending(const Steps* pSteps1,
@@ -133,8 +133,8 @@ bool
 StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 											 const Steps* pStep2)
 {
-	return StdString::ssicmp(pStep1->GetDescription().c_str(),
-							 pStep2->GetDescription().c_str()) < 0;
+	return CompareNoCase(pStep1->GetDescription(), pStep2->GetDescription()) <
+		   0;
 }
 
 void
@@ -228,7 +228,7 @@ StepsID::LoadFromNode(const XNode* pNode)
 {
 	ASSERT(pNode->GetName() == "Steps");
 
-	RString sTemp;
+	std::string sTemp;
 
 	pNode->GetAttrValue("StepsType", sTemp);
 	st = GAMEMAN->StringToStepsType(sTemp);
@@ -250,10 +250,10 @@ StepsID::LoadFromNode(const XNode* pNode)
 	m_Cache.Unset();
 }
 
-RString
+std::string
 StepsID::ToString() const
 {
-	RString s = GAMEMAN->GetStepsTypeInfo(st).szName;
+	std::string s = GAMEMAN->GetStepsTypeInfo(st).szName;
 	s += " " + DifficultyToString(dc);
 	if (dc == Difficulty_Edit) {
 		s += " " + sDescription;

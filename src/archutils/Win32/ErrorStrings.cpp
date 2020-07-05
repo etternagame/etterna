@@ -4,7 +4,7 @@
 
 #include <windows.h>
 
-RString
+std::string
 werr_ssprintf(int err, const char* fmt, ...)
 {
 	char buf[1024] = "";
@@ -13,24 +13,24 @@ werr_ssprintf(int err, const char* fmt, ...)
 
 	// Why is FormatMessage returning text ending with \r\n? (who? -aj)
 	// Perhaps it's because you're on Windows, where newlines are \r\n. -aj
-	RString text = buf;
-	text.Replace("\n", "");
-	text.Replace("\r", " "); // foo\r\nbar -> foo bar
-	TrimRight(text);		 // "foo\r\n" -> "foo"
+	std::string text = buf;
+	s_replace(text, "\n", "");
+	s_replace(text, "\r", " "); // foo\r\nbar -> foo bar
+	TrimRight(text);			// "foo\r\n" -> "foo"
 
 	va_list va;
 	va_start(va, fmt);
-	RString s = vssprintf(fmt, va);
+	std::string s = vssprintf(fmt, va);
 	va_end(va);
 
 	return s += ssprintf(" (%s)", text.c_str());
 }
 
-RString
+std::string
 ConvertWstringToCodepage(const wstring& s, int iCodePage)
 {
 	if (s.empty())
-		return RString();
+		return std::string();
 
 	int iBytes = WideCharToMultiByte(
 	  iCodePage, 0, s.data(), (int)s.size(), NULL, 0, NULL, FALSE);
@@ -41,19 +41,19 @@ ConvertWstringToCodepage(const wstring& s, int iCodePage)
 	std::fill(buf, buf + iBytes + 1, '\0');
 	WideCharToMultiByte(
 	  CP_ACP, 0, s.data(), (int)s.size(), buf, iBytes, NULL, FALSE);
-	RString ret(buf);
+	std::string ret(buf);
 	delete[] buf;
 	return ret;
 }
 
-RString
-ConvertUTF8ToACP(const RString& s)
+std::string
+ConvertUTF8ToACP(const std::string& s)
 {
 	return ConvertWstringToCodepage(RStringToWstring(s), CP_ACP);
 }
 
 wstring
-ConvertCodepageToWString(const RString& s, int iCodePage)
+ConvertCodepageToWString(const std::string& s, int iCodePage)
 {
 	if (s.empty())
 		return wstring();
@@ -71,8 +71,8 @@ ConvertCodepageToWString(const RString& s, int iCodePage)
 	return sRet;
 }
 
-RString
-ConvertACPToUTF8(const RString& s)
+std::string
+ConvertACPToUTF8(const std::string& s)
 {
 	return WStringToRString(ConvertCodepageToWString(s, CP_ACP));
 }

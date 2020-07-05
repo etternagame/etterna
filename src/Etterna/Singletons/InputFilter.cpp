@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameInput.h"
 #include "InputFilter.h"
@@ -26,7 +26,7 @@ struct ButtonState
 	ButtonState();
 	bool m_BeingHeld;		  // actual current state
 	bool m_bLastReportedHeld; // last state reported by Update()
-	RString m_sComment;
+	std::string m_sComment;
 	float m_fSecsHeld;
 	DeviceInput m_DeviceInput;
 
@@ -226,7 +226,8 @@ InputFilter::ButtonPressed(const DeviceInput& di)
 }
 
 void
-InputFilter::SetButtonComment(const DeviceInput& di, const RString& sComment)
+InputFilter::SetButtonComment(const DeviceInput& di,
+							  const std::string& sComment)
 {
 	LockMut(*queuemutex);
 	ButtonState& bs = GetButtonState(di);
@@ -453,7 +454,7 @@ InputFilter::GetLevel(const DeviceInput& di,
 	return pDI->level;
 }
 
-RString
+std::string
 InputFilter::GetButtonComment(const DeviceInput& di) const
 {
 	LockMut(*queuemutex);

@@ -30,7 +30,7 @@ class ScreenSelect : public ScreenWithMenuElements
 	 * Derived classes should look here for the choices. */
 	vector<GameCommand> m_aGameCommands;
 
-	vector<RString> m_asSubscribedMessages;
+	vector<std::string> m_asSubscribedMessages;
 
 	/** @brief Count up to the time between idle comment announcer sounds. */
 	RageTimer m_timerIdleComment;

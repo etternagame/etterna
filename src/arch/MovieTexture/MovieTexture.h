@@ -6,7 +6,7 @@
 #include <map>
 
 void
-ForceToAscii(RString& str);
+ForceToAscii(std::string& str);
 
 class RageMovieTexture : public RageTexture
 {
@@ -28,7 +28,9 @@ class RageMovieTexture : public RageTexture
 
 	bool IsAMovie() const override { return true; }
 
-	static bool GetFourCC(const RString& fn, RString& handler, RString& type);
+	static bool GetFourCC(const std::string& fn,
+						  std::string& handler,
+						  std::string& type);
 };
 
 class RageMovieTextureDriver : public RageDriver
@@ -36,7 +38,7 @@ class RageMovieTextureDriver : public RageDriver
   public:
 	~RageMovieTextureDriver() override = default;
 	virtual RageMovieTexture* Create(const RageTextureID& ID,
-									 RString& sError) = 0;
+									 std::string& sError) = 0;
 	static DriverList m_pDriverList;
 };
 

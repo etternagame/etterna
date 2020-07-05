@@ -1,4 +1,4 @@
-﻿/* RageModelGeometry - Stores mesh data. */
+/* RageModelGeometry - Stores mesh data. */
 
 #ifndef RAGE_MODEL_GEOMETRY_H
 #define RAGE_MODEL_GEOMETRY_H
@@ -15,7 +15,7 @@ class RageModelGeometry
 	RageModelGeometry();
 	virtual ~RageModelGeometry();
 
-	void LoadMilkshapeAscii(const RString& sMilkshapeAsciiFile,
+	void LoadMilkshapeAscii(const std::string& sMilkshapeAsciiFile,
 							bool bNeedsNormals);
 	void OptimizeBones();
 	void MergeMeshes(int iFromIndex, int iToIndex);

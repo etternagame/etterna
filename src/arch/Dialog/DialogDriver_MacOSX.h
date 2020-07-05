@@ -6,13 +6,13 @@
 class DialogDriver_MacOSX : public DialogDriver
 {
   public:
-	void Error(const RString& sError, const RString& sID);
-	void OK(const RString& sMessage, const RString& sID);
-	Dialog::Result OKCancel(const RString& sMessage, const RString& sID);
-	Dialog::Result AbortRetryIgnore(const RString& sMessage,
-									const RString& sID);
-	Dialog::Result AbortRetry(const RString& sMessage, const RString& sID);
-	Dialog::Result YesNo(const RString& sMessage, const RString& sID);
+	void Error(const std::string& sError, const std::string& sID);
+	void OK(const std::string& sMessage, const std::string& sID);
+	Dialog::Result OKCancel(const std::string& sMessage, const std::string& sID);
+	Dialog::Result AbortRetryIgnore(const std::string& sMessage,
+									const std::string& sID);
+	Dialog::Result AbortRetry(const std::string& sMessage, const std::string& sID);
+	Dialog::Result YesNo(const std::string& sMessage, const std::string& sID);
 };
 #define USE_DIALOG_DRIVER_COCOA
 

@@ -57,22 +57,22 @@ SongOptions::Approach(const SongOptions& other, float fDeltaSeconds)
 }
 
 static void
-AddPart(vector<RString>& AddTo, float level, RString name)
+AddPart(vector<std::string>& AddTo, float level, std::string name)
 {
 	if (level == 0)
 		return;
 
-	const RString LevelStr =
-	  (level == 1) ? RString("") : ssprintf("%ld%% ", lround(level * 100));
+	const std::string LevelStr =
+	  (level == 1) ? std::string("") : ssprintf("%ld%% ", lround(level * 100));
 
 	AddTo.push_back(LevelStr + name);
 }
 
 void
-SongOptions::GetMods(vector<RString>& AddTo) const
+SongOptions::GetMods(vector<std::string>& AddTo) const
 {
 	if (m_fMusicRate != 1) {
-		RString s = ssprintf("%2.2f", m_fMusicRate);
+		std::string s = ssprintf("%2.2f", m_fMusicRate);
 		if (s[s.size() - 1] == '0')
 			s.erase(s.size() - 1);
 		AddTo.push_back(s + "xMusic");
@@ -117,24 +117,27 @@ SongOptions::GetMods(vector<RString>& AddTo) const
 }
 
 void
-SongOptions::GetLocalizedMods(vector<RString>& v) const
+SongOptions::GetLocalizedMods(vector<std::string>& v) const
 {
 	GetMods(v);
-	FOREACH(RString, v, s) { *s = CommonMetrics::LocalizeOptionItem(*s, true); }
+	FOREACH(std::string, v, s)
+	{
+		*s = CommonMetrics::LocalizeOptionItem(*s, true);
+	}
 }
 
-RString
+std::string
 SongOptions::GetString() const
 {
-	vector<RString> v;
+	vector<std::string> v;
 	GetMods(v);
 	return join(", ", v);
 }
 
-RString
+std::string
 SongOptions::GetLocalizedString() const
 {
-	vector<RString> v;
+	vector<std::string> v;
 	GetLocalizedMods(v);
 	return join(", ", v);
 }
@@ -142,24 +145,24 @@ SongOptions::GetLocalizedString() const
 /* Options are added to the current settings; call Init() beforehand if
  * you don't want this. */
 void
-SongOptions::FromString(const RString& sMultipleMods)
+SongOptions::FromString(const std::string& sMultipleMods)
 {
-	RString sTemp = sMultipleMods;
-	vector<RString> vs;
+	std::string sTemp = sMultipleMods;
+	vector<std::string> vs;
 	split(sTemp, ",", vs, true);
-	RString sThrowAway;
-	FOREACH(RString, vs, s) { FromOneModString(*s, sThrowAway); }
+	std::string sThrowAway;
+	FOREACH(std::string, vs, s) { FromOneModString(*s, sThrowAway); }
 }
 
 bool
-SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
+SongOptions::FromOneModString(const std::string& sOneMod,
+							  std::string& sErrorOut)
 {
-	RString sBit = sOneMod;
-	sBit.MakeLower();
+	std::string sBit = make_lower(sOneMod);
 	Trim(sBit);
 
 	Regex mult("^([0-9]+(\\.[0-9]+)?)xmusic$");
-	vector<RString> matches;
+	vector<std::string> matches;
 	if (mult.Compare(sBit, matches)) {
 		m_fMusicRate = StringToFloat(matches[0]);
 		MESSAGEMAN->Broadcast("RateChanged");
@@ -168,7 +171,7 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 
 	matches.clear();
 
-	vector<RString> asParts;
+	vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
 	bool on = true;
 	if (asParts.size() > 1) {

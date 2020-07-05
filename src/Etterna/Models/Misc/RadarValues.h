@@ -1,4 +1,4 @@
-﻿#ifndef RARAR_VALUES_H
+#ifndef RARAR_VALUES_H
 #define RARAR_VALUES_H
 
 #include "GameConstantsAndTypes.h"
@@ -63,8 +63,8 @@ struct RadarValues
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
-	RString ToString(int iMaxValues = -1) const; // default = all
-	void FromString(const RString& sValues);
+	std::string ToString(int iMaxValues = -1) const; // default = all
+	void FromString(const std::string& sValues);
 
 	static ThemeMetric<bool> WRITE_SIMPLE_VALIES;
 	static ThemeMetric<bool> WRITE_COMPLEX_VALIES;

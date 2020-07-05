@@ -33,7 +33,7 @@ ScoreKeeper::GetScoreOfLastTapInRow(const NoteData& nd,
 #include "ScoreKeeperNormal.h"
 
 ScoreKeeper*
-ScoreKeeper::MakeScoreKeeper(const RString& sClassName,
+ScoreKeeper::MakeScoreKeeper(const std::string& sClassName,
 							 PlayerState* pPlayerState,
 							 PlayerStageStats* pPlayerStageStats)
 {

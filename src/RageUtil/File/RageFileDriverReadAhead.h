@@ -21,7 +21,7 @@ class RageFileDriverReadAhead : public RageFileObj
 
 	void DeleteFileWhenFinished() { m_bFileOwned = true; }
 
-	RString GetError() const override { return m_pFile->GetError(); }
+	std::string GetError() const override { return m_pFile->GetError(); }
 	void ClearError() override { return m_pFile->ClearError(); }
 
 	int ReadInternal(void* pBuffer, size_t iBytes) override;
@@ -40,7 +40,7 @@ class RageFileDriverReadAhead : public RageFileObj
 	RageFileBasic* m_pFile;
 	int m_iFilePos;
 	bool m_bFileOwned;
-	RString m_sBuffer;
+	std::string m_sBuffer;
 	int m_iPostBufferReadAhead;
 	bool m_bReadAheadNeeded = false;
 };

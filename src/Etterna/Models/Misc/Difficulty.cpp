@@ -15,7 +15,7 @@ LuaXType(Difficulty);
 
 struct OldStyleStringToDifficultyMapHolder
 {
-	std::map<RString, Difficulty> conversion_map;
+	std::map<std::string, Difficulty> conversion_map;
 	OldStyleStringToDifficultyMapHolder()
 	{
 		conversion_map["beginner"] = Difficulty_Beginner;
@@ -40,11 +40,10 @@ struct OldStyleStringToDifficultyMapHolder
 };
 OldStyleStringToDifficultyMapHolder OldStyleStringToDifficulty_converter;
 Difficulty
-OldStyleStringToDifficulty(const RString& sDC)
+OldStyleStringToDifficulty(const std::string& sDC)
 {
-	RString s2 = sDC;
-	s2.MakeLower();
-	std::map<RString, Difficulty>::iterator diff =
+	std::string s2 = make_lower(sDC);
+	std::map<std::string, Difficulty>::iterator diff =
 	  OldStyleStringToDifficulty_converter.conversion_map.find(s2);
 	if (diff != OldStyleStringToDifficulty_converter.conversion_map.end()) {
 		return diff->second;
@@ -54,9 +53,9 @@ OldStyleStringToDifficulty(const RString& sDC)
 
 LuaFunction(OldStyleStringToDifficulty, OldStyleStringToDifficulty(SArg(1)));
 
-static ThemeMetric<RString> NAMES("CustomDifficulty", "Names");
+static ThemeMetric<std::string> NAMES("CustomDifficulty", "Names");
 
-RString
+std::string
 GetCustomDifficulty(StepsType st, Difficulty dc)
 {
 	/* XXX GAMEMAN->GetStepsTypeInfo( StepsType_Invalid ) will crash. I'm not
@@ -69,7 +68,7 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 		 * return "", but the comment there says that the caller should
 		 * really be checking for invalid values. */
 		if (dc == Difficulty_Invalid)
-			return RString();
+			return std::string();
 		return DifficultyToString(dc);
 	}
 
@@ -77,7 +76,7 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 		return "Edit";
 	}
 	// OPTIMIZATION OPPORTUNITY: cache these metrics and cache the splitting
-	vector<RString> vsNames;
+	vector<std::string> vsNames;
 	split(NAMES, ",", vsNames);
 	for (auto& sName : vsNames) {
 		ThemeMetric<StepsType> STEPS_TYPE("CustomDifficulty",
@@ -88,15 +87,15 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 											   (sName) + "Difficulty");
 			if (DIFFICULTY == Difficulty_Invalid || dc == DIFFICULTY) // match
 			{
-				ThemeMetric<RString> STRING("CustomDifficulty",
-											(sName) + "String");
+				ThemeMetric<std::string> STRING("CustomDifficulty",
+												(sName) + "String");
 				return STRING.GetValue();
 			}
 		}
 	}
 	// no matching CustomDifficulty, so use a regular difficulty name
 	if (dc == Difficulty_Invalid)
-		return RString();
+		return std::string();
 	return DifficultyToString(dc);
 }
 
@@ -104,8 +103,8 @@ LuaFunction(GetCustomDifficulty,
 			GetCustomDifficulty(Enum::Check<StepsType>(L, 1),
 								Enum::Check<Difficulty>(L, 2)));
 
-RString
-CustomDifficultyToLocalizedString(const RString& sCustomDifficulty)
+std::string
+CustomDifficultyToLocalizedString(const std::string& sCustomDifficulty)
 {
 	return THEME->GetString("CustomDifficulty", sCustomDifficulty);
 }
@@ -113,7 +112,7 @@ CustomDifficultyToLocalizedString(const RString& sCustomDifficulty)
 LuaFunction(CustomDifficultyToLocalizedString,
 			CustomDifficultyToLocalizedString(SArg(1)));
 
-RString
+std::string
 StepsToCustomDifficulty(const Steps* pSteps)
 {
 	return GetCustomDifficulty(pSteps->m_StepsType, pSteps->GetDifficulty());

@@ -131,7 +131,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mhi = std::make_unique<metaHandInfo>();
 	}
 
-	inline void operator()()
+	void operator()()
 	{
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
@@ -139,14 +139,14 @@ struct TheGreatBazoinkazoinkInTheSky
 
 #pragma region hand agnostic pmod loop
 
-	inline void advance_agnostic_sequencing()
+	void advance_agnostic_sequencing()
 	{
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
 	}
 
-	inline void setup_agnostic_pmods()
+	void setup_agnostic_pmods()
 	{
 		// these pattern mods operate on all columns, only need basic meta
 		// interval data, and do not need any more advanced pattern
@@ -156,7 +156,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_tt2.setup();
 	}
 
-	inline void set_agnostic_pmods(const int& itv)
+	void set_agnostic_pmods(const int& itv)
 	{
 		// these pattern mods operate on all columns, only need basic meta
 		// interval data, and do not need any more advanced pattern
@@ -173,18 +173,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
 	}
 
-	inline void run_agnostic_pmod_loop()
+	void run_agnostic_pmod_loop()
 	{
 		setup_agnostic_pmods();
 
-		// don't use s_init here, we know the first row is always 0.F and
-		// therefore the first interval starts at 0.F
-		float row_time = 0.F;
-		unsigned row_notes = 0;
-		int row_count = 0;
-
-		for (int itv = 0; itv < _calc.numitv; ++itv) {
-			for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
+		for (auto itv = 0; itv < _calc.numitv; ++itv) {
+			for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
 
 				const auto& ri = _calc.adj_ni.at(itv).at(row);
 				(*_mri)(
@@ -218,7 +212,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// an example, actually all sequencing should be done in objects
 	// following rm_sequencing's template and be stored in mhi, and then
 	// passed to whichever mods need them, but that's for later
-	inline void handle_row_dependent_pattern_advancement()
+	void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
@@ -237,7 +231,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_roll.advance_sequencing(_mhi->_mt, _seq);
 	}
 
-	inline void setup_dependent_mods()
+	void setup_dependent_mods()
 	{
 		_oht.setup();
 		_voht.setup();
@@ -249,7 +243,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wra.setup();
 	}
 
-	inline void set_dependent_pmods(const int& itv)
+	void set_dependent_pmods(const int& itv)
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -279,7 +273,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	// reset any moving windows or values when starting the other hand, this
 	// shouldn't matter too much practically, but we should be disciplined
 	// enough to do it anyway
-	inline void full_hand_reset()
+	void full_hand_reset()
 	{
 		_ohj.full_reset();
 		_cjohj.full_reset();
@@ -301,7 +295,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz.full_reset();
 	}
 
-	inline void handle_dependent_interval_end(const int& itv)
+	void handle_dependent_interval_end(const int& itv)
 	{
 		/* this calls itvhi's interval end, which is what updates the hand
 		 * counts, so this _must_ be called before anything else */
@@ -321,9 +315,9 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 
 	// update base difficulty stuff
-	inline void update_sequenced_base_diffs(const col_type& ct,
-											const int& itv,
-											const int& jack_counter)
+	void update_sequenced_base_diffs(const col_type& ct,
+									 const int& itv,
+									 const int& jack_counter)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
@@ -336,7 +330,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
 	}
 
-	inline void set_sequenced_base_diffs(const int& itv)
+	void set_sequenced_base_diffs(const int& itv) const
 	{
 		// this is no longer done for intervals, but per row, in the row
 		// loop _calc.soap.at(hand)[JackBase].at(itv) =
@@ -351,19 +345,18 @@ struct TheGreatBazoinkazoinkInTheSky
 		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
 	}
 
-	inline void run_dependent_pmod_loop()
+	void run_dependent_pmod_loop()
 	{
 		setup_dependent_mods();
 
-		for (auto& ids : hand_col_ids) {
-			float row_time = s_init;
-			float last_row_time = s_init;
-			float any_ms = ms_init;
+		for (const auto& ids : hand_col_ids) {
+			auto row_time = s_init;
+			auto last_row_time = s_init;
+			auto any_ms = ms_init;
 
-			unsigned row_notes = 0U;
-			int row_count = 0;
+			auto row_notes = 0U;
 
-			col_type ct = col_init;
+			auto ct = col_init;
 			full_hand_reset();
 
 			nps::actual_cancer(_calc, hand);
@@ -372,17 +365,14 @@ struct TheGreatBazoinkazoinkInTheSky
 			// it could be constructed parallel? NEEDS TEST
 			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
-			for (int itv = 0; itv < _calc.numitv; ++itv) {
-
-				// asdfasfasdfasdf
-				int jack_counter = 0;
-
-				for (int row = 0; row < _calc.itv_size.at(itv); ++row) {
+			for (auto itv = 0; itv < _calc.numitv; ++itv) {
+				auto jack_counter = 0;
+				for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
 
 					const auto& ri = _calc.adj_ni.at(itv).at(row);
 					row_time = ri.row_time;
 					row_notes = ri.row_notes;
-					row_count = ri.row_count;
+					const auto row_count = ri.row_count;
 
 					// don't like having this here
 					any_ms = ms_from(row_time, last_row_time);
@@ -452,30 +442,30 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 #pragma endregion
 
-	[[nodiscard]] static inline auto make_mod_param_node(
+	[[nodiscard]] static auto make_mod_param_node(
 	  const vector<pair<std::string, float*>>& param_map,
 	  const std::string& name) -> XNode*
 	{
 		auto* pmod = new XNode(name);
-		for (auto& p : param_map) {
+		for (const auto& p : param_map) {
 			pmod->AppendChild(p.first, to_string(*p.second));
 		}
 
 		return pmod;
 	}
 
-	static inline void load_params_for_mod(
+	static void load_params_for_mod(
 	  const XNode* node,
 	  const vector<pair<std::string, float*>>& param_map,
 	  const std::string& name)
 	{
-		float boat = 0.F;
-		auto* pmod = node->GetChild(name);
+		auto boat = 0.F;
+		const auto* pmod = node->GetChild(name);
 		if (pmod == nullptr) {
 			return;
 		}
-		for (auto& p : param_map) {
-			auto* ch = pmod->GetChild(p.first);
+		for (const auto& p : param_map) {
+			const auto* ch = pmod->GetChild(p.first);
 			if (ch == nullptr) {
 				continue;
 			}
@@ -485,11 +475,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 	}
 
-	inline void load_calc_params_from_disk()
+	void load_calc_params_from_disk() const
 	{
-		std::string fn = calc_params_xml;
+		const auto fn = calc_params_xml;
 		int iError;
-		std::unique_ptr<RageFileBasic> pFile(
+		const std::unique_ptr<RageFileBasic> pFile(
 		  FILEMAN->Open(fn, RageFile::READ, iError));
 		if (pFile == nullptr) {
 			return;
@@ -528,7 +518,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _tt2._params, _tt2.name);
 	}
 
-	[[nodiscard]] inline auto make_param_node() const -> XNode*
+	[[nodiscard]] auto make_param_node() const -> XNode*
 	{
 		auto* calcparams = new XNode("CalcParams");
 		calcparams->AppendAttr("vers", GetCalcVersion());
@@ -558,10 +548,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 #pragma endregion
 
-	inline void write_params_to_disk()
+	void write_params_to_disk() const
 	{
-		std::string fn = calc_params_xml;
-		std::unique_ptr<XNode> xml(make_param_node());
+		const auto fn = calc_params_xml;
+		const std::unique_ptr<XNode> xml(make_param_node());
 
 		std::string err;
 		RageFile f;

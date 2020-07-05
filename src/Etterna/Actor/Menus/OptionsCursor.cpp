@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "OptionsCursor.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -37,7 +37,7 @@ OptionsCursor::OptionsCursor(const OptionsCursor& cpy)
 }
 
 void
-OptionsCursor::Load(const RString& sMetricsGroup, bool bLoadCanGos)
+OptionsCursor::Load(const std::string& sMetricsGroup, bool bLoadCanGos)
 {
 #define LOAD_SPR(spr, name)                                                    \
 	spr.Load(THEME->GetPathG(sMetricsGroup, name));                            \

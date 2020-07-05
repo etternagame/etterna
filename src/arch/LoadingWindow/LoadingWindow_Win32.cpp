@@ -21,7 +21,7 @@
 
 static HBITMAP g_hBitmap = NULL;
 
-RString text[3];
+std::string text[3];
 const float FONT_HEIGHT = 12;
 const string FONT_FILE = "Data/Roboto-Light.ttf";
 const string FONT_NAME = "Roboto Light";
@@ -93,9 +93,9 @@ LoadWin32Surface(const RageSurface* pSplash, HWND hWnd)
 }
 
 static HBITMAP
-LoadWin32Surface(RString sFile, HWND hWnd)
+LoadWin32Surface(std::string sFile, HWND hWnd)
 {
-	RString error;
+	std::string error;
 	RageSurface* pSurface = RageSurfaceUtils::LoadFile(sFile, error);
 	if (pSurface == NULL)
 		return NULL;
@@ -110,7 +110,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
 		case WM_INITDIALOG: {
-			vector<RString> vs;
+			vector<std::string> vs;
 			GetDirListing("Data/splash*.png", vs, false, true);
 			if (!vs.empty())
 				g_hBitmap = LoadWin32Surface(vs[0], hWnd);
@@ -277,7 +277,7 @@ LoadingWindow_Win32::Paint()
 }
 
 void
-LoadingWindow_Win32::SetText(const RString& sText)
+LoadingWindow_Win32::SetText(const std::string& sText)
 {
 	lastText = sText;
 	SetTextInternal();
@@ -293,9 +293,9 @@ LoadingWindow_Win32::SetTextInternal()
 		  m_totalWork != 0 ? 100 * m_progress / m_totalWork : m_progress;
 		progress = " (" + to_string(percent) + "%)";
 	}
-	RString& sText = lastText;
+	std::string& sText = lastText;
 
-	vector<RString> asMessageLines;
+	vector<std::string> asMessageLines;
 	split(sText, "\n", asMessageLines, false);
 	while (asMessageLines.size() < 3)
 		asMessageLines.push_back("");

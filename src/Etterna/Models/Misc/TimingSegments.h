@@ -33,7 +33,7 @@ enum SegmentEffectType
 
 #define FOREACH_TimingSegmentType(tst) FOREACH_ENUM(TimingSegmentType, tst)
 
-const RString&
+const std::string&
 TimingSegmentTypeToString(TimingSegmentType tst);
 
 const int ROW_INVALID = -1;
@@ -98,7 +98,7 @@ struct TimingSegment
 	float GetBeat() const { return NoteRowToBeat(m_iStartRow); }
 	void SetBeat(float fBeat) { SetRow(BeatToNoteRow(fBeat)); }
 
-	virtual RString ToString(int /* dec */) const
+	virtual std::string ToString(int /* dec */) const
 	{
 		return FloatToString(GetBeat());
 	}
@@ -184,7 +184,7 @@ struct FakeSegment : public TimingSegment
 
 	void Scale(int start, int length, int newLength) override;
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetLength());
@@ -260,7 +260,7 @@ struct WarpSegment : public TimingSegment
 	void SetLength(float fBeats) { m_iLengthRows = ToNoteRow(fBeats); }
 
 	void Scale(int start, int length, int newLength) override;
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetLength());
@@ -329,7 +329,7 @@ struct TickcountSegment : public TimingSegment
 	int GetTicks() const { return m_iTicksPerBeat; }
 	void SetTicks(int iTicks) { m_iTicksPerBeat = iTicks; }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetTicks() * 1.f);
@@ -398,7 +398,7 @@ struct ComboSegment : public TimingSegment
 	void SetCombo(int iCombo) { m_iCombo = iCombo; }
 	void SetMissCombo(int iCombo) { m_iMissCombo = iCombo; }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override;
 
 	bool operator==(const ComboSegment& other) const
@@ -446,7 +446,8 @@ struct LabelSegment : public TimingSegment
 
 	TimingSegment* Copy() const override { return new LabelSegment(*this); }
 
-	LabelSegment(int iStartRow = ROW_INVALID, const RString& sLabel = RString())
+	LabelSegment(int iStartRow = ROW_INVALID,
+				 const std::string& sLabel = std::string())
 	  : TimingSegment(iStartRow)
 	  , m_sLabel(sLabel)
 	{
@@ -458,10 +459,10 @@ struct LabelSegment : public TimingSegment
 	{
 	}
 
-	const RString& GetLabel() const { return m_sLabel; }
-	void SetLabel(const RString& sLabel) { m_sLabel.assign(sLabel); }
+	const std::string& GetLabel() const { return m_sLabel; }
+	void SetLabel(const std::string& sLabel) { m_sLabel.assign(sLabel); }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	// Use the default definition for GetValues because the value for a
 	// LabelSegment is not a float or set of floats. TimingSegmentSetToLuaTable
 	// in TimingData.cpp has a special case for labels to handle this.
@@ -482,7 +483,7 @@ struct LabelSegment : public TimingSegment
 
   private:
 	/** @brief The label/section name for this point. */
-	RString m_sLabel;
+	std::string m_sLabel;
 };
 
 /**
@@ -523,7 +524,7 @@ struct BPMSegment : public TimingSegment
 	void SetBPS(float fBPS) { m_fBPS = fBPS; }
 	void SetBPM(float fBPM) { m_fBPS = fBPM / 60.0f; }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetBPM());
@@ -602,7 +603,7 @@ struct TimeSignatureSegment : public TimingSegment
 		m_iDenominator = den;
 	}
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override;
 
 	/**
@@ -704,7 +705,7 @@ struct SpeedSegment : public TimingSegment
 
 	void Scale(int start, int length, int newLength) override;
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override;
 
 	bool operator==(const SpeedSegment& other) const
@@ -775,7 +776,7 @@ struct ScrollSegment : public TimingSegment
 	float GetRatio() const { return m_fRatio; }
 	void SetRatio(float fRatio) { m_fRatio = fRatio; }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetRatio());
@@ -831,7 +832,7 @@ struct StopSegment : public TimingSegment
 	float GetPause() const { return m_fSeconds; }
 	void SetPause(float fSeconds) { m_fSeconds = fSeconds; }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetPause());
@@ -887,7 +888,7 @@ struct DelaySegment : public TimingSegment
 	float GetPause() const { return m_fSeconds; }
 	void SetPause(float fSeconds) { m_fSeconds = fSeconds; }
 
-	RString ToString(int dec) const override;
+	std::string ToString(int dec) const override;
 	vector<float> GetValues() const override
 	{
 		return vector<float>(1, GetPause());

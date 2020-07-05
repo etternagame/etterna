@@ -10,7 +10,7 @@ DualScrollBar::DualScrollBar()
 }
 
 void
-DualScrollBar::Load(const RString& sType)
+DualScrollBar::Load(const std::string& sType)
 {
 	m_sprScrollThumbUnderHalf.Load(
 	  THEME->GetPathG(sType, ssprintf("thumb p%i", PLAYER_1 + 1)));

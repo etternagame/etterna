@@ -136,16 +136,15 @@ BGAnimationLayer::~BGAnimationLayer()
 }
 
 void
-BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
+BGAnimationLayer::LoadFromAniLayerFile(const std::string& sPath)
 {
 	/* Generic BGAs are new.  Animation directories with no INI are old and
 	 * obsolete. Don't combine them. */
-	RString lcPath = sPath;
-	lcPath.MakeLower();
+	std::string lcPath = make_lower(sPath);
 
-	if (lcPath.find("usesongbg") != RString::npos) {
+	if (lcPath.find("usesongbg") != std::string::npos) {
 		const Song* pSong = GAMESTATE->m_pCurSong;
-		RString sSongBGPath;
+		std::string sSongBGPath;
 		if (pSong && pSong->HasBackground())
 			sSongBGPath = pSong->GetBackgroundPath();
 		else
@@ -190,7 +189,7 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 		EFFECT_INVALID
 	};
 
-	const RString EFFECT_STRING[NUM_EFFECTS] = {
+	const std::string EFFECT_STRING[NUM_EFFECTS] = {
 		"center",
 		"stretchstill",
 		"stretchscrollleft",
@@ -421,27 +420,26 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 			FAIL_M(ssprintf("Unrecognized layer effect: %i", effect));
 	}
 
-	RString sHint = sPath;
-	sHint.MakeLower();
+	std::string sHint = make_lower(sPath);
 
-	if (sHint.find("cyclecolor") != RString::npos)
+	if (sHint.find("cyclecolor") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetEffectRainbow(5);
 
-	if (sHint.find("cyclealpha") != RString::npos)
+	if (sHint.find("cyclealpha") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetEffectDiffuseShift(
 			  2, RageColor(1, 1, 1, 1), RageColor(1, 1, 1, 0));
 
-	if (sHint.find("startonrandomframe") != RString::npos)
+	if (sHint.find("startonrandomframe") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetState(RandomInt(m_SubActors[i]->GetNumStates()));
 
-	if (sHint.find("dontanimate") != RString::npos)
+	if (sHint.find("dontanimate") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->StopAnimating();
 
-	if (sHint.find("add") != RString::npos)
+	if (sHint.find("add") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetBlendMode(BLEND_ADD);
 }
@@ -457,9 +455,9 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 
 	bool bStretch = false;
 	{
-		RString type = "sprite";
+		std::string type = "sprite";
 		pNode->GetAttrValue("Type", type);
-		type.MakeLower();
+		type = make_lower(type);
 
 		/* The preferred way of stretching a sprite to fit the screen is
 		 * "Type=sprite" and "stretch=1".  "type=1" is for
@@ -469,11 +467,11 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 		// Check for string match first, then do integer match.
 		// "if(StringType(type)==0)" was matching against all string matches.
 		// -Chris
-		if (type.EqualsNoCase("sprite")) {
+		if (EqualsNoCase(type, "sprite")) {
 			m_Type = TYPE_SPRITE;
-		} else if (type.EqualsNoCase("particles")) {
+		} else if (EqualsNoCase(type, "particles")) {
 			m_Type = TYPE_PARTICLES;
-		} else if (type.EqualsNoCase("tiles")) {
+		} else if (EqualsNoCase(type, "tiles")) {
 			m_Type = TYPE_TILES;
 		} else if (StringToInt(type) == 1) {
 			m_Type = TYPE_SPRITE;
@@ -534,7 +532,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 				pActor->StretchTo(FullScreenRectF);
 		} break;
 		case TYPE_PARTICLES: {
-			RString sFile;
+			std::string sFile;
 			ActorUtil::GetAttrPath(pNode, "File", sFile);
 			FixSlashesInPlace(sFile);
 
@@ -562,7 +560,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 			}
 		} break;
 		case TYPE_TILES: {
-			RString sFile;
+			std::string sFile;
 			ActorUtil::GetAttrPath(pNode, "File", sFile);
 			FixSlashesInPlace(sFile);
 

@@ -7,13 +7,13 @@ struct Message;
 class InputQueueCodeSet
 {
   public:
-	void Load(const RString& sType);
-	RString Input(const InputEventPlus& input) const;
+	void Load(const std::string& sType);
+	std::string Input(const InputEventPlus& input) const;
 	bool InputMessage(const InputEventPlus& input, Message& msg) const;
 
   private:
 	vector<InputQueueCode> m_aCodes;
-	vector<RString> m_asCodeNames;
+	vector<std::string> m_asCodeNames;
 };
 
 #endif

@@ -20,6 +20,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplayReplay);
 
@@ -134,7 +135,7 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 void
 ScreenGameplayReplay::Update(float fDeltaTime)
 {
-	if (GAMESTATE->m_pCurSong == NULL) {
+	if (GAMESTATE->m_pCurSong == nullptr) {
 		Screen::Update(fDeltaTime);
 		return;
 	}
@@ -321,7 +322,7 @@ ScreenGameplayReplay::SetRate(float newRate)
 	m_pSoundMusic->Stop();
 
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
@@ -377,7 +378,7 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	m_pSoundMusic->Pause(paused);
 
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 
 	m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
 
@@ -412,7 +413,7 @@ ScreenGameplayReplay::TogglePause()
 	bool newPause = !GAMESTATE->GetPaused();
 	RageTimer tm;
 
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const float fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
 	const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
@@ -462,7 +463,7 @@ ScreenGameplayReplay::TogglePause()
 			msg.SetParam("TotalPercent",
 						 100 * rs->curwifescore /
 						   m_vPlayerInfo.m_pPlayer->totalwifescore);
-			msg.SetParam("Type", RString("Tap"));
+			msg.SetParam("Type", std::string("Tap"));
 			msg.SetParam("Val", pss->m_iTapNoteScores[tns]);
 			MESSAGEMAN->Broadcast(msg);
 		}

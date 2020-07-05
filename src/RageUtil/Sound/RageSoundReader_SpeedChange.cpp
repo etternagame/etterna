@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_SpeedChange.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -313,7 +313,8 @@ RageSoundReader_SpeedChange::SetPosition(int iFrame)
 }
 
 bool
-RageSoundReader_SpeedChange::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_SpeedChange::SetProperty(const std::string& sProperty,
+										 float fValue)
 {
 	if (sProperty == "Speed") {
 		SetSpeedRatio(fValue);

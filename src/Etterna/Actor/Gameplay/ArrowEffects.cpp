@@ -12,6 +12,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 static ThemeMetric<float> ARROW_SPACING("ArrowEffects", "ArrowSpacing");
 static ThemeMetric<bool> QUANTIZE_ARROW_Y("ArrowEffects",
@@ -370,8 +371,8 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	// Factor in scroll speed
 	float fScrollSpeed = curr_options->m_fScrollSpeed;
 	if (curr_options->m_fMaxScrollBPM != 0) {
-		fScrollSpeed = curr_options->m_fMaxScrollBPM /
-					   (pPlayerState->m_fReadBPM);
+		fScrollSpeed =
+		  curr_options->m_fMaxScrollBPM / (pPlayerState->m_fReadBPM);
 	}
 
 	// don't mess with the arrows after they've crossed 0
@@ -1239,8 +1240,8 @@ const luaL_Reg ArrowEffectsTable[] = {
 	LIST_METHOD(Update),		LIST_METHOD(GetYOffset),
 	LIST_METHOD(GetYPos),		LIST_METHOD(GetYOffsetFromYPos),
 	LIST_METHOD(GetXPos),		LIST_METHOD(GetZPos),
-	LIST_METHOD(GetRotationX),  LIST_METHOD(GetRotationY),
-	LIST_METHOD(GetRotationZ),  LIST_METHOD(ReceptorGetRotationZ),
+	LIST_METHOD(GetRotationX),	LIST_METHOD(GetRotationY),
+	LIST_METHOD(GetRotationZ),	LIST_METHOD(ReceptorGetRotationZ),
 	LIST_METHOD(GetAlpha),		LIST_METHOD(GetGlow),
 	LIST_METHOD(GetBrightness), LIST_METHOD(NeedZBuffer),
 	LIST_METHOD(GetZoom),		LIST_METHOD(GetFrameWidthScale),

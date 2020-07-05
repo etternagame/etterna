@@ -6,34 +6,33 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/Foreach.h"
 
 void
 SMALoader::ProcessMultipliers(TimingData& out,
 							  const int iRowsPerBeat,
-							  const RString& sParam)
+							  const std::string& sParam)
 {
-	vector<RString> arrayMultiplierExpressions;
+	vector<std::string> arrayMultiplierExpressions;
 	split(sParam, ",", arrayMultiplierExpressions);
 
-	for (unsigned f = 0; f < arrayMultiplierExpressions.size(); f++) {
-		vector<RString> arrayMultiplierValues;
-		split(arrayMultiplierExpressions[f], "=", arrayMultiplierValues);
+	for (auto& arrayMultiplierExpression : arrayMultiplierExpressions) {
+		vector<std::string> arrayMultiplierValues;
+		split(arrayMultiplierExpression, "=", arrayMultiplierValues);
 		unsigned size = arrayMultiplierValues.size();
 		if (size < 2) {
 			LOG->UserLog("Song file",
 						 this->GetSongTitle(),
 						 "has an invalid #MULTIPLIER value \"%s\" (must have "
 						 "at least one '='), ignored.",
-						 arrayMultiplierExpressions[f].c_str());
+						 arrayMultiplierExpression.c_str());
 			continue;
 		}
-		const float fComboBeat =
+		const auto fComboBeat =
 		  RowToBeat(arrayMultiplierValues[0], iRowsPerBeat);
-		const int iCombos =
+		const auto iCombos =
 		  StringToInt(arrayMultiplierValues[1]); // always true.
 		// hoping I'm right here: SMA files can use 6 values after the row/beat.
-		const int iMisses =
+		const auto iMisses =
 		  (size == 2 || size == 4 ? iCombos
 								  : StringToInt(arrayMultiplierValues[2]));
 		out.AddSegment(
@@ -42,15 +41,14 @@ SMALoader::ProcessMultipliers(TimingData& out,
 }
 
 void
-SMALoader::ProcessBeatsPerMeasure(TimingData& out, const RString& sParam)
+SMALoader::ProcessBeatsPerMeasure(TimingData& out, const std::string& sParam)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(sParam, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
-		vector<RString> vs2;
-		split(*s1, "=", vs2);
+	for (auto& s1 : vs1) {
+		vector<std::string> vs2;
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 2) {
 			LOG->UserLog(
@@ -60,8 +58,8 @@ SMALoader::ProcessBeatsPerMeasure(TimingData& out, const RString& sParam)
 			  static_cast<int>(vs2.size()));
 			continue;
 		}
-		const float fBeat = StringToFloat(vs2[0]);
-		const int iNumerator = StringToInt(vs2[1]);
+		const auto fBeat = StringToFloat(vs2[0]);
+		const auto iNumerator = StringToInt(vs2[1]);
 
 		if (fBeat < 0) {
 			LOG->UserLog("Song file",
@@ -86,17 +84,16 @@ SMALoader::ProcessBeatsPerMeasure(TimingData& out, const RString& sParam)
 
 void
 SMALoader::ProcessSpeeds(TimingData& out,
-						 const RString& line,
+						 const std::string& line,
 						 const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
-		vector<RString> vs2;
+	for (auto& s1 : vs1) {
+		vector<std::string> vs2;
 		vs2.clear(); // trying something.
-		RString loopTmp = *s1;
+		auto loopTmp = s1;
 		Trim(loopTmp);
 		split(loopTmp, "=", vs2);
 
@@ -104,7 +101,9 @@ SMALoader::ProcessSpeeds(TimingData& out,
 		{
 			// Aldo_MX: 4 is the default value in SMA, although SM5 requires 0
 			// for the first segment :/
-			vs2.push_back(s1 == vs1.begin() ? "0" : "4");
+			// dunno what this is doing or if this is right (used to be implicit
+			// conversion of rstring compared to vs1.begin()
+			vs2.push_back(s1 == vs1[0] ? "0" : "4");
 		}
 
 		if (vs2.size() < 3) {
@@ -115,18 +114,17 @@ SMALoader::ProcessSpeeds(TimingData& out,
 			continue;
 		}
 
-		const float fBeat = RowToBeat(vs2[0], rowsPerBeat);
+		const auto fBeat = RowToBeat(vs2[0], rowsPerBeat);
 
-		RString backup = vs2[2];
+		auto backup = vs2[2];
 		Trim(vs2[2], "s");
 		Trim(vs2[2], "S");
 
-		const float fRatio = StringToFloat(vs2[1]);
-		const float fDelay = StringToFloat(vs2[2]);
+		const auto fRatio = StringToFloat(vs2[1]);
+		const auto fDelay = StringToFloat(vs2[2]);
 
-		SpeedSegment::BaseUnit unit =
-		  ((backup != vs2[2]) ? SpeedSegment::UNIT_SECONDS
-							  : SpeedSegment::UNIT_BEATS);
+		auto unit = ((backup != vs2[2]) ? SpeedSegment::UNIT_SECONDS
+										: SpeedSegment::UNIT_BEATS);
 
 		if (fBeat < 0) {
 			LOG->UserLog("Song file",
@@ -151,7 +149,7 @@ SMALoader::ProcessSpeeds(TimingData& out,
 }
 
 bool
-SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
+SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 {
 	LOG->Trace("Song::LoadFromSMAFile(%s)", sPath.c_str());
 
@@ -166,15 +164,14 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 	out.m_SongTiming.m_sFile = sPath; // songs still have their fallback timing.
 	out.m_sSongFileName = sPath;
 
-	Steps* pNewNotes = NULL;
-	int iRowsPerBeat = -1; // Start with an invalid value: needed for checking.
+	Steps* pNewNotes = nullptr;
+	auto iRowsPerBeat = -1; // Start with an invalid value: needed for checking.
 	vector<pair<float, float>> vBPMChanges, vStops;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		const auto& sParams = msd.GetValue(i);
+		auto sValueName = make_upper(sParams[0]);
 
 		// handle the data
 		/* Don't use GetMainAndSubTitlesFromFullTitle; that's only for
@@ -284,41 +281,40 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 			 * value doesn't seem to be editable in SMA. When it
 			 * becomes so, make adjustments to this code. */
 			if (iRowsPerBeat < 0) {
-				vector<RString> arrayBeatChangeExpressions;
+				vector<std::string> arrayBeatChangeExpressions;
 				split(sParams[1], ",", arrayBeatChangeExpressions);
 
-				vector<RString> arrayBeatChangeValues;
+				vector<std::string> arrayBeatChangeValues;
 				split(
 				  arrayBeatChangeExpressions[0], "=", arrayBeatChangeValues);
 				iRowsPerBeat = StringToInt(arrayBeatChangeValues[1]);
 			} else {
 				// This should generally return song timing
-				TimingData& timing =
+				auto& timing =
 				  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 				ProcessBPMsAndStops(timing, vBPMChanges, vStops);
 			}
 		}
 
 		else if (sValueName == "BEATSPERMEASURE") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 			ProcessBeatsPerMeasure(timing, sParams[1]);
 		}
 
 		else if (sValueName == "SELECTABLE") {
-			if (sParams[1].EqualsNoCase("YES"))
+			if (EqualsNoCase(sParams[1], "YES"))
 				out.m_SelectionDisplay = out.SHOW_ALWAYS;
-			else if (sParams[1].EqualsNoCase("NO"))
+			else if (EqualsNoCase(sParams[1], "NO"))
 				out.m_SelectionDisplay = out.SHOW_NEVER;
 			// ROULETTE from 3.9. It was removed since UnlockManager can serve
 			// the same purpose somehow. This, of course, assumes you're using
 			// unlocks. -aj
-			else if (sParams[1].EqualsNoCase("ROULETTE"))
+			else if (EqualsNoCase(sParams[1], "ROULETTE"))
 				out.m_SelectionDisplay = out.SHOW_ALWAYS;
 			/* The following two cases are just fixes to make sure simfiles that
 			 * used 3.9+ features are not excluded here */
-			else if (sParams[1].EqualsNoCase("ES") ||
-					 sParams[1].EqualsNoCase("OMES"))
+			else if (EqualsNoCase(sParams[1], "ES") ||
+					 EqualsNoCase(sParams[1], "OMES"))
 				out.m_SelectionDisplay = out.SHOW_ALWAYS;
 			else if (StringToInt(sParams[1]) > 0)
 				out.m_SelectionDisplay = out.SHOW_ALWAYS;
@@ -330,25 +326,24 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 				  sParams[1].c_str());
 		}
 
-		else if (sValueName.Left(strlen("BGCHANGES")) == "BGCHANGES" ||
+		else if (head(sValueName, 9) == "BGCHANGES" ||
 				 sValueName == "ANIMATIONS") {
 			SMLoader::ProcessBGChanges(out, sValueName, sPath, sParams[1]);
 		}
 
 		else if (sValueName == "FGCHANGES") {
-			vector<RString> aFGChangeExpressions;
+			vector<std::string> aFGChangeExpressions;
 			split(sParams[1], ",", aFGChangeExpressions);
 
-			for (unsigned b = 0; b < aFGChangeExpressions.size(); b++) {
+			for (auto& aFGChangeExpression : aFGChangeExpressions) {
 				BackgroundChange change;
-				if (LoadFromBGChangesString(change, aFGChangeExpressions[b]))
+				if (LoadFromBGChangesString(change, aFGChangeExpression))
 					out.AddForegroundChange(change);
 			}
 		}
 
 		else if (sValueName == "OFFSET") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 			timing.m_fBeat0OffsetInSeconds = StringToFloat(sParams[1]);
 		}
 
@@ -363,34 +358,29 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 		}
 
 		else if (sValueName == "DELAYS") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 			ProcessDelays(timing, sParams[1], iRowsPerBeat);
 		}
 
 		else if (sValueName == "TICKCOUNT") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 			ProcessTickcounts(timing, sParams[1], iRowsPerBeat);
 		}
 
 		else if (sValueName == "SPEED") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
-			RString tmp = sParams[1];
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			std::string tmp = sParams[1];
 			Trim(tmp);
 			ProcessSpeeds(timing, tmp, iRowsPerBeat);
 		}
 
 		else if (sValueName == "MULTIPLIER") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 			ProcessMultipliers(timing, iRowsPerBeat, sParams[1]);
 		}
 
 		else if (sValueName == "FAKES") {
-			TimingData& timing =
-			  (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
+			auto& timing = (pNewNotes ? pNewNotes->m_Timing : out.m_SongTiming);
 			ProcessFakes(timing, sParams[1], iRowsPerBeat);
 		}
 
@@ -424,10 +414,10 @@ SMALoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 				pNewNotes->SetFilename(sPath);
 				out.AddSteps(pNewNotes);
 				// Handle timing changes and convert negative bpms/stops
-				TimingData& timing = pNewNotes->m_Timing;
+				auto& timing = pNewNotes->m_Timing;
 				ProcessBPMsAndStops(timing, vBPMChanges, vStops);
 			} else {
-				TimingData& timing = out.m_SongTiming;
+				auto& timing = out.m_SongTiming;
 				ProcessBPMsAndStops(timing, vBPMChanges, vStops);
 			}
 		} else if (sValueName == "TIMESIGNATURES" || sValueName == "LEADTRACK")

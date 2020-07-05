@@ -25,19 +25,19 @@ enum PromptAnswer
 class ScreenPrompt : public ScreenWithMenuElements
 {
   public:
-	static void SetPromptSettings(const RString& sText,
+	static void SetPromptSettings(const std::string& sText,
 								  PromptType type = PROMPT_OK,
 								  PromptAnswer defaultAnswer = ANSWER_NO,
-								  void (*OnYes)(void*) = NULL,
-								  void (*OnNo)(void*) = NULL,
-								  void* pCallbackData = NULL);
+								  void (*OnYes)(void*) = nullptr,
+								  void (*OnNo)(void*) = nullptr,
+								  void* pCallbackData = nullptr);
 	static void Prompt(ScreenMessage smSendOnPop,
-					   const RString& sText,
+					   const std::string& sText,
 					   PromptType type = PROMPT_OK,
 					   PromptAnswer defaultAnswer = ANSWER_NO,
-					   void (*OnYes)(void*) = NULL,
-					   void (*OnNo)(void*) = NULL,
-					   void* pCallbackData = NULL);
+					   void (*OnYes)(void*) = nullptr,
+					   void (*OnNo)(void*) = nullptr,
+					   void* pCallbackData = nullptr);
 
 	void Init() override;
 	void BeginScreen() override;

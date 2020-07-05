@@ -1,4 +1,4 @@
-﻿/* This reader simply precaches all of the data from another reader. This
+/* This reader simply precaches all of the data from another reader. This
  * reduces CPU usage for sounds that are played several times at once. */
 
 #include "Etterna/Globals/global.h"
@@ -36,7 +36,7 @@ RageSoundReader_Preload::PreloadSound(RageSoundReader*& pSound)
 }
 
 RageSoundReader_Preload::RageSoundReader_Preload()
-  : m_Buffer(new RString)
+  : m_Buffer(new std::string)
 {
 	m_bBufferIs16Bit = g_bSoundPreload16bit.Get();
 }

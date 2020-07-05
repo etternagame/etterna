@@ -220,8 +220,8 @@ ScreenSelectMusic::BeginScreen()
 			LOG->Warn(ssprintf("No compatible styles for %s with %d player%s.",
 							   GAMESTATE->m_pCurGame->m_szName,
 							   GAMESTATE->GetNumSidesJoined(),
-							   GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s") +
-					  "Returning to title menu.");
+							   GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s")
+						.c_str());
 			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
@@ -798,13 +798,13 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 
 		if (m_SelectionState == SelectionState_SelectingSong) {
 			if (input.MenuI == m_GameButtonPreviousGroup) {
-				RString sNewGroup = m_MusicWheel.JumpToPrevGroup();
+				std::string sNewGroup = m_MusicWheel.JumpToPrevGroup();
 				m_MusicWheel.SelectSection(sNewGroup);
 				m_MusicWheel.SetOpenSection(sNewGroup);
 				MESSAGEMAN->Broadcast("PreviousGroup");
 				AfterMusicChange();
 			} else if (input.MenuI == m_GameButtonNextGroup) {
-				RString sNewGroup = m_MusicWheel.JumpToNextGroup();
+				std::string sNewGroup = m_MusicWheel.JumpToNextGroup();
 				m_MusicWheel.SelectSection(sNewGroup);
 				m_MusicWheel.SetOpenSection(sNewGroup);
 				MESSAGEMAN->Broadcast("NextGroup");
@@ -873,20 +873,20 @@ ScreenSelectMusic::DetectCodes(const InputEventPlus& input)
 		MESSAGEMAN->Broadcast("SongOptionsChanged");
 	} else if (CodeDetector::EnteredNextGroup(input.GameI.controller) &&
 			   !CHANGE_GROUPS_WITH_GAME_BUTTONS) {
-		RString sNewGroup = m_MusicWheel.JumpToNextGroup();
+		std::string sNewGroup = m_MusicWheel.JumpToNextGroup();
 		m_MusicWheel.SelectSection(sNewGroup);
 		m_MusicWheel.SetOpenSection(sNewGroup);
 		MESSAGEMAN->Broadcast("NextGroup");
 		AfterMusicChange();
 	} else if (CodeDetector::EnteredPrevGroup(input.GameI.controller) &&
 			   !CHANGE_GROUPS_WITH_GAME_BUTTONS) {
-		RString sNewGroup = m_MusicWheel.JumpToPrevGroup();
+		std::string sNewGroup = m_MusicWheel.JumpToPrevGroup();
 		m_MusicWheel.SelectSection(sNewGroup);
 		m_MusicWheel.SetOpenSection(sNewGroup);
 		MESSAGEMAN->Broadcast("PreviousGroup");
 		AfterMusicChange();
 	} else if (CodeDetector::EnteredCloseFolder(input.GameI.controller)) {
-		RString sCurSection = m_MusicWheel.GetSelectedSection();
+		std::string sCurSection = m_MusicWheel.GetSelectedSection();
 		m_MusicWheel.SelectSection(sCurSection);
 		m_MusicWheel.SetOpenSection("");
 		AfterMusicChange();
@@ -976,7 +976,7 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 		// TODO: Invalidate the CurSteps only if they are no longer playable.
 		// That way, after music change will clamp to the nearest in the
 		// StepsDisplayList.
-		GAMESTATE->m_pCurSteps.SetWithoutBroadcast(NULL);
+		GAMESTATE->m_pCurSteps.SetWithoutBroadcast(nullptr);
 
 		/* If a course is selected, it may no longer be playable.
 		 * Let MusicWheel know about the late join. */
@@ -1396,7 +1396,7 @@ ScreenSelectMusic::AfterMusicChange()
 								 // if we forget about it -mina
 
 	m_vpSteps.clear();
-	vector<RString> m_Artists, m_AltArtists;
+	vector<std::string> m_Artists, m_AltArtists;
 
 	if (SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_LastSong) {
 		m_sSampleMusicToPlay = "";
@@ -1808,7 +1808,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerAI::SetScoreData(hs, 0, &nd);
 
 		// prepare old mods to return to
-		const RString oldMods =
+		const std::string oldMods =
 		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(
 			true);
 
@@ -1826,7 +1826,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
 		PlayerAI::oldNoteskin = ns;
 		bool usesMirror = potmp.m_bTurns[PlayerOptions::TURN_MIRROR];
-		RString hsMods = hs->GetModifiers();
+		std::string hsMods = hs->GetModifiers();
 		PlayerAI::replayModifiers = hsMods;
 		PlayerAI::replayUsedMirror = usesMirror;
 		PlayerAI::oldFailType = ft;

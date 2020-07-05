@@ -4,7 +4,7 @@
 class RageFileBasic;
 struct lua_State;
 
-const RString SIGNATURE_APPEND = ".sig";
+const std::string SIGNATURE_APPEND = ".sig";
 
 class CryptManager
 {
@@ -14,35 +14,35 @@ class CryptManager
 
 	static void GenerateGlobalKeys();
 	static void GenerateRSAKey(unsigned int keyLength,
-							   RString& sPrivKey,
-							   RString& sPubKey);
+							   std::string& sPrivKey,
+							   std::string& sPubKey);
 	static void GenerateRSAKeyToFile(unsigned int keyLength,
-									 const RString& privFilename,
-									 const RString& pubFilename);
-	static void SignFileToFile(const RString& sPath,
-							   RString sSignatureFile = "");
-	static bool Sign(const RString& sPath,
-					 RString& sSignatureOut,
-					 const RString& sPrivateKey);
-	static bool VerifyFileWithFile(const RString& sPath,
-								   const RString& sSignatureFile = "");
-	static bool VerifyFileWithFile(const RString& sPath,
-								   RString sSignatureFile,
-								   const RString& sPublicKeyFile);
+									 const std::string& privFilename,
+									 const std::string& pubFilename);
+	static void SignFileToFile(const std::string& sPath,
+							   std::string sSignatureFile = "");
+	static bool Sign(const std::string& sPath,
+					 std::string& sSignatureOut,
+					 const std::string& sPrivateKey);
+	static bool VerifyFileWithFile(const std::string& sPath,
+								   const std::string& sSignatureFile = "");
+	static bool VerifyFileWithFile(const std::string& sPath,
+								   std::string sSignatureFile,
+								   const std::string& sPublicKeyFile);
 	static bool Verify(RageFileBasic& file,
-					   const RString& sSignature,
-					   const RString& sPublicKey);
+					   const std::string& sSignature,
+					   const std::string& sPublicKey);
 
 	static void GetRandomBytes(void* pData, int iBytes);
-	static RString GenerateRandomUUID();
+	static std::string GenerateRandomUUID();
 
-	static RString GetMD5ForFile(const RString& fn);	   // in binary
-	static RString GetMD5ForString(const RString& sData);  // in binary
-	static RString GetSHA1ForString(const RString& sData); // in binary
-	static RString GetSHA1ForFile(const RString& fn);	  // in binary
-	static RString GetSHA256ForString(const RString& sData);
+	static std::string GetMD5ForFile(const std::string& fn);	   // in binary
+	static std::string GetMD5ForString(const std::string& sData);  // in binary
+	static std::string GetSHA1ForString(const std::string& sData); // in binary
+	static std::string GetSHA1ForFile(const std::string& fn);	   // in binary
+	static std::string GetSHA256ForString(const std::string& sData);
 
-	static RString GetPublicKeyFileName();
+	static std::string GetPublicKeyFileName();
 
 	// Lua
 	void PushSelf(lua_State* L);

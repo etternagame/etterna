@@ -9,21 +9,21 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "ThemeMetric.h"
 
-RString
+std::string
 StepsTypeToString(StepsType st);
 
 // This was formerly used to fill in RANKING_TO_FILL_IN_MARKER when it was a
 // vector of RStrings. -poco
-static vector<RString>
+static vector<std::string>
 GenerateRankingToFillInMarker()
 {
-	vector<RString> vRankings;
+	vector<std::string> vRankings;
 	vRankings.push_back(ssprintf("#P%d#", PLAYER_1 + 1));
 	return vRankings;
 }
-extern const RString RANKING_TO_FILL_IN_MARKER("#P1#");
+extern const std::string RANKING_TO_FILL_IN_MARKER("#P1#");
 
-extern const RString GROUP_ALL = "---Group All---";
+extern const std::string GROUP_ALL = "---Group All---";
 
 static const char* RadarCategoryNames[] = {
 	"Notes", "TapsAndHolds", "Jumps", "Holds", "Mines",
@@ -35,12 +35,12 @@ LuaFunction(RadarCategoryToLocalizedString,
 			RadarCategoryToLocalizedString(Enum::Check<RadarCategory>(L, 1)));
 LuaXType(RadarCategory);
 
-RString
+std::string
 StepsTypeToString(StepsType st)
 {
-	RString s = GAMEMAN->GetStepsTypeInfo(st).szName; // "dance-single"
+	std::string s = GAMEMAN->GetStepsTypeInfo(st).szName; // "dance-single"
 	/* foo-bar -> Foo_Bar */
-	s.Replace('-', '_');
+	s_replace(s, "-", "_");
 
 	bool bCapitalizeNextLetter = true;
 	for (int i = 0; i < static_cast<int>(s.length()); i++) {
@@ -57,7 +57,7 @@ StepsTypeToString(StepsType st)
 }
 namespace StringConversion {
 template<>
-RString
+std::string
 ToString<StepsType>(const StepsType& value)
 {
 	return StepsTypeToString(value);
@@ -121,7 +121,7 @@ static const char* TapNoteScoreNames[] = {
 };
 struct tns_conversion_helper
 {
-	std::map<RString, TapNoteScore> conversion_map;
+	std::map<std::string, TapNoteScore> conversion_map;
 	tns_conversion_helper()
 	{
 		FOREACH_ENUM(TapNoteScore, tns)
@@ -140,9 +140,9 @@ tns_conversion_helper tns_converter;
 XToString(TapNoteScore);
 LuaXType(TapNoteScore);
 TapNoteScore
-StringToTapNoteScore(const RString& s)
+StringToTapNoteScore(const std::string& s)
 {
-	std::map<RString, TapNoteScore>::iterator tns =
+	std::map<std::string, TapNoteScore>::iterator tns =
 	  tns_converter.conversion_map.find(s);
 	if (tns != tns_converter.conversion_map.end()) {
 		return tns->second;
@@ -154,7 +154,7 @@ StringToTapNoteScore(const RString& s)
 namespace StringConversion {
 template<>
 bool
-FromString<TapNoteScore>(const RString& value, TapNoteScore& out)
+FromString<TapNoteScore>(const std::string& value, TapNoteScore& out)
 {
 	out = StringToTapNoteScore(value);
 	return out != TapNoteScore_Invalid;
@@ -173,7 +173,7 @@ static const char* HoldNoteScoreNames[] = {
 XToString(HoldNoteScore);
 LuaXType(HoldNoteScore);
 HoldNoteScore
-StringToHoldNoteScore(const RString& s)
+StringToHoldNoteScore(const std::string& s)
 {
 	// for backward compatibility
 	if (s == "NG")
@@ -202,7 +202,7 @@ static const char* SkillsetNames[] = {
 XToString(Skillset);
 LuaXType(Skillset);
 Skillset
-StringToSkillset(const RString& s)
+StringToSkillset(const std::string& s)
 {
 	if (s == "Overall")
 		return Skill_Overall;
@@ -299,7 +299,7 @@ static const char* ValidationKeyNames[] = {
 XToString(ValidationKey);
 LuaXType(ValidationKey);
 ValidationKey
-StringToValidationKey(const RString& s)
+StringToValidationKey(const std::string& s)
 {
 	if (s == "Brittle")
 		return ValidationKey_Brittle;

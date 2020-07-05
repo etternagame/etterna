@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_Pan.h"
 #include "RageSoundUtil.h"
 
@@ -36,7 +36,7 @@ RageSoundReader_Pan::GetNumChannels() const
 }
 
 bool
-RageSoundReader_Pan::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_Pan::SetProperty(const std::string& sProperty, float fValue)
 {
 	if (sProperty == "Pan") {
 		m_fPan = fValue;

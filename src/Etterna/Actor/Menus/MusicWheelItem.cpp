@@ -172,7 +172,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	m_pGradeDisplay->SetVisible(false);
 
 	// Fill these in below
-	RString sDisplayName, sTranslitName;
+	std::string sDisplayName, sTranslitName;
 	MusicWheelItemType type = MusicWheelItemType_Invalid;
 
 	switch (pWID->m_Type) {

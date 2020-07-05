@@ -1,6 +1,7 @@
 #pragma once
-#include <array>
 #include "PatternModHelpers.h"
+
+#include <array>
 
 /* custom moving window container that can do basic statistical operations on a
  * dynamic window */
@@ -16,10 +17,10 @@ struct CalcMovingWindow
 	// ok there's actually a good reason for indexing this way because it's more
 	// intuitive since we are scanning row by row the earliest values in the
 	// window are the oldest
-	inline void operator()(const T& new_val)
+	void operator()(const T& new_val)
 	{
 		// update the window
-		for (int i = 1; i < max_moving_window_size; ++i) {
+		for (auto i = 1; i < max_moving_window_size; ++i) {
 			_itv_vals.at(i - 1) = _itv_vals.at(i);
 		}
 
@@ -28,24 +29,24 @@ struct CalcMovingWindow
 	}
 
 	// return type T
-	inline auto operator[](const int& pos) const -> T
+	auto operator[](const int& pos) const -> T
 	{
 		assert(pos >= 0 && pos < max_moving_window_size);
 		return _itv_vals.at(pos);
 	}
 
 	// return type T
-	[[nodiscard]] inline auto get_now() const -> T { return _itv_vals.back(); }
-	[[nodiscard]] inline auto get_last() const -> T
+	[[nodiscard]] auto get_now() const -> T { return _itv_vals.back(); }
+	[[nodiscard]] auto get_last() const -> T
 	{
 		return _itv_vals.at(max_moving_window_size - 2);
 	}
 
 	// return type T
-	[[nodiscard]] inline auto get_total_for_window(const int& window) const -> T
+	[[nodiscard]] auto get_total_for_window(const int& window) const -> T
 	{
 		T o = static_cast<T>(0);
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals.at(i);
@@ -55,10 +56,10 @@ struct CalcMovingWindow
 	}
 
 	// return type T
-	[[nodiscard]] inline auto get_max_for_window(const int& window) const -> T
+	[[nodiscard]] auto get_max_for_window(const int& window) const -> T
 	{
 		T o = static_cast<T>(0);
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o = _itv_vals.at(i) > o ? _itv_vals.at(i) : o;
@@ -68,12 +69,11 @@ struct CalcMovingWindow
 	}
 
 	// return type float
-	[[nodiscard]] inline auto get_mean_of_window(const int& window) const
-	  -> float
+	[[nodiscard]] auto get_mean_of_window(const int& window) const -> float
 	{
 		T o = static_cast<T>(0);
 
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals.at(i);
@@ -83,11 +83,10 @@ struct CalcMovingWindow
 	}
 
 	// return type float
-	[[nodiscard]] inline auto get_total_for_windowf(const int& window) const
-	  -> float
+	[[nodiscard]] auto get_total_for_windowf(const int& window) const -> float
 	{
-		float o = 0.F;
-		int i = max_moving_window_size;
+		auto o = 0.F;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals.at(i);
@@ -97,16 +96,16 @@ struct CalcMovingWindow
 	}
 
 	// return type float
-	[[nodiscard]] inline auto get_cv_of_window(const int& window) const -> float
+	[[nodiscard]] auto get_cv_of_window(const int& window) const -> float
 	{
-		float sd = 0.F;
-		float avg = get_mean_of_window(window);
+		auto sd = 0.F;
+		const auto avg = get_mean_of_window(window);
 
 		assert(avg > 0.F);
 
 		// if window is 4, we check values 6/5/4/3, since this window is always
 		// 6
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			sd += (static_cast<float>(_itv_vals.at(i)) - avg) *
@@ -139,15 +138,15 @@ struct CalcMovingWindow
 	 * happenstances of this pattern in just regular files */
 
 	// perform cv check internally
-	[[nodiscard]] inline auto ccacc_timing_check(const float& factor,
-												 const float& threshold) -> bool
+	[[nodiscard]] auto ccacc_timing_check(const float& factor,
+										  const float& threshold) -> bool
 	{
 		// anchor in the center, divide by factor, 4 is the middle value of the
 		// last 3
 		_itv_vals[4] /= factor;
 
 		// ccacc is always window of 3
-		float o = get_cv_of_window(ccacc_timing_check_size);
+		const auto o = get_cv_of_window(ccacc_timing_check_size);
 
 		// set value back
 		_itv_vals[4] *= factor;
@@ -160,19 +159,19 @@ struct CalcMovingWindow
 	// actually produce usable results
 
 	// perform cv check internally
-	[[nodiscard]] inline auto acca_timing_check(const float& factor,
-												const float& threshold) -> bool
+	[[nodiscard]] auto acca_timing_check(const float& factor,
+										 const float& threshold) -> bool
 	{
 		// cc in the center, multiply by factor
 		_itv_vals[4] *= factor;
-		float o = get_cv_of_window(ccacc_timing_check_size);
+		const auto o = get_cv_of_window(ccacc_timing_check_size);
 		_itv_vals[4] /= factor;
 		return o < threshold;
 	}
 
 	// perform cv check internally
-	[[nodiscard]] inline auto roll_timing_check(const float& factor,
-												const float& threshold) -> bool
+	[[nodiscard]] auto roll_timing_check(const float& factor,
+										 const float& threshold) -> bool
 	{
 		// we are looking at cccccc formation, which could be a roll or an oht,
 		// we don't know yet, but presumably whatever is calling this only cares
@@ -181,7 +180,7 @@ struct CalcMovingWindow
 
 		// we can basically just branch to ccacc or acca checks depending on
 		// which value is higher
-		bool o = false;
+		auto o = false;
 		if (_itv_vals[4] > _itv_vals[5]) {
 			// if middle is higher, run the ccacc check that will divide it
 			o = ccacc_timing_check(factor, threshold);
@@ -194,8 +193,8 @@ struct CalcMovingWindow
 	}
 
 	// set everything to zero
-	inline void zero() { _itv_vals.fill(static_cast<T>(0)); }
-	inline void fill(const T& val) { _itv_vals.fill(val); }
+	void zero() { _itv_vals.fill(static_cast<T>(0)); }
+	void fill(const T& val) { _itv_vals.fill(val); }
 
   private:
 	std::array<T, max_moving_window_size> _itv_vals = { 0, 0, 0, 0, 0, 0 };

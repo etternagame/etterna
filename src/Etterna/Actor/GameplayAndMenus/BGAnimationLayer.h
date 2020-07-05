@@ -1,4 +1,4 @@
-﻿#ifndef BGANIMATIONLAYER_H
+#ifndef BGANIMATIONLAYER_H
 #define BGANIMATIONLAYER_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
@@ -13,7 +13,7 @@ class BGAnimationLayer : public ActorFrame
 	BGAnimationLayer();
 	~BGAnimationLayer() override;
 
-	void LoadFromAniLayerFile(const RString& sPath);
+	void LoadFromAniLayerFile(const std::string& sPath);
 	void LoadFromNode(const XNode* pNode) override;
 
 	void UpdateInternal(float fDeltaTime) override;
