@@ -26,7 +26,7 @@ struct metaRowInfo
 	bool gluts_maybe = false; // not really used/tested yet
 	bool twas_jack = false;
 
-	inline void set_row_variations(metaItvInfo& mitvi) const
+	void set_row_variations(metaItvInfo& mitvi) const
 	{
 		// already determined there's enough variation in this interval
 		if (!mitvi.basically_vibro) {
@@ -59,11 +59,11 @@ struct metaRowInfo
 	}
 
 	// scan for jacks and jack counts between this row and the last
-	inline void jack_scan(metaItvInfo& mitvi)
+	void jack_scan(metaItvInfo& mitvi)
 	{
 		twas_jack = false;
 
-		for (auto& id : col_ids) {
+		for (const auto& id : col_ids) {
 			if (is_jack_at_col(id, notes, last_notes)) {
 				// not scaled to the number of jacks anymore
 				++mitvi.actual_jacks;
@@ -85,8 +85,7 @@ struct metaRowInfo
 		}
 	}
 
-	inline void basic_row_sequencing(const metaRowInfo& last,
-									 metaItvInfo& mitvi)
+	void basic_row_sequencing(const metaRowInfo& last, metaItvInfo& mitvi)
 	{
 		jack_scan(mitvi);
 		set_row_variations(mitvi);
@@ -154,11 +153,11 @@ struct metaRowInfo
 		}
 	}
 
-	inline void operator()(const metaRowInfo& last,
-						   metaItvInfo& mitvi,
-						   const float& row_time,
-						   const int& row_count,
-						   const unsigned& row_notes)
+	void operator()(const metaRowInfo& last,
+					metaItvInfo& mitvi,
+					const float& row_time,
+					const int& row_count,
+					const unsigned& row_notes)
 	{
 		time = row_time;
 		last_last_count = last.last_count;

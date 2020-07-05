@@ -574,10 +574,10 @@ struct RM_Sequencer
 			return 1.F;
 		}
 
-		auto flool = ms_from(last_anchor_time, _start);
+		const auto flool = ms_from(last_anchor_time, _start);
 
-		auto pule = (flool) / static_cast<float>(_rm._len - 1);
-		auto drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
+		const auto pule = (flool) / static_cast<float>(_rm._len - 1);
+		const auto drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
 		return drool;
 	}
 };

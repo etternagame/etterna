@@ -3,8 +3,6 @@
 #include <xmmintrin.h>
 #include <numeric>
 
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-
 /* generic pattern mod functions and defs to help either agnostic or dependent
  * mods do their stuff */
 static const float neutral = 1.F;
@@ -28,7 +26,7 @@ fastsqrt(float _in) -> float
 	if (_in == 0.F) {
 		return 0.F;
 	}
-	auto in = _mm_load_ss(&_in);
+	const auto in = _mm_load_ss(&_in);
 	float out;
 	_mm_store_ss(&out, _mm_mul_ss(in, _mm_rsqrt_ss(in)));
 	return out;
@@ -53,7 +51,7 @@ inline auto
 cv(const vector<float>& input) -> float
 {
 	auto sd = 0.F;
-	auto average = mean(input);
+	const auto average = mean(input);
 	for (auto i : input) {
 		sd += (i - average) * (i - average);
 	}

@@ -36,7 +36,7 @@ struct CJDensityMod
 
 	float pmod = neutral;
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 		if (itvi.total_taps == 0) {

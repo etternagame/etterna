@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 
+#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 struct JSMod
@@ -71,13 +72,13 @@ struct JSMod
 	//		doot[JSJ][i] = jack_prop;
 	//}
 
-	inline void decay_mod()
+	void decay_mod()
 	{
 		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
 	}
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 

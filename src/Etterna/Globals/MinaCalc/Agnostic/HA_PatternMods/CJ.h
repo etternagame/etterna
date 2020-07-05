@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
-#include <array>
 #include <vector>
 
+#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 struct CJMod
@@ -70,7 +70,7 @@ struct CJMod
 	//	doot[CJJ][i] = jack_prop;
 	//}
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 

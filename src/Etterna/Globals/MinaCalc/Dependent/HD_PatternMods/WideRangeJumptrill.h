@@ -71,7 +71,7 @@ struct WideRangeJumptrillMod
 
 #pragma endregion
 
-	auto check_last_mt(const meta_type& mt) const -> bool
+	[[nodiscard]] auto check_last_mt(const meta_type& mt) const -> bool
 	{
 		if (mt == meta_acca || mt == meta_ccacc || mt == meta_cccccc) {
 			if (last_passed_check) {

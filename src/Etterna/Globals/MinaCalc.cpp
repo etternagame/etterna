@@ -1,4 +1,7 @@
 #include "MinaCalc.h"
+#include "MinaCalc/Ulbu.h"
+#include "MinaCalcHelpers.h"
+
 #include <cmath>
 #include <iostream>
 #include <algorithm>
@@ -6,9 +9,6 @@
 #include <string>
 #include <utility>
 #include <cassert>
-
-#include "MinaCalc/Ulbu.h"
-#include "MinaCalcHelpers.h"
 
 using std::max;
 using std::min;

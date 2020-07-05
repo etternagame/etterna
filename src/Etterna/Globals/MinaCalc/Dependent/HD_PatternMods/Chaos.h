@@ -49,10 +49,10 @@ struct ChaosMod
 	void advance_sequencing(const CalcMovingWindow<float>& ms_any)
 	{
 		// most recent value
-		float a = ms_any.get_now();
+		const float a = ms_any.get_now();
 
 		// previous value
-		float b = ms_any.get_last();
+		const float b = ms_any.get_last();
 
 		if (a == 0.F || b == 0.F || a == b) {
 			_u(1.F);
@@ -60,8 +60,8 @@ struct ChaosMod
 			return;
 		}
 
-		float prop = div_high_by_low(a, b);
-		int mop = static_cast<int>(prop);
+		const float prop = div_high_by_low(a, b);
+		const int mop = static_cast<int>(prop);
 		float flop = prop - static_cast<float>(mop);
 
 		if (flop == 0.F) {

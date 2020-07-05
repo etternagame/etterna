@@ -22,26 +22,6 @@ enum meta_type
 	meta_type_init,
 };
 
-/*
-inline auto
-detecc_oht(const base_type& now,
-		   const base_type& last,
-		   const base_type& c) -> bool
-{
-	// we are flipping b with invert col so make sure it's left_right or
-	// right_left single note, if either of the other two aren't this will fail
-	// anyway and it's fine
-	if (last != base_left_right && last != base_right_left) {
-		return false;
-	}
-
-	bool loot = now == invert_cc(last);
-	bool doot = now == c;
-	// this is kind of big brain so if you don't get it that's ok
-	return loot && doot;
-}
-*/
-
 // 1212, 2121, etc
 // cccccc is cross column, cross column, cross column more colloquially known as
 // either an oht, or a roll, depending on the timing, since the definition is
@@ -106,14 +86,14 @@ determine_meta_type(const base_type& now,
 		}
 	}
 
-	// 1122, 2211, these are generally tricky and we wouldn't be interseted in
-	// using them for downscaling in most contexts, however there are
-	// jumptrillable patterns that exist for which acca is an axiomatic
-	// transition, namely, chains of ccacc, or, ccaccaccaccaccacc, or,
-	// 1221221221221221221, scanning down rows will produce alternating meta
-	// types of ccacc and acca, so we can use this to do very robust detection,
-	// particularly since any other transition type in sequences of these
-	// patterns will actually make them significantly harder to manipulate
+	/* 1122, 2211, these are generally tricky and we wouldn't be interseted in
+	 * using them for downscaling in most contexts, however there are
+	 * jumptrillable patterns that exist for which acca is an axiomatic
+	 * transition, namely, chains of ccacc, or, ccaccaccaccaccacc, or,
+	 * 1221221221221221221, scanning down rows will produce alternating meta
+	 * types of ccacc and acca, so we can use this to do very robust detection,
+	 * particularly since any other transition type in sequences of these
+	 * patterns will actually make them significantly harder to manipulate */
 	if (detecc_acca(now, last, last_last)) {
 		return meta_acca;
 	}

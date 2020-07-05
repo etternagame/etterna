@@ -42,13 +42,10 @@ struct flam
 				assert(0);
 			case 2:
 				return ms[0];
-				break;
 			case 3:
 				return ms[0] + ms[1];
-				break;
 			case 4:
 				return ms[0] + ms[1] + ms[2];
-				break;
 			default:
 				assert(0);
 				break;

@@ -1,6 +1,7 @@
 #pragma once
-#include <array>
 #include "PatternModHelpers.h"
+
+#include <array>
 
 /* custom moving window container that can do basic statistical operations on a
  * dynamic window */
@@ -19,7 +20,7 @@ struct CalcMovingWindow
 	void operator()(const T& new_val)
 	{
 		// update the window
-		for (int i = 1; i < max_moving_window_size; ++i) {
+		for (auto i = 1; i < max_moving_window_size; ++i) {
 			_itv_vals.at(i - 1) = _itv_vals.at(i);
 		}
 
@@ -45,7 +46,7 @@ struct CalcMovingWindow
 	[[nodiscard]] auto get_total_for_window(const int& window) const -> T
 	{
 		T o = static_cast<T>(0);
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals.at(i);
@@ -58,7 +59,7 @@ struct CalcMovingWindow
 	[[nodiscard]] auto get_max_for_window(const int& window) const -> T
 	{
 		T o = static_cast<T>(0);
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o = _itv_vals.at(i) > o ? _itv_vals.at(i) : o;
@@ -72,7 +73,7 @@ struct CalcMovingWindow
 	{
 		T o = static_cast<T>(0);
 
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals.at(i);
@@ -84,8 +85,8 @@ struct CalcMovingWindow
 	// return type float
 	[[nodiscard]] auto get_total_for_windowf(const int& window) const -> float
 	{
-		float o = 0.F;
-		int i = max_moving_window_size;
+		auto o = 0.F;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			o += _itv_vals.at(i);
@@ -97,14 +98,14 @@ struct CalcMovingWindow
 	// return type float
 	[[nodiscard]] auto get_cv_of_window(const int& window) const -> float
 	{
-		float sd = 0.F;
-		float avg = get_mean_of_window(window);
+		auto sd = 0.F;
+		const auto avg = get_mean_of_window(window);
 
 		assert(avg > 0.F);
 
 		// if window is 4, we check values 6/5/4/3, since this window is always
 		// 6
-		int i = max_moving_window_size;
+		auto i = max_moving_window_size;
 		while (i > max_moving_window_size - window) {
 			--i;
 			sd += (static_cast<float>(_itv_vals.at(i)) - avg) *
@@ -145,7 +146,7 @@ struct CalcMovingWindow
 		_itv_vals[4] /= factor;
 
 		// ccacc is always window of 3
-		float o = get_cv_of_window(ccacc_timing_check_size);
+		const auto o = get_cv_of_window(ccacc_timing_check_size);
 
 		// set value back
 		_itv_vals[4] *= factor;
@@ -163,7 +164,7 @@ struct CalcMovingWindow
 	{
 		// cc in the center, multiply by factor
 		_itv_vals[4] *= factor;
-		float o = get_cv_of_window(ccacc_timing_check_size);
+		const auto o = get_cv_of_window(ccacc_timing_check_size);
 		_itv_vals[4] /= factor;
 		return o < threshold;
 	}
@@ -179,7 +180,7 @@ struct CalcMovingWindow
 
 		// we can basically just branch to ccacc or acca checks depending on
 		// which value is higher
-		bool o = false;
+		auto o = false;
 		if (_itv_vals[4] > _itv_vals[5]) {
 			// if middle is higher, run the ccacc check that will divide it
 			o = ccacc_timing_check(factor, threshold);

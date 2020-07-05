@@ -1,8 +1,7 @@
 #pragma once
-#include <array>
-#include <vector>
-
 #include "Etterna/Globals/MinaCalc/SequencingHelpers.h"
+
+#include <array>
 
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
@@ -44,7 +43,7 @@ struct techyo
 			return;
 		}
 
-		auto a = seq.get_sc_ms_now(ct);
+		const auto a = seq.get_sc_ms_now(ct);
 		auto b = ms_init;
 		if (ct == col_ohjump) {
 			b = seq.get_sc_ms_now(ct, false);
@@ -52,18 +51,18 @@ struct techyo
 			b = seq.get_cc_ms_now();
 		}
 
-		auto c = fastsqrt(a) * fastsqrt(b);
+		const auto c = fastsqrt(a) * fastsqrt(b);
 
 		auto pineapple = seq._mw_any_ms.get_cv_of_window(4);
 		auto porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
 		auto sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
-		auto oioi = 0.5F;
+		const auto oioi = 0.5F;
 		pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
 		porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
 		sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
 
-		auto scoliosis = seq._mw_sc_ms[col_left].get_now();
-		auto poliosis = seq._mw_sc_ms[col_right].get_now();
+		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
+		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
 		auto obliosis = 0.F;
 
 		if (ct == col_left) {
@@ -76,7 +75,7 @@ struct techyo
 		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
 		pewp /= obliosis;
-		auto vertebrae = CalcClamp(
+		const auto vertebrae = CalcClamp(
 		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
 
 		teehee(c / vertebrae);
@@ -142,7 +141,7 @@ struct techyo
 			ms_total += calc.tc_static.at(i);
 		}
 
-		auto ms_mean = ms_total / static_cast<float>(row_counter);
+		const auto ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);
 	}
 };

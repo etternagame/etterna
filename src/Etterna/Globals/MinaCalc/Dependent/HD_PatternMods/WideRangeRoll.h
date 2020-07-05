@@ -1,10 +1,9 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
+
+#include <string>
+#include <vector>
 
 // ok new plan we will incloop the joomp
 struct WideRangeRollMod
@@ -338,8 +337,8 @@ struct WideRangeRollMod
 
 		// really uncertain about the using the total of _mw_max here, but
 		// that's what it was, so i'll keep it for now
-		float zomg = itvhi.get_taps_windowf(window) /
-					 _mw_max.get_total_for_windowf(window);
+		const float zomg = itvhi.get_taps_windowf(window) /
+						   _mw_max.get_total_for_windowf(window);
 
 		pmod *= zomg;
 		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);

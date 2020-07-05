@@ -258,7 +258,7 @@ struct AnchorSequencer
 /* keep timing stuff here instead of in mhi, use mhi exclusively for pattern
  * detection */
 
-/*  every note has at least 2 ms values associated with it, the ms value from
+/* every note has at least 2 ms values associated with it, the ms value from
  * the last cross column note (on the same hand), and the ms value from the last
  * note on it's/this column both are useful for different things, and we want to
  * track both for ohjumps, we will track the ms from the last non-jump on either
@@ -318,7 +318,7 @@ struct SequencerGeneral
 			_mw_cc_ms(ms_from(row_time, _as.anch.at(invert_col(ct))._last));
 		}
 
-		/* jumps are tricky, tehcnically we have 2 cc_ms values, but also
+		/* jumps are tricky, technically we have 2 cc_ms values, but also
 		 * technically values are simply the sc_ms values we already calculated,
 		 * but inverted, given that the goal however is to provide general
 		 * values that various pattern mods can use such that they don't have to
