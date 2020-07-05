@@ -26,7 +26,10 @@ class ActorFrame : public Actor
 	virtual void RemoveChild(Actor* pActor);
 	void TransferChildren(ActorFrame* pTo);
 	Actor* GetChild(const std::string& sName);
-	[[nodiscard]] vector<Actor*> GetChildren() const { return m_SubActors; }
+	[[nodiscard]] std::vector<Actor*> GetChildren() const
+	{
+		return m_SubActors;
+	}
 	[[nodiscard]] int GetNumChildren() const { return m_SubActors.size(); }
 
 	/** @brief Remove all of the children from the frame. */
@@ -151,7 +154,7 @@ class ActorFrame : public Actor
 	void LoadChildrenFromNode(const XNode* pNode);
 
 	/** @brief The children Actors used by the ActorFrame. */
-	vector<Actor*> m_SubActors;
+	std::vector<Actor*> m_SubActors;
 	bool m_bPropagateCommands;
 	bool m_bDeleteChildren;
 	bool m_bDrawByZPosition;

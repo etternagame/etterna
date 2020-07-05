@@ -5,12 +5,13 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
+#include "Etterna/Singletons/MessageManager.h"
+#include "Tween.h"
+
 #include <map>
 class XNode;
 struct lua_State;
 class LuaClass;
-#include "Etterna/Singletons/MessageManager.h"
-#include "Tween.h"
 
 using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
 
@@ -71,35 +72,6 @@ LuaDeclareType(VertAlign);
 // number of diffuse colors, so change this at your own risk. -Kyz
 #define NUM_DIFFUSE_COLORS 4
 
-// ssc futures:
-/*
-enum EffectAction
-{
-	EffectAction_None,			// no_effect
-	// [Diffuse]
-	EffectAction_DiffuseBlink,	// diffuse_blink
-	EffectAction_DiffuseShift,	// diffuse_shift
-	EffectAction_DiffuseRamp,	// diffuse_ramp
-	EffectAction_Rainbow,		// rainbow
-	// [Glow]
-	EffectAction_GlowBlink,		// glow_blink
-	EffectAction_GlowShift,		// glow_shift
-	EffectAction_GlowRamp,		// glow_ramp
-	// [Translate]
-	EffectAction_Bob,
-	EffectAction_Bounce,
-	EffectAction_Vibrate,
-	// [Rotate]
-	EffectAction_Spin,
-	EffectAction_Wag,
-	// [Zoom]
-	EffectAction_Pulse,
-	NUM_EffectAction,
-	EffectAction_Invalid
-};
-LuaDeclareType( EffectAction );
-*/
-
 /** @brief Base class for all objects that appear on the screen. */
 class Actor : public MessageSubscriber
 {
@@ -120,7 +92,6 @@ class Actor : public MessageSubscriber
 						   float fTimeNoOffset,
 						   float fBeatNoOffset);
 	static void SetPlayerBGMBeat(float fBeat, float fBeatNoOffset);
-	static void SetBGMLight(int iLightNumber, float fCabinetLights);
 
 	/**
 	 * @brief The list of the different effects.
@@ -161,55 +132,6 @@ class Actor : public MessageSubscriber
 		NUM_CLOCKS
 	};
 
-	/*
-	 * @brief What type of Effect this is.
-	 *
-	 * This is an internal enum for checking if an effect can be run;
-	 * You can't have more than one of most EffectTypes in the Effect list. (You
-	 * might be able to have mutliple EffectType_Translates; not sure yet.) -aj
-	 */
-	/*
-	enum EffectType {
-		EffectType_Diffuse,
-		EffectType_Glow,
-		EffectType_Translate,
-		EffectType_Rotate,
-		EffectType_Zoom,
-		NUM_EffectType,
-		EffectType_Invalid
-	};
-	*/
-
-	// todo: use this instead of the Effect enum -aj
-	/*
-	// This is similar to Attributes in BitmapText as far as implementation.
-	struct Effect
-	{
-		Effect() : m_Action(EffectAction_None), m_Type(EffectType_Invalid),
-	m_fSecsIntoEffect(0), m_fEffectDelta(0), m_fEffectRampUp(0.5f),
-	m_fEffectHoldAtHalf(0), m_fEffectRampDown(0.5f), m_fEffectHoldAtZero(0),
-	m_fEffectOffset(0), m_EffectClock(CLOCK_TIMER),
-	m_vEffectMagnitude(RageVector3(0,0,10)), m_effectColor1(RageColor(1,1,1,1)),
-	m_effectColor2(RageColor(1,1,1,1)) { }
-
-		std::string			m_sName; // friendly name
-		EffectAction	m_Action; // replaces the old Effect enum
-		EffectType		m_Type; // determined by EffectAction
-		float			m_fSecsIntoEffect;
-		float			m_fEffectDelta;
-		RageColor		m_EffectColor1;
-		RageColor		m_EffectColor2;
-		RageVector3		m_vEffectMagnitude;
-		EffectClock		m_EffectClock;
-		// units depend on m_EffectClock
-		float			m_fEffectRampUp;
-		float			m_fEffectHoldAtHalf;
-		float			m_fEffectRampDown;
-		float			m_fEffectHoldAtZero;
-		float			m_fEffectOffset;
-	};
-	*/
-
 	/**
 	 * @brief The present state for the Tween.
 	 */
@@ -231,7 +153,7 @@ class Actor : public MessageSubscriber
 		RageVector3 rotation;
 		RageVector4 quat;
 		RageVector3 scale;
-		float fSkewX, fSkewY;
+		float fSkewX{}, fSkewY{};
 		/**
 		 * @brief The amount of cropping involved.
 		 *
@@ -250,7 +172,7 @@ class Actor : public MessageSubscriber
 		/** @brief The glow color for this TweenState. */
 		RageColor glow;
 		/** @brief A magical value that nobody really knows the use for. ;) */
-		float aux;
+		float aux{};
 	};
 
 	// PartiallyOpaque broken out of Draw for reuse and clarity.
@@ -620,7 +542,7 @@ class Actor : public MessageSubscriber
 	[[nodiscard]] float GetAux() const { return m_current.aux; }
 
 	virtual void BeginTweening(float time, ITween* pInterp);
-	void BeginTweening(float time, TweenType tt = TWEEN_LINEAR);
+	virtual void BeginTweening(float time, TweenType tt = TWEEN_LINEAR);
 	virtual void StopTweening();
 	void Sleep(float time);
 	void QueueCommand(const std::string& sCommandName);
@@ -806,8 +728,9 @@ class Actor : public MessageSubscriber
 	// Commands by reference
 	virtual void RunCommands(const LuaReference& cmds,
 							 const LuaReference* pParamTable = nullptr);
-	void RunCommands(const apActorCommands& cmds,
-					 const LuaReference* pParamTable = nullptr)
+
+	virtual void RunCommands(const apActorCommands& cmds,
+							 const LuaReference* pParamTable = nullptr)
 	{
 		this->RunCommands(*cmds, pParamTable);
 	} // convenience
@@ -848,7 +771,7 @@ class Actor : public MessageSubscriber
 	Actor* m_FakeParent;
 	// WrapperStates provides a way to wrap the actor inside ActorFrames,
 	// applicable to any actor, not just ones the theme creates.
-	vector<Actor*> m_WrapperStates;
+	std::vector<Actor*> m_WrapperStates;
 
 	/** @brief Some general information about the Tween. */
 	struct TweenInfo
@@ -884,7 +807,7 @@ class Actor : public MessageSubscriber
 		TweenState state;
 		TweenInfo info;
 	};
-	vector<TweenStateAndInfo*> m_Tweens;
+	std::vector<TweenStateAndInfo*> m_Tweens;
 
 	/** @brief Temporary variables that are filled just before drawing */
 	TweenState* m_pTempState{};
@@ -960,12 +883,12 @@ class Actor : public MessageSubscriber
 	// global state
 	static float g_fCurrentBGMTime, g_fCurrentBGMBeat;
 	static float g_fCurrentBGMTimeNoOffset, g_fCurrentBGMBeatNoOffset;
-	static vector<float> g_vfCurrentBGMBeatPlayer;
-	static vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
+	static std::vector<float> g_vfCurrentBGMBeatPlayer;
+	static std::vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
 
   private:
 	// commands
-	map<std::string, apActorCommands> m_mapNameToCommands;
+	std::map<std::string, apActorCommands> m_mapNameToCommands;
 };
 
 #endif
