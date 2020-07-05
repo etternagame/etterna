@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "ActorUtil.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFileManager.h"
@@ -67,7 +66,6 @@ ActorUtil::ResolvePath(std::string& sPath,
 			  sError, "BROKEN_FILE_REFERENCE", true)) {
 				case Dialog::abort:
 					RageException::Throw("%s", sError.c_str());
-					break;
 				case Dialog::retry:
 					FILEMAN->FlushDirCache();
 					return ResolvePath(sPath, sName);
@@ -90,7 +88,6 @@ ActorUtil::ResolvePath(std::string& sPath,
 			  sError, "BROKEN_FILE_REFERENCE", true)) {
 				case Dialog::abort:
 					RageException::Throw("%s", sError.c_str());
-					break;
 				case Dialog::retry:
 					FILEMAN->FlushDirCache();
 					return ResolvePath(sPath, sName);
@@ -121,7 +118,7 @@ namespace {
 std::string
 GetLegacyActorClass(XNode* pActor)
 {
-	ASSERT(pActor);
+	ASSERT(pActor != nullptr);
 
 	// The non-legacy LoadFromNode has already checked the Class and
 	// Type attributes.
@@ -130,7 +127,7 @@ GetLegacyActorClass(XNode* pActor)
 		return "BitmapText";
 
 	std::string sFile;
-	if (pActor->GetAttrValue("File", sFile) && sFile != "") {
+	if (pActor->GetAttrValue("File", sFile) && !sFile.empty()) {
 		// Backward compatibility hacks for "special" filenames
 		if (EqualsNoCase(sFile, "songbackground")) {
 			auto* pVal = new XNodeStringValue;
@@ -142,7 +139,8 @@ GetLegacyActorClass(XNode* pActor)
 				  THEME->GetPathG("Common", "fallback background"));
 			pActor->AppendAttrFrom("Texture", pVal, false);
 			return "Sprite";
-		} else if (EqualsNoCase(sFile, "songbanner")) {
+		}
+		if (EqualsNoCase(sFile, "songbanner")) {
 			auto* pVal = new XNodeStringValue;
 			Song* pSong = GAMESTATE->m_pCurSong;
 			if (pSong && pSong->HasBanner())
@@ -188,7 +186,7 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 	  g_pmapRegistrees->find(sClass);
 	if (iter == g_pmapRegistrees->end()) {
 		std::string sFile;
-		if (bLegacy && node.GetAttrValue("File", sFile) && sFile != "") {
+		if (bLegacy && node.GetAttrValue("File", sFile) && !sFile.empty()) {
 			std::string sPath;
 			// Handle absolute paths correctly
 			if (sFile.front() == '/')
@@ -461,13 +459,11 @@ ActorUtil::LoadAllCommandsFromName(Actor& actor,
 	set<std::string> vsValueNames;
 	THEME->GetMetricsThatBeginWith(sMetricsGroup, sName, vsValueNames);
 
-	FOREACHS_CONST(std::string, vsValueNames, v)
-	{
-		const std::string& sv = *v;
+	for (const auto& s : vsValueNames) {
 		static const std::string sEnding = "Command";
-		if (EndsWith(sv, sEnding)) {
-			std::string sCommandName(sv.begin() + sName.size(),
-									 sv.end() - sEnding.size());
+		if (EndsWith(s, sEnding)) {
+			std::string sCommandName(s.begin() + sName.size(),
+									 s.end() - sEnding.size());
 			LoadCommandFromName(actor, sMetricsGroup, sCommandName, sName);
 		}
 	}
@@ -491,6 +487,7 @@ static const char* FileTypeNames[] = {
 	"Xml",	  "Model",	"Lua",	 "Ini",
 };
 XToString(FileType);
+
 LuaXType(FileType);
 
 // convenience so the for-loop lines can be shorter.
@@ -577,11 +574,12 @@ ActorUtil::GetFileType(const std::string& sPath)
 	etft_cont_t::iterator conversion_entry = ExtensionToFileType.find(sExt);
 	if (conversion_entry != ExtensionToFileType.end()) {
 		return conversion_entry->second;
-	} else if (sPath.size() > 0 && sPath[sPath.size() - 1] == '/') {
+	}
+	if (!sPath.empty() && sPath[sPath.size() - 1] == '/') {
 		return FT_Directory;
 	}
 	/* Do this last, to avoid the IsADirectory in most cases. */
-	else if (IsADirectory(sPath)) {
+	if (IsADirectory(sPath)) {
 		return FT_Directory;
 	}
 	return FileType_Invalid;
@@ -597,6 +595,7 @@ GetFileType(lua_State* L)
 	Enum::Push(L, ActorUtil::GetFileType(SArg(1)));
 	return 1;
 }
+
 int
 ResolvePath(lua_State* L)
 {

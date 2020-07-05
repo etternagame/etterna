@@ -13,7 +13,7 @@ class AutoActor
 {
   public:
 	AutoActor()
-	  : m_pActor(NULL)
+	  : m_pActor(nullptr)
 	{
 	}
 	~AutoActor() { Unload(); }
@@ -27,7 +27,7 @@ class AutoActor
 	/**
 	 * @brief Determine if this actor is presently loaded.
 	 * @return true if it is loaded, or false otherwise. */
-	bool IsLoaded() const { return m_pActor != NULL; }
+	bool IsLoaded() const { return m_pActor != nullptr; }
 	void Load(Actor* pActor); // transfer pointer
 	void Load(const std::string& sPath);
 	void LoadB(const std::string& sMetricsGroup,
