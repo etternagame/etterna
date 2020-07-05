@@ -18,11 +18,6 @@ template<class T>
 T
 ToDerived(const TimingSegment* t, TimingSegmentType tst)
 {
-	ASSERT_M(t && tst == t->GetType(),
-			 ssprintf("type mismatch (expected %s, got %s)",
-					  TimingSegmentTypeToString(tst).c_str(),
-					  TimingSegmentTypeToString(t->GetType()).c_str()));
-
 	return static_cast<T>(t);
 }
 

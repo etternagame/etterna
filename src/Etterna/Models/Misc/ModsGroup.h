@@ -5,6 +5,8 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <cassert>
+
 enum ModsLevel
 {
 	ModsLevel_Preferred, // user-chosen player options.  Does not include any
@@ -54,7 +56,7 @@ class ModsGroup
 	}
 
 	template<typename U>
-	inline void Assign(ModsLevel level, U T::*member, const U& val)
+	void Assign(ModsLevel level, U T::*member, const U& val)
 	{
 		if (level != ModsLevel_Song)
 			m_[ModsLevel_Current].*member = val;
@@ -63,12 +65,12 @@ class ModsGroup
 	}
 
 	template<typename U, int n>
-	inline void Assign_n(ModsLevel level,
-						 U (T::*member)[n],
-						 size_t index,
-						 const U& val)
+	void Assign_n(ModsLevel level,
+				  U (T::*member)[n],
+				  size_t index,
+				  const U& val)
 	{
-		DEBUG_ASSERT(index < n);
+		assert(index < n);
 		if (level != ModsLevel_Song)
 			(m_[ModsLevel_Current].*member)[index] = val;
 		for (; level < ModsLevel_Current; enum_add(level, 1))

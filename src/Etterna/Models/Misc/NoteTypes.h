@@ -416,7 +416,7 @@ ToBeat(float beat)
  * @return T the scaled position
  */
 template<typename T>
-inline T
+T
 ScalePosition(T start, T length, T newLength, T position)
 {
 	if (position < start)
