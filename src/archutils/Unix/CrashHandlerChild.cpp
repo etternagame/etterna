@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/select.h>
+#include <sstream>
 
 #include "Backtrace.h"
 #include "BacktraceNames.h"
@@ -190,10 +191,13 @@ child_process()
 #endif
 	sCrashInfoPath += "/crashinfo.txt";
 
-	FILE* CrashDump = fopen(sCrashInfoPath, "w+");
+	FILE* CrashDump = fopen(sCrashInfoPath.c_str(), "w+");
 	if (CrashDump == NULL) {
+		std::stringstream ss;
+		ss << "Couldn't open " << sCrashInfoPath << ": %s\n";
+		std::string strrrr = ss.str();
 		fprintf(stderr,
-				"Couldn't open " + sCrashInfoPath + ": %s\n",
+				strrrr.c_str(),
 				strerror(errno));
 		exit(1);
 	}
@@ -240,7 +244,7 @@ child_process()
 
 	fprintf(CrashDump, "Checkpoints:\n");
 	for (unsigned i = 0; i < Checkpoints.size(); ++i)
-		fputs(Checkpoints[i], CrashDump);
+		fputs(Checkpoints[i].c_str(), CrashDump);
 	fprintf(CrashDump, "\n");
 
 	for (int i = 0; i < CrashData::MAX_BACKTRACE_THREADS; ++i) {
@@ -270,18 +274,11 @@ child_process()
 	if (tty == NULL)
 		tty = stderr;
 
-	fputs("\n" PRODUCT_ID
-		  " has crashed.  Debug information has been output to\n"
-		  "\n"
-		  "    " +
-			sCrashInfoPath +
-			"\n"
-			"\n"
-			"Please report a bug at:\n"
-			"\n"
-			"    " REPORT_BUG_URL "\n"
-			"\n",
-		  tty);
+	std::stringstream ssa;
+	ssa << "\n" << PRODUCT_ID << " has crashed. Debug information has been output to\n\n    " << sCrashInfoPath;
+	std::string soup = ssa.str();
+
+	fputs(soup.c_str(), tty);
 #endif
 }
 

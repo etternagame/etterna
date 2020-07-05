@@ -277,7 +277,7 @@ bool
 FlushDir(std::string sPath, std::string& sError)
 {
 	/* Wait for the directory to be flushed. */
-	int dirfd = open(sPath, O_RDONLY);
+	int dirfd = open(sPath.c_str(), O_RDONLY);
 	if (dirfd == -1) {
 		sError = strerror(errno);
 		return false;
@@ -388,11 +388,11 @@ RageFileObjDirect::~RageFileObjDirect()
 		SetError(error);
 		break;
 #else
-		if (rename(sOldPath, sNewPath) == -1) {
+		if (rename(sOldPath.c_str(), sNewPath.c_str()) == -1) {
 			WARN(ssprintf("Error renaming \"%s\" to \"%s\": %s",
 						  sOldPath.c_str(),
 						  sNewPath.c_str(),
-						  strerror(errno)));
+						  strerror(errno)).c_str());
 			SetError(strerror(errno));
 			break;
 		}
@@ -402,7 +402,7 @@ RageFileObjDirect::~RageFileObjDirect()
 			if (!FlushDir(Dirname(m_sPath), sError)) {
 				WARN(ssprintf("Error synchronizing fsync(%s dir): %s",
 							  this->m_sPath.c_str(),
-							  sError.c_str()));
+							  sError.c_str()).c_str());
 				SetError(sError);
 			}
 		}

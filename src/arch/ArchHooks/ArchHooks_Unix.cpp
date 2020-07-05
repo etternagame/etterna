@@ -294,7 +294,7 @@ ArchHooks_Unix::SetTime(tm newtime)
 								newtime.tm_sec);
 
 	LOG->Trace("executing '%s'", sCommand.c_str());
-	int ret = system(sCommand);
+	int ret = system(sCommand.c_str());
 	if (ret == -1 || ret == 127 || !WIFEXITED(ret) || WEXITSTATUS(ret))
 		LOG->Trace("'%s' failed", sCommand.c_str());
 
@@ -408,11 +408,11 @@ ArchHooks::MountInitialFilesystems(const std::string& sDirOfExecutable)
 
 	std::string Root;
 	struct stat st;
-	if (!stat(sDirOfExecutable + "/Packages", &st) && st.st_mode & S_IFDIR)
+	if (!stat((sDirOfExecutable + "/Packages").c_str(), &st) && st.st_mode & S_IFDIR)
 		Root = sDirOfExecutable;
-	else if (!stat(sDirOfExecutable + "/Songs", &st) && st.st_mode & S_IFDIR)
+	else if (!stat((sDirOfExecutable + "/Songs").c_str(), &st) && st.st_mode & S_IFDIR)
 		Root = sDirOfExecutable;
-	else if (!stat(RageFileManagerUtil::sInitialWorkingDirectory + "/Songs",
+	else if (!stat((RageFileManagerUtil::sInitialWorkingDirectory + "/Songs").c_str(),
 				   &st) &&
 			 st.st_mode & S_IFDIR)
 		Root = RageFileManagerUtil::sInitialWorkingDirectory;

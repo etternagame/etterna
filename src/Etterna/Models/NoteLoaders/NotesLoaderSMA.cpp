@@ -24,7 +24,7 @@ SMALoader::ProcessMultipliers(TimingData& out,
 						 this->GetSongTitle(),
 						 "has an invalid #MULTIPLIER value \"%s\" (must have "
 						 "at least one '='), ignored.",
-						 arrayMultiplierExpression);
+						 arrayMultiplierExpression.c_str());
 			continue;
 		}
 		const auto fComboBeat =

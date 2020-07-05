@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <sstream>
+#include <cstring>
 
 void
 make_upper(char* p, size_t len);

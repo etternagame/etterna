@@ -196,12 +196,12 @@ DirectFilenameDB::CacheFile(const std::string& sPath)
 	File f(Basename(sPath));
 
 	struct stat st;
-	if (DoStat(root + sPath, &st) == -1) {
+	if (DoStat((root + sPath).c_str(), &st) == -1) {
 		int iError = errno;
 		// If it's a broken symlink, ignore it.  Otherwise, warn.
 		// Huh?
 		WARN(
-		  ssprintf("File '%s' is gone! (%s)", sPath.c_str(), strerror(iError)));
+		  ssprintf("File '%s' is gone! (%s)", sPath.c_str(), strerror(iError)).c_str());
 	} else {
 		f.dir = (st.st_mode & S_IFDIR);
 		f.size = (int)st.st_size;
@@ -259,7 +259,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 	 * for each file.  This isn't a major issue, since most large directory
 	 * scans are I/O-bound. */
 
-	DIR* pDir = opendir(root + sPath);
+	DIR* pDir = opendir((root + sPath).c_str());
 	if (pDir == NULL)
 		return;
 
@@ -272,10 +272,10 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 		File f(pEnt->d_name);
 
 		struct stat st;
-		if (DoStat(root + sPath + "/" + pEnt->d_name, &st) == -1) {
+		if (DoStat((root + sPath + "/" + pEnt->d_name).c_str(), &st) == -1) {
 			int iError = errno;
 			/* If it's a broken symlink, ignore it.  Otherwise, warn. */
-			if (lstat(root + sPath + "/" + pEnt->d_name, &st) == 0)
+			if (lstat((root + sPath + "/" + pEnt->d_name).c_str(), &st) == 0)
 				continue;
 
 			/* Huh? */
@@ -283,7 +283,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 			  ssprintf("Got file '%s' in '%s' from list, but can't stat? (%s)",
 					   pEnt->d_name,
 					   sPath.c_str(),
-					   strerror(iError)));
+					   strerror(iError)).c_str());
 			continue;
 		}
 
