@@ -413,7 +413,7 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 		// select. This requires a preference, which allows it to be adapted for
 		// other purposes (e.g. PARASTAR).
 		if (!IsThemeSelectable(sThemeName)) {
-			to_try = PREFSMAN->m_sDefaultTheme;
+			to_try = PREFSMAN->m_sDefaultTheme.Get();
 			LOG->Warn("Theme preference defaults to '%s', which cannot be used."
 					  "  Trying DefaultTheme preference '%s'.",
 					  sThemeName.c_str(),

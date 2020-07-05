@@ -60,7 +60,7 @@ FourCCToString(int fcc)
 static void
 CheckCodecVersion(std::string codec, std::string desc)
 {
-	if (!codec.CompareNoCase("DIVX")) {
+	if (!CompareNoCase(codec, "DIVX")) {
 		/* "DivX 5.0.5 Codec" */
 		Regex GetDivXVersion;
 

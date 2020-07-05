@@ -36,7 +36,7 @@ LoadALSA()
 
 	ASSERT(Handle == NULL);
 
-	Handle = dlopen(lib, RTLD_NOW);
+	Handle = dlopen(lib.c_str(), RTLD_NOW);
 	if (Handle == NULL)
 		return ssprintf("dlopen(%s): %s", lib.c_str(), dlerror());
 

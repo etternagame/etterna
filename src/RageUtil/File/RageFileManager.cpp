@@ -206,7 +206,7 @@ ReadlinkRecursive(std::string sPath)
 	do {
 		sPath = dereferenced;
 		char derefPath[512];
-		ssize_t linkSize = readlink(sPath, derefPath, sizeof(derefPath));
+		ssize_t linkSize = readlink(sPath.c_str(), derefPath, sizeof(derefPath));
 		if (linkSize != -1 && linkSize != sizeof(derefPath)) {
 			dereferenced = std::string(derefPath, linkSize);
 			if (derefPath[0] != '/') {
@@ -260,7 +260,7 @@ GetDirOfExecutable(std::string argv0)
 			vector<std::string> vPath;
 			split(path, ":", vPath);
 			for (auto& i : vPath) {
-				if (access(i + "/" + argv0, X_OK | R_OK))
+				if (access((i + "/" + argv0).c_str(), X_OK | R_OK))
 					continue;
 				sPath = ExtractDirectory(ReadlinkRecursive(i + "/" + argv0));
 				break;
@@ -294,14 +294,14 @@ ChangeToDirOfExecutable(const std::string& argv0)
 	if (_chdir(
 		  std::string(RageFileManagerUtil::sDirOfExecutable + "/..").c_str()))
 #elif defined(__unix__)
-	if (chdir(RageFileManagerUtil::sDirOfExecutable + "/"))
+	if (chdir((RageFileManagerUtil::sDirOfExecutable + "/").c_str()))
 #elif defined(__APPLE__)
 	/* If the basename is not MacOS, then we've likely been launched via the
 	 * command line through a symlink. Assume this is the case and change to the
 	 * dir of the symlink. */
 	if (Basename(RageFileManagerUtil::sDirOfExecutable) == "MacOS")
 		CollapsePath(RageFileManagerUtil::sDirOfExecutable += "/../../../");
-	if (chdir(RageFileManagerUtil::sDirOfExecutable))
+	if (chdir(RageFileManagerUtil::sDirOfExecutable.c_str()))
 #endif
 	{
 		LOG->Warn("Can't set current working directory to %s",

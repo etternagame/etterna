@@ -325,7 +325,7 @@ void ArchHooks::MountInitialFilesystems( const std::string &sDirOfExecutable )
 		CFStringRef dataPath = CFURLCopyFileSystemPath( dataUrl, kCFURLPOSIXPathStyle );
 		CFStringGetCString( dataPath, dir, PATH_MAX, kCFStringEncodingUTF8 );
 
-		if( strncmp(sDirOfExecutable, dir, sDirOfExecutable.length()) == 0 )
+		if( strncmp(sDirOfExecutable.c_str(), dir, sDirOfExecutable.length()) == 0 )
 			FILEMAN->Mount( "zip", dir + sDirOfExecutable.length(), "/" );
 		CFRelease( dataPath );
 		CFRelease( dataUrl );

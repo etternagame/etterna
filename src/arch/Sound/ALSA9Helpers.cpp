@@ -171,7 +171,7 @@ Alsa9Buf::GetSoundCardDebugInfo()
 		const std::string id = ssprintf("hw:%d", card);
 		snd_ctl_t* handle;
 		int err;
-		err = dsnd_ctl_open(&handle, id, 0);
+		err = dsnd_ctl_open(&handle, id.c_str(), 0);
 		if (err < 0) {
 			LOG->Info("Couldn't open card #%i (\"%s\") to probe: %s",
 					  card,
@@ -263,7 +263,7 @@ Alsa9Buf::Init(int channels_, int iWriteahead, int iChunkSize, int iSampleRate)
 	/* Open the device. */
 	int err;
 	err = dsnd_pcm_open(
-	  &pcm, DeviceName(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
+	  &pcm, DeviceName().c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
 	if (err < 0)
 		return ssprintf(
 		  "dsnd_pcm_open(%s): %s", DeviceName().c_str(), dsnd_strerror(err));
@@ -459,7 +459,7 @@ Alsa9Buf::GetHardwareID(std::string name)
 
 	snd_ctl_t* handle;
 	int err;
-	err = dsnd_ctl_open(&handle, name, 0);
+	err = dsnd_ctl_open(&handle, name.c_str(), 0);
 	if (err < 0) {
 		LOG->Info("Couldn't open card \"%s\" to get ID: %s",
 				  name.c_str(),

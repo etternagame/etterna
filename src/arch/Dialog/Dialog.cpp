@@ -28,11 +28,11 @@ MakeDialogDriver()
 		sDriver = asDriversToTry[i];
 
 #ifdef USE_DIALOG_DRIVER_COCOA
-		if (!asDriversToTry[i].CompareNoCase("Cocoa"))
+		if (!CompareNoCase(asDriversToTry[i], "Cocoa"))
 			pRet = new DialogDriver_MacOSX;
 #endif
 #ifdef USE_DIALOG_DRIVER_WIN32
-		if (!asDriversToTry[i].CompareNoCase("Win32"))
+		if (!CompareNoCase(asDriversToTry[i], "Win32"))
 			pRet = new DialogDriver_Win32;
 #endif
 #ifdef USE_DIALOG_DRIVER_NULL
