@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenSelectLanguage.h"
 #include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SCREEN_CLASS(ScreenSelectLanguage);
 
@@ -10,11 +11,11 @@ void
 ScreenSelectLanguage::Init()
 {
 	// fill m_aGameCommands before calling Init()
-	vector<RString> vs;
+	vector<std::string> vs;
 	THEME->GetLanguages(vs);
 	SortRStringArray(vs, true);
 
-	FOREACH_CONST(RString, vs, s)
+	FOREACH_CONST(std::string, vs, s)
 	{
 		const LanguageInfo* pLI = GetLanguageInfo(*s);
 
@@ -34,10 +35,10 @@ ScreenSelectLanguage::Init()
 	ScreenSelectMaster::Init();
 }
 
-RString
+std::string
 ScreenSelectLanguage::GetDefaultChoice()
 {
-	return HOOKS->GetPreferredLanguage();
+	return HOOKS->GetPreferredLanguage().c_str();
 }
 
 void
@@ -50,7 +51,7 @@ bool
 ScreenSelectLanguage::MenuStart(const InputEventPlus& input)
 {
 	int iIndex = this->GetSelectionIndex(input.pn);
-	RString sLangCode = m_aGameCommands[iIndex].m_sName;
+	std::string sLangCode = m_aGameCommands[iIndex].m_sName;
 	PREFSMAN->m_sLanguage.Set(sLangCode);
 	PREFSMAN->SavePrefsToDisk();
 	THEME->SwitchThemeAndLanguage(THEME->GetCurThemeName(),

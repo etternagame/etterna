@@ -2,6 +2,7 @@
 #define DisplaySpec_H
 
 #include <set>
+#include <RageUtil/Misc/RageLog.h>
 #include "RageUtil/Misc/RageTypes.h"
 
 struct DisplayMode
@@ -77,7 +78,7 @@ class DisplaySpec
 			// Drop the trailing ", "
 			msg.resize(msg.size() - 2);
 
-			ASSERT_M(false, msg.c_str());
+			LOG->Warn(msg.c_str());
 		}
 	}
 

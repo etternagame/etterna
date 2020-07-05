@@ -13,10 +13,10 @@ class NetworkPostData
 	NetworkPostData();
 	~NetworkPostData();
 
-	void SetData(const RString& sKey, const RString& sData);
+	void SetData(const std::string& sKey, const std::string& sData);
 
 	// For simplicity, we don't parse URLs here.
-	void Start(const RString& sHost, int iPort, const RString& sPath);
+	void Start(const std::string& sHost, int iPort, const std::string& sPath);
 
 	// Cancel the running operation, and close the thread.
 	void Cancel();
@@ -25,15 +25,16 @@ class NetworkPostData
 	// and return true.
 	bool IsFinished();
 
-	RString GetStatus() const;
+	std::string GetStatus() const;
 	float GetProgress() const;
-	RString GetError() const;
-	RString GetResult() const { return m_sResult; }
+	std::string GetError() const;
+	std::string GetResult() const { return m_sResult; }
 
   private:
-	static void CreateMimeData(const map<RString, RString>& mapNameToData,
-							   RString& sOut,
-							   RString& sMimeBoundaryOut);
+	static void CreateMimeData(
+	  const map<std::string, std::string>& mapNameToData,
+	  std::string& sOut,
+	  std::string& sMimeBoundaryOut);
 	void SetProgress(float fProgress);
 
 	RageThread m_Thread;
@@ -45,18 +46,18 @@ class NetworkPostData
 	}
 
 	mutable RageMutex m_Mutex;
-	RString m_sStatus;
+	std::string m_sStatus;
 	float m_fProgress;
 
 	// When the thread exists, it owns the rest of the data, regardless of
 	// m_Mutex.
-	map<RString, RString> m_Data;
+	map<std::string, std::string> m_Data;
 
 	bool m_bFinished;
-	RString m_sHost;
+	std::string m_sHost;
 	int m_iPort;
-	RString m_sPath;
-	RString m_sResult;
+	std::string m_sPath;
+	std::string m_sResult;
 
 	NetworkStream* m_pStream;
 };

@@ -1,28 +1,21 @@
 
 #include "Etterna/Globals/global.h"
 #include "Profile.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "DBProfile.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/File/RageFileDriverDeflate.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/NoteData/NoteData.h"
 #include "RageUtil/File/RageFileManager.h"
-
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "sqlite3.h"
-#include "RageUtil/File/RageFileManager.h"
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <SQLiteCpp/VariadicBind.h>
+#include "Etterna/Models/Misc/Foreach.h"
 
 const string PROFILE_DB = "profile.db";
 const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
@@ -130,7 +123,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 	while (userTableQuery.executeStep()) {
 		const char* key = userTableQuery.getColumn(0);
 		const char* value = userTableQuery.getColumn(1);
-		lua_pushstring(L, key);   // push key
+		lua_pushstring(L, key);	  // push key
 		lua_pushstring(L, value); // push value
 		lua_settable(L, -3);
 	}
@@ -605,9 +598,11 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	db->exec("DROP TABLE IF EXISTS defaultmodifiers");
 	db->exec("CREATE TABLE defaultmodifiers (id INTEGER PRIMARY KEY, "
 			 "name TEXT, value TEXT)");
-	FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-	db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it->first +
-			 "\", \"" + it->second + "\")");
+	
+	for(auto& it : profile->m_sDefaultModifiers) {
+		db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it.first +
+				 "\", \"" + it.second + "\")");	
+	}
 
 	db->exec("DROP TABLE IF EXISTS playerskillsets");
 	db->exec("CREATE TABLE playerskillsets (id INTEGER PRIMARY KEY, "

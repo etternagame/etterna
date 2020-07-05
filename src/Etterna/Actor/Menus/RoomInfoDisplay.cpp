@@ -1,8 +1,10 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RoomInfoDisplay.h"
+
+#include "Etterna/Screen/Others/ScreenMessage.h"
 
 AutoScreenMessage(SM_RoomInfoRetract);
 AutoScreenMessage(SM_RoomInfoDeploy);
@@ -44,7 +46,7 @@ RoomInfoDisplay::RetractInfoBox()
 }
 
 void
-RoomInfoDisplay::Load(const RString& sType)
+RoomInfoDisplay::Load(const std::string& sType)
 {
 	DEPLOY_DELAY.Load(sType, "DeployDelay");
 	RETRACT_DELAY.Load(sType, "RetractDelay");
@@ -144,7 +146,7 @@ RoomInfoDisplay::Update(float fDeltaTime)
 }
 
 void
-RoomInfoDisplay::RequestRoomInfo(const RString& name)
+RoomInfoDisplay::RequestRoomInfo(const std::string& name)
 {
 	NSMAN->RequestRoomInfo(name);
 }

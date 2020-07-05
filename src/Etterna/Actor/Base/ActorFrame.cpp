@@ -7,7 +7,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/FileTypes/XmlFile.h"
-#include "arch/Dialog/Dialog.h"
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
  * We don't want classes that derive from ActorFrame to auto delete their
@@ -74,8 +73,8 @@ ActorFrame::ActorFrame(const ActorFrame& cpy)
 	 * them.  If not, the derived class owns the children.  This must preserve
 	 * the current order of m_SubActors. */
 	if (m_bDeleteChildren) {
-		for (unsigned i = 0; i < cpy.m_SubActors.size(); ++i) {
-			Actor* pActor = cpy.m_SubActors[i]->Copy();
+		for (auto m_SubActor : cpy.m_SubActors) {
+			Actor* pActor = m_SubActor->Copy();
 			this->AddChild(pActor);
 		}
 	}
@@ -103,7 +102,7 @@ ActorFrame::LoadFromNode(const XNode* pNode)
 	pNode->GetAttrValue("VanishY", m_fVanishY);
 	m_bOverrideLighting = pNode->GetAttrValue("Lighting", m_bLighting);
 	// new lighting values (only ambient color seems to work?) -aj
-	RString sTemp1, sTemp2, sTemp3;
+	std::string sTemp1, sTemp2, sTemp3;
 	pNode->GetAttrValue("AmbientColor", sTemp1);
 	m_ambientColor.FromString(sTemp1);
 	pNode->GetAttrValue("DiffuseColor", sTemp2);
@@ -155,7 +154,7 @@ ActorFrame::AddChild(Actor* pActor)
 #endif
 
 	ASSERT(pActor != nullptr);
-	ASSERT((void*)pActor != (void*)0xC0000005);
+	ASSERT(static_cast<void*>(pActor) != (void*)0xC0000005);
 	m_SubActors.push_back(pActor);
 
 	pActor->SetParent(this);
@@ -179,7 +178,7 @@ ActorFrame::TransferChildren(ActorFrame* pTo)
 }
 
 Actor*
-ActorFrame::GetChild(const RString& sName)
+ActorFrame::GetChild(const std::string& sName)
 {
 	FOREACH(Actor*, m_SubActors, a)
 	{
@@ -262,7 +261,7 @@ ActorFrame::DrawPrimitives()
 			return;
 		}
 		this->PushSelf(L);
-		RString Error = "Error running DrawFunction: ";
+		std::string Error = "Error running DrawFunction: ";
 		LuaHelpers::RunScriptOnStack(L, Error, 1, 0, true); // 1 arg, 0 results
 		LUA->Release(L);
 		return;
@@ -282,16 +281,16 @@ ActorFrame::DrawPrimitives()
 	if (m_bDrawByZPosition) {
 		vector<Actor*> subs = m_SubActors;
 		ActorUtil::SortByZPosition(subs);
-		for (unsigned i = 0; i < subs.size(); i++) {
-			subs[i]->SetInternalDiffuse(diffuse);
-			subs[i]->SetInternalGlow(glow);
-			subs[i]->Draw();
+		for (auto& sub : subs) {
+			sub->SetInternalDiffuse(diffuse);
+			sub->SetInternalGlow(glow);
+			sub->Draw();
 		}
 	} else {
-		for (unsigned i = 0; i < m_SubActors.size(); i++) {
-			m_SubActors[i]->SetInternalDiffuse(diffuse);
-			m_SubActors[i]->SetInternalGlow(glow);
-			m_SubActors[i]->Draw();
+		for (auto& m_SubActor : m_SubActors) {
+			m_SubActor->SetInternalDiffuse(diffuse);
+			m_SubActor->SetInternalGlow(glow);
+			m_SubActor->Draw();
 		}
 	}
 }
@@ -357,7 +356,7 @@ IdenticalChildrenIndexLayer(lua_State* L)
 		lua_pushcclosure(L,
 						 IdenticalChildrenSingleApplier,
 						 1); // stack: object, obj_meta, obj_index, closure
-		lua_insert(L, -4);   // stack: closure, object, obj_meta, obj_index
+		lua_insert(L, -4);	 // stack: closure, object, obj_meta, obj_index
 		lua_pop(L, 3);		 // stack: closure
 	}
 	return 1;
@@ -372,13 +371,13 @@ CreateChildTable(lua_State* L, Actor* a)
 	// pass through layer for function calls. stack: old_entry
 	lua_createtable(L, 0, 0); // stack: old_entry, table_entry
 	lua_insert(L, -2);		  // stack: table_entry, old_entry
-	lua_rawseti(L, -2, 1);	// stack: table_entry
+	lua_rawseti(L, -2, 1);	  // stack: table_entry
 	a->PushSelf(L);			  // stack: table_entry, new_entry
-	lua_rawseti(L, -2, 2);	// stack: table_entry
+	lua_rawseti(L, -2, 2);	  // stack: table_entry
 	lua_createtable(L, 0, 1); // stack: table_entry, table_meta
 	lua_pushcfunction(
 	  L, IdenticalChildrenIndexLayer); // stack: table_entry, table_meta, ICIL
-	lua_setfield(L, -2, "__index");	// stack: table_entry, table_meta
+	lua_setfield(L, -2, "__index");	   // stack: table_entry, table_meta
 	lua_setmetatable(L, -2);		   // stack: table_entry
 }
 
@@ -415,15 +414,15 @@ ActorFrame::PushChildrenTable(lua_State* L)
 				CreateChildTable(L, *a); // stack: all_actors, table_entry
 				LuaHelpers::Push(
 				  L, (*a)->GetName()); // stack: all_actors, table_entry, name
-				lua_insert(L, -2);	 // stack: all_actors, name, table_entry
-				lua_rawset(L, -3);	 // stack: all_actors
+				lua_insert(L, -2);	   // stack: all_actors, name, table_entry
+				lua_rawset(L, -3);	   // stack: all_actors
 			}
 		}
 	}
 }
 
 void
-ActorFrame::PushChildTable(lua_State* L, const RString& sName)
+ActorFrame::PushChildTable(lua_State* L, const std::string& sName)
 {
 	int found = 0;
 	FOREACH(Actor*, m_SubActors, a)
@@ -449,7 +448,7 @@ ActorFrame::PushChildTable(lua_State* L, const RString& sName)
 }
 
 void
-ActorFrame::PlayCommandOnChildren(const RString& sCommandName,
+ActorFrame::PlayCommandOnChildren(const std::string& sCommandName,
 								  const LuaReference* pParamTable)
 {
 	const apActorCommands* pCmd = GetCommand(sCommandName);
@@ -458,7 +457,7 @@ ActorFrame::PlayCommandOnChildren(const RString& sCommandName,
 }
 
 void
-ActorFrame::PlayCommandOnLeaves(const RString& sCommandName,
+ActorFrame::PlayCommandOnLeaves(const std::string& sCommandName,
 								const LuaReference* pParamTable)
 {
 	const apActorCommands* pCmd = GetCommand(sCommandName);
@@ -470,8 +469,8 @@ void
 ActorFrame::RunCommandsRecursively(const LuaReference& cmds,
 								   const LuaReference* pParamTable)
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		m_SubActors[i]->RunCommandsRecursively(cmds, pParamTable);
+	for (auto& m_SubActor : m_SubActors)
+		m_SubActor->RunCommandsRecursively(cmds, pParamTable);
 	Actor::RunCommandsRecursively(cmds, pParamTable);
 }
 
@@ -479,16 +478,16 @@ void
 ActorFrame::RunCommandsOnChildren(const LuaReference& cmds,
 								  const LuaReference* pParamTable)
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		m_SubActors[i]->RunCommands(cmds, pParamTable);
+	for (auto& m_SubActor : m_SubActors)
+		m_SubActor->RunCommands(cmds, pParamTable);
 }
 
 void
 ActorFrame::RunCommandsOnLeaves(const LuaReference& cmds,
 								const LuaReference* pParamTable)
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		m_SubActors[i]->RunCommandsOnLeaves(cmds, pParamTable);
+	for (auto& m_SubActor : m_SubActors)
+		m_SubActor->RunCommandsOnLeaves(cmds, pParamTable);
 }
 
 bool
@@ -526,7 +525,7 @@ ActorFrame::UpdateInternal(float fDeltaTime)
 			}
 			this->PushSelf(L);
 			lua_pushnumber(L, fDeltaTime);
-			RString Error = "Error running UpdateFunction: ";
+			std::string Error = "Error running UpdateFunction: ";
 			LuaHelpers::RunScriptOnStack(
 			  L, Error, 2, 0, true); // 1 args, 0 results
 			LUA->Release(L);
@@ -585,8 +584,8 @@ ActorFrame::SortByDrawOrder()
 void
 ActorFrame::DeleteAllChildren()
 {
-	for (unsigned i = 0; i < m_SubActors.size(); i++)
-		delete m_SubActors[i];
+	for (auto& m_SubActor : m_SubActors)
+		delete m_SubActor;
 	m_SubActors.clear();
 }
 
@@ -616,8 +615,7 @@ ActorFrame::HandleMessage(const Message& msg)
 	if (msg.IsBroadcast())
 		return;
 
-	for (unsigned i = 0; i < m_SubActors.size(); i++) {
-		Actor* pActor = m_SubActors[i];
+	for (auto pActor : m_SubActors) {
 		pActor->HandleMessage(msg);
 	}
 }

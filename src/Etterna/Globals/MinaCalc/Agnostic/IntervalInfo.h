@@ -20,7 +20,7 @@ struct ItvInfo
 	int mixed_hs_density_tap_bonus = 0;
 
 	// resets all the stuff that accumulates across intervals
-	inline void handle_interval_end()
+	void handle_interval_end()
 	{
 		// self explanatory
 		total_taps = 0;
@@ -32,7 +32,7 @@ struct ItvInfo
 		taps_by_size.fill(0);
 	}
 
-	inline void update_tap_counts(const int& row_count)
+	void update_tap_counts(const int& row_count)
 	{
 		total_taps += row_count;
 

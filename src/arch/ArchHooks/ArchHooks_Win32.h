@@ -10,7 +10,7 @@ class ArchHooks_Win32 : public ArchHooks
   public:
 	ArchHooks_Win32();
 	~ArchHooks_Win32();
-	RString GetArchName() const { return "Windows"; }
+	std::string GetArchName() const { return "Windows"; }
 	void DumpDebugInfo();
 	void RestartProgram();
 	bool CheckForMultipleInstances(int argc, char* argv[]);
@@ -21,9 +21,9 @@ class ArchHooks_Win32 : public ArchHooks
 	void UnBoostPriority();
 	void SetupConcurrentRenderingThread();
 
-	bool GoToURL(const RString& sUrl);
+	bool GoToURL(const std::string& sUrl);
 	virtual float GetDisplayAspectRatio();
-	RString GetClipboard();
+	std::string GetClipboard();
 	/** @brief Fetch the window width. */
 	int GetWindowWidth();
 

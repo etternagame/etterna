@@ -21,7 +21,7 @@ ComboGraph::ComboGraph()
 }
 
 void
-ComboGraph::Load(const RString& sMetricsGroup)
+ComboGraph::Load(const std::string& sMetricsGroup)
 {
 	BODY_WIDTH.Load(sMetricsGroup, "BodyWidth");
 	BODY_HEIGHT.Load(sMetricsGroup, "BodyHeight");

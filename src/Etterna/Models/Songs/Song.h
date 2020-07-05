@@ -2,7 +2,6 @@
 #define SONG_H
 
 #include "Etterna/Models/Misc/Difficulty.h"
-#include "Etterna/Models/Misc/EnumHelper.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
@@ -29,8 +28,6 @@ const int MAX_EDITS_PER_SONG_PER_PROFILE = 15;
 /** @brief How many edits for this song can be available? */
 const int MAX_EDITS_PER_SONG = MAX_EDITS_PER_SONG_PER_PROFILE * NUM_ProfileSlot;
 
-extern const int FILE_CACHE_VERSION;
-
 /** @brief The different background layers available. */
 enum BackgroundLayer
 {
@@ -53,10 +50,10 @@ enum InstrumentTrack
 	NUM_InstrumentTrack,
 	InstrumentTrack_Invalid
 };
-const RString&
+const std::string&
 InstrumentTrackToString(InstrumentTrack it);
 InstrumentTrack
-StringToInstrumentTrack(const RString& s);
+StringToInstrumentTrack(const std::string& s);
 
 /** @brief The collection of lyrics for the Song. */
 struct LyricSegment

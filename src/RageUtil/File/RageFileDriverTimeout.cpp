@@ -72,30 +72,30 @@ enum ThreadRequest
 class ThreadedFileWorker : public RageWorkerThread
 {
   public:
-	explicit ThreadedFileWorker(RString sPath);
+	explicit ThreadedFileWorker(std::string sPath);
 	~ThreadedFileWorker() override;
 
 	/* Threaded operations.  If a file operation times out, the caller loses all
 	 * access to the file and should fail all future operations; this is because
 	 * the thread is still trying to finish the operation.  The thread will
 	 * clean up afterwards. */
-	RageFileBasic* Open(const RString& sPath, int iMode, int& iErr);
+	RageFileBasic* Open(const std::string& sPath, int iMode, int& iErr);
 	void Close(RageFileBasic* pFile);
 	int GetFileSize(RageFileBasic*& pFile);
 	int GetFD(RageFileBasic*& pFile);
-	int Seek(RageFileBasic*& pFile, int iPos, RString& sError);
-	int Read(RageFileBasic*& pFile, void* pBuf, int iSize, RString& sError);
+	int Seek(RageFileBasic*& pFile, int iPos, std::string& sError);
+	int Read(RageFileBasic*& pFile, void* pBuf, int iSize, std::string& sError);
 	int Write(RageFileBasic*& pFile,
 			  const void* pBuf,
 			  int iSize,
-			  RString& sError);
-	int Flush(RageFileBasic*& pFile, RString& sError);
-	RageFileBasic* Copy(RageFileBasic*& pFile, RString& sError);
+			  std::string& sError);
+	int Flush(RageFileBasic*& pFile, std::string& sError);
+	RageFileBasic* Copy(RageFileBasic*& pFile, std::string& sError);
 
-	bool FlushDirCache(const RString& sPath);
-	int Move(const RString& sOldPath, const RString& sNewPath);
-	int Remove(const RString& sPath);
-	bool PopulateFileSet(FileSet& fs, const RString& sPath);
+	bool FlushDirCache(const std::string& sPath);
+	int Move(const std::string& sOldPath, const std::string& sNewPath);
+	int Remove(const std::string& sPath);
+	bool PopulateFileSet(FileSet& fs, const std::string& sPath);
 
   protected:
 	void HandleRequest(int iRequest) override;
@@ -111,10 +111,10 @@ class ThreadedFileWorker : public RageWorkerThread
 
 	/* REQ_OPEN, REQ_POPULATE_FILE_SET, REQ_FLUSH_DIR_CACHE, REQ_REMOVE,
 	 * REQ_MOVE: */
-	RString m_sRequestPath; /* in */
+	std::string m_sRequestPath; /* in */
 
 	/* REQ_MOVE: */
-	RString m_sRequestPath2; /* in */
+	std::string m_sRequestPath2; /* in */
 
 	/* REQ_OPEN, REQ_COPY: */
 	RageFileBasic* m_pResultFile; /* out */
@@ -132,8 +132,8 @@ class ThreadedFileWorker : public RageWorkerThread
 	int m_iResultRequest = 0; /* out */
 
 	/* REQ_READ, REQ_WRITE */
-	int m_iRequestSize = 0; /* in */
-	RString m_sResultError; /* out */
+	int m_iRequestSize = 0;		/* in */
+	std::string m_sResultError; /* out */
 
 	/* REQ_SEEK */
 	int m_iRequestPos = 0; /* in */
@@ -158,20 +158,21 @@ RageFileDriverTimeout::SetTimeout(float fSeconds)
 	g_apWorkersMutex.Unlock();
 }
 
-ThreadedFileWorker::ThreadedFileWorker(RString sPath)
+ThreadedFileWorker::ThreadedFileWorker(std::string sPath)
   : RageWorkerThread(sPath)
   , m_DeletedFilesLock(sPath + "DeletedFilesLock")
 {
 	/* Grab a reference to the child driver.  We'll operate on it directly. */
 	m_pChildDriver = FILEMAN->GetFileDriver(sPath);
-	if (m_pChildDriver == NULL)
+	if (m_pChildDriver == nullptr)
 		WARN(ssprintf("ThreadedFileWorker: Mountpoint \"%s\" not found",
-					  sPath.c_str()));
+					  sPath.c_str())
+			   .c_str());
 
-	m_pResultFile = NULL;
-	m_pRequestFile = NULL;
-	m_pResultBuffer = NULL;
-	m_pRequestBuffer = NULL;
+	m_pResultFile = nullptr;
+	m_pRequestFile = nullptr;
+	m_pResultBuffer = nullptr;
+	m_pRequestBuffer = nullptr;
 
 	g_apWorkersMutex.Lock();
 	g_apWorkers.push_back(this);
@@ -184,7 +185,7 @@ ThreadedFileWorker::~ThreadedFileWorker()
 {
 	StopThread();
 
-	if (m_pChildDriver != NULL)
+	if (m_pChildDriver != nullptr)
 		FILEMAN->ReleaseFileDriver(m_pChildDriver);
 
 	/* Unregister ourself. */
@@ -207,8 +208,8 @@ ThreadedFileWorker::HandleRequest(int iRequest)
 		m_apDeletedFiles.clear();
 		m_DeletedFilesLock.Unlock();
 
-		for (unsigned i = 0; i < apDeletedFiles.size(); ++i)
-			delete apDeletedFiles[i];
+		for (auto& apDeletedFile : apDeletedFiles)
+			delete apDeletedFile;
 	}
 
 	/* We have a request. */
@@ -227,7 +228,7 @@ ThreadedFileWorker::HandleRequest(int iRequest)
 
 			/* Clear m_pRequestFile, so RequestTimedOut doesn't double-delete.
 			 */
-			m_pRequestFile = NULL;
+			m_pRequestFile = nullptr;
 			break;
 
 		case REQ_GET_FILE_SIZE:
@@ -307,17 +308,17 @@ ThreadedFileWorker::RequestTimedOut()
 }
 
 RageFileBasic*
-ThreadedFileWorker::Open(const RString& sPath, int iMode, int& iErr)
+ThreadedFileWorker::Open(const std::string& sPath, int iMode, int& iErr)
 {
-	if (m_pChildDriver == NULL) {
+	if (m_pChildDriver == nullptr) {
 		iErr = ENODEV;
-		return NULL;
+		return nullptr;
 	}
 
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		iErr = EFAULT; /* Win32 has no ETIMEDOUT */
-		return NULL;
+		return nullptr;
 	}
 
 	m_sRequestPath = sPath;
@@ -326,12 +327,12 @@ ThreadedFileWorker::Open(const RString& sPath, int iMode, int& iErr)
 	if (!DoRequest(REQ_OPEN)) {
 		LOG->Trace("Open(%s) timed out", sPath.c_str());
 		iErr = EFAULT; /* Win32 has no ETIMEDOUT */
-		return NULL;
+		return nullptr;
 	}
 
 	iErr = m_iResultRequest;
 	RageFileBasic* pRet = m_pResultFile;
-	m_pResultFile = NULL;
+	m_pResultFile = nullptr;
 
 	return pRet;
 }
@@ -341,7 +342,7 @@ ThreadedFileWorker::Close(RageFileBasic* pFile)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return;
 
 	if (!IsTimedOut()) {
@@ -350,7 +351,7 @@ ThreadedFileWorker::Close(RageFileBasic* pFile)
 		m_pRequestFile = pFile;
 		if (!DoRequest(REQ_CLOSE))
 			return;
-		m_pRequestFile = NULL;
+		m_pRequestFile = nullptr;
 	} else {
 		/* Delete the file when the timeout completes. */
 		m_DeletedFilesLock.Lock();
@@ -367,21 +368,21 @@ ThreadedFileWorker::GetFileSize(RageFileBasic*& pFile)
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return -1;
 
 	m_pRequestFile = pFile;
 
 	if (!DoRequest(REQ_GET_FILE_SIZE)) {
 		/* If we time out, we can no longer access pFile. */
-		pFile = NULL;
+		pFile = nullptr;
 		return -1;
 	}
 
-	m_pRequestFile = NULL;
+	m_pRequestFile = nullptr;
 
 	return m_iResultRequest;
 }
@@ -394,37 +395,37 @@ ThreadedFileWorker::GetFD(RageFileBasic*& pFile)
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return -1;
 
 	m_pRequestFile = pFile;
 
 	if (!DoRequest(REQ_GET_FD)) {
 		/* If we time out, we can no longer access pFile. */
-		pFile = NULL;
+		pFile = nullptr;
 		return -1;
 	}
 
-	m_pRequestFile = NULL;
+	m_pRequestFile = nullptr;
 
 	return m_iResultRequest;
 }
 
 int
-ThreadedFileWorker::Seek(RageFileBasic*& pFile, int iPos, RString& sError)
+ThreadedFileWorker::Seek(RageFileBasic*& pFile, int iPos, std::string& sError)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		sError = "Operation timed out";
 		return -1;
 	}
@@ -435,13 +436,13 @@ ThreadedFileWorker::Seek(RageFileBasic*& pFile, int iPos, RString& sError)
 	if (!DoRequest(REQ_SEEK)) {
 		/* If we time out, we can no longer access pFile. */
 		sError = "Operation timed out";
-		pFile = NULL;
+		pFile = nullptr;
 		return -1;
 	}
 
 	if (m_iResultRequest == -1)
 		sError = m_sResultError;
-	m_pRequestFile = NULL;
+	m_pRequestFile = nullptr;
 
 	return m_iResultRequest;
 }
@@ -450,17 +451,17 @@ int
 ThreadedFileWorker::Read(RageFileBasic*& pFile,
 						 void* pBuf,
 						 int iSize,
-						 RString& sError)
+						 std::string& sError)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		sError = "Operation timed out";
 		return -1;
 	}
@@ -472,7 +473,7 @@ ThreadedFileWorker::Read(RageFileBasic*& pFile,
 	if (!DoRequest(REQ_READ)) {
 		/* If we time out, we can no longer access pFile. */
 		sError = "Operation timed out";
-		pFile = NULL;
+		pFile = nullptr;
 		return -1;
 	}
 
@@ -482,9 +483,9 @@ ThreadedFileWorker::Read(RageFileBasic*& pFile,
 	else
 		memcpy(pBuf, m_pResultBuffer, iGot);
 
-	m_pRequestFile = NULL;
+	m_pRequestFile = nullptr;
 	delete[] m_pResultBuffer;
-	m_pResultBuffer = NULL;
+	m_pResultBuffer = nullptr;
 
 	return iGot;
 }
@@ -493,17 +494,17 @@ int
 ThreadedFileWorker::Write(RageFileBasic*& pFile,
 						  const void* pBuf,
 						  int iSize,
-						  RString& sError)
+						  std::string& sError)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		sError = "Operation timed out";
 		return -1;
 	}
@@ -516,7 +517,7 @@ ThreadedFileWorker::Write(RageFileBasic*& pFile,
 	if (!DoRequest(REQ_WRITE)) {
 		/* If we time out, we can no longer access pFile. */
 		sError = "Operation timed out";
-		pFile = NULL;
+		pFile = nullptr;
 		return -1;
 	}
 
@@ -524,25 +525,25 @@ ThreadedFileWorker::Write(RageFileBasic*& pFile,
 	if (m_iResultRequest == -1)
 		sError = m_sResultError;
 
-	m_pRequestFile = NULL;
+	m_pRequestFile = nullptr;
 	delete[] m_pRequestBuffer;
-	m_pRequestBuffer = NULL;
+	m_pRequestBuffer = nullptr;
 
 	return iGot;
 }
 
 int
-ThreadedFileWorker::Flush(RageFileBasic*& pFile, RString& sError)
+ThreadedFileWorker::Flush(RageFileBasic*& pFile, std::string& sError)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		sError = "Operation timed out";
 		return -1;
 	}
@@ -552,53 +553,53 @@ ThreadedFileWorker::Flush(RageFileBasic*& pFile, RString& sError)
 	if (!DoRequest(REQ_FLUSH)) {
 		/* If we time out, we can no longer access pFile. */
 		sError = "Operation timed out";
-		pFile = NULL;
+		pFile = nullptr;
 		return -1;
 	}
 
 	if (m_iResultRequest == -1)
 		sError = m_sResultError;
 
-	m_pRequestFile = NULL;
+	m_pRequestFile = nullptr;
 
 	return m_iResultRequest;
 }
 
 RageFileBasic*
-ThreadedFileWorker::Copy(RageFileBasic*& pFile, RString& sError)
+ThreadedFileWorker::Copy(RageFileBasic*& pFile, std::string& sError)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
 	/* If we're currently in a timed-out state, fail. */
 	if (IsTimedOut()) {
 		this->Close(pFile);
-		pFile = NULL;
+		pFile = nullptr;
 	}
 
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		sError = "Operation timed out";
-		return NULL;
+		return nullptr;
 	}
 
 	m_pRequestFile = pFile;
 	if (!DoRequest(REQ_COPY)) {
 		/* If we time out, we can no longer access pFile. */
 		sError = "Operation timed out";
-		pFile = NULL;
-		return NULL;
+		pFile = nullptr;
+		return nullptr;
 	}
 
 	RageFileBasic* pRet = m_pResultFile;
-	m_pRequestFile = NULL;
-	m_pResultFile = NULL;
+	m_pRequestFile = nullptr;
+	m_pResultFile = nullptr;
 
 	return pRet;
 }
 
 bool
-ThreadedFileWorker::PopulateFileSet(FileSet& fs, const RString& sPath)
+ThreadedFileWorker::PopulateFileSet(FileSet& fs, const std::string& sPath)
 {
-	if (m_pChildDriver == NULL)
+	if (m_pChildDriver == nullptr)
 		return false;
 
 	/* If we're currently in a timed-out state, fail. */
@@ -619,7 +620,8 @@ ThreadedFileWorker::PopulateFileSet(FileSet& fs, const RString& sPath)
 }
 
 int
-ThreadedFileWorker::Move(const RString& sOldPath, const RString& sNewPath)
+ThreadedFileWorker::Move(const std::string& sOldPath,
+						 const std::string& sNewPath)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
@@ -639,7 +641,7 @@ ThreadedFileWorker::Move(const RString& sOldPath, const RString& sNewPath)
 }
 
 int
-ThreadedFileWorker::Remove(const RString& sPath)
+ThreadedFileWorker::Remove(const std::string& sPath)
 {
 	ASSERT(m_pChildDriver != NULL); /* how did you get a file to begin with? */
 
@@ -658,7 +660,7 @@ ThreadedFileWorker::Remove(const RString& sPath)
 }
 
 bool
-ThreadedFileWorker::FlushDirCache(const RString& sPath)
+ThreadedFileWorker::FlushDirCache(const std::string& sPath)
 {
 	/* FlushDirCache() is often called globally, on all drivers, which means
 	 * it's called with no timeout.  Temporarily enable a timeout if needed. */
@@ -666,7 +668,7 @@ ThreadedFileWorker::FlushDirCache(const RString& sPath)
 	if (!bTimeoutEnabled)
 		SetTimeout(1);
 
-	if (m_pChildDriver == NULL)
+	if (m_pChildDriver == nullptr)
 		return false;
 
 	/* If we're currently in a timed-out state, fail. */
@@ -713,7 +715,7 @@ class RageFileObjTimeout : public RageFileObj
 
 	~RageFileObjTimeout() override
 	{
-		if (m_pFile != NULL) {
+		if (m_pFile != nullptr) {
 			Flush();
 			m_pWorker->Close(m_pFile);
 		}
@@ -723,10 +725,10 @@ class RageFileObjTimeout : public RageFileObj
 
 	int GetFD() override
 	{
-		RString sError;
+		std::string sError;
 		int iRet = m_pWorker->GetFD(m_pFile);
 
-		if (m_pFile == NULL) {
+		if (m_pFile == nullptr) {
 			SetError("Operation timed out");
 			return -1;
 		}
@@ -739,17 +741,17 @@ class RageFileObjTimeout : public RageFileObj
 
 	RageFileBasic* Copy() const override
 	{
-		RString sError;
+		std::string sError;
 		RageFileBasic* pCopy = m_pWorker->Copy(m_pFile, sError);
 
-		if (m_pFile == NULL) {
+		if (m_pFile == nullptr) {
 			//			SetError( "Operation timed out" );
-			return NULL;
+			return nullptr;
 		}
 
-		if (pCopy == NULL) {
+		if (pCopy == nullptr) {
 			//			SetError( sError );
-			return NULL;
+			return nullptr;
 		}
 
 		return new RageFileObjTimeout(m_pWorker, pCopy, m_iFileSize, m_iMode);
@@ -758,10 +760,10 @@ class RageFileObjTimeout : public RageFileObj
   protected:
 	int SeekInternal(int iPos) override
 	{
-		RString sError;
+		std::string sError;
 		int iRet = m_pWorker->Seek(m_pFile, iPos, sError);
 
-		if (m_pFile == NULL) {
+		if (m_pFile == nullptr) {
 			SetError("Operation timed out");
 			return -1;
 		}
@@ -774,10 +776,10 @@ class RageFileObjTimeout : public RageFileObj
 
 	int ReadInternal(void* pBuffer, size_t iBytes) override
 	{
-		RString sError;
+		std::string sError;
 		int iRet = m_pWorker->Read(m_pFile, pBuffer, iBytes, sError);
 
-		if (m_pFile == NULL) {
+		if (m_pFile == nullptr) {
 			SetError("Operation timed out");
 			return -1;
 		}
@@ -790,10 +792,10 @@ class RageFileObjTimeout : public RageFileObj
 
 	int WriteInternal(const void* pBuffer, size_t iBytes) override
 	{
-		RString sError;
+		std::string sError;
 		int iRet = m_pWorker->Write(m_pFile, pBuffer, iBytes, sError);
 
-		if (m_pFile == NULL) {
+		if (m_pFile == nullptr) {
 			SetError("Operation timed out");
 			return -1;
 		}
@@ -806,10 +808,10 @@ class RageFileObjTimeout : public RageFileObj
 
 	int FlushInternal() override
 	{
-		RString sError;
+		std::string sError;
 		int iRet = m_pWorker->Flush(m_pFile, sError);
 
-		if (m_pFile == NULL) {
+		if (m_pFile == nullptr) {
 			SetError("Operation timed out");
 			return -1;
 		}
@@ -839,7 +841,7 @@ class TimedFilenameDB : public FilenameDB
 	TimedFilenameDB()
 	{
 		ExpireSeconds = -1;
-		m_pWorker = NULL;
+		m_pWorker = nullptr;
 	}
 
 	void SetWorker(ThreadedFileWorker* pWorker)
@@ -848,7 +850,7 @@ class TimedFilenameDB : public FilenameDB
 		m_pWorker = pWorker;
 	}
 
-	void PopulateFileSet(FileSet& fs, const RString& sPath) override
+	void PopulateFileSet(FileSet& fs, const std::string& sPath) override
 	{
 		ASSERT(m_pWorker != NULL);
 		m_pWorker->PopulateFileSet(fs, sPath);
@@ -858,7 +860,7 @@ class TimedFilenameDB : public FilenameDB
 	ThreadedFileWorker* m_pWorker;
 };
 
-RageFileDriverTimeout::RageFileDriverTimeout(const RString& sPath)
+RageFileDriverTimeout::RageFileDriverTimeout(const std::string& sPath)
   : RageFileDriver(new TimedFilenameDB())
 {
 	m_pWorker = new ThreadedFileWorker(sPath);
@@ -867,11 +869,11 @@ RageFileDriverTimeout::RageFileDriverTimeout(const RString& sPath)
 }
 
 RageFileBasic*
-RageFileDriverTimeout::Open(const RString& sPath, int iMode, int& iErr)
+RageFileDriverTimeout::Open(const std::string& sPath, int iMode, int& iErr)
 {
 	RageFileBasic* pChildFile = m_pWorker->Open(sPath, iMode, iErr);
-	if (pChildFile == NULL)
-		return NULL;
+	if (pChildFile == nullptr)
+		return nullptr;
 
 	/* RageBasicFile::GetFileSize isn't allowed to fail, but we are; grab the
 	 * file size now and store it. */
@@ -883,7 +885,7 @@ RageFileDriverTimeout::Open(const RString& sPath, int iMode, int& iErr)
 			 * pChildFile. */
 			ASSERT(pChildFile == NULL);
 			iErr = EFAULT;
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -891,20 +893,22 @@ RageFileDriverTimeout::Open(const RString& sPath, int iMode, int& iErr)
 }
 
 void
-RageFileDriverTimeout::FlushDirCache(const RString& sPath)
+RageFileDriverTimeout::FlushDirCache(const std::string& sPath)
 {
 	RageFileDriver::FlushDirCache(sPath);
 	m_pWorker->FlushDirCache(sPath);
 }
 
 bool
-RageFileDriverTimeout::Move(const RString& sOldPath, const RString& sNewPath)
+RageFileDriverTimeout::Move(const std::string& sOldPath,
+							const std::string& sNewPath)
 {
 	int iRet = m_pWorker->Move(sOldPath, sNewPath);
 	if (iRet == -1) {
 		WARN(ssprintf("RageFileDriverTimeout::Move(%s,%s) failed",
 					  sOldPath.c_str(),
-					  sNewPath.c_str()));
+					  sNewPath.c_str())
+			   .c_str());
 		return false;
 	}
 
@@ -912,12 +916,12 @@ RageFileDriverTimeout::Move(const RString& sOldPath, const RString& sNewPath)
 }
 
 bool
-RageFileDriverTimeout::Remove(const RString& sPath)
+RageFileDriverTimeout::Remove(const std::string& sPath)
 {
 	int iRet = m_pWorker->Remove(sPath);
 	if (iRet == -1) {
-		WARN(
-		  ssprintf("RageFileDriverTimeout::Remove(%s) failed", sPath.c_str()));
+		WARN(ssprintf("RageFileDriverTimeout::Remove(%s) failed", sPath.c_str())
+			   .c_str());
 		return false;
 	}
 
@@ -935,7 +939,7 @@ static struct FileDriverEntry_Timeout : public FileDriverEntry
 	  : FileDriverEntry("TIMEOUT")
 	{
 	}
-	RageFileDriver* Create(const RString& sRoot) const override
+	RageFileDriver* Create(const std::string& sRoot) const override
 	{
 		return new RageFileDriverTimeout(sRoot);
 	}

@@ -10,6 +10,7 @@ list(APPEND GLOBAL_FILES_SRC
 
 list(APPEND GLOBAL_FILES_HPP
 	"MinaCalc.h"
+	"MinaCalcHelpers.h"
 	"SoloCalc.h"
 	"GameLoop.h"
 	"global.h"

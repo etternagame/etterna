@@ -2,6 +2,7 @@
 #include "CrashHandlerInternal.h"
 
 #include <csignal>
+#include <cstring>
 
 const char*
 itoa(unsigned n)

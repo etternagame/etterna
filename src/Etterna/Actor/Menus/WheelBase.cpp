@@ -2,16 +2,11 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Misc/RageMath.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h" // for sending SM_PlayMusicSample
-#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelBase.h"
@@ -22,7 +17,7 @@ AutoScreenMessage(
 
 static const char* WheelStateNames[] = {
 	"Selecting",		"FlyingOffBeforeNextSort", "FlyingOnAfterNextSort",
-	"RouletteSpinning", "RouletteSlowingDown",	 "RandomSpinning",
+	"RouletteSpinning", "RouletteSlowingDown",	   "RandomSpinning",
 	"Locked",
 };
 XToString(WheelState);
@@ -34,7 +29,7 @@ WheelBase::~WheelBase()
 	FOREACH(WheelItemBase*, m_WheelBaseItems, i)
 	SAFE_DELETE(*i);
 	m_WheelBaseItems.clear();
-	m_LastSelection = NULL;
+	m_LastSelection = nullptr;
 }
 
 void
@@ -45,7 +40,7 @@ WheelBase::Load(const string& sType)
 	ASSERT(this->GetNumChildren() == 0); // only load once
 
 	m_bEmpty = false;
-	m_LastSelection = NULL;
+	m_LastSelection = nullptr;
 	m_iSelection = 0;
 	m_fTimeLeftInState = 0;
 	m_fPositionOffsetFromSelection = 0;
@@ -114,7 +109,7 @@ WheelBase::UpdateScrollbar()
 	float fItemAt = m_iSelection - m_fPositionOffsetFromSelection;
 
 	{
-		float fSize = float(NUM_WHEEL_ITEMS) / iTotalNumItems;
+		float fSize = static_cast<float>(NUM_WHEEL_ITEMS) / iTotalNumItems;
 		float fCenter = fItemAt / iTotalNumItems;
 		fSize *= 0.5f;
 
@@ -254,7 +249,7 @@ WheelBase::Select() // return true if this selection can end the screen
 			m_LastSelection = m_CurWheelItemData[m_iSelection];
 			return true;
 		case WheelItemDataType_Section: {
-			RString sThisItemSectionName =
+			std::string sThisItemSectionName =
 			  m_CurWheelItemData[m_iSelection]->m_sText;
 			if (m_sExpandedSectionName ==
 				sThisItemSectionName) // already expanded
@@ -274,7 +269,7 @@ WheelBase::Select() // return true if this selection can end the screen
 	}
 }
 
-RString
+std::string
 WheelBase::GetCurrentGroup()
 {
 	// current hovering a group
@@ -291,7 +286,7 @@ WheelBase::GetItem(unsigned int iIndex)
 	if (!m_bEmpty && iIndex < m_CurWheelItemData.size())
 		return m_CurWheelItemData[iIndex];
 
-	return NULL;
+	return nullptr;
 }
 
 int
@@ -360,7 +355,7 @@ WheelBase::Move(int n)
 		return;
 
 	m_TimeBeforeMovingBegins = 1 / 8.0f;
-	m_SpinSpeed = float(PREFSMAN->m_iMusicWheelSwitchSpeed);
+	m_SpinSpeed = static_cast<float>(PREFSMAN->m_iMusicWheelSwitchSpeed);
 	m_Moving = n;
 
 	if (m_Moving != 0)
@@ -476,7 +471,7 @@ WheelItemBaseData*
 WheelBase::LastSelected()
 {
 	if (m_bEmpty)
-		return NULL;
+		return nullptr;
 
 	return m_LastSelection;
 }
@@ -513,7 +508,7 @@ class LunaWheelBase : public Luna<WheelBase>
 		int iItem = IArg(1);
 
 		WheelItemBase* pItem = p->GetWheelItem(iItem);
-		if (pItem == NULL) {
+		if (pItem == nullptr) {
 			luaL_error(L, "%i out of bounds", iItem);
 			lua_pushnil(L);
 		} else

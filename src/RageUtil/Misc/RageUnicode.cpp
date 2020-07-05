@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUnicode.h"
 #include <vector>
 
@@ -19,21 +19,6 @@ convert_unicode_casing(std::wstring const& s, unsigned char const mapping[256])
 	return std::wstring{ letters.begin(), letters.end() };
 }
 
-void
-utf8_sanitize(std::string& s)
-{
-	std::string ret;
-	for (unsigned start = 0; start < s.size();) {
-		wchar_t ch;
-		if (!Rage::utf8_to_wchar_ec(s, start, ch)) {
-			ch = Rage::invalid_char;
-		}
-		Rage::wchar_to_utf8(ch, ret);
-	}
-
-	s = ret;
-}
-
 int
 Rage::utf8_get_char_len(char p)
 {
@@ -51,7 +36,7 @@ Rage::utf8_get_char_len(char p)
 		return 5; /* 111110xx */
 	if (!(p & 0x02))
 		return 6; /* 1111110x */
-	return 1;	 /* 1111111x */
+	return 1;	  /* 1111111x */
 }
 
 bool

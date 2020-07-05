@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_FILE_DRIVER_ZIP_H
+#ifndef RAGE_FILE_DRIVER_ZIP_H
 #define RAGE_FILE_DRIVER_ZIP_H
 
 #include "RageFileDriver.h"
@@ -9,14 +9,16 @@ class RageFileDriverZip : public RageFileDriver
 {
   public:
 	RageFileDriverZip();
-	explicit RageFileDriverZip(const RString& sPath);
-	bool Load(const RString& sPath);
+	explicit RageFileDriverZip(const std::string& sPath);
+	bool Load(const std::string& sPath);
 	bool Load(RageFileBasic* pFile);
 
 	~RageFileDriverZip() override;
 
-	RageFileBasic* Open(const RString& sPath, int iMode, int& iErr) override;
-	void FlushDirCache(const RString& sPath) override;
+	RageFileBasic* Open(const std::string& sPath,
+						int iMode,
+						int& iErr) override;
+	void FlushDirCache(const std::string& sPath) override;
 
 	void DeleteFileWhenFinished() { m_bFileOwned = true; }
 
@@ -28,7 +30,7 @@ class RageFileDriverZip : public RageFileDriver
 	};
 	struct FileInfo
 	{
-		RString m_sName;
+		std::string m_sName;
 		int m_iOffset;
 		int m_iDataOffset;
 
@@ -39,9 +41,9 @@ class RageFileDriverZip : public RageFileDriver
 		/* If 0, unknown. */
 		int m_iFilePermissions;
 	};
-	const FileInfo* GetFileInfo(const RString& sPath) const;
+	const FileInfo* GetFileInfo(const std::string& sPath) const;
 
-	RString GetGlobalComment() const { return m_sComment; }
+	std::string GetGlobalComment() const { return m_sComment; }
 
   private:
 	bool m_bFileOwned;
@@ -49,8 +51,8 @@ class RageFileDriverZip : public RageFileDriver
 	RageFileBasic* m_pZip;
 	vector<FileInfo*> m_pFiles;
 
-	RString m_sPath;
-	RString m_sComment;
+	std::string m_sPath;
+	std::string m_sComment;
 
 	/* Open() must be threadsafe.  Mutex access to "zip", since we seek
 	 * around in it when reading files. */

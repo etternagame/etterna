@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This implements audio resampling, using the method described at:
  *  http://www.dspguru.com/info/faqs/mrfaq.htm
  *
@@ -594,7 +594,7 @@ RageSoundReader_Resample_Good::GetNextSourceFrame() const
 }
 
 bool
-RageSoundReader_Resample_Good::SetProperty(const RString& sProperty,
+RageSoundReader_Resample_Good::SetProperty(const std::string& sProperty,
 										   float fValue)
 {
 	if (sProperty == "Rate") {

@@ -151,7 +151,7 @@ class Player : public ActorFrame
 	bool m_inside_lua_set_life;
 
 	// Mina perma-temp stuff
-	vector<int> nerv;   // the non empty row vector where we are somehwere in
+	vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
 	float maxwifescore = 0.f;
 	float curwifescore = 0.f;
@@ -284,30 +284,6 @@ class Player : public ActorFrame
 	RageSound m_soundMine;
 
 	vector<RageSound> m_vKeysounds;
-
-	ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
-	ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;
-	ThemeMetric<float> HOLD_JUDGMENT_Y_STANDARD;
-	ThemeMetric<float> HOLD_JUDGMENT_Y_REVERSE;
-	ThemeMetric<int> BRIGHT_GHOST_COMBO_THRESHOLD;
-	ThemeMetric<bool> TAP_JUDGMENTS_UNDER_FIELD;
-	ThemeMetric<bool> HOLD_JUDGMENTS_UNDER_FIELD;
-	ThemeMetric<bool> COMBO_UNDER_FIELD;
-	ThemeMetric<int> DRAW_DISTANCE_AFTER_TARGET_PIXELS;
-	ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
-	/**
-	  Does repeatedly stepping on a roll to keep it alive increment the
-	  combo?
-
-	  If set to true, repeatedly stepping on a roll will increment the combo.
-	  If set to false, only the roll head causes the combo to be incremented.
-
-	  For those wishing to make a theme very accurate to In The Groove 2, set
-	  this to false.
-	  PLAYER INIT MUST LOAD THIS OR YOU CRASH
-	  */
-	ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
-	ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
 #define NUM_REVERSE 2
 #define NUM_CENTERED 2

@@ -1,9 +1,10 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/GameState.h"
 #include "LyricDisplay.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 static ThemeMetric<float> IN_LENGTH("LyricDisplay", "InLength");
 static ThemeMetric<float> OUT_LENGTH("LyricDisplay", "OutLength");
@@ -48,7 +49,7 @@ LyricDisplay::Update(float fDeltaTime)
 
 	ActorFrame::Update(fDeltaTime);
 
-	if (GAMESTATE->m_pCurSong == NULL)
+	if (GAMESTATE->m_pCurSong == nullptr)
 		return;
 
 	// If the song has changed (in a course), reset.

@@ -63,7 +63,7 @@ NoteDataUtil::GetSmallestNoteTypeInRange(const NoteData& n,
 
 static void
 LoadFromSMNoteDataStringWithPlayer(NoteData& out,
-								   const RString& sSMNoteData,
+								   const std::string& sSMNoteData,
 								   int start,
 								   int len,
 								   int iNumTracks)
@@ -105,7 +105,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 			if (measureLineStart == measureEnd) {
 				break;
 			}
-			// RString &line = sSMNoteData.substr( measureLineStart,
+			// std::string &line = sSMNoteData.substr( measureLineStart,
 			// measureLineSize );
 			const char* beginLine = sSMNoteData.data() + measureLineStart;
 			const char* endLine = beginLine + measureLineSize;
@@ -265,7 +265,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 
 void
 NoteDataUtil::LoadFromETTNoteDataString(NoteData& out,
-										const RString& sSMNoteData)
+										const std::string& sSMNoteData)
 {
 	size_t pos = 0;
 
@@ -521,23 +521,24 @@ NoteDataUtil::LoadFromETTNoteDataString(NoteData& out,
 
 void
 NoteDataUtil::LoadFromSMNoteDataString(NoteData& out,
-									   const RString& sSMNoteData_)
+									   const std::string& sSMNoteData_)
 {
 	// Load note data
-	RString sSMNoteData;
-	RString::size_type iIndexCommentStart = 0;
-	RString::size_type iIndexCommentEnd = 0;
-	RString::size_type origSize = sSMNoteData_.size();
+	std::string sSMNoteData;
+	std::string::size_type iIndexCommentStart = 0;
+	std::string::size_type iIndexCommentEnd = 0;
+	std::string::size_type origSize = sSMNoteData_.size();
 	const char* p = sSMNoteData_.data();
 
 	sSMNoteData.reserve(origSize);
 	while ((iIndexCommentStart = sSMNoteData_.find("//", iIndexCommentEnd)) !=
-		   RString::npos) {
+		   std::string::npos) {
 		sSMNoteData.append(p, iIndexCommentStart - iIndexCommentEnd);
 		p += iIndexCommentStart - iIndexCommentEnd;
 		iIndexCommentEnd = sSMNoteData_.find("\n", iIndexCommentStart);
 		iIndexCommentEnd =
-		  (iIndexCommentEnd == RString::npos ? origSize : iIndexCommentEnd + 1);
+		  (iIndexCommentEnd == std::string::npos ? origSize
+												 : iIndexCommentEnd + 1);
 		p += iIndexCommentEnd - iIndexCommentStart;
 	}
 	sSMNoteData.append(p, origSize - iIndexCommentEnd);
@@ -576,7 +577,7 @@ NoteDataUtil::InsertHoldTails(NoteData& inout)
 }
 
 void
-NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
+NoteDataUtil::GetSMNoteDataString(const NoteData& in, std::string& sRet)
 {
 	// Get note data
 	NoteData nd = in;
@@ -664,7 +665,7 @@ NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 }
 
 void
-NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
+NoteDataUtil::GetETTNoteDataString(const NoteData& in, std::string& sRet)
 {
 	// Get note data
 	NoteData nd = in;

@@ -4,13 +4,11 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
-#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 class Profile;
 class NoteData;
@@ -34,7 +32,7 @@ enum DisplayBPM
 	DisplayBPM_Invalid
 };
 auto
-DisplayBPMToString(DisplayBPM x) -> const RString&;
+DisplayBPMToString(DisplayBPM x) -> const std::string&;
 LuaDeclareType(DisplayBPM);
 
 /**
@@ -164,8 +162,8 @@ class Steps
 	void GetNoteData(NoteData& noteDataOut) const;
 	auto GetNoteData() const -> NoteData;
 	void SetNoteData(const NoteData& noteDataNew);
-	void SetSMNoteData(const RString& notes_comp);
-	void GetSMNoteData(RString& notes_comp_out) const;
+	void SetSMNoteData(const std::string& notes_comp);
+	void GetSMNoteData(std::string& notes_comp_out) const;
 
 	/**
 	 * @brief Retrieve the NoteData from the original source.
@@ -179,7 +177,7 @@ class Steps
 	 * @return true if our notedata is empty, false otherwise. */
 	auto IsNoteDataEmpty() const -> bool;
 
-	void GetETTNoteData(RString& notes_comp_out) const;
+	void GetETTNoteData(std::string& notes_comp_out) const;
 	void TidyUpData();
 	void CalculateRadarValues(float fMusicLengthSeconds);
 
@@ -281,7 +279,7 @@ class Steps
 	 * m_sNoteDataCompressed; otherwise, creation of these is transparent. */
 	mutable HiddenPtr<NoteData> m_pNoteData;
 	mutable bool m_bNoteDataIsFilled;
-	mutable RString m_sNoteDataCompressed;
+	mutable std::string m_sNoteDataCompressed;
 
 	/** @brief The name of the file where these steps are stored. */
 	std::string m_sFilename;

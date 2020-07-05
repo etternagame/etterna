@@ -19,7 +19,7 @@ struct TapNote;
 class ScoreKeeper
 {
   public:
-	static ScoreKeeper* MakeScoreKeeper(const RString& sClassName,
+	static ScoreKeeper* MakeScoreKeeper(const std::string& sClassName,
 										PlayerState* pPlayerState,
 										PlayerStageStats* pPlayerStageStats);
 

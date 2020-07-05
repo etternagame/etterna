@@ -22,16 +22,16 @@ GetNextPossibleGrade(Grade g)
 		return Grade_Invalid;
 }
 
-RString
+std::string
 GradeToLocalizedString(Grade g)
 {
-	RString s = GradeToString(g);
+	std::string s = GradeToString(g);
 	if (!THEME->HasString("Grade", s))
 		return "???";
 	return THEME->GetString("Grade", s);
 }
 
-RString
+std::string
 GradeToOldString(Grade g)
 {
 	// string is meant to be human readable
@@ -61,7 +61,7 @@ GradeToOldString(Grade g)
 			return "D";
 		case Grade_Failed:
 			return "E";
-		case Grade_NoData:
+		case Grade_Invalid:
 			return "N";
 		default:
 			return "N";
@@ -69,10 +69,9 @@ GradeToOldString(Grade g)
 };
 
 Grade
-StringToGrade(const RString& sGrade)
+StringToGrade(const std::string& sGrade)
 {
-	RString s = sGrade;
-	s.MakeUpper();
+	std::string s = make_upper(sGrade);
 
 	// new style
 	int iTier;
@@ -82,8 +81,8 @@ StringToGrade(const RString& sGrade)
 	else if (s == "FAILED")
 		return Grade_Failed;
 	else if (s == "NODATA")
-		return Grade_NoData;
+		return Grade_Invalid;
 
 	LOG->Warn("Invalid grade: %s", sGrade.c_str());
-	return Grade_NoData;
+	return Grade_Invalid;
 };

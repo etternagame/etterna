@@ -1,4 +1,4 @@
-﻿/* ModIconRow - Shows a row of ModIcons. */
+/* ModIconRow - Shows a row of ModIcons. */
 
 #ifndef ModIconRow_H
 #define ModIconRow_H
@@ -15,7 +15,7 @@ class ModIconRow : public ActorFrame
 	ModIconRow();
 	~ModIconRow() override;
 
-	void Load(const RString& sMetricsGroup, PlayerNumber pn);
+	void Load(const std::string& sMetricsGroup, PlayerNumber pn);
 
 	ModIconRow* Copy() const override;
 	void SetFromGameState();
@@ -26,13 +26,13 @@ class ModIconRow : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   protected:
-	RString m_sMetricsGroup;
+	std::string m_sMetricsGroup;
 	PlayerNumber m_pn;
 
 	ThemeMetric<float> SPACING_X;
 	ThemeMetric<float> SPACING_Y;
 	ThemeMetric<int> NUM_OPTION_ICONS;
-	ThemeMetric<RString> OPTION_ICON_METRICS_GROUP;
+	ThemeMetric<std::string> OPTION_ICON_METRICS_GROUP;
 
 	vector<ModIcon*> m_vpModIcon;
 };

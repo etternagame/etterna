@@ -56,10 +56,10 @@ class PlayerAI
 	// A reformatting of the HoldMap with elapsed times as keys
 	static map<float, vector<HoldReplayResult>> m_ReplayHoldMapByElapsedTime;
 
-	static RString oldModifiers;
-	static RString replayModifiers;
+	static std::string oldModifiers;
+	static std::string replayModifiers;
 	static bool replayUsedMirror;
-	static RString oldNoteskin;
+	static std::string oldNoteskin;
 	static float replayRate;
 	static float oldRate;
 	static FailType oldFailType;

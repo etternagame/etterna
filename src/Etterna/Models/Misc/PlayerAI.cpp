@@ -21,11 +21,11 @@ map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
 map<float, vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
 map<float, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
 float PlayerAI::replayRate = 1.f;
-RString PlayerAI::replayModifiers = "";
+std::string PlayerAI::replayModifiers = "";
 bool PlayerAI::replayUsedMirror = false;
-RString PlayerAI::oldModifiers = "";
+std::string PlayerAI::oldModifiers = "";
 float PlayerAI::oldRate = 1.f;
-RString PlayerAI::oldNoteskin = "";
+std::string PlayerAI::oldNoteskin = "";
 FailType PlayerAI::oldFailType = FailType_Immediate;
 
 TapNoteScore
@@ -267,7 +267,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 	// track of them in some other special way.
 	if (!m_ReplaySnapshotMap.empty()) {
 		auto curSnap = m_ReplaySnapshotMap.begin();
-		curSnap++;
+		++curSnap;
 		auto prevSnap = m_ReplaySnapshotMap.begin();
 		while (curSnap != m_ReplaySnapshotMap.end()) {
 			auto csn = curSnap->second;
@@ -296,8 +296,8 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 					}
 				}
 			}
-			curSnap++;
-			prevSnap++;
+			++curSnap;
+			++prevSnap;
 		}
 	}
 }
@@ -333,7 +333,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		for (auto row : m_ReplayTapMap) {
 			for (auto instance = row.second.begin();
 				 instance != row.second.end();
-				 instance++) {
+				 ++instance) {
 				TapReplayResult& trr = *instance;
 				if (trr.type == TapNoteType_Mine) {
 					tempJudgments[TNS_HitMine]++;
@@ -353,12 +353,12 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		}
 	} else {
 		// Iterate over all the noterows we know are in the Replay Data
-		for (auto r = validNoterows.begin(); r != validNoterows.end(); r++) {
+		for (auto r = validNoterows.begin(); r != validNoterows.end(); ++r) {
 			// Check for taps and mines
 			if (m_ReplayTapMap.count(*r) != 0) {
 				for (auto instance = m_ReplayTapMap[*r].begin();
 					 instance != m_ReplayTapMap[*r].end();
-					 instance++) {
+					 ++instance) {
 					TapReplayResult& trr = *instance;
 					if (trr.type == TapNoteType_Mine) {
 						tempJudgments[TNS_HitMine]++;
@@ -407,7 +407,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			NoteData::iterator iter = pNoteData->FindTapNote(track, row);
 
 			if (iter != pNoteData->end(track)) {
-				TapNote* pTN =  &iter->second;
+				TapNote* pTN = &iter->second;
 				// Deal with holds here
 				if (pTN->type == TapNoteType_HoldHead) {
 					int isDropped = IsHoldDroppedInRowRangeForTrack(
@@ -532,7 +532,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			{
 				ReplaySnapshot rs;
 				auto prev = m_ReplaySnapshotMap.lower_bound(row);
-				prev--;
+				--prev;
 				// it is expected at this point that prev is not somehow outside
 				// the range if it is, we have bigger problems
 				FOREACH_ENUM(TapNoteScore, tns)
@@ -558,7 +558,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	// replay data and we have to account for those
 	vector<int> snapShotsUnused;
 	for (auto it = m_ReplaySnapshotMap.begin(); it != m_ReplaySnapshotMap.end();
-		 it++)
+		 ++it)
 		snapShotsUnused.push_back(it->first);
 	float cws = 0.f;
 	float mws = 0.f;
@@ -592,7 +592,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
 
 		snapShotsUnused.erase(snapShotsUnused.begin());
-		it++;
+		++it;
 	}
 	if (!snapShotsUnused.empty()) {
 		for (int row : snapShotsUnused) {
@@ -688,7 +688,7 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 	// that)
 	if (foundRow > row) {
 		if (lb != m_ReplaySnapshotMap.begin()) {
-			lb--;
+			--lb;
 			foundRow = lb->first;
 		} else {
 			return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
@@ -726,7 +726,7 @@ PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 		// Go over all holds in Replay Data
 		for (auto hiter = m_ReplayHoldMap.lower_bound(firstRow);
 			 hiter != m_ReplayHoldMap.end();
-			 hiter++) {
+			 ++hiter) {
 			// If this row is before the start, skip it
 			if (hiter->first < firstRow)
 				continue;
@@ -1056,7 +1056,7 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 	// Handle basic offset calculating and mines
 	for (auto it = m_ReplayTapMap.begin();
 		 it != m_ReplayTapMap.end() && it->first <= row;
-		 it++) {
+		 ++it) {
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
 				out.first += wife3_mine_hit_weight;
@@ -1132,7 +1132,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 					tns = TNS_HitMine;
 				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
 			}
-			tapIter++;
+			++tapIter;
 		}
 		// Use holdIter for this iteration if:
 		//	tapIter is finished
@@ -1145,12 +1145,12 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			for (auto& hrr : holdIter->second) {
 				lifeDelta += LifeMeterBar::MapHNSToDeltaLife(HNS_LetGo);
 			}
-			holdIter++;
+			++holdIter;
 		} else {
 			LOG->Trace("Somehow while calculating the life graph, something "
 					   "went wrong.");
-			holdIter++;
-			tapIter++;
+			++holdIter;
+			++tapIter;
 		}
 
 		lifeLevel += lifeDelta;
@@ -1191,7 +1191,7 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	// combo)
 	for (auto tapIter = m_ReplayTapMapByElapsedTime.begin();
 		 tapIter != m_ReplayTapMapByElapsedTime.end();
-		 tapIter++) {
+		 ++tapIter) {
 		vector<TapReplayResult> trrv = tapIter->second;
 		// Sort the vector of taps for this row
 		// by their offset values so we manage them in order

@@ -237,7 +237,7 @@ GetSMNotesTag(const Song& song, const Steps& in)
 	}
 	lines.push_back(ssprintf("     %s:", join(",", asRadarValues).c_str()));
 
-	RString sNoteData;
+	std::string sNoteData;
 	in.GetSMNoteData(sNoteData);
 
 	split(sNoteData, "\n", lines, true);
@@ -301,7 +301,7 @@ NotesWriterSM::GetEditFileName(const Song* pSong, const Steps* pSteps)
 	/* Try to make a unique name. This isn't guaranteed. Edit descriptions are
 	 * case-sensitive, filenames on disk are usually not, and we decimate
 	 * certain characters for FAT filesystems. */
-	RString sFile =
+	std::string sFile =
 	  pSong->GetTranslitFullTitle() + " - " + pSteps->GetDescription();
 
 	// HACK:

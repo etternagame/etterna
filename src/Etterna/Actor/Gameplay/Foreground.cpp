@@ -4,11 +4,10 @@
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Foreground.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
-#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 
 Foreground::~Foreground()
 {

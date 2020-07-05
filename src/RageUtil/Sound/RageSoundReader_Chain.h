@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_Chain - Chain sounds together */
+/* RageSoundReader_Chain - Chain sounds together */
 
 #ifndef RAGE_SOUND_READER_CHAIN
 #define RAGE_SOUND_READER_CHAIN
@@ -21,7 +21,7 @@ class RageSoundReader_Chain : public RageSoundReader
 		m_iPreferredSampleRate = iSampleRate;
 	}
 
-	int LoadSound(RString sPath);
+	int LoadSound(std::string sPath);
 	int LoadSound(RageSoundReader* pSound);
 
 	/* Add the given sound to play after fOffsetSecs seconds.  Takes ownership
@@ -40,10 +40,10 @@ class RageSoundReader_Chain : public RageSoundReader
 	int Read(float* pBuf, int iFrames) override;
 	int GetSampleRate() const override { return m_iActualSampleRate; }
 	unsigned GetNumChannels() const override { return m_iChannels; }
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 	int GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override;
-	RString GetError() const override { return ""; }
+	std::string GetError() const override { return ""; }
 
   private:
 	int GetSampleRateInternal() const;
@@ -52,7 +52,7 @@ class RageSoundReader_Chain : public RageSoundReader
 	int m_iActualSampleRate;
 	unsigned m_iChannels;
 
-	map<RString, RageSoundReader*> m_apNamedSounds;
+	map<std::string, RageSoundReader*> m_apNamedSounds;
 	vector<RageSoundReader*> m_apLoadedSounds;
 
 	struct Sound

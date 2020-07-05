@@ -11,7 +11,7 @@ class InputHandler_Win32_Pump : public InputHandler
 	void Update();
 	InputHandler_Win32_Pump();
 	~InputHandler_Win32_Pump();
-	RString GetDeviceSpecificInputString(const DeviceInput& di);
+	std::string GetDeviceSpecificInputString(const DeviceInput& di);
 	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
 
   private:

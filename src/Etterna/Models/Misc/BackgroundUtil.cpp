@@ -259,11 +259,11 @@ GetFilterToFileNames(const std::string sBaseDir,
 
 	ASSERT(!pSong->m_sGroupName.empty());
 	IniFile ini;
-	RString sPath =
+	std::string sPath =
 	  sBaseDir + pSong->m_sGroupName + "/" + "BackgroundMapping.ini";
 	ini.ReadFile(sPath);
 
-	RString sSection;
+	std::string sSection;
 	bool bSuccess = ini.GetValue("GenreToSection", pSong->m_sGenre, sSection);
 	if (!bSuccess) {
 		// LOG->Warn( "Genre '%s' isn't mapped", pSong->m_sGenre.c_str() );

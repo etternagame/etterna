@@ -10,7 +10,7 @@
 class RageWorkerThread
 {
   public:
-	RageWorkerThread(const RString& sName);
+	RageWorkerThread(const std::string& sName);
 	virtual ~RageWorkerThread();
 
 	/* Call SetTimeout(10) to start a timeout period of 10 seconds.  This is not
@@ -71,7 +71,7 @@ class RageWorkerThread
 	};
 	RageThread m_WorkerThread;
 	RageEvent m_WorkerEvent;
-	RString m_sName;
+	std::string m_sName;
 	int m_iRequest;
 	bool m_bRequestFinished;
 	bool m_bTimedOut;

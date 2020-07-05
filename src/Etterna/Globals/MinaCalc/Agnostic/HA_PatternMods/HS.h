@@ -71,7 +71,7 @@ struct HSMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
-	inline void decay_mod()
+	void decay_mod()
 	{
 		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
@@ -83,7 +83,7 @@ struct HSMod
 	//	doot[HSJ][i] = jack_prop;
 	//}
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 

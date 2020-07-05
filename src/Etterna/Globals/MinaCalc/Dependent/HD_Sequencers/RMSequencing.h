@@ -1,7 +1,7 @@
 #pragma once
 #include "Etterna/Globals/MinaCalc/Dependent/HD_MetaSequencing.h"
 
-static const float rma_diff_scaler = 1.2F;
+static const float rma_diff_scaler = 1.21F;
 
 enum rm_behavior
 {
@@ -48,7 +48,7 @@ struct RunningMan
 	// consecutive anchors sequence length, track this to throw out 2h trills
 	int anch_len = 0;
 
-	inline void full_reset()
+	void full_reset()
 	{
 		// don't touch anchor col
 		_len = 0;
@@ -67,55 +67,56 @@ struct RunningMan
 		anch_len = 0;
 	}
 
-	inline void add_off_tap_sh()
+	void add_off_tap_sh()
 	{
 		++off_taps_sh;
 		++ot_sh_len;
 		add_off_tap();
 	}
 
-	inline void add_off_tap()
+	void add_off_tap()
 	{
 		++off_len;
 		++off_taps;
 		++ran_taps;
 	}
 
-	inline void add_oht_tap()
+	void add_oht_tap()
 	{
 		++oht_len;
 		++oht_taps;
 	}
 
-	inline void add_anchor_tap()
+	void add_anchor_tap()
 	{
 		++_len;
 		++anch_len;
 		++ran_taps;
 	}
 
-	inline void add_jack_tap()
+	void add_jack_tap()
 	{
 		++jack_len;
 		++jack_taps;
 		++ran_taps;
 	}
 
-	inline void end_jack_and_anch_runs()
+	void end_jack_and_anch_runs()
 	{
 		end_anch_run();
 		end_jack_run();
 	}
 
-	inline void end_anch_run() { anch_len = 0; }
-	inline void end_jack_run() { jack_len = 0; }
-	inline void end_off_tap_run()
+	void end_anch_run() { anch_len = 0; }
+	void end_jack_run() { jack_len = 0; }
+
+	void end_off_tap_run()
 	{
 		off_len = 0;
 		ot_sh_len = 0;
 	}
 
-	inline void restart()
+	void restart()
 	{
 		/* we will probably be resetting much more than we are restarting, so to
 		 * reduce computational expense, only set any values back to 0 while
@@ -138,7 +139,7 @@ struct RunningMan
 	}
 
 	// any off taps to anchor len
-	[[nodiscard]] inline auto get_off_tap_prop() const -> float
+	[[nodiscard]] auto get_off_tap_prop() const -> float
 	{
 		if (off_taps == 0)
 			return 0.F;
@@ -147,7 +148,7 @@ struct RunningMan
 	}
 
 	// off hand taps to anchor len
-	[[nodiscard]] inline auto get_offhand_tap_prop() const -> float
+	[[nodiscard]] auto get_offhand_tap_prop() const -> float
 	{
 		if (off_taps - off_taps_sh <= 0)
 			return 0.F;
@@ -157,7 +158,7 @@ struct RunningMan
 	}
 
 	// same hand taps to anchor len
-	[[nodiscard]] inline auto get_off_tap_same_prop() const -> float
+	[[nodiscard]] auto get_off_tap_same_prop() const -> float
 	{
 		if (off_taps_sh == 0)
 			return 0.F;
@@ -181,12 +182,12 @@ struct RM_Sequencer
 	// flagged as runningmen
 	int max_anchor_len = 0;
 
-	inline void set_params(const float& moht,
-						   const float& moff,
-						   const float& motsh,
-						   const float& mburst,
-						   const float& mjack,
-						   const float& manch)
+	void set_params(const float& moht,
+					const float& moff,
+					const float& motsh,
+					const float& mburst,
+					const float& mjack,
+					const float& manch)
 	{
 		max_oht_len = static_cast<int>(moht);
 		max_off_len = static_cast<int>(moff);
@@ -212,7 +213,7 @@ struct RM_Sequencer
 
 #pragma region functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		// don't touch anchor col
 
@@ -237,7 +238,7 @@ struct RM_Sequencer
 	 * anchor sequencer) we can check for offtaps same hand, or offhand taps as
 	 * the last behavior to allow restarting. for the moment only
 	 * offtaps_samehand will be allowed to restart */
-	inline void restart(const Anchor_Sequencing& as)
+	void restart(const Anchor_Sequencing& as)
 	{
 		assert(_last_rmb == rmb_off_tap_sh);
 
@@ -277,12 +278,9 @@ struct RM_Sequencer
 		handle_last_rmb();
 	}
 
-	inline auto should_restart() const -> bool
-	{
-		return _last_rmb == rmb_off_tap_sh;
-	}
+	auto should_restart() const -> bool { return _last_rmb == rmb_off_tap_sh; }
 
-	inline void end_off_tap_run()
+	void end_off_tap_run()
 	{
 		// allow only 1 burst
 		if (is_bursting) {
@@ -294,7 +292,7 @@ struct RM_Sequencer
 	}
 
 	// optimization for restarting that skips max len checks
-	inline void handle_last_rmb()
+	void handle_last_rmb()
 	{
 		// only viable start/restart mechanisms for now
 		switch (_last_rmb) {
@@ -310,7 +308,7 @@ struct RM_Sequencer
 		}
 	}
 
-	inline auto off_len_exceeds_max() -> bool
+	auto off_len_exceeds_max() -> bool
 	{
 		// haven't exceeded anything
 		if (_rm.off_len <= max_off_len) {
@@ -329,28 +327,28 @@ struct RM_Sequencer
 		return false;
 	}
 
-	inline auto ot_sh_len_exceeds_max() const -> bool
+	auto ot_sh_len_exceeds_max() const -> bool
 	{
 		return _rm.ot_sh_len > max_ot_sh_len;
 	}
 
-	inline auto jack_len_exceeds_max() const -> bool
+	auto jack_len_exceeds_max() const -> bool
 	{
 		return _rm.jack_len > max_jack_len;
 	}
 
-	inline auto anch_len_exceeds_max() const -> bool
+	auto anch_len_exceeds_max() const -> bool
 	{
 		return _rm.anch_len > max_anchor_len;
 	}
 
-	inline auto oht_len_exceeds_max() const -> bool
+	auto oht_len_exceeds_max() const -> bool
 	{
 		return _rm.oht_len > max_oht_len;
 	}
 
 	// executed if incoming ct == _ct
-	inline void handle_anchor_behavior(const Anchor_Sequencing& as)
+	void handle_anchor_behavior(const Anchor_Sequencing& as)
 	{
 		// handle anchor logic here
 
@@ -377,14 +375,13 @@ struct RM_Sequencer
 			case anchoring:
 				_rm.add_anchor_tap();
 				_rm.end_off_tap_run();
-				return;
 			case anch_init:
 				// do nothing
 				break;
 		}
 	}
 
-	inline void handle_off_tap_sh_behavior()
+	void handle_off_tap_sh_behavior()
 	{
 		// add before running length checks
 		_rm.add_off_tap_sh();
@@ -398,7 +395,7 @@ struct RM_Sequencer
 		}
 	}
 
-	inline void handle_off_tap_oh_behavior()
+	void handle_off_tap_oh_behavior()
 	{
 		_rm.add_off_tap();
 		if (off_len_exceeds_max()) {
@@ -410,7 +407,7 @@ struct RM_Sequencer
 		}
 	}
 
-	inline void handle_jack_behavior()
+	void handle_jack_behavior()
 	{
 		_rm.add_jack_tap();
 		if (jack_len_exceeds_max()) {
@@ -424,7 +421,7 @@ struct RM_Sequencer
 	 * through to the latter's, so don't do anything outside of oht values
 	 * or reset anything, it'll be redundant at best and bug prone at worst
 	 */
-	inline void handle_oht_behavior(const col_type& ct)
+	void handle_oht_behavior(const col_type& ct)
 	{
 		/* to be explicit about the goal here, given 111212111 any reasonable
 		 * player would conclude there was a 4 note oht in the middle of a
@@ -453,7 +450,7 @@ struct RM_Sequencer
 		}
 	}
 
-	inline void handle_rmb(const Anchor_Sequencing& as)
+	void handle_rmb(const Anchor_Sequencing& as)
 	{
 		assert(_status == rm_running);
 		switch (_rmb) {
@@ -479,16 +476,16 @@ struct RM_Sequencer
 	 * about basic off_hand information, so this should be called to update
 	 * using that information before the ct == col_empty continue block in ulbu.
 	 */
-	inline void advance_off_hand_sequencing()
+	void advance_off_hand_sequencing()
 	{
 		handle_off_tap_oh_behavior();
 		_last_rmb = rmb_off_tap_oh;
 	}
 
-	inline void operator()(const col_type& ct,
-						   const base_type& bt,
-						   const meta_type& mt,
-						   const Anchor_Sequencing& as)
+	void operator()(const col_type& ct,
+					const base_type& bt,
+					const meta_type& mt,
+					const Anchor_Sequencing& as)
 	{
 		/* cosmic brain handling of ohts, this won't interfere with the
 		 * determinations in the behavior block, but it can set rm_inactive (as
@@ -547,7 +544,6 @@ struct RM_Sequencer
 			case base_type_init:
 				// bail and don't set anything
 				return;
-				break;
 			default:
 				assert(0);
 				break;
@@ -572,16 +568,16 @@ struct RM_Sequencer
 		_last_rmb = _rmb;
 	}
 
-	[[nodiscard]] inline auto get_difficulty() const -> float
+	[[nodiscard]] auto get_difficulty() const -> float
 	{
 		if (_status == rm_inactive || _rm._len < 3) {
 			return 1.F;
 		}
 
-		float flool = ms_from(last_anchor_time, _start);
+		const auto flool = ms_from(last_anchor_time, _start);
 
-		float pule = (flool) / static_cast<float>(_rm._len - 1);
-		float drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
+		const auto pule = (flool) / static_cast<float>(_rm._len - 1);
+		const auto drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
 		return drool;
 	}
 };

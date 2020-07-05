@@ -50,15 +50,15 @@ CodeDetector::EnteredCode(GameController controller, Code code)
 }
 
 void
-CodeDetector::RefreshCacheItems(RString sClass)
+CodeDetector::RefreshCacheItems(std::string sClass)
 {
 	if (sClass == "")
 		sClass = "CodeDetector";
 	FOREACH_ENUM(Code, c)
 	{
 		InputQueueCode& item = g_CodeItems[c];
-		const RString sCodeName = CodeToString(c);
-		const RString sButtonsNames = THEME->GetMetric(sClass, sCodeName);
+		const std::string sCodeName = CodeToString(c);
+		const std::string sButtonsNames = THEME->GetMetric(sClass, sCodeName);
 
 		item.Load(sButtonsNames);
 	}
@@ -188,12 +188,12 @@ CodeDetector::ChangeScrollSpeed(GameController controller, bool bIncrement)
 	OptionRowData row;
 	OptionRowHandler hand;
 
-	RString sTitleOut;
+	std::string sTitleOut;
 	ScreenOptionsMaster::SetList( row, hand, "Speed", sTitleOut );
 
 	vector<ModeChoice>& entries = hand.ListEntries;
 
-	RString sScrollSpeed = po.GetScrollSpeedAsString();
+	std::string sScrollSpeed = po.GetScrollSpeedAsString();
 	if (sScrollSpeed.empty())
 		sScrollSpeed = "1x";
 

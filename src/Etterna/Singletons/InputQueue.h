@@ -33,7 +33,7 @@ class InputQueue
 struct InputQueueCode
 {
   public:
-	bool Load(RString sButtonsNames);
+	bool Load(std::string sButtonsNames);
 	bool EnteredCode(GameController controller) const;
 
 	InputQueueCode()

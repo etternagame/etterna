@@ -1,4 +1,4 @@
-﻿/* RageFileBasic - simple file interface. */
+/* RageFileBasic - simple file interface. */
 
 #ifndef RAGE_FILE_BASIC_H
 #define RAGE_FILE_BASIC_H
@@ -11,7 +11,7 @@ class RageFileBasic
   public:
 	virtual ~RageFileBasic() = default;
 
-	virtual RString GetError() const = 0;
+	virtual std::string GetError() const = 0;
 	virtual void ClearError() = 0;
 	virtual bool AtEOF() const = 0;
 
@@ -27,13 +27,13 @@ class RageFileBasic
 	 * does not necessarily mean that the end of the stream has been reached;
 	 * keep reading until 0 is returned. */
 	virtual int Read(void* pBuffer, size_t iBytes) = 0;
-	virtual int Read(RString& buffer, int bytes = -1) = 0;
+	virtual int Read(std::string& buffer, int bytes = -1) = 0;
 	virtual int Read(void* buffer, size_t bytes, int nmemb) = 0;
 
 	/* Write iSize bytes of data from pBuf.  Return 0 on success, -1 on error.
 	 */
 	virtual int Write(const void* pBuffer, size_t iBytes) = 0;
-	virtual int Write(const RString& sString) = 0;
+	virtual int Write(const std::string& sString) = 0;
 	virtual int Write(const void* buffer, size_t bytes, int nmemb) = 0;
 
 	/* Due to buffering, writing may not happen by the end of a Write() call, so
@@ -44,12 +44,12 @@ class RageFileBasic
 	virtual int Flush() = 0;
 
 	/* This returns a descriptive path for the file, or "". */
-	virtual RString GetDisplayPath() const { return RString(); }
+	virtual std::string GetDisplayPath() const { return std::string(); }
 
 	virtual RageFileBasic* Copy() const = 0;
 
-	virtual int GetLine(RString& out) = 0;
-	virtual int PutLine(const RString& str) = 0;
+	virtual int GetLine(std::string& out) = 0;
+	virtual int PutLine(const std::string& str) = 0;
 
 	virtual void EnableCRC32(bool on = true) = 0;
 	virtual bool GetCRC32(uint32_t* iRet) = 0;
@@ -69,7 +69,7 @@ class RageFileObj : public RageFileBasic
 	RageFileObj(const RageFileObj& cpy);
 	~RageFileObj() override;
 
-	RString GetError() const override { return m_sError; }
+	std::string GetError() const override { return m_sError; }
 	void ClearError() override { SetError(""); }
 
 	bool AtEOF() const override { return m_bEOF; }
@@ -79,11 +79,11 @@ class RageFileObj : public RageFileBasic
 	int Tell() const override { return m_iFilePos; }
 
 	int Read(void* pBuffer, size_t iBytes) override;
-	int Read(RString& buffer, int bytes = -1) override;
+	int Read(std::string& buffer, int bytes = -1) override;
 	int Read(void* buffer, size_t bytes, int nmemb) override;
 
 	int Write(const void* pBuffer, size_t iBytes) override;
-	int Write(const RString& sString) override
+	int Write(const std::string& sString) override
 	{
 		return Write(sString.data(), sString.size());
 	}
@@ -91,21 +91,26 @@ class RageFileObj : public RageFileBasic
 
 	int Flush() override;
 
-	int GetLine(RString& out) override;
-	int PutLine(const RString& str) override;
+	int GetLine(std::string& out) override;
+	int PutLine(const std::string& str) override;
 
 	void EnableCRC32(bool on = true) override;
 	bool GetCRC32(uint32_t* iRet) override;
 
 	int GetFileSize() const override = 0;
 	int GetFD() override { return -1; }
-	RString GetDisplayPath() const override { return RString(); }
-	RageFileBasic* Copy() const override { FAIL_M("Copying unimplemented"); }
+	std::string GetDisplayPath() const override { return std::string(); }
+	RageFileBasic* Copy() const override
+	{
+		FAIL_M("Copying unimplemented");
+		return 0;
+	}
 
   protected:
 	virtual int SeekInternal(int /* iOffset */)
 	{
 		FAIL_M("Seeking unimplemented");
+		return 0;
 	}
 	virtual int ReadInternal(void* pBuffer, size_t iBytes) = 0;
 	virtual int WriteInternal(const void* pBuffer, size_t iBytes) = 0;
@@ -114,8 +119,8 @@ class RageFileObj : public RageFileBasic
 	void EnableReadBuffering();
 	void EnableWriteBuffering(int iBytes = 1024 * 64);
 
-	void SetError(const RString& sError) { m_sError = sError; }
-	RString m_sError;
+	void SetError(const std::string& sError) { m_sError = sError; }
+	std::string m_sError;
 
   private:
 	int FillReadBuf();

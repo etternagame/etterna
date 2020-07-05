@@ -5,7 +5,7 @@
 #include <ctime>
 
 int
-StringToDayInYear(const RString& sDayInYear);
+StringToDayInYear(const std::string& sDayInYear);
 
 /** @brief The number of days we check for previously. */
 const int NUM_LAST_DAYS = 7;
@@ -29,30 +29,30 @@ const int DAYS_IN_WEEK = 7;
 enum Month
 {
 	NUM_Month = 12, /**< The number of months in the year. */
-	Month_Invalid   /**< There should be no month at this point. */
+	Month_Invalid	/**< There should be no month at this point. */
 };
 
-RString
+std::string
 DayInYearToString(int iDayInYearIndex);
-RString
+std::string
 LastDayToString(int iLastDayIndex);
-RString
+std::string
 LastDayToLocalizedString(int iLastDayIndex);
-RString
+std::string
 DayOfWeekToString(int iDayOfWeekIndex);
-RString
+std::string
 DayOfWeekToLocalizedString(int iDayOfWeekIndex);
-RString
+std::string
 HourInDayToString(int iHourIndex);
-RString
+std::string
 HourInDayToLocalizedString(int iHourIndex);
-const RString&
+const std::string&
 MonthToString(Month month);
-const RString&
+const std::string&
 MonthToLocalizedString(Month month);
-RString
+std::string
 LastWeekToString(int iLastWeekIndex);
-RString
+std::string
 LastWeekToLocalizedString(int iLastWeekIndex);
 LuaDeclareType(Month);
 
@@ -162,13 +162,13 @@ struct DateTime
 	 *
 	 * This returns a common SQL/XML format: "YYYY-MM-DD HH:MM:SS".
 	 * @return the string representation of the date and time. */
-	RString GetString() const;
+	std::string GetString() const;
 	/**
 	 * @brief Attempt to turn a string into a DateTime.
 	 *
 	 * @param sDateTime the string to attempt to convert.
 	 * @return true if the conversion worked, or false otherwise. */
-	bool FromString(const RString& sDateTime);
+	bool FromString(const std::string& sDateTime);
 };
 
 #endif

@@ -75,8 +75,7 @@ NoteDataWithScoring::MinTapNoteScore(const NoteData& in, const unsigned& row)
 		// Ignore mines (and fake arrows), or the score will always be TNS_None.
 		const TapNote& tn = in.GetTapNote(t, row);
 		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
-			tn.type == TapNoteType_Fake ||
-			tn.type == TapNoteType_AutoKeysound)
+			tn.type == TapNoteType_Fake || tn.type == TapNoteType_AutoKeysound)
 			continue;
 		score = min(score, tn.result.tns);
 	}

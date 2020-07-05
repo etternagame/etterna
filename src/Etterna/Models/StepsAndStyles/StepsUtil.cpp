@@ -1,15 +1,15 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Steps.h"
 #include "StepsUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 // Sorting stuff
-map<const Steps*, RString> steps_sort_val;
+map<const Steps*, std::string> steps_sort_val;
 
 static bool
 CompareStepsPointersBySortValueAscending(const Steps* pSteps1,
@@ -30,8 +30,6 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 										   ProfileSlot slot,
 										   bool bDescending)
 {
-	if (!PROFILEMAN->IsPersistentProfile(slot))
-		return; // nothing to do since we don't have data
 	Profile* pProfile = PROFILEMAN->GetProfile(slot);
 	SortStepsPointerArrayByNumPlays(vStepsPointers, pProfile, bDescending);
 }
@@ -58,11 +56,10 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 	}
 
 	ASSERT(pProfile != NULL);
-	for (unsigned i = 0; i < vStepsPointers.size(); ++i) {
-		Steps* pSteps = vStepsPointers[i];
-		Song* pSong = mapStepsToSong[pSteps];
-		steps_sort_val[vStepsPointers[i]] =
-		  ssprintf("%9i", pProfile->GetStepsNumTimesPlayed(pSong, pSteps));
+	for (auto& steps : vStepsPointers) {
+		steps_sort_val[steps] = ssprintf(
+		  "%9i",
+		  SCOREMAN->GetScoresForChart(steps->GetChartKey())->GetNumScores());
 	}
 	stable_sort(vStepsPointers.begin(),
 				vStepsPointers.end(),
@@ -136,8 +133,8 @@ bool
 StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 											 const Steps* pStep2)
 {
-	return StdString::ssicmp(pStep1->GetDescription().c_str(),
-							 pStep2->GetDescription().c_str()) < 0;
+	return CompareNoCase(pStep1->GetDescription(), pStep2->GetDescription()) <
+		   0;
 }
 
 void
@@ -231,7 +228,7 @@ StepsID::LoadFromNode(const XNode* pNode)
 {
 	ASSERT(pNode->GetName() == "Steps");
 
-	RString sTemp;
+	std::string sTemp;
 
 	pNode->GetAttrValue("StepsType", sTemp);
 	st = GAMEMAN->StringToStepsType(sTemp);
@@ -253,10 +250,10 @@ StepsID::LoadFromNode(const XNode* pNode)
 	m_Cache.Unset();
 }
 
-RString
+std::string
 StepsID::ToString() const
 {
-	RString s = GAMEMAN->GetStepsTypeInfo(st).szName;
+	std::string s = GAMEMAN->GetStepsTypeInfo(st).szName;
 	s += " " + DifficultyToString(dc);
 	if (dc == Difficulty_Edit) {
 		s += " " + sDescription;

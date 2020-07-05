@@ -22,7 +22,8 @@
 class InputHandler : public RageDriver
 {
   public:
-	static void Create(const RString& sDrivers, vector<InputHandler*>& apAdd);
+	static void Create(const std::string& sDrivers,
+					   vector<InputHandler*>& apAdd);
 	static DriverList m_pDriverList;
 
 	InputHandler()
@@ -37,9 +38,9 @@ class InputHandler : public RageDriver
 
 	// Override to return a pretty string that's specific to the controller
 	// type.
-	virtual RString GetDeviceSpecificInputString(const DeviceInput& di);
+	virtual std::string GetDeviceSpecificInputString(const DeviceInput& di);
 	static wchar_t ApplyKeyModifiers(wchar_t c);
-	virtual RString GetLocalizedInputString(const DeviceInput& di);
+	virtual std::string GetLocalizedInputString(const DeviceInput& di);
 	virtual wchar_t DeviceButtonToChar(DeviceButton button,
 									   bool bUseCurrentKeyModifiers);
 

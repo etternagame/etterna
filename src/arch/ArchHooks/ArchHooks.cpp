@@ -87,7 +87,7 @@ ArchHooks::AppFocusChanged()
 }
 
 bool
-ArchHooks::GoToURL(const RString& sUrl)
+ArchHooks::GoToURL(const std::string& sUrl)
 {
 	return false;
 }
@@ -98,7 +98,7 @@ ArchHooks::Create()
 	return new ARCH_HOOKS;
 }
 
-RString
+std::string
 ArchHooks::GetClipboard()
 {
 	LOG->Warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");

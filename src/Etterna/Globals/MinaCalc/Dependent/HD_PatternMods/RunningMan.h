@@ -6,6 +6,17 @@
 #include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
 
+/* Unlike other pattern mods runningman sequencing has 2 core purposes, the
+ * primary one involves tracking the anchor speed of a runningman sequence and
+ * using that plus other characteristics of the runningman to guess at a more ms
+ * oriented baseline difficulty, which gets rolled into the tech base
+ * calculations, this happens during the main row loop in ulbu, but not inside
+ * the pattern mod loop. The other is the usual pattern mod generation, which
+ * generates a pattern mod out purely the characteristics, independent of the
+ * anchor speed. This is to slightly push up small runningman anchors inside
+ * streams, or js, etc, and to fully push up much heavier runningman oriented
+ * patterns in those same skillsets (policy in the sky, etc) */
+
 struct RunningManMod
 {
 	const CalcPatternMod _pmod = RanMan;
@@ -103,7 +114,7 @@ struct RunningManMod
 
 	float pmod = neutral;
 
-	inline void full_reset()
+	void full_reset()
 	{
 		for (auto& rm : rms) {
 			rm.full_reset();
@@ -122,9 +133,9 @@ struct RunningManMod
 	/* keep parallel rm sequencers for both left and right column for each
 	 * hand, this way we don't have to worry about trying to figure out
 	 * which column the runningman anchor should be on */
-	inline void setup()
+	void setup()
 	{
-		for (auto& c : ct_loop_no_jumps) {
+		for (const auto& c : ct_loop_no_jumps) {
 			rms.at(c)._ct = c;
 			rms.at(c).set_params(max_oht_len,
 								 max_off_len,
@@ -135,26 +146,26 @@ struct RunningManMod
 		}
 	}
 
-	inline void advance_off_hand_sequencing()
+	void advance_off_hand_sequencing()
 	{
-		for (auto& c : ct_loop_no_jumps) {
+		for (const auto& c : ct_loop_no_jumps) {
 			rms.at(c).advance_off_hand_sequencing();
 		}
 	}
 
-	inline void advance_sequencing(const col_type& ct,
-								   const base_type& bt,
-								   const meta_type& mt,
-								   const AnchorSequencer& as)
+	void advance_sequencing(const col_type& ct,
+							const base_type& bt,
+							const meta_type& mt,
+							const AnchorSequencer& as)
 	{
-		for (auto& c : ct_loop_no_jumps) {
+		for (const auto& c : ct_loop_no_jumps) {
 			rms.at(c)(ct, bt, mt, as.anch.at(c));
 		}
 
 		highest_rm = get_active_rm_with_higher_difficulty();
 	}
 
-	[[nodiscard]] inline auto get_highest_anchor_difficulty() const -> float
+	[[nodiscard]] auto get_highest_anchor_difficulty() const -> float
 	{
 
 		/* see off_hand_tap_prop for a detailed explanation, basically only the
@@ -171,7 +182,7 @@ struct RunningManMod
 		return highest_rm.get_difficulty() * oht_p;
 	}
 
-	[[nodiscard]] inline auto get_active_rm_with_higher_difficulty() const
+	[[nodiscard]] auto get_active_rm_with_higher_difficulty() const
 	  -> RM_Sequencer
 	{
 		if (rms.at(col_left)._status == rm_running &&
@@ -192,7 +203,7 @@ struct RunningManMod
 	 * since we don't have to push the mod to extreme levels anymore to get
 	 * runningmen registering in tech, we can tune this mod with the expectation
 	 * that it will push up some files that don't need to be pushed up */
-	inline void set_pmod(const int& total_taps)
+	void set_pmod(const int& total_taps)
 	{
 		/* nothing here */
 		if (total_taps == 0) {
@@ -267,7 +278,7 @@ struct RunningManMod
 						 max_mod);
 	}
 
-	[[nodiscard]] inline auto operator()(const int& total_taps) -> float
+	[[nodiscard]] auto operator()(const int& total_taps) -> float
 	{
 		set_pmod(total_taps);
 
@@ -275,5 +286,5 @@ struct RunningManMod
 		return pmod;
 	}
 
-	inline void interval_end() { highest_rm.full_reset(); }
+	void interval_end() { highest_rm.full_reset(); }
 };

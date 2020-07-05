@@ -5,8 +5,6 @@
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
-// ok i remember now its because i wanted to smooth the mod before applying to
-// cj
 struct CJDensityMod
 {
 	const CalcPatternMod _pmod = CJDensity;
@@ -21,8 +19,8 @@ struct CJDensityMod
 
 	float single_scaler = 2.F;
 	float jump_scaler = 1.2F;
-	float hand_scaler = 1.F;
-	float quad_scaler = 1.F;
+	float hand_scaler = 0.95F;
+	float quad_scaler = 0.95F;
 
 	const vector<pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -38,14 +36,14 @@ struct CJDensityMod
 
 	float pmod = neutral;
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 		if (itvi.total_taps == 0) {
 			return neutral;
 		}
 
-		auto t_taps = static_cast<float>(itvi.total_taps);
+		const auto& t_taps = static_cast<float>(itvi.total_taps);
 		auto a0 =
 		  static_cast<float>(static_cast<float>(itvi.taps_by_size[single]) *
 							 single_scaler) /

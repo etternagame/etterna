@@ -2,7 +2,6 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -21,7 +20,7 @@ XToString(PromptAnswer);
 
 // Settings:
 namespace {
-RString g_sText;
+std::string g_sText;
 PromptType g_PromptType;
 PromptAnswer g_defaultAnswer;
 void (*g_pOnYes)(void*);
@@ -30,7 +29,7 @@ void* g_pCallbackData;
 };
 
 void
-ScreenPrompt::SetPromptSettings(const RString& sText,
+ScreenPrompt::SetPromptSettings(const std::string& sText,
 								PromptType type,
 								PromptAnswer defaultAnswer,
 								void (*OnYes)(void*),
@@ -47,7 +46,7 @@ ScreenPrompt::SetPromptSettings(const RString& sText,
 
 void
 ScreenPrompt::Prompt(ScreenMessage smSendOnPop,
-					 const RString& sText,
+					 const std::string& sText,
 					 PromptType type,
 					 PromptAnswer defaultAnswer,
 					 void (*OnYes)(void*),
@@ -105,12 +104,12 @@ ScreenPrompt::BeginScreen()
 	m_sprCursor->PlayCommand("On");
 
 	for (int i = 0; i <= g_PromptType; i++) {
-		RString sElem = ssprintf("Answer%dOf%d", i + 1, g_PromptType + 1);
+		std::string sElem = ssprintf("Answer%dOf%d", i + 1, g_PromptType + 1);
 		m_textAnswer[i].SetName(sElem);
 		LOAD_ALL_COMMANDS(m_textAnswer[i]);
 		// Side note:  Because LOAD_ALL_COMMANDS occurs here, InitCommand will
 		// not be run for the actors.  People can just use OnCommand instead.
-		RString sAnswer = PromptAnswerToString((PromptAnswer)i);
+		std::string sAnswer = PromptAnswerToString((PromptAnswer)i);
 		// FRAGILE
 		if (g_PromptType == PROMPT_OK)
 			sAnswer = "OK";

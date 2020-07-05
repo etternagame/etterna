@@ -164,7 +164,7 @@ RageSoundReader_Extend::GetNextSourceFrame() const
 }
 
 bool
-RageSoundReader_Extend::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_Extend::SetProperty(const std::string& sProperty, float fValue)
 {
 	if (sProperty == "StartSecond") {
 		m_iStartFrames = lround(fValue * this->GetSampleRate());

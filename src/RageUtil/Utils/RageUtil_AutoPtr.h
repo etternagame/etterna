@@ -1,4 +1,4 @@
-﻿/* AutoPtrCopyOnWrite - Simple smart pointer template. */
+/* AutoPtrCopyOnWrite - Simple smart pointer template. */
 
 #ifndef RAGE_UTIL_AUTO_PTR_H
 #define RAGE_UTIL_AUTO_PTR_H
@@ -30,7 +30,7 @@ class AutoPtrCopyOnWrite
   public:
 	/* This constructor only exists to make us work with STL containers. */
 	inline AutoPtrCopyOnWrite()
-	  : m_pPtr(NULL)
+	  : m_pPtr(nullptr)
 	  , m_iRefCount(new int(1))
 	{
 	}
@@ -50,8 +50,8 @@ class AutoPtrCopyOnWrite
 
 	void Swap(AutoPtrCopyOnWrite<T>& rhs)
 	{
-		swap(m_pPtr, rhs.m_pPtr);
-		swap(m_iRefCount, rhs.m_iRefCount);
+		std::swap(m_pPtr, rhs.m_pPtr);
+		std::swap(m_iRefCount, rhs.m_iRefCount);
 	}
 
 	inline AutoPtrCopyOnWrite<T>& operator=(const AutoPtrCopyOnWrite& rhs)

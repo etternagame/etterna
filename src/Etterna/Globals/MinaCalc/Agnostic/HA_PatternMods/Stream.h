@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 
+#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 // since the calc skillset balance now operates on +- rather than
@@ -45,7 +46,7 @@ struct StreamMod
 	float jack_component = 0.F;
 	float pmod = min_mod;
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 
@@ -62,7 +63,7 @@ struct StreamMod
 		 * every other 4th, so 17/19 ratio should return full points, but maybe
 		 * we should allow for some leeway in bad interval slicing this maybe
 		 * doesn't need to be so severe, on the other hand, maybe it doesn'ting
-		 * need to be not needing'nt to be so severe */ 
+		 * need to be not needing'nt to be so severe */
 
 		// we could make better use of sequencing here since now it's easy
 

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_PostBuffering.h"
 #include "RageSoundUtil.h"
 
@@ -30,7 +30,7 @@ RageSoundReader_PostBuffering::Read(float* pBuf, int iFrames)
 }
 
 bool
-RageSoundReader_PostBuffering::SetProperty(const RString& sProperty,
+RageSoundReader_PostBuffering::SetProperty(const std::string& sProperty,
 										   float fValue)
 {
 	if (sProperty == "Volume") {

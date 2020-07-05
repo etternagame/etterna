@@ -92,12 +92,12 @@ struct WavReader
 	virtual bool Init() = 0;
 	virtual int SetPosition(int iFrame) = 0;
 	virtual int GetNextSourceFrame() const = 0;
-	RString GetError() const { return m_sError; }
+	std::string GetError() const { return m_sError; }
 
   protected:
 	RageFileBasic& m_File;
 	const RageSoundReader_WAV::WavData& m_WavData;
-	RString m_sError;
+	std::string m_sError;
 };
 
 struct WavReaderPCM : public WavReader
@@ -458,16 +458,16 @@ struct WavReaderADPCM : public WavReader
 	}
 };
 
-RString
-ReadString(RageFileBasic& f, int iSize, RString& sError)
+std::string
+ReadString(RageFileBasic& f, int iSize, std::string& sError)
 {
 	if (sError.size() != 0)
-		return RString();
+		return std::string();
 
 	auto* buf = new char[iSize + 1];
 	std::fill(buf, buf + iSize + 1, '\0');
 	FileReading::ReadBytes(f, buf, iSize, sError);
-	RString ret(buf);
+	std::string ret(buf);
 	delete[] buf;
 	return ret;
 }
@@ -486,7 +486,7 @@ RageSoundReader_WAV::Open(RageFileBasic* pFile)
 {
 	m_pFile = pFile;
 
-	RString sError;
+	std::string sError;
 
 	/* RIFF header: */
 	if (ReadString(*m_pFile, 4, sError) != "RIFF") {
@@ -502,7 +502,7 @@ RageSoundReader_WAV::Open(RageFileBasic* pFile)
 
 	bool bGotFormatChunk = false, bGotDataChunk = false;
 	while (!bGotFormatChunk || !bGotDataChunk) {
-		RString ChunkID = ReadString(*m_pFile, 4, sError);
+		std::string ChunkID = ReadString(*m_pFile, 4, sError);
 		int32_t iChunkSize = FileReading::read_32_le(*m_pFile, sError);
 
 		if (sError.size() != 0) {

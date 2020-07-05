@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_EXCEPTION_H
+#ifndef RAGE_EXCEPTION_H
 #define RAGE_EXCEPTION_H
 
 #include "config.hpp"
@@ -11,7 +11,7 @@ namespace RageException {
 void NORETURN
 Throw(const char* fmt, ...) PRINTF(1, 2);
 void
-SetCleanupHandler(void (*pHandler)(const RString& sError));
+SetCleanupHandler(void (*pHandler)(const std::string& sError));
 }
 
 #endif

@@ -18,13 +18,13 @@ static SETINDETERMINATE Module_SetIndeterminate;
 
 LoadingWindow_Gtk::LoadingWindow_Gtk() {}
 
-static RString
-ModuleError(const RString s)
+static std::string
+ModuleError(const std::string s)
 {
 	return ssprintf("Couldn't load symbol Module_%s", s.c_str());
 }
 
-RString
+std::string
 LoadingWindow_Gtk::Init()
 {
 	ASSERT(Handle == NULL);
@@ -81,7 +81,7 @@ LoadingWindow_Gtk::~LoadingWindow_Gtk()
 }
 
 void
-LoadingWindow_Gtk::SetText(const RString& s)
+LoadingWindow_Gtk::SetText(const std::string& s)
 {
 	Module_SetText(s);
 }
