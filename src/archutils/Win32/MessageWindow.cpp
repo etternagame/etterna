@@ -4,7 +4,7 @@
 #include "AppInstance.h"
 #include "archutils/Win32/ErrorStrings.h"
 
-MessageWindow::MessageWindow(const RString& sClassName)
+MessageWindow::MessageWindow(const std::string& sClassName)
 {
 	AppInstance inst;
 	WNDCLASS WindowClass = {
@@ -17,7 +17,7 @@ MessageWindow::MessageWindow(const RString& sClassName)
 		LoadCursor(NULL, IDC_ARROW), /* default cursor */
 		NULL,						 /* hbrBackground */
 		NULL,						 /* lpszMenuName */
-		sClassName					 /* lpszClassName */
+		sClassName.c_str()			 /* lpszClassName */
 	};
 
 	if (!RegisterClassA(&WindowClass) &&
@@ -26,8 +26,17 @@ MessageWindow::MessageWindow(const RString& sClassName)
 		  "%s", werr_ssprintf(GetLastError(), "RegisterClass").c_str());
 
 	// XXX: on 2k/XP, use HWND_MESSAGE as parent
-	m_hWnd = CreateWindow(
-	  sClassName, sClassName, WS_DISABLED, 0, 0, 0, 0, NULL, NULL, inst, NULL);
+	m_hWnd = CreateWindow(sClassName.c_str(),
+						  sClassName.c_str(),
+						  WS_DISABLED,
+						  0,
+						  0,
+						  0,
+						  0,
+						  NULL,
+						  NULL,
+						  inst,
+						  NULL);
 	ASSERT(m_hWnd != NULL);
 
 	SetProp(m_hWnd, "MessageWindow", this);

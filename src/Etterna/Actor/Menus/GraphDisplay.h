@@ -1,4 +1,4 @@
-﻿#ifndef GRAPH_DISPLAY_H
+#ifndef GRAPH_DISPLAY_H
 #define GRAPH_DISPLAY_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
@@ -17,7 +17,7 @@ class GraphDisplay : public ActorFrame
 	~GraphDisplay() override;
 	GraphDisplay* Copy() const override;
 
-	void Load(const RString& sMetricsGroup);
+	void Load(const std::string& sMetricsGroup);
 	void Set(const StageStats& ss, const PlayerStageStats& s);
 
 	// Lua

@@ -3,10 +3,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSystemLayer.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -33,11 +30,11 @@ LocalizedString CREDITS_LOADED_FROM_LAST_GOOD_APPEND(
 
 ThemeMetric<bool> CREDITS_JOIN_ONLY("ScreenSystemLayer", "CreditsJoinOnly");
 
-RString
+std::string
 GetCreditsMessage(PlayerNumber pn)
 {
 	if ((bool)CREDITS_JOIN_ONLY && !GAMESTATE->PlayersCanJoin())
-		return RString();
+		return std::string();
 
 	bool bShowCreditsMessage;
 	if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) &&
@@ -54,15 +51,9 @@ GetCreditsMessage(PlayerNumber pn)
 				   CREDITS_LOADED_FROM_LAST_GOOD_APPEND.GetValue();
 		else if (PROFILEMAN->LastLoadWasTamperedOrCorrupt(pn))
 			return CREDITS_LOAD_FAILED.GetValue();
-		// Prefer the name of the profile over the name of the card.
-		else if (PROFILEMAN->IsPersistentProfile(pn))
-			return pProfile->GetDisplayNameOrHighScoreName();
-		else if (GAMESTATE->PlayersCanJoin())
-			return CREDITS_INSERT_CARD.GetValue();
-		else
-			return RString();
+		return pProfile->GetDisplayNameOrHighScoreName();
 	}
-	return RString();
+	return std::string();
 }
 };
 
@@ -74,14 +65,14 @@ int
 GetCreditsMessage(lua_State* L)
 {
 	PlayerNumber pn = PLAYER_1;
-	RString sText = GetCreditsMessage(pn);
+	std::string sText = GetCreditsMessage(pn);
 	LuaHelpers::Push(L, sText);
 	return 1;
 }
 
 const luaL_Reg ScreenSystemLayerHelpersTable[] = { LIST_METHOD(
 													 GetCreditsMessage),
-												   { NULL, NULL } };
+												   { nullptr, nullptr } };
 } // namespace
 
 LUA_REGISTER_NAMESPACE(ScreenSystemLayerHelpers)

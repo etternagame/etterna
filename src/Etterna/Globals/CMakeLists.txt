@@ -1,6 +1,7 @@
+add_subdirectory(MinaCalc)
+
 list(APPEND GLOBAL_FILES_SRC
 	"MinaCalc.cpp"
-	"MinaCalcOld.cpp"
 	"SoloCalc.cpp"
 	"GameLoop.cpp"
 	"global.cpp"
@@ -9,7 +10,7 @@ list(APPEND GLOBAL_FILES_SRC
 
 list(APPEND GLOBAL_FILES_HPP
 	"MinaCalc.h"
-	"MinaCalcOld.h"
+	"MinaCalcHelpers.h"
 	"SoloCalc.h"
 	"GameLoop.h"
 	"global.h"

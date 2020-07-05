@@ -190,28 +190,28 @@ class NoteData
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a tap, false otherwise. */
-	bool IsTap(const TapNote& tn, int row) const;
+	static bool IsTap(const TapNote& tn, int row);
 
 	/**
 	 * @brief Determine if the note in question should be counted as a mine.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a mine, false otherwise. */
-	bool IsMine(const TapNote& tn, int row) const;
+	static bool IsMine(const TapNote& tn, int row);
 
 	/**
 	 * @brief Determine if the note in question should be counted as a lift.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a lift, false otherwise. */
-	bool IsLift(const TapNote& tn, int row) const;
+	static bool IsLift(const TapNote& tn, int row);
 
 	/**
 	 * @brief Determine if the note in question should be counted as a fake.
 	 * @param tn the note in question.
 	 * @param row the row it lives in.
 	 * @return true if it's a fake, false otherwise. */
-	bool IsFake(const TapNote& tn, int row) const;
+	static bool IsFake(const TapNote& tn, int row);
 
 	pair<int, int> GetNumRowsWithSimultaneousTapsTwoPlayer(
 	  int minTaps = 2,
@@ -231,7 +231,6 @@ class NoteData
 	// Mina stuf
 	vector<int> NonEmptyRowVector;
 	vector<NoteInfo> SerializedNoteData;
-	vector<NoteInfo2> SerializedNoteData2;
 
   public:
 	void Init();
@@ -508,34 +507,6 @@ class NoteData
 	int GetNumLifts(int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW) const;
 	int GetNumFakes(int iStartIndex = 0, int iEndIndex = MAX_NOTE_ROW) const;
 
-	// the couple/routine style variants of the above.
-	pair<int, int> GetNumTapNotesTwoPlayer(int startRow = 0,
-										   int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumJumpsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumHandsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumQuadsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumHoldNotesTwoPlayer(int startRow = 0,
-											int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumMinesTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumRollsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumLiftsTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
-	pair<int, int> GetNumFakesTwoPlayer(int startRow = 0,
-										int endRow = MAX_NOTE_ROW) const;
-
 	int GetNumTracksLCD() const;
 
 	// Transformations
@@ -547,17 +518,6 @@ class NoteData
 
 	// XML
 	XNode* CreateNode() const;
-	void LoadFromNode(const XNode* pNode);
+	static void LoadFromNode(const XNode* pNode);
 };
-
-/** @brief Allow a quick way to swap notedata. */
-namespace std {
-template<>
-inline void
-swap<NoteData>(NoteData& nd1, NoteData& nd2) noexcept
-{
-	nd1.swap(nd2);
-}
-}
-
 #endif

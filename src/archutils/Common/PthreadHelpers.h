@@ -6,7 +6,7 @@
 #endif
 #include "Etterna/Globals/global.h"
 
-RString
+std::string
 ThreadsVersion();
 
 /* Get the current thread's ThreadID. */

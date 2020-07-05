@@ -16,7 +16,7 @@ class TextBanner : public ActorFrame
 	TextBanner* Copy() const override;
 
 	void LoadFromNode(const XNode* pNode) override;
-	void Load(const RString& sMetricsGroup); // load metrics
+	void Load(const std::string& sMetricsGroup); // load metrics
 	void SetFromSong(const Song* pSong);
 	void SetFromString(const string& sDisplayTitle,
 					   const string& sTranslitTitle,
@@ -31,7 +31,7 @@ class TextBanner : public ActorFrame
   private:
 	bool m_bInitted;
 	BitmapText m_textTitle, m_textSubTitle, m_textArtist;
-	RString m_sArtistPrependString;
+	std::string m_sArtistPrependString;
 };
 
 #endif

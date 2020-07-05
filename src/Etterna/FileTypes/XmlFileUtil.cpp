@@ -1,19 +1,16 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileDriverMemory.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
-#include "arch/Dialog/Dialog.h"
 
 bool
 XmlFileUtil::LoadFromFileShowErrors(XNode& xml, RageFileBasic& f)
 {
-	RString sError;
-	RString s;
+	std::string sError;
+	std::string s;
 	if (f.Read(s) == -1)
 		sError = f.GetError();
 	else

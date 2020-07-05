@@ -41,10 +41,10 @@ MovieTexture_Generic::MovieTexture_Generic(const RageTextureID& ID,
 	m_pSprite = new Sprite;
 }
 
-RString
+std::string
 MovieTexture_Generic::Init()
 {
-	RString sError = m_pDecoder->Open(GetID().filename);
+	std::string sError = m_pDecoder->Open(GetID().filename);
 	if (sError != "")
 		return sError;
 
@@ -77,7 +77,7 @@ MovieTexture_Generic::Init()
 
 	CHECKPOINT_M("Generic initialization completed. No errors found.");
 
-	return RString();
+	return std::string();
 }
 
 MovieTexture_Generic::~MovieTexture_Generic()

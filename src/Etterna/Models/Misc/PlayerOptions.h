@@ -23,9 +23,9 @@ enum LifeType
 	NUM_LifeType,
 	LifeType_Invalid
 };
-const RString&
+const std::string&
 LifeTypeToString(LifeType cat);
-const RString&
+const std::string&
 LifeTypeToLocalizedString(LifeType cat);
 LuaDeclareType(LifeType);
 
@@ -37,9 +37,9 @@ enum DrainType
 	NUM_DrainType,
 	DrainType_Invalid
 };
-const RString&
+const std::string&
 DrainTypeToString(DrainType cat);
-const RString&
+const std::string&
 DrainTypeToLocalizedString(DrainType cat);
 LuaDeclareType(DrainType);
 
@@ -68,8 +68,8 @@ class PlayerOptions
 	};
 	void Init();
 	void Approach(const PlayerOptions& other, float fDeltaSeconds);
-	RString GetString(bool bForceNoteSkin = false) const;
-	RString GetSavedPrefsString()
+	std::string GetString(bool bForceNoteSkin = false) const;
+	std::string GetSavedPrefsString()
 	  const; // only the basic options that players would want for every song
 	enum ResetPrefsType
 	{
@@ -77,14 +77,14 @@ class PlayerOptions
 	};
 	void ResetPrefs(ResetPrefsType type);
 	void ResetSavedPrefs() { ResetPrefs(saved_prefs); };
-	void GetMods(vector<RString>& AddTo, bool bForceNoteSkin = false) const;
-	void GetTurnMods(vector<RString>& AddTo);
-	void ResetModsToStringVector(vector<RString> mods);
+	void GetMods(vector<std::string>& AddTo, bool bForceNoteSkin = false) const;
+	void GetTurnMods(vector<std::string>& AddTo);
+	void ResetModsToStringVector(vector<std::string> mods);
 	void ResetToggleableMods();
-	void GetLocalizedMods(vector<RString>& AddTo) const;
-	void FromString(const RString& sMultipleMods);
-	bool FromOneModString(const RString& sOneMod,
-						  RString& sErrorDetailOut); // On error, return false
+	void GetLocalizedMods(vector<std::string>& AddTo) const;
+	void FromString(const std::string& sMultipleMods);
+	bool FromOneModString(const std::string& sOneMod,
+						  std::string& sErrorDetailOut); // On error, return false
 													 // and optionally set
 													 // sErrorDetailOut
 	void ChooseRandomModifiers();
@@ -92,7 +92,7 @@ class PlayerOptions
 	// make it impossible to calculate Replay info
 	bool ContainsTransformOrTurn() const;
 
-	vector<RString> GetInvalidatingModifiers() const;
+	vector<std::string> GetInvalidatingModifiers() const;
 
 	// Lua
 	void PushSelf(lua_State* L);
@@ -263,7 +263,7 @@ class PlayerOptions
 	 * @brief The Noteskin to use.
 	 *
 	 * If an empty string, it means to not change from the default. */
-	RString m_sNoteSkin;
+	std::string m_sNoteSkin;
 
 	void NextAccel();
 	void NextEffect();

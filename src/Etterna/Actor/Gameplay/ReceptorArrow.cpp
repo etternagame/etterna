@@ -18,7 +18,7 @@ ReceptorArrow::ReceptorArrow()
 void
 ReceptorArrow::Load(const PlayerState* pPlayerState,
 					int iColNo,
-					std::string Type)
+					const std::string& Type)
 {
 	m_pPlayerState = pPlayerState;
 	m_iColNo = iColNo;
@@ -77,21 +77,9 @@ void
 ReceptorArrow::Step(TapNoteScore score)
 {
 	m_bIsPressed = true;
-
-	std::string sJudge = TapNoteScoreToString(score);
-	m_pReceptor->PlayCommand(Capitalize(sJudge));
+	m_pReceptor->PlayCommand(Capitalize(TapNoteScoreToString(score)));
 	Message msg("ReceptorJudgment");
 	msg.SetParam("TapNoteScore", score);
 	msg.SetParam("Color", NOTESKIN->GetLastSeenColor());
-	m_pReceptor->HandleMessage(msg);
-}
-
-void
-ReceptorArrow::SetNoteUpcoming(int iCol, int iRow, bool b)
-{
-	m_pReceptor->PlayCommand(b ? "ShowNoteUpcoming" : "HideNoteUpcoming");
-	Message msg("ReceptorUpcoming");
-	msg.SetParam("Column", iCol);
-	msg.SetParam("Row", iRow);
 	m_pReceptor->HandleMessage(msg);
 }

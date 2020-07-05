@@ -41,8 +41,8 @@ enum DisplayScoreboard
 
 AutoScreenMessage(SM_DoneConnecting);
 
-Preference<RString> g_sLastServer("LastConnectedMultiServer",
-								  "multi.etternaonline.com");
+Preference<std::string> g_sLastServer("LastConnectedMultiServer",
+									  "multi.etternaonline.com");
 
 REGISTER_SCREEN_CLASS(ScreenNetworkOptions);
 
@@ -101,7 +101,7 @@ ScreenNetworkOptions::HandleScreenMessage(const ScreenMessage SM)
 {
 	if (SM == SM_DoneConnecting) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
-			RString sNewName = ScreenTextEntry::s_sLastAnswer;
+			std::string sNewName = ScreenTextEntry::s_sLastAnswer;
 			NSMAN->PostStartUp(sNewName);
 			UpdateConnectStatus();
 		}

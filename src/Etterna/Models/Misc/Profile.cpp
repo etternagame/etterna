@@ -3,21 +3,14 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/FileTypes/IniFile.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
-#include "Etterna/Singletons/PrefsManager.h"
-#include "Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/File/RageFileDriverDeflate.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -25,32 +18,23 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/File/RageFileDriverDeflate.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
-#include "Etterna/Models/NoteData/NoteData.h"
-#include "Etterna/Singletons/ScoreManager.h"
 #include <algorithm>
-#include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Misc/XMLProfile.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/DownloadManager.h"
-#include "RageUtil/Misc/RageString.h"
 
 /** @brief The filename for where one can edit their personal profile
  * information. */
-const RString EDITABLE_INI = "Editable.ini";
+const std::string EDITABLE_INI = "Editable.ini";
 /** @brief A tiny file containing the type and list priority. */
-const RString TYPE_INI = "Type.ini";
+const std::string TYPE_INI = "Type.ini";
 /** @brief The filename containing the signature for STATS_XML's signature. */
-const RString PUBLIC_KEY_FILE = "public.key";
-const RString SCREENSHOTS_SUBDIR = "Screenshots/";
-const RString EDIT_STEPS_SUBDIR = "Edits/";
-// const RString UPLOAD_SUBDIR         = "Upload/";
-const RString RIVAL_SUBDIR = "Rivals/";
+const std::string PUBLIC_KEY_FILE = "public.key";
+const std::string SCREENSHOTS_SUBDIR = "Screenshots/";
+const std::string EDIT_STEPS_SUBDIR = "Edits/";
+// const std::string UPLOAD_SUBDIR         = "Upload/";
+const std::string RIVAL_SUBDIR = "Rivals/";
 
 #define GUID_SIZE_BYTES 8
 
@@ -68,26 +52,6 @@ const float DEFAULT_BIRTH_YEAR = 1995;
 #pragma warning(disable : 4706) // assignment within conditional expression
 #endif
 
-static const char* ProfileTypeNames[] = {
-	"Guest",
-	"Normal",
-	"Test",
-};
-XToString(ProfileType);
-StringToX(ProfileType);
-LuaXType(ProfileType);
-
-int
-Profile::HighScoresForASong::GetNumTimesPlayed() const
-{
-	int iCount = 0;
-	FOREACHM_CONST(StepsID, HighScoresForASteps, m_StepsHighScores, i)
-	{
-		iCount += i->second.hsl.GetNumTimesPlayed();
-	}
-	return iCount;
-}
-
 void
 Profile::InitEditableData()
 {
@@ -99,12 +63,12 @@ void
 Profile::ClearStats()
 {
 	// don't reset the Guid
-	RString sGuid = m_sGuid;
+	std::string sGuid = m_sGuid;
 	InitAll();
 	m_sGuid = sGuid;
 }
 
-RString
+std::string
 Profile::MakeGuid()
 {
 	string s;
@@ -160,18 +124,12 @@ Profile::InitGeneralData()
 }
 
 void
-Profile::InitSongScores()
-{
-	m_SongHighScores.clear();
-}
-
-void
 Profile::InitScreenshotData()
 {
 	m_vScreenshots.clear();
 }
 
-RString
+std::string
 Profile::GetDisplayNameOrHighScoreName() const
 {
 	if (!m_sDisplayName.empty())
@@ -179,161 +137,7 @@ Profile::GetDisplayNameOrHighScoreName() const
 	else if (!m_sLastUsedHighScoreName.empty())
 		return m_sLastUsedHighScoreName;
 	else
-		return RString();
-}
-
-int
-Profile::GetTotalNumSongsPassed() const
-{
-	int iTotal = 0;
-	FOREACH_ENUM(PlayMode, i)
-	iTotal += m_iNumStagesPassedByPlayMode[i];
-	return iTotal;
-}
-
-int
-Profile::GetTotalStepsWithTopGrade(StepsType st, Difficulty d, Grade g) const
-{
-	int iCount = 0;
-
-	FOREACH_CONST(Song*, SONGMAN->GetAllSongs(), pSong)
-	{
-		FOREACH_CONST(Steps*, (*pSong)->GetAllSteps(), pSteps)
-		{
-			if ((*pSteps)->m_StepsType != st)
-				continue; // skip
-
-			if ((*pSteps)->GetDifficulty() != d)
-				continue; // skip
-
-			const HighScoreList& hsl = GetStepsHighScoreList(*pSong, *pSteps);
-			if (hsl.vHighScores.empty())
-				continue; // skip
-
-			if (hsl.vHighScores[0].GetGrade() == g)
-				iCount++;
-		}
-	}
-
-	return iCount;
-}
-
-float
-Profile::GetSongsPossible(StepsType st, Difficulty dc) const
-{
-	int iTotalSteps = 0;
-
-	// add steps high scores
-	const vector<Song*>& vSongs = SONGMAN->GetAllSongs();
-	for (unsigned i = 0; i < vSongs.size(); i++) {
-		Song* pSong = vSongs[i];
-
-		vector<Steps*> vSteps = pSong->GetAllSteps();
-		for (unsigned j = 0; j < vSteps.size(); j++) {
-			Steps* pSteps = vSteps[j];
-
-			if (pSteps->m_StepsType != st)
-				continue; // skip
-
-			if (pSteps->GetDifficulty() != dc)
-				continue; // skip
-
-			iTotalSteps++;
-		}
-	}
-
-	return static_cast<float>(iTotalSteps);
-}
-
-float
-Profile::GetSongsActual(StepsType st, Difficulty dc) const
-{
-	CHECKPOINT_M(ssprintf("Profile::GetSongsActual(%d,%d)", st, dc));
-
-	float fTotalPercents = 0;
-
-	// add steps high scores
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i)
-	{
-		const SongID& id = i->first;
-		Song* pSong = id.ToSong();
-
-		CHECKPOINT_M(ssprintf("Profile::GetSongsActual: %p", pSong));
-
-		// If the Song isn't loaded on the current machine, then we can't
-		// get radar values to compute dance points.
-		if (pSong == NULL)
-			continue;
-
-		CHECKPOINT_M(ssprintf("Profile::GetSongsActual: song %s",
-							  pSong->GetSongDir().c_str()));
-		const HighScoresForASong& hsfas = i->second;
-
-		FOREACHM_CONST(StepsID, HighScoresForASteps, hsfas.m_StepsHighScores, j)
-		{
-			const StepsID& sid = j->first;
-			Steps* pSteps = sid.ToSteps(pSong, true);
-			CHECKPOINT_M(ssprintf(
-			  "Profile::GetSongsActual: song %p, steps %p", pSong, pSteps));
-
-			// If the Steps isn't loaded on the current machine, then we can't
-			// get radar values to compute dance points.
-			if (pSteps == NULL)
-				continue;
-
-			if (pSteps->m_StepsType != st)
-				continue;
-
-			CHECKPOINT_M(ssprintf("Profile::GetSongsActual: n %s = %p",
-								  sid.ToString().c_str(),
-								  pSteps));
-			if (pSteps->GetDifficulty() != dc) {
-				continue; // skip
-			}
-
-			CHECKPOINT_M(
-			  ssprintf("Profile::GetSongsActual: difficulty %s is correct",
-					   DifficultyToString(dc).c_str()));
-
-			const HighScoresForASteps& h = j->second;
-			const HighScoreList& hsl = h.hsl;
-
-			fTotalPercents += hsl.GetTopScore().GetPercentDP();
-		}
-	}
-
-	return fTotalPercents;
-}
-
-float
-Profile::GetSongsPercentComplete(StepsType st, Difficulty dc) const
-{
-	return GetSongsActual(st, dc) / GetSongsPossible(st, dc);
-}
-
-int
-Profile::GetSongNumTimesPlayed(const Song* pSong) const
-{
-	SongID songID;
-	songID.FromSong(pSong);
-	return GetSongNumTimesPlayed(songID);
-}
-
-int
-Profile::GetSongNumTimesPlayed(const SongID& songID) const
-{
-	const HighScoresForASong* hsSong = GetHighScoresForASong(songID);
-	if (hsSong == NULL)
-		return 0;
-
-	int iTotalNumTimesPlayed = 0;
-	FOREACHM_CONST(StepsID, HighScoresForASteps, hsSong->m_StepsHighScores, j)
-	{
-		const HighScoresForASteps& hsSteps = j->second;
-
-		iTotalNumTimesPlayed += hsSteps.hsl.GetNumTimesPlayed();
-	}
-	return iTotalNumTimesPlayed;
+		return std::string();
 }
 
 /*
@@ -348,9 +152,9 @@ Profile::GetSongNumTimesPlayed(const SongID& songID) const
  */
 bool
 Profile::GetDefaultModifiers(const Game* pGameType,
-							 RString& sModifiersOut) const
+							 std::string& sModifiersOut) const
 {
-	map<RString, RString>::const_iterator it;
+	map<std::string, std::string>::const_iterator it;
 	it = m_sDefaultModifiers.find(pGameType->m_szName);
 	if (it == m_sDefaultModifiers.end())
 		return false;
@@ -359,125 +163,13 @@ Profile::GetDefaultModifiers(const Game* pGameType,
 }
 
 void
-Profile::SetDefaultModifiers(const Game* pGameType, const RString& sModifiers)
+Profile::SetDefaultModifiers(const Game* pGameType,
+							 const std::string& sModifiers)
 {
 	if (sModifiers == "")
 		m_sDefaultModifiers.erase(pGameType->m_szName);
 	else
 		m_sDefaultModifiers[pGameType->m_szName] = sModifiers;
-}
-
-Song*
-Profile::GetMostPopularSong() const
-{
-	int iMaxNumTimesPlayed = 0;
-	SongID id;
-	FOREACHM_CONST(SongID, HighScoresForASong, m_SongHighScores, i)
-	{
-		int iNumTimesPlayed = i->second.GetNumTimesPlayed();
-		if (i->first.ToSong() != NULL && iNumTimesPlayed > iMaxNumTimesPlayed) {
-			id = i->first;
-			iMaxNumTimesPlayed = iNumTimesPlayed;
-		}
-	}
-
-	return id.ToSong();
-}
-
-// Steps high scores
-void
-Profile::AddStepsHighScore(const Song* pSong,
-						   const Steps* pSteps,
-						   const HighScore& hs,
-						   int& iIndexOut)
-{
-	GetStepsHighScoreList(pSong, pSteps).AddHighScore(hs, iIndexOut, false);
-}
-
-const HighScoreList&
-Profile::GetStepsHighScoreList(const Song* pSong, const Steps* pSteps) const
-{
-	return (const_cast<Profile*>(this))->GetStepsHighScoreList(pSong, pSteps);
-}
-
-HighScoreList&
-Profile::GetStepsHighScoreList(const Song* pSong, const Steps* pSteps)
-{
-	SongID songID;
-	songID.FromSong(pSong);
-
-	StepsID stepsID;
-	stepsID.FromSteps(pSteps);
-
-	HighScoresForASong& hsSong =
-	  m_SongHighScores[songID]; // operator[] inserts into map
-	HighScoresForASteps& hsSteps =
-	  hsSong.m_StepsHighScores[stepsID]; // operator[] inserts into map
-
-	return hsSteps.hsl;
-}
-
-int
-Profile::GetStepsNumTimesPlayed(const Song* pSong, const Steps* pSteps) const
-{
-	return GetStepsHighScoreList(pSong, pSteps).GetNumTimesPlayed();
-}
-
-DateTime
-Profile::GetSongLastPlayedDateTime(const Song* pSong) const
-{
-	SongID id;
-	id.FromSong(pSong);
-	std::map<SongID, HighScoresForASong>::const_iterator iter =
-	  m_SongHighScores.find(id);
-
-	// don't call this unless has been played once
-	ASSERT(iter != m_SongHighScores.end());
-	ASSERT(!iter->second.m_StepsHighScores.empty());
-
-	DateTime dtLatest; // starts out zeroed
-	FOREACHM_CONST(
-	  StepsID, HighScoresForASteps, iter->second.m_StepsHighScores, i)
-	{
-		const HighScoreList& hsl = i->second.hsl;
-		if (hsl.GetNumTimesPlayed() == 0)
-			continue;
-		if (dtLatest < hsl.GetLastPlayed())
-			dtLatest = hsl.GetLastPlayed();
-	}
-	return dtLatest;
-}
-
-bool
-Profile::HasPassedSteps(const Song* pSong, const Steps* pSteps) const
-{
-	const HighScoreList& hsl = GetStepsHighScoreList(pSong, pSteps);
-	Grade grade = hsl.GetTopScore().GetGrade();
-	switch (grade) {
-		case Grade_Failed:
-		case Grade_NoData:
-			return false;
-		default:
-			return true;
-	}
-}
-
-bool
-Profile::HasPassedAnyStepsInSong(const Song* pSong) const
-{
-	FOREACH_CONST(Steps*, pSong->GetAllSteps(), steps)
-	{
-		if (HasPassedSteps(pSong, *steps))
-			return true;
-	}
-	return false;
-}
-
-void
-Profile::IncrementStepsPlayCount(const Song* pSong, const Steps* pSteps)
-{
-	DateTime now = DateTime::GetNowDate();
-	GetStepsHighScoreList(pSong, pSteps).IncrementPlayCount(now);
 }
 
 Grade
@@ -514,191 +206,6 @@ Profile::GetBestGrade(const Song* pSong, StepsType st) const
 	}
 
 	return gradeBest;
-}
-
-void
-Profile::GetGrades(const Song* pSong,
-				   StepsType st,
-				   int iCounts[NUM_Grade]) const
-{
-	SongID songID;
-	songID.FromSong(pSong);
-
-	memset(iCounts, 0, sizeof(int) * NUM_Grade);
-	const HighScoresForASong* hsSong = GetHighScoresForASong(songID);
-	if (hsSong == NULL)
-		return;
-
-	FOREACH_ENUM(Grade, g)
-	{
-		FOREACHM_CONST(
-		  StepsID, HighScoresForASteps, hsSong->m_StepsHighScores, it)
-		{
-			const StepsID& id = it->first;
-			if (!id.MatchesStepsType(st))
-				continue;
-
-			const HighScoresForASteps& hsSteps = it->second;
-			if (hsSteps.hsl.GetTopScore().GetGrade() == g)
-				iCounts[g]++;
-		}
-	}
-}
-
-void
-Profile::GetAllUsedHighScoreNames(std::set<RString>& names)
-{
-#define GET_NAMES_FROM_MAP(main_member,                                        \
-						   main_key_type,                                      \
-						   main_value_type,                                    \
-						   sub_member,                                         \
-						   sub_key_type,                                       \
-						   sub_value_type)                                     \
-	for (std::map<main_key_type, main_value_type>::iterator main_entry =       \
-		   (main_member).begin();                                              \
-		 main_entry != (main_member).end();                                    \
-		 ++main_entry) {                                                       \
-		for (std::map<sub_key_type, sub_value_type>::iterator sub_entry =      \
-			   main_entry->second.sub_member.begin();                          \
-			 sub_entry != main_entry->second.sub_member.end();                 \
-			 ++sub_entry) {                                                    \
-			for (vector<HighScore>::iterator high_score =                      \
-				   sub_entry->second.hsl.vHighScores.begin();                  \
-				 high_score != sub_entry->second.hsl.vHighScores.end();        \
-				 ++high_score) {                                               \
-				if (high_score->GetName().size() > 0) {                        \
-					names.insert(high_score->GetName());                       \
-				}                                                              \
-			}                                                                  \
-		}                                                                      \
-	}
-	GET_NAMES_FROM_MAP(m_SongHighScores,
-					   SongID,
-					   HighScoresForASong,
-					   m_StepsHighScores,
-					   StepsID,
-					   HighScoresForASteps);
-#undef GET_NAMES_FROM_MAP
-}
-
-// MergeScoresFromOtherProfile has three intended use cases:
-// 1.  Restoring scores to the machine profile that were deleted because the
-//   songs were not loaded.
-// 2.  Migrating a profile from an older version of Stepmania, and adding its
-//   scores to the machine profile.
-// 3.  Merging two profiles that were separate together.
-// In case 1, the various total numbers are still correct, so they should be
-//   skipped.  This is why the skip_totals arg exists.
-// -Kyz
-void
-Profile::MergeScoresFromOtherProfile(Profile* other,
-									 bool skip_totals,
-									 RString const& from_dir,
-									 RString const& to_dir)
-{
-	if (!skip_totals) {
-#define MERGE_FIELD(field_name) field_name += other->field_name;
-		MERGE_FIELD(m_iTotalSessions);
-		MERGE_FIELD(m_iTotalSessionSeconds);
-		MERGE_FIELD(m_iTotalGameplaySeconds);
-		MERGE_FIELD(m_iTotalDancePoints);
-		MERGE_FIELD(m_iNumExtraStagesPassed);
-		MERGE_FIELD(m_iNumExtraStagesFailed);
-		MERGE_FIELD(m_iNumToasties);
-		MERGE_FIELD(m_iTotalTapsAndHolds);
-		MERGE_FIELD(m_iTotalJumps);
-		MERGE_FIELD(m_iTotalHolds);
-		MERGE_FIELD(m_iTotalRolls);
-		MERGE_FIELD(m_iTotalMines);
-		MERGE_FIELD(m_iTotalHands);
-		MERGE_FIELD(m_iTotalLifts);
-		FOREACH_ENUM(PlayMode, i)
-		{
-			MERGE_FIELD(m_iNumSongsPlayedByPlayMode[i]);
-			MERGE_FIELD(m_iNumStagesPassedByPlayMode[i]);
-		}
-		FOREACH_ENUM(Difficulty, i)
-		{
-			MERGE_FIELD(m_iNumSongsPlayedByDifficulty[i]);
-		}
-		for (int i = 0; i < MAX_METER; ++i) {
-			MERGE_FIELD(m_iNumSongsPlayedByMeter[i]);
-		}
-		MERGE_FIELD(m_iNumTotalSongsPlayed);
-		FOREACH_ENUM(Grade, i) { MERGE_FIELD(m_iNumStagesPassedByGrade[i]); }
-#undef MERGE_FIELD
-	}
-#define MERGE_SCORES_IN_MEMBER(main_member,                                    \
-							   main_key_type,                                  \
-							   main_value_type,                                \
-							   sub_member,                                     \
-							   sub_key_type,                                   \
-							   sub_value_type)                                 \
-	for (std::map<main_key_type, main_value_type>::iterator main_entry =       \
-		   other->main_member.begin();                                         \
-		 main_entry != other->main_member.end();                               \
-		 ++main_entry) {                                                       \
-		std::map<main_key_type, main_value_type>::iterator this_entry =        \
-		  (main_member).find(main_entry->first);                               \
-		if (this_entry == (main_member).end()) {                               \
-			(main_member)[main_entry->first] = main_entry->second;             \
-		} else {                                                               \
-			for (std::map<sub_key_type, sub_value_type>::iterator sub_entry =  \
-				   main_entry->second.sub_member.begin();                      \
-				 sub_entry != main_entry->second.sub_member.end();             \
-				 ++sub_entry) {                                                \
-				std::map<sub_key_type, sub_value_type>::iterator this_sub =    \
-				  this_entry->second.sub_member.find(sub_entry->first);        \
-				if (this_sub == this_entry->second.sub_member.end()) {         \
-					this_entry->second.sub_member[sub_entry->first] =          \
-					  sub_entry->second;                                       \
-				} else {                                                       \
-					this_sub->second.hsl.MergeFromOtherHSL(                    \
-					  sub_entry->second.hsl, false);                           \
-				}                                                              \
-			}                                                                  \
-		}                                                                      \
-	}
-	MERGE_SCORES_IN_MEMBER(m_SongHighScores,
-						   SongID,
-						   HighScoresForASong,
-						   m_StepsHighScores,
-						   StepsID,
-						   HighScoresForASteps);
-#undef MERGE_SCORES_IN_MEMBER
-	// I think the machine profile should not have screenshots merged into it
-	// because the intended use case is someone whose profile scores were
-	// deleted off the machine by mishap, or a profile being migrated from an
-	// older version of Stepmania.  Either way, the screenshots should stay
-	// with the profile they came from.
-	// In the case where two local profiles are being merged together, the user
-	// is probably planning to delete the old profile after the merge, so we
-	// want to copy the screenshots over. -Kyz
-	// The old screenshot count is stored so we know where to start in the
-	// list when copying the screenshot images.
-	size_t old_count = m_vScreenshots.size();
-	m_vScreenshots.insert(m_vScreenshots.end(),
-						  other->m_vScreenshots.begin(),
-						  other->m_vScreenshots.end());
-	for (size_t sid = old_count; sid < m_vScreenshots.size(); ++sid) {
-		RString old_path =
-		  from_dir + "Screenshots/" + m_vScreenshots[sid].sFileName;
-		RString new_path =
-		  to_dir + "Screenshots/" + m_vScreenshots[sid].sFileName;
-		// Only move the old screenshot over if it exists and won't stomp an
-		// existing screenshot.
-		if (FILEMAN->DoesFileExist(old_path) &&
-			(!FILEMAN->DoesFileExist(new_path))) {
-			FILEMAN->Move(old_path, new_path);
-		}
-	}
-	// The screenshots are kept sorted by date for ease of use, and
-	// duplicates are removed because they come from the user mistakenly
-	// merging a second time. -Kyz
-	std::sort(m_vScreenshots.begin(), m_vScreenshots.end());
-	vector<Screenshot>::iterator unique_end =
-	  std::unique(m_vScreenshots.begin(), m_vScreenshots.end());
-	m_vScreenshots.erase(unique_end, m_vScreenshots.end());
 }
 
 void
@@ -744,7 +251,6 @@ Profile::swap(Profile& other)
 	SWAP_ARRAY(m_iNumStagesPassedByPlayMode, NUM_PlayMode);
 	SWAP_ARRAY(m_iNumStagesPassedByGrade, NUM_Grade);
 	SWAP_GENERAL(m_UserTable);
-	SWAP_STR_MEMBER(m_SongHighScores);
 	SWAP_STR_MEMBER(m_vScreenshots);
 #undef SWAP_STR_MEMBER
 #undef SWAP_GENERAL
@@ -752,7 +258,7 @@ Profile::swap(Profile& other)
 }
 
 void
-Profile::LoadCustomFunction(const RString& sDir)
+Profile::LoadCustomFunction(const std::string& sDir)
 {
 	/* Get the theme's custom load function:
 	 *   [Profile]
@@ -769,24 +275,23 @@ Profile::LoadCustomFunction(const RString& sDir)
 	LuaHelpers::Push(L, sDir);
 
 	// Run it
-	RString Error = "Error running CustomLoadFunction: ";
+	std::string Error = "Error running CustomLoadFunction: ";
 	LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
 
 	LUA->Release(L);
 }
 
 void
-Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
+Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 {
 	// Temp variables to preserve stuff across the reload.
 	// Some stuff intentionally left out because the original reason for the
 	// stats prefix was to allow scores from different game types to coexist.
-	RString display_name = m_sDisplayName;
-	RString last_high_score_name = m_sLastUsedHighScoreName;
-	ProfileType type = m_Type;
+	std::string display_name = m_sDisplayName;
+	std::string last_high_score_name = m_sLastUsedHighScoreName;
 	int priority = m_ListPriority;
-	RString guid = m_sGuid;
-	map<RString, RString> default_mods = m_sDefaultModifiers;
+	std::string guid = m_sGuid;
+	map<std::string, std::string> default_mods = m_sDefaultModifiers;
 	SortOrder sort_order = m_SortOrder;
 	Difficulty last_diff = m_LastDifficulty;
 	StepsType last_stepstype = m_LastStepsType;
@@ -804,7 +309,6 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 	}
 	m_sDisplayName = display_name;
 	m_sLastUsedHighScoreName = last_high_score_name;
-	m_Type = type;
 	m_ListPriority = priority;
 	m_sGuid = guid;
 	m_sDefaultModifiers = default_mods;
@@ -823,13 +327,12 @@ Profile::HandleStatsPrefixChange(RString dir, bool require_signature)
 
 static const float ld_update = 0.02f;
 ProfileLoadResult
-Profile::LoadAllFromDir(const RString& sDir,
+Profile::LoadAllFromDir(const std::string& sDir,
 						bool bRequireSignature,
 						LoadingWindow* ld)
 {
-	if (PREFSMAN->m_verbose_log > 0)
-		LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
-	ASSERT(sDir.Right(1) == "/");
+	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	ASSERT(sDir.back() == '/');
 
 	InitAll();
 
@@ -843,62 +346,21 @@ Profile::LoadAllFromDir(const RString& sDir,
 	// Not critical if this fails
 	LoadEditableDataFromDir(sDir);
 
-	/*	we dont really need to be doing this automatically anymore, maybe
-	reinstituting as a "migrate replay" button would be worth doing -mina
-	// move old profile specific replays to the new aggregate folder
-	RString oldreplaydir = sDir + "ReplayData/";
-
-	if (FILEMAN->IsADirectory(oldreplaydir)) {
-		vector<RString> replays;
-		GetDirListing(oldreplaydir, replays);
-
-		if (!replays.empty()) {
-			RageTimer ld_timer;
-			if (ld) {
-				ld_timer.Touch();
-				ld->SetIndeterminate(false);
-				ld->SetTotalWork(replays.size());
-				ld->SetText("Migrating replay data to new folder...");
-			}
-			int replayindex = 0;
-			int onePercent =
-			  std::max(static_cast<int>(replays.size() / 100), 1);
-
-			for (auto r : replays) {
-				if (ld && replayindex % onePercent == 0 &&
-					ld_timer.Ago() > ld_update) {
-					ld_timer.Touch();
-					ld->SetProgress(replayindex);
-					++replayindex;
-				}
-				FILEMAN->Move(oldreplaydir + r, "Save/Replays/" + r);
-			}
-		}
-	}*/
-
 	CalculateStatsFromScores(
 	  ld); // note to self: figure out how to tell if this is necessary
 	return ProfileLoadResult_Success;
 }
 
 void
-Profile::LoadTypeFromDir(const RString& dir)
+Profile::LoadTypeFromDir(const std::string& dir)
 {
-	m_Type = ProfileType_Normal;
 	m_ListPriority = 0;
-	RString fn = dir + TYPE_INI;
+	std::string fn = dir + TYPE_INI;
 	if (FILEMAN->DoesFileExist(fn)) {
 		IniFile ini;
 		if (ini.ReadFile(fn)) {
 			XNode const* data = ini.GetChild("ListPosition");
 			if (data != NULL) {
-				RString type_str;
-				if (data->GetAttrValue("Type", type_str)) {
-					m_Type = StringToProfileType(type_str);
-					if (m_Type >= NUM_ProfileType) {
-						m_Type = ProfileType_Normal;
-					}
-				}
 				data->GetAttrValue("Priority", m_ListPriority);
 			}
 		}
@@ -908,8 +370,7 @@ Profile::LoadTypeFromDir(const RString& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	if (PREFSMAN->m_verbose_log > 0)
-		LOG->Trace("Calculating stats from scores");
+	LOG->Trace("Calculating stats from scores");
 	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	float TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
@@ -944,7 +405,7 @@ Profile::CalculateStatsFromScores()
 }
 
 bool
-Profile::SaveAllToDir(const RString& sDir, bool bSignData) const
+Profile::SaveAllToDir(const std::string& sDir, bool bSignData) const
 {
 	m_LastPlayedDate = DateTime::GetNowDate();
 
@@ -964,16 +425,15 @@ Profile::SaveAllToDir(const RString& sDir, bool bSignData) const
 }
 
 void
-Profile::SaveTypeToDir(const RString& dir) const
+Profile::SaveTypeToDir(const std::string& dir) const
 {
 	IniFile ini;
-	ini.SetValue("ListPosition", "Type", ProfileTypeToString(m_Type));
 	ini.SetValue("ListPosition", "Priority", m_ListPriority);
 	ini.WriteFile(dir + TYPE_INI);
 }
 
 void
-Profile::SaveEditableDataToDir(const RString& sDir) const
+Profile::SaveEditableDataToDir(const std::string& sDir) const
 {
 	IniFile ini;
 
@@ -984,9 +444,9 @@ Profile::SaveEditableDataToDir(const RString& sDir) const
 }
 
 ProfileLoadResult
-Profile::LoadEditableDataFromDir(const RString& sDir)
+Profile::LoadEditableDataFromDir(const std::string& sDir)
 {
-	RString fn = sDir + EDITABLE_INI;
+	std::string fn = sDir + EDITABLE_INI;
 
 	// Don't load unreasonably large editable.xml files.
 	int iBytes = FILEMAN->GetFileSizeInBytes(fn);
@@ -1108,7 +568,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 {
 	ASSERT(pNode->GetName() == "ScoreGoal");
 
-	RString s;
+	std::string s;
 
 	pNode->GetChildValue("Rate", rate);
 	pNode->GetChildValue("Percent", percent);
@@ -1129,7 +589,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 }
 
 HighScore*
-ScoreGoal::GetPBUpTo()
+ScoreGoal::GetPBUpTo() const
 {
 	return SCOREMAN->GetChartPBUpTo(chartkey, rate);
 }
@@ -1137,7 +597,7 @@ ScoreGoal::GetPBUpTo()
 void
 ScoreGoal::CheckVacuity()
 {
-	HighScore* pb = SCOREMAN->GetChartPBAt(chartkey, rate);
+	auto pb = SCOREMAN->GetChartPBAt(chartkey, rate);
 
 	if (pb && pb->GetWifeScore() >= percent)
 		vacuous = true;
@@ -1213,13 +673,13 @@ Profile::RemoveGoal(const string& ck, DateTime assigned)
 }
 
 void
-Profile::SaveStatsWebPageToDir(const RString& sDir) const
+Profile::SaveStatsWebPageToDir(const std::string& sDir) const
 {
 	ASSERT(PROFILEMAN != NULL);
 }
 
 void
-Profile::SaveMachinePublicKeyToDir(const RString& sDir) const
+Profile::SaveMachinePublicKeyToDir(const std::string& sDir) const
 {
 	if (PREFSMAN->m_bSignProfileData &&
 		IsAFile(CRYPTMAN->GetPublicKeyFileName()))
@@ -1232,18 +692,8 @@ Profile::AddScreenshot(const Screenshot& screenshot)
 	m_vScreenshots.push_back(screenshot);
 }
 
-const Profile::HighScoresForASong*
-Profile::GetHighScoresForASong(const SongID& songID) const
-{
-	map<SongID, HighScoresForASong>::const_iterator it;
-	it = m_SongHighScores.find(songID);
-	if (it == m_SongHighScores.end())
-		return NULL;
-	return &it->second;
-}
-
 void
-Profile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
+Profile::MoveBackupToDir(const std::string& sFromDir, const std::string& sToDir)
 {
 	XMLProfile::MoveBackupToDir(sFromDir, sToDir);
 
@@ -1253,13 +703,13 @@ Profile::MoveBackupToDir(const RString& sFromDir, const RString& sToDir)
 		FILEMAN->Move(sFromDir + DONT_SHARE_SIG, sToDir + DONT_SHARE_SIG);
 }
 
-RString
-Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
-									   const RString& sFileNameBeginning)
+std::string
+Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
+									   const std::string& sFileNameBeginning)
 {
 	FILEMAN->FlushDirCache(sDir);
 	// Find a file name for the screenshot
-	vector<RString> files;
+	vector<std::string> files;
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
@@ -1267,7 +717,7 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 
 	for (int i = files.size() - 1; i >= 0; --i) {
 		static Regex re("^" + sFileNameBeginning + "([0-9]{5})\\....$");
-		vector<RString> matches;
+		vector<std::string> matches;
 		if (!re.Compare(files[i], matches))
 			continue;
 
@@ -1279,8 +729,9 @@ Profile::MakeUniqueFileNameNoExtension(const RString& sDir,
 	return MakeFileNameNoExtension(sFileNameBeginning, iIndex);
 }
 
-RString
-Profile::MakeFileNameNoExtension(const RString& sFileNameBeginning, int iIndex)
+std::string
+Profile::MakeFileNameNoExtension(const std::string& sFileNameBeginning,
+								 int iIndex)
 {
 	return sFileNameBeginning + ssprintf("%05d", iIndex);
 }
@@ -1295,7 +746,7 @@ class LunaProfile : public Luna<Profile>
 	static int AddScreenshot(T* p, lua_State* L)
 	{
 		HighScore* hs = Luna<HighScore>::check(L, 1);
-		RString filename = SArg(2);
+		std::string filename = SArg(2);
 		Screenshot screenshot;
 		screenshot.sFileName = filename;
 		screenshot.sMD5 = BinaryToHex(CRYPTMAN->GetMD5ForFile(filename));
@@ -1303,12 +754,11 @@ class LunaProfile : public Luna<Profile>
 		p->AddScreenshot(screenshot);
 		COMMON_RETURN_SELF;
 	}
-	DEFINE_METHOD(GetType, m_Type);
 	DEFINE_METHOD(GetPriority, m_ListPriority);
 
 	static int GetDisplayName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sDisplayName);
+		lua_pushstring(L, p->m_sDisplayName.c_str());
 		return 1;
 	}
 	static int SetDisplayName(T* p, lua_State* L)
@@ -1318,7 +768,7 @@ class LunaProfile : public Luna<Profile>
 	}
 	static int GetLastUsedHighScoreName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->m_sLastUsedHighScoreName);
+		lua_pushstring(L, p->m_sLastUsedHighScoreName.c_str());
 		return 1;
 	}
 	static int SetLastUsedHighScoreName(T* p, lua_State* L)
@@ -1326,103 +776,34 @@ class LunaProfile : public Luna<Profile>
 		p->m_sLastUsedHighScoreName = SArg(1);
 		COMMON_RETURN_SELF;
 	}
-	static int GetHighScoreList(T* p, lua_State* L)
-	{
-		if (LuaBinding::CheckLuaObjectType(L, 1, "Song")) {
-			const Song* pSong = Luna<Song>::check(L, 1);
-			const Steps* pSteps = Luna<Steps>::check(L, 2);
-			HighScoreList& hsl = p->GetStepsHighScoreList(pSong, pSteps);
-			hsl.PushSelf(L);
-			return 1;
-		}
-
-		luaL_typerror(L, 1, "Song");
-		COMMON_RETURN_SELF;
-	}
-
-	static int GetHighScoreListIfExists(T* p, lua_State* L)
-	{
-#define GET_IF_EXISTS(arga_type, argb_type)                                    \
-	const arga_type* parga = Luna<arga_type>::check(L, 1);                     \
-	const argb_type* pargb = Luna<argb_type>::check(L, 2);                     \
-	arga_type##ID arga_id;                                                     \
-	arga_id.From##arga_type(parga);                                            \
-	argb_type##ID argb_id;                                                     \
-	argb_id.From##argb_type(pargb);                                            \
-	std::map<arga_type##ID, Profile::HighScoresForA##arga_type>::iterator      \
-	  main_scores = p->m_##arga_type##HighScores.find(arga_id);                \
-	if (main_scores == p->m_##arga_type##HighScores.end()) {                   \
-		lua_pushnil(L);                                                        \
-		return 1;                                                              \
-	}                                                                          \
-	std::map<argb_type##ID, Profile::HighScoresForA##argb_type>::iterator      \
-	  sub_scores =                                                             \
-		main_scores->second.m_##argb_type##HighScores.find(argb_id);           \
-	if (sub_scores == main_scores->second.m_##argb_type##HighScores.end()) {   \
-		lua_pushnil(L);                                                        \
-		return 1;                                                              \
-	}                                                                          \
-	sub_scores->second.hsl.PushSelf(L);                                        \
-	return 1;
-
-		if (LuaBinding::CheckLuaObjectType(L, 1, "Song")) {
-			GET_IF_EXISTS(Song, Steps);
-		}
-		luaL_typerror(L, 1, "Song");
-		return 0;
-#undef GET_IF_EXISTS
-	}
-
-	static int GetAllUsedHighScoreNames(T* p, lua_State* L)
-	{
-		std::set<RString> names;
-		p->GetAllUsedHighScoreNames(names);
-		lua_createtable(L, names.size(), 0);
-		int next_name_index = 1;
-		for (std::set<RString>::iterator name = names.begin();
-			 name != names.end();
-			 ++name) {
-			lua_pushstring(L, name->c_str());
-			lua_rawseti(L, -2, next_name_index);
-			++next_name_index;
-		}
-		return 1;
-	}
 
 	static int GetTotalNumSongsPlayed(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->m_iNumTotalSongsPlayed);
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int GetSongsActual(T* p, lua_State* L)
 	{
-		lua_pushnumber(L,
-					   p->GetSongsActual(Enum::Check<StepsType>(L, 1),
-										 Enum::Check<Difficulty>(L, 2)));
+		lua_pushnumber(L, 0);
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int GetSongsPossible(T* p, lua_State* L)
 	{
-		lua_pushnumber(L,
-					   p->GetSongsPossible(Enum::Check<StepsType>(L, 1),
-										   Enum::Check<Difficulty>(L, 2)));
+		lua_pushnumber(L, 0);
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int GetSongsPercentComplete(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L,
-		  p->GetSongsPercentComplete(Enum::Check<StepsType>(L, 1),
-									 Enum::Check<Difficulty>(L, 2)));
+		lua_pushnumber(L, 0);
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int GetTotalStepsWithTopGrade(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L,
-		  p->GetTotalStepsWithTopGrade(Enum::Check<StepsType>(L, 1),
-									   Enum::Check<Difficulty>(L, 2),
-									   Enum::Check<Grade>(L, 3)));
+		lua_pushnumber(L, 0);
 		return 1;
 	}
 	static int GetNumTotalSongsPlayed(T* p, lua_State* L)
@@ -1450,27 +831,27 @@ class LunaProfile : public Luna<Profile>
 		lua_pushnumber(L, p->m_fPlayerRating);
 		return 1;
 	}
+	// TODO: SCOREMAN
 	static int GetMostPopularSong(T* p, lua_State* L)
 	{
-		Song* p2 = p->GetMostPopularSong();
-		if (p2 != nullptr)
-			p2->PushSelf(L);
-		else
-			lua_pushnil(L);
+
+		lua_pushnil(L);
 		return 1;
 	}
+	// USE SCOREMAN FOR THIS
 	static int GetSongNumTimesPlayed(T* p, lua_State* L)
 	{
 		ASSERT(!lua_isnil(L, 1));
 		Song* pS = Luna<Song>::check(L, 1);
-		lua_pushnumber(L, p->GetSongNumTimesPlayed(pS));
+		lua_pushnumber(L, 0);
 		return 1;
 	}
+	// USE SCOREMAN FOR THIS
 	static int HasPassedAnyStepsInSong(T* p, lua_State* L)
 	{
 		ASSERT(!lua_isnil(L, 1));
 		Song* pS = Luna<Song>::check(L, 1);
-		lua_pushboolean(L, p->HasPassedAnyStepsInSong(pS));
+		lua_pushboolean(L, false);
 		return 1;
 	}
 	static int GetNumToasties(T* p, lua_State* L)
@@ -1600,22 +981,20 @@ class LunaProfile : public Luna<Profile>
 		if (p->sortmode == 3)
 			if (p->asc) {
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-					return Rage::make_lower(
-							 SONGMAN->GetSongByChartkey(a->chartkey)
-							   ->GetDisplayMainTitle()) >
-						   Rage::make_lower(
-							 SONGMAN->GetSongByChartkey(b->chartkey)
-							   ->GetDisplayMainTitle());
+					return make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
+										->GetDisplayMainTitle()) >
+						   make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
+										->GetDisplayMainTitle());
 				}; // custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
 				p->asc = false;
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-			return Rage::make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
-									  ->GetDisplayMainTitle()) <
-				   Rage::make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
-									  ->GetDisplayMainTitle());
+			return make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
+								->GetDisplayMainTitle()) <
+				   make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
+								->GetDisplayMainTitle());
 		};
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 3;
@@ -1757,23 +1136,32 @@ class LunaProfile : public Luna<Profile>
 		p->m_sDisplayName = SArg(1);
 		// roundabout way to force id to be a dir
 		// sometimes its a dir and sometimes it a number
-		RString dir = "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
+		std::string dir =
+		  "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
 		p->SaveEditableDataToDir(dir);
 		return 1;
+	}
+
+	static int ForceRecalcScores(T* p, lua_State* L)
+	{
+		SCOREMAN->RecalculateSSRs(p->m_sProfileID);
+		return 0;
+	}
+
+	static int UnInvalidateAllScores(T* p, lua_State* L)
+	{
+		SCOREMAN->UnInvalidateAllScores(p->m_sProfileID);
+		return 0;
 	}
 
 	LunaProfile()
 	{
 		ADD_METHOD(AddScreenshot);
-		ADD_METHOD(GetType);
 		ADD_METHOD(GetPriority);
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(SetDisplayName);
 		ADD_METHOD(GetLastUsedHighScoreName);
 		ADD_METHOD(SetLastUsedHighScoreName);
-		ADD_METHOD(GetAllUsedHighScoreNames);
-		ADD_METHOD(GetHighScoreListIfExists);
-		ADD_METHOD(GetHighScoreList);
 		ADD_METHOD(GetTotalNumSongsPlayed);
 		ADD_METHOD(GetSongsActual);
 		ADD_METHOD(GetSongsPossible);
@@ -1815,6 +1203,8 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(SortByDiff);
 		ADD_METHOD(ToggleFilter);
 		ADD_METHOD(GetFilterMode);
+		ADD_METHOD(ForceRecalcScores);
+		ADD_METHOD(UnInvalidateAllScores);
 	}
 };
 
@@ -1833,7 +1223,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int WhenAchieved(T* p, lua_State* L)
 	{
 		if (p->achieved)
-			lua_pushstring(L, p->timeachieved.GetString());
+			lua_pushstring(L, p->timeachieved.GetString().c_str());
 		else
 			lua_pushnil(L);
 
@@ -1896,7 +1286,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 
 	static int GetPBUpTo(T* p, lua_State* L)
 	{
-		HighScore* pb = p->GetPBUpTo();
+		auto* pb = p->GetPBUpTo();
 		if (pb == nullptr)
 			lua_pushnil(L);
 		else
@@ -1917,7 +1307,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int AchievedBy(T* p, lua_State* L)
 	{
 		if (p->achieved)
-			lua_pushstring(L, p->scorekey);
+			lua_pushstring(L, p->scorekey.c_str());
 		else
 			lua_pushnil(L);
 		return 1;

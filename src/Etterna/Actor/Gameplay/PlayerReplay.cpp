@@ -3,7 +3,6 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "ArrowEffects.h"
 #include "NoteField.h"
-#include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
@@ -11,10 +10,24 @@
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "PlayerReplay.h"
+#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Models/Songs/SongOptions.h"
+
+static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
+static ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;
+static ThemeMetric<float> HOLD_JUDGMENT_Y_STANDARD;
+static ThemeMetric<float> HOLD_JUDGMENT_Y_REVERSE;
+static ThemeMetric<int> BRIGHT_GHOST_COMBO_THRESHOLD;
+static ThemeMetric<bool> TAP_JUDGMENTS_UNDER_FIELD;
+static ThemeMetric<bool> HOLD_JUDGMENTS_UNDER_FIELD;
+static ThemeMetric<bool> COMBO_UNDER_FIELD;
+static ThemeMetric<int> DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+static ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+static ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
+static ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
 PlayerReplay::PlayerReplay(NoteData& nd, bool bVisibleParts)
   : Player(nd, bVisibleParts)
@@ -36,6 +49,22 @@ PlayerReplay::Init(const std::string& sType,
 {
 	Player::Init(
 	  sType, pPlayerState, pPlayerStageStats, pLM, pPrimaryScoreKeeper);
+	GRAY_ARROWS_Y_STANDARD.Load(sType, "ReceptorArrowsYStandard");
+	GRAY_ARROWS_Y_REVERSE.Load(sType, "ReceptorArrowsYReverse");
+	HOLD_JUDGMENT_Y_STANDARD.Load(sType, "HoldJudgmentYStandard");
+	HOLD_JUDGMENT_Y_REVERSE.Load(sType, "HoldJudgmentYReverse");
+	BRIGHT_GHOST_COMBO_THRESHOLD.Load(sType, "BrightGhostComboThreshold");
+
+	TAP_JUDGMENTS_UNDER_FIELD.Load(sType, "TapJudgmentsUnderField");
+	HOLD_JUDGMENTS_UNDER_FIELD.Load(sType, "HoldJudgmentsUnderField");
+	COMBO_UNDER_FIELD.Load(sType, "ComboUnderField");
+	DRAW_DISTANCE_AFTER_TARGET_PIXELS.Load(sType,
+										   "DrawDistanceAfterTargetsPixels");
+	DRAW_DISTANCE_BEFORE_TARGET_PIXELS.Load(sType,
+											"DrawDistanceBeforeTargetsPixels");
+	ROLL_BODY_INCREMENTS_COMBO.Load("Player", "RollBodyIncrementsCombo");
+	COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO.Load("Player",
+											  "ComboBreakOnImmediateHoldLetGo");
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->m_bDisqualified = true;
 }
@@ -519,10 +548,10 @@ PlayerReplay::Step(int col,
 					if (ROLL_BODY_INCREMENTS_COMBO) {
 						IncrementCombo();
 
-						bool bBright =
-						  m_pPlayerStageStats &&
-						  m_pPlayerStageStats->m_iCurCombo >
-							(unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD;
+						bool bBright = m_pPlayerStageStats &&
+									   m_pPlayerStageStats->m_iCurCombo >
+										 static_cast<unsigned int>(
+										   BRIGHT_GHOST_COMBO_THRESHOLD);
 						if (m_pNoteField)
 							m_pNoteField->DidHoldNote(col, HNS_Held, bBright);
 					}
@@ -696,7 +725,7 @@ PlayerReplay::Step(int col,
 				const bool bBright =
 				  (m_pPlayerStageStats &&
 				   m_pPlayerStageStats->m_iCurCombo >
-					 (unsigned int)BRIGHT_GHOST_COMBO_THRESHOLD);
+					 static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD));
 				if (m_pNoteField != nullptr)
 					m_pNoteField->DidTapNote(
 					  col, bBlind ? TNS_W1 : score, bBright);

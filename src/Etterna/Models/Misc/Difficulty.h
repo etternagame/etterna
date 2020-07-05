@@ -18,30 +18,30 @@ enum Difficulty
 	NUM_Difficulty,
 	Difficulty_Invalid
 };
-const RString&
+const std::string&
 DifficultyToString(Difficulty dc);
 Difficulty
-StringToDifficulty(const RString& sDC);
+StringToDifficulty(const std::string& sDC);
 LuaDeclareType(Difficulty);
 
 Difficulty
-OldStyleStringToDifficulty(const RString& sDC); // compatibility
+OldStyleStringToDifficulty(const std::string& sDC); // compatibility
 
 // CustomDifficulty is a themeable difficulty name based on Difficulty, string
 // matching on StepsType, and CourseType. It is used to look up localized
 // strings and look up colors.
-RString
+std::string
 GetCustomDifficulty(StepsType st, Difficulty dc);
-RString
-CustomDifficultyToLocalizedString(const RString& sCustomDifficulty);
-RString
+std::string
+CustomDifficultyToLocalizedString(const std::string& sCustomDifficulty);
+std::string
 StepsToCustomDifficulty(const Steps* pSteps);
 
 struct Chart
 {
 	string key;
-	RString lastsong;
-	RString lastpack;
+	std::string lastsong;
+	std::string lastpack;
 	Difficulty lastdiff = Difficulty_Invalid;
 	float rate = 1.f;
 	Song* songptr;
@@ -58,7 +58,7 @@ struct Chart
 
 struct Playlist
 {
-	RString name;
+	std::string name;
 	vector<Chart> chartlist;
 	void Add(Chart ch) { chartlist.emplace_back(ch); }
 	void AddChart(const string& ck);
@@ -78,7 +78,8 @@ struct Playlist
 	void PushSelf(lua_State* L);
 };
 
-struct CalcTest	{
+struct CalcTest
+{
 	string ck;
 	float ev;
 	float rate;

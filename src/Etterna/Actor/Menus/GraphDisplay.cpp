@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "GraphDisplay.h"
@@ -9,7 +9,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/FileTypes/XmlFile.h"
 
 //#define DIVIDE_LINE_WIDTH
 // THEME->GetMetricI(m_sName,"TexturedBottomHalf")
@@ -60,7 +59,8 @@ class GraphLine : public Actor
 		pVerts[0] = v;
 
 		for (int i = 0; i < iSubdivisions + 1; ++i) {
-			const float fRotation = float(i) / iSubdivisions * 2 * PI;
+			const float fRotation =
+			  static_cast<float>(i) / iSubdivisions * 2 * PI;
 			const float fX = RageFastCos(fRotation) * fRadius;
 			const float fY = -RageFastSin(fRotation) * fRadius;
 			pVerts[1 + i] = v;
@@ -123,7 +123,7 @@ REGISTER_ACTOR_CLASS(GraphLine);
 class GraphBody : public Actor
 {
   public:
-	explicit GraphBody(RString sFile)
+	explicit GraphBody(const std::string& sFile)
 	{
 		m_pTexture = TEXTUREMAN->LoadTexture(sFile);
 
@@ -217,9 +217,9 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		}
 
 		if (fMinLifeSoFar > 0.0f && fMinLifeSoFar < 0.1f) {
-			float fX = SCALE(float(iMinLifeSoFarAt),
+			float fX = SCALE(static_cast<float>(iMinLifeSoFarAt),
 							 0.0f,
-							 float(VALUE_RESOLUTION - 1),
+							 static_cast<float>(VALUE_RESOLUTION - 1),
 							 m_quadVertices.left,
 							 m_quadVertices.right);
 			m_sprBarely->SetX(fX);
@@ -231,7 +231,7 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 }
 
 void
-GraphDisplay::Load(const RString& sMetricsGroup)
+GraphDisplay::Load(const std::string& sMetricsGroup)
 {
 	m_size.x =
 	  static_cast<float>(THEME->GetMetricI(sMetricsGroup, "BodyWidth"));
@@ -266,9 +266,9 @@ GraphDisplay::UpdateVerts()
 
 	RageSpriteVertex LineStrip[VALUE_RESOLUTION];
 	for (int i = 0; i < VALUE_RESOLUTION; ++i) {
-		const float fX = SCALE(float(i),
+		const float fX = SCALE(static_cast<float>(i),
 							   0.0f,
-							   float(VALUE_RESOLUTION - 1),
+							   static_cast<float>(VALUE_RESOLUTION - 1),
 							   m_quadVertices.left,
 							   m_quadVertices.right);
 		const float fY = SCALE(

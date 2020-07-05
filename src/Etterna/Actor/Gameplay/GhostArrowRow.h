@@ -22,7 +22,7 @@ class GhostArrowRow : public ActorFrame
 	void SetHoldShowing(int iCol, const TapNote& tn);
 
   protected:
-	float m_fYReverseOffsetPixels;
+	float m_fYReverseOffsetPixels = 0.F;
 	const PlayerState* m_pPlayerState;
 
 	vector<NoteColumnRenderer> const* m_renderers;

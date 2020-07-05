@@ -120,8 +120,7 @@ GhostArrowRow::DidTapNote(int iCol, TapNoteScore tns, bool bBright)
 		m_Ghost[iCol]->PlayCommand("Bright");
 	else
 		m_Ghost[iCol]->PlayCommand("Dim");
-	std::string sJudge = TapNoteScoreToString(tns);
-	m_Ghost[iCol]->PlayCommand(Capitalize(sJudge));
+	m_Ghost[iCol]->PlayCommand(Capitalize(TapNoteScoreToString(tns)));
 }
 
 void
@@ -141,8 +140,7 @@ GhostArrowRow::DidHoldNote(int iCol, HoldNoteScore hns, bool bBright)
 		m_Ghost[iCol]->PlayCommand("Bright");
 	else
 		m_Ghost[iCol]->PlayCommand("Dim");
-	std::string sJudge = HoldNoteScoreToString(hns);
-	m_Ghost[iCol]->PlayCommand(Capitalize(sJudge));
+	m_Ghost[iCol]->PlayCommand(Capitalize(HoldNoteScoreToString(hns)));
 }
 
 void

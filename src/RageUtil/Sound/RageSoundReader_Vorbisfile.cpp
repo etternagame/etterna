@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSoundReader_Vorbisfile.h"
@@ -9,6 +9,8 @@
 #else
 #include <vorbis/vorbisfile.h>
 #endif
+
+#include <cstdarg>
 
 #include "RageUtil/File/RageFile.h"
 
@@ -39,15 +41,15 @@ OggRageFile_tell_func(void* datasource)
 	return f->Tell();
 }
 
-static RString
+static std::string
 ov_ssprintf(int err, const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	RString s = vssprintf(fmt, va);
+	std::string s = vssprintf(fmt, va);
 	va_end(va);
 
-	RString errstr;
+	std::string errstr;
 	switch (err) {
 			// OV_FALSE, OV_EOF, and OV_HOLE were added to this switch because
 			// OV_EOF cases were being reported as unknown. -Kyz

@@ -1,6 +1,7 @@
 #ifndef RAGE_SOUNDS_H
 #define RAGE_SOUNDS_H
 
+#include <functional>
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include "MessageManager.h"
 
@@ -25,7 +26,7 @@ class GameSoundManager : MessageSubscriber
 	{
 		PlayMusicParams()
 		{
-			pTiming = NULL;
+			pTiming = nullptr;
 			bForceLoop = false;
 			fStartSecond = 0;
 			fLengthSeconds = -1;
@@ -36,7 +37,7 @@ class GameSoundManager : MessageSubscriber
 			bAccurateSync = false;
 		}
 
-		RString sFile;
+		std::string sFile;
 		const TimingData* pTiming;
 		bool bForceLoop;
 		float fStartSecond;
@@ -49,8 +50,8 @@ class GameSoundManager : MessageSubscriber
 	};
 	void PlayMusic(PlayMusicParams params,
 				   PlayMusicParams FallbackMusicParams = PlayMusicParams());
-	void PlayMusic(const RString& sFile,
-				   const TimingData* pTiming = NULL,
+	void PlayMusic(const std::string& sFile,
+				   const TimingData* pTiming = nullptr,
 				   bool force_loop = false,
 				   float start_sec = 0,
 				   float length_sec = -1,
@@ -61,12 +62,12 @@ class GameSoundManager : MessageSubscriber
 				   bool bAccurateSync = false);
 	void StopMusic() { PlayMusic(""); }
 	void DimMusic(float fVolume, float fDurationSeconds);
-	RString GetMusicPath() const;
+	std::string GetMusicPath() const;
 	void Flush();
 
-	void PlayOnce(const RString& sPath);
-	void PlayOnceFromDir(const RString& sDir);
-	void PlayOnceFromAnnouncer(const RString& sFolderName);
+	void PlayOnce(const std::string& sPath);
+	void PlayOnceFromDir(const std::string& sDir);
+	void PlayOnceFromAnnouncer(const std::string& sFolderName);
 
 	void HandleSongTimer(bool on = true);
 	float GetFrameTimingAdjustment(float fDeltaTime);
@@ -80,9 +81,9 @@ class GameSoundManager : MessageSubscriber
 	void SetSoundPosition(RageSound* s, float fSeconds);
 
 	void StartMusic(MusicToPlay& ToPlay);
-	void DoPlayOnce(RString sPath);
+	void DoPlayOnce(std::string sPath);
 	void StartQueuedSounds();
-	void DoPlayOnceFromDir(RString sPath);
+	void DoPlayOnceFromDir(std::string sPath);
 	bool SoundWaiting();
 	void HandleSetPosition();
 

@@ -1,4 +1,4 @@
-﻿#ifndef NOTES_WRITER_ETT_H
+#ifndef NOTES_WRITER_ETT_H
 #define NOTES_WRITER_ETT_H
 
 #include "Etterna/Globals/global.h"
@@ -16,7 +16,7 @@ namespace NotesWriterETT {
  * @param bSavingCache a flag to see if we're saving certain cache data.
  * @return its success or failure. */
 bool
-Write(RString& sPath, const Song& out, const vector<Steps*>& vpStepsToSave);
+Write(std::string& sPath, const Song& out, const vector<Steps*>& vpStepsToSave);
 }
 
 #endif

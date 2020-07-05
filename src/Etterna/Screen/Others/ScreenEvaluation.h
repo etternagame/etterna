@@ -1,14 +1,8 @@
 #ifndef SCREEN_EVALUATION_H
 #define SCREEN_EVALUATION_H
 
-#include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Actor/Base/BitmapText.h"
-#include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "Etterna/Actor/Base/RollingNumbers.h"
 #include "ScreenWithMenuElements.h"
-#include "Etterna/Actor/Base/Sprite.h"
-#include "Etterna/Models/Misc/ThemeMetric.h"
 
 /**
  * @brief How many songs are shown at the end?

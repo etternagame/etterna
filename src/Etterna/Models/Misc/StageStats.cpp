@@ -12,13 +12,8 @@
 #include "PlayerAI.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "AdjustSync.h"
-#include <fstream>
-#include <sstream>
-#include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
-#include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "GamePreferences.h"
 
@@ -510,8 +505,8 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 static HighScore
 FillInHighScore(const PlayerStageStats& pss,
 				const PlayerState& ps,
-				RString sRankingToFillInMarker,
-				RString sPlayerGuid)
+				std::string sRankingToFillInMarker,
+				std::string sPlayerGuid)
 {
 	CHECKPOINT_M("Filling Highscore");
 	HighScore hs;
@@ -531,12 +526,13 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetAliveSeconds(pss.m_fAliveSeconds);
 	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
 
-	vector<RString> asModifiers;
+	vector<std::string> asModifiers;
 	{
-		RString sPlayerOptions = ps.m_PlayerOptions.GetStage().GetString();
+		std::string sPlayerOptions = ps.m_PlayerOptions.GetStage().GetString();
 		if (!sPlayerOptions.empty())
 			asModifiers.push_back(sPlayerOptions);
-		RString sSongOptions = GAMESTATE->m_SongOptions.GetStage().GetString();
+		std::string sSongOptions =
+		  GAMESTATE->m_SongOptions.GetStage().GetString();
 		if (!sSongOptions.empty())
 			asModifiers.push_back(sSongOptions);
 	}
@@ -563,7 +559,7 @@ FillInHighScore(const PlayerStageStats& pss,
 
 	// should maybe just make the setscorekey function do this internally rather
 	// than recalling the datetime object -mina
-	RString ScoreKey =
+	std::string ScoreKey =
 	  "S" +
 	  BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
 	hs.SetScoreKey(ScoreKey);
@@ -648,9 +644,7 @@ StageStats::FinalizeScores(bool bSummary)
 
 	// whether or not to save scores when the stage was failed depends on if
 	// this is a course or not... it's handled below in the switch.
-	RString sPlayerGuid = PROFILEMAN->IsPersistentProfile(PLAYER_1)
-							? PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid
-							: RString("");
+	std::string sPlayerGuid = PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid;
 	m_player.m_HighScore = FillInHighScore(m_player,
 										   *GAMESTATE->m_pPlayerState,
 										   RANKING_TO_FILL_IN_MARKER,

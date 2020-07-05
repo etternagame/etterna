@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Output a sound from the channels of another sound.
  *
  * This is intended for splitting a FileReader, and assumes the
@@ -108,7 +108,7 @@ RageSoundReader_Split::GetStreamToSourceRatio() const
 {
 	return 1.0f;
 }
-RString
+std::string
 RageSoundReader_Split::GetError() const
 {
 	return m_pImpl->m_pSource->GetError();
@@ -156,7 +156,7 @@ RageSoundReader_Split::SetPosition(int iFrame)
 }
 
 bool
-RageSoundReader_Split::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_Split::SetProperty(const std::string& sProperty, float fValue)
 {
 	return m_pImpl->m_pSource->SetProperty(sProperty, fValue);
 }

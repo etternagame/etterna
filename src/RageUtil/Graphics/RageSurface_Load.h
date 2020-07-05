@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_SURFACE_LOAD_H
+#ifndef RAGE_SURFACE_LOAD_H
 #define RAGE_SURFACE_LOAD_H
 
 struct RageSurface;
@@ -15,7 +15,9 @@ enum OpenResult
 /* If bHeaderOnly is true, the loader is only required to return a surface
  * with the width and height set (but may return a complete surface). */
 RageSurface*
-LoadFile(const RString& sPath, RString& error, bool bHeaderOnly = false);
+LoadFile(const std::string& sPath,
+		 std::string& error,
+		 bool bHeaderOnly = false);
 }
 
 #endif

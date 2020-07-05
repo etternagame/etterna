@@ -13,27 +13,7 @@ enum class EmptyEntries : bool
 	skip
 };
 
-/** @brief Get the first x characters of a string. Allow negative warping.
- *
- * This comes from http://stackoverflow.com/a/7597469/445373
- */
-std::string
-head(std::string const& source, int32_t const length);
 
-/** @brief Get the last x characters of a string. Allow negative warping.
- *
- * This comes from http://stackoverflow.com/a/7597469/445373
- */
-std::string
-tail(std::string const& source, int32_t const length);
-
-/** @brief Determine if the source string begins with the specified content. */
-bool
-starts_with(std::string const& source, std::string const& target);
-
-/** @brief Determine if the source string ends with the specified content. */
-bool
-ends_with(std::string const& source, std::string const& target);
 
 /** @brief Offer a clean way of hexify-ing a wide character. Primarily used for
  * fonts.

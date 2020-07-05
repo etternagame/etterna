@@ -3,7 +3,7 @@
  * @ingroup tests
  * @brief   Test of a SQLiteCpp Column.
  *
- * Copyright (c) 2012-2016 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2020 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -21,7 +21,8 @@
 #include <stdint.h>
 
 
-TEST(Column, basis) {
+TEST(Column, basis)
+{
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
     EXPECT_EQ(SQLite::OK, db.getErrorCode());
@@ -57,32 +58,46 @@ TEST(Column, basis) {
 
     // validates every variant of cast operators, and conversions of types
     {
-        const sqlite3_int64 id1     = query.getColumn(0); // operator int64_t()
-        const int64_t       id2     = query.getColumn(0); // operator int64_t()
-        const long long     id3     = query.getColumn(0); // operator int64_t()
-        const long          id4     = query.getColumn(0); // operator int64_t() or long() depending on compiler/architecture
-        const unsigned int  uint1   = query.getColumn(0); // operator uint32_t()
-        const uint32_t      uint2   = query.getColumn(0); // operator uint32_t()
+        const sqlite3_int64 id1     = query.getColumn(0); // operator long long()
+        const int64_t       id2     = query.getColumn(0); // operator long long()
+        const long long     id3     = query.getColumn(0); // operator long long()
+        const long          id4     = query.getColumn(0); // operator long long() or long() depending on compiler/architecture
+        const char          id5     = query.getColumn(0); // operator char()
+        const short         id6     = query.getColumn(0); // operator short()
+        const unsigned int  uint1   = query.getColumn(0); // operator unsigned int()
+        const uint32_t      uint2   = query.getColumn(0); // operator unsigned int()
+        const unsigned char uint3   = query.getColumn(0); // operator unsigned char()
+        const unsigned short uint4  = query.getColumn(0); // operator unsigned short()
         const char*         ptxt    = query.getColumn(1); // operator const char*()
         const std::string   msg     = query.getColumn(1); // operator std::string() (or const char* with MSVC)
         const int           integer = query.getColumn(2); // operator int()
         const double        real    = query.getColumn(3); // operator double()
         const void*         pblob   = query.getColumn(4); // operator void*()
-        const std::string   sblob   = query.getColumn(4); // operator std::string() (or const char* with MSVC)
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+        // This implicit cast should use operator std::string()
+        // but would fallback to const char* with MSVC 2010-2013 (witch does not work with the NULL char in the middle)
+        const std::string   sblob   = query.getColumn(4); // operator std::string()
+#endif
         const void*         pempty  = query.getColumn(5); // operator void*()
         EXPECT_EQ(1,            id1);
         EXPECT_EQ(1,            id2);
         EXPECT_EQ(1,            id3);
         EXPECT_EQ(1,            id4);
-        EXPECT_EQ(1,            uint1);
-        EXPECT_EQ(1,            uint2);
+        EXPECT_EQ(1,            id5);
+        EXPECT_EQ(1,            id6);
+        EXPECT_EQ(1U,           uint1);
+        EXPECT_EQ(1U,           uint2);
+        EXPECT_EQ(1U,           uint3);
+        EXPECT_EQ(1U,           uint4);
         EXPECT_STREQ("first",   ptxt);
         EXPECT_EQ("first",      msg);
         EXPECT_EQ(-123,         integer);
         EXPECT_EQ(0.123,        real);
         EXPECT_EQ(0,            memcmp("bl\0b", pblob, size));
-        EXPECT_EQ(size,         sblob.size());
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+        EXPECT_EQ((size_t)size, sblob.size());
         EXPECT_EQ(0,            memcmp("bl\0b", &sblob[0], size));
+#endif
         EXPECT_EQ(NULL,         pempty);
     }
 
@@ -99,8 +114,8 @@ TEST(Column, basis) {
         const void*         pblob   = query.getColumn(4).getBlob();
         const std::string   sblob   = query.getColumn(4).getString();
         EXPECT_EQ(1,            id);
-        EXPECT_EQ(1,            uint1);
-        EXPECT_EQ(1,            uint2);
+        EXPECT_EQ(1U,           uint1);
+        EXPECT_EQ(1U,           uint2);
         EXPECT_STREQ("first",   ptxt);
         EXPECT_EQ("first",      msg1);
         EXPECT_EQ("first",      msg2);
@@ -173,7 +188,8 @@ TEST(Column, basis) {
     }
 }
 
-TEST(Column, getName) {
+TEST(Column, getName)
+{
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
     EXPECT_EQ(0, db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, msg TEXT)"));
@@ -200,7 +216,8 @@ TEST(Column, getName) {
 #endif
 }
 
-TEST(Column, stream) {
+TEST(Column, stream)
+{
     // Create a new database
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
     EXPECT_EQ(0, db.exec("CREATE TABLE test (msg TEXT)"));

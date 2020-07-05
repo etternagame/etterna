@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_ThreadedBuffer.h"
 #include "RageUtil/Misc/RageTimer.h"
 #if defined(HAVE_UNISTD_H)
@@ -197,7 +197,7 @@ RageSoundReader_ThreadedBuffer::GetLength_Fast() const
 }
 
 bool
-RageSoundReader_ThreadedBuffer::SetProperty(const RString& sProperty,
+RageSoundReader_ThreadedBuffer::SetProperty(const std::string& sProperty,
 											float fValue)
 {
 	return m_pSource->SetProperty(sProperty, fValue);

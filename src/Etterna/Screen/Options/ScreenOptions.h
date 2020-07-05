@@ -17,13 +17,13 @@ AutoScreenMessage(SM_ExportOptions);
 /** @brief The list of input modes for the given row. */
 enum InputMode
 {
-	INPUTMODE_INDIVIDUAL,   /**< each player controls their own cursor */
+	INPUTMODE_INDIVIDUAL,	/**< each player controls their own cursor */
 	INPUTMODE_SHARE_CURSOR, /**< both players control the same cursor */
 	NUM_InputMode,			/**< The number of input modes available. */
 	InputMode_Invalid
 };
 InputMode
-StringToInputMode(const RString& str);
+StringToInputMode(const std::string& str);
 
 /** @brief A custom foreach loop for the player options for each player. */
 #define FOREACH_OptionsPlayer(pn)                                              \
@@ -64,7 +64,7 @@ class ScreenOptions : public ScreenWithMenuElements
 					int& iWidthOut,
 					int& iXOut,
 					int& iYOut) const;
-	RString GetExplanationText(int iRow) const;
+	std::string GetExplanationText(int iRow) const;
 	void RefreshIcons(int iRow, PlayerNumber pn);
 	void PositionCursor(PlayerNumber pn);
 	void PositionRows(bool bTween);
@@ -73,7 +73,7 @@ class ScreenOptions : public ScreenWithMenuElements
 
 	void BeginFadingOut();
 	virtual bool FocusedItemEndsScreen(PlayerNumber pn) const;
-	RString GetNextScreenForFocusedItem(PlayerNumber pn) const;
+	std::string GetNextScreenForFocusedItem(PlayerNumber pn) const;
 
 	void ChangeValueInRowRelative(int iRow,
 								  PlayerNumber pn,
@@ -114,7 +114,7 @@ class ScreenOptions : public ScreenWithMenuElements
 	}
 	bool AllAreOnLastRow() const;
 	OptionRow* GetRow(int iRow) const { return m_pRows[iRow]; }
-	// void SetOptionRowFromName( const RString& nombre );
+	// void SetOptionRowFromName( const std::string& nombre );
 	int GetNumRows() const { return static_cast<int>(m_pRows.size()); }
 
   protected: // derived classes need access to these
@@ -190,8 +190,8 @@ class ScreenOptions : public ScreenWithMenuElements
 	ThemeMetric<bool> ALLOW_REPEATING_CHANGE_VALUE_INPUT;
 	ThemeMetric<float> CURSOR_TWEEN_SECONDS;
 	ThemeMetric<bool> WRAP_VALUE_IN_ROW;
-	ThemeMetric<RString> OPTION_ROW_NORMAL_METRICS_GROUP;
-	ThemeMetric<RString> OPTION_ROW_EXIT_METRICS_GROUP;
+	ThemeMetric<std::string> OPTION_ROW_NORMAL_METRICS_GROUP;
+	ThemeMetric<std::string> OPTION_ROW_EXIT_METRICS_GROUP;
 };
 
 #endif

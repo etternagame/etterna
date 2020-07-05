@@ -3,7 +3,7 @@
 #include "RageUtil.h"
 #include "RageUtil_WorkerThread.h"
 
-RageWorkerThread::RageWorkerThread(const RString& sName)
+RageWorkerThread::RageWorkerThread(const std::string& sName)
   : m_WorkerEvent("\"" + sName + "\" worker event")
   , m_HeartbeatEvent("\"" + sName + "\" heartbeat event")
 {
@@ -142,9 +142,10 @@ RageWorkerThread::WorkerMain()
 		if (iRequest != REQ_NONE) {
 			/* Handle the request. */
 			if (iRequest != REQ_SHUTDOWN) {
-				CHECKPOINT_M(ssprintf("HandleRequest(%i)", iRequest));
+				CHECKPOINT_M(ssprintf("HandleRequest(%i)", iRequest).c_str());
 				HandleRequest(iRequest);
-				CHECKPOINT_M(ssprintf("HandleRequest(%i) done", iRequest));
+				CHECKPOINT_M(
+				  ssprintf("HandleRequest(%i) done", iRequest).c_str());
 			}
 
 			/* Lock the mutex, to keep DoRequest where it is (if it's still
@@ -168,7 +169,8 @@ RageWorkerThread::WorkerMain()
 				 */
 				m_bTimedOut = false;
 			} else {
-				CHECKPOINT_M(ssprintf("HandleRequest(%i) OK", iRequest));
+				CHECKPOINT_M(
+				  ssprintf("HandleRequest(%i) OK", iRequest).c_str());
 
 				m_bRequestFinished = true;
 

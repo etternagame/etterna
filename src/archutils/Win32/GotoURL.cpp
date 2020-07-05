@@ -6,10 +6,10 @@
 /* This is called from the crash handler; don't use RegistryAccess, since it's
  * not crash-conditions safe. */
 static LONG
-GetRegKey(HKEY key, RString subkey, LPTSTR retdata)
+GetRegKey(HKEY key, std::string subkey, LPTSTR retdata)
 {
 	HKEY hKey;
-	LONG iRet = RegOpenKeyEx(key, subkey, 0, KEY_QUERY_VALUE, &hKey);
+	LONG iRet = RegOpenKeyEx(key, subkey.c_str(), 0, KEY_QUERY_VALUE, &hKey);
 
 	if (iRet != ERROR_SUCCESS)
 		return iRet;
@@ -24,11 +24,11 @@ GetRegKey(HKEY key, RString subkey, LPTSTR retdata)
 }
 
 bool
-GotoURL(const RString& sUrl)
+GotoURL(const std::string& sUrl)
 {
 	// First try ShellExecute()
 	int iRet =
-	  (int)ShellExecute(NULL, "open", sUrl, NULL, NULL, SW_SHOWDEFAULT);
+	  (int)ShellExecute(NULL, "open", sUrl.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 
 	// If it failed, get the .htm regkey and lookup the program
 	if (iRet > 32)
@@ -55,7 +55,7 @@ GotoURL(const RString& sUrl)
 		*szPos = '\0'; // Remove the parameter
 
 	strcat(szPos, " ");
-	strcat(szPos, sUrl);
+	strcat(szPos, sUrl.c_str());
 
 	return WinExec(key, SW_SHOWDEFAULT) > 32;
 }

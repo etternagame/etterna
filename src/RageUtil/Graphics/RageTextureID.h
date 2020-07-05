@@ -1,4 +1,4 @@
-﻿/* RageTextureID - An identifier for a texture and associated loading
+/* RageTextureID - An identifier for a texture and associated loading
  * parameters. */
 
 #ifndef RAGE_TEXTURE_ID_H
@@ -10,7 +10,7 @@
  * of these. */
 struct RageTextureID
 {
-	RString filename;
+	std::string filename;
 
 	// Maximum size of the texture, per dimension.
 	int iMaxSize{ 0 };
@@ -47,7 +47,7 @@ struct RageTextureID
 	bool bHotPinkColorKey{ false }; // #FF00FF
 
 	// These hints will be used in addition to any in the filename.
-	RString AdditionalTextureHints;
+	std::string AdditionalTextureHints;
 
 	/* Used by RageTextureManager. Order is important; see
 	 * RageTextureManager.cpp. Note that this property is not considered for
@@ -62,19 +62,19 @@ struct RageTextureID
 	void Init();
 
 	RageTextureID()
-	  : filename(RString())
-	  , AdditionalTextureHints(RString())
+	  : filename(std::string())
+	  , AdditionalTextureHints(std::string())
 	{
 		Init();
 	}
-	RageTextureID(const RString& fn)
-	  : filename(RString())
-	  , AdditionalTextureHints(RString())
+	RageTextureID(const std::string& fn)
+	  : filename(std::string())
+	  , AdditionalTextureHints(std::string())
 	{
 		Init();
 		SetFilename(fn);
 	}
-	void SetFilename(const RString& fn);
+	void SetFilename(const std::string& fn);
 };
 
 inline bool

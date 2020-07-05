@@ -1,7 +1,7 @@
 #ifndef ScreenMessage_H
 #define ScreenMessage_H
 /** @brief Definition of common ScreenMessages and helpers. */
-using ScreenMessage = RString;
+using ScreenMessage = std::string;
 
 extern const ScreenMessage SM_Invalid;
 extern const ScreenMessage SM_None;
@@ -19,8 +19,8 @@ extern const ScreenMessage SM_Failure;
 /** @brief Helpers for the ScreenMessages. */
 namespace ScreenMessageHelpers {
 ScreenMessage
-ToScreenMessage(const RString& Name);
-RString
+ToScreenMessage(const std::string& Name);
+std::string
 ScreenMessageToString(ScreenMessage SM);
 };
 

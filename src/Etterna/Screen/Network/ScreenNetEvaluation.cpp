@@ -61,7 +61,7 @@ ScreenNetEvaluation::TweenOffScreen()
 void
 ScreenNetEvaluation::UpdateStats()
 {
-	if (m_iCurrentPlayer >= (int)NSMAN->m_EvalPlayerData.size())
+	if (m_iCurrentPlayer >= static_cast<int>(NSMAN->m_EvalPlayerData.size()))
 		return;
 
 	StepsType st = GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType;
@@ -109,8 +109,9 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 	{
 		if (static_cast<int>(NSMAN->m_EvalPlayerData.size()) - 1 >=
 			p->m_iCurrentPlayer)
-			lua_pushstring(
-			  L, NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer].playerOptions);
+			lua_pushstring(L,
+						   NSMAN->m_EvalPlayerData[p->m_iCurrentPlayer]
+							 .playerOptions.c_str());
 		else
 			lua_pushnil(L);
 		return 1;
@@ -129,14 +130,13 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 	static int SetCurrentPlayerByName(T* p, lua_State* L)
 	{
 		int theNumber = 0;
-		RString given = SArg(1);
-		given = given.MakeLower();
+		std::string given = make_lower(SArg(1));
 		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++) {
 			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];
-			RString name = pd.nameStr;
-			name.MakeLower();
+			std::string name = make_lower(pd.nameStr);
+
 			if (name == given) {
-				p->m_iCurrentPlayer = (int)i;
+				p->m_iCurrentPlayer = static_cast<int>(i);
 				p->UpdateStats();
 				break;
 			}

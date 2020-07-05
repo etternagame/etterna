@@ -157,7 +157,7 @@ RageFileObj::Read(void* pBuffer, size_t iBytes)
 }
 
 int
-RageFileObj::Read(RString& sBuffer, int iBytes)
+RageFileObj::Read(std::string& sBuffer, int iBytes)
 {
 	sBuffer.reserve(iBytes != -1 ? iBytes : this->GetFileSize());
 
@@ -254,7 +254,7 @@ RageFileObj::Write(const void* pBuffer, size_t iBytes)
 		/* We're writing a lot of data, and it won't fit in the buffer.  We
 		 * already flushed above, so m_iWriteBufferUsed; fall through and write
 		 * the block normally. */
-		ASSERT_M(m_iWriteBufferUsed == 0, ssprintf("%i", m_iWriteBufferUsed));
+		ASSERT_M(m_iWriteBufferUsed == 0, ssprintf("%i", m_iWriteBufferUsed).c_str());
 	}
 
 	int iRet = WriteInternal(pBuffer, iBytes);
@@ -327,7 +327,7 @@ RageFileObj::GetCRC32(uint32_t* iRet)
 /* Read up to the next \n, and return it in out.  Strip the \n.  If the \n is
  * preceded by a \r (DOS newline), strip that, too. */
 int
-RageFileObj::GetLine(RString& sOut)
+RageFileObj::GetLine(std::string& sOut)
 {
 	sOut = "";
 
@@ -415,11 +415,11 @@ RageFileObj::GetLine(RString& sOut)
 //#endif
 
 int
-RageFileObj::PutLine(const RString& sStr)
+RageFileObj::PutLine(const std::string& sStr)
 {
 	if (Write(sStr) == -1)
 		return -1;
-	return Write(RString(NEWLINE));
+	return Write(std::string(NEWLINE));
 }
 
 /* Fill the internal buffer.  This never marks EOF, since this is an internal,
@@ -437,7 +437,7 @@ RageFileObj::FillReadBuf()
 	const int iBufAvail =
 	  BSIZE - (m_pReadBuf - m_pReadBuffer) - m_iReadBufAvail;
 	ASSERT_M(iBufAvail >= 0,
-			 ssprintf("%p, %p, %i", m_pReadBuf, m_pReadBuffer, (int)BSIZE));
+			 ssprintf("%p, %p, %i", m_pReadBuf, m_pReadBuffer, static_cast<int>(BSIZE)).c_str());
 	const int iSize =
 	  this->ReadInternal(m_pReadBuf + m_iReadBufAvail, iBufAvail);
 

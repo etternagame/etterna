@@ -116,7 +116,7 @@ RageSoundDriver_OSS::GetPosition() const
 	return last_cursor_pos - (delay / bytes_per_frame);
 }
 
-RString
+std::string
 RageSoundDriver_OSS::CheckOSSVersion(int fd)
 {
 	int version = 0;
@@ -176,7 +176,7 @@ RageSoundDriver_OSS::RageSoundDriver_OSS()
 	samplerate = 44100;
 }
 
-RString
+std::string
 RageSoundDriver_OSS::Init()
 {
 	fd = open("/dev/dsp", O_WRONLY | O_NONBLOCK);
@@ -184,7 +184,7 @@ RageSoundDriver_OSS::Init()
 		return ssprintf("RageSoundDriver_OSS: Couldn't open /dev/dsp: %s",
 						strerror(errno));
 
-	RString sError = CheckOSSVersion(fd);
+	std::string sError = CheckOSSVersion(fd);
 	if (sError != "")
 		return sError;
 

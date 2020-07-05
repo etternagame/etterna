@@ -7,9 +7,9 @@ RunGameLoop();
 void
 SetUpdateRate(float fUpdateRate);
 void
-ChangeTheme(const RString& sNewTheme);
+ChangeTheme(const std::string& sNewTheme);
 void
-ChangeGame(const RString& new_game, const RString& new_theme = "");
+ChangeGame(const std::string& new_game, const std::string& new_theme = "");
 void
 StartConcurrentRendering();
 void

@@ -13,20 +13,19 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTexture.h"
-#include "ReceptorArrowRow.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
 static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
 
-const RString&
+const std::string&
 NoteNotePartToString(NotePart i);
 /** @brief A foreach loop going through the different NoteParts. */
 #define FOREACH_NotePart(i) FOREACH_ENUM(NotePart, i)
 
 static const char* NotePartNames[] = {
-	"TapNote",  "TapMine",	"TapLift",  "TapFake",	   "HoldHead",
+	"TapNote",	"TapMine",	  "TapLift",  "TapFake",	   "HoldHead",
 	"HoldTail", "HoldTopCap", "HoldBody", "HoldBottomCap",
 };
 XToString(NotePart);
@@ -83,11 +82,11 @@ struct NoteMetricCache_t
 	bool m_bTopHoldAnchorWhenReverse;
 	bool m_bHoldActiveIsAddLayer;
 
-	void Load(const RString& sButton);
+	void Load(const std::string& sButton);
 } * NoteMetricCache;
 
 void
-NoteMetricCache_t::Load(const RString& sButton)
+NoteMetricCache_t::Load(const std::string& sButton)
 {
 	m_bDrawHoldHeadForTapsOnSameRow =
 	  NOTESKIN->GetMetricB(sButton, "DrawHoldHeadForTapsOnSameRow");
@@ -97,7 +96,7 @@ NoteMetricCache_t::Load(const RString& sButton)
 	  NOTESKIN->GetMetricB(sButton, "TapHoldRollOnRowMeansHold");
 	FOREACH_NotePart(p)
 	{
-		const RString& s = NotePartToString(p);
+		const std::string& s = NotePartToString(p);
 		m_fAnimationLength[p] =
 		  NOTESKIN->GetMetricF(sButton, s + "AnimationLength");
 		m_bAnimationIsVivid[p] =
@@ -113,7 +112,7 @@ NoteMetricCache_t::Load(const RString& sButton)
 		m_iNoteColorCount[p] =
 		  NOTESKIN->GetMetricI(sButton, s + "NoteColorCount");
 
-		RString ct = NOTESKIN->GetMetric(sButton, s + "NoteColorType");
+		std::string ct = NOTESKIN->GetMetric(sButton, s + "NoteColorType");
 		m_NoteColorType[p] = StringToNoteColorType(ct);
 	}
 	// I was here -DaisuMaster
@@ -143,23 +142,23 @@ NoteMetricCache_t::Load(const RString& sButton)
 
 struct NoteSkinAndPath
 {
-	NoteSkinAndPath(const RString sNoteSkin_,
-					const RString sPath_,
-					const PlayerNumber pn_,
-					const GameController gc_)
+	NoteSkinAndPath(const std::string& sNoteSkin_,
+					const std::string& sPath_,
+					const PlayerNumber& pn_,
+					const GameController& gc_)
 	  : sNoteSkin(sNoteSkin_)
 	  , sPath(sPath_)
 	  , pn(pn_)
 	  , gc(gc_)
 	{
 	}
-	RString sNoteSkin;
-	RString sPath;
+	std::string sNoteSkin;
+	std::string sPath;
 	PlayerNumber pn;
 	GameController gc;
 	bool operator<(const NoteSkinAndPath& other) const
 	{
-		int cmp = strcmp(sNoteSkin, other.sNoteSkin);
+		int cmp = strcmp(sNoteSkin.c_str(), other.sNoteSkin.c_str());
 
 		if (cmp < 0) {
 			return true;
@@ -201,17 +200,17 @@ struct NoteResource
 	Actor* m_pActor; // todo: AutoActor me? -aj
 };
 
-static map<RString, map<NoteSkinAndPath, NoteResource*>> g_NoteResource;
+static map<std::string, map<NoteSkinAndPath, NoteResource*>> g_NoteResource;
 
 static NoteResource*
-MakeNoteResource(const RString& sButton,
-				 const RString& sElement,
+MakeNoteResource(const std::string& sButton,
+				 const std::string& sElement,
 				 PlayerNumber pn,
 				 GameController gc,
 				 bool bSpriteOnly,
-				 RString Color)
+				 std::string Color)
 {
-	RString sElementAndType =
+	std::string sElementAndType =
 	  ssprintf("%s, %s", sButton.c_str(), sElement.c_str());
 	NoteSkinAndPath nsap(
 	  NOTESKIN->GetCurrentNoteSkin(), sElementAndType, pn, gc);
@@ -257,7 +256,7 @@ DeleteNoteResource(NoteResource* pRes)
 	if (pRes->m_iRefCount != 0)
 		return;
 
-	map<RString, map<NoteSkinAndPath, NoteResource*>>::iterator it;
+	map<std::string, map<NoteSkinAndPath, NoteResource*>>::iterator it;
 	for (it = g_NoteResource.begin(); it != g_NoteResource.end(); it++)
 		it->second.erase(pRes->m_nsap);
 	delete pRes;
@@ -272,7 +271,7 @@ NoteColorActor::NoteColorActor()
 
 NoteColorActor::~NoteColorActor()
 {
-	map<RString, NoteResource*>::iterator it;
+	map<std::string, NoteResource*>::iterator it;
 	for (it = g_p.begin(); it != g_p.end(); it++)
 		if (it->second)
 			DeleteNoteResource(it->second);
@@ -280,17 +279,17 @@ NoteColorActor::~NoteColorActor()
 }
 
 void
-NoteColorActor::Load(const RString& sButton,
-					 const RString& sElement,
+NoteColorActor::Load(const std::string& sButton,
+					 const std::string& sElement,
 					 PlayerNumber pn,
 					 GameController gc,
-					 RString Color)
+					 std::string Color)
 {
 	g_p[Color] = MakeNoteResource(sButton, sElement, pn, gc, false, Color);
 }
 
 Actor*
-NoteColorActor::Get(RString Color)
+NoteColorActor::Get(std::string Color)
 {
 	return g_p[Color]->m_pActor;
 }
@@ -304,7 +303,7 @@ NoteColorSprite::NoteColorSprite()
 
 NoteColorSprite::~NoteColorSprite()
 {
-	map<RString, NoteResource*>::iterator it;
+	map<std::string, NoteResource*>::iterator it;
 	for (it = g_p.begin(); it != g_p.end(); it++)
 		if (it->second)
 			DeleteNoteResource(it->second);
@@ -312,17 +311,17 @@ NoteColorSprite::~NoteColorSprite()
 }
 
 void
-NoteColorSprite::Load(const RString& sButton,
-					  const RString& sElement,
+NoteColorSprite::Load(const std::string& sButton,
+					  const std::string& sElement,
 					  PlayerNumber pn,
 					  GameController gc,
-					  RString Color)
+					  std::string Color)
 {
 	g_p[Color] = MakeNoteResource(sButton, sElement, pn, gc, true, Color);
 }
 
 Sprite*
-NoteColorSprite::Get(RString Color)
+NoteColorSprite::Get(std::string Color)
 {
 	return dynamic_cast<Sprite*>(g_p[Color]->m_pActor);
 }
@@ -493,16 +492,16 @@ NoteDisplay::Load(int iColNum,
 	GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
 	  ->StyleInputToGameInput(iColNum, pn, GameI);
 
-	const RString& sButton =
+	const std::string& sButton =
 	  GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
 		->ColToButtonName(iColNum);
 
 	cache->Load(sButton);
 
-	vector<RString> Colors = { "4th",  "8th",  "12th", "16th", "24th",
+	vector<std::string> Colors = { "4th",  "8th",  "12th", "16th", "24th",
 							   "32nd", "48th", "64th", "192nd" };
 
-	vector<RString>::iterator Color;
+	vector<std::string>::iterator Color;
 	for (Color = Colors.begin(); Color != Colors.end(); Color++) {
 		// "normal" note types
 		m_TapNote.Load(sButton, "Tap Note", pn, GameI[0].controller, *Color);
@@ -789,7 +788,7 @@ NoteDisplay::SetActiveFrame(float fNoteBeat,
 Actor*
 NoteDisplay::GetTapActor(NoteColorActor& nca, NotePart part, float fNoteBeat)
 {
-	RString Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
+	std::string Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
 	Actor* pActorOut = nca.Get(Color);
 
 	SetActiveFrame(fNoteBeat,
@@ -819,7 +818,7 @@ NoteDisplay::GetHoldSprite(NoteColorSprite ncs[NUM_HoldType][NUM_ActiveType],
 						   bool bIsRoll,
 						   bool bIsBeingHeld)
 {
-	RString Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
+	std::string Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
 	Sprite* pSpriteOut =
 	  ncs[bIsRoll ? roll : hold][bIsBeingHeld ? active : inactive].Get(Color);
 
@@ -1905,9 +1904,8 @@ NoteColumnRenderer::DrawPrimitives()
 	// lists to the displays to draw.
 	// The vector in the NUM_PlayerNumber slot should stay empty, not worth
 	// optimizing it out. -Kyz
-	vector<vector<NoteData::TrackMap::const_iterator>> holds(PLAYER_INVALID +
-															 1);
-	vector<vector<NoteData::TrackMap::const_iterator>> taps(PLAYER_INVALID + 1);
+	vector<NoteData::TrackMap::const_iterator> holds;
+	vector<NoteData::TrackMap::const_iterator> taps;
 	NoteData::TrackMap::const_iterator begin, end;
 	m_field_render_args->note_data->GetTapNoteRangeInclusive(
 	  m_column,
@@ -1927,35 +1925,26 @@ NoteColumnRenderer::DrawPrimitives()
 			case TapNoteType_AutoKeysound:
 			case TapNoteType_Fake:
 				if (!tn.result.bHidden) {
-					taps[tn.pn].push_back(begin);
+					taps.push_back(begin);
 				}
 				break;
 			case TapNoteType_HoldHead:
 				if (tn.HoldResult.hns != HNS_Held) {
-					holds[tn.pn].push_back(begin);
+					holds.push_back(begin);
 				}
 				break;
 			default:
 				break;
 		}
 	}
-#define DTS_INNER(pn, tap_set, draw_func, disp)                                \
-	if (!(tap_set)[pn].empty()) {                                              \
-		any_upcoming |= (disp)->draw_func(                                     \
-		  *m_field_render_args, m_column_render_args, (tap_set)[pn]);          \
-	}
-#define DRAW_TAP_SET(tap_set, draw_func)                                       \
-	DTS_INNER(PLAYER_1, tap_set, draw_func, m_displays[PLAYER_1]);
-	DRAW_TAP_SET(holds, DrawHoldsInRange);
-	DTS_INNER(
-	  PLAYER_INVALID, holds, DrawHoldsInRange, m_displays[PLAYER_INVALID]);
-	DRAW_TAP_SET(taps, DrawTapsInRange);
-	DTS_INNER(
-	  PLAYER_INVALID, taps, DrawTapsInRange, m_displays[PLAYER_INVALID]);
-#undef DTS_INNER
-#undef DRAW_TAP_SET
-	m_field_render_args->receptor_row->SetNoteUpcoming(
-	  m_column, any_upcoming, begin->first);
+
+	if (!taps.empty())
+		any_upcoming |= m_displays[PLAYER_1]->DrawTapsInRange(
+		  *m_field_render_args, m_column_render_args, taps);
+
+	if (!holds.empty())
+		any_upcoming |= m_displays[PLAYER_1]->DrawHoldsInRange(
+		  *m_field_render_args, m_column_render_args, holds);
 }
 
 void

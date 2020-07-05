@@ -806,8 +806,6 @@ source_group("headers" FILES ${TOMCRYPT_HPP})
 
 add_library("tomcrypt" STATIC ${TOMCRYPT_SRC} ${TOMCRYPT_HPP})
 
-set_property(TARGET "tomcrypt" PROPERTY FOLDER "External Libraries")
-
 set_target_properties(tomcrypt PROPERTIES COMPILE_DEFINITIONS LTC_NO_ASM)
 set_property(TARGET "tomcrypt" APPEND PROPERTY COMPILE_DEFINITIONS LTC_DESC)
 set_property(TARGET "tomcrypt" APPEND PROPERTY COMPILE_DEFINITIONS LTC_SOURCE)

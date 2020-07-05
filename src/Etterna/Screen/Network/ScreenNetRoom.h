@@ -38,15 +38,15 @@ class ScreenNetRoom : public ScreenNetSelectBase
   private:
 	bool MenuLeft(const InputEventPlus& input) override;
 	bool MenuRight(const InputEventPlus& input) override;
-	void CreateNewRoom(const RString& rName,
-					   const RString& rDesc,
-					   const RString& rPass);
+	void CreateNewRoom(const std::string& rName,
+					   const std::string& rDesc,
+					   const std::string& rPass);
 
 	RageSound m_soundChangeSel;
 
 	string m_sLastPickedRoom;
 
-	RString m_newRoomName, m_newRoomDesc, m_newRoomPass;
+	std::string m_newRoomName, m_newRoomDesc, m_newRoomPass;
 
 	RoomWheel m_RoomWheel;
 };

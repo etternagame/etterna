@@ -24,7 +24,7 @@ enum SelectionState
 	SelectionState_Finalized,
 	NUM_SelectionState,
 };
-const RString&
+const std::string&
 SelectionStateToString(SelectionState ss);
 
 class ScreenSelectMusic : public ScreenWithMenuElements
@@ -56,7 +56,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	bool can_open_options_list(PlayerNumber pn);
 
-	void DifferentialReload();
+	virtual void DifferentialReload();
 
 	void PlayReplay(HighScore* score);
 
@@ -98,7 +98,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	RageTimer m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 
-	ThemeMetric<RString> PLAYER_OPTIONS_SCREEN;
+	ThemeMetric<std::string> PLAYER_OPTIONS_SCREEN;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY_INIT;
 	ThemeMetric<float> SAMPLE_MUSIC_DELAY;
 	ThemeMetric<bool> SAMPLE_MUSIC_LOOPS;
@@ -108,20 +108,20 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	ThemeMetric<bool> DO_ROULETTE_ON_MENU_TIMER;
 	ThemeMetric<float> ROULETTE_TIMER_SECONDS;
 	ThemeMetric<bool> ALIGN_MUSIC_BEATS;
-	ThemeMetric<RString> CODES;
-	ThemeMetric<RString> MUSIC_WHEEL_TYPE;
+	ThemeMetric<std::string> CODES;
+	ThemeMetric<std::string> MUSIC_WHEEL_TYPE;
 	ThemeMetric<bool> OPTIONS_MENU_AVAILABLE;
 	ThemeMetric<bool> SELECT_MENU_AVAILABLE;
 	ThemeMetric<bool> MODE_MENU_AVAILABLE;
 	ThemeMetric<bool> USE_OPTIONS_LIST;
 	ThemeMetric<float> OPTIONS_LIST_TIMEOUT;
 	ThemeMetric<bool> USE_PLAYER_SELECT_MENU;
-	ThemeMetric<RString> SELECT_MENU_NAME;
+	ThemeMetric<std::string> SELECT_MENU_NAME;
 	ThemeMetric<bool> SELECT_MENU_CHANGES_DIFFICULTY;
 	ThemeMetric<bool> WRAP_CHANGE_STEPS;
 	ThemeMetric<bool> CHANGE_STEPS_WITH_GAME_BUTTONS;
 	ThemeMetric<bool> CHANGE_GROUPS_WITH_GAME_BUTTONS;
-	ThemeMetric<RString> NULL_SCORE_STRING;
+	ThemeMetric<std::string> NULL_SCORE_STRING;
 	ThemeMetric<bool> PLAY_SOUND_ON_ENTERING_OPTIONS_MENU;
 
 	bool CanChangeSong() const
@@ -145,13 +145,13 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	GameButton m_GameButtonPreviousGroup;
 	GameButton m_GameButtonNextGroup;
 
-	RString m_sSectionMusicPath;
-	RString m_sSortMusicPath;
-	RString m_sRouletteMusicPath;
-	RString m_sRandomMusicPath;
-	RString m_sCourseMusicPath;
-	RString m_sLoopMusicPath;
-	RString m_sFallbackCDTitlePath;
+	std::string m_sSectionMusicPath;
+	std::string m_sSortMusicPath;
+	std::string m_sRouletteMusicPath;
+	std::string m_sRandomMusicPath;
+	std::string m_sCourseMusicPath;
+	std::string m_sLoopMusicPath;
+	std::string m_sFallbackCDTitlePath;
 
 	MusicWheel m_MusicWheel;
 	OptionsList m_OptionsList;
@@ -159,7 +159,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	SelectionState m_SelectionState;
 	bool m_bStepsChosen; // only used in SelectionState_SelectingSteps
 	bool m_bGoToOptions;
-	RString m_sSampleMusicToPlay;
+	std::string m_sSampleMusicToPlay;
 	TimingData* m_pSampleMusicTimingData;
 	float m_fSampleStartSeconds, m_fSampleLengthSeconds;
 	bool m_bAllowOptionsMenu, m_bAllowOptionsMenuRepeat;

@@ -2,7 +2,6 @@
 #define TIMING_DATA_H
 
 #include "NoteTypes.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "TimingSegments.h"
 #include <cfloat> // max float
 struct lua_State;
@@ -65,12 +64,11 @@ class TimingData
 	/**
 	 * @brief Sets up initial timing data with a defined offset.
 	 * @param fOffset the offset from the 0th beat. */
-	TimingData(float fOffset = 0);
+	TimingData(float fOffset = 0.F);
 	~TimingData();
 
 	void Copy(const TimingData& other);
 	void Clear();
-	bool IsSafeFullTiming();
 
 	TimingData(const TimingData& cpy) { Copy(cpy); }
 	TimingData& operator=(const TimingData& cpy)
@@ -149,8 +147,6 @@ class TimingData
 
 	void PrepareLookup();
 	void ReleaseLookup();
-	void DumpOneTable(const beat_start_lookup_t& lookup, const RString& name);
-	void DumpLookupTables();
 
 	int GetSegmentIndexAtRow(TimingSegmentType tst, int row) const;
 	int GetSegmentIndexAtBeat(TimingSegmentType tst, float beat) const
@@ -375,23 +371,23 @@ class TimingData
 		return GetMissComboAtRow(BeatToNoteRow(fBeat));
 	}
 
-	const RString& GetLabelAtRow(int iNoteRow) const
+	const std::string& GetLabelAtRow(int iNoteRow) const
 	{
 		return GetLabelSegmentAtRow(iNoteRow)->GetLabel();
 	}
-	const RString& GetLabelAtBeat(float fBeat) const
+	const std::string& GetLabelAtBeat(float fBeat) const
 	{
 		return GetLabelAtRow(BeatToNoteRow(fBeat));
 	}
-	void SetLabelAtRow(int iNoteRow, const RString& sLabel)
+	void SetLabelAtRow(int iNoteRow, const std::string& sLabel)
 	{
 		AddSegment(LabelSegment(iNoteRow, sLabel));
 	}
-	void SetLabelAtBeat(float fBeat, const RString& sLabel)
+	void SetLabelAtBeat(float fBeat, const std::string& sLabel)
 	{
 		SetLabelAtRow(BeatToNoteRow(fBeat), sLabel);
 	}
-	bool DoesLabelExist(const RString& sLabel) const;
+	bool DoesLabelExist(const std::string& sLabel) const;
 
 	float GetSpeedPercentAtRow(int iNoteRow) const
 	{
@@ -641,13 +637,14 @@ class TimingData
 	 *
 	 * This is for informational purposes only.
 	 */
-	RString m_sFile;
+	std::string m_sFile;
 
 	/** @brief The initial offset of a song. */
 	float m_fBeat0OffsetInSeconds;
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
-	vector<RString> ToVectorString(TimingSegmentType tst, int dec = 6) const;
+	vector<std::string> ToVectorString(TimingSegmentType tst,
+										   int dec = 6) const;
 
 	/*	Wow it's almost like this should have been done a decade ago.
 	Essentially what's happening here is the results of getelapsedtimeat(row)

@@ -33,7 +33,7 @@ REGISTER_SCREEN_CLASS(ScreenNetRoom);
 
 ScreenNetRoom::ScreenNetRoom()
 {
-	m_Rooms = NULL;
+	m_Rooms = nullptr;
 	m_iRoomPlace = 0;
 }
 
@@ -116,7 +116,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 		int i =
 		  m_RoomWheel.GetCurrentIndex() - m_RoomWheel.GetPerminateOffset();
 		const RoomWheelItemData* data = m_RoomWheel.GetItem(i);
-		if (data != NULL)
+		if (data != nullptr)
 			m_roomInfo.SetRoom(data);
 	}
 
@@ -205,9 +205,9 @@ ScreenNetRoom::UpdateRoomsList()
 }
 
 void
-ScreenNetRoom::CreateNewRoom(const RString& rName,
-							 const RString& rDesc,
-							 const RString& rPass)
+ScreenNetRoom::CreateNewRoom(const std::string& rName,
+							 const std::string& rDesc,
+							 const std::string& rPass)
 {
 	NSMAN->CreateNewRoom(rName, rDesc, rPass);
 }

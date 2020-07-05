@@ -8,7 +8,7 @@
 FontManager* FONT = NULL; // global and accessible from anywhere in our program
 
 // map from file name to a texture holder
-typedef pair<RString, RString> FontName;
+typedef pair<std::string, std::string> FontName;
 static map<FontName, Font*> g_mapPathToFont;
 
 FontManager::FontManager() = default;
@@ -30,7 +30,8 @@ FontManager::~FontManager()
 }
 
 Font*
-FontManager::LoadFont(const RString& sFontOrTextureFilePath, RString sChars)
+FontManager::LoadFont(const std::string& sFontOrTextureFilePath,
+					  std::string sChars)
 {
 	Font* pFont;
 	/* Convert the path to lowercase so that we don't load duplicates. Really,

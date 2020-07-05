@@ -3,8 +3,8 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageThreads.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "SongCacheIndex.h"
@@ -17,7 +17,7 @@
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <SQLiteCpp/VariadicBind.h>
+#include <SQLiteCpp/Column.h>
 #include "sqlite3.h"
 #include <mutex>
 #include <atomic>
@@ -44,17 +44,18 @@
  * only their path; we don't have to actually look in the directory (to find out
  * the directory hash) in order to find the cache file.
  */
-const string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 239;
+const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
+const unsigned int CACHE_DB_VERSION = 241;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
-RString
-SongCacheIndex::GetCacheFilePath(const RString& sGroup, const RString& sPath)
+std::string
+SongCacheIndex::GetCacheFilePath(const std::string& sGroup,
+								 const std::string& sPath)
 {
 	/* Don't use GetHashForFile, since we don't want to spend time
 	 * checking the file size and date. */
-	RString s;
+	std::string s;
 
 	if (sPath.size() > 2 && sPath[0] == '/' && sPath[sPath.size() - 1] == '/')
 		s.assign(sPath, 1, sPath.size() - 2);
@@ -69,7 +70,7 @@ SongCacheIndex::GetCacheFilePath(const RString& sGroup, const RString& sPath)
 	 * XXX How do we do this and is it even worth it? */
 	const char* invalid =
 	  "/\xc0\xc1\xfe\xff\xf8\xf9\xfa\xfb\xfc\xfd\xf5\xf6\xf7";
-	for (size_t pos = s.find_first_of(invalid); pos != RString::npos;
+	for (size_t pos = s.find_first_of(invalid); pos != std::string::npos;
 		 pos = s.find_first_of(invalid, pos))
 		s[pos] = '_';
 	// CACHE_DIR ends with a /.
@@ -264,15 +265,15 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 }
 
 int64_t
-SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
+SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 {
 	SQLite::Statement insertSteps(*db,
 								  "INSERT INTO steps VALUES (NULL, "
 								  "?, ?, ?, ?, ?, "
 								  "?, ?, ?, "
 								  "?, ?, ?, "
-								  "?, ?, ?, ?, ?)");
-	vector<RString> lines;
+								  "?, ?, ?, ?, ?, ?)");
+	vector<std::string> lines;
 	int stepsIndex = 1;
 	insertSteps.bind(stepsIndex++, pSteps->GetChartName());
 	insertSteps.bind(stepsIndex++, pSteps->m_StepsTypeStr);
@@ -289,7 +290,7 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 
 	insertSteps.bind(stepsIndex++, pSteps->GetMusicFile()); // musicfile
 
-	vector<RString> asRadarValues;
+	vector<std::string> asRadarValues;
 	const RadarValues& rv = pSteps->GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
@@ -326,6 +327,13 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 			break;
 	}
 	insertSteps.bind(stepsIndex++, pSteps->GetFilename().c_str());
+	TimingData* td = pSteps->GetTimingData();
+	NoteData nd;
+	pSteps->GetNoteData(nd);
+	std::vector<NoteInfo> serializednd = nd.SerializeNoteData2(td);
+	insertSteps.bind(stepsIndex++,
+					 serializednd.data(),
+					 serializednd.size() * sizeof(NoteInfo));
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
 
 	try {
@@ -338,7 +346,7 @@ SongCacheIndex::InsertSteps(const Steps* pSteps, int64_t songID)
 }
 /*	Save a song to the cache db*/
 bool
-SongCacheIndex::CacheSong(Song& song, string dir)
+SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 {
 	DeleteSongFromDBByDir(dir);
 	try {
@@ -540,17 +548,15 @@ SongCacheIndex::CacheSong(Song& song, string dir)
 		insertSong.exec();
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
 		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
-		FOREACH_CONST(Steps*, vpStepsToSave, s)
-		{
-			const Steps* pSteps = *s;
-			if (pSteps->GetChartKey() == "") { // Avoid writing cache tags for
-											   // invalid chartkey files(empty
-											   // steps) -Mina
+		for (auto steps : vpStepsToSave) {
+			if (steps->GetChartKey() == "") { // Avoid writing cache tags for
+											  // invalid chartkey files(empty
+											  // steps) -Mina
 				LOG->Info("Not caching empty difficulty in file %s",
 						  dir.c_str());
 				continue;
 			}
-			int64_t stepsID = InsertSteps(pSteps, songID);
+			int64_t stepsID = InsertSteps(steps, songID);
 		}
 		return true;
 	} catch (std::exception& e) {
@@ -628,7 +634,7 @@ SongCacheIndex::CreateDBTables()
 		  "METER INTEGER, MSD TEXT, CHARTKEY TEXT, "
 		  "MUSIC TEXT, RADARVALUES TEXT, CREDIT TEXT, "
 		  "TIMINGDATAID INTEGER, DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, "
-		  "STEPFILENAME TEXT, SONGID INTEGER, "
+		  "STEPFILENAME TEXT, SERIALIZEDNOTEDATA BLOB, SONGID INTEGER, "
 		  "CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID), "
 		  "CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES "
 		  "timingdatas(ID), "
@@ -710,7 +716,7 @@ SongCacheIndex::~SongCacheIndex()
 
 void
 SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
-							   map<RString, Song*>& hyperCache)
+							   map<std::string, Song*>& hyperCache)
 {
 	int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if (ld && count > 0) {
@@ -718,7 +724,7 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 		ld->SetProgress(0);
 		ld->SetTotalWork(count);
 	}
-	RString lastDir;
+	std::string lastDir;
 	int progress = 0;
 	int onePercent = std::max(count / 100, 1);
 	try {
@@ -773,7 +779,7 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 void
 SongCacheIndex::LoadCache(
   LoadingWindow* ld,
-  vector<pair<pair<RString, unsigned int>, Song*>*>& cache)
+  vector<pair<pair<std::string, unsigned int>, Song*>*>& cache)
 {
 	int count = 0;
 	try {
@@ -798,7 +804,7 @@ SongCacheIndex::LoadCache(
 	  [&data, fivePercent, &abort](
 		int limit,
 		int offset,
-		vector<pair<pair<RString, unsigned int>, Song*>*>* cachePart) {
+		vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart) {
 		  int counter = 0, lastUpdate = 0;
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
@@ -812,7 +818,8 @@ SongCacheIndex::LoadCache(
 				  Song* s = new Song;
 				  auto songID = SONGINDEX->SongFromStatement(s, query);
 				  cachePart->emplace_back(
-					new pair<pair<RString, unsigned int>, Song*>(songID, s));
+					new pair<pair<std::string, unsigned int>, Song*>(songID,
+																	 s));
 				  // this is a song directory. Load a new song.
 				  counter++;
 				  if (counter % fivePercent == 0) {
@@ -835,10 +842,10 @@ SongCacheIndex::LoadCache(
 		  data.setUpdated(true);
 	  };
 	vector<thread> threadpool;
-	vector<vector<pair<pair<RString, unsigned int>, Song*>*>> cacheParts;
+	vector<vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
 	for (int i = 0; i < threads; i++)
 		cacheParts.emplace_back(
-		  vector<pair<pair<RString, unsigned int>, Song*>*>());
+		  vector<pair<pair<std::string, unsigned int>, Song*>*>());
 	for (int i = 0; i < threads; i++)
 		threadpool.emplace_back(
 		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
@@ -901,7 +908,7 @@ SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
 }
 
 unsigned
-SongCacheIndex::GetCacheHash(const RString& path) const
+SongCacheIndex::GetCacheHash(const std::string& path) const
 {
 	unsigned iDirHash = 0;
 	if (!CacheIndex.GetValue("Cache", MangleName(path), iDirHash))
@@ -911,12 +918,12 @@ SongCacheIndex::GetCacheHash(const RString& path) const
 	return iDirHash;
 }
 
-RString
-SongCacheIndex::MangleName(const RString& Name)
+std::string
+SongCacheIndex::MangleName(const std::string& Name)
 {
 	/* We store paths in an INI.  We can't store '='. */
-	RString ret = Name;
-	ret.Replace("=", "");
+	std::string ret = Name;
+	s_replace(ret, "=", "");
 	return ret;
 }
 
@@ -950,7 +957,7 @@ SongCacheIndex::FinishTransaction()
 	return;
 }
 
-inline pair<RString, int>
+inline pair<std::string, int>
 SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 {
 	// SSC::StepsTagInfo reused_steps_info(&*song, &out, dir, true);
@@ -1070,7 +1077,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		string animationstwo =
 		  static_cast<const char*>(query.getColumn(index++));
 
-		vector<RString> aFGChangeExpressions;
+		vector<std::string> aFGChangeExpressions;
 		split(static_cast<const char*>(query.getColumn(index++)),
 			  ",",
 			  aFGChangeExpressions);
@@ -1082,7 +1089,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 				song->AddForegroundChange(change);
 			}
 		}
-		RString keysounds = static_cast<const char*>(query.getColumn(index++));
+		std::string keysounds =
+		  static_cast<const char*>(query.getColumn(index++));
 		if (keysounds.length() >= 2 && keysounds.substr(0, 2) == "\\#") {
 			keysounds = keysounds.substr(1);
 		}
@@ -1107,7 +1115,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		loader.ProcessBGChanges(*song, "BGCHANGES2", dir, animationstwo);
 
 		Steps* pNewNotes = nullptr;
-		
+
 		SQLite::Statement qSteps(
 		  *db, "SELECT * FROM steps WHERE SONGID=" + to_string(songid));
 
@@ -1116,14 +1124,14 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 
 			pNewNotes = song->CreateSteps();
 			int stepsID = qSteps.getColumn(stepsIndex++);
-			RString chartName =
+			std::string chartName =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 			pNewNotes->SetChartName(chartName);
 			string stepsType =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 			pNewNotes->m_StepsType = GAMEMAN->StringToStepsType(stepsType);
 			pNewNotes->m_StepsTypeStr = stepsType;
-			RString description =
+			std::string description =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 			pNewNotes->SetDescription(description);
 			pNewNotes->SetChartStyle(
@@ -1138,7 +1146,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			string msdsatrate;
 			while (std::getline(msds, msdsatrate, ':')) {
 				auto m = SSC::msdsplit(msdsatrate);
-				o.push_back({m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
+				o.push_back({ m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7] });
 			}
 			pNewNotes->SetAllMSD(o);
 
@@ -1148,7 +1156,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string radarValues =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
-			vector<RString> values;
+			vector<std::string> values;
 			split(radarValues, ",", values, true);
 			RadarValues rv;
 			rv.Zero();
@@ -1263,6 +1271,18 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			pNewNotes->TidyUpData();
 			pNewNotes->SetFilename(
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
+			SQLite::Column serialized_notedata_blob =
+			  qSteps.getColumn(stepsIndex++);
+			const NoteInfo* serialized_notedata_data =
+			  static_cast<const NoteInfo*>(serialized_notedata_blob.getBlob());
+			size_t serialized_notedata_size =
+			  serialized_notedata_blob.getBytes() / sizeof(NoteInfo);
+			// sqlite gives us null when the length is 0
+			if (serialized_notedata_data != nullptr)
+				pNewNotes->serializenotedatacache.assign(
+				  serialized_notedata_data,
+				  (const NoteInfo*)(serialized_notedata_data +
+									serialized_notedata_size));
 			song->AddSteps(pNewNotes);
 		}
 
@@ -1309,7 +1329,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 /*	Load a song from Cache DB
 	Returns true if it was loaded**/
 bool
-SongCacheIndex::LoadSongFromCache(Song* song, string dir)
+SongCacheIndex::LoadSongFromCache(Song* song, std::string dir)
 {
 	try {
 		SQLite::Statement query(

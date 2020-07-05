@@ -1,12 +1,10 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
-
 #include "arch/ArchHooks/ArchHooks.h"
-
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -17,8 +15,6 @@
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include <chrono>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
@@ -85,9 +81,8 @@ ChangeAppPri()
 		// This can get called before INPUTMAN is constructed.
 		if (INPUTMAN) {
 			INPUTMAN->GetDevicesAndDescriptions(vDevices);
-			FOREACH_CONST(InputDeviceInfo, vDevices, d)
-			{
-				if (d->sDesc.find("NTPAD") != string::npos) {
+			for (auto& d : vDevices) {
+				if (d.sDesc.find("NTPAD") != std::string::npos) {
 					LOG->Trace("Using NTPAD.  Don't boost priority.");
 					return false;
 				}
@@ -122,16 +117,16 @@ CheckFocus()
 }
 
 // On the next update, change themes, and load sNewScreen.
-static RString g_NewTheme;
-static RString g_NewGame;
+static std::string g_NewTheme;
+static std::string g_NewGame;
 void
-GameLoop::ChangeTheme(const RString& sNewTheme)
+GameLoop::ChangeTheme(const std::string& sNewTheme)
 {
 	g_NewTheme = sNewTheme;
 }
 
 void
-GameLoop::ChangeGame(const RString& new_game, const RString& new_theme)
+GameLoop::ChangeGame(const std::string& new_game, const std::string& new_theme)
 {
 	g_NewGame = new_game;
 	g_NewTheme = new_theme;
@@ -171,9 +166,9 @@ DoChangeTheme()
 	// So now the correct thing to do is for a theme to specify its entry
 	// point after a theme change, ensuring that we are going to a valid
 	// screen and not crashing. -Kyz
-	RString new_screen = THEME->GetMetric("Common", "InitialScreen");
+	std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
 	if (THEME->HasMetric("Common", "AfterThemeChangeScreen")) {
-		RString after_screen =
+		std::string after_screen =
 		  THEME->GetMetric("Common", "AfterThemeChangeScreen");
 		if (SCREENMAN->IsScreenNameValid(after_screen)) {
 			new_screen = after_screen;
@@ -184,21 +179,21 @@ DoChangeTheme()
 	}
 	SCREENMAN->SetNewScreen(new_screen);
 
-	g_NewTheme = RString();
+	g_NewTheme = std::string();
 }
 
 void
 DoChangeGame()
 {
 	const Game* g = GAMEMAN->StringToGame(g_NewGame);
-	ASSERT(g != NULL);
+	ASSERT(g != nullptr);
 	GAMESTATE->SetCurGame(g);
 
 	bool theme_changing = false;
 	// The prefs allow specifying a different default theme to use for each
 	// game type.  So if a theme name isn't passed in, fetch from the prefs.
 	if (g_NewTheme.empty()) {
-		g_NewTheme = PREFSMAN->m_sTheme;
+		g_NewTheme = PREFSMAN->m_sTheme.Get();
 	}
 	if (g_NewTheme != THEME->GetCurThemeName() &&
 		THEME->IsThemeSelectable(g_NewTheme)) {
@@ -216,8 +211,8 @@ DoChangeGame()
 		SCREENMAN = new ScreenManager();
 	}
 	StepMania::ResetGame();
-	RString new_screen = THEME->GetMetric("Common", "InitialScreen");
-	RString after_screen;
+	std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
+	std::string after_screen;
 	if (theme_changing) {
 		SCREENMAN->ThemeChanged();
 		if (THEME->HasMetric("Common", "AfterGameAndThemeChangeScreen")) {
@@ -247,8 +242,8 @@ DoChangeGame()
 	 * what it'd be. -aj */
 	THEME->UpdateLuaGlobals();
 	THEME->ReloadMetrics();
-	g_NewGame = RString();
-	g_NewTheme = RString();
+	g_NewGame = std::string();
+	g_NewTheme = std::string();
 }
 } // namespace
 
@@ -312,7 +307,7 @@ GameLoop::RunGameLoop()
 				INPUTFILTER->Reset(); // fix "buttons stuck" if button held
 									  // while unplugged
 				INPUTMAN->LoadDrivers();
-				RString sMessage;
+				std::string sMessage;
 				if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
 					SCREENMAN->SystemMessage(sMessage);
 			}

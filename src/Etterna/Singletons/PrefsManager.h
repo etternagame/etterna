@@ -45,7 +45,6 @@ enum RandomBackgroundMode
 {
 	BGMODE_OFF,
 	BGMODE_ANIMATIONS,
-	BGMODE_RANDOMMOVIES,
 	NUM_RandomBackgroundMode,
 	RandomBackgroundMode_Invalid
 };
@@ -97,18 +96,18 @@ class PrefsManager
 
 	void Init();
 
-	void SetCurrentGame(const RString& sGame);
-	RString GetCurrentGame() { return m_sCurrentGame; }
+	void SetCurrentGame(const std::string& sGame);
+	std::string GetCurrentGame() { return m_sCurrentGame; }
 
   protected:
-	Preference<RString> m_sCurrentGame;
+	Preference<std::string> m_sCurrentGame;
 
   public:
 	// Game-specific prefs.  Copy these off and save them every time the game
 	// changes
-	Preference<RString> m_sAnnouncer;
-	Preference<RString> m_sTheme;
-	Preference<RString> m_sDefaultModifiers;
+	Preference<std::string> m_sAnnouncer;
+	Preference<std::string> m_sTheme;
+	Preference<std::string> m_sDefaultModifiers;
 
   protected:
 	void StoreGamePrefs();
@@ -119,15 +118,15 @@ class PrefsManager
 		// settings
 		GamePrefs();
 
-		RString m_sAnnouncer;
-		RString m_sTheme;
-		RString m_sDefaultModifiers;
+		std::string m_sAnnouncer;
+		std::string m_sTheme;
+		std::string m_sDefaultModifiers;
 	};
-	map<RString, GamePrefs> m_mapGameNameToGamePrefs;
+	map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
 
   public:
 	Preference<bool> m_bWindowed;
-	Preference<RString> m_sDisplayId;
+	Preference<std::string> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
 	Preference<int> m_iDisplayHeight;
 	Preference<float> m_fDisplayAspectRatio;
@@ -155,7 +154,7 @@ class PrefsManager
 	Preference<bool> m_bFastLoad;
 	Preference<bool> m_bBlindlyTrustCache;
 	Preference<bool> m_bShrinkSongCache;
-	Preference<RString> m_NeverCacheList;
+	Preference<std::string> m_NeverCacheList;
 
 	Preference<bool> m_bOnlyDedicatedMenuButtons;
 	Preference<bool> m_bMenuTimer;
@@ -188,7 +187,7 @@ class PrefsManager
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;
 	Preference<float> m_fGlobalOffsetSeconds;
-	Preference<RString> m_sLanguage;
+	Preference<std::string> m_sLanguage;
 	Preference<int> m_iCenterImageTranslateX;
 	Preference<int> m_iCenterImageTranslateY;
 	Preference<int> m_fCenterImageAddWidth;
@@ -218,23 +217,23 @@ class PrefsManager
 	// profile's data will be discarded.
 	Preference<bool> m_bSignProfileData;
 
-	Preference<RString> m_sAdditionalSongFolders;
-	Preference<RString> m_sAdditionalFolders;
+	Preference<std::string> m_sAdditionalSongFolders;
+	Preference<std::string> m_sAdditionalFolders;
 
 	// failsafe
-	Preference<RString> m_sDefaultTheme;
+	Preference<std::string> m_sDefaultTheme;
 
-	Preference<RString> m_sLastSeenVideoDriver;
-	Preference<RString> m_sVideoRenderers; // StepMania.cpp sets these on first
-										   // run based on the card
+	Preference<std::string> m_sLastSeenVideoDriver;
+	Preference<std::string> m_sVideoRenderers; // StepMania.cpp sets these on
+											   // first run based on the card
 	Preference<bool> m_bSmoothLines;
 	Preference<int> m_iSoundWriteAhead;
-	Preference<RString> m_iSoundDevice;
+	Preference<std::string> m_iSoundDevice;
 	Preference<int> m_iSoundPreferredSampleRate;
 	Preference<bool> m_bAllowUnacceleratedRenderer;
 	Preference<bool> m_bThreadedInput;
 	Preference<bool> m_bThreadedMovieDecode;
-	Preference<RString> m_sTestInitialScreen;
+	Preference<std::string> m_sTestInitialScreen;
 	Preference<bool> m_MuteActions;
 	Preference<int> ThreadsToUse;
 
@@ -256,10 +255,10 @@ class PrefsManager
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
 
 	void ReadPrefsFromIni(const IniFile& ini,
-						  const RString& sSection,
+						  const std::string& sSection,
 						  bool bIsStatic);
-	void ReadGamePrefsFromIni(const RString& sIni);
-	void ReadDefaultsFromIni(const IniFile& ini, const RString& sSection);
+	void ReadGamePrefsFromIni(const std::string& sIni);
+	void ReadDefaultsFromIni(const IniFile& ini, const std::string& sSection);
 	void SavePrefsToIni(IniFile& ini);
 
 	void ReadPrefsFromDisk();
@@ -267,16 +266,17 @@ class PrefsManager
 
 	void ResetToFactoryDefaults();
 
-	RString GetPreferencesSection() const;
+	std::string GetPreferencesSection() const;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   protected:
-	void ReadPrefsFromFile(const RString& sIni,
-						   const RString& sSection,
+	void ReadPrefsFromFile(const std::string& sIni,
+						   const std::string& sSection,
 						   bool bIsStatic);
-	void ReadDefaultsFromFile(const RString& sIni, const RString& sSection);
+	void ReadDefaultsFromFile(const std::string& sIni,
+							  const std::string& sSection);
 };
 
 /* This is global, because it can be accessed by crash handlers and error

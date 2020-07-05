@@ -1,4 +1,3 @@
-
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -13,14 +12,13 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/NoteData/NoteData.h"
 #include "RageUtil/File/RageFileManager.h"
-
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 using std::string;
 
@@ -50,7 +48,7 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 	}
 #define WARN_M(m)                                                              \
 	ShowWarningOrTrace(                                                        \
-	  __FILE__, __LINE__, RString("Error parsing file: ") + (m), true)
+	  __FILE__, __LINE__, std::string("Error parsing file: ") + (m), true)
 #define WARN_AND_RETURN_M(m)                                                   \
 	{                                                                          \
 		WARN_M(m);                                                             \
@@ -337,8 +335,9 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	{
 		XNode* pDefaultModifiers =
 		  pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-		pDefaultModifiers->AppendChild(it->first, it->second);
+		for (auto& it : profile->m_sDefaultModifiers) {
+			pDefaultModifiers->AppendChild(it.first, it.second);
+		}
 	}
 
 	{
@@ -496,9 +495,6 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
-		if (pScreenshot->GetName() != "Screenshot")
-			WARN_AND_CONTINUE_M(pScreenshot->GetName().c_str());
-
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
 
@@ -515,9 +511,8 @@ XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 
 	XNode* pNode = new XNode("ScreenshotData");
 
-	FOREACH_CONST(Screenshot, profile->m_vScreenshots, ss)
-	{
-		pNode->AppendChild(ss->CreateNode());
+	for (auto& ss : profile->m_vScreenshots) {
+		pNode->AppendChild(ss.CreateNode());
 	}
 
 	return pNode;
@@ -532,7 +527,6 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 		return ProfileLoadResult_FailedNoProfile;
 
 	if (xml->GetName() != "Stats") {
-		WARN_M(xml->GetName().c_str());
 		return ProfileLoadResult_FailedTampered;
 	}
 

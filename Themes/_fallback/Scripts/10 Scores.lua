@@ -118,11 +118,6 @@ function getScoreFromTable(hsTable, index)
 	return hsTable[index]
 end
 
-function getScoreFromPn(pn, index)
-	local hsTable = getScoreList(pn)
-	return getScore(hsTable, index)
-end
-
 function getMaxNotes(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
@@ -425,20 +420,6 @@ function getUsedRates(rtTable)
 		end
 	end
 	return rates, initIndex
-end
-
-function getScoreList(pn)
-	local song = GAMESTATE:GetCurrentSong()
-	local profile
-	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		profile = GetPlayerOrMachineProfile(pn)
-		steps = GAMESTATE:GetCurrentSteps(pn)
-		if profile ~= nil and steps ~= nil and song ~= nil then
-			return profile:GetHighScoreList(song, steps):GetHighScores()
-		end
-	end
-	return nil
 end
 
 function wife2(maxms, ts)

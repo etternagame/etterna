@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "NoteTypes.h"
@@ -304,7 +304,6 @@ class LunaTapNote : public Luna<TapNote>
 	DEFINE_METHOD(GetTapNoteType, type);
 	DEFINE_METHOD(GetTapNoteSubType, subType);
 	DEFINE_METHOD(GetTapNoteSource, source);
-	DEFINE_METHOD(GetPlayerNumber, pn);
 	DEFINE_METHOD(GetKeysoundIndex, iKeysoundIndex);
 	static int GetHoldDuration(T* p, lua_State* L)
 	{
@@ -328,7 +327,6 @@ class LunaTapNote : public Luna<TapNote>
 		ADD_METHOD(GetTapNoteSubType);
 		ADD_METHOD(GetTapNoteSource);
 		ADD_METHOD(GetTapNoteResult);
-		ADD_METHOD(GetPlayerNumber);
 		ADD_METHOD(GetKeysoundIndex);
 		ADD_METHOD(GetHoldDuration);
 		ADD_METHOD(GetHoldNoteResult);

@@ -69,8 +69,8 @@ class NoteField : public ActorFrame
 	vector<NoteColumnRenderer> m_ColumnRenderers;
 
   protected:
-	void CacheNoteSkin(const RString& sNoteSkin, PlayerNumber pn);
-	void UncacheNoteSkin(const RString& sNoteSkin);
+	void CacheNoteSkin(const std::string& sNoteSkin, PlayerNumber pn);
+	void UncacheNoteSkin(const std::string& sNoteSkin);
 
 	void DrawBoard(int iDrawDistanceAfterTargetsPixels,
 				   int iDrawDistanceBeforeTargetsPixels);
@@ -91,7 +91,7 @@ class NoteField : public ActorFrame
 										  float horiz_align,
 										  const RageColor& color,
 										  const RageColor& glow);
-	void draw_timing_segment_text(const RString& text,
+	void draw_timing_segment_text(const std::string& text,
 								  float beat,
 								  float side_sign,
 								  float x_offset,
@@ -99,14 +99,14 @@ class NoteField : public ActorFrame
 								  const RageColor& color,
 								  const RageColor& glow);
 	void DrawBGChangeText(float beat,
-						  RString new_bg_name,
+						  const std::string& new_bg_name,
 						  const RageColor& glow);
 	float GetWidth() const;
 
 	const NoteData* m_pNoteData;
 
 	const PlayerState* m_pPlayerState;
-	int m_iDrawDistanceAfterTargetsPixels;  // this should be a negative number
+	int m_iDrawDistanceAfterTargetsPixels;	// this should be a negative number
 	int m_iDrawDistanceBeforeTargetsPixels; // this should be a positive number
 	float m_fYReverseOffsetPixels;
 
@@ -126,7 +126,7 @@ class NoteField : public ActorFrame
 	NoteFieldRenderArgs m_FieldRenderArgs;
 
 	/* All loaded note displays, mapped by their name. */
-	map<RString, NoteDisplayCols*> m_NoteDisplays;
+	map<std::string, NoteDisplayCols*> m_NoteDisplays;
 	NoteDisplayCols* m_pCurDisplay;
 	NoteDisplayCols* m_pDisplays[NUM_PlayerNumber];
 

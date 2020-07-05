@@ -1,0 +1,12 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: muFFT
+Description: muFFT is a library for doing the fast fourier transform (FFT) in one or two dimensions.
+Requires:
+Version: @VERSION@
+Libs: -L${prefix}/lib -lmufft
+Cflags: -I${prefix}/include
+

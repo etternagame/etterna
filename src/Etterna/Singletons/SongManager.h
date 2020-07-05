@@ -6,23 +6,20 @@ class Song;
 class Style;
 class Steps;
 class PlayerOptions;
+class Calc;
 struct lua_State;
 struct GoalsForChart;
 
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Models/Misc/PlayerNumber.h"
-#include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
 #include <unordered_map>
-using std::string;
 
-RString
+std::string
 SONG_GROUP_COLOR_NAME(size_t i);
 bool
 CompareNotesPointersForExtra(const Steps* n1, const Steps* n2);
@@ -51,31 +48,31 @@ class SongManager
 	int DifferentialReload();
 	int DifferentialReloadDir(string dir);
 
-	bool IsGroupNeverCached(const RString& group) const;
+	bool IsGroupNeverCached(const std::string& group) const;
 	void SetFavoritedStatus(set<string>& favs);
 	void SetPermaMirroredStatus(set<string>& pmir);
 	void SetHasGoal(unordered_map<string, GoalsForChart>& goalmap);
 
-	RString GetSongGroupBannerPath(const RString& sSongGroup) const;
-	vector<RString> GetSongGroupBannerPaths()
+	std::string GetSongGroupBannerPath(const std::string& sSongGroup) const;
+	vector<std::string> GetSongGroupBannerPaths()
 	{
 		return m_sSongGroupBannerPaths;
 	}
-	// RString GetSongGroupBackgroundPath( RString sSongGroup ) const;
-	void GetSongGroupNames(vector<RString>& AddTo) const;
-	const vector<RString>& GetSongGroupNames() const;
-	bool DoesSongGroupExist(const RString& sSongGroup) const;
+	// std::string GetSongGroupBackgroundPath( std::string sSongGroup ) const;
+	void GetSongGroupNames(vector<std::string>& AddTo) const;
+	const vector<std::string>& GetSongGroupNames() const;
+	bool DoesSongGroupExist(const std::string& sSongGroup) const;
 	RageColor GetSongGroupColor(
-	  const RString& sSongGroupName,
+	  const std::string& sSongGroupName,
 	  map<string, Playlist>& playlists = GetPlaylists()) const;
 	RageColor GetSongColor(const Song* pSong) const;
 
 	// temporary solution to reorganizing the entire songid/stepsid system -
 	// mina
-	Steps* GetStepsByChartkey(const string& ck);
-	Song* GetSongByChartkey(const string& ck);
+	Steps* GetStepsByChartkey(const std::string& ck);
+	Song* GetSongByChartkey(const std::string& ck);
 	void UnloadAllCalcDebugOutput();
-	bool IsChartLoaded(const string& ck)
+	bool IsChartLoaded(const std::string& ck)
 	{
 		return SongsByKey.count(ck) == 1 &&
 			   StepsByKey.count(ck) ==
@@ -84,15 +81,15 @@ class SongManager
 
 	void ResetGroupColors();
 
-	static RString ShortenGroupName(const RString& sLongGroupName);
+	static std::string ShortenGroupName(const std::string& sLongGroupName);
 
 	// Lookup
 	/**
 	 * @brief Retrieve all of the songs that belong to a particular group.
 	 * @param sGroupName the name of the group.
 	 * @return the songs that belong in the group. */
-	const vector<Song*>& GetSongs(const RString& sGroupName) const;
-	void ForceReloadSongGroup(const RString& sGroupName) const;
+	const vector<Song*>& GetSongs(const std::string& sGroupName) const;
+	void ForceReloadSongGroup(const std::string& sGroupName) const;
 	/**
 	 * @brief Retrieve all of the songs in the game.
 	 * @return all of the songs. */
@@ -110,7 +107,7 @@ class SongManager
 	 * valid step for the current gametype.
 	 * @param sGroupName the name of the group.
 	 * @return the songs within the group that have at least one valid Step. */
-	const vector<Song*>& GetSongsOfCurrentGame(const RString& sGroupName) const;
+	const vector<Song*>& GetSongsOfCurrentGame(const std::string& sGroupName) const;
 	/**
 	 * @brief Retrieve all of the songs in the game that have at least one
 	 * valid step for the current gametype.
@@ -119,9 +116,9 @@ class SongManager
 
 	void GetFavoriteSongs(vector<Song*>& songs) const;
 	void GetPreferredSortSongs(vector<Song*>& AddTo) const;
-	RString SongToPreferredSortSectionName(const Song* pSong) const;
-	Song* FindSong(RString sPath) const;
-	Song* FindSong(RString sGroup, RString sSong) const;
+	std::string SongToPreferredSortSectionName(const Song* pSong) const;
+	Song* FindSong(std::string sPath) const;
+	Song* FindSong(std::string sGroup, std::string sSong) const;
 	/**
 	 * @brief Retrieve the number of songs in the game.
 	 * @return the number of songs. */
@@ -130,11 +127,10 @@ class SongManager
 	int GetNumSongGroups() const;
 	Song* GetRandomSong();
 	// sm-ssc addition:
-	RString GetSongGroupByIndex(unsigned index)
+	std::string GetSongGroupByIndex(unsigned index)
 	{
 		return m_sSongGroupNames[index];
 	}
-	int GetSongRank(Song* pSong);
 
 	void GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
 								   ProfileSlot slot) const;
@@ -145,12 +141,12 @@ class SongManager
 						   const Style* s,
 						   Song*& pSongOut,
 						   Steps*& pStepsOut);
-	Song* GetSongFromDir(RString sDir) const;
+	Song* GetSongFromDir(std::string sDir) const;
 
 	void UpdateShuffled(); // re-shuffle songs
 	void UpdatePreferredSort(
-	  const RString& sPreferredSongs = "PreferredSongs.txt",
-	  const RString& sPreferredCourses = "PreferredCourses.txt");
+	  const std::string& sPreferredSongs = "PreferredSongs.txt",
+	  const std::string& sPreferredCourses = "PreferredCourses.txt");
 	void SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
 
 	// Lua
@@ -162,7 +158,7 @@ class SongManager
 										   vector<string> oldChartkeys);
 	void MakeSongGroupsFromPlaylists(
 	  map<string, Playlist>& playlists = GetPlaylists());
-	void DeletePlaylist(const string& ck,
+	void DeletePlaylist(const std::string& ck,
 						map<string, Playlist>& playlists = GetPlaylists());
 	void MakePlaylistFromFavorites(
 	  set<string>& favs,
@@ -172,32 +168,35 @@ class SongManager
 	vector<string> playlistGroups; // To delete from groupderps when rebuilding
 								   // playlist groups
 
-	void FinalizeSong(Song* pNewSong, const RString& dir);
+	void FinalizeSong(Song* pNewSong, const std::string& dir);
 
 	// calc test stuff
 	XNode* SaveCalcTestCreateNode() const;
 	void LoadCalcTestNode() const;
 	void SaveCalcTestXmlToDir() const;
 	map<Skillset, CalcTestList> testChartList;
+
+	unique_ptr<Calc> calc;
+
   protected:
-	void LoadStepManiaSongDir(RString sDir, LoadingWindow* ld);
-	void LoadDWISongDir(const RString& sDir);
-	bool IsSongDir(const RString& sDir);
-	bool AddGroup(const RString& sDir, const RString& sGroupDirName);
+	void LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
+	void LoadDWISongDir(const std::string& sDir);
+	bool IsSongDir(const std::string& sDir);
+	bool AddGroup(const std::string& sDir, const std::string& sGroupDirName);
 
 	void AddSongToList(Song* new_song);
 	/** @brief All of the songs that can be played. */
 	vector<Song*> m_pSongs;
-	map<RString, Song*> m_SongsByDir;
+	map<std::string, Song*> m_SongsByDir;
 
-	vector<pair<pair<RString, unsigned int>, Song*>*> cache;
+	vector<pair<pair<std::string, unsigned int>, Song*>*> cache;
 
 	// Indexed by chartkeys
 	void AddKeyedPointers(Song* new_song);
 	unordered_map<string, Song*> SongsByKey;
 	unordered_map<string, Steps*> StepsByKey;
 
-	set<RString> m_GroupsToNeverCache;
+	set<std::string> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */
 	vector<Song*> m_pPopularSongs;
 	// vector<Song*>		m_pRecentSongs;	// songs recently played on the
@@ -205,25 +204,25 @@ class SongManager
 	vector<Song*> m_pShuffledSongs; // used by GetRandomSong
 	struct PreferredSortSection
 	{
-		RString sName;
+		std::string sName;
 		vector<Song*> vpSongs;
 	};
 	vector<PreferredSortSection> m_vPreferredSongSort;
-	vector<RString> m_sSongGroupNames;
-	vector<RString> m_sSongGroupBannerPaths; // each song group may have a
+	vector<std::string> m_sSongGroupNames;
+	vector<std::string> m_sSongGroupBannerPaths; // each song group may have a
 											 // banner associated with it
-	// vector<RString>		m_sSongGroupBackgroundPaths; // each song group may
+	// vector<std::string>		m_sSongGroupBackgroundPaths; // each song group may
 	// have a background associated with it (very rarely)
 
 	struct Comp
 	{
-		bool operator()(const RString& s, const RString& t) const
+		bool operator()(const std::string& s, const std::string& t) const
 		{
 			return CompareRStringsAsc(s, t);
 		}
 	};
 	typedef vector<Song*> SongPointerVector;
-	map<RString, SongPointerVector, Comp> m_mapSongGroupIndex;
+	map<std::string, SongPointerVector, Comp> m_mapSongGroupIndex;
 
 	ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 	ThemeMetric1D<RageColor> SONG_GROUP_COLOR;

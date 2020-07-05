@@ -32,13 +32,13 @@ RageFile::Copy() const
 	return new RageFile(*this);
 }
 
-RString
+std::string
 RageFile::GetPath() const
 {
 	if (!IsOpen())
-		return RString();
+		return std::string();
 
-	RString sRet = m_File->GetDisplayPath();
+	std::string sRet = m_File->GetDisplayPath();
 	if (sRet != "")
 		return sRet;
 
@@ -46,7 +46,7 @@ RageFile::GetPath() const
 }
 
 bool
-RageFile::Open(const RString& path, int mode)
+RageFile::Open(const std::string& path, int mode)
 {
 	ASSERT(FILEMAN != NULL);
 	Close();
@@ -89,24 +89,24 @@ RageFile::Close()
 }
 
 #define ASSERT_OPEN                                                            \
-	ASSERT_M(IsOpen(), ssprintf("\"%s\" is not open.", m_Path.c_str()));
+	ASSERT_M(IsOpen(), ssprintf("\"%s\" is not open.", m_Path.c_str()).c_str());
 #define ASSERT_READ                                                            \
 	ASSERT_OPEN;                                                               \
 	ASSERT_M(!!(m_Mode & READ),                                                \
-			 ssprintf("\"%s\" is not open for reading", m_Path.c_str()));
+			 ssprintf("\"%s\" is not open for reading", m_Path.c_str()).c_str());
 #define ASSERT_WRITE                                                           \
 	ASSERT_OPEN;                                                               \
 	ASSERT_M(!!(m_Mode & WRITE),                                               \
-			 ssprintf("\"%s\" is not open for writing", m_Path.c_str()));
+			 ssprintf("\"%s\" is not open for writing", m_Path.c_str()).c_str());
 int
-RageFile::GetLine(RString& out)
+RageFile::GetLine(std::string& out)
 {
 	ASSERT_READ;
 	return m_File->GetLine(out);
 }
 
 int
-RageFile::PutLine(const RString& str)
+RageFile::PutLine(const std::string& str)
 {
 	ASSERT_WRITE;
 	return m_File->PutLine(str);
@@ -141,7 +141,7 @@ RageFile::ClearError()
 	m_sError = "";
 }
 
-RString
+std::string
 RageFile::GetError() const
 {
 	if (m_File != NULL && m_File->GetError() != "")
@@ -150,7 +150,7 @@ RageFile::GetError() const
 }
 
 void
-RageFile::SetError(const RString& err)
+RageFile::SetError(const std::string& err)
 {
 	if (m_File != NULL)
 		m_File->ClearError();
@@ -193,7 +193,7 @@ RageFile::GetFD()
 }
 
 int
-RageFile::Read(RString& buffer, int bytes)
+RageFile::Read(std::string& buffer, int bytes)
 {
 	ASSERT_READ;
 	return m_File->Read(buffer, bytes);
@@ -239,7 +239,7 @@ RageFile::Seek(int offset, int whence)
 }
 
 void
-FileReading::ReadBytes(RageFileBasic& f, void* buf, int size, RString& sError)
+FileReading::ReadBytes(RageFileBasic& f, void* buf, int size, std::string& sError)
 {
 	if (sError.size() != 0)
 		return;
@@ -251,13 +251,13 @@ FileReading::ReadBytes(RageFileBasic& f, void* buf, int size, RString& sError)
 		sError = "Unexpected end of file";
 }
 
-RString
-FileReading::ReadString(RageFileBasic& f, int size, RString& sError)
+std::string
+FileReading::ReadString(RageFileBasic& f, int size, std::string& sError)
 {
 	if (sError.size() != 0)
-		return RString();
+		return std::string();
 
-	RString sBuf;
+	std::string sBuf;
 	int ret = f.Read(sBuf, size);
 	if (ret == -1)
 		sError = f.GetError();
@@ -267,7 +267,7 @@ FileReading::ReadString(RageFileBasic& f, int size, RString& sError)
 }
 
 void
-FileReading::SkipBytes(RageFileBasic& f, int iBytes, RString& sError)
+FileReading::SkipBytes(RageFileBasic& f, int iBytes, std::string& sError)
 {
 	if (sError.size() != 0)
 		return;
@@ -277,7 +277,7 @@ FileReading::SkipBytes(RageFileBasic& f, int iBytes, RString& sError)
 }
 
 void
-FileReading::Seek(RageFileBasic& f, int iOffset, RString& sError)
+FileReading::Seek(RageFileBasic& f, int iOffset, std::string& sError)
 {
 	if (sError.size() != 0)
 		return;
@@ -292,7 +292,7 @@ FileReading::Seek(RageFileBasic& f, int iOffset, RString& sError)
 }
 
 uint8_t
-FileReading::read_8(RageFileBasic& f, RString& sError)
+FileReading::read_8(RageFileBasic& f, std::string& sError)
 {
 	uint8_t val;
 	ReadBytes(f, &val, sizeof(uint8_t), sError);
@@ -303,7 +303,7 @@ FileReading::read_8(RageFileBasic& f, RString& sError)
 }
 
 uint16_t
-FileReading::read_u16_le(RageFileBasic& f, RString& sError)
+FileReading::read_u16_le(RageFileBasic& f, std::string& sError)
 {
 	uint16_t val;
 	ReadBytes(f, &val, sizeof(uint16_t), sError);
@@ -314,7 +314,7 @@ FileReading::read_u16_le(RageFileBasic& f, RString& sError)
 }
 
 int16_t
-FileReading::read_16_le(RageFileBasic& f, RString& sError)
+FileReading::read_16_le(RageFileBasic& f, std::string& sError)
 {
 	int16_t val;
 	ReadBytes(f, &val, sizeof(int16_t), sError);
@@ -325,7 +325,7 @@ FileReading::read_16_le(RageFileBasic& f, RString& sError)
 }
 
 uint32_t
-FileReading::read_u32_le(RageFileBasic& f, RString& sError)
+FileReading::read_u32_le(RageFileBasic& f, std::string& sError)
 {
 	uint32_t val;
 	ReadBytes(f, &val, sizeof(uint32_t), sError);
@@ -336,7 +336,7 @@ FileReading::read_u32_le(RageFileBasic& f, RString& sError)
 }
 
 int32_t
-FileReading::read_32_le(RageFileBasic& f, RString& sError)
+FileReading::read_32_le(RageFileBasic& f, std::string& sError)
 {
 	int32_t val;
 	ReadBytes(f, &val, sizeof(int32_t), sError);
@@ -411,18 +411,18 @@ class LunaRageFile : public Luna<RageFile>
 	static int Read(T* p, lua_State* L)
 	{
 		can_safely_read(p, L);
-		RString string;
+		std::string string;
 		p->Read(string);
-		lua_pushstring(L, string);
+		lua_pushstring(L, string.c_str());
 		return 1;
 	}
 
 	static int ReadBytes(T* p, lua_State* L)
 	{
 		can_safely_read(p, L);
-		RString string;
+		std::string string;
 		p->Read(string, IArg(1));
-		lua_pushstring(L, string);
+		lua_pushstring(L, string.c_str());
 		return 1;
 	}
 
@@ -443,12 +443,12 @@ class LunaRageFile : public Luna<RageFile>
 	static int GetLine(T* p, lua_State* L)
 	{
 		can_safely_read(p, L);
-		RString string;
+		std::string string;
 		if (!p->GetLine(string)) {
 			lua_pushnil(L);
 			return 1;
 		}
-		lua_pushstring(L, string);
+		lua_pushstring(L, string.c_str());
 		return 1;
 	}
 
@@ -461,9 +461,9 @@ class LunaRageFile : public Luna<RageFile>
 
 	static int GetError(T* p, lua_State* L)
 	{
-		RString error;
+		std::string error;
 		error = p->GetError();
-		lua_pushstring(L, error);
+		lua_pushstring(L, error.c_str());
 		return 1;
 	}
 

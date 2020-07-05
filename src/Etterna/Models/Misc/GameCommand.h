@@ -24,14 +24,14 @@ class GameCommand
 	  , m_sName("")
 	  , m_sText("")
 	  , m_sInvalidReason("")
-	  , m_pStyle(NULL)
+	  , m_pStyle(nullptr)
 	  , m_sAnnouncer("")
 	  , m_sPreferredModifiers("")
 	  , m_sStageModifiers("")
 	  , m_sScreen("")
 	  , m_LuaFunction()
-	  , m_pSong(NULL)
-	  , m_pSteps(NULL)
+	  , m_pSong(nullptr)
+	  , m_pSteps(nullptr)
 	  , m_SetEnv()
 	  , m_SetPref()
 	  , m_sSongGroup("")
@@ -57,7 +57,7 @@ class GameCommand
   public:
 	bool DescribesCurrentMode(PlayerNumber pn) const;
 	bool DescribesCurrentModeForAllPlayers() const;
-	bool IsPlayable(RString* why = NULL) const;
+	bool IsPlayable(std::string* why = nullptr) const;
 	bool IsZero() const;
 
 	/* If true, Apply() will apply m_sScreen. If false, it won't, and you need
@@ -68,30 +68,30 @@ class GameCommand
 	// so that we know the order of commands when it comes time to Apply.
 	Commands m_Commands;
 
-	RString m_sName; // choice name
-	RString m_sText; // display text
+	std::string m_sName; // choice name
+	std::string m_sText; // display text
 	bool m_bInvalid{ true };
-	RString m_sInvalidReason;
+	std::string m_sInvalidReason;
 	int m_iIndex{ -1 };
 	MultiPlayer m_MultiPlayer{ MultiPlayer_Invalid };
 	const Style* m_pStyle;
 	PlayMode m_pm{ PlayMode_Invalid };
 	Difficulty m_dc{ Difficulty_Invalid };
-	RString m_sAnnouncer;
-	RString m_sPreferredModifiers;
-	RString m_sStageModifiers;
-	RString m_sScreen;
+	std::string m_sAnnouncer;
+	std::string m_sPreferredModifiers;
+	std::string m_sStageModifiers;
+	std::string m_sScreen;
 	LuaReference m_LuaFunction;
 	Song* m_pSong;
 	Steps* m_pSteps;
-	std::map<RString, RString> m_SetEnv;
-	std::map<RString, RString> m_SetPref;
-	RString m_sSongGroup;
+	std::map<std::string, std::string> m_SetEnv;
+	std::map<std::string, std::string> m_SetPref;
+	std::string m_sSongGroup;
 	SortOrder m_SortOrder{ SortOrder_Invalid };
-	RString m_sSoundPath; // "" for no sound
-	vector<RString> m_vsScreensToPrepare;
-	RString m_sProfileID;
-	RString m_sUrl;
+	std::string m_sSoundPath; // "" for no sound
+	vector<std::string> m_vsScreensToPrepare;
+	std::string m_sProfileID;
+	std::string m_sUrl;
 	// sm-ssc adds:
 	bool m_bUrlExits{ true }; // for making stepmania not exit on url
 

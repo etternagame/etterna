@@ -169,7 +169,7 @@ LowLevelWindow_X11::RestoreOutputConfig()
 }
 
 void*
-LowLevelWindow_X11::GetProcAddress(const RString& s)
+LowLevelWindow_X11::GetProcAddress(const std::string& s)
 {
 	// XXX: We should check whether glXGetProcAddress or
 	// glXGetProcAddressARB is available/not NULL, and go by that,
@@ -177,7 +177,7 @@ LowLevelWindow_X11::GetProcAddress(const RString& s)
 	return (void*)glXGetProcAddressARB((const GLubyte*)s.c_str());
 }
 
-RString
+std::string
 LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
 	// We're going to be interested in MapNotify/ConfigureNotify events in this
@@ -724,7 +724,7 @@ LowLevelWindow_X11::LogDebugInformation() const
 }
 
 bool
-LowLevelWindow_X11::IsSoftwareRenderer(RString& sError)
+LowLevelWindow_X11::IsSoftwareRenderer(std::string& sError)
 {
 	if (glXIsDirect(Dpy, glXGetCurrentContext()))
 		return false;

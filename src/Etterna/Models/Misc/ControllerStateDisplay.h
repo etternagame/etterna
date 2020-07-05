@@ -1,4 +1,4 @@
-﻿/* ControllerStateDisplay - Show the button state of a controller. */
+/* ControllerStateDisplay - Show the button state of a controller. */
 
 #ifndef ControllerStateDisplay_H
 #define ControllerStateDisplay_H
@@ -58,8 +58,8 @@ class ControllerStateDisplay : public ActorFrame
 {
   public:
 	ControllerStateDisplay();
-	void LoadMultiPlayer(const RString& sType, MultiPlayer mp);
-	void LoadGameController(const RString& sType, GameController gc);
+	void LoadMultiPlayer(const std::string& sType, MultiPlayer mp);
+	void LoadGameController(const std::string& sType, GameController gc);
 	void Update(float fDelta) override;
 	bool IsLoaded() const { return m_bIsLoaded; }
 
@@ -69,7 +69,9 @@ class ControllerStateDisplay : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   protected:
-	void LoadInternal(const RString& sType, MultiPlayer mp, GameController gc);
+	void LoadInternal(const std::string& sType,
+					  MultiPlayer mp,
+					  GameController gc);
 	MultiPlayer m_mp;
 
 	bool m_bIsLoaded;

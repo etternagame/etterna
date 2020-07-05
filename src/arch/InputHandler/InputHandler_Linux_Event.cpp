@@ -20,7 +20,7 @@
 
 REGISTER_INPUT_HANDLER_CLASS2(LinuxEvent, Linux_Event);
 
-static RString
+static std::string
 BustypeToString(int iBus)
 {
 	switch (iBus) {
@@ -58,7 +58,7 @@ struct EventDevice
 {
 	EventDevice();
 	~EventDevice();
-	bool Open(RString sFile, InputDevice dev);
+	bool Open(std::string sFile, InputDevice dev);
 	bool IsOpen() const { return m_iFD != -1; }
 	void Close()
 	{
@@ -68,8 +68,8 @@ struct EventDevice
 	}
 
 	int m_iFD;
-	RString m_sPath;
-	RString m_sName;
+	std::string m_sPath;
+	std::string m_sName;
 	InputDevice m_Dev;
 
 	int aiAbsMin[ABS_MAX];
@@ -85,12 +85,12 @@ static vector<EventDevice*> g_apEventDevices;
 static bool
 EventDeviceExists(int iNum)
 {
-	RString sDir = ssprintf("/sys/class");
+	std::string sDir = ssprintf("/sys/class");
 	struct stat st;
 	if (stat(sDir, &st) == -1)
 		return true;
 
-	RString sFile = ssprintf("/sys/class/input/event%i", iNum);
+	std::string sFile = ssprintf("/sys/class/input/event%i", iNum);
 	return stat(sFile, &st) == 0;
 }
 
@@ -106,7 +106,7 @@ EventDevice::EventDevice()
 }
 
 bool
-EventDevice::Open(RString sFile, InputDevice dev)
+EventDevice::Open(std::string sFile, InputDevice dev)
 {
 	m_sPath = sFile;
 	m_Dev = dev;
@@ -174,7 +174,7 @@ EventDevice::Open(RString sFile, InputDevice dev)
 		LOG->Warn("ioctl(EV_MAX): %s", strerror(errno));
 
 	{
-		vector<RString> setEventTypes;
+		vector<std::string> setEventTypes;
 
 		if (BitIsSet(iEventTypes, EV_SYN))
 			setEventTypes.push_back("syn");
@@ -319,7 +319,7 @@ InputHandler_Linux_Event::StopThread()
 }
 
 bool
-InputHandler_Linux_Event::TryDevice(RString devfile)
+InputHandler_Linux_Event::TryDevice(std::string devfile)
 {
 	EventDevice* pDev = new EventDevice;
 	if (pDev->Open(devfile, m_NextDevice)) {

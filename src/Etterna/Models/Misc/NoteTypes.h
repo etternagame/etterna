@@ -4,7 +4,6 @@
 #define NOTE_TYPES_H
 
 #include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
 #include "RageUtil/Misc/RageLog.h"
 
 class XNode;
@@ -92,7 +91,7 @@ struct HoldNoteResult
 /** @brief What is the TapNote's core type? */
 enum TapNoteType
 {
-	TapNoteType_Empty,	/**< There is no note here. */
+	TapNoteType_Empty,	  /**< There is no note here. */
 	TapNoteType_Tap,	  /**< The player simply steps on this. */
 	TapNoteType_HoldHead, /**< This is graded like the Tap type, but should be
 							 held. */
@@ -108,9 +107,9 @@ enum TapNoteType
 	NUM_TapNoteType,
 	TapNoteType_Invalid
 };
-const RString&
+const std::string&
 TapNoteTypeToString(TapNoteType tnt);
-const RString&
+const std::string&
 TapNoteTypeToLocalizedString(TapNoteType tnt);
 LuaDeclareType(TapNoteType);
 
@@ -124,9 +123,9 @@ enum TapNoteSubType
 	NUM_TapNoteSubType,
 	TapNoteSubType_Invalid
 };
-const RString&
+const std::string&
 TapNoteSubTypeToString(TapNoteSubType tnst);
-const RString&
+const std::string&
 TapNoteSubTypeToLocalizedString(TapNoteSubType tnst);
 LuaDeclareType(TapNoteSubType);
 
@@ -139,9 +138,9 @@ enum TapNoteSource
 	NUM_TapNoteSource,
 	TapNoteSource_Invalid
 };
-const RString&
+const std::string&
 TapNoteSourceToString(TapNoteSource tns);
-const RString&
+const std::string&
 TapNoteSourceToLocalizedString(TapNoteSource tns);
 LuaDeclareType(TapNoteSource);
 
@@ -157,9 +156,6 @@ struct TapNote
 	TapNoteSource source{ TapNoteSource_Original };
 	/** @brief The result of hitting or missing the TapNote. */
 	TapNoteResult result;
-	/** @brief The Player that is supposed to hit this note. This is mainly for
-	 * Routine Mode. */
-	PlayerNumber pn;
 
 	// Index into Song's vector of keysound files if nonnegative:
 	int iKeysoundIndex{ -1 };
@@ -183,7 +179,6 @@ struct TapNote
 
 	TapNote()
 	  : result()
-	  , pn(PLAYER_INVALID)
 	  , HoldResult()
 	{
 	}
@@ -192,7 +187,6 @@ struct TapNote
 		type = TapNoteType_Empty;
 		subType = TapNoteSubType_Invalid;
 		source = TapNoteSource_Original;
-		pn = PLAYER_INVALID, iKeysoundIndex = -1;
 		iDuration = 0;
 	}
 	TapNote(TapNoteType type_,
@@ -203,7 +197,6 @@ struct TapNote
 	  , subType(subType_)
 	  , source(source_)
 	  , result()
-	  , pn(PLAYER_INVALID)
 	  , iKeysoundIndex(iKeysoundIndex_)
 	  , HoldResult()
 	{
@@ -229,7 +222,6 @@ struct TapNote
 		COMPARE(source);
 		COMPARE(iKeysoundIndex);
 		COMPARE(iDuration);
-		COMPARE(pn);
 #undef COMPARE
 		return true;
 	}
@@ -259,7 +251,7 @@ struct TapReplayResult
 	int row;
 	int track;			   // column
 	float offset;		   // 0
-	TapNoteType type;	  // typically mines, holds, rolls, etc
+	TapNoteType type;	   // typically mines, holds, rolls, etc
 	int offsetAdjustedRow; // row assigned later on for full replays
 
 	TapReplayResult()
@@ -274,8 +266,8 @@ struct TapReplayResult
 
 extern TapNote TAP_EMPTY;				   // '0'
 extern TapNote TAP_ORIGINAL_TAP;		   // '1'
-extern TapNote TAP_ORIGINAL_HOLD_HEAD;	 // '2'
-extern TapNote TAP_ORIGINAL_ROLL_HEAD;	 // '4'
+extern TapNote TAP_ORIGINAL_HOLD_HEAD;	   // '2'
+extern TapNote TAP_ORIGINAL_ROLL_HEAD;	   // '4'
 extern TapNote TAP_ORIGINAL_MINE;		   // 'M'
 extern TapNote TAP_ORIGINAL_LIFT;		   // 'L'
 extern TapNote TAP_ORIGINAL_ATTACK;		   // 'A'
@@ -310,21 +302,21 @@ const int MAX_NOTE_ROW = (1 << 30);
 /** @brief The list of quantized note types allowed at present. */
 enum NoteType
 {
-	NOTE_TYPE_4TH,   /**< quarter note */
-	NOTE_TYPE_8TH,   /**< eighth note */
-	NOTE_TYPE_12TH,  /**< quarter note triplet */
-	NOTE_TYPE_16TH,  /**< sixteenth note */
-	NOTE_TYPE_24TH,  /**< eighth note triplet */
-	NOTE_TYPE_32ND,  /**< thirty-second note */
-	NOTE_TYPE_48TH,  /**< sixteenth note triplet */
-	NOTE_TYPE_64TH,  /**< sixty-fourth note */
+	NOTE_TYPE_4TH,	 /**< quarter note */
+	NOTE_TYPE_8TH,	 /**< eighth note */
+	NOTE_TYPE_12TH,	 /**< quarter note triplet */
+	NOTE_TYPE_16TH,	 /**< sixteenth note */
+	NOTE_TYPE_24TH,	 /**< eighth note triplet */
+	NOTE_TYPE_32ND,	 /**< thirty-second note */
+	NOTE_TYPE_48TH,	 /**< sixteenth note triplet */
+	NOTE_TYPE_64TH,	 /**< sixty-fourth note */
 	NOTE_TYPE_192ND, /**< sixty-fourth note triplet */
 	NUM_NoteType,
 	NoteType_Invalid
 };
-const RString&
+const std::string&
 NoteTypeToString(NoteType nt);
-const RString&
+const std::string&
 NoteTypeToLocalizedString(NoteType nt);
 LuaDeclareType(NoteType);
 float

@@ -47,7 +47,7 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 	// Load sounds.
 	//
 	Song* pSong = GAMESTATE->m_pCurSong;
-	RString sSongDir = pSong->GetSongDir();
+	std::string sSongDir = pSong->GetSongDir();
 
 	/*
 	 * Add all current autoplay sounds in both players to the chain.
@@ -82,7 +82,7 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 
 			ASSERT(tn.type == TapNoteType_AutoKeysound);
 			if (tn.iKeysoundIndex >= 0) {
-				RString sKeysoundFilePath =
+				std::string sKeysoundFilePath =
 				  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
 				float fSeconds =
 				  GAMESTATE->m_pCurSteps->GetTimingData()->WhereUAtBroNoOffset(
@@ -105,16 +105,16 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	pPlayer1 = nullptr;
 	pShared = nullptr;
 
-	vector<RString> vsMusicFile;
-	const RString sMusicPath = GAMESTATE->m_pCurSteps->GetMusicPath();
+	vector<std::string> vsMusicFile;
+	const std::string sMusicPath = GAMESTATE->m_pCurSteps->GetMusicPath();
 
 	if (!sMusicPath.empty())
 		vsMusicFile.push_back(sMusicPath);
 
 	vector<RageSoundReader*> vpSounds;
-	FOREACH(RString, vsMusicFile, s)
+	FOREACH(std::string, vsMusicFile, s)
 	{
-		RString sError;
+		std::string sError;
 		RageSoundReader* pSongReader =
 		  RageSoundReader_FileReader::OpenFile(*s, sError);
 		vpSounds.push_back(pSongReader);

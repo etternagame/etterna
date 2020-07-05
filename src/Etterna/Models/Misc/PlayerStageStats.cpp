@@ -1,18 +1,19 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Etterna/Singletons/CryptManager.h"
 #include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
-#include "Etterna/Globals/MinaCalcOld.h"
+#include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/SongManager.h"
 
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
@@ -341,13 +342,13 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	return fPercent;
 }
 
-RString
+std::string
 PlayerStageStats::FormatPercentScore(float fPercentDancePoints)
 {
 	int iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
 
-	RString s =
+	std::string s =
 	  ssprintf("%*.*f%%",
 			   iPercentTotalDigits,
 			   static_cast<int>(CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES),
@@ -380,15 +381,19 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
 	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+	// 4k
+	if (steps->m_StepsType == StepsType_dance_single) {
+		return MinaSDCalc(
+		  serializednd, musicrate, ssrpercent, SONGMAN->calc.get());
+	}
+
+	// solo calc
 	if (steps->m_StepsType == StepsType_dance_solo)
 		return SoloCalc(serializednd, musicrate, ssrpercent);
-	else {
-#ifdef USING_NEW_CALC
-		return MinaSDCalc(serializednd, musicrate, ssrpercent);
-#else
-		return MinaSDCalc_OLD(serializednd, musicrate, ssrpercent);
-#endif
-	}
+
+	// anything else
+	return { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
 }
 
 float

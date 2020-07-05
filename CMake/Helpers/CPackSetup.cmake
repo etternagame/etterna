@@ -30,8 +30,12 @@ if(WIN32)
     string(REGEX REPLACE "/" "\\\\\\\\" CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP}")
 
     set(INSTALL_DIR ".")
+
+    # List every DLL etterna needs.
+    list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+    install(FILES ${WIN_DLLS}   COMPONENT Etterna DESTINATION Program)
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION Program)
-    install(DIRECTORY Program   COMPONENT Etterna DESTINATION .)
     install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Docs)
 
 # macOS Specific CPack
@@ -44,14 +48,17 @@ elseif(APPLE)
 endif()
 
 # Universal Install Directories
-install(DIRECTORY Announcers            COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Assets                COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BackgroundEffects     COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BackgroundTransitions COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BGAnimations          COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Data                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY NoteSkins             COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Scripts               COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Songs                 COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Themes                COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(FILES portable.ini              COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+## Files Only
+install(FILES portable.ini                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(FILES Songs/instructions.txt        COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Songs")
+install(FILES Announcers/instructions.txt   COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Announcers")
+
+## Essential Game Files
+install(DIRECTORY Assets                    COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY BackgroundEffects         COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY BackgroundTransitions     COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY BGAnimations              COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Data                      COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY NoteSkins                 COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Scripts                   COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Themes                    COMPONENT Etterna DESTINATION "${INSTALL_DIR}")

@@ -150,38 +150,6 @@ local function clearTypes(grade, playCount, perfcount, greatcount, misscount, re
 	return getClearTypeItem(clearlevel, returntype)
 end
 
---Returns the cleartype of the top score
-function getClearType(pn, ret)
-	local song
-	local steps
-	local profile
-	local hScoreList
-	local hScore
-	local playCount = 0
-	local greatcount = 0
-	local perfcount = 0
-	local misscount = 0
-	local grade
-	song = GAMESTATE:GetCurrentSong()
-	steps = GAMESTATE:GetCurrentSteps(pn)
-	profile = GetPlayerOrMachineProfile(pn)
-	if song ~= nil and steps ~= nil then
-		hScoreList = profile:GetHighScoreList(song, steps):GetHighScores()
-		hScore = hScoreList[1]
-	end
-	if hScore ~= nil then
-		playCount = profile:GetSongNumTimesPlayed(song)
-		perfcount = score:GetTapNoteScore("TapNoteScore_W2")
-		greatcount = score:GetTapNoteScore("TapNoteScore_W3")
-		misscount =
-			hScore:GetTapNoteScore("TapNoteScore_Miss") + hScore:GetTapNoteScore("TapNoteScore_W5") +
-			hScore:GetTapNoteScore("TapNoteScore_W4")
-		grade = hScore:GetGrade()
-		stageAward = hScore:GetStageAward()
-	end
-	return clearTypes(grade, playCount, perfcount, greatcount, misscount, ret)
-end
-
 -- Returns the cleartype given the score
 function getClearTypeFromScore(pn, score, ret)
 	local song
@@ -213,42 +181,4 @@ function getClearTypeFromScore(pn, score, ret)
 
 
 	return clearTypes(grade, playCount, perfcount, greatcount, misscount, ret) or typetable[12]
-end
-
--- Returns the highest cleartype
-function getHighestClearType(pn, ignore, ret)
-	local song
-	local steps
-	local profile
-	local hScoreList
-	local hScore
-	local i = 1
-	local highest = 13
-
-	song = GAMESTATE:GetCurrentSong()
-	steps = GAMESTATE:GetCurrentSteps(pn)
-	profile = GetPlayerOrMachineProfile(pn)
-	if song ~= nil and steps ~= nil then
-		hScoreList = profile:GetHighScoreList(song, steps):GetHighScores()
-	end
-	if hScoreList ~= nil then
-		while i <= #hScoreList do
-			if i ~= ignore then
-				hScore = hScoreList[i]
-				if hScore ~= nil then
-					highest = math.min(highest, getClearTypeFromScore(pn, hScore, 3))
-				end
-			end
-			i = i + 1
-		end
-	end
-	if ret == 0 then
-		return getClearTypeText(highest)
-	elseif ret == 1 then
-		return getShortClearTypeText(highest)
-	elseif ret == 2 then
-		return getClearTypeColor(highest)
-	else
-		return highest
-	end
 end

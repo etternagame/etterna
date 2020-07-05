@@ -8,14 +8,13 @@
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageSurface_Load.h"
 #include "RageTextureManager.h"
-#include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/StepMania.h"
 #include "arch/Dialog/Dialog.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
 static void
-GetResolutionFromFileName(RString& sPath, int& iWidth, int& iHeight)
+GetResolutionFromFileName(std::string& sPath, int& iWidth, int& iHeight)
 {
 	/* Match:
 	 *  Foo (res 512x128).png
@@ -24,7 +23,7 @@ GetResolutionFromFileName(RString& sPath, int& iWidth, int& iHeight)
 	 * Be careful that this doesn't get mixed up with frame dimensions. */
 	static Regex re("\\([^\\)]*res ([0-9]+)x([0-9]+).*\\)");
 
-	vector<RString> asMatches;
+	vector<std::string> asMatches;
 	if (!re.Compare(sPath, asMatches))
 		return;
 
@@ -76,7 +75,7 @@ RageBitmapTexture::Create()
 	ASSERT(actualID.filename != "");
 
 	/* Load the image into a RageSurface. */
-	RString error;
+	std::string error;
 	RageSurface* pImg = nullptr;
 	if (actualID.filename == TEXTUREMAN->GetScreenTextureID().filename) {
 		pImg = TEXTUREMAN->GetScreenSurface();
@@ -86,9 +85,10 @@ RageBitmapTexture::Create()
 
 	/* Tolerate corrupt/unknown images. */
 	if (pImg == nullptr) {
-		RString warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
-								   actualID.filename.c_str(),
-								   error.c_str());
+		std::string warning =
+		  ssprintf("RageBitmapTexture: Couldn't load %s: %s",
+				   actualID.filename.c_str(),
+				   error.c_str());
 		LOG->Warn("%s", warning.c_str());
 		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface(64, 64);
@@ -109,8 +109,8 @@ RageBitmapTexture::Create()
 	}
 
 	// look in the file name for a format hints
-	RString sHintString = GetID().filename + actualID.AdditionalTextureHints;
-	sHintString.MakeLower();
+	std::string sHintString =
+	  make_lower(GetID().filename + actualID.AdditionalTextureHints);
 
 	if (sHintString.find("32bpp") != string::npos)
 		actualID.iColorDepth = 32;
@@ -332,7 +332,7 @@ RageBitmapTexture::Create()
 			  this->GetFramesHigh() * fBetterFrameHeight;
 			if (fFrameWidth != fBetterFrameWidth ||
 				fFrameHeight != fBetterFrameHeight) {
-				RString sWarning = ssprintf(
+				std::string sWarning = ssprintf(
 				  "The graphic '%s' has frame dimensions that aren't a "
 				  "multiple of %d.\n"
 				  "The entire image is %dx%d and frame size is %.1fx%.1f.\n"
@@ -369,7 +369,7 @@ RageBitmapTexture::Create()
 		m_iSourceHeight = m_iSourceHeight / 2;
 	}
 
-	RString sProperties;
+	std::string sProperties;
 	sProperties += RagePixelFormatToString(pixfmt) + " ";
 	if (actualID.iAlphaBits == 0)
 		sProperties += "opaque ";

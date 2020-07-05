@@ -3,30 +3,21 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
-#include "Etterna/Screen/Network/ScreenSMOnlineLogin.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
-#include "Etterna/Actor/Menus/RoomInfoDisplay.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include <iostream>
 #include <cerrno>
 #include <chrono>
 #include <cmath>
@@ -100,7 +91,7 @@ AutoScreenMessage(ETTP_RoomsChange);
 AutoScreenMessage(ETTP_SelectChart);
 AutoScreenMessage(ETTP_StartChart);
 
-extern Preference<RString> g_sLastServer;
+extern Preference<std::string> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
 Preference<unsigned int> logPackets("LogMultiPackets", 0);
 static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
@@ -119,7 +110,7 @@ correct_non_utf_8(string* str)
 	to.reserve(f_size);
 
 	for (i = 0; i < f_size; i++) {
-		c = (unsigned char)(*str)[i];
+		c = static_cast<unsigned char>((*str)[i]);
 		if (c < 32) {							// control char
 			if (c == 9 || c == 10 || c == 13) { // allow only \t \n \r
 				to.append(1, c);
@@ -141,15 +132,15 @@ correct_non_utf_8(string* str)
 			}
 			continue;
 		} else if (c < 192) { // invalid for UTF8, converting ASCII
-			to.append(1, (unsigned char)194);
+			to.append(1, static_cast<unsigned char>(194));
 			to.append(1, c);
 			continue;
 		} else if (c < 194) { // invalid for UTF8, converting ASCII
-			to.append(1, (unsigned char)195);
+			to.append(1, static_cast<unsigned char>(195));
 			to.append(1, c - 64);
 			continue;
 		} else if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
-			c2 = (unsigned char)(*str)[i + 1];
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
 					;
@@ -161,8 +152,8 @@ correct_non_utf_8(string* str)
 				continue;
 			}
 		} else if (c < 240 && i + 2 < f_size) { // possibly 3byte UTF8
-			c2 = (unsigned char)(*str)[i + 1];
-			c3 = (unsigned char)(*str)[i + 2];
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			c3 = static_cast<unsigned char>((*str)[i + 2]);
 			if (c2 > 127 && c2 < 192 && c3 > 127 &&
 				c3 < 192) { // valid 3byte UTF8
 				to.append(1, c);
@@ -172,9 +163,9 @@ correct_non_utf_8(string* str)
 				continue;
 			}
 		} else if (c < 245 && i + 3 < f_size) { // possibly 4byte UTF8
-			c2 = (unsigned char)(*str)[i + 1];
-			c3 = (unsigned char)(*str)[i + 2];
-			c4 = (unsigned char)(*str)[i + 3];
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			c3 = static_cast<unsigned char>((*str)[i + 2]);
+			c4 = static_cast<unsigned char>((*str)[i + 3]);
 			if (c2 > 127 && c2 < 192 && c3 > 127 && c3 < 192 && c4 > 127 &&
 				c4 < 192) { // valid 4byte UTF8
 				to.append(1, c);
@@ -187,14 +178,14 @@ correct_non_utf_8(string* str)
 		}
 		// invalid UTF8, converting ASCII (c>245 || string too short for
 		// multi-byte))
-		to.append(1, (unsigned char)195);
+		to.append(1, static_cast<unsigned char>(195));
 		to.append(1, c - 64);
 	}
 	return to;
 }
 
 string
-correct_non_utf_8(const RString& str)
+correct_non_utf_8(const std::string& str)
 {
 	string stdStr = str.c_str();
 	auto utf8ValidStr = correct_non_utf_8(&stdStr);
@@ -206,6 +197,7 @@ static LocalizedString INITIALIZING_CLIENT_NETWORK(
   "Initializing Client Network...");
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
+	NSMAN = this;
 	LANserver = NULL; // So we know if it has been created yet
 	useSMserver = false;
 	isSMOnline = false;
@@ -402,6 +394,9 @@ ETTProtocol::close()
 ETTProtocol::~ETTProtocol()
 {
 	close();
+	// Wait until the client is closed
+	while (this->client != nullptr)
+		;
 }
 
 void
@@ -430,26 +425,21 @@ NetworkSyncManager::CloseConnection()
 	curProtocol = nullptr;
 	MESSAGEMAN->Broadcast("MultiplayerDisconnection");
 }
-bool
-startsWith(const string& haystack, const string& needle)
-{
-	return needle.length() <= haystack.length() &&
-		   equal(needle.begin(), needle.end(), haystack.begin());
-}
+
 void
-NetworkSyncManager::PostStartUp(const RString& ServerIP)
+NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 {
-	RString sAddress;
+	std::string sAddress;
 	unsigned short iPort;
 	m_startupStatus = 2;
 
 	size_t cLoc = ServerIP.find(':');
-	if (ServerIP.find(':') != RString::npos) {
+	if (ServerIP.find(':') != std::string::npos) {
 		sAddress = ServerIP.substr(0, cLoc);
 		char* cEnd;
 		errno = 0;
 		auto sub = ServerIP.substr(cLoc + 1);
-		iPort = (unsigned short)strtol(sub.c_str(), &cEnd, 10);
+		iPort = static_cast<unsigned short>(strtol(sub.c_str(), &cEnd, 10));
 		if (*cEnd != 0 || errno != 0) {
 			LOG->Warn("Invalid port");
 			return;
@@ -493,7 +483,7 @@ NetworkSyncManager::PostStartUp(const RString& ServerIP)
 bool
 ETTProtocol::Connect(NetworkSyncManager* n,
 					 unsigned short port,
-					 RString address)
+					 std::string address)
 {
 	close();
 	n->isSMOnline = false;
@@ -504,15 +494,18 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	bool ws = true;
 	bool wss = true;
 	bool prepend = true;
-	if (startsWith(address, "ws://")) {
+	if (starts_with(address, "ws://")) {
 		wss = false;
 		prepend = false;
-	} else if (startsWith(address, "wss://")) {
+	} else if (starts_with(address, "wss://")) {
 		ws = false;
 		prepend = false;
 	}
 	auto msgHandler = [this](websocketpp::connection_hdl hdl,
 							 ws_message_ptr message) {
+		// Ignore if we're closing the program and already deleted nsman
+		if (NSMAN == nullptr)
+			return;
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
 			LOG->Trace("Error while processing ettprotocol json (message: %s )",
@@ -524,6 +517,8 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	auto openHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
+		if (NSMAN == nullptr)
+			return;
 		finished_connecting = true;
 		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
 		n->isSMOnline = true;
@@ -531,10 +526,14 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	};
 	auto failHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
+		if (NSMAN == nullptr)
+			return;
 		finished_connecting = true;
 		n->isSMOnline = false;
 	};
 	auto closeHandler = [this](websocketpp::connection_hdl hdl) {
+		if (NSMAN == nullptr)
+			return;
 		this->client = nullptr;
 	};
 	if (wss) {
@@ -743,7 +742,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	}
 	if (waitingForTimeout) {
 		clock_t now = clock();
-		double elapsed_secs = double(now - timeoutStart) / CLOCKS_PER_SEC;
+		double elapsed_secs =
+		  static_cast<double>(now - timeoutStart) / CLOCKS_PER_SEC;
 		if (elapsed_secs > timeout) {
 			onTimeout();
 			waitingForTimeout = false;
@@ -1064,8 +1064,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					  payload["msg"].GetString());
 					SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
 					Message msg("Chat");
-					msg.SetParam("tab", RString(tab));
-					msg.SetParam("msg", RString(payload["msg"].GetString()));
+					msg.SetParam("tab", std::string(tab));
+					msg.SetParam("msg",
+								 std::string(payload["msg"].GetString()));
 					msg.SetParam("type", type);
 					MESSAGEMAN->Broadcast(msg);
 				} break;
@@ -1082,7 +1083,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 								!score["user"].IsString())
 								continue;
 							float wife = score["wife"].GetFloat();
-							RString jdgstr = score["jdgstr"].GetString();
+							std::string jdgstr = score["jdgstr"].GetString();
 							string user = score["user"].GetString();
 							n->mpleaderboard[user].wife = wife;
 							n->mpleaderboard[user].jdgstr = jdgstr;
@@ -1103,7 +1104,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						msg.SetParam("Header", roomName);
 						msg.SetParam("Subheader", roomDesc);
 						MESSAGEMAN->Broadcast(msg);
-						RString SMOnlineSelectScreen = THEME->GetMetric(
+						std::string SMOnlineSelectScreen = THEME->GetMetric(
 						  "ScreenNetRoom", "MusicSelectScreen");
 						SCREENMAN->SendMessageToTopScreen(SM_GoToNextScreen);
 					}
@@ -1136,7 +1137,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							msg.SetParam("Subheader", roomDesc);
 							MESSAGEMAN->Broadcast(msg);
 							inRoom = true;
-							RString SMOnlineSelectScreen = THEME->GetMetric(
+							std::string SMOnlineSelectScreen = THEME->GetMetric(
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 						} catch (exception e) {
@@ -1296,12 +1297,12 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 void
 NetworkSyncManager::StartUp()
 {
-	RString ServerIP;
+	std::string ServerIP;
 
 	if (GetCommandlineArgument("netip", &ServerIP))
 		PostStartUp(ServerIP);
 	else if (autoConnectMultiplayer)
-		PostStartUp(RString(g_sLastServer));
+		PostStartUp(std::string(g_sLastServer));
 }
 
 void
@@ -1311,7 +1312,7 @@ NetworkSyncManager::ReportNSSOnOff(int i)
 		curProtocol->ReportNSSOnOff(i);
 }
 
-RString
+std::string
 NetworkSyncManager::GetServerName()
 {
 	return curProtocol != nullptr ? curProtocol->serverName : "";
@@ -1339,13 +1340,13 @@ ETTProtocol::Logout()
 	Send(s.GetString());
 }
 void
-NetworkSyncManager::Login(RString user, RString pass)
+NetworkSyncManager::Login(std::string user, std::string pass)
 {
 	if (curProtocol != nullptr)
 		curProtocol->Login(user, pass);
 }
 void
-ETTProtocol::SendChat(const RString& message, string tab, int type)
+ETTProtocol::SendChat(const std::string& message, string tab, int type)
 {
 	if (client == nullptr)
 		return;
@@ -1369,7 +1370,7 @@ ETTProtocol::SendChat(const RString& message, string tab, int type)
 	Send(s.GetString());
 }
 void
-ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
+ETTProtocol::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
 	if (client == nullptr)
 		return;
@@ -1394,7 +1395,9 @@ ETTProtocol::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
 	Send(s.GetString());
 }
 void
-ETTProtocol::CreateNewRoom(RString name, RString desc, RString password)
+ETTProtocol::CreateNewRoom(std::string name,
+						   std::string desc,
+						   std::string password)
 {
 	if (client == nullptr || creatingRoom)
 		return;
@@ -1457,7 +1460,7 @@ ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 	inRoom = false;
 }
 void
-ETTProtocol::EnterRoom(RString name, RString password)
+ETTProtocol::EnterRoom(std::string name, std::string password)
 {
 	if (client == nullptr)
 		return;
@@ -1488,7 +1491,7 @@ ETTProtocol::EnterRoom(RString name, RString password)
 	Send(s.GetString());
 }
 void
-ETTProtocol::Login(RString user, RString pass)
+ETTProtocol::Login(std::string user, std::string pass)
 {
 	if (client == nullptr)
 		return;
@@ -1708,7 +1711,7 @@ NetworkSyncManager::StartRequest(short position)
 void
 NetworkSyncManager::DisplayStartupStatus()
 {
-	RString sMessage("");
+	std::string sMessage("");
 
 	switch (m_startupStatus) {
 		case 0:
@@ -1748,14 +1751,14 @@ NetworkSyncManager::ChangedScoreboard(int Column)
 }
 
 void
-NetworkSyncManager::SendChat(const RString& message, string tab, int type)
+NetworkSyncManager::SendChat(const std::string& message, string tab, int type)
 {
 	if (curProtocol != nullptr)
 		curProtocol->SendChat(message, tab, type);
 }
 
 void
-NetworkSyncManager::SendMPLeaderboardUpdate(float wife, RString& jdgstr)
+NetworkSyncManager::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
 	if (curProtocol != nullptr)
 		curProtocol->SendMPLeaderboardUpdate(wife, jdgstr);
@@ -1815,7 +1818,8 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 					.GetString()
 					.c_str());
 	writer.Key("rate");
-	writer.Int(static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
+	writer.Int(static_cast<int>(
+	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
 	writer.EndObject();
 	writer.EndObject();
 
@@ -1823,7 +1827,7 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 }
 
 void
-NetworkSyncManager::EnterRoom(RString name, RString password)
+NetworkSyncManager::EnterRoom(std::string name, std::string password)
 {
 	if (curProtocol != nullptr)
 		curProtocol->EnterRoom(name, password);
@@ -1837,14 +1841,16 @@ NetworkSyncManager::LeaveRoom()
 }
 
 void
-NetworkSyncManager::CreateNewRoom(RString name, RString desc, RString password)
+NetworkSyncManager::CreateNewRoom(std::string name,
+								  std::string desc,
+								  std::string password)
 {
 	if (curProtocol != nullptr)
 		curProtocol->CreateNewRoom(name, desc, password);
 }
 
 void
-NetworkSyncManager::RequestRoomInfo(RString name)
+NetworkSyncManager::RequestRoomInfo(std::string name)
 {
 	if (curProtocol != nullptr)
 		curProtocol->RequestRoomInfo(name);
@@ -1915,13 +1921,13 @@ PacketFunctions::Read4()
 	return ntohl(Temp);
 }
 
-RString
+std::string
 PacketFunctions::ReadNT()
 {
 	// int Orig=Packet.Position;
-	RString TempStr;
+	std::string TempStr;
 	while ((Position < NETMAXBUFFERSIZE) && (((char*)Data)[Position] != 0))
-		TempStr = TempStr + (char)Data[Position++];
+		TempStr = TempStr + static_cast<char>(Data[Position++]);
 
 	++Position;
 	return TempStr;
@@ -1960,25 +1966,25 @@ PacketFunctions::Write4(uint32_t data)
 }
 
 void
-PacketFunctions::WriteNT(const RString& data)
+PacketFunctions::WriteNT(const std::string& data)
 {
 	size_t index = 0;
 	while (Position < NETMAXBUFFERSIZE - 1 && index < data.size())
-		Data[Position++] = (unsigned char)(data.c_str()[index++]);
+		Data[Position++] = static_cast<unsigned char>(data.c_str()[index++]);
 	Data[Position++] = 0;
 }
 
 void
 PacketFunctions::ClearPacket()
 {
-	memset((void*)(&Data), 0, NETMAXBUFFERSIZE);
+	memset(static_cast<void*>(&Data), 0, NETMAXBUFFERSIZE);
 	Position = 0;
 }
 
-RString
-NetworkSyncManager::MD5Hex(const RString& sInput)
+std::string
+NetworkSyncManager::MD5Hex(const std::string& sInput)
 {
-	return BinaryToHex(CryptManager::GetMD5ForString(sInput)).MakeUpper();
+	return make_upper(BinaryToHex(CryptManager::GetMD5ForString(sInput)));
 }
 
 void
@@ -2019,16 +2025,16 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 }
 
 static bool
-ConnectToServer(const RString& t)
+ConnectToServer(const std::string& t)
 {
 	NSMAN->PostStartUp(t);
 	return true;
 }
 
 LuaFunction(ConnectToServer,
-			ConnectToServer((RString(SArg(1)).length() == 0)
-							  ? RString(g_sLastServer)
-							  : RString(SArg(1))))
+			ConnectToServer((std::string(SArg(1)).length() == 0)
+							  ? std::string(g_sLastServer)
+							  : std::string(SArg(1))))
 
   static bool ReportStyle()
 {
@@ -2123,8 +2129,8 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	}
 	static int Login(T* p, lua_State* L)
 	{
-		RString user = SArg(1);
-		RString pass = SArg(2);
+		std::string user = SArg(1);
+		std::string pass = SArg(2);
 		p->Login(user, pass);
 		return 1;
 	}

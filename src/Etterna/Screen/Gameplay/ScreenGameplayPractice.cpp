@@ -9,23 +9,19 @@
 #include "Etterna/Actor/Gameplay/ArrowEffects.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
-#include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Actor/Gameplay/PlayerPractice.h"
-#include "Etterna/Models/Misc/RadarValues.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/SongManager.h"
-
+#include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/LuaManager.h"
 
 REGISTER_SCREEN_CLASS(ScreenGameplayPractice);
@@ -64,16 +60,16 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 	// ... i wonder if this is doable.
 	// haha dont try to break it please
 	if (!IsTransitioning()) {
-		bool bHoldingCtrl =
+		auto bHoldingCtrl =
 		  INPUTFILTER->IsBeingPressed(
 			DeviceInput(DEVICE_KEYBOARD, KEY_LCTRL)) ||
 		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RCTRL));
-		bool bHoldingShift =
+		auto bHoldingShift =
 		  INPUTFILTER->IsBeingPressed(
 			DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
 
-		wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		auto c = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
 		MakeUpper(&c, 1);
 
 		// if you press ctrl+shift+R, you reload the song like in Music Select
@@ -84,12 +80,12 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 		// and reloading there instead
 		if (bHoldingCtrl && bHoldingShift && c == 'R') {
 			Song* cursong = GAMESTATE->m_pCurSong;
-			vector<Steps*> chartsForThisSong = cursong->GetAllSteps();
+			auto chartsForThisSong = cursong->GetAllSteps();
 			vector<std::string> oldKeys;
 			for (auto k : chartsForThisSong)
 				oldKeys.emplace_back(k->GetChartKey());
 
-			bool success = cursong->ReloadFromSongDir();
+			auto success = cursong->ReloadFromSongDir();
 			SONGMAN->ReconcileChartKeysForReloadedSong(cursong, oldKeys);
 
 			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
@@ -106,8 +102,8 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 			  fSecondsToStartTransitioningOut;
 			GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 							  fSecondsToStartTransitioningOut);
-			RageSoundParams p = m_pSoundMusic->GetParams();
-			float basicSongStart =
+			auto p = m_pSoundMusic->GetParams();
+			auto basicSongStart =
 			  GAMESTATE->m_pCurSong->GetFirstSecond() * p.m_fSpeed;
 
 			// not using a loop region so just set the new sound params
@@ -129,7 +125,8 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 				}
 			}
 			RageTimer tm;
-			const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+			const auto fSeconds =
+			  m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 			if (fSeconds > fSecondsToStartTransitioningOut ||
 				fSeconds < p.m_StartSecond) {
 				// i want to make sure things are done in a very particular
@@ -152,7 +149,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input)
 void
 ScreenGameplayPractice::Update(float fDeltaTime)
 {
-	if (GAMESTATE->m_pCurSong == NULL) {
+	if (GAMESTATE->m_pCurSong == nullptr) {
 		Screen::Update(fDeltaTime);
 		return;
 	}
@@ -174,8 +171,8 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
 
 	{
-		float fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		RageSoundParams p = m_pSoundMusic->GetParams();
+		auto fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		auto p = m_pSoundMusic->GetParams();
 		if (std::fabs(p.m_fSpeed - fSpeed) > 0.01f && fSpeed >= 0.0f) {
 			p.m_fSpeed = fSpeed;
 			m_pSoundMusic->SetParams(p);
@@ -190,11 +187,11 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 			return;
 
 		auto td = GAMESTATE->m_pCurSteps->GetTimingData();
-		const float startBeat = td->GetBeatFromElapsedTime(loopStart);
-		const float endBeat = td->GetBeatFromElapsedTime(loopEnd);
+		const auto startBeat = td->GetBeatFromElapsedTime(loopStart);
+		const auto endBeat = td->GetBeatFromElapsedTime(loopEnd);
 
-		const int rowStart = BeatToNoteRow(startBeat);
-		const int rowEnd = BeatToNoteRow(endBeat);
+		const auto rowStart = BeatToNoteRow(startBeat);
+		const auto rowEnd = BeatToNoteRow(endBeat);
 
 		if (rowStart < rowEnd)
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowStart, rowEnd);
@@ -202,8 +199,7 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 			m_Toasty.Reset();
 
 		// Reset the wife/judge counter related visible stuff
-		PlayerPractice* pl =
-		  static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+		auto pl = static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
 		pl->PositionReset();
 	}
 	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
@@ -215,15 +211,15 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 			// HACK: Don't scale alive time when using tab/tilde.  Instead of
 			// accumulating time from a timer, this time should instead be tied
 			// to the music position.
-			float fUnscaledDeltaTime = m_timerGameplaySeconds.GetDeltaTime();
+			auto fUnscaledDeltaTime = m_timerGameplaySeconds.GetDeltaTime();
 			m_vPlayerInfo.GetPlayerStageStats()->m_fAliveSeconds +=
 			  fUnscaledDeltaTime *
 			  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
 			// update fGameplaySeconds
 			STATSMAN->m_CurStageStats.m_fGameplaySeconds += fUnscaledDeltaTime;
-			float curBeat = GAMESTATE->m_Position.m_fSongBeat;
-			Song& s = *GAMESTATE->m_pCurSong;
+			auto curBeat = GAMESTATE->m_Position.m_fSongBeat;
+			auto& s = *GAMESTATE->m_pCurSong;
 
 			if (curBeat >= s.GetFirstBeat() && curBeat < s.GetLastBeat()) {
 				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
@@ -233,7 +229,7 @@ ScreenGameplayPractice::Update(float fDeltaTime)
 			// except hard code it to fire after 1 second
 			// instead of checking metrics
 			// because we want to exit fast on demand
-			bool bGiveUpTimerFired = false;
+			auto bGiveUpTimerFired = false;
 			bGiveUpTimerFired =
 			  !m_GiveUpTimer.IsZero() && m_GiveUpTimer.Ago() > 1.f;
 			m_gave_up = bGiveUpTimerFired;
@@ -266,7 +262,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
 
-	const Style* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
+	auto pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
 	NoteData ndTransformed;
 	pStyle->GetTransformedNoteDataForStyle(
 	  m_vPlayerInfo.GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
@@ -285,13 +281,13 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 
 	// load auto keysounds
 	{
-		NoteData nd = ndTransformed;
+		auto nd = ndTransformed;
 		NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
 		m_AutoKeysounds.Load(m_vPlayerInfo.GetStepsAndTrailIndex(), nd);
 	}
 
 	{
-		RString sType;
+		std::string sType;
 		switch (GAMESTATE->m_SongOptions.GetCurrent().m_SoundEffectType) {
 			case SoundEffectType_Off:
 				sType = "SoundEffectControl_Off";
@@ -315,23 +311,23 @@ void
 ScreenGameplayPractice::TogglePause()
 {
 	// True if we were paused before now
-	bool oldPause = GAMESTATE->GetPaused();
+	auto oldPause = GAMESTATE->GetPaused();
 	// True if we are becoming paused
-	bool newPause = !GAMESTATE->GetPaused();
+	auto newPause = !GAMESTATE->GetPaused();
 
 	if (oldPause) {
-		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		auto rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		m_pSoundMusic->Stop();
 
 		RageTimer tm;
-		const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+		const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 
 		float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 		GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 						  fSecondsToStartTransitioningOut);
 
 		// Restart the music with the proper params
-		RageSoundParams p = m_pSoundMusic->GetParams();
+		auto p = m_pSoundMusic->GetParams();
 		p.m_StartSecond = fSeconds - 0.01f;
 		p.m_fSpeed = rate;
 		// If using a loop region, use the loop params instead
@@ -368,8 +364,8 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 										bool hardSeek,
 										bool unpause)
 {
-	bool isPaused = GAMESTATE->GetPaused();
-	RageSoundParams p = m_pSoundMusic->GetParams();
+	auto isPaused = GAMESTATE->GetPaused();
+	auto p = m_pSoundMusic->GetParams();
 
 	// Letting this execute will freeze the music most of the time and thats bad
 	if (loopStart != loopEnd && newSongPositionSeconds > loopEnd)
@@ -400,20 +396,20 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	// Restart the notedata for the row we just moved to until the end of the
 	// file
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
-	TimingData* pTiming = pSteps->GetTimingData();
-	const float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
-	const float fNotesBeat =
+	auto pTiming = pSteps->GetTimingData();
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto fNotesBeat =
 	  pTiming->GetBeatFromElapsedTime(newSongPositionSeconds);
-	const int rowNow = BeatToNoteRow(fNotesBeat);
+	const auto rowNow = BeatToNoteRow(fNotesBeat);
 	lastReportedSeconds = newSongPositionSeconds;
 
 	// When using a loop region, just keep the loaded Notedata in the region
 	if (loopStart != loopEnd) {
-		const float endBeat = pTiming->GetBeatFromElapsedTime(loopEnd);
-		const int rowEnd = BeatToNoteRow(endBeat);
-		const float startBeat = pTiming->GetBeatFromElapsedTime(loopStart);
-		const int rowStart = BeatToNoteRow(startBeat);
-		const int rowUsed = max(rowStart, rowNow);
+		const auto endBeat = pTiming->GetBeatFromElapsedTime(loopEnd);
+		const auto rowEnd = BeatToNoteRow(endBeat);
+		const auto startBeat = pTiming->GetBeatFromElapsedTime(loopStart);
+		const auto rowStart = BeatToNoteRow(startBeat);
+		const auto rowUsed = max(rowStart, rowNow);
 		// Assert crash if this check isn't done
 		if (rowUsed < rowEnd)
 			SetupNoteDataFromRow(pSteps, rowUsed, rowEnd);
@@ -422,7 +418,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	}
 
 	// Reset the wife/judge counter related visible stuff
-	PlayerPractice* pl = static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+	auto pl = static_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
 	pl->RenderAllNotesIgnoreScores();
 	pl->PositionReset();
 
@@ -437,8 +433,8 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 float
 ScreenGameplayPractice::AddToRate(float amountAdded)
 {
-	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	double newRate = std::floor((rate + amountAdded) * 100 + 0.5) / 100;
+	auto rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	auto newRate = std::floor((rate + amountAdded) * 100 + 0.5) / 100;
 
 	// Rates outside of this range may crash
 	// Use 0.25 because of floating point errors...
@@ -446,14 +442,14 @@ ScreenGameplayPractice::AddToRate(float amountAdded)
 		return rate;
 
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
 	GetMusicEndTiming(fSecondsToStartFadingOutMusic,
 					  fSecondsToStartTransitioningOut);
 
 	// Set Music params using new rate
-	float rate_plus = static_cast<float>(newRate);
+	auto rate_plus = static_cast<float>(newRate);
 	RageSoundParams p;
 	p.m_fSpeed = rate_plus;
 	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = rate_plus;
@@ -498,7 +494,7 @@ ScreenGameplayPractice::SetLoopRegion(float start, float end)
 	// 2 seconds are removed from the start for "intro"
 	// 5 seconds are added to the end for "outro"
 	// No notedata will occupy that space.
-	RageSoundParams p = m_pSoundMusic->GetParams();
+	auto p = m_pSoundMusic->GetParams();
 	p.m_StartSecond = start - 2.f;
 	p.m_fFadeOutSeconds = 1.f;
 	p.m_LengthSeconds = end + 5.f - start;
@@ -519,10 +515,10 @@ ScreenGameplayPractice::ResetLoopRegion()
 
 	// Reload notedata for the entire file starting at current row
 	RageTimer tm;
-	const float fSeconds = m_pSoundMusic->GetPositionSeconds(NULL, &tm);
+	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 	auto td = GAMESTATE->m_pCurSteps->GetTimingData();
-	const float startBeat = td->GetBeatFromElapsedTime(fSeconds);
-	const int rowNow = BeatToNoteRow(startBeat);
+	const auto startBeat = td->GetBeatFromElapsedTime(fSeconds);
+	const auto rowNow = BeatToNoteRow(startBeat);
 	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, rowNow);
 
 	float fSecondsToStartFadingOutMusic, fSecondsToStartTransitioningOut;
@@ -530,7 +526,7 @@ ScreenGameplayPractice::ResetLoopRegion()
 					  fSecondsToStartTransitioningOut);
 
 	// Reapply the standard Music parameters
-	RageSoundParams p = m_pSoundMusic->GetParams();
+	auto p = m_pSoundMusic->GetParams();
 	p.m_StartSecond = GAMESTATE->m_pCurSong->GetFirstSecond() *
 					  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
@@ -546,25 +542,25 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
   public:
 	static int SetSongPosition(T* p, lua_State* L)
 	{
-		float position = FArg(1);
-		float delay = FArg(2);
-		bool hardseek = BArg(3);
+		auto position = FArg(1);
+		auto delay = FArg(2);
+		auto hardseek = BArg(3);
 		p->SetSongPosition(position, delay, hardseek);
 		return 0;
 	}
 
 	static int SetSongPositionAndUnpause(T* p, lua_State* L)
 	{
-		float position = FArg(1);
-		float delay = FArg(2);
-		bool hardseek = BArg(3);
+		auto position = FArg(1);
+		auto delay = FArg(2);
+		auto hardseek = BArg(3);
 		p->SetSongPosition(position, delay, hardseek, true);
 		return 0;
 	}
 
 	static int AddToRate(T* p, lua_State* L)
 	{
-		float rate = FArg(1);
+		auto rate = FArg(1);
 		lua_pushnumber(L, p->AddToRate(rate));
 		return 1;
 	}
@@ -577,8 +573,8 @@ class LunaScreenGameplayPractice : public Luna<ScreenGameplayPractice>
 
 	static int SetLoopRegion(T* p, lua_State* L)
 	{
-		float begin = FArg(1);
-		float end = FArg(2);
+		auto begin = FArg(1);
+		auto end = FArg(2);
 		p->SetLoopRegion(begin, end);
 		return 0;
 	}

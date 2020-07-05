@@ -86,8 +86,8 @@ class StepsID
 {
 	StepsType st{ StepsType_Invalid };
 	Difficulty dc{ Difficulty_Invalid };
-	RString ck;
-	RString sDescription;
+	std::string ck;
+	std::string sDescription;
 	unsigned uHash{ 0 };
 	mutable CachedObjectPointer<Steps> m_Cache;
 
@@ -130,15 +130,15 @@ class StepsID
 
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
-	RString ToString() const;
+	std::string ToString() const;
 	bool IsValid() const;
 
 	StepsType GetStepsType() const { return st; }
 	Difficulty GetDifficulty() const { return dc; }
-	RString GetKey() const { return ck; }
-	RString GetDescription() const
+	std::string GetKey() const { return ck; }
+	std::string GetDescription() const
 	{
-		return (dc == Difficulty_Edit ? sDescription : RString());
+		return (dc == Difficulty_Edit ? sDescription : std::string());
 	}
 	unsigned GetHash() const { return uHash; }
 };

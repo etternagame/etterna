@@ -63,10 +63,9 @@ NoteDataUtil::GetSmallestNoteTypeInRange(const NoteData& n,
 
 static void
 LoadFromSMNoteDataStringWithPlayer(NoteData& out,
-								   const RString& sSMNoteData,
+								   const std::string& sSMNoteData,
 								   int start,
 								   int len,
-								   PlayerNumber pn,
 								   int iNumTracks)
 {
 	/* Don't allocate memory for the entire string, nor per measure. Instead,
@@ -106,7 +105,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 			if (measureLineStart == measureEnd) {
 				break;
 			}
-			// RString &line = sSMNoteData.substr( measureLineStart,
+			// std::string &line = sSMNoteData.substr( measureLineStart,
 			// measureLineSize );
 			const char* beginLine = sSMNoteData.data() + measureLineStart;
 			const char* endLine = beginLine + measureLineSize;
@@ -232,7 +231,6 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 				 * to remove anything in this position.  We know that there's
 				 * nothing there, so avoid the search. */
 				if (tn.type != TapNoteType_Empty && ch != '3') {
-					tn.pn = pn;
 					out.SetTapNote(iTrack, iIndex, tn);
 				}
 
@@ -267,7 +265,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 
 void
 NoteDataUtil::LoadFromETTNoteDataString(NoteData& out,
-										const RString& sSMNoteData)
+										const std::string& sSMNoteData)
 {
 	size_t pos = 0;
 
@@ -523,23 +521,24 @@ NoteDataUtil::LoadFromETTNoteDataString(NoteData& out,
 
 void
 NoteDataUtil::LoadFromSMNoteDataString(NoteData& out,
-									   const RString& sSMNoteData_)
+									   const std::string& sSMNoteData_)
 {
 	// Load note data
-	RString sSMNoteData;
-	RString::size_type iIndexCommentStart = 0;
-	RString::size_type iIndexCommentEnd = 0;
-	RString::size_type origSize = sSMNoteData_.size();
+	std::string sSMNoteData;
+	std::string::size_type iIndexCommentStart = 0;
+	std::string::size_type iIndexCommentEnd = 0;
+	std::string::size_type origSize = sSMNoteData_.size();
 	const char* p = sSMNoteData_.data();
 
 	sSMNoteData.reserve(origSize);
 	while ((iIndexCommentStart = sSMNoteData_.find("//", iIndexCommentEnd)) !=
-		   RString::npos) {
+		   std::string::npos) {
 		sSMNoteData.append(p, iIndexCommentStart - iIndexCommentEnd);
 		p += iIndexCommentStart - iIndexCommentEnd;
 		iIndexCommentEnd = sSMNoteData_.find("\n", iIndexCommentStart);
 		iIndexCommentEnd =
-		  (iIndexCommentEnd == RString::npos ? origSize : iIndexCommentEnd + 1);
+		  (iIndexCommentEnd == std::string::npos ? origSize
+												 : iIndexCommentEnd + 1);
 		p += iIndexCommentEnd - iIndexCommentStart;
 	}
 	sSMNoteData.append(p, origSize - iIndexCommentEnd);
@@ -549,7 +548,7 @@ NoteDataUtil::LoadFromSMNoteDataString(NoteData& out,
 	out.Init();
 	out.SetNumTracks(iNumTracks);
 	LoadFromSMNoteDataStringWithPlayer(
-	  out, sSMNoteData, 0, sSMNoteData.size(), PLAYER_INVALID, iNumTracks);
+	  out, sSMNoteData, 0, sSMNoteData.size(), iNumTracks);
 }
 
 void
@@ -578,7 +577,7 @@ NoteDataUtil::InsertHoldTails(NoteData& inout)
 }
 
 void
-NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
+NoteDataUtil::GetSMNoteDataString(const NoteData& in, std::string& sRet)
 {
 	// Get note data
 	NoteData nd = in;
@@ -666,7 +665,7 @@ NoteDataUtil::GetSMNoteDataString(const NoteData& in, RString& sRet)
 }
 
 void
-NoteDataUtil::GetETTNoteDataString(const NoteData& in, RString& sRet)
+NoteDataUtil::GetETTNoteDataString(const NoteData& in, std::string& sRet)
 {
 	// Get note data
 	NoteData nd = in;
@@ -875,7 +874,6 @@ NoteDataUtil::LoadTransformedSlidingWindow(const NoteData& in,
 			int iOldTrack = t;
 			int iNewTrack = (iOldTrack + iCurTrackOffset) % iNewNumTracks;
 			TapNote tn = in.GetTapNote(iOldTrack, r);
-			tn.pn = PLAYER_INVALID;
 			out.SetTapNote(iNewTrack, r, tn);
 		}
 	}
@@ -945,7 +943,6 @@ NoteDataUtil::LoadOverlapped(const NoteData& in,
 			if (tnFrom.type == TapNoteType_Empty ||
 				tnFrom.type == TapNoteType_AutoKeysound)
 				continue;
-			tnFrom.pn = PLAYER_INVALID;
 
 			// If this is a hold note, find the end.
 			int iEndIndex = row;
@@ -1319,22 +1316,6 @@ NoteDataUtil::RemoveAllButOneTap(NoteData& inout, int row)
 		NoteData::iterator iter = inout.FindTapNote(track, row);
 		if (iter != inout.end(track) && iter->second.type == TapNoteType_Tap)
 			inout.RemoveTapNote(track, iter);
-	}
-	inout.RevalidateATIs(vector<int>(), false);
-}
-
-void
-NoteDataUtil::RemoveAllButPlayer(NoteData& inout, PlayerNumber pn)
-{
-	for (int track = 0; track < inout.GetNumTracks(); ++track) {
-		NoteData::iterator i = inout.begin(track);
-
-		while (i != inout.end(track)) {
-			if (i->second.pn != pn && i->second.pn != PLAYER_INVALID)
-				inout.RemoveTapNote(track, i++);
-			else
-				++i;
-		}
 	}
 	inout.RevalidateATIs(vector<int>(), false);
 }

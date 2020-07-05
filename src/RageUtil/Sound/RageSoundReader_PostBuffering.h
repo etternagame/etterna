@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_PostBuffering - Apply low-latency effects. */
+/* RageSoundReader_PostBuffering - Apply low-latency effects. */
 
 #ifndef RAGE_SOUND_READER_POST_BUFFERING_H
 #define RAGE_SOUND_READER_POST_BUFFERING_H
@@ -14,7 +14,7 @@ class RageSoundReader_PostBuffering : public RageSoundReader_Filter
 		return new RageSoundReader_PostBuffering(*this);
 	}
 	int Read(float* pBuf, int iFrames) override;
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 
   private:
 	float m_fVolume;

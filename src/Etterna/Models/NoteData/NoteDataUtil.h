@@ -31,13 +31,13 @@ GetSmallestNoteTypeForMeasure(const NoteData& nd, int iMeasureIndex);
 NoteType
 GetSmallestNoteTypeInRange(const NoteData& nd, int iStartIndex, int iEndIndex);
 void
-LoadFromSMNoteDataString(NoteData& out, const RString& sSMNoteData);
+LoadFromSMNoteDataString(NoteData& out, const std::string& sSMNoteData);
 void
-LoadFromETTNoteDataString(NoteData& out, const RString& sSMNoteData);
+LoadFromETTNoteDataString(NoteData& out, const std::string& sSMNoteData);
 void
-GetSMNoteDataString(const NoteData& in, RString& notes_out);
+GetSMNoteDataString(const NoteData& in, std::string& notes_out);
 void
-GetETTNoteDataString(const NoteData& in, RString& notes_out);
+GetETTNoteDataString(const NoteData& in, std::string& notes_out);
 /**
  * @brief Autogenerate notes from one type to another.
  *
@@ -139,15 +139,14 @@ RemoveStretch(NoteData& inout,
 			  int iEndIndex = MAX_NOTE_ROW);
 void
 RemoveAllButOneTap(NoteData& inout, int row);
-void
-RemoveAllButPlayer(NoteData& inout, PlayerNumber pn);
+
 /** @brief The types of transformations available for the NoteData. */
 enum TrackMapping
 {
 	left, /**< The NoteData is arranged as if the player was facing to the left.
 		   */
-	right,	 /**< Arranged as if the player was facing the right. */
-	mirror,	/**< The NoteData is arranged as if facing a straight mirror. */
+	right,	   /**< Arranged as if the player was facing the right. */
+	mirror,	   /**< The NoteData is arranged as if facing a straight mirror. */
 	backwards, /**< The NoteData is arranged as if the player was facing
 				backwards. This is NOT always the same as mirror. */
 	shuffle,

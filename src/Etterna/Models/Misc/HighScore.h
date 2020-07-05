@@ -181,7 +181,6 @@ struct HighScore
 	int userid = -1;
 	string avatar;
 	string countryCode;
-	int wife_ver = 0;
 	bool forceuploadedthissession = false;
 	int norms = 0;
 	int musics = 0;
@@ -193,55 +192,13 @@ struct HighScore
 	HiddenPtr<HighScoreImpl> m_Impl;
 };
 
-/** @brief The list of high scores */
-struct HighScoreList
-{
-  public:
-	/**
-	 * @brief Set up the HighScore List with default values.
-	 *
-	 * This used to call Init(), but it's better to be explicit here. */
-	HighScoreList()
-	  : vHighScores()
-	  , dtLastPlayed()
-	{
-	}
-
-	void Init();
-
-	int GetNumTimesPlayed() const { return iNumTimesPlayed; }
-	DateTime GetLastPlayed() const
-	{
-		ASSERT(iNumTimesPlayed >
-			   0); // don't call this unless the song has been played
-		return dtLastPlayed;
-	}
-	const HighScore& GetTopScore() const;
-
-	void AddHighScore(const HighScore& hs, int& iIndexOut, bool bIsMachine);
-	void IncrementPlayCount(DateTime dtLastPlayed);
-	void RemoveAllButOneOfEachName();
-
-	void MergeFromOtherHSL(HighScoreList& other, bool is_machine);
-
-	vector<HighScore> vHighScores;
-	Grade HighGrade{ Grade_NoData };
-
-	// Lua
-	void PushSelf(lua_State* L);
-
-  private:
-	int iNumTimesPlayed{ 0 };
-	DateTime dtLastPlayed; // meaningless if iNumTimesPlayed == 0
-};
-
 /** @brief the picture taken of the high score. */
 struct Screenshot
 {
 	/** @brief the filename of the screen shot. There is no directory part. */
-	RString sFileName;
+	std::string sFileName;
 	/** @brief The MD5 hash of the screen shot file above. */
-	RString sMD5;
+	std::string sMD5;
 	/** @brief The actual high score in question. */
 	HighScore highScore;
 

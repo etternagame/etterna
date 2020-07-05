@@ -1,4 +1,4 @@
-﻿/* SoundReader_FileReader - base class for SoundReaders that read from files. */
+/* SoundReader_FileReader - base class for SoundReaders that read from files. */
 
 #ifndef RAGE_SOUND_READER_FILE_READER_H
 #define RAGE_SOUND_READER_FILE_READER_H
@@ -31,25 +31,25 @@ class RageSoundReader_FileReader : public RageSoundReader
 	/* Takes ownership of pFile (even on failure). */
 	virtual OpenResult Open(RageFileBasic* pFile) = 0;
 	float GetStreamToSourceRatio() const override { return 1.0f; }
-	RString GetError() const override { return m_sError; }
+	std::string GetError() const override { return m_sError; }
 
 	/* Open a file.  If pPrebuffer is non-NULL, and the file is sufficiently
 	 * small, the (possibly compressed) data will be loaded entirely into
 	 * memory, and pPrebuffer will be set to true. */
-	static RageSoundReader_FileReader* OpenFile(const RString& filename,
-												RString& error,
+	static RageSoundReader_FileReader* OpenFile(const std::string& filename,
+												std::string& error,
 												bool* pPrebuffer = NULL);
 
   protected:
-	void SetError(const RString& sError) const { m_sError = sError; }
+	void SetError(const std::string& sError) const { m_sError = sError; }
 	HiddenPtr<RageFileBasic> m_pFile;
 
   private:
 	static RageSoundReader_FileReader* TryOpenFile(RageFileBasic* pFile,
-												   RString& error,
-												   const RString& format,
+												   std::string& error,
+												   const std::string& format,
 												   bool& bKeepTrying);
-	mutable RString m_sError;
+	mutable std::string m_sError;
 };
 
 #endif

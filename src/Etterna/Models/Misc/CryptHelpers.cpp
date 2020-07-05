@@ -64,7 +64,7 @@ RSAKeyWrapper::Generate(PRNGWrapper& prng, int iKeyLenBits)
 }
 
 bool
-RSAKeyWrapper::Load(const RString& sKey, RString& sError)
+RSAKeyWrapper::Load(const std::string& sKey, std::string& sError)
 {
 	Unload();
 
