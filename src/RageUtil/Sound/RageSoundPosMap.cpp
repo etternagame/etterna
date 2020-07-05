@@ -114,7 +114,7 @@ pos_map_queue::Insert(int64_t iSourceFrame,
 	m.m_iDestFrame = iDestFrame;
 	m.m_iFrames = iFrames;
 	m.m_fSourceToDestRatio = fSourceToDestRatio;
-	m_pImpl->m_Queue.push_back(pos_map_t());
+	m_pImpl->m_Queue.push_back(m);
 
 	m_pImpl->Cleanup();
 }
