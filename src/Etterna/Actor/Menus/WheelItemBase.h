@@ -2,7 +2,6 @@
 #define WHEEL_ITEM_BASE_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
-#include "Etterna/Actor/Base/AutoActor.h"
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
@@ -71,7 +70,7 @@ class WheelItemBase : public ActorFrame
 		ASSERT(m_pData != NULL);
 		return m_pData->m_Type;
 	}
-	bool IsLoaded() { return m_pData != NULL; }
+	bool IsLoaded() { return m_pData != nullptr; }
 
 	// Lua
 	void PushSelf(lua_State* L) override;

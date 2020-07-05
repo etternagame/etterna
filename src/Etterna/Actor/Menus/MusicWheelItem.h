@@ -58,7 +58,7 @@ class MusicWheelItem : public WheelItemBase
 struct MusicWheelItemData : public WheelItemBaseData
 {
 	MusicWheelItemData()
-	  : m_pSong(NULL)
+	  : m_pSong(nullptr)
 	  , m_sLabel("")
 	  , m_pAction()
 	{
