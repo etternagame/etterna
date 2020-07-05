@@ -1,5 +1,6 @@
 #pragma once
 #include "Etterna/Globals/MinaCalc/CalcWindow.h"
+
 #include <array>
 
 /* Contains generic sequencers passed to metahandinfo to be advanced in the row
@@ -17,7 +18,7 @@
 
 // bpm flux float precision etc
 static const float anchor_spacing_buffer_ms = 10.F;
-static const float anchor_speed_increase_cutoff_factor = 1.9F;
+static const float anchor_speed_increase_cutoff_factor = 2.1F;
 static const int len_cap = 6;
 
 enum anch_status
@@ -146,9 +147,9 @@ struct Anchor_Sequencing
 			return _len_cap_ms;
 		}
 
-		static const auto avg_ms_mult = 1.05F;
-		static const auto anchor_time_buffer_ms = 25.F;
-		static const auto min_ms = 40.F;
+		static const auto avg_ms_mult = 1.075F;
+		static const auto anchor_time_buffer_ms = 20.F;
+		static const auto min_ms = 80.F;
 
 		// get total ms
 		const auto total_ms = ms_from(_last, _start);
@@ -167,8 +168,11 @@ struct Anchor_Sequencing
 		// calculate final adjusted ms average
 		auto ms = adj_total_ms / len;
 
-		if (len == 2)
-			ms *= 2.F;
+		// BAD TEMP HACK LUL
+		if (_len == 2) {
+			ms *= 1.05F;
+			ms = ms < 105.F ? 105.F : ms;
+		}
 
 		ms = ms < min_ms ? min_ms : ms;
 

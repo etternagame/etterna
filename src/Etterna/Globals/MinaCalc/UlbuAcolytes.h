@@ -1,8 +1,8 @@
 #pragma once
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
+
 #include <vector>
 #include <string>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 /* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
 
@@ -12,7 +12,7 @@
  * patterns have lower enps than streams, streams default to 1 and chordstreams
  * start lower, stam is a special case and may use normalizers again */
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.93F, 0.89F, 0.82F, 0.925F, 0.96F, 0.8F, 0.84F
+	0.F, 0.93F, 0.89F, 0.82F, 0.925F, 0.98F, 0.8F, 0.84F
 };
 
 static const std::string calc_params_xml = "Save/calc params.xml";

@@ -461,6 +461,7 @@ Calc::Chisel(float player_skill,
 {
 	auto gotpoints = 0.F;
 	const auto reqpoints = MaxPoints * score_goal;
+	const auto max_slap_dash_jack_cap_hack_tech_hat = MaxPoints * 0.25F;
 	for (auto iter = 1; iter <= 8; iter++) {
 		do {
 			// overall and stamina are calculated differently
@@ -506,8 +507,9 @@ Calc::Chisel(float player_skill,
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
 					if (ss == Skill_Technical) {
-						gotpoints -= fastsqrt(
-						  jackloss(player_skill * 0.651F, *this, hi) * 0.75F);
+						gotpoints -= fastsqrt(min(
+						  max_slap_dash_jack_cap_hack_tech_hat,
+						  jackloss(player_skill * 0.6F, *this, hi) * 0.75F));
 					}
 				}
 			}
@@ -837,7 +839,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 418;
+int mina_calc_version = 419;
 auto
 GetCalcVersion() -> int
 {
