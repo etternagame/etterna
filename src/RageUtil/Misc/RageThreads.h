@@ -8,6 +8,7 @@
 #include <chrono>
 #include <condition_variable>
 #include "Etterna/Singletons/PrefsManager.h"
+#include <functional>
 
 class ThreadData
 {
@@ -148,8 +149,8 @@ class RageThread
 	RageThread(const RageThread& cpy);
 	~RageThread();
 
-	void SetName(const RString& n) { m_sName = n; }
-	RString GetName() const { return m_sName; }
+	void SetName(const std::string& n) { m_sName = n; }
+	std::string GetName() const { return m_sName; }
 	void Create(int (*fn)(void*), void* data);
 
 	void Halt(bool Kill = false);
@@ -183,7 +184,7 @@ class RageThread
 
   private:
 	ThreadSlot* m_pSlot;
-	RString m_sName;
+	std::string m_sName;
 
 	static bool s_bSystemSupportsTLS;
 	static bool s_bIsShowingDialog;
@@ -200,7 +201,7 @@ class RageThread
 class RageThreadRegister
 {
   public:
-	RageThreadRegister(const RString& sName);
+	RageThreadRegister(const std::string& sName);
 	~RageThreadRegister();
 
   private:
@@ -219,7 +220,8 @@ void
 GetLogs(char* pBuf, int iSize, const char* delim);
 };
 
-#define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
+#define CHECKPOINT_M(m)                                                        \
+	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
 
 /* Mutex class that follows the behavior of Windows mutexes: if the same
  * thread locks the same mutex twice, we just increase a refcount; a mutex
@@ -230,19 +232,19 @@ class MutexImpl;
 class RageMutex
 {
   public:
-	RString GetName() const { return m_sName; }
-	void SetName(const RString& s) { m_sName = s; }
+	std::string GetName() const { return m_sName; }
+	void SetName(const std::string& s) { m_sName = s; }
 	virtual void Lock();
 	virtual bool TryLock();
 	virtual void Unlock();
 	virtual bool IsLockedByThisThread() const;
 
-	RageMutex(const RString& name);
+	RageMutex(const std::string& name);
 	virtual ~RageMutex();
 
   protected:
 	MutexImpl* m_pMutex;
-	RString m_sName;
+	std::string m_sName;
 
 	uint64_t m_LockedBy;
 	int m_LockCnt;
@@ -307,7 +309,7 @@ class EventImpl;
 class RageEvent : public RageMutex
 {
   public:
-	RageEvent(const RString& name);
+	RageEvent(const std::string& name);
 	~RageEvent() override;
 
 	/*
@@ -332,10 +334,10 @@ class SemaImpl;
 class RageSemaphore
 {
   public:
-	RageSemaphore(const RString& sName, int iInitialValue = 0);
+	RageSemaphore(const std::string& sName, int iInitialValue = 0);
 	~RageSemaphore();
 
-	RString GetName() const { return m_sName; }
+	std::string GetName() const { return m_sName; }
 	int GetValue() const;
 	void Post();
 	void Wait(bool bFailOnTimeout = true);
@@ -343,7 +345,7 @@ class RageSemaphore
 
   private:
 	SemaImpl* m_pSema;
-	RString m_sName;
+	std::string m_sName;
 
 	// Swallow up warnings. If they must be used, define them.
 	RageSemaphore& operator=(const RageSemaphore& rhs) = delete;

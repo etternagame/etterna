@@ -11,7 +11,7 @@ class RageSoundDriver_WaveOut : public RageSoundDriver
   public:
 	RageSoundDriver_WaveOut();
 	~RageSoundDriver_WaveOut();
-	RString Init();
+	std::string Init();
 
 	int64_t GetPosition() const;
 	float GetPlayLatency() const;

@@ -137,10 +137,8 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
 	vector<pair<int, float>> tp;
 
-	for (auto it = parsedData["TimingPoints"].begin();
-		 it != parsedData["TimingPoints"].end();
-		 ++it) {
-		auto line = it->first;
+	for (auto& it : parsedData["TimingPoints"]) {
+		auto line = it.first;
 		auto values = split(line, ",");
 
 		tp.emplace_back(pair<int, float>(stoi(values[0]), stof(values[1])));
@@ -184,10 +182,10 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 														 // the file (there
 														 // should be)
 	}
-	for (int i = 0; i < (int)bpms.size(); ++i) {
-		int row = MsToNoteRow(bpms[i].first, &out);
+	for (auto& bpm : bpms) {
+		int row = MsToNoteRow(bpm.first, &out);
 		if (row != 0) {
-			out.m_SongTiming.AddSegment(BPMSegment(row, bpms[i].second));
+			out.m_SongTiming.AddSegment(BPMSegment(row, bpm.second));
 		}
 	}
 
@@ -284,10 +282,8 @@ OsuLoader::LoadNoteDataFromParsedData(
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
 	bool useLifts = PREFSMAN->LiftsOnOsuHolds;
-	for (auto it = parsedData["HitObjects"].begin();
-		 it != parsedData["HitObjects"].end();
-		 ++it) {
-		auto line = it->first;
+	for (auto& it : parsedData["HitObjects"]) {
+		auto line = it.first;
 		auto values = split(line, ",");
 		int type = stoi(values[3]);
 		if (type == 128)
@@ -313,27 +309,26 @@ OsuLoader::LoadNoteDataFromParsedData(
 		firstTap = holds[0].msStart;
 	}
 
-	for (int i = 0; i < (int)taps.size(); ++i) {
+	for (auto& tap : taps) {
 		newNoteData.SetTapNote(
-		  taps[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-		  MsToNoteRow(taps[i].ms - firstTap, out->m_pSong),
+		  tap.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  MsToNoteRow(tap.ms - firstTap, out->m_pSong),
 		  TAP_ORIGINAL_TAP);
 	}
-	for (int i = 0; i < (int)holds.size(); ++i) {
-		int start = MsToNoteRow(holds[i].msStart - firstTap, out->m_pSong);
-		int end = MsToNoteRow(holds[i].msEnd - firstTap, out->m_pSong);
+	for (auto& hold : holds) {
+		int start = MsToNoteRow(hold.msStart - firstTap, out->m_pSong);
+		int end = MsToNoteRow(hold.msEnd - firstTap, out->m_pSong);
 		if (end - start > 0 && useLifts) {
 			end = end - 1;
 		}
 		newNoteData.AddHoldNote(
-		  holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  hold.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
 		  start,
 		  end,
 		  TAP_ORIGINAL_HOLD_HEAD);
 		if (useLifts)
 			newNoteData.SetTapNote(
-			  holds[i].lane /
-				(512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+			  hold.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
 			  end + 1,
 			  TAP_ORIGINAL_LIFT);
 	}
@@ -354,7 +349,7 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 		return false;
 	}
 
-	RString fileRStr;
+	std::string fileRStr;
 	fileRStr.reserve(f.GetFileSize());
 	f.Read(fileRStr, -1);
 
@@ -371,7 +366,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
-	// const RString sPath = sPath_ + aFileNames[0];
+	// const std::string sPath = sPath_ + aFileNames[0];
 
 	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
@@ -384,7 +379,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		if (!f.Open(p)) {
 			continue;
 		}
-		RString fileContents;
+		std::string fileContents;
 		f.Read(fileContents, -1);
 		parsedData = ParseFileString(fileContents.c_str());
 		if (parsedData.size() == 0) {

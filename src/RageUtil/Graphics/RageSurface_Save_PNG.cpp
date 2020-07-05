@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSurface.h"
@@ -11,7 +11,7 @@
 // Note: This function is only called on RageDisplay.cpp:978 and the sError
 // result is not used in the response.
 bool
-RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, RString& sError)
+RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, std::string& sError)
 {
 	// Functions from "stb_image_write.h" return 0 on failure
 	f.Close(); // The RageFile reference is already opened. Should be closed for
@@ -33,8 +33,9 @@ RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, RString& sError)
 
 	// stride_in_bytes is image width in bytes
 	bool success =
-	  0 != stbi_write_png(
-			 f.GetRealPath(), res->w, res->h, 4, res->pixels, res->w * 4);
+	  0 !=
+	  stbi_write_png(
+		f.GetRealPath().c_str(), res->w, res->h, 4, res->pixels, res->w * 4);
 	if (converted)
 		delete res; // If we converted then we created a new surface which we
 					// need to delete

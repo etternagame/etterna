@@ -16,7 +16,7 @@ TextBanner::LoadFromNode(const XNode* pNode)
 }
 
 void
-TextBanner::Load(const RString& sMetricsGroup)
+TextBanner::Load(const std::string& sMetricsGroup)
 {
 	m_bInitted = true;
 

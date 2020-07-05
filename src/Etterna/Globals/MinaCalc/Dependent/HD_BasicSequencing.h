@@ -38,7 +38,7 @@ static const std::array<col_type, num_cols_per_hand> ct_loop_no_jumps = {
 static inline auto
 determine_col_type(const unsigned& notes, const unsigned& hand_id) -> col_type
 {
-	unsigned shirt = notes & hand_id;
+	const unsigned shirt = notes & hand_id;
 	if (shirt == 0) {
 		return col_empty;
 	}
@@ -102,7 +102,7 @@ determine_base_pattern_type(const col_type& now, const col_type& last)
 		return base_type_init;
 	}
 
-	bool single_tap = now == col_left || now == col_right;
+	const bool single_tap = now == col_left || now == col_right;
 	if (last == col_ohjump) {
 		if (single_tap) {
 			return base_jump_single;

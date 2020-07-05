@@ -69,8 +69,8 @@ class NoteField : public ActorFrame
 	vector<NoteColumnRenderer> m_ColumnRenderers;
 
   protected:
-	void CacheNoteSkin(const RString& sNoteSkin, PlayerNumber pn);
-	void UncacheNoteSkin(const RString& sNoteSkin);
+	void CacheNoteSkin(const std::string& sNoteSkin, PlayerNumber pn);
+	void UncacheNoteSkin(const std::string& sNoteSkin);
 
 	void DrawBoard(int iDrawDistanceAfterTargetsPixels,
 				   int iDrawDistanceBeforeTargetsPixels);
@@ -126,7 +126,7 @@ class NoteField : public ActorFrame
 	NoteFieldRenderArgs m_FieldRenderArgs;
 
 	/* All loaded note displays, mapped by their name. */
-	map<RString, NoteDisplayCols*> m_NoteDisplays;
+	map<std::string, NoteDisplayCols*> m_NoteDisplays;
 	NoteDisplayCols* m_pCurDisplay;
 	NoteDisplayCols* m_pDisplays[NUM_PlayerNumber];
 

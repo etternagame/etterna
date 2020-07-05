@@ -34,7 +34,7 @@ class PlayerStageStats
 	static Grade GetGrade(float p);
 	Grade GetGrade() const;
 	static float MakePercentScore(int iActual, int iPossible);
-	static RString FormatPercentScore(float fPercentScore);
+	static std::string FormatPercentScore(float fPercentScore);
 	// Calculate the difficulty rating for a specific score obtained by a player
 	// - Mina
 	Grade GetWifeGrade();
@@ -135,7 +135,7 @@ class PlayerStageStats
 	bool luascriptwasloaded;
 	bool filehadnegbpms; // the call after gameplay is over is apparently
 						 // unreliable -mina
-	bool filegotmines;   // this needs to be set before any notedata transforms
+	bool filegotmines;	 // this needs to be set before any notedata transforms
 	bool filegotholds;
 	bool gaveuplikeadumbass; // flag 'giving up' status so i can flag it as
 							 // failing so i dont have to remove the feature

@@ -1,14 +1,22 @@
-#include "Etterna/Globals/global.h"
 #include "Font.h"
 #include "FontCharAliases.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <map>
 
+struct StdStringLessNoCase
+{
+	inline bool operator()(const std::string& sLeft,
+						   const std::string& sRight) const
+	{
+		return ssicmp(sLeft.c_str(), sRight.c_str()) < 0;
+	}
+};
+
 // Map from "&foo;" to a UTF-8 string.
-typedef map<std::string, wchar_t, StdString::StdStringLessNoCase> aliasmap;
+typedef std::map<std::string, wchar_t, StdStringLessNoCase> aliasmap;
 static aliasmap CharAliases;
-static map<std::string, std::string> CharAliasRepl;
+static std::map<std::string, std::string> CharAliasRepl;
 
 /* Editing this file in VC6 will be rather ugly, since it contains a lot of
  * UTF-8. Just don't change anything you can't read. :) */
@@ -350,7 +358,7 @@ InitCharAliases()
 		{ "auxrt", INTERNAL },
 		{ "auxback", INTERNAL },
 
-		{ NULL, 0 }
+		{ nullptr, 0 }
 	};
 
 	int iNextInternalUseCodepoint = 0xE000;
@@ -365,9 +373,8 @@ InitCharAliases()
 	for (aliasmap::const_iterator i = CharAliases.begin();
 		 i != CharAliases.end();
 		 ++i) {
-		RString from = i->first;
-		RString to = WcharToUTF8(i->second);
-		from.MakeLower();
+		std::string from = make_lower(i->first);
+		std::string to = WcharToUTF8(i->second);
 		CharAliasRepl[from] = to;
 	}
 }
@@ -383,7 +390,7 @@ FontCharAliases::ReplaceMarkers(std::string& sText)
 
 // Replace all &markers; and &#NNNN;s with UTF-8.
 bool
-FontCharAliases::GetChar(RString& codepoint, wchar_t& ch)
+FontCharAliases::GetChar(std::string& codepoint, wchar_t& ch)
 {
 	InitCharAliases();
 	aliasmap::const_iterator i = CharAliases.find(codepoint);

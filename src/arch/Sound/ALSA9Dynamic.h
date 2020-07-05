@@ -43,7 +43,7 @@
 		memset(*ptr, 0, dsnd_pcm_status_sizeof());                             \
 	} while (0)
 
-RString
+std::string
 LoadALSA();
 void
 UnloadALSA();

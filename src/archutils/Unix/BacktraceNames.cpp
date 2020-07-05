@@ -47,7 +47,7 @@ BacktraceNames::Demangle()
 		return;
 
 	int status = 0;
-	char* name = abi::__cxa_demangle(Symbol, NULL, NULL, &status);
+	char* name = abi::__cxa_demangle(Symbol.c_str(), NULL, NULL, &status);
 	if (name) {
 		Symbol = name;
 		free(name);
@@ -76,19 +76,19 @@ BacktraceNames::Demangle()
 }
 #endif
 
-RString
+std::string
 BacktraceNames::Format() const
 {
-	RString ShortenedPath = File;
+	std::string ShortenedPath = File;
 	if (ShortenedPath != "") {
 		/* Abbreviate the module name. */
 		size_t slash = ShortenedPath.rfind('/');
 		if (slash != ShortenedPath.npos)
 			ShortenedPath = ShortenedPath.substr(slash + 1);
-		ShortenedPath = RString("(") + ShortenedPath + ")";
+		ShortenedPath = std::string("(") + ShortenedPath + ")";
 	}
 
-	RString ret = ssprintf("%0*lx: ", int(sizeof(void*) * 2), (long)Address);
+	std::string ret = ssprintf("%0*lx: ", int(sizeof(void*) * 2), (long)Address);
 	if (Symbol != "")
 		ret += Symbol + " ";
 	ret += ShortenedPath;
@@ -315,10 +315,10 @@ BacktraceNames::FromAddr(void* const p)
 
 /* "path(mangled name+offset) [address]" */
 void
-BacktraceNames::FromString(RString s)
+BacktraceNames::FromString(std::string s)
 {
 	/* Hacky parser.  I don't want to use regexes in the crash handler. */
-	RString MangledAndOffset, sAddress;
+	std::string MangledAndOffset, sAddress;
 	unsigned pos = 0;
 	while (pos < s.size() && s[pos] != '(' && s[pos] != '[')
 		File += s[pos++];
@@ -338,7 +338,7 @@ BacktraceNames::FromString(RString s)
 			Offset = 0;
 		} else {
 			Symbol = MangledAndOffset.substr(0, plus);
-			RString str = MangledAndOffset.substr(plus);
+			std::string str = MangledAndOffset.substr(plus);
 			if (sscanf(str, "%i", &Offset) != 1)
 				Offset = 0;
 		}

@@ -813,10 +813,10 @@ class Actor : public MessageSubscriber
 
 		ITween* m_pTween;
 		/** @brief How far into the tween are we? */
-		float m_fTimeLeftInTween;
+		float m_fTimeLeftInTween{};
 		/** @brief The number of seconds between Start and End positions/zooms.
 		 */
-		float m_fTweenTime;
+		float m_fTweenTime{};
 		/** @brief The command to execute when this TweenState goes into effect.
 		 */
 		std::string m_sCommandName;
@@ -824,7 +824,7 @@ class Actor : public MessageSubscriber
 
 	RageVector3 m_baseRotation;
 	RageVector3 m_baseScale;
-	float m_fBaseAlpha;
+	float m_fBaseAlpha{};
 	RageColor m_internalDiffuse;
 	RageColor m_internalGlow;
 
@@ -839,17 +839,17 @@ class Actor : public MessageSubscriber
 	vector<TweenStateAndInfo*> m_Tweens;
 
 	/** @brief Temporary variables that are filled just before drawing */
-	TweenState* m_pTempState;
+	TweenState* m_pTempState{};
 
 	// Stuff for alignment
 	/** @brief The particular horizontal alignment.
 	 *
 	 * Use the defined constant values for best effect. */
-	float m_fHorizAlign;
+	float m_fHorizAlign{};
 	/** @brief The particular vertical alignment.
 	 *
 	 * Use the defined constant values for best effect. */
-	float m_fVertAlign;
+	float m_fVertAlign{};
 
 	// Stuff for effects
 #if defined(SSC_FUTURES) // be able to stack effects
@@ -857,20 +857,20 @@ class Actor : public MessageSubscriber
 #else // compatibility
 	Effect m_Effect;
 #endif
-	float m_fSecsIntoEffect;
-	float m_fEffectDelta;
+	float m_fSecsIntoEffect{};
+	float m_fEffectDelta{};
 
 	// units depend on m_EffectClock
-	float m_effect_ramp_to_half;
-	float m_effect_hold_at_half;
-	float m_effect_ramp_to_full;
-	float m_effect_hold_at_full;
-	float m_effect_hold_at_zero;
-	float m_fEffectOffset;
+	float m_effect_ramp_to_half{};
+	float m_effect_hold_at_half{};
+	float m_effect_ramp_to_full{};
+	float m_effect_hold_at_full{};
+	float m_effect_hold_at_zero{};
+	float m_fEffectOffset{};
 	// Anything changing ramp_up, hold_at_half, ramp_down, or hold_at_zero must
 	// also update the period so the period is only calculated when changed.
 	// -Kyz
-	float m_effect_period;
+	float m_effect_period{};
 	EffectClock m_EffectClock;
 	bool m_tween_uses_effect_delta;
 
@@ -884,30 +884,30 @@ class Actor : public MessageSubscriber
 	RageVector3 m_vEffectMagnitude;
 
 	// other properties
-	bool m_bVisible;
-	bool m_bIsAnimating;
-	float m_fShadowLengthX;
-	float m_fShadowLengthY;
+	bool m_bVisible{};
+	bool m_bIsAnimating{};
+	float m_fShadowLengthX{};
+	float m_fShadowLengthY{};
 	RageColor m_ShadowColor;
 	/** @brief The draw order priority.
 	 *
 	 * The lower this number is, the sooner it is drawn. */
-	int m_iDrawOrder;
+	int m_iDrawOrder{};
 
 	// render states
 	BlendMode m_BlendMode;
 	ZTestMode m_ZTestMode;
 	CullMode m_CullMode;
 	RageVector2 m_texTranslate;
-	bool m_bTextureWrapping;
-	bool m_bTextureFiltering;
-	bool m_bClearZBuffer;
-	bool m_bZWrite;
+	bool m_bTextureWrapping{};
+	bool m_bTextureFiltering{};
+	bool m_bClearZBuffer{};
+	bool m_bZWrite{};
 	/**
 	 * @brief The amount of bias.
 	 *
 	 * If 0, there is no bias. If 1, there is a full bias. */
-	float m_fZBias;
+	float m_fZBias{};
 
 	// global state
 	static float g_fCurrentBGMTime, g_fCurrentBGMBeat;

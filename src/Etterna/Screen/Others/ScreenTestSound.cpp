@@ -76,11 +76,11 @@ ScreenTestSound::~ScreenTestSound()
 void
 ScreenTestSound::UpdateText(int n)
 {
-	RString fn = Basename(s[n].s.GetLoadedFilePath());
+	std::string fn = Basename(s[n].s.GetLoadedFilePath());
 
 	vector<RageSound*>& snds = m_sSoundCopies[n];
 
-	RString pos;
+	std::string pos;
 	for (unsigned p = 0; p < snds.size(); ++p) {
 		if (p)
 			pos += ", ";

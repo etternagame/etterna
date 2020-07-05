@@ -1,11 +1,12 @@
 #include "Etterna/Globals/global.h"
 #include "FontCharmaps.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include <map>
 
 const wchar_t FontCharmaps::M_SKIP = 0xFEFF;
 
-static map<RString, const wchar_t*> charmaps;
+static map<std::string, const wchar_t*> charmaps;
 
 using namespace FontCharmaps;
 
@@ -180,13 +181,13 @@ static const wchar_t map_iso_8859_2[] = {
 だちぢっつづてでとどなにぬねのは
 ばぱひびぴふぶぷへべぺほぼぽまみ
 むめもゃやゅゆょよらりるれろゎわ
-ゐゑをんゔ　　　　　　゛゜ゝゞ　
-　ァアィイゥウェエォオカガキギク
+ゐゑをんゔ　　　　　　゛゜ゝゞ
+ ァアィイゥウェエォオカガキギク
 グケゲコゴサザシジスズセゼソゾタ
 ダチヂッツヅテデトドナニヌネノハ
 バパヒビピフブプヘベペホボポマミ
 ムメモャヤュユョヨラリルレロヮワ
-ヰヱヲンヴヵヶヷヸヹヺ・ーヽヾ　
+ヰヱヲンヴヵヶヷヸヹヺ・ーヽヾ
 
  */
 static const wchar_t map_basic_japanese[] = {
@@ -276,15 +277,15 @@ Init()
 }
 
 const wchar_t*
-FontCharmaps::get_char_map(RString name)
+FontCharmaps::get_char_map(std::string name)
 {
 	Init();
 
-	name.MakeLower();
+	name = make_lower(name);
 
-	map<RString, const wchar_t*>::const_iterator i = charmaps.find(name);
+	map<std::string, const wchar_t*>::const_iterator i = charmaps.find(name);
 	if (i == charmaps.end())
-		return NULL;
+		return nullptr;
 
 	return i->second;
 }

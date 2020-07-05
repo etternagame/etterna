@@ -1,4 +1,4 @@
-﻿/* ModelTypes - Types defined in msLib.h.  C arrays converted to use std::vector
+/* ModelTypes - Types defined in msLib.h.  C arrays converted to use std::vector
  */
 
 #ifndef MODEL_TYPES_H
@@ -13,7 +13,7 @@ struct msTriangle
 
 struct msMesh
 {
-	RString sName;
+	std::string sName;
 	char nMaterialIndex;
 
 	vector<RageModelVertex> Vertices;
@@ -36,7 +36,7 @@ class AnimatedTexture
 	~AnimatedTexture();
 
 	void LoadBlank();
-	void Load(const RString& sTexOrIniFile);
+	void Load(const std::string& sTexOrIniFile);
 	void Unload();
 	void Update(float fDelta);
 
@@ -81,7 +81,7 @@ class AnimatedTexture
 struct msMaterial
 {
 	int nFlags;
-	RString sName;
+	std::string sName;
 	RageColor Ambient;
 	RageColor Diffuse;
 	RageColor Specular;
@@ -113,8 +113,8 @@ struct msRotationKey
 struct msBone
 {
 	int nFlags;
-	RString sName;
-	RString sParentName;
+	std::string sName;
+	std::string sParentName;
 	RageVector3 Position;
 	RageVector3 Rotation;
 
@@ -124,7 +124,7 @@ struct msBone
 
 struct msAnimation
 {
-	int FindBoneByName(const RString& sName) const
+	int FindBoneByName(const std::string& sName) const
 	{
 		for (unsigned i = 0; i < Bones.size(); i++)
 			if (Bones[i].sName == sName)
@@ -132,7 +132,8 @@ struct msAnimation
 		return -1;
 	}
 
-	bool LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath);
+	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
+								 std::string sPath);
 
 	vector<msBone> Bones;
 	int nTotalFrames;

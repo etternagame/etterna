@@ -247,7 +247,7 @@ ScreenNetSelectBase::Scroll(unsigned int movescroll)
 	return;
 }
 
-RString
+std::string
 ScreenNetSelectBase::GetPreviousMsg()
 {
 	m_sTextLastestInputsIndex += 1;
@@ -262,7 +262,7 @@ ScreenNetSelectBase::GetPreviousMsg()
 									m_sTextLastestInputsIndex];
 }
 
-RString
+std::string
 ScreenNetSelectBase::GetNextMsg()
 {
 	m_sTextLastestInputsIndex -= 1;
@@ -286,7 +286,7 @@ ScreenNetSelectBase::ShowNextMsg()
 	return;
 }
 void
-ScreenNetSelectBase::SetInputText(RString text)
+ScreenNetSelectBase::SetInputText(std::string text)
 {
 	m_sTextInput = text;
 	UpdateTextInput();
@@ -350,7 +350,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 			return 0;
 		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() &&
 			IArg(1) >= 1)
-			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
+			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText().c_str());
 		else
 			lua_pushstring(L, "");
 		return 1;

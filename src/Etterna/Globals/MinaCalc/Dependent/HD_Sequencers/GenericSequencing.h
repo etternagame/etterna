@@ -1,9 +1,7 @@
 #pragma once
-#include "Etterna/Globals/MinaCalc/Dependent/HD_MetaSequencing.h"
 #include "Etterna/Globals/MinaCalc/CalcWindow.h"
 
 #include <array>
-#include <initializer_list>
 
 /* Contains generic sequencers passed to metahandinfo to be advanced in the row
  * loop */
@@ -20,7 +18,7 @@
 
 // bpm flux float precision etc
 static const float anchor_spacing_buffer_ms = 10.F;
-static const float anchor_speed_increase_cutoff_factor = 1.9F;
+static const float anchor_speed_increase_cutoff_factor = 2.1F;
 static const int len_cap = 6;
 
 enum anch_status
@@ -35,11 +33,11 @@ enum anch_status
 };
 
 // individual anchors, 2 objects per hand on 4k
-// if you are struggling with the notion that a 300 bpm oht is considered 2
-// anchors of roughly equivalent lengths (depending on where you sample) and
-// equivalent times, the difference between an anchor and a jack is that one
-// cares about the existence of notes on other columns while the other doesn't,
-// as in, it would make far less sense to call them jacks
+/* if you are struggling with the notion that a 300 bpm oht is considered 2
+ * anchors of roughly equivalent lengths (depending on where you sample) and
+ * equivalent times, the difference between an anchor and a jack is that one
+ * cares about the existence of notes on other columns while the other doesn't,
+ * as in, it would make far less sense to call them jacks */
 struct Anchor_Sequencing
 {
 	// what column this anchor is on (will be set on startup by the sequencer)
@@ -68,23 +66,25 @@ struct Anchor_Sequencing
 
 	// rather than a buffer cap maybe a len cap will be more scalable, track the
 	// difficulty at the cap and when queried beyond it, just return this value
-	float _len_cap_diff = ms_init;
+	float _len_cap_ms = ms_init;
 
 	// row_time of last note on this col
 	float _last = s_init;
 	float _start = s_init;
 
-	inline void full_reset()
+	void full_reset()
 	{
 		// never reset col_type
 		_sc_ms = ms_init;
 		_max_ms = ms_init;
 		_last = s_init;
+		_start = s_init;
 		_len = 1;
 		_status = anch_init;
+		_len_cap_ms = ms_init;
 	}
 
-	inline void operator()(const col_type ct, const float& now)
+	void operator()(const col_type ct, const float& now)
 	{
 		assert(ct == _ct);
 		_sc_ms = ms_from(now, _last);
@@ -94,10 +94,10 @@ struct Anchor_Sequencing
 			return;
 		}
 
-		// break the anchor if the next note is too much slower than the
-		// lowest one in the sequence, remember, if we reset the start of the
-		// new anchor was the last row_time, and the new max_ms should be the
-		// current ms value
+		/* break the anchor if the next note is too much slower than the lowest
+		 * one in the sequence, remember, if we reset the start of the new
+		 * anchor was the last row_time, and the new max_ms should be the
+		 * current ms value */
 
 		if (_sc_ms > _max_ms + anchor_spacing_buffer_ms) {
 			_status = reset_too_slow;
@@ -110,18 +110,16 @@ struct Anchor_Sequencing
 		switch (_status) {
 			case reset_too_slow:
 			case reset_too_fast:
-				//  i don't like hard cutoffs much but in the interest of
-				//  fairness
-				//  if the current ms value is vastly lower than the _max_ms,
-				//  set the start time of the anchor to now and reset, i can't
-				//  really think of any way this can be abused in a way that
-				//  inflates files, just lots of ways it can underdetect
 
-				// we're resetting because we've started on something much
-				// faster or slower, so we know the start of this anchor was
-				// actually the, last note, directly reset _max_ms to the
-				// current ms and len to 2
-
+				/* i don't like hard cutoffs much but in the interest of
+				 * fairness if the current ms value is vastly lower than the
+				 * _max_ms, set the start time of the anchor to now and reset, i
+				 * can't really think of any way this can be abused in a way
+				 * that inflates files, just lots of ways it can underdetect;
+				 * we're resetting because we've started on something much
+				 * faster or slower, so we know the start of this anchor was
+				 * actually the, last note, directly reset _max_ms to the
+				 * current ms and len to 2 */
 				_start = _last;
 				_len = 2;
 				break;
@@ -138,26 +136,51 @@ struct Anchor_Sequencing
 		_last = now;
 	}
 
-	// returns an adjusted MS value, not converted to nps
-	inline auto get_ms() -> float
+	// returns an adjusted MS average value, not converted to nps
+	auto get_ms() -> float
 	{
 		assert(_sc_ms > 0.F);
 
-		float anchor_time_buffer_ms = 67.5F;
-
+		/* return whatever the last calculated value was after this point, this
+		 * way we don't let longjacks completely take over */
 		if (_len > len_cap) {
-			return _len_cap_diff;
+			return _len_cap_ms;
 		}
 
-		float flool = ms_from(_last, _start);
-		float pule =
-		  (flool + anchor_time_buffer_ms) / static_cast<float>(_len - 1);
+		static const auto avg_ms_mult = 1.075F;
+		static const auto anchor_time_buffer_ms = 20.F;
+		static const auto min_ms = 80.F;
+
+		// get total ms
+		const auto total_ms = ms_from(_last, _start);
+
+		// get len (len of 2 (notes) means 1 jack, 3 = 2, etc
+		const auto len = static_cast<float>(_len - 1);
+
+		// get average ms for the jack sequence
+		const auto avg_ms = total_ms / len;
+
+		/* adjust total ms by adding flat and scaled buffers, this depresses
+		 * shorter jacks more */
+		const auto adj_total_ms =
+		  total_ms + anchor_time_buffer_ms + avg_ms * avg_ms_mult;
+
+		// calculate final adjusted ms average
+		auto ms = adj_total_ms / len;
+
+		// BAD TEMP HACK LUL
+		if (_len == 2) {
+			ms *= 1.05F;
+			ms = ms < 105.F ? 105.F : ms;
+		}
+
+		ms = ms < min_ms ? min_ms : ms;
 
 		if (_len == len_cap) {
-			_len_cap_diff = pule;
+			_len_cap_ms = ms;
 		}
 
-		return pule;
+		return ms;
 	}
 };
 
@@ -178,18 +201,18 @@ struct AnchorSequencer
 		full_reset();
 	}
 
-	inline void full_reset()
+	void full_reset()
 	{
 		max_seen.fill(0);
 
-		for (auto& c : ct_loop_no_jumps) {
+		for (const auto& c : ct_loop_no_jumps) {
 			anch.at(c).full_reset();
 			_mw_max.at(c).zero();
 		}
 	}
 
 	// derives sc_ms, which sequencer general will pull for its moving window
-	inline void operator()(const col_type ct, const float& row_time)
+	void operator()(const col_type ct, const float& row_time)
 	{
 		// update the one
 		if (ct == col_left || ct == col_right) {
@@ -202,7 +225,7 @@ struct AnchorSequencer
 		} else if (ct == col_ohjump) {
 
 			// update both
-			for (auto& c : ct_loop_no_jumps) {
+			for (const auto& c : ct_loop_no_jumps) {
 				anch.at(c)(c, row_time);
 
 				// set max seen
@@ -214,23 +237,23 @@ struct AnchorSequencer
 	}
 
 	// returns max anchor length seen for the requested window
-	[[nodiscard]] inline auto get_max_for_window_and_col(
-	  const col_type& ct,
-	  const int& window) const -> int
+	[[nodiscard]] auto get_max_for_window_and_col(const col_type& ct,
+												  const int& window) const
+	  -> int
 	{
 		assert(ct < num_cols_per_hand);
 		return _mw_max.at(ct).get_max_for_window(window);
 	}
 
-	inline void interval_end()
+	void interval_end()
 	{
-		for (auto& c : ct_loop_no_jumps) {
+		for (const auto& c : ct_loop_no_jumps) {
 			_mw_max.at(c)(max_seen.at(c));
 			max_seen.at(c) = 0;
 		}
 	}
 
-	inline auto get_lowest_anchor_ms() -> float
+	auto get_lowest_anchor_ms() -> float
 	{
 		return min(anch.at(col_left).get_ms(), anch.at(col_right).get_ms());
 	}
@@ -239,15 +262,13 @@ struct AnchorSequencer
 /* keep timing stuff here instead of in mhi, use mhi exclusively for pattern
  * detection */
 
-// every note has at least 2 ms values associated with it, the
-// ms value from the last cross column note (on the same hand),
-// and the ms value from the last note on it's/this column both
-// are useful for different things, and we want to track both.
-// for ohjumps, we will track the ms from the last non-jump on
-// either finger, there are situations where we may want to
-// consider jumps as having a cross column ms value of 0 with
-// itself, not sure if they should be set to this or left at the
-// init values of 5000 though
+/* every note has at least 2 ms values associated with it, the ms value from
+ * the last cross column note (on the same hand), and the ms value from the last
+ * note on it's/this column both are useful for different things, and we want to
+ * track both for ohjumps, we will track the ms from the last non-jump on either
+ * finger, there are situations where we may want to consider jumps as having a
+ * cross column ms value of 0 with itself, not sure if they should be set to
+ * this or left at the init values of 5000 though */
 
 // more stuff could/should be moved here? the only major issue with moving _all_
 // sequencers here is loading/setting their params
@@ -273,7 +294,7 @@ struct SequencerGeneral
 	// sc_ms is the time from the current note to the last note in the same
 	// column, we've already updated the anchor sequencer and it will already
 	// contain that value in _sc_ms
-	inline void set_sc_ms(const col_type& ct)
+	void set_sc_ms(const col_type& ct)
 	{
 		// single notes are simple
 		if (ct == col_left || ct == col_right) {
@@ -284,7 +305,7 @@ struct SequencerGeneral
 		// oh jumps mean we do both, we will allow whatever is querying for the
 		// value to choose which column value they want (lower by default)
 		if (ct == col_ohjump) {
-			for (auto& c : ct_loop_no_jumps) {
+			for (const auto& c : ct_loop_no_jumps) {
 				_mw_sc_ms.at(c)(_as.anch.at(c)._sc_ms);
 			}
 		}
@@ -294,32 +315,32 @@ struct SequencerGeneral
 	// column, for this we need to take the last row_time on the cross column,
 	// (anchor sequencer has it as _last) and derive a new ms value from it and
 	// the current row_time
-	inline void set_cc_ms(const col_type& ct, const float& row_time)
+	void set_cc_ms(const col_type& ct, const float& row_time)
 	{
 		// single notes are simple, grab the _last of ct inverted
 		if (ct == col_left || ct == col_right) {
 			_mw_cc_ms(ms_from(row_time, _as.anch.at(invert_col(ct))._last));
 		}
 
-		// jumps are tricky, tehcnically we have 2 cc_ms values, but also
-		// technically values are simply the sc_ms values we already calculated,
-		// but inverted, given that the goal however is to provide general
-		// values that various pattern mods can use such that they don't have to
-		// all track their own custom sequences, we should place the lower sc_ms
-		// value in here, since that's the most common use case, if something
-		// needs to specifically handle ohjumps differently, it can do so
-		// we do actually need to set this value so the calcwindow internal cv
-		// checks will work, we can't just shortcut and make a get function
-		// which swaps where it returns from
+		/* jumps are tricky, technically we have 2 cc_ms values, but also
+		 * technically values are simply the sc_ms values we already calculated,
+		 * but inverted, given that the goal however is to provide general
+		 * values that various pattern mods can use such that they don't have to
+		 * all track their own custom sequences, we should place the lower sc_ms
+		 * value in here, since that's the most common use case, if something
+		 * needs to specifically handle ohjumps differently, it can do so we do
+		 * actually need to set this value so the calcwindow internal cv checks
+		 * will work, we can't just shortcut and make a get function which swaps
+		 * where it returns from */
 		if (ct == col_ohjump) {
 			_mw_cc_ms(get_sc_ms_now(col_ohjump));
 		}
 	}
 
 	// stuff
-	inline void advance_sequencing(const col_type& ct,
-								   const float& row_time,
-								   const float& ms_now)
+	void advance_sequencing(const col_type& ct,
+							const float& row_time,
+							const float& ms_now)
 	{ // update sequencers
 		_as(ct, row_time);
 
@@ -332,8 +353,8 @@ struct SequencerGeneral
 		_mw_any_ms(ms_now);
 	}
 
-	[[nodiscard]] inline auto get_sc_ms_now(const col_type& ct,
-											bool lower = true) const -> float
+	[[nodiscard]] auto get_sc_ms_now(const col_type& ct,
+									 const bool lower = true) const -> float
 	{
 		if (ct == col_init) {
 
@@ -362,23 +383,23 @@ struct SequencerGeneral
 		return _mw_sc_ms.at(ct).get_now();
 	}
 
-	[[nodiscard]] inline auto get_any_ms_now() const -> float
+	[[nodiscard]] auto get_any_ms_now() const -> float
 	{
 		return _mw_any_ms.get_now();
 	}
-	[[nodiscard]] inline auto get_cc_ms_now() const -> float
+	[[nodiscard]] auto get_cc_ms_now() const -> float
 	{
 		return _mw_cc_ms.get_now();
 	}
 
-	inline void interval_end() { _as.interval_end(); }
+	void interval_end() { _as.interval_end(); }
 
-	inline void full_reset()
+	void full_reset()
 	{
 		_mw_any_ms.fill(ms_init);
 		_mw_cc_ms.fill(ms_init);
 
-		for (auto& c : ct_loop_no_jumps) {
+		for (const auto& c : ct_loop_no_jumps) {
 			_mw_sc_ms.at(c).fill(ms_init);
 		}
 

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
@@ -8,7 +8,7 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
-RString
+std::string
 WARNING_COMMAND_NAME(size_t i)
 {
 	return ssprintf("Warning%dCommand", static_cast<int>(i));
@@ -22,7 +22,7 @@ MenuTimer::MenuTimer()
 	m_fStallSecondsLeft = 0;
 	m_bPaused = false;
 	m_bSilent = false;
-	WARNING_COMMAND = NULL;
+	WARNING_COMMAND = nullptr;
 }
 
 MenuTimer::~MenuTimer()
@@ -31,7 +31,7 @@ MenuTimer::~MenuTimer()
 }
 
 void
-MenuTimer::Load(const RString& sMetricsGroup)
+MenuTimer::Load(const std::string& sMetricsGroup)
 {
 	m_sprFrame.Load(THEME->GetPathG(sMetricsGroup, "Frame"));
 	m_sprFrame->SetName("Frame");
@@ -195,11 +195,11 @@ MenuTimer::SetText(float fSeconds)
 		LuaHelpers::Push(L, fSeconds);
 
 		// call function with 1 argument and 1 result
-		RString Error = "Error running Text " + to_string(i + 1);
+		std::string Error = "Error running Text " + to_string(i + 1);
 		Error += "FormatFunction: ";
 		LuaHelpers::RunScriptOnStack(L, Error, 1, 1, true);
 
-		RString sText;
+		std::string sText;
 		LuaHelpers::Pop(L, sText);
 
 		m_text[i].SetText(sText);

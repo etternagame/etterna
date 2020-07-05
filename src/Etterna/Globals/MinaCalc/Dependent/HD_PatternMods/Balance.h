@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <array>
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
@@ -29,9 +28,9 @@ struct BalanceMod
 
 	float pmod = neutral;
 
-	inline void full_reset() { pmod = neutral; }
+	void full_reset() { pmod = neutral; }
 
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		// nothing here
 		if (itvhi.get_taps_nowi() == 0) {

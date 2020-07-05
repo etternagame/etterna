@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "InputMapper.h"
@@ -71,7 +71,7 @@ InputQueueCode::EnteredCode(GameController controller) const
 {
 	if (controller == GameController_Invalid)
 		return false;
-	if (m_aPresses.size() == 0)
+	if (m_aPresses.empty())
 		return false;
 
 	// iterate newest to oldest
@@ -133,14 +133,14 @@ InputQueueCode::EnteredCode(GameController controller) const
 			// Check that m_aButtonsToHold were being held when the buttons were
 			// pressed.
 			bool bAllHeldButtonsOK = true;
-			for (unsigned i = 0; i < Press.m_aButtonsToHold.size(); i++) {
-				GameInput gi(controller, Press.m_aButtonsToHold[i]);
+			for (auto i : Press.m_aButtonsToHold) {
+				GameInput gi(controller, i);
 				if (!INPUTMAPPER->IsBeingPressed(
 					  gi, MultiPlayer_Invalid, &pIEP->InputList))
 					bAllHeldButtonsOK = false;
 			}
-			for (unsigned i = 0; i < Press.m_aButtonsToNotHold.size(); i++) {
-				GameInput gi(controller, Press.m_aButtonsToNotHold[i]);
+			for (auto i : Press.m_aButtonsToNotHold) {
+				GameInput gi(controller, i);
 				if (INPUTMAPPER->IsBeingPressed(
 					  gi, MultiPlayer_Invalid, &pIEP->InputList))
 					bAllHeldButtonsOK = false;
@@ -177,45 +177,41 @@ InputQueueCode::EnteredCode(GameController controller) const
 }
 
 bool
-InputQueueCode::Load(RString sButtonsNames)
+InputQueueCode::Load(std::string sButtonsNames)
 {
 	m_aPresses.clear();
 
-	vector<RString> asPresses;
+	vector<std::string> asPresses;
 	split(sButtonsNames, ",", asPresses, false);
-	FOREACH(RString, asPresses, sPress)
-	{
-		vector<RString> asButtonNames;
+	for (auto& sPress : asPresses) {
+		vector<std::string> asButtonNames;
 
-		split(*sPress, "-", asButtonNames, false);
+		split(sPress, "-", asButtonNames, false);
 
-		if (asButtonNames.size() < 1) {
-			if (sButtonsNames != "")
+		if (asButtonNames.empty()) {
+			if (!sButtonsNames.empty())
 				LOG->Trace("Ignoring empty code \"%s\".",
 						   sButtonsNames.c_str());
 			return false;
 		}
 
 		m_aPresses.push_back(ButtonPress());
-		for (unsigned i = 0; i < asButtonNames.size();
-			 i++) // for each button in this code
+		for (auto sButtonName : asButtonNames) // for each button in this code
 		{
-			RString sButtonName = asButtonNames[i];
-
 			bool bHold = false;
 			bool bNotHold = false;
 			for (;;) {
-				if (sButtonName.Left(1) == "+") {
+				if (sButtonName.substr(0, 1) == "+") {
 					m_aPresses.back().m_InputTypes[IET_REPEAT] = true;
 					sButtonName.erase(0, 1);
-				} else if (sButtonName.Left(1) == "~") {
+				} else if (sButtonName.substr(0, 1) == "~") {
 					m_aPresses.back().m_InputTypes[IET_FIRST_PRESS] = false;
 					m_aPresses.back().m_InputTypes[IET_RELEASE] = true;
 					sButtonName.erase(0, 1);
-				} else if (sButtonName.Left(1) == "@") {
+				} else if (sButtonName.substr(0, 1) == "@") {
 					sButtonName.erase(0, 1);
 					bHold = true;
-				} else if (sButtonName.Left(1) == "!") {
+				} else if (sButtonName.substr(0, 1) == "!") {
 					sButtonName.erase(0, 1);
 					bNotHold = true;
 				} else {

@@ -9,8 +9,8 @@
 bool
 XmlFileUtil::LoadFromFileShowErrors(XNode& xml, RageFileBasic& f)
 {
-	RString sError;
-	RString s;
+	std::string sError;
+	std::string s;
 	if (f.Read(s) == -1)
 		sError = f.GetError();
 	else

@@ -1,15 +1,12 @@
 #include "Etterna/Globals/global.h"
 #include <cassert>
 #include <cfloat>
-
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Sprite.h"
@@ -20,7 +17,7 @@ const float min_state_delay = 0.0001f;
 
 Sprite::Sprite()
 {
-	m_pTexture = NULL;
+	m_pTexture = nullptr;
 	m_iCurState = 0;
 	m_fSecsIntoState = 0.0f;
 	m_animation_length_seconds = 0.0f;
@@ -78,10 +75,10 @@ Sprite::Sprite(const Sprite& cpy)
 	CPY(m_use_effect_clock_for_texcoords);
 #undef CPY
 
-	if (cpy.m_pTexture != NULL)
+	if (cpy.m_pTexture != nullptr)
 		m_pTexture = TEXTUREMAN->CopyTexture(cpy.m_pTexture);
 	else
-		m_pTexture = NULL;
+		m_pTexture = nullptr;
 }
 
 void
@@ -96,8 +93,8 @@ Sprite::InitState()
 void
 Sprite::SetAllStateDelays(float fDelay)
 {
-	for (unsigned int i = 0; i < m_States.size(); i++) {
-		m_States[i].fDelay = fDelay;
+	for (auto& m_State : m_States) {
+		m_State.fDelay = fDelay;
 	}
 	RecalcAnimationLengthSeconds();
 }
@@ -162,7 +159,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 {
 	/* Texture may refer to the ID of a render target; if it's already
 	 * registered, use it without trying to resolve it. */
-	RString sPath;
+	std::string sPath;
 	pNode->GetAttrValue("Texture", sPath);
 	if (!sPath.empty() &&
 		!TEXTUREMAN->IsTextureRegistered(RageTextureID(sPath)))
@@ -181,7 +178,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 		vector<State> aStates;
 
 		const XNode* pFrames = pNode->GetChild("Frames");
-		if (pFrames != NULL) {
+		if (pFrames != nullptr) {
 			/* All attributes are optional.  If Frame is omitted, use the
 			 * previous state's frame (or 0 if the first). Frames = { {
 			 * Delay=1.0f; Frame=0; { x=0, y=0 }, { x=1, y=1 } };
@@ -191,7 +188,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 			for (int i = 0; true; i++) {
 				const XNode* pFrame = pFrames->GetChild(
 				  ssprintf("%i", i + 1)); // +1 for Lua's arrays
-				if (pFrame == NULL)
+				if (pFrame == nullptr)
 					break;
 
 				State newState;
@@ -214,7 +211,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 
 				const XNode* pPoints[2] = { pFrame->GetChild("1"),
 											pFrame->GetChild("2") };
-				if (pPoints[0] != NULL && pPoints[1] != NULL) {
+				if (pPoints[0] != nullptr && pPoints[1] != nullptr) {
 					RectF r = newState.rect;
 
 					float fX = 1.0f, fY = 1.0f;
@@ -236,8 +233,8 @@ Sprite::LoadFromNode(const XNode* pNode)
 		} else
 			for (int i = 0; true; i++) {
 				// deprecated
-				RString sFrameKey = ssprintf("Frame%04d", i);
-				RString sDelayKey = ssprintf("Delay%04d", i);
+				std::string sFrameKey = ssprintf("Frame%04d", i);
+				std::string sDelayKey = ssprintf("Delay%04d", i);
 				State newState;
 
 				int iFrameIndex;
@@ -276,10 +273,10 @@ Sprite::LoadFromNode(const XNode* pNode)
 void
 Sprite::UnloadTexture()
 {
-	if (m_pTexture != NULL) // If there was a previous bitmap...
+	if (m_pTexture != nullptr) // If there was a previous bitmap...
 	{
 		TEXTUREMAN->UnloadTexture(m_pTexture); // Unload it.
-		m_pTexture = NULL;
+		m_pTexture = nullptr;
 
 		/* Make sure we're reset to frame 0, so if we're reused, we aren't left
 		 * on a frame number that may be greater than the number of frames in
@@ -319,7 +316,7 @@ Sprite::EnableAnimation(bool bEnable)
 void
 Sprite::SetTexture(RageTexture* pTexture)
 {
-	ASSERT(pTexture != NULL);
+	ASSERT(pTexture != nullptr);
 
 	if (m_pTexture != pTexture) {
 		UnloadTexture();
@@ -347,7 +344,7 @@ Sprite::LoadFromTexture(const RageTextureID& ID)
 {
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
-	RageTexture* pTexture = NULL;
+	RageTexture* pTexture = nullptr;
 	if ((m_pTexture != nullptr) && m_pTexture->GetID() == ID)
 		pTexture = m_pTexture;
 	else
@@ -357,10 +354,10 @@ Sprite::LoadFromTexture(const RageTextureID& ID)
 }
 
 void
-Sprite::LoadFromCached(const RString& sDir, const RString& sPath)
+Sprite::LoadFromCached(const std::string& sDir, const std::string& sPath)
 {
 	if (sPath.empty()) {
-		Load(THEME->GetPathG("Common", "fallback %s", sDir));
+		Load(THEME->GetPathG("Common", "fallback %s", sDir.c_str()));
 		return;
 	}
 
@@ -374,7 +371,7 @@ Sprite::LoadFromCached(const RString& sDir, const RString& sPath)
 	else if (IsAFile(sPath))
 		Load(sPath);
 	else
-		Load(THEME->GetPathG("Common", "fallback %s", sDir));
+		Load(THEME->GetPathG("Common", "fallback %s", sDir.c_str()));
 }
 
 void
@@ -384,7 +381,7 @@ Sprite::LoadStatesFromTexture()
 	// second delay.
 	m_States.clear();
 
-	if (m_pTexture == NULL) {
+	if (m_pTexture == nullptr) {
 		State newState;
 		newState.fDelay = 0.1f;
 		newState.rect = RectF(0, 0, 1, 1);
@@ -681,7 +678,7 @@ Sprite::DrawTexture(const TweenState* state)
 bool
 Sprite::EarlyAbortDraw() const
 {
-	return m_pTexture == NULL;
+	return m_pTexture == nullptr;
 }
 
 void
@@ -841,7 +838,7 @@ Sprite::SetState(int iNewState)
 		if (!m_pTexture ||
 			(m_pTexture->GetID().filename.find("_blank") == string::npos &&
 			 m_pTexture->GetID().filename.find("_missing") == string::npos)) {
-			RString sError;
+			std::string sError;
 			if (m_pTexture)
 				sError =
 				  ssprintf("A Sprite '%s' (\"%s\") tried to set state to frame "
@@ -875,9 +872,8 @@ void
 Sprite::RecalcAnimationLengthSeconds()
 {
 	m_animation_length_seconds = 0;
-	FOREACH_CONST(State, m_States, s)
-	{
-		m_animation_length_seconds += s->fDelay;
+	for (auto& s : m_States) {
+		m_animation_length_seconds += s.fDelay;
 	}
 }
 
@@ -891,11 +887,11 @@ Sprite::SetSecondsIntoAnimation(float fSeconds)
 	UpdateAnimationState();
 }
 
-RString
+std::string
 Sprite::GetTexturePath() const
 {
-	if (m_pTexture == NULL)
-		return RString();
+	if (m_pTexture == nullptr)
+		return std::string();
 
 	return m_pTexture->GetID().filename;
 }
@@ -1369,7 +1365,7 @@ class LunaSprite : public Luna<Sprite>
 	static int GetTexture(T* p, lua_State* L)
 	{
 		RageTexture* pTexture = p->GetTexture();
-		if (pTexture != NULL)
+		if (pTexture != nullptr)
 			pTexture->PushSelf(L);
 		else
 			lua_pushnil(L);

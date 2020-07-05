@@ -2,9 +2,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "BGAnimation.h"
 #include "BGAnimationLayer.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
-#include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -18,25 +16,26 @@ BGAnimation::~BGAnimation()
 }
 
 static bool
-CompareLayerNames(const RString& s1, const RString& s2)
+CompareLayerNames(const std::string& s1, const std::string& s2)
 {
 	int i1, i2;
 	int ret;
 
-	ret = sscanf(s1, "Layer%d", &i1);
+	ret = sscanf(s1.c_str(), "Layer%d", &i1);
 	ASSERT(ret == 1);
-	ret = sscanf(s2, "Layer%d", &i2);
+	ret = sscanf(s2.c_str(), "Layer%d", &i2);
 	ASSERT(ret == 1);
 	return i1 < i2;
 }
 
 void
-BGAnimation::AddLayersFromAniDir(const RString& _sAniDir, const XNode* pNode)
+BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir,
+								 const XNode* pNode)
 {
-	const RString& sAniDir = _sAniDir;
+	const auto& sAniDir = _sAniDir;
 
 	{
-		vector<RString> vsLayerNames;
+		vector<std::string> vsLayerNames;
 		FOREACH_CONST_Child(pNode, pLayer)
 		{
 			if (strncmp(pLayer->GetName().c_str(), "Layer", 5) == 0)
@@ -45,13 +44,12 @@ BGAnimation::AddLayersFromAniDir(const RString& _sAniDir, const XNode* pNode)
 
 		sort(vsLayerNames.begin(), vsLayerNames.end(), CompareLayerNames);
 
-		FOREACH_CONST(RString, vsLayerNames, s)
-		{
-			const RString& sLayer = *s;
-			const XNode* pKey = pNode->GetChild(sLayer);
-			ASSERT(pKey != NULL);
+		for (auto& s : vsLayerNames) {
+			const auto& sLayer = s;
+			const auto* pKey = pNode->GetChild(sLayer);
+			ASSERT(pKey != nullptr);
 
-			RString sImportDir;
+			std::string sImportDir;
 			if (pKey->GetAttrValue("Import", sImportDir)) {
 				bool bCond;
 				if (pKey->GetAttrValue("Condition", bCond) && !bCond)
@@ -61,13 +59,13 @@ BGAnimation::AddLayersFromAniDir(const RString& _sAniDir, const XNode* pNode)
 				sImportDir = sAniDir + sImportDir;
 				CollapsePath(sImportDir);
 
-				if (sImportDir.Right(1) != "/")
+				if (sImportDir.back() != '/')
 					sImportDir += "/";
 
 				ASSERT_M(IsADirectory(sImportDir),
 						 sImportDir + " isn't a directory");
 
-				RString sPathToIni = sImportDir + "BGAnimation.ini";
+				auto sPathToIni = sImportDir + "BGAnimation.ini";
 
 				IniFile ini2;
 				ini2.ReadFile(sPathToIni);
@@ -75,7 +73,7 @@ BGAnimation::AddLayersFromAniDir(const RString& _sAniDir, const XNode* pNode)
 				AddLayersFromAniDir(sImportDir, &ini2);
 			} else {
 				// import as a single layer
-				BGAnimationLayer* bgLayer = new BGAnimationLayer;
+				auto* bgLayer = new BGAnimationLayer;
 				bgLayer->LoadFromNode(pKey);
 				this->AddChild(bgLayer);
 			}
@@ -84,25 +82,25 @@ BGAnimation::AddLayersFromAniDir(const RString& _sAniDir, const XNode* pNode)
 }
 
 void
-BGAnimation::LoadFromAniDir(const RString& _sAniDir)
+BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 {
 	DeleteAllChildren();
 
 	if (_sAniDir.empty())
 		return;
 
-	RString sAniDir = _sAniDir;
-	if (sAniDir.Right(1) != "/")
+	auto sAniDir = _sAniDir;
+	if (sAniDir.back() != '/')
 		sAniDir += "/";
 
 	ASSERT_M(IsADirectory(sAniDir), sAniDir + " isn't a directory");
 
-	RString sPathToIni = sAniDir + "BGAnimation.ini";
+	auto sPathToIni = sAniDir + "BGAnimation.ini";
 	{
 		// This is an 3.0 and before-style BGAnimation (not using .ini)
 
 		// loading a directory of layers
-		vector<RString> asImagePaths;
+		vector<std::string> asImagePaths;
 		ASSERT(sAniDir != "");
 
 		GetDirListing(sAniDir + "*.png", asImagePaths, false, true);
@@ -116,13 +114,12 @@ BGAnimation::LoadFromAniDir(const RString& _sAniDir)
 
 		SortRStringArray(asImagePaths);
 
-		for (unsigned i = 0; i < asImagePaths.size(); i++) {
-			const RString sPath = asImagePaths[i];
-			if (Basename(sPath).Left(1) == "_")
+		for (auto& sPath : asImagePaths) {
+			if (Basename(sPath).front() == '_')
 				continue; // don't directly load files starting with an
 						  // underscore
-			BGAnimationLayer* pLayer = new BGAnimationLayer;
-			pLayer->LoadFromAniLayerFile(asImagePaths[i]);
+			auto* pLayer = new BGAnimationLayer;
+			pLayer->LoadFromAniLayerFile(sPath);
 			AddChild(pLayer);
 		}
 	}
@@ -131,7 +128,7 @@ BGAnimation::LoadFromAniDir(const RString& _sAniDir)
 void
 BGAnimation::LoadFromNode(const XNode* pNode)
 {
-	RString sDir;
+	std::string sDir;
 	if (pNode->GetAttrValue("AniDir", sDir))
 		LoadFromAniDir(sDir);
 
@@ -145,7 +142,7 @@ BGAnimation::LoadFromNode(const XNode* pNode)
 		auto* pActor = new Actor;
 		pActor->SetName("BGAnimation dummy");
 		pActor->SetVisible(false);
-		apActorCommands ap =
+		auto ap =
 		  ActorUtil::ParseActorCommands(ssprintf("sleep,%f", fLengthSeconds));
 		pActor->AddCommand("On", ap);
 		AddChild(pActor);

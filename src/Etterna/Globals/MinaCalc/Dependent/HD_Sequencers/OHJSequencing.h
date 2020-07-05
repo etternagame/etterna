@@ -1,5 +1,4 @@
 #pragma once
-#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
 // one hand jump sequencer, not complex enough to require its own pattern struct
 // used by ohjmod
@@ -11,12 +10,12 @@ struct OHJ_Sequencer
 	int cur_seq_taps = 0;
 	int max_seq_taps = 0;
 
-	inline auto get_largest_seq_taps() -> int
+	auto get_largest_seq_taps() -> int
 	{
 		return cur_seq_taps > max_seq_taps ? cur_seq_taps : max_seq_taps;
 	}
 
-	inline void complete_seq()
+	void complete_seq()
 	{
 		// negative values should not be possible
 		assert(cur_seq_taps >= 0);
@@ -27,13 +26,13 @@ struct OHJ_Sequencer
 		cur_seq_taps = 0;
 	}
 
-	inline void zero()
+	void zero()
 	{
 		cur_seq_taps = 0;
 		max_seq_taps = 0;
 	}
 
-	inline void operator()(const col_type& ct, const base_type& bt)
+	void operator()(const col_type& ct, const base_type& bt)
 	{
 		if (cur_seq_taps == 0) {
 			// if we aren't in a sequence and aren't going to start one, bail

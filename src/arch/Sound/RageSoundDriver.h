@@ -3,7 +3,6 @@
 
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_CircularBuffer.h"
 #include "arch/RageDriver.h"
 
@@ -16,9 +15,9 @@ class RageSoundDriver : public RageDriver
 {
   public:
 	/* Pass an empty string to get the default sound driver list. */
-	static RageSoundDriver* Create(const RString& sDrivers);
+	static RageSoundDriver* Create(const std::string& sDrivers);
 	static DriverList m_pDriverList;
-	static RString GetDefaultSoundDriverList();
+	static std::string GetDefaultSoundDriverList();
 
 	friend class RageSoundManager;
 
@@ -26,7 +25,7 @@ class RageSoundDriver : public RageDriver
 	~RageSoundDriver() override;
 
 	/* Initialize.  On failure, an error message is returned. */
-	virtual RString Init() { return RString(); }
+	virtual std::string Init() { return std::string(); }
 
 	/* A RageSound calls this to request to be played.
 	 * XXX: define what we should do when it can't be played (eg. out of

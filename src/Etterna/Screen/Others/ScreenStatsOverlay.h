@@ -19,7 +19,7 @@ class ScreenStatsOverlay : public Screen
 	void Update(float fDeltaTime) override;
 
   private:
-	void AddTimestampLine(const RString& txt, const RageColor& color);
+	void AddTimestampLine(const std::string& txt, const RageColor& color);
 	void UpdateSkips();
 
 	BitmapText m_textStats;

@@ -61,11 +61,11 @@ TitleTrans::LoadFromNode(const XNode* pNode)
 		if (sKeyName == "DontTransliterate")
 			translit = false;
 		else if (sKeyName == "TitleFrom")
-			TitleFrom = RString("^(" + sValue + ")$");
+			TitleFrom = std::string("^(" + sValue + ")$");
 		else if (sKeyName == "ArtistFrom")
-			ArtistFrom = RString("^(" + sValue + ")$");
+			ArtistFrom = std::string("^(" + sValue + ")$");
 		else if (sKeyName == "SubtitleFrom")
-			SubFrom = RString("^(" + sValue + ")$");
+			SubFrom = std::string("^(" + sValue + ")$");
 		else if (sKeyName == "TitleTo")
 			Replacement.Title = sValue;
 		else if (sKeyName == "ArtistTo")

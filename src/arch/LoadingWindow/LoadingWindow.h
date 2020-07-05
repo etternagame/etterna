@@ -10,10 +10,10 @@ class LoadingWindow
   public:
 	static LoadingWindow* Create();
 
-	virtual RString Init() { return RString(); }
+	virtual std::string Init() { return std::string(); }
 	virtual ~LoadingWindow() = default;
 
-	virtual void SetText(const RString& str) = 0;
+	virtual void SetText(const std::string& str) = 0;
 	virtual void SetIcon(const RageSurface* pIcon) {}
 	virtual void SetSplash(const RageSurface* pSplash) {}
 	virtual void SetProgress(const int progress) { m_progress = progress; }

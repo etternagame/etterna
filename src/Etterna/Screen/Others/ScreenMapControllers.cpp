@@ -58,7 +58,7 @@ ScreenMapControllers::Init()
 	LOAD_ALL_COMMANDS_AND_SET_XY(m_textDevices);
 	this->AddChild(&m_textDevices);
 
-	RString sButtons = BUTTONS_TO_MAP;
+	std::string sButtons = BUTTONS_TO_MAP;
 	if (sButtons.empty()) {
 		/* Map all buttons for this game. */
 		// Skip the first 4 buttons to avoid confusion.
@@ -73,7 +73,7 @@ ScreenMapControllers::Init()
 		/* Map the specified buttons. */
 		// Specifying gamebuttons here crashes when switching games.
 		// Specify menu buttons here (using metrics) if need to be rebound.
-		vector<RString> asBits;
+		vector<std::string> asBits;
 		split(sButtons, ",", asBits);
 		for (unsigned i = 0; i < asBits.size(); ++i) {
 			KeyToMap k;
@@ -92,8 +92,9 @@ ScreenMapControllers::Init()
 			text.LoadFromFont(THEME->GetPathF(m_sName, "title"));
 			auto pn = PLAYER_1;
 			text.SetName("Label" + PlayerNumberToString(pn));
-			RString sText = ssprintf(PLAYER_SLOTS.GetValue(),
-									 PlayerNumberToLocalizedString(pn).c_str());
+			std::string sText =
+			  ssprintf(PLAYER_SLOTS.GetValue(),
+					   PlayerNumberToLocalizedString(pn).c_str());
 			text.SetText(sText);
 			ActorUtil::LoadAllCommands(text, m_sName);
 			m_Line.back()->AddChild(&m_textLabel[c]);
@@ -133,7 +134,7 @@ ScreenMapControllers::Init()
 			BitmapText* pName = new BitmapText;
 			pName->SetName("Primary");
 			pName->LoadFromFont(THEME->GetPathF(m_sName, "title"));
-			RString sText = GameButtonToLocalizedString(
+			std::string sText = GameButtonToLocalizedString(
 			  INPUTMAPPER->GetInputScheme(), pKey->m_GameButton);
 			pName->SetText(sText);
 			ActorUtil::LoadAllCommands(*pName, m_sName);
@@ -146,7 +147,7 @@ ScreenMapControllers::Init()
 			GameButton mb =
 			  INPUTMAPPER->GetInputScheme()->GameButtonToMenuButton(
 				pKey->m_GameButton);
-			RString sText;
+			std::string sText;
 			if (mb != GameButton_Invalid && mb != pKey->m_GameButton)
 				sText = GameButtonToLocalizedString(
 				  INPUTMAPPER->GetInputScheme(), mb);
@@ -612,7 +613,7 @@ ScreenMapControllers::Refresh()
 				BitmapText* pText = pKey->m_textMappedTo[p][s];
 				GameInput cur_gi(p, pKey->m_GameButton);
 				DeviceInput di;
-				RString sText = "-----------";
+				std::string sText = "-----------";
 				if (INPUTMAPPER->GameToDevice(cur_gi, s, di))
 					sText = INPUTMAN->GetDeviceSpecificInputString(di);
 				pText->SetText(sText);
@@ -798,7 +799,7 @@ ScreenMapControllers::ExitAction()
 bool
 ScreenMapControllers::SanityCheckWrapper()
 {
-	vector<RString> reasons_not_sane;
+	vector<std::string> reasons_not_sane;
 	INPUTMAPPER->SanityCheckMappings(reasons_not_sane);
 	if (reasons_not_sane.empty()) {
 		return true;
@@ -807,7 +808,7 @@ ScreenMapControllers::SanityCheckWrapper()
 	for (auto& reason : reasons_not_sane) {
 		reason = THEME->GetString("ScreenMapControllers", reason);
 	}
-	RString joined_reasons = join("\n", reasons_not_sane);
+	std::string joined_reasons = join("\n", reasons_not_sane);
 	joined_reasons = THEME->GetString("ScreenMapControllers", "VitalButtons") +
 					 "\n" + joined_reasons;
 	Message msg("SetText");
@@ -819,17 +820,17 @@ ScreenMapControllers::SanityCheckWrapper()
 }
 
 void
-ScreenMapControllers::ActionRow::Load(RString const& scr_name,
-									  RString const& name,
+ScreenMapControllers::ActionRow::Load(std::string const& scr_name,
+									  std::string const& name,
 									  ScreenMapControllers::action_fun_t action,
 									  ActorFrame* line,
 									  ActorScroller* scroller)
 {
 	m_action = action;
-	RString lower_name = name;
-	lower_name.MakeLower();
+	std::string lower_name = make_lower(name);
+
 	// Make the specific actor optional, use a fallback if it doesn't exist.
-	RString path = THEME->GetPathG(scr_name, lower_name, true);
+	std::string path = THEME->GetPathG(scr_name, lower_name, true);
 	if (path.empty()) {
 		path = THEME->GetPathG(scr_name, "action");
 	}

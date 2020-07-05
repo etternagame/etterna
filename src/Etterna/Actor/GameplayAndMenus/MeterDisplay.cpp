@@ -14,9 +14,9 @@ REGISTER_ACTOR_CLASS(SongMeterDisplay);
 MeterDisplay::MeterDisplay() = default;
 
 void
-MeterDisplay::Load(const RString& sStreamPath,
+MeterDisplay::Load(const std::string& sStreamPath,
 				   float fStreamWidth,
-				   const RString& sTipPath)
+				   const std::string& sTipPath)
 {
 	m_sprStream.Load(sStreamPath);
 	this->AddChild(m_sprStream);

@@ -23,7 +23,7 @@ class StreamDisplay : public ActorFrame
 
 	void Update(float fDeltaSecs) override;
 
-	void Load(const RString& sMetricsGroup);
+	void Load(const std::string& sMetricsGroup);
 
 	void SetPercent(float fPercent);
 	void SetPassingAlpha(float fPassingAlpha)
@@ -48,7 +48,7 @@ class StreamDisplay : public ActorFrame
 	float m_fPercent; // percent filled
 	float
 	  m_fTrailingPercent; // this approaches m_fPercent, use this value to draw
-	float m_fVelocity;	// velocity of m_fTrailingPercent
+	float m_fVelocity;	  // velocity of m_fTrailingPercent
 
 	float m_fPassingAlpha;
 	float m_fHotAlpha;

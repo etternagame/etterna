@@ -14,7 +14,7 @@ class Profile;
 class XNode;
 
 void
-AppendOctal(int n, int digits, RString& out);
+AppendOctal(int n, int digits, std::string& out);
 
 /** @brief A set of song utilities to make working with songs easier. */
 namespace SongUtil {
@@ -25,8 +25,8 @@ GetSteps(const Song* pSong,
 		 Difficulty dc = Difficulty_Invalid,
 		 int iMeterLow = -1,
 		 int iMeterHigh = -1,
-		 const RString& sDescription = "",
-		 const RString& sCredit = "",
+		 const std::string& sDescription = "",
+		 const std::string& sCredit = "",
 		 bool bIncludeAutoGen = true,
 		 unsigned uHash = 0,
 		 int iMaxToGet = -1);
@@ -36,8 +36,8 @@ GetOneSteps(const Song* pSong,
 			Difficulty dc = Difficulty_Invalid,
 			int iMeterLow = -1,
 			int iMeterHigh = -1,
-			const RString& sDescription = "",
-			const RString& sCredit = "",
+			const std::string& sDescription = "",
+			const std::string& sCredit = "",
 			unsigned uHash = 0,
 			bool bIncludeAutoGen = true);
 Steps*
@@ -50,9 +50,9 @@ GetStepsByMeter(const Song* pSong, StepsType st, int iMeterLow, int iMeterHigh);
 Steps*
 GetStepsByDescription(const Song* pSong,
 					  StepsType st,
-					  const RString& sDescription);
+					  const std::string& sDescription);
 Steps*
-GetStepsByCredit(const Song* pSong, StepsType st, const RString& sCredit);
+GetStepsByCredit(const Song* pSong, StepsType st, const std::string& sCredit);
 Steps*
 GetClosestNotes(const Song* pSong,
 				StepsType st,
@@ -65,8 +65,8 @@ void
 DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps);
 
 void
-MakeSortString(RString& s);
-RString
+MakeSortString(std::string& s);
+std::string
 MakeSortString(const string& in);
 void
 SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut);
@@ -96,7 +96,7 @@ void
 SortSongPointerArrayByStepsTypeAndMeter(vector<Song*>& vpSongsInOut,
 										StepsType st,
 										Difficulty dc);
-RString
+std::string
 GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so);
 void
 SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut, SortOrder so);
@@ -117,32 +117,34 @@ CompareSongPointersByGroup(const Song* pSong1, const Song* pSong2);
 bool
 IsEditDescriptionUnique(const Song* pSong,
 						StepsType st,
-						const RString& sPreferredDescription,
+						const std::string& sPreferredDescription,
 						const Steps* pExclude);
 bool
 IsChartNameUnique(const Song* pSong,
 				  StepsType st,
-				  const RString& name,
+				  const std::string& name,
 				  const Steps* pExclude);
-RString
+std::string
 MakeUniqueEditDescription(const Song* pSong,
 						  StepsType st,
-						  const RString& sPreferredDescription);
+						  const std::string& sPreferredDescription);
 bool
-ValidateCurrentEditStepsDescription(const RString& sAnswer, RString& sErrorOut);
+ValidateCurrentEditStepsDescription(const std::string& sAnswer,
+									std::string& sErrorOut);
 bool
-ValidateCurrentStepsDescription(const RString& sAnswer, RString& sErrorOut);
+ValidateCurrentStepsDescription(const std::string& sAnswer,
+								std::string& sErrorOut);
 bool
-ValidateCurrentStepsCredit(const RString& sAnswer, RString& sErrorOut);
+ValidateCurrentStepsCredit(const std::string& sAnswer, std::string& sErrorOut);
 bool
-ValidateCurrentStepsChartName(const RString& answer, RString& error);
+ValidateCurrentStepsChartName(const std::string& answer, std::string& error);
 bool
-ValidateCurrentSongPreview(const RString& answer, RString& error);
+ValidateCurrentSongPreview(const std::string& answer, std::string& error);
 bool
-ValidateCurrentStepsMusic(const RString& answer, RString& error);
+ValidateCurrentStepsMusic(const std::string& answer, std::string& error);
 
 void
-GetAllSongGenres(vector<RString>& vsOut);
+GetAllSongGenres(vector<std::string>& vsOut);
 void
 GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut);
 void
@@ -167,7 +169,7 @@ GetStepsTypeAndDifficultyFromSortOrder(SortOrder so,
 
 class SongID
 {
-	RString sDir;
+	std::string sDir;
 	mutable CachedObjectPointer<Song> m_Cache;
 
   public:
@@ -190,8 +192,8 @@ class SongID
 	XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 	void LoadFromString(const char* dir);
-	void FromString(RString _sDir) { sDir = _sDir; }
-	RString ToString() const;
+	void FromString(std::string _sDir) { sDir = _sDir; }
+	std::string ToString() const;
 	bool IsValid() const;
 };
 

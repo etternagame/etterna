@@ -8,10 +8,10 @@ class RageDisplay_D3D : public RageDisplay
   public:
 	RageDisplay_D3D();
 	~RageDisplay_D3D() override;
-	RString Init(const VideoModeParams& p,
-				 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoModeParams& p,
+					 bool bAllowUnacceleratedRenderer) override;
 
-	RString GetApiDescription() const override { return "D3D"; }
+	std::string GetApiDescription() const override { return "D3D"; }
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
@@ -91,8 +91,8 @@ class RageDisplay_D3D : public RageDisplay
 	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 									  int iMeshIndex) override;
 
-	RString TryVideoMode(const VideoModeParams& p,
-						 bool& bNewDeviceOut) override;
+	std::string TryVideoMode(const VideoModeParams& p,
+							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 	RageMatrix GetOrthoMatrix(float l,
 							  float r,

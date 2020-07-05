@@ -69,11 +69,11 @@ class BitmapText : public Actor
 	void StopTweening() override;
 	void FinishTweening() override;
 
-	bool LoadFromFont(const RString& sFontName);
-	bool LoadFromTextureAndChars(const RString& sTexturePath,
-								 const RString& sChars);
-	virtual void SetText(const RString& sText,
-						 const RString& sAlternateText = "",
+	bool LoadFromFont(const std::string& sFontName);
+	bool LoadFromTextureAndChars(const std::string& sTexturePath,
+								 const std::string& sChars);
+	virtual void SetText(const std::string& sText,
+						 const std::string& sAlternateText = "",
 						 int iWrapWidthPixels = -1);
 	void SetVertSpacing(int iSpacing);
 	void SetMaxWidth(float fMaxWidth);
@@ -121,10 +121,10 @@ class BitmapText : public Actor
 	}
 	const vector<wstring>& GetLines() const { return m_wTextLines; }
 
-	RString GetText() const { return m_sText; }
+	std::string GetText() const { return m_sText; }
 	// Return true if the string 's' will use an alternate string, if available.
-	bool StringWillUseAlternate(const RString& sText,
-								const RString& sAlternateText) const;
+	bool StringWillUseAlternate(const std::string& sText,
+								const std::string& sAlternateText) const;
 
 	struct Attribute
 	{
@@ -151,10 +151,10 @@ class BitmapText : public Actor
   protected:
 	Font* m_pFont;
 	bool m_bUppercase;
-	RString m_sText;
+	std::string m_sText;
 	vector<wstring> m_wTextLines;
 	vector<int> m_iLineWidths; // in source pixels
-	int m_iWrapWidthPixels;	// -1 = no wrap
+	int m_iWrapWidthPixels;	   // -1 = no wrap
 	float m_fMaxWidth;		   // 0 = no max
 	float m_fMaxHeight;		   // 0 = no max
 	bool m_MaxDimensionUsesZoom;
@@ -189,8 +189,8 @@ class ColorBitmapText : public BitmapText
 {
   public:
 	ColorBitmapText* Copy() const override;
-	void SetText(const RString& sText,
-				 const RString& sAlternateText = "",
+	void SetText(const std::string& sText,
+				 const std::string& sAlternateText = "",
 				 int iWrapWidthPixels = -1) override;
 	void ResetText();
 	void DrawPrimitives() override;
@@ -199,7 +199,7 @@ class ColorBitmapText : public BitmapText
 	void SetMaxLines(int iLines, bool bCutBottom = true); // if bCutBottom =
 														  // false then, it will
 														  // crop the top
-	void SimpleAddLine(const RString& sAddition, int iWidthPixels);
+	void SimpleAddLine(const std::string& sAddition, int iWidthPixels);
 	void SetMaxLines(int iNumLines, int iDirection);
 	void PushSelf(lua_State* L) override;
 

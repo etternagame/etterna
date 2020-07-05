@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_SpeedChange - change the speed of an audio stream without
+/* RageSoundReader_SpeedChange - change the speed of an audio stream without
  * changing its pitch. */
 
 #ifndef RAGE_SOUND_READER_SPEED_CHANGE_H
@@ -17,7 +17,7 @@ class RageSoundReader_SpeedChange : public RageSoundReader_Filter
 	{
 		return new RageSoundReader_SpeedChange(*this);
 	}
-	virtual bool SetProperty(const RString& sProperty, float fValue);
+	virtual bool SetProperty(const std::string& sProperty, float fValue);
 	virtual int GetNextSourceFrame() const;
 	virtual float GetStreamToSourceRatio() const;
 

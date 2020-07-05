@@ -23,21 +23,21 @@ enum Result
 	no
 };
 void
-Error(const RString& sError, const RString& sID = "");
+Error(const std::string& sError, const std::string& sID = "");
 void
-OK(const RString& sMessage, const RString& sID = "");
+OK(const std::string& sMessage, const std::string& sID = "");
 Result
-OKCancel(const RString& sMessage, const RString& sID = "");
+OKCancel(const std::string& sMessage, const std::string& sID = "");
 Result
-AbortRetryIgnore(const RString& sMessage, const RString& sID = "");
+AbortRetryIgnore(const std::string& sMessage, const std::string& sID = "");
 Result
-AbortRetry(const RString& sMessage, const RString& sID = "");
+AbortRetry(const std::string& sMessage, const std::string& sID = "");
 Result
-YesNo(const RString& sMessage, const RString& sID = "");
+YesNo(const std::string& sMessage, const std::string& sID = "");
 
 /* for DialogDrivers */
 void
-IgnoreMessage(const RString& sID);
+IgnoreMessage(const std::string& sID);
 }
 
 #endif

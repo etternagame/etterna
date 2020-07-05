@@ -6,10 +6,9 @@
 #include "ModIconRow.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/FileTypes/XmlFile.h"
 
 int
-OptionToPreferredColumn(RString sOptionText);
+OptionToPreferredColumn(std::string sOptionText);
 
 REGISTER_ACTOR_CLASS(ModIconRow);
 
@@ -27,7 +26,7 @@ ModIconRow::~ModIconRow()
 }
 
 void
-ModIconRow::Load(const RString& sMetricsGroup, PlayerNumber pn)
+ModIconRow::Load(const std::string& sMetricsGroup, PlayerNumber pn)
 {
 	ASSERT_M(m_pn == PlayerNumber_Invalid, "Multiple calls to Load");
 
@@ -118,7 +117,7 @@ static const OptionColumnEntry g_OptionColumnEntries[] = {
 };
 
 int
-OptionToPreferredColumn(RString sOptionText)
+OptionToPreferredColumn(std::string sOptionText)
 {
 	// Speedups always go in column 0. digit ... x
 	if (sOptionText.size() > 1 && isdigit(sOptionText[0]) &&
@@ -140,18 +139,18 @@ ModIconRow::SetFromGameState()
 {
 	PlayerNumber pn = m_pn;
 
-	RString sOptions =
+	std::string sOptions =
 	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().GetString();
-	vector<RString> vsOptions;
+	vector<std::string> vsOptions;
 	split(sOptions, ", ", vsOptions, true);
 
-	vector<RString>
+	vector<std::string>
 	  vsText; // fill these with what will be displayed on the tabs
 	vsText.resize(m_vpModIcon.size());
 
 	// for each option, look for the best column to place it in
 	for (unsigned i = 0; i < vsOptions.size(); i++) {
-		RString sOption = vsOptions[i];
+		std::string sOption = vsOptions[i];
 		int iPerferredCol = OptionToPreferredColumn(sOption);
 		clamp(iPerferredCol, 0, (int)m_vpModIcon.size() - 1);
 

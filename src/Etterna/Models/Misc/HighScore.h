@@ -196,9 +196,9 @@ struct HighScore
 struct Screenshot
 {
 	/** @brief the filename of the screen shot. There is no directory part. */
-	RString sFileName;
+	std::string sFileName;
 	/** @brief The MD5 hash of the screen shot file above. */
-	RString sMD5;
+	std::string sMD5;
 	/** @brief The actual high score in question. */
 	HighScore highScore;
 

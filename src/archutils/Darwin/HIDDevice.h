@@ -72,7 +72,7 @@ class HIDDevice
 	IOHIDDeviceInterface** m_Interface;
 	IOHIDQueueInterface** m_Queue;
 	bool m_bRunning;
-	RString m_sDescription;
+	std::string m_sDescription;
 
 	static void AddLogicalDevice(const void* value, void* context);
 	static void AddElement(const void* value, void* context);
@@ -136,7 +136,7 @@ class HIDDevice
 					IOHIDCallbackFunction callback,
 					void* target,
 					int refCon);
-	inline const RString& GetDescription() const { return m_sDescription; }
+	inline const std::string& GetDescription() const { return m_sDescription; }
 
 	/* Add button presses (or releases) to vPresses for the given cookie. More
 	 * than one DeviceInput can be added at a time. For example, Two axes

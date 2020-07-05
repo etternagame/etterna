@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_Resample_Good - fast audio resampling. */
+/* RageSoundReader_Resample_Good - fast audio resampling. */
 
 #ifndef RAGE_SOUND_READER_RESAMPLE_GOOD_H
 #define RAGE_SOUND_READER_RESAMPLE_GOOD_H
@@ -18,7 +18,7 @@ class RageSoundReader_Resample_Good : public RageSoundReader_Filter
 	int Read(float* pBuf, int iFrames) override;
 	~RageSoundReader_Resample_Good() override;
 	RageSoundReader_Resample_Good* Copy() const override;
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 	int GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override;
 

@@ -13,9 +13,9 @@ enum AutosyncType
 	NUM_AutosyncType,
 	AutosyncType_Invalid
 };
-const RString&
+const std::string&
 AutosyncTypeToString(AutosyncType cat);
-const RString&
+const std::string&
 AutosyncTypeToLocalizedString(AutosyncType cat);
 LuaDeclareType(AutosyncType);
 
@@ -27,9 +27,9 @@ enum SoundEffectType
 	NUM_SoundEffectType,
 	SoundEffectType_Invalid
 };
-const RString&
+const std::string&
 SoundEffectTypeToString(SoundEffectType cat);
-const RString&
+const std::string&
 SoundEffectTypeToLocalizedString(SoundEffectType cat);
 LuaDeclareType(SoundEffectType);
 
@@ -53,15 +53,15 @@ class SongOptions
 	SongOptions() = default;
 	void Init();
 	void Approach(const SongOptions& other, float fDeltaSeconds);
-	void GetMods(vector<RString>& AddTo) const;
-	void GetLocalizedMods(vector<RString>& AddTo) const;
-	RString GetString() const;
-	RString GetLocalizedString() const;
-	void FromString(const RString& sOptions);
-	bool FromOneModString(const RString& sOneMod,
-						  RString& sErrorDetailOut); // On error, return false
-													 // and optionally set
-													 // sErrorDetailOut
+	void GetMods(vector<std::string>& AddTo) const;
+	void GetLocalizedMods(vector<std::string>& AddTo) const;
+	std::string GetString() const;
+	std::string GetLocalizedString() const;
+	void FromString(const std::string& sOptions);
+	bool FromOneModString(const std::string& sOneMod,
+						  std::string& sErrorDetailOut); // On error, return
+														 // false and optionally
+														 // set sErrorDetailOut
 
 	bool operator==(const SongOptions& other) const;
 	bool operator!=(const SongOptions& other) const

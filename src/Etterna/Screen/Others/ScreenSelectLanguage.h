@@ -7,7 +7,7 @@ class ScreenSelectLanguage : public ScreenSelectMaster
 {
   public:
 	void Init() override;
-	RString GetDefaultChoice() override;
+	std::string GetDefaultChoice() override;
 	void BeginScreen() override;
 	bool MenuStart(const InputEventPlus& input) override;
 	bool MenuBack(const InputEventPlus& input) override;

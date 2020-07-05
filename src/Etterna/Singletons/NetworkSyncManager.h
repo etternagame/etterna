@@ -31,8 +31,8 @@ class PlayerStageStats;
 enum NSCommand
 {
 	NSCPing = 0,
-	NSCPingR,	 //  1 [SMLC_PingR]
-	NSCHello,	 //  2 [SMLC_Hello]
+	NSCPingR,	  //  1 [SMLC_PingR]
+	NSCHello,	  //  2 [SMLC_Hello]
 	NSCGSR,		  //  3 [SMLC_GameStart]
 	NSCGON,		  //  4 [SMLC_GameOver]
 	NSCGSU,		  //  5 [SMLC_GameStatusUpdate]
@@ -41,10 +41,10 @@ enum NSCommand
 	NSCRSG,		  //  8 [SMLC_RequestStart]
 	NSCUUL,		  //  9 [SMLC_Reserved1]
 	NSCSMS,		  // 10 [SMLC_MusicSelect]
-	NSCUPOpts,	// 11 [SMLC_PlayerOpts]
+	NSCUPOpts,	  // 11 [SMLC_PlayerOpts]
 	NSCSMOnline,  // 12 [SMLC_SMO]
 	NSCFormatted, // 13 [SMLC_RESERVED1]
-	NSCAttack,	// 14 [SMLC_RESERVED2]
+	NSCAttack,	  // 14 [SMLC_RESERVED2]
 	XML,		  // 15 [SMLC_RESERVED3]
 	FLU,		  // 16 [SMLC_FriendListUpdate]
 	NUM_NS_COMMANDS
@@ -82,7 +82,7 @@ class EndOfGame_PlayerData
 	Difficulty difficulty;
 	int tapScores[NETNUMTAPSCORES]; // This will be a const soon enough
 	HighScore hs;
-	RString playerOptions;
+	std::string playerOptions;
 };
 
 enum ETTServerMessageTypes
@@ -138,8 +138,8 @@ enum ETTClientMessageTypes
 
 struct NetServerInfo
 {
-	RString Name;
-	RString Address;
+	std::string Name;
+	std::string Address;
 };
 
 class ChartRequest
@@ -153,7 +153,7 @@ class ChartRequest
 	}
 	const string chartkey;
 	const string user; // User that requested this chart
-	const int rate;	// rate * 1000
+	const int rate;	   // rate * 1000
 	void PushSelf(lua_State* L);
 };
 
@@ -163,7 +163,7 @@ class GameplayScore
 {
   public:
 	float wife;
-	RString jdgstr;
+	std::string jdgstr;
 };
 
 class PacketFunctions
@@ -171,19 +171,19 @@ class PacketFunctions
   public:
 	unsigned char Data[NETMAXBUFFERSIZE]; // Data
 	int Position; // Other info (Used for following functions)
-	int size;	 // When sending these pacs, Position should
+	int size;	  // When sending these pacs, Position should
 			  // be used; NOT size.
 
 	// Commands used to operate on NetPackets
 	uint8_t Read1();
 	uint16_t Read2();
 	uint32_t Read4();
-	RString ReadNT();
+	std::string ReadNT();
 
 	void Write1(uint8_t Data);
 	void Write2(uint16_t Data);
 	void Write4(uint32_t Data);
-	void WriteNT(const RString& Data);
+	void WriteNT(const std::string& Data);
 
 	void ClearPacket();
 };
@@ -193,22 +193,26 @@ class ScreenNetRoom;
 class NetProtocol
 {
   public:
-	RString serverName;
+	std::string serverName;
 	int serverVersion{ 0 }; // ServerVersion
 	virtual bool Connect(NetworkSyncManager* n,
 						 unsigned short port,
-						 RString address)
+						 std::string address)
 	{
 		return false;
 	}
 	virtual void close() {}
 	virtual void Update(NetworkSyncManager* n, float fDeltaTime) {}
-	virtual void CreateNewRoom(RString name, RString desc, RString password) {}
+	virtual void CreateNewRoom(std::string name,
+							   std::string desc,
+							   std::string password)
+	{
+	}
 	virtual void SelectUserSong(NetworkSyncManager* n, Song* song) {}
-	virtual void EnterRoom(RString name, RString password) {}
+	virtual void EnterRoom(std::string name, std::string password) {}
 	virtual void LeaveRoom(NetworkSyncManager* n) {}
-	virtual void RequestRoomInfo(RString name) {}
-	virtual void SendChat(const RString& message, string tab, int type) {}
+	virtual void RequestRoomInfo(std::string name) {}
+	virtual void SendChat(const std::string& message, string tab, int type) {}
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n,
 							 int playerID,
@@ -231,7 +235,7 @@ class NetProtocol
 	virtual void ReportSongOver(NetworkSyncManager* n) {}
 	virtual void ReportStyle(NetworkSyncManager* n) {}
 	virtual void StartRequest(NetworkSyncManager* n, short position) {}
-	virtual void Login(RString user, RString pass) {}
+	virtual void Login(std::string user, std::string pass) {}
 	virtual void Logout() {}
 	virtual void OnMusicSelect(){};
 	virtual void OffMusicSelect(){};
@@ -241,7 +245,7 @@ class NetProtocol
 	virtual void OffOptions(){};
 	virtual void OnEval(){};
 	virtual void OffEval(){};
-	virtual void SendMPLeaderboardUpdate(float wife, RString& jdgstr){};
+	virtual void SendMPLeaderboardUpdate(float wife, std::string& jdgstr){};
 };
 
 class ETTProtocol : public NetProtocol
@@ -270,14 +274,16 @@ class ETTProtocol : public NetProtocol
 	bool inRoom{ false };
 	bool Connect(NetworkSyncManager* n,
 				 unsigned short port,
-				 RString address) override; // Connect and say hello
+				 std::string address) override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
-	void Login(RString user, RString pass) override;
+	void Login(std::string user, std::string pass) override;
 	void Logout() override;
-	void SendChat(const RString& message, string tab, int type) override;
-	void CreateNewRoom(RString name, RString desc, RString password) override;
-	void EnterRoom(RString name, RString password) override;
+	void SendChat(const std::string& message, string tab, int type) override;
+	void CreateNewRoom(std::string name,
+					   std::string desc,
+					   std::string password) override;
+	void EnterRoom(std::string name, std::string password) override;
 	void LeaveRoom(NetworkSyncManager* n) override;
 	void ReportSongOver(NetworkSyncManager* n) override;
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
@@ -286,7 +292,7 @@ class ETTProtocol : public NetProtocol
 	void OffOptions() override;
 	void OnEval() override;
 	void OffEval() override;
-	void SendMPLeaderboardUpdate(float wife, RString& jdgstr) override;
+	void SendMPLeaderboardUpdate(float wife, std::string& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
 	void Send(const char* msg);
 	/*
@@ -315,7 +321,7 @@ class Chat
 class NetworkSyncManager
 {
   public:
-	NetworkSyncManager(LoadingWindow* ld = NULL);
+	NetworkSyncManager(LoadingWindow* ld = nullptr);
 	~NetworkSyncManager();
 	ETTProtocol ETTP;
 	NetProtocol* curProtocol{ nullptr };
@@ -346,14 +352,16 @@ class NetworkSyncManager
 	void OffEval();
 
 	void StartRequest(short position); // Request a start; Block until granted.
-	RString GetServerName();
+	std::string GetServerName();
 
-	void CreateNewRoom(RString name, RString desc = "", RString password = "");
-	void EnterRoom(RString name, RString password = "");
+	void CreateNewRoom(std::string name,
+					   std::string desc = "",
+					   std::string password = "");
+	void EnterRoom(std::string name, std::string password = "");
 	void LeaveRoom();
-	void RequestRoomInfo(RString name);
+	void RequestRoomInfo(std::string name);
 
-	void PostStartUp(const RString& ServerIP);
+	void PostStartUp(const std::string& ServerIP);
 
 	bool IsETTP();
 
@@ -377,7 +385,7 @@ class NetworkSyncManager
 	vector<int> m_PlayerStatus;
 	int m_ActivePlayers;
 	vector<int> m_ActivePlayer;
-	vector<RString> m_PlayerNames;
+	vector<std::string> m_PlayerNames;
 	vector<bool> m_PlayerReady;
 	vector<string> commonpacks;
 
@@ -391,23 +399,23 @@ class NetworkSyncManager
 	// Used together:
 	bool ChangedScoreboard(int Column); // Returns true if scoreboard changed
 										// since function was last called.
-	RString m_Scoreboard[NUM_NSScoreBoardColumn];
+	std::string m_Scoreboard[NUM_NSScoreBoardColumn];
 
 	set<string> lobbyuserlist;
 
-	void SendMPLeaderboardUpdate(float wife, RString& jdgstr);
+	void SendMPLeaderboardUpdate(float wife, std::string& jdgstr);
 
 	// Used for chatting
-	void SendChat(const RString& message,
+	void SendChat(const std::string& message,
 				  string tab = "",
 				  int type = 0); // 0=lobby (ettp only)
-	RString m_WaitingChat;
+	std::string m_WaitingChat;
 
 	// Used for song checking/changing
-	RString m_sMainTitle;
-	RString m_sArtist;
-	RString m_sSubTitle;
-	RString m_sFileHash;
+	std::string m_sMainTitle;
+	std::string m_sArtist;
+	std::string m_sSubTitle;
+	std::string m_sFileHash;
 	string chartkey;
 	Song* song{ nullptr };
 	Steps* steps{ nullptr };
@@ -422,11 +430,11 @@ class NetworkSyncManager
 
 	int GetServerVersion();
 
-	RString m_sChatText;
+	std::string m_sChatText;
 
 	StepManiaLanServer* LANserver;
 
-	RString MD5Hex(const RString& sInput);
+	std::string MD5Hex(const std::string& sInput);
 
 	void GetListOfLANServers(vector<NetServerInfo>& AllServers);
 
@@ -439,7 +447,7 @@ class NetworkSyncManager
 
 	int m_startupStatus; // Used to see if attempt was successful or not.
 
-	void Login(RString user, RString pass);
+	void Login(std::string user, std::string pass);
 	void Logout();
 	vector<RoomData> m_Rooms;
 	vector<ChartRequest*> requests;
