@@ -51,6 +51,7 @@ local defaultGameplaySizes = {
 	NPSGraphHeight = 1.0,
 	NotefieldWidth = 1.0,
 	NotefieldHeight = 1.0,
+	NotefieldSpacing = 0.0,
 	LeaderboardWidth = 1.0,
 	LeaderboardHeight = 1.0,
 	LeaderboardSpacing = 0.0,

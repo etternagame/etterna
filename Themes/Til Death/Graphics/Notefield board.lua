@@ -33,12 +33,19 @@ local function input(event)
 				cbContainer:playcommand("Update")
 			end
 		end
+
+		if Movable.current == "DeviceButton_n" and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" or event.DeviceInput.button == "DeviceButton_down" then
+				filter:playcommand("Update")
+			end
+		end
 	end
 	return false
 end
 
 local style = GAMESTATE:GetCurrentStyle()
 local cols = style:ColumnsPerPlayer()
+local evenCols = cols - cols%2
 local filterWidth = (arrowWidth * cols) + padding
 
 local judgeThreshold = Enum.Reverse(TapNoteScore)[ComboContinue()]
@@ -133,14 +140,14 @@ t[#t + 1] =
 	Def.Quad {
 	Name = "SinglePlayerFilter",
 	InitCommand = function(self)
-		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth + MovableValues.NotefieldSpacing * evenCols, SCREEN_HEIGHT * 2)
 		self:diffusecolor(filterColor)
 		self:diffusealpha(filterAlphas)
 		filter = self
 	end,
 	UpdateCommand = function(self)
 		noteFieldWidth = MovableValues.NotefieldWidth
-		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth + MovableValues.NotefieldSpacing * evenCols, SCREEN_HEIGHT * 2)
 	end
 }
 
