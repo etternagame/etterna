@@ -1320,13 +1320,13 @@ DirectoryIsEmpty(const std::string& sDir)
 bool
 CompareRStringsAsc(const std::string& a, const std::string& b)
 {
-	return make_lower(a).c_str() > make_lower(b).c_str();
+	return CompareNoCase(a, b) > 0;
 }
 
 bool
 CompareRStringsDesc(const std::string& a, const std::string& b)
 {
-	return make_lower(a).c_str() < make_lower(b).c_str();
+	return CompareNoCase(b, a) > 0;
 }
 
 void
