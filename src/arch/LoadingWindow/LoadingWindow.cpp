@@ -26,14 +26,14 @@ LoadingWindow::Create()
 		Driver = DriversToTry[i];
 
 #ifdef USE_LOADING_WINDOW_MACOSX
-		if (!DriversToTry[i].CompareNoCase("MacOSX")) {
+		if (!CompareNoCase(DriversToTry[i], "MacOSX")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_MacOSX;
 		}
 #endif
 #ifdef USE_LOADING_WINDOW_GTK
-		if (!DriversToTry[i].CompareNoCase("Gtk")) {
+		if (!CompareNoCase(DriversToTry[i], "Gtk")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_Gtk;

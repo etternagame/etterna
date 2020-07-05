@@ -17,14 +17,14 @@ ShowAlert(CFOptionFlags flags,
 {
 	CFOptionFlags result;
 	CFStringRef text =
-	  CFStringCreateWithCString(NULL, sMessage, kCFStringEncodingUTF8);
+	  CFStringCreateWithCString(NULL, sMessage.c_str(), kCFStringEncodingUTF8);
 
 	if (text == NULL) {
 		std::string error =
 		  ssprintf("CFString for dialog string \"%s\" could not be created.",
 				   sMessage.c_str());
-		WARN(error);
-		DEBUG_ASSERT_M(false, error);
+		WARN(error.c_str());
+		DEBUG_ASSERT_M(false, error.c_str());
 		return kCFUserNotificationDefaultResponse; // Is this better than
 												   // displaying an "unknown
 												   // error" message?
