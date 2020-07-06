@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 
 #import <Cocoa/Cocoa.h>

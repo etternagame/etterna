@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -334,8 +334,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// There was no entry in the cache for this song, or it was out of date.
 	// Let's load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		LOG->UserLog(
-		  "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.");
+		Locator::getLogger()->info("Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
 
 		vector<std::string> vs;
 		FILEMAN->GetDirListingWithMultipleExtensions(
@@ -344,10 +343,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		const auto bHasMusic = !vs.empty();
 
 		if (!bHasMusic) {
-			LOG->UserLog(
-			  "Song",
-			  sDir,
-			  "has no music file either. Ignoring this song directory.");
+            Locator::getLogger()->info("Song {} has no music file either. Ignoring this song directory.", sDir);
 			return false;
 		}
 		// Make sure we have a future filename figured out.
@@ -368,7 +364,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	FinalizeLoading();
 
 	if (!m_bHasMusic) {
-		LOG->UserLog("Song", sDir, "has no music; ignored.");
+	    Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
 		return false; // don't load this song
 	}
 	return true; // do load this song
@@ -1127,7 +1123,7 @@ void
 Song::Save()
 {
 	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
-	LOG->Trace("Song::SaveToSongFile()");
+//	LOG->Trace("Song::SaveToSongFile()");
 
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
@@ -1145,7 +1141,7 @@ Song::Save()
 		const auto sNewPath = sOldPath + ".old";
 
 		if (!FileCopy(sOldPath, sNewPath)) {
-			LOG->UserLog("Song file", sOldPath, "couldn't be backed up.");
+			Locator::getLogger()->info("Song file {} couldn't be backed up.", sOldPath);
 		} else {
 			backedDotOldFileNames.emplace_back(sNewPath);
 			backedOrigFileNames.emplace_back(sOldPath);
@@ -1169,7 +1165,7 @@ bool
 Song::SaveToSMFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "sm");
-	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
+//	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))
@@ -1203,7 +1199,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ssc");
 
-	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
+//	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path)) {
@@ -1246,10 +1242,9 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile += ssprintf(".old");
 
 		if (FileCopy(path, sBackupFile))
-			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
+		    Locator::getLogger()->trace("Backed up {} to {}", path, sBackupFile);
 		else
-			LOG->Trace(
-			  "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+            Locator::getLogger()->trace("Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1266,7 +1261,7 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ett");
 
-	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
+//	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path))
@@ -1300,11 +1295,10 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile = SetExtension(sBackupFile, sExt);
 		sBackupFile += ssprintf(".old");
 
-		if (FileCopy(path, sBackupFile))
-			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
-		else
-			LOG->Trace(
-			  "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+        if (FileCopy(path, sBackupFile))
+            Locator::getLogger()->trace("Backed up {} to {}", path, sBackupFile);
+        else
+            Locator::getLogger()->trace("Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1327,7 +1321,7 @@ bool
 Song::SaveToDWIFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "dwi");
-	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
+//	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))

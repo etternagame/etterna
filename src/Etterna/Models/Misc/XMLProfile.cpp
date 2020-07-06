@@ -17,6 +17,7 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Core/Services/Locator.hpp"
 
 using std::string;
 
@@ -25,52 +26,6 @@ const string ETT_XML_GZ = "Etterna.xml.gz";
 /** @brief The filename containing the signature for ETT_XML's signature. */
 const string DONT_SHARE_SIG = "DontShare.sig";
 static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
-
-// Loading and saving
-#define WARN_PARSER                                                            \
-	ShowWarningOrTrace(__FILE__, __LINE__, "Error parsing file.", true)
-#define WARN_AND_RETURN                                                        \
-	{                                                                          \
-		WARN_PARSER;                                                           \
-		return;                                                                \
-	}
-#define WARN_AND_CONTINUE                                                      \
-	{                                                                          \
-		WARN_PARSER;                                                           \
-		continue;                                                              \
-	}
-#define WARN_AND_BREAK                                                         \
-	{                                                                          \
-		WARN_PARSER;                                                           \
-		break;                                                                 \
-	}
-#define WARN_M(m)                                                              \
-	ShowWarningOrTrace(                                                        \
-	  __FILE__, __LINE__, std::string("Error parsing file: ") + (m), true)
-#define WARN_AND_RETURN_M(m)                                                   \
-	{                                                                          \
-		WARN_M(m);                                                             \
-		return;                                                                \
-	}
-#define WARN_AND_CONTINUE_M(m)                                                 \
-	{                                                                          \
-		WARN_M(m);                                                             \
-		continue;                                                              \
-	}
-#define WARN_AND_BREAK_M(m)                                                    \
-	{                                                                          \
-		WARN_M(m);                                                             \
-		break;                                                                 \
-	}
-
-#define LOAD_NODE(X)                                                           \
-	{                                                                          \
-		const XNode* X = xml->GetChild(#X);                                    \
-		if (X == NULL)                                                         \
-			Locator::getLogger()->warn("Failed to read section " #X);                           \
-		else                                                                   \
-			Load##X##FromNode(X);                                              \
-	}
 
 ProfileLoadResult
 XMLProfile::LoadEttFromDir(string dir)
@@ -484,6 +439,9 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
+		if (pScreenshot->GetName() != "Screenshot")
+            Locator::getLogger()->warn("Unable to load file {}", pScreenshot->GetName());
+
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
 
