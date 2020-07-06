@@ -4,6 +4,7 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "StreamDisplay.h"
 #include "Etterna/Singletons/ThemeManager.h"
+
 #include <cfloat>
 
 static const char* StreamTypeNames[] = {

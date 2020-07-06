@@ -204,7 +204,7 @@ class Song
 	}
 
 	auto GetStepsToSave(bool bSavingCache = true, std::string path = "")
-	  -> vector<Steps*>;
+	  -> std::vector<Steps*>;
 
 	/**
 	 * @brief Retrieve the transliterated subtitle, or the main subtitle if
@@ -286,7 +286,7 @@ class Song
 	std::string m_sCDTitlePath;
 	std::string m_sPreviewVidPath;
 
-	vector<std::string> ImageDir;
+	std::vector<std::string> ImageDir;
 
 	static auto GetSongAssetPath(std::string sPath,
 								 const std::string& sSongPath) -> std::string;
@@ -385,7 +385,7 @@ class Song
 	void SetLastSecond(float f);
 	void SetSpecifiedLastSecond(float f);
 
-	using VBackgroundChange = vector<BackgroundChange>;
+	using VBackgroundChange = std::vector<BackgroundChange>;
 
   private:
 	/** @brief The first second that a note is hit. */
@@ -409,30 +409,32 @@ class Song
 	AutoPtrCopyOnWrite<VBackgroundChange> m_ForegroundChanges;
 
 	[[nodiscard]] auto GetChangesToVectorString(
-	  const vector<BackgroundChange>& changes) const -> vector<std::string>;
+	  const std::vector<BackgroundChange>& changes) const
+	  -> std::vector<std::string>;
 
   public:
 	[[nodiscard]] auto GetBackgroundChanges(BackgroundLayer bl) const
-	  -> const vector<BackgroundChange>&;
-	auto GetBackgroundChanges(BackgroundLayer bl) -> vector<BackgroundChange>&;
+	  -> const std::vector<BackgroundChange>&;
+	auto GetBackgroundChanges(BackgroundLayer bl)
+	  -> std::vector<BackgroundChange>&;
 	[[nodiscard]] auto GetForegroundChanges() const
-	  -> const vector<BackgroundChange>&;
-	auto GetForegroundChanges() -> vector<BackgroundChange>&;
+	  -> const std::vector<BackgroundChange>&;
+	auto GetForegroundChanges() -> std::vector<BackgroundChange>&;
 
 	[[nodiscard]] auto GetBGChanges1ToVectorString() const
-	  -> vector<std::string>;
+	  -> std::vector<std::string>;
 	[[nodiscard]] auto GetBGChanges2ToVectorString() const
-	  -> vector<std::string>;
+	  -> std::vector<std::string>;
 	[[nodiscard]] auto GetFGChanges1ToVectorString() const
-	  -> vector<std::string>;
+	  -> std::vector<std::string>;
 
 	[[nodiscard]] auto GetInstrumentTracksToVectorString() const
-	  -> vector<std::string>;
+	  -> std::vector<std::string>;
 
 	/**
 	 * @brief The list of LyricSegments.
 	 * This must be sorted before gameplay. */
-	vector<LyricSegment> m_LyricSegments;
+	std::vector<LyricSegment> m_LyricSegments;
 
 	void AddBackgroundChange(BackgroundLayer blLayer,
 							 const BackgroundChange& seg);
@@ -461,17 +463,17 @@ class Song
 	[[nodiscard]] auto HasStepsType(StepsType st) const -> bool;
 	[[nodiscard]] auto HasStepsTypeAndDifficulty(StepsType st,
 												 Difficulty dc) const -> bool;
-	[[nodiscard]] auto GetAllSteps() const -> const vector<Steps*>&
+	[[nodiscard]] auto GetAllSteps() const -> const std::vector<Steps*>&
 	{
 		return m_vpSteps;
 	}
 	[[nodiscard]] auto GetStepsByStepsType(StepsType st) const
-	  -> const vector<Steps*>&
+	  -> const std::vector<Steps*>&
 	{
 		return m_vpStepsByType[st];
 	}
 	/** @brief Get the steps of all types within the current game mode */
-	const vector<Steps*> GetStepsOfCurrentGameMode() const;
+	const std::vector<Steps*> GetStepsOfCurrentGameMode() const;
 	bool HasEdits(StepsType st) const;
 
 	auto IsFavorited() -> bool { return isfavorited; }
@@ -492,13 +494,13 @@ class Song
 	void DeleteSteps(const Steps* pSteps, bool bReAutoGen = true);
 
 	void FreeAllLoadedFromProfile(ProfileSlot slot = ProfileSlot_Invalid,
-								  const set<Steps*>* setInUse = nullptr);
+								  const std::set<Steps*>* setInUse = nullptr);
 	[[nodiscard]] auto WasLoadedFromProfile() const -> bool
 	{
 		return m_LoadedFromProfile != ProfileSlot_Invalid;
 	}
 	void GetStepsLoadedFromProfile(ProfileSlot slot,
-								   vector<Steps*>& vpStepsOut) const;
+								   std::vector<Steps*>& vpStepsOut) const;
 	[[nodiscard]] auto GetNumStepsLoadedFromProfile(ProfileSlot slot) const
 	  -> int;
 	auto IsEditAlreadyLoaded(Steps* pSteps) const -> bool;
@@ -512,15 +514,15 @@ class Song
 	 * If you  change the index in here, you must change all NoteData too.
 	 * Any note that doesn't have a value in the range of this array
 	 * means "this note doesn't have a keysound". */
-	vector<std::string> m_vsKeysoundFile;
+	std::vector<std::string> m_vsKeysoundFile;
 
 	CachedObject<Song> m_CachedObject;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
-	vector<Steps*> m_vpSteps;
-	vector<Steps*> m_UnknownStyleSteps;
+	std::vector<Steps*> m_vpSteps;
+	std::vector<Steps*> m_UnknownStyleSteps;
 
   private:
 	bool isfavorited = false;
@@ -528,7 +530,7 @@ class Song
 	bool hasgoal = false;
 	/** @brief the Steps that belong to this Song. */
 	/** @brief the Steps of a particular StepsType that belong to this Song. */
-	vector<Steps*> m_vpStepsByType[NUM_StepsType];
+	std::vector<Steps*> m_vpStepsByType[NUM_StepsType];
 	/** @brief the Steps that are of unrecognized Styles. */
 };
 

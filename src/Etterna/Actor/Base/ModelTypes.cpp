@@ -7,6 +7,7 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <cstring>
 
 #define MS_MAX_NAME 32
@@ -39,7 +40,7 @@ AnimatedTexture::Load(const std::string& sTexOrIniPath)
 	ASSERT(vFrames.empty()); // don't load more than once
 
 	m_bSphereMapped = sTexOrIniPath.find("sphere") != std::string::npos;
-	if (sTexOrIniPath.find("add") != string::npos)
+	if (sTexOrIniPath.find("add") != std::string::npos)
 		m_BlendMode = BLEND_ADD;
 	else
 		m_BlendMode = BLEND_NORMAL;
@@ -352,10 +353,10 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 		for (auto i = 0; i < static_cast<int>(Animation.Bones.size()); i++) {
 			auto& Bone = Animation.Bones[i];
 			for (auto& PositionKey : Bone.PositionKeys)
-				Animation.nTotalFrames = max(
+				Animation.nTotalFrames = std::max(
 				  Animation.nTotalFrames, static_cast<int>(PositionKey.fTime));
 			for (auto& RotationKey : Bone.RotationKeys)
-				Animation.nTotalFrames = max(
+				Animation.nTotalFrames = std::max(
 				  Animation.nTotalFrames, static_cast<int>(RotationKey.fTime));
 		}
 	}

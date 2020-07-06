@@ -28,12 +28,14 @@
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/FilterManager.h"
-
 #include "Etterna/Singletons/GameState.h"
+
 #include <algorithm>
 #include <cfloat>
 #include <ctime>
 #include <set>
+
+using std::vector;
 
 //-Nick12 Used for song file hashing
 #include <Etterna/Singletons/CryptManager.h>
@@ -307,7 +309,7 @@ Song::GetSongFilePath() const
 
 /* Hack: This should be a parameter to TidyUpData, but I don't want to pull
  * in <set> into Song.h, which is heavily used. */
-static set<std::string> BlacklistedImages;
+static std::set<std::string> BlacklistedImages;
 
 /* If PREFSMAN->m_bFastLoad is true, always load from cache if possible.
  * Don't read the contents of sDir if we can avoid it. That means we can't
@@ -1340,7 +1342,7 @@ std::string
 Song::GetCacheFile(std::string sType)
 {
 	// We put the Predefined images into a map.
-	map<std::string, std::string> PreDefs;
+	std::map<std::string, std::string> PreDefs;
 	PreDefs["Banner"] = GetBannerPath();
 	PreDefs["Background"] = GetBackgroundPath();
 	PreDefs["CDTitle"] = GetCDTitlePath();
@@ -1370,7 +1372,7 @@ Song::GetCacheFile(std::string sType)
 	}
 
 	// Create a map that contains all the filenames to search for.
-	map<std::string, map<int, std::string>> PreSets;
+	std::map<std::string, std::map<int, std::string>> PreSets;
 	PreSets["Banner"][1] = "bn";
 	PreSets["Banner"][2] = "banner";
 	PreSets["Background"][1] = "bg";
@@ -1730,7 +1732,7 @@ Song::MatchesFilter(const float rate) const
 }
 
 bool
-Song::HasChartByHash(const string& hash)
+Song::HasChartByHash(const std::string& hash)
 {
 	auto vsteps = GetAllSteps();
 	for (auto& steps : vsteps) {
@@ -1835,7 +1837,8 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 /* If apInUse is set, it contains a list of steps which are in use
  * elsewhere, and should not be deleted. */
 void
-Song::FreeAllLoadedFromProfile(ProfileSlot slot, const set<Steps*>* setInUse)
+Song::FreeAllLoadedFromProfile(ProfileSlot slot,
+							   const std::set<Steps*>* setInUse)
 {
 	/* DeleteSteps will remove and recreate autogen notes, which may reorder
 	 * m_vpSteps, so be careful not to skip over entries. */

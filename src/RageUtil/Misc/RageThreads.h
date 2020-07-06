@@ -2,12 +2,13 @@
 #define RAGE_THREADS_H
 
 #include "Etterna/Globals/global.h"
+#include "Etterna/Singletons/PrefsManager.h"
+
 #include <mutex>
 #include <atomic>
 #include <thread>
 #include <chrono>
 #include <condition_variable>
-#include "Etterna/Singletons/PrefsManager.h"
 #include <functional>
 
 class ThreadData
@@ -16,8 +17,9 @@ class ThreadData
 	void waitForUpdate()
 	{
 		std::unique_lock<std::mutex> lk(_updatedMutex);
-		_updatedCV.wait_for(
-		  lk, chrono::milliseconds(100), [this] { return this->getUpdated(); });
+		_updatedCV.wait_for(lk, std::chrono::milliseconds(100), [this] {
+			return this->getUpdated();
+		});
 	}
 	void setUpdated(bool b)
 	{

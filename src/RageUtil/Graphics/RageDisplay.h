@@ -5,13 +5,13 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
+
 #include <chrono>
 #include <set>
 #include <utility>
-#include <utility>
 
 class DisplaySpec;
-using DisplaySpecs = set<DisplaySpec>;
+using DisplaySpecs = std::set<DisplaySpec>;
 
 const int REFRESH_DEFAULT = 0;
 struct RageSurface;

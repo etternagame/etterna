@@ -8,6 +8,7 @@
 #include "RageUtil.h"
 #include "RageUtil/Misc/RageUnicode.h"
 
+#include <algorithm>
 #include <ctime>
 #include <map>
 #include <numeric>
@@ -19,7 +20,10 @@
 #include <Windows.h>
 #endif
 
+using std::max;
+using std::min;
 using std::vector;
+using std::wstring;
 
 std::string
 head(std::string const& source, int32_t const length)
@@ -61,7 +65,6 @@ ends_with(std::string const& source, std::string const& target)
 
 /* Stuff taken from ragestring.cpp where they already got rid of rstring
  * apparently /shrug */
-
 void
 s_replace(std::string& target, std::string const& from, std::string const& to)
 {
@@ -245,7 +248,7 @@ seed_lua_prng()
 	g_LuaPRNG.seed(static_cast<unsigned int>(time(nullptr)));
 }
 
-void
+inline void
 fapproach(float& val, float other_val, float to_move)
 {
 	assert(to_move >= 0);
@@ -260,7 +263,7 @@ fapproach(float& val, float other_val, float to_move)
 }
 
 /* Return a positive x mod y. */
-float
+inline float
 fmodfp(float x, float y)
 {
 	x = fmodf(x, y); /* x is [-y,y] */
@@ -269,7 +272,7 @@ fmodfp(float x, float y)
 	return x;
 }
 
-int
+inline int
 power_of_two(int input)
 {
 	auto exp = 31, i = input;
@@ -295,7 +298,7 @@ power_of_two(int input)
 	return input == value ? value : value << 1;
 }
 
-bool
+inline bool
 IsAnInt(const std::string& s)
 {
 	if (s.empty())
@@ -434,10 +437,10 @@ Commify(const std::string& num, const std::string& sep, const std::string& dot)
 	auto num_end = num.size();
 	const auto dot_pos = num.find(dot);
 	const auto dash_pos = num.find('-');
-	if (dot_pos != string::npos) {
+	if (dot_pos != std::string::npos) {
 		num_end = dot_pos;
 	}
-	if (dash_pos != string::npos) {
+	if (dash_pos != std::string::npos) {
 		num_start = dash_pos + 1;
 	}
 	const auto num_size = num_end - num_start;
@@ -1340,7 +1343,7 @@ SortRStringArray(vector<std::string>& arrayRStrings, const bool bSortAscending)
 float
 calc_mean(const float* pStart, const float* pEnd)
 {
-	return accumulate(pStart, pEnd, 0.f) / distance(pStart, pEnd);
+	return std::accumulate(pStart, pEnd, 0.f) / std::distance(pStart, pEnd);
 }
 
 float
@@ -1353,7 +1356,7 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 	auto fDev = 0.0f;
 	for (const auto* i = pStart; i != pEnd; ++i)
 		fDev += (*i - fMean) * (*i - fMean);
-	fDev /= distance(pStart, pEnd) - (bSample ? 1 : 0);
+	fDev /= std::distance(pStart, pEnd) - (bSample ? 1 : 0);
 	fDev = sqrtf(fDev);
 
 	return fDev;
@@ -1926,14 +1929,14 @@ int
 StringToInt(const std::string& sString)
 {
 	int ret;
-	istringstream(sString) >> ret;
+	std::istringstream(sString) >> ret;
 	return ret;
 }
 
 std::string
 IntToString(const int& iNum)
 {
-	stringstream ss;
+	std::stringstream ss;
 	ss << iNum;
 	return ss.str();
 }
@@ -1960,7 +1963,7 @@ StringToFloat(const std::string& sString, float& fOut)
 std::string
 FloatToString(const float& num)
 {
-	stringstream ss;
+	std::stringstream ss;
 	ss << num;
 	return ss.str();
 }
@@ -2011,7 +2014,8 @@ WcharToUTF8(wchar_t c)
 
 // &a; -> a
 void
-ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
+ReplaceEntityText(std::string& sText,
+				  const std::map<std::string, std::string>& m)
 {
 	std::string sRet;
 
@@ -2062,7 +2066,7 @@ ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
 
 // abcd -> &a; &b; &c; &d;
 void
-ReplaceEntityText(std::string& sText, const map<char, std::string>& m)
+ReplaceEntityText(std::string& sText, const std::map<char, std::string>& m)
 {
 	std::string sFind;
 

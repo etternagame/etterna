@@ -25,12 +25,6 @@
 #include "archutils/Unix/arch_setup.h"
 #endif
 
-/* Everything will need string for one reason or another: */
-#include <string>
-
-/* And vector: */
-#include <vector>
-
 #if defined(HAVE_STDINT_H) /* need to define int64_t if so */
 #include <cstdint>
 #endif
@@ -50,8 +44,6 @@
 #if defined(NEED_CSTDLIB_WORKAROUND)
 #define llabs ::llabs
 #endif
-
-using namespace std;
 
 #ifdef ASSERT
 #undef ASSERT
@@ -167,14 +159,7 @@ struct CompileAssertDecl
 #define COMPILE_ASSERT(COND)                                                   \
 	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
 
-/** @brief Use std::strings throughout the program. */
-using std::string;
-
 #include "RageUtil/Misc/RageException.h"
-
-/* Define a few functions if necessary */
-#include <cmath>
-
 /* Don't include our own headers here, since they tend to change often. */
 
 #endif

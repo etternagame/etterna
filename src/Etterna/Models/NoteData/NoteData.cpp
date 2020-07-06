@@ -6,6 +6,10 @@
 #include "Etterna/FileTypes/XmlFile.h"
 
 #include <unordered_map>
+#include <algorithm>
+
+using std::map;
+using std::vector;
 
 REGISTER_CLASS_TRAITS(NoteData, new NoteData(*pCopy))
 
@@ -148,8 +152,8 @@ NoteData::CopyRange(const NoteData& from,
 				auto iStartRow = lBegin->first + iMoveBy;
 				auto iEndRow = iStartRow + head.iDuration;
 
-				iStartRow = clamp(iStartRow, rowToBegin, rowToEnd);
-				iEndRow = clamp(iEndRow, rowToBegin, rowToEnd);
+				iStartRow = std::clamp(iStartRow, rowToBegin, rowToEnd);
+				iEndRow = std::clamp(iEndRow, rowToBegin, rowToEnd);
 
 				this->AddHoldNote(t, iStartRow, iEndRow, head);
 			} else {
@@ -226,7 +230,7 @@ NoteData::SerializeNoteData2(TimingData* ts,
 	SerializedNoteData.reserve(NonEmptyRowVector.size());
 	const auto tracks = m_TapNotes.size();
 
-	unordered_map<int, int> lal;
+	std::unordered_map<int, int> lal;
 	// iterate over tracks so we can avoid the lookup in gettapnote
 	for (auto t = 0; t < tracks; ++t) {
 		const auto& tm = m_TapNotes[t];
@@ -333,7 +337,7 @@ NoteData::GetNumTapNonEmptyTracks(int row) const -> int
 }
 
 void
-NoteData::GetTapNonEmptyTracks(int row, set<int>& addTo) const
+NoteData::GetTapNonEmptyTracks(int row, std::set<int>& addTo) const
 {
 	for (auto t = 0; t < m_TapNotes.size(); t++) {
 		if (GetTapNote(t, row).type != TapNoteType_Empty) {
@@ -462,8 +466,8 @@ NoteData::AddHoldNote(int iTrack, int iStartRow, int iEndRow, TapNote tn)
 		auto iOtherRow = it->first;
 		const auto& tnOther = it->second;
 		if (tnOther.type == TapNoteType_HoldHead) {
-			iStartRow = min(iStartRow, iOtherRow);
-			iEndRow = max(iEndRow, iOtherRow + tnOther.iDuration);
+			iStartRow = std::min(iStartRow, iOtherRow);
+			iEndRow = std::max(iEndRow, iOtherRow + tnOther.iDuration);
 		}
 	}
 
@@ -576,7 +580,7 @@ NoteData::GetFirstRow() const -> int
 		if (iEarliestRowFoundSoFar == -1) {
 			iEarliestRowFoundSoFar = iRow;
 		} else {
-			iEarliestRowFoundSoFar = min(iEarliestRowFoundSoFar, iRow);
+			iEarliestRowFoundSoFar = std::min(iEarliestRowFoundSoFar, iRow);
 		}
 	}
 
@@ -605,7 +609,7 @@ NoteData::GetLastRow() const -> int
 			iRow += tn.iDuration;
 		}
 
-		iOldestRowFoundSoFar = max(iOldestRowFoundSoFar, iRow);
+		iOldestRowFoundSoFar = std::max(iOldestRowFoundSoFar, iRow);
 	}
 
 	return iOldestRowFoundSoFar;
@@ -996,7 +1000,7 @@ NoteData::SetTapNote(int track, int row, const TapNote& t)
 }
 
 void
-NoteData::GetTracksHeldAtRow(int row, set<int>& addTo) const
+NoteData::GetTracksHeldAtRow(int row, std::set<int>& addTo) const
 {
 	for (auto t = 0; t < m_TapNotes.size(); ++t) {
 		if (IsHoldNoteAtRow(t, row)) {
@@ -1008,7 +1012,7 @@ NoteData::GetTracksHeldAtRow(int row, set<int>& addTo) const
 auto
 NoteData::GetNumTracksHeldAtRow(int row) -> int
 {
-	static set<int> viTracks;
+	static std::set<int> viTracks;
 	viTracks.clear();
 	GetTracksHeldAtRow(row, viTracks);
 	return viTracks.size();
@@ -1221,7 +1225,7 @@ NoteData::GetNextTapNoteRowForAllTracks(int& rowInOut) const -> bool
 		if (GetNextTapNoteRowForTrack(t, iNewRowThisTrack)) {
 			bAnyHaveNextNote = true;
 			ASSERT(iNewRowThisTrack < MAX_NOTE_ROW);
-			iClosestNextRow = min(iClosestNextRow, iNewRowThisTrack);
+			iClosestNextRow = std::min(iClosestNextRow, iNewRowThisTrack);
 		}
 	}
 
@@ -1242,7 +1246,7 @@ NoteData::GetPrevTapNoteRowForAllTracks(int& rowInOut) const -> bool
 		if (GetPrevTapNoteRowForTrack(t, iNewRowThisTrack)) {
 			bAnyHavePrevNote = true;
 			ASSERT(iNewRowThisTrack < MAX_NOTE_ROW);
-			iClosestPrevRow = max(iClosestPrevRow, iNewRowThisTrack);
+			iClosestPrevRow = std::max(iClosestPrevRow, iNewRowThisTrack);
 		}
 	}
 

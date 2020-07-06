@@ -272,7 +272,7 @@ template<class T>
 class ThemeMetricMap : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	map<std::string, ThemeMetricT> m_metric;
+	std::map<std::string, ThemeMetricT> m_metric;
 
   public:
 	ThemeMetricMap(

@@ -145,18 +145,18 @@ class Steps
 
 	// self exaplanatory -mina
 	static auto GetNPSVector(const NoteData& nd,
-							 const vector<int>& nerv,
-							 const vector<float>& etaner,
-							 float rate) -> vector<int>;
+							 const std::vector<float>& etaner,
+							 const std::vector<int>& nerv,
+							 float rate) -> std::vector<int>;
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
 	// (jumps won't count as hands, etc)
 	static auto GetCNPSVector(const NoteData& nd,
-							  const vector<int>& nerv,
-							  const vector<float>& etaner,
+							  const std::vector<int>& nerv,
+							  const std::vector<float>& etaner,
 							  int chordsize,
-							  float rate) -> vector<int>;
+							  float rate) -> std::vector<int>;
 
 	auto GetHash() const -> unsigned;
 	void GetNoteData(NoteData& noteDataOut) const;
@@ -209,12 +209,12 @@ class Steps
 	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
 	auto GetAllMSD() const -> MinaSD { return diffByRate; }
 	auto SortSkillsetsAtRate(float x, bool includeoverall)
-	  -> vector<pair<Skillset, float>>;
+	  -> std::vector<std::pair<Skillset, float>>;
 
 	void CalcEtternaMetadata(Calc* calc = nullptr);
 	auto DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float;
 	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
-	vector<vector<vector<vector<float>>>>
+	std::vector<std::vector<std::vector<std::vector<float>>>>
 	  calcdebugoutput; // probably should clear this periodically
 	void UnloadCalcDebugOutput();
 
@@ -258,7 +258,7 @@ class Steps
 	/** @brief The Song these Steps are associated with */
 	Song* m_pSong;
 
-	vector<NoteInfo> serializenotedatacache;
+	std::vector<NoteInfo> serializenotedatacache;
 
 	CachedObject<Steps> m_CachedObject;
 

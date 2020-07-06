@@ -3,11 +3,11 @@
 
 #include "NoteDataStructures.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
-#include "Etterna/Models/Misc/TimingData.h"
 
 #include <iterator>
 #include <map>
 #include <set>
+#include <vector>
 
 /** @brief Act on each non empty row in the specific track. */
 #define FOREACH_NONEMPTY_ROW_IN_TRACK(nd, track, row)                          \
@@ -36,11 +36,12 @@
 class NoteData
 {
   public:
-	using TrackMap = map<int, TapNote>;
-	using iterator = map<int, TapNote>::iterator;
-	using const_iterator = map<int, TapNote>::const_iterator;
-	using reverse_iterator = map<int, TapNote>::reverse_iterator;
-	using const_reverse_iterator = map<int, TapNote>::const_reverse_iterator;
+	using TrackMap = std::map<int, TapNote>;
+	using iterator = std::map<int, TapNote>::iterator;
+	using const_iterator = std::map<int, TapNote>::const_iterator;
+	using reverse_iterator = std::map<int, TapNote>::reverse_iterator;
+	using const_reverse_iterator =
+	  std::map<int, TapNote>::const_reverse_iterator;
 
 	NoteData() { m_numTracksLCD = 0; }
 
@@ -167,7 +168,7 @@ class NoteData
 		}
 		// Use when transforming the NoteData.
 		void Revalidate(ND* notedata,
-						vector<int> const& added_or_removed_tracks,
+						std::vector<int> const& added_or_removed_tracks,
 						bool added);
 	};
 	using all_tracks_iterator =
@@ -246,7 +247,7 @@ class NoteData
 		SerializedNoteData.clear();
 		SerializedNoteData.shrink_to_fit();
 	}
-	auto BuildAndGetNerv(TimingData* ts) -> const vector<int>&
+	auto BuildAndGetNerv(TimingData* ts) -> const std::vector<int>&
 	{
 		LogNonEmptyRows(ts);
 		return NonEmptyRowVector;
@@ -370,7 +371,8 @@ class NoteData
 	}
 
 	// Call this after using any transform that changes the NoteData.
-	void RevalidateATIs(vector<int> const& added_or_removed_tracks, bool added);
+	void RevalidateATIs(std::vector<int> const& added_or_removed_tracks,
+						bool added);
 
 	/* Return an iterator range include iStartRow to iEndRow.  Extend the range
 	 * to include hold notes overlapping the boundary. */

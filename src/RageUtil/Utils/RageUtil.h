@@ -8,7 +8,6 @@
 #include <sstream>
 #include <vector>
 #include <memory>
-#include <algorithm>
 #include <string>
 #include <cstring>
 #include <sstream>
@@ -35,52 +34,6 @@ class RageFileDriver;
 
 /** @brief Get the length of the array. */
 #define ARRAYLEN(a) (sizeof(a) / sizeof((a)[0]))
-
-/* Common harmless mismatches.  All min(T,T) and max(T,T) cases are handled
- * by the generic template we get from <algorithm>. */
-inline auto
-min(float a, int b) -> float
-{
-	return a < b ? a : b;
-}
-inline auto
-min(int a, float b) -> float
-{
-	return a < b ? a : b;
-}
-inline auto
-max(float a, int b) -> float
-{
-	return a > b ? a : b;
-}
-inline auto
-max(int a, float b) -> float
-{
-	return a > b ? a : b;
-}
-inline auto
-min(unsigned int a, unsigned long b) -> unsigned long
-{
-	return a < b ? a : b;
-}
-inline auto
-min(unsigned long a, unsigned int b) -> unsigned long
-{
-	return a < b ? a : b;
-}
-inline auto
-max(unsigned int a, unsigned long b) -> unsigned long
-{
-	return a > b ? a : b;
-}
-inline auto
-max(unsigned long a, unsigned int b) -> unsigned long
-{
-	return a > b ? a : b;
-}
-
-/** @brief If outside the range from low to high, bring it within range. */
-#define clamp(val, low, high) (max((low), min((val), (high))))
 
 /**
  * @brief Scales x so that l1 corresponds to l2 and h1 corresponds to h2.

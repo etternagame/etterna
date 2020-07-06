@@ -11,6 +11,9 @@
 
 #include <cassert>
 #include <cfloat>
+#include <algorithm>
+
+using std::vector;
 
 REGISTER_ACTOR_CLASS(Sprite);
 
@@ -464,7 +467,7 @@ Sprite::Update(float fDelta)
 
 	// If the texture is a movie, decode frames.
 	if (!bSkipThisMovieUpdate && m_DecodeMovie)
-		m_pTexture->DecodeSeconds(max(0, fTimePassed));
+		m_pTexture->DecodeSeconds(std::max(0.F, fTimePassed));
 
 	// update scrolling
 	if (m_fTexCoordVelocityX != 0 || m_fTexCoordVelocityY != 0) {
@@ -837,8 +840,9 @@ Sprite::SetState(int iNewState)
 		(iNewState < 0 || iNewState >= static_cast<int>(m_States.size()))) {
 		// Don't warn about number of states in "_blank" or "_missing".
 		if (!m_pTexture ||
-			(m_pTexture->GetID().filename.find("_blank") == string::npos &&
-			 m_pTexture->GetID().filename.find("_missing") == string::npos)) {
+			(m_pTexture->GetID().filename.find("_blank") == std::string::npos &&
+			 m_pTexture->GetID().filename.find("_missing") ==
+			   std::string::npos)) {
 			std::string sError;
 			if (m_pTexture)
 				sError =
@@ -1043,7 +1047,7 @@ Sprite::ScaleToClipped(float fWidth, float fHeight)
 			auto fPercentageToCutOff =
 			  (this->GetZoomedWidth() - fWidth) / this->GetZoomedWidth();
 			fPercentageToCutOff =
-			  max(fPercentageToCutOff - fScaleFudgePercent, 0);
+			  std::max(fPercentageToCutOff - fScaleFudgePercent, 0.F);
 			const auto fPercentageToCutOffEachSide = fPercentageToCutOff / 2;
 
 			// generate a rectangle with new texture coordinates
@@ -1057,7 +1061,7 @@ Sprite::ScaleToClipped(float fWidth, float fHeight)
 			auto fPercentageToCutOff =
 			  (this->GetZoomedHeight() - fHeight) / this->GetZoomedHeight();
 			fPercentageToCutOff =
-			  max(fPercentageToCutOff - fScaleFudgePercent, 0);
+			  std::max(fPercentageToCutOff - fScaleFudgePercent, 0.F);
 			const auto fPercentageToCutOffEachSide = fPercentageToCutOff / 2;
 
 			// generate a rectangle with new texture coordinates

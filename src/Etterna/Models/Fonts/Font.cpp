@@ -10,6 +10,10 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/Dialog/Dialog.h"
 
+using std::map;
+using std::vector;
+using std::wstring;
+
 FontPage::FontPage()
   : m_FontPageTextures()
   , m_sTexturePath("")
@@ -39,7 +43,7 @@ FontPage::Load(const FontPageSettings& cfg)
 
 	RageTextureID ID2 = ID1;
 	// "arial 20 16x16 [main].png" => "arial 20 16x16 [main-stroke].png"
-	if (ID2.filename.find("]") != string::npos) {
+	if (ID2.filename.find("]") != std::string::npos) {
 		s_replace(ID2.filename, "]", "-stroke]");
 		if (IsAFile(ID2.filename)) {
 			m_FontPageTextures.m_pTextureStroke = TEXTUREMAN->LoadTexture(ID2);
@@ -217,10 +221,10 @@ FontPage::SetExtraPixels(int iDrawExtraPixelsLeft, int iDrawExtraPixelsRight)
 		/* Extra pixels to draw to the left and right.  We don't have to
 		 * worry about alignment here; fCharWidth is always even (by
 		 * SetTextureCoords) and iFrameWidth are almost always even. */
-		float fExtraLeft =
-		  min(float(iDrawExtraPixelsLeft), (iFrameWidth - fCharWidth) / 2.0f);
-		float fExtraRight =
-		  min(float(iDrawExtraPixelsRight), (iFrameWidth - fCharWidth) / 2.0f);
+		float fExtraLeft = std::min(float(iDrawExtraPixelsLeft),
+									(iFrameWidth - fCharWidth) / 2.0f);
+		float fExtraRight = std::min(float(iDrawExtraPixelsRight),
+									 (iFrameWidth - fCharWidth) / 2.0f);
 
 		// Move left and expand right.
 		m_aGlyphs[i].m_TexRect.left -=
@@ -268,7 +272,8 @@ Font::GetLineHeightInSourcePixels(const wstring& szLine) const
 
 	// The height of a line is the height of its tallest used font page.
 	for (unsigned i = 0; i < szLine.size(); i++)
-		iLineHeight = max(iLineHeight, GetGlyph(szLine[i]).m_pPage->m_iHeight);
+		iLineHeight =
+		  std::max(iLineHeight, GetGlyph(szLine[i]).m_pPage->m_iHeight);
 
 	return iLineHeight;
 }
@@ -467,11 +472,11 @@ std::string
 Font::GetPageNameFromFileName(const std::string& sFilename)
 {
 	size_t begin = sFilename.find_first_of('[');
-	if (begin == string::npos)
+	if (begin == std::string::npos)
 		return "main";
 
 	size_t end = sFilename.find_first_of(']', begin);
-	if (end == string::npos)
+	if (end == std::string::npos)
 		return "main";
 
 	begin++;
@@ -664,7 +669,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 					continue;
 				}
 
-				// Decode the string.
+				// Decode the std::string.
 				const wstring wdata(
 				  RStringToWstring(pValue->GetValue<std::string>()));
 
@@ -889,7 +894,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 		std::string sPagename = GetPageNameFromFileName(sTexturePath);
 
 		// Ignore stroke textures
-		if (sTexturePath.find("-stroke") != string::npos)
+		if (sTexturePath.find("-stroke") != std::string::npos)
 			continue;
 
 		// Create this down here so it doesn't leak if the continue gets

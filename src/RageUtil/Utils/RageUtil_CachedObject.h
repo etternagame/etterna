@@ -108,8 +108,8 @@ class CachedObject
 	static set<ObjectPointer*> m_spObjectPointers;
 };
 template<typename T>
-set<CachedObjectPointer<T>*> CachedObject<T>::m_spObjectPointers =
-  set<CachedObjectPointer<T>*>();
+std::set<CachedObjectPointer<T>*> CachedObject<T>::m_spObjectPointers =
+  std::set<CachedObjectPointer<T>*>();
 
 template<typename T>
 class CachedObjectPointer

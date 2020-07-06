@@ -16,14 +16,14 @@ struct msMesh
 	std::string sName;
 	char nMaterialIndex;
 
-	vector<RageModelVertex> Vertices;
+	std::vector<RageModelVertex> Vertices;
 
 	// OPTIMIZATION: If all verts in a mesh are transformed by the same bone,
 	// then send the transform to the graphics card for the whole mesh instead
 	// of transforming each vertex on the CPU;
 	char m_iBoneIndex; // -1 = no bone
 
-	vector<msTriangle> Triangles;
+	std::vector<msTriangle> Triangles;
 };
 
 class RageTexture;
@@ -75,7 +75,8 @@ class AnimatedTexture
 		float fDelaySecs;
 		RageVector2 vTranslate;
 	};
-	vector<AnimatedTextureState> vFrames;
+
+	std::vector<AnimatedTextureState> vFrames;
 };
 
 struct msMaterial
@@ -118,8 +119,8 @@ struct msBone
 	RageVector3 Position;
 	RageVector3 Rotation;
 
-	vector<msPositionKey> PositionKeys;
-	vector<msRotationKey> RotationKeys;
+	std::vector<msPositionKey> PositionKeys;
+	std::vector<msRotationKey> RotationKeys;
 };
 
 struct msAnimation
@@ -137,7 +138,7 @@ struct msAnimation
 	auto LoadMilkshapeAsciiBones(const std::string& sAniName, std::string sPath)
 	  -> bool;
 
-	vector<msBone> Bones;
+	std::vector<msBone> Bones;
 	int nTotalFrames;
 };
 

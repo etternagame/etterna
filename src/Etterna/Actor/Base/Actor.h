@@ -9,6 +9,7 @@
 #include "Tween.h"
 
 #include <map>
+
 class XNode;
 struct lua_State;
 class LuaClass;

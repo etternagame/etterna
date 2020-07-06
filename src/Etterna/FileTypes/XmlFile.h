@@ -4,6 +4,7 @@
 #define XML_FILE_H
 
 #include <map>
+
 struct DateTime;
 class RageFileBasic;
 struct lua_State;
@@ -60,9 +61,9 @@ class XNodeStringValue : public XNodeValue
 	void SetValueFromStack(lua_State* L) override;
 };
 
-using XAttrs = map<std::string, XNodeValue*>;
+using XAttrs = std::map<std::string, XNodeValue*>;
 class XNode;
-using XNodes = vector<XNode*>;
+using XNodes = std::vector<XNode*>;
 /** @brief Loop through each node. */
 #define FOREACH_Attr(pNode, Var)                                               \
 	for (XAttrs::iterator Var = (pNode)->m_attrs.begin();                      \
@@ -92,7 +93,7 @@ class XNode
 {
   private:
 	XNodes m_childs; // child nodes
-	multimap<std::string, XNode*> m_children_by_name;
+	std::multimap<std::string, XNode*> m_children_by_name;
 
   public:
 	std::string m_sName;
