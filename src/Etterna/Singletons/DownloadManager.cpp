@@ -495,7 +495,6 @@ DownloadManager::Update(float fDeltaSeconds)
 		return;
 	UpdatePacks(fDeltaSeconds);
 	UpdateHTTP(fDeltaSeconds);
-	return;
 }
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
@@ -565,7 +564,6 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		if (idx_to_delete != -1)
 			HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 	}
-	return;
 }
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
@@ -697,7 +695,6 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	return;
 }
 
 string
@@ -1091,8 +1088,6 @@ DownloadManager::UploadScore(HighScore* hs,
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
 	CHECKPOINT_M("Finished creating UploadScore request");
-
-	return;
 }
 
 // this is for new/live played scores that have replaydata in memory
@@ -1135,7 +1130,6 @@ uploadSequentially()
 		DLMAN->ScoreUploadSequentialQueue.pop_front();
 		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
 	}
-	return;
 }
 
 bool
@@ -1326,7 +1320,6 @@ DownloadManager::RefreshUserRank()
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest("user/" + sessionUser + "/ranks", {}, done, true, false, true);
-	return;
 }
 OnlineTopScore
 DownloadManager::GetTopSkillsetScore(unsigned int rank,
@@ -2040,7 +2033,6 @@ DownloadManager::RefreshTop25(Skillset ss)
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest(req, {}, done);
-	return;
 }
 // Skillset ratings (we dont care about mod lvl, username, about, etc)
 void
@@ -2088,7 +2080,6 @@ DownloadManager::RefreshUserData()
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest("user/" + sessionUser, {}, done);
-	return;
 }
 
 void
@@ -2118,7 +2109,7 @@ void
 DownloadManager::StartSession(
   string user,
   string pass,
-  function<void(bool loggedIn)> callback = [](bool) { return; })
+  function<void(bool loggedIn)> callback = [](bool) {})
 {
 	string url = serverURL.Get() + "/login";
 	if (loggingIn || user.empty()) {
@@ -2282,7 +2273,6 @@ DownloadManager::RefreshPackList(const string& url)
 		DLMAN->RefreshCoreBundles();
 	};
 	SendRequestToURL(url, {}, done, false, false, true, false);
-	return;
 }
 
 Download::Download(string url, string filename, function<void(Download*)> done)

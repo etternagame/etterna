@@ -75,7 +75,7 @@ eventually go away) C4355: 'this' : used in base member initializer list
 
 #endif
 
-#include <wchar.h> // needs to be included before our fixes below
+#include <cwchar> // needs to be included before our fixes below
 
 #define lstat stat
 #define fsync _commit
@@ -84,11 +84,11 @@ eventually go away) C4355: 'this' : used in base member initializer list
 
 typedef time_t time_t;
 struct tm;
-struct tm*
-my_localtime_r(const time_t* timep, struct tm* result);
+auto
+my_localtime_r(const time_t* timep, struct tm* result) -> struct tm*;
 #define localtime_r my_localtime_r
-struct tm*
-my_gmtime_r(const time_t* timep, struct tm* result);
+auto
+my_gmtime_r(const time_t* timep, struct tm* result) -> struct tm*;
 #define gmtime_r my_gmtime_r
 #if defined(_MSC_VER)
 void
@@ -98,17 +98,17 @@ my_usleep(unsigned long usec);
 
 // Missing stdint types:
 #if !defined(__MINGW32__) // MinGW headers define these for us
-typedef signed char int8_t;
-typedef signed short int16_t;
-typedef int int32_t;
-typedef __int64 int64_t;
-typedef unsigned char uint8_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef int int32_t;
-typedef unsigned int uint32_t;
-typedef __int64 int64_t;
-typedef unsigned __int64 uint64_t;
+using int8_t = signed char;
+using int16_t = short;
+using int32_t = int;
+using int64_t = long long;
+using uint8_t = unsigned char;
+using int16_t = short;
+using uint16_t = unsigned short;
+using int32_t = int;
+using uint32_t = unsigned int;
+using int64_t = long long;
+using uint64_t = unsigned long long;
 #if defined(_MSC_VER)
 #if _MSC_VER < 1700 // 1700 = VC++ 2011
 #define INT64_C(i) i##i64

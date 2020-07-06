@@ -137,16 +137,16 @@ class ThemeMetric : public IThemeMetric
 	/**
 	 * @brief Retrieve the metric's name.
 	 * @return the metric's name. */
-	const std::string& GetName() const { return m_sName; }
+	auto GetName() const -> const std::string& { return m_sName; }
 	/**
 	 * @brief Retrieve the metric's group.
 	 * @return the metric's group. */
-	const std::string& GetGroup() const { return m_sGroup; }
+	auto GetGroup() const -> const std::string& { return m_sGroup; }
 
 	/**
 	 * @brief Retrieve the metric's value.
 	 * @return the metric's value. */
-	const T& GetValue() const
+	auto GetValue() const -> const T&
 	{
 		ASSERT(!m_sName.empty());
 		ASSERT_M(m_Value.IsSet(), m_sGroup + " " + m_sName);
@@ -171,7 +171,7 @@ class ThemeMetric : public IThemeMetric
 
 	operator const T&() const { return GetValue(); }
 
-	bool IsLoaded() const { return m_Value.IsSet(); }
+	auto IsLoaded() const -> bool { return m_Value.IsSet(); }
 
 	// Hacks for VC6 for all boolean operators.
 	// These three no longer appear to be required:
@@ -180,7 +180,10 @@ class ThemeMetric : public IThemeMetric
 	// bool operator || ( const T& input ) const { return GetValue() || input; }
 
 	// This one is still required in at least Visual Studio 2008:
-	bool operator==(const T& input) const { return GetValue() == input; }
+	auto operator==(const T& input) const -> bool
+	{
+		return GetValue() == input;
+	}
 };
 
 using MetricName1D = std::string (*)(size_t);
@@ -214,7 +217,7 @@ class ThemeMetric1D : public IThemeMetric
 			m_metric[i].Clear();
 	}
 
-	[[nodiscard]] const T& GetValue(size_t i) const
+	[[nodiscard]] auto GetValue(size_t i) const -> const T&
 	{
 		return m_metric[i].GetValue();
 	}
@@ -226,7 +229,7 @@ template<class T>
 class ThemeMetric2D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	typedef vector<ThemeMetricT> ThemeMetricTVector;
+	using ThemeMetricTVector = vector<ThemeMetricT>;
 	vector<ThemeMetricTVector> m_metric;
 
   public:
@@ -258,7 +261,7 @@ class ThemeMetric2D : public IThemeMetric
 			for (unsigned j = 0; j < m_metric[i].size(); j++)
 				m_metric[i][j].Clear();
 	}
-	const T& GetValue(size_t i, size_t j) const
+	auto GetValue(size_t i, size_t j) const -> const T&
 	{
 		return m_metric[i][j].GetValue();
 	}
@@ -307,7 +310,7 @@ class ThemeMetricMap : public IThemeMetric
 			 ++m)
 			m->second.Clear();
 	}
-	const T& GetValue(const std::string& s) const
+	auto GetValue(const std::string& s) const -> const T&
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.

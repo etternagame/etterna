@@ -14,7 +14,7 @@
 #define MINACALC_API
 #endif
 
-typedef std::vector<std::vector<float>> MinaSD;
+using MinaSD = std::vector<std::vector<float>>;
 using Finger = std::vector<std::vector<float>>;
 using ProcessedFingers = std::vector<Finger>;
 
@@ -150,7 +150,7 @@ class Calc
 	std::array<std::array<float, max_intervals>, num_hands> jack_loss{};
 
 	// base techdifficulty per row of current interval being scanned
-	std::array<float, max_rows_for_single_interval> tc_static;
+	std::array<float, max_rows_for_single_interval> tc_static{};
 
 	// total number of intervals for the current file/rate
 	int numitv = 0;

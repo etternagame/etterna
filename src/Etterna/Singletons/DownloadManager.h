@@ -1,16 +1,15 @@
 #pragma once
 #ifndef SM_DOWNMANAGER
-
 #define SM_DOWNMANAGER
 
 #include "Etterna/Globals/global.h"
-#include "CommandLineActions.h"
 #include "RageUtil/File/RageFile.h"
 #include "Etterna/Models/Misc/HighScore.h"
 #include "ScreenManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "curl/curl.h"
 #include "Etterna/Models/Misc/Difficulty.h"
+
 #include <deque>
 
 class DownloadablePack;
@@ -38,7 +37,7 @@ class Download
 	Download(
 	  string url,
 	  string filename = "",
-	  function<void(Download*)> done = [](Download*) { return; });
+	  function<void(Download*)> done = [](Download*) {});
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -94,10 +93,10 @@ class HTTPRequest
 	HTTPRequest(
 	  CURL* h,
 	  function<void(HTTPRequest&, CURLMsg*)> done = [](HTTPRequest& req,
-													   CURLMsg*) { return; },
+													   CURLMsg*) {},
 	  curl_httppost* postform = nullptr,
 	  function<void(HTTPRequest&, CURLMsg*)> fail = [](HTTPRequest& req,
-													   CURLMsg*) { return; })
+													   CURLMsg*) {})
 	  : handle(h)
 	  , form(postform)
 	  , Done(done)

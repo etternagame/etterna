@@ -24,14 +24,14 @@ struct TapNoteResult
 	 * Negative numbers mean the note was hit early; positive numbers mean
 	 * it was hit late. These values are only meaningful for graded taps
 	 * (tns >= TNS_W5). */
-	float fTapNoteOffset{ 1.f };
+	float fTapNoteOffset{ 1.F };
 
 	/** @brief If the whole row has been judged, all taps on the row will be set
 	 * to hidden. */
 	bool bHidden{ false };
 
 	// XML
-	[[nodiscard]] XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
@@ -41,7 +41,7 @@ struct TapNoteResult
 struct HoldNoteResult
 {
 	HoldNoteResult() = default;
-	[[nodiscard]] float GetLastHeldBeat() const;
+	[[nodiscard]] auto GetLastHeldBeat() const -> float;
 
 	HoldNoteScore hns{ HNS_None };
 
@@ -55,7 +55,7 @@ struct HoldNoteResult
 	 * When this value hits 0.0 for the first time, m_HoldScore becomes
 	 * HNS_LetGo. If the life is > 0.0 when the HoldNote ends, then m_HoldScore
 	 * becomes HNS_Held. */
-	float fLife{ 1.f };
+	float fLife{ 1.F };
 
 	/** @brief The number of seconds the hold note has overlapped the current
 	 * beat.
@@ -81,7 +81,7 @@ struct HoldNoteResult
 	bool bActive{ false };
 
 	// XML
-	[[nodiscard]] XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
@@ -107,10 +107,10 @@ enum TapNoteType
 	NUM_TapNoteType,
 	TapNoteType_Invalid
 };
-const std::string&
-TapNoteTypeToString(TapNoteType tnt);
-const std::string&
-TapNoteTypeToLocalizedString(TapNoteType tnt);
+auto
+TapNoteTypeToString(TapNoteType tnt) -> const std::string&;
+auto
+TapNoteTypeToLocalizedString(TapNoteType tnt) -> const std::string&;
 LuaDeclareType(TapNoteType);
 
 /** @brief The list of a TapNote's sub types. */
@@ -123,10 +123,10 @@ enum TapNoteSubType
 	NUM_TapNoteSubType,
 	TapNoteSubType_Invalid
 };
-const std::string&
-TapNoteSubTypeToString(TapNoteSubType tnst);
-const std::string&
-TapNoteSubTypeToLocalizedString(TapNoteSubType tnst);
+auto
+TapNoteSubTypeToString(TapNoteSubType tnst) -> const std::string&;
+auto
+TapNoteSubTypeToLocalizedString(TapNoteSubType tnst) -> const std::string&;
 LuaDeclareType(TapNoteSubType);
 
 /** @brief The different places a TapNote could come from. */
@@ -138,10 +138,10 @@ enum TapNoteSource
 	NUM_TapNoteSource,
 	TapNoteSource_Invalid
 };
-const std::string&
-TapNoteSourceToString(TapNoteSource tns);
-const std::string&
-TapNoteSourceToLocalizedString(TapNoteSource tns);
+auto
+TapNoteSourceToString(TapNoteSource tns) -> const std::string&;
+auto
+TapNoteSourceToLocalizedString(TapNoteSource tns) -> const std::string&;
 LuaDeclareType(TapNoteSource);
 
 /** @brief The various properties of a tap note. */
@@ -165,19 +165,19 @@ struct TapNote
 	HoldNoteResult HoldResult;
 
 	// XML
-	[[nodiscard]] XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
 	void PushSelf(lua_State* L);
 
 	// So I'm not repeatedly typing this out - Mina
-	[[nodiscard]] bool IsNote() const
+	[[nodiscard]] auto IsNote() const -> bool
 	{
 		return type == TapNoteType_Tap || type == TapNoteType_HoldHead;
 	}
 
-	TapNote() {}
+	TapNote() = default;
 	void Init()
 	{
 		type = TapNoteType_Empty;
@@ -206,10 +206,10 @@ struct TapNote
 	 * @brief Determine if the two TapNotes are equal to each other.
 	 * @param other the other TapNote we're checking.
 	 * @return true if the two TapNotes are equal, or false otherwise. */
-	bool operator==(const TapNote& other) const
+	auto operator==(const TapNote& other) const -> bool
 	{
 #define COMPARE(x)                                                             \
-	if (x != other.x)                                                          \
+	if ((x) != other.x)                                                        \
 	return false
 		COMPARE(type);
 		COMPARE(subType);
@@ -223,7 +223,10 @@ struct TapNote
 	 * @brief Determine if the two TapNotes are not equal to each other.
 	 * @param other the other TapNote we're checking.
 	 * @return true if the two TapNotes are not equal, or false otherwise. */
-	bool operator!=(const TapNote& other) const { return !operator==(other); }
+	auto operator!=(const TapNote& other) const -> bool
+	{
+		return !operator==(other);
+	}
 };
 
 struct HoldReplayResult
@@ -252,7 +255,7 @@ struct TapReplayResult
 	{
 		row = 0;
 		track = 0;
-		offset = 0.f;
+		offset = 0.F;
 		type = TapNoteType_Invalid;
 		offsetAdjustedRow = 0;
 	}
@@ -308,21 +311,21 @@ enum NoteType
 	NUM_NoteType,
 	NoteType_Invalid
 };
-const std::string&
-NoteTypeToString(NoteType nt);
-const std::string&
-NoteTypeToLocalizedString(NoteType nt);
+auto
+NoteTypeToString(NoteType nt) -> const std::string&;
+auto
+NoteTypeToLocalizedString(NoteType nt) -> const std::string&;
 LuaDeclareType(NoteType);
-float
-NoteTypeToBeat(NoteType nt);
-int
-NoteTypeToRow(NoteType nt);
-NoteType
-GetNoteType(int row);
-NoteType
-BeatToNoteType(float fBeat);
-bool
-IsNoteOfType(int row, NoteType t);
+auto
+NoteTypeToBeat(NoteType nt) -> float;
+auto
+NoteTypeToRow(NoteType nt) -> int;
+auto
+GetNoteType(int row) -> NoteType;
+auto
+BeatToNoteType(float fBeat) -> NoteType;
+auto
+IsNoteOfType(int row, NoteType t) -> bool;
 
 /* This is more accurate: by computing the integer and fractional parts
 separately, we
@@ -343,17 +346,17 @@ inline int   BeatToNoteRow( float fBeatNum )
  * @brief Convert the beat into a note row.
  * @param fBeatNum the beat to convert.
  * @return the note row. */
-inline int
-BeatToNoteRow(float fBeatNum)
+inline auto
+BeatToNoteRow(float fBeatNum) -> int
 {
-	return lround(fBeatNum * 48.f);
+	return lround(fBeatNum * 48.F);
 }
 /**
  * @brief Convert the note row to a beat.
  * @param iRow the row to convert.
  * @return the beat. */
-inline float
-NoteRowToBeat(int iRow)
+inline auto
+NoteRowToBeat(int iRow) -> float
 {
 	return iRow / static_cast<float>(ROWS_PER_BEAT);
 }
@@ -365,8 +368,8 @@ NoteRowToBeat(int iRow)
  * @brief Convert the note row to note row (returns itself).
  * @param row the row to convert.
  */
-static inline int
-ToNoteRow(int row)
+static inline auto
+ToNoteRow(int row) -> int
 {
 	return row;
 }
@@ -375,8 +378,8 @@ ToNoteRow(int row)
  * @brief Convert the beat to note row.
  * @param beat the beat to convert.
  */
-static inline int
-ToNoteRow(float beat)
+static inline auto
+ToNoteRow(float beat) -> int
 {
 	return BeatToNoteRow(beat);
 }
@@ -385,8 +388,8 @@ ToNoteRow(float beat)
  * @brief Convert the note row to beat.
  * @param row the row to convert.
  */
-static inline float
-ToBeat(int row)
+static inline auto
+ToBeat(int row) -> float
 {
 	return NoteRowToBeat(row);
 }
@@ -395,8 +398,8 @@ ToBeat(int row)
  * @brief Convert the beat row to beat (return itself).
  * @param beat the beat to convert.
  */
-static inline float
-ToBeat(float beat)
+static inline auto
+ToBeat(float beat) -> float
 {
 	return beat;
 }
@@ -410,8 +413,8 @@ ToBeat(float beat)
  * @return T the scaled position
  */
 template<typename T>
-T
-ScalePosition(T start, T length, T newLength, T position)
+auto
+ScalePosition(T start, T length, T newLength, T position) -> T
 {
 	if (position < start)
 		return position;

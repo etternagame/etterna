@@ -38,19 +38,19 @@ THE SOFTWARE.
 #include <fstream>
 namespace picosha2 {
 typedef unsigned long word_t;
-typedef unsigned char byte_t;
+using byte_t = unsigned char;
 
 static const size_t k_digest_size = 32;
 
 namespace detail {
-inline byte_t
-mask_8bit(byte_t x)
+inline auto
+mask_8bit(byte_t x) -> byte_t
 {
 	return x & 0xff;
 }
 
-inline word_t
-mask_32bit(word_t x)
+inline auto
+mask_32bit(word_t x) -> word_t
 {
 	return x & 0xffffffff;
 }
@@ -73,52 +73,52 @@ const word_t initial_message_digest[8] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372,
 										   0xa54ff53a, 0x510e527f, 0x9b05688c,
 										   0x1f83d9ab, 0x5be0cd19 };
 
-inline word_t
-ch(word_t x, word_t y, word_t z)
+inline auto
+ch(word_t x, word_t y, word_t z) -> word_t
 {
 	return (x & y) ^ ((~x) & z);
 }
 
-inline word_t
-maj(word_t x, word_t y, word_t z)
+inline auto
+maj(word_t x, word_t y, word_t z) -> word_t
 {
 	return (x & y) ^ (x & z) ^ (y & z);
 }
 
-inline word_t
-rotr(word_t x, std::size_t n)
+inline auto
+rotr(word_t x, std::size_t n) -> word_t
 {
 	assert(n < 32);
 	return mask_32bit((x >> n) | (x << (32 - n)));
 }
 
-inline word_t
-bsig0(word_t x)
+inline auto
+bsig0(word_t x) -> word_t
 {
 	return rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22);
 }
 
-inline word_t
-bsig1(word_t x)
+inline auto
+bsig1(word_t x) -> word_t
 {
 	return rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25);
 }
 
-inline word_t
-shr(word_t x, std::size_t n)
+inline auto
+shr(word_t x, std::size_t n) -> word_t
 {
 	assert(n < 32);
 	return x >> n;
 }
 
-inline word_t
-ssig0(word_t x)
+inline auto
+ssig0(word_t x) -> word_t
 {
 	return rotr(x, 7) ^ rotr(x, 18) ^ shr(x, 3);
 }
 
-inline word_t
-ssig1(word_t x)
+inline auto
+ssig1(word_t x) -> word_t
 {
 	return rotr(x, 17) ^ rotr(x, 19) ^ shr(x, 10);
 }
@@ -209,8 +209,8 @@ bytes_to_hex_string(const InContainer& bytes, std::string& hex_str)
 }
 
 template<typename InIter>
-std::string
-bytes_to_hex_string(InIter first, InIter last)
+auto
+bytes_to_hex_string(InIter first, InIter last) -> std::string
 {
 	std::string hex_str;
 	bytes_to_hex_string(first, last, hex_str);
@@ -218,8 +218,8 @@ bytes_to_hex_string(InIter first, InIter last)
 }
 
 template<typename InContainer>
-std::string
-bytes_to_hex_string(const InContainer& bytes)
+auto
+bytes_to_hex_string(const InContainer& bytes) -> std::string
 {
 	std::string hex_str;
 	bytes_to_hex_string(bytes, hex_str);
@@ -289,11 +289,11 @@ class hash256_one_by_one
 	{
 		word_t carry = 0;
 		data_length_digits_[0] += n;
-		for (std::size_t i = 0; i < 4; ++i) {
-			data_length_digits_[i] += carry;
-			if (data_length_digits_[i] >= 65536u) {
-				carry = data_length_digits_[i] >> 16;
-				data_length_digits_[i] &= 65535u;
+		for (unsigned long& data_length_digit : data_length_digits_) {
+			data_length_digit += carry;
+			if (data_length_digit >= 65536U) {
+				carry = data_length_digit >> 16;
+				data_length_digit &= 65535U;
 			} else {
 				break;
 			}
@@ -307,12 +307,12 @@ class hash256_one_by_one
 
 		// convert byte length to bit length (multiply 8 or shift 3 times left)
 		word_t carry = 0;
-		for (std::size_t i = 0; i < 4; ++i) {
-			word_t before_val = data_bit_length_digits[i];
-			data_bit_length_digits[i] <<= 3;
-			data_bit_length_digits[i] |= carry;
-			data_bit_length_digits[i] &= 65535u;
-			carry = (before_val >> (16 - 3)) & 65535u;
+		for (unsigned long& data_bit_length_digit : data_bit_length_digits) {
+			word_t before_val = data_bit_length_digit;
+			data_bit_length_digit <<= 3;
+			data_bit_length_digit |= carry;
+			data_bit_length_digit &= 65535U;
+			carry = (before_val >> (16 - 3)) & 65535U;
 		}
 
 		// write data_bit_length
@@ -322,8 +322,8 @@ class hash256_one_by_one
 		}
 	}
 	std::vector<byte_t> buffer_;
-	word_t data_length_digits_[4]; // as 64bit integer (16bit x 4 integer)
-	word_t h_[8];
+	word_t data_length_digits_[4]{}; // as 64bit integer (16bit x 4 integer)
+	word_t h_[8]{};
 };
 
 inline void
@@ -334,8 +334,8 @@ get_hash_hex_string(const hash256_one_by_one& hasher, std::string& hex_str)
 	return bytes_to_hex_string(hash, hash + k_digest_size, hex_str);
 }
 
-inline std::string
-get_hash_hex_string(const hash256_one_by_one& hasher)
+inline auto
+get_hash_hex_string(const hash256_one_by_one& hasher) -> std::string
 {
 	std::string hex_str;
 	get_hash_hex_string(hasher, hex_str);
@@ -349,8 +349,8 @@ hash256_impl(RaIter first,
 			 RaIter last,
 			 OutIter first2,
 			 OutIter last2,
-			 int,
-			 std::random_access_iterator_tag)
+			 int /*unused*/,
+			 std::random_access_iterator_tag /*unused*/)
 {
 	hash256_one_by_one hasher;
 	// hasher.init();
@@ -366,7 +366,7 @@ hash256_impl(InputIter first,
 			 OutIter first2,
 			 OutIter last2,
 			 int buffer_size,
-			 std::input_iterator_tag)
+			 std::input_iterator_tag /*unused*/)
 {
 	std::vector<byte_t> buffer(buffer_size);
 	hash256_one_by_one hasher;
@@ -385,7 +385,7 @@ hash256_impl(InputIter first,
 	hasher.finish();
 	hasher.get_hash_bytes(first2, last2);
 }
-}
+} // namespace impl
 
 template<typename InIter, typename OutIter>
 void
@@ -437,8 +437,8 @@ hash256_hex_string(InIter first, InIter last, std::string& hex_str)
 }
 
 template<typename InIter>
-std::string
-hash256_hex_string(InIter first, InIter last)
+auto
+hash256_hex_string(InIter first, InIter last) -> std::string
 {
 	std::string hex_str;
 	hash256_hex_string(first, last, hex_str);
@@ -459,8 +459,8 @@ hash256_hex_string(const InContainer& src, std::string& hex_str)
 }
 
 template<typename InContainer>
-std::string
-hash256_hex_string(const InContainer& src)
+auto
+hash256_hex_string(const InContainer& src) -> std::string
 {
 	return hash256_hex_string(src.begin(), src.end());
 }

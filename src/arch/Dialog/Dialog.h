@@ -26,18 +26,19 @@ void
 Error(const std::string& sError, const std::string& sID = "");
 void
 OK(const std::string& sMessage, const std::string& sID = "");
-Result
-OKCancel(const std::string& sMessage, const std::string& sID = "");
-Result
-AbortRetryIgnore(const std::string& sMessage, const std::string& sID = "");
-Result
-AbortRetry(const std::string& sMessage, const std::string& sID = "");
-Result
-YesNo(const std::string& sMessage, const std::string& sID = "");
+auto
+OKCancel(const std::string& sMessage, const std::string& sID = "") -> Result;
+auto
+AbortRetryIgnore(const std::string& sMessage, const std::string& sID = "")
+  -> Result;
+auto
+AbortRetry(const std::string& sMessage, const std::string& sID = "") -> Result;
+auto
+YesNo(const std::string& sMessage, const std::string& sID = "") -> Result;
 
 /* for DialogDrivers */
 void
 IgnoreMessage(const std::string& sID);
-}
+} // namespace Dialog
 
 #endif

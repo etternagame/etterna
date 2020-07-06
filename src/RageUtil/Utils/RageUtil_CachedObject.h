@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_UTIL_CACHED_OBJECT_H
+#ifndef RAGE_UTIL_CACHED_OBJECT_H
 #define RAGE_UTIL_CACHED_OBJECT_H
 
 #include <set>
@@ -39,7 +39,7 @@ class CachedObject
 			ClearCacheSpecific(m_pObject);
 	}
 
-	CachedObject& operator=(const CachedObject& rhs) { return *this; }
+	auto operator=(const CachedObject& rhs) -> CachedObject& { return *this; }
 
 	/* Clear all cached entries for this type. */
 	static void ClearCacheAll()
@@ -118,8 +118,7 @@ class CachedObjectPointer
 	using Object = CachedObject<T>;
 
 	CachedObjectPointer()
-	  : m_pCache(NULL)
-	  , m_bCacheIsSet(false)
+	  : m_pCache(nullptr)
 	{
 		Object::Register(this);
 	}
@@ -135,7 +134,7 @@ class CachedObjectPointer
 
 	~CachedObjectPointer() { Object::Unregister(this); }
 
-	bool Get(T** pRet) const
+	auto Get(T** pRet) const -> bool
 	{
 		CachedObjectHelpers::Lock();
 		if (!m_bCacheIsSet) {
@@ -169,7 +168,7 @@ class CachedObjectPointer
 	friend class CachedObject<T>;
 
 	T* m_pCache;
-	bool m_bCacheIsSet;
+	bool m_bCacheIsSet{ false };
 };
 
 #endif

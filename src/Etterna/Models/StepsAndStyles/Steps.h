@@ -201,7 +201,7 @@ class Steps
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
 	auto GetChartKey() const -> const std::string& { return ChartKey; }
-	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	std::vector<float> dummy = { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
 	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
 						  dummy, dummy, dummy, dummy, dummy, dummy, dummy,
 						  dummy, dummy, dummy, dummy, dummy, dummy, dummy };
@@ -218,8 +218,8 @@ class Steps
 	  calcdebugoutput; // probably should clear this periodically
 	void UnloadCalcDebugOutput();
 
-	float firstsecond = 0.f;
-	float lastsecond = 0.f;
+	float firstsecond = 0.F;
+	float lastsecond = 0.F;
 
 	// this is bugged and returns true for files with negative bpms when it
 	// shouldn't - mina
@@ -270,7 +270,10 @@ class Steps
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
 	void GetDisplayBpms(DisplayBpms& addTo) const;
 
-	const std::vector<std::string>& Getdebugstrings() { return debugstrings; }
+	auto Getdebugstrings() -> const std::vector<std::string>&
+	{
+		return debugstrings;
+	}
 
   private:
 	std::string ChartKey = "";

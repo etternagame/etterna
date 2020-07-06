@@ -143,7 +143,6 @@ correct_non_utf_8(string* str)
 			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
-					;
 				} else {
 					to.append(1, c);
 					to.append(1, c2);
@@ -2021,7 +2020,6 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 		lua_rawseti(L, -2, i);
 		i++;
 	}
-	return;
 }
 
 static bool

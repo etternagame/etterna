@@ -35,10 +35,10 @@
 #include <vector>
 
 #if defined(HAVE_STDINT_H) /* need to define int64_t if so */
-#include <stdint.h>
+#include <cstdint>
 #endif
 #if defined(HAVE_INTTYPES_H)
-#include <inttypes.h>
+#include <cinttypes>
 #endif
 
 /* Branch optimizations: */

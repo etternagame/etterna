@@ -97,7 +97,7 @@ class PrefsManager
 	void Init();
 
 	void SetCurrentGame(const std::string& sGame);
-	std::string GetCurrentGame() { return m_sCurrentGame; }
+	auto GetCurrentGame() -> std::string { return m_sCurrentGame; }
 
   protected:
 	Preference<std::string> m_sCurrentGame;
@@ -266,7 +266,7 @@ class PrefsManager
 
 	void ResetToFactoryDefaults();
 
-	std::string GetPreferencesSection() const;
+	[[nodiscard]] auto GetPreferencesSection() const -> std::string;
 
 	// Lua
 	void PushSelf(lua_State* L);

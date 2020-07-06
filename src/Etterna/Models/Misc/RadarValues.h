@@ -5,7 +5,7 @@
 #include "ThemeMetric.h"
 
 /** @brief Unknown radar values are given a default value. */
-#define RADAR_VAL_UNKNOWN -1
+#define RADAR_VAL_UNKNOWN (-1)
 
 class XNode;
 struct lua_State;
@@ -16,10 +16,10 @@ struct RadarValues
 	int m_Values[NUM_RadarCategory];
 
   public:
-	int operator[](RadarCategory cat) const { return m_Values[cat]; }
-	int& operator[](RadarCategory cat) { return m_Values[cat]; }
-	int operator[](int cat) const { return m_Values[cat]; }
-	int& operator[](int cat) { return m_Values[cat]; }
+	auto operator[](RadarCategory cat) const -> int { return m_Values[cat]; }
+	auto operator[](RadarCategory cat) -> int& { return m_Values[cat]; }
+	auto operator[](int cat) const -> int { return m_Values[cat]; }
+	auto operator[](int cat) -> int& { return m_Values[cat]; }
 
 	RadarValues();
 	void MakeUnknown();
@@ -30,7 +30,7 @@ struct RadarValues
 	 * @param other The other set of radar values to add.
 	 * @return the new set of radar values.
 	 */
-	RadarValues& operator+=(const RadarValues& other)
+	auto operator+=(const RadarValues& other) -> RadarValues&
 	{
 		FOREACH_ENUM(RadarCategory, rc) { (*this)[rc] += other[rc]; }
 		return *this;
@@ -40,7 +40,7 @@ struct RadarValues
 	 * @param other The otehr set of radar values.
 	 * @return true if the two sets are equal, false otherwise.
 	 */
-	bool operator==(const RadarValues& other) const
+	auto operator==(const RadarValues& other) const -> bool
 	{
 		FOREACH_ENUM(RadarCategory, rc)
 		{
@@ -55,15 +55,16 @@ struct RadarValues
 	 * @param other The otehr set of radar values.
 	 * @return true if the two sets are not equal, false otherwise.
 	 */
-	bool operator!=(const RadarValues& other) const
+	auto operator!=(const RadarValues& other) const -> bool
 	{
 		return !operator==(other);
 	}
 
-	[[nodiscard]] XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
-	[[nodiscard]] std::string ToString(int iMaxValues = -1) const; // default = all
+	[[nodiscard]] auto ToString(int iMaxValues = -1) const
+	  -> std::string; // default = all
 	void FromString(const std::string& sValues);
 
 	static ThemeMetric<bool> WRITE_SIMPLE_VALIES;
