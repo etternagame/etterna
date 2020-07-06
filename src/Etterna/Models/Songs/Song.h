@@ -343,7 +343,7 @@ class Song
 
 	// Get the highest value for a specific skillset across all the steps
 	// objects for the song at a given rate
-	[[nodiscard]] auto GetHighestOfSkillsetAllSteps(int x, float rate) const
+	[[nodiscard]] auto HighestMSDOfSkillset(Skillset x, float rate) const
 	  -> float;
 	[[nodiscard]] auto IsSkillsetHighestOfAnySteps(Skillset ss,
 												   float rate) const -> bool;

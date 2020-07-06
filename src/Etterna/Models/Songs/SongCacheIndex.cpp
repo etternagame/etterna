@@ -503,7 +503,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 			insertSong.bind(index++, bgchanges);
 		}
 
-		if (song.GetForegroundChanges().size()) {
+		if (!song.GetForegroundChanges().empty()) {
 			string fgchanges;
 			for (auto const& bgc : song.GetForegroundChanges()) {
 				fgchanges.append(bgc.ToString() + ",");
@@ -549,9 +549,9 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
 		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
 		for (auto steps : vpStepsToSave) {
-			if (steps->GetChartKey() == "") { // Avoid writing cache tags for
-											  // invalid chartkey files(empty
-											  // steps) -Mina
+			if (steps->GetChartKey().empty()) { // Avoid writing cache tags for
+												// invalid chartkey files(empty
+												// steps) -Mina
 				LOG->Info("Not caching empty difficulty in file %s",
 						  dir.c_str());
 				continue;
@@ -735,8 +735,8 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 			auto songID = SongFromStatement(s, query);
 			hyperCache[songID.first] = s;
 			lastDir = songID.first;
-			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
-			lastDir = lastDir.substr(0, lastDir.find_last_of("/"));
+			lastDir = lastDir.substr(0, lastDir.find_last_of('/'));
+			lastDir = lastDir.substr(0, lastDir.find_last_of('/'));
 			// this is a song directory. Load a new song.
 			progress++;
 			if (ld && progress % onePercent == 0) {
@@ -1035,19 +1035,22 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		}
 
 		auto title = song->GetMainTitle();
-		loader.ProcessBPMs(song->m_SongTiming,
-						   static_cast<const char*>(query.getColumn(index++)),
-						   title);
-		loader.ProcessStops(song->m_SongTiming,
-							static_cast<const char*>(query.getColumn(index++)),
-							title);
+		SSCLoader::ProcessBPMs(
+		  song->m_SongTiming,
+		  static_cast<const char*>(query.getColumn(index++)),
+		  title);
+		SSCLoader::ProcessStops(
+		  song->m_SongTiming,
+		  static_cast<const char*>(query.getColumn(index++)),
+		  title);
 		loader.ProcessDelays(
 		  song->m_SongTiming,
 		  static_cast<const char*>(query.getColumn(index++)));
-		loader.ProcessWarps(song->m_SongTiming,
-							static_cast<const char*>(query.getColumn(index++)),
-							song->m_fVersion,
-							title);
+		SSCLoader::ProcessWarps(
+		  song->m_SongTiming,
+		  static_cast<const char*>(query.getColumn(index++)),
+		  song->m_fVersion,
+		  title);
 		loader.ProcessTimeSignatures(
 		  song->m_SongTiming,
 		  static_cast<const char*>(query.getColumn(index++)));
@@ -1060,15 +1063,16 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		loader.ProcessSpeeds(
 		  song->m_SongTiming,
 		  static_cast<const char*>(query.getColumn(index++)));
-		loader.ProcessScrolls(
+		SSCLoader::ProcessScrolls(
 		  song->m_SongTiming,
 		  static_cast<const char*>(query.getColumn(index++)),
 		  title);
 		loader.ProcessFakes(song->m_SongTiming,
 							static_cast<const char*>(query.getColumn(index++)));
-		loader.ProcessLabels(song->m_SongTiming,
-							 static_cast<const char*>(query.getColumn(index++)),
-							 title);
+		SSCLoader::ProcessLabels(
+		  song->m_SongTiming,
+		  static_cast<const char*>(query.getColumn(index++)),
+		  title);
 
 		song->SetSpecifiedLastSecond(
 		  static_cast<float>(static_cast<double>(query.getColumn(index++))));
@@ -1314,8 +1318,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 
 	SMLoader::TidyUpData(*song, true);
 
-	if (song->m_sMainTitle == "" ||
-		(song->m_sMusicFile == "" && song->m_vsKeysoundFile.empty())) {
+	if (song->m_sMainTitle.empty() ||
+		(song->m_sMusicFile.empty() && song->m_vsKeysoundFile.empty())) {
 		LOG->Warn("Main title or music file for '%s' came up blank, forced to "
 				  "fall back on TidyUpData to fix title and paths.  Do not use "
 				  "# or ; in a song title.",

@@ -40,20 +40,17 @@ SongUtil::GetSteps(const Song* pSong,
 	const vector<Steps*>& vpSteps = st == StepsType_Invalid
 									  ? pSong->GetAllSteps()
 									  : pSong->GetStepsByStepsType(st);
-	for (unsigned i = 0; i < vpSteps.size();
-		 i++) // for each of the Song's Steps
+	for (auto pSteps : vpSteps) // for each of the Song's Steps
 	{
-		Steps* pSteps = vpSteps[i];
-
 		if (dc != Difficulty_Invalid && dc != pSteps->GetDifficulty())
 			continue;
 		if (iMeterLow != -1 && iMeterLow > pSteps->GetMeter())
 			continue;
 		if (iMeterHigh != -1 && iMeterHigh < pSteps->GetMeter())
 			continue;
-		if (sDescription.size() && sDescription != pSteps->GetDescription())
+		if (!sDescription.empty() && sDescription != pSteps->GetDescription())
 			continue;
-		if (sCredit.size() && sCredit != pSteps->GetCredit())
+		if (!sCredit.empty() && sCredit != pSteps->GetCredit())
 			continue;
 		if (uHash != 0 && uHash != pSteps->GetHash())
 			continue;
@@ -106,11 +103,8 @@ SongUtil::GetStepsByDifficulty(const Song* pSong,
 	const vector<Steps*>& vpSteps = (st >= StepsType_Invalid)
 									  ? pSong->GetAllSteps()
 									  : pSong->GetStepsByStepsType(st);
-	for (unsigned i = 0; i < vpSteps.size();
-		 i++) // for each of the Song's Steps
+	for (auto pSteps : vpSteps) // for each of the Song's Steps
 	{
-		Steps* pSteps = vpSteps[i];
-
 		if (dc != Difficulty_Invalid && dc != pSteps->GetDifficulty())
 			continue;
 
@@ -129,11 +123,8 @@ SongUtil::GetStepsByMeter(const Song* pSong,
 	const vector<Steps*>& vpSteps = (st == StepsType_Invalid)
 									  ? pSong->GetAllSteps()
 									  : pSong->GetStepsByStepsType(st);
-	for (unsigned i = 0; i < vpSteps.size();
-		 i++) // for each of the Song's Steps
+	for (auto pSteps : vpSteps) // for each of the Song's Steps
 	{
-		Steps* pSteps = vpSteps[i];
-
 		if (iMeterLow > pSteps->GetMeter())
 			continue;
 		if (iMeterHigh < pSteps->GetMeter())
@@ -152,7 +143,7 @@ SongUtil::GetStepsByDescription(const Song* pSong,
 {
 	vector<Steps*> vNotes;
 	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, sDescription, "");
-	if (vNotes.size() == 0)
+	if (vNotes.empty())
 		return nullptr;
 	else
 		return vNotes[0];
@@ -165,7 +156,7 @@ SongUtil::GetStepsByCredit(const Song* pSong,
 {
 	vector<Steps*> vNotes;
 	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, "", sCredit);
-	if (vNotes.size() == 0)
+	if (vNotes.empty())
 		return nullptr;
 	else
 		return vNotes[0];
@@ -184,11 +175,8 @@ SongUtil::GetClosestNotes(const Song* pSong,
 									  : pSong->GetStepsByStepsType(st);
 	Steps* pClosest = nullptr;
 	int iClosestDistance = 999;
-	for (unsigned i = 0; i < vpSteps.size();
-		 i++) // for each of the Song's Steps
+	for (auto pSteps : vpSteps) // for each of the Song's Steps
 	{
-		Steps* pSteps = vpSteps[i];
-
 		if (pSteps->GetDifficulty() == Difficulty_Edit && dc != Difficulty_Edit)
 			continue;
 
@@ -225,7 +213,7 @@ SongUtil::AdjustDuplicateSteps(Song* pSong)
 			for (unsigned k = 1; k < vSteps.size(); k++) {
 				vSteps[k]->SetDifficulty(Difficulty_Edit);
 				vSteps[k]->SetDupeDiff(true);
-				if (vSteps[k]->GetDescription() == "") {
+				if (vSteps[k]->GetDescription().empty()) {
 					/* "Hard Edit" */
 					std::string EditName =
 					  Capitalize(DifficultyToString(dc)) + " Edit";
@@ -248,7 +236,7 @@ static std::string
 RemoveInitialWhitespace(std::string s)
 {
 	size_t i = s.find_first_not_of(" \t\r\n");
-	if (i != s.npos)
+	if (i != std::string::npos)
 		s.erase(0, i);
 	return s;
 }
@@ -326,7 +314,7 @@ SongUtil::MakeSortString(std::string& s)
 	s = make_upper(s);
 
 	// Make sure that non-alphanumeric strings are placed at the very end.
-	if (s.size() > 0) {
+	if (!s.empty()) {
 		if (s[0] == '.') // like the song ".59"
 			s.erase(s.begin());
 
@@ -344,7 +332,7 @@ SongUtil::MakeSortString(const string& in)
 	std::string s = make_upper(in);
 
 	// Make sure that non-alphanumeric strings are placed at the very end.
-	if (s.size() > 0)
+	if (!s.empty())
 		if ((s[0] < 'A' || s[0] > 'Z') && (s[0] < '0' || s[0] > '9'))
 			s = char(126) + s;
 	return s;
@@ -477,8 +465,7 @@ SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
 	vals.reserve(vpSongsInOut.size());
 	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i) {
-		Song* pSong = vpSongsInOut[i];
+	for (auto pSong : vpSongsInOut) {
 		ASSERT(pProfile != NULL);
 		int g = static_cast<int>(pProfile->GetBestGrade(
 		  pSong,
@@ -497,9 +484,9 @@ SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
 void
 SongUtil::SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut)
 {
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		g_mapSongSortVal[vpSongsInOut[i]] =
-		  MakeSortString(std::string(vpSongsInOut[i]->GetTranslitArtist()));
+	for (auto& i : vpSongsInOut)
+		g_mapSongSortVal[i] =
+		  MakeSortString(std::string(i->GetTranslitArtist()));
 	stable_sort(vpSongsInOut.begin(),
 				vpSongsInOut.end(),
 				CompareSongPointersBySortValueAscending);
@@ -510,9 +497,8 @@ SongUtil::SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut)
 void
 SongUtil::SortSongPointerArrayByDisplayArtist(vector<Song*>& vpSongsInOut)
 {
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		g_mapSongSortVal[vpSongsInOut[i]] =
-		  MakeSortString(vpSongsInOut[i]->GetDisplayArtist());
+	for (auto& i : vpSongsInOut)
+		g_mapSongSortVal[i] = MakeSortString(i->GetDisplayArtist());
 	stable_sort(vpSongsInOut.begin(),
 				vpSongsInOut.end(),
 				CompareSongPointersBySortValueAscending);
@@ -705,8 +691,8 @@ SongUtil::SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut,
 											SortOrder so)
 {
 	std::string sOther = SORT_OTHER.GetValue();
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i) {
-		std::string val = GetSectionNameFromSongAndSort(vpSongsInOut[i], so);
+	for (auto& i : vpSongsInOut) {
+		std::string val = GetSectionNameFromSongAndSort(i, so);
 
 		// Make sure 0-9 comes first and OTHER comes last.
 		if (val == "0-9")
@@ -718,7 +704,7 @@ SongUtil::SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut,
 			val = "1" + val;
 		}
 
-		g_mapSongSortVal[vpSongsInOut[i]] = val;
+		g_mapSongSortVal[i] = val;
 	}
 
 	stable_sort(vpSongsInOut.begin(),
@@ -733,10 +719,10 @@ SongUtil::SortSongPointerArrayByStepsTypeAndMeter(vector<Song*>& vpSongsInOut,
 												  Difficulty dc)
 {
 	g_mapSongSortVal.clear();
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i) {
+	for (auto& i : vpSongsInOut) {
 		// Ignore locked steps.
-		const Steps* pSteps = GetClosestNotes(vpSongsInOut[i], st, dc, true);
-		std::string& s = g_mapSongSortVal[vpSongsInOut[i]];
+		const Steps* pSteps = GetClosestNotes(i, st, dc, true);
+		std::string& s = g_mapSongSortVal[i];
 		s = ssprintf("%03d", pSteps ? pSteps->GetMeter() : 0);
 
 		/* pSteps may not be exactly the difficulty we want; for example, we
