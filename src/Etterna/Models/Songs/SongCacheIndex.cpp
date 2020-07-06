@@ -549,6 +549,11 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		int64_t songID = sqlite3_last_insert_rowid(db->getHandle());
 		vector<Steps*> vpStepsToSave = song.GetStepsToSave();
 		for (auto steps : vpStepsToSave) {
+			if (steps->m_StepsType >= NUM_StepsType) {
+				LOG->Info("Not caching unrecognized stepstype in file %s",
+						  dir.c_str());
+				continue;
+			}
 			if (steps->GetChartKey() == "") { // Avoid writing cache tags for
 											  // invalid chartkey files(empty
 											  // steps) -Mina
