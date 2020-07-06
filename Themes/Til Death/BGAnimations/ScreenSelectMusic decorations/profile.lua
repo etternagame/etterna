@@ -133,7 +133,7 @@ local function rankingLabel(i)
 		UpdateRankingMessageCommand = function(self)
 			if rankingSkillset > 1 and update then
 				if not showOnline then
-					ths = SCOREMAN:GetTopSSRHighScore(i + (scoresperpage * (rankingPage - 1)), ms.SkillSets[rankingSkillset])
+					ths = SCOREMAN:GetTopSSRHighScoreForGame(i + (scoresperpage * (rankingPage - 1)), ms.SkillSets[rankingSkillset])
 					if ths then
 						self:visible(true)
 						ck = ths:GetChartKey()
@@ -376,7 +376,7 @@ local function rankingButton(i)
 				if ButtonActive(self) then
 					rankingSkillset = i
 					rankingPage = 1
-					SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
+					SCOREMAN:SortSSRsForGame(ms.SkillSets[rankingSkillset])
 					BroadcastIfActive("UpdateRanking")
 				end
 			end,
