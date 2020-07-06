@@ -30,6 +30,7 @@
 #include "Etterna/Singletons/FilterManager.h"
 
 #include "Etterna/Singletons/GameState.h"
+#include <algorithm>
 #include <cfloat>
 #include <ctime>
 #include <set>
@@ -1360,7 +1361,8 @@ Song::GetCacheFile(std::string sType)
 	auto fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
 	for (auto Image : song_dir_listing) {
 		auto FileExt = GetExtension(Image);
-		transform(FileExt.begin(), FileExt.end(), FileExt.begin(), tolower);
+		std::transform(
+		  FileExt.begin(), FileExt.end(), FileExt.begin(), tolower);
 		for (auto FindExt : fill_exts) {
 			if (FileExt == FindExt)
 				image_list.push_back(Image);
@@ -1383,7 +1385,7 @@ Song::GetCacheFile(std::string sType)
 
 	for (auto Image : image_list) {
 		// We want to make it lower case.
-		transform(Image.begin(), Image.end(), Image.begin(), tolower);
+		std::transform(Image.begin(), Image.end(), Image.begin(), tolower);
 		for (auto PreSet : PreSets[sType]) {
 			// Search for image using PreSets.
 			const auto Found = Image.find(PreSet.second);
