@@ -691,8 +691,8 @@ local modnames = {
     --"ohjcctr",
     --"ohjhtl",
     --"ohjhtr",
-    --"cjohjl",
-    --"cjohjr",
+    "cjohjl",
+    "cjohjr",
     --"cjohjpcl",
     --"cjohjpcr",
     --"cjohjscl",
@@ -798,8 +798,8 @@ local modColors = {
 	--color("1,1,1"),
 	--color("1,1,1"),			-- ohjht
 	--color("1,1,1"),
-    --color("1,0.4,0"),		-- orange2		= cjohj left
-    --color("1,0.4,0"),		-- orange2			 (right)
+    color("1,0.4,0"),		-- orange2		= cjohj left
+    color("1,0.4,0"),		-- orange2			 (right)
 	--color("1,1,1"),			-- cjohjpc
 	--color("1,1,1"),
 	--color("1,1,1"),			-- cjohjsc
