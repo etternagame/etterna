@@ -13,11 +13,11 @@ class BitmapText : public Actor
   public:
 	BitmapText();
 	BitmapText(const BitmapText& cpy);
-	BitmapText& operator=(const BitmapText& cpy);
+	auto operator=(const BitmapText& cpy) -> BitmapText&;
 	~BitmapText() override;
 
 	void LoadFromNode(const XNode* pNode) override;
-	[[nodiscard]] BitmapText* Copy() const override;
+	[[nodiscard]] auto Copy() const -> BitmapText* override;
 
 	struct BMT_TweenState
 	{
@@ -31,13 +31,13 @@ class BitmapText : public Actor
 										BMT_TweenState const& from,
 										BMT_TweenState const& to,
 										float between);
-		bool operator==(BMT_TweenState const& other) const;
-		bool operator!=(BMT_TweenState const& other) const
+		auto operator==(BMT_TweenState const& other) const -> bool;
+		auto operator!=(BMT_TweenState const& other) const -> bool
 		{
 			return !operator==(other);
 		}
 		void SetStrokeColor(RageColor const& c) { m_stroke_color = c; }
-		[[nodiscard]] RageColor const& GetStrokeColor() const
+		[[nodiscard]] auto GetStrokeColor() const -> RageColor const&
 		{
 			return m_stroke_color;
 		}
@@ -46,7 +46,7 @@ class BitmapText : public Actor
 		RageColor m_stroke_color;
 	};
 
-	BMT_TweenState& BMT_DestTweenState()
+	auto BMT_DestTweenState() -> BMT_TweenState&
 	{
 		if (BMT_Tweens.empty()) {
 			return BMT_current;
@@ -55,7 +55,7 @@ class BitmapText : public Actor
 		return BMT_Tweens.back();
 	}
 
-	[[nodiscard]] BMT_TweenState const& BMT_DestTweenState() const
+	[[nodiscard]] auto BMT_DestTweenState() const -> BMT_TweenState const&
 	{
 		return const_cast<BitmapText*>(this)->BMT_DestTweenState();
 	}
@@ -73,9 +73,9 @@ class BitmapText : public Actor
 	void StopTweening() override;
 	void FinishTweening() override;
 
-	bool LoadFromFont(const std::string& sFontName);
-	bool LoadFromTextureAndChars(const std::string& sTexturePath,
-								 const std::string& sChars);
+	auto LoadFromFont(const std::string& sFontName) -> bool;
+	auto LoadFromTextureAndChars(const std::string& sTexturePath,
+								 const std::string& sChars) -> bool;
 	virtual void SetText(const std::string& sText,
 						 const std::string& sAlternateText = "",
 						 int iWrapWidthPixels = -1);
@@ -87,7 +87,7 @@ class BitmapText : public Actor
 	void CropLineToWidth(size_t l, int width);
 	void CropToWidth(int width);
 
-	[[nodiscard]] bool EarlyAbortDraw() const override;
+	[[nodiscard]] auto EarlyAbortDraw() const -> bool override;
 	void DrawPrimitives() override;
 
 	void SetUppercase(bool b);
@@ -96,7 +96,7 @@ class BitmapText : public Actor
 	void SetDistortion(float f);
 	void UnSetDistortion();
 	void set_mult_attrs_with_diffuse(bool m);
-	[[nodiscard]] bool get_mult_attrs_with_diffuse() const;
+	[[nodiscard]] auto get_mult_attrs_with_diffuse() const -> bool;
 
 	void SetHorizAlign(float f) override;
 
@@ -104,7 +104,7 @@ class BitmapText : public Actor
 	{
 		BMT_DestTweenState().SetStrokeColor(c);
 	}
-	RageColor const& GetStrokeColor()
+	auto GetStrokeColor() -> RageColor const&
 	{
 		return BMT_DestTweenState().GetStrokeColor();
 	}
@@ -112,7 +112,7 @@ class BitmapText : public Actor
 	{
 		BMT_current.SetStrokeColor(c);
 	}
-	RageColor const& GetCurrStrokeColor()
+	auto GetCurrStrokeColor() -> RageColor const&
 	{
 		return BMT_current.GetStrokeColor();
 	}
@@ -124,23 +124,19 @@ class BitmapText : public Actor
 		wTextLines = m_wTextLines;
 	}
 
-	[[nodiscard]] const vector<wstring>& GetLines() const
+	[[nodiscard]] auto GetLines() const -> const vector<wstring>&
 	{
 		return m_wTextLines;
 	}
 
-	[[nodiscard]] std::string GetText() const { return m_sText; }
+	[[nodiscard]] auto GetText() const -> std::string { return m_sText; }
 	// Return true if the string 's' will use an alternate string, if available.
-	[[nodiscard]] bool StringWillUseAlternate(
+	[[nodiscard]] auto StringWillUseAlternate(
 	  const std::string& sText,
-	  const std::string& sAlternateText) const;
+	  const std::string& sAlternateText) const -> bool;
 
 	struct Attribute
 	{
-		Attribute()
-		  : glow()
-		{
-		}
 		int length{ -1 };
 		RageColor diffuse[NUM_DIFFUSE_COLORS];
 		RageColor glow;
@@ -148,7 +144,7 @@ class BitmapText : public Actor
 		void FromStack(lua_State* L, int iPos);
 	};
 
-	[[nodiscard]] Attribute GetDefaultAttribute() const;
+	[[nodiscard]] auto GetDefaultAttribute() const -> Attribute;
 	void AddAttribute(size_t iPos, const Attribute& attr);
 	void ClearAttributes();
 
@@ -197,7 +193,7 @@ class BitmapText : public Actor
 class ColorBitmapText : public BitmapText
 {
   public:
-	[[nodiscard]] ColorBitmapText* Copy() const override;
+	[[nodiscard]] auto Copy() const -> ColorBitmapText* override;
 	void SetText(const std::string& sText,
 				 const std::string& sAlternateText = "",
 				 int iWrapWidthPixels = -1) override;
@@ -216,7 +212,7 @@ class ColorBitmapText : public BitmapText
 	struct ColorChange
 	{
 		RageColor c; // Color to change to
-		int l;		 // Change Location
+		int l{};	 // Change Location
 	};
 	vector<ColorChange> m_vColors;
 };

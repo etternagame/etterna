@@ -69,16 +69,19 @@ class Preference : public IPreference
 	}
 	void FromString(const std::string& s) override
 	{
-		if (!StringConversion::FromString<T>(s, m_currentValue))
+		if (!StringConversion::FromString<T>(s, m_currentValue)) {
 			m_currentValue = m_defaultValue;
-		if (m_pfnValidate)
+		}
+		if (m_pfnValidate) {
 			m_pfnValidate(m_currentValue);
+		}
 	}
 	void SetFromStack(lua_State* L) override
 	{
 		LuaHelpers::Pop<T>(L, m_currentValue);
-		if (m_pfnValidate)
+		if (m_pfnValidate) {
 			m_pfnValidate(m_currentValue);
+		}
 	}
 	void PushValue(lua_State* L) const override
 	{
@@ -89,8 +92,9 @@ class Preference : public IPreference
 	void SetDefaultFromString(const std::string& s) override
 	{
 		T def = m_defaultValue;
-		if (!StringConversion::FromString<T>(s, m_defaultValue))
+		if (!StringConversion::FromString<T>(s, m_defaultValue)) {
 			m_defaultValue = def;
+		}
 	}
 
 	[[nodiscard]] auto Get() const -> const T& { return m_currentValue; }
@@ -148,8 +152,9 @@ class Preference1D
 
 	~Preference1D()
 	{
-		for (auto& v : m_v)
+		for (auto& v : m_v) {
 			SAFE_DELETE(v);
+		}
 	}
 	auto operator[](size_t i) const -> const Preference<T>& { return *m_v[i]; }
 	auto operator[](size_t i) -> Preference<T>& { return *m_v[i]; }

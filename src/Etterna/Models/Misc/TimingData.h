@@ -68,7 +68,7 @@ class TimingData
 		Copy(cpy);
 		return *this;
 	}
-	auto operator=(TimingData&& other) -> TimingData&
+	auto operator=(TimingData&& other) noexcept -> TimingData&
 	{
 		std::swap(m_beat_start_lookup, other.m_beat_start_lookup);
 		std::swap(m_time_start_lookup, other.m_time_start_lookup);

@@ -8,10 +8,10 @@ class Command
   public:
 	void Load(const std::string& sCommand);
 
-	[[nodiscard]] std::string GetOriginalCommandString()
-	  const; // used when reporting an error in number of args
-	[[nodiscard]] std::string GetName()
-	  const; // the command name is the first argument in all-lowercase
+	[[nodiscard]] auto GetOriginalCommandString() const
+	  -> std::string; // used when reporting an error in number of args
+	[[nodiscard]] auto GetName() const
+	  -> std::string; // the command name is the first argument in all-lowercase
 
 	void Clear() { m_vsArgs.clear(); }
 
@@ -24,14 +24,11 @@ class Command
 		}
 	};
 
-	[[nodiscard]] Arg GetArg(unsigned index) const;
+	[[nodiscard]] auto GetArg(unsigned index) const -> Arg;
 
-	vector<std::string> m_vsArgs;
+	std::vector<std::string> m_vsArgs;
 
-	Command()
-	  : m_vsArgs()
-	{
-	}
+	Command() = default;
 };
 
 class Commands
@@ -39,18 +36,18 @@ class Commands
   public:
 	vector<Command> v;
 
-	[[nodiscard]] std::string GetOriginalCommandString()
-	  const; // used when reporting an error in number of args
+	[[nodiscard]] auto GetOriginalCommandString() const
+	  -> std::string; // used when reporting an error in number of args
 };
 
 // Take a command list string and return pointers to each of the tokens in the
 // string. sCommand list is a list of commands separated by ';'.
-// TODO: This is expensive to do during the game.  Eventually,  move all calls
-// to ParseCommands to happen during load, then execute from the parsed Command
-// structures.
+// TODO(Sam): This is expensive to do during the game.  Eventually,  move all
+// calls to ParseCommands to happen during load, then execute from the parsed
+// Command structures.
 void
 ParseCommands(const std::string& sCmds, Commands& vCmdsOut, bool bLegacy);
-Commands
-ParseCommands(const std::string& sCmds);
+auto
+ParseCommands(const std::string& sCmds) -> Commands;
 
 #endif

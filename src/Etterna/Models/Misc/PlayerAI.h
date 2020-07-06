@@ -18,8 +18,8 @@ struct ReplaySnapshot
 	int judgments[NUM_TapNoteScore] = { 0 };
 	// Hold note scores
 	int hns[NUM_HoldNoteScore] = { 0 };
-	float curwifescore = 0.f;
-	float maxwifescore = 0.f;
+	float curwifescore = 0.F;
+	float maxwifescore = 0.F;
 };
 
 // also known as ReplayManager
@@ -65,7 +65,8 @@ class PlayerAI
 	static FailType oldFailType;
 
 	// For use in Autoplay if we ever want to do funny things to the judgments
-	static TapNoteScore GetTapNoteScore(const PlayerState* pPlayerState);
+	static auto GetTapNoteScore(const PlayerState* pPlayerState)
+	  -> TapNoteScore;
 
 	// Set the pointer to a HighScore
 	static void SetScoreData(HighScore* pHighScore = pScoreData,
@@ -73,27 +74,28 @@ class PlayerAI
 							 NoteData* = nullptr);
 	static void ResetScoreData();
 
-	static float GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col);
-	static TapNoteScore GetTapNoteScoreForReplay(
+	static auto GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
+	  -> float;
+	static auto GetTapNoteScoreForReplay(
 	  const PlayerState* pPlayerState,
 	  float fNoteOffset,
-	  float timingScale = Player::GetTimingWindowScale());
+	  float timingScale = Player::GetTimingWindowScale()) -> TapNoteScore;
 	// Locate the earliest value in Seconds that is counted as a miss
-	static float FindMissWindowBegin();
-	static bool DetermineIfHoldDropped(int noteRow, int col);
+	static auto FindMissWindowBegin() -> float;
+	static auto DetermineIfHoldDropped(int noteRow, int col) -> bool;
 	// Returns the row of the dropped hold if the given range contains a dropped
 	// hold on the track Returns -1 if no dropped hold is in range.
-	static int IsHoldDroppedInRowRangeForTrack(int firstRow,
-											   int endRow,
-											   int track);
+	static auto IsHoldDroppedInRowRangeForTrack(int firstRow,
+												int endRow,
+												int track) -> int;
 	// Returns the column that needs to be tapped.
 	// Returns -1 if no column needs to be tapped.
-	static int DetermineNextTapColumn(int noteRow,
-									  int searchRowDistance,
-									  TimingData* timing);
+	static auto DetermineNextTapColumn(int noteRow,
+									   int searchRowDistance,
+									   TimingData* timing) -> int;
 	// Literally get the next row in the replay data. Disregard offset
 	// calculations.
-	static int GetNextRowNoOffsets(int currentRow);
+	static auto GetNextRowNoOffsets(int currentRow) -> int;
 	// Reset and populate the ReplayExactTapMap.
 	// This is meant to be run once Gameplay begins.
 	static void SetUpExactTapMap(TimingData* timing);
@@ -104,18 +106,20 @@ class PlayerAI
 	  set<int> validNoterows = set<int>(),
 	  float timingScale = Player::GetTimingWindowScale());
 	// Check the Tap Replay Data to see if a tap is on this row
-	static bool TapExistsAtThisRow(int noteRow);
-	static bool TapExistsAtOrBeforeThisRow(int noteRow);
+	static auto TapExistsAtThisRow(int noteRow) -> bool;
+	static auto TapExistsAtOrBeforeThisRow(int noteRow) -> bool;
 	// Build a list of columns/tracks to tap based on the given noterow.
-	static vector<TapReplayResult> GetTapsToTapForRow(int noteRow);
-	static int GetReplayType();
+	static auto GetTapsToTapForRow(int noteRow) -> vector<TapReplayResult>;
+	static auto GetReplayType() -> int;
 	// Build a list of columns/tracks that happened at or before the given
 	// noterow. (if we lag and somehow skip rows)
-	static vector<TapReplayResult> GetTapsAtOrBeforeRow(int noteRow);
+	static auto GetTapsAtOrBeforeRow(int noteRow) -> vector<TapReplayResult>;
 	// Given a column and row, retrieve the adjusted row.
-	static int GetAdjustedRowFromUnadjustedCoordinates(int row, int col);
+	static auto GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
+	  -> int;
 	// Given a row, retrieve the Snapshot for that row.
-	static std::shared_ptr<ReplaySnapshot> GetReplaySnapshotForNoterow(int row);
+	static auto GetReplaySnapshotForNoterow(int row)
+	  -> std::shared_ptr<ReplaySnapshot>;
 	// Remove a given Tap from the fallback and Full replay data vectors
 	static void RemoveTapFromVectors(int row, int col);
 	// Go through the replay data to fill out the radar values for the eval
@@ -123,23 +127,24 @@ class PlayerAI
 	static void CalculateRadarValuesForReplay(RadarValues& rv,
 											  RadarValues& possibleRV);
 	// Find a tap at the given row and column
-	static bool IsTapAtRowAndColumn(int noteRow, int col);
+	static auto IsTapAtRowAndColumn(int noteRow, int col) -> bool;
 
 	// Fake the player stage stats using the current replay data
 	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss);
 
 	// Calculate the Wifescore for the given position in replay data
-	static pair<float, float> GetWifeScoreForRow(int row, float ts);
+	static auto GetWifeScoreForRow(int row, float ts) -> pair<float, float>;
 
 	// Given the Replay Data and Snapshot map, we can make a simple estimated
 	// life graph.
-	static map<float, float> GenerateLifeRecordForReplay(
-	  float timingScale = Player::GetTimingWindowScale());
+	static auto GenerateLifeRecordForReplay(
+	  float timingScale = Player::GetTimingWindowScale()) -> map<float, float>;
 
 	// Given the Replay Data and Snapshot map, we can make a simple estimate
 	// combo graph.
-	static vector<PlayerStageStats::Combo_t> GenerateComboListForReplay(
-	  float timingScale = Player::GetTimingWindowScale());
+	static auto GenerateComboListForReplay(
+	  float timingScale = Player::GetTimingWindowScale())
+	  -> vector<PlayerStageStats::Combo_t>;
 };
 
 #endif

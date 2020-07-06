@@ -40,19 +40,19 @@ class AnimatedTexture
 	void Unload();
 	void Update(float fDelta);
 
-	RageTexture* GetCurrentTexture();
+	auto GetCurrentTexture() -> RageTexture*;
 
-	[[nodiscard]] int GetNumStates() const;
+	[[nodiscard]] auto GetNumStates() const -> int;
 	void SetState(int iNewState);
-	[[nodiscard]] float GetAnimationLengthSeconds() const;
+	[[nodiscard]] auto GetAnimationLengthSeconds() const -> float;
 	void SetSecondsIntoAnimation(float fSeconds);
-	[[nodiscard]] float GetSecondsIntoAnimation() const;
-	RageVector2 GetTextureTranslate();
+	[[nodiscard]] auto GetSecondsIntoAnimation() const -> float;
+	auto GetTextureTranslate() -> RageVector2;
 
 	bool m_bSphereMapped;
 	BlendMode m_BlendMode;
 
-	[[nodiscard]] bool NeedsNormals() const { return m_bSphereMapped; }
+	[[nodiscard]] auto NeedsNormals() const -> bool { return m_bSphereMapped; }
 
   private:
 	RageVector2 m_vTexOffset;
@@ -92,7 +92,7 @@ struct msMaterial
 	AnimatedTexture diffuse;
 	AnimatedTexture alpha;
 
-	[[nodiscard]] bool NeedsNormals() const
+	[[nodiscard]] auto NeedsNormals() const -> bool
 	{
 		return diffuse.NeedsNormals() || alpha.NeedsNormals();
 	}
@@ -100,13 +100,13 @@ struct msMaterial
 
 struct msPositionKey
 {
-	float fTime;
+	float fTime{};
 	RageVector3 Position;
 };
 
 struct msRotationKey
 {
-	float fTime;
+	float fTime{};
 	RageVector4 Rotation;
 };
 
@@ -124,16 +124,18 @@ struct msBone
 
 struct msAnimation
 {
-	[[nodiscard]] int FindBoneByName(const std::string& sName) const
+	[[nodiscard]] auto FindBoneByName(const std::string& sName) const -> int
 	{
-		for (unsigned i = 0; i < Bones.size(); i++)
-			if (Bones[i].sName == sName)
+		for (unsigned i = 0; i < Bones.size(); i++) {
+			if (Bones[i].sName == sName) {
 				return i;
+			}
+		}
 		return -1;
 	}
 
-	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
-								 std::string sPath);
+	auto LoadMilkshapeAsciiBones(const std::string& sAniName, std::string sPath)
+	  -> bool;
 
 	vector<msBone> Bones;
 	int nTotalFrames;

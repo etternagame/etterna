@@ -16,21 +16,21 @@ class IniFile : public XNode
 	/**
 	 * @brief Retrieve the filename of the last file loaded.
 	 * @return the filename. */
-	std::string GetPath() const { return m_sPath; }
+	auto GetPath() const -> std::string { return m_sPath; }
 	/**
 	 * @brief Retrieve any errors that have occurred.
 	 * @return the latest error. */
-	const std::string& GetError() const { return m_sError; }
+	auto GetError() const -> const std::string& { return m_sError; }
 
-	bool ReadFile(const std::string& sPath);
-	bool ReadFile(RageFileBasic& sFile);
-	bool WriteFile(const std::string& sPath) const;
-	bool WriteFile(RageFileBasic& sFile) const;
+	auto ReadFile(const std::string& sPath) -> bool;
+	auto ReadFile(RageFileBasic& sFile) -> bool;
+	auto WriteFile(const std::string& sPath) const -> bool;
+	auto WriteFile(RageFileBasic& sFile) const -> bool;
 
 	template<typename T>
-	bool GetValue(const std::string& sKey,
+	auto GetValue(const std::string& sKey,
 				  const std::string& sValueName,
-				  T& value) const
+				  T& value) const -> bool
 	{
 		const XNode* pNode = GetChild(sKey);
 		if (pNode == NULL)
@@ -55,8 +55,9 @@ class IniFile : public XNode
 		keynode->AppendAttr<T>(sValueName, value);
 	}
 
-	bool DeleteKey(const std::string& keyname);
-	bool DeleteValue(const std::string& keyname, const std::string& valuename);
+	auto DeleteKey(const std::string& keyname) -> bool;
+	auto DeleteValue(const std::string& keyname, const std::string& valuename)
+	  -> bool;
 
 	/**
 	 * @brief Rename a key.
@@ -67,7 +68,7 @@ class IniFile : public XNode
 	 * @param from the key to rename.
 	 * @param to the new key name.
 	 * @return its success or failure. */
-	bool RenameKey(const std::string& from, const std::string& to);
+	auto RenameKey(const std::string& from, const std::string& to) -> bool;
 
   private:
 	std::string m_sPath;

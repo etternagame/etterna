@@ -60,7 +60,7 @@ class NoteField final : public ActorFrame
 	LuaReference m_DidTapNoteCallback;
 	LuaReference m_DidHoldNoteCallback;
 
-	[[nodiscard]] const PlayerState* GetPlayerState() const
+	[[nodiscard]] auto GetPlayerState() const -> const PlayerState*
 	{
 		return m_pPlayerState;
 	}
@@ -104,7 +104,7 @@ class NoteField final : public ActorFrame
 	void DrawBGChangeText(float beat,
 						  const std::string& new_bg_name,
 						  const RageColor& glow);
-	[[nodiscard]] float GetWidth() const;
+	[[nodiscard]] auto GetWidth() const -> float;
 
 	const NoteData* m_pNoteData;
 
@@ -123,7 +123,6 @@ class NoteField final : public ActorFrame
 		ReceptorArrowRow m_ReceptorArrowRow;
 		GhostArrowRow m_GhostArrowRow;
 		explicit NoteDisplayCols(int iNumCols)
-		  : m_GhostArrowRow()
 		{
 			display = new NoteDisplay[iNumCols];
 		}

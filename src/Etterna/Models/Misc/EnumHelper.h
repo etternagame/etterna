@@ -72,7 +72,7 @@ SetMetatable(lua_State* L,
 			 LuaReference& EnumTable,
 			 LuaReference& EnumIndexTable,
 			 const char* szName);
-} // namespace Enum;
+} // namespace Enum
 
 auto
 EnumToString(int iVal,

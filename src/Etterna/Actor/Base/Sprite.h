@@ -25,14 +25,14 @@ class Sprite : public Actor
 	~Sprite() override;
 
 	// See explanation in source.
-	static Sprite* NewBlankSprite();
+	static auto NewBlankSprite() -> Sprite*;
 
 	void InitState() override;
 
 	void LoadFromNode(const XNode* pNode) override;
-	[[nodiscard]] Sprite* Copy() const override;
+	[[nodiscard]] auto Copy() const -> Sprite* override;
 
-	[[nodiscard]] bool EarlyAbortDraw() const override;
+	[[nodiscard]] auto EarlyAbortDraw() const -> bool override;
 	void DrawPrimitives() override;
 	void Update(float fDeltaTime) override;
 
@@ -40,24 +40,27 @@ class Sprite : public Actor
 	UpdateAnimationState(); // take m_fSecondsIntoState, and move to a new state
 
 	// Adjust texture properties for song backgrounds.
-	static RageTextureID SongBGTexture(RageTextureID ID);
+	static auto SongBGTexture(RageTextureID ID) -> RageTextureID;
 
 	// Adjust texture properties for song banners.
-	static RageTextureID SongBannerTexture(RageTextureID ID);
+	static auto SongBannerTexture(RageTextureID ID) -> RageTextureID;
 
 	virtual void Load(const RageTextureID& ID);
 	void SetTexture(RageTexture* pTexture);
 
 	void UnloadTexture();
-	[[nodiscard]] RageTexture* GetTexture() const { return m_pTexture; };
+	[[nodiscard]] auto GetTexture() const -> RageTexture*
+	{
+		return m_pTexture;
+	};
 
 	void EnableAnimation(bool bEnable) override;
 
-	[[nodiscard]] int GetNumStates() const override;
+	[[nodiscard]] auto GetNumStates() const -> int override;
 	void SetState(int iNewState) override;
-	[[nodiscard]] int GetState() const { return m_iCurState; }
+	[[nodiscard]] auto GetState() const -> int { return m_iCurState; }
 
-	[[nodiscard]] float GetAnimationLengthSeconds() const override
+	[[nodiscard]] auto GetAnimationLengthSeconds() const -> float override
 	{
 		return m_animation_length_seconds;
 	}
@@ -70,15 +73,16 @@ class Sprite : public Actor
 		SetState(0);
 	}
 
-	[[nodiscard]] std::string GetTexturePath() const;
+	[[nodiscard]] auto GetTexturePath() const -> std::string;
 
 	void SetCustomTextureRect(const RectF& new_texcoord_frect);
 	void SetCustomTextureCoords(float fTexCoords[8]);
 	void SetCustomImageRect(RectF rectImageCoords); // in image pixel space
 	void SetCustomImageCoords(float fImageCoords[8]);
 	void SetCustomPosCoords(float fPosCoords[8]);
-	[[nodiscard]] const RectF* GetCurrentTextureCoordRect() const;
-	[[nodiscard]] const RectF* GetTextureCoordRectForState(int iState) const;
+	[[nodiscard]] auto GetCurrentTextureCoordRect() const -> const RectF*;
+	[[nodiscard]] auto GetTextureCoordRectForState(int iState) const
+	  -> const RectF*;
 	void StopUsingCustomCoords();
 	void StopUsingCustomPosCoords();
 	void GetActiveTextureCoords(float fTexCoordsOut[8]) const;

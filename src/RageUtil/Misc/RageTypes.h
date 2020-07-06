@@ -471,14 +471,9 @@ struct RageColor
 	float r{ 0 }, g{ 0 }, b{ 0 }, a{ 0 };
 };
 
-inline auto
+static auto
 FTOC(float a) -> unsigned char
 {
-	/* Double Update: Missed a decimal point when previous test was done.
-	Casting as int results in 128 out of the 10million possible values
-	converted to be one shade different compared to using lround. This is
-	not a level of precision I care about. - Mina */
-
 	auto ret = static_cast<int>(a * 256.F);
 	CLAMP(ret, 0, 255);
 	return static_cast<unsigned char>(ret);
@@ -488,35 +483,18 @@ FTOC(float a) -> unsigned char
  * r, g, b, a order, independent of endianness, so storing them this
  * way avoids endianness problems.  Don't try to manipulate this; only
  * manip RageColors. */
-/* Perhaps the math in RageColor could be moved to RageVColor.  We don't need
- * the precision of a float for our calculations anyway.   -Chris */
 class RageVColor
 {
   public:
-	uint8_t b, g, r, a; // specific ordering required by Direct3D
-
-	RageVColor()
-	  : b(0)
-	  , g(0)
-	  , r(0)
-	  , a(0)
-	{
-	}
+	uint8_t b{ 0 }, g{ 0 }, r{ 0 },
+	  a{ 0 }; // specific ordering required by Direct3D
+	RageVColor() = default;
 	RageVColor(const RageColor& rc)
-	  : b(0)
-	  , g(0)
-	  , r(0)
-	  , a(0)
-	{
-		*this = rc;
-	}
-	auto operator=(const RageColor& rc) -> RageVColor&
 	{
 		r = FTOC(rc.r);
 		g = FTOC(rc.g);
 		b = FTOC(rc.b);
 		a = FTOC(rc.a);
-		return *this;
 	}
 };
 
@@ -540,10 +518,10 @@ class Rect
 	{
 	}
 
-	auto GetWidth() const -> T { return right - left; };
-	auto GetHeight() const -> T { return bottom - top; };
-	auto GetCenterX() const -> T { return (left + right) / 2; };
-	auto GetCenterY() const -> T { return (top + bottom) / 2; };
+	[[nodiscard]] auto GetWidth() const -> T { return right - left; };
+	[[nodiscard]] auto GetHeight() const -> T { return bottom - top; };
+	[[nodiscard]] auto GetCenterX() const -> T { return (left + right) / 2; };
+	[[nodiscard]] auto GetCenterY() const -> T { return (top + bottom) / 2; };
 
 	auto operator==(const Rect& other) const -> bool
 	{

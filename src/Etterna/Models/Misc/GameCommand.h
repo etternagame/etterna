@@ -20,23 +20,15 @@ class GameCommand
 {
   public:
 	GameCommand()
-	  : m_Commands()
-	  , m_sName("")
+	  : m_sName("")
 	  , m_sText("")
 	  , m_sInvalidReason("")
-	  , m_pStyle(nullptr)
 	  , m_sAnnouncer("")
 	  , m_sPreferredModifiers("")
 	  , m_sStageModifiers("")
 	  , m_sScreen("")
-	  , m_LuaFunction()
-	  , m_pSong(nullptr)
-	  , m_pSteps(nullptr)
-	  , m_SetEnv()
-	  , m_SetPref()
 	  , m_sSongGroup("")
 	  , m_sSoundPath("")
-	  , m_vsScreensToPrepare()
 	  , m_sProfileID("")
 	  , m_sUrl("")
 	{
@@ -55,10 +47,10 @@ class GameCommand
 	void ApplySelf(const vector<PlayerNumber>& vpns) const;
 
   public:
-	[[nodiscard]] bool DescribesCurrentMode(PlayerNumber pn) const;
-	[[nodiscard]] bool DescribesCurrentModeForAllPlayers() const;
-	bool IsPlayable(std::string* why = nullptr) const;
-	[[nodiscard]] bool IsZero() const;
+	[[nodiscard]] auto DescribesCurrentMode(PlayerNumber pn) const -> bool;
+	[[nodiscard]] auto DescribesCurrentModeForAllPlayers() const -> bool;
+	auto IsPlayable(std::string* why = nullptr) const -> bool;
+	[[nodiscard]] auto IsZero() const -> bool;
 
 	/* If true, Apply() will apply m_sScreen. If false, it won't, and you need
 	 * to do it yourself. */
@@ -74,7 +66,7 @@ class GameCommand
 	std::string m_sInvalidReason;
 	int m_iIndex{ -1 };
 	MultiPlayer m_MultiPlayer{ MultiPlayer_Invalid };
-	const Style* m_pStyle;
+	const Style* m_pStyle{ nullptr };
 	PlayMode m_pm{ PlayMode_Invalid };
 	Difficulty m_dc{ Difficulty_Invalid };
 	std::string m_sAnnouncer;
@@ -82,8 +74,8 @@ class GameCommand
 	std::string m_sStageModifiers;
 	std::string m_sScreen;
 	LuaReference m_LuaFunction;
-	Song* m_pSong;
-	Steps* m_pSteps;
+	Song* m_pSong{ nullptr };
+	Steps* m_pSteps{ nullptr };
 	std::map<std::string, std::string> m_SetEnv;
 	std::map<std::string, std::string> m_SetPref;
 	std::string m_sSongGroup;

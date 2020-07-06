@@ -10,10 +10,10 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 typedef websocketpp::config::asio_tls_client::message_type::ptr wss_message_ptr;
-typedef ::websocketpp::client<websocketpp::config::asio_tls_client> wss_client;
+using wss_client = ::websocketpp::client<websocketpp::config::asio_tls_client>;
 #include <websocketpp/config/asio_no_tls_client.hpp>
-typedef ::websocketpp::config::asio_client::message_type::ptr ws_message_ptr;
-typedef ::websocketpp::client<websocketpp::config::asio_client> ws_client;
+using ws_message_ptr = ::websocketpp::config::asio_client::message_type::ptr;
+using ws_client = ::websocketpp::client<websocketpp::config::asio_client>;
 
 class LoadingWindow;
 
@@ -71,7 +71,7 @@ enum SMOStepType
 
 const NSCommand NSServerOffset = static_cast<NSCommand>(128);
 
-// TODO: Provide a Lua binding that gives access to this data. -aj
+// TODO(Sam): Provide a Lua binding that gives access to this data. -aj
 class EndOfGame_PlayerData
 {
   public:
@@ -175,10 +175,10 @@ class PacketFunctions
 			  // be used; NOT size.
 
 	// Commands used to operate on NetPackets
-	uint8_t Read1();
-	uint16_t Read2();
-	uint32_t Read4();
-	std::string ReadNT();
+	auto Read1() -> uint8_t;
+	auto Read2() -> uint16_t;
+	auto Read4() -> uint32_t;
+	auto ReadNT() -> std::string;
 
 	void Write1(uint8_t Data);
 	void Write2(uint16_t Data);
@@ -195,9 +195,9 @@ class NetProtocol
   public:
 	std::string serverName;
 	int serverVersion{ 0 }; // ServerVersion
-	virtual bool Connect(NetworkSyncManager* n,
-						 unsigned short port,
-						 std::string address)
+	virtual auto Connect(NetworkSyncManager* /*n*/,
+						 unsigned short /*port*/,
+						 std::string /*address*/) -> bool
 	{
 		return false;
 	}
@@ -272,9 +272,9 @@ class ETTProtocol : public NetProtocol
 	string roomName;
 	string roomDesc;
 	bool inRoom{ false };
-	bool Connect(NetworkSyncManager* n,
+	auto Connect(NetworkSyncManager* n,
 				 unsigned short port,
-				 std::string address) override; // Connect and say hello
+				 std::string address) -> bool override; // Connect and say hello
 	void close() override;
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
 	void Login(std::string user, std::string pass) override;
@@ -309,12 +309,14 @@ class Chat
   public:
 	map<pair<string, int>, vector<string>> rawMap;
 
-	vector<string>& operator[](const pair<string, int>& p)
+	auto operator[](const pair<string, int>& p) -> vector<string>&
 	{
-		if (p.second == 0)
+		if (p.second == 0) {
 			return rawMap.operator[](make_pair(string(""), 0));
-		else
+		}
+		{
 			return rawMap.operator[](p);
+		}
 	}
 };
 /** @brief Uses ezsockets for primitive song syncing and score reporting. */
@@ -352,7 +354,7 @@ class NetworkSyncManager
 	void OffEval();
 
 	void StartRequest(short position); // Request a start; Block until granted.
-	std::string GetServerName();
+	auto GetServerName() -> std::string;
 
 	void CreateNewRoom(std::string name,
 					   std::string desc = "",
@@ -363,7 +365,7 @@ class NetworkSyncManager
 
 	void PostStartUp(const std::string& ServerIP);
 
-	bool IsETTP();
+	auto IsETTP() -> bool;
 
 	void CloseConnection();
 
@@ -397,8 +399,9 @@ class NetworkSyncManager
 	vector<EndOfGame_PlayerData> m_EvalPlayerData;
 
 	// Used together:
-	bool ChangedScoreboard(int Column); // Returns true if scoreboard changed
-										// since function was last called.
+	auto ChangedScoreboard(int Column)
+	  -> bool; // Returns true if scoreboard changed
+			   // since function was last called.
 	std::string m_Scoreboard[NUM_NSScoreBoardColumn];
 
 	set<string> lobbyuserlist;
@@ -428,13 +431,13 @@ class NetworkSyncManager
 	int m_iSelectMode;
 	void SelectUserSong();
 
-	int GetServerVersion();
+	auto GetServerVersion() -> int;
 
 	std::string m_sChatText;
 
 	StepManiaLanServer* LANserver;
 
-	std::string MD5Hex(const std::string& sInput);
+	auto MD5Hex(const std::string& sInput) -> std::string;
 
 	void GetListOfLANServers(vector<NetServerInfo>& AllServers);
 
@@ -443,7 +446,7 @@ class NetworkSyncManager
 	// platform. I preferred to misplace code rather than cause unneeded
 	// headaches to non-windows users, although it would be nice to have in the
 	// wiki which files to update when adding new files.
-	static unsigned long GetCurrentSMBuild(LoadingWindow* ld);
+	static auto GetCurrentSMBuild(LoadingWindow* ld) -> unsigned long;
 
 	int m_startupStatus; // Used to see if attempt was successful or not.
 
@@ -453,7 +456,7 @@ class NetworkSyncManager
 	vector<ChartRequest*> requests;
 	vector<ChartRequest*> staleRequests;
 
-	SMOStepType TranslateStepType(int score);
+	auto TranslateStepType(int score) -> SMOStepType;
 	vector<NetServerInfo> m_vAllLANServers;
 	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
 

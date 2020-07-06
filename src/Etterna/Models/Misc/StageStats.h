@@ -29,10 +29,10 @@ class StageStats
 
 	void AddStats(const StageStats& other); // accumulate
 
-	[[nodiscard]] bool OnePassed() const;
-	[[nodiscard]] bool AllFailed() const;
+	[[nodiscard]] auto OnePassed() const -> bool;
+	[[nodiscard]] auto AllFailed() const -> bool;
 
-	[[nodiscard]] int GetAverageMeter(PlayerNumber pn) const;
+	[[nodiscard]] auto GetAverageMeter(PlayerNumber pn) const -> int;
 
 	Stage m_Stage;
 	int m_iStageIndex;
@@ -45,7 +45,7 @@ class StageStats
 	/** @brief Did the PLayer use Autoplay at any point during gameplay? */
 	bool m_bUsedAutoplay;
 
-	// TODO: These are updated in ScreenGameplay::Update based on fDelta.
+	// TODO(Sam): These are updated in ScreenGameplay::Update based on fDelta.
 	// They should be made more accurate.
 	/**
 	 * @brief How many seconds were there before gameplay ended?
@@ -62,7 +62,7 @@ class StageStats
 	float m_fMusicRate;
 
 	// Total number of seconds between first beat and last beat for every song.
-	[[nodiscard]] float GetTotalPossibleStepsSeconds() const;
+	[[nodiscard]] auto GetTotalPossibleStepsSeconds() const -> float;
 
 	PlayerStageStats m_player;
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
@@ -78,14 +78,14 @@ class StageStats
 	 * @brief Determine if the PlayerNumber has a high score.
 	 * @param pn the PlayerNumber in question.
 	 * @return true if the PlayerNumber has a high score, false otherwise. */
-	[[nodiscard]] bool PlayerHasHighScore(PlayerNumber pn) const;
-	[[nodiscard]] unsigned int GetMinimumMissCombo() const;
+	[[nodiscard]] auto PlayerHasHighScore(PlayerNumber pn) const -> bool;
+	[[nodiscard]] auto GetMinimumMissCombo() const -> unsigned int;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	// TODO: Implement the copy and assignment operators on our own.
+	// TODO(Sam): Implement the copy and assignment operators on our own.
 };
 
 #endif

@@ -92,12 +92,12 @@ struct ScoresForChart
 
 	[[nodiscard]] static auto RateToKey(float rate) -> int
 	{
-		return lround(rate * 10000.f);
+		return lround(rate * 10000.F);
 	}
 
 	[[nodiscard]] static auto KeyToRate(int key) -> float
 	{
-		return static_cast<float>(key) / 10000.f;
+		return static_cast<float>(key) / 10000.F;
 	}
 };
 

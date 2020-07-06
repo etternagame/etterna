@@ -18,10 +18,10 @@ extern const ScreenMessage SM_Success;
 extern const ScreenMessage SM_Failure;
 /** @brief Helpers for the ScreenMessages. */
 namespace ScreenMessageHelpers {
-ScreenMessage
-ToScreenMessage(const std::string& Name);
-std::string
-ScreenMessageToString(ScreenMessage SM);
+auto
+ToScreenMessage(const std::string& Name) -> ScreenMessage;
+auto
+ScreenMessageToString(ScreenMessage SM) -> std::string;
 };
 
 /** @brief Automatically generate a unique ScreenMessage value */

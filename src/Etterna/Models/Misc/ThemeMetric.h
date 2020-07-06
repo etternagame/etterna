@@ -60,18 +60,17 @@ class ThemeMetric : public IThemeMetric
 	/** @brief the metric's value. */
 	LuaReference m_Value;
 	mutable T m_currentValue;
-	bool m_bCallEachTime;
+	bool m_bCallEachTime{ false };
 
   public:
 	/* Initializing with no group and name is allowed; if you do this, you must
 	 * call Load() to set them.  This is done to allow initializing cached
 	 * metrics in one place for classes that don't receive their m_sName in the
 	 * constructor (everything except screens). */
-	ThemeMetric(const std::string& sGroup = "", const std::string& sName = "")
-	  : m_sGroup(sGroup)
-	  , m_sName(sName)
+	ThemeMetric(std::string sGroup = "", std::string sName = "")
+	  : m_sGroup(std::move(sGroup))
+	  , m_sName(std::move(sName))
 	  , m_currentValue(T())
-	  , m_bCallEachTime(false)
 	{
 		ThemeManager::Subscribe(this);
 	}
@@ -109,7 +108,7 @@ class ThemeMetric : public IThemeMetric
 	 * @brief Actually read the metric and get its data. */
 	void Read() override
 	{
-		if (!m_sName.empty() && THEME && THEME->IsThemeLoaded()) {
+		if (!m_sName.empty() && (THEME != nullptr) && THEME->IsThemeLoaded()) {
 			auto L = LUA->Get();
 			THEME->GetMetric(m_sGroup, m_sName, m_Value);
 			m_Value.PushSelf(L);

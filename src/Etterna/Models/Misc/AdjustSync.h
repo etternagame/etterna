@@ -27,7 +27,7 @@ class AdjustSync
 	 * is sufficient. */
 	static void ResetOriginalSyncData();
 	static void ResetAutosync();
-	static bool IsSyncDataChanged();
+	static auto IsSyncDataChanged() -> bool;
 
 	static void SaveSyncChanges();
 	static void RevertSyncChanges();

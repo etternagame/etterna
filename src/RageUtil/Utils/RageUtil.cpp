@@ -1590,7 +1590,7 @@ Regex::operator=(const Regex& rhs)
 }
 
 Regex&
-Regex::operator=(Regex&& rhs)
+Regex::operator=(Regex&& rhs) noexcept
 {
 	std::swap(m_iBackrefs, rhs.m_iBackrefs);
 	std::swap(m_pReg, rhs.m_pReg);

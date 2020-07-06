@@ -30,11 +30,11 @@ class ITween
   public:
 	/** @brief Create the initial interface. */
 	virtual ~ITween() = default;
-	[[nodiscard]] virtual float Tween(float f) const = 0;
-	[[nodiscard]] virtual ITween* Copy() const = 0;
+	[[nodiscard]] virtual auto Tween(float f) const -> float = 0;
+	[[nodiscard]] virtual auto Copy() const -> ITween* = 0;
 
-	static ITween* CreateFromType(TweenType iType);
-	static ITween* CreateFromStack(Lua* L, int iStackPos);
+	static auto CreateFromType(TweenType iType) -> ITween*;
+	static auto CreateFromStack(Lua* L, int iStackPos) -> ITween*;
 };
 
 #endif

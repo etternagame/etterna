@@ -124,7 +124,7 @@ const luaL_Reg DisplaySpecs_meta[] = { { "__gc", DisplaySpecs_gc },
 									   { "__index", DisplaySpecs_get },
 									   { "__len", DisplaySpecs_len },
 									   { "__tostring", DisplaySpecs_tostring },
-									   { nullptr, NULL } };
+									   { nullptr, nullptr } };
 
 void
 register_DisplaySpecs(lua_State* L)

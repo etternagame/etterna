@@ -465,15 +465,14 @@ TimingData::IsFakeAtRow(int iNoteRow) const
  * segment in the TimingData, and if not, we'll crash anyway. -- vyhd */
 static const TimingSegment* DummySegments[NUM_TimingSegmentType] = {
 	nullptr, // BPMSegment
-	new StopSegment,
-	new DelaySegment,
+	new StopSegment, new DelaySegment,
 	nullptr, // TimeSignatureSegment
 	new WarpSegment,
-	NULL, // LabelSegment
-	NULL, // TickcountSegment
-	NULL, // ComboSegment
-	NULL, // SpeedSegment
-	NULL, // ScrollSegment
+	nullptr, // LabelSegment
+	nullptr, // TickcountSegment
+	nullptr, // ComboSegment
+	nullptr, // SpeedSegment
+	nullptr, // ScrollSegment
 	new FakeSegment
 };
 

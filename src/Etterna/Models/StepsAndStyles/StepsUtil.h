@@ -84,7 +84,7 @@ CompareStepsPointersByDescription(const Steps* pStep1, const Steps* pStep2)
   -> bool;
 void
 SortStepsByDescription(vector<Steps*>& vpStepsInOut);
-} // namespace StepsUtil;
+} // namespace StepsUtil
 
 class StepsID
 {

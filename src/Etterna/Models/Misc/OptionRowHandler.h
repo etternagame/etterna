@@ -186,7 +186,7 @@ class OptionRowHandler
 	std::vector<std::string>
 	  m_vsReloadRowMessages; // refresh this row on on these messages
 
-	OptionRowHandler() {}
+	OptionRowHandler() = default;
 	virtual ~OptionRowHandler() = default;
 	virtual void Init()
 	{

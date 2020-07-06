@@ -2,7 +2,6 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"

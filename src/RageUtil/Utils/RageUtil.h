@@ -907,7 +907,7 @@ class Regex
 	Regex(const std::string& sPat = "");
 	Regex(const Regex& rhs);
 	auto operator=(const Regex& rhs) -> Regex&;
-	auto operator=(Regex&& rhs) -> Regex&;
+	auto operator=(Regex&& rhs) noexcept -> Regex&;
 	~Regex();
 	[[nodiscard]] auto IsSet() const -> bool { return !m_sPattern.empty(); }
 	void Set(const std::string& str);
@@ -975,7 +975,7 @@ struct char_traits_char_nocase : public std::char_traits<char>
 	static auto compare(const char* s1, const char* s2, size_t n) -> int
 	{
 		int ret = 0;
-		while ((n--) != 0u) {
+		while ((n--) != 0U) {
 			ret = fasttoupper(*s1++) - fasttoupper(*s2++);
 			if (ret != 0) {
 				break;

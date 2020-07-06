@@ -13,8 +13,8 @@ enum GameController
 	NUM_GameController,	  /**< The number of controllers allowed. */
 	GameController_Invalid,
 };
-const std::string&
-GameControllerToString(GameController mp);
+auto
+GameControllerToString(GameController mp) -> const std::string&;
 LuaDeclareType(GameController);
 
 /** @brief the list of buttons StepMania recognizes. */
@@ -56,16 +56,18 @@ enum GameButton
 	GameButton_Invalid
 };
 
-std::string
-GameButtonToString(const InputScheme* pInputs, GameButton i);
-std::string
-GameButtonToLocalizedString(const InputScheme* pInputs, GameButton i);
-GameButton
-StringToGameButton(const InputScheme* pInputs, const std::string& s);
+auto
+GameButtonToString(const InputScheme* pInputs, GameButton i) -> std::string;
+auto
+GameButtonToLocalizedString(const InputScheme* pInputs, GameButton i)
+  -> std::string;
+auto
+StringToGameButton(const InputScheme* pInputs, const std::string& s)
+  -> GameButton;
 
 /** @brief A special way to loop through each game button. */
 #define FOREACH_GameButton_Custom(gb)                                          \
-	for (GameButton gb = GAME_BUTTON_CUSTOM_01; gb < NUM_GameButton;           \
+	for (GameButton gb = GAME_BUTTON_CUSTOM_01; (gb) < NUM_GameButton;         \
 		 enum_add(gb, +1))
 
 #define GAME_BUTTON_NEXT GAME_BUTTON_CUSTOM_01
@@ -204,20 +206,22 @@ struct GameInput
 	GameController controller{ GameController_Invalid };
 	GameButton button{ GameButton_Invalid };
 
-	bool operator==(const GameInput& other) const
+	auto operator==(const GameInput& other) const -> bool
 	{
 		return controller == other.controller && button == other.button;
 	};
-	bool operator<(const GameInput& other) const
+	auto operator<(const GameInput& other) const -> bool
 	{
-		if (controller < other.controller)
+		if (controller < other.controller) {
 			return true;
-		if (controller > other.controller)
+		}
+		if (controller > other.controller) {
 			return false;
+		}
 		return button < other.button;
 	}
 
-	[[nodiscard]] inline bool IsValid() const
+	[[nodiscard]] inline auto IsValid() const -> bool
 	{
 		return controller != GameController_Invalid &&
 			   button != GameButton_Invalid;
@@ -228,8 +232,8 @@ struct GameInput
 		button = GameButton_Invalid;
 	};
 
-	std::string ToString(const InputScheme* pInputs) const;
-	bool FromString(const InputScheme* pInputs, const std::string& s);
+	auto ToString(const InputScheme* pInputs) const -> std::string;
+	auto FromString(const InputScheme* pInputs, const std::string& s) -> bool;
 };
 
 #endif

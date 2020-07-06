@@ -19,9 +19,10 @@ struct TapNote;
 class ScoreKeeper
 {
   public:
-	static ScoreKeeper* MakeScoreKeeper(const std::string& sClassName,
-										PlayerState* pPlayerState,
-										PlayerStageStats* pPlayerStageStats);
+	static auto MakeScoreKeeper(const std::string& sClassName,
+								PlayerState* pPlayerState,
+								PlayerStageStats* pPlayerStageStats)
+	  -> ScoreKeeper*;
 
   protected:
 	PlayerState* m_pPlayerState;
@@ -36,21 +37,25 @@ class ScoreKeeper
   public:
 	ScoreKeeper(PlayerState* pPlayerState, PlayerStageStats* pPlayerStageStats);
 	virtual ~ScoreKeeper() = default;
-	virtual void Load(const vector<Song*>&, const vector<Steps*>&) {}
+	virtual void Load(const vector<Song*>& /*unused*/,
+					  const vector<Steps*>& /*unused*/)
+	{
+	}
 
 	virtual void DrawPrimitives() {}
 	virtual void Update(float /* fDelta */) {}
 
 	// Note that pNoteData will include any transformations due to modifiers.
-	virtual void OnNextSong(int /* iSongInCourseIndex */,
-							const Steps*,
-							const NoteData*){}; // before a song plays (called
-												// multiple times if course)
+	virtual void OnNextSong(
+	  int /* iSongInCourseIndex */,
+	  const Steps* /*unused*/,
+	  const NoteData* /*unused*/){}; // before a song plays (called
+									 // multiple times if course)
 
 	// HandleTap* is called before HandleTapRow*
-	virtual void HandleTapScore(const TapNote&) {}
+	virtual void HandleTapScore(const TapNote& /*unused*/) {}
 	virtual void HandleTapRowScore(const NoteData& /* nd */, int /* iRow */) {}
-	virtual void HandleHoldScore(const TapNote&) {}
+	virtual void HandleHoldScore(const TapNote& /*unused*/) {}
 	virtual void HandleHoldActiveSeconds(float /* fMusicSecondsHeld */) {}
 	virtual void HandleHoldCheckpointScore(const NoteData& /*nd */,
 										   int /* iRow */,

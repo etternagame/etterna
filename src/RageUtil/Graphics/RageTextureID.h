@@ -61,15 +61,8 @@ struct RageTextureID
 
 	void Init();
 
-	RageTextureID()
-	  : filename(std::string())
-	  , AdditionalTextureHints(std::string())
-	{
-		Init();
-	}
+	RageTextureID() { Init(); }
 	RageTextureID(const std::string& fn)
-	  : filename(std::string())
-	  , AdditionalTextureHints(std::string())
 	{
 		Init();
 		SetFilename(fn);
@@ -77,8 +70,8 @@ struct RageTextureID
 	void SetFilename(const std::string& fn);
 };
 
-inline bool
-operator==(RageTextureID const& lhs, RageTextureID const& rhs)
+inline auto
+operator==(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
 #define EQUAL(a) (lhs.a == rhs.a)
 	return EQUAL(filename) && EQUAL(iMaxSize) && EQUAL(bMipMaps) &&
@@ -89,14 +82,14 @@ operator==(RageTextureID const& lhs, RageTextureID const& rhs)
 #undef EQUAL
 }
 
-inline bool
-operator!=(RageTextureID const& lhs, RageTextureID const& rhs)
+inline auto
+operator!=(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
 	return !operator==(lhs, rhs);
 }
 
-inline bool
-operator<(RageTextureID const& lhs, RageTextureID const& rhs)
+inline auto
+operator<(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
 #define COMP(a)                                                                \
 	if (lhs.a < rhs.a)                                                         \
@@ -118,18 +111,18 @@ operator<(RageTextureID const& lhs, RageTextureID const& rhs)
 	return false;
 }
 
-inline bool
-operator>(RageTextureID const& lhs, RageTextureID const& rhs)
+inline auto
+operator>(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
 	return operator<(rhs, lhs);
 }
-inline bool
-operator<=(RageTextureID const& lhs, RageTextureID const& rhs)
+inline auto
+operator<=(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
 	return !operator<(rhs, lhs);
 }
-inline bool
-operator>=(RageTextureID const& lhs, RageTextureID const& rhs)
+inline auto
+operator>=(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
 	return !operator<(lhs, rhs);
 }

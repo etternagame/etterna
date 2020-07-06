@@ -367,7 +367,7 @@ MusicWheel::SelectModeMenuItem()
 // bool MusicWheel::SelectCustomItem()
 
 void
-MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
+MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so) const
 {
 	vector<Song*> apAllSongs;
 	switch (so) {
@@ -710,7 +710,7 @@ MusicWheel::SearchGroupNames(const std::string& findme)
 // called the iteration an outcome is determined on instead of clumsily using
 // continue - mina
 void
-MusicWheel::FilterBySkillsets(vector<Song*>& inv)
+MusicWheel::FilterBySkillsets(vector<Song*>& inv) const
 {
 	vector<Song*> tmp;
 
@@ -1056,7 +1056,7 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 void
 MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 								 vector<MusicWheelItemData*>& aFilteredData,
-								 SortOrder so)
+								 SortOrder so) const
 {
 	aFilteredData.clear();
 
