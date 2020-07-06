@@ -158,6 +158,9 @@ class ScoreManager
 	void SortTopSSRPtrs(Skillset ss,
 						const std::string& profileID =
 						  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	void SortTopSSRPtrsForGame(
+	  Skillset ss,
+	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void RecalculateSSRs(LoadingWindow* ld, const std::string& profileID);
 	void RecalculateSSRs(const std::string& profileID);
 	void UnInvalidateAllScores(const string& profileID);
@@ -172,6 +175,8 @@ class ScoreManager
 	auto GetTopSSRValue(unsigned int rank, int ss) -> float;
 
 	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
+	auto GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*;
+
 
 	[[nodiscard]] auto KeyHasScores(
 	  const std::string& ck,
@@ -264,6 +269,7 @@ class ScoreManager
 	// Instead of storing pointers for each skillset just reshuffle the same set
 	// of pointers it's inexpensive and not called often
 	vector<HighScore*> TopSSRs;
+	vector<HighScore*> TopSSRsForGame;
 	vector<HighScore*> AllScores;
 	unordered_map<std::string, vector<HighScore*>> AllProfileScores;
 

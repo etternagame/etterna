@@ -813,11 +813,40 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
 }
 
+void
+ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const string& profileID)
+{
+	TopSSRsForGame.clear();
+	for (auto& i : pscores[profileID]) {
+		if (!SONGMAN->IsChartLoaded(i.first) || !SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+			continue;
+		}
+		for (auto& hs : i.second.GetAllPBPtrs()) {
+			TopSSRsForGame.emplace_back(hs);
+		}
+	}
+
+	auto ssrcomp = [&ss](HighScore* a, HighScore* b) {
+		return (a->GetSkillsetSSR(ss) > b->GetSkillsetSSR(ss));
+	};
+	sort(TopSSRsForGame.begin(), TopSSRsForGame.end(), ssrcomp);
+}
+
 auto
 ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*
 {
 	if (ss >= 0 && ss < NUM_Skillset && rank < TopSSRs.size()) {
 		return TopSSRs[rank];
+	}
+
+	return nullptr;
+}
+
+auto
+ScoreManager::GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*
+{
+	if (ss >= 0 && ss < NUM_Skillset && rank < TopSSRsForGame.size()) {
+		return TopSSRsForGame[rank];
 	}
 
 	return nullptr;
@@ -1098,10 +1127,28 @@ class LunaScoreManager : public Luna<ScoreManager>
 		return 1;
 	}
 
+	static auto SortSSRsForGame(T* p, lua_State* L) -> int
+	{
+		p->SortTopSSRPtrsForGame(Enum::Check<Skillset>(L, 1));
+		return 1;
+	}
+
 	static auto GetTopSSRHighScore(T* p, lua_State* L) -> int
 	{
 		HighScore* ths =
 		  p->GetTopSSRHighScore(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
+		if (ths != nullptr) {
+			ths->PushSelf(L);
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
+
+	static auto GetTopSSRHighScoreForGame(T* p, lua_State* L) -> int
+	{
+		HighScore* ths =
+		  p->GetTopSSRHighScoreForGame(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
 		if (ths != nullptr) {
 			ths->PushSelf(L);
 		} else {
@@ -1129,7 +1176,9 @@ class LunaScoreManager : public Luna<ScoreManager>
 	{
 		ADD_METHOD(GetScoresByKey);
 		ADD_METHOD(SortSSRs);
+		ADD_METHOD(SortSSRsForGame);
 		ADD_METHOD(GetTopSSRHighScore);
+		ADD_METHOD(GetTopSSRHighScoreForGame);
 		ADD_METHOD(GetMostRecentScore);
 		ADD_METHOD(GetTempReplayScore);
 		ADD_METHOD(GetTotalNumberOfScores);
