@@ -9,7 +9,6 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Misc/RageThreads.h"
@@ -309,7 +308,6 @@ ShutdownGame()
 	SAFE_DELETE(TEXTUREMAN);
 	SAFE_DELETE(DISPLAY);
 	Dialog::Shutdown();
-	SAFE_DELETE(LOG);
 	DLMAN.reset();
 	SAFE_DELETE(FILEMAN);
 	SAFE_DELETE(LUA);
@@ -1003,11 +1001,11 @@ WriteLogHeader()
 static void
 ApplyLogPreferences()
 {
-	LOG->SetShowLogOutput(PREFSMAN->m_bShowLogOutput);
-	LOG->SetLogToDisk(PREFSMAN->m_bLogToDisk);
-	LOG->SetInfoToDisk(true);
-	LOG->SetUserLogToDisk(true);
-	LOG->SetFlushing(PREFSMAN->m_bForceLogFlush);
+//	LOG->SetShowLogOutput(PREFSMAN->m_bShowLogOutput);
+//	LOG->SetLogToDisk(PREFSMAN->m_bLogToDisk);
+//	LOG->SetInfoToDisk(true);
+//	LOG->SetUserLogToDisk(true);
+//	LOG->SetFlushing(PREFSMAN->m_bForceLogFlush);
 	Checkpoints::LogCheckpoints(PREFSMAN->m_bLogCheckpoints);
 }
 
@@ -1053,7 +1051,7 @@ sm_main(int argc, char* argv[])
 
 	// Set this up next. Do this early, since it's needed for
 	// RageException::Throw.
-	LOG = new RageLog;
+//	LOG = new RageLog;
 
 	// Whew--we should be able to crash safely now!
 
