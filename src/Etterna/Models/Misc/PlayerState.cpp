@@ -69,7 +69,7 @@ const TimingData&
 PlayerState::GetDisplayedTiming() const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
-	if (steps == NULL)
+	if (steps == nullptr)
 		return GAMESTATE->m_pCurSong->m_SongTiming;
 	return *steps->GetTimingData();
 }

@@ -10,7 +10,7 @@
 class Song;
 class Steps;
 
-class StepsDisplayList : public ActorFrame
+class StepsDisplayList final : public ActorFrame
 {
   public:
 	StepsDisplayList();
@@ -47,7 +47,7 @@ class StepsDisplayList : public ActorFrame
 	{
 		StepsDisplay m_Meter;
 	};
-	vector<Line> m_Lines;
+	std::vector<Line> m_Lines;
 
 	const Song* m_CurSong;
 	bool m_bShown;
@@ -56,7 +56,7 @@ class StepsDisplayList : public ActorFrame
 	{
 		Row()
 		{
-			m_Steps = NULL;
+			m_Steps = nullptr;
 			m_dc = Difficulty_Invalid;
 			m_fY = 0;
 			m_bHidden = false;
@@ -68,7 +68,7 @@ class StepsDisplayList : public ActorFrame
 		bool m_bHidden; // currently off screen
 	};
 
-	vector<Row> m_Rows;
+	std::vector<Row> m_Rows;
 };
 
 #endif

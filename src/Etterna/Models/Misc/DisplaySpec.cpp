@@ -36,7 +36,7 @@ class LunaDisplaySpec : public Luna<DisplaySpec>
 	}
 	static int GetCurrentMode(T* p, lua_State* L)
 	{
-		if (p->currentMode() != NULL) {
+		if (p->currentMode() != nullptr) {
 			DisplayMode* m = const_cast<DisplayMode*>(p->currentMode());
 			m->PushSelf(L);
 		} else {
@@ -124,13 +124,13 @@ const luaL_Reg DisplaySpecs_meta[] = { { "__gc", DisplaySpecs_gc },
 									   { "__index", DisplaySpecs_get },
 									   { "__len", DisplaySpecs_len },
 									   { "__tostring", DisplaySpecs_tostring },
-									   { NULL, NULL } };
+									   { nullptr, NULL } };
 
 void
 register_DisplaySpecs(lua_State* L)
 {
 	luaL_newmetatable(L, DISPLAYSPECS);
-	luaL_openlib(L, 0, DisplaySpecs_meta, 0);
+	luaL_openlib(L, nullptr, DisplaySpecs_meta, 0);
 	lua_pop(L, 1);
 }
 }

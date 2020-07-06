@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "PlayerOptions.h"
@@ -8,6 +7,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+
 #include <cfloat>
 
 static const char* LifeTypeNames[] = {
@@ -456,27 +456,26 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 	vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
 
-	FOREACH_CONST(std::string, asParts, s)
-	{
-		if (*s == "no") {
+	for (auto& s : asParts) {
+		if (s == "no") {
 			level = 0;
-		} else if (isdigit((*s)[0]) || (*s)[0] == '-') {
+		} else if (isdigit(s[0]) || s[0] == '-') {
 			/* If the last character is a *, they probably said "123*" when
 			 * they meant "*123". */
-			if (s->back() == '*') {
+			if (s.back() == '*') {
 				// XXX: We know what they want, is there any reason not to
 				// handle it? Yes. We should be strict in handling the format.
 				// -Chris
 				sErrorOut =
 				  ssprintf("Invalid player options \"%s\"; did you mean '*%d'?",
-						   s->c_str(),
-						   StringToInt(*s));
+						   s.c_str(),
+						   StringToInt(s));
 				return false;
 			} else {
-				level = StringToFloat(*s) / 100.0f;
+				level = StringToFloat(s) / 100.0f;
 			}
-		} else if ((*s)[0] == '*') {
-			sscanf((*s).c_str(), "*%f", &speed);
+		} else if (s[0] == '*') {
+			sscanf(s.c_str(), "*%f", &speed);
 			if (!isfinite(speed))
 				speed = 1.0f;
 		}
@@ -1144,9 +1143,8 @@ PlayerOptions::GetLocalizedMods(vector<std::string>& AddTo) const
 {
 	vector<std::string> vMods;
 	GetMods(vMods);
-	FOREACH_CONST(std::string, vMods, s)
-	{
-		const std::string& sOneMod = *s;
+	for (auto& s : vMods) {
+		const std::string& sOneMod = s;
 
 		ASSERT(!sOneMod.empty());
 

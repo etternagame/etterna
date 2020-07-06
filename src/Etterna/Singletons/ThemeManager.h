@@ -3,6 +3,7 @@
 
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageTypes.h"
+
 #include <set>
 
 class IThemeMetric;

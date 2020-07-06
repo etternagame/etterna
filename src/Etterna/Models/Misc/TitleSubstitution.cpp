@@ -175,7 +175,7 @@ TitleSubst::Load(const std::string& filename, const std::string& section)
 	}
 
 	XNode* pGroup = xml.GetChild(section);
-	if (pGroup == NULL)
+	if (pGroup == nullptr)
 		return;
 	FOREACH_CONST_Child(pGroup, child)
 	{
@@ -190,6 +190,6 @@ TitleSubst::Load(const std::string& filename, const std::string& section)
 
 TitleSubst::~TitleSubst()
 {
-	for (unsigned i = 0; i < ttab.size(); ++i)
-		delete ttab[i];
+	for (auto& i : ttab)
+		delete i;
 }

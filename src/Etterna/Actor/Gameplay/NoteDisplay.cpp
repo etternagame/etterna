@@ -7,8 +7,6 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "NoteDisplay.h"
-
-#include <utility>
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "Etterna/Models/Misc/PlayerState.h"
@@ -17,6 +15,8 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+
+#include <utility>
 
 static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
@@ -450,7 +450,7 @@ NoteColumnRenderArgs::SetPRZForActor(Actor* actor,
 									 const RageVector3& sp_rot,
 									 const RageVector3& ae_rot,
 									 const RageVector3& sp_zoom,
-									 const RageVector3& ae_zoom) const
+									 const RageVector3& ae_zoom)
 {
 	actor->SetX(sp_pos.x + ae_pos.x);
 	actor->SetY(sp_pos.y + ae_pos.y);
@@ -557,7 +557,7 @@ NoteDisplay::DrawHoldsInRange(
   const vector<NoteData::TrackMap::const_iterator>& tap_set)
 {
 	auto any_upcoming = false;
-	for (auto tapit : tap_set) {
+	for (const auto tapit : tap_set) {
 		const auto& tn = tapit->second;
 		const auto& result = tn.HoldResult;
 		const auto start_row = tapit->first;
@@ -642,7 +642,7 @@ NoteDisplay::DrawTapsInRange(
 {
 	auto any_upcoming = false;
 	// draw notes from furthest to closest
-	for (auto tapit : tap_set) {
+	for (const auto tapit : tap_set) {
 		auto tap_row = tapit->first;
 		const auto& tn = tapit->second;
 
@@ -780,7 +780,7 @@ NoteDisplay::GetTapActor(NoteColorActor& nca,
 						 NotePart part,
 						 float fNoteBeat) const
 {
-	const auto Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
+	const auto& Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
 	auto* const pActorOut = nca.Get(Color);
 
 	SetActiveFrame(fNoteBeat,
@@ -810,7 +810,7 @@ NoteDisplay::GetHoldSprite(NoteColorSprite ncs[NUM_HoldType][NUM_ActiveType],
 						   bool bIsRoll,
 						   bool bIsBeingHeld) const
 {
-	const auto Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
+	const auto& Color = NoteTypeToString(BeatToNoteType(fNoteBeat));
 	auto* const pSpriteOut =
 	  ncs[bIsRoll ? roll : hold][bIsBeingHeld ? active : inactive].Get(Color);
 

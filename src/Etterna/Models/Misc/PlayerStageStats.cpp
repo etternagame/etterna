@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
@@ -114,8 +113,8 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 {
 	m_pStyle = other.m_pStyle;
 	m_bJoined = other.m_bJoined;
-	FOREACH_CONST(Steps*, other.m_vpPossibleSteps, s)
-	m_vpPossibleSteps.push_back(*s);
+	for (auto& s : other.m_vpPossibleSteps)
+		m_vpPossibleSteps.push_back(s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
 	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
@@ -158,9 +157,7 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 		m_fLifeRecord[fOtherFirstSecond + pos] = life;
 	}
 
-	for (unsigned i = 0; i < other.m_ComboList.size(); ++i) {
-		const Combo_t& combo = other.m_ComboList[i];
-
+	for (auto combo : other.m_ComboList) {
 		Combo_t newcombo(combo);
 		newcombo.m_fStartSecond += fOtherFirstSecond;
 		m_ComboList.push_back(newcombo);
@@ -481,9 +478,8 @@ PlayerStageStats::GetLessonScoreNeeded() const
 {
 	float fScore = 0;
 
-	FOREACH_CONST(Steps*, m_vpPossibleSteps, steps)
-	{
-		fScore += (*steps)->GetRadarValues()[RadarCategory_TapsAndHolds];
+	for (auto& steps : m_vpPossibleSteps) {
+		fScore += steps->GetRadarValues()[RadarCategory_TapsAndHolds];
 	}
 
 	return lround(fScore * LESSON_PASS_THRESHOLD);
@@ -987,8 +983,8 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 					doot.emplace_back(offs[i] * 1000);
 		} else {
 			// But type is empty if the replay is old :(
-			for (size_t i = 0; i < offs.size(); ++i)
-				doot.emplace_back(offs[i] * 1000);
+			for (float off : offs)
+				doot.emplace_back(off * 1000);
 		}
 		LuaHelpers::CreateTableFromArray(doot, L);
 		return 1;

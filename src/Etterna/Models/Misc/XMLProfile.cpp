@@ -83,7 +83,7 @@ XMLProfile::LoadEttFromDir(string dir)
 
 	int iError;
 	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL) {
+	if (pFile.get() == nullptr) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
 	}

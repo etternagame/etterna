@@ -3,6 +3,7 @@
 
 #include "GameCommand.h"
 #include "Etterna/Models/Lua/LuaReference.h"
+
 #include <set>
 
 struct MenuRowDef;
@@ -63,8 +64,8 @@ struct OptionRowDefinition
 	SelectType m_selectType{ SELECT_ONE };
 	LayoutType m_layoutType{ LAYOUT_SHOW_ALL_IN_ROW };
 	vector<std::string> m_vsChoices;
-	set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
-											// change focus to this row
+	std::set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
+												 // change focus to this row
 	int m_iDefault{ -1 };
 	bool m_bExportOnChange{ false };
 	/**
@@ -91,7 +92,7 @@ struct OptionRowDefinition
 	 * @brief Is this option enabled for the Player?
 	 * @param pn the Player the PlayerNumber represents.
 	 * @return true if the option is enabled, false otherwise. */
-	bool IsEnabledForPlayer(PlayerNumber pn) const
+	[[nodiscard]] bool IsEnabledForPlayer(PlayerNumber pn) const
 	{
 		return m_vEnabledForPlayers.find(pn) != m_vEnabledForPlayers.end();
 	}
@@ -99,8 +100,6 @@ struct OptionRowDefinition
 	OptionRowDefinition()
 	  : m_sName("")
 	  , m_sExplanationName("")
-	  , m_vsChoices()
-	  , m_vEnabledForPlayers()
 
 	{
 		m_vEnabledForPlayers.insert(PLAYER_1);
@@ -125,31 +124,29 @@ struct OptionRowDefinition
 
 	OptionRowDefinition(const char* n,
 						bool b,
-						const char* c0 = NULL,
-						const char* c1 = NULL,
-						const char* c2 = NULL,
-						const char* c3 = NULL,
-						const char* c4 = NULL,
-						const char* c5 = NULL,
-						const char* c6 = NULL,
-						const char* c7 = NULL,
-						const char* c8 = NULL,
-						const char* c9 = NULL,
-						const char* c10 = NULL,
-						const char* c11 = NULL,
-						const char* c12 = NULL,
-						const char* c13 = NULL,
-						const char* c14 = NULL,
-						const char* c15 = NULL,
-						const char* c16 = NULL,
-						const char* c17 = NULL,
-						const char* c18 = NULL,
-						const char* c19 = NULL)
+						const char* c0 = nullptr,
+						const char* c1 = nullptr,
+						const char* c2 = nullptr,
+						const char* c3 = nullptr,
+						const char* c4 = nullptr,
+						const char* c5 = nullptr,
+						const char* c6 = nullptr,
+						const char* c7 = nullptr,
+						const char* c8 = nullptr,
+						const char* c9 = nullptr,
+						const char* c10 = nullptr,
+						const char* c11 = nullptr,
+						const char* c12 = nullptr,
+						const char* c13 = nullptr,
+						const char* c14 = nullptr,
+						const char* c15 = nullptr,
+						const char* c16 = nullptr,
+						const char* c17 = nullptr,
+						const char* c18 = nullptr,
+						const char* c19 = nullptr)
 	  : m_sName(n)
 	  , m_sExplanationName("")
 	  , m_bOneChoiceForAllPlayers(b)
-	  , m_vsChoices()
-	  , m_vEnabledForPlayers()
 
 	{
 		m_vEnabledForPlayers.insert(PLAYER_1);
@@ -186,14 +183,10 @@ class OptionRowHandler
 {
   public:
 	OptionRowDefinition m_Def;
-	vector<std::string>
+	std::vector<std::string>
 	  m_vsReloadRowMessages; // refresh this row on on these messages
 
-	OptionRowHandler()
-	  : m_Def()
-	  , m_vsReloadRowMessages()
-	{
-	}
+	OptionRowHandler() {}
 	virtual ~OptionRowHandler() = default;
 	virtual void Init()
 	{
@@ -205,8 +198,9 @@ class OptionRowHandler
 		Init();
 		return this->LoadInternal(cmds);
 	}
-	std::string OptionTitle() const;
-	std::string GetThemedItemText(int iChoice) const;
+
+	[[nodiscard]] std::string OptionTitle() const;
+	[[nodiscard]] std::string GetThemedItemText(int iChoice) const;
 
 	virtual bool LoadInternal(const Commands&) { return true; }
 
@@ -221,22 +215,26 @@ class OptionRowHandler
 	 * and nothing has changed, return RELOAD_CHANGED_NONE. */
 	virtual ReloadChanged Reload() { return RELOAD_CHANGED_NONE; }
 
-	virtual int GetDefaultOption() const { return -1; }
+	[[nodiscard]] virtual int GetDefaultOption() const { return -1; }
 	virtual void ImportOption(OptionRow*,
 							  const PlayerNumber&,
-							  vector<bool>& vbSelectedOut) const
+							  std::vector<bool>& vbSelectedOut) const
 	{
 	}
 	// Returns an OPT mask.
-	virtual int ExportOption(const PlayerNumber&,
-							 const vector<bool>& vbSelected) const
+	[[nodiscard]] virtual int ExportOption(const PlayerNumber&,
+										   const vector<bool>& vbSelected) const
 	{
 		return 0;
 	}
 	virtual void GetIconTextAndGameCommand(int iFirstSelection,
 										   std::string& sIconTextOut,
 										   GameCommand& gcOut) const;
-	virtual std::string GetScreen(int /* iChoice */) const { return std::string(); }
+
+	[[nodiscard]] virtual std::string GetScreen(int /* iChoice */) const
+	{
+		return std::string();
+	}
 	// Exists so that a lua function can act on the selection.  Returns true if
 	// the choices should be reloaded.
 	virtual bool NotifyOfSelection(PlayerNumber pn, int choice)

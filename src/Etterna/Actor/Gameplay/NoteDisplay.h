@@ -183,13 +183,13 @@ struct NoteColumnRenderArgs
 							float beat,
 							RageVector3& sp_zoom,
 							RageVector3& ae_zoom) const;
-	void SetPRZForActor(Actor* actor,
-						const RageVector3& sp_pos,
-						const RageVector3& ae_pos,
-						const RageVector3& sp_rot,
-						const RageVector3& ae_rot,
-						const RageVector3& sp_zoom,
-						const RageVector3& ae_zoom) const;
+	static void SetPRZForActor(Actor* actor,
+							   const RageVector3& sp_pos,
+							   const RageVector3& ae_pos,
+							   const RageVector3& sp_rot,
+							   const RageVector3& ae_rot,
+							   const RageVector3& sp_zoom,
+							   const RageVector3& ae_zoom);
 	const NCSplineHandler* pos_handler;
 	const NCSplineHandler* rot_handler;
 	const NCSplineHandler* zoom_handler;

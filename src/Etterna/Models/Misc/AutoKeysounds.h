@@ -18,11 +18,11 @@ class AutoKeysounds
 	 * any. */
 	void FinishLoading();
 	RageSound* GetSound() { return &m_sSound; }
-	RageSoundReader* GetSharedSound() { return m_pSharedSound; }
-	RageSoundReader* GetPlayerSound(PlayerNumber pn)
+	RageSoundReader* GetSharedSound() const { return m_pSharedSound; }
+	RageSoundReader* GetPlayerSound(PlayerNumber pn) const
 	{
 		if (pn == PLAYER_INVALID)
-			return NULL;
+			return nullptr;
 		return m_pPlayerSounds;
 	}
 

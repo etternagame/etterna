@@ -29,7 +29,7 @@ enum MusicWheelItemType
 const std::string&
 MusicWheelItemTypeToString(MusicWheelItemType i);
 /** @brief An item on the MusicWheel. */
-class MusicWheelItem : public WheelItemBase
+class MusicWheelItem final : public WheelItemBase
 {
   public:
 	MusicWheelItem(const std::string& sType = "MusicWheelItem");
@@ -55,12 +55,11 @@ class MusicWheelItem : public WheelItemBase
 	AutoActor m_pGradeDisplay;
 };
 
-struct MusicWheelItemData : public WheelItemBaseData
+struct MusicWheelItemData : WheelItemBaseData
 {
 	MusicWheelItemData()
 	  : m_pSong(nullptr)
 	  , m_sLabel("")
-	  , m_pAction()
 	{
 	}
 	MusicWheelItemData(WheelItemDataType type,

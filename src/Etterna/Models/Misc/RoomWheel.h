@@ -47,7 +47,6 @@ struct RoomWheelItemData : public WheelItemBaseData
 					  const bool hasPass = false)
 	  : WheelItemBaseData(type, sTitle, color)
 	  , m_sDesc(sDesc)
-	  , m_iFlags(0)
 	  , hasPassword(hasPass){};
 
 	std::string m_sDesc;

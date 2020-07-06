@@ -147,7 +147,7 @@ RoomWheel::RemoveItem(int index)
 
 	// If this item's data happened to be last selected, make it NULL.
 	if (m_LastSelection == *i)
-		m_LastSelection = NULL;
+		m_LastSelection = nullptr;
 
 	SAFE_DELETE(*i);
 	m_CurWheelItemData.erase(i);
@@ -171,7 +171,7 @@ RoomWheel::Select()
 	if (m_iSelection == 0) {
 		// Since this is not actually an option outside of this wheel, NULL is a
 		// good idea.
-		m_LastSelection = NULL;
+		m_LastSelection = nullptr;
 		ScreenTextEntry::TextEntry(
 		  SM_BackFromRoomName, ENTER_ROOM_NAME, "", 255);
 	}
@@ -203,7 +203,7 @@ RoomWheel::Move(int n)
 {
 	if (n == 0 && m_iSelection >= m_offset) {
 		const RoomWheelItemData* data = GetItem(m_iSelection - m_offset);
-		if (data != NULL)
+		if (data != nullptr)
 			SCREENMAN->PostMessageToTopScreen(SM_RoomInfoDeploy, 0);
 	} else {
 		SCREENMAN->PostMessageToTopScreen(SM_RoomInfoRetract, 0);
@@ -286,14 +286,14 @@ RoomWheel::FilterBySearch()
 void
 RoomWheel::BuildFromRoomDatas()
 {
-	if (allRooms == NULL)
+	if (allRooms == nullptr)
 		return;
 	if (searching)
 		FilterBySearch();
 	else
 		roomsInWheel = (*allRooms);
 	int difference = 0;
-	RoomWheelItemData* itemData = NULL;
+	RoomWheelItemData* itemData = nullptr;
 
 	difference = GetNumItems() - roomsInWheel.size();
 

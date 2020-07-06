@@ -464,10 +464,10 @@ TimingData::IsFakeAtRow(int iNoteRow) const
  * because they should never need to be used; we always have at least one such
  * segment in the TimingData, and if not, we'll crash anyway. -- vyhd */
 static const TimingSegment* DummySegments[NUM_TimingSegmentType] = {
-	NULL, // BPMSegment
+	nullptr, // BPMSegment
 	new StopSegment,
 	new DelaySegment,
-	NULL, // TimeSignatureSegment
+	nullptr, // TimeSignatureSegment
 	new WarpSegment,
 	NULL, // LabelSegment
 	NULL, // TickcountSegment
@@ -1026,7 +1026,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 		// Don't delete the indefinite segments that are still in effect
 		// at the end row; rather, shift them so they start there.
 		TimingSegment* tsEnd = GetSegmentAtRow(iStartRow + iRowsToDelete, tst);
-		if (tsEnd != NULL &&
+		if (tsEnd != nullptr &&
 			tsEnd->GetEffectType() == SegmentEffectType_Indefinite &&
 			iStartRow <= tsEnd->GetRow() &&
 			tsEnd->GetRow() < iStartRow + iRowsToDelete) {

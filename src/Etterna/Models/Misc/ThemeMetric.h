@@ -4,6 +4,7 @@
 #define THEME_METRIC_H
 
 #include "Etterna/Singletons/ThemeManager.h"
+
 #include <map>
 
 /** @brief The general interface for reading ThemeMetrics. */
@@ -69,7 +70,6 @@ class ThemeMetric : public IThemeMetric
 	ThemeMetric(const std::string& sGroup = "", const std::string& sName = "")
 	  : m_sGroup(sGroup)
 	  , m_sName(sName)
-	  , m_Value()
 	  , m_currentValue(T())
 	  , m_bCallEachTime(false)
 	{
@@ -196,7 +196,7 @@ class ThemeMetric1D : public IThemeMetric
 	{
 		Load(sGroup, pfn, N);
 	}
-	ThemeMetric1D() { Load(std::string(), NULL, 0); }
+	ThemeMetric1D() { Load(std::string(), nullptr, 0); }
 	void Load(const std::string& sGroup, MetricName1D pfn, size_t N)
 	{
 		m_metric.resize(N);
@@ -269,9 +269,10 @@ class ThemeMetricMap : public IThemeMetric
 	map<std::string, ThemeMetricT> m_metric;
 
   public:
-	ThemeMetricMap(const std::string& sGroup = "",
-				   MetricNameMap pfn = nullptr,
-				   const vector<std::string>& vsValueNames = vector<std::string>())
+	ThemeMetricMap(
+	  const std::string& sGroup = "",
+	  MetricNameMap pfn = nullptr,
+	  const vector<std::string>& vsValueNames = vector<std::string>())
 	{
 		Load(sGroup, pfn, vsValueNames);
 	}

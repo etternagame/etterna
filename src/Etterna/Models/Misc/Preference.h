@@ -54,7 +54,7 @@ class Preference : public IPreference
   public:
 	Preference(const std::string& sName,
 			   const T& defaultValue,
-			   void(pfnValidate)(T& val) = NULL)
+			   void(pfnValidate)(T& val) = nullptr)
 	  : IPreference(sName)
 	  , m_currentValue(defaultValue)
 	  , m_defaultValue(defaultValue)
