@@ -217,7 +217,7 @@ struct GameInput
 		return button < other.button;
 	}
 
-	inline bool IsValid() const
+	[[nodiscard]] inline bool IsValid() const
 	{
 		return controller != GameController_Invalid &&
 			   button != GameButton_Invalid;

@@ -32,28 +32,28 @@ class PlayerStageStats
 	void AddStats(const PlayerStageStats& other); // accumulate
 
 	static Grade GetGrade(float p);
-	Grade GetGrade() const;
+	[[nodiscard]] Grade GetGrade() const;
 	static float MakePercentScore(int iActual, int iPossible);
 	static std::string FormatPercentScore(float fPercentScore);
 	// Calculate the difficulty rating for a specific score obtained by a player
 	// - Mina
 	Grade GetWifeGrade();
-	vector<float> CalcSSR(float ssrpercent) const;
+	[[nodiscard]] vector<float> CalcSSR(float ssrpercent) const;
 	void GenerateValidationKeys(HighScore& hs) const;
-	float GetPercentDancePoints() const;
-	float GetWifeScore() const;
-	float GetCurWifeScore() const;
-	float GetMaxWifeScore() const;
-	float GetTimingScale() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
-	vector<int> GetTrackVector() const;
-	vector<TapNoteType> GetTapNoteTypeVector() const;
-	vector<HoldReplayResult> GetHoldReplayDataVector() const;
-	float GetCurMaxPercentDancePoints() const;
+	[[nodiscard]] float GetPercentDancePoints() const;
+	[[nodiscard]] float GetWifeScore() const;
+	[[nodiscard]] float GetCurWifeScore() const;
+	[[nodiscard]] float GetMaxWifeScore() const;
+	[[nodiscard]] float GetTimingScale() const;
+	[[nodiscard]] vector<float> GetOffsetVector() const;
+	[[nodiscard]] vector<int> GetNoteRowVector() const;
+	[[nodiscard]] vector<int> GetTrackVector() const;
+	[[nodiscard]] vector<TapNoteType> GetTapNoteTypeVector() const;
+	[[nodiscard]] vector<HoldReplayResult> GetHoldReplayDataVector() const;
+	[[nodiscard]] float GetCurMaxPercentDancePoints() const;
 
-	int GetLessonScoreActual() const;
-	int GetLessonScoreNeeded() const;
+	[[nodiscard]] int GetLessonScoreActual() const;
+	[[nodiscard]] int GetLessonScoreNeeded() const;
 	void ResetScoreForLesson();
 
 	bool m_for_multiplayer;
@@ -146,17 +146,17 @@ class PlayerStageStats
 	void GetLifeRecord(float* fLifeOut,
 					   int iNumSamples,
 					   float fStepsEndSecond) const;
-	float GetLifeRecordAt(float fStepsSecond) const;
-	float GetLifeRecordLerpAt(float fStepsSecond) const;
-	float GetCurrentLife() const;
+	[[nodiscard]] float GetLifeRecordAt(float fStepsSecond) const;
+	[[nodiscard]] float GetLifeRecordLerpAt(float fStepsSecond) const;
+	[[nodiscard]] float GetCurrentLife() const;
 
 	map<float, float> WifeRecord;
 	void SetWifeRecordAt(float Wife, float fStepsSecond);
 	void GetWifeRecord(float* WifeOut,
 					   int iNumSamples,
 					   float fStepsEndSecond) const;
-	float GetWifeRecordAt(float fStepsSecond) const;
-	float GetWifeRecordLerpAt(float fStepsSecond) const;
+	[[nodiscard]] float GetWifeRecordAt(float fStepsSecond) const;
+	[[nodiscard]] float GetWifeRecordLerpAt(float fStepsSecond) const;
 
 	struct Combo_t
 	{
@@ -186,27 +186,27 @@ class PlayerStageStats
 		/**
 		 * @brief Retrieve the size of the combo that came from this song.
 		 * @return this song's combo size. */
-		int GetStageCnt() const { return m_cnt - m_rollover; }
+		[[nodiscard]] int GetStageCnt() const { return m_cnt - m_rollover; }
 
 		Combo_t() = default;
-		bool IsZero() const { return m_fStartSecond < 0; }
+		[[nodiscard]] bool IsZero() const { return m_fStartSecond < 0; }
 	};
 	vector<Combo_t> m_ComboList;
 	float m_fFirstSecond;
 	float m_fLastSecond;
 
-	int GetComboAtStartOfStage() const;
-	bool FullComboOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
-	bool FullCombo() const { return FullComboOfScore(TNS_W3); }
-	TapNoteScore GetBestFullComboTapNoteScore() const;
-	bool SingleDigitsOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
-	bool OneOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
-	int GetTotalTaps() const;
-	float GetPercentageOfTaps(TapNoteScore tns) const;
+	[[nodiscard]] int GetComboAtStartOfStage() const;
+	[[nodiscard]] bool FullComboOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
+	[[nodiscard]] bool FullCombo() const { return FullComboOfScore(TNS_W3); }
+	[[nodiscard]] TapNoteScore GetBestFullComboTapNoteScore() const;
+	[[nodiscard]] bool SingleDigitsOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
+	[[nodiscard]] bool OneOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
+	[[nodiscard]] int GetTotalTaps() const;
+	[[nodiscard]] float GetPercentageOfTaps(TapNoteScore tns) const;
 	void UpdateComboList(float fSecond, bool rollover);
-	Combo_t GetMaxCombo() const;
+	[[nodiscard]] Combo_t GetMaxCombo() const;
 
-	float GetSurvivalSeconds() const
+	[[nodiscard]] float GetSurvivalSeconds() const
 	{
 		return m_fAliveSeconds + m_fLifeRemainingSeconds;
 	}
@@ -214,7 +214,7 @@ class PlayerStageStats
 	int m_iPersonalHighScoreIndex;
 	int m_iMachineHighScoreIndex;
 	bool m_bDisqualified;
-	bool IsDisqualified() const;
+	[[nodiscard]] bool IsDisqualified() const;
 
 	void UnloadReplayData(); // i don't really trust the deconstructors here,
 							 // also prefer flexibility in this -mina

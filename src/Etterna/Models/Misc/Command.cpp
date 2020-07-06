@@ -7,7 +7,7 @@ Command::GetName() const
 {
 	if (m_vsArgs.empty())
 		return std::string();
-	std::string s = m_vsArgs[0];
+	auto s = m_vsArgs[0];
 	Trim(s);
 	return s;
 }
@@ -47,7 +47,7 @@ SplitWithQuotes(const std::string sSource,
 
 	size_t startpos = 0;
 	do {
-		size_t pos = startpos;
+		auto pos = startpos;
 		while (pos < sSource.size()) {
 			if (sSource[pos] == Delimitor)
 				break;
@@ -69,7 +69,7 @@ SplitWithQuotes(const std::string sSource,
 			if (startpos == 0 && pos - startpos == sSource.size())
 				asOut.push_back(sSource);
 			else {
-				const std::string AddCString =
+				const auto AddCString =
 				  sSource.substr(startpos, pos - startpos);
 				asOut.push_back(AddCString);
 			}
@@ -84,7 +84,7 @@ Commands::GetOriginalCommandString() const
 {
 	std::string s;
 	for (auto& c : v) {
-		if (s != "") {
+		if (!s.empty()) {
 			s += ";";
 		}
 		s += c.GetOriginalCommandString();
@@ -105,7 +105,7 @@ ParseCommands(const std::string& sCommands,
 	vCommandsOut.v.resize(vsCommands.size());
 
 	for (unsigned i = 0; i < vsCommands.size(); i++) {
-		Command& cmd = vCommandsOut.v[i];
+		auto& cmd = vCommandsOut.v[i];
 		cmd.Load(vsCommands[i]);
 	}
 }

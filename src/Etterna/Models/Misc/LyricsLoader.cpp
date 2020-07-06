@@ -31,13 +31,13 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 		return false;
 	}
 
-	RageColor CurrentColor = LYRICS_DEFAULT_COLOR;
+	auto CurrentColor = LYRICS_DEFAULT_COLOR;
 
 	out.m_LyricSegments.clear();
 
 	for (;;) {
 		std::string line;
-		int ret = input.GetLine(line);
+		auto ret = input.GetLine(line);
 		if (ret == 0) {
 			break;
 		}
@@ -63,8 +63,8 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 		}
 		ASSERT(matches.size() == 2);
 
-		std::string& sValueName = matches[0];
-		std::string& sValueData = matches[1];
+		auto& sValueName = matches[0];
+		auto& sValueData = matches[1];
 		StripCrnl(sValueData);
 
 		// handle the data
@@ -72,7 +72,7 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 			EqualsNoCase(sValueName, "COLOR")) {
 			// set color var here for this segment
 			int r, g, b;
-			int result = sscanf(sValueData.c_str(), "0x%2x%2x%2x", &r, &g, &b);
+			auto result = sscanf(sValueData.c_str(), "0x%2x%2x%2x", &r, &g, &b);
 			// According to the Dance With Intensity readme, one can set up to
 			// ten colors in a line and access them via "{cX}", where X is 0-9.
 			if (result != 3) {
@@ -99,7 +99,7 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 			seg.m_fStartTime = HHMMSSToSeconds(sValueName);
 			seg.m_sLyric = sValueData;
 
-			std::string bloo = seg.m_sLyric;
+			auto bloo = seg.m_sLyric;
 
 			s_replace(bloo,
 					  "|",

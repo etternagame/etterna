@@ -81,8 +81,8 @@ RandomSample::GetNextToPlay()
 	if (m_pSamples.empty())
 		return -1;
 
-	int iIndexToPlay = 0;
-	for (int i = 0; i < 5; i++) {
+	auto iIndexToPlay = 0;
+	for (auto i = 0; i < 5; i++) {
 		iIndexToPlay = RandomInt(m_pSamples.size());
 		if (iIndexToPlay != m_iIndexLastPlayed)
 			break;
@@ -95,7 +95,7 @@ RandomSample::GetNextToPlay()
 void
 RandomSample::PlayRandom()
 {
-	int iIndexToPlay = GetNextToPlay();
+	const auto iIndexToPlay = GetNextToPlay();
 	if (iIndexToPlay == -1)
 		return;
 	m_pSamples[iIndexToPlay]->Play(true);
@@ -104,7 +104,7 @@ RandomSample::PlayRandom()
 void
 RandomSample::PlayCopyOfRandom()
 {
-	int iIndexToPlay = GetNextToPlay();
+	const auto iIndexToPlay = GetNextToPlay();
 	if (iIndexToPlay == -1)
 		return;
 	m_pSamples[iIndexToPlay]->PlayCopy(true);

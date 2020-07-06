@@ -17,7 +17,7 @@ InputQueueCodeSet::Load(const std::string& sType)
 	for (auto& m_asCodeName : m_asCodeNames) {
 		vector<std::string> asBits;
 		split(m_asCodeName, "=", asBits, true);
-		std::string sCodeName = asBits[0];
+		auto sCodeName = asBits[0];
 		if (asBits.size() > 1)
 			m_asCodeName = asBits[1];
 
@@ -44,7 +44,7 @@ InputQueueCodeSet::Input(const InputEventPlus& input) const
 bool
 InputQueueCodeSet::InputMessage(const InputEventPlus& input, Message& msg) const
 {
-	std::string sCodeName = Input(input);
+	auto sCodeName = Input(input);
 	if (sCodeName.empty())
 		return false;
 

@@ -78,13 +78,13 @@ ImageCache::Demand(const std::string& sImageDir)
 
 	FOREACH_CONST_Child(&ImageData, p)
 	{
-		std::string sImagePath = p->GetName();
+		auto sImagePath = p->GetName();
 
 		if (g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end())
 			continue; /* already loaded */
 
-		const std::string sCachePath = GetImageCachePath(sImageDir, sImagePath);
-		RageSurface* pImage = RageSurfaceUtils::LoadSurface(sCachePath);
+		const auto sCachePath = GetImageCachePath(sImageDir, sImagePath);
+		auto pImage = RageSurfaceUtils::LoadSurface(sCachePath);
 		if (pImage == nullptr) {
 			continue; /* doesn't exist */
 		}
@@ -115,21 +115,21 @@ void
 ImageCache::LoadImage(const std::string& sImageDir,
 					  const std::string& sImagePath)
 {
-	if (sImagePath == "")
+	if (sImagePath.empty())
 		return; // nothing to do
 	if (PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_PRELOAD &&
 		PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_LOAD_ON_DEMAND)
 		return;
 
 	/* Load it. */
-	const std::string sCachePath = GetImageCachePath(sImageDir, sImagePath);
+	const auto sCachePath = GetImageCachePath(sImageDir, sImagePath);
 
-	for (int tries = 0; tries < 2; ++tries) {
+	for (auto tries = 0; tries < 2; ++tries) {
 		if (g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end())
 			return; /* already loaded */
 
 		CHECKPOINT_M(ssprintf("ImageCache::LoadImage: %s", sCachePath.c_str()));
-		RageSurface* pImage = RageSurfaceUtils::LoadSurface(sCachePath);
+		auto pImage = RageSurfaceUtils::LoadSurface(sCachePath);
 		if (pImage == nullptr) {
 			if (tries == 0) {
 				/* The file doesn't exist.  It's possible that the image cache
@@ -153,11 +153,11 @@ ImageCache::LoadImage(const std::string& sImageDir,
 void
 ImageCache::OutputStats() const
 {
-	int iTotalSize = 0;
+	auto iTotalSize = 0;
 	FOREACHM_CONST(std::string, RageSurface*, g_ImagePathToImage, it)
 	{
 		const RageSurface* pImage = it->second;
-		const int iSize = pImage->pitch * pImage->h;
+		const auto iSize = pImage->pitch * pImage->h;
 		iTotalSize += iSize;
 	}
 	LOG->Info("%i bytes of images loaded", iTotalSize);
@@ -189,9 +189,9 @@ EmptyDir(std::string dir)
 
 	vector<std::string> asCacheFileNames;
 	GetDirListing(dir, asCacheFileNames);
-	for (unsigned i = 0; i < asCacheFileNames.size(); i++) {
-		if (!IsADirectory(dir + asCacheFileNames[i]))
-			FILEMAN->Remove(dir + asCacheFileNames[i]);
+	for (auto& asCacheFileName : asCacheFileNames) {
+		if (!IsADirectory(dir + asCacheFileName))
+			FILEMAN->Remove(dir + asCacheFileName);
 	}
 }
 
@@ -200,7 +200,7 @@ ImageCache::ReadFromDisk()
 {
 	ImageData.ReadFile(IMAGE_CACHE_INDEX); // don't care if this fails
 
-	int iCacheVersion = -1;
+	auto iCacheVersion = -1;
 	ImageData.GetValue("Cache", "CacheVersion", iCacheVersion);
 	if (iCacheVersion == IMAGE_CACHE_VERSION)
 		return;
@@ -208,7 +208,7 @@ ImageCache::ReadFromDisk()
 	LOG->Trace("Cache format is out of date.  Deleting all cache files.");
 	vector<std::string> ImageDir;
 	split(CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir);
-	for (std::string Image : ImageDir)
+	for (auto Image : ImageDir)
 		EmptyDir(SpecialFiles::CACHE_DIR + Image + "/");
 
 	ImageData.SetValue("Cache", "CacheVersion", IMAGE_CACHE_VERSION);
@@ -218,7 +218,8 @@ ImageCache::ReadFromDisk()
 struct ImageTexture : public RageTexture
 {
 	intptr_t m_uTexHandle;
-	intptr_t GetTexHandle() const override
+
+	[[nodiscard]] intptr_t GetTexHandle() const override
 	{
 		return m_uTexHandle;
 	}; // accessed by RageDisplay
@@ -256,8 +257,8 @@ struct ImageTexture : public RageTexture
 		if (m_pImage->w > DISPLAY->GetMaxTextureSize() ||
 			m_pImage->h > DISPLAY->GetMaxTextureSize()) {
 			LOG->Warn("Converted %s at runtime", GetID().filename.c_str());
-			int iWidth = min(m_pImage->w, DISPLAY->GetMaxTextureSize());
-			int iHeight = min(m_pImage->h, DISPLAY->GetMaxTextureSize());
+			const auto iWidth = min(m_pImage->w, DISPLAY->GetMaxTextureSize());
+			const auto iHeight = min(m_pImage->h, DISPLAY->GetMaxTextureSize());
 			RageSurfaceUtils::Zoom(m_pImage, iWidth, iHeight);
 		}
 
@@ -271,9 +272,8 @@ struct ImageTexture : public RageTexture
 		/* Find a supported texture format. If it happens to match the stored
 		 * file, we won't have to do any conversion here, and that'll happen
 		 * often with paletted images. */
-		RagePixelFormat pf = m_pImage->fmt.BitsPerPixel == 8
-							   ? RagePixelFormat_PAL
-							   : RagePixelFormat_RGB5A1;
+		auto pf = m_pImage->fmt.BitsPerPixel == 8 ? RagePixelFormat_PAL
+												  : RagePixelFormat_RGB5A1;
 		if (!DISPLAY->SupportsTextureFormat(pf))
 			pf = RagePixelFormat_RGBA4;
 
@@ -308,7 +308,7 @@ ImageCache::LoadCachedImage(const std::string& sImageDir,
 {
 	RageTextureID ID(GetImageCachePath(sImageDir, sImagePath));
 
-	if (sImagePath == "")
+	if (sImagePath.empty())
 		return ID;
 
 	// LOG->Trace( "ImageCache::LoadCachedImage(%s): %s", sImagePath.c_str(),
@@ -333,10 +333,10 @@ ImageCache::LoadCachedImage(const std::string& sImageDir,
 	/* This is a reference to a pointer.  ImageTexture's ctor may change it
 	 * when converting; this way, the conversion will end up in the map so we
 	 * only have to convert once. */
-	RageSurface*& pImage = g_ImagePathToImage[sImagePath];
+	auto& pImage = g_ImagePathToImage[sImagePath];
 	ASSERT(pImage != nullptr);
 
-	int iSourceWidth = 0, iSourceHeight = 0;
+	auto iSourceWidth = 0, iSourceHeight = 0;
 	ImageData.GetValue(sImagePath, "Width", iSourceWidth);
 	ImageData.GetValue(sImagePath, "Height", iSourceHeight);
 	if (iSourceWidth == 0 || iSourceHeight == 0) {
@@ -379,13 +379,13 @@ ImageCache::CacheImage(const std::string& sImageDir,
 		PREFSMAN->m_ImageCache != IMGCACHE_LOW_RES_LOAD_ON_DEMAND)
 		return;
 
-	std::string otImagePath = sImagePath; // Remove this when Global std::string
-										  // to std::string convert.
+	const auto otImagePath = sImagePath; // Remove this when Global std::string
+										 // to std::string convert.
 	CHECKPOINT_M(otImagePath);
 	if (!DoesFileExist(sImagePath))
 		return;
 
-	const std::string sCachePath = GetImageCachePath(sImageDir, sImagePath);
+	const auto sCachePath = GetImageCachePath(sImageDir, sImagePath);
 
 	/* Check the full file hash.  If it's the loaded and identical, don't
 	 * recache. */
@@ -393,7 +393,7 @@ ImageCache::CacheImage(const std::string& sImageDir,
 		bool bCacheUpToDate = PREFSMAN->m_bFastLoad;
 		if (!bCacheUpToDate) {
 			unsigned CurFullHash;
-			const unsigned FullHash = GetHashForFile(sImagePath);
+			const auto FullHash = GetHashForFile(sImagePath);
 			if (ImageData.GetValue(sImagePath, "FullHash", CurFullHash) &&
 				CurFullHash == FullHash)
 				bCacheUpToDate = true;
@@ -417,25 +417,25 @@ void
 ImageCache::CacheImageInternal(const std::string& sImageDir,
 							   const std::string& sImagePath)
 {
-	std::string sError;
-	std::string otImagePath = sImagePath;
-	std::string otError =
+	const std::string sError;
+	const auto otImagePath = sImagePath;
+	auto otError =
 	  sError; // Remove this when Global  std::string to std::string convert.
-	RageSurface* pImage = RageSurfaceUtils::LoadFile(otImagePath, otError);
+	auto pImage = RageSurfaceUtils::LoadFile(otImagePath, otError);
 	if (pImage == nullptr) {
 		LOG->UserLog(
 		  "Cache file", sImagePath, "couldn't be loaded: %s", sError.c_str());
 		return;
 	}
 
-	const int iSourceWidth = pImage->w, iSourceHeight = pImage->h;
+	const auto iSourceWidth = pImage->w, iSourceHeight = pImage->h;
 
 	// cap images to reasonable dimensions....? -mina
 	// int iWidth = min(pImage->w, 256), iHeight = min(pImage->h, 64);
 
 	// I rather have it Cache everything -Jousway
-	int iWidth = static_cast<int>(pImage->w / 2.5),
-		iHeight = static_cast<int>(pImage->h / 2.5);
+	auto iWidth = static_cast<int>(pImage->w / 2.5),
+		 iHeight = static_cast<int>(pImage->h / 2.5);
 
 	/* Round to the nearest power of two.  This simplifies the actual texture
 	 * load. */
@@ -476,7 +476,7 @@ ImageCache::CacheImageInternal(const std::string& sImageDir,
 	} else {
 		/* Dither to the final format.  We use A1RGB5, since that's usually
 		 * supported natively by both OpenGL and D3D. */
-		RageSurface* dst = CreateSurface(
+		auto dst = CreateSurface(
 		  pImage->w, pImage->h, 16, 0x7C00, 0x03E0, 0x001F, 0x8000);
 
 		/* OrderedDither is still faster than ErrorDiffusionDither, and
@@ -486,12 +486,12 @@ ImageCache::CacheImageInternal(const std::string& sImageDir,
 		pImage = dst;
 	}
 
-	const std::string sCachePath = GetImageCachePath(sImageDir, sImagePath);
+	const auto sCachePath = GetImageCachePath(sImageDir, sImagePath);
 	RageSurfaceUtils::SaveSurface(pImage, sCachePath);
 
 	/* If an old image is loaded, free it. */
 	if (g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end()) {
-		RageSurface* oldimg = g_ImagePathToImage[sImagePath];
+		auto oldimg = g_ImagePathToImage[sImagePath];
 		delete oldimg;
 		g_ImagePathToImage.erase(sImagePath);
 	}

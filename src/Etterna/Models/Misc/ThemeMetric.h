@@ -109,8 +109,8 @@ class ThemeMetric : public IThemeMetric
 	 * @brief Actually read the metric and get its data. */
 	void Read() override
 	{
-		if (m_sName != "" && THEME && THEME->IsThemeLoaded()) {
-			Lua* L = LUA->Get();
+		if (!m_sName.empty() && THEME && THEME->IsThemeLoaded()) {
+			auto L = LUA->Get();
 			THEME->GetMetric(m_sGroup, m_sName, m_Value);
 			m_Value.PushSelf(L);
 			LuaHelpers::FromStack(L, m_currentValue, -1);
@@ -148,15 +148,15 @@ class ThemeMetric : public IThemeMetric
 	 * @return the metric's value. */
 	const T& GetValue() const
 	{
-		ASSERT(m_sName != "");
+		ASSERT(!m_sName.empty());
 		ASSERT_M(m_Value.IsSet(), m_sGroup + " " + m_sName);
 
 		if (m_bCallEachTime) {
-			Lua* L = LUA->Get();
+			auto L = LUA->Get();
 
 			// call function with 0 arguments and 1 result
 			m_Value.PushSelf(L);
-			std::string error = m_sGroup + ": " + m_sName + ": ";
+			auto error = m_sGroup + ": " + m_sName + ": ";
 			LuaHelpers::RunScriptOnStack(L, error, 0, 1, true);
 			if (!lua_isnil(L, -1)) {
 				LuaHelpers::Pop(L, m_currentValue);
@@ -213,7 +213,11 @@ class ThemeMetric1D : public IThemeMetric
 		for (unsigned i = 0; i < m_metric.size(); i++)
 			m_metric[i].Clear();
 	}
-	const T& GetValue(size_t i) const { return m_metric[i].GetValue(); }
+
+	[[nodiscard]] const T& GetValue(size_t i) const
+	{
+		return m_metric[i].GetValue();
+	}
 };
 
 using MetricName2D = std::string (*)(size_t, size_t);

@@ -58,7 +58,7 @@ ThemeMetricDifficultiesToShow::Read()
 
 	FOREACH_CONST(std::string, v, i)
 	{
-		Difficulty d = StringToDifficulty(*i);
+		auto d = StringToDifficulty(*i);
 		if (d == Difficulty_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Unknown difficulty \"%s\" in CourseDifficultiesToShow.",
@@ -85,7 +85,7 @@ RemoveStepsTypes(vector<StepsType>& inout, std::string sStepsTypesToRemove)
 	// subtract StepsTypes
 	FOREACH_CONST(std::string, v, i)
 	{
-		StepsType st = GAMEMAN->StringToStepsType(*i);
+		auto st = GAMEMAN->StringToStepsType(*i);
 		if (st == StepsType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid StepsType value '%s' in '%s'",
@@ -94,8 +94,7 @@ RemoveStepsTypes(vector<StepsType>& inout, std::string sStepsTypesToRemove)
 			continue;
 		}
 
-		const vector<StepsType>::iterator iter =
-		  find(inout.begin(), inout.end(), st);
+		const auto iter = find(inout.begin(), inout.end(), st);
 		if (iter != inout.end())
 			inout.erase(iter);
 	}

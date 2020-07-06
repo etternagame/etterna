@@ -115,13 +115,13 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 	fapproach(m_fScrollBPM,
 			  other.m_fScrollBPM,
 			  fDeltaSeconds * other.m_SpeedfScrollBPM * 150);
-	for (int i = 0; i < NUM_ACCELS; i++)
+	for (auto i = 0; i < NUM_ACCELS; i++)
 		APPROACH(fAccels[i]);
-	for (int i = 0; i < NUM_EFFECTS; i++)
+	for (auto i = 0; i < NUM_EFFECTS; i++)
 		APPROACH(fEffects[i]);
-	for (int i = 0; i < NUM_APPEARANCES; i++)
+	for (auto i = 0; i < NUM_APPEARANCES; i++)
 		APPROACH(fAppearances[i]);
-	for (int i = 0; i < NUM_SCROLLS; i++)
+	for (auto i = 0; i < NUM_SCROLLS; i++)
 		APPROACH(fScrolls[i]);
 	APPROACH(fDark);
 	APPROACH(fBlind);
@@ -135,9 +135,9 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 	APPROACH(fRandomSpeed);
 
 	DO_COPY(m_bSetScrollSpeed);
-	for (int i = 0; i < NUM_TURNS; i++)
+	for (auto i = 0; i < NUM_TURNS; i++)
 		DO_COPY(m_bTurns[i]);
-	for (int i = 0; i < NUM_TRANSFORMS; i++)
+	for (auto i = 0; i < NUM_TRANSFORMS; i++)
 		DO_COPY(m_bTransforms[i]);
 	DO_COPY(m_bMuteOnError);
 	DO_COPY(m_FailType);
@@ -153,7 +153,7 @@ AddPart(vector<std::string>& AddTo, float level, std::string name)
 	if (level == 0)
 		return;
 
-	const std::string LevelStr =
+	const auto LevelStr =
 	  (level == 1) ? std::string("") : ssprintf("%ld%% ", lround(level * 100));
 
 	AddTo.push_back(LevelStr + name);
@@ -198,11 +198,11 @@ PlayerOptions::GetMods(vector<std::string>& AddTo, bool bForceNoteSkin) const
 
 	if (!m_fTimeSpacing) {
 		if (m_fMaxScrollBPM) {
-			std::string s = ssprintf("m%.0f", m_fMaxScrollBPM);
+			const auto s = ssprintf("m%.0f", m_fMaxScrollBPM);
 			AddTo.push_back(s);
 		} else if (m_bSetScrollSpeed || m_fScrollSpeed != 1) {
 			/* -> 1.00 */
-			std::string s = ssprintf("%2.2f", m_fScrollSpeed);
+			auto s = ssprintf("%2.2f", m_fScrollSpeed);
 			if (s[s.size() - 1] == '0') {
 				/* -> 1.0 */
 				s.erase(s.size() - 1); // delete last char
@@ -214,7 +214,7 @@ PlayerOptions::GetMods(vector<std::string>& AddTo, bool bForceNoteSkin) const
 			AddTo.push_back(s + "x");
 		}
 	} else {
-		std::string s = ssprintf("C%.0f", m_fScrollBPM);
+		const auto s = ssprintf("C%.0f", m_fScrollBPM);
 		AddTo.push_back(s);
 	}
 
@@ -371,7 +371,7 @@ PlayerOptions::GetMods(vector<std::string>& AddTo, bool bForceNoteSkin) const
 	if (bForceNoteSkin ||
 		(!m_sNoteSkin.empty() &&
 		 m_sNoteSkin != CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue())) {
-		std::string s = m_sNoteSkin;
+		const auto s = m_sNoteSkin;
 		Capitalize(s);
 		AddTo.push_back(s);
 	}
@@ -404,7 +404,7 @@ PlayerOptions::ResetModsToStringVector(vector<std::string> mods)
 {
 	std::string error;
 	ResetToggleableMods();
-	for (std::string mod : mods) {
+	for (auto mod : mods) {
 		FromOneModString(mod, error);
 	}
 }
@@ -423,7 +423,7 @@ PlayerOptions::ResetToggleableMods()
 void
 PlayerOptions::FromString(const std::string& sMultipleMods)
 {
-	std::string sTemp = sMultipleMods;
+	const auto sTemp = sMultipleMods;
 	vector<std::string> vs;
 	split(sTemp, ",", vs, true);
 	std::string sThrowAway;
@@ -443,7 +443,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 	ASSERT_M(NOTESKIN != NULL,
 			 "The Noteskin Manager must be loaded in order to process mods.");
 
-	std::string sBit = make_lower(sOneMod);
+	auto sBit = make_lower(sOneMod);
 	Trim(sBit);
 
 	/* "drunk"
@@ -488,7 +488,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_##opt = level;                                                       \
 		m_Speed##opt = speed;                                                  \
 	}
-	const bool on = (level > 0.5f);
+	const auto on = (level > 0.5f);
 
 	static Regex mult("^([0-9]+(\\.[0-9]+)?)x$");
 	vector<std::string> matches;
@@ -753,15 +753,15 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 void
 NextFloat(float fValues[], int size)
 {
-	int index = -1;
-	for (int i = 0; i < size; i++) {
+	auto index = -1;
+	for (auto i = 0; i < size; i++) {
 		if (fValues[i] == 1) {
 			index = i;
 			break;
 		}
 	}
 
-	for (int i = 0; i < size; i++)
+	for (auto i = 0; i < size; i++)
 		fValues[i] = 0;
 
 	if (index ==
@@ -774,15 +774,15 @@ NextFloat(float fValues[], int size)
 void
 NextBool(bool bValues[], int size)
 {
-	int index = -1;
-	for (int i = 0; i < size; i++) {
+	auto index = -1;
+	for (auto i = 0; i < size; i++) {
 		if (bValues[i]) {
 			index = i;
 			break;
 		}
 	}
 
-	for (int i = 0; i < size; i++)
+	for (auto i = 0; i < size; i++)
 		bValues[i] = false;
 
 	if (index ==
@@ -870,7 +870,7 @@ PlayerOptions::ChooseRandomModifiers()
 PlayerOptions::Accel
 PlayerOptions::GetFirstAccel()
 {
-	for (int i = 0; i < NUM_ACCELS; i++)
+	for (auto i = 0; i < NUM_ACCELS; i++)
 		if (m_fAccels[i] == 1.f)
 			return (Accel)i;
 	return (Accel)-1;
@@ -879,7 +879,7 @@ PlayerOptions::GetFirstAccel()
 PlayerOptions::Effect
 PlayerOptions::GetFirstEffect()
 {
-	for (int i = 0; i < NUM_EFFECTS; i++)
+	for (auto i = 0; i < NUM_EFFECTS; i++)
 		if (m_fEffects[i] == 1.f)
 			return (Effect)i;
 	return (Effect)-1;
@@ -888,7 +888,7 @@ PlayerOptions::GetFirstEffect()
 PlayerOptions::Appearance
 PlayerOptions::GetFirstAppearance()
 {
-	for (int i = 0; i < NUM_APPEARANCES; i++)
+	for (auto i = 0; i < NUM_APPEARANCES; i++)
 		if (m_fAppearances[i] == 1.f)
 			return (Appearance)i;
 	return (Appearance)-1;
@@ -897,7 +897,7 @@ PlayerOptions::GetFirstAppearance()
 PlayerOptions::Scroll
 PlayerOptions::GetFirstScroll()
 {
-	for (int i = 0; i < NUM_SCROLLS; i++)
+	for (auto i = 0; i < NUM_SCROLLS; i++)
 		if (m_fScrolls[i] == 1.f)
 			return (Scroll)i;
 	return (Scroll)-1;
@@ -934,7 +934,7 @@ PlayerOptions::SetOneScroll(Scroll s)
 void
 PlayerOptions::ToggleOneTurn(Turn t)
 {
-	bool bWasOn = m_bTurns[t];
+	const auto bWasOn = m_bTurns[t];
 	ZERO(m_bTurns);
 	m_bTurns[t] = !bWasOn;
 }
@@ -946,7 +946,7 @@ PlayerOptions::GetReversePercentForColumn(int iCol) const
 	ASSERT(m_pn == PLAYER_1);
 	ASSERT(GAMESTATE->GetCurrentStyle(m_pn) != NULL);
 
-	int iNumCols = GAMESTATE->GetNumCols(m_pn);
+	const auto iNumCols = GAMESTATE->GetNumCols(m_pn);
 
 	f += m_fScrolls[SCROLL_REVERSE];
 
@@ -956,8 +956,8 @@ PlayerOptions::GetReversePercentForColumn(int iCol) const
 	if ((iCol % 2) == 1)
 		f += m_fScrolls[SCROLL_ALTERNATE];
 
-	int iFirstCrossCol = iNumCols / 4;
-	int iLastCrossCol = iNumCols - 1 - iFirstCrossCol;
+	const auto iFirstCrossCol = iNumCols / 4;
+	const auto iLastCrossCol = iNumCols - 1 - iFirstCrossCol;
 	if (iCol >= iFirstCrossCol && iCol <= iLastCrossCol)
 		f += m_fScrolls[SCROLL_CROSS];
 
@@ -1002,17 +1002,17 @@ PlayerOptions::operator==(const PlayerOptions& other) const
 	if (strcasecmp(m_sNoteSkin.c_str(), other.m_sNoteSkin.c_str()) != 0) {
 		return false;
 	}
-	for (int i = 0; i < PlayerOptions::NUM_ACCELS; ++i)
+	for (auto i = 0; i < PlayerOptions::NUM_ACCELS; ++i)
 		COMPARE(m_fAccels[i]);
-	for (int i = 0; i < PlayerOptions::NUM_EFFECTS; ++i)
+	for (auto i = 0; i < PlayerOptions::NUM_EFFECTS; ++i)
 		COMPARE(m_fEffects[i]);
-	for (int i = 0; i < PlayerOptions::NUM_APPEARANCES; ++i)
+	for (auto i = 0; i < PlayerOptions::NUM_APPEARANCES; ++i)
 		COMPARE(m_fAppearances[i]);
-	for (int i = 0; i < PlayerOptions::NUM_SCROLLS; ++i)
+	for (auto i = 0; i < PlayerOptions::NUM_SCROLLS; ++i)
 		COMPARE(m_fScrolls[i]);
-	for (int i = 0; i < PlayerOptions::NUM_TURNS; ++i)
+	for (auto i = 0; i < PlayerOptions::NUM_TURNS; ++i)
 		COMPARE(m_bTurns[i]);
-	for (int i = 0; i < PlayerOptions::NUM_TRANSFORMS; ++i)
+	for (auto i = 0; i < PlayerOptions::NUM_TRANSFORMS; ++i)
 		COMPARE(m_bTransforms[i]);
 #undef COMPARE
 	return true;
@@ -1050,22 +1050,22 @@ PlayerOptions::operator=(PlayerOptions const& other)
 		NOTESKIN->DoesNoteSkinExist(other.m_sNoteSkin)) {
 		CPY(m_sNoteSkin);
 	}
-	for (int i = 0; i < PlayerOptions::NUM_ACCELS; ++i) {
+	for (auto i = 0; i < PlayerOptions::NUM_ACCELS; ++i) {
 		CPY_SPEED(fAccels[i]);
 	}
-	for (int i = 0; i < PlayerOptions::NUM_EFFECTS; ++i) {
+	for (auto i = 0; i < PlayerOptions::NUM_EFFECTS; ++i) {
 		CPY_SPEED(fEffects[i]);
 	}
-	for (int i = 0; i < PlayerOptions::NUM_APPEARANCES; ++i) {
+	for (auto i = 0; i < PlayerOptions::NUM_APPEARANCES; ++i) {
 		CPY_SPEED(fAppearances[i]);
 	}
-	for (int i = 0; i < PlayerOptions::NUM_SCROLLS; ++i) {
+	for (auto i = 0; i < PlayerOptions::NUM_SCROLLS; ++i) {
 		CPY_SPEED(fScrolls[i]);
 	}
-	for (int i = 0; i < PlayerOptions::NUM_TURNS; ++i) {
+	for (auto i = 0; i < PlayerOptions::NUM_TURNS; ++i) {
 		CPY(m_bTurns[i]);
 	}
-	for (int i = 0; i < PlayerOptions::NUM_TRANSFORMS; ++i) {
+	for (auto i = 0; i < PlayerOptions::NUM_TRANSFORMS; ++i) {
 		CPY(m_bTransforms[i]);
 	}
 #undef CPY
@@ -1080,7 +1080,7 @@ PlayerOptions::IsEasierForSongAndSteps(Song* pSong,
 {
 	if (m_fTimeSpacing && pSteps->HasSignificantTimingChanges())
 		return true;
-	const RadarValues& rv = pSteps->GetRadarValues();
+	const auto& rv = pSteps->GetRadarValues();
 	if (m_bTransforms[TRANSFORM_NOHOLDS] && rv[RadarCategory_Holds] > 0)
 		return true;
 	if (m_bTransforms[TRANSFORM_NOROLLS] && rv[RadarCategory_Rolls] > 0)
@@ -1144,7 +1144,7 @@ PlayerOptions::GetLocalizedMods(vector<std::string>& AddTo) const
 	vector<std::string> vMods;
 	GetMods(vMods);
 	for (auto& s : vMods) {
-		const std::string& sOneMod = s;
+		const auto& sOneMod = s;
 
 		ASSERT(!sOneMod.empty());
 
@@ -1166,7 +1166,7 @@ PlayerOptions::GetLocalizedMods(vector<std::string>& AddTo) const
 		asTokens.back() =
 		  CommonMetrics::LocalizeOptionItem(asTokens.back(), true);
 
-		std::string sLocalizedMod = join(" ", asTokens);
+		auto sLocalizedMod = join(" ", asTokens);
 		AddTo.push_back(sLocalizedMod);
 	}
 }
@@ -1174,7 +1174,7 @@ PlayerOptions::GetLocalizedMods(vector<std::string>& AddTo) const
 bool
 PlayerOptions::ContainsTransformOrTurn() const
 {
-	for (int i = 0; i < NUM_TRANSFORMS; i++) {
+	for (auto i = 0; i < NUM_TRANSFORMS; i++) {
 		switch (i) {
 			case TRANSFORM_NOHOLDS:
 			case TRANSFORM_NOROLLS:
@@ -1185,7 +1185,7 @@ PlayerOptions::ContainsTransformOrTurn() const
 		if (m_bTransforms[i])
 			return true;
 	}
-	for (int i = 0; i < NUM_TURNS; i++) {
+	for (auto i = 0; i < NUM_TURNS; i++) {
 		if (m_bTurns[i] && i != TURN_MIRROR)
 			return true;
 	}
@@ -1327,9 +1327,9 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
   public:
 	static int IsEasierForSongAndSteps(T* p, lua_State* L)
 	{
-		Song* pSong = Luna<Song>::check(L, 1);
-		Steps* pSteps = Luna<Steps>::check(L, 2);
-		PlayerNumber pn = Enum::Check<PlayerNumber>(L, 3);
+		auto pSong = Luna<Song>::check(L, 1);
+		auto pSteps = Luna<Steps>::check(L, 2);
+		const auto pn = Enum::Check<PlayerNumber>(L, 3);
 		lua_pushboolean(L, p->IsEasierForSongAndSteps(pSong, pSteps, pn));
 		return 1;
 	}
@@ -1446,7 +1446,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	// NoteSkins
 	static int NoteSkin(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if (p->m_sNoteSkin.empty()) {
 			lua_pushstring(
 			  L, CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue().c_str());
@@ -1454,7 +1454,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 			lua_pushstring(L, p->m_sNoteSkin.c_str());
 		}
 		if (original_top >= 1 && (lua_isstring(L, 1) != 0)) {
-			std::string skin = SArg(1);
+			const std::string skin = SArg(1);
 			if (NOTESKIN->DoesNoteSkinExist(skin)) {
 				p->m_sNoteSkin = skin;
 				lua_pushboolean(L, 1);
@@ -1481,7 +1481,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	// engine's enforcement of sane separation between speed mod types.
 	static int CMod(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if (p->m_fTimeSpacing) {
 			lua_pushnumber(L, p->m_fScrollBPM);
 			lua_pushnumber(L, p->m_SpeedfScrollBPM);
@@ -1490,7 +1490,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 			lua_pushnil(L);
 		}
 		if (original_top >= 1 && (lua_isnumber(L, 1) != 0)) {
-			float speed = FArg(1);
+			const auto speed = FArg(1);
 			if (!isfinite(speed) || speed <= 0.0f) {
 				luaL_error(L, "CMod speed must be finite and greater than 0.");
 			}
@@ -1508,7 +1508,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int XMod(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if (!p->m_fTimeSpacing) {
 			lua_pushnumber(L, p->m_fScrollSpeed);
 			lua_pushnumber(L, p->m_SpeedfScrollSpeed);
@@ -1531,7 +1531,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int MMod(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if (!p->m_fTimeSpacing && p->m_fMaxScrollBPM) {
 			lua_pushnumber(L, p->m_fMaxScrollBPM);
 			lua_pushnumber(L, p->m_SpeedfMaxScrollBPM);
@@ -1540,7 +1540,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 			lua_pushnil(L);
 		}
 		if ((lua_isnumber(L, 1) != 0) && original_top >= 1) {
-			float speed = FArg(1);
+			const auto speed = FArg(1);
 			if (!isfinite(speed) || speed <= 0.0f) {
 				luaL_error(L, "MMod speed must be finite and greater than 0.");
 			}
@@ -1564,7 +1564,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int Overhead(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		lua_pushboolean(L,
 						(p->m_fPerspectiveTilt == 0.0f && p->m_fSkew == 0.0f));
 		if (lua_toboolean(L, 1) != 0) {
@@ -1580,7 +1580,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int Incoming(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if ((p->m_fSkew > 0.0f && p->m_fPerspectiveTilt < 0.0f) ||
 			(p->m_fSkew < 0.0f && p->m_fPerspectiveTilt > 0.0f)) {
 			lua_pushnumber(L, p->m_fSkew);
@@ -1590,7 +1590,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 			lua_pushnil(L);
 		}
 		if ((lua_isnumber(L, 1) != 0) && original_top >= 1) {
-			float value = FArg(1);
+			const auto value = FArg(1);
 			p->m_fPerspectiveTilt = -value;
 			p->m_fSkew = value;
 		}
@@ -1603,7 +1603,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int Space(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if ((p->m_fSkew > 0.0f && p->m_fPerspectiveTilt > 0.0f) ||
 			(p->m_fSkew < 0.0f && p->m_fPerspectiveTilt < 0.0f)) {
 			lua_pushnumber(L, p->m_fSkew);
@@ -1613,7 +1613,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 			lua_pushnil(L);
 		}
 		if ((lua_isnumber(L, 1) != 0) && original_top >= 1) {
-			float value = FArg(1);
+			const auto value = FArg(1);
 			p->m_fPerspectiveTilt = value;
 			p->m_fSkew = value;
 		}
@@ -1626,7 +1626,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int Hallway(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if (p->m_fSkew == 0.0f && p->m_fPerspectiveTilt < 0.0f) {
 			lua_pushnumber(L, -p->m_fPerspectiveTilt);
 			lua_pushnumber(L, p->m_SpeedfPerspectiveTilt);
@@ -1647,7 +1647,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int Distant(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		if (p->m_fSkew == 0.0f && p->m_fPerspectiveTilt > 0.0f) {
 			lua_pushnumber(L, p->m_fPerspectiveTilt);
 			lua_pushnumber(L, p->m_SpeedfPerspectiveTilt);
@@ -1672,8 +1672,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int GetReversePercentForColumn(T* p, lua_State* L)
 	{
-		const int colNum = IArg(1);
-		const int numColumns =
+		const auto colNum = IArg(1);
+		const auto numColumns =
 		  GAMESTATE->GetCurrentStyle(p->m_pn)->m_iColsPerPlayer;
 
 		// We don't want to go outside the bounds.
@@ -1700,7 +1700,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int GetInvalidatingMods(T* p, lua_State* L)
 	{
-		vector<std::string> mods = p->GetInvalidatingModifiers();
+		const auto mods = p->GetInvalidatingModifiers();
 		LuaHelpers::CreateTableFromArray(mods, L);
 		return 1;
 	}

@@ -56,9 +56,9 @@ CodeDetector::RefreshCacheItems(std::string sClass)
 		sClass = "CodeDetector";
 	FOREACH_ENUM(Code, c)
 	{
-		InputQueueCode& item = g_CodeItems[c];
-		const std::string sCodeName = CodeToString(c);
-		const std::string sButtonsNames = THEME->GetMetric(sClass, sCodeName);
+		auto& item = g_CodeItems[c];
+		const auto sCodeName = CodeToString(c);
+		const auto sButtonsNames = THEME->GetMetric(sClass, sCodeName);
 
 		item.Load(sButtonsNames);
 	}
@@ -224,7 +224,7 @@ CodeDetector::ChangeScrollSpeed(GameController controller, bool bIncrement)
 bool
 CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 {
-	PlayerNumber pn = INPUTMAPPER->ControllerToPlayerNumber(controller);
+	const auto pn = INPUTMAPPER->ControllerToPlayerNumber(controller);
 
 	if (pn >= NUM_PlayerNumber) {
 		LOG->Warn("Invalid controller player number");
@@ -232,10 +232,9 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 	}
 
 	for (int c = CODE_MIRROR; c <= CODE_CANCEL_ALL; c++) {
-		auto code = static_cast<Code>(c);
+		const auto code = static_cast<Code>(c);
 
-		PlayerOptions po =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
+		auto po = GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 
 		if (EnteredCode(controller, code)) {
 			switch (code) {

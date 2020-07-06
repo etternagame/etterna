@@ -45,7 +45,7 @@ PlayerInfo::Load(PlayerNumber pn,
 	m_ptextStepsDescription = nullptr;
 
 	if (!IsMultiPlayer()) {
-		PlayMode mode = GAMESTATE->m_PlayMode;
+		const PlayMode mode = GAMESTATE->m_PlayMode;
 		switch (mode) {
 			case PLAY_MODE_REGULAR:
 				break;
@@ -54,8 +54,8 @@ PlayerInfo::Load(PlayerNumber pn,
 		}
 	}
 
-	PlayerState* const pPlayerState = GetPlayerState();
-	PlayerStageStats* const pPlayerStageStats = GetPlayerStageStats();
+	const auto pPlayerState = GetPlayerState();
+	const auto pPlayerStageStats = GetPlayerStageStats();
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper(
 	  SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats);
 
@@ -128,9 +128,9 @@ class LunaPlayerInfo : public Luna<PlayerInfo>
 
 	static int GetStepsQueueWrapped(T* p, lua_State* L)
 	{
-		int iIndex = IArg(1);
+		auto iIndex = IArg(1);
 		iIndex %= p->m_vpStepsQueue.size();
-		Steps* pSteps = p->m_vpStepsQueue[iIndex];
+		auto pSteps = p->m_vpStepsQueue[iIndex];
 		pSteps->PushSelf(L);
 		return 1;
 	}

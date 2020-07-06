@@ -55,10 +55,10 @@ class GameCommand
 	void ApplySelf(const vector<PlayerNumber>& vpns) const;
 
   public:
-	bool DescribesCurrentMode(PlayerNumber pn) const;
-	bool DescribesCurrentModeForAllPlayers() const;
+	[[nodiscard]] bool DescribesCurrentMode(PlayerNumber pn) const;
+	[[nodiscard]] bool DescribesCurrentModeForAllPlayers() const;
 	bool IsPlayable(std::string* why = nullptr) const;
-	bool IsZero() const;
+	[[nodiscard]] bool IsZero() const;
 
 	/* If true, Apply() will apply m_sScreen. If false, it won't, and you need
 	 * to do it yourself. */

@@ -613,9 +613,8 @@ class TimingData
 	{
 		FOREACH_ENUM(TimingSegmentType, tst)
 		{
-			const std::vector<TimingSegment*>& us = m_avpTimingSegments[tst];
-			const std::vector<TimingSegment*>& them =
-			  other.m_avpTimingSegments[tst];
+			const auto& us = m_avpTimingSegments[tst];
+			const auto& them = other.m_avpTimingSegments[tst];
 
 			// optimization: check  std::vector sizes before contents
 			if (us.size() != them.size())
@@ -749,11 +748,11 @@ class TimingData
 			return;
 		}
 
-		std::vector<TimingSegment*>& bpms = m_avpTimingSegments[SEGMENT_BPM];
-		std::vector<TimingSegment*>& stops = m_avpTimingSegments[SEGMENT_STOP];
+		auto& bpms = m_avpTimingSegments[SEGMENT_BPM];
+		auto& stops = m_avpTimingSegments[SEGMENT_STOP];
 
 		for (auto& i : bpms) {
-			BPMSegment* bpm = ToBPM(i);
+			auto bpm = ToBPM(i);
 			if (0 > bpm->GetBPM()) {
 				LOG->Warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
@@ -762,7 +761,7 @@ class TimingData
 		}
 
 		for (auto& stop : stops) {
-			StopSegment* s = ToStop(stop);
+			auto s = ToStop(stop);
 			if (0 > s->GetPause()) {
 				LOG->Warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;

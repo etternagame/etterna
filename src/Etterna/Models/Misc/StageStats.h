@@ -29,10 +29,10 @@ class StageStats
 
 	void AddStats(const StageStats& other); // accumulate
 
-	bool OnePassed() const;
-	bool AllFailed() const;
+	[[nodiscard]] bool OnePassed() const;
+	[[nodiscard]] bool AllFailed() const;
 
-	int GetAverageMeter(PlayerNumber pn) const;
+	[[nodiscard]] int GetAverageMeter(PlayerNumber pn) const;
 
 	Stage m_Stage;
 	int m_iStageIndex;
@@ -62,7 +62,7 @@ class StageStats
 	float m_fMusicRate;
 
 	// Total number of seconds between first beat and last beat for every song.
-	float GetTotalPossibleStepsSeconds() const;
+	[[nodiscard]] float GetTotalPossibleStepsSeconds() const;
 
 	PlayerStageStats m_player;
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
@@ -78,8 +78,8 @@ class StageStats
 	 * @brief Determine if the PlayerNumber has a high score.
 	 * @param pn the PlayerNumber in question.
 	 * @return true if the PlayerNumber has a high score, false otherwise. */
-	bool PlayerHasHighScore(PlayerNumber pn) const;
-	unsigned int GetMinimumMissCombo() const;
+	[[nodiscard]] bool PlayerHasHighScore(PlayerNumber pn) const;
+	[[nodiscard]] unsigned int GetMinimumMissCombo() const;
 
 	// Lua
 	void PushSelf(lua_State* L);

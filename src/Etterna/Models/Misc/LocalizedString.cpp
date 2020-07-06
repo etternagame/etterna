@@ -19,7 +19,10 @@ class LocalizedStringImplDefault : public ILocalizedStringImpl
 		m_sValue = sName;
 	}
 
-	const std::string& GetLocalized() const override { return m_sValue; }
+	[[nodiscard]] const std::string& GetLocalized() const override
+	{
+		return m_sValue;
+	}
 
   private:
 	std::string m_sValue;
@@ -34,7 +37,7 @@ LocalizedString::RegisterLocalizer(MakeLocalizer pFunc)
 	g_pMakeLocalizedStringImpl = pFunc;
 	FOREACHS(LocalizedString*, *m_Subscribers.m_pSubscribers, l)
 	{
-		LocalizedString* pLoc = *l;
+		auto pLoc = *l;
 		pLoc->CreateImpl();
 	}
 }

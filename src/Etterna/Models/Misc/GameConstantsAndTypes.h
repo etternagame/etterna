@@ -414,29 +414,29 @@ struct DisplayBpms
 	 * @brief Retrieve the minimum BPM of the set.
 	 * @return the minimum BPM.
 	 */
-	float GetMin() const;
+	[[nodiscard]] float GetMin() const;
 	/**
 	 * @brief Retrieve the maximum BPM of the set.
 	 * @return the maximum BPM.
 	 */
-	float GetMax() const;
+	[[nodiscard]] float GetMax() const;
 	/**
 	 * @brief Retrieve the maximum BPM of the set,
 	 * but no higher than a certain value.
 	 * @param highest the highest BPM to use.
 	 * @return the maximum BPM.
 	 */
-	float GetMaxWithin(float highest = FLT_MAX) const;
+	[[nodiscard]] float GetMaxWithin(float highest = FLT_MAX) const;
 	/**
 	 * @brief Determine if the BPM is really constant.
 	 * @return Whether the BPM is constant or not.
 	 */
-	bool BpmIsConstant() const;
+	[[nodiscard]] bool BpmIsConstant() const;
 	/**
 	 * @brief Determine if the BPM is meant to be a secret.
 	 * @return Whether the BPM is a secret or not.
 	 */
-	bool IsSecret() const;
+	[[nodiscard]] bool IsSecret() const;
 	/**
 	 * @brief The list of the BPMs for the song.
 	 */

@@ -37,7 +37,7 @@ class LunaDisplaySpec : public Luna<DisplaySpec>
 	static int GetCurrentMode(T* p, lua_State* L)
 	{
 		if (p->currentMode() != nullptr) {
-			DisplayMode* m = const_cast<DisplayMode*>(p->currentMode());
+			auto m = const_cast<DisplayMode*>(p->currentMode());
 			m->PushSelf(L);
 		} else {
 			lua_pushnil(L);
@@ -63,7 +63,7 @@ const char* DISPLAYSPECS = "DisplaySpecs";
 DisplaySpecs*
 check_DisplaySpecs(lua_State* L)
 {
-	void* ud = luaL_checkudata(L, 1, DISPLAYSPECS);
+	auto ud = luaL_checkudata(L, 1, DISPLAYSPECS);
 	luaL_argcheck(L, ud != NULL, 1, "`DisplaySpecs` expected");
 	return static_cast<DisplaySpecs*>(ud);
 }
@@ -71,7 +71,7 @@ check_DisplaySpecs(lua_State* L)
 int
 DisplaySpecs_gc(lua_State* L)
 {
-	DisplaySpecs* specs = static_cast<DisplaySpecs*>(lua_touserdata(L, 1));
+	auto specs = static_cast<DisplaySpecs*>(lua_touserdata(L, 1));
 	if (specs) {
 		specs->~DisplaySpecs();
 	}
@@ -82,7 +82,7 @@ DisplaySpecs_gc(lua_State* L)
 int
 DisplaySpecs_len(lua_State* L)
 {
-	DisplaySpecs* specs = check_DisplaySpecs(L);
+	auto specs = check_DisplaySpecs(L);
 	if (specs) {
 		lua_pushinteger(L, specs->size());
 	} else {
@@ -94,7 +94,7 @@ DisplaySpecs_len(lua_State* L)
 int
 DisplaySpecs_tostring(lua_State* L)
 {
-	DisplaySpecs* specs = check_DisplaySpecs(L);
+	auto specs = check_DisplaySpecs(L);
 	lua_pushfstring(L, "DisplaySpecs: %p", specs);
 	return 1;
 }
@@ -102,17 +102,17 @@ DisplaySpecs_tostring(lua_State* L)
 int
 DisplaySpecs_get(lua_State* L)
 {
-	DisplaySpecs* specs = check_DisplaySpecs(L);
+	auto specs = check_DisplaySpecs(L);
 	if (specs) {
-		int index = luaL_checkint(L, 2);
+		const auto index = luaL_checkint(L, 2);
 		luaL_argcheck(L,
 					  1 <= index &&
 						static_cast<unsigned int>(index) <= specs->size(),
 					  2,
 					  "index out of range");
-		DisplaySpecs::iterator it = specs->begin();
+		auto it = specs->begin();
 		std::advance(it, index - 1);
-		DisplaySpec* s = const_cast<DisplaySpec*>(&(*it));
+		auto s = const_cast<DisplaySpec*>(&(*it));
 		s->PushSelf(L);
 	} else {
 		lua_pushnil(L);
@@ -139,8 +139,8 @@ REGISTER_WITH_LUA_FUNCTION(register_DisplaySpecs);
 DisplaySpecs*
 pushDisplaySpecs(lua_State* L, const DisplaySpecs& specs)
 {
-	void* vpSpecs = lua_newuserdata(L, sizeof(DisplaySpecs));
-	DisplaySpecs* pspecs = new (vpSpecs) DisplaySpecs(specs);
+	auto vpSpecs = lua_newuserdata(L, sizeof(DisplaySpecs));
+	auto pspecs = new (vpSpecs) DisplaySpecs(specs);
 	luaL_getmetatable(L, DISPLAYSPECS);
 	lua_setmetatable(L, -2);
 	return pspecs;

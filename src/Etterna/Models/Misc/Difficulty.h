@@ -52,7 +52,7 @@ struct Chart
 
 	bool loaded = false;
 	void FromKey(const std::string& ck);
-	XNode* CreateNode(bool includerate) const;
+	[[nodiscard]] XNode* CreateNode(bool includerate) const;
 	void LoadFromNode(const XNode* node);
 	void PushSelf(lua_State* L);
 };
@@ -67,7 +67,7 @@ struct Playlist
 
 	std::vector<std::vector<std::string>> courseruns;
 
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* node);
 	int GetNumCharts() { return chartlist.size(); }
 	std::vector<std::string> GetKeys();
@@ -90,7 +90,7 @@ struct CalcTestList
 {
 	Skillset skillset;
 	std::map<std::string, CalcTest> filemapping;
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 };
 
 #endif

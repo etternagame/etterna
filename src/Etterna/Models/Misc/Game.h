@@ -51,15 +51,15 @@ struct Game
 	 *
 	 * This starts at GAME_BUTTON_NEXT. */
 	PerButtonInfo m_PerButtonInfo[NUM_GameButton];
-	const PerButtonInfo* GetPerButtonInfo(GameButton gb) const;
+	[[nodiscard]] const PerButtonInfo* GetPerButtonInfo(GameButton gb) const;
 
-	TapNoteScore MapTapNoteScore(TapNoteScore tns) const;
+	[[nodiscard]] TapNoteScore MapTapNoteScore(TapNoteScore tns) const;
 	TapNoteScore m_mapW1To;
 	TapNoteScore m_mapW2To;
 	TapNoteScore m_mapW3To;
 	TapNoteScore m_mapW4To;
 	TapNoteScore m_mapW5To;
-	TapNoteScore GetMapJudgmentTo(TapNoteScore tns) const;
+	[[nodiscard]] TapNoteScore GetMapJudgmentTo(TapNoteScore tns) const;
 
 	// Lua
 	void PushSelf(lua_State* L);

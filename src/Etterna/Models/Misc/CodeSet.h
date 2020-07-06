@@ -8,7 +8,7 @@ class InputQueueCodeSet
 {
   public:
 	void Load(const std::string& sType);
-	std::string Input(const InputEventPlus& input) const;
+	[[nodiscard]] std::string Input(const InputEventPlus& input) const;
 	bool InputMessage(const InputEventPlus& input, Message& msg) const;
 
   private:

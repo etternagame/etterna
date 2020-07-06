@@ -80,10 +80,10 @@ class ScoreGoal
 	// what happens when individual score deletion is possibly added -mina
 	std::string scorekey = "";
 
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
-	HighScore* GetPBUpTo() const;
+	[[nodiscard]] HighScore* GetPBUpTo() const;
 
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal
@@ -105,7 +105,7 @@ struct GoalsForChart
 	std::vector<ScoreGoal>& Get() { return goals; }
 	std::vector<ScoreGoal> goals;
 
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 };
 
@@ -145,7 +145,7 @@ class Profile
 		m_iNumSongsPlayedByPlayMode[i] = 0;
 		FOREACH_ENUM(Difficulty, i)
 		m_iNumSongsPlayedByDifficulty[i] = 0;
-		for (int& i : m_iNumSongsPlayedByMeter)
+		for (auto& i : m_iNumSongsPlayedByMeter)
 			i = 0;
 
 		ZERO(m_iNumStagesPassedByPlayMode);

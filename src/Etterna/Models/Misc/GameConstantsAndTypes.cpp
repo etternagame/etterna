@@ -32,13 +32,13 @@ StepsTypeToString(StepsType st)
 	s_replace(s, "-", "_");
 
 	auto bCapitalizeNextLetter = true;
-	for (auto i = 0; i < static_cast<int>(s.length()); i++) {
+	for (auto& i : s) {
 		if (bCapitalizeNextLetter) {
-			s[i] = toupper(s[i]);
+			i = toupper(i);
 			bCapitalizeNextLetter = false;
 		}
 
-		if (s[i] == '_')
+		if (i == '_')
 			bCapitalizeNextLetter = true;
 	}
 
@@ -131,7 +131,7 @@ LuaXType(TapNoteScore);
 TapNoteScore
 StringToTapNoteScore(const std::string& s)
 {
-	auto tns = tns_converter.conversion_map.find(s);
+	const auto tns = tns_converter.conversion_map.find(s);
 	if (tns != tns_converter.conversion_map.end()) {
 		return tns->second;
 	}

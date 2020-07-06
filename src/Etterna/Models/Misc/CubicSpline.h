@@ -13,10 +13,10 @@ struct CubicSpline
 	void solve_straight();
 	void solve_polygonal();
 	void p_and_tfrac_from_t(float t, bool loop, size_t& p, float& tfrac) const;
-	float evaluate(float t, bool loop) const;
-	float evaluate_derivative(float t, bool loop) const;
-	float evaluate_second_derivative(float t, bool loop) const;
-	float evaluate_third_derivative(float t, bool loop) const;
+	[[nodiscard]] float evaluate(float t, bool loop) const;
+	[[nodiscard]] float evaluate_derivative(float t, bool loop) const;
+	[[nodiscard]] float evaluate_second_derivative(float t, bool loop) const;
+	[[nodiscard]] float evaluate_third_derivative(float t, bool loop) const;
 	void set_point(size_t i, float v);
 	void set_coefficients(size_t i, float b, float c, float d);
 	void get_coefficients(size_t i, float& b, float& c, float& d) const;
@@ -31,8 +31,8 @@ struct CubicSpline
 									float& c,
 									float& d) const;
 	void resize(size_t s);
-	size_t size() const;
-	bool empty() const;
+	[[nodiscard]] size_t size() const;
+	[[nodiscard]] bool empty() const;
 	float m_spatial_extent{ 0.0f };
 
   private:
@@ -77,11 +77,12 @@ struct CubicSplineN
 	void set_spatial_extent(size_t i, float extent);
 	float get_spatial_extent(size_t i);
 	void resize(size_t s);
-	size_t size() const;
+	[[nodiscard]] size_t size() const;
 	void redimension(size_t d);
-	size_t dimension() const;
-	bool empty() const;
-	float get_max_t() const
+	[[nodiscard]] size_t dimension() const;
+	[[nodiscard]] bool empty() const;
+
+	[[nodiscard]] float get_max_t() const
 	{
 		if (m_loop) {
 			return static_cast<float>(size());
@@ -90,11 +91,11 @@ struct CubicSplineN
 	}
 	typedef vector<CubicSpline> spline_cont_t;
 	void set_loop(bool l);
-	bool get_loop() const;
+	[[nodiscard]] bool get_loop() const;
 	void set_polygonal(bool p);
-	bool get_polygonal() const;
+	[[nodiscard]] bool get_polygonal() const;
 	void set_dirty(bool d);
-	bool get_dirty() const;
+	[[nodiscard]] bool get_dirty() const;
 	bool m_owned_by_actor{ false };
 
 	void PushSelf(lua_State* L);

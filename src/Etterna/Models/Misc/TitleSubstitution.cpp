@@ -56,8 +56,8 @@ TitleTrans::LoadFromNode(const XNode* pNode)
 		/* Surround each regex with ^(...)$, to force all comparisons to default
 		 * to being a full-line match.  (Add ".*" manually if this isn't
 		 * wanted.) */
-		const std::string& sKeyName = attr->first;
-		const std::string sValue = attr->second->GetValue<std::string>();
+		const auto& sKeyName = attr->first;
+		const auto sValue = attr->second->GetValue<std::string>();
 		if (sKeyName == "DontTransliterate")
 			translit = false;
 		else if (sKeyName == "TitleFrom")
@@ -96,7 +96,7 @@ TitleSubst::Subst(TitleFields& tf)
 {
 	FOREACH_CONST(TitleTrans*, ttab, iter)
 	{
-		TitleTrans* tt = *iter;
+		auto tt = *iter;
 
 		TitleFields to;
 		if (!tt->Matches(tf, to))
@@ -174,7 +174,7 @@ TitleSubst::Load(const std::string& filename, const std::string& section)
 		return;
 	}
 
-	XNode* pGroup = xml.GetChild(section);
+	auto pGroup = xml.GetChild(section);
 	if (pGroup == nullptr)
 		return;
 	FOREACH_CONST_Child(pGroup, child)

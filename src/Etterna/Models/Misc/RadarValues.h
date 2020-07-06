@@ -60,10 +60,10 @@ struct RadarValues
 		return !operator==(other);
 	}
 
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
-	std::string ToString(int iMaxValues = -1) const; // default = all
+	[[nodiscard]] std::string ToString(int iMaxValues = -1) const; // default = all
 	void FromString(const std::string& sValues);
 
 	static ThemeMetric<bool> WRITE_SIMPLE_VALIES;

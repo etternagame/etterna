@@ -38,7 +38,7 @@ BackgroundDef::operator==(const BackgroundDef& other) const
 XNode*
 BackgroundDef::CreateNode() const
 {
-	XNode* pNode = new XNode("BackgroundDef");
+	auto pNode = new XNode("BackgroundDef");
 
 	if (!m_sEffect.empty())
 		pNode->AppendAttr("Effect", m_sEffect);
@@ -76,7 +76,7 @@ BackgroundChange::GetTextDescription() const
 	if (vsParts.empty())
 		vsParts.push_back("(empty)");
 
-	std::string s = join("\n", vsParts);
+	auto s = join("\n", vsParts);
 	return s;
 }
 
@@ -150,8 +150,8 @@ BackgroundUtil::GetBackgroundEffects(const std::string& _sName,
 									 vector<std::string>& vsPathsOut,
 									 vector<std::string>& vsNamesOut)
 {
-	std::string sName = _sName;
-	if (sName == "")
+	auto sName = _sName;
+	if (sName.empty())
 		sName = "*";
 
 	vsPathsOut.clear();
@@ -168,8 +168,8 @@ BackgroundUtil::GetBackgroundTransitions(const std::string& _sName,
 										 vector<std::string>& vsPathsOut,
 										 vector<std::string>& vsNamesOut)
 {
-	std::string sName = _sName;
-	if (sName == "")
+	auto sName = _sName;
+	if (sName.empty())
 		sName = "*";
 
 	vsPathsOut.clear();
@@ -259,18 +259,19 @@ GetFilterToFileNames(const std::string sBaseDir,
 
 	ASSERT(!pSong->m_sGroupName.empty());
 	IniFile ini;
-	std::string sPath =
+	const auto sPath =
 	  sBaseDir + pSong->m_sGroupName + "/" + "BackgroundMapping.ini";
 	ini.ReadFile(sPath);
 
 	std::string sSection;
-	bool bSuccess = ini.GetValue("GenreToSection", pSong->m_sGenre, sSection);
+	const auto bSuccess =
+	  ini.GetValue("GenreToSection", pSong->m_sGenre, sSection);
 	if (!bSuccess) {
 		// LOG->Warn( "Genre '%s' isn't mapped", pSong->m_sGenre.c_str() );
 		return;
 	}
 
-	XNode* pSection = ini.GetChild(sSection);
+	auto pSection = ini.GetChild(sSection);
 	if (pSection == nullptr) {
 		ASSERT_M(0,
 				 ssprintf("File '%s' refers to a section '%s' that is missing.",

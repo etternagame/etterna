@@ -8,9 +8,9 @@ class Command
   public:
 	void Load(const std::string& sCommand);
 
-	std::string GetOriginalCommandString()
+	[[nodiscard]] std::string GetOriginalCommandString()
 	  const; // used when reporting an error in number of args
-	std::string GetName()
+	[[nodiscard]] std::string GetName()
 	  const; // the command name is the first argument in all-lowercase
 
 	void Clear() { m_vsArgs.clear(); }
@@ -23,7 +23,8 @@ class Command
 		{
 		}
 	};
-	Arg GetArg(unsigned index) const;
+
+	[[nodiscard]] Arg GetArg(unsigned index) const;
 
 	vector<std::string> m_vsArgs;
 
@@ -38,7 +39,7 @@ class Commands
   public:
 	vector<Command> v;
 
-	std::string GetOriginalCommandString()
+	[[nodiscard]] std::string GetOriginalCommandString()
 	  const; // used when reporting an error in number of args
 };
 

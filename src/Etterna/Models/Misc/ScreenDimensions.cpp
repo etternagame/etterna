@@ -39,7 +39,7 @@ ScreenDimensions::GetScreenWidth()
 	ASSERT(fScale >= 1);
 	// ceilf causes the width to come out odd when it shouldn't.
 	// 576 * 1.7778 = 1024.0128, which is rounded to 1025. -Kyz
-	int width = (int)ceilf(THEME_SCREEN_WIDTH * fScale);
+	auto width = (int)ceilf(THEME_SCREEN_WIDTH * fScale);
 	width -= width % 2;
 	return static_cast<float>(width);
 }

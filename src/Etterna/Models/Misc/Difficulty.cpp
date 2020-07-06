@@ -42,9 +42,8 @@ OldStyleStringToDifficultyMapHolder OldStyleStringToDifficulty_converter;
 Difficulty
 OldStyleStringToDifficulty(const std::string& sDC)
 {
-	std::string s2 = make_lower(sDC);
-	std::map<std::string, Difficulty>::iterator diff =
-	  OldStyleStringToDifficulty_converter.conversion_map.find(s2);
+	auto s2 = make_lower(sDC);
+	auto diff = OldStyleStringToDifficulty_converter.conversion_map.find(s2);
 	if (diff != OldStyleStringToDifficulty_converter.conversion_map.end()) {
 		return diff->second;
 	}

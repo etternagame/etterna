@@ -70,7 +70,7 @@ class DisplaySpec
 			msgStream << "DisplaySpec current mode (" << curMode.width << "x"
 					  << curMode.height << "@" << curMode.refreshRate
 					  << ") not in given list of supported modes: ";
-			for (auto& m : modes) {
+			for (const auto& m : modes) {
 				msgStream << m.width << "x" << m.height << "@" << m.refreshRate
 						  << ", ";
 			}
@@ -114,11 +114,14 @@ class DisplaySpec
 
 	DisplaySpec(const DisplaySpec& other) = default;
 
-	std::string name() const { return m_sName; }
+	[[nodiscard]] std::string name() const { return m_sName; }
 
-	std::string id() const { return m_sId; }
+	[[nodiscard]] std::string id() const { return m_sId; }
 
-	const std::set<DisplayMode>& supportedModes() const { return m_sModes; }
+	[[nodiscard]] const std::set<DisplayMode>& supportedModes() const
+	{
+		return m_sModes;
+	}
 
 	/*
 	 * Return a pointer to the currently active display mode, or NULL if
@@ -128,14 +131,14 @@ class DisplaySpec
 	 * an output can be enabled/disabled by an application by
 	 * connecting/disconnecting a crtc
 	 */
-	const DisplayMode* currentMode() const
+	[[nodiscard]] const DisplayMode* currentMode() const
 	{
 		return m_bCurModeActive ? &m_CurMode : nullptr;
 	}
 
-	const RectI& currentBounds() const { return m_rectBounds; }
+	[[nodiscard]] const RectI& currentBounds() const { return m_rectBounds; }
 
-	bool isVirtual() const { return m_bIsVirtual; }
+	[[nodiscard]] bool isVirtual() const { return m_bIsVirtual; }
 
 	/**
 	 * @brief Determine if one DisplaySpec compares less than the other.

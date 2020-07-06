@@ -107,7 +107,7 @@ class Preference : public IPreference
 
 	static Preference<T>* GetPreferenceByName(const std::string& sName)
 	{
-		IPreference* pPreference = IPreference::GetPreferenceByName(sName);
+		auto pPreference = IPreference::GetPreferenceByName(sName);
 		Preference<T>* pRet = dynamic_cast<Preference<T>*>(pPreference);
 		return pRet;
 	}

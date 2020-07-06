@@ -77,7 +77,7 @@ CheckEnum(lua_State* L,
 		}
 		lua_error(L);
 	}
-	int iRet = lua_tointeger(L, -1);
+	const int iRet = lua_tointeger(L, -1);
 	lua_pop(L, 2);
 	return iRet;
 }
@@ -90,7 +90,7 @@ EnumToString(int iVal,
 			 unique_ptr<std::string>* pNameCache)
 {
 	if (unlikely(pNameCache[0].get() == NULL)) {
-		for (int i = 0; i < iMax; ++i) {
+		for (auto i = 0; i < iMax; ++i) {
 			unique_ptr<std::string> ap(new std::string(szNameArray[i]));
 			pNameCache[i] = std::move(ap);
 		}
