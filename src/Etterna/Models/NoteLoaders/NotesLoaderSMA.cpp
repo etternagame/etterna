@@ -318,12 +318,13 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 				out.m_SelectionDisplay = out.SHOW_ALWAYS;
 			else if (StringToInt(sParams[1]) > 0)
 				out.m_SelectionDisplay = out.SHOW_ALWAYS;
-			else
-//				LOG->UserLog(
+			else {
+                //				LOG->UserLog(
 //				  "Song file",
 //				  sPath,
 //				  "has an unknown #SELECTABLE value, \"%s\"; ignored.",
 //				  sParams[1].c_str());
+			}
 		}
 
 		else if (head(sValueName, 9) == "BGCHANGES" ||
@@ -422,11 +423,13 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 			}
 		} else if (sValueName == "TIMESIGNATURES" || sValueName == "LEADTRACK")
 			;
-		else
+		else {
 //			LOG->UserLog("Song file",
 //						 sPath,
 //						 "has an unexpected value named \"%s\".",
 //						 sValueName.c_str());
+		}
+
 	}
 	TidyUpData(out, false);
 	return true;

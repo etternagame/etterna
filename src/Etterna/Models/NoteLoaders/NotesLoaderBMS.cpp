@@ -459,11 +459,13 @@ struct bmsCommandTree
 //							 path,
 //							 "Line %d: #else without matching #if chain.\n",
 //							 line);
-			} else
+			} else {
 //				LOG->UserLog("Song file",
 //							 path,
 //							 "Line %d: #else used at root level.\n",
 //							 line);
+			}
+
 		} else if (name == "#elseif") {
 			if (currentNode->parent != nullptr) // Not the root node.
 			{
@@ -471,17 +473,21 @@ struct bmsCommandTree
 					bmsNodeS::CT_CONDITIONALCHAIN) {
 					currentNode = createElseIfNode(currentNode->parent,
 												   atoi(value.c_str()));
-				} else
+				} else {
 //					LOG->UserLog(
 //					  "Song file",
 //					  path,
 //					  "Line %d: #elseif without matching #if chain.\n",
 //					  line);
-			} else
+				}
+
+			} else {
 //				LOG->UserLog("Song file",
 //							 path,
 //							 "Line %d: #elseif used at root level.\n",
 //							 line);
+			}
+
 		} else if (name == "#endif" || name == "#end") {
 			if (currentNode->parent != nullptr) // not the root node
 			{
