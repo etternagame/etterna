@@ -13,7 +13,7 @@ local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 
 local isCentered = ((cols >= 6) or PREFSMAN:GetPreference("Center1Player")) and GAMESTATE:GetNumPlayersEnabled() == 1
 -- load from prefs later
-local width = 64 * cols * MovableValues.NotefieldWidth
+local width = 64 * cols * MovableValues.NotefieldWidth + MovableValues.NotefieldSpacing * (cols-1)
 local padding = 8
 local styleType = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 
@@ -113,11 +113,19 @@ local function input(event)
 		end
 		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
-				width = 64 * cols * MovableValues.NotefieldWidth - 0.01
+				width = 64 * cols * MovableValues.NotefieldWidth - 0.01 + MovableValues.NotefieldSpacing * (cols-1)
 				cover:playcommand("Update")
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
-				width = 64 * cols * MovableValues.NotefieldWidth + 0.01
+				width = 64 * cols * MovableValues.NotefieldWidth + 0.01 + MovableValues.NotefieldSpacing * (cols-1)
+				cover:playcommand("Update")
+			end
+		end
+		if Movable.current == "DeviceButton_n" and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" or event.DeviceInput.button == "DeviceButton_down" then
+				local dir = event.DeviceInput.button
+				local inc = Movable.DeviceButton_n[dir].inc
+				width = width + inc * (cols-1)
 				cover:playcommand("Update")
 			end
 		end
