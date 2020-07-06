@@ -669,6 +669,14 @@ Steps::HasSignificantTimingChanges() const -> bool
 }
 
 auto
+Steps::IsPlayableForCurrentGame() const -> bool
+{
+	std::vector<StepsType> types;
+	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
+	return find(types.begin(), types.end(), m_StepsType) != types.end();
+}
+
+auto
 Steps::GetMusicPath() const -> const std::string
 {
 	return Song::GetSongAssetPath(m_MusicFile.empty() ? m_pSong->m_sMusicFile

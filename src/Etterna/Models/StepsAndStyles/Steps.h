@@ -242,6 +242,8 @@ class Steps
 	 * @return true if it does, or false otherwise. */
 	auto HasSignificantTimingChanges() const -> bool;
 
+	auto IsPlayableForCurrentGame() const -> bool;
+
 	auto GetMusicPath() const
 	  -> const std::string; // Returns the path for loading.
 	auto GetMusicFile() const
