@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "ArrowEffects.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "GhostArrowRow.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -1174,12 +1173,11 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 		if (queue.Free() < 3 || last_vert_set) {
 			/* The queue is full.  Render it. */
 			if (!bAllAreTransparent) {
-				FOREACH(Sprite*, vpSpr, spr)
-				{
-					auto* pTexture = (*spr)->GetTexture();
+				for (auto& spr : vpSpr) {
+					auto* pTexture = spr->GetTexture();
 					DISPLAY->SetTexture(TextureUnit_1,
 										pTexture->GetTexHandle());
-					DISPLAY->SetBlendMode(spr == vpSpr.begin() ? BLEND_NORMAL
+					DISPLAY->SetBlendMode(spr == vpSpr.front() ? BLEND_NORMAL
 															   : BLEND_ADD);
 					DISPLAY->SetCullMode(CULL_NONE);
 					DISPLAY->SetTextureWrapping(TextureUnit_1,
