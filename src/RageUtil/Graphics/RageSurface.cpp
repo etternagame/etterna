@@ -7,7 +7,7 @@
 int32_t
 RageSurfacePalette::FindColor(const RageSurfaceColor& color) const
 {
-	for (int i = 0; i < ncolors; ++i)
+	for (auto i = 0; i < ncolors; ++i)
 		if (colors[i] == color)
 			return i;
 	return -1;
@@ -17,14 +17,15 @@ RageSurfacePalette::FindColor(const RageSurfaceColor& color) const
 int32_t
 RageSurfacePalette::FindClosestColor(const RageSurfaceColor& color) const
 {
-	int iBest = -1;
-	int iBestDist = INT_MAX;
-	for (int i = 0; i < ncolors; ++i) {
+	auto iBest = -1;
+	auto iBestDist = INT_MAX;
+	for (auto i = 0; i < ncolors; ++i) {
 		if (colors[i] == color)
 			return i;
 
-		int iDist = abs(colors[i].r - color.r) + abs(colors[i].g - color.g) +
-					abs(colors[i].b - color.b) + abs(colors[i].a - color.a);
+		const auto iDist =
+		  abs(colors[i].r - color.r) + abs(colors[i].g - color.g) +
+		  abs(colors[i].b - color.b) + abs(colors[i].a - color.a);
 		if (iDist < iBestDist) {
 			iBestDist = iDist;
 			iBest = i;
@@ -93,8 +94,8 @@ RageSurfaceFormat::MapRGBA(uint8_t r,
 						   uint32_t& val) const
 {
 	if (BytesPerPixel == 1) {
-		RageSurfaceColor c(r, g, b, a);
-		int32_t n = palette->FindColor(c);
+		const RageSurfaceColor c(r, g, b, a);
+		const auto n = palette->FindColor(c);
 		if (n == -1)
 			return false;
 		val = static_cast<uint32_t>(n);
@@ -170,7 +171,7 @@ GetShiftFromMask(uint32_t mask)
 	if (!mask)
 		return 0;
 
-	int iShift = 0;
+	auto iShift = 0;
 	while ((mask & 1) == 0) {
 		mask >>= 1;
 		++iShift;
@@ -186,7 +187,7 @@ GetBitsFromMask(uint32_t mask)
 
 	mask >>= GetShiftFromMask(mask);
 
-	int iBits = 0;
+	auto iBits = 0;
 	while ((mask & 1) == 1) {
 		mask >>= 1;
 		++iBits;

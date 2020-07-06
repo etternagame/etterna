@@ -611,7 +611,7 @@ RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
 	// Display the window immediately, so we don't display the desktop ...
 	while (true) {
 		// Try the video mode.
-		std::string sErr = SetD3DParams(bNewDeviceOut);
+		auto sErr = SetD3DParams(bNewDeviceOut);
 		if (sErr.empty()) {
 			break;
 		}
@@ -682,7 +682,7 @@ RageDisplay_D3D::BeginFrame() -> bool
 			return false;
 		case D3DERR_DEVICENOTRESET: {
 			auto bIgnore = false;
-			std::string sError = SetD3DParams(bIgnore);
+			const auto sError = SetD3DParams(bIgnore);
 			if (!sError.empty()) {
 				RageException::Throw(sError.c_str());
 			}

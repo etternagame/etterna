@@ -32,9 +32,9 @@ RageTexture::CreateFrameRects()
 	// Fill in the m_FrameRects with the bounds of each frame in the animation.
 	m_TextureCoordRects.clear();
 
-	for (int j = 0; j < m_iFramesHigh; j++) // traverse along Y
+	for (auto j = 0; j < m_iFramesHigh; j++) // traverse along Y
 	{
-		for (int i = 0; i < m_iFramesWide;
+		for (auto i = 0; i < m_iFramesWide;
 			 i++) // traverse along X (important that this is the inner loop)
 		{
 			RectF frect(
@@ -71,8 +71,8 @@ RageTexture::GetFrameDimensionsFromFileName(const std::string& sPath,
 		return;
 	}
 	// Check for nonsense values.  Some people might not intend the hint. -Kyz
-	int maybe_width = StringToInt(asMatch[0]);
-	int maybe_height = StringToInt(asMatch[1]);
+	const auto maybe_width = StringToInt(asMatch[0]);
+	const auto maybe_height = StringToInt(asMatch[1]);
 	if (maybe_width <= 0 || maybe_height <= 0) {
 		*piFramesWide = *piFramesHigh = 1;
 		return;
@@ -120,7 +120,7 @@ class LunaRageTexture : public Luna<RageTexture>
 	}
 	static int GetTextureCoordRect(T* p, lua_State* L)
 	{
-		const RectF* pRect = p->GetTextureCoordRect(IArg(1));
+		const auto pRect = p->GetTextureCoordRect(IArg(1));
 		lua_pushnumber(L, pRect->left);
 		lua_pushnumber(L, pRect->top);
 		lua_pushnumber(L, pRect->right);

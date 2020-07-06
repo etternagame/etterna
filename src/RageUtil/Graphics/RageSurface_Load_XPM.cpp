@@ -15,7 +15,7 @@
 RageSurface*
 RageSurface_Load_XPM(char* const* xpm, std::string& error)
 {
-	int line = 0;
+	auto line = 0;
 
 	int width, height, num_colors, color_length;
 
@@ -39,7 +39,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 	vector<RageSurfaceColor> colors;
 
 	map<std::string, int> name_to_color;
-	for (int i = 0; i < num_colors; ++i) {
+	for (auto i = 0; i < num_colors; ++i) {
 		CheckLine();
 
 		/* "id c #AABBCC"; id is color_length long.  id may contain spaces. */
@@ -54,7 +54,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		if (color.substr(color_length, 4) != " c #")
 			continue;
 
-		std::string clr = color.substr(color_length + 4);
+		auto clr = color.substr(color_length + 4);
 		int r, g, b;
 		if (sscanf(clr.c_str(), "%2x%2x%2x", &r, &g, &b) != 3)
 			continue;
@@ -80,7 +80,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		  width, height, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0);
 	}
 
-	for (int y = 0; y < height; ++y) {
+	for (auto y = 0; y < height; ++y) {
 		if (xpm[line] == nullptr) {
 			error = "short file";
 			delete img;
@@ -99,8 +99,8 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		auto* p = (int8_t*)img->pixels;
 		p += y * img->pitch;
 		auto* p32 = (int32_t*)p;
-		for (int x = 0; x < width; ++x) {
-			std::string color_name = row.substr(x * color_length, color_length);
+		for (auto x = 0; x < width; ++x) {
+			auto color_name = row.substr(x * color_length, color_length);
 			map<std::string, int>::const_iterator it;
 			it = name_to_color.find(color_name);
 			if (it == name_to_color.end()) {
@@ -113,7 +113,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 			if (colors.size() <= 256) {
 				p[x] = static_cast<int8_t>(it->second);
 			} else {
-				const RageSurfaceColor& color = colors[it->second];
+				const auto& color = colors[it->second];
 				p32[x] = (color.r << 24) + (color.g << 16) + (color.b << 8);
 			}
 		}

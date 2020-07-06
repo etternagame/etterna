@@ -34,7 +34,7 @@ DitherPixel(int x, int y, int intensity, int conv)
 	 * the number is to the next value. */
 
 	// Convert the number to the destination range.
-	int out_intensity = intensity * conv;
+	auto out_intensity = intensity * conv;
 
 	// Add bias.
 	out_intensity += DitherMatCalc[y][x];
@@ -46,10 +46,10 @@ DitherPixel(int x, int y, int intensity, int conv)
 void
 RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 {
-	static bool DitherMatCalc_initted = false;
+	static auto DitherMatCalc_initted = false;
 	if (!DitherMatCalc_initted) {
-		for (int i = 0; i < DitherMatDim; ++i) {
-			for (int j = 0; j < DitherMatDim; ++j) {
+		for (auto i = 0; i < DitherMatDim; ++i) {
+			for (auto j = 0; j < DitherMatDim; ++j) {
 				/* Each value is 0..15.  They represent 0/16 through 15/16.
 				 * Set DitherMatCalc to that value * 65536, so we can do it
 				 * with integer calcs. */
@@ -71,8 +71,8 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 	// channel.
 	int conv[4];
 	for (unsigned i = 0; i < 4; ++i) {
-		int MaxInputIntensity = (1 << src_cbits[i]) - 1;
-		int MaxOutputIntensity = (1 << dst_cbits[i]) - 1;
+		const auto MaxInputIntensity = (1 << src_cbits[i]) - 1;
+		const auto MaxOutputIntensity = (1 << dst_cbits[i]) - 1;
 		// If the source is missing the channel, avoid div/0.
 		if (MaxInputIntensity == 0)
 			conv[i] = 0;
@@ -84,17 +84,17 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 	const auto alpha_max = uint8_t((1 << dst_cbits[3]) - 1);
 
 	// For each row:
-	for (int row = 0; row < src->h; ++row) {
+	for (auto row = 0; row < src->h; ++row) {
 		const uint8_t* srcp = src->pixels + row * src->pitch;
-		uint8_t* dstp = dst->pixels + row * dst->pitch;
+		auto dstp = dst->pixels + row * dst->pitch;
 
 		// For each pixel:
-		for (int col = 0; col < src->w; ++col) {
+		for (auto col = 0; col < src->w; ++col) {
 			uint8_t colors[4];
 			GetRawRGBAV(srcp, src->fmt, colors);
 
 			// Note that we don't dither the alpha channel.
-			for (int c = 0; c < 3; ++c) {
+			for (auto c = 0; c < 3; ++c) {
 				// If the destination has less bits, dither:
 				colors[c] = DitherPixel(col, row, colors[c], conv[c]);
 			}
@@ -107,7 +107,7 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 			} else {
 				/* Same as DitherPixel, except it doesn't actually dither;
 				 * dithering looks bad on the alpha channel. */
-				int out_intensity = colors[3] * conv[3];
+				const auto out_intensity = colors[3] * conv[3];
 
 				// Round:
 				colors[3] = uint8_t((out_intensity + 32767) >> 16);
@@ -126,7 +126,7 @@ static uint8_t
 EDDitherPixel(int x, int y, int intensity, int conv, int32_t& accumError)
 {
 	// Convert the number to the destination range.
-	int out_intensity = intensity * conv;
+	auto out_intensity = intensity * conv;
 
 	// Add e to make sure a value of 14.999998 -> 15.
 	++out_intensity;
@@ -138,11 +138,11 @@ EDDitherPixel(int x, int y, int intensity, int conv, int32_t& accumError)
 	 * To store it, we have to clamp it (prevent overflow) and shift it
 	 * from fixed-point to [0,255].  The error introduced in that calculation
 	 * becomes the new accumError. */
-	int clamped_intensity = clamp(out_intensity, 0, 0xFFFFFF);
+	auto clamped_intensity = clamp(out_intensity, 0, 0xFFFFFF);
 	clamped_intensity &= 0xFF0000;
 
 	// Truncate.
-	auto ret = uint8_t(clamped_intensity >> 16);
+	const auto ret = uint8_t(clamped_intensity >> 16);
 
 	accumError = out_intensity - clamped_intensity;
 
@@ -172,8 +172,8 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 	// channel.
 	int conv[4];
 	for (unsigned i = 0; i < 4; ++i) {
-		int MaxInputIntensity = (1 << src_cbits[i]) - 1;
-		int MaxOutputIntensity = (1 << dst_cbits[i]) - 1;
+		const auto MaxInputIntensity = (1 << src_cbits[i]) - 1;
+		const auto MaxOutputIntensity = (1 << dst_cbits[i]) - 1;
 		// If the source is missing the channel, avoid div/0.
 		if (MaxInputIntensity == 0)
 			conv[i] = 0;
@@ -185,20 +185,20 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 	const auto alpha_max = uint8_t((1 << dst_cbits[3]) - 1);
 
 	// For each row:
-	for (int row = 0; row < src->h; ++row) {
+	for (auto row = 0; row < src->h; ++row) {
 		int32_t accumError[4] = {
 			0, 0, 0, 0
 		}; // accum error values are reset every row
 
 		const uint8_t* srcp = src->pixels + row * src->pitch;
-		uint8_t* dstp = dst->pixels + row * dst->pitch;
+		auto dstp = dst->pixels + row * dst->pitch;
 
 		// For each pixel in row:
-		for (int col = 0; col < src->w; ++col) {
+		for (auto col = 0; col < src->w; ++col) {
 			uint8_t colors[4];
 			GetRawRGBAV(srcp, src->fmt, colors);
 
-			for (int c = 0; c < 3; ++c) {
+			for (auto c = 0; c < 3; ++c) {
 				colors[c] =
 				  EDDitherPixel(col, row, colors[c], conv[c], accumError[c]);
 			}
@@ -211,7 +211,7 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 			} else {
 				/* Same as DitherPixel, except it doesn't actually dither;
 				 * dithering looks bad on the alpha channel. */
-				int out_intensity = colors[3] * conv[3];
+				const auto out_intensity = colors[3] * conv[3];
 
 				// Round:
 				colors[3] = uint8_t((out_intensity + 32767) >> 16);

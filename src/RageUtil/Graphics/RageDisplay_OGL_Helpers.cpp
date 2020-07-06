@@ -10,7 +10,7 @@ map<GLenum, std::string> g_Strings;
 void
 InitStringMap()
 {
-	static bool bInitialized = false;
+	static auto bInitialized = false;
 	if (bInitialized)
 		return;
 	bInitialized = true;

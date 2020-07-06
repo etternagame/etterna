@@ -171,10 +171,10 @@ RageTextureManager::LoadTextureInternal(RageTextureID ID)
 	/* We could have two copies of the same bitmap if there are equivalent but
 	 * different paths, e.g. "Bitmaps\me.bmp" and "..\Rage PC
 	 * Edition\Bitmaps\me.bmp". */
-	auto p = m_mapPathToTexture.find(ID);
+	const auto p = m_mapPathToTexture.find(ID);
 	if (p != m_mapPathToTexture.end()) {
 		/* Found the texture.  Just increase the refcount and return it. */
-		auto pTexture = p->second;
+		const auto pTexture = p->second;
 		pTexture->m_iRefCount++;
 		return pTexture;
 	}
@@ -265,14 +265,14 @@ RageTextureManager::DeleteTexture(RageTexture* t)
 	// LOG->Trace( "RageTextureManager: deleting '%s'.",
 	// t->GetID().filename.c_str() );
 
-	auto id_entry = m_texture_ids_by_pointer.find(t);
+	const auto id_entry = m_texture_ids_by_pointer.find(t);
 	if (id_entry != m_texture_ids_by_pointer.end()) {
-		auto tex_entry = m_mapPathToTexture.find(id_entry->second);
+		const auto tex_entry = m_mapPathToTexture.find(id_entry->second);
 		if (tex_entry != m_mapPathToTexture.end()) {
 			m_mapPathToTexture.erase(tex_entry);
 			SAFE_DELETE(t);
 		}
-		auto tex_update_entry = m_textures_to_update.find(id_entry->second);
+		const auto tex_update_entry = m_textures_to_update.find(id_entry->second);
 		if (tex_update_entry != m_textures_to_update.end()) {
 			m_textures_to_update.erase(tex_update_entry);
 		}
@@ -291,7 +291,7 @@ RageTextureManager::GarbageCollect(GCType type)
 		LOG->Trace("Performing texture garbage collection.");
 
 	for (auto i = m_mapPathToTexture.begin(); i != m_mapPathToTexture.end();) {
-		auto j = i;
+		const auto j = i;
 		i++;
 
 		auto sPath = j->first.filename;
@@ -302,7 +302,7 @@ RageTextureManager::GarbageCollect(GCType type)
 
 		auto bDeleteThis = false;
 		if (type == screen_changed) {
-			auto policy = t->GetPolicy();
+			const auto policy = t->GetPolicy();
 			switch (policy) {
 				case RageTextureID::TEX_DEFAULT:
 					/* If m_bDelayedDelete, wait until delayed_delete.  If
@@ -379,7 +379,7 @@ RageTextureManager::SetPrefs(RageTextureManagerPrefs prefs)
 void
 RageTextureManager::DiagnosticOutput() const
 {
-	unsigned iCount =
+	const unsigned iCount =
 	  distance(m_mapPathToTexture.begin(), m_mapPathToTexture.end());
 	LOG->Trace("%u textures loaded:", iCount);
 
