@@ -2,10 +2,11 @@
 #define WHEEL_ITEM_BASE_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
-#include "Etterna/Actor/Base/AutoActor.h"
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+
+#include <cassert>
 
 struct WheelItemBaseData;
 /** @brief The different types of Wheel Items. */
@@ -58,20 +59,20 @@ class WheelItemBase : public ActorFrame
 
 	const std::string GetText()
 	{
-		ASSERT(m_pData != NULL);
+		assert(m_pData != nullptr);
 		return m_pData->m_sText;
 	}
 	const RageColor GetColor()
 	{
-		ASSERT(m_pData != NULL);
+		assert(m_pData != nullptr);
 		return m_pData->m_color;
 	}
 	WheelItemDataType GetType()
 	{
-		ASSERT(m_pData != NULL);
+		assert(m_pData != nullptr);
 		return m_pData->m_Type;
 	}
-	bool IsLoaded() { return m_pData != NULL; }
+	bool IsLoaded() { return m_pData != nullptr; }
 
 	// Lua
 	void PushSelf(lua_State* L) override;

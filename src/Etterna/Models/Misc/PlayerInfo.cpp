@@ -20,15 +20,12 @@ static ThemeMetric<std::string> SCORE_KEEPER_CLASS("ScreenGameplay",
 
 PlayerInfo::PlayerInfo()
   : m_pn(PLAYER_INVALID)
-  , m_SoundEffectControl()
-  , m_vpStepsQueue()
-  , m_pLifeMeter(NULL)
-  , m_ptextStepsDescription(NULL)
-  , m_pPrimaryScoreKeeper(NULL)
-  , m_ptextPlayerOptions(NULL)
-  , m_NoteData()
-  , m_pPlayer(NULL)
-  , m_pStepsDisplay(NULL)
+  , m_pLifeMeter(nullptr)
+  , m_ptextStepsDescription(nullptr)
+  , m_pPrimaryScoreKeeper(nullptr)
+  , m_ptextPlayerOptions(nullptr)
+  , m_pPlayer(nullptr)
+  , m_pStepsDisplay(nullptr)
 {
 }
 
@@ -44,8 +41,8 @@ PlayerInfo::Load(PlayerNumber pn,
 	m_bPlayerEnabled = IsEnabled();
 	m_bIsDummy = false;
 	m_iAddToDifficulty = iAddToDifficulty;
-	m_pLifeMeter = NULL;
-	m_ptextStepsDescription = NULL;
+	m_pLifeMeter = nullptr;
+	m_ptextStepsDescription = nullptr;
 
 	if (!IsMultiPlayer()) {
 		PlayMode mode = GAMESTATE->m_PlayMode;
@@ -62,7 +59,7 @@ PlayerInfo::Load(PlayerNumber pn,
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper(
 	  SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats);
 
-	m_ptextPlayerOptions = NULL;
+	m_ptextPlayerOptions = nullptr;
 	if (mode == GameplayMode_Replay) {
 		m_pPlayer = new PlayerReplay(m_NoteData, bShowNoteField);
 	} else if (mode == GameplayMode_Practice) {
@@ -71,7 +68,7 @@ PlayerInfo::Load(PlayerNumber pn,
 		m_pPlayer = new Player(m_NoteData, bShowNoteField);
 	}
 
-	m_pStepsDisplay = NULL;
+	m_pStepsDisplay = nullptr;
 
 	if (IsMultiPlayer()) {
 		pPlayerState->m_PlayerOptions =

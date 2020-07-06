@@ -3,7 +3,9 @@
 
 #include "NoteTypes.h"
 #include "TimingSegments.h"
+
 #include <cfloat> // max float
+
 struct lua_State;
 
 /** @brief Compare a TimingData segment's properties with one another. */
@@ -13,28 +15,18 @@ struct lua_State;
 
 /* convenience functions to handle static casting */
 template<class T>
-inline T
+T
 ToDerived(const TimingSegment* t, TimingSegmentType tst)
 {
-	ASSERT_M(t && tst == t->GetType(),
-			 ssprintf("type mismatch (expected %s, got %s)",
-					  TimingSegmentTypeToString(tst).c_str(),
-					  TimingSegmentTypeToString(t->GetType()).c_str()));
-
 	return static_cast<T>(t);
 }
 
 #define TimingSegmentToXWithName(Seg, SegName, SegType)                        \
 	inline const Seg* To##SegName(const TimingSegment* t)                      \
 	{                                                                          \
-		ASSERT(t->GetType() == SegType);                                       \
 		return static_cast<const Seg*>(t);                                     \
 	}                                                                          \
-	inline Seg* To##SegName(TimingSegment* t)                                  \
-	{                                                                          \
-		ASSERT(t->GetType() == SegType);                                       \
-		return static_cast<Seg*>(t);                                           \
-	}
+	inline Seg* To##SegName(TimingSegment* t) { return static_cast<Seg*>(t); }
 
 #define TimingSegmentToX(Seg, SegType)                                         \
 	TimingSegmentToXWithName(Seg##Segment, Seg, SEGMENT_##SegType)
@@ -128,9 +120,8 @@ class TimingData
 	// functions would return the wrong entry.
 	// In a map<int, int> with three entries, [-1]= 3, [6]= 1, [8]= 2,
 	// lower_bound(0) and upper_bound(0) both returned the entry at [6]= 1.
-	// So the lookup table is a vector of entries and FindEntryInLookup does a
-	// binary search.
-	// -Kyz
+	// So the lookup table is a  std::vector of entries and FindEntryInLookup
+	// does a binary search. -Kyz
 	struct lookup_item_t
 	{
 		float first;
@@ -141,32 +132,41 @@ class TimingData
 		{
 		}
 	};
-	typedef vector<lookup_item_t> beat_start_lookup_t;
+	typedef std::vector<lookup_item_t> beat_start_lookup_t;
 	beat_start_lookup_t m_beat_start_lookup;
 	beat_start_lookup_t m_time_start_lookup;
 
 	void PrepareLookup();
 	void ReleaseLookup();
 
-	int GetSegmentIndexAtRow(TimingSegmentType tst, int row) const;
-	int GetSegmentIndexAtBeat(TimingSegmentType tst, float beat) const
+	[[nodiscard]] int GetSegmentIndexAtRow(TimingSegmentType tst,
+										   int row) const;
+
+	[[nodiscard]] int GetSegmentIndexAtBeat(TimingSegmentType tst,
+											float beat) const
 	{
 		return GetSegmentIndexAtRow(tst, BeatToNoteRow(beat));
 	}
 
-	float GetNextSegmentBeatAtRow(TimingSegmentType tst, int row) const;
-	float GetNextSegmentBeatAtBeat(TimingSegmentType tst, float beat) const
+	[[nodiscard]] float GetNextSegmentBeatAtRow(TimingSegmentType tst,
+												int row) const;
+
+	[[nodiscard]] float GetNextSegmentBeatAtBeat(TimingSegmentType tst,
+												 float beat) const
 	{
 		return GetNextSegmentBeatAtRow(tst, BeatToNoteRow(beat));
 	}
 
-	float GetPreviousSegmentBeatAtRow(TimingSegmentType tst, int row) const;
-	float GetPreviousSegmentBeatAtBeat(TimingSegmentType tst, float beat) const
+	[[nodiscard]] float GetPreviousSegmentBeatAtRow(TimingSegmentType tst,
+													int row) const;
+
+	[[nodiscard]] float GetPreviousSegmentBeatAtBeat(TimingSegmentType tst,
+													 float beat) const
 	{
 		return GetPreviousSegmentBeatAtRow(tst, BeatToNoteRow(beat));
 	}
 
-	bool empty() const;
+	[[nodiscard]] bool empty() const;
 
 	void CopyRange(int start_row,
 				   int end_row,
@@ -197,8 +197,9 @@ class TimingData
 	 * @param tst the TimingSegmentType requested.
 	 * @return the segment in question.
 	 */
-	const TimingSegment* GetSegmentAtRow(int iNoteRow,
-										 TimingSegmentType tst) const;
+	[[nodiscard]] const TimingSegment* GetSegmentAtRow(
+	  int iNoteRow,
+	  TimingSegmentType tst) const;
 	TimingSegment* GetSegmentAtRow(int iNoteRow, TimingSegmentType tst);
 
 	/**
@@ -207,8 +208,9 @@ class TimingData
 	 * @param tst the TimingSegmentType requested.
 	 * @return the segment in question.
 	 */
-	const TimingSegment* GetSegmentAtBeat(float fBeat,
-										  TimingSegmentType tst) const
+	[[nodiscard]] const TimingSegment* GetSegmentAtBeat(
+	  float fBeat,
+	  TimingSegmentType tst) const
 	{
 		return GetSegmentAtRow(BeatToNoteRow(fBeat), tst);
 	}
@@ -258,11 +260,12 @@ class TimingData
 #undef DefineSegment
 
 	/* convenience aliases (Set functions are deprecated) */
-	float GetBPMAtRow(int iNoteRow) const
+	[[nodiscard]] float GetBPMAtRow(int iNoteRow) const
 	{
 		return GetBPMSegmentAtRow(iNoteRow)->GetBPM();
 	}
-	float GetBPMAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetBPMAtBeat(float fBeat) const
 	{
 		return GetBPMAtRow(BeatToNoteRow(fBeat));
 	}
@@ -275,11 +278,12 @@ class TimingData
 		SetBPMAtRow(BeatToNoteRow(fBeat), fBPM);
 	}
 
-	float GetStopAtRow(int iNoteRow) const
+	[[nodiscard]] float GetStopAtRow(int iNoteRow) const
 	{
 		return GetStopSegmentAtRow(iNoteRow)->GetPause();
 	}
-	float GetStopAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetStopAtBeat(float fBeat) const
 	{
 		return GetStopAtRow(BeatToNoteRow(fBeat));
 	}
@@ -292,11 +296,12 @@ class TimingData
 		SetStopAtRow(BeatToNoteRow(fBeat), fSeconds);
 	}
 
-	float GetDelayAtRow(int iNoteRow) const
+	[[nodiscard]] float GetDelayAtRow(int iNoteRow) const
 	{
 		return GetDelaySegmentAtRow(iNoteRow)->GetPause();
 	}
-	float GetDelayAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetDelayAtBeat(float fBeat) const
 	{
 		return GetDelayAtRow(BeatToNoteRow(fBeat));
 	}
@@ -319,11 +324,12 @@ class TimingData
 		SetTimeSignatureAtRow(BeatToNoteRow(fBeat), iNum, iDen);
 	}
 
-	float GetWarpAtRow(int iNoteRow) const
+	[[nodiscard]] float GetWarpAtRow(int iNoteRow) const
 	{
 		return GetWarpSegmentAtRow(iNoteRow)->GetLength();
 	}
-	float GetWarpAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetWarpAtBeat(float fBeat) const
 	{
 		return GetWarpAtRow(BeatToNoteRow(fBeat));
 	}
@@ -337,11 +343,12 @@ class TimingData
 		AddSegment(WarpSegment(BeatToNoteRow(fBeat), fLength));
 	}
 
-	int GetTickcountAtRow(int iNoteRow) const
+	[[nodiscard]] int GetTickcountAtRow(int iNoteRow) const
 	{
 		return GetTickcountSegmentAtRow(iNoteRow)->GetTicks();
 	}
-	int GetTickcountAtBeat(float fBeat) const
+
+	[[nodiscard]] int GetTickcountAtBeat(float fBeat) const
 	{
 		return GetTickcountAtRow(BeatToNoteRow(fBeat));
 	}
@@ -354,28 +361,32 @@ class TimingData
 		SetTickcountAtRow(BeatToNoteRow(fBeat), iTicks);
 	}
 
-	int GetComboAtRow(int iNoteRow) const
+	[[nodiscard]] int GetComboAtRow(int iNoteRow) const
 	{
 		return GetComboSegmentAtRow(iNoteRow)->GetCombo();
 	}
-	int GetComboAtBeat(float fBeat) const
+
+	[[nodiscard]] int GetComboAtBeat(float fBeat) const
 	{
 		return GetComboAtRow(BeatToNoteRow(fBeat));
 	}
-	int GetMissComboAtRow(int iNoteRow) const
+
+	[[nodiscard]] int GetMissComboAtRow(int iNoteRow) const
 	{
 		return GetComboSegmentAtRow(iNoteRow)->GetMissCombo();
 	}
-	int GetMissComboAtBeat(float fBeat) const
+
+	[[nodiscard]] int GetMissComboAtBeat(float fBeat) const
 	{
 		return GetMissComboAtRow(BeatToNoteRow(fBeat));
 	}
 
-	const std::string& GetLabelAtRow(int iNoteRow) const
+	[[nodiscard]] const std::string& GetLabelAtRow(int iNoteRow) const
 	{
 		return GetLabelSegmentAtRow(iNoteRow)->GetLabel();
 	}
-	const std::string& GetLabelAtBeat(float fBeat) const
+
+	[[nodiscard]] const std::string& GetLabelAtBeat(float fBeat) const
 	{
 		return GetLabelAtRow(BeatToNoteRow(fBeat));
 	}
@@ -387,32 +398,36 @@ class TimingData
 	{
 		SetLabelAtRow(BeatToNoteRow(fBeat), sLabel);
 	}
-	bool DoesLabelExist(const std::string& sLabel) const;
 
-	float GetSpeedPercentAtRow(int iNoteRow) const
+	[[nodiscard]] bool DoesLabelExist(const std::string& sLabel) const;
+
+	[[nodiscard]] float GetSpeedPercentAtRow(int iNoteRow) const
 	{
 		return GetSpeedSegmentAtRow(iNoteRow)->GetRatio();
 	}
-	float GetSpeedPercentAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetSpeedPercentAtBeat(float fBeat) const
 	{
 		return GetSpeedPercentAtRow(BeatToNoteRow(fBeat));
 	}
 
-	float GetSpeedWaitAtRow(int iNoteRow) const
+	[[nodiscard]] float GetSpeedWaitAtRow(int iNoteRow) const
 	{
 		return GetSpeedSegmentAtRow(iNoteRow)->GetDelay();
 	}
-	float GetSpeedWaitAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetSpeedWaitAtBeat(float fBeat) const
 	{
 		return GetSpeedWaitAtRow(BeatToNoteRow(fBeat));
 	}
 
 	// XXX: is there any point to having specific unit types?
-	SpeedSegment::BaseUnit GetSpeedModeAtRow(int iNoteRow) const
+	[[nodiscard]] SpeedSegment::BaseUnit GetSpeedModeAtRow(int iNoteRow) const
 	{
 		return GetSpeedSegmentAtRow(iNoteRow)->GetUnit();
 	}
-	SpeedSegment::BaseUnit GetSpeedModeAtBeat(float fBeat)
+
+	[[nodiscard]] SpeedSegment::BaseUnit GetSpeedModeAtBeat(float fBeat) const
 	{
 		return GetSpeedModeAtRow(BeatToNoteRow(fBeat));
 	}
@@ -464,13 +479,15 @@ class TimingData
 		SetSpeedModeAtRow(BeatToNoteRow(fBeat), unit);
 	}
 
-	float GetDisplayedSpeedPercent(float fBeat, float fMusicSeconds) const;
+	[[nodiscard]] float GetDisplayedSpeedPercent(float fBeat,
+												 float fMusicSeconds) const;
 
-	float GetScrollAtRow(int iNoteRow) const
+	[[nodiscard]] float GetScrollAtRow(int iNoteRow) const
 	{
 		return GetScrollSegmentAtRow(iNoteRow)->GetRatio();
 	}
-	float GetScrollAtBeat(float fBeat)
+
+	[[nodiscard]] float GetScrollAtBeat(float fBeat) const
 	{
 		return GetScrollAtRow(BeatToNoteRow(fBeat));
 	}
@@ -484,22 +501,26 @@ class TimingData
 		SetScrollAtRow(BeatToNoteRow(fBeat), fPercent);
 	}
 
-	float GetFakeAtRow(int iRow) const
+	[[nodiscard]] float GetFakeAtRow(int iRow) const
 	{
 		return GetFakeSegmentAtRow(iRow)->GetLength();
 	}
-	float GetFakeAtBeat(float fBeat) const
+
+	[[nodiscard]] float GetFakeAtBeat(float fBeat) const
 	{
 		return GetFakeAtRow(BeatToNoteRow(fBeat));
 	}
 
-	bool IsWarpAtRow(int iRow) const;
-	bool IsWarpAtBeat(float fBeat) const
+	[[nodiscard]] bool IsWarpAtRow(int iRow) const;
+
+	[[nodiscard]] bool IsWarpAtBeat(float fBeat) const
 	{
 		return IsWarpAtRow(BeatToNoteRow(fBeat));
 	}
-	bool IsFakeAtRow(int iRow) const;
-	bool IsFakeAtBeat(float fBeat) const
+
+	[[nodiscard]] bool IsFakeAtRow(int iRow) const;
+
+	[[nodiscard]] bool IsFakeAtBeat(float fBeat) const
 	{
 		return IsFakeAtRow(BeatToNoteRow(fBeat));
 	}
@@ -508,11 +529,12 @@ class TimingData
 	 * @brief Determine if this notes on this row can be judged.
 	 * @param row the row to focus on.
 	 * @return true if the row can be judged, false otherwise. */
-	bool IsJudgableAtRow(int row) const
+	[[nodiscard]] bool IsJudgableAtRow(int row) const
 	{
 		return !IsWarpAtRow(row) && !IsFakeAtRow(row);
 	}
-	bool IsJudgableAtBeat(float beat) const
+
+	[[nodiscard]] bool IsJudgableAtBeat(float beat) const
 	{
 		return IsJudgableAtRow(BeatToNoteRow(beat));
 	}
@@ -531,7 +553,8 @@ class TimingData
 								 float beat,
 								 unsigned int max_segment) const;
 	void GetBeatAndBPSFromElapsedTime(GetBeatArgs& args) const;
-	float GetBeatFromElapsedTime(float elapsed_time)
+
+	[[nodiscard]] float GetBeatFromElapsedTime(float elapsed_time)
 	  const // shortcut for places that care only about the beat
 	{
 		GetBeatArgs args;
@@ -539,10 +562,12 @@ class TimingData
 		GetBeatAndBPSFromElapsedTime(args);
 		return args.beat;
 	}
-	float GetElapsedTimeFromBeat(float fBeat) const;
+
+	[[nodiscard]] float GetElapsedTimeFromBeat(float fBeat) const;
 
 	void GetBeatAndBPSFromElapsedTimeNoOffset(GetBeatArgs& args) const;
-	float GetBeatFromElapsedTimeNoOffset(float elapsed_time)
+
+	[[nodiscard]] float GetBeatFromElapsedTimeNoOffset(float elapsed_time)
 	  const // shortcut for places that care only about the beat
 	{
 		GetBeatArgs args;
@@ -550,34 +575,49 @@ class TimingData
 		GetBeatAndBPSFromElapsedTimeNoOffset(args);
 		return args.beat;
 	}
-	float GetElapsedTimeFromBeatNoOffset(float fBeat) const;
-	float GetDisplayedBeat(float fBeat) const;
 
-	bool HasBpmChanges() const
+	[[nodiscard]] float GetElapsedTimeFromBeatNoOffset(float fBeat) const;
+	[[nodiscard]] float GetDisplayedBeat(float fBeat) const;
+
+	[[nodiscard]] bool HasBpmChanges() const
 	{
 		return GetTimingSegments(SEGMENT_BPM).size() > 1;
 	}
-	bool HasStops() const { return !GetTimingSegments(SEGMENT_STOP).empty(); }
-	bool HasDelays() const { return !GetTimingSegments(SEGMENT_DELAY).empty(); }
-	bool HasWarps() const { return !GetTimingSegments(SEGMENT_WARP).empty(); }
-	bool HasFakes() const { return !GetTimingSegments(SEGMENT_FAKE).empty(); }
 
-	bool HasSpeedChanges() const;
-	bool HasScrollChanges() const;
+	[[nodiscard]] bool HasStops() const
+	{
+		return !GetTimingSegments(SEGMENT_STOP).empty();
+	}
+	[[nodiscard]] bool HasDelays() const
+	{
+		return !GetTimingSegments(SEGMENT_DELAY).empty();
+	}
+	[[nodiscard]] bool HasWarps() const
+	{
+		return !GetTimingSegments(SEGMENT_WARP).empty();
+	}
+	[[nodiscard]] bool HasFakes() const
+	{
+		return !GetTimingSegments(SEGMENT_FAKE).empty();
+	}
+
+	[[nodiscard]] bool HasSpeedChanges() const;
+	[[nodiscard]] bool HasScrollChanges() const;
 
 	/**
 	 * @brief Compare two sets of timing data to see if they are equal.
 	 * @param other the other TimingData.
 	 * @return the equality or lack thereof of the two TimingData.
 	 */
-	bool operator==(const TimingData& other)
+	bool operator==(const TimingData& other) const
 	{
 		FOREACH_ENUM(TimingSegmentType, tst)
 		{
-			const vector<TimingSegment*>& us = m_avpTimingSegments[tst];
-			const vector<TimingSegment*>& them = other.m_avpTimingSegments[tst];
+			const std::vector<TimingSegment*>& us = m_avpTimingSegments[tst];
+			const std::vector<TimingSegment*>& them =
+			  other.m_avpTimingSegments[tst];
 
-			// optimization: check vector sizes before contents
+			// optimization: check  std::vector sizes before contents
 			if (us.size() != them.size())
 				return false;
 
@@ -601,7 +641,10 @@ class TimingData
 	 * @param other the other TimingData.
 	 * @return the inequality or lack thereof of the two TimingData.
 	 */
-	bool operator!=(const TimingData& other) { return !operator==(other); }
+	bool operator!=(const TimingData& other) const
+	{
+		return !operator==(other);
+	}
 
 	void ScaleRegion(float fScale = 1,
 					 int iStartRow = 0,
@@ -612,11 +655,12 @@ class TimingData
 
 	void SortSegments(TimingSegmentType tst);
 
-	const vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst) const
+	[[nodiscard]] const std::vector<TimingSegment*>& GetTimingSegments(
+	  TimingSegmentType tst) const
 	{
 		return const_cast<TimingData*>(this)->GetTimingSegments(tst);
 	}
-	vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst)
+	std::vector<TimingSegment*>& GetTimingSegments(TimingSegmentType tst)
 	{
 		return m_avpTimingSegments[tst];
 	}
@@ -643,28 +687,32 @@ class TimingData
 	float m_fBeat0OffsetInSeconds;
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
-	vector<std::string> ToVectorString(TimingSegmentType tst,
-										   int dec = 6) const;
+	[[nodiscard]] std::vector<std::string> ToVectorString(TimingSegmentType tst,
+														  int dec = 6) const;
 
 	/*	Wow it's almost like this should have been done a decade ago.
 	Essentially what's happening here is the results of getelapsedtimeat(row)
-	are pre-calculated and stored in a vector that can be simply subset rather
-	than values being recalculated millions of times per file. This only applies
-	however to files for which there can be made an assumption of sequential
-	execution I don't actually know for sure if any of negative bpms/stops/warps
-	do this, or if mod maps have the power to fundamentally change timing data.
-	If they don't then I suppose all of these checks aren't needed at all :/.
-	Not my responsibility to investigate, though. - Mina.*/
+	are pre-calculated and stored in a  std::vector that can be simply subset
+	rather than values being recalculated millions of times per file. This only
+	applies however to files for which there can be made an assumption of
+	sequential execution I don't actually know for sure if any of negative
+	bpms/stops/warps do this, or if mod maps have the power to fundamentally
+	change timing data. If they don't then I suppose all of these checks aren't
+	needed at all :/. Not my responsibility to investigate, though. - Mina.*/
 
-	vector<float> ElapsedTimesAtAllRows;
-	vector<float> ElapsedTimesAtNonEmptyRows;
-	const vector<float>& BuildAndGetEtaner(const vector<int>& nerv);
-	const vector<float>& BuildAndGetEtar(int lastrow);
-	void SetElapsedTimesAtAllRows(vector<float>& etar)
+	std::vector<float> ElapsedTimesAtAllRows;
+	std::vector<float> ElapsedTimesAtNonEmptyRows;
+	const std::vector<float>& BuildAndGetEtaner(const std::vector<int>& nerv);
+	const std::vector<float>& BuildAndGetEtar(int lastrow);
+	void SetElapsedTimesAtAllRows(std::vector<float>& etar)
 	{
 		ElapsedTimesAtAllRows = etar;
 	}
-	vector<float> GetElapsedTimesAtAllRows() { return ElapsedTimesAtAllRows; }
+
+	[[nodiscard]] std::vector<float> GetElapsedTimesAtAllRows() const
+	{
+		return ElapsedTimesAtAllRows;
+	}
 	void UnsetElapsedTimesAtAllRows()
 	{
 		ElapsedTimesAtAllRows.clear();
@@ -675,18 +723,24 @@ class TimingData
 		ElapsedTimesAtNonEmptyRows.clear();
 		ElapsedTimesAtNonEmptyRows.shrink_to_fit();
 	}
-	float WhereUAtBro(float beat) const;
+
+	[[nodiscard]] float WhereUAtBro(float beat) const;
 	float WhereUAtBro(float beat);
-	float WhereUAtBroNoOffset(float beat) const;
+	[[nodiscard]] float WhereUAtBroNoOffset(float beat) const;
 	float WhereUAtBroNoOffset(float beat);
 	float WhereUAtBro(int row);
 
-	vector<float> ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
-													float rate);
+	std::vector<float> ConvertReplayNoteRowsToTimestamps(
+	  const std::vector<int>& nrv,
+	  float rate);
 
 	bool ValidSequentialAssumption = true;
 	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; }
-	bool IsSequentialAssumptionValid() { return ValidSequentialAssumption; }
+
+	[[nodiscard]] bool IsSequentialAssumptionValid() const
+	{
+		return ValidSequentialAssumption;
+	}
 
 	void NegStopAndBPMCheck()
 	{
@@ -695,11 +749,11 @@ class TimingData
 			return;
 		}
 
-		vector<TimingSegment*>& bpms = m_avpTimingSegments[SEGMENT_BPM];
-		vector<TimingSegment*>& stops = m_avpTimingSegments[SEGMENT_STOP];
+		std::vector<TimingSegment*>& bpms = m_avpTimingSegments[SEGMENT_BPM];
+		std::vector<TimingSegment*>& stops = m_avpTimingSegments[SEGMENT_STOP];
 
-		for (size_t i = 0, l = bpms.size(); i < l; ++i) {
-			BPMSegment* bpm = ToBPM(bpms[i]);
+		for (auto& i : bpms) {
+			BPMSegment* bpm = ToBPM(i);
 			if (0 > bpm->GetBPM()) {
 				LOG->Warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
@@ -707,8 +761,8 @@ class TimingData
 			}
 		}
 
-		for (size_t i = 0, l = stops.size(); i < l; ++i) {
-			StopSegment* s = ToStop(stops[i]);
+		for (auto& stop : stops) {
+			StopSegment* s = ToStop(stop);
 			if (0 > s->GetPause()) {
 				LOG->Warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
@@ -723,7 +777,7 @@ class TimingData
 	void AddSegment(const TimingSegment* seg);
 
 	// All of the following vectors must be sorted before gameplay.
-	vector<TimingSegment*> m_avpTimingSegments[NUM_TimingSegmentType];
+	std::vector<TimingSegment*> m_avpTimingSegments[NUM_TimingSegmentType];
 };
 
 #undef COMPARE

@@ -11,8 +11,6 @@ class XNode;
 struct RadarValues;
 struct lua_State;
 
-using std::string;
-
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
  *
@@ -24,78 +22,81 @@ struct HighScore
 	/**
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
-	const std::string& GetName() const;
-	const std::string& GetChartKey() const;
-	int GetSSRCalcVersion() const;
+	[[nodiscard]] const std::string& GetName() const;
+	[[nodiscard]] const std::string& GetChartKey() const;
+	[[nodiscard]] int GetSSRCalcVersion() const;
 	/**
 	 * @brief Retrieve the grade earned from this score.
 	 * @return the grade.
 	 */
-	Grade GetGrade() const;
+	[[nodiscard]] Grade GetGrade() const;
 	/**
 	 * @brief Retrieve the score earned.
 	 * @return the score. */
-	unsigned int GetScore() const;
+	[[nodiscard]] unsigned int GetScore() const;
 	/**
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
-	bool IsEmpty() const;
-	Grade GetWifeGrade() const;
+	[[nodiscard]] bool IsEmpty() const;
+	[[nodiscard]] Grade GetWifeGrade() const;
 	float ConvertDpToWife();
-	float GetPercentDP() const;
-	float GetWifeScore() const;
-	float GetWifePoints() const;
-	float GetSSRNormPercent() const;
-	float GetMusicRate() const;
-	float GetJudgeScale() const;
-	bool GetChordCohesion() const;
-	bool GetEtternaValid() const;
-	bool IsUploadedToServer(const std::string& s) const;
-	vector<float> timeStamps;
-	const vector<float>& GetOffsetVector() const;
-	const vector<int>& GetNoteRowVector() const;
-	const vector<int>& GetTrackVector() const;
-	const vector<TapNoteType>& GetTapNoteTypeVector() const;
-	const vector<HoldReplayResult>& GetHoldReplayDataVector() const;
-	vector<float> GetCopyOfOffsetVector() const;
-	vector<int> GetCopyOfNoteRowVector() const;
-	vector<int> GetCopyOfTrackVector() const;
-	vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
-	vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const;
-	vector<float> GetCopyOfSetOnlineReplayTimestampVector() const;
-	const std::string& GetScoreKey() const;
-	int GetTopScore() const;
-	int GetReplayType() const;
+	[[nodiscard]] float GetPercentDP() const;
+	[[nodiscard]] float GetWifeScore() const;
+	[[nodiscard]] float GetWifePoints() const;
+	[[nodiscard]] float GetSSRNormPercent() const;
+	[[nodiscard]] float GetMusicRate() const;
+	[[nodiscard]] float GetJudgeScale() const;
+	[[nodiscard]] bool GetChordCohesion() const;
+	[[nodiscard]] bool GetEtternaValid() const;
+	[[nodiscard]] bool IsUploadedToServer(const std::string& s) const;
+	std::vector<float> timeStamps;
+	[[nodiscard]] const std::vector<float>& GetOffsetVector() const;
+	[[nodiscard]] const std::vector<int>& GetNoteRowVector() const;
+	[[nodiscard]] const std::vector<int>& GetTrackVector() const;
+	[[nodiscard]] const std::vector<TapNoteType>& GetTapNoteTypeVector() const;
+	[[nodiscard]] const std::vector<HoldReplayResult>& GetHoldReplayDataVector()
+	  const;
+	[[nodiscard]] std::vector<float> GetCopyOfOffsetVector() const;
+	[[nodiscard]] std::vector<int> GetCopyOfNoteRowVector() const;
+	[[nodiscard]] std::vector<int> GetCopyOfTrackVector() const;
+	[[nodiscard]] std::vector<TapNoteType> GetCopyOfTapNoteTypeVector() const;
+	[[nodiscard]] std::vector<HoldReplayResult> GetCopyOfHoldReplayDataVector()
+	  const;
+	[[nodiscard]] std::vector<float> GetCopyOfSetOnlineReplayTimestampVector()
+	  const;
+	[[nodiscard]] const std::string& GetScoreKey() const;
+	[[nodiscard]] int GetTopScore() const;
+	[[nodiscard]] int GetReplayType() const;
 	/**
 	 * @brief Determine how many seconds the player had left in Survival mode.
 	 * @return the number of seconds left. */
-	float GetSurviveSeconds() const;
-	float GetSurvivalSeconds() const;
-	unsigned int GetMaxCombo() const;
+	[[nodiscard]] float GetSurviveSeconds() const;
+	[[nodiscard]] float GetSurvivalSeconds() const;
+	[[nodiscard]] unsigned int GetMaxCombo() const;
 	/**
 	 * @brief Get the modifiers used for this run.
 	 * @return the modifiers. */
-	const std::string& GetModifiers() const;
-	DateTime GetDateTime() const;
-	const std::string& GetPlayerGuid() const;
-	const std::string& GetMachineGuid() const;
-	const std::string& GetCountryCode() const;
-	int GetProductID() const;
-	int GetTapNoteScore(TapNoteScore tns) const;
-	int GetHoldNoteScore(HoldNoteScore tns) const;
-	const RadarValues& GetRadarValues() const;
-	float GetLifeRemainingSeconds() const;
+	[[nodiscard]] const std::string& GetModifiers() const;
+	[[nodiscard]] DateTime GetDateTime() const;
+	[[nodiscard]] const std::string& GetPlayerGuid() const;
+	[[nodiscard]] const std::string& GetMachineGuid() const;
+	[[nodiscard]] const std::string& GetCountryCode() const;
+	[[nodiscard]] int GetProductID() const;
+	[[nodiscard]] int GetTapNoteScore(TapNoteScore tns) const;
+	[[nodiscard]] int GetHoldNoteScore(HoldNoteScore tns) const;
+	[[nodiscard]] const RadarValues& GetRadarValues() const;
+	[[nodiscard]] float GetLifeRemainingSeconds() const;
 	/**
 	 * @brief Determine if this score was from a situation that would cause
 	 * disqualification.
 	 * @return true if the score would be disqualified, false otherwise. */
-	bool GetDisqualified() const;
+	[[nodiscard]] bool GetDisqualified() const;
 
 	/**
 	 * @brief Set the name of the Player that earned the score.
 	 * @param sName the name of the Player. */
-	void SetName(const string& sName);
-	void SetChartKey(const string& ck);
+	void SetName(const std::string& sName);
+	void SetChartKey(const std::string& ck);
 	void SetSSRCalcVersion(int cv);
 	void SetGrade(Grade g);
 	void SetScore(unsigned int iScore);
@@ -109,20 +110,20 @@ struct HighScore
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
 	void AddUploadedServer(string s);
-	void SetOffsetVector(const vector<float>& v);
-	void SetNoteRowVector(const vector<int>& v);
-	void SetTrackVector(const vector<int>& v);
-	void SetTapNoteTypeVector(const vector<TapNoteType>& v);
-	void SetHoldReplayDataVector(const vector<HoldReplayResult>& v);
-	void SetOnlineReplayTimestampVector(const vector<float>& v);
-	void SetScoreKey(const string& ck);
-	void SetRescoreJudgeVector(const vector<int>& v);
+	void SetOffsetVector(const std::vector<float>& v);
+	void SetNoteRowVector(const std::vector<int>& v);
+	void SetTrackVector(const std::vector<int>& v);
+	void SetTapNoteTypeVector(const std::vector<TapNoteType>& v);
+	void SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v);
+	void SetOnlineReplayTimestampVector(const std::vector<float>& v);
+	void SetScoreKey(const std::string& ck);
+	void SetRescoreJudgeVector(const std::vector<int>& v);
 	void SetAliveSeconds(float f);
 	void SetMaxCombo(unsigned int i);
-	void SetModifiers(const string& s);
+	void SetModifiers(const std::string& s);
 	void SetDateTime(DateTime d);
-	void SetPlayerGuid(const string& s);
-	void SetMachineGuid(const string& s);
+	void SetPlayerGuid(const std::string& s);
+	void SetMachineGuid(const std::string& s);
 	void SetProductID(int i);
 	void SetTapNoteScore(TapNoteScore tns, int i);
 	void SetHoldNoteScore(HoldNoteScore tns, int i);
@@ -131,8 +132,9 @@ struct HighScore
 	void SetDisqualified(bool b);
 	void SetReplayType(int i);
 
-	string* GetNameMutable();
-	const string* GetNameMutable() const
+	std::string* GetNameMutable();
+
+	[[nodiscard]] const std::string* GetNameMutable() const
 	{
 		return const_cast<string*>(
 		  const_cast<HighScore*>(this)->GetNameMutable());
@@ -147,13 +149,13 @@ struct HighScore
 	bool operator==(HighScore const& other) const;
 	bool operator!=(HighScore const& other) const;
 
-	XNode* CreateNode() const;
-	XNode* CreateEttNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateEttNode() const;
 	void LoadFromNode(const XNode* pNode);
 	void LoadFromEttNode(const XNode* pNode);
 
 	bool WriteReplayData();
-	bool WriteInputData(const vector<float>& oop);
+	bool WriteInputData(const std::vector<float>& oop);
 	bool LoadReplayData();
 	bool LoadReplayDataBasic(string dir);
 	bool LoadReplayDataFull(string dir);
@@ -161,26 +163,26 @@ struct HighScore
 	void UnloadReplayData();
 	void ResetSkillsets();
 
-	const std::string& GetDisplayName() const;
+	[[nodiscard]] const std::string& GetDisplayName() const;
 
 	// Mina stuff - Mina
 	float RescoreToWife2Judge(int x);
 	// update wifescore (judge the score was achieved on) and ssrnorm
 	bool RescoreToWife3(float pmax);
 	float RescoreToDPJudge(int x);
-	float GetSkillsetSSR(Skillset ss) const;
-	int GetWifeVersion() const;
+	[[nodiscard]] float GetSkillsetSSR(Skillset ss) const;
+	[[nodiscard]] int GetWifeVersion() const;
 	void SetSkillsetSSR(Skillset ss, float ssr);
-	void SetValidationKey(ValidationKey vk, string k);
+	void SetValidationKey(ValidationKey vk, std::string k);
 	void SetTopScore(int i);
-	string GenerateValidationKeys();
-	const std::string& GetValidationKey(ValidationKey vk) const;
-	vector<int> GetRescoreJudgeVector(int x);
+	std::string GenerateValidationKeys();
+	[[nodiscard]] const std::string& GetValidationKey(ValidationKey vk) const;
+	std::vector<int> GetRescoreJudgeVector(int x);
 	// laazy
-	string scoreid;
+	std::string scoreid;
 	int userid = -1;
-	string avatar;
-	string countryCode;
+	std::string avatar;
+	std::string countryCode;
 	bool forceuploadedthissession = false;
 	int norms = 0;
 	int musics = 0;
@@ -202,7 +204,7 @@ struct Screenshot
 	/** @brief The actual high score in question. */
 	HighScore highScore;
 
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 	bool operator<(Screenshot const& rhs) const
 	{

@@ -105,12 +105,12 @@ WheelBase::SetItemPosition(Actor& item,
 void
 WheelBase::UpdateScrollbar()
 {
-	int iTotalNumItems = m_CurWheelItemData.size();
-	float fItemAt = m_iSelection - m_fPositionOffsetFromSelection;
+	const int iTotalNumItems = m_CurWheelItemData.size();
+	const float fItemAt = m_iSelection - m_fPositionOffsetFromSelection;
 
 	{
 		float fSize = static_cast<float>(NUM_WHEEL_ITEMS) / iTotalNumItems;
-		float fCenter = fItemAt / iTotalNumItems;
+		const float fCenter = fItemAt / iTotalNumItems;
 		fSize *= 0.5f;
 
 		m_ScrollBar.SetPercentage(fCenter, fSize);
@@ -180,7 +180,7 @@ WheelBase::Update(float fDeltaTime)
 	if (IsMoving() != 0) {
 		// We're automatically moving. Move linearly, and don't clamp to the
 		// selection.
-		float fSpinSpeed = m_SpinSpeed * m_Moving;
+		const float fSpinSpeed = m_SpinSpeed * m_Moving;
 		m_fPositionOffsetFromSelection -= fSpinSpeed * fDeltaTime;
 
 		/* Make sure that we don't go further than 1 away, in case the speed is
@@ -205,7 +205,7 @@ WheelBase::Update(float fDeltaTime)
 		}
 	} else {
 		// "rotate" wheel toward selected song
-		float fSpinSpeed =
+		const float fSpinSpeed =
 		  0.2f + fabsf(m_fPositionOffsetFromSelection) / SWITCH_SECONDS;
 
 		if (m_fPositionOffsetFromSelection > 0) {
@@ -249,7 +249,7 @@ WheelBase::Select() // return true if this selection can end the screen
 			m_LastSelection = m_CurWheelItemData[m_iSelection];
 			return true;
 		case WheelItemDataType_Section: {
-			std::string sThisItemSectionName =
+			const std::string sThisItemSectionName =
 			  m_CurWheelItemData[m_iSelection]->m_sText;
 			if (m_sExpandedSectionName ==
 				sThisItemSectionName) // already expanded
@@ -326,7 +326,7 @@ WheelBase::ChangeMusicUnlessLocked(int n)
 {
 	if (m_WheelState == STATE_LOCKED) {
 		if (n != 0) {
-			int iSign = n / abs(n);
+			const int iSign = n / abs(n);
 			m_fLockedWheelVelocity = iSign * LOCKED_INITIAL_VELOCITY;
 			m_soundLocked.Play(true);
 		}
@@ -344,7 +344,7 @@ WheelBase::Move(int n)
 
 	if (m_WheelState == STATE_LOCKED) {
 		if (n != 0) {
-			int iSign = n / abs(n);
+			const int iSign = n / abs(n);
 			m_fLockedWheelVelocity = iSign * LOCKED_INITIAL_VELOCITY;
 			m_soundLocked.Play(true);
 		}
@@ -429,7 +429,7 @@ WheelBase::RebuildWheelItems(int iDist)
 	// find the first wheel item shown
 	iFirstVisibleIndex -= NUM_WHEEL_ITEMS / 2;
 
-	ASSERT(data.size() != 0);
+	ASSERT(!data.empty());
 	wrap(iFirstVisibleIndex, data.size());
 
 	// iIndex is now the index of the lowest WheelItem to draw
@@ -505,7 +505,7 @@ class LunaWheelBase : public Luna<WheelBase>
 	}
 	static int GetWheelItem(T* p, lua_State* L)
 	{
-		int iItem = IArg(1);
+		const int iItem = IArg(1);
 
 		WheelItemBase* pItem = p->GetWheelItem(iItem);
 		if (pItem == nullptr) {

@@ -6,6 +6,7 @@
 #include "RollingNumbers.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
 REGISTER_ACTOR_CLASS(RollingNumbers);
 
 RollingNumbers::RollingNumbers()
@@ -34,7 +35,7 @@ RollingNumbers::DrawPart(RageColor const* diffuse,
 						 float crop_left,
 						 float crop_right)
 {
-	for (int i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
+	for (auto i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
 		m_pTempState->diffuse[i] = diffuse[i];
 	}
 	SetCurrStrokeColor(stroke);
@@ -51,17 +52,17 @@ RollingNumbers::DrawPrimitives()
 	}
 	RageColor diffuse_orig[NUM_DIFFUSE_COLORS];
 	RageColor diffuse_temp[NUM_DIFFUSE_COLORS];
-	RageColor stroke_orig = GetCurrStrokeColor();
-	RageColor stroke_temp = stroke_orig * LEADING_ZERO_MULTIPLY_COLOR;
-	for (int i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
+	const auto stroke_orig = GetCurrStrokeColor();
+	const auto stroke_temp = stroke_orig * LEADING_ZERO_MULTIPLY_COLOR;
+	for (auto i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
 		diffuse_orig[i] = m_pTempState->diffuse[i];
 		diffuse_temp[i] =
 		  m_pTempState->diffuse[i] * LEADING_ZERO_MULTIPLY_COLOR;
 	}
-	float original_crop_left = m_pTempState->crop.left;
-	float original_crop_right = m_pTempState->crop.right;
+	const auto original_crop_left = m_pTempState->crop.left;
+	const auto original_crop_right = m_pTempState->crop.right;
 
-	std::string s = this->GetText();
+	auto s = this->GetText();
 	int i;
 	// find the first non-zero non-comma character, or the last character
 	for (i = 0; i < (int)(s.length() - 1); i++) {
@@ -75,7 +76,7 @@ RollingNumbers::DrawPrimitives()
 		if (s[i] >= '0' && s[i] <= '9')
 			break;
 	}
-	float f = i / static_cast<float>(s.length());
+	const auto f = i / static_cast<float>(s.length());
 
 	// draw leading part
 	DrawPart(diffuse_temp,
@@ -117,7 +118,7 @@ RollingNumbers::SetTargetNumber(float fTargetNumber)
 	if (fTargetNumber == m_fTargetNumber) // no change
 		return;
 	m_fTargetNumber = fTargetNumber;
-	float approach_secs = APPROACH_SECONDS.GetValue();
+	const auto approach_secs = APPROACH_SECONDS.GetValue();
 	if (approach_secs > 0) {
 		m_fScoreVelocity = (m_fTargetNumber - m_fCurrentNumber) / approach_secs;
 	} else {
@@ -131,7 +132,7 @@ RollingNumbers::UpdateText()
 	if (!m_metrics_loaded) {
 		return;
 	}
-	std::string s = ssprintf(TEXT_FORMAT.GetValue(), m_fCurrentNumber);
+	auto s = ssprintf(TEXT_FORMAT.GetValue(), m_fCurrentNumber);
 	if (COMMIFY) {
 		s = Commify(s);
 	}

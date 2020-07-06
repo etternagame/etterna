@@ -59,7 +59,7 @@ ModIcon::Set(const std::string& _sText)
 
 	s_replace(sText, (" "), "\n");
 
-	auto bVacant = (sText == "");
+	const auto bVacant = (sText.empty());
 	m_sprFilled->SetVisible(!bVacant);
 	m_sprEmpty->SetVisible(bVacant);
 

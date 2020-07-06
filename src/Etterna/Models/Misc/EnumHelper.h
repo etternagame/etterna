@@ -43,13 +43,13 @@ Check(lua_State* L,
 	  bool bAllowInvalid = false,
 	  bool bAllowAnything = false)
 {
-	return (T)CheckEnum(L,
-						EnumTraits<T>::StringToEnum,
-						iPos,
-						EnumTraits<T>::Invalid,
-						EnumTraits<T>::szName,
-						bAllowInvalid,
-						bAllowAnything);
+	return static_cast<T>(CheckEnum(L,
+									EnumTraits<T>::StringToEnum,
+									iPos,
+									EnumTraits<T>::Invalid,
+									EnumTraits<T>::szName,
+									bAllowInvalid,
+									bAllowAnything));
 }
 template<typename T>
 static void
@@ -109,7 +109,7 @@ EnumToString(int iVal,
                                                                                \
 	{                                                                          \
 		static unique_ptr<LocalizedString> g_##X##Name[NUM_##X];               \
-		if (g_##X##Name[0].get() == NULL) {                                    \
+		if (g_##X##Name[0].get() == nullptr) {                                 \
 			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
 				unique_ptr<LocalizedString> ap(                                \
 				  new LocalizedString(#X, X##ToString((X)i)));                 \

@@ -31,7 +31,7 @@ struct TapNoteResult
 	bool bHidden{ false };
 
 	// XML
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
@@ -41,7 +41,7 @@ struct TapNoteResult
 struct HoldNoteResult
 {
 	HoldNoteResult() = default;
-	float GetLastHeldBeat() const;
+	[[nodiscard]] float GetLastHeldBeat() const;
 
 	HoldNoteScore hns{ HNS_None };
 
@@ -81,7 +81,7 @@ struct HoldNoteResult
 	bool bActive{ false };
 
 	// XML
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
@@ -165,23 +165,19 @@ struct TapNote
 	HoldNoteResult HoldResult;
 
 	// XML
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
 	void PushSelf(lua_State* L);
 
 	// So I'm not repeatedly typing this out - Mina
-	bool IsNote() const
+	[[nodiscard]] bool IsNote() const
 	{
 		return type == TapNoteType_Tap || type == TapNoteType_HoldHead;
 	}
 
-	TapNote()
-	  : result()
-	  , HoldResult()
-	{
-	}
+	TapNote() {}
 	void Init()
 	{
 		type = TapNoteType_Empty;
@@ -196,9 +192,7 @@ struct TapNote
 	  : type(type_)
 	  , subType(subType_)
 	  , source(source_)
-	  , result()
 	  , iKeysoundIndex(iKeysoundIndex_)
-	  , HoldResult()
 	{
 		if (type_ > TapNoteType_Fake) {
 			LOG->Trace("Invalid tap note type %s (most likely) due to random "
@@ -416,7 +410,7 @@ ToBeat(float beat)
  * @return T the scaled position
  */
 template<typename T>
-inline T
+T
 ScalePosition(T start, T length, T newLength, T position)
 {
 	if (position < start)

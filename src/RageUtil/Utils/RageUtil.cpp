@@ -531,7 +531,7 @@ FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
 			if (_resetstkoflw())
 				sm_crash("Unrecoverable Stack Overflow");
 		}
-		iUsed = vsnprintf(pBuf, iChars - 1, szFormat, argList);
+		iUsed = _vsnprintf(pBuf, iChars - 1, szFormat, argList);
 		++iTry;
 	} while (iUsed < 0);
 
@@ -1320,13 +1320,13 @@ DirectoryIsEmpty(const std::string& sDir)
 bool
 CompareRStringsAsc(const std::string& a, const std::string& b)
 {
-	return make_lower(a).c_str() > make_lower(b).c_str();
+	return CompareNoCase(a, b) > 0;
 }
 
 bool
 CompareRStringsDesc(const std::string& a, const std::string& b)
 {
-	return make_lower(a).c_str() < make_lower(b).c_str();
+	return CompareNoCase(b, a) > 0;
 }
 
 void

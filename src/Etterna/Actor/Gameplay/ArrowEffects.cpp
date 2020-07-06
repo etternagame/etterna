@@ -136,7 +136,7 @@ void
 ArrowEffects::Update()
 {
 	static float fLastTime = 0;
-	float fTime = RageTimer::GetTimeSinceStart();
+	const float fTime = RageTimer::GetTimeSinceStart();
 
 	const Style* pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
 	const Style::ColumnInfo* pCols = pStyle->m_ColumnInfo;
@@ -168,8 +168,8 @@ ArrowEffects::Update()
 			 * could possibly have tornado enabled.
 			 * let's also take default resolution (640x480) into mind. -aj
 			 */
-			bool bWideField = pStyle->m_iColsPerPlayer > 4;
-			int iTornadoWidth = bWideField ? 2 : 3;
+			const bool bWideField = pStyle->m_iColsPerPlayer > 4;
+			const int iTornadoWidth = bWideField ? 2 : 3;
 
 			int iStartCol = iColNum - iTornadoWidth;
 			int iEndCol = iColNum + iTornadoWidth;
@@ -258,7 +258,7 @@ ArrowEffects::Update()
 	// Update Beat
 	if (effects[PlayerOptions::EFFECT_BEAT] != 0) {
 		do {
-			float fAccelTime = 0.2f, fTotalTime = 0.5f;
+			const float fAccelTime = 0.2f, fTotalTime = 0.5f;
 			float fBeat = position.m_fSongBeatVisible + fAccelTime;
 
 			const bool bEvenBeat = (static_cast<int>(fBeat) % 2) != 0;
@@ -304,15 +304,16 @@ GetDisplayedBeat(const PlayerState* pPlayerState, float beat)
 {
 	// do a binary search here
 	const vector<CacheDisplayedBeat>& data = pPlayerState->m_CacheDisplayedBeat;
-	int max = data.size() - 1;
+	const int max = data.size() - 1;
 	int l = 0, r = max;
 	while (l <= r) {
-		int m = (l + r) / 2;
+		const int m = (l + r) / 2;
 		if ((m == 0 || data[m].beat <= beat) &&
 			(m == max || beat < data[m + 1].beat)) {
 			return data[m].displayedBeat +
 				   data[m].velocity * (beat - data[m].beat);
-		} else if (data[m].beat <= beat) {
+		}
+		if (data[m].beat <= beat) {
 			l = m + 1;
 		} else {
 			r = m - 1;
@@ -338,7 +339,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	float fYOffset = 0;
 	const SongPosition& position = pPlayerState->GetDisplayedPosition();
 
-	float fSongBeat = position.m_fSongBeatVisible;
+	const float fSongBeat = position.m_fSongBeatVisible;
 	PlayerNumber pn = pPlayerState->m_PlayerNumber;
 	Steps* pCurSteps = GAMESTATE->m_pCurSteps;
 
@@ -354,13 +355,14 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	}
 
 	if (curr_options->m_fTimeSpacing != 0.0f) {
-		float fSongSeconds = GAMESTATE->m_Position.m_fMusicSecondsVisible;
-		float fNoteSeconds = pCurSteps->GetTimingData()->WhereUAtBro(fNoteBeat);
-		float fSecondsUntilStep = fNoteSeconds - fSongSeconds;
-		float fBPM = curr_options->m_fScrollBPM;
-		float fBPS =
+		const float fSongSeconds = GAMESTATE->m_Position.m_fMusicSecondsVisible;
+		const float fNoteSeconds =
+		  pCurSteps->GetTimingData()->WhereUAtBro(fNoteBeat);
+		const float fSecondsUntilStep = fNoteSeconds - fSongSeconds;
+		const float fBPM = curr_options->m_fScrollBPM;
+		const float fBPS =
 		  fBPM / 60.f / GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		float fYOffsetTimeSpacing = fSecondsUntilStep * fBPS;
+		const float fYOffsetTimeSpacing = fSecondsUntilStep * fBPS;
 		fYOffset += fYOffsetTimeSpacing * curr_options->m_fTimeSpacing;
 	}
 
@@ -386,8 +388,8 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	float fYAdjust = 0; // fill this in depending on PlayerOptions
 
 	if (fAccels[PlayerOptions::ACCEL_BOOST] != 0) {
-		float fEffectHeight = GetNoteFieldHeight();
-		float fNewYOffset =
+		const float fEffectHeight = GetNoteFieldHeight();
+		const float fNewYOffset =
 		  fYOffset * 1.5f / ((fYOffset + fEffectHeight / 1.2f) / fEffectHeight);
 		float fAccelYAdjust =
 		  fAccels[PlayerOptions::ACCEL_BOOST] * (fNewYOffset - fYOffset);
@@ -397,9 +399,9 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 		fYAdjust += fAccelYAdjust;
 	}
 	if (fAccels[PlayerOptions::ACCEL_BRAKE] != 0) {
-		float fEffectHeight = GetNoteFieldHeight();
-		float fScale = SCALE(fYOffset, 0.f, fEffectHeight, 0, 1.f);
-		float fNewYOffset = fYOffset * fScale;
+		const float fEffectHeight = GetNoteFieldHeight();
+		const float fScale = SCALE(fYOffset, 0.f, fEffectHeight, 0, 1.f);
+		const float fNewYOffset = fYOffset * fScale;
 		float fBrakeYAdjust =
 		  fAccels[PlayerOptions::ACCEL_BRAKE] * (fNewYOffset - fYOffset);
 		// TRICKY: Clamp this value the same way as BOOST so that in
@@ -415,7 +417,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 
 	// Factor in boomerang
 	if (fAccels[PlayerOptions::ACCEL_BOOMERANG] != 0) {
-		float fPeakAtYOffset =
+		const float fPeakAtYOffset =
 		  SCREEN_HEIGHT *
 		  BOOMERANG_PEAK_PERCENTAGE; // zero point of boomerang function
 		fPeakYOffsetOut =
@@ -433,7 +435,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 
 		for (int i = 0; i < 3; ++i)
 			seed = ((seed * 1664525u) + 1013904223u) & 0xFFFFFFFF;
-		float fRandom = seed / 4294967296.0f;
+		const float fRandom = seed / 4294967296.0f;
 
 		/* Random speed always increases speed: a random speed of 10 indicates
 		 * [1,11]. This keeps it consistent with other mods: 0 means no effect.
@@ -446,7 +448,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 		// TODO: Don't index by PlayerNumber.
 		PerPlayerData& data = g_EffectData;
 
-		float fExpandMultiplier = SCALE(
+		const float fExpandMultiplier = SCALE(
 		  RageFastCos(data.m_fExpandSeconds * EXPAND_MULTIPLIER_FREQUENCY),
 		  EXPAND_MULTIPLIER_SCALE_FROM_LOW,
 		  EXPAND_MULTIPLIER_SCALE_FROM_HIGH,
@@ -472,20 +474,22 @@ ArrowGetReverseShiftAndScale(int iCol,
 							 float& fScaleOut)
 {
 	// XXX: Hack: we need to scale the reverse shift by the zoom.
-	float fMiniPercent = curr_options->m_fEffects[PlayerOptions::EFFECT_MINI];
+	const float fMiniPercent =
+	  curr_options->m_fEffects[PlayerOptions::EFFECT_MINI];
 	float fZoom = 1 - fMiniPercent * 0.5f;
 
 	// don't divide by 0
 	if (fabsf(fZoom) < 0.01)
 		fZoom = 0.01f;
 
-	float fPercentReverse = curr_options->GetReversePercentForColumn(iCol);
+	const float fPercentReverse =
+	  curr_options->GetReversePercentForColumn(iCol);
 	fShiftOut = SCALE(fPercentReverse,
 					  0.f,
 					  1.f,
 					  -fYReverseOffsetPixels / fZoom / 2,
 					  fYReverseOffsetPixels / fZoom / 2);
-	float fPercentCentered =
+	const float fPercentCentered =
 	  curr_options->m_fScrolls[PlayerOptions::SCROLL_CENTERED];
 	fShiftOut = SCALE(fPercentCentered, 0.f, 1.f, fShiftOut, 0.0f);
 
@@ -834,7 +838,7 @@ ArrowEffects::GetAlpha(int iCol,
 					   float fFadeInPercentOfDrawFar)
 {
 	// Get the YPos without reverse (that is, factor in EFFECT_TIPSY).
-	float fYPosWithoutReverse =
+	const float fYPosWithoutReverse =
 	  ArrowEffects::GetYPos(iCol, fYOffset, fYReverseOffsetPixels, false);
 
 	float fPercentVisible = ArrowGetPercentVisible(fYPosWithoutReverse);
@@ -842,14 +846,14 @@ ArrowEffects::GetAlpha(int iCol,
 	if (fPercentFadeToFail != -1)
 		fPercentVisible = 1 - fPercentFadeToFail;
 
-	float fFullAlphaY =
+	const float fFullAlphaY =
 	  fDrawDistanceBeforeTargetsPixels * (1 - fFadeInPercentOfDrawFar);
 	if (fYPosWithoutReverse > fFullAlphaY) {
-		float f = SCALE(fYPosWithoutReverse,
-						fFullAlphaY,
-						fDrawDistanceBeforeTargetsPixels,
-						1.0f,
-						0.0f);
+		const float f = SCALE(fYPosWithoutReverse,
+							  fFullAlphaY,
+							  fDrawDistanceBeforeTargetsPixels,
+							  1.0f,
+							  0.0f);
 		return f;
 	}
 	return fPercentVisible;
@@ -864,7 +868,7 @@ ArrowEffects::GetGlow(int iCol,
 					  float fFadeInPercentOfDrawFar)
 {
 	// Get the YPos without reverse (that is, factor in EFFECT_TIPSY).
-	float fYPosWithoutReverse =
+	const float fYPosWithoutReverse =
 	  ArrowEffects::GetYPos(iCol, fYOffset, fYReverseOffsetPixels, false);
 
 	float fPercentVisible = ArrowGetPercentVisible(fYPosWithoutReverse);
@@ -876,16 +880,15 @@ ArrowEffects::GetGlow(int iCol,
 
 	if (!PREFSMAN->m_bNoGlow) {
 		return SCALE(fDistFromHalf, 0, 0.5f, 1.3f, 0);
-	} else {
-		return 0;
 	}
+	return 0;
 }
 
 float
 ArrowEffects::GetBrightness(const PlayerState* pPlayerState, float fNoteBeat)
 {
-	float fSongBeat = pPlayerState->m_Position.m_fSongBeatVisible;
-	float fBeatsUntilStep = fNoteBeat - fSongBeat;
+	const float fSongBeat = pPlayerState->m_Position.m_fSongBeatVisible;
+	const float fBeatsUntilStep = fNoteBeat - fSongBeat;
 
 	float fBrightness = SCALE(fBeatsUntilStep, 0, -1, 1.f, 0.f);
 	CLAMP(fBrightness, 0, 1);
@@ -959,15 +962,15 @@ ArrowEffects::GetFrameWidthScale(const PlayerState* pPlayerState,
 {
 	float fFrameWidthMultiplier = 1.0f;
 
-	float fPixelsPerSecond = FRAME_WIDTH_EFFECTS_PIXELS_PER_SECOND;
-	float fSecond = fYOffset / fPixelsPerSecond;
+	const float fPixelsPerSecond = FRAME_WIDTH_EFFECTS_PIXELS_PER_SECOND;
+	const float fSecond = fYOffset / fPixelsPerSecond;
 	float fWidthEffect = pPlayerState->m_EffectHistory.GetSample(fSecond);
 	if (fWidthEffect != 0 && FRAME_WIDTH_LOCK_EFFECTS_TO_OVERLAPPING) {
 		// Don't display effect data that happened before this hold overlapped
 		// the top.
-		float fFromEndOfOverlapped = fOverlappedTime - fSecond;
-		float fTrailingPixels = FRAME_WIDTH_LOCK_EFFECTS_TWEEN_PIXELS;
-		float fTrailingSeconds = fTrailingPixels / fPixelsPerSecond;
+		const float fFromEndOfOverlapped = fOverlappedTime - fSecond;
+		const float fTrailingPixels = FRAME_WIDTH_LOCK_EFFECTS_TWEEN_PIXELS;
+		const float fTrailingSeconds = fTrailingPixels / fPixelsPerSecond;
 		float fScaleEffect =
 		  SCALE(fFromEndOfOverlapped, 0.0f, fTrailingSeconds, 0.0f, 1.0f);
 		CLAMP(fScaleEffect, 0.0f, 1.0f);
@@ -1040,7 +1043,7 @@ int
 GetYPos(lua_State* L)
 {
 	PlayerState* ps = Luna<PlayerState>::check(L, 1);
-	float fYReverseOffsetPixels = YReverseOffset(L, 4);
+	const float fYReverseOffsetPixels = YReverseOffset(L, 4);
 	ArrowEffects::SetCurrentOptions(&ps->m_PlayerOptions.GetCurrent());
 	lua_pushnumber(
 	  L, ArrowEffects::GetYPos(IArg(2) - 1, FArg(3), fYReverseOffsetPixels));
@@ -1053,7 +1056,7 @@ GetYOffsetFromYPos(lua_State* L)
 {
 	PlayerState* ps = Luna<PlayerState>::check(L, 1);
 	ArrowEffects::SetCurrentOptions(&ps->m_PlayerOptions.GetCurrent());
-	float fYReverseOffsetPixels = YReverseOffset(L, 4);
+	const float fYReverseOffsetPixels = YReverseOffset(L, 4);
 	lua_pushnumber(L,
 				   ArrowEffects::GetYOffsetFromYPos(
 					 IArg(2) - 1, FArg(3), fYReverseOffsetPixels));
@@ -1135,7 +1138,7 @@ GetAlpha(lua_State* L)
 	ArrowEffects::SetCurrentOptions(&ps->m_PlayerOptions.GetCurrent());
 	// Provide reasonable default values.
 	float fPercentFadeToFail = -1;
-	float fYReverseOffsetPixels = YReverseOffset(L, 5);
+	const float fYReverseOffsetPixels = YReverseOffset(L, 5);
 	float fDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 	float fFadeInPercentOfDrawFar = FADE_BEFORE_TARGETS_PERCENT;
 	if (lua_gettop(L) >= 4 && !lua_isnil(L, 4)) {
@@ -1167,7 +1170,7 @@ GetGlow(lua_State* L)
 	ArrowEffects::SetCurrentOptions(&ps->m_PlayerOptions.GetCurrent());
 	// Provide reasonable default values.
 	float fPercentFadeToFail = -1; //
-	float fYReverseOffsetPixels = YReverseOffset(L, 5);
+	const float fYReverseOffsetPixels = YReverseOffset(L, 5);
 	float fDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 	float fFadeInPercentOfDrawFar = FADE_BEFORE_TARGETS_PERCENT;
 	if (lua_gettop(L) >= 4 && !lua_isnil(L, 4)) {

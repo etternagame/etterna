@@ -4,7 +4,6 @@
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/CodeSet.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
-#include "Etterna/Actor/Menus/OptionsCursor.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
@@ -25,9 +24,9 @@ class OptionListRow : public ActorFrame
   private:
 	OptionsList* m_pOptions = nullptr;
 
-	vector<BitmapText> m_Text;
+	std::vector<BitmapText> m_Text;
 	// underline for each ("self or child has selection")
-	vector<AutoActor> m_Underlines;
+	std::vector<AutoActor> m_Underlines;
 
 	bool m_bItemsInTwoRows = false;
 
@@ -54,7 +53,7 @@ class OptionsList : public ActorFrame
 	void Close();
 
 	bool Input(const InputEventPlus& input);
-	bool IsOpened() const { return m_asMenuStack.size() > 0; }
+	bool IsOpened() const { return !m_asMenuStack.empty(); }
 
 	bool Start(); // return true if the last menu was popped in response to this
 				  // press
@@ -88,18 +87,19 @@ class OptionsList : public ActorFrame
 	bool m_bStartIsDown;
 	bool m_bAcceptStartRelease;
 
-	vector<std::string> m_asLoadedRows;
+	std::vector<std::string> m_asLoadedRows;
 	map<std::string, OptionRowHandler*> m_Rows;
-	map<std::string, vector<bool>> m_bSelections;
+	map<std::string, std::vector<bool>> m_bSelections;
 	set<std::string> m_setDirectRows;
-	set<std::string> m_setTopMenus; // list of top-level menus, pointing to submenus
+	set<std::string>
+	  m_setTopMenus; // list of top-level menus, pointing to submenus
 
 	PlayerNumber m_pn;
 	AutoActor m_Cursor;
 	OptionListRow m_Row[2];
 	int m_iCurrentRow;
 
-	vector<std::string> m_asMenuStack;
+	std::vector<std::string> m_asMenuStack;
 	int m_iMenuStackSelection;
 };
 

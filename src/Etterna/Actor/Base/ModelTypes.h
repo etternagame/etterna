@@ -42,17 +42,17 @@ class AnimatedTexture
 
 	RageTexture* GetCurrentTexture();
 
-	int GetNumStates() const;
+	[[nodiscard]] int GetNumStates() const;
 	void SetState(int iNewState);
-	float GetAnimationLengthSeconds() const;
+	[[nodiscard]] float GetAnimationLengthSeconds() const;
 	void SetSecondsIntoAnimation(float fSeconds);
-	float GetSecondsIntoAnimation() const;
+	[[nodiscard]] float GetSecondsIntoAnimation() const;
 	RageVector2 GetTextureTranslate();
 
 	bool m_bSphereMapped;
 	BlendMode m_BlendMode;
 
-	bool NeedsNormals() const { return m_bSphereMapped; }
+	[[nodiscard]] bool NeedsNormals() const { return m_bSphereMapped; }
 
   private:
 	RageVector2 m_vTexOffset;
@@ -92,7 +92,7 @@ struct msMaterial
 	AnimatedTexture diffuse;
 	AnimatedTexture alpha;
 
-	bool NeedsNormals() const
+	[[nodiscard]] bool NeedsNormals() const
 	{
 		return diffuse.NeedsNormals() || alpha.NeedsNormals();
 	}
@@ -124,7 +124,7 @@ struct msBone
 
 struct msAnimation
 {
-	int FindBoneByName(const std::string& sName) const
+	[[nodiscard]] int FindBoneByName(const std::string& sName) const
 	{
 		for (unsigned i = 0; i < Bones.size(); i++)
 			if (Bones[i].sName == sName)

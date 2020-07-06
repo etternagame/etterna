@@ -60,9 +60,9 @@ BPMDisplay::Update(float fDeltaTime)
 {
 	BitmapText::Update(fDeltaTime);
 
-	if (!(bool)CYCLE)
+	if (!static_cast<bool>(CYCLE))
 		return;
-	if (m_BPMS.size() == 0)
+	if (m_BPMS.empty())
 		return; // no bpm
 
 	m_fPercentInState -= fDeltaTime / m_fCycleTime;
@@ -76,13 +76,14 @@ BPMDisplay::Update(float fDeltaTime)
 
 		if (m_fBPMTo == -1) {
 			m_fBPMFrom = -1;
-			if ((bool)SHOW_QMARKS)
-				SetText((RandomFloat(0, 1) > 0.90f)
-						  ? (std::string)QUESTIONMARKS_TEXT
-						  : ssprintf((std::string)BPM_FORMAT_STRING,
-									 RandomFloat(0, 999)));
+			if (static_cast<bool>(SHOW_QMARKS))
+				SetText(
+				  (RandomFloat(0, 1) > 0.90f)
+					? static_cast<std::string>(QUESTIONMARKS_TEXT)
+					: ssprintf(static_cast<std::string>(BPM_FORMAT_STRING),
+							   RandomFloat(0, 999)));
 			else
-				SetText(ssprintf((std::string)BPM_FORMAT_STRING,
+				SetText(ssprintf(static_cast<std::string>(BPM_FORMAT_STRING),
 								 RandomFloat(0, 999)));
 		} else if (m_fBPMFrom == -1) {
 			m_fBPMFrom = m_fBPMTo;
@@ -91,7 +92,8 @@ BPMDisplay::Update(float fDeltaTime)
 
 	if (m_fBPMTo != -1) {
 		const float fActualBPM = GetActiveBPM();
-		SetText(ssprintf((std::string)BPM_FORMAT_STRING, fActualBPM));
+		SetText(
+		  ssprintf(static_cast<std::string>(BPM_FORMAT_STRING), fActualBPM));
 	}
 }
 
@@ -110,7 +112,7 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 			AllIdentical = false;
 	}
 
-	if (!(bool)CYCLE) {
+	if (!static_cast<bool>(CYCLE)) {
 		int MinBPM = INT_MAX;
 		int MaxBPM = INT_MIN;
 		for (unsigned i = 0; i < BPMS.size(); ++i) {
@@ -248,7 +250,7 @@ SongBPMDisplay::SongBPMDisplay()
 void
 SongBPMDisplay::Update(float fDeltaTime)
 {
-	float fGameStateBPM = GAMESTATE->m_Position.m_fCurBPS * 60.0f;
+	const float fGameStateBPM = GAMESTATE->m_Position.m_fCurBPS * 60.0f;
 	if (m_fLastGameStateBPM != fGameStateBPM) {
 		m_fLastGameStateBPM = fGameStateBPM;
 		SetConstantBpm(fGameStateBPM);

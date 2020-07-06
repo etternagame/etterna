@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
 #include "Etterna/Models/Fonts/FontCharAliases.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"

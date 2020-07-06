@@ -58,7 +58,10 @@ class ActorScroller : public ActorFrame
 	{
 		m_fSecondsPauseBetweenItems = fSeconds;
 	}
-	float GetSecondsPauseBetweenItems() { return m_fSecondsPauseBetweenItems; }
+	float GetSecondsPauseBetweenItems() const
+	{
+		return m_fSecondsPauseBetweenItems;
+	}
 	void SetNumSubdivisions(int iNumSubdivisions)
 	{
 		m_exprTransformFunction.SetNumSubdivisions(iNumSubdivisions);

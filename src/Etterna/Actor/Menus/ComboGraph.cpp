@@ -14,10 +14,10 @@ ComboGraph::ComboGraph()
 {
 	DeleteChildrenWhenDone(true);
 
-	m_pNormalCombo = NULL;
-	m_pMaxCombo = NULL;
-	m_pComboNumber = NULL;
-	m_pBacking = NULL;
+	m_pNormalCombo = nullptr;
+	m_pMaxCombo = nullptr;
+	m_pComboNumber = nullptr;
+	m_pBacking = nullptr;
 }
 
 void
@@ -31,11 +31,11 @@ ComboGraph::Load(const std::string& sMetricsGroup)
 	this->SetWidth(BODY_WIDTH);
 	this->SetHeight(BODY_HEIGHT);
 
-	Actor* pActor = NULL;
+	Actor* pActor = nullptr;
 
 	m_pBacking =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "Backing"));
-	if (m_pBacking != NULL) {
+	if (m_pBacking != nullptr) {
 		m_pBacking->ZoomToWidth(BODY_WIDTH);
 		m_pBacking->ZoomToHeight(BODY_HEIGHT);
 		this->AddChild(m_pBacking);
@@ -43,7 +43,7 @@ ComboGraph::Load(const std::string& sMetricsGroup)
 
 	m_pNormalCombo =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "NormalCombo"));
-	if (m_pNormalCombo != NULL) {
+	if (m_pNormalCombo != nullptr) {
 		m_pNormalCombo->ZoomToWidth(BODY_WIDTH);
 		m_pNormalCombo->ZoomToHeight(BODY_HEIGHT);
 		this->AddChild(m_pNormalCombo);
@@ -51,7 +51,7 @@ ComboGraph::Load(const std::string& sMetricsGroup)
 
 	m_pMaxCombo =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "MaxCombo"));
-	if (m_pMaxCombo != NULL) {
+	if (m_pMaxCombo != nullptr) {
 		m_pMaxCombo->ZoomToWidth(BODY_WIDTH);
 		m_pMaxCombo->ZoomToHeight(BODY_HEIGHT);
 		this->AddChild(m_pMaxCombo);
@@ -59,9 +59,9 @@ ComboGraph::Load(const std::string& sMetricsGroup)
 
 	pActor =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "ComboNumber"));
-	if (pActor != NULL) {
+	if (pActor != nullptr) {
 		m_pComboNumber = dynamic_cast<BitmapText*>(pActor);
-		if (m_pComboNumber != NULL)
+		if (m_pComboNumber != nullptr)
 			this->AddChild(m_pComboNumber);
 		else
 			LuaHelpers::ReportScriptErrorFmt("ComboGraph: \"sMetricsGroup\" "

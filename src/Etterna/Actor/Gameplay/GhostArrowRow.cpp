@@ -47,8 +47,8 @@ GhostArrowRow::SetColumnRenderers(vector<NoteColumnRenderer>& renderers)
 
 GhostArrowRow::~GhostArrowRow()
 {
-	for (unsigned i = 0; i < m_Ghost.size(); ++i)
-		delete m_Ghost[i];
+	for (auto& i : m_Ghost)
+		delete i;
 }
 
 void

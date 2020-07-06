@@ -10,7 +10,7 @@ class ActorFrameTexture : public ActorFrame
 	ActorFrameTexture();
 	ActorFrameTexture(const ActorFrameTexture& cpy);
 	~ActorFrameTexture() override;
-	ActorFrameTexture* Copy() const override;
+	[[nodiscard]] ActorFrameTexture* Copy() const override;
 
 	/**
 	 * @brief Set the texture name.
@@ -24,8 +24,11 @@ class ActorFrameTexture : public ActorFrame
 	/**
 	 * @brief Retrieve the texture name.
 	 * @return the texture name. */
-	std::string GetTextureName() const { return m_sTextureName; }
-	RageTextureRenderTarget* GetTexture() { return m_pRenderTarget; }
+	[[nodiscard]] std::string GetTextureName() const { return m_sTextureName; }
+	[[nodiscard]] RageTextureRenderTarget* GetTexture() const
+	{
+		return m_pRenderTarget;
+	}
 
 	void EnableDepthBuffer(bool b) { m_bDepthBuffer = b; }
 	void EnableAlphaBuffer(bool b) { m_bAlphaBuffer = b; }
@@ -54,8 +57,8 @@ class ActorFrameTextureAutoDeleteChildren : public ActorFrameTexture
 {
   public:
 	ActorFrameTextureAutoDeleteChildren() { DeleteChildrenWhenDone(true); }
-	bool AutoLoadChildren() const override { return true; }
-	ActorFrameTextureAutoDeleteChildren* Copy() const override;
+	[[nodiscard]] bool AutoLoadChildren() const override { return true; }
+	[[nodiscard]] ActorFrameTextureAutoDeleteChildren* Copy() const override;
 };
 
 #endif

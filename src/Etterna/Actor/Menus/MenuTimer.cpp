@@ -107,7 +107,7 @@ MenuTimer::Update(float fDeltaTime)
 		fNewSecondsLeft < HURRY_UP_TRANSITION)
 		SOUND->PlayOnceFromAnnouncer("hurry up");
 
-	int iCrossed = (int)floorf(fOldSecondsLeft);
+	const int iCrossed = static_cast<int>(floorf(fOldSecondsLeft));
 	if (fOldSecondsLeft > iCrossed && fNewSecondsLeft < iCrossed) // crossed
 	{
 		if (iCrossed <= WARNING_START) {

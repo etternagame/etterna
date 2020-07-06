@@ -8,12 +8,12 @@
 #include "Etterna/Actor/Base/BitmapText.h"
 class Song;
 
-class TextBanner : public ActorFrame
+class TextBanner final : public ActorFrame
 {
   public:
 	TextBanner();
 	TextBanner(const TextBanner& cpy);
-	TextBanner* Copy() const override;
+	[[nodiscard]] TextBanner* Copy() const override;
 
 	void LoadFromNode(const XNode* pNode) override;
 	void Load(const std::string& sMetricsGroup); // load metrics

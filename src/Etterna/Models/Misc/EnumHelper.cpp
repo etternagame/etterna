@@ -152,7 +152,7 @@ Reverse(lua_State* L)
 
 static const luaL_Reg EnumLib[] = { { "GetName", GetName },
 									{ "Reverse", Reverse },
-									{ NULL, NULL } };
+									{ nullptr, NULL } };
 
 static void
 PushEnumMethodTable(lua_State* L)

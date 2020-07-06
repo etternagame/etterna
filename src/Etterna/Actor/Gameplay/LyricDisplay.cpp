@@ -27,8 +27,8 @@ LyricDisplay::LyricDisplay()
 void
 LyricDisplay::Init()
 {
-	for (int i = 0; i < 2; i++)
-		m_textLyrics[i].SetText("");
+	for (auto& m_textLyric : m_textLyrics)
+		m_textLyric.SetText("");
 	m_iCurLyricNumber = 0;
 
 	m_fLastSecond = -500;
@@ -61,7 +61,7 @@ LyricDisplay::Update(float fDeltaTime)
 		return;
 
 	const Song* pSong = GAMESTATE->m_pCurSong;
-	const float fStartTime =
+	const auto fStartTime =
 	  (pSong->m_LyricSegments[m_iCurLyricNumber].m_fStartTime) -
 	  IN_LENGTH.GetValue();
 
@@ -75,20 +75,19 @@ LyricDisplay::Update(float fDeltaTime)
 	else
 		fEndTime = pSong->GetLastSecond();
 
-	const float fDistance =
+	const auto fDistance =
 	  fEndTime - pSong->m_LyricSegments[m_iCurLyricNumber].m_fStartTime;
-	const float fTweenBufferTime = IN_LENGTH.GetValue() + OUT_LENGTH.GetValue();
+	const auto fTweenBufferTime = IN_LENGTH.GetValue() + OUT_LENGTH.GetValue();
 
 	/* If it's negative, two lyrics are so close together that there's no time
 	 * to tween properly. Lyrics should never be this brief, anyway, so just
 	 * skip it. */
-	float fShowLength = max(fDistance - fTweenBufferTime, 0.0f);
+	auto fShowLength = max(fDistance - fTweenBufferTime, 0.0f);
 
 	// Make lyrics show faster for faster song rates.
 	fShowLength /= GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
-	const LyricSegment& seg =
-	  GAMESTATE->m_pCurSong->m_LyricSegments[m_iCurLyricNumber];
+	const auto& seg = GAMESTATE->m_pCurSong->m_LyricSegments[m_iCurLyricNumber];
 
 	LuaThreadVariable var1("LyricText", seg.m_sLyric);
 	LuaThreadVariable var2("LyricDuration", LuaReference::Create(fShowLength));

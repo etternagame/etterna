@@ -1,4 +1,4 @@
-﻿/* RoomWheel - A wheel containing data about rooms. */
+/* RoomWheel - A wheel containing data about rooms. */
 
 #ifndef ROOM_WHEEL_H
 #define ROOM_WHEEL_H
@@ -15,11 +15,11 @@ class RoomData
 	void SetState(unsigned int state) { m_state = state; }
 	void SetFlags(unsigned int iFlags) { m_iFlags = iFlags; }
 	void SetHasPassword(bool pass) { hasPassword = pass; }
-	inline std::string Name() const { return m_name; }
-	inline std::string Description() const { return m_description; }
-	inline unsigned int State() const { return m_state; }
-	inline bool HasPassword() const { return hasPassword; }
-	inline unsigned int GetFlags() const { return m_iFlags; }
+	std::string Name() const { return m_name; }
+	std::string Description() const { return m_description; }
+	unsigned int State() const { return m_state; }
+	bool HasPassword() const { return hasPassword; }
+	unsigned int GetFlags() const { return m_iFlags; }
 	RoomData()
 	{
 		m_name = "";
@@ -47,7 +47,6 @@ struct RoomWheelItemData : public WheelItemBaseData
 					  const bool hasPass = false)
 	  : WheelItemBaseData(type, sTitle, color)
 	  , m_sDesc(sDesc)
-	  , m_iFlags(0)
 	  , hasPassword(hasPass){};
 
 	std::string m_sDesc;
@@ -111,7 +110,7 @@ class RoomWheel : public WheelBase
 	bool Select() override;
 	void Move(int n) override;
 
-	inline RoomWheelItemData* GetItem(unsigned int i)
+	RoomWheelItemData* GetItem(unsigned int i)
 	{
 		return dynamic_cast<RoomWheelItemData*>(
 		  WheelBase::GetItem(i + m_offset));

@@ -35,7 +35,7 @@ enum NotePart
 enum NoteColorType
 {
 	NoteColorType_Denominator, /**< Color by note type. */
-	NoteColorType_Progress,	/**< Color by progress. */
+	NoteColorType_Progress,	   /**< Color by progress. */
 	NUM_NoteColorType,
 	NoteColorType_Invalid
 };
@@ -54,8 +54,8 @@ struct NoteColorActor
 			  const std::string& sElement,
 			  PlayerNumber,
 			  GameController,
-			  std::string);
-	Actor* Get(std::string);
+			  const std::string&);
+	Actor* Get(const std::string&);
 
   private:
 	map<std::string, NoteResource*> g_p;
@@ -69,8 +69,8 @@ struct NoteColorSprite
 			  const std::string& sElement,
 			  PlayerNumber,
 			  GameController,
-			  std::string);
-	Sprite* Get(std::string);
+			  const std::string&);
+	Sprite* Get(const std::string&);
 
   private:
 	map<std::string, NoteResource*> g_p;
@@ -150,7 +150,8 @@ struct NCSplineHandler
 		m_beats_per_t = 1.0f;
 		m_subtract_song_beat_from_curr = true;
 	}
-	float BeatToTValue(float song_beat, float note_beat) const;
+
+	[[nodiscard]] float BeatToTValue(float song_beat, float note_beat) const;
 	void EvalForBeat(float song_beat, float note_beat, RageVector3& ret) const;
 	void EvalDerivForBeat(float song_beat,
 						  float note_beat,
@@ -182,13 +183,13 @@ struct NoteColumnRenderArgs
 							float beat,
 							RageVector3& sp_zoom,
 							RageVector3& ae_zoom) const;
-	void SetPRZForActor(Actor* actor,
-						const RageVector3& sp_pos,
-						const RageVector3& ae_pos,
-						const RageVector3& sp_rot,
-						const RageVector3& ae_rot,
-						const RageVector3& sp_zoom,
-						const RageVector3& ae_zoom) const;
+	static void SetPRZForActor(Actor* actor,
+							   const RageVector3& sp_pos,
+							   const RageVector3& ae_pos,
+							   const RageVector3& sp_rot,
+							   const RageVector3& ae_rot,
+							   const RageVector3& sp_zoom,
+							   const RageVector3& ae_zoom);
 	const NCSplineHandler* pos_handler;
 	const NCSplineHandler* rot_handler;
 	const NCSplineHandler* zoom_handler;
@@ -251,25 +252,27 @@ class NoteDisplay
 				  bool bIsAddition,
 				  float fPercentFadeToFail);
 
-	bool DrawHoldHeadForTapsOnSameRow() const;
-	bool DrawRollHeadForTapsOnSameRow() const;
+	[[nodiscard]] bool DrawHoldHeadForTapsOnSameRow() const;
+	[[nodiscard]] bool DrawRollHeadForTapsOnSameRow() const;
 
   private:
 	void SetActiveFrame(float fNoteBeat,
 						Actor& actorToSet,
 						float fAnimationLength,
-						bool bVivid);
-	Actor* GetTapActor(NoteColorActor& nca, NotePart part, float fNoteBeat);
+						bool bVivid) const;
+	Actor* GetTapActor(NoteColorActor& nca,
+					   NotePart part,
+					   float fNoteBeat) const;
 	Actor* GetHoldActor(NoteColorActor nca[NUM_HoldType][NUM_ActiveType],
 						NotePart part,
 						float fNoteBeat,
 						bool bIsRoll,
-						bool bIsBeingHeld);
+						bool bIsBeingHeld) const;
 	Sprite* GetHoldSprite(NoteColorSprite ncs[NUM_HoldType][NUM_ActiveType],
 						  NotePart part,
 						  float fNoteBeat,
 						  bool bIsRoll,
-						  bool bIsBeingHeld);
+						  bool bIsBeingHeld) const;
 
 	struct draw_hold_part_args
 	{
@@ -299,27 +302,27 @@ class NoteDisplay
 				   bool bIsAddition,
 				   float fPercentFadeToFail,
 				   float fColorScale,
-				   bool is_being_held);
+				   bool is_being_held) const;
 	void DrawHoldPart(vector<Sprite*>& vpSpr,
 					  const NoteFieldRenderArgs& field_args,
 					  const NoteColumnRenderArgs& column_args,
 					  const draw_hold_part_args& part_args,
 					  bool glow,
-					  int part_type);
+					  int part_type) const;
 	void DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 							  vector<Sprite*>& sprite_body,
 							  vector<Sprite*>& sprite_bottom,
 							  const NoteFieldRenderArgs& field_args,
 							  const NoteColumnRenderArgs& column_args,
 							  draw_hold_part_args& part_args,
-							  const float head_minus_top,
-							  const float tail_plus_bottom,
-							  const float y_head,
-							  const float y_tail,
-							  const float y_length,
-							  const float top_beat,
-							  const float bottom_beat,
-							  bool glow);
+							  float head_minus_top,
+							  float tail_plus_bottom,
+							  float y_head,
+							  float y_tail,
+							  float y_length,
+							  float top_beat,
+							  float bottom_beat,
+							  bool glow) const;
 	void DrawHoldBody(const TapNote& tn,
 					  const NoteFieldRenderArgs& field_args,
 					  const NoteColumnRenderArgs& column_args,
@@ -393,11 +396,11 @@ struct NoteColumnRenderer : public Actor
 	{
 		if (NCR_Tweens.empty()) {
 			return NCR_current;
-		} else {
-			return NCR_Tweens.back();
 		}
+		return NCR_Tweens.back();
 	}
-	const NCR_TweenState& NCR_DestTweenState() const
+
+	[[nodiscard]] const NCR_TweenState& NCR_DestTweenState() const
 	{
 		return const_cast<NoteColumnRenderer*>(this)->NCR_DestTweenState();
 	}

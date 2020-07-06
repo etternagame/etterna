@@ -1,4 +1,4 @@
-﻿#ifndef QUAD_H
+#ifndef QUAD_H
 #define QUAD_H
 
 #include "Sprite.h"
@@ -15,7 +15,7 @@ class Quad : public Sprite
 	 */
 	void LoadFromNode(const XNode* pNode) override;
 	/** @brief Copy the quad. */
-	Quad* Copy() const override;
+	[[nodiscard]] Quad* Copy() const override;
 };
 
 #endif

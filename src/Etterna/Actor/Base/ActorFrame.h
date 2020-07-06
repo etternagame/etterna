@@ -14,7 +14,7 @@ class ActorFrame : public Actor
 	/** @brief Set up the initial state. */
 	void InitState() override;
 	void LoadFromNode(const XNode* pNode) override;
-	ActorFrame* Copy() const override;
+	[[nodiscard]] ActorFrame* Copy() const override;
 
 	/**
 	 * @brief Add a new child to the ActorFrame.
@@ -26,8 +26,13 @@ class ActorFrame : public Actor
 	virtual void RemoveChild(Actor* pActor);
 	void TransferChildren(ActorFrame* pTo);
 	Actor* GetChild(const std::string& sName);
-	vector<Actor*> GetChildren() { return m_SubActors; }
-	int GetNumChildren() const { return m_SubActors.size(); }
+
+	[[nodiscard]] std::vector<Actor*> GetChildren() const
+	{
+		return m_SubActors;
+	}
+
+	[[nodiscard]] int GetNumChildren() const { return m_SubActors.size(); }
 
 	/** @brief Remove all of the children from the frame. */
 	void RemoveAllChildren();
@@ -48,13 +53,18 @@ class ActorFrame : public Actor
 	{
 		m_DrawFunction = DrawFunction;
 	}
+
 	void SetUpdateFunction(const LuaReference& UpdateFunction)
 	{
 		m_UpdateFunction = UpdateFunction;
 	}
 
-	LuaReference GetDrawFunction() const { return m_DrawFunction; }
-	virtual bool AutoLoadChildren() const
+	[[nodiscard]] LuaReference GetDrawFunction() const
+	{
+		return m_DrawFunction;
+	}
+
+	[[nodiscard]] virtual bool AutoLoadChildren() const
 	{
 		return false;
 	} // derived classes override to automatically LoadChildrenFromNode
@@ -62,6 +72,7 @@ class ActorFrame : public Actor
 	{
 		m_bDeleteChildren = bDelete;
 	}
+
 	void DeleteAllChildren();
 
 	// Commands
@@ -86,8 +97,9 @@ class ActorFrame : public Actor
 	} // convenience
 	void RunCommandsOnLeaves(
 	  const LuaReference& cmds,
-	  const LuaReference* pParamTable = nullptr) override; /* but not on self */
-	bool IsFirstUpdate() const;
+	  const LuaReference* pParamTable = nullptr) override;
+	/* but not on self */
+	[[nodiscard]] bool IsFirstUpdate() const;
 	void UpdateInternal(float fDeltaTime) override;
 	void BeginDraw() override;
 	void DrawPrimitives() override;
@@ -105,14 +117,17 @@ class ActorFrame : public Actor
 			m_fUpdateFInterval = ms;
 		}
 	}
+
 	void SetUpdateRate(float rate) override
 	{
 		if (rate > 0.0f) {
 			m_fUpdateRate = rate;
 		}
 	}
+
 	float GetUpdateRate() override { return m_fUpdateRate; }
 	void SetFOV(float fFOV) { m_fFOV = fFOV; }
+
 	void SetVanishPoint(float fX, float fY)
 	{
 		m_fVanishX = fX;
@@ -123,6 +138,7 @@ class ActorFrame : public Actor
 	{
 		m_bOverrideLighting = bCustomLighting;
 	}
+
 	void SetAmbientLightColor(const RageColor& c) { m_ambientColor = c; }
 	void SetDiffuseLightColor(const RageColor& c) { m_diffuseColor = c; }
 	void SetSpecularLightColor(const RageColor& c) { m_specularColor = c; }
@@ -132,11 +148,12 @@ class ActorFrame : public Actor
 
 	/** @brief Amount of time until all tweens (and all children's tweens) have
 	 * stopped: */
-	float GetTweenTimeLeft() const override;
+	[[nodiscard]] float GetTweenTimeLeft() const override;
 
 	void HandleMessage(const Message& msg) override;
 	void RunCommands(const LuaReference& cmds,
 					 const LuaReference* pParamTable = nullptr) override;
+
 	void RunCommands(const apActorCommands& cmds,
 					 const LuaReference* pParamTable = nullptr)
 	{
@@ -147,7 +164,7 @@ class ActorFrame : public Actor
 	void LoadChildrenFromNode(const XNode* pNode);
 
 	/** @brief The children Actors used by the ActorFrame. */
-	vector<Actor*> m_SubActors;
+	std::vector<Actor*> m_SubActors;
 	bool m_bPropagateCommands;
 	bool m_bDeleteChildren;
 	bool m_bDrawByZPosition;
@@ -174,13 +191,14 @@ class ActorFrame : public Actor
 	RageColor m_specularColor;
 	RageVector3 m_lightDirection;
 };
+
 /** @brief an ActorFrame that handles deleting children Actors automatically. */
 class ActorFrameAutoDeleteChildren : public ActorFrame
 {
   public:
 	ActorFrameAutoDeleteChildren() { DeleteChildrenWhenDone(true); }
-	bool AutoLoadChildren() const override { return true; }
-	ActorFrameAutoDeleteChildren* Copy() const override;
+	[[nodiscard]] bool AutoLoadChildren() const override { return true; }
+	[[nodiscard]] ActorFrameAutoDeleteChildren* Copy() const override;
 };
 
 #endif

@@ -68,8 +68,8 @@ class PlayerOptions
 	};
 	void Init();
 	void Approach(const PlayerOptions& other, float fDeltaSeconds);
-	std::string GetString(bool bForceNoteSkin = false) const;
-	std::string GetSavedPrefsString()
+	[[nodiscard]] std::string GetString(bool bForceNoteSkin = false) const;
+	[[nodiscard]] std::string GetSavedPrefsString()
 	  const; // only the basic options that players would want for every song
 	enum ResetPrefsType
 	{
@@ -77,22 +77,23 @@ class PlayerOptions
 	};
 	void ResetPrefs(ResetPrefsType type);
 	void ResetSavedPrefs() { ResetPrefs(saved_prefs); };
-	void GetMods(vector<std::string>& AddTo, bool bForceNoteSkin = false) const;
-	void GetTurnMods(vector<std::string>& AddTo);
-	void ResetModsToStringVector(vector<std::string> mods);
+	void GetMods(std::vector<std::string>& AddTo,
+				 bool bForceNoteSkin = false) const;
+	void GetTurnMods(std::vector<std::string>& AddTo);
+	void ResetModsToStringVector(std::vector<std::string> mods);
 	void ResetToggleableMods();
-	void GetLocalizedMods(vector<std::string>& AddTo) const;
+	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
 	void FromString(const std::string& sMultipleMods);
 	bool FromOneModString(const std::string& sOneMod,
-						  std::string& sErrorDetailOut); // On error, return false
-													 // and optionally set
-													 // sErrorDetailOut
+						  std::string& sErrorDetailOut); // On error, return
+														 // false and optionally
+														 // set sErrorDetailOut
 	void ChooseRandomModifiers();
 	// Returns true for modifiers that should invalidate a score or otherwise
 	// make it impossible to calculate Replay info
-	bool ContainsTransformOrTurn() const;
+	[[nodiscard]] bool ContainsTransformOrTurn() const;
 
-	vector<std::string> GetInvalidatingModifiers() const;
+	[[nodiscard]] std::vector<std::string> GetInvalidatingModifiers() const;
 
 	// Lua
 	void PushSelf(lua_State* L);
@@ -161,7 +162,7 @@ class PlayerOptions
 		TURN_RIGHT,		/**< The arrows are turned 90 degress to the right. */
 		TURN_SHUFFLE, /**< Some of the arrow columns are changed throughout the
 						 whole song. */
-		TURN_SOFT_SHUFFLE,  /**< Only shuffle arrow columns on an axis of
+		TURN_SOFT_SHUFFLE,	/**< Only shuffle arrow columns on an axis of
 							   symmetry. */
 		TURN_SUPER_SHUFFLE, /**< Every arrow is placed on a random column. */
 		NUM_TURNS
@@ -206,7 +207,7 @@ class PlayerOptions
 		NUM_SCROLLS
 	};
 
-	float GetReversePercentForColumn(
+	[[nodiscard]] float GetReversePercentForColumn(
 	  int iCol) const; // accounts for all Directions
 
 	PlayerNumber m_pn{ PLAYER_1 }; // Needed for fetching the style.

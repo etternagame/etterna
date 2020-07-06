@@ -129,7 +129,7 @@ MusicWheel::BeginScreen()
 	{
 		const auto& from = getWheelItemsData(SORT_MODE_MENU);
 		for (auto* i : from) {
-			ASSERT(&*i->m_pAction != NULL);
+			ASSERT(&*i->m_pAction != nullptr);
 			if (i->m_pAction->DescribesCurrentModeForAllPlayers()) {
 				m_sLastModeMenuItem = i->m_pAction->m_sName;
 				break;

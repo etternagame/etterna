@@ -5,6 +5,8 @@
 #include "Etterna/Models/Misc/GameInput.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
 
+#include <utility>
+
 struct Game;
 struct NoteSkinData;
 
@@ -16,11 +18,11 @@ class NoteSkinManager
 	~NoteSkinManager();
 
 	void RefreshNoteSkinData(const Game* game);
-	void GetNoteSkinNames(const Game* game, vector<std::string>& AddTo);
-	void GetNoteSkinNames(
-	  vector<std::string>& AddTo); // looks up current const Game* in GAMESTATE
+	void GetNoteSkinNames(const Game* game, std::vector<std::string>& AddTo);
+	void GetNoteSkinNames(std::vector<std::string>&
+							AddTo); // looks up current const Game* in GAMESTATE
 	bool NoteSkinNameInList(const std::string& name,
-							const vector<std::string>& name_list);
+							const std::vector<std::string>& name_list);
 	bool DoesNoteSkinExist(
 	  const std::string&
 		sNoteSkin); // looks up current const Game* in GAMESTATE
@@ -34,10 +36,10 @@ class NoteSkinManager
 	{
 		m_sCurrentNoteSkin = sNoteSkin;
 	}
-	const std::string& GetCurrentNoteSkin() { return m_sCurrentNoteSkin; }
+	const std::string& GetCurrentNoteSkin() const { return m_sCurrentNoteSkin; }
 
-	void SetLastSeenColor(std::string Color) { LastColor = Color; }
-	const std::string& GetLastSeenColor() { return LastColor; }
+	void SetLastSeenColor(std::string Color) { LastColor = std::move(Color); }
+	const std::string& GetLastSeenColor() const { return LastColor; }
 
 	void SetPlayerNumber(PlayerNumber pn) { m_PlayerNumber = pn; }
 	void SetGameController(GameController gc) { m_GameController = gc; }
@@ -72,7 +74,7 @@ class NoteSkinManager
 	std::string GetPathFromDirAndFile(const std::string& sDir,
 									  const std::string& sFileName);
 	void GetAllNoteSkinNamesForGame(const Game* pGame,
-									vector<std::string>& AddTo);
+									std::vector<std::string>& AddTo);
 
 	bool LoadNoteSkinData(const std::string& sNoteSkinName,
 						  NoteSkinData& data_out);
@@ -93,9 +95,8 @@ extern NoteSkinManager*
 class LockNoteSkin
 {
   public:
-	LockNoteSkin(std::string sNoteSkin, PlayerNumber pn)
+	LockNoteSkin(const std::string& sNoteSkin, PlayerNumber pn)
 	{
-		ASSERT(NOTESKIN->GetCurrentNoteSkin().empty());
 		NOTESKIN->SetCurrentNoteSkin(sNoteSkin);
 	}
 	~LockNoteSkin() { NOTESKIN->SetCurrentNoteSkin(""); }

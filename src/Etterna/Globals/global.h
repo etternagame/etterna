@@ -9,6 +9,8 @@
 #pragma warning(disable : 4251)
 #pragma warning(disable : 4275)
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4244)
 /** @brief This macro is for INT8_MIN, etc. */
 #define __STDC_LIMIT_MACROS
 /** @brief This macro is for INT64_C, etc. */

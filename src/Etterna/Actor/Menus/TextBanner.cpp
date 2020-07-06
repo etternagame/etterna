@@ -80,7 +80,7 @@ TextBanner::SetFromString(const string& sDisplayTitle,
 void
 TextBanner::SetFromSong(const Song* pSong)
 {
-	if (pSong == NULL) {
+	if (pSong == nullptr) {
 		SetFromString("", "", "", "", "", "");
 		return;
 	}

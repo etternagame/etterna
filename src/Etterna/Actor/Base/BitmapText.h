@@ -17,7 +17,7 @@ class BitmapText : public Actor
 	~BitmapText() override;
 
 	void LoadFromNode(const XNode* pNode) override;
-	BitmapText* Copy() const override;
+	[[nodiscard]] BitmapText* Copy() const override;
 
 	struct BMT_TweenState
 	{
@@ -37,7 +37,10 @@ class BitmapText : public Actor
 			return !operator==(other);
 		}
 		void SetStrokeColor(RageColor const& c) { m_stroke_color = c; }
-		RageColor const& GetStrokeColor() { return m_stroke_color; }
+		[[nodiscard]] RageColor const& GetStrokeColor() const
+		{
+			return m_stroke_color;
+		}
 
 	  private:
 		RageColor m_stroke_color;
@@ -51,7 +54,8 @@ class BitmapText : public Actor
 
 		return BMT_Tweens.back();
 	}
-	BMT_TweenState const& BMT_DestTweenState() const
+
+	[[nodiscard]] BMT_TweenState const& BMT_DestTweenState() const
 	{
 		return const_cast<BitmapText*>(this)->BMT_DestTweenState();
 	}
@@ -83,7 +87,7 @@ class BitmapText : public Actor
 	void CropLineToWidth(size_t l, int width);
 	void CropToWidth(int width);
 
-	bool EarlyAbortDraw() const override;
+	[[nodiscard]] bool EarlyAbortDraw() const override;
 	void DrawPrimitives() override;
 
 	void SetUppercase(bool b);
@@ -92,7 +96,7 @@ class BitmapText : public Actor
 	void SetDistortion(float f);
 	void UnSetDistortion();
 	void set_mult_attrs_with_diffuse(bool m);
-	bool get_mult_attrs_with_diffuse();
+	[[nodiscard]] bool get_mult_attrs_with_diffuse() const;
 
 	void SetHorizAlign(float f) override;
 
@@ -119,12 +123,17 @@ class BitmapText : public Actor
 	{
 		wTextLines = m_wTextLines;
 	}
-	const vector<wstring>& GetLines() const { return m_wTextLines; }
 
-	std::string GetText() const { return m_sText; }
+	[[nodiscard]] const vector<wstring>& GetLines() const
+	{
+		return m_wTextLines;
+	}
+
+	[[nodiscard]] std::string GetText() const { return m_sText; }
 	// Return true if the string 's' will use an alternate string, if available.
-	bool StringWillUseAlternate(const std::string& sText,
-								const std::string& sAlternateText) const;
+	[[nodiscard]] bool StringWillUseAlternate(
+	  const std::string& sText,
+	  const std::string& sAlternateText) const;
 
 	struct Attribute
 	{
@@ -139,7 +148,7 @@ class BitmapText : public Actor
 		void FromStack(lua_State* L, int iPos);
 	};
 
-	Attribute GetDefaultAttribute() const;
+	[[nodiscard]] Attribute GetDefaultAttribute() const;
 	void AddAttribute(size_t iPos, const Attribute& attr);
 	void ClearAttributes();
 
@@ -188,7 +197,7 @@ class BitmapText : public Actor
 class ColorBitmapText : public BitmapText
 {
   public:
-	ColorBitmapText* Copy() const override;
+	[[nodiscard]] ColorBitmapText* Copy() const override;
 	void SetText(const std::string& sText,
 				 const std::string& sAlternateText = "",
 				 int iWrapWidthPixels = -1) override;

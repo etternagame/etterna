@@ -6,6 +6,7 @@
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+
 #include <chrono>
 
 class LifeMeter;
@@ -102,10 +103,10 @@ class Player : public ActorFrame
 	void DoTapScoreNone();
 	void AddHoldToReplayData(int col,
 							 const TapNote* pTN,
-							 int RowOfOverlappingNoteOrRow);
+							 int RowOfOverlappingNoteOrRow) const;
 	void AddNoteToReplayData(int col,
 							 const TapNote* pTN,
-							 int RowOfOverlappingNoteOrRow);
+							 int RowOfOverlappingNoteOrRow) const;
 
 	virtual void Step(int col,
 					  int row,
@@ -115,7 +116,7 @@ class Player : public ActorFrame
 					  float padStickSeconds = 0.0f);
 
 	void FadeToFail();
-	void CacheAllUsedNoteSkins();
+	void CacheAllUsedNoteSkins() const;
 	TapNoteScore GetLastTapNoteScore() const { return m_LastTapNoteScore; }
 	void SetPaused(bool bPaused) { m_bPaused = bPaused; }
 
@@ -125,7 +126,7 @@ class Player : public ActorFrame
 											 float timingScale = 1.f);
 	static float GetTimingWindowScale();
 	const NoteData& GetNoteData() const { return m_NoteData; }
-	bool HasVisibleParts() const { return m_pNoteField != NULL; }
+	bool HasVisibleParts() const { return m_pNoteField != nullptr; }
 
 	void SetActorWithJudgmentPosition(Actor* pActor)
 	{
@@ -145,9 +146,9 @@ class Player : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	PlayerState* GetPlayerState() { return this->m_pPlayerState; }
-	void ChangeLife(float delta);
-	void SetLife(float value);
+	PlayerState* GetPlayerState() const { return this->m_pPlayerState; }
+	void ChangeLife(float delta) const;
+	void SetLife(float value) const;
 	bool m_inside_lua_set_life;
 
 	// Mina perma-temp stuff
@@ -161,7 +162,7 @@ class Player : public ActorFrame
   protected:
 	static bool NeedsTapJudging(const TapNote& tn);
 	static bool NeedsHoldJudging(const TapNote& tn);
-	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
+	virtual void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
 	void UpdateJudgedRows(float fDeltaTime);
 	// Updates visible parts: Hold Judgments, NoteField Zoom, Combo based Actors
 	void UpdateVisibleParts();
@@ -172,8 +173,9 @@ class Player : public ActorFrame
 	// For Rolls, just tells Autoplay to restep them
 	// For Holds, tells their life to decay
 	// ... oh man this is redundant
-	void UpdateHoldsAndRolls(float fDeltaTime,
-							 const std::chrono::steady_clock::time_point& now);
+	virtual void UpdateHoldsAndRolls(
+	  float fDeltaTime,
+	  const std::chrono::steady_clock::time_point& now);
 	// Updates Crossed Rows for NoteData
 	// What this involves is:
 	//		Hold Life/Tapping Heads/Checkpoints
@@ -182,15 +184,16 @@ class Player : public ActorFrame
 	//		Keysounds
 	void UpdateCrossedRows(const std::chrono::steady_clock::time_point& now);
 	void FlashGhostRow(int iRow);
-	void HandleTapRowScore(unsigned row);
-	void HandleHoldScore(const TapNote& tn);
+	virtual void HandleTapRowScore(unsigned row);
+	void HandleHoldScore(const TapNote& tn) const;
 	void HandleHoldCheckpoint(int iRow,
 							  int iNumHoldsHeldThisRow,
 							  int iNumHoldsMissedThisRow,
 							  const vector<int>& viColsWithHold);
 	void DrawTapJudgments();
 	void DrawHoldJudgments();
-	void SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo);
+	void SendComboMessages(unsigned int iOldCombo,
+						   unsigned int iOldMissCombo) const;
 	void PlayKeysound(const TapNote& tn, TapNoteScore score);
 
 	void SetMineJudgment(TapNoteScore tns, int iTrack);
@@ -210,11 +213,11 @@ class Player : public ActorFrame
 	void IncrementCombo() { IncrementComboOrMissCombo(true); };
 	void IncrementMissCombo() { IncrementComboOrMissCombo(false); };
 
-	void ChangeLife(TapNoteScore tns);
-	void ChangeLife(HoldNoteScore hns, TapNoteScore tns);
-	void ChangeLifeRecord();
+	void ChangeLife(TapNoteScore tns) const;
+	void ChangeLife(HoldNoteScore hns, TapNoteScore tns) const;
+	void ChangeLifeRecord() const;
 
-	void ChangeWifeRecord();
+	void ChangeWifeRecord() const;
 
 	int GetClosestNoteDirectional(int col,
 								  int iStartRow,
@@ -236,9 +239,9 @@ class Player : public ActorFrame
 							  int iMaxRowsBehind,
 							  bool bAllowGraded) const;
 
-	inline void HideNote(int col, int row)
+	void HideNote(int col, int row) const
 	{
-		NoteData::iterator iter = m_NoteData.FindTapNote(col, row);
+		const auto iter = m_NoteData.FindTapNote(col, row);
 		if (iter != m_NoteData.end(col))
 			iter->second.result.bHidden = true;
 	}
@@ -308,7 +311,7 @@ class JudgedRows
 
 	void Resize(size_t iMin)
 	{
-		size_t iNewSize = max(2 * m_vRows.size(), iMin);
+		const auto iNewSize = max(2 * m_vRows.size(), iMin);
 		vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
 		vNewRows.reserve(iNewSize);
 		vNewRows.insert(

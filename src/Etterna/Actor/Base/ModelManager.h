@@ -15,7 +15,7 @@ struct ModelManagerPrefs
 		m_bDelayedUnload = bDelayedUnload;
 	}
 
-	bool operator!=(const ModelManagerPrefs& rhs)
+	bool operator!=(const ModelManagerPrefs& rhs) const
 	{
 		return m_bDelayedUnload != rhs.m_bDelayedUnload;
 	}
@@ -40,7 +40,7 @@ class ModelManager
 	 * @param prefs the new preferences to set up.
 	 * @return true if the display needs to be reset, false otherwise. */
 	bool SetPrefs(const ModelManagerPrefs& prefs);
-	const ModelManagerPrefs& GetPrefs() { return m_Prefs; }
+	[[nodiscard]] const ModelManagerPrefs& GetPrefs() const { return m_Prefs; }
 
   protected:
 	std::map<std::string, RageModelGeometry*> m_mapFileToGeometry;

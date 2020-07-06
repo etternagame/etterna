@@ -122,7 +122,7 @@ class PrefsManager
 		std::string m_sTheme;
 		std::string m_sDefaultModifiers;
 	};
-	map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
+	std::map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
 
   public:
 	Preference<bool> m_bWindowed;
@@ -204,7 +204,7 @@ class PrefsManager
 	Preference<float> m_fPadStickSeconds;
 
 	// Useful for non 4:3 displays and resolutions < 640x480 where texels don't
-	// map directly to pixels.
+	// std::map directly to pixels.
 	Preference<bool> m_bForceMipMaps;
 	Preference<bool> m_bTrilinearFiltering; // has no effect without mipmaps on
 	Preference<bool> m_bAnisotropicFiltering; // has no effect without mipmaps

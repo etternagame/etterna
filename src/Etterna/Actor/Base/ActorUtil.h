@@ -57,10 +57,10 @@ FileTypeToString(FileType ft);
 namespace ActorUtil {
 void
 InitFileTypeLists();
-vector<std::string> const&
+std::vector<std::string> const&
 GetTypeExtensionList(FileType ft);
 void
-AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to);
+AddTypeExtensionsToList(FileType ft, std::vector<std::string>& add_to);
 
 // Every screen should register its class at program initialization.
 void
@@ -222,7 +222,7 @@ ResolvePath(std::string& sPath,
 			bool optional = false);
 
 void
-SortByZPosition(vector<Actor*>& vActors);
+SortByZPosition(std::vector<Actor*>& vActors);
 
 FileType
 GetFileType(const std::string& sPath);
