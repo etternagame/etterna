@@ -1111,6 +1111,7 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
 end
 
 local skillsetColors = {
+    color("1,0,1"),     -- overall
     color("#7d6b91"),   -- stream
     color("#8481db"),   -- jumpstream
     color("#995fa3"),   -- handstream
@@ -1118,7 +1119,6 @@ local skillsetColors = {
     color("#6c969d"),   -- jack
     color("#a5f8d3"),   -- chordjack
     color("#b0cec2"),    -- tech
-    color("#b0cec2"),    -- tech 2 (used for something else dont worry)
 }
 
 local miscColors = {
@@ -1174,7 +1174,7 @@ do -- scoping
     for i, mod in pairs(CalcDiffValue) do
         local modname = shortenEnum("CalcDiffValue", mod)
         for h = 1,2 do
-                o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - (h % 2)], h)
+            o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - (h % 2)], h)
         end
     end
     i = 1
