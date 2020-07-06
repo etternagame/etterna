@@ -199,8 +199,8 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	FileReading::read_16_le(*m_pZip,
 							sError); /* skip version needed to extract */
 	int iGeneralPurpose = FileReading::read_16_le(*m_pZip, sError);
-	info.m_iCompressionMethod =
-	  (ZipCompressionMethod)FileReading::read_16_le(*m_pZip, sError);
+	info.m_iCompressionMethod = static_cast<ZipCompressionMethod>(
+	  FileReading::read_16_le(*m_pZip, sError));
 	FileReading::read_16_le(*m_pZip, sError); /* skip last mod file time */
 	FileReading::read_16_le(*m_pZip, sError); /* skip last mod file date */
 	info.m_iCRC32 = FileReading::read_32_le(*m_pZip, sError);

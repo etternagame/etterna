@@ -206,7 +206,8 @@ ReadlinkRecursive(std::string sPath)
 	do {
 		sPath = dereferenced;
 		char derefPath[512];
-		ssize_t linkSize = readlink(sPath.c_str(), derefPath, sizeof(derefPath));
+		ssize_t linkSize =
+		  readlink(sPath.c_str(), derefPath, sizeof(derefPath));
 		if (linkSize != -1 && linkSize != sizeof(derefPath)) {
 			dereferenced = std::string(derefPath, linkSize);
 			if (derefPath[0] != '/') {
@@ -1174,7 +1175,7 @@ GetDirListingRecursive(const std::string& sDir,
 	GetDirListing(sDir + sMatch, vsFiles, false, true);
 	vector<std::string> vsDirs;
 	GetDirListing(sDir + "*", vsDirs, true, true);
-	for (int i = 0; i < (int)vsDirs.size(); i++) {
+	for (int i = 0; i < static_cast<int>(vsDirs.size()); i++) {
 		GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, false, true);
 		GetDirListing(vsDirs[i] + "/*", vsDirs, true, true);
 		vsDirs.erase(vsDirs.begin() + i);
@@ -1197,7 +1198,7 @@ GetDirListingRecursive(RageFileDriver* prfd,
 	prfd->GetDirListing(sDir + sMatch, vsFiles, false, true);
 	vector<std::string> vsDirs;
 	prfd->GetDirListing(sDir + "*", vsDirs, true, true);
-	for (int i = 0; i < (int)vsDirs.size(); i++) {
+	for (int i = 0; i < static_cast<int>(vsDirs.size()); i++) {
 		prfd->GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, false, true);
 		prfd->GetDirListing(vsDirs[i] + "/*", vsDirs, true, true);
 		vsDirs.erase(vsDirs.begin() + i);

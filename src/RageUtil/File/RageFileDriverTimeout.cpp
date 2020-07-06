@@ -865,7 +865,7 @@ RageFileDriverTimeout::RageFileDriverTimeout(const std::string& sPath)
 {
 	m_pWorker = new ThreadedFileWorker(sPath);
 
-	((TimedFilenameDB*)FDB)->SetWorker(m_pWorker);
+	static_cast<TimedFilenameDB*>(FDB)->SetWorker(m_pWorker);
 }
 
 RageFileBasic*
