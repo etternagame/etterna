@@ -92,7 +92,7 @@ local function laneHighlight()
 				self:xy((-(arrowWidth * (cols / 2)) + ((i - 1) * arrowWidth) + (arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
 				-- mimic the behavior of the moving function for spacing to set the last bit of x position
 				-- this moves all columns except "the middle" by however much the spacing requires
-				self:addx((i - hCols - 1) * MovableValues.NotefieldSpacing)
+				self:addx((i - hCols - 1) * (MovableValues.NotefieldSpacing and MovableValues.NotefieldSpacing or 0))
 				self:fadebottom(0.6):fadetop(0.6)
 				self:visible(false)
 			end,
@@ -151,9 +151,9 @@ t[#t + 1] =
 	Def.Quad {
 	Name = "SinglePlayerFilter",
 	InitCommand = function(self)
-		self:zoomto(filterWidth * noteFieldWidth + MovableValues.NotefieldSpacing * evenCols, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth + (MovableValues.NotefieldSpacing and MovableValues.NotefieldSpacing or 0) * evenCols, SCREEN_HEIGHT * 2)
 		-- offset the filter by this much for even column counts
-		self:addx(cols % 2 == 0 and -MovableValues.NotefieldSpacing / 2 or 0)
+		self:addx(cols % 2 == 0 and -(MovableValues.NotefieldSpacing and MovableValues.NotefieldSpacing or 0) / 2 or 0)
 		self:diffusecolor(filterColor)
 		self:diffusealpha(filterAlphas)
 		filter = self

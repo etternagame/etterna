@@ -154,6 +154,7 @@ local function arbitraryErrorBarValue(value)
 end
 
 local function spaceNotefieldCols(inc)
+	if inc == nil then inc = 0 end
 	local hCols = math.floor(#noteColumns/2)
 	for i, col in ipairs(noteColumns) do
 	    col:addx((i-hCols-1) * inc)
