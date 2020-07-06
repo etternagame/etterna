@@ -4,6 +4,7 @@
 #include "NoteDataStructures.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "Etterna/Models/Misc/TimingData.h"
+
 #include <iterator>
 #include <map>
 #include <set>
@@ -98,20 +99,20 @@ class NoteData
 	class _all_tracks_iterator
 	{
 		ND* m_pNoteData;
-		vector<iter> m_vBeginIters;
+		std::vector<iter> m_vBeginIters;
 
 		/* There isn't a "past the beginning" iterator so this is hard to make a
 		 * true bidirectional iterator. Use the "past the end" iterator in place
 		 * of the "past the beginning" iterator when in reverse. */
-		vector<iter> m_vCurrentIters;
+		std::vector<iter> m_vCurrentIters;
 
-		vector<iter> m_vEndIters;
+		std::vector<iter> m_vEndIters;
 		int m_iTrack;
 		bool m_bReverse;
 
 		// These exist so that the iterator can be revalidated if the NoteData
 		// is transformed during this iterator's lifetime.
-		vector<int> m_PrevCurrentRows;
+		std::vector<int> m_PrevCurrentRows;
 		bool m_Inclusive;
 		int m_StartRow;
 		int m_EndRow;
@@ -130,35 +131,36 @@ class NoteData
 		auto operator++(int dummy) -> _all_tracks_iterator; // postincrement
 		//_all_tracks_iterator &operator--();		// predecrement
 		//_all_tracks_iterator operator--( int dummy );	// postdecrement
-		[[nodiscard]] inline auto Track() const -> int { return m_iTrack; }
-		[[nodiscard]] inline auto Row() const -> int
+		[[nodiscard]] auto Track() const -> int { return m_iTrack; }
+		[[nodiscard]] auto Row() const -> int
 		{
 			return m_vCurrentIters[m_iTrack]->first;
 		}
-		[[nodiscard]] inline auto IsAtEnd() const -> bool
-		{
-			return m_iTrack == -1;
-		}
-		[[nodiscard]] inline auto GetIter(int iTrack) const -> iter
+		[[nodiscard]] auto IsAtEnd() const -> bool { return m_iTrack == -1; }
+		[[nodiscard]] auto GetIter(int iTrack) const -> iter
 		{
 			return m_vCurrentIters[iTrack];
 		}
-		inline auto operator*() -> TN&
+
+		auto operator*() -> TN&
 		{
 			DEBUG_ASSERT(!IsAtEnd());
 			return m_vCurrentIters[m_iTrack]->second;
 		}
-		inline auto operator->() -> TN*
+
+		auto operator->() -> TN*
 		{
 			DEBUG_ASSERT(!IsAtEnd());
 			return &m_vCurrentIters[m_iTrack]->second;
 		}
-		inline auto operator*() const -> const TN&
+
+		auto operator*() const -> const TN&
 		{
 			DEBUG_ASSERT(!IsAtEnd());
 			return m_vCurrentIters[m_iTrack]->second;
 		}
-		inline auto operator->() const -> const TN*
+
+		auto operator->() const -> const TN*
 		{
 			DEBUG_ASSERT(!IsAtEnd());
 			return &m_vCurrentIters[m_iTrack]->second;
@@ -169,32 +171,23 @@ class NoteData
 						bool added);
 	};
 	using all_tracks_iterator =
-	  _all_tracks_iterator<NoteData, NoteData::iterator, TapNote>;
+	  _all_tracks_iterator<NoteData, iterator, TapNote>;
 	using all_tracks_const_iterator =
-	  _all_tracks_iterator<const NoteData,
-						   NoteData::const_iterator,
-						   const TapNote>;
+	  _all_tracks_iterator<const NoteData, const_iterator, const TapNote>;
 	using all_tracks_reverse_iterator = all_tracks_iterator;
 	using all_tracks_const_reverse_iterator = all_tracks_const_iterator;
-	friend class _all_tracks_iterator<NoteData, NoteData::iterator, TapNote>;
+	friend class _all_tracks_iterator<NoteData, iterator, TapNote>;
 	friend class _all_tracks_iterator<const NoteData,
-									  NoteData::const_iterator,
+									  const_iterator,
 									  const TapNote>;
 
   private:
 	// There's no point in inserting empty notes into the map.
 	// Any blank space in the map is defined to be empty.
-	vector<TrackMap> m_TapNotes;
+	std::vector<TrackMap> m_TapNotes;
 	int m_numTracksLCD;
 
 	void CalcNumTracksLCD();
-
-	/**
-	 * @brief Determine whether this note is for Player 1 or Player 2.
-	 * @param track the track/column the note is in.
-	 * @param tn the note in question. Required for routine mode.
-	 * @return true if it's for player 1, false for player 2. */
-	auto IsPlayer1(int track, const TapNote& tn) const -> bool;
 
 	/**
 	 * @brief Determine if the note in question should be counted as a tap.
@@ -224,15 +217,10 @@ class NoteData
 	 * @return true if it's a fake, false otherwise. */
 	static auto IsFake(const TapNote& tn, int row) -> bool;
 
-	auto GetNumRowsWithSimultaneousTapsTwoPlayer(
-	  int minTaps = 2,
-	  int startRow = 0,
-	  int endRow = MAX_NOTE_ROW) const -> pair<int, int>;
-
 	// These exist so that they can be revalidated when something that
 	// transforms the NoteData occurs. -Kyz
-	mutable set<all_tracks_iterator*> m_atis;
-	mutable set<all_tracks_const_iterator*> m_const_atis;
+	mutable std::set<all_tracks_iterator*> m_atis;
+	mutable std::set<all_tracks_const_iterator*> m_const_atis;
 
 	void AddATIToList(all_tracks_iterator* iter) const;
 	void AddATIToList(all_tracks_const_iterator* iter) const;
@@ -240,8 +228,8 @@ class NoteData
 	void RemoveATIFromList(all_tracks_const_iterator* iter) const;
 
 	// Mina stuf
-	vector<int> NonEmptyRowVector;
-	vector<NoteInfo> SerializedNoteData;
+	std::vector<int> NonEmptyRowVector;
+	std::vector<NoteInfo> SerializedNoteData;
 
   public:
 	void Init();
@@ -265,16 +253,19 @@ class NoteData
 	}
 	auto WifeTotalScoreCalc(TimingData* td,
 							int iStartIndex = 0,
-							int iEndIndex = MAX_NOTE_ROW) -> int;
-	auto GetNonEmptyRowVector() -> vector<int>& { return NonEmptyRowVector; };
-	auto SerializeNoteData(const vector<float>& etaner)
-	  -> const vector<NoteInfo>&;
+							int iEndIndex = MAX_NOTE_ROW) const -> int;
+	auto GetNonEmptyRowVector() -> std::vector<int>&
+	{
+		return NonEmptyRowVector;
+	};
+	auto SerializeNoteData(const std::vector<float>& etaner)
+	  -> const std::vector<NoteInfo>&;
 	// faster than the above and gives us more control over stuff like nerv
 	// generation
 	auto SerializeNoteData2(TimingData* ts,
 							bool unset_nerv_when_done = true,
 							bool unset_etaner_when_done = true)
-	  -> const vector<NoteInfo>&;
+	  -> const std::vector<NoteInfo>&;
 
 	auto GetNumTracks() const -> int { return m_TapNotes.size(); }
 	void SetNumTracks(int iNewNumTracks);
@@ -289,11 +280,11 @@ class NoteData
 
 	/* Return the note at the given track and row.  Row may be out of
 	 * range; pretend the song goes on with TAP_EMPTYs indefinitely. */
-	inline auto GetTapNote(const unsigned& track, const int& row) const
+	auto GetTapNote(const unsigned& track, const int& row) const
 	  -> const TapNote&
 	{
-		const TrackMap& mapTrack = m_TapNotes[track];
-		TrackMap::const_iterator iter = mapTrack.find(row);
+		const auto& mapTrack = m_TapNotes[track];
+		const auto iter = mapTrack.find(row);
 		if (iter != mapTrack.end()) {
 			return iter->second;
 		}
@@ -302,11 +293,12 @@ class NoteData
 		}
 	}
 
-	inline auto FindTapNote(unsigned iTrack, int iRow) -> iterator
+	auto FindTapNote(unsigned iTrack, int iRow) -> iterator
 	{
 		return m_TapNotes[iTrack].find(iRow);
 	}
-	inline auto FindTapNote(unsigned iTrack, int iRow) const -> const_iterator
+
+	auto FindTapNote(unsigned iTrack, int iRow) const -> const_iterator
 	{
 		return m_TapNotes[iTrack].find(iRow);
 	}
@@ -379,7 +371,6 @@ class NoteData
 
 	// Call this after using any transform that changes the NoteData.
 	void RevalidateATIs(vector<int> const& added_or_removed_tracks, bool added);
-	void TransferATIs(NoteData& to);
 
 	/* Return an iterator range include iStartRow to iEndRow.  Extend the range
 	 * to include hold notes overlapping the boundary. */
@@ -413,7 +404,8 @@ class NoteData
 	 * than rowInOut. */
 	auto GetNextTapNoteRowForTrack(int track,
 								   int& rowInOut,
-								   bool ignoreKeySounds = false) const -> bool;
+								   bool ignoreAutoKeysounds = false) const
+	  -> bool;
 	auto GetNextTapNoteRowForAllTracks(int& rowInOut) const -> bool;
 	auto GetPrevTapNoteRowForTrack(int track, int& rowInOut) const -> bool;
 	auto GetPrevTapNoteRowForAllTracks(int& rowInOut) const -> bool;
@@ -441,7 +433,7 @@ class NoteData
 	auto IsRowEmpty(int row) const -> bool;
 	auto IsRangeEmpty(int track, int rowBegin, int rowEnd) const -> bool;
 	auto GetNumTapNonEmptyTracks(int row) const -> int;
-	void GetTapNonEmptyTracks(int row, set<int>& addTo) const;
+	void GetTapNonEmptyTracks(int row, std::set<int>& addTo) const;
 	auto GetTapFirstNonEmptyTrack(int row, int& iNonEmptyTrackOut) const
 	  -> bool; // return false if no non-empty tracks at row
 	auto GetTapFirstEmptyTrack(int row, int& iEmptyTrackOut) const
@@ -454,15 +446,16 @@ class NoteData
 	auto GetFirstTrackWithTapOrHoldHead(int row) const -> int;
 	auto GetLastTrackWithTapOrHoldHead(int row) const -> int;
 
-	inline auto IsThereATapAtRow(int row) const -> bool
+	auto IsThereATapAtRow(int row) const -> bool
 	{
 		return GetFirstTrackWithTap(row) != -1;
 	}
-	inline auto IsThereATapOrHoldHeadAtRow(int row) const -> bool
+
+	auto IsThereATapOrHoldHeadAtRow(int row) const -> bool
 	{
 		return GetFirstTrackWithTapOrHoldHead(row) != -1;
 	}
-	void GetTracksHeldAtRow(int row, set<int>& addTo);
+	void GetTracksHeldAtRow(int row, std::set<int>& addTo) const;
 	auto GetNumTracksHeldAtRow(int row) -> int;
 
 	auto IsHoldNoteAtRow(int iTrack, int iRow, int* pHeadRow = nullptr) const
@@ -543,7 +536,7 @@ class NoteData
 
 	// Transformations
 	void LoadTransformed(
-	  const NoteData& original,
+	  const NoteData& in,
 	  int iNewNumTracks,
 	  const int iOriginalTrackToTakeFrom[]); // -1 for iOriginalTracksToTakeFrom
 											 // means no track

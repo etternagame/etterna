@@ -13,36 +13,36 @@ namespace {
 
 // ThemeMetric<TapNoteScoreJudgeType> LAST_OR_MINIMUM_TNS
 // ("Gameplay","LastOrMinimumTapNoteScore");
-static ThemeMetric<TapNoteScore> MIN_SCORE_TO_MAINTAIN_COMBO(
+ThemeMetric<TapNoteScore> MIN_SCORE_TO_MAINTAIN_COMBO(
   "Gameplay",
   "MinScoreToMaintainCombo");
 
 /* Return the last tap score of a row: the grade of the tap that completed
  * the row.  If the row has no tap notes, return -1.  If any tap notes aren't
  * graded (any tap is TNS_None) or are missed (TNS_Miss), return it. */
-inline int
+int
 LastTapNoteScoreTrack(const NoteData& in, const unsigned& row)
 {
 	float scoretime = -9999;
-	int best_track = -1;
+	auto best_track = -1;
 
-	for (int t = 0; t < in.GetNumTracks(); t++) {
+	for (auto t = 0; t < in.GetNumTracks(); t++) {
 		/* Skip empty tracks and mines */
-		const TapNote& tn = in.GetTapNote(t, row);
+		const auto& tn = in.GetTapNote(t, row);
 		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
 			tn.type == TapNoteType_Fake || tn.type == TapNoteType_AutoKeysound)
 			continue;
 
-		TapNoteScore tns = tn.result.tns;
+		const auto tns = tn.result.tns;
 
 		if (tns == TNS_Miss ||
-			(!GAMESTATE->CountNotesSeparately() && tns == TNS_None)) {
+			!GAMESTATE->CountNotesSeparately() && tns == TNS_None) {
 			return t;
 		}
 		if (tns == TNS_None)
 			continue;
 
-		float tm = tn.result.fTapNoteOffset;
+		const auto tm = tn.result.fTapNoteOffset;
 		if (tm < scoretime)
 			continue;
 
@@ -58,7 +58,7 @@ const TapNote&
 NoteDataWithScoring::LastTapNoteWithResult(const NoteData& in,
 										   const unsigned& row)
 {
-	int t = LastTapNoteScoreTrack(in, row);
+	const auto t = LastTapNoteScoreTrack(in, row);
 	if (t == -1)
 		return TAP_EMPTY;
 
@@ -70,10 +70,10 @@ NoteDataWithScoring::LastTapNoteWithResult(const NoteData& in,
 TapNoteScore
 NoteDataWithScoring::MinTapNoteScore(const NoteData& in, const unsigned& row)
 {
-	TapNoteScore score = TNS_W1;
-	for (int t = 0; t < in.GetNumTracks(); t++) {
+	auto score = TNS_W1;
+	for (auto t = 0; t < in.GetNumTracks(); t++) {
 		// Ignore mines (and fake arrows), or the score will always be TNS_None.
-		const TapNote& tn = in.GetTapNote(t, row);
+		const auto& tn = in.GetTapNote(t, row);
 		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
 			tn.type == TapNoteType_Fake || tn.type == TapNoteType_AutoKeysound)
 			continue;
@@ -163,9 +163,9 @@ DoRowEndRadarActualCalc(garv_state& state, RadarValues& out)
 				size_t holds_down = 0;
 				for (size_t n = 0; n < state.hold_ends.size(); ++n) {
 					holds_down +=
-					  (state.curr_row <= state.hold_ends[n].last_held_row);
+					  state.curr_row <= state.hold_ends[n].last_held_row;
 				}
-				state.hands_hit += (holds_down == state.hold_ends.size());
+				state.hands_hit += holds_down == state.hold_ends.size();
 			}
 		}
 	}
@@ -192,21 +192,20 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 	// Some of this logic is similar or identical to
 	// NoteDataUtil::CalculateRadarValues because I couldn't figure out a good
 	// way to combine them into one. -Kyz
-	PlayerNumber pn = pss.m_player_number;
+	auto pn = pss.m_player_number;
 	garv_state state;
 
-	NoteData::all_tracks_const_iterator curr_note =
-	  in.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW);
-	TimingData* timing = GAMESTATE->GetProcessedTimingData();
+	auto curr_note = in.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW);
+	auto* timing = GAMESTATE->GetProcessedTimingData();
 	// first_hittable_row and last_hittable_row exist so that
 	// GetActualVoltageRadarValue can be passed the correct song length.
 	// GetActualVoltageRadarValue scores based on the max combo, a full combo
 	// is a full voltage score.  The song length is used instead of trying to
 	// figure out the max combo for the song because rolls mean there isn't a
 	// limit to the max combo. -Kyz
-	int first_hittable_row = -1;
-	int last_hittable_row = -1;
-	bool tick_holds = GAMESTATE->GetCurrentGame()->m_bTickHolds;
+	auto first_hittable_row = -1;
+	auto last_hittable_row = -1;
+	const auto tick_holds = GAMESTATE->GetCurrentGame()->m_bTickHolds;
 
 	while (!curr_note.IsAtEnd()) {
 		if (curr_note.Row() != state.curr_row) {
@@ -248,9 +247,8 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 					  state.curr_row, first_hittable_row, last_hittable_row);
 					++state.num_notes_on_curr_row;
 					state.notes_hit_for_stream +=
-					  (curr_note->result.tns >= state.stream_tns);
-					state.notes_hit +=
-					  (curr_note->result.tns >= state.taps_tns);
+					  curr_note->result.tns >= state.stream_tns;
+					state.notes_hit += curr_note->result.tns >= state.taps_tns;
 					if (curr_note->result.tns < state.worst_tns_on_row) {
 						state.worst_tns_on_row = curr_note->result.tns;
 					}
@@ -263,10 +261,10 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 					if (curr_note->type == TapNoteType_HoldHead) {
 						if (curr_note->subType == TapNoteSubType_Hold) {
 							state.holds_held +=
-							  (curr_note->HoldResult.hns == HNS_Held);
+							  curr_note->HoldResult.hns == HNS_Held;
 						} else if (curr_note->subType == TapNoteSubType_Roll) {
 							state.rolls_held +=
-							  (curr_note->HoldResult.hns == HNS_Held);
+							  curr_note->HoldResult.hns == HNS_Held;
 						}
 						state.hold_ends.push_back(
 						  hold_status(state.curr_row + curr_note->iDuration,
@@ -274,12 +272,12 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 						++state.num_holds_on_curr_row;
 					} else if (curr_note->type == TapNoteType_Lift) {
 						state.lifts_hit +=
-						  (curr_note->result.tns >= state.lifts_tns);
+						  curr_note->result.tns >= state.lifts_tns;
 					}
 					break;
 				case TapNoteType_Mine:
 					state.mines_avoided +=
-					  (curr_note->result.tns == TNS_AvoidMine);
+					  curr_note->result.tns == TNS_AvoidMine;
 					break;
 				case TapNoteType_Fake:
 				default:
