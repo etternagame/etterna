@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -25,8 +24,9 @@ LuaXType(WheelState);
 
 WheelBase::~WheelBase()
 {
-	FOREACH(WheelItemBase*, m_WheelBaseItems, i)
-	SAFE_DELETE(*i);
+	for (auto& i : m_WheelBaseItems) {
+		SAFE_DELETE(i);
+	}
 	m_WheelBaseItems.clear();
 	m_LastSelection = nullptr;
 }
@@ -62,7 +62,6 @@ WheelBase::Load(const string& sType)
 	pTempl->PlayCommand("Init");
 	for (int i = 0; i < NUM_WHEEL_ITEMS; i++) {
 		WheelItemBase* pItem = pTempl->Copy();
-		DEBUG_ASSERT(pItem);
 		m_WheelBaseItems.push_back(pItem);
 	}
 	SAFE_DELETE(pTempl);
