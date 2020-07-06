@@ -10,8 +10,8 @@ struct RageSurface;
 
 /** @brief Utility functions for the RageSurfaces. */
 namespace RageSurfaceUtils {
-uint32_t
-decodepixel(const uint8_t* p, int bpp);
+auto
+decodepixel(const uint8_t* p, int bpp) -> uint32_t;
 void
 encodepixel(uint8_t* p, int bpp, uint32_t pixel);
 
@@ -24,12 +24,12 @@ GetRGBAV(uint32_t pixel, const RageSurface* src, uint8_t* v);
 void
 GetRGBAV(const uint8_t* p, const RageSurface* src, uint8_t* v);
 
-uint32_t
-SetRawRGBAV(const RageSurfaceFormat& fmt, const uint8_t* v);
+auto
+SetRawRGBAV(const RageSurfaceFormat& fmt, const uint8_t* v) -> uint32_t;
 void
 SetRawRGBAV(uint8_t* p, const RageSurface* src, const uint8_t* v);
-uint32_t
-SetRGBAV(const RageSurfaceFormat& fmt, const uint8_t* v);
+auto
+SetRGBAV(const RageSurfaceFormat& fmt, const uint8_t* v) -> uint32_t;
 void
 SetRGBAV(uint8_t* p, const RageSurface* src, const uint8_t* v);
 
@@ -39,7 +39,7 @@ GetBitsPerChannel(const RageSurfaceFormat& fmt, uint32_t bits[4]);
 
 void
 CopySurface(const RageSurface* src, RageSurface* dest);
-bool
+auto
 ConvertSurface(const RageSurface* src,
 			   RageSurface*& dst,
 			   int width,
@@ -48,7 +48,7 @@ ConvertSurface(const RageSurface* src,
 			   uint32_t R,
 			   uint32_t G,
 			   uint32_t B,
-			   uint32_t A);
+			   uint32_t A) -> bool;
 void
 ConvertSurface(RageSurface*& image,
 			   int width,
@@ -62,8 +62,8 @@ ConvertSurface(RageSurface*& image,
 void
 FixHiddenAlpha(RageSurface* img);
 
-int
-FindSurfaceTraits(const RageSurface* img);
+auto
+FindSurfaceTraits(const RageSurface* img) -> int;
 
 /* The surface contains no transparent pixels and/or never uses its color
  * key, so it doesn't need any alpha bits at all. */
@@ -89,22 +89,23 @@ Blit(const RageSurface* src, RageSurface* dst, int width = -1, int height = -1);
 void
 CorrectBorderPixels(RageSurface* img, int width, int height);
 
-bool
-SaveSurface(const RageSurface* img, const std::string& file);
-RageSurface*
-LoadSurface(const std::string& file);
+auto
+SaveSurface(const RageSurface* img, const std::string& file) -> bool;
+auto
+LoadSurface(const std::string& file) -> RageSurface*;
 
 /* Quickly palettize to an gray/alpha texture. */
-RageSurface*
-PalettizeToGrayscale(const RageSurface* src_surf, int GrayBits, int AlphaBits);
+auto
+PalettizeToGrayscale(const RageSurface* src_surf, int GrayBits, int AlphaBits)
+  -> RageSurface*;
 
-RageSurface*
-MakeDummySurface(int height, int width);
+auto
+MakeDummySurface(int height, int width) -> RageSurface*;
 
 void
 ApplyHotPinkColorKey(RageSurface*& img);
 void
 FlipVertically(RageSurface* img);
-};
+} // namespace RageSurfaceUtils;
 
 #endif

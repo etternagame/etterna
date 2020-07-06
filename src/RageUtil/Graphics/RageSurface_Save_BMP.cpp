@@ -8,7 +8,7 @@
 static void
 WriteBytes(RageFile& f, std::string& sError, const void* buf, int size)
 {
-	if (sError.size() != 0)
+	if (!sError.empty())
 		return;
 
 	int ret = f.Write(buf, size);
@@ -82,7 +82,7 @@ RageSurfaceUtils::SaveBMP(RageSurface* surface, RageFile& f)
 
 	delete converted_surface;
 
-	if (sError.size() != 0)
+	if (!sError.empty())
 		return false;
 
 	if (f.Flush() == -1)

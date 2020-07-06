@@ -211,7 +211,7 @@ FindAlphaRGB(const RageSurface* img,
 	// Eww. Sorry. Iterate front-to-back or in reverse.
 	for (auto y = reverse ? img->h - 1 : 0; reverse ? (y >= 0) : (y < img->h);
 		 reverse ? (--y) : (++y)) {
-		auto row = (uint8_t*)img->pixels + img->pitch * y;
+		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
 		if (reverse)
 			row += img->fmt.BytesPerPixel * (img->w - 1);
 
@@ -351,7 +351,7 @@ RageSurfaceUtils::FindSurfaceTraits(const RageSurface* img)
 	}
 
 	for (auto y = 0; y < img->h; ++y) {
-		auto row = (uint8_t*)img->pixels + img->pitch * y;
+		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
 
 		for (auto x = 0; x < img->w; ++x) {
 			auto val = decodepixel(row, img->fmt.BytesPerPixel);
@@ -392,7 +392,7 @@ RageSurfaceUtils::FindSurfaceTraits(const RageSurface* img)
 static inline void
 GetRawRGBAV_XY(const RageSurface* src, uint8_t* v, int x, int y)
 {
-	auto srcp = (const uint8_t*)src->pixels + (y * src->pitch);
+	auto srcp = static_cast<const uint8_t*>(src->pixels) + (y * src->pitch);
 	auto srcpx = srcp + (x * src->fmt.BytesPerPixel);
 
 	RageSurfaceUtils::GetRawRGBAV(srcpx, src->fmt, v);
@@ -423,34 +423,53 @@ RageSurfaceUtils::BlitTransform(const RageSurface* src,
 			   TR_X = 6, TR_Y = 7;
 
 	for (auto y = 0; y < dst->h; ++y) {
-		auto dstp = (uint8_t*)dst->pixels + (y * dst->pitch); /* line */
-		auto dstpx = dstp;									  // pixel
+		auto dstp =
+		  static_cast<uint8_t*>(dst->pixels) + (y * dst->pitch); /* line */
+		auto dstpx = dstp;										 // pixel
 
-		const auto start_y =
-		  scale(float(y), 0, float(dst->h), Coords[TL_Y], Coords[BL_Y]);
-		const auto end_y =
-		  scale(float(y), 0, float(dst->h), Coords[TR_Y], Coords[BR_Y]);
+		const auto start_y = scale(static_cast<float>(y),
+								   0,
+								   static_cast<float>(dst->h),
+								   Coords[TL_Y],
+								   Coords[BL_Y]);
+		const auto end_y = scale(static_cast<float>(y),
+								 0,
+								 static_cast<float>(dst->h),
+								 Coords[TR_Y],
+								 Coords[BR_Y]);
 
-		const auto start_x =
-		  scale(float(y), 0, float(dst->h), Coords[TL_X], Coords[BL_X]);
-		const auto end_x =
-		  scale(float(y), 0, float(dst->h), Coords[TR_X], Coords[BR_X]);
+		const auto start_x = scale(static_cast<float>(y),
+								   0,
+								   static_cast<float>(dst->h),
+								   Coords[TL_X],
+								   Coords[BL_X]);
+		const auto end_x = scale(static_cast<float>(y),
+								 0,
+								 static_cast<float>(dst->h),
+								 Coords[TR_X],
+								 Coords[BR_X]);
 
 		for (auto x = 0; x < dst->w; ++x) {
-			const auto src_xp =
-			  scale(float(x), 0, float(dst->w), start_x, end_x);
-			const auto src_yp =
-			  scale(float(x), 0, float(dst->w), start_y, end_y);
+			const auto src_xp = scale(static_cast<float>(x),
+									  0,
+									  static_cast<float>(dst->w),
+									  start_x,
+									  end_x);
+			const auto src_yp = scale(static_cast<float>(x),
+									  0,
+									  static_cast<float>(dst->w),
+									  start_y,
+									  end_y);
 
 			/* If the surface is two pixels wide, src_xp is 0..2.  .5 indicates
 			 * pixel[0]; 1 indicates 50% pixel[0], 50% pixel[1]; 1.5 indicates
 			 * pixel[1]; 2 indicates 50% pixel[1], 50% pixel[2] (which is
 			 * clamped to pixel[1]). */
 			int src_x[2], src_y[2];
-			src_x[0] = (int)truncf(src_xp - 0.5f);
+			src_x[0] = static_cast<int>(truncf(src_xp - 0.5f));
 			src_x[1] = src_x[0] + 1;
 
-			src_y[0] = (int)truncf(src_yp - 0.5f);
+			src_y[0] = static_cast<int>(truncf(src_yp - 0.5f));
 			src_y[1] = src_y[0] + 1;
 
 			// Emulate GL_REPEAT.
@@ -478,7 +497,8 @@ RageSurfaceUtils::BlitTransform(const RageSurface* src,
 				sum += v[1][i] * (1 - weight_x) * (weight_y);
 				sum += v[2][i] * (weight_x) * (1 - weight_y);
 				sum += v[3][i] * (weight_x) * (weight_y);
-				out[i] = (uint8_t)clamp(std::lround(sum), 0L, 255L);
+				out[i] =
+				  static_cast<uint8_t>(clamp(std::lround(sum), 0L, 255L));
 			}
 
 			// If the source has no alpha, set the destination to opaque.
@@ -566,7 +586,7 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 			/* The source is missing a channel. Alpha defaults to opaque, other
 			 * channels default to 0. */
 			if (c == 3)
-				lookup[c][0] = (uint8_t)max_dst_val;
+				lookup[c][0] = static_cast<uint8_t>(max_dst_val);
 			else
 				lookup[c][0] = 0;
 		} else {
@@ -599,12 +619,12 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 			 * seems strange; what's wrong here? */
 			if (max_src_val > max_dst_val)
 				for (uint32_t i = 0; i <= max_src_val; ++i)
-					lookup[c][i] =
-					  (uint8_t)SCALE(i, 0, max_src_val + 1, 0, max_dst_val + 1);
+					lookup[c][i] = static_cast<uint8_t>(
+					  SCALE(i, 0, max_src_val + 1, 0, max_dst_val + 1));
 			else
 				for (uint32_t i = 0; i <= max_src_val; ++i)
-					lookup[c][i] =
-					  (uint8_t)SCALE(i, 0, max_src_val, 0, max_dst_val);
+					lookup[c][i] = static_cast<uint8_t>(
+					  SCALE(i, 0, max_src_val, 0, max_dst_val));
 		}
 	}
 
@@ -782,7 +802,7 @@ RageSurfaceUtils::CorrectBorderPixels(RageSurface* img, int width, int height)
 	if (width * img->fmt.BytesPerPixel < img->pitch) {
 		// Duplicate the last column.
 		auto offset = img->fmt.BytesPerPixel * (width - 1);
-		auto p = (uint8_t*)img->pixels + offset;
+		auto p = static_cast<uint8_t*>(img->pixels) + offset;
 
 		for (auto y = 0; y < height; ++y) {
 			auto pixel = decodepixel(p, img->fmt.BytesPerPixel);
@@ -860,7 +880,7 @@ RageSurfaceUtils::LoadSurface(const std::string& file)
 		ASSERT_M(palette.ncolors <= 256, ssprintf("%i", palette.ncolors));
 		if (f.Read(palette.colors,
 				   palette.ncolors * sizeof(RageSurfaceColor)) !=
-			int(palette.ncolors * sizeof(RageSurfaceColor)))
+			static_cast<int>(palette.ncolors * sizeof(RageSurfaceColor)))
 			return nullptr;
 	}
 

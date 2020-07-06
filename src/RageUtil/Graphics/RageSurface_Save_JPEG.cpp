@@ -12,15 +12,15 @@ RageSurfaceUtils::SaveJPEG(RageSurface* surface, RageFile& f, bool bHighQual)
 	f.Close();
 
 	RageSurface* res;
-	bool converted = RageSurfaceUtils::ConvertSurface(surface,
-													  res,
-													  surface->w,
-													  surface->h,
-													  24,
-													  Swap24BE(0xFF0000),
-													  Swap24BE(0x00FF00),
-													  Swap24BE(0x0000FF),
-													  0);
+	bool converted = ConvertSurface(surface,
+									res,
+									surface->w,
+									surface->h,
+									24,
+									Swap24BE(0xFF0000),
+									Swap24BE(0x00FF00),
+									Swap24BE(0x0000FF),
+									0);
 	if (!converted)
 		res = surface;
 

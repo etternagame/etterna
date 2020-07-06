@@ -18,15 +18,15 @@ RageSurfaceUtils::SavePNG(RageSurface* pImg, RageFile& f, std::string& sError)
 			   // following function to succeed.
 
 	RageSurface* res;
-	bool converted = RageSurfaceUtils::ConvertSurface(pImg,
-													  res,
-													  pImg->w,
-													  pImg->h,
-													  32,
-													  Swap32BE(0xFF000000),
-													  Swap32BE(0x00FF0000),
-													  Swap32BE(0x0000FF00),
-													  Swap32BE(0x000000FF));
+	bool converted = ConvertSurface(pImg,
+									res,
+									pImg->w,
+									pImg->h,
+									32,
+									Swap32BE(0xFF000000),
+									Swap32BE(0x00FF0000),
+									Swap32BE(0x0000FF00),
+									Swap32BE(0x000000FF));
 
 	if (!converted)
 		res = pImg;

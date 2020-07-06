@@ -7,6 +7,7 @@
 #include <stb/stb_image.h>
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageSurface.h"
+
 #include <set>
 
 RageSurfaceUtils::OpenResult
@@ -85,10 +86,8 @@ RageSurfaceUtils::LoadFile(const std::string& sPath,
 	set<std::string> FileTypes;
 	vector<std::string> const& exts =
 	  ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (vector<std::string>::const_iterator curr = exts.begin();
-		 curr != exts.end();
-		 ++curr) {
-		FileTypes.insert(*curr);
+	for (const auto& ext : exts) {
+		FileTypes.insert(ext);
 	}
 
 	std::string format = GetExtension(sPath);
@@ -105,8 +104,7 @@ RageSurfaceUtils::LoadFile(const std::string& sPath,
 		FileTypes.erase(format);
 	}
 
-	for (set<std::string>::iterator it = FileTypes.begin();
-		 bKeepTrying && it != FileTypes.end();
+	for (auto it = FileTypes.begin(); bKeepTrying && it != FileTypes.end();
 		 ++it) {
 		RageSurface* ret =
 		  TryOpenFile(sPath, bHeaderOnly, error, *it, bKeepTrying);

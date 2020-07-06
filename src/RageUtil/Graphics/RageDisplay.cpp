@@ -17,6 +17,7 @@
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
+
 #include <chrono>
 #include <thread>
 
@@ -72,7 +73,7 @@ struct Centering
 static vector<Centering> g_CenteringStack(1, Centering(0, 0, 0, 0));
 
 RageDisplay* DISPLAY =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 Preference<bool> LOG_FPS("LogFPS", false);
 Preference<float> g_fFrameLimitPercent("FrameLimitPercent", 0.90f);
@@ -103,21 +104,21 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	std::string err;
 	vector<std::string> vs;
 
-	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
+	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
 	LOG->Trace("TryVideoMode failed: %s", err.c_str());
 	vs.push_back(err);
 
 	// fall back to settings that will most likely work
 	p.bpp = 16;
-	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
+	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
 	vs.push_back(err);
 
 	// "Intel(R) 82810E Graphics Controller" won't accept a 16 bpp surface if
 	// the desktop is 32 bpp, so try 32 bpp as well.
 	p.bpp = 32;
-	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
+	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
 	vs.push_back(err);
 
@@ -147,7 +148,7 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	p.width = supported.width;
 	p.height = supported.height;
 	p.rate = static_cast<int>(round(supported.refreshRate));
-	if ((err = this->TryVideoMode(p, bNeedReloadTextures)) == "")
+	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
 	vs.push_back(err);
 
@@ -351,7 +352,7 @@ RageDisplay::DrawCircleInternal(const RageSpriteVertex& p, float radius)
 	v[0] = p;
 
 	for (int i = 0; i < subdivisions + 1; ++i) {
-		const float fRotation = float(i) / subdivisions * 2 * PI;
+		const float fRotation = static_cast<float>(i) / subdivisions * 2 * PI;
 		const float fX = RageFastCos(fRotation) * radius;
 		const float fY = -RageFastSin(fRotation) * radius;
 		v[1 + i] = v[0];
@@ -399,7 +400,7 @@ class MatrixStack
 	void Pop()
 	{
 		stack.pop_back();
-		ASSERT(stack.size() > 0); // underflow
+		ASSERT(!stack.empty()); // underflow
 	}
 
 	// Pushes the stack by one, duplicating the current matrix.
@@ -792,7 +793,7 @@ RageDisplay::CreateSurfaceFromPixfmt(RagePixelFormat pixfmt,
 										  tpf->masks[1],
 										  tpf->masks[2],
 										  tpf->masks[3],
-										  (uint8_t*)pixels,
+										  static_cast<uint8_t*>(pixels),
 										  pitch);
 
 	return surf;
@@ -903,7 +904,7 @@ void
 RageDisplay::CenteringPopMatrix()
 {
 	g_CenteringStack.pop_back();
-	ASSERT(g_CenteringStack.size() > 0); // underflow
+	ASSERT(!g_CenteringStack.empty()); // underflow
 	UpdateCentering();
 }
 

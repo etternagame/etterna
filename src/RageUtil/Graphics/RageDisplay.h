@@ -71,8 +71,8 @@ class RageCompiledGeometry
 		bool m_bNeedsTextureMatrixScale;
 	};
 	vector<MeshInfo> m_vMeshInfo;
-	bool m_bNeedsNormals;
-	bool m_bAnyNeedsTextureMatrixScale;
+	bool m_bNeedsNormals{};
+	bool m_bAnyNeedsTextureMatrixScale{};
 };
 
 enum RagePixelFormat

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurfaceUtils_Dither.h"
@@ -64,8 +64,8 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 	ASSERT(dst->fmt.BytesPerPixel > 1);
 
 	uint32_t src_cbits[4], dst_cbits[4];
-	RageSurfaceUtils::GetBitsPerChannel(src->fmt, src_cbits);
-	RageSurfaceUtils::GetBitsPerChannel(dst->fmt, dst_cbits);
+	GetBitsPerChannel(src->fmt, src_cbits);
+	GetBitsPerChannel(dst->fmt, dst_cbits);
 
 	// Calculate the ratio from the old bit depth to the new for each color
 	// channel.
@@ -81,7 +81,7 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 	}
 
 	// Max alpha value; used when there's no alpha source.
-	const uint8_t alpha_max = uint8_t((1 << dst_cbits[3]) - 1);
+	const auto alpha_max = uint8_t((1 << dst_cbits[3]) - 1);
 
 	// For each row:
 	for (int row = 0; row < src->h; ++row) {
@@ -91,7 +91,7 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 		// For each pixel:
 		for (int col = 0; col < src->w; ++col) {
 			uint8_t colors[4];
-			RageSurfaceUtils::GetRawRGBAV(srcp, src->fmt, colors);
+			GetRawRGBAV(srcp, src->fmt, colors);
 
 			// Note that we don't dither the alpha channel.
 			for (int c = 0; c < 3; ++c) {
@@ -114,7 +114,7 @@ RageSurfaceUtils::OrderedDither(const RageSurface* src, RageSurface* dst)
 			}
 
 			// Raw value -> int -> pixel
-			RageSurfaceUtils::SetRawRGBAV(dstp, dst, colors);
+			SetRawRGBAV(dstp, dst, colors);
 
 			srcp += src->fmt.BytesPerPixel;
 			dstp += dst->fmt.BytesPerPixel;
@@ -142,7 +142,7 @@ EDDitherPixel(int x, int y, int intensity, int conv, int32_t& accumError)
 	clamped_intensity &= 0xFF0000;
 
 	// Truncate.
-	uint8_t ret = uint8_t(clamped_intensity >> 16);
+	auto ret = uint8_t(clamped_intensity >> 16);
 
 	accumError = out_intensity - clamped_intensity;
 
@@ -165,8 +165,8 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 	ASSERT(dst->fmt.BytesPerPixel > 1);
 
 	uint32_t src_cbits[4], dst_cbits[4];
-	RageSurfaceUtils::GetBitsPerChannel(src->fmt, src_cbits);
-	RageSurfaceUtils::GetBitsPerChannel(dst->fmt, dst_cbits);
+	GetBitsPerChannel(src->fmt, src_cbits);
+	GetBitsPerChannel(dst->fmt, dst_cbits);
 
 	// Calculate the ratio from the old bit depth to the new for each color
 	// channel.
@@ -182,7 +182,7 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 	}
 
 	// Max alpha value; used when there's no alpha source.
-	const uint8_t alpha_max = uint8_t((1 << dst_cbits[3]) - 1);
+	const auto alpha_max = uint8_t((1 << dst_cbits[3]) - 1);
 
 	// For each row:
 	for (int row = 0; row < src->h; ++row) {
@@ -196,7 +196,7 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 		// For each pixel in row:
 		for (int col = 0; col < src->w; ++col) {
 			uint8_t colors[4];
-			RageSurfaceUtils::GetRawRGBAV(srcp, src->fmt, colors);
+			GetRawRGBAV(srcp, src->fmt, colors);
 
 			for (int c = 0; c < 3; ++c) {
 				colors[c] =
@@ -217,7 +217,7 @@ RageSurfaceUtils::ErrorDiffusionDither(const RageSurface* src, RageSurface* dst)
 				colors[3] = uint8_t((out_intensity + 32767) >> 16);
 			}
 
-			RageSurfaceUtils::SetRawRGBAV(dstp, dst, colors);
+			SetRawRGBAV(dstp, dst, colors);
 
 			srcp += src->fmt.BytesPerPixel;
 			dstp += dst->fmt.BytesPerPixel;

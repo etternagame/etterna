@@ -27,13 +27,13 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 			   &num_colors,
 			   &color_length) != 4) {
 		error = "parse error reading specs";
-		return NULL;
+		return nullptr;
 	}
 
 	if (width > 2048 || height > 2048 || num_colors > 1024 * 16 ||
 		color_length > 4) {
 		error = "spec error";
-		return NULL;
+		return nullptr;
 	}
 
 	vector<RageSurfaceColor> colors;
@@ -45,7 +45,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		/* "id c #AABBCC"; id is color_length long.  id may contain spaces. */
 		std::string color = xpm[line++];
 
-		if (color_length + 4 > (int)color.size())
+		if (color_length + 4 > static_cast<int>(color.size()))
 			continue;
 
 		std::string name;
@@ -59,9 +59,9 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		if (sscanf(clr.c_str(), "%2x%2x%2x", &r, &g, &b) != 3)
 			continue;
 		RageSurfaceColor colorval;
-		colorval.r = (uint8_t)r;
-		colorval.g = (uint8_t)g;
-		colorval.b = (uint8_t)b;
+		colorval.r = static_cast<uint8_t>(r);
+		colorval.g = static_cast<uint8_t>(g);
+		colorval.b = static_cast<uint8_t>(b);
 		colorval.a = 0xFF;
 
 		colors.push_back(colorval);
@@ -81,24 +81,24 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 	}
 
 	for (int y = 0; y < height; ++y) {
-		if (xpm[line] == NULL) {
+		if (xpm[line] == nullptr) {
 			error = "short file";
 			delete img;
-			return NULL;
+			return nullptr;
 		}
 		const std::string row = xpm[line++];
-		if ((int)row.size() != width * color_length) {
+		if (static_cast<int>(row.size()) != width * color_length) {
 			error = ssprintf("row %i is not expected length (%i != %i)",
 							 y,
-							 int(row.size()),
-							 width* color_length);
+							 static_cast<int>(row.size()),
+							 width * color_length);
 			delete img;
-			return NULL;
+			return nullptr;
 		}
 
-		int8_t* p = (int8_t*)img->pixels;
+		auto* p = (int8_t*)img->pixels;
 		p += y * img->pitch;
-		int32_t* p32 = (int32_t*)p;
+		auto* p32 = (int32_t*)p;
 		for (int x = 0; x < width; ++x) {
 			std::string color_name = row.substr(x * color_length, color_length);
 			map<std::string, int>::const_iterator it;
@@ -107,11 +107,11 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 				error = ssprintf(
 				  "%ix%i is unknown color \"%s\"", x, y, color_name.c_str());
 				delete img;
-				return NULL;
+				return nullptr;
 			}
 
 			if (colors.size() <= 256) {
-				p[x] = (int8_t)it->second;
+				p[x] = static_cast<int8_t>(it->second);
 			} else {
 				const RageSurfaceColor& color = colors[it->second];
 				p32[x] = (color.r << 24) + (color.g << 16) + (color.b << 8);

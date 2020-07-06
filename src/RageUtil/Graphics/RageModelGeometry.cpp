@@ -21,9 +21,7 @@ RageModelGeometry::~RageModelGeometry()
 void
 RageModelGeometry::OptimizeBones()
 {
-	for (unsigned i = 0; i < m_Meshes.size(); i++) {
-		msMesh& mesh = m_Meshes[i];
-
+	for (auto& mesh : m_Meshes) {
 		if (mesh.Vertices.empty())
 			continue; // nothing to optimize
 
@@ -43,8 +41,8 @@ RageModelGeometry::OptimizeBones()
 			mesh.m_iBoneIndex = iBoneIndex;
 
 			// clear all vertex/bone associations;
-			for (unsigned j = 0; j < mesh.Vertices.size(); j++) {
-				mesh.Vertices[j].bone = -1;
+			for (auto& Vertice : mesh.Vertices) {
+				Vertice.bone = -1;
 			}
 		}
 	}
@@ -69,8 +67,7 @@ RageModelGeometry::MergeMeshes(int iFromIndex, int iToIndex)
 	for (unsigned i = iStartShiftingAtTriangleIndex;
 		 i < meshTo.Triangles.size();
 		 i++) {
-		for (int j = 0; j < 3; j++) {
-			uint16_t& iIndex = meshTo.Triangles[i].nVertexIndices[j];
+		for (unsigned short& iIndex : meshTo.Triangles[i].nVertexIndices) {
 			iIndex = uint16_t(iIndex + iShiftTriangleVertexIndicesBy);
 		}
 	}
@@ -79,10 +76,9 @@ RageModelGeometry::MergeMeshes(int iFromIndex, int iToIndex)
 bool
 RageModelGeometry::HasAnyPerVertexBones() const
 {
-	for (unsigned i = 0; i < m_Meshes.size(); ++i) {
-		const msMesh& mesh = m_Meshes[i];
-		for (unsigned j = 0; j < mesh.Vertices.size(); ++j)
-			if (mesh.Vertices[j].bone != -1)
+	for (const auto& mesh : m_Meshes) {
+		for (const auto& Vertice : mesh.Vertices)
+			if (Vertice.bone != -1)
 				return true;
 	}
 
