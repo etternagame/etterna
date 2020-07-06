@@ -9,6 +9,7 @@ local tPressed = false
 local noteFieldWidth = MovableValues.NotefieldWidth
 local notefieldX = MovableValues.NotefieldX
 local oldWidth = noteFieldWidth
+local oldspacing = MovableValues.NotefieldSpacing
 local filter
 local cbContainer
 
@@ -33,12 +34,22 @@ local function input(event)
 				cbContainer:playcommand("Update")
 			end
 		end
+
+		if Movable.current == "DeviceButton_n" and event.type ~= "InputEventType_Release" then
+			if event.DeviceInput.button == "DeviceButton_up" or event.DeviceInput.button == "DeviceButton_down" then
+				filter:playcommand("Update")
+				cbContainer:playcommand("Update")
+				oldspacing = MovableValues.NotefieldSpacing
+			end
+		end
 	end
 	return false
 end
 
 local style = GAMESTATE:GetCurrentStyle()
 local cols = style:ColumnsPerPlayer()
+local hCols = math.floor(cols / 2)
+local evenCols = cols - cols%2
 local filterWidth = (arrowWidth * cols) + padding
 
 local judgeThreshold = Enum.Reverse(TapNoteScore)[ComboContinue()]
@@ -75,7 +86,13 @@ local function laneHighlight()
 				else
 					thewidth = noteFieldWidth - 1
 				end
+				-- x position is relative to the center of the notefield
+				-- account for the column width and also the number of columns
+				-- consider that we are also setting positions without aligns so the coordinate is the center of the column
 				self:xy((-(arrowWidth * (cols / 2)) + ((i - 1) * arrowWidth) + (arrowWidth / 2)) + (i-(cols/2)-(1/2))*colWidth*(thewidth),-receptor)
+				-- mimic the behavior of the moving function for spacing to set the last bit of x position
+				-- this moves all columns except "the middle" by however much the spacing requires
+				self:addx((i - hCols - 1) * MovableValues.NotefieldSpacing)
 				self:fadebottom(0.6):fadetop(0.6)
 				self:visible(false)
 			end,
@@ -98,7 +115,8 @@ local function laneHighlight()
 			UpdateCommand = function(self)
 				noteFieldWidth = MovableValues.NotefieldWidth
 				self:zoomtowidth((colWidth-border) * noteFieldWidth)
-				self:addx((i-(cols/2)-(1/2))*colWidth * (noteFieldWidth - oldWidth))
+				-- add x here, accounting for the difference in the width of the notefield and the difference in the spacing
+				self:addx((i-(cols/2)-(1/2))*colWidth * (noteFieldWidth - oldWidth) + (i - hCols - 1) * (MovableValues.NotefieldSpacing - oldspacing))
 			end
 		}
 	end
@@ -133,14 +151,18 @@ t[#t + 1] =
 	Def.Quad {
 	Name = "SinglePlayerFilter",
 	InitCommand = function(self)
-		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
+		self:zoomto(filterWidth * noteFieldWidth + MovableValues.NotefieldSpacing * evenCols, SCREEN_HEIGHT * 2)
+		-- offset the filter by this much for even column counts
+		self:addx(cols % 2 == 0 and -MovableValues.NotefieldSpacing / 2 or 0)
 		self:diffusecolor(filterColor)
 		self:diffusealpha(filterAlphas)
 		filter = self
 	end,
 	UpdateCommand = function(self)
 		noteFieldWidth = MovableValues.NotefieldWidth
-		self:zoomto(filterWidth * noteFieldWidth, SCREEN_HEIGHT * 2)
+		-- offset the filter by the difference in spacing for even column counts
+		self:addx(cols % 2 == 0 and -(MovableValues.NotefieldSpacing - oldspacing) / (cols-1) or 0)
+		self:zoomto(filterWidth * noteFieldWidth + MovableValues.NotefieldSpacing * evenCols, SCREEN_HEIGHT * 2)
 	end
 }
 

@@ -1602,16 +1602,35 @@ Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
+const vector<Steps*>
+Song::GetStepsOfCurrentGameMode() const
+{
+	std::vector<StepsType> types;
+	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
+
+	vector<Steps*> steps;
+	for (auto type : types) {
+		vector<Steps*> tmp = GetStepsByStepsType(type);
+		steps.insert(steps.end(), tmp.begin(), tmp.end());
+	}
+	return steps;
+}
+
 float
-Song::GetHighestOfSkillsetAllSteps(int x, float rate) const
+Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 {
 	CLAMP(rate, 0.7f, 2.f);
-	auto o = 0.f;
-	auto vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	if ((*steps)->GetMSD(rate, x) > o)
-		o = (*steps)->GetMSD(rate, x);
-	return o;
+	float highest = 0.f;
+
+	const vector<Steps*> steps = GetStepsOfCurrentGameMode();
+
+	for (auto step : steps) {
+		float current = step->GetMSD(rate, skill);
+		if (current > highest)
+			highest = current;
+	}
+
+	return highest;
 }
 
 bool
@@ -1629,21 +1648,9 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 }
 
 bool
-Song::MatchesFilter(
-  const float rate,
-  const std::optional<const std::vector<StepsType>> types) const
+Song::MatchesFilter(const float rate) const
 {
-	vector<Steps*> steps;
-	if (types) {
-		for (auto type : *types) {
-			auto tmp =
-			  GetStepsByStepsType(type); // Get all charts of type "type"
-			steps.insert(
-			  steps.end(), tmp.begin(), tmp.end()); // Append them to the list
-		}
-	} else {
-		steps = GetAllSteps();
-	}
+	vector<Steps*> steps = GetStepsOfCurrentGameMode();
 
 	for (const auto step : steps) {
 		// Iterate over all maps of the given type
