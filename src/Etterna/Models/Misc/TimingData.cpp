@@ -5,6 +5,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "TimingData.h"
+
 #include <cfloat>
 
 static void
@@ -44,8 +45,8 @@ TimingData::Clear()
 	FOREACH_TimingSegmentType(tst)
 	{
 		auto& vSegs = m_avpTimingSegments[tst];
-		for (unsigned i = 0; i < vSegs.size(); ++i) {
-			SAFE_DELETE(vSegs[i]);
+		for (auto& i : vSegs) {
+			SAFE_DELETE(i);
 		}
 
 		vSegs.clear();
