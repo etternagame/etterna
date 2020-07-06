@@ -776,7 +776,6 @@ class TimingData
 				return;
 			}
 		}
-		ValidSequentialAssumption = ValidSequentialAssumption;
 	}
 
   protected:
