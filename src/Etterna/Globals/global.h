@@ -25,9 +25,6 @@
 #include "archutils/Unix/arch_setup.h"
 #endif
 
-/* Make sure everyone has min and max: */
-#include <algorithm>
-
 /* Everything will need string for one reason or another: */
 #include <string>
 

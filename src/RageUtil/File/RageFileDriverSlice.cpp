@@ -1,5 +1,7 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFileDriverSlice.h"
+
+#include <algorithm>
 
 RageFileDriverSlice::RageFileDriverSlice(RageFileBasic* pFile,
 										 int iOffset,

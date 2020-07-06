@@ -2,6 +2,8 @@
 #include "RageSoundReader_Pan.h"
 #include "RageSoundUtil.h"
 
+#include <algorithm>
+
 RageSoundReader_Pan::RageSoundReader_Pan(RageSoundReader* pSource)
   : RageSoundReader_Filter(pSource)
 {
