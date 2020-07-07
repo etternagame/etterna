@@ -998,17 +998,6 @@ WriteLogHeader()
 	}
 }
 
-static void
-ApplyLogPreferences()
-{
-//	LOG->SetShowLogOutput(PREFSMAN->m_bShowLogOutput);
-//	LOG->SetLogToDisk(PREFSMAN->m_bLogToDisk);
-//	LOG->SetInfoToDisk(true);
-//	LOG->SetUserLogToDisk(true);
-//	LOG->SetFlushing(PREFSMAN->m_bForceLogFlush);
-	Checkpoints::LogCheckpoints(PREFSMAN->m_bLogCheckpoints);
-}
-
 static LocalizedString COULDNT_OPEN_LOADING_WINDOW(
   "LoadingWindow",
   "Couldn't open any loading windows.");
@@ -1070,8 +1059,6 @@ sm_main(int argc, char* argv[])
 		return 0;
 	}
 
-	ApplyLogPreferences();
-
 	WriteLogHeader();
 
 	// Set up alternative filesystem trees.
@@ -1091,7 +1078,11 @@ sm_main(int argc, char* argv[])
 	/* One of the above filesystems might contain files that affect preferences
 	 * (e.g. Data/Static.ini). Re-read preferences. */
 	PREFSMAN->ReadPrefsFromDisk();
-	ApplyLogPreferences();
+
+    // Setup options that require preference variables
+    // Used to be contents of ApplyLogPreferences
+    Locator::getLogger()->setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
+    Checkpoints::LogCheckpoints(PREFSMAN->m_bLogCheckpoints);
 
 	// This needs PREFSMAN.
 	Dialog::Init();
