@@ -3,6 +3,28 @@
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <fmt/chrono.h>
 
+#ifdef _WIN32
+#include <cstdio>
+namespace plog {
+
+    /**
+     * A Windows Specific Appender
+     *
+     * Windows is very particular about how a message is printed out. The built in appenders
+     * use a function that do not function well with stdout/stderr redirection as we do in ILogger.cpp
+     * This appender is specifically for windows as it will work with redirection.
+     */
+    template<class Formatter>
+    class WindowsAppender : public IAppender {
+    public:
+        virtual void write(const Record& record){
+            util::nstring str = Formatter::format(record);  // Get the formatted print string
+            fputws(str.c_str(), stdout);  // Print to standard out
+        }
+    };
+}
+#endif
+
 class EtternaFormatter {
 public:
     // This method returns a header for a new file.
@@ -34,9 +56,12 @@ PlogLogger::PlogLogger() {
     static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFileName.c_str()};
     plog::init(plog::Severity::verbose, &rollingFileAppender);
 
-    // Console Appender
-    // Note: Windows is unable to print colors when using the /subsystem:windows compile flag
-    static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
+    // Console Appender. One for windows, and another for other operating systems.
+    #ifdef _WIN32
+        static plog::WindowsAppender<EtternaFormatter> consoleAppender;
+    #else
+        static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
+    #endif
     plog::init(plog::Severity::verbose, &consoleAppender);
 }
 
