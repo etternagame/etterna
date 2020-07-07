@@ -6,6 +6,7 @@
 
 #include <set>
 #include <sstream>
+#include <algorithm>
 
 struct DisplayMode
 {
