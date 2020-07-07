@@ -11,6 +11,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
 
+#include <algorithm>
 #include <cassert>
 #include <utility>
 
