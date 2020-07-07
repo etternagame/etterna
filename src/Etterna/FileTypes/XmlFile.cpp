@@ -12,6 +12,7 @@
 #include "XmlFile.h"
 
 #include <cassert>
+#include <xutility>
 
 const std::string XNode::TEXT_ATTRIBUTE = "__TEXT__";
 
@@ -178,7 +179,7 @@ XNode*
 XNode::AppendChild(XNode* node)
 {
 	assert(node->m_sName.size());
-	m_children_by_name.insert(make_pair(node->m_sName, node));
+	m_children_by_name.insert(std::make_pair(node->m_sName, node));
 	m_childs.push_back(node);
 	return node;
 }
@@ -187,7 +188,7 @@ XNode::AppendChild(XNode* node)
 bool
 XNode::RemoveChild(XNode* node, bool bDelete)
 {
-	XNodes::iterator it = find(m_childs.begin(), m_childs.end(), node);
+	XNodes::iterator it = std::find(m_childs.begin(), m_childs.end(), node);
 	if (it == m_childs.end())
 		return false;
 	RemoveChildFromByName(node);
@@ -218,7 +219,7 @@ void
 XNode::RenameChildInByName(XNode* node)
 {
 	RemoveChildFromByName(node);
-	m_children_by_name.insert(make_pair(node->m_sName, node));
+	m_children_by_name.insert(std::make_pair(node->m_sName, node));
 }
 
 // detach attribute
@@ -244,7 +245,7 @@ XNode::AppendAttrFrom(const std::string& sName,
 {
 	assert(sName.size());
 	std::pair<XAttrs::iterator, bool> ret =
-	  m_attrs.insert(make_pair(sName, (XNodeValue*)nullptr));
+	  m_attrs.insert(std::make_pair(sName, (XNodeValue*)nullptr));
 	if (!ret.second) // already existed
 	{
 		if (bOverwrite) {
