@@ -10,7 +10,6 @@
 #include "Sprite.h"
 
 #include <cassert>
-#include <cmath>
 #include <algorithm>
 
 using std::vector;
