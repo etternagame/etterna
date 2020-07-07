@@ -18,6 +18,8 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 
+#include <algorithm>
+
 using std::map;
 
 /* BMS encoding:	tap-hold
@@ -602,7 +604,7 @@ BMSChart::Load(const std::string& chartPath)
 void
 BMSChart::TidyUpData()
 {
-	sort(objects.begin(), objects.end());
+	std::sort(objects.begin(), objects.end());
 }
 
 class BMSSong
