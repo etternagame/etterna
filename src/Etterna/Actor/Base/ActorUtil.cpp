@@ -13,6 +13,7 @@
 #include "arch/Dialog/Dialog.h"
 
 #include <map>
+#include <algorithm>
 
 using std::map;
 

@@ -6,6 +6,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <algorithm>
+
 // TODO: Use a marker for default color instead of a specific color that may
 // accidentally get written back into a lyrics file.
 #define LYRICS_DEFAULT_COLOR                                                   \

@@ -9,6 +9,7 @@
 #include "Etterna/Models/Songs/Song.h"
 
 #include <set>
+#include <algorithm>
 
 bool
 BackgroundDef::operator<(const BackgroundDef& other) const

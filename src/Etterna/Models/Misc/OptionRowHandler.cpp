@@ -19,6 +19,7 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
 #include <set>
+#include <algorithm>
 
 #define ENTRY(s) THEME->GetMetric("ScreenOptionsMaster", s)
 #define ENTRY_MODE(s, i)                                                       \

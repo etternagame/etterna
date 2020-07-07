@@ -4,6 +4,7 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include <map>
 #include <set>
@@ -38,10 +39,10 @@ struct File
 	File()
 	{
 		dir = false;
-		dirp = NULL;
+		dirp = nullptr;
 		size = -1;
 		hash = -1;
-		priv = NULL;
+		priv = nullptr;
 	}
 	File(const std::string& fn)
 	{
@@ -49,8 +50,8 @@ struct File
 		dir = false;
 		size = -1;
 		hash = -1;
-		priv = NULL;
-		dirp = NULL;
+		priv = nullptr;
+		dirp = nullptr;
 	}
 
 	bool operator<(const File& rhs) const { return lname < rhs.lname; }

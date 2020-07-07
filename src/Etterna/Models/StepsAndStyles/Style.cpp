@@ -141,7 +141,7 @@ std::string
 Style::ColToButtonName(int iCol) const
 {
 	const char* pzColumnName = m_ColumnInfo[iCol].pzName;
-	if (pzColumnName != NULL)
+	if (pzColumnName != nullptr)
 		return pzColumnName;
 
 	vector<GameInput> GI;

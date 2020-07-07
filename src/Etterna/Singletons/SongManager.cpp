@@ -29,6 +29,7 @@
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Etterna/Globals/MinaCalc.h"
 
 #include <numeric>
 #include <algorithm>

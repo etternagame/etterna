@@ -8,12 +8,12 @@
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
-#include "Etterna/Globals/MinaCalc.h"
 
 class Profile;
 class NoteData;
 struct lua_State;
 class Song;
+class Calc;
 
 /**
  * @brief Enforce a limit on the number of chars for the description.
@@ -172,12 +172,20 @@ class Steps
 	in the steps data so that we have to do it as few times as possible.*/
 	auto GetChartKey() const -> const std::string& { return ChartKey; }
 	std::vector<float> dummy = { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
-	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-						  dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-						  dummy, dummy, dummy, dummy, dummy, dummy, dummy };
+	std::vector<std::vector<float>> diffByRate = {
+		dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+		dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+		dummy, dummy, dummy, dummy, dummy, dummy, dummy
+	};
 	void SetChartKey(const std::string& k) { ChartKey = k; }
-	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
-	auto GetAllMSD() const -> MinaSD { return diffByRate; }
+	void SetAllMSD(const std::vector<std::vector<float>>& msd)
+	{
+		diffByRate = msd;
+	}
+	auto GetAllMSD() const -> std::vector<std::vector<float>>
+	{
+		return diffByRate;
+	}
 	auto SortSkillsetsAtRate(float x, bool includeoverall)
 	  -> std::vector<std::pair<Skillset, float>>;
 

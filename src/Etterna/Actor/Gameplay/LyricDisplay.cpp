@@ -6,6 +6,8 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+
 static ThemeMetric<float> IN_LENGTH("LyricDisplay", "InLength");
 static ThemeMetric<float> OUT_LENGTH("LyricDisplay", "OutLength");
 

@@ -74,6 +74,7 @@
 #include "ScreenManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 #include <set>
 #include <map>

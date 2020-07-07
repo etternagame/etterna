@@ -9,6 +9,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
+#include <algorithm>
+
 std::string
 OptimizeDWIString(std::string holds, std::string taps);
 

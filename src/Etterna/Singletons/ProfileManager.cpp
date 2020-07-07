@@ -7,9 +7,9 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "DownloadManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
+
+#include <algorithm>
 
 ProfileManager* PROFILEMAN =
   nullptr; // global and accessible from anywhere in our program
@@ -317,10 +317,9 @@ ProfileManager::CreateLocalProfile(const std::string& sName,
 	int first_free_number = 0;
 	vector<std::string> profile_ids;
 	GetLocalProfileIDs(profile_ids);
-	FOREACH_CONST(std::string, profile_ids, id)
-	{
+	for (auto& id : profile_ids) {
 		int tmp = 0;
-		if ((*id) >> tmp) {
+		if (id >> tmp) {
 			// The profile ids are already in order, so we don't have to handle
 			// the case where 5 is encountered before 3.
 			if (tmp == first_free_number) {
@@ -368,10 +367,10 @@ InsertProfileIntoList(DirAndProfile& derp)
 {
 	bool inserted = false;
 	derp.profile.m_ListPriority = 0;
-	FOREACH(DirAndProfile, g_vLocalProfile, curr)
-	{
+	for (auto& curr : g_vLocalProfile) {
 		++derp.profile.m_ListPriority;
 	}
+
 	if (!inserted) {
 		derp.profile.SaveTypeToDir(derp.sDir);
 		g_vLocalProfile.push_back(derp);
@@ -506,9 +505,8 @@ void
 ProfileManager::GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const
 {
 	vsProfileIDsOut.clear();
-	FOREACH_CONST(DirAndProfile, g_vLocalProfile, i)
-	{
-		std::string sID = LocalProfileDirToID(i->sDir);
+	for (auto& i : g_vLocalProfile) {
+		std::string sID = LocalProfileDirToID(i.sDir);
 		vsProfileIDsOut.push_back(sID);
 	}
 }
@@ -518,18 +516,21 @@ ProfileManager::GetLocalProfileDisplayNames(
   vector<std::string>& vsProfileDisplayNamesOut) const
 {
 	vsProfileDisplayNamesOut.clear();
-	FOREACH_CONST(DirAndProfile, g_vLocalProfile, i)
-	vsProfileDisplayNamesOut.push_back(i->profile.m_sDisplayName);
+	for (auto& i : g_vLocalProfile) {
+		vsProfileDisplayNamesOut.push_back(i.profile.m_sDisplayName);
+	}
 }
 
 int
 ProfileManager::GetLocalProfileIndexFromID(const std::string& sProfileID) const
 {
 	std::string sDir = LocalProfileIDToDir(sProfileID);
-	FOREACH_CONST(DirAndProfile, g_vLocalProfile, i)
-	{
-		if (i->sDir == sDir)
-			return i - g_vLocalProfile.begin();
+	int counter = 0;
+	for (auto& i : g_vLocalProfile) {
+		if (i.sDir == sDir) {
+			return counter;
+		}
+		++counter;
 	}
 	return -1;
 }

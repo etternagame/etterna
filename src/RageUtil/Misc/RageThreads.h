@@ -2,13 +2,11 @@
 #define RAGE_THREADS_H
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Singletons/PrefsManager.h"
 
 #include <mutex>
 #include <atomic>
 #include <thread>
 #include <chrono>
-#include <condition_variable>
 #include <functional>
 
 class ThreadData

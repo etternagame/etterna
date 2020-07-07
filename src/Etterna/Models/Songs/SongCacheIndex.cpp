@@ -1138,7 +1138,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			  static_cast<int>(qSteps.getColumn(stepsIndex++))));
 			pNewNotes->SetMeter(qSteps.getColumn(stepsIndex++));
 
-			MinaSD o;
+			std::vector<std::vector<float>> o;
 			std::stringstream msds;
 			msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string msdsatrate;

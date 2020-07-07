@@ -10,6 +10,7 @@
 
 #include <set>
 
+class Calc;
 class Style;
 class StepsID;
 struct lua_State;

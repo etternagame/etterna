@@ -29,7 +29,7 @@ JoinLineList(vector<std::string>& lines)
 }
 
 std::string
-NotesWriterSSC::MSDToString(MinaSD x)
+NotesWriterSSC::MSDToString(std::vector<std::vector<float>> x)
 {
 	std::string o = "";
 	for (size_t i = 0; i < x.size(); i++) {

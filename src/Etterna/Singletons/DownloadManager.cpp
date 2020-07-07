@@ -14,7 +14,6 @@
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "RageUtil/Misc/RageString.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
@@ -31,6 +30,7 @@
 #endif
 
 #include <unordered_set>
+#include <algorithm>
 
 using std::function;
 using std::map;
@@ -166,16 +166,15 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	string sResult = "Success installing " + sZipFile;
 	string extractTo =
 	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
-	FOREACH_CONST(string, vsFiles, sSrcFile)
-	{
-		string sDestFile = *sSrcFile;
+	for (auto& sSrcFile : vsFiles) {
+		string sDestFile = sSrcFile;
 		sDestFile = tail(std::string(sDestFile.c_str()),
 						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
 
 		std::string sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
 
-		if (!FileCopy(*sSrcFile, extractTo + sDestFile)) {
+		if (!FileCopy(sSrcFile, extractTo + sDestFile)) {
 			sResult = "Error extracting " + sDestFile;
 			break;
 		}
@@ -1882,7 +1881,7 @@ DownloadManager::RefreshCoreBundles()
 						!pack["packname"].IsString())
 						continue;
 					auto name = pack["packname"].GetString();
-					auto dlPack = find_if(
+					auto dlPack = std::find_if(
 					  dlPacks.begin(),
 					  dlPacks.end(),
 					  [&name](DownloadablePack x) { return x.name == name; });

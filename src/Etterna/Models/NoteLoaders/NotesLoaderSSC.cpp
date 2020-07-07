@@ -563,7 +563,7 @@ SSC::msdsplit(const std::string& s)
 void
 SetMSDValues(SSC::StepsTagInfo& info)
 {
-	MinaSD o;
+	std::vector<std::vector<float>> o;
 
 	// Optimize by calling those only once instead of multiple times inside the
 	// loop.

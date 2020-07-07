@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
+#include <cmath>
 
 class RageFileDriver;
 
