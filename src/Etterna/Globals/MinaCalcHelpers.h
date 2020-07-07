@@ -32,7 +32,7 @@ downscale_low_accuracy_scores(float f, float sg) -> float
 {
 	return sg >= low_acc_cutoff
 			 ? f
-			 : std::min(std::max(f / pow(1.F + (low_acc_cutoff - sg), 1.25F),
+			 : std::min(std::max(f / powf(1.F + (low_acc_cutoff - sg), 1.25F),
 								 min_rating),
 						max_rating);
 }
