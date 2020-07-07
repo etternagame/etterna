@@ -611,8 +611,8 @@ o[#o + 1] = Def.Quad {
 o[#o+1] = LoadFont("Common Normal") .. {
     Name = "G1Group",
     InitCommand = function(self)
-        self:xy(-plotWidth/2,-plotHeight/2)
-        self:halign(0):valign(0)
+        self:xy(-plotWidth/2 + 2,-plotHeight/2 + 5)
+        self:halign(0)
         self:zoom(0.25)
         self:settextf("Group %d", activeModGroup)
     end,
@@ -689,6 +689,20 @@ o[#o + 1] = Def.Quad {
             bg:visible(false)
 		end
 	end
+}
+
+-- mod group indicators appears top left of top graph bg
+o[#o+1] = LoadFont("Common Normal") .. {
+    Name = "G2Group",
+    InitCommand = function(self)
+        self:xy(-plotWidth/2 + 2, plotHeight/2 + 12)
+        self:halign(0)
+        self:zoom(0.25)
+        self:settextf("Group %d", activeDiffGroup)
+    end,
+    UpdateActiveLowerGraphMessageCommand = function(self)
+        self:settextf("Group %d", activeDiffGroup)
+    end
 }
 
 o[#o + 1] = LoadFont("Common Normal") .. {
@@ -939,13 +953,22 @@ end
 -- lower graph average text
 o[#o + 1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
-        self:xy(-plotWidth/2 + 5, plotHeight/2 + 10):halign(0):valign(0)
-        self:zoom(0.4)
+        self:xy(-plotWidth/2 + 30, plotHeight/2 + 12):halign(0)
+        self:zoom(0.35)
         self:settext("")
     end,
     DoTheThingCommand = function(self)
         if song and enabled then
             self:settextf("Upper Bound: %.4f", lowerGraphMax)
+        end
+    end,
+    UpdateActiveLowerGraphMessageCommand = function(self)
+        if song and enabled then
+            if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["SSRS"]) then
+                self:settextf("Upper Bound: %.4f", math.max(unpack(ssrs[1])))
+            else
+                self:settextf("Upper Bound: %.4f", lowerGraphMax)
+            end
         end
     end
 }
