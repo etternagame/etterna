@@ -2,7 +2,6 @@
 
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <fmt/chrono.h>
-#include <fmt/format.h>
 
 class EtternaFormatter {
 public:
@@ -25,6 +24,18 @@ public:
 };
 
 PlogLogger::PlogLogger() {
+    // Get current time for log file name. Format: YYYY_MM_DD-HH_MM_SS.log
+    char timeString[20]; // Date and time portion only
+    std::time_t t = std::time(nullptr);
+    std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
+    std::string logFileName = fmt::format("Logs/{}.log", timeString);
+
+    // File Appender
+    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFileName.c_str()};
+    plog::init(plog::Severity::verbose, &rollingFileAppender);
+
+    // Console Appender
+    // Note: Windows is unable to print colors when using the /subsystem:windows compile flag
     static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
     plog::init(plog::Severity::verbose, &consoleAppender);
 }

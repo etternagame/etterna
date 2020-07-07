@@ -15,6 +15,9 @@ set_target_properties(Etterna PROPERTIES
 # By default MSVC has a 2^16 limit on the number of sections in an object file, and this needs more than that.
 set_source_files_properties(src/Etterna/Singletons/NetworkSyncManager.cpp PROPERTIES COMPILE_FLAGS /bigobj)
 
+# Ignore the safer function variants provided by VC++. They are not portable.
+target_compile_definitions(Etterna PRIVATE _CRT_SECURE_NO_WARNINGS)
+
 # Linking - Windows Only
 target_link_libraries(Etterna PUBLIC ffmpeg)
 
