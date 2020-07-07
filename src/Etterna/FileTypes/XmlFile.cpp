@@ -12,7 +12,7 @@
 #include "XmlFile.h"
 
 #include <cassert>
-#include <xutility>
+#include <utility>
 
 const std::string XNode::TEXT_ATTRIBUTE = "__TEXT__";
 
