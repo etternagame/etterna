@@ -1,6 +1,6 @@
 #include "global.h"
-
 #include "StepMania.h"
+#include "Etterna/Globals/rngthing.h"
 
 // Rage global classes
 #include "Etterna/Singletons/GameSoundManager.h"
@@ -13,14 +13,10 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include <ctime>
-
 #include "ProductInfo.h"
-
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
@@ -57,6 +53,8 @@
 #include "Etterna/Singletons/StatsManager.h"
 #include "ver.h"
 #include "discord_rpc.h"
+
+#include <ctime>
 
 #ifdef _WIN32
 #include <windows.h>

@@ -6,6 +6,7 @@ list(APPEND SMDATA_RAGE_UTILS_SRC
   "Utils/RageUtil_CharConversions.cpp"
   "Utils/RageUtil_FileDB.cpp"
   "Utils/RageUtil_WorkerThread.cpp"
+  "Utils/rngthing.cpp"
 )
 
 list(APPEND SMDATA_RAGE_UTILS_HPP
@@ -16,6 +17,7 @@ list(APPEND SMDATA_RAGE_UTILS_HPP
      "Utils/RageUtil_CircularBuffer.h"
      "Utils/RageUtil_FileDB.h"
      "Utils/RageUtil_WorkerThread.h"
+     "Utils/rngthing.h"
      )
 
 source_group("Rage\\\\Utils" FILES ${SMDATA_RAGE_UTILS_SRC} ${SMDATA_RAGE_UTILS_HPP})

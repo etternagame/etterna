@@ -20,6 +20,7 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <deque>
 #include <algorithm>

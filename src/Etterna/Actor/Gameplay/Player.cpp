@@ -36,6 +36,7 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "HoldJudgment.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <algorithm>
 using std::max;

@@ -7,6 +7,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <cfloat>
 

@@ -10,6 +10,7 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <algorithm>
 

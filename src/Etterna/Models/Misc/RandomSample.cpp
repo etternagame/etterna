@@ -3,6 +3,7 @@
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RandomSample.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <algorithm>
 

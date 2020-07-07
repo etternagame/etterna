@@ -8,6 +8,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <algorithm>
+
 void
 GameplayAssist::Init()
 {
@@ -46,7 +48,7 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 	const auto fSongBeat =
 	  timing.GetBeatFromElapsedTimeNoOffset(fPositionSeconds);
 
-	const auto iSongRow = max(0, BeatToNoteRow(fSongBeat));
+	const auto iSongRow = std::max(0, BeatToNoteRow(fSongBeat));
 	static auto iRowLastCrossed = -1;
 	if (iSongRow < iRowLastCrossed)
 		iRowLastCrossed = iSongRow;

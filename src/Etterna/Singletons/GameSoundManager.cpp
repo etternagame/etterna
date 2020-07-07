@@ -16,6 +16,7 @@
 #include "Etterna/Models/Misc/TimingData.h"
 #include "ScreenManager.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"

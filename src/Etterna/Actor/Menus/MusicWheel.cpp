@@ -21,6 +21,7 @@
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <algorithm>
 

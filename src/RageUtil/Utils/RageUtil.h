@@ -394,55 +394,6 @@ Swap16BE(uint16_t n) -> uint16_t
 	return Swap16(n);
 }
 
-void
-seed_lua_prng();
-
-inline auto
-random_up_to(int limit) -> int;
-
-/**
- * @brief Generate a random float between 0 inclusive and 1 exclusive.
- * @return the random float.
- */
-inline auto
-RandomFloat() -> float;
-
-/**
- * @brief Return a float between the low and high values.
- * @param fLow the low value, inclusive.
- * @param fHigh the high value, inclusive.
- * @return the random float.
- */
-inline auto
-RandomFloat(float fLow, float fHigh) -> float;
-
-// Returns an integer between nLow and nHigh inclusive
-inline auto
-RandomInt(int low, int high) -> int;
-
-/**
- * @brief Return a float between the low and high
- * values.
- * @param fLow the low value, inclusive.
- * @param fHigh the high value, inclusive.
- * @return the random float.
- */
-inline auto
-RandomFloat(float fLow, float fHigh) -> float;
-
-// Returns an integer between nLow and nHigh inclusive
-inline auto
-RandomInt(int low, int high) -> int;
-
-// Returns an integer between 0 and n-1 inclusive (replacement for rand() %
-// n).
-inline auto
-RandomInt(int n) -> int;
-
-// Simple function for generating random numbers
-inline auto
-randomf(const float low = -1.0F, const float high = 1.0F) -> float;
-
 /* return f rounded to the nearest multiple of fRoundInterval */
 inline auto
 Quantize(const float f, const float fRoundInterval) -> float

@@ -30,6 +30,7 @@
 #include "SongManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <algorithm>
 

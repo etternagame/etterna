@@ -28,6 +28,7 @@
 #include "Etterna/Globals/StepMania.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlToLua.h"
+#include "Etterna/Globals/rngthing.h"
 #include "Etterna/Models/Misc/Foreach.h"
 
 #include <map>

@@ -7,6 +7,7 @@
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesLoader.h"
 #include "NotesLoaderBMS.h"
+#include "Etterna/Globals/rngthing.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"

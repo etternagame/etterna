@@ -8,6 +8,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <utility>
 #include <numeric>

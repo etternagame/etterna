@@ -12,7 +12,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
-
+#include "Etterna/Globals/rngthing.h"
 #include "Etterna/Singletons/FilterManager.h"
 
 #include <typeinfo>
