@@ -4,13 +4,11 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageSoundReader_WAV.h"
+#include "RageSoundReader_MP3.h"
+#include "RageSoundReader_Vorbisfile.h"
 
 #include <set>
-#include "RageSoundReader_WAV.h"
-
-#include "RageSoundReader_MP3.h"
-
-#include "RageSoundReader_Vorbisfile.h"
 
 RageSoundReader_FileReader*
 RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
@@ -121,7 +119,7 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 			*pPrebuffer = false;
 		}
 	}
-	set<std::string> FileTypes;
+	std::set<std::string> FileTypes;
 	vector<std::string> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (vector<std::string>::const_iterator curr = sound_exts.begin();
@@ -145,7 +143,7 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		FileTypes.erase(format);
 	}
 
-	for (set<std::string>::iterator it = FileTypes.begin();
+	for (std::set<std::string>::iterator it = FileTypes.begin();
 		 bKeepTrying && it != FileTypes.end();
 		 ++it) {
 		RageSoundReader_FileReader* NewSample =

@@ -4,15 +4,9 @@
 #define RAGE_UTIL_H
 
 #include <map>
-#include <random>
 #include <sstream>
-#include <vector>
-#include <memory>
 #include <string>
-#include <cstring>
-#include <sstream>
-#include <utility>
-#include <iosfwd>
+#include <vector>
 
 class RageFileDriver;
 
@@ -400,43 +394,18 @@ Swap16BE(uint16_t n) -> uint16_t
 	return Swap16(n);
 }
 
-typedef std::mt19937 RandomGen;
-
-extern RandomGen g_RandomNumberGenerator;
-
 void
 seed_lua_prng();
 
 inline auto
-random_up_to(RandomGen& rng, int limit) -> int
-{
-	RandomGen::result_type res = rng();
-	// Cutting off the incomplete [0,n) chunk at the max value makes the result
-	// more evenly distributed. -Kyz
-	RandomGen::result_type up_to_max =
-	  RandomGen::max() - (RandomGen::max() % limit);
-	while (res > up_to_max) {
-		res = rng();
-	}
-
-	return int(res % limit);
-}
-
-inline auto
-random_up_to(int limit) -> int
-{
-	return random_up_to(g_RandomNumberGenerator, limit);
-}
+random_up_to(int limit) -> int;
 
 /**
  * @brief Generate a random float between 0 inclusive and 1 exclusive.
  * @return the random float.
  */
 inline auto
-RandomFloat() -> float
-{
-	return float(g_RandomNumberGenerator() / 4294967296.0);
-}
+RandomFloat() -> float;
 
 /**
  * @brief Return a float between the low and high values.
@@ -445,31 +414,34 @@ RandomFloat() -> float
  * @return the random float.
  */
 inline auto
-RandomFloat(float fLow, float fHigh) -> float
-{
-	return SCALE(RandomFloat(), 0.0F, 1.0F, fLow, fHigh);
-}
+RandomFloat(float fLow, float fHigh) -> float;
 
 // Returns an integer between nLow and nHigh inclusive
 inline auto
-RandomInt(int low, int high) -> int
-{
-	return random_up_to(g_RandomNumberGenerator, high - low + 1) + low;
-}
+RandomInt(int low, int high) -> int;
 
-// Returns an integer between 0 and n-1 inclusive (replacement for rand() % n).
+/**
+ * @brief Return a float between the low and high
+ * values.
+ * @param fLow the low value, inclusive.
+ * @param fHigh the high value, inclusive.
+ * @return the random float.
+ */
 inline auto
-RandomInt(int n) -> int
-{
-	return random_up_to(g_RandomNumberGenerator, n);
-}
+RandomFloat(float fLow, float fHigh) -> float;
+
+// Returns an integer between nLow and nHigh inclusive
+inline auto
+RandomInt(int low, int high) -> int;
+
+// Returns an integer between 0 and n-1 inclusive (replacement for rand() %
+// n).
+inline auto
+RandomInt(int n) -> int;
 
 // Simple function for generating random numbers
 inline auto
-randomf(const float low = -1.0F, const float high = 1.0F) -> float
-{
-	return RandomFloat(low, high);
-}
+randomf(const float low = -1.0F, const float high = 1.0F) -> float;
 
 /* return f rounded to the nearest multiple of fRoundInterval */
 inline auto
@@ -596,10 +568,10 @@ auto
 ConvertI64FormatString(const std::string& sStr) -> std::string;
 
 /*
- * Splits a Path into 4 parts (Directory, Drive, Filename, Extention).  Supports
- * UNC path names. If Path is a directory (eg. c:\games\stepmania"), append a
- * slash so the last element will end up in Dir, not FName:
- * "c:\games\stepmania\".
+ * Splits a Path into 4 parts (Directory, Drive, Filename, Extention).
+ * Supports UNC path names. If Path is a directory (eg.
+ * c:\games\stepmania"), append a slash so the last element will end up in
+ * Dir, not FName: "c:\games\stepmania\".
  * */
 void
 splitpath(const std::string& Path,
@@ -760,8 +732,8 @@ SmEscape(const std::string& sUnescaped) -> std::string;
 auto
 SmEscape(const char* cUnescaped, int len) -> std::string;
 
-// These methods "escape" a string for .dwi by turning = into -, ] into I, etc.
-// That is "lossy".
+// These methods "escape" a string for .dwi by turning = into -, ] into I,
+// etc. That is "lossy".
 auto
 DwiEscape(const std::string& sUnescaped) -> std::string;
 auto
@@ -803,17 +775,18 @@ SortRStringArray(std::vector<std::string>& asAddTo, bool bSortAscending = true);
 /* Find the mean and standard deviation of all numbers in [start,end). */
 auto
 calc_mean(const float* pStart, const float* pEnd) -> float;
-/* When bSample is true, it calculates the square root of an unbiased estimator
- * for the population variance. Note that this is not an unbiased estimator for
- * the population standard deviation but it is close and an unbiased estimator
- * is complicated (apparently). When the entire population is known, bSample
- * should be false to calculate the exact standard deviation. */
+/* When bSample is true, it calculates the square root of an unbiased
+ * estimator for the population variance. Note that this is not an unbiased
+ * estimator for the population standard deviation but it is close and an
+ * unbiased estimator is complicated (apparently). When the entire
+ * population is known, bSample should be false to calculate the exact
+ * standard deviation. */
 auto
 calc_stddev(const float* pStart, const float* pEnd, bool bSample = false)
   -> float;
 
-/* Useful for objects with no operator-, eg. std::map::iterator (more convenient
- * than advance). */
+/* Useful for objects with no operator-, eg. std::map::iterator (more
+ * convenient than advance). */
 template<class T>
 inline auto
 Increment(T a) -> T
@@ -958,7 +931,8 @@ struct char_traits_char_nocase : public std::char_traits<char>
 using istring = std::basic_string<char, char_traits_char_nocase>;
 
 /* Compatibility/convenience shortcuts. These are actually defined in
- * RageFileManager.h, but declared here since they're used in many places. */
+ * RageFileManager.h, but declared here since they're used in many places.
+ */
 void
 GetDirListing(const std::string& sPath,
 			  std::vector<std::string>& AddTo,
@@ -1043,8 +1017,8 @@ GetAsNotInBs(const std::vector<T>& as,
 			 std::vector<T>& difference)
 {
 	std::vector<T> bsUnmatched = bs;
-	// Cannot use FOREACH_CONST here because std::vector<T>::const_iterator is
-	// an implicit type.
+	// Cannot use FOREACH_CONST here because std::vector<T>::const_iterator
+	// is an implicit type.
 	for (typename std::vector<T>::const_iterator a = as.begin(); a != as.end();
 		 ++a) {
 		typename std::vector<T>::iterator iter =

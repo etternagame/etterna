@@ -1,5 +1,3 @@
-#include "Etterna/Globals/global.h"
-
 /*
  * Styles define a set of columns for each player, and information about those
  * columns, like what Instruments are used play those columns and what track
@@ -18,6 +16,9 @@
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Style.h"
+#include "Etterna/Globals/global.h"
+
+#include <algorithm>
 #include <cfloat>
 
 bool
@@ -120,8 +121,8 @@ Style::GetMinAndMaxColX(PlayerNumber pn, float& fMixXOut, float& fMaxXOut) const
 	fMixXOut = FLT_MAX;
 	fMaxXOut = FLT_MIN;
 	for (int i = 0; i < m_iColsPerPlayer; i++) {
-		fMixXOut = min(fMixXOut, m_ColumnInfo[i].fXOffset);
-		fMaxXOut = max(fMaxXOut, m_ColumnInfo[i].fXOffset);
+		fMixXOut = std::min(fMixXOut, m_ColumnInfo[i].fXOffset);
+		fMaxXOut = std::max(fMaxXOut, m_ColumnInfo[i].fXOffset);
 	}
 }
 

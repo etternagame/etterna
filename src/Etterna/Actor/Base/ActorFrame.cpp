@@ -7,6 +7,8 @@
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <algorithm>
+
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
  * We don't want classes that derive from ActorFrame to auto delete their
  * children.  The name "ActorFrame" is widely used in Lua, so we'll have
@@ -563,8 +565,10 @@ PropagateActorFrameCommand(FinishTweening)
 {
 	auto m = Actor::GetTweenTimeLeft();
 
-	for (auto* a : m_SubActors)
-		m = max(m, a->GetTweenTimeLeft());
+	for (auto* a : m_SubActors) {
+		m = std::max(m, a->GetTweenTimeLeft());
+	}
+
 	return m;
 }
 

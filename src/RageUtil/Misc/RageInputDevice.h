@@ -104,7 +104,7 @@ enum InputDeviceState
 								// in
 	InputDeviceState_Unplugged, // has an InputHandler but controller is
 								// unplugged or lost wireless link
-	InputDeviceState_NeedsMultitap,  // has an InputHandler but needs a multitap
+	InputDeviceState_NeedsMultitap,	 // has an InputHandler but needs a multitap
 									 // to function
 	InputDeviceState_NoInputHandler, // there is no InputHandler that implements
 									 // this InputDevice
@@ -496,6 +496,6 @@ operator>=(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 	return !operator<(lhs, rhs);
 }
 
-typedef vector<DeviceInput> DeviceInputList;
+typedef std::vector<DeviceInput> DeviceInputList;
 
 #endif

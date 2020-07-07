@@ -167,7 +167,7 @@ class HiddenPtr
 #endif
 
 	~HiddenPtr() { HiddenPtrTraits<T>::Delete(m_pPtr); }
-	void Swap(HiddenPtr<T>& rhs) { swap(m_pPtr, rhs.m_pPtr); }
+	void Swap(HiddenPtr<T>& rhs) { std::swap(m_pPtr, rhs.m_pPtr); }
 
 	auto operator=(T* p) -> HiddenPtr<T>&
 	{

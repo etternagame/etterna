@@ -18,6 +18,8 @@
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
+#include <set>
+
 #define ENTRY(s) THEME->GetMetric("ScreenOptionsMaster", s)
 #define ENTRY_MODE(s, i)                                                       \
 	THEME->GetMetric("ScreenOptionsMaster",                                    \
@@ -373,10 +375,10 @@ class OptionRowHandlerList : public OptionRowHandler
 static void
 SortNoteSkins(vector<std::string>& asSkinNames)
 {
-	set<std::string> setSkinNames;
+	std::set<std::string> setSkinNames;
 	setSkinNames.insert(asSkinNames.begin(), asSkinNames.end());
 
-	vector<std::string> asSorted;
+	std::vector<std::string> asSorted;
 	split(NOTE_SKIN_SORT_ORDER, ",", asSorted);
 
 	auto setUnusedSkinNames(setSkinNames);
@@ -465,14 +467,9 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 						if (s.empty() || s == "blank" || s == "Blank")
 							s = pSteps->GetDescription();
 					} else {
-						if (pSteps->IsAnEdit()) {
-							s = pSteps->GetChartName();
-							if (s.empty() || s == "blank" || s == "Blank")
-								s = pSteps->GetDescription();
-						} else
-							s = CustomDifficultyToLocalizedString(
-							  GetCustomDifficulty(pSteps->m_StepsType,
-												  pSteps->GetDifficulty()));
+						s =
+						  CustomDifficultyToLocalizedString(GetCustomDifficulty(
+							pSteps->m_StepsType, pSteps->GetDifficulty()));
 					}
 				}
 				s += ssprintf(" %d", pSteps->GetMeter());

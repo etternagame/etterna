@@ -89,7 +89,7 @@ class ScreenSelectMaster : public ScreenSelect
 	ThemeMetric<int> SCROLLER_SUBDIVISIONS;
 	ThemeMetric<std::string> DEFAULT_CHOICE;
 
-	map<int, int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
+	std::map<int, int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
 
 	int GetSelectionIndex(PlayerNumber pn) override;
 	void UpdateSelectableChoices() override;
@@ -107,10 +107,10 @@ class ScreenSelectMaster : public ScreenSelect
 	AutoActor m_sprExplanation[NUM_Page];
 	AutoActor m_sprMore[NUM_Page];
 	// icon is the shared, per-choice piece
-	vector<AutoActor> m_vsprIcon;
+	std::vector<AutoActor> m_vsprIcon;
 
 	// preview is per-player, per-choice piece
-	vector<AutoActor> m_vsprScroll;
+	std::vector<AutoActor> m_vsprScroll;
 
 	ActorScroller m_Scroller;
 

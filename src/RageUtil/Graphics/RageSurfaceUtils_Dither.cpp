@@ -4,6 +4,8 @@
 #include "RageSurfaceUtils_Dither.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
 #define DitherMatDim 4
 
 // Fractions, 0/16 to 15/16:
@@ -138,7 +140,7 @@ EDDitherPixel(int x, int y, int intensity, int conv, int32_t& accumError)
 	 * To store it, we have to clamp it (prevent overflow) and shift it
 	 * from fixed-point to [0,255].  The error introduced in that calculation
 	 * becomes the new accumError. */
-	auto clamped_intensity = clamp(out_intensity, 0, 0xFFFFFF);
+	auto clamped_intensity = std::clamp(out_intensity, 0, 0xFFFFFF);
 	clamped_intensity &= 0xFF0000;
 
 	// Truncate.

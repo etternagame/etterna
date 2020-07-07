@@ -46,7 +46,7 @@ NotesWriterSSC::MSDsAtRateToString(std::vector<float> x)
 	std::string o = "";
 	auto msds = x;
 	for (size_t ii = 0; ii < msds.size(); ii++) {
-		o.append(to_string(msds[ii]).substr(0, 5));
+		o.append(std::to_string(msds[ii]).substr(0, 5));
 		if (ii != msds.size() - 1)
 			o.append(",");
 	}

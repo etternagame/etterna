@@ -1,7 +1,6 @@
 #ifndef Profile_DB
 #define Profile_DB
 
-#include "Etterna/Globals/global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include <SQLiteCpp/SQLiteCpp.h>
@@ -41,7 +40,7 @@ class DBProfile
 	  -> int;
 	static auto FindOrCreateSong(SQLite::Database* db,
 								 std::string pack,
-								 string song) -> int;
+								 std::string song) -> int;
 	static auto FindOrCreateChart(SQLite::Database* db,
 								  std::string chartkey,
 								  std::string pack,

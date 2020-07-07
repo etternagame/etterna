@@ -3,6 +3,8 @@
 #include "RageSoundUtil.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
 /*
  * Add support for negative seeks (adding a delay), extending a sound
  * beyond its end (m_LengthSeconds and M_CONTINUE), looping and fading.
@@ -14,7 +16,7 @@
 RageSoundReader_Extend::RageSoundReader_Extend(RageSoundReader* pSource)
   : RageSoundReader_Filter(pSource)
 {
-	ASSERT_M(pSource != NULL,
+	ASSERT_M(pSource != nullptr,
 			 "The music file was not found! Was it deleted or moved while the "
 			 "game was on?");
 	m_iPositionFrames = pSource->GetNextSourceFrame();
@@ -33,7 +35,7 @@ RageSoundReader_Extend::SetPosition(int iFrame)
 	m_bIgnoreFadeInFrames = false;
 
 	m_iPositionFrames = iFrame;
-	int iRet = m_pSource->SetPosition(max(iFrame, 0));
+	int iRet = m_pSource->SetPosition(std::max(iFrame, 0));
 	if (iRet < 0)
 		return iRet;
 
@@ -63,15 +65,15 @@ RageSoundReader_Extend::GetData(float* pBuffer, int iFrames)
 	int iFramesToRead = iFrames;
 	if (m_iLengthFrames != -1) {
 		int iFramesLeft = GetEndFrame() - m_iPositionFrames;
-		iFramesLeft = max(0, iFramesLeft);
-		iFramesToRead = min(iFramesToRead, iFramesLeft);
+		iFramesLeft = std::max(0, iFramesLeft);
+		iFramesToRead = std::min(iFramesToRead, iFramesLeft);
 	}
 
 	if (iFrames && !iFramesToRead)
 		return RageSoundReader::END_OF_FILE;
 
 	if (m_iPositionFrames < 0) {
-		iFramesToRead = min(iFramesToRead, -m_iPositionFrames);
+		iFramesToRead = std::min(iFramesToRead, -m_iPositionFrames);
 		memset(
 		  pBuffer, 0, iFramesToRead * sizeof(float) * this->GetNumChannels());
 		return iFramesToRead;
@@ -97,7 +99,7 @@ RageSoundReader_Extend::Read(float* pBuffer, int iFrames)
 			iFramesRead = iFrames;
 			if (m_StopMode != M_CONTINUE)
 				iFramesRead =
-				  min(GetEndFrame() - m_iPositionFrames, iFramesRead);
+				  std::min(GetEndFrame() - m_iPositionFrames, iFramesRead);
 			memset(
 			  pBuffer, 0, iFramesRead * sizeof(float) * this->GetNumChannels());
 		}

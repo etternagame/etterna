@@ -86,7 +86,7 @@ struct techyo
 
 	void advance_rm_comp(const float& rm_diff)
 	{
-		rm_itv_max_diff = max(rm_itv_max_diff, rm_diff);
+		rm_itv_max_diff = std::max(rm_itv_max_diff, rm_diff);
 	}
 
 	// for debug
@@ -105,8 +105,8 @@ struct techyo
 		// we definitely don't want to average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		return max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
-				   rm_itv_max_diff);
+		return std::max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
+						rm_itv_max_diff);
 	}
 
 	void interval_end()

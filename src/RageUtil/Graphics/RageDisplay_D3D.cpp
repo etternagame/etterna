@@ -11,12 +11,14 @@
 #include "RageSurfaceUtils.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "archutils/Win32/GraphicsWindow.h"
 
+#include <algorithm>
+#include <map>
+#include <list>
 #include <chrono>
 #include <D3dx9tex.h>
 #include <d3d9.h>
-
-#include "archutils/Win32/GraphicsWindow.h"
 
 // Static libraries
 // load Windows D3D9 dynamically
@@ -24,8 +26,6 @@
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
 #endif
-
-#include <list>
 
 auto GetErrorString(HRESULT /*hr*/) -> std::string
 {
@@ -53,7 +53,7 @@ IDirect3DSurface9* defaultDepthBuffer = nullptr;
 // of this application though.
 const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
 
-static map<intptr_t, RenderTarget*> g_mapRenderTargets;
+static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = nullptr;
 
 static bool g_bInvertY = false;
@@ -61,15 +61,15 @@ static bool g_bInvertY = false;
 /* Direct3D doesn't associate a palette with textures. Instead, we load a
  * palette into a slot. We need to keep track of which texture's palette is
  * stored in what slot. */
-map<intptr_t, int> g_TexResourceToPaletteIndex;
-list<int> g_PaletteIndex;
+std::map<intptr_t, int> g_TexResourceToPaletteIndex;
+std::list<int> g_PaletteIndex;
 
 struct TexturePalette
 {
 	PALETTEENTRY p[256];
 };
 
-map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
+std::map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
 
 // Load the palette, if any, for the given texture into a palette slot, and make
 // it current.
@@ -948,8 +948,8 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
   public:
 	void Allocate(const vector<msMesh>& /*vMeshes*/) override
 	{
-		m_vVertex.resize(max(1U, GetTotalVertices()));
-		m_vTriangles.resize(max(1U, GetTotalTriangles()));
+		m_vVertex.resize(std::max(1U, (unsigned)GetTotalVertices()));
+		m_vTriangles.resize(std::max(1U, (unsigned)GetTotalTriangles()));
 	}
 
 	void Change(const vector<msMesh>& vMeshes) override
@@ -1047,7 +1047,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 	// make a temporary index buffer
 	static vector<int> vIndices;
 	const int iOldSize = vIndices.size();
-	const auto uNewSize = max(iOldSize, iNumIndices);
+	const auto uNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(uNewSize);
 	for (auto i = iOldSize / 6; i < iNumQuads; i++) {
 		vIndices[i * 6 + 0] = i * 4 + 0;
@@ -1096,7 +1096,7 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 	// make a temporary index buffer
 	static vector<int> vIndices;
 	const int iOldSize = vIndices.size();
-	const auto iNewSize = max(iOldSize, iNumIndices);
+	const auto iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);
 	for (auto i = iOldSize / 6; i < iNumQuads; i++) {
 		vIndices[i * 6 + 0] = i * 2 + 0;
@@ -1143,7 +1143,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	// make a temporary index buffer
 	static vector<int> vIndices;
 	const int iOldSize = vIndices.size();
-	const auto iNewSize = max(iOldSize, iNumIndices);
+	const auto iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);
 	for (auto i = iOldSize / 12; i < iNumPieces; i++) {
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }

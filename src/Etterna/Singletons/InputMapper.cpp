@@ -12,6 +12,9 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "arch/Dialog/Dialog.h"
 
+#include <map>
+#include <algorithm>
+
 #define AUTOMAPPINGS_DIR "/Data/AutoMappings/"
 
 static Preference<std::string> g_sLastSeenInputDevices("LastSeenInputDevices",
@@ -22,18 +25,18 @@ namespace {
 // lookup for efficiency from a DeviceInput to a GameInput
 // This is repopulated every time m_PItoDI changes by calling
 // UpdateTempDItoPI().
-map<DeviceInput, GameInput> g_tempDItoGI;
+std::map<DeviceInput, GameInput> g_tempDItoGI;
 
 PlayerNumber g_JoinControllers;
 } // namespace;
 
 InputMapper* INPUTMAPPER =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 InputMapper::InputMapper()
 {
 	g_JoinControllers = PLAYER_INVALID;
-	m_pInputScheme = NULL;
+	m_pInputScheme = nullptr;
 }
 
 InputMapper::~InputMapper()
@@ -608,7 +611,7 @@ InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
 						  GameController gc,
 						  InputDevice id)
 {
-	map<GameInput, int> MappedButtons;
+	std::map<GameInput, int> MappedButtons;
 	FOREACH_CONST(AutoMappingEntry, vMmaps, iter)
 	{
 		GameController map_gc = gc;
@@ -1080,7 +1083,8 @@ InputMapper::GetSecsHeld(const GameInput& GameI, MultiPlayer mp) const
 		if (GameToDevice(GameI, i, DeviceI)) {
 			if (mp != MultiPlayer_Invalid)
 				DeviceI.device = MultiPlayerToInputDevice(mp);
-			fMaxSecsHeld = max(fMaxSecsHeld, INPUTFILTER->GetSecsHeld(DeviceI));
+			fMaxSecsHeld =
+			  std::max(fMaxSecsHeld, INPUTFILTER->GetSecsHeld(DeviceI));
 		}
 	}
 
@@ -1098,7 +1102,7 @@ InputMapper::GetSecsHeld(GameButton MenuI, PlayerNumber pn) const
 	vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
-		fMaxSecsHeld = max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
+		fMaxSecsHeld = std::max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
 
 	return fMaxSecsHeld;
 }
@@ -1139,7 +1143,7 @@ InputMapper::GetLevel(const GameInput& GameI) const
 		DeviceInput DeviceI;
 
 		if (GameToDevice(GameI, i, DeviceI))
-			fLevel = max(fLevel, INPUTFILTER->GetLevel(DeviceI));
+			fLevel = std::max(fLevel, INPUTFILTER->GetLevel(DeviceI));
 	}
 	return fLevel;
 }
@@ -1155,7 +1159,7 @@ InputMapper::GetLevel(GameButton MenuI, PlayerNumber pn) const
 
 	float fLevel = 0;
 	for (size_t i = 0; i < GameI.size(); i++)
-		fLevel = max(fLevel, GetLevel(GameI[i]));
+		fLevel = std::max(fLevel, GetLevel(GameI[i]));
 
 	return fLevel;
 }
@@ -1366,7 +1370,7 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 	ini.DeleteKey(pInputScheme->m_szName);
 
 	XNode* pKey = ini.GetChild(pInputScheme->m_szName);
-	if (pKey != NULL)
+	if (pKey != nullptr)
 		ini.RemoveChild(pKey);
 	pKey = ini.AppendChild(pInputScheme->m_szName);
 

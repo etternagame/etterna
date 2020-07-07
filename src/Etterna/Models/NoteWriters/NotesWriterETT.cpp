@@ -39,7 +39,7 @@ MSDToString2(MinaSD x)
 	for (size_t i = 0; i < x.size(); i++) {
 		auto msds = x[i];
 		for (size_t ii = 0; ii < msds.size(); ii++) {
-			o.append(to_string(msds[ii]).substr(0, 5));
+			o.append(std::to_string(msds[ii]).substr(0, 5));
 			if (ii != msds.size() - 1)
 				o.append(",");
 		}

@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "DisplaySpec.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
-#include "RageUtil/Misc/RageLog.h"
 
 class LunaDisplayMode : public Luna<DisplayMode>
 {

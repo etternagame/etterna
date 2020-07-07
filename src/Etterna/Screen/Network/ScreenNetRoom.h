@@ -7,6 +7,7 @@
 #include "Etterna/Models/Misc/RoomWheel.h"
 #include "ScreenNetSelectBase.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
+
 #include <vector>
 
 class ScreenNetRoom : public ScreenNetSelectBase
@@ -44,7 +45,7 @@ class ScreenNetRoom : public ScreenNetSelectBase
 
 	RageSound m_soundChangeSel;
 
-	string m_sLastPickedRoom;
+	std::string m_sLastPickedRoom;
 
 	std::string m_newRoomName, m_newRoomDesc, m_newRoomPass;
 

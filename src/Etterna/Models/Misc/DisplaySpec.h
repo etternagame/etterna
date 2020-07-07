@@ -1,10 +1,11 @@
 #ifndef DisplaySpec_H
 #define DisplaySpec_H
 
-#include <set>
-#include <utility>
 #include <RageUtil/Misc/RageLog.h>
 #include "RageUtil/Misc/RageTypes.h"
+
+#include <set>
+#include <sstream>
 
 struct DisplayMode
 {

@@ -9,6 +9,8 @@
 #include "ScreenWithMenuElements.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <algorithm>
+
 #define TIMER_STEALTH THEME->GetMetricB(m_sName, "TimerStealth")
 #define SHOW_STAGE_DISPLAY THEME->GetMetricB(m_sName, "ShowStageDisplay")
 #define FORCE_TIMER THEME->GetMetricB(m_sName, "ForceTimer")
@@ -240,7 +242,7 @@ ScreenWithMenuElements::StartTransitioningScreen(ScreenMessage smSendWhenDone)
 		// finished tweening.
 		float fSecondsUntilFinished = GetTweenTimeLeft();
 		float fSecondsUntilBeginOff =
-		  max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0);
+		  std::max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0.F);
 	}
 }
 

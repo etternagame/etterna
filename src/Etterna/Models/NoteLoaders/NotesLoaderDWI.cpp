@@ -180,7 +180,7 @@ DWIcharToNoteCol(char c,
 				 int& col1Out,
 				 int& col2Out,
 				 const std::string& sPath,
-				 map<int, int>& mapDanceNoteToColumn)
+				 std::map<int, int>& mapDanceNoteToColumn)
 {
 	int note1, note2;
 	DWIcharToNote(c, i, note1, note2, sPath);
@@ -617,7 +617,7 @@ DWILoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 bool
 DWILoader::LoadFromDir(const std::string& sPath_,
 					   Song& out,
-					   set<std::string>& BlacklistedImages)
+					   std::set<std::string>& BlacklistedImages)
 {
 	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);

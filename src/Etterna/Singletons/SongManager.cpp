@@ -1593,7 +1593,8 @@ SongManager::LoadCalcTestNode() const
 {
 	auto fn = "Save/" + calctest_XML;
 	int iError;
-	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
+	std::unique_ptr<RageFileBasic> pFile(
+	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == nullptr) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return;
@@ -1636,8 +1637,8 @@ SongManager::LoadCalcTestNode() const
 						if (stoi(thing->GetName()) != GetCalcVersion()) {
 							auto mumbo = 0.f;
 							thing->GetTextValue(mumbo);
-							ct.version_history.emplace(
-							  pair<int, float>(stoi(thing->GetName()), mumbo));
+							ct.version_history.emplace(std::pair<int, float>(
+							  stoi(thing->GetName()), mumbo));
 						}
 					}
 				}
@@ -1665,7 +1666,7 @@ SongManager::SaveCalcTestXmlToDir() const
 {
 	auto fn = "Save/" + calctest_XML;
 	// calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
-	unique_ptr<XNode> xml(SaveCalcTestCreateNode());
+	std::unique_ptr<XNode> xml(SaveCalcTestCreateNode());
 	string err;
 	RageFile f;
 	if (!f.Open(fn, RageFile::WRITE)) {

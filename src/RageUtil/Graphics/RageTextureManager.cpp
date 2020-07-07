@@ -33,14 +33,15 @@
 #include "Etterna/Singletons/ScoreManager.h"
 
 #include <map>
+#include <algorithm>
 
 RageTextureManager* TEXTUREMAN =
   nullptr; // global and accessible from anywhere in our program
 
 namespace {
-map<RageTextureID, RageTexture*> m_mapPathToTexture;
-map<RageTextureID, RageTexture*> m_textures_to_update;
-map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
+std::map<RageTextureID, RageTexture*> m_mapPathToTexture;
+std::map<RageTextureID, RageTexture*> m_textures_to_update;
+std::map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
 } // namespace;
 
 RageTextureManager::RageTextureManager() {}
@@ -82,7 +83,7 @@ RageTextureManager::AdjustTextureID(RageTextureID& ID) const
 {
 	if (ID.iColorDepth == -1)
 		ID.iColorDepth = m_Prefs.m_iTextureColorDepth;
-	ID.iMaxSize = min(ID.iMaxSize, m_Prefs.m_iMaxTextureResolution);
+	ID.iMaxSize = std::min(ID.iMaxSize, m_Prefs.m_iMaxTextureResolution);
 	if (m_Prefs.m_bMipMaps)
 		ID.bMipMaps = true;
 }
@@ -221,7 +222,7 @@ RageTextureManager::VolatileTexture(const RageTextureID& ID)
 {
 	auto pTexture = LoadTextureInternal(ID);
 	pTexture->GetPolicy() =
-	  min(pTexture->GetPolicy(), RageTextureID::TEX_VOLATILE);
+	  std::min(pTexture->GetPolicy(), RageTextureID::TEX_VOLATILE);
 	UnloadTexture(pTexture);
 }
 
@@ -272,7 +273,8 @@ RageTextureManager::DeleteTexture(RageTexture* t)
 			m_mapPathToTexture.erase(tex_entry);
 			SAFE_DELETE(t);
 		}
-		const auto tex_update_entry = m_textures_to_update.find(id_entry->second);
+		const auto tex_update_entry =
+		  m_textures_to_update.find(id_entry->second);
 		if (tex_update_entry != m_textures_to_update.end()) {
 			m_textures_to_update.erase(tex_update_entry);
 		}

@@ -1,8 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "RadarValues.h"
-#include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
 
 RadarValues::RadarValues()
 {
@@ -50,7 +50,7 @@ RadarValues::ToString(int iMaxValues) const
 {
 	if (iMaxValues == -1)
 		iMaxValues = NUM_RadarCategory;
-	iMaxValues = min(iMaxValues, static_cast<int>(NUM_RadarCategory));
+	iMaxValues = std::min(iMaxValues, static_cast<int>(NUM_RadarCategory));
 
 	vector<std::string> asRadarValues;
 	for (int r = 0; r < iMaxValues; r++) {

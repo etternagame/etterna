@@ -186,7 +186,8 @@ template<typename U, typename V>
 static bool
 GetKeyFromMap(const std::map<U, V>& m, const V& val, U& key)
 {
-	for (typename map<U, V>::const_iterator iter = m.begin(); iter != m.end();
+	for (typename std::map<U, V>::const_iterator iter = m.begin();
+		 iter != m.end();
 		 ++iter) {
 		if (iter->second == val) {
 			key = iter->first;
@@ -449,7 +450,7 @@ template<typename U, typename V>
 static bool
 GetValueFromMap(const std::map<U, V>& m, const U& key, V& val)
 {
-	typename map<U, V>::const_iterator it = m.find(key);
+	typename std::map<U, V>::const_iterator it = m.find(key);
 	if (it == m.end())
 		return false;
 	val = it->second;

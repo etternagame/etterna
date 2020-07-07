@@ -6,6 +6,12 @@
 #include "RageSurfaceUtils_Palettize.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
+using std::max;
+using std::min;
+using std::sort;
+
 typedef uint8_t pixval;
 typedef uint8_t apixel[4];
 
@@ -227,7 +233,7 @@ RageSurfaceUtils::Palettize(RageSurface*& pImg, int iColors, bool bDither)
 				// Use Floyd-Steinberg errors to adjust actual color.
 				for (auto c = 0; c < 4; ++c) {
 					sc[c] = pixel[c] + thiserr[col + 1].c[c] / FS_SCALE;
-					sc[c] = clamp(sc[c], 0, static_cast<int32_t>(maxval));
+					sc[c] = std::clamp(sc[c], 0, static_cast<int32_t>(maxval));
 				}
 
 				PAM_ASSIGN(pixel,
@@ -310,7 +316,7 @@ RageSurfaceUtils::Palettize(RageSurface*& pImg, int iColors, bool bDither)
 		} while (col != limitcol);
 
 		if (bDither) {
-			swap(thiserr, nexterr);
+			std::swap(thiserr, nexterr);
 			fs_direction = !fs_direction;
 		}
 	}

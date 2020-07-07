@@ -1,8 +1,8 @@
 #include "Etterna/Globals/global.h"
-#include "Foreach.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SampleHistory.h"
+
+#include <algorithm>
 
 inline float
 sample_step_size(int samples_per_second)
@@ -24,7 +24,8 @@ SampleHistory::SampleHistory()
 float
 SampleHistory::GetSampleNum(float fSamplesAgo) const
 {
-	fSamplesAgo = min(fSamplesAgo, static_cast<float>(m_afHistory.size() - 1));
+	fSamplesAgo =
+	  std::min(fSamplesAgo, static_cast<float>(m_afHistory.size() - 1));
 	if (fSamplesAgo < 0)
 		fSamplesAgo = 0;
 	if (m_afHistory.size() == 0)
@@ -56,7 +57,7 @@ void
 SampleHistory::AddSample(float fSample, float fDeltaTime)
 {
 	while (fDeltaTime > 0.0001f) {
-		const auto fTime = min(m_fToSample, fDeltaTime);
+		const auto fTime = std::min(m_fToSample, fDeltaTime);
 		m_fToSample -= fTime;
 		fDeltaTime -= fTime;
 

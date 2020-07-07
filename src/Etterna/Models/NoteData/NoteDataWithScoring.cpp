@@ -9,6 +9,8 @@
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 
+#include <algorithm>
+
 namespace {
 
 // ThemeMetric<TapNoteScoreJudgeType> LAST_OR_MINIMUM_TNS
@@ -77,7 +79,7 @@ NoteDataWithScoring::MinTapNoteScore(const NoteData& in, const unsigned& row)
 		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
 			tn.type == TapNoteType_Fake || tn.type == TapNoteType_AutoKeysound)
 			continue;
-		score = min(score, tn.result.tns);
+		score = std::min(score, tn.result.tns);
 	}
 
 	return score;

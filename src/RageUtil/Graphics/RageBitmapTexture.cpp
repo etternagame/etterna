@@ -13,6 +13,13 @@
 #include "arch/Dialog/Dialog.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <algorithm>
+#include <string>
+
+using std::max;
+using std::min;
+using std::string;
+
 static void
 GetResolutionFromFileName(std::string& sPath, int& iWidth, int& iHeight)
 {

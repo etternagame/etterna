@@ -13,6 +13,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 
 #include <cstring>
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(Model);
 

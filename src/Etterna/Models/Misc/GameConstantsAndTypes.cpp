@@ -7,6 +7,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "ThemeMetric.h"
 
+#include <algorithm>
+
 std::string
 StepsTypeToString(StepsType st);
 
@@ -349,7 +351,7 @@ DisplayBpms::GetMin() const
 	auto fMin = FLT_MAX;
 	for (const auto& f : vfBpms) {
 		if (f != -1.F)
-			fMin = min(fMin, f);
+			fMin = std::min(fMin, f);
 	}
 	if (fMin == FLT_MAX)
 		return 0;
@@ -368,7 +370,7 @@ DisplayBpms::GetMaxWithin(float highest) const
 	float fMax = 0;
 	for (const auto& f : vfBpms) {
 		if (f != -1.F)
-			fMax = clamp(max(fMax, f), 0, highest);
+			fMax = std::clamp(std::max(fMax, f), 0.F, highest);
 	}
 	return fMax;
 }

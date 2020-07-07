@@ -13,13 +13,13 @@ static bool
 CodePageConvert(std::string& sText, int iCodePage)
 {
 	int iSize = MultiByteToWideChar(
-	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), NULL, 0);
+	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), nullptr, 0);
 	if (iSize == 0) {
 		LOG->Trace("%s\n", werr_ssprintf(GetLastError(), "err: ").c_str());
 		return false; /* error */
 	}
 
-	wstring sOut;
+	std::wstring sOut;
 	sOut.append(iSize, ' ');
 	/* Nonportable: */
 	iSize = MultiByteToWideChar(iCodePage,

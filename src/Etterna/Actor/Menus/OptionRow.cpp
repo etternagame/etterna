@@ -9,6 +9,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
+#include <algorithm>
+
 const std::string NEXT_ROW_NAME = "NextRow";
 const std::string EXIT_NAME = "Exit";
 
@@ -508,7 +510,8 @@ OptionRow::UpdateText(PlayerNumber p)
 			const std::string sText = GetThemedItemText(iChoiceWithFocus);
 
 			// If player_no is 2 and there is no player 1:
-			const int index = min(pn, m_textItems.size() - 1);
+			const int index =
+			  std::min(pn, static_cast<unsigned>(m_textItems.size()) - 1U);
 
 			// TODO: Always have one textItem for each player
 
@@ -611,7 +614,8 @@ OptionRow::UpdateEnabledDisabled()
 				unsigned item_no = 0;
 
 				// If player_no is 2 and there is no player 1:
-				item_no = min(item_no, m_textItems.size() - 1);
+				item_no = std::min(
+				  item_no, static_cast<unsigned>(m_textItems.size()) - 1U);
 
 				BitmapText& bt = *m_textItems[item_no];
 

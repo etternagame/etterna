@@ -115,10 +115,10 @@ class ScreenTextEntry : public ScreenWithMenuElements
 		bool bPassword{ false };
 		LuaReference
 		  Validate; // (std::string sAnswer, std::string sErrorOut; optional)
-		LuaReference OnOK;			 // (std::string sAnswer; optional)
-		LuaReference OnCancel;		 // (optional)
-		LuaReference ValidateAppend; // (std::string sAnswerBeforeChar,
-									 // std::string sAppend; optional)
+		LuaReference OnOK;					 // (std::string sAnswer; optional)
+		LuaReference OnCancel;				 // (optional)
+		LuaReference ValidateAppend;		 // (std::string sAnswerBeforeChar,
+											 // std::string sAppend; optional)
 		LuaReference FormatAnswerForDisplay; // (std::string sAnswer; optional)
 
 		// see BitmapText.cpp Attribute::FromStack()  and
@@ -179,7 +179,7 @@ class ScreenTextEntry : public ScreenWithMenuElements
 
 	void UpdateAnswerText();
 
-	wstring m_sAnswer;
+	std::wstring m_sAnswer;
 	bool m_bShowAnswerCaret = false;
 	// todo: allow Left/Right to change caret location -aj
 	// int			m_iCaretLocation;

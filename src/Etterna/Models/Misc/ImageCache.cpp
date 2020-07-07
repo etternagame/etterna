@@ -1,7 +1,5 @@
 #include "Etterna/Globals/global.h"
-
 #include "ImageCache.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -19,6 +17,11 @@
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Actor/Base/Sprite.h"
+
+#include <algorithm>
+
+using std::max;
+using std::min;
 
 //#include "Banner.h"
 
@@ -53,7 +56,7 @@ static Preference<bool> g_bPalettedImageCache("PalettedImageCache", false);
 
 ImageCache* IMAGECACHE; // global and accessible from anywhere in our program
 
-static map<std::string, RageSurface*> g_ImagePathToImage;
+static std::map<std::string, RageSurface*> g_ImagePathToImage;
 static int g_iDemandRefcount = 0;
 
 std::string
@@ -142,8 +145,8 @@ ImageCache::LoadImage(const std::string& sImageDir,
 				 * up to date. */
 				CacheImageInternal(sImageDir, sImagePath);
 				continue;
-			} else
-				return;
+			}
+			return;
 		}
 
 		g_ImagePathToImage[sImagePath] = pImage;
@@ -154,9 +157,8 @@ void
 ImageCache::OutputStats() const
 {
 	auto iTotalSize = 0;
-	FOREACHM_CONST(std::string, RageSurface*, g_ImagePathToImage, it)
-	{
-		const RageSurface* pImage = it->second;
+	for (auto& it : g_ImagePathToImage) {
+		const RageSurface* pImage = it.second;
 		const auto iSize = pImage->pitch * pImage->h;
 		iTotalSize += iSize;
 	}
@@ -166,8 +168,9 @@ ImageCache::OutputStats() const
 void
 ImageCache::UnloadAllImages()
 {
-	FOREACHM(std::string, RageSurface*, g_ImagePathToImage, it)
-	delete it->second;
+	for (auto& it : g_ImagePathToImage) {
+		delete it.second;
+	}
 
 	g_ImagePathToImage.clear();
 }

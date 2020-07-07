@@ -3,13 +3,15 @@
 #include "FontManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <map>
 
-FontManager* FONT = NULL; // global and accessible from anywhere in our program
+FontManager* FONT =
+  nullptr; // global and accessible from anywhere in our program
 
 // map from file name to a texture holder
-typedef pair<std::string, std::string> FontName;
-static map<FontName, Font*> g_mapPathToFont;
+typedef std::pair<std::string, std::string> FontName;
+static std::map<FontName, Font*> g_mapPathToFont;
 
 FontManager::FontManager() = default;
 
@@ -42,7 +44,7 @@ FontManager::LoadFont(const std::string& sFontOrTextureFilePath,
 	CHECKPOINT_M(
 	  ssprintf("FontManager::LoadFont(%s).", sFontOrTextureFilePath.c_str()));
 	const FontName NewName(sFontOrTextureFilePath, sChars);
-	map<FontName, Font*>::iterator p = g_mapPathToFont.find(NewName);
+	std::map<FontName, Font*>::iterator p = g_mapPathToFont.find(NewName);
 	if (p != g_mapPathToFont.end()) {
 		pFont = p->second;
 		pFont->m_iRefCount++;
@@ -87,14 +89,3 @@ FontManager::UnloadFont(Font* fp)
 
 	FAIL_M(ssprintf("Unloaded an unknown font (%p)", fp));
 }
-
-/*
-void FontManager::PruneFonts() {
-	for( std::map<FontName, Font*>::iterator i = g_mapPathToFont.begin();i !=
-g_mapPathToFont.end();) { Font *fp=i->second; if(fp->m_iRefCount==0) { delete
-fp; g_mapPathToFont.erase(i); i = g_mapPathToFont.end(); } else {
-			++i;
-		}
-	}
-}
-*/

@@ -545,10 +545,11 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 				if (pActor == nullptr)
 					continue;
 				this->AddChild(pActor);
-				pActor->SetXY(randomf(float(FullScreenRectF.left),
-									  float(FullScreenRectF.right)),
-							  randomf(float(FullScreenRectF.top),
-									  float(FullScreenRectF.bottom)));
+				pActor->SetXY(
+				  randomf(static_cast<float>(FullScreenRectF.left),
+						  static_cast<float>(FullScreenRectF.right)),
+				  randomf(static_cast<float>(FullScreenRectF.top),
+						  static_cast<float>(FullScreenRectF.bottom)));
 				pActor->SetZoom(randomf(fZoomMin, fZoomMax));
 				m_vParticleVelocity.push_back(
 				  RageVector3(randomf(fVelocityXMin, fVelocityXMax),
@@ -614,7 +615,7 @@ BGAnimationLayer::UpdateInternal(float fDeltaTime)
 				for (unsigned i = 0; i < m_SubActors.size(); i++) {
 					// XXX: there's no longer any guarantee that this is a
 					// Sprite
-					Sprite* pSprite = (Sprite*)m_SubActors[i];
+					Sprite* pSprite = static_cast<Sprite*>(m_SubActors[i]);
 					pSprite->StretchTexCoords(fDeltaTime * m_fTexCoordVelocityX,
 											  fDeltaTime *
 												m_fTexCoordVelocityY);

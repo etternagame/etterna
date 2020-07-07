@@ -20,9 +20,9 @@ LoadingWindow::Create()
 	ASSERT(DriversToTry.size() != 0);
 
 	std::string Driver;
-	LoadingWindow* ret = NULL;
+	LoadingWindow* ret = nullptr;
 
-	for (unsigned i = 0; ret == NULL && i < DriversToTry.size(); ++i) {
+	for (unsigned i = 0; ret == nullptr && i < DriversToTry.size(); ++i) {
 		Driver = DriversToTry[i];
 
 #ifdef USE_LOADING_WINDOW_MACOSX
@@ -53,7 +53,7 @@ LoadingWindow::Create()
 			ret = new LoadingWindow_Null;
 		}
 
-		if (ret == NULL)
+		if (ret == nullptr)
 			continue;
 
 		std::string sError = ret->Init();

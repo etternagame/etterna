@@ -37,6 +37,8 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
+#include <algorithm>
+
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
 											 "Finalized" };
@@ -1056,7 +1058,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 	} else if (SM == SM_BackFromCalcTestStuff) {
 		string ans = ScreenTextEntry::s_sLastAnswer;
 		vector<string> words;
-		istringstream iss(ans);
+		std::istringstream iss(ans);
 		for (string s; iss >> s;)
 			words.push_back(s);
 		Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
@@ -1278,7 +1280,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 			StartTransitioningScreen(SM_None);
 			float fTime =
-			  max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
+			  std::max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
 			this->PostScreenMessage(SM_BeginFadingOut, fTime);
 		} else {
 			StartTransitioningScreen(SM_BeginFadingOut);

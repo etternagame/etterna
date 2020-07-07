@@ -11,6 +11,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 
 #include <cassert>
+#include <algorithm>
 
 const float min_state_delay = 0.0001f;
 

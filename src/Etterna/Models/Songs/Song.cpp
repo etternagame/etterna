@@ -34,6 +34,7 @@
 #include <cfloat>
 #include <ctime>
 #include <set>
+#include <map>
 
 using std::vector;
 
@@ -419,7 +420,7 @@ Song::ReloadFromSongDir(const std::string& sDir)
 	/* Go through the steps, first setting their Song pointer to this song
 	 * (instead of the copy used above), and constructing a map to let us
 	 * easily find the new steps. */
-	map<StepsID, Steps*> mNewSteps;
+	std::map<StepsID, Steps*> mNewSteps;
 	for (auto* m_vpStep : m_vpSteps) {
 		m_vpStep->m_pSong = this;
 
@@ -543,7 +544,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 	if (!from_cache) {
 		if (this->m_sArtist == "The Dancing Monkeys Project" &&
-			this->m_sMainTitle.find_first_of('-') != string::npos) {
+			this->m_sMainTitle.find_first_of('-') != std::string::npos) {
 			// Dancing Monkeys had a bug/feature where the artist was
 			// replaced. Restore it.
 			vector<std::string> titleParts;
@@ -1093,8 +1094,8 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache,
 			n->CalculateRadarValues(m_fMusicLengthSeconds);
 
 			// calculate lastSecond
-			localFirst = min(localFirst, n->firstsecond);
-			localLast = max(localLast, n->lastsecond);
+			localFirst = std::min(localFirst, n->firstsecond);
+			localLast = std::max(localLast, n->lastsecond);
 		}
 	}
 
@@ -1179,13 +1180,10 @@ Song::SaveToSMFile()
 }
 
 vector<Steps*>
-Song::GetStepsToSave(bool bSavingCache, string path)
+Song::GetStepsToSave(bool bSavingCache, std::string path)
 {
 	vector<Steps*> vpStepsToSave;
 	for (auto& s : m_vpSteps) {
-		// Only save steps that weren't loaded from a profile.
-		if (s->WasLoadedFromProfile())
-			continue;
 
 		if (!bSavingCache)
 			s->SetFilename(path);
@@ -1832,52 +1830,6 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 		return true;
 
 	return false;
-}
-
-/* If apInUse is set, it contains a list of steps which are in use
- * elsewhere, and should not be deleted. */
-void
-Song::FreeAllLoadedFromProfile(ProfileSlot slot,
-							   const std::set<Steps*>* setInUse)
-{
-	/* DeleteSteps will remove and recreate autogen notes, which may reorder
-	 * m_vpSteps, so be careful not to skip over entries. */
-	vector<Steps*> apToRemove;
-	for (int s = m_vpSteps.size() - 1; s >= 0; s--) {
-		auto* pSteps = m_vpSteps[s];
-		if (!pSteps->WasLoadedFromProfile())
-			continue;
-		if (slot != ProfileSlot_Invalid &&
-			pSteps->GetLoadedFromProfileSlot() != slot)
-			continue;
-		if (setInUse != nullptr && setInUse->find(pSteps) != setInUse->end())
-			continue;
-		apToRemove.push_back(pSteps);
-	}
-
-	for (auto& i : apToRemove)
-		this->DeleteSteps(i);
-}
-
-void
-Song::GetStepsLoadedFromProfile(ProfileSlot slot,
-								vector<Steps*>& vpStepsOut) const
-{
-	for (auto* pSteps : m_vpSteps) {
-		if (pSteps->GetLoadedFromProfileSlot() == slot)
-			vpStepsOut.push_back(pSteps);
-	}
-}
-
-int
-Song::GetNumStepsLoadedFromProfile(ProfileSlot slot) const
-{
-	auto iCount = 0;
-	for (auto* pSteps : m_vpSteps) {
-		if (pSteps->GetLoadedFromProfileSlot() == slot)
-			iCount++;
-	}
-	return iCount;
 }
 
 bool

@@ -9,6 +9,9 @@
 #include "ScreenPrompt.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <set>
+#include <algorithm>
+
 AutoScreenMessage(SM_DoSaveAndExit);
 #define BUTTONS_TO_MAP THEME->GetMetric(m_sName, "ButtonsToMap")
 static LocalizedString INVALID_BUTTON("ScreenMapControllers", "InvalidButton");
@@ -536,7 +539,8 @@ ScreenMapControllers::Input(const InputEventPlus& input)
 				if (CursorOnKey()) {
 					SetListEntry to_add(
 					  SetListEntry(CurKeyIndex(), m_CurController, m_CurSlot));
-					set<SetListEntry>::iterator found = m_SetList.find(to_add);
+					std::set<SetListEntry>::iterator found =
+					  m_SetList.find(to_add);
 					if (found == m_SetList.end()) {
 						m_SetList.insert(to_add);
 						GetActorWithFocus()->PlayCommand("GainMark");
@@ -622,7 +626,7 @@ ScreenMapControllers::Refresh()
 	}
 
 	m_LineScroller.SetDestinationItem(
-	  static_cast<float>(min(m_CurButton, m_MaxDestItem)));
+	  static_cast<float>(std::min(m_CurButton, m_MaxDestItem)));
 }
 
 void

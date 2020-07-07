@@ -446,7 +446,7 @@ NetworkStream_Win32::Open(const std::string& sHost,
 		sockaddr_in addr;
 		addr.sin_addr.s_addr = *(DWORD*)pHost->h_addr_list[0];
 		addr.sin_family = PF_INET;
-		addr.sin_port = htons((uint16_t)iPort);
+		addr.sin_port = htons(static_cast<uint16_t>(iPort));
 
 		m_Mutex.Lock();
 		m_Socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -550,7 +550,7 @@ NetworkStream_Win32::Read(void* pBuffer, size_t iSize)
 	if (m_State != STATE_CONNECTED)
 		return 0;
 
-	char* p = (char*)pBuffer;
+	char* p = static_cast<char*>(pBuffer);
 	int iRead = 0;
 	while (iSize > 0) {
 		int iRet = recv(m_Socket, p, iSize, 0);
@@ -598,7 +598,7 @@ NetworkStream_Win32::Write(const void* pBuffer, size_t iSize)
 	if (m_State != STATE_CONNECTED)
 		return;
 
-	const char* p = (const char*)pBuffer;
+	const char* p = static_cast<const char*>(pBuffer);
 	while (iSize > 0) {
 		int iRet = send(m_Socket, p, iSize, 0);
 		ASSERT(iRet != 0);
@@ -636,26 +636,25 @@ NetworkPostData::~NetworkPostData()
 /** @brief Create a MIME multipart data block from the given set of fields. */
 void
 NetworkPostData::CreateMimeData(
-  const map<std::string, std::string>& mapNameToData,
+  const std::map<std::string, std::string>& mapNameToData,
   std::string& sOut,
   std::string& sMimeBoundaryOut)
 {
 	// Find a non-conflicting mime boundary.
 	while (1) {
 		sMimeBoundaryOut = ssprintf("--%08i", rand());
-		FOREACHM_CONST(std::string, std::string, mapNameToData, d)
-		if (d->second.find(sMimeBoundaryOut) != std::string::npos)
-			continue;
+		for (auto& d : mapNameToData)
+			if (d.second.find(sMimeBoundaryOut) != std::string::npos)
+				continue;
 		break;
 	}
 
-	FOREACHM_CONST(std::string, std::string, mapNameToData, d)
-	{
+	for (auto& d : mapNameToData) {
 		sOut += "--" + sMimeBoundaryOut + "\r\n";
 		sOut += ssprintf("Content-Disposition: form-data; name=\"%s\"\r\n",
-						 d->first.c_str());
+						 d.first.c_str());
 		sOut += "\r\n";
-		sOut += d->second;
+		sOut += d.second;
 		sOut += "\r\n";
 	}
 	if (!sOut.empty())
@@ -723,10 +722,10 @@ NetworkPostData::HttpThread()
 
 	// Parse the results.
 	int iStart = 0, iSize = -1;
-	map<std::string, std::string> mapHeaders;
+	std::map<std::string, std::string> mapHeaders;
 	while (1) {
 		split(sResult, "\n", iStart, iSize, false);
-		if (iStart == (int)sResult.size())
+		if (iStart == static_cast<int>(sResult.size()))
 			break;
 
 		std::string sLine = sResult.substr(iStart, iSize);

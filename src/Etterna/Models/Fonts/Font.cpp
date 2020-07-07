@@ -10,6 +10,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/Dialog/Dialog.h"
 
+#include <algorithm>
+
 using std::map;
 using std::vector;
 using std::wstring;
@@ -162,9 +164,9 @@ FontPage::SetTextureCoords(const vector<int>& widths, int iAdvanceExtraPixels)
 		  *m_FontPageTextures.m_pTextureMain->GetTextureCoordRect(i);
 
 		// Set the width and height to the width and line spacing, respectively.
-		g.m_fWidth = float(widths[i]);
-		g.m_fHeight =
-		  float(m_FontPageTextures.m_pTextureMain->GetSourceFrameHeight());
+		g.m_fWidth = static_cast<float>(widths[i]);
+		g.m_fHeight = static_cast<float>(
+		  m_FontPageTextures.m_pTextureMain->GetSourceFrameHeight());
 
 		g.m_iHadvance = static_cast<int>(g.m_fWidth) + iAdvanceExtraPixels;
 
@@ -213,28 +215,28 @@ FontPage::SetExtraPixels(int iDrawExtraPixelsLeft, int iDrawExtraPixelsRight)
 		++iDrawExtraPixelsLeft;
 
 	// Adjust for iDrawExtraPixelsLeft and iDrawExtraPixelsRight.
-	for (unsigned i = 0; i < m_aGlyphs.size(); ++i) {
+	for (auto& m_aGlyph : m_aGlyphs) {
 		int iFrameWidth =
 		  m_FontPageTextures.m_pTextureMain->GetSourceFrameWidth();
-		float fCharWidth = m_aGlyphs[i].m_fWidth;
+		float fCharWidth = m_aGlyph.m_fWidth;
 
 		/* Extra pixels to draw to the left and right.  We don't have to
 		 * worry about alignment here; fCharWidth is always even (by
 		 * SetTextureCoords) and iFrameWidth are almost always even. */
-		float fExtraLeft = std::min(float(iDrawExtraPixelsLeft),
+		float fExtraLeft = std::min(static_cast<float>(iDrawExtraPixelsLeft),
 									(iFrameWidth - fCharWidth) / 2.0f);
-		float fExtraRight = std::min(float(iDrawExtraPixelsRight),
+		float fExtraRight = std::min(static_cast<float>(iDrawExtraPixelsRight),
 									 (iFrameWidth - fCharWidth) / 2.0f);
 
 		// Move left and expand right.
-		m_aGlyphs[i].m_TexRect.left -=
+		m_aGlyph.m_TexRect.left -=
 		  fExtraLeft *
 		  m_FontPageTextures.m_pTextureMain->GetSourceToTexCoordsRatioX();
-		m_aGlyphs[i].m_TexRect.right +=
+		m_aGlyph.m_TexRect.right +=
 		  fExtraRight *
 		  m_FontPageTextures.m_pTextureMain->GetSourceToTexCoordsRatioX();
-		m_aGlyphs[i].m_fHshift -= fExtraLeft;
-		m_aGlyphs[i].m_fWidth += fExtraLeft + fExtraRight;
+		m_aGlyph.m_fHshift -= fExtraLeft;
+		m_aGlyph.m_fWidth += fExtraLeft + fExtraRight;
 	}
 }
 
@@ -259,8 +261,8 @@ Font::GetLineWidthInSourcePixels(const wstring& szLine) const
 {
 	int iLineWidth = 0;
 
-	for (unsigned i = 0; i < szLine.size(); i++)
-		iLineWidth += GetGlyph(szLine[i]).m_iHadvance;
+	for (wchar_t i : szLine)
+		iLineWidth += GetGlyph(i).m_iHadvance;
 
 	return iLineWidth;
 }
@@ -271,9 +273,8 @@ Font::GetLineHeightInSourcePixels(const wstring& szLine) const
 	int iLineHeight = 0;
 
 	// The height of a line is the height of its tallest used font page.
-	for (unsigned i = 0; i < szLine.size(); i++)
-		iLineHeight =
-		  std::max(iLineHeight, GetGlyph(szLine[i]).m_pPage->m_iHeight);
+	for (wchar_t i : szLine)
+		iLineHeight = std::max(iLineHeight, GetGlyph(i).m_pPage->m_iHeight);
 
 	return iLineHeight;
 }
@@ -316,8 +317,8 @@ void
 Font::Unload()
 {
 	// LOG->Trace("Font:Unload '%s'",path.c_str());
-	for (unsigned i = 0; i < m_apPages.size(); ++i)
-		delete m_apPages[i];
+	for (auto& m_apPage : m_apPages)
+		delete m_apPage;
 	m_apPages.clear();
 
 	m_iCharToGlyph.clear();
@@ -362,10 +363,8 @@ Font::MergeFont(Font& f)
 	if (m_pDefault == nullptr)
 		m_pDefault = f.m_pDefault;
 
-	for (map<wchar_t, glyph*>::iterator it = f.m_iCharToGlyph.begin();
-		 it != f.m_iCharToGlyph.end();
-		 ++it) {
-		m_iCharToGlyph[it->first] = it->second;
+	for (auto& it : f.m_iCharToGlyph) {
+		m_iCharToGlyph[it.first] = it.second;
 	}
 
 	m_apPages.insert(m_apPages.end(), f.m_apPages.begin(), f.m_apPages.end());
@@ -415,10 +414,10 @@ Font::FontCompleteForString(const wstring& str) const
 		RageException::Throw(
 		  "The default glyph is missing from the font \"%s\".", path.c_str());
 
-	for (unsigned i = 0; i < str.size(); ++i) {
+	for (wchar_t i : str) {
 		// If the glyph for this character is the default glyph, we're
 		// incomplete.
-		const glyph& g = GetGlyph(str[i]);
+		const glyph& g = GetGlyph(i);
 		if (&g == mapDefault->second)
 			return false;
 	}
@@ -436,7 +435,7 @@ Font::CapsOnly()
 		if (it == m_iCharToGlyph.end())
 			continue;
 
-		m_iCharToGlyph[(char)tolower(c)] = it->second;
+		m_iCharToGlyph[static_cast<char>(tolower(c))] = it->second;
 	}
 }
 
@@ -462,9 +461,9 @@ Font::GetFontPaths(const std::string& sFontIniPath,
 	vector<std::string> asFiles;
 	GetDirListing(sPrefix + "*", asFiles, false, true);
 
-	for (unsigned i = 0; i < asFiles.size(); ++i) {
-		if (!EqualsNoCase(tail(asFiles[i], 4), ".ini"))
-			asTexturePathsOut.push_back(asFiles[i]);
+	for (auto& asFile : asFiles) {
+		if (!EqualsNoCase(tail(asFile, 4), ".ini"))
+			asTexturePathsOut.push_back(asFile);
 	}
 }
 
@@ -558,7 +557,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 						 utf8_get_char_len(sCodepoint[0]) ==
 						   static_cast<int>(sCodepoint.size())) {
 					c = utf8_get_char(sCodepoint.c_str());
-					if (c == wchar_t(-1))
+					if (c == static_cast<wchar_t>(-1))
 						LOG->Warn(
 						  "Font definition '%s' has an invalid value '%s'.",
 						  ini.GetPath().c_str(),
@@ -679,7 +678,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 					  "%i"
 					  "(\"%ls\"), but the font  is only %i characters wide.",
 					  ini.GetPath().c_str(),
-					  (int)wdata.size(),
+					  static_cast<int>(wdata.size()),
 					  row,
 					  wdata.c_str(),
 					  num_frames_wide);
@@ -869,13 +868,13 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 			Dialog::OK(s);
 		}
 
-		for (unsigned i = 0; i < ImportList.size(); ++i) {
-			std::string sPath = THEME->GetPathF("", ImportList[i], true);
+		for (auto& i : ImportList) {
+			std::string sPath = THEME->GetPathF("", i, true);
 			if (sPath == "") {
 				std::string s = ssprintf(
 				  "Font \"%s\" imports a font \"%s\" that doesn't exist",
 				  sIniPath.c_str(),
-				  ImportList[i].c_str());
+				  i.c_str());
 				Dialog::OK(s);
 				continue;
 			}
@@ -922,7 +921,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 			  "The font \"%s\" maps \"%s\" to frame %i, "
 			  "but the font only has %i frames.",
 			  sTexturePath.c_str(),
-			  WcharDisplayText(wchar_t(it->first)).c_str(),
+			  WcharDisplayText(static_cast<wchar_t>(it->first)).c_str(),
 			  it->second,
 			  pPage->m_FontPageTextures.m_pTextureMain->GetNumFrames());
 			it->second = 0;

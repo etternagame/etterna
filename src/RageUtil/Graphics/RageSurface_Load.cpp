@@ -83,7 +83,7 @@ RageSurfaceUtils::LoadFile(const std::string& sPath,
 		}
 	}
 
-	set<std::string> FileTypes;
+	std::set<std::string> FileTypes;
 	auto const& exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
 	for (const auto& ext : exts) {
 		FileTypes.insert(ext);

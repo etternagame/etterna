@@ -2,10 +2,11 @@
  * for describing input devices. */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageInputDevice.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <map>
 
 static const char* InputDeviceStateNames[] = {
 	"Connected",
@@ -17,8 +18,8 @@ XToString(InputDeviceState);
 XToLocalizedString(InputDeviceState);
 LuaXType(InputDevice);
 
-static map<DeviceButton, std::string> g_mapNamesToString;
-static map<std::string, DeviceButton> g_mapStringToNames;
+static std::map<DeviceButton, std::string> g_mapNamesToString;
+static std::map<std::string, DeviceButton> g_mapStringToNames;
 static void
 InitNames()
 {
@@ -138,8 +139,8 @@ InitNames()
 	g_mapNamesToString[MOUSE_WHEELUP] = "mousewheel up";
 	g_mapNamesToString[MOUSE_WHEELDOWN] = "mousewheel down";
 
-	FOREACHM(DeviceButton, std::string, g_mapNamesToString, m)
-	g_mapStringToNames[m->second] = m->first;
+	for (auto& m : g_mapNamesToString)
+		g_mapStringToNames[m.second] = m.first;
 }
 
 /* Return a reversible representation of a DeviceButton. This is not affected
@@ -151,7 +152,7 @@ DeviceButtonToString(DeviceButton key)
 
 	// Check the name map first to allow making names for keys that are inside
 	// the ascii range. -Kyz
-	map<DeviceButton, std::string>::const_iterator it =
+	std::map<DeviceButton, std::string>::const_iterator it =
 	  g_mapNamesToString.find(key);
 	if (it != g_mapNamesToString.end())
 		return it->second;
@@ -193,7 +194,8 @@ StringToDeviceButton(const std::string& s)
 	if (sscanf(s.c_str(), "Mouse %i", &i) == 1)
 		return enum_add2(MOUSE_LEFT, i);
 
-	map<std::string, DeviceButton>::const_iterator it = g_mapStringToNames.find(s);
+	std::map<std::string, DeviceButton>::const_iterator it =
+	  g_mapStringToNames.find(s);
 	if (it != g_mapStringToNames.end())
 		return it->second;
 
@@ -202,11 +204,11 @@ StringToDeviceButton(const std::string& s)
 LuaXType(DeviceButton);
 
 static const char* InputDeviceNames[] = {
-	"Key",   "Joy1",  "Joy2",  "Joy3",  "Joy4",  "Joy5",  "Joy6",  "Joy7",
-	"Joy8",  "Joy9",  "Joy10", "Joy11", "Joy12", "Joy13", "Joy14", "Joy15",
+	"Key",	 "Joy1",  "Joy2",  "Joy3",	"Joy4",	 "Joy5",  "Joy6",  "Joy7",
+	"Joy8",	 "Joy9",  "Joy10", "Joy11", "Joy12", "Joy13", "Joy14", "Joy15",
 	"Joy16", "Joy17", "Joy18", "Joy19", "Joy20", "Joy21", "Joy22", "Joy23",
 	"Joy24", "Joy25", "Joy26", "Joy27", "Joy28", "Joy29", "Joy30", "Joy31",
-	"Joy32", "Pump1", "Pump2", "Midi",  "Mouse", "PIUIO",
+	"Joy32", "Pump1", "Pump2", "Midi",	"Mouse", "PIUIO",
 };
 XToString(InputDevice);
 StringToX(InputDevice);

@@ -6,6 +6,8 @@
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
+#include <algorithm>
+
 #if defined(_MSC_VER)
 #pragma comment(lib, "dinput8.lib")
 #ifdef _WIN32

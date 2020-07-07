@@ -12,7 +12,6 @@
 #include "ScreenManager.h"
 #endif
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Globals/GameLoop.h" // For ChangeTheme
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "LuaManager.h"
@@ -20,8 +19,18 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
-#include <deque>
+
 #include "PrefsManager.h"
+
+#include <deque>
+#include <algorithm>
+#include <set>
+#include <map>
+
+using std::deque;
+using std::map;
+using std::set;
+
 ThemeManager* THEME =
   nullptr; // global object accessible from anywhere in the program
 
@@ -269,9 +278,9 @@ ThemeManager::GetLanguages(vector<std::string>& AddTo)
 		GetLanguagesForTheme(g_vTheme.sThemeName, AddTo);
 
 	// remove dupes
-	sort(AddTo.begin(), AddTo.end());
+	std::sort(AddTo.begin(), AddTo.end());
 	vector<std::string>::iterator it =
-	  unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
+	  std::unique(AddTo.begin(), AddTo.end(), EqualsNoCase);
 	AddTo.erase(it, AddTo.end());
 }
 
@@ -511,7 +520,7 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 	/* TODO: verify whether this final check is necessary. */
 	const std::string sCurThemeName = m_sCurThemeName;
 	m_sRealCurThemeName = m_sCurThemeName;
-	deque<Theme>::const_iterator iter = g_vThemes.end();
+	std::deque<Theme>::const_iterator iter = g_vThemes.end();
 	do {
 		--iter;
 
@@ -618,15 +627,15 @@ ThemeManager::FilterFileLanguages(vector<std::string>& asPaths)
 {
 	if (asPaths.size() <= 1)
 		return;
-	vector<std::string>::iterator it = partition(
+	vector<std::string>::iterator it = std::partition(
 	  asPaths.begin(), asPaths.end(), CompareLanguageTag(m_sCurLanguage));
 
 	int iDist = distance(asPaths.begin(), it);
 	if (iDist == 0) {
 		// We didn't find any for the current language.  Try BASE_LANGUAGE.
-		it = partition(asPaths.begin(),
-					   asPaths.end(),
-					   CompareLanguageTag(SpecialFiles::BASE_LANGUAGE));
+		it = std::partition(asPaths.begin(),
+							asPaths.end(),
+							CompareLanguageTag(SpecialFiles::BASE_LANGUAGE));
 		iDist = distance(asPaths.begin(), it);
 	}
 
@@ -812,11 +821,10 @@ ThemeManager::GetPathInfoToAndFallback(PathInfo& out,
 
 	int n = 100;
 	while (n--) {
-		FOREACHD_CONST(Theme, g_vThemes, iter)
-		{
+		for (auto& iter : g_vThemes) {
 			// search with requested name
 			if (GetPathInfoToRaw(
-				  out, iter->sThemeName, category, sMetricsGroup, sElement))
+				  out, iter.sThemeName, category, sMetricsGroup, sElement))
 				return true;
 		}
 

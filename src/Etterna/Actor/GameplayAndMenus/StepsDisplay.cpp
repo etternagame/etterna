@@ -174,9 +174,8 @@ StepsDisplay::SetInternal(const SetParams& params)
 	msg.SetParam("CustomDifficulty", sCustomDifficulty);
 
 	std::string sDisplayDescription;
-	if (params.pSteps && params.pSteps->IsAnEdit())
-		sDisplayDescription = params.pSteps->GetDescription();
-	else if (sCustomDifficulty.empty())
+
+	if (sCustomDifficulty.empty())
 		sDisplayDescription = std::string();
 	else
 		sDisplayDescription =
@@ -197,13 +196,13 @@ StepsDisplay::SetInternal(const SetParams& params)
 
 	if (m_bShowTicks) {
 		// todo: let themers handle the logic of tick text. -aj
-		auto on = char('1');
+		auto on = static_cast<char>('1');
 		auto off = '0';
 
 		std::string sNewText;
-		auto iNumOn = min((int)m_iMaxTicks, params.iMeter);
+		auto iNumOn = std::min(static_cast<int>(m_iMaxTicks), params.iMeter);
 		sNewText.insert(sNewText.end(), iNumOn, on);
-		auto iNumOff = max(0, m_iNumTicks - iNumOn);
+		auto iNumOff = std::max(0, m_iNumTicks - iNumOn);
 		sNewText.insert(sNewText.end(), iNumOff, off);
 		m_textTicks.SetText(sNewText);
 		m_textTicks.HandleMessage(msg);

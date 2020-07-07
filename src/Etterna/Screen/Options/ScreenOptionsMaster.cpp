@@ -61,7 +61,7 @@ ScreenOptionsMaster::Init()
 		ParseCommands(sRowCommands, cmds, false);
 
 		OptionRowHandler* pHand = OptionRowHandlerUtil::Make(cmds);
-		if (pHand == NULL) {
+		if (pHand == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid OptionRowHandler \"%s\" in \"%s:Line:%s\".",
 			  cmds.GetOriginalCommandString().c_str(),

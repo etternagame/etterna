@@ -91,8 +91,8 @@ XToString(MessageID);
 
 static RageMutex g_Mutex("MessageManager");
 
-typedef set<IMessageSubscriber*> SubscribersSet;
-static map<std::string, SubscribersSet> g_MessageToSubscribers;
+typedef std::set<IMessageSubscriber*> SubscribersSet;
+static std::map<std::string, SubscribersSet> g_MessageToSubscribers;
 
 Message::Message(const std::string& s)
 {
@@ -229,14 +229,13 @@ MessageManager::Broadcast(Message& msg) const
 
 	LockMut(g_Mutex);
 
-	map<std::string, SubscribersSet>::const_iterator iter =
+	std::map<std::string, SubscribersSet>::const_iterator iter =
 	  g_MessageToSubscribers.find(msg.GetName());
 	if (iter == g_MessageToSubscribers.end())
 		return;
 
-	FOREACHS_CONST(IMessageSubscriber*, iter->second, p)
-	{
-		IMessageSubscriber* pSub = *p;
+	for (auto& p : iter->second) {
+		IMessageSubscriber* pSub = p;
 		pSub->HandleMessage(msg);
 	}
 }

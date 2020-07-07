@@ -24,6 +24,7 @@
 #include "Etterna/Singletons/DownloadManager.h"
 
 #include <algorithm>
+#include <map>
 
 /** @brief The filename for where one can edit their personal profile
  * information. */
@@ -144,7 +145,7 @@ bool
 Profile::GetDefaultModifiers(const Game* pGameType,
 							 std::string& sModifiersOut) const
 {
-	map<std::string, std::string>::const_iterator it;
+	std::map<std::string, std::string>::const_iterator it;
 	it = m_sDefaultModifiers.find(pGameType->m_szName);
 	if (it == m_sDefaultModifiers.end())
 		return false;

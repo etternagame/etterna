@@ -15,6 +15,8 @@
 #include "Etterna/Singletons/InputFilter.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
 
+#include <algorithm>
+
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] = {
 	{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M" },
 	{ "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" },
@@ -401,8 +403,8 @@ ScreenTextEntry::UpdateAnswerText()
 	else
 		s = WStringToRString(m_sAnswer);
 
-	bool bAnswerFull =
-	  static_cast<int>(s.length()) >= max(g_iMaxInputLength, iMaxInputLength);
+	bool bAnswerFull = static_cast<int>(s.length()) >=
+					   std::max(g_iMaxInputLength, iMaxInputLength);
 
 	if (!FormatAnswerForDisplayFunc.IsNil() &&
 		FormatAnswerForDisplayFunc.IsSet())
@@ -466,7 +468,7 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 			bHandled = true;
 		} else if (c >= L' ') {
 			// todo: handle caps lock -aj
-			auto str = WStringToRString(wstring() + c);
+			auto str = WStringToRString(std::wstring() + c);
 			TryAppendToAnswer(str);
 
 			TextEnteredDirectly();
@@ -481,9 +483,9 @@ void
 ScreenTextEntry::TryAppendToAnswer(const std::string& s)
 {
 	{
-		wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+		std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
 		if (static_cast<int>(sNewAnswer.length()) >
-			max(g_iMaxInputLength, iMaxInputLength)) {
+			std::max(g_iMaxInputLength, iMaxInputLength)) {
 			SCREENMAN->PlayInvalidSound();
 			return;
 		}
@@ -503,7 +505,7 @@ ScreenTextEntry::TryAppendToAnswer(const std::string& s)
 		return;
 	}
 
-	wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+	std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
 	m_sAnswer = sNewAnswer;
 	m_sndType.Play(true);
 	UpdateAnswerText();

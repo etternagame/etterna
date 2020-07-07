@@ -701,11 +701,11 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 
 auto
 Steps::GetNPSVector(const NoteData& nd,
-					const vector<int>& nerv,
-					const vector<float>& etaner,
-					float rate) -> vector<int>
+					const std::vector<float>& etaner,
+					const std::vector<int>& nerv,
+					float rate) -> std::vector<int>
 {
-	vector<int> doot(static_cast<int>(etaner.back()));
+	std::vector<int> doot(static_cast<int>(etaner.back()));
 	auto notecounter = 0;
 	auto lastinterval = 0;
 	auto curinterval = 0;
@@ -775,8 +775,6 @@ class LunaSteps : public Luna<Steps>
 	DEFINE_METHOD(GetAuthorCredit, GetCredit())
 	DEFINE_METHOD(GetMeter, GetMeter())
 	DEFINE_METHOD(GetFilename, GetFilename())
-	DEFINE_METHOD(IsAnEdit, IsAnEdit())
-	DEFINE_METHOD(IsAPlayerEdit, IsAPlayerEdit())
 
 	static auto HasSignificantTimingChanges(T* p, lua_State* L) -> int
 	{
@@ -989,7 +987,7 @@ class LunaSteps : public Luna<Steps>
 
 		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
 		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		auto scroot = p->GetNPSVector(nd, nerv, etaner, rate);
+		auto scroot = p->GetNPSVector(nd, etaner, nerv, rate);
 		lua_newtable(L);
 		LuaHelpers::CreateTableFromArray(scroot, L);
 		lua_rawseti(L, -2, 1);
@@ -1112,8 +1110,6 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetMSD);
 		ADD_METHOD(GetSSRs);
-		ADD_METHOD(IsAnEdit);
-		ADD_METHOD(IsAPlayerEdit);
 		ADD_METHOD(GetDisplayBpms);
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);

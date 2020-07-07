@@ -139,7 +139,7 @@ RoomWheel::RemoveItem(int index)
 {
 	index += m_offset;
 
-	if (m_bEmpty || index >= (int)m_CurWheelItemData.size())
+	if (m_bEmpty || index >= static_cast<int>(m_CurWheelItemData.size()))
 		return;
 
 	auto i = m_CurWheelItemData.begin();

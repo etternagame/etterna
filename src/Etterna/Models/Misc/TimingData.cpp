@@ -7,6 +7,7 @@
 #include "TimingData.h"
 
 #include <cfloat>
+#include <algorithm>
 
 static void
 EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur);
@@ -205,8 +206,9 @@ TimingData::ShiftRange(int start_row,
 	{
 		if (seg_type == shift_type || shift_type == TimingSegmentType_Invalid) {
 			auto& segs = GetTimingSegments(seg_type);
-			const auto first_row = min(start_row, start_row + shift_amount);
-			const auto last_row = max(end_row, end_row + shift_amount);
+			const auto first_row =
+			  std::min(start_row, start_row + shift_amount);
+			const auto last_row = std::max(end_row, end_row + shift_amount);
 			const auto first_affected =
 			  GetSegmentIndexAtRow(seg_type, first_row);
 			size_t last_affected = GetSegmentIndexAtRow(seg_type, last_row);
@@ -222,7 +224,7 @@ TimingData::ShiftRange(int start_row,
 				 ++i) {
 				const auto seg_row = segs[i]->GetRow();
 				if (seg_row > 0 && seg_row >= start_row && seg_row <= end_row) {
-					const auto dest_row = max(seg_row + shift_amount, 0);
+					const auto dest_row = std::max(seg_row + shift_amount, 0);
 					segs[i]->SetRow(dest_row);
 				}
 			}
@@ -298,8 +300,8 @@ TimingData::GetActualBPM(float& fMinBPMOut,
 
 	for (auto* bpm : bpms) {
 		const auto fBPM = ToBPM(bpm)->GetBPM();
-		fMaxBPMOut = clamp(max(fBPM, fMaxBPMOut), 0, highest);
-		fMinBPMOut = min(fBPM, fMinBPMOut);
+		fMaxBPMOut = std::clamp(std::max(fBPM, fMaxBPMOut), 0.F, highest);
+		fMinBPMOut = std::min(fBPM, fMinBPMOut);
 	}
 }
 

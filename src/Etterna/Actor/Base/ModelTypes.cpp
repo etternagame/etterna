@@ -9,6 +9,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <cstring>
+#include <algorithm>
 
 #define MS_MAX_NAME 32
 

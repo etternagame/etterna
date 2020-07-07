@@ -4,6 +4,7 @@
 #include "RageSurface.h"
 #include "RageSurface_Load_XPM.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <map>
 
 #define CheckLine()                                                            \
@@ -38,7 +39,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 
 	vector<RageSurfaceColor> colors;
 
-	map<std::string, int> name_to_color;
+	std::map<std::string, int> name_to_color;
 	for (auto i = 0; i < num_colors; ++i) {
 		CheckLine();
 
@@ -101,7 +102,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		auto* p32 = (int32_t*)p;
 		for (auto x = 0; x < width; ++x) {
 			auto color_name = row.substr(x * color_length, color_length);
-			map<std::string, int>::const_iterator it;
+			std::map<std::string, int>::const_iterator it;
 			it = name_to_color.find(color_name);
 			if (it == name_to_color.end()) {
 				error = ssprintf(

@@ -82,7 +82,7 @@ LyricDisplay::Update(float fDeltaTime)
 	/* If it's negative, two lyrics are so close together that there's no time
 	 * to tween properly. Lyrics should never be this brief, anyway, so just
 	 * skip it. */
-	auto fShowLength = max(fDistance - fTweenBufferTime, 0.0f);
+	auto fShowLength = std::max(fDistance - fTweenBufferTime, 0.0f);
 
 	// Make lyrics show faster for faster song rates.
 	fShowLength /= GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;

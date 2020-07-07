@@ -6,7 +6,6 @@
 #include "ProfileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Models/Songs/Song.h"
 #include "SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "DownloadManager.h"
@@ -328,7 +327,7 @@ ProfileManager::CreateLocalProfile(const std::string& sName,
 			if (tmp == first_free_number) {
 				++first_free_number;
 			}
-			max_profile_number = max(tmp, max_profile_number);
+			max_profile_number = std::max(tmp, max_profile_number);
 		}
 	}
 

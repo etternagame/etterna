@@ -15,6 +15,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 
+#include <algorithm>
+
 /*
  * These navigation types are provided:
  *
@@ -249,7 +251,7 @@ ScreenOptions::InitMenu(const vector<OptionRowHandler*>& vHands)
 
 	// poke once at all the explanation metrics so that we catch missing ones
 	// early
-	for (int r = 0; r < (int)m_pRows.size(); r++) // foreach row
+	for (int r = 0; r < static_cast<int>(m_pRows.size()); r++) // foreach row
 	{
 		GetExplanationText(r);
 	}
@@ -374,7 +376,7 @@ ScreenOptions::GetWidthXY(PlayerNumber pn,
 						  int& iXOut,
 						  int& iYOut) const
 {
-	ASSERT_M(iRow < (int)m_pRows.size(),
+	ASSERT_M(iRow < static_cast<int>(m_pRows.size()),
 			 ssprintf("%i < %i", iRow, (int)m_pRows.size()));
 	const OptionRow& row = *m_pRows[iRow];
 	row.GetWidthXY(pn, iChoiceOnRow, iWidthOut, iXOut, iYOut);
@@ -422,7 +424,7 @@ ScreenOptions::PositionCursor(PlayerNumber pn)
 	if (iRow == -1)
 		return;
 
-	ASSERT_M(iRow >= 0 && iRow < (int)m_pRows.size(),
+	ASSERT_M(iRow >= 0 && iRow < static_cast<int>(m_pRows.size()),
 			 ssprintf("%i < %i", iRow, (int)m_pRows.size()));
 	const OptionRow& row = *m_pRows[iRow];
 
@@ -439,7 +441,8 @@ ScreenOptions::PositionCursor(PlayerNumber pn)
 	bool bCanGoLeft = iChoiceWithFocus > 0;
 	bool bCanGoRight =
 	  iChoiceWithFocus >= 0 &&
-	  iChoiceWithFocus < (int)row.GetRowDef().m_vsChoices.size() - 1;
+	  iChoiceWithFocus <
+		static_cast<int>(row.GetRowDef().m_vsChoices.size()) - 1;
 	cursor.SetCanGo(bCanGoLeft, bCanGoRight);
 }
 
@@ -449,7 +452,7 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 	// Set the position of the cursor showing the current option the user is
 	// changing.
 	const int iRow = m_iCurrentRow;
-	ASSERT_M(iRow >= 0 && iRow < (int)m_pRows.size(),
+	ASSERT_M(iRow >= 0 && iRow < static_cast<int>(m_pRows.size()),
 			 ssprintf("%i < %i", iRow, (int)m_pRows.size()));
 
 	const OptionRow& row = *m_pRows[iRow];
@@ -480,7 +483,8 @@ ScreenOptions::TweenCursor(PlayerNumber pn)
 			bCanGoLeft = iChoiceWithFocus > 0;
 			bCanGoRight =
 			  iChoiceWithFocus >= 0 &&
-			  iChoiceWithFocus < (int)row.GetRowDef().m_vsChoices.size() - 1;
+			  iChoiceWithFocus <
+				static_cast<int>(row.GetRowDef().m_vsChoices.size()) - 1;
 			break;
 		case LAYOUT_SHOW_ALL_IN_ROW:
 			break;
@@ -512,7 +516,8 @@ ScreenOptions::Input(const InputEventPlus& input)
 	// HACK: This screen eats mouse inputs if we don't check for them first.
 	bool mouse_evt = false;
 	for (int i = MOUSE_LEFT; i <= MOUSE_WHEELDOWN; i++) {
-		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, (DeviceButton)i))
+		if (input.DeviceI ==
+			DeviceInput(DEVICE_MOUSE, static_cast<DeviceButton>(i)))
 			mouse_evt = true;
 	}
 	if (mouse_evt) {
@@ -598,14 +603,14 @@ ScreenOptions::PositionRows(bool bTween)
 	int P1Choice = m_iCurrentRow;
 
 	vector<OptionRow*> Rows(m_pRows);
-	OptionRow* pSeparateExitRow = NULL;
+	OptionRow* pSeparateExitRow = nullptr;
 
-	if ((bool)SEPARATE_EXIT_ROW && !Rows.empty() &&
+	if (static_cast<bool>(SEPARATE_EXIT_ROW) && !Rows.empty() &&
 		Rows.back()->GetRowType() == OptionRow::RowType_Exit) {
 		pSeparateExitRow = Rows.back();
 
 		// Remove the exit row for purposes of positioning everything else.
-		if (P1Choice == (int)Rows.size() - 1)
+		if (P1Choice == static_cast<int>(Rows.size()) - 1)
 			--P1Choice;
 		/*if( P2Choice == (int) Rows.size()-1 )
 			--P2Choice;
@@ -616,34 +621,34 @@ ScreenOptions::PositionRows(bool bTween)
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if (m_InputMode == INPUTMODE_SHARE_CURSOR || !BothPlayersActivated) {
 		// Simply center the cursor.
-		first_start = max(P1Choice - halfsize, 0);
+		first_start = std::max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
 		const int earliest = P1Choice;
-		first_start = max(earliest - halfsize / 2, 0);
+		first_start = std::max(earliest - halfsize / 2, 0);
 		first_end = first_start + halfsize;
 
 		// Second half:
 		const int latest = P1Choice;
 
-		second_start = max(latest - halfsize / 2, 0);
+		second_start = std::max(latest - halfsize / 2, 0);
 
 		// Don't overlap.
-		second_start = max(second_start, first_end);
+		second_start = std::max(second_start, first_end);
 
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, (int)Rows.size());
-	second_end = min(second_end, (int)Rows.size());
+	first_end = std::min(first_end, static_cast<int>(Rows.size()));
+	second_end = std::min(second_end, static_cast<int>(Rows.size()));
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */
 	for (;;) {
 		const int sum = (first_end - first_start) + (second_end - second_start);
-		if (sum >= (int)Rows.size() || sum >= total) {
+		if (sum >= static_cast<int>(Rows.size()) || sum >= total) {
 			break; // nothing more to display, or no room
 		}
 		/* First priority: expand the top of the second half until it meets
@@ -654,7 +659,7 @@ ScreenOptions::PositionRows(bool bTween)
 		// Otherwise, expand either end.
 		else if (first_start > 0) {
 			first_start--;
-		} else if (second_end < (int)Rows.size()) {
+		} else if (second_end < static_cast<int>(Rows.size())) {
 			second_end++;
 		} else {
 			FAIL_M("Do we have room to grow or don't we?");
@@ -662,7 +667,7 @@ ScreenOptions::PositionRows(bool bTween)
 	}
 
 	int pos = 0;
-	for (int i = 0; i < (int)Rows.size(); i++) // foreach row
+	for (int i = 0; i < static_cast<int>(Rows.size()); i++) // foreach row
 	{
 		OptionRow& row = *Rows[i];
 
@@ -674,11 +679,14 @@ ScreenOptions::PositionRows(bool bTween)
 			fPos =
 			  (static_cast<int>(static_cast<int>(NUM_ROWS_SHOWN) / 2)) - 0.5f;
 		else if (i >= second_end)
-			fPos = ((int)NUM_ROWS_SHOWN) - 0.5f;
+			fPos = static_cast<int>(NUM_ROWS_SHOWN) - 0.5f;
 
 		Actor::TweenState tsDestination =
 		  m_exprRowPositionTransformFunction.GetTransformCached(
-			fPos, i, min((int)Rows.size(), (int)NUM_ROWS_SHOWN));
+			fPos,
+			i,
+			std::min(static_cast<int>(Rows.size()),
+					 static_cast<int>(NUM_ROWS_SHOWN)));
 
 		bool bHidden = i < first_start ||
 					   (i >= first_end && i < second_start) || i >= second_end;
@@ -723,14 +731,14 @@ ScreenOptions::AfterChangeValueOrRow(PlayerNumber pn)
 		m_pRows[r]->PositionUnderlines(PLAYER_1);
 		m_pRows[r]->PositionIcons(pn);
 		m_pRows[r]->SetRowHasFocus(
-		  pn, GAMESTATE->IsHumanPlayer(pn) && iCurRow == (int)r);
+		  pn, GAMESTATE->IsHumanPlayer(pn) && iCurRow == static_cast<int>(r));
 		m_pRows[r]->UpdateEnabledDisabled();
 	}
 
 	if (SHOW_SCROLL_BAR) {
 		float fPercent = 0;
 		if (m_pRows.size() > 1)
-			fPercent = iCurRow / float(m_pRows.size() - 1);
+			fPercent = iCurRow / static_cast<float>(m_pRows.size() - 1);
 		m_ScrollBar.SetPercentage(pn, fPercent);
 	}
 
@@ -750,7 +758,7 @@ ScreenOptions::AfterChangeValueOrRow(PlayerNumber pn)
 	}
 
 	const std::string text = GetExplanationText(iCurRow);
-	BitmapText* pText = NULL;
+	BitmapText* pText = nullptr;
 	switch (m_InputMode) {
 		case INPUTMODE_INDIVIDUAL:
 			pText = &m_textExplanation;
@@ -777,7 +785,7 @@ ScreenOptions::MenuBack(const InputEventPlus&)
 bool
 ScreenOptions::AllAreOnLastRow() const
 {
-	if (m_iCurrentRow != (int)(m_pRows.size() - 1))
+	if (m_iCurrentRow != static_cast<int>(m_pRows.size() - 1))
 		return false;
 	return true;
 }
@@ -925,7 +933,7 @@ ScreenOptions::ProcessMenuStart(const InputEventPlus& input)
 		switch (m_OptionsNavigation) {
 			case NAV_THREE_KEY:
 				// don't wrap
-				if (iCurRow == (int)m_pRows.size() - 1)
+				if (iCurRow == static_cast<int>(m_pRows.size()) - 1)
 					return;
 				MenuDown(input);
 				break;
@@ -1011,7 +1019,7 @@ ScreenOptions::GetNextScreenForFocusedItem(PlayerNumber pn) const
 	if (iCurRow == -1)
 		return std::string();
 
-	ASSERT(iCurRow >= 0 && iCurRow < (int)m_pRows.size());
+	ASSERT(iCurRow >= 0 && iCurRow < static_cast<int>(m_pRows.size()));
 	const OptionRow* pRow = m_pRows[iCurRow];
 
 	int iChoice = pRow->GetChoiceInRowWithFocus();
@@ -1023,7 +1031,7 @@ ScreenOptions::GetNextScreenForFocusedItem(PlayerNumber pn) const
 		return std::string();
 
 	const OptionRowHandler* pHand = pRow->GetHandler();
-	if (pHand == NULL)
+	if (pHand == nullptr)
 		return std::string();
 	return pHand->GetScreen(iChoice);
 }
@@ -1171,7 +1179,7 @@ ScreenOptions::MoveRowRelative(PlayerNumber pn, int iDir, bool bRepeat)
 
 	int iDest = -1;
 	ASSERT(m_pRows.size() != 0);
-	for (int r = 1; r < (int)m_pRows.size(); r++) {
+	for (int r = 1; r < static_cast<int>(m_pRows.size()); r++) {
 		int iDelta = r * iDir;
 		iDest = m_iCurrentRow + iDelta;
 		wrap(iDest, m_pRows.size());

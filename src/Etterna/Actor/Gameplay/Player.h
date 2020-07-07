@@ -6,6 +6,7 @@
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/Misc/TimingData.h"
 
 #include <chrono>
 

@@ -20,7 +20,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "AutoKeysounds.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Sound/RageSoundReader_Chain.h"
@@ -33,6 +32,8 @@
 #include "RageUtil/Sound/RageSoundReader_PostBuffering.h"
 #include "RageUtil/Sound/RageSoundReader_ThreadedBuffer.h"
 #include "Etterna/Models/Songs/Song.h"
+
+#include <algorithm>
 
 void
 AutoKeysounds::Load(PlayerNumber pn, const NoteData& ndAutoKeysoundsOnly)
@@ -67,7 +68,7 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 				 * We need a better way to prevent this. */
 				if (m_ndAutoKeysoundsOnly.GetNextTapNoteRowForTrack(
 					  t, iNextRowForPlayer))
-					iNextRow = min(iNextRow, iNextRowForPlayer);
+					iNextRow = std::min(iNextRow, iNextRowForPlayer);
 			}
 
 			if (iNextRow == INT_MAX)
@@ -112,11 +113,10 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 		vsMusicFile.push_back(sMusicPath);
 
 	vector<RageSoundReader*> vpSounds;
-	FOREACH(std::string, vsMusicFile, s)
-	{
+	for (auto& s : vsMusicFile) {
 		std::string sError;
 		RageSoundReader* pSongReader =
-		  RageSoundReader_FileReader::OpenFile(*s, sError);
+		  RageSoundReader_FileReader::OpenFile(s, sError);
 		vpSounds.push_back(pSongReader);
 	}
 
@@ -131,8 +131,8 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	} else if (!vpSounds.empty()) {
 		auto* pMerge = new RageSoundReader_Merge;
 
-		FOREACH(RageSoundReader*, vpSounds, so)
-		pMerge->AddSound(*so);
+		for (auto& so : vpSounds)
+			pMerge->AddSound(so);
 		pMerge->Finish(SOUNDMAN->GetDriverSampleRate());
 
 		RageSoundReader* pSongReader = pMerge;
@@ -193,8 +193,9 @@ AutoKeysounds::FinishLoading()
 	if (apSounds.size() > 1) {
 		auto* pMerge = new RageSoundReader_Merge;
 
-		FOREACH(RageSoundReader*, apSounds, ps)
-		pMerge->AddSound(*ps);
+		for (auto& ps : apSounds) {
+			pMerge->AddSound(ps);
+		}
 
 		pMerge->Finish(SOUNDMAN->GetDriverSampleRate());
 

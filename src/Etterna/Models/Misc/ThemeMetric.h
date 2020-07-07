@@ -313,7 +313,7 @@ class ThemeMetricMap : public IThemeMetric
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
-		typename map<std::string, ThemeMetric<T>>::const_iterator iter =
+		typename std::map<std::string, ThemeMetric<T>>::const_iterator iter =
 		  m_metric.find(s);
 		ASSERT(iter != m_metric.end());
 		return iter->second.GetValue();

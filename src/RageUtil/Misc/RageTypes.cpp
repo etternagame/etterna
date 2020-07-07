@@ -2,6 +2,8 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageTypes.h"
 
+#include <algorithm>
+
 void
 RageColor::PushTable(lua_State* L) const
 {
@@ -54,15 +56,15 @@ RageColor::FromStackCompat(lua_State* L, int iPos)
 std::string
 RageColor::ToString() const
 {
-	auto iR = clamp(static_cast<int>(r * 255), 0, 255);
-	auto iG = clamp(static_cast<int>(g * 255), 0, 255);
-	auto iB = clamp(static_cast<int>(b * 255), 0, 255);
-	auto iA = clamp(static_cast<int>(a * 255), 0, 255);
+	auto iR = std::clamp(static_cast<int>(r * 255), 0, 255);
+	auto iG = std::clamp(static_cast<int>(g * 255), 0, 255);
+	auto iB = std::clamp(static_cast<int>(b * 255), 0, 255);
+	auto iA = std::clamp(static_cast<int>(a * 255), 0, 255);
 
 	if (iA == 255)
 		return ssprintf("#%02X%02X%02X", iR, iG, iB);
-	else
-		return ssprintf("#%02X%02X%02X%02X", iR, iG, iB, iA);
+
+	return ssprintf("#%02X%02X%02X%02X", iR, iG, iB, iA);
 }
 
 std::string

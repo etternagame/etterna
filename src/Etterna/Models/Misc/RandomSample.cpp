@@ -4,6 +4,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RandomSample.h"
 
+#include <algorithm>
+
 RandomSample::RandomSample()
 {
 	m_iIndexLastPlayed = -1;
@@ -39,7 +41,7 @@ RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 	// make sure there's a slash at the end of this path
 	ensure_slash_at_end(sDir);
 
-	vector<std::string> arraySoundFiles;
+	std::vector<std::string> arraySoundFiles;
 	GetDirListing(sDir + "*.mp3", arraySoundFiles);
 	GetDirListing(sDir + "*.oga", arraySoundFiles);
 	GetDirListing(sDir + "*.ogg", arraySoundFiles);
@@ -47,7 +49,8 @@ RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 
 	std::shuffle(
 	  arraySoundFiles.begin(), arraySoundFiles.end(), g_RandomNumberGenerator);
-	arraySoundFiles.resize(min(arraySoundFiles.size(), (unsigned)iMaxToLoad));
+	arraySoundFiles.resize(
+	  std::min(arraySoundFiles.size(), static_cast<size_t>(iMaxToLoad)));
 
 	for (auto& arraySoundFile : arraySoundFiles)
 		LoadSound(sDir + arraySoundFile);

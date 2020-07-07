@@ -1,10 +1,7 @@
 #include "Etterna/Globals/global.h"
-
 #include "RageDisplay_OGL.h"
 #include "RageDisplay_OGL_Helpers.h"
-
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
@@ -18,8 +15,10 @@
 
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 
+#include <algorithm>
 #include <chrono>
 #include <set>
+#include <map>
 
 #ifdef _WIN32
 #include <GL/wglew.h>
@@ -34,6 +33,8 @@
 #define glFlush()
 #endif
 
+using std::max;
+using std::min;
 using namespace RageDisplay_Legacy_Helpers;
 
 //
@@ -62,7 +63,7 @@ static int g_iMaxTextureUnits = 0;
 /* If we support texture matrix scaling, a handle to the vertex program: */
 static GLhandleARB g_bTextureMatrixShader = 0;
 
-static map<intptr_t, RenderTarget*> g_mapRenderTargets;
+static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = nullptr;
 
 static LowLevelWindow* g_pWind;
@@ -837,8 +838,10 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 		/* Delete all render targets.  They may have associated resources other
 		 * than the texture itself. */
-		FOREACHM(intptr_t, RenderTarget*, g_mapRenderTargets, rt)
-		delete rt->second;
+		for (auto& rt : g_mapRenderTargets) {
+			delete rt.second;
+		}
+
 		g_mapRenderTargets.clear();
 
 		/* Recreate all vertex buffers. */
@@ -1113,11 +1116,11 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	void Allocate(const vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(max(1u, GetTotalVertices()));
-		m_vTexture.resize(max(1u, GetTotalVertices()));
-		m_vNormal.resize(max(1u, GetTotalVertices()));
-		m_vTexMatrixScale.resize(max(1u, GetTotalVertices()));
-		m_vTriangles.resize(max(1u, GetTotalTriangles()));
+		m_vPosition.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vTexture.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vNormal.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vTexMatrixScale.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vTriangles.resize(max(1U, (unsigned)GetTotalTriangles()));
 	}
 	void Change(const vector<msMesh>& vMeshes) override
 	{
@@ -1202,7 +1205,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 };
 
 class InvalidateObject;
-static set<InvalidateObject*> g_InvalidateList;
+static std::set<InvalidateObject*> g_InvalidateList;
 class InvalidateObject
 {
   public:
@@ -1214,8 +1217,9 @@ class InvalidateObject
 static void
 InvalidateObjects()
 {
-	FOREACHS(InvalidateObject*, g_InvalidateList, it)
-	(*it)->Invalidate();
+	for (auto& it : g_InvalidateList) {
+		it->Invalidate();
+	}
 }
 
 class RageCompiledGeometryHWOGL
@@ -1681,8 +1685,8 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 
 	/* Clamp the width to the hardware max for both lines and points (whichever
 	 * is more restrictive). */
-	fLineWidth = clamp(fLineWidth, g_line_range[0], g_line_range[1]);
-	fLineWidth = clamp(fLineWidth, g_point_range[0], g_point_range[1]);
+	fLineWidth = std::clamp(fLineWidth, g_line_range[0], g_line_range[1]);
+	fLineWidth = std::clamp(fLineWidth, g_point_range[0], g_point_range[1]);
 
 	/* Hmm.  The granularity of lines and points might be different; for
 	 * example, if lines are .5 and points are .25, we might want to snap the

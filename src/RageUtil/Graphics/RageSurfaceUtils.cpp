@@ -4,7 +4,13 @@
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <thread>
+#include <algorithm>
+
+using std::clamp;
+using std::max;
+using std::min;
 
 uint32_t
 RageSurfaceUtils::decodepixel(const uint8_t* p, int bpp)

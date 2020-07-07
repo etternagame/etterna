@@ -8,8 +8,10 @@
 #include "StepsUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <map>
+
 // Sorting stuff
-map<const Steps*, std::string> steps_sort_val;
+std::map<const Steps*, std::string> steps_sort_val;
 
 static bool
 CompareStepsPointersBySortValueAscending(const Steps* pSteps1,
@@ -42,7 +44,7 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 	// ugly...
 	vector<Song*> vpSongs = SONGMAN->GetAllSongs();
 	vector<Steps*> vpAllSteps;
-	map<Steps*, Song*> mapStepsToSong;
+	std::map<Steps*, Song*> mapStepsToSong;
 	{
 		for (unsigned i = 0; i < vpSongs.size(); i++) {
 			Song* pSong = vpSongs[i];

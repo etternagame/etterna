@@ -15,6 +15,7 @@
 #include <sstream>
 #include <cassert>
 #include <cctype>
+#include <random>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -182,7 +183,59 @@ HexToBinary(const std::string&, std::string&);
 void
 UnicodeUpperLower(wchar_t*, size_t, const unsigned char*);
 
+typedef std::mt19937 RandomGen;
 RandomGen g_RandomNumberGenerator;
+
+inline auto
+random_up_to(RandomGen& rng, int limit) -> int
+{
+	RandomGen::result_type res = rng();
+	// Cutting off the incomplete [0,n) chunk at the max value makes the result
+	// more evenly distributed. -Kyz
+	RandomGen::result_type up_to_max =
+	  RandomGen::max() - (RandomGen::max() % limit);
+	while (res > up_to_max) {
+		res = rng();
+	}
+
+	return int(res % limit);
+}
+
+inline auto
+random_up_to(int limit) -> int
+{
+	return random_up_to(g_RandomNumberGenerator, limit);
+}
+
+inline auto
+RandomFloat() -> float
+{
+	return float(g_RandomNumberGenerator() / 4294967296.0);
+}
+
+inline auto
+RandomFloat(float fLow, float fHigh) -> float
+{
+	return SCALE(RandomFloat(), 0.0F, 1.0F, fLow, fHigh);
+}
+
+inline auto
+RandomInt(int low, int high) -> int
+{
+	return random_up_to(g_RandomNumberGenerator, high - low + 1) + low;
+}
+
+inline auto
+RandomInt(int n) -> int
+{
+	return random_up_to(g_RandomNumberGenerator, n);
+}
+
+inline auto
+randomf(const float low, const float high) -> float
+{
+	return RandomFloat(low, high);
+}
 
 /* Extend MersenneTwister into Lua space. This is intended to replace
  * math.randomseed and math.random, so we conform to their behavior. */

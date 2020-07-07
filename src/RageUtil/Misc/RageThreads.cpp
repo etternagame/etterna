@@ -16,9 +16,10 @@
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <atomic>
 #include <thread>
-
+#include <algorithm>
 #include <set>
 
 #include "arch/Threads/Threads.h"

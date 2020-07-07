@@ -14,6 +14,13 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/SongManager.h"
 
+#include <map>
+#include <algorithm>
+
+using std::map;
+using std::max;
+using std::min;
+
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
 	THEME->GetMetricB("PlayerStageStats", "GradeTier02IsAllW2s")
@@ -320,7 +327,7 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	auto fPercent = iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
-	fPercent = max(0, fPercent);
+	fPercent = max(0.F, fPercent);
 
 	const auto iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"

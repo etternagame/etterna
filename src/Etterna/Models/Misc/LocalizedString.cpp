@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Foreach.h"
 #include "LocalizedString.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SubscriptionManager.h"
@@ -35,9 +34,8 @@ void
 LocalizedString::RegisterLocalizer(MakeLocalizer pFunc)
 {
 	g_pMakeLocalizedStringImpl = pFunc;
-	FOREACHS(LocalizedString*, *m_Subscribers.m_pSubscribers, l)
-	{
-		auto pLoc = *l;
+	for (auto l : *m_Subscribers.m_pSubscribers) {
+		auto pLoc = l;
 		pLoc->CreateImpl();
 	}
 }

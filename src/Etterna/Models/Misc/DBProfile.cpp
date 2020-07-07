@@ -16,6 +16,8 @@
 #include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 
+#include <algorithm>
+
 const string PROFILE_DB = "profile.db";
 const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
 
@@ -364,7 +366,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 								   hs.GetDateTime().GetString())));
 
 		// Validate input.
-		hs.SetGrade(clamp(hs.GetGrade(), Grade_Tier01, Grade_Failed));
+		hs.SetGrade(std::clamp(hs.GetGrade(), Grade_Tier01, Grade_Failed));
 
 		// Set any pb
 		if (scores[key].ScoresByRate[rate].PBptr == nullptr)
@@ -394,15 +396,15 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		};
 
 		scores[key].ScoresByRate[rate].bestGrade =
-		  min(hs.GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
+		  std::min(hs.GetWifeGrade(), scores[key].ScoresByRate[rate].bestGrade);
 
 		// Very awkward, need to figure this out better so there isn't
 		// unnecessary redundancy between loading and adding
 		SCOREMAN->RegisterScore(&hs);
 		SCOREMAN->AddToKeyedIndex(&hs);
 
-		scores[key].bestGrade =
-		  min(scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
+		scores[key].bestGrade = std::min(
+		  scores[key].ScoresByRate[rate].bestGrade, scores[key].bestGrade);
 	}
 }
 void
@@ -484,7 +486,7 @@ DBProfile::SaveDBToDir(string dir,
 				 "skillset TEXT)");
 		FOREACH_ENUM(Skillset, ss)
 		db->exec("INSERT INTO skillsets VALUES (" +
-				 to_string(static_cast<int>(ss)) + ", \"" +
+				 std::to_string(static_cast<int>(ss)) + ", \"" +
 				 SkillsetToString(ss) + "\")");
 		if (mode == WriteOnlyWebExport)
 			SaveGeneralData(db, profile);
@@ -607,8 +609,8 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 			 "skillsets(skillsetnum))");
 
 	FOREACH_ENUM(Skillset, ss)
-	db->exec("INSERT INTO playerskillsets VALUES (NULL, " + to_string(ss) +
-			 ", " + to_string(profile->m_fPlayerSkillsets[ss]) + ")");
+	db->exec("INSERT INTO playerskillsets VALUES (NULL, " + std::to_string(ss) +
+			 ", " + std::to_string(profile->m_fPlayerSkillsets[ss]) + ")");
 
 	db->exec("DROP TABLE IF EXISTS usertable");
 	db->exec("CREATE TABLE usertable (id INTEGER PRIMARY KEY, "
@@ -658,7 +660,7 @@ DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
 		for (auto& it : profile->PermaMirrorCharts) {
 			const auto chID = FindOrCreateChartKey(db, it);
 			db->exec("INSERT INTO permamirrors VALUES (NULL, " +
-					 to_string(chID) + ")");
+					 std::to_string(chID) + ")");
 		}
 	}
 }

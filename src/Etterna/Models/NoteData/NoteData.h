@@ -9,6 +9,8 @@
 #include <set>
 #include <vector>
 
+class TimingData;
+
 /** @brief Act on each non empty row in the specific track. */
 #define FOREACH_NONEMPTY_ROW_IN_TRACK(nd, track, row)                          \
 	for (int(row) = -1; (nd).GetNextTapNoteRowForTrack(track, row);)

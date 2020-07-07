@@ -92,7 +92,7 @@ StreamDisplay::Update(float fDeltaSecs)
 	// set crop of pills
 	FOREACH_ENUM(StreamType, st)
 	{
-		for (int i = 0; i < (int)m_vpSprPill[st].size(); i++) {
+		for (int i = 0; i < static_cast<int>(m_vpSprPill[st].size()); i++) {
 			Sprite* pSpr = m_vpSprPill[st][i];
 			pSpr->SetCropRight(0.99f - m_fPercent);
 

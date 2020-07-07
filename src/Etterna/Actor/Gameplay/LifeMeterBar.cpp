@@ -10,6 +10,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
+#include <algorithm>
+
 static std::string
 LIFE_PERCENT_CHANGE_NAME(size_t i)
 {
@@ -229,7 +231,7 @@ LifeMeterBar::ChangeLife(TapNoteScore score)
 		case DrainType_Normal:
 			break;
 		case DrainType_NoRecover:
-			fDeltaLife = min(fDeltaLife, 0);
+			fDeltaLife = std::min(fDeltaLife, 0.F);
 			break;
 		case DrainType_SuddenDeath:
 			if (score < MIN_STAY_ALIVE)

@@ -31,6 +31,8 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+
 GameState* GAMESTATE =
   nullptr; // global and accessible from anywhere in our program
 
@@ -490,7 +492,7 @@ GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const
 		  GameState::GetNumStagesMultiplierForSong(m_pCurSong);
 	} else
 		return -1;
-	iNumStagesOfThisSong = max(iNumStagesOfThisSong, 1);
+	iNumStagesOfThisSong = std::max(iNumStagesOfThisSong, 1);
 	return iNumStagesOfThisSong;
 }
 
@@ -552,7 +554,7 @@ GameState::CommitStageStats()
 
 	// Update TotalPlaySeconds.
 	int iPlaySeconds =
-	  max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
+	  std::max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
 
 	Profile* pPlayerProfile = PROFILEMAN->GetProfile(PLAYER_1);
 	if (pPlayerProfile) {
@@ -1246,7 +1248,7 @@ GameState::GetEasiestStepsDifficulty() const
 		  PLAYER_1 + 1);
 	}
 
-	dc = min(dc, m_pCurSteps->GetDifficulty());
+	dc = std::min(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 
@@ -1259,7 +1261,7 @@ GameState::GetHardestStepsDifficulty() const
 		  "GetHardestStepsDifficulty called but p%i hasn't chosen notes",
 		  PLAYER_1 + 1);
 	}
-	dc = max(dc, m_pCurSteps->GetDifficulty());
+	dc = std::max(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 

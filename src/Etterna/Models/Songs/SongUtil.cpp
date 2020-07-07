@@ -1,4 +1,3 @@
-#include <functional>
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
@@ -16,6 +15,14 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
+
+#include <functional>
+#include <algorithm>
+#include <set>
+#include <map>
+
+using std::pair;
+using std::set;
 
 ThemeMetric<int> SORT_BPM_DIVISION("MusicWheel", "SortBPMDivision");
 ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT("MusicWheel",
@@ -290,7 +297,7 @@ static LocalizedString SORT_OTHER("Sort", "Other");
 
 /* Just calculating GetNumTimesPlayed within the sort is pretty slow, so let's
  * precompute it.  (This could be generalized with a template.) */
-static map<const Song*, std::string> g_mapSongSortVal;
+static std::map<const Song*, std::string> g_mapSongSortVal;
 
 static bool
 CompareSongPointersBySortValueAscending(const Song* pSong1, const Song* pSong2)
@@ -540,7 +547,8 @@ CompareSongPointersByGroup(const Song* pSong1, const Song* pSong2)
 		return 1;
 	return 0;
 }
-function<int(const Song* pSong1, const Song* pSong2)>
+
+std::function<int(const Song* pSong1, const Song* pSong2)>
 CompareSongPointersByGroupAndMSD(Skillset ss)
 {
 	return [ss](const Song* pSong1, const Song* pSong2) {
@@ -812,43 +820,6 @@ static LocalizedString EDIT_NAME_CANNOT_CONTAIN(
   "The edit name cannot contain any of the following characters: %s");
 
 bool
-SongUtil::ValidateCurrentEditStepsDescription(const std::string& sAnswer,
-											  std::string& sErrorOut)
-{
-	Steps* pSteps = GAMESTATE->m_pCurSteps;
-	auto* pSong = pSteps->m_pSong;
-
-	ASSERT(pSteps->IsAnEdit());
-
-	if (sAnswer.empty()) {
-		sErrorOut = YOU_MUST_SUPPLY_NAME;
-		return false;
-	}
-
-	static const std::string sInvalidChars = "\\/:*?\"<>|";
-	if (strpbrk(sAnswer.c_str(), sInvalidChars.c_str()) != nullptr) {
-		sErrorOut =
-		  ssprintf(EDIT_NAME_CANNOT_CONTAIN.GetValue(), sInvalidChars.c_str());
-		return false;
-	}
-
-	// Steps name must be unique for this song.
-	vector<Steps*> v;
-	GetSteps(pSong, v, StepsType_Invalid, Difficulty_Edit);
-	for (auto& s : v) {
-		if (pSteps == s)
-			continue; // don't compare name against ourself
-
-		if (s->GetDescription() == sAnswer) {
-			sErrorOut = EDIT_NAME_CONFLICTS;
-			return false;
-		}
-	}
-
-	return true;
-}
-
-bool
 SongUtil::ValidateCurrentStepsDescription(const std::string& sAnswer,
 										  std::string& sErrorOut)
 {
@@ -862,10 +833,6 @@ SongUtil::ValidateCurrentStepsDescription(const std::string& sAnswer,
 	// If unchanged:
 	if (pSteps->GetDescription() == sAnswer)
 		return true;
-
-	if (pSteps->IsAnEdit()) {
-		return ValidateCurrentEditStepsDescription(sAnswer, sErrorOut);
-	}
 
 	return true;
 }
@@ -1010,7 +977,7 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 		  find(vstToShow.begin(), vstToShow.end(), st) != vstToShow.end();
 
 		auto iNumPlayers = GAMESTATE->GetNumPlayersEnabled();
-		iNumPlayers = max(iNumPlayers, 1);
+		iNumPlayers = std::max(iNumPlayers, 1);
 
 		if (bShowThisStepsType)
 			vOut.insert(st);

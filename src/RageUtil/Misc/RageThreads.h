@@ -41,13 +41,13 @@ class ThreadData
 };
 
 template<class T>
-using vectorIt = typename vector<T>::iterator;
+using vectorIt = typename std::vector<T>::iterator;
 template<class T>
 using vectorRange = std::pair<vectorIt<T>, vectorIt<T>>;
 
 template<typename T>
 auto
-splitWorkLoad(vector<T>& v, size_t elementsPerThread)
+splitWorkLoad(std::vector<T>& v, size_t elementsPerThread)
   -> std::vector<vectorRange<T>>
 {
 	std::vector<vectorRange<T>> ranges;
@@ -75,15 +75,18 @@ splitWorkLoad(vector<T>& v, size_t elementsPerThread)
 
 template<typename T>
 void
-parallelExecution(vector<T> vec,
+parallelExecution(std::vector<T> vec,
 				  std::function<void(int)> update,
 				  std::function<void(vectorRange<T>, ThreadData*)> exec,
 				  void* stuff)
 {
-	const int THREADS = PREFSMAN->ThreadsToUse <= 0
-						  ? std::thread::hardware_concurrency()
-						  : min((int)PREFSMAN->ThreadsToUse,
-								(int)std::thread::hardware_concurrency());
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0
+		? std::thread::hardware_concurrency()
+		: PREFSMAN->ThreadsToUse <
+			  static_cast<int>(std::thread::hardware_concurrency())
+			? PREFSMAN->ThreadsToUse
+			: static_cast<int>(std::thread::hardware_concurrency());
 	std::vector<vectorRange<T>> workloads =
 	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
 	ThreadData data;
@@ -93,9 +96,9 @@ parallelExecution(vector<T> vec,
 		data._threadsFinished++;
 		data.setUpdated(true);
 	};
-	vector<thread> threadpool;
+	std::vector<std::thread> threadpool;
 	for (auto& workload : workloads)
-		threadpool.emplace_back(thread(threadCallback, workload));
+		threadpool.emplace_back(std::thread(threadCallback, workload));
 	while (data._threadsFinished < (int)workloads.size()) {
 		data.waitForUpdate();
 		update(data._progress);
@@ -106,7 +109,7 @@ parallelExecution(vector<T> vec,
 }
 template<typename T>
 void
-parallelExecution(vector<T> vec,
+parallelExecution(std::vector<T> vec,
 				  std::function<void(int)> update,
 				  std::function<void(vectorRange<T>, ThreadData)> exec)
 {
@@ -115,13 +118,16 @@ parallelExecution(vector<T> vec,
 
 template<typename T>
 void
-parallelExecution(vector<T> vec,
+parallelExecution(std::vector<T> vec,
 				  std::function<void(vectorRange<T>, ThreadData*)> exec)
 {
-	const int THREADS = PREFSMAN->ThreadsToUse <= 0
-						  ? std::thread::hardware_concurrency()
-						  : min((int)PREFSMAN->ThreadsToUse,
-								(int)std::thread::hardware_concurrency());
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0
+		? std::thread::hardware_concurrency()
+		: PREFSMAN->ThreadsToUse <
+			  static_cast<int>(std::thread::hardware_concurrency())
+			? PREFSMAN->ThreadsToUse
+			: static_cast<int>(std::thread::hardware_concurrency());
 	std::vector<vectorRange<T>> workloads =
 	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
 	ThreadData data;
@@ -130,9 +136,9 @@ parallelExecution(vector<T> vec,
 		data._threadsFinished++;
 		data.setUpdated(true);
 	};
-	vector<thread> threadpool;
+	std::vector<std::thread> threadpool;
 	for (auto& workload : workloads)
-		threadpool.emplace_back(thread(threadCallback, workload));
+		threadpool.emplace_back(std::thread(threadCallback, workload));
 	while (data._threadsFinished < (int)workloads.size()) {
 		data.waitForUpdate();
 		data.setUpdated(false);
