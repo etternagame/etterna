@@ -15,7 +15,6 @@
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Songs/Song.h"
-#include "RageUtil/Misc/RageString.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Misc/Grade.h"
 #include "curl/curl.h"
