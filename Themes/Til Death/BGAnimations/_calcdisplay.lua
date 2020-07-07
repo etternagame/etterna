@@ -433,7 +433,12 @@ local function getDebugModsForIndex(modgroup, modgroupname, extramodgroup, index
     -- carry out the final string production
     for k, v in pairs(modsToValues) do
         local namenoHand = modNames[k]:sub(1, #modNames[k]-1)
-        if (isUpper and activeModGroup == -1 or debugGroups[activeModGroup][namenoHand]) or not isUpper then
+        if isUpper and (activeModGroup == -1 or debugGroups[activeModGroup][namenoHand]) then
+            local name = modNames[k] and modNames[k] or ""
+            local value = v[index] and v[index] or 0
+            local txt = string.format(name..": %5.4f\n", value)
+            modText = modText .. txt
+        elseif not isUpper and (activeDiffGroup == -1 or diffGroups[activeDiffGroup][namenoHand]) then
             local name = modNames[k] and modNames[k] or ""
             local value = v[index] and v[index] or 0
             local txt = string.format(name..": %5.4f\n", value)
@@ -868,24 +873,35 @@ local calcDiffValueColors = {
 
 -- these mods are CalcDebugMisc mods only
 local miscColors = {
+    color("0,1,1"),     -- pts
     color("1,0,0"),     -- ptloss
     color("1,0.4,0"),   -- jackptloss
 }
 
--- a remapping of modnames to colors
+-- a remapping of modnames to colors (any mod really please dont make 2 enums the same name)
 local modToColor = {}
--- a remapping of modnames to shortnames
+-- a remapping of modnames to shortnames (same note as above)
 local modToShortname = {}
 for i, mod in pairs(CalcPatternMod) do
     local mod = shortenEnum("CalcPatternMod", mod)
     modToColor[mod] = modColors[i]
     modToShortname[mod] = modnames[i]
 end
+for i, mod in pairs(CalcDiffValue) do
+    local mod = shortenEnum("CalcDiffValue", mod)
+    modToColor[mod] = calcDiffValueColors[i]
+    -- set shortname if desired here
+end
 do -- scope hahaha
     local i = 1
     for _, mod in pairs(orderedExtraUpperMods) do
         modToColor[mod] = modColors[#CalcPatternMod + i]
         modToShortname[mod] = modnames[#CalcPatternMod + i]
+        i = i + 1
+    end
+    i = 1
+    for _, mod in pairs(orderedExtraLowerMods) do
+        modToColor[mod] = miscColors[i]
         i = i + 1
     end
 end
@@ -1143,14 +1159,14 @@ do -- scoping
     for i, mod in pairs(CalcPatternMod) do
         for h = 1,2 do
             local modname = shortenEnum("CalcPatternMod", mod)
-            o[#o+1] = topGraphLine(modname, modColors[i], h)
+            o[#o+1] = topGraphLine(modname, modToColor[modname], h)
         end
     end
     i = 1
     for mod, _ in pairs(miscToUpperMods) do
         for h = 1,2 do
             -- dont have to shorten enum here because i did something dumb
-            o[#o+1] = topGraphLine(mod, modColors[(#CalcPatternMod) + i], h)
+            o[#o+1] = topGraphLine(mod, modToColor[mod], h)
         end
         i = i + 1
     end
@@ -1180,13 +1196,13 @@ do -- scoping
     for i, mod in pairs(CalcDiffValue) do
         local modname = shortenEnum("CalcDiffValue", mod)
         for h = 1,2 do
-            o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[i], h)
+            o[#o+1] = bottomGraphLineMSD(modname, modToColor[modname], h)
         end
     end
     i = 1
     for mod, _ in pairs(miscToLowerMods) do
         for h = 1,2 do
-            o[#o+1] = bottomGraphLineMSD(mod, miscColors[i], h)
+            o[#o+1] = bottomGraphLineMSD(mod, modToColor[mod], h)
         end
         i = i + 1
     end
