@@ -5,6 +5,8 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
 ThemeMetric<std::string> CommonMetrics::OPERATOR_MENU_SCREEN(
   "Common",
   "OperatorMenuScreen");
@@ -91,7 +93,7 @@ RemoveStepsTypes(vector<StepsType>& inout, std::string sStepsTypesToRemove)
 			continue;
 		}
 
-		const auto iter = find(inout.begin(), inout.end(), st);
+		const auto iter = std::find(inout.begin(), inout.end(), st);
 		if (iter != inout.end())
 			inout.erase(iter);
 	}
