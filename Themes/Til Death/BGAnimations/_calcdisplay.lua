@@ -9,13 +9,13 @@ local lowerGraphMin = 0
 local upperGraphMin = 0
 local bgalpha = 0.9
 local enabled = false
-local ssrGraphActive = false
 local song
 local steps
 local finalSecond = 0 -- only used if its references below are uncommented
 local graphVecs = {}
 local ssrs = {}
 local activeModGroup = 1
+local activeDiffGroup = 1
 local debugstrings
 
 -- bg actors for mouse hover stuff
@@ -83,7 +83,7 @@ end
 -- for SSR graph generator, modify these constants
 local ssrLowerBoundWife = 0.90 -- left end of the graph
 local ssrUpperBoundWife = 0.97 -- right end of the graph
-local ssrResolution = 200 -- higher number = higher resolution graph (and lag)
+local ssrResolution = 100 -- higher number = higher resolution graph (and lag)
 
 local function produceThisManySSRs(steps, rate)
     local count = ssrResolution
@@ -232,6 +232,34 @@ local debugGroups = {
     },
 }
 
+-- specify enum names here
+-- only CalcDiffValue enums
+-- also specify SSR to show all SSRs
+-- miscDebugMods that are also specified under miscToLowerMods can be placed here
+local diffGroups = {
+    {   -- Group 1
+        NPSBase = true,
+        MSD = true,
+    },
+    {   -- Group 2
+        JackBase = true,
+    },
+    {   -- Group 3
+        TechBase = true,
+    },
+    {   -- Group 4
+        RMABase = true,
+    },
+    {   -- Group 5
+        Pts = true,
+        PtLoss = true,
+        JackPtLoss = true,
+    },
+    [6] = { -- Group 6
+        SSRS = true,
+    }
+}
+
 -- get a list of the mods that are active
 -- indexes pointing to enum strings
 local function getActiveDebugMods()
@@ -257,7 +285,7 @@ local function updateCoolStuff()
     end
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
-        if ssrGraphActive then
+        if diffGroups[activeDiffGroup]["SSRS"] then
             ssrs = getGraphForSteps(steps)
         else
             ssrs = {}
@@ -334,15 +362,45 @@ local function addToModGroup(direction)
     end
 end
 
--- toggle between SSR graph and CalcDiffValue graph
--- should only update the SSRs once unless changing songs (it resets in that case)
-local function switchSSRGraph()
-    ssrGraphActive = not ssrGraphActive
-    if ssrGraphActive and #ssrs == 0 then
-        ssrs = getGraphForSteps(steps)
-        MESSAGEMAN:Broadcast("UpdateSSRLines")
+--[[
+    ... uhhh so this does the same as the immediately above thing
+    yeah
+]]
+local function switchToDiffGroup(num)
+    if num == activeDiffGroup then
+        -- activeDiffGroup = -1
+    else
+        activeDiffGroup = num
     end
+
+    -- generate ssrs only if they are visible, but only once
+    -- they get cleared on song change
+    -- (it lags)
+    if diffGroups[activeDiffGroup]["SSRS"] then
+        if #ssrs == 0 and steps then
+            ssrs = getGraphForSteps(steps)
+            MESSAGEMAN:Broadcast("UpdateSSRLines")
+        end
+    end
+
     MESSAGEMAN:Broadcast("UpdateActiveLowerGraph")
+end
+
+-- move the active diff group value in a direction (looping)
+local function addToDiffGroup(direction)
+    if activeDiffGroup == -1 then
+        if direction < 0 then
+            switchToDiffGroup(#diffGroups)
+        elseif direction > 0 then
+            switchToDiffGroup(1)
+        end
+    else
+        local newg = (((activeDiffGroup) + direction) % (#diffGroups + 1))
+        if newg == 0 then
+            newg = direction > 0 and 1 or #diffGroups
+        end
+        switchToDiffGroup(newg)
+    end
 end
 
 -- this will gather all the mod names and values for a specific given index
@@ -397,7 +455,7 @@ local function yetAnotherInputCallback(event)
                 addToModGroup(1)
                 return true
             elseif isOver(bottomgraph) then
-                switchSSRGraph()
+                addToDiffGroup(1)
                 return true
             end
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
@@ -405,7 +463,7 @@ local function yetAnotherInputCallback(event)
                 addToModGroup(-1)
                 return true
             elseif isOver(bottomgraph) then
-                switchSSRGraph()
+                addToDiffGroup(-1)
                 return true
             end
         end
@@ -600,7 +658,7 @@ o[#o + 1] = Def.Quad {
             bg:x(goodXPos)
             bg:y(ypos + 3)
             
-            if not ssrGraphActive then
+            if not diffGroups[activeDiffGroup]["SSRS"] then
                 local index = convertPercentToIndexForMods(perc)
                 local modText = getDebugModsForIndex(CalcDiffValue, "CalcDiffValue", miscToLowerMods, index, false)
                 txt:settext(modText)
@@ -768,6 +826,38 @@ local modColors = {
     color("0.7,1,0"),		-- lime			= jackstam
 }
 
+local skillsetColors = {
+    color("1,0,1"),     -- overall
+    color("#7d6b91"),   -- stream
+    color("#8481db"),   -- jumpstream
+    color("#995fa3"),   -- handstream
+    color("#f2b5fa"),   -- stamina
+    color("#6c969d"),   -- jack
+    color("#a5f8d3"),   -- chordjack
+    color("#b0cec2"),    -- tech
+}
+
+-- these are all CalcDiffValue mods only
+-- in the same order
+local calcDiffValueColors = {
+    color("#7d6b91"),   -- NPSBase
+    --color("#7d6b91"),
+    color("#8481db"),   -- JackBase
+    --color("#8481db"),
+    color("#995fa3"),   -- TechBase
+    --color("#995fa3"),
+    color("#f2b5fa"),   -- RMABase
+    --color("#f2b5fa"),
+    color("#6c969d"),   -- MSD
+    --color("#6c969d"),
+}
+
+-- these mods are CalcDebugMisc mods only
+local miscColors = {
+    color("1,0,0"),     -- ptloss
+    color("1,0.4,0"),   -- jackptloss
+}
+
 -- a remapping of modnames to colors
 local modToColor = {}
 -- a remapping of modnames to shortnames
@@ -825,8 +915,6 @@ local function makeskillsetlabeltext(i)
                 end
                 if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
                     self:diffuse(modcolor)
-                else
-                    self:diffuse(color(".3,.3,.3"))
                 end
                 if ave then
                     self:settextf("%s: %.3f", shortname, ave)
@@ -841,9 +929,8 @@ local function makeskillsetlabeltext(i)
             if activeModGroup == -1 or (debugGroups[activeModGroup] and debugGroups[activeModGroup][mod]) then
                 self:playcommand("UpdateAverages", {mods = params.mods})
             else
-                -- grey out unselected groups
+                -- hide unselected groups
                 self:diffusealpha(0)
-                --self:diffuse(color(".3,.3,.3"))
             end
         end
     }
@@ -943,7 +1030,11 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
                 
-                self:visible(not ssrGraphActive)
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup][mod]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
 
                 local verts = {}
                 local values = graphVecs[mod][hand]
@@ -965,7 +1056,11 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
         end,
         UpdateActiveLowerGraphMessageCommand = function(self)
             if song and enabled then
-                self:visible(not ssrGraphActive)
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup][mod]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
             end
         end
     }
@@ -981,7 +1076,12 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
                 self:SetVertices({})
                 self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
 
-                self:visible(ssrGraphActive)
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["SSRS"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
                 local verts = {}
 
                 for i = 1, #ssrs[lineNum] do
@@ -1000,7 +1100,11 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
         end,
         UpdateActiveLowerGraphMessageCommand = function(self)
             if song and enabled then
-                self:visible(ssrGraphActive)
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["SSRS"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
             end
         end,
         UpdateSSRLinesMessageCommand = function(self)
@@ -1008,24 +1112,6 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
         end
     }
 end
-
-local skillsetColors = {
-    color("1,0,1"),     -- overall
-    color("#7d6b91"),   -- stream
-    color("#8481db"),   -- jumpstream
-    color("#995fa3"),   -- handstream
-    color("#f2b5fa"),   -- stamina
-    color("#6c969d"),   -- jack
-    color("#a5f8d3"),   -- chordjack
-    color("#b0cec2"),    -- tech
-}
-
-local miscColors = {
-    color("1,0,0"),     -- ptloss
-    color("1,0,0"),     
-    color("1,0.4,0"),   -- jackptloss
-    color("1,0.4,0"),
-}
 
 -- upper mod lines and text
 -- we do the hand loop inner so the text lines up with hands next to each other
@@ -1071,13 +1157,13 @@ do -- scoping
     for i, mod in pairs(CalcDiffValue) do
         local modname = shortenEnum("CalcDiffValue", mod)
         for h = 1,2 do
-            o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[(i * 2) - (h % 2)], h)
+            o[#o+1] = bottomGraphLineMSD(modname, skillsetColors[i], h)
         end
     end
     i = 1
     for mod, _ in pairs(miscToLowerMods) do
         for h = 1,2 do
-            o[#o+1] = bottomGraphLineMSD(mod, miscColors[(i-1)*2 + h], h)
+            o[#o+1] = bottomGraphLineMSD(mod, miscColors[i], h)
         end
         i = i + 1
     end
