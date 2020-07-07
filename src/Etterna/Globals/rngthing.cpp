@@ -40,6 +40,7 @@ Random(lua_State* L)
 			lua_pushnumber(L, random_up_to(g_LuaPRNG, upper) + 1);
 			return 1;
 		}
+
 		/* [l..u] */
 		case 2: {
 			const auto lower = IArg(1);
