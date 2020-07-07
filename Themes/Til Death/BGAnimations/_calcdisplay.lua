@@ -655,213 +655,117 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 ]]
 local modnames = {
     -- CalcPatternMod shortnames
-    "stl",
-    "str",
-    "jsl",
-    "jsr",
-    --"jssl",
-    --"jssr",
-    --"jsjl",
-    --"jsjr",
-    "hsl",
-    "hsr",
-    --"hssl",
-    --"hssr",
-    --"hsjl",
-    --"hsjr",
-    "cjl",
-    "cjr",
-    --"cjsl",
-    --"cjsr",
-    --"cjjl",
-    --"cjjr",
-    "cjdl",
-    "cjdr",
-    "ohjl",
-    "ohjr",
-    --"ohjbpr",
-    --"ohjbpl",
-    --"ohjpcl",
-    --"ohjpcr",
-    --"ohjscl",
-    --"ohjscr",
-    --"ohjmsl",
-    --"ohjmsr",
-    --"ohjcctl",
-    --"ohjcctr",
-    --"ohjhtl",
-    --"ohjhtr",
-    "cjohjl",
-    "cjohjr",
-    --"cjohjpcl",
-    --"cjohjpcr",
-    --"cjohjscl",
-    --"cjohjscr",
-    "blncl",
-    "blncr",
-    "rolll",
-    "rollr",    
-    "ohtl",
-    "ohtr",
-    "vohtl",
-    "vohtr",
-    "cl",
-    "cr",
-    "fcl",
-    "fcr",
-    "wrrl",
-    "wrrr",
-    "wrjtl",
-    "wrjtr",
-    "wrbl",
-    "wrbr",
-    "wral",
-    "wrar",
-    "ttl",
-    "ttr",
-    "tt2l",
-    "tt2r",
-    "rml",
-    "rmr",
-    --"rll",
-    --"rlr",
-    --"rall",
-    --"ralr",
-    --"ralml",
-    --"ralmr",
-    --"rjl",
-    --"rjr",
-    --"rohtl",
-    --"rohtr",
-    --"rosl",
-    --"rosr",
-    --"rpal",
-    --"rpar",
-    --"rpol",
-    --"rpor",
-    --"rpohtl",
-    --"rpohtr",
-    --"rposl",
-    --"rposr",
-    --"rpjl",
-    --"rpjr",
-    "totpml",
-    "totpmr",
+    "st",
+    "js",
+    --"jss",
+    --"jsj",
+    "hs",
+    --"hss",
+    --"hsj",
+    "cj",
+    --"cjs",
+    --"cjj",
+    "cjd",
+    "ohj",
+    --"ohjbp",
+    --"ohjpc",
+    --"ohjsc",
+    --"ohjms",
+    --"ohjcct",
+    --"ohjht",
+    "cjohj",
+    --"cjohjpc",
+    --"cjohjsc",
+    "blnc",
+    "roll",
+    "oht",
+    "voht",
+    "c",
+    "fc",
+    "wrr",
+    "wrjt",
+    "wrb",
+    "wra",
+    "tt",
+    "tt2",
+    "rm",
+    --"rl",
+    --"ral",
+    --"ralm",
+    --"rj",
+    --"roht",
+    --"ros",
+    --"rpa",
+    --"rpo",
+    --"rpoht",
+    --"rpos",
+    --"rpj",
+    "totpm",
 
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
     -- (this list should match the miscToUpperMods list)
-    "sl",
-    "sr",
-    "jksl",
-    "jksr",
+    "s",
+    "jks",
 }
 
 -- this list has order
 -- try to keep it exactly in the order of the enums used :)
 local modColors = {
     -- CalcDebugPattern Colors
-    color(".3,1.3,1"),      -- cyan			= stream left
-    color(".3,1.3,0.9"),	-- cyan				 (right)
-	color("1,0,1"),     	-- purple       = jumpstream left
-    color("1,0.3,1"),   	-- light purple      (right)
+    color(".3,1.3,1"),      -- cyan			= stream
+	color("1,0,1"),     	-- purple       = jumpstream
 	--color("0,1,1"),			-- cyan			= jumpstream stream
-	--color("0,0.8,1"),		-- light blue		 (right)
 	--color("1,0,0"),			-- red			= jumpstream jack
-	--color("1,0.2,0"),		-- orange1			 (right)
-    color("0.6,0.6,0"),     -- dark yellow  = handstream left
-    color("0.6,0.6,0"),     -- dark yellow       (right)
+    color("0.6,0.6,0"),     -- dark yellow  = handstream
 	--color("0,1,1"),			-- cyan			= handstream stream
-	--color("0,0.8,1"),		-- light blue		 (right)
 	--color("1,0,0"),			-- red			= handstream jack
-	--color("1,0.2,0"),		-- orange1			 (right)
-    color("1.4,1.3,1"),     -- white 		= chordjack left
-    color("1.4,1.3,0.9"),   -- white			 (right)
+    color("1.4,1.3,1"),     -- white 		= chordjack
 	--color("0,1,1"),			-- cyan			= chordjack stream
-	--color("0,0.8,1"),		-- light blue		 (right)
 	--color("1,0,0"),			-- red			= chordjack jack
-	--color("1,0.2,0"),		-- orange1			 (right)
-	color("1,1,0"),			-- yellow		= cjdensity left
-    color("1,1,0"),			-- yellow			 (right)
-    color("1,0.4,0"),       -- orange2		= ohjump left
-    color("1,0.4,0"), 		-- orange2        	 (right)
+	color("1,1,0"),			-- yellow		= cjdensity
+    color("1,0.4,0"),       -- orange2		= ohjump
 	--color("1,1,1"),			-- ohjbp
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ohjpc
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ohjsc
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ohjms
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ohjcct
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ohjht
-	--color("1,1,1"),
-    color("1,0.4,0"),		-- orange2		= cjohj left
-    color("1,0.4,0"),		-- orange2			 (right)
+    color("1,0.4,0"),		-- orange2		= cjohj
 	--color("1,1,1"),			-- cjohjpc
-	--color("1,1,1"),
 	--color("1,1,1"),			-- cjohjsc
-	--color("1,1,1"),
-    color("0.2,0.2,1"),     -- blue         = balance left
-    color("0.3,0.3,0.9"),   -- light blue        (right)
-    color("0,1,0"),         -- green        = roll left
-    color("0.3,0.9,0.3"),   -- light green       (right)
-    color(".8,1.3,1"),      -- whiteblue	= oht left
-    color(".8,1.3,0.9"),	-- whiteblue		 (right)
-    color("1,0,1"),         -- purple       = voht left
-    color("1,0,1"),         -- purple            (right)
-    color(".4,0.9,0.3"),    -- green		= chaos left
-    color(".4,0.9,0.3"),	-- green			 (right)
-    color(".4,0.5,0.59"),   -- teal			= flamjam left
-    color(".4,0.3,0.49"),   -- dark purple		 (right)
-    color("1,0.2,0"),		-- red			= wrr left
-    color("1,0.2,0"),		-- red				 (right)
-    color("1,0.5,0"),		-- orange		= wrjt left
-    color("1,0.5,0"),		-- orange			 (right)
-    color("0.7,1,0.2"),		-- leme			= wrb left
-    color("0.7,1,0.2"),		-- leme				 (right)
-    color("0.7,1,0.1"),		-- leme			= wra left
-    color("0.7,1,0.1"),		-- leme				 (right)
-    color("0,0.8,1"),		-- light blue	= thething left
-    color("0,0.8,1"),		-- light blue		 (right)
-    color("0,0.6,1"),       -- darkish blue = thething2 left
-    color("0,0.6,1"),       --                  (right)
-	color("0.2,1,1"),		-- light blue	= ranman left
-	color("0.2,1,1"),		-- light blue		 (right)
+    color("0.2,0.2,1"),     -- blue         = balance
+    color("0,1,0"),         -- green        = roll
+    color(".8,1.3,1"),      -- whiteblue	= oht
+    color("1,0,1"),         -- purple       = voht
+    color(".4,0.9,0.3"),    -- green		= chaos
+    color(".4,0.5,0.59"),   -- teal			= flamjam
+    color("1,0.2,0"),		-- red			= wrr
+    color("1,0.5,0"),		-- orange		= wrjt
+    color("0.7,1,0.2"),		-- leme			= wrb
+    color("0.7,1,0.1"),		-- leme			= wra
+    color("0,0.8,1"),		-- light blue	= thething
+    color("0,0.6,1"),       -- darkish blue = thething2
+	color("0.2,1,1"),		-- light blue	= ranman
 	--color("1,1,1"),			-- rl
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ral
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ralm
-	--color("1,1,1"),
 	--color("1,1,1"),			-- rj
-	--color("1,1,1"),
 	--color("1,1,1"),			-- roht
-	--color("1,1,1"),
 	--color("1,1,1"),			-- ros
-	--color("1,1,1"),
 	--color("1,1,1"),			-- rpa
-	--color("1,1,1"),
 	--color("1,1,1"),			-- rpo
-	--color("1,1,1"),
 	--color("1,1,1"),			-- rpoht
-	--color("1,1,1"),
 	--color("1,1,1"),			-- rpos
-	--color("1,1,1"),
 	--color("1,1,1"),			-- rpj
-    --color("1,1,1"),
-    color("0.7,1,0"),		-- lime			= totalpatternmod left
-    color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0"),		-- lime			= totalpatternmod
 
 
     -- place CalcPatternMod Colors above this line
     -- MISC MODS START HERE (same order as miscToUpperMods)
-    color("0.7,1,0"),		-- lime			= stam left
-    color("0.7,1,0"),		-- lime				 (right)
-    color("0.7,1,0"),		-- lime			= jackstam left
-    color("0.7,1,0"),		-- lime				 (right)
+    color("0.7,1,0"),		-- lime			= stam
+    color("0.7,1,0"),		-- lime			= jackstam
 }
 
 -- a remapping of modnames to colors
@@ -870,18 +774,14 @@ local modToColor = {}
 local modToShortname = {}
 for i, mod in pairs(CalcPatternMod) do
     local mod = shortenEnum("CalcPatternMod", mod)
-    modToColor[mod.."L"] = modColors[i*2 - 1]
-    modToColor[mod.."R"] = modColors[i*2]
-    modToShortname[mod.."L"] = modnames[i*2 - 1]
-    modToShortname[mod.."R"] = modnames[i*2]
+    modToColor[mod] = modColors[i]
+    modToShortname[mod] = modnames[i]
 end
 do -- scope hahaha
     local i = 1
     for _, mod in pairs(orderedExtraUpperMods) do
-        modToColor[mod.."L"] = modColors[#CalcPatternMod*2 + i*2 - 1]
-        modToColor[mod.."R"] = modColors[#CalcPatternMod*2 + i*2]
-        modToShortname[mod.."L"] = modnames[#CalcPatternMod*2 + i*2 - 1]
-        modToShortname[mod.."R"] = modnames[#CalcPatternMod*2 + i*2]
+        modToColor[mod] = modColors[#CalcPatternMod + i]
+        modToShortname[mod] = modnames[#CalcPatternMod + i]
         i = i + 1
     end
 end
@@ -911,9 +811,8 @@ local function makeskillsetlabeltext(i)
                     return
                 end
 
-                local modhand = mod .. (hand == 1 and "L" or "R")
-                local shortname = modToShortname[modhand]
-                local modcolor = modToColor[modhand]
+                local shortname = modToShortname[mod] .. (hand == 1 and "l" or "r")
+                local modcolor = modToColor[mod]
 
                 local ave
                 local values = graphVecs[mod][hand]
@@ -1135,16 +1034,14 @@ do -- scoping
     for i, mod in pairs(CalcPatternMod) do
         for h = 1,2 do
             local modname = shortenEnum("CalcPatternMod", mod)
-            o[#o+1] = topGraphLine(modname, modColors[(i * 2) - (h % 2)], h)
-            --o[#o+1] = makeskillsetlabeltext((i * 2) - (h % 2), modname, h)
+            o[#o+1] = topGraphLine(modname, modColors[i], h)
         end
     end
     i = 1
     for mod, _ in pairs(miscToUpperMods) do
         for h = 1,2 do
             -- dont have to shorten enum here because i did something dumb
-            o[#o+1] = topGraphLine(mod, modColors[(#CalcPatternMod * 2) + i], h)
-            --o[#o+1] = makeskillsetlabeltext((#CalcPatternMod * 2) + i, mod, h)
+            o[#o+1] = topGraphLine(mod, modColors[(#CalcPatternMod) + i], h)
         end
         i = i + 1
     end
