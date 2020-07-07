@@ -2,6 +2,7 @@
 #define AdjustSync_H
 
 #include <vector>
+#include <string>
 
 class TimingData;
 /**
