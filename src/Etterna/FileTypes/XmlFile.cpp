@@ -7,12 +7,11 @@
 
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/DateTime.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "XmlFile.h"
+
+#include <cassert>
 
 const std::string XNode::TEXT_ATTRIBUTE = "__TEXT__";
 
@@ -70,7 +69,7 @@ XNodeStringValue::GetValue(bool& out) const
 void
 XNodeStringValue::GetValue(unsigned& out) const
 {
-	out = strtoul(m_sValue.c_str(), NULL, 0);
+	out = strtoul(m_sValue.c_str(), nullptr, 0);
 }
 void
 XNodeStringValue::PushValue(lua_State* L) const
@@ -110,14 +109,14 @@ XNode::GetAttr(const std::string& attrname) const
 	XAttrs::const_iterator it = m_attrs.find(attrname);
 	if (it != m_attrs.end())
 		return it->second;
-	return NULL;
+	return nullptr;
 }
 
 bool
 XNode::PushAttrValue(lua_State* L, const std::string& sName) const
 {
 	const XNodeValue* pAttr = GetAttr(sName);
-	if (pAttr == NULL) {
+	if (pAttr == nullptr) {
 		lua_pushnil(L);
 		return false;
 	}
@@ -131,31 +130,31 @@ XNode::GetAttr(const std::string& attrname)
 	XAttrs::iterator it = m_attrs.find(attrname);
 	if (it != m_attrs.end())
 		return it->second;
-	return NULL;
+	return nullptr;
 }
 
 XNode*
 XNode::GetChild(const std::string& sName)
 {
-	multimap<std::string, XNode*>::iterator by_name =
+	std::multimap<std::string, XNode*>::iterator by_name =
 	  m_children_by_name.lower_bound(sName);
 	if (by_name != m_children_by_name.end() &&
 		sName == by_name->second->GetName()) {
 		return by_name->second;
 	}
-	return NULL;
+	return nullptr;
 }
 
 bool
 XNode::PushChildValue(lua_State* L, const std::string& sName) const
 {
 	const XNode* pChild = GetChild(sName);
-	if (pChild == NULL) {
+	if (pChild == nullptr) {
 		lua_pushnil(L);
 		return false;
 	}
 	const auto attr = pChild->GetAttr(XNode::TEXT_ATTRIBUTE);
-	if (attr == NULL) {
+	if (attr == nullptr) {
 		lua_pushnil(L);
 		return false;
 	}
@@ -166,19 +165,19 @@ XNode::PushChildValue(lua_State* L, const std::string& sName) const
 const XNode*
 XNode::GetChild(const std::string& sName) const
 {
-	multimap<std::string, XNode*>::const_iterator by_name =
+	std::multimap<std::string, XNode*>::const_iterator by_name =
 	  m_children_by_name.lower_bound(sName);
 	if (by_name != m_children_by_name.end() &&
 		sName == by_name->second->GetName()) {
 		return by_name->second;
 	}
-	return NULL;
+	return nullptr;
 }
 
 XNode*
 XNode::AppendChild(XNode* node)
 {
-	DEBUG_ASSERT(node->m_sName.size());
+	assert(node->m_sName.size());
 	m_children_by_name.insert(make_pair(node->m_sName, node));
 	m_childs.push_back(node);
 	return node;
@@ -202,7 +201,7 @@ XNode::RemoveChild(XNode* node, bool bDelete)
 void
 XNode::RemoveChildFromByName(XNode* node)
 {
-	multimap<std::string, XNode*>::iterator by_name =
+	std::multimap<std::string, XNode*>::iterator by_name =
 	  m_children_by_name.lower_bound(node->m_sName);
 	if (by_name != m_children_by_name.end() &&
 		node->GetName() == by_name->second->GetName()) {
@@ -243,9 +242,9 @@ XNode::AppendAttrFrom(const std::string& sName,
 					  XNodeValue* pValue,
 					  bool bOverwrite)
 {
-	DEBUG_ASSERT(sName.size());
-	pair<XAttrs::iterator, bool> ret =
-	  m_attrs.insert(make_pair(sName, (XNodeValue*)NULL));
+	assert(sName.size());
+	std::pair<XAttrs::iterator, bool> ret =
+	  m_attrs.insert(make_pair(sName, (XNodeValue*)nullptr));
 	if (!ret.second) // already existed
 	{
 		if (bOverwrite) {
@@ -264,9 +263,9 @@ XNode::AppendAttrFrom(const std::string& sName,
 XNodeValue*
 XNode::AppendAttr(const std::string& sName)
 {
-	DEBUG_ASSERT(sName.size());
-	pair<XAttrs::iterator, bool> ret =
-	  m_attrs.insert(make_pair(sName, (XNodeValue*)NULL));
+	assert(sName.size());
+	std::pair<XAttrs::iterator, bool> ret =
+	  m_attrs.insert(make_pair(sName, (XNodeValue*)nullptr));
 	if (ret.second)
 		ret.first->second = new XNodeStringValue;
 	return ret.first->second; // already existed

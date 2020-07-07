@@ -17,6 +17,8 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 
+using std::map;
+
 /* BMS encoding:	tap-hold
  * 4&8panel:	Player1		Player2
  * Left			11-51		21-61
@@ -115,7 +117,7 @@ SlideDuplicateDifficulties(Song& p)
 				Steps* pSteps = vSteps[k];
 
 				Difficulty dc2 =
-				  min((Difficulty)(dc + 1), Difficulty_Challenge);
+				  std::min((Difficulty)(dc + 1), Difficulty_Challenge);
 				pSteps->SetDifficulty(dc2);
 			}
 		}

@@ -22,7 +22,7 @@ struct CJDensityMod
 	float hand_scaler = 0.95F;
 	float quad_scaler = 0.95F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },

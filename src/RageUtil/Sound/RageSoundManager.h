@@ -52,7 +52,7 @@ class RageSoundManager
 	void fix_bogus_sound_driver_pref(std::string const& valid_setting);
 
   private:
-	map<std::string, RageSoundReader_Preload*> m_mapPreloadedSounds;
+	std::map<std::string, RageSoundReader_Preload*> m_mapPreloadedSounds;
 
 	RageSoundDriver* m_pDriver;
 

@@ -142,7 +142,7 @@ class PlayerStageStats
 							   // failing so i dont have to remove the feature
 							   // entirely -mina
 
-	map<float, float> m_fLifeRecord;
+	std::map<float, float> m_fLifeRecord;
 	void SetLifeRecordAt(float fLife, float fStepsSecond);
 	void GetLifeRecord(float* fLifeOut,
 					   int iNumSamples,
@@ -151,7 +151,7 @@ class PlayerStageStats
 	[[nodiscard]] auto GetLifeRecordLerpAt(float fStepsSecond) const -> float;
 	[[nodiscard]] auto GetCurrentLife() const -> float;
 
-	map<float, float> WifeRecord;
+	std::map<float, float> WifeRecord;
 	void SetWifeRecordAt(float Wife, float fStepsSecond);
 	void GetWifeRecord(float* WifeOut,
 					   int iNumSamples,

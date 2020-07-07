@@ -60,7 +60,7 @@ struct RunningManMod
 	float max_jack_len = 3.F;
 	float max_anch_len = 5.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },

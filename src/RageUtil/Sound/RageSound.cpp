@@ -28,9 +28,6 @@
 #include "RageSoundUtil.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Utils/RageUtil.h"
-
-#include <iterator>
-
 #include "RageSoundReader_Extend.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageSoundReader_Pan.h"
@@ -40,6 +37,10 @@
 #include "RageSoundReader_Resample_Good.h"
 #include "RageSoundReader_ThreadedBuffer.h"
 #include "fft.h"
+
+#include <algorithm>
+#include <iterator>
+
 struct cfloat
 {
 	float real;
@@ -346,8 +347,8 @@ RageSound::GetDataToPlay(float* pBuffer,
 		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
 			unsigned int currentSamples = recentPCMSamples.size();
 			auto samplesToCopy =
-			  min(iFramesStored * m_pSource->GetNumChannels(),
-				  recentPCMSamplesBufferSize - currentSamples);
+			  std::min(iFramesStored * m_pSource->GetNumChannels(),
+					   recentPCMSamplesBufferSize - currentSamples);
 			auto samplesLeft =
 			  recentPCMSamplesBufferSize - currentSamples - samplesToCopy;
 			auto until = pBuffer + samplesToCopy;
@@ -375,7 +376,7 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
 	auto out = static_cast<cfloat*>(fftBuffer);
-	string error;
+	std::string error;
 	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
 	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
@@ -743,7 +744,7 @@ RageSound::GetStopMode() const
 	if (m_Param.StopMode != RageSoundParams::M_AUTO)
 		return m_Param.StopMode;
 
-	if (m_sFilePath.find("loop") != string::npos)
+	if (m_sFilePath.find("loop") != std::string::npos)
 		return RageSoundParams::M_LOOP;
 
 	return RageSoundParams::M_STOP;
@@ -752,13 +753,13 @@ RageSound::GetStopMode() const
 void
 RageSound::SetStopModeFromString(const std::string& sStopMode)
 {
-	if (sStopMode.find("stop") != string::npos) {
+	if (sStopMode.find("stop") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_STOP;
-	} else if (sStopMode.find("loop") != string::npos) {
+	} else if (sStopMode.find("loop") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_LOOP;
-	} else if (sStopMode.find("continue") != string::npos) {
+	} else if (sStopMode.find("continue") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_CONTINUE;
-	} else if (sStopMode.find("auto") != string::npos) {
+	} else if (sStopMode.find("auto") != std::string::npos) {
 		m_Param.StopMode = RageSoundParams::M_AUTO;
 	} else {
 		// error
@@ -766,11 +767,11 @@ RageSound::SetStopModeFromString(const std::string& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
+RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 									   unsigned int bufSize)
 {
 	soundPlayCallback = f;
-	recentPCMSamplesBufferSize = max(bufSize, 1024u);
+	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 	if (fftBuffer != nullptr)
 		mufft_free(fftBuffer);
@@ -779,7 +780,7 @@ RageSound::ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
 }
 
 void
-RageSound::SetPlayBackCallback(const shared_ptr<LuaReference>& f,
+RageSound::SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 							   unsigned int bufSize)
 {
 	// If we're in play callback it's safe to call this from lua, since we've

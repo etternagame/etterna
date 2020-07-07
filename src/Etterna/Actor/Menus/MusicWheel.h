@@ -64,7 +64,7 @@ class MusicWheel : public WheelBase
 	bool packlistFiltering{ false };
 
 	vector<Song*> allSongsFiltered;
-	map<std::string, vector<Song*>> allSongsByGroupFiltered;
+	std::map<std::string, vector<Song*>> allSongsByGroupFiltered;
 	bool SelectSongOrCourse();
 	void SelectSongAfterSearch();
 

@@ -66,7 +66,7 @@ class RageSoundReader_ThreadedBuffer : public RageSoundReader_Filter
 		float fRate{ 1.0f };
 		Mapping() = default;
 	};
-	list<Mapping> m_StreamPosition;
+	std::list<Mapping> m_StreamPosition;
 
 	bool m_bEOF;
 

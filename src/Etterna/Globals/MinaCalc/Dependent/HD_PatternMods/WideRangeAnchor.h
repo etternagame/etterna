@@ -24,7 +24,7 @@ struct WideRangeAnchorMod
 	float diff_max = 8.F;
 	float scaler = 0.1F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

@@ -20,7 +20,7 @@ struct ChaosMod
 	float max_mod = 1.05F;
 	float base = -0.1F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },

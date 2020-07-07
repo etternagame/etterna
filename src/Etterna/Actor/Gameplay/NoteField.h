@@ -133,7 +133,7 @@ class NoteField final : public ActorFrame
 	NoteFieldRenderArgs m_FieldRenderArgs;
 
 	/* All loaded note displays, mapped by their name. */
-	map<std::string, NoteDisplayCols*> m_NoteDisplays;
+	std::map<std::string, NoteDisplayCols*> m_NoteDisplays;
 	NoteDisplayCols* m_pCurDisplay;
 	NoteDisplayCols* m_pDisplays[NUM_PlayerNumber];
 

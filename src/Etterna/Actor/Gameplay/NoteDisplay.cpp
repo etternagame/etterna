@@ -16,6 +16,9 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
 #include <utility>
+#include <algorithm>
+
+using std::map;
 
 static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
@@ -856,7 +859,8 @@ struct StripBuffer
 	RageSpriteVertex* v;
 	StripBuffer()
 	{
-		buf = (RageSpriteVertex*)malloc(size * sizeof(RageSpriteVertex));
+		buf = static_cast<RageSpriteVertex*>(
+		  malloc(size * sizeof(RageSpriteVertex)));
 		Init();
 	}
 	~StripBuffer() { free(buf); }
@@ -903,13 +907,13 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 	// If hold body, draw texture to the outside screen.(fix by A.C)
 	auto y_start_pos = (part_type == hpt_body)
 						 ? part_args.y_top
-						 : max(part_args.y_top, part_args.y_start_pos);
+						 : std::max(part_args.y_top, part_args.y_start_pos);
 	if (part_args.y_top < part_args.y_start_pos - unzoomed_frame_height) {
 		y_start_pos =
 		  fmod((y_start_pos - part_args.y_start_pos), unzoomed_frame_height) +
 		  part_args.y_start_pos;
 	}
-	auto y_end_pos = min(part_args.y_bottom, part_args.y_end_pos);
+	auto y_end_pos = std::min(part_args.y_bottom, part_args.y_end_pos);
 	const auto color_scale = glow ? 1 : part_args.color_scale;
 
 	// top to bottom
@@ -1233,7 +1237,7 @@ NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	part_args.y_top = y_tail;
 	part_args.y_bottom = tail_plus_bottom;
 	part_args.top_beat = bottom_beat;
-	part_args.y_start_pos = max(part_args.y_start_pos, y_head);
+	part_args.y_start_pos = std::max(part_args.y_start_pos, y_head);
 	part_args.wrapping = false;
 	DrawHoldPart(
 	  sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
@@ -1420,7 +1424,7 @@ NoteDisplay::DrawHold(const TapNote& tn,
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
 		column_args.column) > 0.5f;
 	const auto fStartBeat =
-	  NoteRowToBeat(max(tn.HoldResult.iLastHeldRow, iRow));
+	  NoteRowToBeat(std::max(tn.HoldResult.iLastHeldRow, iRow));
 	float fThrowAway = 0;
 
 	// HACK: If life > 0, don't set YOffset to 0 so that it doesn't jiggle
@@ -1680,8 +1684,9 @@ NoteDisplay::DrawActor(const TapNote& tn,
 		auto color = 0.0f;
 		switch (cache->m_NoteColorType[part]) {
 			case NoteColorType_Denominator:
-				color = float(BeatToNoteType(fBeat));
-				color = clamp(color, 0, (cache->m_iNoteColorCount[part] - 1));
+				color = static_cast<float>(BeatToNoteType(fBeat));
+				color =
+				  std::clamp(color, 0, (cache->m_iNoteColorCount[part] - 1));
 				break;
 			case NoteColorType_Progress:
 				color =

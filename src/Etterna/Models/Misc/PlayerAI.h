@@ -36,25 +36,26 @@ class PlayerAI
 
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result
-	static map<int, vector<TapReplayResult>> m_ReplayTapMap;
+	static std::map<int, vector<TapReplayResult>> m_ReplayTapMap;
 	// A map with indices for each row of the chart, pointing to nothing or hold
 	// drop results.
-	static map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
+	static std::map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result. However, note that the rows within are actually calculated
 	// so that they are adjusted for offsets relative to the actual replay
 	// data/notedata. This map is only useful for charts with column data.
-	static map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
+	static std::map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
 
 	// A map with indices for each row of the chart, pointing to a snapshot
 	// of the Replay at that moment
-	static map<int, ReplaySnapshot> m_ReplaySnapshotMap;
+	static std::map<int, ReplaySnapshot> m_ReplaySnapshotMap;
 
 	// For Life/Combo graph calculations
 	// A reformatting of the ExactTapMap with elapsed times as keys
-	static map<float, vector<TapReplayResult>> m_ReplayTapMapByElapsedTime;
+	static std::map<float, vector<TapReplayResult>> m_ReplayTapMapByElapsedTime;
 	// A reformatting of the HoldMap with elapsed times as keys
-	static map<float, vector<HoldReplayResult>> m_ReplayHoldMapByElapsedTime;
+	static std::map<float, vector<HoldReplayResult>>
+	  m_ReplayHoldMapByElapsedTime;
 
 	static std::string oldModifiers;
 	static std::string replayModifiers;
@@ -103,7 +104,7 @@ class PlayerAI
 	// happening
 	static void SetUpSnapshotMap(
 	  NoteData* pNotedata,
-	  set<int> validNoterows = set<int>(),
+	  std::set<int> validNoterows = std::set<int>(),
 	  float timingScale = Player::GetTimingWindowScale());
 	// Check the Tap Replay Data to see if a tap is on this row
 	static auto TapExistsAtThisRow(int noteRow) -> bool;
@@ -133,12 +134,14 @@ class PlayerAI
 	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss);
 
 	// Calculate the Wifescore for the given position in replay data
-	static auto GetWifeScoreForRow(int row, float ts) -> pair<float, float>;
+	static auto GetWifeScoreForRow(int row, float ts)
+	  -> std::pair<float, float>;
 
 	// Given the Replay Data and Snapshot map, we can make a simple estimated
 	// life graph.
 	static auto GenerateLifeRecordForReplay(
-	  float timingScale = Player::GetTimingWindowScale()) -> map<float, float>;
+	  float timingScale = Player::GetTimingWindowScale())
+	  -> std::map<float, float>;
 
 	// Given the Replay Data and Snapshot map, we can make a simple estimate
 	// combo graph.

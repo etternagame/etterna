@@ -19,7 +19,7 @@ struct BalanceMod
 	float scaler = 1.F;
 	float other_scaler = 4.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
 		{ "mod_base", &mod_base }, { "buffer", &buffer },
 		{ "scaler", &scaler },	   { "other_scaler", &other_scaler },

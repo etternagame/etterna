@@ -409,7 +409,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	pNode->GetChildValue("wv", WifeVersion);
 
 	// Validate input.
-	grade = clamp(grade, Grade_Tier01, Grade_Failed);
+	grade = std::clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
 auto
@@ -423,7 +423,7 @@ HighScoreImpl::WriteReplayData() -> bool
 		FILEMAN->CreateDir(FULL_REPLAY_DIR);
 	}
 	const auto path = FULL_REPLAY_DIR + ScoreKey;
-	ofstream fileStream(path, ios::binary);
+	std::ofstream fileStream(path, std::ios::binary);
 	// check file
 
 	ASSERT(!vNoteRowVector.empty());
@@ -436,21 +436,22 @@ HighScoreImpl::WriteReplayData() -> bool
 	const unsigned int idx = vNoteRowVector.size() - 1;
 	// loop for writing both vectors side by side
 	for (unsigned int i = 0; i <= idx; i++) {
-		append = to_string(vNoteRowVector[i]) + " " +
-				 to_string(vOffsetVector[i]) + " " +
-				 to_string(vTrackVector[i]) +
+		append = std::to_string(vNoteRowVector[i]) + " " +
+				 std::to_string(vOffsetVector[i]) + " " +
+				 std::to_string(vTrackVector[i]) +
 				 (vTapNoteTypeVector[i] != TapNoteType_Tap
-					? " " + to_string(vTapNoteTypeVector[i])
+					? " " + std::to_string(vTapNoteTypeVector[i])
 					: "") +
 				 "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	for (auto& hold : vHoldReplayDataVector) {
-		append =
-		  "H " + to_string(hold.row) + " " + to_string(hold.track) +
-		  (hold.subType != TapNoteSubType_Hold ? " " + to_string(hold.subType)
-											   : "") +
-		  "\n";
+		append = "H " + std::to_string(hold.row) + " " +
+				 std::to_string(hold.track) +
+				 (hold.subType != TapNoteSubType_Hold
+					? " " + std::to_string(hold.subType)
+					: "") +
+				 "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
@@ -465,7 +466,7 @@ HighScore::WriteInputData(const vector<float>& oop) -> bool
 	string profiledir;
 
 	const auto path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	ofstream fileStream(path, ios::binary);
+	std::ofstream fileStream(path, std::ios::binary);
 	// check file
 
 	ASSERT(!oop.empty());
@@ -478,7 +479,7 @@ HighScore::WriteInputData(const vector<float>& oop) -> bool
 	const unsigned int idx = oop.size() - 1;
 	// loop for writing both vectors side by side
 	for (unsigned int i = 0; i <= idx; i++) {
-		append = to_string(oop[i]) + "\n";
+		append = std::to_string(oop[i]) + "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
@@ -509,11 +510,11 @@ HighScore::LoadReplayDataBasic(const string& dir) -> bool
 	vector<float> vOffsetVector;
 	auto path = dir + m_Impl->ScoreKey;
 
-	std::ifstream fileStream(path, ios::binary);
+	std::ifstream fileStream(path, std::ios::binary);
 	string line;
 	string buffer;
 	vector<string> tokens;
-	stringstream ss;
+	std::stringstream ss;
 	int noteRow;
 	float offset;
 
@@ -527,7 +528,7 @@ HighScore::LoadReplayDataBasic(const string& dir) -> bool
 	try {
 
 		while (getline(fileStream, line)) {
-			stringstream ss(line);
+			std::stringstream ss(line);
 			// split line into tokens
 			while (ss >> buffer) {
 				tokens.emplace_back(buffer);
@@ -591,7 +592,7 @@ HighScore::LoadReplayDataFull(const string& dir) -> bool
 	vector<HoldReplayResult> vHoldReplayDataVector;
 	auto path = dir + m_Impl->ScoreKey;
 
-	std::ifstream fileStream(path, ios::binary);
+	std::ifstream fileStream(path, std::ios::binary);
 	string line;
 	string buffer;
 	vector<string> tokens;
@@ -608,7 +609,7 @@ HighScore::LoadReplayDataFull(const string& dir) -> bool
 
 	// loop until eof
 	while (getline(fileStream, line)) {
-		stringstream ss(line);
+		std::stringstream ss(line);
 		// split line into tokens
 		while (ss >> buffer) {
 			tokens.emplace_back(buffer);
@@ -627,7 +628,8 @@ HighScore::LoadReplayDataFull(const string& dir) -> bool
 			HoldReplayResult hrr;
 			hrr.row = std::stoi(tokens[1]);
 			hrr.track = std::stoi(tokens[2]);
-			tmp = tokens.size() > 3 ? ::stoi(tokens[3]) : TapNoteSubType_Hold;
+			tmp =
+			  tokens.size() > 3 ? std::stoi(tokens[3]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
 				!(typeid(tmp) == typeid(int))) {
 				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype "
@@ -680,7 +682,7 @@ HighScore::LoadReplayDataFull(const string& dir) -> bool
 		}
 		vTrackVector.emplace_back(track);
 
-		tmp = tokens.size() >= 4 ? ::stoi(tokens[3]) : TapNoteType_Tap;
+		tmp = tokens.size() >= 4 ? std::stoi(tokens[3]) : TapNoteType_Tap;
 		if (tmp < 0 || tmp >= TapNoteType_Invalid ||
 			!(typeid(tmp) == typeid(int))) {
 			LOG->Warn("Failed to load replay data at %s (\"Tapnotetype value "
@@ -1207,7 +1209,7 @@ HighScore::GenerateValidationKeys() -> string
 			continue;
 		}
 
-		key.append(to_string(GetTapNoteScore(tns)));
+		key.append(std::to_string(GetTapNoteScore(tns)));
 	}
 
 	FOREACH_ENUM(HoldNoteScore, hns)
@@ -1216,7 +1218,7 @@ HighScore::GenerateValidationKeys() -> string
 			continue;
 		}
 
-		key.append(to_string(GetHoldNoteScore(hns)));
+		key.append(std::to_string(GetHoldNoteScore(hns)));
 	}
 
 	norms = lround(GetSSRNormPercent() * 1000000.F);
@@ -1227,11 +1229,11 @@ HighScore::GenerateValidationKeys() -> string
 	key.append(GetChartKey());
 	key.append(GetModifiers());
 	key.append(GetMachineGuid());
-	key.append(to_string(norms));
-	key.append(to_string(musics));
-	key.append(to_string(judges));
-	key.append(to_string(static_cast<int>(!GetChordCohesion())));
-	key.append(to_string(static_cast<int>(GetEtternaValid())));
+	key.append(std::to_string(norms));
+	key.append(std::to_string(musics));
+	key.append(std::to_string(judges));
+	key.append(std::to_string(static_cast<int>(!GetChordCohesion())));
+	key.append(std::to_string(static_cast<int>(GetEtternaValid())));
 	key.append(GradeToString(GetWifeGrade()));
 
 	std::string hash_hex_str;

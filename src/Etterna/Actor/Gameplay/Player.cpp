@@ -37,6 +37,10 @@
 #include "HoldJudgment.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+using std::max;
+using std::min;
+
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 						std::string& sNameOut,
@@ -168,6 +172,19 @@ ThemeMetric<int> COMBO_STOPPED_AT("Player", "ComboStoppedAt");
  * If set to 0 or less, assume the song takes over. */
 ThemeMetric<float> M_MOD_HIGH_CAP("Player", "MModHighCap");
 
+inline void
+JudgedRows::Resize(size_t iMin)
+{
+	const auto iNewSize = std::max(2 * m_vRows.size(), iMin);
+	vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+	vNewRows.reserve(iNewSize);
+	vNewRows.insert(
+	  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
+	vNewRows.resize(iNewSize, false);
+	m_vRows.swap(vNewRows);
+	m_iOffset = 0;
+}
+
 auto
 Player::GetWindowSeconds(TimingWindow tw) -> float
 {
@@ -177,7 +194,7 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 	if (tw == TW_Mine) {
 		return 0.075F; // explicit return until i remove this stuff from
 	}
-					   // prefs.ini
+	// prefs.ini
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= m_fTimingWindowScale;
@@ -377,7 +394,7 @@ Player::Init(const std::string& sType,
 		if (!bpms.IsSecret()) {
 			fMaxBPM = (M_MOD_HIGH_CAP > 0 ? bpms.GetMaxWithin(M_MOD_HIGH_CAP)
 										  : bpms.GetMax());
-			fMaxBPM = max(0, fMaxBPM);
+			fMaxBPM = max(0.F, fMaxBPM);
 		}
 
 		// we can't rely on the displayed BPMs, so manually calculate.
@@ -1250,7 +1267,7 @@ Player::UpdateHoldNotes(int iSongRow,
 				} else {
 					const auto window = m_bTickHolds ? TW_Checkpoint : TW_Hold;
 					fLife -= fDeltaTime / GetWindowSeconds(window);
-					fLife = max(0, fLife);
+					fLife = max(0.F, fLife);
 				}
 				break;
 			case TapNoteSubType_Roll:
@@ -1264,7 +1281,7 @@ Player::UpdateHoldNotes(int iSongRow,
 				// Also clamp the roll decay window to the accepted "Judge
 				// 7" value for it. -poco
 				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25F);
-				fLife = max(fLife, 0); // clamp life
+				fLife = max(fLife, 0.F); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:
@@ -2742,7 +2759,7 @@ Player::UpdateJudgedRows(float /*fDeltaTime*/)
 	// handle mines.
 	{
 		bAllJudged = true;
-		set<RageSound*> setSounds;
+		std::set<RageSound*> setSounds;
 		auto iter = *m_pIterUnjudgedMineRows; // copy
 		auto iLastSeenRow = -1;
 		for (; !iter.IsAtEnd() && iter.Row() <= iEndRow; ++iter) {
@@ -3138,10 +3155,10 @@ Player::SetJudgment(int iRow,
 			msg.SetParam("Offset",
 						 tn.result.fTapNoteOffset * 1000); // don't send out ms
 		}
-														   // offsets for
-														   // misses, multiply
-														   // by 1000 for
-														   // convenience - Mina
+		// offsets for
+		// misses, multiply
+		// by 1000 for
+		// convenience - Mina
 
 		if (m_pPlayerStageStats != nullptr) {
 			if (tns == TNS_Miss) {

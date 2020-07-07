@@ -9,6 +9,8 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSelectMaster.h"
 #include "Etterna/Singletons/ThemeManager.h"
+
+#include <algorithm>
 #include <set>
 
 static const char* MenuDirNames[] = {
@@ -21,18 +23,18 @@ AutoScreenMessage(SM_PlayPostSwitchPage);
 static std::string
 CURSOR_OFFSET_X_FROM_ICON_NAME(size_t p)
 {
-	return ssprintf("CursorP%dOffsetXFromIcon", int(p + 1));
+	return ssprintf("CursorP%dOffsetXFromIcon", static_cast<int>(p + 1));
 }
 static std::string
 CURSOR_OFFSET_Y_FROM_ICON_NAME(size_t p)
 {
-	return ssprintf("CursorP%dOffsetYFromIcon", int(p + 1));
+	return ssprintf("CursorP%dOffsetYFromIcon", static_cast<int>(p + 1));
 }
 // e.g. "OptionOrderLeft=0:1,1:2,2:3,3:4"
 static std::string
 OPTION_ORDER_NAME(size_t dir)
 {
-	return "OptionOrder" + MenuDirToString((MenuDir)dir);
+	return "OptionOrder" + MenuDirToString(static_cast<MenuDir>(dir));
 }
 
 REGISTER_SCREEN_CLASS(ScreenSelectMaster);
@@ -308,14 +310,14 @@ ScreenSelectMaster::Init()
 
 				m_mapCurrentChoiceToNextChoice[dir][c] = c + add;
 				// Always wrap around MenuDir_Auto.
-				if (dir == MenuDir_Auto || (bool)WRAP_CURSOR)
+				if (dir == MenuDir_Auto || static_cast<bool>(WRAP_CURSOR))
 					wrap(m_mapCurrentChoiceToNextChoice[dir][c],
 						 m_aGameCommands.size());
 				else
 					m_mapCurrentChoiceToNextChoice[dir][c] =
-					  clamp(m_mapCurrentChoiceToNextChoice[dir][c],
-							0,
-							(int)m_aGameCommands.size() - 1);
+					  std::clamp(m_mapCurrentChoiceToNextChoice[dir][c],
+								 0,
+								 static_cast<int>(m_aGameCommands.size()) - 1);
 			}
 		}
 	}
@@ -336,14 +338,14 @@ ScreenSelectMaster::BeginScreen()
 	int iDefaultChoice = -1;
 	for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
 		const GameCommand& mc = m_aGameCommands[c];
-		if (mc.m_sName == (std::string)DEFAULT_CHOICE) {
+		if (mc.m_sName == static_cast<std::string>(DEFAULT_CHOICE)) {
 			iDefaultChoice = c;
 			break;
 		}
 	}
 
 	m_iChoice = (iDefaultChoice != -1) ? iDefaultChoice : 0;
-	CLAMP(m_iChoice, 0, (int)m_aGameCommands.size() - 1);
+	CLAMP(m_iChoice, 0, static_cast<int>(m_aGameCommands.size()) - 1);
 	m_bChosen = false;
 	m_bDoubleChoice = false;
 
@@ -381,7 +383,7 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
 		Page newPage = GetPage(iNewChoice);
 
 		Message msg("PostSwitchPage");
-		msg.SetParam("NewPageIndex", (int)newPage);
+		msg.SetParam("NewPageIndex", static_cast<int>(newPage));
 
 		if (SHOW_CURSOR) {
 			FOREACH(PlayerNumber, vpns, p)
@@ -491,18 +493,18 @@ ScreenSelectMaster::Move(PlayerNumber pn, MenuDir dir)
 		return false;
 
 	int iSwitchToIndex = m_iChoice;
-	set<int> seen;
+	std::set<int> seen;
 
 	do {
-		map<int, int>::const_iterator iter =
+		std::map<int, int>::const_iterator iter =
 		  m_mapCurrentChoiceToNextChoice[dir].find(iSwitchToIndex);
 		if (iter != m_mapCurrentChoiceToNextChoice[dir].end())
 			iSwitchToIndex = iter->second;
 
 		if (iSwitchToIndex < 0 ||
 			iSwitchToIndex >=
-			  (int)m_aGameCommands.size()) // out of choice range
-			return false;				   // can't go that way
+			  static_cast<int>(m_aGameCommands.size())) // out of choice range
+			return false;								// can't go that way
 		if (seen.find(iSwitchToIndex) != seen.end())
 			return false; // went full circle and none found
 		seen.insert(iSwitchToIndex);
@@ -658,8 +660,8 @@ ScreenSelectMaster::ChangePage(int iNewChoice)
 	GetActiveElementPlayerNumbers(vpns);
 
 	Message msg("PreSwitchPage");
-	msg.SetParam("OldPageIndex", (int)oldPage);
-	msg.SetParam("NewPageIndex", (int)newPage);
+	msg.SetParam("OldPageIndex", static_cast<int>(oldPage));
+	msg.SetParam("NewPageIndex", static_cast<int>(newPage));
 	MESSAGEMAN->Broadcast(msg);
 
 	FOREACH(PlayerNumber, vpns, p)
@@ -838,13 +840,13 @@ ScreenSelectMaster::DoMenuStart(PlayerNumber pn)
 		FOREACH_ENUM(Page, page)
 		{
 			m_sprMore[page]->PlayCommand("Off");
-			fSecs = max(fSecs, m_sprMore[page]->GetTweenTimeLeft());
+			fSecs = std::max(fSecs, m_sprMore[page]->GetTweenTimeLeft());
 		}
 	}
 	if (SHOW_CURSOR) {
 		if (m_sprCursor != nullptr) {
 			m_sprCursor->PlayCommand("Choose");
-			fSecs = max(fSecs, m_sprCursor->GetTweenTimeLeft());
+			fSecs = std::max(fSecs, m_sprCursor->GetTweenTimeLeft());
 		}
 	}
 
@@ -916,13 +918,13 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 
 	float fSecs = 0;
 	bool bAllDone = true;
-	if ((bool)SHARED_SELECTION || GetCurrentPage() == PAGE_2) {
+	if (static_cast<bool>(SHARED_SELECTION) || GetCurrentPage() == PAGE_2) {
 		// Only one player has to pick. Choose this for all the other players,
 		// too.
 		ASSERT(!m_bChosen);
-		fSecs = max(fSecs, DoMenuStart(PLAYER_1));
+		fSecs = std::max(fSecs, DoMenuStart(PLAYER_1));
 	} else {
-		fSecs = max(fSecs, DoMenuStart(pn));
+		fSecs = std::max(fSecs, DoMenuStart(pn));
 		// check to see if everyone has chosen
 		bAllDone &= m_bChosen;
 	}
@@ -953,8 +955,8 @@ ScreenSelectMaster::TweenOnScreen()
 
 	if (SHOW_ICON) {
 		for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
-			m_vsprIcon[c]->PlayCommand((int(c) == m_iChoice) ? "GainFocus"
-															 : "LoseFocus");
+			m_vsprIcon[c]->PlayCommand(
+			  (static_cast<int>(c) == m_iChoice) ? "GainFocus" : "LoseFocus");
 			m_vsprIcon[c]->FinishTweening();
 		}
 	}
@@ -965,8 +967,8 @@ ScreenSelectMaster::TweenOnScreen()
 			// Play Gain/LoseFocus before playing the on command.
 			// Gain/Lose will often stop tweening, which ruins the OnCommand.
 			for (unsigned c = 0; c < m_aGameCommands.size(); c++) {
-				m_vsprScroll[c]->PlayCommand(int(c) == m_iChoice ? "GainFocus"
-																 : "LoseFocus");
+				m_vsprScroll[c]->PlayCommand(
+				  static_cast<int>(c) == m_iChoice ? "GainFocus" : "LoseFocus");
 				m_vsprScroll[c]->FinishTweening();
 			}
 
@@ -1003,7 +1005,7 @@ ScreenSelectMaster::TweenOffScreen()
 		bool bSelectedByEitherPlayer = false;
 		FOREACH(PlayerNumber, vpns, p)
 		{
-			if (m_iChoice == (int)c)
+			if (m_iChoice == static_cast<int>(c))
 				bSelectedByEitherPlayer = true;
 		}
 

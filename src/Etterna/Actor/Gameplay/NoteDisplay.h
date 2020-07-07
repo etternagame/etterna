@@ -58,7 +58,7 @@ struct NoteColorActor
 	auto Get(const std::string&) -> Actor*;
 
   private:
-	map<std::string, NoteResource*> g_p;
+	std::map<std::string, NoteResource*> g_p;
 };
 
 struct NoteColorSprite
@@ -73,7 +73,7 @@ struct NoteColorSprite
 	auto Get(const std::string&) -> Sprite*;
 
   private:
-	map<std::string, NoteResource*> g_p;
+	std::map<std::string, NoteResource*> g_p;
 };
 /** @brief What types of holds are there? */
 enum HoldType

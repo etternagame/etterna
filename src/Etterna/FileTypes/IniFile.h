@@ -33,7 +33,7 @@ class IniFile : public XNode
 				  T& value) const -> bool
 	{
 		const XNode* pNode = GetChild(sKey);
-		if (pNode == NULL)
+		if (pNode == nullptr)
 			return false;
 		return pNode->GetAttrValue<T>(sValueName, value);
 	}
@@ -43,7 +43,7 @@ class IniFile : public XNode
 				  const T& value)
 	{
 		XNode* pNode = GetChild(sKey);
-		if (pNode == NULL)
+		if (pNode == nullptr)
 			pNode = AppendChild(sKey);
 		pNode->AppendAttr<T>(sValueName, value);
 	}

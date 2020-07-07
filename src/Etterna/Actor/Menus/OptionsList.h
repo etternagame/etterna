@@ -88,10 +88,10 @@ class OptionsList : public ActorFrame
 	bool m_bAcceptStartRelease;
 
 	std::vector<std::string> m_asLoadedRows;
-	map<std::string, OptionRowHandler*> m_Rows;
-	map<std::string, std::vector<bool>> m_bSelections;
-	set<std::string> m_setDirectRows;
-	set<std::string>
+	std::map<std::string, OptionRowHandler*> m_Rows;
+	std::map<std::string, std::vector<bool>> m_bSelections;
+	std::set<std::string> m_setDirectRows;
+	std::set<std::string>
 	  m_setTopMenus; // list of top-level menus, pointing to submenus
 
 	PlayerNumber m_pn;

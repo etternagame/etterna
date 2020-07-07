@@ -312,18 +312,7 @@ class JudgedRows
 	vector<bool> m_vRows;
 	int m_iStart{ 0 };
 	int m_iOffset{ 0 };
-
-	void Resize(size_t iMin)
-	{
-		const auto iNewSize = max(2 * m_vRows.size(), iMin);
-		vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
-		vNewRows.reserve(iNewSize);
-		vNewRows.insert(
-		  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
-		vNewRows.resize(iNewSize, false);
-		m_vRows.swap(vNewRows);
-		m_iOffset = 0;
-	}
+	void Resize(size_t iMin);
 
   public:
 	JudgedRows() { Resize(32); }

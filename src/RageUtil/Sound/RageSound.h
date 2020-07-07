@@ -169,9 +169,9 @@ class RageSound : public RageSoundBase
 	void SetStopModeFromString(const std::string& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
-	void SetPlayBackCallback(const shared_ptr<LuaReference>& f,
+	void SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 							 unsigned int bufSize = 1024);
-	atomic<bool> pendingPlayBackCall{ false };
+	std::atomic<bool> pendingPlayBackCall{ false };
 	void ExecutePlayBackCallback(Lua* L);
 
 	// Lua
@@ -197,13 +197,13 @@ class RageSound : public RageSoundBase
 	int64_t m_iStreamFrame;
 
 	void* fftBuffer{ nullptr };
-	void ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
+	void ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 									 unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
 	std::mutex
 	  recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
-	shared_ptr<LuaReference> soundPlayCallback;
+	std::shared_ptr<LuaReference> soundPlayCallback;
 	vector<float> recentPCMSamples;
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position

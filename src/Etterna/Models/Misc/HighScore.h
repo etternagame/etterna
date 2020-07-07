@@ -111,7 +111,7 @@ struct HighScore
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
-	void AddUploadedServer(const string& s);
+	void AddUploadedServer(const std::string& s);
 	void SetOffsetVector(const std::vector<float>& v);
 	void SetNoteRowVector(const std::vector<int>& v);
 	void SetTrackVector(const std::vector<int>& v);
@@ -138,7 +138,7 @@ struct HighScore
 
 	[[nodiscard]] auto GetNameMutable() const -> const std::string*
 	{
-		return const_cast<string*>(
+		return const_cast<std::string*>(
 		  const_cast<HighScore*>(this)->GetNameMutable());
 	}
 
@@ -159,8 +159,8 @@ struct HighScore
 	auto WriteReplayData() -> bool;
 	auto WriteInputData(const std::vector<float>& oop) -> bool;
 	auto LoadReplayData() -> bool;
-	auto LoadReplayDataBasic(const string& dir) -> bool;
-	auto LoadReplayDataFull(const string& dir) -> bool;
+	auto LoadReplayDataBasic(const std::string& dir) -> bool;
+	auto LoadReplayDataFull(const std::string& dir) -> bool;
 	virtual auto HasReplayData() -> bool;
 	void UnloadReplayData();
 	void ResetSkillsets();

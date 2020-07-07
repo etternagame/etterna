@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "PlayerAI.h"
 #include "PlayerState.h"
@@ -11,6 +10,12 @@
 #include "Etterna/Actor/Gameplay/LifeMeterBar.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+
+#include <map>
+#include <algorithm>
+#include <set>
+
+using std::map;
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
@@ -69,8 +74,8 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 			 Player::GetWindowSecondsCustomScale(TW_W4, timingScale))
 		return TNS_W4;
 	else if (fSecondsFromExact <=
-			 max(Player::GetWindowSecondsCustomScale(TW_W5, timingScale),
-				 0.18f))
+			 std::max(Player::GetWindowSecondsCustomScale(TW_W5, timingScale),
+					  0.18f))
 		return TNS_W5;
 	return TNS_None;
 }
@@ -304,7 +309,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 
 void
 PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
-						   set<int> validNoterows,
+						   std::set<int> validNoterows,
 						   float timingScale)
 {
 	m_ReplaySnapshotMap.clear();
@@ -379,8 +384,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	// Have to account for mirror being in the highscore options
 	// please dont change styles in the middle of calculation and break this
 	// thanks
-	if (pScoreData->GetModifiers().find("mirror") != string::npos ||
-		pScoreData->GetModifiers().find("Mirror") != string::npos) {
+	if (pScoreData->GetModifiers().find("mirror") != std::string::npos ||
+		pScoreData->GetModifiers().find("Mirror") != std::string::npos) {
 		PlayerOptions po;
 		po.Init();
 		po.m_bTurns[PlayerOptions::TURN_MIRROR] = true;
@@ -1043,11 +1048,11 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 	CHECKPOINT_M("Finished PSSFromReplayData function");
 }
 
-pair<float, float>
+std::pair<float, float>
 PlayerAI::GetWifeScoreForRow(int row, float ts)
 {
 	// curwifescore, maxwifescore
-	pair<float, float> out = { 0.f, 0.f };
+	std::pair<float, float> out = { 0.f, 0.f };
 
 	// Handle basic offset calculating and mines
 	for (auto it = m_ReplayTapMap.begin();

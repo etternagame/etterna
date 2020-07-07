@@ -306,7 +306,7 @@ LoadInternal(XNode* pNode,
 
 	// open/close tag <TAG ..> ... </TAG>
 	//                        ^- current pointer
-	if (pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == NULL) {
+	if (pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == nullptr) {
 		// Text Value
 		++iOffset;
 		std::string::size_type iEnd = xml.find(chXMLTagOpen, iOffset);
@@ -382,7 +382,7 @@ LoadInternal(XNode* pNode,
 			}
 		} else // Alone child Tag Loaded
 		{
-			if (pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == NULL &&
+			if (pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == nullptr &&
 				iOffset < xml.size() && xml[iOffset] != chXMLTagOpen) {
 				// Text Value
 				std::string::size_type iEnd = xml.find(chXMLTagOpen, iOffset);
@@ -441,7 +441,7 @@ GetXMLInternal(const XNode* pNode,
 	}
 
 	if (pNode->ChildrenEmpty() &&
-		pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == NULL) {
+		pNode->GetAttr(XNode::TEXT_ATTRIBUTE) == nullptr) {
 		// <TAG Attr1="Val1"/> alone tag
 		WRITE("/>");
 	} else {
@@ -457,7 +457,7 @@ GetXMLInternal(const XNode* pNode,
 
 		// Text Value
 		const XNodeValue* pText = pNode->GetAttr(XNode::TEXT_ATTRIBUTE);
-		if (pText != NULL) {
+		if (pText != nullptr) {
 			if (!pNode->ChildrenEmpty()) {
 				WRITE("\r\n");
 				if (bWriteTabs)
@@ -887,7 +887,7 @@ XmlFileUtil::MergeIniUnder(XNode* pFrom, XNode* pTo)
 		// If this node doesn't exist in pTo, just move the whole node.
 		XNode* pSectionNode = *it;
 		XNode* pChildNode = pTo->GetChild(pSectionNode->GetName());
-		if (pChildNode == NULL) {
+		if (pChildNode == nullptr) {
 			aToMove.push_back(it);
 		} else {
 			FOREACH_Attr(pSectionNode, it2)
