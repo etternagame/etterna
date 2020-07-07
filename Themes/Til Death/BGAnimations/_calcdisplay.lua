@@ -234,7 +234,7 @@ local debugGroups = {
 
 -- specify enum names here
 -- only CalcDiffValue enums
--- also specify SSR to show all SSRs
+-- also specify SSR to show all SSRs (recommend to leave a group alone)
 -- miscDebugMods that are also specified under miscToLowerMods can be placed here
 local diffGroups = {
     {   -- Group 1
@@ -973,19 +973,18 @@ o[#o + 1] = LoadFont("Common Normal") .. {
         self:zoom(0.35)
         self:settext("")
     end,
-    DoTheThingCommand = function(self)
-        if song and enabled then
+    SetCommand = function(self)
+        if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["SSRS"]) then
+            self:settextf("Upper SSR: %.4f", math.max(unpack(ssrs[1])))
+        else
             self:settextf("Upper Bound: %.4f", lowerGraphMax)
         end
     end,
+    DoTheThingCommand = function(self)
+        self:playcommand("Set")
+    end,
     UpdateActiveLowerGraphMessageCommand = function(self)
-        if song and enabled then
-            if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["SSRS"]) then
-                self:settextf("Upper Bound: %.4f", math.max(unpack(ssrs[1])))
-            else
-                self:settextf("Upper Bound: %.4f", lowerGraphMax)
-            end
-        end
+        self:playcommand("Set")
     end
 }
 
