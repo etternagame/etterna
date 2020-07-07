@@ -447,13 +447,52 @@ void
 fapproach(float& val, float other_val, float to_move);
 
 /* Return a positive x mod y. */
-auto
-fmodfp(float x, float y) -> float;
+inline auto
+fmodfp(float x, float y) -> float
+{
+	x = fmodf(x, y); /* x is [-y,y] */
+	x += y;			 /* x is [0,y*2] */
+	x = fmodf(x, y); /* x is [0,y] */
+	return x;
+}
 
-auto
-power_of_two(int input) -> int;
-auto
-IsAnInt(const std::string& s) -> bool;
+inline int
+power_of_two(int input)
+{
+	auto exp = 31, i = input;
+	if (i >> 16 != 0)
+		i >>= 16;
+	else
+		exp -= 16;
+	if (i >> 8 != 0)
+		i >>= 8;
+	else
+		exp -= 8;
+	if (i >> 4 != 0)
+		i >>= 4;
+	else
+		exp -= 4;
+	if (i >> 2 != 0)
+		i >>= 2;
+	else
+		exp -= 2;
+	if (i >> 1 == 0)
+		exp -= 1;
+	const auto value = 1 << exp;
+	return input == value ? value : value << 1;
+}
+inline bool
+IsAnInt(const std::string& s)
+{
+	if (s.empty())
+		return false;
+
+	for (auto i : s)
+		if (i < '0' || i > '9')
+			return false;
+
+	return true;
+}
 auto
 IsHexVal(const std::string& s) -> bool;
 auto

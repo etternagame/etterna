@@ -182,7 +182,7 @@ HexToBinary(const std::string&, std::string&);
 void
 UnicodeUpperLower(wchar_t*, size_t, const unsigned char*);
 
-inline void
+void
 fapproach(float& val, float other_val, float to_move)
 {
 	assert(to_move >= 0);
@@ -194,55 +194,6 @@ fapproach(float& val, float other_val, float to_move)
 	if (fabsf(fToMove) > fabsf(fDelta))
 		fToMove = fDelta; // snap
 	val += fToMove;
-}
-
-/* Return a positive x mod y. */
-inline float
-fmodfp(float x, float y)
-{
-	x = fmodf(x, y); /* x is [-y,y] */
-	x += y;			 /* x is [0,y*2] */
-	x = fmodf(x, y); /* x is [0,y] */
-	return x;
-}
-
-inline int
-power_of_two(int input)
-{
-	auto exp = 31, i = input;
-	if (i >> 16 != 0)
-		i >>= 16;
-	else
-		exp -= 16;
-	if (i >> 8 != 0)
-		i >>= 8;
-	else
-		exp -= 8;
-	if (i >> 4 != 0)
-		i >>= 4;
-	else
-		exp -= 4;
-	if (i >> 2 != 0)
-		i >>= 2;
-	else
-		exp -= 2;
-	if (i >> 1 == 0)
-		exp -= 1;
-	const auto value = 1 << exp;
-	return input == value ? value : value << 1;
-}
-
-inline bool
-IsAnInt(const std::string& s)
-{
-	if (s.empty())
-		return false;
-
-	for (auto i : s)
-		if (i < '0' || i > '9')
-			return false;
-
-	return true;
 }
 
 bool
