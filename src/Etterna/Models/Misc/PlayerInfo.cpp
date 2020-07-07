@@ -11,7 +11,7 @@
 #include "Etterna/Actor/Gameplay/PlayerPractice.h"
 #include "Etterna/Actor/Gameplay/PlayerReplay.h"
 #include "Etterna/Actor/Gameplay/LifeMeter.h"
-
+#include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 

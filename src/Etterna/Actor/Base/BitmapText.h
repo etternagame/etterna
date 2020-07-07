@@ -65,7 +65,7 @@ class BitmapText : public Actor
 	void BeginTweening(float time, ITween* interp) override;
 	// This function exists because the compiler tried to connect a call of
 	// "BeginTweening(1.2f)" to the function above. -Kyz
-	virtual void BeginTweening(float time, TweenType tt = TWEEN_LINEAR)
+	virtual void BeginTweening(float time, TweenType tt = TWEEN_LINEAR) override
 	{
 		Actor::BeginTweening(time, tt);
 	}

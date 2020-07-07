@@ -210,7 +210,7 @@ struct WavReaderADPCM : public WavReader
 	  : WavReader(f, data)
 	{
 		m_iFramesPerBlock = 0;
-		m_pBuffer = NULL;
+		m_pBuffer = nullptr;
 		m_iBufferAvail = 0;
 		m_iBufferUsed = 0;
 	}
@@ -629,7 +629,7 @@ RageSoundReader_WAV::Read(float* pBuf, int iFrames)
 
 RageSoundReader_WAV::RageSoundReader_WAV()
 {
-	m_pImpl = NULL;
+	m_pImpl = nullptr;
 }
 
 RageSoundReader_WAV::~RageSoundReader_WAV()

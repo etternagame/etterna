@@ -116,11 +116,11 @@ RageSoundReader_Vorbisfile::Open(RageFileBasic* pFile)
 	callbacks.close_func = OggRageFile_close_func;
 	callbacks.tell_func = OggRageFile_tell_func;
 
-	int ret = ov_open_callbacks(pFile, vf, NULL, 0, callbacks);
+	int ret = ov_open_callbacks(pFile, vf, nullptr, 0, callbacks);
 	if (ret < 0) {
 		SetError(ov_ssprintf(ret, "ov_open failed"));
 		delete vf;
-		vf = NULL;
+		vf = nullptr;
 		switch (ret) {
 			case OV_ENOTVORBIS:
 				return OPEN_UNKNOWN_FILE_FORMAT;
@@ -315,7 +315,7 @@ RageSoundReader_Vorbisfile::GetNextSourceFrame() const
 
 RageSoundReader_Vorbisfile::RageSoundReader_Vorbisfile()
 {
-	vf = NULL;
+	vf = nullptr;
 }
 
 RageSoundReader_Vorbisfile::~RageSoundReader_Vorbisfile()

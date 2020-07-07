@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <algorithm>
 
 /* enums and other definitions that only the calcmain and its components need */
 
