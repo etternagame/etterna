@@ -10,9 +10,14 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
+#include "Etterna/Globals/SoloCalc.h"
+
 #include <cstdint>
 #include <numeric>
-#include "Etterna/Globals/SoloCalc.h"
+#include <algorithm>
+
+using std::lock_guard;
+using std::mutex;
 
 ScoreManager* SCOREMAN = nullptr;
 
@@ -61,7 +66,7 @@ auto
 ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 {
 	auto& key = hs.GetScoreKey();
-	bestGrade = min(hs.GetWifeGrade(), bestGrade);
+	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
 	scores.emplace(key, hs);
 
 	if ((PBptr == nullptr) ||
@@ -84,7 +89,7 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 auto
 ScoresAtRate::GetSortedKeys() const -> const vector<string>
 {
-	map<float, string, greater<>> tmp;
+	std::map<float, string, std::greater<>> tmp;
 	vector<string> o;
 	if (PREFSMAN->m_bSortBySSRNorm) {
 		for (const auto& i : scores) {
@@ -189,7 +194,7 @@ ScoresForChart::GetPBUpTo(float rate) -> HighScore*
 auto
 ScoresForChart::AddScore(HighScore& hs) -> HighScore*
 {
-	bestGrade = min(hs.GetWifeGrade(), bestGrade);
+	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
 
 	auto rate = hs.GetMusicRate();
 	auto key = RateToKey(rate);
@@ -386,7 +391,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& /*profileID*/)
 		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
-		ld->SetText("\nUpdating Ratings for " + to_string(scores.size()) +
+		ld->SetText("\nUpdating Ratings for " + std::to_string(scores.size()) +
 					" scores");
 	}
 	auto onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
@@ -439,8 +444,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& /*profileID*/)
 			  currentlyLockedSongs.begin(), currentlyLockedSongs.end(), song));
 		}
 	};
-	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
-				  ThreadData*)>
+	std::function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
+					   ThreadData*)>
 	  callback =
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
@@ -586,7 +591,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld, const string& /*profileID*/)
 	  scores,
 	  onUpdate,
 	  callback,
-	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+	  static_cast<void*>(new std::pair<int, LoadingWindow*>(onePercent, ld)));
 
 	SCOREMAN->scorestorecalc.clear();
 	SCOREMAN->scorestorecalc.shrink_to_fit();
@@ -644,8 +649,8 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 			  currentlyLockedSongs.begin(), currentlyLockedSongs.end(), song));
 		}
 	};
-	function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
-				  ThreadData*)>
+	std::function<void(std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>>,
+					   ThreadData*)>
 	  callback =
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
@@ -731,7 +736,7 @@ AggregateSkillsets(const vector<float>& skillsets,
 		rating += res;
 		sum = 0.0;
 		for (auto& ss : skillsets) {
-			sum += max(0.0, 2.f / erfc(0.1 * (ss - rating)) - 2);
+			sum += std::max(0.0, 2.f / erfc(0.1 * (ss - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11) {
@@ -783,7 +788,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 				ts->GetTopScore() != 0 &&
 				SONGMAN->GetStepsByChartkey(ts->GetChartKey())->m_StepsType ==
 				  StepsType_dance_single) {
-				sum += max(
+				sum += std::max(
 				  0.0, 2.f / erfc(0.1 * (ts->GetSkillsetSSR(ss) - rating)) - 2);
 			}
 		}
@@ -937,7 +942,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		scores[sk].SetScoreKey(sk);
 		scores[sk].SetMusicRate(rate);
 
-		bestGrade = min(scores[sk].GetWifeGrade(), bestGrade);
+		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
 
 		// Very awkward, need to figure this out better so there isn't
 		// unnecessary redundancy between loading and adding
@@ -998,7 +1003,7 @@ ScoresForChart::LoadFromNode(const XNode* node,
 		p->GetAttrValue("Rate", rs);
 		rate = 10 * StringToInt(rs.substr(0, 1) + rs.substr(2, 4));
 		ScoresByRate[rate].LoadFromNode(p, ck, KeyToRate(rate), profileID);
-		bestGrade = min(ScoresByRate[rate].bestGrade, bestGrade);
+		bestGrade = std::min(ScoresByRate[rate].bestGrade, bestGrade);
 	}
 }
 

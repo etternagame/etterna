@@ -191,7 +191,7 @@ template<class T>
 class ThemeMetric1D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	vector<ThemeMetricT> m_metric;
+	std::vector<ThemeMetricT> m_metric;
 
   public:
 	ThemeMetric1D(const std::string& sGroup, MetricName1D pfn, size_t N)
@@ -228,8 +228,8 @@ template<class T>
 class ThemeMetric2D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	using ThemeMetricTVector = vector<ThemeMetricT>;
-	vector<ThemeMetricTVector> m_metric;
+	using ThemeMetricTVector = std::vector<ThemeMetricT>;
+	std::vector<ThemeMetricTVector> m_metric;
 
   public:
 	ThemeMetric2D(const std::string& sGroup = "",
@@ -278,13 +278,13 @@ class ThemeMetricMap : public IThemeMetric
 	ThemeMetricMap(
 	  const std::string& sGroup = "",
 	  MetricNameMap pfn = nullptr,
-	  const vector<std::string>& vsValueNames = vector<std::string>())
+	  const std::vector<std::string>& vsValueNames = std::vector<std::string>())
 	{
 		Load(sGroup, pfn, vsValueNames);
 	}
 	void Load(const std::string& sGroup,
 			  MetricNameMap pfn,
-			  const vector<std::string>& vsValueNames)
+			  const std::vector<std::string>& vsValueNames)
 	{
 		m_metric.clear();
 		for (auto& s : vsValueNames) {
@@ -295,7 +295,7 @@ class ThemeMetricMap : public IThemeMetric
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
-		for (typename map<std::string, ThemeMetric<T>>::iterator m =
+		for (typename std::map<std::string, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
 			 ++m)
@@ -303,7 +303,7 @@ class ThemeMetricMap : public IThemeMetric
 	}
 	void Clear() override
 	{
-		for (typename map<std::string, ThemeMetric<T>>::iterator m =
+		for (typename std::map<std::string, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
 			 ++m)

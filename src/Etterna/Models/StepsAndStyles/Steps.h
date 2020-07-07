@@ -56,37 +56,6 @@ class Steps
 	void Decompress();
 
 	/**
-	 * @brief Determine if these steps were created by the autogenerator.
-	 * @return true if they were, false otherwise.
-	 */
-
-	/**
-	 * @brief Determine if this set of Steps is an edit.
-	 *
-	 * Edits have a special value of difficulty to make it easy to determine.
-	 * @return true if this is an edit, false otherwise.
-	 */
-	auto IsAnEdit() const -> bool { return m_Difficulty == Difficulty_Edit; }
-	/**
-	 * @brief Determine if this set of Steps is a player edit.
-	 *
-	 * Player edits also have to be loaded from a player's profile slot, not the
-	 * machine.
-	 * @return true if this is a player edit, false otherwise. */
-	auto IsAPlayerEdit() const -> bool { return IsAnEdit(); }
-	/**
-	 * @brief Determine if these steps were loaded from a player's profile.
-	 * @return true if they were from a player profile, false otherwise.
-	 */
-	auto WasLoadedFromProfile() const -> bool
-	{
-		return m_LoadedFromProfile != ProfileSlot_Invalid;
-	}
-	auto GetLoadedFromProfileSlot() const -> ProfileSlot
-	{
-		return m_LoadedFromProfile;
-	}
-	/**
 	 * @brief Retrieve the description used for this edit.
 	 * @return the description used for this edit.
 	 */
@@ -148,6 +117,7 @@ class Steps
 							 const std::vector<float>& etaner,
 							 const std::vector<int>& nerv,
 							 float rate) -> std::vector<int>;
+
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina

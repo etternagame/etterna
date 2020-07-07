@@ -628,8 +628,8 @@ void
 Model::SetPosition(float fSeconds)
 {
 	m_fCurFrame = FRAMES_PER_SECOND * fSeconds;
-	m_fCurFrame =
-	  clamp(m_fCurFrame, 0, static_cast<float>(m_pCurAnimation->nTotalFrames));
+	m_fCurFrame = std::clamp(
+	  m_fCurFrame, 0.F, static_cast<float>(m_pCurAnimation->nTotalFrames));
 }
 
 void
@@ -653,9 +653,9 @@ Model::AdvanceFrame(float fDeltaTime)
 				 static_cast<float>(m_pCurAnimation->nTotalFrames));
 		else
 			m_fCurFrame =
-			  clamp(m_fCurFrame,
-					0,
-					static_cast<float>(m_pCurAnimation->nTotalFrames));
+			  std::clamp(m_fCurFrame,
+						 0.F,
+						 static_cast<float>(m_pCurAnimation->nTotalFrames));
 	}
 
 	SetBones(m_pCurAnimation, m_fCurFrame, m_vpBones);
@@ -793,7 +793,7 @@ Model::GetNumStates() const
 {
 	auto iMaxStates = 0;
 	for (const auto& m : m_Materials)
-		iMaxStates = max(iMaxStates, m.diffuse.GetNumStates());
+		iMaxStates = std::max(iMaxStates, m.diffuse.GetNumStates());
 	return iMaxStates;
 }
 
@@ -811,8 +811,8 @@ Model::RecalcAnimationLengthSeconds()
 {
 	m_animation_length_seconds = 0;
 	for (auto& m : m_Materials) {
-		m_animation_length_seconds = max(m_animation_length_seconds,
-										 m.diffuse.GetAnimationLengthSeconds());
+		m_animation_length_seconds = std::max(
+		  m_animation_length_seconds, m.diffuse.GetAnimationLengthSeconds());
 	}
 }
 

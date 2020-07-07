@@ -6,7 +6,6 @@
 #include "PrefsManager.h"
 #include "SongManager.h"
 #include "ProfileManager.h"
-#include <algorithm>
 
 #include <map>
 #include <string>
@@ -38,7 +37,7 @@ struct ScoresAtRate
 					  const std::string& profileID);
 
 	auto GetAllScores() -> const vector<HighScore*>;
-	unordered_map<std::string, HighScore> scores;
+	std::unordered_map<std::string, HighScore> scores;
 };
 
 // All scores for a specific chart
@@ -88,7 +87,7 @@ struct ScoresForChart
 	/* It makes sense internally to have the map keys sorted highest rate to
 	lowest however my experience in lua is that it tends to be more friendly
 	to approach things in the reverse -mina */
-	map<int, ScoresAtRate, greater<>> ScoresByRate;
+	std::map<int, ScoresAtRate, std::greater<>> ScoresByRate;
 
 	[[nodiscard]] static auto RateToKey(float rate) -> int
 	{
@@ -215,7 +214,7 @@ class ScoreManager
 		std::swap(score, AllScores.back());
 	}
 	auto GetAllScores() -> const vector<HighScore*>& { return AllScores; }
-	auto GetScoresByKey() -> const unordered_map<std::string, HighScore*>&
+	auto GetScoresByKey() -> const std::unordered_map<std::string, HighScore*>&
 	{
 		return ScoresByKey;
 	}
@@ -237,7 +236,7 @@ class ScoreManager
 	void PurgeScores();
 	auto GetProfileScores(const std::string& profileID =
 							PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
-	  -> unordered_map<std::string, ScoresForChart>*
+	  -> std::unordered_map<std::string, ScoresForChart>*
 	{
 		return &(pscores[profileID]);
 	};
@@ -255,21 +254,22 @@ class ScoreManager
 	vector<HighScore*> scorestorecalc;
 
 	// probably can avoid copying strings if we're sure it's safe
-	set<HighScore*> rescores;
+	std::set<HighScore*> rescores;
 
   private:
-	unordered_map<std::string, unordered_map<std::string, ScoresForChart>>
+	std::unordered_map<std::string,
+					   std::unordered_map<std::string, ScoresForChart>>
 	  pscores; // Profile scores
 
 	// Instead of storing pointers for each skillset just reshuffle the same set
 	// of pointers it's inexpensive and not called often
 	vector<HighScore*> TopSSRs;
 	vector<HighScore*> AllScores;
-	unordered_map<std::string, vector<HighScore*>> AllProfileScores;
+	std::unordered_map<std::string, vector<HighScore*>> AllProfileScores;
 
 	// pointers in a keyed index (by scorekey, in case it's not immediately
 	// obvious)
-	unordered_map<std::string, HighScore*> ScoresByKey;
+	std::unordered_map<std::string, HighScore*> ScoresByKey;
 };
 
 extern ScoreManager* SCOREMAN;

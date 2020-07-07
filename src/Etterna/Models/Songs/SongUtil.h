@@ -6,8 +6,9 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
-#include <set>
 #include <utility>
+
+using std::vector;
 
 class Song;
 class Steps;
@@ -70,7 +71,7 @@ DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps);
 void
 MakeSortString(std::string& s);
 auto
-MakeSortString(const string& in) -> std::string;
+MakeSortString(const std::string& in) -> std::string;
 void
 SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut);
 void
@@ -154,7 +155,7 @@ ValidateCurrentStepsMusic(const std::string& answer, std::string& error)
 void
 GetAllSongGenres(vector<std::string>& vsOut);
 void
-GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut);
+GetPlayableStepsTypes(const Song* pSong, std::set<StepsType>& vOut);
 void
 GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut);
 auto

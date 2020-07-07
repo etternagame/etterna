@@ -25,12 +25,22 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
-using namespace rapidjson;
-#include <unordered_set>
+
 #ifdef _WIN32
 #include <intrin.h>
 #endif
-shared_ptr<DownloadManager> DLMAN = nullptr;
+
+#include <unordered_set>
+
+using std::function;
+using std::map;
+using std::pair;
+using std::string;
+using std::to_string;
+
+using namespace rapidjson;
+
+std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static Preference<unsigned int> maxDLPerSecond(
@@ -470,7 +480,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
 	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
@@ -1507,7 +1517,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 					!note[1].IsNumber())
 					continue;
 				replayData.push_back(
-				  make_pair(note[0].GetFloat(), note[1].GetFloat()));
+				  std::make_pair(note[0].GetFloat(), note[1].GetFloat()));
 
 				timestamps.push_back(note[0].GetFloat());
 				offsets.push_back(note[1].GetFloat() / 1000.f);
@@ -1902,7 +1912,7 @@ DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 }
 
 void
@@ -2208,7 +2218,7 @@ DownloadManager::RefreshPackList(const string& url)
 		for (auto& pack_obj : packs->GetArray()) {
 			DownloadablePack tmp;
 			if (pack_obj.HasMember("id") && pack_obj["id"].IsString())
-				tmp.id = stoi(pack_obj["id"].GetString());
+				tmp.id = std::stoi(pack_obj["id"].GetString());
 			else
 				tmp.id = 0;
 
@@ -2673,7 +2683,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
 		vector<HighScore*> filteredLeaderboardScores;
-		unordered_set<string> userswithscores;
+		std::unordered_set<string> userswithscores;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
 		string country = "";
 		if (!lua_isnoneornil(L, 2)) {

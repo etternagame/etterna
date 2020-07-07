@@ -12,9 +12,12 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include "Etterna/Singletons/FilterManager.h"
+
 #include <typeinfo>
 #include <tuple>
-#include "Etterna/Singletons/FilterManager.h"
+#include <algorithm>
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -823,7 +826,8 @@ Actor::UpdateTweening(float fDeltaTime)
 
 		const auto bBeginning = TI.m_fTimeLeftInTween == TI.m_fTweenTime;
 
-		const auto fSecsToSubtract = min(TI.m_fTimeLeftInTween, fDeltaTime);
+		const auto fSecsToSubtract =
+		  std::min(TI.m_fTimeLeftInTween, fDeltaTime);
 		TI.m_fTimeLeftInTween -= fSecsToSubtract;
 		fDeltaTime -= fSecsToSubtract;
 

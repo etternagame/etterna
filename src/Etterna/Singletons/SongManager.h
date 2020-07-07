@@ -188,7 +188,6 @@ class SongManager
 	void LoadCalcTestNode() const;
 	void SaveCalcTestXmlToDir() const;
 	std::map<Skillset, CalcTestList> testChartList;
-
 	std::unique_ptr<Calc> calc;
 
   protected:

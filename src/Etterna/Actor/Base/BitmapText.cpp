@@ -283,7 +283,7 @@ BitmapText::BuildChars()
 	{
 		m_iLineWidths.push_back(
 		  m_pFont->GetLineWidthInSourcePixels(m_wTextLine));
-		m_size.x = max(m_size.x, m_iLineWidths.back());
+		m_size.x = max(m_size.x, (float)m_iLineWidths.back());
 	}
 
 	/* Ensure that the width is always even. This maintains pixel alignment;
@@ -694,7 +694,7 @@ BitmapText::UpdateBaseZoom()
 			dimension /= dimension_zoom_get();                                 \
 		}                                                                      \
 		if (dimension != 0) {                                                  \
-			const float zoom = min(1, (dimension_max) / dimension);            \
+			const float zoom = min(1.F, (dimension_max) / dimension);          \
 			base_zoom_set(zoom);                                               \
 		}                                                                      \
 	}

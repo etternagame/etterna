@@ -7,9 +7,7 @@
 #include "GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "NoteSkinManager.h"
-#include <algorithm>
 #include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
-#include <mutex>
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
@@ -31,9 +29,14 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
-#include <numeric>
 
+#include <numeric>
+#include <algorithm>
+#include <mutex>
+
+using std::map;
 using std::string;
+using std::vector;
 
 typedef std::string SongDir;
 struct Group
@@ -68,7 +71,7 @@ static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
 std::string
 SONG_GROUP_COLOR_NAME(size_t i)
 {
-	return ssprintf("SongGroupColor%i", (int)i + 1);
+	return ssprintf("SongGroupColor%i", static_cast<int>(i) + 1);
 }
 
 static const float next_loading_window_update = 0.02f;
@@ -91,7 +94,7 @@ SongManager::SongManager()
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
 
 	// calc for debug/session scores
-	calc = make_unique<Calc>();
+	calc = std::make_unique<Calc>();
 }
 
 SongManager::~SongManager()
@@ -305,13 +308,15 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	}
 	auto onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 
-	function<void(
-	  std::pair<vectorIt<pair<pair<std::string, unsigned int>, Song*>*>,
-				vectorIt<pair<pair<std::string, unsigned int>, Song*>*>>,
+	std::function<void(
+	  std::pair<
+		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
+		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>,
 	  ThreadData*)>
 	  callback =
-		[](std::pair<vectorIt<pair<pair<std::string, unsigned int>, Song*>*>,
-					 vectorIt<pair<pair<std::string, unsigned int>, Song*>*>>
+		[](std::pair<
+			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
+			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>
 			 workload,
 		   ThreadData* data) {
 			auto pair =
@@ -349,11 +354,11 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 		if (ld != nullptr)
 			ld->SetProgress(progress);
 	};
-	parallelExecution<pair<pair<std::string, unsigned int>, Song*>*>(
+	parallelExecution<std::pair<std::pair<std::string, unsigned int>, Song*>*>(
 	  cache,
 	  onUpdate,
 	  callback,
-	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+	  static_cast<void*>(new std::pair<int, LoadingWindow*>(onePercent, ld)));
 	LoadStepManiaSongDir(SpecialFiles::SONGS_DIR, ld);
 	LoadStepManiaSongDir(ADDITIONAL_SONGS_DIR, ld);
 	LoadEnabledSongsFromPref();
@@ -361,7 +366,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Found %u songs in %f seconds.",
-				   (unsigned int)m_pSongs.size(),
+				   static_cast<unsigned int>(m_pSongs.size()),
 				   tm.GetDeltaTime());
 	for (auto& pair : cache)
 		delete pair;
@@ -616,7 +621,7 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 }
 
 void
-SongManager::MakePlaylistFromFavorites(set<string>& favs,
+SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
 									   map<string, Playlist>& playlists)
 {
 	Playlist pl;
@@ -860,7 +865,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 		  workload,
 		  onUpdate,
 		  callback,
-		  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+		  static_cast<void*>(
+			new std::pair<int, LoadingWindow*>(onePercent, ld)));
 
 	if (ld != nullptr) {
 		ld->SetIndeterminate(true);
@@ -897,7 +903,7 @@ SongManager::IsGroupNeverCached(const std::string& group) const
 }
 
 void
-SongManager::SetFavoritedStatus(set<string>& favs)
+SongManager::SetFavoritedStatus(std::set<string>& favs)
 {
 	FOREACH(Song*, m_pSongs, song)
 	{
@@ -910,7 +916,7 @@ SongManager::SetFavoritedStatus(set<string>& favs)
 }
 
 void
-SongManager::SetPermaMirroredStatus(set<string>& pmir)
+SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 {
 	FOREACH(Song*, m_pSongs, song)
 	FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
@@ -920,7 +926,7 @@ SongManager::SetPermaMirroredStatus(set<string>& pmir)
 
 // hurr should probably redo both (all three) of these -mina
 void
-SongManager::SetHasGoal(unordered_map<string, GoalsForChart>& goalmap)
+SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 {
 	FOREACH(Song*, m_pSongs, song)
 	{
@@ -1043,7 +1049,7 @@ SongManager::GetSongColor(const Song* pSong) const
 			//	continue;
 
 			if (pSteps->GetMeter() >= EXTRA_COLOR_METER)
-				return (RageColor)EXTRA_COLOR;
+				return static_cast<RageColor>(EXTRA_COLOR);
 		}
 
 		return GetSongGroupColor(pSong->m_sGroupName);
@@ -1261,8 +1267,8 @@ bool
 CompareNotesPointersForExtra(const Steps* n1, const Steps* n2)
 {
 	// Equate CHALLENGE to HARD.
-	auto d1 = min(n1->GetDifficulty(), Difficulty_Hard);
-	auto d2 = min(n2->GetDifficulty(), Difficulty_Hard);
+	auto d1 = std::min(n1->GetDifficulty(), Difficulty_Hard);
+	auto d2 = std::min(n2->GetDifficulty(), Difficulty_Hard);
 
 	if (d1 < d2)
 		return true;
@@ -1393,7 +1399,7 @@ SongManager::GetSongFromDir(std::string dir) const
 
 	s_replace(dir, "\\", "/");
 	dir = make_lower(dir);
-	map<std::string, Song*>::const_iterator entry = m_SongsByDir.find(dir);
+	auto entry = m_SongsByDir.find(dir);
 	if (entry != m_SongsByDir.end()) {
 		return entry->second;
 	}
@@ -1423,7 +1429,7 @@ SongManager::FindSong(std::string sPath) const
 
 	if (bits.size() == 1)
 		return FindSong("", bits[0]);
-	else if (bits.size() == 2)
+	if (bits.size() == 2)
 		return FindSong(bits[0], bits[1]);
 
 	return nullptr;
@@ -1434,10 +1440,9 @@ SongManager::FindSong(std::string sGroup, std::string sSong) const
 {
 	// foreach song
 	const auto& vSongs = GetSongs(sGroup.empty() ? GROUP_ALL : sGroup);
-	FOREACH_CONST(Song*, vSongs, s)
-	{
-		if ((*s)->Matches(sGroup, sSong))
-			return *s;
+	for (auto& s : vSongs) {
+		if (s->Matches(sGroup, sSong))
+			return s;
 	}
 
 	return nullptr;
@@ -1494,9 +1499,8 @@ SongManager::UpdatePreferredSort(const std::string& sPreferredSongs,
 					if (DoesSongGroupExist(group)) {
 						// add all songs in group
 						const auto& vSongs = GetSongs(group);
-						FOREACH_CONST(Song*, vSongs, song)
-						{
-							section.vpSongs.emplace_back(*song);
+						for (auto& song : vSongs) {
+							section.vpSongs.emplace_back(song);
 						}
 					}
 				}
@@ -1518,9 +1522,10 @@ SongManager::UpdatePreferredSort(const std::string& sPreferredSongs,
 			if (m_vPreferredSongSort[i].vpSongs.empty())
 				m_vPreferredSongSort.erase(m_vPreferredSongSort.begin() + i);
 
-		FOREACH(PreferredSortSection, m_vPreferredSongSort, i)
-		FOREACH(Song*, i->vpSongs, j)
-		ASSERT(*j != NULL);
+		for (auto& i : m_vPreferredSongSort)
+			for (auto& s : i.vpSongs) {
+				ASSERT(s != nullptr);
+			}
 	}
 }
 
@@ -1537,38 +1542,6 @@ SongManager::AddSongToList(Song* new_song)
 	m_pSongs.emplace_back(new_song);
 	std::string dir = make_lower(new_song->GetSongDir());
 	m_SongsByDir.insert(make_pair(dir, new_song));
-}
-
-void
-SongManager::FreeAllLoadedFromProfile(ProfileSlot slot)
-{
-	// Popular and Shuffled may refer to courses that we just freed.
-	UpdateShuffled();
-
-	// Free profile steps.
-	set<Steps*> setInUse;
-	if (STATSMAN)
-		STATSMAN->GetStepsInUse(setInUse);
-	FOREACH(Song*, m_pSongs, s)
-	(*s)->FreeAllLoadedFromProfile(slot, &setInUse);
-}
-
-int
-SongManager::GetNumStepsLoadedFromProfile()
-{
-	auto iCount = 0;
-	FOREACH(Song*, m_pSongs, s)
-	{
-		auto vpAllSteps = (*s)->GetAllSteps();
-
-		FOREACH(Steps*, vpAllSteps, ss)
-		{
-			if ((*ss)->GetLoadedFromProfileSlot() != ProfileSlot_Invalid)
-				iCount++;
-		}
-	}
-
-	return iCount;
 }
 
 void
@@ -1603,7 +1576,7 @@ CalcTestList::CreateNode() const
 		chart->AppendAttr("bRate", ssprintf("%.2f", p.second.rate));
 		auto vers_hist = chart->AppendChild("VersionHistory");
 		for (const auto& vh : p.second.version_history)
-			vers_hist->AppendChild(to_string(vh.first), vh.second);
+			vers_hist->AppendChild(std::to_string(vh.first), vh.second);
 		cl->AppendChild(chart);
 	}
 
@@ -1636,7 +1609,7 @@ SongManager::LoadCalcTestNode() const
 	{
 		int ssI;
 		chartlist->GetAttrValue("Skillset", ssI);
-		auto ss = (Skillset)ssI;
+		auto ss = static_cast<Skillset>(ssI);
 		CalcTestList tl;
 		tl.skillset = ss;
 		FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
