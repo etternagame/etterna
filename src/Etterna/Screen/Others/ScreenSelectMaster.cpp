@@ -371,7 +371,7 @@ ScreenSelectMaster::BeginScreen()
 }
 
 void
-ScreenSelectMaster::HandleScreenMessage(const ScreenMessage SM)
+ScreenSelectMaster::HandleScreenMessage(const ScreenMessage& SM)
 {
 	ScreenSelect::HandleScreenMessage(SM);
 

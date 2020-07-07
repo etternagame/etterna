@@ -33,7 +33,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 	void Cancel(ScreenMessage smSendWhenDone) override;
 

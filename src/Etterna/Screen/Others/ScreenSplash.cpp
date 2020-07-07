@@ -22,7 +22,7 @@ ScreenSplash::BeginScreen()
 }
 
 void
-ScreenSplash::HandleScreenMessage(const ScreenMessage SM)
+ScreenSplash::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_DoneFadingIn) {
 		if (PREPARE_SCREEN)

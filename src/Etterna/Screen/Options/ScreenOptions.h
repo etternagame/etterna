@@ -44,7 +44,7 @@ class ScreenOptions : public ScreenWithMenuElements
 	~ScreenOptions() override;
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
 	void TweenOnScreen() override;
 	void TweenOffScreen() override;

@@ -1,11 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "TitleSubstitution.h"
-
 #include "Etterna/Models/Fonts/FontCharAliases.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -94,9 +90,8 @@ TitleSubst::AddTrans(const TitleTrans& tr)
 void
 TitleSubst::Subst(TitleFields& tf)
 {
-	FOREACH_CONST(TitleTrans*, ttab, iter)
-	{
-		auto tt = *iter;
+	for (auto& iter : ttab) {
+		auto tt = iter;
 
 		TitleFields to;
 		if (!tt->Matches(tf, to))

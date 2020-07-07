@@ -75,11 +75,12 @@ ThemeMetricDifficultiesToShow::GetValue() const
 }
 
 static void
-RemoveStepsTypes(vector<StepsType>& inout, std::string sStepsTypesToRemove)
+RemoveStepsTypes(vector<StepsType>& inout,
+				 const std::string& sStepsTypesToRemove)
 {
 	vector<std::string> v;
 	split(sStepsTypesToRemove, ",", v);
-	if (v.size() == 0)
+	if (v.empty())
 		return; // Nothing to do!
 
 	// subtract StepsTypes

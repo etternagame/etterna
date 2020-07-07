@@ -8,7 +8,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 
-#include <set>
 #include <algorithm>
 
 bool

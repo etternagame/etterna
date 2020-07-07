@@ -1422,7 +1422,6 @@ GameState::IsPracticeMode()
 }
 
 // lua start
-#include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GameState. */

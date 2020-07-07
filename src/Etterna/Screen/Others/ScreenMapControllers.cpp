@@ -715,7 +715,7 @@ ScreenMapControllers::StartWaitingForPress()
 }
 
 void
-ScreenMapControllers::HandleScreenMessage(const ScreenMessage SM)
+ScreenMapControllers::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_DoSaveAndExit) {
 		switch (ScreenPrompt::s_LastAnswer) {

@@ -552,7 +552,7 @@ ScreenOptions::Input(const InputEventPlus& input)
 }
 
 void
-ScreenOptions::HandleScreenMessage(const ScreenMessage SM)
+ScreenOptions::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_MenuTimer) {
 		this->BeginFadingOut();
@@ -1362,7 +1362,6 @@ MoveRowAbsolute(PLAYER_1,i)
 	}
 */
 // lua start
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to ScreenOptions. */
 class LunaScreenOptions : public Luna<ScreenOptions>

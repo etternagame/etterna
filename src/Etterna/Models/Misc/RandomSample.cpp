@@ -20,7 +20,7 @@ RandomSample::~RandomSample()
 bool
 RandomSample::Load(const std::string& sFilePath, int iMaxToLoad)
 {
-	if (GetExtension(sFilePath) == "")
+	if (GetExtension(sFilePath).empty())
 		return LoadSoundDir(sFilePath, iMaxToLoad);
 	return LoadSound(sFilePath);
 }
@@ -36,7 +36,7 @@ RandomSample::UnloadAll()
 bool
 RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 {
-	if (sDir == "")
+	if (sDir.empty())
 		return true;
 
 	// make sure there's a slash at the end of this path

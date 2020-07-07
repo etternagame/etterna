@@ -199,7 +199,7 @@ class Song
 				 : m_sMainTitle;
 	}
 
-	auto GetStepsToSave(bool bSavingCache = true, std::string path = "")
+	auto GetStepsToSave(bool bSavingCache = true, const std::string& path = "")
 	  -> std::vector<Steps*>;
 
 	/**
@@ -333,7 +333,7 @@ class Song
 		return m_PreviewPath;
 	}
 	[[nodiscard]] auto GetPreviewStartSeconds() const -> float;
-	auto GetCacheFile(std::string sPath) -> std::string;
+	auto GetCacheFile(const std::string& sType) -> std::string;
 
 	// how have i not jammed anything here yet - mina
 
@@ -435,7 +435,7 @@ class Song
 	void AddBackgroundChange(BackgroundLayer blLayer,
 							 const BackgroundChange& seg);
 	void AddForegroundChange(const BackgroundChange& seg);
-	void AddLyricSegment(LyricSegment seg);
+	void AddLyricSegment(const LyricSegment& seg);
 
 	void GetDisplayBpms(DisplayBpms& AddTo) const;
 	[[nodiscard]] auto GetBackgroundAtBeat(BackgroundLayer iLayer,

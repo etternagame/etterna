@@ -1010,7 +1010,7 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 }
 
 void
-ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
+ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_AllowOptionsMenuRepeat) {
 		m_bAllowOptionsMenuRepeat = true;

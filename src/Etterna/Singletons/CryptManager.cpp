@@ -494,7 +494,6 @@ CryptManager::GenerateRandomUUID()
 }
 
 // lua start
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the CryptManager. */
 class LunaCryptManager : public Luna<CryptManager>

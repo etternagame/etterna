@@ -78,16 +78,16 @@ struct SMLoader
 	virtual bool LoadEditFromFile(const std::string& sEditFilePath,
 								  ProfileSlot slot,
 								  bool bAddStepsToSong,
-								  Song* givenSong = NULL);
+								  Song* givenSong = nullptr);
 	virtual bool LoadEditFromBuffer(const std::string& sBuffer,
 									const std::string& sEditFilePath,
 									ProfileSlot slot,
-									Song* givenSong = NULL);
+									Song* givenSong = nullptr);
 	virtual bool LoadEditFromMsd(const MsdFile& msd,
 								 const std::string& sEditFilePath,
 								 ProfileSlot slot,
 								 bool bAddStepsToSong,
-								 Song* givenSong = NULL);
+								 Song* givenSong = nullptr);
 	virtual bool LoadFromBGChangesString(
 	  BackgroundChange& change,
 	  const std::string& sBGChangeExpression);
@@ -112,7 +112,7 @@ struct SMLoader
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ParseStops(vector<std::pair<float, float>>& out,
-					const std::string line,
+					const std::string& line,
 					const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Stop Segments from the data.
@@ -228,7 +228,6 @@ struct SMLoader
 								std::string sDescription,
 								std::string sDifficulty,
 								std::string sMeter,
-								std::string sRadarValues,
 								std::string sNoteData,
 								Steps& out);
 

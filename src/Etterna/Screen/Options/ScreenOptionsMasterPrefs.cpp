@@ -472,7 +472,6 @@ LifeDifficulty(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 static int
 GetTimingDifficulty()

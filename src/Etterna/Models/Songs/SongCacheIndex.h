@@ -2,7 +2,6 @@
 #define SONG_CACHE_INDEX_H
 
 #include "Etterna/FileTypes/IniFile.h"
-#include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 

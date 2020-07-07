@@ -1,6 +1,8 @@
 #ifndef SCREEN_TEXT_ENTRY_H
 #define SCREEN_TEXT_ENTRY_H
 
+#include <utility>
+
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Sound/RageSound.h"
@@ -55,11 +57,11 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	  std::string sQuestion,
 	  std::string sInitialAnswer,
 	  int iMaxInputLength,
-	  LuaReference,
-	  LuaReference,
-	  LuaReference,
-	  LuaReference,
-	  LuaReference,
+	  const LuaReference&,
+	  const LuaReference&,
+	  const LuaReference&,
+	  const LuaReference&,
+	  const LuaReference&,
 	  bool (*Validate)(const std::string& sAnswer,
 					   std::string& sErrorOut) = nullptr,
 	  void (*OnOK)(const std::string& sAnswer) = nullptr,
@@ -88,8 +90,14 @@ class ScreenTextEntry : public ScreenWithMenuElements
 						 void (*OnOK)(const std::string& sPassword) = nullptr,
 						 void (*OnCancel)() = nullptr)
 	{
-		TextEntry(
-		  smSendOnPop, sQuestion, "", 255, nullptr, OnOK, OnCancel, true);
+		TextEntry(std::move(smSendOnPop),
+				  sQuestion,
+				  "",
+				  255,
+				  nullptr,
+				  OnOK,
+				  OnCancel,
+				  true);
 	}
 
 	struct TextEntrySettings

@@ -284,7 +284,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 }
 
 void
-ScreenEvaluation::HandleScreenMessage(const ScreenMessage SM)
+ScreenEvaluation::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_PlayCheer) {
 		SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("evaluation cheer"));

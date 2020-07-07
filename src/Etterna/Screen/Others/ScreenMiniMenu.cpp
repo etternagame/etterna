@@ -5,6 +5,8 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMiniMenu.h"
+
+#include <utility>
 #include "Etterna/Singletons/ThemeManager.h"
 
 void
@@ -46,8 +48,8 @@ ScreenMiniMenu::MiniMenu(const MenuDef* pDef,
 	PrepareToLoadScreen(pDef->sClassName);
 
 	g_pMenuDef = pDef;
-	g_SendOnOK = SM_SendOnOK;
-	g_SendOnCancel = SM_SendOnCancel;
+	g_SendOnOK = std::move(SM_SendOnOK);
+	g_SendOnCancel = std::move(SM_SendOnCancel);
 
 	SCREENMAN->AddNewScreenToTop(pDef->sClassName);
 	Screen* pNewScreen = SCREENMAN->GetTopScreen();
@@ -143,7 +145,7 @@ ScreenMiniMenu::ExportOptions(int r, const PlayerNumber& vpns)
 }
 
 void
-ScreenMiniMenu::HandleScreenMessage(const ScreenMessage SM)
+ScreenMiniMenu::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {
 		s_bCancelled = false;

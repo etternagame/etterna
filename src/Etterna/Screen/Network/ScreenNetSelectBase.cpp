@@ -1,14 +1,11 @@
 #include "Etterna/Globals/global.h"
-
 #include "Etterna/Actor/Base/Actor.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "Etterna/Models/Misc/PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "ScreenNetSelectBase.h"
 
@@ -148,7 +145,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 }
 
 void
-ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen)
 		SOUND->StopMusic();

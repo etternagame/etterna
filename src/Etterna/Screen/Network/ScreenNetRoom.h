@@ -16,7 +16,7 @@ class ScreenNetRoom : public ScreenNetSelectBase
 	ScreenNetRoom();
 	void Init() override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
 	void InfoSetVisible(bool visibility);

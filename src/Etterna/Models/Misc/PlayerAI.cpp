@@ -335,7 +335,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 
 	// If we don't have validnoterows, just do it the hard way
 	if (validNoterows.empty()) {
-		for (auto row : m_ReplayTapMap) {
+		for (const auto& row : m_ReplayTapMap) {
 			for (auto& trr : row.second) {
 				if (trr.type == TapNoteType_Mine) {
 					tempJudgments[TNS_HitMine]++;

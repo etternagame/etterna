@@ -1503,7 +1503,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 }
 
 void
-ScreenGameplay::HandleScreenMessage(const ScreenMessage SM)
+ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 {
 	CHECKPOINT_M(
 	  ssprintf("HandleScreenMessage(%s)",

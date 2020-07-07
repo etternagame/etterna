@@ -4,9 +4,7 @@
 #define SCREEN_NET_SELECT_BASE_H
 
 #include "Etterna/Actor/Base/BitmapText.h"
-#include "Etterna/Actor/Base/Quad.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
-#include "Etterna/Actor/Base/Sprite.h"
 
 class ScreenNetSelectBase : public ScreenWithMenuElements
 {
@@ -14,7 +12,7 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	void Init() override;
 
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void TweenOffScreen() override;
 
 	void UpdateUsers();

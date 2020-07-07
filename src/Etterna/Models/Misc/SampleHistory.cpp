@@ -28,7 +28,7 @@ SampleHistory::GetSampleNum(float fSamplesAgo) const
 	  std::min(fSamplesAgo, static_cast<float>(m_afHistory.size() - 1));
 	if (fSamplesAgo < 0)
 		fSamplesAgo = 0;
-	if (m_afHistory.size() == 0)
+	if (m_afHistory.empty())
 		return 0.0f;
 
 	const auto fSample = m_iLastHistory - fSamplesAgo - 1;

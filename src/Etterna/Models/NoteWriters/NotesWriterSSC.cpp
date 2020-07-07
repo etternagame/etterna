@@ -29,27 +29,34 @@ JoinLineList(vector<std::string>& lines)
 }
 
 std::string
-NotesWriterSSC::MSDToString(std::vector<std::vector<float>> x)
+NotesWriterSSC::MSDToString(const std::vector<std::vector<float>>& x)
 {
-	std::string o = "";
-	for (size_t i = 0; i < x.size(); i++) {
-		o.append(NotesWriterSSC::MSDsAtRateToString(x[i]));
-		if (i != x.size() - 1)
-			o.append(":");
+	if (x.empty())
+		return "";
+
+	std::string o;
+	for (const auto& v : x) {
+		o.append(NotesWriterSSC::MSDsAtRateToString(v));
+		o.append(":");
 	}
+
+	o.pop_back();
 	return o;
 }
 
 std::string
-NotesWriterSSC::MSDsAtRateToString(std::vector<float> x)
+NotesWriterSSC::MSDsAtRateToString(const std::vector<float>& x)
 {
-	std::string o = "";
-	auto msds = x;
-	for (size_t ii = 0; ii < msds.size(); ii++) {
-		o.append(std::to_string(msds[ii]).substr(0, 5));
-		if (ii != msds.size() - 1)
-			o.append(",");
+	if (x.empty())
+		return "";
+
+	std::string o;
+	for (const auto& v : x) {
+		o.append(std::to_string(v).substr(0, 5));
+		o.append(",");
 	}
+
+	o.pop_back();
 	return o;
 }
 // A utility class to write timing tags more easily!
@@ -95,7 +102,7 @@ struct TimingTagWriter
 		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c).c_str());
 	}
 
-	void Init(const std::string sTag) { m_sNext = "#" + sTag + ":"; }
+	void Init(const std::string& sTag) { m_sNext = "#" + sTag + ":"; }
 	void Finish()
 	{
 		m_pvsLines->emplace_back((m_sNext != "," ? m_sNext : "") + ";");

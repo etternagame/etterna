@@ -10,9 +10,7 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 

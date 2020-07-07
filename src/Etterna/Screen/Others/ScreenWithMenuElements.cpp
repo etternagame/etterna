@@ -10,6 +10,7 @@
 #include "Etterna/Singletons/ThemeManager.h"
 
 #include <algorithm>
+#include <utility>
 
 #define TIMER_STEALTH THEME->GetMetricB(m_sName, "TimerStealth")
 #define SHOW_STAGE_DISPLAY THEME->GetMetricB(m_sName, "ShowStageDisplay")
@@ -124,7 +125,7 @@ ScreenWithMenuElements::BeginScreen()
 }
 
 void
-ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage SM)
+ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_MenuTimer) {
 		InputEventPlus iep;
@@ -236,7 +237,7 @@ ScreenWithMenuElements::StartTransitioningScreen(ScreenMessage smSendWhenDone)
 {
 	TweenOffScreen();
 
-	m_Out.StartTransitioning(smSendWhenDone);
+	m_Out.StartTransitioning(std::move(smSendWhenDone));
 	if (WAIT_FOR_CHILDREN_BEFORE_TWEENING_OUT) {
 		// Time the transition so that it finishes exactly when all actors have
 		// finished tweening.

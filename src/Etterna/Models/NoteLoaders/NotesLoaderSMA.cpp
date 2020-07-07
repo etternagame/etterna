@@ -408,7 +408,7 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 							   sParams[2],
 							   sParams[3],
 							   sParams[4],
-							   sParams[5],
+							   /*sParams[5],*/ // radar values
 							   sParams[6],
 							   *pNewNotes);
 				pNewNotes->SetFilename(sPath);

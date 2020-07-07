@@ -680,7 +680,8 @@ enum
 	FOUND_BPM_CHANGE,
 	FOUND_STOP,
 	FOUND_DELAY,
-	FOUND_STOP_DELAY, // we have these two on the same row.
+	FOUND_STOP_DELAY,
+	// we have these two on the same row.
 	FOUND_MARKER,
 	NOT_FOUND
 };
@@ -919,7 +920,7 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 float
 TimingData::GetElapsedTimeFromBeat(float fBeat) const
 {
-	return TimingData::GetElapsedTimeFromBeatNoOffset(fBeat) -
+	return GetElapsedTimeFromBeatNoOffset(fBeat) -
 		   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 			 PREFSMAN->m_fGlobalOffsetSeconds;
 }
@@ -1251,6 +1252,7 @@ TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 // as okay as all the other lua stuff that reaches past the encapsulation.
 void
 TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L);
+
 void
 TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 {
@@ -1471,36 +1473,43 @@ class LunaTimingData : public Luna<TimingData>
 		lua_pushboolean(L, p->HasStops());
 		return 1;
 	}
+
 	static int HasDelays(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasDelays());
 		return 1;
 	}
+
 	static int HasBPMChanges(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasBpmChanges());
 		return 1;
 	}
+
 	static int HasWarps(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasWarps());
 		return 1;
 	}
+
 	static int HasFakes(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasFakes());
 		return 1;
 	}
+
 	static int HasSpeedChanges(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasSpeedChanges());
 		return 1;
 	}
+
 	static int HasScrollChanges(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasScrollChanges());
 		return 1;
 	}
+
 #define GET_FUNCTION(get_name, segment_name)                                   \
 	static int get_name(T* p, lua_State* L)                                    \
 	{                                                                          \
@@ -1536,6 +1545,7 @@ class LunaTimingData : public Luna<TimingData>
 		LuaHelpers::CreateTableFromArray(vBPMs, L);
 		return 1;
 	}
+
 	static int GetActualBPM(T* p, lua_State* L)
 	{
 		// certainly there's a better way to do it than this? -aj
@@ -1547,27 +1557,32 @@ class LunaTimingData : public Luna<TimingData>
 		LuaHelpers::CreateTableFromArray(fBPMs, L);
 		return 1;
 	}
+
 	static int HasNegativeBPMs(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HasWarps());
 		return 1;
 	}
+
 	// formerly in Song.cpp in sm-ssc private beta 1.x:
 	static int GetBPMAtBeat(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetBPMAtBeat(FArg(1)));
 		return 1;
 	}
+
 	static int GetBeatFromElapsedTime(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetBeatFromElapsedTime(FArg(1)));
 		return 1;
 	}
+
 	static int GetElapsedTimeFromBeat(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->WhereUAtBro(FArg(1)));
 		return 1;
 	}
+
 	static int GetElapsedTimeFromNoteRow(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->WhereUAtBro(IArg(1)));
@@ -1606,4 +1621,5 @@ class LunaTimingData : public Luna<TimingData>
 };
 
 LUA_REGISTER_CLASS(TimingData)
+
 // lua end

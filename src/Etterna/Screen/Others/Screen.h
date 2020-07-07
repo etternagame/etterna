@@ -83,20 +83,20 @@ class Screen : public ActorFrame
 	void Update(float fDeltaTime) override;
 	virtual void UpdateTimedFunctions(float fDeltaTime);
 	virtual bool Input(const InputEventPlus& input);
-	virtual void HandleScreenMessage(ScreenMessage SM);
+	virtual void HandleScreenMessage(const ScreenMessage& SM);
 	void SetLockInputSecs(const float f) { m_fLockInputSecs = f; }
 
 	/**
 	 * @brief Put the specified message onto the screen for a specified time.
 	 * @param SM the message to put on the screen.
 	 * @param fDelay The length of time it stays up. */
-	void PostScreenMessage(ScreenMessage SM, float fDelay);
+	void PostScreenMessage(const ScreenMessage& SM, float fDelay);
 	/** @brief Clear the entire message queue. */
 	void ClearMessageQueue();
 	/**
 	 * @brief Clear the message queue of a specific ScreenMessage.
 	 * @param SM the specific ScreenMessage to get out of the Queue. */
-	void ClearMessageQueue(ScreenMessage SM);
+	void ClearMessageQueue(const ScreenMessage& SM);
 
 	virtual ScreenType GetScreenType() const
 	{
@@ -115,11 +115,11 @@ class Screen : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
 	std::vector<std::pair<std::function<void()>, float>> delayedFunctions;
-	void SetTimeout(std::function<void()> f, float ms);
+	void SetTimeout(const std::function<void()>& f, float ms);
 	std::list<std::tuple<std::function<void()>, float, float, int>>
 	  delayedPeriodicFunctions; // This is a list to allow safe iterators
 	std::vector<int> delayedPeriodicFunctionIdsToDelete;
-	void SetInterval(std::function<void()> f, float ms, int fRemove);
+	void SetInterval(const std::function<void()>& f, float ms, int fRemove);
 
   protected:
 	/** @brief Holds the messages sent to a Screen. */

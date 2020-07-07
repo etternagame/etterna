@@ -3,9 +3,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "GameConstantsAndTypes.h"
-#include "HighScore.h"
 #include "Etterna/FileTypes/XmlFile.h"
-#include "Etterna/FileTypes/XmlFileUtil.h"
 
 class XNode;
 

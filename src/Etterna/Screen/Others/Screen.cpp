@@ -298,7 +298,7 @@ Screen::Input(const InputEventPlus& input)
 }
 
 void
-Screen::HandleScreenMessage(const ScreenMessage SM)
+Screen::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen || SM == SM_GoToPrevScreen) {
 		if (SCREENMAN->IsStackedScreen(this))
@@ -352,7 +352,7 @@ Screen::GetPrevScreen() const
 }
 
 void
-Screen::PostScreenMessage(const ScreenMessage SM, float fDelay)
+Screen::PostScreenMessage(const ScreenMessage& SM, float fDelay)
 {
 	ASSERT(fDelay >= 0.0);
 
@@ -369,7 +369,7 @@ Screen::ClearMessageQueue()
 }
 
 void
-Screen::ClearMessageQueue(const ScreenMessage SM)
+Screen::ClearMessageQueue(const ScreenMessage& SM)
 {
 	for (int i = m_QueuedMessages.size() - 1; i >= 0; i--)
 		if (m_QueuedMessages[i].SM == SM)
@@ -454,14 +454,14 @@ Screen::PassInputToLua(const InputEventPlus& input)
 }
 
 void
-Screen::SetTimeout(std::function<void()> f, float ms)
+Screen::SetTimeout(const std::function<void()>& f, float ms)
 {
 	delayedFunctions.emplace_back(make_pair(f, ms));
 	return;
 }
 
 void
-Screen::SetInterval(std::function<void()> f, float ms, int id)
+Screen::SetInterval(const std::function<void()>& f, float ms, int id)
 {
 	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
 	return;

@@ -2,7 +2,6 @@
 #define ScreenSelectMaster_H
 
 #include "Etterna/Actor/Base/ActorScroller.h"
-#include "Etterna/Actor/Base/ActorUtil.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/Misc/RandomSample.h"
 #include "ScreenSelect.h"
@@ -39,7 +38,7 @@ class ScreenSelectMaster : public ScreenSelect
 	void TweenOnScreen() override;
 	void TweenOffScreen() override;
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 	bool AllowLateJoin() const override { return true; }
 

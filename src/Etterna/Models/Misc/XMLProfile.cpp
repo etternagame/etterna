@@ -15,10 +15,8 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/Foreach.h"
 
 using std::string;
 
@@ -177,8 +175,8 @@ GoalsForChart::CreateNode() const
 
 	if (!goals.empty()) {
 		cg->AppendAttr("Key", goals[0].chartkey);
-		FOREACH_CONST(ScoreGoal, goals, sg)
-		cg->AppendChild(sg->CreateNode());
+		for (auto& sg : goals)
+			cg->AppendChild(sg.CreateNode());
 	}
 	return cg;
 }

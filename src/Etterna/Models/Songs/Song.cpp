@@ -214,7 +214,7 @@ Song::AddForegroundChange(const BackgroundChange& seg)
 }
 
 void
-Song::AddLyricSegment(LyricSegment seg)
+Song::AddLyricSegment(const LyricSegment& seg)
 {
 	m_LyricSegments.push_back(seg);
 }
@@ -1180,7 +1180,7 @@ Song::SaveToSMFile()
 }
 
 vector<Steps*>
-Song::GetStepsToSave(bool bSavingCache, std::string path)
+Song::GetStepsToSave(bool bSavingCache, const std::string& path)
 {
 	vector<Steps*> vpStepsToSave;
 	for (auto& s : m_vpSteps) {
@@ -1337,7 +1337,7 @@ Song::SaveToDWIFile()
 
 // We want to return a filename, We use this function for that.
 std::string
-Song::GetCacheFile(std::string sType)
+Song::GetCacheFile(const std::string& sType)
 {
 	// We put the Predefined images into a map.
 	std::map<std::string, std::string> PreDefs;

@@ -30,6 +30,7 @@
 #include "NetworkSyncManager.h"
 #include "Etterna/Globals/rngthing.h"
 #include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
 #include <numeric>
 #include <algorithm>
@@ -818,7 +819,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			int loaded = 0;
 			SongPointerVector& index_entry =
 			  SONGMAN->m_mapSongGroupIndex[sGroupName];
-			std::string group_base_name = sGroupName;
+			const auto& group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
 				std::string hur = make_lower(sSongDirName + "/");
 				if (SONGMAN->m_SongsByDir.count(hur))
@@ -1244,7 +1245,7 @@ SongManager::DeleteSteps(Steps* pSteps)
 bool
 SongManager::WasLoadedFromAdditionalSongs(const Song* pSong) const
 {
-	std::string sDir = pSong->GetSongDir();
+	const auto& sDir = pSong->GetSongDir();
 	return BeginsWith(sDir, ADDITIONAL_SONGS_DIR);
 }
 
@@ -1460,9 +1461,7 @@ SongManager::UpdatePreferredSort(const std::string& sPreferredSongs,
 		PreferredSortSection section;
 		map<Song*, float> mapSongToPri;
 
-		for (auto& s : asLines) {
-			std::string sLine = s;
-
+		for (auto& sLine : asLines) {
 			auto bSectionDivider = BeginsWith(sLine, "---");
 			if (bSectionDivider) {
 				if (!section.vpSongs.empty()) {
@@ -1552,7 +1551,7 @@ CalcTestList::CreateNode() const
 	pl->AppendAttr("Skillset", skillset);
 
 	auto cl = new XNode("Chartlist");
-	for (const auto p : filemapping) {
+	for (const auto& p : filemapping) {
 		auto chart = new XNode("Chart");
 		Chart loot;
 		loot.FromKey(p.first);

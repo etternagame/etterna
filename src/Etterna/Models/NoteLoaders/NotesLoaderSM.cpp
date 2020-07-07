@@ -325,7 +325,6 @@ SMLoader::LoadFromTokens(std::string sStepsType,
 						 std::string sDescription,
 						 std::string sDifficulty,
 						 std::string sMeter,
-						 std::string sRadarValues,
 						 std::string sNoteData,
 						 Steps& out)
 {
@@ -465,7 +464,7 @@ SMLoader::ParseBPMs(vector<pair<float, float>>& out,
 
 void
 SMLoader::ParseStops(vector<pair<float, float>>& out,
-					 const std::string line,
+					 const std::string& line,
 					 const int rowsPerBeat)
 {
 	vector<std::string> arrayFreezeExpressions;
@@ -1194,7 +1193,7 @@ SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 						   sParams[2],
 						   sParams[3],
 						   sParams[4],
-						   sParams[5],
+						   /*sParams[5],*/ // radar values
 						   sParams[6],
 						   *pNewNotes);
 
@@ -1322,7 +1321,7 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 						   sParams[2],
 						   sParams[3],
 						   sParams[4],
-						   sParams[5],
+						   /*sParams[5],*/ // radar values
 						   sParams[6],
 						   *pNewNotes);
 

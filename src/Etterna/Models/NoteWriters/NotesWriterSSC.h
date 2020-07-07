@@ -45,9 +45,10 @@ WriteEditFileToMachine(const Song* pSong,
 					   Steps* pSteps,
 					   std::string& sErrorOut);
 std::string
-MSDToString(std::vector<std::vector<float>> x);
+MSDToString(const std::vector<std::vector<float>>& x);
+
 std::string
-MSDsAtRateToString(std::vector<float> x);
+MSDsAtRateToString(const std::vector<float>& x);
 }
 
 #endif

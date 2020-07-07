@@ -20,7 +20,7 @@ class ScreenEvaluation : public ScreenWithMenuElements
 	~ScreenEvaluation() override;
 	void Init() override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	ScreenType GetScreenType() const override { return evaluation; }
 	bool MenuBack(const InputEventPlus& input) override;
 	bool MenuStart(const InputEventPlus& input) override;

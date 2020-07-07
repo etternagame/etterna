@@ -567,7 +567,7 @@ NoteDataUtil::LoadFromSMNoteDataString(NoteData& out,
 		   std::string::npos) {
 		sSMNoteData.append(p, iIndexCommentStart - iIndexCommentEnd);
 		p += iIndexCommentStart - iIndexCommentEnd;
-		iIndexCommentEnd = sSMNoteData_.find("\n", iIndexCommentStart);
+		iIndexCommentEnd = sSMNoteData_.find('\n', iIndexCommentStart);
 		iIndexCommentEnd = iIndexCommentEnd == std::string::npos
 							 ? origSize
 							 : iIndexCommentEnd + 1;

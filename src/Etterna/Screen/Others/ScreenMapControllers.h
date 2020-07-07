@@ -22,7 +22,7 @@ class ScreenMapControllers : public ScreenWithMenuElements
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
 	void HandleMessage(const Message& msg) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
   private:
 	Actor* GetActorWithFocus();
