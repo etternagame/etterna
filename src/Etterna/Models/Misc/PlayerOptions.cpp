@@ -477,7 +477,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 			}
 		} else if (s[0] == '*') {
 			sscanf(s.c_str(), "*%f", &speed);
-			if (!isfinite(speed))
+			if (!std::isfinite(speed))
 				speed = 1.0f;
 		}
 	}
