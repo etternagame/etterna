@@ -1,8 +1,6 @@
 #ifndef SONGPOSITION_H
 #define SONGPOSITION_H
 
-#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/MessageManager.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Models/Misc/TimingData.h"
 // XXX: where does this come from? might need another include
