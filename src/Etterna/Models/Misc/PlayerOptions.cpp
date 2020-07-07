@@ -9,7 +9,7 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Globals/rngthing.h"
 
-#include <cfloat>
+#include <cmath>
 
 static const char* LifeTypeNames[] = {
 	"Bar",
