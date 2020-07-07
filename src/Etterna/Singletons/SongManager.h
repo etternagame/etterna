@@ -41,9 +41,6 @@ class SongManager
 	void SaveEnabledSongsToPref();
 	void LoadEnabledSongsFromPref();
 
-	auto GetNumStepsLoadedFromProfile() -> int;
-	void FreeAllLoadedFromProfile(ProfileSlot slot = ProfileSlot_Invalid);
-
 	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	auto DifferentialReload() -> int;
 	auto DifferentialReloadDir(std::string dir) -> int;
@@ -142,8 +139,6 @@ class SongManager
 		return m_sSongGroupNames[index];
 	}
 
-	void GetStepsLoadedFromProfile(std::vector<Steps*>& AddTo,
-								   ProfileSlot slot) const;
 	void DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
 	auto WasLoadedFromAdditionalSongs(const Song* pSong) const -> bool;
 

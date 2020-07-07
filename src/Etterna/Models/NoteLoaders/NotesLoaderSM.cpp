@@ -1293,16 +1293,6 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 							 sSongFullTitle.c_str());
 				return false;
 			}
-
-			if (pSong->GetNumStepsLoadedFromProfile(slot) >=
-				MAX_EDITS_PER_SONG_PER_PROFILE) {
-				LOG->UserLog("Song file",
-							 sSongFullTitle,
-							 "already has the maximum number of edits allowed "
-							 "for ProfileSlotP%d.",
-							 slot + 1);
-				return false;
-			}
 		}
 
 		else if (sValueName == "NOTES") {

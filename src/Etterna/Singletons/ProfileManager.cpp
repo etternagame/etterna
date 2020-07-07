@@ -240,7 +240,6 @@ ProfileManager::UnloadProfile(PlayerNumber pn)
 	m_bLastLoadWasTamperedOrCorrupt = false;
 	m_bLastLoadWasFromLastGood = false;
 	m_bNeedToBackUpLastLoad = false;
-	SONGMAN->FreeAllLoadedFromProfile(static_cast<ProfileSlot>(pn));
 }
 
 const Profile*

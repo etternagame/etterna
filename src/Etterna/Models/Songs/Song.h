@@ -24,11 +24,6 @@ GetSongAssetPath(const std::string& sPath, const std::string& sSongPath)
 /** @brief The version of the .ssc file format. */
 const static float STEPFILE_VERSION_NUMBER = 0.83F;
 
-/** @brief How many edits for this song can each profile have? */
-const int MAX_EDITS_PER_SONG_PER_PROFILE = 15;
-/** @brief How many edits for this song can be available? */
-const int MAX_EDITS_PER_SONG = MAX_EDITS_PER_SONG_PER_PROFILE * NUM_ProfileSlot;
-
 /** @brief The different background layers available. */
 enum BackgroundLayer
 {
@@ -493,16 +488,6 @@ class Song
 	void AddSteps(Steps* pSteps);
 	void DeleteSteps(const Steps* pSteps, bool bReAutoGen = true);
 
-	void FreeAllLoadedFromProfile(ProfileSlot slot = ProfileSlot_Invalid,
-								  const std::set<Steps*>* setInUse = nullptr);
-	[[nodiscard]] auto WasLoadedFromProfile() const -> bool
-	{
-		return m_LoadedFromProfile != ProfileSlot_Invalid;
-	}
-	void GetStepsLoadedFromProfile(ProfileSlot slot,
-								   std::vector<Steps*>& vpStepsOut) const;
-	[[nodiscard]] auto GetNumStepsLoadedFromProfile(ProfileSlot slot) const
-	  -> int;
 	auto IsEditAlreadyLoaded(Steps* pSteps) const -> bool;
 
 	auto IsStepsUsingDifferentTiming(Steps* pSteps) const -> bool;

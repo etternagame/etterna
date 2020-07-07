@@ -20,7 +20,6 @@
 #include "SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
@@ -29,6 +28,7 @@
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <numeric>
 #include <algorithm>
@@ -1210,13 +1210,10 @@ SongManager::SaveEnabledSongsToPref()
 	// Intentionally drop disabled song entries for songs that aren't
 	// currently loaded.
 
-	const auto& apSongs = SONGMAN->GetAllSongs();
-	FOREACH_CONST(Song*, apSongs, s)
-	{
-		auto pSong = (*s);
+	for (auto& s : SONGMAN->GetAllSongs()) {
 		SongID sid;
-		sid.FromSong(pSong);
-		if (!pSong->GetEnabled())
+		sid.FromSong(s);
+		if (!s->GetEnabled())
 			vsDisabledSongs.emplace_back(sid.ToString());
 	}
 	g_sDisabledSongs.Set(join(";", vsDisabledSongs));
@@ -1228,24 +1225,12 @@ SongManager::LoadEnabledSongsFromPref()
 	vector<std::string> asDisabledSongs;
 	split(g_sDisabledSongs, ";", asDisabledSongs, true);
 
-	FOREACH_CONST(std::string, asDisabledSongs, s)
-	{
+	for (auto& s : asDisabledSongs) {
 		SongID sid;
-		sid.FromString(*s);
+		sid.FromString(s);
 		auto pSong = sid.ToSong();
 		if (pSong)
 			pSong->SetEnabled(false);
-	}
-}
-
-void
-SongManager::GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
-									   ProfileSlot slot) const
-{
-	const auto& vSongs = GetAllSongs();
-	FOREACH_CONST(Song*, vSongs, song)
-	{
-		(*song)->GetStepsLoadedFromProfile(slot, AddTo);
 	}
 }
 
