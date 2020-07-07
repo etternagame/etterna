@@ -500,7 +500,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_fTimeSpacing = 0;
 		m_fMaxScrollBPM = 0;
 	} else if (sscanf(sBit.c_str(), "c%f", &level) == 1) {
-		if (!isfinite(level) || level <= 0.0f)
+		if (!std::isfinite(level) || level <= 0.0f)
 			level = CMOD_DEFAULT;
 		SET_FLOAT(fScrollBPM)
 		SET_FLOAT(fTimeSpacing)
@@ -1492,7 +1492,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		}
 		if (original_top >= 1 && (lua_isnumber(L, 1) != 0)) {
 			const auto speed = FArg(1);
-			if (!isfinite(speed) || speed <= 0.0f) {
+			if (!std::isfinite(speed) || speed <= 0.0f) {
 				luaL_error(L, "CMod speed must be finite and greater than 0.");
 			}
 			p->m_fScrollBPM = speed;
@@ -1542,7 +1542,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		}
 		if ((lua_isnumber(L, 1) != 0) && original_top >= 1) {
 			const auto speed = FArg(1);
-			if (!isfinite(speed) || speed <= 0.0f) {
+			if (!std::isfinite(speed) || speed <= 0.0f) {
 				luaL_error(L, "MMod speed must be finite and greater than 0.");
 			}
 			p->m_fScrollBPM = CMOD_DEFAULT;
