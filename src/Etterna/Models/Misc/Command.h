@@ -3,6 +3,9 @@
 #ifndef Commands_H
 #define Commands_H
 
+#include <string>
+#include <vector>
+
 class Command
 {
   public:
@@ -34,7 +37,7 @@ class Command
 class Commands
 {
   public:
-	vector<Command> v;
+	std::vector<Command> v;
 
 	[[nodiscard]] auto GetOriginalCommandString() const
 	  -> std::string; // used when reporting an error in number of args

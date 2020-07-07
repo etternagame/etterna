@@ -894,7 +894,7 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 	// draw manually in small segments
 	auto rect = *pSprite->GetCurrentTextureCoordRect();
 	if (part_args.flip_texture_vertically)
-		swap(rect.top, rect.bottom);
+		std::swap(rect.top, rect.bottom);
 	const auto fFrameWidth = pSprite->GetUnzoomedWidth();
 	auto unzoomed_frame_height = pSprite->GetUnzoomedHeight();
 	if (part_type == hpt_body && cache->m_UseStretchHolds)
@@ -1317,7 +1317,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 	  reverse && cache->m_bFlipHoldBodyWhenReverse;
 	if (part_args.flip_texture_vertically) {
 		swap(vpSprTop, vpSprBottom);
-		swap(pSpriteTop, pSpriteBottom);
+		std::swap(pSpriteTop, pSpriteBottom);
 	}
 
 	const auto bWavyPartsNeedZBuffer = ArrowEffects::NeedZBuffer();
@@ -1351,7 +1351,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 							field_args.draw_pixels_before_targets,
 							m_fYReverseOffsetPixels);
 	if (reverse) {
-		swap(part_args.y_start_pos, part_args.y_end_pos);
+		std::swap(part_args.y_start_pos, part_args.y_end_pos);
 	}
 	// So that part_args.y_start_pos can be changed when drawing the bottom.
 	const auto original_y_start_pos = part_args.y_start_pos;
@@ -1466,7 +1466,7 @@ NoteDisplay::DrawHold(const TapNote& tn,
 	// Swap in reverse, so fStartYOffset is always the offset higher on the
 	// screen.
 	if (bReverse)
-		swap(fStartYOffset, fEndYOffset);
+		std::swap(fStartYOffset, fEndYOffset);
 
 	const auto fYHead = ArrowEffects::GetYPos(
 	  column_args.column, fStartYOffset, m_fYReverseOffsetPixels);
@@ -1684,9 +1684,9 @@ NoteDisplay::DrawActor(const TapNote& tn,
 		auto color = 0.0f;
 		switch (cache->m_NoteColorType[part]) {
 			case NoteColorType_Denominator:
-				color = static_cast<float>(BeatToNoteType(fBeat));
-				color =
-				  std::clamp(color, 0, (cache->m_iNoteColorCount[part] - 1));
+				color = std::clamp(static_cast<int>(BeatToNoteType(fBeat)),
+								   0,
+								   (cache->m_iNoteColorCount[part] - 1));
 				break;
 			case NoteColorType_Progress:
 				color =

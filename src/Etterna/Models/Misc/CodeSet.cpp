@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "CodeSet.h"
 #include "InputEventPlus.h"
 #include "Etterna/Singletons/MessageManager.h"
@@ -15,7 +14,7 @@ InputQueueCodeSet::Load(const std::string& sType)
 	split(CODE_NAMES, ",", m_asCodeNames, true);
 
 	for (auto& m_asCodeName : m_asCodeNames) {
-		vector<std::string> asBits;
+		std::vector<std::string> asBits;
 		split(m_asCodeName, "=", asBits, true);
 		auto sCodeName = asBits[0];
 		if (asBits.size() > 1)

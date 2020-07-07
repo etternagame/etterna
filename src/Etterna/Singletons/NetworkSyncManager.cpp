@@ -194,7 +194,7 @@ static LocalizedString INITIALIZING_CLIENT_NETWORK(
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
 	NSMAN = this;
-	LANserver = NULL; // So we know if it has been created yet
+	LANserver = nullptr; // So we know if it has been created yet
 	useSMserver = false;
 	isSMOnline = false;
 	loggedIn = false;

@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -13,17 +12,23 @@
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
-#include <algorithm>
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
-
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/Column.h>
 #include "sqlite3.h"
-#include <mutex>
+
+#include <algorithm>
 #include <atomic>
 #include <thread>
 #include <algorithm>
 #include <numeric>
+
+using std::exception;
+using std::map;
+using std::pair;
+using std::string;
+using std::thread;
+using std::to_string;
 
 /*
  * A quick explanation of song cache hashes: Each song has two hashes; a hash of
@@ -788,7 +793,7 @@ SongCacheIndex::LoadCache(
 	const int threads = std::thread::hardware_concurrency();
 	const auto limit = count / threads;
 	ThreadData data;
-	atomic<bool> abort(false);
+	std::atomic<bool> abort(false);
 	auto threadCallback =
 	  [&data, fivePercent, &abort](
 		int limit,
@@ -1134,7 +1139,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			pNewNotes->SetMeter(qSteps.getColumn(stepsIndex++));
 
 			MinaSD o;
-			stringstream msds;
+			std::stringstream msds;
 			msds.str(static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string msdsatrate;
 			while (std::getline(msds, msdsatrate, ':')) {

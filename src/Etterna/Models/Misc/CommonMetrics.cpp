@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -56,13 +55,12 @@ ThemeMetricDifficultiesToShow::Read()
 		return;
 	}
 
-	FOREACH_CONST(std::string, v, i)
-	{
-		auto d = StringToDifficulty(*i);
+	for (auto& i : v) {
+		auto d = StringToDifficulty(i);
 		if (d == Difficulty_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Unknown difficulty \"%s\" in CourseDifficultiesToShow.",
-			  i->c_str());
+			  i.c_str());
 		} else {
 			m_v.push_back(d);
 		}
@@ -83,13 +81,12 @@ RemoveStepsTypes(vector<StepsType>& inout, std::string sStepsTypesToRemove)
 		return; // Nothing to do!
 
 	// subtract StepsTypes
-	FOREACH_CONST(std::string, v, i)
-	{
-		auto st = GAMEMAN->StringToStepsType(*i);
+	for (auto& i : v) {
+		auto st = GAMEMAN->StringToStepsType(i);
 		if (st == StepsType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid StepsType value '%s' in '%s'",
-			  i->c_str(),
+			  i.c_str(),
 			  sStepsTypesToRemove.c_str());
 			continue;
 		}

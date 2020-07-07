@@ -32,7 +32,8 @@ class ProfileManager
 	auto GetLocalProfile(const std::string& sProfileID) -> Profile*
 	{
 		return const_cast<Profile*>(
-		  ((const ProfileManager*)this)->GetLocalProfile(sProfileID));
+		  static_cast<const ProfileManager*>(this)->GetLocalProfile(
+			sProfileID));
 	}
 	auto GetLocalProfileFromIndex(int iIndex) -> Profile*;
 	auto GetLocalProfileIDFromIndex(int iIndex) -> std::string;
@@ -80,13 +81,13 @@ class ProfileManager
 	auto GetProfile(PlayerNumber pn) -> Profile*
 	{
 		return const_cast<Profile*>(
-		  ((const ProfileManager*)this)->GetProfile(pn));
+		  static_cast<const ProfileManager*>(this)->GetProfile(pn));
 	}
 	auto GetProfile(ProfileSlot slot) const -> const Profile*;
 	auto GetProfile(ProfileSlot slot) -> Profile*
 	{
 		return const_cast<Profile*>(
-		  ((const ProfileManager*)this)->GetProfile(slot));
+		  static_cast<const ProfileManager*>(this)->GetProfile(slot));
 	}
 
 	auto GetProfileDir(ProfileSlot slot) const -> const std::string&;

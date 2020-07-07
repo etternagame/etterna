@@ -259,7 +259,7 @@ class Player : public ActorFrame
 	TimingData* m_Timing;
 	float m_fNoteFieldHeight;
 
-	vector<float> lastHoldHeadsSeconds;
+	std::vector<float> lastHoldHeadsSeconds;
 
 	bool m_bPaused;
 	bool m_bDelay;
@@ -267,7 +267,7 @@ class Player : public ActorFrame
 	NoteData& m_NoteData;
 	NoteField* m_pNoteField;
 
-	vector<HoldJudgment*> m_vpHoldJudgment;
+	std::vector<HoldJudgment*> m_vpHoldJudgment;
 
 	AutoActor m_sprJudgment;
 	AutoActor m_sprCombo;
@@ -290,7 +290,7 @@ class Player : public ActorFrame
 
 	RageSound m_soundMine;
 
-	vector<RageSound> m_vKeysounds;
+	std::vector<RageSound> m_vKeysounds;
 
 #define NUM_REVERSE 2
 #define NUM_CENTERED 2

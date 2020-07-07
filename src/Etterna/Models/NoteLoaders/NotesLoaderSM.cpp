@@ -11,7 +11,11 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
+
+#include <algorithm>
+
+using std::pair;
+using std::string;
 
 // Everything from this line to the creation of sm_parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -455,7 +459,7 @@ SMLoader::ParseBPMs(vector<pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fBeat, fNewBPM));
+		out.emplace_back(std::make_pair(fBeat, fNewBPM));
 	}
 }
 
@@ -488,7 +492,7 @@ SMLoader::ParseStops(vector<pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fFreezeBeat, fFreezeSeconds));
+		out.emplace_back(std::make_pair(fFreezeBeat, fFreezeSeconds));
 	}
 }
 
@@ -766,10 +770,9 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(std::string, vs1, s1)
-	{
+	for (auto& s1 : vs1) {
 		vector<std::string> vs2;
-		split(*s1, "=", vs2);
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 3) {
 			LOG->UserLog("Song file",
@@ -847,7 +850,7 @@ SMLoader::ProcessTickcounts(TimingData& out,
 		const auto fTickcountBeat =
 		  RowToBeat(arrayTickcountValues[0], rowsPerBeat);
 		auto iTicks =
-		  clamp(atoi(arrayTickcountValues[1].c_str()), 0, ROWS_PER_BEAT);
+		  std::clamp(atoi(arrayTickcountValues[1].c_str()), 0, ROWS_PER_BEAT);
 
 		out.AddSegment(TickcountSegment(BeatToNoteRow(fTickcountBeat), iTicks));
 	}
@@ -973,7 +976,8 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 	vector<std::string> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
-	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
+	aBGChangeValues.resize(
+	  std::min(static_cast<int>(aBGChangeValues.size()), 11));
 
 	std::string aaa;
 	switch (aBGChangeValues.size()) {

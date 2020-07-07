@@ -82,7 +82,7 @@ XMLProfile::LoadEttFromDir(string dir)
 	const auto fn = profiledir.append(ETT_XML);
 
 	int iError;
-	const unique_ptr<RageFileBasic> pFile(
+	const std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == nullptr) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
@@ -104,7 +104,7 @@ bool
 XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 {
 	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
-	const unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
+	const std::unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
 	auto pDir = sDir + PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
 	const auto fn = pDir.append(ETT_XML);
@@ -151,8 +151,10 @@ XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the favorites node.");
 
 	auto favs = new XNode("Favorites");
-	FOREACHS_CONST(string, profile->FavoritedCharts, it)
-	favs->AppendChild(*it);
+	for (auto& it : profile->FavoritedCharts) {
+		favs->AppendChild(it);
+	}
+
 	return favs;
 }
 
@@ -162,8 +164,9 @@ XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the permamirror node.");
 
 	auto pmir = new XNode("PermaMirror");
-	FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
-	pmir->AppendChild(*it);
+	for (auto& it : profile->PermaMirrorCharts) {
+		pmir->AppendChild(it);
+	}
 	return pmir;
 }
 
@@ -186,9 +189,8 @@ XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 	CHECKPOINT_M("Saving the scoregoals node.");
 
 	auto goals = new XNode("ScoreGoals");
-	FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
-	{
-		const auto& cg = i->second;
+	for (auto& i : profile->goalmap) {
+		const auto& cg = i.second;
 		goals->AppendChild(cg.CreateNode());
 	}
 	return goals;
@@ -201,9 +203,10 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 
 	auto playlists = new XNode("Playlists");
 	const auto& pls = profile->allplaylists;
-	FOREACHM_CONST(string, Playlist, pls, i)
-	if (!i->first.empty() && i->first != "Favorites")
-		playlists->AppendChild(i->second.CreateNode());
+	for (auto& i : pls) {
+		if (!i.first.empty() && i.first != "Favorites")
+			playlists->AppendChild(i.second.CreateNode());
+	}
 	return playlists;
 }
 
@@ -284,18 +287,18 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 
 	auto pGeneralDataNode = new XNode("GeneralData");
 
-	// TRICKY: These are write-only elements that are normally never read again.
-	// This data is required by other apps (like internet ranking), but is
-	// redundant to the game app.
+	// TRICKY: These are write-only elements that are normally never read
+	// again. This data is required by other apps (like internet ranking),
+	// but is redundant to the game app.
 	pGeneralDataNode->AppendChild("DisplayName",
 								  profile->GetDisplayNameOrHighScoreName());
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
 
-	if (profile->m_LastDifficulty <
-		0) // force set difficulty to current steps if this is somehow -1 for
-		   // ??? reasons -mina
+	if (profile->m_LastDifficulty < 0) // force set difficulty to current
+									   // steps if this is somehow -1 for
+									   // ??? reasons -mina
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty",
 		  DifficultyToString(GAMESTATE->m_pCurSteps->GetDifficulty()));

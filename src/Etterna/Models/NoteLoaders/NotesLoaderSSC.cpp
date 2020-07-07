@@ -11,7 +11,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/Foreach.h"
 
 // Everything from this line to the creation of parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -703,7 +702,7 @@ ssc_parser_helper_t parser_helper;
 void
 SSCLoader::ProcessBPMs(TimingData& out,
 					   const std::string& sParam,
-					   const string& songName)
+					   const std::string& songName)
 {
 	vector<std::string> arrayBPMExpressions;
 	split(sParam, ",", arrayBPMExpressions);
@@ -737,7 +736,7 @@ SSCLoader::ProcessBPMs(TimingData& out,
 void
 SSCLoader::ProcessStops(TimingData& out,
 						const std::string& sParam,
-						const string& songName)
+						const std::string& songName)
 {
 	vector<std::string> arrayStopExpressions;
 	split(sParam, ",", arrayStopExpressions);
@@ -772,7 +771,7 @@ void
 SSCLoader::ProcessWarps(TimingData& out,
 						const std::string& sParam,
 						const float fVersion,
-						const string& songName)
+						const std::string& songName)
 {
 	vector<std::string> arrayWarpExpressions;
 	split(sParam, ",", arrayWarpExpressions);
@@ -809,7 +808,7 @@ SSCLoader::ProcessWarps(TimingData& out,
 void
 SSCLoader::ProcessLabels(TimingData& out,
 						 const std::string& sParam,
-						 const string& songName)
+						 const std::string& songName)
 {
 	vector<std::string> arrayLabelExpressions;
 	split(sParam, ",", arrayLabelExpressions);
@@ -851,7 +850,7 @@ SSCLoader::ProcessCombos(TimingData& out,
 void
 SSCLoader::ProcessCombos(TimingData& out,
 						 const std::string& line,
-						 const string& songName,
+						 const std::string& songName,
 						 const int rowsPerBeat)
 {
 	vector<std::string> arrayComboExpressions;
@@ -881,15 +880,14 @@ SSCLoader::ProcessCombos(TimingData& out,
 void
 SSCLoader::ProcessScrolls(TimingData& out,
 						  const std::string sParam,
-						  const string& songName)
+						  const std::string& songName)
 {
 	vector<std::string> vs1;
 	split(sParam, ",", vs1);
 
-	FOREACH_CONST(std::string, vs1, s1)
-	{
+	for (auto& s1 : vs1) {
 		vector<std::string> vs2;
-		split(*s1, "=", vs2);
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 2) {
 			LOG->UserLog("Song file",

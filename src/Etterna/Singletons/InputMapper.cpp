@@ -613,7 +613,7 @@ InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
 	{
 		GameController map_gc = gc;
 		if (iter->m_bSecondController) {
-			map_gc = (GameController)(map_gc + 1);
+			map_gc = static_cast<GameController>(map_gc + 1);
 
 			/* If that pushed it over, then it's a second controller for a
 			 * joystick that's already a second controller, so we'll just ignore
@@ -692,7 +692,8 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 				continue; // driver names don't match
 
 			// We have a mapping for this joystick
-			GameController gc = (GameController)iNumJoysticksMapped;
+			GameController gc =
+			  static_cast<GameController>(iNumJoysticksMapped);
 			if (gc >= NUM_GameController)
 				break; // stop mapping.  We already mapped one device for each
 					   // game controller.
@@ -1201,7 +1202,7 @@ InputScheme::MenuButtonToGameInputs(GameButton MenuI,
 			GameIout.push_back(GameInput(GameController_1, *gb));
 			GameIout.push_back(GameInput(GameController_2, *gb));
 		} else {
-			GameIout.push_back(GameInput((GameController)pn, *gb));
+			GameIout.push_back(GameInput(static_cast<GameController>(pn), *gb));
 		}
 	}
 }
@@ -1341,8 +1342,9 @@ InputMappings::ReadMappings(const InputScheme* pInputScheme,
 			vector<std::string> sDeviceInputStrings;
 			split(value, DEVICE_INPUT_SEPARATOR, sDeviceInputStrings, false);
 
-			for (unsigned j = 0; j < sDeviceInputStrings.size() &&
-								 j < unsigned(NUM_GAME_TO_DEVICE_SLOTS);
+			for (unsigned j = 0;
+				 j < sDeviceInputStrings.size() &&
+				 j < static_cast<unsigned>(NUM_GAME_TO_DEVICE_SLOTS);
 				 j++) {
 				DeviceInput DeviceI;
 				DeviceI.FromString(sDeviceInputStrings[j]);

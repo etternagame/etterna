@@ -8,6 +8,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
 
+#include <map>
+
 PrefsManager* PREFSMAN =
   nullptr; // global and accessible from anywhere in our program
 
@@ -289,7 +291,7 @@ PrefsManager::RestoreGamePrefs()
 
 	// load prefs
 	GamePrefs gp;
-	const map<std::string, GamePrefs>::const_iterator iter =
+	const std::map<std::string, GamePrefs>::const_iterator iter =
 	  m_mapGameNameToGamePrefs.find(m_sCurrentGame);
 	if (iter != m_mapGameNameToGamePrefs.end())
 		gp = iter->second;

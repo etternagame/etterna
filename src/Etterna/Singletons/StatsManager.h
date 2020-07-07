@@ -34,7 +34,7 @@ class StatsManager
 	void AddPlayerStatsToProfile(Profile* pProfile);
 
 	void UnjoinPlayer(PlayerNumber pn);
-	void GetStepsInUse(set<Steps*>& apInUseOut) const;
+	void GetStepsInUse(std::set<Steps*>& apInUseOut) const;
 
 	// Lua
 	void PushSelf(lua_State* L);

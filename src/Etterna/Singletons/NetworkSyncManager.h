@@ -76,7 +76,7 @@ class EndOfGame_PlayerData
 {
   public:
 	int name;
-	string nameStr;
+	std::string nameStr;
 	int grade;
 	int score;
 	Difficulty difficulty;
@@ -153,7 +153,7 @@ class ChartRequest
 	}
 	const std::string chartkey;
 	const std::string user; // User that requested this chart
-	const int rate;	   // rate * 1000
+	const int rate;			// rate * 1000
 	void PushSelf(lua_State* L);
 };
 
@@ -212,7 +212,9 @@ class NetProtocol
 	virtual void EnterRoom(std::string name, std::string password) {}
 	virtual void LeaveRoom(NetworkSyncManager* n) {}
 	virtual void RequestRoomInfo(std::string name) {}
-	virtual void SendChat(const std::string& message, std::string tab, int type) {}
+	virtual void SendChat(const std::string& message, std::string tab, int type)
+	{
+	}
 	virtual void ReportNSSOnOff(int i) {}
 	virtual void ReportScore(NetworkSyncManager* n,
 							 int playerID,

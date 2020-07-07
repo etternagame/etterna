@@ -14,6 +14,8 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+
 static ThemeMetric<float> ARROW_SPACING("ArrowEffects", "ArrowSpacing");
 static ThemeMetric<bool> QUANTIZE_ARROW_Y("ArrowEffects",
 										  "QuantizeArrowYPosition");
@@ -180,9 +182,9 @@ ArrowEffects::Update()
 			data.m_fMaxTornadoX[iColNum] = FLT_MIN;
 
 			for (int i = iStartCol; i <= iEndCol; i++) {
-				data.m_fMinTornadoX[iColNum] = min(
+				data.m_fMinTornadoX[iColNum] = std::min(
 				  data.m_fMinTornadoX[iColNum], pCols[i].fXOffset * field_zoom);
-				data.m_fMaxTornadoX[iColNum] = max(
+				data.m_fMaxTornadoX[iColNum] = std::max(
 				  data.m_fMaxTornadoX[iColNum], pCols[i].fXOffset * field_zoom);
 			}
 		}
@@ -637,8 +639,8 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 	if (fEffects[PlayerOptions::EFFECT_TINY] != 0) {
 		// Allow Tiny to pull tracks together, but not to push them apart.
 		float fTinyPercent = fEffects[PlayerOptions::EFFECT_TINY];
-		fTinyPercent = min(powf(TINY_PERCENT_BASE, fTinyPercent),
-						   static_cast<float>(TINY_PERCENT_GATE));
+		fTinyPercent = std::min(powf(TINY_PERCENT_BASE, fTinyPercent),
+								static_cast<float>(TINY_PERCENT_GATE));
 		fPixelOffsetFromCenter *= fTinyPercent;
 	}
 
@@ -826,7 +828,7 @@ ArrowGetPercentVisible(float fYPosWithoutReverse)
 						  fAppearances[PlayerOptions::APPEARANCE_RANDOMVANISH];
 	}
 
-	return clamp(1 + fVisibleAdjust, 0, 1);
+	return std::clamp(1.F + fVisibleAdjust, 0.F, 1.F);
 }
 
 float

@@ -37,8 +37,8 @@ class StageStats
 	Stage m_Stage;
 	int m_iStageIndex;
 	PlayMode m_playMode;
-	vector<Song*> m_vpPlayedSongs;
-	vector<Song*> m_vpPossibleSongs;
+	std::vector<Song*> m_vpPlayedSongs;
+	std::vector<Song*> m_vpPossibleSongs;
 
 	/** @brief Was the gameplay exited by the Player giving up? */
 	bool m_bGaveUp;
@@ -68,7 +68,7 @@ class StageStats
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
 
 	void FinalizeScores(bool bSummary);
-	string mostrecentscorekey;
+	std::string mostrecentscorekey;
 
 	// Show that this StageStats was a live play or is merely a reproduction
 	// using a Replay

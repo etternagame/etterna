@@ -15,6 +15,8 @@
 #include "PlayerReplay.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+
 static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
 static ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;
 static ThemeMetric<float> HOLD_JUDGMENT_Y_STANDARD;
@@ -380,7 +382,7 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 	// new max combo
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->m_iMaxCombo =
-		  max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
+		  std::max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
 
 	/* Use the real current beat, not the beat we've been passed. That's because
 	 * we want to record the current life/combo to the current time; eg. if it's
@@ -487,7 +489,7 @@ PlayerReplay::Step(int col,
 		// Let's not check the whole array every time.
 		// Instead, only check 1 beat back.  Even 1 is overkill.
 		// Just update the life here and let Update judge the roll.
-		const auto iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+		const auto iStartCheckingAt = std::max(0, iSongRow - BeatToNoteRow(1));
 		NoteData::TrackMap::iterator begin, end;
 		m_NoteData.GetTapNoteRangeInclusive(
 		  col, iStartCheckingAt, iSongRow + 1, begin, end);
@@ -525,7 +527,7 @@ PlayerReplay::Step(int col,
 				 * clamped to iEndRow if the hold note is held all the way. */
 				// LOG->Trace("setting iLastHeldRow to min of iSongRow (%i) and
 				// iEndRow (%i)",iSongRow,iEndRow);
-				tn.HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
+				tn.HoldResult.iLastHeldRow = std::min(iSongRow, iEndRow);
 			}
 
 			// If the song beat is in the range of this hold:
@@ -558,13 +560,13 @@ PlayerReplay::Step(int col,
 
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
-		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				m_pPlayerState->m_Position.m_fMusicSeconds +
-				StepSearchDistance)) -
-				iSongRow,
-			  iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-						   m_pPlayerState->m_Position.m_fMusicSeconds -
-						   StepSearchDistance))) +
+		  std::max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+					 m_pPlayerState->m_Position.m_fMusicSeconds +
+					 StepSearchDistance)) -
+					 iSongRow,
+				   iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+								m_pPlayerState->m_Position.m_fMusicSeconds -
+								StepSearchDistance))) +
 		  ROWS_PER_BEAT;
 	} else {
 		/* Buncha bullshit that speeds up searching for the rows that we're
@@ -597,7 +599,7 @@ PlayerReplay::Step(int col,
 
 		if (nervpos > 0)
 			iStepSearchRows =
-			  (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+			  (std::max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
 	}
 
 	// calculate TapNoteScore

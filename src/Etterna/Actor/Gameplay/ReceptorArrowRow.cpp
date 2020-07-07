@@ -7,7 +7,9 @@
 #include "ReceptorArrowRow.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
-map<int, map<int, bool>> NoteUpcoming;
+#include <map>
+
+std::map<int, std::map<int, bool>> NoteUpcoming;
 
 ReceptorArrowRow::ReceptorArrowRow()
 {

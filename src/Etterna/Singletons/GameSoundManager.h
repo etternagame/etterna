@@ -73,7 +73,7 @@ class GameSoundManager : MessageSubscriber
 	auto GetFrameTimingAdjustment(float fDeltaTime) -> float;
 
 	static auto GetPlayerBalance(PlayerNumber pn) -> float;
-	void WithRageSoundPlaying(function<void(RageSound*)> f);
+	void WithRageSoundPlaying(std::function<void(RageSound*)> f);
 	auto GetPlayingMusicTiming() -> TimingData;
 
 	// Set a sound's position given its pointer

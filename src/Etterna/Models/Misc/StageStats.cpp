@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Globals/MinaCalc.h"
 #include "PlayerState.h"
@@ -27,6 +26,8 @@
 #include <windows.h>
 #include <winsock2.h>
 #pragma comment(lib, "IPHLPAPI.lib")
+
+#include <algorithm>
 
 // we just need this for purposes of unique machine id.
 // So any one or two mac's is fine.
@@ -278,7 +279,7 @@ getSystemUniqueId()
 
 	auto id = computeSystemUniqueId();
 	for (uint32_t i = 0; i < 3; i++)
-		str = str + "." + to_string(id[i]);
+		str = str + "." + std::to_string(id[i]);
 	return str;
 }
 /* Arcade:	for the current stage (one song).
@@ -366,10 +367,14 @@ void
 StageStats::AddStats(const StageStats& other)
 {
 	ASSERT(!other.m_vpPlayedSongs.empty());
-	FOREACH_CONST(Song*, other.m_vpPlayedSongs, s)
-	m_vpPlayedSongs.push_back(*s);
-	FOREACH_CONST(Song*, other.m_vpPossibleSongs, s)
-	m_vpPossibleSongs.push_back(*s);
+	for (auto& s : other.m_vpPlayedSongs) {
+		m_vpPlayedSongs.push_back(s);
+	}
+
+	for (auto& s : other.m_vpPossibleSongs) {
+		m_vpPossibleSongs.push_back(s);
+	}
+
 	m_Stage = Stage_Invalid; // meaningless
 	m_iStageIndex = -1;		 // meaningless
 
@@ -402,8 +407,8 @@ float
 StageStats::GetTotalPossibleStepsSeconds() const
 {
 	float fSecs = 0;
-	FOREACH_CONST(Song*, m_vpPossibleSongs, s)
-	fSecs += (*s)->GetStepsSeconds();
+	for (auto& s : m_vpPossibleSongs)
+		fSecs += s->GetStepsSeconds();
 	return fSecs / m_fMusicRate;
 }
 
@@ -427,9 +432,9 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 
 	// just because you had failoff, doesn't mean you didn't fail.
-	FOREACHM_CONST(float, float, pss.m_fLifeRecord, fail)
-	if (fail->second == 0.f)
-		return false;
+	for (auto& fail : pss.m_fLifeRecord)
+		if (fail.second == 0.F)
+			return false;
 
 	// cut out stuff with under 200 notes to prevent super short vibro files
 	// from being dumb
@@ -741,7 +746,7 @@ unsigned int
 StageStats::GetMinimumMissCombo() const
 {
 	unsigned int iMin = INT_MAX;
-	iMin = min(iMin, m_player.m_iCurMissCombo);
+	iMin = std::min(iMin, m_player.m_iCurMissCombo);
 	return iMin;
 }
 

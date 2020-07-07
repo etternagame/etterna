@@ -6,6 +6,11 @@
 #include "XmlFile.h"
 #include "XmlFileUtil.h"
 
+#include <string>
+#include <map>
+
+using std::string;
+
 bool
 XmlFileUtil::LoadFromFileShowErrors(XNode& xml, RageFileBasic& f)
 {
@@ -52,8 +57,8 @@ static const char chXMLTagPre = '/';
 static const char chXMLExclamation = '!';
 static const char chXMLDash = '-';
 
-static map<std::string, std::string> g_mapEntitiesToChars;
-static map<char, std::string> g_mapCharsToEntities;
+static std::map<std::string, std::string> g_mapEntitiesToChars;
+static std::map<char, std::string> g_mapCharsToEntities;
 
 static void
 InitEntities()

@@ -30,6 +30,8 @@
 #include "Etterna/FileTypes/XmlToLua.h"
 #include "Etterna/Models/Misc/Foreach.h"
 
+#include <map>
+
 static bool g_bIsDisplayed = false;
 static bool g_bIsSlow = false;
 static bool g_bIsHalt = false;
@@ -67,6 +69,7 @@ static LocalizedString MUTE_ACTIONS_OFF("ScreenDebugOverlay",
 
 class IDebugLine;
 static vector<IDebugLine*>* g_pvpSubscribers = nullptr;
+
 class IDebugLine
 {
   public:
@@ -76,21 +79,27 @@ class IDebugLine
 			g_pvpSubscribers = new vector<IDebugLine*>;
 		g_pvpSubscribers->push_back(this);
 	}
+
 	virtual ~IDebugLine() = default;
+
 	enum Type
 	{
 		all_screens,
 		gameplay_only
 	};
+
 	virtual Type GetType() const { return all_screens; }
 	virtual std::string GetDisplayTitle() = 0;
+
 	virtual std::string GetDisplayValue()
 	{
 		return IsEnabled() ? ON.GetValue() : OFF.GetValue();
 	}
+
 	virtual std::string GetPageName() const { return "Main"; }
 	virtual bool ForceOffAfterUse() const { return false; }
 	virtual bool IsEnabled() = 0;
+
 	virtual void DoAndLog(std::string& sMessageOut)
 	{
 		std::string s1 = GetDisplayTitle();
@@ -127,6 +136,7 @@ ScreenDebugOverlay::~ScreenDebugOverlay()
 }
 
 const int MAX_DEBUG_LINES = 30;
+
 struct MapDebugToDI
 {
 	DeviceInput holdForDebug1;
@@ -136,7 +146,8 @@ struct MapDebugToDI
 	DeviceInput toggleMute;
 	DeviceInput debugButton[MAX_DEBUG_LINES];
 	DeviceInput gameplayButton[MAX_DEBUG_LINES];
-	map<DeviceInput, int> pageButton;
+	std::map<DeviceInput, int> pageButton;
+
 	void Clear()
 	{
 		holdForDebug1.MakeInvalid();
@@ -150,10 +161,12 @@ struct MapDebugToDI
 		}
 	}
 };
+
 static MapDebugToDI g_Mappings;
 
 static LocalizedString IN_GAMEPLAY("ScreenDebugOverlay", "%s in gameplay");
 static LocalizedString OR("ScreenDebugOverlay", "or");
+
 static std::string
 GetDebugButtonName(const IDebugLine* pLine)
 {
@@ -171,7 +184,7 @@ GetDebugButtonName(const IDebugLine* pLine)
 
 template<typename U, typename V>
 static bool
-GetKeyFromMap(const map<U, V>& m, const V& val, U& key)
+GetKeyFromMap(const std::map<U, V>& m, const V& val, U& key)
 {
 	for (typename map<U, V>::const_iterator iter = m.begin(); iter != m.end();
 		 ++iter) {
@@ -184,6 +197,7 @@ GetKeyFromMap(const map<U, V>& m, const V& val, U& key)
 }
 
 static LocalizedString DEBUG_MENU("ScreenDebugOverlay", "Debug Menu");
+
 void
 ScreenDebugOverlay::Init()
 {
@@ -238,7 +252,7 @@ ScreenDebugOverlay::Init()
 		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F8)] = 3;
 	}
 
-	map<std::string, int> iNextDebugButton;
+	std::map<std::string, int> iNextDebugButton;
 	int iNextGameplayButton = 0;
 	FOREACH(IDebugLine*, *g_pvpSubscribers, p)
 	{
@@ -352,10 +366,10 @@ ScreenDebugOverlay::Update(float fDeltaTime)
 		DISPLAY->ChangeCentering(
 		  PREFSMAN->m_iCenterImageTranslateX,
 		  PREFSMAN->m_iCenterImageTranslateY,
-		  PREFSMAN->m_fCenterImageAddWidth - (int)SCREEN_WIDTH +
-			(int)(g_fImageScaleCurrent * SCREEN_WIDTH),
-		  PREFSMAN->m_fCenterImageAddHeight - (int)SCREEN_HEIGHT +
-			(int)(g_fImageScaleCurrent * SCREEN_HEIGHT));
+		  PREFSMAN->m_fCenterImageAddWidth - static_cast<int>(SCREEN_WIDTH) +
+			static_cast<int>(g_fImageScaleCurrent * SCREEN_WIDTH),
+		  PREFSMAN->m_fCenterImageAddHeight - static_cast<int>(SCREEN_HEIGHT) +
+			static_cast<int>(g_fImageScaleCurrent * SCREEN_HEIGHT));
 	}
 
 	this->SetVisible(g_bIsDisplayed && !m_bForcedHidden);
@@ -363,7 +377,7 @@ ScreenDebugOverlay::Update(float fDeltaTime)
 		return;
 
 	Screen::Update(fDeltaTime); // Is there a particular reason this needs to be
-								// updated when not visible? - Mina
+	// updated when not visible? - Mina
 	UpdateText();
 }
 
@@ -433,7 +447,7 @@ ScreenDebugOverlay::UpdateText()
 
 template<typename U, typename V>
 static bool
-GetValueFromMap(const map<U, V>& m, const U& key, V& val)
+GetValueFromMap(const std::map<U, V>& m, const U& key, V& val)
 {
 	typename map<U, V>::const_iterator it = m.find(key);
 	if (it == m.end())
@@ -478,7 +492,7 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 		if (input.type != IET_FIRST_PRESS)
 			return true; // eat the input but do nothing
 		m_iCurrentPage = iPage;
-		CLAMP(m_iCurrentPage, 0, (int)m_asPages.size() - 1);
+		CLAMP(m_iCurrentPage, 0, static_cast<int>(m_asPages.size()) - 1);
 		return true;
 	}
 
@@ -655,6 +669,7 @@ class DebugLineAutoplay : public IDebugLine
 	{
 		return AUTO_PLAY.GetValue() + " (+Shift = AI) (+Alt = hide)";
 	}
+
 	std::string GetDisplayValue() override
 	{
 		PlayerController pc = GamePreferences::m_AutoPlay.Get();
@@ -675,11 +690,14 @@ class DebugLineAutoplay : public IDebugLine
 				FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}
 	}
-	Type GetType() const override { return IDebugLine::gameplay_only; }
+
+	Type GetType() const override { return gameplay_only; }
+
 	bool IsEnabled() override
 	{
 		return GamePreferences::m_AutoPlay.Get() != PC_HUMAN;
 	}
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ASSERT(GAMESTATE->GetMasterPlayerNumber() != PLAYER_INVALID);
@@ -713,6 +731,7 @@ class DebugLineAssist : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return ASSIST.GetValue(); }
 	Type GetType() const override { return gameplay_only; }
+
 	std::string GetDisplayValue() override
 	{
 		SongOptions so;
@@ -721,14 +740,15 @@ class DebugLineAssist : public IDebugLine
 		  GAMESTATE->m_SongOptions.GetSong().m_bAssistMetronome;
 		if (so.m_bAssistClap || so.m_bAssistMetronome)
 			return so.GetLocalizedString();
-		else
-			return OFF.GetValue();
+		return OFF.GetValue();
 	}
+
 	bool IsEnabled() override
 	{
 		return GAMESTATE->m_SongOptions.GetSong().m_bAssistClap ||
 			   GAMESTATE->m_SongOptions.GetSong().m_bAssistMetronome;
 	}
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ASSERT(GAMESTATE->GetMasterPlayerNumber() != PLAYER_INVALID);
@@ -755,6 +775,7 @@ class DebugLineAssist : public IDebugLine
 class DebugLineAutosync : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return AUTOSYNC.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		AutosyncType type = GAMESTATE->m_SongOptions.GetSong().m_AutosyncType;
@@ -772,12 +793,15 @@ class DebugLineAutosync : public IDebugLine
 				FAIL_M(ssprintf("Invalid autosync type: %i", type));
 		}
 	}
-	Type GetType() const override { return IDebugLine::gameplay_only; }
+
+	Type GetType() const override { return gameplay_only; }
+
 	bool IsEnabled() override
 	{
 		return GAMESTATE->m_SongOptions.GetSong().m_AutosyncType !=
 			   AutosyncType_Off;
 	}
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		int as = GAMESTATE->m_SongOptions.GetSong().m_AutosyncType + 1;
@@ -795,6 +819,7 @@ class DebugLineSlow : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return SLOW.GetValue(); }
 	bool IsEnabled() override { return g_bIsSlow; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		g_bIsSlow = !g_bIsSlow;
@@ -807,6 +832,7 @@ class DebugLineHalt : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return HALT.GetValue(); }
 	bool IsEnabled() override { return g_bIsHalt; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		g_bIsHalt = !g_bIsHalt;
@@ -822,7 +848,9 @@ class DebugLineStats : public IDebugLine
 	{
 		return RENDERING_STATS.GetValue();
 	}
+
 	bool IsEnabled() override { return PREFSMAN->m_bShowStats.Get(); }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_bShowStats.Set(!PREFSMAN->m_bShowStats);
@@ -834,10 +862,12 @@ class DebugLineSkips : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return RENDER_SKIPS.GetValue(); }
 	std::string GetPageName() const override { return "Misc"; }
+
 	bool IsEnabled() override
 	{
 		return PREFSMAN->m_bShowSkips && PREFSMAN->m_bShowStats;
 	}
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		if (PREFSMAN->m_bShowStats) {
@@ -851,6 +881,7 @@ class DebugLineVsync : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return VSYNC.GetValue(); }
 	bool IsEnabled() override { return PREFSMAN->m_bVsync.Get(); }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_bVsync.Set(!PREFSMAN->m_bVsync);
@@ -863,6 +894,7 @@ class DebugLineAllowMultitexture : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return MULTITEXTURE.GetValue(); }
 	bool IsEnabled() override { return PREFSMAN->m_bAllowMultitexture.Get(); }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_bAllowMultitexture.Set(!PREFSMAN->m_bAllowMultitexture);
@@ -876,8 +908,10 @@ class DebugLineShowMasks : public IDebugLine
 	{
 		return SCREEN_SHOW_MASKS.GetValue();
 	}
+
 	bool IsEnabled() override { return GetPref()->Get(); }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		GetPref()->Set(!GetPref()->Get());
@@ -895,6 +929,7 @@ static ProfileSlot g_ProfileSlot = ProfileSlot_Player1;
 class DebugLineProfileSlot : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return PROFILE.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		switch (g_ProfileSlot) {
@@ -906,8 +941,10 @@ class DebugLineProfileSlot : public IDebugLine
 				return std::string();
 		}
 	}
+
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Profiles"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		enum_add(g_ProfileSlot, +1);
@@ -924,9 +961,11 @@ class DebugLineClearProfileStats : public IDebugLine
 	{
 		return CLEAR_PROFILE_STATS.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Profiles"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
@@ -973,7 +1012,6 @@ MakeRandomHighScore(float fPercentDP)
 static void
 FillProfileStats(Profile* pProfile)
 {
-	return;
 }
 
 class DebugLineFillProfileStats : public IDebugLine
@@ -982,9 +1020,11 @@ class DebugLineFillProfileStats : public IDebugLine
 	{
 		return FILL_PROFILE_STATS.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Profiles"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
@@ -999,8 +1039,10 @@ class DebugLineSendNotesEnded : public IDebugLine
 	{
 		return SEND_NOTES_ENDED.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->PostMessageToTopScreen(SM_NotesEnded, 0);
@@ -1013,6 +1055,7 @@ class DebugLineResetKeyMapping : public IDebugLine
 	std::string GetDisplayTitle() override { return RESET_KEY_MAP.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		INPUTMAPPER->ResetMappingsToDefault();
@@ -1026,6 +1069,7 @@ class DebugLineMuteActions : public IDebugLine
 	std::string GetDisplayTitle() override { return MUTE_ACTIONS.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return PREFSMAN->m_MuteActions; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_MuteActions.Set(!PREFSMAN->m_MuteActions);
@@ -1039,14 +1083,17 @@ class DebugLineMuteActions : public IDebugLine
 class DebugLineReloadCurrentScreen : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return RELOAD.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		return SCREENMAN && SCREENMAN->GetTopScreen()
 				 ? SCREENMAN->GetTopScreen()->GetName()
 				 : std::string();
 	}
+
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		std::string sScreenName = SCREENMAN->GetScreen(0)->GetName();
@@ -1064,15 +1111,18 @@ class DebugLineReloadCurrentScreen : public IDebugLine
 class DebugLineRestartCurrentScreen : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return RESTART.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		return SCREENMAN && SCREENMAN->GetTopScreen()
 				 ? SCREENMAN->GetTopScreen()->GetName()
 				 : std::string();
 	}
+
 	bool IsEnabled() override { return true; }
 	bool ForceOffAfterUse() const override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->GetTopScreen()->BeginScreen();
@@ -1084,15 +1134,18 @@ class DebugLineRestartCurrentScreen : public IDebugLine
 class DebugLineCurrentScreenOn : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return SCREEN_ON.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		return SCREENMAN && SCREENMAN->GetTopScreen()
 				 ? SCREENMAN->GetTopScreen()->GetName()
 				 : std::string();
 	}
+
 	bool IsEnabled() override { return true; }
 	bool ForceOffAfterUse() const override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->GetTopScreen()->PlayCommand("On");
@@ -1104,15 +1157,18 @@ class DebugLineCurrentScreenOn : public IDebugLine
 class DebugLineCurrentScreenOff : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return SCREEN_OFF.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		return SCREENMAN && SCREENMAN->GetTopScreen()
 				 ? SCREENMAN->GetTopScreen()->GetName()
 				 : std::string();
 	}
+
 	bool IsEnabled() override { return true; }
 	bool ForceOffAfterUse() const override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->GetTopScreen()->PlayCommand("Off");
@@ -1127,9 +1183,11 @@ class DebugLineReloadTheme : public IDebugLine
 	{
 		return RELOAD_THEME_AND_TEXTURES.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		THEME->ReloadMetrics();
@@ -1148,9 +1206,11 @@ class DebugLineReloadOverlayScreens : public IDebugLine
 	{
 		return RELOAD_OVERLAY_SCREENS.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->ReloadOverlayScreensAfterInputFinishes();
@@ -1164,6 +1224,7 @@ class DebugLineToggleErrors : public IDebugLine
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return PREFSMAN->m_show_theme_errors; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_show_theme_errors.Set(!PREFSMAN->m_show_theme_errors);
@@ -1177,9 +1238,11 @@ class DebugLineShowRecentErrors : public IDebugLine
 	{
 		return SHOW_RECENT_ERRORS.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		Message msg("ToggleScriptError");
@@ -1194,6 +1257,7 @@ class DebugLineClearErrors : public IDebugLine
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		Message msg("ClearScriptError");
@@ -1208,6 +1272,7 @@ class DebugLineConvertXML : public IDebugLine
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Theme"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		Song* cur_song = GAMESTATE->m_pCurSong;
@@ -1224,6 +1289,7 @@ class DebugLineWriteProfiles : public IDebugLine
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Profiles"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		auto pn = static_cast<PlayerNumber>(g_ProfileSlot);
@@ -1239,8 +1305,10 @@ class DebugLineWritePreferences : public IDebugLine
 	{
 		return WRITE_PREFERENCES.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->SavePrefsToDisk();
@@ -1253,6 +1321,7 @@ class DebugLineMenuTimer : public IDebugLine
 	std::string GetDisplayTitle() override { return MENU_TIMER.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return PREFSMAN->m_bMenuTimer.Get(); }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_bMenuTimer.Set(!PREFSMAN->m_bMenuTimer);
@@ -1265,6 +1334,7 @@ class DebugLineFlushLog : public IDebugLine
 	std::string GetDisplayTitle() override { return FLUSH_LOG.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		LOG->Flush();
@@ -1278,8 +1348,10 @@ class DebugLinePullBackCamera : public IDebugLine
 	{
 		return PULL_BACK_CAMERA.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return g_fImageScaleDestination != 1; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		if (g_fImageScaleDestination == 1)
@@ -1293,16 +1365,20 @@ class DebugLinePullBackCamera : public IDebugLine
 class DebugLineVolumeUp : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return VOLUME_UP.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		return ssprintf("%.0f%%", GetPref()->Get() * 100);
 	}
+
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ChangeVolume(+0.1f);
 		IDebugLine::DoAndLog(sMessageOut);
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("SoundVolume");
@@ -1314,12 +1390,14 @@ class DebugLineVolumeDown : public IDebugLine
 	std::string GetDisplayTitle() override { return VOLUME_DOWN.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ChangeVolume(-0.1f);
 		IDebugLine::DoAndLog(sMessageOut);
 		sMessageOut += " - " + ssprintf("%.0f%%", GetPref()->Get() * 100);
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("SoundVolume");
@@ -1332,16 +1410,20 @@ class DebugLineVisualDelayUp : public IDebugLine
 	{
 		return VISUAL_DELAY_UP.GetValue();
 	}
+
 	std::string GetDisplayValue() override
 	{
 		return ssprintf("%.03f", GetPref()->Get());
 	}
+
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ChangeVisualDelay(+0.001f);
 		IDebugLine::DoAndLog(sMessageOut);
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("VisualDelaySeconds");
@@ -1354,14 +1436,17 @@ class DebugLineVisualDelayDown : public IDebugLine
 	{
 		return VISUAL_DELAY_DOWN.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ChangeVisualDelay(-0.001f);
 		IDebugLine::DoAndLog(sMessageOut);
 		sMessageOut += " - " + ssprintf("%.03f", GetPref()->Get());
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("VisualDelaySeconds");
@@ -1371,11 +1456,14 @@ class DebugLineVisualDelayDown : public IDebugLine
 class DebugLineUptime : public IDebugLine
 {
 	std::string GetDisplayTitle() override { return UPTIME.GetValue(); }
+
 	std::string GetDisplayValue() override
 	{
 		return SecondsToMMSSMsMsMs(RageTimer::GetTimeSinceStart());
 	}
+
 	bool IsEnabled() override { return false; }
+
 	void DoAndLog(std::string& sMessageOut) override {}
 };
 
@@ -1384,6 +1472,7 @@ class DebugLineEasterEggs : public IDebugLine
 	std::string GetDisplayTitle() override { return EASTER_EGGS.GetValue(); }
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return PREFSMAN->m_bEasterEggs; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->m_bEasterEggs.Set(!PREFSMAN->m_bEasterEggs);
@@ -1396,6 +1485,7 @@ class DebugLineOsuLifts : public IDebugLine
 	std::string GetDisplayTitle() override { return OSU_LIFTS.GetValue(); }
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return PREFSMAN->LiftsOnOsuHolds; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->LiftsOnOsuHolds.Set(!PREFSMAN->LiftsOnOsuHolds);
@@ -1408,6 +1498,7 @@ class DebugLinePitchRates : public IDebugLine
 	std::string GetDisplayTitle() override { return PITCH_RATES.GetValue(); }
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return PREFSMAN->EnablePitchRates; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		PREFSMAN->EnablePitchRates.Set(!PREFSMAN->EnablePitchRates);
@@ -1421,6 +1512,7 @@ class DebugLineFullscreen : public IDebugLine
 	std::string GetDisplayValue() override { return std::string(); }
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 #if !defined(__APPLE__)
@@ -1436,17 +1528,21 @@ class DebugLineGlobalOffsetUp : public IDebugLine
 	{
 		return GLOBAL_OFFSET_UP.GetValue();
 	}
+
 	std::string GetDisplayValue() override
 	{
 		return ssprintf("%.03f", GetPref()->Get());
 	}
+
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ChangeGlobalOffset(+0.001f);
 		IDebugLine::DoAndLog(sMessageOut);
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
@@ -1459,15 +1555,18 @@ class DebugLineGlobalOffsetDown : public IDebugLine
 	{
 		return GLOBAL_OFFSET_DOWN.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Misc"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ChangeGlobalOffset(-0.001f);
 		IDebugLine::DoAndLog(sMessageOut);
 		sMessageOut += " - " + ssprintf("%.03f", GetPref()->Get());
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
@@ -1480,15 +1579,18 @@ class DebugLineGlobalOffsetReset : public IDebugLine
 	{
 		return GLOBAL_OFFSET_RESET.GetValue();
 	}
+
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
 	std::string GetPageName() const override { return "Misc"; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		ResetGlobalOffset();
 		IDebugLine::DoAndLog(sMessageOut);
 		sMessageOut += " - " + ssprintf("%.03f", GetPref()->Get());
 	}
+
 	Preference<float>* GetPref()
 	{
 		return Preference<float>::GetPreferenceByName("GlobalOffsetSeconds");
@@ -1501,6 +1603,7 @@ class DebugLineKeyConfig : public IDebugLine
 	std::string GetDisplayValue() override { return std::string(); }
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return true; }
+
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->PopAllScreens();

@@ -9,6 +9,8 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelBase.h"
 
+#include <algorithm>
+
 const int MAX_WHEEL_SOUND_SPEED = 15;
 AutoScreenMessage(
   SM_SongChanged); // TODO: Replace this with a Message and MESSAGEMAN
@@ -32,7 +34,7 @@ WheelBase::~WheelBase()
 }
 
 void
-WheelBase::Load(const string& sType)
+WheelBase::Load(const std::string& sType)
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("WheelBase::Load('%s')", sType.c_str());
@@ -167,7 +169,7 @@ WheelBase::Update(float fDeltaTime)
 
 	if (m_Moving != 0) {
 		m_TimeBeforeMovingBegins -= fDeltaTime;
-		m_TimeBeforeMovingBegins = max(m_TimeBeforeMovingBegins, 0);
+		m_TimeBeforeMovingBegins = std::max(m_TimeBeforeMovingBegins, 0.F);
 	}
 
 	// update wheel state
@@ -184,7 +186,7 @@ WheelBase::Update(float fDeltaTime)
 		/* Make sure that we don't go further than 1 away, in case the speed is
 		 * very high or we miss a lot of frames. */
 		m_fPositionOffsetFromSelection =
-		  clamp(m_fPositionOffsetFromSelection, -1.0f, 1.0f);
+		  std::clamp(m_fPositionOffsetFromSelection, -1.0f, 1.0f);
 
 		// If it passed the selection, move again.
 		if ((m_Moving == -1 && m_fPositionOffsetFromSelection >= 0) ||

@@ -12,7 +12,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "AdjustSync.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -36,9 +35,8 @@ AdjustSync::ResetOriginalSyncData()
 	if (GAMESTATE->m_pCurSong) {
 		s_vpTimingDataOriginal.push_back(GAMESTATE->m_pCurSong->m_SongTiming);
 		const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-		FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-		{
-			s_vpTimingDataOriginal.push_back((*s)->m_Timing);
+		for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+			s_vpTimingDataOriginal.push_back(s->m_Timing);
 		}
 	} else {
 		s_vpTimingDataOriginal.push_back(TimingData());
@@ -100,9 +98,8 @@ AdjustSync::RevertSyncChanges()
 
 	unsigned location = 1;
 	const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-	FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-	{
-		(*s)->m_Timing = s_vpTimingDataOriginal[location];
+	for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+		s->m_Timing = s_vpTimingDataOriginal[location];
 		location++;
 	}
 
@@ -157,14 +154,13 @@ AdjustSync::AutosyncOffset()
 				  mean;
 				GAMESTATE->m_pCurSong->m_SongTiming.PrepareLookup();
 				const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-				FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-				{
+				for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
 					// Empty TimingData means it's inherited
 					// from the song and is already changed.
-					if ((*s)->m_Timing.empty())
+					if (s->m_Timing.empty())
 						continue;
-					(*s)->m_Timing.m_fBeat0OffsetInSeconds += mean;
-					(*s)->m_Timing.PrepareLookup();
+					s->m_Timing.m_fBeat0OffsetInSeconds += mean;
+					s->m_Timing.PrepareLookup();
 				}
 				break;
 			}

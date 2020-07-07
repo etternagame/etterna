@@ -1,6 +1,7 @@
-#include "Etterna/Globals/global.h"
 #include "Command.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+using std::vector;
 
 std::string
 Command::GetName() const
@@ -55,7 +56,7 @@ SplitWithQuotes(const std::string sSource,
 			if (sSource[pos] == '"' || sSource[pos] == '\'') {
 				/* We've found a quote.  Search for the close. */
 				pos = sSource.find(sSource[pos], pos + 1);
-				if (pos == string::npos)
+				if (pos == std::string::npos)
 					pos = sSource.size();
 				else
 					++pos;

@@ -3,7 +3,6 @@
 #ifndef ROOM_WHEEL_H
 #define ROOM_WHEEL_H
 
-#include "ThemeMetric.h"
 #include "Etterna/Actor/Menus/WheelBase.h"
 #include "Etterna/Actor/Menus/WheelItemBase.h"
 
@@ -27,7 +26,7 @@ class RoomData
 		m_state = 0;
 		m_iFlags = 0;
 	}
-	vector<string> players;
+	vector<std::string> players;
 
   private:
 	std::string m_name;
@@ -64,7 +63,10 @@ class RoomWheelItem : public WheelItemBase
 							   int iIndex,
 							   bool bHasFocus,
 							   int iDrawIndex) override;
-	[[nodiscard]] RoomWheelItem* Copy() const override { return new RoomWheelItem(*this); }
+	[[nodiscard]] RoomWheelItem* Copy() const override
+	{
+		return new RoomWheelItem(*this);
+	}
 	void Load(const std::string& sType);
 
   private:

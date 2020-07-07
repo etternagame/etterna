@@ -11,7 +11,7 @@
 #include <set>
 
 MessageManager* MESSAGEMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 static const char* MessageIDNames[] = {
 	"CurrentGameChanged",
@@ -222,7 +222,7 @@ MessageManager::Broadcast(Message& msg) const
 	// GAMESTATE is created before MESSAGEMAN, and has several
 	// BroadcastOnChangePtr members, so they all broadcast when they're
 	// initialized.
-	if (this != NULL && m_Logging) {
+	if (this != nullptr && m_Logging) {
 		LOG->Trace("MESSAGEMAN:Broadcast: %s", msg.GetName().c_str());
 	}
 	msg.SetBroadcast(true);

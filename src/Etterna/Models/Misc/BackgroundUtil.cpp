@@ -2,12 +2,12 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Actor/Gameplay/Background.h"
 #include "BackgroundUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
+
 #include <set>
 
 bool
@@ -247,42 +247,6 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
-static void
-GetFilterToFileNames(const std::string sBaseDir,
-					 const Song* pSong,
-					 set<std::string>& vsPossibleFileNamesOut)
-{
-	vsPossibleFileNamesOut.clear();
-
-	if (pSong->m_sGenre.empty())
-		return;
-
-	ASSERT(!pSong->m_sGroupName.empty());
-	IniFile ini;
-	const auto sPath =
-	  sBaseDir + pSong->m_sGroupName + "/" + "BackgroundMapping.ini";
-	ini.ReadFile(sPath);
-
-	std::string sSection;
-	const auto bSuccess =
-	  ini.GetValue("GenreToSection", pSong->m_sGenre, sSection);
-	if (!bSuccess) {
-		// LOG->Warn( "Genre '%s' isn't mapped", pSong->m_sGenre.c_str() );
-		return;
-	}
-
-	auto pSection = ini.GetChild(sSection);
-	if (pSection == nullptr) {
-		ASSERT_M(0,
-				 ssprintf("File '%s' refers to a section '%s' that is missing.",
-						  sPath.c_str(),
-						  sSection.c_str()));
-		return;
-	}
-
-	FOREACH_CONST_Attr(pSection, p) vsPossibleFileNamesOut.insert(p->first);
-}
-
 void
 BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 									  const std::string& sMatch,
@@ -291,8 +255,7 @@ BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 {
 	vsPathsOut.clear();
 	GetDirListing(BG_ANIMS_DIR + sMatch + "*", vsPathsOut, true, true);
-	if (true)
-		GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
+	GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
 	for (auto& s : vsPathsOut)
