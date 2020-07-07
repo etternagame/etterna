@@ -655,7 +655,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 ]]
 local modnames = {
     -- CalcPatternMod shortnames
-    "st",
+    "strm",
     "js",
     --"jss",
     --"jsj",
@@ -676,18 +676,18 @@ local modnames = {
     "cjohj",
     --"cjohjpc",
     --"cjohjsc",
-    "blnc",
+    "balnc",
     "roll",
     "oht",
     "voht",
-    "c",
-    "fc",
+    "chaos",
+    "flam",
     "wrr",
     "wrjt",
     "wrb",
     "wra",
-    "tt",
-    "tt2",
+    "thing",
+    "thing2",
     "rm",
     --"rl",
     --"ral",
@@ -706,8 +706,8 @@ local modnames = {
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
     -- (this list should match the miscToUpperMods list)
-    "s",
-    "jks",
+    "stam",
+    "jkstm",
 }
 
 -- this list has order
