@@ -35,6 +35,7 @@ protected:
     virtual void log(ILogger::Severity logLevel, const std::string_view message) = 0;
 
 public:
+    // Logging Specific
     template <typename... Args> void trace(const std::string_view log, const Args& ... args) {
         this->log(Severity::TRACE, fmt::format(log, args...));
     }
@@ -53,6 +54,9 @@ public:
     template <typename... Args> void fatal(const std::string_view log, const Args& ... args) {
         this->log(Severity::FATAL, fmt::format(log, args...));
     }
+
+    /** @brief Enabled or disable a stdout prompt on Windows */
+    bool setConsoleEnabled(bool enable);
 };
 }
 
