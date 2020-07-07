@@ -5,7 +5,7 @@
 
 #include <map>
 #include <sstream>
-#include <string>
+#include <cstring>
 #include <vector>
 #include <memory>
 #include <cmath>

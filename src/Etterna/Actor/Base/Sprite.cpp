@@ -1218,7 +1218,7 @@ class LunaSprite : public Luna<Sprite>
 		float coords[8];
 		for (auto i = 0; i < 8; ++i) {
 			coords[i] = FArg(i + 1);
-			if (isnan(coords[i])) {
+			if (_isnan(coords[i])) {
 				coords[i] = 0.0f;
 			}
 		}
