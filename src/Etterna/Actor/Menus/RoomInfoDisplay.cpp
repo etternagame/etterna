@@ -171,7 +171,7 @@ RoomInfoDisplay::SetRoomInfo(const RoomInfo& info)
 		m_playerList.resize(info.players.size());
 	} else if (m_playerList.size() < info.players.size()) {
 		// add elements if our old list is smaller
-		int oldsize = m_playerList.size();
+		const int oldsize = m_playerList.size();
 		m_playerList.resize(info.players.size());
 		for (size_t i = oldsize; i < m_playerList.size(); i++) {
 			m_playerList[i] = new BitmapText;

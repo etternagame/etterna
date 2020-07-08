@@ -17,15 +17,18 @@ class RageSoundBase
   public:
 	virtual ~RageSoundBase() = default;
 	virtual void SoundIsFinishedPlaying() = 0;
-	virtual int GetDataToPlay(float* buffer,
-							  int size,
-							  int64_t& iStreamFrame,
-							  int& got_bytes) = 0;
+	virtual auto GetDataToPlay(float* buffer,
+							   int size,
+							   int64_t& iStreamFrame,
+							   int& got_bytes) -> int = 0;
 	virtual void CommitPlayingPosition(int64_t iFrameno,
 									   int64_t iPosition,
 									   int iBytesRead) = 0;
-	virtual RageTimer GetStartTime() const { return RageZeroTimer; }
-	virtual std::string GetLoadedFilePath() const = 0;
+	[[nodiscard]] virtual auto GetStartTime() const -> RageTimer
+	{
+		return RageZeroTimer;
+	}
+	[[nodiscard]] virtual auto GetLoadedFilePath() const -> std::string = 0;
 };
 
 /**
@@ -47,13 +50,13 @@ struct RageSoundParams
 	// Number of seconds to spend fading out.
 	float m_fFadeOutSeconds{ 0 };
 
-	float m_Volume{ 1.0f };			// multiplies with SOUNDMAN->GetMixVolume()
-	float m_fAttractVolume{ 1.0f }; // multiplies with m_Volume
+	float m_Volume{ 1.0F };			// multiplies with SOUNDMAN->GetMixVolume()
+	float m_fAttractVolume{ 1.0F }; // multiplies with m_Volume
 
 	/* Number of samples input and output when changing speed.
 	 * Currently, this is either 1/1, 5/4 or 4/5. */
-	float m_fPitch{ 1.0f };
-	float m_fSpeed{ 1.0f };
+	float m_fPitch{ 1.0F };
+	float m_fSpeed{ 1.0F };
 
 	// Accurate Sync (for now only useful for MP3s)
 	bool m_bAccurateSync{ false };
@@ -98,7 +101,7 @@ class RageSound : public RageSoundBase
 	RageSound();
 	~RageSound() override;
 	RageSound(const RageSound& cpy);
-	RageSound& operator=(const RageSound& cpy);
+	auto operator=(const RageSound& cpy) -> RageSound&;
 
 	/* If bPrecache == true, we'll preload the entire file into memory if
 	 * small enough.  If this is done, a large number of copies of the sound
@@ -114,13 +117,13 @@ class RageSound : public RageSoundBase
 	 * they can be ignored most of the time, so we continue to work if a file
 	 * is broken or missing.
 	 */
-	bool Load(const std::string& sFile,
+	auto Load(const std::string& sFile,
 			  bool bPrecache,
-			  const RageSoundLoadParams* pParams = nullptr);
+			  const RageSoundLoadParams* pParams = nullptr) -> bool;
 
 	/* Using this version means the "don't care" about caching. Currently,
 	 * this always will not cache the sound; this may become a preference. */
-	bool Load(const std::string& sFile);
+	auto Load(const std::string& sFile) -> bool;
 
 	/* Load a RageSoundReader that you've set up yourself. Sample rate
 	 * conversion will be set up only if needed. Doesn't fail. */
@@ -128,16 +131,16 @@ class RageSound : public RageSoundBase
 
 	// Get the loaded RageSoundReader. While playing, only properties can be
 	// set.
-	RageSoundReader* GetSoundReader() { return m_pSource; }
+	auto GetSoundReader() -> RageSoundReader* { return m_pSource; }
 
 	void Unload();
-	bool IsLoaded() const;
+	auto IsLoaded() const -> bool;
 	void DeleteSelfWhenFinishedPlaying();
 
 	void StartPlaying(float fGiven = 0, bool forcedTime = false);
 	void StopPlaying();
 
-	std::string GetError() const { return m_sError; }
+	auto GetError() const -> std::string { return m_sError; }
 
 	void Play(bool is_action, const RageSoundParams* params = nullptr);
 	void PlayCopy(bool is_action,
@@ -146,26 +149,29 @@ class RageSound : public RageSoundBase
 
 	/* Cleanly pause or unpause the sound. If the sound wasn't already playing,
 	 * return true and do nothing. */
-	bool Pause(bool bPause);
+	auto Pause(bool bPause) -> bool;
 	bool m_bPaused{ false };
 
-	float GetLengthSeconds();
-	float GetPositionSeconds(bool* approximate = nullptr,
-							 RageTimer* Timestamp = nullptr) const;
-	std::string GetLoadedFilePath() const override { return m_sFilePath; }
-	bool IsPlaying() const { return m_bPlaying; }
+	auto GetLengthSeconds() -> float;
+	auto GetPositionSeconds(bool* approximate = nullptr,
+							RageTimer* Timestamp = nullptr) const -> float;
+	auto GetLoadedFilePath() const -> std::string override
+	{
+		return m_sFilePath;
+	}
+	auto IsPlaying() const -> bool { return m_bPlaying; }
 
-	float GetPlaybackRate() const;
-	RageTimer GetStartTime() const override;
+	auto GetPlaybackRate() const -> float;
+	auto GetStartTime() const -> RageTimer override;
 	void SetParams(const RageSoundParams& p);
-	const RageSoundParams& GetParams() const { return m_Param; }
-	bool SetProperty(const std::string& sProperty, float fValue);
+	auto GetParams() const -> const RageSoundParams& { return m_Param; }
+	auto SetProperty(const std::string& sProperty, float fValue) -> bool;
 	void SetStopModeFromString(const std::string& sStopMode);
 	void SetPositionSeconds(float fGiven);
 
-	void SetPlayBackCallback(const shared_ptr<LuaReference>& f,
+	void SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 							 unsigned int bufSize = 1024);
-	atomic<bool> pendingPlayBackCall{ false };
+	std::atomic<bool> pendingPlayBackCall{ false };
 	void ExecutePlayBackCallback(Lua* L);
 
 	// Lua
@@ -191,13 +197,13 @@ class RageSound : public RageSoundBase
 	int64_t m_iStreamFrame;
 
 	void* fftBuffer{ nullptr };
-	void ActuallySetPlayBackCallback(const shared_ptr<LuaReference>& f,
+	void ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 									 unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
 	std::mutex
 	  recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
-	shared_ptr<LuaReference> soundPlayCallback;
+	std::shared_ptr<LuaReference> soundPlayCallback;
 	vector<float> recentPCMSamples;
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position
@@ -213,11 +219,12 @@ class RageSound : public RageSoundBase
 
 	std::string m_sError;
 
-	int GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
-										bool* bApproximate = nullptr) const;
+	auto GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
+										 bool* bApproximate = nullptr) const
+	  -> int;
 
-	bool SetPositionFrames(int frames = -1);
-	RageSoundParams::StopMode_t GetStopMode() const; // resolves M_AUTO
+	auto SetPositionFrames(int frames = -1) -> bool;
+	auto GetStopMode() const -> RageSoundParams::StopMode_t; // resolves M_AUTO
 
 	void SoundIsFinishedPlaying() override; // called by sound drivers
 
@@ -228,10 +235,10 @@ class RageSound : public RageSoundBase
 	 * it signals the stream to stop; once it's flushed, SoundStopped will be
 	 * called. Until then, SOUNDMAN->GetPosition can still be called; the sound
 	 * is still playing. */
-	int GetDataToPlay(float* pBuffer,
-					  int iSize,
-					  int64_t& iStreamFrame,
-					  int& iBytesRead) override;
+	auto GetDataToPlay(float* pBuffer,
+					   int iSize,
+					   int64_t& iStreamFrame,
+					   int& iBytesRead) -> int override;
 	void CommitPlayingPosition(int64_t iHardwareFrame,
 							   int64_t iStreamFrame,
 							   int iGotFrames) override;

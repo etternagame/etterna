@@ -24,6 +24,8 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/LuaManager.h"
 
+#include <algorithm>
+
 REGISTER_SCREEN_CLASS(ScreenGameplayPractice);
 
 void
@@ -409,7 +411,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 		const auto rowEnd = BeatToNoteRow(endBeat);
 		const auto startBeat = pTiming->GetBeatFromElapsedTime(loopStart);
 		const auto rowStart = BeatToNoteRow(startBeat);
-		const auto rowUsed = max(rowStart, rowNow);
+		const auto rowUsed = std::max(rowStart, rowNow);
 		// Assert crash if this check isn't done
 		if (rowUsed < rowEnd)
 			SetupNoteDataFromRow(pSteps, rowUsed, rowEnd);

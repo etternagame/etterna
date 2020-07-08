@@ -1,9 +1,8 @@
-﻿/* RoomWheel - A wheel containing data about rooms. */
+/* RoomWheel - A wheel containing data about rooms. */
 
 #ifndef ROOM_WHEEL_H
 #define ROOM_WHEEL_H
 
-#include "ThemeMetric.h"
 #include "Etterna/Actor/Menus/WheelBase.h"
 #include "Etterna/Actor/Menus/WheelItemBase.h"
 
@@ -15,11 +14,11 @@ class RoomData
 	void SetState(unsigned int state) { m_state = state; }
 	void SetFlags(unsigned int iFlags) { m_iFlags = iFlags; }
 	void SetHasPassword(bool pass) { hasPassword = pass; }
-	inline std::string Name() const { return m_name; }
-	inline std::string Description() const { return m_description; }
-	inline unsigned int State() const { return m_state; }
-	inline bool HasPassword() const { return hasPassword; }
-	inline unsigned int GetFlags() const { return m_iFlags; }
+	[[nodiscard]] std::string Name() const { return m_name; }
+	[[nodiscard]] std::string Description() const { return m_description; }
+	[[nodiscard]] unsigned int State() const { return m_state; }
+	[[nodiscard]] bool HasPassword() const { return hasPassword; }
+	[[nodiscard]] unsigned int GetFlags() const { return m_iFlags; }
 	RoomData()
 	{
 		m_name = "";
@@ -27,7 +26,7 @@ class RoomData
 		m_state = 0;
 		m_iFlags = 0;
 	}
-	vector<string> players;
+	vector<std::string> players;
 
   private:
 	std::string m_name;
@@ -47,7 +46,6 @@ struct RoomWheelItemData : public WheelItemBaseData
 					  const bool hasPass = false)
 	  : WheelItemBaseData(type, sTitle, color)
 	  , m_sDesc(sDesc)
-	  , m_iFlags(0)
 	  , hasPassword(hasPass){};
 
 	std::string m_sDesc;
@@ -65,7 +63,10 @@ class RoomWheelItem : public WheelItemBase
 							   int iIndex,
 							   bool bHasFocus,
 							   int iDrawIndex) override;
-	RoomWheelItem* Copy() const override { return new RoomWheelItem(*this); }
+	[[nodiscard]] RoomWheelItem* Copy() const override
+	{
+		return new RoomWheelItem(*this);
+	}
 	void Load(const std::string& sType);
 
   private:
@@ -111,7 +112,7 @@ class RoomWheel : public WheelBase
 	bool Select() override;
 	void Move(int n) override;
 
-	inline RoomWheelItemData* GetItem(unsigned int i)
+	RoomWheelItemData* GetItem(unsigned int i)
 	{
 		return dynamic_cast<RoomWheelItemData*>(
 		  WheelBase::GetItem(i + m_offset));

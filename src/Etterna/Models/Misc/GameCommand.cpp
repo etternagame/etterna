@@ -86,10 +86,11 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 			return false;
 	}
 
-	if (m_sAnnouncer != "" && m_sAnnouncer != ANNOUNCER->GetCurAnnouncerName())
+	if (!m_sAnnouncer.empty() &&
+		m_sAnnouncer != ANNOUNCER->GetCurAnnouncerName())
 		return false;
 
-	if (m_sPreferredModifiers != "") {
+	if (!m_sPreferredModifiers.empty()) {
 		auto po = GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred();
 		auto so = GAMESTATE->m_SongOptions.GetPreferred();
 		po.FromString(m_sPreferredModifiers);
@@ -100,7 +101,7 @@ GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 		if (so != GAMESTATE->m_SongOptions.GetPreferred())
 			return false;
 	}
-	if (m_sStageModifiers != "") {
+	if (!m_sStageModifiers.empty()) {
 		auto po = GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage();
 		auto so = GAMESTATE->m_SongOptions.GetStage();
 		po.FromString(m_sStageModifiers);
@@ -143,7 +144,7 @@ GameCommand::Load(int iIndex, const Commands& cmds)
 void
 GameCommand::LoadOne(const Command& cmd)
 {
-	auto sName = cmd.GetName();
+	const auto sName = cmd.GetName();
 	if (sName.empty())
 		return;
 
@@ -174,18 +175,18 @@ GameCommand::LoadOne(const Command& cmd)
 	  ssprintf("Invalid " #value_name " \"%s\".", sValue.c_str()));
 
 	if (sName == "style") {
-		auto style =
+		const auto* style =
 		  GAMEMAN->GameAndStringToStyle(GAMESTATE->m_pCurGame, sValue);
 		CHECK_INVALID_VALUE(m_pStyle, style, NULL, style);
 	}
 
 	else if (sName == "playmode") {
-		auto pm = StringToPlayMode(sValue);
+		const auto pm = StringToPlayMode(sValue);
 		CHECK_INVALID_VALUE(m_pm, pm, PlayMode_Invalid, playmode);
 	}
 
 	else if (sName == "difficulty") {
-		auto dc = StringToDifficulty(sValue);
+		const auto dc = StringToDifficulty(sValue);
 		CHECK_INVALID_VALUE(m_dc, dc, Difficulty_Invalid, difficulty);
 	}
 
@@ -202,13 +203,13 @@ GameCommand::LoadOne(const Command& cmd)
 	}
 
 	else if (sName == "mod") {
-		if (m_sPreferredModifiers != "")
+		if (!m_sPreferredModifiers.empty())
 			m_sPreferredModifiers += ",";
 		m_sPreferredModifiers += sValue;
 	}
 
 	else if (sName == "stagemod") {
-		if (m_sStageModifiers != "")
+		if (!m_sStageModifiers.empty())
 			m_sStageModifiers += ",";
 		m_sStageModifiers += sValue;
 	}
@@ -251,19 +252,20 @@ GameCommand::LoadOne(const Command& cmd)
 	}
 
 	else if (sName == "steps") {
-		auto sSteps = sValue;
+		const auto sSteps = sValue;
 
 		// This must be processed after "song" and "style" commands.
 		if (!m_bInvalid) {
-			auto pSong = (m_pSong != nullptr) ? m_pSong : GAMESTATE->m_pCurSong;
-			auto pStyle = m_pStyle != nullptr
-							? m_pStyle
-							: GAMESTATE->GetCurrentStyle(
-								GAMESTATE->GetMasterPlayerNumber());
+			auto* pSong =
+			  (m_pSong != nullptr) ? m_pSong : GAMESTATE->m_pCurSong;
+			const auto* pStyle = m_pStyle != nullptr
+								   ? m_pStyle
+								   : GAMESTATE->GetCurrentStyle(
+									   GAMESTATE->GetMasterPlayerNumber());
 			if (pSong == nullptr || pStyle == nullptr) {
 				MAKE_INVALID("Must set Song and Style to set Steps.");
 			} else {
-				auto dc = StringToDifficulty(sSteps);
+				const auto dc = StringToDifficulty(sSteps);
 				Steps* st;
 				if (dc < Difficulty_Edit) {
 					st = SongUtil::GetStepsByDifficulty(
@@ -300,7 +302,7 @@ GameCommand::LoadOne(const Command& cmd)
 	}
 
 	else if (sName == "sort") {
-		auto so = StringToSortOrder(sValue);
+		const auto so = StringToSortOrder(sValue);
 		CHECK_INVALID_VALUE(m_SortOrder, so, SortOrder_Invalid, sortorder);
 	}
 
@@ -393,7 +395,7 @@ GameCommand::IsPlayable(std::string* why) const
 	if (m_pm != PlayMode_Invalid || m_pStyle != nullptr) {
 		const auto pm =
 		  (m_pm != PlayMode_Invalid) ? m_pm : GAMESTATE->m_PlayMode;
-		auto style =
+		const auto* style =
 		  (m_pStyle != nullptr)
 			? m_pStyle
 			: GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
@@ -438,7 +440,7 @@ GameCommand::Apply(PlayerNumber pn) const
 void
 GameCommand::Apply(const vector<PlayerNumber>& vpns) const
 {
-	if (m_Commands.v.size()) {
+	if (!m_Commands.v.empty()) {
 		// We were filled using a GameCommand from metrics. Apply the options in
 		// order.
 		FOREACH_CONST(Command, m_Commands.v, cmd)
@@ -480,16 +482,16 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 	if (m_dc != Difficulty_Invalid)
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	GAMESTATE->m_PreferredDifficulty.Set(m_dc);
-	if (m_sAnnouncer != "")
+	if (!m_sAnnouncer.empty())
 		ANNOUNCER->SwitchAnnouncer(m_sAnnouncer);
-	if (m_sPreferredModifiers != "")
+	if (!m_sPreferredModifiers.empty())
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	GAMESTATE->ApplyPreferredModifiers(*pn, m_sPreferredModifiers);
-	if (m_sStageModifiers != "")
+	if (!m_sStageModifiers.empty())
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	GAMESTATE->ApplyStageModifiers(*pn, m_sStageModifiers);
 	if (m_LuaFunction.IsSet() && !m_LuaFunction.IsNil()) {
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 		{
 			m_LuaFunction.PushSelf(L);
@@ -501,7 +503,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		}
 		LUA->Release(L);
 	}
-	if (m_sScreen != "" && m_bApplyCommitsScreens)
+	if (!m_sScreen.empty() && m_bApplyCommitsScreens)
 		SCREENMAN->SetNewScreen(m_sScreen);
 	if (m_pSong != nullptr) {
 		GAMESTATE->m_pCurSong.Set(m_pSong);
@@ -509,27 +511,26 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 	}
 	if (m_pSteps)
 		GAMESTATE->m_pCurSteps.Set(m_pSteps);
-	for (auto i = m_SetEnv.begin(); i != m_SetEnv.end(); i++) {
-		auto L = LUA->Get();
+	for (const auto& i : m_SetEnv) {
+		auto* L = LUA->Get();
 		GAMESTATE->m_Environment->PushSelf(L);
-		lua_pushstring(L, i->first.c_str());
-		lua_pushstring(L, i->second.c_str());
+		lua_pushstring(L, i.first.c_str());
+		lua_pushstring(L, i.second.c_str());
 		lua_settable(L, -3);
 		lua_pop(L, 1);
 		LUA->Release(L);
 	}
-	for (auto setting = m_SetPref.begin(); setting != m_SetPref.end();
-		 ++setting) {
-		auto pref = IPreference::GetPreferenceByName(setting->first);
+	for (const auto& setting : m_SetPref) {
+		auto* pref = IPreference::GetPreferenceByName(setting.first);
 		if (pref != nullptr) {
-			pref->FromString(setting->second);
+			pref->FromString(setting.second);
 		}
 	}
 	if (!m_sSongGroup.empty())
 		GAMESTATE->m_sPreferredSongGroup.Set(m_sSongGroup);
 	if (m_SortOrder != SortOrder_Invalid)
 		GAMESTATE->m_PreferredSortOrder = m_SortOrder;
-	if (m_sSoundPath != "")
+	if (!m_sSoundPath.empty())
 		SOUND->PlayOnce(THEME->GetPathS("", m_sSoundPath));
 	if (!m_sProfileID.empty())
 		FOREACH_CONST(PlayerNumber, vpns, pn)
@@ -568,8 +569,8 @@ bool
 GameCommand::IsZero() const
 {
 	if (m_pm != PlayMode_Invalid || m_pStyle != nullptr ||
-		m_dc != Difficulty_Invalid || m_sAnnouncer != "" ||
-		m_sPreferredModifiers != "" || m_sStageModifiers != "" ||
+		m_dc != Difficulty_Invalid || !m_sAnnouncer.empty() ||
+		!m_sPreferredModifiers.empty() || !m_sStageModifiers.empty() ||
 		m_pSong != nullptr || m_pSteps != nullptr || !m_sSongGroup.empty() ||
 		m_SortOrder != SortOrder_Invalid || !m_sProfileID.empty() ||
 		!m_sUrl.empty())
@@ -612,7 +613,7 @@ class LunaGameCommand : public Luna<GameCommand>
 		if (p->m_pStyle == nullptr)
 			lua_pushnil(L);
 		else {
-			auto pStyle = (Style*)p->m_pStyle;
+			auto* pStyle = (Style*)p->m_pStyle;
 			pStyle->PushSelf(L);
 		}
 		return 1;

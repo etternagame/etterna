@@ -10,6 +10,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
+#include <algorithm>
+
 static std::string
 LIFE_PERCENT_CHANGE_NAME(size_t i)
 {
@@ -19,7 +21,7 @@ LIFE_PERCENT_CHANGE_NAME(size_t i)
 float
 LifeMeterBar::MapTNSToDeltaLife(TapNoteScore score)
 {
-	float fDeltaLife = 0.f;
+	auto fDeltaLife = 0.f;
 	switch (score) {
 		DEFAULT_FAIL(score);
 
@@ -67,7 +69,7 @@ LifeMeterBar::MapTNSToDeltaLife(TapNoteScore score)
 float
 LifeMeterBar::MapHNSToDeltaLife(HoldNoteScore score)
 {
-	float fDeltaLife = 0.f;
+	auto fDeltaLife = 0.f;
 	switch (score) {
 		case HNS_Held:
 			fDeltaLife = 0.f;
@@ -161,8 +163,7 @@ LifeMeterBar::Load(const PlayerState* pPlayerState,
 {
 	LifeMeter::Load(pPlayerState, pPlayerStageStats);
 
-	const DrainType dtype =
-	  pPlayerState->m_PlayerOptions.GetStage().m_DrainType;
+	const auto dtype = pPlayerState->m_PlayerOptions.GetStage().m_DrainType;
 	switch (dtype) {
 		case DrainType_Normal:
 			m_fLifePercentage = INITIAL_VALUE;
@@ -182,7 +183,7 @@ LifeMeterBar::Load(const PlayerState* pPlayerState,
 void
 LifeMeterBar::ChangeLife(TapNoteScore score)
 {
-	float fDeltaLife = 0.f;
+	auto fDeltaLife = 0.f;
 	switch (score) {
 		DEFAULT_FAIL(score);
 
@@ -230,7 +231,7 @@ LifeMeterBar::ChangeLife(TapNoteScore score)
 		case DrainType_Normal:
 			break;
 		case DrainType_NoRecover:
-			fDeltaLife = min(fDeltaLife, 0);
+			fDeltaLife = std::min(fDeltaLife, 0.F);
 			break;
 		case DrainType_SuddenDeath:
 			if (score < MIN_STAY_ALIVE)
@@ -246,9 +247,8 @@ LifeMeterBar::ChangeLife(TapNoteScore score)
 void
 LifeMeterBar::ChangeLife(HoldNoteScore score, TapNoteScore tscore)
 {
-	float fDeltaLife = 0.f;
-	const DrainType dtype =
-	  m_pPlayerState->m_PlayerOptions.GetSong().m_DrainType;
+	auto fDeltaLife = 0.f;
+	const auto dtype = m_pPlayerState->m_PlayerOptions.GetSong().m_DrainType;
 	switch (dtype) {
 		case DrainType_Normal:
 			switch (score) {
@@ -329,7 +329,7 @@ LifeMeterBar::ChangeLife(float fDeltaLife)
 			break;
 	}
 
-	const float InitialLife = m_fLifePercentage;
+	const auto InitialLife = m_fLifePercentage;
 
 	m_fLifePercentage += fDeltaLife;
 
@@ -414,8 +414,8 @@ LifeMeterBar::FillForHowToPlay(int NumW2s, int NumMisses)
 {
 	m_iProgressiveLifebar = 0; // disable progressive lifebar
 
-	const float AmountForW2 = NumW2s * m_fLifeDifficulty * 0.008f;
-	const float AmountForMiss = NumMisses / m_fLifeDifficulty * 0.08f;
+	const auto AmountForW2 = NumW2s * m_fLifeDifficulty * 0.008f;
+	const auto AmountForMiss = NumMisses / m_fLifeDifficulty * 0.08f;
 
 	m_fLifePercentage = AmountForMiss - AmountForW2;
 	CLAMP(m_fLifePercentage, 0.0f, 1.0f);

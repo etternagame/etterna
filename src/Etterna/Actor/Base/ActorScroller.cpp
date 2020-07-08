@@ -1,10 +1,11 @@
 #include "Etterna/Globals/global.h"
 #include "ActorScroller.h"
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
  * We don't want classes that derive from ActorFrame to auto delete their
@@ -47,7 +48,7 @@ ActorScroller::Load2()
 {
 	m_iNumItems = m_SubActors.size();
 
-	Lua* L = LUA->Get();
+	auto* L = LUA->Get();
 	for (unsigned i = 0; i < m_SubActors.size(); ++i) {
 		lua_pushnumber(L, i);
 		this->m_SubActors[i]->m_pLuaInstance->Set(L, "ItemIndex");
@@ -128,14 +129,14 @@ ActorScroller::ScrollWithPadding(float fItemPaddingStart, float fItemPaddingEnd)
 float
 ActorScroller::GetSecondsForCompleteScrollThrough() const
 {
-	float fTotalItems = m_fNumItemsToDraw + m_iNumItems;
+	const auto fTotalItems = m_fNumItemsToDraw + m_iNumItems;
 	return fTotalItems * (m_fSecondsPerItem + m_fSecondsPauseBetweenItems);
 }
 
 float
 ActorScroller::GetSecondsToDestination() const
 {
-	float fTotalItemsToMove = fabsf(m_fCurrentItem - m_fDestinationItem);
+	const auto fTotalItemsToMove = fabsf(m_fCurrentItem - m_fDestinationItem);
 	return fTotalItemsToMove * m_fSecondsPerItem;
 }
 
@@ -154,7 +155,7 @@ ActorScroller::LoadFromNode(const XNode* pNode)
 	if (pNode->GetAttrValue("SecondsPerItem", fSecondsPerItem))
 		ActorScroller::SetSecondsPerItem(fSecondsPerItem);
 
-	Lua* L = LUA->Get();
+	auto* L = LUA->Get();
 	pNode->PushAttrValue(L, "TransformFunction");
 	{
 		LuaReference ref;
@@ -164,11 +165,11 @@ ActorScroller::LoadFromNode(const XNode* pNode)
 	}
 	LUA->Release(L);
 
-	int iSubdivisions = 1;
+	auto iSubdivisions = 1;
 	if (pNode->GetAttrValue("Subdivisions", iSubdivisions))
 		ActorScroller::SetNumSubdivisions(iSubdivisions);
 
-	bool bUseMask = false;
+	auto bUseMask = false;
 	pNode->GetAttrValue("UseMask", bUseMask);
 
 	if (bUseMask) {
@@ -188,7 +189,7 @@ ActorScroller::UpdateInternal(float fDeltaTime)
 	ActorFrame::UpdateInternal(fDeltaTime);
 
 	// If we have no children, the code below will busy loop.
-	if (!m_SubActors.size())
+	if (m_SubActors.empty())
 		return;
 
 	// handle pause
@@ -197,18 +198,18 @@ ActorScroller::UpdateInternal(float fDeltaTime)
 		m_fPauseCountdownSeconds = 0;
 	} else {
 		m_fPauseCountdownSeconds -= fDeltaTime;
-		fDeltaTime = 0;
 		return;
 	}
 
 	if (m_fCurrentItem == m_fDestinationItem)
 		return; // done scrolling
 
-	float fOldItemAtTop = m_fCurrentItem;
+	const auto fOldItemAtTop = m_fCurrentItem;
 	if (m_fSecondsPerItem > 0) {
-		float fApproachSpeed = fDeltaTime / m_fSecondsPerItem;
+		auto fApproachSpeed = fDeltaTime / m_fSecondsPerItem;
 		if (m_bFastCatchup) {
-			float fDistanceToMove = fabsf(m_fCurrentItem - m_fDestinationItem);
+			const auto fDistanceToMove =
+			  fabsf(m_fCurrentItem - m_fDestinationItem);
 			if (fDistanceToMove > 1)
 				fApproachSpeed *= fDistanceToMove * fDistanceToMove;
 		}
@@ -221,7 +222,7 @@ ActorScroller::UpdateInternal(float fDeltaTime)
 		m_fPauseCountdownSeconds = m_fSecondsPauseBetweenItems;
 
 	if (m_bWrap) {
-		float Delta = m_fDestinationItem - m_fCurrentItem;
+		const auto Delta = m_fDestinationItem - m_fCurrentItem;
 		m_fCurrentItem = fmodf(m_fCurrentItem, static_cast<float>(m_iNumItems));
 		m_fDestinationItem = m_fCurrentItem + Delta;
 	}
@@ -258,13 +259,13 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 	if (m_SubActors.empty())
 		return;
 
-	float fNumItemsToDraw = m_fNumItemsToDraw;
+	auto fNumItemsToDraw = m_fNumItemsToDraw;
 	if (m_quadMask.GetVisible()) {
 		// write to z buffer so that top and bottom are clipped
 		// Draw an extra item; this is the one that will be masked.
 		fNumItemsToDraw++;
-		float fPositionFullyOffScreenTop = -(fNumItemsToDraw) / 2.f;
-		float fPositionFullyOffScreenBottom = (fNumItemsToDraw) / 2.f;
+		const auto fPositionFullyOffScreenTop = -(fNumItemsToDraw) / 2.f;
+		const auto fPositionFullyOffScreenBottom = (fNumItemsToDraw) / 2.f;
 
 		m_exprTransformFunction.TransformItemCached(
 		  m_quadMask, fPositionFullyOffScreenTop, -1, m_iNumItems);
@@ -277,30 +278,30 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 			m_quadMask.Draw();
 	}
 
-	float fFirstItemToDraw = m_fCurrentItem - fNumItemsToDraw / 2.f;
-	float fLastItemToDraw = m_fCurrentItem + fNumItemsToDraw / 2.f;
-	int iFirstItemToDraw = static_cast<int>(ceilf(fFirstItemToDraw));
-	int iLastItemToDraw = static_cast<int>(ceilf(fLastItemToDraw));
+	const auto fFirstItemToDraw = m_fCurrentItem - fNumItemsToDraw / 2.f;
+	const auto fLastItemToDraw = m_fCurrentItem + fNumItemsToDraw / 2.f;
+	auto iFirstItemToDraw = static_cast<int>(ceilf(fFirstItemToDraw));
+	auto iLastItemToDraw = static_cast<int>(ceilf(fLastItemToDraw));
 	if (!m_bLoop && !m_bWrap) {
-		iFirstItemToDraw = clamp(iFirstItemToDraw, 0, m_iNumItems);
-		iLastItemToDraw = clamp(iLastItemToDraw, 0, m_iNumItems);
+		iFirstItemToDraw = std::clamp(iFirstItemToDraw, 0, m_iNumItems);
+		iLastItemToDraw = std::clamp(iLastItemToDraw, 0, m_iNumItems);
 	}
 
 	vector<Actor*> subs;
 
 	{
 		// Shift m_SubActors so iFirstItemToDraw is at the beginning.
-		int iNewFirstIndex = iFirstItemToDraw;
-		int iDist = iNewFirstIndex - m_iFirstSubActorIndex;
+		const auto iNewFirstIndex = iFirstItemToDraw;
+		const auto iDist = iNewFirstIndex - m_iFirstSubActorIndex;
 		m_iFirstSubActorIndex = iNewFirstIndex;
 		ShiftSubActors(iDist);
 	}
 
-	int iNumToDraw = iLastItemToDraw - iFirstItemToDraw;
-	for (int i = 0; i < iNumToDraw; ++i) {
-		int iItem = i + iFirstItemToDraw;
-		float fPosition = iItem - m_fCurrentItem;
-		int iIndex = i; // index into m_SubActors
+	const auto iNumToDraw = iLastItemToDraw - iFirstItemToDraw;
+	for (auto i = 0; i < iNumToDraw; ++i) {
+		auto iItem = i + iFirstItemToDraw;
+		auto fPosition = iItem - m_fCurrentItem;
+		auto iIndex = i; // index into m_SubActors
 		if (m_bLoop || m_bWrap)
 			wrap(iIndex, m_SubActors.size());
 		else if (iIndex < 0 || iIndex >= static_cast<int>(m_SubActors.size()))
@@ -327,8 +328,8 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 
 	if (m_bDrawByZPosition) {
 		ActorUtil::SortByZPosition(subs);
-		FOREACH(Actor*, subs, a)
-		(*a)->Draw();
+		for (auto& a : subs)
+			a->Draw();
 	}
 }
 

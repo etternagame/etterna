@@ -33,9 +33,9 @@ class ReceptorArrowRow : public ActorFrame
 	float m_fYReverseOffsetPixels;
 	float m_fFadeToFailPercent;
 
-	vector<NoteColumnRenderer> const* m_renderers;
-	vector<ReceptorArrow*> m_ReceptorArrow;
-	vector<ReceptorArrow*> m_OverlayReceptorArrow;
+	std::vector<NoteColumnRenderer> const* m_renderers;
+	std::vector<ReceptorArrow*> m_ReceptorArrow;
+	std::vector<ReceptorArrow*> m_OverlayReceptorArrow;
 };
 
 #endif

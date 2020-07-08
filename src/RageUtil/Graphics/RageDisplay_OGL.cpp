@@ -1,10 +1,7 @@
 #include "Etterna/Globals/global.h"
-
 #include "RageDisplay_OGL.h"
 #include "RageDisplay_OGL_Helpers.h"
-
 #include "Etterna/Models/Misc/EnumHelper.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
@@ -18,8 +15,10 @@
 
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 
+#include <algorithm>
 #include <chrono>
 #include <set>
+#include <map>
 
 #ifdef _WIN32
 #include <GL/wglew.h>
@@ -34,6 +33,8 @@
 #define glFlush()
 #endif
 
+using std::max;
+using std::min;
 using namespace RageDisplay_Legacy_Helpers;
 
 //
@@ -62,8 +63,8 @@ static int g_iMaxTextureUnits = 0;
 /* If we support texture matrix scaling, a handle to the vertex program: */
 static GLhandleARB g_bTextureMatrixShader = 0;
 
-static map<intptr_t, RenderTarget*> g_mapRenderTargets;
-static RenderTarget* g_pCurrentRenderTarget = NULL;
+static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
+static RenderTarget* g_pCurrentRenderTarget = nullptr;
 
 static LowLevelWindow* g_pWind;
 
@@ -200,21 +201,21 @@ struct GLPixFmtInfo_t
 static void
 FixLittleEndian()
 {
-	static bool bInitialized = false;
+	static auto bInitialized = false;
 	if (bInitialized)
 		return;
 	bInitialized = true;
 
-	for (int i = 0; i < NUM_RagePixelFormat; ++i) {
-		RageDisplay::RagePixelFormatDesc& pf = PIXEL_FORMAT_DESC[i];
+	for (auto i = 0; i < NUM_RagePixelFormat; ++i) {
+		auto& pf = PIXEL_FORMAT_DESC[i];
 
 		/* OpenGL and RageSurface handle byte formats differently; we need
 		 * to flip non-paletted masks to make them line up. */
 		if (g_GLPixFmtInfo[i].type != GL_UNSIGNED_BYTE || pf.bpp == 8)
 			continue;
 
-		for (int mask = 0; mask < 4; ++mask) {
-			int m = pf.masks[mask];
+		for (unsigned int& mask : pf.masks) {
+			int m = mask;
 			switch (pf.bpp) {
 				case 24:
 					m = Swap24(m);
@@ -225,7 +226,7 @@ FixLittleEndian()
 				default:
 					FAIL_M(ssprintf("Unsupported BPP value: %i", pf.bpp));
 			}
-			pf.masks[mask] = m;
+			mask = m;
 		}
 	}
 }
@@ -249,7 +250,7 @@ RageDisplay_Legacy::RageDisplay_Legacy()
 	FixLittleEndian();
 	RageDisplay_Legacy_Helpers::Init();
 
-	g_pWind = NULL;
+	g_pWind = nullptr;
 	g_bTextureMatrixShader = 0;
 }
 
@@ -261,7 +262,7 @@ GetInfoLog(GLhandleARB h)
 	if (!iLength)
 		return std::string();
 
-	GLcharARB* pInfoLog = new GLcharARB[iLength];
+	auto* pInfoLog = new GLcharARB[iLength];
 	glGetInfoLogARB(h, iLength, &iLength, pInfoLog);
 	std::string sRet = pInfoLog;
 	delete[] pInfoLog;
@@ -303,7 +304,7 @@ CompileShader(GLenum ShaderType,
 
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Compiling shader %s", sFile.c_str());
-	GLhandleARB hShader = glCreateShaderObjectARB(ShaderType);
+	const auto hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
 	vector<GLint> aiLength;
 	for (auto& s : asDefines) {
@@ -320,9 +321,9 @@ CompileShader(GLenum ShaderType,
 
 	glCompileShaderARB(hShader);
 
-	std::string sInfo = GetInfoLog(hShader);
+	const auto sInfo = GetInfoLog(hShader);
 
-	GLint bCompileStatus = GL_FALSE;
+	auto bCompileStatus = GL_FALSE;
 	glGetObjectParameterivARB(
 	  hShader, GL_OBJECT_COMPILE_STATUS_ARB, &bCompileStatus);
 	if (!bCompileStatus) {
@@ -367,11 +368,11 @@ LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
 		secondaryShader = CompileShader(
 		  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Shell.frag", asDefines);
 
-	GLhandleARB hShader = CompileShader(ShaderType, sFile, asDefines);
+	const auto hShader = CompileShader(ShaderType, sFile, asDefines);
 	if (hShader == 0)
 		return 0;
 
-	GLhandleARB hProgram = glCreateProgramObjectARB();
+	const auto hProgram = glCreateProgramObjectARB();
 	glAttachObjectARB(hProgram, hShader);
 
 	if (secondaryShader) {
@@ -415,7 +416,7 @@ InitShaders()
 	// xxx: replace this with a ShaderManager or something that reads in
 	// the shaders and determines shader type by file extension. -aj
 	// argh shaders in stepmania are painful -colby
-	vector<std::string> asDefines;
+	const vector<std::string> asDefines;
 
 	// used for scrolling textures (I think)
 	g_bTextureMatrixShader =
@@ -464,7 +465,7 @@ InitShaders()
 			/* Older Catalyst drivers seem to throw GL_INVALID_OPERATION here.
 			 */
 			glVertexAttrib2fARB(g_iAttribTextureMatrixScale, 1, 1);
-			GLenum iError = glGetError();
+			const auto iError = glGetError();
 			if (iError == GL_INVALID_OPERATION) {
 				LOG->Trace("Scaling shader failed: glVertexAttrib2fARB "
 						   "returned GL_INVALID_OPERATION");
@@ -491,9 +492,9 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 {
 	g_pWind = LowLevelWindow::Create();
 
-	bool bIgnore = false;
-	std::string sError = SetVideoMode(p, bIgnore);
-	if (sError != "")
+	auto bIgnore = false;
+	auto sError = SetVideoMode(p, bIgnore);
+	if (!sError.empty())
 		return sError;
 
 	// Log driver details
@@ -509,16 +510,16 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		/* Pretty-print the extension string: */
 		LOG->Info("OGL Extensions:");
 		{
-			const char* szExtensionString =
+			const auto szExtensionString =
 			  (const char*)glGetString(GL_EXTENSIONS);
 			vector<std::string> asExtensions;
 			split(szExtensionString, " ", asExtensions);
 			sort(asExtensions.begin(), asExtensions.end());
 			size_t iNextToPrint = 0;
 			while (iNextToPrint < asExtensions.size()) {
-				size_t iLastToPrint = iNextToPrint;
+				auto iLastToPrint = iNextToPrint;
 				std::string sType;
-				for (size_t i = iNextToPrint; i < asExtensions.size(); ++i) {
+				for (auto i = iNextToPrint; i < asExtensions.size(); ++i) {
 					vector<std::string> asBits;
 					split(asExtensions[i], "_", asBits);
 					std::string sThisType;
@@ -537,11 +538,11 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					continue;
 				}
 
-				std::string sList = ssprintf("  %s: ", sType.c_str());
+				auto sList = ssprintf("  %s: ", sType.c_str());
 				while (iNextToPrint <= iLastToPrint) {
 					vector<std::string> asBits;
 					split(asExtensions[iNextToPrint], "_", asBits);
-					std::string sShortExt =
+					const auto sShortExt =
 					  join(std::string("_"), asBits.begin() + 2, asBits.end());
 					sList += sShortExt;
 					if (iNextToPrint < iLastToPrint)
@@ -605,11 +606,12 @@ CheckPalettedTextures()
 		}
 
 		/* Check to see if paletted textures really work. */
-		GLenum glTexFormat = g_GLPixFmtInfo[RagePixelFormat_PAL].internalfmt;
-		GLenum glImageFormat = g_GLPixFmtInfo[RagePixelFormat_PAL].format;
-		GLenum glImageType = g_GLPixFmtInfo[RagePixelFormat_PAL].type;
+		const auto glTexFormat =
+		  g_GLPixFmtInfo[RagePixelFormat_PAL].internalfmt;
+		const auto glImageFormat = g_GLPixFmtInfo[RagePixelFormat_PAL].format;
+		const auto glImageType = g_GLPixFmtInfo[RagePixelFormat_PAL].type;
 
-		int iBits = 8;
+		const auto iBits = 8;
 
 		FlushGLErrors();
 #define GL_CHECK_ERROR(f)                                                      \
@@ -630,7 +632,7 @@ CheckPalettedTextures()
 					 0,
 					 glImageFormat,
 					 glImageType,
-					 NULL);
+					 nullptr);
 		GL_CHECK_ERROR("glTexImage2D");
 
 		GLuint iFormat = 0;
@@ -656,7 +658,7 @@ CheckPalettedTextures()
 						palette);
 		GL_CHECK_ERROR("glColorTableEXT");
 
-		GLint iSize = 0;
+		auto iSize = 0;
 		glGetTexLevelParameteriv(
 		  GL_PROXY_TEXTURE_2D, 0, GLenum(GL_TEXTURE_INDEX_SIZE_EXT), &iSize);
 		GL_CHECK_ERROR("glGetTexLevelParameteriv(GL_TEXTURE_INDEX_SIZE_EXT)");
@@ -668,7 +670,7 @@ CheckPalettedTextures()
 			break;
 		}
 
-		GLint iRealWidth = 0;
+		auto iRealWidth = 0;
 		glGetColorTableParameterivEXT(
 		  GL_PROXY_TEXTURE_2D, GL_COLOR_TABLE_WIDTH, &iRealWidth);
 		GL_CHECK_ERROR("glGetColorTableParameterivEXT(GL_COLOR_TABLE_WIDTH)");
@@ -679,7 +681,7 @@ CheckPalettedTextures()
 			break;
 		}
 
-		GLint iRealFormat = 0;
+		auto iRealFormat = 0;
 		glGetColorTableParameterivEXT(
 		  GL_PROXY_TEXTURE_2D, GL_COLOR_TABLE_FORMAT, &iRealFormat);
 		GL_CHECK_ERROR("glGetColorTableParameterivEXT(GL_COLOR_TABLE_FORMAT)");
@@ -692,13 +694,13 @@ CheckPalettedTextures()
 	} while (false);
 #undef GL_CHECK_ERROR
 
-	if (sError == "")
+	if (sError.empty())
 		return;
 
 	/* If 8-bit palettes don't work, disable them entirely--don't trust 4-bit
 	 * palettes if it can't even get 8-bit ones right. */
-	glColorTableEXT = NULL;
-	glGetColorTableParameterivEXT = NULL;
+	glColorTableEXT = nullptr;
+	glGetColorTableParameterivEXT = nullptr;
 	LOG->Info("Paletted textures disabled: %s.", sError.c_str());
 }
 
@@ -715,9 +717,9 @@ CheckReversePackedPixels()
 				 0,
 				 GL_BGRA,
 				 GL_UNSIGNED_SHORT_1_5_5_5_REV,
-				 NULL);
+				 nullptr);
 
-	const GLenum glError = glGetError();
+	const auto glError = glGetError();
 	if (glError == GL_NO_ERROR) {
 		g_bReversePackedPixelsWorks = true;
 	} else {
@@ -730,11 +732,10 @@ CheckReversePackedPixels()
 void
 SetupExtensions()
 {
-	const float fGLVersion =
-	  StringToFloat((const char*)glGetString(GL_VERSION));
+	const auto fGLVersion = StringToFloat((const char*)glGetString(GL_VERSION));
 	g_glVersion = lround(fGLVersion * 10);
 
-	const float fGLUVersion =
+	const auto fGLUVersion =
 	  StringToFloat((const char*)gluGetString(GLU_VERSION));
 	g_gluVersion = lround(fGLUVersion * 10);
 
@@ -742,13 +743,14 @@ SetupExtensions()
 
 	g_iMaxTextureUnits = 1;
 	if (GLEW_ARB_multitexture)
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&g_iMaxTextureUnits);
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB,
+					  static_cast<GLint*>(&g_iMaxTextureUnits));
 
 	CheckPalettedTextures();
 	CheckReversePackedPixels();
 
 	{
-		GLint iMaxTableSize = 0;
+		auto iMaxTableSize = 0;
 		glGetIntegerv(GL_MAX_PIXEL_MAP_TABLE, &iMaxTableSize);
 		if (iMaxTableSize < 256) {
 			/* The minimum GL_MAX_PIXEL_MAP_TABLE is 32; if it's not at least
@@ -777,7 +779,7 @@ RageDisplay_Legacy::UseOffscreenRenderTarget()
 		param.bFloat = false;
 		param.iWidth = (*GetActualVideoModeParams()).width;
 		param.iHeight = (*GetActualVideoModeParams()).height;
-		RageTextureID id(
+		const RageTextureID id(
 		  ssprintf("FullscreenTexture%dx%d", param.iWidth, param.iHeight));
 		// See if we have this texture loaded already
 		// (not GC'd yet). If it exists and we try to recreate
@@ -821,7 +823,7 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 	std::string err;
 	err = g_pWind->TryVideoMode(p, bNewDeviceOut);
-	if (err != "")
+	if (!err.empty())
 		return err; // failed to set video mode
 
 	/* Now that we've initialized, we can search for extensions.  Do this before
@@ -836,8 +838,10 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 		/* Delete all render targets.  They may have associated resources other
 		 * than the texture itself. */
-		FOREACHM(intptr_t, RenderTarget*, g_mapRenderTargets, rt)
-		delete rt->second;
+		for (auto& rt : g_mapRenderTargets) {
+			delete rt.second;
+		}
+
 		g_mapRenderTargets.clear();
 
 		/* Recreate all vertex buffers. */
@@ -877,14 +881,14 @@ RageDisplay_Legacy::BeginFrame()
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
 
-	int fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
-	int fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
+	const auto fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
+	const auto fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
 	glViewport(0, 0, fWidth, fHeight);
 	glClearColor(0, 0, 0, 0);
 	SetZWrite(true);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	bool beginFrame = RageDisplay::BeginFrame();
+	const auto beginFrame = RageDisplay::BeginFrame();
 	if (beginFrame && UseOffscreenRenderTarget()) {
 		offscreenRenderTarget->BeginRenderingTo(false);
 	}
@@ -916,14 +920,14 @@ RageDisplay_Legacy::EndFrame()
 	}
 
 	FrameLimitBeforeVsync();
-	auto beforePresent = std::chrono::steady_clock::now();
+	const auto beforePresent = std::chrono::steady_clock::now();
 	g_pWind->SwapBuffers();
 	glFlush();
 
 	g_pWind->Update();
 
-	auto afterPresent = std::chrono::steady_clock::now();
-	auto endTime = afterPresent - beforePresent;
+	const auto afterPresent = std::chrono::steady_clock::now();
+	const auto endTime = afterPresent - beforePresent;
 
 	SetPresentTime(endTime);
 
@@ -935,12 +939,12 @@ RageDisplay_Legacy::EndFrame()
 RageSurface*
 RageDisplay_Legacy::CreateScreenshot()
 {
-	int width = (*g_pWind->GetActualVideoModeParams()).width;
-	int height = (*g_pWind->GetActualVideoModeParams()).height;
+	const auto width = (*g_pWind->GetActualVideoModeParams()).width;
+	const auto height = (*g_pWind->GetActualVideoModeParams()).height;
 
 	RageSurface* image = nullptr;
 	if (offscreenRenderTarget) {
-		RageSurface* raw = GetTexture(offscreenRenderTarget->GetTexHandle());
+		const auto raw = GetTexture(offscreenRenderTarget->GetTexHandle());
 		image = CreateSurface(offscreenRenderTarget->GetImageWidth(),
 							  offscreenRenderTarget->GetImageHeight(),
 							  raw->fmt.BitsPerPixel,
@@ -951,8 +955,7 @@ RageDisplay_Legacy::CreateScreenshot()
 		RageSurfaceUtils::Blit(raw, image);
 		delete raw;
 	} else {
-		const RagePixelFormatDesc& desc =
-		  PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
+		const auto& desc = PIXEL_FORMAT_DESC[RagePixelFormat_RGBA8];
 		image = CreateSurface(width,
 							  height,
 							  desc.bpp,
@@ -985,7 +988,7 @@ RageSurface*
 RageDisplay_Legacy::GetTexture(intptr_t iTexture)
 {
 	if (iTexture == 0)
-		return NULL; // XXX
+		return nullptr; // XXX
 
 	FlushGLErrors();
 
@@ -995,16 +998,17 @@ RageDisplay_Legacy::GetTexture(intptr_t iTexture)
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &iWidth);
 	glGetTexLevelParameteriv(
 	  GL_TEXTURE_2D, 0, GL_TEXTURE_ALPHA_SIZE, &iAlphaBits);
-	int iFormat = iAlphaBits ? RagePixelFormat_RGBA8 : RagePixelFormat_RGB8;
+	const int iFormat =
+	  iAlphaBits ? RagePixelFormat_RGBA8 : RagePixelFormat_RGB8;
 
-	const RagePixelFormatDesc& desc = PIXEL_FORMAT_DESC[iFormat];
-	RageSurface* pImage = CreateSurface(iWidth,
-										iHeight,
-										desc.bpp,
-										desc.masks[0],
-										desc.masks[1],
-										desc.masks[2],
-										desc.masks[3]);
+	const auto& desc = PIXEL_FORMAT_DESC[iFormat];
+	const auto pImage = CreateSurface(iWidth,
+									  iHeight,
+									  desc.bpp,
+									  desc.masks[0],
+									  desc.masks[1],
+									  desc.masks[2],
+									  desc.masks[3]);
 
 	glGetTexImage(GL_TEXTURE_2D,
 				  0,
@@ -1027,7 +1031,7 @@ SetupVertices(const RageSpriteVertex v[], int iNumVerts)
 {
 	static float *Vertex, *Texture, *Normal;
 	static GLubyte* Color;
-	static int Size = 0;
+	static auto Size = 0;
 	if (iNumVerts > Size) {
 		Size = iNumVerts;
 		delete[] Vertex;
@@ -1040,7 +1044,7 @@ SetupVertices(const RageSpriteVertex v[], int iNumVerts)
 		Normal = new float[Size * 3];
 	}
 
-	for (unsigned i = 0; i < unsigned(iNumVerts); ++i) {
+	for (unsigned i = 0; i < static_cast<unsigned>(iNumVerts); ++i) {
 		Vertex[i * 3 + 0] = v[i].p[0];
 		Vertex[i * 3 + 1] = v[i].p[1];
 		Vertex[i * 3 + 2] = v[i].p[2];
@@ -1112,19 +1116,19 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	void Allocate(const vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(max(1u, GetTotalVertices()));
-		m_vTexture.resize(max(1u, GetTotalVertices()));
-		m_vNormal.resize(max(1u, GetTotalVertices()));
-		m_vTexMatrixScale.resize(max(1u, GetTotalVertices()));
-		m_vTriangles.resize(max(1u, GetTotalTriangles()));
+		m_vPosition.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vTexture.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vNormal.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vTexMatrixScale.resize(max(1U, (unsigned)GetTotalVertices()));
+		m_vTriangles.resize(max(1U, (unsigned)GetTotalTriangles()));
 	}
 	void Change(const vector<msMesh>& vMeshes) override
 	{
 		for (unsigned i = 0; i < vMeshes.size(); i++) {
-			const MeshInfo& meshInfo = m_vMeshInfo[i];
-			const msMesh& mesh = vMeshes[i];
-			const vector<RageModelVertex>& Vertices = mesh.Vertices;
-			const vector<msTriangle>& Triangles = mesh.Triangles;
+			const auto& meshInfo = m_vMeshInfo[i];
+			const auto& mesh = vMeshes[i];
+			const auto& Vertices = mesh.Vertices;
+			const auto& Triangles = mesh.Triangles;
 
 			for (unsigned j = 0; j < Vertices.size(); j++) {
 				m_vPosition[meshInfo.iVertexStart + j] = Vertices[j].p;
@@ -1136,10 +1140,11 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 
 			for (unsigned j = 0; j < Triangles.size(); j++)
 				for (unsigned k = 0; k < 3; k++) {
-					int iVertexIndexInVBO =
+					const auto iVertexIndexInVBO =
 					  meshInfo.iVertexStart + Triangles[j].nVertexIndices[k];
 					m_vTriangles[meshInfo.iTriangleStart + j]
-					  .nVertexIndices[k] = (uint16_t)iVertexIndexInVBO;
+					  .nVertexIndices[k] =
+					  static_cast<uint16_t>(iVertexIndexInVBO);
 				}
 		}
 	}
@@ -1147,7 +1152,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	{
 		TurnOffHardwareVBO();
 
-		const MeshInfo& meshInfo = m_vMeshInfo[iMeshIndex];
+		const auto& meshInfo = m_vMeshInfo[iMeshIndex];
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, &m_vPosition[0]);
@@ -1165,7 +1170,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 			// XXX: Change me to scale the translation by the
 			// TextureTranslationScale of the first vertex.
 			RageMatrix mat;
-			glGetFloatv(GL_TEXTURE_MATRIX, (float*)mat);
+			glGetFloatv(GL_TEXTURE_MATRIX, static_cast<float*>(mat));
 
 			/*
 			for( int i=0; i<4; i++ )
@@ -1182,7 +1187,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 			mat.m[3][2] = 0;
 
 			glMatrixMode(GL_TEXTURE);
-			glLoadMatrixf((const float*)mat);
+			glLoadMatrixf(static_cast<const float*>(mat));
 		}
 
 		glDrawElements(GL_TRIANGLES,
@@ -1200,7 +1205,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 };
 
 class InvalidateObject;
-static set<InvalidateObject*> g_InvalidateList;
+static std::set<InvalidateObject*> g_InvalidateList;
 class InvalidateObject
 {
   public:
@@ -1212,8 +1217,9 @@ class InvalidateObject
 static void
 InvalidateObjects()
 {
-	FOREACHS(InvalidateObject*, g_InvalidateList, it)
-	(*it)->Invalidate();
+	for (auto& it : g_InvalidateList) {
+		it->Invalidate();
+	}
 }
 
 class RageCompiledGeometryHWOGL
@@ -1372,7 +1378,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 	DebugAssertNoGLError();
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
 					GetTotalVertices() * sizeof(RageVector3),
-					NULL,
+					nullptr,
 					GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
@@ -1380,7 +1386,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 	DebugAssertNoGLError();
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
 					GetTotalVertices() * sizeof(RageVector2),
-					NULL,
+					nullptr,
 					GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
@@ -1388,7 +1394,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 	DebugAssertNoGLError();
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
 					GetTotalVertices() * sizeof(RageVector3),
-					NULL,
+					nullptr,
 					GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
@@ -1396,7 +1402,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 	DebugAssertNoGLError();
 	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
 					GetTotalTriangles() * sizeof(msTriangle),
-					NULL,
+					nullptr,
 					GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
@@ -1404,7 +1410,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 	DebugAssertNoGLError();
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
 					GetTotalVertices() * sizeof(RageVector2),
-					NULL,
+					nullptr,
 					GL_STATIC_DRAW_ARB);
 }
 
@@ -1421,7 +1427,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 {
 	DebugFlushGLErrors();
 
-	const MeshInfo& meshInfo = m_vMeshInfo[iMeshIndex];
+	const auto& meshInfo = m_vMeshInfo[iMeshIndex];
 	if ((meshInfo.iVertexCount == 0) || (meshInfo.iTriangleCount == 0))
 		return;
 
@@ -1429,7 +1435,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 	DebugAssertNoGLError();
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nPositions);
 	DebugAssertNoGLError();
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
+	glVertexPointer(3, GL_FLOAT, 0, nullptr);
 	DebugAssertNoGLError();
 
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -1439,7 +1445,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 	DebugAssertNoGLError();
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nTextureCoords);
 	DebugAssertNoGLError();
-	glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+	glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
 	DebugAssertNoGLError();
 
 	// TRICKY:  Don't bind and send normals if lighting is disabled.  This
@@ -1457,7 +1463,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 		DebugAssertNoGLError();
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nNormals);
 		DebugAssertNoGLError();
-		glNormalPointer(GL_FLOAT, 0, NULL);
+		glNormalPointer(GL_FLOAT, 0, nullptr);
 		DebugAssertNoGLError();
 	} else {
 		glDisableClientState(GL_NORMAL_ARRAY);
@@ -1474,7 +1480,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nTextureMatrixScale);
 			DebugAssertNoGLError();
 			glVertexAttribPointerARB(
-			  g_iAttribTextureMatrixScale, 2, GL_FLOAT, false, 0, NULL);
+			  g_iAttribTextureMatrixScale, 2, GL_FLOAT, false, 0, nullptr);
 			DebugAssertNoGLError();
 
 			glUseProgramObjectARB(g_bTextureMatrixShader);
@@ -1484,7 +1490,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 			// XXX: Change me to scale the translation by the
 			// TextureTranslationScale of the first vertex.
 			RageMatrix mat;
-			glGetFloatv(GL_TEXTURE_MATRIX, (float*)mat);
+			glGetFloatv(GL_TEXTURE_MATRIX, static_cast<float*>(mat));
 
 			/*
 			for( int i=0; i<4; i++ )
@@ -1501,7 +1507,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 			mat.m[3][2] = 0;
 
 			glMatrixMode(GL_TEXTURE);
-			glLoadMatrixf((const float*)mat);
+			glLoadMatrixf(static_cast<const float*>(mat));
 			DebugAssertNoGLError();
 		}
 	}
@@ -1568,16 +1574,18 @@ void
 RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 												   int iNumVerts)
 {
-	int iNumPieces = (iNumVerts - 3) / 3;
-	int iNumTriangles = iNumPieces * 4;
-	int iNumIndices = iNumTriangles * 3;
+	const auto iNumPieces = (iNumVerts - 3) / 3;
+	const auto iNumTriangles = iNumPieces * 4;
+	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
 	static vector<uint16_t> vIndices;
-	unsigned uOldSize = vIndices.size();
-	unsigned uNewSize = max(uOldSize, (unsigned)iNumIndices);
+	const unsigned uOldSize = vIndices.size();
+	const auto uNewSize = max(uOldSize, static_cast<unsigned>(iNumIndices));
 	vIndices.resize(uNewSize);
-	for (uint16_t i = (uint16_t)uOldSize / 12; i < (uint16_t)iNumPieces; i++) {
+	for (uint16_t i = static_cast<uint16_t>(uOldSize) / 12;
+		 i < static_cast<uint16_t>(iNumPieces);
+		 i++) {
 		// { 1, 3, 0 } { 1, 4, 3 } { 1, 5, 4 } { 1, 2, 5 }
 		vIndices[i * 12 + 0] = i * 3 + 1;
 		vIndices[i * 12 + 1] = i * 3 + 3;
@@ -1664,12 +1672,12 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 	 * the average ratio; if object space is 640x480, and we have a 1280x960
 	 * window, we'll double the width. */
 	{
-		const RageMatrix* pMat = GetProjectionTop();
-		float fW = 2 / pMat->m[0][0];
-		float fH = -2 / pMat->m[1][1];
-		float fWidthVal =
+		auto pMat = GetProjectionTop();
+		const auto fW = 2 / pMat->m[0][0];
+		const auto fH = -2 / pMat->m[1][1];
+		const auto fWidthVal =
 		  static_cast<float>((*g_pWind->GetActualVideoModeParams()).width) / fW;
-		float fHeightVal =
+		const auto fHeightVal =
 		  static_cast<float>((*g_pWind->GetActualVideoModeParams()).height) /
 		  fH;
 		fLineWidth *= (fWidthVal + fHeightVal) / 2;
@@ -1677,8 +1685,8 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 
 	/* Clamp the width to the hardware max for both lines and points (whichever
 	 * is more restrictive). */
-	fLineWidth = clamp(fLineWidth, g_line_range[0], g_line_range[1]);
-	fLineWidth = clamp(fLineWidth, g_point_range[0], g_point_range[1]);
+	fLineWidth = std::clamp(fLineWidth, g_line_range[0], g_line_range[1]);
+	fLineWidth = std::clamp(fLineWidth, g_point_range[0], g_point_range[1]);
 
 	/* Hmm.  The granularity of lines and points might be different; for
 	 * example, if lines are .5 and points are .25, we might want to snap the
@@ -1705,7 +1713,7 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 	 * because points aren't scaled like regular polys--a zero-size point
 	 * will still be drawn. */
 	RageMatrix mat;
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float*)mat);
+	glGetFloatv(GL_MODELVIEW_MATRIX, static_cast<float*>(mat));
 
 	if (mat.m[0][0] < 1e-5 && mat.m[1][1] < 1e-5)
 		return;
@@ -1821,8 +1829,8 @@ RageDisplay_Legacy::SetTextureFiltering(TextureUnit tu, bool b)
 
 	GLint iMinFilter;
 	if (b) {
-		GLint iWidth1 = -1;
-		GLint iWidth2 = -1;
+		auto iWidth1 = -1;
+		auto iWidth2 = -1;
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &iWidth1);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 1, GL_TEXTURE_WIDTH, &iWidth2);
 		if (iWidth1 > 1 && iWidth2 != 0) {
@@ -1885,13 +1893,13 @@ RageDisplay_Legacy::SetEffectMode(EffectMode effect)
 	glUseProgramObjectARB(hShader);
 	if (hShader == 0)
 		return;
-	GLint iTexture1 = glGetUniformLocationARB(hShader, "Texture1");
-	GLint iTexture2 = glGetUniformLocationARB(hShader, "Texture2");
+	const auto iTexture1 = glGetUniformLocationARB(hShader, "Texture1");
+	const auto iTexture2 = glGetUniformLocationARB(hShader, "Texture2");
 	glUniform1iARB(iTexture1, 0);
 	glUniform1iARB(iTexture2, 1);
 
 	if (effect == EffectMode_YUYV422) {
-		GLint iTextureWidthUniform =
+		const auto iTextureWidthUniform =
 		  glGetUniformLocationARB(hShader, "TextureWidth");
 		GLint iWidth;
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &iWidth);
@@ -1933,7 +1941,7 @@ RageDisplay_Legacy::SetBlendMode(BlendMode mode)
 {
 	glEnable(GL_BLEND);
 
-	if (glBlendEquation != NULL) {
+	if (glBlendEquation != nullptr) {
 		if (mode == BLEND_INVERT_DEST)
 			glBlendEquation(GL_FUNC_SUBTRACT);
 		else if (mode == BLEND_SUBTRACT)
@@ -1943,7 +1951,7 @@ RageDisplay_Legacy::SetBlendMode(BlendMode mode)
 	}
 
 	int iSourceRGB, iDestRGB;
-	int iSourceAlpha = GL_ONE, iDestAlpha = GL_ONE_MINUS_SRC_ALPHA;
+	auto iSourceAlpha = GL_ONE, iDestAlpha = GL_ONE_MINUS_SRC_ALPHA;
 	switch (mode) {
 		case BLEND_NORMAL:
 			iSourceRGB = GL_SRC_ALPHA;
@@ -2029,7 +2037,7 @@ RageDisplay_Legacy::IsZTestEnabled() const
 void
 RageDisplay_Legacy::ClearZBuffer()
 {
-	bool write = IsZWriteEnabled();
+	const auto write = IsZWriteEnabled();
 	SetZWrite(true);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	SetZWrite(write);
@@ -2044,8 +2052,8 @@ RageDisplay_Legacy::SetZWrite(bool b)
 void
 RageDisplay_Legacy::SetZBias(float f)
 {
-	float fNear = SCALE(f, 0.0f, 1.0f, 0.05f, 0.0f);
-	float fFar = SCALE(f, 0.0f, 1.0f, 1.0f, 0.95f);
+	const auto fNear = SCALE(f, 0.0f, 1.0f, 0.05f, 0.0f);
+	const auto fFar = SCALE(f, 0.0f, 1.0f, 1.0f, 0.95f);
 
 	glDepthRange(fNear, fFar);
 }
@@ -2077,7 +2085,7 @@ RageDisplay_Legacy::SetTextureWrapping(TextureUnit tu, bool b)
 	 * than one texture unit simultaneously with different wrapping. */
 	SetTextureUnit(tu);
 
-	GLenum mode = b ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+	const GLenum mode = b ? GL_REPEAT : GL_CLAMP_TO_EDGE;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
 }
@@ -2104,7 +2112,7 @@ RageDisplay_Legacy::SetMaterial(const RageColor& emissive,
 		glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
 		glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 	} else {
-		RageColor c = diffuse;
+		auto c = diffuse;
 		c.r += emissive.r + ambient.r;
 		c.g += emissive.g + ambient.g;
 		c.b += emissive.b + ambient.b;
@@ -2231,15 +2239,15 @@ RageDisplay_Legacy::GetImgPixelFormat(RageSurface*& img,
 									  int height,
 									  bool bPalettedTexture)
 {
-	RagePixelFormat pixfmt = FindPixelFormat(img->fmt.BitsPerPixel,
-											 img->fmt.Rmask,
-											 img->fmt.Gmask,
-											 img->fmt.Bmask,
-											 img->fmt.Amask);
+	auto pixfmt = FindPixelFormat(img->fmt.BitsPerPixel,
+								  img->fmt.Rmask,
+								  img->fmt.Gmask,
+								  img->fmt.Bmask,
+								  img->fmt.Amask);
 
 	/* If img is paletted, we're setting up a non-paletted texture, and color
 	 * indexes are too small, depalettize. */
-	bool bSupported = true;
+	auto bSupported = true;
 	if (!bPalettedTexture && img->fmt.BytesPerPixel == 1 &&
 		!g_bColorIndexTableWorks)
 		bSupported = false;
@@ -2255,15 +2263,15 @@ RageDisplay_Legacy::GetImgPixelFormat(RageSurface*& img,
 		pixfmt = RagePixelFormat_RGBA8;
 		ASSERT(SupportsSurfaceFormat(pixfmt));
 
-		const RagePixelFormatDesc* pfd = DISPLAY->GetPixelFormatDesc(pixfmt);
+		auto pfd = DISPLAY->GetPixelFormatDesc(pixfmt);
 
-		RageSurface* imgconv = CreateSurface(img->w,
-											 img->h,
-											 pfd->bpp,
-											 pfd->masks[0],
-											 pfd->masks[1],
-											 pfd->masks[2],
-											 pfd->masks[3]);
+		const auto imgconv = CreateSurface(img->w,
+										   img->h,
+										   pfd->bpp,
+										   pfd->masks[0],
+										   pfd->masks[1],
+										   pfd->masks[2],
+										   pfd->masks[3]);
 		RageSurfaceUtils::Blit(img, imgconv, width, height);
 		img = imgconv;
 		bFreeImg = true;
@@ -2289,7 +2297,7 @@ SetPixelMapForSurface(int glImageFormat,
 	GLushort buf[4][256];
 	memset(buf, 0, sizeof(buf));
 
-	for (int i = 0; i < palette->ncolors; ++i) {
+	for (auto i = 0; i < palette->ncolors; ++i) {
 		buf[0][i] = SCALE(palette->colors[i].r, 0, 255, 0, 65535);
 		buf[1][i] = SCALE(palette->colors[i].g, 0, 255, 0, 65535);
 		buf[2][i] = SCALE(palette->colors[i].b, 0, 255, 0, 65535);
@@ -2314,13 +2322,13 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 
 	/* Find the pixel format of the surface we've been given. */
 	bool bFreeImg;
-	RagePixelFormat SurfacePixFmt = GetImgPixelFormat(
+	const auto SurfacePixFmt = GetImgPixelFormat(
 	  pImg, bFreeImg, pImg->w, pImg->h, pixfmt == RagePixelFormat_PAL);
 	ASSERT(SurfacePixFmt != RagePixelFormat_Invalid);
 
-	GLenum glTexFormat = g_GLPixFmtInfo[pixfmt].internalfmt;
-	GLenum glImageFormat = g_GLPixFmtInfo[SurfacePixFmt].format;
-	GLenum glImageType = g_GLPixFmtInfo[SurfacePixFmt].type;
+	const auto glTexFormat = g_GLPixFmtInfo[pixfmt].internalfmt;
+	const auto glImageFormat = g_GLPixFmtInfo[SurfacePixFmt].format;
+	const auto glImageType = g_GLPixFmtInfo[SurfacePixFmt].type;
 
 	/* If the image is paletted, but we're not sending it to a paletted image,
 	 * set up glPixelMap. */
@@ -2376,9 +2384,9 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		/* The texture is paletted; set the texture palette. */
 		GLubyte palette[256 * 4];
 		memset(palette, 0, sizeof(palette));
-		int p = 0;
+		auto p = 0;
 		/* Copy the palette to the format OpenGL expects. */
-		for (int i = 0; i < pImg->fmt.palette->ncolors; ++i) {
+		for (auto i = 0; i < pImg->fmt.palette->ncolors; ++i) {
 			palette[p++] = pImg->fmt.palette->colors[i].r;
 			palette[p++] = pImg->fmt.palette->colors[i].g;
 			palette[p++] = pImg->fmt.palette->colors[i].b;
@@ -2389,7 +2397,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		glColorTableEXT(
 		  GL_TEXTURE_2D, GL_RGBA8, 256, GL_RGBA, GL_UNSIGNED_BYTE, palette);
 
-		GLint iRealFormat = 0;
+		auto iRealFormat = 0;
 		glGetColorTableParameterivEXT(
 		  GL_TEXTURE_2D, GL_COLOR_TABLE_FORMAT, &iRealFormat);
 		ASSERT(iRealFormat == GL_RGBA8);
@@ -2441,7 +2449,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 
 	/* Sanity check: */
 	if (pixfmt == RagePixelFormat_PAL) {
-		GLint iSize = 0;
+		auto iSize = 0;
 		glGetTexLevelParameteriv(
 		  GL_TEXTURE_2D, 0, GLenum(GL_TEXTURE_INDEX_SIZE_EXT), &iSize);
 		if (iSize != 8)
@@ -2488,13 +2496,13 @@ struct RageTextureLock_OGL
 		m_iTexHandle = iTexHandle;
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, m_iBuffer);
 
-		int iSize = pSurface->h * pSurface->pitch;
+		const auto iSize = pSurface->h * pSurface->pitch;
 		glBufferDataARB(
-		  GL_PIXEL_UNPACK_BUFFER_ARB, iSize, NULL, GL_STREAM_DRAW);
+		  GL_PIXEL_UNPACK_BUFFER_ARB, iSize, nullptr, GL_STREAM_DRAW);
 
-		void* pSurfaceMemory =
+		const auto pSurfaceMemory =
 		  glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY);
-		pSurface->pixels = (uint8_t*)pSurfaceMemory;
+		pSurface->pixels = static_cast<uint8_t*>(pSurfaceMemory);
 		pSurface->pixels_owned = false;
 	}
 
@@ -2502,13 +2510,13 @@ struct RageTextureLock_OGL
 	{
 		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
 
-		pSurface->pixels = (uint8_t*)BUFFER_OFFSET(0);
+		pSurface->pixels = (uint8_t*)BUFFER_OFFSET(nullptr);
 
 		if (bChanged)
 			DISPLAY->UpdateTexture(
 			  m_iTexHandle, pSurface, 0, 0, pSurface->w, pSurface->h);
 
-		pSurface->pixels = NULL;
+		pSurface->pixels = nullptr;
 
 		m_iTexHandle = 0;
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
@@ -2534,7 +2542,7 @@ RageTextureLock*
 RageDisplay_Legacy::CreateTextureLock()
 {
 	if (!GLEW_ARB_pixel_buffer_object)
-		return NULL;
+		return nullptr;
 
 	return new RageTextureLock_OGL;
 }
@@ -2550,13 +2558,13 @@ RageDisplay_Legacy::UpdateTexture(intptr_t iTexHandle,
 	glBindTexture(GL_TEXTURE_2D, iTexHandle);
 
 	bool bFreeImg;
-	RagePixelFormat SurfacePixFmt =
+	const auto SurfacePixFmt =
 	  GetImgPixelFormat(pImg, bFreeImg, iWidth, iHeight, false);
 
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, pImg->pitch / pImg->fmt.BytesPerPixel);
 
-	GLenum glImageFormat = g_GLPixFmtInfo[SurfacePixFmt].format;
-	GLenum glImageType = g_GLPixFmtInfo[SurfacePixFmt].type;
+	const auto glImageFormat = g_GLPixFmtInfo[SurfacePixFmt].format;
+	const auto glImageType = g_GLPixFmtInfo[SurfacePixFmt].type;
 
 	/* If the image is paletted, but we're not sending it to a paletted image,
 	 * set up glPixelMap. */
@@ -2639,15 +2647,15 @@ RenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 	glGenTextures(1, reinterpret_cast<GLuint*>(&m_iTexHandle));
 	ASSERT(m_iTexHandle != 0);
 
-	int iTextureWidth = power_of_two(param.iWidth);
-	int iTextureHeight = power_of_two(param.iHeight);
+	const auto iTextureWidth = power_of_two(param.iWidth);
+	const auto iTextureHeight = power_of_two(param.iHeight);
 
 	iTextureWidthOut = iTextureWidth;
 	iTextureHeightOut = iTextureHeight;
 
 	glBindTexture(GL_TEXTURE_2D, m_iTexHandle);
 	GLenum internalformat;
-	GLenum type = param.bWithAlpha ? GL_RGBA : GL_RGB;
+	const GLenum type = param.bWithAlpha ? GL_RGBA : GL_RGB;
 	if (param.bFloat && GLEW_ARB_texture_float)
 		internalformat = param.bWithAlpha ? GL_RGBA16F_ARB : GL_RGB16F_ARB;
 	else
@@ -2661,7 +2669,7 @@ RenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 				 0,
 				 type,
 				 GL_UNSIGNED_BYTE,
-				 NULL);
+				 nullptr);
 	DebugAssertNoGLError();
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -2699,7 +2707,7 @@ RenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 									 m_iDepthBufferHandle);
 	}
 
-	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	const auto status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	switch (status) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			break;
@@ -2794,12 +2802,9 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 intptr_t
 RageDisplay_Legacy::GetRenderTarget()
 {
-	for (map<intptr_t, RenderTarget*>::const_iterator it =
-		   g_mapRenderTargets.begin();
-		 it != g_mapRenderTargets.end();
-		 ++it)
-		if (it->second == g_pCurrentRenderTarget)
-			return it->first;
+	for (const auto& g_mapRenderTarget : g_mapRenderTargets)
+		if (g_mapRenderTarget.second == g_pCurrentRenderTarget)
+			return g_mapRenderTarget.first;
 	return 0;
 }
 
@@ -2814,23 +2819,24 @@ RageDisplay_Legacy::SetRenderTarget(intptr_t iTexture, bool bPreserveTexture)
 		DISPLAY->CameraPopMatrix();
 
 		/* Reset the viewport. */
-		int fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
-		int fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
+		const auto fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
+		const auto fHeight =
+		  (*g_pWind->GetActualVideoModeParams()).windowHeight;
 		glViewport(0, 0, fWidth, fHeight);
 
 		if (g_pCurrentRenderTarget != nullptr)
 			g_pCurrentRenderTarget->FinishRenderingTo();
-		g_pCurrentRenderTarget = NULL;
+		g_pCurrentRenderTarget = nullptr;
 		return;
 	}
 
 	/* If we already had a render target, disable it. */
-	if (g_pCurrentRenderTarget != NULL)
+	if (g_pCurrentRenderTarget != nullptr)
 		SetRenderTarget(0, true);
 
 	/* Enable the new render target. */
 	ASSERT(g_mapRenderTargets.find(iTexture) != g_mapRenderTargets.end());
-	RenderTarget* pTarget = g_mapRenderTargets[iTexture];
+	auto pTarget = g_mapRenderTargets[iTexture];
 	pTarget->StartRenderingTo();
 	g_pCurrentRenderTarget = pTarget;
 
@@ -2857,7 +2863,7 @@ RageDisplay_Legacy::SetRenderTarget(intptr_t iTexture, bool bPreserveTexture)
 	 * depth buffer if the target has one; otherwise we're clearing the real
 	 * depth buffer. */
 	if (!bPreserveTexture) {
-		int iBit = GL_COLOR_BUFFER_BIT;
+		auto iBit = GL_COLOR_BUFFER_BIT;
 		if (pTarget->GetParam().bWithDepthBuffer)
 			iBit |= GL_DEPTH_BUFFER_BIT;
 		glClear(iBit);

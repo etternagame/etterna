@@ -7,6 +7,8 @@
 #include "RageSoundReader_Resample_Good.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
 RageSoundReader_Merge::RageSoundReader_Merge()
 {
 	m_iSampleRate = -1;
@@ -62,7 +64,7 @@ RageSoundReader_Merge::Finish(int iPreferredSampleRate)
 	 * channels. */
 	m_iChannels = 1;
 	for (auto& it : m_aSounds)
-		m_iChannels = max(m_iChannels, it->GetNumChannels());
+		m_iChannels = std::max(m_iChannels, it->GetNumChannels());
 
 	/*
 	 * We might get different sample rates from our sources.  If they're all the
@@ -230,7 +232,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 			auto iMaxSourceFramesToRead = aNextSourceFrames[i] - iMinPosition;
 			int iMaxStreamFramesToRead =
 			  lround(iMaxSourceFramesToRead / m_fCurrentStreamToSourceRatio);
-			iFrames = min(iFrames, iMaxStreamFramesToRead);
+			iFrames = std::min(iFrames, iMaxStreamFramesToRead);
 			//			LOG->Warn( "RageSoundReader_Merge: sound
 			// positions
 			// moving  at  different rates" );
@@ -251,7 +253,8 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 
 	RageSoundMixBuffer mix;
 	float Buffer[2048];
-	iFrames = min(iFrames, static_cast<int>((ARRAYLEN(Buffer) / m_iChannels)));
+	iFrames =
+	  std::min(iFrames, static_cast<int>((ARRAYLEN(Buffer) / m_iChannels)));
 
 	/* Read iFrames from each sound. */
 	for (unsigned i = 0; i < m_aSounds.size(); ++i) {
@@ -320,7 +323,7 @@ RageSoundReader_Merge::GetLength() const
 {
 	auto iLength = 0;
 	for (auto m_aSound : m_aSounds)
-		iLength = max(iLength, m_aSound->GetLength());
+		iLength = std::max(iLength, m_aSound->GetLength());
 	return iLength;
 }
 
@@ -329,6 +332,6 @@ RageSoundReader_Merge::GetLength_Fast() const
 {
 	auto iLength = 0;
 	for (auto m_aSound : m_aSounds)
-		iLength = max(iLength, m_aSound->GetLength_Fast());
+		iLength = std::max(iLength, m_aSound->GetLength_Fast());
 	return iLength;
 }

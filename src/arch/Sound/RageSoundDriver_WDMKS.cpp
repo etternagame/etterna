@@ -19,6 +19,7 @@
 #include <mmsystem.h>
 #include <ksmedia.h>
 #include <setupapi.h>
+#include <algorithm>
 
 typedef KSDDKAPI DWORD WINAPI KSCREATEPIN(HANDLE,
 										  PKSPIN_CONNECT,
@@ -898,9 +899,10 @@ WinWdmFilter::InstantiateRenderPin(
 		aSampleRates.push_back(48000);
 		aSampleRates.push_back(44100);
 
-		sort(aSampleRates.begin(), aSampleRates.end());
-		aSampleRates.erase(unique(aSampleRates.begin(), aSampleRates.end()),
-						   aSampleRates.end());
+		std::sort(aSampleRates.begin(), aSampleRates.end());
+		aSampleRates.erase(
+		  std::unique(aSampleRates.begin(), aSampleRates.end()),
+		  aSampleRates.end());
 		reverse(aSampleRates.begin(), aSampleRates.end());
 
 		MoveToBeginning(aSampleRates, 44100);
@@ -1185,7 +1187,7 @@ WinWdmStream::Open(WinWdmFilter* pFilter,
 	if (m_iFramesPerChunk == 0) {
 		m_iFramesPerChunk = 512 / m_iWriteAheadChunks;
 		m_iFramesPerChunk =
-		  max(m_iFramesPerChunk, iFrameSize); // iFrameSize may be 0
+		  std::max(m_iFramesPerChunk, iFrameSize); // iFrameSize may be 0
 	}
 
 	LOG->Info("KS: chunk size: %i; allocator framing: %i (%ims)",

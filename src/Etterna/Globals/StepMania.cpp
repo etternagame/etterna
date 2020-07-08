@@ -1,6 +1,6 @@
 #include "global.h"
-
 #include "StepMania.h"
+#include "Etterna/Globals/rngthing.h"
 
 // Rage global classes
 #include "Etterna/Singletons/GameSoundManager.h"
@@ -13,14 +13,10 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include <ctime>
-
 #include "ProductInfo.h"
-
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
@@ -57,6 +53,8 @@
 #include "Etterna/Singletons/StatsManager.h"
 #include "ver.h"
 #include "discord_rpc.h"
+
+#include <ctime>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -229,7 +227,7 @@ StepMania::ApplyGraphicOptions()
 	VideoModeParams params;
 	GetPreferredVideoModeParams(params);
 	std::string sError = DISPLAY->SetVideoMode(params, bNeedReload);
-	if (sError != "")
+	if (!sError.empty())
 		RageException::Throw("%s", sError.c_str());
 
 	update_centering();
@@ -353,7 +351,7 @@ ThemeMetric<std::string> INITIAL_SCREEN("Common", "InitialScreen");
 std::string
 StepMania::GetInitialScreen()
 {
-	if (PREFSMAN->m_sTestInitialScreen.Get() != "" &&
+	if (!PREFSMAN->m_sTestInitialScreen.Get().empty() &&
 		SCREENMAN->IsScreenNameValid(PREFSMAN->m_sTestInitialScreen)) {
 		return PREFSMAN->m_sTestInitialScreen;
 	}
@@ -694,8 +692,8 @@ CheckVideoDefaultSettings()
 		if (regex.Compare(sVideoDriver)) {
 			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Trace("Card matches '%s'.",
-						   sDriverRegex.size() ? sDriverRegex.c_str()
-											   : "(unknown card)");
+						   !sDriverRegex.empty() ? sDriverRegex.c_str()
+												 : "(unknown card)");
 			break;
 		}
 	}
@@ -704,7 +702,7 @@ CheckVideoDefaultSettings()
 	}
 
 	bool bSetDefaultVideoParams = false;
-	if (PREFSMAN->m_sVideoRenderers.Get() == "") {
+	if (PREFSMAN->m_sVideoRenderers.Get().empty()) {
 		bSetDefaultVideoParams = true;
 		LOG->Trace("Applying defaults for %s.", sVideoDriver.c_str());
 	} else if (PREFSMAN->m_sLastSeenVideoDriver.Get() != sVideoDriver) {
@@ -952,7 +950,7 @@ MountTreeOfZips(const std::string& dir)
 	vector<std::string> dirs;
 	dirs.push_back(dir);
 
-	while (dirs.size()) {
+	while (!dirs.empty()) {
 		std::string path = dirs.back();
 		dirs.pop_back();
 
@@ -1086,13 +1084,13 @@ sm_main(int argc, char* argv[])
 	WriteLogHeader();
 
 	// Set up alternative filesystem trees.
-	if (PREFSMAN->m_sAdditionalFolders.Get() != "") {
+	if (!PREFSMAN->m_sAdditionalFolders.Get().empty()) {
 		vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/");
 	}
-	if (PREFSMAN->m_sAdditionalSongFolders.Get() != "") {
+	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty()) {
 		vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
@@ -1237,7 +1235,7 @@ sm_main(int argc, char* argv[])
 
 	FILTERMAN = new FilterManager;
 
-	DLMAN = make_shared<DownloadManager>();
+	DLMAN = std::make_shared<DownloadManager>();
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */

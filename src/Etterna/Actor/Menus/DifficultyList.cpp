@@ -12,6 +12,8 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <algorithm>
+
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
@@ -95,7 +97,8 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 int
 StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 {
-	Difficulty ClosestDifficulty = GAMESTATE->GetClosestShownDifficulty(pn);
+	const Difficulty ClosestDifficulty =
+	  GAMESTATE->GetClosestShownDifficulty(pn);
 
 	for (unsigned i = 0; i < m_Rows.size(); i++) {
 		const Row& row = m_Rows[i];
@@ -116,7 +119,7 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 void
 StepsDisplayList::UpdatePositions()
 {
-	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
+	const int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
 	const int total = NUM_SHOWN_ITEMS;
 	const int halfsize = total / 2;
@@ -125,35 +128,35 @@ StepsDisplayList::UpdatePositions()
 
 	// Choices for each player. If only one player is active, it's the same for
 	// both.
-	int P1Choice = iCurrentRow;
+	const int P1Choice = iCurrentRow;
 
 	vector<Row>& Rows = m_Rows;
 
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if (!BothPlayersActivated) {
 		// Simply center the cursor.
-		first_start = max(P1Choice - halfsize, 0);
+		first_start = std::max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
 		const int earliest = P1Choice;
-		first_start = max(earliest - halfsize / 2, 0);
+		first_start = std::max(earliest - halfsize / 2, 0);
 		first_end = first_start + halfsize;
 
 		// Second half:
 		const int latest = P1Choice;
 
-		second_start = max(latest - halfsize / 2, 0);
+		second_start = std::max(latest - halfsize / 2, 0);
 
 		// Don't overlap.
-		second_start = max(second_start, first_end);
+		second_start = std::max(second_start, first_end);
 
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, static_cast<int>(Rows.size()));
-	second_end = min(second_end, static_cast<int>(Rows.size()));
+	first_end = std::min(first_end, static_cast<int>(Rows.size()));
+	second_end = std::min(second_end, static_cast<int>(Rows.size()));
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */
@@ -192,7 +195,7 @@ StepsDisplayList::UpdatePositions()
 
 		Row& row = Rows[i];
 
-		float fY = ITEMS_SPACING_Y * ItemPosition;
+		const float fY = ITEMS_SPACING_Y * ItemPosition;
 		row.m_fY = fY;
 		row.m_bHidden = i < first_start ||
 						(i >= first_end && i < second_start) || i >= second_end;
@@ -203,7 +206,7 @@ void
 StepsDisplayList::PositionItems()
 {
 	for (int i = 0; i < MAX_METERS; ++i) {
-		bool bUnused = (i >= static_cast<int>(m_Rows.size()));
+		const bool bUnused = (i >= static_cast<int>(m_Rows.size()));
 		m_Lines[i].m_Meter.SetVisible(!bUnused);
 	}
 
@@ -229,12 +232,12 @@ StepsDisplayList::PositionItems()
 		if (m_bShown && m < static_cast<int>(m_Rows.size()))
 			bHidden = m_Rows[m].m_bHidden;
 
-		float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
+		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
 
 		m_Lines[m].m_Meter.SetDiffuseAlpha(fDiffuseAlpha);
 	}
 
-	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
+	const int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
 	float fY = 0;
 	if (iCurrentRow < static_cast<int>(m_Rows.size()))

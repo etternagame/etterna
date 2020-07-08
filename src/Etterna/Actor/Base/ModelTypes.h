@@ -16,14 +16,14 @@ struct msMesh
 	std::string sName;
 	char nMaterialIndex;
 
-	vector<RageModelVertex> Vertices;
+	std::vector<RageModelVertex> Vertices;
 
 	// OPTIMIZATION: If all verts in a mesh are transformed by the same bone,
 	// then send the transform to the graphics card for the whole mesh instead
 	// of transforming each vertex on the CPU;
 	char m_iBoneIndex; // -1 = no bone
 
-	vector<msTriangle> Triangles;
+	std::vector<msTriangle> Triangles;
 };
 
 class RageTexture;
@@ -40,19 +40,19 @@ class AnimatedTexture
 	void Unload();
 	void Update(float fDelta);
 
-	RageTexture* GetCurrentTexture();
+	auto GetCurrentTexture() -> RageTexture*;
 
-	int GetNumStates() const;
+	[[nodiscard]] auto GetNumStates() const -> int;
 	void SetState(int iNewState);
-	float GetAnimationLengthSeconds() const;
+	[[nodiscard]] auto GetAnimationLengthSeconds() const -> float;
 	void SetSecondsIntoAnimation(float fSeconds);
-	float GetSecondsIntoAnimation() const;
-	RageVector2 GetTextureTranslate();
+	[[nodiscard]] auto GetSecondsIntoAnimation() const -> float;
+	auto GetTextureTranslate() -> RageVector2;
 
 	bool m_bSphereMapped;
 	BlendMode m_BlendMode;
 
-	bool NeedsNormals() const { return m_bSphereMapped; }
+	[[nodiscard]] auto NeedsNormals() const -> bool { return m_bSphereMapped; }
 
   private:
 	RageVector2 m_vTexOffset;
@@ -75,7 +75,8 @@ class AnimatedTexture
 		float fDelaySecs;
 		RageVector2 vTranslate;
 	};
-	vector<AnimatedTextureState> vFrames;
+
+	std::vector<AnimatedTextureState> vFrames;
 };
 
 struct msMaterial
@@ -92,7 +93,7 @@ struct msMaterial
 	AnimatedTexture diffuse;
 	AnimatedTexture alpha;
 
-	bool NeedsNormals() const
+	[[nodiscard]] auto NeedsNormals() const -> bool
 	{
 		return diffuse.NeedsNormals() || alpha.NeedsNormals();
 	}
@@ -100,13 +101,13 @@ struct msMaterial
 
 struct msPositionKey
 {
-	float fTime;
+	float fTime{};
 	RageVector3 Position;
 };
 
 struct msRotationKey
 {
-	float fTime;
+	float fTime{};
 	RageVector4 Rotation;
 };
 
@@ -118,24 +119,26 @@ struct msBone
 	RageVector3 Position;
 	RageVector3 Rotation;
 
-	vector<msPositionKey> PositionKeys;
-	vector<msRotationKey> RotationKeys;
+	std::vector<msPositionKey> PositionKeys;
+	std::vector<msRotationKey> RotationKeys;
 };
 
 struct msAnimation
 {
-	int FindBoneByName(const std::string& sName) const
+	[[nodiscard]] auto FindBoneByName(const std::string& sName) const -> int
 	{
-		for (unsigned i = 0; i < Bones.size(); i++)
-			if (Bones[i].sName == sName)
+		for (unsigned i = 0; i < Bones.size(); i++) {
+			if (Bones[i].sName == sName) {
 				return i;
+			}
+		}
 		return -1;
 	}
 
-	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
-								 std::string sPath);
+	auto LoadMilkshapeAsciiBones(const std::string& sAniName, std::string sPath)
+	  -> bool;
 
-	vector<msBone> Bones;
+	std::vector<msBone> Bones;
 	int nTotalFrames;
 };
 

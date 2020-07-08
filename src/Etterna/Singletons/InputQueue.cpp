@@ -1,12 +1,13 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
 #include "RageUtil/Misc/RageLog.h"
 
+#include <algorithm>
+
 InputQueue* INPUTQUEUE =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 const unsigned MAX_INPUT_QUEUE_LENGTH = 32;
 
@@ -49,7 +50,7 @@ InputQueue::WasPressedRecently(
 		if (iep.GameI.button != button)
 			continue;
 
-		if (pIEP != NULL)
+		if (pIEP != nullptr)
 			*pIEP = iep;
 
 		return true;
@@ -103,7 +104,7 @@ InputQueueCode::EnteredCode(GameController controller) const
 		int iMinSearchIndexUsed = iQueueIndex;
 		for (int b = 0; b < static_cast<int>(Press.m_aButtonsToPress.size());
 			 ++b) {
-			const InputEventPlus* pIEP = NULL;
+			const InputEventPlus* pIEP = nullptr;
 			int iQueueSearchIndex = iQueueIndex;
 			for (; iQueueSearchIndex >= 0;
 				 --iQueueSearchIndex) // iterate newest to oldest
@@ -127,7 +128,7 @@ InputQueueCode::EnteredCode(GameController controller) const
 					break;
 				}
 			}
-			if (pIEP == NULL)
+			if (pIEP == nullptr)
 				break; // didn't find the button
 
 			// Check that m_aButtonsToHold were being held when the buttons were
@@ -147,7 +148,8 @@ InputQueueCode::EnteredCode(GameController controller) const
 			}
 			if (!bAllHeldButtonsOK)
 				continue;
-			iMinSearchIndexUsed = min(iMinSearchIndexUsed, iQueueSearchIndex);
+			iMinSearchIndexUsed =
+			  std::min(iMinSearchIndexUsed, iQueueSearchIndex);
 			if (b == static_cast<int>(Press.m_aButtonsToPress.size()) - 1)
 				bMatched = true;
 		}

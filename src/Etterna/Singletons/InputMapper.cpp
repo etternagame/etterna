@@ -12,6 +12,9 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "arch/Dialog/Dialog.h"
 
+#include <map>
+#include <algorithm>
+
 #define AUTOMAPPINGS_DIR "/Data/AutoMappings/"
 
 static Preference<std::string> g_sLastSeenInputDevices("LastSeenInputDevices",
@@ -22,18 +25,18 @@ namespace {
 // lookup for efficiency from a DeviceInput to a GameInput
 // This is repopulated every time m_PItoDI changes by calling
 // UpdateTempDItoPI().
-map<DeviceInput, GameInput> g_tempDItoGI;
+std::map<DeviceInput, GameInput> g_tempDItoGI;
 
 PlayerNumber g_JoinControllers;
 } // namespace;
 
 InputMapper* INPUTMAPPER =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 InputMapper::InputMapper()
 {
 	g_JoinControllers = PLAYER_INVALID;
-	m_pInputScheme = NULL;
+	m_pInputScheme = nullptr;
 }
 
 InputMapper::~InputMapper()
@@ -608,12 +611,12 @@ InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
 						  GameController gc,
 						  InputDevice id)
 {
-	map<GameInput, int> MappedButtons;
+	std::map<GameInput, int> MappedButtons;
 	FOREACH_CONST(AutoMappingEntry, vMmaps, iter)
 	{
 		GameController map_gc = gc;
 		if (iter->m_bSecondController) {
-			map_gc = (GameController)(map_gc + 1);
+			map_gc = static_cast<GameController>(map_gc + 1);
 
 			/* If that pushed it over, then it's a second controller for a
 			 * joystick that's already a second controller, so we'll just ignore
@@ -692,7 +695,8 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 				continue; // driver names don't match
 
 			// We have a mapping for this joystick
-			GameController gc = (GameController)iNumJoysticksMapped;
+			GameController gc =
+			  static_cast<GameController>(iNumJoysticksMapped);
 			if (gc >= NUM_GameController)
 				break; // stop mapping.  We already mapped one device for each
 					   // game controller.
@@ -1079,7 +1083,8 @@ InputMapper::GetSecsHeld(const GameInput& GameI, MultiPlayer mp) const
 		if (GameToDevice(GameI, i, DeviceI)) {
 			if (mp != MultiPlayer_Invalid)
 				DeviceI.device = MultiPlayerToInputDevice(mp);
-			fMaxSecsHeld = max(fMaxSecsHeld, INPUTFILTER->GetSecsHeld(DeviceI));
+			fMaxSecsHeld =
+			  std::max(fMaxSecsHeld, INPUTFILTER->GetSecsHeld(DeviceI));
 		}
 	}
 
@@ -1097,7 +1102,7 @@ InputMapper::GetSecsHeld(GameButton MenuI, PlayerNumber pn) const
 	vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
-		fMaxSecsHeld = max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
+		fMaxSecsHeld = std::max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
 
 	return fMaxSecsHeld;
 }
@@ -1138,7 +1143,7 @@ InputMapper::GetLevel(const GameInput& GameI) const
 		DeviceInput DeviceI;
 
 		if (GameToDevice(GameI, i, DeviceI))
-			fLevel = max(fLevel, INPUTFILTER->GetLevel(DeviceI));
+			fLevel = std::max(fLevel, INPUTFILTER->GetLevel(DeviceI));
 	}
 	return fLevel;
 }
@@ -1154,7 +1159,7 @@ InputMapper::GetLevel(GameButton MenuI, PlayerNumber pn) const
 
 	float fLevel = 0;
 	for (size_t i = 0; i < GameI.size(); i++)
-		fLevel = max(fLevel, GetLevel(GameI[i]));
+		fLevel = std::max(fLevel, GetLevel(GameI[i]));
 
 	return fLevel;
 }
@@ -1201,7 +1206,7 @@ InputScheme::MenuButtonToGameInputs(GameButton MenuI,
 			GameIout.push_back(GameInput(GameController_1, *gb));
 			GameIout.push_back(GameInput(GameController_2, *gb));
 		} else {
-			GameIout.push_back(GameInput((GameController)pn, *gb));
+			GameIout.push_back(GameInput(static_cast<GameController>(pn), *gb));
 		}
 	}
 }
@@ -1341,8 +1346,9 @@ InputMappings::ReadMappings(const InputScheme* pInputScheme,
 			vector<std::string> sDeviceInputStrings;
 			split(value, DEVICE_INPUT_SEPARATOR, sDeviceInputStrings, false);
 
-			for (unsigned j = 0; j < sDeviceInputStrings.size() &&
-								 j < unsigned(NUM_GAME_TO_DEVICE_SLOTS);
+			for (unsigned j = 0;
+				 j < sDeviceInputStrings.size() &&
+				 j < static_cast<unsigned>(NUM_GAME_TO_DEVICE_SLOTS);
 				 j++) {
 				DeviceInput DeviceI;
 				DeviceI.FromString(sDeviceInputStrings[j]);
@@ -1364,7 +1370,7 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 	ini.DeleteKey(pInputScheme->m_szName);
 
 	XNode* pKey = ini.GetChild(pInputScheme->m_szName);
-	if (pKey != NULL)
+	if (pKey != nullptr)
 		ini.RemoveChild(pKey);
 	pKey = ini.AppendChild(pInputScheme->m_szName);
 

@@ -33,7 +33,7 @@ ThemeMetric<bool> CREDITS_JOIN_ONLY("ScreenSystemLayer", "CreditsJoinOnly");
 std::string
 GetCreditsMessage(PlayerNumber pn)
 {
-	if ((bool)CREDITS_JOIN_ONLY && !GAMESTATE->PlayersCanJoin())
+	if (static_cast<bool>(CREDITS_JOIN_ONLY) && !GAMESTATE->PlayersCanJoin())
 		return std::string();
 
 	bool bShowCreditsMessage;

@@ -5,6 +5,8 @@
 #include "Etterna/Models/Misc/GameInput.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
 
+#include <utility>
+
 struct Game;
 struct NoteSkinData;
 
@@ -16,17 +18,16 @@ class NoteSkinManager
 	~NoteSkinManager();
 
 	void RefreshNoteSkinData(const Game* game);
-	void GetNoteSkinNames(const Game* game, vector<std::string>& AddTo);
-	void GetNoteSkinNames(
-	  vector<std::string>& AddTo); // looks up current const Game* in GAMESTATE
-	bool NoteSkinNameInList(const std::string& name,
-							const vector<std::string>& name_list);
-	bool DoesNoteSkinExist(
-	  const std::string&
-		sNoteSkin); // looks up current const Game* in GAMESTATE
-	bool DoNoteSkinsExistForGame(const Game* pGame);
-	std::string
-	GetDefaultNoteSkinName(); // looks up current const Game* in GAMESTATE
+	void GetNoteSkinNames(const Game* game, std::vector<std::string>& AddTo);
+	void GetNoteSkinNames(std::vector<std::string>&
+							AddTo); // looks up current const Game* in GAMESTATE
+	auto NoteSkinNameInList(const std::string& name,
+							const std::vector<std::string>& name_list) -> bool;
+	auto DoesNoteSkinExist(const std::string& sNoteSkin)
+	  -> bool; // looks up current const Game* in GAMESTATE
+	auto DoNoteSkinsExistForGame(const Game* pGame) -> bool;
+	auto GetDefaultNoteSkinName()
+	  -> std::string; // looks up current const Game* in GAMESTATE
 
 	void ValidateNoteSkinName(std::string& name);
 
@@ -34,50 +35,56 @@ class NoteSkinManager
 	{
 		m_sCurrentNoteSkin = sNoteSkin;
 	}
-	const std::string& GetCurrentNoteSkin() { return m_sCurrentNoteSkin; }
+	[[nodiscard]] auto GetCurrentNoteSkin() const -> const std::string&
+	{
+		return m_sCurrentNoteSkin;
+	}
 
-	void SetLastSeenColor(std::string Color) { LastColor = Color; }
-	const std::string& GetLastSeenColor() { return LastColor; }
+	void SetLastSeenColor(std::string Color) { LastColor = std::move(Color); }
+	[[nodiscard]] auto GetLastSeenColor() const -> const std::string&
+	{
+		return LastColor;
+	}
 
 	void SetPlayerNumber(PlayerNumber pn) { m_PlayerNumber = pn; }
 	void SetGameController(GameController gc) { m_GameController = gc; }
-	std::string GetPath(const std::string& sButtonName,
-						const std::string& sElement);
-	bool PushActorTemplate(Lua* L,
+	auto GetPath(const std::string& sButtonName, const std::string& sElement)
+	  -> std::string;
+	auto PushActorTemplate(Lua* L,
 						   const std::string& sButton,
 						   const std::string& sElement,
 						   bool bSpriteOnly,
-						   std::string Color);
-	Actor* LoadActor(const std::string& sButton,
-					 const std::string& sElement,
-					 Actor* pParent = nullptr,
-					 bool bSpriteOnly = false,
-					 std::string Color = "4th");
+						   std::string Color) -> bool;
+	auto LoadActor(const std::string& sButton,
+				   const std::string& sElement,
+				   Actor* pParent = nullptr,
+				   bool bSpriteOnly = false,
+				   std::string Color = "4th") -> Actor*;
 
-	std::string GetMetric(const std::string& sButtonName,
-						  const std::string& sValue);
-	int GetMetricI(const std::string& sButtonName,
-				   const std::string& sValueName);
-	float GetMetricF(const std::string& sButtonName,
-					 const std::string& sValueName);
-	bool GetMetricB(const std::string& sButtonName,
-					const std::string& sValueName);
-	apActorCommands GetMetricA(const std::string& sButtonName,
-							   const std::string& sValueName);
+	auto GetMetric(const std::string& sButtonName, const std::string& sValue)
+	  -> std::string;
+	auto GetMetricI(const std::string& sButtonName,
+					const std::string& sValueName) -> int;
+	auto GetMetricF(const std::string& sButtonName,
+					const std::string& sValueName) -> float;
+	auto GetMetricB(const std::string& sButtonName,
+					const std::string& sValueName) -> bool;
+	auto GetMetricA(const std::string& sButtonName,
+					const std::string& sValueName) -> apActorCommands;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   protected:
-	std::string GetPathFromDirAndFile(const std::string& sDir,
-									  const std::string& sFileName);
+	auto GetPathFromDirAndFile(const std::string& sDir,
+							   const std::string& sFileName) -> std::string;
 	void GetAllNoteSkinNamesForGame(const Game* pGame,
-									vector<std::string>& AddTo);
+									std::vector<std::string>& AddTo);
 
-	bool LoadNoteSkinData(const std::string& sNoteSkinName,
-						  NoteSkinData& data_out);
-	bool LoadNoteSkinDataRecursive(const std::string& sNoteSkinName,
-								   NoteSkinData& data_out);
+	auto LoadNoteSkinData(const std::string& sNoteSkinName,
+						  NoteSkinData& data_out) -> bool;
+	auto LoadNoteSkinDataRecursive(const std::string& sNoteSkinName,
+								   NoteSkinData& data_out) -> bool;
 	std::string m_sCurrentNoteSkin;
 	const Game* m_pCurGame;
 	std::string LastColor;
@@ -93,9 +100,8 @@ extern NoteSkinManager*
 class LockNoteSkin
 {
   public:
-	LockNoteSkin(std::string sNoteSkin, PlayerNumber pn)
+	LockNoteSkin(const std::string& sNoteSkin, PlayerNumber /*pn*/)
 	{
-		ASSERT(NOTESKIN->GetCurrentNoteSkin().empty());
 		NOTESKIN->SetCurrentNoteSkin(sNoteSkin);
 	}
 	~LockNoteSkin() { NOTESKIN->SetCurrentNoteSkin(""); }

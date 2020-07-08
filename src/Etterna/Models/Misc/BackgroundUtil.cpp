@@ -2,13 +2,13 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Actor/Gameplay/Background.h"
 #include "BackgroundUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
-#include <set>
+
+#include <algorithm>
 
 bool
 BackgroundDef::operator<(const BackgroundDef& other) const
@@ -38,7 +38,7 @@ BackgroundDef::operator==(const BackgroundDef& other) const
 XNode*
 BackgroundDef::CreateNode() const
 {
-	XNode* pNode = new XNode("BackgroundDef");
+	auto pNode = new XNode("BackgroundDef");
 
 	if (!m_sEffect.empty())
 		pNode->AppendAttr("Effect", m_sEffect);
@@ -76,7 +76,7 @@ BackgroundChange::GetTextDescription() const
 	if (vsParts.empty())
 		vsParts.push_back("(empty)");
 
-	std::string s = join("\n", vsParts);
+	auto s = join("\n", vsParts);
 	return s;
 }
 
@@ -150,8 +150,8 @@ BackgroundUtil::GetBackgroundEffects(const std::string& _sName,
 									 vector<std::string>& vsPathsOut,
 									 vector<std::string>& vsNamesOut)
 {
-	std::string sName = _sName;
-	if (sName == "")
+	auto sName = _sName;
+	if (sName.empty())
 		sName = "*";
 
 	vsPathsOut.clear();
@@ -168,8 +168,8 @@ BackgroundUtil::GetBackgroundTransitions(const std::string& _sName,
 										 vector<std::string>& vsPathsOut,
 										 vector<std::string>& vsNamesOut)
 {
-	std::string sName = _sName;
-	if (sName == "")
+	auto sName = _sName;
+	if (sName.empty())
 		sName = "*";
 
 	vsPathsOut.clear();
@@ -247,41 +247,6 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 		vsNamesOut.push_back(GetFileNameWithoutExtension(s));
 }
 
-static void
-GetFilterToFileNames(const std::string sBaseDir,
-					 const Song* pSong,
-					 set<std::string>& vsPossibleFileNamesOut)
-{
-	vsPossibleFileNamesOut.clear();
-
-	if (pSong->m_sGenre.empty())
-		return;
-
-	ASSERT(!pSong->m_sGroupName.empty());
-	IniFile ini;
-	std::string sPath =
-	  sBaseDir + pSong->m_sGroupName + "/" + "BackgroundMapping.ini";
-	ini.ReadFile(sPath);
-
-	std::string sSection;
-	bool bSuccess = ini.GetValue("GenreToSection", pSong->m_sGenre, sSection);
-	if (!bSuccess) {
-		// LOG->Warn( "Genre '%s' isn't mapped", pSong->m_sGenre.c_str() );
-		return;
-	}
-
-	XNode* pSection = ini.GetChild(sSection);
-	if (pSection == NULL) {
-		ASSERT_M(0,
-				 ssprintf("File '%s' refers to a section '%s' that is missing.",
-						  sPath.c_str(),
-						  sSection.c_str()));
-		return;
-	}
-
-	FOREACH_CONST_Attr(pSection, p) vsPossibleFileNamesOut.insert(p->first);
-}
-
 void
 BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 									  const std::string& sMatch,
@@ -290,8 +255,7 @@ BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 {
 	vsPathsOut.clear();
 	GetDirListing(BG_ANIMS_DIR + sMatch + "*", vsPathsOut, true, true);
-	if (true)
-		GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
+	GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
 
 	vsNamesOut.clear();
 	for (auto& s : vsPathsOut)

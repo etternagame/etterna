@@ -65,7 +65,7 @@ MusicWheelItem::MusicWheelItem(const std::string& sType)
 
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
-		m_pText[i] = NULL;
+		m_pText[i] = nullptr;
 
 		// Don't init text for Type_Song. It uses a TextBanner.
 		if (i == MusicWheelItemType_Song)
@@ -124,8 +124,8 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
 
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
-		if (cpy.m_pText[i] == NULL) {
-			m_pText[i] = NULL;
+		if (cpy.m_pText[i] == nullptr) {
+			m_pText[i] = nullptr;
 		} else {
 			m_pText[i] = new BitmapText(*cpy.m_pText[i]);
 			this->AddChild(m_pText[i]);
@@ -265,11 +265,11 @@ MusicWheelItem::RefreshGrades()
 {
 	const auto* pWID = dynamic_cast<const MusicWheelItemData*>(m_pData);
 
-	if (pWID == NULL)
+	if (pWID == nullptr)
 		return; // LoadFromWheelItemData() hasn't been called yet.
 	m_pGradeDisplay->SetVisible(false);
 
-	if (pWID->m_pSong == NULL)
+	if (pWID->m_pSong == nullptr)
 		return;
 
 	Difficulty dc;

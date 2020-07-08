@@ -23,7 +23,7 @@ class LuaManager
 	LuaManager();
 	~LuaManager();
 
-	Lua* Get();
+	auto Get() -> Lua*;
 	void Release(Lua*& p);
 
 	/* Explicitly lock and unlock Lua access. This is done automatically by
@@ -42,7 +42,7 @@ class LuaManager
   private:
 	lua_State* m_pLuaMain;
 	// Swallow up warnings. If they must be used, define them.
-	LuaManager& operator=(const LuaManager& rhs);
+	auto operator=(const LuaManager& rhs) -> LuaManager&;
 	LuaManager(const LuaManager& rhs);
 };
 
@@ -53,21 +53,21 @@ namespace LuaHelpers {
 /* Load the given script with the given name. On success, the resulting
  * chunk will be on the stack. On error, the error is stored in sError
  * and the stack is unchanged. */
-bool
+auto
 LoadScript(Lua* L,
 		   const std::string& sScript,
 		   const std::string& sName,
-		   std::string& sError);
+		   std::string& sError) -> bool;
 
 /* Report the error three ways:  Broadcast message, Warn, and Dialog. */
 /* If UseAbort is true, reports the error through Dialog::AbortRetryIgnore
 	 and returns the result. */
 /* If UseAbort is false, reports the error through Dialog::OK and returns
 	 Dialog::ok. */
-Dialog::Result
+auto
 ReportScriptError(std::string const& Error,
 				  std::string ErrorType = "LUA_ERROR",
-				  bool UseAbort = false);
+				  bool UseAbort = false) -> Dialog::Result;
 // Just the broadcast message part, for things that need to do the rest
 // differently.
 void
@@ -90,17 +90,17 @@ ReportScriptErrorFmt(std::string const& msg, Args const&... args)
  * when reporting.  The error is reported through LOG->Warn and
  * SCREENMAN->SystemMessage.
  */
-bool
+auto
 RunScriptOnStack(Lua* L,
 				 std::string& Error,
 				 int Args = 0,
 				 int ReturnValues = 0,
 				 bool ReportError = false,
-				 bool blank_env = false);
+				 bool blank_env = false) -> bool;
 
 /* LoadScript the given script, and RunScriptOnStack it.
  * iArgs arguments are at the top of the stack. */
-bool
+auto
 RunScript(Lua* L,
 		  const std::string& Script,
 		  const std::string& Name,
@@ -108,26 +108,26 @@ RunScript(Lua* L,
 		  int Args = 0,
 		  int ReturnValues = 0,
 		  bool ReportError = false,
-		  bool blank_env = false);
+		  bool blank_env = false) -> bool;
 
 /* Run the given expression, returning a single value, and leave the return
  * value on the stack.  On error, push nil. */
-bool
+auto
 RunExpression(Lua* L,
 			  const std::string& sExpression,
 			  const std::string& sName = "",
-			  bool blank_env = false);
+			  bool blank_env = false) -> bool;
 
-bool
-RunScriptFile(const std::string& sFile, bool blank_env = false);
+auto
+RunScriptFile(const std::string& sFile, bool blank_env = false) -> bool;
 
-bool
+auto
 run_script_file_in_state(lua_State* L,
 						 std::string const& filename,
 						 int return_values,
-						 bool blank_env);
-bool
-string_can_be_lua_identifier(lua_State* L, std::string const& str);
+						 bool blank_env) -> bool;
+auto
+string_can_be_lua_identifier(lua_State* L, std::string const& str) -> bool;
 void
 push_lua_escaped_string(lua_State* L, std::string const& str);
 // save_lua_table_to_file will only save bools, strings, and numbers.
@@ -167,8 +167,8 @@ ParseCommandList(lua_State* L,
 				 const std::string& sName,
 				 bool bLegacy);
 
-XNode*
-GetLuaInformation();
+auto
+GetLuaInformation() -> XNode*;
 
 /* Pops the last iArgs arguments from the stack, and return a function that
  * returns those values. */
@@ -180,16 +180,16 @@ void
 Push(lua_State* L, const T& Object);
 
 template<class T>
-bool
-FromStack(lua_State* L, T& Object, int iOffset);
+auto
+FromStack(lua_State* L, T& Object, int iOffset) -> bool;
 
 // Not using a template for the c style string: found it tricky to use.
-bool
-FromStack(lua_State* L, char const* Object, int iOffset);
+auto
+FromStack(lua_State* L, char const* Object, int iOffset) -> bool;
 
 template<class T>
-bool
-Pop(lua_State* L, T& val)
+auto
+Pop(lua_State* L, T& val) -> bool
 {
 	bool bRet = LuaHelpers::FromStack(L, val, -1);
 	lua_pop(L, 1);
@@ -221,16 +221,17 @@ CreateTableFromArray(const std::vector<T>& aIn, lua_State* L)
 	}
 }
 
-int
-TypeError(Lua* L, int narg, std::string const& tname);
-inline int
-AbsIndex(Lua* L, int i)
+auto
+TypeError(Lua* L, int narg, std::string const& tname) -> int;
+inline auto
+AbsIndex(Lua* L, int i) -> int
 {
-	if (i > 0 || i <= LUA_REGISTRYINDEX)
+	if (i > 0 || i <= LUA_REGISTRYINDEX) {
 		return i;
+	}
 	return lua_gettop(L) + i + 1;
 }
-}
+} // namespace LuaHelpers
 
 class LuaThreadVariable
 {
@@ -245,15 +246,15 @@ class LuaThreadVariable
 	LuaThreadVariable(const LuaThreadVariable& cpy); // not defined
 
 	void SetFromStack(lua_State* L);
-	int AdjustCount(lua_State* L, int iAdd);
-	static bool PushThreadTable(lua_State* L, bool bCreate);
-	static std::string GetCurrentThreadIDString();
+	auto AdjustCount(lua_State* L, int iAdd) -> int;
+	static auto PushThreadTable(lua_State* L, bool bCreate) -> bool;
+	static auto GetCurrentThreadIDString() -> std::string;
 
 	LuaReference* m_Name;
 	LuaReference* m_pOldValue;
 
 	// Swallow up warnings. If they must be used, define them.
-	LuaThreadVariable& operator=(const LuaThreadVariable& rhs);
+	auto operator=(const LuaThreadVariable& rhs) -> LuaThreadVariable&;
 };
 
 /**
@@ -276,12 +277,12 @@ class LuaThreadVariable
 #define FOREACH_LUATABLEI(L, index, i)                                         \
 	for (int SM_UNIQUE_NAME(tab) = LuaHelpers::AbsIndex(L, index),             \
 			 SM_UNIQUE_NAME(top) = lua_gettop(L),                              \
-			 i = 1;                                                            \
+			 (i) = 1;                                                          \
 		 lua_rawgeti(L, SM_UNIQUE_NAME(tab), i),                               \
 			 lua_isnil(L, -1)                                                  \
 			   ? (lua_pop(L, 1), false)                                        \
 			   : (true); /* if nil, pop the nil and stop traversal */          \
-		 lua_settop(L, SM_UNIQUE_NAME(top)), ++i)
+		 lua_settop(L, SM_UNIQUE_NAME(top)), ++(i))
 
 struct RegisterLuaFunction
 {
@@ -290,18 +291,18 @@ struct RegisterLuaFunction
 #define REGISTER_WITH_LUA_FUNCTION(Fn)                                         \
 	static RegisterLuaFunction register##Fn(Fn);
 
-inline bool
-MyLua_checkboolean(lua_State* L, int numArg)
+inline auto
+MyLua_checkboolean(lua_State* L, int numArg) -> bool
 {
 	luaL_checktype(L, numArg, LUA_TBOOLEAN);
-	return !!lua_toboolean(L, numArg);
+	return !(lua_toboolean(L, numArg) == 0);
 }
 
 /* BIArg is like BArg, except 1 is accepted as a true value and (as a special
  * case) 0 is accepted as a false value.  This is to help transitions where
  * "cmd,0" is used to mean "cmd,false". */
-inline bool
-MyLua_checkintboolean(lua_State* L, int iArg)
+inline auto
+MyLua_checkintboolean(lua_State* L, int iArg) -> bool
 {
 	luaL_checkany(L, iArg);
 	int iType = lua_type(L, iArg);
@@ -314,8 +315,8 @@ MyLua_checkintboolean(lua_State* L, int iArg)
 }
 
 // Checks the table at index to verify that it contains strings.
-inline bool
-TableContainsOnlyStrings(lua_State* L, int index)
+inline auto
+TableContainsOnlyStrings(lua_State* L, int index) -> bool
 {
 	bool passed = true;
 	lua_pushnil(L);
@@ -332,8 +333,8 @@ TableContainsOnlyStrings(lua_State* L, int index)
 	return passed;
 }
 
-LuaReference
-GetFuncArg(int n, lua_State* L);
+auto
+GetFuncArg(int n, lua_State* L) -> LuaReference;
 #define SArg(n) (luaL_checkstring(L, (n)))
 #define BIArg(n) (MyLua_checkintboolean(L, (n)))
 #define IArg(n) (luaL_checkint(L, (n)))
@@ -343,42 +344,43 @@ GetFuncArg(int n, lua_State* L);
 // SafeFArg is for places that need to get a number off the lua stack, but
 // can't risk an error being raised.  IArg and luaL_optnumber would both raise
 // an error on a type mismatch. -Kyz
-inline int
-SafeFArg(lua_State* L, int index, std::string const& err, int def)
+inline auto
+SafeFArg(lua_State* L, int index, std::string const& err, int def) -> int
 {
-	if (lua_isnumber(L, index)) {
+	if (lua_isnumber(L, index) != 0) {
 		return static_cast<int>(lua_tonumber(L, index));
 	}
 	LuaHelpers::ReportScriptError(err);
 	return def;
 }
 
-inline double
+inline auto
 get_optional_double(lua_State* L, int index, char const* field, double def)
+  -> double
 {
 	double ret = def;
 	lua_getfield(L, index, field);
-	if (lua_isnumber(L, -1)) {
+	if (lua_isnumber(L, -1) != 0) {
 		ret = static_cast<double>(lua_tonumber(L, -1));
 	}
 	lua_pop(L, 1);
 	return ret;
 }
 
-inline int
-get_optional_int(lua_State* L, int index, char const* field, int def)
+inline auto
+get_optional_int(lua_State* L, int index, char const* field, int def) -> int
 {
 	int ret = def;
 	lua_getfield(L, index, field);
-	if (lua_isnumber(L, -1)) {
+	if (lua_isnumber(L, -1) != 0) {
 		ret = static_cast<int>(lua_tonumber(L, -1));
 	}
 	lua_pop(L, 1);
 	return ret;
 }
 
-inline bool
-get_optional_bool(lua_State* L, int index, char const* field)
+inline auto
+get_optional_bool(lua_State* L, int index, char const* field) -> bool
 {
 	lua_getfield(L, index, field);
 	bool ret = lua_toboolean(L, -1) == 1;
@@ -386,12 +388,12 @@ get_optional_bool(lua_State* L, int index, char const* field)
 	return ret;
 }
 
-inline bool
-value_is_in_table(lua_State* L, int value_index, int table_index)
+inline auto
+value_is_in_table(lua_State* L, int value_index, int table_index) -> bool
 {
 	lua_pushnil(L);
 	while (lua_next(L, table_index) != 0) {
-		if (lua_equal(L, value_index, -1)) {
+		if (lua_equal(L, value_index, -1) != 0) {
 			lua_pop(L, 2);
 			return true;
 		}

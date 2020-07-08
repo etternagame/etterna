@@ -18,9 +18,7 @@
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include <cerrno>
-#include <chrono>
-#include <cmath>
+
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
@@ -29,10 +27,9 @@ using namespace rapidjson;
 
 NetworkSyncManager* NSMAN;
 
-// Aldo: version_num used by GetCurrentSMVersion()
-// XXX: That's probably not what you want... --rootc
-
-#include "ver.h"
+#include <cerrno>
+#include <chrono>
+#include <cmath>
 
 // Maps to associate the strings with the enum values
 std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
@@ -143,7 +140,6 @@ correct_non_utf_8(string* str)
 			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
-					;
 				} else {
 					to.append(1, c);
 					to.append(1, c2);
@@ -198,7 +194,7 @@ static LocalizedString INITIALIZING_CLIENT_NETWORK(
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
 	NSMAN = this;
-	LANserver = NULL; // So we know if it has been created yet
+	LANserver = nullptr; // So we know if it has been created yet
 	useSMserver = false;
 	isSMOnline = false;
 	loggedIn = false;
@@ -544,17 +540,18 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			client->set_message_handler(msgHandler);
 			client->set_open_handler(openHandler);
 			client->set_close_handler(closeHandler);
-		} catch (exception& e) {
+		} catch (std::exception& e) {
 			LOG->Warn(
 			  "Failed to initialize ettp connection due to exception: %s",
 			  e.what());
 		}
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
-		wss_client::connection_ptr con = client->get_connection(
-		  ((prepend ? "wss://" + address : address) + ":" + to_string(port))
-			.c_str(),
-		  ec);
+		wss_client::connection_ptr con =
+		  client->get_connection(((prepend ? "wss://" + address : address) +
+								  ":" + std::to_string(port))
+								   .c_str(),
+								 ec);
 		if (ec) {
 			LOG->Trace("Could not create ettp connection because: %s",
 					   ec.message().c_str());
@@ -582,7 +579,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			client->set_open_handler(openHandler);
 			client->set_fail_handler(failHandler);
 			client->set_close_handler(closeHandler);
-		} catch (exception& e) {
+		} catch (std::exception& e) {
 			LOG->Warn(
 			  "Failed to initialize ettp connection due to exception: %s",
 			  e.what());
@@ -591,7 +588,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
 		ws_client::connection_ptr con = client->get_connection(
-		  ((prepend ? "ws://" + address : address) + ":" + to_string(port))
+		  ((prepend ? "ws://" + address : address) + ":" + std::to_string(port))
 			.c_str(),
 		  ec);
 		if (ec) {
@@ -1140,7 +1137,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							std::string SMOnlineSelectScreen = THEME->GetMetric(
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
-						} catch (exception e) {
+						} catch (std::exception e) {
 							LOG->Trace("Error while parsing ettp json enter "
 									   "room response: %s",
 									   e.what());
@@ -1287,7 +1284,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
 			}
-		} catch (exception e) {
+		} catch (std::exception e) {
 			LOG->Trace("Error while parsing ettp json message: %s", e.what());
 		}
 	}
@@ -2021,7 +2018,6 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 		lua_rawseti(L, -2, i);
 		i++;
 	}
-	return;
 }
 
 static bool

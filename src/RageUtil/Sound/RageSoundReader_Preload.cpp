@@ -7,6 +7,8 @@
 #include "RageSoundUtil.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
 /* If true, preloaded sounds are stored in 16-bit instead of floats.  Most
  * processing happens after preloading, and it's usually a waste to store high-
  * resolution data for sound effects. */
@@ -145,7 +147,7 @@ RageSoundReader_Preload::Read(float* pBuffer, int iFrames)
 	const int iSizeFrames = m_Buffer->size() / framesize;
 	const int iFramesAvail = iSizeFrames - m_iPosition;
 
-	iFrames = min(iFrames, iFramesAvail);
+	iFrames = std::min(iFrames, iFramesAvail);
 	if (iFrames == 0)
 		return END_OF_FILE;
 	if (m_bBufferIs16Bit) {

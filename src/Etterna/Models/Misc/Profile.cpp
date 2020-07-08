@@ -19,10 +19,12 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/Game.h"
-#include <algorithm>
 #include "Etterna/Models/Misc/XMLProfile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/DownloadManager.h"
+
+#include <algorithm>
+#include <map>
 
 /** @brief The filename for where one can edit their personal profile
  * information. */
@@ -37,16 +39,6 @@ const std::string EDIT_STEPS_SUBDIR = "Edits/";
 const std::string RIVAL_SUBDIR = "Rivals/";
 
 #define GUID_SIZE_BYTES 8
-
-#define MAX_EDITABLE_INI_SIZE_BYTES (2 * 1024) // 2KB
-#define MAX_PLAYER_STATS_XML_SIZE_BYTES                                        \
-	(400	 /* Songs */                                                       \
-	 * 5	 /* Steps per Song */                                              \
-	 * 5	 /* HighScores per Steps */                                        \
-	 * 1024) /* size in bytes of a HighScores XNode */
-
-const int DEFAULT_WEIGHT_POUNDS = 120;
-const float DEFAULT_BIRTH_YEAR = 1995;
 
 #if defined(_MSC_VER)
 #pragma warning(disable : 4706) // assignment within conditional expression
@@ -63,7 +55,7 @@ void
 Profile::ClearStats()
 {
 	// don't reset the Guid
-	std::string sGuid = m_sGuid;
+	const auto sGuid = m_sGuid;
 	InitAll();
 	m_sGuid = sGuid;
 }
@@ -71,12 +63,12 @@ Profile::ClearStats()
 std::string
 Profile::MakeGuid()
 {
-	string s;
+	std::string s;
 	s.reserve(GUID_SIZE_BYTES * 2);
 	unsigned char buf[GUID_SIZE_BYTES];
 	CryptManager::GetRandomBytes(buf, GUID_SIZE_BYTES);
-	for (unsigned i = 0; i < GUID_SIZE_BYTES; i++)
-		s += ssprintf("%02x", buf[i]);
+	for (auto i : buf)
+		s += ssprintf("%02x", i);
 	return s;
 }
 
@@ -113,8 +105,8 @@ Profile::InitGeneralData()
 	m_iNumSongsPlayedByStyle.clear();
 	FOREACH_ENUM(Difficulty, i)
 	m_iNumSongsPlayedByDifficulty[i] = 0;
-	for (int i = 0; i < MAX_METER + 1; i++)
-		m_iNumSongsPlayedByMeter[i] = 0;
+	for (auto& i : m_iNumSongsPlayedByMeter)
+		i = 0;
 	m_iNumTotalSongsPlayed = 0;
 	ZERO(m_iNumStagesPassedByPlayMode);
 	ZERO(m_iNumStagesPassedByGrade);
@@ -134,10 +126,9 @@ Profile::GetDisplayNameOrHighScoreName() const
 {
 	if (!m_sDisplayName.empty())
 		return m_sDisplayName;
-	else if (!m_sLastUsedHighScoreName.empty())
+	if (!m_sLastUsedHighScoreName.empty())
 		return m_sLastUsedHighScoreName;
-	else
-		return std::string();
+	return std::string();
 }
 
 /*
@@ -154,7 +145,7 @@ bool
 Profile::GetDefaultModifiers(const Game* pGameType,
 							 std::string& sModifiersOut) const
 {
-	map<std::string, std::string>::const_iterator it;
+	std::map<std::string, std::string>::const_iterator it;
 	it = m_sDefaultModifiers.find(pGameType->m_szName);
 	if (it == m_sDefaultModifiers.end())
 		return false;
@@ -166,38 +157,21 @@ void
 Profile::SetDefaultModifiers(const Game* pGameType,
 							 const std::string& sModifiers)
 {
-	if (sModifiers == "")
+	if (sModifiers.empty())
 		m_sDefaultModifiers.erase(pGameType->m_szName);
 	else
 		m_sDefaultModifiers[pGameType->m_szName] = sModifiers;
 }
 
-Grade
-Profile::GetBestGrade(const Song* pSong, StepsType st) const
+auto
+Profile::GetBestGrade(const Song* song, const StepsType st) const -> Grade
 {
-	Grade gradeBest = Grade_Invalid;
-	if (pSong != nullptr) {
-		bool hasCurrentStyleSteps = false;
-		FOREACH_ENUM_N(Difficulty, 6, i)
-		{
-			Steps* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
-			if (pSteps != NULL) {
-				hasCurrentStyleSteps = true;
-				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-				if (gradeBest >= dcg) {
-					gradeBest = dcg;
-				}
-			}
-		}
-		// If no grade was found for the current style/stepstype
-		if (!hasCurrentStyleSteps) {
-			// Get the best grade among all steps
-			auto& allSteps = pSong->GetAllSteps();
-			for (auto& stepsPtr : allSteps) {
-				if (stepsPtr->m_StepsType ==
-					st) // Skip already checked steps of type st
-					continue;
-				Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+	auto gradeBest = Grade_Invalid;
+	if (song != nullptr) {
+		for (const auto& s : song->GetAllSteps()) {
+			if (s != nullptr && s->m_StepsType == st) {
+				const auto dcg =
+				  SCOREMAN->GetBestGradeFor(s->GetChartKey(), m_sProfileID);
 				if (gradeBest >= dcg) {
 					gradeBest = dcg;
 				}
@@ -206,6 +180,25 @@ Profile::GetBestGrade(const Song* pSong, StepsType st) const
 	}
 
 	return gradeBest;
+}
+
+auto
+Profile::GetBestWifeScore(const Song* song, const StepsType st) const -> float
+{
+	auto scorebest = 0.F;
+	if (song != nullptr) {
+		for (const auto& s : song->GetAllSteps()) {
+			if (s != nullptr && s->m_StepsType == st) {
+				const auto wsb =
+				  SCOREMAN->GetBestWifeScoreFor(s->GetChartKey(), m_sProfileID);
+				if (wsb >= scorebest) {
+					scorebest = wsb;
+				}
+			}
+		}
+	}
+
+	return scorebest;
 }
 
 void
@@ -264,8 +257,8 @@ Profile::LoadCustomFunction(const std::string& sDir)
 	 *   [Profile]
 	 *   CustomLoadFunction=function(profile, profileDir) ... end
 	 */
-	Lua* L = LUA->Get();
-	LuaReference customLoadFunc =
+	auto* L = LUA->Get();
+	const auto customLoadFunc =
 	  THEME->GetMetricR("Profile", "CustomLoadFunction");
 	customLoadFunc.PushSelf(L);
 	ASSERT_M(!lua_isnil(L, -1), "CustomLoadFunction not defined");
@@ -287,22 +280,22 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	// Temp variables to preserve stuff across the reload.
 	// Some stuff intentionally left out because the original reason for the
 	// stats prefix was to allow scores from different game types to coexist.
-	std::string display_name = m_sDisplayName;
-	std::string last_high_score_name = m_sLastUsedHighScoreName;
-	int priority = m_ListPriority;
-	std::string guid = m_sGuid;
-	map<std::string, std::string> default_mods = m_sDefaultModifiers;
-	SortOrder sort_order = m_SortOrder;
-	Difficulty last_diff = m_LastDifficulty;
-	StepsType last_stepstype = m_LastStepsType;
-	SongID last_song = m_lastSong;
-	int total_sessions = m_iTotalSessions;
-	int total_session_seconds = m_iTotalSessionSeconds;
-	int total_gameplay_seconds = m_iTotalGameplaySeconds;
-	LuaTable user_table = m_UserTable;
-	bool need_to_create_file = false;
+	const auto display_name = m_sDisplayName;
+	const auto last_high_score_name = m_sLastUsedHighScoreName;
+	const auto priority = m_ListPriority;
+	const auto guid = m_sGuid;
+	const auto default_mods = m_sDefaultModifiers;
+	const auto sort_order = m_SortOrder;
+	const auto last_diff = m_LastDifficulty;
+	const auto last_stepstype = m_LastStepsType;
+	const auto last_song = m_lastSong;
+	const auto total_sessions = m_iTotalSessions;
+	const auto total_session_seconds = m_iTotalSessionSeconds;
+	const auto total_gameplay_seconds = m_iTotalGameplaySeconds;
+	const auto user_table = m_UserTable;
+	auto need_to_create_file = false;
 	if (IsAFile(dir + PROFILEMAN->GetStatsPrefix() + ETT_XML)) {
-		LoadAllFromDir(dir, require_signature, NULL);
+		LoadAllFromDir(dir, require_signature, nullptr);
 	} else {
 		ClearStats();
 		need_to_create_file = true;
@@ -339,7 +332,7 @@ Profile::LoadAllFromDir(const std::string& sDir,
 	LoadTypeFromDir(sDir);
 	DBProf.SetLoadingProfile(this);
 	XMLProf.SetLoadingProfile(this);
-	ProfileLoadResult ret = XMLProf.LoadEttFromDir(sDir);
+	const auto ret = XMLProf.LoadEttFromDir(sDir);
 	if (ret != ProfileLoadResult_Success)
 		return ret;
 
@@ -355,12 +348,12 @@ void
 Profile::LoadTypeFromDir(const std::string& dir)
 {
 	m_ListPriority = 0;
-	std::string fn = dir + TYPE_INI;
+	const auto fn = dir + TYPE_INI;
 	if (FILEMAN->DoesFileExist(fn)) {
 		IniFile ini;
 		if (ini.ReadFile(fn)) {
 			XNode const* data = ini.GetChild("ListPosition");
-			if (data != NULL) {
+			if (data != nullptr) {
 				data->GetAttrValue("Priority", m_ListPriority);
 			}
 		}
@@ -371,14 +364,13 @@ void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
 	LOG->Trace("Calculating stats from scores");
-	const vector<HighScore*>& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
-	float TotalGameplaySeconds = 0.f;
+	const auto& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
+	auto TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalHolds = 0;
 	m_iTotalMines = 0;
 
-	for (size_t i = 0; i < all.size(); ++i) {
-		HighScore* hs = all[i];
+	for (auto* hs : all) {
 		TotalGameplaySeconds += hs->GetSurvivalSeconds();
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
@@ -393,7 +385,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
+	SCOREMAN->RecalculateSSRs(ld);
 	SCOREMAN->CalcPlayerRating(
 	  m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 }
@@ -415,7 +407,7 @@ Profile::SaveAllToDir(const std::string& sDir, bool bSignData) const
 
 	GAMESTATE->SaveCurrentSettingsToProfile(PLAYER_1);
 
-	bool bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
+	const auto bSaved = XMLProf.SaveEttXmlToDir(sDir, this);
 	SaveStatsWebPageToDir(sDir);
 
 	// Empty directories if none exist.
@@ -446,16 +438,10 @@ Profile::SaveEditableDataToDir(const std::string& sDir) const
 ProfileLoadResult
 Profile::LoadEditableDataFromDir(const std::string& sDir)
 {
-	std::string fn = sDir + EDITABLE_INI;
+	const auto fn = sDir + EDITABLE_INI;
 
 	// Don't load unreasonably large editable.xml files.
-	int iBytes = FILEMAN->GetFileSizeInBytes(fn);
-	if (iBytes > MAX_EDITABLE_INI_SIZE_BYTES) {
-		LuaHelpers::ReportScriptErrorFmt(
-		  "The file '%s' is unreasonably large. It won't be loaded.",
-		  fn.c_str());
-		return ProfileLoadResult_FailedTampered;
-	}
+	auto iBytes = FILEMAN->GetFileSizeInBytes(fn);
 
 	if (!IsAFile(fn))
 		return ProfileLoadResult_FailedNoProfile;
@@ -467,7 +453,7 @@ Profile::LoadEditableDataFromDir(const std::string& sDir)
 	ini.GetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	// This is data that the user can change, so we have to validate it.
-	wstring wstr = RStringToWstring(m_sDisplayName);
+	auto wstr = RStringToWstring(m_sDisplayName);
 	if (wstr.size() > PROFILE_MAX_DISPLAY_NAME_LENGTH)
 		wstr = wstr.substr(0, PROFILE_MAX_DISPLAY_NAME_LENGTH);
 	m_sDisplayName = WStringToRString(wstr);
@@ -546,7 +532,7 @@ Profile::FillGoalTable()
 XNode*
 ScoreGoal::CreateNode() const
 {
-	XNode* pNode = new XNode("ScoreGoal");
+	auto* pNode = new XNode("ScoreGoal");
 
 	pNode->AppendChild("Rate", rate);
 	pNode->AppendChild("Percent", percent);
@@ -597,7 +583,7 @@ ScoreGoal::GetPBUpTo() const
 void
 ScoreGoal::CheckVacuity()
 {
-	auto pb = SCOREMAN->GetChartPBAt(chartkey, rate);
+	auto* const pb = SCOREMAN->GetChartPBAt(chartkey, rate);
 
 	if (pb && pb->GetWifeScore() >= percent)
 		vacuous = true;
@@ -608,7 +594,7 @@ ScoreGoal::CheckVacuity()
 void
 ScoreGoal::UploadIfNotVacuous()
 {
-	if (!vacuous || timeachieved.GetString() != "")
+	if (!vacuous || !timeachieved.GetString().empty())
 		DLMAN->UpdateGoal(
 		  chartkey, percent, rate, achieved, timeassigned, timeachieved);
 }
@@ -618,10 +604,10 @@ ScoreGoal&
 Profile::GetLowestGoalForRate(const string& ck, float rate)
 {
 	auto& sgv = goalmap[ck].Get();
-	float lowest = 100.f;
-	int lowestidx = 0;
+	auto lowest = 100.f;
+	auto lowestidx = 0;
 	for (size_t i = 0; i < sgv.size(); ++i) {
-		ScoreGoal& tmp = sgv[i];
+		auto& tmp = sgv[i];
 		if (tmp.rate == rate) {
 			if (tmp.percent > lowest) {
 				lowest = tmp.percent;
@@ -643,8 +629,7 @@ Profile::SetAnyAchievedGoals(const string& ck,
 		return;
 
 	auto& sgv = goalmap[ck].Get();
-	for (size_t i = 0; i < sgv.size(); ++i) {
-		ScoreGoal& tmp = sgv[i];
+	for (auto& tmp : sgv) {
 		if (lround(tmp.rate * 10000.f) == lround(rate * 10000.f) &&
 			!tmp.achieved && tmp.percent < pscore.GetWifeScore()) {
 			tmp.achieved = true;
@@ -675,7 +660,7 @@ Profile::RemoveGoal(const string& ck, DateTime assigned)
 void
 Profile::SaveStatsWebPageToDir(const std::string& sDir) const
 {
-	ASSERT(PROFILEMAN != NULL);
+	ASSERT(PROFILEMAN != nullptr);
 }
 
 void
@@ -713,7 +698,7 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
-	int iIndex = 0;
+	auto iIndex = 0;
 
 	for (int i = files.size() - 1; i >= 0; --i) {
 		static Regex re("^" + sFileNameBeginning + "([0-9]{5})\\....$");
@@ -745,8 +730,8 @@ class LunaProfile : public Luna<Profile>
   public:
 	static int AddScreenshot(T* p, lua_State* L)
 	{
-		HighScore* hs = Luna<HighScore>::check(L, 1);
-		std::string filename = SArg(2);
+		auto* hs = Luna<HighScore>::check(L, 1);
+		const std::string filename = SArg(2);
 		Screenshot screenshot;
 		screenshot.sFileName = filename;
 		screenshot.sMD5 = BinaryToHex(CRYPTMAN->GetMD5ForFile(filename));
@@ -842,7 +827,7 @@ class LunaProfile : public Luna<Profile>
 	static int GetSongNumTimesPlayed(T* p, lua_State* L)
 	{
 		ASSERT(!lua_isnil(L, 1));
-		Song* pS = Luna<Song>::check(L, 1);
+		auto* pS = Luna<Song>::check(L, 1);
 		lua_pushnumber(L, 0);
 		return 1;
 	}
@@ -850,7 +835,7 @@ class LunaProfile : public Luna<Profile>
 	static int HasPassedAnyStepsInSong(T* p, lua_State* L)
 	{
 		ASSERT(!lua_isnil(L, 1));
-		Song* pS = Luna<Song>::check(L, 1);
+		auto* pS = Luna<Song>::check(L, 1);
 		lua_pushboolean(L, false);
 		return 1;
 	}
@@ -907,7 +892,7 @@ class LunaProfile : public Luna<Profile>
 	}
 	static int GetLastPlayedSong(T* p, lua_State* L)
 	{
-		Song* pS = p->m_lastSong.ToSong();
+		auto* pS = p->m_lastSong.ToSong();
 		if (pS != nullptr)
 			pS->PushSelf(L);
 		else
@@ -916,7 +901,7 @@ class LunaProfile : public Luna<Profile>
 	}
 	static int GetPlayerSkillsetRating(T* p, lua_State* L)
 	{
-		Skillset ss = Enum::Check<Skillset>(L, 1);
+		const auto ss = Enum::Check<Skillset>(L, 1);
 		lua_pushnumber(L, p->m_fPlayerSkillsets[ss]);
 		return 1;
 	}
@@ -1093,10 +1078,10 @@ class LunaProfile : public Luna<Profile>
 
 	static int IsCurrentChartPermamirror(T* p, lua_State* L)
 	{
-		bool o = false;
+		auto o = false;
 
 		if (GAMESTATE->m_pCurSteps) {
-			const string& ck = GAMESTATE->m_pCurSteps->GetChartKey();
+			const auto& ck = GAMESTATE->m_pCurSteps->GetChartKey();
 
 			if (p->PermaMirrorCharts.count(ck))
 				o = true;
@@ -1109,15 +1094,15 @@ class LunaProfile : public Luna<Profile>
 	// ok i should probably handle this better -mina
 	static int GetEasiestGoalForChartAndRate(T* p, lua_State* L)
 	{
-		string ck = SArg(1);
+		const string ck = SArg(1);
 		if (!p->goalmap.count(ck)) {
 			lua_pushnil(L);
 			return 1;
 		}
 
 		auto& sgv = p->goalmap[ck].goals;
-		bool herp = false;
-		int ez = 0;
+		auto herp = false;
+		auto ez = 0;
 		for (size_t i = 0; i < sgv.size(); ++i)
 			if (lround(sgv[i].rate * 10000.f) == lround(FArg(2) * 10000.f) &&
 				!sgv[i].achieved && sgv[i].percent <= sgv[ez].percent) {
@@ -1136,7 +1121,7 @@ class LunaProfile : public Luna<Profile>
 		p->m_sDisplayName = SArg(1);
 		// roundabout way to force id to be a dir
 		// sometimes its a dir and sometimes it a number
-		std::string dir =
+		const auto dir =
 		  "/Save/LocalProfiles/" + Basename(p->m_sProfileID) + "/";
 		p->SaveEditableDataToDir(dir);
 		return 1;
@@ -1233,7 +1218,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int SetRate(T* p, lua_State* L)
 	{
 		if (!p->achieved) {
-			float newrate = FArg(1);
+			auto newrate = FArg(1);
 			CLAMP(newrate, 0.7f, 3.0f);
 			p->rate = newrate;
 			p->CheckVacuity();
@@ -1245,7 +1230,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int SetPercent(T* p, lua_State* L)
 	{
 		if (!p->achieved) {
-			float newpercent = FArg(1);
+			auto newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
 
 			if (p->percent < 0.995f && newpercent > 0.995f)
@@ -1263,7 +1248,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	static int SetPriority(T* p, lua_State* L)
 	{
 		if (!p->achieved) {
-			int newpriority = IArg(1);
+			auto newpriority = IArg(1);
 			CLAMP(newpriority, 0, 100);
 			p->priority = newpriority;
 			p->UploadIfNotVacuous();

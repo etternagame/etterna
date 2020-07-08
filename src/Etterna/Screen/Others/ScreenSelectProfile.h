@@ -15,7 +15,7 @@ class ScreenSelectProfile : public ScreenWithMenuElements
 	bool MenuRight(const InputEventPlus& input) override;
 	bool MenuUp(const InputEventPlus& input) override;
 	bool MenuDown(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
 	GameButton m_TrackingRepeatingInput;
 

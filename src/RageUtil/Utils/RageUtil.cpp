@@ -8,6 +8,7 @@
 #include "RageUtil.h"
 #include "RageUtil/Misc/RageUnicode.h"
 
+#include <algorithm>
 #include <ctime>
 #include <map>
 #include <numeric>
@@ -19,7 +20,10 @@
 #include <Windows.h>
 #endif
 
+using std::max;
+using std::min;
 using std::vector;
+using std::wstring;
 
 std::string
 head(std::string const& source, int32_t const length)
@@ -61,7 +65,6 @@ ends_with(std::string const& source, std::string const& target)
 
 /* Stuff taken from ragestring.cpp where they already got rid of rstring
  * apparently /shrug */
-
 void
 s_replace(std::string& target, std::string const& from, std::string const& to)
 {
@@ -179,72 +182,6 @@ HexToBinary(const std::string&, std::string&);
 void
 UnicodeUpperLower(wchar_t*, size_t, const unsigned char*);
 
-RandomGen g_RandomNumberGenerator;
-
-/* Extend MersenneTwister into Lua space. This is intended to replace
- * math.randomseed and math.random, so we conform to their behavior. */
-
-namespace {
-RandomGen g_LuaPRNG;
-
-/* To map from [0..2^32-1] to [0..1), we divide by 2^32. */
-const double DIVISOR = 4294967296.0;
-
-static int
-Seed(lua_State* L)
-{
-	g_LuaPRNG.seed(IArg(1));
-	return 0;
-}
-
-static int
-Random(lua_State* L)
-{
-	switch (lua_gettop(L)) {
-		/* [0..1) */
-		case 0: {
-			const auto r = static_cast<double>(g_LuaPRNG()) / DIVISOR;
-			lua_pushnumber(L, r);
-			return 1;
-		}
-
-		/* [1..u] */
-		case 1: {
-			const auto upper = IArg(1);
-			luaL_argcheck(L, 1 <= upper, 1, "interval is empty");
-			lua_pushnumber(L, random_up_to(g_LuaPRNG, upper) + 1);
-			return 1;
-		}
-		/* [l..u] */
-		case 2: {
-			const auto lower = IArg(1);
-			const auto upper = IArg(2);
-			luaL_argcheck(L, lower < upper, 2, "interval is empty");
-			lua_pushnumber(L,
-						   random_up_to(g_LuaPRNG, upper - lower + 1) + lower);
-			return 1;
-		}
-
-		/* wrong amount of arguments */
-		default: {
-			return luaL_error(L, "wrong number of arguments");
-		}
-	}
-}
-
-const luaL_Reg MersenneTwisterTable[] = { LIST_METHOD(Seed),
-										  LIST_METHOD(Random),
-										  { nullptr, nullptr } };
-} // namespace
-
-LUA_REGISTER_NAMESPACE(MersenneTwister);
-
-void
-seed_lua_prng()
-{
-	g_LuaPRNG.seed(static_cast<unsigned int>(time(nullptr)));
-}
-
 void
 fapproach(float& val, float other_val, float to_move)
 {
@@ -257,55 +194,6 @@ fapproach(float& val, float other_val, float to_move)
 	if (fabsf(fToMove) > fabsf(fDelta))
 		fToMove = fDelta; // snap
 	val += fToMove;
-}
-
-/* Return a positive x mod y. */
-float
-fmodfp(float x, float y)
-{
-	x = fmodf(x, y); /* x is [-y,y] */
-	x += y;			 /* x is [0,y*2] */
-	x = fmodf(x, y); /* x is [0,y] */
-	return x;
-}
-
-int
-power_of_two(int input)
-{
-	auto exp = 31, i = input;
-	if (i >> 16 != 0)
-		i >>= 16;
-	else
-		exp -= 16;
-	if (i >> 8 != 0)
-		i >>= 8;
-	else
-		exp -= 8;
-	if (i >> 4 != 0)
-		i >>= 4;
-	else
-		exp -= 4;
-	if (i >> 2 != 0)
-		i >>= 2;
-	else
-		exp -= 2;
-	if (i >> 1 == 0)
-		exp -= 1;
-	const auto value = 1 << exp;
-	return input == value ? value : value << 1;
-}
-
-bool
-IsAnInt(const std::string& s)
-{
-	if (s.empty())
-		return false;
-
-	for (auto i : s)
-		if (i < '0' || i > '9')
-			return false;
-
-	return true;
 }
 
 bool
@@ -434,10 +322,10 @@ Commify(const std::string& num, const std::string& sep, const std::string& dot)
 	auto num_end = num.size();
 	const auto dot_pos = num.find(dot);
 	const auto dash_pos = num.find('-');
-	if (dot_pos != string::npos) {
+	if (dot_pos != std::string::npos) {
 		num_end = dot_pos;
 	}
-	if (dash_pos != string::npos) {
+	if (dash_pos != std::string::npos) {
 		num_start = dash_pos + 1;
 	}
 	const auto num_size = num_end - num_start;
@@ -531,7 +419,7 @@ FillCharBuffer(char** eBuf, const char* szFormat, va_list argList)
 			if (_resetstkoflw())
 				sm_crash("Unrecoverable Stack Overflow");
 		}
-		iUsed = vsnprintf(pBuf, iChars - 1, szFormat, argList);
+		iUsed = _vsnprintf(pBuf, iChars - 1, szFormat, argList);
 		++iTry;
 	} while (iUsed < 0);
 
@@ -1320,13 +1208,13 @@ DirectoryIsEmpty(const std::string& sDir)
 bool
 CompareRStringsAsc(const std::string& a, const std::string& b)
 {
-	return make_lower(a).c_str() > make_lower(b).c_str();
+	return CompareNoCase(a, b) > 0;
 }
 
 bool
 CompareRStringsDesc(const std::string& a, const std::string& b)
 {
-	return make_lower(a).c_str() < make_lower(b).c_str();
+	return CompareNoCase(b, a) > 0;
 }
 
 void
@@ -1340,7 +1228,7 @@ SortRStringArray(vector<std::string>& arrayRStrings, const bool bSortAscending)
 float
 calc_mean(const float* pStart, const float* pEnd)
 {
-	return accumulate(pStart, pEnd, 0.f) / distance(pStart, pEnd);
+	return std::accumulate(pStart, pEnd, 0.f) / std::distance(pStart, pEnd);
 }
 
 float
@@ -1353,7 +1241,7 @@ calc_stddev(const float* pStart, const float* pEnd, bool bSample)
 	auto fDev = 0.0f;
 	for (const auto* i = pStart; i != pEnd; ++i)
 		fDev += (*i - fMean) * (*i - fMean);
-	fDev /= distance(pStart, pEnd) - (bSample ? 1 : 0);
+	fDev /= std::distance(pStart, pEnd) - (bSample ? 1 : 0);
 	fDev = sqrtf(fDev);
 
 	return fDev;
@@ -1590,7 +1478,7 @@ Regex::operator=(const Regex& rhs)
 }
 
 Regex&
-Regex::operator=(Regex&& rhs)
+Regex::operator=(Regex&& rhs) noexcept
 {
 	std::swap(m_iBackrefs, rhs.m_iBackrefs);
 	std::swap(m_pReg, rhs.m_pReg);
@@ -1926,14 +1814,14 @@ int
 StringToInt(const std::string& sString)
 {
 	int ret;
-	istringstream(sString) >> ret;
+	std::istringstream(sString) >> ret;
 	return ret;
 }
 
 std::string
 IntToString(const int& iNum)
 {
-	stringstream ss;
+	std::stringstream ss;
 	ss << iNum;
 	return ss.str();
 }
@@ -1943,7 +1831,7 @@ StringToFloat(const std::string& sString)
 {
 	auto ret = strtof(sString.c_str(), nullptr);
 
-	if (!isfinite(ret))
+	if (!std::isfinite(ret))
 		ret = 0.0f;
 	return ret;
 }
@@ -1954,13 +1842,13 @@ StringToFloat(const std::string& sString, float& fOut)
 	char* endPtr;
 
 	fOut = strtof(sString.c_str(), &endPtr);
-	return !sString.empty() && *endPtr == '\0' && isfinite(fOut);
+	return !sString.empty() && *endPtr == '\0' && std::isfinite(fOut);
 }
 
 std::string
 FloatToString(const float& num)
 {
-	stringstream ss;
+	std::stringstream ss;
 	ss << num;
 	return ss.str();
 }
@@ -2011,7 +1899,8 @@ WcharToUTF8(wchar_t c)
 
 // &a; -> a
 void
-ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
+ReplaceEntityText(std::string& sText,
+				  const std::map<std::string, std::string>& m)
 {
 	std::string sRet;
 
@@ -2062,7 +1951,7 @@ ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m)
 
 // abcd -> &a; &b; &c; &d;
 void
-ReplaceEntityText(std::string& sText, const map<char, std::string>& m)
+ReplaceEntityText(std::string& sText, const std::map<char, std::string>& m)
 {
 	std::string sFind;
 
@@ -2393,7 +2282,7 @@ FromString<float>(const std::string& sValue, float& out)
 {
 	const auto* endptr = sValue.data() + sValue.size();
 	out = strtof(sValue.c_str(), (char**)&endptr);
-	if (endptr != sValue.data() && isfinite(out))
+	if (endptr != sValue.data() && std::isfinite(out))
 		return true;
 	out = 0;
 	return false;

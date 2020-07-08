@@ -15,9 +15,9 @@ class SongAndSteps
 {
   public:
 	/** @brief the Song we're using. */
-	Song* pSong{ NULL };
+	Song* pSong{ nullptr };
 	/** @brief the Steps we're using. */
-	Steps* pSteps{ NULL };
+	Steps* pSteps{ nullptr };
 	/** @brief Set up a blank Song and
 	 * <a class="el" href="class_steps.html">Step</a>. */
 	SongAndSteps() = default;
@@ -36,7 +36,7 @@ class SongAndSteps
 	 * @param other the other set of SongAndSteps.
 	 * @return true if the two sets of Songs and Steps are equal, false
 	 * otherwise. */
-	bool operator==(const SongAndSteps& other) const
+	auto operator==(const SongAndSteps& other) const -> bool
 	{
 		return pSong == other.pSong && pSteps == other.pSteps;
 	}
@@ -45,27 +45,30 @@ class SongAndSteps
 	 * @param other the other set of SongAndSteps.
 	 * @return true if the two sets of Songs and Steps are not equal, false
 	 * otherwise. */
-	bool operator<(const SongAndSteps& other) const
+	auto operator<(const SongAndSteps& other) const -> bool
 	{
-		if (pSong != other.pSong)
+		if (pSong != other.pSong) {
 			return pSong < other.pSong;
+		}
 		return pSteps < other.pSteps;
 	}
 };
 
 /** @brief Utility functions for working with Steps. */
 namespace StepsUtil {
-bool
-CompareNotesPointersByRadarValues(const Steps* pSteps1, const Steps* pSteps2);
-bool
-CompareNotesPointersByMeter(const Steps* pSteps1, const Steps* pSteps2);
-bool
-CompareNotesPointersByDifficulty(const Steps* pSteps1, const Steps* pSteps2);
+auto
+CompareNotesPointersByRadarValues(const Steps* pSteps1, const Steps* pSteps2)
+  -> bool;
+auto
+CompareNotesPointersByMeter(const Steps* pSteps1, const Steps* pSteps2) -> bool;
+auto
+CompareNotesPointersByDifficulty(const Steps* pSteps1, const Steps* pSteps2)
+  -> bool;
 void
 SortNotesArrayByDifficulty(vector<Steps*>& vpStepsInOut);
-bool
+auto
 CompareStepsPointersByTypeAndDifficulty(const Steps* pStep1,
-										const Steps* pStep2);
+										const Steps* pStep2) -> bool;
 void
 SortStepsByTypeAndDifficulty(vector<Steps*>& vpStepsInOut);
 void
@@ -76,11 +79,12 @@ void
 SortStepsPointerArrayByNumPlays(vector<Steps*>& vpStepsInOut,
 								const Profile* pProfile,
 								bool bDescending);
-bool
-CompareStepsPointersByDescription(const Steps* pStep1, const Steps* pStep2);
+auto
+CompareStepsPointersByDescription(const Steps* pStep1, const Steps* pStep2)
+  -> bool;
 void
 SortStepsByDescription(vector<Steps*>& vpStepsInOut);
-};
+} // namespace StepsUtil
 
 class StepsID
 {
@@ -99,13 +103,11 @@ class StepsID
 	 * the same thing. */
 	StepsID()
 	  : sDescription("")
-	  , uHash(0)
-	  , m_Cache()
 	{
 	}
 	void Unset() { FromSteps(nullptr); }
 	void FromSteps(const Steps* p);
-	Steps* ToSteps(const Song* p, bool bAllowNull) const;
+	auto ToSteps(const Song* p, bool bAllowNull) const -> Steps*;
 	// FIXME: (interferes with unlimited charts per song)
 	// When performing comparisons, the hash value 0 is considered equal to
 	// all other values.  This is because the hash value for a Steps is
@@ -124,23 +126,23 @@ class StepsID
 	// a cleared hash value, but is not a good long term solution because the
 	// description field isn't always going to be unique.
 	// -Kyz
-	bool operator<(const StepsID& rhs) const;
-	bool operator==(const StepsID& rhs) const;
-	bool MatchesStepsType(StepsType s) const { return st == s; }
+	auto operator<(const StepsID& rhs) const -> bool;
+	auto operator==(const StepsID& rhs) const -> bool;
+	auto MatchesStepsType(StepsType s) const -> bool { return st == s; }
 
-	XNode* CreateNode() const;
+	auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
-	std::string ToString() const;
-	bool IsValid() const;
+	auto ToString() const -> std::string;
+	auto IsValid() const -> bool;
 
-	StepsType GetStepsType() const { return st; }
-	Difficulty GetDifficulty() const { return dc; }
-	std::string GetKey() const { return ck; }
-	std::string GetDescription() const
+	auto GetStepsType() const -> StepsType { return st; }
+	auto GetDifficulty() const -> Difficulty { return dc; }
+	auto GetKey() const -> std::string { return ck; }
+	auto GetDescription() const -> std::string
 	{
 		return (dc == Difficulty_Edit ? sDescription : std::string());
 	}
-	unsigned GetHash() const { return uHash; }
+	auto GetHash() const -> unsigned { return uHash; }
 };
 
 #endif

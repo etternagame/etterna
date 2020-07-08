@@ -27,7 +27,7 @@ struct OHJumpModGuyThing
 	float prop_pool = 1.4F;
 	float prop_scaler = 1.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 

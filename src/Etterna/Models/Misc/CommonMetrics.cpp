@@ -1,10 +1,11 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 ThemeMetric<std::string> CommonMetrics::OPERATOR_MENU_SCREEN(
   "Common",
@@ -56,13 +57,12 @@ ThemeMetricDifficultiesToShow::Read()
 		return;
 	}
 
-	FOREACH_CONST(std::string, v, i)
-	{
-		Difficulty d = StringToDifficulty(*i);
+	for (auto& i : v) {
+		auto d = StringToDifficulty(i);
 		if (d == Difficulty_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Unknown difficulty \"%s\" in CourseDifficultiesToShow.",
-			  i->c_str());
+			  i.c_str());
 		} else {
 			m_v.push_back(d);
 		}
@@ -75,27 +75,26 @@ ThemeMetricDifficultiesToShow::GetValue() const
 }
 
 static void
-RemoveStepsTypes(vector<StepsType>& inout, std::string sStepsTypesToRemove)
+RemoveStepsTypes(vector<StepsType>& inout,
+				 const std::string& sStepsTypesToRemove)
 {
 	vector<std::string> v;
 	split(sStepsTypesToRemove, ",", v);
-	if (v.size() == 0)
+	if (v.empty())
 		return; // Nothing to do!
 
 	// subtract StepsTypes
-	FOREACH_CONST(std::string, v, i)
-	{
-		StepsType st = GAMEMAN->StringToStepsType(*i);
+	for (auto& i : v) {
+		auto st = GAMEMAN->StringToStepsType(i);
 		if (st == StepsType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid StepsType value '%s' in '%s'",
-			  i->c_str(),
+			  i.c_str(),
 			  sStepsTypesToRemove.c_str());
 			continue;
 		}
 
-		const vector<StepsType>::iterator iter =
-		  find(inout.begin(), inout.end(), st);
+		const auto iter = std::find(inout.begin(), inout.end(), st);
 		if (iter != inout.end())
 			inout.erase(iter);
 	}

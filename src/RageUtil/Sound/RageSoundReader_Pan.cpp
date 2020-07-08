@@ -2,6 +2,8 @@
 #include "RageSoundReader_Pan.h"
 #include "RageSoundUtil.h"
 
+#include <algorithm>
+
 RageSoundReader_Pan::RageSoundReader_Pan(RageSoundReader* pSource)
   : RageSoundReader_Filter(pSource)
 {
@@ -32,7 +34,7 @@ RageSoundReader_Pan::Read(float* pBuf, int iFrames)
 unsigned
 RageSoundReader_Pan::GetNumChannels() const
 {
-	return max(2u, RageSoundReader_Filter::GetNumChannels());
+	return std::max(2u, RageSoundReader_Filter::GetNumChannels());
 }
 
 bool

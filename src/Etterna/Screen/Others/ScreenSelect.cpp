@@ -172,7 +172,7 @@ ScreenSelect::Input(const InputEventPlus& input)
 }
 
 void
-ScreenSelect::HandleScreenMessage(const ScreenMessage SM)
+ScreenSelect::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_BeginFadingOut) // Screen is starting to tween out.
 	{

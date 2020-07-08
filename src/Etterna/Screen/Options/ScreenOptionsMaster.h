@@ -14,7 +14,7 @@ class ScreenOptionsMaster : public ScreenOptions
 	int m_iChangeMask = 0;
 
   protected:
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;

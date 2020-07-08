@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "ScreenMessage.h"
+
 #include <map>
 
 const ScreenMessage SM_Invalid = "";
@@ -17,13 +17,13 @@ AutoScreenMessage(SM_Success);
 AutoScreenMessage(SM_Failure);
 AutoScreenMessage(SM_GoToDisconnectScreen);
 
-static map<std::string, ScreenMessage>* m_pScreenMessages;
+static std::map<std::string, ScreenMessage>* m_pScreenMessages;
 
 ScreenMessage
 ScreenMessageHelpers::ToScreenMessage(const std::string& sName)
 {
 	if (m_pScreenMessages == nullptr)
-		m_pScreenMessages = new map<std::string, ScreenMessage>;
+		m_pScreenMessages = new std::map<std::string, ScreenMessage>;
 
 	if (m_pScreenMessages->find(sName) == m_pScreenMessages->end())
 		(*m_pScreenMessages)[sName] = (ScreenMessage)sName;

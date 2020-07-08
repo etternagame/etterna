@@ -18,7 +18,7 @@ NotesLoader::GetMainAndSubTitlesFromFullTitle(const std::string& sFullTitle,
 
 	for (const auto& sLeftSep : sLeftSeps) {
 		size_t iBeginIndex = sFullTitle.find(sLeftSep);
-		if (iBeginIndex == string::npos)
+		if (iBeginIndex == std::string::npos)
 			continue;
 		sMainTitleOut = sFullTitle.substr(0, static_cast<int>(iBeginIndex));
 		sSubTitleOut = sFullTitle.substr(iBeginIndex + 1,
@@ -32,7 +32,7 @@ NotesLoader::GetMainAndSubTitlesFromFullTitle(const std::string& sFullTitle,
 bool
 NotesLoader::LoadFromDir(const std::string& sPath,
 						 Song& out,
-						 set<std::string>& BlacklistedImages)
+						 std::set<std::string>& BlacklistedImages)
 {
 	vector<std::string> list;
 

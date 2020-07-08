@@ -64,7 +64,7 @@ class MusicWheel : public WheelBase
 	bool packlistFiltering{ false };
 
 	vector<Song*> allSongsFiltered;
-	map<std::string, vector<Song*>> allSongsByGroupFiltered;
+	std::map<std::string, vector<Song*>> allSongsByGroupFiltered;
 	bool SelectSongOrCourse();
 	void SelectSongAfterSearch();
 
@@ -75,13 +75,13 @@ class MusicWheel : public WheelBase
 	MusicWheelItem* MakeItem() override;
 
 	vector<string> hashList;
-	void GetSongList(vector<Song*>& arraySongs, SortOrder so);
+	void GetSongList(vector<Song*>& arraySongs, SortOrder so) const;
 	bool SelectModeMenuItem();
 
 	void FilterByStepKeys(vector<Song*>& inv);
 	void FilterBySearch(vector<Song*>& inv, std::string findme_);
 	bool SearchGroupNames(const std::string& findme);
-	void FilterBySkillsets(vector<Song*>& inv);
+	void FilterBySkillsets(vector<Song*>& inv) const;
 	std::string lastvalidsearch;
 	std::string groupnamesearchmatch;
 
@@ -141,7 +141,7 @@ class MusicWheel : public WheelBase
 							 const std::string& findme);
 	void FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 							  vector<MusicWheelItemData*>& aFilteredData,
-							  SortOrder so);
+							  SortOrder so) const;
 	std::string prevSongTitle;
 };
 

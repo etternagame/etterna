@@ -9,12 +9,12 @@ using Lua = lua_State;
 /** @brief The different tweening types available. */
 enum TweenType
 {
-	TWEEN_LINEAR,	 /**< A linear tween. */
+	TWEEN_LINEAR,	  /**< A linear tween. */
 	TWEEN_ACCELERATE, /**< An accelerating tween. */
 	TWEEN_DECELERATE, /**< A decelerating tween. */
-	TWEEN_SPRING,	 /**< A spring tween. */
-	TWEEN_BEZIER,	 /**< A bezier tween. */
-	NUM_TweenType,	/**< The number of tween types. */
+	TWEEN_SPRING,	  /**< A spring tween. */
+	TWEEN_BEZIER,	  /**< A bezier tween. */
+	NUM_TweenType,	  /**< The number of tween types. */
 	TweenType_Invalid
 };
 /** @brief A custom foreach loop iterating through the tween types. */
@@ -30,11 +30,11 @@ class ITween
   public:
 	/** @brief Create the initial interface. */
 	virtual ~ITween() = default;
-	virtual float Tween(float f) const = 0;
-	virtual ITween* Copy() const = 0;
+	[[nodiscard]] virtual auto Tween(float f) const -> float = 0;
+	[[nodiscard]] virtual auto Copy() const -> ITween* = 0;
 
-	static ITween* CreateFromType(TweenType iType);
-	static ITween* CreateFromStack(Lua* L, int iStackPos);
+	static auto CreateFromType(TweenType iType) -> ITween*;
+	static auto CreateFromStack(Lua* L, int iStackPos) -> ITween*;
 };
 
 #endif

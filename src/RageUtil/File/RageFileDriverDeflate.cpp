@@ -3,7 +3,9 @@
 #include "RageFileDriverDeflate.h"
 #include "RageFileDriverSlice.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <memory>
+#include <algorithm>
 
 #ifdef _WIN32
 #include "zlib.h"
@@ -82,7 +84,7 @@ RageFileObjInflate::ReadInternal(void* buf, size_t bytes)
 	 * actually contain much more deflated data. */
 	ASSERT_M(m_iFilePos <= m_iUncompressedSize,
 			 ssprintf("%i, %i", m_iFilePos, m_iUncompressedSize));
-	bytes = min(bytes, size_t(m_iUncompressedSize - m_iFilePos));
+	bytes = std::min(bytes, size_t(m_iUncompressedSize - m_iFilePos));
 
 	bool done = false;
 	int ret = 0;
@@ -166,7 +168,7 @@ RageFileObjInflate::SeekInternal(int iPos)
 	/* Can this be optimized? */
 	char buf[1024 * 4];
 	while (iOffset) {
-		int got = ReadInternal(buf, min((int)sizeof(buf), iOffset));
+		int got = ReadInternal(buf, std::min((int)sizeof(buf), iOffset));
 		if (got == -1)
 			return -1;
 
@@ -295,7 +297,7 @@ RageFileObjDeflate::FlushInternal()
 RageFileObjInflate*
 GunzipFile(RageFileBasic* pFile_, std::string& sError, uint32_t* iCRC32)
 {
-	unique_ptr<RageFileBasic> pFile(pFile_);
+	std::unique_ptr<RageFileBasic> pFile(pFile_);
 
 	sError = "";
 

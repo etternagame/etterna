@@ -1,4 +1,4 @@
-﻿#ifndef INPUT_EVENT_PLUS_H
+#ifndef INPUT_EVENT_PLUS_H
 #define INPUT_EVENT_PLUS_H
 
 #include "GameInput.h"
@@ -9,12 +9,7 @@ class InputEventPlus
 {
   public:
 	InputEventPlus()
-	  : DeviceI()
-	  , GameI()
-	  ,
-
-	  pn(PLAYER_INVALID)
-	  , InputList()
+	  : pn(PLAYER_INVALID)
 	{
 	}
 	DeviceInput DeviceI;

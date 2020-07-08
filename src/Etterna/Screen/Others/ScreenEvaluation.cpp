@@ -26,6 +26,7 @@
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Globals/rngthing.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
@@ -283,7 +284,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 }
 
 void
-ScreenEvaluation::HandleScreenMessage(const ScreenMessage SM)
+ScreenEvaluation::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_PlayCheer) {
 		SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("evaluation cheer"));

@@ -9,6 +9,11 @@
 #include "RageSoundReader_Resample_Good.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
+using std::max;
+using std::min;
+
 /*
  * Keyed sounds should pass this object to SoundReader_Preload, to preprocess
  * it. Streaming more than two or three sounds is too expensive (keyed games can
@@ -66,7 +71,7 @@ RageSoundReader_Chain::LoadSound(std::string sPath)
 {
 	sPath = make_lower(sPath);
 
-	map<std::string, RageSoundReader*>::const_iterator it =
+	std::map<std::string, RageSoundReader*>::const_iterator it =
 	  m_apNamedSounds.find(sPath);
 	if (it != m_apNamedSounds.end()) {
 		const RageSoundReader* pReader = it->second;
@@ -127,7 +132,7 @@ RageSoundReader_Chain::Finish()
 	 * channels. */
 	m_iChannels = 1;
 	FOREACH(RageSoundReader*, m_apLoadedSounds, it)
-	m_iChannels = max(m_iChannels, (*it)->GetNumChannels());
+	m_iChannels = std::max(m_iChannels, (*it)->GetNumChannels());
 
 	if (m_iChannels > 2) {
 		FOREACH(RageSoundReader*, m_apLoadedSounds, it)
@@ -327,7 +332,7 @@ RageSoundReader_Chain::Read(float* pBuffer, int iFrames)
 		ASSERT_M(iOffsetFrame >= m_iCurrentFrame,
 				 ssprintf("%i %i", iOffsetFrame, m_iCurrentFrame));
 		int iFramesToRead = iOffsetFrame - m_iCurrentFrame;
-		iFrames = min(iFramesToRead, iFrames);
+		iFrames = std::min(iFramesToRead, iFrames);
 	}
 
 	if (m_apActiveSounds.size() == 1 &&
@@ -356,7 +361,7 @@ RageSoundReader_Chain::Read(float* pBuffer, int iFrames)
 	RageSoundMixBuffer mix;
 	/* Read iFrames from each sound. */
 	float Buffer[2048];
-	iFrames = min(iFrames, (int)(ARRAYLEN(Buffer) / m_iChannels));
+	iFrames = std::min(iFrames, (int)(ARRAYLEN(Buffer) / m_iChannels));
 	for (unsigned i = 0; i < m_apActiveSounds.size();) {
 		RageSoundReader* pSound = m_apActiveSounds[i]->pSound;
 		ASSERT(pSound->GetNumChannels() ==
@@ -402,7 +407,7 @@ RageSoundReader_Chain::GetLength() const
 		const RageSoundReader* pSound = m_apLoadedSounds[sound.iIndex];
 		int iThisLength = pSound->GetLength();
 		if (iThisLength)
-			iLength = max(iLength, iThisLength + sound.iOffsetMS);
+			iLength = std::max(iLength, iThisLength + sound.iOffsetMS);
 	}
 	return iLength;
 }
@@ -416,7 +421,7 @@ RageSoundReader_Chain::GetLength_Fast() const
 		const RageSoundReader* pSound = m_apLoadedSounds[sound.iIndex];
 		int iThisLength = pSound->GetLength_Fast();
 		if (iThisLength)
-			iLength = max(iLength, iThisLength + sound.iOffsetMS);
+			iLength = std::max(iLength, iThisLength + sound.iOffsetMS);
 	}
 	return iLength;
 }

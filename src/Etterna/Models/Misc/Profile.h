@@ -12,6 +12,7 @@
 #include "Etterna/Models/Misc/XMLProfile.h"
 #include "Etterna/Models/Misc/DBProfile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
+
 #include <map>
 #include <set>
 
@@ -23,7 +24,7 @@ struct lua_State;
 struct Playlist;
 
 // Current file versions
-extern const string ETT_XML;
+extern const std::string ETT_XML;
 
 /**
  * @brief The filename where one can edit their personal profile data.
@@ -44,7 +45,7 @@ extern const std::string EDITABLE_INI;
  * to their own profile for use in the game unless they also have the "don't
  * share" file.  DontShare contains a piece of information that we can
  * construct using STATS_XML but the user can't construct using STATS_XML. */
-extern const string DONT_SHARE_SIG;
+extern const std::string DONT_SHARE_SIG;
 
 extern const std::string PUBLIC_KEY_FILE;
 extern const std::string SCREENSHOTS_SUBDIR;
@@ -66,8 +67,8 @@ struct Game;
 class ScoreGoal
 {
   public:
-	float rate = 1.f;
-	float percent = .93f;
+	float rate = 1.F;
+	float percent = .93F;
 	int priority = 1;
 	bool achieved = false;
 	DateTime timeassigned;
@@ -79,10 +80,10 @@ class ScoreGoal
 	// what happens when individual score deletion is possibly added -mina
 	std::string scorekey = "";
 
-	XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
-	HighScore* GetPBUpTo() const;
+	[[nodiscard]] auto GetPBUpTo() const -> HighScore*;
 
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal
@@ -101,10 +102,10 @@ struct GoalsForChart
 {
   public:
 	void Add(ScoreGoal& sg) { goals.emplace_back(sg); }
-	vector<ScoreGoal>& Get() { return goals; }
-	vector<ScoreGoal> goals;
+	auto Get() -> std::vector<ScoreGoal>& { return goals; }
+	std::vector<ScoreGoal> goals;
 
-	XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 };
 
@@ -130,19 +131,13 @@ class Profile
 	  m_sDisplayName("")
 	  , m_sLastUsedHighScoreName("")
 	  , m_sGuid(MakeGuid())
-	  , m_sDefaultModifiers()
-	  , m_lastSong()
 	  , m_sLastPlayedMachineGuid("")
-	  , m_LastPlayedDate()
-	  , m_iNumSongsPlayedByStyle()
-	  , m_UserTable()
-	  , m_vScreenshots()
 	  , profiledir("")
 	{
 		m_lastSong.Unset();
-		m_fPlayerRating = 0.f;
+		m_fPlayerRating = 0.F;
 		FOREACH_ENUM(Skillset, ss)
-		m_fPlayerSkillsets[ss] = 0.f;
+		m_fPlayerSkillsets[ss] = 0.F;
 
 		m_LastPlayedDate.Init();
 
@@ -150,8 +145,9 @@ class Profile
 		m_iNumSongsPlayedByPlayMode[i] = 0;
 		FOREACH_ENUM(Difficulty, i)
 		m_iNumSongsPlayedByDifficulty[i] = 0;
-		for (int& i : m_iNumSongsPlayedByMeter)
+		for (auto& i : m_iNumSongsPlayedByMeter) {
 			i = 0;
+		}
 
 		ZERO(m_iNumStagesPassedByPlayMode);
 		ZERO(m_iNumStagesPassedByGrade);
@@ -159,10 +155,11 @@ class Profile
 	}
 
 	// smart accessors
-	std::string GetDisplayNameOrHighScoreName() const;
-	bool GetDefaultModifiers(const Game* pGameType,
-							 std::string& sModifiersOut) const;
-	void SetDefaultModifiers(const Game* pGameType, const std::string& sModifiers);
+	auto GetDisplayNameOrHighScoreName() const -> std::string;
+	auto GetDefaultModifiers(const Game* pGameType,
+							 std::string& sModifiersOut) const -> bool;
+	void SetDefaultModifiers(const Game* pGameType,
+							 const std::string& sModifiers);
 
 	void AddStepTotals(int iNumTapsAndHolds,
 					   int iNumJumps,
@@ -175,7 +172,7 @@ class Profile
 	// Profiles of the same type and priority are sorted by dir name.
 	int m_ListPriority{ 0 };
 	// Profile Playlists
-	map<string, Playlist> allplaylists;
+	std::map<std::string, Playlist> allplaylists;
 
 	// Editable data
 	std::string m_sDisplayName;
@@ -189,10 +186,10 @@ class Profile
 	std::string m_sLastUsedHighScoreName;
 
 	// General data
-	static std::string MakeGuid();
-	std::string* GetGuid() { return &m_sGuid; }
+	static auto MakeGuid() -> std::string;
+	auto GetGuid() -> std::string* { return &m_sGuid; }
 	std::string m_sGuid;
-	map<std::string, std::string> m_sDefaultModifiers;
+	std::map<std::string, std::string> m_sDefaultModifiers;
 	SortOrder m_SortOrder{ SortOrder_Invalid };
 	Difficulty m_LastDifficulty{ Difficulty_Invalid };
 	StepsType m_LastStepsType{ StepsType_Invalid };
@@ -213,7 +210,7 @@ class Profile
 	int m_iTotalHands{ 0 };
 	int m_iTotalLifts{ 0 };
 	float m_fPlayerRating;
-	float m_fPlayerSkillsets[NUM_Skillset];
+	float m_fPlayerSkillsets[NUM_Skillset]{};
 	/** @brief Is this a brand new profile? */
 	bool m_bNewProfile{ false };
 
@@ -231,41 +228,47 @@ class Profile
 	/* These stats count twice in the machine profile if two players are
 	 * playing; that's the only approach that makes sense for ByDifficulty and
 	 * ByMeter. */
-	int m_iNumSongsPlayedByPlayMode[NUM_PlayMode];
-	map<StyleID, int> m_iNumSongsPlayedByStyle;
-	int m_iNumSongsPlayedByDifficulty[NUM_Difficulty];
-	int m_iNumSongsPlayedByMeter[MAX_METER + 1];
+	int m_iNumSongsPlayedByPlayMode[NUM_PlayMode]{};
+	std::map<StyleID, int> m_iNumSongsPlayedByStyle;
+	int m_iNumSongsPlayedByDifficulty[NUM_Difficulty]{};
+	int m_iNumSongsPlayedByMeter[MAX_METER + 1]{};
 	/**
 	 * @brief Count the total number of songs played.
 	 *
 	 * This stat counts once per song, even if two players are active. */
 	int m_iNumTotalSongsPlayed{ 0 };
-	int m_iNumStagesPassedByPlayMode[NUM_PlayMode];
-	int m_iNumStagesPassedByGrade[NUM_Grade];
+	int m_iNumStagesPassedByPlayMode[NUM_PlayMode]{};
+	int m_iNumStagesPassedByGrade[NUM_Grade]{};
 
 	// if anymore of these are added they should be enum'd to reduce copy pasta
 	// -mina and also should be sets
-	void AddToFavorites(const string& ck) { FavoritedCharts.emplace(ck); }
-	void AddToPermaMirror(const string& ck) { PermaMirrorCharts.emplace(ck); }
-	void RemoveFromFavorites(const string& ck);
-	void RemoveFromPermaMirror(const string& ck);
-	set<string> FavoritedCharts;
-	set<string> PermaMirrorCharts;
+	void AddToFavorites(const std::string& ck) { FavoritedCharts.emplace(ck); }
+	void AddToPermaMirror(const std::string& ck)
+	{
+		PermaMirrorCharts.emplace(ck);
+	}
+	void RemoveFromFavorites(const std::string& ck);
+	void RemoveFromPermaMirror(const std::string& ck);
+	std::set<std::string> FavoritedCharts;
+	std::set<std::string> PermaMirrorCharts;
 
 	// more future goalman stuff -mina
-	void AddGoal(const string& ck);
-	void RemoveGoal(const string& ck, DateTime assigned);
-	unordered_map<string, GoalsForChart> goalmap;
+	void AddGoal(const std::string& ck);
+	void RemoveGoal(const std::string& ck, DateTime assigned);
+	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();
-	vector<ScoreGoal*> goaltable;
+	std::vector<ScoreGoal*> goaltable;
 	int sortmode = 1;	// 1=date 2=rate 3=name 4=priority 5=diff, init to name
 						// because that's the default- mina
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
 	bool asc = false;
 
-	bool HasGoal(const string& ck) { return goalmap.count(ck) == 1; }
-	ScoreGoal& GetLowestGoalForRate(const string& ck, float rate);
-	void SetAnyAchievedGoals(const string& ck,
+	auto HasGoal(const std::string& ck) -> bool
+	{
+		return goalmap.count(ck) == 1;
+	}
+	auto GetLowestGoalForRate(const std::string& ck, float rate) -> ScoreGoal&;
+	void SetAnyAchievedGoals(const std::string& ck,
 							 float& rate,
 							 const HighScore& pscore);
 
@@ -273,12 +276,13 @@ class Profile
 	LuaTable m_UserTable;
 
 	// this actually does use scoreman atm
-	Grade GetBestGrade(const Song* pSong, StepsType st) const;
+	auto GetBestGrade(const Song* song, StepsType st) const -> Grade;
+	auto GetBestWifeScore(const Song* song, StepsType st) const -> float;
 
 	// Screenshot Data
-	vector<Screenshot> m_vScreenshots;
+	std::vector<Screenshot> m_vScreenshots;
 	void AddScreenshot(const Screenshot& screenshot);
-	int GetNextScreenshotIndex() { return m_vScreenshots.size(); }
+	auto GetNextScreenshotIndex() -> int { return m_vScreenshots.size(); }
 
 	// Init'ing
 	void InitAll()
@@ -296,15 +300,16 @@ class Profile
 
 	// Loading and saving
 	void HandleStatsPrefixChange(std::string dir, bool require_signature);
-	ProfileLoadResult LoadAllFromDir(const std::string& sDir,
-									 bool bRequireSignature,
-									 LoadingWindow* ld);
-	ProfileLoadResult LoadStatsFromDir(std::string dir, bool require_signature);
+	auto LoadAllFromDir(const std::string& sDir,
+						bool bRequireSignature,
+						LoadingWindow* ld) -> ProfileLoadResult;
+	auto LoadStatsFromDir(std::string dir, bool require_signature)
+	  -> ProfileLoadResult;
 	void LoadTypeFromDir(const std::string& dir);
 	void LoadCustomFunction(const std::string& sDir);
-	bool SaveAllToDir(const std::string& sDir, bool bSignData) const;
+	auto SaveAllToDir(const std::string& sDir, bool bSignData) const -> bool;
 
-	ProfileLoadResult LoadEditableDataFromDir(const std::string& sDir);
+	auto LoadEditableDataFromDir(const std::string& sDir) -> ProfileLoadResult;
 
 	void SaveTypeToDir(const std::string& dir) const;
 	void SaveEditableDataToDir(const std::string& sDir) const;
@@ -315,12 +320,13 @@ class Profile
 	void SaveStatsWebPageToDir(const std::string& sDir) const;
 	void SaveMachinePublicKeyToDir(const std::string& sDir) const;
 
-	static void MoveBackupToDir(const std::string& sFromDir, const std::string& sToDir);
-	static std::string MakeUniqueFileNameNoExtension(
+	static void MoveBackupToDir(const std::string& sFromDir,
+								const std::string& sToDir);
+	static auto MakeUniqueFileNameNoExtension(
 	  const std::string& sDir,
-	  const std::string& sFileNameBeginning);
-	static std::string MakeFileNameNoExtension(const std::string& sFileNameBeginning,
-										   int iIndex);
+	  const std::string& sFileNameBeginning) -> std::string;
+	static auto MakeFileNameNoExtension(const std::string& sFileNameBeginning,
+										int iIndex) -> std::string;
 
 	// Lua
 	void PushSelf(lua_State* L);

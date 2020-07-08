@@ -17,6 +17,8 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/TimingData.h"
 
+#include <algorithm>
+
 static std::string
 PercentScoreWeightName(size_t i)
 {
@@ -494,9 +496,9 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 {
 	// Regular combo
 	if (m_ComboIsPerRow) {
-		iNumHitContinueCombo = min(iNumHitContinueCombo, 1);
-		iNumHitMaintainCombo = min(iNumHitMaintainCombo, 1);
-		iNumBreakCombo = min(iNumBreakCombo, 1);
+		iNumHitContinueCombo = std::min(iNumHitContinueCombo, 1);
+		iNumHitMaintainCombo = std::min(iNumHitMaintainCombo, 1);
+		iNumBreakCombo = std::min(iNumBreakCombo, 1);
 	}
 
 	if (iNumHitContinueCombo > 0 || iNumHitMaintainCombo > 0) {
@@ -522,7 +524,7 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 										  int iRow)
 {
 	if (m_ComboIsPerRow) {
-		iNumTapsInRow = min(iNumTapsInRow, 1);
+		iNumTapsInRow = std::min(iNumTapsInRow, 1);
 	}
 	auto& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (tns >= m_MinScoreToContinueCombo) {
@@ -590,9 +592,9 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	if (GAMESTATE->CountNotesSeparately()) {
 		// HandleTapRowScore gets called on every judgment,
 		// so we only want increment up by one each time.
-		auto numHitInRow = min(iNumHitContinueCombo, 1);
-		auto numMissInRow = min(iNumBreakCombo, 1);
-		iNumTapsInRow = min(iNumTapsInRow, 1);
+		auto numHitInRow = std::min(iNumHitContinueCombo, 1);
+		auto numMissInRow = std::min(iNumBreakCombo, 1);
+		iNumTapsInRow = std::min(iNumTapsInRow, 1);
 		HandleComboInternal(
 		  numHitInRow, iNumHitMaintainCombo, numMissInRow, iRow);
 	} else {
@@ -735,8 +737,8 @@ ScoreKeeperNormal::GetPossibleDancePoints(NoteData* ndPre,
 	/* The logic here is that if you use a modifier that adds notes, you should
 	 * have to hit the new notes to get a high grade. However, if you use one
 	 * that removes notes, they should simply be counted as misses. */
-	return max(GetPossibleDancePoints(ndPre, td, fSongSeconds),
-			   GetPossibleDancePoints(ndPost, td, fSongSeconds));
+	return std::max(GetPossibleDancePoints(ndPre, td, fSongSeconds),
+					GetPossibleDancePoints(ndPost, td, fSongSeconds));
 }
 
 int
@@ -774,8 +776,8 @@ ScoreKeeperNormal::GetPossibleGradePoints(NoteData* ndPre,
 	/* The logic here is that if you use a modifier that adds notes, you should
 	 * have to hit the new notes to get a high grade. However, if you use one
 	 * that removes notes, they should simply be counted as misses. */
-	return max(GetPossibleGradePoints(ndPre, td, fSongSeconds),
-			   GetPossibleGradePoints(ndPost, td, fSongSeconds));
+	return std::max(GetPossibleGradePoints(ndPre, td, fSongSeconds),
+					GetPossibleGradePoints(ndPost, td, fSongSeconds));
 }
 
 int

@@ -2,12 +2,12 @@
 #include "DialogDriver.h"
 #include "RageUtil/Misc/RageLog.h"
 
-map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
+std::map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
 RegisterDialogDriver::RegisterDialogDriver(const istring& sName,
 										   CreateDialogDriverFn pfn)
 {
 	if (g_pRegistrees == nullptr)
-		g_pRegistrees = new map<istring, CreateDialogDriverFn>;
+		g_pRegistrees = new std::map<istring, CreateDialogDriverFn>;
 
 	ASSERT(g_pRegistrees->find(sName) == g_pRegistrees->end());
 	(*g_pRegistrees)[sName] = pfn;
@@ -25,7 +25,7 @@ DialogDriver::Create()
 	ASSERT(asDriversToTry.size() != 0);
 
 	for (auto& Driver : asDriversToTry) {
-		map<istring, CreateDialogDriverFn>::const_iterator iter =
+		std::map<istring, CreateDialogDriverFn>::const_iterator iter =
 		  RegisterDialogDriver::g_pRegistrees->find(istring(Driver.c_str()));
 
 		if (iter == RegisterDialogDriver::g_pRegistrees->end())

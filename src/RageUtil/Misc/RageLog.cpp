@@ -10,6 +10,7 @@
 #include <windows.h>
 #endif
 #include <map>
+#include <algorithm>
 
 RageLog* LOG; // global and accessible from anywhere in the program
 
@@ -51,7 +52,7 @@ RageLog* LOG; // global and accessible from anywhere in the program
  *
  * The identifier is never displayed, so we can use a simple local object to
  * map/unmap, using any mechanism to generate unique IDs. */
-static map<std::string, std::string> LogMaps;
+static std::map<std::string, std::string> LogMaps;
 
 #define LOG_PATH "/Logs/log.txt"
 #define INFO_PATH "/Logs/info.txt"
@@ -102,7 +103,7 @@ RageLog::~RageLog()
 {
 	/* Add the mapped log data to info.txt. */
 	const std::string AdditionalLog = GetAdditionalLog();
-	vector<std::string> AdditionalLogLines;
+	std::vector<std::string> AdditionalLogLines;
 	split(AdditionalLog, "\n", AdditionalLogLines);
 	for (auto& AdditionalLogLine : AdditionalLogLines) {
 		Trim(AdditionalLogLine);
@@ -282,7 +283,7 @@ RageLog::Write(int where, const std::string& sLine)
 
 	const char* const sWarningSeparator =
 	  "/////////////////////////////////////////";
-	vector<std::string> asLines;
+	std::vector<std::string> asLines;
 	split(sLine, "\n", asLines, false);
 	if (where & WRITE_LOUD) {
 		if (m_bLogToDisk && g_fileLog->IsOpen())
@@ -358,7 +359,7 @@ RageLog::AddToInfo(const std::string& str)
 		const std::string txt(NEWLINE "Staticlog limit reached" NEWLINE);
 
 		const unsigned pos =
-		  min(staticlog_size, sizeof(staticlog) - txt.size());
+		  std::min(staticlog_size, unsigned(sizeof(staticlog) - txt.size()));
 		memcpy(staticlog + pos, txt.data(), txt.size());
 		limit_reached = true;
 		return;
@@ -422,7 +423,7 @@ RageLog::UpdateMappedLog()
 	for (auto& i : LogMaps)
 		str += ssprintf("%s" NEWLINE, i.second.c_str());
 
-	g_AdditionalLogSize = min(sizeof(g_AdditionalLogStr), str.size() + 1);
+	g_AdditionalLogSize = std::min(sizeof(g_AdditionalLogStr), str.size() + 1);
 	memcpy(g_AdditionalLogStr, str.c_str(), g_AdditionalLogSize);
 	g_AdditionalLogStr[sizeof(g_AdditionalLogStr) - 1] = 0;
 }
@@ -430,7 +431,8 @@ RageLog::UpdateMappedLog()
 const char*
 RageLog::GetAdditionalLog()
 {
-	int size = min(g_AdditionalLogSize, (int)sizeof(g_AdditionalLogStr) - 1);
+	int size =
+	  std::min(g_AdditionalLogSize, (int)sizeof(g_AdditionalLogStr) - 1);
 	g_AdditionalLogStr[size] = 0;
 	return g_AdditionalLogStr;
 }

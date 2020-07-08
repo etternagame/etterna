@@ -81,10 +81,11 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						   g_bHasFocus ? "has focus" : "doesn't have focus");
 			if (!g_bHasFocus) {
 				std::string sName = GetNewWindow();
-				static set<std::string> sLostFocusTo;
+				static std::set<std::string> sLostFocusTo;
 				sLostFocusTo.insert(sName);
 				std::string sStr;
-				for (set<std::string>::const_iterator it = sLostFocusTo.begin();
+				for (std::set<std::string>::const_iterator it =
+					   sLostFocusTo.begin();
 					 it != sLostFocusTo.end();
 					 ++it)
 					sStr += (!sStr.empty() ? ", " : "") + *it;
@@ -471,7 +472,7 @@ GraphicsWindow::Initialize(bool bD3D)
 
 	AppInstance inst;
 	do {
-		const wstring wsClassName = RStringToWstring(g_sClassName);
+		const std::wstring wsClassName = RStringToWstring(g_sClassName);
 		WNDCLASSW WindowClassW = {
 			CS_OWNDC | CS_BYTEALIGNCLIENT,
 			GraphicsWindow_WndProc,

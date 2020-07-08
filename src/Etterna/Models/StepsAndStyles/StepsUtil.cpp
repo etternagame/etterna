@@ -8,8 +8,11 @@
 #include "StepsUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <map>
+#include <algorithm>
+
 // Sorting stuff
-map<const Steps*, std::string> steps_sort_val;
+std::map<const Steps*, std::string> steps_sort_val;
 
 static bool
 CompareStepsPointersBySortValueAscending(const Steps* pSteps1,
@@ -42,7 +45,7 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 	// ugly...
 	vector<Song*> vpSongs = SONGMAN->GetAllSongs();
 	vector<Steps*> vpAllSteps;
-	map<Steps*, Song*> mapStepsToSong;
+	std::map<Steps*, Song*> mapStepsToSong;
 	{
 		for (unsigned i = 0; i < vpSongs.size(); i++) {
 			Song* pSong = vpSongs[i];
@@ -55,7 +58,7 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 		}
 	}
 
-	ASSERT(pProfile != NULL);
+	ASSERT(pProfile != nullptr);
 	for (auto& steps : vStepsPointers) {
 		steps_sort_val[steps] = ssprintf(
 		  "%9i",
@@ -152,7 +155,7 @@ StepsUtil::SortStepsByDescription(vector<Steps*>& arraySongPointers)
 void
 StepsID::FromSteps(const Steps* p)
 {
-	if (p == NULL) {
+	if (p == nullptr) {
 		st = StepsType_Invalid;
 		dc = Difficulty_Invalid;
 		sDescription = "";
@@ -187,12 +190,12 @@ Steps*
 StepsID::ToSteps(const Song* p, bool bAllowNull) const
 {
 	if (st == StepsType_Invalid || dc == Difficulty_Invalid)
-		return NULL;
+		return nullptr;
 
 	SongID songID;
 	songID.FromSong(p);
 
-	Steps* pRet = NULL;
+	Steps* pRet = nullptr;
 	if (dc == Difficulty_Edit) {
 		pRet = SongUtil::GetOneSteps(
 		  p, st, dc, -1, -1, sDescription, "", uHash, true);
@@ -200,7 +203,7 @@ StepsID::ToSteps(const Song* p, bool bAllowNull) const
 		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, "", "", 0, true);
 	}
 
-	if (!bAllowNull && pRet == NULL)
+	if (!bAllowNull && pRet == nullptr)
 		FAIL_M(ssprintf("%i, %i, \"%s\"", st, dc, sDescription.c_str()));
 
 	m_Cache.Set(pRet);

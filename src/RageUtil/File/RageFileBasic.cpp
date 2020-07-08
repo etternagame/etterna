@@ -3,6 +3,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
+#include <algorithm>
+
 REGISTER_CLASS_TRAITS(RageFileBasic, pCopy->Copy());
 
 RageFileObj::RageFileObj()
@@ -105,7 +107,7 @@ RageFileObj::Read(void* pBuffer, size_t iBytes)
 	while (!m_bEOF && iBytes > 0) {
 		if (m_pReadBuffer != NULL && m_iReadBufAvail) {
 			/* Copy data out of the buffer first. */
-			int iFromBuffer = min((int)iBytes, m_iReadBufAvail);
+			int iFromBuffer = std::min((int)iBytes, m_iReadBufAvail);
 			memcpy(pBuffer, m_pReadBuf, iFromBuffer);
 			if (m_bCRC32Enabled)
 				CRC32(m_iCRC32, pBuffer, iFromBuffer);
@@ -166,7 +168,7 @@ RageFileObj::Read(std::string& sBuffer, int iBytes)
 	while (iBytes == -1 || iRet < iBytes) {
 		int ToRead = sizeof(buf);
 		if (iBytes != -1)
-			ToRead = min(ToRead, iBytes - iRet);
+			ToRead = std::min(ToRead, iBytes - iRet);
 
 		const int iGot = Read(buf, ToRead);
 		if (iGot == 0)
@@ -254,7 +256,8 @@ RageFileObj::Write(const void* pBuffer, size_t iBytes)
 		/* We're writing a lot of data, and it won't fit in the buffer.  We
 		 * already flushed above, so m_iWriteBufferUsed; fall through and write
 		 * the block normally. */
-		ASSERT_M(m_iWriteBufferUsed == 0, ssprintf("%i", m_iWriteBufferUsed).c_str());
+		ASSERT_M(m_iWriteBufferUsed == 0,
+				 ssprintf("%i", m_iWriteBufferUsed).c_str());
 	}
 
 	int iRet = WriteInternal(pBuffer, iBytes);
@@ -436,8 +439,10 @@ RageFileObj::FillReadBuf()
 	 * can use it for seeking backwards.) */
 	const int iBufAvail =
 	  BSIZE - (m_pReadBuf - m_pReadBuffer) - m_iReadBufAvail;
-	ASSERT_M(iBufAvail >= 0,
-			 ssprintf("%p, %p, %i", m_pReadBuf, m_pReadBuffer, static_cast<int>(BSIZE)).c_str());
+	ASSERT_M(
+	  iBufAvail >= 0,
+	  ssprintf("%p, %p, %i", m_pReadBuf, m_pReadBuffer, static_cast<int>(BSIZE))
+		.c_str());
 	const int iSize =
 	  this->ReadInternal(m_pReadBuf + m_iReadBufAvail, iBufAvail);
 

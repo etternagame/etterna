@@ -23,8 +23,8 @@ Shutdown();
  *
  * p will not be second-guessed, except to try disabling the refresh rate
  * setting. */
-std::string
-SetScreenMode(const VideoModeParams& p);
+auto
+SetScreenMode(const VideoModeParams& p) -> std::string;
 
 /** @brief Create the window.
  *
@@ -38,19 +38,19 @@ DestroyGraphicsWindow();
 void
 GetDisplaySpecs(DisplaySpecs& out);
 
-BOOL
-PushWindow(int a, int b);
+auto
+PushWindow(int a, int b) -> BOOL;
 
-ActualVideoModeParams*
-GetParams();
+auto
+GetParams() -> ActualVideoModeParams*;
 
-HDC
-GetHDC();
+auto
+GetHDC() -> HDC;
 void
 Update();
 
-HWND
-GetHwnd();
-};
+auto
+GetHwnd() -> HWND;
+} // namespace GraphicsWindow;
 
 #endif

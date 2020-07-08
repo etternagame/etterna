@@ -29,23 +29,23 @@ class StageStats
 
 	void AddStats(const StageStats& other); // accumulate
 
-	bool OnePassed() const;
-	bool AllFailed() const;
+	[[nodiscard]] auto OnePassed() const -> bool;
+	[[nodiscard]] auto AllFailed() const -> bool;
 
-	int GetAverageMeter(PlayerNumber pn) const;
+	[[nodiscard]] auto GetAverageMeter(PlayerNumber pn) const -> int;
 
 	Stage m_Stage;
 	int m_iStageIndex;
 	PlayMode m_playMode;
-	vector<Song*> m_vpPlayedSongs;
-	vector<Song*> m_vpPossibleSongs;
+	std::vector<Song*> m_vpPlayedSongs;
+	std::vector<Song*> m_vpPossibleSongs;
 
 	/** @brief Was the gameplay exited by the Player giving up? */
 	bool m_bGaveUp;
 	/** @brief Did the PLayer use Autoplay at any point during gameplay? */
 	bool m_bUsedAutoplay;
 
-	// TODO: These are updated in ScreenGameplay::Update based on fDelta.
+	// TODO(Sam): These are updated in ScreenGameplay::Update based on fDelta.
 	// They should be made more accurate.
 	/**
 	 * @brief How many seconds were there before gameplay ended?
@@ -62,13 +62,13 @@ class StageStats
 	float m_fMusicRate;
 
 	// Total number of seconds between first beat and last beat for every song.
-	float GetTotalPossibleStepsSeconds() const;
+	[[nodiscard]] auto GetTotalPossibleStepsSeconds() const -> float;
 
 	PlayerStageStats m_player;
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
 
 	void FinalizeScores(bool bSummary);
-	string mostrecentscorekey;
+	std::string mostrecentscorekey;
 
 	// Show that this StageStats was a live play or is merely a reproduction
 	// using a Replay
@@ -78,14 +78,14 @@ class StageStats
 	 * @brief Determine if the PlayerNumber has a high score.
 	 * @param pn the PlayerNumber in question.
 	 * @return true if the PlayerNumber has a high score, false otherwise. */
-	bool PlayerHasHighScore(PlayerNumber pn) const;
-	unsigned int GetMinimumMissCombo() const;
+	[[nodiscard]] auto PlayerHasHighScore(PlayerNumber pn) const -> bool;
+	[[nodiscard]] auto GetMinimumMissCombo() const -> unsigned int;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	// TODO: Implement the copy and assignment operators on our own.
+	// TODO(Sam): Implement the copy and assignment operators on our own.
 };
 
 #endif

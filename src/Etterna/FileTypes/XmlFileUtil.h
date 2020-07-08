@@ -11,38 +11,38 @@ struct lua_State;
  *
  * This is designed to help work with XML files. */
 namespace XmlFileUtil {
-bool
-LoadFromFileShowErrors(XNode& xml, const std::string& sFile);
-bool
-LoadFromFileShowErrors(XNode& xml, RageFileBasic& f);
+auto
+LoadFromFileShowErrors(XNode& xml, const std::string& sFile) -> bool;
+auto
+LoadFromFileShowErrors(XNode& xml, RageFileBasic& f) -> bool;
 
 // Load/Save XML
 void
 Load(XNode* pNode, const std::string& sXml, std::string& sErrorOut);
-bool
-GetXML(const XNode* pNode, RageFileBasic& f, bool bWriteTabs = true);
-std::string
-GetXML(const XNode* pNode);
-bool
+auto
+GetXML(const XNode* pNode, RageFileBasic& f, bool bWriteTabs = true) -> bool;
+auto
+GetXML(const XNode* pNode) -> std::string;
+auto
 SaveToFile(const XNode* pNode,
 		   const std::string& sFile,
 		   const std::string& sStylesheet = "",
-		   bool bWriteTabs = true);
-bool
+		   bool bWriteTabs = true) -> bool;
+auto
 SaveToFile(const XNode* pNode,
 		   RageFileBasic& f,
 		   const std::string& sStylesheet = "",
-		   bool bWriteTabs = true);
+		   bool bWriteTabs = true) -> bool;
 
 void
 AnnotateXNodeTree(XNode* pNode, const std::string& sFile);
 void
 CompileXNodeTree(XNode* pNode, const std::string& sFile);
-XNode*
-XNodeFromTable(lua_State* L);
+auto
+XNodeFromTable(lua_State* L) -> XNode*;
 
 void
 MergeIniUnder(XNode* pFrom, XNode* pTo);
-}
+} // namespace XmlFileUtil
 
 #endif

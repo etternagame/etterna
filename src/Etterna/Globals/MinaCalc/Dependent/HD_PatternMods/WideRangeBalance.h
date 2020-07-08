@@ -23,7 +23,7 @@ struct WideRangeBalanceMod
 	float scaler = 1.F;
 	float other_scaler = 4.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

@@ -16,10 +16,10 @@
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include <mutex>
+
 #include <atomic>
 #include <thread>
-
+#include <algorithm>
 #include <set>
 
 #include "arch/Threads/Threads.h"
@@ -437,7 +437,7 @@ Checkpoints::SetCheckpoint(const char* file, int line, const char* message)
 
 	++slot->m_iCurCheckpoint;
 	slot->m_iNumCheckpoints =
-	  max(slot->m_iNumCheckpoints, slot->m_iCurCheckpoint);
+	  std::max(slot->m_iNumCheckpoints, slot->m_iCurCheckpoint);
 	slot->m_iCurCheckpoint %= CHECKPOINT_COUNT;
 }
 

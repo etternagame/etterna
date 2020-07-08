@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
@@ -11,7 +10,7 @@ ReceptorArrow::ReceptorArrow()
 	m_bIsPressed = false;
 	m_bWasPressed = false;
 	m_bWasReverse = false;
-	m_pPlayerState = NULL;
+	m_pPlayerState = nullptr;
 	m_iColNo = 0;
 }
 
@@ -23,8 +22,8 @@ ReceptorArrow::Load(const PlayerState* pPlayerState,
 	m_pPlayerState = pPlayerState;
 	m_iColNo = iColNo;
 
-	const PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
-	vector<GameInput> GameI;
+	const auto pn = m_pPlayerState->m_PlayerNumber;
+	std::vector<GameInput> GameI;
 	GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(iColNo, pn, GameI);
 	NOTESKIN->SetPlayerNumber(pn);
 	// FIXME?  Does this cause a problem when game inputs on different
@@ -33,12 +32,12 @@ ReceptorArrow::Load(const PlayerState* pPlayerState,
 	// requirements. -Kyz
 	NOTESKIN->SetGameController(GameI[0].controller);
 
-	std::string sButton =
+	const auto sButton =
 	  GAMESTATE->GetCurrentStyle(pn)->ColToButtonName(iColNo);
 	m_pReceptor.Load(NOTESKIN->LoadActor(sButton, Type));
 	this->AddChild(m_pReceptor);
 
-	bool bReverse =
+	const auto bReverse =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
 		m_iColNo) > 0.5f;
 	m_pReceptor->PlayCommand(bReverse ? "ReverseOn" : "ReverseOff");
@@ -50,7 +49,7 @@ ReceptorArrow::Update(float fDeltaTime)
 {
 	ActorFrame::Update(fDeltaTime);
 
-	bool bReverse =
+	const auto bReverse =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
 		m_iColNo) > 0.5f;
 	if (bReverse != m_bWasReverse) {

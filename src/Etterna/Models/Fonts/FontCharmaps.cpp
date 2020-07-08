@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "FontCharmaps.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -6,7 +5,7 @@
 
 const wchar_t FontCharmaps::M_SKIP = 0xFEFF;
 
-static map<std::string, const wchar_t*> charmaps;
+static std::map<std::string, const wchar_t*> charmaps;
 
 using namespace FontCharmaps;
 
@@ -283,7 +282,8 @@ FontCharmaps::get_char_map(std::string name)
 
 	name = make_lower(name);
 
-	map<std::string, const wchar_t*>::const_iterator i = charmaps.find(name);
+	std::map<std::string, const wchar_t*>::const_iterator i =
+	  charmaps.find(name);
 	if (i == charmaps.end())
 		return nullptr;
 

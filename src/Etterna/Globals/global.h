@@ -9,6 +9,8 @@
 #pragma warning(disable : 4251)
 #pragma warning(disable : 4275)
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4244)
 /** @brief This macro is for INT8_MIN, etc. */
 #define __STDC_LIMIT_MACROS
 /** @brief This macro is for INT64_C, etc. */
@@ -23,20 +25,11 @@
 #include "archutils/Unix/arch_setup.h"
 #endif
 
-/* Make sure everyone has min and max: */
-#include <algorithm>
-
-/* Everything will need string for one reason or another: */
-#include <string>
-
-/* And vector: */
-#include <vector>
-
 #if defined(HAVE_STDINT_H) /* need to define int64_t if so */
-#include <stdint.h>
+#include <cstdint>
 #endif
 #if defined(HAVE_INTTYPES_H)
-#include <inttypes.h>
+#include <cinttypes>
 #endif
 
 /* Branch optimizations: */
@@ -51,8 +44,6 @@
 #if defined(NEED_CSTDLIB_WORKAROUND)
 #define llabs ::llabs
 #endif
-
-using namespace std;
 
 #ifdef ASSERT
 #undef ASSERT
@@ -168,14 +159,11 @@ struct CompileAssertDecl
 #define COMPILE_ASSERT(COND)                                                   \
 	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
 
-/** @brief Use std::strings throughout the program. */
-using std::string;
-
 #include "RageUtil/Misc/RageException.h"
-
-/* Define a few functions if necessary */
-#include <cmath>
-
 /* Don't include our own headers here, since they tend to change often. */
+
+// SHOULD BE REMOVED EVENTUALLY, STOP GAP SO STUFF CAN COMPILE
+#include <vector>
+using std::vector;
 
 #endif

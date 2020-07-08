@@ -4,6 +4,8 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
+
 #include <map>
 #include <set>
 
@@ -37,10 +39,10 @@ struct File
 	File()
 	{
 		dir = false;
-		dirp = NULL;
+		dirp = nullptr;
 		size = -1;
 		hash = -1;
-		priv = NULL;
+		priv = nullptr;
 	}
 	File(const std::string& fn)
 	{
@@ -48,8 +50,8 @@ struct File
 		dir = false;
 		size = -1;
 		hash = -1;
-		priv = NULL;
-		dirp = NULL;
+		priv = nullptr;
+		dirp = nullptr;
 	}
 
 	bool operator<(const File& rhs) const { return lname < rhs.lname; }
@@ -76,7 +78,7 @@ operator!=(File const& lhs, File const& rhs)
 /** @brief This represents a directory. */
 struct FileSet
 {
-	set<File> files;
+	std::set<File> files;
 	RageTimer age;
 
 	/*
@@ -91,10 +93,10 @@ struct FileSet
 	void GetFilesMatching(const std::string& sBeginning,
 						  const std::string& sContaining,
 						  const std::string& sEnding,
-						  vector<std::string>& asOut,
+						  std::vector<std::string>& asOut,
 						  bool bOnlyDirs) const;
 	void GetFilesEqualTo(const std::string& pat,
-						 vector<std::string>& out,
+						 std::vector<std::string>& out,
 						 bool bOnlyDirs) const;
 
 	RageFileManager::FileType GetFileType(const std::string& sPath) const;
@@ -114,7 +116,7 @@ class FilenameDB
 	void AddFile(const std::string& sPath,
 				 int iSize,
 				 int iHash,
-				 void* pPriv = NULL);
+				 void* pPriv = nullptr);
 	void DelFile(const std::string& sPath);
 	void* GetFilePriv(const std::string& sPath);
 
@@ -122,7 +124,7 @@ class FilenameDB
 	 * complicated, we'll need to use fnmatch or regex. */
 	void GetFilesSimpleMatch(const std::string& sDir,
 							 const std::string& sFile,
-							 vector<std::string>& asOut,
+							 std::vector<std::string>& asOut,
 							 bool bOnlyDirs);
 
 	/* Search for "path" case-insensitively and replace it with the correct
@@ -134,7 +136,7 @@ class FilenameDB
 	int GetFileSize(const std::string& sPath);
 	int GetFileHash(const std::string& sFilePath);
 	void GetDirListing(const std::string& sPath,
-					   vector<std::string>& asAddTo,
+					   std::vector<std::string>& asAddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
@@ -151,7 +153,7 @@ class FilenameDB
 	FileSet* GetFileSet(const std::string& sDir, bool create = true);
 
 	/* Directories we have cached: */
-	map<std::string, FileSet*> dirs;
+	std::map<std::string, FileSet*> dirs;
 
 	int ExpireSeconds{ -1 };
 
@@ -167,7 +169,7 @@ class FilenameDB
 						  vector<std::string>& asOut,
 						  bool bOnlyDirs);
 
-	void DelFileSet(map<std::string, FileSet*>::iterator dir);
+	void DelFileSet(std::map<std::string, FileSet*>::iterator dir);
 
 	/* The given path wasn't cached.  Cache it. */
 	virtual void PopulateFileSet(FileSet& /* fs */,

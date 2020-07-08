@@ -15,26 +15,42 @@ LuaXType(TweenType);
 
 struct TweenLinear : public ITween
 {
-	float Tween(float f) const override { return f; }
-	ITween* Copy() const override { return new TweenLinear(*this); }
+	[[nodiscard]] float Tween(float f) const override { return f; }
+	[[nodiscard]] ITween* Copy() const override
+	{
+		return new TweenLinear(*this);
+	}
 };
 struct TweenAccelerate : public ITween
 {
-	float Tween(float f) const override { return f * f; }
-	ITween* Copy() const override { return new TweenAccelerate(*this); }
+	[[nodiscard]] float Tween(float f) const override { return f * f; }
+	[[nodiscard]] ITween* Copy() const override
+	{
+		return new TweenAccelerate(*this);
+	}
 };
 struct TweenDecelerate : public ITween
 {
-	float Tween(float f) const override { return 1 - (1 - f) * (1 - f); }
-	ITween* Copy() const override { return new TweenDecelerate(*this); }
+	[[nodiscard]] float Tween(float f) const override
+	{
+		return 1 - (1 - f) * (1 - f);
+	}
+	[[nodiscard]] ITween* Copy() const override
+	{
+		return new TweenDecelerate(*this);
+	}
 };
 struct TweenSpring : public ITween
 {
-	float Tween(float f) const override
+	[[nodiscard]] float Tween(float f) const override
 	{
 		return 1 - RageFastCos(f * PI * 2.5f) / (1 + f * 3);
 	}
-	ITween* Copy() const override { return new TweenSpring(*this); }
+
+	[[nodiscard]] ITween* Copy() const override
+	{
+		return new TweenSpring(*this);
+	}
 };
 
 /*
@@ -42,8 +58,11 @@ struct TweenSpring : public ITween
  */
 struct InterpolateBezier1D : public ITween
 {
-	float Tween(float f) const override;
-	ITween* Copy() const override { return new InterpolateBezier1D(*this); }
+	[[nodiscard]] float Tween(float f) const override;
+	[[nodiscard]] ITween* Copy() const override
+	{
+		return new InterpolateBezier1D(*this);
+	}
 
 	RageQuadratic m_Bezier;
 };
@@ -59,8 +78,11 @@ InterpolateBezier1D::Tween(float f) const
  */
 struct InterpolateBezier2D : public ITween
 {
-	float Tween(float f) const override;
-	ITween* Copy() const override { return new InterpolateBezier2D(*this); }
+	[[nodiscard]] float Tween(float f) const override;
+	[[nodiscard]] ITween* Copy() const override
+	{
+		return new InterpolateBezier2D(*this);
+	}
 
 	RageBezier2D m_Bezier;
 };
@@ -98,19 +120,19 @@ ITween::CreateFromType(TweenType tt)
 ITween*
 ITween::CreateFromStack(Lua* L, int iStackPos)
 {
-	TweenType iType = Enum::Check<TweenType>(L, iStackPos);
+	const auto iType = Enum::Check<TweenType>(L, iStackPos);
 	if (iType == TWEEN_BEZIER) {
 		luaL_checktype(L, iStackPos + 1, LUA_TTABLE);
-		int iArgs = lua_objlen(L, iStackPos + 1);
+		const int iArgs = lua_objlen(L, iStackPos + 1);
 		if (iArgs != 4 && iArgs != 8) {
 			LuaHelpers::ReportScriptErrorFmt("Tween::CreateFromStack: table "
 											 "argument must have 4 or 8 "
 											 "entries");
-			return NULL;
+			return nullptr;
 		}
 
 		float fC[8];
-		for (int i = 0; i < iArgs; ++i) {
+		for (auto i = 0; i < iArgs; ++i) {
 			lua_rawgeti(L, iStackPos + 1, i + 1);
 			fC[i] = static_cast<float>(lua_tonumber(L, -1));
 		}

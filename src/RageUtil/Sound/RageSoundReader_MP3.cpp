@@ -3,11 +3,11 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundReader_MP3.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "mad.h"
 
 #include <cerrno>
 #include <map>
-
-#include "mad.h"
+#include <algorithm>
 
 // ID3 code from libid3:
 enum tagtype
@@ -774,7 +774,6 @@ RageSoundReader_MP3::MADLIB_rewind()
 int
 RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 {
-	using std::max;
 	ASSERT(!Xing || mad->has_xing);
 	ASSERT(mad->length != -1);
 
@@ -817,7 +816,7 @@ RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 
 	if (bytepos != -1) {
 		/* Seek backwards up to 4k. */
-		const int seekpos = max(0, bytepos - 1024 * 4);
+		const int seekpos = std::max(0, bytepos - 1024 * 4);
 		seek_stream_to_byte(seekpos);
 
 		do {

@@ -5,11 +5,13 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
+
 #include <chrono>
 #include <set>
+#include <utility>
 
 class DisplaySpec;
-typedef set<DisplaySpec> DisplaySpecs;
+using DisplaySpecs = std::set<DisplaySpec>;
 
 const int REFRESH_DEFAULT = 0;
 struct RageSurface;
@@ -43,17 +45,19 @@ class RageCompiledGeometry
 	virtual void Draw(int iMeshIndex) const = 0;
 
   protected:
-	size_t GetTotalVertices() const
+	[[nodiscard]] auto GetTotalVertices() const -> size_t
 	{
-		if (m_vMeshInfo.empty())
+		if (m_vMeshInfo.empty()) {
 			return 0;
+		}
 		return m_vMeshInfo.back().iVertexStart +
 			   m_vMeshInfo.back().iVertexCount;
 	}
-	size_t GetTotalTriangles() const
+	[[nodiscard]] auto GetTotalTriangles() const -> size_t
 	{
-		if (m_vMeshInfo.empty())
+		if (m_vMeshInfo.empty()) {
 			return 0;
+		}
 		return m_vMeshInfo.back().iTriangleStart +
 			   m_vMeshInfo.back().iTriangleCount;
 	}
@@ -67,8 +71,8 @@ class RageCompiledGeometry
 		bool m_bNeedsTextureMatrixScale;
 	};
 	vector<MeshInfo> m_vMeshInfo;
-	bool m_bNeedsNormals;
-	bool m_bAnyNeedsTextureMatrixScale;
+	bool m_bNeedsNormals{};
+	bool m_bAnyNeedsTextureMatrixScale{};
 };
 
 enum RagePixelFormat
@@ -89,8 +93,8 @@ enum RagePixelFormat
 	NUM_RagePixelFormat,
 	RagePixelFormat_Invalid
 };
-const std::string&
-RagePixelFormatToString(RagePixelFormat i);
+auto
+RagePixelFormatToString(RagePixelFormat i) -> const std::string&;
 
 /** @brief The parameters used for the present Video Mode. */
 class VideoModeParams
@@ -110,12 +114,12 @@ class VideoModeParams
 					bool bTrilinearFiltering_,
 					bool bAnisotropicFiltering_,
 					bool bWindowIsFullscreenBorderless_,
-					const std::string& sWindowTitle_,
-					const std::string& sIconFile_,
+					std::string sWindowTitle_,
+					std::string sIconFile_,
 					bool PAL_,
 					float fDisplayAspectRatio_)
 	  : windowed(windowed_)
-	  , sDisplayId(sDisplayId_)
+	  , sDisplayId(std::move(sDisplayId_))
 	  , width(width_)
 	  , height(height_)
 	  , bpp(bpp_)
@@ -126,8 +130,8 @@ class VideoModeParams
 	  , bTrilinearFiltering(bTrilinearFiltering_)
 	  , bAnisotropicFiltering(bAnisotropicFiltering_)
 	  , bWindowIsFullscreenBorderless(bWindowIsFullscreenBorderless_)
-	  , sWindowTitle(sWindowTitle_)
-	  , sIconFile(sIconFile_)
+	  , sWindowTitle(std::move(sWindowTitle_))
+	  , sIconFile(std::move(sIconFile_))
 	  , PAL(PAL_)
 	  , fDisplayAspectRatio(fDisplayAspectRatio_)
 	{
@@ -152,25 +156,7 @@ class VideoModeParams
 	  , fDisplayAspectRatio(other.fDisplayAspectRatio)
 	{
 	}
-
-	VideoModeParams()
-	  : windowed(false)
-	  , width(0)
-	  , height(0)
-	  , bpp(0)
-	  , rate(0)
-	  , vsync(false)
-	  , interlaced(false)
-	  , bSmoothLines(false)
-	  , bTrilinearFiltering(false)
-	  , bAnisotropicFiltering(false)
-	  , sWindowTitle(std::string())
-	  , sIconFile(std::string())
-	  , PAL(false)
-	  , fDisplayAspectRatio(0.0f)
-	{
-	}
-
+	VideoModeParams() = default;
 	virtual ~VideoModeParams() {}
 
 	bool windowed{ false };
@@ -188,7 +174,7 @@ class VideoModeParams
 	std::string sWindowTitle;
 	std::string sIconFile;
 	bool PAL{ false };
-	float fDisplayAspectRatio{ 0.0f };
+	float fDisplayAspectRatio{ 0.0F };
 };
 
 /**
@@ -199,18 +185,10 @@ class VideoModeParams
 class ActualVideoModeParams : public VideoModeParams
 {
   public:
-	ActualVideoModeParams()
-	  : VideoModeParams()
-	  , windowWidth(0)
-	  , windowHeight(0)
-	  , renderOffscreen(false)
-	{
-	}
 	ActualVideoModeParams(const VideoModeParams& params)
 	  : VideoModeParams(params)
 	  , windowWidth(params.width)
 	  , windowHeight(params.height)
-	  , renderOffscreen(false)
 	{
 	}
 	ActualVideoModeParams(const VideoModeParams& params,
@@ -223,14 +201,15 @@ class ActualVideoModeParams : public VideoModeParams
 	  , renderOffscreen(renderOffscreen)
 	{
 	}
-	ActualVideoModeParams(const ActualVideoModeParams& other) = default;
+
+	ActualVideoModeParams() = default;
 
 	// If bWindowIsFullscreenBorderless is true,
 	// then these properties will differ from width/height (which describe the
 	// render size)
-	int windowWidth;
-	int windowHeight;
-	bool renderOffscreen;
+	int windowWidth{ 0 };
+	int windowHeight{ 0 };
+	bool renderOffscreen{ false };
 };
 
 struct RenderTargetParam
@@ -269,16 +248,16 @@ class RageDisplay
 		unsigned int masks[4];
 	};
 
-	virtual const RagePixelFormatDesc* GetPixelFormatDesc(
-	  RagePixelFormat pf) const = 0;
+	[[nodiscard]] virtual auto GetPixelFormatDesc(RagePixelFormat pf) const
+	  -> const RagePixelFormatDesc* = 0;
 
 	RageDisplay();
 	virtual ~RageDisplay();
 
-	virtual std::string Init(const VideoModeParams& p,
-							 bool bAllowUnacceleratedRenderer) = 0;
+	virtual auto Init(const VideoModeParams& p,
+					  bool bAllowUnacceleratedRenderer) -> std::string = 0;
 
-	virtual std::string GetApiDescription() const = 0;
+	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
@@ -286,23 +265,25 @@ class RageDisplay
 	// Don't override this.  Override TryVideoMode() instead.
 	// This will set the video mode to be as close as possible to params.
 	// Return true if device was re-created and we need to reload textures.
-	std::string SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures);
+	auto SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
+	  -> std::string;
 
 	// Call this when the resolution has been changed externally:
 	virtual void ResolutionChanged();
-	bool IsD3D();
+	auto IsD3D() -> bool;
 
-	virtual bool BeginFrame();
+	virtual auto BeginFrame() -> bool;
 	virtual void EndFrame();
-	virtual const ActualVideoModeParams* GetActualVideoModeParams() const = 0;
-	bool IsWindowed() { return (*GetActualVideoModeParams()).windowed; }
+	[[nodiscard]] virtual auto GetActualVideoModeParams() const
+	  -> const ActualVideoModeParams* = 0;
+	auto IsWindowed() -> bool { return (*GetActualVideoModeParams()).windowed; }
 
 	virtual void SetBlendMode(BlendMode mode) = 0;
 
-	virtual bool SupportsTextureFormat(RagePixelFormat pixfmt,
-									   bool realtime = false) = 0;
-	virtual bool SupportsThreadedRendering() { return false; }
-	virtual bool SupportsPerVertexMatrixScale() = 0;
+	virtual auto SupportsTextureFormat(RagePixelFormat pixfmt,
+									   bool realtime = false) -> bool = 0;
+	virtual auto SupportsThreadedRendering() -> bool { return false; }
+	virtual auto SupportsPerVertexMatrixScale() -> bool = 0;
 
 	// If threaded rendering is supported, these will be called from the
 	// rendering thread before and after rendering.
@@ -313,10 +294,10 @@ class RageDisplay
 
 	/* return 0 if failed or internal texture resource handle
 	 * (unsigned in OpenGL, texture pointer in D3D) */
-	virtual intptr_t CreateTexture(
+	virtual auto CreateTexture(
 	  RagePixelFormat pixfmt, // format of img and of texture in video mem
 	  RageSurface* img,		  // must be in pixfmt
-	  bool bGenerateMipMaps) = 0;
+	  bool bGenerateMipMaps) -> intptr_t = 0;
 	virtual void UpdateTexture(intptr_t iTexHandle,
 							   RageSurface* img,
 							   int xoffset,
@@ -326,36 +307,44 @@ class RageDisplay
 	virtual void DeleteTexture(intptr_t iTexHandle) = 0;
 	/* Return an object to lock pixels for streaming. If not supported, returns
 	 * NULL. Delete the object normally. */
-	virtual RageTextureLock* CreateTextureLock() { return nullptr; }
+	virtual auto CreateTextureLock() -> RageTextureLock* { return nullptr; }
 	virtual void ClearAllTextures() = 0;
-	virtual int GetNumTextureUnits() = 0;
+	virtual auto GetNumTextureUnits() -> int = 0;
 	virtual void SetTexture(TextureUnit, intptr_t /* iTexture */) = 0;
 	virtual void SetTextureMode(TextureUnit, TextureMode) = 0;
 	virtual void SetTextureWrapping(TextureUnit, bool) = 0;
-	virtual int GetMaxTextureSize() const = 0;
+	[[nodiscard]] virtual auto GetMaxTextureSize() const -> int = 0;
 	virtual void SetTextureFiltering(TextureUnit, bool) = 0;
-	virtual void SetEffectMode(EffectMode) {}
-	virtual bool IsEffectModeSupported(EffectMode effect)
+	virtual void SetEffectMode(EffectMode /*unused*/) {}
+	virtual auto IsEffectModeSupported(EffectMode effect) -> bool
 	{
 		return effect == EffectMode_Normal;
 	}
 
-	virtual bool SupportsRenderToTexture() const { return false; }
-	virtual bool SupportsFullscreenBorderlessWindow() const { return false; }
+	[[nodiscard]] virtual auto SupportsRenderToTexture() const -> bool
+	{
+		return false;
+	}
+	[[nodiscard]] virtual auto SupportsFullscreenBorderlessWindow() const
+	  -> bool
+	{
+		return false;
+	}
 
 	/* Create a render target, returning a texture handle. In addition to normal
 	 * texture functions, this can be passed to SetRenderTarget. Delete with
 	 * DeleteTexture. (UpdateTexture is not permitted.) Returns 0 if render-to-
 	 * texture is unsupported.
 	 */
-	virtual intptr_t CreateRenderTarget(const RenderTargetParam&,
-										int& /* iTextureWidthOut */,
-										int& /* iTextureHeightOut */)
+	virtual auto CreateRenderTarget(const RenderTargetParam& /*unused*/,
+									int& /* iTextureWidthOut */,
+									int &
+									/* iTextureHeightOut */) -> intptr_t
 	{
 		return 0;
 	}
 
-	virtual intptr_t GetRenderTarget() { return 0; }
+	virtual auto GetRenderTarget() -> intptr_t { return 0; }
 
 	/* Set the render target, or 0 to resume rendering to the framebuffer. An
 	 * active render target may not be used as a texture. If bPreserveTexture is
@@ -368,8 +357,8 @@ class RageDisplay
 	{
 	}
 
-	virtual bool IsZTestEnabled() const = 0;
-	virtual bool IsZWriteEnabled() const = 0;
+	[[nodiscard]] virtual auto IsZTestEnabled() const -> bool = 0;
+	[[nodiscard]] virtual auto IsZWriteEnabled() const -> bool = 0;
 	virtual void SetZWrite(bool) = 0;
 	virtual void SetZTestMode(ZTestMode) = 0;
 	virtual void SetZBias(float) = 0;
@@ -396,7 +385,7 @@ class RageDisplay
 	virtual void SetSphereEnvironmentMapping(TextureUnit tu, bool b) = 0;
 	virtual void SetCelShaded(int stage) = 0;
 
-	virtual RageCompiledGeometry* CreateCompiledGeometry() = 0;
+	virtual auto CreateCompiledGeometry() -> RageCompiledGeometry* = 0;
 	virtual void DeleteCompiledGeometry(RageCompiledGeometry* p) = 0;
 
 	void DrawQuads(const RageSpriteVertex v[], int iNumVerts);
@@ -419,8 +408,8 @@ class RageDisplay
 	} /* alias. upper-left, upper-right, lower-left, lower-right */
 
 	// hacks for cell-shaded models
-	virtual void SetPolygonMode(PolygonMode) {}
-	virtual void SetLineWidth(float) {}
+	virtual void SetPolygonMode(PolygonMode /*unused*/) {}
+	virtual void SetLineWidth(float /*unused*/) {}
 
 	enum GraphicsFileFormat
 	{
@@ -429,15 +418,17 @@ class RageDisplay
 		SAVE_LOSSY_LOW_QUAL,	// jpg
 		SAVE_LOSSY_HIGH_QUAL	// jpg
 	};
-	bool SaveScreenshot(const std::string& sPath, GraphicsFileFormat format);
+	auto SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
+	  -> bool;
 
-	virtual std::string GetTextureDiagnostics(unsigned /* id */) const
+	[[nodiscard]] virtual auto GetTextureDiagnostics(unsigned /* id */) const
+	  -> std::string
 	{
 		return std::string();
 	}
-	virtual RageSurface*
-	CreateScreenshot() = 0; // allocates a surface.  Caller must delete it.
-	virtual RageSurface* GetTexture(intptr_t /* iTexture */)
+	virtual auto CreateScreenshot()
+	  -> RageSurface* = 0; // allocates a surface.  Caller must delete it.
+	virtual auto GetTexture(intptr_t /* iTexture */) -> RageSurface*
 	{
 		return nullptr;
 	} // allocates a surface.  Caller must delete it.
@@ -461,13 +452,13 @@ class RageDisplay
 												int iNumVerts) = 0;
 	virtual void DrawCircleInternal(const RageSpriteVertex& v, float radius);
 
-	virtual bool IsD3DInternal();
+	virtual auto IsD3DInternal() -> bool;
 
 	// return std::string() if mode change was successful, an error message
 	// otherwise. bNewDeviceOut is set true if a new device was created and
 	// textures need to be reloaded.
-	virtual std::string TryVideoMode(const VideoModeParams& p,
-									 bool& bNewDeviceOut) = 0;
+	virtual auto TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
+	  -> std::string = 0;
 
 	void DrawPolyLine(const RageSpriteVertex& p1,
 					  const RageSpriteVertex& p2,
@@ -481,13 +472,13 @@ class RageDisplay
 
   public:
 	// Statistics
-	bool IsPredictiveFrameLimit() const;
-	int GetFPS() const;
-	int GetVPF() const;
-	int GetCumFPS() const; // average FPS since last reset
+	[[nodiscard]] auto IsPredictiveFrameLimit() const -> bool;
+	[[nodiscard]] auto GetFPS() const -> int;
+	[[nodiscard]] auto GetVPF() const -> int;
+	[[nodiscard]] auto GetCumFPS() const -> int; // average FPS since last reset
 	virtual void ResetStats();
 	virtual void ProcessStatsOnFlip();
-	virtual std::string GetStats() const;
+	[[nodiscard]] virtual auto GetStats() const -> std::string;
 	void StatsAddVerts(int iNumVertsRendered);
 
 	// World matrix stack functions.
@@ -539,54 +530,52 @@ class RageDisplay
 						 int add_width,
 						 int add_height);
 
-	RageSurface* CreateSurfaceFromPixfmt(RagePixelFormat pixfmt,
-										 void* pixels,
-										 int width,
-										 int height,
-										 int pitch);
-	RagePixelFormat FindPixelFormat(int bpp,
-									unsigned Rmask,
-									unsigned Gmask,
-									unsigned Bmask,
-									unsigned Amask,
-									bool realtime = false);
+	auto CreateSurfaceFromPixfmt(RagePixelFormat pixfmt,
+								 void* pixels,
+								 int width,
+								 int height,
+								 int pitch) -> RageSurface*;
+	auto FindPixelFormat(int bpp,
+						 unsigned Rmask,
+						 unsigned Gmask,
+						 unsigned Bmask,
+						 unsigned Amask,
+						 bool realtime = false) -> RagePixelFormat;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   protected:
-	RageMatrix GetPerspectiveMatrix(float fovy,
-									float aspect,
-									float zNear,
-									float zFar);
+	auto GetPerspectiveMatrix(float fovy, float aspect, float zNear, float zFar)
+	  -> RageMatrix;
 
 	// Different for D3D and OpenGL. Not sure why they're not compatible. -Chris
-	virtual RageMatrix GetOrthoMatrix(float l,
-									  float r,
-									  float b,
-									  float t,
-									  float zn,
-									  float zf);
-	virtual RageMatrix GetFrustumMatrix(float l,
-										float r,
-										float b,
-										float t,
-										float zn,
-										float zf);
+	virtual auto GetOrthoMatrix(float l,
+								float r,
+								float b,
+								float t,
+								float zn,
+								float zf) -> RageMatrix;
+	virtual auto GetFrustumMatrix(float l,
+								  float r,
+								  float b,
+								  float t,
+								  float zn,
+								  float zf) -> RageMatrix;
 
 	// Matrix that adjusts position and scale of image on the screen
-	RageMatrix GetCenteringMatrix(float fTranslateX,
-								  float fTranslateY,
-								  float fAddWidth,
-								  float fAddHeight);
+	auto GetCenteringMatrix(float fTranslateX,
+							float fTranslateY,
+							float fAddWidth,
+							float fAddHeight) -> RageMatrix;
 	void UpdateCentering();
 
 	// Called by the RageDisplay derivitives
-	const RageMatrix* GetCentering() const;
-	const RageMatrix* GetProjectionTop() const;
-	const RageMatrix* GetViewTop() const;
-	const RageMatrix* GetWorldTop() const;
-	const RageMatrix* GetTextureTop() const;
+	[[nodiscard]] auto GetCentering() const -> const RageMatrix*;
+	[[nodiscard]] auto GetProjectionTop() const -> const RageMatrix*;
+	[[nodiscard]] auto GetViewTop() const -> const RageMatrix*;
+	[[nodiscard]] auto GetWorldTop() const -> const RageMatrix*;
+	[[nodiscard]] auto GetTextureTop() const -> const RageMatrix*;
 
 	void FrameLimitBeforeVsync();
 	void FrameLimitAfterVsync(int iFPS);

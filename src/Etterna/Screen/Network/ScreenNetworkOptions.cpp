@@ -1,11 +1,8 @@
 #include "Etterna/Globals/global.h"
-
-#include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetworkOptions.h"
 #include "Etterna/Screen/Others/ScreenPrompt.h"
@@ -97,7 +94,7 @@ ScreenNetworkOptions::Init()
 }
 
 void
-ScreenNetworkOptions::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetworkOptions::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_DoneConnecting) {
 		if (!ScreenTextEntry::s_bCancelledLast) {

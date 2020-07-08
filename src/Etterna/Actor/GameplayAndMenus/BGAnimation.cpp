@@ -6,6 +6,8 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <algorithm>
+
 REGISTER_ACTOR_CLASS(BGAnimation);
 
 BGAnimation::BGAnimation() = default;
@@ -42,7 +44,7 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir,
 				vsLayerNames.push_back(pLayer->GetName());
 		}
 
-		sort(vsLayerNames.begin(), vsLayerNames.end(), CompareLayerNames);
+		std::sort(vsLayerNames.begin(), vsLayerNames.end(), CompareLayerNames);
 
 		for (auto& s : vsLayerNames) {
 			const auto& sLayer = s;

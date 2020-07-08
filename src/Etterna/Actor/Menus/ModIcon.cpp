@@ -53,13 +53,13 @@ ModIcon::Set(const std::string& _sText)
 {
 	auto sText = _sText;
 
-	for (unsigned i = 0; i < m_vStopWords.size(); i++)
-		if (EqualsNoCase(sText, m_vStopWords[i]))
+	for (auto& m_vStopWord : m_vStopWords)
+		if (EqualsNoCase(sText, m_vStopWord))
 			sText = "";
 
 	s_replace(sText, (" "), "\n");
 
-	auto bVacant = (sText == "");
+	const auto bVacant = (sText.empty());
 	m_sprFilled->SetVisible(!bVacant);
 	m_sprEmpty->SetVisible(bVacant);
 

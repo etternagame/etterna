@@ -69,7 +69,7 @@ const TimingData&
 PlayerState::GetDisplayedTiming() const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
-	if (steps == NULL)
+	if (steps == nullptr)
 		return GAMESTATE->m_pCurSong->m_SongTiming;
 	return *steps->GetTimingData();
 }
@@ -97,7 +97,7 @@ class LunaPlayerState : public Luna<PlayerState>
 	DEFINE_METHOD(GetPlayerController, m_PlayerController);
 	static int SetPlayerOptions(T* p, lua_State* L)
 	{
-		ModsLevel m = Enum::Check<ModsLevel>(L, 1);
+		const auto m = Enum::Check<ModsLevel>(L, 1);
 		PlayerOptions po;
 		po.FromString(SArg(2));
 		p->m_PlayerOptions.Assign(m, po);
@@ -105,13 +105,13 @@ class LunaPlayerState : public Luna<PlayerState>
 	}
 	static int GetPlayerOptions(T* p, lua_State* L)
 	{
-		ModsLevel m = Enum::Check<ModsLevel>(L, 1);
+		const auto m = Enum::Check<ModsLevel>(L, 1);
 		p->m_PlayerOptions.Get(m).PushSelf(L);
 		return 1;
 	}
 	static int GetPlayerOptionsArray(T* p, lua_State* L)
 	{
-		ModsLevel m = Enum::Check<ModsLevel>(L, 1);
+		const auto m = Enum::Check<ModsLevel>(L, 1);
 		vector<std::string> s;
 		p->m_PlayerOptions.Get(m).GetMods(s);
 		LuaHelpers::CreateTableFromArray<std::string>(s, L);
@@ -119,8 +119,8 @@ class LunaPlayerState : public Luna<PlayerState>
 	}
 	static int GetPlayerOptionsString(T* p, lua_State* L)
 	{
-		ModsLevel m = Enum::Check<ModsLevel>(L, 1);
-		std::string s = p->m_PlayerOptions.Get(m).GetString();
+		const auto m = Enum::Check<ModsLevel>(L, 1);
+		const auto s = p->m_PlayerOptions.Get(m).GetString();
 		LuaHelpers::Push(L, s);
 		return 1;
 	}

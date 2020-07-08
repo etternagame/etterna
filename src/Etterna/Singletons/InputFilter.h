@@ -80,8 +80,8 @@ class InputFilter
 				   const DeviceInputList* pButtonState = nullptr) const;
 	std::string GetButtonComment(const DeviceInput& di) const;
 
-	void GetInputEvents(vector<InputEvent>& aEventOut);
-	void GetPressedButtons(vector<DeviceInput>& array) const;
+	void GetInputEvents(std::vector<InputEvent>& aEventOut);
+	void GetPressedButtons(std::vector<DeviceInput>& array) const;
 
 	// cursor
 	void UpdateCursorLocation(float _fX, float _fY);
@@ -98,9 +98,9 @@ class InputFilter
 						   DeviceInput di,
 						   const std::chrono::steady_clock::time_point& now);
 	void ReportButtonChange(const DeviceInput& di, InputEventType t);
-	void MakeButtonStateList(vector<DeviceInput>& aInputOut) const;
+	void MakeButtonStateList(std::vector<DeviceInput>& aInputOut) const;
 
-	vector<InputEvent> queue;
+	std::vector<InputEvent> queue;
 	RageMutex* queuemutex;
 	MouseCoordinates m_MouseCoords;
 

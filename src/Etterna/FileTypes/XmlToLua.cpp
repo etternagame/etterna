@@ -13,6 +13,10 @@
 #include <set>
 #include <vector>
 
+using std::map;
+using std::set;
+using std::vector;
+
 #define TWEEN_QUEUE_MAX 50
 
 std::string
@@ -88,7 +92,7 @@ size_t
 after_slash_or_zero(std::string const& s)
 {
 	auto ret = s.rfind('/');
-	if (ret != string::npos) {
+	if (ret != std::string::npos) {
 		return ret + 1;
 	}
 	return 0;
@@ -101,7 +105,7 @@ add_extension_to_relative_path_from_found_file(std::string const& relative_path,
 	auto rel_last_slash = after_slash_or_zero(relative_path);
 	auto found_last_slash = after_slash_or_zero(found_file);
 	return head(relative_path, rel_last_slash) +
-		   found_file.substr(found_last_slash, string::npos);
+		   found_file.substr(found_last_slash, std::string::npos);
 }
 
 bool
@@ -260,7 +264,7 @@ convert_lua_chunk(std::string& chunk_text)
 	}
 }
 
-// Conditions are mapped by condition string.
+// Conditions are mapped by condition std::string.
 // So condition_set_t::iterator->first is the lua to execute for the
 // condition, and condition_set_t::iterator->second is the name of the
 // condition.

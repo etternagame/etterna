@@ -33,13 +33,13 @@ JoinLineList(vector<std::string>& lines)
 }
 
 std::string
-MSDToString2(MinaSD x)
+MSDToString2(std::vector<std::vector<float>> x)
 {
 	std::string o = "";
 	for (size_t i = 0; i < x.size(); i++) {
 		auto msds = x[i];
 		for (size_t ii = 0; ii < msds.size(); ii++) {
-			o.append(to_string(msds[ii]).substr(0, 5));
+			o.append(std::to_string(msds[ii]).substr(0, 5));
 			if (ii != msds.size() - 1)
 				o.append(",");
 		}
@@ -367,7 +367,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 }
 
 static void
-emplace_back_tag(vector<std::string>& lines,
+emplace_back_tag(std::vector<std::string>& lines,
 				 std::string const& format,
 				 std::string const& value)
 {
@@ -385,7 +385,7 @@ emplace_back_tag(vector<std::string>& lines,
 static std::string
 GetETTNoteData(const Song& song, Steps& in)
 {
-	vector<std::string> lines;
+	std::vector<std::string> lines;
 
 	lines.emplace_back("");
 	// Escape to prevent some clown from making a comment of "\r\n;"
@@ -407,7 +407,7 @@ GetETTNoteData(const Song& song, Steps& in)
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
-	vector<std::string> asRadarValues;
+	std::vector<std::string> asRadarValues;
 	const auto& rv = in.GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));

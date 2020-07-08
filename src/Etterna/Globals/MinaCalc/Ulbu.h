@@ -65,8 +65,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	// the notedata rows, we will recyle two pointers (we want each row to be
 	// able to "look back" at the meta info generated at the last row so the mhi
 	// generation requires the last generated mhi object as an arg
-	unique_ptr<metaRowInfo> _last_mri;
-	unique_ptr<metaRowInfo> _mri;
+	std::unique_ptr<metaRowInfo> _last_mri;
+	std::unique_ptr<metaRowInfo> _mri;
 
 	// tracks meta hand info as well as basic interval tracking data for hand
 	// dependent stuff, like metaitvinfo and itvinfo
@@ -74,8 +74,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	// meta hand info is the same as meta row info, however it tracks
 	// pattern progression on individual hands rather than on generic rows
-	unique_ptr<metaHandInfo> _last_mhi;
-	unique_ptr<metaHandInfo> _mhi;
+	std::unique_ptr<metaHandInfo> _last_mhi;
+	std::unique_ptr<metaHandInfo> _mhi;
 
 	SequencerGeneral _seq;
 
@@ -443,12 +443,12 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma endregion
 
 	[[nodiscard]] static auto make_mod_param_node(
-	  const vector<pair<std::string, float*>>& param_map,
+	  const vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name) -> XNode*
 	{
 		auto* pmod = new XNode(name);
 		for (const auto& p : param_map) {
-			pmod->AppendChild(p.first, to_string(*p.second));
+			pmod->AppendChild(p.first, std::to_string(*p.second));
 		}
 
 		return pmod;
@@ -456,7 +456,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	static void load_params_for_mod(
 	  const XNode* node,
-	  const vector<pair<std::string, float*>>& param_map,
+	  const vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name)
 	{
 		auto boat = 0.F;
