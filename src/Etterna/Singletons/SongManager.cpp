@@ -301,7 +301,7 @@ SongManager::FinalizeSong(Song* pNewSong, const std::string& dir)
 		  "Banner", SONGMAN->GetSongGroupBannerPath(pNewSong->m_sGroupName));
 }
 
-TracyLockable(mutex, songLoadingSONGMANMutex);
+TracyLockable(std::mutex, songLoadingSONGMANMutex);
 void
 SongManager::InitSongsFromDisk(LoadingWindow* ld)
 {

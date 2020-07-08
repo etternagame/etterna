@@ -585,10 +585,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 				HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 			}
 		}
-		// Delete this here instead of within the loop to avoid iterator
-		// invalidation
-		if (idx_to_delete != -1)
-			HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
+
 	}
 }
 void
