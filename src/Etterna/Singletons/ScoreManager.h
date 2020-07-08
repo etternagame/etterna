@@ -161,6 +161,7 @@ class ScoreManager
 		  pscores[profileID][hs.GetChartKey()].AddScore(hs), profileID);
 		return hs.GetTopScore();
 	}
+
 	void ImportScore(const HighScore& hs_,
 					 const std::string& profileID =
 					   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
@@ -190,6 +191,13 @@ class ScoreManager
 
 	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
 	auto GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*;
+	auto GetRecentScore(int rank) -> HighScore*;
+	auto GetRecentScoreForGame(int rank) -> HighScore*;
+	void SortRecentScores(const std::string& profileID =
+							PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	void SortRecentScoresForGame(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
 	[[nodiscard]] auto KeyHasScores(
 	  const std::string& ck,

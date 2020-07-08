@@ -897,6 +897,67 @@ ScoreManager::GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*
 }
 
 void
+ScoreManager::SortRecentScores(const string& profileID)
+{
+	TopSSRs.clear();
+	for (auto& i : pscores[profileID]) {
+		if (!SONGMAN->IsChartLoaded(i.first)) {
+			continue;
+		}
+		for (const auto& hs : i.second.GetAllScores()) {
+			TopSSRs.emplace_back(hs);
+		}
+	}
+
+	auto datecomp = [](HighScore* a, HighScore* b) {
+		return (a->GetDateTime() > b->GetDateTime());
+	};
+
+	sort(TopSSRs.begin(), TopSSRs.end(), datecomp);
+}
+
+void
+ScoreManager::SortRecentScoresForGame(const string& profileID)
+{
+	TopSSRsForGame.clear();
+	for (auto& i : pscores[profileID]) {
+		if (!SONGMAN->IsChartLoaded(i.first) ||
+			!SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+			continue;
+		}
+		for (const auto& hs : i.second.GetAllScores()) {
+			TopSSRsForGame.emplace_back(hs);
+		}
+	}
+
+	auto datecomp = [](HighScore* a, HighScore* b) {
+		return (a->GetDateTime() > b->GetDateTime());
+	};
+
+	sort(TopSSRsForGame.begin(), TopSSRsForGame.end(), datecomp);
+}
+
+auto
+ScoreManager::GetRecentScore(const int rank) -> HighScore*
+{
+	if (rank >= 0 && rank < TopSSRs.size()) {
+		return TopSSRs[rank];
+	}
+
+	return nullptr;
+}
+
+auto
+ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
+{
+	if (rank >= 0 && rank < TopSSRs.size()) {
+		return TopSSRsForGame[rank];
+	}
+
+	return nullptr;
+}
+
+void
 ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
 {
 	auto hs = hs_;
@@ -1209,6 +1270,42 @@ class LunaScoreManager : public Luna<ScoreManager>
 		return 1;
 	}
 
+	static auto SortRecentScores(T* p, lua_State* L) -> int
+	{
+		p->SortRecentScores();
+		return 0;
+	}
+
+	static auto SortRecentScoresForGame(T* p, lua_State* L) -> int
+	{
+		p->SortRecentScoresForGame();
+		return 0;
+	}
+
+	static auto GetRecentScore(T* p, lua_State* L) -> int
+	{
+		auto* ths = p->GetRecentScore(IArg(1) - 1);
+		if (ths != nullptr) {
+			ths->PushSelf(L);
+		} else {
+			lua_pushnil(L);
+		}
+
+		return 1;
+	}
+
+	static auto GetRecentScoreForGame(T* p, lua_State* L) -> int
+	{
+		auto* ths = p->GetRecentScoreForGame(IArg(1) - 1);
+		if (ths != nullptr) {
+			ths->PushSelf(L);
+		} else {
+			lua_pushnil(L);
+		}
+
+		return 1;
+	}
+
 	static auto GetMostRecentScore(T* p, lua_State* L) -> int
 	{
 		// this _should_ always be viable if only called from eval
@@ -1231,6 +1328,10 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(SortSSRsForGame);
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(GetTopSSRHighScoreForGame);
+		ADD_METHOD(SortRecentScores);
+		ADD_METHOD(SortRecentScoresForGame);
+		ADD_METHOD(GetRecentScore);
+		ADD_METHOD(GetRecentScoreForGame);
 		ADD_METHOD(GetMostRecentScore);
 		ADD_METHOD(GetTempReplayScore);
 		ADD_METHOD(GetTotalNumberOfScores);
