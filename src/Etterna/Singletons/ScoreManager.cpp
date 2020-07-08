@@ -67,7 +67,7 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 {
 	auto& key = hs.GetScoreKey();
 	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
-	bestWifeScore = std::max(hs.GetWifeScore(), bestWifeScore);
+	bestWifeScore = std::max(hs.GetSSRNormPercent(), bestWifeScore);
 	scores.emplace(key, hs);
 
 	if ((PBptr == nullptr) ||
@@ -196,7 +196,7 @@ auto
 ScoresForChart::AddScore(HighScore& hs) -> HighScore*
 {
 	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
-	bestWifeScore = std::max(hs.GetWifeScore(), bestWifeScore);
+	bestWifeScore = std::max(hs.GetSSRNormPercent(), bestWifeScore);
 
 	auto rate = hs.GetMusicRate();
 	auto key = RateToKey(rate);

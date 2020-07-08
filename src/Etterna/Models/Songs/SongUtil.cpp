@@ -484,9 +484,7 @@ void
 SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
 									   bool bDescending)
 {
-	/* Optimize by pre-writing a string to compare, since doing
-	 * GetNumNotesWithGrade inside the sort is too slow. */
-	typedef pair<Song*, float> val;
+	typedef pair<Song*, int> val;
 	vector<val> vals;
 	vals.reserve(vpSongsInOut.size());
 	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
@@ -494,6 +492,32 @@ SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
 	for (auto* pSong : vpSongsInOut) {
 		ASSERT(pProfile != nullptr);
 		auto g = static_cast<int>(pProfile->GetBestGrade(
+		  pSong,
+		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
+			->m_StepsType));
+		vals.emplace_back(val(pSong, g));
+	}
+
+	sort(
+	  vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
+
+	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
+		vpSongsInOut[i] = vals[i].first;
+}
+
+// do not know why this doesn't work
+void
+SongUtil::SortSongPointerArrayByWifeScore(vector<Song*>& vpSongsInOut,
+										  bool bDescending)
+{
+	typedef pair<Song*, float> val;
+	vector<val> vals;
+	vals.reserve(vpSongsInOut.size());
+	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+	for (auto* pSong : vpSongsInOut) {
+		ASSERT(pProfile != nullptr);
+		auto g = static_cast<int>(pProfile->GetBestWifeScore(
 		  pSong,
 		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
 			->m_StepsType));

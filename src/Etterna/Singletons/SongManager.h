@@ -52,7 +52,7 @@ class SongManager
 
 	auto GetSongGroupBannerPath(const std::string& sSongGroup) const
 	  -> std::string;
-	auto GetSongGroupBannerPaths() -> std::vector<std::string>
+	auto GetSongGroupBannerPaths() const -> std::vector<std::string>
 	{
 		return m_sSongGroupBannerPaths;
 	}
@@ -70,7 +70,7 @@ class SongManager
 	auto GetStepsByChartkey(const std::string& ck) -> Steps*;
 	auto GetSongByChartkey(const std::string& ck) -> Song*;
 	void UnloadAllCalcDebugOutput();
-	auto IsChartLoaded(const std::string& ck) -> bool
+	auto IsChartLoaded(const std::string& ck) const -> bool
 	{
 		return SongsByKey.count(ck) == 1 &&
 			   StepsByKey.count(ck) ==

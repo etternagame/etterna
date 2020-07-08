@@ -79,6 +79,8 @@ SortSongPointerArrayByBPM(vector<Song*>& vpSongsInOut);
 void
 SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut, bool bDescending);
 void
+SortSongPointerArrayByWifeScore(vector<Song*>& vpSongsInOut, bool bDescending);
+void
 SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut);
 void
 SortSongPointerArrayByDisplayArtist(vector<Song*>& vpSongsInOut);
