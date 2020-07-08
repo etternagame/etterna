@@ -1831,7 +1831,7 @@ StringToFloat(const std::string& sString)
 {
 	auto ret = strtof(sString.c_str(), nullptr);
 
-	if (!isfinite(ret))
+	if (!std::isfinite(ret))
 		ret = 0.0f;
 	return ret;
 }
@@ -1842,7 +1842,7 @@ StringToFloat(const std::string& sString, float& fOut)
 	char* endPtr;
 
 	fOut = strtof(sString.c_str(), &endPtr);
-	return !sString.empty() && *endPtr == '\0' && isfinite(fOut);
+	return !sString.empty() && *endPtr == '\0' && std::isfinite(fOut);
 }
 
 std::string
@@ -2282,7 +2282,7 @@ FromString<float>(const std::string& sValue, float& out)
 {
 	const auto* endptr = sValue.data() + sValue.size();
 	out = strtof(sValue.c_str(), (char**)&endptr);
-	if (endptr != sValue.data() && isfinite(out))
+	if (endptr != sValue.data() && std::isfinite(out))
 		return true;
 	out = 0;
 	return false;
