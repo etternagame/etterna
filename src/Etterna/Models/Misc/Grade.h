@@ -4,11 +4,6 @@
 #include "EnumHelper.h"
 #include "ThemeMetric.h"
 
-/** @brief The list of grading tiers available.
- *
- * TODO: Look into a more flexible system without a fixed number of grades.
- * -Wolfman2000
- */
 enum Grade
 {
 	Grade_Tier01, /**< Usually an AAAAA */
@@ -44,7 +39,7 @@ enum Grade
  * @param g the grade to convert.
  * @return the string reprsentation.
  */
-static inline auto
+static auto
 GradeToString(Grade g) -> std::string
 {
 	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_Invalid,
@@ -95,3 +90,6 @@ GetNextPossibleGrade(Grade g) -> Grade;
 		 (g) = GetNextPossibleGrade(g))
 
 #endif
+
+auto
+GetGradeFromPercent(float pc) -> Grade;

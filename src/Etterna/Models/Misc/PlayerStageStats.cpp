@@ -38,9 +38,6 @@ static ThemeMetric<bool> g_MineHitIncrementsMissCombo(
 
 const float LESSON_PASS_THRESHOLD = 0.8f;
 
-Grade
-GetGradeFromPercent(float fPercent);
-
 void
 PlayerStageStats::InternalInit()
 {
@@ -189,44 +186,6 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	}
 }
 
-// get appropriated (for when we have scores but no highscore object to get
-// wifegrades) -mina
-Grade
-GetGradeFromPercent(float fPercent)
-{
-	if (fPercent >= 0.99996f)
-		return Grade_Tier01;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
-		return Grade_Tier02;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9997f)
-		return Grade_Tier03;
-	if (fPercent >= 0.99955f)
-		return Grade_Tier04;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.999f)
-		return Grade_Tier05;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.998f)
-		return Grade_Tier06;
-	if (fPercent >= 0.997f)
-		return Grade_Tier07;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
-		return Grade_Tier08;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
-		return Grade_Tier09;
-	if (fPercent >= 0.93f)
-		return Grade_Tier10;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
-		return Grade_Tier11;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
-		return Grade_Tier12;
-	if (fPercent >= 0.8f)
-		return Grade_Tier13;
-	if (fPercent >= 0.7f)
-		return Grade_Tier14;
-	if (fPercent >= 0.6f)
-		return Grade_Tier15;
-	return Grade_Tier16;
-}
-
 Grade
 PlayerStageStats::GetWifeGrade()
 {
@@ -241,6 +200,7 @@ PlayerStageStats::GetGrade(float p)
 {
 	return GetGradeFromPercent(p);
 }
+
 Grade
 PlayerStageStats::GetGrade() const
 {

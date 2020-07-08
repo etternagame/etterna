@@ -152,58 +152,13 @@ HighScoreImpl::GetWifeGrade() const -> Grade
 		return Grade_Failed;
 	}
 
-	auto prc = fWifeScore;
+	auto pc = fWifeScore;
 
 	if (PREFSMAN->m_bSortBySSRNorm) {
-		prc = fSSRNormPercent;
+		pc = fSSRNormPercent;
 	}
 
-	if (prc >= 0.99996F) {
-		return Grade_Tier01;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9998F) {
-		return Grade_Tier02;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9997F) {
-		return Grade_Tier03;
-	}
-	if (prc >= 0.99955F) {
-		return Grade_Tier04;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.999F) {
-		return Grade_Tier05;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.998F) {
-		return Grade_Tier06;
-	}
-	if (prc >= 0.997F) {
-		return Grade_Tier07;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99F) {
-		return Grade_Tier08;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.965F) {
-		return Grade_Tier09;
-	}
-	if (prc >= 0.93F) {
-		return Grade_Tier10;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9F) {
-		return Grade_Tier11;
-	}
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.85F) {
-		return Grade_Tier12;
-	}
-	if (prc >= 0.8F) {
-		return Grade_Tier13;
-	}
-	if (prc >= 0.7F) {
-		return Grade_Tier14;
-	}
-	if (prc >= 0.6F) {
-		return Grade_Tier15;
-	}
-	return Grade_Tier16;
+	return GetGradeFromPercent(pc);
 }
 
 void
