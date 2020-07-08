@@ -604,7 +604,7 @@ t[#t + 1] =
 					capWideScale(get43size(0.6), 0.6)
 				):maxwidth(capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45))
 			end,
-			CurrentStepsP1ChangedMessageCommand = function(self)
+			MintyFreshCommand = function(self)
 				if song then
 					local playabletime = GetPlayableTime()
 					self:settext(SecondsToMMSS(playabletime))
