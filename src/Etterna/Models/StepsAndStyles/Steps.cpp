@@ -1099,6 +1099,12 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(p->Getdebugstrings(), L);
 		return 1;
 	}
+	static auto GetLengthSeconds(T* p, lua_State* L) -> int
+	{
+		float curr_rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		lua_pushnumber(L, p->GetLengthSeconds(curr_rate));
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1130,6 +1136,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetNonEmptyNoteData);
 		ADD_METHOD(GetCalcDebugOutput);
 		ADD_METHOD(GetDebugStrings);
+		ADD_METHOD(GetLengthSeconds);
 	}
 };
 
