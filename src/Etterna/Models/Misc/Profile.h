@@ -277,6 +277,7 @@ class Profile
 
 	// this actually does use scoreman atm
 	auto GetBestGrade(const Song* pSong, StepsType st) const -> Grade;
+	auto GetBestWifeScore(const Song* pSong, StepsType st) const -> float;
 
 	// Screenshot Data
 	std::vector<Screenshot> m_vScreenshots;

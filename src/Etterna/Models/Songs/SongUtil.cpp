@@ -486,18 +486,18 @@ SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
 {
 	/* Optimize by pre-writing a string to compare, since doing
 	 * GetNumNotesWithGrade inside the sort is too slow. */
-	typedef pair<Song*, int> val;
+	typedef pair<Song*, float> val;
 	vector<val> vals;
 	vals.reserve(vpSongsInOut.size());
 	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
 	for (auto* pSong : vpSongsInOut) {
-		ASSERT(pProfile != NULL);
+		ASSERT(pProfile != nullptr);
 		auto g = static_cast<int>(pProfile->GetBestGrade(
 		  pSong,
 		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
 			->m_StepsType));
-		vals.push_back(val(pSong, g));
+		vals.emplace_back(val(pSong, g));
 	}
 
 	sort(

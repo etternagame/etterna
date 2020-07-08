@@ -22,6 +22,7 @@ struct ScoresAtRate
 
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade;
+	float bestWifeScore = 0.F;
 
 	auto AddScore(HighScore& hs) -> HighScore*;
 
@@ -47,6 +48,7 @@ struct ScoresForChart
 	ScoresForChart();
 
 	Grade bestGrade = Grade_Invalid; // best grade for any rate
+	float bestWifeScore = 0.F;
 
 	auto GetPBAt(float rate) -> HighScore*;
 	auto GetPBUpTo(float rate) -> HighScore*;
@@ -135,6 +137,17 @@ class ScoreManager
 		return Grade_Invalid;
 	}
 
+	[[nodiscard]] auto GetBestWifeScoreFor(
+	  const std::string& ck,
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> float
+	{
+		if (KeyHasScores(ck, profileID)) {
+			return pscores.at(profileID).at(ck).bestWifeScore;
+		}
+		return Grade_Invalid;
+	}
+
 	// for scores achieved during this session
 	// now returns top score status because i'm bad at coding --lurker
 	auto AddScore(const HighScore& hs_,
@@ -175,7 +188,6 @@ class ScoreManager
 
 	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
 	auto GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*;
-
 
 	[[nodiscard]] auto KeyHasScores(
 	  const std::string& ck,

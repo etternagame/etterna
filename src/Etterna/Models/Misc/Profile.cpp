@@ -163,8 +163,8 @@ Profile::SetDefaultModifiers(const Game* pGameType,
 		m_sDefaultModifiers[pGameType->m_szName] = sModifiers;
 }
 
-Grade
-Profile::GetBestGrade(const Song* pSong, StepsType st) const
+auto
+Profile::GetBestGrade(const Song* pSong, StepsType st) const -> Grade
 {
 	auto gradeBest = Grade_Invalid;
 	if (pSong != nullptr) {
@@ -181,24 +181,32 @@ Profile::GetBestGrade(const Song* pSong, StepsType st) const
 				}
 			}
 		}
-		// If no grade was found for the current style/stepstype
-		if (!hasCurrentStyleSteps) {
-			// Get the best grade among all steps
-			const auto& allSteps = pSong->GetAllSteps();
-			for (const auto& stepsPtr : allSteps) {
-				if (stepsPtr->m_StepsType ==
-					st) // Skip already checked steps of type st
-					continue;
-				const auto dcg =
-				  SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
-				if (gradeBest >= dcg) {
-					gradeBest = dcg;
+	}
+
+	return gradeBest;
+}
+
+auto
+Profile::GetBestWifeScore(const Song* pSong, StepsType st) const -> float
+{
+	auto scorebest = 0.F;
+	if (pSong != nullptr) {
+		auto hasCurrentStyleSteps = false;
+		FOREACH_ENUM_N(Difficulty, 6, i)
+		{
+			auto* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
+			if (pSteps != nullptr) {
+				hasCurrentStyleSteps = true;
+				const auto wsb =
+				  SCOREMAN->GetBestWifeScoreFor(pSteps->GetChartKey());
+				if (scorebest >= wsb) {
+					scorebest = wsb;
 				}
 			}
 		}
 	}
 
-	return gradeBest;
+	return scorebest;
 }
 
 void

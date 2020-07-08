@@ -67,6 +67,7 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 {
 	auto& key = hs.GetScoreKey();
 	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
+	bestWifeScore = std::max(hs.GetWifeScore(), bestWifeScore);
 	scores.emplace(key, hs);
 
 	if ((PBptr == nullptr) ||
@@ -195,6 +196,7 @@ auto
 ScoresForChart::AddScore(HighScore& hs) -> HighScore*
 {
 	bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
+	bestWifeScore = std::max(hs.GetWifeScore(), bestWifeScore);
 
 	auto rate = hs.GetMusicRate();
 	auto key = RateToKey(rate);
@@ -823,7 +825,8 @@ ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
-		if (!SONGMAN->IsChartLoaded(i.first) || !SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+		if (!SONGMAN->IsChartLoaded(i.first) ||
+			!SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
 			continue;
 		}
 		for (auto& hs : i.second.GetAllPBPtrs()) {
@@ -1152,8 +1155,8 @@ class LunaScoreManager : public Luna<ScoreManager>
 
 	static auto GetTopSSRHighScoreForGame(T* p, lua_State* L) -> int
 	{
-		HighScore* ths =
-		  p->GetTopSSRHighScoreForGame(IArg(1) - 1, Enum::Check<Skillset>(L, 2));
+		HighScore* ths = p->GetTopSSRHighScoreForGame(
+		  IArg(1) - 1, Enum::Check<Skillset>(L, 2));
 		if (ths != nullptr) {
 			ths->PushSelf(L);
 		} else {
