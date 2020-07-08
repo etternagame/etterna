@@ -415,18 +415,36 @@ SongUtil::SortSongPointerArrayByBPM(vector<Song*>& vpSongsInOut)
 }
 
 static bool
-CompareSongPointersByLength(const Song* pSong1, const Song* pSong2)
+CompareSongPointersByLength(const Song* a, const Song* b)
 {
-	const float length1 = pSong1->m_fMusicLengthSeconds;
-	const float length2 = pSong2->m_fMusicLengthSeconds;
+	auto len_a = 0.F;
+	for (const auto& s : a->GetAllSteps()) {
+		// if we hit the current preferred difficulty just force use the value
+		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
+			len_a = s->lastsecond;
+			break;
+		}
 
-	if (length1 < length2)
+		len_a = s->lastsecond > len_a ? s->lastsecond : len_a;
+	}
+
+	// OH NO COPY PASTE WHAT EVER WILL WE DO MAYBE USE A 10 LINE MACRO????
+	auto len_b = 0.F;
+	for (const auto& s : b->GetAllSteps()) {
+		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
+			len_b = s->lastsecond;
+			break;
+		}
+
+		len_b = s->lastsecond > len_b ? s->lastsecond : len_b;
+	}
+
+	if (len_a < len_b)
 		return true;
-	if (length1 > length2)
+	if (len_a > len_b)
 		return false;
 
-	return CompareRStringsAsc(pSong1->GetSongFilePath(),
-							  pSong2->GetSongFilePath());
+	return CompareRStringsAsc(a->GetSongFilePath(), b->GetSongFilePath());
 }
 
 void
