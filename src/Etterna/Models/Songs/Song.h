@@ -345,7 +345,7 @@ class Song
 												   float rate) const -> bool;
 	/** @brief This functions returns whether it has any chart of the given
 	   types with the given rate. If no type is given  it checks all charts.*/
-	bool MatchesFilter(const float rate) const;
+	[[nodiscard]] auto MatchesFilter(float rate) const -> bool;
 
 	auto HasChartByHash(const std::string& hash) -> bool;
 
@@ -469,8 +469,9 @@ class Song
 		return m_vpStepsByType[st];
 	}
 	/** @brief Get the steps of all types within the current game mode */
-	const std::vector<Steps*> GetStepsOfCurrentGameMode() const;
-	bool HasEdits(StepsType st) const;
+	[[nodiscard]] auto GetStepsOfCurrentGameMode() const
+	  -> const std::vector<Steps*>;
+	[[nodiscard]] auto HasEdits(StepsType st) const -> bool;
 
 	auto IsFavorited() -> bool { return isfavorited; }
 	void SetFavorited(bool b) { isfavorited = b; }

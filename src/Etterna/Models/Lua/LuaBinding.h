@@ -19,7 +19,7 @@ class LuaBinding
 	{
 		return GetClassName() != GetBaseClassName();
 	}
-	virtual auto GetClassName() const -> const std::string& = 0;
+	[[nodiscard]] virtual auto GetClassName() const -> const std::string& = 0;
 	[[nodiscard]] virtual auto GetBaseClassName() const
 	  -> const std::string& = 0;
 
@@ -69,7 +69,7 @@ class Luna : public LuaBinding
 	}
 
   public:
-	auto GetClassName() const -> const std::string& override
+	[[nodiscard]] auto GetClassName() const -> const std::string& override
 	{
 		return m_sClassName;
 	}
