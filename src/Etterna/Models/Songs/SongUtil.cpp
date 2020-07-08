@@ -419,8 +419,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 {
 	auto len_a = 0.F;
 	for (const auto& s : a->GetAllSteps()) {
-		const auto& len =
-		  s->GetTimingData()->GetElapsedTimeFromBeat(a->GetLastBeat());
+		const auto& len = s->GetLengthSeconds();
 		// if we hit the current preferred difficulty just force use the value
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
 			len_a = len;
@@ -433,8 +432,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 	// OH NO COPY PASTE WHAT EVER WILL WE DO MAYBE USE A 10 LINE MACRO????
 	auto len_b = 0.F;
 	for (const auto& s : b->GetAllSteps()) {
-		const auto& len =
-		  s->GetTimingData()->GetElapsedTimeFromBeat(b->GetLastBeat());
+		const auto& len = s->GetLengthSeconds();
 
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
 			len_b = len;
