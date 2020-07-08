@@ -50,7 +50,7 @@ using std::to_string;
  * the directory hash) in order to find the cache file.
  */
 const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 241;
+const unsigned int CACHE_DB_VERSION = 242;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -267,7 +267,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 								  "?, ?, ?, ?, ?, "
 								  "?, ?, ?, "
 								  "?, ?, ?, "
-								  "?, ?, ?, ?, ?, ?)");
+								  "?, ?, ?, ?, ?, ?, ?, ?)");
 	vector<std::string> lines;
 	auto stepsIndex = 1;
 	insertSteps.bind(stepsIndex++, pSteps->GetChartName());
@@ -321,6 +321,8 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 			insertSteps.bind(stepsIndex++);
 			break;
 	}
+	insertSteps.bind(stepsIndex++, pSteps->firstsecond);
+	insertSteps.bind(stepsIndex++, pSteps->lastsecond);
 	insertSteps.bind(stepsIndex++, pSteps->GetFilename().c_str());
 	auto* td = pSteps->GetTimingData();
 	NoteData nd;
@@ -330,7 +332,6 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 					 serializednd.data(),
 					 serializednd.size() * sizeof(NoteInfo));
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
-
 	try {
 		insertSteps.exec();
 	} catch (exception e) {
@@ -634,6 +635,7 @@ SongCacheIndex::CreateDBTables()
 		  "METER INTEGER, MSD TEXT, CHARTKEY TEXT, "
 		  "MUSIC TEXT, RADARVALUES TEXT, CREDIT TEXT, "
 		  "TIMINGDATAID INTEGER, DISPLAYBPMMIN FLOAT, DISPLAYBPMMAX FLOAT, "
+		  "FIRSTSECOND FLOAT, LASTSECOND FLOAT, "
 		  "STEPFILENAME TEXT, SERIALIZEDNOTEDATA BLOB, SONGID INTEGER, "
 		  "CONSTRAINT fk_songid FOREIGN KEY (SONGID) REFERENCES songs(ID), "
 		  "CONSTRAINT fk_timingdataid FOREIGN KEY (TIMINGDATAID) REFERENCES "
@@ -1269,7 +1271,10 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 				pNewNotes->SetMinBPM(BPMmin);
 				pNewNotes->SetMaxBPM(BPMmax);
 			}
-
+			pNewNotes->SetFirstSecond(
+			  static_cast<double>(qSteps.getColumn(stepsIndex++)));
+			pNewNotes->SetLastSecond(
+			  static_cast<double>(qSteps.getColumn(stepsIndex++)));
 			// pNewNotes->SetSMNoteData("");
 			pNewNotes->TidyUpData();
 			pNewNotes->SetFilename(

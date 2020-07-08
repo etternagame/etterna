@@ -1695,11 +1695,7 @@ Song::MatchesFilter(const float rate) const
 				else {
 					// If we are on the placeholder skillset, look at song
 					// length instead of a skill
-					auto* td = step->GetTimingData();
-					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
-						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
-						  rate;
-					// Rates modify the song length.
+					auto val = step->GetLengthSeconds(rate);
 				}
 				if (FILTERMAN->ExclusiveFilter) {
 					/* Our behaviour is to accept by default,

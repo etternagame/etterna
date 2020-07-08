@@ -247,8 +247,16 @@ class Steps
 	void SetMinBPM(const float f) { this->specifiedBPMMin = f; }
 	auto GetMinBPM() const -> float { return this->specifiedBPMMin; }
 	void SetMaxBPM(const float f) { this->specifiedBPMMax = f; }
+	void SetFirstSecond(const float f) { this->firstsecond = f; }
+	void SetLastSecond(const float f) { this->lastsecond = f; }
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
 	void GetDisplayBpms(DisplayBpms& addTo) const;
+	/** @brief Returns length of step in seconds. If a rate is supplied, the
+	 * returned length is scaled by it.*/
+	auto GetLengthSeconds(float rate = 1) const -> float
+	{
+		return (lastsecond - firstsecond) / rate;
+	}
 
 	auto Getdebugstrings() -> const std::vector<std::string>&
 	{
