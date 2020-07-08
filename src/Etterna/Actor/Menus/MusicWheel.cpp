@@ -376,13 +376,6 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so) const
 		case SORT_FAVORITES:
 			SONGMAN->GetFavoriteSongs(apAllSongs);
 			break;
-		case SORT_PREFERRED:
-			SONGMAN->GetPreferredSortSongs(apAllSongs);
-			break;
-		case SORT_POPULARITY:
-			// todo: make this work -poco
-			// apAllSongs = SONGMAN->GetPopularSongs();
-			// break;
 		case SORT_GROUP:
 			// if we're not using sections with a preferred song group, and
 			// there is a group to load, only load those songs. -aj
@@ -803,8 +796,6 @@ MusicWheel::BuildWheelItemDatas(
 		// sort the songs
 		switch (so) {
 			case SORT_FAVORITES:
-			case SORT_PREFERRED:
-				// obey order specified by the preferred sort list
 				break;
 			case SORT_GROUP:
 				SongUtil::SortSongPointerArrayByGroupAndTitle(arraySongs);
@@ -821,14 +812,6 @@ MusicWheel::BuildWheelItemDatas(
 			case SORT_BPM:
 				SongUtil::SortSongPointerArrayByBPM(arraySongs);
 				break;
-			case SORT_POPULARITY:
-				if (static_cast<int>(arraySongs.size()) >
-					MOST_PLAYED_SONGS_TO_SHOW)
-					arraySongs.erase(arraySongs.begin() +
-									   MOST_PLAYED_SONGS_TO_SHOW,
-									 arraySongs.end());
-				bUseSections = false;
-				break;
 			case SORT_TOP_GRADES:
 				SongUtil::SortSongPointerArrayByGrades(arraySongs, true);
 				break;
@@ -837,12 +820,6 @@ MusicWheel::BuildWheelItemDatas(
 				break;
 			case SORT_GENRE:
 				SongUtil::SortSongPointerArrayByGenre(arraySongs);
-				break;
-			case SORT_RECENT:
-				if (static_cast<int>(arraySongs.size()) > RECENT_SONGS_TO_SHOW)
-					arraySongs.erase(arraySongs.begin() + RECENT_SONGS_TO_SHOW,
-									 arraySongs.end());
-				bUseSections = false;
 				break;
 			case SORT_Overall:
 				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
@@ -910,10 +887,11 @@ MusicWheel::BuildWheelItemDatas(
 			 * sort. */
 			switch (so) {
 				case SORT_FAVORITES:
-				case SORT_PREFERRED:
-				case SORT_TOP_GRADES:
 				case SORT_BPM:
 					break; // don't sort by section
+				case SORT_TOP_GRADES:
+					SongUtil::SortSongPointerArrayByWifeScore(arraySongs, so);
+					break;
 				default:
 					SongUtil::SortSongPointerArrayBySectionName(arraySongs, so);
 					break;

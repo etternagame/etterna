@@ -161,18 +161,13 @@ LuaDeclareType(PlayMode);
  */
 enum SortOrder
 {
-	// song sorts
-	SORT_PREFERRED,	 /**< Sort by the user's preferred settings. */
 	SORT_GROUP,		 /**< Sort by the groups the Songs are in. */
 	SORT_TITLE,		 /**< Sort by the Song's title. */
 	SORT_BPM,		 /**< Sort by the Song's BPM. */
-	SORT_POPULARITY, /**< Sort by how popular the Song is. */
 	SORT_TOP_GRADES, /**< Sort by the highest grades earned on a Song. */
 	SORT_ARTIST,	 /**< Sort by the name of the artist of the Song. */
 	SORT_GENRE,		 /**< Sort by the Song's genre. */
-	//
-	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
-	SORT_RECENT,
+	SORT_MODE_MENU,	 /**< Have access to the menu for choosing the sort. */
 	SORT_FAVORITES,
 	SORT_Overall,
 	SORT_Stream,
@@ -186,8 +181,7 @@ enum SortOrder
 	NUM_SortOrder,
 	SortOrder_Invalid
 };
-/** @brief Only allow certain sort modes to be selectable. */
-const SortOrder MAX_SELECTABLE_SORT = static_cast<SortOrder>(SORT_RECENT - 1);
+
 /**
  * @brief Turn the sort order into a proper string.
  * @param so the sort order.
@@ -218,7 +212,7 @@ LuaDeclareType(SortOrder);
 inline auto
 IsSongSort(SortOrder so) -> bool
 {
-	return so >= SORT_PREFERRED && so <= SORT_GENRE;
+	return so >= SORT_GROUP && so <= SORT_GENRE;
 }
 
 /** @brief The list of tap note scores available during play. */

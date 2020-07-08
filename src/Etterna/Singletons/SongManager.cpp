@@ -22,7 +22,6 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
 #include "ThemeManager.h"
 #include "Etterna/Models/Misc/TitleSubstitution.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
@@ -1108,32 +1107,6 @@ SongManager::GetFavoriteSongs(vector<Song*>& songs) const
 	}
 }
 
-void
-SongManager::GetPreferredSortSongs(vector<Song*>& AddTo) const
-{
-	if (m_vPreferredSongSort.empty()) {
-		AddTo.insert(AddTo.end(), m_pSongs.begin(), m_pSongs.end());
-		return;
-	}
-
-	FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-	AddTo.insert(AddTo.end(), v->vpSongs.begin(), v->vpSongs.end());
-}
-
-std::string
-SongManager::SongToPreferredSortSectionName(const Song* pSong) const
-{
-	FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-	{
-		FOREACH_CONST(Song*, v->vpSongs, s)
-		{
-			if (*s == pSong)
-				return v->sName;
-		}
-	}
-	return std::string();
-}
-
 int
 SongManager::GetNumSongs() const
 {
@@ -1270,94 +1243,6 @@ CompareNotesPointersForExtra(const Steps* n1, const Steps* n2)
 	// n1 meter == n2 meter
 
 	return StepsUtil::CompareNotesPointersByRadarValues(n1, n2);
-}
-
-void
-SongManager::GetExtraStageInfo(bool bExtra2,
-							   const Style* sd,
-							   Song*& pSongOut,
-							   Steps*& pStepsOut)
-{
-	std::string sGroup = GAMESTATE->m_sPreferredSongGroup;
-	if (sGroup == GROUP_ALL) {
-		if (GAMESTATE->m_pCurSong == nullptr) {
-			// This normally shouldn't happen, but it's helpful to
-			// permit it for testing.
-			LuaHelpers::ReportScriptErrorFmt("GetExtraStageInfo() called in "
-											 "GROUP_ALL, but "
-											 "GAMESTATE->m_pCurSong == NULL");
-			GAMESTATE->m_pCurSong.Set(GetRandomSong());
-		}
-		sGroup = GAMESTATE->m_pCurSong->m_sGroupName;
-	}
-
-	ASSERT_M(sGroup != "",
-			 ssprintf("%p '%s' '%s'",
-					  GAMESTATE->m_pCurSong.Get(),
-					  GAMESTATE->m_pCurSong
-						? GAMESTATE->m_pCurSong->GetSongDir().c_str()
-						: "",
-					  GAMESTATE->m_pCurSong
-						? GAMESTATE->m_pCurSong->m_sGroupName.c_str()
-						: ""));
-
-	// Choose a hard song for the extra stage
-	Song* pExtra1Song = nullptr; // the absolute hardest Song and Steps.
-								 // Use this for extra stage 1.
-	Steps* pExtra1Notes = nullptr;
-	Song* pExtra2Song = nullptr; // a medium-hard Song and Steps.  Use this
-								 // for extra stage 2.
-	Steps* pExtra2Notes = nullptr;
-
-	const auto& apSongs = GetSongs(sGroup);
-	for (unsigned s = 0; s < apSongs.size(); s++) // foreach song
-	{
-		auto pSong = apSongs[s];
-
-		vector<Steps*> apSteps;
-		SongUtil::GetSteps(pSong, apSteps, sd->m_StepsType);
-		for (unsigned n = 0; n < apSteps.size(); n++) // foreach Steps
-		{
-			auto pSteps = apSteps[n];
-
-			if (pExtra1Notes == nullptr ||
-				CompareNotesPointersForExtra(
-				  pExtra1Notes,
-				  pSteps)) // pSteps is harder than pHardestNotes
-			{
-				pExtra1Song = pSong;
-				pExtra1Notes = pSteps;
-			}
-
-			// for extra 2, we don't want to choose the hardest notes
-			// possible. So, we'll disgard Steps with meter > 8
-			// (assuming dance)
-			if (bExtra2 && pSteps->GetMeter() > EXTRA_STAGE2_DIFFICULTY_MAX)
-				continue; // skip
-			if (pExtra2Notes == nullptr ||
-				CompareNotesPointersForExtra(
-				  pExtra2Notes,
-				  pSteps)) // pSteps is harder than pHardestNotes
-			{
-				pExtra2Song = pSong;
-				pExtra2Notes = pSteps;
-			}
-		}
-	}
-
-	if (pExtra2Song == nullptr && pExtra1Song != nullptr) {
-		pExtra2Song = pExtra1Song;
-		pExtra2Notes = pExtra1Notes;
-	}
-
-	// If there are any notes at all that match this StepsType,
-	// everything should be filled out. Also, it's guaranteed that there
-	// is at least one Steps that matches the StepsType because the
-	// player had to play something before reaching the extra stage!
-	ASSERT(pExtra2Song && pExtra1Song && pExtra2Notes && pExtra1Notes);
-
-	pSongOut = (bExtra2 ? pExtra2Song : pExtra1Song);
-	pStepsOut = (bExtra2 ? pExtra2Notes : pExtra1Notes);
 }
 
 Song*
@@ -1674,22 +1559,17 @@ class LunaSongManager : public Luna<SongManager>
 		p->UpdatePreferredSort(SArg(1), "PreferredCourses.txt");
 		COMMON_RETURN_SELF;
 	}
+
 	static int GetAllSongs(T* p, lua_State* L)
 	{
 		const auto& v = p->GetAllSongs();
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
+
 	static int DifferentialReload(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->DifferentialReload());
-		return 1;
-	}
-	static int GetPreferredSortSongs(T* p, lua_State* L)
-	{
-		vector<Song*> v;
-		p->GetPreferredSortSongs(v);
-		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
 
@@ -1702,6 +1582,7 @@ class LunaSongManager : public Luna<SongManager>
 			lua_pushnil(L);
 		return 1;
 	}
+
 	static int GetRandomSong(T* p, lua_State* L)
 	{
 		auto pS = p->GetRandomSong();
@@ -1711,21 +1592,25 @@ class LunaSongManager : public Luna<SongManager>
 			lua_pushnil(L);
 		return 1;
 	}
+
 	static int GetNumSongs(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetNumSongs());
 		return 1;
 	}
+
 	static int GetNumAdditionalSongs(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetNumAdditionalSongs());
 		return 1;
 	}
+
 	static int GetNumSongGroups(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, p->GetNumSongGroups());
 		return 1;
 	}
+
 	/* Note: this could now be implemented as Luna<Steps>::GetSong */
 	static int GetSongFromSteps(T* p, lua_State* L)
 	{
@@ -1743,19 +1628,6 @@ class LunaSongManager : public Luna<SongManager>
 		return 1;
 	}
 
-	static int GetExtraStageInfo(T* p, lua_State* L)
-	{
-		auto bExtra2 = BArg(1);
-		const Style* pStyle = Luna<Style>::check(L, 2);
-		Song* pSong;
-		Steps* pSteps;
-
-		p->GetExtraStageInfo(bExtra2, pStyle, pSong, pSteps);
-		pSong->PushSelf(L);
-		pSteps->PushSelf(L);
-
-		return 2;
-	}
 	DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
 	DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
 
@@ -1785,18 +1657,14 @@ class LunaSongManager : public Luna<SongManager>
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
-	static int SongToPreferredSortSectionName(T* p, lua_State* L)
-	{
-		const Song* pSong = Luna<Song>::check(L, 1);
-		lua_pushstring(L, p->SongToPreferredSortSectionName(pSong).c_str());
-		return 1;
-	}
+
 	static int WasLoadedFromAdditionalSongs(T* p, lua_State* L)
 	{
 		const Song* pSong = Luna<Song>::check(L, 1);
 		lua_pushboolean(L, p->WasLoadedFromAdditionalSongs(pSong));
 		return 1;
 	}
+
 	static int GetSongByChartKey(T* p, lua_State* L)
 	{
 		std::string ck = SArg(1);
@@ -1807,6 +1675,7 @@ class LunaSongManager : public Luna<SongManager>
 			lua_pushnil(L);
 		return 1;
 	}
+
 	static int GetStepsByChartKey(T* p, lua_State* L)
 	{
 		std::string ck = SArg(1);
@@ -1874,18 +1743,15 @@ class LunaSongManager : public Luna<SongManager>
 		ADD_METHOD(GetNumAdditionalSongs);
 		ADD_METHOD(GetNumSongGroups);
 		ADD_METHOD(GetSongFromSteps);
-		ADD_METHOD(GetExtraStageInfo);
 		ADD_METHOD(GetSongColor);
 		ADD_METHOD(GetSongGroupColor);
 		ADD_METHOD(GetSongGroupNames);
 		ADD_METHOD(GetSongsInGroup);
 		ADD_METHOD(ShortenGroupName);
 		ADD_METHOD(SetPreferredSongs);
-		ADD_METHOD(GetPreferredSortSongs);
 		ADD_METHOD(GetSongGroupBannerPath);
 		ADD_METHOD(DoesSongGroupExist);
 		ADD_METHOD(GetPopularSongs);
-		ADD_METHOD(SongToPreferredSortSectionName);
 		ADD_METHOD(WasLoadedFromAdditionalSongs);
 		ADD_METHOD(GetSongByChartKey);
 		ADD_METHOD(GetStepsByChartKey);

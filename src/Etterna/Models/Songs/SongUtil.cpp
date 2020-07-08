@@ -626,8 +626,6 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 
 	switch (so) {
 		case SORT_FAVORITES:
-		case SORT_PREFERRED:
-			return SONGMAN->SongToPreferredSortSectionName(pSong);
 		case SORT_GROUP:
 		case SORT_Overall:
 		case SORT_Stream:
@@ -678,9 +676,6 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			}
 			return std::string();
 		}
-		case SORT_POPULARITY:
-		case SORT_RECENT:
-			return std::string();
 		case SORT_LENGTH: {
 			const auto iSortLengthSize = 60;
 

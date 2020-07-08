@@ -93,12 +93,12 @@ static const char* GameplayModeNames[] = {
 XToString(GameplayMode);
 LuaXType(GameplayMode);
 
-static const char* SortOrderNames[] = {
-	"Preferred", "Group",	  "Title",	   "BPM",		 "Popularity",
-	"TopGrades", "Artist",	  "Genre",	   "ModeMenu",	 "Recent",
-	"Favorites", "Overall",	  "Stream",	   "Jumpstream", "Handstream",
-	"Stamina",	 "JackSpeed", "Chordjack", "Technical",	 "Length"
-};
+static const char* SortOrderNames[] = { "Group",	 "Title",	   "BPM",
+										"TopGrades", "Artist",	   "Genre",
+										"ModeMenu",	 "Favorites",  "Overall",
+										"Stream",	 "Jumpstream", "Handstream",
+										"Stamina",	 "JackSpeed",  "Chordjack",
+										"Technical", "Length" };
 XToString(SortOrder);
 StringToX(SortOrder);
 LuaXType(SortOrder);

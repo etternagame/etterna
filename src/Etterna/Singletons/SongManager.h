@@ -115,15 +115,8 @@ class SongManager
 	 * @return the songs within the group that have at least one valid Step. */
 	auto GetSongsOfCurrentGame(const std::string& sGroupName) const
 	  -> const std::vector<Song*>&;
-	/**
-	 * @brief Retrieve all of the songs in the game that have at least one
-	 * valid step for the current gametype.
-	 * @return the songs within the game that have at least one valid Step. */
-	auto GetAllSongsOfCurrentGame() const -> const std::vector<Song*>&;
 
 	void GetFavoriteSongs(std::vector<Song*>& songs) const;
-	void GetPreferredSortSongs(std::vector<Song*>& AddTo) const;
-	auto SongToPreferredSortSectionName(const Song* pSong) const -> std::string;
 	auto FindSong(std::string sPath) const -> Song*;
 	auto FindSong(std::string sGroup, std::string sSong) const -> Song*;
 	/**
@@ -142,10 +135,6 @@ class SongManager
 	void DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
 	auto WasLoadedFromAdditionalSongs(const Song* pSong) const -> bool;
 
-	void GetExtraStageInfo(bool bExtra2,
-						   const Style* s,
-						   Song*& pSongOut,
-						   Steps*& pStepsOut);
 	auto GetSongFromDir(std::string sDir) const -> Song*;
 
 	void UpdateShuffled(); // re-shuffle songs
