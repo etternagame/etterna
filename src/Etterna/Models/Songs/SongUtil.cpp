@@ -419,24 +419,29 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 {
 	auto len_a = 0.F;
 	for (const auto& s : a->GetAllSteps()) {
+		const auto& len =
+		  s->GetTimingData()->GetElapsedTimeFromBeat(a->GetLastBeat());
 		// if we hit the current preferred difficulty just force use the value
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
-			len_a = s->lastsecond;
+			len_a = len;
 			break;
 		}
 
-		len_a = s->lastsecond > len_a ? s->lastsecond : len_a;
+		len_a = len > len_a ? len : len_a;
 	}
 
 	// OH NO COPY PASTE WHAT EVER WILL WE DO MAYBE USE A 10 LINE MACRO????
 	auto len_b = 0.F;
 	for (const auto& s : b->GetAllSteps()) {
+		const auto& len =
+		  s->GetTimingData()->GetElapsedTimeFromBeat(b->GetLastBeat());
+
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
-			len_b = s->lastsecond;
+			len_b = len;
 			break;
 		}
 
-		len_b = s->lastsecond > len_b ? s->lastsecond : len_b;
+		len_b = len > len_b ? len : len_b;
 	}
 
 	if (len_a < len_b)
@@ -468,6 +473,7 @@ CompDescending(const pair<Song*, int>& a, const pair<Song*, int>& b)
 {
 	return a.second < b.second;
 }
+
 static bool
 CompAscending(const pair<Song*, int>& a, const pair<Song*, int>& b)
 {
@@ -677,7 +683,23 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			return std::string();
 		case SORT_LENGTH: {
 			const auto iSortLengthSize = 60;
-			auto iMaxLength = static_cast<int>(pSong->m_fMusicLengthSeconds);
+
+			auto len_a = 0.F;
+			// should probably be an actual util function because copy pasted
+			// from length sort above
+			for (const auto& s : pSong->GetAllSteps()) {
+				const auto& len = s->GetTimingData()->GetElapsedTimeFromBeat(
+				  pSong->GetLastBeat());
+
+				if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
+					len_a = len;
+					break;
+				}
+
+				len_a = len > len_a ? len : len_a;
+			}
+
+			auto iMaxLength = static_cast<int>(len_a);
 			iMaxLength +=
 			  (iSortLengthSize - (iMaxLength % iSortLengthSize) - 1);
 			const auto iMinLength = iMaxLength - (iSortLengthSize - 1);
