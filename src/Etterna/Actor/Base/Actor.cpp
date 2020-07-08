@@ -330,9 +330,9 @@ Actor::IsOver(float mx, float my)
 Actor*
 Actor::GetFakeParentOrParent()
 {
-	if (m_FakeParent)
+	if (m_FakeParent != nullptr)
 		return m_FakeParent;
-	if (m_pParent)
+	if (m_pParent != nullptr)
 		return m_pParent;
 	return nullptr;
 }
