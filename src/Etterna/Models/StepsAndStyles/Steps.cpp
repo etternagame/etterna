@@ -428,7 +428,8 @@ Steps::CalcEtternaMetadata(Calc* calc)
 
 	// set first and last second for this steps object
 	if (!cereal.empty()) {
-		firstsecond = cereal[0].rowTime;
+		firstsecond =
+		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
 		lastsecond =
 		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
 	}
