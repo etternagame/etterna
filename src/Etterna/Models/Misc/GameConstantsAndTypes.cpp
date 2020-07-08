@@ -7,6 +7,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "ThemeMetric.h"
 
+#include <algorithm>
+
 std::string
 StepsTypeToString(StepsType st);
 
@@ -32,13 +34,13 @@ StepsTypeToString(StepsType st)
 	s_replace(s, "-", "_");
 
 	auto bCapitalizeNextLetter = true;
-	for (auto i = 0; i < static_cast<int>(s.length()); i++) {
+	for (auto& i : s) {
 		if (bCapitalizeNextLetter) {
-			s[i] = toupper(s[i]);
+			i = toupper(i);
 			bCapitalizeNextLetter = false;
 		}
 
-		if (s[i] == '_')
+		if (i == '_')
 			bCapitalizeNextLetter = true;
 	}
 
@@ -131,7 +133,7 @@ LuaXType(TapNoteScore);
 TapNoteScore
 StringToTapNoteScore(const std::string& s)
 {
-	auto tns = tns_converter.conversion_map.find(s);
+	const auto tns = tns_converter.conversion_map.find(s);
 	if (tns != tns_converter.conversion_map.end()) {
 		return tns->second;
 	}
@@ -349,7 +351,7 @@ DisplayBpms::GetMin() const
 	auto fMin = FLT_MAX;
 	for (const auto& f : vfBpms) {
 		if (f != -1.F)
-			fMin = min(fMin, f);
+			fMin = std::min(fMin, f);
 	}
 	if (fMin == FLT_MAX)
 		return 0;
@@ -368,7 +370,7 @@ DisplayBpms::GetMaxWithin(float highest) const
 	float fMax = 0;
 	for (const auto& f : vfBpms) {
 		if (f != -1.F)
-			fMax = clamp(max(fMax, f), 0, highest);
+			fMax = std::clamp(std::max(fMax, f), 0.F, highest);
 	}
 	return fMax;
 }

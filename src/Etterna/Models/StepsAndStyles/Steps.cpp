@@ -29,8 +29,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
-#include <algorithm>
-#include <thread>
+
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/SoloCalc.h"
 
@@ -39,6 +38,11 @@
 
 // For hashing wife chart keys - Mina
 #include "Etterna/Singletons/CryptManager.h"
+
+#include <algorithm>
+#include <thread>
+
+using std::vector;
 
 static const char* DisplayBPMNames[] = {
 	"Actual",
@@ -387,11 +391,11 @@ Steps::GetMSD(float rate, Skillset ss) const -> float
 
 auto
 Steps::SortSkillsetsAtRate(float x, bool includeoverall)
-  -> vector<pair<Skillset, float>>
+  -> vector<std::pair<Skillset, float>>
 {
 	auto idx = static_cast<int>(x * 10) - 7;
 	auto tmp = diffByRate[idx];
-	vector<pair<Skillset, float>> mort;
+	vector<std::pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
 	if (ss != Skill_Overall || includeoverall) {
 		mort.emplace_back(ss, tmp[ss]);
@@ -462,7 +466,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 			   newcalc[ss] - last_msd,
 			   m_pSong->GetMainTitle().c_str());
 
-	vh.emplace(pair<int, float>(GetCalcVersion(), newcalc[ss]));
+	vh.emplace(std::pair<int, float>(GetCalcVersion(), newcalc[ss]));
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
 	GetTimingData()->UnsetEtaner();
@@ -524,10 +528,10 @@ FillStringWithBPMs(size_t startRow,
 		auto row = nerv[r];
 		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
 			const auto& tn = nd.GetTapNote(t, row);
-			inOut.append(to_string(tn.type));
+			inOut.append(std::to_string(tn.type));
 		}
 		bpm = td->GetBPMAtRow(row);
-		inOut.append(to_string(static_cast<int>(bpm + 0.374643f)));
+		inOut.append(std::to_string(static_cast<int>(bpm + 0.374643f)));
 	}
 }
 
@@ -705,11 +709,11 @@ Steps::SetCachedRadarValues(const RadarValues& rv)
 
 auto
 Steps::GetNPSVector(const NoteData& nd,
-					const vector<int>& nerv,
-					const vector<float>& etaner,
-					float rate) -> vector<int>
+					const std::vector<float>& etaner,
+					const std::vector<int>& nerv,
+					float rate) -> std::vector<int>
 {
-	vector<int> doot(static_cast<int>(etaner.back()));
+	std::vector<int> doot(static_cast<int>(etaner.back()));
 	auto notecounter = 0;
 	auto lastinterval = 0;
 	auto curinterval = 0;
@@ -779,8 +783,6 @@ class LunaSteps : public Luna<Steps>
 	DEFINE_METHOD(GetAuthorCredit, GetCredit())
 	DEFINE_METHOD(GetMeter, GetMeter())
 	DEFINE_METHOD(GetFilename, GetFilename())
-	DEFINE_METHOD(IsAnEdit, IsAnEdit())
-	DEFINE_METHOD(IsAPlayerEdit, IsAPlayerEdit())
 
 	static auto HasSignificantTimingChanges(T* p, lua_State* L) -> int
 	{
@@ -993,7 +995,7 @@ class LunaSteps : public Luna<Steps>
 
 		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
 		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		auto scroot = p->GetNPSVector(nd, nerv, etaner, rate);
+		auto scroot = p->GetNPSVector(nd, etaner, nerv, rate);
 		lua_newtable(L);
 		LuaHelpers::CreateTableFromArray(scroot, L);
 		lua_rawseti(L, -2, 1);
@@ -1116,8 +1118,6 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetMSD);
 		ADD_METHOD(GetSSRs);
-		ADD_METHOD(IsAnEdit);
-		ADD_METHOD(IsAPlayerEdit);
 		ADD_METHOD(GetDisplayBpms);
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);

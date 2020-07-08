@@ -6,6 +6,7 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenTestInput.h"
+#include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/Foreach.h"
 
 class DeviceList : public BitmapText

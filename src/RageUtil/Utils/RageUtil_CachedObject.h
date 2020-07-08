@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_UTIL_CACHED_OBJECT_H
+#ifndef RAGE_UTIL_CACHED_OBJECT_H
 #define RAGE_UTIL_CACHED_OBJECT_H
 
 #include <set>
@@ -39,13 +39,13 @@ class CachedObject
 			ClearCacheSpecific(m_pObject);
 	}
 
-	CachedObject& operator=(const CachedObject& rhs) { return *this; }
+	auto operator=(const CachedObject& rhs) -> CachedObject& { return *this; }
 
 	/* Clear all cached entries for this type. */
 	static void ClearCacheAll()
 	{
 		CachedObjectHelpers::Lock();
-		for (typename set<ObjectPointer*>::iterator p =
+		for (typename std::set<ObjectPointer*>::iterator p =
 			   m_spObjectPointers.begin();
 			 p != m_spObjectPointers.end();
 			 ++p) {
@@ -59,7 +59,7 @@ class CachedObject
 	static void ClearCacheSpecific(const T* pObject)
 	{
 		CachedObjectHelpers::Lock();
-		for (typename set<ObjectPointer*>::iterator p =
+		for (typename std::set<ObjectPointer*>::iterator p =
 			   m_spObjectPointers.begin();
 			 p != m_spObjectPointers.end();
 			 ++p) {
@@ -75,7 +75,7 @@ class CachedObject
 	static void ClearCacheNegative()
 	{
 		CachedObjectHelpers::Lock();
-		for (typename set<ObjectPointer*>::iterator p =
+		for (typename std::set<ObjectPointer*>::iterator p =
 			   m_spObjectPointers.begin();
 			 p != m_spObjectPointers.end();
 			 ++p) {
@@ -93,7 +93,8 @@ class CachedObject
 
 	static void Unregister(ObjectPointer* p)
 	{
-		typename set<ObjectPointer*>::iterator it = m_spObjectPointers.find(p);
+		typename std::set<ObjectPointer*>::iterator it =
+		  m_spObjectPointers.find(p);
 		ASSERT(it != m_spObjectPointers.end());
 		m_spObjectPointers.erase(it);
 	}
@@ -105,11 +106,11 @@ class CachedObject
 	 * need to clear cache for an object before any CachedObjectPointers have
 	 * ever been set for it. */
 	const T* m_pObject;
-	static set<ObjectPointer*> m_spObjectPointers;
+	static std::set<ObjectPointer*> m_spObjectPointers;
 };
 template<typename T>
-set<CachedObjectPointer<T>*> CachedObject<T>::m_spObjectPointers =
-  set<CachedObjectPointer<T>*>();
+std::set<CachedObjectPointer<T>*> CachedObject<T>::m_spObjectPointers =
+  std::set<CachedObjectPointer<T>*>();
 
 template<typename T>
 class CachedObjectPointer
@@ -118,8 +119,7 @@ class CachedObjectPointer
 	using Object = CachedObject<T>;
 
 	CachedObjectPointer()
-	  : m_pCache(NULL)
-	  , m_bCacheIsSet(false)
+	  : m_pCache(nullptr)
 	{
 		Object::Register(this);
 	}
@@ -135,7 +135,7 @@ class CachedObjectPointer
 
 	~CachedObjectPointer() { Object::Unregister(this); }
 
-	bool Get(T** pRet) const
+	auto Get(T** pRet) const -> bool
 	{
 		CachedObjectHelpers::Lock();
 		if (!m_bCacheIsSet) {
@@ -169,7 +169,7 @@ class CachedObjectPointer
 	friend class CachedObject<T>;
 
 	T* m_pCache;
-	bool m_bCacheIsSet;
+	bool m_bCacheIsSet{ false };
 };
 
 #endif

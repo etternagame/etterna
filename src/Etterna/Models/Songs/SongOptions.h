@@ -13,10 +13,10 @@ enum AutosyncType
 	NUM_AutosyncType,
 	AutosyncType_Invalid
 };
-const std::string&
-AutosyncTypeToString(AutosyncType cat);
-const std::string&
-AutosyncTypeToLocalizedString(AutosyncType cat);
+auto
+AutosyncTypeToString(AutosyncType cat) -> const std::string&;
+auto
+AutosyncTypeToLocalizedString(AutosyncType cat) -> const std::string&;
 LuaDeclareType(AutosyncType);
 
 enum SoundEffectType
@@ -27,10 +27,10 @@ enum SoundEffectType
 	NUM_SoundEffectType,
 	SoundEffectType_Invalid
 };
-const std::string&
-SoundEffectTypeToString(SoundEffectType cat);
-const std::string&
-SoundEffectTypeToLocalizedString(SoundEffectType cat);
+auto
+SoundEffectTypeToString(SoundEffectType cat) -> const std::string&;
+auto
+SoundEffectTypeToLocalizedString(SoundEffectType cat) -> const std::string&;
 LuaDeclareType(SoundEffectType);
 
 class SongOptions
@@ -38,7 +38,7 @@ class SongOptions
   public:
 	bool m_bAssistClap{ false };
 	bool m_bAssistMetronome{ false };
-	float m_fMusicRate{ 1.0f }, m_SpeedfMusicRate{ 1.0f };
+	float m_fMusicRate{ 1.0F }, m_SpeedfMusicRate{ 1.0F };
 	AutosyncType m_AutosyncType{ AutosyncType_Off };
 	SoundEffectType m_SoundEffectType{ SoundEffectType_Off };
 	bool m_bStaticBackground{ false };
@@ -55,16 +55,17 @@ class SongOptions
 	void Approach(const SongOptions& other, float fDeltaSeconds);
 	void GetMods(std::vector<std::string>& AddTo) const;
 	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
-	std::string GetString() const;
-	std::string GetLocalizedString() const;
+	[[nodiscard]] auto GetString() const -> std::string;
+	[[nodiscard]] auto GetLocalizedString() const -> std::string;
 	void FromString(const std::string& sOptions);
-	bool FromOneModString(const std::string& sOneMod,
-						  std::string& sErrorDetailOut); // On error, return
-														 // false and optionally
-														 // set sErrorDetailOut
+	auto FromOneModString(const std::string& sOneMod,
+						  std::string& sErrorDetailOut)
+	  -> bool; // On error, return
+			   // false and optionally
+			   // set sErrorDetailOut
 
-	bool operator==(const SongOptions& other) const;
-	bool operator!=(const SongOptions& other) const
+	auto operator==(const SongOptions& other) const -> bool;
+	auto operator!=(const SongOptions& other) const -> bool
 	{
 		return !operator==(other);
 	}

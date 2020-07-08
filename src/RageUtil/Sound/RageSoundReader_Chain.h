@@ -52,7 +52,7 @@ class RageSoundReader_Chain : public RageSoundReader
 	int m_iActualSampleRate;
 	unsigned m_iChannels;
 
-	map<std::string, RageSoundReader*> m_apNamedSounds;
+	std::map<std::string, RageSoundReader*> m_apNamedSounds;
 	vector<RageSoundReader*> m_apLoadedSounds;
 
 	struct Sound

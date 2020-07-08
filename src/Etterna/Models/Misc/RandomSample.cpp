@@ -3,6 +3,9 @@
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RandomSample.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
 
 RandomSample::RandomSample()
 {
@@ -17,7 +20,7 @@ RandomSample::~RandomSample()
 bool
 RandomSample::Load(const std::string& sFilePath, int iMaxToLoad)
 {
-	if (GetExtension(sFilePath) == "")
+	if (GetExtension(sFilePath).empty())
 		return LoadSoundDir(sFilePath, iMaxToLoad);
 	return LoadSound(sFilePath);
 }
@@ -33,13 +36,13 @@ RandomSample::UnloadAll()
 bool
 RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 {
-	if (sDir == "")
+	if (sDir.empty())
 		return true;
 
 	// make sure there's a slash at the end of this path
 	ensure_slash_at_end(sDir);
 
-	vector<std::string> arraySoundFiles;
+	std::vector<std::string> arraySoundFiles;
 	GetDirListing(sDir + "*.mp3", arraySoundFiles);
 	GetDirListing(sDir + "*.oga", arraySoundFiles);
 	GetDirListing(sDir + "*.ogg", arraySoundFiles);
@@ -47,7 +50,8 @@ RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 
 	std::shuffle(
 	  arraySoundFiles.begin(), arraySoundFiles.end(), g_RandomNumberGenerator);
-	arraySoundFiles.resize(min(arraySoundFiles.size(), (unsigned)iMaxToLoad));
+	arraySoundFiles.resize(
+	  std::min(arraySoundFiles.size(), static_cast<size_t>(iMaxToLoad)));
 
 	for (auto& arraySoundFile : arraySoundFiles)
 		LoadSound(sDir + arraySoundFile);
@@ -81,8 +85,8 @@ RandomSample::GetNextToPlay()
 	if (m_pSamples.empty())
 		return -1;
 
-	int iIndexToPlay = 0;
-	for (int i = 0; i < 5; i++) {
+	auto iIndexToPlay = 0;
+	for (auto i = 0; i < 5; i++) {
 		iIndexToPlay = RandomInt(m_pSamples.size());
 		if (iIndexToPlay != m_iIndexLastPlayed)
 			break;
@@ -95,7 +99,7 @@ RandomSample::GetNextToPlay()
 void
 RandomSample::PlayRandom()
 {
-	int iIndexToPlay = GetNextToPlay();
+	const auto iIndexToPlay = GetNextToPlay();
 	if (iIndexToPlay == -1)
 		return;
 	m_pSamples[iIndexToPlay]->Play(true);
@@ -104,7 +108,7 @@ RandomSample::PlayRandom()
 void
 RandomSample::PlayCopyOfRandom()
 {
-	int iIndexToPlay = GetNextToPlay();
+	const auto iIndexToPlay = GetNextToPlay();
 	if (iIndexToPlay == -1)
 		return;
 	m_pSamples[iIndexToPlay]->PlayCopy(true);

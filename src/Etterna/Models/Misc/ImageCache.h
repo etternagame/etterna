@@ -14,8 +14,8 @@ class ImageCache
 	~ImageCache();
 	void ReadFromDisk();
 
-	RageTextureID LoadCachedImage(const std::string& sImageDir,
-								  const std::string& sImagePath);
+	auto LoadCachedImage(const std::string& sImageDir,
+						 const std::string& sImagePath) -> RageTextureID;
 	void CacheImage(const std::string& sImageDir,
 					const std::string& sImagePath);
 	void LoadImage(const std::string& sImageDir, const std::string& sImagePath);
@@ -26,8 +26,8 @@ class ImageCache
 	void OutputStats() const;
 
   private:
-	static std::string GetImageCachePath(const std::string& sImageDir,
-										 const std::string& sImagePath);
+	static auto GetImageCachePath(const std::string& sImageDir,
+								  const std::string& sImagePath) -> std::string;
 	void UnloadAllImages();
 	void CacheImageInternal(const std::string& sImageDir,
 							const std::string& sImagePath);

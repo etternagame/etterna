@@ -17,7 +17,7 @@ AutoScreenMessage(SM_PlayToasty);
 class ScoreKeeperNormal : public ScoreKeeper
 {
 	void AddScoreInternal(TapNoteScore score);
-	int CalcNextToastyAt(int level);
+	auto CalcNextToastyAt(int level) -> int;
 
 	int m_iScoreRemainder;
 	int m_iMaxPossiblePoints;
@@ -82,29 +82,33 @@ class ScoreKeeperNormal : public ScoreKeeper
 
 	// This must be calculated using only cached radar values so that we can
 	// do it quickly.
-	static int GetPossibleDancePoints(NoteData* nd,
-									  const TimingData* td,
-									  float fSongSeconds);
-	static int GetPossibleDancePoints(NoteData* ndPre,
-									  NoteData* ndPost,
-									  const TimingData* td,
-									  float fSongSeconds);
-	static int GetPossibleGradePoints(NoteData* nd,
-									  const TimingData* td,
-									  float fSongSeconds);
-	static int GetPossibleGradePoints(NoteData* ndPre,
-									  NoteData* ndPost,
-									  const TimingData* td,
-									  float fSongSeconds);
+	static auto GetPossibleDancePoints(NoteData* nd,
+									   const TimingData* td,
+									   float fSongSeconds) -> int;
+	static auto GetPossibleDancePoints(NoteData* ndPre,
+									   NoteData* ndPost,
+									   const TimingData* td,
+									   float fSongSeconds) -> int;
+	static auto GetPossibleGradePoints(NoteData* nd,
+									   const TimingData* td,
+									   float fSongSeconds) -> int;
+	static auto GetPossibleGradePoints(NoteData* ndPre,
+									   NoteData* ndPost,
+									   const TimingData* td,
+									   float fSongSeconds) -> int;
 
-	int TapNoteScoreToDancePoints(TapNoteScore tns) const;
-	int HoldNoteScoreToDancePoints(HoldNoteScore hns) const;
-	int TapNoteScoreToGradePoints(TapNoteScore tns) const;
-	int HoldNoteScoreToGradePoints(HoldNoteScore hns) const;
-	static int TapNoteScoreToDancePoints(TapNoteScore tns, bool bBeginner);
-	static int HoldNoteScoreToDancePoints(HoldNoteScore hns, bool bBeginner);
-	static int TapNoteScoreToGradePoints(TapNoteScore tns, bool bBeginner);
-	static int HoldNoteScoreToGradePoints(HoldNoteScore hns, bool bBeginner);
+	auto TapNoteScoreToDancePoints(TapNoteScore tns) const -> int;
+	auto HoldNoteScoreToDancePoints(HoldNoteScore hns) const -> int;
+	auto TapNoteScoreToGradePoints(TapNoteScore tns) const -> int;
+	auto HoldNoteScoreToGradePoints(HoldNoteScore hns) const -> int;
+	static auto TapNoteScoreToDancePoints(TapNoteScore tns, bool bBeginner)
+	  -> int;
+	static auto HoldNoteScoreToDancePoints(HoldNoteScore hns, bool bBeginner)
+	  -> int;
+	static auto TapNoteScoreToGradePoints(TapNoteScore tns, bool bBeginner)
+	  -> int;
+	static auto HoldNoteScoreToGradePoints(HoldNoteScore hns, bool bBeginner)
+	  -> int;
 
   private:
 	/**

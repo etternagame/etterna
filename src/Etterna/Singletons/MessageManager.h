@@ -84,8 +84,8 @@ enum MessageID
 	NUM_MessageID, // leave this at the end
 	MessageID_Invalid
 };
-const std::string&
-MessageIDToString(MessageID m);
+auto
+MessageIDToString(MessageID m) -> const std::string&;
 
 struct Message
 {
@@ -95,20 +95,20 @@ struct Message
 	~Message();
 
 	void SetName(const std::string& sName) { m_sName = sName; }
-	std::string GetName() const { return m_sName; }
+	[[nodiscard]] auto GetName() const -> std::string { return m_sName; }
 
-	bool IsBroadcast() const { return m_bBroadcast; }
+	[[nodiscard]] auto IsBroadcast() const -> bool { return m_bBroadcast; }
 	void SetBroadcast(bool b) { m_bBroadcast = b; }
 
 	void PushParamTable(lua_State* L);
-	const LuaReference& GetParamTable() const;
+	[[nodiscard]] auto GetParamTable() const -> const LuaReference&;
 	void SetParamTable(const LuaReference& params);
 
 	void GetParamFromStack(lua_State* L, const std::string& sName) const;
 	void SetParamFromStack(lua_State* L, const std::string& sName);
 
 	template<typename T>
-	bool GetParam(const std::string& sName, T& val) const
+	auto GetParam(const std::string& sName, T& val) const -> bool
 	{
 		Lua* L = LUA->Get();
 		GetParamFromStack(L, sName);
@@ -135,8 +135,8 @@ struct Message
 		LUA->Release(L);
 	}
 
-	bool operator==(const std::string& s) const { return m_sName == s; }
-	bool operator==(MessageID id) const
+	auto operator==(const std::string& s) const -> bool { return m_sName == s; }
+	auto operator==(MessageID id) const -> bool
 	{
 		return MessageIDToString(id) == m_sName;
 	}
@@ -146,7 +146,7 @@ struct Message
 	LuaTable* m_pParams;
 	bool m_bBroadcast;
 
-	Message& operator=(const Message& rhs); // don't use
+	auto operator=(const Message& rhs) -> Message&; // don't use
 	/* Work around a gcc bug where HandleMessage( Message("Init") ) fails
 	 * because the copy ctor is private. The copy ctor is not even used so I
 	 * have no idea why it being private is an issue. Also, if the Message
@@ -171,9 +171,9 @@ class IMessageSubscriber
 class MessageSubscriber : public IMessageSubscriber
 {
   public:
-	MessageSubscriber() {}
+	MessageSubscriber() = default;
 	MessageSubscriber(const MessageSubscriber& cpy);
-	MessageSubscriber& operator=(const MessageSubscriber& cpy);
+	auto operator=(const MessageSubscriber& cpy) -> MessageSubscriber&;
 
 	//
 	// Messages
@@ -205,11 +205,11 @@ class MessageManager
 	void Broadcast(Message& msg) const;
 	void Broadcast(const std::string& sMessage) const;
 	void Broadcast(MessageID m) const;
-	bool IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-							   const std::string& sMessage) const;
+	auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   const std::string& sMessage) const -> bool;
 
-	bool IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-							   MessageID message) const
+	auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   MessageID message) const -> bool
 	{
 		return IsSubscribedToMessage(pSubscriber, MessageIDToString(message));
 	}
@@ -237,15 +237,15 @@ class BroadcastOnChange
 		val = T();
 		mSendWhenChanged = m;
 	}
-	const T Get() const { return val; }
+	[[nodiscard]] auto Get() const -> const T { return val; }
 	void Set(T t)
 	{
 		val = t;
 		MESSAGEMAN->Broadcast(MessageIDToString(mSendWhenChanged));
 	}
 	operator T() const { return val; }
-	bool operator==(const T& other) const { return val == other; }
-	bool operator!=(const T& other) const { return val != other; }
+	auto operator==(const T& other) const -> bool { return val == other; }
+	auto operator!=(const T& other) const -> bool { return val != other; }
 };
 
 /** @brief Utilities for working with Lua. */
@@ -271,8 +271,11 @@ class BroadcastOnChange1D
 		for (unsigned i = 0; i < N; i++)
 			val.push_back(BroadcastOnChange<T>((MessageID)(m + i)));
 	}
-	const BroadcastOnChange<T>& operator[](unsigned i) const { return val[i]; }
-	BroadcastOnChange<T>& operator[](unsigned i) { return val[i]; }
+	auto operator[](unsigned i) const -> const BroadcastOnChange<T>&
+	{
+		return val[i];
+	}
+	auto operator[](unsigned i) -> BroadcastOnChange<T>& { return val[i]; }
 };
 
 template<class T>
@@ -288,7 +291,7 @@ class BroadcastOnChangePtr
 		mSendWhenChanged = m;
 		val = NULL;
 	}
-	T* Get() const { return val; }
+	[[nodiscard]] auto Get() const -> T* { return val; }
 	void Set(T* t)
 	{
 		val = t;
@@ -300,7 +303,7 @@ class BroadcastOnChangePtr
 	 * due to missing a message. */
 	void SetWithoutBroadcast(T* t) { val = t; }
 	operator T*() const { return val; }
-	T* operator->() const { return val; }
+	auto operator->() const -> T* { return val; }
 };
 
 template<class T, int N>
@@ -316,11 +319,11 @@ class BroadcastOnChangePtr1D
 		for (unsigned i = 0; i < N; i++)
 			val.push_back(BroadcastOnChangePtr<T>((MessageID)(m + i)));
 	}
-	const BroadcastOnChangePtr<T>& operator[](unsigned i) const
+	auto operator[](unsigned i) const -> const BroadcastOnChangePtr<T>&
 	{
 		return val[i];
 	}
-	BroadcastOnChangePtr<T>& operator[](unsigned i) { return val[i]; }
+	auto operator[](unsigned i) -> BroadcastOnChangePtr<T>& { return val[i]; }
 };
 
 #endif

@@ -186,7 +186,7 @@ class OptionRowHandler
 	std::vector<std::string>
 	  m_vsReloadRowMessages; // refresh this row on on these messages
 
-	OptionRowHandler() {}
+	OptionRowHandler() = default;
 	virtual ~OptionRowHandler() = default;
 	virtual void Init()
 	{
@@ -262,9 +262,9 @@ GetOneSelection(const vector<bool>& vbSelected);
 inline void
 VerifySelected(SelectType st, vector<bool>& selected, const std::string& sName)
 {
-	int num_selected = 0;
+	auto num_selected = 0;
 	if (st == SELECT_ONE) {
-		int first_selected = -1;
+		auto first_selected = -1;
 		if (selected.empty()) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Option row %s requires only one "

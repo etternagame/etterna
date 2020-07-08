@@ -18,12 +18,12 @@ class TextBanner final : public ActorFrame
 	void LoadFromNode(const XNode* pNode) override;
 	void Load(const std::string& sMetricsGroup); // load metrics
 	void SetFromSong(const Song* pSong);
-	void SetFromString(const string& sDisplayTitle,
-					   const string& sTranslitTitle,
-					   const string& sDisplaySubTitle,
-					   const string& sTranslitSubTitle,
-					   const string& sDisplayArtist,
-					   const string& sTranslitArtist);
+	void SetFromString(const std::string& sDisplayTitle,
+					   const std::string& sTranslitTitle,
+					   const std::string& sDisplaySubTitle,
+					   const std::string& sTranslitSubTitle,
+					   const std::string& sDisplayArtist,
+					   const std::string& sTranslitArtist);
 
 	// Lua
 	void PushSelf(lua_State* L) override;

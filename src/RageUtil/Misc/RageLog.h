@@ -25,10 +25,10 @@ class RageLog
 	void MapLog(const std::string& key, const char* fmt, ...) PRINTF(3, 4);
 	void UnmapLog(const std::string& key);
 
-	static const char* GetAdditionalLog();
-	static const char* GetInfo();
+	static auto GetAdditionalLog() -> const char*;
+	static auto GetInfo() -> const char*;
 	/* Returns NULL if past the last recent log. */
-	static const char* GetRecentLog(int n);
+	static auto GetRecentLog(int n) -> const char*;
 
 	void SetShowLogOutput(bool show); // enable or disable logging to stdout
 	void SetLogToDisk(bool b);		  // enable or disable logging to file

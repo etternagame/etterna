@@ -1,13 +1,13 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-#include <functional>
-
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Models/Misc/CodeSet.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "ScreenMessage.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+
+#include <functional>
 #include <list>
 
 class InputEventPlus;
@@ -83,20 +83,20 @@ class Screen : public ActorFrame
 	void Update(float fDeltaTime) override;
 	virtual void UpdateTimedFunctions(float fDeltaTime);
 	virtual bool Input(const InputEventPlus& input);
-	virtual void HandleScreenMessage(ScreenMessage SM);
+	virtual void HandleScreenMessage(const ScreenMessage& SM);
 	void SetLockInputSecs(const float f) { m_fLockInputSecs = f; }
 
 	/**
 	 * @brief Put the specified message onto the screen for a specified time.
 	 * @param SM the message to put on the screen.
 	 * @param fDelay The length of time it stays up. */
-	void PostScreenMessage(ScreenMessage SM, float fDelay);
+	void PostScreenMessage(const ScreenMessage& SM, float fDelay);
 	/** @brief Clear the entire message queue. */
 	void ClearMessageQueue();
 	/**
 	 * @brief Clear the message queue of a specific ScreenMessage.
 	 * @param SM the specific ScreenMessage to get out of the Queue. */
-	void ClearMessageQueue(ScreenMessage SM);
+	void ClearMessageQueue(const ScreenMessage& SM);
 
 	virtual ScreenType GetScreenType() const
 	{
@@ -114,12 +114,12 @@ class Screen : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	vector<pair<function<void()>, float>> delayedFunctions;
-	void SetTimeout(function<void()> f, float ms);
-	std::list<tuple<function<void()>, float, float, int>>
+	std::vector<std::pair<std::function<void()>, float>> delayedFunctions;
+	void SetTimeout(const std::function<void()>& f, float ms);
+	std::list<std::tuple<std::function<void()>, float, float, int>>
 	  delayedPeriodicFunctions; // This is a list to allow safe iterators
-	vector<int> delayedPeriodicFunctionIdsToDelete;
-	void SetInterval(function<void()> f, float ms, int fRemove);
+	std::vector<int> delayedPeriodicFunctionIdsToDelete;
+	void SetInterval(const std::function<void()>& f, float ms, int fRemove);
 
   protected:
 	/** @brief Holds the messages sent to a Screen. */
@@ -132,7 +132,7 @@ class Screen : public ActorFrame
 	};
 
 	/** @brief The list of messages that are sent to a Screen. */
-	vector<QueuedScreenMessage> m_QueuedMessages;
+	std::vector<QueuedScreenMessage> m_QueuedMessages;
 	static bool SortMessagesByDelayRemaining(const QueuedScreenMessage& m1,
 											 const QueuedScreenMessage& m2);
 
@@ -183,9 +183,9 @@ class Screen : public ActorFrame
 	// void* is the key so that we can use lua_topointer to find the callback
 	// to remove when removing a callback.
 	using callback_key_t = const void*;
-	map<callback_key_t, LuaReference> m_InputCallbacks;
-	vector<callback_key_t> orderedcallbacks;
-	vector<callback_key_t> m_DelayedCallbackRemovals;
+	std::map<callback_key_t, LuaReference> m_InputCallbacks;
+	std::vector<callback_key_t> orderedcallbacks;
+	std::vector<callback_key_t> m_DelayedCallbackRemovals;
 	bool m_CallingInputCallbacks = false;
 	void InternalRemoveCallback(callback_key_t key);
 };

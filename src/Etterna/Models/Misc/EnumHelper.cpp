@@ -77,7 +77,7 @@ CheckEnum(lua_State* L,
 		}
 		lua_error(L);
 	}
-	int iRet = lua_tointeger(L, -1);
+	const int iRet = lua_tointeger(L, -1);
 	lua_pop(L, 2);
 	return iRet;
 }
@@ -87,15 +87,15 @@ const std::string&
 EnumToString(int iVal,
 			 int iMax,
 			 const char** szNameArray,
-			 unique_ptr<std::string>* pNameCache)
+			 std::unique_ptr<std::string>* pNameCache)
 {
-	if (unlikely(pNameCache[0].get() == NULL)) {
-		for (int i = 0; i < iMax; ++i) {
-			unique_ptr<std::string> ap(new std::string(szNameArray[i]));
+	if (unlikely(pNameCache[0].get() == nullptr)) {
+		for (auto i = 0; i < iMax; ++i) {
+			std::unique_ptr<std::string> ap(new std::string(szNameArray[i]));
 			pNameCache[i] = std::move(ap);
 		}
 
-		unique_ptr<std::string> ap(new std::string);
+		std::unique_ptr<std::string> ap(new std::string);
 		pNameCache[iMax + 1] = std::move(ap);
 	}
 
@@ -152,7 +152,7 @@ Reverse(lua_State* L)
 
 static const luaL_Reg EnumLib[] = { { "GetName", GetName },
 									{ "Reverse", Reverse },
-									{ nullptr, NULL } };
+									{ nullptr, nullptr } };
 
 static void
 PushEnumMethodTable(lua_State* L)

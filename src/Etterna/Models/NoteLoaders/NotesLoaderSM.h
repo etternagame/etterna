@@ -24,13 +24,11 @@ struct SMLoader
 {
 	SMLoader()
 	  : fileExt(".sm")
-	  , songTitle()
 	{
 	}
 
 	SMLoader(std::string ext)
 	  : fileExt(ext)
-	  , songTitle()
 	{
 	}
 
@@ -80,16 +78,16 @@ struct SMLoader
 	virtual bool LoadEditFromFile(const std::string& sEditFilePath,
 								  ProfileSlot slot,
 								  bool bAddStepsToSong,
-								  Song* givenSong = NULL);
+								  Song* givenSong = nullptr);
 	virtual bool LoadEditFromBuffer(const std::string& sBuffer,
 									const std::string& sEditFilePath,
 									ProfileSlot slot,
-									Song* givenSong = NULL);
+									Song* givenSong = nullptr);
 	virtual bool LoadEditFromMsd(const MsdFile& msd,
 								 const std::string& sEditFilePath,
 								 ProfileSlot slot,
 								 bool bAddStepsToSong,
-								 Song* givenSong = NULL);
+								 Song* givenSong = nullptr);
 	virtual bool LoadFromBGChangesString(
 	  BackgroundChange& change,
 	  const std::string& sBGChangeExpression);
@@ -99,7 +97,7 @@ struct SMLoader
 	 * @param out the vector to put the data in.
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
-	void ParseBPMs(vector<pair<float, float>>& out,
+	void ParseBPMs(vector<std::pair<float, float>>& out,
 				   const std::string& line,
 				   const int rowsPerBeat = -1);
 	/**
@@ -107,29 +105,29 @@ struct SMLoader
 	 * @param out the TimingData being modified.
 	 * @param vBPMChanges the vector of BPM Changes data. */
 	void ProcessBPMs(TimingData& out,
-					 const vector<pair<float, float>>& vBPMChanges);
+					 const vector<std::pair<float, float>>& vBPMChanges);
 	/**
 	 * @brief Parse Stops data from a string.
 	 * @param out the vector to put the data in.
 	 * @param line the string in question.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
-	void ParseStops(vector<pair<float, float>>& out,
-					const std::string line,
+	void ParseStops(vector<std::pair<float, float>>& out,
+					const std::string& line,
 					const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the Stop Segments from the data.
 	 * @param out the TimingData being modified.
 	 * @param vStops the vector of Stops data. */
 	void ProcessStops(TimingData& out,
-					  const vector<pair<float, float>>& vStops);
+					  const vector<std::pair<float, float>>& vStops);
 	/**
 	 * @brief Process BPM and stop segments from the data.
 	 * @param out the TimingData being modified.
 	 * @param vBPMs the vector of BPM changes.
 	 * @param vStops the vector of stops. */
 	void ProcessBPMsAndStops(TimingData& out,
-							 vector<pair<float, float>>& vBPMs,
-							 vector<pair<float, float>>& vStops);
+							 vector<std::pair<float, float>>& vBPMs,
+							 vector<std::pair<float, float>>& vStops);
 	/**
 	 * @brief Process the Delay Segments from the string.
 	 * @param out the TimingData being modified.
@@ -177,7 +175,7 @@ struct SMLoader
 							   const int rowsPerBeat = -1);
 	static void ProcessSpeeds(TimingData& out,
 							  const std::string& line,
-							  const string& songname,
+							  const std::string& songname,
 							  const int rowsPerBeat = -1);
 
 	virtual void ProcessCombos(TimingData& /* out */,
@@ -196,7 +194,7 @@ struct SMLoader
 							  const int rowsPerBeat = -1);
 	static void ProcessFakes(TimingData& out,
 							 const std::string& line,
-							 const string& songname,
+							 const std::string& songname,
 							 const int rowsPerBeat = -1);
 
 	virtual void ProcessBGChanges(Song& out,
@@ -230,7 +228,6 @@ struct SMLoader
 								std::string sDescription,
 								std::string sDifficulty,
 								std::string sMeter,
-								std::string sRadarValues,
 								std::string sNoteData,
 								Steps& out);
 

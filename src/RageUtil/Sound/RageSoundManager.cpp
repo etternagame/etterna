@@ -9,7 +9,6 @@
  */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -19,8 +18,9 @@
 #include "RageSoundReader_Preload.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-
 #include "arch/Sound/RageSoundDriver.h"
+
+#include <algorithm>
 
 /*
  * The lock ordering requirements are:
@@ -60,8 +60,10 @@ RageSoundManager::~RageSoundManager()
 	/* Don't lock while deleting the driver (the decoder thread might deadlock).
 	 */
 	delete m_pDriver;
-	FOREACHM(std::string, RageSoundReader_Preload*, m_mapPreloadedSounds, s)
-	delete s->second;
+	for (auto& s : m_mapPreloadedSounds) {
+		delete s.second;
+	}
+
 	m_mapPreloadedSounds.clear();
 }
 
@@ -123,7 +125,7 @@ RageSoundManager::Update()
 	g_SoundManMutex
 	  .Lock(); /* lock for access to m_mapPreloadedSounds, owned_sounds */
 	{
-		map<std::string, RageSoundReader_Preload*>::iterator it, next;
+		std::map<std::string, RageSoundReader_Preload*>::iterator it, next;
 		it = m_mapPreloadedSounds.begin();
 
 		while (it != m_mapPreloadedSounds.end()) {
@@ -173,7 +175,7 @@ RageSoundManager::GetLoadedSound(const std::string& sPath_)
 
 	std::string sPath(sPath_);
 	sPath = make_lower(sPath);
-	map<std::string, RageSoundReader_Preload*>::const_iterator it;
+	std::map<std::string, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	if (it == m_mapPreloadedSounds.end())
 		return nullptr;
@@ -194,7 +196,7 @@ RageSoundManager::AddLoadedSound(const std::string& sPath_,
 	 * been used in GetLoadedSound. */
 	std::string sPath(sPath_);
 	sPath = make_lower(sPath);
-	map<std::string, RageSoundReader_Preload*>::const_iterator it;
+	std::map<std::string, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	ASSERT_M(it == m_mapPreloadedSounds.end(), sPath);
 
@@ -207,7 +209,7 @@ void
 RageSoundManager::SetMixVolume()
 {
 	g_SoundManMutex.Lock(); /* lock for access to m_fMixVolume */
-	m_fMixVolume = clamp(g_fSoundVolume.Get(), 0.0f, 1.0f);
+	m_fMixVolume = std::clamp(g_fSoundVolume.Get(), 0.0f, 1.0f);
 	g_SoundManMutex.Unlock(); /* finished with m_fMixVolume */
 }
 

@@ -1,18 +1,12 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "StepsDisplay.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
-#include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(StepsDisplay);
 
@@ -174,9 +168,8 @@ StepsDisplay::SetInternal(const SetParams& params)
 	msg.SetParam("CustomDifficulty", sCustomDifficulty);
 
 	std::string sDisplayDescription;
-	if (params.pSteps && params.pSteps->IsAnEdit())
-		sDisplayDescription = params.pSteps->GetDescription();
-	else if (sCustomDifficulty.empty())
+
+	if (sCustomDifficulty.empty())
 		sDisplayDescription = std::string();
 	else
 		sDisplayDescription =
@@ -197,13 +190,13 @@ StepsDisplay::SetInternal(const SetParams& params)
 
 	if (m_bShowTicks) {
 		// todo: let themers handle the logic of tick text. -aj
-		auto on = char('1');
+		auto on = static_cast<char>('1');
 		auto off = '0';
 
 		std::string sNewText;
-		auto iNumOn = min((int)m_iMaxTicks, params.iMeter);
+		auto iNumOn = std::min(static_cast<int>(m_iMaxTicks), params.iMeter);
 		sNewText.insert(sNewText.end(), iNumOn, on);
-		auto iNumOff = max(0, m_iNumTicks - iNumOn);
+		auto iNumOff = std::max(0, m_iNumTicks - iNumOn);
 		sNewText.insert(sNewText.end(), iNumOff, off);
 		m_textTicks.SetText(sNewText);
 		m_textTicks.HandleMessage(msg);

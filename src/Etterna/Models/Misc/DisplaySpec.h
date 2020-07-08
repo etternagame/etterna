@@ -1,9 +1,12 @@
 #ifndef DisplaySpec_H
 #define DisplaySpec_H
 
-#include <set>
 #include <RageUtil/Misc/RageLog.h>
 #include "RageUtil/Misc/RageTypes.h"
+
+#include <set>
+#include <sstream>
+#include <algorithm>
 
 struct DisplayMode
 {
@@ -23,12 +26,12 @@ struct DisplayMode
 	 * display configuration
 	 */
 
-	bool operator<(const DisplayMode& other) const
+	auto operator<(const DisplayMode& other) const -> bool
 	{
 /** @brief A quick way to compare the two DisplayResolutions. */
 #define COMPARE(x)                                                             \
-	if (x != other.x)                                                          \
-		return x < other.x;
+	if ((x) != other.x)                                                        \
+		return (x) < other.x;
 		COMPARE(width);
 		COMPARE(height);
 		COMPARE(refreshRate);
@@ -49,14 +52,14 @@ class DisplaySpec
 	 * supports the given modes, and is currently using the specified mode with
 	 * the specified logical screen bounds
 	 */
-	DisplaySpec(const std::string& id,
-				const std::string& name,
+	DisplaySpec(std::string id,
+				std::string name,
 				const std::set<DisplayMode>& modes,
 				const DisplayMode& curMode,
 				const RectI& curBounds,
 				const bool isVirtual = false)
-	  : m_sId(id)
-	  , m_sName(name)
+	  : m_sId(std::move(id))
+	  , m_sName(std::move(name))
 	  , m_sModes(modes)
 	  , m_bCurModeActive(true)
 	  , m_CurMode(curMode)
@@ -70,7 +73,7 @@ class DisplaySpec
 			msgStream << "DisplaySpec current mode (" << curMode.width << "x"
 					  << curMode.height << "@" << curMode.refreshRate
 					  << ") not in given list of supported modes: ";
-			for (auto& m : modes) {
+			for (const auto& m : modes) {
 				msgStream << m.width << "x" << m.height << "@" << m.refreshRate
 						  << ", ";
 			}
@@ -86,9 +89,9 @@ class DisplaySpec
 	 * Construct a specification for the display with the given ID, which
 	 * supports the given modes, and is currently disabled (has no active mode)
 	 */
-	DisplaySpec(const std::string id,
-				const std::string name,
-				const std::set<DisplayMode> modes,
+	DisplaySpec(const std::string& id,
+				const std::string& name,
+				const std::set<DisplayMode>& modes,
 				const bool isVirtual = false)
 	  : m_sId(id)
 	  , m_sName(name)
@@ -102,8 +105,8 @@ class DisplaySpec
 	// Create a specification for a display supporting a single (and currently
 	// active) mode
 	DisplaySpec(std::string id, std::string name, DisplayMode mode)
-	  : m_sId(id)
-	  , m_sName(name)
+	  : m_sId(std::move(std::move(id)))
+	  , m_sName(std::move(std::move(name)))
 	  , m_bIsVirtual(false)
 	  , m_bCurModeActive(true)
 	  , m_CurMode(mode)
@@ -114,11 +117,14 @@ class DisplaySpec
 
 	DisplaySpec(const DisplaySpec& other) = default;
 
-	std::string name() const { return m_sName; }
+	[[nodiscard]] auto name() const -> std::string { return m_sName; }
 
-	std::string id() const { return m_sId; }
+	[[nodiscard]] auto id() const -> std::string { return m_sId; }
 
-	const std::set<DisplayMode>& supportedModes() const { return m_sModes; }
+	[[nodiscard]] auto supportedModes() const -> const std::set<DisplayMode>&
+	{
+		return m_sModes;
+	}
 
 	/*
 	 * Return a pointer to the currently active display mode, or NULL if
@@ -128,14 +134,17 @@ class DisplaySpec
 	 * an output can be enabled/disabled by an application by
 	 * connecting/disconnecting a crtc
 	 */
-	const DisplayMode* currentMode() const
+	[[nodiscard]] auto currentMode() const -> const DisplayMode*
 	{
 		return m_bCurModeActive ? &m_CurMode : nullptr;
 	}
 
-	const RectI& currentBounds() const { return m_rectBounds; }
+	[[nodiscard]] auto currentBounds() const -> const RectI&
+	{
+		return m_rectBounds;
+	}
 
-	bool isVirtual() const { return m_bIsVirtual; }
+	[[nodiscard]] auto isVirtual() const -> bool { return m_bIsVirtual; }
 
 	/**
 	 * @brief Determine if one DisplaySpec compares less than the other.
@@ -146,7 +155,7 @@ class DisplaySpec
 	 * @param other the other DisplaySpec to check.
 	 * @return true if this DisplaySpec is less than the other, or false
 	 * otherwise. */
-	bool operator<(const DisplaySpec& other) const
+	auto operator<(const DisplaySpec& other) const -> bool
 	{
 		return m_sId < other.id();
 	}
@@ -173,7 +182,7 @@ class DisplaySpec
 /** @brief The collection of DisplaySpec available within the program. */
 typedef std::set<DisplaySpec> DisplaySpecs;
 // Lua
-DisplaySpecs*
-pushDisplaySpecs(lua_State* L, const DisplaySpecs& specs);
+auto
+pushDisplaySpecs(lua_State* L, const DisplaySpecs& specs) -> DisplaySpecs*;
 
 #endif

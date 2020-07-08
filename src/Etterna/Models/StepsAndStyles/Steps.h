@@ -8,12 +8,12 @@
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
-#include "Etterna/Globals/MinaCalc.h"
 
 class Profile;
 class NoteData;
 struct lua_State;
 class Song;
+class Calc;
 
 /**
  * @brief Enforce a limit on the number of chars for the description.
@@ -55,37 +55,6 @@ class Steps
 	void Decompress() const;
 	void Decompress();
 
-	/**
-	 * @brief Determine if these steps were created by the autogenerator.
-	 * @return true if they were, false otherwise.
-	 */
-
-	/**
-	 * @brief Determine if this set of Steps is an edit.
-	 *
-	 * Edits have a special value of difficulty to make it easy to determine.
-	 * @return true if this is an edit, false otherwise.
-	 */
-	auto IsAnEdit() const -> bool { return m_Difficulty == Difficulty_Edit; }
-	/**
-	 * @brief Determine if this set of Steps is a player edit.
-	 *
-	 * Player edits also have to be loaded from a player's profile slot, not the
-	 * machine.
-	 * @return true if this is a player edit, false otherwise. */
-	auto IsAPlayerEdit() const -> bool { return IsAnEdit(); }
-	/**
-	 * @brief Determine if these steps were loaded from a player's profile.
-	 * @return true if they were from a player profile, false otherwise.
-	 */
-	auto WasLoadedFromProfile() const -> bool
-	{
-		return m_LoadedFromProfile != ProfileSlot_Invalid;
-	}
-	auto GetLoadedFromProfileSlot() const -> ProfileSlot
-	{
-		return m_LoadedFromProfile;
-	}
 	/**
 	 * @brief Retrieve the description used for this edit.
 	 * @return the description used for this edit.
@@ -145,18 +114,19 @@ class Steps
 
 	// self exaplanatory -mina
 	static auto GetNPSVector(const NoteData& nd,
-							 const vector<int>& nerv,
-							 const vector<float>& etaner,
-							 float rate) -> vector<int>;
+							 const std::vector<float>& etaner,
+							 const std::vector<int>& nerv,
+							 float rate) -> std::vector<int>;
+
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
 	// (jumps won't count as hands, etc)
 	static auto GetCNPSVector(const NoteData& nd,
-							  const vector<int>& nerv,
-							  const vector<float>& etaner,
+							  const std::vector<int>& nerv,
+							  const std::vector<float>& etaner,
 							  int chordsize,
-							  float rate) -> vector<int>;
+							  float rate) -> std::vector<int>;
 
 	auto GetHash() const -> unsigned;
 	void GetNoteData(NoteData& noteDataOut) const;
@@ -201,25 +171,33 @@ class Steps
 	using note data and timingdata in conjuction. Do it during load and save it
 	in the steps data so that we have to do it as few times as possible.*/
 	auto GetChartKey() const -> const std::string& { return ChartKey; }
-	std::vector<float> dummy = { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
-	MinaSD diffByRate = { dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-						  dummy, dummy, dummy, dummy, dummy, dummy, dummy,
-						  dummy, dummy, dummy, dummy, dummy, dummy, dummy };
+	std::vector<float> dummy = { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
+	std::vector<std::vector<float>> diffByRate = {
+		dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+		dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+		dummy, dummy, dummy, dummy, dummy, dummy, dummy
+	};
 	void SetChartKey(const std::string& k) { ChartKey = k; }
-	void SetAllMSD(const MinaSD& msd) { diffByRate = msd; }
-	auto GetAllMSD() const -> MinaSD { return diffByRate; }
+	void SetAllMSD(const std::vector<std::vector<float>>& msd)
+	{
+		diffByRate = msd;
+	}
+	auto GetAllMSD() const -> std::vector<std::vector<float>>
+	{
+		return diffByRate;
+	}
 	auto SortSkillsetsAtRate(float x, bool includeoverall)
-	  -> vector<pair<Skillset, float>>;
+	  -> std::vector<std::pair<Skillset, float>>;
 
 	void CalcEtternaMetadata(Calc* calc = nullptr);
 	auto DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float;
 	void GetCalcDebugOutput(); // now spits out everything with 1 calc call
-	vector<vector<vector<vector<float>>>>
+	std::vector<std::vector<std::vector<std::vector<float>>>>
 	  calcdebugoutput; // probably should clear this periodically
 	void UnloadCalcDebugOutput();
 
-	float firstsecond = 0.f;
-	float lastsecond = 0.f;
+	float firstsecond = 0.F;
+	float lastsecond = 0.F;
 
 	// this is bugged and returns true for files with negative bpms when it
 	// shouldn't - mina
@@ -260,7 +238,7 @@ class Steps
 	/** @brief The Song these Steps are associated with */
 	Song* m_pSong;
 
-	vector<NoteInfo> serializenotedatacache;
+	std::vector<NoteInfo> serializenotedatacache;
 
 	CachedObject<Steps> m_CachedObject;
 
@@ -272,7 +250,10 @@ class Steps
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
 	void GetDisplayBpms(DisplayBpms& addTo) const;
 
-	const std::vector<std::string>& Getdebugstrings() { return debugstrings; }
+	auto Getdebugstrings() -> const std::vector<std::string>&
+	{
+		return debugstrings;
+	}
 
   private:
 	std::string ChartKey = "";

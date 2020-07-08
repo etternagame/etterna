@@ -16,7 +16,7 @@ class ScreenWithMenuElements : public Screen
 	void BeginScreen() override;
 	~ScreenWithMenuElements() override;
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void Update(float fDeltaTime) override;
 	void UpdateTimedFunctions(float fDeltaTime) override;
 	void StartTransitioningScreen(ScreenMessage smSendWhenDone);

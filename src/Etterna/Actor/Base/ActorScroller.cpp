@@ -5,6 +5,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <algorithm>
+
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
  * We don't want classes that derive from ActorFrame to auto delete their
  * children. The name "ActorFrame" is widely used in Lua, so we'll have
@@ -281,8 +283,8 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 	auto iFirstItemToDraw = static_cast<int>(ceilf(fFirstItemToDraw));
 	auto iLastItemToDraw = static_cast<int>(ceilf(fLastItemToDraw));
 	if (!m_bLoop && !m_bWrap) {
-		iFirstItemToDraw = clamp(iFirstItemToDraw, 0, m_iNumItems);
-		iLastItemToDraw = clamp(iLastItemToDraw, 0, m_iNumItems);
+		iFirstItemToDraw = std::clamp(iFirstItemToDraw, 0, m_iNumItems);
+		iLastItemToDraw = std::clamp(iLastItemToDraw, 0, m_iNumItems);
 	}
 
 	vector<Actor*> subs;

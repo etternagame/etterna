@@ -70,7 +70,7 @@ class Model : public Actor
 
 	float m_animation_length_seconds;
 	vector<msMaterial> m_Materials;
-	map<std::string, msAnimation> m_mapNameToAnimation;
+	std::map<std::string, msAnimation> m_mapNameToAnimation;
 	const msAnimation* m_pCurAnimation;
 
 	static void SetBones(const msAnimation* pAnimation,

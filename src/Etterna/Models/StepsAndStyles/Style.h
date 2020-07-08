@@ -96,17 +96,17 @@ class Style
 	 * @return the Column number of the style, or Column_Invalid if it's an
 	 * invalid column. Examples of this include getting the upper left hand
 	 * corner in a traditional four panel mode. */
-	int GameInputToColumn(const GameInput& GameI) const;
-	std::string ColToButtonName(int iCol) const;
+	[[nodiscard]] auto GameInputToColumn(const GameInput& GameI) const -> int;
+	[[nodiscard]] auto ColToButtonName(int iCol) const -> std::string;
 
-	bool GetUsesCenteredArrows() const;
+	[[nodiscard]] auto GetUsesCenteredArrows() const -> bool;
 	void GetTransformedNoteDataForStyle(PlayerNumber pn,
 										const NoteData& original,
 										NoteData& noteDataOut) const;
 	void GetMinAndMaxColX(PlayerNumber pn,
 						  float& fMixXOut,
 						  float& fMaxXOut) const;
-	float GetWidth(PlayerNumber pn) const;
+	[[nodiscard]] auto GetWidth(PlayerNumber pn) const -> float;
 
 	// Lua
 	void PushSelf(lua_State* L);

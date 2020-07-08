@@ -11,6 +11,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 
 #include <cassert>
+#include <algorithm>
 
 const float min_state_delay = 0.0001f;
 
@@ -573,7 +574,7 @@ ActorMultiVertex::Update(float fDelta)
 	}
 	UpdateAnimationState();
 	if (!skip_this_movie_update && _decode_movie) {
-		_Texture->DecodeSeconds(max(0, time_passed));
+		_Texture->DecodeSeconds(std::max(0.F, time_passed));
 	}
 }
 

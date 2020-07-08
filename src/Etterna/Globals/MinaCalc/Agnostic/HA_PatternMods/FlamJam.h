@@ -23,7 +23,7 @@ struct FlamJamMod
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "scaler", &scaler },

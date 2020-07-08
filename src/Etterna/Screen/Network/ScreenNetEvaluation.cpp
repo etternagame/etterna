@@ -1,7 +1,5 @@
 #include "Etterna/Globals/global.h"
-
 #include "Etterna/Singletons/GameState.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "ScreenNetEvaluation.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
@@ -44,7 +42,7 @@ ScreenNetEvaluation::Input(const InputEventPlus& input)
 }
 
 void
-ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {
 		NSMAN->OffEval();

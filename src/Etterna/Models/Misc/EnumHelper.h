@@ -13,14 +13,14 @@
 #define FOREACH_ENUM(e, var)                                                   \
 	for (e var = (e)0; (var) < NUM_##e; enum_add<e>((var), +1))
 
-int
+auto
 CheckEnum(lua_State* L,
 		  LuaReference& table,
 		  int iPos,
 		  int iInvalid,
 		  const char* szType,
 		  bool bAllowInvalid,
-		  bool bAllowAnything = false);
+		  bool bAllowAnything = false) -> int;
 
 template<typename T>
 struct EnumTraits
@@ -37,11 +37,11 @@ LuaReference EnumTraits<T>::EnumToString;
 /** @brief Lua helpers for Enumerators. */
 namespace Enum {
 template<typename T>
-static T
+static auto
 Check(lua_State* L,
 	  int iPos,
 	  bool bAllowInvalid = false,
-	  bool bAllowAnything = false)
+	  bool bAllowAnything = false) -> T
 {
 	return static_cast<T>(CheckEnum(L,
 									EnumTraits<T>::StringToEnum,
@@ -72,13 +72,14 @@ SetMetatable(lua_State* L,
 			 LuaReference& EnumTable,
 			 LuaReference& EnumIndexTable,
 			 const char* szName);
-};
+} // namespace Enum
 
-const std::string&
+auto
 EnumToString(int iVal,
 			 int iMax,
 			 const char** szNameArray,
-			 std::unique_ptr<std::string>* pNameCache); // XToString helper
+			 std::unique_ptr<std::string>* pNameCache)
+  -> const std::string&; // XToString helper
 
 #define XToString(X)                                                           \
                                                                                \
@@ -89,7 +90,7 @@ EnumToString(int iVal,
 	const std::string& X##ToString(X x)                                        \
                                                                                \
 	{                                                                          \
-		static unique_ptr<std::string> as_##X##Name[NUM_##X + 2];              \
+		static std::unique_ptr<std::string> as_##X##Name[NUM_##X + 2];         \
 		return EnumToString(x, NUM_##X, X##Names, as_##X##Name);               \
 	}                                                                          \
                                                                                \
@@ -108,10 +109,10 @@ EnumToString(int iVal,
 	const std::string& X##ToLocalizedString(X x)                               \
                                                                                \
 	{                                                                          \
-		static unique_ptr<LocalizedString> g_##X##Name[NUM_##X];               \
+		static std::unique_ptr<LocalizedString> g_##X##Name[NUM_##X];          \
 		if (g_##X##Name[0].get() == nullptr) {                                 \
 			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
-				unique_ptr<LocalizedString> ap(                                \
+				std::unique_ptr<LocalizedString> ap(                           \
 				  new LocalizedString(#X, X##ToString((X)i)));                 \
 				g_##X##Name[i] = std::move(ap);                                \
 			}                                                                  \

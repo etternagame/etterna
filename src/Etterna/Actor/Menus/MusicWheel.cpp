@@ -13,7 +13,6 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Misc/RageString.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -21,6 +20,9 @@
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
 
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))
 #define WHEEL_TEXT(s)                                                          \
@@ -367,7 +369,7 @@ MusicWheel::SelectModeMenuItem()
 // bool MusicWheel::SelectCustomItem()
 
 void
-MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
+MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so) const
 {
 	vector<Song*> apAllSongs;
 	switch (so) {
@@ -409,7 +411,7 @@ MusicWheel::GetSongList(vector<Song*>& arraySongs, SortOrder so)
 				// find one, then add the song.
 				// see Issue 147 for more information. -aj
 				// http://ssc.ajworld.net/sm-ssc/bugtracker/view.php?id=147
-				set<StepsType> vStepsType;
+				std::set<StepsType> vStepsType;
 				SongUtil::GetPlayableStepsTypes(pSong, vStepsType);
 
 				for (const auto& st : vStepsType) {
@@ -710,7 +712,7 @@ MusicWheel::SearchGroupNames(const std::string& findme)
 // called the iteration an outcome is determined on instead of clumsily using
 // continue - mina
 void
-MusicWheel::FilterBySkillsets(vector<Song*>& inv)
+MusicWheel::FilterBySkillsets(vector<Song*>& inv) const
 {
 	vector<Song*> tmp;
 
@@ -740,7 +742,7 @@ MusicWheel::BuildWheelItemDatas(
   const std::string& findme)
 {
 
-	map<std::string, Commands> commanDZ;
+	std::map<std::string, Commands> commanDZ;
 	if (so == SORT_MODE_MENU) {
 		arrayWheelItemDatas.clear(); // clear out the previous wheel items
 		vector<std::string> vsNames;
@@ -974,13 +976,13 @@ MusicWheel::BuildWheelItemDatas(
 			std::string sLastSection;
 			auto iSectionColorIndex = 0;
 
-			set<Song*> hurp;
+			std::set<Song*> hurp;
 			for (auto& a : arraySongs)
 				hurp.emplace(a);
 
 			auto& groups = SONGMAN->groupderps;
 
-			map<string, string> shitterstrats;
+			std::map<std::string, std::string> shitterstrats;
 			for (auto& n : groups) {
 				shitterstrats[make_lower(n.first)] = n.first;
 				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
@@ -1056,7 +1058,7 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 void
 MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 								 vector<MusicWheelItemData*>& aFilteredData,
-								 SortOrder so)
+								 SortOrder so) const
 {
 	aFilteredData.clear();
 
@@ -1356,7 +1358,7 @@ MusicWheel::Select() // return true if this selection ends the screen
 			return false;
 		case STATE_RANDOM_SPINNING:
 			m_fPositionOffsetFromSelection =
-			  max(m_fPositionOffsetFromSelection, 0.3f);
+			  std::max(m_fPositionOffsetFromSelection, 0.3f);
 			m_WheelState = STATE_LOCKED;
 			SCREENMAN->PlayStartSound();
 			m_fLockedWheelVelocity = 0;
@@ -1387,8 +1389,7 @@ MusicWheel::Select() // return true if this selection ends the screen
 			if (!GetCurWheelItemData(m_iSelection)
 				   ->m_pAction->m_sScreen.empty())
 				return true;
-			else
-				return false;
+			return false;
 		default:
 			return true;
 	}
@@ -1476,10 +1477,8 @@ MusicWheel::JumpToNextGroup()
 			if (m_sExpandedSectionName == SONGMAN->GetSongGroupByIndex(i)) {
 				if (i < iNumGroups - 1)
 					return SONGMAN->GetSongGroupByIndex(i + 1);
-				else {
-					// i = 0;
-					return SONGMAN->GetSongGroupByIndex(0);
-				}
+				// i = 0;
+				return SONGMAN->GetSongGroupByIndex(0);
 			}
 		}
 	} else {
@@ -1516,10 +1515,8 @@ MusicWheel::JumpToPrevGroup()
 			if (m_sExpandedSectionName == SONGMAN->GetSongGroupByIndex(i)) {
 				if (i > 0)
 					return SONGMAN->GetSongGroupByIndex(i - 1);
-				else {
-					// i = iNumGroups - 1;
-					return SONGMAN->GetSongGroupByIndex(iNumGroups - 1);
-				}
+				// i = iNumGroups - 1;
+				return SONGMAN->GetSongGroupByIndex(iNumGroups - 1);
 			}
 		}
 	} else {

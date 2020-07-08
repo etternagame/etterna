@@ -14,7 +14,7 @@ class ScreenGameplaySyncMachine : public ScreenGameplayNormal
 
 	ScreenType GetScreenType() const override { return system_menu; }
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void ResetAndRestartCurrentSong();
 
   protected:

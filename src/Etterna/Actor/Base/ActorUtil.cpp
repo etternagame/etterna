@@ -10,8 +10,12 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
-
 #include "arch/Dialog/Dialog.h"
+
+#include <map>
+#include <algorithm>
+
+using std::map;
 
 // Actor registration
 static map<std::string, CreateActorFn>* g_pmapRegistrees = nullptr;
@@ -289,7 +293,7 @@ ActorUtil::MakeActor(const std::string& sPath_, Actor* pParentActor)
 	auto ft = GetFileType(sPath);
 	switch (ft) {
 		case FT_Lua: {
-			unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
+			std::unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
 			if (pNode.get() == nullptr) {
 				// XNode will warn about the error
 				return new Actor;
@@ -454,7 +458,7 @@ ActorUtil::LoadAllCommandsFromName(Actor& actor,
 								   const std::string& sMetricsGroup,
 								   const std::string& sName)
 {
-	set<std::string> vsValueNames;
+	std::set<std::string> vsValueNames;
 	THEME->GetMetricsThatBeginWith(sMetricsGroup, sName, vsValueNames);
 
 	for (const auto& s : vsValueNames) {

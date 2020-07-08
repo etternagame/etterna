@@ -15,7 +15,7 @@ class Quad : public Sprite
 	 */
 	void LoadFromNode(const XNode* pNode) override;
 	/** @brief Copy the quad. */
-	[[nodiscard]] Quad* Copy() const override;
+	[[nodiscard]] auto Copy() const -> Quad* override;
 };
 
 #endif

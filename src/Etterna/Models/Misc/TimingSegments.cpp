@@ -147,7 +147,7 @@ FakeSegment::DebugPrint() const
 std::string
 FakeSegment::ToString(int dec) const
 {
-	std::string str =
+	const auto str =
 	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetLength());
 }
@@ -155,16 +155,16 @@ FakeSegment::ToString(int dec) const
 void
 FakeSegment::Scale(int start, int length, int newLength)
 {
-	float startBeat = GetBeat();
-	float endBeat = startBeat + GetLength();
-	float newStartBeat = ScalePosition(NoteRowToBeat(start),
-									   NoteRowToBeat(length),
-									   NoteRowToBeat(newLength),
-									   startBeat);
-	float newEndBeat = ScalePosition(NoteRowToBeat(start),
-									 NoteRowToBeat(length),
-									 NoteRowToBeat(newLength),
-									 endBeat);
+	const auto startBeat = GetBeat();
+	const auto endBeat = startBeat + GetLength();
+	const auto newStartBeat = ScalePosition(NoteRowToBeat(start),
+											NoteRowToBeat(length),
+											NoteRowToBeat(newLength),
+											startBeat);
+	const auto newEndBeat = ScalePosition(NoteRowToBeat(start),
+										  NoteRowToBeat(length),
+										  NoteRowToBeat(newLength),
+										  endBeat);
 	SetLength(newEndBeat - newStartBeat);
 	TimingSegment::Scale(start, length, newLength);
 }
@@ -172,7 +172,7 @@ FakeSegment::Scale(int start, int length, int newLength)
 std::string
 WarpSegment::ToString(int dec) const
 {
-	std::string str =
+	const auto str =
 	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetLength());
 }
@@ -181,16 +181,16 @@ void
 WarpSegment::Scale(int start, int length, int newLength)
 {
 	// XXX: this function is duplicated, there should be a better way
-	float startBeat = GetBeat();
-	float endBeat = startBeat + GetLength();
-	float newStartBeat = ScalePosition(NoteRowToBeat(start),
-									   NoteRowToBeat(length),
-									   NoteRowToBeat(newLength),
-									   startBeat);
-	float newEndBeat = ScalePosition(NoteRowToBeat(start),
-									 NoteRowToBeat(length),
-									 NoteRowToBeat(newLength),
-									 endBeat);
+	const auto startBeat = GetBeat();
+	const auto endBeat = startBeat + GetLength();
+	const auto newStartBeat = ScalePosition(NoteRowToBeat(start),
+											NoteRowToBeat(length),
+											NoteRowToBeat(newLength),
+											startBeat);
+	const auto newEndBeat = ScalePosition(NoteRowToBeat(start),
+										  NoteRowToBeat(length),
+										  NoteRowToBeat(newLength),
+										  endBeat);
 	SetLength(newEndBeat - newStartBeat);
 	TimingSegment::Scale(start, length, newLength);
 }
@@ -198,13 +198,13 @@ WarpSegment::Scale(int start, int length, int newLength)
 std::string
 TickcountSegment::ToString(int dec) const
 {
-	const std::string str = "%.0" + IntToString(dec) + "f=%i";
+	const auto str = "%.0" + IntToString(dec) + "f=%i";
 	return ssprintf(str.c_str(), GetBeat(), GetTicks());
 }
 std::string
 ComboSegment::ToString(int dec) const
 {
-	std::string str = "%.0" + IntToString(dec) + "f=%i";
+	auto str = "%.0" + IntToString(dec) + "f=%i";
 	if (GetCombo() == GetMissCombo()) {
 		return ssprintf(str.c_str(), GetBeat(), GetCombo());
 	}
@@ -212,10 +212,10 @@ ComboSegment::ToString(int dec) const
 	return ssprintf(str.c_str(), GetBeat(), GetCombo(), GetMissCombo());
 }
 
-vector<float>
+std::vector<float>
 ComboSegment::GetValues() const
 {
-	vector<float> ret;
+	std::vector<float> ret;
 	ret.push_back(static_cast<float>(GetCombo()));
 	ret.push_back(static_cast<float>(GetMissCombo()));
 	return ret;
@@ -224,14 +224,14 @@ ComboSegment::GetValues() const
 std::string
 LabelSegment::ToString(int dec) const
 {
-	const std::string str = "%.0" + IntToString(dec) + "f=%s";
+	const auto str = "%.0" + IntToString(dec) + "f=%s";
 	return ssprintf(str.c_str(), GetBeat(), GetLabel().c_str());
 }
 
 std::string
 BPMSegment::ToString(int dec) const
 {
-	const std::string str =
+	const auto str =
 	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetBPM());
 }
@@ -239,14 +239,14 @@ BPMSegment::ToString(int dec) const
 std::string
 TimeSignatureSegment::ToString(int dec) const
 {
-	const std::string str = "%.0" + IntToString(dec) + "f=%i=%i";
+	const auto str = "%.0" + IntToString(dec) + "f=%i=%i";
 	return ssprintf(str.c_str(), GetBeat(), GetNum(), GetDen());
 }
 
-vector<float>
+std::vector<float>
 TimeSignatureSegment::GetValues() const
 {
-	vector<float> ret;
+	std::vector<float> ret;
 	ret.push_back(static_cast<float>(GetNum()));
 	ret.push_back(static_cast<float>(GetDen()));
 	return ret;
@@ -255,9 +255,8 @@ TimeSignatureSegment::GetValues() const
 std::string
 SpeedSegment::ToString(int dec) const
 {
-	const std::string str = "%.0" + IntToString(dec) + "f=%.0" +
-							IntToString(dec) + "f=%.0" + IntToString(dec) +
-							"f=%u";
+	const auto str = "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) +
+					 "f=%.0" + IntToString(dec) + "f=%u";
 	return ssprintf(str.c_str(),
 					GetBeat(),
 					GetRatio(),
@@ -265,10 +264,10 @@ SpeedSegment::ToString(int dec) const
 					static_cast<unsigned int>(GetUnit()));
 }
 
-vector<float>
+std::vector<float>
 SpeedSegment::GetValues() const
 {
-	vector<float> ret;
+	std::vector<float> ret;
 	ret.push_back(GetRatio());
 	ret.push_back(GetDelay());
 	ret.push_back(static_cast<float>(GetUnit()));
@@ -280,16 +279,16 @@ SpeedSegment::Scale(int start, int oldLength, int newLength)
 {
 	if (GetUnit() == 0) {
 		// XXX: this function is duplicated, there should be a better way
-		float startBeat = GetBeat();
-		float endBeat = startBeat + GetDelay();
-		float newStartBeat = ScalePosition(NoteRowToBeat(start),
-										   NoteRowToBeat(oldLength),
-										   NoteRowToBeat(newLength),
-										   startBeat);
-		float newEndBeat = ScalePosition(NoteRowToBeat(start),
-										 NoteRowToBeat(oldLength),
-										 NoteRowToBeat(newLength),
-										 endBeat);
+		const auto startBeat = GetBeat();
+		const auto endBeat = startBeat + GetDelay();
+		const auto newStartBeat = ScalePosition(NoteRowToBeat(start),
+												NoteRowToBeat(oldLength),
+												NoteRowToBeat(newLength),
+												startBeat);
+		const auto newEndBeat = ScalePosition(NoteRowToBeat(start),
+											  NoteRowToBeat(oldLength),
+											  NoteRowToBeat(newLength),
+											  endBeat);
 		SetDelay(newEndBeat - newStartBeat);
 	}
 	TimingSegment::Scale(start, oldLength, newLength);
@@ -298,7 +297,7 @@ SpeedSegment::Scale(int start, int oldLength, int newLength)
 std::string
 ScrollSegment::ToString(int dec) const
 {
-	const std::string str =
+	const auto str =
 	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetRatio());
 }
@@ -306,7 +305,7 @@ ScrollSegment::ToString(int dec) const
 std::string
 StopSegment::ToString(int dec) const
 {
-	const std::string str =
+	const auto str =
 	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetPause());
 }
@@ -314,7 +313,7 @@ StopSegment::ToString(int dec) const
 std::string
 DelaySegment::ToString(int dec) const
 {
-	const std::string str =
+	const auto str =
 	  "%.0" + IntToString(dec) + "f=%.0" + IntToString(dec) + "f";
 	return ssprintf(str.c_str(), GetBeat(), GetPause());
 }

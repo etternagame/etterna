@@ -16,9 +16,12 @@
 #include "Etterna/Models/Misc/TimingData.h"
 #include "ScreenManager.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"
+
+#include <algorithm>
 
 GameSoundManager* SOUND = nullptr;
 
@@ -251,8 +254,8 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		  g_Playing->m_Timing.WhereUAtBroNoOffset(fCurBeatToStartOn);
 		const float fMaximumDistance = 2;
 		const float fDistance =
-		  min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,
-			  fMaximumDistance);
+		  std::min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,
+				   fMaximumDistance);
 
 		when = GAMESTATE->m_Position.m_LastBeatUpdate + fDistance;
 	}
@@ -418,7 +421,7 @@ GameSoundManager::Flush()
 int
 MusicThread_start(void* p)
 {
-	auto soundman = (GameSoundManager*)p;
+	auto soundman = static_cast<GameSoundManager*>(p);
 	while (!g_Shutdown) {
 		g_Mutex->Lock();
 		while (!soundman->SoundWaiting() && !g_Shutdown && !g_bFlushing)
@@ -531,7 +534,7 @@ GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
 		return 0;
 
 	/* Subtract the extra delay. */
-	return min(-fExtraDelay, 0);
+	return std::min(-fExtraDelay, 0.F);
 }
 
 void
@@ -682,7 +685,7 @@ GameSoundManager::Update(float fDeltaTime)
 		float fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 		int iRowNow = BeatToNoteRow(fSongBeat);
-		iRowNow = max(0, iRowNow);
+		iRowNow = std::max(0, iRowNow);
 
 		int iBeatNow = iRowNow / ROWS_PER_BEAT;
 
@@ -704,7 +707,7 @@ GameSoundManager::GetMusicPath() const
 }
 
 void
-GameSoundManager::WithRageSoundPlaying(function<void(RageSound*)> f)
+GameSoundManager::WithRageSoundPlaying(std::function<void(RageSound*)> f)
 {
 	// LockMut(*g_Mutex); // commented this to hack around something else
 	f(g_Playing->m_Music);
@@ -966,7 +969,8 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->callbackOwningScreen = SCREENMAN->GetTopScreen();
 		p->soundPlayCallback = std::make_shared<LuaReference>(GetFuncArg(1, L));
 		if (lua_isnumber(L, 2))
-			p->recentPCMSamplesBufferSize = max((unsigned int)IArg(2), 512u);
+			p->recentPCMSamplesBufferSize =
+			  std::max(static_cast<unsigned int>(IArg(2)), 512u);
 		g_Mutex->Lock();
 		g_Playing->m_Music->SetPlayBackCallback(p->soundPlayCallback,
 												p->recentPCMSamplesBufferSize);

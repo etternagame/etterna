@@ -16,6 +16,8 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <algorithm>
+
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
 				   float& firstBeat,
@@ -152,7 +154,7 @@ NoteField::CacheAllUsedNoteSkins()
 
 	/* If we're changing note skins in the editor, we can have old note skins
 	 * lying around.  Remove them so they don't accumulate. */
-	set<std::string> setNoteSkinsToUnload;
+	std::set<std::string> setNoteSkinsToUnload;
 	for (auto& d : m_NoteDisplays) {
 		const auto unused =
 		  find(asSkinsLower.begin(), asSkinsLower.end(), d.first) ==
@@ -262,7 +264,7 @@ NoteField::ensure_note_displays_have_skin()
 			sNoteSkinLower = "default";
 		}
 		m_NoteDisplays.insert(
-		  pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+		  std::pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
 	}
 
 	sNoteSkinLower = make_lower(sNoteSkinLower);
@@ -289,7 +291,7 @@ NoteField::ensure_note_displays_have_skin()
 			sNoteSkinLower = "default";
 		}
 		m_NoteDisplays.insert(
-		  pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+		  std::pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
 	}
 
 	sNoteSkinLower = make_lower(sNoteSkinLower);
@@ -375,8 +377,8 @@ NoteField::Update(float fDeltaTime)
 	cur->m_GhostArrowRow.Update(fDeltaTime);
 
 	if (m_FieldRenderArgs.fail_fade >= 0)
-		m_FieldRenderArgs.fail_fade =
-		  min(m_FieldRenderArgs.fail_fade + fDeltaTime / FADE_FAIL_TIME, 1);
+		m_FieldRenderArgs.fail_fade = std::min(
+		  m_FieldRenderArgs.fail_fade + fDeltaTime / FADE_FAIL_TIME, 1.F);
 
 	// Update fade to failed
 	m_pCurDisplay->m_ReceptorArrowRow.SetFadeToFailPercent(
@@ -694,11 +696,11 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 
 	if (fSpeedMultiplier < 0.75f) {
 		fFirstBeatToDraw =
-		  min(fFirstBeatToDraw,
-			  pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		  std::min(fFirstBeatToDraw,
+				   pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
 		fLastBeatToDraw =
-		  min(fLastBeatToDraw,
-			  pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		  std::min(fLastBeatToDraw,
+				   pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
 	}
 
 	firstBeat = fFirstBeatToDraw;
@@ -882,11 +884,11 @@ NoteField::DrawBoardPrimitive()
 void
 NoteField::FadeToFail()
 {
-	m_FieldRenderArgs.fail_fade =
-	  max(0.0f,
-		  m_FieldRenderArgs
-			.fail_fade); // this will slowly increase every Update()
-						 // don't fade all over again if this is called twice
+	m_FieldRenderArgs.fail_fade = std::max(
+	  0.0f,
+	  m_FieldRenderArgs
+		.fail_fade); // this will slowly increase every Update()
+					 // don't fade all over again if this is called twice
 }
 
 // A few functions and macros to take care of processing the callback

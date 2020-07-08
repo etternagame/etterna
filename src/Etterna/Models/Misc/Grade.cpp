@@ -25,7 +25,7 @@ GetNextPossibleGrade(Grade g)
 std::string
 GradeToLocalizedString(Grade g)
 {
-	std::string s = GradeToString(g);
+	auto s = GradeToString(g);
 	if (!THEME->HasString("Grade", s))
 		return "???";
 	return THEME->GetString("Grade", s);
@@ -71,7 +71,7 @@ GradeToOldString(Grade g)
 Grade
 StringToGrade(const std::string& sGrade)
 {
-	std::string s = make_upper(sGrade);
+	auto s = make_upper(sGrade);
 
 	// new style
 	int iTier;

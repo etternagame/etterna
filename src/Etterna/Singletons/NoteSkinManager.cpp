@@ -14,7 +14,10 @@
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/Dialog/Dialog.h"
+
 #include <map>
+
+using std::map;
 
 /** @brief Have the NoteSkinManager available throughout the program. */
 NoteSkinManager* NOTESKIN =
@@ -547,7 +550,7 @@ NoteSkinManager::LoadActor(const std::string& sButton,
 		return Sprite::NewBlankSprite();
 	}
 
-	unique_ptr<XNode> pNode(XmlFileUtil::XNodeFromTable(L));
+	std::unique_ptr<XNode> pNode(XmlFileUtil::XNodeFromTable(L));
 	if (pNode.get() == nullptr) {
 		LUA->Release(L);
 		// XNode will warn about the error

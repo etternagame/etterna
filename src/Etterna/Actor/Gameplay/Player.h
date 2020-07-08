@@ -6,6 +6,7 @@
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Models/Misc/TimingData.h"
 
 #include <chrono>
 
@@ -48,8 +49,8 @@ class Player : public ActorFrame
 	// underneath the combo and judgment.  They're not embedded in
 	// PlayerMatrixPusher so that some nutjob can later decide to expose them
 	// to lua. -Kyz
-	void PushPlayerMatrix(float x, float skew, float center_y);
-	void PopPlayerMatrix();
+	static void PushPlayerMatrix(float x, float skew, float center_y);
+	static void PopPlayerMatrix();
 
 	// This exists so that the board can be drawn underneath combo/judge. -Kyz
 	void DrawNoteFieldBoard();
@@ -97,7 +98,7 @@ class Player : public ActorFrame
 	 *
 	 * This is primarily for a lua hook.
 	 * @return the TimingData in question. */
-	TimingData GetPlayerTimingData() const { return *(this->m_Timing); }
+	auto GetPlayerTimingData() const -> TimingData { return *(this->m_Timing); }
 
 	void ScoreAllActiveHoldsLetGo();
 	void DoTapScoreNone();
@@ -113,20 +114,23 @@ class Player : public ActorFrame
 					  const std::chrono::steady_clock::time_point& tm,
 					  bool bHeld,
 					  bool bRelease,
-					  float padStickSeconds = 0.0f);
+					  float padStickSeconds = 0.0F);
 
 	void FadeToFail();
 	void CacheAllUsedNoteSkins() const;
-	TapNoteScore GetLastTapNoteScore() const { return m_LastTapNoteScore; }
+	auto GetLastTapNoteScore() const -> TapNoteScore
+	{
+		return m_LastTapNoteScore;
+	}
 	void SetPaused(bool bPaused) { m_bPaused = bPaused; }
 
-	static float GetMaxStepDistanceSeconds();
-	static float GetWindowSeconds(TimingWindow tw);
-	static float GetWindowSecondsCustomScale(TimingWindow tw,
-											 float timingScale = 1.f);
-	static float GetTimingWindowScale();
-	const NoteData& GetNoteData() const { return m_NoteData; }
-	bool HasVisibleParts() const { return m_pNoteField != nullptr; }
+	static auto GetMaxStepDistanceSeconds() -> float;
+	static auto GetWindowSeconds(TimingWindow tw) -> float;
+	static auto GetWindowSecondsCustomScale(TimingWindow tw,
+											float timingScale = 1.F) -> float;
+	static auto GetTimingWindowScale() -> float;
+	auto GetNoteData() const -> const NoteData& { return m_NoteData; }
+	auto HasVisibleParts() const -> bool { return m_pNoteField != nullptr; }
 
 	void SetActorWithJudgmentPosition(Actor* pActor)
 	{
@@ -146,7 +150,7 @@ class Player : public ActorFrame
 	// Lua
 	void PushSelf(lua_State* L) override;
 
-	PlayerState* GetPlayerState() const { return this->m_pPlayerState; }
+	auto GetPlayerState() const -> PlayerState* { return this->m_pPlayerState; }
 	void ChangeLife(float delta) const;
 	void SetLife(float value) const;
 	bool m_inside_lua_set_life;
@@ -154,15 +158,15 @@ class Player : public ActorFrame
 	// Mina perma-temp stuff
 	vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
-	float maxwifescore = 0.f;
-	float curwifescore = 0.f;
-	float wifescorepersonalbest = 0.f;
+	float maxwifescore = 0.F;
+	float curwifescore = 0.F;
+	float wifescorepersonalbest = 0.F;
 	int totalwifescore;
 
   protected:
-	static bool NeedsTapJudging(const TapNote& tn);
-	static bool NeedsHoldJudging(const TapNote& tn);
-	virtual void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanThisBeat);
+	static auto NeedsTapJudging(const TapNote& tn) -> bool;
+	static auto NeedsHoldJudging(const TapNote& tn) -> bool;
+	virtual void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds);
 	void UpdateJudgedRows(float fDeltaTime);
 	// Updates visible parts: Hold Judgments, NoteField Zoom, Combo based Actors
 	void UpdateVisibleParts();
@@ -203,7 +207,7 @@ class Player : public ActorFrame
 		  iRow, iFirstTrack, tn, tn.result.tns, tn.result.fTapNoteOffset);
 	}
 	void SetJudgment(int iRow,
-					 int iFirstTrack,
+					 int iTrack,
 					 const TapNote& tn,
 					 TapNoteScore tns,
 					 float fTapNoteOffset); // -1 if no track as in TNS_Miss
@@ -219,31 +223,32 @@ class Player : public ActorFrame
 
 	void ChangeWifeRecord() const;
 
-	int GetClosestNoteDirectional(int col,
-								  int iStartRow,
-								  int iMaxRowsAhead,
-								  bool bAllowGraded,
-								  bool bForward) const;
-	int GetClosestNote(int col,
-					   int iNoteRow,
-					   int iMaxRowsAhead,
-					   int iMaxRowsBehind,
-					   bool bAllowGraded,
-					   bool bAllowOldMines = true) const;
-	int GetClosestNonEmptyRowDirectional(int iStartRow,
-										 int iMaxRowsAhead,
-										 bool bAllowGraded,
-										 bool bForward) const;
-	int GetClosestNonEmptyRow(int iNoteRow,
-							  int iMaxRowsAhead,
-							  int iMaxRowsBehind,
-							  bool bAllowGraded) const;
+	auto GetClosestNoteDirectional(int col,
+								   int iStartRow,
+								   int iEndRow,
+								   bool bAllowGraded,
+								   bool bForward) const -> int;
+	auto GetClosestNote(int col,
+						int iNoteRow,
+						int iMaxRowsAhead,
+						int iMaxRowsBehind,
+						bool bAllowGraded,
+						bool bAllowOldMines = true) const -> int;
+	auto GetClosestNonEmptyRowDirectional(int iStartRow,
+										  int iEndRow,
+										  bool bAllowGraded,
+										  bool bForward) const -> int;
+	auto GetClosestNonEmptyRow(int iNoteRow,
+							   int iMaxRowsAhead,
+							   int iMaxRowsBehind,
+							   bool bAllowGraded) const -> int;
 
 	void HideNote(int col, int row) const
 	{
 		const auto iter = m_NoteData.FindTapNote(col, row);
-		if (iter != m_NoteData.end(col))
+		if (iter != m_NoteData.end(col)) {
 			iter->second.result.bHidden = true;
+		}
 	}
 
 	bool m_bLoaded;
@@ -255,7 +260,7 @@ class Player : public ActorFrame
 	TimingData* m_Timing;
 	float m_fNoteFieldHeight;
 
-	vector<float> lastHoldHeadsSeconds;
+	std::vector<float> lastHoldHeadsSeconds;
 
 	bool m_bPaused;
 	bool m_bDelay;
@@ -263,7 +268,7 @@ class Player : public ActorFrame
 	NoteData& m_NoteData;
 	NoteField* m_pNoteField;
 
-	vector<HoldJudgment*> m_vpHoldJudgment;
+	std::vector<HoldJudgment*> m_vpHoldJudgment;
 
 	AutoActor m_sprJudgment;
 	AutoActor m_sprCombo;
@@ -286,7 +291,7 @@ class Player : public ActorFrame
 
 	RageSound m_soundMine;
 
-	vector<RageSound> m_vKeysounds;
+	std::vector<RageSound> m_vKeysounds;
 
 #define NUM_REVERSE 2
 #define NUM_CENTERED 2
@@ -308,36 +313,28 @@ class JudgedRows
 	vector<bool> m_vRows;
 	int m_iStart{ 0 };
 	int m_iOffset{ 0 };
-
-	void Resize(size_t iMin)
-	{
-		const auto iNewSize = max(2 * m_vRows.size(), iMin);
-		vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
-		vNewRows.reserve(iNewSize);
-		vNewRows.insert(
-		  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
-		vNewRows.resize(iNewSize, false);
-		m_vRows.swap(vNewRows);
-		m_iOffset = 0;
-	}
+	void Resize(size_t iMin);
 
   public:
 	JudgedRows() { Resize(32); }
 	// Returns true if the row has already been judged.
-	bool JudgeRow(int iRow)
+	auto JudgeRow(int iRow) -> bool
 	{
-		if (iRow < m_iStart)
+		if (iRow < m_iStart) {
 			return true;
-		if (iRow >= m_iStart + static_cast<int>(m_vRows.size()))
+		}
+		if (iRow >= m_iStart + static_cast<int>(m_vRows.size())) {
 			Resize(iRow + 1 - m_iStart);
+		}
 		const int iIndex = (iRow - m_iStart + m_iOffset) % m_vRows.size();
 		const bool ret = m_vRows[iIndex];
 		m_vRows[iIndex] = true;
 		while (m_vRows[m_iOffset]) {
 			m_vRows[m_iOffset] = false;
 			++m_iStart;
-			if (++m_iOffset >= static_cast<int>(m_vRows.size()))
+			if (++m_iOffset >= static_cast<int>(m_vRows.size())) {
 				m_iOffset -= m_vRows.size();
+			}
 		}
 		return ret;
 	}

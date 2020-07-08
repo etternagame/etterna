@@ -8,6 +8,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+
 Foreground::~Foreground()
 {
 	Unload();
@@ -105,7 +107,7 @@ Foreground::Update(float fDeltaTime)
 		}
 
 		// This shouldn't go down, but be safe:
-		lDeltaTime = max(lDeltaTime, 0);
+		lDeltaTime = std::max(lDeltaTime, 0.F);
 
 		bga.m_bga->Update(lDeltaTime / fRate);
 

@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "RageUnicode.h"
 #include <vector>
 

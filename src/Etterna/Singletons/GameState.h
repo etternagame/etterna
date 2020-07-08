@@ -22,8 +22,8 @@ class Style;
 class TimingData;
 class SongOptions;
 
-SortOrder
-GetDefaultSort();
+auto
+GetDefaultSort() -> SortOrder;
 
 extern int mina_calc_version;
 
@@ -51,13 +51,13 @@ class GameState
 	void BeginGame();
 	void JoinPlayer(PlayerNumber pn);
 	void UnjoinPlayer(PlayerNumber pn);
-	bool JoinInput(PlayerNumber pn);
-	bool JoinPlayers();
+	auto JoinInput(PlayerNumber pn) -> bool;
+	auto JoinPlayers() -> bool;
 	void LoadProfiles(bool bLoadEdits = true);
 	void SavePlayerProfiles();
 	void SavePlayerProfile(PlayerNumber pn);
-	bool HaveProfileToLoad();
-	bool HaveProfileToSave();
+	auto HaveProfileToLoad() -> bool;
+	auto HaveProfileToSave() -> bool;
 	void AddStageToPlayer(PlayerNumber pn);
 	void LoadCurrentSettingsFromProfile(PlayerNumber pn);
 	/**
@@ -66,9 +66,9 @@ class GameState
 	 * This is called at the beginning of each stage.
 	 * @param pn the PlayerNumber to save the stats to. */
 	void SaveCurrentSettingsToProfile(PlayerNumber pn);
-	Song* GetDefaultSong() const;
+	[[nodiscard]] auto GetDefaultSong() const -> Song*;
 
-	bool CanSafelyEnterGameplay(std::string& reason);
+	auto CanSafelyEnterGameplay(std::string& reason) -> bool;
 	void SetCompatibleStylesForPlayers();
 	void ForceOtherPlayersToCompatibleSteps(PlayerNumber main);
 
@@ -101,14 +101,15 @@ class GameState
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
-	bool DifficultiesLocked() const;
-	bool ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
+	[[nodiscard]] auto DifficultiesLocked() const -> bool;
+	auto ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 											   Difficulty dc,
-											   StepsType st);
-	bool ChangePreferredDifficulty(PlayerNumber pn, int dir);
-	Difficulty GetClosestShownDifficulty(PlayerNumber pn) const;
-	Difficulty GetEasiestStepsDifficulty() const;
-	Difficulty GetHardestStepsDifficulty() const;
+											   StepsType st) -> bool;
+	auto ChangePreferredDifficulty(PlayerNumber pn, int dir) -> bool;
+	[[nodiscard]] auto GetClosestShownDifficulty(PlayerNumber pn) const
+	  -> Difficulty;
+	[[nodiscard]] auto GetEasiestStepsDifficulty() const -> Difficulty;
+	[[nodiscard]] auto GetHardestStepsDifficulty() const -> Difficulty;
 	RageTimer m_timeGameStarted; // from the moment the first
 								 // player pressed Start
 	LuaTable* m_Environment;
@@ -123,34 +124,34 @@ class GameState
 	/**
 	 * @brief Determine if a second player can join in at this time.
 	 * @return true if a player can still enter the game, false otherwise. */
-	bool PlayersCanJoin() const;
+	[[nodiscard]] auto PlayersCanJoin() const -> bool;
 
-	const Game* GetCurrentGame() const;
-	const Style* GetCurrentStyle(PlayerNumber pn) const;
+	[[nodiscard]] auto GetCurrentGame() const -> const Game*;
+	[[nodiscard]] auto GetCurrentStyle(PlayerNumber pn) const -> const Style*;
 	void SetCurrentStyle(const Style* style, PlayerNumber pn);
-	bool SetCompatibleStyle(StepsType stype, PlayerNumber pn);
+	auto SetCompatibleStyle(StepsType stype, PlayerNumber pn) -> bool;
 
 	void GetPlayerInfo(PlayerNumber pn, bool& bIsEnabledOut, bool& bIsHumanOut);
-	bool IsPlayerEnabled(PlayerNumber pn) const;
-	bool IsMultiPlayerEnabled(MultiPlayer mp) const;
-	bool IsPlayerEnabled(const PlayerState* pPlayerState) const;
-	int GetNumPlayersEnabled() const;
+	[[nodiscard]] auto IsPlayerEnabled(PlayerNumber pn) const -> bool;
+	[[nodiscard]] auto IsMultiPlayerEnabled(MultiPlayer mp) const -> bool;
+	auto IsPlayerEnabled(const PlayerState* pPlayerState) const -> bool;
+	[[nodiscard]] auto GetNumPlayersEnabled() const -> int;
 
 	/**
 	 * @brief Is the specified Player a human Player?
 	 * @param pn the numbered Player to check.
 	 * @return true if it's a human Player, or false otherwise. */
-	bool IsHumanPlayer(PlayerNumber pn) const;
-	int GetNumHumanPlayers() const;
-	PlayerNumber GetFirstHumanPlayer() const;
-	PlayerNumber GetFirstDisabledPlayer() const;
-	bool IsCpuPlayer(PlayerNumber pn) const;
-	bool AnyPlayersAreCpu() const;
+	[[nodiscard]] auto IsHumanPlayer(PlayerNumber pn) const -> bool;
+	[[nodiscard]] auto GetNumHumanPlayers() const -> int;
+	[[nodiscard]] auto GetFirstHumanPlayer() const -> PlayerNumber;
+	[[nodiscard]] auto GetFirstDisabledPlayer() const -> PlayerNumber;
+	[[nodiscard]] auto IsCpuPlayer(PlayerNumber pn) const -> bool;
+	[[nodiscard]] auto AnyPlayersAreCpu() const -> bool;
 
 	/**
 	 * @brief Retrieve the present master player number.
 	 * @return The master player number. */
-	PlayerNumber GetMasterPlayerNumber() const;
+	[[nodiscard]] auto GetMasterPlayerNumber() const -> PlayerNumber;
 
 	/**
 	 * @brief Set the master player number.
@@ -160,7 +161,7 @@ class GameState
 	/**
 	 * @brief Retrieve the present timing data being processed.
 	 * @return the timing data pointer. */
-	TimingData* GetProcessedTimingData() const;
+	[[nodiscard]] auto GetProcessedTimingData() const -> TimingData*;
 
 	/**
 	 * @brief Set the timing data to be used with processing.
@@ -170,7 +171,7 @@ class GameState
 	/**
 	 * @brief Do we show the W1 timing judgment?
 	 * @return true if we do, or false otherwise. */
-	bool ShowW1() const;
+	[[nodiscard]] auto ShowW1() const -> bool;
 
 	BroadcastOnChange<std::string>
 	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
@@ -198,31 +199,37 @@ class GameState
 
 	std::string sExpandedSectionName;
 
-	static int GetNumStagesMultiplierForSong(const Song* pSong);
-	static int GetNumStagesForSongAndStyleType(const Song* pSong, StyleType st);
-	int GetNumStagesForCurrentSongAndStepsOrCourse() const;
+	static auto GetNumStagesMultiplierForSong(const Song* pSong) -> int;
+	static auto GetNumStagesForSongAndStyleType(const Song* pSong, StyleType st)
+	  -> int;
+	[[nodiscard]] auto GetNumStagesForCurrentSongAndStepsOrCourse() const
+	  -> int;
 
 	void BeginStage();
 	void CancelStage();
 	void CommitStageStats();
 	void FinishStage();
-	int GetCourseSongIndex() const;
-	std::string GetPlayerDisplayName(PlayerNumber pn) const;
+	[[nodiscard]] auto GetCourseSongIndex() const -> int;
+	[[nodiscard]] auto GetPlayerDisplayName(PlayerNumber pn) const
+	  -> std::string;
 
 	bool m_bLoadingNextSong;
-	int GetLoadingCourseSongIndex() const;
+	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static std::string GetEtternaVersion() { return "0.70.1"; }
+	static auto GetEtternaVersion() -> std::string { return "0.70.1"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
 	 * are now all 1.f to remove j1-3 without having to mess with expected array
 	 * sizes in other areas yes i know this is lazy */
-	std::vector<float> timingscales = { 1.00f, 1.00f, 1.00f, 1.00f, 0.84f,
-										0.66f, 0.50f, 0.33f, 0.20f };
+	std::vector<float> timingscales = { 1.00F, 1.00F, 1.00F, 1.00F, 0.84F,
+										0.66F, 0.50F, 0.33F, 0.20F };
 	bool isplaylistcourse = false;
-	bool IsPlaylistCourse() const { return isplaylistcourse; }
-	bool CountNotesSeparately();
+	[[nodiscard]] auto IsPlaylistCourse() const -> bool
+	{
+		return isplaylistcourse;
+	}
+	auto CountNotesSeparately() -> bool;
 
 	// State Info used during gameplay
 
@@ -246,14 +253,14 @@ class GameState
 	void ResetMusicStatistics(); // Call this when it's time to play a new song.
 								 // Clears the values above.
 	void SetPaused(bool p) { m_paused = p; }
-	bool GetPaused() const { return m_paused; }
+	[[nodiscard]] auto GetPaused() const -> bool { return m_paused; }
 	void UpdateSongPosition(float fPositionSeconds,
 							const TimingData& timing,
 							const RageTimer& timestamp = RageZeroTimer);
-	float GetSongPercent(float beat) const;
+	[[nodiscard]] auto GetSongPercent(float beat) const -> float;
 
-	bool AllAreInDangerOrWorse() const;
-	bool OneIsHot() const;
+	[[nodiscard]] auto AllAreInDangerOrWorse() const -> bool;
+	[[nodiscard]] auto OneIsHot() const -> bool;
 
 	// used by themes that support heart rate entry.
 	RageTimer m_DanceStartTime;
@@ -279,18 +286,19 @@ class GameState
 								 const std::string& sModifiers);
 	void ApplyStageModifiers(PlayerNumber pn, const std::string& sModifiers);
 
-	bool CurrentOptionsDisqualifyPlayer(PlayerNumber pn);
-	bool PlayerIsUsingModifier(PlayerNumber pn, const std::string& sModifier);
+	auto CurrentOptionsDisqualifyPlayer(PlayerNumber pn) -> bool;
+	auto PlayerIsUsingModifier(PlayerNumber pn, const std::string& sModifier)
+	  -> bool;
 
-	FailType GetPlayerFailType(const PlayerState* pPlayerState) const;
+	auto GetPlayerFailType(const PlayerState* pPlayerState) const -> FailType;
 
-	int GetNumSidesJoined() const;
+	[[nodiscard]] auto GetNumSidesJoined() const -> int;
 	// PlayerState
 	/** @brief Allow access to each player's PlayerState. */
 	PlayerState* m_pPlayerState;
 	PlayerState* m_pMultiPlayerState[NUM_MultiPlayer];
 
-	int GetNumCols(int pn);
+	auto GetNumCols(int pn) -> int;
 
 	// Preferences
 	static Preference<bool> m_bAutoJoin;
@@ -299,7 +307,7 @@ class GameState
 	// These options have weird interactions depending on m_bEventMode,
 	// so wrap them.
 	bool m_bTemporaryEventMode;
-	bool IsEventMode() const;
+	[[nodiscard]] auto IsEventMode() const -> bool;
 
 	// Edit stuff
 
@@ -309,15 +317,18 @@ class GameState
 	 * Different options are available depending on this setting. */
 	bool m_bIsUsingStepTiming{ true };
 	BroadcastOnChange<std::string> m_sEditLocalProfileID;
-	Profile* GetEditLocalProfile();
+	auto GetEditLocalProfile() -> Profile*;
 	bool m_bIsChartPreviewActive;
 
 	// Current mode of Gameplay
 	BroadcastOnChange<GameplayMode> m_gameplayMode;
-	GameplayMode GetGameplayMode() const { return m_gameplayMode; }
+	[[nodiscard]] auto GetGameplayMode() const -> GameplayMode
+	{
+		return m_gameplayMode;
+	}
 	void TogglePracticeModeSafe(bool set);
 	void TogglePracticeMode(bool set);
-	bool IsPracticeMode();
+	auto IsPracticeMode() -> bool;
 
 	// A "persistent" way to know if we restarted gameplay (hack)
 	bool m_bRestartedGameplay;
@@ -341,7 +352,7 @@ class GameState
 	bool m_paused;
 
 	GameState(const GameState& rhs);
-	GameState& operator=(const GameState& rhs);
+	auto operator=(const GameState& rhs) -> GameState&;
 };
 
 extern GameState*

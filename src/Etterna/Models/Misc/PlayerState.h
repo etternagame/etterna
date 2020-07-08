@@ -59,8 +59,8 @@ class PlayerState
 	// Music statistics:
 	SongPosition m_Position;
 
-	const SongPosition& GetDisplayedPosition() const;
-	const TimingData& GetDisplayedTiming() const;
+	auto GetDisplayedPosition() const -> const SongPosition&;
+	auto GetDisplayedTiming() const -> const TimingData&;
 
 	/**
 	 * @brief Holds a vector sorted by real beat, the beat that would be
@@ -109,10 +109,10 @@ class PlayerState
 	number of columns in places where it can't change? - Mina */
 	int m_NumCols;
 	void SetNumCols(int ncol) { m_NumCols = ncol; };
-	int GetNumCols() { return m_NumCols; };
+	auto GetNumCols() -> int { return m_NumCols; };
 
-	float playertargetgoal = 0.93f;
-	float wtFFF = 1.f; // lol dont ask - mina
+	float playertargetgoal = 0.93F;
+	float wtFFF = 1.F; // lol dont ask - mina
 
 	// Lua
 	void PushSelf(lua_State* L);

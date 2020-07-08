@@ -11,10 +11,10 @@ class RageFileDriver;
 class RageFileBasic;
 struct lua_State;
 
-bool
-ilt(const std::string& a, const std::string& b);
-bool
-ieq(const std::string& a, const std::string& b);
+auto
+ilt(const std::string& a, const std::string& b) -> bool;
+auto
+ieq(const std::string& a, const std::string& b) -> bool;
 
 /** @brief File utilities and high-level manager for RageFile objects. */
 class RageFileManager
@@ -37,8 +37,8 @@ class RageFileManager
 	  bool bOnlyDirs = false,
 	  bool bReturnPathToo = false);
 
-	bool Move(const std::string& sOldPath, const std::string& sNewPath);
-	bool Remove(const std::string& sPath);
+	auto Move(const std::string& sOldPath, const std::string& sNewPath) -> bool;
+	auto Remove(const std::string& sPath) -> bool;
 	void CreateDir(const std::string& sDir);
 
 	enum FileType
@@ -47,25 +47,25 @@ class RageFileManager
 		TYPE_DIR,
 		TYPE_NONE
 	};
-	FileType GetFileType(const std::string& sPath);
+	auto GetFileType(const std::string& sPath) -> FileType;
 
-	bool IsAFile(const std::string& sPath);
-	bool IsADirectory(const std::string& sPath);
-	bool DoesFileExist(const std::string& sPath);
+	auto IsAFile(const std::string& sPath) -> bool;
+	auto IsADirectory(const std::string& sPath) -> bool;
+	auto DoesFileExist(const std::string& sPath) -> bool;
 
-	int GetFileSizeInBytes(const std::string& sPath);
-	int GetFileHash(const std::string& sPath);
+	auto GetFileSizeInBytes(const std::string& sPath) -> int;
+	auto GetFileHash(const std::string& sPath) -> int;
 
 	/**
 	 * @brief Get the absolte path from the VPS.
 	 * @param path the VPS path.
 	 * @return the absolute path. */
-	std::string ResolvePath(const std::string& path);
+	auto ResolvePath(const std::string& path) -> std::string;
 
-	bool Mount(const std::string& sType,
+	auto Mount(const std::string& sType,
 			   const std::string& sRealPath,
 			   const std::string& sMountPoint,
-			   bool bAddToEnd = true);
+			   bool bAddToEnd = true) -> bool;
 	void Mount(RageFileDriver* pDriver,
 			   const std::string& sMountPoint,
 			   bool bAddToEnd = true);
@@ -77,7 +77,7 @@ class RageFileManager
 	 * it's used to change memory card mountpoints without having to actually
 	 * unmount the driver. */
 	void Remount(const std::string& sMountpoint, const std::string& sPath);
-	bool IsMounted(const std::string& MountPoint);
+	auto IsMounted(const std::string& MountPoint) -> bool;
 	struct DriverLocation
 	{
 		std::string Type, Root, MountPoint;
@@ -87,24 +87,23 @@ class RageFileManager
 	void FlushDirCache(const std::string& sPath = std::string());
 
 	/* Used only by RageFile: */
-	RageFileBasic* Open(const std::string& sPath, int iMode, int& iError);
+	auto Open(const std::string& sPath, int iMode, int& iError)
+	  -> RageFileBasic*;
 	void CacheFile(const RageFileBasic* fb, const std::string& sPath);
 
 	/* Retrieve or release a reference to the low-level driver for a mountpoint.
 	 */
-	RageFileDriver* GetFileDriver(std::string sMountpoint);
+	auto GetFileDriver(std::string sMountpoint) -> RageFileDriver*;
 	void ReleaseFileDriver(RageFileDriver* pDriver);
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	RageFileBasic* OpenForReading(const std::string& sPath,
-								  int iMode,
-								  int& iError);
-	RageFileBasic* OpenForWriting(const std::string& sPath,
-								  int iMode,
-								  int& iError);
+	auto OpenForReading(const std::string& sPath, int iMode, int& iError)
+	  -> RageFileBasic*;
+	auto OpenForWriting(const std::string& sPath, int iMode, int& iError)
+	  -> RageFileBasic*;
 };
 
 extern RageFileManager* FILEMAN;

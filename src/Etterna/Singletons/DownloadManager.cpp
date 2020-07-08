@@ -14,9 +14,7 @@
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/Song.h"
-#include "RageUtil/Misc/RageString.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Misc/Grade.h"
 #include "curl/curl.h"
@@ -25,12 +23,23 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
-using namespace rapidjson;
-#include <unordered_set>
+
 #ifdef _WIN32
 #include <intrin.h>
 #endif
-shared_ptr<DownloadManager> DLMAN = nullptr;
+
+#include <unordered_set>
+#include <algorithm>
+
+using std::function;
+using std::map;
+using std::pair;
+using std::string;
+using std::to_string;
+
+using namespace rapidjson;
+
+std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static Preference<unsigned int> maxDLPerSecond(
@@ -156,16 +165,15 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	string sResult = "Success installing " + sZipFile;
 	string extractTo =
 	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
-	FOREACH_CONST(string, vsFiles, sSrcFile)
-	{
-		string sDestFile = *sSrcFile;
+	for (auto& sSrcFile : vsFiles) {
+		string sDestFile = sSrcFile;
 		sDestFile = tail(std::string(sDestFile.c_str()),
 						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
 
 		std::string sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
 
-		if (!FileCopy(*sSrcFile, extractTo + sDestFile)) {
+		if (!FileCopy(sSrcFile, extractTo + sDestFile)) {
 			sResult = "Error extracting " + sDestFile;
 			break;
 		}
@@ -470,7 +478,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		}
 	}
 	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
 	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
@@ -495,7 +503,6 @@ DownloadManager::Update(float fDeltaSeconds)
 		return;
 	UpdatePacks(fDeltaSeconds);
 	UpdateHTTP(fDeltaSeconds);
-	return;
 }
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
@@ -565,7 +572,6 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		if (idx_to_delete != -1)
 			HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 	}
-	return;
 }
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
@@ -697,7 +703,6 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	return;
 }
 
 string
@@ -1091,8 +1096,6 @@ DownloadManager::UploadScore(HighScore* hs,
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
 	CHECKPOINT_M("Finished creating UploadScore request");
-
-	return;
 }
 
 // this is for new/live played scores that have replaydata in memory
@@ -1135,7 +1138,6 @@ uploadSequentially()
 		DLMAN->ScoreUploadSequentialQueue.pop_front();
 		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
 	}
-	return;
 }
 
 bool
@@ -1326,7 +1328,6 @@ DownloadManager::RefreshUserRank()
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest("user/" + sessionUser + "/ranks", {}, done, true, false, true);
-	return;
 }
 OnlineTopScore
 DownloadManager::GetTopSkillsetScore(unsigned int rank,
@@ -1514,7 +1515,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 					!note[1].IsNumber())
 					continue;
 				replayData.push_back(
-				  make_pair(note[0].GetFloat(), note[1].GetFloat()));
+				  std::make_pair(note[0].GetFloat(), note[1].GetFloat()));
 
 				timestamps.push_back(note[0].GetFloat());
 				offsets.push_back(note[1].GetFloat() / 1000.f);
@@ -1879,7 +1880,7 @@ DownloadManager::RefreshCoreBundles()
 						!pack["packname"].IsString())
 						continue;
 					auto name = pack["packname"].GetString();
-					auto dlPack = find_if(
+					auto dlPack = std::find_if(
 					  dlPacks.begin(),
 					  dlPacks.end(),
 					  [&name](DownloadablePack x) { return x.name == name; });
@@ -1909,7 +1910,7 @@ DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.push_back(make_pair(pack, mirror));
+		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 }
 
 void
@@ -2040,7 +2041,6 @@ DownloadManager::RefreshTop25(Skillset ss)
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest(req, {}, done);
-	return;
 }
 // Skillset ratings (we dont care about mod lvl, username, about, etc)
 void
@@ -2088,7 +2088,6 @@ DownloadManager::RefreshUserData()
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest("user/" + sessionUser, {}, done);
-	return;
 }
 
 void
@@ -2118,7 +2117,7 @@ void
 DownloadManager::StartSession(
   string user,
   string pass,
-  function<void(bool loggedIn)> callback = [](bool) { return; })
+  function<void(bool loggedIn)> callback = [](bool) {})
 {
 	string url = serverURL.Get() + "/login";
 	if (loggingIn || user.empty()) {
@@ -2217,7 +2216,7 @@ DownloadManager::RefreshPackList(const string& url)
 		for (auto& pack_obj : packs->GetArray()) {
 			DownloadablePack tmp;
 			if (pack_obj.HasMember("id") && pack_obj["id"].IsString())
-				tmp.id = stoi(pack_obj["id"].GetString());
+				tmp.id = std::stoi(pack_obj["id"].GetString());
 			else
 				tmp.id = 0;
 
@@ -2282,7 +2281,6 @@ DownloadManager::RefreshPackList(const string& url)
 		DLMAN->RefreshCoreBundles();
 	};
 	SendRequestToURL(url, {}, done, false, false, true, false);
-	return;
 }
 
 Download::Download(string url, string filename, function<void(Download*)> done)
@@ -2683,7 +2681,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
 		vector<HighScore*> filteredLeaderboardScores;
-		unordered_set<string> userswithscores;
+		std::unordered_set<string> userswithscores;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
 		string country = "";
 		if (!lua_isnoneornil(L, 2)) {

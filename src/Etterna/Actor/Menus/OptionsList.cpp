@@ -6,6 +6,9 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 
+#include <algorithm>
+#include <map>
+
 #define LINE(sLineName)                                                        \
 	THEME->GetMetric(m_sName, ssprintf("Line%s", (sLineName).c_str()))
 #define MAX_ITEMS_BEFORE_SPLIT THEME->GetMetricI(m_sName, "MaxItemsBeforeSplit")
@@ -48,7 +51,8 @@ OptionListRow::SetFromHandler(const OptionRowHandler* pHandler)
 	if (pHandler == nullptr)
 		return;
 
-	const int iNum = max(pHandler->m_Def.m_vsChoices.size(), m_Text.size()) + 1;
+	const int iNum =
+	  std::max(pHandler->m_Def.m_vsChoices.size(), m_Text.size()) + 1;
 	m_Text.resize(iNum, m_Text[0]);
 	m_Underlines.resize(iNum, m_Underlines[0]);
 
@@ -140,8 +144,8 @@ OptionListRow::SetUnderlines(const vector<bool>& aSelections,
 			} else if (pTarget->m_Def.m_selectType == SELECT_MULTIPLE) {
 				const vector<bool>& bTargetSelections =
 				  m_pOptions->m_bSelections.find(sDest)->second;
-				for (unsigned j = 0; j < bTargetSelections.size(); j++) {
-					if (bTargetSelections[j])
+				for (bool bTargetSelection : bTargetSelections) {
+					if (bTargetSelection)
 						bSelected = true;
 				}
 			}
@@ -234,11 +238,11 @@ OptionsList::Load(const std::string& sType, PlayerNumber pn)
 		}
 	}
 
-	for (int i = 0; i < 2; ++i) {
-		m_Row[i].SetName("OptionsList");
-		m_Row[i].Load(this, "OptionsList");
-		ActorUtil::LoadAllCommands(m_Row[i], sType);
-		this->AddChild(&m_Row[i]);
+	for (auto& i : m_Row) {
+		i.SetName("OptionsList");
+		i.Load(this, "OptionsList");
+		ActorUtil::LoadAllCommands(i, sType);
+		this->AddChild(&i);
 	}
 
 	this->PlayCommand("TweenOff");
@@ -302,7 +306,7 @@ OptionsList::GetCurrentHandler()
 int
 OptionsList::GetOneSelection(const std::string& sRow, bool bAllowFail) const
 {
-	const map<std::string, vector<bool>>::const_iterator it =
+	const std::map<std::string, vector<bool>>::const_iterator it =
 	  m_bSelections.find(sRow);
 	ASSERT_M(it != m_bSelections.end(), sRow);
 	const vector<bool>& bSelections = it->second;

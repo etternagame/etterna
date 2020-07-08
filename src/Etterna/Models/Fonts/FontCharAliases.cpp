@@ -370,11 +370,9 @@ InitCharAliases()
 		CharAliases[aliases[n].str] = iCodepoint;
 	}
 
-	for (aliasmap::const_iterator i = CharAliases.begin();
-		 i != CharAliases.end();
-		 ++i) {
-		std::string from = make_lower(i->first);
-		std::string to = WcharToUTF8(i->second);
+	for (const auto& CharAliase : CharAliases) {
+		std::string from = make_lower(CharAliase.first);
+		std::string to = WcharToUTF8(CharAliase.second);
 		CharAliasRepl[from] = to;
 	}
 }

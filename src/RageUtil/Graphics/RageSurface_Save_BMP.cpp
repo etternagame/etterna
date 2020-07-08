@@ -8,10 +8,10 @@
 static void
 WriteBytes(RageFile& f, std::string& sError, const void* buf, int size)
 {
-	if (sError.size() != 0)
+	if (!sError.empty())
 		return;
 
-	int ret = f.Write(buf, size);
+	const auto ret = f.Write(buf, size);
 	if (ret == -1)
 		sError = f.GetError();
 }
@@ -34,22 +34,22 @@ bool
 RageSurfaceUtils::SaveBMP(RageSurface* surface, RageFile& f)
 {
 	/* Convert the surface to 24bpp. */
-	RageSurface* converted_surface = CreateSurface(surface->w,
-												   surface->h,
-												   24,
-												   Swap24LE(0xFF0000),
-												   Swap24LE(0x00FF00),
-												   Swap24LE(0x0000FF),
-												   0);
+	const auto converted_surface = CreateSurface(surface->w,
+												 surface->h,
+												 24,
+												 Swap24LE(0xFF0000),
+												 Swap24LE(0x00FF00),
+												 Swap24LE(0x0000FF),
+												 0);
 	CopySurface(surface, converted_surface);
 
 	std::string sError;
 
-	int iFilePitch = converted_surface->pitch;
+	auto iFilePitch = converted_surface->pitch;
 	iFilePitch = (iFilePitch + 3) & ~3; // round up a multiple of 4
 
-	const int iDataSize = converted_surface->h * iFilePitch;
-	const int iHeaderSize = 0x36;
+	const auto iDataSize = converted_surface->h * iFilePitch;
+	const auto iHeaderSize = 0x36;
 
 	WriteBytes(f, sError, "BM", 2);
 	write_le32(f, sError, iHeaderSize + iDataSize); // size (offset 0x2)
@@ -70,7 +70,7 @@ RageSurfaceUtils::SaveBMP(RageSurface* surface, RageFile& f)
 	write_le32(f, sError, 0);			  // colors (offset 0x2E)
 	write_le32(f, sError, 0);			  // important colors (offset 0x32)
 
-	for (int y = converted_surface->h - 1; y >= 0; --y) {
+	for (auto y = converted_surface->h - 1; y >= 0; --y) {
 		const uint8_t* pRow =
 		  converted_surface->pixels + converted_surface->pitch * y;
 		WriteBytes(f, sError, pRow, converted_surface->pitch);
@@ -82,7 +82,7 @@ RageSurfaceUtils::SaveBMP(RageSurface* surface, RageFile& f)
 
 	delete converted_surface;
 
-	if (sError.size() != 0)
+	if (!sError.empty())
 		return false;
 
 	if (f.Flush() == -1)

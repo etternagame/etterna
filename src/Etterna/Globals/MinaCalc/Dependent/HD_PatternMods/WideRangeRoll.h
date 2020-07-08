@@ -24,7 +24,7 @@ struct WideRangeRollMod
 	float cv_threshold = 0.35F;
 	float other_cv_threshold = 0.3F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

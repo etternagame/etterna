@@ -57,10 +57,9 @@ ControllerStateDisplay::LoadInternal(const std::string& sType,
 
 	FOREACH_ENUM(ControllerStateButton, b)
 	{
-		Button& button = m_Buttons[b];
+		auto& button = m_Buttons[b];
 
-		std::string sPath =
-		  THEME->GetPathG(sType, ControllerStateButtonToString(b));
+		auto sPath = THEME->GetPathG(sType, ControllerStateButtonToString(b));
 		button.spr.Load(sPath);
 		this->AddChild(m_Buttons[b].spr);
 
@@ -74,8 +73,8 @@ ControllerStateDisplay::Update(float fDelta)
 	ActorFrame::Update(fDelta);
 
 	if (m_mp != MultiPlayer_Invalid) {
-		InputDevice id = InputMapper::MultiPlayerToInputDevice(m_mp);
-		InputDeviceState ids = INPUTMAN->GetInputDeviceState(id);
+		auto id = InputMapper::MultiPlayerToInputDevice(m_mp);
+		auto ids = INPUTMAN->GetInputDeviceState(id);
 		if (ids != m_idsLast) {
 			PlayCommand(InputDeviceStateToString(ids));
 		}
@@ -84,11 +83,11 @@ ControllerStateDisplay::Update(float fDelta)
 
 	FOREACH_ENUM(ControllerStateButton, b)
 	{
-		Button& button = m_Buttons[b];
+		auto& button = m_Buttons[b];
 		if (!button.spr.IsLoaded())
 			continue;
 
-		bool bVisible = INPUTMAPPER->IsBeingPressed(button.gi, m_mp);
+		auto bVisible = INPUTMAPPER->IsBeingPressed(button.gi, m_mp);
 
 		button.spr->SetVisible(bVisible);
 	}

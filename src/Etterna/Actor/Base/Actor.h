@@ -9,6 +9,7 @@
 #include "Tween.h"
 
 #include <map>
+
 class XNode;
 struct lua_State;
 class LuaClass;
@@ -83,7 +84,7 @@ class Actor : public MessageSubscriber
 	 * @param cpy the new Actor to use in place of this one. */
 	Actor(const Actor& cpy);
 	~Actor() override;
-	[[nodiscard]] virtual Actor* Copy() const;
+	[[nodiscard]] virtual auto Copy() const -> Actor*;
 	virtual void InitState();
 	virtual void LoadFromNode(const XNode* pNode);
 
@@ -142,8 +143,8 @@ class Actor : public MessageSubscriber
 										const TweenState& ts1,
 										const TweenState& ts2,
 										float fPercentBetween);
-		bool operator==(const TweenState& other) const;
-		bool operator!=(const TweenState& other) const
+		auto operator==(const TweenState& other) const -> bool;
+		auto operator!=(const TweenState& other) const -> bool
 		{
 			return !operator==(other);
 		}
@@ -176,16 +177,16 @@ class Actor : public MessageSubscriber
 	};
 
 	// PartiallyOpaque broken out of Draw for reuse and clarity.
-	[[nodiscard]] bool PartiallyOpaque() const;
-	bool IsOver(float mx, float my);
+	[[nodiscard]] auto PartiallyOpaque() const -> bool;
+	auto IsOver(float mx, float my) -> bool;
 
-	Actor* GetFakeParentOrParent(); // fake parent > parent -mina
-	float GetTrueX();		  // recursive with parent (for mouseovers) -mina
-	float GetTrueY();		  // same
-	float GetTrueRotationZ(); // same
-	float GetTrueZoom();	  // same
-	bool IsVisible(); // same but for gating updates on things that may not
-					  // explicitly set visible = false -mina
+	auto GetFakeParentOrParent() -> Actor*; // fake parent > parent -mina
+	auto GetTrueX() -> float; // recursive with parent (for mouseovers) -mina
+	auto GetTrueY() -> float; // same
+	auto GetTrueRotationZ() -> float; // same
+	auto GetTrueZoom() -> float;	  // same
+	auto IsVisible() -> bool; // same but for gating updates on things that may
+							  // not explicitly set visible = false -mina
 
 	/**
 	 * @brief Calls multiple functions for drawing the Actors.
@@ -203,7 +204,7 @@ class Actor : public MessageSubscriber
 	 * Subclasses may wish to overwrite this to allow for
 	 * aborted actors.
 	 * @return false, as by default Actors shouldn't be aborted on drawing. */
-	[[nodiscard]] virtual bool EarlyAbortDraw() const { return false; }
+	[[nodiscard]] virtual auto EarlyAbortDraw() const -> bool { return false; }
 	/** @brief Calculate values that may be needed  for drawing. */
 	virtual void PreDraw();
 	/** @brief Reset internal diffuse and glow. */
@@ -230,7 +231,7 @@ class Actor : public MessageSubscriber
 	/** @brief Pop the transform from the world matrix stack. */
 	virtual void EndDraw();
 
-	// TODO: make Update non virtual and change all classes to override
+	// TODO(Sam): make Update non virtual and change all classes to override
 	// UpdateInternal instead.
 	virtual void Update(
 	  float fDeltaTime); // this can short circuit UpdateInternal
@@ -243,7 +244,7 @@ class Actor : public MessageSubscriber
 	virtual void EraseHeadTween() {}
 	virtual void UpdatePercentThroughTween(float PercentThroughTween) {}
 
-	[[nodiscard]] bool get_tween_uses_effect_delta() const
+	[[nodiscard]] auto get_tween_uses_effect_delta() const -> bool
 	{
 		return m_tween_uses_effect_delta;
 	}
@@ -252,7 +253,7 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Retrieve the Actor's name.
 	 * @return the Actor's name. */
-	[[nodiscard]] const std::string& GetName() const { return m_sName; }
+	[[nodiscard]] auto GetName() const -> const std::string& { return m_sName; }
 	/**
 	 * @brief Set the Actor's name to a new one.
 	 * @param sName the new name for the Actor. */
@@ -264,19 +265,19 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Retrieve the Actor's parent.
 	 * @return the Actor's parent. */
-	[[nodiscard]] Actor* GetParent() const { return m_pParent; }
+	[[nodiscard]] auto GetParent() const -> Actor* { return m_pParent; }
 	/**
 	 * @brief Retrieve the Actor's lineage.
 	 * @return the Actor's lineage. */
-	[[nodiscard]] std::string GetLineage() const;
+	[[nodiscard]] auto GetLineage() const -> std::string;
 
 	void SetFakeParent(Actor* mailman) { m_FakeParent = mailman; }
-	[[nodiscard]] Actor* GetFakeParent() const { return m_FakeParent; }
+	[[nodiscard]] auto GetFakeParent() const -> Actor* { return m_FakeParent; }
 
 	void AddWrapperState();
 	void RemoveWrapperState(size_t i);
-	Actor* GetWrapperState(size_t i);
-	[[nodiscard]] size_t GetNumWrapperStates() const
+	auto GetWrapperState(size_t i) -> Actor*;
+	[[nodiscard]] auto GetNumWrapperStates() const -> size_t
 	{
 		return m_WrapperStates.size();
 	}
@@ -284,18 +285,27 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Retrieve the Actor's x position.
 	 * @return the Actor's x position. */
-	[[nodiscard]] float GetX() const { return m_current.pos.x; };
+	[[nodiscard]] auto GetX() const -> float { return m_current.pos.x; };
 	/**
 	 * @brief Retrieve the Actor's y position.
 	 * @return the Actor's y position. */
-	[[nodiscard]] float GetY() const { return m_current.pos.y; };
+	[[nodiscard]] auto GetY() const -> float { return m_current.pos.y; };
 	/**
 	 * @brief Retrieve the Actor's z position.
 	 * @return the Actor's z position. */
-	[[nodiscard]] float GetZ() const { return m_current.pos.z; };
-	[[nodiscard]] float GetDestX() const { return DestTweenState().pos.x; };
-	[[nodiscard]] float GetDestY() const { return DestTweenState().pos.y; };
-	[[nodiscard]] float GetDestZ() const { return DestTweenState().pos.z; };
+	[[nodiscard]] auto GetZ() const -> float { return m_current.pos.z; };
+	[[nodiscard]] auto GetDestX() const -> float
+	{
+		return DestTweenState().pos.x;
+	};
+	[[nodiscard]] auto GetDestY() const -> float
+	{
+		return DestTweenState().pos.y;
+	};
+	[[nodiscard]] auto GetDestZ() const -> float
+	{
+		return DestTweenState().pos.z;
+	};
 	void SetX(float x) { DestTweenState().pos.x = x; };
 	void SetY(float y) { DestTweenState().pos.y = y; };
 	void SetZ(float z) { DestTweenState().pos.z = z; };
@@ -318,15 +328,15 @@ class Actor : public MessageSubscriber
 	void AddZ(float z) { SetZ(GetDestZ() + z); }
 
 	// height and width vary depending on zoom
-	[[nodiscard]] float GetUnzoomedWidth() const { return m_size.x; }
-	[[nodiscard]] float GetUnzoomedHeight() const { return m_size.y; }
+	[[nodiscard]] auto GetUnzoomedWidth() const -> float { return m_size.x; }
+	[[nodiscard]] auto GetUnzoomedHeight() const -> float { return m_size.y; }
 
-	[[nodiscard]] float GetZoomedWidth() const
+	[[nodiscard]] auto GetZoomedWidth() const -> float
 	{
 		return m_size.x * m_baseScale.x * DestTweenState().scale.x;
 	}
 
-	[[nodiscard]] float GetZoomedHeight() const
+	[[nodiscard]] auto GetZoomedHeight() const -> float
 	{
 		return m_size.y * m_baseScale.y * DestTweenState().scale.y;
 	}
@@ -334,11 +344,11 @@ class Actor : public MessageSubscriber
 	void SetHeight(float height) { m_size.y = height; }
 
 	// Base values
-	[[nodiscard]] float GetBaseZoomX() const { return m_baseScale.x; }
+	[[nodiscard]] auto GetBaseZoomX() const -> float { return m_baseScale.x; }
 	void SetBaseZoomX(float zoom) { m_baseScale.x = zoom; }
-	[[nodiscard]] float GetBaseZoomY() const { return m_baseScale.y; }
+	[[nodiscard]] auto GetBaseZoomY() const -> float { return m_baseScale.y; }
 	void SetBaseZoomY(float zoom) { m_baseScale.y = zoom; }
-	[[nodiscard]] float GetBaseZoomZ() const { return m_baseScale.z; }
+	[[nodiscard]] auto GetBaseZoomZ() const -> float { return m_baseScale.z; }
 	void SetBaseZoomZ(float zoom) { m_baseScale.z = zoom; }
 	void SetBaseZoom(float zoom)
 	{
@@ -358,19 +368,31 @@ class Actor : public MessageSubscriber
 	 *
 	 * Note that this is not accurate in some cases.
 	 * @return the zoom factor for the x coordinate of the Actor. */
-	[[nodiscard]] float GetZoom() const { return DestTweenState().scale.x; }
+	[[nodiscard]] auto GetZoom() const -> float
+	{
+		return DestTweenState().scale.x;
+	}
 	/**
 	 * @brief Retrieve the zoom factor for the x coordinate of the Actor.
 	 * @return the zoom factor for the x coordinate of the Actor. */
-	[[nodiscard]] float GetZoomX() const { return DestTweenState().scale.x; }
+	[[nodiscard]] auto GetZoomX() const -> float
+	{
+		return DestTweenState().scale.x;
+	}
 	/**
 	 * @brief Retrieve the zoom factor for the y coordinate of the Actor.
 	 * @return the zoom factor for the y coordinate of the Actor. */
-	[[nodiscard]] float GetZoomY() const { return DestTweenState().scale.y; }
+	[[nodiscard]] auto GetZoomY() const -> float
+	{
+		return DestTweenState().scale.y;
+	}
 	/**
 	 * @brief Retrieve the zoom factor for the z coordinate of the Actor.
 	 * @return the zoom factor for the z coordinate of the Actor. */
-	[[nodiscard]] float GetZoomZ() const { return DestTweenState().scale.z; }
+	[[nodiscard]] auto GetZoomZ() const -> float
+	{
+		return DestTweenState().scale.z;
+	}
 	/**
 	 * @brief Set the zoom factor for all dimensions of the Actor.
 	 * @param zoom the zoom factor for all dimensions. */
@@ -400,15 +422,15 @@ class Actor : public MessageSubscriber
 	void ZoomToWidth(float zoom) { SetZoomX(zoom / GetUnzoomedWidth()); }
 	void ZoomToHeight(float zoom) { SetZoomY(zoom / GetUnzoomedHeight()); }
 
-	[[nodiscard]] float GetRotationX() const
+	[[nodiscard]] auto GetRotationX() const -> float
 	{
 		return DestTweenState().rotation.x;
 	}
-	[[nodiscard]] float GetRotationY() const
+	[[nodiscard]] auto GetRotationY() const -> float
 	{
 		return DestTweenState().rotation.y;
 	}
-	[[nodiscard]] float GetRotationZ() const
+	[[nodiscard]] auto GetRotationZ() const -> float
 	{
 		return DestTweenState().rotation.z;
 	}
@@ -426,27 +448,30 @@ class Actor : public MessageSubscriber
 
 	void SetSkewX(float fAmount) { DestTweenState().fSkewX = fAmount; }
 
-	[[nodiscard]] float GetSkewX(float /* fAmount */) const
+	[[nodiscard]] auto GetSkewX(float /* fAmount */) const -> float
 	{
 		return DestTweenState().fSkewX;
 	}
 	void SetSkewY(float fAmount) { DestTweenState().fSkewY = fAmount; }
 
-	[[nodiscard]] float GetSkewY(float /* fAmount */) const
+	[[nodiscard]] auto GetSkewY(float /* fAmount */) const -> float
 	{
 		return DestTweenState().fSkewY;
 	}
 
-	[[nodiscard]] float GetCropLeft() const
+	[[nodiscard]] auto GetCropLeft() const -> float
 	{
 		return DestTweenState().crop.left;
 	}
-	[[nodiscard]] float GetCropTop() const { return DestTweenState().crop.top; }
-	[[nodiscard]] float GetCropRight() const
+	[[nodiscard]] auto GetCropTop() const -> float
+	{
+		return DestTweenState().crop.top;
+	}
+	[[nodiscard]] auto GetCropRight() const -> float
 	{
 		return DestTweenState().crop.right;
 	}
-	[[nodiscard]] float GetCropBottom() const
+	[[nodiscard]] auto GetCropBottom() const -> float
 	{
 		return DestTweenState().crop.bottom;
 	}
@@ -470,8 +495,9 @@ class Actor : public MessageSubscriber
 
 	virtual void SetDiffuse(const RageColor& c)
 	{
-		for (auto& i : DestTweenState().diffuse)
+		for (auto& i : DestTweenState().diffuse) {
 			i = c;
+		}
 	};
 	virtual void SetDiffuseAlpha(float f)
 	{
@@ -482,7 +508,7 @@ class Actor : public MessageSubscriber
 		}
 	}
 
-	[[nodiscard]] float GetCurrentDiffuseAlpha() const
+	[[nodiscard]] auto GetCurrentDiffuseAlpha() const -> float
 	{
 		return m_current.diffuse[0].a;
 	}
@@ -523,23 +549,26 @@ class Actor : public MessageSubscriber
 	{
 		DestTweenState().diffuse[0] = DestTweenState().diffuse[2] = c;
 	};
-	[[nodiscard]] RageColor GetDiffuse() const
+	[[nodiscard]] auto GetDiffuse() const -> RageColor
 	{
 		return DestTweenState().diffuse[0];
 	};
-	[[nodiscard]] RageColor GetDiffuses(int i) const
+	[[nodiscard]] auto GetDiffuses(int i) const -> RageColor
 	{
 		return DestTweenState().diffuse[i];
 	};
-	[[nodiscard]] float GetDiffuseAlpha() const
+	[[nodiscard]] auto GetDiffuseAlpha() const -> float
 	{
 		return DestTweenState().diffuse[0].a;
 	};
 	void SetGlow(const RageColor& c) { DestTweenState().glow = c; };
-	[[nodiscard]] RageColor GetGlow() const { return DestTweenState().glow; };
+	[[nodiscard]] auto GetGlow() const -> RageColor
+	{
+		return DestTweenState().glow;
+	};
 
 	void SetAux(float f) { DestTweenState().aux = f; }
-	[[nodiscard]] float GetAux() const { return m_current.aux; }
+	[[nodiscard]] auto GetAux() const -> float { return m_current.aux; }
 
 	virtual void BeginTweening(float time, ITween* pInterp);
 	virtual void BeginTweening(float time, TweenType tt = TWEEN_LINEAR);
@@ -550,17 +579,20 @@ class Actor : public MessageSubscriber
 	virtual void FinishTweening();
 	virtual void HurryTweening(float factor);
 	// Let ActorFrame and BGAnimation override
-	[[nodiscard]] virtual float GetTweenTimeLeft()
-	  const;					 // Amount of time until all tweens have stopped
-	TweenState& DestTweenState() // where Actor will end when its tween finish
+	[[nodiscard]] virtual auto GetTweenTimeLeft() const
+	  -> float; // Amount of time until all tweens have stopped
+	auto DestTweenState()
+	  -> TweenState& // where Actor will end when its tween finish
 	{
-		if (m_Tweens.empty()) // not tweening
+		if (m_Tweens.empty()) { // not tweening
 			return m_current;
-		else
+		}
+		{
 			return m_Tweens.back()->state;
+		}
 	}
 
-	[[nodiscard]] const TweenState& DestTweenState() const
+	[[nodiscard]] auto DestTweenState() const -> const TweenState&
 	{
 		return const_cast<Actor*>(this)->DestTweenState();
 	}
@@ -585,17 +617,17 @@ class Actor : public MessageSubscriber
 	void SetHorizAlign(HorizAlign ha)
 	{
 		SetHorizAlign((ha == HorizAlign_Left)
-						? 0.0f
-						: (ha == HorizAlign_Center) ? 0.5f : +1.0f);
+						? 0.0F
+						: (ha == HorizAlign_Center) ? 0.5F : +1.0F);
 	}
 	void SetVertAlign(VertAlign va)
 	{
 		SetVertAlign((va == VertAlign_Top)
-					   ? 0.0f
-					   : (va == VertAlign_Middle) ? 0.5f : +1.0f);
+					   ? 0.0F
+					   : (va == VertAlign_Middle) ? 0.5F : +1.0F);
 	}
-	virtual float GetHorizAlign() { return m_fHorizAlign; }
-	virtual float GetVertAlign() { return m_fVertAlign; }
+	virtual auto GetHorizAlign() -> float { return m_fHorizAlign; }
+	virtual auto GetVertAlign() -> float { return m_fVertAlign; }
 
 	// effects
 #if defined(SSC_FUTURES)
@@ -603,10 +635,16 @@ class Actor : public MessageSubscriber
 	Effect GetEffect(int i) const { return m_Effects[i]; }
 #else
 	void StopEffect() { m_Effect = no_effect; }
-	[[nodiscard]] Effect GetEffect() const { return m_Effect; }
+	[[nodiscard]] auto GetEffect() const -> Effect { return m_Effect; }
 #endif
-	[[nodiscard]] float GetSecsIntoEffect() const { return m_fSecsIntoEffect; }
-	[[nodiscard]] float GetEffectDelta() const { return m_fEffectDelta; }
+	[[nodiscard]] auto GetSecsIntoEffect() const -> float
+	{
+		return m_fSecsIntoEffect;
+	}
+	[[nodiscard]] auto GetEffectDelta() const -> float
+	{
+		return m_fEffectDelta;
+	}
 
 	// todo: account for SSC_FUTURES by adding an effect as an arg to each one
 	// -aj
@@ -614,14 +652,17 @@ class Actor : public MessageSubscriber
 	void SetEffectColor2(const RageColor& c) { m_effectColor2 = c; }
 	void RecalcEffectPeriod();
 	void SetEffectPeriod(float fTime);
-	[[nodiscard]] float GetEffectPeriod() const { return m_effect_period; }
-	bool SetEffectTiming(float ramp_toh,
+	[[nodiscard]] auto GetEffectPeriod() const -> float
+	{
+		return m_effect_period;
+	}
+	auto SetEffectTiming(float ramp_toh,
 						 float at_half,
 						 float ramp_tof,
 						 float at_zero,
 						 float at_full,
-						 std::string& err);
-	bool SetEffectHoldAtFull(float haf, std::string& err);
+						 std::string& err) -> bool;
+	auto SetEffectHoldAtFull(float haf, std::string& err) -> bool;
 	void SetEffectOffset(float fTime) { m_fEffectOffset = fTime; }
 	void SetEffectClock(EffectClock c) { m_EffectClock = c; }
 	void SetEffectClockString(const std::string& s); // convenience
@@ -631,7 +672,7 @@ class Actor : public MessageSubscriber
 		m_vEffectMagnitude = vec;
 	}
 
-	[[nodiscard]] RageVector3 GetEffectMagnitude() const
+	[[nodiscard]] auto GetEffectMagnitude() const -> RageVector3
 	{
 		return m_vEffectMagnitude;
 	}
@@ -667,7 +708,7 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Determine if the Actor is visible at this time.
 	 * @return true if it's visible, false otherwise. */
-	[[nodiscard]] bool GetVisible() const { return m_bVisible; }
+	[[nodiscard]] auto GetVisible() const -> bool { return m_bVisible; }
 	void SetVisible(bool b) { m_bVisible = b; }
 	void SetShadowLength(float fLength)
 	{
@@ -677,9 +718,9 @@ class Actor : public MessageSubscriber
 	void SetShadowLengthX(float fLengthX) { m_fShadowLengthX = fLengthX; }
 	void SetShadowLengthY(float fLengthY) { m_fShadowLengthY = fLengthY; }
 	void SetShadowColor(const RageColor& c) { m_ShadowColor = c; }
-	// TODO: Implement hibernate as a tween type?
+	// TODO(Sam): Implement hibernate as a tween type?
 	void SetDrawOrder(int iOrder) { m_iDrawOrder = iOrder; }
-	[[nodiscard]] int GetDrawOrder() const { return m_iDrawOrder; }
+	[[nodiscard]] auto GetDrawOrder() const -> int { return m_iDrawOrder; }
 
 	virtual void EnableAnimation(bool b)
 	{
@@ -716,9 +757,9 @@ class Actor : public MessageSubscriber
 	void AddCommand(const std::string& sCmdName,
 					const apActorCommands& apac,
 					bool warn = true);
-	[[nodiscard]] bool HasCommand(const std::string& sCmdName) const;
-	[[nodiscard]] const apActorCommands* GetCommand(
-	  const std::string& sCommandName) const;
+	[[nodiscard]] auto HasCommand(const std::string& sCmdName) const -> bool;
+	[[nodiscard]] auto GetCommand(const std::string& sCommandName) const
+	  -> const apActorCommands*;
 	void PlayCommand(const std::string& sCommandName)
 	{
 		HandleMessage(Message(sCommandName));
@@ -751,12 +792,15 @@ class Actor : public MessageSubscriber
 	void HandleMessage(const Message& msg) override;
 
 	// Animation
-	[[nodiscard]] virtual int GetNumStates() const { return 1; }
+	[[nodiscard]] virtual auto GetNumStates() const -> int { return 1; }
 	virtual void SetState(int /* iNewState */) {}
-	[[nodiscard]] virtual float GetAnimationLengthSeconds() const { return 0; }
-	virtual void SetSecondsIntoAnimation(float) {}
-	virtual void SetUpdateRate(float) {}
-	virtual float GetUpdateRate() { return 1.0f; }
+	[[nodiscard]] virtual auto GetAnimationLengthSeconds() const -> float
+	{
+		return 0;
+	}
+	virtual void SetSecondsIntoAnimation(float /*unused*/) {}
+	virtual void SetUpdateRate(float /*unused*/) {}
+	virtual auto GetUpdateRate() -> float { return 1.0F; }
 
 	HiddenPtr<LuaClass> m_pLuaInstance;
 
@@ -780,7 +824,7 @@ class Actor : public MessageSubscriber
 		TweenInfo();
 		~TweenInfo();
 		TweenInfo(const TweenInfo& cpy);
-		TweenInfo& operator=(const TweenInfo& rhs);
+		auto operator=(const TweenInfo& rhs) -> TweenInfo&;
 
 		ITween* m_pTween;
 		/** @brief How far into the tween are we? */
@@ -847,7 +891,10 @@ class Actor : public MessageSubscriber
 
 	/* This can be used in lieu of the fDeltaTime parameter to Update() to
 	 * follow the effect clock.  Actor::Update must be called first. */
-	[[nodiscard]] float GetEffectDeltaTime() const { return m_fEffectDelta; }
+	[[nodiscard]] auto GetEffectDeltaTime() const -> float
+	{
+		return m_fEffectDelta;
+	}
 
 	// todo: account for SSC_FUTURES by having these be vectors too -aj
 	RageColor m_effectColor1;

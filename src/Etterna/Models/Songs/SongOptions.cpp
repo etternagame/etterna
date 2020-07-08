@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongOptions.h"
+
 #include "Etterna/Models/Misc/Foreach.h"
 
 static const char* AutosyncTypeNames[] = {
@@ -62,7 +63,7 @@ AddPart(vector<std::string>& AddTo, float level, std::string name)
 	if (level == 0)
 		return;
 
-	const std::string LevelStr =
+	const auto LevelStr =
 	  (level == 1) ? std::string("") : ssprintf("%ld%% ", lround(level * 100));
 
 	AddTo.push_back(LevelStr + name);
@@ -72,7 +73,7 @@ void
 SongOptions::GetMods(vector<std::string>& AddTo) const
 {
 	if (m_fMusicRate != 1) {
-		std::string s = ssprintf("%2.2f", m_fMusicRate);
+		auto s = ssprintf("%2.2f", m_fMusicRate);
 		if (s[s.size() - 1] == '0')
 			s.erase(s.size() - 1);
 		AddTo.push_back(s + "xMusic");
@@ -120,9 +121,8 @@ void
 SongOptions::GetLocalizedMods(vector<std::string>& v) const
 {
 	GetMods(v);
-	FOREACH(std::string, v, s)
-	{
-		*s = CommonMetrics::LocalizeOptionItem(*s, true);
+	for (auto& s : v) {
+		s = CommonMetrics::LocalizeOptionItem(s, true);
 	}
 }
 
@@ -147,18 +147,20 @@ SongOptions::GetLocalizedString() const
 void
 SongOptions::FromString(const std::string& sMultipleMods)
 {
-	std::string sTemp = sMultipleMods;
+	const auto sTemp = sMultipleMods;
 	vector<std::string> vs;
 	split(sTemp, ",", vs, true);
 	std::string sThrowAway;
-	FOREACH(std::string, vs, s) { FromOneModString(*s, sThrowAway); }
+	for (auto& s : vs) {
+		FromOneModString(s, sThrowAway);
+	}
 }
 
 bool
 SongOptions::FromOneModString(const std::string& sOneMod,
 							  std::string& sErrorOut)
 {
-	std::string sBit = make_lower(sOneMod);
+	auto sBit = make_lower(sOneMod);
 	Trim(sBit);
 
 	Regex mult("^([0-9]+(\\.[0-9]+)?)xmusic$");
@@ -173,7 +175,7 @@ SongOptions::FromOneModString(const std::string& sOneMod,
 
 	vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
-	bool on = true;
+	auto on = true;
 	if (asParts.size() > 1) {
 		sBit = asParts[1];
 		if (asParts[0] == "no")
@@ -245,11 +247,11 @@ class LunaSongOptions : public Luna<SongOptions>
 	BOOL_INTERFACE(SaveScore, SaveScore);
 	static int MusicRate(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		lua_pushnumber(L, p->m_fMusicRate);
 		lua_pushnumber(L, p->m_SpeedfMusicRate);
 		if (lua_isnumber(L, 1) && original_top >= 1) {
-			float v = FArg(1);
+			const auto v = FArg(1);
 			if (!(v > 0.0f && v <= 3.0f)) {
 				luaL_error(L, "Invalid value %f", v);
 			} else {

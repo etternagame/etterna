@@ -25,15 +25,15 @@ class FilterManager
 	bool HighestSkillsetsOnly = false;
 	bool AnyActiveFilter();
 
-	void savepos(string name, int x, int y);
-	pair<int, int> loadpos(string name);
+	void savepos(std::string name, int x, int y);
+	std::pair<int, int> loadpos(std::string name);
 
 	// not actually filter stuff! but this doesn't get enough love so i'm going
 	// to put it here until i make something for it -mina
 	int miniboarddockx = 0;
 	int miniboarddocky = 0;
 	bool galaxycollapsed = false;
-	unordered_map<string, pair<int, int>> watte;
+	std::unordered_map<std::string, std::pair<int, int>> watte;
 
 	// General boolean to see if we should be filtering common packs.
 	// It defaults to on just to help smooth the multiplayer experience. -poco

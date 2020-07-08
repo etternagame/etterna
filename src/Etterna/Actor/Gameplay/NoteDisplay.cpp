@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "ArrowEffects.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "GhostArrowRow.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -17,6 +16,9 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
 #include <utility>
+#include <algorithm>
+
+using std::map;
 
 static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
@@ -857,7 +859,8 @@ struct StripBuffer
 	RageSpriteVertex* v;
 	StripBuffer()
 	{
-		buf = (RageSpriteVertex*)malloc(size * sizeof(RageSpriteVertex));
+		buf = static_cast<RageSpriteVertex*>(
+		  malloc(size * sizeof(RageSpriteVertex)));
 		Init();
 	}
 	~StripBuffer() { free(buf); }
@@ -891,7 +894,7 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 	// draw manually in small segments
 	auto rect = *pSprite->GetCurrentTextureCoordRect();
 	if (part_args.flip_texture_vertically)
-		swap(rect.top, rect.bottom);
+		std::swap(rect.top, rect.bottom);
 	const auto fFrameWidth = pSprite->GetUnzoomedWidth();
 	auto unzoomed_frame_height = pSprite->GetUnzoomedHeight();
 	if (part_type == hpt_body && cache->m_UseStretchHolds)
@@ -904,13 +907,13 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 	// If hold body, draw texture to the outside screen.(fix by A.C)
 	auto y_start_pos = (part_type == hpt_body)
 						 ? part_args.y_top
-						 : max(part_args.y_top, part_args.y_start_pos);
+						 : std::max(part_args.y_top, part_args.y_start_pos);
 	if (part_args.y_top < part_args.y_start_pos - unzoomed_frame_height) {
 		y_start_pos =
 		  fmod((y_start_pos - part_args.y_start_pos), unzoomed_frame_height) +
 		  part_args.y_start_pos;
 	}
-	auto y_end_pos = min(part_args.y_bottom, part_args.y_end_pos);
+	auto y_end_pos = std::min(part_args.y_bottom, part_args.y_end_pos);
 	const auto color_scale = glow ? 1 : part_args.color_scale;
 
 	// top to bottom
@@ -1174,12 +1177,11 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 		if (queue.Free() < 3 || last_vert_set) {
 			/* The queue is full.  Render it. */
 			if (!bAllAreTransparent) {
-				FOREACH(Sprite*, vpSpr, spr)
-				{
-					auto* pTexture = (*spr)->GetTexture();
+				for (auto& spr : vpSpr) {
+					auto* pTexture = spr->GetTexture();
 					DISPLAY->SetTexture(TextureUnit_1,
 										pTexture->GetTexHandle());
-					DISPLAY->SetBlendMode(spr == vpSpr.begin() ? BLEND_NORMAL
+					DISPLAY->SetBlendMode(spr == vpSpr.front() ? BLEND_NORMAL
 															   : BLEND_ADD);
 					DISPLAY->SetCullMode(CULL_NONE);
 					DISPLAY->SetTextureWrapping(TextureUnit_1,
@@ -1235,7 +1237,7 @@ NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 	part_args.y_top = y_tail;
 	part_args.y_bottom = tail_plus_bottom;
 	part_args.top_beat = bottom_beat;
-	part_args.y_start_pos = max(part_args.y_start_pos, y_head);
+	part_args.y_start_pos = std::max(part_args.y_start_pos, y_head);
 	part_args.wrapping = false;
 	DrawHoldPart(
 	  sprite_bottom, field_args, column_args, part_args, glow, hpt_bottom);
@@ -1315,7 +1317,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 	  reverse && cache->m_bFlipHoldBodyWhenReverse;
 	if (part_args.flip_texture_vertically) {
 		swap(vpSprTop, vpSprBottom);
-		swap(pSpriteTop, pSpriteBottom);
+		std::swap(pSpriteTop, pSpriteBottom);
 	}
 
 	const auto bWavyPartsNeedZBuffer = ArrowEffects::NeedZBuffer();
@@ -1349,7 +1351,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 							field_args.draw_pixels_before_targets,
 							m_fYReverseOffsetPixels);
 	if (reverse) {
-		swap(part_args.y_start_pos, part_args.y_end_pos);
+		std::swap(part_args.y_start_pos, part_args.y_end_pos);
 	}
 	// So that part_args.y_start_pos can be changed when drawing the bottom.
 	const auto original_y_start_pos = part_args.y_start_pos;
@@ -1422,7 +1424,7 @@ NoteDisplay::DrawHold(const TapNote& tn,
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
 		column_args.column) > 0.5f;
 	const auto fStartBeat =
-	  NoteRowToBeat(max(tn.HoldResult.iLastHeldRow, iRow));
+	  NoteRowToBeat(std::max(tn.HoldResult.iLastHeldRow, iRow));
 	float fThrowAway = 0;
 
 	// HACK: If life > 0, don't set YOffset to 0 so that it doesn't jiggle
@@ -1464,7 +1466,7 @@ NoteDisplay::DrawHold(const TapNote& tn,
 	// Swap in reverse, so fStartYOffset is always the offset higher on the
 	// screen.
 	if (bReverse)
-		swap(fStartYOffset, fEndYOffset);
+		std::swap(fStartYOffset, fEndYOffset);
 
 	const auto fYHead = ArrowEffects::GetYPos(
 	  column_args.column, fStartYOffset, m_fYReverseOffsetPixels);
@@ -1682,8 +1684,9 @@ NoteDisplay::DrawActor(const TapNote& tn,
 		auto color = 0.0f;
 		switch (cache->m_NoteColorType[part]) {
 			case NoteColorType_Denominator:
-				color = float(BeatToNoteType(fBeat));
-				color = clamp(color, 0, (cache->m_iNoteColorCount[part] - 1));
+				color = std::clamp(static_cast<int>(BeatToNoteType(fBeat)),
+								   0,
+								   (cache->m_iNoteColorCount[part] - 1));
 				break;
 			case NoteColorType_Progress:
 				color =

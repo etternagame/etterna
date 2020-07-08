@@ -9,6 +9,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 
+#include <algorithm>
+
 const std::string NEXT_ROW_NAME = "NextRow";
 const std::string EXIT_NAME = "Exit";
 
@@ -366,10 +368,10 @@ OptionRow::InitText(RowType type)
 							m_pHand->m_Def.m_layoutType));
 	}
 
-	for (unsigned c = 0; c < m_textItems.size(); c++)
-		m_Frame.AddChild(m_textItems[c]);
-	for (unsigned c = 0; c < m_Underline.size(); c++)
-		m_Frame.AddChild(m_Underline[c]);
+	for (auto& m_textItem : m_textItems)
+		m_Frame.AddChild(m_textItem);
+	for (auto& c : m_Underline)
+		m_Frame.AddChild(c);
 
 	// This is set in OptionRow::AfterImportOptions, so if we're reused with a
 	// different song selected, SHOW_BPM_IN_SPEED_TITLE will show the new BPM.
@@ -395,8 +397,8 @@ OptionRow::AfterImportOptions(PlayerNumber pn)
 
 	// Hide underlines for disabled players.
 	if (!GAMESTATE->IsHumanPlayer(pn))
-		for (unsigned c = 0; c < m_Underline.size(); c++)
-			m_Underline[c]->SetVisible(false);
+		for (auto& c : m_Underline)
+			c->SetVisible(false);
 
 	// Make all selections the same if bOneChoiceForAllPlayers.
 	// Hack: we only import active players, so if only player 2 is imported,
@@ -508,7 +510,8 @@ OptionRow::UpdateText(PlayerNumber p)
 			const std::string sText = GetThemedItemText(iChoiceWithFocus);
 
 			// If player_no is 2 and there is no player 1:
-			const int index = min(pn, m_textItems.size() - 1);
+			const int index =
+			  std::min(pn, static_cast<unsigned>(m_textItems.size()) - 1U);
 
 			// TODO: Always have one textItem for each player
 
@@ -585,13 +588,13 @@ OptionRow::UpdateEnabledDisabled()
 
 	switch (m_pHand->m_Def.m_layoutType) {
 		case LAYOUT_SHOW_ALL_IN_ROW:
-			for (unsigned j = 0; j < m_textItems.size(); j++) {
-				if (m_textItems[j]->DestTweenState().diffuse[0] == color)
+			for (auto& m_textItem : m_textItems) {
+				if (m_textItem->DestTweenState().diffuse[0] == color)
 					continue;
 
-				m_textItems[j]->StopTweening();
-				m_textItems[j]->BeginTweening(m_pParentType->TWEEN_SECONDS);
-				m_textItems[j]->SetDiffuse(color);
+				m_textItem->StopTweening();
+				m_textItem->BeginTweening(m_pParentType->TWEEN_SECONDS);
+				m_textItem->SetDiffuse(color);
 			}
 
 			break;
@@ -611,7 +614,8 @@ OptionRow::UpdateEnabledDisabled()
 				unsigned item_no = 0;
 
 				// If player_no is 2 and there is no player 1:
-				item_no = min(item_no, m_textItems.size() - 1);
+				item_no = std::min(
+				  item_no, static_cast<unsigned>(m_textItems.size()) - 1U);
 
 				BitmapText& bt = *m_textItems[item_no];
 

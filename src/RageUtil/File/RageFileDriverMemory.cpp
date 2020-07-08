@@ -5,6 +5,8 @@
 #include "RageUtil/Utils/RageUtil_FileDB.h"
 #include <errno.h>
 
+#include <algorithm>
+
 struct RageFileObjMemFile
 {
 	RageFileObjMemFile()
@@ -56,8 +58,8 @@ RageFileObjMem::ReadInternal(void* buffer, size_t bytes)
 {
 	LockMut(m_pFile->m_Mutex);
 
-	m_iFilePos = min(m_iFilePos, GetFileSize());
-	bytes = min(bytes, (size_t)GetFileSize() - m_iFilePos);
+	m_iFilePos = std::min(m_iFilePos, GetFileSize());
+	bytes = std::min(bytes, (size_t)GetFileSize() - m_iFilePos);
 	if (bytes == 0)
 		return 0;
 	memcpy(buffer, &m_pFile->m_sBuf[m_iFilePos], bytes);
@@ -80,7 +82,7 @@ RageFileObjMem::WriteInternal(const void* buffer, size_t bytes)
 int
 RageFileObjMem::SeekInternal(int offset)
 {
-	m_iFilePos = clamp(offset, 0, GetFileSize());
+	m_iFilePos = std::clamp(offset, 0, GetFileSize());
 	return m_iFilePos;
 }
 

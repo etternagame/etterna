@@ -14,7 +14,7 @@ class ScreenSelect : public ScreenWithMenuElements
 
 	void Update(float fDelta) override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 
 	bool MenuBack(const InputEventPlus& input) override;

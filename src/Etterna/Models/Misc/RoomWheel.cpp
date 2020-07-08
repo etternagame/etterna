@@ -120,8 +120,8 @@ void
 RoomWheel::AddItem(WheelItemBaseData* pItemData)
 {
 	m_CurWheelItemData.push_back(pItemData);
-	int iVisible = FirstVisibleIndex();
-	int iIndex = m_CurWheelItemData.size();
+	const auto iVisible = FirstVisibleIndex();
+	const int iIndex = m_CurWheelItemData.size();
 
 	if (m_bEmpty) {
 		m_bEmpty = false;
@@ -139,10 +139,10 @@ RoomWheel::RemoveItem(int index)
 {
 	index += m_offset;
 
-	if (m_bEmpty || index >= (int)m_CurWheelItemData.size())
+	if (m_bEmpty || index >= static_cast<int>(m_CurWheelItemData.size()))
 		return;
 
-	vector<WheelItemBaseData*>::iterator i = m_CurWheelItemData.begin();
+	auto i = m_CurWheelItemData.begin();
 	i += index;
 
 	// If this item's data happened to be last selected, make it NULL.
@@ -152,7 +152,7 @@ RoomWheel::RemoveItem(int index)
 	SAFE_DELETE(*i);
 	m_CurWheelItemData.erase(i);
 
-	if (m_CurWheelItemData.size() < 1) {
+	if (m_CurWheelItemData.empty()) {
 		m_bEmpty = true;
 		m_CurWheelItemData.push_back(new WheelItemBaseData(
 		  WheelItemDataType_Generic, "- EMPTY -", RageColor(1, 0, 0, 1)));
@@ -222,7 +222,7 @@ bool
 findme(std::string str, std::string findme)
 {
 	std::transform(begin(str), end(str), begin(str), ::tolower);
-	return str.find(findme) != string::npos;
+	return str.find(findme) != std::string::npos;
 }
 
 void
@@ -239,16 +239,16 @@ RoomWheel::FilterBySearch()
 	// Assign check function
 	if (!(currentSearch.ingame && currentSearch.open &&
 		  currentSearch.password)) {
-		if (currentSearch.title == "" && currentSearch.desc == "")
+		if (currentSearch.title.empty() && currentSearch.desc.empty())
 			check = checkState;
 		else {
-			if (currentSearch.title == "")
+			if (currentSearch.title.empty())
 				check = [this, checkState](RoomData x) {
 					return checkState(x) ||
 						   !findme(x.Description(), currentSearch.desc);
 				};
 			else {
-				if (currentSearch.desc == "")
+				if (currentSearch.desc.empty())
 					check = [this, checkState](RoomData x) {
 						return checkState(x) ||
 							   !findme(x.Name(), currentSearch.title);
@@ -262,12 +262,12 @@ RoomWheel::FilterBySearch()
 			}
 		}
 	} else {
-		if (currentSearch.title == "")
+		if (currentSearch.title.empty())
 			check = [this](RoomData x) {
 				return !findme(x.Description(), currentSearch.desc);
 			};
 		else {
-			if (currentSearch.desc == "")
+			if (currentSearch.desc.empty())
 				check = [this](RoomData x) {
 					return !findme(x.Name(), currentSearch.title);
 				};
@@ -279,7 +279,7 @@ RoomWheel::FilterBySearch()
 		}
 	}
 	roomsInWheel.clear();
-	for (RoomData x : *allRooms)
+	for (auto x : *allRooms)
 		if (!check(x))
 			roomsInWheel.emplace_back(x);
 }
@@ -292,18 +292,18 @@ RoomWheel::BuildFromRoomDatas()
 		FilterBySearch();
 	else
 		roomsInWheel = (*allRooms);
-	int difference = 0;
+	auto difference = 0;
 	RoomWheelItemData* itemData = nullptr;
 
 	difference = GetNumItems() - roomsInWheel.size();
 
 	if (!IsEmpty()) {
 		if (difference > 0)
-			for (int x = 0; x < difference; ++x)
+			for (auto x = 0; x < difference; ++x)
 				RemoveItem(GetNumItems() - 1);
 		else {
 			difference = abs(difference);
-			for (int x = 0; x < difference; ++x)
+			for (auto x = 0; x < difference; ++x)
 				AddItem(new RoomWheelItemData(
 				  WheelItemDataType_Generic, "", "", RageColor(1, 1, 1, 1)));
 		}
@@ -399,9 +399,9 @@ class LunaRoomWheel : public Luna<RoomWheel>
 
 	static int MoveAndCheckType(T* p, lua_State* L)
 	{
-		int n = IArg(1);
+		const auto n = IArg(1);
 		p->Move(n);
-		auto tt = p->GetSelectedType();
+		const auto tt = p->GetSelectedType();
 		LuaHelpers::Push(L, tt);
 
 		return 1;

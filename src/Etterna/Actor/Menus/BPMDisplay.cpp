@@ -7,8 +7,10 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <climits>
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(BPMDisplay);
 
@@ -115,9 +117,9 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 	if (!static_cast<bool>(CYCLE)) {
 		int MinBPM = INT_MAX;
 		int MaxBPM = INT_MIN;
-		for (unsigned i = 0; i < BPMS.size(); ++i) {
-			MinBPM = min(MinBPM, static_cast<int>(lround(BPMS[i])));
-			MaxBPM = max(MaxBPM, static_cast<int>(lround(BPMS[i])));
+		for (float i : BPMS) {
+			MinBPM = std::min(MinBPM, static_cast<int>(lround(i)));
+			MaxBPM = std::max(MaxBPM, static_cast<int>(lround(i)));
 		}
 		if (MinBPM == MaxBPM) {
 			if (MinBPM == -1)
@@ -129,13 +131,14 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 			  ssprintf("%i%s%i", MinBPM, SEPARATOR.GetValue().c_str(), MaxBPM));
 		}
 	} else {
-		for (unsigned i = 0; i < BPMS.size(); ++i) {
-			m_BPMS.push_back(BPMS[i]);
-			if (BPMS[i] != -1)
-				m_BPMS.push_back(BPMS[i]); // hold
+		for (float i : BPMS) {
+			m_BPMS.push_back(i);
+			if (i != -1)
+				m_BPMS.push_back(i); // hold
 		}
 
-		m_iCurrentBPM = min(1u, m_BPMS.size()); // start on the first hold
+		m_iCurrentBPM = std::min(
+		  1, static_cast<int>(m_BPMS.size())); // start on the first hold
 		m_fBPMFrom = BPMS[0];
 		m_fBPMTo = BPMS[0];
 		m_fPercentInState = 1;

@@ -12,6 +12,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <numeric>
+#include <algorithm>
 
 /* Filter length.  This must be a power of 2. */
 #define L 8
@@ -74,7 +75,7 @@ ApplyKaiserWindow(float* pBuf, int iLen, float fBeta)
 	float p = (iLen - 1) / 2.0f;
 	for (int n = 0; n < iLen; ++n) {
 		float fN1 = fabsf((n - p) / p);
-		float fNum = fBeta * sqrtf(max(1 - fN1 * fN1, 0));
+		float fNum = fBeta * sqrtf(std::max(1.F - fN1 * fN1, 0.F));
 		fNum = BesselI0(fNum);
 		float fVal = fNum / fDenom;
 		pBuf[n] *= fVal;
@@ -116,7 +117,7 @@ GenerateSincLowPassFilter(float* pFIR, int iWinSize, float fCutoff)
 void
 NormalizeVector(float* pBuf, int iSize)
 {
-	float fTotal = accumulate(&pBuf[0], &pBuf[iSize], 0.0f);
+	float fTotal = std::accumulate(&pBuf[0], &pBuf[iSize], 0.0f);
 	MultiplyVector(&pBuf[0], &pBuf[iSize], 1 / fTotal);
 }
 
@@ -420,7 +421,7 @@ PolyphaseFilter::NumInputsForOutputSamples(const State& State,
 namespace PolyphaseFilterCache {
 /* Cache filter data, and reuse it without copying.  All operations after
  * creation are const, so this doesn't cause thread-safety problems. */
-typedef map<pair<int, float>, PolyphaseFilter*> FilterMap;
+typedef std::map<std::pair<int, float>, PolyphaseFilter*> FilterMap;
 static RageMutex PolyphaseFiltersLock("PolyphaseFiltersLock");
 static FilterMap g_mapPolyphaseFilters;
 
@@ -428,7 +429,7 @@ const PolyphaseFilter*
 MakePolyphaseFilter(int iUpFactor, float fCutoffFrequency)
 {
 	PolyphaseFiltersLock.Lock();
-	pair<int, float> params(make_pair(iUpFactor, fCutoffFrequency));
+	std::pair<int, float> params(std::make_pair(iUpFactor, fCutoffFrequency));
 	FilterMap::const_iterator it = g_mapPolyphaseFilters.find(params);
 	if (it != g_mapPolyphaseFilters.end()) {
 		/* We already have a filter for this upsampling factor and cutoff; use
@@ -460,7 +461,8 @@ FindNearestPolyphaseFilter(int iUpFactor, float fCutoffFrequency)
 	 * frequency. Round the cutoff down, if possible; it's better to filter out
 	 * too much than too little. */
 	PolyphaseFiltersLock.Lock();
-	pair<int, float> params(make_pair(iUpFactor, fCutoffFrequency + 0.0001f));
+	std::pair<int, float> params(
+	  std::make_pair(iUpFactor, fCutoffFrequency + 0.0001f));
 	FilterMap::const_iterator it = g_mapPolyphaseFilters.upper_bound(params);
 	if (it != g_mapPolyphaseFilters.begin())
 		--it;
@@ -494,7 +496,8 @@ class RageSoundResampler_Polyphase
 		m_iUpFactor = iUpFactor;
 		m_pPolyphase = NULL;
 
-		int iFilterIncrement = max((iMaxDownFactor - iMinDownFactor) / 10, 1);
+		int iFilterIncrement =
+		  std::max((iMaxDownFactor - iMinDownFactor) / 10, 1);
 		for (int iDownFactor = iMinDownFactor; iDownFactor <= iMaxDownFactor;
 			 iDownFactor += iFilterIncrement) {
 			float fCutoffFrequency = GetCutoffFrequency(iDownFactor);
@@ -565,7 +568,7 @@ class RageSoundResampler_Polyphase
 
 		float fCutoffFrequency;
 		fCutoffFrequency = 1.0f / (2 * m_iUpFactor);
-		fCutoffFrequency = min(fCutoffFrequency, 1.0f / (2 * iDownFactor));
+		fCutoffFrequency = std::min(fCutoffFrequency, 1.0f / (2 * iDownFactor));
 		return fCutoffFrequency;
 	}
 

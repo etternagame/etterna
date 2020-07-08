@@ -11,15 +11,15 @@ class RageSound;
 struct lua_State;
 struct MusicToPlay;
 
-int
-MusicThread_start(void* p);
+auto
+MusicThread_start(void* p) -> int;
 
 /** @brief High-level sound utilities. */
 class GameSoundManager : MessageSubscriber
 {
   public:
 	GameSoundManager();
-	~GameSoundManager();
+	~GameSoundManager() override;
 	void Update(float fDeltaTime);
 
 	struct PlayMusicParams
@@ -62,7 +62,7 @@ class GameSoundManager : MessageSubscriber
 				   bool bAccurateSync = false);
 	void StopMusic() { PlayMusic(""); }
 	void DimMusic(float fVolume, float fDurationSeconds);
-	std::string GetMusicPath() const;
+	[[nodiscard]] auto GetMusicPath() const -> std::string;
 	void Flush();
 
 	void PlayOnce(const std::string& sPath);
@@ -70,11 +70,11 @@ class GameSoundManager : MessageSubscriber
 	void PlayOnceFromAnnouncer(const std::string& sFolderName);
 
 	void HandleSongTimer(bool on = true);
-	float GetFrameTimingAdjustment(float fDeltaTime);
+	auto GetFrameTimingAdjustment(float fDeltaTime) -> float;
 
-	static float GetPlayerBalance(PlayerNumber pn);
-	void WithRageSoundPlaying(function<void(RageSound*)> f);
-	TimingData GetPlayingMusicTiming();
+	static auto GetPlayerBalance(PlayerNumber pn) -> float;
+	void WithRageSoundPlaying(std::function<void(RageSound*)> f);
+	auto GetPlayingMusicTiming() -> TimingData;
 
 	// Set a sound's position given its pointer
 	// Meant to avoid blocking the game execution (stutter)
@@ -84,7 +84,7 @@ class GameSoundManager : MessageSubscriber
 	void DoPlayOnce(std::string sPath);
 	void StartQueuedSounds();
 	void DoPlayOnceFromDir(std::string sPath);
-	bool SoundWaiting();
+	auto SoundWaiting() -> bool;
 	void HandleSetPosition();
 
 	std::shared_ptr<LuaReference> soundPlayCallback;

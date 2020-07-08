@@ -3,7 +3,6 @@
 #ifndef SCREEN_SELECT_MUSIC_H
 #define SCREEN_SELECT_MUSIC_H
 
-#include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GameInput.h"
 #include "Etterna/Actor/Menus/MusicWheel.h"
@@ -37,7 +36,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
 	void HandleMessage(const Message& msg) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	bool AllowLateJoin() const override { return true; }
 
 	bool MenuStart(const InputEventPlus& input) override;

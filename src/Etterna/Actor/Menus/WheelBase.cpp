@@ -1,8 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -10,6 +8,8 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelBase.h"
+
+#include <algorithm>
 
 const int MAX_WHEEL_SOUND_SPEED = 15;
 AutoScreenMessage(
@@ -26,14 +26,15 @@ LuaXType(WheelState);
 
 WheelBase::~WheelBase()
 {
-	FOREACH(WheelItemBase*, m_WheelBaseItems, i)
-	SAFE_DELETE(*i);
+	for (auto& i : m_WheelBaseItems) {
+		SAFE_DELETE(i);
+	}
 	m_WheelBaseItems.clear();
 	m_LastSelection = nullptr;
 }
 
 void
-WheelBase::Load(const string& sType)
+WheelBase::Load(const std::string& sType)
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("WheelBase::Load('%s')", sType.c_str());
@@ -63,7 +64,6 @@ WheelBase::Load(const string& sType)
 	pTempl->PlayCommand("Init");
 	for (int i = 0; i < NUM_WHEEL_ITEMS; i++) {
 		WheelItemBase* pItem = pTempl->Copy();
-		DEBUG_ASSERT(pItem);
 		m_WheelBaseItems.push_back(pItem);
 	}
 	SAFE_DELETE(pTempl);
@@ -169,7 +169,7 @@ WheelBase::Update(float fDeltaTime)
 
 	if (m_Moving != 0) {
 		m_TimeBeforeMovingBegins -= fDeltaTime;
-		m_TimeBeforeMovingBegins = max(m_TimeBeforeMovingBegins, 0);
+		m_TimeBeforeMovingBegins = std::max(m_TimeBeforeMovingBegins, 0.F);
 	}
 
 	// update wheel state
@@ -186,7 +186,7 @@ WheelBase::Update(float fDeltaTime)
 		/* Make sure that we don't go further than 1 away, in case the speed is
 		 * very high or we miss a lot of frames. */
 		m_fPositionOffsetFromSelection =
-		  clamp(m_fPositionOffsetFromSelection, -1.0f, 1.0f);
+		  std::clamp(m_fPositionOffsetFromSelection, -1.0f, 1.0f);
 
 		// If it passed the selection, move again.
 		if ((m_Moving == -1 && m_fPositionOffsetFromSelection >= 0) ||
@@ -275,9 +275,8 @@ WheelBase::GetCurrentGroup()
 	// current hovering a group
 	if (m_CurWheelItemData[m_iSelection]->m_Type == WheelItemDataType_Section)
 		return m_CurWheelItemData[m_iSelection]->m_sText;
-	else
-		// currently within a group
-		return m_sExpandedSectionName;
+	// currently within a group
+	return m_sExpandedSectionName;
 }
 
 WheelItemBaseData*

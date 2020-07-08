@@ -90,7 +90,7 @@ IniFile::ReadFile(RageFileBasic& f)
 				}
 				// New value.
 				size_t iEqualIndex = line.find('=');
-				if (iEqualIndex != string::npos) {
+				if (iEqualIndex != std::string::npos) {
 					std::string valuename =
 					  line.substr(0, static_cast<int>(iEqualIndex));
 					std::string value =

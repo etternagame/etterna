@@ -12,6 +12,8 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <algorithm>
+
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
@@ -133,28 +135,28 @@ StepsDisplayList::UpdatePositions()
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if (!BothPlayersActivated) {
 		// Simply center the cursor.
-		first_start = max(P1Choice - halfsize, 0);
+		first_start = std::max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
 		const int earliest = P1Choice;
-		first_start = max(earliest - halfsize / 2, 0);
+		first_start = std::max(earliest - halfsize / 2, 0);
 		first_end = first_start + halfsize;
 
 		// Second half:
 		const int latest = P1Choice;
 
-		second_start = max(latest - halfsize / 2, 0);
+		second_start = std::max(latest - halfsize / 2, 0);
 
 		// Don't overlap.
-		second_start = max(second_start, first_end);
+		second_start = std::max(second_start, first_end);
 
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, static_cast<int>(Rows.size()));
-	second_end = min(second_end, static_cast<int>(Rows.size()));
+	first_end = std::min(first_end, static_cast<int>(Rows.size()));
+	second_end = std::min(second_end, static_cast<int>(Rows.size()));
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */

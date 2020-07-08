@@ -170,7 +170,7 @@ static LocalizedString CONFIRM_CLEAR_PROFILE(
 static LocalizedString ENTER_PROFILE_NAME("ScreenOptionsManageProfiles",
 										  "Enter a name for the profile.");
 void
-ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage SM)
+ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {
 		auto iCurRow = m_iCurrentRow;

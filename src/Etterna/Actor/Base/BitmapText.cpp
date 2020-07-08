@@ -10,6 +10,16 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
+
+using std::clamp;
+using std::max;
+using std::min;
+using std::vector;
+
+using std::vector;
 
 REGISTER_ACTOR_CLASS(BitmapText);
 REGISTER_ACTOR_CLASS(ColorBitmapText);
@@ -275,7 +285,7 @@ BitmapText::BuildChars()
 	{
 		m_iLineWidths.push_back(
 		  m_pFont->GetLineWidthInSourcePixels(m_wTextLine));
-		m_size.x = max(m_size.x, m_iLineWidths.back());
+		m_size.x = max(m_size.x, (float)m_iLineWidths.back());
 	}
 
 	/* Ensure that the width is always even. This maintains pixel alignment;
@@ -686,7 +696,7 @@ BitmapText::UpdateBaseZoom()
 			dimension /= dimension_zoom_get();                                 \
 		}                                                                      \
 		if (dimension != 0) {                                                  \
-			const float zoom = min(1, (dimension_max) / dimension);            \
+			const float zoom = min(1.F, (dimension_max) / dimension);          \
 			base_zoom_set(zoom);                                               \
 		}                                                                      \
 	}
@@ -794,7 +804,8 @@ BitmapText::DrawPrimitives()
 			}
 		} else {
 			size_t i = 0;
-			map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
+			std::map<size_t, Attribute>::const_iterator iter =
+			  m_mAttributes.begin();
 			while (i < m_aVertices.size()) {
 				const auto what = m_pTempState->diffuse[0];
 				const auto is = m_pTempState->diffuse[2];
@@ -878,7 +889,8 @@ BitmapText::DrawPrimitives()
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
 
 		size_t i = 0;
-		map<size_t, Attribute>::const_iterator iter = m_mAttributes.begin();
+		std::map<size_t, Attribute>::const_iterator iter =
+		  m_mAttributes.begin();
 		while (i < m_aVertices.size()) {
 			// Set the glow up to the next attribute.
 			auto iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
@@ -1078,7 +1090,7 @@ ColorBitmapText::SetText(const std::string& _sText,
 		auto curChar = utf8_get_char(curCharStr);
 		i += iCharLength - 1;
 		auto iCharWidth =
-		  m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
+		  m_pFont->GetLineWidthInSourcePixels(std::wstring() + curChar);
 
 		switch (curChar) {
 			case L' ':
@@ -1196,7 +1208,7 @@ ColorBitmapText::ResetText()
 		auto curChar = utf8_get_char(curCharStr);
 		i += iCharLength - 1;
 		auto iCharWidth =
-		  m_pFont->GetLineWidthInSourcePixels(wstring() + curChar);
+		  m_pFont->GetLineWidthInSourcePixels(std::wstring() + curChar);
 
 		switch (curChar) {
 			case L' ':

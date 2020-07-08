@@ -10,11 +10,13 @@
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/Globals/rngthing.h"
+#include "Etterna/Singletons/FilterManager.h"
+
 #include <typeinfo>
 #include <tuple>
-#include "Etterna/Singletons/FilterManager.h"
+#include <algorithm>
 
 static Preference<bool> g_bShowMasks("ShowMasks", false);
 static const float default_effect_period = 1.0f;
@@ -328,8 +330,6 @@ Actor::IsOver(float mx, float my)
 Actor*
 Actor::GetFakeParentOrParent()
 {
-	if (!this)
-		return nullptr;
 	if (m_FakeParent)
 		return m_FakeParent;
 	if (m_pParent)
@@ -339,8 +339,6 @@ Actor::GetFakeParentOrParent()
 float
 Actor::GetTrueX()
 {
-	if (!this)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
@@ -353,8 +351,6 @@ Actor::GetTrueX()
 float
 Actor::GetTrueY()
 {
-	if (!this)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
@@ -367,8 +363,6 @@ Actor::GetTrueY()
 float
 Actor::GetTrueRotationZ()
 {
-	if (!this)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetRotationZ();
@@ -378,23 +372,21 @@ Actor::GetTrueRotationZ()
 float
 Actor::GetTrueZoom()
 {
-	if (!this)
-		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoom();
 	return GetZoom() * mfp->GetTrueZoom();
 }
+
 bool
 Actor::IsVisible()
 {
-	if (!this)
-		return false;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetVisible();
 	return GetVisible() && mfp->IsVisible();
 }
+
 void
 Actor::Draw()
 {
@@ -823,7 +815,8 @@ Actor::UpdateTweening(float fDeltaTime)
 
 		const auto bBeginning = TI.m_fTimeLeftInTween == TI.m_fTweenTime;
 
-		const auto fSecsToSubtract = min(TI.m_fTimeLeftInTween, fDeltaTime);
+		const auto fSecsToSubtract =
+		  std::min(TI.m_fTimeLeftInTween, fDeltaTime);
 		TI.m_fTimeLeftInTween -= fSecsToSubtract;
 		fDeltaTime -= fSecsToSubtract;
 

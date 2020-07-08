@@ -4,7 +4,6 @@
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "archutils/Win32/RegistryAccess.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GamePreferences.h" //needed for Axis Fix
 #include "Etterna/Singletons/InputFilter.h"
 #include "InputHandler_DirectInput.h"
@@ -12,6 +11,8 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 REGISTER_INPUT_HANDLER_CLASS2(DirectInput, DInput);
 
@@ -420,9 +421,9 @@ InputHandler_DInput::UpdatePolled(
 							float l = SCALE(
 							  static_cast<int>(val), 0.0f, 100.0f, 0.0f, 1.0f);
 							ButtonPressed(
-							  DeviceInput(dev, neg, max(-l, 0), tm));
+							  DeviceInput(dev, neg, std::max(-l, 0.F), tm));
 							ButtonPressed(
-							  DeviceInput(dev, pos, max(+l, 0), tm));
+							  DeviceInput(dev, pos, std::max(+l, 0.F), tm));
 						}
 
 						break;
@@ -740,9 +741,10 @@ InputHandler_DInput::UpdateBuffered(
 							  DeviceInput(dev, down, (l == 0) || (l == 1), tm));
 
 						} else {
-							ButtonPressed(DeviceInput(dev, up, max(-l, 0), tm));
 							ButtonPressed(
-							  DeviceInput(dev, down, max(+l, 0), tm));
+							  DeviceInput(dev, up, std::max(-l, 0.F), tm));
+							ButtonPressed(
+							  DeviceInput(dev, down, std::max(+l, 0.F), tm));
 						}
 					}
 					break;
@@ -969,14 +971,12 @@ InputHandler_DInput::DeviceButtonToChar(DeviceButton button,
 			return '\0';
 	}
 
-	FOREACH_CONST(DIDevice, Devices, d)
-	{
-		if (d->type != DIDevice::KEYBOARD)
+	for (auto& d : Devices) {
+		if (d.type != DIDevice::KEYBOARD)
 			continue;
 
-		FOREACH_CONST(input_t, d->Inputs, i)
-		{
-			if (button != i->num)
+		for (auto& i : d.Inputs) {
+			if (button != i.num)
 				continue;
 
 			unsigned char keys[256];
@@ -984,7 +984,7 @@ InputHandler_DInput::DeviceButtonToChar(DeviceButton button,
 			if (bUseCurrentKeyModifiers)
 				GetKeyboardState(keys);
 			// todo: handle Caps Lock -freem
-			wchar_t c = ScancodeAndKeysToChar(i->ofs, keys);
+			wchar_t c = ScancodeAndKeysToChar(i.ofs, keys);
 			if (c)
 				return c;
 		}

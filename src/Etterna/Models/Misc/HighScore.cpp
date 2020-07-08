@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 const string BASIC_REPLAY_DIR =
   "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
@@ -62,11 +63,11 @@ struct HighScoreImpl
 	string sMachineGuid; // where this high score was made
 	string countryCode;
 	int iProductID;
-	int iTapNoteScores[NUM_TapNoteScore];
-	int tnsnorm[NUM_TapNoteScore];
-	int iHoldNoteScores[NUM_HoldNoteScore];
-	int hnsnorm[NUM_HoldNoteScore];
-	float fSkillsetSSRs[NUM_Skillset];
+	int iTapNoteScores[NUM_TapNoteScore]{};
+	int tnsnorm[NUM_TapNoteScore]{};
+	int iHoldNoteScores[NUM_HoldNoteScore]{};
+	int hnsnorm[NUM_HoldNoteScore]{};
+	float fSkillsetSSRs[NUM_Skillset]{};
 	string ValidationKeys[NUM_ValidationKey];
 	RadarValues radarValues;
 	float fLifeRemainingSeconds;
@@ -76,13 +77,13 @@ struct HighScoreImpl
 
 	HighScoreImpl();
 
-	XNode* CreateEttNode() const;
+	[[nodiscard]] auto CreateEttNode() const -> XNode*;
 	void LoadFromEttNode(const XNode* pNode);
-	Grade GetWifeGrade() const;
+	[[nodiscard]] auto GetWifeGrade() const -> Grade;
 	void UnloadReplayData();
 	void ResetSkillsets();
 
-	bool WriteReplayData();
+	auto WriteReplayData() -> bool;
 	int ReplayType; // 0 = no loaded replay, 1 = basic, 2 = full; currently
 					// unused but here for when we need it (not to be confused
 					// with hasreplay()) -mina
@@ -90,15 +91,15 @@ struct HighScoreImpl
 	bool is39import = false;
 	int WifeVersion = 0;
 
-	bool operator==(const HighScoreImpl& other) const;
-	bool operator!=(const HighScoreImpl& other) const
+	auto operator==(const HighScoreImpl& other) const -> bool;
+	auto operator!=(const HighScoreImpl& other) const -> bool
 	{
 		return !(*this == other);
 	}
 };
 
-bool
-HighScoreImpl::operator==(const HighScoreImpl& other) const
+auto
+HighScoreImpl::operator==(const HighScoreImpl& other) const -> bool
 {
 #define COMPARE(x)                                                             \
 	if ((x) != other.x)                                                        \
@@ -144,47 +145,64 @@ HighScoreImpl::UnloadReplayData()
 	ReplayType = 0;
 }
 
-Grade
-HighScoreImpl::GetWifeGrade() const
+auto
+HighScoreImpl::GetWifeGrade() const -> Grade
 {
-	if (grade == Grade_Failed)
+	if (grade == Grade_Failed) {
 		return Grade_Failed;
+	}
 
 	auto prc = fWifeScore;
 
-	if (PREFSMAN->m_bSortBySSRNorm)
+	if (PREFSMAN->m_bSortBySSRNorm) {
 		prc = fSSRNormPercent;
+	}
 
-	if (prc >= 0.99996f)
+	if (prc >= 0.99996F) {
 		return Grade_Tier01;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9998f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9998F) {
 		return Grade_Tier02;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9997f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9997F) {
 		return Grade_Tier03;
-	if (prc >= 0.99955f)
+	}
+	if (prc >= 0.99955F) {
 		return Grade_Tier04;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.999f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.999F) {
 		return Grade_Tier05;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.998f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.998F) {
 		return Grade_Tier06;
-	if (prc >= 0.997f)
+	}
+	if (prc >= 0.997F) {
 		return Grade_Tier07;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.99F) {
 		return Grade_Tier08;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.965f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.965F) {
 		return Grade_Tier09;
-	if (prc >= 0.93f)
+	}
+	if (prc >= 0.93F) {
 		return Grade_Tier10;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.9F) {
 		return Grade_Tier11;
-	if (PREFSMAN->m_bUseMidGrades && prc >= 0.85f)
+	}
+	if (PREFSMAN->m_bUseMidGrades && prc >= 0.85F) {
 		return Grade_Tier12;
-	if (prc >= 0.8f)
+	}
+	if (prc >= 0.8F) {
 		return Grade_Tier13;
-	if (prc >= 0.7f)
+	}
+	if (prc >= 0.7F) {
 		return Grade_Tier14;
-	if (prc >= 0.6f)
+	}
+	if (prc >= 0.6F) {
 		return Grade_Tier15;
+	}
 	return Grade_Tier16;
 }
 
@@ -192,7 +210,7 @@ void
 HighScoreImpl::ResetSkillsets()
 {
 	FOREACH_ENUM(Skillset, ss)
-	fSkillsetSSRs[ss] = 0.f;
+	fSkillsetSSRs[ss] = 0.F;
 }
 
 HighScoreImpl::HighScoreImpl()
@@ -203,17 +221,17 @@ HighScoreImpl::HighScoreImpl()
 	SSRCalcVersion = 0;
 	grade = Grade_Invalid;
 	iScore = 0;
-	fPercentDP = 0.f;
-	fWifeScore = 0.f;
-	fWifePoints = 0.f;
-	fSSRNormPercent = 0.f;
-	fMusicRate = 0.f;
-	fJudgeScale = 0.f;
+	fPercentDP = 0.F;
+	fWifeScore = 0.F;
+	fWifePoints = 0.F;
+	fSSRNormPercent = 0.F;
+	fMusicRate = 0.F;
+	fJudgeScale = 0.F;
 	bEtternaValid = true;
 	vOffsetVector.clear();
 	vNoteRowVector.clear();
 	vRescoreJudgeVector.clear();
-	fSurviveSeconds = 0.f;
+	fSurviveSeconds = 0.F;
 	iMaxCombo = 0;
 	sModifiers = "";
 	dateTime.Init();
@@ -225,7 +243,7 @@ HighScoreImpl::HighScoreImpl()
 	ZERO(fSkillsetSSRs);
 	radarValues.MakeUnknown();
 	fLifeRemainingSeconds = 0;
-	string ValidationKey = "";
+	string ValidationKey;
 	TopScore = 0;
 	ReplayType = 2;
 	bNoChordCohesion = false;
@@ -233,24 +251,26 @@ HighScoreImpl::HighScoreImpl()
 	WifeVersion = 0;
 }
 
-XNode*
-HighScoreImpl::CreateEttNode() const
+auto
+HighScoreImpl::CreateEttNode() const -> XNode*
 {
-	auto pNode = new XNode("Score");
+	auto* pNode = new XNode("Score");
 
-	if (ScoreKey == "")
+	if (ScoreKey.empty()) {
 		pNode->AppendAttr("Key",
 						  "S" + BinaryToHex(CryptManager::GetSHA1ForString(
 								  dateTime.GetString())));
-	else
+	} else {
 		pNode->AppendAttr("Key", ScoreKey);
+	}
 
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
 	pNode->AppendChild("WifeScore", fWifeScore);
 
-	if (fWifePoints > 0.f)
+	if (fWifePoints > 0.F) {
 		pNode->AppendChild("WifePoints", fWifePoints);
+	}
 
 	pNode->AppendChild("SSRNormPercent", fSSRNormPercent);
 	pNode->AppendChild("JudgeScale", fJudgeScale);
@@ -263,34 +283,37 @@ HighScoreImpl::CreateEttNode() const
 	pNode->AppendChild("DateTime", dateTime.GetString());
 	pNode->AppendChild("TopScore", TopScore);
 	if (!uploaded.empty()) {
-		auto pServerNode = pNode->AppendChild("Servs");
-		for (auto server : uploaded)
+		auto* pServerNode = pNode->AppendChild("Servs");
+		for (const auto& server : uploaded) {
 			pServerNode->AppendChild("server", server);
+		}
 	}
 
-	auto pTapNoteScores = pNode->AppendChild("TapNoteScores");
+	auto* pTapNoteScores = pNode->AppendChild("TapNoteScores");
 	FOREACH_ENUM(TapNoteScore, tns)
 	if (tns != TNS_None && tns != TNS_CheckpointMiss &&
-		tns != TNS_CheckpointHit)
+		tns != TNS_CheckpointHit) {
 		pTapNoteScores->AppendChild(TapNoteScoreToString(tns),
 									iTapNoteScores[tns]);
+	}
 
-	auto pHoldNoteScores = pNode->AppendChild("HoldNoteScores");
+	auto* pHoldNoteScores = pNode->AppendChild("HoldNoteScores");
 	FOREACH_ENUM(HoldNoteScore, hns)
-	if (hns != HNS_None) // HACK: don't save meaningless "none" count
+	if (hns != HNS_None) { // HACK: don't save meaningless "none" count
 		pHoldNoteScores->AppendChild(HoldNoteScoreToString(hns),
 									 iHoldNoteScores[hns]);
+	}
 
 	// dont bother writing skillset ssrs for non-applicable scores
-	if (fWifeScore > 0.f && grade != Grade_Failed &&
-		fSkillsetSSRs[Skill_Overall] > 0.f) {
-		auto pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
+	if (fWifeScore > 0.F && grade != Grade_Failed &&
+		fSkillsetSSRs[Skill_Overall] > 0.F) {
+		auto* pSkillsetSSRs = pNode->AppendChild("SkillsetSSRs");
 		FOREACH_ENUM(Skillset, ss)
 		pSkillsetSSRs->AppendChild(
 		  SkillsetToString(ss), FloatToString(fSkillsetSSRs[ss]).substr(0, 5));
 	}
 
-	auto pValidationKeys = pNode->AppendChild("ValidationKeys");
+	auto* pValidationKeys = pNode->AppendChild("ValidationKeys");
 	pValidationKeys->AppendChild(ValidationKeyToString(ValidationKey_Brittle),
 								 ValidationKeys[ValidationKey_Brittle]);
 	pValidationKeys->AppendChild(ValidationKeyToString(ValidationKey_Weak),
@@ -306,8 +329,9 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 
 	std::string s;
 	pNode->GetChildValue("SSRCalcVersion", SSRCalcVersion);
-	if (pNode->GetChildValue("Grade", s))
+	if (pNode->GetChildValue("Grade", s)) {
 		grade = StringToGrade(s);
+	}
 	pNode->GetChildValue("WifeScore", fWifeScore);
 	pNode->GetChildValue("WifePoints", fWifePoints);
 	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
@@ -315,7 +339,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
-	auto pUploadedServers = pNode->GetChild("Servs");
+	const auto* pUploadedServers = pNode->GetChild("Servs");
 	if (pUploadedServers != nullptr) {
 		FOREACH_CONST_Child(pUploadedServers, p)
 		{
@@ -326,95 +350,108 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	}
 	pNode->GetChildValue("SurviveSeconds", fSurviveSeconds);
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
-	if (pNode->GetChildValue("Modifiers", s))
+	if (pNode->GetChildValue("Modifiers", s)) {
 		sModifiers = s;
-	if (pNode->GetChildValue("DateTime", s))
+	}
+	if (pNode->GetChildValue("DateTime", s)) {
 		dateTime.FromString(s);
-	if (pNode->GetChildValue("ScoreKey", s))
+	}
+	if (pNode->GetChildValue("ScoreKey", s)) {
 		ScoreKey = s;
-	if (pNode->GetChildValue("MachineGuid", s))
+	}
+	if (pNode->GetChildValue("MachineGuid", s)) {
 		sMachineGuid = s;
-
-	auto pTapNoteScores = pNode->GetChild("TapNoteScores");
-	if (pTapNoteScores)
-		FOREACH_ENUM(TapNoteScore, tns)
-	pTapNoteScores->GetChildValue(TapNoteScoreToString(tns),
-								  iTapNoteScores[tns]);
-
-	auto pHoldNoteScores = pNode->GetChild("HoldNoteScores");
-	if (pHoldNoteScores)
-		FOREACH_ENUM(HoldNoteScore, hns)
-	pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns),
-								   iHoldNoteScores[hns]);
-
-	if (fWifeScore > 0.f) {
-		auto pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
-		if (pSkillsetSSRs)
-			FOREACH_ENUM(Skillset, ss)
-		pSkillsetSSRs->GetChildValue(SkillsetToString(ss), fSkillsetSSRs[ss]);
 	}
 
-	if (fWifeScore > 0.f) {
-		auto pValidationKeys = pNode->GetChild("ValidationKeys");
-		if (pValidationKeys != nullptr) {
-			if (pValidationKeys->GetChildValue(
-				  ValidationKeyToString(ValidationKey_Brittle), s))
-				ValidationKeys[ValidationKey_Brittle] = s;
-			if (pValidationKeys->GetChildValue(
-				  ValidationKeyToString(ValidationKey_Weak), s))
-				ValidationKeys[ValidationKey_Weak] = s;
+	const auto* pTapNoteScores = pNode->GetChild("TapNoteScores");
+	if (pTapNoteScores != nullptr) {
+		FOREACH_ENUM(TapNoteScore, tns)
+		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns),
+									  iTapNoteScores[tns]);
+	}
+
+	const auto* pHoldNoteScores = pNode->GetChild("HoldNoteScores");
+	if (pHoldNoteScores != nullptr) {
+		FOREACH_ENUM(HoldNoteScore, hns)
+		pHoldNoteScores->GetChildValue(HoldNoteScoreToString(hns),
+									   iHoldNoteScores[hns]);
+	}
+
+	if (fWifeScore > 0.F) {
+		const auto* pSkillsetSSRs = pNode->GetChild("SkillsetSSRs");
+		if (pSkillsetSSRs != nullptr) {
+			FOREACH_ENUM(Skillset, ss)
+			pSkillsetSSRs->GetChildValue(SkillsetToString(ss),
+										 fSkillsetSSRs[ss]);
 		}
 	}
 
-	if (ScoreKey == "")
+	if (fWifeScore > 0.F) {
+		const auto* pValidationKeys = pNode->GetChild("ValidationKeys");
+		if (pValidationKeys != nullptr) {
+			if (pValidationKeys->GetChildValue(
+				  ValidationKeyToString(ValidationKey_Brittle), s)) {
+				ValidationKeys[ValidationKey_Brittle] = s;
+			}
+			if (pValidationKeys->GetChildValue(
+				  ValidationKeyToString(ValidationKey_Weak), s)) {
+				ValidationKeys[ValidationKey_Weak] = s;
+			}
+		}
+	}
+
+	if (ScoreKey.empty()) {
 		ScoreKey =
 		  "S" +
 		  BinaryToHex(CryptManager::GetSHA1ForString(dateTime.GetString()));
+	}
 
 	pNode->GetChildValue("wv", WifeVersion);
 
 	// Validate input.
-	grade = clamp(grade, Grade_Tier01, Grade_Failed);
+	grade = std::clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
-bool
-HighScoreImpl::WriteReplayData()
+auto
+HighScoreImpl::WriteReplayData() -> bool
 {
 	CHECKPOINT_M("Writing out replay data to disk.");
 	string append;
 	string profiledir;
 	// These two lines should probably be somewhere else
-	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR))
+	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR)) {
 		FILEMAN->CreateDir(FULL_REPLAY_DIR);
-	auto path = FULL_REPLAY_DIR + ScoreKey;
-	ofstream fileStream(path, ios::binary);
+	}
+	const auto path = FULL_REPLAY_DIR + ScoreKey;
+	std::ofstream fileStream(path, std::ios::binary);
 	// check file
 
-	ASSERT(vNoteRowVector.size() > 0);
+	ASSERT(!vNoteRowVector.empty());
 
 	if (!fileStream) {
 		LOG->Warn("Failed to create replay file at %s", path.c_str());
 		return false;
 	}
 
-	unsigned int idx = vNoteRowVector.size() - 1;
+	const unsigned int idx = vNoteRowVector.size() - 1;
 	// loop for writing both vectors side by side
 	for (unsigned int i = 0; i <= idx; i++) {
-		append = to_string(vNoteRowVector[i]) + " " +
-				 to_string(vOffsetVector[i]) + " " +
-				 to_string(vTrackVector[i]) +
+		append = std::to_string(vNoteRowVector[i]) + " " +
+				 std::to_string(vOffsetVector[i]) + " " +
+				 std::to_string(vTrackVector[i]) +
 				 (vTapNoteTypeVector[i] != TapNoteType_Tap
-					? " " + to_string(vTapNoteTypeVector[i])
+					? " " + std::to_string(vTapNoteTypeVector[i])
 					: "") +
 				 "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	for (auto& hold : vHoldReplayDataVector) {
-		append =
-		  "H " + to_string(hold.row) + " " + to_string(hold.track) +
-		  (hold.subType != TapNoteSubType_Hold ? " " + to_string(hold.subType)
-											   : "") +
-		  "\n";
+		append = "H " + std::to_string(hold.row) + " " +
+				 std::to_string(hold.track) +
+				 (hold.subType != TapNoteSubType_Hold
+					? " " + std::to_string(hold.subType)
+					: "") +
+				 "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
@@ -422,27 +459,27 @@ HighScoreImpl::WriteReplayData()
 	return true;
 }
 
-bool
-HighScore::WriteInputData(const vector<float>& oop)
+auto
+HighScore::WriteInputData(const vector<float>& oop) -> bool
 {
 	string append;
 	string profiledir;
 
-	auto path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	ofstream fileStream(path, ios::binary);
+	const auto path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	std::ofstream fileStream(path, std::ios::binary);
 	// check file
 
-	ASSERT(oop.size() > 0);
+	ASSERT(!oop.empty());
 
 	if (!fileStream) {
 		LOG->Warn("Failed to create replay file at %s", path.c_str());
 		return false;
 	}
 
-	unsigned int idx = oop.size() - 1;
+	const unsigned int idx = oop.size() - 1;
 	// loop for writing both vectors side by side
 	for (unsigned int i = 0; i <= idx; i++) {
-		append = to_string(oop[i]) + "\n";
+		append = std::to_string(oop[i]) + "\n";
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
@@ -451,31 +488,33 @@ HighScore::WriteInputData(const vector<float>& oop)
 }
 
 // should just get rid of impl -mina
-bool
-HighScore::LoadReplayData()
+auto
+HighScore::LoadReplayData() -> bool
 { // see dir definition comments at the top -mina
-	if (LoadReplayDataFull(FULL_REPLAY_DIR))
+	if (LoadReplayDataFull(FULL_REPLAY_DIR)) {
 		return true;
+	}
 	return LoadReplayDataBasic(BASIC_REPLAY_DIR);
 }
 
-bool
-HighScore::LoadReplayDataBasic(string dir)
+auto
+HighScore::LoadReplayDataBasic(const string& dir) -> bool
 {
 	// already exists
-	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4)
+	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4) {
 		return true;
+	}
 
 	string profiledir;
 	vector<int> vNoteRowVector;
 	vector<float> vOffsetVector;
 	auto path = dir + m_Impl->ScoreKey;
 
-	std::ifstream fileStream(path, ios::binary);
+	std::ifstream fileStream(path, std::ios::binary);
 	string line;
 	string buffer;
 	vector<string> tokens;
-	stringstream ss;
+	std::stringstream ss;
 	int noteRow;
 	float offset;
 
@@ -489,10 +528,11 @@ HighScore::LoadReplayDataBasic(string dir)
 	try {
 
 		while (getline(fileStream, line)) {
-			stringstream ss(line);
+			std::stringstream ss(line);
 			// split line into tokens
-			while (ss >> buffer)
+			while (ss >> buffer) {
 				tokens.emplace_back(buffer);
+			}
 
 			if (tokens.size() > 2) {
 				LOG->Warn(
@@ -535,8 +575,8 @@ HighScore::LoadReplayDataBasic(string dir)
 	return true;
 }
 
-bool
-HighScore::LoadReplayDataFull(string dir)
+auto
+HighScore::LoadReplayDataFull(const string& dir) -> bool
 {
 	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4 &&
 		m_Impl->vTrackVector.size() > 4) {
@@ -552,7 +592,7 @@ HighScore::LoadReplayDataFull(string dir)
 	vector<HoldReplayResult> vHoldReplayDataVector;
 	auto path = dir + m_Impl->ScoreKey;
 
-	std::ifstream fileStream(path, ios::binary);
+	std::ifstream fileStream(path, std::ios::binary);
 	string line;
 	string buffer;
 	vector<string> tokens;
@@ -563,29 +603,33 @@ HighScore::LoadReplayDataFull(string dir)
 	int tmp;
 
 	// check file
-	if (!fileStream)
+	if (!fileStream) {
 		return false;
+	}
 
 	// loop until eof
 	while (getline(fileStream, line)) {
-		stringstream ss(line);
+		std::stringstream ss(line);
 		// split line into tokens
-		while (ss >> buffer)
+		while (ss >> buffer) {
 			tokens.emplace_back(buffer);
+		}
 
 		// probably replaydatav1 in the wrong folder, we could throw a trace or
 		// a warn but i feel like nobody will care or do anything about it and
 		// it will just pollute the log, nobody is going to parse the log and
 		// properly split up their replays back into the respective folders
 		// so...
-		if (tokens.size() < 3)
+		if (tokens.size() < 3) {
 			return LoadReplayDataBasic(dir);
+		}
 
 		if (tokens[0] == "H") {
 			HoldReplayResult hrr;
 			hrr.row = std::stoi(tokens[1]);
 			hrr.track = std::stoi(tokens[2]);
-			tmp = tokens.size() > 3 ? ::stoi(tokens[3]) : TapNoteSubType_Hold;
+			tmp =
+			  tokens.size() > 3 ? std::stoi(tokens[3]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
 				!(typeid(tmp) == typeid(int))) {
 				LOG->Warn("Failed to load replay data at %s (\"Tapnotesubtype "
@@ -638,7 +682,7 @@ HighScore::LoadReplayDataFull(string dir)
 		}
 		vTrackVector.emplace_back(track);
 
-		tmp = tokens.size() >= 4 ? ::stoi(tokens[3]) : TapNoteType_Tap;
+		tmp = tokens.size() >= 4 ? std::stoi(tokens[3]) : TapNoteType_Tap;
 		if (tmp < 0 || tmp >= TapNoteType_Invalid ||
 			!(typeid(tmp) == typeid(int))) {
 			LOG->Warn("Failed to load replay data at %s (\"Tapnotetype value "
@@ -662,14 +706,15 @@ HighScore::LoadReplayDataFull(string dir)
 	return true;
 }
 
-bool
-HighScore::HasReplayData()
+auto
+HighScore::HasReplayData() -> bool
 {
-	auto fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	auto basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
-	if (DoesFileExist(fullpath)) // check for full replays first then default to
-								 // basic replays -mina
+	const auto fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
+	const auto basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
+	if (DoesFileExist(fullpath)) { // check for full replays first then default
+								   // to basic replays -mina
 		return true;
+	}
 	return DoesFileExist(basicpath);
 }
 
@@ -686,289 +731,241 @@ HighScore::Unset()
 	m_Impl = new HighScoreImpl;
 }
 
-bool
-HighScore::IsEmpty() const
+auto
+HighScore::IsEmpty() const -> bool
 {
-	if (m_Impl->iTapNoteScores[TNS_W1] || m_Impl->iTapNoteScores[TNS_W2] ||
-		m_Impl->iTapNoteScores[TNS_W3] || m_Impl->iTapNoteScores[TNS_W4] ||
-		m_Impl->iTapNoteScores[TNS_W5])
+	if ((m_Impl->iTapNoteScores[TNS_W1] != 0) ||
+		(m_Impl->iTapNoteScores[TNS_W2] != 0) ||
+		(m_Impl->iTapNoteScores[TNS_W3] != 0) ||
+		(m_Impl->iTapNoteScores[TNS_W4] != 0) ||
+		(m_Impl->iTapNoteScores[TNS_W5] != 0)) {
 		return false;
-	if (m_Impl->iHoldNoteScores[HNS_Held] > 0)
+	}
+	if (m_Impl->iHoldNoteScores[HNS_Held] > 0) {
 		return false;
+	}
 	return true;
 }
 
-string
-HighScore::GenerateValidationKeys()
-{
-	std::string key = "";
-
-	FOREACH_ENUM(TapNoteScore, tns)
-	{
-
-		if (tns == TNS_AvoidMine || tns == TNS_CheckpointHit ||
-			tns == TNS_CheckpointMiss || tns == TNS_None) {
-			continue;
-		}
-
-		key.append(to_string(GetTapNoteScore(tns)));
-	}
-
-	FOREACH_ENUM(HoldNoteScore, hns)
-	{
-		if (hns == HNS_None) {
-			continue;
-		}
-
-		key.append(to_string(GetHoldNoteScore(hns)));
-	}
-
-	norms = lround(GetSSRNormPercent() * 1000000.f);
-	musics = lround(GetMusicRate() * 100.f);
-	judges = lround(GetJudgeScale() * 100.f);
-
-	key.append(GetScoreKey());
-	key.append(GetChartKey());
-	key.append(GetModifiers());
-	key.append(GetMachineGuid());
-	key.append(to_string(norms));
-	key.append(to_string(musics));
-	key.append(to_string(judges));
-	key.append(to_string(static_cast<int>(!GetChordCohesion())));
-	key.append(to_string(static_cast<int>(GetEtternaValid())));
-	key.append(GradeToString(GetWifeGrade()));
-
-	std::string hash_hex_str;
-
-	picosha2::hash256_hex_string(key, hash_hex_str);
-
-	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
-
-	// just testing stuff
-	// hs.SetValidationKey(ValidationKey_Weak,
-	// GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
-	return key;
-}
-
-const std::string&
-HighScore::GetName() const
+auto
+HighScore::GetName() const -> const std::string&
 {
 	return m_Impl->sName;
 }
-const std::string&
-HighScore::GetChartKey() const
+auto
+HighScore::GetChartKey() const -> const std::string&
 {
 	return m_Impl->ChartKey;
 }
-int
-HighScore::GetSSRCalcVersion() const
+auto
+HighScore::GetSSRCalcVersion() const -> int
 {
 	return m_Impl->SSRCalcVersion;
 }
-Grade
-HighScore::GetGrade() const
+auto
+HighScore::GetGrade() const -> Grade
 {
 	return m_Impl->grade;
 }
-unsigned int
-HighScore::GetScore() const
+auto
+HighScore::GetScore() const -> unsigned int
 {
 	return m_Impl->iScore;
 }
-unsigned int
-HighScore::GetMaxCombo() const
+auto
+HighScore::GetMaxCombo() const -> unsigned int
 {
 	return m_Impl->iMaxCombo;
 }
 
-float
-HighScore::GetPercentDP() const
+auto
+HighScore::GetPercentDP() const -> float
 {
 	return m_Impl->fPercentDP;
 }
-float
-HighScore::GetWifeScore() const
+auto
+HighScore::GetWifeScore() const -> float
 {
 	return m_Impl->fWifeScore;
 }
-float
-HighScore::GetWifePoints() const
+auto
+HighScore::GetWifePoints() const -> float
 {
 	return m_Impl->fWifePoints;
 }
-float
-HighScore::GetSSRNormPercent() const
+auto
+HighScore::GetSSRNormPercent() const -> float
 {
 	return m_Impl->fSSRNormPercent;
 }
-float
-HighScore::GetMusicRate() const
+auto
+HighScore::GetMusicRate() const -> float
 {
 	return m_Impl->fMusicRate;
 }
-float
-HighScore::GetJudgeScale() const
+auto
+HighScore::GetJudgeScale() const -> float
 {
 	return m_Impl->fJudgeScale;
 }
-bool
-HighScore::GetChordCohesion() const
+auto
+HighScore::GetChordCohesion() const -> bool
 {
 	return !m_Impl->bNoChordCohesion;
 }
-bool
-HighScore::GetEtternaValid() const
+auto
+HighScore::GetEtternaValid() const -> bool
 {
 	return m_Impl->bEtternaValid;
 }
-bool
-HighScore::IsUploadedToServer(const std::string& s) const
+auto
+HighScore::IsUploadedToServer(const std::string& s) const -> bool
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
 		   m_Impl->uploaded.end();
 }
-vector<float>
-HighScore::GetCopyOfOffsetVector() const
+auto
+HighScore::GetCopyOfOffsetVector() const -> vector<float>
 {
 	return m_Impl->vOffsetVector;
 }
-vector<int>
-HighScore::GetCopyOfNoteRowVector() const
+auto
+HighScore::GetCopyOfNoteRowVector() const -> vector<int>
 {
 	return m_Impl->vNoteRowVector;
 }
-vector<int>
-HighScore::GetCopyOfTrackVector() const
+auto
+HighScore::GetCopyOfTrackVector() const -> vector<int>
 {
 	return m_Impl->vTrackVector;
 }
-vector<TapNoteType>
-HighScore::GetCopyOfTapNoteTypeVector() const
+auto
+HighScore::GetCopyOfTapNoteTypeVector() const -> vector<TapNoteType>
 {
 	return m_Impl->vTapNoteTypeVector;
 }
-vector<HoldReplayResult>
-HighScore::GetCopyOfHoldReplayDataVector() const
+auto
+HighScore::GetCopyOfHoldReplayDataVector() const -> vector<HoldReplayResult>
 {
 	return m_Impl->vHoldReplayDataVector;
 }
-vector<float>
-HighScore::GetCopyOfSetOnlineReplayTimestampVector() const
+auto
+HighScore::GetCopyOfSetOnlineReplayTimestampVector() const -> vector<float>
 {
 	return m_Impl->vOnlineReplayTimestampVector;
 }
-const vector<float>&
-HighScore::GetOffsetVector() const
+auto
+HighScore::GetOffsetVector() const -> const vector<float>&
 {
 	return m_Impl->vOffsetVector;
 }
-const vector<int>&
-HighScore::GetNoteRowVector() const
+auto
+HighScore::GetNoteRowVector() const -> const vector<int>&
 {
 	return m_Impl->vNoteRowVector;
 }
-const vector<int>&
-HighScore::GetTrackVector() const
+auto
+HighScore::GetTrackVector() const -> const vector<int>&
 {
 	return m_Impl->vTrackVector;
 }
-const vector<TapNoteType>&
-HighScore::GetTapNoteTypeVector() const
+auto
+HighScore::GetTapNoteTypeVector() const -> const vector<TapNoteType>&
 {
 	return m_Impl->vTapNoteTypeVector;
 }
-const vector<HoldReplayResult>&
-HighScore::GetHoldReplayDataVector() const
+auto
+HighScore::GetHoldReplayDataVector() const -> const vector<HoldReplayResult>&
 {
 	return m_Impl->vHoldReplayDataVector;
 }
-const std::string&
-HighScore::GetScoreKey() const
+auto
+HighScore::GetScoreKey() const -> const std::string&
 {
 	return m_Impl->ScoreKey;
 }
-float
-HighScore::GetSurviveSeconds() const
+auto
+HighScore::GetSurviveSeconds() const -> float
 {
 	return m_Impl->fSurviveSeconds;
 }
-float
-HighScore::GetSurvivalSeconds() const
+auto
+HighScore::GetSurvivalSeconds() const -> float
 {
 	return GetSurviveSeconds() + GetLifeRemainingSeconds();
 }
-const std::string&
-HighScore::GetModifiers() const
+auto
+HighScore::GetModifiers() const -> const std::string&
 {
 	return m_Impl->sModifiers;
 }
-DateTime
-HighScore::GetDateTime() const
+auto
+HighScore::GetDateTime() const -> DateTime
 {
 	return m_Impl->dateTime;
 }
-const std::string&
-HighScore::GetPlayerGuid() const
+auto
+HighScore::GetPlayerGuid() const -> const std::string&
 {
 	return m_Impl->sPlayerGuid;
 }
-const std::string&
-HighScore::GetMachineGuid() const
+auto
+HighScore::GetMachineGuid() const -> const std::string&
 {
 	return m_Impl->sMachineGuid;
 }
-const std::string&
-HighScore::GetCountryCode() const
+auto
+HighScore::GetCountryCode() const -> const std::string&
 {
 	return m_Impl->countryCode;
 }
-int
-HighScore::GetProductID() const
+auto
+HighScore::GetProductID() const -> int
 {
 	return m_Impl->iProductID;
 }
-int
-HighScore::GetTapNoteScore(TapNoteScore tns) const
+auto
+HighScore::GetTapNoteScore(TapNoteScore tns) const -> int
 {
 	return m_Impl->iTapNoteScores[tns];
 }
-int
-HighScore::GetHoldNoteScore(HoldNoteScore hns) const
+auto
+HighScore::GetHoldNoteScore(HoldNoteScore hns) const -> int
 {
 	return m_Impl->iHoldNoteScores[hns];
 }
-float
-HighScore::GetSkillsetSSR(Skillset ss) const
+auto
+HighScore::GetSkillsetSSR(Skillset ss) const -> float
 {
 	return m_Impl->fSkillsetSSRs[ss];
 }
-int
-HighScore::GetWifeVersion() const
+auto
+HighScore::GetWifeVersion() const -> int
 {
 	return m_Impl->WifeVersion;
 }
-const RadarValues&
-HighScore::GetRadarValues() const
+auto
+HighScore::GetRadarValues() const -> const RadarValues&
 {
 	return m_Impl->radarValues;
 }
-float
-HighScore::GetLifeRemainingSeconds() const
+auto
+HighScore::GetLifeRemainingSeconds() const -> float
 {
 	return m_Impl->fLifeRemainingSeconds;
 }
-bool
-HighScore::GetDisqualified() const
+auto
+HighScore::GetDisqualified() const -> bool
 {
 	return m_Impl->bDisqualified;
 }
-int
-HighScore::GetTopScore() const
+auto
+HighScore::GetTopScore() const -> int
 {
 	return m_Impl->TopScore;
 }
-int
-HighScore::GetReplayType() const
+auto
+HighScore::GetReplayType() const -> int
 {
 	return m_Impl->ReplayType;
 }
@@ -1050,11 +1047,12 @@ HighScore::SetEtternaValid(bool b)
 	m_Impl->bEtternaValid = b;
 }
 void
-HighScore::AddUploadedServer(string s)
+HighScore::AddUploadedServer(const string& s)
 {
 	if (find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) ==
-		m_Impl->uploaded.end())
+		m_Impl->uploaded.end()) {
 		m_Impl->uploaded.emplace_back(s);
+	}
 }
 void
 HighScore::SetOffsetVector(const vector<float>& v)
@@ -1144,15 +1142,15 @@ HighScore::SetSkillsetSSR(Skillset ss, float ssr)
 void
 HighScore::SetValidationKey(ValidationKey vk, string k)
 {
-	m_Impl->ValidationKeys[vk] = k;
+	m_Impl->ValidationKeys[vk] = std::move(k);
 }
 void
 HighScore::SetTopScore(int i)
 {
 	m_Impl->TopScore = i;
 }
-const std::string&
-HighScore::GetValidationKey(ValidationKey vk) const
+auto
+HighScore::GetValidationKey(ValidationKey vk) const -> const std::string&
 {
 	return m_Impl->ValidationKeys[vk];
 }
@@ -1192,50 +1190,102 @@ HighScore::ResetSkillsets()
 /* We normally don't give direct access to the members.  We need this one
  * for NameToFillIn; use a special accessor so it's easy to find where this
  * is used. */
-string*
-HighScore::GetNameMutable()
+auto
+HighScore::GetNameMutable() -> string*
 {
 	return &m_Impl->sName;
 }
 
-bool
-HighScore::operator<(HighScore const& other) const
+auto
+HighScore::GenerateValidationKeys() -> string
+{
+	std::string key;
+
+	FOREACH_ENUM(TapNoteScore, tns)
+	{
+
+		if (tns == TNS_AvoidMine || tns == TNS_CheckpointHit ||
+			tns == TNS_CheckpointMiss || tns == TNS_None) {
+			continue;
+		}
+
+		key.append(std::to_string(GetTapNoteScore(tns)));
+	}
+
+	FOREACH_ENUM(HoldNoteScore, hns)
+	{
+		if (hns == HNS_None) {
+			continue;
+		}
+
+		key.append(std::to_string(GetHoldNoteScore(hns)));
+	}
+
+	norms = lround(GetSSRNormPercent() * 1000000.F);
+	musics = lround(GetMusicRate() * 100.F);
+	judges = lround(GetJudgeScale() * 100.F);
+
+	key.append(GetScoreKey());
+	key.append(GetChartKey());
+	key.append(GetModifiers());
+	key.append(GetMachineGuid());
+	key.append(std::to_string(norms));
+	key.append(std::to_string(musics));
+	key.append(std::to_string(judges));
+	key.append(std::to_string(static_cast<int>(!GetChordCohesion())));
+	key.append(std::to_string(static_cast<int>(GetEtternaValid())));
+	key.append(GradeToString(GetWifeGrade()));
+
+	std::string hash_hex_str;
+
+	picosha2::hash256_hex_string(key, hash_hex_str);
+
+	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
+
+	// just testing stuff
+	// hs.SetValidationKey(ValidationKey_Weak,
+	// GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
+	return key;
+}
+
+auto
+HighScore::operator<(HighScore const& other) const -> bool
 {
 	return GetWifeScore() < other.GetWifeScore();
 }
 
-bool
-HighScore::operator>(HighScore const& other) const
+auto
+HighScore::operator>(HighScore const& other) const -> bool
 {
 	return other.operator<(*this);
 }
 
-bool
-HighScore::operator<=(const HighScore& other) const
+auto
+HighScore::operator<=(const HighScore& other) const -> bool
 {
 	return !operator>(other);
 }
 
-bool
-HighScore::operator>=(const HighScore& other) const
+auto
+HighScore::operator>=(const HighScore& other) const -> bool
 {
 	return !operator<(other);
 }
 
-bool
-HighScore::operator==(const HighScore& other) const
+auto
+HighScore::operator==(const HighScore& other) const -> bool
 {
 	return *m_Impl == *other.m_Impl;
 }
 
-bool
-HighScore::operator!=(const HighScore& other) const
+auto
+HighScore::operator!=(const HighScore& other) const -> bool
 {
 	return !operator==(other);
 }
 
-XNode*
-HighScore::CreateEttNode() const
+auto
+HighScore::CreateEttNode() const -> XNode*
 {
 	return m_Impl->CreateEttNode();
 }
@@ -1249,16 +1299,16 @@ HighScore::LoadFromEttNode(const XNode* pNode)
 	m_Impl->vOffsetVector.clear();
 }
 
-const std::string&
-HighScore::GetDisplayName() const
+auto
+HighScore::GetDisplayName() const -> const std::string&
 {
 	return GetName();
 }
 
-XNode*
-Screenshot::CreateNode() const
+auto
+Screenshot::CreateNode() const -> XNode*
 {
-	auto pNode = new XNode("Screenshot");
+	auto* pNode = new XNode("Screenshot");
 
 	// TRICKY:  Don't write "name to fill in" markers.
 	pNode->AppendChild("FileName", sFileName);
@@ -1273,18 +1323,19 @@ Screenshot::LoadFromNode(const XNode* pNode)
 
 	pNode->GetChildValue("FileName", sFileName);
 	pNode->GetChildValue("MD5", sMD5);
-	auto pHighScore = pNode->GetChild("HighScore");
+	const auto* pHighScore = pNode->GetChild("HighScore");
 }
 
-float
-HighScore::RescoreToWife2Judge(int x)
+auto
+HighScore::RescoreToWife2Judge(int x) -> float
 {
-	if (!LoadReplayData())
+	if (!LoadReplayData()) {
 		return m_Impl->fWifeScore;
+	}
 
-	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-						  0.66f, 0.50f, 0.33f, 0.20f };
-	auto ts = tso[x - 1];
+	const float tso[] = { 1.50F, 1.33F, 1.16F, 1.00F, 0.84F,
+						  0.66F, 0.50F, 0.33F, 0.20F };
+	const auto ts = tso[x - 1];
 	float p = 0;
 
 	// the typevector is only available for full replays
@@ -1307,8 +1358,8 @@ HighScore::RescoreToWife2Judge(int x)
 
 	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
 		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6.f;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.f;
+		 -6.F;
+	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.F;
 
 	// this is a bad assumption but im leaving it here
 	auto pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
@@ -1318,28 +1369,29 @@ HighScore::RescoreToWife2Judge(int x)
 	denominators however full replays store mine hits as offsets, meaning
 	we have to screen them out when calculating the max points*/
 	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.F;
 
 		// we screened out extra offsets due to mines in the replay from the
 		// denominator but we've still increased the numerator with 0.00f
 		// offsets (2pts)
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.f;
+		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.F;
 	}
 
 	return p / pmax;
 }
 
-bool
-HighScore::RescoreToWife3(float pmax)
+auto
+HighScore::RescoreToWife3(float pmax) -> bool
 {
 	// HAHAHA WE NEED TO LOAD THE REPLAY DATA EVEN IF WE KNOW WE HAVE IT
-	if (!LoadReplayData())
+	if (!LoadReplayData()) {
 		return false;
+	}
 
 	// SSRNormPercent
-	auto p4 = 0.f;
+	auto p4 = 0.F;
 	// WifeScore for HighScore Judge
-	auto pj = 0.f;
+	auto pj = 0.F;
 
 	// the typevector is only available for full replays
 	if (m_Impl->ReplayType == 2) {
@@ -1361,10 +1413,10 @@ HighScore::RescoreToWife3(float pmax)
 		}
 	}
 
-	auto holdpoints = (m_Impl->iHoldNoteScores[HNS_LetGo] +
-					   m_Impl->iHoldNoteScores[HNS_Missed]) *
-					  wife3_hold_drop_weight;
-	auto minepoints =
+	const auto holdpoints = (m_Impl->iHoldNoteScores[HNS_LetGo] +
+							 m_Impl->iHoldNoteScores[HNS_Missed]) *
+							wife3_hold_drop_weight;
+	const auto minepoints =
 	  m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
 
 	p4 += holdpoints + minepoints;
@@ -1378,12 +1430,12 @@ HighScore::RescoreToWife3(float pmax)
 }
 
 // DONT REALLY KNOW WHY THIS IS STILL HERE
-float
-HighScore::RescoreToDPJudge(int x)
+auto
+HighScore::RescoreToDPJudge(int x) -> float
 {
-	const float tso[] = { 1.50f, 1.33f, 1.16f, 1.00f, 0.84f,
-						  0.66f, 0.50f, 0.33f, 0.20f };
-	auto ts = tso[x - 1];
+	const float tso[] = { 1.50F, 1.33F, 1.16F, 1.00F, 0.84F,
+						  0.66F, 0.50F, 0.33F, 0.20F };
+	const auto ts = tso[x - 1];
 	vector<int> vRescoreJudgeVector;
 	auto marv = 0;
 	auto perf = 0;
@@ -1394,19 +1446,20 @@ HighScore::RescoreToDPJudge(int x)
 	auto m2 = 0;
 	for (auto& f : m_Impl->vOffsetVector) {
 		m2 += 2;
-		auto x = abs(f * 1000.f);
-		if (x <= ts * 22.5f)
+		const auto x = abs(f * 1000.F);
+		if (x <= ts * 22.5F) {
 			++marv;
-		else if (x <= ts * 45.f)
+		} else if (x <= ts * 45.F) {
 			++perf;
-		else if (x <= ts * 90.f)
+		} else if (x <= ts * 90.F) {
 			++great;
-		else if (x <= ts * 135.f)
+		} else if (x <= ts * 135.F) {
 			++good;
-		else if (x <= ts * 180.f)
+		} else if (x <= ts * 180.F) {
 			++boo;
-		else
+		} else {
 			++miss;
+		}
 	}
 
 	// LOG->Trace("Marv: %i Perf: %i, Great: %i, Good: %i, Boo: %i, Miss: %i",
@@ -1437,21 +1490,21 @@ HighScore::RescoreToDPJudge(int x)
 	return p / m;
 }
 
-vector<int>
-HighScore::GetRescoreJudgeVector(int x)
+auto
+HighScore::GetRescoreJudgeVector(int x) -> vector<int>
 {
 	RescoreToDPJudge(x);
 	return m_Impl->vRescoreJudgeVector;
 }
 
-Grade
-HighScore::GetWifeGrade() const
+auto
+HighScore::GetWifeGrade() const -> Grade
 {
 	return m_Impl->GetWifeGrade();
 }
 
-bool
-HighScore::WriteReplayData()
+auto
+HighScore::WriteReplayData() -> bool
 {
 	// return DBProfile::WriteReplayData(this);
 	return m_Impl->WriteReplayData();
@@ -1460,26 +1513,28 @@ HighScore::WriteReplayData()
 // TO BE REMOVED SOON
 // Ok I guess we can be more lenient and convert by midwindow values, but we
 // still have to assume j4 - mina
-float
-HighScore::ConvertDpToWife()
+auto
+HighScore::ConvertDpToWife() -> float
 {
-	if (m_Impl->fWifeScore > 0.f) {
-		if (PREFSMAN->m_bSortBySSRNorm)
+	if (m_Impl->fWifeScore > 0.F) {
+		if (PREFSMAN->m_bSortBySSRNorm) {
 			return m_Impl->fSSRNormPercent;
+		}
 		return m_Impl->fWifeScore;
 	}
 
-	if (m_Impl->grade == Grade_Failed)
-		return 0.f;
+	if (m_Impl->grade == Grade_Failed) {
+		return 0.F;
+	}
 
-	auto ts = 1.f;
-	auto estpoints = 0.f;
-	auto maxpoints = 0.f;
-	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife3(.01125f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife3(.03375f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife3(.0675f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife3(.1125f, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife3(.1575f, ts);
+	const auto ts = 1.F;
+	auto estpoints = 0.F;
+	auto maxpoints = 0.F;
+	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife3(.01125F, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife3(.03375F, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife3(.0675F, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife3(.1125F, ts);
+	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife3(.1575F, ts);
 	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife3_miss_weight;
 
 	FOREACH_ENUM(TapNoteScore, tns)
@@ -1495,83 +1550,84 @@ HighScore::ConvertDpToWife()
 class LunaHighScore : public Luna<HighScore>
 {
   public:
-	static int GetName(T* p, lua_State* L)
+	static auto GetName(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, p->GetName().c_str());
 		return 1;
 	}
-	static int GetScore(T* p, lua_State* L)
+	static auto GetScore(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetScore());
 		return 1;
 	}
-	static int GetPercentDP(T* p, lua_State* L)
+	static auto GetPercentDP(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetPercentDP());
 		return 1;
 	}
-	static int GetWifeScore(T* p, lua_State* L)
+	static auto GetWifeScore(T* p, lua_State* L) -> int
 	{
-		if (PREFSMAN->m_bSortBySSRNorm)
+		if (PREFSMAN->m_bSortBySSRNorm) {
 			lua_pushnumber(L, p->GetSSRNormPercent());
-		else
+		} else {
 			lua_pushnumber(L, p->GetWifeScore());
+		}
 		return 1;
 	}
-	static int GetWifePoints(T* p, lua_State* L)
+	static auto GetWifePoints(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetWifePoints());
 		return 1;
 	}
-	static int GetMusicRate(T* p, lua_State* L)
+	static auto GetMusicRate(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetMusicRate());
 		return 1;
 	}
-	static int GetJudgeScale(T* p, lua_State* L)
+	static auto GetJudgeScale(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetJudgeScale());
 		return 1;
 	}
-	static int GetDate(T* p, lua_State* L)
+	static auto GetDate(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, p->GetDateTime().GetString().c_str());
 		return 1;
 	}
-	static int GetSurvivalSeconds(T* p, lua_State* L)
+	static auto GetSurvivalSeconds(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetSurvivalSeconds());
 		return 1;
 	}
-	static int IsFillInMarker(T* p, lua_State* L)
+	static auto IsFillInMarker(T* p, lua_State* L) -> int
 	{
 		auto bIsFillInMarker = false;
 		bIsFillInMarker |= p->GetName() == RANKING_TO_FILL_IN_MARKER;
 		lua_pushboolean(L, static_cast<int>(bIsFillInMarker));
 		return 1;
 	}
-	static int GetMaxCombo(T* p, lua_State* L)
+	static auto GetMaxCombo(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetMaxCombo());
 		return 1;
 	}
-	static int GetModifiers(T* p, lua_State* L)
+	static auto GetModifiers(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, p->GetModifiers().c_str());
 		return 1;
 	}
-	static int GetTapNoteScore(T* p, lua_State* L)
+	static auto GetTapNoteScore(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetTapNoteScore(Enum::Check<TapNoteScore>(L, 1)));
 		return 1;
 	}
-	static int GetHoldNoteScore(T* p, lua_State* L)
+	static auto GetHoldNoteScore(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L,
 					   p->GetHoldNoteScore(Enum::Check<HoldNoteScore>(L, 1)));
 		return 1;
 	}
-	static int RescoreJudges(T* p, lua_State* L)
+	static auto RescoreJudges(T* p, lua_State* L) -> int
 	{
 		lua_newtable(L);
 		for (auto i = 0; i < 6; ++i) {
@@ -1581,19 +1637,19 @@ class LunaHighScore : public Luna<HighScore>
 
 		return 1;
 	}
-	static int GetRadarValues(T* p, lua_State* L)
+	static auto GetRadarValues(T* p, lua_State* L) -> int
 	{
 		auto& rv = const_cast<RadarValues&>(p->GetRadarValues());
 		rv.PushSelf(L);
 		return 1;
 	}
 
-	static int GetSkillsetSSR(T* p, lua_State* L)
+	static auto GetSkillsetSSR(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetSkillsetSSR(Enum::Check<Skillset>(L, 1)));
 		return 1;
 	}
-	static int ToggleEtternaValidation(T* p, lua_State* L)
+	static auto ToggleEtternaValidation(T* p, lua_State * /*L*/) -> int
 	{
 		p->SetEtternaValid(!p->GetEtternaValid());
 		return 0;
@@ -1602,25 +1658,28 @@ class LunaHighScore : public Luna<HighScore>
 	// Convert to MS so lua doesn't have to
 	// not exactly sure why i'm doing this fancy load garbage or if it works...
 	// -mina
-	static int GetOffsetVector(T* p, lua_State* L)
+	static auto GetOffsetVector(T* p, lua_State* L) -> int
 	{
 		auto v = p->GetOffsetVector();
-		auto loaded = v.size() > 0;
+		const auto loaded = !v.empty();
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
+			if (!loaded) {
 				v = p->GetOffsetVector();
-			for (size_t i = 0; i < v.size(); ++i)
-				v[i] = v[i] * 1000;
+			}
+			for (auto& i : v) {
+				i = i * 1000;
+			}
 			LuaHelpers::CreateTableFromArray(v, L);
-		} else
+		} else {
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 
-	static int GetNoteRowVector(T* p, lua_State* L)
+	static auto GetNoteRowVector(T* p, lua_State* L) -> int
 	{
-		auto* v = &(p->GetNoteRowVector());
-		auto loaded = v->size() > 0;
+		const auto* v = &(p->GetNoteRowVector());
+		const auto loaded = !v->empty();
 
 		auto timestamps = p->GetCopyOfSetOnlineReplayTimestampVector();
 
@@ -1642,15 +1701,16 @@ class LunaHighScore : public Luna<HighScore>
 			for (auto t : timestamps) {
 				auto timestamptobeat =
 				  td->GetBeatFromElapsedTime(t * p->GetMusicRate());
-				auto somenumberscaledbyoffsets =
+				const auto somenumberscaledbyoffsets =
 				  sdifs[0] - (timestamps[0] * p->GetMusicRate());
 				timestamptobeat += somenumberscaledbyoffsets;
 				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
 				noterows.emplace_back(noterowfrombeat);
 			}
-			auto noterowoffsetter = nerv[0] - noterows[0];
-			for (auto& noterowwithoffset : noterows)
+			const auto noterowoffsetter = nerv[0] - noterows[0];
+			for (auto& noterowwithoffset : noterows) {
 				noterowwithoffset += noterowoffsetter;
+			}
 			GAMESTATE->SetProcessedTimingData(nullptr);
 			p->SetNoteRowVector(noterows);
 
@@ -1664,65 +1724,70 @@ class LunaHighScore : public Luna<HighScore>
 		return 1;
 	}
 
-	static int GetTrackVector(T* p, lua_State* L)
+	static auto GetTrackVector(T* p, lua_State* L) -> int
 	{
-		auto* v = &(p->GetTrackVector());
-		auto loaded = v->size() > 0;
+		const auto* v = &(p->GetTrackVector());
+		const auto loaded = !v->empty();
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
+			if (!loaded) {
 				v = &(p->GetTrackVector());
+			}
 			LuaHelpers::CreateTableFromArray((*v), L);
-		} else
+		} else {
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 
-	static int GetTapNoteTypeVector(T* p, lua_State* L)
+	static auto GetTapNoteTypeVector(T* p, lua_State* L) -> int
 	{
-		auto* v = &(p->GetTapNoteTypeVector());
-		auto loaded = v->size() > 0;
+		const auto* v = &(p->GetTapNoteTypeVector());
+		const auto loaded = !v->empty();
 		if (loaded || p->LoadReplayData()) {
-			if (!loaded)
+			if (!loaded) {
 				v = &(p->GetTapNoteTypeVector());
+			}
 			LuaHelpers::CreateTableFromArray((*v), L);
-		} else
+		} else {
 			lua_pushnil(L);
+		}
 		return 1;
 	}
-	static int GetJudgmentString(T* p, lua_State* L)
+	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
-		auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
-							 p->GetTapNoteScore(TNS_W1),
-							 p->GetTapNoteScore(TNS_W2),
-							 p->GetTapNoteScore(TNS_W3),
-							 p->GetTapNoteScore(TNS_W4),
-							 p->GetTapNoteScore(TNS_W5),
-							 p->GetTapNoteScore(TNS_Miss),
-							 p->GetMaxCombo());
+		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+								   p->GetTapNoteScore(TNS_W1),
+								   p->GetTapNoteScore(TNS_W2),
+								   p->GetTapNoteScore(TNS_W3),
+								   p->GetTapNoteScore(TNS_W4),
+								   p->GetTapNoteScore(TNS_W5),
+								   p->GetTapNoteScore(TNS_Miss),
+								   p->GetMaxCombo());
 		lua_pushstring(L, doot.c_str());
 		return 1;
 	}
 
-	static int GetUserid(T* p, lua_State* L)
+	static auto GetUserid(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->userid);
 		return 1;
 	}
-	static int GetScoreid(T* p, lua_State* L)
+	static auto GetScoreid(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, std::string(p->scoreid).c_str());
 		return 1;
 	}
-	static int GetAvatar(T* p, lua_State* L)
+	static auto GetAvatar(T* p, lua_State* L) -> int
 	{
 		lua_pushstring(L, std::string(p->avatar).c_str());
 		return 1;
 	}
-	static int GetWifeVers(T* p, lua_State* L)
+	static auto GetWifeVers(T* p, lua_State* L) -> int
 	{
 		auto vers = p->GetWifeVersion();
-		if (vers != 3)
+		if (vers != 3) {
 			vers = 2;
+		}
 		lua_pushnumber(L, vers);
 		return 1;
 	}

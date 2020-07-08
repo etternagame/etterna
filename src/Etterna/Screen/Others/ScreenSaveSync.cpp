@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -70,7 +69,7 @@ ScreenSaveSync::Init()
 }
 
 void
-ScreenSaveSync::PromptSaveSync(ScreenMessage sm)
+ScreenSaveSync::PromptSaveSync(const ScreenMessage& sm)
 {
 	ScreenPrompt::Prompt(sm,
 						 GetPromptText(),

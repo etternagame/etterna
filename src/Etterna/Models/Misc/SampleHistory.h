@@ -7,10 +7,10 @@ class SampleHistory
   public:
 	SampleHistory();
 	void AddSample(float fSample, float fDeltaTime);
-	[[nodiscard]] float GetSample(float fSecondsAgo) const;
+	[[nodiscard]] auto GetSample(float fSecondsAgo) const -> float;
 
   private:
-	[[nodiscard]] float GetSampleNum(float fSamplesAgo) const;
+	[[nodiscard]] auto GetSampleNum(float fSamplesAgo) const -> float;
 
 	std::vector<float> m_afHistory;
 	int m_iLastHistory;

@@ -6,6 +6,8 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 
+#include <algorithm>
+
 static ThemeMetric<float> IN_LENGTH("LyricDisplay", "InLength");
 static ThemeMetric<float> OUT_LENGTH("LyricDisplay", "OutLength");
 
@@ -82,7 +84,7 @@ LyricDisplay::Update(float fDeltaTime)
 	/* If it's negative, two lyrics are so close together that there's no time
 	 * to tween properly. Lyrics should never be this brief, anyway, so just
 	 * skip it. */
-	auto fShowLength = max(fDistance - fTweenBufferTime, 0.0f);
+	auto fShowLength = std::max(fDistance - fTweenBufferTime, 0.0f);
 
 	// Make lyrics show faster for faster song rates.
 	fShowLength /= GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;

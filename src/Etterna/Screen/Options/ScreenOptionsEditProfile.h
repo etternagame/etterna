@@ -12,7 +12,6 @@ class ScreenOptionsEditProfile : public ScreenOptions
 	void Init() override;
 	void BeginScreen() override;
 
-  protected:
   private:
 	void ImportOptions(int row, const PlayerNumber& vpns) override;
 	void ExportOptions(int row, const PlayerNumber& vpns) override;
@@ -20,7 +19,7 @@ class ScreenOptionsEditProfile : public ScreenOptions
 	virtual void GoToNextScreen();
 	virtual void GoToPrevScreen();
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void AfterChangeValueInRow(int iRow, PlayerNumber pn) override;
 	void ProcessMenuStart(const InputEventPlus& input) override;
 

@@ -6,7 +6,6 @@
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenPrompt.h"
@@ -110,7 +109,7 @@ static LocalizedString ENTER_YOUR_PASSWORD("ScreenSMOnlineLogin",
 										   "Enter your password.");
 
 void
-ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
+ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage& SM)
 {
 	std::string sLoginQuestion;
 	//	if( GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer) )

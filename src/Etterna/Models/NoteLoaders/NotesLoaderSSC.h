@@ -159,27 +159,27 @@ struct SSCLoader : public SMLoader
 
 	static void ProcessBPMs(TimingData&,
 							const std::string& sParam,
-							const string& songName);
+							const std::string& songName);
 	static void ProcessStops(TimingData&,
 							 const std::string& sParam,
-							 const string& songName);
+							 const std::string& songName);
 	static void ProcessWarps(TimingData&,
 							 const std::string& sParam,
 							 const float,
-							 const string& songName);
+							 const std::string& songName);
 	static void ProcessLabels(TimingData& out,
 							  const std::string& sParam,
-							  const string& songName);
+							  const std::string& songName);
 	static void ProcessCombos(TimingData&,
 							  const std::string& line,
-							  const string& songName,
+							  const std::string& songName,
 							  const int = -1);
 	void ProcessCombos(TimingData&,
 					   const std::string& line,
 					   const int = -1) override;
 	static void ProcessScrolls(TimingData&,
 							   const std::string sParam,
-							   const string& songName);
+							   const std::string& songName);
 };
 
 #endif

@@ -24,7 +24,7 @@ WindowsDialogBox::DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 		SetProp(hDlg, "WindowsDialogBox", (HANDLE)lParam);
 
 	WindowsDialogBox* pThis =
-	  (WindowsDialogBox*)GetProp(hDlg, "WindowsDialogBox");
+	  static_cast<WindowsDialogBox*>(GetProp(hDlg, "WindowsDialogBox"));
 	if (pThis == NULL)
 		return FALSE;
 

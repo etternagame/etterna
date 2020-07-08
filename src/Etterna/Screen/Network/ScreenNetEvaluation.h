@@ -1,5 +1,3 @@
-#include "Etterna/Actor/Base/BitmapText.h"
-#include "Etterna/Actor/Base/Quad.h"
 #include "Etterna/Screen/Others/ScreenEvaluation.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
 #include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
@@ -19,7 +17,7 @@ class ScreenNetEvaluation : public ScreenEvaluation
 	void UpdateStats();
 
   protected:
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void TweenOffScreen() override;
 
   private:

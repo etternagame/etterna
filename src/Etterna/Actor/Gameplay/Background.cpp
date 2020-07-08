@@ -20,8 +20,13 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <deque>
+#include <algorithm>
+
+using std::deque;
+using std::map;
 
 static ThemeMetric<float> LEFT_EDGE("Background", "LeftEdge");
 static ThemeMetric<float> TOP_EDGE("Background", "TopEdge");
@@ -468,8 +473,9 @@ BackgroundImpl::LoadFromRandom(float fFirstBeat,
 		auto iSegmentEndRow =
 		  (i + 1 == tSigs.size()) ? iEndRow : tSigs[i + 1]->GetRow();
 
-		auto time_signature_start = max(ts->GetRow(), iStartRow);
-		for (auto j = time_signature_start; j < min(iEndRow, iSegmentEndRow);
+		auto time_signature_start = std::max(ts->GetRow(), iStartRow);
+		for (auto j = time_signature_start;
+			 j < std::min(iEndRow, iSegmentEndRow);
 			 j += static_cast<int>(RAND_BG_CHANGE_MEASURES *
 								   ts->GetNoteRowsPerMeasure())) {
 			// Don't fade. It causes frame rate dip, especially on slower
@@ -557,8 +563,8 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 		// Pick the same random items every time the song is played.
 		RandomGen rnd(GetHashForString(pSong->GetSongDir()));
 		std::shuffle(vsNames.begin(), vsNames.end(), rnd);
-		auto iSize = min(static_cast<int>(g_iNumBackgrounds),
-						 static_cast<int>(vsNames.size()));
+		auto iSize = std::min(static_cast<int>(g_iNumBackgrounds),
+							  static_cast<int>(vsNames.size()));
 		vsNames.resize(iSize);
 
 		for (auto& s : vsNames) {
@@ -831,7 +837,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 	}
 
 	/* This is unaffected by the music rate. */
-	const auto fDeltaTimeNoMusicRate = max(fDeltaTime / fRate, 0);
+	const auto fDeltaTimeNoMusicRate = std::max(fDeltaTime / fRate, 0.F);
 
 	if (m_pCurrentBGA != nullptr)
 		m_pCurrentBGA->Update(fDeltaTimeNoMusicRate);

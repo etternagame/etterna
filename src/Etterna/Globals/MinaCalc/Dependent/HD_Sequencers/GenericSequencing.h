@@ -255,7 +255,8 @@ struct AnchorSequencer
 
 	auto get_lowest_anchor_ms() -> float
 	{
-		return min(anch.at(col_left).get_ms(), anch.at(col_right).get_ms());
+		return std::min(anch.at(col_left).get_ms(),
+						anch.at(col_right).get_ms());
 	}
 };
 

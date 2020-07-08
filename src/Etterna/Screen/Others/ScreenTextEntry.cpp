@@ -15,6 +15,9 @@
 #include "Etterna/Singletons/InputFilter.h"
 #include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
 
+#include <algorithm>
+#include <utility>
+
 static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] = {
 	{ "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M" },
 	{ "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" },
@@ -65,7 +68,7 @@ LuaReference g_FormatAnswerForDisplayFunc;
 static bool
 ValidateFromLua(const std::string& sAnswer,
 				std::string& sErrorOut,
-				LuaReference func)
+				const LuaReference& func)
 {
 
 	if (func.IsNil() || !func.IsSet()) {
@@ -108,7 +111,7 @@ ValidateFromLua(const std::string& sAnswer, std::string& sErrorOut)
 }
 
 static void
-OnOKFromLua(const std::string& sAnswer, LuaReference func)
+OnOKFromLua(const std::string& sAnswer, const LuaReference& func)
 {
 	if (func.IsNil() || !func.IsSet()) {
 		return;
@@ -131,7 +134,7 @@ OnOKFromLua(const std::string& sAnswer)
 }
 
 static void
-OnCancelFromLua(LuaReference func)
+OnCancelFromLua(const LuaReference& func)
 {
 	if (func.IsNil() || !func.IsSet()) {
 		return;
@@ -154,7 +157,7 @@ OnCancelFromLua()
 static bool
 ValidateAppendFromLua(const std::string& sAnswerBeforeChar,
 					  const std::string& sAppend,
-					  LuaReference func)
+					  const LuaReference& func)
 {
 	if (func.IsNil() || !func.IsSet()) {
 		return true;
@@ -194,7 +197,8 @@ ValidateAppendFromLua(const std::string& sAnswerBeforeChar,
 }
 
 static std::string
-FormatAnswerForDisplayFromLua(const std::string& sAnswer, LuaReference func)
+FormatAnswerForDisplayFromLua(const std::string& sAnswer,
+							  const LuaReference& func)
 {
 	if (func.IsNil() || !func.IsSet()) {
 		return sAnswer;
@@ -239,8 +243,8 @@ ScreenTextEntry::SetTextEntrySettings(
 						 const std::string& sAppend),
   std::string (*FormatAnswerForDisplay)(const std::string& sAnswer))
 {
-	g_sQuestion = sQuestion;
-	g_sInitialAnswer = sInitialAnswer;
+	g_sQuestion = std::move(sQuestion);
+	g_sInitialAnswer = std::move(sInitialAnswer);
 	g_iMaxInputLength = iMaxInputLength;
 	g_pValidate = Validate;
 	g_pOnOK = OnOK;
@@ -255,11 +259,11 @@ ScreenTextEntry::SetTextEntrySettings(
   std::string question,
   std::string initialAnswer,
   int maxInputLength,
-  LuaReference validateFunc,
-  LuaReference onOKFunc,
-  LuaReference onCancelFunc,
-  LuaReference validateAppendFunc,
-  LuaReference formatAnswerForDisplayFunc,
+  const LuaReference& validateFunc,
+  const LuaReference& onOKFunc,
+  const LuaReference& onCancelFunc,
+  const LuaReference& validateAppendFunc,
+  const LuaReference& formatAnswerForDisplayFunc,
   bool (*Validate)(const std::string& sAnswer, std::string& sErrorOut),
   void (*OnOK)(const std::string& sAnswer),
   void (*OnCancel)(),
@@ -268,8 +272,8 @@ ScreenTextEntry::SetTextEntrySettings(
 						 const std::string& sAppend),
   std::string (*FormatAnswerForDisplay)(const std::string& sAnswer))
 {
-	sQuestion = question;
-	sInitialAnswer = initialAnswer;
+	sQuestion = std::move(question);
+	sInitialAnswer = std::move(initialAnswer);
 	iMaxInputLength = maxInputLength;
 	pValidate = Validate;
 	pOnOK = OnOK;
@@ -299,8 +303,8 @@ ScreenTextEntry::TextEntry(
 						 const std::string& sAppend),
   std::string (*FormatAnswerForDisplay)(const std::string& sAnswer))
 {
-	g_sQuestion = sQuestion;
-	g_sInitialAnswer = sInitialAnswer;
+	g_sQuestion = std::move(sQuestion);
+	g_sInitialAnswer = std::move(sInitialAnswer);
 	g_iMaxInputLength = iMaxInputLength;
 	g_pValidate = Validate;
 	g_pOnOK = OnOK;
@@ -309,7 +313,7 @@ ScreenTextEntry::TextEntry(
 	g_pValidateAppend = ValidateAppend;
 	g_pFormatAnswerForDisplay = FormatAnswerForDisplay;
 
-	SCREENMAN->AddNewScreenToTop("ScreenTextEntry", smSendOnPop);
+	SCREENMAN->AddNewScreenToTop("ScreenTextEntry", std::move(smSendOnPop));
 }
 
 static LocalizedString INVALID_FLOAT(
@@ -401,8 +405,8 @@ ScreenTextEntry::UpdateAnswerText()
 	else
 		s = WStringToRString(m_sAnswer);
 
-	bool bAnswerFull =
-	  (int)s.length() >= max(g_iMaxInputLength, iMaxInputLength);
+	bool bAnswerFull = static_cast<int>(s.length()) >=
+					   std::max(g_iMaxInputLength, iMaxInputLength);
 
 	if (!FormatAnswerForDisplayFunc.IsNil() &&
 		FormatAnswerForDisplayFunc.IsSet())
@@ -466,7 +470,7 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 			bHandled = true;
 		} else if (c >= L' ') {
 			// todo: handle caps lock -aj
-			auto str = WStringToRString(wstring() + c);
+			auto str = WStringToRString(std::wstring() + c);
 			TryAppendToAnswer(str);
 
 			TextEnteredDirectly();
@@ -481,9 +485,9 @@ void
 ScreenTextEntry::TryAppendToAnswer(const std::string& s)
 {
 	{
-		wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
-		if ((int)sNewAnswer.length() >
-			max(g_iMaxInputLength, iMaxInputLength)) {
+		std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+		if (static_cast<int>(sNewAnswer.length()) >
+			std::max(g_iMaxInputLength, iMaxInputLength)) {
 			SCREENMAN->PlayInvalidSound();
 			return;
 		}
@@ -503,7 +507,7 @@ ScreenTextEntry::TryAppendToAnswer(const std::string& s)
 		return;
 	}
 
-	wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+	std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
 	m_sAnswer = sNewAnswer;
 	m_sndType.Play(true);
 	UpdateAnswerText();

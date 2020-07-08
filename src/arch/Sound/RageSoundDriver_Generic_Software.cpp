@@ -1,12 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver.h"
-
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Sound/RageSoundMixBuffer.h"
 #include "RageUtil/Sound/RageSoundReader.h"
+
+#include <algorithm>
 
 static const int channels = 2;
 
@@ -105,7 +106,7 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 			const float fSecondsBeforeStart = -s.m_StartTime.Ago();
 			const int64_t iFramesBeforeStart =
 			  int64_t(fSecondsBeforeStart * GetSampleRate());
-			const int iSilentFramesInThisBuffer = clamp(
+			const int iSilentFramesInThisBuffer = std::clamp(
 			  static_cast<int>(iFramesBeforeStart - iFramesUntilThisBuffer),
 			  0,
 			  iFramesLeft);
@@ -137,14 +138,15 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 					continue; // more data
 
 				/* We've used up p[0].  Try p[1]. */
-				swap(p[0], p[1]);
-				swap(pSize[0], pSize[1]);
+				std::swap(p[0], p[1]);
+				std::swap(pSize[0], pSize[1]);
 				continue;
 			}
 
 			/* Note that, until we call advance_read_pointer, we can safely
 			 * write to p[0]. */
-			const int frames_to_read = min(iFramesLeft, p[0]->m_FramesInBuffer);
+			const int frames_to_read =
+			  std::min(iFramesLeft, p[0]->m_FramesInBuffer);
 			mix.SetWriteOffset(iGotFrames * channels);
 			mix.write(p[0]->m_BufferNext, frames_to_read * channels);
 
@@ -506,7 +508,7 @@ RageSoundDriver::~RageSoundDriver()
 		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Info("Mixing %f ahead in %i Mix() calls",
 					  static_cast<float>(g_iTotalAhead) /
-						max(g_iTotalAheadCount, 1),
+						std::max(g_iTotalAheadCount, 1),
 					  g_iTotalAheadCount);
 	}
 }
@@ -531,7 +533,7 @@ RageSoundDriver::ClampHardwareFrame(int64_t iHardwareFrame) const
 		return m_iMaxHardwareFrame;
 	}
 	m_iMaxHardwareFrame = iHardwareFrame =
-	  max(iHardwareFrame, m_iMaxHardwareFrame);
+	  std::max(iHardwareFrame, m_iMaxHardwareFrame);
 	return iHardwareFrame;
 }
 
