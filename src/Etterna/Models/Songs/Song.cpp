@@ -1617,7 +1617,7 @@ Song::GetPreviewStartSeconds() const
 }
 
 const vector<Steps*>
-Song::GetStepsOfCurrentGameMode() const
+Song::GetChartsOfCurrentGameMode() const
 {
 	std::vector<StepsType> types;
 	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
@@ -1636,10 +1636,10 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 	CLAMP(rate, 0.7f, 2.f);
 	auto highest = 0.f;
 
-	const auto steps = GetStepsOfCurrentGameMode();
+	const auto charts = GetChartsOfCurrentGameMode();
 
-	for (auto* step : steps) {
-		const auto current = step->GetMSD(rate, skill);
+	for (auto* chart : charts) {
+		const auto current = chart->GetMSD(rate, skill);
 		if (current > highest)
 			highest = current;
 	}
@@ -1663,9 +1663,9 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 bool
 Song::MatchesFilter(const float rate) const
 {
-	auto steps = GetStepsOfCurrentGameMode();
+	auto charts = GetChartsOfCurrentGameMode();
 
-	for (auto* const step : steps) {
+	for (auto* const chart : charts) {
 		// Iterate over all maps of the given type
 		auto addsong = FILTERMAN->ExclusiveFilter;
 		/* The default behaviour of an exclusive filter is to accept
@@ -1691,11 +1691,11 @@ Song::MatchesFilter(const float rate) const
 				}
 				float val;
 				if (ss < NUM_Skillset)
-					val = step->GetMSD(rate, ss);
+					val = chart->GetMSD(rate, ss);
 				else {
 					// If we are on the placeholder skillset, look at song
 					// length instead of a skill
-					auto* td = step->GetTimingData();
+					auto* td = chart->GetTimingData();
 					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
 						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
 						  rate;

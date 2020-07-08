@@ -469,7 +469,7 @@ class Song
 		return m_vpStepsByType[st];
 	}
 	/** @brief Get the steps of all types within the current game mode */
-	const std::vector<Steps*> GetStepsOfCurrentGameMode() const;
+	const std::vector<Steps*> GetChartsOfCurrentGameMode() const;
 	bool HasEdits(StepsType st) const;
 
 	auto IsFavorited() -> bool { return isfavorited; }
