@@ -813,7 +813,7 @@ MusicWheel::BuildWheelItemDatas(
 				SongUtil::SortSongPointerArrayByBPM(arraySongs);
 				break;
 			case SORT_TOP_GRADES:
-				SongUtil::SortSongPointerArrayByGrades(arraySongs, true);
+				SongUtil::SortSongPointerArrayByWifeScore(arraySongs);
 				break;
 			case SORT_ARTIST:
 				SongUtil::SortSongPointerArrayByArtist(arraySongs);
@@ -887,11 +887,9 @@ MusicWheel::BuildWheelItemDatas(
 			 * sort. */
 			switch (so) {
 				case SORT_FAVORITES:
+				case SORT_TOP_GRADES:
 				case SORT_BPM:
 					break; // don't sort by section
-				case SORT_TOP_GRADES:
-					SongUtil::SortSongPointerArrayByWifeScore(arraySongs, so);
-					break;
 				default:
 					SongUtil::SortSongPointerArrayBySectionName(arraySongs, so);
 					break;

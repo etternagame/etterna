@@ -134,6 +134,7 @@ class ScoreManager
 		if (KeyHasScores(ck, profileID)) {
 			return pscores.at(profileID).at(ck).bestGrade;
 		}
+
 		return Grade_Invalid;
 	}
 
@@ -145,7 +146,8 @@ class ScoreManager
 		if (KeyHasScores(ck, profileID)) {
 			return pscores.at(profileID).at(ck).bestWifeScore;
 		}
-		return Grade_Invalid;
+
+		return 0.F;
 	}
 
 	// for scores achieved during this session
@@ -173,7 +175,7 @@ class ScoreManager
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	void RecalculateSSRs(LoadingWindow* ld, const std::string& profileID);
+	void RecalculateSSRs(LoadingWindow* ld);
 	void RecalculateSSRs(const std::string& profileID);
 	void UnInvalidateAllScores(const string& profileID);
 	void CalcPlayerRating(float& prating,

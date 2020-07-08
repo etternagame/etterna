@@ -164,18 +164,14 @@ Profile::SetDefaultModifiers(const Game* pGameType,
 }
 
 auto
-Profile::GetBestGrade(const Song* pSong, StepsType st) const -> Grade
+Profile::GetBestGrade(const Song* song, const StepsType st) const -> Grade
 {
 	auto gradeBest = Grade_Invalid;
-	if (pSong != nullptr) {
-		auto hasCurrentStyleSteps = false;
-		FOREACH_ENUM_N(Difficulty, 6, i)
-		{
-			auto* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
-			if (pSteps != nullptr) {
-				hasCurrentStyleSteps = true;
+	if (song != nullptr) {
+		for (const auto& s : song->GetAllSteps()) {
+			if (s != nullptr && s->m_StepsType == st) {
 				const auto dcg =
-				  SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+				  SCOREMAN->GetBestGradeFor(s->GetChartKey(), m_sProfileID);
 				if (gradeBest >= dcg) {
 					gradeBest = dcg;
 				}
@@ -187,19 +183,15 @@ Profile::GetBestGrade(const Song* pSong, StepsType st) const -> Grade
 }
 
 auto
-Profile::GetBestWifeScore(const Song* pSong, StepsType st) const -> float
+Profile::GetBestWifeScore(const Song* song, const StepsType st) const -> float
 {
 	auto scorebest = 0.F;
-	if (pSong != nullptr) {
-		auto hasCurrentStyleSteps = false;
-		FOREACH_ENUM_N(Difficulty, 6, i)
-		{
-			auto* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
-			if (pSteps != nullptr) {
-				hasCurrentStyleSteps = true;
+	if (song != nullptr) {
+		for (const auto& s : song->GetAllSteps()) {
+			if (s != nullptr && s->m_StepsType == st) {
 				const auto wsb =
-				  SCOREMAN->GetBestWifeScoreFor(pSteps->GetChartKey());
-				if (scorebest >= wsb) {
+				  SCOREMAN->GetBestWifeScoreFor(s->GetChartKey(), m_sProfileID);
+				if (wsb >= scorebest) {
 					scorebest = wsb;
 				}
 			}
@@ -393,7 +385,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
+	SCOREMAN->RecalculateSSRs(ld);
 	SCOREMAN->CalcPlayerRating(
 	  m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 }

@@ -276,8 +276,8 @@ class Profile
 	LuaTable m_UserTable;
 
 	// this actually does use scoreman atm
-	auto GetBestGrade(const Song* pSong, StepsType st) const -> Grade;
-	auto GetBestWifeScore(const Song* pSong, StepsType st) const -> float;
+	auto GetBestGrade(const Song* song, StepsType st) const -> Grade;
+	auto GetBestWifeScore(const Song* song, StepsType st) const -> float;
 
 	// Screenshot Data
 	std::vector<Screenshot> m_vScreenshots;

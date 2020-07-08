@@ -468,67 +468,29 @@ AppendOctal(int n, int digits, std::string& out)
 	}
 }
 
-static bool
-CompDescending(const pair<Song*, int>& a, const pair<Song*, int>& b)
+static auto
+get_best_wife_score_for_song_and_profile(const Song* song, const Profile* p)
+  -> float
 {
-	return a.second < b.second;
+	assert(p != nullptr);
+	return p->GetBestWifeScore(
+	  song,
+	  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
+		->m_StepsType);
 }
 
-static bool
-CompAscending(const pair<Song*, int>& a, const pair<Song*, int>& b)
+static int
+CompareSongPointersByBestWifeScore(const Song* a, const Song* b)
 {
-	return a.second > b.second;
+	const auto* p = PROFILEMAN->GetProfile(PLAYER_1);
+	return get_best_wife_score_for_song_and_profile(a, p) >
+		   get_best_wife_score_for_song_and_profile(b, p);
 }
 
 void
-SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
-									   bool bDescending)
+SongUtil::SortSongPointerArrayByWifeScore(vector<Song*>& v)
 {
-	typedef pair<Song*, int> val;
-	vector<val> vals;
-	vals.reserve(vpSongsInOut.size());
-	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-	for (auto* pSong : vpSongsInOut) {
-		ASSERT(pProfile != nullptr);
-		auto g = static_cast<int>(pProfile->GetBestGrade(
-		  pSong,
-		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-			->m_StepsType));
-		vals.emplace_back(val(pSong, g));
-	}
-
-	sort(
-	  vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
-
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		vpSongsInOut[i] = vals[i].first;
-}
-
-// do not know why this doesn't work
-void
-SongUtil::SortSongPointerArrayByWifeScore(vector<Song*>& vpSongsInOut,
-										  bool bDescending)
-{
-	typedef pair<Song*, float> val;
-	vector<val> vals;
-	vals.reserve(vpSongsInOut.size());
-	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-	for (auto* pSong : vpSongsInOut) {
-		ASSERT(pProfile != nullptr);
-		auto g = static_cast<int>(pProfile->GetBestWifeScore(
-		  pSong,
-		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-			->m_StepsType));
-		vals.emplace_back(val(pSong, g));
-	}
-
-	sort(
-	  vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
-
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		vpSongsInOut[i] = vals[i].first;
+	sort(v.begin(), v.end(), CompareSongPointersByBestWifeScore);
 }
 
 void
