@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <array>
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
@@ -20,7 +19,7 @@ struct BalanceMod
 	float scaler = 1.F;
 	float other_scaler = 4.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
 		{ "mod_base", &mod_base }, { "buffer", &buffer },
 		{ "scaler", &scaler },	   { "other_scaler", &other_scaler },
@@ -29,9 +28,9 @@ struct BalanceMod
 
 	float pmod = neutral;
 
-	inline void full_reset() { pmod = neutral; }
+	void full_reset() { pmod = neutral; }
 
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		// nothing here
 		if (itvhi.get_taps_nowi() == 0) {

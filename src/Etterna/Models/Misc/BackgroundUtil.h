@@ -19,14 +19,14 @@ struct BackgroundDef
 {
 	bool operator<(const BackgroundDef& other) const;
 	bool operator==(const BackgroundDef& other) const;
-	bool IsEmpty() const { return m_sFile1.empty() && m_sFile2.empty(); }
+	[[nodiscard]] bool IsEmpty() const { return m_sFile1.empty() && m_sFile2.empty(); }
 	std::string m_sEffect; // "" == automatically choose
 	std::string m_sFile1;  // must not be ""
 	std::string m_sFile2;  // may be ""
 	std::string m_sColor1; // "" == use default
 	std::string m_sColor2; // "" == use default
 
-	XNode* CreateNode() const;
+	[[nodiscard]] XNode* CreateNode() const;
 
 	/** @brief Set up the BackgroundDef with default values. */
 	BackgroundDef()
@@ -81,12 +81,12 @@ struct BackgroundChange
 	float m_fRate{ 1 };
 	std::string m_sTransition;
 
-	std::string GetTextDescription() const;
+	[[nodiscard]] std::string GetTextDescription() const;
 
 	/**
 	 * @brief Get the string representation of the change.
 	 * @return the string representation. */
-	std::string ToString() const;
+	[[nodiscard]] std::string ToString() const;
 };
 /** @brief Shared background-related routines. */
 namespace BackgroundUtil {

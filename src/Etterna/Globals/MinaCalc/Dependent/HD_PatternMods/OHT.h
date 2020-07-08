@@ -31,7 +31,7 @@ struct OHTrillMod
 	float cv_reset = 1.F;
 	float cv_threshhold = 0.5F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
@@ -74,7 +74,7 @@ struct OHTrillMod
 
 #pragma region generic functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		badjuju.zero();
 
@@ -90,7 +90,7 @@ struct OHTrillMod
 		pmod = neutral;
 	}
 
-	inline void setup()
+	void setup()
 	{
 		window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
@@ -100,7 +100,7 @@ struct OHTrillMod
 
 #pragma endregion
 
-	inline auto make_thing(const float& itv_taps) -> float
+	auto make_thing(const float& itv_taps) -> float
 	{
 		hello_my_name_is_goat = 0.F;
 
@@ -120,7 +120,7 @@ struct OHTrillMod
 		return CalcClamp(hello_my_name_is_goat, 0.1F, 1.F);
 	}
 
-	inline void complete_seq()
+	void complete_seq()
 	{
 		if (!luca_turilli || oht_len == 0) {
 			return;
@@ -136,7 +136,7 @@ struct OHTrillMod
 		moving_cv = (moving_cv + cv_reset) / 2.F;
 	}
 
-	inline auto oht_timing_check(const CalcMovingWindow<float>& ms_any) -> bool
+	auto oht_timing_check(const CalcMovingWindow<float>& ms_any) -> bool
 	{
 		moving_cv = (moving_cv + ms_any.get_cv_of_window(cc_window)) / 2.F;
 		// the primary difference from wrr, just check cv on the base ms values,
@@ -145,7 +145,7 @@ struct OHTrillMod
 		return moving_cv < cv_threshhold;
 	}
 
-	inline void wifflewaffle()
+	void wifflewaffle()
 	{
 		if (luca_turilli) {
 			++oht_len;
@@ -157,8 +157,8 @@ struct OHTrillMod
 		}
 	}
 
-	inline void advance_sequencing(const meta_type& mt,
-								   const CalcMovingWindow<float>& ms_any)
+	void advance_sequencing(const meta_type& mt,
+							const CalcMovingWindow<float>& ms_any)
 	{
 
 		switch (mt) {
@@ -191,7 +191,7 @@ struct OHTrillMod
 		}
 	}
 
-	inline void set_pmod(const ItvHandInfo& itvhi)
+	void set_pmod(const ItvHandInfo& itvhi)
 	{
 
 		// no taps, no trills
@@ -214,7 +214,7 @@ struct OHTrillMod
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		if (oht_len > 0 && found_oht < max_trills_per_interval) {
 			foundyatrills.at(found_oht) = oht_len;
@@ -229,7 +229,7 @@ struct OHTrillMod
 		return pmod;
 	}
 
-	inline void interval_end()
+	void interval_end()
 	{
 		foundyatrills.fill(0);
 		found_oht = 0;

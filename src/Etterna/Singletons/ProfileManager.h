@@ -21,44 +21,48 @@ class ProfileManager
 
 	void Init(LoadingWindow* ld);
 
-	bool FixedProfiles() const; // If true, profiles shouldn't be added/deleted
+	auto FixedProfiles() const
+	  -> bool; // If true, profiles shouldn't be added/deleted
 
 	// local profiles
 	void UnloadAllLocalProfiles();
 	void RefreshLocalProfilesFromDisk();
 	void RefreshLocalProfilesFromDisk(LoadingWindow* ld);
-	const Profile* GetLocalProfile(const RString& sProfileID) const;
-	Profile* GetLocalProfile(const RString& sProfileID)
+	auto GetLocalProfile(const std::string& sProfileID) const -> const Profile*;
+	auto GetLocalProfile(const std::string& sProfileID) -> Profile*
 	{
-		return (Profile*)((const ProfileManager*)this)
-		  ->GetLocalProfile(sProfileID);
+		return const_cast<Profile*>(
+		  static_cast<const ProfileManager*>(this)->GetLocalProfile(
+			sProfileID));
 	}
-	Profile* GetLocalProfileFromIndex(int iIndex);
-	RString GetLocalProfileIDFromIndex(int iIndex);
+	auto GetLocalProfileFromIndex(int iIndex) -> Profile*;
+	auto GetLocalProfileIDFromIndex(int iIndex) -> std::string;
 
-	bool CreateLocalProfile(const RString& sName, RString& sProfileIDOut);
+	auto CreateLocalProfile(const std::string& sName,
+							std::string& sProfileIDOut) -> bool;
 	void AddLocalProfileByID(
 	  Profile* pProfile,
-	  const RString& sProfileID); // transfers ownership of pProfile
-	bool RenameLocalProfile(const RString& sProfileID, const RString& sNewName);
-	bool DeleteLocalProfile(const RString& sProfileID);
-	void GetLocalProfileIDs(vector<RString>& vsProfileIDsOut) const;
+	  const std::string& sProfileID); // transfers ownership of pProfile
+	auto RenameLocalProfile(const std::string& sProfileID,
+							const std::string& sNewName) -> bool;
+	void GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const;
 	void GetLocalProfileDisplayNames(
-	  vector<RString>& vsProfileDisplayNamesOut) const;
-	int GetLocalProfileIndexFromID(const RString& sProfileID) const;
-	int GetNumLocalProfiles() const;
+	  vector<std::string>& vsProfileDisplayNamesOut) const;
+	auto GetLocalProfileIndexFromID(const std::string& sProfileID) const -> int;
+	auto GetNumLocalProfiles() const -> int;
 
-	RString GetStatsPrefix() { return m_stats_prefix; }
-	void SetStatsPrefix(RString const& prefix);
+	auto GetStatsPrefix() -> std::string { return m_stats_prefix; }
+	void SetStatsPrefix(std::string const& prefix);
 
-	bool LoadFirstAvailableProfile(PlayerNumber pn, bool bLoadEdits = true);
-	bool LoadLocalProfileFromMachine(PlayerNumber pn);
-	bool SaveProfile(PlayerNumber pn) const;
-	bool SaveLocalProfile(const RString& sProfileID);
+	auto LoadFirstAvailableProfile(PlayerNumber pn, bool bLoadEdits = true)
+	  -> bool;
+	auto LoadLocalProfileFromMachine(PlayerNumber pn) -> bool;
+	auto SaveProfile(PlayerNumber pn) const -> bool;
+	auto SaveLocalProfile(const std::string& sProfileID) -> bool;
 	void UnloadProfile(PlayerNumber pn);
 
-	void MergeLocalProfiles(RString const& from_id, RString const& to_id);
-	void ChangeProfileType(int index, ProfileType new_type);
+	void MergeLocalProfiles(std::string const& from_id,
+							std::string const& to_id);
 	void MoveProfilePriority(int index, bool up);
 
 	// General data
@@ -72,58 +76,43 @@ class ProfileManager
 					   int iNumHands,
 					   int iNumLifts);
 
-	bool IsPersistentProfile(PlayerNumber pn) const
-	{
-		return !m_sProfileDir.empty();
-	}
-	bool IsPersistentProfile(ProfileSlot slot) const;
-
 	// return a profile even if !IsUsingProfile
-	const Profile* GetProfile(PlayerNumber pn) const;
-	Profile* GetProfile(PlayerNumber pn)
+	auto GetProfile(PlayerNumber pn) const -> const Profile*;
+	auto GetProfile(PlayerNumber pn) -> Profile*
 	{
-		return (Profile*)((const ProfileManager*)this)->GetProfile(pn);
+		return const_cast<Profile*>(
+		  static_cast<const ProfileManager*>(this)->GetProfile(pn));
 	}
-	const Profile* GetProfile(ProfileSlot slot) const;
-	Profile* GetProfile(ProfileSlot slot)
+	auto GetProfile(ProfileSlot slot) const -> const Profile*;
+	auto GetProfile(ProfileSlot slot) -> Profile*
 	{
-		return (Profile*)((const ProfileManager*)this)->GetProfile(slot);
+		return const_cast<Profile*>(
+		  static_cast<const ProfileManager*>(this)->GetProfile(slot));
 	}
 
-	const RString& GetProfileDir(ProfileSlot slot) const;
+	auto GetProfileDir(ProfileSlot slot) const -> const std::string&;
 
-	RString GetPlayerName(PlayerNumber pn) const;
-	bool LastLoadWasTamperedOrCorrupt(PlayerNumber pn) const;
-	bool LastLoadWasFromLastGood(PlayerNumber pn) const;
+	auto GetPlayerName(PlayerNumber pn) const -> std::string;
+	auto LastLoadWasTamperedOrCorrupt(PlayerNumber pn) const -> bool;
+	auto LastLoadWasFromLastGood(PlayerNumber pn) const -> bool;
 
-	// Song stats
-	int GetSongNumTimesPlayed(const Song* pSong, ProfileSlot card) const;
-	bool IsSongNew(const Song* pSong) const
-	{
-		return GetSongNumTimesPlayed(pSong, ProfileSlot_Player1) == 0;
-	}
-	void AddStepsScore(const Song* pSong,
-					   const Steps* pSteps,
-					   PlayerNumber pn,
-					   const HighScore& hs,
-					   int& iPersonalIndexOut,
-					   int& iMachineIndexOut);
 	void IncrementStepsPlayCount(const Song* pSong,
 								 const Steps* pSteps,
 								 PlayerNumber pn);
 	// Lua
 	void PushSelf(lua_State* L);
 
-	static Preference1D<RString> m_sDefaultLocalProfileID;
+	static Preference1D<std::string> m_sDefaultLocalProfileID;
 
   private:
-	ProfileLoadResult LoadProfile(PlayerNumber pn, const RString& sProfileDir);
+	auto LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
+	  -> ProfileLoadResult;
 
 	// Directory that contains the profile.  Either on local machine or
 	// on a memory card.
-	RString m_sProfileDir;
+	std::string m_sProfileDir;
 
-	RString m_stats_prefix;
+	std::string m_stats_prefix;
 	Profile* dummy;
 	bool m_bLastLoadWasTamperedOrCorrupt; // true if Stats.xml was
 										  // present, but failed to

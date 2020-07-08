@@ -11,24 +11,21 @@
 #include "Etterna/Actor/Gameplay/PlayerPractice.h"
 #include "Etterna/Actor/Gameplay/PlayerReplay.h"
 #include "Etterna/Actor/Gameplay/LifeMeter.h"
-
+#include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 
-static ThemeMetric<RString> SCORE_KEEPER_CLASS("ScreenGameplay",
-											   "ScoreKeeperClass");
+static ThemeMetric<std::string> SCORE_KEEPER_CLASS("ScreenGameplay",
+												   "ScoreKeeperClass");
 
 PlayerInfo::PlayerInfo()
   : m_pn(PLAYER_INVALID)
-  , m_SoundEffectControl()
-  , m_vpStepsQueue()
-  , m_pLifeMeter(NULL)
-  , m_ptextStepsDescription(NULL)
-  , m_pPrimaryScoreKeeper(NULL)
-  , m_ptextPlayerOptions(NULL)
-  , m_NoteData()
-  , m_pPlayer(NULL)
-  , m_pStepsDisplay(NULL)
+  , m_pLifeMeter(nullptr)
+  , m_ptextStepsDescription(nullptr)
+  , m_pPrimaryScoreKeeper(nullptr)
+  , m_ptextPlayerOptions(nullptr)
+  , m_pPlayer(nullptr)
+  , m_pStepsDisplay(nullptr)
 {
 }
 
@@ -44,11 +41,11 @@ PlayerInfo::Load(PlayerNumber pn,
 	m_bPlayerEnabled = IsEnabled();
 	m_bIsDummy = false;
 	m_iAddToDifficulty = iAddToDifficulty;
-	m_pLifeMeter = NULL;
-	m_ptextStepsDescription = NULL;
+	m_pLifeMeter = nullptr;
+	m_ptextStepsDescription = nullptr;
 
 	if (!IsMultiPlayer()) {
-		PlayMode mode = GAMESTATE->m_PlayMode;
+		const PlayMode mode = GAMESTATE->m_PlayMode;
 		switch (mode) {
 			case PLAY_MODE_REGULAR:
 				break;
@@ -57,12 +54,12 @@ PlayerInfo::Load(PlayerNumber pn,
 		}
 	}
 
-	PlayerState* const pPlayerState = GetPlayerState();
-	PlayerStageStats* const pPlayerStageStats = GetPlayerStageStats();
+	const auto pPlayerState = GetPlayerState();
+	const auto pPlayerStageStats = GetPlayerStageStats();
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper(
 	  SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats);
 
-	m_ptextPlayerOptions = NULL;
+	m_ptextPlayerOptions = nullptr;
 	if (mode == GameplayMode_Replay) {
 		m_pPlayer = new PlayerReplay(m_NoteData, bShowNoteField);
 	} else if (mode == GameplayMode_Practice) {
@@ -71,7 +68,7 @@ PlayerInfo::Load(PlayerNumber pn,
 		m_pPlayer = new Player(m_NoteData, bShowNoteField);
 	}
 
-	m_pStepsDisplay = NULL;
+	m_pStepsDisplay = nullptr;
 
 	if (IsMultiPlayer()) {
 		pPlayerState->m_PlayerOptions =
@@ -131,9 +128,9 @@ class LunaPlayerInfo : public Luna<PlayerInfo>
 
 	static int GetStepsQueueWrapped(T* p, lua_State* L)
 	{
-		int iIndex = IArg(1);
+		auto iIndex = IArg(1);
 		iIndex %= p->m_vpStepsQueue.size();
-		Steps* pSteps = p->m_vpStepsQueue[iIndex];
+		auto pSteps = p->m_vpStepsQueue[iIndex];
 		pSteps->PushSelf(L);
 		return 1;
 	}

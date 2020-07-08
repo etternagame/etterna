@@ -1,4 +1,3 @@
-
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -13,12 +12,9 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/NoteData/NoteData.h"
 #include "RageUtil/File/RageFileManager.h"
-
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
@@ -50,7 +46,7 @@ static Preference<bool> g_bProfileDataCompress("ProfileDataCompress", false);
 	}
 #define WARN_M(m)                                                              \
 	ShowWarningOrTrace(                                                        \
-	  __FILE__, __LINE__, RString("Error parsing file: ") + (m), true)
+	  __FILE__, __LINE__, std::string("Error parsing file: ") + (m), true)
 #define WARN_AND_RETURN_M(m)                                                   \
 	{                                                                          \
 		WARN_M(m);                                                             \
@@ -81,11 +77,12 @@ XMLProfile::LoadEttFromDir(string dir)
 {
 	profiledir = dir + PROFILEMAN->GetStatsPrefix();
 	loadingProfile->IsEtternaProfile = true;
-	string fn = profiledir.append(ETT_XML);
+	const auto fn = profiledir.append(ETT_XML);
 
 	int iError;
-	unique_ptr<RageFileBasic> pFile(FILEMAN->Open(fn, RageFile::READ, iError));
-	if (pFile.get() == NULL) {
+	const std::unique_ptr<RageFileBasic> pFile(
+	  FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile.get() == nullptr) {
 		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
 	}
@@ -105,11 +102,11 @@ bool
 XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 {
 	LOG->Trace("Saving Etterna Profile to: %s", sDir.c_str());
-	unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
-	string pDir = sDir + PROFILEMAN->GetStatsPrefix();
+	const std::unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
+	auto pDir = sDir + PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
-	string fn = pDir.append(ETT_XML);
-	string fngz = pDir.append(ETT_XML_GZ);
+	const auto fn = pDir.append(ETT_XML);
+	const auto fngz = pDir.append(ETT_XML_GZ);
 	{
 		string sError;
 		RageFile f;
@@ -151,9 +148,11 @@ XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Saving the favorites node.");
 
-	XNode* favs = new XNode("Favorites");
-	FOREACHS_CONST(string, profile->FavoritedCharts, it)
-	favs->AppendChild(*it);
+	auto favs = new XNode("Favorites");
+	for (auto& it : profile->FavoritedCharts) {
+		favs->AppendChild(it);
+	}
+
 	return favs;
 }
 
@@ -162,21 +161,22 @@ XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Saving the permamirror node.");
 
-	XNode* pmir = new XNode("PermaMirror");
-	FOREACHS_CONST(string, profile->PermaMirrorCharts, it)
-	pmir->AppendChild(*it);
+	auto pmir = new XNode("PermaMirror");
+	for (auto& it : profile->PermaMirrorCharts) {
+		pmir->AppendChild(it);
+	}
 	return pmir;
 }
 
 XNode*
 GoalsForChart::CreateNode() const
 {
-	XNode* cg = new XNode("GoalsForChart");
+	auto cg = new XNode("GoalsForChart");
 
 	if (!goals.empty()) {
 		cg->AppendAttr("Key", goals[0].chartkey);
-		FOREACH_CONST(ScoreGoal, goals, sg)
-		cg->AppendChild(sg->CreateNode());
+		for (auto& sg : goals)
+			cg->AppendChild(sg.CreateNode());
 	}
 	return cg;
 }
@@ -186,10 +186,9 @@ XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Saving the scoregoals node.");
 
-	XNode* goals = new XNode("ScoreGoals");
-	FOREACHUM_CONST(string, GoalsForChart, profile->goalmap, i)
-	{
-		const GoalsForChart& cg = i->second;
+	auto goals = new XNode("ScoreGoals");
+	for (auto& i : profile->goalmap) {
+		const auto& cg = i.second;
 		goals->AppendChild(cg.CreateNode());
 	}
 	return goals;
@@ -200,11 +199,12 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Saving the playlists node.");
 
-	XNode* playlists = new XNode("Playlists");
-	auto& pls = profile->allplaylists;
-	FOREACHM_CONST(string, Playlist, pls, i)
-	if (i->first != "" && i->first != "Favorites")
-		playlists->AppendChild(i->second.CreateNode());
+	auto playlists = new XNode("Playlists");
+	const auto& pls = profile->allplaylists;
+	for (auto& i : pls) {
+		if (!i.first.empty() && i.first != "Favorites")
+			playlists->AppendChild(i.second.CreateNode());
+	}
 	return playlists;
 }
 
@@ -283,20 +283,20 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 {
 	CHECKPOINT_M("Saving the general node.");
 
-	XNode* pGeneralDataNode = new XNode("GeneralData");
+	auto pGeneralDataNode = new XNode("GeneralData");
 
-	// TRICKY: These are write-only elements that are normally never read again.
-	// This data is required by other apps (like internet ranking), but is
-	// redundant to the game app.
+	// TRICKY: These are write-only elements that are normally never read
+	// again. This data is required by other apps (like internet ranking),
+	// but is redundant to the game app.
 	pGeneralDataNode->AppendChild("DisplayName",
 								  profile->GetDisplayNameOrHighScoreName());
 	pGeneralDataNode->AppendChild("Guid", profile->m_sGuid);
 	pGeneralDataNode->AppendChild("SortOrder",
 								  SortOrderToString(profile->m_SortOrder));
 
-	if (profile->m_LastDifficulty <
-		0) // force set difficulty to current steps if this is somehow -1 for
-		   // ??? reasons -mina
+	if (profile->m_LastDifficulty < 0) // force set difficulty to current
+									   // steps if this is somehow -1 for
+									   // ??? reasons -mina
 		pGeneralDataNode->AppendChild(
 		  "LastDifficulty",
 		  DifficultyToString(GAMESTATE->m_pCurSteps->GetDifficulty()));
@@ -335,14 +335,15 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	// copying and pasting in this code.
 
 	{
-		XNode* pDefaultModifiers =
+		auto pDefaultModifiers =
 		  pGeneralDataNode->AppendChild("DefaultModifiers");
-		FOREACHM_CONST(RString, RString, profile->m_sDefaultModifiers, it)
-		pDefaultModifiers->AppendChild(it->first, it->second);
+		for (const auto& it : profile->m_sDefaultModifiers) {
+			pDefaultModifiers->AppendChild(it.first, it.second);
+		}
 	}
 
 	{
-		XNode* pPlayerSkillsets =
+		auto pPlayerSkillsets =
 		  pGeneralDataNode->AppendChild("PlayerSkillsets");
 		FOREACH_ENUM(Skillset, ss)
 		pPlayerSkillsets->AppendChild(SkillsetToString(ss),
@@ -353,7 +354,7 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 								  profile->m_iNumTotalSongsPlayed);
 
 	{
-		XNode* pNumStagesPassedByPlayMode =
+		auto pNumStagesPassedByPlayMode =
 		  pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
 		FOREACH_ENUM(PlayMode, pm)
 		{
@@ -367,9 +368,9 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 
 	// Load Lua UserTable from profile
 	if (profile->m_UserTable.IsSet()) {
-		Lua* L = LUA->Get();
+		auto L = LUA->Get();
 		profile->m_UserTable.PushSelf(L);
-		XNode* pUserTable = XmlFileUtil::XNodeFromTable(L);
+		auto pUserTable = XmlFileUtil::XNodeFromTable(L);
 		LUA->Release(L);
 
 		// XXX: XNodeFromTable returns a root node with the name "Layer".
@@ -383,10 +384,10 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 void
 XMLProfile::MoveBackupToDir(string sFromDir, string sToDir)
 {
-	string frompath = sFromDir.append(ETT_XML);
-	string fromsig = frompath.append(SIGNATURE_APPEND);
-	string topath = sToDir.append(ETT_XML);
-	string tosig = topath.append(SIGNATURE_APPEND);
+	auto frompath = sFromDir.append(ETT_XML);
+	const auto fromsig = frompath.append(SIGNATURE_APPEND);
+	auto topath = sToDir.append(ETT_XML);
+	const auto tosig = topath.append(SIGNATURE_APPEND);
 	if (FILEMAN->IsAFile(frompath) && FILEMAN->IsAFile(fromsig)) {
 		FILEMAN->Move(frompath, topath);
 		FILEMAN->Move(fromsig, tosig);
@@ -437,7 +438,7 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 	pNode->GetChildValue("PlayerRating", loadingProfile->m_fPlayerRating);
 
 	{
-		const XNode* pDefaultModifiers = pNode->GetChild("DefaultModifiers");
+		auto pDefaultModifiers = pNode->GetChild("DefaultModifiers");
 		if (pDefaultModifiers) {
 			FOREACH_CONST_Child(pDefaultModifiers, game_type)
 			{
@@ -448,7 +449,7 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 	}
 
 	{
-		const XNode* pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
+		auto pPlayerSkillsets = pNode->GetChild("PlayerSkillsets");
 		if (pPlayerSkillsets) {
 			FOREACH_ENUM(Skillset, ss)
 			pPlayerSkillsets->GetChildValue(
@@ -456,9 +457,9 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 		}
 	}
 
-	const XNode* pUserTable = pNode->GetChild("UserTable");
+	auto pUserTable = pNode->GetChild("UserTable");
 
-	Lua* L = LUA->Get();
+	auto L = LUA->Get();
 
 	// If we have custom data, load it. Otherwise, make a blank table.
 	if (pUserTable)
@@ -477,7 +478,7 @@ XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const
 
 	ASSERT(profile != NULL);
 	SCOREMAN->SetAllTopScores(profile->m_sProfileID);
-	XNode* pNode = SCOREMAN->CreateNode(profile->m_sProfileID);
+	auto pNode = SCOREMAN->CreateNode(profile->m_sProfileID);
 	return pNode;
 }
 
@@ -496,9 +497,6 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
-		if (pScreenshot->GetName() != "Screenshot")
-			WARN_AND_CONTINUE_M(pScreenshot->GetName().c_str());
-
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
 
@@ -513,11 +511,10 @@ XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 
 	ASSERT(profile != NULL);
 
-	XNode* pNode = new XNode("ScreenshotData");
+	auto pNode = new XNode("ScreenshotData");
 
-	FOREACH_CONST(Screenshot, profile->m_vScreenshots, ss)
-	{
-		pNode->AppendChild(ss->CreateNode());
+	for (const auto& ss : profile->m_vScreenshots) {
+		pNode->AppendChild(ss.CreateNode());
 	}
 
 	return pNode;
@@ -532,31 +529,30 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 		return ProfileLoadResult_FailedNoProfile;
 
 	if (xml->GetName() != "Stats") {
-		WARN_M(xml->GetName().c_str());
 		return ProfileLoadResult_FailedTampered;
 	}
 
-	const XNode* gen = xml->GetChild("GeneralData");
+	auto gen = xml->GetChild("GeneralData");
 	if (gen)
 		LoadEttGeneralDataFromNode(gen);
 
-	const XNode* favs = xml->GetChild("Favorites");
+	auto favs = xml->GetChild("Favorites");
 	if (favs)
 		LoadFavoritesFromNode(favs);
 
-	const XNode* pmir = xml->GetChild("PermaMirror");
+	auto pmir = xml->GetChild("PermaMirror");
 	if (pmir)
 		LoadPermaMirrorFromNode(pmir);
 
-	const XNode* goals = xml->GetChild("ScoreGoals");
+	auto goals = xml->GetChild("ScoreGoals");
 	if (goals)
 		LoadScoreGoalsFromNode(goals);
 
-	const XNode* play = xml->GetChild("Playlists");
+	auto play = xml->GetChild("Playlists");
 	if (play)
 		LoadPlaylistsFromNode(play);
 
-	const XNode* scores = xml->GetChild("PlayerScores");
+	auto scores = xml->GetChild("PlayerScores");
 	if (scores)
 		LoadEttScoresFromNode(scores);
 
@@ -566,7 +562,7 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 XNode*
 XMLProfile::SaveEttXmlCreateNode(const Profile* profile) const
 {
-	XNode* xml = new XNode("Stats");
+	auto xml = new XNode("Stats");
 	xml->AppendChild(SaveEttGeneralDataCreateNode(profile));
 
 	if (!profile->FavoritedCharts.empty())

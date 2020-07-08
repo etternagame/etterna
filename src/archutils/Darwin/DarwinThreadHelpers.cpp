@@ -5,6 +5,8 @@
 #include "archutils/Unix/Backtrace.h"
 #include <Etterna/Globals/global.h>
 
+#include <cmath>
+
 
 bool
 SuspendThread(uint64_t threadHandle)
@@ -62,7 +64,7 @@ GetThreadBacktraceContext(uint64_t iID, BacktraceContext* ctx)
 #endif
 }
 
-RString
+std::string
 SetThreadPrecedence(float prec)
 {
 	// Real values are between 0 and 63.
@@ -75,7 +77,7 @@ SetThreadPrecedence(float prec)
 
 	if (ret != KERN_SUCCESS)
 		return mach_error_string(ret);
-	return RString();
+	return std::string();
 }
 
 /*

@@ -14,7 +14,7 @@ class ScreenSelect : public ScreenWithMenuElements
 
 	void Update(float fDelta) override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 
 	bool MenuBack(const InputEventPlus& input) override;
@@ -30,7 +30,7 @@ class ScreenSelect : public ScreenWithMenuElements
 	 * Derived classes should look here for the choices. */
 	vector<GameCommand> m_aGameCommands;
 
-	vector<RString> m_asSubscribedMessages;
+	vector<std::string> m_asSubscribedMessages;
 
 	/** @brief Count up to the time between idle comment announcer sounds. */
 	RageTimer m_timerIdleComment;

@@ -1,4 +1,4 @@
-﻿#ifndef FOREGROUND_H
+#ifndef FOREGROUND_H
 #define FOREGROUND_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
@@ -26,7 +26,7 @@ class Foreground : public ActorFrame
 	};
 
 	vector<LoadedBGA> m_BGAnimations;
-	float m_fLastMusicSeconds;
+	float m_fLastMusicSeconds = 0.F;
 	const Song* m_pSong;
 };
 

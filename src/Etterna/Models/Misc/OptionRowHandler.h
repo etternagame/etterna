@@ -3,7 +3,7 @@
 
 #include "GameCommand.h"
 #include "Etterna/Models/Lua/LuaReference.h"
-#include "RageUtil/Utils/RageUtil.h"
+
 #include <set>
 
 struct MenuRowDef;
@@ -19,10 +19,10 @@ enum SelectType
 	NUM_SelectType,
 	SelectType_Invalid
 };
-const RString&
+const std::string&
 SelectTypeToString(SelectType pm);
 SelectType
-StringToSelectType(const RString& s);
+StringToSelectType(const std::string& s);
 LuaDeclareType(SelectType);
 /** @brief How many items are shown on the row? */
 enum LayoutType
@@ -32,10 +32,10 @@ enum LayoutType
 	NUM_LayoutType,
 	LayoutType_Invalid
 };
-const RString&
+const std::string&
 LayoutTypeToString(LayoutType pm);
 LayoutType
-StringToLayoutType(const RString& s);
+StringToLayoutType(const std::string& s);
 LuaDeclareType(LayoutType);
 
 enum ReloadChanged
@@ -46,26 +46,26 @@ enum ReloadChanged
 	NUM_ReloadChanged,
 	ReloadChanged_Invalid
 };
-const RString&
+const std::string&
 ReloadChangedToString(ReloadChanged rc);
 ReloadChanged
-StringToReloadChanged(const RString& s);
+StringToReloadChanged(const std::string& s);
 LuaDeclareType(ReloadChanged);
 
 /** @brief Define the purpose of the OptionRow. */
 struct OptionRowDefinition
 {
 	/** @brief the name of the option row. */
-	RString m_sName;
+	std::string m_sName;
 	/** @brief an explanation of the row's purpose. */
-	RString m_sExplanationName;
+	std::string m_sExplanationName;
 	/** @brief Do all players have to share one option from the row? */
 	bool m_bOneChoiceForAllPlayers{ false };
 	SelectType m_selectType{ SELECT_ONE };
 	LayoutType m_layoutType{ LAYOUT_SHOW_ALL_IN_ROW };
-	vector<RString> m_vsChoices;
-	set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
-											// change focus to this row
+	vector<std::string> m_vsChoices;
+	std::set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
+												 // change focus to this row
 	int m_iDefault{ -1 };
 	bool m_bExportOnChange{ false };
 	/**
@@ -92,7 +92,7 @@ struct OptionRowDefinition
 	 * @brief Is this option enabled for the Player?
 	 * @param pn the Player the PlayerNumber represents.
 	 * @return true if the option is enabled, false otherwise. */
-	bool IsEnabledForPlayer(PlayerNumber pn) const
+	[[nodiscard]] bool IsEnabledForPlayer(PlayerNumber pn) const
 	{
 		return m_vEnabledForPlayers.find(pn) != m_vEnabledForPlayers.end();
 	}
@@ -100,8 +100,6 @@ struct OptionRowDefinition
 	OptionRowDefinition()
 	  : m_sName("")
 	  , m_sExplanationName("")
-	  , m_vsChoices()
-	  , m_vEnabledForPlayers()
 
 	{
 		m_vEnabledForPlayers.insert(PLAYER_1);
@@ -126,31 +124,29 @@ struct OptionRowDefinition
 
 	OptionRowDefinition(const char* n,
 						bool b,
-						const char* c0 = NULL,
-						const char* c1 = NULL,
-						const char* c2 = NULL,
-						const char* c3 = NULL,
-						const char* c4 = NULL,
-						const char* c5 = NULL,
-						const char* c6 = NULL,
-						const char* c7 = NULL,
-						const char* c8 = NULL,
-						const char* c9 = NULL,
-						const char* c10 = NULL,
-						const char* c11 = NULL,
-						const char* c12 = NULL,
-						const char* c13 = NULL,
-						const char* c14 = NULL,
-						const char* c15 = NULL,
-						const char* c16 = NULL,
-						const char* c17 = NULL,
-						const char* c18 = NULL,
-						const char* c19 = NULL)
+						const char* c0 = nullptr,
+						const char* c1 = nullptr,
+						const char* c2 = nullptr,
+						const char* c3 = nullptr,
+						const char* c4 = nullptr,
+						const char* c5 = nullptr,
+						const char* c6 = nullptr,
+						const char* c7 = nullptr,
+						const char* c8 = nullptr,
+						const char* c9 = nullptr,
+						const char* c10 = nullptr,
+						const char* c11 = nullptr,
+						const char* c12 = nullptr,
+						const char* c13 = nullptr,
+						const char* c14 = nullptr,
+						const char* c15 = nullptr,
+						const char* c16 = nullptr,
+						const char* c17 = nullptr,
+						const char* c18 = nullptr,
+						const char* c19 = nullptr)
 	  : m_sName(n)
 	  , m_sExplanationName("")
 	  , m_bOneChoiceForAllPlayers(b)
-	  , m_vsChoices()
-	  , m_vEnabledForPlayers()
 
 	{
 		m_vEnabledForPlayers.insert(PLAYER_1);
@@ -187,14 +183,10 @@ class OptionRowHandler
 {
   public:
 	OptionRowDefinition m_Def;
-	vector<RString>
+	std::vector<std::string>
 	  m_vsReloadRowMessages; // refresh this row on on these messages
 
-	OptionRowHandler()
-	  : m_Def()
-	  , m_vsReloadRowMessages()
-	{
-	}
+	OptionRowHandler() = default;
 	virtual ~OptionRowHandler() = default;
 	virtual void Init()
 	{
@@ -206,8 +198,9 @@ class OptionRowHandler
 		Init();
 		return this->LoadInternal(cmds);
 	}
-	RString OptionTitle() const;
-	RString GetThemedItemText(int iChoice) const;
+
+	[[nodiscard]] std::string OptionTitle() const;
+	[[nodiscard]] std::string GetThemedItemText(int iChoice) const;
 
 	virtual bool LoadInternal(const Commands&) { return true; }
 
@@ -222,22 +215,26 @@ class OptionRowHandler
 	 * and nothing has changed, return RELOAD_CHANGED_NONE. */
 	virtual ReloadChanged Reload() { return RELOAD_CHANGED_NONE; }
 
-	virtual int GetDefaultOption() const { return -1; }
+	[[nodiscard]] virtual int GetDefaultOption() const { return -1; }
 	virtual void ImportOption(OptionRow*,
 							  const PlayerNumber&,
-							  vector<bool>& vbSelectedOut) const
+							  std::vector<bool>& vbSelectedOut) const
 	{
 	}
 	// Returns an OPT mask.
-	virtual int ExportOption(const PlayerNumber&,
-							 const vector<bool>& vbSelected) const
+	[[nodiscard]] virtual int ExportOption(const PlayerNumber&,
+										   const vector<bool>& vbSelected) const
 	{
 		return 0;
 	}
 	virtual void GetIconTextAndGameCommand(int iFirstSelection,
-										   RString& sIconTextOut,
+										   std::string& sIconTextOut,
 										   GameCommand& gcOut) const;
-	virtual RString GetScreen(int /* iChoice */) const { return RString(); }
+
+	[[nodiscard]] virtual std::string GetScreen(int /* iChoice */) const
+	{
+		return std::string();
+	}
 	// Exists so that a lua function can act on the selection.  Returns true if
 	// the choices should be reloaded.
 	virtual bool NotifyOfSelection(PlayerNumber pn, int choice)
@@ -263,11 +260,11 @@ GetOneSelection(const vector<bool>& vbSelected);
 }
 
 inline void
-VerifySelected(SelectType st, vector<bool>& selected, const RString& sName)
+VerifySelected(SelectType st, vector<bool>& selected, const std::string& sName)
 {
-	int num_selected = 0;
+	auto num_selected = 0;
 	if (st == SELECT_ONE) {
-		int first_selected = -1;
+		auto first_selected = -1;
 		if (selected.empty()) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Option row %s requires only one "

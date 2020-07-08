@@ -26,8 +26,8 @@ class ScreenDebugOverlay : public Screen
   private:
 	void UpdateText();
 
-	RString GetCurrentPageName() const { return m_asPages[m_iCurrentPage]; }
-	vector<RString> m_asPages;
+	std::string GetCurrentPageName() const { return m_asPages[m_iCurrentPage]; }
+	vector<std::string> m_asPages;
 	int m_iCurrentPage = 0;
 	bool m_bForcedHidden = false;
 

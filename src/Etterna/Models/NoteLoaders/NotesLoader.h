@@ -27,7 +27,7 @@ GetMainAndSubTitlesFromFullTitle(const std::string& sFullTitle,
 bool
 LoadFromDir(const std::string& sPath,
 			Song& out,
-			set<std::string>& BlacklistedImages);
+			std::set<std::string>& BlacklistedImages);
 }
 
 #endif

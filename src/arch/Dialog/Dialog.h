@@ -23,21 +23,22 @@ enum Result
 	no
 };
 void
-Error(const RString& sError, const RString& sID = "");
+Error(const std::string& sError, const std::string& sID = "");
 void
-OK(const RString& sMessage, const RString& sID = "");
-Result
-OKCancel(const RString& sMessage, const RString& sID = "");
-Result
-AbortRetryIgnore(const RString& sMessage, const RString& sID = "");
-Result
-AbortRetry(const RString& sMessage, const RString& sID = "");
-Result
-YesNo(const RString& sMessage, const RString& sID = "");
+OK(const std::string& sMessage, const std::string& sID = "");
+auto
+OKCancel(const std::string& sMessage, const std::string& sID = "") -> Result;
+auto
+AbortRetryIgnore(const std::string& sMessage, const std::string& sID = "")
+  -> Result;
+auto
+AbortRetry(const std::string& sMessage, const std::string& sID = "") -> Result;
+auto
+YesNo(const std::string& sMessage, const std::string& sID = "") -> Result;
 
 /* for DialogDrivers */
 void
-IgnoreMessage(const RString& sID);
-}
+IgnoreMessage(const std::string& sID);
+} // namespace Dialog
 
 #endif

@@ -10,7 +10,8 @@
 struct OHJumpModGuyThing
 {
 	const CalcPatternMod _pmod = OHJumpMod;
-	// const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp, OHJSeqComp,
+	// const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp,
+	// OHJSeqComp,
 	//									  OHJMaxSeq,   OHJCCTaps,	OHJHTaps };
 	const std::string name = "OHJumpMod";
 
@@ -26,7 +27,7 @@ struct OHJumpModGuyThing
 	float prop_pool = 1.4F;
 	float prop_scaler = 1.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 
@@ -55,7 +56,7 @@ struct OHJumpModGuyThing
 
 #pragma region generic functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		ohj.zero();
 
@@ -73,13 +74,13 @@ struct OHJumpModGuyThing
 
 #pragma endregion
 
-	inline void advance_sequencing(const col_type& ct, const base_type& bt)
+	void advance_sequencing(const col_type& ct, const base_type& bt)
 	{
 		ohj(ct, bt);
 	}
 
 	// build component based on max sequence relative to hand taps
-	inline void set_max_seq_comp()
+	void set_max_seq_comp()
 	{
 		max_seq_component = max_seq_pool - (base_seq_prop * max_seq_scaler);
 		max_seq_component = max_seq_component < 0.1F ? 0.1F : max_seq_component;
@@ -87,14 +88,14 @@ struct OHJumpModGuyThing
 	}
 
 	// build component based on number of jumps relative to hand taps
-	inline void set_prop_comp()
+	void set_prop_comp()
 	{
 		prop_component = prop_pool - (base_jump_prop * prop_scaler);
 		prop_component = prop_component < 0.1F ? 0.1F : prop_component;
 		prop_component = fastsqrt(prop_component);
 	}
 
-	inline void set_pmod(const metaItvHandInfo& mitvhi)
+	void set_pmod(const metaItvHandInfo& mitvhi)
 	{
 		const auto& itvhi = mitvhi._itvhi;
 
@@ -180,7 +181,7 @@ struct OHJumpModGuyThing
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 	}
 
-	inline auto operator()(const metaItvHandInfo& mitvhi) -> float
+	auto operator()(const metaItvHandInfo& mitvhi) -> float
 	{
 		set_pmod(mitvhi);
 
@@ -188,7 +189,7 @@ struct OHJumpModGuyThing
 		return pmod;
 	}
 
-	inline void interval_end()
+	void interval_end()
 	{
 		// reset any interval stuff here
 		cc_taps = 0;

@@ -1,4 +1,4 @@
-﻿/* RageFileObjInflate - decompress streams compressed with "deflate"
+/* RageFileObjInflate - decompress streams compressed with "deflate"
  * compression. */
 
 #ifndef RAGE_FILE_DRIVER_DEFLATE_H
@@ -80,14 +80,14 @@ class RageFileObjGzip : public RageFileObjDeflate
 };
 
 RageFileObjInflate*
-GunzipFile(RageFileBasic* pFile, RString& sError, uint32_t* iCRC32);
+GunzipFile(RageFileBasic* pFile, std::string& sError, uint32_t* iCRC32);
 
 /* Quick helpers: */
 void
-GzipString(const RString& sIn, RString& sOut);
+GzipString(const std::string& sIn, std::string& sOut);
 bool
-GunzipString(const RString& sIn,
-			 RString& sOut,
-			 RString& sError); // returns false on CRC, etc. error
+GunzipString(const std::string& sIn,
+			 std::string& sOut,
+			 std::string& sError); // returns false on CRC, etc. error
 
 #endif

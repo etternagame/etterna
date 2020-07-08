@@ -1,14 +1,11 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
-#include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Models/Misc/Grade.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -29,6 +26,7 @@
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Globals/rngthing.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")
 #define BAR_ACTUAL_MAX_COMMAND THEME->GetMetricA(m_sName, "BarActualMaxCommand")
@@ -44,7 +42,7 @@ REGISTER_SCREEN_CLASS(ScreenEvaluation);
 
 ScreenEvaluation::ScreenEvaluation()
 {
-	m_pStageStats = NULL;
+	m_pStageStats = nullptr;
 	m_bSavedScreenshot = false;
 }
 
@@ -222,7 +220,7 @@ ScreenEvaluation::Init()
 		  ANNOUNCER->GetPathTo("evaluation full combo W4"));
 	} else if ((bOneHasFullW1Combo || bOneHasFullW2Combo ||
 				bOneHasFullW3Combo)) {
-		RString sComboType =
+		std::string sComboType =
 		  bOneHasFullW1Combo ? "W1" : (bOneHasFullW2Combo ? "W2" : "W3");
 		SOUND->PlayOnceFromDir(
 		  ANNOUNCER->GetPathTo("evaluation full combo " + sComboType));
@@ -245,14 +243,14 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 									DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 								  INPUTFILTER->IsBeingPressed(
 									DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
-			RString sDir;
-			RString sFileName;
+			std::string sDir;
+			std::string sFileName;
 			// To save a screenshot to your own profile you must hold shift
 			// and press the button it saves compressed so you don't end up
 			// with an inflated profile size
 			// Otherwise, you can tap away at the screenshot button without
 			// holding shift.
-			if (bHoldingShift && PROFILEMAN->IsPersistentProfile(pn)) {
+			if (bHoldingShift) {
 				if (!m_bSavedScreenshot) {
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
@@ -260,7 +258,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 					sFileName = StepMania::SaveScreenshot(
 					  sDir, bHoldingShift, true, "", "");
 					if (!sFileName.empty()) {
-						RString sPath = sDir + sFileName;
+						std::string sPath = sDir + sFileName;
 
 						const HighScore& hs =
 						  m_pStageStats->m_player.m_HighScore;
@@ -286,7 +284,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 }
 
 void
-ScreenEvaluation::HandleScreenMessage(const ScreenMessage SM)
+ScreenEvaluation::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_PlayCheer) {
 		SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("evaluation cheer"));
@@ -324,13 +322,13 @@ ScreenEvaluation::HandleMenuStart()
 	// Reset mods
 	if (GAMEMAN->m_bResetModifiers) {
 		float oldRate = GAMEMAN->m_fPreviousRate;
-		const RString mods = GAMEMAN->m_sModsToReset;
+		const std::string mods = GAMEMAN->m_sModsToReset;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = oldRate;
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
 
-		const vector<RString> oldturns = GAMEMAN->m_vTurnsToReset;
+		const vector<std::string> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
 			  .ResetModsToStringVector(oldturns);
@@ -414,7 +412,6 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			lua_pushnil(L);
 			return 1;
 		}
-		CHECKPOINT_M("Got replay rate");
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{

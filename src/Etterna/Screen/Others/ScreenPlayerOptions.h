@@ -12,7 +12,7 @@ class ScreenPlayerOptions : public ScreenOptionsMaster
 	void BeginScreen() override;
 
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	bool GetGoToOptions() const { return m_bGoToOptions; }
 
 	// Lua

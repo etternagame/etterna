@@ -1,14 +1,11 @@
 #include "Etterna/Globals/global.h"
-
 #include "Etterna/Actor/Base/Actor.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "Etterna/Models/Misc/PlayerState.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #include "ScreenNetSelectBase.h"
 
@@ -137,7 +134,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 				wchar_t c;
 				c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
 				if (c >= L' ' && enableChatboxInput) {
-					m_sTextInput += WStringToRString(wstring() + c);
+					m_sTextInput += WStringToRString(std::wstring() + c);
 					UpdateTextInput();
 					return true;
 				}
@@ -148,7 +145,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 }
 
 void
-ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetSelectBase::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen)
 		SOUND->StopMusic();
@@ -247,7 +244,7 @@ ScreenNetSelectBase::Scroll(unsigned int movescroll)
 	return;
 }
 
-RString
+std::string
 ScreenNetSelectBase::GetPreviousMsg()
 {
 	m_sTextLastestInputsIndex += 1;
@@ -262,7 +259,7 @@ ScreenNetSelectBase::GetPreviousMsg()
 									m_sTextLastestInputsIndex];
 }
 
-RString
+std::string
 ScreenNetSelectBase::GetNextMsg()
 {
 	m_sTextLastestInputsIndex -= 1;
@@ -286,7 +283,7 @@ ScreenNetSelectBase::ShowNextMsg()
 	return;
 }
 void
-ScreenNetSelectBase::SetInputText(RString text)
+ScreenNetSelectBase::SetInputText(std::string text)
 {
 	m_sTextInput = text;
 	UpdateTextInput();
@@ -350,7 +347,7 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 			return 0;
 		if (static_cast<size_t>(IArg(1)) <= p->ToUsers()->size() &&
 			IArg(1) >= 1)
-			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText());
+			lua_pushstring(L, (*(p->ToUsers()))[IArg(1) - 1].GetText().c_str());
 		else
 			lua_pushstring(L, "");
 		return 1;

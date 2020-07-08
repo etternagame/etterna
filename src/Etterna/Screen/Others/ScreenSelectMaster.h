@@ -2,7 +2,6 @@
 #define ScreenSelectMaster_H
 
 #include "Etterna/Actor/Base/ActorScroller.h"
-#include "Etterna/Actor/Base/ActorUtil.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/Misc/RandomSample.h"
 #include "ScreenSelect.h"
@@ -18,7 +17,7 @@ enum MenuDir
 };
 /** @brief A special foreach loop through the different menu directions. */
 #define FOREACH_MenuDir(md) FOREACH_ENUM(MenuDir, md)
-const RString&
+const std::string&
 MenuDirToString(MenuDir md);
 
 /** @brief The master Screen for many children Screens. */
@@ -28,7 +27,7 @@ class ScreenSelectMaster : public ScreenSelect
 	ScreenSelectMaster();
 	//~ScreenSelectMaster();
 	void Init() override;
-	virtual RString GetDefaultChoice();
+	virtual std::string GetDefaultChoice();
 	void BeginScreen() override;
 
 	bool MenuLeft(const InputEventPlus& input) override;
@@ -39,7 +38,7 @@ class ScreenSelectMaster : public ScreenSelect
 	void TweenOnScreen() override;
 	void TweenOffScreen() override;
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 	bool AllowLateJoin() const override { return true; }
 
@@ -76,7 +75,7 @@ class ScreenSelectMaster : public ScreenSelect
 	ThemeMetric<bool> PER_CHOICE_ICON_ELEMENT;
 	ThemeMetric<float> PRE_SWITCH_PAGE_SECONDS;
 	ThemeMetric<float> POST_SWITCH_PAGE_SECONDS;
-	ThemeMetric1D<RString> OPTION_ORDER;
+	ThemeMetric1D<std::string> OPTION_ORDER;
 	ThemeMetric<bool> WRAP_CURSOR;
 	ThemeMetric<bool> WRAP_SCROLLER;
 	ThemeMetric<bool> LOOP_SCROLLER;
@@ -87,9 +86,9 @@ class ScreenSelectMaster : public ScreenSelect
 	ThemeMetric<LuaReference> SCROLLER_TRANSFORM;
 	// ThemeMetric<LuaReference> SCROLLER_TWEEN;
 	ThemeMetric<int> SCROLLER_SUBDIVISIONS;
-	ThemeMetric<RString> DEFAULT_CHOICE;
+	ThemeMetric<std::string> DEFAULT_CHOICE;
 
-	map<int, int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
+	std::map<int, int> m_mapCurrentChoiceToNextChoice[NUM_MenuDir];
 
 	int GetSelectionIndex(PlayerNumber pn) override;
 	void UpdateSelectableChoices() override;
@@ -107,10 +106,10 @@ class ScreenSelectMaster : public ScreenSelect
 	AutoActor m_sprExplanation[NUM_Page];
 	AutoActor m_sprMore[NUM_Page];
 	// icon is the shared, per-choice piece
-	vector<AutoActor> m_vsprIcon;
+	std::vector<AutoActor> m_vsprIcon;
 
 	// preview is per-player, per-choice piece
-	vector<AutoActor> m_vsprScroll;
+	std::vector<AutoActor> m_vsprScroll;
 
 	ActorScroller m_Scroller;
 

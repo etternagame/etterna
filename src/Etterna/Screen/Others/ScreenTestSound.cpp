@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenTestSound.h"
@@ -76,11 +75,11 @@ ScreenTestSound::~ScreenTestSound()
 void
 ScreenTestSound::UpdateText(int n)
 {
-	RString fn = Basename(s[n].s.GetLoadedFilePath());
+	std::string fn = Basename(s[n].s.GetLoadedFilePath());
 
 	vector<RageSound*>& snds = m_sSoundCopies[n];
 
-	RString pos;
+	std::string pos;
 	for (unsigned p = 0; p < snds.size(); ++p) {
 		if (p)
 			pos += ", ";

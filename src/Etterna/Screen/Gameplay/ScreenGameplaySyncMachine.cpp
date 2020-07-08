@@ -7,8 +7,9 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "ScreenGameplaySyncMachine.h"
+
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
@@ -27,11 +28,11 @@ ScreenGameplaySyncMachine::Init()
 	  GAMEMAN->GetHowToPlayStyleForGame(GAMESTATE->m_pCurGame), PLAYER_INVALID);
 	AdjustSync::ResetOriginalSyncData();
 
-	RString sFile = THEME->GetPathO("ScreenGameplaySyncMachine", "music");
+	std::string sFile = THEME->GetPathO("ScreenGameplaySyncMachine", "music");
 	// Allow themers to use either a .ssc or .sm file for this. -aj
 	SSCLoader loaderSSC;
 	SMLoader loaderSM;
-	if (sFile.Right(4) == ".ssc")
+	if (tail(sFile, 4) == ".ssc")
 		loaderSSC.LoadFromSimfile(sFile, m_Song);
 	else
 		loaderSM.LoadFromSimfile(sFile, m_Song);
@@ -102,7 +103,7 @@ ScreenGameplaySyncMachine::Input(const InputEventPlus& input)
 }
 
 void
-ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage SM)
+ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_NotesEnded) {
 		ResetAndRestartCurrentSong();
@@ -112,9 +113,9 @@ ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage SM)
 	ScreenGameplayNormal::HandleScreenMessage(SM);
 
 	if (SM == SM_GoToPrevScreen || SM == SM_GoToNextScreen) {
-		GAMESTATE->m_pCurSteps.Set(NULL);
-		GAMESTATE->SetCurrentStyle(NULL, PLAYER_INVALID);
-		GAMESTATE->m_pCurSong.Set(NULL);
+		GAMESTATE->m_pCurSteps.Set(nullptr);
+		GAMESTATE->SetCurrentStyle(nullptr, PLAYER_INVALID);
+		GAMESTATE->m_pCurSong.Set(nullptr);
 	}
 }
 
@@ -141,7 +142,7 @@ ScreenGameplaySyncMachine::RefreshText()
 	float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 	float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
 	float fStdDev = AdjustSync::s_fStandardDeviation;
-	RString s;
+	std::string s;
 	s += OLD_OFFSET.GetValue() + ssprintf(": %0.3f\n", fOld);
 	s += NEW_OFFSET.GetValue() + ssprintf(": %0.3f\n", fNew);
 	s += STANDARD_DEVIATION.GetValue() + ssprintf(": %0.3f\n", fStdDev);

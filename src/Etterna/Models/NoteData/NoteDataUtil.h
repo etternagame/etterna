@@ -12,8 +12,8 @@ class TimingData;
 
 void
 PlaceAutoKeysound(NoteData& out, int row, TapNote akTap);
-int
-FindLongestOverlappingHoldNoteForAnyTrack(const NoteData& in, int iRow);
+auto
+FindLongestOverlappingHoldNoteForAnyTrack(const NoteData& in, int iRow) -> int;
 void
 LightTransformHelper(const NoteData& in,
 					 NoteData& out,
@@ -26,18 +26,20 @@ LightTransformHelper(const NoteData& in,
  * implemented using only NoteData's primitives; this improves abstraction
  * and makes it much easier to change NoteData internally in the future. */
 namespace NoteDataUtil {
-NoteType
-GetSmallestNoteTypeForMeasure(const NoteData& nd, int iMeasureIndex);
-NoteType
-GetSmallestNoteTypeInRange(const NoteData& nd, int iStartIndex, int iEndIndex);
+auto
+GetSmallestNoteTypeForMeasure(const NoteData& nd, int iMeasureIndex)
+  -> NoteType;
+auto
+GetSmallestNoteTypeInRange(const NoteData& nd, int iStartIndex, int iEndIndex)
+  -> NoteType;
 void
-LoadFromSMNoteDataString(NoteData& out, const RString& sSMNoteData);
+LoadFromSMNoteDataString(NoteData& out, const std::string& sSMNoteData);
 void
-LoadFromETTNoteDataString(NoteData& out, const RString& sSMNoteData);
+LoadFromETTNoteDataString(NoteData& out, const std::string& sSMNoteData);
 void
-GetSMNoteDataString(const NoteData& in, RString& notes_out);
+GetSMNoteDataString(const NoteData& in, std::string& notes_out);
 void
-GetETTNoteDataString(const NoteData& in, RString& notes_out);
+GetETTNoteDataString(const NoteData& in, std::string& notes_out);
 /**
  * @brief Autogenerate notes from one type to another.
  *
@@ -145,8 +147,8 @@ enum TrackMapping
 {
 	left, /**< The NoteData is arranged as if the player was facing to the left.
 		   */
-	right,	 /**< Arranged as if the player was facing the right. */
-	mirror,	/**< The NoteData is arranged as if facing a straight mirror. */
+	right,	   /**< Arranged as if the player was facing the right. */
+	mirror,	   /**< The NoteData is arranged as if facing a straight mirror. */
 	backwards, /**< The NoteData is arranged as if the player was facing
 				backwards. This is NOT always the same as mirror. */
 	shuffle,
@@ -271,8 +273,8 @@ SnapToNearestNoteType(NoteData& inout,
 }
 
 // True if no notes in row that aren't true in the mask
-bool
-RowPassesValidMask(NoteData& inout, int row, const bool bValidMask[]);
+auto
+RowPassesValidMask(NoteData& inout, int row, const bool bValidMask[]) -> bool;
 
 void
 TransformNoteData(NoteData& nd,
@@ -303,24 +305,24 @@ RemoveAllTapsOfType(NoteData& ndInOut, TapNoteType typeToRemove);
 void
 RemoveAllTapsExceptForType(NoteData& ndInOut, TapNoteType typeToKeep);
 
-int
-GetMaxNonEmptyTrack(const NoteData& in);
-bool
+auto
+GetMaxNonEmptyTrack(const NoteData& in) -> int;
+auto
 AnyTapsAndHoldsInTrackRange(const NoteData& in,
 							int iTrack,
 							int iStart,
-							int iEnd);
+							int iEnd) -> bool;
 
-bool
-GetNextEditorPosition(const NoteData& in, int& rowInOut);
-bool
-GetPrevEditorPosition(const NoteData& in, int& rowInOut);
+auto
+GetNextEditorPosition(const NoteData& in, int& rowInOut) -> bool;
+auto
+GetPrevEditorPosition(const NoteData& in, int& rowInOut) -> bool;
 
 /** @brief Count the number of hold ticks that will fire, assuming that
  * tickholds are on.
  * @param td The TimingData from the relevant Steps. */
-unsigned int
-GetTotalHoldTicks(NoteData* nd, const TimingData* td);
-};
+auto
+GetTotalHoldTicks(NoteData* nd, const TimingData* td) -> unsigned int;
+} // namespace NoteDataUtil
 
 #endif

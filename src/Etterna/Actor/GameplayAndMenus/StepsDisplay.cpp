@@ -1,18 +1,12 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "StepsDisplay.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
-#include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(StepsDisplay);
 
@@ -42,13 +36,13 @@ StepsDisplay::StepsDisplay() = default;
  */
 
 void
-StepsDisplay::Load(const RString& sMetricsGroup,
+StepsDisplay::Load(const std::string& sMetricsGroup,
 				   const PlayerState* pPlayerState)
 {
 	m_sMetricsGroup = sMetricsGroup;
 
-	/* We can't use global ThemeMetric<RString>s, because we can have multiple
-	 * StepsDisplays on screen at once, with different names. */
+	/* We can't use global ThemeMetric<std::string>s, because we can have
+	 * multiple StepsDisplays on screen at once, with different names. */
 	m_iNumTicks.Load(m_sMetricsGroup, "NumTicks");
 	m_iMaxTicks.Load(m_sMetricsGroup, "MaxTicks");
 	m_bShowTicks.Load(m_sMetricsGroup, "ShowTicks");
@@ -65,7 +59,7 @@ StepsDisplay::Load(const RString& sMetricsGroup,
 	this->AddChild(m_sprFrame);
 
 	if (m_bShowTicks) {
-		RString sChars = "10"; // on, off (todo: make this metricable -aj)
+		std::string sChars = "10"; // on, off (todo: make this metricable -aj)
 		m_textTicks.SetName("Ticks");
 		m_textTicks.LoadFromTextureAndChars(
 		  THEME->GetPathF(m_sMetricsGroup, "ticks"), sChars);
@@ -134,7 +128,7 @@ StepsDisplay::SetFromGameState(PlayerNumber pn)
 void
 StepsDisplay::SetFromSteps(const Steps* pSteps)
 {
-	if (pSteps == NULL) {
+	if (pSteps == nullptr) {
 		Unset();
 		return;
 	}
@@ -156,7 +150,7 @@ StepsDisplay::SetFromStepsTypeAndMeterAndDifficultyAndCourseType(StepsType st,
 																 int iMeter,
 																 Difficulty dc)
 {
-	SetParams params = { NULL, iMeter, st, dc };
+	SetParams params = { nullptr, iMeter, st, dc };
 	SetInternal(params);
 }
 
@@ -166,24 +160,23 @@ StepsDisplay::SetInternal(const SetParams& params)
 	this->SetVisible(true);
 	Message msg("Set");
 
-	RString sCustomDifficulty;
+	std::string sCustomDifficulty;
 	if (params.pSteps)
 		sCustomDifficulty = StepsToCustomDifficulty(params.pSteps);
 	else
 		sCustomDifficulty = GetCustomDifficulty(params.st, params.dc);
 	msg.SetParam("CustomDifficulty", sCustomDifficulty);
 
-	RString sDisplayDescription;
-	if (params.pSteps && params.pSteps->IsAnEdit())
-		sDisplayDescription = params.pSteps->GetDescription();
-	else if (sCustomDifficulty.empty())
-		sDisplayDescription = RString();
+	std::string sDisplayDescription;
+
+	if (sCustomDifficulty.empty())
+		sDisplayDescription = std::string();
 	else
 		sDisplayDescription =
 		  CustomDifficultyToLocalizedString(sCustomDifficulty);
 	msg.SetParam("DisplayDescription", sDisplayDescription);
 
-	RString sDisplayCredit;
+	std::string sDisplayCredit;
 	if (params.pSteps)
 		sDisplayCredit = params.pSteps->GetCredit();
 
@@ -197,13 +190,13 @@ StepsDisplay::SetInternal(const SetParams& params)
 
 	if (m_bShowTicks) {
 		// todo: let themers handle the logic of tick text. -aj
-		auto on = char('1');
-		char off = '0';
+		auto on = static_cast<char>('1');
+		auto off = '0';
 
-		RString sNewText;
-		int iNumOn = min((int)m_iMaxTicks, params.iMeter);
+		std::string sNewText;
+		auto iNumOn = std::min(static_cast<int>(m_iMaxTicks), params.iMeter);
 		sNewText.insert(sNewText.end(), iNumOn, on);
-		int iNumOff = max(0, m_iNumTicks - iNumOn);
+		auto iNumOff = std::max(0, m_iNumTicks - iNumOn);
 		sNewText.insert(sNewText.end(), iNumOff, off);
 		m_textTicks.SetText(sNewText);
 		m_textTicks.HandleMessage(msg);
@@ -214,7 +207,7 @@ StepsDisplay::SetInternal(const SetParams& params)
 		{
 			m_textMeter.SetText(m_sZeroMeterString);
 		} else {
-			const RString sMeter =
+			const std::string sMeter =
 			  ssprintf(m_sMeterFormatString.GetValue().c_str(), params.iMeter);
 			m_textMeter.SetText(sMeter);
 			m_textMeter.HandleMessage(msg);
@@ -232,8 +225,9 @@ StepsDisplay::SetInternal(const SetParams& params)
 	if (m_bShowStepsType) {
 		if (params.st != StepsType_Invalid) {
 			/*
-			RString sStepsType = GAMEMAN->GetStepsTypeInfo(params.st).szName;
-			m_sprStepsType.Load( THEME->GetPathG(m_sMetricsGroup,"StepsType
+			std::string sStepsType =
+			GAMEMAN->GetStepsTypeInfo(params.st).szName; m_sprStepsType.Load(
+			THEME->GetPathG(m_sMetricsGroup,"StepsType
 			"+sStepsType) );
 			*/
 			m_sprStepsType->HandleMessage(msg);
@@ -252,22 +246,22 @@ class LunaStepsDisplay : public Luna<StepsDisplay>
   public:
 	static int Load(T* p, lua_State* L)
 	{
-		p->Load(SArg(1), NULL);
+		p->Load(SArg(1), nullptr);
 		COMMON_RETURN_SELF;
 	}
 	static int SetFromSteps(T* p, lua_State* L)
 	{
 		if (lua_isnil(L, 1)) {
-			p->SetFromSteps(NULL);
+			p->SetFromSteps(nullptr);
 		} else {
-			Steps* pS = Luna<Steps>::check(L, 1);
+			auto pS = Luna<Steps>::check(L, 1);
 			p->SetFromSteps(pS);
 		}
 		COMMON_RETURN_SELF;
 	}
 	static int SetFromGameState(T* p, lua_State* L)
 	{
-		PlayerNumber pn = PLAYER_1;
+		auto pn = PLAYER_1;
 		p->SetFromGameState(pn);
 		COMMON_RETURN_SELF;
 	}

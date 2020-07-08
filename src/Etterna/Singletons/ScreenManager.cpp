@@ -61,7 +61,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Singletons/FontManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
@@ -75,17 +74,21 @@
 #include "ScreenManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
+
+#include <set>
+#include <map>
 
 #include <Tracy.hpp>
 
 ScreenManager* SCREENMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 static Preference<bool> g_bDelayedScreenLoad("DelayedScreenLoad", false);
 // static Preference<bool> g_bPruneFonts( "PruneFonts", true );
 
 // Screen registration
-static map<RString, CreateScreenFn>* g_pmapRegistrees = NULL;
+static std::map<std::string, CreateScreenFn>* g_pmapRegistrees = nullptr;
 
 /** @brief Utility functions for the ScreenManager. */
 namespace ScreenManagerUtil {
@@ -102,18 +105,18 @@ struct LoadedScreen
 
 	LoadedScreen()
 	{
-		m_pScreen = NULL;
+		m_pScreen = nullptr;
 		m_bDeleteWhenDone = true;
 		m_SendOnPop = SM_None;
 	}
 };
 
 Actor* g_pSharedBGA; // BGA object that's persistent between screens
-RString m_sPreviousTopScreen;
+std::string m_sPreviousTopScreen;
 vector<LoadedScreen> g_ScreenStack; // bottommost to topmost
 vector<Screen*> g_OverlayScreens;
-set<RString> g_setGroupedScreens;
-set<RString> g_setPersistantScreens;
+std::set<std::string> g_setGroupedScreens;
+std::set<std::string> g_setPersistantScreens;
 
 vector<LoadedScreen> g_vPreparedScreens;
 vector<Actor*> g_vPreparedBackgrounds;
@@ -150,11 +153,10 @@ PushLoadedScreen(const LoadedScreen& ls)
 }
 
 bool
-ScreenIsPrepped(const RString& sScreenName)
+ScreenIsPrepped(const std::string& sScreenName)
 {
-	FOREACH(LoadedScreen, g_vPreparedScreens, s)
-	{
-		if (s->m_pScreen->GetName() == sScreenName)
+	for (auto& s : g_vPreparedScreens) {
+		if (s.m_pScreen->GetName() == sScreenName)
 			return true;
 	}
 	return false;
@@ -163,7 +165,7 @@ ScreenIsPrepped(const RString& sScreenName)
 /* If the named screen is loaded, remove it from the prepared list and
  * return it in ls. */
 bool
-GetPreppedScreen(const RString& sScreenName, LoadedScreen& ls)
+GetPreppedScreen(const std::string& sScreenName, LoadedScreen& ls)
 {
 	FOREACH(LoadedScreen, g_vPreparedScreens, s)
 	{
@@ -232,13 +234,13 @@ DeletePreparedScreens()
 } // namespace ScreenManagerUtil;
 using namespace ScreenManagerUtil;
 
-RegisterScreenClass::RegisterScreenClass(const RString& sClassName,
+RegisterScreenClass::RegisterScreenClass(const std::string& sClassName,
 										 CreateScreenFn pfn)
 {
-	if (g_pmapRegistrees == NULL)
-		g_pmapRegistrees = new map<RString, CreateScreenFn>;
+	if (g_pmapRegistrees == nullptr)
+		g_pmapRegistrees = new std::map<std::string, CreateScreenFn>;
 
-	map<RString, CreateScreenFn>::iterator iter =
+	std::map<std::string, CreateScreenFn>::iterator iter =
 	  g_pmapRegistrees->find(sClassName);
 	ASSERT_M(
 	  iter == g_pmapRegistrees->end(),
@@ -324,8 +326,8 @@ ScreenManager::ReloadOverlayScreens()
 	g_OverlayScreens.clear();
 
 	// reload overlay screens
-	RString sOverlays = THEME->GetMetric("Common", "OverlayScreens");
-	vector<RString> asOverlays;
+	std::string sOverlays = THEME->GetMetric("Common", "OverlayScreens");
+	vector<std::string> asOverlays;
 	split(sOverlays, ",", asOverlays);
 	for (unsigned i = 0; i < asOverlays.size(); i++) {
 		Screen* pScreen = MakeNewScreen(asOverlays[i]);
@@ -349,7 +351,7 @@ Screen*
 ScreenManager::GetTopScreen()
 {
 	if (g_ScreenStack.empty())
-		return NULL;
+		return nullptr;
 	return g_ScreenStack[g_ScreenStack.size() - 1].m_pScreen;
 }
 
@@ -357,7 +359,7 @@ Screen*
 ScreenManager::GetScreen(int iPosition)
 {
 	if (iPosition >= (int)g_ScreenStack.size())
-		return NULL;
+		return nullptr;
 	return g_ScreenStack[iPosition].m_pScreen;
 }
 
@@ -374,12 +376,12 @@ ScreenManager::AllowOperatorMenuButton() const
 }
 
 bool
-ScreenManager::IsScreenNameValid(RString const& name) const
+ScreenManager::IsScreenNameValid(std::string const& name) const
 {
 	if (name.empty() || !THEME->HasMetric(name, "Class")) {
 		return false;
 	}
-	RString ClassName = THEME->GetMetric(name, "Class");
+	std::string ClassName = THEME->GetMetric(name, "Class");
 	return g_pmapRegistrees->find(ClassName) != g_pmapRegistrees->end();
 }
 
@@ -482,7 +484,7 @@ ScreenManager::Update(float fDeltaTime)
 		   m_sDelayedScreen !=
 			 ""); // Why play the game if there is nothing showing?
 
-	Screen* pScreen = g_ScreenStack.empty() ? NULL : GetTopScreen();
+	Screen* pScreen = g_ScreenStack.empty() ? nullptr : GetTopScreen();
 
 	bool bFirstUpdate = pScreen && pScreen->IsFirstUpdate();
 
@@ -593,22 +595,22 @@ ScreenManager::Input(const InputEventPlus& input)
 
 // Just create a new screen; don't do any associated cleanup.
 Screen*
-ScreenManager::MakeNewScreen(const RString& sScreenName)
+ScreenManager::MakeNewScreen(const std::string& sScreenName)
 {
 	RageTimer t;
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("Loading screen: \"%s\"", sScreenName.c_str());
 
-	RString sClassName = THEME->GetMetric(sScreenName, "Class");
+	std::string sClassName = THEME->GetMetric(sScreenName, "Class");
 
-	map<RString, CreateScreenFn>::iterator iter =
+	std::map<std::string, CreateScreenFn>::iterator iter =
 	  g_pmapRegistrees->find(sClassName);
 	if (iter == g_pmapRegistrees->end()) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "Screen \"%s\" has an invalid class \"%s\".",
 		  sScreenName.c_str(),
 		  sClassName.c_str());
-		return NULL;
+		return nullptr;
 	}
 
 	this->ZeroNextUpdate();
@@ -626,14 +628,14 @@ ScreenManager::MakeNewScreen(const RString& sScreenName)
 }
 
 void
-ScreenManager::PrepareScreen(const RString& sScreenName)
+ScreenManager::PrepareScreen(const std::string& sScreenName)
 {
 	// If the screen is already prepared, stop.
 	if (ScreenIsPrepped(sScreenName))
 		return;
 
 	Screen* pNewScreen = MakeNewScreen(sScreenName);
-	if (pNewScreen == NULL) {
+	if (pNewScreen == nullptr) {
 		return;
 	}
 
@@ -647,10 +649,10 @@ ScreenManager::PrepareScreen(const RString& sScreenName)
 	/* Don't delete previously prepared versions of the screen's background,
 	 * and only prepare it if it's different than the current background
 	 * and not already loaded. */
-	RString sNewBGA = THEME->GetPathB(sScreenName, "background");
+	std::string sNewBGA = THEME->GetPathB(sScreenName, "background");
 
 	if (!sNewBGA.empty() && sNewBGA != g_pSharedBGA->GetName()) {
-		Actor* pNewBGA = NULL;
+		Actor* pNewBGA = nullptr;
 		FOREACH(Actor*, g_vPreparedBackgrounds, a)
 		{
 			if ((*a)->GetName() == sNewBGA) {
@@ -661,11 +663,11 @@ ScreenManager::PrepareScreen(const RString& sScreenName)
 
 		// Create the new background before deleting the previous so that we
 		// keep any common textures loaded.
-		if (pNewBGA == NULL) {
+		if (pNewBGA == nullptr) {
 			if (PREFSMAN->m_verbose_log > 1)
 				LOG->Trace("Loading screen background \"%s\"", sNewBGA.c_str());
 			Actor* pActor = ActorUtil::MakeActor(sNewBGA);
-			if (pActor != NULL) {
+			if (pActor != nullptr) {
 				pActor->SetName(sNewBGA);
 				g_vPreparedBackgrounds.push_back(pActor);
 			}
@@ -684,19 +686,19 @@ ScreenManager::PrepareScreen(const RString& sScreenName)
 }
 
 void
-ScreenManager::GroupScreen(const RString& sScreenName)
+ScreenManager::GroupScreen(const std::string& sScreenName)
 {
 	g_setGroupedScreens.insert(sScreenName);
 }
 
 void
-ScreenManager::PersistantScreen(const RString& sScreenName)
+ScreenManager::PersistantScreen(const std::string& sScreenName)
 {
 	g_setPersistantScreens.insert(sScreenName);
 }
 
 void
-ScreenManager::SetNewScreen(const RString& sScreenName)
+ScreenManager::SetNewScreen(const std::string& sScreenName)
 {
 	ASSERT(sScreenName != "");
 	m_sDelayedScreen = sScreenName;
@@ -705,12 +707,13 @@ ScreenManager::SetNewScreen(const RString& sScreenName)
 /* Activate the screen and/or its background, if either are loaded.
  * Return true if both were activated. */
 bool
-ScreenManager::ActivatePreparedScreenAndBackground(const RString& sScreenName)
+ScreenManager::ActivatePreparedScreenAndBackground(
+  const std::string& sScreenName)
 {
 	bool bLoadedBoth = true;
 
 	// Find the prepped screen.
-	if (GetTopScreen() == NULL || GetTopScreen()->GetName() != sScreenName) {
+	if (GetTopScreen() == nullptr || GetTopScreen()->GetName() != sScreenName) {
 		LoadedScreen ls;
 		if (!GetPreppedScreen(sScreenName, ls)) {
 			bLoadedBoth = false;
@@ -720,9 +723,9 @@ ScreenManager::ActivatePreparedScreenAndBackground(const RString& sScreenName)
 	}
 
 	// Find the prepared shared background (if any), and activate it.
-	RString sNewBGA = THEME->GetPathB(sScreenName, "background");
+	std::string sNewBGA = THEME->GetPathB(sScreenName, "background");
 	if (sNewBGA != g_pSharedBGA->GetName()) {
-		Actor* pNewBGA = NULL;
+		Actor* pNewBGA = nullptr;
 		if (sNewBGA.empty()) {
 			pNewBGA = new Actor;
 		} else {
@@ -739,7 +742,7 @@ ScreenManager::ActivatePreparedScreenAndBackground(const RString& sScreenName)
 		/* If the BGA isn't loaded yet, load a dummy actor. If we're not going
 		 * to use the same BGA for the new screen, always move the old BGA back
 		 * to g_vPreparedBackgrounds now. */
-		if (pNewBGA == NULL) {
+		if (pNewBGA == nullptr) {
 			bLoadedBoth = false;
 			pNewBGA = new Actor;
 		}
@@ -760,7 +763,7 @@ ScreenManager::ActivatePreparedScreenAndBackground(const RString& sScreenName)
 void
 ScreenManager::LoadDelayedScreen()
 {
-	RString sScreenName = m_sDelayedScreen;
+	std::string sScreenName = m_sDelayedScreen;
 	m_sDelayedScreen = "";
 	if (!IsScreenNameValid(sScreenName)) {
 		LuaHelpers::ReportScriptError(
@@ -823,7 +826,7 @@ ScreenManager::LoadDelayedScreen()
 }
 
 void
-ScreenManager::AddNewScreenToTop(const RString& sScreenName,
+ScreenManager::AddNewScreenToTop(const std::string& sScreenName,
 								 ScreenMessage SendOnPop)
 {
 	// Load the screen, if it's not already prepared.
@@ -872,7 +875,7 @@ void
 ScreenManager::PostMessageToTopScreen(ScreenMessage SM, float fDelay)
 {
 	Screen* pTopScreen = GetTopScreen();
-	if (pTopScreen != NULL)
+	if (pTopScreen != nullptr)
 		pTopScreen->PostScreenMessage(SM, fDelay);
 }
 
@@ -880,12 +883,12 @@ void
 ScreenManager::SendMessageToTopScreen(ScreenMessage SM)
 {
 	Screen* pTopScreen = GetTopScreen();
-	if (pTopScreen != NULL)
+	if (pTopScreen != nullptr)
 		pTopScreen->HandleScreenMessage(SM);
 }
 
 void
-ScreenManager::SystemMessage(const RString& sMessage)
+ScreenManager::SystemMessage(const std::string& sMessage)
 {
 	LOG->Trace("%s", sMessage.c_str());
 	Message msg("SystemMessage");
@@ -895,7 +898,7 @@ ScreenManager::SystemMessage(const RString& sMessage)
 }
 
 void
-ScreenManager::SystemMessageNoAnimate(const RString& sMessage)
+ScreenManager::SystemMessageNoAnimate(const std::string& sMessage)
 {
 	//	LOG->Trace( "%s", sMessage.c_str() );	// don't log because the caller
 	// is likely calling us every frame
@@ -983,24 +986,25 @@ class LunaScreenManager : public Luna<ScreenManager>
 	// Note: PrepareScreen binding is not allowed; loading data inside
 	// Lua causes the Lua lock to be held for the duration of the load,
 	// which blocks concurrent rendering
-	static void ValidateScreenName(lua_State* L, RString& name)
+	static void ValidateScreenName(lua_State* L, std::string& name)
 	{
 		if (name == "") {
-			RString errstr = "Screen name is empty.";
+			std::string errstr = "Screen name is empty.";
 			SCREENMAN->SystemMessage(errstr);
 			luaL_error(L, errstr.c_str());
 		}
-		RString ClassName = THEME->GetMetric(name, "Class");
+		std::string ClassName = THEME->GetMetric(name, "Class");
 		if (g_pmapRegistrees->find(ClassName) == g_pmapRegistrees->end()) {
-			RString errstr = "Screen \"" + name + "\" has an invalid class \"" +
-							 ClassName + "\".";
+			std::string errstr = "Screen \"" + name +
+								 "\" has an invalid class \"" + ClassName +
+								 "\".";
 			SCREENMAN->SystemMessage(errstr);
 			luaL_error(L, errstr.c_str());
 		}
 	}
 	static int SetNewScreen(T* p, lua_State* L)
 	{
-		RString screen = SArg(1);
+		std::string screen = SArg(1);
 		ValidateScreenName(L, screen);
 		p->SetNewScreen(screen);
 		COMMON_RETURN_SELF;
@@ -1008,7 +1012,7 @@ class LunaScreenManager : public Luna<ScreenManager>
 	static int GetTopScreen(T* p, lua_State* L)
 	{
 		Actor* pScreen = p->GetTopScreen();
-		if (pScreen != NULL)
+		if (pScreen != nullptr)
 			pScreen->PushSelf(L);
 		else
 			lua_pushnil(L);
@@ -1032,11 +1036,11 @@ class LunaScreenManager : public Luna<ScreenManager>
 	}
 	static int AddNewScreenToTop(T* p, lua_State* L)
 	{
-		RString screen = SArg(1);
+		std::string screen = SArg(1);
 		ValidateScreenName(L, screen);
 		ScreenMessage SM = SM_None;
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
-			RString sMessage = SArg(2);
+			std::string sMessage = SArg(2);
 			SM = ScreenMessageHelpers::ToScreenMessage(sMessage);
 		}
 

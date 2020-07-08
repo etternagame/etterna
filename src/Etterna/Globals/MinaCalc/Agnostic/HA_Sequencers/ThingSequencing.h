@@ -36,7 +36,7 @@ struct the_slip
 	//};
 
 	// couldn't figure out how to make slip & slide work smh
-	inline auto the_slip_is_the_boot(const unsigned& notes) -> bool
+	[[nodiscard]] auto the_slip_is_the_boot(const unsigned& notes) const -> bool
 	{
 		switch (slide) {
 			// just started, need single note with no jack between our starting
@@ -99,7 +99,7 @@ struct the_slip
 		return false;
 	}
 
-	inline void start(const float& ms_now, const unsigned& notes)
+	void start(const float& ms_now, const unsigned& notes)
 	{
 		slip = notes;
 		slide = 0;
@@ -107,13 +107,13 @@ struct the_slip
 		grow(ms_now, notes);
 	}
 
-	inline void grow(const float& /*ms_now*/, const unsigned& /*notes*/)
+	void grow(const float& /*ms_now*/, const unsigned& /*notes*/)
 	{
 		// ms[slide] = ms_now;
 		++slide;
 	}
 
-	inline void reset() { slippin_till_ya_slips_come_true = false; }
+	void reset() { slippin_till_ya_slips_come_true = false; }
 };
 
 // find [12]3[24]1[34]2[13]4[12]
@@ -147,7 +147,7 @@ struct the_slip2
 	//};
 
 	// couldn't figure out how to make slip & slide work smh
-	inline auto the_slip_is_the_boot(const unsigned& notes) -> bool
+	[[nodiscard]] auto the_slip_is_the_boot(const unsigned& notes) const -> bool
 	{
 		switch (slide) {
 			// just started, need single note with no jack between our starting
@@ -202,7 +202,7 @@ struct the_slip2
 		return false;
 	}
 
-	inline void start(const float& ms_now, const unsigned& notes)
+	void start(const float& ms_now, const unsigned& notes)
 	{
 		slip = notes;
 		slide = 0;
@@ -210,13 +210,13 @@ struct the_slip2
 		grow(ms_now, notes);
 	}
 
-	inline void grow(const float& /*ms_now*/, const unsigned& /*notes*/)
+	void grow(const float& /*ms_now*/, const unsigned& /*notes*/)
 	{
 		// ms[slide] = ms_now;
 		++slide;
 	}
 
-	inline void reset() { slippin_till_ya_slips_come_true = false; }
+	void reset() { slippin_till_ya_slips_come_true = false; }
 };
 
 // sort of the same concept as fj, slightly different implementation
@@ -230,16 +230,14 @@ struct TT_Sequencing
 
 	float scaler = 0.F;
 
-	inline void set_params(const float& /*gt*/,
-						   const float& /*st*/,
-						   const float& ms)
+	void set_params(const float& /*gt*/, const float& /*st*/, const float& ms)
 	{
 		// group_tol = gt;
 		// step_tol = st;
 		scaler = ms;
 	}
 
-	inline void complete_slip(const float& ms_now, const unsigned& notes)
+	void complete_slip(const float& ms_now, const unsigned& notes)
 	{
 		if (slip_counter < max_slips) {
 			mod_parts.at(slip_counter) = construct_mod_part();
@@ -253,7 +251,7 @@ struct TT_Sequencing
 
 	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
 	// singles
-	static inline auto start_test(const unsigned& notes) -> bool
+	static auto start_test(const unsigned& notes) -> bool
 	{
 		// either left hand jump or a hand containing left hand jump
 		// or right hand jump or a hand containing right hand jump
@@ -261,7 +259,7 @@ struct TT_Sequencing
 		return notes == 3 || notes == 7 || notes == 12 || notes == 14;
 	}
 
-	inline void operator()(const float& ms_now, const unsigned& notes)
+	void operator()(const float& ms_now, const unsigned& notes)
 	{
 		// ignore quads
 		if (notes == 15) {
@@ -291,18 +289,15 @@ struct TT_Sequencing
 			// reset if we fail col check
 			fizz.reset();
 		}
-		return;
-
-		assert(0);
 	}
 
-	inline void reset()
+	void reset()
 	{
 		slip_counter = 0;
 		mod_parts.fill(1.F);
 	}
 
-	inline auto construct_mod_part() -> float { return scaler; }
+	[[nodiscard]] auto construct_mod_part() const -> float { return scaler; }
 };
 
 // sort of the same concept as fj, slightly different implementation
@@ -316,16 +311,14 @@ struct TT_Sequencing2
 
 	float scaler = 0.F;
 
-	inline void set_params(const float& /*gt*/,
-						   const float& /*st*/,
-						   const float& ms)
+	void set_params(const float& /*gt*/, const float& /*st*/, const float& ms)
 	{
 		// group_tol = gt;
 		// step_tol = st;
 		scaler = ms;
 	}
 
-	inline void complete_slip(const float& ms_now, const unsigned& notes)
+	void complete_slip(const float& ms_now, const unsigned& notes)
 	{
 		if (slip_counter < max_slips) {
 			mod_parts.at(slip_counter) = construct_mod_part();
@@ -339,14 +332,14 @@ struct TT_Sequencing2
 
 	// only start if we pick up ohjump or hand with an ohjump, not a quad, not
 	// singles
-	static inline auto start_test(const unsigned& notes) -> bool
+	static auto start_test(const unsigned& notes) -> bool
 	{
 		// either left hand jump or a hand containing left hand jump
 		// or right hand jump or a hand containing right hand jump
 		return notes == 3 || notes == 12;
 	}
 
-	inline void operator()(const float& ms_now, const unsigned& notes)
+	void operator()(const float& ms_now, const unsigned& notes)
 	{
 		// ignore quads
 		if (notes == 15) {
@@ -376,16 +369,13 @@ struct TT_Sequencing2
 			// reset if we fail col check
 			fizz.reset();
 		}
-		return;
-
-		assert(0);
 	}
 
-	inline void reset()
+	void reset()
 	{
 		slip_counter = 0;
 		mod_parts.fill(1.F);
 	}
 
-	inline auto construct_mod_part() -> float { return scaler; }
+	[[nodiscard]] auto construct_mod_part() const -> float { return scaler; }
 };

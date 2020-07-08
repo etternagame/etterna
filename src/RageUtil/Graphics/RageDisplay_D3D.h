@@ -8,27 +8,31 @@ class RageDisplay_D3D : public RageDisplay
   public:
 	RageDisplay_D3D();
 	~RageDisplay_D3D() override;
-	RString Init(const VideoModeParams& p,
-				 bool bAllowUnacceleratedRenderer) override;
+	auto Init(const VideoModeParams& p, bool bAllowUnacceleratedRenderer)
+	  -> std::string override;
 
-	RString GetApiDescription() const override { return "D3D"; }
+	[[nodiscard]] auto GetApiDescription() const -> std::string override
+	{
+		return "D3D";
+	}
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
-	const RagePixelFormatDesc* GetPixelFormatDesc(
-	  RagePixelFormat pf) const override;
+	[[nodiscard]] auto GetPixelFormatDesc(RagePixelFormat pf) const
+	  -> const RagePixelFormatDesc* override;
 
-	bool BeginFrame() override;
+	auto BeginFrame() -> bool override;
 	void EndFrame() override;
-	const ActualVideoModeParams* GetActualVideoModeParams() const override;
+	[[nodiscard]] auto GetActualVideoModeParams() const
+	  -> const ActualVideoModeParams* override;
 	void SetBlendMode(BlendMode mode) override;
-	bool SupportsTextureFormat(RagePixelFormat pixfmt,
-							   bool realtime = false) override;
-	bool SupportsThreadedRendering() override;
-	bool SupportsPerVertexMatrixScale() override { return false; }
-	intptr_t CreateTexture(RagePixelFormat pixfmt,
-						   RageSurface* img,
-						   bool bGenerateMipMaps) override;
-	void UpdateTexture(intptr_t iTexHandle,
+	auto SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime = false)
+	  -> bool override;
+	auto SupportsThreadedRendering() -> bool override;
+	auto SupportsPerVertexMatrixScale() -> bool override { return false; }
+	auto CreateTexture(RagePixelFormat pixfmt,
+					   RageSurface* img,
+					   bool bGenerateMipMaps) -> intptr_t override;
+	void UpdateTexture(intptr_t uTexHandle,
 					   RageSurface* img,
 					   int xoffset,
 					   int yoffset,
@@ -36,14 +40,14 @@ class RageDisplay_D3D : public RageDisplay
 					   int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
 	void ClearAllTextures() override;
-	int GetNumTextureUnits() override;
+	auto GetNumTextureUnits() -> int override;
 	void SetTexture(TextureUnit tu, intptr_t iTexture) override;
 	void SetTextureMode(TextureUnit tu, TextureMode tm) override;
 	void SetTextureWrapping(TextureUnit tu, bool b) override;
-	int GetMaxTextureSize() const override;
+	[[nodiscard]] auto GetMaxTextureSize() const -> int override;
 	void SetTextureFiltering(TextureUnit tu, bool b) override;
-	bool IsZWriteEnabled() const override;
-	bool IsZTestEnabled() const override;
+	[[nodiscard]] auto IsZWriteEnabled() const -> bool override;
+	[[nodiscard]] auto IsZTestEnabled() const -> bool override;
 	void SetZWrite(bool b) override;
 	void SetZBias(float f) override;
 	void SetZTestMode(ZTestMode mode) override;
@@ -63,19 +67,23 @@ class RageDisplay_D3D : public RageDisplay
 							 const RageColor& specular,
 							 const RageVector3& dir) override;
 
-	intptr_t CreateRenderTarget(const RenderTargetParam& param,
-								int& iTextureWidthOut,
-								int& iTextureHeightOut) override;
-	intptr_t GetRenderTarget() override;
+	auto CreateRenderTarget(const RenderTargetParam& param,
+							int& iTextureWidthOut,
+							int& iTextureHeightOut) -> intptr_t override;
+	auto GetRenderTarget() -> intptr_t override;
 	void SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture) override;
 
 	void SetSphereEnvironmentMapping(TextureUnit tu, bool b) override;
 	void SetCelShaded(int stage) override;
 
-	bool IsD3DInternal() override;
-	bool SupportsFullscreenBorderlessWindow() const { return true; }
+	auto IsD3DInternal() -> bool override;
+	[[nodiscard]] auto SupportsFullscreenBorderlessWindow() const
+	  -> bool override
+	{
+		return true;
+	}
 
-	RageCompiledGeometry* CreateCompiledGeometry() override;
+	auto CreateCompiledGeometry() -> RageCompiledGeometry* override;
 	void DeleteCompiledGeometry(RageCompiledGeometry* p) override;
 
   protected:
@@ -91,17 +99,13 @@ class RageDisplay_D3D : public RageDisplay
 	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 									  int iMeshIndex) override;
 
-	RString TryVideoMode(const VideoModeParams& p,
-						 bool& bNewDeviceOut) override;
-	RageSurface* CreateScreenshot() override;
-	RageMatrix GetOrthoMatrix(float l,
-							  float r,
-							  float b,
-							  float t,
-							  float zn,
-							  float zf) override;
+	auto TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
+	  -> std::string override;
+	auto CreateScreenshot() -> RageSurface* override;
+	auto GetOrthoMatrix(float l, float r, float b, float t, float zn, float zf)
+	  -> RageMatrix override;
 
-	void RecoverFromDeviceLoss();
+	static void RecoverFromDeviceLoss();
 	void SendCurrentMatrices();
 };
 
@@ -114,7 +118,7 @@ class RenderTarget
 						int& iTextureWidthOut,
 						int& iTextureHeightOut) = 0;
 
-	virtual intptr_t GetTexture() const = 0;
+	[[nodiscard]] virtual auto GetTexture() const -> intptr_t = 0;
 
 	/* Render to this RenderTarget. */
 	virtual void StartRenderingTo() = 0;
@@ -123,9 +127,12 @@ class RenderTarget
 	 * and make it available. */
 	virtual void FinishRenderingTo() = 0;
 
-	virtual bool InvertY() const { return false; }
+	[[nodiscard]] virtual auto InvertY() const -> bool { return false; }
 
-	const RenderTargetParam& GetParam() const { return m_Param; }
+	[[nodiscard]] auto GetParam() const -> const RenderTargetParam&
+	{
+		return m_Param;
+	}
 
   protected:
 	RenderTargetParam m_Param;

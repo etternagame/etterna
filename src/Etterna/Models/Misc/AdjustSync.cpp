@@ -12,12 +12,12 @@
 
 #include "Etterna/Globals/global.h"
 #include "AdjustSync.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
@@ -34,10 +34,9 @@ AdjustSync::ResetOriginalSyncData()
 
 	if (GAMESTATE->m_pCurSong) {
 		s_vpTimingDataOriginal.push_back(GAMESTATE->m_pCurSong->m_SongTiming);
-		const vector<Steps*>& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-		FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-		{
-			s_vpTimingDataOriginal.push_back((*s)->m_Timing);
+		const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
+		for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+			s_vpTimingDataOriginal.push_back(s->m_Timing);
 		}
 	} else {
 		s_vpTimingDataOriginal.push_back(TimingData());
@@ -60,7 +59,7 @@ AdjustSync::IsSyncDataChanged()
 	if (GAMESTATE->IsPlaylistCourse())
 		return false;
 
-	vector<RString> vs;
+	vector<std::string> vs;
 	AdjustSync::GetSyncChangeTextGlobal(vs);
 	AdjustSync::GetSyncChangeTextSong(vs);
 	return !vs.empty();
@@ -98,10 +97,9 @@ AdjustSync::RevertSyncChanges()
 	GAMESTATE->m_pCurSong->m_SongTiming = s_vpTimingDataOriginal[0];
 
 	unsigned location = 1;
-	const vector<Steps*>& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-	FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-	{
-		(*s)->m_Timing = s_vpTimingDataOriginal[location];
+	const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
+	for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+		s->m_Timing = s_vpTimingDataOriginal[location];
 		location++;
 	}
 
@@ -118,7 +116,7 @@ static LocalizedString AUTOSYNC_CORRECTION_NOT_APPLIED(
 void
 AdjustSync::HandleAutosync(float fNoteOffBySeconds, float fStepTime)
 {
-	AutosyncType type = GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType;
+	auto type = GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType;
 	switch (type) {
 		case AutosyncType_Off:
 			return;
@@ -141,12 +139,12 @@ AdjustSync::HandleAutosync(float fNoteOffBySeconds, float fStepTime)
 void
 AdjustSync::AutosyncOffset()
 {
-	const float mean =
+	const auto mean =
 	  calc_mean(s_fAutosyncOffset, s_fAutosyncOffset + OFFSET_SAMPLE_COUNT);
-	const float stddev =
+	const auto stddev =
 	  calc_stddev(s_fAutosyncOffset, s_fAutosyncOffset + OFFSET_SAMPLE_COUNT);
 
-	AutosyncType type = GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType;
+	auto type = GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType;
 
 	if (stddev < .03f) // If they stepped with less than .03 error
 	{
@@ -155,16 +153,14 @@ AdjustSync::AutosyncOffset()
 				GAMESTATE->m_pCurSong->m_SongTiming.m_fBeat0OffsetInSeconds +=
 				  mean;
 				GAMESTATE->m_pCurSong->m_SongTiming.PrepareLookup();
-				const vector<Steps*>& vpSteps =
-				  GAMESTATE->m_pCurSong->GetAllSteps();
-				FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-				{
+				const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
+				for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
 					// Empty TimingData means it's inherited
 					// from the song and is already changed.
-					if ((*s)->m_Timing.empty())
+					if (s->m_Timing.empty())
 						continue;
-					(*s)->m_Timing.m_fBeat0OffsetInSeconds += mean;
-					(*s)->m_Timing.PrepareLookup();
+					s->m_Timing.m_fBeat0OffsetInSeconds += mean;
+					s->m_Timing.PrepareLookup();
 				}
 				break;
 			}
@@ -201,13 +197,13 @@ static LocalizedString SONG_OFFSET_FROM(
   "Song offset from %+.3f to %+.3f (notes %s)");
 
 void
-AdjustSync::GetSyncChangeTextGlobal(vector<RString>& vsAddTo)
+AdjustSync::GetSyncChangeTextGlobal(vector<std::string>& vsAddTo)
 {
 	{
-		float fOld =
+		auto fOld =
 		  Quantize(AdjustSync::s_fGlobalOffsetSecondsOriginal, 0.001f);
-		float fNew = Quantize(PREFSMAN->m_fGlobalOffsetSeconds, 0.001f);
-		float fDelta = fNew - fOld;
+		auto fNew = Quantize(PREFSMAN->m_fGlobalOffsetSeconds, 0.001f);
+		auto fDelta = fNew - fOld;
 
 		if (fabsf(fDelta) > 0.0001f) {
 			vsAddTo.push_back(
@@ -220,12 +216,12 @@ AdjustSync::GetSyncChangeTextGlobal(vector<RString>& vsAddTo)
 }
 
 void
-AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
+AdjustSync::GetSyncChangeTextSong(vector<std::string>& vsAddTo)
 {
 	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {
 		unsigned int iOriginalSize = vsAddTo.size();
-		TimingData& original = s_vpTimingDataOriginal[0];
-		TimingData& testing = GAMESTATE->m_pCurSong->m_SongTiming;
+		auto& original = s_vpTimingDataOriginal[0];
+		auto& testing = GAMESTATE->m_pCurSong->m_SongTiming;
 
 		// the files should match. typically this is the case but sometimes that
 		// just isnt true and we really dont want to let it happen
@@ -233,9 +229,9 @@ AdjustSync::GetSyncChangeTextSong(vector<RString>& vsAddTo)
 			return;
 
 		{
-			float fOld = Quantize(original.m_fBeat0OffsetInSeconds, 0.001f);
-			float fNew = Quantize(testing.m_fBeat0OffsetInSeconds, 0.001f);
-			float fDelta = fNew - fOld;
+			auto fOld = Quantize(original.m_fBeat0OffsetInSeconds, 0.001f);
+			auto fNew = Quantize(testing.m_fBeat0OffsetInSeconds, 0.001f);
+			auto fDelta = fNew - fOld;
 
 			if (fabsf(fDelta) > 0.0001f) {
 				vsAddTo.push_back(

@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageTextureID.h"
 #include "RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -19,7 +19,7 @@ RageTextureID::Init()
 }
 
 void
-RageTextureID::SetFilename(const RString& fn)
+RageTextureID::SetFilename(const std::string& fn)
 {
 	filename = fn;
 	CollapsePath(filename);

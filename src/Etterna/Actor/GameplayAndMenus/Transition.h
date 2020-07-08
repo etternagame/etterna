@@ -12,7 +12,7 @@ class Transition : public ActorFrame
   public:
 	Transition();
 
-	void Load(const RString& sBGAniDir);
+	void Load(const std::string& sBGAniDir);
 
 	void UpdateInternal(float fDeltaTime) override;
 

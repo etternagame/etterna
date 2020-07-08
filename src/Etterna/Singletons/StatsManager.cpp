@@ -1,22 +1,19 @@
 #include "Etterna/Globals/global.h"
 #include "CryptManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "GameState.h"
 #include "LuaManager.h"
-#include "PrefsManager.h"
-#include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
-#include "RageUtil/File/RageFileManager.h"
 #include "ScoreManager.h"
 #include "StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/StepsAndStyles/StyleUtil.h"
-#include "Etterna/FileTypes/XmlFile.h"
-#include "Etterna/FileTypes/XmlFileUtil.h"
+
+#include <algorithm>
+
+using std::set;
 
 StatsManager* STATSMAN =
-  NULL; // global object accessible from anywhere in the program
+  nullptr; // global object accessible from anywhere in the program
 
 StatsManager::StatsManager()
 {
@@ -55,8 +52,8 @@ AccumPlayedStageStats(const vector<StageStats>& vss)
 		ssreturn.m_playMode = vss[0].m_playMode;
 	}
 
-	FOREACH_CONST(StageStats, vss, ss)
-	ssreturn.AddStats(*ss);
+	for (auto& ss : vss)
+		ssreturn.AddStats(ss);
 
 	unsigned uNumSongs = ssreturn.m_vpPlayedSongs.size();
 
@@ -109,13 +106,19 @@ StatsManager::CommitStatsToProfiles(const StageStats* pSS)
 	// part way through the song, in which case we don't want to give credit for
 	// the rest of the song.
 	int iNumTapsAndHolds =
-	  (int)pSS->m_player.m_radarActual[RadarCategory_TapsAndHolds];
-	int iNumJumps = (int)pSS->m_player.m_radarActual[RadarCategory_Jumps];
-	int iNumHolds = (int)pSS->m_player.m_radarActual[RadarCategory_Holds];
-	int iNumRolls = (int)pSS->m_player.m_radarActual[RadarCategory_Rolls];
-	int iNumMines = (int)pSS->m_player.m_radarActual[RadarCategory_Mines];
-	int iNumHands = (int)pSS->m_player.m_radarActual[RadarCategory_Hands];
-	int iNumLifts = (int)pSS->m_player.m_radarActual[RadarCategory_Lifts];
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_TapsAndHolds]);
+	int iNumJumps =
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Jumps]);
+	int iNumHolds =
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Holds]);
+	int iNumRolls =
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Rolls]);
+	int iNumMines =
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Mines]);
+	int iNumHands =
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Hands]);
+	int iNumLifts =
+	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Lifts]);
 	PROFILEMAN->AddStepTotals(PLAYER_1,
 							  iNumTapsAndHolds,
 							  iNumJumps,
@@ -126,7 +129,7 @@ StatsManager::CommitStatsToProfiles(const StageStats* pSS)
 							  iNumLifts);
 
 	// Update profile stats
-	int iGameplaySeconds = (int)truncf(pSS->m_fGameplaySeconds);
+	int iGameplaySeconds = static_cast<int>(truncf(pSS->m_fGameplaySeconds));
 }
 
 void
@@ -135,10 +138,10 @@ StatsManager::UnjoinPlayer(PlayerNumber pn)
 	/* A player has been unjoined.  Clear his data from m_vPlayedStageStats, and
 	 * purge any m_vPlayedStageStats that no longer have any player data because
 	 * all of the players that were playing at the time have been unjoined. */
-	FOREACH(StageStats, m_vPlayedStageStats, ss)
-	ss->m_player = PlayerStageStats();
+	for (auto& ss : m_vPlayedStageStats)
+		ss.m_player = PlayerStageStats();
 
-	for (int i = 0; i < (int)m_vPlayedStageStats.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(m_vPlayedStageStats.size()); ++i) {
 		StageStats& ss = m_vPlayedStageStats[i];
 		bool bIsActive = false;
 		if (ss.m_player.m_bJoined)
@@ -156,7 +159,7 @@ StatsManager::UnjoinPlayer(PlayerNumber pn)
 void
 StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 {
-	for (int i = 0; i < (int)m_vPlayedStageStats.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(m_vPlayedStageStats.size()); ++i) {
 		const PlayerStageStats& pss = m_vPlayedStageStats[i].m_player;
 		apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
 						  pss.m_vpPossibleSteps.end());
@@ -187,7 +190,8 @@ class LunaStatsManager : public Luna<StatsManager>
 	{
 		int iAgo = IArg(1);
 		int iIndex = p->m_vPlayedStageStats.size() - iAgo;
-		if (iIndex < 0 || iIndex >= (int)p->m_vPlayedStageStats.size())
+		if (iIndex < 0 ||
+			iIndex >= static_cast<int>(p->m_vPlayedStageStats.size()))
 			return 0;
 
 		p->m_vPlayedStageStats[iIndex].PushSelf(L);
@@ -215,7 +219,7 @@ class LunaStatsManager : public Luna<StatsManager>
 		PlayerNumber pn = PLAYER_1;
 
 		if (!GAMESTATE->IsHumanPlayer(pn))
-			lua_pushnumber(L, Grade_NoData);
+			lua_pushnumber(L, Grade_Invalid);
 		else {
 			StageStats stats;
 			p->GetFinalEvalStageStats(stats);
@@ -232,7 +236,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	static int GetBestGrade(T* p, lua_State* L)
 	{
 		Grade g = NUM_Grade;
-		g = min(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
+		g = std::min(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
@@ -240,7 +244,7 @@ class LunaStatsManager : public Luna<StatsManager>
 	static int GetWorstGrade(T* p, lua_State* L)
 	{
 		Grade g = Grade_Tier01;
-		g = max(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
+		g = std::max(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
@@ -252,15 +256,14 @@ class LunaStatsManager : public Luna<StatsManager>
 		t->GetFinalEvalStageStats(stats);
 		// If this player failed any stage, then their final grade is an F.
 		bool bPlayerFailedOneStage = false;
-		FOREACH_CONST(StageStats, STATSMAN->m_vPlayedStageStats, ss)
-		{
-			if (ss->m_player.m_bFailed) {
+		for (auto& ss : STATSMAN->m_vPlayedStageStats) {
+			if (ss.m_player.m_bFailed) {
 				bPlayerFailedOneStage = true;
 				break;
 			}
 		}
 
-		top_grade = min(top_grade, stats.m_player.GetGrade());
+		top_grade = std::min(top_grade, stats.m_player.GetGrade());
 
 		Enum::Push(L, top_grade);
 		return 1;

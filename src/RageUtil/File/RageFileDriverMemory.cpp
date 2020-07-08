@@ -1,9 +1,11 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileDriverMemory.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
 #include <errno.h>
+
+#include <algorithm>
 
 struct RageFileObjMemFile
 {
@@ -12,7 +14,7 @@ struct RageFileObjMemFile
 	  , m_Mutex("RageFileObjMemFile")
 	{
 	}
-	RString m_sBuf;
+	std::string m_sBuf;
 	int m_iRefs;
 	RageMutex m_Mutex;
 
@@ -38,7 +40,7 @@ struct RageFileObjMemFile
 
 RageFileObjMem::RageFileObjMem(RageFileObjMemFile* pFile)
 {
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		pFile = new RageFileObjMemFile;
 
 	m_pFile = pFile;
@@ -56,8 +58,8 @@ RageFileObjMem::ReadInternal(void* buffer, size_t bytes)
 {
 	LockMut(m_pFile->m_Mutex);
 
-	m_iFilePos = min(m_iFilePos, GetFileSize());
-	bytes = min(bytes, (size_t)GetFileSize() - m_iFilePos);
+	m_iFilePos = std::min(m_iFilePos, GetFileSize());
+	bytes = std::min(bytes, (size_t)GetFileSize() - m_iFilePos);
 	if (bytes == 0)
 		return 0;
 	memcpy(buffer, &m_pFile->m_sBuf[m_iFilePos], bytes);
@@ -80,7 +82,7 @@ RageFileObjMem::WriteInternal(const void* buffer, size_t bytes)
 int
 RageFileObjMem::SeekInternal(int offset)
 {
-	m_iFilePos = clamp(offset, 0, GetFileSize());
+	m_iFilePos = std::clamp(offset, 0, GetFileSize());
 	return m_iFilePos;
 }
 
@@ -106,14 +108,14 @@ RageFileObjMem::Copy() const
 	return pRet;
 }
 
-const RString&
+const std::string&
 RageFileObjMem::GetString() const
 {
 	return m_pFile->m_sBuf;
 }
 
 void
-RageFileObjMem::PutString(const RString& sBuf)
+RageFileObjMem::PutString(const std::string& sBuf)
 {
 	m_pFile->m_Mutex.Lock();
 	m_pFile->m_sBuf = sBuf;
@@ -128,14 +130,13 @@ RageFileDriverMem::RageFileDriverMem()
 
 RageFileDriverMem::~RageFileDriverMem()
 {
-	for (unsigned i = 0; i < m_Files.size(); ++i) {
-		RageFileObjMemFile* pFile = m_Files[i];
+	for (auto pFile : m_Files) {
 		RageFileObjMemFile::ReleaseReference(pFile);
 	}
 }
 
 RageFileBasic*
-RageFileDriverMem::Open(const RString& sPath, int mode, int& err)
+RageFileDriverMem::Open(const std::string& sPath, int mode, int& err)
 {
 	LockMut(m_Mutex);
 
@@ -156,22 +157,22 @@ RageFileDriverMem::Open(const RString& sPath, int mode, int& err)
 
 	RageFileObjMemFile* pFile =
 	  reinterpret_cast<RageFileObjMemFile*>(FDB->GetFilePriv(sPath));
-	if (pFile == NULL) {
+	if (pFile == nullptr) {
 		err = ENOENT;
-		return NULL;
+		return nullptr;
 	}
 
 	return new RageFileObjMem(pFile);
 }
 
 bool
-RageFileDriverMem::Remove(const RString& sPath)
+RageFileDriverMem::Remove(const std::string& sPath)
 {
 	LockMut(m_Mutex);
 
 	RageFileObjMemFile* pFile =
 	  reinterpret_cast<RageFileObjMemFile*>(FDB->GetFilePriv(sPath));
-	if (pFile == NULL)
+	if (pFile == nullptr)
 		return false;
 
 	/* Unregister the file. */
@@ -192,7 +193,7 @@ static struct FileDriverEntry_MEM : public FileDriverEntry
 	  : FileDriverEntry("MEM")
 	{
 	}
-	RageFileDriver* Create(const RString& sRoot) const
+	RageFileDriver* Create(const std::string& sRoot) const
 	{
 		return new RageFileDriverMem();
 	}

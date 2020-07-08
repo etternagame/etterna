@@ -2,7 +2,7 @@
 #include "FilterManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 
-FilterManager* FILTERMAN = NULL;
+FilterManager* FILTERMAN = nullptr;
 
 FilterManager::FilterManager()
 {
@@ -75,14 +75,14 @@ FilterManager::AnyActiveFilter()
 // store x/y persistently by name
 
 void
-FilterManager::savepos(string name, int x, int y)
+FilterManager::savepos(std::string name, int x, int y)
 {
 	watte[name].first = x;
 	watte[name].second = y;
 }
 
-pair<int, int>
-FilterManager::loadpos(string name)
+std::pair<int, int>
+FilterManager::loadpos(std::string name)
 {
 	return watte[name];
 }

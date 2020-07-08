@@ -1,14 +1,14 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/BackgroundUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Foreground.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
-#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Models/Songs/SongOptions.h"
+
+#include <algorithm>
 
 Foreground::~Foreground()
 {
@@ -18,33 +18,32 @@ Foreground::~Foreground()
 void
 Foreground::Unload()
 {
-	for (unsigned i = 0; i < m_BGAnimations.size(); ++i)
-		delete m_BGAnimations[i].m_bga;
+	for (auto& m_BGAnimation : m_BGAnimations)
+		delete m_BGAnimation.m_bga;
 	m_BGAnimations.clear();
 	m_SubActors.clear();
 	m_fLastMusicSeconds = -9999;
-	m_pSong = NULL;
+	m_pSong = nullptr;
 }
 
 void
 Foreground::LoadFromSong(const Song* pSong)
 {
 	// Song graphics can get very big; never keep them in memory.
-	RageTextureID::TexPolicy OldPolicy = TEXTUREMAN->GetDefaultTexturePolicy();
+	const auto OldPolicy = TEXTUREMAN->GetDefaultTexturePolicy();
 	TEXTUREMAN->SetDefaultTexturePolicy(RageTextureID::TEX_VOLATILE);
 
 	m_pSong = pSong;
-	FOREACH_CONST(BackgroundChange, pSong->GetForegroundChanges(), bgc)
-	{
-		const BackgroundChange& change = *bgc;
-		std::string sBGName = change.m_def.m_sFile1,
-					sLuaFile = pSong->GetSongDir() + sBGName + "/default.lua",
-					sXmlFile = pSong->GetSongDir() + sBGName + "/default.xml";
+	for (const auto& bgc : pSong->GetForegroundChanges()) {
+		const auto& change = bgc;
+		auto sBGName = change.m_def.m_sFile1,
+			 sLuaFile = pSong->GetSongDir() + sBGName + "/default.lua",
+			 sXmlFile = pSong->GetSongDir() + sBGName + "/default.xml";
 
 		LoadedBGA bga;
 		if (DoesFileExist(sLuaFile)) {
 			LOG->Warn("Mod map detected, invalidating sequential assumption.");
-			TimingData* td = GAMESTATE->m_pCurSteps->GetTimingData();
+			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 			td->InvalidateSequentialAssmption();
 
 			bga.m_bga = ActorUtil::MakeActor(sLuaFile, this);
@@ -52,7 +51,7 @@ Foreground::LoadFromSong(const Song* pSong)
 			bga.m_bga =
 			  ActorUtil::MakeActor(pSong->GetSongDir() + sBGName, this);
 		}
-		if (bga.m_bga == NULL)
+		if (bga.m_bga == nullptr)
 			continue;
 		bga.m_bga->SetName(sBGName);
 		// ActorUtil::MakeActor calls LoadFromNode to load the actor, and
@@ -76,11 +75,9 @@ void
 Foreground::Update(float fDeltaTime)
 {
 	// Calls to Update() should *not* be scaled by music rate. Undo it.
-	const float fRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	const auto fRate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
-	for (unsigned i = 0; i < m_BGAnimations.size(); ++i) {
-		LoadedBGA& bga = m_BGAnimations[i];
-
+	for (auto& bga : m_BGAnimations) {
 		if (GAMESTATE->m_Position.m_fSongBeat < bga.m_fStartBeat) {
 			// The animation hasn't started yet.
 			continue;
@@ -96,9 +93,9 @@ Foreground::Update(float fDeltaTime)
 			bga.m_bga->SetVisible(true);
 			bga.m_bga->PlayCommand("On");
 
-			const float fStartSecond =
+			const auto fStartSecond =
 			  m_pSong->m_SongTiming.WhereUAtBro(bga.m_fStartBeat);
-			const float fStopSecond =
+			const auto fStopSecond =
 			  fStartSecond + bga.m_bga->GetTweenTimeLeft();
 			bga.m_fStopBeat =
 			  m_pSong->m_SongTiming.GetBeatFromElapsedTime(fStopSecond);
@@ -110,7 +107,7 @@ Foreground::Update(float fDeltaTime)
 		}
 
 		// This shouldn't go down, but be safe:
-		lDeltaTime = max(lDeltaTime, 0);
+		lDeltaTime = std::max(lDeltaTime, 0.F);
 
 		bga.m_bga->Update(lDeltaTime / fRate);
 
@@ -118,7 +115,6 @@ Foreground::Update(float fDeltaTime)
 			// Finished.
 			bga.m_bga->SetVisible(false);
 			bga.m_bFinished = true;
-			continue;
 		}
 	}
 

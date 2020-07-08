@@ -10,7 +10,6 @@
 #include "archutils/win32/ErrorStrings.h"
 #include "archutils/win32/RestartProgram.h"
 #include "archutils/win32/GotoURL.h"
-#include "archutils/Win32/RegistryAccess.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
 static HANDLE g_hInstanceMutex;
@@ -144,10 +143,10 @@ ArchHooks_Win32::CheckForMultipleInstances(int argc, char* argv[])
 			SetForegroundWindow(hWnd);
 
 		// Send the command line to the existing window.
-		vector<RString> vsArgs;
+		vector<std::string> vsArgs;
 		for (int i = 0; i < argc; i++)
 			vsArgs.push_back(argv[i]);
-		RString sAllArgs = join("|", vsArgs);
+		std::string sAllArgs = join("|", vsArgs);
 		COPYDATASTRUCT cds;
 		cds.dwData = 0;
 		cds.cbData = sAllArgs.size();
@@ -155,7 +154,7 @@ ArchHooks_Win32::CheckForMultipleInstances(int argc, char* argv[])
 		SendMessage(
 		  (HWND)hWnd, // HWND hWnd = handle of destination window
 		  WM_COPYDATA,
-		  (WPARAM)NULL,  // HANDLE OF SENDING WINDOW
+		  (WPARAM)NULL,	 // HANDLE OF SENDING WINDOW
 		  (LPARAM)&cds); // 2nd msg parameter = pointer to COPYDATASTRUCT
 	}
 
@@ -193,7 +192,7 @@ ArchHooks_Win32::BoostPriority()
 	OSVERSIONINFO version;
 	version.dwOSVersionInfoSize = sizeof(version);
 	if (!GetVersionEx(&version)) {
-		LOG->Warn(werr_ssprintf(GetLastError(), "GetVersionEx failed"));
+		LOG->Warn(werr_ssprintf(GetLastError(), "GetVersionEx failed").c_str());
 		return;
 	}
 
@@ -223,7 +222,7 @@ ArchHooks_Win32::SetupConcurrentRenderingThread()
 }
 
 bool
-ArchHooks_Win32::GoToURL(const RString& sUrl)
+ArchHooks_Win32::GoToURL(const std::string& sUrl)
 {
 	return ::GotoURL(sUrl);
 }
@@ -255,12 +254,12 @@ ArchHooks_Win32::GetDisplayAspectRatio()
 	return dm.dmPelsWidth / static_cast<float>(dm.dmPelsHeight);
 }
 
-RString
+std::string
 ArchHooks_Win32::GetClipboard()
 {
 	HGLOBAL hgl;
 	LPTSTR lpstr;
-	RString ret;
+	std::string ret;
 
 	// First make sure that the clipboard actually contains a string
 	// (or something stringifiable)
@@ -270,8 +269,10 @@ ArchHooks_Win32::GetClipboard()
 	// Yes. All this mess just to gain access to the string stored by the
 	// clipboard. I'm having flashbacks to Berkeley sockets.
 	if (unlikely(!OpenClipboard(NULL))) {
-		LOG->Warn(werr_ssprintf(
-		  GetLastError(), "InputHandler_DirectInput: OpenClipboard() failed"));
+		LOG->Warn(
+		  werr_ssprintf(GetLastError(),
+						"InputHandler_DirectInput: OpenClipboard() failed")
+			.c_str());
 		return "";
 	}
 
@@ -279,15 +280,17 @@ ArchHooks_Win32::GetClipboard()
 	if (unlikely(hgl == NULL)) {
 		LOG->Warn(
 		  werr_ssprintf(GetLastError(),
-						"InputHandler_DirectInput: GetClipboardData() failed"));
+						"InputHandler_DirectInput: GetClipboardData() failed")
+			.c_str());
 		CloseClipboard();
 		return "";
 	}
 
 	lpstr = (LPTSTR)GlobalLock(hgl);
 	if (unlikely(lpstr == NULL)) {
-		LOG->Warn(werr_ssprintf(
-		  GetLastError(), "InputHandler_DirectInput: GlobalLock() failed"));
+		LOG->Warn(werr_ssprintf(GetLastError(),
+								"InputHandler_DirectInput: GlobalLock() failed")
+					.c_str());
 		CloseClipboard();
 		return "";
 	}
@@ -298,7 +301,7 @@ ArchHooks_Win32::GetClipboard()
 #ifdef UNICODE
 	ret = WStringToRString(wstring() + *lpstr);
 #else
-	ret = RString(lpstr);
+	ret = std::string(lpstr);
 #endif
 
 	// And now we clean up.

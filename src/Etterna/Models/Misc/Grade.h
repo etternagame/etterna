@@ -35,8 +35,6 @@ enum Grade
 	NUM_Grade,
 	Grade_Invalid,
 };
-/** @brief Have an alternative for if there is no data for grading. */
-#define Grade_NoData Grade_Invalid
 
 /**
  * @brief Convert the grade supplied to a string representation.
@@ -46,14 +44,14 @@ enum Grade
  * @param g the grade to convert.
  * @return the string reprsentation.
  */
-static inline RString
-GradeToString(Grade g)
+static inline auto
+GradeToString(Grade g) -> std::string
 {
-	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_NoData,
+	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_Invalid,
 			 ssprintf("grade = %d", g));
 
 	switch (g) {
-		case Grade_NoData:
+		case Grade_Invalid:
 			return "NoData";
 		case Grade_Failed:
 			return "Failed";
@@ -70,17 +68,17 @@ GradeToString(Grade g)
  * This is only referenced in ScreenEvaluation at the moment.
  * @param g the current Grade.
  * @return the old styled grade string. */
-RString
-GradeToOldString(Grade g);
-RString
-GradeToLocalizedString(Grade g);
+auto
+GradeToOldString(Grade g) -> std::string;
+auto
+GradeToLocalizedString(Grade g) -> std::string;
 /**
- * @brief Convert the given RString into a proper Grade.
+ * @brief Convert the given std::string into a proper Grade.
  * @param s the string to convert.
  * @return the expected Grade.
  */
-Grade
-StringToGrade(const RString& s);
+auto
+StringToGrade(const std::string& s) -> Grade;
 LuaDeclareType(Grade);
 extern ThemeMetric<int> NUM_GRADE_TIERS_USED;
 #define NUM_POSSIBLE_GRADES (NUM_GRADE_TIERS_USED + 1)
@@ -88,11 +86,12 @@ extern ThemeMetric<int> NUM_GRADE_TIERS_USED;
  * @brief Step through the enumerator one at a time to get the next Grade.
  * @param g the current Grade.
  * @return the next Grade. */
-Grade
-GetNextPossibleGrade(Grade g);
+auto
+GetNextPossibleGrade(Grade g) -> Grade;
 /** @brief Loop through each possible Grade. */
 #define FOREACH_PossibleGrade(g)                                               \
                                                                                \
-	for (Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
+	for (Grade g = (Grade)(0); (g) != Grade_Invalid;                           \
+		 (g) = GetNextPossibleGrade(g))
 
 #endif

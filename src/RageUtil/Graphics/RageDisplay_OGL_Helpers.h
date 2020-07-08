@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_DISPLAY_OGL_HELPERS_H
+#ifndef RAGE_DISPLAY_OGL_HELPERS_H
 #define RAGE_DISPLAY_OGL_HELPERS_H
 
 #ifdef _WIN32
@@ -19,7 +19,7 @@
 namespace RageDisplay_Legacy_Helpers {
 void
 Init();
-RString
+std::string
 GLToString(GLenum e);
 };
 

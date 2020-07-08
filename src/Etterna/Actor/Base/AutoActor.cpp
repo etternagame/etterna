@@ -55,7 +55,8 @@ void
 AutoActor::LoadB(const std::string& sMetricsGroup, const std::string& sElement)
 {
 	ThemeManager::PathInfo pi;
-	bool b = THEME->GetPathInfo(pi, EC_BGANIMATIONS, sMetricsGroup, sElement);
+	const auto b =
+	  THEME->GetPathInfo(pi, EC_BGANIMATIONS, sMetricsGroup, sElement);
 	ASSERT(b);
 	LuaThreadVariable var1("MatchingMetricsGroup", pi.sMatchingMetricsGroup);
 	LuaThreadVariable var2("MatchingElement", pi.sMatchingElement);

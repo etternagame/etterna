@@ -12,22 +12,19 @@ class XNode;
 class AutoActor
 {
   public:
-	AutoActor()
-	  : m_pActor(NULL)
-	{
-	}
+	AutoActor() {}
 	~AutoActor() { Unload(); }
 	AutoActor(const AutoActor& cpy);
-	AutoActor& operator=(const AutoActor& cpy);
+	auto operator=(const AutoActor& cpy) -> AutoActor&;
 	operator const Actor*() const { return m_pActor; }
 	operator Actor*() { return m_pActor; }
-	const Actor* operator->() const { return m_pActor; }
-	Actor* operator->() { return m_pActor; }
+	auto operator->() const -> const Actor* { return m_pActor; }
+	auto operator->() -> Actor* { return m_pActor; }
 	void Unload();
 	/**
 	 * @brief Determine if this actor is presently loaded.
 	 * @return true if it is loaded, or false otherwise. */
-	bool IsLoaded() const { return m_pActor != NULL; }
+	[[nodiscard]] auto IsLoaded() const -> bool { return m_pActor != nullptr; }
 	void Load(Actor* pActor); // transfer pointer
 	void Load(const std::string& sPath);
 	void LoadB(const std::string& sMetricsGroup,
@@ -40,7 +37,7 @@ class AutoActor
 
   protected:
 	/** @brief the Actor for which there is a smart pointer to. */
-	Actor* m_pActor;
+	Actor* m_pActor{ nullptr };
 };
 
 #endif

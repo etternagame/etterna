@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <array>
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
@@ -25,7 +24,7 @@ struct WideRangeAnchorMod
 	float diff_max = 8.F;
 	float scaler = 0.1F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
@@ -47,25 +46,26 @@ struct WideRangeAnchorMod
 	float divisor = 0.F;
 	float pmod = min_mod;
 
-	inline void full_reset()
+	void full_reset()
 	{
 		interval_end();
 		pmod = neutral;
 	}
 
-	inline void setup()
+	void setup()
 	{
 		// setup should be run after loading params from disk
 		window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
-		divisor = static_cast<float>(static_cast<int>(diff_max) - static_cast<int>(diff_min));
+		divisor = static_cast<float>(static_cast<int>(diff_max) -
+									 static_cast<int>(diff_min));
 
 		// /0 lul
 		if (divisor < 0.1F)
 			divisor = 0.1F;
 	}
 
-	inline void set_pmod(const ItvHandInfo& itvhi, const AnchorSequencer& as)
+	void set_pmod(const ItvHandInfo& itvhi, const AnchorSequencer& as)
 	{
 		a = as.get_max_for_window_and_col(col_left, window);
 		b = as.get_max_for_window_and_col(col_right, window);
@@ -101,7 +101,7 @@ struct WideRangeAnchorMod
 		pmod = CalcClamp(pmod, min_mod, max_mod);
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi, const AnchorSequencer& as)
+	auto operator()(const ItvHandInfo& itvhi, const AnchorSequencer& as)
 	  -> float
 	{
 		set_pmod(itvhi, as);
@@ -114,7 +114,7 @@ struct WideRangeAnchorMod
 	 * values are updated, however, supposing we do add anything like shortcut
 	 * case handling prior to calculating these values, better this is already
 	 * in place */
-	inline void interval_end()
+	void interval_end()
 	{
 		diff = 0;
 		a = 0;

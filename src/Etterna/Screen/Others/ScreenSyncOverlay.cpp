@@ -6,7 +6,6 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSyncOverlay.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -82,7 +81,7 @@ void
 ScreenSyncOverlay::UpdateText(bool forcedChange)
 {
 	// Update Status
-	vector<RString> vs;
+	vector<std::string> vs;
 
 	PlayerController pc = GamePreferences::m_AutoPlay.Get();
 
@@ -118,7 +117,7 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 			FAIL_M(ssprintf("Invalid autosync type: %i", type));
 	}
 
-	if (GAMESTATE->m_pCurSong != NULL) {
+	if (GAMESTATE->m_pCurSong != nullptr) {
 		AdjustSync::GetSyncChangeTextGlobal(vs);
 		AdjustSync::GetSyncChangeTextSong(vs);
 	}
@@ -133,7 +132,7 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 	// Update SyncInfo
 	bool visible =
 	  GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType != AutosyncType_Off;
-	RString s;
+	std::string s;
 	if (visible) {
 		float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 		float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
@@ -255,18 +254,17 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 				}
 
 				case ChangeSongOffset: {
-					if (GAMESTATE->m_pCurSong != NULL) {
+					if (GAMESTATE->m_pCurSong != nullptr) {
 						GAMESTATE->m_pCurSong->m_SongTiming
 						  .m_fBeat0OffsetInSeconds += fDelta;
 						const vector<Steps*>& vpSteps =
 						  GAMESTATE->m_pCurSong->GetAllSteps();
-						FOREACH(Steps*, const_cast<vector<Steps*>&>(vpSteps), s)
-						{
+						for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
 							// Empty means it inherits song timing,
 							// which has already been updated.
-							if ((*s)->m_Timing.empty())
+							if (s->m_Timing.empty())
 								continue;
-							(*s)->m_Timing.m_fBeat0OffsetInSeconds += fDelta;
+							s->m_Timing.m_fBeat0OffsetInSeconds += fDelta;
 						}
 					}
 					break;

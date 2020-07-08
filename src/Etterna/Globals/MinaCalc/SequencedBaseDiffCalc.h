@@ -1,8 +1,7 @@
 #pragma once
-#include <array>
-#include <vector>
-
 #include "Etterna/Globals/MinaCalc/SequencingHelpers.h"
+
+#include <array>
 
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
@@ -12,13 +11,13 @@
 
 struct nps
 {
-	static inline void actual_cancer(Calc& calc, const int& hi)
+	static void actual_cancer(Calc& calc, const int& hi)
 	{
-		for (int itv = 0; itv < calc.numitv; ++itv) {
+		for (auto itv = 0; itv < calc.numitv; ++itv) {
 
-			int notes = 0;
+			auto notes = 0;
 
-			for (int row = 0; row < calc.itv_size.at(itv); ++row) {
+			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
 				notes += cur.hand_counts.at(hi);
 			}
@@ -36,35 +35,35 @@ struct nps
 struct techyo
 {
 	// if this looks ridiculous, that's because it is
-	inline void advance_base(const SequencerGeneral& seq,
-							 const col_type& ct,
-							 Calc& calc)
+	void advance_base(const SequencerGeneral& seq,
+					  const col_type& ct,
+					  Calc& calc)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
 		}
 
-		float a = seq.get_sc_ms_now(ct);
-		float b = ms_init;
+		const auto a = seq.get_sc_ms_now(ct);
+		auto b = ms_init;
 		if (ct == col_ohjump) {
 			b = seq.get_sc_ms_now(ct, false);
 		} else {
 			b = seq.get_cc_ms_now();
 		}
 
-		float c = fastsqrt(a) * fastsqrt(b);
+		const auto c = fastsqrt(a) * fastsqrt(b);
 
-		float pineapple = seq._mw_any_ms.get_cv_of_window(4);
-		float porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
-		float sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
-		float oioi = 0.5F;
+		auto pineapple = seq._mw_any_ms.get_cv_of_window(4);
+		auto porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
+		auto sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
+		const auto oioi = 0.5F;
 		pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
 		porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
 		sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
 
-		float scoliosis = seq._mw_sc_ms[col_left].get_now();
-		float poliosis = seq._mw_sc_ms[col_right].get_now();
-		float obliosis = 0.F;
+		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
+		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
+		auto obliosis = 0.F;
 
 		if (ct == col_left) {
 			obliosis = poliosis / scoliosis;
@@ -73,10 +72,10 @@ struct techyo
 		}
 
 		obliosis = CalcClamp(obliosis, 1.F, 10.F);
-		float pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
+		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
 		pewp /= obliosis;
-		float vertebrae = CalcClamp(
+		const auto vertebrae = CalcClamp(
 		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
 
 		teehee(c / vertebrae);
@@ -85,32 +84,32 @@ struct techyo
 		++row_counter;
 	}
 
-	inline void advance_rm_comp(const float& rm_diff)
+	void advance_rm_comp(const float& rm_diff)
 	{
-		rm_itv_max_diff = max(rm_itv_max_diff, rm_diff);
+		rm_itv_max_diff = std::max(rm_itv_max_diff, rm_diff);
 	}
 
 	// for debug
-	[[nodiscard]] inline auto get_itv_rma_diff() const -> float
+	[[nodiscard]] auto get_itv_rma_diff() const -> float
 	{
 		return rm_itv_max_diff;
 	}
 
 	// final output difficulty for this interval, merges base diff, runningman
 	// anchor diff
-	[[nodiscard]] inline auto get_itv_diff(const float& nps_base,
-										   Calc& calc) const -> float
+	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
+	  -> float
 	{
 		// for now do simple thing, for this interval either use the higher
 		// between weighted adjusted ms/nps base and runningman diff
 		// we definitely don't want to average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		return max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
-				   rm_itv_max_diff);
+		return std::max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
+						rm_itv_max_diff);
 	}
 
-	inline void interval_end()
+	void interval_end()
 	{
 		row_counter = 0;
 		rm_itv_max_diff = 0.F;
@@ -131,18 +130,18 @@ struct techyo
 
 	// get the interval base diff, which will then be merged via weighted
 	// average with npsbase, and then compared to max_rm diff
-	[[nodiscard]] inline auto get_tc_base(Calc& calc) const -> float
+	[[nodiscard]] auto get_tc_base(Calc& calc) const -> float
 	{
 		if (row_counter == 0) {
 			return 0.F;
 		}
 
-		float ms_total = 0.F;
-		for (int i = 0; i < row_counter; ++i) {
+		auto ms_total = 0.F;
+		for (auto i = 0; i < row_counter; ++i) {
 			ms_total += calc.tc_static.at(i);
 		}
 
-		float ms_mean = ms_total / static_cast<float>(row_counter);
+		const auto ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);
 	}
 };
@@ -152,7 +151,7 @@ struct diffz
 	nps _nps;
 	techyo _tc;
 
-	inline void interval_end() { _tc.interval_end(); }
+	void interval_end() { _tc.interval_end(); }
 
-	inline void full_reset() { interval_end(); }
+	void full_reset() { interval_end(); }
 };

@@ -190,7 +190,7 @@ ScreenSelectProfile::Finish()
 }
 
 void
-ScreenSelectProfile::HandleScreenMessage(const ScreenMessage SM)
+ScreenSelectProfile::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_MenuTimer) {
 		bool bFinished = Finish();

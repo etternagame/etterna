@@ -1,4 +1,4 @@
-﻿/* RageTexture - Abstract class for a texture and metadata.  */
+/* RageTexture - Abstract class for a texture and metadata.  */
 
 #ifndef RAGE_TEXTURE_H
 #define RAGE_TEXTURE_H
@@ -17,85 +17,107 @@ class RageTexture
 	virtual void Reload() {}
 	virtual void Invalidate() {
 	} /* only called by RageTextureManager::InvalidateTextures */
-	virtual intptr_t GetTexHandle() const = 0; // accessed by RageDisplay
+	[[nodiscard]] virtual auto GetTexHandle() const
+	  -> intptr_t = 0; // accessed by RageDisplay
 
 	// movie texture/animated texture stuff
-	virtual void SetPosition(float /* fSeconds */) {}   // seek
+	virtual void SetPosition(float /* fSeconds */) {}	// seek
 	virtual void DecodeSeconds(float /* fSeconds */) {} // decode
-	virtual void SetPlaybackRate(float) {}
-	virtual bool IsAMovie() const { return false; }
-	virtual void SetLooping(bool) {}
+	virtual void SetPlaybackRate(float /*unused*/) {}
+	[[nodiscard]] virtual auto IsAMovie() const -> bool { return false; }
+	virtual void SetLooping(bool /*unused*/) {}
 
-	int GetSourceWidth() const { return m_iSourceWidth; }
-	int GetSourceHeight() const { return m_iSourceHeight; }
-	int GetTextureWidth() const { return m_iTextureWidth; }
-	int GetTextureHeight() const { return m_iTextureHeight; }
-	int GetImageWidth() const { return m_iImageWidth; }
-	int GetImageHeight() const { return m_iImageHeight; }
+	[[nodiscard]] auto GetSourceWidth() const -> int { return m_iSourceWidth; }
+	[[nodiscard]] auto GetSourceHeight() const -> int
+	{
+		return m_iSourceHeight;
+	}
+	[[nodiscard]] auto GetTextureWidth() const -> int
+	{
+		return m_iTextureWidth;
+	}
+	[[nodiscard]] auto GetTextureHeight() const -> int
+	{
+		return m_iTextureHeight;
+	}
+	[[nodiscard]] auto GetImageWidth() const -> int { return m_iImageWidth; }
+	[[nodiscard]] auto GetImageHeight() const -> int { return m_iImageHeight; }
 
-	int GetFramesWide() const { return m_iFramesWide; }
-	int GetFramesHigh() const { return m_iFramesHigh; }
+	[[nodiscard]] auto GetFramesWide() const -> int { return m_iFramesWide; }
+	[[nodiscard]] auto GetFramesHigh() const -> int { return m_iFramesHigh; }
 
-	int GetSourceFrameWidth() const
+	[[nodiscard]] auto GetSourceFrameWidth() const -> int
 	{
 		return GetSourceWidth() / GetFramesWide();
 	}
-	int GetSourceFrameHeight() const
+	[[nodiscard]] auto GetSourceFrameHeight() const -> int
 	{
 		return GetSourceHeight() / GetFramesHigh();
 	}
-	int GetTextureFrameWidth() const
+	[[nodiscard]] auto GetTextureFrameWidth() const -> int
 	{
 		return GetTextureWidth() / GetFramesWide();
 	}
-	int GetTextureFrameHeight() const
+	[[nodiscard]] auto GetTextureFrameHeight() const -> int
 	{
 		return GetTextureHeight() / GetFramesHigh();
 	}
-	int GetImageFrameWidth() const { return GetImageWidth() / GetFramesWide(); }
-	int GetImageFrameHeight() const
+	[[nodiscard]] auto GetImageFrameWidth() const -> int
+	{
+		return GetImageWidth() / GetFramesWide();
+	}
+	[[nodiscard]] auto GetImageFrameHeight() const -> int
 	{
 		return GetImageHeight() / GetFramesHigh();
 	}
 
 	// Use these to convert between the different coordinate systems:
-	float GetSourceToImageCoordsRatioX() const
+	[[nodiscard]] auto GetSourceToImageCoordsRatioX() const -> float
 	{
 		return float(GetImageWidth()) / GetSourceWidth();
 	}
-	float GetImageToTexCoordsRatioX() const { return 1.0f / GetTextureWidth(); }
-	float GetSourceToTexCoordsRatioX() const
+	[[nodiscard]] auto GetImageToTexCoordsRatioX() const -> float
+	{
+		return 1.0F / GetTextureWidth();
+	}
+	[[nodiscard]] auto GetSourceToTexCoordsRatioX() const -> float
 	{
 		return GetSourceToImageCoordsRatioX() * GetImageToTexCoordsRatioX();
 	}
-	float GetSourceToImageCoordsRatioY() const
+	[[nodiscard]] auto GetSourceToImageCoordsRatioY() const -> float
 	{
 		return float(GetImageHeight()) / GetSourceHeight();
 	}
-	float GetImageToTexCoordsRatioY() const
+	[[nodiscard]] auto GetImageToTexCoordsRatioY() const -> float
 	{
-		return 1.0f / GetTextureHeight();
+		return 1.0F / GetTextureHeight();
 	}
-	float GetSourceToTexCoordsRatioY() const
+	[[nodiscard]] auto GetSourceToTexCoordsRatioY() const -> float
 	{
 		return GetSourceToImageCoordsRatioY() * GetImageToTexCoordsRatioY();
 	}
 
-	const RectF* GetTextureCoordRect(int frameNo) const;
-	int GetNumFrames() const { return m_iFramesWide * m_iFramesHigh; }
+	[[nodiscard]] auto GetTextureCoordRect(int frameNo) const -> const RectF*;
+	[[nodiscard]] auto GetNumFrames() const -> int
+	{
+		return m_iFramesWide * m_iFramesHigh;
+	}
 
 	// Used by RageTextureManager. Order is important; see
 	// RageTextureManager.cpp.
-	const RageTextureID::TexPolicy& GetPolicy() const { return m_ID.Policy; }
-	RageTextureID::TexPolicy& GetPolicy() { return m_ID.Policy; }
+	[[nodiscard]] auto GetPolicy() const -> const RageTextureID::TexPolicy&
+	{
+		return m_ID.Policy;
+	}
+	auto GetPolicy() -> RageTextureID::TexPolicy& { return m_ID.Policy; }
 	int m_iRefCount;
 	bool m_bWasUsed;
 	RageTimer m_lastRefTime;
 
 	// The ID that we were asked to load:
-	const RageTextureID& GetID() const { return m_ID; }
+	[[nodiscard]] auto GetID() const -> const RageTextureID& { return m_ID; }
 
-	static void GetFrameDimensionsFromFileName(const RString& sPath,
+	static void GetFrameDimensionsFromFileName(const std::string& sPath,
 											   int* puFramesWide,
 											   int* puFramesHigh,
 											   int source_width = 0,

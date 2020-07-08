@@ -1,4 +1,4 @@
-﻿/* Preference - Holds user-chosen preferences that are saved between sessions.
+/* Preference - Holds user-chosen preferences that are saved between sessions.
  */
 
 #ifndef PREFERENCE_H
@@ -13,48 +13,48 @@ struct lua_State;
 class IPreference
 {
   public:
-	IPreference(const RString& sName);
+	IPreference(const std::string& sName);
 	virtual ~IPreference();
 	void ReadFrom(const XNode* pNode, bool bIsStatic);
 	void WriteTo(XNode* pNode) const;
 	void ReadDefaultFrom(const XNode* pNode);
 
 	virtual void LoadDefault() = 0;
-	virtual void SetDefaultFromString(const RString& s) = 0;
+	virtual void SetDefaultFromString(const std::string& s) = 0;
 
-	virtual RString ToString() const = 0;
-	virtual void FromString(const RString& s) = 0;
+	[[nodiscard]] virtual auto ToString() const -> std::string = 0;
+	virtual void FromString(const std::string& s) = 0;
 
 	virtual void SetFromStack(lua_State* L);
 	virtual void PushValue(lua_State* L) const;
 
-	const RString& GetName() const { return m_sName; }
+	[[nodiscard]] auto GetName() const -> const std::string& { return m_sName; }
 
-	static IPreference* GetPreferenceByName(const RString& sName);
+	static auto GetPreferenceByName(const std::string& sName) -> IPreference*;
 	static void LoadAllDefaults();
 	static void ReadAllPrefsFromNode(const XNode* pNode, bool bIsStatic);
 	static void SavePrefsToNode(XNode* pNode);
 	static void ReadAllDefaultsFromNode(const XNode* pNode);
 
-	RString GetName() { return m_sName; }
+	auto GetName() -> std::string { return m_sName; }
 	void SetStatic(bool b) { m_bIsStatic = b; }
 
   private:
-	RString m_sName;
+	std::string m_sName;
 	bool m_bIsStatic; // loaded from Static.ini?  If so, don't write to
 					  // Preferences.ini
 };
 
 void
-BroadcastPreferenceChanged(const RString& sPreferenceName);
+BroadcastPreferenceChanged(const std::string& sPreferenceName);
 
 template<class T>
 class Preference : public IPreference
 {
   public:
-	Preference(const RString& sName,
+	Preference(const std::string& sName,
 			   const T& defaultValue,
-			   void(pfnValidate)(T& val) = NULL)
+			   void(pfnValidate)(T& val) = nullptr)
 	  : IPreference(sName)
 	  , m_currentValue(defaultValue)
 	  , m_defaultValue(defaultValue)
@@ -63,22 +63,25 @@ class Preference : public IPreference
 		LoadDefault();
 	}
 
-	RString ToString() const override
+	[[nodiscard]] auto ToString() const -> std::string override
 	{
 		return StringConversion::ToString<T>(m_currentValue);
 	}
-	void FromString(const RString& s) override
+	void FromString(const std::string& s) override
 	{
-		if (!StringConversion::FromString<T>(s, m_currentValue))
+		if (!StringConversion::FromString<T>(s, m_currentValue)) {
 			m_currentValue = m_defaultValue;
-		if (m_pfnValidate)
+		}
+		if (m_pfnValidate) {
 			m_pfnValidate(m_currentValue);
+		}
 	}
 	void SetFromStack(lua_State* L) override
 	{
 		LuaHelpers::Pop<T>(L, m_currentValue);
-		if (m_pfnValidate)
+		if (m_pfnValidate) {
 			m_pfnValidate(m_currentValue);
+		}
 	}
 	void PushValue(lua_State* L) const override
 	{
@@ -86,16 +89,17 @@ class Preference : public IPreference
 	}
 
 	void LoadDefault() override { m_currentValue = m_defaultValue; }
-	void SetDefaultFromString(const RString& s) override
+	void SetDefaultFromString(const std::string& s) override
 	{
 		T def = m_defaultValue;
-		if (!StringConversion::FromString<T>(s, m_defaultValue))
+		if (!StringConversion::FromString<T>(s, m_defaultValue)) {
 			m_defaultValue = def;
+		}
 	}
 
-	const T& Get() const { return m_currentValue; }
+	[[nodiscard]] auto Get() const -> const T& { return m_currentValue; }
 
-	const T& GetDefault() const { return m_defaultValue; }
+	[[nodiscard]] auto GetDefault() const -> const T& { return m_defaultValue; }
 
 	operator const T() const { return Get(); }
 
@@ -105,9 +109,9 @@ class Preference : public IPreference
 		BroadcastPreferenceChanged(GetName());
 	}
 
-	static Preference<T>* GetPreferenceByName(const RString& sName)
+	static auto GetPreferenceByName(const std::string& sName) -> Preference<T>*
 	{
-		IPreference* pPreference = IPreference::GetPreferenceByName(sName);
+		auto pPreference = IPreference::GetPreferenceByName(sName);
 		Preference<T>* pRet = dynamic_cast<Preference<T>*>(pPreference);
 		return pRet;
 	}
@@ -133,13 +137,13 @@ class Preference1D
 {
   public:
 	using PreferenceT = Preference<T>;
-	vector<PreferenceT*> m_v;
+	std::vector<PreferenceT*> m_v;
 
-	Preference1D(void pfn(size_t i, RString& sNameOut, T& defaultValueOut),
+	Preference1D(void pfn(size_t i, std::string& sNameOut, T& defaultValueOut),
 				 size_t N)
 	{
 		for (size_t i = 0; i < N; ++i) {
-			RString sName;
+			std::string sName;
 			T defaultValue;
 			pfn(i, sName, defaultValue);
 			m_v.push_back(new Preference<T>(sName, defaultValue));
@@ -148,11 +152,12 @@ class Preference1D
 
 	~Preference1D()
 	{
-		for (size_t i = 0; i < m_v.size(); ++i)
-			SAFE_DELETE(m_v[i]);
+		for (auto& v : m_v) {
+			SAFE_DELETE(v);
+		}
 	}
-	const Preference<T>& operator[](size_t i) const { return *m_v[i]; }
-	Preference<T>& operator[](size_t i) { return *m_v[i]; }
+	auto operator[](size_t i) const -> const Preference<T>& { return *m_v[i]; }
+	auto operator[](size_t i) -> Preference<T>& { return *m_v[i]; }
 };
 
 #endif

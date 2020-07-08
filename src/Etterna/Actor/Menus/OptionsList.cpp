@@ -6,6 +6,9 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 
+#include <algorithm>
+#include <map>
+
 #define LINE(sLineName)                                                        \
 	THEME->GetMetric(m_sName, ssprintf("Line%s", (sLineName).c_str()))
 #define MAX_ITEMS_BEFORE_SPLIT THEME->GetMetricI(m_sName, "MaxItemsBeforeSplit")
@@ -13,10 +16,10 @@
 #define DIRECT_LINES THEME->GetMetric(m_sName, "DirectLines")
 #define TOP_MENUS THEME->GetMetric(m_sName, "TopMenus")
 
-static const RString RESET_ROW = "ResetOptions";
+static const std::string RESET_ROW = "ResetOptions";
 
 void
-OptionListRow::Load(OptionsList* pOptions, const RString& sType)
+OptionListRow::Load(OptionsList* pOptions, const std::string& sType)
 {
 	m_pOptions = pOptions;
 	ITEMS_SPACING_Y.Load(sType, "ItemsSpacingY");
@@ -45,10 +48,11 @@ OptionListRow::SetFromHandler(const OptionRowHandler* pHandler)
 	this->FinishTweening();
 	this->RemoveAllChildren();
 
-	if (pHandler == NULL)
+	if (pHandler == nullptr)
 		return;
 
-	int iNum = max(pHandler->m_Def.m_vsChoices.size(), m_Text.size()) + 1;
+	const int iNum =
+	  std::max(pHandler->m_Def.m_vsChoices.size(), m_Text.size()) + 1;
 	m_Text.resize(iNum, m_Text[0]);
 	m_Underlines.resize(iNum, m_Underlines[0]);
 
@@ -63,7 +67,7 @@ OptionListRow::SetFromHandler(const OptionRowHandler* pHandler)
 	SetTextFromHandler(pHandler);
 
 	const unsigned iCnt = pHandler->m_Def.m_vsChoices.size();
-	m_bItemsInTwoRows = (int)iCnt > MAX_ITEMS_BEFORE_SPLIT;
+	m_bItemsInTwoRows = static_cast<int>(iCnt) > MAX_ITEMS_BEFORE_SPLIT;
 	const float fWidth = ITEMS_SPLIT_WIDTH;
 	float fY = 0;
 	for (unsigned i = 0; i < iCnt; ++i) {
@@ -88,7 +92,7 @@ OptionListRow::SetFromHandler(const OptionRowHandler* pHandler)
 			fY += ITEMS_SPACING_Y;
 	}
 
-	int iExit = pHandler->m_Def.m_vsChoices.size();
+	const int iExit = pHandler->m_Def.m_vsChoices.size();
 	m_Text[iExit].SetText("Exit"); // XXX localize
 	m_Text[iExit].SetXY(0, fY);
 	this->AddChild(&m_Text[iExit]);
@@ -100,15 +104,15 @@ OptionListRow::SetTextFromHandler(const OptionRowHandler* pHandler)
 	ASSERT(pHandler != NULL);
 	for (unsigned i = 0; i < pHandler->m_Def.m_vsChoices.size(); ++i) {
 		// init text
-		RString sText = pHandler->GetThemedItemText(i);
+		std::string sText = pHandler->GetThemedItemText(i);
 
-		RString sDest = pHandler->GetScreen(i);
+		std::string sDest = pHandler->GetScreen(i);
 		if (m_pOptions->m_setDirectRows.find(sDest) !=
 			  m_pOptions->m_setDirectRows.end() &&
-			sDest.size()) {
+			!sDest.empty()) {
 			const OptionRowHandler* pTarget = m_pOptions->m_Rows[sDest];
 			if (pTarget->m_Def.m_selectType == SELECT_ONE) {
-				int iSelection = m_pOptions->GetOneSelection(sDest);
+				const int iSelection = m_pOptions->GetOneSelection(sDest);
 				sText += ": " + pTarget->GetThemedItemText(iSelection);
 			}
 		}
@@ -125,23 +129,23 @@ OptionListRow::SetUnderlines(const vector<bool>& aSelections,
 		Actor* pActor = m_Underlines[i];
 
 		bool bSelected = aSelections[i];
-		RString sDest = pHandler->GetScreen(i);
-		if (sDest.size()) {
+		std::string sDest = pHandler->GetScreen(i);
+		if (!sDest.empty()) {
 			/* This is a submenu.  Underline the row if its options have been
 			 * changed from the default. */
 			const OptionRowHandler* pTarget = m_pOptions->m_Rows[sDest];
 			if (pTarget->m_Def.m_selectType == SELECT_ONE) {
-				int iSelection = m_pOptions->GetOneSelection(sDest);
+				const int iSelection = m_pOptions->GetOneSelection(sDest);
 				const OptionRowHandler* lHandler =
 				  m_pOptions->m_Rows.find(sDest)->second;
-				int iDefault = lHandler->GetDefaultOption();
+				const int iDefault = lHandler->GetDefaultOption();
 				if (iDefault != -1 && iSelection != iDefault)
 					bSelected = true;
 			} else if (pTarget->m_Def.m_selectType == SELECT_MULTIPLE) {
 				const vector<bool>& bTargetSelections =
 				  m_pOptions->m_bSelections.find(sDest)->second;
-				for (unsigned j = 0; j < bTargetSelections.size(); j++) {
-					if (bTargetSelections[j])
+				for (bool bTargetSelection : bTargetSelections) {
+					if (bTargetSelection)
 						bSelected = true;
 				}
 			}
@@ -154,8 +158,8 @@ OptionListRow::SetUnderlines(const vector<bool>& aSelections,
 void
 OptionListRow::PositionCursor(Actor* pCursor, int iSelection)
 {
-	float fX = m_Text[iSelection].GetDestX();
-	float fY = m_Text[iSelection].GetDestY();
+	const float fX = m_Text[iSelection].GetDestX();
+	const float fY = m_Text[iSelection].GetDestY();
 	if (m_bItemsInTwoRows)
 		pCursor->PlayCommand("PositionTwoRows");
 	else
@@ -166,7 +170,7 @@ OptionListRow::PositionCursor(Actor* pCursor, int iSelection)
 OptionsList::OptionsList()
 {
 	m_iCurrentRow = 0;
-	m_pLinked = NULL;
+	m_pLinked = nullptr;
 	m_bStartIsDown = false;
 	m_bAcceptStartRelease = false;
 	m_pn = PLAYER_1;
@@ -175,12 +179,12 @@ OptionsList::OptionsList()
 
 OptionsList::~OptionsList()
 {
-	FOREACHM(RString, OptionRowHandler*, m_Rows, hand)
-	delete hand->second;
+	for (auto& hand : m_Rows)
+		delete hand.second;
 }
 
 void
-OptionsList::Load(const RString& sType, PlayerNumber pn)
+OptionsList::Load(const std::string& sType, PlayerNumber pn)
 {
 	TOP_MENU.Load(sType, "TopMenu");
 
@@ -194,28 +198,28 @@ OptionsList::Load(const RString& sType, PlayerNumber pn)
 	ActorUtil::LoadAllCommands(*m_Cursor, sType);
 	this->AddChild(m_Cursor);
 
-	vector<RString> asDirectLines;
+	vector<std::string> asDirectLines;
 	split(DIRECT_LINES, ",", asDirectLines, true);
-	FOREACH(RString, asDirectLines, s)
-	m_setDirectRows.insert(*s);
+	for (auto& s : asDirectLines)
+		m_setDirectRows.insert(s);
 
-	vector<RString> setToLoad;
+	vector<std::string> setToLoad;
 	split(TOP_MENUS, ",", setToLoad);
 	m_setTopMenus.insert(setToLoad.begin(), setToLoad.end());
 
 	while (!setToLoad.empty()) {
-		RString sLineName = *setToLoad.begin();
+		std::string sLineName = *setToLoad.begin();
 		setToLoad.erase(setToLoad.begin());
 
 		if (m_Rows.find(sLineName) != m_Rows.end())
 			continue;
 
-		RString sRowCommands = LINE(sLineName);
+		std::string sRowCommands = LINE(sLineName);
 		Commands cmds;
 		ParseCommands(sRowCommands, cmds, false);
 
 		OptionRowHandler* pHand = OptionRowHandlerUtil::Make(cmds);
-		if (pHand == NULL) {
+		if (pHand == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid OptionRowHandler '%s' in %s::Line%s",
 			  cmds.GetOriginalCommandString().c_str(),
@@ -228,17 +232,17 @@ OptionsList::Load(const RString& sType, PlayerNumber pn)
 		m_asLoadedRows.push_back(sLineName);
 
 		for (size_t i = 0; i < pHand->m_Def.m_vsChoices.size(); ++i) {
-			RString sScreen = pHand->GetScreen(i);
+			std::string sScreen = pHand->GetScreen(i);
 			if (!sScreen.empty())
 				setToLoad.push_back(sScreen);
 		}
 	}
 
-	for (int i = 0; i < 2; ++i) {
-		m_Row[i].SetName("OptionsList");
-		m_Row[i].Load(this, "OptionsList");
-		ActorUtil::LoadAllCommands(m_Row[i], sType);
-		this->AddChild(&m_Row[i]);
+	for (auto& i : m_Row) {
+		i.SetName("OptionsList");
+		i.Load(this, "OptionsList");
+		ActorUtil::LoadAllCommands(i, sType);
+		this->AddChild(&i);
 	}
 
 	this->PlayCommand("TweenOff");
@@ -249,9 +253,8 @@ void
 OptionsList::Reset()
 {
 	/* Import options. */
-	FOREACHM(RString, OptionRowHandler*, m_Rows, hand)
-	{
-		RString sLineName = hand->first;
+	for (auto& hand : m_Rows) {
+		std::string sLineName = hand.first;
 		ImportRow(sLineName);
 	}
 }
@@ -266,11 +269,11 @@ OptionsList::Open()
 	MESSAGEMAN->Broadcast(msg);
 
 	/* Push the initial menu. */
-	ASSERT(m_asMenuStack.size() == 0);
+	ASSERT(m_asMenuStack.empty());
 	Push(TOP_MENU);
 
 	this->FinishTweening();
-	m_Row[!m_iCurrentRow].SetFromHandler(NULL);
+	m_Row[!m_iCurrentRow].SetFromHandler(nullptr);
 	this->PlayCommand("TweenOn");
 }
 
@@ -286,7 +289,7 @@ OptionsList::Close()
 	this->PlayCommand("TweenOff");
 }
 
-RString
+std::string
 OptionsList::GetCurrentRow() const
 {
 	ASSERT(!m_asMenuStack.empty()); // called while the menu was closed
@@ -296,14 +299,15 @@ OptionsList::GetCurrentRow() const
 const OptionRowHandler*
 OptionsList::GetCurrentHandler()
 {
-	RString sCurrentRow = GetCurrentRow();
+	const std::string sCurrentRow = GetCurrentRow();
 	return m_Rows[sCurrentRow];
 }
 
 int
-OptionsList::GetOneSelection(const RString& sRow, bool bAllowFail) const
+OptionsList::GetOneSelection(const std::string& sRow, bool bAllowFail) const
 {
-	map<RString, vector<bool>>::const_iterator it = m_bSelections.find(sRow);
+	const std::map<std::string, vector<bool>>::const_iterator it =
+	  m_bSelections.find(sRow);
 	ASSERT_M(it != m_bSelections.end(), sRow);
 	const vector<bool>& bSelections = it->second;
 	for (unsigned i = 0; i < bSelections.size(); i++) {
@@ -334,7 +338,7 @@ OptionsList::SwitchMenu(int iDir)
 	 * the submenus follow.  This allows consistent navigation; moving right
 	 * from the main menu walks through the menus, moving left goes back as far
 	 * as the main menu.  Don't loop, so it's harder to lose track of menus. */
-	RString sTopRow = m_asMenuStack.front();
+	const std::string sTopRow = m_asMenuStack.front();
 	const OptionRowHandler* pHandler = m_Rows[sTopRow];
 	int iCurrentRow = 0;
 	if (m_asMenuStack.size() == 1)
@@ -344,9 +348,9 @@ OptionsList::SwitchMenu(int iDir)
 
 	iCurrentRow += iDir;
 	if (iCurrentRow >= 0) {
-		if (iCurrentRow >= (int)pHandler->m_Def.m_vsChoices.size())
+		if (iCurrentRow >= static_cast<int>(pHandler->m_Def.m_vsChoices.size()))
 			return;
-		RString sDest = pHandler->GetScreen(iCurrentRow);
+		const std::string sDest = pHandler->GetScreen(iCurrentRow);
 		if (sDest.empty())
 			return;
 
@@ -367,7 +371,7 @@ OptionsList::SwitchMenu(int iDir)
 }
 
 void
-OptionsList::MoveItem(const RString& sRowName, int iMove)
+OptionsList::MoveItem(const std::string& sRowName, int iMove)
 {
 }
 
@@ -380,7 +384,7 @@ OptionsList::Input(const InputEventPlus& input)
 
 	const OptionRowHandler* pHandler = GetCurrentHandler();
 
-	PlayerNumber pn = input.pn;
+	const PlayerNumber pn = input.pn;
 	if (m_bStartIsDown) {
 		if (input.MenuI == GAME_BUTTON_LEFT ||
 			input.MenuI == GAME_BUTTON_RIGHT) {
@@ -389,20 +393,22 @@ OptionsList::Input(const InputEventPlus& input)
 
 			m_bAcceptStartRelease = false;
 
-			const RString& sCurrentRow = m_asMenuStack.back();
+			const std::string& sCurrentRow = m_asMenuStack.back();
 			vector<bool>& bSelections = m_bSelections[sCurrentRow];
-			if (m_iMenuStackSelection == (int)bSelections.size())
+			if (m_iMenuStackSelection == static_cast<int>(bSelections.size()))
 				return false;
 
-			RString sDest = pHandler->GetScreen(m_iMenuStackSelection);
+			const std::string sDest =
+			  pHandler->GetScreen(m_iMenuStackSelection);
 			if (m_setDirectRows.find(sDest) != m_setDirectRows.end() &&
-				sDest.size()) {
+				!sDest.empty()) {
 				const OptionRowHandler* pTarget = m_Rows[sDest];
 				vector<bool>& bTargetSelections = m_bSelections[sDest];
 
 				if (pTarget->m_Def.m_selectType == SELECT_ONE) {
 					int iSelection = GetOneSelection(sDest);
-					int iDir = (input.MenuI == GAME_BUTTON_RIGHT ? +1 : -1);
+					const int iDir =
+					  (input.MenuI == GAME_BUTTON_RIGHT ? +1 : -1);
 					iSelection += iDir;
 					wrap(iSelection, bTargetSelections.size());
 					SelectItem(sDest, iSelection);
@@ -524,12 +530,12 @@ OptionsList::TweenOnCurrentRow(bool bForward)
 }
 
 void
-OptionsList::ImportRow(const RString& sRow)
+OptionsList::ImportRow(const std::string& sRow)
 {
 	vector<bool> aSelections;
 	OptionRowHandler* pHandler = m_Rows[sRow];
 	aSelections.resize(pHandler->m_Def.m_vsChoices.size());
-	pHandler->ImportOption(NULL, m_pn, aSelections);
+	pHandler->ImportOption(nullptr, m_pn, aSelections);
 	m_bSelections[sRow] = aSelections;
 
 	if (m_setTopMenus.find(sRow) != m_setTopMenus.end())
@@ -537,7 +543,7 @@ OptionsList::ImportRow(const RString& sRow)
 }
 
 void
-OptionsList::ExportRow(const RString& sRow)
+OptionsList::ExportRow(const std::string& sRow)
 {
 	if (m_setTopMenus.find(sRow) != m_setTopMenus.end())
 		return;
@@ -554,7 +560,7 @@ OptionsList::SetDefaultCurrentRow()
 	/* If all items on the row just point to other menus, default to 0. */
 	m_iMenuStackSelection = 0;
 
-	const RString& sCurrentRow = m_asMenuStack.back();
+	const std::string& sCurrentRow = m_asMenuStack.back();
 	const OptionRowHandler* pHandler = m_Rows.find(sCurrentRow)->second;
 	if (pHandler->m_Def.m_selectType == SELECT_ONE) {
 		/* One item is selected, so position the cursor on it. */
@@ -566,7 +572,7 @@ OptionsList::SetDefaultCurrentRow()
 
 int
 OptionsList::FindScreenInHandler(const OptionRowHandler* pHandler,
-								 const RString& sScreen)
+								 const std::string& sScreen)
 {
 	for (size_t i = 0; i < pHandler->m_Def.m_vsChoices.size(); ++i) {
 		if (pHandler->GetScreen(i) == sScreen)
@@ -583,7 +589,7 @@ OptionsList::Pop()
 		return;
 	}
 
-	RString sLastMenu = m_asMenuStack.back();
+	const std::string sLastMenu = m_asMenuStack.back();
 
 	m_asMenuStack.pop_back();
 
@@ -592,7 +598,7 @@ OptionsList::Pop()
 
 	/* If the old menu exists as a target from the new menu, switch to it. */
 	const OptionRowHandler* pHandler = GetCurrentHandler();
-	int iIndex = FindScreenInHandler(pHandler, sLastMenu);
+	const int iIndex = FindScreenInHandler(pHandler, sLastMenu);
 	if (iIndex != -1)
 		m_iMenuStackSelection = iIndex;
 
@@ -601,7 +607,7 @@ OptionsList::Pop()
 }
 
 void
-OptionsList::Push(const RString& sDest)
+OptionsList::Push(const std::string& sDest)
 {
 	m_asMenuStack.push_back(sDest);
 	SetDefaultCurrentRow();
@@ -609,13 +615,13 @@ OptionsList::Push(const RString& sDest)
 }
 
 void
-OptionsList::SelectItem(const RString& sRowName, int iMenuItem)
+OptionsList::SelectItem(const std::string& sRowName, int iMenuItem)
 {
 	const OptionRowHandler* pHandler = m_Rows[sRowName];
 	vector<bool>& bSelections = m_bSelections[sRowName];
 
 	if (pHandler->m_Def.m_selectType == SELECT_MULTIPLE) {
-		bool bSelected = !bSelections[iMenuItem];
+		const bool bSelected = !bSelections[iMenuItem];
 		bSelections[iMenuItem] = bSelected;
 
 		//		if( bSelected )
@@ -633,12 +639,12 @@ OptionsList::SelectItem(const RString& sRowName, int iMenuItem)
 }
 
 void
-OptionsList::SelectionsChanged(const RString& sRowName)
+OptionsList::SelectionsChanged(const std::string& sRowName)
 {
 	const OptionRowHandler* pHandler = m_Rows[sRowName];
 	vector<bool>& bSelections = m_bSelections[sRowName];
 
-	if (pHandler->m_Def.m_bOneChoiceForAllPlayers && m_pLinked != NULL) {
+	if (pHandler->m_Def.m_bOneChoiceForAllPlayers && m_pLinked != nullptr) {
 		vector<bool>& bLinkedSelections = m_pLinked->m_bSelections[sRowName];
 		bLinkedSelections = bSelections;
 
@@ -664,9 +670,9 @@ bool
 OptionsList::Start()
 {
 	const OptionRowHandler* pHandler = GetCurrentHandler();
-	const RString& sCurrentRow = m_asMenuStack.back();
+	const std::string& sCurrentRow = m_asMenuStack.back();
 	vector<bool>& bSelections = m_bSelections[sCurrentRow];
-	if (m_iMenuStackSelection == (int)bSelections.size()) {
+	if (m_iMenuStackSelection == static_cast<int>(bSelections.size())) {
 		Pop();
 
 		Message msg("OptionsListPop");
@@ -677,7 +683,7 @@ OptionsList::Start()
 	}
 
 	{
-		RString sIconText;
+		std::string sIconText;
 		GameCommand gc;
 		pHandler->GetIconTextAndGameCommand(
 		  m_iMenuStackSelection, sIconText, gc);
@@ -687,10 +693,9 @@ OptionsList::Start()
 			GAMESTATE->ResetToDefaultSongOptions(ModsLevel_Preferred);
 
 			/* Import options. */
-			FOREACHM(RString, OptionRowHandler*, m_Rows, hand)
-			{
-				ImportRow(hand->first);
-				SelectionsChanged(hand->first);
+			for (auto& hand : m_Rows) {
+				ImportRow(hand.first);
+				SelectionsChanged(hand.first);
 			}
 
 			UpdateMenuFromSelections();
@@ -703,8 +708,8 @@ OptionsList::Start()
 		}
 	}
 
-	RString sDest = pHandler->GetScreen(m_iMenuStackSelection);
-	if (sDest.size()) {
+	const std::string sDest = pHandler->GetScreen(m_iMenuStackSelection);
+	if (!sDest.empty()) {
 		Push(sDest);
 		TweenOnCurrentRow(true);
 
@@ -718,7 +723,7 @@ OptionsList::Start()
 	SelectItem(GetCurrentRow(), m_iMenuStackSelection);
 
 	/* Move to the exit row. */
-	m_iMenuStackSelection = (int)bSelections.size();
+	m_iMenuStackSelection = static_cast<int>(bSelections.size());
 	PositionCursor();
 
 	Message msg("OptionsListStart");

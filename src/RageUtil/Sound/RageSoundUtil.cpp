@@ -1,6 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundUtil.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 void
 RageSoundUtil::Attenuate(float* pBuf, int iSamples, float fVolume)
@@ -28,8 +30,8 @@ RageSoundUtil::Pan(float* buffer, int frames, float fPos)
 							   SCALE(fPos, 0, 1, 0.5f, 1) };
 
 	if (bSwap) {
-		swap(fLeftFactors[0], fRightFactors[0]);
-		swap(fLeftFactors[1], fRightFactors[1]);
+		std::swap(fLeftFactors[0], fRightFactors[0]);
+		std::swap(fLeftFactors[1], fRightFactors[1]);
 	}
 
 	for (int samp = 0; samp < frames; ++samp) {
@@ -55,7 +57,7 @@ RageSoundUtil::Fade(float* pBuffer,
 	for (int iFrame = 0; iFrame < iFrames; ++iFrame) {
 		float fVolPercent = SCALE(iFrame, 0, iFrames, fStartVolume, fEndVolume);
 
-		fVolPercent = clamp(fVolPercent, 0.f, 1.f);
+		fVolPercent = std::clamp(fVolPercent, 0.f, 1.f);
 		for (int i = 0; i < iChannels; ++i) {
 			*pBuffer *= fVolPercent;
 			pBuffer++;
@@ -96,6 +98,6 @@ RageSoundUtil::ConvertFloatToNativeInt16(const float* pFrom,
 {
 	for (int i = 0; i < iSamples; ++i) {
 		int iOut = lround(pFrom[i] * 32768.0f);
-		pTo[i] = clamp(iOut, -32768, 32767);
+		pTo[i] = std::clamp(iOut, -32768, 32767);
 	}
 }

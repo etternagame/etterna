@@ -20,7 +20,7 @@ struct ChaosMod
 	float max_mod = 1.05F;
 	float base = -0.1F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
@@ -37,7 +37,7 @@ struct ChaosMod
 
 #pragma region generic functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		_u.zero();
 		_wot.zero();
@@ -46,13 +46,13 @@ struct ChaosMod
 
 #pragma endregion
 
-	inline void advance_sequencing(const CalcMovingWindow<float>& ms_any)
+	void advance_sequencing(const CalcMovingWindow<float>& ms_any)
 	{
 		// most recent value
-		float a = ms_any.get_now();
+		const float a = ms_any.get_now();
 
 		// previous value
-		float b = ms_any.get_last();
+		const float b = ms_any.get_last();
 
 		if (a == 0.F || b == 0.F || a == b) {
 			_u(1.F);
@@ -60,8 +60,8 @@ struct ChaosMod
 			return;
 		}
 
-		float prop = div_high_by_low(a, b);
-		int mop = static_cast<int>(prop);
+		const float prop = div_high_by_low(a, b);
+		const int mop = static_cast<int>(prop);
 		float flop = prop - static_cast<float>(mop);
 
 		if (flop == 0.F) {
@@ -77,7 +77,7 @@ struct ChaosMod
 		_wot(_u.get_mean_of_window(window));
 	}
 
-	inline auto operator()(const int& total_taps) -> float
+	auto operator()(const int& total_taps) -> float
 	{
 
 		if (total_taps == 0) {

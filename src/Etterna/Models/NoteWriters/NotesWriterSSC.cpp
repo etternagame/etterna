@@ -29,27 +29,34 @@ JoinLineList(vector<std::string>& lines)
 }
 
 std::string
-NotesWriterSSC::MSDToString(MinaSD x)
+NotesWriterSSC::MSDToString(const std::vector<std::vector<float>>& x)
 {
-	std::string o = "";
-	for (size_t i = 0; i < x.size(); i++) {
-		o.append(NotesWriterSSC::MSDsAtRateToString(x[i]));
-		if (i != x.size() - 1)
-			o.append(":");
+	if (x.empty())
+		return "";
+
+	std::string o;
+	for (const auto& v : x) {
+		o.append(NotesWriterSSC::MSDsAtRateToString(v));
+		o.append(":");
 	}
+
+	o.pop_back();
 	return o;
 }
 
 std::string
-NotesWriterSSC::MSDsAtRateToString(std::vector<float> x)
+NotesWriterSSC::MSDsAtRateToString(const std::vector<float>& x)
 {
-	std::string o = "";
-	auto msds = x;
-	for (size_t ii = 0; ii < msds.size(); ii++) {
-		o.append(to_string(msds[ii]).substr(0, 5));
-		if (ii != msds.size() - 1)
-			o.append(",");
+	if (x.empty())
+		return "";
+
+	std::string o;
+	for (const auto& v : x) {
+		o.append(std::to_string(v).substr(0, 5));
+		o.append(",");
 	}
+
+	o.pop_back();
 	return o;
 }
 // A utility class to write timing tags more easily!
@@ -73,29 +80,29 @@ struct TimingTagWriter
 
 	void Write(const int row, const float value)
 	{
-		Write(row, ssprintf("%.6f", value));
+		Write(row, ssprintf("%.6f", value).c_str());
 	}
 	void Write(const int row, const int value)
 	{
-		Write(row, ssprintf("%d", value));
+		Write(row, ssprintf("%d", value).c_str());
 	}
 	void Write(const int row, const int a, const int b)
 	{
-		Write(row, ssprintf("%d=%d", a, b));
+		Write(row, ssprintf("%d=%d", a, b).c_str());
 	}
 	void Write(const int row, const float a, const float b)
 	{
-		Write(row, ssprintf("%.6f=%.6f", a, b));
+		Write(row, ssprintf("%.6f=%.6f", a, b).c_str());
 	}
 	void Write(const int row,
 			   const float a,
 			   const float b,
 			   const unsigned short c)
 	{
-		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c));
+		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c).c_str());
 	}
 
-	void Init(const std::string sTag) { m_sNext = "#" + sTag + ":"; }
+	void Init(const std::string& sTag) { m_sNext = "#" + sTag + ":"; }
 	void Finish()
 	{
 		m_pvsLines->emplace_back((m_sNext != "," ? m_sNext : "") + ";");
@@ -185,7 +192,7 @@ GetTimingTags(vector<std::string>& lines,
 
 	WRITE_SEG_LOOP_OPEN(SEGMENT_LABEL, LabelSegment, "LABELS", ToLabel);
 	if (!segment->GetLabel().empty()) {
-		writer.Write(segment->GetRow(), segment->GetLabel());
+		writer.Write(segment->GetRow(), segment->GetLabel().c_str());
 	}
 	WRITE_SEG_LOOP_CLOSE;
 
@@ -451,7 +458,7 @@ GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 		lines.emplace_back(
 		  ssprintf("#STEPFILENAME:%s;", in.GetFilename().c_str()));
 	} else {
-		RString sNoteData = "";
+		std::string sNoteData = "";
 
 		/* hack to ensure notedata exists when changing offset from gameplay not
 		sure what i/we could have done to mess up the original flow but all the
@@ -555,7 +562,7 @@ NotesWriterSSC::GetEditFileName(const Song* pSong, const Steps* pSteps)
 	/* Try to make a unique name. This isn't guaranteed. Edit descriptions are
 	 * case-sensitive, filenames on disk are usually not, and we decimate
 	 * certain characters for FAT filesystems. */
-	RString sFile =
+	std::string sFile =
 	  pSong->GetTranslitFullTitle() + " - " + pSteps->GetDescription();
 
 	// HACK:

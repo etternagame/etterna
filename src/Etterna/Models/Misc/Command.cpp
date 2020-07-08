@@ -1,14 +1,14 @@
-﻿#include "Etterna/Globals/global.h"
 #include "Command.h"
-#include "Foreach.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-RString
+using std::vector;
+
+std::string
 Command::GetName() const
 {
 	if (m_vsArgs.empty())
-		return RString();
-	RString s = m_vsArgs[0];
+		return std::string();
+	auto s = m_vsArgs[0];
 	Trim(s);
 	return s;
 }
@@ -23,22 +23,22 @@ Command::GetArg(unsigned index) const
 }
 
 void
-Command::Load(const RString& sCommand)
+Command::Load(const std::string& sCommand)
 {
 	m_vsArgs.clear();
 	split(sCommand, ",", m_vsArgs, false); // don't ignore empty
 }
 
-RString
+std::string
 Command::GetOriginalCommandString() const
 {
 	return join(",", m_vsArgs);
 }
 
 static void
-SplitWithQuotes(const RString sSource,
+SplitWithQuotes(const std::string sSource,
 				const char Delimitor,
-				vector<RString>& asOut,
+				vector<std::string>& asOut,
 				const bool bIgnoreEmpty)
 {
 	/* Short-circuit if the source is empty; we want to return an empty vector
@@ -48,7 +48,7 @@ SplitWithQuotes(const RString sSource,
 
 	size_t startpos = 0;
 	do {
-		size_t pos = startpos;
+		auto pos = startpos;
 		while (pos < sSource.size()) {
 			if (sSource[pos] == Delimitor)
 				break;
@@ -56,7 +56,7 @@ SplitWithQuotes(const RString sSource,
 			if (sSource[pos] == '"' || sSource[pos] == '\'') {
 				/* We've found a quote.  Search for the close. */
 				pos = sSource.find(sSource[pos], pos + 1);
-				if (pos == string::npos)
+				if (pos == std::string::npos)
 					pos = sSource.size();
 				else
 					++pos;
@@ -70,7 +70,7 @@ SplitWithQuotes(const RString sSource,
 			if (startpos == 0 && pos - startpos == sSource.size())
 				asOut.push_back(sSource);
 			else {
-				const RString AddCString =
+				const auto AddCString =
 				  sSource.substr(startpos, pos - startpos);
 				asOut.push_back(AddCString);
 			}
@@ -80,24 +80,25 @@ SplitWithQuotes(const RString sSource,
 	} while (startpos <= sSource.size());
 }
 
-RString
+std::string
 Commands::GetOriginalCommandString() const
 {
-	RString s;
-	FOREACH_CONST(Command, v, c)
-	{
-		if (s != "") {
+	std::string s;
+	for (auto& c : v) {
+		if (!s.empty()) {
 			s += ";";
 		}
-		s += c->GetOriginalCommandString();
+		s += c.GetOriginalCommandString();
 	}
 	return s;
 }
 
 void
-ParseCommands(const RString& sCommands, Commands& vCommandsOut, bool bLegacy)
+ParseCommands(const std::string& sCommands,
+			  Commands& vCommandsOut,
+			  bool bLegacy)
 {
-	vector<RString> vsCommands;
+	vector<std::string> vsCommands;
 	if (bLegacy)
 		split(sCommands, ";", vsCommands, true);
 	else
@@ -105,13 +106,13 @@ ParseCommands(const RString& sCommands, Commands& vCommandsOut, bool bLegacy)
 	vCommandsOut.v.resize(vsCommands.size());
 
 	for (unsigned i = 0; i < vsCommands.size(); i++) {
-		Command& cmd = vCommandsOut.v[i];
+		auto& cmd = vCommandsOut.v[i];
 		cmd.Load(vsCommands[i]);
 	}
 }
 
 Commands
-ParseCommands(const RString& sCommands)
+ParseCommands(const std::string& sCommands)
 {
 	Commands vCommands;
 	ParseCommands(sCommands, vCommands, false);

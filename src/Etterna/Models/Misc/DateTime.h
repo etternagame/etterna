@@ -4,8 +4,8 @@
 #include "EnumHelper.h"
 #include <ctime>
 
-int
-StringToDayInYear(const RString& sDayInYear);
+auto
+StringToDayInYear(const std::string& sDayInYear) -> int;
 
 /** @brief The number of days we check for previously. */
 const int NUM_LAST_DAYS = 7;
@@ -29,44 +29,44 @@ const int DAYS_IN_WEEK = 7;
 enum Month
 {
 	NUM_Month = 12, /**< The number of months in the year. */
-	Month_Invalid   /**< There should be no month at this point. */
+	Month_Invalid	/**< There should be no month at this point. */
 };
 
-RString
-DayInYearToString(int iDayInYearIndex);
-RString
-LastDayToString(int iLastDayIndex);
-RString
-LastDayToLocalizedString(int iLastDayIndex);
-RString
-DayOfWeekToString(int iDayOfWeekIndex);
-RString
-DayOfWeekToLocalizedString(int iDayOfWeekIndex);
-RString
-HourInDayToString(int iHourIndex);
-RString
-HourInDayToLocalizedString(int iHourIndex);
-const RString&
-MonthToString(Month month);
-const RString&
-MonthToLocalizedString(Month month);
-RString
-LastWeekToString(int iLastWeekIndex);
-RString
-LastWeekToLocalizedString(int iLastWeekIndex);
+auto
+DayInYearToString(int iDayInYearIndex) -> std::string;
+auto
+LastDayToString(int iLastDayIndex) -> std::string;
+auto
+LastDayToLocalizedString(int iLastDayIndex) -> std::string;
+auto
+DayOfWeekToString(int iDayOfWeekIndex) -> std::string;
+auto
+DayOfWeekToLocalizedString(int iDayOfWeekIndex) -> std::string;
+auto
+HourInDayToString(int iHourIndex) -> std::string;
+auto
+HourInDayToLocalizedString(int iHourIndex) -> std::string;
+auto
+MonthToString(Month month) -> const std::string&;
+auto
+MonthToLocalizedString(Month month) -> const std::string&;
+auto
+LastWeekToString(int iLastWeekIndex) -> std::string;
+auto
+LastWeekToLocalizedString(int iLastWeekIndex) -> std::string;
 LuaDeclareType(Month);
 
-tm
-AddDays(tm start, int iDaysToMove);
-tm
-GetYesterday(tm start);
-int
-GetDayOfWeek(tm time);
-tm
-GetNextSunday(tm start);
+auto
+AddDays(tm start, int iDaysToMove) -> tm;
+auto
+GetYesterday(tm start) -> tm;
+auto
+GetDayOfWeek(tm time) -> int;
+auto
+GetNextSunday(tm start) -> tm;
 
-tm
-GetDayInYearAndYear(int iDayInYearIndex, int iYear);
+auto
+GetDayInYearAndYear(int iDayInYearIndex, int iYear) -> tm;
 
 /** @brief A standard way of determining the date and the time. */
 struct DateTime
@@ -111,31 +111,37 @@ struct DateTime
 	 * @brief Determine if this DateTime is less than some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is less than the other time, or false otherwise. */
-	bool operator<(const DateTime& other) const;
+	auto operator<(const DateTime& other) const -> bool;
 	/**
 	 * @brief Determine if this DateTime is greater than some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is greater than the other time, or false otherwise.
 	 */
-	bool operator>(const DateTime& other) const;
+	auto operator>(const DateTime& other) const -> bool;
 	/**
 	 * @brief Determine if this DateTime is equal to some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is equal to the other time, or false otherwise. */
-	bool operator==(const DateTime& other) const;
+	auto operator==(const DateTime& other) const -> bool;
 	/**
 	 * @brief Determine if this DateTime is not equal to some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is not equal to the other time, or false otherwise.
 	 */
-	bool operator!=(const DateTime& other) const { return !operator==(other); }
+	auto operator!=(const DateTime& other) const -> bool
+	{
+		return !operator==(other);
+	}
 	/**
 	 * @brief Determine if this DateTime is less than or equal to some other
 	 * time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is less than or equal to the other time, or false
 	 * otherwise. */
-	bool operator<=(const DateTime& other) const { return !operator>(other); }
+	auto operator<=(const DateTime& other) const -> bool
+	{
+		return !operator>(other);
+	}
 
 	/**
 	 * @brief Determine if this DateTime is greater than or equal to some other
@@ -143,16 +149,19 @@ struct DateTime
 	 * @param other the other DateTime to check.
 	 * @return true if this is greater than or equal to the other time, or false
 	 * otherwise. */
-	bool operator>=(const DateTime& other) const { return !operator<(other); }
+	auto operator>=(const DateTime& other) const -> bool
+	{
+		return !operator<(other);
+	}
 
 	/**
 	 * @brief Retrieve the current date and time.
 	 * @return the current date and time. */
-	static DateTime GetNowDateTime();
+	static auto GetNowDateTime() -> DateTime;
 	/**
 	 * @brief Retrieve the current date.
 	 * @return the current date. */
-	static DateTime GetNowDate();
+	static auto GetNowDate() -> DateTime;
 
 	/** @brief Remove the time portion from the date. */
 	void StripTime();
@@ -162,13 +171,13 @@ struct DateTime
 	 *
 	 * This returns a common SQL/XML format: "YYYY-MM-DD HH:MM:SS".
 	 * @return the string representation of the date and time. */
-	RString GetString() const;
+	[[nodiscard]] auto GetString() const -> std::string;
 	/**
 	 * @brief Attempt to turn a string into a DateTime.
 	 *
 	 * @param sDateTime the string to attempt to convert.
 	 * @return true if the conversion worked, or false otherwise. */
-	bool FromString(const RString& sDateTime);
+	auto FromString(const std::string& sDateTime) -> bool;
 };
 
 #endif

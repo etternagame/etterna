@@ -1,5 +1,3 @@
-#include "Etterna/Globals/global.h"
-
 /*
  * Styles define a set of columns for each player, and information about those
  * columns, like what Instruments are used play those columns and what track
@@ -16,9 +14,11 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Models/NoteData/NoteData.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Style.h"
+#include "Etterna/Globals/global.h"
+
+#include <algorithm>
 #include <cfloat>
 
 bool
@@ -121,8 +121,8 @@ Style::GetMinAndMaxColX(PlayerNumber pn, float& fMixXOut, float& fMaxXOut) const
 	fMixXOut = FLT_MAX;
 	fMaxXOut = FLT_MIN;
 	for (int i = 0; i < m_iColsPerPlayer; i++) {
-		fMixXOut = min(fMixXOut, m_ColumnInfo[i].fXOffset);
-		fMaxXOut = max(fMaxXOut, m_ColumnInfo[i].fXOffset);
+		fMixXOut = std::min(fMixXOut, m_ColumnInfo[i].fXOffset);
+		fMaxXOut = std::max(fMaxXOut, m_ColumnInfo[i].fXOffset);
 	}
 }
 
@@ -137,11 +137,11 @@ Style::GetWidth(PlayerNumber pn) const
 	return width + (width / static_cast<float>(m_iColsPerPlayer - 1));
 }
 
-RString
+std::string
 Style::ColToButtonName(int iCol) const
 {
 	const char* pzColumnName = m_ColumnInfo[iCol].pzName;
-	if (pzColumnName != NULL)
+	if (pzColumnName != nullptr)
 		return pzColumnName;
 
 	vector<GameInput> GI;
@@ -158,7 +158,7 @@ class LunaStyle : public Luna<Style>
   public:
 	static int GetName(T* p, lua_State* L)
 	{
-		LuaHelpers::Push(L, (RString)p->m_szName);
+		LuaHelpers::Push(L, (std::string)p->m_szName);
 		return 1;
 	}
 	DEFINE_METHOD(GetStyleType, m_StyleType)
@@ -197,7 +197,7 @@ class LunaStyle : public Luna<Style>
 		ret.Set(L, "Track");
 		lua_pushnumber(L, p->m_ColumnInfo[iCol].fXOffset);
 		ret.Set(L, "XOffset");
-		lua_pushstring(L, p->ColToButtonName(iCol));
+		lua_pushstring(L, p->ColToButtonName(iCol).c_str());
 		ret.Set(L, "Name");
 
 		ret.PushSelf(L);

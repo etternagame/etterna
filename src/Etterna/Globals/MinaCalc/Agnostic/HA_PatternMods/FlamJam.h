@@ -23,7 +23,7 @@ struct FlamJamMod
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "scaler", &scaler },
@@ -39,14 +39,14 @@ struct FlamJamMod
 	FJ_Sequencer fj;
 	float pmod = neutral;
 
-	inline void setup() { fj.set_params(group_tol, step_tol, scaler); }
+	void setup() { fj.set_params(group_tol, step_tol, scaler); }
 
-	inline void advance_sequencing(const float& ms_now, const unsigned& notes)
+	void advance_sequencing(const float& ms_now, const unsigned& notes)
 	{
 		fj(ms_now, notes);
 	}
 
-	inline auto operator()() -> float
+	auto operator()() -> float
 	{
 		// no flams
 		if (fj.mod_parts[0] == 1.F) {

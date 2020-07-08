@@ -13,20 +13,20 @@ static bool
 CodePageConvert(std::string& sText, int iCodePage)
 {
 	int iSize = MultiByteToWideChar(
-	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), NULL, 0);
+	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), nullptr, 0);
 	if (iSize == 0) {
 		LOG->Trace("%s\n", werr_ssprintf(GetLastError(), "err: ").c_str());
 		return false; /* error */
 	}
 
-	wstring sOut;
+	std::wstring sOut;
 	sOut.append(iSize, ' ');
 	/* Nonportable: */
 	iSize = MultiByteToWideChar(iCodePage,
 								MB_ERR_INVALID_CHARS,
 								sText.data(),
 								sText.size(),
-								(wchar_t*)sOut.data(),
+								static_cast<wchar_t*>(sOut.data()),
 								iSize);
 	ASSERT(iSize != 0);
 
@@ -194,26 +194,26 @@ ConvertString(std::string& str, const std::string& encodings)
 	std::vector<std::string> lst;
 	split(encodings, ",", lst);
 
-	for (unsigned i = 0; i < lst.size(); ++i) {
-		if (lst[i] == "utf-8") {
+	for (auto& s : lst) {
+		if (s == "utf-8") {
 			/* Is the string already valid utf-8? */
 			if (utf8_is_valid(str))
 				return true;
 			continue;
 		}
-		if (lst[i] == "english") {
+		if (s == "english") {
 			if (AttemptEnglishConversion(str))
 				return true;
 			continue;
 		}
 
-		if (lst[i] == "japanese") {
+		if (s == "japanese") {
 			if (AttemptJapaneseConversion(str))
 				return true;
 			continue;
 		}
 
-		if (lst[i] == "korean") {
+		if (s == "korean") {
 			if (AttemptKoreanConversion(str))
 				return true;
 			continue;
@@ -221,7 +221,7 @@ ConvertString(std::string& str, const std::string& encodings)
 
 		RageException::Throw(
 		  "Unexpected conversion string \"%s\" (string \"%s\").",
-		  lst[i].c_str(),
+		  s.c_str(),
 		  str.c_str());
 	}
 

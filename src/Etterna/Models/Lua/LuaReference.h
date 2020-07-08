@@ -15,7 +15,7 @@ class LuaReference
 
 	/* Copying a reference makes a new reference pointing to the same object. */
 	LuaReference(const LuaReference& cpy);
-	LuaReference& operator=(const LuaReference& cpy);
+	auto operator=(const LuaReference& cpy) -> LuaReference&;
 
 	// Convenience constructor.
 	LuaReference(Lua* L)
@@ -40,7 +40,7 @@ class LuaReference
 	 * reference. For example, evaluating "{ 1, 2, 3 }" will result in a
 	 * reference to a table. On success, return true.  On error, set to nil and
 	 * return false. */
-	bool SetFromExpression(const std::string& sExpression);
+	auto SetFromExpression(const std::string& sExpression) -> bool;
 
 	/** @brief Deep-copy tables, detaching this reference from any others. */
 	void DeepCopy();
@@ -54,22 +54,22 @@ class LuaReference
 	 *
 	 * SetFromNil() counts as being set.
 	 * @return true if it's set. */
-	bool IsSet() const;
+	[[nodiscard]] auto IsSet() const -> bool;
 	/**
 	 * @brief Determine if the reference is nil.
 	 * @return true if it's nil. */
-	bool IsNil() const;
+	[[nodiscard]] auto IsNil() const -> bool;
 	void Unset() { Unregister(); }
 
 	/* Return the referenced type, or LUA_TNONE if not set. */
-	int GetLuaType() const;
+	[[nodiscard]] auto GetLuaType() const -> int;
 
-	int GetIdentifier() { return m_iReference; }
+	auto GetIdentifier() -> int { return m_iReference; }
 
-	std::string Serialize() const;
+	[[nodiscard]] auto Serialize() const -> std::string;
 
 	template<typename T>
-	static LuaReference Create(const T& val)
+	static auto Create(const T& val) -> LuaReference
 	{
 		Lua* L = LUA->Get();
 		LuaReference ref;
@@ -81,7 +81,7 @@ class LuaReference
 	}
 
 	template<class T>
-	static LuaReference CreateFromPush(T& obj)
+	static auto CreateFromPush(T& obj) -> LuaReference
 	{
 		Lua* L = LUA->Get();
 		LuaReference ref;

@@ -1,4 +1,4 @@
-﻿/* RageSoundManager - A global singleton to interface RageSound and
+/* RageSoundManager - A global singleton to interface RageSound and
  * RageSoundDriver. */
 
 #ifndef RAGE_SOUND_MANAGER_H
@@ -45,13 +45,14 @@ class RageSoundManager
 	float GetPlayLatency() const;
 	int GetDriverSampleRate() const;
 
-	RageSoundReader* GetLoadedSound(const RString& sPath);
-	void AddLoadedSound(const RString& sPath, RageSoundReader_Preload* pSound);
+	RageSoundReader* GetLoadedSound(const std::string& sPath);
+	void AddLoadedSound(const std::string& sPath,
+						RageSoundReader_Preload* pSound);
 
-	void fix_bogus_sound_driver_pref(RString const& valid_setting);
+	void fix_bogus_sound_driver_pref(std::string const& valid_setting);
 
   private:
-	map<RString, RageSoundReader_Preload*> m_mapPreloadedSounds;
+	std::map<std::string, RageSoundReader_Preload*> m_mapPreloadedSounds;
 
 	RageSoundDriver* m_pDriver;
 

@@ -19,12 +19,12 @@ struct TitleFields
 		sArtistTranslit = ArtistTranslit;
 	}
 
-	void LoadFromStrings(std::string sTitle,
-						 std::string sSubtitle,
-						 std::string sArtist,
-						 std::string sTitleTranslit,
-						 std::string sSubtitleTranslit,
-						 std::string sArtistTranslit)
+	void LoadFromStrings(const std::string& sTitle,
+						 const std::string& sSubtitle,
+						 const std::string& sArtist,
+						 const std::string& sTitleTranslit,
+						 const std::string& sSubtitleTranslit,
+						 const std::string& sArtistTranslit)
 	{
 		Title = sTitle;
 		Subtitle = sSubtitle;

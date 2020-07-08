@@ -1,10 +1,9 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
+
+#include <string>
+#include <vector>
 
 // ok new plan we will incloop the joomp
 struct WideRangeRollMod
@@ -25,7 +24,7 @@ struct WideRangeRollMod
 	float cv_threshold = 0.35F;
 	float other_cv_threshold = 0.3F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
@@ -61,7 +60,7 @@ struct WideRangeRollMod
 
 #pragma region generic functions
 
-	inline void full_reset()
+	void full_reset()
 	{
 		_mw_max.zero();
 		_mw_adj_ms.zero();
@@ -82,7 +81,7 @@ struct WideRangeRollMod
 		pmod = neutral;
 	}
 
-	inline void setup()
+	void setup()
 	{
 		window =
 		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
@@ -90,25 +89,25 @@ struct WideRangeRollMod
 
 #pragma endregion
 
-	inline void zoop_the_woop(const int& pos,
-							  const float& div,
-							  const float& scaler = 1.F)
+	void zoop_the_woop(const int& pos,
+					   const float& div,
+					   const float& scaler = 1.F)
 	{
 		seq_ms[pos] /= div;
 		last_passed_check = do_timing_thing(scaler);
 		seq_ms[pos] *= div;
 	}
 
-	inline void woop_the_zoop(const int& pos,
-							  const float& mult,
-							  const float& scaler = 1.F)
+	void woop_the_zoop(const int& pos,
+					   const float& mult,
+					   const float& scaler = 1.F)
 	{
 		seq_ms[pos] *= mult;
 		last_passed_check = do_timing_thing(scaler);
 		seq_ms[pos] /= mult;
 	}
 
-	inline auto do_timing_thing(const float& scaler) -> bool
+	auto do_timing_thing(const float& scaler) -> bool
 	{
 		_mw_adj_ms(seq_ms[1]);
 
@@ -130,7 +129,7 @@ struct WideRangeRollMod
 		return moving_cv < cv_threshold / scaler;
 	}
 
-	inline auto do_other_timing_thing(const float& scaler) -> bool
+	auto do_other_timing_thing(const float& scaler) -> bool
 	{
 		_mw_adj_ms(idk_ms[1]);
 		_mw_adj_ms(idk_ms[2]);
@@ -153,9 +152,9 @@ struct WideRangeRollMod
 		return moving_cv < cv_threshold / scaler;
 	}
 
-	inline void handle_ccacc_timing_check() { zoop_the_woop(1, 2.5F, 1.25F); }
+	void handle_ccacc_timing_check() { zoop_the_woop(1, 2.5F, 1.25F); }
 
-	inline void handle_roll_timing_check()
+	void handle_roll_timing_check()
 	{
 		if (seq_ms[1] > seq_ms[0]) {
 			zoop_the_woop(1, 2.5F);
@@ -168,7 +167,7 @@ struct WideRangeRollMod
 		}
 	}
 
-	inline void handle_ccsjjscc_timing_check(const float& now)
+	void handle_ccsjjscc_timing_check(const float& now)
 	{
 		// translate over the values
 		idk_ms[2] = seq_ms[0];
@@ -203,7 +202,7 @@ struct WideRangeRollMod
 		idk_ms[2] *= 3.F;
 	}
 
-	inline void complete_seq()
+	void complete_seq()
 	{
 		if (nah_this_file_aint_for_real > 0) {
 			max_thingy = nah_this_file_aint_for_real > max_thingy
@@ -213,7 +212,7 @@ struct WideRangeRollMod
 		nah_this_file_aint_for_real = 0;
 	}
 
-	inline void bibblybop(const meta_type& _last_mt)
+	void bibblybop(const meta_type& _last_mt)
 	{
 		// see below
 		if (_last_mt == meta_enigma) {
@@ -244,14 +243,14 @@ struct WideRangeRollMod
 		}
 	}
 
-	inline void advance_sequencing(const base_type& bt,
-								   const meta_type& mt,
-								   const meta_type& _last_mt,
-								   const float& any_ms,
-								   const float& tc_ms)
+	void advance_sequencing(const base_type& bt,
+							const meta_type& mt,
+							const meta_type& _last_mt,
+							const float& any_ms,
+							const float& tc_ms)
 	{
 		// we will let ohjumps through here
-		
+
 		update_seq_ms(bt, any_ms, tc_ms);
 		if (bt == base_single_jump || bt == base_jump_single) {
 			return;
@@ -304,9 +303,9 @@ struct WideRangeRollMod
 		}
 	}
 
-	inline void update_seq_ms(const base_type& bt,
-							  const float& any_ms,
-							  const float& tc_ms)
+	void update_seq_ms(const base_type& bt,
+					   const float& any_ms,
+					   const float& tc_ms)
 	{
 		seq_ms[0] = seq_ms[1]; // last_last
 		seq_ms[1] = seq_ms[2]; // last
@@ -320,7 +319,8 @@ struct WideRangeRollMod
 			seq_ms[2] = any_ms;
 		}
 	}
-	inline void set_pmod(const ItvHandInfo& itvhi)
+
+	void set_pmod(const ItvHandInfo& itvhi)
 	{
 		// check taps for _this_ interval, if there's none, and there was a
 		// powerful roll mod before, the roll mod will extend into the empty
@@ -337,14 +337,14 @@ struct WideRangeRollMod
 
 		// really uncertain about the using the total of _mw_max here, but
 		// that's what it was, so i'll keep it for now
-		float zomg = itvhi.get_taps_windowf(window) /
-					 _mw_max.get_total_for_windowf(window);
+		const float zomg = itvhi.get_taps_windowf(window) /
+						   _mw_max.get_total_for_windowf(window);
 
 		pmod *= zomg;
 		pmod = CalcClamp(base + fastsqrt(pmod), min_mod, max_mod);
 	}
 
-	inline auto operator()(const ItvHandInfo& itvhi) -> float
+	auto operator()(const ItvHandInfo& itvhi) -> float
 	{
 		max_thingy = nah_this_file_aint_for_real > max_thingy
 					   ? nah_this_file_aint_for_real
@@ -358,5 +358,5 @@ struct WideRangeRollMod
 		return pmod;
 	}
 
-	inline void interval_end() { max_thingy = 0; }
+	void interval_end() { max_thingy = 0; }
 };

@@ -4,9 +4,7 @@
 #define SCREEN_NET_SELECT_BASE_H
 
 #include "Etterna/Actor/Base/BitmapText.h"
-#include "Etterna/Actor/Base/Quad.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
-#include "Etterna/Actor/Base/Sprite.h"
 
 class ScreenNetSelectBase : public ScreenWithMenuElements
 {
@@ -14,7 +12,7 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	void Init() override;
 
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void TweenOffScreen() override;
 
 	void UpdateUsers();
@@ -26,9 +24,9 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	void SetUsersVisible(bool visibility);
 	vector<BitmapText>* ToUsers();
 	void Scroll(unsigned int movescroll);
-	RString GetPreviousMsg();
-	RString GetNextMsg();
-	void SetInputText(RString text);
+	std::string GetPreviousMsg();
+	std::string GetNextMsg();
+	void SetInputText(std::string text);
 	void ShowPreviousMsg();
 	void ShowNextMsg();
 	unsigned int GetScroll() { return scroll; }
@@ -43,11 +41,11 @@ class ScreenNetSelectBase : public ScreenWithMenuElements
 	ColorBitmapText m_textChatOutput;
 	AutoActor m_sprChatInputBox;
 	AutoActor m_sprChatOutputBox;
-	RString m_sTextInput;
+	std::string m_sTextInput;
 	unsigned int m_sTextLastestInputsIndex = 0;
-	vector<RString> m_sTextLastestInputs;
+	vector<std::string> m_sTextLastestInputs;
 	unsigned int scroll = 0;
-	RString m_actualText;
+	std::string m_actualText;
 
 	vector<BitmapText> m_textUsers;
 };

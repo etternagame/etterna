@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
-#include <array>
 #include <vector>
 
+#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 struct CJMod
@@ -34,7 +34,7 @@ struct CJMod
 
 	float vibro_flag = 1.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },
@@ -70,7 +70,7 @@ struct CJMod
 	//	doot[CJJ][i] = jack_prop;
 	//}
 
-	inline auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 

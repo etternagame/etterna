@@ -133,7 +133,7 @@ local function rankingLabel(i)
 		UpdateRankingMessageCommand = function(self)
 			if rankingSkillset > 1 and update then
 				if not showOnline then
-					ths = SCOREMAN:GetTopSSRHighScore(i + (scoresperpage * (rankingPage - 1)), ms.SkillSets[rankingSkillset])
+					ths = SCOREMAN:GetTopSSRHighScoreForGame(i + (scoresperpage * (rankingPage - 1)), ms.SkillSets[rankingSkillset])
 					if ths then
 						self:visible(true)
 						ck = ths:GetChartKey()
@@ -332,12 +332,20 @@ local function rankingLabel(i)
 				if rankingSkillset > 1 and ButtonActive(self) then
 					if not showOnline then
 						if ths then
+							local srate = ths:GetMusicRate()
 							whee:SelectSong(thssong)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
 						end
 					elseif onlineScore and onlineScore.chartkey then
 						local song = SONGMAN:GetSongByChartKey(onlineScore.chartkey)
 						if song then
+							local srate = onlineScore.rate
 							whee:SelectSong(song)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
 						end
 					end
 				end
@@ -368,7 +376,7 @@ local function rankingButton(i)
 				if ButtonActive(self) then
 					rankingSkillset = i
 					rankingPage = 1
-					SCOREMAN:SortSSRs(ms.SkillSets[rankingSkillset])
+					SCOREMAN:SortSSRsForGame(ms.SkillSets[rankingSkillset])
 					BroadcastIfActive("UpdateRanking")
 				end
 			end,
@@ -740,7 +748,7 @@ local profilebuttons =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if ButtonActive(self) and rankingSkillset == 1 then
-				SCOREMAN:ValidateAllScores()
+				profile:UnInvalidateAllScores()
 				STATSMAN:UpdatePlayerRating()
 			end
 		end

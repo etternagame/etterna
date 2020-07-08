@@ -6,7 +6,6 @@
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenPrompt.h"
@@ -66,10 +65,10 @@ ScreenSMOnlineLogin::ImportOptions(int iRow, const PlayerNumber& vpns)
 {
 	switch (iRow) {
 		case 0: {
-			vector<RString> vsProfiles;
+			vector<std::string> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
-			vector<RString>::iterator iter =
+			vector<std::string>::iterator iter =
 			  find(vsProfiles.begin(),
 				   vsProfiles.end(),
 				   ProfileManager::m_sDefaultLocalProfileID[PLAYER_1].Get());
@@ -85,7 +84,7 @@ ScreenSMOnlineLogin::ExportOptions(int iRow, const PlayerNumber& vpns)
 {
 	switch (iRow) {
 		case 0: {
-			vector<RString> vsProfiles;
+			vector<std::string> vsProfiles;
 			PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
 			auto selection = m_pRows[0]->GetOneSelection(PLAYER_1);
@@ -110,9 +109,9 @@ static LocalizedString ENTER_YOUR_PASSWORD("ScreenSMOnlineLogin",
 										   "Enter your password.");
 
 void
-ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage SM)
+ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage& SM)
 {
-	RString sLoginQuestion;
+	std::string sLoginQuestion;
 	//	if( GAMESTATE->IsPlayerEnabled((PlayerNumber) m_iPlayer) )
 
 	if (SM == SM_PasswordDone) {
@@ -209,27 +208,27 @@ ScreenSMOnlineLogin::MenuStart(const InputEventPlus& input)
 	return ScreenOptions::MenuStart(input);
 }
 
-RString
+std::string
 ScreenSMOnlineLogin::GetSelectedProfileID()
 {
-	vector<RString> vsProfiles;
+	vector<std::string> vsProfiles;
 	PROFILEMAN->GetLocalProfileIDs(vsProfiles);
 
 	const OptionRow& row = *m_pRows[GetCurrentRow()];
 	const int Selection = row.GetOneSharedSelection();
 	if (!Selection)
-		return RString();
+		return std::string();
 	return vsProfiles[Selection - 1];
 }
 
 void
-ScreenSMOnlineLogin::SendLogin(RString sPassword)
+ScreenSMOnlineLogin::SendLogin(std::string sPassword)
 {
 	SendLogin(sPassword,
 			  GAMESTATE->GetPlayerDisplayName((PlayerNumber)this->m_iPlayer));
 }
 void
-ScreenSMOnlineLogin::SendLogin(RString sPassword, RString user)
+ScreenSMOnlineLogin::SendLogin(std::string sPassword, std::string user)
 {
 	NSMAN->Login(user, sPassword);
 }

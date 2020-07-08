@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "GraphDisplay.h"
@@ -9,7 +9,6 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "Etterna/FileTypes/XmlFile.h"
 
 //#define DIVIDE_LINE_WIDTH
 // THEME->GetMetricI(m_sName,"TexturedBottomHalf")
@@ -46,7 +45,7 @@ class GraphLine : public Actor
 
 		DISPLAY->DrawQuads(&m_Quads[0], m_Quads.size());
 
-		int iFans = m_pCircles.size() / iCircleVertices;
+		const int iFans = m_pCircles.size() / iCircleVertices;
 		for (int i = 0; i < iFans; ++i)
 			DISPLAY->DrawFan(&m_pCircles[0] + iCircleVertices * i,
 							 iCircleVertices);
@@ -60,7 +59,8 @@ class GraphLine : public Actor
 		pVerts[0] = v;
 
 		for (int i = 0; i < iSubdivisions + 1; ++i) {
-			const float fRotation = float(i) / iSubdivisions * 2 * PI;
+			const float fRotation =
+			  static_cast<float>(i) / iSubdivisions * 2 * PI;
 			const float fX = RageFastCos(fRotation) * fRadius;
 			const float fY = -RageFastSin(fRotation) * fRadius;
 			pVerts[1 + i] = v;
@@ -80,26 +80,26 @@ class GraphLine : public Actor
 					   1);
 		}
 
-		int iNumLines = iSize - 1;
+		const int iNumLines = iSize - 1;
 		m_Quads.resize(iNumLines * 4);
 		for (int i = 0; i < iNumLines; ++i) {
 			const RageSpriteVertex& p1 = m_LineStrip[i];
 			const RageSpriteVertex& p2 = m_LineStrip[i + 1];
 
-			float opp = p2.p.x - p1.p.x;
-			float adj = p2.p.y - p1.p.y;
-			float hyp = powf(opp * opp + adj * adj, 0.5f);
+			const float opp = p2.p.x - p1.p.x;
+			const float adj = p2.p.y - p1.p.y;
+			const float hyp = powf(opp * opp + adj * adj, 0.5f);
 
-			float lsin = opp / hyp;
-			float lcos = adj / hyp;
+			const float lsin = opp / hyp;
+			const float lcos = adj / hyp;
 
 			RageSpriteVertex* v = &m_Quads[i * 4];
 			v[0] = v[1] = p1;
 			v[2] = v[3] = p2;
 
-			int iLineWidth = 2;
-			float ydist = lsin * iLineWidth / 2;
-			float xdist = lcos * iLineWidth / 2;
+			const int iLineWidth = 2;
+			const float ydist = lsin * iLineWidth / 2;
+			const float xdist = lcos * iLineWidth / 2;
 
 			v[0].p.x += xdist;
 			v[0].p.y -= ydist;
@@ -123,7 +123,7 @@ REGISTER_ACTOR_CLASS(GraphLine);
 class GraphBody : public Actor
 {
   public:
-	explicit GraphBody(RString sFile)
+	explicit GraphBody(const std::string& sFile)
 	{
 		m_pTexture = TEXTUREMAN->LoadTexture(sFile);
 
@@ -135,7 +135,7 @@ class GraphBody : public Actor
 	~GraphBody() override
 	{
 		TEXTUREMAN->UnloadTexture(m_pTexture);
-		m_pTexture = NULL;
+		m_pTexture = nullptr;
 	}
 
 	void DrawPrimitives() override
@@ -158,8 +158,8 @@ class GraphBody : public Actor
 
 GraphDisplay::GraphDisplay()
 {
-	m_pGraphLine = NULL;
-	m_pGraphBody = NULL;
+	m_pGraphLine = nullptr;
+	m_pGraphBody = nullptr;
 }
 
 GraphDisplay::~GraphDisplay()
@@ -174,7 +174,7 @@ GraphDisplay::~GraphDisplay()
 void
 GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 {
-	float fTotalStepSeconds = ss.GetTotalPossibleStepsSeconds();
+	const float fTotalStepSeconds = ss.GetTotalPossibleStepsSeconds();
 
 	m_Values.resize(VALUE_RESOLUTION);
 	pss.GetWifeRecord(
@@ -194,11 +194,11 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 
 		Actor* p = m_sprSongBoundary->Copy();
 		m_vpSongBoundaries.push_back(p);
-		float fX = SCALE(fSec,
-						 0,
-						 fTotalStepSeconds,
-						 m_quadVertices.left,
-						 m_quadVertices.right);
+		const float fX = SCALE(fSec,
+							   0,
+							   fTotalStepSeconds,
+							   m_quadVertices.left,
+							   m_quadVertices.right);
 		p->SetX(fX);
 		this->AddChild(p);
 	}
@@ -209,7 +209,7 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		int iMinLifeSoFarAt = 0;
 
 		for (int i = 0; i < VALUE_RESOLUTION; ++i) {
-			float fLife = m_Values[i];
+			const float fLife = m_Values[i];
 			if (fLife < fMinLifeSoFar) {
 				fMinLifeSoFar = fLife;
 				iMinLifeSoFarAt = i;
@@ -217,11 +217,11 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		}
 
 		if (fMinLifeSoFar > 0.0f && fMinLifeSoFar < 0.1f) {
-			float fX = SCALE(float(iMinLifeSoFarAt),
-							 0.0f,
-							 float(VALUE_RESOLUTION - 1),
-							 m_quadVertices.left,
-							 m_quadVertices.right);
+			const float fX = SCALE(static_cast<float>(iMinLifeSoFarAt),
+								   0.0f,
+								   static_cast<float>(VALUE_RESOLUTION - 1),
+								   m_quadVertices.left,
+								   m_quadVertices.right);
 			m_sprBarely->SetX(fX);
 		} else {
 			m_sprBarely->SetVisible(false);
@@ -231,7 +231,7 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 }
 
 void
-GraphDisplay::Load(const RString& sMetricsGroup)
+GraphDisplay::Load(const std::string& sMetricsGroup)
 {
 	m_size.x =
 	  static_cast<float>(THEME->GetMetricI(sMetricsGroup, "BodyWidth"));
@@ -266,9 +266,9 @@ GraphDisplay::UpdateVerts()
 
 	RageSpriteVertex LineStrip[VALUE_RESOLUTION];
 	for (int i = 0; i < VALUE_RESOLUTION; ++i) {
-		const float fX = SCALE(float(i),
+		const float fX = SCALE(static_cast<float>(i),
 							   0.0f,
-							   float(VALUE_RESOLUTION - 1),
+							   static_cast<float>(VALUE_RESOLUTION - 1),
 							   m_quadVertices.left,
 							   m_quadVertices.right);
 		const float fY = SCALE(
@@ -318,10 +318,10 @@ class LunaGraphDisplay : public Luna<GraphDisplay>
 		StageStats* pStageStats = Luna<StageStats>::check(L, 1);
 		PlayerStageStats* pPlayerStageStats =
 		  Luna<PlayerStageStats>::check(L, 2);
-		if (pStageStats == NULL) {
+		if (pStageStats == nullptr) {
 			luaL_error(L, "The StageStats passed to GraphDisplay:Set are nil.");
 		}
-		if (pPlayerStageStats == NULL) {
+		if (pPlayerStageStats == nullptr) {
 			luaL_error(
 			  L, "The PlayerStageStats passed to GraphDisplay:Set are nil.");
 		}

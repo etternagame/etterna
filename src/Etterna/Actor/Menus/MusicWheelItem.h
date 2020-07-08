@@ -6,7 +6,6 @@
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "TextBanner.h"
-#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
 
 class Song;
@@ -27,13 +26,13 @@ enum MusicWheelItemType
 	NUM_MusicWheelItemType,
 	MusicWheelItemType_Invalid,
 };
-const RString&
+const std::string&
 MusicWheelItemTypeToString(MusicWheelItemType i);
 /** @brief An item on the MusicWheel. */
-class MusicWheelItem : public WheelItemBase
+class MusicWheelItem final : public WheelItemBase
 {
   public:
-	MusicWheelItem(RString sType = "MusicWheelItem");
+	MusicWheelItem(const std::string& sType = "MusicWheelItem");
 	MusicWheelItem(const MusicWheelItem& cpy);
 	~MusicWheelItem() override;
 	MusicWheelItem* Copy() const override { return new MusicWheelItem(*this); }
@@ -56,18 +55,17 @@ class MusicWheelItem : public WheelItemBase
 	AutoActor m_pGradeDisplay;
 };
 
-struct MusicWheelItemData : public WheelItemBaseData
+struct MusicWheelItemData : WheelItemBaseData
 {
 	MusicWheelItemData()
-	  : m_pSong(NULL)
+	  : m_pSong(nullptr)
 	  , m_sLabel("")
-	  , m_pAction()
 	{
 	}
 	MusicWheelItemData(WheelItemDataType type,
 					   Song* pSong,
-					   RString sSectionName,
-					   RageColor color,
+					   const std::string& sSectionName,
+					   const RageColor& color,
 					   int iSectionCount);
 
 	Song* m_pSong;
@@ -76,7 +74,7 @@ struct MusicWheelItemData : public WheelItemBaseData
 	int m_iSectionCount{ 0 };
 
 	// for TYPE_SORT
-	RString m_sLabel;
+	std::string m_sLabel;
 	HiddenPtr<GameCommand> m_pAction;
 };
 

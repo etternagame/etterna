@@ -1,6 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_SpeedChange.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 static const int WINDOW_SIZE_MS = 30;
 
@@ -188,7 +190,7 @@ RageSoundReader_SpeedChange::Step()
 	for (size_t i = 0; i < m_Channels.size(); ++i) {
 		ChannelInfo& c = m_Channels[i];
 		ASSERT(c.m_iCorrelatedPos <= m_iDataBufferAvailFrames);
-		iToDelete = min(iToDelete, c.m_iCorrelatedPos);
+		iToDelete = std::min(iToDelete, c.m_iCorrelatedPos);
 		// iToDelete = min( iToDelete, m_iDataBufferAvailFrames );
 	}
 	EraseData(iToDelete);
@@ -200,8 +202,8 @@ RageSoundReader_SpeedChange::Step()
 		  m_iUncorrelatedPos + GetToleranceFrames() + GetWindowSizeFrames();
 		for (size_t i = 0; i < m_Channels.size(); ++i)
 			iMaxPositionNeeded =
-			  max(iMaxPositionNeeded,
-				  m_Channels[i].m_iCorrelatedPos + GetWindowSizeFrames());
+			  std::max(iMaxPositionNeeded,
+					   m_Channels[i].m_iCorrelatedPos + GetWindowSizeFrames());
 
 		int iGot = FillData(iMaxPositionNeeded);
 		if (iGot < 0)
@@ -247,7 +249,7 @@ RageSoundReader_SpeedChange::GetCursorAvail() const
 	for (size_t i = 0; i < m_Channels.size(); ++i) {
 		int iCursorAvailForChannel =
 		  (m_iDataBufferAvailFrames - m_Channels[i].m_iCorrelatedPos) - m_iPos;
-		iCursorAvail = min(iCursorAvail, iCursorAvailForChannel);
+		iCursorAvail = std::min(iCursorAvail, iCursorAvailForChannel);
 	}
 
 	return iCursorAvail;
@@ -280,7 +282,7 @@ RageSoundReader_SpeedChange::Read(float* pBuf, int iFrames)
 
 		/* copy GetWindowSizeFrames() from iCorrelatedPos */
 		int iFramesLen = iFrames;
-		int iFramesAvail = min(iCursorAvail, iFramesLen);
+		int iFramesAvail = std::min(iCursorAvail, iFramesLen);
 
 		iFrames -= iFramesAvail;
 		int iFramesRead = iFramesAvail;
@@ -313,7 +315,8 @@ RageSoundReader_SpeedChange::SetPosition(int iFrame)
 }
 
 bool
-RageSoundReader_SpeedChange::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_SpeedChange::SetProperty(const std::string& sProperty,
+										 float fValue)
 {
 	if (sProperty == "Speed") {
 		SetSpeedRatio(fValue);

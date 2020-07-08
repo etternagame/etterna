@@ -3,20 +3,22 @@
 #ifndef SCREEN_MINI_MENU_H
 #define SCREEN_MINI_MENU_H
 
-#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include <utility>
+
 #include "Etterna/Screen/Options/ScreenOptions.h"
+#include "Etterna/Models/Misc/Foreach.h"
 
 using MenuRowUpdateEnabled = bool (*)();
 
 struct MenuRowDef
 {
 	int iRowCode{ 0 };
-	RString sName;
+	std::string sName;
 	bool bEnabled{ false };
 	MenuRowUpdateEnabled pfnEnabled{}; // if ! NULL, used instead of bEnabled
 
 	int iDefaultChoice{ 0 };
-	vector<RString> choices;
+	vector<std::string> choices;
 	bool bThemeTitle{ false };
 	bool bThemeItems{ false };
 
@@ -24,7 +26,7 @@ struct MenuRowDef
 	  : sName("")
 	  , choices(){};
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   MenuRowUpdateEnabled pe,
 
 			   bool bTT,
@@ -101,13 +103,13 @@ struct MenuRowDef
 	}
 
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   bool e,
 
 			   bool bTT,
 			   bool bTI,
 			   int d,
-			   vector<RString>& options)
+			   vector<std::string>& options)
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(e)
@@ -118,7 +120,7 @@ struct MenuRowDef
 	  , bThemeTitle(bTT)
 	  , bThemeItems(bTI)
 	{
-		FOREACH(RString, options, str)
+		FOREACH(std::string, options, str)
 		{
 			if (*str != "")
 				choices.push_back(*str);
@@ -126,7 +128,7 @@ struct MenuRowDef
 	}
 
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   bool e,
 
 			   bool bTT,
@@ -203,7 +205,7 @@ struct MenuRowDef
 	}
 
 	MenuRowDef(int r,
-			   const RString& n,
+			   const std::string& n,
 			   bool e,
 
 			   bool bTT,
@@ -226,16 +228,16 @@ struct MenuRowDef
 		}
 	}
 
-	void SetOneUnthemedChoice(const RString& sChoice)
+	void SetOneUnthemedChoice(const std::string& sChoice)
 	{
 		choices.resize(1);
 		choices[0] = "|" + sChoice;
 	}
 
-	bool SetDefaultChoiceIfPresent(RString sChoice)
+	bool SetDefaultChoiceIfPresent(const std::string& sChoice)
 	{
 		iDefaultChoice = 0;
-		FOREACH_CONST(RString, choices, s)
+		FOREACH_CONST(std::string, choices, s)
 		{
 			if (sChoice == *s) {
 				iDefaultChoice = s - choices.begin();
@@ -248,41 +250,41 @@ struct MenuRowDef
 
 struct MenuDef
 {
-	RString sClassName;
+	std::string sClassName;
 	vector<MenuRowDef> rows;
 
-	MenuDef(RString c,
-			MenuRowDef r0 = MenuRowDef(),
-			MenuRowDef r1 = MenuRowDef(),
-			MenuRowDef r2 = MenuRowDef(),
-			MenuRowDef r3 = MenuRowDef(),
-			MenuRowDef r4 = MenuRowDef(),
-			MenuRowDef r5 = MenuRowDef(),
-			MenuRowDef r6 = MenuRowDef(),
-			MenuRowDef r7 = MenuRowDef(),
-			MenuRowDef r8 = MenuRowDef(),
-			MenuRowDef r9 = MenuRowDef(),
-			MenuRowDef r10 = MenuRowDef(),
-			MenuRowDef r11 = MenuRowDef(),
-			MenuRowDef r12 = MenuRowDef(),
-			MenuRowDef r13 = MenuRowDef(),
-			MenuRowDef r14 = MenuRowDef(),
-			MenuRowDef r15 = MenuRowDef(),
-			MenuRowDef r16 = MenuRowDef(),
-			MenuRowDef r17 = MenuRowDef(),
-			MenuRowDef r18 = MenuRowDef(),
-			MenuRowDef r19 = MenuRowDef(),
-			MenuRowDef r20 = MenuRowDef(),
-			MenuRowDef r21 = MenuRowDef(),
-			MenuRowDef r22 = MenuRowDef(),
-			MenuRowDef r23 = MenuRowDef(),
-			MenuRowDef r24 = MenuRowDef(),
-			MenuRowDef r25 = MenuRowDef(),
-			MenuRowDef r26 = MenuRowDef(),
-			MenuRowDef r27 = MenuRowDef(),
-			MenuRowDef r28 = MenuRowDef(),
-			MenuRowDef r29 = MenuRowDef())
-	  : sClassName(c)
+	MenuDef(std::string c,
+			const MenuRowDef& r0 = MenuRowDef(),
+			const MenuRowDef& r1 = MenuRowDef(),
+			const MenuRowDef& r2 = MenuRowDef(),
+			const MenuRowDef& r3 = MenuRowDef(),
+			const MenuRowDef& r4 = MenuRowDef(),
+			const MenuRowDef& r5 = MenuRowDef(),
+			const MenuRowDef& r6 = MenuRowDef(),
+			const MenuRowDef& r7 = MenuRowDef(),
+			const MenuRowDef& r8 = MenuRowDef(),
+			const MenuRowDef& r9 = MenuRowDef(),
+			const MenuRowDef& r10 = MenuRowDef(),
+			const MenuRowDef& r11 = MenuRowDef(),
+			const MenuRowDef& r12 = MenuRowDef(),
+			const MenuRowDef& r13 = MenuRowDef(),
+			const MenuRowDef& r14 = MenuRowDef(),
+			const MenuRowDef& r15 = MenuRowDef(),
+			const MenuRowDef& r16 = MenuRowDef(),
+			const MenuRowDef& r17 = MenuRowDef(),
+			const MenuRowDef& r18 = MenuRowDef(),
+			const MenuRowDef& r19 = MenuRowDef(),
+			const MenuRowDef& r20 = MenuRowDef(),
+			const MenuRowDef& r21 = MenuRowDef(),
+			const MenuRowDef& r22 = MenuRowDef(),
+			const MenuRowDef& r23 = MenuRowDef(),
+			const MenuRowDef& r24 = MenuRowDef(),
+			const MenuRowDef& r25 = MenuRowDef(),
+			const MenuRowDef& r26 = MenuRowDef(),
+			const MenuRowDef& r27 = MenuRowDef(),
+			const MenuRowDef& r28 = MenuRowDef(),
+			const MenuRowDef& r29 = MenuRowDef())
+	  : sClassName(std::move(c))
 	  , rows()
 	{
 #define PUSH(r)                                                                \
@@ -333,7 +335,7 @@ class ScreenMiniMenu : public ScreenOptions
 
 	void Init() override;
 	void BeginScreen() override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
   protected:
 	void AfterChangeValueOrRow(PlayerNumber pn) override;

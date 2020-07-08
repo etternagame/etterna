@@ -14,7 +14,7 @@ CrashSignalHandler(int signal, siginfo_t* si, const ucontext_t* uc);
 void
 ForceCrash(const char* reason);
 void
-ForceDeadlock(RString reason, uint64_t CrashHandle);
+ForceDeadlock(std::string reason, uint64_t CrashHandle);
 }
 
 #endif

@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
@@ -25,17 +24,17 @@ ScreenSelect::Init()
 
 	// Load messages to update on
 	split(UPDATE_ON_MESSAGE, ",", m_asSubscribedMessages);
-	for (unsigned i = 0; i < m_asSubscribedMessages.size(); ++i)
-		MESSAGEMAN->Subscribe(this, m_asSubscribedMessages[i]);
+	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
+		MESSAGEMAN->Subscribe(this, m_asSubscribedMessage);
 	// Subscribe to PlayerJoined, if not already.
 	if (!MESSAGEMAN->IsSubscribedToMessage(this, Message_PlayerJoined))
 		this->SubscribeToMessage(Message_PlayerJoined);
 
 	// Load choices
 	// Allow lua as an alternative to metrics.
-	RString choice_names = CHOICE_NAMES;
-	if (choice_names.Left(4) == "lua,") {
-		RString command = choice_names.Right(choice_names.size() - 4);
+	std::string choice_names = CHOICE_NAMES;
+	if (choice_names.substr(0, 4) == "lua,") {
+		std::string command = tail(choice_names, choice_names.size() - 4);
 		Lua* L = LUA->Get();
 		if (LuaHelpers::RunExpression(L, command, m_sName + "::ChoiceNames")) {
 			if (!lua_istable(L, 1)) {
@@ -52,7 +51,7 @@ ScreenSelect::Init()
 							"::ChoiceNames element %zu is not a string.",
 						  i);
 					} else {
-						RString com = SArg(-1);
+						std::string com = SArg(-1);
 						GameCommand mc;
 						mc.ApplyCommitsScreens(false);
 						mc.m_sName = ssprintf("%zu", i);
@@ -71,11 +70,11 @@ ScreenSelect::Init()
 		// Each element in the list is a choice name. This level of indirection
 		// makes it easier to add or remove items without having to change a
 		// bunch of indices.
-		vector<RString> asChoiceNames;
+		vector<std::string> asChoiceNames;
 		split(CHOICE_NAMES, ",", asChoiceNames, true);
 
 		for (unsigned c = 0; c < asChoiceNames.size(); c++) {
-			RString sChoiceName = asChoiceNames[c];
+			std::string sChoiceName = asChoiceNames[c];
 
 			GameCommand mc;
 			mc.ApplyCommitsScreens(false);
@@ -105,8 +104,8 @@ ScreenSelect::~ScreenSelect()
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		LOG->Trace("ScreenSelect::~ScreenSelect()");
-	for (unsigned i = 0; i < m_asSubscribedMessages.size(); ++i)
-		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessages[i]);
+	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
+		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessage);
 }
 
 void
@@ -173,7 +172,7 @@ ScreenSelect::Input(const InputEventPlus& input)
 }
 
 void
-ScreenSelect::HandleScreenMessage(const ScreenMessage SM)
+ScreenSelect::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_BeginFadingOut) // Screen is starting to tween out.
 	{

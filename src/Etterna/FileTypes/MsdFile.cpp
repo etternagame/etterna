@@ -20,7 +20,7 @@
 void
 MsdFile::AddParam(const char* buf, int len)
 {
-	values.back().params.push_back(RString(buf, len));
+	values.back().params.push_back(std::string(buf, len));
 }
 
 void
@@ -35,10 +35,10 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 {
 	values.reserve(64);
 
-	bool ReadingValue = false;
-	int i = 0;
+	auto ReadingValue = false;
+	auto i = 0;
 	auto* cProcessed = new char[len];
-	int iProcessedLen = -1;
+	auto iProcessedLen = -1;
 	while (i < len) {
 		if (i + 1 < len && buf[i] == '/' && buf[i + 1] == '/' &&
 			ReadingValue == false) {
@@ -60,8 +60,8 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 			 * missed the ;.  Back up and end the value. */
 			// Make sure this # is the first non-whitespace character on the
 			// line.
-			bool FirstChar = true;
-			int j = iProcessedLen;
+			auto FirstChar = true;
+			auto j = iProcessedLen;
 			while (j > 0 && cProcessed[j - 1] != '\r' &&
 				   cProcessed[j - 1] != '\n') {
 				if (cProcessed[j - 1] == ' ' || cProcessed[j - 1] == '\t') {
@@ -151,7 +151,7 @@ MsdFile::ReadBuf(const char* buf, int len, bool bUnescape)
 
 // returns true if successful, false otherwise
 bool
-MsdFile::ReadFile(const RString& sNewPath, bool bUnescape)
+MsdFile::ReadFile(const std::string& sNewPath, bool bUnescape)
 {
 	error = "";
 
@@ -163,10 +163,10 @@ MsdFile::ReadFile(const RString& sNewPath, bool bUnescape)
 	}
 
 	// allocate a string to hold the file
-	RString FileString;
+	std::string FileString;
 	FileString.reserve(f.GetFileSize());
 
-	int iBytesRead = f.Read(FileString);
+	auto iBytesRead = f.Read(FileString);
 	if (iBytesRead == -1) {
 		error = f.GetError();
 		return false;
@@ -178,16 +178,16 @@ MsdFile::ReadFile(const RString& sNewPath, bool bUnescape)
 }
 
 void
-MsdFile::ReadFromString(const RString& sString, bool bUnescape)
+MsdFile::ReadFromString(const std::string& sString, bool bUnescape)
 {
 	ReadBuf(sString.c_str(), sString.size(), bUnescape);
 }
 
-RString
+std::string
 MsdFile::GetParam(unsigned val, unsigned par) const
 {
 	if (val >= GetNumValues() || par >= GetNumParams(val))
-		return RString();
+		return std::string();
 
 	return values[val].params[par];
 }

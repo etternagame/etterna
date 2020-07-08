@@ -1,34 +1,29 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
-
 #include "LoadingWindow_Win32.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "archutils/win32/WindowsResources.h"
 #include "archutils/win32/WindowIcon.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include <windows.h>
+#include <wchar.h>
 #include <Commdlg.h>
 #include <tchar.h>
 #include "Dwmapi.h"
-#include "CommCtrl.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
-#include "RageUtil/Misc/RageLog.h"
-#include <wchar.h>
 #include "Etterna/Globals/ProductInfo.h"
-#include "Etterna/Models/Misc/LocalizedString.h"
-
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
+
 #pragma comment(lib, "Dwmapi.lib")
 
-static HBITMAP g_hBitmap = NULL;
+static HBITMAP g_hBitmap = nullptr;
 
-RString text[3];
+std::string text[3];
 const float FONT_HEIGHT = 12;
-const string FONT_FILE = "Data/Roboto-Light.ttf";
-const string FONT_NAME = "Roboto Light";
+const std::string FONT_FILE = "Data/Roboto-Light.ttf";
+const std::string FONT_NAME = "Roboto Light";
 const auto FONT_COLOR = RGB(240, 240, 240);
 const int FONT_Y = 98;
 const int FONT_X = 20;
@@ -51,7 +46,7 @@ LoadWin32Surface(const RageSurface* pSplash, HWND hWnd)
 	rOld.top = (rOld.bottom / 2) - (pSplash->h / 2);
 	wrect.left += ((wrect.right - wrect.left) - s->w) / 2;
 	wrect.top += ((wrect.bottom - wrect.top) - s->h) / 2;
-	SetWindowPos(hWnd, 0, wrect.left, wrect.top, s->w, s->h, 0);
+	SetWindowPos(hWnd, nullptr, wrect.left, wrect.top, s->w, s->h, 0);
 
 	/* Resize the splash image to fit the dialog.  Stretch to fit horizontally,
 	 * maintaining aspect ratio. */
@@ -66,7 +61,7 @@ LoadWin32Surface(const RageSurface* pSplash, HWND hWnd)
 		RageSurfaceUtils::Zoom(s, iWidth, iHeight);
 	}
 
-	HDC hScreen = GetDC(NULL);
+	HDC hScreen = GetDC(nullptr);
 	ASSERT_M(hScreen != NULL, werr_ssprintf(GetLastError(), "hScreen"));
 
 	HBITMAP bitmap = CreateCompatibleBitmap(hScreen, s->w, s->h);
@@ -87,22 +82,22 @@ LoadWin32Surface(const RageSurface* pSplash, HWND hWnd)
 		}
 	}
 
-	SelectObject(BitmapDC, NULL);
+	SelectObject(BitmapDC, nullptr);
 	DeleteObject(BitmapDC);
 
-	ReleaseDC(NULL, hScreen);
+	ReleaseDC(nullptr, hScreen);
 
 	delete s;
 	return bitmap;
 }
 
 static HBITMAP
-LoadWin32Surface(RString sFile, HWND hWnd)
+LoadWin32Surface(std::string sFile, HWND hWnd)
 {
-	RString error;
+	std::string error;
 	RageSurface* pSurface = RageSurfaceUtils::LoadFile(sFile, error);
-	if (pSurface == NULL)
-		return NULL;
+	if (pSurface == nullptr)
+		return nullptr;
 
 	HBITMAP ret = LoadWin32Surface(pSurface, hWnd);
 	delete pSurface;
@@ -114,12 +109,12 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
 		case WM_INITDIALOG: {
-			vector<RString> vs;
+			vector<std::string> vs;
 			GetDirListing("Data/splash*.png", vs, false, true);
 			if (!vs.empty())
 				g_hBitmap = LoadWin32Surface(vs[0], hWnd);
 		}
-			if (g_hBitmap == NULL)
+			if (g_hBitmap == nullptr)
 				g_hBitmap = LoadWin32Surface("Data/splash.bmp", hWnd);
 			SendMessage(GetDlgItem(hWnd, IDC_SPLASH),
 						STM_SETIMAGE,
@@ -130,7 +125,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_DESTROY:
 			DeleteObject(g_hBitmap);
-			g_hBitmap = NULL;
+			g_hBitmap = nullptr;
 			break;
 		case WM_PAINT:
 			w->InternalPaint();
@@ -142,11 +137,11 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 void
 LoadingWindow_Win32::SetIcon(const RageSurface* pIcon)
 {
-	if (m_hIcon != NULL)
+	if (m_hIcon != nullptr)
 		DestroyIcon(m_hIcon);
 
 	m_hIcon = IconFromSurface(pIcon);
-	if (m_hIcon != NULL)
+	if (m_hIcon != nullptr)
 	// XXX: GCL_HICON isn't available on x86-64 Windows
 #if _WIN64
 		SetClassLongPtr(hwnd, GCLP_HICON, (LONG)m_hIcon);
@@ -158,13 +153,13 @@ LoadingWindow_Win32::SetIcon(const RageSurface* pIcon)
 void
 LoadingWindow_Win32::SetSplash(const RageSurface* pSplash)
 {
-	if (g_hBitmap != NULL) {
+	if (g_hBitmap != nullptr) {
 		DeleteObject(g_hBitmap);
-		g_hBitmap = NULL;
+		g_hBitmap = nullptr;
 	}
 
 	g_hBitmap = LoadWin32Surface(pSplash, hwnd);
-	if (g_hBitmap != NULL) {
+	if (g_hBitmap != nullptr) {
 		SendDlgItemMessage(hwnd,
 						   IDC_SPLASH,
 						   STM_SETIMAGE,
@@ -182,15 +177,15 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 	// negative is just the wrong font being in the window.
 	// Setting the FR_PRIVATE flag for the font will unload the font at program
 	// termination.
-	string szFontFile =
+	std::string szFontFile =
 	  RageFileManagerUtil::sDirOfExecutable.substr(
 		0, RageFileManagerUtil::sDirOfExecutable.length() - 7) +
 	  FONT_FILE;
 	int nResults = AddFontResourceEx(szFontFile.c_str(), // font file name
 									 FR_PRIVATE,		 // font flags
-									 NULL);
+									 nullptr);
 
-	m_hIcon = NULL;
+	m_hIcon = nullptr;
 	hwnd = CreateDialog(
 	  handle.Get(), MAKEINTRESOURCE(IDD_LOADING_DIALOG), NULL, WndProc);
 	ASSERT(hwnd != NULL);
@@ -224,7 +219,7 @@ LoadingWindow_Win32::~LoadingWindow_Win32()
 {
 	if (hwnd)
 		DestroyWindow(hwnd);
-	if (m_hIcon != NULL)
+	if (m_hIcon != nullptr)
 		DestroyIcon(m_hIcon);
 	if (f)
 		DeleteObject(f);
@@ -281,7 +276,7 @@ LoadingWindow_Win32::Paint()
 }
 
 void
-LoadingWindow_Win32::SetText(const RString& sText)
+LoadingWindow_Win32::SetText(const std::string& sText)
 {
 	lastText = sText;
 	SetTextInternal();
@@ -295,11 +290,11 @@ LoadingWindow_Win32::SetTextInternal()
 	else {
 		int percent =
 		  m_totalWork != 0 ? 100 * m_progress / m_totalWork : m_progress;
-		progress = " (" + to_string(percent) + "%)";
+		progress = " (" + std::to_string(percent) + "%)";
 	}
-	RString& sText = lastText;
+	std::string& sText = lastText;
 
-	vector<RString> asMessageLines;
+	vector<std::string> asMessageLines;
 	split(sText, "\n", asMessageLines, false);
 	while (asMessageLines.size() < 3)
 		asMessageLines.push_back("");

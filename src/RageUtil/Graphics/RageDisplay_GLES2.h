@@ -8,10 +8,10 @@ class RageDisplay_GLES2 : public RageDisplay
   public:
 	RageDisplay_GLES2();
 	~RageDisplay_GLES2() override;
-	RString Init(const VideoModeParams& p,
+	std::string Init(const VideoModeParams& p,
 				 bool bAllowUnacceleratedRenderer) override;
 
-	RString GetApiDescription() const override;
+	std::string GetApiDescription() const override;
 	virtual void GetDisplayResolutions(DisplayResolutions& out) const override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
@@ -86,7 +86,7 @@ class RageDisplay_GLES2 : public RageDisplay
 	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 										int iNumVerts) override;
 
-	RString TryVideoMode(const VideoModeParams& p,
+	std::string TryVideoMode(const VideoModeParams& p,
 						 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 	RageMatrix GetOrthoMatrix(float l,

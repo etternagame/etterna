@@ -2,10 +2,10 @@
 #define DARWIN_CRASH_H
 
 namespace CrashHandler {
-RString
+std::string
 GetLogsDirectory();
 void
-InformUserOfCrash(const RString& sPath);
+InformUserOfCrash(const std::string& sPath);
 bool
 IsDebuggerPresent();
 void

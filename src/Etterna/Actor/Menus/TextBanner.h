@@ -8,22 +8,22 @@
 #include "Etterna/Actor/Base/BitmapText.h"
 class Song;
 
-class TextBanner : public ActorFrame
+class TextBanner final : public ActorFrame
 {
   public:
 	TextBanner();
 	TextBanner(const TextBanner& cpy);
-	TextBanner* Copy() const override;
+	[[nodiscard]] TextBanner* Copy() const override;
 
 	void LoadFromNode(const XNode* pNode) override;
-	void Load(const RString& sMetricsGroup); // load metrics
+	void Load(const std::string& sMetricsGroup); // load metrics
 	void SetFromSong(const Song* pSong);
-	void SetFromString(const string& sDisplayTitle,
-					   const string& sTranslitTitle,
-					   const string& sDisplaySubTitle,
-					   const string& sTranslitSubTitle,
-					   const string& sDisplayArtist,
-					   const string& sTranslitArtist);
+	void SetFromString(const std::string& sDisplayTitle,
+					   const std::string& sTranslitTitle,
+					   const std::string& sDisplaySubTitle,
+					   const std::string& sTranslitSubTitle,
+					   const std::string& sDisplayArtist,
+					   const std::string& sTranslitArtist);
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -31,7 +31,7 @@ class TextBanner : public ActorFrame
   private:
 	bool m_bInitted;
 	BitmapText m_textTitle, m_textSubTitle, m_textArtist;
-	RString m_sArtistPrependString;
+	std::string m_sArtistPrependString;
 };
 
 #endif

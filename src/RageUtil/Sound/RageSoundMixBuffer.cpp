@@ -1,6 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundMixBuffer.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 #ifdef __APPLE__
 #include "archutils/Darwin/VectorHelper.h"
@@ -82,7 +84,7 @@ RageSoundMixBuffer::read(int16_t* pBuf)
 {
 	for (unsigned iPos = 0; iPos < m_iBufUsed; ++iPos) {
 		float iOut = m_pMixbuf[iPos];
-		iOut = clamp(iOut, -1.0f, +1.0f);
+		iOut = std::clamp(iOut, -1.0f, +1.0f);
 		pBuf[iPos] = static_cast<int16_t>(lround(iOut * 32767));
 	}
 	m_iBufUsed = 0;

@@ -1,4 +1,4 @@
-﻿/* AutoPtrCopyOnWrite - Simple smart pointer template. */
+/* AutoPtrCopyOnWrite - Simple smart pointer template. */
 
 #ifndef RAGE_UTIL_AUTO_PTR_H
 #define RAGE_UTIL_AUTO_PTR_H
@@ -30,7 +30,7 @@ class AutoPtrCopyOnWrite
   public:
 	/* This constructor only exists to make us work with STL containers. */
 	inline AutoPtrCopyOnWrite()
-	  : m_pPtr(NULL)
+	  : m_pPtr(nullptr)
 	  , m_iRefCount(new int(1))
 	{
 	}
@@ -50,11 +50,12 @@ class AutoPtrCopyOnWrite
 
 	void Swap(AutoPtrCopyOnWrite<T>& rhs)
 	{
-		swap(m_pPtr, rhs.m_pPtr);
-		swap(m_iRefCount, rhs.m_iRefCount);
+		std::swap(m_pPtr, rhs.m_pPtr);
+		std::swap(m_iRefCount, rhs.m_iRefCount);
 	}
 
-	inline AutoPtrCopyOnWrite<T>& operator=(const AutoPtrCopyOnWrite& rhs)
+	inline auto operator=(const AutoPtrCopyOnWrite& rhs)
+	  -> AutoPtrCopyOnWrite<T>&
 	{
 		AutoPtrCopyOnWrite<T> obj(rhs);
 		this->Swap(obj);
@@ -71,7 +72,7 @@ class AutoPtrCopyOnWrite
 	}
 
 	/* Get a non-const pointer.  This will deep-copy the object if necessary. */
-	T* Get()
+	auto Get() -> T*
 	{
 		if (*m_iRefCount > 1) {
 			--*m_iRefCount;
@@ -82,10 +83,10 @@ class AutoPtrCopyOnWrite
 		return m_pPtr;
 	}
 
-	int GetReferenceCount() const { return *m_iRefCount; }
+	[[nodiscard]] auto GetReferenceCount() const -> int { return *m_iRefCount; }
 
-	const T& operator*() const { return *m_pPtr; }
-	const T* operator->() const { return m_pPtr; }
+	auto operator*() const -> const T& { return *m_pPtr; }
+	auto operator->() const -> const T* { return m_pPtr; }
 
   private:
 	T* m_pPtr;
@@ -117,7 +118,7 @@ swap(AutoPtrCopyOnWrite<T>& a, AutoPtrCopyOnWrite<T>& b)
 template<class T>
 struct HiddenPtrTraits
 {
-	static T* Copy(const T* pCopy);
+	static auto Copy(const T* pCopy) -> T*;
 	static void Delete(T* p);
 };
 #define REGISTER_CLASS_TRAITS(T, CopyExpr)                                     \
@@ -136,10 +137,10 @@ template<class T>
 class HiddenPtr
 {
   public:
-	const T& operator*() const { return *m_pPtr; }
-	const T* operator->() const { return m_pPtr; }
-	T& operator*() { return *m_pPtr; }
-	T* operator->() { return m_pPtr; }
+	auto operator*() const -> const T& { return *m_pPtr; }
+	auto operator->() const -> const T* { return m_pPtr; }
+	auto operator*() -> T& { return *m_pPtr; }
+	auto operator->() -> T* { return m_pPtr; }
 
 	explicit HiddenPtr(T* p = NULL)
 	  : m_pPtr(p)
@@ -147,10 +148,11 @@ class HiddenPtr
 	}
 
 	HiddenPtr(const HiddenPtr<T>& cpy)
-	  : m_pPtr(NULL)
+	  : m_pPtr(nullptr)
 	{
-		if (cpy.m_pPtr != NULL)
+		if (cpy.m_pPtr != nullptr) {
 			m_pPtr = HiddenPtrTraits<T>::Copy(cpy.m_pPtr);
+		}
 	}
 
 #if 0 // broken VC6
@@ -165,16 +167,16 @@ class HiddenPtr
 #endif
 
 	~HiddenPtr() { HiddenPtrTraits<T>::Delete(m_pPtr); }
-	void Swap(HiddenPtr<T>& rhs) { swap(m_pPtr, rhs.m_pPtr); }
+	void Swap(HiddenPtr<T>& rhs) { std::swap(m_pPtr, rhs.m_pPtr); }
 
-	HiddenPtr<T>& operator=(T* p)
+	auto operator=(T* p) -> HiddenPtr<T>&
 	{
 		HiddenPtr<T> t(p);
 		Swap(t);
 		return *this;
 	}
 
-	HiddenPtr<T>& operator=(const HiddenPtr& cpy)
+	auto operator=(const HiddenPtr& cpy) -> HiddenPtr<T>&
 	{
 		HiddenPtr<T> t(cpy);
 		Swap(t);

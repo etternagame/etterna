@@ -21,8 +21,8 @@
 static std::string
 JoinLineList(vector<std::string>& lines)
 {
-	for (unsigned i = 0; i < lines.size(); ++i)
-		TrimRight(lines[i]);
+	for (auto& line : lines)
+		TrimRight(line);
 
 	// Skip leading blanks.
 	unsigned j = 0;
@@ -33,13 +33,13 @@ JoinLineList(vector<std::string>& lines)
 }
 
 std::string
-MSDToString2(MinaSD x)
+MSDToString2(std::vector<std::vector<float>> x)
 {
 	std::string o = "";
 	for (size_t i = 0; i < x.size(); i++) {
 		auto msds = x[i];
 		for (size_t ii = 0; ii < msds.size(); ii++) {
-			o.append(to_string(msds[ii]).substr(0, 5));
+			o.append(std::to_string(msds[ii]).substr(0, 5));
 			if (ii != msds.size() - 1)
 				o.append(",");
 		}
@@ -70,26 +70,26 @@ struct TimingTagWriter
 
 	void Write(const int row, const float value)
 	{
-		Write(row, ssprintf("%.6f", value));
+		Write(row, ssprintf("%.6f", value).c_str());
 	}
 	void Write(const int row, const int value)
 	{
-		Write(row, ssprintf("%d", value));
+		Write(row, ssprintf("%d", value).c_str());
 	}
 	void Write(const int row, const int a, const int b)
 	{
-		Write(row, ssprintf("%d=%d", a, b));
+		Write(row, ssprintf("%d=%d", a, b).c_str());
 	}
 	void Write(const int row, const float a, const float b)
 	{
-		Write(row, ssprintf("%.6f=%.6f", a, b));
+		Write(row, ssprintf("%.6f=%.6f", a, b).c_str());
 	}
 	void Write(const int row,
 			   const float a,
 			   const float b,
 			   const unsigned short c)
 	{
-		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c));
+		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c).c_str());
 	}
 
 	void Init(const std::string sTag) { m_sNext = "#" + sTag + ":"; }
@@ -182,7 +182,7 @@ GetTimingTags(vector<std::string>& lines,
 
 	WRITE_SEG_LOOP_OPEN(SEGMENT_LABEL, LabelSegment, "LABELS", ToLabel);
 	if (!segment->GetLabel().empty()) {
-		writer.Write(segment->GetRow(), segment->GetLabel());
+		writer.Write(segment->GetRow(), segment->GetLabel().c_str());
 	}
 	WRITE_SEG_LOOP_CLOSE;
 
@@ -258,7 +258,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 	{
 		auto vs = out.GetInstrumentTracksToVectorString();
 		if (!vs.empty()) {
-			std::string s = join(",", vs);
+			auto s = join(",", vs);
 			f.PutLine("#INSTRUMENTTRACK:" + s + ";\n");
 		}
 	}
@@ -367,7 +367,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 }
 
 static void
-emplace_back_tag(vector<std::string>& lines,
+emplace_back_tag(std::vector<std::string>& lines,
 				 std::string const& format,
 				 std::string const& value)
 {
@@ -385,7 +385,7 @@ emplace_back_tag(vector<std::string>& lines,
 static std::string
 GetETTNoteData(const Song& song, Steps& in)
 {
-	vector<std::string> lines;
+	std::vector<std::string> lines;
 
 	lines.emplace_back("");
 	// Escape to prevent some clown from making a comment of "\r\n;"
@@ -407,8 +407,8 @@ GetETTNoteData(const Song& song, Steps& in)
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
-	vector<std::string> asRadarValues;
-	const RadarValues& rv = in.GetRadarValues();
+	std::vector<std::string> asRadarValues;
+	const auto& rv = in.GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
 	lines.emplace_back(
@@ -429,8 +429,8 @@ GetETTNoteData(const Song& song, Steps& in)
 			// write nothing
 			break;
 		case DISPLAY_BPM_SPECIFIED: {
-			float small = in.GetMinBPM();
-			float big = in.GetMaxBPM();
+			auto small = in.GetMinBPM();
+			auto big = in.GetMaxBPM();
 			if (small == big)
 				lines.emplace_back(ssprintf("#DISPLAYBPM:%.6f;", small));
 			else
@@ -445,7 +445,7 @@ GetETTNoteData(const Song& song, Steps& in)
 			break;
 	}
 
-	RString sNoteData;
+	std::string sNoteData;
 	in.GetETTNoteData(sNoteData);
 	lines.emplace_back(song.m_vsKeysoundFile.empty() ? "#NOTES:" : "#NOTES2:");
 
@@ -489,11 +489,11 @@ NotesWriterETT::Write(std::string& sPath,
 	// Save specified Steps to this file
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
-		Steps* pSteps = *s;
+		auto pSteps = *s;
 		if (pSteps->GetChartKey() != "") { // Avoid writing cache tags for
-										   // invalid chartkey files(empty
-										   // steps) -Mina
-			std::string sTag = GetETTNoteData(out, *pSteps);
+			// invalid chartkey files(empty
+			// steps) -Mina
+			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
 			LOG->Info("Not caching empty difficulty in file %s", sPath.c_str());

@@ -1,4 +1,4 @@
-﻿/* InputFilter - Checks RageInput and generates a list of InputEvents,
+/* InputFilter - Checks RageInput and generates a list of InputEvents,
  * representing button presses, releases, and repeats. */
 
 #ifndef INPUT_FILTER_H
@@ -23,9 +23,9 @@ enum InputEventType
 	InputEventType_Invalid
 };
 
-const RString&
+const std::string&
 InputEventTypeToString(InputEventType cat);
-const RString&
+const std::string&
 InputEventTypeToLocalizedString(InputEventType cat);
 LuaDeclareType(InputEventType);
 
@@ -53,7 +53,8 @@ class InputFilter
 {
   public:
 	void ButtonPressed(const DeviceInput& di);
-	void SetButtonComment(const DeviceInput& di, const RString& sComment = "");
+	void SetButtonComment(const DeviceInput& di,
+						  const std::string& sComment = "");
 	void ResetDevice(InputDevice dev);
 
 	InputFilter();
@@ -77,10 +78,10 @@ class InputFilter
 					  const DeviceInputList* pButtonState = nullptr) const;
 	float GetLevel(const DeviceInput& di,
 				   const DeviceInputList* pButtonState = nullptr) const;
-	RString GetButtonComment(const DeviceInput& di) const;
+	std::string GetButtonComment(const DeviceInput& di) const;
 
-	void GetInputEvents(vector<InputEvent>& aEventOut);
-	void GetPressedButtons(vector<DeviceInput>& array) const;
+	void GetInputEvents(std::vector<InputEvent>& aEventOut);
+	void GetPressedButtons(std::vector<DeviceInput>& array) const;
 
 	// cursor
 	void UpdateCursorLocation(float _fX, float _fY);
@@ -97,9 +98,9 @@ class InputFilter
 						   DeviceInput di,
 						   const std::chrono::steady_clock::time_point& now);
 	void ReportButtonChange(const DeviceInput& di, InputEventType t);
-	void MakeButtonStateList(vector<DeviceInput>& aInputOut) const;
+	void MakeButtonStateList(std::vector<DeviceInput>& aInputOut) const;
 
-	vector<InputEvent> queue;
+	std::vector<InputEvent> queue;
 	RageMutex* queuemutex;
 	MouseCoordinates m_MouseCoords;
 

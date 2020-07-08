@@ -1,19 +1,13 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Singletons/AnnouncerManager.h"
-#include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/Game.h"
-#include "Etterna/Globals/GameLoop.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
-#include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenTitleMenu.h"
-#include "Etterna/Singletons/ThemeManager.h"
 
 #define COIN_MODE_CHANGE_SCREEN                                                \
 	THEME->GetMetric(m_sName, "CoinModeChangeScreen")

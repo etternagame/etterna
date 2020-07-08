@@ -1,6 +1,9 @@
 #ifndef AdjustSync_H
 #define AdjustSync_H
 
+#include <vector>
+#include <string>
+
 class TimingData;
 /**
  * @brief Allows for adjusting the sync of a song.
@@ -17,7 +20,7 @@ class AdjustSync
 	 * @brief The original TimingData before adjustments were made.
 	 *
 	 * This is designed to work with Split Timing. */
-	static vector<TimingData> s_vpTimingDataOriginal;
+	static std::vector<TimingData> s_vpTimingDataOriginal;
 
 	static float s_fGlobalOffsetSecondsOriginal;
 	/* We only want to call the Reset methods before a song, not immediately
@@ -27,14 +30,14 @@ class AdjustSync
 	 * is sufficient. */
 	static void ResetOriginalSyncData();
 	static void ResetAutosync();
-	static bool IsSyncDataChanged();
+	static auto IsSyncDataChanged() -> bool;
 
 	static void SaveSyncChanges();
 	static void RevertSyncChanges();
 	static void HandleAutosync(float fNoteOffBySeconds, float fStepTime);
 	static void AutosyncOffset();
-	static void GetSyncChangeTextGlobal(vector<RString>& vsAddTo);
-	static void GetSyncChangeTextSong(vector<RString>& vsAddTo);
+	static void GetSyncChangeTextGlobal(std::vector<std::string>& vsAddTo);
+	static void GetSyncChangeTextSong(std::vector<std::string>& vsAddTo);
 
 	/** @brief The minimum number of steps to hit for syncing purposes. */
 	static const int OFFSET_SAMPLE_COUNT = 24;

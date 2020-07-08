@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageDisplay_OGL_Helpers.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -6,11 +6,11 @@
 #include <set>
 
 namespace {
-map<GLenum, RString> g_Strings;
+std::map<GLenum, std::string> g_Strings;
 void
 InitStringMap()
 {
-	static bool bInitialized = false;
+	static auto bInitialized = false;
 	if (bInitialized)
 		return;
 	bInitialized = true;
@@ -47,7 +47,7 @@ RageDisplay_Legacy_Helpers::Init()
 	InitStringMap();
 }
 
-RString
+std::string
 RageDisplay_Legacy_Helpers::GLToString(GLenum e)
 {
 	if (g_Strings.find(e) != g_Strings.end())

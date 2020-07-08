@@ -1,11 +1,12 @@
-﻿/* Define all of the input devices we know about. This is the public interface
+/* Define all of the input devices we know about. This is the public interface
  * for describing input devices. */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageInputDevice.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <map>
 
 static const char* InputDeviceStateNames[] = {
 	"Connected",
@@ -17,8 +18,8 @@ XToString(InputDeviceState);
 XToLocalizedString(InputDeviceState);
 LuaXType(InputDevice);
 
-static map<DeviceButton, RString> g_mapNamesToString;
-static map<RString, DeviceButton> g_mapStringToNames;
+static std::map<DeviceButton, std::string> g_mapNamesToString;
+static std::map<std::string, DeviceButton> g_mapStringToNames;
 static void
 InitNames()
 {
@@ -138,20 +139,20 @@ InitNames()
 	g_mapNamesToString[MOUSE_WHEELUP] = "mousewheel up";
 	g_mapNamesToString[MOUSE_WHEELDOWN] = "mousewheel down";
 
-	FOREACHM(DeviceButton, RString, g_mapNamesToString, m)
-	g_mapStringToNames[m->second] = m->first;
+	for (auto& m : g_mapNamesToString)
+		g_mapStringToNames[m.second] = m.first;
 }
 
 /* Return a reversible representation of a DeviceButton. This is not affected
  * by InputDrivers, localization or the keyboard language. */
-RString
+std::string
 DeviceButtonToString(DeviceButton key)
 {
 	InitNames();
 
 	// Check the name map first to allow making names for keys that are inside
 	// the ascii range. -Kyz
-	map<DeviceButton, RString>::const_iterator it =
+	std::map<DeviceButton, std::string>::const_iterator it =
 	  g_mapNamesToString.find(key);
 	if (it != g_mapNamesToString.end())
 		return it->second;
@@ -173,7 +174,7 @@ DeviceButtonToString(DeviceButton key)
 }
 
 DeviceButton
-StringToDeviceButton(const RString& s)
+StringToDeviceButton(const std::string& s)
 {
 	InitNames();
 
@@ -181,19 +182,20 @@ StringToDeviceButton(const RString& s)
 		return (DeviceButton)s[0];
 
 	int i;
-	if (sscanf(s, "unk %i", &i) == 1)
+	if (sscanf(s.c_str(), "unk %i", &i) == 1)
 		return enum_add2(KEY_OTHER_0, i);
 
-	if (sscanf(s, "B%i", &i) == 1)
+	if (sscanf(s.c_str(), "B%i", &i) == 1)
 		return enum_add2(JOY_BUTTON_1, i - 1);
 
-	if (sscanf(s, "Midi %i", &i) == 1)
+	if (sscanf(s.c_str(), "Midi %i", &i) == 1)
 		return enum_add2(MIDI_FIRST, i);
 
-	if (sscanf(s, "Mouse %i", &i) == 1)
+	if (sscanf(s.c_str(), "Mouse %i", &i) == 1)
 		return enum_add2(MOUSE_LEFT, i);
 
-	map<RString, DeviceButton>::const_iterator it = g_mapStringToNames.find(s);
+	std::map<std::string, DeviceButton>::const_iterator it =
+	  g_mapStringToNames.find(s);
 	if (it != g_mapStringToNames.end())
 		return it->second;
 
@@ -202,35 +204,35 @@ StringToDeviceButton(const RString& s)
 LuaXType(DeviceButton);
 
 static const char* InputDeviceNames[] = {
-	"Key",   "Joy1",  "Joy2",  "Joy3",  "Joy4",  "Joy5",  "Joy6",  "Joy7",
-	"Joy8",  "Joy9",  "Joy10", "Joy11", "Joy12", "Joy13", "Joy14", "Joy15",
+	"Key",	 "Joy1",  "Joy2",  "Joy3",	"Joy4",	 "Joy5",  "Joy6",  "Joy7",
+	"Joy8",	 "Joy9",  "Joy10", "Joy11", "Joy12", "Joy13", "Joy14", "Joy15",
 	"Joy16", "Joy17", "Joy18", "Joy19", "Joy20", "Joy21", "Joy22", "Joy23",
 	"Joy24", "Joy25", "Joy26", "Joy27", "Joy28", "Joy29", "Joy30", "Joy31",
-	"Joy32", "Pump1", "Pump2", "Midi",  "Mouse", "PIUIO",
+	"Joy32", "Pump1", "Pump2", "Midi",	"Mouse", "PIUIO",
 };
 XToString(InputDevice);
 StringToX(InputDevice);
 
 /* Return a reversible representation of a DeviceInput. This is not affected by
  * InputDrivers, localization or the keyboard language. */
-RString
+std::string
 DeviceInput::ToString() const
 {
 	if (device == InputDevice_Invalid)
-		return RString();
+		return std::string();
 
-	RString s =
+	std::string s =
 	  InputDeviceToString(device) + "_" + DeviceButtonToString(button);
 	return s;
 }
 
 bool
-DeviceInput::FromString(const RString& s)
+DeviceInput::FromString(const std::string& s)
 {
 	char szDevice[32] = "";
 	char szButton[32] = "";
 
-	if (2 != sscanf(s, "%31[^_]_%31[^_]", szDevice, szButton)) {
+	if (2 != sscanf(s.c_str(), "%31[^_]_%31[^_]", szDevice, szButton)) {
 		device = InputDevice_Invalid;
 		return false;
 	}

@@ -15,8 +15,8 @@ struct SSCLoader;
  */
 enum SSCLoadingStates
 {
-	GETTING_SONG_INFO,   /**< Retrieving song information. */
-	GETTING_STEP_INFO,   /**< Retrieving step information. */
+	GETTING_SONG_INFO,	 /**< Retrieving song information. */
+	GETTING_STEP_INFO,	 /**< Retrieving step information. */
 	NUM_SSCLoadingStates /**< The number of states used. */
 };
 
@@ -46,12 +46,12 @@ struct StepsTagInfo
 	Steps* steps;
 	TimingData* timing;
 	const MsdFile::value_t* params;
-	const RString& path;
+	const std::string& path;
 	bool has_own_timing;
 	bool ssc_format;
 	bool from_cache;
 	bool for_load_edit;
-	StepsTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
+	StepsTagInfo(SSCLoader* l, Song* s, const std::string& p, bool fc)
 	  : loader(l)
 	  , song(s)
 	  , path(p)
@@ -70,9 +70,9 @@ struct SongTagInfo
 	SSCLoader* loader;
 	Song* song;
 	const MsdFile::value_t* params{ nullptr };
-	const RString& path;
+	const std::string& path;
 	bool from_cache;
-	SongTagInfo(SSCLoader* l, Song* s, const RString& p, bool fc)
+	SongTagInfo(SSCLoader* l, Song* s, const std::string& p, bool fc)
 	  : loader(l)
 	  , song(s)
 	  , path(p)
@@ -81,7 +81,7 @@ struct SongTagInfo
 	}
 };
 vector<float>
-msdsplit(const RString& s);
+msdsplit(const std::string& s);
 }
 /** @brief The version where fakes started to be used as a radar category. */
 const float VERSION_RADAR_FAKE = 0.53f;
@@ -117,7 +117,7 @@ struct SSCLoader : public SMLoader
 	 * from the cache file.
 	 * @return its success or failure.
 	 */
-	bool LoadFromSimfile(const RString& sPath,
+	bool LoadFromSimfile(const std::string& sPath,
 						 Song& out,
 						 bool bFromCache = false) override;
 
@@ -129,10 +129,10 @@ struct SSCLoader : public SMLoader
 	 * the song file.
 	 * @return its success or failure.
 	 */
-	bool LoadEditFromFile(const RString& sEditFilePath,
+	bool LoadEditFromFile(const std::string& sEditFilePath,
 						  ProfileSlot slot,
 						  bool bAddStepsToSong,
-						  Song* givenSong = NULL) override;
+						  Song* givenSong = nullptr) override;
 	/**
 	 * @brief Attempt to parse the edit file in question.
 	 * @param msd the edit file itself.
@@ -144,41 +144,42 @@ struct SSCLoader : public SMLoader
 	 * @return its success or failure.
 	 */
 	bool LoadEditFromMsd(const MsdFile& msd,
-						 const RString& sEditFilePath,
+						 const std::string& sEditFilePath,
 						 ProfileSlot slot,
 						 bool bAddStepsToSong,
-						 Song* givenSong = NULL) override;
+						 Song* givenSong = nullptr) override;
 
 	/**
 	 * @brief Retrieve the specific NoteData from the file.
 	 * @param cachePath the path to the cache file.
 	 * @param out the Steps to receive just the particular notedata.
 	 * @return true if successful, false otherwise. */
-	bool LoadNoteDataFromSimfile(const RString& cachePath, Steps& out) override;
+	bool LoadNoteDataFromSimfile(const std::string& cachePath,
+								 Steps& out) override;
 
 	static void ProcessBPMs(TimingData&,
-							const RString& sParam,
-							const string& songName);
+							const std::string& sParam,
+							const std::string& songName);
 	static void ProcessStops(TimingData&,
-							 const RString& sParam,
-							 const string& songName);
+							 const std::string& sParam,
+							 const std::string& songName);
 	static void ProcessWarps(TimingData&,
-							 const RString& sParam,
+							 const std::string& sParam,
 							 const float,
-							 const string& songName);
+							 const std::string& songName);
 	static void ProcessLabels(TimingData& out,
-							  const RString& sParam,
-							  const string& songName);
+							  const std::string& sParam,
+							  const std::string& songName);
 	static void ProcessCombos(TimingData&,
-							  const RString& line,
-							  const string& songName,
+							  const std::string& line,
+							  const std::string& songName,
 							  const int = -1);
 	void ProcessCombos(TimingData&,
-					   const RString& line,
+					   const std::string& line,
 					   const int = -1) override;
 	static void ProcessScrolls(TimingData&,
-							   const RString sParam,
-							   const string& songName);
+							   const std::string sParam,
+							   const std::string& songName);
 };
 
 #endif

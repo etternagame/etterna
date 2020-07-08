@@ -27,10 +27,10 @@ GetApplicableFiles(const std::string& sPath, vector<std::string>& out);
 bool
 LoadFromDir(const std::string& sPath,
 			Song& out,
-			set<std::string>& BlacklistedImages);
+			std::set<std::string>& BlacklistedImages);
 
 bool
-LoadNoteDataFromSimfile(const RString& path, Steps& out);
+LoadNoteDataFromSimfile(const std::string& path, Steps& out);
 }
 
 #endif

@@ -4,12 +4,12 @@
 #define SCREEN_DIMENSIONS_H
 
 namespace ScreenDimensions {
-float
-GetThemeAspectRatio();
-float
-GetScreenWidth();
-float
-GetScreenHeight();
+auto
+GetThemeAspectRatio() -> float;
+auto
+GetScreenWidth() -> float;
+auto
+GetScreenHeight() -> float;
 void
 ReloadScreenDimensions();
 };
@@ -22,7 +22,7 @@ ReloadScreenDimensions();
 #define SCREEN_TOP (0)
 #define SCREEN_BOTTOM (SCREEN_HEIGHT)
 
-#define SCREEN_CENTER_X (SCREEN_LEFT + (SCREEN_RIGHT - SCREEN_LEFT) / 2.0f)
+#define SCREEN_CENTER_X (SCREEN_LEFT + (SCREEN_RIGHT - SCREEN_LEFT) / 2.0F)
 #define SCREEN_CENTER_Y (SCREEN_TOP + (SCREEN_BOTTOM - SCREEN_TOP) / 2.0f)
 
 #define THEME_NATIVE_ASPECT (THEME_SCREEN_WIDTH / THEME_SCREEN_HEIGHT)

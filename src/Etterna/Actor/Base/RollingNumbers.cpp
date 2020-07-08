@@ -6,6 +6,9 @@
 #include "RollingNumbers.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
+
 REGISTER_ACTOR_CLASS(RollingNumbers);
 
 RollingNumbers::RollingNumbers()
@@ -17,7 +20,7 @@ RollingNumbers::RollingNumbers()
 }
 
 void
-RollingNumbers::Load(const RString& sMetricsGroup)
+RollingNumbers::Load(const std::string& sMetricsGroup)
 {
 	m_metrics_loaded = true;
 	TEXT_FORMAT.Load(sMetricsGroup, "TextFormat");
@@ -34,7 +37,7 @@ RollingNumbers::DrawPart(RageColor const* diffuse,
 						 float crop_left,
 						 float crop_right)
 {
-	for (int i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
+	for (auto i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
 		m_pTempState->diffuse[i] = diffuse[i];
 	}
 	SetCurrStrokeColor(stroke);
@@ -51,17 +54,17 @@ RollingNumbers::DrawPrimitives()
 	}
 	RageColor diffuse_orig[NUM_DIFFUSE_COLORS];
 	RageColor diffuse_temp[NUM_DIFFUSE_COLORS];
-	RageColor stroke_orig = GetCurrStrokeColor();
-	RageColor stroke_temp = stroke_orig * LEADING_ZERO_MULTIPLY_COLOR;
-	for (int i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
+	const auto stroke_orig = GetCurrStrokeColor();
+	const auto stroke_temp = stroke_orig * LEADING_ZERO_MULTIPLY_COLOR;
+	for (auto i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
 		diffuse_orig[i] = m_pTempState->diffuse[i];
 		diffuse_temp[i] =
 		  m_pTempState->diffuse[i] * LEADING_ZERO_MULTIPLY_COLOR;
 	}
-	float original_crop_left = m_pTempState->crop.left;
-	float original_crop_right = m_pTempState->crop.right;
+	const auto original_crop_left = m_pTempState->crop.left;
+	const auto original_crop_right = m_pTempState->crop.right;
 
-	RString s = this->GetText();
+	auto s = this->GetText();
 	int i;
 	// find the first non-zero non-comma character, or the last character
 	for (i = 0; i < (int)(s.length() - 1); i++) {
@@ -75,18 +78,18 @@ RollingNumbers::DrawPrimitives()
 		if (s[i] >= '0' && s[i] <= '9')
 			break;
 	}
-	float f = i / static_cast<float>(s.length());
+	const auto f = i / static_cast<float>(s.length());
 
 	// draw leading part
 	DrawPart(diffuse_temp,
 			 stroke_temp,
-			 max(0, original_crop_left),
-			 max(1 - f, original_crop_right));
+			 std::max(0.F, original_crop_left),
+			 std::max(1 - f, original_crop_right));
 	// draw regular color part
 	DrawPart(diffuse_orig,
 			 stroke_orig,
-			 max(f, original_crop_left),
-			 max(0, original_crop_right));
+			 std::max(f, original_crop_left),
+			 std::max(0.F, original_crop_right));
 
 	m_pTempState->crop.left = original_crop_left;
 	m_pTempState->crop.right = original_crop_right;
@@ -117,7 +120,7 @@ RollingNumbers::SetTargetNumber(float fTargetNumber)
 	if (fTargetNumber == m_fTargetNumber) // no change
 		return;
 	m_fTargetNumber = fTargetNumber;
-	float approach_secs = APPROACH_SECONDS.GetValue();
+	const auto approach_secs = APPROACH_SECONDS.GetValue();
 	if (approach_secs > 0) {
 		m_fScoreVelocity = (m_fTargetNumber - m_fCurrentNumber) / approach_secs;
 	} else {
@@ -131,7 +134,7 @@ RollingNumbers::UpdateText()
 	if (!m_metrics_loaded) {
 		return;
 	}
-	RString s = ssprintf(TEXT_FORMAT.GetValue(), m_fCurrentNumber);
+	auto s = ssprintf(TEXT_FORMAT.GetValue(), m_fCurrentNumber);
 	if (COMMIFY) {
 		s = Commify(s);
 	}

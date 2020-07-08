@@ -4,7 +4,6 @@
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/CodeSet.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
-#include "Etterna/Actor/Menus/OptionsCursor.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
@@ -12,7 +11,7 @@ class OptionsList;
 class OptionListRow : public ActorFrame
 {
   public:
-	void Load(OptionsList* pOptions, const RString& sType);
+	void Load(OptionsList* pOptions, const std::string& sType);
 	void SetFromHandler(const OptionRowHandler* pHandler);
 	void SetTextFromHandler(const OptionRowHandler* pHandler);
 	void SetUnderlines(const vector<bool>& aSelections,
@@ -25,9 +24,9 @@ class OptionListRow : public ActorFrame
   private:
 	OptionsList* m_pOptions = nullptr;
 
-	vector<BitmapText> m_Text;
+	std::vector<BitmapText> m_Text;
 	// underline for each ("self or child has selection")
-	vector<AutoActor> m_Underlines;
+	std::vector<AutoActor> m_Underlines;
 
 	bool m_bItemsInTwoRows = false;
 
@@ -42,7 +41,7 @@ class OptionsList : public ActorFrame
 	OptionsList();
 	~OptionsList() override;
 
-	void Load(const RString& sType, PlayerNumber pn);
+	void Load(const std::string& sType, PlayerNumber pn);
 	void Reset();
 
 	void Link(OptionsList* pLink) { m_pLinked = pLink; }
@@ -54,32 +53,32 @@ class OptionsList : public ActorFrame
 	void Close();
 
 	bool Input(const InputEventPlus& input);
-	bool IsOpened() const { return m_asMenuStack.size() > 0; }
+	bool IsOpened() const { return !m_asMenuStack.empty(); }
 
 	bool Start(); // return true if the last menu was popped in response to this
 				  // press
 
   private:
-	ThemeMetric<RString> TOP_MENU;
+	ThemeMetric<std::string> TOP_MENU;
 
-	void SelectItem(const RString& sRowName, int iMenuItem);
-	void MoveItem(const RString& sRowName, int iMove);
+	void SelectItem(const std::string& sRowName, int iMenuItem);
+	void MoveItem(const std::string& sRowName, int iMove);
 	void SwitchMenu(int iDir);
 	void PositionCursor();
-	void SelectionsChanged(const RString& sRowName);
+	void SelectionsChanged(const std::string& sRowName);
 	void UpdateMenuFromSelections();
-	RString GetCurrentRow() const;
+	std::string GetCurrentRow() const;
 	const OptionRowHandler* GetCurrentHandler();
-	int GetOneSelection(const RString& sRow, bool bAllowFail = false) const;
+	int GetOneSelection(const std::string& sRow, bool bAllowFail = false) const;
 	void SwitchToCurrentRow();
 	void TweenOnCurrentRow(bool bForward);
 	void SetDefaultCurrentRow();
-	void Push(const RString& sDest);
+	void Push(const std::string& sDest);
 	void Pop();
-	void ImportRow(const RString& sRow);
-	void ExportRow(const RString& sRow);
+	void ImportRow(const std::string& sRow);
+	void ExportRow(const std::string& sRow);
 	static int FindScreenInHandler(const OptionRowHandler* pHandler,
-								   const RString& sScreen);
+								   const std::string& sScreen);
 
 	InputQueueCodeSet m_Codes;
 
@@ -88,18 +87,19 @@ class OptionsList : public ActorFrame
 	bool m_bStartIsDown;
 	bool m_bAcceptStartRelease;
 
-	vector<RString> m_asLoadedRows;
-	map<RString, OptionRowHandler*> m_Rows;
-	map<RString, vector<bool>> m_bSelections;
-	set<RString> m_setDirectRows;
-	set<RString> m_setTopMenus; // list of top-level menus, pointing to submenus
+	std::vector<std::string> m_asLoadedRows;
+	std::map<std::string, OptionRowHandler*> m_Rows;
+	std::map<std::string, std::vector<bool>> m_bSelections;
+	std::set<std::string> m_setDirectRows;
+	std::set<std::string>
+	  m_setTopMenus; // list of top-level menus, pointing to submenus
 
 	PlayerNumber m_pn;
 	AutoActor m_Cursor;
 	OptionListRow m_Row[2];
 	int m_iCurrentRow;
 
-	vector<RString> m_asMenuStack;
+	std::vector<std::string> m_asMenuStack;
 	int m_iMenuStackSelection;
 };
 

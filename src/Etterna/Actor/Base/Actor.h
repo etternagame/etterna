@@ -3,17 +3,16 @@
 
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Lua/LuaReference.h"
-#include "Etterna/Models/Misc/PlayerNumber.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
+#include "Etterna/Singletons/MessageManager.h"
+#include "Tween.h"
+
 #include <map>
-#include <list>
-#include <tuple>
+
 class XNode;
 struct lua_State;
 class LuaClass;
-#include "Etterna/Singletons/MessageManager.h"
-#include "Tween.h"
 
 using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
 
@@ -38,7 +37,7 @@ enum HorizAlign
 	HorizAlign_Left,   /**< Align to the left. */
 	HorizAlign_Center, /**< Align to the center. */
 	HorizAlign_Right,  /**< Align to the right. */
-	NUM_HorizAlign,	/**< The number of horizontal alignments. */
+	NUM_HorizAlign,	   /**< The number of horizontal alignments. */
 	HorizAlign_Invalid
 };
 LuaDeclareType(HorizAlign);
@@ -46,10 +45,10 @@ LuaDeclareType(HorizAlign);
 /** @brief The different vertical alignments. */
 enum VertAlign
 {
-	VertAlign_Top,	/**< Align to the top. */
+	VertAlign_Top,	  /**< Align to the top. */
 	VertAlign_Middle, /**< Align to the middle. */
 	VertAlign_Bottom, /**< Align to the bottom. */
-	NUM_VertAlign,	/**< The number of vertical alignments. */
+	NUM_VertAlign,	  /**< The number of vertical alignments. */
 	VertAlign_Invalid
 };
 LuaDeclareType(VertAlign);
@@ -74,35 +73,6 @@ LuaDeclareType(VertAlign);
 // number of diffuse colors, so change this at your own risk. -Kyz
 #define NUM_DIFFUSE_COLORS 4
 
-// ssc futures:
-/*
-enum EffectAction
-{
-	EffectAction_None,			// no_effect
-	// [Diffuse]
-	EffectAction_DiffuseBlink,	// diffuse_blink
-	EffectAction_DiffuseShift,	// diffuse_shift
-	EffectAction_DiffuseRamp,	// diffuse_ramp
-	EffectAction_Rainbow,		// rainbow
-	// [Glow]
-	EffectAction_GlowBlink,		// glow_blink
-	EffectAction_GlowShift,		// glow_shift
-	EffectAction_GlowRamp,		// glow_ramp
-	// [Translate]
-	EffectAction_Bob,
-	EffectAction_Bounce,
-	EffectAction_Vibrate,
-	// [Rotate]
-	EffectAction_Spin,
-	EffectAction_Wag,
-	// [Zoom]
-	EffectAction_Pulse,
-	NUM_EffectAction,
-	EffectAction_Invalid
-};
-LuaDeclareType( EffectAction );
-*/
-
 /** @brief Base class for all objects that appear on the screen. */
 class Actor : public MessageSubscriber
 {
@@ -114,7 +84,7 @@ class Actor : public MessageSubscriber
 	 * @param cpy the new Actor to use in place of this one. */
 	Actor(const Actor& cpy);
 	~Actor() override;
-	virtual Actor* Copy() const;
+	[[nodiscard]] virtual auto Copy() const -> Actor*;
 	virtual void InitState();
 	virtual void LoadFromNode(const XNode* pNode);
 
@@ -122,10 +92,7 @@ class Actor : public MessageSubscriber
 						   float fBeat,
 						   float fTimeNoOffset,
 						   float fBeatNoOffset);
-	static void SetPlayerBGMBeat(PlayerNumber pn,
-								 float fBeat,
-								 float fBeatNoOffset);
-	static void SetBGMLight(int iLightNumber, float fCabinetLights);
+	static void SetPlayerBGMBeat(float fBeat, float fBeatNoOffset);
 
 	/**
 	 * @brief The list of the different effects.
@@ -166,55 +133,6 @@ class Actor : public MessageSubscriber
 		NUM_CLOCKS
 	};
 
-	/*
-	 * @brief What type of Effect this is.
-	 *
-	 * This is an internal enum for checking if an effect can be run;
-	 * You can't have more than one of most EffectTypes in the Effect list. (You
-	 * might be able to have mutliple EffectType_Translates; not sure yet.) -aj
-	 */
-	/*
-	enum EffectType {
-		EffectType_Diffuse,
-		EffectType_Glow,
-		EffectType_Translate,
-		EffectType_Rotate,
-		EffectType_Zoom,
-		NUM_EffectType,
-		EffectType_Invalid
-	};
-	*/
-
-	// todo: use this instead of the Effect enum -aj
-	/*
-	// This is similar to Attributes in BitmapText as far as implementation.
-	struct Effect
-	{
-		Effect() : m_Action(EffectAction_None), m_Type(EffectType_Invalid),
-	m_fSecsIntoEffect(0), m_fEffectDelta(0), m_fEffectRampUp(0.5f),
-	m_fEffectHoldAtHalf(0), m_fEffectRampDown(0.5f), m_fEffectHoldAtZero(0),
-	m_fEffectOffset(0), m_EffectClock(CLOCK_TIMER),
-	m_vEffectMagnitude(RageVector3(0,0,10)), m_effectColor1(RageColor(1,1,1,1)),
-	m_effectColor2(RageColor(1,1,1,1)) { }
-
-		std::string			m_sName; // friendly name
-		EffectAction	m_Action; // replaces the old Effect enum
-		EffectType		m_Type; // determined by EffectAction
-		float			m_fSecsIntoEffect;
-		float			m_fEffectDelta;
-		RageColor		m_EffectColor1;
-		RageColor		m_EffectColor2;
-		RageVector3		m_vEffectMagnitude;
-		EffectClock		m_EffectClock;
-		// units depend on m_EffectClock
-		float			m_fEffectRampUp;
-		float			m_fEffectHoldAtHalf;
-		float			m_fEffectRampDown;
-		float			m_fEffectHoldAtZero;
-		float			m_fEffectOffset;
-	};
-	*/
-
 	/**
 	 * @brief The present state for the Tween.
 	 */
@@ -225,8 +143,8 @@ class Actor : public MessageSubscriber
 										const TweenState& ts1,
 										const TweenState& ts2,
 										float fPercentBetween);
-		bool operator==(const TweenState& other) const;
-		bool operator!=(const TweenState& other) const
+		auto operator==(const TweenState& other) const -> bool;
+		auto operator!=(const TweenState& other) const -> bool
 		{
 			return !operator==(other);
 		}
@@ -236,7 +154,7 @@ class Actor : public MessageSubscriber
 		RageVector3 rotation;
 		RageVector4 quat;
 		RageVector3 scale;
-		float fSkewX, fSkewY;
+		float fSkewX{}, fSkewY{};
 		/**
 		 * @brief The amount of cropping involved.
 		 *
@@ -255,20 +173,20 @@ class Actor : public MessageSubscriber
 		/** @brief The glow color for this TweenState. */
 		RageColor glow;
 		/** @brief A magical value that nobody really knows the use for. ;) */
-		float aux;
+		float aux{};
 	};
 
 	// PartiallyOpaque broken out of Draw for reuse and clarity.
-	bool PartiallyOpaque();
-	bool IsOver(float mx, float my);
+	[[nodiscard]] auto PartiallyOpaque() const -> bool;
+	auto IsOver(float mx, float my) -> bool;
 
-	Actor* GetFakeParentOrParent(); // fake parent > parent -mina
-	float GetTrueX();		  // recursive with parent (for mouseovers) -mina
-	float GetTrueY();		  // same
-	float GetTrueRotationZ(); // same
-	float GetTrueZoom();	  // same
-	bool IsVisible(); // same but for gating updates on things that may not
-					  // explicitly set visible = false -mina
+	auto GetFakeParentOrParent() -> Actor*; // fake parent > parent -mina
+	auto GetTrueX() -> float; // recursive with parent (for mouseovers) -mina
+	auto GetTrueY() -> float; // same
+	auto GetTrueRotationZ() -> float; // same
+	auto GetTrueZoom() -> float;	  // same
+	auto IsVisible() -> bool; // same but for gating updates on things that may
+							  // not explicitly set visible = false -mina
 
 	/**
 	 * @brief Calls multiple functions for drawing the Actors.
@@ -286,7 +204,7 @@ class Actor : public MessageSubscriber
 	 * Subclasses may wish to overwrite this to allow for
 	 * aborted actors.
 	 * @return false, as by default Actors shouldn't be aborted on drawing. */
-	virtual bool EarlyAbortDraw() const { return false; }
+	[[nodiscard]] virtual auto EarlyAbortDraw() const -> bool { return false; }
 	/** @brief Calculate values that may be needed  for drawing. */
 	virtual void PreDraw();
 	/** @brief Reset internal diffuse and glow. */
@@ -313,7 +231,7 @@ class Actor : public MessageSubscriber
 	/** @brief Pop the transform from the world matrix stack. */
 	virtual void EndDraw();
 
-	// TODO: make Update non virtual and change all classes to override
+	// TODO(Sam): make Update non virtual and change all classes to override
 	// UpdateInternal instead.
 	virtual void Update(
 	  float fDeltaTime); // this can short circuit UpdateInternal
@@ -325,13 +243,17 @@ class Actor : public MessageSubscriber
 	virtual void SetCurrentTweenStart() {}
 	virtual void EraseHeadTween() {}
 	virtual void UpdatePercentThroughTween(float PercentThroughTween) {}
-	bool get_tween_uses_effect_delta() { return m_tween_uses_effect_delta; }
+
+	[[nodiscard]] auto get_tween_uses_effect_delta() const -> bool
+	{
+		return m_tween_uses_effect_delta;
+	}
 	void set_tween_uses_effect_delta(bool t) { m_tween_uses_effect_delta = t; }
 
 	/**
 	 * @brief Retrieve the Actor's name.
 	 * @return the Actor's name. */
-	const std::string& GetName() const { return m_sName; }
+	[[nodiscard]] auto GetName() const -> const std::string& { return m_sName; }
 	/**
 	 * @brief Set the Actor's name to a new one.
 	 * @param sName the new name for the Actor. */
@@ -343,35 +265,47 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Retrieve the Actor's parent.
 	 * @return the Actor's parent. */
-	Actor* GetParent() { return m_pParent; }
+	[[nodiscard]] auto GetParent() const -> Actor* { return m_pParent; }
 	/**
 	 * @brief Retrieve the Actor's lineage.
 	 * @return the Actor's lineage. */
-	std::string GetLineage() const;
+	[[nodiscard]] auto GetLineage() const -> std::string;
 
 	void SetFakeParent(Actor* mailman) { m_FakeParent = mailman; }
-	Actor* GetFakeParent() { return m_FakeParent; }
+	[[nodiscard]] auto GetFakeParent() const -> Actor* { return m_FakeParent; }
 
 	void AddWrapperState();
 	void RemoveWrapperState(size_t i);
-	Actor* GetWrapperState(size_t i);
-	size_t GetNumWrapperStates() const { return m_WrapperStates.size(); }
+	auto GetWrapperState(size_t i) -> Actor*;
+	[[nodiscard]] auto GetNumWrapperStates() const -> size_t
+	{
+		return m_WrapperStates.size();
+	}
 
 	/**
 	 * @brief Retrieve the Actor's x position.
 	 * @return the Actor's x position. */
-	float GetX() const { return m_current.pos.x; };
+	[[nodiscard]] auto GetX() const -> float { return m_current.pos.x; };
 	/**
 	 * @brief Retrieve the Actor's y position.
 	 * @return the Actor's y position. */
-	float GetY() const { return m_current.pos.y; };
+	[[nodiscard]] auto GetY() const -> float { return m_current.pos.y; };
 	/**
 	 * @brief Retrieve the Actor's z position.
 	 * @return the Actor's z position. */
-	float GetZ() const { return m_current.pos.z; };
-	float GetDestX() const { return DestTweenState().pos.x; };
-	float GetDestY() const { return DestTweenState().pos.y; };
-	float GetDestZ() const { return DestTweenState().pos.z; };
+	[[nodiscard]] auto GetZ() const -> float { return m_current.pos.z; };
+	[[nodiscard]] auto GetDestX() const -> float
+	{
+		return DestTweenState().pos.x;
+	};
+	[[nodiscard]] auto GetDestY() const -> float
+	{
+		return DestTweenState().pos.y;
+	};
+	[[nodiscard]] auto GetDestZ() const -> float
+	{
+		return DestTweenState().pos.z;
+	};
 	void SetX(float x) { DestTweenState().pos.x = x; };
 	void SetY(float y) { DestTweenState().pos.y = y; };
 	void SetZ(float z) { DestTweenState().pos.z = z; };
@@ -394,13 +328,15 @@ class Actor : public MessageSubscriber
 	void AddZ(float z) { SetZ(GetDestZ() + z); }
 
 	// height and width vary depending on zoom
-	float GetUnzoomedWidth() const { return m_size.x; }
-	float GetUnzoomedHeight() const { return m_size.y; }
-	float GetZoomedWidth() const
+	[[nodiscard]] auto GetUnzoomedWidth() const -> float { return m_size.x; }
+	[[nodiscard]] auto GetUnzoomedHeight() const -> float { return m_size.y; }
+
+	[[nodiscard]] auto GetZoomedWidth() const -> float
 	{
 		return m_size.x * m_baseScale.x * DestTweenState().scale.x;
 	}
-	float GetZoomedHeight() const
+
+	[[nodiscard]] auto GetZoomedHeight() const -> float
 	{
 		return m_size.y * m_baseScale.y * DestTweenState().scale.y;
 	}
@@ -408,11 +344,11 @@ class Actor : public MessageSubscriber
 	void SetHeight(float height) { m_size.y = height; }
 
 	// Base values
-	float GetBaseZoomX() const { return m_baseScale.x; }
+	[[nodiscard]] auto GetBaseZoomX() const -> float { return m_baseScale.x; }
 	void SetBaseZoomX(float zoom) { m_baseScale.x = zoom; }
-	float GetBaseZoomY() const { return m_baseScale.y; }
+	[[nodiscard]] auto GetBaseZoomY() const -> float { return m_baseScale.y; }
 	void SetBaseZoomY(float zoom) { m_baseScale.y = zoom; }
-	float GetBaseZoomZ() const { return m_baseScale.z; }
+	[[nodiscard]] auto GetBaseZoomZ() const -> float { return m_baseScale.z; }
 	void SetBaseZoomZ(float zoom) { m_baseScale.z = zoom; }
 	void SetBaseZoom(float zoom)
 	{
@@ -432,19 +368,31 @@ class Actor : public MessageSubscriber
 	 *
 	 * Note that this is not accurate in some cases.
 	 * @return the zoom factor for the x coordinate of the Actor. */
-	float GetZoom() const { return DestTweenState().scale.x; }
+	[[nodiscard]] auto GetZoom() const -> float
+	{
+		return DestTweenState().scale.x;
+	}
 	/**
 	 * @brief Retrieve the zoom factor for the x coordinate of the Actor.
 	 * @return the zoom factor for the x coordinate of the Actor. */
-	float GetZoomX() const { return DestTweenState().scale.x; }
+	[[nodiscard]] auto GetZoomX() const -> float
+	{
+		return DestTweenState().scale.x;
+	}
 	/**
 	 * @brief Retrieve the zoom factor for the y coordinate of the Actor.
 	 * @return the zoom factor for the y coordinate of the Actor. */
-	float GetZoomY() const { return DestTweenState().scale.y; }
+	[[nodiscard]] auto GetZoomY() const -> float
+	{
+		return DestTweenState().scale.y;
+	}
 	/**
 	 * @brief Retrieve the zoom factor for the z coordinate of the Actor.
 	 * @return the zoom factor for the z coordinate of the Actor. */
-	float GetZoomZ() const { return DestTweenState().scale.z; }
+	[[nodiscard]] auto GetZoomZ() const -> float
+	{
+		return DestTweenState().scale.z;
+	}
 	/**
 	 * @brief Set the zoom factor for all dimensions of the Actor.
 	 * @param zoom the zoom factor for all dimensions. */
@@ -474,9 +422,18 @@ class Actor : public MessageSubscriber
 	void ZoomToWidth(float zoom) { SetZoomX(zoom / GetUnzoomedWidth()); }
 	void ZoomToHeight(float zoom) { SetZoomY(zoom / GetUnzoomedHeight()); }
 
-	float GetRotationX() const { return DestTweenState().rotation.x; }
-	float GetRotationY() const { return DestTweenState().rotation.y; }
-	float GetRotationZ() const { return DestTweenState().rotation.z; }
+	[[nodiscard]] auto GetRotationX() const -> float
+	{
+		return DestTweenState().rotation.x;
+	}
+	[[nodiscard]] auto GetRotationY() const -> float
+	{
+		return DestTweenState().rotation.y;
+	}
+	[[nodiscard]] auto GetRotationZ() const -> float
+	{
+		return DestTweenState().rotation.z;
+	}
 	void SetRotationX(float rot) { DestTweenState().rotation.x = rot; }
 	void SetRotationY(float rot) { DestTweenState().rotation.y = rot; }
 	void SetRotationZ(float rot) { DestTweenState().rotation.z = rot; }
@@ -490,20 +447,34 @@ class Actor : public MessageSubscriber
 	void AddRotationR(float rot);
 
 	void SetSkewX(float fAmount) { DestTweenState().fSkewX = fAmount; }
-	float GetSkewX(float /* fAmount */) const
+
+	[[nodiscard]] auto GetSkewX(float /* fAmount */) const -> float
 	{
 		return DestTweenState().fSkewX;
 	}
 	void SetSkewY(float fAmount) { DestTweenState().fSkewY = fAmount; }
-	float GetSkewY(float /* fAmount */) const
+
+	[[nodiscard]] auto GetSkewY(float /* fAmount */) const -> float
 	{
 		return DestTweenState().fSkewY;
 	}
 
-	float GetCropLeft() const { return DestTweenState().crop.left; }
-	float GetCropTop() const { return DestTweenState().crop.top; }
-	float GetCropRight() const { return DestTweenState().crop.right; }
-	float GetCropBottom() const { return DestTweenState().crop.bottom; }
+	[[nodiscard]] auto GetCropLeft() const -> float
+	{
+		return DestTweenState().crop.left;
+	}
+	[[nodiscard]] auto GetCropTop() const -> float
+	{
+		return DestTweenState().crop.top;
+	}
+	[[nodiscard]] auto GetCropRight() const -> float
+	{
+		return DestTweenState().crop.right;
+	}
+	[[nodiscard]] auto GetCropBottom() const -> float
+	{
+		return DestTweenState().crop.bottom;
+	}
 	void SetCropLeft(float percent) { DestTweenState().crop.left = percent; }
 	void SetCropTop(float percent) { DestTweenState().crop.top = percent; }
 	void SetCropRight(float percent) { DestTweenState().crop.right = percent; }
@@ -524,18 +495,23 @@ class Actor : public MessageSubscriber
 
 	virtual void SetDiffuse(const RageColor& c)
 	{
-		for (auto& i : DestTweenState().diffuse)
+		for (auto& i : DestTweenState().diffuse) {
 			i = c;
+		}
 	};
 	virtual void SetDiffuseAlpha(float f)
 	{
-		for (int i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
-			RageColor c = GetDiffuses(i);
+		for (auto i = 0; i < NUM_DIFFUSE_COLORS; ++i) {
+			auto c = GetDiffuses(i);
 			c.a = f;
 			SetDiffuses(i, c);
 		}
 	}
-	float GetCurrentDiffuseAlpha() const { return m_current.diffuse[0].a; }
+
+	[[nodiscard]] auto GetCurrentDiffuseAlpha() const -> float
+	{
+		return m_current.diffuse[0].a;
+	}
 	void SetDiffuseColor(const RageColor& c);
 	void SetDiffuses(int i, const RageColor& c)
 	{
@@ -573,17 +549,29 @@ class Actor : public MessageSubscriber
 	{
 		DestTweenState().diffuse[0] = DestTweenState().diffuse[2] = c;
 	};
-	RageColor GetDiffuse() const { return DestTweenState().diffuse[0]; };
-	RageColor GetDiffuses(int i) const { return DestTweenState().diffuse[i]; };
-	float GetDiffuseAlpha() const { return DestTweenState().diffuse[0].a; };
+	[[nodiscard]] auto GetDiffuse() const -> RageColor
+	{
+		return DestTweenState().diffuse[0];
+	};
+	[[nodiscard]] auto GetDiffuses(int i) const -> RageColor
+	{
+		return DestTweenState().diffuse[i];
+	};
+	[[nodiscard]] auto GetDiffuseAlpha() const -> float
+	{
+		return DestTweenState().diffuse[0].a;
+	};
 	void SetGlow(const RageColor& c) { DestTweenState().glow = c; };
-	RageColor GetGlow() const { return DestTweenState().glow; };
+	[[nodiscard]] auto GetGlow() const -> RageColor
+	{
+		return DestTweenState().glow;
+	};
 
 	void SetAux(float f) { DestTweenState().aux = f; }
-	float GetAux() const { return m_current.aux; }
+	[[nodiscard]] auto GetAux() const -> float { return m_current.aux; }
 
 	virtual void BeginTweening(float time, ITween* pInterp);
-	void BeginTweening(float time, TweenType tt = TWEEN_LINEAR);
+	virtual void BeginTweening(float time, TweenType tt = TWEEN_LINEAR);
 	virtual void StopTweening();
 	void Sleep(float time);
 	void QueueCommand(const std::string& sCommandName);
@@ -591,16 +579,20 @@ class Actor : public MessageSubscriber
 	virtual void FinishTweening();
 	virtual void HurryTweening(float factor);
 	// Let ActorFrame and BGAnimation override
-	virtual float GetTweenTimeLeft()
-	  const;					 // Amount of time until all tweens have stopped
-	TweenState& DestTweenState() // where Actor will end when its tween finish
+	[[nodiscard]] virtual auto GetTweenTimeLeft() const
+	  -> float; // Amount of time until all tweens have stopped
+	auto DestTweenState()
+	  -> TweenState& // where Actor will end when its tween finish
 	{
-		if (m_Tweens.empty()) // not tweening
+		if (m_Tweens.empty()) { // not tweening
 			return m_current;
-		else
+		}
+		{
 			return m_Tweens.back()->state;
+		}
 	}
-	const TweenState& DestTweenState() const
+
+	[[nodiscard]] auto DestTweenState() const -> const TweenState&
 	{
 		return const_cast<Actor*>(this)->DestTweenState();
 	}
@@ -625,17 +617,17 @@ class Actor : public MessageSubscriber
 	void SetHorizAlign(HorizAlign ha)
 	{
 		SetHorizAlign((ha == HorizAlign_Left)
-						? 0.0f
-						: (ha == HorizAlign_Center) ? 0.5f : +1.0f);
+						? 0.0F
+						: (ha == HorizAlign_Center) ? 0.5F : +1.0F);
 	}
 	void SetVertAlign(VertAlign va)
 	{
 		SetVertAlign((va == VertAlign_Top)
-					   ? 0.0f
-					   : (va == VertAlign_Middle) ? 0.5f : +1.0f);
+					   ? 0.0F
+					   : (va == VertAlign_Middle) ? 0.5F : +1.0F);
 	}
-	virtual float GetHorizAlign() { return m_fHorizAlign; }
-	virtual float GetVertAlign() { return m_fVertAlign; }
+	virtual auto GetHorizAlign() -> float { return m_fHorizAlign; }
+	virtual auto GetVertAlign() -> float { return m_fVertAlign; }
 
 	// effects
 #if defined(SSC_FUTURES)
@@ -643,10 +635,16 @@ class Actor : public MessageSubscriber
 	Effect GetEffect(int i) const { return m_Effects[i]; }
 #else
 	void StopEffect() { m_Effect = no_effect; }
-	Effect GetEffect() const { return m_Effect; }
+	[[nodiscard]] auto GetEffect() const -> Effect { return m_Effect; }
 #endif
-	float GetSecsIntoEffect() const { return m_fSecsIntoEffect; }
-	float GetEffectDelta() const { return m_fEffectDelta; }
+	[[nodiscard]] auto GetSecsIntoEffect() const -> float
+	{
+		return m_fSecsIntoEffect;
+	}
+	[[nodiscard]] auto GetEffectDelta() const -> float
+	{
+		return m_fEffectDelta;
+	}
 
 	// todo: account for SSC_FUTURES by adding an effect as an arg to each one
 	// -aj
@@ -654,14 +652,17 @@ class Actor : public MessageSubscriber
 	void SetEffectColor2(const RageColor& c) { m_effectColor2 = c; }
 	void RecalcEffectPeriod();
 	void SetEffectPeriod(float fTime);
-	float GetEffectPeriod() const { return m_effect_period; }
-	bool SetEffectTiming(float ramp_toh,
+	[[nodiscard]] auto GetEffectPeriod() const -> float
+	{
+		return m_effect_period;
+	}
+	auto SetEffectTiming(float ramp_toh,
 						 float at_half,
 						 float ramp_tof,
 						 float at_zero,
 						 float at_full,
-						 std::string& err);
-	bool SetEffectHoldAtFull(float haf, std::string& err);
+						 std::string& err) -> bool;
+	auto SetEffectHoldAtFull(float haf, std::string& err) -> bool;
 	void SetEffectOffset(float fTime) { m_fEffectOffset = fTime; }
 	void SetEffectClock(EffectClock c) { m_EffectClock = c; }
 	void SetEffectClockString(const std::string& s); // convenience
@@ -670,7 +671,11 @@ class Actor : public MessageSubscriber
 	{
 		m_vEffectMagnitude = vec;
 	}
-	RageVector3 GetEffectMagnitude() const { return m_vEffectMagnitude; }
+
+	[[nodiscard]] auto GetEffectMagnitude() const -> RageVector3
+	{
+		return m_vEffectMagnitude;
+	}
 
 	void ResetEffectTimeIfDifferent(Effect new_effect);
 	void SetEffectDiffuseBlink(float fEffectPeriodSeconds,
@@ -703,7 +708,7 @@ class Actor : public MessageSubscriber
 	/**
 	 * @brief Determine if the Actor is visible at this time.
 	 * @return true if it's visible, false otherwise. */
-	bool GetVisible() const { return m_bVisible; }
+	[[nodiscard]] auto GetVisible() const -> bool { return m_bVisible; }
 	void SetVisible(bool b) { m_bVisible = b; }
 	void SetShadowLength(float fLength)
 	{
@@ -713,9 +718,9 @@ class Actor : public MessageSubscriber
 	void SetShadowLengthX(float fLengthX) { m_fShadowLengthX = fLengthX; }
 	void SetShadowLengthY(float fLengthY) { m_fShadowLengthY = fLengthY; }
 	void SetShadowColor(const RageColor& c) { m_ShadowColor = c; }
-	// TODO: Implement hibernate as a tween type?
+	// TODO(Sam): Implement hibernate as a tween type?
 	void SetDrawOrder(int iOrder) { m_iDrawOrder = iOrder; }
-	int GetDrawOrder() const { return m_iDrawOrder; }
+	[[nodiscard]] auto GetDrawOrder() const -> int { return m_iDrawOrder; }
 
 	virtual void EnableAnimation(bool b)
 	{
@@ -750,10 +755,11 @@ class Actor : public MessageSubscriber
 
 	// Named commands
 	void AddCommand(const std::string& sCmdName,
-					apActorCommands apac,
+					const apActorCommands& apac,
 					bool warn = true);
-	bool HasCommand(const std::string& sCmdName) const;
-	const apActorCommands* GetCommand(const std::string& sCommandName) const;
+	[[nodiscard]] auto HasCommand(const std::string& sCmdName) const -> bool;
+	[[nodiscard]] auto GetCommand(const std::string& sCommandName) const
+	  -> const apActorCommands*;
 	void PlayCommand(const std::string& sCommandName)
 	{
 		HandleMessage(Message(sCommandName));
@@ -763,8 +769,9 @@ class Actor : public MessageSubscriber
 	// Commands by reference
 	virtual void RunCommands(const LuaReference& cmds,
 							 const LuaReference* pParamTable = nullptr);
-	void RunCommands(const apActorCommands& cmds,
-					 const LuaReference* pParamTable = nullptr)
+
+	virtual void RunCommands(const apActorCommands& cmds,
+							 const LuaReference* pParamTable = nullptr)
 	{
 		this->RunCommands(*cmds, pParamTable);
 	} // convenience
@@ -785,12 +792,15 @@ class Actor : public MessageSubscriber
 	void HandleMessage(const Message& msg) override;
 
 	// Animation
-	virtual int GetNumStates() const { return 1; }
+	[[nodiscard]] virtual auto GetNumStates() const -> int { return 1; }
 	virtual void SetState(int /* iNewState */) {}
-	virtual float GetAnimationLengthSeconds() const { return 0; }
-	virtual void SetSecondsIntoAnimation(float) {}
-	virtual void SetUpdateRate(float) {}
-	virtual float GetUpdateRate() { return 1.0f; }
+	[[nodiscard]] virtual auto GetAnimationLengthSeconds() const -> float
+	{
+		return 0;
+	}
+	virtual void SetSecondsIntoAnimation(float /*unused*/) {}
+	virtual void SetUpdateRate(float /*unused*/) {}
+	virtual auto GetUpdateRate() -> float { return 1.0F; }
 
 	HiddenPtr<LuaClass> m_pLuaInstance;
 
@@ -805,7 +815,7 @@ class Actor : public MessageSubscriber
 	Actor* m_FakeParent;
 	// WrapperStates provides a way to wrap the actor inside ActorFrames,
 	// applicable to any actor, not just ones the theme creates.
-	vector<Actor*> m_WrapperStates;
+	std::vector<Actor*> m_WrapperStates;
 
 	/** @brief Some general information about the Tween. */
 	struct TweenInfo
@@ -814,14 +824,14 @@ class Actor : public MessageSubscriber
 		TweenInfo();
 		~TweenInfo();
 		TweenInfo(const TweenInfo& cpy);
-		TweenInfo& operator=(const TweenInfo& rhs);
+		auto operator=(const TweenInfo& rhs) -> TweenInfo&;
 
 		ITween* m_pTween;
 		/** @brief How far into the tween are we? */
-		float m_fTimeLeftInTween;
+		float m_fTimeLeftInTween{};
 		/** @brief The number of seconds between Start and End positions/zooms.
 		 */
-		float m_fTweenTime;
+		float m_fTweenTime{};
 		/** @brief The command to execute when this TweenState goes into effect.
 		 */
 		std::string m_sCommandName;
@@ -829,7 +839,7 @@ class Actor : public MessageSubscriber
 
 	RageVector3 m_baseRotation;
 	RageVector3 m_baseScale;
-	float m_fBaseAlpha;
+	float m_fBaseAlpha{};
 	RageColor m_internalDiffuse;
 	RageColor m_internalGlow;
 
@@ -841,20 +851,20 @@ class Actor : public MessageSubscriber
 		TweenState state;
 		TweenInfo info;
 	};
-	vector<TweenStateAndInfo*> m_Tweens;
+	std::vector<TweenStateAndInfo*> m_Tweens;
 
 	/** @brief Temporary variables that are filled just before drawing */
-	TweenState* m_pTempState;
+	TweenState* m_pTempState{};
 
 	// Stuff for alignment
 	/** @brief The particular horizontal alignment.
 	 *
 	 * Use the defined constant values for best effect. */
-	float m_fHorizAlign;
+	float m_fHorizAlign{};
 	/** @brief The particular vertical alignment.
 	 *
 	 * Use the defined constant values for best effect. */
-	float m_fVertAlign;
+	float m_fVertAlign{};
 
 	// Stuff for effects
 #if defined(SSC_FUTURES) // be able to stack effects
@@ -862,26 +872,29 @@ class Actor : public MessageSubscriber
 #else // compatibility
 	Effect m_Effect;
 #endif
-	float m_fSecsIntoEffect;
-	float m_fEffectDelta;
+	float m_fSecsIntoEffect{};
+	float m_fEffectDelta{};
 
 	// units depend on m_EffectClock
-	float m_effect_ramp_to_half;
-	float m_effect_hold_at_half;
-	float m_effect_ramp_to_full;
-	float m_effect_hold_at_full;
-	float m_effect_hold_at_zero;
-	float m_fEffectOffset;
+	float m_effect_ramp_to_half{};
+	float m_effect_hold_at_half{};
+	float m_effect_ramp_to_full{};
+	float m_effect_hold_at_full{};
+	float m_effect_hold_at_zero{};
+	float m_fEffectOffset{};
 	// Anything changing ramp_up, hold_at_half, ramp_down, or hold_at_zero must
 	// also update the period so the period is only calculated when changed.
 	// -Kyz
-	float m_effect_period;
+	float m_effect_period{};
 	EffectClock m_EffectClock;
 	bool m_tween_uses_effect_delta;
 
 	/* This can be used in lieu of the fDeltaTime parameter to Update() to
 	 * follow the effect clock.  Actor::Update must be called first. */
-	float GetEffectDeltaTime() const { return m_fEffectDelta; }
+	[[nodiscard]] auto GetEffectDeltaTime() const -> float
+	{
+		return m_fEffectDelta;
+	}
 
 	// todo: account for SSC_FUTURES by having these be vectors too -aj
 	RageColor m_effectColor1;
@@ -889,40 +902,40 @@ class Actor : public MessageSubscriber
 	RageVector3 m_vEffectMagnitude;
 
 	// other properties
-	bool m_bVisible;
-	bool m_bIsAnimating;
-	float m_fShadowLengthX;
-	float m_fShadowLengthY;
+	bool m_bVisible{};
+	bool m_bIsAnimating{};
+	float m_fShadowLengthX{};
+	float m_fShadowLengthY{};
 	RageColor m_ShadowColor;
 	/** @brief The draw order priority.
 	 *
 	 * The lower this number is, the sooner it is drawn. */
-	int m_iDrawOrder;
+	int m_iDrawOrder{};
 
 	// render states
 	BlendMode m_BlendMode;
 	ZTestMode m_ZTestMode;
 	CullMode m_CullMode;
 	RageVector2 m_texTranslate;
-	bool m_bTextureWrapping;
-	bool m_bTextureFiltering;
-	bool m_bClearZBuffer;
-	bool m_bZWrite;
+	bool m_bTextureWrapping{};
+	bool m_bTextureFiltering{};
+	bool m_bClearZBuffer{};
+	bool m_bZWrite{};
 	/**
 	 * @brief The amount of bias.
 	 *
 	 * If 0, there is no bias. If 1, there is a full bias. */
-	float m_fZBias;
+	float m_fZBias{};
 
 	// global state
 	static float g_fCurrentBGMTime, g_fCurrentBGMBeat;
 	static float g_fCurrentBGMTimeNoOffset, g_fCurrentBGMBeatNoOffset;
-	static vector<float> g_vfCurrentBGMBeatPlayer;
-	static vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
+	static std::vector<float> g_vfCurrentBGMBeatPlayer;
+	static std::vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
 
   private:
 	// commands
-	map<std::string, apActorCommands> m_mapNameToCommands;
+	std::map<std::string, apActorCommands> m_mapNameToCommands;
 };
 
 #endif

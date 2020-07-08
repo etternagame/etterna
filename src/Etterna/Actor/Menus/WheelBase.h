@@ -3,11 +3,9 @@
 
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Actor/Base/AutoActor.h"
-#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Lua/LuaExpressionTransform.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "ScrollBar.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
@@ -26,10 +24,10 @@ enum WheelState
 	NUM_WheelState,
 	WheelState_Invalid,
 };
-const RString&
+const std::string&
 WheelStateToString(WheelState ws);
 WheelState
-StringToWheelState(const RString& sDC);
+StringToWheelState(const std::string& sDC);
 LuaDeclareType(WheelState);
 
 /** @brief A wheel with data elements. */
@@ -37,15 +35,15 @@ class WheelBase : public ActorFrame
 {
   public:
 	~WheelBase() override;
-	virtual void Load(const string& sType);
+	virtual void Load(const std::string& sType);
 	void BeginScreen();
 
 	void Update(float fDeltaTime) override;
 
 	virtual void Move(int n);
 	void ChangeMusicUnlessLocked(int n); /* +1 or -1 */
-	virtual void ChangeMusic(int dist);  /* +1 or -1 */
-	virtual void SetOpenSection(const RString& group) {}
+	virtual void ChangeMusic(int dist);	 /* +1 or -1 */
+	virtual void SetOpenSection(const std::string& group) {}
 
 	// Return true if we're moving fast automatically.
 	int IsMoving() const;
@@ -60,7 +58,7 @@ class WheelBase : public ActorFrame
 
 	virtual bool Select(); // return true if this selection can end the screen
 
-	RString GetCurrentGroup();
+	std::string GetCurrentGroup();
 
 	WheelState GetWheelState() { return m_WheelState; }
 	void Lock() { m_WheelState = STATE_LOCKED; }
@@ -82,11 +80,11 @@ class WheelBase : public ActorFrame
 	WheelItemBaseData* LastSelected();
 	WheelItemBase* GetWheelItem(int i)
 	{
-		if (i < 0 || i >= (int)m_WheelBaseItems.size())
-			return NULL;
+		if (i < 0 || i >= static_cast<int>(m_WheelBaseItems.size()))
+			return nullptr;
 		return m_WheelBaseItems[i];
 	}
-	RString GetExpandedSectionName() { return m_sExpandedSectionName; }
+	std::string GetExpandedSectionName() { return m_sExpandedSectionName; }
 	int GetCurrentIndex() { return m_iSelection; }
 
 	WheelItemDataType GetSelectedType()
@@ -117,7 +115,7 @@ class WheelBase : public ActorFrame
 
 	bool m_bEmpty;
 	int m_iSelection; // index into m_CurWheelItemBaseData
-	RString m_sExpandedSectionName;
+	std::string m_sExpandedSectionName;
 
 	int m_iSwitchesLeftInSpinDown;
 	float m_fLockedWheelVelocity;

@@ -1,6 +1,8 @@
 #ifndef TIMING_SEGMENTS_H
 #define TIMING_SEGMENTS_H
 
+#include <utility>
+
 #include "NoteTypes.h" // Converting rows to beats and vice~versa.
 
 enum TimingSegmentType
@@ -33,8 +35,8 @@ enum SegmentEffectType
 
 #define FOREACH_TimingSegmentType(tst) FOREACH_ENUM(TimingSegmentType, tst)
 
-const RString&
-TimingSegmentTypeToString(TimingSegmentType tst);
+auto
+TimingSegmentTypeToString(TimingSegmentType tst) -> const std::string&;
 
 const int ROW_INVALID = -1;
 
@@ -51,17 +53,19 @@ const int ROW_INVALID = -1;
  */
 struct TimingSegment
 {
-	virtual TimingSegmentType GetType() const
+	[[nodiscard]] virtual auto GetType() const -> TimingSegmentType
 	{
 		return TimingSegmentType_Invalid;
 	}
-	virtual SegmentEffectType GetEffectType() const
+
+	[[nodiscard]] virtual auto GetEffectType() const -> SegmentEffectType
 	{
 		return SegmentEffectType_Invalid;
 	}
-	virtual TimingSegment* Copy() const = 0;
 
-	virtual bool IsNotable() const = 0;
+	[[nodiscard]] virtual auto Copy() const -> TimingSegment* = 0;
+
+	[[nodiscard]] virtual auto IsNotable() const -> bool = 0;
 	virtual void DebugPrint() const;
 
 	// don't allow base TimingSegments to be instantiated directly
@@ -92,32 +96,38 @@ struct TimingSegment
 	 */
 	virtual void Scale(int start, int length, int newLength);
 
-	int GetRow() const { return m_iStartRow; }
+	[[nodiscard]] auto GetRow() const -> int { return m_iStartRow; }
 	void SetRow(int iRow) { m_iStartRow = iRow; }
 
-	float GetBeat() const { return NoteRowToBeat(m_iStartRow); }
+	[[nodiscard]] auto GetBeat() const -> float
+	{
+		return NoteRowToBeat(m_iStartRow);
+	}
 	void SetBeat(float fBeat) { SetRow(BeatToNoteRow(fBeat)); }
 
-	virtual RString ToString(int /* dec */) const
+	[[nodiscard]] virtual auto ToString(int /* dec */) const -> std::string
 	{
 		return FloatToString(GetBeat());
 	}
 
-	virtual vector<float> GetValues() const { return vector<float>(0); }
+	[[nodiscard]] virtual auto GetValues() const -> std::vector<float>
+	{
+		return std::vector<float>(0);
+	}
 
-	bool operator<(const TimingSegment& other) const
+	auto operator<(const TimingSegment& other) const -> bool
 	{
 		return GetRow() < other.GetRow();
 	}
 
 	// overloads should not call this base version; derived classes
 	// should only compare contents, and this compares position.
-	virtual bool operator==(const TimingSegment& other) const
+	virtual auto operator==(const TimingSegment& other) const -> bool
 	{
 		return GetRow() == other.GetRow();
 	}
 
-	virtual bool operator!=(const TimingSegment& other) const
+	virtual auto operator!=(const TimingSegment& other) const -> bool
 	{
 		return !this->operator==(other);
 	}
@@ -140,22 +150,26 @@ struct TimingSegment
  * These were inspired by the Pump It Up series. */
 struct FakeSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_FAKE; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_FAKE;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Range;
 	}
 
-	TimingSegment* Copy() const override { return new FakeSegment(*this); }
-
-	bool IsNotable() const override { return m_iLengthRows > 0; }
-	void DebugPrint() const override;
-
-	FakeSegment()
-	  : TimingSegment()
-	  , m_iLengthRows(-1)
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
 	{
+		return new FakeSegment(*this);
 	}
+
+	[[nodiscard]] auto IsNotable() const -> bool override
+	{
+		return m_iLengthRows > 0;
+	}
+	void DebugPrint() const override;
 
 	FakeSegment(int iStartRow, int iLengthRows)
 	  : TimingSegment(iStartRow)
@@ -175,38 +189,47 @@ struct FakeSegment : public TimingSegment
 	{
 	}
 
-	int GetLengthRows() const { return m_iLengthRows; }
-	float GetLengthBeats() const { return ToBeat(m_iLengthRows); }
-	float GetLength() const { return GetLengthBeats(); } // compatibility
+	FakeSegment() = default;
+
+	[[nodiscard]] auto GetLengthRows() const -> int { return m_iLengthRows; }
+	[[nodiscard]] auto GetLengthBeats() const -> float
+	{
+		return ToBeat(m_iLengthRows);
+	}
+	[[nodiscard]] auto GetLength() const -> float
+	{
+		return GetLengthBeats();
+	} // compatibility
 
 	void SetLength(int iRows) { m_iLengthRows = ToNoteRow(iRows); }
 	void SetLength(float fBeats) { m_iLengthRows = ToNoteRow(fBeats); }
 
 	void Scale(int start, int length, int newLength) override;
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetLength());
+		return std::vector<float>(1, GetLength());
 	}
 
-	bool operator==(const FakeSegment& other) const
+	auto operator==(const FakeSegment& other) const -> bool
 	{
-		COMPARE(m_iLengthRows);
-		return true;
+		return m_iLengthRows == other.m_iLengthRows;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const FakeSegment&>(other));
 	}
 
   private:
 	/** @brief The number of rows the FakeSegment is alive for. */
-	int m_iLengthRows;
+	int m_iLengthRows{ -1 };
 };
 
 /**
@@ -218,21 +241,26 @@ struct FakeSegment : public TimingSegment
  * (Technically they're both rows though.) */
 struct WarpSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_WARP; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_WARP;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Range;
 	}
-	TimingSegment* Copy() const override { return new WarpSegment(*this); }
 
-	bool IsNotable() const override { return m_iLengthRows > 0; }
-	void DebugPrint() const override;
-
-	WarpSegment()
-	  : TimingSegment()
-	  , m_iLengthRows(0)
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
 	{
+		return new WarpSegment(*this);
 	}
+
+	[[nodiscard]] auto IsNotable() const -> bool override
+	{
+		return m_iLengthRows > 0;
+	}
+	void DebugPrint() const override;
 
 	WarpSegment(const WarpSegment& other)
 	  : TimingSegment(other.GetRow())
@@ -252,37 +280,46 @@ struct WarpSegment : public TimingSegment
 	{
 	}
 
-	int GetLengthRows() const { return m_iLengthRows; }
-	float GetLengthBeats() const { return ToBeat(m_iLengthRows); }
-	float GetLength() const { return GetLengthBeats(); } // compatibility
+	WarpSegment() = default;
+
+	[[nodiscard]] auto GetLengthRows() const -> int { return m_iLengthRows; }
+	[[nodiscard]] auto GetLengthBeats() const -> float
+	{
+		return ToBeat(m_iLengthRows);
+	}
+	[[nodiscard]] auto GetLength() const -> float
+	{
+		return GetLengthBeats();
+	} // compatibility
 
 	void SetLength(int iRows) { m_iLengthRows = ToNoteRow(iRows); }
 	void SetLength(float fBeats) { m_iLengthRows = ToNoteRow(fBeats); }
 
 	void Scale(int start, int length, int newLength) override;
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetLength());
+		return std::vector<float>(1, GetLength());
 	}
 
-	bool operator==(const WarpSegment& other) const
+	auto operator==(const WarpSegment& other) const -> bool
 	{
-		COMPARE(m_iLengthRows);
-		return true;
+		return m_iLengthRows == other.m_iLengthRows;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const WarpSegment&>(other));
 	}
 
   private:
 	/** @brief The number of rows the WarpSegment will warp past. */
-	int m_iLengthRows;
+	int m_iLengthRows{ 0 };
 };
 
 /**
@@ -299,19 +336,26 @@ struct TickcountSegment : public TimingSegment
 	/** @brief The default amount of ticks per beat. */
 	static const unsigned DEFAULT_TICK_COUNT = 4;
 
-	TimingSegmentType GetType() const override { return SEGMENT_TICKCOUNT; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_TICKCOUNT;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new TickcountSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new TickcountSegment(*this);
+	}
 
 	TickcountSegment(int iStartRow = ROW_INVALID,
 					 int iTicks = DEFAULT_TICK_COUNT)
@@ -326,25 +370,26 @@ struct TickcountSegment : public TimingSegment
 	{
 	}
 
-	int GetTicks() const { return m_iTicksPerBeat; }
+	[[nodiscard]] auto GetTicks() const -> int { return m_iTicksPerBeat; }
 	void SetTicks(int iTicks) { m_iTicksPerBeat = iTicks; }
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetTicks() * 1.f);
+		return std::vector<float>(1, GetTicks() * 1.F);
 	}
 
-	bool operator==(const TickcountSegment& other) const
+	auto operator==(const TickcountSegment& other) const -> bool
 	{
-		COMPARE(m_iTicksPerBeat);
-		return true;
+		return m_iTicksPerBeat == other.m_iTicksPerBeat;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const TickcountSegment&>(other));
 	}
@@ -362,19 +407,26 @@ struct TickcountSegment : public TimingSegment
  */
 struct ComboSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_COMBO; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_COMBO;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new ComboSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new ComboSegment(*this);
+	}
 
 	ComboSegment(int iStartRow = ROW_INVALID,
 				 int iCombo = 1,
@@ -392,26 +444,27 @@ struct ComboSegment : public TimingSegment
 	{
 	}
 
-	int GetCombo() const { return m_iCombo; }
-	int GetMissCombo() const { return m_iMissCombo; }
+	[[nodiscard]] auto GetCombo() const -> int { return m_iCombo; }
+	[[nodiscard]] auto GetMissCombo() const -> int { return m_iMissCombo; }
 
 	void SetCombo(int iCombo) { m_iCombo = iCombo; }
 	void SetMissCombo(int iCombo) { m_iMissCombo = iCombo; }
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override;
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override;
 
-	bool operator==(const ComboSegment& other) const
+	auto operator==(const ComboSegment& other) const -> bool
 	{
 		COMPARE(m_iCombo);
 		COMPARE(m_iMissCombo);
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const ComboSegment&>(other));
 	}
@@ -432,23 +485,31 @@ struct ComboSegment : public TimingSegment
  */
 struct LabelSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_LABEL; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_LABEL;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new LabelSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new LabelSegment(*this);
+	}
 
-	LabelSegment(int iStartRow = ROW_INVALID, const RString& sLabel = RString())
+	LabelSegment(int iStartRow = ROW_INVALID,
+				 std::string sLabel = std::string())
 	  : TimingSegment(iStartRow)
-	  , m_sLabel(sLabel)
+	  , m_sLabel(std::move(sLabel))
 	{
 	}
 
@@ -458,31 +519,34 @@ struct LabelSegment : public TimingSegment
 	{
 	}
 
-	const RString& GetLabel() const { return m_sLabel; }
-	void SetLabel(const RString& sLabel) { m_sLabel.assign(sLabel); }
+	[[nodiscard]] auto GetLabel() const -> const std::string&
+	{
+		return m_sLabel;
+	}
+	void SetLabel(const std::string& sLabel) { m_sLabel.assign(sLabel); }
 
-	RString ToString(int dec) const override;
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
 	// Use the default definition for GetValues because the value for a
 	// LabelSegment is not a float or set of floats. TimingSegmentSetToLuaTable
 	// in TimingData.cpp has a special case for labels to handle this.
 
-	bool operator==(const LabelSegment& other) const
+	auto operator==(const LabelSegment& other) const -> bool
 	{
-		COMPARE(m_sLabel);
-		return true;
+		return m_sLabel == other.m_sLabel;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const LabelSegment&>(other));
 	}
 
   private:
 	/** @brief The label/section name for this point. */
-	RString m_sLabel;
+	std::string m_sLabel;
 };
 
 /**
@@ -490,22 +554,29 @@ struct LabelSegment : public TimingSegment
  */
 struct BPMSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_BPM; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_BPM;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new BPMSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new BPMSegment(*this);
+	}
 
 	// note that this takes a BPM, not a BPS (compatibility)
-	BPMSegment(int iStartRow = ROW_INVALID, float fBPM = 0.0f)
+	BPMSegment(int iStartRow = ROW_INVALID, float fBPM = 0.0F)
 	  : TimingSegment(iStartRow)
 	{
 		SetBPM(fBPM);
@@ -517,35 +588,37 @@ struct BPMSegment : public TimingSegment
 	{
 	}
 
-	float GetBPS() const { return m_fBPS; }
-	float GetBPM() const { return m_fBPS * 60.0f; }
+	[[nodiscard]] auto GetBPS() const -> float { return m_fBPS; }
+	[[nodiscard]] auto GetBPM() const -> float { return m_fBPS * 60.0F; }
 
 	void SetBPS(float fBPS) { m_fBPS = fBPS; }
-	void SetBPM(float fBPM) { m_fBPS = fBPM / 60.0f; }
+	void SetBPM(float fBPM) { m_fBPS = fBPM / 60.0F; }
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetBPM());
+		return std::vector<float>(1, GetBPM());
 	}
 
-	bool operator==(const BPMSegment& other) const
+	auto operator==(const BPMSegment& other) const -> bool
 	{
 		COMPARE_FLOAT(m_fBPS);
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const BPMSegment&>(other));
 	}
 
   private:
 	/** @brief The number of beats per second within this BPMSegment. */
-	float m_fBPS;
+	float m_fBPS{};
 };
 
 /**
@@ -557,19 +630,23 @@ struct BPMSegment : public TimingSegment
  * (denominator here) is the note value representing one beat. */
 struct TimeSignatureSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_TIME_SIG; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_TIME_SIG;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
 	{
 		return new TimeSignatureSegment(*this);
 	}
@@ -590,10 +667,10 @@ struct TimeSignatureSegment : public TimingSegment
 	{
 	}
 
-	int GetNum() const { return m_iNumerator; }
+	[[nodiscard]] auto GetNum() const -> int { return m_iNumerator; }
 	void SetNum(int num) { m_iNumerator = num; }
 
-	int GetDen() const { return m_iDenominator; }
+	[[nodiscard]] auto GetDen() const -> int { return m_iDenominator; }
 	void SetDen(int den) { m_iDenominator = den; }
 
 	void Set(int num, int den)
@@ -602,8 +679,8 @@ struct TimeSignatureSegment : public TimingSegment
 		m_iDenominator = den;
 	}
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override;
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override;
 
 	/**
 	 * @brief Retrieve the number of note rows per measure within the
@@ -617,22 +694,23 @@ struct TimeSignatureSegment : public TimingSegment
 	 * beat. Multiplying by m_iNumerator gives rows per measure.
 	 * @returns the number of note rows per measure.
 	 */
-	int GetNoteRowsPerMeasure() const
+	[[nodiscard]] auto GetNoteRowsPerMeasure() const -> int
 	{
 		return BeatToNoteRow(1) * 4 * m_iNumerator / m_iDenominator;
 	}
 
-	bool operator==(const TimeSignatureSegment& other) const
+	auto operator==(const TimeSignatureSegment& other) const -> bool
 	{
 		COMPARE(m_iNumerator);
 		COMPARE(m_iDenominator);
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const TimeSignatureSegment&>(other));
 	}
@@ -653,19 +731,26 @@ struct TimeSignatureSegment : public TimingSegment
  * These were inspired by the Pump It Up series. */
 struct SpeedSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_SPEED; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_SPEED;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new SpeedSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new SpeedSegment(*this);
+	}
 
 	/** @brief The type of unit used for segment scaling. */
 	enum BaseUnit
@@ -675,8 +760,8 @@ struct SpeedSegment : public TimingSegment
 	};
 
 	SpeedSegment(int iStartRow = ROW_INVALID,
-				 float fRatio = 1.0f,
-				 float fDelay = 0.0f,
+				 float fRatio = 1.0F,
+				 float fDelay = 0.0F,
 				 BaseUnit unit = UNIT_BEATS)
 	  : TimingSegment(iStartRow)
 	  , m_fRatio(fRatio)
@@ -693,21 +778,21 @@ struct SpeedSegment : public TimingSegment
 	{
 	}
 
-	float GetRatio() const { return m_fRatio; }
+	[[nodiscard]] auto GetRatio() const -> float { return m_fRatio; }
 	void SetRatio(float fRatio) { m_fRatio = fRatio; }
 
-	float GetDelay() const { return m_fDelay; }
+	[[nodiscard]] auto GetDelay() const -> float { return m_fDelay; }
 	void SetDelay(float fDelay) { m_fDelay = fDelay; }
 
-	BaseUnit GetUnit() const { return m_Unit; }
+	[[nodiscard]] auto GetUnit() const -> BaseUnit { return m_Unit; }
 	void SetUnit(BaseUnit unit) { m_Unit = unit; }
 
 	void Scale(int start, int length, int newLength) override;
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override;
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override;
 
-	bool operator==(const SpeedSegment& other) const
+	auto operator==(const SpeedSegment& other) const -> bool
 	{
 		COMPARE_FLOAT(m_fRatio);
 		COMPARE_FLOAT(m_fDelay);
@@ -715,10 +800,11 @@ struct SpeedSegment : public TimingSegment
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const SpeedSegment&>(other));
 	}
@@ -746,21 +832,28 @@ struct SpeedSegment : public TimingSegment
  * These were inspired by the Pump It Up series. */
 struct ScrollSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_SCROLL; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_SCROLL;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Indefinite;
 	}
 
-	bool IsNotable() const override
+	[[nodiscard]] auto IsNotable() const -> bool override
 	{
 		return true;
 	} // indefinite segments are always true
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new ScrollSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new ScrollSegment(*this);
+	}
 
-	ScrollSegment(int iStartRow = ROW_INVALID, float fRatio = 1.0f)
+	ScrollSegment(int iStartRow = ROW_INVALID, float fRatio = 1.0F)
 	  : TimingSegment(iStartRow)
 	  , m_fRatio(fRatio)
 	{
@@ -772,25 +865,27 @@ struct ScrollSegment : public TimingSegment
 	{
 	}
 
-	float GetRatio() const { return m_fRatio; }
+	[[nodiscard]] auto GetRatio() const -> float { return m_fRatio; }
 	void SetRatio(float fRatio) { m_fRatio = fRatio; }
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetRatio());
+		return std::vector<float>(1, GetRatio());
 	}
 
-	bool operator==(const ScrollSegment& other) const
+	auto operator==(const ScrollSegment& other) const -> bool
 	{
 		COMPARE_FLOAT(m_fRatio);
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const ScrollSegment&>(other));
 	}
@@ -805,18 +900,28 @@ struct ScrollSegment : public TimingSegment
  */
 struct StopSegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_STOP; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_STOP;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Row;
 	}
 
-	bool IsNotable() const override { return m_fSeconds > 0; }
+	[[nodiscard]] auto IsNotable() const -> bool override
+	{
+		return m_fSeconds > 0;
+	}
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new StopSegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new StopSegment(*this);
+	}
 
-	StopSegment(int iStartRow = ROW_INVALID, float fSeconds = 0.0f)
+	StopSegment(int iStartRow = ROW_INVALID, float fSeconds = 0.0F)
 	  : TimingSegment(iStartRow)
 	  , m_fSeconds(fSeconds)
 	{
@@ -828,25 +933,27 @@ struct StopSegment : public TimingSegment
 	{
 	}
 
-	float GetPause() const { return m_fSeconds; }
+	[[nodiscard]] auto GetPause() const -> float { return m_fSeconds; }
 	void SetPause(float fSeconds) { m_fSeconds = fSeconds; }
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetPause());
+		return std::vector<float>(1, GetPause());
 	}
 
-	bool operator==(const StopSegment& other) const
+	auto operator==(const StopSegment& other) const -> bool
 	{
 		COMPARE_FLOAT(m_fSeconds);
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const StopSegment&>(other));
 	}
@@ -861,16 +968,26 @@ struct StopSegment : public TimingSegment
  */
 struct DelaySegment : public TimingSegment
 {
-	TimingSegmentType GetType() const override { return SEGMENT_DELAY; }
-	SegmentEffectType GetEffectType() const override
+	[[nodiscard]] auto GetType() const -> TimingSegmentType override
+	{
+		return SEGMENT_DELAY;
+	}
+
+	[[nodiscard]] auto GetEffectType() const -> SegmentEffectType override
 	{
 		return SegmentEffectType_Row;
 	}
 
-	bool IsNotable() const override { return m_fSeconds > 0; }
+	[[nodiscard]] auto IsNotable() const -> bool override
+	{
+		return m_fSeconds > 0;
+	}
 	void DebugPrint() const override;
 
-	TimingSegment* Copy() const override { return new DelaySegment(*this); }
+	[[nodiscard]] auto Copy() const -> TimingSegment* override
+	{
+		return new DelaySegment(*this);
+	}
 
 	DelaySegment(int iStartRow = ROW_INVALID, float fSeconds = 0)
 	  : TimingSegment(iStartRow)
@@ -884,25 +1001,27 @@ struct DelaySegment : public TimingSegment
 	{
 	}
 
-	float GetPause() const { return m_fSeconds; }
+	[[nodiscard]] auto GetPause() const -> float { return m_fSeconds; }
 	void SetPause(float fSeconds) { m_fSeconds = fSeconds; }
 
-	RString ToString(int dec) const override;
-	vector<float> GetValues() const override
+	[[nodiscard]] auto ToString(int dec) const -> std::string override;
+
+	[[nodiscard]] auto GetValues() const -> std::vector<float> override
 	{
-		return vector<float>(1, GetPause());
+		return std::vector<float>(1, GetPause());
 	}
 
-	bool operator==(const DelaySegment& other) const
+	auto operator==(const DelaySegment& other) const -> bool
 	{
 		COMPARE_FLOAT(m_fSeconds);
 		return true;
 	}
 
-	bool operator==(const TimingSegment& other) const override
+	auto operator==(const TimingSegment& other) const -> bool override
 	{
-		if (GetType() != other.GetType())
+		if (GetType() != other.GetType()) {
 			return false;
+		}
 
 		return operator==(static_cast<const DelaySegment&>(other));
 	}

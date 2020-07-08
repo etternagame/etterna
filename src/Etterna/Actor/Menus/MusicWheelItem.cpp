@@ -17,8 +17,8 @@ XToString(MusicWheelItemType);
 
 MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 									   Song* pSong,
-									   RString sSectionName,
-									   RageColor color,
+									   const std::string& sSectionName,
+									   const RageColor& color,
 									   int iSectionCount)
   : WheelItemBaseData(type, sSectionName, color)
   , m_pSong(pSong)
@@ -28,7 +28,7 @@ MusicWheelItemData::MusicWheelItemData(WheelItemDataType type,
 {
 }
 
-MusicWheelItem::MusicWheelItem(RString sType)
+MusicWheelItem::MusicWheelItem(const std::string& sType)
   : WheelItemBase(sType)
 {
 	FOREACH_ENUM(MusicWheelItemType, i)
@@ -65,7 +65,7 @@ MusicWheelItem::MusicWheelItem(RString sType)
 
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
-		m_pText[i] = NULL;
+		m_pText[i] = nullptr;
 
 		// Don't init text for Type_Song. It uses a TextBanner.
 		if (i == MusicWheelItemType_Song)
@@ -124,8 +124,8 @@ MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
 
 	FOREACH_ENUM(MusicWheelItemType, i)
 	{
-		if (cpy.m_pText[i] == NULL) {
-			m_pText[i] = NULL;
+		if (cpy.m_pText[i] == nullptr) {
+			m_pText[i] = nullptr;
 		} else {
 			m_pText[i] = new BitmapText(*cpy.m_pText[i]);
 			this->AddChild(m_pText[i]);
@@ -172,7 +172,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	m_pGradeDisplay->SetVisible(false);
 
 	// Fill these in below
-	RString sDisplayName, sTranslitName;
+	std::string sDisplayName, sTranslitName;
 	MusicWheelItemType type = MusicWheelItemType_Invalid;
 
 	switch (pWID->m_Type) {
@@ -265,11 +265,11 @@ MusicWheelItem::RefreshGrades()
 {
 	const auto* pWID = dynamic_cast<const MusicWheelItemData*>(m_pData);
 
-	if (pWID == NULL)
+	if (pWID == nullptr)
 		return; // LoadFromWheelItemData() hasn't been called yet.
 	m_pGradeDisplay->SetVisible(false);
 
-	if (pWID->m_pSong == NULL)
+	if (pWID->m_pSong == nullptr)
 		return;
 
 	Difficulty dc;
@@ -279,10 +279,7 @@ MusicWheelItem::RefreshGrades()
 		dc = GAMESTATE->m_PreferredDifficulty;
 
 	ProfileSlot ps;
-	if (PROFILEMAN->IsPersistentProfile(PLAYER_1))
-		ps = static_cast<ProfileSlot>(PLAYER_1);
-	else
-		return;
+	ps = static_cast<ProfileSlot>(PLAYER_1);
 
 	StepsType st;
 	if (GAMESTATE->m_pCurSteps)
@@ -292,40 +289,35 @@ MusicWheelItem::RefreshGrades()
 
 	m_pGradeDisplay->SetVisible(true);
 
-	HighScoreList* BestpHSL = NULL;
 	Grade gradeBest = Grade_Invalid;
 	Difficulty dcBest = Difficulty_Invalid;
-	if (PROFILEMAN->IsPersistentProfile(ps)) {
-		if (pWID->m_pSong != nullptr) {
-			bool hasCurrentStyleSteps = false;
-			FOREACH_ENUM_N(Difficulty, 6, i)
-			{
-				Steps* pSteps =
-				  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-				if (pSteps != NULL) {
-					hasCurrentStyleSteps = true;
-					Grade dcg =
-					  SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-					if (gradeBest >= dcg) {
-						dcBest = i;
-						gradeBest = dcg;
-					}
+	if (pWID->m_pSong != nullptr) {
+		bool hasCurrentStyleSteps = false;
+		FOREACH_ENUM_N(Difficulty, 6, i)
+		{
+			Steps* pSteps =
+			  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
+			if (pSteps != nullptr) {
+				hasCurrentStyleSteps = true;
+				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
+				if (gradeBest >= dcg) {
+					dcBest = i;
+					gradeBest = dcg;
 				}
 			}
-			// If no grade was found for the current style/stepstype
-			if (!hasCurrentStyleSteps) {
-				// Get the best grade among all steps
-				auto& allSteps = pWID->m_pSong->GetAllSteps();
-				for (auto& stepsPtr : allSteps) {
-					if (stepsPtr->m_StepsType ==
-						st) // Skip already checked steps of type st
-						continue;
-					Grade dcg =
-					  SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
-					if (gradeBest >= dcg) {
-						dcBest = stepsPtr->GetDifficulty();
-						gradeBest = dcg;
-					}
+		}
+		// If no grade was found for the current style/stepstype
+		if (!hasCurrentStyleSteps) {
+			// Get the best grade among all steps
+			auto& allSteps = pWID->m_pSong->GetAllSteps();
+			for (auto& stepsPtr : allSteps) {
+				if (stepsPtr->m_StepsType ==
+					st) // Skip already checked steps of type st
+					continue;
+				Grade dcg = SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+				if (gradeBest >= dcg) {
+					dcBest = stepsPtr->GetDifficulty();
+					gradeBest = dcg;
 				}
 			}
 		}
@@ -340,7 +332,7 @@ MusicWheelItem::RefreshGrades()
 		msg.SetParam("PermaMirror", 1);
 	if (pWID->m_pSong->HasGoal())
 		msg.SetParam("HasGoal", 1);
-	if (gradeBest != Grade_Invalid || (BestpHSL != nullptr)) {
+	if (gradeBest != Grade_Invalid) {
 		msg.SetParam("Grade", gradeBest);
 		msg.SetParam("Difficulty", DifficultyToString(dcBest));
 		msg.SetParam("NumTimesPlayed", 0);

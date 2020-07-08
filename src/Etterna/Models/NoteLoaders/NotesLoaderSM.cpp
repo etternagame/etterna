@@ -4,7 +4,6 @@
 #include "Etterna/FileTypes/MsdFile.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesLoaderSM.h"
-#include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -12,7 +11,11 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
+
+#include <algorithm>
+
+using std::pair;
+using std::string;
 
 // Everything from this line to the creation of sm_parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -24,9 +27,9 @@ struct SMSongTagInfo
 	SMLoader* loader;
 	Song* song;
 	const MsdFile::value_t* params;
-	const RString& path;
+	const std::string& path;
 	vector<pair<float, float>> BPMChanges, Stops;
-	SMSongTagInfo(SMLoader* l, Song* s, const RString& p)
+	SMSongTagInfo(SMLoader* l, Song* s, const std::string& p)
 	  : loader(l)
 	  , song(s)
 	  , path(p)
@@ -173,21 +176,21 @@ SMSetDisplayBPM(SMSongTagInfo& info)
 void
 SMSetSelectable(SMSongTagInfo& info)
 {
-	if ((*info.params)[1].EqualsNoCase("YES")) {
+	if (EqualsNoCase((*info.params)[1], "YES")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
-	} else if ((*info.params)[1].EqualsNoCase("NO")) {
+	} else if (EqualsNoCase((*info.params)[1], "NO")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_NEVER;
 	}
 	// ROULETTE from 3.9. It was removed since UnlockManager can serve
 	// the same purpose somehow. This, of course, assumes you're using
 	// unlocks. -aj
-	else if ((*info.params)[1].EqualsNoCase("ROULETTE")) {
+	else if (EqualsNoCase((*info.params)[1], "ROULETTE")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
 	}
 	/* The following two cases are just fixes to make sure simfiles that
 	 * used 3.9+ features are not excluded here */
-	else if ((*info.params)[1].EqualsNoCase("ES") ||
-			 (*info.params)[1].EqualsNoCase("OMES")) {
+	else if (EqualsNoCase((*info.params)[1], "ES") ||
+			 EqualsNoCase((*info.params)[1], "OMES")) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
 	} else if (StringToInt((*info.params)[1]) > 0) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
@@ -207,13 +210,12 @@ SMSetBGChanges(SMSongTagInfo& info)
 void
 SMSetFGChanges(SMSongTagInfo& info)
 {
-	vector<RString> aFGChangeExpressions;
+	vector<std::string> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
-	for (unsigned int b = 0; b < aFGChangeExpressions.size(); ++b) {
+	for (auto& aFGChangeExpression : aFGChangeExpressions) {
 		BackgroundChange change;
-		if (info.loader->LoadFromBGChangesString(change,
-												 aFGChangeExpressions[b]))
+		if (info.loader->LoadFromBGChangesString(change, aFGChangeExpression))
 			info.song->AddForegroundChange(change);
 	}
 }
@@ -222,7 +224,7 @@ SMSetKeysounds(SMSongTagInfo& info)
 {
 	split((*info.params)[1], ",", info.song->m_vsKeysoundFile);
 }
-typedef std::map<RString, song_tag_func_t> song_handler_map_t;
+typedef std::map<std::string, song_tag_func_t> song_handler_map_t;
 
 struct sm_parser_helper_t
 {
@@ -306,9 +308,9 @@ SMLoader::LoadFromDir(const std::string& sPath, Song& out)
 }
 
 float
-SMLoader::RowToBeat(const RString& line, const int rowsPerBeat)
+SMLoader::RowToBeat(const std::string& line, const int rowsPerBeat)
 {
-	RString trimmed = line;
+	auto trimmed = line;
 	Trim(trimmed, "r");
 	Trim(trimmed, "R");
 	if (trimmed != line) {
@@ -319,12 +321,11 @@ SMLoader::RowToBeat(const RString& line, const int rowsPerBeat)
 }
 
 void
-SMLoader::LoadFromTokens(RString sStepsType,
-						 RString sDescription,
-						 RString sDifficulty,
-						 RString sMeter,
-						 RString sRadarValues,
-						 RString sNoteData,
+SMLoader::LoadFromTokens(std::string sStepsType,
+						 std::string sDescription,
+						 std::string sDifficulty,
+						 std::string sMeter,
+						 std::string sNoteData,
 						 Steps& out)
 {
 	// we're loading from disk, so this is by definition already saved:
@@ -363,12 +364,12 @@ SMLoader::LoadFromTokens(RString sStepsType,
 	// Difficulty_Challenge. (At least v1.64, possibly v3.0 final...)
 	if (out.GetDifficulty() == Difficulty_Hard) {
 		// HACK: SMANIAC used to be Difficulty_Hard with a special description.
-		if (sDescription.CompareNoCase("smaniac") == 0)
+		if (CompareNoCase(sDescription, "smaniac") == 0)
 			out.SetDifficulty(Difficulty_Challenge);
 
 		// HACK: CHALLENGE used to be Difficulty_Hard with a special
 		// description.
-		if (sDescription.CompareNoCase("challenge") == 0)
+		if (CompareNoCase(sDescription, "challenge") == 0)
 			out.SetDifficulty(Difficulty_Challenge);
 	}
 
@@ -386,43 +387,43 @@ SMLoader::LoadFromTokens(RString sStepsType,
 
 void
 SMLoader::ProcessBGChanges(Song& out,
-						   const RString& sValueName,
-						   const RString& sPath,
-						   const RString& sParam)
+						   const std::string& sValueName,
+						   const std::string& sPath,
+						   const std::string& sParam)
 {
-	BackgroundLayer iLayer = BACKGROUND_LAYER_1;
-	if (sscanf(sValueName, "BGCHANGES%d", &*ConvertValue<int>(&iLayer)) == 1)
+	auto iLayer = BACKGROUND_LAYER_1;
+	if (sscanf(
+		  sValueName.c_str(), "BGCHANGES%d", &*ConvertValue<int>(&iLayer)) == 1)
 		enum_add(iLayer, -1); // #BGCHANGES2 = BACKGROUND_LAYER_2
 
-	bool bValid = iLayer >= 0 && iLayer < NUM_BackgroundLayer;
+	auto bValid = iLayer >= 0 && iLayer < NUM_BackgroundLayer;
 	if (!bValid) {
 		LOG->UserLog("Song file",
 					 sPath,
 					 "has a #BGCHANGES tag \"%s\" that is out of range.",
 					 sValueName.c_str());
 	} else {
-		vector<RString> aBGChangeExpressions;
+		vector<std::string> aBGChangeExpressions;
 		split(sParam, ",", aBGChangeExpressions);
 
-		for (unsigned b = 0; b < aBGChangeExpressions.size(); b++) {
+		for (auto& aBGChangeExpression : aBGChangeExpressions) {
 			BackgroundChange change;
-			if (LoadFromBGChangesString(change, aBGChangeExpressions[b]))
+			if (LoadFromBGChangesString(change, aBGChangeExpression))
 				out.AddBackgroundChange(iLayer, change);
 		}
 	}
 }
 
 void
-SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
+SMLoader::ProcessInstrumentTracks(Song& out, const std::string& sParam)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(sParam, ",", vs1);
-	FOREACH_CONST(RString, vs1, s)
-	{
-		vector<RString> vs2;
-		split(*s, "=", vs2);
+	for (auto& s : vs1) {
+		vector<std::string> vs2;
+		split(s, "=", vs2);
 		if (vs2.size() >= 2) {
-			InstrumentTrack it = StringToInstrumentTrack(vs2[0]);
+			auto it = StringToInstrumentTrack(vs2[0]);
 			if (it != InstrumentTrack_Invalid)
 				out.m_sInstrumentTrackFile[it] = vs2[1];
 		}
@@ -431,58 +432,58 @@ SMLoader::ProcessInstrumentTracks(Song& out, const RString& sParam)
 
 void
 SMLoader::ParseBPMs(vector<pair<float, float>>& out,
-					const RString& line,
+					const std::string& line,
 					const int rowsPerBeat)
 {
-	vector<RString> arrayBPMChangeExpressions;
+	vector<std::string> arrayBPMChangeExpressions;
 	split(line, ",", arrayBPMChangeExpressions);
 
-	for (unsigned b = 0; b < arrayBPMChangeExpressions.size(); b++) {
-		vector<RString> arrayBPMChangeValues;
-		split(arrayBPMChangeExpressions[b], "=", arrayBPMChangeValues);
+	for (auto& arrayBPMChangeExpression : arrayBPMChangeExpressions) {
+		vector<std::string> arrayBPMChangeValues;
+		split(arrayBPMChangeExpression, "=", arrayBPMChangeValues);
 		if (arrayBPMChangeValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 this->GetSongTitle(),
 						 "has an invalid #BPMs value \"%s\" (must have exactly "
 						 "one '='), ignored.",
-						 arrayBPMChangeExpressions[b].c_str());
+						 arrayBPMChangeExpression.c_str());
 			continue;
 		}
 
-		const float fBeat = RowToBeat(arrayBPMChangeValues[0], rowsPerBeat);
-		const float fNewBPM = StringToFloat(arrayBPMChangeValues[1]);
+		const auto fBeat = RowToBeat(arrayBPMChangeValues[0], rowsPerBeat);
+		const auto fNewBPM = StringToFloat(arrayBPMChangeValues[1]);
 		if (fNewBPM == 0) {
 			LOG->UserLog(
 			  "Song file", this->GetSongTitle(), "has a zero BPM; ignored.");
 			continue;
 		}
 
-		out.emplace_back(make_pair(fBeat, fNewBPM));
+		out.emplace_back(std::make_pair(fBeat, fNewBPM));
 	}
 }
 
 void
 SMLoader::ParseStops(vector<pair<float, float>>& out,
-					 const RString line,
+					 const std::string& line,
 					 const int rowsPerBeat)
 {
-	vector<RString> arrayFreezeExpressions;
+	vector<std::string> arrayFreezeExpressions;
 	split(line, ",", arrayFreezeExpressions);
 
-	for (unsigned f = 0; f < arrayFreezeExpressions.size(); f++) {
-		vector<RString> arrayFreezeValues;
-		split(arrayFreezeExpressions[f], "=", arrayFreezeValues);
+	for (auto& arrayFreezeExpression : arrayFreezeExpressions) {
+		vector<std::string> arrayFreezeValues;
+		split(arrayFreezeExpression, "=", arrayFreezeValues);
 		if (arrayFreezeValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 this->GetSongTitle(),
 						 "has an invalid #STOPS value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayFreezeExpressions[f].c_str());
+						 arrayFreezeExpression.c_str());
 			continue;
 		}
 
-		const float fFreezeBeat = RowToBeat(arrayFreezeValues[0], rowsPerBeat);
-		const float fFreezeSeconds = StringToFloat(arrayFreezeValues[1]);
+		const auto fFreezeBeat = RowToBeat(arrayFreezeValues[0], rowsPerBeat);
+		const auto fFreezeSeconds = StringToFloat(arrayFreezeValues[1]);
 		if (fFreezeSeconds == 0) {
 			LOG->UserLog("Song file",
 						 this->GetSongTitle(),
@@ -490,7 +491,7 @@ SMLoader::ParseStops(vector<pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fFreezeBeat, fFreezeSeconds));
+		out.emplace_back(std::make_pair(fFreezeBeat, fFreezeSeconds));
 	}
 }
 
@@ -588,9 +589,9 @@ SMLoader::ProcessBPMsAndStops(TimingData& out,
 	while (ibpm != ibpmend || istop != istopend) {
 		// Get the next change in order, with BPMs taking precedence
 		// when they fall on the same beat.
-		bool changeIsBpm =
+		auto changeIsBpm =
 		  istop == istopend || (ibpm != ibpmend && ibpm->first <= istop->first);
-		const pair<float, float>& change = changeIsBpm ? *ibpm : *istop;
+		const auto& change = changeIsBpm ? *ibpm : *istop;
 
 		// Calculate the effects of time at the current BPM.  "Infinite"
 		// BPMs (SM4 warps) imply that zero time passes, so skip this
@@ -710,33 +711,33 @@ SMLoader::ProcessBPMsAndStops(TimingData& out,
 }
 void
 SMLoader::ProcessDelays(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const int rowsPerBeat)
 {
 	ProcessDelays(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessDelays(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<RString> arrayDelayExpressions;
+	vector<std::string> arrayDelayExpressions;
 	split(line, ",", arrayDelayExpressions);
 
-	for (unsigned f = 0; f < arrayDelayExpressions.size(); f++) {
-		vector<RString> arrayDelayValues;
-		split(arrayDelayExpressions[f], "=", arrayDelayValues);
+	for (auto& arrayDelayExpression : arrayDelayExpressions) {
+		vector<std::string> arrayDelayValues;
+		split(arrayDelayExpression, "=", arrayDelayValues);
 		if (arrayDelayValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songname,
 						 "has an invalid #DELAYS value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayDelayExpressions[f].c_str());
+						 arrayDelayExpression.c_str());
 			continue;
 		}
-		const float fFreezeBeat = RowToBeat(arrayDelayValues[0], rowsPerBeat);
-		const float fFreezeSeconds = StringToFloat(arrayDelayValues[1]);
+		const auto fFreezeBeat = RowToBeat(arrayDelayValues[0], rowsPerBeat);
+		const auto fFreezeSeconds = StringToFloat(arrayDelayValues[1]);
 		// LOG->Trace( "Adding a delay segment: beat: %f, seconds = %f",
 		// new_seg.m_fStartBeat, new_seg.m_fStopSeconds );
 
@@ -754,24 +755,23 @@ SMLoader::ProcessDelays(TimingData& out,
 
 void
 SMLoader::ProcessTimeSignatures(TimingData& out,
-								const RString& line,
+								const std::string& line,
 								const int rowsPerBeat)
 {
 	ProcessTimeSignatures(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessTimeSignatures(TimingData& out,
-								const RString& line,
+								const std::string& line,
 								const string& songname,
 								const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
-		vector<RString> vs2;
-		split(*s1, "=", vs2);
+	for (auto& s1 : vs1) {
+		vector<std::string> vs2;
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 3) {
 			LOG->UserLog("Song file",
@@ -781,9 +781,9 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 			continue;
 		}
 
-		const float fBeat = RowToBeat(vs2[0], rowsPerBeat);
-		const int iNumerator = StringToInt(vs2[1]);
-		const int iDenominator = StringToInt(vs2[2]);
+		const auto fBeat = RowToBeat(vs2[0], rowsPerBeat);
+		const auto iNumerator = StringToInt(vs2[1]);
+		const auto iDenominator = StringToInt(vs2[2]);
 
 		if (fBeat < 0) {
 			LOG->UserLog("Song file",
@@ -820,35 +820,36 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 
 void
 SMLoader::ProcessTickcounts(TimingData& out,
-							const RString& line,
+							const std::string& line,
 							const int rowsPerBeat)
 {
 	ProcessTickcounts(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessTickcounts(TimingData& out,
-							const RString& line,
+							const std::string& line,
 							const string& songname,
 							const int rowsPerBeat)
 {
-	vector<RString> arrayTickcountExpressions;
+	vector<std::string> arrayTickcountExpressions;
 	split(line, ",", arrayTickcountExpressions);
 
-	for (unsigned f = 0; f < arrayTickcountExpressions.size(); f++) {
-		vector<RString> arrayTickcountValues;
-		split(arrayTickcountExpressions[f], "=", arrayTickcountValues);
+	for (auto& arrayTickcountExpression : arrayTickcountExpressions) {
+		vector<std::string> arrayTickcountValues;
+		split(arrayTickcountExpression, "=", arrayTickcountValues);
 		if (arrayTickcountValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songname,
 						 "has an invalid #TICKCOUNTS value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayTickcountExpressions[f].c_str());
+						 arrayTickcountExpression.c_str());
 			continue;
 		}
 
-		const float fTickcountBeat =
+		const auto fTickcountBeat =
 		  RowToBeat(arrayTickcountValues[0], rowsPerBeat);
-		int iTicks = clamp(atoi(arrayTickcountValues[1]), 0, ROWS_PER_BEAT);
+		auto iTicks =
+		  std::clamp(atoi(arrayTickcountValues[1].c_str()), 0, ROWS_PER_BEAT);
 
 		out.AddSegment(TickcountSegment(BeatToNoteRow(fTickcountBeat), iTicks));
 	}
@@ -856,26 +857,26 @@ SMLoader::ProcessTickcounts(TimingData& out,
 
 void
 SMLoader::ProcessSpeeds(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const int rowsPerBeat)
 {
 	ProcessSpeeds(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessSpeeds(TimingData& out,
-						const RString& line,
+						const std::string& line,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<RString> vs1;
+	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(RString, vs1, s1)
-	{
-		vector<RString> vs2;
-		split(*s1, "=", vs2);
+	for (auto& s1 : vs1) {
+		vector<std::string> vs2;
+		split(s1, "=", vs2);
 
-		if (vs2[0] == 0 && vs2.size() == 2) // First one always seems to have 2.
+		if (vs2[0].c_str() == nullptr &&
+			vs2.size() == 2) // First one always seems to have 2.
 		{
 			vs2.emplace_back("0");
 		}
@@ -893,13 +894,13 @@ SMLoader::ProcessSpeeds(TimingData& out,
 			continue;
 		}
 
-		const float fBeat = RowToBeat(vs2[0], rowsPerBeat);
-		const float fRatio = StringToFloat(vs2[1]);
-		const float fDelay = StringToFloat(vs2[2]);
+		const auto fBeat = RowToBeat(vs2[0], rowsPerBeat);
+		const auto fRatio = StringToFloat(vs2[1]);
+		const auto fDelay = StringToFloat(vs2[2]);
 
 		// XXX: ugly...
-		int iUnit = StringToInt(vs2[3]);
-		SpeedSegment::BaseUnit unit =
+		auto iUnit = StringToInt(vs2[3]);
+		auto unit =
 		  (iUnit == 0) ? SpeedSegment::UNIT_BEATS : SpeedSegment::UNIT_SECONDS;
 
 		if (fBeat < 0) {
@@ -926,34 +927,34 @@ SMLoader::ProcessSpeeds(TimingData& out,
 
 void
 SMLoader::ProcessFakes(TimingData& out,
-					   const RString& line,
+					   const std::string& line,
 					   const int rowsPerBeat)
 {
 	ProcessFakes(out, line, this->GetSongTitle(), rowsPerBeat);
 }
 void
 SMLoader::ProcessFakes(TimingData& out,
-					   const RString& line,
+					   const std::string& line,
 					   const string& songname,
 					   const int rowsPerBeat)
 {
-	vector<RString> arrayFakeExpressions;
+	vector<std::string> arrayFakeExpressions;
 	split(line, ",", arrayFakeExpressions);
 
-	for (unsigned b = 0; b < arrayFakeExpressions.size(); b++) {
-		vector<RString> arrayFakeValues;
-		split(arrayFakeExpressions[b], "=", arrayFakeValues);
+	for (auto& arrayFakeExpression : arrayFakeExpressions) {
+		vector<std::string> arrayFakeValues;
+		split(arrayFakeExpression, "=", arrayFakeValues);
 		if (arrayFakeValues.size() != 2) {
 			LOG->UserLog("Song file",
 						 songname,
 						 "has an invalid #FAKES value \"%s\" (must have "
 						 "exactly one '='), ignored.",
-						 arrayFakeExpressions[b].c_str());
+						 arrayFakeExpression.c_str());
 			continue;
 		}
 
-		const float fBeat = RowToBeat(arrayFakeValues[0], rowsPerBeat);
-		const float fSkippedBeats = StringToFloat(arrayFakeValues[1]);
+		const auto fBeat = RowToBeat(arrayFakeValues[0], rowsPerBeat);
+		const auto fSkippedBeats = StringToFloat(arrayFakeValues[1]);
 
 		if (fSkippedBeats > 0)
 			out.AddSegment(FakeSegment(BeatToNoteRow(fBeat), fSkippedBeats));
@@ -969,19 +970,20 @@ SMLoader::ProcessFakes(TimingData& out,
 
 bool
 SMLoader::LoadFromBGChangesString(BackgroundChange& change,
-								  const RString& sBGChangeExpression)
+								  const std::string& sBGChangeExpression)
 {
-	vector<RString> aBGChangeValues;
+	vector<std::string> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
-	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
+	aBGChangeValues.resize(
+	  std::min(static_cast<int>(aBGChangeValues.size()), 11));
 
-	RString aaa;
+	std::string aaa;
 	switch (aBGChangeValues.size()) {
 		case 11:
 			change.m_def.m_sColor2 = aBGChangeValues[10];
 			aaa = change.m_def.m_sColor2;
-			aaa.Replace('^', ',');
+			s_replace(aaa, "^", ",");
 			change.m_def.m_sColor2 = aaa;
 			change.m_def.m_sColor2 =
 			  RageColor::NormalizeColorString(change.m_def.m_sColor2);
@@ -989,7 +991,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 		case 10:
 			change.m_def.m_sColor1 = aBGChangeValues[9];
 			aaa = change.m_def.m_sColor1;
-			aaa.Replace('^', ',');
+			s_replace(aaa, "^", ",");
 			change.m_def.m_sColor1 = aaa;
 			change.m_def.m_sColor1 =
 			  RageColor::NormalizeColorString(change.m_def.m_sColor1);
@@ -998,8 +1000,8 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			change.m_sTransition = aBGChangeValues[8];
 			// fall through
 		case 8: {
-			RString tmp = aBGChangeValues[7];
-			tmp.MakeLower();
+			auto tmp = make_lower(aBGChangeValues[7]);
+
 			if ((tmp.find(".ini") != string::npos ||
 				 tmp.find(".xml") != string::npos)) {
 				return false;
@@ -1014,7 +1016,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			// param 7 overrides this.
 			// Backward compatibility:
 			if (change.m_def.m_sEffect.empty()) {
-				bool bLoop = StringToInt(aBGChangeValues[5]) != 0;
+				auto bLoop = StringToInt(aBGChangeValues[5]) != 0;
 				if (!bLoop)
 					change.m_def.m_sEffect = SBE_StretchNoLoop;
 			}
@@ -1023,7 +1025,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			// param 7 overrides this.
 			// Backward compatibility:
 			if (change.m_def.m_sEffect.empty()) {
-				bool bRewindMovie = StringToInt(aBGChangeValues[4]) != 0;
+				auto bRewindMovie = StringToInt(aBGChangeValues[4]) != 0;
 				if (bRewindMovie)
 					change.m_def.m_sEffect = SBE_StretchRewind;
 			}
@@ -1039,8 +1041,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 			change.m_fRate = StringToFloat(aBGChangeValues[2]);
 			// fall through
 		case 2: {
-			RString tmp = aBGChangeValues[1];
-			tmp.MakeLower();
+			auto tmp = make_lower(aBGChangeValues[1]);
 			if ((tmp.find(".ini") != string::npos ||
 				 tmp.find(".xml") != string::npos)) {
 				return false;
@@ -1057,7 +1058,7 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 }
 
 bool
-SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
+SMLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	MsdFile msd;
 	if (!msd.ReadFile(path, true)) // unescape
@@ -1068,9 +1069,8 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 	}
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		const auto& sParams = msd.GetValue(i);
+		std::string sValueName = make_upper(sParams[0]);
 
 		// The only tag we care about is the #NOTES tag.
 		if (sValueName == "NOTES" || sValueName == "NOTES2") {
@@ -1083,32 +1083,32 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 				continue;
 			}
 
-			RString stepsType = sParams[1];
-			RString description = sParams[2];
-			RString difficulty = sParams[3];
+			std::string stepsType = sParams[1];
+			std::string description = sParams[2];
+			std::string difficulty = sParams[3];
 
 			// HACK?: If this is a .edit fudge the edit difficulty
-			if (path.Right(5).CompareNoCase(".edit") == 0)
+			if (CompareNoCase(tail(path, 5), ".edit") == 0)
 				difficulty = "edit";
 
 			Trim(stepsType);
 			Trim(description);
 			Trim(difficulty);
 			// Remember our old versions.
-			if (difficulty.CompareNoCase("smaniac") == 0) {
+			if (CompareNoCase(difficulty, "smaniac") == 0) {
 				difficulty = "Challenge";
 			}
 
 			/* Handle hacks that originated back when StepMania didn't have
 			 * Difficulty_Challenge. TODO: Remove the need for said hacks. */
-			if (difficulty.CompareNoCase("hard") == 0) {
+			if (CompareNoCase(difficulty, "hard") == 0) {
 				/* HACK: Both SMANIAC and CHALLENGE used to be Difficulty_Hard.
 				 * They were differentiated via aspecial description.
 				 * Account for the rogue charts that do this. */
 				// HACK: SMANIAC used to be Difficulty_Hard with a special
 				// description.
-				if (description.CompareNoCase("smaniac") == 0 ||
-					description.CompareNoCase("challenge") == 0)
+				if (CompareNoCase(description, "smaniac") == 0 ||
+					CompareNoCase(description, "challenge") == 0)
 					difficulty = "Challenge";
 			}
 
@@ -1120,13 +1120,13 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 				if (out.IsDupeDiff()) {
 					// for duplicate difficulties, check by chartkey.
 					// not aware of a case where chartkey is not filled here.
-					RString noteData = sParams[6];
+					std::string noteData = sParams[6];
 					Trim(noteData);
 					Steps tmp(out.m_pSong);
 					tmp.m_Timing = out.m_Timing;
 					tmp.m_StepsType = out.m_StepsType;
 					tmp.SetSMNoteData(noteData);
-					NoteData tnd = tmp.GetNoteData();
+					auto tnd = tmp.GetNoteData();
 					tnd.LogNonEmptyRows(&tmp.m_Timing);
 
 					auto ck = tmp.GenerateChartKey(tnd, tmp.GetTimingData());
@@ -1136,7 +1136,7 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 					continue;
 			}
 
-			RString noteData = sParams[6];
+			std::string noteData = sParams[6];
 			Trim(noteData);
 			out.SetSMNoteData(noteData);
 			out.TidyUpData();
@@ -1147,7 +1147,7 @@ SMLoader::LoadNoteDataFromSimfile(const RString& path, Steps& out)
 }
 
 bool
-SMLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
+SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 {
 	// LOG->Trace( "Song::LoadFromSMFile(%s)", sPath.c_str() );
 
@@ -1166,19 +1166,17 @@ SMLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		const auto& sParams = msd.GetValue(i);
+		std::string sValueName = make_upper(sParams[0]);
 
 		reused_song_info.params = &sParams;
-		song_handler_map_t::iterator handler =
-		  sm_parser_helper.song_tag_handlers.find(sValueName);
+		auto handler = sm_parser_helper.song_tag_handlers.find(sValueName);
 		if (handler != sm_parser_helper.song_tag_handlers.end()) {
 			/* Don't use GetMainAndSubTitlesFromFullTitle; that's only for
 			 * heuristically splitting other formats that *don't* natively
 			 * support #SUBTITLE. */
 			handler->second(reused_song_info);
-		} else if (sValueName.Left(strlen("BGCHANGES")) == "BGCHANGES") {
+		} else if (head(sValueName, 9) == "BGCHANGES") {
 			SMSetBGChanges(reused_song_info);
 		} else if (sValueName == "NOTES" || sValueName == "NOTES2") {
 			if (iNumParams < 7) {
@@ -1190,12 +1188,12 @@ SMLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 				continue;
 			}
 
-			Steps* pNewNotes = out.CreateSteps();
+			auto pNewNotes = out.CreateSteps();
 			LoadFromTokens(sParams[1],
 						   sParams[2],
 						   sParams[3],
 						   sParams[4],
-						   sParams[5],
+						   /*sParams[5],*/ // radar values
 						   sParams[6],
 						   *pNewNotes);
 
@@ -1218,7 +1216,7 @@ SMLoader::LoadFromSimfile(const RString& sPath, Song& out, bool bFromCache)
 }
 
 bool
-SMLoader::LoadEditFromFile(const RString& sEditFilePath,
+SMLoader::LoadEditFromFile(const std::string& sEditFilePath,
 						   ProfileSlot slot,
 						   bool bAddStepsToSong,
 						   Song* givenSong /* =NULL */)
@@ -1248,8 +1246,8 @@ SMLoader::LoadEditFromFile(const RString& sEditFilePath,
 }
 
 bool
-SMLoader::LoadEditFromBuffer(const RString& sBuffer,
-							 const RString& sEditFilePath,
+SMLoader::LoadEditFromBuffer(const std::string& sBuffer,
+							 const std::string& sEditFilePath,
 							 ProfileSlot slot,
 							 Song* givenSong)
 {
@@ -1260,18 +1258,17 @@ SMLoader::LoadEditFromBuffer(const RString& sBuffer,
 
 bool
 SMLoader::LoadEditFromMsd(const MsdFile& msd,
-						  const RString& sEditFilePath,
+						  const std::string& sEditFilePath,
 						  ProfileSlot slot,
 						  bool bAddStepsToSong,
 						  Song* givenSong /* =NULL */)
 {
-	Song* pSong = givenSong;
+	auto pSong = givenSong;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		const auto& sParams = msd.GetValue(i);
+		std::string sValueName = make_upper(sParams[0]);
 
 		// handle the data
 		if (sValueName == "SONG") {
@@ -1283,32 +1280,22 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 				continue;
 			}
 
-			RString sSongFullTitle = sParams[1];
+			std::string sSongFullTitle = sParams[1];
 			this->SetSongTitle(sParams[1]);
-			sSongFullTitle.Replace('\\', '/');
+			s_replace(sSongFullTitle, "\\", "/");
 
 			pSong = SONGMAN->FindSong(sSongFullTitle);
-			if (pSong == NULL) {
+			if (pSong == nullptr) {
 				LOG->UserLog("Edit file",
 							 sEditFilePath,
 							 "requires a song \"%s\" that isn't present.",
 							 sSongFullTitle.c_str());
 				return false;
 			}
-
-			if (pSong->GetNumStepsLoadedFromProfile(slot) >=
-				MAX_EDITS_PER_SONG_PER_PROFILE) {
-				LOG->UserLog("Song file",
-							 sSongFullTitle,
-							 "already has the maximum number of edits allowed "
-							 "for ProfileSlotP%d.",
-							 slot + 1);
-				return false;
-			}
 		}
 
 		else if (sValueName == "NOTES") {
-			if (pSong == NULL) {
+			if (pSong == nullptr) {
 				LOG->UserLog("Edit file",
 							 sEditFilePath,
 							 "doesn't have a #SONG tag preceeding the first "
@@ -1329,12 +1316,12 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 			if (!bAddStepsToSong)
 				return true;
 
-			Steps* pNewNotes = pSong->CreateSteps();
+			auto pNewNotes = pSong->CreateSteps();
 			LoadFromTokens(sParams[1],
 						   sParams[2],
 						   sParams[3],
 						   sParams[4],
-						   sParams[5],
+						   /*sParams[5],*/ // radar values
 						   sParams[6],
 						   *pNewNotes);
 
@@ -1384,15 +1371,14 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 	 * have to add an explicit song BG tag if they want it.  This is really a
 	 * formatting hack only; nothing outside of SMLoader ever sees "-nosongbg-".
 	 */
-	vector<BackgroundChange>& bg =
-	  song.GetBackgroundChanges(BACKGROUND_LAYER_1);
+	auto& bg = song.GetBackgroundChanges(BACKGROUND_LAYER_1);
 	if (!bg.empty()) {
 		/* BGChanges have been sorted. On the odd chance that a BGChange exists
 		 * with a very high beat, search the whole list. */
-		bool bHasNoSongBgTag = false;
+		auto bHasNoSongBgTag = false;
 
 		for (unsigned i = 0; !bHasNoSongBgTag && i < bg.size(); ++i) {
-			if (!CompareNoCaseLUL(bg[i].m_def.m_sFile1, NO_SONG_BG_FILE)) {
+			if (!CompareNoCase(bg[i].m_def.m_sFile1, NO_SONG_BG_FILE)) {
 				bg.erase(bg.begin() + i);
 				bHasNoSongBgTag = true;
 			}
@@ -1407,7 +1393,7 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 				if (bFromCache)
 					break;
 
-				float lastBeat = song.GetLastBeat();
+				auto lastBeat = song.GetLastBeat();
 				/* If BGChanges already exist after the last beat, don't add the
 				 * background in the middle. */
 				if (!bg.empty() && bg.back().m_fStartBeat - 0.0001f >= lastBeat)
@@ -1415,9 +1401,8 @@ SMLoader::TidyUpData(Song& song, bool bFromCache)
 
 				// If the last BGA is already the song BGA, don't add a
 				// duplicate.
-				if (!bg.empty() &&
-					!StdString::ssicmp(bg.back().m_def.m_sFile1.c_str(),
-									   song.m_sBackgroundFile.c_str()))
+				if (!bg.empty() && !ssicmp(bg.back().m_def.m_sFile1.c_str(),
+										   song.m_sBackgroundFile.c_str()))
 					break;
 
 				if (!IsAFile(song.GetBackgroundPath()))

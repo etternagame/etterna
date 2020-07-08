@@ -1,4 +1,3 @@
-#include "Etterna/Globals/global.h"
 #include "GamePreferences.h"
 
 // This options has weird interactions depending on m_bEventMode;

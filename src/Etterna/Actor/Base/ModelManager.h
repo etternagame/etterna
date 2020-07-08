@@ -1,4 +1,4 @@
-﻿#ifndef MODEL_MANAGER_H
+#ifndef MODEL_MANAGER_H
 #define MODEL_MANAGER_H
 
 #include "RageUtil/Graphics/RageModelGeometry.h"
@@ -15,7 +15,7 @@ struct ModelManagerPrefs
 		m_bDelayedUnload = bDelayedUnload;
 	}
 
-	bool operator!=(const ModelManagerPrefs& rhs)
+	bool operator!=(const ModelManagerPrefs& rhs) const
 	{
 		return m_bDelayedUnload != rhs.m_bDelayedUnload;
 	}
@@ -30,7 +30,7 @@ class ModelManager
 	ModelManager();
 	~ModelManager();
 
-	RageModelGeometry* LoadMilkshapeAscii(const RString& sFile,
+	RageModelGeometry* LoadMilkshapeAscii(const std::string& sFile,
 										  bool bNeedNormals);
 	void UnloadModel(RageModelGeometry* m);
 	//	void ReloadAll();
@@ -40,10 +40,10 @@ class ModelManager
 	 * @param prefs the new preferences to set up.
 	 * @return true if the display needs to be reset, false otherwise. */
 	bool SetPrefs(const ModelManagerPrefs& prefs);
-	const ModelManagerPrefs& GetPrefs() { return m_Prefs; }
+	[[nodiscard]] const ModelManagerPrefs& GetPrefs() const { return m_Prefs; }
 
   protected:
-	std::map<RString, RageModelGeometry*> m_mapFileToGeometry;
+	std::map<std::string, RageModelGeometry*> m_mapFileToGeometry;
 
 	ModelManagerPrefs m_Prefs;
 };

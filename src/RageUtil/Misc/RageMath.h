@@ -95,17 +95,17 @@ RageQuatSlerp(struct RageVector4* pOut,
 			  const struct RageVector4& from,
 			  const RageVector4& to,
 			  float t);
-struct RageVector4
-RageQuatFromH(float theta);
-struct RageVector4
-RageQuatFromP(float theta);
-struct RageVector4
-RageQuatFromR(float theta);
+auto
+RageQuatFromH(float theta) -> struct RageVector4;
+auto
+RageQuatFromP(float theta) -> struct RageVector4;
+auto
+RageQuatFromR(float theta) -> struct RageVector4;
 void
 RageQuatMultiply(struct RageVector4* pOut,
 				 const struct RageVector4& pA,
 				 const RageVector4& pB);
-struct RageMatrix
+auto
 RageLookAt(float eyex,
 		   float eyey,
 		   float eyez,
@@ -114,16 +114,16 @@ RageLookAt(float eyex,
 		   float centerz,
 		   float upx,
 		   float upy,
-		   float upz);
+		   float upz) -> struct RageMatrix;
 void
 RageMatrixAngles(struct RageMatrix* pOut, const struct RageVector3& angles);
 void
 RageMatrixTranspose(struct RageMatrix* pOut, const struct RageMatrix* pIn);
 
-float
-RageFastSin(float x) CONST_FUNCTION;
-float
-RageFastCos(float x) CONST_FUNCTION;
+auto
+RageFastSin(float x) -> float CONST_FUNCTION;
+auto
+RageFastCos(float x) -> float CONST_FUNCTION;
 
 class RageQuadratic
 {
@@ -133,12 +133,15 @@ class RageQuadratic
 
 	void SetFromCubic(float fX1, float fX2, float fX3, float fX4);
 
-	float Evaluate(float fT) const;
-	float GetSlope(float fT) const;
+	[[nodiscard]] auto Evaluate(float fT) const -> float;
+	[[nodiscard]] auto GetSlope(float fT) const -> float;
 
 	/* Equivalent to Evaluate(0.0f) and Evaluate(1.0f), but faster: */
-	float GetBezierStart() const { return m_fD; }
-	float GetBezierEnd() const { return m_fA + m_fB + m_fC + m_fD; }
+	[[nodiscard]] auto GetBezierStart() const -> float { return m_fD; }
+	[[nodiscard]] auto GetBezierEnd() const -> float
+	{
+		return m_fA + m_fB + m_fC + m_fD;
+	}
 
 	void PushSelf(lua_State* L);
 
@@ -159,10 +162,10 @@ class RageBezier2D
 					   float fC4Y);
 
 	void Evaluate(float fT, float* pX, float* pY) const;
-	float EvaluateYFromX(float fX) const;
+	[[nodiscard]] auto EvaluateYFromX(float fX) const -> float;
 
-	RageQuadratic& get_x() { return m_X; }
-	RageQuadratic& get_y() { return m_Y; }
+	auto get_x() -> RageQuadratic& { return m_X; }
+	auto get_y() -> RageQuadratic& { return m_Y; }
 	void PushSelf(lua_State* L);
 
   private:

@@ -1,8 +1,11 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RandomSample.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
 
 RandomSample::RandomSample()
 {
@@ -15,33 +18,31 @@ RandomSample::~RandomSample()
 }
 
 bool
-RandomSample::Load(const RString& sFilePath, int iMaxToLoad)
+RandomSample::Load(const std::string& sFilePath, int iMaxToLoad)
 {
-	if (GetExtension(sFilePath) == "")
+	if (GetExtension(sFilePath).empty())
 		return LoadSoundDir(sFilePath, iMaxToLoad);
-	else
-		return LoadSound(sFilePath);
+	return LoadSound(sFilePath);
 }
 
 void
 RandomSample::UnloadAll()
 {
-	for (unsigned i = 0; i < m_pSamples.size(); i++)
-		delete m_pSamples[i];
+	for (auto& m_pSample : m_pSamples)
+		delete m_pSample;
 	m_pSamples.clear();
 }
 
 bool
-RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
+RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 {
-	if (sDir == "")
+	if (sDir.empty())
 		return true;
 
 	// make sure there's a slash at the end of this path
-	if (sDir.Right(1) != "/")
-		sDir += "/";
+	ensure_slash_at_end(sDir);
 
-	vector<RString> arraySoundFiles;
+	std::vector<std::string> arraySoundFiles;
 	GetDirListing(sDir + "*.mp3", arraySoundFiles);
 	GetDirListing(sDir + "*.oga", arraySoundFiles);
 	GetDirListing(sDir + "*.ogg", arraySoundFiles);
@@ -49,16 +50,17 @@ RandomSample::LoadSoundDir(RString sDir, int iMaxToLoad)
 
 	std::shuffle(
 	  arraySoundFiles.begin(), arraySoundFiles.end(), g_RandomNumberGenerator);
-	arraySoundFiles.resize(min(arraySoundFiles.size(), (unsigned)iMaxToLoad));
+	arraySoundFiles.resize(
+	  std::min(arraySoundFiles.size(), static_cast<size_t>(iMaxToLoad)));
 
-	for (unsigned i = 0; i < arraySoundFiles.size(); i++)
-		LoadSound(sDir + arraySoundFiles[i]);
+	for (auto& arraySoundFile : arraySoundFiles)
+		LoadSound(sDir + arraySoundFile);
 
 	return true;
 }
 
 bool
-RandomSample::LoadSound(const RString& sSoundFilePath)
+RandomSample::LoadSound(const std::string& sSoundFilePath)
 {
 	LOG->Trace("RandomSample::LoadSound( %s )", sSoundFilePath.c_str());
 
@@ -83,8 +85,8 @@ RandomSample::GetNextToPlay()
 	if (m_pSamples.empty())
 		return -1;
 
-	int iIndexToPlay = 0;
-	for (int i = 0; i < 5; i++) {
+	auto iIndexToPlay = 0;
+	for (auto i = 0; i < 5; i++) {
 		iIndexToPlay = RandomInt(m_pSamples.size());
 		if (iIndexToPlay != m_iIndexLastPlayed)
 			break;
@@ -97,7 +99,7 @@ RandomSample::GetNextToPlay()
 void
 RandomSample::PlayRandom()
 {
-	int iIndexToPlay = GetNextToPlay();
+	const auto iIndexToPlay = GetNextToPlay();
 	if (iIndexToPlay == -1)
 		return;
 	m_pSamples[iIndexToPlay]->Play(true);
@@ -106,7 +108,7 @@ RandomSample::PlayRandom()
 void
 RandomSample::PlayCopyOfRandom()
 {
-	int iIndexToPlay = GetNextToPlay();
+	const auto iIndexToPlay = GetNextToPlay();
 	if (iIndexToPlay == -1)
 		return;
 	m_pSamples[iIndexToPlay]->PlayCopy(true);

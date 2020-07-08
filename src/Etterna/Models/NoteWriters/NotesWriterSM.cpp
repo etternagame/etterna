@@ -11,6 +11,10 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
+#include <map>
+
+using std::map;
+
 ThemeMetric<bool> USE_CREDIT("NotesWriterSM", "DescriptionUsesCreditField");
 
 /**
@@ -119,7 +123,8 @@ WriteGlobalTags(RageFile& f, Song& out)
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fs->GetPause();
 		} else {
-			allPauses.insert(pair<float, float>(fs->GetBeat(), fs->GetPause()));
+			allPauses.insert(
+			  std::pair<float, float>(fs->GetBeat(), fs->GetPause()));
 		}
 	}
 	// Delays can't be negative: thus, no effect.
@@ -131,7 +136,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 		if (already_exists != allPauses.end()) {
 			already_exists->second += fPause;
 		} else {
-			allPauses.insert(pair<float, float>(fBeat, fPause));
+			allPauses.insert(std::pair<float, float>(fBeat, fPause));
 		}
 	}
 
@@ -237,7 +242,7 @@ GetSMNotesTag(const Song& song, const Steps& in)
 	}
 	lines.push_back(ssprintf("     %s:", join(",", asRadarValues).c_str()));
 
-	RString sNoteData;
+	std::string sNoteData;
 	in.GetSMNoteData(sNoteData);
 
 	split(sNoteData, "\n", lines, true);
@@ -301,7 +306,7 @@ NotesWriterSM::GetEditFileName(const Song* pSong, const Steps* pSteps)
 	/* Try to make a unique name. This isn't guaranteed. Edit descriptions are
 	 * case-sensitive, filenames on disk are usually not, and we decimate
 	 * certain characters for FAT filesystems. */
-	RString sFile =
+	std::string sFile =
 	  pSong->GetTranslitFullTitle() + " - " + pSteps->GetDescription();
 
 	// HACK:

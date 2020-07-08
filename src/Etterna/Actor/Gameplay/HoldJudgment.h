@@ -10,7 +10,7 @@ class HoldJudgment : public ActorFrame
 {
   public:
 	HoldJudgment();
-	HoldJudgment* Copy() const override;
+	[[nodiscard]] auto Copy() const -> HoldJudgment* override;
 	void Load(const std::string& sPath);
 	void LoadFromNode(const XNode* pNode) override;
 

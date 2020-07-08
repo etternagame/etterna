@@ -11,6 +11,12 @@
 #include "arch/ArchHooks/ArchHooks.h"
 
 #include <Tracy.hpp>
+#include <tuple>
+#include <algorithm>
+#include <functional>
+
+using std::make_tuple;
+using std::tuple;
 
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")
 #define PREV_SCREEN THEME->GetMetric(m_sName, "PrevScreen")
@@ -64,23 +70,23 @@ Screen::Init()
 
 	PlayCommandNoRecurse(Message("Init"));
 
-	vector<RString> asList;
+	vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
-	for (unsigned i = 0; i < asList.size(); ++i) {
+	for (auto& i : asList) {
 		LOG->Trace(
-		  "Screen \"%s\" preparing \"%s\"", m_sName.c_str(), asList[i].c_str());
-		SCREENMAN->PrepareScreen(asList[i]);
+		  "Screen \"%s\" preparing \"%s\"", m_sName.c_str(), i.c_str());
+		SCREENMAN->PrepareScreen(i);
 	}
 
 	asList.clear();
 	split(GROUPED_SCREENS, ",", asList);
-	for (unsigned i = 0; i < asList.size(); ++i)
-		SCREENMAN->GroupScreen(asList[i]);
+	for (auto& i : asList)
+		SCREENMAN->GroupScreen(i);
 
 	asList.clear();
 	split(PERSIST_SCREENS, ",", asList);
-	for (unsigned i = 0; i < asList.size(); ++i)
-		SCREENMAN->PersistantScreen(asList[i]);
+	for (auto& i : asList)
+		SCREENMAN->PersistantScreen(i);
 }
 
 void
@@ -92,7 +98,7 @@ Screen::BeginScreen()
 	/* Screens set these when they determine their next screen dynamically.
 	 * Reset them here, so a reused screen doesn't inherit these from the last
 	 * time it was used. */
-	m_sNextScreen = RString();
+	m_sNextScreen = std::string();
 
 	m_fLockInputSecs = 0;
 
@@ -116,33 +122,33 @@ Screen::EndScreen()
 void
 Screen::UpdateTimedFunctions(float fDeltaTime)
 {
-	for (auto it = delayedFunctions.begin(); it != delayedFunctions.end();
-		 ++it) {
-		auto& delayedF = *it;
+	for (auto& delayedF : delayedFunctions) {
 		delayedF.second -= fDeltaTime;
 		if (delayedF.second <= 0) {
 			delayedF.first();
 		}
 	}
 	// Doing this in place did weird things
-	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
-										  delayedFunctions.end(),
-										  [](pair<function<void()>, float>& x) {
-											  return x.second <= 0;
-										  }),
-						   delayedFunctions.end());
+	delayedFunctions.erase(
+	  std::remove_if(delayedFunctions.begin(),
+					 delayedFunctions.end(),
+					 [](std::pair<std::function<void()>, float>& x) {
+						 return x.second <= 0;
+					 }),
+	  delayedFunctions.end());
 	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
 		auto* L = LUA->Get();
 		for (auto id : delayedPeriodicFunctionIdsToDelete) {
 			luaL_unref(L, LUA_REGISTRYINDEX, id);
 			auto& vec = this->delayedPeriodicFunctions;
-			vec.erase(std::remove_if(
-						vec.begin(),
-						vec.end(),
-						[id](tuple<function<void()>, float, float, int>& x) {
-							return std::get<3>(x) == id;
-						}),
-					  vec.end());
+			vec.erase(
+			  std::remove_if(
+				vec.begin(),
+				vec.end(),
+				[id](tuple<std::function<void()>, float, float, int>& x) {
+					return std::get<3>(x) == id;
+				}),
+			  vec.end());
 		}
 		LUA->Release(L);
 		delayedPeriodicFunctionIdsToDelete.clear();
@@ -166,7 +172,7 @@ Screen::Update(float fDeltaTime)
 
 	ActorFrame::Update(fDeltaTime);
 
-	m_fLockInputSecs = max(0, m_fLockInputSecs - fDeltaTime);
+	m_fLockInputSecs = std::max(0.F, m_fLockInputSecs - fDeltaTime);
 
 	/* We need to ensure two things:
 	 * 1. Messages must be sent in the order of delay. If two messages are sent
@@ -181,7 +187,7 @@ Screen::Update(float fDeltaTime)
 				SortMessagesByDelayRemaining);
 
 	// Update the times of queued ScreenMessages.
-	for (unsigned i = 0; i < m_QueuedMessages.size(); i++) {
+	for (auto& m_QueuedMessage : m_QueuedMessages) {
 		/* Hack:
 		 * If we simply subtract time and then send messages, we have a problem.
 		 * Messages are queued to arrive at specific times, and those times line
@@ -192,12 +198,12 @@ Screen::Update(float fDeltaTime)
 		 * new screen, which causes everything to stop in place; this results in
 		 * actors occasionally not quite finishing their tweens. Let's delay all
 		 * messages that have a non-zero time an extra frame. */
-		if (m_QueuedMessages[i].fDelayRemaining > 0.0001f) {
-			m_QueuedMessages[i].fDelayRemaining -= fDeltaTime;
-			m_QueuedMessages[i].fDelayRemaining =
-			  max(m_QueuedMessages[i].fDelayRemaining, 0.0001f);
+		if (m_QueuedMessage.fDelayRemaining > 0.0001f) {
+			m_QueuedMessage.fDelayRemaining -= fDeltaTime;
+			m_QueuedMessage.fDelayRemaining =
+			  std::max(m_QueuedMessage.fDelayRemaining, 0.0001f);
 		} else {
-			m_QueuedMessages[i].fDelayRemaining -= fDeltaTime;
+			m_QueuedMessage.fDelayRemaining -= fDeltaTime;
 		}
 	}
 
@@ -219,7 +225,8 @@ Screen::Update(float fDeltaTime)
 		// send this sucker!
 		CHECKPOINT_M(
 		  ssprintf("ScreenMessage(%s)",
-				   ScreenMessageHelpers::ScreenMessageToString(SM).c_str()));
+				   ScreenMessageHelpers::ScreenMessageToString(SM).c_str())
+			.c_str());
 		this->HandleScreenMessage(SM);
 
 		// If the size changed, start over.
@@ -294,13 +301,13 @@ Screen::Input(const InputEventPlus& input)
 }
 
 void
-Screen::HandleScreenMessage(const ScreenMessage SM)
+Screen::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen || SM == SM_GoToPrevScreen) {
 		if (SCREENMAN->IsStackedScreen(this))
 			SCREENMAN->PopTopScreen(m_smSendOnPop);
 		else {
-			RString ToScreen =
+			std::string ToScreen =
 			  (SM == SM_GoToNextScreen ? GetNextScreenName() : GetPrevScreen());
 			if (ToScreen == "") {
 				LuaHelpers::ReportScriptError(
@@ -319,7 +326,7 @@ Screen::HandleScreenMessage(const ScreenMessage SM)
 	}
 }
 
-RString
+std::string
 Screen::GetNextScreenName() const
 {
 	if (!m_sNextScreen.empty())
@@ -328,18 +335,18 @@ Screen::GetNextScreenName() const
 }
 
 void
-Screen::SetNextScreenName(RString const& name)
+Screen::SetNextScreenName(std::string const& name)
 {
 	m_sNextScreen = name;
 }
 
 void
-Screen::SetPrevScreenName(RString const& name)
+Screen::SetPrevScreenName(std::string const& name)
 {
 	m_sPrevScreen = name;
 }
 
-RString
+std::string
 Screen::GetPrevScreen() const
 {
 	if (!m_sPrevScreen.empty())
@@ -348,7 +355,7 @@ Screen::GetPrevScreen() const
 }
 
 void
-Screen::PostScreenMessage(const ScreenMessage SM, float fDelay)
+Screen::PostScreenMessage(const ScreenMessage& SM, float fDelay)
 {
 	ASSERT(fDelay >= 0.0);
 
@@ -365,7 +372,7 @@ Screen::ClearMessageQueue()
 }
 
 void
-Screen::ClearMessageQueue(const ScreenMessage SM)
+Screen::ClearMessageQueue(const ScreenMessage& SM)
 {
 	for (int i = m_QueuedMessages.size() - 1; i >= 0; i--)
 		if (m_QueuedMessages[i].SM == SM)
@@ -419,7 +426,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "type");
 	char s[5];
 	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
-	LuaHelpers::Push(L, string(1, s[0]));
+	LuaHelpers::Push(L, std::string(1, s[0]));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(
 	  L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
@@ -433,7 +440,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 			break;
 		m_InputCallbacks[k].PushSelf(L);
 		lua_pushvalue(L, -2);
-		RString error = "Error running input callback: ";
+		std::string error = "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);
 		handled = lua_toboolean(L, -1);
 		lua_pop(L, 1);
@@ -442,25 +449,22 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	LUA->Release(L);
 	m_CallingInputCallbacks = false;
 	if (!m_DelayedCallbackRemovals.empty()) {
-		for (vector<callback_key_t>::iterator key =
-			   m_DelayedCallbackRemovals.begin();
-			 key != m_DelayedCallbackRemovals.end();
-			 ++key) {
-			InternalRemoveCallback(*key);
+		for (auto& m_DelayedCallbackRemoval : m_DelayedCallbackRemovals) {
+			InternalRemoveCallback(m_DelayedCallbackRemoval);
 		}
 	}
 	return handled;
 }
 
 void
-Screen::SetTimeout(function<void()> f, float ms)
+Screen::SetTimeout(const std::function<void()>& f, float ms)
 {
 	delayedFunctions.emplace_back(make_pair(f, ms));
 	return;
 }
 
 void
-Screen::SetInterval(function<void()> f, float ms, int id)
+Screen::SetInterval(const std::function<void()>& f, float ms, int id)
 {
 	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
 	return;
@@ -488,7 +492,7 @@ Screen::RemoveInputCallback(lua_State* L)
 void
 Screen::InternalRemoveCallback(callback_key_t key)
 {
-	map<callback_key_t, LuaReference>::iterator iter =
+	std::map<callback_key_t, LuaReference>::iterator iter =
 	  m_InputCallbacks.find(key);
 	if (iter != m_InputCallbacks.end()) {
 		m_InputCallbacks.erase(iter);
@@ -504,7 +508,7 @@ class LunaScreen : public Luna<Screen>
   public:
 	static int GetNextScreenName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetNextScreenName());
+		lua_pushstring(L, p->GetNextScreenName().c_str());
 		return 1;
 	}
 	static int SetNextScreenName(T* p, lua_State* L)
@@ -514,7 +518,7 @@ class LunaScreen : public Luna<Screen>
 	}
 	static int GetPrevScreenName(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetPrevScreen());
+		lua_pushstring(L, p->GetPrevScreen().c_str());
 		return 1;
 	}
 	static int SetPrevScreenName(T* p, lua_State* L)
@@ -531,7 +535,7 @@ class LunaScreen : public Luna<Screen>
 
 	static int PostScreenMessage(T* p, lua_State* L)
 	{
-		RString sMessage = SArg(1);
+		std::string sMessage = SArg(1);
 		ScreenMessage SM = ScreenMessageHelpers::ToScreenMessage(sMessage);
 		p->PostScreenMessage(SM, static_cast<float>(IArg(2)));
 		COMMON_RETURN_SELF;
@@ -561,7 +565,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			f.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
-				RString Error =
+				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 1 args, 0 results
@@ -579,7 +583,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			lua_rawgeti(L, LUA_REGISTRYINDEX, f);
 			if (!lua_isnil(L, -1)) {
-				RString Error =
+				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 0 args, 0 results
@@ -594,16 +598,17 @@ class LunaScreen : public Luna<Screen>
 	{
 		int r = IArg(1);
 		auto& vec = p->delayedPeriodicFunctions;
-		auto it = find_if(vec.begin(),
-						  vec.end(),
-						  [r](tuple<function<void()>, float, float, int>& x) {
-							  return std::get<3>(x) == r;
-						  });
+		auto it =
+		  find_if(vec.begin(),
+				  vec.end(),
+				  [r](tuple<std::function<void()>, float, float, int>& x) {
+					  return std::get<3>(x) == r;
+				  });
 		if (it != vec.end()) {
 			p->delayedPeriodicFunctionIdsToDelete.emplace_back(r);
 		} else {
 			LuaHelpers::ReportScriptError(
-			  "Interval function not found (When triying to clearInterval() )");
+			  "Interval function not found (When trying to clearInterval() )");
 		}
 		return 0;
 	}

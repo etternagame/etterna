@@ -15,7 +15,7 @@ class LoadingWindow_Win32 : public LoadingWindow
 
 	void Paint();
 	void InternalPaint();
-	void SetText(const RString& sText);
+	void SetText(const std::string& sText);
 	void SetTextInternal();
 	void SetIcon(const RageSurface* pIcon);
 	void SetSplash(const RageSurface* pSplash);
@@ -29,8 +29,8 @@ class LoadingWindow_Win32 : public LoadingWindow
 	HICON m_hIcon;
 	HFONT f;
 	LOGFONT lf;
-	string progress;
-	RString lastText;
+	std::string progress;
+	std::string lastText;
 
 	HGDIOBJ bitMapBG;
 	HDC hdcBG;

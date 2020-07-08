@@ -51,35 +51,35 @@ RageDisplay_Null::RageDisplay_Null()
 	LOG->MapLog("renderer", "Current renderer: null");
 }
 
-RString
+std::string
 RageDisplay_Null::Init(const VideoModeParams& p,
 					   bool /* bAllowUnacceleratedRenderer */)
 {
-	bool bIgnore = false;
+	auto bIgnore = false;
 	SetVideoMode(p, bIgnore);
-	return RString();
+	return std::string();
 }
 
 void
 RageDisplay_Null::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-	DisplayMode nullMode = { 640U, 480U, 30.0 };
-	DisplaySpec nullSpec("NullDisplay", "NullDisplay", nullMode);
+	const DisplayMode nullMode = { 640U, 480U, 30.0 };
+	const DisplaySpec nullSpec("NullDisplay", "NullDisplay", nullMode);
 	out.insert(nullSpec);
 }
 
 RageSurface*
 RageDisplay_Null::CreateScreenshot()
 {
-	const RagePixelFormatDesc& desc = PIXEL_FORMAT_DESC[RagePixelFormat_RGB8];
-	RageSurface* image = CreateSurface(640,
-									   480,
-									   desc.bpp,
-									   desc.masks[0],
-									   desc.masks[1],
-									   desc.masks[2],
-									   desc.masks[3]);
+	const auto& desc = PIXEL_FORMAT_DESC[RagePixelFormat_RGB8];
+	const auto image = CreateSurface(640,
+									 480,
+									 desc.bpp,
+									 desc.masks[0],
+									 desc.masks[1],
+									 desc.masks[2],
+									 desc.masks[3]);
 
 	memset(image->pixels, 0, 480 * image->pitch);
 

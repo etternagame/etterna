@@ -14,18 +14,18 @@ class OptionRowHandler;
 class GameCommand;
 struct OptionRowDefinition;
 
-RString
+std::string
 ITEMS_LONG_ROW_X_NAME(size_t p);
-RString
+std::string
 MOD_ICON_X_NAME(size_t p);
 
 class OptionRowType
 {
   public:
-	void Load(const RString& sMetricsGroup, Actor* pParent);
+	void Load(const std::string& sMetricsGroup, Actor* pParent);
 
   private:
-	RString m_sMetricsGroup;
+	std::string m_sMetricsGroup;
 
 	BitmapText m_textItem;
 	OptionsCursor m_Underline;
@@ -47,7 +47,7 @@ class OptionRowType
 	ThemeMetric<bool> SHOW_BPM_IN_SPEED_TITLE;
 	ThemeMetric<bool> SHOW_MOD_ICONS;
 	ThemeMetric<bool> SHOW_UNDERLINES;
-	ThemeMetric<RString> MOD_ICON_METRICS_GROUP;
+	ThemeMetric<std::string> MOD_ICON_METRICS_GROUP;
 
 	friend class OptionRow;
 };
@@ -62,7 +62,7 @@ class OptionRow : public ActorFrame
 	void LoadNormal(OptionRowHandler* pHand, bool bFirstItemGoesDown);
 	void LoadExit();
 
-	void SetModIcon(PlayerNumber pn, const RString& sText, GameCommand& gc);
+	void SetModIcon(PlayerNumber pn, const std::string& sText, GameCommand& gc);
 
 	void ImportOptions(const PlayerNumber& vpns);
 	int ExportOptions(const PlayerNumber& vpns, bool bRowHasFocus);
@@ -76,7 +76,7 @@ class OptionRow : public ActorFrame
 	void InitText(RowType type);
 	void AfterImportOptions(PlayerNumber pn);
 
-	RString GetRowTitle() const;
+	std::string GetRowTitle() const;
 
 	void ChoicesChanged(RowType type, bool reset_focus = true);
 	void PositionUnderlines(PlayerNumber pn);
@@ -90,7 +90,7 @@ class OptionRow : public ActorFrame
 	int GetOneSharedSelection(bool bAllowFail = false) const;
 	void SetOneSelection(PlayerNumber pn, int iChoice);
 	void SetOneSharedSelection(int iChoice);
-	void SetOneSharedSelectionIfPresent(const RString& sChoice);
+	void SetOneSharedSelectionIfPresent(const std::string& sChoice);
 
 	int GetChoiceInRowWithFocus() const;
 	int GetChoiceInRowWithFocusShared() const;
@@ -122,9 +122,9 @@ class OptionRow : public ActorFrame
 	bool GetFirstItemGoesDown() const { return m_bFirstItemGoesDown; }
 	bool GoToFirstOnStart();
 
-	RString GetThemedItemText(int iChoice) const;
+	std::string GetThemedItemText(int iChoice) const;
 
-	void SetExitText(const RString& sExitText);
+	void SetExitText(const std::string& sExitText);
 
 	void Reload();
 

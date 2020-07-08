@@ -9,6 +9,11 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
+#include <string>
+#include <algorithm>
+
+using std::string;
+
 static void
 HandleBunki(TimingData& timing,
 			const float fEarlyBPM,
@@ -16,8 +21,8 @@ HandleBunki(TimingData& timing,
 			const float fGap,
 			const float fPos)
 {
-	const float BeatsPerSecond = fEarlyBPM / 60.0f;
-	const float beat = (fPos + fGap) * BeatsPerSecond;
+	const auto BeatsPerSecond = fEarlyBPM / 60.0f;
+	const auto beat = (fPos + fGap) * BeatsPerSecond;
 	LOG->Trace("BPM %f, BPS %f, BPMPos %f, beat %f",
 			   fEarlyBPM,
 			   BeatsPerSecond,
@@ -27,7 +32,7 @@ HandleBunki(TimingData& timing,
 }
 
 static bool
-LoadFromKSFFile(const RString& sPath,
+LoadFromKSFFile(const std::string& sPath,
 				Steps& out,
 				Song& song,
 				bool bKIUCompliant)
@@ -43,22 +48,21 @@ LoadFromKSFFile(const RString& sPath,
 	}
 
 	// this is the value we read for TICKCOUNT
-	int iTickCount = -1;
+	auto iTickCount = -1;
 	// used to adapt weird tickcounts
 	// float fScrollRatio = 1.0f; -- uncomment when ready to use.
-	vector<RString> vNoteRows;
+	vector<std::string> vNoteRows;
 
 	// According to Aldo_MX, there is a default BPM and it's 60. -aj
-	bool bDoublesChart = false;
+	auto bDoublesChart = false;
 
 	TimingData stepsTiming;
 	float SMGap1 = 0, SMGap2 = 0, BPM1 = -1, BPMPos2 = -1, BPM2 = -1,
 		  BPMPos3 = -1, BPM3 = -1;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		const auto& sParams = msd.GetValue(i);
+		auto sValueName = make_upper(sParams[0]);
 
 		/* handle the data...well, not this data: not related to steps.
 		 * Skips INTRO, MUSICINTRO, TITLEFILE, DISCFILE, SONGFILE. */
@@ -121,18 +125,17 @@ LoadFromKSFFile(const RString& sPath,
 		}
 
 		else if (sValueName == "DIFFICULTY") {
-			out.SetMeter(max(StringToInt(sParams[1]), 1));
+			out.SetMeter(std::max(StringToInt(sParams[1]), 1));
 		}
 		// new cases from Aldo_MX's fork:
 		else if (sValueName == "PLAYER") {
-			RString sPlayer = sParams[1];
-			sPlayer.MakeLower();
+			auto sPlayer = make_lower(sParams[1]);
 			if (sPlayer.find("double") != string::npos)
 				bDoublesChart = true;
 		}
 		// This should always be last.
 		else if (sValueName == "STEP") {
-			RString theSteps = sParams[1];
+			std::string theSteps = sParams[1];
 			TrimLeft(theSteps);
 			split(theSteps, "\n", vNoteRows, true);
 		}
@@ -160,9 +163,9 @@ LoadFromKSFFile(const RString& sPath,
 	NoteData notedata; // read it into here
 
 	{
-		RString sDir, sFName, sExt;
+		std::string sDir, sFName, sExt;
 		splitpath(sPath, sDir, sFName, sExt);
-		sFName.MakeLower();
+		sFName = make_lower(sFName);
 
 		out.SetDescription(sFName);
 		// Check another before anything else... is this okay? -DaisuMaster
@@ -248,17 +251,16 @@ LoadFromKSFFile(const RString& sPath,
 			FAIL_M(ssprintf("%i", out.m_StepsType));
 	}
 
-	int t = 0;
+	auto t = 0;
 	int iHoldStartRow[13];
 	for (t = 0; t < 13; t++)
 		iHoldStartRow[t] = -1;
 
-	int newTick = -1;
-	float fCurBeat = 0.0f;
-	float prevBeat = 0.0f; // Used for hold tails.
+	auto newTick = -1;
+	auto fCurBeat = 0.0f;
+	auto prevBeat = 0.0f; // Used for hold tails.
 
-	for (unsigned r = 0; r < vNoteRows.size(); r++) {
-		RString& sRowString = vNoteRows[r];
+	for (auto& sRowString : vNoteRows) {
 		StripCrnl(sRowString);
 
 		if (sRowString == "")
@@ -311,26 +313,26 @@ LoadFromKSFFile(const RString& sPath,
 			// I'm making some experiments, please spare me...
 			// continue;
 
-			RString temp = sRowString.substr(2, sRowString.size() - 3);
-			float numTemp = StringToFloat(temp);
+			auto temp = sRowString.substr(2, sRowString.size() - 3);
+			auto numTemp = StringToFloat(temp);
 			if (BeginsWith(sRowString, "|T")) {
 				// duh
 				iTickCount = static_cast<int>(numTemp);
 				// I have been owned by the man -DaisuMaster
 				stepsTiming.SetTickcountAtBeat(
-				  fCurBeat, clamp(iTickCount, 0, ROWS_PER_BEAT));
+				  fCurBeat, std::clamp(iTickCount, 0, ROWS_PER_BEAT));
 			} else if (BeginsWith(sRowString, "|B")) {
 				// BPM
 				stepsTiming.SetBPMAtBeat(fCurBeat, numTemp);
 			} else if (BeginsWith(sRowString, "|E")) {
 				// DelayBeat
-				float fCurDelay = 60 / stepsTiming.GetBPMAtBeat(fCurBeat) *
-								  numTemp / iTickCount;
+				auto fCurDelay = 60 / stepsTiming.GetBPMAtBeat(fCurBeat) *
+								 numTemp / iTickCount;
 				fCurDelay += stepsTiming.GetDelayAtRow(BeatToNoteRow(fCurBeat));
 				stepsTiming.SetDelayAtBeat(fCurBeat, fCurDelay);
 			} else if (BeginsWith(sRowString, "|D")) {
 				// Delays
-				float fCurDelay =
+				auto fCurDelay =
 				  stepsTiming.GetStopAtRow(BeatToNoteRow(fCurBeat));
 				fCurDelay += numTemp / 1000;
 				stepsTiming.SetDelayAtBeat(fCurBeat, fCurDelay);
@@ -345,8 +347,7 @@ LoadFromKSFFile(const RString& sPath,
 				// fakes
 			} else if (BeginsWith(sRowString, "|X")) {
 				// scroll segments
-				ScrollSegment seg =
-				  ScrollSegment(BeatToNoteRow(fCurBeat), numTemp);
+				auto seg = ScrollSegment(BeatToNoteRow(fCurBeat), numTemp);
 				stepsTiming.AddSegment(seg);
 				// return true;
 			}
@@ -368,7 +369,7 @@ LoadFromKSFFile(const RString& sPath,
 
 			if (iHoldStartRow[t] != -1) // this ends the hold
 			{
-				int iEndRow = BeatToNoteRow(prevBeat);
+				auto iEndRow = BeatToNoteRow(prevBeat);
 				if (iHoldStartRow[t] == iEndRow)
 					notedata.SetTapNote(t, iHoldStartRow[t], TAP_ORIGINAL_TAP);
 				else {
@@ -431,23 +432,23 @@ LoadFromKSFFile(const RString& sPath,
 }
 
 static void
-LoadTags(const RString& str, Song& out)
+LoadTags(const std::string& str, Song& out)
 {
 	/* str is either a #TITLE or a directory component.  Fill in missing
 	 * information. str is either "title", "artist - title", or "artist - title
 	 * - difficulty". */
-	vector<RString> asBits;
+	vector<std::string> asBits;
 	split(str, " - ", asBits, false);
 	// Ignore the difficulty, since we get that elsewhere.
 	if (asBits.size() == 3 &&
-		(asBits[2].EqualsNoCase("double") || asBits[2].EqualsNoCase("easy") ||
-		 asBits[2].EqualsNoCase("normal") || asBits[2].EqualsNoCase("hard") ||
-		 asBits[2].EqualsNoCase("crazy") ||
-		 asBits[2].EqualsNoCase("nightmare"))) {
+		(EqualsNoCase(asBits[2], "double") || EqualsNoCase(asBits[2], "easy") ||
+		 EqualsNoCase(asBits[2], "normal") || EqualsNoCase(asBits[2], "hard") ||
+		 EqualsNoCase(asBits[2], "crazy") ||
+		 EqualsNoCase(asBits[2], "nightmare"))) {
 		asBits.erase(asBits.begin() + 2, asBits.begin() + 3);
 	}
 
-	RString title, artist;
+	std::string title, artist;
 	if (asBits.size() == 2) {
 		artist = asBits[0];
 		title = asBits[1];
@@ -468,7 +469,7 @@ LoadTags(const RString& str, Song& out)
 }
 
 static void
-ProcessTickcounts(const RString& value, int& ticks, TimingData& timing)
+ProcessTickcounts(const std::string& value, int& ticks, TimingData& timing)
 {
 	/* TICKCOUNT will be used below if there are DM compliant BPM changes
 	 * and stops. It will be called again in LoadFromKSFFile for the
@@ -483,7 +484,7 @@ ProcessTickcounts(const RString& value, int& ticks, TimingData& timing)
 }
 
 static bool
-LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
+LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 {
 	MsdFile msd;
 	if (!msd.ReadFile(sPath, false)) // don't unescape
@@ -511,14 +512,13 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 
 	float SMGap1 = 0, SMGap2 = 0, BPM1 = -1, BPMPos2 = -1, BPM2 = -1,
 		  BPMPos3 = -1, BPM3 = -1;
-	int iTickCount = -1;
+	auto iTickCount = -1;
 	bKIUCompliant = false;
-	vector<RString> vNoteRows;
+	vector<std::string> vNoteRows;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		RString sValueName = sParams[0];
-		sValueName.MakeUpper();
+		const auto& sParams = msd.GetValue(i);
+		auto sValueName = make_upper(sParams[0]);
 
 		// handle the data
 		if (sValueName == "TITLE")
@@ -555,7 +555,7 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 			/* STEP will always be the last header in a KSF file by design. Due
 			 * to the Direct Move syntax, it is best to get the rows of notes
 			 * here. */
-			RString theSteps = sParams[1];
+			std::string theSteps = sParams[1];
 			TrimLeft(theSteps);
 			split(theSteps, "\n", vNoteRows, true);
 		} else if (sValueName == "DIFFICULTY" || sValueName == "PLAYER") {
@@ -602,11 +602,10 @@ LoadGlobalData(const RString& sPath, Song& out, bool& bKIUCompliant)
 			HandleBunki(out.m_SongTiming, BPM2, BPM3, SMGap2, BPMPos3);
 		}
 	} else {
-		float fCurBeat = 0.0f;
-		bool bDMRequired = false;
+		auto fCurBeat = 0.0f;
+		auto bDMRequired = false;
 
-		for (unsigned i = 0; i < vNoteRows.size(); ++i) {
-			RString& NoteRowString = vNoteRows[i];
+		for (auto& NoteRowString : vNoteRows) {
 			StripCrnl(NoteRowString);
 
 			if (NoteRowString == "")
@@ -650,17 +649,17 @@ void
 KSFLoader::GetApplicableFiles(const std::string& sPath,
 							  vector<std::string>& out)
 {
-	GetDirListing(sPath + RString("*.ksf"), out);
+	GetDirListing(sPath + std::string("*.ksf"), out);
 }
 
 bool
 KSFLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 {
-	bool KIUCompliant = false;
+	auto KIUCompliant = false;
 	Song dummy;
 	if (!LoadGlobalData(cachePath, dummy, KIUCompliant))
 		return false;
-	Steps* notes = dummy.CreateSteps();
+	auto notes = dummy.CreateSteps();
 	if (LoadFromKSFFile(cachePath, *notes, dummy, KIUCompliant)) {
 		KIUCompliant = true; // yeah, reusing a variable.
 		out.SetNoteData(notes->GetNoteData());
@@ -680,7 +679,7 @@ KSFLoader::LoadFromDir(const std::string& sDir, Song& out)
 	// We shouldn't have been called to begin with if there were no KSFs.
 	ASSERT(arrayKSFFileNames.size() != 0);
 
-	bool bKIUCompliant = false;
+	auto bKIUCompliant = false;
 	/* With Split Timing, there has to be a backup Song Timing in case
 	 * anything goes wrong. As these files are kept in alphabetical
 	 * order (hopefully), it is best to use the LAST file for timing
@@ -699,14 +698,14 @@ KSFLoader::LoadFromDir(const std::string& sDir, Song& out)
 	// and most of the time all the KSF files have the same info in the #TITLE:;
 	// section
 	unsigned files = arrayKSFFileNames.size();
-	std::string dir = out.GetSongDir();
+	auto dir = out.GetSongDir();
 	if (!LoadGlobalData(dir + arrayKSFFileNames[files - 1], out, bKIUCompliant))
 		return false;
 
 	out.m_sSongFileName = dir + arrayKSFFileNames[files - 1];
 	// load the Steps from the rest of the KSF files
 	for (unsigned i = 0; i < files; i++) {
-		Steps* pNewNotes = out.CreateSteps();
+		auto pNewNotes = out.CreateSteps();
 		if (!LoadFromKSFFile(
 			  dir + arrayKSFFileNames[i], *pNewNotes, out, bKIUCompliant)) {
 			delete pNewNotes;

@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "CommandLineActions.h"
 #include "Etterna/Models/Misc/DateTime.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
 #include "Etterna/Globals/ProductInfo.h"
@@ -10,13 +9,6 @@
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
-#include "LuaManager.h"
-#include "Etterna/Globals/ProductInfo.h"
-#include "Etterna/Models/Misc/DateTime.h"
-#include "Etterna/Models/Misc/Foreach.h"
-#include "arch/Dialog/Dialog.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "Etterna/Globals/SpecialFiles.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ver.h"
 
@@ -27,7 +19,7 @@
 #endif
 
 /** @brief The directory where languages should be installed. */
-const RString INSTALLER_LANGUAGES_DIR = "Themes/_Installer/Languages/";
+const std::string INSTALLER_LANGUAGES_DIR = "Themes/_Installer/Languages/";
 
 vector<CommandLineActions::CommandLineArgs> CommandLineActions::ToProcess;
 
@@ -38,31 +30,29 @@ Nsis()
 	if (!out.Open("nsis_strings_temp.inc", RageFile::WRITE))
 		RageException::Throw("Error opening file for write.");
 
-	vector<RString> vs;
+	vector<std::string> vs;
 	GetDirListing(INSTALLER_LANGUAGES_DIR + "*.ini", vs, false, false);
-	FOREACH_CONST(RString, vs, s)
-	{
-		RString sThrowAway, sLangCode;
-		splitpath(*s, sThrowAway, sLangCode, sThrowAway);
+	for (auto& s : vs) {
+		std::string sThrowAway, sLangCode;
+		splitpath(s, sThrowAway, sLangCode, sThrowAway);
 		const LanguageInfo* pLI = GetLanguageInfo(sLangCode);
 
-		RString sLangNameUpper = pLI->szEnglishName;
-		sLangNameUpper.MakeUpper();
+		std::string sLangNameUpper = make_upper(pLI->szEnglishName);
 
 		IniFile ini;
-		if (!ini.ReadFile(INSTALLER_LANGUAGES_DIR + *s))
+		if (!ini.ReadFile(INSTALLER_LANGUAGES_DIR + s))
 			RageException::Throw("Error opening file for read.");
 		FOREACH_CONST_Child(&ini, child)
 		{
 			FOREACH_CONST_Attr(child, attr)
 			{
-				RString sName = attr->first;
-				RString sValue = attr->second->GetValue<RString>();
-				sValue.Replace("\\n", "$\\n");
-				RString sLine = ssprintf("LangString %s ${LANG_%s} \"%s\"",
-										 sName.c_str(),
-										 sLangNameUpper.c_str(),
-										 sValue.c_str());
+				std::string sName = attr->first;
+				std::string sValue = attr->second->GetValue<std::string>();
+				s_replace(sValue, "\\n", "$\\n");
+				std::string sLine = ssprintf("LangString %s ${LANG_%s} \"%s\"",
+											 sName.c_str(),
+											 sLangNameUpper.c_str(),
+											 sValue.c_str());
 				out.PutLine(sLine);
 			}
 		}
@@ -76,7 +66,8 @@ LuaInformation()
 	pNode->AppendAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	pNode->AppendAttr("xsi:schemaLocation", "http://www.stepmania.com Lua.xsd");
 
-	pNode->AppendChild("Version", string(PRODUCT_FAMILY) + product_version);
+	pNode->AppendChild("Version",
+					   std::string(PRODUCT_FAMILY) + product_version);
 	pNode->AppendChild("Date", DateTime::GetNowDate().GetString());
 
 	XmlFileUtil::SaveToFile(pNode, "Lua.xml", "Lua.xsl");
@@ -94,9 +85,9 @@ static void
 Version()
 {
 #ifdef _WIN32
-	RString sProductID =
-	  ssprintf("%s", (string(PRODUCT_FAMILY) + product_version).c_str());
-	RString sVersion = ssprintf("build %s", ::version_git_hash);
+	std::string sProductID =
+	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + product_version).c_str());
+	std::string sVersion = ssprintf("build %s", ::version_git_hash);
 
 	AllocConsole();
 	freopen("CONOUT$", "wb", stdout);

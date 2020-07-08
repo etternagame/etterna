@@ -68,7 +68,7 @@ InputHandler_Linux_Joystick::StopThread()
 }
 
 bool
-InputHandler_Linux_Joystick::TryDevice(RString dev)
+InputHandler_Linux_Joystick::TryDevice(std::string dev)
 {
 	struct stat st;
 	if (stat(dev, &st) == -1) {

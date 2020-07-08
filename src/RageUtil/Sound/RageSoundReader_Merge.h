@@ -1,4 +1,4 @@
-﻿#ifndef RAGE_SOUND_READER_MERGE
+#ifndef RAGE_SOUND_READER_MERGE
 #define RAGE_SOUND_READER_MERGE
 
 #include "RageSoundReader.h"
@@ -21,13 +21,13 @@ class RageSoundReader_Merge : public RageSoundReader
 	int Read(float* pBuf, int iFrames) override;
 	int GetSampleRate() const override { return m_iSampleRate; }
 	unsigned GetNumChannels() const override { return m_iChannels; }
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 	int GetNextSourceFrame() const override { return m_iNextSourceFrame; }
 	float GetStreamToSourceRatio() const override
 	{
 		return m_fCurrentStreamToSourceRatio;
 	}
-	RString GetError() const override { return ""; }
+	std::string GetError() const override { return ""; }
 
 	void AddSound(RageSoundReader* pSound);
 

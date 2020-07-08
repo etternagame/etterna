@@ -1,6 +1,5 @@
 #pragma once
 #include "IntervalInfo.h"
-#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
 
 /* meta info is information that is derived from two or more consecutive
  * noteinfos, the first level of pattern abstraction is generated from noteinfo,
@@ -41,7 +40,7 @@ struct metaItvInfo
 	// end
 	bool basically_vibro = true;
 
-	inline void handle_interval_end()
+	void handle_interval_end()
 	{
 		// isn't reset, preserve behavior. this essentially just tracks longer
 		// sequences of single notes, we don't want it to be reset with

@@ -13,6 +13,7 @@
 #endif
 #include <sys/mman.h>
 #include <cerrno>
+#include <cstring>
 
 #ifdef __APPLE__
 extern "C" int

@@ -9,7 +9,6 @@
  */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -19,11 +18,11 @@
 #include "RageSoundReader_Preload.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-
 #include "arch/Sound/RageSoundDriver.h"
 
-#include <Tracy.hpp>
+#include <algorithm>
 
+#include <Tracy.hpp>
 /*
  * The lock ordering requirements are:
  * RageSound::Lock before g_SoundManMutex
@@ -34,14 +33,14 @@
  */
 
 static RageMutex g_SoundManMutex("SoundMan");
-static Preference<RString> g_sSoundDrivers(
+static Preference<std::string> g_sSoundDrivers(
   "SoundDrivers",
   ""); // "" == DEFAULT_SOUND_DRIVER_LIST
 
-RageSoundManager* SOUNDMAN = NULL;
+RageSoundManager* SOUNDMAN = nullptr;
 
 RageSoundManager::RageSoundManager()
-  : m_pDriver(NULL)
+  : m_pDriver(nullptr)
 {
 }
 
@@ -54,7 +53,7 @@ RageSoundManager::Init()
 	ZoneScoped;
 
 	m_pDriver = RageSoundDriver::Create(g_sSoundDrivers);
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		RageException::Throw("%s",
 							 COULDNT_FIND_SOUND_DRIVER.GetValue().c_str());
 }
@@ -64,13 +63,15 @@ RageSoundManager::~RageSoundManager()
 	/* Don't lock while deleting the driver (the decoder thread might deadlock).
 	 */
 	delete m_pDriver;
-	FOREACHM(RString, RageSoundReader_Preload*, m_mapPreloadedSounds, s)
-	delete s->second;
+	for (auto& s : m_mapPreloadedSounds) {
+		delete s.second;
+	}
+
 	m_mapPreloadedSounds.clear();
 }
 
 void
-RageSoundManager::fix_bogus_sound_driver_pref(RString const& valid_setting)
+RageSoundManager::fix_bogus_sound_driver_pref(std::string const& valid_setting)
 {
 	g_sSoundDrivers.Set(valid_setting);
 }
@@ -91,21 +92,21 @@ RageSoundManager::Shutdown()
 void
 RageSoundManager::StartMixing(RageSoundBase* pSound)
 {
-	if (m_pDriver != NULL)
+	if (m_pDriver != nullptr)
 		m_pDriver->StartMixing(pSound);
 }
 
 void
 RageSoundManager::StopMixing(RageSoundBase* pSound)
 {
-	if (m_pDriver != NULL)
+	if (m_pDriver != nullptr)
 		m_pDriver->StopMixing(pSound);
 }
 
 bool
 RageSoundManager::Pause(RageSoundBase* pSound, bool bPause)
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return false;
 
 	return m_pDriver->PauseMixing(pSound, bPause);
@@ -114,7 +115,7 @@ RageSoundManager::Pause(RageSoundBase* pSound, bool bPause)
 int64_t
 RageSoundManager::GetPosition(RageTimer* pTimer) const
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return 0;
 	return m_pDriver->GetHardwareFrame(pTimer);
 }
@@ -129,7 +130,7 @@ RageSoundManager::Update()
 	g_SoundManMutex
 	  .Lock(); /* lock for access to m_mapPreloadedSounds, owned_sounds */
 	{
-		map<RString, RageSoundReader_Preload*>::iterator it, next;
+		std::map<std::string, RageSoundReader_Preload*>::iterator it, next;
 		it = m_mapPreloadedSounds.begin();
 
 		while (it != m_mapPreloadedSounds.end()) {
@@ -148,14 +149,14 @@ RageSoundManager::Update()
 
 	g_SoundManMutex.Unlock(); /* finished with m_mapPreloadedSounds */
 
-	if (m_pDriver != NULL)
+	if (m_pDriver != nullptr)
 		m_pDriver->Update();
 }
 
 float
 RageSoundManager::GetPlayLatency() const
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return 0;
 
 	return m_pDriver->GetPlayLatency();
@@ -164,7 +165,7 @@ RageSoundManager::GetPlayLatency() const
 int
 RageSoundManager::GetDriverSampleRate() const
 {
-	if (m_pDriver == NULL)
+	if (m_pDriver == nullptr)
 		return 44100;
 
 	return m_pDriver->GetSampleRate();
@@ -173,16 +174,16 @@ RageSoundManager::GetDriverSampleRate() const
 /* If the given path is loaded, return a copy; otherwise return NULL.
  * It's the caller's responsibility to delete the result. */
 RageSoundReader*
-RageSoundManager::GetLoadedSound(const RString& sPath_)
+RageSoundManager::GetLoadedSound(const std::string& sPath_)
 {
 	LockMut(g_SoundManMutex); /* lock for access to m_mapPreloadedSounds */
 
-	RString sPath(sPath_);
-	sPath.MakeLower();
-	map<RString, RageSoundReader_Preload*>::const_iterator it;
+	std::string sPath(sPath_);
+	sPath = make_lower(sPath);
+	std::map<std::string, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	if (it == m_mapPreloadedSounds.end())
-		return NULL;
+		return nullptr;
 
 	return it->second->Copy();
 }
@@ -191,16 +192,16 @@ RageSoundManager::GetLoadedSound(const RString& sPath_)
  * The sound will be kept in memory as long as there are any other references
  * to it; once we hold the last one, we'll release it. */
 void
-RageSoundManager::AddLoadedSound(const RString& sPath_,
+RageSoundManager::AddLoadedSound(const std::string& sPath_,
 								 RageSoundReader_Preload* pSound)
 {
 	LockMut(g_SoundManMutex); /* lock for access to m_mapPreloadedSounds */
 
 	/* Don't AddLoadedSound a sound that's already registered.  It should have
 	 * been used in GetLoadedSound. */
-	RString sPath(sPath_);
-	sPath.MakeLower();
-	map<RString, RageSoundReader_Preload*>::const_iterator it;
+	std::string sPath(sPath_);
+	sPath = make_lower(sPath);
+	std::map<std::string, RageSoundReader_Preload*>::const_iterator it;
 	it = m_mapPreloadedSounds.find(sPath);
 	ASSERT_M(it == m_mapPreloadedSounds.end(), sPath);
 
@@ -213,7 +214,7 @@ void
 RageSoundManager::SetMixVolume()
 {
 	g_SoundManMutex.Lock(); /* lock for access to m_fMixVolume */
-	m_fMixVolume = clamp(g_fSoundVolume.Get(), 0.0f, 1.0f);
+	m_fMixVolume = std::clamp(g_fSoundVolume.Get(), 0.0f, 1.0f);
 	g_SoundManMutex.Unlock(); /* finished with m_fMixVolume */
 }
 

@@ -24,7 +24,7 @@ struct TheThingLookerFinderThing
 	float step_tol = 17.5F;
 	float scaler = 0.2F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
@@ -40,16 +40,16 @@ struct TheThingLookerFinderThing
 	float pmod = min_mod;
 
 #pragma region generic functions
-	inline void setup() { tt.set_params(group_tol, step_tol, scaler); }
+	void setup() { tt.set_params(group_tol, step_tol, scaler); }
 
 #pragma endregion
 
-	inline void advance_sequencing(const float& ms_now, const unsigned& notes)
+	void advance_sequencing(const float& ms_now, const unsigned& notes)
 	{
 		tt(ms_now, notes);
 	}
 
-	inline auto operator()() -> float
+	auto operator()() -> float
 	{
 		pmod =
 		  tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
@@ -81,7 +81,7 @@ struct TheThingLookerFinderThing2
 	float step_tol = 17.5F;
 	float scaler = 0.2F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
@@ -97,16 +97,16 @@ struct TheThingLookerFinderThing2
 	float pmod = min_mod;
 
 #pragma region generic functions
-	inline void setup() { tt2.set_params(group_tol, step_tol, scaler); }
+	void setup() { tt2.set_params(group_tol, step_tol, scaler); }
 
 #pragma endregion
 
-	inline void advance_sequencing(const float& ms_now, const unsigned& notes)
+	void advance_sequencing(const float& ms_now, const unsigned& notes)
 	{
 		tt2(ms_now, notes);
 	}
 
-	inline auto operator()() -> float
+	auto operator()() -> float
 	{
 		pmod = tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] +
 			   tt2.mod_parts[3];

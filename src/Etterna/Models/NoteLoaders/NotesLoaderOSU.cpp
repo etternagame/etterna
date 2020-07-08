@@ -7,6 +7,13 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <string>
+#include <map>
+#include <algorithm>
+
+using std::map;
+using std::string;
+
 vector<string>
 split(string str, string token)
 {
@@ -135,27 +142,28 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 void
 OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
-	vector<pair<int, float>> tp;
+	vector<std::pair<int, float>> tp;
 
-	for (auto it = parsedData["TimingPoints"].begin();
-		 it != parsedData["TimingPoints"].end();
-		 ++it) {
-		auto line = it->first;
+	for (auto& it : parsedData["TimingPoints"]) {
+		auto line = it.first;
 		auto values = split(line, ",");
 
-		tp.emplace_back(pair<int, float>(stoi(values[0]), stof(values[1])));
+		tp.emplace_back(
+		  std::pair<int, float>(stoi(values[0]), stof(values[1])));
 	}
-	sort(tp.begin(), tp.end(), [](pair<int, float> a, pair<int, float> b) {
-		return a.first < b.first;
-	});
+	sort(tp.begin(),
+		 tp.end(),
+		 [](std::pair<int, float> a, std::pair<int, float> b) {
+			 return a.first < b.first;
+		 });
 
-	vector<pair<int, float>> bpms;
+	vector<std::pair<int, float>> bpms;
 	float lastpositivebpm = 0;
 	int offset = 0;
 	int lastoffset = -9999;
 	for (auto x : tp) {
 		float bpm;
-		offset = max(0, x.first);
+		offset = std::max(0, x.first);
 		if (x.second > 0) {
 			bpm = 60000 / x.second;
 			lastpositivebpm = bpm;
@@ -164,12 +172,12 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 			bpm = lastpositivebpm * abs(x.second / 100);
 		}
 		if (offset == lastoffset) {
-			bpms[bpms.size() - 1] =
-			  pair<int, float>(offset, bpm); // this because of dumb stuff like
-											 // in 4k Luminal dan (not robust,
-											 // but works for most files)
+			bpms[bpms.size() - 1] = std::pair<int, float>(
+			  offset, bpm); // this because of dumb stuff like
+							// in 4k Luminal dan (not robust,
+							// but works for most files)
 		} else {
-			bpms.emplace_back(pair<int, float>(offset, bpm));
+			bpms.emplace_back(std::pair<int, float>(offset, bpm));
 		}
 		lastoffset = offset;
 	}
@@ -184,10 +192,10 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 														 // the file (there
 														 // should be)
 	}
-	for (int i = 0; i < (int)bpms.size(); ++i) {
-		int row = MsToNoteRow(bpms[i].first, &out);
+	for (auto& bpm : bpms) {
+		int row = MsToNoteRow(bpm.first, &out);
 		if (row != 0) {
-			out.m_SongTiming.AddSegment(BPMSegment(row, bpms[i].second));
+			out.m_SongTiming.AddSegment(BPMSegment(row, bpm.second));
 		}
 	}
 
@@ -239,8 +247,8 @@ OsuLoader::LoadChartData(Song* song,
 
 	chart->SetMeter(song->GetAllSteps().size());
 
-	chart->SetDifficulty(
-	  (Difficulty)(min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
+	chart->SetDifficulty((Difficulty)(
+	  std::min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
 
 	chart->TidyUpData();
 
@@ -284,10 +292,8 @@ OsuLoader::LoadNoteDataFromParsedData(
 	vector<OsuNote> taps;
 	vector<OsuHold> holds;
 	bool useLifts = PREFSMAN->LiftsOnOsuHolds;
-	for (auto it = parsedData["HitObjects"].begin();
-		 it != parsedData["HitObjects"].end();
-		 ++it) {
-		auto line = it->first;
+	for (auto& it : parsedData["HitObjects"]) {
+		auto line = it.first;
 		auto values = split(line, ",");
 		int type = stoi(values[3]);
 		if (type == 128)
@@ -306,34 +312,33 @@ OsuLoader::LoadNoteDataFromParsedData(
 
 	int firstTap = 0;
 	if (taps.size() > 0 && holds.size() > 0) {
-		firstTap = min(taps[0].ms, holds[0].msStart);
+		firstTap = std::min(taps[0].ms, holds[0].msStart);
 	} else if (taps.size() > 0) {
 		firstTap = taps[0].ms;
 	} else {
 		firstTap = holds[0].msStart;
 	}
 
-	for (int i = 0; i < (int)taps.size(); ++i) {
+	for (auto& tap : taps) {
 		newNoteData.SetTapNote(
-		  taps[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-		  MsToNoteRow(taps[i].ms - firstTap, out->m_pSong),
+		  tap.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  MsToNoteRow(tap.ms - firstTap, out->m_pSong),
 		  TAP_ORIGINAL_TAP);
 	}
-	for (int i = 0; i < (int)holds.size(); ++i) {
-		int start = MsToNoteRow(holds[i].msStart - firstTap, out->m_pSong);
-		int end = MsToNoteRow(holds[i].msEnd - firstTap, out->m_pSong);
+	for (auto& hold : holds) {
+		int start = MsToNoteRow(hold.msStart - firstTap, out->m_pSong);
+		int end = MsToNoteRow(hold.msEnd - firstTap, out->m_pSong);
 		if (end - start > 0 && useLifts) {
 			end = end - 1;
 		}
 		newNoteData.AddHoldNote(
-		  holds[i].lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+		  hold.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
 		  start,
 		  end,
 		  TAP_ORIGINAL_HOLD_HEAD);
 		if (useLifts)
 			newNoteData.SetTapNote(
-			  holds[i].lane /
-				(512 / stoi(parsedData["Difficulty"]["CircleSize"])),
+			  hold.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
 			  end + 1,
 			  TAP_ORIGINAL_LIFT);
 	}
@@ -354,7 +359,7 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 		return false;
 	}
 
-	RString fileRStr;
+	std::string fileRStr;
 	fileRStr.reserve(f.GetFileSize());
 	f.Read(fileRStr, -1);
 
@@ -371,7 +376,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 	vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
-	// const RString sPath = sPath_ + aFileNames[0];
+	// const std::string sPath = sPath_ + aFileNames[0];
 
 	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
@@ -384,7 +389,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		if (!f.Open(p)) {
 			continue;
 		}
-		RString fileContents;
+		std::string fileContents;
 		f.Read(fileContents, -1);
 		parsedData = ParseFileString(fileContents.c_str());
 		if (parsedData.size() == 0) {

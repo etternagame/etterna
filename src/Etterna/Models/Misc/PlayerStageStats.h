@@ -31,46 +31,47 @@ class PlayerStageStats
 	 * @param other the other stats to add to this one. */
 	void AddStats(const PlayerStageStats& other); // accumulate
 
-	static Grade GetGrade(float p);
-	Grade GetGrade() const;
-	static float MakePercentScore(int iActual, int iPossible);
-	static RString FormatPercentScore(float fPercentScore);
+	static auto GetGrade(float p) -> Grade;
+	[[nodiscard]] auto GetGrade() const -> Grade;
+	static auto MakePercentScore(int iActual, int iPossible) -> float;
+	static auto FormatPercentScore(float fPercentScore) -> std::string;
 	// Calculate the difficulty rating for a specific score obtained by a player
 	// - Mina
-	Grade GetWifeGrade();
-	vector<float> CalcSSR(float ssrpercent) const;
+	auto GetWifeGrade() -> Grade;
+	[[nodiscard]] auto CalcSSR(float ssrpercent) const -> vector<float>;
 	void GenerateValidationKeys(HighScore& hs) const;
-	float GetPercentDancePoints() const;
-	float GetWifeScore() const;
-	float GetCurWifeScore() const;
-	float GetMaxWifeScore() const;
-	float GetTimingScale() const;
-	vector<float> GetOffsetVector() const;
-	vector<int> GetNoteRowVector() const;
-	vector<int> GetTrackVector() const;
-	vector<TapNoteType> GetTapNoteTypeVector() const;
-	vector<HoldReplayResult> GetHoldReplayDataVector() const;
-	float GetCurMaxPercentDancePoints() const;
+	[[nodiscard]] auto GetPercentDancePoints() const -> float;
+	[[nodiscard]] auto GetWifeScore() const -> float;
+	[[nodiscard]] auto GetCurWifeScore() const -> float;
+	[[nodiscard]] auto GetMaxWifeScore() const -> float;
+	[[nodiscard]] auto GetTimingScale() const -> float;
+	[[nodiscard]] auto GetOffsetVector() const -> vector<float>;
+	[[nodiscard]] auto GetNoteRowVector() const -> vector<int>;
+	[[nodiscard]] auto GetTrackVector() const -> vector<int>;
+	[[nodiscard]] auto GetTapNoteTypeVector() const -> vector<TapNoteType>;
+	[[nodiscard]] auto GetHoldReplayDataVector() const
+	  -> vector<HoldReplayResult>;
+	[[nodiscard]] auto GetCurMaxPercentDancePoints() const -> float;
 
-	int GetLessonScoreActual() const;
-	int GetLessonScoreNeeded() const;
+	[[nodiscard]] auto GetLessonScoreActual() const -> int;
+	[[nodiscard]] auto GetLessonScoreNeeded() const -> int;
 	void ResetScoreForLesson();
 
-	bool m_for_multiplayer;
+	bool m_for_multiplayer{};
 	PlayerNumber m_player_number;
 	MultiPlayer m_multiplayer_number;
-	const Style* m_pStyle;
+	const Style* m_pStyle{};
 
-	bool m_bJoined;
-	bool m_bPlayerCanAchieveFullCombo;
+	bool m_bJoined{};
+	bool m_bPlayerCanAchieveFullCombo{};
 	vector<Steps*> m_vpPossibleSteps;
-	int m_iStepsPlayed; // how many of m_vpPossibleStepshow many of
-						// m_vpPossibleSteps were played
+	int m_iStepsPlayed{}; // how many of m_vpPossibleStepshow many of
+						  // m_vpPossibleSteps were played
 	/**
 	 * @brief How far into the music did the Player last before failing?
 	 *
 	 * This is updated by Gameplay, and scaled by the music rate. */
-	float m_fAliveSeconds;
+	float m_fAliveSeconds{};
 
 	/**
 	 * @brief Have the Players failed at any point during the song?
@@ -79,38 +80,38 @@ class PlayerStageStats
 	 *
 	 * If health recovery is possible after failing (requires two players),
 	 * this is only set if both players were failing at the same time. */
-	bool m_bFailed;
+	bool m_bFailed{};
 
-	int m_iPossibleDancePoints;
-	int m_iCurPossibleDancePoints;
-	int m_iActualDancePoints;
-	int m_iPossibleGradePoints;
-	float m_fWifeScore;
-	float CurWifeScore;
-	float MaxWifeScore;
-	float m_fTimingScale;
+	int m_iPossibleDancePoints{};
+	int m_iCurPossibleDancePoints{};
+	int m_iActualDancePoints{};
+	int m_iPossibleGradePoints{};
+	float m_fWifeScore{};
+	float CurWifeScore{};
+	float MaxWifeScore{};
+	float m_fTimingScale{};
 	vector<HoldReplayResult> m_vHoldReplayData;
 	vector<float> m_vOffsetVector;
 	vector<int> m_vNoteRowVector;
 	vector<TapNoteType> m_vTapNoteTypeVector;
 	vector<int> m_vTrackVector;
 	vector<float> InputData;
-	int m_iTapNoteScores[NUM_TapNoteScore];
-	int m_iHoldNoteScores[NUM_HoldNoteScore];
+	int m_iTapNoteScores[NUM_TapNoteScore]{};
+	int m_iHoldNoteScores[NUM_HoldNoteScore]{};
 	/** @brief The Player's current combo. */
-	unsigned int m_iCurCombo;
+	unsigned int m_iCurCombo{};
 	/** @brief The Player's max combo. */
-	unsigned int m_iMaxCombo;
+	unsigned int m_iMaxCombo{};
 	/** @brief The Player's current miss combo. */
-	unsigned int m_iCurMissCombo;
-	int m_iCurScoreMultiplier;
+	unsigned int m_iCurMissCombo{};
+	int m_iCurScoreMultiplier{};
 	/** @brief The player's current score. */
-	unsigned int m_iScore;
+	unsigned int m_iScore{};
 	/** @brief The theoretically highest score the Player could have at this
 	 * point. */
-	unsigned int m_iCurMaxScore;
+	unsigned int m_iCurMaxScore{};
 	/** @brief The maximum score the Player can get this goaround. */
-	unsigned int m_iMaxScore;
+	unsigned int m_iMaxScore{};
 
 	/**
 	 * @brief The possible RadarValues for a song.
@@ -119,44 +120,44 @@ class PlayerStageStats
 	RadarValues m_radarPossible;
 	RadarValues m_radarActual;
 	/** @brief How many songs were passed by the Player? */
-	int m_iSongsPassed;
+	int m_iSongsPassed{};
 	/** @brief How many songs were played by the Player? */
-	int m_iSongsPlayed;
+	int m_iSongsPlayed{};
 	/**
 	 * @brief How many seconds were left for the Player?
 	 *
 	 * This is used in the Survival mode. */
-	float m_fLifeRemainingSeconds;
+	float m_fLifeRemainingSeconds{};
 
 	// workout
-	float m_iNumControllerSteps;
+	float m_iNumControllerSteps{};
 
-	bool everusedautoplay;
-	bool luascriptwasloaded;
-	bool filehadnegbpms; // the call after gameplay is over is apparently
-						 // unreliable -mina
-	bool filegotmines;   // this needs to be set before any notedata transforms
-	bool filegotholds;
-	bool gaveuplikeadumbass; // flag 'giving up' status so i can flag it as
-							 // failing so i dont have to remove the feature
-							 // entirely -mina
+	bool everusedautoplay{};
+	bool luascriptwasloaded{};
+	bool filehadnegbpms{}; // the call after gameplay is over is apparently
+						   // unreliable -mina
+	bool filegotmines{}; // this needs to be set before any notedata transforms
+	bool filegotholds{};
+	bool gaveuplikeadumbass{}; // flag 'giving up' status so i can flag it as
+							   // failing so i dont have to remove the feature
+							   // entirely -mina
 
-	map<float, float> m_fLifeRecord;
+	std::map<float, float> m_fLifeRecord;
 	void SetLifeRecordAt(float fLife, float fStepsSecond);
 	void GetLifeRecord(float* fLifeOut,
 					   int iNumSamples,
 					   float fStepsEndSecond) const;
-	float GetLifeRecordAt(float fStepsSecond) const;
-	float GetLifeRecordLerpAt(float fStepsSecond) const;
-	float GetCurrentLife() const;
+	[[nodiscard]] auto GetLifeRecordAt(float fStepsSecond) const -> float;
+	[[nodiscard]] auto GetLifeRecordLerpAt(float fStepsSecond) const -> float;
+	[[nodiscard]] auto GetCurrentLife() const -> float;
 
-	map<float, float> WifeRecord;
+	std::map<float, float> WifeRecord;
 	void SetWifeRecordAt(float Wife, float fStepsSecond);
 	void GetWifeRecord(float* WifeOut,
 					   int iNumSamples,
 					   float fStepsEndSecond) const;
-	float GetWifeRecordAt(float fStepsSecond) const;
-	float GetWifeRecordLerpAt(float fStepsSecond) const;
+	[[nodiscard]] auto GetWifeRecordAt(float fStepsSecond) const -> float;
+	[[nodiscard]] auto GetWifeRecordLerpAt(float fStepsSecond) const -> float;
 
 	struct Combo_t
 	{
@@ -186,35 +187,44 @@ class PlayerStageStats
 		/**
 		 * @brief Retrieve the size of the combo that came from this song.
 		 * @return this song's combo size. */
-		int GetStageCnt() const { return m_cnt - m_rollover; }
+		[[nodiscard]] auto GetStageCnt() const -> int
+		{
+			return m_cnt - m_rollover;
+		}
 
 		Combo_t() = default;
-		bool IsZero() const { return m_fStartSecond < 0; }
+		[[nodiscard]] auto IsZero() const -> bool { return m_fStartSecond < 0; }
 	};
 	vector<Combo_t> m_ComboList;
-	float m_fFirstSecond;
-	float m_fLastSecond;
+	float m_fFirstSecond{};
+	float m_fLastSecond{};
 
-	int GetComboAtStartOfStage() const;
-	bool FullComboOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
-	bool FullCombo() const { return FullComboOfScore(TNS_W3); }
-	TapNoteScore GetBestFullComboTapNoteScore() const;
-	bool SingleDigitsOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
-	bool OneOfScore(TapNoteScore tnsAllGreaterOrEqual) const;
-	int GetTotalTaps() const;
-	float GetPercentageOfTaps(TapNoteScore tns) const;
+	[[nodiscard]] auto GetComboAtStartOfStage() const -> int;
+	[[nodiscard]] auto FullComboOfScore(TapNoteScore tnsAllGreaterOrEqual) const
+	  -> bool;
+	[[nodiscard]] auto FullCombo() const -> bool
+	{
+		return FullComboOfScore(TNS_W3);
+	}
+	[[nodiscard]] auto GetBestFullComboTapNoteScore() const -> TapNoteScore;
+	[[nodiscard]] auto SingleDigitsOfScore(
+	  TapNoteScore tnsAllGreaterOrEqual) const -> bool;
+	[[nodiscard]] auto OneOfScore(TapNoteScore tnsAllGreaterOrEqual) const
+	  -> bool;
+	[[nodiscard]] auto GetTotalTaps() const -> int;
+	[[nodiscard]] auto GetPercentageOfTaps(TapNoteScore tns) const -> float;
 	void UpdateComboList(float fSecond, bool rollover);
-	Combo_t GetMaxCombo() const;
+	[[nodiscard]] auto GetMaxCombo() const -> Combo_t;
 
-	float GetSurvivalSeconds() const
+	[[nodiscard]] auto GetSurvivalSeconds() const -> float
 	{
 		return m_fAliveSeconds + m_fLifeRemainingSeconds;
 	}
 
-	int m_iPersonalHighScoreIndex;
-	int m_iMachineHighScoreIndex;
-	bool m_bDisqualified;
-	bool IsDisqualified() const;
+	int m_iPersonalHighScoreIndex{};
+	int m_iMachineHighScoreIndex{};
+	bool m_bDisqualified{};
+	[[nodiscard]] auto IsDisqualified() const -> bool;
 
 	void UnloadReplayData(); // i don't really trust the deconstructors here,
 							 // also prefer flexibility in this -mina
