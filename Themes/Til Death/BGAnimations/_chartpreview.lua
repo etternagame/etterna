@@ -83,7 +83,7 @@ local t = Def.ActorFrame {
 	end,
 	CurrentStepsP1ChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
-            musicratio = GAMESTATE:GetCurrentSteps():GetLengthSeconds() / wodth
+            musicratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
 		end
 	end,
 	MouseRightClickMessageCommand=function(self)
