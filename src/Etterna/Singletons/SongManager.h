@@ -217,7 +217,7 @@ class SongManager
 		auto operator()(const std::string& s, const std::string& t) const
 		  -> bool
 		{
-			return CompareRStringsAsc(s, t);
+			return CompareStringsAsc(s, t);
 		}
 	};
 	using SongPointerVector = std::vector<Song*>;

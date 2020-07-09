@@ -537,7 +537,7 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 		vector<std::string> asElementChildPaths;
 		vector<std::string> arrayScriptDirs;
 		GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, true);
-		SortRStringArray(arrayScriptDirs);
+		SortStringArray(arrayScriptDirs);
 		for (auto& s : arrayScriptDirs) // foreach dir in /Scripts/
 		{
 			// Find all Lua files in this directory, add them to asElementPaths

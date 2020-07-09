@@ -404,7 +404,7 @@ CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 	if (bpms1.GetMax() > bpms2.GetMax())
 		return false;
 
-	return CompareRStringsAsc(pSong1->GetSongFilePath(),
+	return CompareStringsAsc(pSong1->GetSongFilePath(),
 							  pSong2->GetSongFilePath());
 }
 
@@ -447,7 +447,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 	if (len_a > len_b)
 		return false;
 
-	return CompareRStringsAsc(a->GetSongFilePath(), b->GetSongFilePath());
+	return CompareStringsAsc(a->GetSongFilePath(), b->GetSongFilePath());
 }
 
 void

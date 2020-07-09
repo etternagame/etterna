@@ -566,7 +566,7 @@ BitmapText::SetTextInternal()
 	m_wTextLines.clear();
 
 	if (m_iWrapWidthPixels == -1) {
-		split(RStringToWstring(m_sText), L"\n", m_wTextLines, false);
+		split(StringToWString(m_sText), L"\n", m_wTextLines, false);
 	} else {
 		// Break sText into lines that don't exceed iWrapWidthPixels. (if only
 		// one word fits on the line, it may be larger than iWrapWidthPixels).
@@ -587,7 +587,7 @@ BitmapText::SetTextInternal()
 
 			for (auto& sWord : asWords) {
 				const auto iWidthWord =
-				  m_pFont->GetLineWidthInSourcePixels(RStringToWstring(sWord));
+				  m_pFont->GetLineWidthInSourcePixels(StringToWString(sWord));
 
 				if (sCurLine.empty()) {
 					sCurLine = sWord;
@@ -604,12 +604,12 @@ BitmapText::SetTextInternal()
 					sCurLine += sToAdd;
 					iCurLineWidth += iWidthToAdd;
 				} else {
-					m_wTextLines.push_back(RStringToWstring(sCurLine));
+					m_wTextLines.push_back(StringToWString(sCurLine));
 					sCurLine = sWord;
 					iCurLineWidth = iWidthWord;
 				}
 			}
-			m_wTextLines.push_back(RStringToWstring(sCurLine));
+			m_wTextLines.push_back(StringToWString(sCurLine));
 		}
 	}
 
@@ -718,11 +718,11 @@ BitmapText::StringWillUseAlternate(const std::string& sText,
 		return false;
 
 	// False if the alternate isn't needed.
-	if (m_pFont->FontCompleteForString(RStringToWstring(sText)))
+	if (m_pFont->FontCompleteForString(StringToWString(sText)))
 		return false;
 
 	// False if the alternate is also incomplete.
-	if (!m_pFont->FontCompleteForString(RStringToWstring(sAlternateText)))
+	if (!m_pFont->FontCompleteForString(StringToWString(sAlternateText)))
 		return false;
 
 	return true;
@@ -1341,7 +1341,7 @@ void
 ColorBitmapText::SimpleAddLine(const std::string& sAddition,
 							   const int iWidthPixels)
 {
-	m_wTextLines.push_back(RStringToWstring(sAddition));
+	m_wTextLines.push_back(StringToWString(sAddition));
 	m_iLineWidths.push_back(iWidthPixels);
 }
 

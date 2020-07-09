@@ -670,7 +670,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 
 				// Decode the std::string.
 				const wstring wdata(
-				  RStringToWstring(pValue->GetValue<std::string>()));
+				  StringToWString(pValue->GetValue<std::string>()));
 
 				if (static_cast<int>(wdata.size()) > num_frames_wide) {
 					LuaHelpers::ReportScriptErrorFmt(

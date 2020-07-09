@@ -650,11 +650,11 @@ operator>>(const std::string& lhs, T& rhs) -> bool
 }
 
 auto
-WStringToRString(const std::wstring& sString) -> std::string;
+WStringToString(const std::wstring& sString) -> std::string;
 auto
 WcharToUTF8(wchar_t c) -> std::string;
 auto
-RStringToWstring(const std::string& sString) -> std::wstring;
+StringToWString(const std::string& sString) -> std::wstring;
 
 struct LanguageInfo
 {
@@ -769,9 +769,9 @@ auto
 DirectoryIsEmpty(const std::string& sPath) -> bool;
 
 auto
-CompareRStringsAsc(const std::string& sStr1, const std::string& sStr2) -> bool;
+CompareStringsAsc(const std::string& sStr1, const std::string& sStr2) -> bool;
 void
-SortRStringArray(std::vector<std::string>& asAddTo, bool bSortAscending = true);
+SortStringArray(std::vector<std::string>& asAddTo, bool bSortAscending = true);
 
 /* Find the mean and standard deviation of all numbers in [start,end). */
 auto
@@ -977,7 +977,7 @@ FixSlashesInPlace(std::string& sPath);
 void
 CollapsePath(std::string& sPath, bool bRemoveLeadingDot = false);
 
-/** @brief Utilities for converting the RStrings. */
+/** @brief Utilities for converting the Strings. */
 namespace StringConversion {
 template<typename T>
 auto
