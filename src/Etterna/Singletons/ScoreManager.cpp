@@ -583,7 +583,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				// wife3, not generic calc changes, since the site runs its
 				// own calc anyway
 				if (remarried) {
-					SCOREMAN->rescores.emplace(hs);
+
+					// DISABLED CUZ WE DONT REALLY NEED AND MANUAL CAN SUFFICE
+					// SCOREMAN->rescores.emplace(hs);
 				}
 
 				td->UnsetEtaner();
