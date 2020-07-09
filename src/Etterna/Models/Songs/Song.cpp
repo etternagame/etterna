@@ -1091,7 +1091,7 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache,
 			// string with a compressed format for both cache and internal
 			// use but not yet
 			n->CalcEtternaMetadata(calc);
-			n->CalculateRadarValues(m_fMusicLengthSeconds);
+			n->CalculateRadarValues();
 
 			// calculate lastSecond
 			localFirst = std::min(localFirst, n->firstsecond);

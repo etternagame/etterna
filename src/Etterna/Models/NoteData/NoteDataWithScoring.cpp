@@ -185,7 +185,6 @@ UpdateHittable(const int& curr_row, int& first, int& last)
 void
 NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 										  const PlayerStageStats& pss,
-										  const float& song_seconds,
 										  RadarValues& out)
 {
 	// Anybody editing this function should also examine

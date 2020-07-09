@@ -3380,7 +3380,7 @@ Player::SetCombo(unsigned int iCombo, unsigned int iMisses)
 
 	bPastBeginning =
 	  m_pPlayerState->m_Position.m_fMusicSeconds >
-	  GAMESTATE->m_pCurSong->m_fMusicLengthSeconds * PERCENT_UNTIL_COLOR_COMBO;
+	  GAMESTATE->m_pCurSteps->GetLengthSeconds() * PERCENT_UNTIL_COLOR_COMBO;
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Combo");

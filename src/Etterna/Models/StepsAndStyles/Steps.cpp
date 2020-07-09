@@ -289,7 +289,7 @@ Steps::TidyUpData()
 }
 
 void
-Steps::CalculateRadarValues(float fMusicLengthSeconds)
+Steps::CalculateRadarValues()
 {
 	if (m_bAreCachedRadarValuesJustLoaded) {
 		m_bAreCachedRadarValuesJustLoaded = false;
@@ -312,7 +312,7 @@ Steps::CalculateRadarValues(float fMusicLengthSeconds)
 	auto td = this->GetTimingData();
 	GAMESTATE->SetProcessedTimingData(td);
 	NoteDataUtil::CalculateRadarValues(
-	  *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues, td);
+	  *m_pNoteData, m_CachedRadarValues, td);
 
 	GAMESTATE->SetProcessedTimingData(nullptr);
 }
@@ -579,8 +579,7 @@ Steps::Compress() const
 
 void
 Steps::CopyFrom(Steps* pSource,
-				StepsType ntTo,
-				float fMusicLengthSeconds) // pSource does not have to be of the
+				StepsType ntTo) // pSource does not have to be of the
 										   // same StepsType
 {
 	m_StepsType = ntTo;
@@ -594,7 +593,7 @@ Steps::CopyFrom(Steps* pSource,
 	this->SetDescription(pSource->GetDescription());
 	this->SetDifficulty(pSource->GetDifficulty());
 	this->SetMeter(pSource->GetMeter());
-	this->CalculateRadarValues(fMusicLengthSeconds);
+	this->CalculateRadarValues();
 }
 
 void

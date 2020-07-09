@@ -343,7 +343,6 @@ OsuLoader::LoadNoteDataFromParsedData(
 			  TAP_ORIGINAL_LIFT);
 	}
 
-	// out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
 	out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = -firstTap / 1000.0f;
 
 	out->SetNoteData(newNoteData);
