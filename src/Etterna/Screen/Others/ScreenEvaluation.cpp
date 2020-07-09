@@ -34,7 +34,6 @@
 static ThemeMetric<TapNoteScore> g_MinScoreToMaintainCombo(
   "Gameplay",
   "MinScoreToMaintainCombo");
-static const int NUM_SHOWN_RADAR_CATEGORIES = 5;
 
 AutoScreenMessage(SM_PlayCheer);
 

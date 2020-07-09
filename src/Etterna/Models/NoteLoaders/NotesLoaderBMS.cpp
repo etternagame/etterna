@@ -186,10 +186,9 @@ struct BMSMeasure
 	float size;
 };
 
-const int MaxBMSElements = 1296; // ZZ in b36
-typedef map<std::string, std::string> BMSHeaders;
-typedef map<int, BMSMeasure> BMSMeasures;
-typedef vector<BMSObject> BMSObjects;
+typedef std::map<std::string, std::string> BMSHeaders;
+typedef std::map<int, BMSMeasure> BMSMeasures;
+typedef std::vector<BMSObject> BMSObjects;
 
 class BMSChart
 {

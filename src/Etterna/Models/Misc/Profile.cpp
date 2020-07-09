@@ -318,7 +318,6 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	}
 }
 
-static const float ld_update = 0.02f;
 ProfileLoadResult
 Profile::LoadAllFromDir(const std::string& sDir,
 						bool bRequireSignature,

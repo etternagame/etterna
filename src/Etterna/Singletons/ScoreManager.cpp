@@ -410,7 +410,6 @@ ScoresAtRate::HandleNoCCPB(HighScore& hs) -> bool
 	return false;
 }
 
-static const float ld_update = 0.02F;
 void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 {

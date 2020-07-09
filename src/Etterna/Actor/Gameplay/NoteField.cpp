@@ -601,31 +601,6 @@ NoteField::DrawBGChangeText(const float beat,
 	m_textMeasureNumber.Draw();
 }
 
-static CacheNoteStat
-GetNumNotesFromBeginning(const PlayerState* pPlayerState, float beat)
-{
-	// XXX: I realized that I have copied and pasted my binary search code 3
-	// times already.
-	//      how can we abstract this?
-	const auto& data = pPlayerState->m_CacheNoteStat;
-	const int max = data.size() - 1;
-	auto l = 0, r = max;
-	while (l <= r) {
-		const auto m = (l + r) / 2;
-		if ((m == 0 || data[m].beat <= beat) &&
-			(m == max || beat < data[m + 1].beat)) {
-			return data[m];
-		}
-		if (data[m].beat <= beat) {
-			l = m + 1;
-		} else {
-			r = m - 1;
-		}
-	}
-	const CacheNoteStat dummy = { 0, 0, 0 };
-	return dummy;
-}
-
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
 				   float& firstBeat,
@@ -633,7 +608,7 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 				   int iDrawDistanceAfterTargetsPixels,
 				   int iDrawDistanceBeforeTargetsPixels)
 {
-	auto fFirstBeatToDraw =	GAMESTATE->m_Position.m_fSongBeatVisible;
+	auto fFirstBeatToDraw = GAMESTATE->m_Position.m_fSongBeatVisible;
 	auto fLastBeatToDraw = fFirstBeatToDraw;
 	const auto fSpeedMultiplier =
 	  pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(

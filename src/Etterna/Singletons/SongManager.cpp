@@ -75,8 +75,6 @@ SONG_GROUP_COLOR_NAME(size_t i)
 	return ssprintf("SongGroupColor%i", static_cast<int>(i) + 1);
 }
 
-static const float next_loading_window_update = 0.02f;
-
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
 SongManager::SongManager()

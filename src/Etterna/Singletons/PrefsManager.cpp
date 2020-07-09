@@ -383,7 +383,7 @@ PrefsManager::ReadGamePrefsFromIni(const std::string& sIni)
 
 	FOREACH_CONST_Child(&ini, section)
 	{
-		std::string section_name = section->GetName();
+		const std::string& section_name = section->GetName();
 		if (!BeginsWith(section_name, GAME_SECTION_PREFIX))
 			continue;
 

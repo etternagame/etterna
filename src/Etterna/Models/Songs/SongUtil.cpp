@@ -305,12 +305,6 @@ CompareSongPointersBySortValueAscending(const Song* pSong1, const Song* pSong2)
 	return g_mapSongSortVal[pSong1] < g_mapSongSortVal[pSong2];
 }
 
-static bool
-CompareSongPointersBySortValueDescending(const Song* pSong1, const Song* pSong2)
-{
-	return g_mapSongSortVal[pSong1] > g_mapSongSortVal[pSong2];
-}
-
 void
 SongUtil::MakeSortString(std::string& s)
 {
@@ -405,7 +399,7 @@ CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 		return false;
 
 	return CompareStringsAsc(pSong1->GetSongFilePath(),
-							  pSong2->GetSongFilePath());
+							 pSong2->GetSongFilePath());
 }
 
 void

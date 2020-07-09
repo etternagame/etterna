@@ -32,32 +32,32 @@ struct MenuRowDef
 			   bool bTT,
 			   bool bTI,
 			   int d,
-			   const char* c0 = NULL,
-			   const char* c1 = NULL,
-			   const char* c2 = NULL,
-			   const char* c3 = NULL,
-			   const char* c4 = NULL,
-			   const char* c5 = NULL,
-			   const char* c6 = NULL,
-			   const char* c7 = NULL,
-			   const char* c8 = NULL,
-			   const char* c9 = NULL,
-			   const char* c10 = NULL,
-			   const char* c11 = NULL,
-			   const char* c12 = NULL,
-			   const char* c13 = NULL,
-			   const char* c14 = NULL,
-			   const char* c15 = NULL,
-			   const char* c16 = NULL,
-			   const char* c17 = NULL,
-			   const char* c18 = NULL,
-			   const char* c19 = NULL,
-			   const char* c20 = NULL,
-			   const char* c21 = NULL,
-			   const char* c22 = NULL,
-			   const char* c23 = NULL,
-			   const char* c24 = NULL,
-			   const char* c25 = NULL)
+			   const char* c0 = nullptr,
+			   const char* c1 = nullptr,
+			   const char* c2 = nullptr,
+			   const char* c3 = nullptr,
+			   const char* c4 = nullptr,
+			   const char* c5 = nullptr,
+			   const char* c6 = nullptr,
+			   const char* c7 = nullptr,
+			   const char* c8 = nullptr,
+			   const char* c9 = nullptr,
+			   const char* c10 = nullptr,
+			   const char* c11 = nullptr,
+			   const char* c12 = nullptr,
+			   const char* c13 = nullptr,
+			   const char* c14 = nullptr,
+			   const char* c15 = nullptr,
+			   const char* c16 = nullptr,
+			   const char* c17 = nullptr,
+			   const char* c18 = nullptr,
+			   const char* c19 = nullptr,
+			   const char* c20 = nullptr,
+			   const char* c21 = nullptr,
+			   const char* c22 = nullptr,
+			   const char* c23 = nullptr,
+			   const char* c24 = nullptr,
+			   const char* c25 = nullptr)
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(true)
@@ -113,7 +113,7 @@ struct MenuRowDef
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(e)
-	  , pfnEnabled(NULL)
+	  , pfnEnabled(nullptr)
 
 	  , iDefaultChoice(d)
 	  , choices()
@@ -134,36 +134,36 @@ struct MenuRowDef
 			   bool bTT,
 			   bool bTI,
 			   int d,
-			   const char* c0 = NULL,
-			   const char* c1 = NULL,
-			   const char* c2 = NULL,
-			   const char* c3 = NULL,
-			   const char* c4 = NULL,
-			   const char* c5 = NULL,
-			   const char* c6 = NULL,
-			   const char* c7 = NULL,
-			   const char* c8 = NULL,
-			   const char* c9 = NULL,
-			   const char* c10 = NULL,
-			   const char* c11 = NULL,
-			   const char* c12 = NULL,
-			   const char* c13 = NULL,
-			   const char* c14 = NULL,
-			   const char* c15 = NULL,
-			   const char* c16 = NULL,
-			   const char* c17 = NULL,
-			   const char* c18 = NULL,
-			   const char* c19 = NULL,
-			   const char* c20 = NULL,
-			   const char* c21 = NULL,
-			   const char* c22 = NULL,
-			   const char* c23 = NULL,
-			   const char* c24 = NULL,
-			   const char* c25 = NULL)
+			   const char* c0 = nullptr,
+			   const char* c1 = nullptr,
+			   const char* c2 = nullptr,
+			   const char* c3 = nullptr,
+			   const char* c4 = nullptr,
+			   const char* c5 = nullptr,
+			   const char* c6 = nullptr,
+			   const char* c7 = nullptr,
+			   const char* c8 = nullptr,
+			   const char* c9 = nullptr,
+			   const char* c10 = nullptr,
+			   const char* c11 = nullptr,
+			   const char* c12 = nullptr,
+			   const char* c13 = nullptr,
+			   const char* c14 = nullptr,
+			   const char* c15 = nullptr,
+			   const char* c16 = nullptr,
+			   const char* c17 = nullptr,
+			   const char* c18 = nullptr,
+			   const char* c19 = nullptr,
+			   const char* c20 = nullptr,
+			   const char* c21 = nullptr,
+			   const char* c22 = nullptr,
+			   const char* c23 = nullptr,
+			   const char* c24 = nullptr,
+			   const char* c25 = nullptr)
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(e)
-	  , pfnEnabled(NULL)
+	  , pfnEnabled(nullptr)
 
 	  , iDefaultChoice(d)
 	  , choices()
@@ -216,7 +216,7 @@ struct MenuRowDef
 	  : iRowCode(r)
 	  , sName(n)
 	  , bEnabled(e)
-	  , pfnEnabled(NULL)
+	  , pfnEnabled(nullptr)
 
 	  , iDefaultChoice(d)
 	  , choices()

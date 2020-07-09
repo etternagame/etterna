@@ -22,7 +22,7 @@
 REGISTER_SCREEN_CLASS(ScreenWithMenuElements);
 ScreenWithMenuElements::ScreenWithMenuElements()
 {
-	m_MenuTimer = NULL;
+	m_MenuTimer = nullptr;
 	m_bShouldAllowLateJoin = false;
 }
 
@@ -221,7 +221,7 @@ ScreenWithMenuElements::Update(float fDeltaTime)
 void
 ScreenWithMenuElements::ResetTimer()
 {
-	if (m_MenuTimer == NULL)
+	if (m_MenuTimer == nullptr)
 		return;
 
 	if (TIMER_SECONDS > 0.0f && (PREFSMAN->m_bMenuTimer || FORCE_TIMER)) {
