@@ -67,17 +67,11 @@ MusicWheel::MakeItem()
 void
 MusicWheel::Load(const string& sType)
 {
-	ROULETTE_SWITCH_SECONDS.Load(sType, "RouletteSwitchSeconds");
 	ROULETTE_SLOW_DOWN_SWITCHES.Load(sType, "RouletteSlowDownSwitches");
 	NUM_SECTION_COLORS.Load(sType, "NumSectionColors");
-	SONG_REAL_EXTRA_COLOR.Load(sType, "SongRealExtraColor");
 	SORT_MENU_COLOR.Load(sType, "SortMenuColor");
-	RANDOM_PICKS_LOCKED_SONGS.Load(sType, "RandomPicksLockedSongs");
-	MOST_PLAYED_SONGS_TO_SHOW.Load(sType, "MostPlayedSongsToShow");
-	RECENT_SONGS_TO_SHOW.Load(sType, "RecentSongsToShow");
 	MODE_MENU_CHOICE_NAMES.Load(sType, "ModeMenuChoiceNames");
 	SORT_ORDERS.Load(sType, "SortOrders");
-	SHOW_EASY_FLAG.Load(sType, "UseEasyMarkerFlag");
 	USE_SECTIONS_WITH_PREFERRED_GROUP.Load(sType,
 										   "UseSectionsWithPreferredGroup");
 	HIDE_INACTIVE_SECTIONS.Load(sType, "OnlyShowActiveSection");
@@ -95,9 +89,6 @@ MusicWheel::Load(const string& sType)
 	CUSTOM_CHOICE_COLORS.Load(
 	  sType, CUSTOM_WHEEL_ITEM_COLOR, vsCustomItemNames);
 
-	ROULETTE_COLOR.Load(sType, "RouletteColor");
-	RANDOM_COLOR.Load(sType, "RandomColor");
-	PORTAL_COLOR.Load(sType, "PortalColor");
 	EMPTY_COLOR.Load(sType, "EmptyColor");
 
 	WheelBase::Load(sType);
