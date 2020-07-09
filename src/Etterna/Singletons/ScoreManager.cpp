@@ -952,7 +952,7 @@ ScoreManager::GetRecentScore(const int rank) -> HighScore*
 auto
 ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
 {
-	if (rank >= 0 && rank < TopSSRs.size()) {
+	if (rank >= 0 && rank < TopSSRsForGame.size()) {
 		return TopSSRsForGame[rank];
 	}
 

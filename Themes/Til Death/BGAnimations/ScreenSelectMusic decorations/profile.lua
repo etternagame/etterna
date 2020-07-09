@@ -12,6 +12,7 @@ local translated_info = {
 	Invalidated = THEME:GetString("TabProfile", "ScoreInvalidated"),
 	Online = THEME:GetString("TabProfile", "Online"),
 	Local = THEME:GetString("TabProfile", "Local"),
+	Recent = THEME:GetString("TabProfile", "Recent"),
 	NextPage = THEME:GetString("TabProfile", "NextPage"),
 	PrevPage = THEME:GetString("TabProfile", "PreviousPage"),
 	Save = THEME:GetString("TabProfile", "SaveProfile"),
@@ -581,7 +582,7 @@ local function recentButton()
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(rankingTitleSpacing, 30):diffuse(getMainColor("frames")):diffusealpha(0.35)
+				self:zoomto(rankingTitleSpacing, offsetY):diffuse(getMainColor("frames")):diffusealpha(0.35)
 			end,
 			SetCommand = function(self)
 				if recentactive then
@@ -608,7 +609,7 @@ local function recentButton()
 					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
 				end,
 				BeginCommand = function(self)
-					self:settext("recent")
+					self:settext(translated_info["Recent"])
 				end
 			}
 	}
