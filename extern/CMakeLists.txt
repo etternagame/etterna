@@ -33,6 +33,7 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
 add_subdirectory(discord-rpc)
 
 ## Header Only
+add_subdirectory(picosha2)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
