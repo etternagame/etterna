@@ -723,9 +723,9 @@ local replaySlider =
 	Widg.SliderBase {
 		width = width,
 		height = height,
-		min = GAMESTATE:GetCurrentSong():GetFirstSecond(),
+		min = GAMESTATE:GetCurrentSteps():GetFirstSecond(),
 		visible = true,
-		max = GAMESTATE:GetCurrentSong():GetLastSecond(),
+		max = GAMESTATE:GetCurrentSteps():GetLastSecond(),
 		onInit = function(slider)
 			slider.actor:diffusealpha(0)
 		end,
@@ -1157,14 +1157,14 @@ local pm =
 		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / (wodth)
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / (wodth)
 		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
 		cd:GetChild("cdbg"):diffusealpha(0)
 		self:SortByDrawOrder()
 		self:queuecommand("GraphUpdate")
 	end,
 	PracticeModeReloadMessageCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / wodth
 	end,
 	Def.Quad {
 		Name = "BG",
