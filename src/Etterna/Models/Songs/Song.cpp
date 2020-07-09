@@ -394,7 +394,7 @@ Song::FinalizeLoading()
 
 	// Load the cached Images, if it's not loaded already.
 	if (PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD) {
-		for (auto Image : ImageDir) {
+		for (const auto& Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 	}
@@ -577,7 +577,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		m_bHasBanner = IsAFile(GetBannerPath());
 		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 		m_bHasBackground = IsAFile(GetBackgroundPath());
-		for (auto Image : ImageDir) {
+		for (const auto& Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 
@@ -1153,11 +1153,11 @@ Song::Save()
 
 	// Save the new files. These calls make backups on their own.
 	if (!SaveToSSCFile(GetSongFilePath(), false)) {
-		for (auto fileName : backedDotOldFileNames)
+		for (const auto& fileName : backedDotOldFileNames)
 			FILEMAN->Remove(fileName);
 		return;
 	}
-	for (auto fileName : backedOrigFileNames)
+	for (const auto& fileName : backedOrigFileNames)
 		FILEMAN->Remove(fileName);
 
 	SaveToCacheFile();
@@ -1359,11 +1359,11 @@ Song::GetCacheFile(const std::string& sType)
 	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
 	vector<std::string> image_list;
 	auto fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (auto Image : song_dir_listing) {
+	for (const auto& Image : song_dir_listing) {
 		auto FileExt = GetExtension(Image);
 		std::transform(
 		  FileExt.begin(), FileExt.end(), FileExt.begin(), tolower);
-		for (auto FindExt : fill_exts) {
+		for (const auto& FindExt : fill_exts) {
 			if (FileExt == FindExt)
 				image_list.push_back(Image);
 		}
@@ -1386,7 +1386,7 @@ Song::GetCacheFile(const std::string& sType)
 	for (auto Image : image_list) {
 		// We want to make it lower case.
 		std::transform(Image.begin(), Image.end(), Image.begin(), tolower);
-		for (auto PreSet : PreSets[sType]) {
+		for (const auto& PreSet : PreSets[sType]) {
 			// Search for image using PreSets.
 			const auto Found = Image.find(PreSet.second);
 			if (Found != std::string::npos)
@@ -1534,6 +1534,7 @@ vector<std::string>
 Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
 	vector<std::string> ret;
+	ret.reserve(changes.size());
 	for (const auto& bgc : changes) {
 		ret.push_back(bgc.ToString());
 	}

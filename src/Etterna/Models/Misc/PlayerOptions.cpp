@@ -405,7 +405,7 @@ PlayerOptions::ResetModsToStringVector(vector<std::string> mods)
 {
 	std::string error;
 	ResetToggleableMods();
-	for (auto mod : mods) {
+	for (const auto& mod : mods) {
 		FromOneModString(mod, error);
 	}
 }

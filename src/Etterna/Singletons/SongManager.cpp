@@ -111,10 +111,8 @@ SongManager::InitAll(LoadingWindow* ld)
 {
 	vector<std::string> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
-	for (vector<std::string>::iterator group = never_cache.begin();
-		 group != never_cache.end();
-		 ++group) {
-		m_GroupsToNeverCache.insert(*group);
+	for (auto& group : never_cache) {
+		m_GroupsToNeverCache.insert(group);
 	}
 	InitSongsFromDisk(ld);
 	LoadCalcTestNode();
@@ -379,11 +377,11 @@ SongManager::CalcTestStuff()
 	vector<float> test_vals[NUM_Skillset];
 
 	// output calc differences for chartkeys and targets and stuff
-	for (auto p : testChartList) {
+	for (const auto& p : testChartList) {
 		auto ss = p.first;
 		LOG->Trace("\nStarting calc test group %s\n",
 				   SkillsetToString(ss).c_str());
-		for (auto chart : p.second.filemapping) {
+		for (const auto& chart : p.second.filemapping) {
 
 			if (StepsByKey.count(chart.first))
 				test_vals[ss].emplace_back(
@@ -598,8 +596,8 @@ vector<string>
 Playlist::GetKeys()
 {
 	vector<string> o;
-	for (size_t i = 0; i < chartlist.size(); ++i)
-		o.emplace_back(chartlist[i].key);
+	for (auto& i : chartlist)
+		o.emplace_back(i.key);
 	return o;
 }
 
@@ -641,7 +639,7 @@ void
 SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 											   vector<string> oldChartkeys)
 {
-	for (auto ck : oldChartkeys)
+	for (const auto& ck : oldChartkeys)
 		SONGMAN->StepsByKey.erase(ck);
 	auto stepses = reloadedSong->GetAllSteps();
 	for (auto steps : stepses)
@@ -653,10 +651,10 @@ void
 SongManager::AddKeyedPointers(Song* new_song)
 {
 	const auto steps = new_song->GetAllSteps();
-	for (size_t i = 0; i < steps.size(); ++i) {
-		const auto& ck = steps[i]->GetChartKey();
+	for (auto step : steps) {
+		const auto& ck = step->GetChartKey();
 		if (!StepsByKey.count(ck)) {
-			StepsByKey.emplace(ck, steps[i]);
+			StepsByKey.emplace(ck, step);
 			if (!SongsByKey.count(ck)) {
 				SongsByKey.emplace(ck, new_song);
 			}
@@ -855,6 +853,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			ld->SetProgress(progress);
 	};
 	vector<Group> workload;
+	workload.reserve(groups.size());
 	for (auto& group : groups) {
 		workload.emplace_back(group);
 	}
@@ -1034,8 +1033,7 @@ SongManager::GetSongColor(const Song* pSong) const
 		// const StepsType st =
 		// GAMESTATE->GetCurrentStyle()->m_StepsType;
 		const auto& vpSteps = pSong->GetAllSteps();
-		for (unsigned i = 0; i < vpSteps.size(); i++) {
-			const Steps* pSteps = vpSteps[i];
+		for (auto pSteps : vpSteps) {
 			switch (pSteps->GetDifficulty()) {
 				case Difficulty_Challenge:
 				case Difficulty_Edit:
@@ -1087,6 +1085,7 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
 		vector<string> oldChartkeys;
+		oldChartkeys.reserve(stepses.size());
 		for (auto steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -1145,12 +1144,10 @@ SongManager::ShortenGroupName(const std::string& sLongGroupName)
 void
 SongManager::Cleanup()
 {
-	for (unsigned i = 0; i < m_pSongs.size(); i++) {
-		auto pSong = m_pSongs[i];
+	for (auto pSong : m_pSongs) {
 		if (pSong) {
 			const auto& vpSteps = pSong->GetAllSteps();
-			for (unsigned n = 0; n < vpSteps.size(); n++) {
-				auto pSteps = vpSteps[n];
+			for (auto pSteps : vpSteps) {
 				pSteps->Compress();
 			}
 		}

@@ -844,9 +844,11 @@ SongCacheIndex::LoadCache(
 	  };
 	vector<thread> threadpool;
 	vector<vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
+	cacheParts.reserve(threads);
 	for (auto i = 0; i < threads; i++)
 		cacheParts.emplace_back(
 		  vector<pair<pair<std::string, unsigned int>, Song*>*>());
+	threadpool.reserve(threads);
 	for (auto i = 0; i < threads; i++)
 		threadpool.emplace_back(
 		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));

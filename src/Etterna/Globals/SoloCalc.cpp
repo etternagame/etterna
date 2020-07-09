@@ -191,11 +191,16 @@ SoloCalc(const std::vector<NoteInfo>& notes, float music_rate, float goal)
 	float MaxPoints = 0.f;
 	for (size_t i = 0; i < lv_itvpoints.size(); i++)
 		MaxPoints += static_cast<float>(lv_itvpoints[i] + rv_itvpoints[i]);
-	float sd = Chisel(
-	  min(goal, 0.965f), lv_itvMSdiff, lv_itvpoints, rv_itvMSdiff, rv_itvpoints, MaxPoints);
+	float sd = Chisel(min(goal, 0.965f),
+					  lv_itvMSdiff,
+					  lv_itvpoints,
+					  rv_itvMSdiff,
+					  rv_itvpoints,
+					  MaxPoints);
 
 	// hack to return the same sd for all skillsets, for now
 	// doing it this way because of how ix structured this -five
+	skills.reserve(8);
 	for (int i = 0; i < 8; i++) {
 		skills.emplace_back(sd);
 	}

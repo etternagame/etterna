@@ -311,8 +311,7 @@ Steps::CalculateRadarValues()
 	// instead of getnotedata if it turns out we need it -mina
 	auto td = this->GetTimingData();
 	GAMESTATE->SetProcessedTimingData(td);
-	NoteDataUtil::CalculateRadarValues(
-	  *m_pNoteData, m_CachedRadarValues, td);
+	NoteDataUtil::CalculateRadarValues(*m_pNoteData, m_CachedRadarValues, td);
 
 	GAMESTATE->SetProcessedTimingData(nullptr);
 }
@@ -580,7 +579,7 @@ Steps::Compress() const
 void
 Steps::CopyFrom(Steps* pSource,
 				StepsType ntTo) // pSource does not have to be of the
-										   // same StepsType
+								// same StepsType
 {
 	m_StepsType = ntTo;
 	m_StepsTypeStr = GAMEMAN->GetStepsTypeInfo(ntTo).szName;
@@ -1100,7 +1099,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetLengthSeconds(T* p, lua_State* L) -> int
 	{
-		float curr_rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		auto curr_rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		lua_pushnumber(L, p->GetLengthSeconds(curr_rate));
 		return 1;
 	}

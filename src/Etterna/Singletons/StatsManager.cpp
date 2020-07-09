@@ -72,8 +72,8 @@ StatsManager::GetFinalEvalStageStats(StageStats& statsOut) const
 {
 	statsOut.Init();
 	vector<StageStats> vssToCount;
-	for (size_t i = 0; i < m_vPlayedStageStats.size(); ++i) {
-		vssToCount.push_back(m_vPlayedStageStats[i]);
+	for (const auto& m_vPlayedStageStat : m_vPlayedStageStats) {
+		vssToCount.push_back(m_vPlayedStageStat);
 	}
 	statsOut = AccumPlayedStageStats(vssToCount);
 }
@@ -155,15 +155,14 @@ StatsManager::UnjoinPlayer(PlayerNumber pn)
 void
 StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 {
-	for (int i = 0; i < static_cast<int>(m_vPlayedStageStats.size()); ++i) {
-		const PlayerStageStats& pss = m_vPlayedStageStats[i].m_player;
+	for (const auto& m_vPlayedStageStat : m_vPlayedStageStats) {
+		const PlayerStageStats& pss = m_vPlayedStageStat.m_player;
 		apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
 						  pss.m_vpPossibleSteps.end());
 
 		FOREACH_MultiPlayer(mp)
 		{
-			const PlayerStageStats& pss =
-			  m_vPlayedStageStats[i].m_multiPlayer[mp];
+			const PlayerStageStats& pss = m_vPlayedStageStat.m_multiPlayer[mp];
 			apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
 							  pss.m_vpPossibleSteps.end());
 		}

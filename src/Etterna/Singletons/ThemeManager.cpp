@@ -139,7 +139,7 @@ FileNameToMetricsGroupAndElement(const std::string& sFileName,
 								 std::string& sElementOut)
 {
 	// split into class name and file name
-	std::string::size_type iIndexOfFirstSpace = sFileName.find(" ");
+	std::string::size_type iIndexOfFirstSpace = sFileName.find(' ');
 	if (iIndexOfFirstSpace == string::npos) // no space
 	{
 		sMetricsGroupOut = "";
@@ -1283,7 +1283,7 @@ ThemeManager::GetLanguagesForTheme(const std::string& sThemeName,
 
 		// Ignore filenames with a space.  These are optional language inis that
 		// probably came from a mounted package.
-		if (s.find(" ") != std::string::npos)
+		if (s.find(' ') != std::string::npos)
 			continue;
 
 		// strip ".ini"
@@ -1394,7 +1394,7 @@ ThemeManager::GetString(const std::string& sMetricsGroup,
 				s.erase(s.begin(), s.begin() + pos);
 			}
 
-			pos = s.find("}");
+			pos = s.find('}');
 			sTranslated += s.substr(0, pos + 1);
 			s.erase(s.begin(), s.begin() + pos + 1);
 		}

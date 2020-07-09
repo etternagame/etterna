@@ -570,7 +570,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
-			for (auto ss : SONGMAN->testChartList) {
+			for (const auto& ss : SONGMAN->testChartList) {
 				if (ss.second.filemapping.count(ck)) {
 					foundSS = ss.first;
 					break;

@@ -211,7 +211,7 @@ ImageCache::ReadFromDisk()
 	LOG->Trace("Cache format is out of date.  Deleting all cache files.");
 	vector<std::string> ImageDir;
 	split(CommonMetrics::IMAGES_TO_CACHE, ",", ImageDir);
-	for (auto Image : ImageDir)
+	for (const auto& Image : ImageDir)
 		EmptyDir(SpecialFiles::CACHE_DIR + Image + "/");
 
 	ImageData.SetValue("Cache", "CacheVersion", IMAGE_CACHE_VERSION);
