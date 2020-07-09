@@ -755,8 +755,6 @@ GameState::ResetMusicStatistics()
 	m_LastPositionSeconds = 0.0f;
 
 	Actor::SetBGMTime(0, 0, 0, 0);
-
-	m_pPlayerState->m_Position.Reset();
 }
 
 void
@@ -800,10 +798,8 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 		m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
 
-		m_pPlayerState->m_Position.UpdateSongPosition(
-		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
-		Actor::SetPlayerBGMBeat(m_pPlayerState->m_Position.m_fSongBeatVisible,
-								m_pPlayerState->m_Position.m_fSongBeatNoOffset);
+		Actor::SetPlayerBGMBeat(m_Position.m_fSongBeatVisible,
+								m_Position.m_fSongBeatNoOffset);
 	} else {
 		m_Position.UpdateSongPosition(fPositionSeconds, timing, timestamp);
 	}

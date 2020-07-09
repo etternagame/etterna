@@ -344,8 +344,7 @@ NoteField::Update(float fDeltaTime)
 
 	// update m_fBoardOffsetPixels, m_fCurrentBeatLastUpdate,
 	// m_fYPosCurrentBeatLastUpdate
-	const auto fCurrentBeat =
-	  m_pPlayerState->GetDisplayedPosition().m_fSongBeat;
+	const auto fCurrentBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto bTweeningOn =
 	  m_sprBoard->GetCurrentDiffuseAlpha() >= 0.98 &&
 	  m_sprBoard->GetCurrentDiffuseAlpha() < 1.00; // HACK
@@ -634,13 +633,12 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 				   int iDrawDistanceAfterTargetsPixels,
 				   int iDrawDistanceBeforeTargetsPixels)
 {
-	auto fFirstBeatToDraw =
-	  pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
+	auto fFirstBeatToDraw =	GAMESTATE->m_Position.m_fSongBeatVisible;
 	auto fLastBeatToDraw = fFirstBeatToDraw;
 	const auto fSpeedMultiplier =
 	  pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(
-		pPlayerState->GetDisplayedPosition().m_fSongBeatVisible,
-		pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
+		GAMESTATE->m_Position.m_fSongBeatVisible,
+		GAMESTATE->m_Position.m_fMusicSecondsVisible);
 
 	bool bBoomerang;
 	{
@@ -696,11 +694,9 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 
 	if (fSpeedMultiplier < 0.75f) {
 		fFirstBeatToDraw =
-		  std::min(fFirstBeatToDraw,
-				   pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		  std::min(fFirstBeatToDraw, GAMESTATE->m_Position.m_fSongBeat + 16);
 		fLastBeatToDraw =
-		  std::min(fLastBeatToDraw,
-				   pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		  std::min(fLastBeatToDraw, GAMESTATE->m_Position.m_fSongBeat + 16);
 	}
 
 	firstBeat = fFirstBeatToDraw;

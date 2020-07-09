@@ -1940,7 +1940,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
 		float helloiamafloat =
-		  GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds;
+		  GAMESTATE->m_Position.m_fMusicSeconds;
 		p->GeneratePreviewNoteField();
 		if (p->m_pPreviewNoteField != nullptr) {
 			p->SetPreviewNoteFieldMusicPosition(helloiamafloat);
@@ -1985,7 +1985,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
 	{
 		lua_pushnumber(
-		  L, GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds);
+		  L, GAMESTATE->m_Position.m_fMusicSeconds);
 		return 1;
 	}
 
