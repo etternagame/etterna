@@ -27,10 +27,10 @@ struct CJMod
 	float jack_max = 1.F;
 	float jack_scaler = 1.F;
 
-	float not_jack_pool = 1.2F;
+	float not_jack_pool = 1.15F;
 	float not_jack_min = 0.4F;
 	float not_jack_max = 1.F;
-	float not_jack_scaler = 1.F;
+	float not_jack_scaler = 1.75F;
 
 	float vibro_flag = 1.F;
 
