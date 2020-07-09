@@ -2,7 +2,6 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
-#include "Etterna/Globals/picosha2.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RadarValues.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -14,6 +13,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
 
+#include <picosha2/picosha2.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>

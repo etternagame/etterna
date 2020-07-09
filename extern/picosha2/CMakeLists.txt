@@ -1,0 +1,2 @@
+add_library(picosha2 INTERFACE)
+target_include_directories(picosha2 INTERFACE include)
