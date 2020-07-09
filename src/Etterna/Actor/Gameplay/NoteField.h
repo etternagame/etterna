@@ -11,7 +11,7 @@
 
 class NoteData;
 /** @brief An Actor that renders NoteData. */
-class NoteField : public ActorFrame
+class NoteField final : public ActorFrame
 {
   public:
 	NoteField();
@@ -21,13 +21,13 @@ class NoteField : public ActorFrame
 	void CalcPixelsBeforeAndAfterTargets();
 	void DrawBoardPrimitive();
 
-	virtual void Init(const PlayerState* pPlayerState,
-					  float fYReverseOffsetPixels,
-					  bool use_states_zoom = true);
-	virtual void Load(const NoteData* pNoteData,
-					  int iDrawDistanceAfterTargetsPixels,
-					  int iDrawDistanceBeforeTargetsPixels);
-	virtual void Unload();
+	void Init(const PlayerState* pPlayerState,
+			  float fYReverseOffsetPixels,
+			  bool use_states_zoom = true);
+	void Load(const NoteData* pNoteData,
+			  int iDrawDistanceAfterTargetsPixels,
+			  int iDrawDistanceBeforeTargetsPixels);
+	void Unload();
 
 	void ensure_note_displays_have_skin();
 	void InitColumnRenderers();
@@ -39,16 +39,16 @@ class NoteField : public ActorFrame
 	void CacheAllUsedNoteSkins();
 	void FadeToFail();
 
-	void Step(int col, TapNoteScore score, bool from_lua = false);
-	void SetPressed(int col, bool from_lua = false);
+	void Step(int col, TapNoteScore score, bool from_lua = false) const;
+	void SetPressed(int col, bool from_lua = false) const;
 	void DidTapNote(int col,
 					TapNoteScore score,
 					bool bright,
-					bool from_lua = false);
+					bool from_lua = false) const;
 	void DidHoldNote(int col,
 					 HoldNoteScore score,
 					 bool bright,
-					 bool from_lua = false);
+					 bool from_lua = false) const;
 
 	void PushSelf(lua_State* L) override;
 
@@ -60,13 +60,16 @@ class NoteField : public ActorFrame
 	LuaReference m_DidTapNoteCallback;
 	LuaReference m_DidHoldNoteCallback;
 
-	const PlayerState* GetPlayerState() const { return m_pPlayerState; }
+	[[nodiscard]] auto GetPlayerState() const -> const PlayerState*
+	{
+		return m_pPlayerState;
+	}
 
 	int m_iBeginMarker, m_iEndMarker; // only used with MODE_EDIT
 
 	// m_ColumnRenderers belongs in the protected section, but it's here in
 	// public so that the Lua API can access it. -Kyz
-	vector<NoteColumnRenderer> m_ColumnRenderers;
+	std::vector<NoteColumnRenderer> m_ColumnRenderers;
 
   protected:
 	void CacheNoteSkin(const std::string& sNoteSkin, PlayerNumber pn);
@@ -101,7 +104,7 @@ class NoteField : public ActorFrame
 	void DrawBGChangeText(float beat,
 						  const std::string& new_bg_name,
 						  const RageColor& glow);
-	float GetWidth() const;
+	[[nodiscard]] auto GetWidth() const -> float;
 
 	const NoteData* m_pNoteData;
 
@@ -119,14 +122,18 @@ class NoteField : public ActorFrame
 		NoteDisplay* display;
 		ReceptorArrowRow m_ReceptorArrowRow;
 		GhostArrowRow m_GhostArrowRow;
-		NoteDisplayCols(int iNumCols) { display = new NoteDisplay[iNumCols]; }
+		explicit NoteDisplayCols(int iNumCols)
+		{
+			display = new NoteDisplay[iNumCols];
+		}
+
 		~NoteDisplayCols() { delete[] display; }
 	};
 
 	NoteFieldRenderArgs m_FieldRenderArgs;
 
 	/* All loaded note displays, mapped by their name. */
-	map<std::string, NoteDisplayCols*> m_NoteDisplays;
+	std::map<std::string, NoteDisplayCols*> m_NoteDisplays;
 	NoteDisplayCols* m_pCurDisplay;
 	NoteDisplayCols* m_pDisplays[NUM_PlayerNumber];
 

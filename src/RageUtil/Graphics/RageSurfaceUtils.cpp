@@ -4,7 +4,13 @@
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <thread>
+#include <algorithm>
+
+using std::clamp;
+using std::max;
+using std::min;
 
 uint32_t
 RageSurfaceUtils::decodepixel(const uint8_t* p, int bpp)
@@ -69,7 +75,7 @@ RageSurfaceUtils::GetRawRGBAV(const uint8_t* p,
 							  const RageSurfaceFormat& fmt,
 							  uint8_t* v)
 {
-	auto pixel = decodepixel(p, fmt.BytesPerPixel);
+	const auto pixel = decodepixel(p, fmt.BytesPerPixel);
 	GetRawRGBAV(pixel, fmt, v);
 }
 
@@ -89,7 +95,7 @@ RageSurfaceUtils::GetRGBAV(uint32_t pixel, const RageSurface* src, uint8_t* v)
 void
 RageSurfaceUtils::GetRGBAV(const uint8_t* p, const RageSurface* src, uint8_t* v)
 {
-	auto pixel = decodepixel(p, src->fmt.BytesPerPixel);
+	const auto pixel = decodepixel(p, src->fmt.BytesPerPixel);
 	if (src->fmt.BytesPerPixel == 1) // paletted
 	{
 		memcpy(v, &src->fmt.palette->colors[pixel], sizeof(RageSurfaceColor));
@@ -110,7 +116,7 @@ RageSurfaceUtils::SetRawRGBAV(uint8_t* p,
 							  const RageSurface* src,
 							  const uint8_t* v)
 {
-	auto pixel = SetRawRGBAV(src->fmt, v);
+	const auto pixel = SetRawRGBAV(src->fmt, v);
 	encodepixel(p, src->fmt.BytesPerPixel, pixel);
 }
 
@@ -127,7 +133,7 @@ RageSurfaceUtils::SetRGBAV(const RageSurfaceFormat& fmt, const uint8_t* v)
 void
 RageSurfaceUtils::SetRGBAV(uint8_t* p, const RageSurface* src, const uint8_t* v)
 {
-	auto pixel = SetRGBAV(src->fmt, v);
+	const auto pixel = SetRGBAV(src->fmt, v);
 	encodepixel(p, src->fmt.BytesPerPixel, pixel);
 }
 
@@ -211,12 +217,12 @@ FindAlphaRGB(const RageSurface* img,
 	// Eww. Sorry. Iterate front-to-back or in reverse.
 	for (auto y = reverse ? img->h - 1 : 0; reverse ? (y >= 0) : (y < img->h);
 		 reverse ? (--y) : (++y)) {
-		auto row = (uint8_t*)img->pixels + img->pitch * y;
+		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
 		if (reverse)
 			row += img->fmt.BytesPerPixel * (img->w - 1);
 
 		for (auto x = 0; x < img->w; ++x) {
-			auto val =
+			const auto val =
 			  RageSurfaceUtils::decodepixel(row, img->fmt.BytesPerPixel);
 			if (img->fmt.BitsPerPixel == 8) {
 				if (img->fmt.palette->colors[val].a) {
@@ -272,7 +278,7 @@ SetAlphaRGB(const RageSurface* pImg, uint8_t r, uint8_t g, uint8_t b)
 		auto row = pImg->pixels + pImg->pitch * y;
 
 		for (auto x = 0; x < pImg->w; ++x) {
-			auto val =
+			const auto val =
 			  RageSurfaceUtils::decodepixel(row, pImg->fmt.BytesPerPixel);
 			if (val != trans && !(val & pImg->fmt.Amask)) {
 				RageSurfaceUtils::encodepixel(
@@ -351,10 +357,10 @@ RageSurfaceUtils::FindSurfaceTraits(const RageSurface* img)
 	}
 
 	for (auto y = 0; y < img->h; ++y) {
-		auto row = (uint8_t*)img->pixels + img->pitch * y;
+		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
 
 		for (auto x = 0; x < img->w; ++x) {
-			auto val = decodepixel(row, img->fmt.BytesPerPixel);
+			const auto val = decodepixel(row, img->fmt.BytesPerPixel);
 
 			uint32_t alpha;
 			if (img->fmt.BitsPerPixel == 8)
@@ -392,8 +398,9 @@ RageSurfaceUtils::FindSurfaceTraits(const RageSurface* img)
 static inline void
 GetRawRGBAV_XY(const RageSurface* src, uint8_t* v, int x, int y)
 {
-	auto srcp = (const uint8_t*)src->pixels + (y * src->pitch);
-	auto srcpx = srcp + (x * src->fmt.BytesPerPixel);
+	const auto srcp =
+	  static_cast<const uint8_t*>(src->pixels) + (y * src->pitch);
+	const auto srcpx = srcp + (x * src->fmt.BytesPerPixel);
 
 	RageSurfaceUtils::GetRawRGBAV(srcpx, src->fmt, v);
 }
@@ -423,34 +430,53 @@ RageSurfaceUtils::BlitTransform(const RageSurface* src,
 			   TR_X = 6, TR_Y = 7;
 
 	for (auto y = 0; y < dst->h; ++y) {
-		auto dstp = (uint8_t*)dst->pixels + (y * dst->pitch); /* line */
-		auto dstpx = dstp;									  // pixel
+		const auto dstp =
+		  static_cast<uint8_t*>(dst->pixels) + (y * dst->pitch); /* line */
+		auto dstpx = dstp;										 // pixel
 
-		const auto start_y =
-		  scale(float(y), 0, float(dst->h), Coords[TL_Y], Coords[BL_Y]);
-		const auto end_y =
-		  scale(float(y), 0, float(dst->h), Coords[TR_Y], Coords[BR_Y]);
+		const auto start_y = scale(static_cast<float>(y),
+								   0,
+								   static_cast<float>(dst->h),
+								   Coords[TL_Y],
+								   Coords[BL_Y]);
+		const auto end_y = scale(static_cast<float>(y),
+								 0,
+								 static_cast<float>(dst->h),
+								 Coords[TR_Y],
+								 Coords[BR_Y]);
 
-		const auto start_x =
-		  scale(float(y), 0, float(dst->h), Coords[TL_X], Coords[BL_X]);
-		const auto end_x =
-		  scale(float(y), 0, float(dst->h), Coords[TR_X], Coords[BR_X]);
+		const auto start_x = scale(static_cast<float>(y),
+								   0,
+								   static_cast<float>(dst->h),
+								   Coords[TL_X],
+								   Coords[BL_X]);
+		const auto end_x = scale(static_cast<float>(y),
+								 0,
+								 static_cast<float>(dst->h),
+								 Coords[TR_X],
+								 Coords[BR_X]);
 
 		for (auto x = 0; x < dst->w; ++x) {
-			const auto src_xp =
-			  scale(float(x), 0, float(dst->w), start_x, end_x);
-			const auto src_yp =
-			  scale(float(x), 0, float(dst->w), start_y, end_y);
+			const auto src_xp = scale(static_cast<float>(x),
+									  0,
+									  static_cast<float>(dst->w),
+									  start_x,
+									  end_x);
+			const auto src_yp = scale(static_cast<float>(x),
+									  0,
+									  static_cast<float>(dst->w),
+									  start_y,
+									  end_y);
 
 			/* If the surface is two pixels wide, src_xp is 0..2.  .5 indicates
 			 * pixel[0]; 1 indicates 50% pixel[0], 50% pixel[1]; 1.5 indicates
 			 * pixel[1]; 2 indicates 50% pixel[1], 50% pixel[2] (which is
 			 * clamped to pixel[1]). */
 			int src_x[2], src_y[2];
-			src_x[0] = (int)truncf(src_xp - 0.5f);
+			src_x[0] = static_cast<int>(truncf(src_xp - 0.5f));
 			src_x[1] = src_x[0] + 1;
 
-			src_y[0] = (int)truncf(src_yp - 0.5f);
+			src_y[0] = static_cast<int>(truncf(src_yp - 0.5f));
 			src_y[1] = src_y[0] + 1;
 
 			// Emulate GL_REPEAT.
@@ -467,8 +493,8 @@ RageSurfaceUtils::BlitTransform(const RageSurface* src,
 			GetRawRGBAV_XY(src, v[3], src_x[1], src_y[1]);
 
 			// Distance from the pixel chosen:
-			auto weight_x = src_xp - (src_x[0] + 0.5f);
-			auto weight_y = src_yp - (src_y[0] + 0.5f);
+			const auto weight_x = src_xp - (src_x[0] + 0.5f);
+			const auto weight_y = src_yp - (src_y[0] + 0.5f);
 
 			// Filter:
 			uint8_t out[4] = { 0, 0, 0, 0 };
@@ -478,7 +504,8 @@ RageSurfaceUtils::BlitTransform(const RageSurface* src,
 				sum += v[1][i] * (1 - weight_x) * (weight_y);
 				sum += v[2][i] * (weight_x) * (1 - weight_y);
 				sum += v[3][i] * (weight_x) * (weight_y);
-				out[i] = (uint8_t)clamp(std::lround(sum), 0L, 255L);
+				out[i] =
+				  static_cast<uint8_t>(clamp(std::lround(sum), 0L, 255L));
 			}
 
 			// If the source has no alpha, set the destination to opaque.
@@ -553,7 +580,7 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 	auto src_shifts = src_surf->fmt.Shift;
 	auto dst_shifts = dst_surf->fmt.Shift;
 	auto src_masks = src_surf->fmt.Mask;
-	auto dst_masks = dst_surf->fmt.Mask;
+	const auto dst_masks = dst_surf->fmt.Mask;
 
 	uint8_t lookup[4][256];
 	for (auto c = 0; c < 4; ++c) {
@@ -566,7 +593,7 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 			/* The source is missing a channel. Alpha defaults to opaque, other
 			 * channels default to 0. */
 			if (c == 3)
-				lookup[c][0] = (uint8_t)max_dst_val;
+				lookup[c][0] = static_cast<uint8_t>(max_dst_val);
 			else
 				lookup[c][0] = 0;
 		} else {
@@ -599,12 +626,12 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 			 * seems strange; what's wrong here? */
 			if (max_src_val > max_dst_val)
 				for (uint32_t i = 0; i <= max_src_val; ++i)
-					lookup[c][i] =
-					  (uint8_t)SCALE(i, 0, max_src_val + 1, 0, max_dst_val + 1);
+					lookup[c][i] = static_cast<uint8_t>(
+					  SCALE(i, 0, max_src_val + 1, 0, max_dst_val + 1));
 			else
 				for (uint32_t i = 0; i <= max_src_val; ++i)
-					lookup[c][i] =
-					  (uint8_t)SCALE(i, 0, max_src_val, 0, max_dst_val);
+					lookup[c][i] = static_cast<uint8_t>(
+					  SCALE(i, 0, max_src_val, 0, max_dst_val));
 		}
 	}
 
@@ -616,9 +643,9 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 
 	for (unsigned int curThread = 0; curThread < numThreads; ++curThread) {
 		threads.push_back(std::thread([&, curThread] {
-			int startingPoint = segmentSize * curThread;
+			const int startingPoint = segmentSize * curThread;
 			int localHeight = segmentSize + segmentSize * curThread;
-			int localEnd = localHeight - segmentSize;
+			const int localEnd = localHeight - segmentSize;
 
 			// Ensure no pixels are missed when the height isn't divisible by
 			// thread count
@@ -640,13 +667,14 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 			while (localHeight-- > localEnd) {
 				auto x = 0;
 				while (x++ < width) {
-					auto pixel = RageSurfaceUtils::decodepixel(
+					const auto pixel = RageSurfaceUtils::decodepixel(
 					  localSrc, src_surf->fmt.BytesPerPixel);
 
 					// Convert pixel to the destination format.
 					unsigned int opixel = 0;
 					for (auto c = 0; c < 4; ++c) {
-						int lSrc = (pixel & src_masks[c]) >> src_shifts[c];
+						const int lSrc =
+						  (pixel & src_masks[c]) >> src_shifts[c];
 						opixel |= lookup[c][lSrc] << dst_shifts[c];
 					}
 
@@ -781,11 +809,11 @@ RageSurfaceUtils::CorrectBorderPixels(RageSurface* img, int width, int height)
 {
 	if (width * img->fmt.BytesPerPixel < img->pitch) {
 		// Duplicate the last column.
-		auto offset = img->fmt.BytesPerPixel * (width - 1);
-		auto p = (uint8_t*)img->pixels + offset;
+		const auto offset = img->fmt.BytesPerPixel * (width - 1);
+		auto p = static_cast<uint8_t*>(img->pixels) + offset;
 
 		for (auto y = 0; y < height; ++y) {
-			auto pixel = decodepixel(p, img->fmt.BytesPerPixel);
+			const auto pixel = decodepixel(p, img->fmt.BytesPerPixel);
 			encodepixel(
 			  p + img->fmt.BytesPerPixel, img->fmt.BytesPerPixel, pixel);
 
@@ -860,12 +888,12 @@ RageSurfaceUtils::LoadSurface(const std::string& file)
 		ASSERT_M(palette.ncolors <= 256, ssprintf("%i", palette.ncolors));
 		if (f.Read(palette.colors,
 				   palette.ncolors * sizeof(RageSurfaceColor)) !=
-			int(palette.ncolors * sizeof(RageSurfaceColor)))
+			static_cast<int>(palette.ncolors * sizeof(RageSurfaceColor)))
 			return nullptr;
 	}
 
 	// Create the surface.
-	auto img = CreateSurface(
+	const auto img = CreateSurface(
 	  h.width, h.height, h.bpp, h.Rmask, h.Gmask, h.Bmask, h.Amask);
 	ASSERT(img != NULL);
 
@@ -968,7 +996,7 @@ RageSurfaceUtils::PalettizeToGrayscale(const RageSurface* src_surf,
 	auto dst = dst_surf->pixels;
 
 	auto height = src_surf->h;
-	auto width = src_surf->w;
+	const auto width = src_surf->w;
 
 	// Bytes to skip at the end of a line.
 	const auto srcskip = src_surf->pitch - width * src_surf->fmt.BytesPerPixel;
@@ -1009,7 +1037,7 @@ RageSurfaceUtils::MakeDummySurface(int height, int width)
 {
 	auto ret_image = CreateSurface(width, height, 8, 0, 0, 0, 0);
 
-	RageSurfaceColor pink(0xFF, 0x10, 0xFF, 0xFF);
+	const RageSurfaceColor pink(0xFF, 0x10, 0xFF, 0xFF);
 	ret_image->fmt.palette->colors[0] = pink;
 
 	memset(ret_image->pixels, 0, ret_image->h * ret_image->pitch);
@@ -1028,7 +1056,8 @@ ImageUsesOffHotPink(const RageSurface* img)
 
 	const uint8_t* p = img->pixels;
 	for (auto x = 0; x < img->w; ++x) {
-		auto val = RageSurfaceUtils::decodepixel(p, img->fmt.BytesPerPixel);
+		const auto val =
+		  RageSurfaceUtils::decodepixel(p, img->fmt.BytesPerPixel);
 		if (val == OffHotPink)
 			return true;
 		p += img->fmt.BytesPerPixel;
@@ -1037,7 +1066,8 @@ ImageUsesOffHotPink(const RageSurface* img)
 	p = img->pixels;
 	p += img->pitch * (img->h - 1);
 	for (auto i = 0; i < img->w; i++) {
-		auto val = RageSurfaceUtils::decodepixel(p, img->fmt.BytesPerPixel);
+		const auto val =
+		  RageSurfaceUtils::decodepixel(p, img->fmt.BytesPerPixel);
 		if (val == OffHotPink)
 			return true;
 		p += img->fmt.BytesPerPixel;
@@ -1103,7 +1133,7 @@ RageSurfaceUtils::ApplyHotPinkColorKey(RageSurface*& img)
 		auto row = img->pixels + img->pitch * y;
 
 		for (auto x = 0; x < img->w; ++x) {
-			auto val = decodepixel(row, img->fmt.BytesPerPixel);
+			const auto val = decodepixel(row, img->fmt.BytesPerPixel);
 			if (val == HotPink)
 				encodepixel(row, img->fmt.BytesPerPixel, 0);
 
@@ -1120,7 +1150,7 @@ RageSurfaceUtils::FlipVertically(RageSurface* img)
 	auto* row = new char[bytes_per_row];
 
 	for (auto y = 0; y < img->h / 2; y++) {
-		auto y2 = img->h - 1 - y;
+		const auto y2 = img->h - 1 - y;
 		memcpy(row, img->pixels + pitch * y, bytes_per_row);
 		memcpy(
 		  img->pixels + pitch * y, img->pixels + pitch * y2, bytes_per_row);

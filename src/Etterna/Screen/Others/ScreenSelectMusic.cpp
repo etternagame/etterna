@@ -37,6 +37,8 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
+#include <algorithm>
+
 static const char* SelectionStateNames[] = { "SelectingSong",
 											 "SelectingSteps",
 											 "Finalized" };
@@ -395,7 +397,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// HACK: This screen eats mouse inputs if we don't check for them first.
 	bool mouse_evt = false;
 	for (int i = MOUSE_LEFT; i <= MOUSE_WHEELDOWN; i++) {
-		if (input.DeviceI == DeviceInput(DEVICE_MOUSE, (DeviceButton)i))
+		if (input.DeviceI ==
+			DeviceInput(DEVICE_MOUSE, static_cast<DeviceButton>(i)))
 			mouse_evt = true;
 	}
 
@@ -1007,7 +1010,7 @@ ScreenSelectMusic::HandleMessage(const Message& msg)
 }
 
 void
-ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
+ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_AllowOptionsMenuRepeat) {
 		m_bAllowOptionsMenuRepeat = true;
@@ -1055,7 +1058,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 	} else if (SM == SM_BackFromCalcTestStuff) {
 		string ans = ScreenTextEntry::s_sLastAnswer;
 		vector<string> words;
-		istringstream iss(ans);
+		std::istringstream iss(ans);
 		for (string s; iss >> s;)
 			words.push_back(s);
 		Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
@@ -1065,7 +1068,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 		if (words.size() == 2) {
 			try {
 				float target = stof(words[0]);
-				Skillset ss = (Skillset)stoi(words[1]);
+				Skillset ss = static_cast<Skillset>(stoi(words[1]));
 				if (ss < 0 || ss >= NUM_Skillset)
 					SCREENMAN->SystemMessage("invalid skillset number");
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
@@ -1100,7 +1103,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage SM)
 			try {
 				float target = stof(words[0]);
 				float rate = stof(words[1]);
-				Skillset ss = (Skillset)stoi(words[2]);
+				Skillset ss = static_cast<Skillset>(stoi(words[2]));
 				if (ss < 0 || ss >= NUM_Skillset)
 					SCREENMAN->SystemMessage("invalid skillset number");
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
@@ -1277,7 +1280,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 			StartTransitioningScreen(SM_None);
 			float fTime =
-			  max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
+			  std::max(SHOW_OPTIONS_MESSAGE_SECONDS, this->GetTweenTimeLeft());
 			this->PostScreenMessage(SM_BeginFadingOut, fTime);
 		} else {
 			StartTransitioningScreen(SM_BeginFadingOut);
@@ -1856,7 +1859,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		NoteData nd;
 		Steps* steps = GAMESTATE->m_pCurSteps;
 		steps->GetNoteData(nd);
-		float songlength = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
 		ss.Init();
 		SCOREMAN->camefromreplay =
 		  false; // disallow viewing online score eval screens -mina
@@ -1886,7 +1888,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		pss.m_iSongsPlayed = 1;
 		GAMESTATE->SetProcessedTimingData(
 		  GAMESTATE->m_pCurSteps->GetTimingData());
-		NoteDataUtil::CalculateRadarValues(nd, songlength, rv);
+		NoteDataUtil::CalculateRadarValues(nd, rv);
 		pss.m_radarPossible += rv;
 		RadarValues realRV;
 		PlayerAI::CalculateRadarValuesForReplay(realRV, rv);
@@ -1895,11 +1897,12 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->SetProcessedTimingData(nullptr);
 		pss.everusedautoplay = true;
 		for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
-			pss.m_iTapNoteScores[i] = score->GetTapNoteScore((TapNoteScore)i);
+			pss.m_iTapNoteScores[i] =
+			  score->GetTapNoteScore(static_cast<TapNoteScore>(i));
 		}
 		for (int i = 0; i < NUM_HoldNoteScore; i++) {
 			pss.m_iHoldNoteScores[i] =
-			  score->GetHoldNoteScore((HoldNoteScore)i);
+			  score->GetHoldNoteScore(static_cast<HoldNoteScore>(i));
 		}
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
@@ -1937,7 +1940,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
 		float helloiamafloat =
-		  GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds;
+		  GAMESTATE->m_Position.m_fMusicSeconds;
 		p->GeneratePreviewNoteField();
 		if (p->m_pPreviewNoteField != nullptr) {
 			p->SetPreviewNoteFieldMusicPosition(helloiamafloat);
@@ -1982,7 +1985,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
 	{
 		lua_pushnumber(
-		  L, GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds);
+		  L, GAMESTATE->m_Position.m_fMusicSeconds);
 		return 1;
 	}
 

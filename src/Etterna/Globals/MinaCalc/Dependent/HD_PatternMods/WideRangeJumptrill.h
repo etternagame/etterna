@@ -25,7 +25,7 @@ struct WideRangeJumptrillMod
 
 	float cv_threshhold = 0.05F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

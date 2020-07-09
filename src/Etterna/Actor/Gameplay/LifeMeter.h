@@ -38,12 +38,15 @@ class LifeMeter : public ActorFrame
 	virtual void ChangeLife(float delta) = 0;
 	virtual void SetLife(float value) = 0;
 	virtual void HandleTapScoreNone() = 0;
-	virtual bool IsInDanger() const = 0;
-	virtual bool IsHot() const = 0;
-	virtual bool IsFailing() const = 0;
-	virtual float GetLife() const { return 0; } // for cosmetic use only
+	[[nodiscard]] virtual auto IsInDanger() const -> bool = 0;
+	[[nodiscard]] virtual auto IsHot() const -> bool = 0;
+	[[nodiscard]] virtual auto IsFailing() const -> bool = 0;
+	[[nodiscard]] virtual auto GetLife() const -> float
+	{
+		return 0;
+	} // for cosmetic use only
 
-	static LifeMeter* MakeLifeMeter(LifeType t);
+	static auto MakeLifeMeter(LifeType t) -> LifeMeter*;
 
 	//
 	// Lua
@@ -51,8 +54,8 @@ class LifeMeter : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   protected:
-	const PlayerState* m_pPlayerState;
-	PlayerStageStats* m_pPlayerStageStats;
+	const PlayerState* m_pPlayerState{};
+	PlayerStageStats* m_pPlayerStageStats{};
 };
 
 #endif

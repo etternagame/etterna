@@ -7,7 +7,7 @@
 int32_t
 RageSurfacePalette::FindColor(const RageSurfaceColor& color) const
 {
-	for (int i = 0; i < ncolors; ++i)
+	for (auto i = 0; i < ncolors; ++i)
 		if (colors[i] == color)
 			return i;
 	return -1;
@@ -17,14 +17,15 @@ RageSurfacePalette::FindColor(const RageSurfaceColor& color) const
 int32_t
 RageSurfacePalette::FindClosestColor(const RageSurfaceColor& color) const
 {
-	int iBest = -1;
-	int iBestDist = INT_MAX;
-	for (int i = 0; i < ncolors; ++i) {
+	auto iBest = -1;
+	auto iBestDist = INT_MAX;
+	for (auto i = 0; i < ncolors; ++i) {
 		if (colors[i] == color)
 			return i;
 
-		int iDist = abs(colors[i].r - color.r) + abs(colors[i].g - color.g) +
-					abs(colors[i].b - color.b) + abs(colors[i].a - color.a);
+		const auto iDist =
+		  abs(colors[i].r - color.r) + abs(colors[i].g - color.g) +
+		  abs(colors[i].b - color.b) + abs(colors[i].a - color.a);
 		if (iDist < iBestDist) {
 			iBestDist = iDist;
 			iBest = i;
@@ -44,7 +45,7 @@ RageSurfaceFormat::RageSurfaceFormat()
   , Bshift(Shift[2])
   , Ashift(Shift[3])
 {
-	palette = NULL;
+	palette = nullptr;
 }
 
 RageSurfaceFormat::RageSurfaceFormat(const RageSurfaceFormat& cpy)
@@ -93,11 +94,11 @@ RageSurfaceFormat::MapRGBA(uint8_t r,
 						   uint32_t& val) const
 {
 	if (BytesPerPixel == 1) {
-		RageSurfaceColor c(r, g, b, a);
-		int32_t n = palette->FindColor(c);
+		const RageSurfaceColor c(r, g, b, a);
+		const auto n = palette->FindColor(c);
 		if (n == -1)
 			return false;
-		val = (uint32_t)n;
+		val = static_cast<uint32_t>(n);
 	} else {
 		val = (r >> Loss[0] << Shift[0]) | (g >> Loss[1] << Shift[1]) |
 			  (b >> Loss[2] << Shift[2]) | (a >> Loss[3] << Shift[3]);
@@ -152,7 +153,7 @@ RageSurface::RageSurface(const RageSurface& cpy)
 		pixels = new uint8_t[pitch * h];
 		memcpy(pixels, cpy.pixels, pitch * h);
 	} else
-		pixels = NULL;
+		pixels = nullptr;
 }
 
 RageSurface::~RageSurface()
@@ -170,7 +171,7 @@ GetShiftFromMask(uint32_t mask)
 	if (!mask)
 		return 0;
 
-	int iShift = 0;
+	auto iShift = 0;
 	while ((mask & 1) == 0) {
 		mask >>= 1;
 		++iShift;
@@ -186,7 +187,7 @@ GetBitsFromMask(uint32_t mask)
 
 	mask >>= GetShiftFromMask(mask);
 
-	int iBits = 0;
+	auto iBits = 0;
 	while ((mask & 1) == 1) {
 		mask >>= 1;
 		++iBits;
@@ -227,10 +228,10 @@ SetupFormat(RageSurfaceFormat& fmt,
 		fmt.Shift[2] = GetShiftFromMask(Bmask);
 		fmt.Shift[3] = GetShiftFromMask(Amask);
 
-		fmt.Loss[0] = (uint8_t)(8 - GetBitsFromMask(Rmask));
-		fmt.Loss[1] = (uint8_t)(8 - GetBitsFromMask(Gmask));
-		fmt.Loss[2] = (uint8_t)(8 - GetBitsFromMask(Bmask));
-		fmt.Loss[3] = (uint8_t)(8 - GetBitsFromMask(Amask));
+		fmt.Loss[0] = static_cast<uint8_t>(8 - GetBitsFromMask(Rmask));
+		fmt.Loss[1] = static_cast<uint8_t>(8 - GetBitsFromMask(Gmask));
+		fmt.Loss[2] = static_cast<uint8_t>(8 - GetBitsFromMask(Bmask));
+		fmt.Loss[3] = static_cast<uint8_t>(8 - GetBitsFromMask(Amask));
 	}
 }
 

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "ModIconRow.h"
@@ -21,7 +20,9 @@ ModIconRow::ModIconRow()
 
 ModIconRow::~ModIconRow()
 {
-	FOREACH(ModIcon*, m_vpModIcon, p) { SAFE_DELETE(*p); }
+	for (auto& p : m_vpModIcon) {
+		SAFE_DELETE(p);
+	}
 	this->RemoveAllChildren();
 }
 
@@ -128,9 +129,6 @@ OptionToPreferredColumn(std::string sOptionText)
 	for (auto g_OptionColumnEntry : g_OptionColumnEntries)
 		if (g_OptionColumnEntry.szString == sOptionText)
 			return g_OptionColumnEntry.iSlotIndex;
-
-	// This warns about C1234 and noteskins.
-	//	LOG->Warn("Unknown option: '%s'", sOptionText.c_str() );
 	return 0;
 }
 
@@ -149,17 +147,16 @@ ModIconRow::SetFromGameState()
 	vsText.resize(m_vpModIcon.size());
 
 	// for each option, look for the best column to place it in
-	for (unsigned i = 0; i < vsOptions.size(); i++) {
-		std::string sOption = vsOptions[i];
+	for (auto sOption : vsOptions) {
 		int iPerferredCol = OptionToPreferredColumn(sOption);
-		clamp(iPerferredCol, 0, (int)m_vpModIcon.size() - 1);
+		CLAMP(iPerferredCol, 0, static_cast<int>(m_vpModIcon.size()) - 1);
 
 		if (iPerferredCol == -1)
 			continue; // skip
 
 		// search for a vacant spot
 		for (int j = iPerferredCol; j < NUM_OPTION_ICONS; j++) {
-			if (vsText[j] != "") {
+			if (!vsText[j].empty()) {
 				continue;
 			} else {
 				vsText[j] = sOption;

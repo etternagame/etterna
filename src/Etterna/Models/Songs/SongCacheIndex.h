@@ -2,7 +2,6 @@
 #define SONG_CACHE_INDEX_H
 
 #include "Etterna/FileTypes/IniFile.h"
-#include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
@@ -28,15 +27,18 @@ class SongCacheIndex
 	SQLite::Database* db{ nullptr };
 	SongCacheIndex();
 	~SongCacheIndex();
-	inline pair<std::string, int> SongFromStatement(Song* song,
-													SQLite::Statement& query);
-	void LoadHyperCache(LoadingWindow* ld, map<std::string, Song*>& hyperCache);
+	inline std::pair<std::string, int> SongFromStatement(
+	  Song* song,
+	  SQLite::Statement& query);
+	void LoadHyperCache(LoadingWindow* ld,
+						std::map<std::string, Song*>& hyperCache);
 	void LoadCache(
 	  LoadingWindow* ld,
-	  vector<pair<pair<std::string, unsigned int>, Song*>*>& cache);
-	void DeleteSongFromDBByCondition(string& condition);
+	  std::vector<std::pair<std::pair<std::string, unsigned int>, Song*>*>&
+		cache);
+	void DeleteSongFromDBByCondition(std::string& condition);
 	void DeleteSongFromDB(Song* songPtr);
-	void DeleteSongFromDBByDir(string dir);
+	void DeleteSongFromDBByDir(std::string dir);
 	void DeleteSongFromDBByDirHash(unsigned int hash);
 	static std::string GetCacheFilePath(const std::string& sGroup,
 										const std::string& sPath);

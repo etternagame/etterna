@@ -2,6 +2,7 @@
 #define CRASH_HANDLER_NETWORKING_H
 
 #include "RageUtil/Misc/RageThreads.h"
+
 #include <map>
 
 class NetworkStream;
@@ -32,7 +33,7 @@ class NetworkPostData
 
   private:
 	static void CreateMimeData(
-	  const map<std::string, std::string>& mapNameToData,
+	  const std::map<std::string, std::string>& mapNameToData,
 	  std::string& sOut,
 	  std::string& sMimeBoundaryOut);
 	void SetProgress(float fProgress);
@@ -41,7 +42,7 @@ class NetworkPostData
 	void HttpThread();
 	static int HttpThread_Start(void* p)
 	{
-		((NetworkPostData*)p)->HttpThread();
+		static_cast<NetworkPostData*>(p)->HttpThread();
 		return 0;
 	}
 
@@ -51,7 +52,7 @@ class NetworkPostData
 
 	// When the thread exists, it owns the rest of the data, regardless of
 	// m_Mutex.
-	map<std::string, std::string> m_Data;
+	std::map<std::string, std::string> m_Data;
 
 	bool m_bFinished;
 	std::string m_sHost;

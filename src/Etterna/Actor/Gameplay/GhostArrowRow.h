@@ -23,9 +23,9 @@ class GhostArrowRow : public ActorFrame
 
   protected:
 	float m_fYReverseOffsetPixels = 0.F;
-	const PlayerState* m_pPlayerState;
+	const PlayerState* m_pPlayerState{};
 
-	vector<NoteColumnRenderer> const* m_renderers;
+	vector<NoteColumnRenderer> const* m_renderers{};
 	vector<Actor*> m_Ghost;
 	vector<TapNoteSubType> m_bHoldShowing;
 	vector<TapNoteSubType> m_bLastHoldShowing;

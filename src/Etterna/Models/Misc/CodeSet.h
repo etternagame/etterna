@@ -8,12 +8,12 @@ class InputQueueCodeSet
 {
   public:
 	void Load(const std::string& sType);
-	std::string Input(const InputEventPlus& input) const;
+	[[nodiscard]] std::string Input(const InputEventPlus& input) const;
 	bool InputMessage(const InputEventPlus& input, Message& msg) const;
 
   private:
-	vector<InputQueueCode> m_aCodes;
-	vector<std::string> m_asCodeNames;
+	std::vector<InputQueueCode> m_aCodes;
+	std::vector<std::string> m_asCodeNames;
 };
 
 #endif

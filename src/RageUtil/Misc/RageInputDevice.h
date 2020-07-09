@@ -4,6 +4,7 @@
 
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include <chrono>
+#include <utility>
 
 const int NUM_JOYSTICKS = 32;
 const int NUM_PUMPS = 2;
@@ -53,31 +54,31 @@ enum InputDevice
 };
 /** @brief A special foreach loop for each input device. */
 #define FOREACH_InputDevice(i) FOREACH_ENUM(InputDevice, i)
-const std::string&
-InputDeviceToString(InputDevice i);
-InputDevice
-StringToInputDevice(const std::string& s);
-inline bool
-IsJoystick(InputDevice id)
+auto
+InputDeviceToString(InputDevice i) -> const std::string&;
+auto
+StringToInputDevice(const std::string& s) -> InputDevice;
+inline auto
+IsJoystick(InputDevice id) -> bool
 {
 	return DEVICE_JOY1 <= id && id < DEVICE_JOY1 + NUM_JOYSTICKS;
 }
-inline bool
-IsPump(InputDevice id)
+inline auto
+IsPump(InputDevice id) -> bool
 {
 	return DEVICE_PUMP1 <= id && id < DEVICE_PUMP1 + NUM_PUMPS;
 }
-inline bool
-IsMouse(InputDevice id)
+inline auto
+IsMouse(InputDevice id) -> bool
 {
 	return id == DEVICE_MOUSE;
 }
 
 struct InputDeviceInfo
 {
-	InputDeviceInfo(InputDevice id_, const std::string& sDesc_)
+	InputDeviceInfo(InputDevice id_, std::string sDesc_)
 	  : id(id_)
-	  , sDesc(sDesc_)
+	  , sDesc(std::move(sDesc_))
 	{
 	}
 
@@ -85,14 +86,14 @@ struct InputDeviceInfo
 	std::string sDesc;
 };
 
-inline bool
-operator==(InputDeviceInfo const& lhs, InputDeviceInfo const& rhs)
+inline auto
+operator==(InputDeviceInfo const& lhs, InputDeviceInfo const& rhs) -> bool
 {
 	return lhs.id == rhs.id && lhs.sDesc == rhs.sDesc;
 }
 
-inline bool
-operator!=(InputDeviceInfo const& lhs, InputDeviceInfo const& rhs)
+inline auto
+operator!=(InputDeviceInfo const& lhs, InputDeviceInfo const& rhs) -> bool
 {
 	return !operator==(lhs, rhs);
 }
@@ -103,15 +104,15 @@ enum InputDeviceState
 								// in
 	InputDeviceState_Unplugged, // has an InputHandler but controller is
 								// unplugged or lost wireless link
-	InputDeviceState_NeedsMultitap,  // has an InputHandler but needs a multitap
+	InputDeviceState_NeedsMultitap,	 // has an InputHandler but needs a multitap
 									 // to function
 	InputDeviceState_NoInputHandler, // there is no InputHandler that implements
 									 // this InputDevice
 	NUM_InputDeviceState,
 	InputDeviceState_Invalid
 };
-const std::string&
-InputDeviceStateToString(InputDeviceState ids);
+auto
+InputDeviceStateToString(InputDeviceState ids) -> const std::string&;
 
 /* Only raw, unshifted keys go in this table; this doesn't include
  * internationalized keyboards, only keys that we might actually want to test
@@ -380,10 +381,10 @@ enum DeviceButton
 	DeviceButton_Invalid
 };
 
-std::string
-DeviceButtonToString(DeviceButton i);
-DeviceButton
-StringToDeviceButton(const std::string& s);
+auto
+DeviceButtonToString(DeviceButton i) -> std::string;
+auto
+StringToDeviceButton(const std::string& s) -> DeviceButton;
 
 struct DeviceInput
 {
@@ -415,7 +416,7 @@ struct DeviceInput
 	  : device(d)
 	  , button(b)
 	  , level(l)
-	  , bDown(l > 0.5f)
+	  , bDown(l > 0.5F)
 	  , ts(std::chrono::microseconds{ 0 })
 	{
 	}
@@ -426,7 +427,7 @@ struct DeviceInput
 	  : device(d)
 	  , button(b)
 	  , level(l)
-	  , bDown(level > 0.5f)
+	  , bDown(level > 0.5F)
 	  , ts(t)
 	{
 	}
@@ -436,37 +437,42 @@ struct DeviceInput
 				int zVal = 0)
 	  : device(d)
 	  , button(b)
-	  , level(0)
 	  , z(zVal)
 	  , ts(t)
 	{
 	}
 
-	std::string ToString() const;
-	bool FromString(const std::string& s);
+	[[nodiscard]] auto ToString() const -> std::string;
+	auto FromString(const std::string& s) -> bool;
 
-	bool IsValid() const { return device != InputDevice_Invalid; };
+	[[nodiscard]] auto IsValid() const -> bool
+	{
+		return device != InputDevice_Invalid;
+	};
 	void MakeInvalid() { device = InputDevice_Invalid; };
 
-	bool IsJoystick() const { return ::IsJoystick(device); }
-	bool IsMouse() const { return ::IsMouse(device); }
+	[[nodiscard]] auto IsJoystick() const -> bool
+	{
+		return ::IsJoystick(device);
+	}
+	[[nodiscard]] auto IsMouse() const -> bool { return ::IsMouse(device); }
 };
 
-inline bool
-operator==(DeviceInput const& lhs, DeviceInput const& rhs)
+inline auto
+operator==(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 {
 	/* Return true if we represent the same button on the same device.
 	 * Don't compare level or ts. */
 	return lhs.device == rhs.device && lhs.button == rhs.button;
 }
-inline bool
-operator!=(DeviceInput const& lhs, DeviceInput const& rhs)
+inline auto
+operator!=(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 {
 	return !operator==(lhs, rhs);
 }
 
-inline bool
-operator<(DeviceInput const& lhs, DeviceInput const& rhs)
+inline auto
+operator<(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 {
 	/* Only the devices and buttons matter here. */
 	if (lhs.device != rhs.device) {
@@ -474,22 +480,22 @@ operator<(DeviceInput const& lhs, DeviceInput const& rhs)
 	}
 	return lhs.button < rhs.button;
 }
-inline bool
-operator>(DeviceInput const& lhs, DeviceInput const& rhs)
+inline auto
+operator>(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 {
 	return operator<(rhs, lhs);
 }
-inline bool
-operator<=(DeviceInput const& lhs, DeviceInput const& rhs)
+inline auto
+operator<=(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 {
 	return !operator<(rhs, lhs);
 }
-inline bool
-operator>=(DeviceInput const& lhs, DeviceInput const& rhs)
+inline auto
+operator>=(DeviceInput const& lhs, DeviceInput const& rhs) -> bool
 {
 	return !operator<(lhs, rhs);
 }
 
-typedef vector<DeviceInput> DeviceInputList;
+typedef std::vector<DeviceInput> DeviceInputList;
 
 #endif

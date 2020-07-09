@@ -37,11 +37,11 @@ class ScreenManager
 	void PersistantScreen(const std::string& sScreenName);
 	void PopTopScreen(ScreenMessage SM);
 	void PopAllScreens();
-	Screen* GetTopScreen();
-	Screen* GetScreen(int iPosition);
-	bool AllowOperatorMenuButton() const;
+	auto GetTopScreen() -> Screen*;
+	auto GetScreen(int iPosition) -> Screen*;
+	auto AllowOperatorMenuButton() const -> bool;
 
-	bool IsScreenNameValid(std::string const& name) const;
+	auto IsScreenNameValid(std::string const& name) const -> bool;
 
 	// System messages
 	void SystemMessage(const std::string& sMessage);
@@ -66,9 +66,9 @@ class ScreenManager
 	 * @param pScreen the Screen to check.
 	 * @return true if it's on the stack while not on the bottom, or false
 	 * otherwise. */
-	bool IsStackedScreen(const Screen* pScreen) const;
+	auto IsStackedScreen(const Screen* pScreen) const -> bool;
 
-	bool get_input_redirected(PlayerNumber pn);
+	auto get_input_redirected(PlayerNumber pn) -> bool;
 	void set_input_redirected(PlayerNumber pn, bool redir);
 
 	// Lua
@@ -101,10 +101,11 @@ class ScreenManager
 	// input for navigating the custom menu to work. -Kyz
 	std::vector<bool> m_input_redirected;
 
-	Screen* MakeNewScreen(const std::string& sName);
+	auto MakeNewScreen(const std::string& sName) -> Screen*;
 	void LoadDelayedScreen();
-	bool ActivatePreparedScreenAndBackground(const std::string& sScreenName);
-	ScreenMessage PopTopScreenInternal(bool bSendLoseFocus = true);
+	auto ActivatePreparedScreenAndBackground(const std::string& sScreenName)
+	  -> bool;
+	auto PopTopScreenInternal(bool bSendLoseFocus = true) -> ScreenMessage;
 
 	// Keep these sounds always loaded, because they could be
 	// played at any time.  We want to eliminate SOUND->PlayOnce

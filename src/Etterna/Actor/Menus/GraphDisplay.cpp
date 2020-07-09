@@ -45,7 +45,7 @@ class GraphLine : public Actor
 
 		DISPLAY->DrawQuads(&m_Quads[0], m_Quads.size());
 
-		int iFans = m_pCircles.size() / iCircleVertices;
+		const int iFans = m_pCircles.size() / iCircleVertices;
 		for (int i = 0; i < iFans; ++i)
 			DISPLAY->DrawFan(&m_pCircles[0] + iCircleVertices * i,
 							 iCircleVertices);
@@ -80,26 +80,26 @@ class GraphLine : public Actor
 					   1);
 		}
 
-		int iNumLines = iSize - 1;
+		const int iNumLines = iSize - 1;
 		m_Quads.resize(iNumLines * 4);
 		for (int i = 0; i < iNumLines; ++i) {
 			const RageSpriteVertex& p1 = m_LineStrip[i];
 			const RageSpriteVertex& p2 = m_LineStrip[i + 1];
 
-			float opp = p2.p.x - p1.p.x;
-			float adj = p2.p.y - p1.p.y;
-			float hyp = powf(opp * opp + adj * adj, 0.5f);
+			const float opp = p2.p.x - p1.p.x;
+			const float adj = p2.p.y - p1.p.y;
+			const float hyp = powf(opp * opp + adj * adj, 0.5f);
 
-			float lsin = opp / hyp;
-			float lcos = adj / hyp;
+			const float lsin = opp / hyp;
+			const float lcos = adj / hyp;
 
 			RageSpriteVertex* v = &m_Quads[i * 4];
 			v[0] = v[1] = p1;
 			v[2] = v[3] = p2;
 
-			int iLineWidth = 2;
-			float ydist = lsin * iLineWidth / 2;
-			float xdist = lcos * iLineWidth / 2;
+			const int iLineWidth = 2;
+			const float ydist = lsin * iLineWidth / 2;
+			const float xdist = lcos * iLineWidth / 2;
 
 			v[0].p.x += xdist;
 			v[0].p.y -= ydist;
@@ -135,7 +135,7 @@ class GraphBody : public Actor
 	~GraphBody() override
 	{
 		TEXTUREMAN->UnloadTexture(m_pTexture);
-		m_pTexture = NULL;
+		m_pTexture = nullptr;
 	}
 
 	void DrawPrimitives() override
@@ -158,8 +158,8 @@ class GraphBody : public Actor
 
 GraphDisplay::GraphDisplay()
 {
-	m_pGraphLine = NULL;
-	m_pGraphBody = NULL;
+	m_pGraphLine = nullptr;
+	m_pGraphBody = nullptr;
 }
 
 GraphDisplay::~GraphDisplay()
@@ -174,7 +174,7 @@ GraphDisplay::~GraphDisplay()
 void
 GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 {
-	float fTotalStepSeconds = ss.GetTotalPossibleStepsSeconds();
+	const float fTotalStepSeconds = ss.GetTotalPossibleStepsSeconds();
 
 	m_Values.resize(VALUE_RESOLUTION);
 	pss.GetWifeRecord(
@@ -194,11 +194,11 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 
 		Actor* p = m_sprSongBoundary->Copy();
 		m_vpSongBoundaries.push_back(p);
-		float fX = SCALE(fSec,
-						 0,
-						 fTotalStepSeconds,
-						 m_quadVertices.left,
-						 m_quadVertices.right);
+		const float fX = SCALE(fSec,
+							   0,
+							   fTotalStepSeconds,
+							   m_quadVertices.left,
+							   m_quadVertices.right);
 		p->SetX(fX);
 		this->AddChild(p);
 	}
@@ -209,7 +209,7 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		int iMinLifeSoFarAt = 0;
 
 		for (int i = 0; i < VALUE_RESOLUTION; ++i) {
-			float fLife = m_Values[i];
+			const float fLife = m_Values[i];
 			if (fLife < fMinLifeSoFar) {
 				fMinLifeSoFar = fLife;
 				iMinLifeSoFarAt = i;
@@ -217,11 +217,11 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		}
 
 		if (fMinLifeSoFar > 0.0f && fMinLifeSoFar < 0.1f) {
-			float fX = SCALE(static_cast<float>(iMinLifeSoFarAt),
-							 0.0f,
-							 static_cast<float>(VALUE_RESOLUTION - 1),
-							 m_quadVertices.left,
-							 m_quadVertices.right);
+			const float fX = SCALE(static_cast<float>(iMinLifeSoFarAt),
+								   0.0f,
+								   static_cast<float>(VALUE_RESOLUTION - 1),
+								   m_quadVertices.left,
+								   m_quadVertices.right);
 			m_sprBarely->SetX(fX);
 		} else {
 			m_sprBarely->SetVisible(false);
@@ -318,10 +318,10 @@ class LunaGraphDisplay : public Luna<GraphDisplay>
 		StageStats* pStageStats = Luna<StageStats>::check(L, 1);
 		PlayerStageStats* pPlayerStageStats =
 		  Luna<PlayerStageStats>::check(L, 2);
-		if (pStageStats == NULL) {
+		if (pStageStats == nullptr) {
 			luaL_error(L, "The StageStats passed to GraphDisplay:Set are nil.");
 		}
-		if (pPlayerStageStats == NULL) {
+		if (pPlayerStageStats == nullptr) {
 			luaL_error(
 			  L, "The PlayerStageStats passed to GraphDisplay:Set are nil.");
 		}

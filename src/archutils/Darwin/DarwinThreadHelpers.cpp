@@ -5,6 +5,8 @@
 #include "archutils/Unix/Backtrace.h"
 #include <Etterna/Globals/global.h>
 
+#include <cmath>
+
 
 bool
 SuspendThread(uint64_t threadHandle)

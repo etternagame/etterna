@@ -23,10 +23,10 @@ enum LifeType
 	NUM_LifeType,
 	LifeType_Invalid
 };
-const std::string&
-LifeTypeToString(LifeType cat);
-const std::string&
-LifeTypeToLocalizedString(LifeType cat);
+auto
+LifeTypeToString(LifeType cat) -> const std::string&;
+auto
+LifeTypeToLocalizedString(LifeType cat) -> const std::string&;
 LuaDeclareType(LifeType);
 
 enum DrainType
@@ -37,10 +37,10 @@ enum DrainType
 	NUM_DrainType,
 	DrainType_Invalid
 };
-const std::string&
-DrainTypeToString(DrainType cat);
-const std::string&
-DrainTypeToLocalizedString(DrainType cat);
+auto
+DrainTypeToString(DrainType cat) -> const std::string&;
+auto
+DrainTypeToLocalizedString(DrainType cat) -> const std::string&;
 LuaDeclareType(DrainType);
 
 /** @brief Per-player options that are not saved between sessions. */
@@ -68,41 +68,46 @@ class PlayerOptions
 	};
 	void Init();
 	void Approach(const PlayerOptions& other, float fDeltaSeconds);
-	std::string GetString(bool bForceNoteSkin = false) const;
-	std::string GetSavedPrefsString()
-	  const; // only the basic options that players would want for every song
+	[[nodiscard]] auto GetString(bool bForceNoteSkin = false) const
+	  -> std::string;
+	[[nodiscard]] auto GetSavedPrefsString() const
+	  -> std::string; // only the basic options that players would want for
+					  // every song
 	enum ResetPrefsType
 	{
 		saved_prefs,
 	};
 	void ResetPrefs(ResetPrefsType type);
 	void ResetSavedPrefs() { ResetPrefs(saved_prefs); };
-	void GetMods(vector<std::string>& AddTo, bool bForceNoteSkin = false) const;
-	void GetTurnMods(vector<std::string>& AddTo);
-	void ResetModsToStringVector(vector<std::string> mods);
+	void GetMods(std::vector<std::string>& AddTo,
+				 bool bForceNoteSkin = false) const;
+	void GetTurnMods(std::vector<std::string>& AddTo);
+	void ResetModsToStringVector(std::vector<std::string> mods);
 	void ResetToggleableMods();
-	void GetLocalizedMods(vector<std::string>& AddTo) const;
+	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
 	void FromString(const std::string& sMultipleMods);
-	bool FromOneModString(const std::string& sOneMod,
-						  std::string& sErrorDetailOut); // On error, return false
-													 // and optionally set
-													 // sErrorDetailOut
+	auto FromOneModString(const std::string& sOneMod,
+						  std::string& sErrorDetailOut)
+	  -> bool; // On error, return
+			   // false and optionally
+			   // set sErrorDetailOut
 	void ChooseRandomModifiers();
 	// Returns true for modifiers that should invalidate a score or otherwise
 	// make it impossible to calculate Replay info
-	bool ContainsTransformOrTurn() const;
+	[[nodiscard]] auto ContainsTransformOrTurn() const -> bool;
 
-	vector<std::string> GetInvalidatingModifiers() const;
+	[[nodiscard]] auto GetInvalidatingModifiers() const
+	  -> std::vector<std::string>;
 
 	// Lua
 	void PushSelf(lua_State* L);
 
-	bool operator==(const PlayerOptions& other) const;
-	bool operator!=(const PlayerOptions& other) const
+	auto operator==(const PlayerOptions& other) const -> bool;
+	auto operator!=(const PlayerOptions& other) const -> bool
 	{
 		return !operator==(other);
 	}
-	PlayerOptions& operator=(PlayerOptions const& other);
+	auto operator=(PlayerOptions const& other) -> PlayerOptions&;
 
 	/** @brief The various acceleration mods. */
 	enum Accel
@@ -161,7 +166,7 @@ class PlayerOptions
 		TURN_RIGHT,		/**< The arrows are turned 90 degress to the right. */
 		TURN_SHUFFLE, /**< Some of the arrow columns are changed throughout the
 						 whole song. */
-		TURN_SOFT_SHUFFLE,  /**< Only shuffle arrow columns on an axis of
+		TURN_SOFT_SHUFFLE,	/**< Only shuffle arrow columns on an axis of
 							   symmetry. */
 		TURN_SUPER_SHUFFLE, /**< Every arrow is placed on a random column. */
 		NUM_TURNS
@@ -206,8 +211,8 @@ class PlayerOptions
 		NUM_SCROLLS
 	};
 
-	float GetReversePercentForColumn(
-	  int iCol) const; // accounts for all Directions
+	[[nodiscard]] auto GetReversePercentForColumn(int iCol) const
+	  -> float; // accounts for all Directions
 
 	PlayerNumber m_pn{ PLAYER_1 }; // Needed for fetching the style.
 
@@ -220,39 +225,40 @@ class PlayerOptions
 		false
 	}; // true if the scroll speed was set by FromString
 	float m_fTimeSpacing{ 0 },
-	  m_SpeedfTimeSpacing{ 1.0f }; // instead of Beat spacing (CMods, mMods)
-	float m_fMaxScrollBPM{ 0 }, m_SpeedfMaxScrollBPM{ 1.0f };
-	float m_fScrollSpeed{ 1.0f },
-	  m_SpeedfScrollSpeed{ 1.0f }; // used if !m_bTimeSpacing (xMods)
+	  m_SpeedfTimeSpacing{ 1.0F }; // instead of Beat spacing (CMods, mMods)
+	float m_fMaxScrollBPM{ 0 }, m_SpeedfMaxScrollBPM{ 1.0F };
+	float m_fScrollSpeed{ 1.0F },
+	  m_SpeedfScrollSpeed{ 1.0F }; // used if !m_bTimeSpacing (xMods)
 	float m_fScrollBPM{ 200 },
-	  m_SpeedfScrollBPM{ 1.0f }; // used if m_bTimeSpacing (CMod)
-	float m_fAccels[NUM_ACCELS], m_SpeedfAccels[NUM_ACCELS];
-	float m_fEffects[NUM_EFFECTS], m_SpeedfEffects[NUM_EFFECTS];
-	float m_fAppearances[NUM_APPEARANCES], m_SpeedfAppearances[NUM_APPEARANCES];
-	float m_fScrolls[NUM_SCROLLS], m_SpeedfScrolls[NUM_SCROLLS];
-	float m_fDark{ 0 }, m_SpeedfDark{ 1.0f };
-	float m_fBlind{ 0 }, m_SpeedfBlind{ 1.0f };
+	  m_SpeedfScrollBPM{ 1.0F }; // used if m_bTimeSpacing (CMod)
+	float m_fAccels[NUM_ACCELS]{}, m_SpeedfAccels[NUM_ACCELS]{};
+	float m_fEffects[NUM_EFFECTS]{}, m_SpeedfEffects[NUM_EFFECTS]{};
+	float m_fAppearances[NUM_APPEARANCES]{},
+	  m_SpeedfAppearances[NUM_APPEARANCES]{};
+	float m_fScrolls[NUM_SCROLLS]{}, m_SpeedfScrolls[NUM_SCROLLS]{};
+	float m_fDark{ 0 }, m_SpeedfDark{ 1.0F };
+	float m_fBlind{ 0 }, m_SpeedfBlind{ 1.0F };
 	float m_fCover{ 0 }, m_SpeedfCover{
-		1.0f
+		1.0F
 	}; // hide the background per-player--can't think of a good name
-	float m_fRandAttack{ 0 }, m_SpeedfRandAttack{ 1.0f };
-	float m_fNoAttack{ 0 }, m_SpeedfNoAttack{ 1.0f };
-	float m_fPlayerAutoPlay{ 0 }, m_SpeedfPlayerAutoPlay{ 1.0f };
+	float m_fRandAttack{ 0 }, m_SpeedfRandAttack{ 1.0F };
+	float m_fNoAttack{ 0 }, m_SpeedfNoAttack{ 1.0F };
+	float m_fPlayerAutoPlay{ 0 }, m_SpeedfPlayerAutoPlay{ 1.0F };
 	float m_fPerspectiveTilt{ 0 },
-	  m_SpeedfPerspectiveTilt{ 1.0f }; // -1 = near, 0 = overhead, +1 = space
-	float m_fSkew{ 0 }, m_SpeedfSkew{ 1.0f }; // 0 = vanish point is in center
+	  m_SpeedfPerspectiveTilt{ 1.0F }; // -1 = near, 0 = overhead, +1 = space
+	float m_fSkew{ 0 }, m_SpeedfSkew{ 1.0F }; // 0 = vanish point is in center
 											  // of player, 1 = vanish point is
 											  // in center of screen
 
 	/* If this is > 0, then the player must have life above this value at the
 	 * end of the song to pass.  This is independent of SongOptions::m_FailType.
 	 */
-	float m_fPassmark{ 0 }, m_SpeedfPassmark{ 1.0f };
+	float m_fPassmark{ 0 }, m_SpeedfPassmark{ 1.0F };
 
-	float m_fRandomSpeed{ 0 }, m_SpeedfRandomSpeed{ 1.0f };
+	float m_fRandomSpeed{ 0 }, m_SpeedfRandomSpeed{ 1.0F };
 
-	bool m_bTurns[NUM_TURNS];
-	bool m_bTransforms[NUM_TRANSFORMS];
+	bool m_bTurns[NUM_TURNS]{};
+	bool m_bTransforms[NUM_TRANSFORMS]{};
 	bool m_bMuteOnError{ false };
 	bool m_bPractice{ false };
 	/** @brief The method for which a player can fail a song. */
@@ -273,10 +279,10 @@ class PlayerOptions
 	void NextPerspective();
 	void NextScroll();
 
-	Accel GetFirstAccel();
-	Effect GetFirstEffect();
-	Appearance GetFirstAppearance();
-	Scroll GetFirstScroll();
+	auto GetFirstAccel() -> Accel;
+	auto GetFirstEffect() -> Effect;
+	auto GetFirstAppearance() -> Appearance;
+	auto GetFirstScroll() -> Scroll;
 
 	void SetOneAccel(Accel a);
 	void SetOneEffect(Effect e);
@@ -285,9 +291,9 @@ class PlayerOptions
 	void ToggleOneTurn(Turn t);
 
 	// return true if any mods being used will make the song(s) easier
-	bool IsEasierForSongAndSteps(Song* pSong,
+	auto IsEasierForSongAndSteps(Song* pSong,
 								 Steps* pSteps,
-								 PlayerNumber pn) const;
+								 PlayerNumber pn) const -> bool;
 };
 
 #endif

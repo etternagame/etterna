@@ -17,20 +17,20 @@ namespace NoteDataWithScoring {
  * @param iRow the row to check.
  * @plnum If valid, only consider notes for that PlayerNumber
  * @return true if it has been completley judged, or false otherwise. */
-bool
-IsRowCompletelyJudged(const NoteData& in, const unsigned& row);
+auto
+IsRowCompletelyJudged(const NoteData& in, const unsigned& row) -> bool;
 
-TapNoteScore
-MinTapNoteScore(const NoteData& in, const unsigned& row);
+auto
+MinTapNoteScore(const NoteData& in, const unsigned& row) -> TapNoteScore;
 
-const TapNote&
-LastTapNoteWithResult(const NoteData& in, const unsigned& row);
+auto
+LastTapNoteWithResult(const NoteData& in, const unsigned& row)
+  -> const TapNote&;
 
 void
 GetActualRadarValues(const NoteData& in,
 					 const PlayerStageStats& pss,
-					 const float& song_seconds,
 					 RadarValues& out);
-};
+} // namespace NoteDataWithScoring
 
 #endif

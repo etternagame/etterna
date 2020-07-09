@@ -9,7 +9,9 @@
 #include "RageFileDriverZip.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
+
 #include <cerrno>
+#include <algorithm>
 
 static struct FileDriverEntry_ZIP : public FileDriverEntry
 {
@@ -106,7 +108,7 @@ RageFileDriverZip::ReadEndCentralRecord(int& iTotalEntries,
 bool
 RageFileDriverZip::SeekToEndCentralRecord()
 {
-	const int iSearchTo = max(m_pZip->GetFileSize() - 1024 * 32, 0);
+	const int iSearchTo = std::max(m_pZip->GetFileSize() - 1024 * 32, 0);
 	int iRealPos = m_pZip->GetFileSize();
 
 	while (iRealPos > 0 && iRealPos >= iSearchTo) {
@@ -114,7 +116,7 @@ RageFileDriverZip::SeekToEndCentralRecord()
 		 * the case where the signature crosses the block boundary. */
 		char buf[1024 * 4];
 		iRealPos -= sizeof(buf) - 4;
-		iRealPos = max(0, iRealPos);
+		iRealPos = std::max(0, iRealPos);
 		m_pZip->Seek(iRealPos);
 
 		int iGot = m_pZip->Read(buf, sizeof(buf));
@@ -199,8 +201,8 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	FileReading::read_16_le(*m_pZip,
 							sError); /* skip version needed to extract */
 	int iGeneralPurpose = FileReading::read_16_le(*m_pZip, sError);
-	info.m_iCompressionMethod =
-	  (ZipCompressionMethod)FileReading::read_16_le(*m_pZip, sError);
+	info.m_iCompressionMethod = static_cast<ZipCompressionMethod>(
+	  FileReading::read_16_le(*m_pZip, sError));
 	FileReading::read_16_le(*m_pZip, sError); /* skip last mod file time */
 	FileReading::read_16_le(*m_pZip, sError); /* skip last mod file date */
 	info.m_iCRC32 = FileReading::read_32_le(*m_pZip, sError);

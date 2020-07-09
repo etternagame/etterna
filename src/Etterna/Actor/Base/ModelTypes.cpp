@@ -7,7 +7,9 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include <cstring>
+#include <algorithm>
 
 #define MS_MAX_NAME 32
 
@@ -29,7 +31,7 @@ AnimatedTexture::~AnimatedTexture()
 void
 AnimatedTexture::LoadBlank()
 {
-	AnimatedTextureState state(nullptr, 1, RageVector2(0, 0));
+	const AnimatedTextureState state(nullptr, 1, RageVector2(0, 0));
 	vFrames.push_back(state);
 }
 
@@ -39,7 +41,7 @@ AnimatedTexture::Load(const std::string& sTexOrIniPath)
 	ASSERT(vFrames.empty()); // don't load more than once
 
 	m_bSphereMapped = sTexOrIniPath.find("sphere") != std::string::npos;
-	if (sTexOrIniPath.find("add") != string::npos)
+	if (sTexOrIniPath.find("add") != std::string::npos)
 		m_BlendMode = BLEND_ADD;
 	else
 		m_BlendMode = BLEND_NORMAL;
@@ -63,16 +65,16 @@ AnimatedTexture::Load(const std::string& sTexOrIniPath)
 		pAnimatedTexture->GetAttrValue("TexOffsetX", m_vTexOffset.x);
 		pAnimatedTexture->GetAttrValue("TexOffsetY", m_vTexOffset.y);
 
-		for (int i = 0; i < 1000; i++) {
-			std::string sFileKey = ssprintf("Frame%04d", i);
-			std::string sDelayKey = ssprintf("Delay%04d", i);
+		for (auto i = 0; i < 1000; i++) {
+			auto sFileKey = ssprintf("Frame%04d", i);
+			auto sDelayKey = ssprintf("Delay%04d", i);
 
 			std::string sFileName;
 			float fDelay = 0;
 			if (pAnimatedTexture->GetAttrValue(sFileKey, sFileName) &&
 				pAnimatedTexture->GetAttrValue(sDelayKey, fDelay)) {
-				std::string sTranslateXKey = ssprintf("TranslateX%04d", i);
-				std::string sTranslateYKey = ssprintf("TranslateY%04d", i);
+				auto sTranslateXKey = ssprintf("TranslateX%04d", i);
+				auto sTranslateYKey = ssprintf("TranslateY%04d", i);
 
 				RageVector2 vOffset(0, 0);
 				pAnimatedTexture->GetAttrValue(sTranslateXKey, vOffset.x);
@@ -141,7 +143,7 @@ float
 AnimatedTexture::GetAnimationLengthSeconds() const
 {
 	float fTotalSeconds = 0;
-	for (auto& ats : vFrames)
+	for (const auto& ats : vFrames)
 		fTotalSeconds += ats.fDelaySecs;
 	return fTotalSeconds;
 }
@@ -153,7 +155,7 @@ AnimatedTexture::SetSecondsIntoAnimation(float fSeconds)
 
 	m_iCurState = 0;
 	for (unsigned i = 0; i < vFrames.size(); i++) {
-		AnimatedTextureState& ats = vFrames[i];
+		auto& ats = vFrames[i];
 		if (fSeconds >= ats.fDelaySecs) {
 			fSeconds -= ats.fDelaySecs;
 			m_iCurState = i + 1;
@@ -170,7 +172,7 @@ AnimatedTexture::GetSecondsIntoAnimation() const
 	float fSeconds = 0;
 
 	for (unsigned i = 0; i < vFrames.size(); i++) {
-		const AnimatedTextureState& ats = vFrames[i];
+		const auto& ats = vFrames[i];
 		if (static_cast<int>(i) >= m_iCurState)
 			break;
 
@@ -193,9 +195,9 @@ AnimatedTexture::Unload()
 RageVector2
 AnimatedTexture::GetTextureTranslate()
 {
-	float fPercentIntoAnimation =
+	const auto fPercentIntoAnimation =
 	  GetSecondsIntoAnimation() / GetAnimationLengthSeconds();
-	RageVector2 v = m_vTexVelocity * fPercentIntoAnimation + m_vTexOffset;
+	auto v = m_vTexVelocity * fPercentIntoAnimation + m_vTexOffset;
 
 	if (vFrames.empty())
 		return v;
@@ -217,7 +219,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 									 std::string sPath)
 {
 	FixSlashesInPlace(sPath);
-	const std::string sDir = Dirname(sPath);
+	const auto sDir = Dirname(sPath);
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -226,11 +228,11 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 							 f.GetError().c_str());
 
 	std::string sLine;
-	int iLineNum = 0;
+	auto iLineNum = 0;
 
-	msAnimation& Animation = *this;
+	auto& Animation = *this;
 
-	bool bLoaded = false;
+	const auto bLoaded = false;
 	while (f.GetLine(sLine) > 0) {
 		iLineNum++;
 
@@ -238,7 +240,7 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			continue;
 
 		// bones
-		int nNumBones = 0;
+		auto nNumBones = 0;
 		if (sscanf(sLine.c_str(), "Bones: %d", &nNumBones) != 1)
 			continue;
 
@@ -246,8 +248,8 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 
 		Animation.Bones.resize(nNumBones);
 
-		for (int i = 0; i < nNumBones; i++) {
-			msBone& Bone = Animation.Bones[i];
+		for (auto i = 0; i < nNumBones; i++) {
+			auto& Bone = Animation.Bones[i];
 
 			// name
 			if (f.GetLine(sLine) <= 0)
@@ -290,13 +292,13 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			// position key count
 			if (f.GetLine(sLine) <= 0)
 				THROW;
-			int nNumPositionKeys = 0;
+			auto nNumPositionKeys = 0;
 			if (sscanf(sLine.c_str(), "%d", &nNumPositionKeys) != 1)
 				THROW;
 
 			Bone.PositionKeys.resize(nNumPositionKeys);
 
-			for (int j = 0; j < nNumPositionKeys; ++j) {
+			for (auto j = 0; j < nNumPositionKeys; ++j) {
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 
@@ -319,13 +321,13 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 			// rotation key count
 			if (f.GetLine(sLine) <= 0)
 				THROW;
-			int nNumRotationKeys = 0;
+			auto nNumRotationKeys = 0;
 			if (sscanf(sLine.c_str(), "%d", &nNumRotationKeys) != 1)
 				THROW;
 
 			Bone.RotationKeys.resize(nNumRotationKeys);
 
-			for (int j = 0; j < nNumRotationKeys; ++j) {
+			for (auto j = 0; j < nNumRotationKeys; ++j) {
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 
@@ -349,13 +351,13 @@ msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
 
 		// Ignore "Frames:" in file.  Calculate it ourself
 		Animation.nTotalFrames = 0;
-		for (int i = 0; i < static_cast<int>(Animation.Bones.size()); i++) {
-			msBone& Bone = Animation.Bones[i];
+		for (auto i = 0; i < static_cast<int>(Animation.Bones.size()); i++) {
+			auto& Bone = Animation.Bones[i];
 			for (auto& PositionKey : Bone.PositionKeys)
-				Animation.nTotalFrames = max(
+				Animation.nTotalFrames = std::max(
 				  Animation.nTotalFrames, static_cast<int>(PositionKey.fTime));
 			for (auto& RotationKey : Bone.RotationKeys)
-				Animation.nTotalFrames = max(
+				Animation.nTotalFrames = std::max(
 				  Animation.nTotalFrames, static_cast<int>(RotationKey.fTime));
 		}
 	}

@@ -1476,7 +1476,6 @@ GradeP2Y=5
 
 [MusicWheel]
 SwitchSeconds=0.10
-RandomPicksLockedSongs=true
 RouletteSwitchSeconds=0.05
 RouletteSlowDownSwitches=5
 LockedInitialVelocity=7
@@ -1517,10 +1516,8 @@ SectionColor4=color("0.0,0.6,0.6,1")	-- sea green
 SectionColor5=color("0.1,0.7,0.3,1")	-- green
 SectionColor6=color("0.8,0.6,0.0,1")	-- orange
 SectionColor7=color("1.0,0.3,0.3,1")	-- light red
-SongRealExtraColor=color("0.9,0.9,0,1")		-- yellow
 SortMenuColor=color("1,1,0,1")
 SortOrders={ "SortOrder_Preferred", "SortOrder_Group", "SortOrder_Title", "SortOrder_BPM", "SortOrder_Popularity", "SortOrder_Artist", "SortOrder_Genre" }
-MostPlayedSongsToShow=30
 ModeMenuChoiceNames="Preferred,Group,Title,Bpm,Popularity,TopGrades,Artist,EasyMeter,MediumMeter,HardMeter,Genre,Length"
 ChoicePreferred="sort,Preferred"
 ChoiceGroup="sort,Group"
@@ -1534,7 +1531,6 @@ ChoiceEasyMeter="sort,EasyMeter"
 ChoiceMediumMeter="sort,MediumMeter"
 ChoiceHardMeter="sort,HardMeter"
 ChoiceLength="sort,Length"
-UseEasyMarkerFlag=false
 
 [RoomWheel]
 Fallback="MusicWheel"

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Globals/MinaCalc.h"
@@ -14,6 +13,13 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/SongManager.h"
+
+#include <map>
+#include <algorithm>
+
+using std::map;
+using std::max;
+using std::min;
 
 // deprecated, but no solution to replace them exists yet:
 #define GRADE_TIER02_IS_ALL_W2S                                                \
@@ -31,9 +37,6 @@ static ThemeMetric<bool> g_MineHitIncrementsMissCombo(
   "MineHitIncrementsMissCombo");
 
 const float LESSON_PASS_THRESHOLD = 0.8f;
-
-Grade
-GetGradeFromPercent(float fPercent);
 
 void
 PlayerStageStats::InternalInit()
@@ -114,8 +117,8 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 {
 	m_pStyle = other.m_pStyle;
 	m_bJoined = other.m_bJoined;
-	FOREACH_CONST(Steps*, other.m_vpPossibleSteps, s)
-	m_vpPossibleSteps.push_back(*s);
+	for (const auto& s : other.m_vpPossibleSteps)
+		m_vpPossibleSteps.push_back(s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
 	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
@@ -124,9 +127,9 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	m_iCurPossibleDancePoints += other.m_iCurPossibleDancePoints;
 	m_iPossibleGradePoints += other.m_iPossibleGradePoints;
 
-	for (int t = 0; t < NUM_TapNoteScore; t++)
+	for (auto t = 0; t < NUM_TapNoteScore; t++)
 		m_iTapNoteScores[t] += other.m_iTapNoteScores[t];
-	for (int h = 0; h < NUM_HoldNoteScore; h++)
+	for (auto h = 0; h < NUM_HoldNoteScore; h++)
 		m_iHoldNoteScores[h] += other.m_iHoldNoteScores[h];
 	m_iCurCombo += other.m_iCurCombo;
 	m_iMaxCombo += other.m_iMaxCombo;
@@ -146,22 +149,20 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	// so add 1 second between the stages so that the last element of this
 	// stage's record isn't overwritten by the first element of the other
 	// stage's record. -Kyz
-	const float fOtherFirstSecond = other.m_fFirstSecond + m_fLastSecond + 1.0f;
-	const float fOtherLastSecond = other.m_fLastSecond + m_fLastSecond + 1.0f;
+	const auto fOtherFirstSecond = other.m_fFirstSecond + m_fLastSecond + 1.0f;
+	const auto fOtherLastSecond = other.m_fLastSecond + m_fLastSecond + 1.0f;
 	m_fLastSecond = fOtherLastSecond;
 
 	map<float, float>::const_iterator it;
 	for (it = other.m_fLifeRecord.begin(); it != other.m_fLifeRecord.end();
 		 ++it) {
-		const float pos = it->first;
-		const float life = it->second;
+		const auto pos = it->first;
+		const auto life = it->second;
 		m_fLifeRecord[fOtherFirstSecond + pos] = life;
 	}
 
-	for (unsigned i = 0; i < other.m_ComboList.size(); ++i) {
-		const Combo_t& combo = other.m_ComboList[i];
-
-		Combo_t newcombo(combo);
+	for (const auto combo : other.m_ComboList) {
+		auto newcombo(combo);
 		newcombo.m_fStartSecond += fOtherFirstSecond;
 		m_ComboList.push_back(newcombo);
 	}
@@ -169,11 +170,11 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	/* Merge identical combos. This normally only happens in course mode, when
 	 * a combo continues between songs. */
 	for (unsigned i = 1; i < m_ComboList.size(); ++i) {
-		Combo_t& prevcombo = m_ComboList[i - 1];
-		Combo_t& combo = m_ComboList[i];
-		const float PrevComboEnd =
+		auto& prevcombo = m_ComboList[i - 1];
+		auto& combo = m_ComboList[i];
+		const auto PrevComboEnd =
 		  prevcombo.m_fStartSecond + prevcombo.m_fSizeSeconds;
-		const float ThisComboStart = combo.m_fStartSecond;
+		const auto ThisComboStart = combo.m_fStartSecond;
 		if (fabsf(PrevComboEnd - ThisComboStart) > 0.001)
 			continue;
 
@@ -183,44 +184,6 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 		m_ComboList.erase(m_ComboList.begin() + i);
 		--i;
 	}
-}
-
-// get appropriated (for when we have scores but no highscore object to get
-// wifegrades) -mina
-Grade
-GetGradeFromPercent(float fPercent)
-{
-	if (fPercent >= 0.99996f)
-		return Grade_Tier01;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
-		return Grade_Tier02;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9997f)
-		return Grade_Tier03;
-	if (fPercent >= 0.99955f)
-		return Grade_Tier04;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.999f)
-		return Grade_Tier05;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.998f)
-		return Grade_Tier06;
-	if (fPercent >= 0.997f)
-		return Grade_Tier07;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
-		return Grade_Tier08;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
-		return Grade_Tier09;
-	if (fPercent >= 0.93f)
-		return Grade_Tier10;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
-		return Grade_Tier11;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
-		return Grade_Tier12;
-	if (fPercent >= 0.8f)
-		return Grade_Tier13;
-	if (fPercent >= 0.7f)
-		return Grade_Tier14;
-	if (fPercent >= 0.6f)
-		return Grade_Tier15;
-	return Grade_Tier16;
 }
 
 Grade
@@ -237,6 +200,7 @@ PlayerStageStats::GetGrade(float p)
 {
 	return GetGradeFromPercent(p);
 }
+
 Grade
 PlayerStageStats::GetGrade() const
 {
@@ -248,14 +212,14 @@ PlayerStageStats::GetGrade() const
 	 * exist. */
 	float fActual = 0;
 
-	bool bIsBeginner = false;
+	auto bIsBeginner = false;
 	if (m_iStepsPlayed > 0)
 		bIsBeginner =
 		  m_vpPossibleSteps[0]->GetDifficulty() == Difficulty_Beginner;
 
 	FOREACH_ENUM(TapNoteScore, tns)
 	{
-		int iTapScoreValue =
+		const auto iTapScoreValue =
 		  ScoreKeeperNormal::TapNoteScoreToGradePoints(tns, bIsBeginner);
 		fActual += m_iTapNoteScores[tns] * iTapScoreValue;
 		// LOG->Trace( "GetGrade actual: %i * %i", m_iTapNoteScores[tns],
@@ -264,7 +228,7 @@ PlayerStageStats::GetGrade() const
 
 	FOREACH_ENUM(HoldNoteScore, hns)
 	{
-		int iHoldScoreValue =
+		const auto iHoldScoreValue =
 		  ScoreKeeperNormal::HoldNoteScoreToGradePoints(hns, bIsBeginner);
 		fActual += m_iHoldNoteScores[hns] * iHoldScoreValue;
 		// LOG->Trace( "GetGrade actual: %i * %i", m_iHoldNoteScores[hns],
@@ -274,10 +238,10 @@ PlayerStageStats::GetGrade() const
 	// LOG->Trace( "GetGrade: fActual: %f, fPossible: %d", fActual,
 	// m_iPossibleGradePoints );
 
-	float fPercent =
+	const auto fPercent =
 	  (m_iPossibleGradePoints == 0) ? 0 : fActual / m_iPossibleGradePoints;
 
-	Grade grade = GetGradeFromPercent(fPercent);
+	auto grade = GetGradeFromPercent(fPercent);
 
 	// LOG->Trace( "GetGrade: Grade: %s, %i", GradeToString(grade).c_str(),
 	// GRADE_TIER02_IS_ALL_W2S );
@@ -320,18 +284,18 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 	// This can happen in battle, with transform attacks.
 	// ASSERT_M( iActual <= iPossible, ssprintf("%i/%i", iActual, iPossible) );
 
-	float fPercent = iActual / static_cast<float>(iPossible);
+	auto fPercent = iActual / static_cast<float>(iPossible);
 
 	// don't allow negative
-	fPercent = max(0, fPercent);
+	fPercent = max(0.F, fPercent);
 
-	int iPercentTotalDigits =
+	const auto iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
 
 	// TRICKY: printf will round, but we want to truncate. Otherwise, we may
 	// display a percent score that's too high and doesn't match up with the
 	// calculated grade.
-	float fTruncInterval =
+	const auto fTruncInterval =
 	  powf(0.1f, static_cast<float>(iPercentTotalDigits) - 1);
 
 	// TRICKY: ftruncf is rounding 1.0000000 to 0.99990004. Give a little boost
@@ -345,10 +309,10 @@ PlayerStageStats::MakePercentScore(int iActual, int iPossible)
 std::string
 PlayerStageStats::FormatPercentScore(float fPercentDancePoints)
 {
-	int iPercentTotalDigits =
+	const auto iPercentTotalDigits =
 	  3 + CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES; // "100" + "." + "00"
 
-	std::string s =
+	auto s =
 	  ssprintf("%*.*f%%",
 			   iPercentTotalDigits,
 			   static_cast<int>(CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES),
@@ -380,7 +344,7 @@ vector<float>
 PlayerStageStats::CalcSSR(float ssrpercent) const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
-	float musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	const auto musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
 	// 4k
 	if (steps->m_StepsType == StepsType_dance_single) {
@@ -436,7 +400,7 @@ PlayerStageStats::GetCurMaxPercentDancePoints() const
 	if (m_iCurPossibleDancePoints == m_iPossibleDancePoints)
 		return 1; // correct for rounding error
 
-	auto fCurMaxPercentDancePoints =
+	const auto fCurMaxPercentDancePoints =
 	  static_cast<float>(m_iCurPossibleDancePoints) / m_iPossibleDancePoints;
 
 	return fCurMaxPercentDancePoints;
@@ -446,7 +410,7 @@ PlayerStageStats::GetCurMaxPercentDancePoints() const
 int
 PlayerStageStats::GetLessonScoreActual() const
 {
-	int iScore = 0;
+	auto iScore = 0;
 
 	FOREACH_ENUM(TapNoteScore, tns)
 	{
@@ -481,9 +445,8 @@ PlayerStageStats::GetLessonScoreNeeded() const
 {
 	float fScore = 0;
 
-	FOREACH_CONST(Steps*, m_vpPossibleSteps, steps)
-	{
-		fScore += (*steps)->GetRadarValues()[RadarCategory_TapsAndHolds];
+	for (const auto& steps : m_vpPossibleSteps) {
+		fScore += steps->GetRadarValues()[RadarCategory_TapsAndHolds];
 	}
 
 	return lround(fScore * LESSON_PASS_THRESHOLD);
@@ -526,7 +489,7 @@ PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 	// entry.  Then the second call of the frame occurs and sets the life for
 	// the current time to a lower value.
 	// -Kyz
-	map<float, float>::iterator curr = m_fLifeRecord.find(fStepsSecond);
+	const auto curr = m_fLifeRecord.find(fStepsSecond);
 	if (curr != m_fLifeRecord.end()) {
 		if (curr->second != fLife) {
 			// 2^-8
@@ -546,17 +509,17 @@ PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 	// we can eliminate record B without losing data. Only check the last three
 	// records in the map since we're only inserting at the end, and we know all
 	// earlier redundant records have already been removed.
-	map<float, float>::iterator C = m_fLifeRecord.end();
+	auto C = m_fLifeRecord.end();
 	--C;
 	if (C == m_fLifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator B = C;
+	auto B = C;
 	--B;
 	if (B == m_fLifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator A = B;
+	auto A = B;
 	--A;
 
 	if (A->second == B->second && B->second == C->second)
@@ -570,8 +533,7 @@ PlayerStageStats::GetLifeRecordAt(float fStepsSecond) const
 		return 0;
 
 	// Find the first element whose key is greater than k.
-	map<float, float>::const_iterator it =
-	  m_fLifeRecord.upper_bound(fStepsSecond);
+	auto it = m_fLifeRecord.upper_bound(fStepsSecond);
 
 	// Find the last element whose key is less than or equal to k.
 	if (it != m_fLifeRecord.begin())
@@ -587,11 +549,10 @@ PlayerStageStats::GetLifeRecordLerpAt(float fStepsSecond) const
 		return 0;
 
 	// Find the first element whose key is greater than k.
-	map<float, float>::const_iterator later =
-	  m_fLifeRecord.upper_bound(fStepsSecond);
+	const auto later = m_fLifeRecord.upper_bound(fStepsSecond);
 
 	// Find the last element whose key is less than or equal to k.
-	map<float, float>::const_iterator earlier = later;
+	auto earlier = later;
 	if (earlier != m_fLifeRecord.begin())
 		--earlier;
 
@@ -615,8 +576,8 @@ PlayerStageStats::GetLifeRecord(float* fLifeOut,
 								int iNumSamples,
 								float fStepsEndSecond) const
 {
-	for (int i = 0; i < iNumSamples; ++i) {
-		float from =
+	for (auto i = 0; i < iNumSamples; ++i) {
+		const auto from =
 		  SCALE(i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond);
 		fLifeOut[i] = GetLifeRecordLerpAt(from);
 	}
@@ -627,7 +588,7 @@ PlayerStageStats::GetCurrentLife() const
 {
 	if (m_fLifeRecord.empty())
 		return 0;
-	map<float, float>::const_iterator iter = m_fLifeRecord.end();
+	auto iter = m_fLifeRecord.end();
 	--iter;
 	return iter->second;
 }
@@ -641,7 +602,7 @@ PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
 	m_fLastSecond = max(fStepsSecond, m_fLastSecond);
-	map<float, float>::iterator curr = WifeRecord.find(fStepsSecond);
+	const auto curr = WifeRecord.find(fStepsSecond);
 	if (curr != WifeRecord.end()) {
 		if (curr->second != Wife) {
 			// 2^-8
@@ -650,17 +611,17 @@ PlayerStageStats::SetWifeRecordAt(float Wife, float fStepsSecond)
 	}
 	WifeRecord[fStepsSecond] = Wife;
 
-	map<float, float>::iterator C = WifeRecord.end();
+	auto C = WifeRecord.end();
 	--C;
 	if (C == WifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator B = C;
+	auto B = C;
 	--B;
 	if (B == WifeRecord.begin()) // no earlier records left
 		return;
 
-	map<float, float>::iterator A = B;
+	auto A = B;
 	--A;
 
 	if (A->second == B->second && B->second == C->second)
@@ -672,7 +633,7 @@ PlayerStageStats::GetWifeRecordAt(float fStepsSecond) const
 {
 	if (WifeRecord.empty())
 		return 0;
-	map<float, float>::const_iterator it = WifeRecord.upper_bound(fStepsSecond);
+	auto it = WifeRecord.upper_bound(fStepsSecond);
 	if (it != WifeRecord.begin())
 		--it;
 	return it->second;
@@ -684,9 +645,8 @@ PlayerStageStats::GetWifeRecordLerpAt(float fStepsSecond) const
 	if (WifeRecord.empty())
 		return 0;
 
-	map<float, float>::const_iterator later =
-	  WifeRecord.upper_bound(fStepsSecond);
-	map<float, float>::const_iterator earlier = later;
+	const auto later = WifeRecord.upper_bound(fStepsSecond);
+	auto earlier = later;
 	if (earlier != WifeRecord.begin())
 		--earlier;
 
@@ -709,8 +669,8 @@ PlayerStageStats::GetWifeRecord(float* WifeOut,
 								int iNumSamples,
 								float fStepsEndSecond) const
 {
-	for (int i = 0; i < iNumSamples; ++i) {
-		float from =
+	for (auto i = 0; i < iNumSamples; ++i) {
+		const auto from =
 		  SCALE(i, 0, static_cast<float>(iNumSamples), 0.0f, fStepsEndSecond);
 		WifeOut[i] = GetLifeRecordLerpAt(from);
 	}
@@ -730,14 +690,14 @@ PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 		// LOG->Trace( "fLastSecond = %f", fLastSecond );
 	}
 
-	int cnt = m_iCurCombo;
+	const int cnt = m_iCurCombo;
 	if (cnt == 0)
 		return; // no combo
 
-	if (m_ComboList.size() == 0 || m_ComboList.back().m_cnt >= cnt) {
+	if (m_ComboList.empty() || m_ComboList.back().m_cnt >= cnt) {
 		/* If the previous combo (if any) starts on -9999, then we rolled over
 		 * some combo, but missed the first step. Remove it. */
-		if (m_ComboList.size() && m_ComboList.back().m_fStartSecond == -9999)
+		if (!m_ComboList.empty() && m_ComboList.back().m_fStartSecond == -9999)
 			m_ComboList.erase(m_ComboList.begin() + m_ComboList.size() - 1,
 							  m_ComboList.end());
 
@@ -754,7 +714,7 @@ PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 		m_ComboList.push_back(NewCombo);
 	}
 
-	Combo_t& combo = m_ComboList.back();
+	auto& combo = m_ComboList.back();
 	if (!bRollover && combo.m_fStartSecond == -9999)
 		combo.m_fStartSecond = 0;
 
@@ -769,10 +729,10 @@ PlayerStageStats::UpdateComboList(float fSecond, bool bRollover)
 PlayerStageStats::Combo_t
 PlayerStageStats::GetMaxCombo() const
 {
-	if (m_ComboList.size() == 0)
+	if (m_ComboList.empty())
 		return Combo_t();
 
-	int m = 0;
+	auto m = 0;
 	for (unsigned i = 1; i < m_ComboList.size(); ++i) {
 		if (m_ComboList[i].m_cnt > m_ComboList[m].m_cnt)
 			m = i;
@@ -833,7 +793,7 @@ PlayerStageStats::GetBestFullComboTapNoteScore() const
 {
 	// Optimization opportunity: ...
 	// (seriously? -aj)
-	for (TapNoteScore i = TNS_W1; i >= TNS_W5; enum_add(i, -1)) {
+	for (auto i = TNS_W1; i >= TNS_W5; enum_add(i, -1)) {
 		if (FullComboOfScore(i))
 			return i;
 	}
@@ -857,7 +817,7 @@ PlayerStageStats::OneOfScore(TapNoteScore tnsAllGreaterOrEqual) const
 int
 PlayerStageStats::GetTotalTaps() const
 {
-	int iTotalTaps = 0;
+	auto iTotalTaps = 0;
 	for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
 		iTotalTaps += m_iTapNoteScores[i];
 	}
@@ -867,7 +827,7 @@ PlayerStageStats::GetTotalTaps() const
 float
 PlayerStageStats::GetPercentageOfTaps(TapNoteScore tns) const
 {
-	int iTotalTaps = 0;
+	auto iTotalTaps = 0;
 	for (int i = TNS_Miss; i < NUM_TapNoteScore; i++) {
 		iTotalTaps += m_iTapNoteScores[i];
 	}
@@ -955,8 +915,8 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	static int GetPlayedSteps(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for (int i = 0; i < min(static_cast<int>(p->m_iStepsPlayed),
-								static_cast<int>(p->m_vpPossibleSteps.size()));
+		for (auto i = 0; i < min(static_cast<int>(p->m_iStepsPlayed),
+								 static_cast<int>(p->m_vpPossibleSteps.size()));
 			 ++i) {
 			p->m_vpPossibleSteps[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
@@ -966,7 +926,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	static int GetPossibleSteps(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for (int i = 0; i < static_cast<int>(p->m_vpPossibleSteps.size());
+		for (auto i = 0; i < static_cast<int>(p->m_vpPossibleSteps.size());
 			 ++i) {
 			p->m_vpPossibleSteps[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
@@ -987,8 +947,8 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 					doot.emplace_back(offs[i] * 1000);
 		} else {
 			// But type is empty if the replay is old :(
-			for (size_t i = 0; i < offs.size(); ++i)
-				doot.emplace_back(offs[i] * 1000);
+			for (auto off : offs)
+				doot.emplace_back(off * 1000);
 		}
 		LuaHelpers::CreateTableFromArray(doot, L);
 		return 1;
@@ -1054,8 +1014,8 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	}
 	static int GetLifeRecord(T* p, lua_State* L)
 	{
-		float last_second = FArg(1);
-		int samples = 100;
+		const auto last_second = FArg(1);
+		auto samples = 100;
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
 			if (samples <= 0) {
@@ -1065,11 +1025,11 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 			}
 		}
 		lua_createtable(L, samples, 0);
-		for (int i = 0; i < samples; ++i) {
+		for (auto i = 0; i < samples; ++i) {
 			// The scale from range is [0, samples-1] because that is i's range.
-			float from = SCALE(
+			const auto from = SCALE(
 			  i, 0, static_cast<float>(samples) - 1.0f, 0.0f, last_second);
-			float curr = p->GetLifeRecordLerpAt(from);
+			const auto curr = p->GetLifeRecordLerpAt(from);
 			lua_pushnumber(L, curr);
 			lua_rawseti(L, -2, i + 1);
 		}
@@ -1078,8 +1038,8 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 
 	static int GetWifeRecord(T* p, lua_State* L)
 	{
-		float last_second = FArg(1);
-		int samples = 100;
+		const auto last_second = FArg(1);
+		auto samples = 100;
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
 			if (samples <= 0) {
@@ -1089,11 +1049,11 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 			}
 		}
 		lua_createtable(L, samples, 0);
-		for (int i = 0; i < samples; ++i) {
+		for (auto i = 0; i < samples; ++i) {
 			// The scale from range is [0, samples-1] because that is i's range.
-			float from = SCALE(
+			const auto from = SCALE(
 			  i, 0, static_cast<float>(samples) - 1.0f, 0.0f, last_second);
-			float curr = p->GetLifeRecordLerpAt(from);
+			const auto curr = p->GetLifeRecordLerpAt(from);
 			lua_pushnumber(L, curr);
 			lua_rawseti(L, -2, i + 1);
 		}

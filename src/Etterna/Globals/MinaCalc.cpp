@@ -15,24 +15,23 @@ using std::min;
 using std::pow;
 using std::vector;
 
-static const std::array<std::pair<unsigned, string_view>, 16> note_mapping = {
-	{ { 0U, "----" },
-	  { 1U, "x---" },
-	  { 2U, "-x--" },
-	  { 3U, "xx--" },
-	  { 4U, "--x-" },
-	  { 5U, "x-x-" },
-	  { 6U, "-xx-" },
-	  { 7U, "xxx-" },
-	  { 8U, "---x" },
-	  { 9U, "x--x" },
-	  { 10U, "-x-x" },
-	  { 11U, "xx-x" },
-	  { 12U, "--xx" },
-	  { 13U, "x-xx" },
-	  { 14U, "-xxx" },
-	  { 15U, "xxxx" } }
-};
+static const std::array<std::pair<unsigned, std::string_view>, 16>
+  note_mapping = { { { 0U, "----" },
+					 { 1U, "x---" },
+					 { 2U, "-x--" },
+					 { 3U, "xx--" },
+					 { 4U, "--x-" },
+					 { 5U, "x-x-" },
+					 { 6U, "-xx-" },
+					 { 7U, "xxx-" },
+					 { 8U, "---x" },
+					 { 9U, "x--x" },
+					 { 10U, "-x-x" },
+					 { 11U, "xx-x" },
+					 { 12U, "--xx" },
+					 { 13U, "x-xx" },
+					 { 14U, "-xxx" },
+					 { 15U, "xxxx" } } };
 
 /* Note: if we want max control over stamina we need to have one model for
  * affecting the other skillsets to a certain degree, enough to push up longer
@@ -839,7 +838,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 419;
+int mina_calc_version = 421;
 auto
 GetCalcVersion() -> int
 {

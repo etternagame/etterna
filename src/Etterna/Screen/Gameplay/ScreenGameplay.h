@@ -33,7 +33,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 	void Cancel(ScreenMessage smSendWhenDone) override;
 
@@ -128,9 +128,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	 * @brief The songs left to play.
 	 *
 	 * The size can be greater than 1 if playing a course. */
-	vector<Song*> m_apSongsQueue;
-	vector<float> ratesqueue;
-	vector<string> playlistscorekeys;
+	std::vector<Song*> m_apSongsQueue;
+	std::vector<float> ratesqueue;
+	std::vector<std::string> playlistscorekeys;
 
 	float m_fTimeSinceLastDancingComment; // this counter is only running while
 										  // STATE_DANCING

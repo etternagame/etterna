@@ -18,12 +18,12 @@ class StyleID
 	}
 	void Unset() { FromStyle(nullptr); }
 	void FromStyle(const Style* p);
-	const Style* ToStyle() const;
-	bool operator<(const StyleID& rhs) const;
+	[[nodiscard]] auto ToStyle() const -> const Style*;
+	auto operator<(const StyleID& rhs) const -> bool;
 
-	XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
-	bool IsValid() const;
+	[[nodiscard]] auto IsValid() const -> bool;
 	static void FlushCache(Song* pStaleSong);
 };
 

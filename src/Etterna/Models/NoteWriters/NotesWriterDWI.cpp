@@ -9,6 +9,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
+#include <algorithm>
+
 std::string
 OptimizeDWIString(std::string holds, std::string taps);
 
@@ -20,8 +22,8 @@ OptimizeDWIString(std::string holds, std::string taps);
 static char
 OptimizeDWIPair(char c1, char c2)
 {
-	typedef pair<char, char> cpair;
-	static map<cpair, char> joins;
+	typedef std::pair<char, char> cpair;
+	static std::map<cpair, char> joins;
 	static bool Initialized = false;
 	if (!Initialized) {
 		Initialized = true;
@@ -44,9 +46,9 @@ OptimizeDWIPair(char c1, char c2)
 	}
 
 	if (c1 > c2)
-		swap(c1, c2);
+		std::swap(c1, c2);
 
-	map<cpair, char>::const_iterator it = joins.find(cpair(c1, c2));
+	std::map<cpair, char>::const_iterator it = joins.find(cpair(c1, c2));
 	ASSERT(it != joins.end());
 
 	return it->second;

@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Foreach.h"
 #include "LocalizedString.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SubscriptionManager.h"
@@ -19,7 +18,10 @@ class LocalizedStringImplDefault : public ILocalizedStringImpl
 		m_sValue = sName;
 	}
 
-	const std::string& GetLocalized() const override { return m_sValue; }
+	[[nodiscard]] const std::string& GetLocalized() const override
+	{
+		return m_sValue;
+	}
 
   private:
 	std::string m_sValue;
@@ -32,9 +34,8 @@ void
 LocalizedString::RegisterLocalizer(MakeLocalizer pFunc)
 {
 	g_pMakeLocalizedStringImpl = pFunc;
-	FOREACHS(LocalizedString*, *m_Subscribers.m_pSubscribers, l)
-	{
-		LocalizedString* pLoc = *l;
+	for (auto l : *m_Subscribers.m_pSubscribers) {
+		auto pLoc = l;
 		pLoc->CreateImpl();
 	}
 }
@@ -46,7 +47,7 @@ LocalizedString::LocalizedString(const std::string& sGroup,
 
 	m_sGroup = sGroup;
 	m_sName = sName;
-	m_pImpl = NULL;
+	m_pImpl = nullptr;
 
 	CreateImpl();
 }
@@ -57,7 +58,7 @@ LocalizedString::LocalizedString(LocalizedString const& other)
 
 	m_sGroup = other.m_sGroup;
 	m_sName = other.m_sName;
-	m_pImpl = NULL;
+	m_pImpl = nullptr;
 
 	CreateImpl();
 }

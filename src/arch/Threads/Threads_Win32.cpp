@@ -5,6 +5,8 @@
 #include "RageUtil/Misc/RageTimer.h"
 #include "archutils/Win32/ErrorStrings.h"
 
+#include <algorithm>
+
 const int MAX_THREADS = 128;
 
 static MutexImpl_Win32* g_pThreadIdMutex = nullptr;
@@ -48,7 +50,7 @@ ThreadImpl_Win32::Resume()
 uint64_t
 ThreadImpl_Win32::GetThreadId() const
 {
-	return (uint64_t)ThreadId;
+	return static_cast<uint64_t>(ThreadId);
 }
 
 int
@@ -98,11 +100,11 @@ SetThreadName(DWORD dwThreadID, LPCTSTR szThreadName)
 static DWORD WINAPI
 StartThread(LPVOID pData)
 {
-	ThreadImpl_Win32* pThis = (ThreadImpl_Win32*)pData;
+	ThreadImpl_Win32* pThis = static_cast<ThreadImpl_Win32*>(pData);
 
 	SetThreadName(GetCurrentThreadId(), RageThread::GetCurrentThreadName());
 
-	DWORD ret = (DWORD)pThis->m_pFunc(pThis->m_pData);
+	DWORD ret = static_cast<DWORD>(pThis->m_pFunc(pThis->m_pData));
 
 	for (int i = 0; i < MAX_THREADS; ++i) {
 		if (g_ThreadIds[i] == RageThread::GetCurrentThreadID()) {
@@ -172,7 +174,7 @@ MakeThread(int (*pFunc)(void* pData), void* pData, uint64_t* piThreadID)
 
 	thread->ThreadHandle = CreateThread(
 	  nullptr, 0, &StartThread, thread, CREATE_SUSPENDED, &thread->ThreadId);
-	*piThreadID = (uint64_t)thread->ThreadId;
+	*piThreadID = static_cast<uint64_t>(thread->ThreadId);
 	ASSERT_M(
 	  thread->ThreadHandle != nullptr,
 	  ssprintf("%s", werr_ssprintf(GetLastError(), "CreateThread").c_str()));
@@ -384,8 +386,8 @@ EventImpl_Win32::Wait(RageTimer* pTimeout)
 	unsigned iMilliseconds = INFINITE;
 	if (pTimeout != nullptr) {
 		float fSecondsInFuture = -pTimeout->Ago();
-		iMilliseconds =
-		  (unsigned)max(0, static_cast<int>(fSecondsInFuture * 1000));
+		iMilliseconds = static_cast<unsigned>(
+		  std::max(0, static_cast<int>(fSecondsInFuture * 1000)));
 	}
 
 	// Unlock the mutex and wait for a signal.
@@ -455,7 +457,7 @@ EventImpl_Win32::Broadcast()
 EventImpl*
 MakeEvent(MutexImpl* pMutex)
 {
-	MutexImpl_Win32* pWin32Mutex = (MutexImpl_Win32*)pMutex;
+	MutexImpl_Win32* pWin32Mutex = static_cast<MutexImpl_Win32*>(pMutex);
 
 	return new EventImpl_Win32(pWin32Mutex);
 }

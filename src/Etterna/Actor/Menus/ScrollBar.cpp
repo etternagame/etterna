@@ -5,7 +5,7 @@
 
 ScrollBar::ScrollBar()
 {
-	std::string sMetricsGroup = "ScrollBar";
+	const std::string sMetricsGroup = "ScrollBar";
 
 	m_sprMiddle.Load(THEME->GetPathG(sMetricsGroup, "middle"));
 	this->AddChild(m_sprMiddle);
@@ -21,10 +21,9 @@ ScrollBar::ScrollBar()
 	m_sprScrollTickThumb.Load(THEME->GetPathG(sMetricsGroup, "TickThumb"));
 	this->AddChild(m_sprScrollTickThumb);
 
-	for (unsigned i = 0; i < ARRAYLEN(m_sprScrollStretchThumb); i++) {
-		m_sprScrollStretchThumb[i].Load(
-		  THEME->GetPathG(sMetricsGroup, "StretchThumb"));
-		this->AddChild(m_sprScrollStretchThumb[i]);
+	for (auto& i : m_sprScrollStretchThumb) {
+		i.Load(THEME->GetPathG(sMetricsGroup, "StretchThumb"));
+		this->AddChild(i);
 	}
 
 	SetBarHeight(100);

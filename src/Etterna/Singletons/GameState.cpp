@@ -30,6 +30,9 @@
 #include "SongManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
 
 GameState* GAMESTATE =
   nullptr; // global and accessible from anywhere in our program
@@ -490,7 +493,7 @@ GameState::GetNumStagesForCurrentSongAndStepsOrCourse() const
 		  GameState::GetNumStagesMultiplierForSong(m_pCurSong);
 	} else
 		return -1;
-	iNumStagesOfThisSong = max(iNumStagesOfThisSong, 1);
+	iNumStagesOfThisSong = std::max(iNumStagesOfThisSong, 1);
 	return iNumStagesOfThisSong;
 }
 
@@ -552,7 +555,7 @@ GameState::CommitStageStats()
 
 	// Update TotalPlaySeconds.
 	int iPlaySeconds =
-	  max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
+	  std::max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
 
 	Profile* pPlayerProfile = PROFILEMAN->GetProfile(PLAYER_1);
 	if (pPlayerProfile) {
@@ -752,8 +755,6 @@ GameState::ResetMusicStatistics()
 	m_LastPositionSeconds = 0.0f;
 
 	Actor::SetBGMTime(0, 0, 0, 0);
-
-	m_pPlayerState->m_Position.Reset();
 }
 
 void
@@ -797,10 +798,8 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 		m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
 
-		m_pPlayerState->m_Position.UpdateSongPosition(
-		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
-		Actor::SetPlayerBGMBeat(m_pPlayerState->m_Position.m_fSongBeatVisible,
-								m_pPlayerState->m_Position.m_fSongBeatNoOffset);
+		Actor::SetPlayerBGMBeat(m_Position.m_fSongBeatVisible,
+								m_Position.m_fSongBeatNoOffset);
 	} else {
 		m_Position.UpdateSongPosition(fPositionSeconds, timing, timestamp);
 	}
@@ -1246,7 +1245,7 @@ GameState::GetEasiestStepsDifficulty() const
 		  PLAYER_1 + 1);
 	}
 
-	dc = min(dc, m_pCurSteps->GetDifficulty());
+	dc = std::min(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 
@@ -1259,7 +1258,7 @@ GameState::GetHardestStepsDifficulty() const
 		  "GetHardestStepsDifficulty called but p%i hasn't chosen notes",
 		  PLAYER_1 + 1);
 	}
-	dc = max(dc, m_pCurSteps->GetDifficulty());
+	dc = std::max(dc, m_pCurSteps->GetDifficulty());
 	return dc;
 }
 
@@ -1419,7 +1418,6 @@ GameState::IsPracticeMode()
 }
 
 // lua start
-#include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the GameState. */

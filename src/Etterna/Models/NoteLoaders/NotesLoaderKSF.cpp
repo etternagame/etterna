@@ -9,6 +9,11 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
+#include <string>
+#include <algorithm>
+
+using std::string;
+
 static void
 HandleBunki(TimingData& timing,
 			const float fEarlyBPM,
@@ -120,7 +125,7 @@ LoadFromKSFFile(const std::string& sPath,
 		}
 
 		else if (sValueName == "DIFFICULTY") {
-			out.SetMeter(max(StringToInt(sParams[1]), 1));
+			out.SetMeter(std::max(StringToInt(sParams[1]), 1));
 		}
 		// new cases from Aldo_MX's fork:
 		else if (sValueName == "PLAYER") {
@@ -315,7 +320,7 @@ LoadFromKSFFile(const std::string& sPath,
 				iTickCount = static_cast<int>(numTemp);
 				// I have been owned by the man -DaisuMaster
 				stepsTiming.SetTickcountAtBeat(
-				  fCurBeat, clamp(iTickCount, 0, ROWS_PER_BEAT));
+				  fCurBeat, std::clamp(iTickCount, 0, ROWS_PER_BEAT));
 			} else if (BeginsWith(sRowString, "|B")) {
 				// BPM
 				stepsTiming.SetBPMAtBeat(fCurBeat, numTemp);

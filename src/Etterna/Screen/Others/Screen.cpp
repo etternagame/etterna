@@ -10,6 +10,13 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/ArchHooks/ArchHooks.h"
 
+#include <tuple>
+#include <algorithm>
+#include <functional>
+
+using std::make_tuple;
+using std::tuple;
+
 #define NEXT_SCREEN THEME->GetMetric(m_sName, "NextScreen")
 #define PREV_SCREEN THEME->GetMetric(m_sName, "PrevScreen")
 #define PREPARE_SCREENS THEME->GetMetric(m_sName, "PrepareScreens")
@@ -121,24 +128,26 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 		}
 	}
 	// Doing this in place did weird things
-	delayedFunctions.erase(std::remove_if(delayedFunctions.begin(),
-										  delayedFunctions.end(),
-										  [](pair<function<void()>, float>& x) {
-											  return x.second <= 0;
-										  }),
-						   delayedFunctions.end());
+	delayedFunctions.erase(
+	  std::remove_if(delayedFunctions.begin(),
+					 delayedFunctions.end(),
+					 [](std::pair<std::function<void()>, float>& x) {
+						 return x.second <= 0;
+					 }),
+	  delayedFunctions.end());
 	if (!delayedPeriodicFunctionIdsToDelete.empty()) {
 		auto* L = LUA->Get();
 		for (auto id : delayedPeriodicFunctionIdsToDelete) {
 			luaL_unref(L, LUA_REGISTRYINDEX, id);
 			auto& vec = this->delayedPeriodicFunctions;
-			vec.erase(std::remove_if(
-						vec.begin(),
-						vec.end(),
-						[id](tuple<function<void()>, float, float, int>& x) {
-							return std::get<3>(x) == id;
-						}),
-					  vec.end());
+			vec.erase(
+			  std::remove_if(
+				vec.begin(),
+				vec.end(),
+				[id](tuple<std::function<void()>, float, float, int>& x) {
+					return std::get<3>(x) == id;
+				}),
+			  vec.end());
 		}
 		LUA->Release(L);
 		delayedPeriodicFunctionIdsToDelete.clear();
@@ -160,7 +169,7 @@ Screen::Update(float fDeltaTime)
 
 	ActorFrame::Update(fDeltaTime);
 
-	m_fLockInputSecs = max(0, m_fLockInputSecs - fDeltaTime);
+	m_fLockInputSecs = std::max(0.F, m_fLockInputSecs - fDeltaTime);
 
 	/* We need to ensure two things:
 	 * 1. Messages must be sent in the order of delay. If two messages are sent
@@ -189,7 +198,7 @@ Screen::Update(float fDeltaTime)
 		if (m_QueuedMessage.fDelayRemaining > 0.0001f) {
 			m_QueuedMessage.fDelayRemaining -= fDeltaTime;
 			m_QueuedMessage.fDelayRemaining =
-			  max(m_QueuedMessage.fDelayRemaining, 0.0001f);
+			  std::max(m_QueuedMessage.fDelayRemaining, 0.0001f);
 		} else {
 			m_QueuedMessage.fDelayRemaining -= fDeltaTime;
 		}
@@ -289,7 +298,7 @@ Screen::Input(const InputEventPlus& input)
 }
 
 void
-Screen::HandleScreenMessage(const ScreenMessage SM)
+Screen::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen || SM == SM_GoToPrevScreen) {
 		if (SCREENMAN->IsStackedScreen(this))
@@ -343,7 +352,7 @@ Screen::GetPrevScreen() const
 }
 
 void
-Screen::PostScreenMessage(const ScreenMessage SM, float fDelay)
+Screen::PostScreenMessage(const ScreenMessage& SM, float fDelay)
 {
 	ASSERT(fDelay >= 0.0);
 
@@ -360,7 +369,7 @@ Screen::ClearMessageQueue()
 }
 
 void
-Screen::ClearMessageQueue(const ScreenMessage SM)
+Screen::ClearMessageQueue(const ScreenMessage& SM)
 {
 	for (int i = m_QueuedMessages.size() - 1; i >= 0; i--)
 		if (m_QueuedMessages[i].SM == SM)
@@ -414,7 +423,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "type");
 	char s[5];
 	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
-	LuaHelpers::Push(L, string(1, s[0]));
+	LuaHelpers::Push(L, std::string(1, s[0]));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(
 	  L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
@@ -445,14 +454,14 @@ Screen::PassInputToLua(const InputEventPlus& input)
 }
 
 void
-Screen::SetTimeout(function<void()> f, float ms)
+Screen::SetTimeout(const std::function<void()>& f, float ms)
 {
 	delayedFunctions.emplace_back(make_pair(f, ms));
 	return;
 }
 
 void
-Screen::SetInterval(function<void()> f, float ms, int id)
+Screen::SetInterval(const std::function<void()>& f, float ms, int id)
 {
 	delayedPeriodicFunctions.emplace_back(make_tuple(f, ms, ms, id));
 	return;
@@ -480,7 +489,7 @@ Screen::RemoveInputCallback(lua_State* L)
 void
 Screen::InternalRemoveCallback(callback_key_t key)
 {
-	map<callback_key_t, LuaReference>::iterator iter =
+	std::map<callback_key_t, LuaReference>::iterator iter =
 	  m_InputCallbacks.find(key);
 	if (iter != m_InputCallbacks.end()) {
 		m_InputCallbacks.erase(iter);
@@ -586,11 +595,12 @@ class LunaScreen : public Luna<Screen>
 	{
 		int r = IArg(1);
 		auto& vec = p->delayedPeriodicFunctions;
-		auto it = find_if(vec.begin(),
-						  vec.end(),
-						  [r](tuple<function<void()>, float, float, int>& x) {
-							  return std::get<3>(x) == r;
-						  });
+		auto it =
+		  find_if(vec.begin(),
+				  vec.end(),
+				  [r](tuple<std::function<void()>, float, float, int>& x) {
+					  return std::get<3>(x) == r;
+				  });
 		if (it != vec.end()) {
 			p->delayedPeriodicFunctionIdsToDelete.emplace_back(r);
 		} else {

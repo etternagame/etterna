@@ -4,11 +4,6 @@
 #include "EnumHelper.h"
 #include "ThemeMetric.h"
 
-/** @brief The list of grading tiers available.
- *
- * TODO: Look into a more flexible system without a fixed number of grades.
- * -Wolfman2000
- */
 enum Grade
 {
 	Grade_Tier01, /**< Usually an AAAAA */
@@ -44,8 +39,8 @@ enum Grade
  * @param g the grade to convert.
  * @return the string reprsentation.
  */
-static inline std::string
-GradeToString(Grade g)
+static auto
+GradeToString(Grade g) -> std::string
 {
 	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_Invalid,
 			 ssprintf("grade = %d", g));
@@ -68,17 +63,17 @@ GradeToString(Grade g)
  * This is only referenced in ScreenEvaluation at the moment.
  * @param g the current Grade.
  * @return the old styled grade string. */
-std::string
-GradeToOldString(Grade g);
-std::string
-GradeToLocalizedString(Grade g);
+auto
+GradeToOldString(Grade g) -> std::string;
+auto
+GradeToLocalizedString(Grade g) -> std::string;
 /**
  * @brief Convert the given std::string into a proper Grade.
  * @param s the string to convert.
  * @return the expected Grade.
  */
-Grade
-StringToGrade(const std::string& s);
+auto
+StringToGrade(const std::string& s) -> Grade;
 LuaDeclareType(Grade);
 extern ThemeMetric<int> NUM_GRADE_TIERS_USED;
 #define NUM_POSSIBLE_GRADES (NUM_GRADE_TIERS_USED + 1)
@@ -86,11 +81,15 @@ extern ThemeMetric<int> NUM_GRADE_TIERS_USED;
  * @brief Step through the enumerator one at a time to get the next Grade.
  * @param g the current Grade.
  * @return the next Grade. */
-Grade
-GetNextPossibleGrade(Grade g);
+auto
+GetNextPossibleGrade(Grade g) -> Grade;
 /** @brief Loop through each possible Grade. */
 #define FOREACH_PossibleGrade(g)                                               \
                                                                                \
-	for (Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
+	for (Grade g = (Grade)(0); (g) != Grade_Invalid;                           \
+		 (g) = GetNextPossibleGrade(g))
 
 #endif
+
+auto
+GetGradeFromPercent(float pc) -> Grade;

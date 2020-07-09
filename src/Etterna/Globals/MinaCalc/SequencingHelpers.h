@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <algorithm>
 
 /* generic sequencing functions and defs to help either agnostic or dependent
  * sequencers do their stuff */

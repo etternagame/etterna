@@ -1,10 +1,10 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "RageFileDriverDirectHelpers.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include <sys/stat.h>
 
 #include <cerrno>
-#include <sys/stat.h>
+#include <set>
 
 #if !defined(_WIN32)
 
@@ -201,7 +201,8 @@ DirectFilenameDB::CacheFile(const std::string& sPath)
 		// If it's a broken symlink, ignore it.  Otherwise, warn.
 		// Huh?
 		WARN(
-		  ssprintf("File '%s' is gone! (%s)", sPath.c_str(), strerror(iError)).c_str());
+		  ssprintf("File '%s' is gone! (%s)", sPath.c_str(), strerror(iError))
+			.c_str());
 	} else {
 		f.dir = (st.st_mode & S_IFDIR);
 		f.size = (int)st.st_size;
@@ -283,7 +284,8 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 			  ssprintf("Got file '%s' in '%s' from list, but can't stat? (%s)",
 					   pEnt->d_name,
 					   sPath.c_str(),
-					   strerror(iError)).c_str());
+					   strerror(iError))
+				.c_str());
 			continue;
 		}
 
@@ -309,7 +311,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 	static const std::string IGNORE_MARKER_BEGINNING = "ignore-";
 
 	vector<std::string> vsFilesToRemove;
-	for (set<File>::iterator iter =
+	for (std::set<File>::iterator iter =
 		   fs.files.lower_bound(IGNORE_MARKER_BEGINNING);
 		 iter != fs.files.end();
 		 ++iter) {
@@ -326,7 +328,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 		// Erase the file corresponding to the ignore marker
 		File fileToDelete;
 		fileToDelete.SetName(iter);
-		set<File>::iterator iter2 = fs.files.find(fileToDelete);
+		std::set<File>::iterator iter2 = fs.files.find(fileToDelete);
 		if (iter2 != fs.files.end())
 			fs.files.erase(iter2);
 	}

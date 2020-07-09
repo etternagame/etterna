@@ -347,10 +347,8 @@ function formLink(x, y)
 end
 
 function GetPlayableTime()
-	local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
-	local song = GAMESTATE:GetCurrentSong()
-	return (td:GetElapsedTimeFromBeat(song:GetLastBeat()) - td:GetElapsedTimeFromBeat(song:GetFirstBeat())) /
-		getCurRateValue()
+	local step = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	return step:GetLengthSeconds()
 end
 
 function ChangeMusicRate(rate, params)

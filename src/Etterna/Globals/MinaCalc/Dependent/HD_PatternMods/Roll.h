@@ -43,7 +43,7 @@ struct RollMod
 
 	float cv_reset = 1.F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

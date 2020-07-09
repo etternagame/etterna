@@ -7,6 +7,8 @@
 #include "RageLog.h"
 #include "arch/InputHandler/InputHandler.h"
 
+#include <map>
+
 RageInput* INPUTMAN =
   nullptr; // global and accessible from anywhere in our program
 
@@ -19,7 +21,7 @@ struct LoadedInputHandler
 	InputHandler* m_pDevice;
 };
 vector<LoadedInputHandler> m_InputHandlers;
-map<InputDevice, InputHandler*> g_mapDeviceToHandler;
+std::map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 } // namespace
 
 RageInput::RageInput()
@@ -125,7 +127,7 @@ RageInput::AddHandler(InputHandler* pHandler)
 InputHandler*
 RageInput::GetHandlerForDevice(const InputDevice id)
 {
-	map<InputDevice, InputHandler*>::iterator it =
+	std::map<InputDevice, InputHandler*>::iterator it =
 	  g_mapDeviceToHandler.find(id);
 	if (it == g_mapDeviceToHandler.end())
 		return nullptr;

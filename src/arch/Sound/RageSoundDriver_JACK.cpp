@@ -141,7 +141,7 @@ RageSoundDriver_JACK::ConnectPorts()
 		// "aliases" in the docs.)
 		FOREACH(std::string, portNames, portName)
 		{
-			jack_port_t* out = jack_port_by_name(client, *portName);
+			jack_port_t* out = jack_port_by_name(client, portName->c_str());
 			// Make sure the port is a sink.
 			if (!(jack_port_flags(out) & JackPortIsInput))
 				continue;

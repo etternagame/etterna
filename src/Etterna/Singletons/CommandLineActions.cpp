@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "CommandLineActions.h"
 #include "Etterna/Models/Misc/DateTime.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
 #include "Etterna/Globals/ProductInfo.h"
@@ -67,7 +66,8 @@ LuaInformation()
 	pNode->AppendAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	pNode->AppendAttr("xsi:schemaLocation", "http://www.stepmania.com Lua.xsd");
 
-	pNode->AppendChild("Version", string(PRODUCT_FAMILY) + product_version);
+	pNode->AppendChild("Version",
+					   std::string(PRODUCT_FAMILY) + product_version);
 	pNode->AppendChild("Date", DateTime::GetNowDate().GetString());
 
 	XmlFileUtil::SaveToFile(pNode, "Lua.xml", "Lua.xsl");
@@ -86,7 +86,7 @@ Version()
 {
 #ifdef _WIN32
 	std::string sProductID =
-	  ssprintf("%s", (string(PRODUCT_FAMILY) + product_version).c_str());
+	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + product_version).c_str());
 	std::string sVersion = ssprintf("build %s", ::version_git_hash);
 
 	AllocConsole();

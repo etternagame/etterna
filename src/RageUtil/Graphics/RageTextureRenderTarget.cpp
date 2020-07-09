@@ -94,7 +94,7 @@ class LunaRageTextureRenderTarget : public Luna<RageTextureRenderTarget>
   public:
 	static int BeginRenderingTo(T* p, lua_State* L)
 	{
-		bool bPreserveTexture = !!luaL_opt(L, lua_toboolean, 1, false);
+		const auto bPreserveTexture = !!luaL_opt(L, lua_toboolean, 1, false);
 		p->BeginRenderingTo(bPreserveTexture);
 		// Texture unit 0, No Filtering (Nearest Neighbor)
 		DISPLAY->SetTextureFiltering(TextureUnit_1, false);

@@ -28,11 +28,15 @@
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/FilterManager.h"
-
 #include "Etterna/Singletons/GameState.h"
+
+#include <algorithm>
 #include <cfloat>
 #include <ctime>
 #include <set>
+#include <map>
+
+using std::vector;
 
 //-Nick12 Used for song file hashing
 #include <Etterna/Singletons/CryptManager.h>
@@ -83,10 +87,16 @@ Song::Song()
 
 Song::~Song()
 {
-	FOREACH(Steps*, m_vpSteps, s)
-	SAFE_DELETE(*s);
+	for (auto& s : m_vpSteps) {
+		SAFE_DELETE(s);
+	}
+
 	m_vpSteps.clear();
-	FOREACH(Steps*, m_UnknownStyleSteps, s) { SAFE_DELETE(*s); }
+
+	for (auto& s : m_UnknownStyleSteps) {
+		SAFE_DELETE(s);
+	}
+
 	m_UnknownStyleSteps.clear();
 
 	// It's the responsibility of the owner of this Song to make sure
@@ -160,15 +170,21 @@ Song::SetSpecifiedLastSecond(const float f)
 void
 Song::Reset()
 {
-	FOREACH(Steps*, m_vpSteps, s)
-	SAFE_DELETE(*s);
+	for (auto& s : m_vpSteps) {
+		SAFE_DELETE(s);
+	}
+
 	m_vpSteps.clear();
+
 	FOREACH_ENUM(StepsType, st)
 	m_vpStepsByType[st].clear();
-	FOREACH(Steps*, m_UnknownStyleSteps, s) { SAFE_DELETE(*s); }
+
+	for (auto& s : m_UnknownStyleSteps) {
+		SAFE_DELETE(s);
+	}
 	m_UnknownStyleSteps.clear();
 
-	Song empty;
+	const Song empty;
 	*this = empty;
 
 	// It's the responsibility of the owner of this Song to make sure
@@ -198,7 +214,7 @@ Song::AddForegroundChange(const BackgroundChange& seg)
 }
 
 void
-Song::AddLyricSegment(LyricSegment seg)
+Song::AddLyricSegment(const LyricSegment& seg)
 {
 	m_LyricSegments.push_back(seg);
 }
@@ -223,7 +239,7 @@ Song::InitSteps(Steps* pSteps)
 std::string
 Song::GetOrTryAtLeastToGetSimfileAuthor()
 {
-	if (m_sCredit != "" && m_sCredit != "cdtitle")
+	if (!m_sCredit.empty() && m_sCredit != "cdtitle")
 		return m_sCredit;
 
 	size_t begin = 0;
@@ -235,10 +251,14 @@ Song::GetOrTryAtLeastToGetSimfileAuthor()
 
 	/*	Conform to current standard credit placement in songs folders,
 	for those of you who don't follow convention - too bad. - mina */
-	end = o.find_last_of(")");
-	if (end != o.npos) {
-		begin = o.find_last_of("(");
-		if (begin != o.npos) {
+	end = o.find_last_of(')');
+	if (end != std::basic_string<char,
+								 std::char_traits<char>,
+								 std::allocator<char>>::npos) {
+		begin = o.find_last_of('(');
+		if (begin != std::basic_string<char,
+									   std::char_traits<char>,
+									   std::allocator<char>>::npos) {
 			o = o.substr(begin + 1, end - begin - 1);
 			return o;
 		}
@@ -249,7 +269,8 @@ Song::GetOrTryAtLeastToGetSimfileAuthor()
 void
 Song::GetDisplayBpms(DisplayBpms& AddTo) const
 {
-	auto demratesboiz = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	const auto demratesboiz =
+	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (m_DisplayBPMType == DISPLAY_BPM_SPECIFIED) {
 		AddTo.Add(m_fSpecifiedBPMMin * demratesboiz);
 		AddTo.Add(m_fSpecifiedBPMMax * demratesboiz);
@@ -276,7 +297,8 @@ Song::GetCacheFilePath() const
 	return SongCacheIndex::GetCacheFilePath("Songs", m_sSongDir);
 }
 
-// Get a path to the SM containing data for this song. It might be a cache file.
+// Get a path to the SM containing data for this song. It might be a cache
+// file.
 const std::string&
 Song::GetSongFilePath() const
 {
@@ -286,21 +308,20 @@ Song::GetSongFilePath() const
 	return m_sSongFileName;
 }
 
-/* Hack: This should be a parameter to TidyUpData, but I don't want to pull in
- * <set> into Song.h, which is heavily used. */
-static set<std::string> BlacklistedImages;
+/* Hack: This should be a parameter to TidyUpData, but I don't want to pull
+ * in <set> into Song.h, which is heavily used. */
+static std::set<std::string> BlacklistedImages;
 
 /* If PREFSMAN->m_bFastLoad is true, always load from cache if possible.
- * Don't read the contents of sDir if we can avoid it. That means we can't call
- * HasMusic(), HasBanner() or GetHashForDirectory().
- * If true, check the directory hash and reload the song from scratch if it's
- * changed.
+ * Don't read the contents of sDir if we can avoid it. That means we can't
+ * call HasMusic(), HasBanner() or GetHashForDirectory(). If true, check the
+ * directory hash and reload the song from scratch if it's changed.
  */
 bool
 Song::LoadFromSongDir(std::string sDir, Calc* calc)
 {
 	//	LOG->Trace( "Song::LoadFromSongDir(%s)", sDir.c_str() );
-	ASSERT_M(sDir != "", "Songs can't be loaded from an empty directory!");
+	ASSERT_M(!sDir.empty(), "Songs can't be loaded from an empty directory!");
 
 	// make sure there is a trailing slash at the end of sDir
 	ensure_slash_at_end(sDir);
@@ -319,7 +340,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		FILEMAN->GetDirListingWithMultipleExtensions(
 		  sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
 
-		auto bHasMusic = !vs.empty();
+		const auto bHasMusic = !vs.empty();
 
 		if (!bHasMusic) {
 			LOG->UserLog(
@@ -331,7 +352,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		// Make sure we have a future filename figured out.
 		vector<std::string> folders;
 		split(sDir, "/", folders);
-		auto songName = folders[2] + ".ssc";
+		const auto songName = folders[2] + ".ssc";
 		this->m_sSongFileName = sDir + songName;
 		// Continue on with a blank Song so that people can make adjustments
 		// using the editor.
@@ -361,14 +382,14 @@ Song::FinalizeLoading()
 	// ASSERT(sDirectoryParts.size() >= 4); /* e.g. "/Songs/Slow/Taps/" */
 	m_sGroupName =
 	  sDirectoryParts[sDirectoryParts.size() - 3]; // second from last item
-	ASSERT(m_sGroupName != "");
+	ASSERT(!m_sGroupName.empty());
 
-	FOREACH(Steps*, m_vpSteps, s)
-	{
-		/* Compress all Steps. During initial caching, this will remove cached
-		 * NoteData; during cached loads, this will just remove cached SMData.
+	for (auto& s : m_vpSteps) {
+		/* Compress all Steps. During initial caching, this will remove
+		 * cached NoteData; during cached loads, this will just remove
+		 * cached SMData.
 		 */
-		(*s)->Compress();
+		s->Compress();
 	}
 
 	// Load the cached Images, if it's not loaded already.
@@ -378,14 +399,14 @@ Song::FinalizeLoading()
 		}
 	}
 }
-/* This function feels EXTREMELY hacky - copying things on top of pointers so
- * they don't break elsewhere.  Maybe it could be rewritten to politely ask the
- * Song/Steps objects to reload themselves. -- djpohly */
+/* This function feels EXTREMELY hacky - copying things on top of pointers
+ * so they don't break elsewhere.  Maybe it could be rewritten to politely
+ * ask the Song/Steps objects to reload themselves. -- djpohly */
 bool
 Song::ReloadFromSongDir(const std::string& sDir)
 {
-	// Remove the cache file to force the song to reload from its dir instead
-	// of loading from the cache. -Kyz
+	// Remove the cache file to force the song to reload from its dir
+	// instead of loading from the cache. -Kyz
 	FILEMAN->Remove(GetCacheFilePath());
 	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
 
@@ -399,52 +420,47 @@ Song::ReloadFromSongDir(const std::string& sDir)
 	/* Go through the steps, first setting their Song pointer to this song
 	 * (instead of the copy used above), and constructing a map to let us
 	 * easily find the new steps. */
-	map<StepsID, Steps*> mNewSteps;
-	for (vector<Steps*>::const_iterator it = m_vpSteps.begin();
-		 it != m_vpSteps.end();
-		 ++it) {
-		(*it)->m_pSong = this;
+	std::map<StepsID, Steps*> mNewSteps;
+	for (auto* m_vpStep : m_vpSteps) {
+		m_vpStep->m_pSong = this;
 
 		StepsID id;
-		id.FromSteps(*it);
-		mNewSteps[id] = *it;
+		id.FromSteps(m_vpStep);
+		mNewSteps[id] = m_vpStep;
 	}
 
-	// Now we wipe out the new pointers, which were shallow copied and not deep
-	// copied...
+	// Now we wipe out the new pointers, which were shallow copied and not
+	// deep copied...
 	m_vpSteps.clear();
 	FOREACH_ENUM(StepsType, i)
 	m_vpStepsByType[i].clear();
 
 	/* Then we copy as many Steps as possible on top of the old pointers.
-	 * The only pointers that change are pointers to Steps that are not in the
-	 * reverted file, which we delete, and pointers to Steps that are in the
-	 * reverted file but not the original *this, which we create new copies of.
-	 * We have to go through these hoops because many places assume the Steps
-	 * pointers don't change - even though there are other ways they can change,
-	 * such as deleting a Steps via the editor. */
-	for (vector<Steps*>::const_iterator itOld = vOldSteps.begin();
-		 itOld != vOldSteps.end();
-		 ++itOld) {
+	 * The only pointers that change are pointers to Steps that are not in
+	 * the reverted file, which we delete, and pointers to Steps that are in
+	 * the reverted file but not the original *this, which we create new
+	 * copies of. We have to go through these hoops because many places
+	 * assume the Steps pointers don't change - even though there are other
+	 * ways they can change, such as deleting a Steps via the editor. */
+	for (auto* vOldStep : vOldSteps) {
 		StepsID id;
-		id.FromSteps(*itOld);
+		id.FromSteps(vOldStep);
 		auto itNew = mNewSteps.find(id);
 		if (itNew == mNewSteps.end()) {
 			// This stepchart didn't exist in the file we reverted from
-			delete *itOld;
+			delete vOldStep;
 		} else {
-			auto OldSteps = *itOld;
+			auto* OldSteps = vOldStep;
 			*OldSteps = *(itNew->second);
 			AddSteps(OldSteps);
 			mNewSteps.erase(itNew);
 		}
 	}
-	// The leftovers in the map are steps that didn't exist before we reverted
-	for (map<StepsID, Steps*>::const_iterator it = mNewSteps.begin();
-		 it != mNewSteps.end();
-		 ++it) {
-		auto NewSteps = new Steps(this);
-		*NewSteps = *(it->second);
+	// The leftovers in the map are steps that didn't exist before we
+	// reverted
+	for (const auto& mNewStep : mNewSteps) {
+		auto* NewSteps = new Steps(this);
+		*NewSteps = *(mNewStep.second);
 		AddSteps(NewSteps);
 	}
 
@@ -458,10 +474,10 @@ Song::ReloadFromSongDir(const std::string& sDir)
 	to_reload.push_back(m_sBackgroundFile);
 	to_reload.push_back(m_sCDTitleFile);
 	to_reload.push_back(m_sPreviewVidFile);
-	for (auto file = to_reload.begin(); file != to_reload.end(); ++file) {
-		RageTextureID id(*file);
+	for (auto& file : to_reload) {
+		RageTextureID id(file);
 		if (TEXTUREMAN->IsTextureRegistered(id)) {
-			auto tex = TEXTUREMAN->LoadTexture(id);
+			auto* tex = TEXTUREMAN->LoadTexture(id);
 			if (tex) {
 				tex->Reload();
 			}
@@ -475,7 +491,7 @@ Song::ReloadFromSongDir(const std::string& sDir)
 void
 Song::ReloadIfNoMusic()
 {
-	auto sMusicPath = GetMusicPath();
+	const auto sMusicPath = GetMusicPath();
 	if (sMusicPath.empty() || !DoesFileExist(sMusicPath)) {
 		ASSERT_M(ReloadFromSongDir(),
 				 "No music, so tried to reload from song dir but "
@@ -484,8 +500,9 @@ Song::ReloadIfNoMusic()
 }
 
 /* Fix up song paths. If there's a leading "./", be sure to keep it: it's
- * a signal that the path is from the root directory, not the song directory.
- * Other than a leading "./", song paths must never contain "." or "..". */
+ * a signal that the path is from the root directory, not the song
+ * directory. Other than a leading "./", song paths must never contain "."
+ * or "..". */
 void
 FixupPath(std::string& path, const std::string& sSongPath)
 {
@@ -521,13 +538,15 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 	m_SongTiming.TidyUpData(false);
 
-	FOREACH(Steps*, m_vpSteps, s) { (*s)->m_Timing.TidyUpData(true); }
+	for (auto& s : m_vpSteps) {
+		s->m_Timing.TidyUpData(true);
+	}
 
 	if (!from_cache) {
 		if (this->m_sArtist == "The Dancing Monkeys Project" &&
-			this->m_sMainTitle.find_first_of('-') != string::npos) {
-			// Dancing Monkeys had a bug/feature where the artist was replaced.
-			// Restore it.
+			this->m_sMainTitle.find_first_of('-') != std::string::npos) {
+			// Dancing Monkeys had a bug/feature where the artist was
+			// replaced. Restore it.
 			vector<std::string> titleParts;
 			split(this->m_sMainTitle, "-", titleParts);
 			this->m_sArtist = titleParts.front();
@@ -542,12 +561,12 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		Trim(m_sArtist);
 
 		// Fall back on the song directory name.
-		if (m_sMainTitle == "") {
+		if (m_sMainTitle.empty()) {
 			NotesLoader::GetMainAndSubTitlesFromFullTitle(
 			  Basename(this->GetSongDir()), m_sMainTitle, m_sSubTitle);
 		}
 
-		if (m_sArtist == "") {
+		if (m_sArtist.empty()) {
 			m_sArtist = "Unknown artist";
 		}
 		TranslateTitles();
@@ -562,10 +581,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 
-		// There are several things that need to find a file from the dir with a
-		// particular extension or type of extension.  So fetch a list of all
-		// files in the dir once, then split that list into the different things
-		// we need. -Kyz
+		// There are several things that need to find a file from the dir
+		// with a particular extension or type of extension.  So fetch a
+		// list of all files in the dir once, then split that list into the
+		// different things we need. -Kyz
 		vector<std::string> song_dir_listing;
 		FILEMAN->GetDirListing(
 		  m_sSongDir + "*", song_dir_listing, false, false);
@@ -588,18 +607,16 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		fill_exts.push_back(&ActorUtil::GetTypeExtensionList(FT_Movie));
 		lists_to_fill.push_back(&lyric_list);
 		fill_exts.push_back(&lyric_extensions);
-		for (auto filename = song_dir_listing.begin();
-			 filename != song_dir_listing.end();
-			 ++filename) {
+		for (auto& filename : song_dir_listing) {
 			auto matched_something = false;
-			auto file_ext = make_lower(GetExtension(*filename));
+			auto file_ext = make_lower(GetExtension(filename));
 			if (!file_ext.empty()) {
 				for (size_t tf = 0; tf < lists_to_fill.size(); ++tf) {
 					for (auto ext = fill_exts[tf]->begin();
 						 ext != fill_exts[tf]->end();
 						 ++ext) {
 						if (file_ext == *ext) {
-							lists_to_fill[tf]->push_back(*filename);
+							lists_to_fill[tf]->push_back(filename);
 							matched_something = true;
 							break;
 						}
@@ -613,8 +630,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 		if (!m_bHasMusic) {
 			// If the first song is "intro", and we have more than one
-			// available, don't use it--it's probably a KSF intro music file,
-			// which we don't (yet) support.
+			// available, don't use it--it's probably a KSF intro music
+			// file, which we don't (yet) support.
 			if (!music_list.empty()) {
 				LOG->Trace("Song '%s' points to a music file that doesn't "
 						   "exist, found music file '%s'",
@@ -623,7 +640,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
-				std::string loot = m_sMusicFile.substr(0, 5);
+				auto loot = m_sMusicFile.substr(0, 5);
 				if (music_list.size() > 1 && (make_lower(loot) != "intro")) {
 					m_sMusicFile = music_list[1];
 				}
@@ -638,7 +655,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			/* XXX: Checking if the music file exists eliminates a warning
 			 * originating from BMS files (which have no music file, per se)
 			 * but it's something of a hack. */
-			if (Sample == NULL && m_sMusicFile != "") {
+			if (Sample == nullptr && !m_sMusicFile.empty()) {
 				LOG->UserLog("Sound file",
 							 GetMusicPath(),
 							 "couldn't be opened: %s",
@@ -646,13 +663,13 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 				// Don't use this file.
 				m_sMusicFile = "";
-			} else if (Sample != NULL) {
+			} else if (Sample != nullptr) {
 				m_fMusicLengthSeconds = Sample->GetLength() / 1000.0f;
 				delete Sample;
 
 				if (m_fMusicLengthSeconds < 0) {
-					// It failed; bad file or something. It's already logged a
-					// warning.
+					// It failed; bad file or something. It's already logged
+					// a warning.
 					m_fMusicLengthSeconds = 100; // guess
 				} else if (m_fMusicLengthSeconds == 0) {
 					LOG->UserLog("Sound file", GetMusicPath(), "is empty.");
@@ -676,11 +693,12 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		if (!m_PreviewFile.empty() &&
 			m_fMusicSampleLengthSeconds <=
 			  0.00f) { // if there's a preview file and sample length isn't
-					   // specified, set sample length to length of preview file
+					   // specified, set sample length to length of preview
+					   // file
 			std::string error;
 			RageSoundReader* Sample = RageSoundReader_FileReader::OpenFile(
 			  GetPreviewMusicPath(), error);
-			if (Sample == NULL && m_sMusicFile != "") {
+			if (Sample == nullptr && !m_sMusicFile.empty()) {
 				LOG->UserLog("Sound file",
 							 GetPreviewMusicPath(),
 							 "couldn't be opened: %s",
@@ -689,13 +707,13 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				// Don't use this file.
 				m_PreviewFile = "";
 				m_fMusicSampleLengthSeconds = DEFAULT_MUSIC_SAMPLE_LENGTH;
-			} else if (Sample != NULL) {
+			} else if (Sample != nullptr) {
 				m_fMusicSampleLengthSeconds = Sample->GetLength() / 1000.0f;
 				delete Sample;
 
 				if (m_fMusicSampleLengthSeconds < 0) {
-					// It failed; bad file or something. It's already logged a
-					// warning.
+					// It failed; bad file or something. It's already logged
+					// a warning.
 					m_fMusicSampleLengthSeconds = DEFAULT_MUSIC_SAMPLE_LENGTH;
 				} else if (m_fMusicSampleLengthSeconds == 0) {
 					LOG->UserLog(
@@ -724,16 +742,17 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				}
 			}
 
-			// The old logic meant that you couldn't have sample lengths that go
-			// forever, e.g. those in Donkey Konga. I never liked that. -freem
+			// The old logic meant that you couldn't have sample lengths
+			// that go forever, e.g. those in Donkey Konga. I never liked
+			// that. -freem
 			if (m_fMusicSampleLengthSeconds <= 0.00f) {
 				m_fMusicSampleLengthSeconds = DEFAULT_MUSIC_SAMPLE_LENGTH;
 			}
 		}
 
-		// Here's the problem:  We have a directory full of images. We want to
-		// determine which image is the banner, which is the background, and
-		// which is the CDTitle.
+		// Here's the problem:  We have a directory full of images. We want
+		// to determine which image is the banner, which is the background,
+		// and which is the CDTitle.
 
 		// For blank args to FindFirstFilenameContaining. -Kyz
 		vector<std::string> empty_list;
@@ -755,8 +774,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 		// First, check the file name for hints.
 		if (!m_bHasBanner) {
-			/* If a nonexistant banner file is specified, and we can't find a
-			 * replacement, don't wipe out the old value. */
+			/* If a nonexistant banner file is specified, and we can't find
+			 * a replacement, don't wipe out the old value. */
 			// m_sBannerFile = "";
 
 			// find an image with "banner" in the file name
@@ -837,44 +856,44 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		}
 
 		/* Now, For the images we still haven't found,
-		 * look at the image dimensions of the remaining unclassified images. */
-		for (unsigned int i = 0; i < image_list.size(); ++i) // foreach image
+		 * look at the image dimensions of the remaining unclassified
+		 * images. */
+		for (auto& i : image_list) // foreach image
 		{
 			if (m_bHasBanner && m_bHasBackground && has_cdtitle)
 				break; // done
 
 			// ignore DWI "-char" graphics
-			auto lower = image_list[i];
+			auto lower = i;
 			MakeLower(lower);
 			if (BlacklistedImages.find(lower) != BlacklistedImages.end())
 				continue; // skip
 
 			// Skip any image that we've already classified
 
-			if (m_bHasBanner && EqualsNoCase(m_sBannerFile, image_list[i]))
+			if (m_bHasBanner && EqualsNoCase(m_sBannerFile, i))
 				continue; // skip
 
-			if (m_bHasBackground &&
-				EqualsNoCase(m_sBackgroundFile, image_list[i]))
+			if (m_bHasBackground && EqualsNoCase(m_sBackgroundFile, i))
 				continue; // skip
 
-			if (has_cdtitle && EqualsNoCase(m_sCDTitleFile, image_list[i]))
+			if (has_cdtitle && EqualsNoCase(m_sCDTitleFile, i))
 				continue; // skip
 
-			if (has_jacket && EqualsNoCase(m_sJacketFile, image_list[i]))
+			if (has_jacket && EqualsNoCase(m_sJacketFile, i))
 				continue; // skip
 
-			if (has_disc && EqualsNoCase(m_sDiscFile, image_list[i]))
+			if (has_disc && EqualsNoCase(m_sDiscFile, i))
 				continue; // skip
 
-			if (has_cdimage && EqualsNoCase(m_sCDFile, image_list[i]))
+			if (has_cdimage && EqualsNoCase(m_sCDFile, i))
 				continue; // skip
 
-			auto sPath = m_sSongDir + image_list[i];
+			auto sPath = m_sSongDir + i;
 
 			// We only care about the dimensions.
 			std::string error;
-			auto img = RageSurfaceUtils::LoadFile(sPath, error, true);
+			auto* img = RageSurfaceUtils::LoadFile(sPath, error, true);
 			if (!img) {
 				LOG->UserLog("Graphic file",
 							 sPath,
@@ -888,51 +907,50 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			delete img;
 
 			if (!m_bHasBackground && width >= 320 && height >= 240) {
-				m_sBackgroundFile = image_list[i];
+				m_sBackgroundFile = i;
 				m_bHasBackground = true;
 				m_sBackgroundPath =
-				  GetSongAssetPath(m_sBackgroundFile, m_sSongDir).c_str();
+				  GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 				continue;
 			}
 
 			if (!m_bHasBanner && 100 <= width && width <= 320 && 50 <= height &&
 				height <= 240) {
-				m_sBannerFile = image_list[i];
+				m_sBannerFile = i;
 				m_bHasBanner = true;
-				m_sBannerPath =
-				  GetSongAssetPath(m_sBannerFile, m_sSongDir).c_str();
+				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
 				continue;
 			}
 
 			/* Some songs have overlarge banners. Check if the ratio is
 			 * reasonable (over 2:1; usually over 3:1), and large (not a
 			 * cdtitle). */
-			if (!m_bHasBanner && width > 200 && float(width) / height > 2.0f) {
-				m_sBannerFile = image_list[i];
+			if (!m_bHasBanner && width > 200 &&
+				static_cast<float>(width) / height > 2.0f) {
+				m_sBannerFile = i;
 				m_bHasBanner = true;
 				m_sBannerPath = GetSongAssetPath(m_sBannerFile, m_sSongDir);
 				continue;
 			}
 
-			/* Agh. DWI's inline title images are triggering this, resulting in
-			 * kanji, etc., being used as a CDTitle for songs with none. Some
-			 * sample data from random incarnations:
-			 *   42x50 35x50 50x50 144x49
-			 * It looks like ~50 height is what people use to align to DWI's
-			 * font.
+			/* Agh. DWI's inline title images are triggering this, resulting
+			 * in kanji, etc., being used as a CDTitle for songs with none.
+			 * Some sample data from random incarnations: 42x50 35x50 50x50
+			 * 144x49 It looks like ~50 height is what people use to align
+			 * to DWI's font.
 			 *
-			 * My tallest CDTitle is 44. Let's cut off in the middle and hope
-			 * for the best. -(who? -aj) */
+			 * My tallest CDTitle is 44. Let's cut off in the middle and
+			 * hope for the best. -(who? -aj) */
 			/* The proper size of a CDTitle is 64x48 or sometihng. Simfile
 			 * artists typically don't give a shit about this (see Cetaka's
-			 * fucking banner -sized CDTitle). This is also subverted in certain
-			 * designs (beta Mungyodance 3 simfiles, for instance, used the
-			 * CDTitle to hold various information about the song in question).
-			 * As it stands, I'm keeping this code until I figure out wtf to do
-			 * -aj
+			 * fucking banner -sized CDTitle). This is also subverted in
+			 * certain designs (beta Mungyodance 3 simfiles, for instance,
+			 * used the CDTitle to hold various information about the song
+			 * in question). As it stands, I'm keeping this code until I
+			 * figure out wtf to do -aj
 			 */
 			if (!has_cdtitle && width <= 100 && height <= 48) {
-				m_sCDTitleFile = image_list[i];
+				m_sCDTitleFile = i;
 				has_cdtitle = true;
 				m_sCDTitlePath = GetSongAssetPath(m_sCDTitleFile, m_sSongDir);
 				continue;
@@ -940,38 +958,38 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 
 			// Jacket files typically have the same width and height.
 			if (!has_jacket && width == height) {
-				m_sJacketFile = image_list[i];
+				m_sJacketFile = i;
 				has_jacket = true;
 				m_sJacketPath = GetSongAssetPath(m_sJacketFile, m_sSongDir);
 				continue;
 			}
 
-			// Disc images are typically rectangular; make sure we have a banner
-			// already.
+			// Disc images are typically rectangular; make sure we have a
+			// banner already.
 			if (!has_disc && (width > height) && m_bHasBanner) {
-				if (image_list[i] != m_sBannerFile) {
-					m_sDiscFile = image_list[i];
+				if (i != m_sBannerFile) {
+					m_sDiscFile = i;
 					has_disc = true;
 				}
 				m_sDiscPath = GetSongAssetPath(m_sDiscFile, m_sSongDir);
 				continue;
 			}
 
-			// CD images are the same as Jackets, typically the same width and
-			// height
+			// CD images are the same as Jackets, typically the same width
+			// and height
 			if (!has_cdimage && width == height) {
-				m_sCDFile = image_list[i];
+				m_sCDFile = i;
 				has_cdimage = true;
 				m_sCDPath = GetSongAssetPath(m_sCDFile, m_sSongDir);
 				continue;
 			}
 		}
 		// If no BGChanges are specified and there are movies in the song
-		// directory, then assume they are DWI style where the movie begins at
-		// beat 0.
+		// directory, then assume they are DWI style where the movie begins
+		// at beat 0.
 		if (!HasBGChanges()) {
-			/* Use this->GetBeatFromElapsedTime(0) instead of 0 to start when
-			 * the music starts. */
+			/* Use this->GetBeatFromElapsedTime(0) instead of 0 to start
+			 * when the music starts. */
 			if (movie_list.size() == 1) {
 				this->AddBackgroundChange(
 				  BACKGROUND_LAYER_1,
@@ -1016,9 +1034,9 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 	/* Generate these before we autogen notes, so the new notes can inherit
 	 * their source's values. */
 	ReCalculateRadarValuesAndLastSecond(from_cache, true, calc);
-	// If the music length is suspiciously shorter than the last second, adjust
-	// the length.  This prevents the ogg patch from setting a false length.
-	// -Kyz
+	// If the music length is suspiciously shorter than the last second,
+	// adjust the length.  This prevents the ogg patch from setting a false
+	// length. -Kyz
 	if (m_fMusicLengthSeconds < lastSecond - 10.0f) {
 		m_fMusicLengthSeconds = lastSecond;
 	}
@@ -1069,15 +1087,15 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache,
 			// for this we don't use the etterna compressed format -mina
 			n->Decompress();
 
-			// calc etterna metadata will replace the unwieldy notedata string
-			// with a compressed format for both cache and internal use but not
-			// yet
+			// calc etterna metadata will replace the unwieldy notedata
+			// string with a compressed format for both cache and internal
+			// use but not yet
 			n->CalcEtternaMetadata(calc);
-			n->CalculateRadarValues(m_fMusicLengthSeconds);
+			n->CalculateRadarValues();
 
 			// calculate lastSecond
-			localFirst = min(localFirst, n->firstsecond);
-			localLast = max(localLast, n->lastsecond);
+			localFirst = std::min(localFirst, n->firstsecond);
+			localLast = std::max(localLast, n->lastsecond);
 		}
 	}
 
@@ -1095,13 +1113,13 @@ Song::SongCompleteForStyle(const Style* st) const
 bool
 Song::HasStepsType(StepsType st) const
 {
-	return SongUtil::GetOneSteps(this, st) != NULL;
+	return SongUtil::GetOneSteps(this, st) != nullptr;
 }
 
 bool
 Song::HasStepsTypeAndDifficulty(StepsType st, Difficulty dc) const
 {
-	return SongUtil::GetOneSteps(this, st, dc) != NULL;
+	return SongUtil::GetOneSteps(this, st, dc) != nullptr;
 }
 
 void
@@ -1121,8 +1139,8 @@ Song::Save()
 	GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
-	for (unsigned i = 0; i < arrayOldFileNames.size(); i++) {
-		const auto sOldPath = m_sSongDir + arrayOldFileNames[i];
+	for (auto& arrayOldFileName : arrayOldFileNames) {
+		const auto sOldPath = m_sSongDir + arrayOldFileName;
 		const auto sNewPath = sOldPath + ".old";
 
 		if (!FileCopy(sOldPath, sNewPath)) {
@@ -1156,33 +1174,27 @@ Song::SaveToSMFile()
 	if (IsAFile(sPath))
 		FileCopy(sPath, sPath + ".old");
 
-	auto vpStepsToSave = GetStepsToSave();
+	const auto vpStepsToSave = GetStepsToSave();
 
 	return NotesWriterSM::Write(sPath, *this, vpStepsToSave);
 }
+
 vector<Steps*>
-Song::GetStepsToSave(bool bSavingCache, string path)
+Song::GetStepsToSave(bool bSavingCache, const std::string& path)
 {
-
 	vector<Steps*> vpStepsToSave;
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		auto pSteps = *s;
-
-		// Only save steps that weren't loaded from a profile.
-		if (pSteps->WasLoadedFromProfile())
-			continue;
+	for (auto& s : m_vpSteps) {
 
 		if (!bSavingCache)
-			pSteps->SetFilename(path);
-		vpStepsToSave.push_back(pSteps);
+			s->SetFilename(path);
+		vpStepsToSave.push_back(s);
 	}
-	FOREACH_CONST(Steps*, m_UnknownStyleSteps, s)
-	{
-		vpStepsToSave.push_back(*s);
+	for (auto& s : m_UnknownStyleSteps) {
+		vpStepsToSave.push_back(s);
 	}
 	return vpStepsToSave;
 }
+
 bool
 Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 {
@@ -1201,7 +1213,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	auto vpStepsToSave = GetStepsToSave(bSavingCache, sPath);
 
 	if (!bSavingCache)
-		for (auto s : vpStepsToSave) {
+		for (auto* s : vpStepsToSave) {
 			s->Decompress();
 			s->CalcEtternaMetadata(SONGMAN->calc.get());
 			s->SetFilename(path);
@@ -1214,7 +1226,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 		return false;
 
 	if (g_BackUpAllSongSaves.Get()) {
-		auto sExt = GetExtension(path);
+		const auto sExt = GetExtension(path);
 		auto sBackupFile = SetExtension(path, "");
 
 		time_t cur_time;
@@ -1240,8 +1252,8 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	}
 
 	// Mark these steps saved to disk.
-	FOREACH(Steps*, vpStepsToSave, s)
-	(*s)->SetSavedToDisk(true);
+	for (auto& s : vpStepsToSave)
+		s->SetSavedToDisk(true);
 
 	return true;
 }
@@ -1269,7 +1281,7 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 		return false;
 
 	if (g_BackUpAllSongSaves.Get()) {
-		auto sExt = GetExtension(path);
+		const auto sExt = GetExtension(path);
 		auto sBackupFile = SetExtension(path, "");
 
 		time_t cur_time;
@@ -1295,8 +1307,8 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 	}
 
 	// Mark these steps saved to disk.
-	FOREACH(Steps*, vpStepsToSave, s)
-	(*s)->SetSavedToDisk(true);
+	for (auto& s : vpStepsToSave)
+		s->SetSavedToDisk(true);
 
 	return true;
 }
@@ -1325,10 +1337,10 @@ Song::SaveToDWIFile()
 
 // We want to return a filename, We use this function for that.
 std::string
-Song::GetCacheFile(std::string sType)
+Song::GetCacheFile(const std::string& sType)
 {
 	// We put the Predefined images into a map.
-	map<std::string, std::string> PreDefs;
+	std::map<std::string, std::string> PreDefs;
 	PreDefs["Banner"] = GetBannerPath();
 	PreDefs["Background"] = GetBackgroundPath();
 	PreDefs["CDTitle"] = GetCDTitlePath();
@@ -1337,10 +1349,10 @@ Song::GetCacheFile(std::string sType)
 	PreDefs["Disc"] = GetDiscPath();
 
 	// Check if Predefined images exist, And return function if they do.
-	if (PreDefs[sType.c_str()]
-		  .c_str()) // pretty sure this evaluates to true even if the string is
-					// "", but haven't tested extensively
-		return PreDefs[sType.c_str()].c_str();
+	if (PreDefs[sType].c_str()) // pretty sure this evaluates to true
+								// even if the string is
+								// "", but haven't tested extensively
+		return PreDefs[sType.c_str()];
 
 	// Get all image files and put them into a vector.
 	vector<std::string> song_dir_listing;
@@ -1349,7 +1361,8 @@ Song::GetCacheFile(std::string sType)
 	auto fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
 	for (auto Image : song_dir_listing) {
 		auto FileExt = GetExtension(Image);
-		transform(FileExt.begin(), FileExt.end(), FileExt.begin(), ::tolower);
+		std::transform(
+		  FileExt.begin(), FileExt.end(), FileExt.begin(), tolower);
 		for (auto FindExt : fill_exts) {
 			if (FileExt == FindExt)
 				image_list.push_back(Image);
@@ -1357,7 +1370,7 @@ Song::GetCacheFile(std::string sType)
 	}
 
 	// Create a map that contains all the filenames to search for.
-	map<std::string, map<int, std::string>> PreSets;
+	std::map<std::string, std::map<int, std::string>> PreSets;
 	PreSets["Banner"][1] = "bn";
 	PreSets["Banner"][2] = "banner";
 	PreSets["Background"][1] = "bg";
@@ -1372,16 +1385,16 @@ Song::GetCacheFile(std::string sType)
 
 	for (auto Image : image_list) {
 		// We want to make it lower case.
-		transform(Image.begin(), Image.end(), Image.begin(), ::tolower);
-		for (auto PreSet : PreSets[sType.c_str()]) {
+		std::transform(Image.begin(), Image.end(), Image.begin(), tolower);
+		for (auto PreSet : PreSets[sType]) {
 			// Search for image using PreSets.
-			auto Found = Image.find(PreSet.second.c_str());
+			const auto Found = Image.find(PreSet.second);
 			if (Found != std::string::npos)
 				return GetSongAssetPath(Image, m_sSongDir);
 		}
 		// Search for the image directly if it doesnt exist in PreSets,
 		// Or incase we define our own stuff.
-		auto Found = Image.find(sType.c_str());
+		const auto Found = Image.find(sType);
 		if (Found != std::string::npos)
 			return GetSongAssetPath(Image, m_sSongDir);
 	}
@@ -1409,7 +1422,7 @@ Song::GetFileHash()
 		if (!IsAFile(sPath))
 			sPath = SetExtension(GetSongFilePath(), "ssc");
 		if (IsAFile(sPath))
-			m_sFileHash = BinaryToHex(CRYPTMAN->GetSHA1ForFile(sPath));
+			m_sFileHash = BinaryToHex(CryptManager::GetSHA1ForFile(sPath));
 		else
 			m_sFileHash = "";
 	}
@@ -1419,8 +1432,7 @@ Song::GetFileHash()
 bool
 Song::HasEdits(StepsType st) const
 {
-	for (unsigned i = 0; i < m_vpSteps.size(); i++) {
-		auto pSteps = m_vpSteps[i];
+	for (auto* pSteps : m_vpSteps) {
 		if (pSteps->m_StepsType == st &&
 			pSteps->GetDifficulty() == Difficulty_Edit) {
 			return true;
@@ -1434,35 +1446,36 @@ bool
 Song::HasMusic() const
 {
 	// If we have keys, we always have music.
-	if (m_vsKeysoundFile.size() != 0)
+	if (!m_vsKeysoundFile.empty())
 		return true;
 
-	return m_sMusicFile != "" && GetMusicPath() != "";
+	return !m_sMusicFile.empty() && !GetMusicPath().empty();
 }
 bool
 Song::HasBanner() const
 {
-	return m_sBannerFile != "" && GetBannerPath() != "";
+	return !m_sBannerFile.empty() && !GetBannerPath().empty();
 }
 bool
 Song::HasInstrumentTrack(InstrumentTrack it) const
 {
-	return m_sInstrumentTrackFile[it] != "" && GetInstrumentTrackPath(it) != "";
+	return !m_sInstrumentTrackFile[it].empty() &&
+		   !GetInstrumentTrackPath(it).empty();
 }
 bool
 Song::HasLyrics() const
 {
-	return m_sLyricsFile != "" && GetLyricsPath() != "";
+	return !m_sLyricsFile.empty() && !GetLyricsPath().empty();
 }
 bool
 Song::HasBackground() const
 {
-	return m_sBackgroundFile != "" && GetBackgroundPath() != "";
+	return !m_sBackgroundFile.empty() && !GetBackgroundPath().empty();
 }
 bool
 Song::HasCDTitle() const
 {
-	return m_sCDTitleFile != "" && GetCDTitlePath() != "";
+	return !m_sCDTitleFile.empty() && !GetCDTitlePath().empty();
 }
 bool
 Song::HasBGChanges() const
@@ -1477,22 +1490,22 @@ Song::HasBGChanges() const
 bool
 Song::HasJacket() const
 {
-	return m_sJacketFile != "" && GetJacketPath() != "";
+	return !m_sJacketFile.empty() && !GetJacketPath().empty();
 }
 bool
 Song::HasDisc() const
 {
-	return m_sDiscFile != "" && GetDiscPath() != "";
+	return !m_sDiscFile.empty() && !GetDiscPath().empty();
 }
 bool
 Song::HasCDImage() const
 {
-	return m_sCDFile != "" && GetCDImagePath() != "";
+	return !m_sCDFile.empty() && !GetCDImagePath().empty();
 }
 bool
 Song::HasPreviewVid() const
 {
-	return m_sPreviewVidFile != "" && GetPreviewVidPath() != "";
+	return !m_sPreviewVidFile.empty() && !GetPreviewVidPath().empty();
 }
 
 const vector<BackgroundChange>&
@@ -1521,9 +1534,8 @@ vector<std::string>
 Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
 	vector<std::string> ret;
-	FOREACH_CONST(BackgroundChange, changes, bgc)
-	{
-		ret.push_back((*bgc).ToString());
+	for (const auto& bgc : changes) {
+		ret.push_back(bgc.ToString());
 	}
 	return ret;
 }
@@ -1565,19 +1577,20 @@ Song::GetInstrumentTracksToVectorString() const
 std::string
 Song::GetSongAssetPath(std::string sPath, const std::string& sSongPath)
 {
-	if (sPath == "")
+	if (sPath.empty())
 		return std::string();
 
 	auto sRelPath = sSongPath + sPath;
 	if (DoesFileExist(sRelPath))
 		return sRelPath;
 
-	/* If there's no path in the file, the file is in the same directory as the
-	 * song. (This is the preferred configuration.) */
+	/* If there's no path in the file, the file is in the same directory as
+	 * the song. (This is the preferred configuration.) */
 	if (sPath.find('/') == std::string::npos)
 		return sRelPath;
 
-	// The song contains a path; treat it as relative to the top SM directory.
+	// The song contains a path; treat it as relative to the top SM
+	// directory.
 	if (sPath.substr(0, 3) == "../") {
 		// The path begins with "../".  Resolve it wrt. the song directory.
 		sPath = sRelPath;
@@ -1586,7 +1599,8 @@ Song::GetSongAssetPath(std::string sPath, const std::string& sSongPath)
 	CollapsePath(sPath);
 
 	/* If the path still begins with "../", then there were an unreasonable
-	 * number of them at the beginning of the path. Ignore the path entirely. */
+	 * number of them at the beginning of the path. Ignore the path
+	 * entirely. */
 	if (sPath.substr(0, 3) == "../")
 		return std::string();
 
@@ -1602,25 +1616,43 @@ Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
+const vector<Steps*>
+Song::GetChartsOfCurrentGameMode() const
+{
+	std::vector<StepsType> types;
+	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
+
+	vector<Steps*> steps;
+	for (auto type : types) {
+		auto tmp = GetStepsByStepsType(type);
+		steps.insert(steps.end(), tmp.begin(), tmp.end());
+	}
+	return steps;
+}
+
 float
-Song::GetHighestOfSkillsetAllSteps(int x, float rate) const
+Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 {
 	CLAMP(rate, 0.7f, 2.f);
-	auto o = 0.f;
-	auto vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	if ((*steps)->GetMSD(rate, x) > o)
-		o = (*steps)->GetMSD(rate, x);
-	return o;
+	auto highest = 0.f;
+
+	const auto charts = GetChartsOfCurrentGameMode();
+
+	for (auto* chart : charts) {
+		const auto current = chart->GetMSD(rate, skill);
+		if (current > highest)
+			highest = current;
+	}
+
+	return highest;
 }
 
 bool
 Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 {
 	auto vsteps = GetAllSteps();
-	FOREACH(Steps*, vsteps, steps)
-	{
-		auto sortedstuffs = (*steps)->SortSkillsetsAtRate(rate, false);
+	for (auto& steps : vsteps) {
+		auto sortedstuffs = steps->SortSkillsetsAtRate(rate, false);
 		if (sortedstuffs[0].first == ss)
 			return true;
 	}
@@ -1629,23 +1661,11 @@ Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
 }
 
 bool
-Song::MatchesFilter(
-  const float rate,
-  const std::optional<const std::vector<StepsType>> types) const
+Song::MatchesFilter(const float rate) const
 {
-	vector<Steps*> steps;
-	if (types) {
-		for (auto type : *types) {
-			auto tmp =
-			  GetStepsByStepsType(type); // Get all charts of type "type"
-			steps.insert(
-			  steps.end(), tmp.begin(), tmp.end()); // Append them to the list
-		}
-	} else {
-		steps = GetAllSteps();
-	}
+	auto charts = GetChartsOfCurrentGameMode();
 
-	for (const auto step : steps) {
+	for (auto* const chart : charts) {
 		// Iterate over all maps of the given type
 		auto addsong = FILTERMAN->ExclusiveFilter;
 		/* The default behaviour of an exclusive filter is to accept
@@ -1657,8 +1677,8 @@ Song::MatchesFilter(
 		for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
 			// Iterate over all skillsets, up to and
 			// including the placeholder NUM_Skillset
-			auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-			auto ub = FILTERMAN->SSFilterUpperBounds[ss];
+			const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
+			const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
 			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
 
 				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
@@ -1671,15 +1691,11 @@ Song::MatchesFilter(
 				}
 				float val;
 				if (ss < NUM_Skillset)
-					val = step->GetMSD(rate, ss);
+					val = chart->GetMSD(rate, ss);
 				else {
 					// If we are on the placeholder skillset, look at song
 					// length instead of a skill
-					auto td = step->GetTimingData();
-					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
-						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
-						  rate;
-					// Rates modify the song length.
+					val = chart->GetLengthSeconds(rate);
 				}
 				if (FILTERMAN->ExclusiveFilter) {
 					/* Our behaviour is to accept by default,
@@ -1710,7 +1726,7 @@ Song::MatchesFilter(
 }
 
 bool
-Song::HasChartByHash(const string& hash)
+Song::HasChartByHash(const std::string& hash)
 {
 	auto vsteps = GetAllSteps();
 	for (auto& steps : vsteps) {
@@ -1753,9 +1769,9 @@ Song::GetMainTitle() const
 void
 Song::AddSteps(Steps* pSteps)
 {
-	// Songs of unknown stepstype are saved as a forwards compatibility feature
-	// so that editing a simfile made by a future version that has a new style
-	// won't delete those steps. -Kyz
+	// Songs of unknown stepstype are saved as a forwards compatibility
+	// feature so that editing a simfile made by a future version that has a
+	// new style won't delete those steps. -Kyz
 	if (pSteps->m_StepsType != StepsType_Invalid) {
 
 		m_vpSteps.push_back(pSteps);
@@ -1791,11 +1807,11 @@ Song::DeleteSteps(const Steps* pSteps, bool bReAutoGen)
 bool
 Song::Matches(const std::string& sGroup, const std::string& sSong) const
 {
-	if (sGroup.size() && CompareNoCase(sGroup, this->m_sGroupName) != 0)
+	if (!sGroup.empty() && CompareNoCase(sGroup, this->m_sGroupName) != 0)
 		return false;
 
 	auto sDir = this->GetSongDir();
-	std::string voop = sDir;
+	auto voop = sDir;
 	s_replace(voop, "\\", "/");
 	sDir = voop;
 	vector<std::string> bits;
@@ -1812,65 +1828,16 @@ Song::Matches(const std::string& sGroup, const std::string& sSong) const
 	return false;
 }
 
-/* If apInUse is set, it contains a list of steps which are in use elsewhere,
- * and should not be deleted. */
-void
-Song::FreeAllLoadedFromProfile(ProfileSlot slot, const set<Steps*>* setInUse)
-{
-	/* DeleteSteps will remove and recreate autogen notes, which may reorder
-	 * m_vpSteps, so be careful not to skip over entries. */
-	vector<Steps*> apToRemove;
-	for (int s = m_vpSteps.size() - 1; s >= 0; s--) {
-		auto pSteps = m_vpSteps[s];
-		if (!pSteps->WasLoadedFromProfile())
-			continue;
-		if (slot != ProfileSlot_Invalid &&
-			pSteps->GetLoadedFromProfileSlot() != slot)
-			continue;
-		if (setInUse != NULL && setInUse->find(pSteps) != setInUse->end())
-			continue;
-		apToRemove.push_back(pSteps);
-	}
-
-	for (unsigned i = 0; i < apToRemove.size(); ++i)
-		this->DeleteSteps(apToRemove[i]);
-}
-
-void
-Song::GetStepsLoadedFromProfile(ProfileSlot slot,
-								vector<Steps*>& vpStepsOut) const
-{
-	for (unsigned s = 0; s < m_vpSteps.size(); s++) {
-		auto pSteps = m_vpSteps[s];
-		if (pSteps->GetLoadedFromProfileSlot() == slot)
-			vpStepsOut.push_back(pSteps);
-	}
-}
-
-int
-Song::GetNumStepsLoadedFromProfile(ProfileSlot slot) const
-{
-	auto iCount = 0;
-	for (unsigned s = 0; s < m_vpSteps.size(); s++) {
-		auto pSteps = m_vpSteps[s];
-		if (pSteps->GetLoadedFromProfileSlot() == slot)
-			iCount++;
-	}
-	return iCount;
-}
-
 bool
 Song::IsEditAlreadyLoaded(Steps* pSteps) const
 {
-	ASSERT_M(
-	  pSteps->GetDifficulty() == Difficulty_Edit,
-	  ssprintf(
-		"The %s chart for %s is no edit, thus it can't be checked for loading.",
-		DifficultyToString(pSteps->GetDifficulty()).c_str(),
-		this->m_sMainTitle.c_str()));
+	ASSERT_M(pSteps->GetDifficulty() == Difficulty_Edit,
+			 ssprintf("The %s chart for %s is no edit, thus it can't be "
+					  "checked for loading.",
+					  DifficultyToString(pSteps->GetDifficulty()).c_str(),
+					  this->m_sMainTitle.c_str()));
 
-	for (unsigned i = 0; i < m_vpSteps.size(); i++) {
-		auto pOther = m_vpSteps[i];
+	for (auto* pOther : m_vpSteps) {
 		if (pOther->GetDifficulty() == Difficulty_Edit &&
 			pOther->m_StepsType == pSteps->m_StepsType &&
 			pOther->GetHash() == pSteps->GetHash()) {
@@ -1891,16 +1858,15 @@ Song::IsStepsUsingDifferentTiming(Steps* pSteps) const
 void
 Song::UnloadAllCalcDebugOutput()
 {
-	for (auto s : m_vpSteps)
+	for (auto* s : m_vpSteps)
 		s->UnloadCalcDebugOutput();
 }
 
 bool
 Song::AnyChartUsesSplitTiming() const
 {
-	FOREACH_CONST(Steps*, m_vpSteps, s)
-	{
-		if (!(*s)->m_Timing.empty()) {
+	for (const auto& s : m_vpSteps) {
+		if (!s->m_Timing.empty()) {
 			return true;
 		}
 	}
@@ -2044,7 +2010,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetStepsByStepsType(T* p, lua_State* L)
 	{
-		auto st = Enum::Check<StepsType>(L, 1);
+		const auto st = Enum::Check<StepsType>(L, 1);
 		const auto& v = p->GetStepsByStepsType(st);
 		LuaHelpers::CreateTableFromArray<Steps*>(v, L);
 		return 1;
@@ -2056,7 +2022,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetMusicPath(T* p, lua_State* L)
 	{
-		auto s = p->GetMusicPath();
+		const auto s = p->GetMusicPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2065,7 +2031,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBannerPath(T* p, lua_State* L)
 	{
-		auto s = p->GetBannerPath();
+		const auto s = p->GetBannerPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2074,7 +2040,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBackgroundPath(T* p, lua_State* L)
 	{
-		auto s = p->GetBackgroundPath();
+		const auto s = p->GetBackgroundPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2083,7 +2049,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewVidPath(T* p, lua_State* L)
 	{
-		auto s = p->GetPreviewVidPath();
+		const auto s = p->GetPreviewVidPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2092,13 +2058,13 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewMusicPath(T* p, lua_State* L)
 	{
-		auto s = p->GetPreviewMusicPath();
+		const auto s = p->GetPreviewMusicPath();
 		lua_pushstring(L, s.c_str());
 		return 1;
 	}
 	static int GetJacketPath(T* p, lua_State* L)
 	{
-		auto s = p->GetJacketPath();
+		const auto s = p->GetJacketPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2107,7 +2073,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDImagePath(T* p, lua_State* L)
 	{
-		auto s = p->GetCDImagePath();
+		const auto s = p->GetCDImagePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2116,7 +2082,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetDiscPath(T* p, lua_State* L)
 	{
-		auto s = p->GetDiscPath();
+		const auto s = p->GetDiscPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2125,7 +2091,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDTitlePath(T* p, lua_State* L)
 	{
-		auto s = p->GetCDTitlePath();
+		const auto s = p->GetCDTitlePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2134,7 +2100,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetLyricsPath(T* p, lua_State* L)
 	{
-		auto s = p->GetLyricsPath();
+		const auto s = p->GetLyricsPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2183,14 +2149,14 @@ class LunaSong : public Luna<Song>
 	}
 	static int HasStepsType(T* p, lua_State* L)
 	{
-		auto st = Enum::Check<StepsType>(L, 1);
+		const auto st = Enum::Check<StepsType>(L, 1);
 		lua_pushboolean(L, p->HasStepsType(st));
 		return 1;
 	}
 	static int HasStepsTypeAndDifficulty(T* p, lua_State* L)
 	{
-		auto st = Enum::Check<StepsType>(L, 1);
-		auto dc = Enum::Check<Difficulty>(L, 2);
+		const auto st = Enum::Check<StepsType>(L, 1);
+		const auto dc = Enum::Check<Difficulty>(L, 2);
 		lua_pushboolean(L, p->HasStepsTypeAndDifficulty(st, dc));
 		return 1;
 	}
@@ -2204,9 +2170,9 @@ class LunaSong : public Luna<Song>
 	 * a SongUtil Lua table and a method of Steps. */
 	static int GetOneSteps(T* p, lua_State* L)
 	{
-		auto st = Enum::Check<StepsType>(L, 1);
-		auto dc = Enum::Check<Difficulty>(L, 2);
-		auto pSteps = SongUtil::GetOneSteps(p, st, dc);
+		const auto st = Enum::Check<StepsType>(L, 1);
+		const auto dc = Enum::Check<Difficulty>(L, 2);
+		auto* pSteps = SongUtil::GetOneSteps(p, st, dc);
 		if (pSteps != nullptr)
 			pSteps->PushSelf(L);
 		else
@@ -2308,7 +2274,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int HasEdits(T* p, lua_State* L)
 	{
-		auto st = Enum::Check<StepsType>(L, 1);
+		const auto st = Enum::Check<StepsType>(L, 1);
 		lua_pushboolean(L, p->HasEdits(st));
 		return 1;
 	}
@@ -2341,8 +2307,8 @@ class LunaSong : public Luna<Song>
 	{
 		DisplayBpms temp;
 		p->GetDisplayBpms(temp);
-		auto fMin = temp.GetMin();
-		auto fMax = temp.GetMax();
+		const auto fMin = temp.GetMin();
+		const auto fMax = temp.GetMax();
 		vector<float> fBPMs;
 		fBPMs.push_back(fMin);
 		fBPMs.push_back(fMax);

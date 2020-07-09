@@ -36,6 +36,11 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "HoldJudgment.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
+using std::max;
+using std::min;
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
@@ -51,41 +56,41 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 			   TimingWindowToString(static_cast<TimingWindow>(i));
 	switch (i) {
 		case TW_W1:
-			defaultValueOut = 0.0225f;
+			defaultValueOut = 0.0225F;
 			break;
 		case TW_W2:
-			defaultValueOut = 0.045f;
+			defaultValueOut = 0.045F;
 			break;
 		case TW_W3:
-			defaultValueOut = 0.090f;
+			defaultValueOut = 0.090F;
 			break;
 		case TW_W4:
-			defaultValueOut = 0.135f;
+			defaultValueOut = 0.135F;
 			break;
 		case TW_W5:
-			defaultValueOut = 0.180f;
+			defaultValueOut = 0.180F;
 			break;
 		case TW_Mine: // ~same as j5 great, the explanation for this is quite
 					  // long but the general
-			defaultValueOut = 0.075f; // idea is that mines are more punishing
+			defaultValueOut = 0.075F; // idea is that mines are more punishing
 									  // now so we can give a little back
 			break;
 		case TW_Hold: // allow enough time to take foot off and put back on
-			defaultValueOut = 0.250f;
+			defaultValueOut = 0.250F;
 			break;
 		case TW_Roll:
-			defaultValueOut = 0.500f;
+			defaultValueOut = 0.500F;
 			break;
 		case TW_Checkpoint: // similar to TW_Hold, but a little more
 							// strict/accurate to Pump play.
-			defaultValueOut = 0.1664f;
+			defaultValueOut = 0.1664F;
 			break;
 		default:
 			FAIL_M(ssprintf("Invalid timing window: %i", static_cast<int>(i)));
 	}
 }
 
-static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0f);
+static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0F);
 static Preference<float> m_fTimingWindowAdd("TimingWindowAdd", 0);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
@@ -168,15 +173,29 @@ ThemeMetric<int> COMBO_STOPPED_AT("Player", "ComboStoppedAt");
  * If set to 0 or less, assume the song takes over. */
 ThemeMetric<float> M_MOD_HIGH_CAP("Player", "MModHighCap");
 
-float
-Player::GetWindowSeconds(TimingWindow tw)
+inline void
+JudgedRows::Resize(size_t iMin)
+{
+	const auto iNewSize = std::max(2 * m_vRows.size(), iMin);
+	vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+	vNewRows.reserve(iNewSize);
+	vNewRows.insert(
+	  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
+	vNewRows.resize(iNewSize, false);
+	m_vRows.swap(vNewRows);
+	m_iOffset = 0;
+}
+
+auto
+Player::GetWindowSeconds(TimingWindow tw) -> float
 {
 	// mines should have a static hit window across all judges to be
 	// logically consistent with the idea that increasing judge should
 	// not make any elementof the game easier, so now they do
-	if (tw == TW_Mine)
-		return 0.075f; // explicit return until i remove this stuff from
-					   // prefs.ini
+	if (tw == TW_Mine) {
+		return 0.075F; // explicit return until i remove this stuff from
+	}
+	// prefs.ini
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= m_fTimingWindowScale;
@@ -184,11 +203,12 @@ Player::GetWindowSeconds(TimingWindow tw)
 	return fSecs;
 }
 
-float
-Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale)
+auto
+Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 {
-	if (tw == TW_Mine)
-		return 0.075f;
+	if (tw == TW_Mine) {
+		return 0.075F;
+	}
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
@@ -196,8 +216,8 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale)
 	return fSecs;
 }
 
-float
-Player::GetTimingWindowScale()
+auto
+Player::GetTimingWindowScale() -> float
 {
 	return m_fTimingWindowScale;
 }
@@ -209,22 +229,22 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_bLoaded = false;
 	m_inside_lua_set_life = false;
 
-	m_pPlayerState = NULL;
-	m_pPlayerStageStats = NULL;
+	m_pPlayerState = nullptr;
+	m_pPlayerStageStats = nullptr;
 	m_fNoteFieldHeight = 0;
 
-	m_pLifeMeter = NULL;
-	m_pPrimaryScoreKeeper = NULL;
-	m_pIterNeedsTapJudging = NULL;
-	m_pIterNeedsHoldJudging = NULL;
-	m_pIterUncrossedRows = NULL;
-	m_pIterUnjudgedRows = NULL;
-	m_pIterUnjudgedMineRows = NULL;
+	m_pLifeMeter = nullptr;
+	m_pPrimaryScoreKeeper = nullptr;
+	m_pIterNeedsTapJudging = nullptr;
+	m_pIterNeedsHoldJudging = nullptr;
+	m_pIterUncrossedRows = nullptr;
+	m_pIterUnjudgedRows = nullptr;
+	m_pIterUnjudgedMineRows = nullptr;
 
 	totalwifescore = 0;
-	m_Timing = NULL;
-	m_pActorWithJudgmentPosition = NULL;
-	m_pActorWithComboPosition = NULL;
+	m_Timing = nullptr;
+	m_pActorWithJudgmentPosition = nullptr;
+	m_pActorWithComboPosition = nullptr;
 	m_LastTapNoteScore = TNS_None;
 	m_iFirstUncrossedRow = -1;
 	m_iLastSeenCombo = 0;
@@ -234,7 +254,7 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 	m_bPaused = false;
 	m_bDelay = false;
 
-	m_pNoteField = NULL;
+	m_pNoteField = nullptr;
 	if (bVisibleParts) {
 		m_pNoteField = new NoteField;
 		m_pNoteField->SetName("NoteField");
@@ -247,8 +267,9 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 Player::~Player()
 {
 	SAFE_DELETE(m_pNoteField);
-	for (unsigned i = 0; i < m_vpHoldJudgment.size(); ++i)
+	for (unsigned i = 0; i < m_vpHoldJudgment.size(); ++i) {
 		SAFE_DELETE(m_vpHoldJudgment[i]);
+	}
 	SAFE_DELETE(m_pJudgedRows);
 	SAFE_DELETE(m_pIterNeedsTapJudging);
 	SAFE_DELETE(m_pIterNeedsHoldJudging);
@@ -286,7 +307,7 @@ Player::Init(const std::string& sType,
 
 	{
 		// Init judgment positions
-		bool bPlayerUsingBothSides =
+		const auto bPlayerUsingBothSides =
 		  GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
 			->GetUsesCenteredArrows();
 		Actor TempJudgment;
@@ -297,19 +318,19 @@ Player::Init(const std::string& sType,
 		TempCombo.SetName("Combo");
 		ActorUtil::LoadCommand(TempCombo, sType, "Transform");
 
-		int iEnabledPlayerIndex = 0;
-		int iNumEnabledPlayers = 1;
+		const auto iEnabledPlayerIndex = 0;
+		const auto iNumEnabledPlayers = 1;
 
-		for (int i = 0; i < NUM_REVERSE; i++) {
-			for (int j = 0; j < NUM_CENTERED; j++) {
+		for (auto i = 0; i < NUM_REVERSE; i++) {
+			for (auto j = 0; j < NUM_CENTERED; j++) {
 				Message msg("Transform");
 				msg.SetParam("Player", pPlayerState->m_PlayerNumber);
 				msg.SetParam("MultiPlayer", pPlayerState->m_mp);
 				msg.SetParam("iEnabledPlayerIndex", iEnabledPlayerIndex);
 				msg.SetParam("iNumEnabledPlayers", iNumEnabledPlayers);
 				msg.SetParam("bPlayerUsingBothSides", bPlayerUsingBothSides);
-				msg.SetParam("bReverse", !!i);
-				msg.SetParam("bCentered", !!j);
+				msg.SetParam("bReverse", !(i == 0));
+				msg.SetParam("bCentered", !(j == 0));
 
 				TempJudgment.HandleMessage(msg);
 				m_tsJudgment[i][j] = TempJudgment.DestTweenState();
@@ -332,15 +353,15 @@ Player::Init(const std::string& sType,
 
 	// set initial life
 	if ((m_pLifeMeter != nullptr) && (m_pPlayerStageStats != nullptr)) {
-		float fLife = m_pLifeMeter->GetLife();
+		const auto fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt(
 		  fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds);
 		// m_pPlayerStageStats->SetWifeRecordAt( 1.f,
 		// STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
 
-	// TODO: Remove use of PlayerNumber.
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+	// TODO(Sam): Remove use of PlayerNumber.
+	const auto pn = m_pPlayerState->m_PlayerNumber;
 
 	m_pPlayerState->SetNumCols(
 	  GAMESTATE->GetCurrentStyle(pn)->m_iColsPerPlayer);
@@ -356,7 +377,7 @@ Player::Init(const std::string& sType,
 	{
 		DisplayBpms bpms;
 
-		ASSERT(GAMESTATE->m_pCurSong != NULL);
+		ASSERT(GAMESTATE->m_pCurSong != nullptr);
 		GAMESTATE->m_pCurSong->GetDisplayBpms(bpms);
 
 		float fMaxBPM = 0;
@@ -374,26 +395,27 @@ Player::Init(const std::string& sType,
 		if (!bpms.IsSecret()) {
 			fMaxBPM = (M_MOD_HIGH_CAP > 0 ? bpms.GetMaxWithin(M_MOD_HIGH_CAP)
 										  : bpms.GetMax());
-			fMaxBPM = max(0, fMaxBPM);
+			fMaxBPM = max(0.F, fMaxBPM);
 		}
 
 		// we can't rely on the displayed BPMs, so manually calculate.
 		if (fMaxBPM == 0) {
 			float fThrowAway = 0;
 
-			if (M_MOD_HIGH_CAP > 0)
+			if (M_MOD_HIGH_CAP > 0) {
 				GAMESTATE->m_pCurSong->m_SongTiming.GetActualBPM(
 				  fThrowAway, fMaxBPM, M_MOD_HIGH_CAP);
-			else
+			} else {
 				GAMESTATE->m_pCurSong->m_SongTiming.GetActualBPM(fThrowAway,
 																 fMaxBPM);
+			}
 		}
 
 		ASSERT(fMaxBPM > 0);
 		m_pPlayerState->m_fReadBPM = fMaxBPM;
 	}
 
-	float fBalance = GameSoundManager::GetPlayerBalance(pn);
+	const auto fBalance = GameSoundManager::GetPlayerBalance(pn);
 	m_soundMine.SetProperty("Pan", fBalance);
 
 	if (HasVisibleParts()) {
@@ -415,8 +437,8 @@ Player::Init(const std::string& sType,
 		m_pActorWithJudgmentPosition = &*m_sprJudgment;
 		this->AddChild(m_sprJudgment);
 	} else {
-		m_pActorWithComboPosition = NULL;
-		m_pActorWithJudgmentPosition = NULL;
+		m_pActorWithComboPosition = nullptr;
+		m_pActorWithJudgmentPosition = nullptr;
 	}
 
 	// Load HoldJudgments
@@ -426,20 +448,20 @@ Player::Init(const std::string& sType,
 	lastHoldHeadsSeconds.resize(
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer);
-	for (int i = 0;
+	for (auto i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
 		 ++i) {
-		m_vpHoldJudgment[i] = NULL;
+		m_vpHoldJudgment[i] = nullptr;
 		// set this reasonably negative because if we don't, the first row of
 		// the song doesn't get judged
 		// and also it gets changed back to a realistic number after a hold is
 		// hit -poco
-		lastHoldHeadsSeconds[i] = -1000.f;
+		lastHoldHeadsSeconds[i] = -1000.F;
 	}
 
 	if (HasVisibleParts()) {
-		for (int i = 0;
+		for (auto i = 0;
 			 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				   ->m_iColsPerPlayer;
 			 ++i) {
@@ -462,8 +484,8 @@ Player::Init(const std::string& sType,
  * @brief Determine if a TapNote needs a tap note style judgment.
  * @param tn the TapNote in question.
  * @return true if it does, false otherwise. */
-bool
-Player::NeedsTapJudging(const TapNote& tn)
+auto
+Player::NeedsTapJudging(const TapNote& tn) -> bool
 {
 	switch (tn.type) {
 		DEFAULT_FAIL(tn.type);
@@ -484,8 +506,8 @@ Player::NeedsTapJudging(const TapNote& tn)
  * @brief Determine if a TapNote needs a hold note style judgment.
  * @param tn the TapNote in question.
  * @return true if it does, false otherwise. */
-bool
-Player::NeedsHoldJudging(const TapNote& tn)
+auto
+Player::NeedsHoldJudging(const TapNote& tn) -> bool
 {
 	switch (tn.type) {
 		DEFAULT_FAIL(tn.type);
@@ -508,14 +530,14 @@ GenerateCacheDataStructure(PlayerState* pPlayerState, const NoteData& notes)
 
 	pPlayerState->m_CacheDisplayedBeat.clear();
 
-	const vector<TimingSegment*> vScrolls =
+	const auto vScrolls =
 	  pPlayerState->GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
 
-	float displayedBeat = 0.0f;
-	float lastRealBeat = 0.0f;
-	float lastRatio = 1.0f;
-	for (unsigned i = 0; i < vScrolls.size(); i++) {
-		ScrollSegment* seg = ToScroll(vScrolls[i]);
+	auto displayedBeat = 0.0F;
+	auto lastRealBeat = 0.0F;
+	auto lastRatio = 1.0F;
+	for (auto vScroll : vScrolls) {
+		auto* const seg = ToScroll(vScroll);
 		displayedBeat += (seg->GetBeat() - lastRealBeat) * lastRatio;
 		lastRealBeat = seg->GetBeat();
 		lastRatio = seg->GetRatio();
@@ -527,13 +549,14 @@ GenerateCacheDataStructure(PlayerState* pPlayerState, const NoteData& notes)
 
 	pPlayerState->m_CacheNoteStat.clear();
 
-	NoteData::all_tracks_const_iterator it =
-	  notes.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW, true);
-	int count = 0, lastCount = 0;
+	auto it = notes.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW, true);
+	auto count = 0;
+	auto lastCount = 0;
 	for (; !it.IsAtEnd(); ++it) {
-		for (int t = 0; t < notes.GetNumTracks(); t++) {
-			if (notes.GetTapNote(t, it.Row()) != TAP_EMPTY)
+		for (auto t = 0; t < notes.GetNumTracks(); t++) {
+			if (notes.GetTapNote(t, it.Row()) != TAP_EMPTY) {
 				count++;
+			}
 		}
 		CacheNoteStat c = { NoteRowToBeat(it.Row()), lastCount, count };
 		lastCount = count;
@@ -551,13 +574,14 @@ Player::Load()
 
 	m_LastTapNoteScore = TNS_None;
 	// The editor can start playing in the middle of the song.
-	const int iNoteRow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	const auto iNoteRow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 	m_iFirstUncrossedRow = iNoteRow - 1;
 	m_pJudgedRows->Reset(iNoteRow);
 
 	// Make sure c++ bound actor's tweens are reset if they exist
-	if (m_sprJudgment)
+	if (m_sprJudgment != nullptr) {
 		m_sprJudgment->PlayCommand("Reset");
+	}
 	if (m_pPlayerStageStats != nullptr) {
 		SetCombo(
 		  m_pPlayerStageStats->m_iCurCombo,
@@ -568,19 +592,20 @@ Player::Load()
 	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps->GetTimingData();
 	m_Timing->NegStopAndBPMCheck();
-	int lastRow = m_NoteData.GetLastRow();
+	const auto lastRow = m_NoteData.GetLastRow();
 	m_Timing->BuildAndGetEtar(lastRow);
 
 	totalwifescore = m_NoteData.WifeTotalScoreCalc(m_Timing, 0, 1073741824);
-	curwifescore = 0.f;
-	maxwifescore = 0.f;
+	curwifescore = 0.F;
+	maxwifescore = 0.F;
 
 	m_NoteData.LogNonEmptyRows(m_Timing);
 	nerv = m_NoteData.GetNonEmptyRowVector();
-	const vector<float>& etaner = m_Timing->BuildAndGetEtaner(nerv);
-	if (m_pPlayerStageStats != nullptr)
+	const auto& etaner = m_Timing->BuildAndGetEtaner(nerv);
+	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->serializednd =
 		  m_NoteData.SerializeNoteData(etaner);
+	}
 	m_NoteData.UnsetSerializedNoteData();
 
 	if (m_pPlayerStageStats != nullptr) {
@@ -588,33 +613,39 @@ Player::Load()
 		// inflate file rating, we can actually lift this restriction, look into
 		// it for 0.70 calc release, related: we can look at solo upload stuff
 		// as well
-		if (m_Timing->HasWarps() || m_Timing->HasFakes())
+		if (m_Timing->HasWarps() || m_Timing->HasFakes()) {
 			m_pPlayerStageStats->filehadnegbpms = true;
+		}
 
 		// check before nomines transform
-		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0)
+		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0) {
 			m_pPlayerStageStats->filegotmines = true;
+		}
 
 		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
-			GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0)
+			GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0) {
 			m_pPlayerStageStats->filegotholds = true;
+		}
 
 		// check for lua script load (technically this is redundant a little
 		// with negbpm but whatever) -mina
-		if (!m_Timing->ValidSequentialAssumption)
+		if (!m_Timing->ValidSequentialAssumption) {
 			m_pPlayerStageStats->luascriptwasloaded = true;
+		}
 	}
 
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	if (pb != nullptr)
+	if (pb != nullptr) {
 		wifescorepersonalbest = pb->GetWifeScore();
-	else
+	} else {
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
+	}
 
-	if (m_pPlayerStageStats)
+	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->m_fTimingScale = m_fTimingWindowScale;
+	}
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(
@@ -627,10 +658,12 @@ Player::Load()
 	// Generate some cache data structure.
 	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
 
-	int iDrawDistanceAfterTargetsPixels = DRAW_DISTANCE_AFTER_TARGET_PIXELS;
-	int iDrawDistanceBeforeTargetsPixels = DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
+	const int iDrawDistanceAfterTargetsPixels =
+	  DRAW_DISTANCE_AFTER_TARGET_PIXELS;
+	const int iDrawDistanceBeforeTargetsPixels =
+	  DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 
-	float fNoteFieldMiddle =
+	const auto fNoteFieldMiddle =
 	  (GRAY_ARROWS_Y_STANDARD + GRAY_ARROWS_Y_REVERSE) / 2;
 
 	if (m_pNoteField != nullptr) {
@@ -649,26 +682,28 @@ Player::Load()
 	// have to load separate copies to set player fade: always make a copy, and
 	// set the fade on the copy.
 	const Song* pSong = GAMESTATE->m_pCurSong;
-	std::string sSongDir = pSong->GetSongDir();
+	const auto sSongDir = pSong->GetSongDir();
 	m_vKeysounds.resize(pSong->m_vsKeysoundFile.size());
 
 	// parameters are invalid somehow... -aj
 	RageSoundLoadParams SoundParams;
 	SoundParams.m_bSupportPan = true;
 
-	float fBalance = GameSoundManager::GetPlayerBalance(PLAYER_1);
+	const auto fBalance = GameSoundManager::GetPlayerBalance(PLAYER_1);
 	for (unsigned i = 0; i < m_vKeysounds.size(); i++) {
-		std::string sKeysoundFilePath = sSongDir + pSong->m_vsKeysoundFile[i];
-		RageSound& sound = m_vKeysounds[i];
-		if (sound.GetLoadedFilePath() != sKeysoundFilePath)
+		auto sKeysoundFilePath = sSongDir + pSong->m_vsKeysoundFile[i];
+		auto& sound = m_vKeysounds[i];
+		if (sound.GetLoadedFilePath() != sKeysoundFilePath) {
 			sound.Load(sKeysoundFilePath, true, &SoundParams);
+		}
 		sound.SetProperty("Pan", fBalance);
 		sound.SetStopModeFromString("stop");
 	}
 
-	if (m_pPlayerStageStats != nullptr)
+	if (m_pPlayerStageStats != nullptr) {
 		SendComboMessages(m_pPlayerStageStats->m_iCurCombo,
 						  m_pPlayerStageStats->m_iCurMissCombo);
+	}
 
 	SAFE_DELETE(m_pIterNeedsTapJudging);
 	m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
@@ -699,13 +734,14 @@ Player::Reload()
 
 	m_LastTapNoteScore = TNS_None;
 
-	const int iNoteRow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	const auto iNoteRow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 	m_iFirstUncrossedRow = iNoteRow - 1;
 	m_pJudgedRows->Reset(iNoteRow);
 
 	// Make sure c++ bound actor's tweens are reset if they exist
-	if (m_sprJudgment)
+	if (m_sprJudgment != nullptr) {
 		m_sprJudgment->PlayCommand("Reset");
+	}
 	if (m_pPlayerStageStats != nullptr) {
 		SetCombo(
 		  m_pPlayerStageStats->m_iCurCombo,
@@ -713,12 +749,13 @@ Player::Reload()
 			->m_iCurMissCombo); // combo can persist between songs and games
 	}
 
-	curwifescore = 0.f;
-	maxwifescore = 0.f;
+	curwifescore = 0.F;
+	maxwifescore = 0.F;
 
-	if (m_pPlayerStageStats != nullptr)
+	if (m_pPlayerStageStats != nullptr) {
 		SendComboMessages(m_pPlayerStageStats->m_iCurCombo,
 						  m_pPlayerStageStats->m_iCurMissCombo);
+	}
 
 	/* Apply transforms. */
 	NoteDataUtil::TransformNoteData(
@@ -750,9 +787,10 @@ Player::Reload()
 }
 
 void
-Player::SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo)
+Player::SendComboMessages(unsigned int iOldCombo,
+						  unsigned int iOldMissCombo) const
 {
-	const unsigned int iCurCombo =
+	const auto iCurCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
 	if (iOldCombo > static_cast<unsigned int>(COMBO_STOPPED_AT) &&
 		iCurCombo < static_cast<unsigned int>(COMBO_STOPPED_AT)) {
@@ -763,14 +801,15 @@ Player::SendComboMessages(unsigned int iOldCombo, unsigned int iOldMissCombo)
 		Message msg("ComboChanged");
 		msg.SetParam("OldCombo", iOldCombo);
 		msg.SetParam("OldMissCombo", iOldMissCombo);
-		if (m_pPlayerState) {
+		if (m_pPlayerState != nullptr) {
 			msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
 			msg.SetParam("PlayerState",
 						 LuaReference::CreateFromPush(*m_pPlayerState));
 		}
-		if (m_pPlayerStageStats)
+		if (m_pPlayerStageStats != nullptr) {
 			msg.SetParam("PlayerStageStats",
 						 LuaReference::CreateFromPush(*m_pPlayerStageStats));
+		}
 		MESSAGEMAN->Broadcast(msg);
 	}
 }
@@ -780,34 +819,37 @@ Player::UpdateVisibleParts()
 {
 	// Optimization: Don't spend time processing the things below that won't
 	// show if the Player doesn't show anything on the screen.
-	if (!HasVisibleParts())
+	if (!HasVisibleParts()) {
 		return;
+	}
 
-	float fMiniPercent = m_pPlayerState->m_PlayerOptions.GetCurrent()
-						   .m_fEffects[PlayerOptions::EFFECT_MINI];
-	float fTinyPercent = m_pPlayerState->m_PlayerOptions.GetCurrent()
-						   .m_fEffects[PlayerOptions::EFFECT_TINY];
-	float fJudgmentZoom = min(powf(0.5f, fMiniPercent + fTinyPercent), 1.0f);
+	const auto fMiniPercent = m_pPlayerState->m_PlayerOptions.GetCurrent()
+								.m_fEffects[PlayerOptions::EFFECT_MINI];
+	const auto fTinyPercent = m_pPlayerState->m_PlayerOptions.GetCurrent()
+								.m_fEffects[PlayerOptions::EFFECT_TINY];
+	const auto fJudgmentZoom =
+	  min(powf(0.5F, fMiniPercent + fTinyPercent), 1.0F);
 
 	// Update Y positions
 	{
-		for (int c = 0;
+		for (auto c = 0;
 			 c < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				   ->m_iColsPerPlayer;
 			 c++) {
-			float fPercentReverse = m_pPlayerState->m_PlayerOptions.GetCurrent()
-									  .GetReversePercentForColumn(c);
-			float fHoldJudgeYPos = SCALE(fPercentReverse,
-										 0.f,
-										 1.f,
-										 HOLD_JUDGMENT_Y_STANDARD,
-										 HOLD_JUDGMENT_Y_REVERSE);
+			const auto fPercentReverse =
+			  m_pPlayerState->m_PlayerOptions.GetCurrent()
+				.GetReversePercentForColumn(c);
+			const auto fHoldJudgeYPos = SCALE(fPercentReverse,
+											  0.F,
+											  1.F,
+											  HOLD_JUDGMENT_Y_STANDARD,
+											  HOLD_JUDGMENT_Y_REVERSE);
 			// float fGrayYPos = SCALE( fPercentReverse, 0.f, 1.f,
 			// GRAY_ARROWS_Y_STANDARD, GRAY_ARROWS_Y_REVERSE );
 
-			float fX = ArrowEffects::GetXPos(m_pPlayerState, c, 0);
-			const float fZ = ArrowEffects::GetZPos(c, 0);
-			fX *= (1 - fMiniPercent * 0.5f);
+			auto fX = ArrowEffects::GetXPos(m_pPlayerState, c, 0);
+			const auto fZ = ArrowEffects::GetZPos(c, 0);
+			fX *= (1 - fMiniPercent * 0.5F);
 
 			m_vpHoldJudgment[c]->SetX(fX);
 			m_vpHoldJudgment[c]->SetY(fHoldJudgeYPos);
@@ -820,65 +862,71 @@ Player::UpdateVisibleParts()
 	// if( m_pNoteField )
 	//	m_pNoteField->SetY( fGrayYPos );
 
-	const bool bReverse =
+	const auto bReverse =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
 		0) == 1;
-	float fPercentCentered = m_pPlayerState->m_PlayerOptions.GetCurrent()
-							   .m_fScrolls[PlayerOptions::SCROLL_CENTERED];
+	const auto fPercentCentered = m_pPlayerState->m_PlayerOptions.GetCurrent()
+									.m_fScrolls[PlayerOptions::SCROLL_CENTERED];
 
-	if (m_pActorWithJudgmentPosition != NULL) {
-		const Actor::TweenState& ts1 = m_tsJudgment[bReverse ? 1 : 0][0];
-		const Actor::TweenState& ts2 = m_tsJudgment[bReverse ? 1 : 0][1];
-		Actor::TweenState::MakeWeightedAverage(
+	if (m_pActorWithJudgmentPosition != nullptr) {
+		const auto& ts1 = m_tsJudgment[bReverse ? 1 : 0][0];
+		const auto& ts2 = m_tsJudgment[bReverse ? 1 : 0][1];
+		TweenState::MakeWeightedAverage(
 		  m_pActorWithJudgmentPosition->DestTweenState(),
 		  ts1,
 		  ts2,
 		  fPercentCentered);
 	}
 
-	if (m_pActorWithComboPosition != NULL) {
-		const Actor::TweenState& ts1 = m_tsCombo[bReverse ? 1 : 0][0];
-		const Actor::TweenState& ts2 = m_tsCombo[bReverse ? 1 : 0][1];
-		Actor::TweenState::MakeWeightedAverage(
+	if (m_pActorWithComboPosition != nullptr) {
+		const auto& ts1 = m_tsCombo[bReverse ? 1 : 0][0];
+		const auto& ts2 = m_tsCombo[bReverse ? 1 : 0][1];
+		TweenState::MakeWeightedAverage(
 		  m_pActorWithComboPosition->DestTweenState(),
 		  ts1,
 		  ts2,
 		  fPercentCentered);
 	}
 
-	float fNoteFieldZoom = 1 - fMiniPercent * 0.5f;
-	if (m_pNoteField)
+	const auto fNoteFieldZoom = 1 - fMiniPercent * 0.5F;
+	if (m_pNoteField != nullptr) {
 		m_pNoteField->SetZoom(fNoteFieldZoom);
-	if (m_pActorWithJudgmentPosition != NULL)
+	}
+	if (m_pActorWithJudgmentPosition != nullptr) {
 		m_pActorWithJudgmentPosition->SetZoom(
 		  m_pActorWithJudgmentPosition->GetZoom() * fJudgmentZoom);
-	if (m_pActorWithComboPosition != NULL)
+	}
+	if (m_pActorWithComboPosition != nullptr) {
 		m_pActorWithComboPosition->SetZoom(
 		  m_pActorWithComboPosition->GetZoom() * fJudgmentZoom);
+	}
 }
 
 void
 Player::UpdatePressedFlags()
 {
-	const int iNumCols =
+	const auto iNumCols =
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer;
 	ASSERT_M(iNumCols <= MAX_COLS_PER_PLAYER,
 			 ssprintf("%i > %i", iNumCols, MAX_COLS_PER_PLAYER));
-	for (int col = 0; col < iNumCols; ++col) {
-		ASSERT(m_pPlayerState != NULL);
+	for (auto col = 0; col < iNumCols; ++col) {
+		ASSERT(m_pPlayerState != nullptr);
 
-		// TODO: Remove use of PlayerNumber.
+		// TODO(Sam): Remove use of PlayerNumber.
 		vector<GameInput> GameI;
 		GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		  ->StyleInputToGameInput(col, m_pPlayerState->m_PlayerNumber, GameI);
 
-		bool bIsHoldingButton = INPUTMAPPER->IsBeingPressed(GameI);
+		const auto bIsHoldingButton = INPUTMAPPER->IsBeingPressed(GameI);
 
-		// TODO: Make this work for non-human-controlled players
-		if (bIsHoldingButton && m_pPlayerState->m_PlayerController == PC_HUMAN)
-			if (m_pNoteField != nullptr)
+		// TODO(Sam): Make this work for non-human-controlled players
+		if (bIsHoldingButton &&
+			m_pPlayerState->m_PlayerController == PC_HUMAN) {
+			if (m_pNoteField != nullptr) {
 				m_pNoteField->SetPressed(col);
+			}
+		}
 	}
 }
 
@@ -886,24 +934,28 @@ void
 Player::UpdateHoldsAndRolls(float fDeltaTime,
 							const std::chrono::steady_clock::time_point& now)
 {
-	const float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
-	const int iSongRow = BeatToNoteRow(fSongBeat);
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
 	// handle Autoplay for rolls
 	if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
-		for (int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
-			// TODO: Make the CPU miss sometimes.
+		for (auto iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
+			// TODO(Sam): Make the CPU miss sometimes.
 			int iHeadRow;
-			if (!m_NoteData.IsHoldNoteAtRow(iTrack, iSongRow, &iHeadRow))
+			if (!m_NoteData.IsHoldNoteAtRow(iTrack, iSongRow, &iHeadRow)) {
 				iHeadRow = iSongRow;
+			}
 
-			const TapNote& tn = m_NoteData.GetTapNote(iTrack, iHeadRow);
+			const auto& tn = m_NoteData.GetTapNote(iTrack, iHeadRow);
 			if (tn.type != TapNoteType_HoldHead ||
-				tn.subType != TapNoteSubType_Roll)
+				tn.subType != TapNoteSubType_Roll) {
 				continue;
-			if (tn.HoldResult.hns != HNS_None)
+			}
+			if (tn.HoldResult.hns != HNS_None) {
 				continue;
-			if (tn.HoldResult.fLife >= 0.5f)
+			}
+			if (tn.HoldResult.fLife >= 0.5F) {
 				continue;
+			}
 
 			Step(iTrack, iHeadRow, now, true, false); // bHeld really doesnt
 													  // make a difference for
@@ -923,22 +975,24 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 
 		// Fast forward to the first that needs hold judging.
 		{
-			NoteData::all_tracks_iterator& iter = *m_pIterNeedsHoldJudging;
+			auto& iter = *m_pIterNeedsHoldJudging;
 			while (!iter.IsAtEnd() && iter.Row() <= iSongRow &&
-				   !NeedsHoldJudging(*iter))
+				   !NeedsHoldJudging(*iter)) {
 				++iter;
+			}
 		}
 
 		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
-		int iRowOfLastHoldNote = -1;
-		NoteData::all_tracks_iterator iter = *m_pIterNeedsHoldJudging; // copy
+		auto iRowOfLastHoldNote = -1;
+		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
-			TapNote& tn = *iter;
-			if (tn.type != TapNoteType_HoldHead)
+			auto& tn = *iter;
+			if (tn.type != TapNoteType_HoldHead) {
 				continue;
+			}
 
-			int iTrack = iter.Track();
-			int iRow = iter.Row();
+			const auto iTrack = iter.Track();
+			const auto iRow = iter.Row();
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
 
 			// Set last hold head seconds stuff
@@ -964,8 +1018,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 			}
 
 			if (!vHoldNotesToGradeTogether.empty()) {
-				// LOG->Trace( ssprintf("UpdateHoldNotes; %i != %i || !judge
-				// holds on same row together",iRow,iRowOfLastHoldNote) );
 				UpdateHoldNotes(
 				  iSongRow, fDeltaTime, vHoldNotesToGradeTogether);
 				vHoldNotesToGradeTogether.clear();
@@ -975,8 +1027,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 		}
 
 		if (!vHoldNotesToGradeTogether.empty()) {
-			// LOG->Trace("UpdateHoldNotes since
-			// !vHoldNotesToGradeTogether.empty()");
 			UpdateHoldNotes(iSongRow, fDeltaTime, vHoldNotesToGradeTogether);
 			vHoldNotesToGradeTogether.clear();
 		}
@@ -986,12 +1036,13 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 void
 Player::UpdateCrossedRows(const std::chrono::steady_clock::time_point& now)
 {
-	const int iRowNow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	const auto iRowNow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 	if (iRowNow >= 0) {
 		if (GAMESTATE->IsPlayerEnabled(m_pPlayerState)) {
-			if (m_pPlayerState->m_Position.m_bDelay) {
-				if (!m_bDelay)
+			if (GAMESTATE->m_Position.m_bDelay) {
+				if (!m_bDelay) {
 					m_bDelay = true;
+				}
 			} else {
 				if (m_bDelay) {
 					if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
@@ -1011,13 +1062,15 @@ Player::Update(float fDeltaTime)
 	// const RageTimer now;
 	const auto now = std::chrono::steady_clock::now();
 	// Don't update if we haven't been loaded yet.
-	if (!m_bLoaded)
+	if (!m_bLoaded) {
 		return;
+	}
 
 	// LOG->Trace( "Player::Update(%f)", fDeltaTime );
 
-	if (GAMESTATE->m_pCurSong == NULL)
+	if (GAMESTATE->m_pCurSong == nullptr) {
 		return;
+	}
 
 	ActorFrame::Update(fDeltaTime);
 
@@ -1029,11 +1082,12 @@ Player::Update(float fDeltaTime)
 		 * to user actions in this mode, this doesn't degrade gameplay.  Run 4
 		 * players per update, which means 12 Players in 3-difficulty mode.
 		 */
-		static int iCycle = 0;
+		static auto iCycle = 0;
 		iCycle = (iCycle + 1) % 8;
 
-		if ((m_pPlayerState->m_mp % 8) != iCycle)
+		if ((m_pPlayerState->m_mp % 8) != iCycle) {
 			return;
+		}
 	}
 
 	ArrowEffects::SetCurrentOptions(
@@ -1044,8 +1098,9 @@ Player::Update(float fDeltaTime)
 
 	// If we're paused, don't update tap or hold note logic, so hold notes can
 	// be released during pause.
-	if (m_bPaused)
+	if (m_bPaused) {
 		return;
+	}
 
 	// Tell the NoteField we pressed (or didnt press) certain columns
 	UpdatePressedFlags();
@@ -1077,17 +1132,18 @@ Player::UpdateHoldNotes(int iSongRow,
 	LOG->Trace( ssprintf("song row %i, deltaTime = %f",iSongRow,fDeltaTime) );
 	*/
 
-	int iStartRow = vTN[0].iRow;
-	int iMaxEndRow = INT_MIN;
-	int iFirstTrackWithMaxEndRow = -1;
+	const auto iStartRow = vTN[0].iRow;
+	auto iMaxEndRow = INT_MIN;
+	auto iFirstTrackWithMaxEndRow = -1;
 
-	TapNoteSubType subType = TapNoteSubType_Invalid;
+	auto subType = TapNoteSubType_Invalid;
 	for (auto& trtn : vTN) {
-		int iTrack = trtn.iTrack;
+		const auto iTrack = trtn.iTrack;
 		ASSERT(iStartRow == trtn.iRow);
-		int iEndRow = iStartRow + trtn.pTN->iDuration;
-		if (subType == TapNoteSubType_Invalid)
+		const auto iEndRow = iStartRow + trtn.pTN->iDuration;
+		if (subType == TapNoteSubType_Invalid) {
 			subType = trtn.pTN->subType;
+		}
 
 		if (iEndRow > iMaxEndRow) {
 			iMaxEndRow = iEndRow;
@@ -1102,7 +1158,7 @@ Player::UpdateHoldNotes(int iSongRow,
 		trtn.pTN->HoldResult.bHeld = false;
 		trtn.pTN->HoldResult.bActive = false;
 
-		int iRow = trtn.iRow;
+		const auto iRow = trtn.iRow;
 
 		// If the song beat is in the range of this hold:
 		if (iRow <= iSongRow && iRow <= iMaxEndRow) {
@@ -1112,20 +1168,20 @@ Player::UpdateHoldNotes(int iSongRow,
 		}
 	}
 
-	HoldNoteScore hns = vTN[0].pTN->HoldResult.hns;
-	float fLife = vTN[0].pTN->HoldResult.fLife;
+	auto hns = vTN[0].pTN->HoldResult.hns;
+	auto fLife = vTN[0].pTN->HoldResult.fLife;
 
 	if (hns != HNS_None) // if this HoldNote already has a result
 	{
 		return; // we don't need to update the logic for this group
 	}
 
-	bool bSteppedOnHead = true;
-	bool bHeadJudged = true;
+	auto bSteppedOnHead = true;
+	auto bHeadJudged = true;
 	for (auto& trtn : vTN) {
 		const auto& tns = trtn.pTN->result.tns;
 
-		// TODO: When using JUDGE_HOLD_NOTES_ON_SAME_ROW_TOGETHER, require
+		// TODO(Sam): When using JUDGE_HOLD_NOTES_ON_SAME_ROW_TOGETHER, require
 		// that the whole row of taps was hit before activating this group
 		// of holds.
 		/* Something about the logic in this section is causing 192nd steps
@@ -1154,7 +1210,7 @@ Player::UpdateHoldNotes(int iSongRow,
 		bHeadJudged = true;
 	}
 
-	bool bIsHoldingButton = true;
+	auto bIsHoldingButton = true;
 	for (auto& trtn : vTN) {
 		/*if this hold is already done, pretend it's always being pressed.
 		fixes/masks the phantom hold issue. -FSX*/
@@ -1162,10 +1218,10 @@ Player::UpdateHoldNotes(int iSongRow,
 		// causing ALL holds to be judged HNS_Held whether they were or not.
 		if (!IMMEDIATE_HOLD_LET_GO ||
 			(iStartRow + trtn.pTN->iDuration) > iSongRow) {
-			int iTrack = trtn.iTrack;
+			const auto iTrack = trtn.iTrack;
 
 			if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
-				// TODO: Make the CPU miss sometimes.
+				// TODO(Sam): Make the CPU miss sometimes.
 				if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
 					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
 					if (m_pPlayerStageStats != nullptr) {
@@ -1210,9 +1266,9 @@ Player::UpdateHoldNotes(int iSongRow,
 				if (bInitiatedNote && bIsHoldingButton) {
 					fLife = 1;
 				} else {
-					auto window = m_bTickHolds ? TW_Checkpoint : TW_Hold;
+					const auto window = m_bTickHolds ? TW_Checkpoint : TW_Hold;
 					fLife -= fDeltaTime / GetWindowSeconds(window);
-					fLife = max(0, fLife);
+					fLife = max(0.F, fLife);
 				}
 				break;
 			case TapNoteSubType_Roll:
@@ -1225,8 +1281,8 @@ Player::UpdateHoldNotes(int iSongRow,
 				// Decrease life
 				// Also clamp the roll decay window to the accepted "Judge
 				// 7" value for it. -poco
-				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25f);
-				fLife = max(fLife, 0); // clamp life
+				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25F);
+				fLife = max(fLife, 0.F); // clamp life
 				break;
 			/*
 			case TapNoteSubType_Mine:
@@ -1237,14 +1293,15 @@ Player::UpdateHoldNotes(int iSongRow,
 		}
 	}
 
-	// TODO: Cap the active time passed to the score keeper to the actual
+	// TODO(Sam): Cap the active time passed to the score keeper to the actual
 	// start time and end time of the hold.
 	if (vTN[0].pTN->HoldResult.bActive) {
-		float fSecondsActiveSinceLastUpdate =
+		const auto fSecondsActiveSinceLastUpdate =
 		  fDeltaTime * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		if (m_pPrimaryScoreKeeper != nullptr)
+		if (m_pPrimaryScoreKeeper != nullptr) {
 			m_pPrimaryScoreKeeper->HandleHoldActiveSeconds(
 			  fSecondsActiveSinceLastUpdate);
+		}
 	}
 
 	// check for LetGo. If the head was missed completely, don't count an
@@ -1262,7 +1319,7 @@ Player::UpdateHoldNotes(int iSongRow,
 
 	// score hold notes that have passed
 	if (iSongRow >= iMaxEndRow && bHeadJudged) {
-		bool bLetGoOfHoldNote = false;
+		auto bLetGoOfHoldNote = false;
 
 		/* Score rolls that end with fLife == 0 as LetGo, even if
 		 * m_bTickHolds is on. Rolls don't have iCheckpointsMissed set, so,
@@ -1281,8 +1338,8 @@ Player::UpdateHoldNotes(int iSongRow,
 
 		if (m_bTickHolds && bAllowHoldCheckpoints) {
 			// LOG->Trace("(hold checkpoints are allowed and enabled.)");
-			int iCheckpointsHit = 0;
-			int iCheckpointsMissed = 0;
+			auto iCheckpointsHit = 0;
+			auto iCheckpointsMissed = 0;
 			for (auto& v : vTN) {
 				iCheckpointsHit += v.pTN->HoldResult.iCheckpointsHit;
 				iCheckpointsMissed += v.pTN->HoldResult.iCheckpointsMissed;
@@ -1291,8 +1348,9 @@ Player::UpdateHoldNotes(int iSongRow,
 
 			// TRICKY: If the hold is so short that it has no checkpoints,
 			// then mark it as Held if the head was stepped on.
-			if (iCheckpointsHit == 0 && iCheckpointsMissed == 0)
+			if (iCheckpointsHit == 0 && iCheckpointsMissed == 0) {
 				bLetGoOfHoldNote = !bSteppedOnHead;
+			}
 		} else {
 			bLetGoOfHoldNote = fLife == 0;
 		}
@@ -1301,13 +1359,13 @@ Player::UpdateHoldNotes(int iSongRow,
 			if (!bLetGoOfHoldNote) {
 				fLife = 1;
 				hns = HNS_Held;
-				bool bBright =
-				  m_pPlayerStageStats &&
+				const auto bBright =
+				  (m_pPlayerStageStats != nullptr) &&
 				  m_pPlayerStageStats->m_iCurCombo >
 					static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD);
 				if (m_pNoteField != nullptr) {
 					for (auto& trtn : vTN) {
-						int iTrack = trtn.iTrack;
+						const auto iTrack = trtn.iTrack;
 						m_pNoteField->DidHoldNote(
 						  iTrack, HNS_Held, bBright); // bright ghost flash
 					}
@@ -1324,7 +1382,7 @@ Player::UpdateHoldNotes(int iSongRow,
 		}
 	}
 
-	float fLifeFraction = fLife / 1; // haha im just gonna leave this here
+	const auto fLifeFraction = fLife / 1; // haha im just gonna leave this here
 
 	// aren't keysounds broken anyway?
 	for (auto& trtn : vTN) {
@@ -1336,28 +1394,29 @@ Player::UpdateHoldNotes(int iSongRow,
 		// before the preference works: otherwise, it causes problems on
 		// holds. At least, that hapened on my Mac. -wolfman2000
 
-		static Preference<float>* pVolume =
+		static auto* pVolume =
 		  Preference<float>::GetPreferenceByName("SoundVolume");
-		if (pVolume != NULL) {
-			static float fVol = pVolume->Get();
+		if (pVolume != nullptr) {
+			static auto fVol = pVolume->Get();
 
 			if (trtn.pTN->iKeysoundIndex >= 0 &&
 				trtn.pTN->iKeysoundIndex <
 				  static_cast<int>(m_vKeysounds.size())) {
-				float factor = (trtn.pTN->subType == TapNoteSubType_Roll
-								  ? 2.0f * fLifeFraction
-								  : 10.0f * fLifeFraction - 8.5f);
+				auto factor = (trtn.pTN->subType == TapNoteSubType_Roll
+								 ? 2.0F * fLifeFraction
+								 : 10.0F * fLifeFraction - 8.5F);
 				m_vKeysounds[trtn.pTN->iKeysoundIndex].SetProperty(
-				  "Volume", max(0.0f, min(1.0f, factor)) * fVol);
+				  "Volume", max(0.0F, min(1.0F, factor)) * fVol);
 			}
 		}
 	}
 
-	if ((hns == HNS_LetGo) && COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
+	if ((hns == HNS_LetGo) && COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO) {
 		IncrementMissCombo();
+	}
 
 	if (hns != HNS_None) {
-		TapNote& tn = *vTN[0].pTN;
+		auto& tn = *vTN[0].pTN;
 		SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
 		HandleHoldScore(tn);
 	}
@@ -1366,22 +1425,22 @@ Player::UpdateHoldNotes(int iSongRow,
 void
 Player::DrawPrimitives()
 {
-	// TODO: Remove use of PlayerNumber.
-	PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+	// TODO(Sam): Remove use of PlayerNumber.
+	const auto pn = m_pPlayerState->m_PlayerNumber;
 
-	if (pn != PLAYER_1)
+	if (pn != PLAYER_1) {
 		return;
+	}
 
-	bool draw_notefield = (m_pNoteField != nullptr);
+	const auto draw_notefield = (m_pNoteField != nullptr);
 
-	const PlayerOptions& curr_options =
-	  m_pPlayerState->m_PlayerOptions.GetCurrent();
-	float tilt = curr_options.m_fPerspectiveTilt;
-	float skew = curr_options.m_fSkew;
-	float mini = curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
-	float center_y =
+	const auto& curr_options = m_pPlayerState->m_PlayerOptions.GetCurrent();
+	const auto tilt = curr_options.m_fPerspectiveTilt;
+	const auto skew = curr_options.m_fSkew;
+	const auto mini = curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
+	const auto center_y =
 	  GetY() + (GRAY_ARROWS_Y_STANDARD + GRAY_ARROWS_Y_REVERSE) / 2;
-	bool reverse = curr_options.GetReversePercentForColumn(0) > .5;
+	const auto reverse = curr_options.GetReversePercentForColumn(0) > .5;
 
 	if (m_drawing_notefield_board) {
 		// Ask the Notefield to draw its board primitive before everything
@@ -1397,15 +1456,18 @@ Player::DrawPrimitives()
 
 	// Draw these below everything else.
 	if (COMBO_UNDER_FIELD && curr_options.m_fBlind == 0) {
-		if (m_sprCombo != nullptr)
+		if (m_sprCombo != nullptr) {
 			m_sprCombo->Draw();
+		}
 	}
 
-	if (TAP_JUDGMENTS_UNDER_FIELD)
+	if (TAP_JUDGMENTS_UNDER_FIELD) {
 		DrawTapJudgments();
+	}
 
-	if (HOLD_JUDGMENTS_UNDER_FIELD)
+	if (HOLD_JUDGMENTS_UNDER_FIELD) {
 		DrawHoldJudgments();
+	}
 
 	if (draw_notefield) {
 		PlayerNoteFieldPositioner poser(
@@ -1414,15 +1476,19 @@ Player::DrawPrimitives()
 	}
 
 	// m_pNoteField->m_sprBoard->GetVisible()
-	if (!COMBO_UNDER_FIELD && curr_options.m_fBlind == 0)
-		if (m_sprCombo != nullptr)
+	if (!COMBO_UNDER_FIELD && curr_options.m_fBlind == 0) {
+		if (m_sprCombo != nullptr) {
 			m_sprCombo->Draw();
+		}
+	}
 
-	if (!static_cast<bool>(TAP_JUDGMENTS_UNDER_FIELD))
+	if (!static_cast<bool>(TAP_JUDGMENTS_UNDER_FIELD)) {
 		DrawTapJudgments();
+	}
 
-	if (!static_cast<bool>(HOLD_JUDGMENTS_UNDER_FIELD))
+	if (!static_cast<bool>(HOLD_JUDGMENTS_UNDER_FIELD)) {
 		DrawHoldJudgments();
+	}
 }
 
 void
@@ -1433,7 +1499,7 @@ Player::PushPlayerMatrix(float x, float skew, float center_y)
 	DISPLAY->LoadMenuPerspective(45,
 								 SCREEN_WIDTH,
 								 SCREEN_HEIGHT,
-								 SCALE(skew, 0.1f, 1.0f, x, SCREEN_CENTER_X),
+								 SCALE(skew, 0.1F, 1.0F, x, SCREEN_CENTER_X),
 								 center_y);
 }
 
@@ -1462,20 +1528,20 @@ Player::PlayerNoteFieldPositioner::PlayerNoteFieldPositioner(Player* p,
   : player(p)
 {
 	player->PushPlayerMatrix(x, skew, center_y);
-	int reverse_mult = (reverse ? -1 : 1);
+	const auto reverse_mult = (reverse ? -1 : 1);
 	original_y = player->m_pNoteField->GetY();
-	float tilt_degrees = SCALE(tilt, -1.f, +1.f, +30, -30) * reverse_mult;
-	float zoom = SCALE(mini, 0.f, 1.f, 1.f, .5f);
+	const auto tilt_degrees = SCALE(tilt, -1.F, +1.F, +30, -30) * reverse_mult;
+	auto zoom = SCALE(mini, 0.F, 1.F, 1.F, .5F);
 	// Something strange going on here.  Notice that the range for tilt's
 	// effect on y_offset goes to -45 when positive, but -20 when negative.
 	// I don't know why it's done this why, simply preserving old behavior.
 	// -Kyz
 	if (tilt > 0) {
-		zoom *= SCALE(tilt, 0.f, 1.f, 1.f, 0.9f);
-		y_offset = SCALE(tilt, 0.f, 1.f, 0.f, -45.f) * reverse_mult;
+		zoom *= SCALE(tilt, 0.F, 1.F, 1.F, 0.9F);
+		y_offset = SCALE(tilt, 0.F, 1.F, 0.F, -45.F) * reverse_mult;
 	} else {
-		zoom *= SCALE(tilt, 0.f, -1.f, 1.f, 0.9f);
-		y_offset = SCALE(tilt, 0.f, -1.f, 0.f, -20.f) * reverse_mult;
+		zoom *= SCALE(tilt, 0.F, -1.F, 1.F, 0.9F);
+		y_offset = SCALE(tilt, 0.F, -1.F, 0.F, -20.F) * reverse_mult;
 	}
 	player->m_pNoteField->SetY(original_y + y_offset);
 	player->m_pNoteField->SetZoom(zoom);
@@ -1491,44 +1557,51 @@ Player::PlayerNoteFieldPositioner::~PlayerNoteFieldPositioner()
 void
 Player::DrawTapJudgments()
 {
-	if (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind > 0)
+	if (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind > 0) {
 		return;
+	}
 
-	if (m_sprJudgment != nullptr)
+	if (m_sprJudgment != nullptr) {
 		m_sprJudgment->Draw();
+	}
 }
 
 void
 Player::DrawHoldJudgments()
 {
-	if (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind > 0)
+	if (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind > 0) {
 		return;
+	}
 
-	for (int c = 0; c < m_NoteData.GetNumTracks(); c++)
-		if (m_vpHoldJudgment[c])
+	for (auto c = 0; c < m_NoteData.GetNumTracks(); c++) {
+		if (m_vpHoldJudgment[c] != nullptr) {
 			m_vpHoldJudgment[c]->Draw();
+		}
+	}
 }
 
 void
-Player::ChangeLife(TapNoteScore tns)
+Player::ChangeLife(TapNoteScore tns) const
 {
-	if (m_pLifeMeter != nullptr)
+	if (m_pLifeMeter != nullptr) {
 		m_pLifeMeter->ChangeLife(tns);
+	}
 
 	ChangeLifeRecord();
 }
 
 void
-Player::ChangeLife(HoldNoteScore hns, TapNoteScore tns)
+Player::ChangeLife(HoldNoteScore hns, TapNoteScore tns) const
 {
-	if (m_pLifeMeter != nullptr)
+	if (m_pLifeMeter != nullptr) {
 		m_pLifeMeter->ChangeLife(hns, tns);
+	}
 
 	ChangeLifeRecord();
 }
 
 void
-Player::ChangeLife(float delta)
+Player::ChangeLife(float delta) const
 {
 	// If ChangeLifeRecord is not called before the change, then the life
 	// graph will show a gradual change from the time of the previous step
@@ -1542,7 +1615,7 @@ Player::ChangeLife(float delta)
 }
 
 void
-Player::SetLife(float value)
+Player::SetLife(float value) const
 {
 	// If ChangeLifeRecord is not called before the change, then the life
 	// graph will show a gradual change from the time of the previous step
@@ -1556,121 +1629,136 @@ Player::SetLife(float value)
 }
 
 void
-Player::ChangeLifeRecord()
+Player::ChangeLifeRecord() const
 {
 	float fLife = -1;
 	if (m_pLifeMeter != nullptr) {
 		fLife = m_pLifeMeter->GetLife();
 	}
-	if (fLife != -1)
-		if (m_pPlayerStageStats)
+	if (fLife != -1) {
+		if (m_pPlayerStageStats != nullptr) {
 			m_pPlayerStageStats->SetLifeRecordAt(
 			  fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		}
+	}
 }
 
 void
-Player::ChangeWifeRecord()
+Player::ChangeWifeRecord() const
 {
 	// Sets the life ... to the wife....
 	// That's not right.
-	if (m_pPlayerStageStats)
+	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->SetLifeRecordAt(
 		  curwifescore / maxwifescore,
 		  STATSMAN->m_CurStageStats.m_fStepsSeconds);
+	}
 }
 
-int
+auto
 Player::GetClosestNoteDirectional(int col,
 								  int iStartRow,
 								  int iEndRow,
 								  bool bAllowGraded,
-								  bool bForward) const
+								  bool bForward) const -> int
 {
-	NoteData::const_iterator begin, end;
+	NoteData::const_iterator begin;
+	NoteData::const_iterator end;
 	m_NoteData.GetTapNoteRange(col, iStartRow, iEndRow, begin, end);
 
-	if (!bForward)
+	if (!bForward) {
 		swap(begin, end);
+	}
 
 	while (begin != end) {
-		if (!bForward)
+		if (!bForward) {
 			--begin;
+		}
 
 		// Is this the row we want?
 		do {
-			const TapNote& tn = begin->second;
-			if (!m_Timing->IsJudgableAtRow(begin->first))
+			const auto& tn = begin->second;
+			if (!m_Timing->IsJudgableAtRow(begin->first)) {
 				break;
+			}
 			// unsure if autoKeysounds should be excluded. -Wolfman2000
 			if (tn.type == TapNoteType_Empty ||
-				tn.type == TapNoteType_AutoKeysound)
+				tn.type == TapNoteType_AutoKeysound) {
 				break;
-			if (!bAllowGraded && tn.result.tns != TNS_None)
+			}
+			if (!bAllowGraded && tn.result.tns != TNS_None) {
 				break;
+			}
 
 			return begin->first;
 		} while (0);
 
-		if (bForward)
+		if (bForward) {
 			++begin;
+		}
 	}
 
 	return -1;
 }
 
 // Find the closest note to fBeat.
-int
+auto
 Player::GetClosestNote(int col,
 					   int iNoteRow,
 					   int iMaxRowsAhead,
 					   int iMaxRowsBehind,
 					   bool bAllowGraded,
-					   bool bAllowOldMines) const
+					   bool bAllowOldMines) const -> int
 {
 	// Start at iIndexStartLookingAt and search outward.
-	int iNextIndex = GetClosestNoteDirectional(
+	const auto iNextIndex = GetClosestNoteDirectional(
 	  col, iNoteRow, iNoteRow + iMaxRowsAhead, bAllowGraded, true);
-	int iPrevIndex = GetClosestNoteDirectional(
+	const auto iPrevIndex = GetClosestNoteDirectional(
 	  col, iNoteRow - iMaxRowsBehind, iNoteRow, bAllowGraded, false);
 
-	if (iNextIndex == -1 && iPrevIndex == -1)
+	if (iNextIndex == -1 && iPrevIndex == -1) {
 		return -1;
-	if (iNextIndex == -1)
+	}
+	if (iNextIndex == -1) {
 		return iPrevIndex;
-	if (iPrevIndex == -1)
+	}
+	if (iPrevIndex == -1) {
 		return iNextIndex;
+	}
 
 	// Get the current time, previous time, and next time.
-	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
-	float fNextTime = m_Timing->WhereUAtBro(iNextIndex);
-	float fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
+	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
+	const auto fNextTime = m_Timing->WhereUAtBro(iNextIndex);
+	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
 
 	// If we passed a mine, we can't hit it anymore. Literally.
 	// So forget about them.
 	// RIP Minebug 20xx - 2019
 	if (!bAllowOldMines) {
-		NoteData::iterator iter = m_NoteData.FindTapNote(col, iPrevIndex);
-		if (iter != m_NoteData.end(col))
-			if ((&iter->second)->type == TapNoteType_Mine)
+		auto iter = m_NoteData.FindTapNote(col, iPrevIndex);
+		if (iter != m_NoteData.end(col)) {
+			if ((&iter->second)->type == TapNoteType_Mine) {
 				return iNextIndex;
+			}
+		}
 	}
 
 	/* Figure out which row is closer. */
-	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime))
+	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime)) {
 		return iPrevIndex;
+	}
 
 	return iNextIndex;
 }
 
-int
+auto
 Player::GetClosestNonEmptyRowDirectional(int iStartRow,
 										 int iEndRow,
 										 bool /* bAllowGraded */,
-										 bool bForward) const
+										 bool bForward) const -> int
 {
 	if (bForward) {
-		NoteData::all_tracks_iterator iter =
-		  m_NoteData.GetTapNoteRangeAllTracks(iStartRow, iEndRow);
+		auto iter = m_NoteData.GetTapNoteRangeAllTracks(iStartRow, iEndRow);
 
 		while (!iter.IsAtEnd()) {
 			if (NoteDataWithScoring::IsRowCompletelyJudged(m_NoteData,
@@ -1685,7 +1773,7 @@ Player::GetClosestNonEmptyRowDirectional(int iStartRow,
 			return iter.Row();
 		}
 	} else {
-		NoteData::all_tracks_reverse_iterator iter =
+		auto iter =
 		  m_NoteData.GetTapNoteRangeAllTracksReverse(iStartRow, iEndRow);
 
 		while (!iter.IsAtEnd()) {
@@ -1702,33 +1790,37 @@ Player::GetClosestNonEmptyRowDirectional(int iStartRow,
 }
 
 // Find the closest note to fBeat.
-int
+auto
 Player::GetClosestNonEmptyRow(int iNoteRow,
 							  int iMaxRowsAhead,
 							  int iMaxRowsBehind,
-							  bool bAllowGraded) const
+							  bool bAllowGraded) const -> int
 {
 	// Start at iIndexStartLookingAt and search outward.
-	int iNextRow = GetClosestNonEmptyRowDirectional(
+	const auto iNextRow = GetClosestNonEmptyRowDirectional(
 	  iNoteRow, iNoteRow + iMaxRowsAhead, bAllowGraded, true);
-	int iPrevRow = GetClosestNonEmptyRowDirectional(
+	const auto iPrevRow = GetClosestNonEmptyRowDirectional(
 	  iNoteRow - iMaxRowsBehind, iNoteRow, bAllowGraded, false);
 
-	if (iNextRow == -1 && iPrevRow == -1)
+	if (iNextRow == -1 && iPrevRow == -1) {
 		return -1;
-	if (iNextRow == -1)
+	}
+	if (iNextRow == -1) {
 		return iPrevRow;
-	if (iPrevRow == -1)
+	}
+	if (iPrevRow == -1) {
 		return iNextRow;
+	}
 
 	// Get the current time, previous time, and next time.
-	float fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
-	float fNextTime = m_Timing->WhereUAtBro(iNextRow);
-	float fPrevTime = m_Timing->WhereUAtBro(iPrevRow);
+	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
+	const auto fNextTime = m_Timing->WhereUAtBro(iNextRow);
+	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevRow);
 
 	/* Figure out which row is closer. */
-	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime))
+	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime)) {
 		return iPrevRow;
+	}
 
 	return iNextRow;
 }
@@ -1739,24 +1831,26 @@ Player::DoTapScoreNone()
 	Message msg("ScoreNone");
 	MESSAGEMAN->Broadcast(msg);
 
-	const unsigned int iOldCombo =
+	const auto iOldCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iOldMissCombo =
+	const auto iOldMissCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
 
 	/* The only real way to tell if a mine has been scored is if it has
 	 * disappeared but this only works for hit mines so update the scores
 	 * for avoided mines here. */
-	if (m_pPrimaryScoreKeeper != nullptr)
+	if (m_pPrimaryScoreKeeper != nullptr) {
 		m_pPrimaryScoreKeeper->HandleTapScoreNone();
+	}
 
 	SendComboMessages(iOldCombo, iOldMissCombo);
 
-	if (m_pLifeMeter != nullptr)
+	if (m_pLifeMeter != nullptr) {
 		m_pLifeMeter->HandleTapScoreNone();
+	}
 
 	if (PENALIZE_TAP_SCORE_NONE && m_pPlayerState != nullptr) {
-		SetJudgment(BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat),
+		SetJudgment(BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat),
 					-1,
 					TAP_EMPTY,
 					TNS_Miss,
@@ -1769,20 +1863,21 @@ void
 Player::ScoreAllActiveHoldsLetGo()
 {
 	if (PENALIZE_TAP_SCORE_NONE) {
-		const float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
-		const int iSongRow = BeatToNoteRow(fSongBeat);
+		const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+		const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 		// Score all active holds to NotHeld
-		for (int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
+		for (auto iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
 			// Since this is being called every frame, let's not check the
 			// whole array every time. Instead, only check 1 beat back. Even
 			// 1 is overkill.
-			const int iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
-			NoteData::TrackMap::iterator begin, end;
+			const auto iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+			NoteData::TrackMap::iterator begin;
+			NoteData::TrackMap::iterator end;
 			m_NoteData.GetTapNoteRangeInclusive(
 			  iTrack, iStartCheckingAt, iSongRow + 1, begin, end);
 			for (; begin != end; ++begin) {
-				TapNote& tn = begin->second;
+				auto& tn = begin->second;
 				if (tn.HoldResult.bActive) {
 					tn.HoldResult.hns = HNS_LetGo;
 					tn.HoldResult.fLife = 0;
@@ -1806,7 +1901,7 @@ Player::PlayKeysound(const TapNote& tn, TapNoteScore score)
 			// if the hold is not already held
 			if (tn.HoldResult.hns == HNS_None) {
 				// if the hold is already activated
-				TapNoteScore tns = tn.result.tns;
+				const auto tns = tn.result.tns;
 				if (tns != TNS_None && tns != TNS_Miss && score == TNS_None) {
 					// the sound must also be already playing
 					if (m_vKeysounds[tn.iKeysoundIndex].IsPlaying()) {
@@ -1818,9 +1913,9 @@ Player::PlayKeysound(const TapNote& tn, TapNoteScore score)
 			}
 		}
 		m_vKeysounds[tn.iKeysoundIndex].Play(false);
-		static Preference<float>* pVolume =
+		static auto* pVolume =
 		  Preference<float>::GetPreferenceByName("SoundVolume");
-		static float fVol = pVolume->Get();
+		static auto fVol = pVolume->Get();
 		m_vKeysounds[tn.iKeysoundIndex].SetProperty("Volume", fVol);
 	}
 }
@@ -1828,7 +1923,7 @@ Player::PlayKeysound(const TapNote& tn, TapNoteScore score)
 void
 Player::AddNoteToReplayData(int col,
 							const TapNote* pTN,
-							int RowOfOverlappingNoteOrRow)
+							int RowOfOverlappingNoteOrRow) const
 {
 	m_pPlayerStageStats->m_vOffsetVector.emplace_back(
 	  pTN->result.fTapNoteOffset);
@@ -1841,10 +1936,11 @@ Player::AddNoteToReplayData(int col,
 void
 Player::AddHoldToReplayData(int col,
 							const TapNote* pTN,
-							int RowOfOverlappingNoteOrRow)
+							int RowOfOverlappingNoteOrRow) const
 {
-	if (pTN->HoldResult.hns == HNS_Held)
+	if (pTN->HoldResult.hns == HNS_Held) {
 		return;
+	}
 	HoldReplayResult hrr;
 	hrr.row = RowOfOverlappingNoteOrRow;
 	hrr.track = col;
@@ -1856,7 +1952,7 @@ void
 Player::Step(int col,
 			 int row,
 			 const std::chrono::steady_clock::time_point& tm,
-			 bool bHeld,
+			 bool /*bHeld*/,
 			 bool bRelease,
 			 float padStickSeconds)
 {
@@ -1864,38 +1960,40 @@ Player::Step(int col,
 	// set your breakpoints somewhere after this block.
 	std::chrono::duration<float> stepDelta =
 	  std::chrono::steady_clock::now() - tm;
-	float stepAgo = stepDelta.count() - padStickSeconds;
+	auto stepAgo = stepDelta.count() - padStickSeconds;
 
-	const float fLastBeatUpdate =
-	  m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
-	const float fPositionSeconds =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
-	const float fTimeSinceStep = stepAgo;
+	const auto fLastBeatUpdate = GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
+	const auto fPositionSeconds =
+	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
+	const auto fTimeSinceStep = stepAgo;
 
 	// idk if this is the correct value for input logs but we'll use them to
 	// test -mina ok this is 100% not the place to do this
 	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
 
-	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
-	if (GAMESTATE->m_pCurSteps)
+	if (GAMESTATE->m_pCurSteps != nullptr) {
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
+	}
 
-	const int iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
+	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
 
 	if (col != -1 && !bRelease) {
 		// Update roll life
 		// Let's not check the whole array every time.
 		// Instead, only check 1 beat back.  Even 1 is overkill.
 		// Just update the life here and let Update judge the roll.
-		const int iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
-		NoteData::TrackMap::iterator begin, end;
+		const auto iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+		NoteData::TrackMap::iterator begin;
+		NoteData::TrackMap::iterator end;
 		m_NoteData.GetTapNoteRangeInclusive(
 		  col, iStartCheckingAt, iSongRow + 1, begin, end);
 		for (; begin != end; ++begin) {
-			TapNote& tn = begin->second;
-			if (tn.type != TapNoteType_HoldHead)
+			auto& tn = begin->second;
+			if (tn.type != TapNoteType_HoldHead) {
 				continue;
+			}
 
 			switch (tn.subType) {
 				DEFAULT_FAIL(tn.subType);
@@ -1905,20 +2003,22 @@ Player::Step(int col,
 					break;
 			}
 
-			const int iRow = begin->first;
+			const auto iRow = begin->first;
 
-			HoldNoteScore hns = tn.HoldResult.hns;
-			if (hns != HNS_None) // if this HoldNote already has a result
+			auto hns = tn.HoldResult.hns;
+			if (hns != HNS_None) { // if this HoldNote already has a result
 				continue; // we don't need to update the logic for this one
+			}
 
 			// if they got a bad score or haven't stepped on the
 			// corresponding tap yet
-			const TapNoteScore tns = tn.result.tns;
-			bool bInitiatedNote = true;
-			if (REQUIRE_STEP_ON_HOLD_HEADS)
+			const auto tns = tn.result.tns;
+			auto bInitiatedNote = true;
+			if (REQUIRE_STEP_ON_HOLD_HEADS) {
 				bInitiatedNote = tns != TNS_None &&
 								 tns != TNS_Miss; // did they step on the start?
-			const int iEndRow = iRow + tn.iDuration;
+			}
+			const auto iEndRow = iRow + tn.iDuration;
 
 			if (bInitiatedNote && tn.HoldResult.fLife != 0) {
 				/* This hold note is not judged and we stepped on its head.
@@ -1941,12 +2041,13 @@ Player::Step(int col,
 						m_pPlayerState->m_PlayerController != PC_AUTOPLAY) {
 						IncrementCombo();
 
-						bool bBright = m_pPlayerStageStats &&
+						auto bBright = (m_pPlayerStageStats != nullptr) &&
 									   m_pPlayerStageStats->m_iCurCombo >
 										 static_cast<unsigned int>(
 										   BRIGHT_GHOST_COMBO_THRESHOLD);
-						if (m_pNoteField)
+						if (m_pNoteField != nullptr) {
 							m_pNoteField->DidHoldNote(col, HNS_Held, bBright);
+						}
 					}
 				}
 				break;
@@ -1968,18 +2069,18 @@ Player::Step(int col,
 	 */
 
 	int iStepSearchRows;
-	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
-	int skipstart = nerv[10]; // this is not robust need to come up with
-							  // something better later - Mina
+	static const auto StepSearchDistance = GetMaxStepDistanceSeconds();
+	auto skipstart = nerv[10]; // this is not robust need to come up with
+							   // something better later - Mina
 
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				m_pPlayerState->m_Position.m_fMusicSeconds +
+				GAMESTATE->m_Position.m_fMusicSeconds +
 				StepSearchDistance)) -
 				iSongRow,
 			  iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-						   m_pPlayerState->m_Position.m_fMusicSeconds -
+						   GAMESTATE->m_Position.m_fMusicSeconds -
 						   StepSearchDistance))) +
 		  ROWS_PER_BEAT;
 	} else {
@@ -1989,49 +2090,54 @@ Player::Step(int col,
 		lot, whole system does. Only in use if sequential assumption remains
 		valid. - Mina */
 
-		if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
+		if (nerv[nervpos] < iSongRow && nervpos < nerv.size()) {
 			nervpos += 1;
+		}
 
-		size_t SearchIndexBehind = nervpos;
-		size_t SearchIndexAhead = nervpos;
-		float SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
+		auto SearchIndexBehind = nervpos;
+		auto SearchIndexAhead = nervpos;
+		auto SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
 
 		while (SearchIndexBehind > 1 &&
 			   SearchBeginTime -
 				   m_Timing->WhereUAtBro(nerv[SearchIndexBehind - 1]) <
-				 StepSearchDistance)
+				 StepSearchDistance) {
 			SearchIndexBehind -= 1;
+		}
 
 		while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() &&
 			   m_Timing->WhereUAtBro(nerv[SearchIndexAhead + 1]) -
 				   SearchBeginTime <
-				 StepSearchDistance)
+				 StepSearchDistance) {
 			SearchIndexAhead += 1;
+		}
 
-		int MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
-		int MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
+		auto MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
+		auto MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
 
-		if (nervpos > 0)
+		if (nervpos > 0) {
 			iStepSearchRows =
 			  (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+		}
 	}
 
 	// calculate TapNoteScore
-	TapNoteScore score = TNS_None;
+	auto score = TNS_None;
 
-	int iRowOfOverlappingNoteOrRow = row;
-	if (row == -1 && col != -1)
+	auto iRowOfOverlappingNoteOrRow = row;
+	if (row == -1 && col != -1) {
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
 		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
+	}
 
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
-		float fNoteOffset = 0.f;
+		auto fNoteOffset = 0.F;
 		// only valid if
-		float fMusicSeconds = 0.f;
+		auto fMusicSeconds = 0.F;
 		// we need this later if we are autosyncing
-		const float fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
-		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
+		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
+		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
 		if (row == -1) {
 			// We actually stepped on the note this long ago:
@@ -2040,8 +2146,8 @@ Player::Step(int col,
 			/* GAMESTATE->m_fMusicSeconds is the music time as of
 			 * GAMESTATE->m_LastBeatUpdate. Figure out what the music time
 			 * is as of now. */
-			const float fCurrentMusicSeconds =
-			  m_pPlayerState->m_Position.m_fMusicSeconds +
+			const auto fCurrentMusicSeconds =
+			  GAMESTATE->m_Position.m_fMusicSeconds +
 			  (fLastBeatUpdate *
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 
@@ -2067,23 +2173,24 @@ Player::Step(int col,
 		NOTESKIN->SetLastSeenColor(
 		  NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow)));
 
-		const float fSecondsFromExact = fabsf(fNoteOffset);
+		const auto fSecondsFromExact = fabsf(fNoteOffset);
 
-		TapNote* pTN = NULL;
-		NoteData::iterator iter =
-		  m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
+		TapNote* pTN = nullptr;
+		auto iter = m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
 		DEBUG_ASSERT(iter != m_NoteData.end(col));
 		pTN = &iter->second;
 
 		// We don't really have to care if we are releasing on a non-lift,
 		// right? This fixes a weird noteskin bug with tap explosions.
 		if (PREFSMAN->m_bFullTapExplosions && bRelease &&
-			pTN->type != TapNoteType_Lift)
+			pTN->type != TapNoteType_Lift) {
 			return;
+		}
 
 		// Fakes.
-		if (pTN->type == TapNoteType_Fake)
+		if (pTN->type == TapNoteType_Fake) {
 			return;
+		}
 
 		switch (m_pPlayerState->m_PlayerController) {
 			case PC_HUMAN:
@@ -2092,8 +2199,9 @@ Player::Step(int col,
 						// Stepped too close to mine?
 						if (!bRelease &&
 							fSecondsFromExact <= GetWindowSeconds(TW_Mine) &&
-							m_Timing->IsJudgableAtRow(iSongRow))
+							m_Timing->IsJudgableAtRow(iSongRow)) {
 							score = TNS_HitMine;
+						}
 						break;
 					case TapNoteType_HoldHead:
 						// oh wow, this was causing the trigger before the
@@ -2109,24 +2217,26 @@ Player::Step(int col,
 					default:
 						if (pTN->type != TapNoteType_HoldHead &&
 							lastHoldHeadsSeconds[col] > fMusicSeconds) {
-							if (fSecondsFromExact > GetWindowSeconds(TW_W4))
+							if (fSecondsFromExact > GetWindowSeconds(TW_W4)) {
 								break;
+							}
 						}
 						if ((pTN->type == TapNoteType_Lift) == bRelease) {
-							if (fSecondsFromExact <= GetWindowSeconds(TW_W1))
+							if (fSecondsFromExact <= GetWindowSeconds(TW_W1)) {
 								score = TNS_W1;
-							else if (fSecondsFromExact <=
-									 GetWindowSeconds(TW_W2))
+							} else if (fSecondsFromExact <=
+									   GetWindowSeconds(TW_W2)) {
 								score = TNS_W2;
-							else if (fSecondsFromExact <=
-									 GetWindowSeconds(TW_W3))
+							} else if (fSecondsFromExact <=
+									   GetWindowSeconds(TW_W3)) {
 								score = TNS_W3;
-							else if (fSecondsFromExact <=
-									 GetWindowSeconds(TW_W4))
+							} else if (fSecondsFromExact <=
+									   GetWindowSeconds(TW_W4)) {
 								score = TNS_W4;
-							else if (fSecondsFromExact <=
-									 max(GetWindowSeconds(TW_W5), 0.18f))
+							} else if (fSecondsFromExact <=
+									   max(GetWindowSeconds(TW_W5), 0.18F)) {
 								score = TNS_W5;
+							}
 						}
 						break;
 				}
@@ -2156,35 +2266,39 @@ Player::Step(int col,
 					// The CPU hits a lot of mines. Only consider hitting
 					// the first mine for a row. We know we're the first
 					// mine if there are are no mines to the left of us.
-					for (int t = 0; t < col; t++) {
+					for (auto t = 0; t < col; t++) {
 						if (m_NoteData.GetTapNote(t, iRowOfOverlappingNoteOrRow)
-							  .type == TapNoteType_Mine) // there's a mine to
-														 // the left of us
-							return;						 // avoid
+							  .type == TapNoteType_Mine) { // there's a mine to
+														   // the left of us
+							return;						   // avoid
+						}
 					}
 
 					// The CPU hits a lot of mines. Make it less likely to
 					// hit mines that don't have a tap note on the same row.
-					bool bTapsOnRow = m_NoteData.IsThereATapOrHoldHeadAtRow(
+					auto bTapsOnRow = m_NoteData.IsThereATapOrHoldHeadAtRow(
 					  iRowOfOverlappingNoteOrRow);
-					TapNoteScore get_to_avoid = bTapsOnRow ? TNS_W3 : TNS_W4;
+					auto get_to_avoid = bTapsOnRow ? TNS_W3 : TNS_W4;
 
-					if (score >= get_to_avoid)
+					if (score >= get_to_avoid) {
 						return; // avoided
+					}
 
 					score = TNS_HitMine;
 				}
 
-				if (score > TNS_W4)
+				if (score > TNS_W4) {
 					score = TNS_W2; // sentinel
+				}
 
 				/* AI will generate misses here. Don't handle a miss like a
 				 * regular note because we want the judgment animation to
 				 * appear delayed. Instead, return early if AI generated a
 				 * miss, and let UpdateTapNotesMissedOlderThan() detect and
 				 * handle the misses. */
-				if (score == TNS_Miss)
+				if (score == TNS_Miss) {
 					return;
+				}
 
 				// Put some small, random amount in fNoteOffset so that
 				// demonstration show a mix of late and early. - Chris
@@ -2196,16 +2310,16 @@ Player::Step(int col,
 				// TapNoteScore, so that they can logically match up with
 				// the current timing windows. -aj
 				{
-					float fWindowW1 = GetWindowSeconds(TW_W1);
-					float fWindowW2 = GetWindowSeconds(TW_W2);
-					float fWindowW3 = GetWindowSeconds(TW_W3);
-					float fWindowW4 = GetWindowSeconds(TW_W4);
-					float fWindowW5 = GetWindowSeconds(TW_W5);
+					auto fWindowW1 = GetWindowSeconds(TW_W1);
+					auto fWindowW2 = GetWindowSeconds(TW_W2);
+					auto fWindowW3 = GetWindowSeconds(TW_W3);
+					auto fWindowW4 = GetWindowSeconds(TW_W4);
+					auto fWindowW5 = GetWindowSeconds(TW_W5);
 
 					// figure out overlap.
-					float fLowerBound = 0.0f;	 // negative upper limit
-					float fUpperBound = 0.0f;	 // positive lower limit
-					float fCompareWindow = 0.0f; // filled in here:
+					auto fLowerBound = 0.0F;	// negative upper limit
+					auto fUpperBound = 0.0F;	// positive lower limit
+					auto fCompareWindow = 0.0F; // filled in here:
 					if (score == TNS_W4) {
 						fLowerBound = -fWindowW3;
 						fUpperBound = fWindowW3;
@@ -2215,13 +2329,14 @@ Player::Step(int col,
 						fUpperBound = fWindowW4;
 						fCompareWindow = fWindowW5;
 					}
-					float f1 = randomf(-fCompareWindow, fLowerBound);
-					float f2 = randomf(fUpperBound, fCompareWindow);
+					auto f1 = randomf(-fCompareWindow, fLowerBound);
+					auto f2 = randomf(fUpperBound, fCompareWindow);
 
-					if (randomf() * 100 >= 50)
+					if (randomf() * 100 >= 50) {
 						fNoteOffset = f1;
-					else
+					} else {
 						fNoteOffset = f2;
+					}
 				}
 
 				break;
@@ -2230,13 +2345,15 @@ Player::Step(int col,
 								m_pPlayerState->m_PlayerController));
 		}
 
-		if (m_pPlayerState->m_PlayerController == PC_HUMAN && score >= TNS_W3)
+		if (m_pPlayerState->m_PlayerController == PC_HUMAN && score >= TNS_W3) {
 			AdjustSync::HandleAutosync(fNoteOffset, fStepSeconds);
+		}
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
-		if (score == TNS_W1 && !GAMESTATE->ShowW1())
+		if (score == TNS_W1 && !GAMESTATE->ShowW1()) {
 			score = TNS_W2;
+		}
 
 		if (score != TNS_None) {
 			pTN->result.tns = score;
@@ -2244,24 +2361,27 @@ Player::Step(int col,
 		}
 
 		m_LastTapNoteScore = score;
-		if (pTN->result.tns != TNS_None)
+		if (pTN->result.tns != TNS_None) {
 			AddNoteToReplayData(GAMESTATE->CountNotesSeparately() ? col : -1,
 								pTN,
 								iRowOfOverlappingNoteOrRow);
+		}
 		if (GAMESTATE->CountNotesSeparately()) {
 			if (pTN->type != TapNoteType_Mine) {
-				const bool bBlind =
+				const auto bBlind =
 				  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
-				const bool bBright =
-				  (m_pPlayerStageStats &&
+				const auto bBright =
+				  ((m_pPlayerStageStats != nullptr) &&
 				   m_pPlayerStageStats->m_iCurCombo >
 					 static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD));
-				if (m_pNoteField != nullptr)
+				if (m_pNoteField != nullptr) {
 					m_pNoteField->DidTapNote(
 					  col, bBlind ? TNS_W1 : score, bBright);
+				}
 				if (score >= m_pPlayerState->m_PlayerOptions.GetCurrent()
-							   .m_MinTNSToHideNotes)
+							   .m_MinTNSToHideNotes) {
 					HideNote(col, iRowOfOverlappingNoteOrRow);
+				}
 
 				if (pTN->result.tns != TNS_None) {
 					SetJudgment(iRowOfOverlappingNoteOrRow, col, *pTN);
@@ -2274,8 +2394,9 @@ Player::Step(int col,
 		}
 	}
 
-	if (score == TNS_None)
+	if (score == TNS_None) {
 		DoTapScoreNone();
+	}
 
 	if (!bRelease && col != -1) {
 		/* Search for keyed sounds separately.  Play the nearest note. */
@@ -2302,7 +2423,7 @@ Player::Step(int col,
 			  GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, true);
 		}
 		if (iRowOfOverlappingNoteOrRow != -1) {
-			const TapNote& tn =
+			const auto& tn =
 			  m_NoteData.GetTapNote(col, iRowOfOverlappingNoteOrRow);
 			PlayKeysound(tn, score);
 		}
@@ -2327,17 +2448,17 @@ Player::Step(int col,
 void
 Player::FlashGhostRow(int iRow)
 {
-	TapNoteScore lastTNS =
+	const auto lastTNS =
 	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, iRow).result.tns;
-	const bool bBlind =
+	const auto bBlind =
 	  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
-	const bool bBright =
-	  (m_pPlayerStageStats &&
+	const auto bBright =
+	  ((m_pPlayerStageStats != nullptr) &&
 	   m_pPlayerStageStats->m_iCurCombo >
 		 static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD));
 
-	for (int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
-		const TapNote& tn = m_NoteData.GetTapNote(iTrack, iRow);
+	for (auto iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
+		const auto& tn = m_NoteData.GetTapNote(iTrack, iRow);
 
 		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Mine ||
 			tn.type == TapNoteType_Fake || tn.result.bHidden) {
@@ -2360,25 +2481,25 @@ Player::CrossedRows(int iLastRowCrossed,
 	// LOG->Trace( "Player::CrossedRows   %d    %d", iFirstRowCrossed,
 	// iLastRowCrossed );
 
-	NoteData::all_tracks_iterator& iter = *m_pIterUncrossedRows;
-	int iLastSeenRow = -1;
+	auto& iter = *m_pIterUncrossedRows;
+	auto iLastSeenRow = -1;
 	for (; !iter.IsAtEnd() && iter.Row() <= iLastRowCrossed; ++iter) {
 		// Apply InitialHoldLife.
-		TapNote& tn = *iter;
-		int iRow = iter.Row();
-		int iTrack = iter.Track();
+		auto& tn = *iter;
+		auto iRow = iter.Row();
+		const auto iTrack = iter.Track();
 		switch (tn.type) {
 			case TapNoteType_HoldHead: {
 				tn.HoldResult.fLife = INITIAL_HOLD_LIFE;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
-					PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+					const auto pn = m_pPlayerState->m_PlayerNumber;
 					vector<GameInput> GameI;
 					GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 					  ->StyleInputToGameInput(iTrack, pn, GameI);
-					if (PREFSMAN->m_fPadStickSeconds > 0.f) {
-						for (size_t i = 0; i < GameI.size(); ++i) {
-							float fSecsHeld = INPUTMAPPER->GetSecsHeld(
-							  GameI[i], m_pPlayerState->m_mp);
+					if (PREFSMAN->m_fPadStickSeconds > 0.F) {
+						for (auto& i : GameI) {
+							const auto fSecsHeld =
+							  INPUTMAPPER->GetSecsHeld(i, m_pPlayerState->m_mp);
 							if (fSecsHeld >= PREFSMAN->m_fPadStickSeconds) {
 								Step(iTrack,
 									 -1,
@@ -2400,15 +2521,15 @@ Player::CrossedRows(int iLastRowCrossed,
 			case TapNoteType_Mine: {
 				// Hold the panel while crossing a mine will cause the mine
 				// to explode
-				// TODO: Remove use of PlayerNumber.
-				PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
+				// TODO(Sam): Remove use of PlayerNumber.
+				const auto pn = m_pPlayerState->m_PlayerNumber;
 				vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, pn, GameI);
-				if (PREFSMAN->m_fPadStickSeconds > 0.0f) {
-					for (size_t i = 0; i < GameI.size(); ++i) {
-						float fSecsHeld = INPUTMAPPER->GetSecsHeld(
-						  GameI[i], m_pPlayerState->m_mp);
+				if (PREFSMAN->m_fPadStickSeconds > 0.0F) {
+					for (auto& i : GameI) {
+						const auto fSecsHeld =
+						  INPUTMAPPER->GetSecsHeld(i, m_pPlayerState->m_mp);
 						if (fSecsHeld >= PREFSMAN->m_fPadStickSeconds) {
 							Step(iTrack,
 								 -1,
@@ -2439,22 +2560,23 @@ Player::CrossedRows(int iLastRowCrossed,
 					Step(iTrack, iRow, now, false, false);
 					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
 						m_pPlayerState->m_PlayerController == PC_CPU) {
-						if (m_pPlayerStageStats)
+						if (m_pPlayerStageStats != nullptr) {
 							m_pPlayerStageStats->m_bDisqualified = true;
+						}
 					}
 				}
 			}
 		}
 
-		// TODO: Can we remove the iLastSeenRow logic and the
+		// TODO(Sam): Can we remove the iLastSeenRow logic and the
 		// autokeysound for loop, since the iterator in this loop will
 		// already be iterating over all of the tracks?
 		if (iRow != iLastSeenRow) {
 			// crossed a new not-empty row
 			iLastSeenRow = iRow;
 
-			for (int t = 0; t < m_NoteData.GetNumTracks(); ++t) {
-				const TapNote& tap = m_NoteData.GetTapNote(t, iRow);
+			for (auto t = 0; t < m_NoteData.GetNumTracks(); ++t) {
+				const auto& tap = m_NoteData.GetTapNote(t, iRow);
 				if (tap.type == TapNoteType_AutoKeysound) {
 					PlayKeysound(tap, TNS_None);
 				}
@@ -2468,26 +2590,27 @@ Player::CrossedRows(int iLastRowCrossed,
 	if (m_bTickHolds && m_pPlayerState->m_PlayerController == PC_HUMAN) {
 		// Few rows typically cross per update. Easier to check all crossed
 		// rows than to calculate from timing segments.
-		for (int r = m_iFirstUncrossedRow; r <= iLastRowCrossed; ++r) {
-			int tickCurrent = m_Timing->GetTickcountAtRow(r);
+		for (auto r = m_iFirstUncrossedRow; r <= iLastRowCrossed; ++r) {
+			const auto tickCurrent = m_Timing->GetTickcountAtRow(r);
 
 			// There is a tick count at this row
 			if (tickCurrent > 0 && r % (ROWS_PER_BEAT / tickCurrent) == 0) {
 
 				vector<int> viColsWithHold;
-				int iNumHoldsHeldThisRow = 0;
-				int iNumHoldsMissedThisRow = 0;
+				auto iNumHoldsHeldThisRow = 0;
+				auto iNumHoldsMissedThisRow = 0;
 
 				// start at r-1 so that we consider holds whose end rows are
 				// equal to the checkpoint row
-				NoteData::all_tracks_iterator nIter =
+				auto nIter =
 				  m_NoteData.GetTapNoteRangeAllTracks(r - 1, r, true);
 				for (; !nIter.IsAtEnd(); ++nIter) {
-					TapNote& tn = *nIter;
-					if (tn.type != TapNoteType_HoldHead)
+					auto& tn = *nIter;
+					if (tn.type != TapNoteType_HoldHead) {
 						continue;
+					}
 
-					int iTrack = nIter.Track();
+					auto iTrack = nIter.Track();
 					viColsWithHold.push_back(iTrack);
 
 					if (tn.HoldResult.fLife > 0) {
@@ -2500,8 +2623,8 @@ Player::CrossedRows(int iLastRowCrossed,
 				}
 				GAMESTATE->SetProcessedTimingData(this->m_Timing);
 
-				// TODO: Find a better way of handling hold checkpoints with
-				// other taps.
+				// TODO(Sam): Find a better way of handling hold checkpoints
+				// with other taps.
 				if (!viColsWithHold.empty() &&
 					(CHECKPOINTS_TAPS_SEPARATE_JUDGMENT ||
 					 m_NoteData.GetNumTapNotesInRow(r) == 0)) {
@@ -2523,8 +2646,8 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 	// LOG->Trace( "Steps::UpdateTapNotesMissedOlderThan(%f)",
 	// fMissIfOlderThanThisBeat );
 	int iMissIfOlderThanThisRow;
-	const float fEarliestTime =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
+	const auto fEarliestTime =
+	  GAMESTATE->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
 	{
 		TimingData::GetBeatArgs beat_info;
 		beat_info.elapsed_time = fEarliestTime;
@@ -2535,30 +2658,34 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 			/* If there is a freeze on iMissIfOlderThanThisIndex, include
 			 * this index too. Otherwise we won't show misses for tap notes
 			 * on freezes until the freeze finishes. */
-			if (!beat_info.delay_out)
+			if (!beat_info.delay_out) {
 				iMissIfOlderThanThisRow++;
+			}
 		}
 	}
 
-	NoteData::all_tracks_iterator& iter = *m_pIterNeedsTapJudging;
+	auto& iter = *m_pIterNeedsTapJudging;
 
 	for (; !iter.IsAtEnd() && iter.Row() < iMissIfOlderThanThisRow; ++iter) {
-		TapNote& tn = *iter;
+		auto& tn = *iter;
 
-		if (!NeedsTapJudging(tn))
+		if (!NeedsTapJudging(tn)) {
 			continue;
+		}
 
 		// Ignore all notes in WarpSegments or FakeSegments.
-		if (!m_Timing->IsJudgableAtRow(iter.Row()))
+		if (!m_Timing->IsJudgableAtRow(iter.Row())) {
 			continue;
+		}
 
 		if (tn.type == TapNoteType_Mine) {
 			tn.result.tns = TNS_AvoidMine;
 			/* The only real way to tell if a mine has been scored is if it
 			 * has disappeared but this only works for hit mines so update
 			 * the scores for avoided mines here. */
-			if (m_pPrimaryScoreKeeper)
+			if (m_pPrimaryScoreKeeper != nullptr) {
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
+			}
 		} else {
 			tn.result.tns = TNS_Miss;
 
@@ -2566,8 +2693,9 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 			// not sure how many rows grace time is needed (if any?)
 			if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
 				  .m_bPractice &&
-				iMissIfOlderThanThisRow - iter.Row() > 8)
+				iMissIfOlderThanThisRow - iter.Row() > 8) {
 				tn.result.tns = TNS_None;
+			}
 			if (GAMESTATE->CountNotesSeparately()) {
 				SetJudgment(iter.Row(), iter.Track(), tn);
 				HandleTapRowScore(iter.Row());
@@ -2577,23 +2705,24 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 }
 
 void
-Player::UpdateJudgedRows(float fDeltaTime)
+Player::UpdateJudgedRows(float /*fDeltaTime*/)
 {
 	// Look into the future only as far as we need to
-	const int iEndRow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-	  m_pPlayerState->m_Position.m_fMusicSeconds +
+	const auto iEndRow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+	  GAMESTATE->m_Position.m_fMusicSeconds +
 	  GetMaxStepDistanceSeconds()));
-	bool bAllJudged = true;
+	auto bAllJudged = true;
 
 	if (!GAMESTATE->CountNotesSeparately()) {
-		NoteData::all_tracks_iterator iter = *m_pIterUnjudgedRows;
-		int iLastSeenRow = -1;
+		auto iter = *m_pIterUnjudgedRows;
+		auto iLastSeenRow = -1;
 		for (; !iter.IsAtEnd() && iter.Row() <= iEndRow; ++iter) {
-			int iRow = iter.Row();
+			const auto iRow = iter.Row();
 
 			// Do not judge arrows in WarpSegments or FakeSegments
-			if (!m_Timing->IsJudgableAtRow(iRow))
+			if (!m_Timing->IsJudgableAtRow(iRow)) {
 				continue;
+			}
 
 			if (iLastSeenRow != iRow) {
 				iLastSeenRow = iRow;
@@ -2604,16 +2733,19 @@ Player::UpdateJudgedRows(float fDeltaTime)
 					bAllJudged = false;
 					continue;
 				}
-				if (bAllJudged)
+				if (bAllJudged) {
 					*m_pIterUnjudgedRows = iter;
-				if (m_pJudgedRows->JudgeRow(iRow))
+				}
+				if (m_pJudgedRows->JudgeRow(iRow)) {
 					continue;
+				}
 
-				const TapNote& lastTN =
+				const auto& lastTN =
 				  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, iRow);
 
-				if (lastTN.result.tns < TNS_Miss)
+				if (lastTN.result.tns < TNS_Miss) {
 					continue;
+				}
 
 				SetJudgment(
 				  iRow,
@@ -2627,28 +2759,31 @@ Player::UpdateJudgedRows(float fDeltaTime)
 	// handle mines.
 	{
 		bAllJudged = true;
-		set<RageSound*> setSounds;
-		NoteData::all_tracks_iterator iter = *m_pIterUnjudgedMineRows; // copy
-		int iLastSeenRow = -1;
+		std::set<RageSound*> setSounds;
+		auto iter = *m_pIterUnjudgedMineRows; // copy
+		auto iLastSeenRow = -1;
 		for (; !iter.IsAtEnd() && iter.Row() <= iEndRow; ++iter) {
-			int iRow = iter.Row();
+			const auto iRow = iter.Row();
 
 			// Do not worry about mines in WarpSegments or FakeSegments
-			if (!m_Timing->IsJudgableAtRow(iRow))
+			if (!m_Timing->IsJudgableAtRow(iRow)) {
 				continue;
+			}
 
-			TapNote& tn = *iter;
+			auto& tn = *iter;
 
 			if (iRow != iLastSeenRow) {
 				iLastSeenRow = iRow;
-				if (bAllJudged)
+				if (bAllJudged) {
 					*m_pIterUnjudgedMineRows = iter;
+				}
 			}
 
-			bool bMineNotHidden =
+			const auto bMineNotHidden =
 			  tn.type == TapNoteType_Mine && !tn.result.bHidden;
-			if (!bMineNotHidden)
+			if (!bMineNotHidden) {
 				continue;
+			}
 
 			switch (tn.result.tns) {
 				DEFAULT_FAIL(tn.result.tns);
@@ -2663,19 +2798,22 @@ Player::UpdateJudgedRows(float fDeltaTime)
 					SetMineJudgment(tn.result.tns, iter.Track());
 					break;
 			}
-			if (m_pNoteField)
+			if (m_pNoteField != nullptr) {
 				m_pNoteField->DidTapNote(iter.Track(), tn.result.tns, false);
+			}
 
 			if (tn.iKeysoundIndex >= 0 &&
-				tn.iKeysoundIndex < static_cast<int>(m_vKeysounds.size()))
+				tn.iKeysoundIndex < static_cast<int>(m_vKeysounds.size())) {
 				setSounds.insert(&m_vKeysounds[tn.iKeysoundIndex]);
-			else if (g_bEnableMineSoundPlayback)
+			} else if (g_bEnableMineSoundPlayback) {
 				setSounds.insert(&m_soundMine);
+			}
 
 			ChangeLife(tn.result.tns);
 			// Make sure hit mines affect the dance points.
-			if (m_pPrimaryScoreKeeper)
+			if (m_pPrimaryScoreKeeper != nullptr) {
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
+			}
 			tn.result.bHidden = true;
 		}
 		// If we hit the end of the loop, m_pIterUnjudgedMineRows needs to
@@ -2684,7 +2822,7 @@ Player::UpdateJudgedRows(float fDeltaTime)
 			*m_pIterUnjudgedMineRows = iter;
 		}
 
-		for (auto& s : setSounds) {
+		for (const auto& s : setSounds) {
 			// Only play one copy of each mine sound at a time per player.
 			s->Stop();
 			s->Play(false);
@@ -2695,41 +2833,47 @@ Player::UpdateJudgedRows(float fDeltaTime)
 void
 Player::HandleTapRowScore(unsigned row)
 {
-	bool bNoCheating = true;
+	const auto bNoCheating = true;
 #ifdef DEBUG
 	bNoCheating = false;
 #endif
 
 	// don't accumulate points if AutoPlay is on.
-	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
+	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
 		return;
-
-	TapNoteScore scoreOfLastTap =
-	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, row).result.tns;
-	const unsigned int iOldCombo =
-	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iOldMissCombo =
-	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
-
-	if (scoreOfLastTap == TNS_Miss)
-		m_LastTapNoteScore = TNS_Miss;
-
-	for (int track = 0; track < m_NoteData.GetNumTracks(); ++track) {
-		const TapNote& tn = m_NoteData.GetTapNote(track, row);
-		// Mines cannot be handled here.
-		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Fake ||
-			tn.type == TapNoteType_Mine || tn.type == TapNoteType_AutoKeysound)
-			continue;
-		if (m_pPrimaryScoreKeeper != nullptr)
-			m_pPrimaryScoreKeeper->HandleTapScore(tn);
 	}
 
-	if (m_pPrimaryScoreKeeper != NULL)
-		m_pPrimaryScoreKeeper->HandleTapRowScore(m_NoteData, row);
-
-	const unsigned int iCurCombo =
+	const auto scoreOfLastTap =
+	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, row).result.tns;
+	const auto iOldCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iCurMissCombo =
+	const auto iOldMissCombo =
+	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
+
+	if (scoreOfLastTap == TNS_Miss) {
+		m_LastTapNoteScore = TNS_Miss;
+	}
+
+	for (auto track = 0; track < m_NoteData.GetNumTracks(); ++track) {
+		const auto& tn = m_NoteData.GetTapNote(track, row);
+		// Mines cannot be handled here.
+		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Fake ||
+			tn.type == TapNoteType_Mine ||
+			tn.type == TapNoteType_AutoKeysound) {
+			continue;
+		}
+		if (m_pPrimaryScoreKeeper != nullptr) {
+			m_pPrimaryScoreKeeper->HandleTapScore(tn);
+		}
+	}
+
+	if (m_pPrimaryScoreKeeper != nullptr) {
+		m_pPrimaryScoreKeeper->HandleTapRowScore(m_NoteData, row);
+	}
+
+	const auto iCurCombo =
+	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
+	const auto iCurMissCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
 
 	SendComboMessages(iOldCombo, iOldMissCombo);
@@ -2739,34 +2883,36 @@ Player::HandleTapRowScore(unsigned row)
 	}
 
 #define CROSSED(x) (iOldCombo < (x) && iCurCombo >= (x))
-	if (CROSSED(100))
+	if (CROSSED(100)) {
 		SCREENMAN->PostMessageToTopScreen(SM_100Combo, 0);
-	else if (CROSSED(200))
+	} else if (CROSSED(200)) {
 		SCREENMAN->PostMessageToTopScreen(SM_200Combo, 0);
-	else if (CROSSED(300))
+	} else if (CROSSED(300)) {
 		SCREENMAN->PostMessageToTopScreen(SM_300Combo, 0);
-	else if (CROSSED(400))
+	} else if (CROSSED(400)) {
 		SCREENMAN->PostMessageToTopScreen(SM_400Combo, 0);
-	else if (CROSSED(500))
+	} else if (CROSSED(500)) {
 		SCREENMAN->PostMessageToTopScreen(SM_500Combo, 0);
-	else if (CROSSED(600))
+	} else if (CROSSED(600)) {
 		SCREENMAN->PostMessageToTopScreen(SM_600Combo, 0);
-	else if (CROSSED(700))
+	} else if (CROSSED(700)) {
 		SCREENMAN->PostMessageToTopScreen(SM_700Combo, 0);
-	else if (CROSSED(800))
+	} else if (CROSSED(800)) {
 		SCREENMAN->PostMessageToTopScreen(SM_800Combo, 0);
-	else if (CROSSED(900))
+	} else if (CROSSED(900)) {
 		SCREENMAN->PostMessageToTopScreen(SM_900Combo, 0);
-	else if (CROSSED(1000))
+	} else if (CROSSED(1000)) {
 		SCREENMAN->PostMessageToTopScreen(SM_1000Combo, 0);
-	else if ((iOldCombo / 100) < (iCurCombo / 100) && iCurCombo > 1000)
+	} else if ((iOldCombo / 100) < (iCurCombo / 100) && iCurCombo > 1000) {
 		SCREENMAN->PostMessageToTopScreen(SM_ComboContinuing, 0);
+	}
 #undef CROSSED
 
 	// new max combo
-	if (m_pPlayerStageStats)
+	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->m_iMaxCombo =
 		  max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
+	}
 
 	/* Use the real current beat, not the beat we've been passed. That's
 	 * because we want to record the current life/combo to the current time;
@@ -2774,9 +2920,10 @@ Player::HandleTapRowScore(unsigned row)
 	 * the life is changing now. We need to include time from previous songs
 	 * in a course, so we can't use GAMESTATE->m_fMusicSeconds. Use
 	 * fStepsSeconds instead. */
-	if (m_pPlayerStageStats)
+	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->UpdateComboList(
 		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
+	}
 
 	ChangeLife(scoreOfLastTap);
 }
@@ -2787,39 +2934,43 @@ Player::HandleHoldCheckpoint(int iRow,
 							 int iNumHoldsMissedThisRow,
 							 const vector<int>& viColsWithHold)
 {
-	bool bNoCheating = true;
+	const auto bNoCheating = true;
 #ifdef DEBUG
 	bNoCheating = false;
 #endif
 
 	// WarpSegments and FakeSegments aren't judged in any way.
-	if (!m_Timing->IsJudgableAtRow(iRow))
+	if (!m_Timing->IsJudgableAtRow(iRow)) {
 		return;
+	}
 
 	// don't accumulate combo if AutoPlay is on.
-	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
+	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
 		return;
+	}
 
-	const unsigned int iOldCombo =
+	const auto iOldCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iOldMissCombo =
+	const auto iOldMissCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
 
-	if (m_pPrimaryScoreKeeper != nullptr)
+	if (m_pPrimaryScoreKeeper != nullptr) {
 		m_pPrimaryScoreKeeper->HandleHoldCheckpointScore(
 		  m_NoteData, iRow, iNumHoldsHeldThisRow, iNumHoldsMissedThisRow);
+	}
 
 	if (iNumHoldsMissedThisRow == 0) {
 		// added for http://ssc.ajworld.net/sm-ssc/bugtracker/view.php?id=16
 		// -aj
 		if (CHECKPOINTS_FLASH_ON_HOLD) {
-			for (auto& i : viColsWithHold) {
-				bool bBright =
-				  m_pPlayerStageStats &&
+			for (const auto& i : viColsWithHold) {
+				const auto bBright =
+				  (m_pPlayerStageStats != nullptr) &&
 				  m_pPlayerStageStats->m_iCurCombo >
 					static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD);
-				if (m_pNoteField)
+				if (m_pNoteField != nullptr) {
 					m_pNoteField->DidHoldNote(i, HNS_Held, bBright);
+				}
 			}
 		}
 	}
@@ -2845,26 +2996,28 @@ Player::HandleHoldCheckpoint(int iRow,
 }
 
 void
-Player::HandleHoldScore(const TapNote& tn)
+Player::HandleHoldScore(const TapNote& tn) const
 {
-	HoldNoteScore holdScore = tn.HoldResult.hns;
-	TapNoteScore tapScore = tn.result.tns;
-	bool bNoCheating = true;
+	const auto holdScore = tn.HoldResult.hns;
+	const auto tapScore = tn.result.tns;
+	const auto bNoCheating = true;
 #ifdef DEBUG
 	bNoCheating = false;
 #endif
 
 	// don't accumulate points if AutoPlay is on.
-	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY)
+	if (bNoCheating && m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
 		return;
+	}
 
-	if (m_pPrimaryScoreKeeper != nullptr)
+	if (m_pPrimaryScoreKeeper != nullptr) {
 		m_pPrimaryScoreKeeper->HandleHoldScore(tn);
+	}
 	ChangeLife(holdScore, tapScore);
 }
 
-float
-Player::GetMaxStepDistanceSeconds()
+auto
+Player::GetMaxStepDistanceSeconds() -> float
 {
 	float fMax = 0;
 	fMax = max(fMax, GetWindowSeconds(TW_W5));
@@ -2872,25 +3025,27 @@ Player::GetMaxStepDistanceSeconds()
 	fMax = max(fMax, GetWindowSeconds(TW_W3));
 	fMax = max(fMax, GetWindowSeconds(TW_W2));
 	fMax = max(fMax, GetWindowSeconds(TW_W1));
-	float f = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * fMax;
+	const auto f = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * fMax;
 	return f + m_fMaxInputLatencySeconds;
 }
 
 void
 Player::FadeToFail()
 {
-	if (m_pNoteField != nullptr)
+	if (m_pNoteField != nullptr) {
 		m_pNoteField->FadeToFail();
+	}
 
 	// clear miss combo
 	SetCombo(0, 0);
 }
 
 void
-Player::CacheAllUsedNoteSkins()
+Player::CacheAllUsedNoteSkins() const
 {
-	if (m_pNoteField != nullptr)
+	if (m_pNoteField != nullptr) {
 		m_pNoteField->CacheAllUsedNoteSkins();
+	}
 }
 
 /* Reworked the judgment messages. Header file states that -1 should be sent
@@ -2919,14 +3074,16 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 		msg.SetParam("Type", std::string("Mine"));
 
 		// Ms scoring implemenation - Mina
-		if (tns == TNS_HitMine)
+		if (tns == TNS_HitMine) {
 			curwifescore += wife3_mine_hit_weight;
+		}
 
 		if (m_pPlayerStageStats != nullptr) {
-			if (maxwifescore == 0.f)
+			if (maxwifescore == 0.F) {
 				msg.SetParam("WifePercent", 0);
-			else
+			} else {
 				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			}
 
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
@@ -2952,13 +3109,13 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack)
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			} else {
-				curwifescore -= 6666666.f; // sail hatan
+				curwifescore -= 6666666.F; // sail hatan
 			}
 #endif
 		}
 
 		MESSAGEMAN->Broadcast(msg);
-		if (m_pPlayerStageStats &&
+		if ((m_pPlayerStageStats != nullptr) &&
 			((tns == TNS_AvoidMine && AVOID_MINE_INCREMENTS_COMBO) ||
 			 (tns == TNS_HitMine && MINE_HIT_INCREMENTS_MISS_COMBO))) {
 			SetCombo(m_pPlayerStageStats->m_iCurCombo,
@@ -2974,9 +3131,10 @@ Player::SetJudgment(int iRow,
 					TapNoteScore tns,
 					float fTapNoteOffset)
 {
-	if (tns == TNS_Miss && m_pPlayerStageStats != nullptr)
+	if (tns == TNS_Miss && m_pPlayerStageStats != nullptr) {
 		AddNoteToReplayData(
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
+	}
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Judgment");
@@ -2984,28 +3142,31 @@ Player::SetJudgment(int iRow,
 		msg.SetParam("MultiPlayer", m_pPlayerState->m_mp);
 		msg.SetParam("FirstTrack", iTrack);
 		msg.SetParam("TapNoteScore", tns);
-		msg.SetParam("Early", fTapNoteOffset < 0.0f);
+		msg.SetParam("Early", fTapNoteOffset < 0.0F);
 		msg.SetParam("Judgment", tns);
 		msg.SetParam("NoteRow", iRow);
 		msg.SetParam("Type", std::string("Tap"));
 		msg.SetParam("TapNoteOffset", tn.result.fTapNoteOffset);
-		if (m_pPlayerStageStats)
+		if (m_pPlayerStageStats != nullptr) {
 			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+		}
 
-		if (tns != TNS_Miss)
+		if (tns != TNS_Miss) {
 			msg.SetParam("Offset",
 						 tn.result.fTapNoteOffset * 1000); // don't send out ms
-														   // offsets for
-														   // misses, multiply
-														   // by 1000 for
-														   // convenience - Mina
+		}
+		// offsets for
+		// misses, multiply
+		// by 1000 for
+		// convenience - Mina
 
 		if (m_pPlayerStageStats != nullptr) {
-			if (tns == TNS_Miss)
+			if (tns == TNS_Miss) {
 				curwifescore += wife3_miss_weight;
-			else
+			} else {
 				curwifescore +=
 				  wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+			}
 			maxwifescore += 2;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
@@ -3035,45 +3196,45 @@ Player::SetJudgment(int iRow,
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			} else {
-				curwifescore -= 666.f; // hail satan
+				curwifescore -= 666.F; // hail satan
 			}
 
 #endif
 		}
 
-		Lua* L = LUA->Get();
+		auto* L = LUA->Get();
 		lua_createtable(L, 0, m_NoteData.GetNumTracks()); // TapNotes this row
 		lua_createtable(
 		  L,
 		  0,
 		  m_NoteData.GetNumTracks()); // HoldHeads of tracks held at this row.
 		if (GAMESTATE->CountNotesSeparately()) {
-			for (int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack) {
-				NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+			for (auto jTrack = 0; jTrack < m_NoteData.GetNumTracks();
+				 ++jTrack) {
+				auto tn = m_NoteData.FindTapNote(jTrack, iRow);
 				if (tn != m_NoteData.end(jTrack) && jTrack == iTrack) {
 					tn->second.PushSelf(L);
 					lua_rawseti(L, -3, jTrack + 1);
 				} else {
 					int iHeadRow;
 					if (m_NoteData.IsHoldNoteAtRow(jTrack, iRow, &iHeadRow)) {
-						NoteData::iterator hold =
-						  m_NoteData.FindTapNote(jTrack, iHeadRow);
+						auto hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
 						hold->second.PushSelf(L);
 						lua_rawseti(L, -2, jTrack + 1);
 					}
 				}
 			}
 		} else {
-			for (int jTrack = 0; jTrack < m_NoteData.GetNumTracks(); ++jTrack) {
-				NoteData::iterator tn = m_NoteData.FindTapNote(jTrack, iRow);
+			for (auto jTrack = 0; jTrack < m_NoteData.GetNumTracks();
+				 ++jTrack) {
+				auto tn = m_NoteData.FindTapNote(jTrack, iRow);
 				if (tn != m_NoteData.end(jTrack)) {
 					tn->second.PushSelf(L);
 					lua_rawseti(L, -3, jTrack + 1);
 				} else {
 					int iHeadRow;
 					if (m_NoteData.IsHoldNoteAtRow(jTrack, iRow, &iHeadRow)) {
-						NoteData::iterator hold =
-						  m_NoteData.FindTapNote(jTrack, iHeadRow);
+						auto hold = m_NoteData.FindTapNote(jTrack, iHeadRow);
 						hold->second.PushSelf(L);
 						lua_rawseti(L, -2, jTrack + 1);
 					}
@@ -3092,8 +3253,9 @@ void
 Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 {
 	ASSERT(iTrack < static_cast<int>(m_vpHoldJudgment.size()));
-	if (m_vpHoldJudgment[iTrack])
+	if (m_vpHoldJudgment[iTrack] != nullptr) {
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment(tn.HoldResult.hns);
+	}
 
 	AddHoldToReplayData(iTrack, &tn, iRow);
 
@@ -3114,8 +3276,9 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 
 			// Ms scoring implemenation - Mina
 			if (tn.HoldResult.hns == HNS_LetGo ||
-				tn.HoldResult.hns == HNS_Missed)
+				tn.HoldResult.hns == HNS_Missed) {
 				curwifescore += wife3_hold_drop_weight;
+			}
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 			msg.SetParam("CurWifeScore", curwifescore);
@@ -3145,7 +3308,7 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 #endif
 		}
 
-		Lua* L = LUA->Get();
+		auto* L = LUA->Get();
 		tn.PushSelf(L);
 		msg.SetParamFromStack(L, "TapNote");
 		LUA->Release(L);
@@ -3163,11 +3326,11 @@ Player::SetCombo(unsigned int iCombo, unsigned int iMisses)
 		m_iLastSeenCombo = iCombo;
 	}
 
-	bool b25Milestone = false;
-	bool b50Milestone = false;
-	bool b100Milestone = false;
-	bool b250Milestone = false;
-	bool b1000Milestone = false;
+	auto b25Milestone = false;
+	auto b50Milestone = false;
+	auto b100Milestone = false;
+	auto b250Milestone = false;
+	auto b1000Milestone = false;
 
 #define MILESTONE_CHECK(amount)                                                \
 	((iCombo / (amount)) > (m_iLastSeenCombo / (amount)))
@@ -3184,16 +3347,21 @@ Player::SetCombo(unsigned int iCombo, unsigned int iMisses)
 
 	m_iLastSeenCombo = iCombo;
 
-	if (b25Milestone)
+	if (b25Milestone) {
 		this->PlayCommand("TwentyFiveMilestone");
-	if (b50Milestone)
+	}
+	if (b50Milestone) {
 		this->PlayCommand("FiftyMilestone");
-	if (b100Milestone)
+	}
+	if (b100Milestone) {
 		this->PlayCommand("HundredMilestone");
-	if (b250Milestone)
+	}
+	if (b250Milestone) {
 		this->PlayCommand("TwoHundredFiftyMilestone");
-	if (b1000Milestone)
+	}
+	if (b1000Milestone) {
 		this->PlayCommand("ThousandMilestone");
+	}
 
 	/* Colored combo logic differs between Songs and Courses.
 	 *	Songs:
@@ -3207,36 +3375,42 @@ Player::SetCombo(unsigned int iCombo, unsigned int iMisses)
 	 *
 	 *	TODO: Add a metric that determines Course combo colors logic?
 	 *	Or possibly move the logic to a Lua function? -aj */
-	bool bPastBeginning = false;
+	auto bPastBeginning = false;
 
 	bPastBeginning =
-	  m_pPlayerState->m_Position.m_fMusicSeconds >
-	  GAMESTATE->m_pCurSong->m_fMusicLengthSeconds * PERCENT_UNTIL_COLOR_COMBO;
+	  GAMESTATE->m_Position.m_fMusicSeconds >
+	  GAMESTATE->m_pCurSteps->GetLengthSeconds() * PERCENT_UNTIL_COLOR_COMBO;
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Combo");
-		if (iCombo)
+		if (iCombo != 0U) {
 			msg.SetParam("Combo", iCombo);
-		if (iMisses)
+		}
+		if (iMisses != 0U) {
 			msg.SetParam("Misses", iMisses);
-		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W1))
+		}
+		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W1)) {
 			msg.SetParam("FullComboW1", true);
-		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W2))
+		}
+		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W2)) {
 			msg.SetParam("FullComboW2", true);
-		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W3))
+		}
+		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W3)) {
 			msg.SetParam("FullComboW3", true);
-		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W4))
+		}
+		if (bPastBeginning && m_pPlayerStageStats->FullComboOfScore(TNS_W4)) {
 			msg.SetParam("FullComboW4", true);
+		}
 		this->HandleMessage(msg);
 	}
 }
 
 void
-Player::IncrementComboOrMissCombo(bool bComboOrMissCombo)
+Player::IncrementComboOrMissCombo(const bool bComboOrMissCombo)
 {
-	const unsigned int iOldCombo =
+	const auto iOldCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iOldMissCombo =
+	const auto iOldMissCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
 
 	if (m_pPlayerStageStats != nullptr) {
@@ -3257,21 +3431,22 @@ Player::IncrementComboOrMissCombo(bool bComboOrMissCombo)
 void
 Player::RenderAllNotesIgnoreScores()
 {
-	int firstRow = 0;
-	int lastRow = m_NoteData.GetLastRow() + 1;
+	auto firstRow = 0;
+	auto lastRow = m_NoteData.GetLastRow() + 1;
 
 	// Go over every single non empty row and their tracks
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(m_NoteData, row)
 	{
-		for (int track = 0; track < m_NoteData.GetNumTracks(); track++) {
+		for (auto track = 0; track < m_NoteData.GetNumTracks(); track++) {
 			// Find the tapnote we are on
-			NoteData::iterator iter = m_NoteData.FindTapNote(track, row);
+			auto iter = m_NoteData.FindTapNote(track, row);
 
 			// Reset the score so it can be visible
 			if (iter != m_NoteData.end(track)) {
-				TapNote* pTN = &iter->second;
-				if (pTN->type == TapNoteType_Empty)
+				auto* pTN = &iter->second;
+				if (pTN->type == TapNoteType_Empty) {
 					continue;
+				}
 				if (pTN->HoldResult.hns != HNS_None) {
 					pTN->HoldResult.hns = HNS_None;
 					pTN->HoldResult.fLife = 1;
@@ -3295,11 +3470,11 @@ Player::RenderAllNotesIgnoreScores()
 	m_iFirstUncrossedRow = -1;
 	m_pJudgedRows->Reset(-1);
 
-	for (int i = 0;
+	for (auto i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
 		 ++i) {
-		lastHoldHeadsSeconds[i] = -1000.f;
+		lastHoldHeadsSeconds[i] = -1000.F;
 	}
 
 	// Might as well regenerate every single iterator for judging.
@@ -3332,7 +3507,7 @@ Player::RenderAllNotesIgnoreScores()
 class LunaPlayer : public Luna<Player>
 {
   public:
-	static int SetLife(T* p, lua_State* L)
+	static auto SetLife(T* p, lua_State* L) -> int
 	{
 		if (p->m_inside_lua_set_life) {
 			luaL_error(L,
@@ -3345,7 +3520,7 @@ class LunaPlayer : public Luna<Player>
 		p->m_inside_lua_set_life = false;
 		COMMON_RETURN_SELF;
 	}
-	static int ChangeLife(T* p, lua_State* L)
+	static auto ChangeLife(T* p, lua_State* L) -> int
 	{
 		if (p->m_inside_lua_set_life) {
 			luaL_error(L,
@@ -3358,19 +3533,19 @@ class LunaPlayer : public Luna<Player>
 		p->m_inside_lua_set_life = false;
 		COMMON_RETURN_SELF;
 	}
-	static int SetActorWithJudgmentPosition(T* p, lua_State* L)
+	static auto SetActorWithJudgmentPosition(T* p, lua_State* L) -> int
 	{
-		Actor* pActor = Luna<Actor>::check(L, 1);
+		auto* const pActor = Luna<Actor>::check(L, 1);
 		p->SetActorWithJudgmentPosition(pActor);
 		COMMON_RETURN_SELF;
 	}
-	static int SetActorWithComboPosition(T* p, lua_State* L)
+	static auto SetActorWithComboPosition(T* p, lua_State* L) -> int
 	{
-		Actor* pActor = Luna<Actor>::check(L, 1);
+		auto* const pActor = Luna<Actor>::check(L, 1);
 		p->SetActorWithComboPosition(pActor);
 		COMMON_RETURN_SELF;
 	}
-	static int GetPlayerTimingData(T* p, lua_State* L)
+	static auto GetPlayerTimingData(T* p, lua_State* L) -> int
 	{
 		p->GetPlayerTimingData().PushSelf(L);
 		return 1;

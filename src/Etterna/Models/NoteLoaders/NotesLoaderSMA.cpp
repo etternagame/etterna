@@ -102,7 +102,7 @@ SMALoader::ProcessSpeeds(TimingData& out,
 			// Aldo_MX: 4 is the default value in SMA, although SM5 requires 0
 			// for the first segment :/
 			// dunno what this is doing or if this is right (used to be implicit
-			// conversion of rstring compared to vs1.begin()
+			// conversion of string compared to vs1.begin()
 			vs2.push_back(s1 == vs1[0] ? "0" : "4");
 		}
 
@@ -166,7 +166,7 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 
 	Steps* pNewNotes = nullptr;
 	auto iRowsPerBeat = -1; // Start with an invalid value: needed for checking.
-	vector<pair<float, float>> vBPMChanges, vStops;
+	std::vector<std::pair<float, float>> vBPMChanges, vStops;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		int iNumParams = msd.GetNumParams(i);
@@ -408,7 +408,7 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 							   sParams[2],
 							   sParams[3],
 							   sParams[4],
-							   sParams[5],
+							   /*sParams[5],*/ // radar values
 							   sParams[6],
 							   *pNewNotes);
 				pNewNotes->SetFilename(sPath);

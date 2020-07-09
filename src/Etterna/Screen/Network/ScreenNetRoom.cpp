@@ -81,7 +81,7 @@ ScreenNetRoom::GetRoomWheel()
 }
 
 void
-ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToPrevScreen) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "PrevScreen"));

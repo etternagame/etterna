@@ -103,7 +103,7 @@ ScreenGameplaySyncMachine::Input(const InputEventPlus& input)
 }
 
 void
-ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage SM)
+ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_NotesEnded) {
 		ResetAndRestartCurrentSong();

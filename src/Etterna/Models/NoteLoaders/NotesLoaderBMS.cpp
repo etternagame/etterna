@@ -7,6 +7,7 @@
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesLoader.h"
 #include "NotesLoaderBMS.h"
+#include "Etterna/Globals/rngthing.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageLog.h"
@@ -16,6 +17,10 @@
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
+
+#include <algorithm>
+
+using std::map;
 
 /* BMS encoding:	tap-hold
  * 4&8panel:	Player1		Player2
@@ -115,7 +120,7 @@ SlideDuplicateDifficulties(Song& p)
 				Steps* pSteps = vSteps[k];
 
 				Difficulty dc2 =
-				  min((Difficulty)(dc + 1), Difficulty_Challenge);
+				  std::min((Difficulty)(dc + 1), Difficulty_Challenge);
 				pSteps->SetDifficulty(dc2);
 			}
 		}
@@ -599,7 +604,7 @@ BMSChart::Load(const std::string& chartPath)
 void
 BMSChart::TidyUpData()
 {
-	sort(objects.begin(), objects.end());
+	std::sort(objects.begin(), objects.end());
 }
 
 class BMSSong

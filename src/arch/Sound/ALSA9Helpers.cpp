@@ -5,6 +5,8 @@
 #include "ALSA9Dynamic.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <algorithm>
+
 /* int err; must be defined before using this macro */
 #define ALSA_CHECK(x)                                                          \
 	if (err < 0) {                                                             \
@@ -303,7 +305,7 @@ Alsa9Buf::GetNumFramesToFill()
 {
 	/* Make sure we can write ahead at least two chunks.  Otherwise, we'll only
 	 * fill one chunk ahead, and underrun. */
-	int ActualWriteahead = max(writeahead, chunksize * 2);
+	int ActualWriteahead = std::max(writeahead, chunksize * 2);
 
 	snd_pcm_sframes_t avail_frames = dsnd_pcm_avail_update(pcm);
 
@@ -337,13 +339,13 @@ Alsa9Buf::GetNumFramesToFill()
 
 	/* Number of frames that have data: */
 	const snd_pcm_sframes_t filled_frames =
-	  max(0l, total_frames - avail_frames);
+	  std::max(0l, total_frames - avail_frames);
 
 	/* Number of frames that don't have data, that are within the writeahead: */
 	snd_pcm_sframes_t unfilled_frames =
-	  clamp(ActualWriteahead - filled_frames,
-			0l,
-			(snd_pcm_sframes_t)ActualWriteahead);
+	  std::clamp(ActualWriteahead - filled_frames,
+				 0l,
+				 (snd_pcm_sframes_t)ActualWriteahead);
 
 	//	LOG->Trace( "total_fr: %i; avail_fr: %i; filled_fr: %i; ActualWr %i;
 	// chunksize %i; unfilled_frames %i ", 			total_frames, avail_frames,

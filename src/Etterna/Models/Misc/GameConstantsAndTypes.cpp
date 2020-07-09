@@ -1,26 +1,17 @@
 #include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
-#include "Foreach.h"
 #include "GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "LocalizedString.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "PlayerNumber.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ThemeMetric.h"
+
+#include <algorithm>
 
 std::string
 StepsTypeToString(StepsType st);
 
-// This was formerly used to fill in RANKING_TO_FILL_IN_MARKER when it was a
-// vector of RStrings. -poco
-static vector<std::string>
-GenerateRankingToFillInMarker()
-{
-	vector<std::string> vRankings;
-	vRankings.push_back(ssprintf("#P%d#", PLAYER_1 + 1));
-	return vRankings;
-}
 extern const std::string RANKING_TO_FILL_IN_MARKER("#P1#");
 
 extern const std::string GROUP_ALL = "---Group All---";
@@ -42,14 +33,14 @@ StepsTypeToString(StepsType st)
 	/* foo-bar -> Foo_Bar */
 	s_replace(s, "-", "_");
 
-	bool bCapitalizeNextLetter = true;
-	for (int i = 0; i < static_cast<int>(s.length()); i++) {
+	auto bCapitalizeNextLetter = true;
+	for (auto& i : s) {
 		if (bCapitalizeNextLetter) {
-			s[i] = toupper(s[i]);
+			i = toupper(i);
 			bCapitalizeNextLetter = false;
 		}
 
-		if (s[i] == '_')
+		if (i == '_')
 			bCapitalizeNextLetter = true;
 	}
 
@@ -102,12 +93,12 @@ static const char* GameplayModeNames[] = {
 XToString(GameplayMode);
 LuaXType(GameplayMode);
 
-static const char* SortOrderNames[] = {
-	"Preferred", "Group",	  "Title",	   "BPM",		 "Popularity",
-	"TopGrades", "Artist",	  "Genre",	   "ModeMenu",	 "Recent",
-	"Favorites", "Overall",	  "Stream",	   "Jumpstream", "Handstream",
-	"Stamina",	 "JackSpeed", "Chordjack", "Technical",	 "Length"
-};
+static const char* SortOrderNames[] = { "Group",	 "Title",	   "BPM",
+										"TopGrades", "Artist",	   "Genre",
+										"ModeMenu",	 "Favorites",  "Overall",
+										"Stream",	 "Jumpstream", "Handstream",
+										"Stamina",	 "JackSpeed",  "Chordjack",
+										"Technical", "Length" };
 XToString(SortOrder);
 StringToX(SortOrder);
 LuaXType(SortOrder);
@@ -142,8 +133,7 @@ LuaXType(TapNoteScore);
 TapNoteScore
 StringToTapNoteScore(const std::string& s)
 {
-	std::map<std::string, TapNoteScore>::iterator tns =
-	  tns_converter.conversion_map.find(s);
+	const auto tns = tns_converter.conversion_map.find(s);
 	if (tns != tns_converter.conversion_map.end()) {
 		return tns->second;
 	}
@@ -178,17 +168,17 @@ StringToHoldNoteScore(const std::string& s)
 	// for backward compatibility
 	if (s == "NG")
 		return HNS_LetGo;
-	else if (s == "OK")
+	if (s == "OK")
 		return HNS_Held;
 
 	// new style
-	else if (s == "None")
+	if (s == "None")
 		return HNS_None;
-	else if (s == "LetGo")
+	if (s == "LetGo")
 		return HNS_LetGo;
-	else if (s == "Held")
+	if (s == "Held")
 		return HNS_Held;
-	else if (s == "MissedHold")
+	if (s == "MissedHold")
 		return HNS_Missed;
 
 	return HoldNoteScore_Invalid;
@@ -206,19 +196,19 @@ StringToSkillset(const std::string& s)
 {
 	if (s == "Overall")
 		return Skill_Overall;
-	else if (s == "Stream")
+	if (s == "Stream")
 		return Skill_Stream;
-	else if (s == "Jumpstream")
+	if (s == "Jumpstream")
 		return Skill_Jumpstream;
-	else if (s == "Handstream")
+	if (s == "Handstream")
 		return Skill_Jumpstream;
-	else if (s == "Stamina")
+	if (s == "Stamina")
 		return Skill_Stamina;
-	else if (s == "JackSpeed")
+	if (s == "JackSpeed")
 		return Skill_JackSpeed;
-	else if (s == "Chordjack")
+	if (s == "Chordjack")
 		return Skill_Chordjack;
-	else if (s == "Technical")
+	if (s == "Technical")
 		return Skill_Technical;
 
 	return Skill_Overall;
@@ -358,16 +348,14 @@ DisplayBpms::Add(float f)
 float
 DisplayBpms::GetMin() const
 {
-	float fMin = FLT_MAX;
-	FOREACH_CONST(float, vfBpms, f)
-	{
-		if (*f != -1)
-			fMin = min(fMin, *f);
+	auto fMin = FLT_MAX;
+	for (const auto& f : vfBpms) {
+		if (f != -1.F)
+			fMin = std::min(fMin, f);
 	}
 	if (fMin == FLT_MAX)
 		return 0;
-	else
-		return fMin;
+	return fMin;
 }
 
 float
@@ -380,10 +368,9 @@ float
 DisplayBpms::GetMaxWithin(float highest) const
 {
 	float fMax = 0;
-	FOREACH_CONST(float, vfBpms, f)
-	{
-		if (*f != -1)
-			fMax = clamp(max(fMax, *f), 0, highest);
+	for (const auto& f : vfBpms) {
+		if (f != -1.F)
+			fMax = std::clamp(std::max(fMax, f), 0.F, highest);
 	}
 	return fMax;
 }
@@ -397,9 +384,8 @@ DisplayBpms::BpmIsConstant() const
 bool
 DisplayBpms::IsSecret() const
 {
-	FOREACH_CONST(float, vfBpms, f)
-	{
-		if (*f == -1)
+	for (const auto& f : vfBpms) {
+		if (f == -1.F)
 			return true;
 	}
 	return false;

@@ -44,14 +44,14 @@ SoundEffectControl::Update(float fDeltaTime)
 	if (SOUND_PROPERTY == "")
 		return;
 
-	float fLevel = INPUTMAPPER->GetLevel(GAME_BUTTON_EFFECT_UP,
-										 m_pPlayerState->m_PlayerNumber);
+	auto fLevel = INPUTMAPPER->GetLevel(GAME_BUTTON_EFFECT_UP,
+										m_pPlayerState->m_PlayerNumber);
 	fLevel -= INPUTMAPPER->GetLevel(GAME_BUTTON_EFFECT_DOWN,
 									m_pPlayerState->m_PlayerNumber);
 	CLAMP(fLevel, -1.0f, +1.0f);
 
 	if (LOCK_TO_HOLD) {
-		int iRow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
+		auto iRow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 		int iHoldsHeld, iHoldsLetGo;
 		HoldsBeingHeld(iRow, iHoldsHeld, iHoldsLetGo);
 
@@ -99,13 +99,13 @@ SoundEffectControl::HoldsBeingHeld(int iRow,
 								   int& iHoldsLetGo) const
 {
 	iHoldsHeld = iHoldsLetGo = 0;
-	for (int c = 0; c < m_pNoteData->GetNumTracks(); ++c) {
+	for (auto c = 0; c < m_pNoteData->GetNumTracks(); ++c) {
 		NoteData::TrackMap::const_iterator begin, end;
 		m_pNoteData->GetTapNoteRangeInclusive(c, iRow, iRow + 1, begin, end);
 		if (begin == end)
 			continue;
 
-		const TapNote& tn = begin->second;
+		const auto& tn = begin->second;
 		if (tn.type != TapNoteType_HoldHead)
 			continue;
 		if (tn.HoldResult.bActive)

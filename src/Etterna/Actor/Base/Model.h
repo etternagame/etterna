@@ -16,7 +16,7 @@ class Model : public Actor
   public:
 	Model();
 	~Model() override;
-	Model* Copy() const override;
+	[[nodiscard]] Model* Copy() const override;
 
 	void Clear();
 	void Load(const std::string& sFile);
@@ -37,26 +37,30 @@ class Model : public Actor
 	void SetPosition(float fSeconds);
 
 	void Update(float fDelta) override;
-	bool EarlyAbortDraw() const override;
+	[[nodiscard]] bool EarlyAbortDraw() const override;
 	void DrawPrimitives() override;
 
 	void DrawCelShaded();
 	void SetCelShading(bool bShading) { m_bDrawCelShaded = bShading; }
 
-	int GetNumStates() const override;
+	[[nodiscard]] int GetNumStates() const override;
 	void SetState(int iNewState) override;
-	float GetAnimationLengthSeconds() const override
+
+	[[nodiscard]] float GetAnimationLengthSeconds() const override
 	{
 		return m_animation_length_seconds;
 	}
 	virtual void RecalcAnimationLengthSeconds();
 	void SetSecondsIntoAnimation(float fSeconds) override;
 
-	std::string GetDefaultAnimation() const { return m_sDefaultAnimation; };
+	[[nodiscard]] std::string GetDefaultAnimation() const
+	{
+		return m_sDefaultAnimation;
+	};
 	void SetDefaultAnimation(const std::string& sAnimation,
 							 float fPlayRate = 1);
 
-	bool MaterialsNeedNormals() const;
+	[[nodiscard]] bool MaterialsNeedNormals() const;
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -66,7 +70,7 @@ class Model : public Actor
 
 	float m_animation_length_seconds;
 	vector<msMaterial> m_Materials;
-	map<std::string, msAnimation> m_mapNameToAnimation;
+	std::map<std::string, msAnimation> m_mapNameToAnimation;
 	const msAnimation* m_pCurAnimation;
 
 	static void SetBones(const msAnimation* pAnimation,

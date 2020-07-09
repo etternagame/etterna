@@ -1,9 +1,6 @@
 #include "Etterna/Globals/global.h"
-
 #include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Globals/GameLoop.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -14,7 +11,6 @@
 #include "ScreenOptionsMaster.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 #define LINE_NAMES THEME->GetMetric(m_sName, "LineNames")
@@ -61,7 +57,7 @@ ScreenOptionsMaster::Init()
 		ParseCommands(sRowCommands, cmds, false);
 
 		OptionRowHandler* pHand = OptionRowHandlerUtil::Make(cmds);
-		if (pHand == NULL) {
+		if (pHand == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid OptionRowHandler \"%s\" in \"%s:Line:%s\".",
 			  cmds.GetOriginalCommandString().c_str(),
@@ -96,7 +92,7 @@ ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 }
 
 void
-ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage SM)
+ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_ExportOptions) {
 		// Override ScreenOptions's calling of ExportOptions

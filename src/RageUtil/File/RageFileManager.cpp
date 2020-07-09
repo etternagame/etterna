@@ -10,6 +10,7 @@
 #include "arch/ArchHooks/ArchHooks.h"
 
 #include <cerrno>
+#include <algorithm>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -46,7 +47,7 @@ struct LoadedDriver
 };
 
 static vector<LoadedDriver*> g_pDrivers;
-static map<const RageFileBasic*, LoadedDriver*> g_mFileDriverMap;
+static std::map<const RageFileBasic*, LoadedDriver*> g_mFileDriverMap;
 
 static void
 ReferenceAllDrivers(vector<LoadedDriver*>& apDriverList)
@@ -206,7 +207,8 @@ ReadlinkRecursive(std::string sPath)
 	do {
 		sPath = dereferenced;
 		char derefPath[512];
-		ssize_t linkSize = readlink(sPath.c_str(), derefPath, sizeof(derefPath));
+		ssize_t linkSize =
+		  readlink(sPath.c_str(), derefPath, sizeof(derefPath));
 		if (linkSize != -1 && linkSize != sizeof(derefPath)) {
 			dereferenced = std::string(derefPath, linkSize);
 			if (derefPath[0] != '/') {
@@ -945,7 +947,7 @@ RageFileManager::ResolvePath(const std::string& path)
 }
 
 static bool
-SortBySecond(const pair<int, int>& a, const pair<int, int>& b)
+SortBySecond(const std::pair<int, int>& a, const std::pair<int, int>& b)
 {
 	return a.second < b.second;
 }
@@ -993,7 +995,7 @@ RageFileManager::Open(const std::string& sPath_, int mode, int& err)
 void
 RageFileManager::CacheFile(const RageFileBasic* fb, const std::string& sPath_)
 {
-	map<const RageFileBasic*, LoadedDriver*>::iterator it =
+	std::map<const RageFileBasic*, LoadedDriver*>::iterator it =
 	  g_mFileDriverMap.find(fb);
 
 	ASSERT_M(it != g_mFileDriverMap.end(),
@@ -1060,7 +1062,7 @@ RageFileManager::OpenForWriting(const std::string& sPath, int mode, int& iError)
 	vector<LoadedDriver*> apDriverList;
 	ReferenceAllDrivers(apDriverList);
 
-	vector<pair<int, int>> Values;
+	vector<std::pair<int, int>> Values;
 	for (unsigned i = 0; i < apDriverList.size(); ++i) {
 		LoadedDriver& ld = *apDriverList[i];
 		const std::string path = ld.GetPath(sPath);
@@ -1071,10 +1073,10 @@ RageFileManager::OpenForWriting(const std::string& sPath, int mode, int& iError)
 		if (value == -1)
 			continue;
 
-		Values.push_back(make_pair(i, value));
+		Values.push_back(std::make_pair(i, value));
 	}
 
-	stable_sort(Values.begin(), Values.end(), SortBySecond);
+	std::stable_sort(Values.begin(), Values.end(), SortBySecond);
 
 	/* Only write files if they'll be read.  If a file exists in any driver,
 	 * don't create or write files in any driver mounted after it, because when
@@ -1174,7 +1176,7 @@ GetDirListingRecursive(const std::string& sDir,
 	GetDirListing(sDir + sMatch, vsFiles, false, true);
 	vector<std::string> vsDirs;
 	GetDirListing(sDir + "*", vsDirs, true, true);
-	for (int i = 0; i < (int)vsDirs.size(); i++) {
+	for (int i = 0; i < static_cast<int>(vsDirs.size()); i++) {
 		GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, false, true);
 		GetDirListing(vsDirs[i] + "/*", vsDirs, true, true);
 		vsDirs.erase(vsDirs.begin() + i);
@@ -1197,7 +1199,7 @@ GetDirListingRecursive(RageFileDriver* prfd,
 	prfd->GetDirListing(sDir + sMatch, vsFiles, false, true);
 	vector<std::string> vsDirs;
 	prfd->GetDirListing(sDir + "*", vsDirs, true, true);
-	for (int i = 0; i < (int)vsDirs.size(); i++) {
+	for (int i = 0; i < static_cast<int>(vsDirs.size()); i++) {
 		prfd->GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, false, true);
 		prfd->GetDirListing(vsDirs[i] + "/*", vsDirs, true, true);
 		vsDirs.erase(vsDirs.begin() + i);

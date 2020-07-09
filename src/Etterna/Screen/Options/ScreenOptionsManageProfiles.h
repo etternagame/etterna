@@ -9,7 +9,7 @@ class ScreenOptionsManageProfiles : public ScreenOptions
 	void Init() override;
 	void BeginScreen() override;
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
   protected:
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;

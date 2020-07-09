@@ -33,13 +33,13 @@
  */
 
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader_ChannelSplit.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <climits>
 #include <set>
+#include <algorithm>
 
 class RageSoundReader_Split;
 
@@ -71,7 +71,7 @@ class RageSoundSplitterImpl
 
 	RageSoundReader* m_pSource;
 
-	set<RageSoundReader_Split*> m_apSounds;
+	std::set<RageSoundReader_Split*> m_apSounds;
 
 	/* m_sBuffer[0] corresponds to frame number m_iBufferPositionFrames. */
 	int m_iBufferPositionFrames;
@@ -185,11 +185,11 @@ RageSoundReader_Split::Read(float* pBuf, int iFrames)
 	if (iFramesAvailable == 0 && iRet < 0)
 		return iRet;
 
-	iFramesAvailable = min(iFramesAvailable, iFramesWanted);
+	iFramesAvailable = std::min(iFramesAvailable, iFramesWanted);
 
 	{
 		RageSoundMixBuffer mix;
-		for (int i = 0; i < (int)m_aChannels.size(); ++i) {
+		for (int i = 0; i < static_cast<int>(m_aChannels.size()); ++i) {
 			const ChannelMap& chan = m_aChannels[i];
 			mix.SetWriteOffset(chan.m_iToChannel);
 			mix.write(pSrc + chan.m_iFromChannel,
@@ -216,17 +216,17 @@ RageSoundSplitterImpl::ReadBuffer()
 	/* Discard any bytes that are no longer requested by any sound. */
 	int iMinFrameRequested = INT_MAX;
 	int iMaxFrameRequested = INT_MIN;
-	FOREACHS(RageSoundReader_Split*, m_apSounds, snd)
-	{
-		iMinFrameRequested = min(iMinFrameRequested, (*snd)->m_iPositionFrame);
-		iMaxFrameRequested =
-		  max(iMaxFrameRequested,
-			  (*snd)->m_iPositionFrame + (*snd)->m_iRequestFrames);
+	for (auto& snd : m_apSounds) {
+		iMinFrameRequested =
+		  std::min(iMinFrameRequested, snd->m_iPositionFrame);
+		iMaxFrameRequested = std::max(
+		  iMaxFrameRequested, snd->m_iPositionFrame + snd->m_iRequestFrames);
 	}
 
 	if (iMinFrameRequested > m_iBufferPositionFrames) {
 		int iEraseFrames = iMinFrameRequested - m_iBufferPositionFrames;
-		iEraseFrames = min(iEraseFrames, (int)m_sBuffer.size());
+		iEraseFrames =
+		  std::min(iEraseFrames, static_cast<int>(m_sBuffer.size()));
 		m_sBuffer.erase(m_sBuffer.begin(),
 						m_sBuffer.begin() +
 						  iEraseFrames * m_pSource->GetNumChannels());
@@ -265,7 +265,7 @@ void
 RageSoundReader_Split::AddSourceChannelToSound(int iFromChannel, int iToChannel)
 {
 	m_aChannels.push_back(ChannelMap(iFromChannel, iToChannel));
-	m_iNumOutputChannels = max(m_iNumOutputChannels, iToChannel + 1);
+	m_iNumOutputChannels = std::max(m_iNumOutputChannels, iToChannel + 1);
 }
 
 RageSoundSplitter::RageSoundSplitter(RageSoundReader* pSource)

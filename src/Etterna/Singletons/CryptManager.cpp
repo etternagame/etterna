@@ -11,7 +11,7 @@
 #include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 static const std::string PRIVATE_KEY_PATH = "Data/private.rsa";
 static const std::string PUBLIC_KEY_PATH = "Data/public.rsa";
@@ -94,7 +94,7 @@ static const int KEY_LENGTH = 1024;
  private.der
 */
 
-static PRNGWrapper* g_pPRNG = NULL;
+static PRNGWrapper* g_pPRNG = nullptr;
 
 CryptManager::CryptManager()
 {
@@ -494,7 +494,6 @@ CryptManager::GenerateRandomUUID()
 }
 
 // lua start
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the CryptManager. */
 class LunaCryptManager : public Luna<CryptManager>

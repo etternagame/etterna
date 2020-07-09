@@ -7,7 +7,7 @@ class ScreenSMOnlineLogin : public ScreenOptions
 {
   public:
 	void Init() override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	bool MenuStart(const InputEventPlus& input) override;
 	void SendLogin(std::string sPassword);
 	void SendLogin(std::string sPassword, std::string user);

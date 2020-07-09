@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <algorithm>
 
 /* enums and other definitions that only the calcmain and its components need */
 
@@ -31,8 +32,9 @@ downscale_low_accuracy_scores(float f, float sg) -> float
 {
 	return sg >= low_acc_cutoff
 			 ? f
-			 : min(max(f / pow(1.F + (low_acc_cutoff - sg), 1.25F), min_rating),
-				   max_rating);
+			 : std::min(std::max(f / powf(1.F + (low_acc_cutoff - sg), 1.25F),
+								 min_rating),
+						max_rating);
 }
 
 // kinda copied and pasted but also kinda use case specific
@@ -49,7 +51,7 @@ AggregateRatings(const vector<float>& skillsets,
 		for (auto& ss : skillsets) {
 			if (ss == Skill_Overall)
 				continue;
-			sum += max(0.0, 2.f / erfc(0.25 * (ss - rating)) - 2);
+			sum += std::max(0.0, 2.f / erfc(0.25 * (ss - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
 	if (iter == 11)

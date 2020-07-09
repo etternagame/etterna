@@ -153,6 +153,14 @@ local function arbitraryErrorBarValue(value)
 	wscale = errorBarFrameWidth / 180
 end
 
+local function spaceNotefieldCols(inc)
+	if inc == nil then inc = 0 end
+	local hCols = math.floor(#noteColumns/2)
+	for i, col in ipairs(noteColumns) do
+	    col:addx((i-hCols-1) * inc)
+	end
+end
+
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 								     **Wife deviance tracker. Basically half the point of the theme.**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,6 +229,9 @@ local t =
 			Movable.DeviceButton_k.condition = true
 			Movable.DeviceButton_l.element = lifebar
 			Movable.DeviceButton_l.condition = true
+			Movable.DeviceButton_n.condition = true
+			Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNotefieldCols
+			Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNotefieldCols
 		end
 
 		if lifebar ~= nil then
@@ -234,6 +245,8 @@ local t =
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
 			actor:zoomtoheight(MovableValues.NotefieldHeight)
 		end
+
+		spaceNotefieldCols(MovableValues.NotefieldSpacing)
 	end,
 	DoneLoadingNextSongMessageCommand = function(self)
 		-- put notefield y pos back on doneloadingnextsong because playlist courses reset this for w.e reason -mina
@@ -710,9 +723,9 @@ local replaySlider =
 	Widg.SliderBase {
 		width = width,
 		height = height,
-		min = GAMESTATE:GetCurrentSong():GetFirstSecond(),
+		min = GAMESTATE:GetCurrentSteps():GetFirstSecond(),
 		visible = true,
-		max = GAMESTATE:GetCurrentSong():GetLastSecond(),
+		max = GAMESTATE:GetCurrentSteps():GetLastSecond(),
 		onInit = function(slider)
 			slider.actor:diffusealpha(0)
 		end,
@@ -1144,14 +1157,14 @@ local pm =
 		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / (wodth)
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / (wodth)
 		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
 		cd:GetChild("cdbg"):diffusealpha(0)
 		self:SortByDrawOrder()
 		self:queuecommand("GraphUpdate")
 	end,
 	PracticeModeReloadMessageCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / wodth
 	end,
 	Def.Quad {
 		Name = "BG",

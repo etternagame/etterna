@@ -21,8 +21,8 @@ const Style*
 StyleID::ToStyle() const
 {
 	const Game* pGame = GAMEMAN->StringToGame(sGame);
-	if (pGame == NULL)
-		return NULL;
+	if (pGame == nullptr)
+		return nullptr;
 
 	return GAMEMAN->GameAndStringToStyle(pGame, sStyle);
 }

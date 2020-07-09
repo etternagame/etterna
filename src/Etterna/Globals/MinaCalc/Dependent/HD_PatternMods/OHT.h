@@ -23,7 +23,7 @@ struct OHTrillMod
 
 	float window_param = 3.F;
 
-	float min_mod = 0.85F;
+	float min_mod = 0.9F;
 	float max_mod = 1.F;
 	float base = 1.35F;
 	float suppression = 0.4F;
@@ -31,7 +31,7 @@ struct OHTrillMod
 	float cv_reset = 1.F;
 	float cv_threshhold = 0.5F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

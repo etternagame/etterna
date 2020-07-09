@@ -1,21 +1,16 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "ArrowEffects.h"
 #include "NoteField.h"
-#include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/ThemeMetric.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "PlayerPractice.h"
 
@@ -47,13 +42,10 @@ void
 PlayerPractice::Update(float fDeltaTime)
 {
 	const auto now = std::chrono::steady_clock::now();
-	if (!m_bLoaded || GAMESTATE->m_pCurSong == NULL)
+	if (!m_bLoaded || GAMESTATE->m_pCurSong == nullptr)
 		return;
 
 	ActorFrame::Update(fDeltaTime);
-
-	const float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
-	const int iSongRow = BeatToNoteRow(fSongBeat);
 
 	ArrowEffects::SetCurrentOptions(
 	  &m_pPlayerState->m_PlayerOptions.GetCurrent());

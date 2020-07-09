@@ -13,8 +13,9 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "PlayerReplay.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+
+#include <algorithm>
 
 static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
 static ThemeMetric<float> GRAY_ARROWS_Y_REVERSE;
@@ -86,23 +87,17 @@ PlayerReplay::UpdateHoldNotes(int iSongRow,
 	Player::UpdateHoldNotes(iSongRow, fDeltaTime, vTN);
 	ASSERT(!vTN.empty());
 
-	int iStartRow = vTN[0].iRow;
-	int iMaxEndRow = INT_MIN;
-	int iFirstTrackWithMaxEndRow = -1;
+	const auto iStartRow = vTN[0].iRow;
+	auto iMaxEndRow = INT_MIN;
+	auto iFirstTrackWithMaxEndRow = -1;
 
-	TapNoteSubType subType = TapNoteSubType_Invalid;
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
-		int iTrack = trtn->iTrack;
-		ASSERT(iStartRow == trtn->iRow);
-		TapNote& tn = *trtn->pTN;
-		int iEndRow = iStartRow + tn.iDuration;
+	auto subType = TapNoteSubType_Invalid;
+	for (auto& trtn : vTN) {
+		const auto iTrack = trtn.iTrack;
+		ASSERT(iStartRow == trtn.iRow);
+		const auto iEndRow = iStartRow + trtn.pTN->iDuration;
 		if (subType == TapNoteSubType_Invalid)
-			subType = tn.subType;
-
-		/* All holds must be of the same subType because fLife is handled
-		 * in different ways depending on the SubType. */
-		ASSERT(tn.subType == subType);
+			subType = trtn.pTN->subType;
 
 		if (iEndRow > iMaxEndRow) {
 			iMaxEndRow = iEndRow;
@@ -112,32 +107,30 @@ PlayerReplay::UpdateHoldNotes(int iSongRow,
 
 	ASSERT(iFirstTrackWithMaxEndRow != -1);
 
-	FOREACH(TrackRowTapNote, vTN, trtn)
-	{
-		TapNote& tn = *trtn->pTN;
-
+	for (auto& trtn : vTN) {
 		// check from now until the head of the hold to see if it should die
 		// possibly really bad, but we dont REALLY care that much about fps
 		// in replays, right?
-		bool holdDropped = false;
-		for (int yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped; yeet++) {
-			if (PlayerAI::DetermineIfHoldDropped(yeet, trtn->iTrack)) {
+		auto holdDropped = false;
+		for (auto yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped;
+			 yeet++) {
+			if (PlayerAI::DetermineIfHoldDropped(yeet, trtn.iTrack)) {
 				holdDropped = true;
 			}
 		}
 
 		if (holdDropped) // it should be dead
 		{
-			tn.HoldResult.bHeld = false;
-			tn.HoldResult.bActive = false;
-			tn.HoldResult.fLife = 0.f;
-			tn.HoldResult.hns = HNS_LetGo;
+			trtn.pTN->HoldResult.bHeld = false;
+			trtn.pTN->HoldResult.bActive = false;
+			trtn.pTN->HoldResult.fLife = 0.f;
+			trtn.pTN->HoldResult.hns = HNS_LetGo;
 
 			// score the dead hold
 			if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
 				IncrementMissCombo();
-			SetHoldJudgment(tn, iFirstTrackWithMaxEndRow, iSongRow);
-			HandleHoldScore(tn);
+			SetHoldJudgment(*trtn.pTN, iFirstTrackWithMaxEndRow, iSongRow);
+			HandleHoldScore(*trtn.pTN);
 			return;
 		}
 	}
@@ -148,16 +141,16 @@ PlayerReplay::UpdateHoldsAndRolls(
   float fDeltaTime,
   const std::chrono::steady_clock::time_point& now)
 {
-	const float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
-	const int iSongRow = BeatToNoteRow(fSongBeat);
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 	// Auto tap rolls
-	for (int iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
+	for (auto iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
 		int iHeadRow;
 		if (!m_NoteData.IsHoldNoteAtRow(iTrack, iSongRow, &iHeadRow))
 			iHeadRow = iSongRow;
 
-		const TapNote& tn = m_NoteData.GetTapNote(iTrack, iHeadRow);
+		const auto& tn = m_NoteData.GetTapNote(iTrack, iHeadRow);
 		if (tn.type != TapNoteType_HoldHead ||
 			tn.subType != TapNoteSubType_Roll)
 			continue;
@@ -174,22 +167,22 @@ PlayerReplay::UpdateHoldsAndRolls(
 
 		// Fast forward to the first that needs hold judging.
 		{
-			NoteData::all_tracks_iterator& iter = *m_pIterNeedsHoldJudging;
+			auto& iter = *m_pIterNeedsHoldJudging;
 			while (!iter.IsAtEnd() && iter.Row() <= iSongRow &&
 				   !NeedsHoldJudging(*iter))
 				++iter;
 		}
 
 		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
-		int iRowOfLastHoldNote = -1;
-		NoteData::all_tracks_iterator iter = *m_pIterNeedsHoldJudging; // copy
+		auto iRowOfLastHoldNote = -1;
+		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
-			TapNote& tn = *iter;
+			auto& tn = *iter;
 			if (tn.type != TapNoteType_HoldHead)
 				continue;
 
-			int iTrack = iter.Track();
-			int iRow = iter.Row();
+			const auto iTrack = iter.Track();
+			const auto iRow = iter.Row();
 			TrackRowTapNote trtn = { iTrack, iRow, &tn };
 
 			/* All holds must be of the same subType because fLife is handled
@@ -231,13 +224,13 @@ void
 PlayerReplay::Update(float fDeltaTime)
 {
 	const auto now = std::chrono::steady_clock::now();
-	if (!m_bLoaded || GAMESTATE->m_pCurSong == NULL)
+	if (!m_bLoaded || GAMESTATE->m_pCurSong == nullptr)
 		return;
 
 	ActorFrame::Update(fDeltaTime);
 
-	const float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
-	const int iSongRow = BeatToNoteRow(fSongBeat);
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 	ArrowEffects::SetCurrentOptions(
 	  &m_pPlayerState->m_PlayerOptions.GetCurrent());
@@ -251,9 +244,8 @@ PlayerReplay::Update(float fDeltaTime)
 	// Step with offsets if we have column data.
 	if (PlayerAI::pScoreData->GetReplayType() == 2) {
 		if (PlayerAI::TapExistsAtOrBeforeThisRow(iSongRow)) {
-			vector<TapReplayResult> trrVector =
-			  PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
-			for (TapReplayResult& trr : trrVector) {
+			auto trrVector = PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
+			for (auto& trr : trrVector) {
 				// LOG->Trace("\tPassing row %d pressed on %d", iSongRow,
 				// trr.row);
 				Step(trr.track, trr.row, now, false, false, 0.f, trr.row);
@@ -280,13 +272,13 @@ void
 PlayerReplay::CrossedRows(int iLastRowCrossed,
 						  const std::chrono::steady_clock::time_point& now)
 {
-	NoteData::all_tracks_iterator& iter = *m_pIterUncrossedRows;
-	int iLastSeenRow = -1;
+	auto& iter = *m_pIterUncrossedRows;
+	auto iLastSeenRow = -1;
 	for (; !iter.IsAtEnd() && iter.Row() <= iLastRowCrossed; ++iter) {
 		// Apply InitialHoldLife.
-		TapNote& tn = *iter;
-		int iRow = iter.Row();
-		int iTrack = iter.Track();
+		auto& tn = *iter;
+		auto iRow = iter.Row();
+		const auto iTrack = iter.Track();
 		switch (tn.type) {
 			case TapNoteType_HoldHead: {
 				tn.HoldResult.fLife = 1;
@@ -312,8 +304,8 @@ PlayerReplay::CrossedRows(int iLastRowCrossed,
 			// crossed a new not-empty row
 			iLastSeenRow = iRow;
 
-			for (int t = 0; t < m_NoteData.GetNumTracks(); ++t) {
-				const TapNote& tap = m_NoteData.GetTapNote(t, iRow);
+			for (auto t = 0; t < m_NoteData.GetNumTracks(); ++t) {
+				const auto& tap = m_NoteData.GetTapNote(t, iRow);
 				if (tap.type == TapNoteType_AutoKeysound) {
 					PlayKeysound(tap, TNS_None);
 				}
@@ -327,19 +319,18 @@ PlayerReplay::CrossedRows(int iLastRowCrossed,
 void
 PlayerReplay::HandleTapRowScore(unsigned row)
 {
-
-	TapNoteScore scoreOfLastTap =
+	const auto scoreOfLastTap =
 	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, row).result.tns;
-	const unsigned int iOldCombo =
+	const auto iOldCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iOldMissCombo =
+	const auto iOldMissCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
 
 	if (scoreOfLastTap == TNS_Miss)
 		m_LastTapNoteScore = TNS_Miss;
 
-	for (int track = 0; track < m_NoteData.GetNumTracks(); ++track) {
-		const TapNote& tn = m_NoteData.GetTapNote(track, row);
+	for (auto track = 0; track < m_NoteData.GetNumTracks(); ++track) {
+		const auto& tn = m_NoteData.GetTapNote(track, row);
 		// Mines cannot be handled here.
 		if (tn.type == TapNoteType_Empty || tn.type == TapNoteType_Fake ||
 			tn.type == TapNoteType_Mine || tn.type == TapNoteType_AutoKeysound)
@@ -348,12 +339,12 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 			m_pPrimaryScoreKeeper->HandleTapScore(tn);
 	}
 
-	if (m_pPrimaryScoreKeeper != NULL)
+	if (m_pPrimaryScoreKeeper != nullptr)
 		m_pPrimaryScoreKeeper->HandleTapRowScore(m_NoteData, row);
 
-	const unsigned int iCurCombo =
+	const auto iCurCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurCombo : 0;
-	const unsigned int iCurMissCombo =
+	const auto iCurMissCombo =
 	  m_pPlayerStageStats != nullptr ? m_pPlayerStageStats->m_iCurMissCombo : 0;
 
 	SendComboMessages(iOldCombo, iOldMissCombo);
@@ -391,7 +382,7 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 	// new max combo
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->m_iMaxCombo =
-		  max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
+		  std::max(m_pPlayerStageStats->m_iMaxCombo, iCurCombo);
 
 	/* Use the real current beat, not the beat we've been passed. That's because
 	 * we want to record the current life/combo to the current time; eg. if it's
@@ -409,8 +400,8 @@ void
 PlayerReplay::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 {
 	int iMissIfOlderThanThisRow;
-	const float fEarliestTime =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
+	const auto fEarliestTime =
+	  GAMESTATE->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
 	{
 		TimingData::GetBeatArgs beat_info;
 		beat_info.elapsed_time = fEarliestTime;
@@ -426,10 +417,10 @@ PlayerReplay::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 		}
 	}
 
-	NoteData::all_tracks_iterator& iter = *m_pIterNeedsTapJudging;
+	auto& iter = *m_pIterNeedsTapJudging;
 
 	for (; !iter.IsAtEnd() && iter.Row() < iMissIfOlderThanThisRow; ++iter) {
-		TapNote& tn = *iter;
+		auto& tn = *iter;
 
 		if (!NeedsTapJudging(tn))
 			continue;
@@ -470,15 +461,15 @@ PlayerReplay::Step(int col,
 {
 	// Do everything that depends on a timer here;
 	// set your breakpoints somewhere after this block.
-	std::chrono::duration<float> stepDelta =
+	const std::chrono::duration<float> stepDelta =
 	  std::chrono::steady_clock::now() - tm;
-	float stepAgo = stepDelta.count() - padStickSeconds;
+	const auto stepAgo = stepDelta.count() - padStickSeconds;
 
-	const float fLastBeatUpdate =
-	  m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
-	const float fPositionSeconds =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
-	const float fTimeSinceStep = stepAgo;
+	const auto fLastBeatUpdate =
+	  GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
+	const auto fPositionSeconds =
+	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
+	const auto fTimeSinceStep = stepAgo;
 
 	// LOG->Trace(ssprintf("col %d\n\trow %d", col, row));
 
@@ -486,24 +477,24 @@ PlayerReplay::Step(int col,
 	// test -mina ok this is 100% not the place to do this
 	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
 
-	float fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 	if (GAMESTATE->m_pCurSteps)
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
 
-	const int iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
+	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
 
 	if (col != -1 && !bRelease) {
 		// Update roll life
 		// Let's not check the whole array every time.
 		// Instead, only check 1 beat back.  Even 1 is overkill.
 		// Just update the life here and let Update judge the roll.
-		const int iStartCheckingAt = max(0, iSongRow - BeatToNoteRow(1));
+		const auto iStartCheckingAt = std::max(0, iSongRow - BeatToNoteRow(1));
 		NoteData::TrackMap::iterator begin, end;
 		m_NoteData.GetTapNoteRangeInclusive(
 		  col, iStartCheckingAt, iSongRow + 1, begin, end);
 		for (; begin != end; ++begin) {
-			TapNote& tn = begin->second;
+			auto& tn = begin->second;
 			if (tn.type != TapNoteType_HoldHead)
 				continue;
 
@@ -515,19 +506,19 @@ PlayerReplay::Step(int col,
 					break;
 			}
 
-			const int iRow = begin->first;
+			const auto iRow = begin->first;
 
-			HoldNoteScore hns = tn.HoldResult.hns;
+			const auto hns = tn.HoldResult.hns;
 			if (hns != HNS_None) // if this HoldNote already has a result
 				continue; // we don't need to update the logic for this one
 
 			// if they got a bad score or haven't stepped on the corresponding
 			// tap yet
-			const TapNoteScore tns = tn.result.tns;
-			bool bInitiatedNote = true;
+			const auto tns = tn.result.tns;
+			auto bInitiatedNote = true;
 			bInitiatedNote =
 			  tns != TNS_None && tns != TNS_Miss; // did they step on the start?
-			const int iEndRow = iRow + tn.iDuration;
+			const auto iEndRow = iRow + tn.iDuration;
 
 			if (bInitiatedNote && tn.HoldResult.fLife != 0) {
 				/* This hold note is not judged and we stepped on its head.
@@ -536,7 +527,7 @@ PlayerReplay::Step(int col,
 				 * clamped to iEndRow if the hold note is held all the way. */
 				// LOG->Trace("setting iLastHeldRow to min of iSongRow (%i) and
 				// iEndRow (%i)",iSongRow,iEndRow);
-				tn.HoldResult.iLastHeldRow = min(iSongRow, iEndRow);
+				tn.HoldResult.iLastHeldRow = std::min(iSongRow, iEndRow);
 			}
 
 			// If the song beat is in the range of this hold:
@@ -548,10 +539,10 @@ PlayerReplay::Step(int col,
 					if (ROLL_BODY_INCREMENTS_COMBO) {
 						IncrementCombo();
 
-						bool bBright = m_pPlayerStageStats &&
-									   m_pPlayerStageStats->m_iCurCombo >
-										 static_cast<unsigned int>(
-										   BRIGHT_GHOST_COMBO_THRESHOLD);
+						const auto bBright = m_pPlayerStageStats &&
+											 m_pPlayerStageStats->m_iCurCombo >
+											   static_cast<unsigned int>(
+												 BRIGHT_GHOST_COMBO_THRESHOLD);
 						if (m_pNoteField)
 							m_pNoteField->DidHoldNote(col, HNS_Held, bBright);
 					}
@@ -563,19 +554,19 @@ PlayerReplay::Step(int col,
 
 	// Check for tap
 	int iStepSearchRows;
-	static const float StepSearchDistance = GetMaxStepDistanceSeconds();
-	int skipstart = nerv[10]; // this is not robust need to come up with
-							  // something better later - Mina
+	static const auto StepSearchDistance = GetMaxStepDistanceSeconds();
+	const auto skipstart = nerv[10]; // this is not robust need to come up with
+									 // something better later - Mina
 
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
-		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				m_pPlayerState->m_Position.m_fMusicSeconds +
-				StepSearchDistance)) -
-				iSongRow,
-			  iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-						   m_pPlayerState->m_Position.m_fMusicSeconds -
-						   StepSearchDistance))) +
+		  std::max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+					 GAMESTATE->m_Position.m_fMusicSeconds +
+					 StepSearchDistance)) -
+					 iSongRow,
+				   iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+								GAMESTATE->m_Position.m_fMusicSeconds -
+								StepSearchDistance))) +
 		  ROWS_PER_BEAT;
 	} else {
 		/* Buncha bullshit that speeds up searching for the rows that we're
@@ -587,9 +578,9 @@ PlayerReplay::Step(int col,
 		if (nerv[nervpos] < iSongRow && nervpos < nerv.size())
 			nervpos += 1;
 
-		size_t SearchIndexBehind = nervpos;
-		size_t SearchIndexAhead = nervpos;
-		float SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
+		auto SearchIndexBehind = nervpos;
+		auto SearchIndexAhead = nervpos;
+		const auto SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
 
 		while (SearchIndexBehind > 1 &&
 			   SearchBeginTime -
@@ -603,28 +594,28 @@ PlayerReplay::Step(int col,
 				 StepSearchDistance)
 			SearchIndexAhead += 1;
 
-		int MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
-		int MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
+		const auto MaxLookBehind = nerv[nervpos] - nerv[SearchIndexBehind];
+		const auto MaxLookAhead = nerv[SearchIndexAhead] - nerv[nervpos];
 
 		if (nervpos > 0)
 			iStepSearchRows =
-			  (max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
+			  (std::max(MaxLookBehind, MaxLookAhead) + ROWS_PER_BEAT);
 	}
 
 	// calculate TapNoteScore
-	TapNoteScore score = TNS_None;
+	auto score = TNS_None;
 
-	int iRowOfOverlappingNoteOrRow = row;
+	auto iRowOfOverlappingNoteOrRow = row;
 	if (row == -1 && col != -1)
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
 		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
 
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
-		float fNoteOffset = 0.f;
+		auto fNoteOffset = 0.f;
 		// we need this later if we are autosyncing
-		const float fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
-		const float fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
+		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
+		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
 		if (row == -1) {
 			// We actually stepped on the note this long ago:
@@ -633,13 +624,13 @@ PlayerReplay::Step(int col,
 			/* GAMESTATE->m_fMusicSeconds is the music time as of
 			 * GAMESTATE->m_LastBeatUpdate. Figure out what the music time is as
 			 * of now. */
-			const float fCurrentMusicSeconds =
-			  m_pPlayerState->m_Position.m_fMusicSeconds +
+			const auto fCurrentMusicSeconds =
+			  GAMESTATE->m_Position.m_fMusicSeconds +
 			  (fLastBeatUpdate *
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 
 			// ... which means it happened at this point in the music:
-			const float fMusicSeconds =
+			const auto fMusicSeconds =
 			  fCurrentMusicSeconds -
 			  fTimeSinceStep *
 				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -653,10 +644,10 @@ PlayerReplay::Step(int col,
 		NOTESKIN->SetLastSeenColor(
 		  NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow)));
 
-		const float fSecondsFromExact = fabsf(fNoteOffset);
+		const auto fSecondsFromExact = fabsf(fNoteOffset);
 
 		TapNote* pTN = nullptr;
-		NoteData::iterator iter = m_NoteData.FindTapNote(
+		auto iter = m_NoteData.FindTapNote(
 		  col,
 		  GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, false));
 
@@ -720,9 +711,9 @@ PlayerReplay::Step(int col,
 								iRowOfOverlappingNoteOrRow);
 		if (GAMESTATE->CountNotesSeparately()) {
 			if (pTN->type != TapNoteType_Mine) {
-				const bool bBlind =
+				const auto bBlind =
 				  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
-				const bool bBright =
+				const auto bBright =
 				  (m_pPlayerStageStats &&
 				   m_pPlayerStageStats->m_iCurCombo >
 					 static_cast<unsigned int>(BRIGHT_GHOST_COMBO_THRESHOLD));
@@ -777,7 +768,7 @@ PlayerReplay::Step(int col,
 			  GetClosestNote(col, iSongRow, MAX_NOTE_ROW, MAX_NOTE_ROW, true);
 		}
 		if (iRowOfOverlappingNoteOrRow != -1) {
-			const TapNote& tn =
+			const auto& tn =
 			  m_NoteData.GetTapNote(col, iRowOfOverlappingNoteOrRow);
 			PlayKeysound(tn, score);
 		}

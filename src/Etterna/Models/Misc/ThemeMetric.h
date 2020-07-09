@@ -4,6 +4,7 @@
 #define THEME_METRIC_H
 
 #include "Etterna/Singletons/ThemeManager.h"
+
 #include <map>
 
 /** @brief The general interface for reading ThemeMetrics. */
@@ -59,19 +60,17 @@ class ThemeMetric : public IThemeMetric
 	/** @brief the metric's value. */
 	LuaReference m_Value;
 	mutable T m_currentValue;
-	bool m_bCallEachTime;
+	bool m_bCallEachTime{ false };
 
   public:
 	/* Initializing with no group and name is allowed; if you do this, you must
 	 * call Load() to set them.  This is done to allow initializing cached
 	 * metrics in one place for classes that don't receive their m_sName in the
 	 * constructor (everything except screens). */
-	ThemeMetric(const std::string& sGroup = "", const std::string& sName = "")
-	  : m_sGroup(sGroup)
-	  , m_sName(sName)
-	  , m_Value()
+	ThemeMetric(std::string sGroup = "", std::string sName = "")
+	  : m_sGroup(std::move(sGroup))
+	  , m_sName(std::move(sName))
 	  , m_currentValue(T())
-	  , m_bCallEachTime(false)
 	{
 		ThemeManager::Subscribe(this);
 	}
@@ -109,8 +108,8 @@ class ThemeMetric : public IThemeMetric
 	 * @brief Actually read the metric and get its data. */
 	void Read() override
 	{
-		if (m_sName != "" && THEME && THEME->IsThemeLoaded()) {
-			Lua* L = LUA->Get();
+		if (!m_sName.empty() && (THEME != nullptr) && THEME->IsThemeLoaded()) {
+			auto L = LUA->Get();
 			THEME->GetMetric(m_sGroup, m_sName, m_Value);
 			m_Value.PushSelf(L);
 			LuaHelpers::FromStack(L, m_currentValue, -1);
@@ -137,26 +136,26 @@ class ThemeMetric : public IThemeMetric
 	/**
 	 * @brief Retrieve the metric's name.
 	 * @return the metric's name. */
-	const std::string& GetName() const { return m_sName; }
+	auto GetName() const -> const std::string& { return m_sName; }
 	/**
 	 * @brief Retrieve the metric's group.
 	 * @return the metric's group. */
-	const std::string& GetGroup() const { return m_sGroup; }
+	auto GetGroup() const -> const std::string& { return m_sGroup; }
 
 	/**
 	 * @brief Retrieve the metric's value.
 	 * @return the metric's value. */
-	const T& GetValue() const
+	auto GetValue() const -> const T&
 	{
-		ASSERT(m_sName != "");
+		ASSERT(!m_sName.empty());
 		ASSERT_M(m_Value.IsSet(), m_sGroup + " " + m_sName);
 
 		if (m_bCallEachTime) {
-			Lua* L = LUA->Get();
+			auto L = LUA->Get();
 
 			// call function with 0 arguments and 1 result
 			m_Value.PushSelf(L);
-			std::string error = m_sGroup + ": " + m_sName + ": ";
+			auto error = m_sGroup + ": " + m_sName + ": ";
 			LuaHelpers::RunScriptOnStack(L, error, 0, 1, true);
 			if (!lua_isnil(L, -1)) {
 				LuaHelpers::Pop(L, m_currentValue);
@@ -171,7 +170,7 @@ class ThemeMetric : public IThemeMetric
 
 	operator const T&() const { return GetValue(); }
 
-	bool IsLoaded() const { return m_Value.IsSet(); }
+	auto IsLoaded() const -> bool { return m_Value.IsSet(); }
 
 	// Hacks for VC6 for all boolean operators.
 	// These three no longer appear to be required:
@@ -180,7 +179,10 @@ class ThemeMetric : public IThemeMetric
 	// bool operator || ( const T& input ) const { return GetValue() || input; }
 
 	// This one is still required in at least Visual Studio 2008:
-	bool operator==(const T& input) const { return GetValue() == input; }
+	auto operator==(const T& input) const -> bool
+	{
+		return GetValue() == input;
+	}
 };
 
 using MetricName1D = std::string (*)(size_t);
@@ -189,14 +191,14 @@ template<class T>
 class ThemeMetric1D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	vector<ThemeMetricT> m_metric;
+	std::vector<ThemeMetricT> m_metric;
 
   public:
 	ThemeMetric1D(const std::string& sGroup, MetricName1D pfn, size_t N)
 	{
 		Load(sGroup, pfn, N);
 	}
-	ThemeMetric1D() { Load(std::string(), NULL, 0); }
+	ThemeMetric1D() { Load(std::string(), nullptr, 0); }
 	void Load(const std::string& sGroup, MetricName1D pfn, size_t N)
 	{
 		m_metric.resize(N);
@@ -213,7 +215,11 @@ class ThemeMetric1D : public IThemeMetric
 		for (unsigned i = 0; i < m_metric.size(); i++)
 			m_metric[i].Clear();
 	}
-	const T& GetValue(size_t i) const { return m_metric[i].GetValue(); }
+
+	[[nodiscard]] auto GetValue(size_t i) const -> const T&
+	{
+		return m_metric[i].GetValue();
+	}
 };
 
 using MetricName2D = std::string (*)(size_t, size_t);
@@ -222,8 +228,8 @@ template<class T>
 class ThemeMetric2D : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	typedef vector<ThemeMetricT> ThemeMetricTVector;
-	vector<ThemeMetricTVector> m_metric;
+	using ThemeMetricTVector = std::vector<ThemeMetricT>;
+	std::vector<ThemeMetricTVector> m_metric;
 
   public:
 	ThemeMetric2D(const std::string& sGroup = "",
@@ -254,7 +260,7 @@ class ThemeMetric2D : public IThemeMetric
 			for (unsigned j = 0; j < m_metric[i].size(); j++)
 				m_metric[i][j].Clear();
 	}
-	const T& GetValue(size_t i, size_t j) const
+	auto GetValue(size_t i, size_t j) const -> const T&
 	{
 		return m_metric[i][j].GetValue();
 	}
@@ -266,18 +272,19 @@ template<class T>
 class ThemeMetricMap : public IThemeMetric
 {
 	using ThemeMetricT = ThemeMetric<T>;
-	map<std::string, ThemeMetricT> m_metric;
+	std::map<std::string, ThemeMetricT> m_metric;
 
   public:
-	ThemeMetricMap(const std::string& sGroup = "",
-				   MetricNameMap pfn = nullptr,
-				   const vector<std::string>& vsValueNames = vector<std::string>())
+	ThemeMetricMap(
+	  const std::string& sGroup = "",
+	  MetricNameMap pfn = nullptr,
+	  const std::vector<std::string>& vsValueNames = std::vector<std::string>())
 	{
 		Load(sGroup, pfn, vsValueNames);
 	}
 	void Load(const std::string& sGroup,
 			  MetricNameMap pfn,
-			  const vector<std::string>& vsValueNames)
+			  const std::vector<std::string>& vsValueNames)
 	{
 		m_metric.clear();
 		for (auto& s : vsValueNames) {
@@ -288,7 +295,7 @@ class ThemeMetricMap : public IThemeMetric
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
-		for (typename map<std::string, ThemeMetric<T>>::iterator m =
+		for (typename std::map<std::string, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
 			 ++m)
@@ -296,17 +303,17 @@ class ThemeMetricMap : public IThemeMetric
 	}
 	void Clear() override
 	{
-		for (typename map<std::string, ThemeMetric<T>>::iterator m =
+		for (typename std::map<std::string, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
 			 ++m)
 			m->second.Clear();
 	}
-	const T& GetValue(const std::string& s) const
+	auto GetValue(const std::string& s) const -> const T&
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.
-		typename map<std::string, ThemeMetric<T>>::const_iterator iter =
+		typename std::map<std::string, ThemeMetric<T>>::const_iterator iter =
 		  m_metric.find(s);
 		ASSERT(iter != m_metric.end());
 		return iter->second.GetValue();

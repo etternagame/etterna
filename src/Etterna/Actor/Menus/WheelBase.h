@@ -35,14 +35,14 @@ class WheelBase : public ActorFrame
 {
   public:
 	~WheelBase() override;
-	virtual void Load(const string& sType);
+	virtual void Load(const std::string& sType);
 	void BeginScreen();
 
 	void Update(float fDeltaTime) override;
 
 	virtual void Move(int n);
 	void ChangeMusicUnlessLocked(int n); /* +1 or -1 */
-	virtual void ChangeMusic(int dist);  /* +1 or -1 */
+	virtual void ChangeMusic(int dist);	 /* +1 or -1 */
 	virtual void SetOpenSection(const std::string& group) {}
 
 	// Return true if we're moving fast automatically.
@@ -80,8 +80,8 @@ class WheelBase : public ActorFrame
 	WheelItemBaseData* LastSelected();
 	WheelItemBase* GetWheelItem(int i)
 	{
-		if (i < 0 || i >= (int)m_WheelBaseItems.size())
-			return NULL;
+		if (i < 0 || i >= static_cast<int>(m_WheelBaseItems.size()))
+			return nullptr;
 		return m_WheelBaseItems[i];
 	}
 	std::string GetExpandedSectionName() { return m_sExpandedSectionName; }

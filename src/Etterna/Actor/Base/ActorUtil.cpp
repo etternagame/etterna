@@ -10,8 +10,12 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
-
 #include "arch/Dialog/Dialog.h"
+
+#include <map>
+#include <algorithm>
+
+using std::map;
 
 // Actor registration
 static map<std::string, CreateActorFn>* g_pmapRegistrees = nullptr;
@@ -28,8 +32,7 @@ ActorUtil::Register(const std::string& sClassName, CreateActorFn pfn)
 	if (g_pmapRegistrees == nullptr)
 		g_pmapRegistrees = new map<std::string, CreateActorFn>;
 
-	map<std::string, CreateActorFn>::iterator iter =
-	  g_pmapRegistrees->find(sClassName);
+	const auto iter = g_pmapRegistrees->find(sClassName);
 	ASSERT_M(
 	  iter == g_pmapRegistrees->end(),
 	  ssprintf("Actor class '%s' already registered.", sClassName.c_str()));
@@ -49,7 +52,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 
 	// If we know this is an exact match, don't bother with the GetDirListing,
 	// so "foo" doesn't partial match "foobar" if "foo" exists.
-	RageFileManager::FileType ft = FILEMAN->GetFileType(sPath);
+	const auto ft = FILEMAN->GetFileType(sPath);
 	if (ft != RageFileManager::TYPE_FILE && ft != RageFileManager::TYPE_DIR) {
 		vector<std::string> asPaths;
 		GetDirListing(sPath + "*", asPaths, false, true); // return path too
@@ -58,7 +61,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 			if (optional) {
 				return false;
 			}
-			std::string sError =
+			const auto sError =
 			  ssprintf("%s: references a file \"%s\" which doesn't exist",
 					   sName.c_str(),
 					   sPath.c_str());
@@ -79,7 +82,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 		THEME->FilterFileLanguages(asPaths);
 
 		if (asPaths.size() > 1) {
-			std::string sError = ssprintf(
+			auto sError = ssprintf(
 			  "%s: references a file \"%s\" which has multiple matches",
 			  sName.c_str(),
 			  sPath.c_str());
@@ -103,7 +106,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 	}
 
 	if (ft == RageFileManager::TYPE_DIR) {
-		std::string sLuaPath = sPath + "/default.lua";
+		const auto sLuaPath = sPath + "/default.lua";
 		if (DoesFileExist(sLuaPath)) {
 			sPath = sLuaPath;
 			return true;
@@ -162,7 +165,7 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 {
 	ASSERT(_pNode != nullptr);
 
-	XNode node = *_pNode;
+	auto node = *_pNode;
 
 	// Remove this in favor of using conditionals in Lua. -Chris
 	// There are a number of themes out there that depend on this (including
@@ -174,16 +177,15 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 	}
 
 	std::string sClass;
-	bool bHasClass = node.GetAttrValue("Class", sClass);
+	auto bHasClass = node.GetAttrValue("Class", sClass);
 	if (!bHasClass)
 		bHasClass = node.GetAttrValue("Type", sClass);
 
-	bool bLegacy = (node.GetAttr("_LegacyXml") != nullptr);
+	const auto bLegacy = (node.GetAttr("_LegacyXml") != nullptr);
 	if (!bHasClass && bLegacy)
 		sClass = GetLegacyActorClass(&node);
 
-	map<std::string, CreateActorFn>::iterator iter =
-	  g_pmapRegistrees->find(sClass);
+	const auto iter = g_pmapRegistrees->find(sClass);
 	if (iter == g_pmapRegistrees->end()) {
 		std::string sFile;
 		if (bLegacy && node.GetAttrValue("File", sFile) && !sFile.empty()) {
@@ -194,7 +196,7 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 			else
 				sPath = Dirname(GetSourcePath(&node)) + sFile;
 			if (ResolvePath(sPath, GetWhere(&node))) {
-				Actor* pNewActor = MakeActor(sPath, pParentActor);
+				auto pNewActor = MakeActor(sPath, pParentActor);
 				if (pNewActor == nullptr)
 					return nullptr;
 				if (pParentActor != nullptr)
@@ -205,16 +207,16 @@ ActorUtil::LoadFromNode(const XNode* _pNode, Actor* pParentActor)
 		}
 
 		// sClass is invalid
-		std::string sError = ssprintf("%s: invalid Class \"%s\"",
-									  ActorUtil::GetWhere(&node).c_str(),
-									  sClass.c_str());
+		const auto sError = ssprintf("%s: invalid Class \"%s\"",
+									 ActorUtil::GetWhere(&node).c_str(),
+									 sClass.c_str());
 		LuaHelpers::ReportScriptError(sError);
 		return new Actor; // Return a dummy object so that we don't crash in
 						  // AutoActor later.
 	}
 
-	const CreateActorFn& pfn = iter->second;
-	Actor* pRet = pfn();
+	const auto& pfn = iter->second;
+	auto pRet = pfn();
 
 	if (pParentActor != nullptr)
 		pRet->SetParent(pParentActor);
@@ -231,7 +233,7 @@ LoadXNodeFromLuaShowErrors(const std::string& sFile)
 	if (!GetFileContents(sFile, sScript))
 		return nullptr;
 
-	Lua* L = LUA->Get();
+	auto L = LUA->Get();
 
 	std::string sError;
 	if (!LuaHelpers::LoadScript(L, sScript, "@" + sFile, sError)) {
@@ -286,18 +288,18 @@ ActorUtil::LoadTableFromStackShowErrors(Lua* L)
 Actor*
 ActorUtil::MakeActor(const std::string& sPath_, Actor* pParentActor)
 {
-	std::string sPath(sPath_);
+	auto sPath(sPath_);
 
-	FileType ft = GetFileType(sPath);
+	auto ft = GetFileType(sPath);
 	switch (ft) {
 		case FT_Lua: {
-			unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
+			std::unique_ptr<XNode> pNode(LoadXNodeFromLuaShowErrors(sPath));
 			if (pNode.get() == nullptr) {
 				// XNode will warn about the error
 				return new Actor;
 			}
 
-			Actor* pRet = ActorUtil::LoadFromNode(pNode.get(), pParentActor);
+			auto pRet = ActorUtil::LoadFromNode(pNode.get(), pParentActor);
 			return pRet;
 		}
 		case FT_Xml: {
@@ -307,7 +309,7 @@ ActorUtil::MakeActor(const std::string& sPath_, Actor* pParentActor)
 			if (sPath.back() != '/')
 				sPath += '/';
 
-			std::string sXml = sPath + "default.xml";
+			auto sXml = sPath + "default.xml";
 			if (DoesFileExist(sXml))
 				return MakeActor(sXml, pParentActor);
 
@@ -363,7 +365,7 @@ ActorUtil::GetSourcePath(const XNode* pNode)
 std::string
 ActorUtil::GetWhere(const XNode* pNode)
 {
-	std::string sPath = GetSourcePath(pNode);
+	auto sPath = GetSourcePath(pNode);
 
 	int iLine;
 	if (pNode->GetAttrValue("_Line", iLine))
@@ -380,7 +382,7 @@ ActorUtil::GetAttrPath(const XNode* pNode,
 	if (!pNode->GetAttrValue(sName, sOut))
 		return false;
 
-	bool bIsRelativePath = sOut.front() != '/';
+	const auto bIsRelativePath = sOut.front() != '/';
 	if (bIsRelativePath) {
 		std::string sDir;
 		if (!pNode->GetAttrValue("_Dir", sDir)) {
@@ -400,7 +402,7 @@ apActorCommands
 ActorUtil::ParseActorCommands(const std::string& sCommands,
 							  const std::string& sName)
 {
-	Lua* L = LUA->Get();
+	auto L = LUA->Get();
 	LuaHelpers::ParseCommandList(L, sCommands, sName, false);
 	auto* pRet = new LuaReference;
 	pRet->SetFromStack(L);
@@ -419,8 +421,8 @@ ActorUtil::SetXY(Actor& actor, const std::string& sMetricsGroup)
 	 * these are both 0, leave the actor where it is.  If InitCommand doesn't,
 	 * then 0,0 is the default, anyway.
 	 */
-	float fX = THEME->GetMetricF(sMetricsGroup, actor.GetName() + "X");
-	float fY = THEME->GetMetricF(sMetricsGroup, actor.GetName() + "Y");
+	const auto fX = THEME->GetMetricF(sMetricsGroup, actor.GetName() + "X");
+	const auto fY = THEME->GetMetricF(sMetricsGroup, actor.GetName() + "Y");
 	if (fX != 0 || fY != 0)
 		actor.SetXY(fX, fY);
 }
@@ -456,7 +458,7 @@ ActorUtil::LoadAllCommandsFromName(Actor& actor,
 								   const std::string& sMetricsGroup,
 								   const std::string& sName)
 {
-	set<std::string> vsValueNames;
+	std::set<std::string> vsValueNames;
 	THEME->GetMetricsThatBeginWith(sMetricsGroup, sName, vsValueNames);
 
 	for (const auto& s : vsValueNames) {
@@ -557,7 +559,7 @@ ActorUtil::GetTypeExtensionList(FileType ft)
 void
 ActorUtil::AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to)
 {
-	fttel_cont_t::iterator ext_list = FileTypeToExtensionList.find(ft);
+	auto ext_list = FileTypeToExtensionList.find(ft);
 	if (ext_list != FileTypeToExtensionList.end()) {
 		add_to.reserve(add_to.size() + ext_list->second.size());
 		for (auto& curr : ext_list->second) {
@@ -569,9 +571,9 @@ ActorUtil::AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to)
 FileType
 ActorUtil::GetFileType(const std::string& sPath)
 {
-	std::string sExt = make_lower(GetExtension(sPath));
+	const auto sExt = make_lower(GetExtension(sPath));
 
-	etft_cont_t::iterator conversion_entry = ExtensionToFileType.find(sExt);
+	const auto conversion_entry = ExtensionToFileType.find(sExt);
 	if (conversion_entry != ExtensionToFileType.end()) {
 		return conversion_entry->second;
 	}
@@ -600,15 +602,15 @@ int
 ResolvePath(lua_State* L)
 {
 	std::string sPath(SArg(1));
-	int iLevel = IArg(2);
-	bool optional = lua_toboolean(L, 3) != 0;
+	const auto iLevel = IArg(2);
+	const auto optional = lua_toboolean(L, 3) != 0;
 	luaL_where(L, iLevel);
 	std::string sWhere = lua_tostring(L, -1);
 	if (sWhere.size() > 2 && sWhere.substr(sWhere.size() - 2, 2) == ": ")
 		sWhere = sWhere.substr(0, sWhere.size() - 2); // remove trailing ": "
 
 	LUA->YieldLua();
-	bool bRet = ActorUtil::ResolvePath(sPath, sWhere, optional);
+	const auto bRet = ActorUtil::ResolvePath(sPath, sWhere, optional);
 	LUA->UnyieldLua();
 
 	if (!bRet)
@@ -625,14 +627,14 @@ IsRegisteredClass(lua_State* L)
 static void
 name_error(Actor* p, lua_State* L)
 {
-	if (p->GetName() == "") {
+	if (p->GetName().empty()) {
 		luaL_error(L, "LoadAllCommands requires the actor to have a name.");
 	}
 }
 static int
 LoadAllCommands(lua_State* L)
 {
-	Actor* p = Luna<Actor>::check(L, 1);
+	auto p = Luna<Actor>::check(L, 1);
 	name_error(p, L);
 	ActorUtil::LoadAllCommands(p, SArg(2));
 	return 0;
@@ -640,7 +642,7 @@ LoadAllCommands(lua_State* L)
 static int
 LoadAllCommandsFromName(lua_State* L)
 {
-	Actor* p = Luna<Actor>::check(L, 1);
+	auto p = Luna<Actor>::check(L, 1);
 	name_error(p, L);
 	ActorUtil::LoadAllCommandsFromName(*p, SArg(2), SArg(3));
 	return 0;
@@ -648,7 +650,7 @@ LoadAllCommandsFromName(lua_State* L)
 static int
 LoadAllCommandsAndSetXY(lua_State* L)
 {
-	Actor* p = Luna<Actor>::check(L, 1);
+	auto p = Luna<Actor>::check(L, 1);
 	name_error(p, L);
 	ActorUtil::LoadAllCommandsAndSetXY(p, SArg(2));
 	return 0;

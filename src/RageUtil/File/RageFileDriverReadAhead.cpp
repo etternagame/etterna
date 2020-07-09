@@ -1,4 +1,4 @@
-﻿/*
+/*
  * When streaming files in gameplay, we need to be able to access files without
  * blocking. If we read data and it's not currently in the OS's read-ahead
  * cache, we'll block while it reads, which will usually take 10-20ms and cause
@@ -45,6 +45,8 @@
 #include "RageFileDriverReadAhead.h"
 #include "RageFileManager_ReadAhead.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 /* If GetFD() isn't supported on the underlying file, this filter won't do
  * anything. */
@@ -124,7 +126,7 @@ RageFileDriverReadAhead::ReadInternal(void* pBuffer, size_t iBytes)
 	int iRet = -1;
 	if (m_bReadAheadNeeded && m_iFilePos < (int)m_sBuffer.size()) {
 		// If we can serve data out of the buffer, use it.
-		iRet = min(iBytes, m_sBuffer.size() - m_iFilePos);
+		iRet = std::min(iBytes, m_sBuffer.size() - m_iFilePos);
 		memcpy(pBuffer, m_sBuffer.data() + m_iFilePos, iRet);
 	} else {
 		// Read out of the underlying file.

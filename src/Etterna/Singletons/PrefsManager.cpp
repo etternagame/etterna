@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
 #include "Etterna/Models/Misc/Preference.h"
@@ -8,6 +7,8 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
+
+#include <map>
 
 PrefsManager* PREFSMAN =
   nullptr; // global and accessible from anywhere in our program
@@ -290,7 +291,7 @@ PrefsManager::RestoreGamePrefs()
 
 	// load prefs
 	GamePrefs gp;
-	map<std::string, GamePrefs>::const_iterator iter =
+	const std::map<std::string, GamePrefs>::const_iterator iter =
 	  m_mapGameNameToGamePrefs.find(m_sCurrentGame);
 	if (iter != m_mapGameNameToGamePrefs.end())
 		gp = iter->second;
@@ -368,16 +369,6 @@ PrefsManager::ReadPrefsFromIni(const IniFile& ini,
 	}
 	s_iDepth--;
 
-	/*
-	IPreference *pPref = PREFSMAN->GetPreferenceByName( *sName );
-	if( pPref == NULL )
-	{
-		LOG->Warn( "Unknown preference in [%s]: %s", sClassName.c_str(),
-	sName->c_str() ); continue;
-	}
-	pPref->FromString( sVal );
-	*/
-
 	const XNode* pChild = ini.GetChild(sSection);
 	if (pChild != nullptr)
 		IPreference::ReadAllPrefsFromNode(pChild, bIsStatic);
@@ -450,15 +441,14 @@ PrefsManager::SavePrefsToIni(IniFile& ini)
 		pNode = ini.AppendChild("Options");
 	IPreference::SavePrefsToNode(pNode);
 
-	FOREACHM_CONST(std::string, GamePrefs, m_mapGameNameToGamePrefs, iter)
-	{
-		std::string sSection = "Game-" + std::string(iter->first);
+	for (auto& iter : m_mapGameNameToGamePrefs) {
+		std::string sSection = "Game-" + std::string(iter.first);
 
 		// todo: write more values here? -aj
-		ini.SetValue(sSection, "Announcer", iter->second.m_sAnnouncer);
-		ini.SetValue(sSection, "Theme", iter->second.m_sTheme);
+		ini.SetValue(sSection, "Announcer", iter.second.m_sAnnouncer);
+		ini.SetValue(sSection, "Theme", iter.second.m_sTheme);
 		ini.SetValue(
-		  sSection, "DefaultModifiers", iter->second.m_sDefaultModifiers);
+		  sSection, "DefaultModifiers", iter.second.m_sDefaultModifiers);
 	}
 }
 
@@ -486,7 +476,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
   public:
 	static int GetPreference(T* p, lua_State* L)
 	{
-		std::string sName = SArg(1);
+		const std::string sName = SArg(1);
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
 		if (pPref == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -500,7 +490,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 	}
 	static int SetPreference(T* p, lua_State* L)
 	{
-		std::string sName = SArg(1);
+		const std::string sName = SArg(1);
 
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
 		if (pPref == nullptr) {
@@ -515,7 +505,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 	}
 	static int SetPreferenceToDefault(T* p, lua_State* L)
 	{
-		std::string sName = SArg(1);
+		const std::string sName = SArg(1);
 
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
 		if (pPref == nullptr) {
@@ -533,7 +523,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 	}
 	static int PreferenceExists(T* p, lua_State* L)
 	{
-		std::string sName = SArg(1);
+		const std::string sName = SArg(1);
 
 		IPreference* pPref = IPreference::GetPreferenceByName(sName);
 		if (pPref == nullptr) {

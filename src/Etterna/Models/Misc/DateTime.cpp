@@ -69,7 +69,7 @@ DateTime::operator>(const DateTime& other) const
 DateTime
 DateTime::GetNowDateTime()
 {
-	time_t now = time(NULL);
+	auto now = time(nullptr);
 	tm tNow;
 	localtime_r(&now, &tNow);
 	DateTime dtNow;
@@ -87,7 +87,7 @@ DateTime::GetNowDateTime()
 DateTime
 DateTime::GetNowDate()
 {
-	DateTime tNow = GetNowDateTime();
+	auto tNow = GetNowDateTime();
 	tNow.StripTime();
 	return tNow;
 }
@@ -104,8 +104,7 @@ DateTime::StripTime()
 std::string
 DateTime::GetString() const
 {
-	std::string s =
-	  ssprintf("%d-%02d-%02d", tm_year + 1900, tm_mon + 1, tm_mday);
+	auto s = ssprintf("%d-%02d-%02d", tm_year + 1900, tm_mon + 1, tm_mday);
 
 	if (tm_hour != 0 || tm_min != 0 || tm_sec != 0) {
 		s += ssprintf(" %02d:%02d:%02d", tm_hour, tm_min, tm_sec);
@@ -211,7 +210,7 @@ LastWeekToString(int iLastWeekIndex)
 std::string
 LastDayToLocalizedString(int iLastDayIndex)
 {
-	std::string s = LastDayToString(iLastDayIndex);
+	auto s = LastDayToString(iLastDayIndex);
 	s_replace(s, "Day", "");
 	s_replace(s, "Ago", " Ago");
 	return s;
@@ -220,7 +219,7 @@ LastDayToLocalizedString(int iLastDayIndex)
 std::string
 LastWeekToLocalizedString(int iLastWeekIndex)
 {
-	std::string s = LastWeekToString(iLastWeekIndex);
+	auto s = LastWeekToString(iLastWeekIndex);
 	s_replace(s, "Week", "");
 	s_replace(s, "Ago", " Ago");
 	return s;
@@ -229,7 +228,7 @@ LastWeekToLocalizedString(int iLastWeekIndex)
 std::string
 HourInDayToLocalizedString(int iHourIndex)
 {
-	int iBeginHour = iHourIndex;
+	auto iBeginHour = iHourIndex;
 	iBeginHour--;
 	wrap(iBeginHour, 24);
 	iBeginHour++;
@@ -267,7 +266,7 @@ AddDays(tm start, int iDaysToMove)
 	 * n*60*60*24 seconds ago, where the above code always returns the same time
 	 * of day.  I prefer the above behavior, but I'm not sure that it
 	 * mattersmatters. */
-	time_t seconds = mktime(&start);
+	auto seconds = mktime(&start);
 	seconds += iDaysToMove * 60 * 60 * 24;
 
 	tm time;
@@ -284,7 +283,7 @@ GetYesterday(tm start)
 int
 GetDayOfWeek(tm time)
 {
-	int iDayOfWeek = time.tm_wday;
+	const auto iDayOfWeek = time.tm_wday;
 	ASSERT(iDayOfWeek < DAYS_IN_WEEK);
 	return iDayOfWeek;
 }
@@ -306,7 +305,7 @@ GetDayInYearAndYear(int iDayInYearIndex, int iYear)
 	when.tm_mon = 0;
 	when.tm_mday = iDayInYearIndex + 1;
 	when.tm_year = iYear - 1900;
-	time_t then = mktime(&when);
+	auto then = mktime(&when);
 
 	localtime_r(&then, &when);
 	return when;

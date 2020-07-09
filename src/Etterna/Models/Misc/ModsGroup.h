@@ -3,7 +3,10 @@
 
 #include "EnumHelper.h"
 #include "RageUtil/Misc/RageTimer.h"
+// ReSharper disable once CppUnusedIncludeDirective MACROS LUL
 #include "Etterna/Models/Songs/SongOptions.h"
+
+#include <cassert>
 
 enum ModsLevel
 {
@@ -48,13 +51,13 @@ class ModsGroup
 	void Update(float fDelta)
 	{
 		// Don't let the mod approach speed be affected by Tab.
-		// TODO: Find a more elegant way of handling this.
+		// TODO(Sam): Find a more elegant way of handling this.
 		fDelta = m_Timer.GetDeltaTime();
 		m_[ModsLevel_Current].Approach(m_[ModsLevel_Song], fDelta);
 	}
 
 	template<typename U>
-	inline void Assign(ModsLevel level, U T::*member, const U& val)
+	void Assign(ModsLevel level, U T::*member, const U& val)
 	{
 		if (level != ModsLevel_Song)
 			m_[ModsLevel_Current].*member = val;
@@ -63,12 +66,12 @@ class ModsGroup
 	}
 
 	template<typename U, int n>
-	inline void Assign_n(ModsLevel level,
-						 U (T::*member)[n],
-						 size_t index,
-						 const U& val)
+	void Assign_n(ModsLevel level,
+				  U (T::*member)[n],
+				  size_t index,
+				  const U& val)
 	{
-		DEBUG_ASSERT(index < n);
+		assert(index < n);
 		if (level != ModsLevel_Song)
 			(m_[ModsLevel_Current].*member)[index] = val;
 		for (; level < ModsLevel_Current; enum_add(level, 1))
@@ -104,16 +107,28 @@ class ModsGroup
 		m_[ModsLevel_Current] = m_[level];
 	}
 
-	const T& Get(ModsLevel l) const { return m_[l]; }
-	const T& GetPreferred() const { return m_[ModsLevel_Preferred]; }
-	const T& GetStage() const { return m_[ModsLevel_Stage]; }
-	const T& GetSong() const { return m_[ModsLevel_Song]; }
-	const T& GetCurrent() const { return m_[ModsLevel_Current]; }
-	T& Get(ModsLevel l) { return m_[l]; }
-	T& GetPreferred() { return m_[ModsLevel_Preferred]; }
-	T& GetStage() { return m_[ModsLevel_Stage]; }
-	T& GetSong() { return m_[ModsLevel_Song]; }
-	T& GetCurrent() { return m_[ModsLevel_Current]; }
+	[[nodiscard]] auto Get(ModsLevel l) const -> const T& { return m_[l]; }
+	[[nodiscard]] auto GetPreferred() const -> const T&
+	{
+		return m_[ModsLevel_Preferred];
+	}
+	[[nodiscard]] auto GetStage() const -> const T&
+	{
+		return m_[ModsLevel_Stage];
+	}
+	[[nodiscard]] auto GetSong() const -> const T&
+	{
+		return m_[ModsLevel_Song];
+	}
+	[[nodiscard]] auto GetCurrent() const -> const T&
+	{
+		return m_[ModsLevel_Current];
+	}
+	auto Get(ModsLevel l) -> T& { return m_[l]; }
+	auto GetPreferred() -> T& { return m_[ModsLevel_Preferred]; }
+	auto GetStage() -> T& { return m_[ModsLevel_Stage]; }
+	auto GetSong() -> T& { return m_[ModsLevel_Song]; }
+	auto GetCurrent() -> T& { return m_[ModsLevel_Current]; }
 };
 
 #endif

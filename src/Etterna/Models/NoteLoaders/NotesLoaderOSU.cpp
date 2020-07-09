@@ -7,6 +7,13 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <string>
+#include <map>
+#include <algorithm>
+
+using std::map;
+using std::string;
+
 vector<string>
 split(string str, string token)
 {
@@ -135,25 +142,28 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 void
 OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
-	vector<pair<int, float>> tp;
+	vector<std::pair<int, float>> tp;
 
 	for (auto& it : parsedData["TimingPoints"]) {
 		auto line = it.first;
 		auto values = split(line, ",");
 
-		tp.emplace_back(pair<int, float>(stoi(values[0]), stof(values[1])));
+		tp.emplace_back(
+		  std::pair<int, float>(stoi(values[0]), stof(values[1])));
 	}
-	sort(tp.begin(), tp.end(), [](pair<int, float> a, pair<int, float> b) {
-		return a.first < b.first;
-	});
+	sort(tp.begin(),
+		 tp.end(),
+		 [](std::pair<int, float> a, std::pair<int, float> b) {
+			 return a.first < b.first;
+		 });
 
-	vector<pair<int, float>> bpms;
+	vector<std::pair<int, float>> bpms;
 	float lastpositivebpm = 0;
 	int offset = 0;
 	int lastoffset = -9999;
 	for (auto x : tp) {
 		float bpm;
-		offset = max(0, x.first);
+		offset = std::max(0, x.first);
 		if (x.second > 0) {
 			bpm = 60000 / x.second;
 			lastpositivebpm = bpm;
@@ -162,12 +172,12 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 			bpm = lastpositivebpm * abs(x.second / 100);
 		}
 		if (offset == lastoffset) {
-			bpms[bpms.size() - 1] =
-			  pair<int, float>(offset, bpm); // this because of dumb stuff like
-											 // in 4k Luminal dan (not robust,
-											 // but works for most files)
+			bpms[bpms.size() - 1] = std::pair<int, float>(
+			  offset, bpm); // this because of dumb stuff like
+							// in 4k Luminal dan (not robust,
+							// but works for most files)
 		} else {
-			bpms.emplace_back(pair<int, float>(offset, bpm));
+			bpms.emplace_back(std::pair<int, float>(offset, bpm));
 		}
 		lastoffset = offset;
 	}
@@ -237,8 +247,8 @@ OsuLoader::LoadChartData(Song* song,
 
 	chart->SetMeter(song->GetAllSteps().size());
 
-	chart->SetDifficulty(
-	  (Difficulty)(min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
+	chart->SetDifficulty((Difficulty)(
+	  std::min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
 
 	chart->TidyUpData();
 
@@ -302,7 +312,7 @@ OsuLoader::LoadNoteDataFromParsedData(
 
 	int firstTap = 0;
 	if (taps.size() > 0 && holds.size() > 0) {
-		firstTap = min(taps[0].ms, holds[0].msStart);
+		firstTap = std::min(taps[0].ms, holds[0].msStart);
 	} else if (taps.size() > 0) {
 		firstTap = taps[0].ms;
 	} else {
@@ -333,7 +343,6 @@ OsuLoader::LoadNoteDataFromParsedData(
 			  TAP_ORIGINAL_LIFT);
 	}
 
-	// out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
 	out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = -firstTap / 1000.0f;
 
 	out->SetNoteData(newNoteData);

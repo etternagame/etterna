@@ -15,6 +15,7 @@
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ScreenManager.h"
+
 #include <chrono>
 
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();

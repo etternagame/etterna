@@ -24,7 +24,7 @@ struct TheThingLookerFinderThing
 	float step_tol = 17.5F;
 	float scaler = 0.2F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
@@ -81,7 +81,7 @@ struct TheThingLookerFinderThing2
 	float step_tol = 17.5F;
 	float scaler = 0.2F;
 
-	const vector<pair<std::string, float*>> _params{
+	const vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },

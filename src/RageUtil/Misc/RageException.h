@@ -2,6 +2,7 @@
 #define RAGE_EXCEPTION_H
 
 #include "config.hpp"
+#include <string>
 
 /**
  * @brief Namespace for throwing fatal errors.

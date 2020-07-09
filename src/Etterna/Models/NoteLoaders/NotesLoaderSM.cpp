@@ -11,7 +11,11 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Models/Misc/Foreach.h"
+
+#include <algorithm>
+
+using std::pair;
+using std::string;
 
 // Everything from this line to the creation of sm_parser_helper exists to
 // speed up parsing by allowing the use of std::map.  All these functions
@@ -321,7 +325,6 @@ SMLoader::LoadFromTokens(std::string sStepsType,
 						 std::string sDescription,
 						 std::string sDifficulty,
 						 std::string sMeter,
-						 std::string sRadarValues,
 						 std::string sNoteData,
 						 Steps& out)
 {
@@ -455,13 +458,13 @@ SMLoader::ParseBPMs(vector<pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fBeat, fNewBPM));
+		out.emplace_back(std::make_pair(fBeat, fNewBPM));
 	}
 }
 
 void
 SMLoader::ParseStops(vector<pair<float, float>>& out,
-					 const std::string line,
+					 const std::string& line,
 					 const int rowsPerBeat)
 {
 	vector<std::string> arrayFreezeExpressions;
@@ -488,7 +491,7 @@ SMLoader::ParseStops(vector<pair<float, float>>& out,
 			continue;
 		}
 
-		out.emplace_back(make_pair(fFreezeBeat, fFreezeSeconds));
+		out.emplace_back(std::make_pair(fFreezeBeat, fFreezeSeconds));
 	}
 }
 
@@ -766,10 +769,9 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 	vector<std::string> vs1;
 	split(line, ",", vs1);
 
-	FOREACH_CONST(std::string, vs1, s1)
-	{
+	for (auto& s1 : vs1) {
 		vector<std::string> vs2;
-		split(*s1, "=", vs2);
+		split(s1, "=", vs2);
 
 		if (vs2.size() < 3) {
 			LOG->UserLog("Song file",
@@ -847,7 +849,7 @@ SMLoader::ProcessTickcounts(TimingData& out,
 		const auto fTickcountBeat =
 		  RowToBeat(arrayTickcountValues[0], rowsPerBeat);
 		auto iTicks =
-		  clamp(atoi(arrayTickcountValues[1].c_str()), 0, ROWS_PER_BEAT);
+		  std::clamp(atoi(arrayTickcountValues[1].c_str()), 0, ROWS_PER_BEAT);
 
 		out.AddSegment(TickcountSegment(BeatToNoteRow(fTickcountBeat), iTicks));
 	}
@@ -973,7 +975,8 @@ SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 	vector<std::string> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
-	aBGChangeValues.resize(min(static_cast<int>(aBGChangeValues.size()), 11));
+	aBGChangeValues.resize(
+	  std::min(static_cast<int>(aBGChangeValues.size()), 11));
 
 	std::string aaa;
 	switch (aBGChangeValues.size()) {
@@ -1190,7 +1193,7 @@ SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 						   sParams[2],
 						   sParams[3],
 						   sParams[4],
-						   sParams[5],
+						   /*sParams[5],*/ // radar values
 						   sParams[6],
 						   *pNewNotes);
 
@@ -1289,16 +1292,6 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 							 sSongFullTitle.c_str());
 				return false;
 			}
-
-			if (pSong->GetNumStepsLoadedFromProfile(slot) >=
-				MAX_EDITS_PER_SONG_PER_PROFILE) {
-				LOG->UserLog("Song file",
-							 sSongFullTitle,
-							 "already has the maximum number of edits allowed "
-							 "for ProfileSlotP%d.",
-							 slot + 1);
-				return false;
-			}
 		}
 
 		else if (sValueName == "NOTES") {
@@ -1328,7 +1321,7 @@ SMLoader::LoadEditFromMsd(const MsdFile& msd,
 						   sParams[2],
 						   sParams[3],
 						   sParams[4],
-						   sParams[5],
+						   /*sParams[5],*/ // radar values
 						   sParams[6],
 						   *pNewNotes);
 

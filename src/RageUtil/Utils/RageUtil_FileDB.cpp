@@ -4,6 +4,12 @@
 #include "RageUtil.h"
 #include "RageUtil_FileDB.h"
 
+#include <map>
+#include <set>
+
+using std::map;
+using std::set;
+
 /* Search for "beginning*containing*ending". */
 void
 FileSet::GetFilesMatching(const std::string& sBeginning_,
@@ -181,7 +187,7 @@ FilenameDB::ResolvePath(std::string& sPath)
 
 	/* Resolve each component. */
 	std::string ret = "";
-	const FileSet* fs = NULL;
+	const FileSet* fs = nullptr;
 
 	static const std::string slash("/");
 	for (;;) {
@@ -189,7 +195,7 @@ FilenameDB::ResolvePath(std::string& sPath)
 		if (iBegin == (int)sPath.size())
 			break;
 
-		if (fs == NULL)
+		if (fs == nullptr)
 			fs = GetFileSet(ret);
 		else
 			m_Mutex.Lock(); /* for access to fs */
@@ -315,7 +321,7 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 		map<std::string, FileSet*>::iterator i = dirs.find(sLower);
 		if (!bCreate) {
 			if (i == dirs.end())
-				return NULL;
+				return nullptr;
 			return i->second;
 		}
 
@@ -364,7 +370,7 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 	 * parent to the newly-created directory.  Find the pointer we need to set.
 	 * Be careful of order of operations, here: since we just unlocked, any
 	 * this->dirs searches we did previously are no longer valid. */
-	FileSet** pParentDirp = NULL;
+	FileSet** pParentDirp = nullptr;
 	if (sDir != "/") {
 		std::string sParent = Dirname(sDir);
 		if (sParent == "./")
@@ -372,7 +378,7 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 
 		/* This also re-locks m_Mutex for us. */
 		FileSet* pParent = GetFileSet(sParent);
-		if (pParent != NULL) {
+		if (pParent != nullptr) {
 			set<File>::iterator it = pParent->files.find(File(Basename(sDir)));
 			if (it != pParent->files.end())
 				pParentDirp = const_cast<FileSet**>(&it->dirp);
@@ -381,7 +387,7 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 		m_Mutex.Lock();
 	}
 
-	if (pParentDirp != NULL)
+	if (pParentDirp != nullptr)
 		*pParentDirp = pRet;
 
 	pRet->age.Touch();
@@ -475,7 +481,7 @@ FilenameDB::DelFileSet(map<std::string, FileSet*>::iterator dir)
 			 ++f) {
 			File& ff = (File&)*f;
 			if (ff.dirp == fs)
-				ff.dirp = NULL;
+				ff.dirp = nullptr;
 		}
 	}
 
@@ -505,7 +511,7 @@ FilenameDB::DelFile(const std::string& sPath)
 void
 FilenameDB::FlushDirCache(const std::string& /* sDir */)
 {
-	FileSet* pFileSet = NULL;
+	FileSet* pFileSet = nullptr;
 	m_Mutex.Lock();
 
 	for (;;) {
@@ -575,7 +581,7 @@ FilenameDB::GetFile(const std::string& sPath)
 	set<File>::iterator it;
 	it = fs->files.find(File(Name));
 	if (it == fs->files.end())
-		return NULL;
+		return nullptr;
 
 	return &*it;
 }
@@ -586,8 +592,8 @@ FilenameDB::GetFilePriv(const std::string& path)
 	ASSERT(!m_Mutex.IsLockedByThisThread());
 
 	const File* pFile = GetFile(path);
-	void* pRet = NULL;
-	if (pFile != NULL)
+	void* pRet = nullptr;
+	if (pFile != nullptr)
 		pRet = pFile->priv;
 
 	m_Mutex.Unlock(); /* locked by GetFileSet */

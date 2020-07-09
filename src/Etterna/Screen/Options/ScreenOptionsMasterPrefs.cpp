@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameManager.h"
@@ -206,7 +205,7 @@ LanguageChoices(vector<std::string>& out)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	for (auto& s : vs) {
 		const LanguageInfo* pLI = GetLanguageInfo(s);
@@ -223,7 +222,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	if (ToSel) {
 		sel = -1;
@@ -260,8 +259,9 @@ static void
 ThemeChoices(vector<std::string>& out)
 {
 	THEME->GetSelectableThemeNames(out);
-	FOREACH(std::string, out, s)
-	*s = THEME->GetThemeDisplayName(*s);
+	for (auto& s : out) {
+		s = THEME->GetThemeDisplayName(s);
+	}
 }
 
 static DisplaySpecs display_specs;
@@ -472,7 +472,6 @@ LifeDifficulty(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 static int
 GetTimingDifficulty()
@@ -563,11 +562,10 @@ DisplayResolutionM(int& sel, bool ToSel, const ConfOption* pConfOption)
 
 	if (res_choices.empty()) {
 		cache_display_specs();
-		FOREACHS_CONST(DisplaySpec, display_specs, iter)
-		{
-			if (iter->currentMode() != nullptr) {
-				res_choices.push_back(res_t(iter->currentMode()->width,
-											iter->currentMode()->height));
+		for (auto& iter : display_specs) {
+			if (iter.currentMode() != nullptr) {
+				res_choices.push_back(
+				  res_t(iter.currentMode()->width, iter.currentMode()->height));
 			}
 		}
 	}

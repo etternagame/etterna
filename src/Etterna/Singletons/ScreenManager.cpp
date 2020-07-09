@@ -74,6 +74,10 @@
 #include "ScreenManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
+
+#include <set>
+#include <map>
 
 ScreenManager* SCREENMAN =
   nullptr; // global and accessible from anywhere in our program
@@ -82,7 +86,7 @@ static Preference<bool> g_bDelayedScreenLoad("DelayedScreenLoad", false);
 // static Preference<bool> g_bPruneFonts( "PruneFonts", true );
 
 // Screen registration
-static map<std::string, CreateScreenFn>* g_pmapRegistrees = nullptr;
+static std::map<std::string, CreateScreenFn>* g_pmapRegistrees = nullptr;
 
 /** @brief Utility functions for the ScreenManager. */
 namespace ScreenManagerUtil {
@@ -109,8 +113,8 @@ Actor* g_pSharedBGA; // BGA object that's persistent between screens
 std::string m_sPreviousTopScreen;
 vector<LoadedScreen> g_ScreenStack; // bottommost to topmost
 vector<Screen*> g_OverlayScreens;
-set<std::string> g_setGroupedScreens;
-set<std::string> g_setPersistantScreens;
+std::set<std::string> g_setGroupedScreens;
+std::set<std::string> g_setPersistantScreens;
 
 vector<LoadedScreen> g_vPreparedScreens;
 vector<Actor*> g_vPreparedBackgrounds;
@@ -232,9 +236,9 @@ RegisterScreenClass::RegisterScreenClass(const std::string& sClassName,
 										 CreateScreenFn pfn)
 {
 	if (g_pmapRegistrees == nullptr)
-		g_pmapRegistrees = new map<std::string, CreateScreenFn>;
+		g_pmapRegistrees = new std::map<std::string, CreateScreenFn>;
 
-	map<std::string, CreateScreenFn>::iterator iter =
+	std::map<std::string, CreateScreenFn>::iterator iter =
 	  g_pmapRegistrees->find(sClassName);
 	ASSERT_M(
 	  iter == g_pmapRegistrees->end(),
@@ -589,7 +593,7 @@ ScreenManager::MakeNewScreen(const std::string& sScreenName)
 
 	std::string sClassName = THEME->GetMetric(sScreenName, "Class");
 
-	map<std::string, CreateScreenFn>::iterator iter =
+	std::map<std::string, CreateScreenFn>::iterator iter =
 	  g_pmapRegistrees->find(sClassName);
 	if (iter == g_pmapRegistrees->end()) {
 		LuaHelpers::ReportScriptErrorFmt(

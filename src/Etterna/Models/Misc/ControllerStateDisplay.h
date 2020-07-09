@@ -61,9 +61,9 @@ class ControllerStateDisplay : public ActorFrame
 	void LoadMultiPlayer(const std::string& sType, MultiPlayer mp);
 	void LoadGameController(const std::string& sType, GameController gc);
 	void Update(float fDelta) override;
-	bool IsLoaded() const { return m_bIsLoaded; }
+	[[nodiscard]] bool IsLoaded() const { return m_bIsLoaded; }
 
-	ControllerStateDisplay* Copy() const override;
+	[[nodiscard]] ControllerStateDisplay* Copy() const override;
 
 	// Lua
 	void PushSelf(lua_State* L) override;
