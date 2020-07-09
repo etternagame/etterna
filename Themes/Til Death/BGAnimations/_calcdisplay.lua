@@ -11,7 +11,12 @@ local bgalpha = 0.9
 local enabled = false
 local song
 local steps
-local finalSecond = 0 -- only used if its references below are uncommented
+
+-- used for positioning graphs by time instead of vector length
+local finalSecond = 0
+local firstSecond = 0
+local steplength = 0
+
 local graphVecs = {}
 local ssrs = {}
 local activeModGroup = 1
@@ -52,25 +57,46 @@ local function fitY2(y, lb, ub)
     return out
 end
 
+-- restrict the x bounds of the graph to a specific range of percentages
+local function getGraphBounds()
+    if graphVecs["JS"] == nil or #graphVecs["JS"][1] == 0 then
+        return 0, 1
+    else
+        return (fitX(firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(#graphVecs["JS"][1] + firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth
+    end
+end
+
 -- convert a percentage (distance horizontally across the graph) to an index 
-local function _internalConvPercToInd(x, vec)
+local function _internalConvPercToInd(x, vec, lowerlimit, upperlimit)
     local output = x
     if output < 0 then output = 0 end
     if output > 1 then output = 1 end
+    if lowerlimit == nil then lowerlimit = 1 end
+    if upperlimit == nil then upperlimit = #vec end
 
     local ind = notShit.round(output * #vec[1])
     if ind < 1 then ind = 1 end
     return ind
 end
 
--- upper graph percentage to index
+-- graph percentage to index (independent of song length)
 local function convertPercentToIndex(x)
     return _internalConvPercToInd(x, ssrs)
 end
 
--- lower graph percentage to index
-local function convertPercentToIndexForMods(x)
-    return _internalConvPercToInd(x, graphVecs["JS"])
+-- graph percentage to index (dependent on mod/song length)
+local function convertPercentToIndexForMods(leftX, rightX)
+    local percent = leftX / rightX
+    local lower, upper = getGraphBounds()
+
+    if percent < lower then
+        return _internalConvPercToInd(0, graphVecs["JS"])
+    elseif percent > upper then
+        return _internalConvPercToInd(1, graphVecs["JS"])
+    else
+        percent = scale(percent, lower, upper, 0, 1)
+        return _internalConvPercToInd(percent, graphVecs["JS"])
+    end
 end
 
 -- transforms the position of the mouse from the cd graph to the calc info graph
@@ -281,7 +307,12 @@ local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
     steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
     if song then
-        finalSecond = GAMESTATE:GetCurrentSong():GetLastSecond() * 2
+        -- account for rate separately
+        -- double the output because intervals are half seconds
+        firstSecond = steps:GetFirstSecond() * 2
+        finalSecond = steps:GetLastSecond() * 2
+        steplength = (finalSecond - firstSecond)
+        ms.ok(steplength)
     end
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
@@ -558,7 +589,7 @@ o[#o + 1] = Def.Quad {
 			txt:x(goodXPos + 36)
             txt:y(ypos - 40)
 
-            local index = convertPercentToIndexForMods(perc)
+            local index = convertPercentToIndexForMods(mx - leftEnd, rightEnd - leftEnd)
             txt:settext(debugstrings[index])
 		else
             txt:visible(false)
@@ -601,7 +632,7 @@ o[#o + 1] = Def.Quad {
             bg:x(goodXPos)
             bg:y(ypos)
 
-            local index = convertPercentToIndexForMods(perc)
+            local index = convertPercentToIndexForMods(mx - leftEnd, rightEnd - leftEnd)
             local modText = getDebugModsForIndex(CalcPatternMod, "CalcPatternMod", miscToUpperMods, index, true)
             txt:settext(modText)
 		else
@@ -664,7 +695,7 @@ o[#o + 1] = Def.Quad {
             bg:y(ypos + 3)
             
             if not diffGroups[activeDiffGroup]["SSRS"] then
-                local index = convertPercentToIndexForMods(perc)
+                local index = convertPercentToIndexForMods(mx - leftEnd, rightEnd - leftEnd)
                 local modText = getDebugModsForIndex(CalcDiffValue, "CalcDiffValue", miscToLowerMods, index, false)
                 txt:settext(modText)
             else
@@ -1022,8 +1053,8 @@ local function topGraphLine(mod, colorToUse, hand)
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then return end
                 for i = 1, #values do
-                    local x = fitX(i, #values) -- vector length based positioning
-                    --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY1(values[i])
                     y = y + plotHeight / 2
                     setOffsetVerts(verts, x, y, colorToUse) 
@@ -1079,8 +1110,8 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                 if not values or not values[1] then return end
 
                 for i = 1, #values do
-                    local x = fitX(i, #values) -- vector length based positioning
-                    --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(values[i], lowerGraphMin, lowerGraphMax)
 
                     setOffsetVerts(verts, x, y, colorToUse)
@@ -1124,7 +1155,7 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
 
                 for i = 1, #ssrs[lineNum] do
                     local x = fitX(i, #ssrs[lineNum]) -- vector length based positioning
-                    --local x = fitX(i, finalSecond / getCurRateValue()) -- song length based positioning
+                    --local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(ssrs[lineNum][i])
 
                     setOffsetVerts(verts, x, y, colorToUse)
