@@ -1105,6 +1105,16 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetLengthSeconds(curr_rate));
 		return 1;
 	}
+	static auto GetFirstSecond(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->firstsecond);
+		return 1;
+	}
+	static auto GetLastSecond(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->lastsecond);
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1137,6 +1147,8 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCalcDebugOutput);
 		ADD_METHOD(GetDebugStrings);
 		ADD_METHOD(GetLengthSeconds);
+		ADD_METHOD(GetFirstSecond);
+		ADD_METHOD(GetLastSecond);
 	}
 };
 
