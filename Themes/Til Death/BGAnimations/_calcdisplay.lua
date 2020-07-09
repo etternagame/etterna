@@ -59,9 +59,11 @@ end
 
 -- restrict the x bounds of the graph to a specific range of percentages
 local function getGraphBounds()
+    -- if these vectors are empty, dont restrict
     if graphVecs["JS"] == nil or #graphVecs["JS"][1] == 0 then
         return 0, 1
     else
+        -- get the x position of the first and last item, normalize the position, and then convert them to percentages [0,1]
         return (fitX(firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(#graphVecs["JS"][1] + firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth
     end
 end
@@ -89,11 +91,13 @@ local function convertPercentToIndexForMods(leftX, rightX)
     local percent = leftX / rightX
     local lower, upper = getGraphBounds()
 
+    -- if the percentage given is outside the desired bounds, restrict it to sane bounds
     if percent < lower then
         return _internalConvPercToInd(0, graphVecs["JS"])
     elseif percent > upper then
         return _internalConvPercToInd(1, graphVecs["JS"])
     else
+        -- otherwise scale the number to a percentage .. of a percentage
         percent = scale(percent, lower, upper, 0, 1)
         return _internalConvPercToInd(percent, graphVecs["JS"])
     end
