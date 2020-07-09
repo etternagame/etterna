@@ -353,19 +353,6 @@ XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 	pGeneralDataNode->AppendChild("NumTotalSongsPlayed",
 								  profile->m_iNumTotalSongsPlayed);
 
-	{
-		auto pNumStagesPassedByPlayMode =
-		  pGeneralDataNode->AppendChild("NumStagesPassedByPlayMode");
-		FOREACH_ENUM(PlayMode, pm)
-		{
-			// Don't save unplayed PlayModes.
-			if (!profile->m_iNumStagesPassedByPlayMode[pm])
-				continue;
-			pNumStagesPassedByPlayMode->AppendChild(
-			  PlayModeToString(pm), profile->m_iNumStagesPassedByPlayMode[pm]);
-		}
-	}
-
 	// Load Lua UserTable from profile
 	if (profile->m_UserTable.IsSet()) {
 		auto L = LUA->Get();

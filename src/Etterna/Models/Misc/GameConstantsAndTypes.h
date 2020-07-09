@@ -125,37 +125,6 @@ enum StepsType
 };
 LuaDeclareType(StepsType);
 
-/** @brief The various play modes available. */
-enum PlayMode
-{
-	PLAY_MODE_REGULAR, /**< The normal game mode, often with a set number of
-						  stages. */
-	NUM_PlayMode,
-	PlayMode_Invalid
-};
-/**
- * @brief Turn the play mode into a proper string.
- * @param pm the play mode.
- * @return the string version of the play mode.
- */
-auto
-PlayModeToString(PlayMode pm) -> const std::string&;
-/**
- * @brief Turn the play mode into a proper localized string.
- * @param pm the play mode.
- * @return the localized string version of the play mode.
- */
-auto
-PlayModeToLocalizedString(PlayMode pm) -> const std::string&;
-/**
- * @brief Turn the string into the proper play mode.
- * @param s the string.
- * @return the play mode based on the string.
- */
-auto
-StringToPlayMode(const std::string& s) -> PlayMode;
-LuaDeclareType(PlayMode);
-
 /**
  * @brief The list of ways to sort songs
  */

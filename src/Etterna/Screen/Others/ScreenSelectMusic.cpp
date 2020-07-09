@@ -78,7 +78,6 @@ ScreenSelectMusic::Init()
 	GAMESTATE->m_bPlayingMulti = false;
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
-		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
 		GAMESTATE->SetCurrentStyle(
 		  GAMEMAN->GameAndStringToStyle(GAMEMAN->GetDefaultGame(), "versus"),
 		  PLAYER_INVALID);
@@ -227,12 +226,6 @@ ScreenSelectMusic::BeginScreen()
 			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
-	}
-
-	if (GAMESTATE->m_PlayMode == PlayMode_Invalid) {
-		// Instead of crashing here, let's just set the PlayMode to regular
-		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
-		LOG->Trace("PlayMode not set, setting as regular.");
 	}
 
 	OPTIONS_MENU_AVAILABLE.Load(m_sName, "OptionsMenuAvailable");
@@ -1939,8 +1932,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	// This will return the Preview Notefield if it is successful.
 	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
-		float helloiamafloat =
-		  GAMESTATE->m_Position.m_fMusicSeconds;
+		float helloiamafloat = GAMESTATE->m_Position.m_fMusicSeconds;
 		p->GeneratePreviewNoteField();
 		if (p->m_pPreviewNoteField != nullptr) {
 			p->SetPreviewNoteFieldMusicPosition(helloiamafloat);
@@ -1984,8 +1976,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L, GAMESTATE->m_Position.m_fMusicSeconds);
+		lua_pushnumber(L, GAMESTATE->m_Position.m_fMusicSeconds);
 		return 1;
 	}
 

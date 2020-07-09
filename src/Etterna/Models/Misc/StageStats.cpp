@@ -289,7 +289,6 @@ getSystemUniqueId()
 
 StageStats::StageStats()
 {
-	m_playMode = PlayMode_Invalid;
 	m_Stage = Stage_Invalid;
 	m_iStageIndex = -1;
 	m_vpPlayedSongs.clear();
@@ -316,8 +315,7 @@ StageStats::AssertValid(PlayerNumber pn) const
 	ASSERT(!m_vpPossibleSongs.empty());
 	ASSERT(m_player.m_iStepsPlayed > 0);
 	ASSERT(!m_player.m_vpPossibleSteps.empty());
-	ASSERT(m_player.m_vpPossibleSteps[0] != NULL);
-	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
+	ASSERT(m_player.m_vpPossibleSteps[0] != nullptr);
 	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("Invalid Difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
@@ -339,8 +337,7 @@ StageStats::AssertValid(MultiPlayer pn) const
 	ASSERT(!m_vpPlayedSongs.empty());
 	ASSERT(!m_vpPossibleSongs.empty());
 	ASSERT(!m_multiPlayer[pn].m_vpPossibleSteps.empty());
-	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps[0] != NULL);
-	ASSERT_M(m_playMode < NUM_PlayMode, ssprintf("playmode %i", m_playMode));
+	ASSERT(m_multiPlayer[pn].m_vpPossibleSteps[0] != nullptr);
 	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));

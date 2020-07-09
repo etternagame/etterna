@@ -2022,7 +2022,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetMusicPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetMusicPath();
+		const auto& s = p->GetMusicPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2031,7 +2031,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBannerPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetBannerPath();
+		const auto& s = p->GetBannerPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2040,7 +2040,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBackgroundPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetBackgroundPath();
+		const auto& s = p->GetBackgroundPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2049,7 +2049,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewVidPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetPreviewVidPath();
+		const auto& s = p->GetPreviewVidPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2058,13 +2058,13 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewMusicPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetPreviewMusicPath();
+		const auto& s = p->GetPreviewMusicPath();
 		lua_pushstring(L, s.c_str());
 		return 1;
 	}
 	static int GetJacketPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetJacketPath();
+		const auto& s = p->GetJacketPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2073,7 +2073,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDImagePath(T* p, lua_State* L)
 	{
-		const auto s = p->GetCDImagePath();
+		const auto& s = p->GetCDImagePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2082,7 +2082,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetDiscPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetDiscPath();
+		const auto& s = p->GetDiscPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2091,7 +2091,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDTitlePath(T* p, lua_State* L)
 	{
-		const auto s = p->GetCDTitlePath();
+		const auto& s = p->GetCDTitlePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2100,7 +2100,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetLyricsPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetLyricsPath();
+		const auto& s = p->GetLyricsPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else

@@ -100,7 +100,6 @@ Branch = {
 	end,
 	AfterProfileLoad = function()
 		return "ScreenSelectMusic"
-		--"ScreenSelectPlayMode"
 	end,
 	AfterProfileSave = function()
 		if GAMESTATE:IsEventMode() then
@@ -156,18 +155,8 @@ Branch = {
 		end
 	end,
 	PlayerOptions = function()
-		local pm = GAMESTATE:GetPlayMode()
-		local restricted = {
-			--"PlayMode_Battle" -- ??
-		}
-		local optionsScreen = "ScreenPlayerOptions"
-		for i = 1, #restricted do
-			if restricted[i] == pm then
-				optionsScreen = "ScreenPlayerOptionsRestricted"
-			end
-		end
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
-			return optionsScreen
+			return "ScreenPlayerOptions"
 		else
 			return "ScreenStageInformation"
 		end

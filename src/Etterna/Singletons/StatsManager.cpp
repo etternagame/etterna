@@ -48,10 +48,6 @@ AccumPlayedStageStats(const vector<StageStats>& vss)
 {
 	StageStats ssreturn;
 
-	if (!vss.empty()) {
-		ssreturn.m_playMode = vss[0].m_playMode;
-	}
-
 	for (auto& ss : vss)
 		ssreturn.AddStats(ss);
 

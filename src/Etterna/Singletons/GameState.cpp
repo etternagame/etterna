@@ -87,7 +87,6 @@ GameState::GameState()
   : processedTiming(nullptr)
   , m_pCurGame(Message_CurrentGameChanged)
   , m_pCurStyle(Message_CurrentStyleChanged)
-  , m_PlayMode(Message_PlayModeChanged)
   , m_sPreferredSongGroup(Message_PreferredSongGroupChanged)
   , m_PreferredStepsType(Message_PreferredStepsTypeChanged)
   , m_PreferredDifficulty(Message_PreferredDifficultyP1Changed)
@@ -109,9 +108,6 @@ GameState::GameState()
 	m_iStageSeed = m_iGameSeed = 0;
 
 	m_gameplayMode.Set(GameplayMode_Normal);
-
-	m_PlayMode.Set(
-	  PlayMode_Invalid); // used by IsPlayerEnabled before the first screen
 	m_bSideIsJoined =
 	  false; // used by GetNumSidesJoined before the first screen
 
@@ -279,7 +275,6 @@ GameState::Reset()
 	m_bFailTypeWasExplicitlySet = false;
 	m_SortOrder.Set(SortOrder_Invalid);
 	m_PreferredSortOrder = GetDefaultSort();
-	m_PlayMode.Set(PlayMode_Invalid);
 	m_iCurrentStageIndex = 0;
 
 	m_bGameplayLeadIn.Set(false);
@@ -1564,7 +1559,6 @@ class LunaGameState : public Luna<GameState>
 		COMMON_RETURN_SELF;
 	}
 	DEFINE_METHOD(GetPreferredDifficulty, m_PreferredDifficulty)
-	DEFINE_METHOD(GetPlayMode, m_PlayMode)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 	DEFINE_METHOD(GetCurrentStageIndex, m_iCurrentStageIndex)
 	DEFINE_METHOD(PlayerIsUsingModifier,
@@ -1814,14 +1808,6 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(HaveProfileToLoad, HaveProfileToLoad())
 	DEFINE_METHOD(HaveProfileToSave, HaveProfileToSave())
 
-	static bool AreStyleAndPlayModeCompatible(T* p,
-											  lua_State* L,
-											  const Style* style,
-											  PlayMode pm)
-	{
-		return true;
-	}
-
 	static int SetCurrentStyle(T* p, lua_State* L)
 	{
 		const Style* pStyle = nullptr;
@@ -1846,21 +1832,7 @@ class LunaGameState : public Luna<GameState>
 			  L, "Too many sides joined for style %s", pStyle->m_szName);
 		}
 
-		if (!AreStyleAndPlayModeCompatible(p, L, pStyle, p->m_PlayMode)) {
-			COMMON_RETURN_SELF;
-		}
-
 		p->SetCurrentStyle(pStyle, PLAYER_1);
-		COMMON_RETURN_SELF;
-	}
-
-	static int SetCurrentPlayMode(T* p, lua_State* L)
-	{
-		PlayMode pm = Enum::Check<PlayMode>(L, 1);
-		if (AreStyleAndPlayModeCompatible(
-			  p, L, p->GetCurrentStyle(PLAYER_INVALID), pm)) {
-			p->m_PlayMode.Set(pm);
-		}
 		COMMON_RETURN_SELF;
 	}
 
@@ -1945,7 +1917,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(Env);
 		ADD_METHOD(SetPreferredDifficulty);
 		ADD_METHOD(GetPreferredDifficulty);
-		ADD_METHOD(GetPlayMode);
 		ADD_METHOD(GetSortOrder);
 		ADD_METHOD(GetCurrentStageIndex);
 		ADD_METHOD(PlayerIsUsingModifier);
@@ -1999,7 +1970,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(HaveProfileToSave);
 		ADD_METHOD(SetFailTypeExplicitlySet);
 		ADD_METHOD(SetCurrentStyle);
-		ADD_METHOD(SetCurrentPlayMode);
 		ADD_METHOD(IsCourseMode);
 		ADD_METHOD(GetEtternaVersion);
 		ADD_METHOD(CountNotesSeparately);

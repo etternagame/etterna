@@ -36,7 +36,6 @@ class StageStats
 
 	Stage m_Stage;
 	int m_iStageIndex;
-	PlayMode m_playMode;
 	std::vector<Song*> m_vpPlayedSongs;
 	std::vector<Song*> m_vpPossibleSongs;
 

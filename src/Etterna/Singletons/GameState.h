@@ -96,8 +96,6 @@ class GameState
 	 * The left side is player 1, and the right side is player 2. */
 	bool m_bSideIsJoined; // left side, right side
 	MultiPlayerStatus m_MultiPlayerStatus[NUM_MultiPlayer];
-	BroadcastOnChange<PlayMode>
-	  m_PlayMode; // many screens display different info depending on this value
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
