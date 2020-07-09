@@ -1695,7 +1695,7 @@ Song::MatchesFilter(const float rate) const
 				else {
 					// If we are on the placeholder skillset, look at song
 					// length instead of a skill
-					auto val = step->GetLengthSeconds(rate);
+					auto val = chart->GetLengthSeconds(rate);
 				}
 				if (FILTERMAN->ExclusiveFilter) {
 					/* Our behaviour is to accept by default,
