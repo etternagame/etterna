@@ -30,7 +30,7 @@ CodePageConvert(std::string& sText, int iCodePage)
 								iSize);
 	ASSERT(iSize != 0);
 
-	sText = WStringToRString(sOut);
+	sText = WStringToString(sOut);
 	return true;
 }
 

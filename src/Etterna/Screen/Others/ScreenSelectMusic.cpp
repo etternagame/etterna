@@ -1859,7 +1859,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		NoteData nd;
 		Steps* steps = GAMESTATE->m_pCurSteps;
 		steps->GetNoteData(nd);
-		float songlength = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
 		ss.Init();
 		SCOREMAN->camefromreplay =
 		  false; // disallow viewing online score eval screens -mina
@@ -1889,7 +1888,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		pss.m_iSongsPlayed = 1;
 		GAMESTATE->SetProcessedTimingData(
 		  GAMESTATE->m_pCurSteps->GetTimingData());
-		NoteDataUtil::CalculateRadarValues(nd, songlength, rv);
+		NoteDataUtil::CalculateRadarValues(nd, rv);
 		pss.m_radarPossible += rv;
 		RadarValues realRV;
 		PlayerAI::CalculateRadarValuesForReplay(realRV, rv);
@@ -1941,7 +1940,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
 		float helloiamafloat =
-		  GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds;
+		  GAMESTATE->m_Position.m_fMusicSeconds;
 		p->GeneratePreviewNoteField();
 		if (p->m_pPreviewNoteField != nullptr) {
 			p->SetPreviewNoteFieldMusicPosition(helloiamafloat);
@@ -1986,7 +1985,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
 	{
 		lua_pushnumber(
-		  L, GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds);
+		  L, GAMESTATE->m_Position.m_fMusicSeconds);
 		return 1;
 	}
 

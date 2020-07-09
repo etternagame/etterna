@@ -141,7 +141,7 @@ PlayerReplay::UpdateHoldsAndRolls(
   float fDeltaTime,
   const std::chrono::steady_clock::time_point& now)
 {
-	const auto fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 	// Auto tap rolls
@@ -229,7 +229,7 @@ PlayerReplay::Update(float fDeltaTime)
 
 	ActorFrame::Update(fDeltaTime);
 
-	const auto fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 	ArrowEffects::SetCurrentOptions(
@@ -401,7 +401,7 @@ PlayerReplay::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 {
 	int iMissIfOlderThanThisRow;
 	const auto fEarliestTime =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
+	  GAMESTATE->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
 	{
 		TimingData::GetBeatArgs beat_info;
 		beat_info.elapsed_time = fEarliestTime;
@@ -466,9 +466,9 @@ PlayerReplay::Step(int col,
 	const auto stepAgo = stepDelta.count() - padStickSeconds;
 
 	const auto fLastBeatUpdate =
-	  m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
+	  GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
 	const auto fPositionSeconds =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
+	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
 	const auto fTimeSinceStep = stepAgo;
 
 	// LOG->Trace(ssprintf("col %d\n\trow %d", col, row));
@@ -477,7 +477,7 @@ PlayerReplay::Step(int col,
 	// test -mina ok this is 100% not the place to do this
 	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
 
-	auto fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 	if (GAMESTATE->m_pCurSteps)
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
@@ -561,11 +561,11 @@ PlayerReplay::Step(int col,
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  std::max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-					 m_pPlayerState->m_Position.m_fMusicSeconds +
+					 GAMESTATE->m_Position.m_fMusicSeconds +
 					 StepSearchDistance)) -
 					 iSongRow,
 				   iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-								m_pPlayerState->m_Position.m_fMusicSeconds -
+								GAMESTATE->m_Position.m_fMusicSeconds -
 								StepSearchDistance))) +
 		  ROWS_PER_BEAT;
 	} else {
@@ -625,7 +625,7 @@ PlayerReplay::Step(int col,
 			 * GAMESTATE->m_LastBeatUpdate. Figure out what the music time is as
 			 * of now. */
 			const auto fCurrentMusicSeconds =
-			  m_pPlayerState->m_Position.m_fMusicSeconds +
+			  GAMESTATE->m_Position.m_fMusicSeconds +
 			  (fLastBeatUpdate *
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 

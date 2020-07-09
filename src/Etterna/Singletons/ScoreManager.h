@@ -134,6 +134,7 @@ class ScoreManager
 		if (KeyHasScores(ck, profileID)) {
 			return pscores.at(profileID).at(ck).bestGrade;
 		}
+
 		return Grade_Invalid;
 	}
 
@@ -145,7 +146,8 @@ class ScoreManager
 		if (KeyHasScores(ck, profileID)) {
 			return pscores.at(profileID).at(ck).bestWifeScore;
 		}
-		return Grade_Invalid;
+
+		return 0.F;
 	}
 
 	// for scores achieved during this session
@@ -159,6 +161,7 @@ class ScoreManager
 		  pscores[profileID][hs.GetChartKey()].AddScore(hs), profileID);
 		return hs.GetTopScore();
 	}
+
 	void ImportScore(const HighScore& hs_,
 					 const std::string& profileID =
 					   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
@@ -173,7 +176,7 @@ class ScoreManager
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	void RecalculateSSRs(LoadingWindow* ld, const std::string& profileID);
+	void RecalculateSSRs(LoadingWindow* ld);
 	void RecalculateSSRs(const std::string& profileID);
 	void UnInvalidateAllScores(const string& profileID);
 	void CalcPlayerRating(float& prating,
@@ -188,6 +191,13 @@ class ScoreManager
 
 	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
 	auto GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*;
+	auto GetRecentScore(int rank) -> HighScore*;
+	auto GetRecentScoreForGame(int rank) -> HighScore*;
+	void SortRecentScores(const std::string& profileID =
+							PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	void SortRecentScoresForGame(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
 	[[nodiscard]] auto KeyHasScores(
 	  const std::string& ck,

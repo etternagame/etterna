@@ -16,7 +16,6 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
-#include "Etterna/Models/Misc/Grade.h"
 #include "curl/curl.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "rapidjson/document.h"

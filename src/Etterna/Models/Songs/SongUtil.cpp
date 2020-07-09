@@ -404,7 +404,7 @@ CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 	if (bpms1.GetMax() > bpms2.GetMax())
 		return false;
 
-	return CompareRStringsAsc(pSong1->GetSongFilePath(),
+	return CompareStringsAsc(pSong1->GetSongFilePath(),
 							  pSong2->GetSongFilePath());
 }
 
@@ -419,8 +419,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 {
 	auto len_a = 0.F;
 	for (const auto& s : a->GetAllSteps()) {
-		const auto& len =
-		  s->GetTimingData()->GetElapsedTimeFromBeat(a->GetLastBeat());
+		const auto& len = s->GetLengthSeconds();
 		// if we hit the current preferred difficulty just force use the value
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
 			len_a = len;
@@ -433,8 +432,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 	// OH NO COPY PASTE WHAT EVER WILL WE DO MAYBE USE A 10 LINE MACRO????
 	auto len_b = 0.F;
 	for (const auto& s : b->GetAllSteps()) {
-		const auto& len =
-		  s->GetTimingData()->GetElapsedTimeFromBeat(b->GetLastBeat());
+		const auto& len = s->GetLengthSeconds();
 
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
 			len_b = len;
@@ -449,7 +447,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 	if (len_a > len_b)
 		return false;
 
-	return CompareRStringsAsc(a->GetSongFilePath(), b->GetSongFilePath());
+	return CompareStringsAsc(a->GetSongFilePath(), b->GetSongFilePath());
 }
 
 void
@@ -468,67 +466,29 @@ AppendOctal(int n, int digits, std::string& out)
 	}
 }
 
-static bool
-CompDescending(const pair<Song*, int>& a, const pair<Song*, int>& b)
+static auto
+get_best_wife_score_for_song_and_profile(const Song* song, const Profile* p)
+  -> float
 {
-	return a.second < b.second;
+	assert(p != nullptr);
+	return p->GetBestWifeScore(
+	  song,
+	  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
+		->m_StepsType);
 }
 
-static bool
-CompAscending(const pair<Song*, int>& a, const pair<Song*, int>& b)
+static int
+CompareSongPointersByBestWifeScore(const Song* a, const Song* b)
 {
-	return a.second > b.second;
+	const auto* p = PROFILEMAN->GetProfile(PLAYER_1);
+	return get_best_wife_score_for_song_and_profile(a, p) >
+		   get_best_wife_score_for_song_and_profile(b, p);
 }
 
 void
-SongUtil::SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut,
-									   bool bDescending)
+SongUtil::SortSongPointerArrayByWifeScore(vector<Song*>& v)
 {
-	typedef pair<Song*, int> val;
-	vector<val> vals;
-	vals.reserve(vpSongsInOut.size());
-	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-	for (auto* pSong : vpSongsInOut) {
-		ASSERT(pProfile != nullptr);
-		auto g = static_cast<int>(pProfile->GetBestGrade(
-		  pSong,
-		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-			->m_StepsType));
-		vals.emplace_back(val(pSong, g));
-	}
-
-	sort(
-	  vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
-
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		vpSongsInOut[i] = vals[i].first;
-}
-
-// do not know why this doesn't work
-void
-SongUtil::SortSongPointerArrayByWifeScore(vector<Song*>& vpSongsInOut,
-										  bool bDescending)
-{
-	typedef pair<Song*, float> val;
-	vector<val> vals;
-	vals.reserve(vpSongsInOut.size());
-	const Profile* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-	for (auto* pSong : vpSongsInOut) {
-		ASSERT(pProfile != nullptr);
-		auto g = static_cast<int>(pProfile->GetBestWifeScore(
-		  pSong,
-		  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-			->m_StepsType));
-		vals.emplace_back(val(pSong, g));
-	}
-
-	sort(
-	  vals.begin(), vals.end(), bDescending ? CompDescending : CompAscending);
-
-	for (unsigned i = 0; i < vpSongsInOut.size(); ++i)
-		vpSongsInOut[i] = vals[i].first;
+	sort(v.begin(), v.end(), CompareSongPointersByBestWifeScore);
 }
 
 void

@@ -48,7 +48,7 @@ class Steps
 	~Steps();
 
 	// initializers
-	void CopyFrom(Steps* pSource, StepsType ntTo, float fMusicLengthSeconds);
+	void CopyFrom(Steps* pSource, StepsType ntTo);
 	void CreateBlank(StepsType ntTo);
 
 	void Compress() const;
@@ -149,7 +149,7 @@ class Steps
 
 	void GetETTNoteData(std::string& notes_comp_out) const;
 	void TidyUpData();
-	void CalculateRadarValues(float fMusicLengthSeconds);
+	void CalculateRadarValues();
 
 	/**
 	 * @brief The TimingData used by the Steps.
@@ -247,8 +247,16 @@ class Steps
 	void SetMinBPM(const float f) { this->specifiedBPMMin = f; }
 	auto GetMinBPM() const -> float { return this->specifiedBPMMin; }
 	void SetMaxBPM(const float f) { this->specifiedBPMMax = f; }
+	void SetFirstSecond(const float f) { this->firstsecond = f; }
+	void SetLastSecond(const float f) { this->lastsecond = f; }
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
 	void GetDisplayBpms(DisplayBpms& addTo) const;
+	/** @brief Returns length of step in seconds. If a rate is supplied, the
+	 * returned length is scaled by it.*/
+	auto GetLengthSeconds(float rate = 1) const -> float
+	{
+		return (lastsecond - firstsecond) / rate;
+	}
 
 	auto Getdebugstrings() -> const std::vector<std::string>&
 	{

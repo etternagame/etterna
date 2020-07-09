@@ -458,40 +458,49 @@ fmodfp(float x, float y) -> float
 	return x;
 }
 
-inline int
-power_of_two(int input)
+inline auto
+power_of_two(int input) -> int
 {
-	auto exp = 31, i = input;
-	if (i >> 16 != 0)
+	auto exp = 31;
+	auto i = input;
+	if (i >> 16 != 0) {
 		i >>= 16;
-	else
+	} else {
 		exp -= 16;
-	if (i >> 8 != 0)
+	}
+	if (i >> 8 != 0) {
 		i >>= 8;
-	else
+	} else {
 		exp -= 8;
-	if (i >> 4 != 0)
+	}
+	if (i >> 4 != 0) {
 		i >>= 4;
-	else
+	} else {
 		exp -= 4;
-	if (i >> 2 != 0)
+	}
+	if (i >> 2 != 0) {
 		i >>= 2;
-	else
+	} else {
 		exp -= 2;
-	if (i >> 1 == 0)
+	}
+	if (i >> 1 == 0) {
 		exp -= 1;
+	}
 	const auto value = 1 << exp;
 	return input == value ? value : value << 1;
 }
-inline bool
-IsAnInt(const std::string& s)
+inline auto
+IsAnInt(const std::string& s) -> bool
 {
-	if (s.empty())
+	if (s.empty()) {
 		return false;
+	}
 
-	for (auto i : s)
-		if (i < '0' || i > '9')
+	for (auto i : s) {
+		if (i < '0' || i > '9') {
 			return false;
+		}
+	}
 
 	return true;
 }
@@ -641,11 +650,11 @@ operator>>(const std::string& lhs, T& rhs) -> bool
 }
 
 auto
-WStringToRString(const std::wstring& sString) -> std::string;
+WStringToString(const std::wstring& sString) -> std::string;
 auto
 WcharToUTF8(wchar_t c) -> std::string;
 auto
-RStringToWstring(const std::string& sString) -> std::wstring;
+StringToWString(const std::string& sString) -> std::wstring;
 
 struct LanguageInfo
 {
@@ -760,9 +769,9 @@ auto
 DirectoryIsEmpty(const std::string& sPath) -> bool;
 
 auto
-CompareRStringsAsc(const std::string& sStr1, const std::string& sStr2) -> bool;
+CompareStringsAsc(const std::string& sStr1, const std::string& sStr2) -> bool;
 void
-SortRStringArray(std::vector<std::string>& asAddTo, bool bSortAscending = true);
+SortStringArray(std::vector<std::string>& asAddTo, bool bSortAscending = true);
 
 /* Find the mean and standard deviation of all numbers in [start,end). */
 auto
@@ -968,7 +977,7 @@ FixSlashesInPlace(std::string& sPath);
 void
 CollapsePath(std::string& sPath, bool bRemoveLeadingDot = false);
 
-/** @brief Utilities for converting the RStrings. */
+/** @brief Utilities for converting the Strings. */
 namespace StringConversion {
 template<typename T>
 auto

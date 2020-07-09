@@ -712,7 +712,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 						  fSecondsToStartTransitioningOut);
 
 		if (fSecondsToStartFadingOutMusic <
-			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+			GAMESTATE->m_pCurSteps->lastsecond) {
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 			p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
@@ -837,7 +837,7 @@ void
 ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 								  float& fSecondsToStartTransitioningOut)
 {
-	float fLastStepSeconds = GAMESTATE->m_pCurSong->GetLastSecond();
+	float fLastStepSeconds = GAMESTATE->m_pCurSteps->lastsecond;
 	fLastStepSeconds += Player::GetMaxStepDistanceSeconds();
 
 	float fTransitionLength;
@@ -849,12 +849,12 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 	float fSecondsToFinishFadingOutMusic =
 	  fSecondsToStartTransitioningOut + fTransitionLength;
 	if (fSecondsToFinishFadingOutMusic <
-		GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
+		GAMESTATE->m_pCurSteps->GetLengthSeconds())
 		fSecondsToStartFadingOutMusic =
 		  fSecondsToFinishFadingOutMusic - MUSIC_FADE_OUT_SECONDS;
 	else
 		fSecondsToStartFadingOutMusic =
-		  GAMESTATE->m_pCurSong->m_fMusicLengthSeconds; // don't fade
+		  GAMESTATE->m_pCurSteps->GetLengthSeconds(); // don't fade
 
 	/* Make sure we keep going long enough to register a miss for the last note,
 	 * and never start fading before the last note. */
@@ -1434,8 +1434,6 @@ ScreenGameplay::Input(const InputEventPlus& input)
 void
 ScreenGameplay::SaveStats()
 {
-	float fMusicLen = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
-
 	/* Note that adding stats is only meaningful for the counters (eg.
 	 * RadarCategory_Jumps), not for the percentages (RadarCategory_Air). */
 	RadarValues rv;
@@ -1444,9 +1442,9 @@ ScreenGameplay::SaveStats()
 	PlayerNumber pn = m_vPlayerInfo.m_pn;
 
 	GAMESTATE->SetProcessedTimingData(GAMESTATE->m_pCurSteps->GetTimingData());
-	NoteDataUtil::CalculateRadarValues(nd, fMusicLen, rv);
+	NoteDataUtil::CalculateRadarValues(nd, rv);
 	pss.m_radarPossible += rv;
-	NoteDataWithScoring::GetActualRadarValues(nd, pss, fMusicLen, rv);
+	NoteDataWithScoring::GetActualRadarValues(nd, pss, rv);
 	pss.m_radarActual += rv;
 	GAMESTATE->SetProcessedTimingData(nullptr);
 }
@@ -1866,7 +1864,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	{
 		PlayerNumber pn = PLAYER_1;
 		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		float bps = GAMESTATE->m_pPlayerState->m_Position.m_fCurBPS;
+		float bps = GAMESTATE->m_Position.m_fCurBPS;
 		float true_bps = rate * bps;
 		lua_pushnumber(L, true_bps);
 		return 1;

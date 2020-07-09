@@ -343,7 +343,7 @@ ScreenGameplayReplay::SetRate(float newRate)
 	// Set up the music so we don't wait for an Etternaty when messing around
 	// near the end of the song.
 	if (fSecondsToStartFadingOutMusic <
-		GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+		GAMESTATE->m_pCurSteps->lastsecond) {
 		p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 		p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 							MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
@@ -508,7 +508,7 @@ ScreenGameplayReplay::TogglePause()
 		p.m_StartSecond = fSeconds - 0.25f;
 		p.m_fSpeed = rate;
 		if (fSecondsToStartFadingOutMusic <
-			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+			GAMESTATE->m_pCurSteps->lastsecond) {
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 			p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
@@ -530,7 +530,7 @@ ScreenGameplayReplay::TogglePause()
 		RageSoundParams p;
 		p.m_fSpeed = rate;
 		if (fSecondsToStartFadingOutMusic <
-			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+			GAMESTATE->m_pCurSteps->lastsecond) {
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 			p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;

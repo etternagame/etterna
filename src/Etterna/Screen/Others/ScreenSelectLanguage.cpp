@@ -13,7 +13,7 @@ ScreenSelectLanguage::Init()
 	// fill m_aGameCommands before calling Init()
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	FOREACH_CONST(std::string, vs, s)
 	{

@@ -289,7 +289,7 @@ Steps::TidyUpData()
 }
 
 void
-Steps::CalculateRadarValues(float fMusicLengthSeconds)
+Steps::CalculateRadarValues()
 {
 	if (m_bAreCachedRadarValuesJustLoaded) {
 		m_bAreCachedRadarValuesJustLoaded = false;
@@ -312,7 +312,7 @@ Steps::CalculateRadarValues(float fMusicLengthSeconds)
 	auto td = this->GetTimingData();
 	GAMESTATE->SetProcessedTimingData(td);
 	NoteDataUtil::CalculateRadarValues(
-	  *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues, td);
+	  *m_pNoteData, m_CachedRadarValues, td);
 
 	GAMESTATE->SetProcessedTimingData(nullptr);
 }
@@ -428,7 +428,8 @@ Steps::CalcEtternaMetadata(Calc* calc)
 
 	// set first and last second for this steps object
 	if (!cereal.empty()) {
-		firstsecond = cereal[0].rowTime;
+		firstsecond =
+		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
 		lastsecond =
 		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
 	}
@@ -578,8 +579,7 @@ Steps::Compress() const
 
 void
 Steps::CopyFrom(Steps* pSource,
-				StepsType ntTo,
-				float fMusicLengthSeconds) // pSource does not have to be of the
+				StepsType ntTo) // pSource does not have to be of the
 										   // same StepsType
 {
 	m_StepsType = ntTo;
@@ -593,7 +593,7 @@ Steps::CopyFrom(Steps* pSource,
 	this->SetDescription(pSource->GetDescription());
 	this->SetDifficulty(pSource->GetDifficulty());
 	this->SetMeter(pSource->GetMeter());
-	this->CalculateRadarValues(fMusicLengthSeconds);
+	this->CalculateRadarValues();
 }
 
 void
@@ -1098,6 +1098,22 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(p->Getdebugstrings(), L);
 		return 1;
 	}
+	static auto GetLengthSeconds(T* p, lua_State* L) -> int
+	{
+		float curr_rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		lua_pushnumber(L, p->GetLengthSeconds(curr_rate));
+		return 1;
+	}
+	static auto GetFirstSecond(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->firstsecond);
+		return 1;
+	}
+	static auto GetLastSecond(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->lastsecond);
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1129,6 +1145,9 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetNonEmptyNoteData);
 		ADD_METHOD(GetCalcDebugOutput);
 		ADD_METHOD(GetDebugStrings);
+		ADD_METHOD(GetLengthSeconds);
+		ADD_METHOD(GetFirstSecond);
+		ADD_METHOD(GetLastSecond);
 	}
 };
 

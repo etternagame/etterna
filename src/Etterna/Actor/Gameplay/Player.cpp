@@ -574,7 +574,7 @@ Player::Load()
 
 	m_LastTapNoteScore = TNS_None;
 	// The editor can start playing in the middle of the song.
-	const auto iNoteRow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	const auto iNoteRow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 	m_iFirstUncrossedRow = iNoteRow - 1;
 	m_pJudgedRows->Reset(iNoteRow);
 
@@ -734,7 +734,7 @@ Player::Reload()
 
 	m_LastTapNoteScore = TNS_None;
 
-	const auto iNoteRow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	const auto iNoteRow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 	m_iFirstUncrossedRow = iNoteRow - 1;
 	m_pJudgedRows->Reset(iNoteRow);
 
@@ -934,7 +934,7 @@ void
 Player::UpdateHoldsAndRolls(float fDeltaTime,
 							const std::chrono::steady_clock::time_point& now)
 {
-	const auto fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto iSongRow = BeatToNoteRow(fSongBeat);
 	// handle Autoplay for rolls
 	if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
@@ -1036,10 +1036,10 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 void
 Player::UpdateCrossedRows(const std::chrono::steady_clock::time_point& now)
 {
-	const auto iRowNow = BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat);
+	const auto iRowNow = BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat);
 	if (iRowNow >= 0) {
 		if (GAMESTATE->IsPlayerEnabled(m_pPlayerState)) {
-			if (m_pPlayerState->m_Position.m_bDelay) {
+			if (GAMESTATE->m_Position.m_bDelay) {
 				if (!m_bDelay) {
 					m_bDelay = true;
 				}
@@ -1727,7 +1727,7 @@ Player::GetClosestNote(int col,
 	}
 
 	// Get the current time, previous time, and next time.
-	const auto fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
+	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
 	const auto fNextTime = m_Timing->WhereUAtBro(iNextIndex);
 	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
 
@@ -1813,7 +1813,7 @@ Player::GetClosestNonEmptyRow(int iNoteRow,
 	}
 
 	// Get the current time, previous time, and next time.
-	const auto fNoteTime = m_pPlayerState->m_Position.m_fMusicSeconds;
+	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
 	const auto fNextTime = m_Timing->WhereUAtBro(iNextRow);
 	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevRow);
 
@@ -1850,7 +1850,7 @@ Player::DoTapScoreNone()
 	}
 
 	if (PENALIZE_TAP_SCORE_NONE && m_pPlayerState != nullptr) {
-		SetJudgment(BeatToNoteRow(m_pPlayerState->m_Position.m_fSongBeat),
+		SetJudgment(BeatToNoteRow(GAMESTATE->m_Position.m_fSongBeat),
 					-1,
 					TAP_EMPTY,
 					TNS_Miss,
@@ -1863,7 +1863,7 @@ void
 Player::ScoreAllActiveHoldsLetGo()
 {
 	if (PENALIZE_TAP_SCORE_NONE) {
-		const auto fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+		const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 		const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 		// Score all active holds to NotHeld
@@ -1962,17 +1962,16 @@ Player::Step(int col,
 	  std::chrono::steady_clock::now() - tm;
 	auto stepAgo = stepDelta.count() - padStickSeconds;
 
-	const auto fLastBeatUpdate =
-	  m_pPlayerState->m_Position.m_LastBeatUpdate.Ago();
+	const auto fLastBeatUpdate = GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
 	const auto fPositionSeconds =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - stepAgo;
+	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
 	const auto fTimeSinceStep = stepAgo;
 
 	// idk if this is the correct value for input logs but we'll use them to
 	// test -mina ok this is 100% not the place to do this
 	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
 
-	auto fSongBeat = m_pPlayerState->m_Position.m_fSongBeat;
+	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 	if (GAMESTATE->m_pCurSteps != nullptr) {
 		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
@@ -2077,11 +2076,11 @@ Player::Step(int col,
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				m_pPlayerState->m_Position.m_fMusicSeconds +
+				GAMESTATE->m_Position.m_fMusicSeconds +
 				StepSearchDistance)) -
 				iSongRow,
 			  iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-						   m_pPlayerState->m_Position.m_fMusicSeconds -
+						   GAMESTATE->m_Position.m_fMusicSeconds -
 						   StepSearchDistance))) +
 		  ROWS_PER_BEAT;
 	} else {
@@ -2148,7 +2147,7 @@ Player::Step(int col,
 			 * GAMESTATE->m_LastBeatUpdate. Figure out what the music time
 			 * is as of now. */
 			const auto fCurrentMusicSeconds =
-			  m_pPlayerState->m_Position.m_fMusicSeconds +
+			  GAMESTATE->m_Position.m_fMusicSeconds +
 			  (fLastBeatUpdate *
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 
@@ -2648,7 +2647,7 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 	// fMissIfOlderThanThisBeat );
 	int iMissIfOlderThanThisRow;
 	const auto fEarliestTime =
-	  m_pPlayerState->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
+	  GAMESTATE->m_Position.m_fMusicSeconds - fMissIfOlderThanSeconds;
 	{
 		TimingData::GetBeatArgs beat_info;
 		beat_info.elapsed_time = fEarliestTime;
@@ -2710,7 +2709,7 @@ Player::UpdateJudgedRows(float /*fDeltaTime*/)
 {
 	// Look into the future only as far as we need to
 	const auto iEndRow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-	  m_pPlayerState->m_Position.m_fMusicSeconds +
+	  GAMESTATE->m_Position.m_fMusicSeconds +
 	  GetMaxStepDistanceSeconds()));
 	auto bAllJudged = true;
 
@@ -3379,8 +3378,8 @@ Player::SetCombo(unsigned int iCombo, unsigned int iMisses)
 	auto bPastBeginning = false;
 
 	bPastBeginning =
-	  m_pPlayerState->m_Position.m_fMusicSeconds >
-	  GAMESTATE->m_pCurSong->m_fMusicLengthSeconds * PERCENT_UNTIL_COLOR_COMBO;
+	  GAMESTATE->m_Position.m_fMusicSeconds >
+	  GAMESTATE->m_pCurSteps->GetLengthSeconds() * PERCENT_UNTIL_COLOR_COMBO;
 
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Combo");

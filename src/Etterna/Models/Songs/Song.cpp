@@ -1091,7 +1091,7 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache,
 			// string with a compressed format for both cache and internal
 			// use but not yet
 			n->CalcEtternaMetadata(calc);
-			n->CalculateRadarValues(m_fMusicLengthSeconds);
+			n->CalculateRadarValues();
 
 			// calculate lastSecond
 			localFirst = std::min(localFirst, n->firstsecond);
@@ -1695,11 +1695,7 @@ Song::MatchesFilter(const float rate) const
 				else {
 					// If we are on the placeholder skillset, look at song
 					// length instead of a skill
-					auto* td = chart->GetTimingData();
-					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
-						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
-						  rate;
-					// Rates modify the song length.
+					auto val = step->GetLengthSeconds(rate);
 				}
 				if (FILTERMAN->ExclusiveFilter) {
 					/* Our behaviour is to accept by default,

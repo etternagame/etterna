@@ -102,7 +102,7 @@ SMALoader::ProcessSpeeds(TimingData& out,
 			// Aldo_MX: 4 is the default value in SMA, although SM5 requires 0
 			// for the first segment :/
 			// dunno what this is doing or if this is right (used to be implicit
-			// conversion of rstring compared to vs1.begin()
+			// conversion of string compared to vs1.begin()
 			vs2.push_back(s1 == vs1[0] ? "0" : "4");
 		}
 

@@ -9,11 +9,12 @@
 
 // This is a very basic difficulty calculator for solo files that I am putting
 // together as a proof of concept
-std::vector<float>
-SoloCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal);
+auto
+SoloCalc(const std::vector<NoteInfo>& NoteInfo, float musicrate, float goal)
+  -> std::vector<float>;
 
 // Simple wrapper for allrates stolen from MinaCalc -five
-MinaSD
-SoloCalc(const std::vector<NoteInfo>& notes);
+auto
+SoloCalc(const std::vector<NoteInfo>& notes) -> MinaSD;
 
 #endif // MINACALC_SOLOCALC_H

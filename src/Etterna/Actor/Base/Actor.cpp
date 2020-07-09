@@ -330,15 +330,19 @@ Actor::IsOver(float mx, float my)
 Actor*
 Actor::GetFakeParentOrParent()
 {
-	if (m_FakeParent)
+	if (!this)
+		return nullptr;
+	if (m_FakeParent != nullptr)
 		return m_FakeParent;
-	if (m_pParent)
+	if (m_pParent != nullptr)
 		return m_pParent;
 	return nullptr;
 }
 float
 Actor::GetTrueX()
 {
+	if (!this)
+		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
@@ -351,6 +355,8 @@ Actor::GetTrueX()
 float
 Actor::GetTrueY()
 {
+	if (!this)
+		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
@@ -363,6 +369,8 @@ Actor::GetTrueY()
 float
 Actor::GetTrueRotationZ()
 {
+	if (!this)
+		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetRotationZ();
@@ -372,21 +380,23 @@ Actor::GetTrueRotationZ()
 float
 Actor::GetTrueZoom()
 {
+	if (!this)
+		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoom();
 	return GetZoom() * mfp->GetTrueZoom();
 }
-
 bool
 Actor::IsVisible()
 {
+	if (!this)
+		return false;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetVisible();
 	return GetVisible() && mfp->IsVisible();
 }
-
 void
 Actor::Draw()
 {

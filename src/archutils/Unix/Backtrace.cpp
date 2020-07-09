@@ -21,6 +21,8 @@
 #include <limits.h>
 #endif
 
+#include <algorithm> // Literally just used for a single "min" call within PointsToValidCall
+
 static const char*
 itoa(unsigned n)
 {
@@ -520,7 +522,7 @@ PointsToValidCall(vm_address_t start, const void* ptr)
 
 	/* We're reading buf backwards, between buf[-7] and buf[-1].  Find out how
 	 * far we can read. */
-	const int len = min(intptr_t(ptr) - start, 7U);
+	const int len = std::min(intptr_t(ptr) - start, 7UL);
 
 	// Permissible CALL sequences that we care about:
 	//

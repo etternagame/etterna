@@ -114,7 +114,7 @@ BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 		GetDirListing(sAniDir + "*.mpg", asImagePaths, false, true);
 		GetDirListing(sAniDir + "*.mpeg", asImagePaths, false, true);
 
-		SortRStringArray(asImagePaths);
+		SortStringArray(asImagePaths);
 
 		for (auto& sPath : asImagePaths) {
 			if (Basename(sPath).front() == '_')

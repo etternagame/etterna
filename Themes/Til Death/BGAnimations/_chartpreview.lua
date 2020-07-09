@@ -79,8 +79,11 @@ local t = Def.ActorFrame {
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		self:GetChild("pausetext"):settext("")
+
+	end,
+	CurrentStepsP1ChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
-            musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+            musicratio = GAMESTATE:GetCurrentSteps():GetLengthSeconds() / wodth
 		end
 	end,
 	MouseRightClickMessageCommand=function(self)
