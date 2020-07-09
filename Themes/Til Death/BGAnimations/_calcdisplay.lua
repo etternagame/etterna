@@ -316,7 +316,6 @@ local function updateCoolStuff()
         firstSecond = steps:GetFirstSecond() * 2
         finalSecond = steps:GetLastSecond() * 2
         steplength = (finalSecond - firstSecond)
-        ms.ok(steplength)
     end
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
