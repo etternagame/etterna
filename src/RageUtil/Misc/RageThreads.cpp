@@ -191,7 +191,7 @@ InitThreads()
 	bInitialized = true;
 
 	/* Register the "unknown thread" slot. */
-	int slot = FindEmptyThreadSlot();
+	const int slot = FindEmptyThreadSlot();
 	strcpy(g_ThreadSlots[slot].m_szName, "Unknown thread");
 	g_ThreadSlots[slot].m_iID = GetInvalidThreadId();
 	sprintf(g_ThreadSlots[slot].m_szThreadFormattedOutput, "Unknown thread");
@@ -265,7 +265,7 @@ RageThread::Create(int (*fn)(void*), void* data)
 	 */
 	LockMut(GetThreadSlotsLock());
 
-	int slotno = FindEmptyThreadSlot();
+	const int slotno = FindEmptyThreadSlot();
 	m_pSlot = &g_ThreadSlots[slotno];
 
 	strcpy(m_pSlot->m_szName, m_sName.c_str());
@@ -285,7 +285,7 @@ RageThreadRegister::RageThreadRegister(const std::string& sName)
 	InitThreads();
 	LockMut(GetThreadSlotsLock());
 
-	int iSlot = FindEmptyThreadSlot();
+	const int iSlot = FindEmptyThreadSlot();
 
 	m_pSlot = &g_ThreadSlots[iSlot];
 
@@ -342,7 +342,7 @@ RageThread::Wait()
 {
 	ASSERT(m_pSlot != NULL);
 	ASSERT(m_pSlot->m_pImpl != NULL);
-	int ret = m_pSlot->m_pImpl->Wait();
+	const int ret = m_pSlot->m_pImpl->Wait();
 
 	LockMut(GetThreadSlotsLock());
 
@@ -516,7 +516,7 @@ RageMutex::~RageMutex()
 void
 RageMutex::Lock()
 {
-	uint64_t iThisThreadId = GetThisThreadId();
+	const uint64_t iThisThreadId = GetThisThreadId();
 	if (m_LockedBy == iThisThreadId) {
 		++m_LockCnt;
 		return;
@@ -531,11 +531,13 @@ RageMutex::Lock()
 		std::string OtherSlotName = "(???"
 									")"; // stupid trigraph warnings
 		if (ThisSlot)
-			ThisSlotName = ssprintf(
-			  "%s (%i)", ThisSlot->GetThreadName(), (int)ThisSlot->m_iID);
+			ThisSlotName = ssprintf("%s (%i)",
+									ThisSlot->GetThreadName(),
+									static_cast<int>(ThisSlot->m_iID));
 		if (OtherSlot)
-			OtherSlotName = ssprintf(
-			  "%s (%i)", OtherSlot->GetThreadName(), (int)OtherSlot->m_iID);
+			OtherSlotName = ssprintf("%s (%i)",
+									 OtherSlot->GetThreadName(),
+									 static_cast<int>(OtherSlot->m_iID));
 		const std::string sReason =
 		  ssprintf("Thread deadlock on mutex %s between %s and %s",
 				   GetName().c_str(),
@@ -545,7 +547,7 @@ RageMutex::Lock()
 		/* Don't leave GetThreadSlotsLock() locked when we call
 		 * ForceCrashHandlerDeadlock. */
 		GetThreadSlotsLock().Lock();
-		uint64_t CrashHandle = OtherSlot ? OtherSlot->m_iID : 0;
+		const uint64_t CrashHandle = OtherSlot ? OtherSlot->m_iID : 0;
 		GetThreadSlotsLock().Unlock();
 
 		/* Pass the crash handle of the other thread, so it can backtrace that
@@ -649,7 +651,7 @@ RageEvent::Wait(RageTimer* pTimeout)
 	/* A zero RageTimer also means no timeout. */
 	if (pTimeout != NULL && pTimeout->IsZero())
 		pTimeout = NULL;
-	bool bRet = m_pEvent->Wait(pTimeout);
+	const bool bRet = m_pEvent->Wait(pTimeout);
 
 	m_LockedBy = GetThisThreadId();
 	return bRet;

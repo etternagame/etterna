@@ -1116,11 +1116,13 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	void Allocate(const vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(max(1U, (unsigned)GetTotalVertices()));
-		m_vTexture.resize(max(1U, (unsigned)GetTotalVertices()));
-		m_vNormal.resize(max(1U, (unsigned)GetTotalVertices()));
-		m_vTexMatrixScale.resize(max(1U, (unsigned)GetTotalVertices()));
-		m_vTriangles.resize(max(1U, (unsigned)GetTotalTriangles()));
+		m_vPosition.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vTexture.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vNormal.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vTexMatrixScale.resize(
+		  max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vTriangles.resize(
+		  max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
 	void Change(const vector<msMesh>& vMeshes) override
 	{

@@ -215,7 +215,7 @@ RageLog::Trace(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	std::string sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(0, sBuff);
@@ -228,7 +228,7 @@ RageLog::Info(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	std::string sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(WRITE_TO_INFO, sBuff);
@@ -239,7 +239,7 @@ RageLog::Warn(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	std::string sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(WRITE_TO_INFO | WRITE_LOUD, sBuff);
@@ -250,7 +250,7 @@ RageLog::Time(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	std::string sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(WRITE_TO_TIME, sBuff);
@@ -291,7 +291,7 @@ RageLog::Write(int where, const std::string& sLine)
 		puts(sWarningSeparator);
 	}
 
-	std::string sTimestamp =
+	const std::string sTimestamp =
 	  SecondsToMMSSMsMsMs(RageTimer::GetTimeSinceStart()) + ": ";
 	std::string sWarning;
 	if (where & WRITE_LOUD)
@@ -354,12 +354,13 @@ RageLog::AddToInfo(const std::string& str)
 	if (limit_reached)
 		return;
 
-	unsigned len = str.size() + strlen(NEWLINE);
+	const unsigned len = str.size() + strlen(NEWLINE);
 	if (staticlog_size + len > sizeof(staticlog)) {
 		const std::string txt(NEWLINE "Staticlog limit reached" NEWLINE);
 
 		const unsigned pos =
-		  std::min(staticlog_size, unsigned(sizeof(staticlog) - txt.size()));
+		  std::min(staticlog_size,
+				   static_cast<unsigned>(sizeof(staticlog) - txt.size()));
 		memcpy(staticlog + pos, txt.data(), txt.size());
 		limit_reached = true;
 		return;
@@ -431,8 +432,8 @@ RageLog::UpdateMappedLog()
 const char*
 RageLog::GetAdditionalLog()
 {
-	int size =
-	  std::min(g_AdditionalLogSize, (int)sizeof(g_AdditionalLogStr) - 1);
+	const int size = std::min(g_AdditionalLogSize,
+							  static_cast<int>(sizeof(g_AdditionalLogStr)) - 1);
 	g_AdditionalLogStr[size] = 0;
 	return g_AdditionalLogStr;
 }
