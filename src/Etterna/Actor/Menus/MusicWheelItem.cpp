@@ -201,7 +201,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 		} break;
 		case WheelItemDataType_Sort:
 			sDisplayName = pWID->m_sLabel;
-			type = MusicWheelItemType_Mode;
+			type = MusicWheelItemType_Sort;
 			break;
 		case WheelItemDataType_Roulette:
 			sDisplayName = THEME->GetString("MusicWheel", "Roulette");
