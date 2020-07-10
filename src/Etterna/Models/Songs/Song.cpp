@@ -1649,16 +1649,10 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 }
 
 bool
-Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
+Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 {
-	auto vsteps = GetAllSteps();
-	for (auto& steps : vsteps) {
-		auto sortedstuffs = steps->SortSkillsetsAtRate(rate, false);
-		if (sortedstuffs[0].first == ss)
-			return true;
-	}
-
-	return false;
+	auto sorted_skills = chart->SortSkillsetsAtRate(rate, false);
+	return (sorted_skills[0].first == skill);
 }
 
 bool
@@ -1684,8 +1678,8 @@ Song::MatchesFilter(const float rate) const
 
 				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
 					if (FILTERMAN->HighestSkillsetsOnly)
-						if (!IsSkillsetHighestOfAnySteps(
-							  static_cast<Skillset>(ss), rate) &&
+						if (!IsSkillsetHighestOfChart(
+							  chart, static_cast<Skillset>(ss), rate) &&
 							ss < NUM_Skillset) // The current skill is not
 											   // in highest in the chart
 							continue;
