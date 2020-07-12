@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
+#include "Etterna/MinaCalc/PatternModHelpers.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 // since the calc skillset balance now operates on +- rather than

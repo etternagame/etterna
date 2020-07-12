@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
-#include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/FlamSequencing.h"
+#include "Etterna/MinaCalc/PatternModHelpers.h"
+#include "Etterna/MinaCalc/Agnostic/HA_Sequencers/FlamSequencing.h"
 
 // MAKE FLAM WIDE RANGE?
 // ^ YES DO THIS

@@ -15,7 +15,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"

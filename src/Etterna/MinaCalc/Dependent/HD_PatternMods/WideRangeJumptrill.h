@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
 
 // big brain stuff
 static const float wrjt_cv_factor = 3.F;

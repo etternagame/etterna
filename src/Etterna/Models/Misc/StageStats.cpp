@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Profile.h"

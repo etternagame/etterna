@@ -1,7 +1,7 @@
 #pragma once
 #include "HA_Sequencing.h"
 #include "MetaIntervalInfo.h"
-#include "Etterna/Globals/MinaCalc/SequencingHelpers.h"
+#include "Etterna/MinaCalc/SequencingHelpers.h"
 
 /* counterpart to metahandinfo */
 

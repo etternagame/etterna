@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
-#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
+#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "Etterna/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
 // general mod, should maybe make cj specific one
 struct WideRangeAnchorMod

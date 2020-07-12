@@ -1,6 +1,5 @@
 #pragma once
-#include "Etterna/Globals/MinaCalc/SequencingHelpers.h"
-
+#include "Etterna/MinaCalc/SequencingHelpers.h"
 #include <array>
 
 /* MS difficulty bases are going to be sequence constructed row by row here, the

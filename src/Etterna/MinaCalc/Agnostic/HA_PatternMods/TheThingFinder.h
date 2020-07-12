@@ -3,8 +3,8 @@
 #include <array>
 #include <vector>
 
-#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
-#include "Etterna/Globals/MinaCalc/Agnostic/HA_Sequencers/ThingSequencing.h"
+#include "Etterna/MinaCalc/PatternModHelpers.h"
+#include "Etterna/MinaCalc/Agnostic/HA_Sequencers/ThingSequencing.h"
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well

@@ -1,5 +1,5 @@
 #pragma once
-#include "Etterna/Globals/MinaCalc/CalcWindow.h"
+#include "Etterna/MinaCalc/CalcWindow.h"
 
 // accumulates hand specific info across an interval as it's processed by row
 struct ItvHandInfo

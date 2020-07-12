@@ -4,34 +4,33 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
 
-/* this is complex enough it should probably have its own sequencer, there's
- * also a fair bit of redundancy between this, wrjt, wrr. Currently this has the
- * best component construction for the pmod so maybe the other mods should use
- * this as a template? */
+/* retuned oht mod focus tuned to for catching vibro trills like bagatelle */
 
-static const int max_trills_per_interval = 4;
+static const int max_vtrills_per_interval = 4;
 
 // almost identical to wrr, refer to comments there
-struct OHTrillMod
+struct VOHTrillMod
 {
-	const CalcPatternMod _pmod = OHTrill;
-	const std::string name = "OHTrillMod";
+	const CalcPatternMod _pmod = VOHTrill;
+	const std::string name = "VOHTrillMod";
 
 #pragma region params
 
-	float window_param = 3.F;
+	float window_param = 2.F;
 
-	float min_mod = 0.9F;
+	float min_mod = 0.25F;
 	float max_mod = 1.F;
-	float base = 1.35F;
-	float suppression = 0.4F;
+	float base = 1.5F;
+	float suppression = 0.2F;
 
 	float cv_reset = 1.F;
-	float cv_threshhold = 0.5F;
+	float cv_threshhold = 0.25F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	float min_len = 8.F;
+
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
@@ -41,6 +40,8 @@ struct OHTrillMod
 
 		{ "cv_reset", &cv_reset },
 		{ "cv_threshhold", &cv_threshhold },
+
+		{ "min_len", &min_len },
 	};
 #pragma endregion params and param map
 
@@ -49,19 +50,10 @@ struct OHTrillMod
 
 	bool luca_turilli = false;
 
-	// ok new plan, ohj, wrjt and wrr are relatively well tuned so i'll try this
-	// here, handle merging multiple sequences in a single interval into one
-	// value at interval end and keep a window of that. suppose we have two
-	// intervals of 12 notes with 8 in trill formation, one has an 8 note trill
-	// and the other has two 4 note trills at the start/end, we want to punish
-	// the 8 note trill harder, this means we _will_ be resetting the
-	// consecutive trill counter every interval, but will not be resetting the
-	// trilling flag, this way we don't have to futz around with awkward
-	// proportion math, similar to thing 1 and thing 2
 	CalcMovingWindow<float> badjuju;
 	CalcMovingWindow<int> _mw_oht_taps;
 
-	std::array<int, max_trills_per_interval> foundyatrills = { 0, 0, 0, 0 };
+	std::array<int, max_vtrills_per_interval> foundyatrills = { 0, 0, 0, 0 };
 
 	int found_oht = 0;
 	int oht_len = 0;
@@ -126,7 +118,7 @@ struct OHTrillMod
 			return;
 		}
 
-		if (found_oht < max_trills_per_interval) {
+		if (found_oht < max_vtrills_per_interval) {
 			foundyatrills.at(found_oht) = oht_len;
 		}
 
@@ -139,9 +131,6 @@ struct OHTrillMod
 	auto oht_timing_check(const CalcMovingWindow<float>& ms_any) -> bool
 	{
 		moving_cv = (moving_cv + ms_any.get_cv_of_window(cc_window)) / 2.F;
-		// the primary difference from wrr, just check cv on the base ms values,
-		// we are looking for values that are all close together without any
-		// manipulation
 		return moving_cv < cv_threshhold;
 	}
 
@@ -174,17 +163,6 @@ struct OHTrillMod
 				break;
 			case meta_enigma:
 			case meta_meta_enigma:
-				// also wait to see what happens, but not if last was ccacc,
-				// since we only don't complete there if we don't immediately go
-				// back into ohts
-
-				// this seems to be overkill with how lose the detection is
-				// already anyway
-
-				// if (now.last_cc == meta_ccacc) {
-				//	complete_seq();
-				//}
-				// break;
 			default:
 				complete_seq();
 				break;
@@ -197,6 +175,11 @@ struct OHTrillMod
 		// no taps, no trills
 		if (itvhi.get_taps_windowi(window) == 0 ||
 			_mw_oht_taps.get_total_for_window(window) == 0) {
+			pmod = neutral;
+			return;
+		}
+
+		if (_mw_oht_taps.get_total_for_window(window) < min_len) {
 			pmod = neutral;
 			return;
 		}
@@ -216,7 +199,7 @@ struct OHTrillMod
 
 	auto operator()(const ItvHandInfo& itvhi) -> float
 	{
-		if (oht_len > 0 && found_oht < max_trills_per_interval) {
+		if (oht_len > 0 && found_oht < max_vtrills_per_interval) {
 			foundyatrills.at(found_oht) = oht_len;
 			++found_oht;
 		}

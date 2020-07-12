@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-#include "Etterna/Globals/MinaCalc/Agnostic/MetaIntervalInfo.h"
+#include "Etterna/MinaCalc/Agnostic/MetaIntervalInfo.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 
 struct HSMod

@@ -1,6 +1,6 @@
-#include "MinaCalc.h"
-#include "MinaCalc/Ulbu.h"
-#include "MinaCalcHelpers.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
+#include "Etterna/MinaCalc/Ulbu.h"
+#include "Etterna/MinaCalc/MinaCalcHelpers.h"
 
 #include <cmath>
 #include <iostream>

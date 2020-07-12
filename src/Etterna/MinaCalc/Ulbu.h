@@ -42,7 +42,7 @@
 #include "UlbuAcolytes.h"
 
 // a new thing
-#include "Etterna/Globals/MinaCalc/SequencedBaseDiffCalc.h"
+#include "Etterna/MinaCalc/SequencedBaseDiffCalc.h"
 
 /* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */

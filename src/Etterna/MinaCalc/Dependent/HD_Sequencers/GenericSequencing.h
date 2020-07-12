@@ -1,5 +1,5 @@
 #pragma once
-#include "Etterna/Globals/MinaCalc/CalcWindow.h"
+#include "Etterna/MinaCalc/CalcWindow.h"
 
 #include <array>
 

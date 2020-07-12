@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/CalcWindow.h"
+#include "Etterna/MinaCalc/CalcWindow.h"
 
 // slightly different implementation of the old chaos mod, basically picks up
 // polyishness and tries to detect awkward transitions

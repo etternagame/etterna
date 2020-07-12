@@ -8,6 +8,7 @@ include(CMakeListsLegacy.cmake) # TODO: Reduce this to removal, or as much as po
 add_subdirectory(Actor)
 add_subdirectory(FileTypes)
 add_subdirectory(Globals)
+add_subdirectory(MinaCalc)
 add_subdirectory(Models)
 add_subdirectory(Screen)
 add_subdirectory(Singletons)

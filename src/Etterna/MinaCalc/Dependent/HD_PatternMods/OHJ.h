@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/Dependent/MetaIntervalHandInfo.h"
-#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/OHJSequencing.h"
+#include "Etterna/MinaCalc/Dependent/MetaIntervalHandInfo.h"
+#include "Etterna/MinaCalc/Dependent/HD_Sequencers/OHJSequencing.h"
 
 struct OHJumpModGuyThing
 {

@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/MinaCalc/Dependent/IntervalHandInfo.h"
-#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
+#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "Etterna/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
 
 static const int max_seq_parts = 4;
 

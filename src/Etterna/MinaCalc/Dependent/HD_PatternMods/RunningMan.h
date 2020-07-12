@@ -3,8 +3,8 @@
 #include <array>
 #include <vector>
 
-#include "Etterna/Globals/MinaCalc/PatternModHelpers.h"
-#include "Etterna/Globals/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
+#include "Etterna/MinaCalc/PatternModHelpers.h"
+#include "Etterna/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
 
 /* Unlike other pattern mods runningman sequencing has 2 core purposes, the
  * primary one involves tracking the anchor speed of a runningman sequence and
