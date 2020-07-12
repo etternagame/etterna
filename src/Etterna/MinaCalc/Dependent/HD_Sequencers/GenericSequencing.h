@@ -18,7 +18,7 @@
 
 // bpm flux float precision etc
 static const float anchor_spacing_buffer_ms = 10.F;
-static const float anchor_speed_increase_cutoff_factor = 2.1F;
+static const float anchor_speed_increase_cutoff_factor = 2.34F;
 static const int len_cap = 6;
 
 enum anch_status
@@ -101,7 +101,7 @@ struct Anchor_Sequencing
 
 		if (_sc_ms > _max_ms + anchor_spacing_buffer_ms) {
 			_status = reset_too_slow;
-		} else if (_sc_ms * 2.5F < _max_ms) {
+		} else if (_sc_ms * anchor_speed_increase_cutoff_factor < _max_ms) {
 			_status = reset_too_fast;
 		} else {
 			_status = anchoring;
@@ -148,8 +148,8 @@ struct Anchor_Sequencing
 		}
 
 		static const auto avg_ms_mult = 1.075F;
-		static const auto anchor_time_buffer_ms = 20.F;
-		static const auto min_ms = 80.F;
+		static const auto anchor_time_buffer_ms = 25.F;
+		static const auto min_ms = 85.F;
 
 		// get total ms
 		const auto total_ms = ms_from(_last, _start);
@@ -170,8 +170,8 @@ struct Anchor_Sequencing
 
 		// BAD TEMP HACK LUL
 		if (_len == 2) {
-			ms *= 1.05F;
-			ms = ms < 105.F ? 105.F : ms;
+			ms *= 1.1F;
+			ms = ms < 155.F ? 155.F : ms;
 		}
 
 		ms = ms < min_ms ? min_ms : ms;

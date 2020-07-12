@@ -274,13 +274,12 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 4.F;
-static const float magic_num_TWO = 2.5F;
+static const float magic_num = 12.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
 {
-	return magic_num - (magic_num * fastpow(x / y, magic_num_TWO));
+	return std::max(magic_num * erf(0.05F * (y - x)), 0.F);
 }
 
 /* ok this is a little jank, we are calculating jack loss looping over the
@@ -294,12 +293,17 @@ hit_the_road(const float& x, const float& y) -> float
 inline auto
 jackloss(const float& x, Calc& calc, const int& hi) -> float
 {
+	calc.jack_loss.at(hi).resize(calc.numitv);
+	for (auto itv = 0; itv < calc.numitv; ++itv) {
+		calc.jack_loss.at(hi).at(itv) = 0.F;
+	}
+
 	auto total = 0.F;
 
 	for (const auto& y : calc.jack_diff.at(hi)) {
 		if (x < y && y > 0.F) {
 			const auto zzerp = hit_the_road(x, y);
-			calc.jack_loss.at(hi).push_back(zzerp);
+
 			total += zzerp;
 		}
 	}
@@ -852,7 +856,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 422;
+int mina_calc_version = 423;
 auto
 GetCalcVersion() -> int
 {
