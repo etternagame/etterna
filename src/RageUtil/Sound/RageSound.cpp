@@ -355,11 +355,13 @@ RageSound::GetDataToPlay(float* pBuffer,
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
 				auto out = static_cast<cfloat*>(fftBuffer);
-				auto n = recentPCMSamplesBufferSize;
 				auto plan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize,
 													 MUFFT_FLAG_CPU_ANY);
-				mufft_execute_plan_1d(plan, out, recentPCMSamples.data());
+				auto in = static_cast<float*>(mufft_alloc(recentPCMSamplesBufferSize * sizeof(float)));
+				copy(recentPCMSamples.begin(), recentPCMSamples.begin() + recentPCMSamplesBufferSize, in);
+				mufft_execute_plan_1d(plan, out, in);
 				mufft_free_plan_1d(plan);
+				mufft_free(in);
 				copy(pBuffer, until, back_inserter(recentPCMSamples));
 				recentPCMSamples.clear();
 				pendingPlayBackCall = true;
