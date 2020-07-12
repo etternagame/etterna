@@ -93,7 +93,7 @@ struct TheThingLookerFinderThing2
 #pragma endregion params and param map
 
 	// sequencer
-	TT_Sequencing tt2;
+	TT_Sequencing2 tt2;
 	float pmod = min_mod;
 
 #pragma region generic functions
