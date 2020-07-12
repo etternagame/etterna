@@ -607,7 +607,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		TheThing2,
 		WideRangeBalance,
 		WideRangeJumptrill,
-		WideRangeRoll,
+		// WideRangeRoll,
 		OHTrill,
 		VOHTrill,
 		RanMan,
@@ -716,6 +716,11 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					*adj_diff /= max<float>(calc.doot.at(hi).at(HS).at(i), 1.F);
 					*adj_diff /=
 					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
+
+					*adj_diff *=
+					  min(1.F,
+						  fastsqrt(calc.doot.at(hi).at(WideRangeRoll).at(i) +
+								   0.1F));
 
 					auto a = *adj_diff;
 					auto b = calc.soap.at(hi).at(NPSBase).at(i) *
@@ -837,7 +842,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 421;
+int mina_calc_version = 422;
 auto
 GetCalcVersion() -> int
 {
