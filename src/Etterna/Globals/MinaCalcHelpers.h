@@ -28,7 +28,7 @@ static const int num_chart_cols = 4;
 static const std::array<int, num_chart_cols> zto3 = { 0, 1, 2, 3 };
 
 inline auto
-downscale_low_accuracy_scores(float f, float sg) -> float
+downscale_low_accuracy_scores(const float f, const float sg) -> float
 {
 	return sg >= low_acc_cutoff
 			 ? f
@@ -41,16 +41,14 @@ downscale_low_accuracy_scores(float f, float sg) -> float
 inline auto
 AggregateRatings(const vector<float>& skillsets,
 				 float rating = 0.F,
-				 float res = 10.24F,
-				 int iter = 1.F) -> float
+				 const float res = 10.24F,
+				 const int iter = 1.F) -> float
 {
 	double sum;
 	do {
 		rating += res;
 		sum = 0.0;
-		for (auto& ss : skillsets) {
-			if (ss == Skill_Overall)
-				continue;
+		for (const auto& ss : skillsets) {
 			sum += std::max(0.0, 2.f / erfc(0.25 * (ss - rating)) - 2);
 		}
 	} while (pow(2, rating * 0.1) < sum);
