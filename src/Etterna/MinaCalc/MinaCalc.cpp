@@ -274,7 +274,7 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 12.F;
+static const float magic_num = 16.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
@@ -473,7 +473,7 @@ Calc::Chisel(float player_skill,
 {
 	auto gotpoints = 0.F;
 	const auto reqpoints = MaxPoints * score_goal;
-	const auto max_slap_dash_jack_cap_hack_tech_hat = MaxPoints * 0.25F;
+	const auto max_slap_dash_jack_cap_hack_tech_hat = MaxPoints * 0.1F;
 	for (auto iter = 1; iter <= 8; iter++) {
 		do {
 			// overall and stamina are calculated differently
@@ -856,7 +856,7 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 	}
 }
 
-int mina_calc_version = 423;
+int mina_calc_version = 424;
 auto
 GetCalcVersion() -> int
 {

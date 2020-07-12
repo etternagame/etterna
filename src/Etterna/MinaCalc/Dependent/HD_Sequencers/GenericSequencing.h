@@ -149,7 +149,7 @@ struct Anchor_Sequencing
 
 		static const auto avg_ms_mult = 1.075F;
 		static const auto anchor_time_buffer_ms = 25.F;
-		static const auto min_ms = 85.F;
+		static const auto min_ms = 90.F;
 
 		// get total ms
 		const auto total_ms = ms_from(_last, _start);
