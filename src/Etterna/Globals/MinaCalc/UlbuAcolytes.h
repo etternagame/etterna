@@ -22,12 +22,11 @@ static const float interval_span = 0.5F;
 inline void
 Smooth(std::array<float, max_intervals>& input, float neutral, int end_interval)
 {
-	float f1;
 	auto f2 = neutral;
 	auto f3 = neutral;
 
 	for (auto i = 0; i < end_interval; ++i) {
-		f1 = f2;
+		float f1 = f2;
 		f2 = f3;
 		f3 = input.at(i);
 		input.at(i) = (f1 + f2 + f3) / 3.F;
@@ -39,11 +38,10 @@ MSSmooth(std::array<float, max_intervals>& input,
 		 float neutral,
 		 int end_interval)
 {
-	float f1;
 	auto f2 = neutral;
 
 	for (auto i = 0; i < end_interval; ++i) {
-		f1 = f2;
+		float f1 = f2;
 		f2 = input.at(i);
 		input.at(i) = (f1 + f2) / 2.F;
 	}

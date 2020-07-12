@@ -229,9 +229,9 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	  0.95F;		  // stamina multiplier min (increases as chart advances)
 	auto mod = 0.95F; // mutliplier
 
-	auto avs1 = 0.F;
+	float avs1;
 	auto avs2 = 0.F;
-	auto local_ceil = stam_ceil;
+	float local_ceil;
 	const auto super_stam_ceil = 1.11F;
 
 	// use this to calculate the mod growth
@@ -295,7 +295,6 @@ inline auto
 jackloss(const float& x, Calc& calc, const int& hi) -> float
 {
 	auto total = 0.F;
-	auto row_loss = 0.F;
 
 	// interval loop
 	for (auto itv = 0; itv < calc.numitv; ++itv) {
@@ -307,7 +306,7 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 			const auto& y = calc.jack_diff.at(hi).at(itv).at(row);
 
 			if (x < y && y > 0.F) {
-				row_loss = hit_the_road(x, y);
+				const float row_loss = hit_the_road(x, y);
 				itv_total += row_loss > 0.F ? row_loss : 0.F;
 			}
 		}
@@ -325,11 +324,11 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 void
 CalcInternal(float& gotpoints,
 			 float& x,
-			 int ss,
-			 bool stam,
+			 const int ss,
+			 const bool stam,
 			 Calc& calc,
-			 int hi,
-			 bool debug = false)
+			 const int hi,
+			 const bool debug = false)
 {
 	if (stam) {
 		StamAdjust(x, ss, calc, hi);
@@ -381,8 +380,8 @@ CalcInternal(float& gotpoints,
 
 auto
 Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
-					  float music_rate,
-					  float offset) -> bool
+					  const float music_rate,
+					  const float offset) -> bool
 {
 	// do we skip this file?
 	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
@@ -453,10 +452,10 @@ static const float bad_newbie_skillsets_pbm = 1.05F;
 auto
 Calc::Chisel(float player_skill,
 			 float resolution,
-			 float score_goal,
-			 int ss,
-			 bool stamina,
-			 bool debugoutput) -> float
+			 const float score_goal,
+			 const int ss,
+			 const bool stamina,
+			 const bool debugoutput) -> float
 {
 	auto gotpoints = 0.F;
 	const auto reqpoints = MaxPoints * score_goal;
@@ -774,8 +773,8 @@ make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
 // Function to generate SSR rating
 auto
 MinaSDCalc(const vector<NoteInfo>& NoteInfo,
-		   float musicrate,
-		   float goal,
+		   const float musicrate,
+		   const float goal,
 		   Calc* calc) -> vector<float>
 {
 	if (NoteInfo.size() <= 1) {
@@ -813,8 +812,8 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 // Debug output
 void
 MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
-				float musicrate,
-				float goal,
+				const float musicrate,
+				const float goal,
 				vector<vector<vector<vector<float>>>>& handInfo,
 				vector<std::string>& debugstrings,
 				Calc& calc)
