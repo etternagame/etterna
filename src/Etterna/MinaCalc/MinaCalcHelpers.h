@@ -67,14 +67,13 @@ set_jack_diff_debug(Calc& calc, const int& hi)
 		float diff_total = 0.F;
 		int counter = 0;
 
-		// rows per interval now
-		for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv); ++row) {
-			diff_total += calc.jack_diff.at(hi).at(itv).at(row);
-			++counter;
-		}
+		//// rows per interval now
+		// for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
+		// ++row) { 	diff_total += calc.jack_diff.at(hi).at(itv).at(row);
+		//	++counter;
+		//}
 
 		// technically this is kind of a waste of an array but whatever
-		calc.soap.at(hi)[JackBase].at(itv) =
-		  counter > 0 ? diff_total / static_cast<float>(counter) : 0.F;
+		calc.soap.at(hi)[JackBase].at(itv) = 1.F;
 	}
 }

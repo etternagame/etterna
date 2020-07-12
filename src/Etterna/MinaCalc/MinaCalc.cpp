@@ -59,8 +59,8 @@ TotalMaxPoints(const Calc& calc) -> float
 
 auto
 Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
-			   float music_rate,
-			   float score_goal) -> vector<float>
+			   const float music_rate,
+			   const float score_goal) -> vector<float>
 {
 	// in flux
 	const auto grindscaler =
@@ -296,26 +296,36 @@ jackloss(const float& x, Calc& calc, const int& hi) -> float
 {
 	auto total = 0.F;
 
-	// interval loop
-	for (auto itv = 0; itv < calc.numitv; ++itv) {
-		auto itv_total = 0.F;
-
-		// rows per interval now
-		for (auto row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
-			 ++row) {
-			const auto& y = calc.jack_diff.at(hi).at(itv).at(row);
-
-			if (x < y && y > 0.F) {
-				const float row_loss = hit_the_road(x, y);
-				itv_total += row_loss > 0.F ? row_loss : 0.F;
-			}
+	for (const auto& y : calc.jack_diff.at(hi)) {
+		if (x < y && y > 0.F) {
+			const auto zzerp = hit_the_road(x, y);
+			calc.jack_loss.at(hi).push_back(zzerp);
+			total += zzerp;
 		}
-
-		// this is per _interval_, but calculated by row scanning
-		calc.jack_loss.at(hi).at(itv) = itv_total;
-		total += itv_total;
 	}
+
 	return total;
+
+	//// interval loop
+	// for (auto itv = 0; itv < calc.numitv; ++itv) {
+	//	auto itv_total = 0.F;
+
+	//	// rows per interval now
+	//	for (auto row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
+	//		 ++row) {
+	//		const auto& y = calc.jack_diff.at(hi).at(itv).at(row);
+
+	//		if (x < y && y > 0.F) {
+	//			const float row_loss = hit_the_road(x, y);
+	//			itv_total += row_loss > 0.F ? row_loss : 0.F;
+	//		}
+	//	}
+
+	//	// this is per _interval_, but calculated by row scanning
+	//	calc.jack_loss.at(hi).at(itv) = itv_total;
+	//	total += itv_total;
+	//}
+	// return total;
 }
 
 // debug bool here is NOT the one in Calc, it is passed from chisel

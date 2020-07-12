@@ -321,9 +321,9 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc.jack_diff.at(hand).at(itv).at(jack_counter) =
+		_calc.jack_diff.at(hand).push_back(
 		  ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
-		  basescalers[Skill_JackSpeed];
+		  basescalers[Skill_JackSpeed]);
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -358,6 +358,9 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			auto ct = col_init;
 			full_hand_reset();
+
+			// arrays are super bug prone with jacks so try vectors for now
+			_calc.jack_diff.at(hand).clear();
 
 			nps::actual_cancer(_calc, hand);
 
@@ -429,7 +432,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 
 				// maybe this should go back into the diffz object...
-				_calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
+				// _calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
 
 				handle_dependent_interval_end(itv);
 			}
