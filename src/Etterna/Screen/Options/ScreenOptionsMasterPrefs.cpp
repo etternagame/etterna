@@ -205,7 +205,7 @@ LanguageChoices(vector<std::string>& out)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	for (auto& s : vs) {
 		const LanguageInfo* pLI = GetLanguageInfo(s);
@@ -222,7 +222,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	if (ToSel) {
 		sel = -1;
@@ -359,14 +359,6 @@ DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 		po.m_sNoteSkin = choices[sel];
 		SetPrefsDefaultModifiers(po, so);
 	}
-}
-
-static void
-DefaultFailChoices(vector<std::string>& out)
-{
-	out.push_back("Immediate");
-	out.push_back("ImmediateContinue");
-	out.push_back("Off");
 }
 
 static void
@@ -701,13 +693,6 @@ EditRecordModeLeadIn(int& sel, bool to_sel, const ConfOption* conf_option)
 	for (int i = 0; i < 32; ++i) {
 		mapping[i] = static_cast<float>(i);
 	}
-	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
-}
-
-static void
-EditClearPromptThreshold(int& sel, bool to_sel, const ConfOption* conf_option)
-{
-	int mapping[] = { -1, 10, 50, 100, 1000, 1000000 };
 	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
 

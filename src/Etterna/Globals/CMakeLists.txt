@@ -1,7 +1,4 @@
-add_subdirectory(MinaCalc)
-
 list(APPEND GLOBAL_FILES_SRC
-	"MinaCalc.cpp"
 	"SoloCalc.cpp"
 	"GameLoop.cpp"
 	"global.cpp"
@@ -10,8 +7,6 @@ list(APPEND GLOBAL_FILES_SRC
 	"StepMania.cpp") # TODO: Refactor into separate main project.
 
 list(APPEND GLOBAL_FILES_HPP
-	"MinaCalc.h"
-	"MinaCalcHelpers.h"
 	"SoloCalc.h"
 	"GameLoop.h"
 	"global.h"
@@ -19,8 +14,7 @@ list(APPEND GLOBAL_FILES_HPP
 	"ProductInfo.h" # TODO: Have this be auto-generated.
 	"SpecialFiles.h"
 	"rngthing.h"
-	"StepMania.h" # TODO: Refactor into separate main project.
-	"picosha2.h")
+	"StepMania.h") # TODO: Refactor into separate main project.
 
 if(NOT APPLE)
 	list(APPEND GLOBAL_FILES_SRC "Main.cpp")

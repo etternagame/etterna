@@ -27,15 +27,15 @@ class ScreenDebugOverlay : public Screen
 	void UpdateText();
 
 	std::string GetCurrentPageName() const { return m_asPages[m_iCurrentPage]; }
-	vector<std::string> m_asPages;
+	std::vector<std::string> m_asPages;
 	int m_iCurrentPage = 0;
 	bool m_bForcedHidden = false;
 
 	Quad m_Quad;
 	BitmapText m_textHeader;
-	vector<BitmapText*> m_vptextPages;
-	vector<BitmapText*> m_vptextButton;
-	vector<BitmapText*> m_vptextFunction;
+	std::vector<BitmapText*> m_vptextPages;
+	std::vector<BitmapText*> m_vptextButton;
+	std::vector<BitmapText*> m_vptextFunction;
 };
 
 #endif

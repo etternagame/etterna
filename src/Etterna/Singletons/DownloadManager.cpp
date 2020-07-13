@@ -132,7 +132,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 
 	string doot = TEMP_ZIP_MOUNT_POINT;
 	if (v_packs.size() > 1) {
-		doot += sZipFile.substr(sZipFile.find_last_of("/") +
+		doot += sZipFile.substr(sZipFile.find_last_of('/') +
 								1); // attempt to whitelist pack name, this
 									// should be pretty simple/safe solution for
 									// a lot of pad packs -mina
@@ -443,12 +443,12 @@ DownloadManager::EncodeSpaces(string& str)
 
 	// Parse spaces (curl doesnt parse them properly)
 	bool foundSpaces = false;
-	size_t index = str.find(" ", 0);
+	size_t index = str.find(' ', 0);
 	while (index != string::npos) {
 
 		str.erase(index, 1);
 		str.insert(index, "%20");
-		index = str.find(" ", index);
+		index = str.find(' ', index);
 		foundSpaces = true;
 	}
 	return foundSpaces;
@@ -2374,9 +2374,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	{
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		vector<DownloadablePack*> dling;
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			if (packs[i].downloading)
-				dling.push_back(&(packs[i]));
+		for (auto& pack : packs) {
+			if (pack.downloading)
+				dling.push_back(&pack);
 		}
 		lua_createtable(L, dling.size(), 0);
 		for (unsigned i = 0; i < dling.size(); ++i) {
@@ -2406,8 +2406,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		map<string, Download*>& dls = DLMAN->downloads;
 		lua_createtable(L, dls.size(), 0);
 		int j = 0;
-		for (auto it = dls.begin(); it != dls.end(); ++it) {
-			it->second->PushSelf(L);
+		for (auto& dl : dls) {
+			dl.second->PushSelf(L);
 			lua_rawseti(L, -2, j + 1);
 			j++;
 		}

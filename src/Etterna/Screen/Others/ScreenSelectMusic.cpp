@@ -30,6 +30,7 @@
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
+#include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
@@ -78,7 +79,6 @@ ScreenSelectMusic::Init()
 	GAMESTATE->m_bPlayingMulti = false;
 	g_ScreenStartedLoadingAt.Touch();
 	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
-		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
 		GAMESTATE->SetCurrentStyle(
 		  GAMEMAN->GameAndStringToStyle(GAMEMAN->GetDefaultGame(), "versus"),
 		  PLAYER_INVALID);
@@ -227,12 +227,6 @@ ScreenSelectMusic::BeginScreen()
 			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
-	}
-
-	if (GAMESTATE->m_PlayMode == PlayMode_Invalid) {
-		// Instead of crashing here, let's just set the PlayMode to regular
-		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
-		LOG->Trace("PlayMode not set, setting as regular.");
 	}
 
 	OPTIONS_MENU_AVAILABLE.Load(m_sName, "OptionsMenuAvailable");
@@ -577,7 +571,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
-			for (auto ss : SONGMAN->testChartList) {
+			for (const auto& ss : SONGMAN->testChartList) {
 				if (ss.second.filemapping.count(ck)) {
 					foundSS = ss.first;
 					break;
@@ -1514,7 +1508,7 @@ ScreenSelectMusic::AfterMusicChange()
 			}
 
 			if (pSong != nullptr)
-				SongUtil::GetPlayableSteps(pSong, m_vpSteps);
+				SongUtil::GetPlayableSteps(pSong, m_vpSteps, FILTERMAN->AnyActiveFilter());
 			if (m_vpSteps.empty()) {
 				// LuaHelpers::ReportScriptError("GetPlayableSteps returned
 				// nothing.");
@@ -1859,7 +1853,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		NoteData nd;
 		Steps* steps = GAMESTATE->m_pCurSteps;
 		steps->GetNoteData(nd);
-		float songlength = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
 		ss.Init();
 		SCOREMAN->camefromreplay =
 		  false; // disallow viewing online score eval screens -mina
@@ -1889,7 +1882,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		pss.m_iSongsPlayed = 1;
 		GAMESTATE->SetProcessedTimingData(
 		  GAMESTATE->m_pCurSteps->GetTimingData());
-		NoteDataUtil::CalculateRadarValues(nd, songlength, rv);
+		NoteDataUtil::CalculateRadarValues(nd, rv);
 		pss.m_radarPossible += rv;
 		RadarValues realRV;
 		PlayerAI::CalculateRadarValuesForReplay(realRV, rv);
@@ -1940,8 +1933,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	// This will return the Preview Notefield if it is successful.
 	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
-		float helloiamafloat =
-		  GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds;
+		float helloiamafloat = GAMESTATE->m_Position.m_fMusicSeconds;
 		p->GeneratePreviewNoteField();
 		if (p->m_pPreviewNoteField != nullptr) {
 			p->SetPreviewNoteFieldMusicPosition(helloiamafloat);
@@ -1985,8 +1977,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
 	{
-		lua_pushnumber(
-		  L, GAMESTATE->m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds);
+		lua_pushnumber(L, GAMESTATE->m_Position.m_fMusicSeconds);
 		return 1;
 	}
 

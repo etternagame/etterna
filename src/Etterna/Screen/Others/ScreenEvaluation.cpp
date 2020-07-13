@@ -34,7 +34,6 @@
 static ThemeMetric<TapNoteScore> g_MinScoreToMaintainCombo(
   "Gameplay",
   "MinScoreToMaintainCombo");
-static const int NUM_SHOWN_RADAR_CATEGORIES = 5;
 
 AutoScreenMessage(SM_PlayCheer);
 
@@ -63,11 +62,9 @@ ScreenEvaluation::Init()
 		STATSMAN->m_vPlayedStageStats.push_back(StageStats());
 		StageStats& ss = STATSMAN->m_vPlayedStageStats.back();
 
-		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
 		GAMESTATE->SetCurrentStyle(
 		  GAMEMAN->GameAndStringToStyle(GAMEMAN->GetDefaultGame(), "versus"),
 		  PLAYER_INVALID);
-		ss.m_playMode = GAMESTATE->m_PlayMode;
 		ss.m_Stage = Stage_1st;
 		enum_add(ss.m_Stage, random_up_to(3));
 		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);

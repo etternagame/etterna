@@ -139,7 +139,7 @@ FileNameToMetricsGroupAndElement(const std::string& sFileName,
 								 std::string& sElementOut)
 {
 	// split into class name and file name
-	std::string::size_type iIndexOfFirstSpace = sFileName.find(" ");
+	std::string::size_type iIndexOfFirstSpace = sFileName.find(' ');
 	if (iIndexOfFirstSpace == string::npos) // no space
 	{
 		sMetricsGroupOut = "";
@@ -308,7 +308,7 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 	g_vThemes.clear();
 
 	std::string sThemeName(sThemeName_);
-	std::string sLanguage(sLanguage_);
+	const std::string& sLanguage(sLanguage_);
 
 	m_sCurThemeName = sThemeName;
 	m_sCurLanguage = sLanguage;
@@ -537,11 +537,11 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 		vector<std::string> asElementChildPaths;
 		vector<std::string> arrayScriptDirs;
 		GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, true);
-		SortRStringArray(arrayScriptDirs);
+		SortStringArray(arrayScriptDirs);
 		for (auto& s : arrayScriptDirs) // foreach dir in /Scripts/
 		{
 			// Find all Lua files in this directory, add them to asElementPaths
-			std::string sScriptDirName = s;
+			const std::string& sScriptDirName = s;
 			GetDirListing(sScriptDir + "Scripts/" + sScriptDirName + "/" +
 							sMask,
 						  asElementChildPaths,
@@ -652,8 +652,8 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics,
 	 * so make a copy. */
-	const std::string sThemeName = sThemeName_;
-	const std::string sMetricsGroup = sMetricsGroup_;
+	const std::string& sThemeName = sThemeName_;
+	const std::string& sMetricsGroup = sMetricsGroup_;
 	const std::string sElement = sElement_;
 
 	const std::string sThemeDir = GetThemeDirFromName(sThemeName);
@@ -852,8 +852,8 @@ ThemeManager::GetPathInfo(PathInfo& out,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics.
 	 */
-	const std::string sMetricsGroup = sMetricsGroup_;
-	const std::string sElement = sElement_;
+	const std::string& sMetricsGroup = sMetricsGroup_;
+	const std::string& sElement = sElement_;
 
 	std::string sFileName =
 	  MetricsGroupAndElementToFileName(sMetricsGroup, sElement);
@@ -1061,8 +1061,8 @@ ThemeManager::GetMetricRaw(const IniFile& ini,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics.
 	 */
-	const std::string sMetricsGroup = sMetricsGroup_;
-	const std::string sValueName = sValueName_;
+	const std::string& sMetricsGroup = sMetricsGroup_;
+	const std::string& sValueName = sValueName_;
 
 	for (;;) {
 		std::string ret;
@@ -1283,7 +1283,7 @@ ThemeManager::GetLanguagesForTheme(const std::string& sThemeName,
 
 		// Ignore filenames with a space.  These are optional language inis that
 		// probably came from a mounted package.
-		if (s.find(" ") != std::string::npos)
+		if (s.find(' ') != std::string::npos)
 			continue;
 
 		// strip ".ini"
@@ -1394,7 +1394,7 @@ ThemeManager::GetString(const std::string& sMetricsGroup,
 				s.erase(s.begin(), s.begin() + pos);
 			}
 
-			pos = s.find("}");
+			pos = s.find('}');
 			sTranslated += s.substr(0, pos + 1);
 			s.erase(s.begin(), s.begin() + pos + 1);
 		}

@@ -114,8 +114,8 @@ WriteGlobalTags(RageFile& f, Song& out)
 		}
 	}
 
-	for (unsigned i = 0; i < stops.size(); i++) {
-		const StopSegment* fs = ToStop(stops[i]);
+	for (auto stop : stops) {
+		const StopSegment* fs = ToStop(stop);
 		// Handle warps on the same row by summing the values.  Not sure this
 		// plays out the same. -Kyz
 		map<float, float>::iterator already_exists =
@@ -173,7 +173,7 @@ WriteGlobalTags(RageFile& f, Song& out)
 		f.PutLine(";");
 	}
 
-	if (out.GetForegroundChanges().size()) {
+	if (!out.GetForegroundChanges().empty()) {
 		f.Write("#FGCHANGES:");
 		FOREACH_CONST(BackgroundChange, out.GetForegroundChanges(), bgc)
 		{
@@ -199,12 +199,12 @@ WriteGlobalTags(RageFile& f, Song& out)
 static std::string
 JoinLineList(vector<std::string>& lines)
 {
-	for (unsigned i = 0; i < lines.size(); ++i)
-		TrimRight(lines[i]);
+	for (auto& line : lines)
+		TrimRight(line);
 
 	/* Skip leading blanks. */
 	unsigned j = 0;
-	while (j < lines.size() && lines.size() == 0)
+	while (j < lines.size() && lines.empty())
 		++j;
 
 	return join("\r\n", lines.begin() + j, lines.end());
@@ -294,7 +294,7 @@ NotesWriterSM::GetEditFileContents(const Song* pSong,
 	// "Songs/foo/bar"; strip off "Songs/".
 	vector<std::string> asParts;
 	split(sDir, "/", asParts);
-	if (asParts.size())
+	if (!asParts.empty())
 		sDir = join("/", asParts.begin() + 1, asParts.end());
 	sOut += ssprintf("#SONG:%s;\r\n", sDir.c_str());
 	sOut += GetSMNotesTag(*pSong, *pSteps);

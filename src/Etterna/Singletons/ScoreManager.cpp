@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageTimer.h"
@@ -410,7 +410,6 @@ ScoresAtRate::HandleNoCCPB(HighScore& hs) -> bool
 	return false;
 }
 
-static const float ld_update = 0.02F;
 void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 {
@@ -583,7 +582,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				// wife3, not generic calc changes, since the site runs its
 				// own calc anyway
 				if (remarried) {
-					SCOREMAN->rescores.emplace(hs);
+
+					// DISABLED CUZ WE DONT REALLY NEED AND MANUAL CAN SUFFICE
+					// SCOREMAN->rescores.emplace(hs);
 				}
 
 				td->UnsetEtaner();
@@ -950,7 +951,7 @@ ScoreManager::GetRecentScore(const int rank) -> HighScore*
 auto
 ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
 {
-	if (rank >= 0 && rank < TopSSRs.size()) {
+	if (rank >= 0 && rank < TopSSRsForGame.size()) {
 		return TopSSRsForGame[rank];
 	}
 

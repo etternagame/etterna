@@ -7,8 +7,6 @@
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 
-static const int NUM_SCORE_DIGITS = 9;
-
 #define USERSBG_WIDTH THEME->GetMetricF("ScreenNetEvaluation", "UsersBGWidth")
 #define USERSBG_HEIGHT THEME->GetMetricF("ScreenNetEvaluation", "UsersBGHeight")
 #define USERSBG_COMMAND                                                        \

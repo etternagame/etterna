@@ -142,9 +142,7 @@ ArrowEffects::Update()
 
 	auto pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
 	auto pCols = pStyle->m_ColumnInfo;
-	const auto& position = GAMESTATE->m_bIsUsingStepTiming
-							 ? GAMESTATE->m_pPlayerState->m_Position
-							 : GAMESTATE->m_Position;
+	const auto& position = GAMESTATE->m_Position;
 	const auto field_zoom = GAMESTATE->m_pPlayerState->m_NotefieldZoom;
 	const float* effects =
 	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fEffects;
@@ -339,7 +337,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	bIsPastPeakOut = true;
 
 	float fYOffset = 0;
-	const auto& position = pPlayerState->GetDisplayedPosition();
+	const auto& position = GAMESTATE->m_Position;
 
 	const auto fSongBeat = position.m_fSongBeatVisible;
 	auto pn = pPlayerState->m_PlayerNumber;
@@ -680,7 +678,7 @@ ArrowEffects::GetRotationZ(const PlayerState* pPlayerState,
 	// As usual, enable dizzy hold heads at your own risk. -Wolfman2000
 	if (fEffects[PlayerOptions::EFFECT_DIZZY] != 0 &&
 		(DIZZY_HOLD_HEADS || !bIsHoldHead)) {
-		const auto fSongBeat = pPlayerState->m_Position.m_fSongBeatVisible;
+		const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeatVisible;
 		auto fDizzyRotation = fNoteBeat - fSongBeat;
 		fDizzyRotation *= fEffects[PlayerOptions::EFFECT_DIZZY];
 		fDizzyRotation = fmodf(fDizzyRotation, 2 * PI);
@@ -697,7 +695,7 @@ ArrowEffects::ReceptorGetRotationZ(const PlayerState* pPlayerState)
 	float fRotation = 0;
 
 	if (fEffects[PlayerOptions::EFFECT_CONFUSION] != 0) {
-		auto fConfRotation = pPlayerState->m_Position.m_fSongBeatVisible;
+		auto fConfRotation = GAMESTATE->m_Position.m_fSongBeatVisible;
 		fConfRotation *= fEffects[PlayerOptions::EFFECT_CONFUSION];
 		fConfRotation = fmodf(fConfRotation, 2 * PI);
 		fConfRotation *= -180 / PI;
@@ -887,7 +885,7 @@ ArrowEffects::GetGlow(int iCol,
 float
 ArrowEffects::GetBrightness(const PlayerState* pPlayerState, float fNoteBeat)
 {
-	const auto fSongBeat = pPlayerState->m_Position.m_fSongBeatVisible;
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeatVisible;
 	const auto fBeatsUntilStep = fNoteBeat - fSongBeat;
 
 	auto fBrightness = SCALE(fBeatsUntilStep, 0, -1, 1.f, 0.f);

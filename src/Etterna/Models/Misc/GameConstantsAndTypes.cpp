@@ -57,14 +57,6 @@ ToString<StepsType>(const StepsType& value)
 
 LuaXType(StepsType);
 
-static const char* PlayModeNames[] = { "Regular" };
-XToString(PlayMode);
-XToLocalizedString(PlayMode);
-StringToX(PlayMode);
-LuaFunction(PlayModeToLocalizedString,
-			PlayModeToLocalizedString(Enum::Check<PlayMode>(L, 1)));
-LuaXType(PlayMode);
-
 static const char* PlayerControllerNames[] = {
 	"Human",
 	"Autoplay",

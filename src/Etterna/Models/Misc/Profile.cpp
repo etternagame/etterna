@@ -5,7 +5,7 @@
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/ProfileManager.h"
@@ -100,15 +100,12 @@ Profile::InitGeneralData()
 	m_iTotalLifts = 0;
 	m_fPlayerRating = 0.f;
 
-	FOREACH_ENUM(PlayMode, i)
-	m_iNumSongsPlayedByPlayMode[i] = 0;
 	m_iNumSongsPlayedByStyle.clear();
 	FOREACH_ENUM(Difficulty, i)
 	m_iNumSongsPlayedByDifficulty[i] = 0;
 	for (auto& i : m_iNumSongsPlayedByMeter)
 		i = 0;
 	m_iNumTotalSongsPlayed = 0;
-	ZERO(m_iNumStagesPassedByPlayMode);
 	ZERO(m_iNumStagesPassedByGrade);
 	ZERO(m_fPlayerSkillsets);
 
@@ -236,12 +233,10 @@ Profile::swap(Profile& other)
 	SWAP_GENERAL(m_bNewProfile);
 	SWAP_STR_MEMBER(m_sLastPlayedMachineGuid);
 	SWAP_GENERAL(m_LastPlayedDate);
-	SWAP_ARRAY(m_iNumSongsPlayedByPlayMode, NUM_PlayMode);
 	SWAP_STR_MEMBER(m_iNumSongsPlayedByStyle);
 	SWAP_ARRAY(m_iNumSongsPlayedByDifficulty, NUM_Difficulty);
 	SWAP_ARRAY(m_iNumSongsPlayedByMeter, MAX_METER + 1);
 	SWAP_GENERAL(m_iNumTotalSongsPlayed);
-	SWAP_ARRAY(m_iNumStagesPassedByPlayMode, NUM_PlayMode);
 	SWAP_ARRAY(m_iNumStagesPassedByGrade, NUM_Grade);
 	SWAP_GENERAL(m_UserTable);
 	SWAP_STR_MEMBER(m_vScreenshots);
@@ -318,7 +313,6 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	}
 }
 
-static const float ld_update = 0.02f;
 ProfileLoadResult
 Profile::LoadAllFromDir(const std::string& sDir,
 						bool bRequireSignature,
@@ -453,10 +447,10 @@ Profile::LoadEditableDataFromDir(const std::string& sDir)
 	ini.GetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	// This is data that the user can change, so we have to validate it.
-	auto wstr = RStringToWstring(m_sDisplayName);
+	auto wstr = StringToWString(m_sDisplayName);
 	if (wstr.size() > PROFILE_MAX_DISPLAY_NAME_LENGTH)
 		wstr = wstr.substr(0, PROFILE_MAX_DISPLAY_NAME_LENGTH);
-	m_sDisplayName = WStringToRString(wstr);
+	m_sDisplayName = WStringToString(wstr);
 	// TODO: strip invalid chars?
 
 	return ProfileLoadResult_Success;

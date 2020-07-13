@@ -472,7 +472,7 @@ GraphicsWindow::Initialize(bool bD3D)
 
 	AppInstance inst;
 	do {
-		const std::wstring wsClassName = RStringToWstring(g_sClassName);
+		const std::wstring wsClassName = StringToWString(g_sClassName);
 		WNDCLASSW WindowClassW = {
 			CS_OWNDC | CS_BYTEALIGNCLIENT,
 			GraphicsWindow_WndProc,

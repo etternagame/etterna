@@ -553,7 +553,7 @@ ParseBrokenDWITimestamp(const std::string& arg1,
 	/* 1+ args */
 	if (arg2.empty()) {
 		/* If the value contains a period, treat it as seconds; otherwise ms. */
-		if (arg1.find_first_of(".") != arg1.npos)
+		if (arg1.find_first_of('.') != arg1.npos)
 			return StringToFloat(arg1);
 
 		return StringToFloat(arg1) / 1000.f;

@@ -23,7 +23,6 @@ ScreenGameplaySyncMachine::Init()
 	// The server crashes if syncing is attempted while connected to SMO. -Kyz
 	NSMAN->ReportSongOver();
 
-	GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
 	GAMESTATE->SetCurrentStyle(
 	  GAMEMAN->GetHowToPlayStyleForGame(GAMESTATE->m_pCurGame), PLAYER_INVALID);
 	AdjustSync::ResetOriginalSyncData();

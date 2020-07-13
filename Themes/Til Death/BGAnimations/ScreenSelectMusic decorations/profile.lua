@@ -12,6 +12,7 @@ local translated_info = {
 	Invalidated = THEME:GetString("TabProfile", "ScoreInvalidated"),
 	Online = THEME:GetString("TabProfile", "Online"),
 	Local = THEME:GetString("TabProfile", "Local"),
+	Recent = THEME:GetString("TabProfile", "Recent"),
 	NextPage = THEME:GetString("TabProfile", "NextPage"),
 	PrevPage = THEME:GetString("TabProfile", "PreviousPage"),
 	Save = THEME:GetString("TabProfile", "SaveProfile"),
@@ -334,19 +335,21 @@ local function rankingLabel(i)
 					if not showOnline then
 						if ths then
 							local srate = ths:GetMusicRate()
-							whee:SelectSong(thssong)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							if whee:SelectSong(thssong) then
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							end
 						end
 					elseif onlineScore and onlineScore.chartkey then
 						local song = SONGMAN:GetSongByChartKey(onlineScore.chartkey)
 						if song then
 							local srate = onlineScore.rate
-							whee:SelectSong(song)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							if whee:SelectSong(song) then
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							end
 						end
 					end
 				end
@@ -547,10 +550,11 @@ local function recentLabel(i)
 				if recentactive and ButtonActive(self) then
 					if ths then
 						local srate = ths:GetMusicRate()
-						whee:SelectSong(thssong)
-						GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-						GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-						GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+						if whee:SelectSong(thssong) then
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+						end
 					end
 				end
 			end
@@ -581,7 +585,7 @@ local function recentButton()
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(rankingTitleSpacing, 30):diffuse(getMainColor("frames")):diffusealpha(0.35)
+				self:zoomto(rankingTitleSpacing, offsetY):diffuse(getMainColor("frames")):diffusealpha(0.35)
 			end,
 			SetCommand = function(self)
 				if recentactive then
@@ -608,7 +612,7 @@ local function recentButton()
 					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
 				end,
 				BeginCommand = function(self)
-					self:settext("recent")
+					self:settext(translated_info["Recent"])
 				end
 			}
 	}

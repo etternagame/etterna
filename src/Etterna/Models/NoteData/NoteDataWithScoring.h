@@ -30,7 +30,6 @@ LastTapNoteWithResult(const NoteData& in, const unsigned& row)
 void
 GetActualRadarValues(const NoteData& in,
 					 const PlayerStageStats& pss,
-					 const float& song_seconds,
 					 RadarValues& out);
 } // namespace NoteDataWithScoring
 

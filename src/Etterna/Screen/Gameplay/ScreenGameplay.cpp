@@ -156,9 +156,6 @@ ScreenGameplay::Init()
 
 	ASSERT(GAMESTATE->m_pCurSteps.Get() != NULL);
 
-	// Doesn't technically do anything for now
-	// Since playmodes/courses are gone
-	STATSMAN->m_CurStageStats.m_playMode = GAMESTATE->m_PlayMode;
 	STATSMAN->m_CurStageStats.m_player.m_pStyle =
 	  GAMESTATE->GetCurrentStyle(PLAYER_1);
 
@@ -260,27 +257,18 @@ ScreenGameplay::Init()
 	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->StartRequest(0);
 
-	// Add individual life meter
-	switch (GAMESTATE->m_PlayMode) {
-		case PLAY_MODE_REGULAR:
-			if (!GAMESTATE->IsPlayerEnabled(m_vPlayerInfo.m_pn) ||
-				m_sName == "ScreenGameplaySyncMachine")
-				break;
-
-			m_vPlayerInfo.m_pLifeMeter =
-			  LifeMeter::MakeLifeMeter(m_vPlayerInfo.GetPlayerState()
-										 ->m_PlayerOptions.GetStage()
-										 .m_LifeType);
-			m_vPlayerInfo.m_pLifeMeter->Load(
-			  m_vPlayerInfo.GetPlayerState(),
-			  m_vPlayerInfo.GetPlayerStageStats());
-			m_vPlayerInfo.m_pLifeMeter->SetName(
-			  ssprintf("Life%s", m_vPlayerInfo.GetName().c_str()));
-			LOAD_ALL_COMMANDS_AND_SET_XY(m_vPlayerInfo.m_pLifeMeter);
-			this->AddChild(m_vPlayerInfo.m_pLifeMeter);
-			break;
-		default:
-			break;
+	// Add individual life meter, when not in sync mode
+	if (m_sName != "ScreenGameplaySyncMachine") {
+		m_vPlayerInfo.m_pLifeMeter =
+		  LifeMeter::MakeLifeMeter(m_vPlayerInfo.GetPlayerState()
+									 ->m_PlayerOptions.GetStage()
+									 .m_LifeType);
+		m_vPlayerInfo.m_pLifeMeter->Load(m_vPlayerInfo.GetPlayerState(),
+										 m_vPlayerInfo.GetPlayerStageStats());
+		m_vPlayerInfo.m_pLifeMeter->SetName(
+		  ssprintf("Life%s", m_vPlayerInfo.GetName().c_str()));
+		LOAD_ALL_COMMANDS_AND_SET_XY(m_vPlayerInfo.m_pLifeMeter);
+		this->AddChild(m_vPlayerInfo.m_pLifeMeter);
 	}
 
 	// For multi scoreboard; may be used in the future
@@ -712,7 +700,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 						  fSecondsToStartTransitioningOut);
 
 		if (fSecondsToStartFadingOutMusic <
-			GAMESTATE->m_pCurSong->m_fMusicLengthSeconds) {
+			GAMESTATE->m_pCurSteps->lastsecond) {
 			p.m_fFadeOutSeconds = MUSIC_FADE_OUT_SECONDS;
 			p.m_LengthSeconds = fSecondsToStartFadingOutMusic +
 								MUSIC_FADE_OUT_SECONDS - p.m_StartSecond;
@@ -837,7 +825,7 @@ void
 ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 								  float& fSecondsToStartTransitioningOut)
 {
-	float fLastStepSeconds = GAMESTATE->m_pCurSong->GetLastSecond();
+	float fLastStepSeconds = GAMESTATE->m_pCurSteps->lastsecond;
 	fLastStepSeconds += Player::GetMaxStepDistanceSeconds();
 
 	float fTransitionLength;
@@ -849,12 +837,12 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 	float fSecondsToFinishFadingOutMusic =
 	  fSecondsToStartTransitioningOut + fTransitionLength;
 	if (fSecondsToFinishFadingOutMusic <
-		GAMESTATE->m_pCurSong->m_fMusicLengthSeconds)
+		GAMESTATE->m_pCurSteps->GetLengthSeconds())
 		fSecondsToStartFadingOutMusic =
 		  fSecondsToFinishFadingOutMusic - MUSIC_FADE_OUT_SECONDS;
 	else
 		fSecondsToStartFadingOutMusic =
-		  GAMESTATE->m_pCurSong->m_fMusicLengthSeconds; // don't fade
+		  GAMESTATE->m_pCurSteps->GetLengthSeconds(); // don't fade
 
 	/* Make sure we keep going long enough to register a miss for the last note,
 	 * and never start fading before the last note. */
@@ -1067,22 +1055,14 @@ ScreenGameplay::Update(float fDeltaTime)
 			// Check to see if it's time to play a ScreenGameplay comment
 			m_fTimeSinceLastDancingComment += fDeltaTime;
 
-			PlayMode mode = GAMESTATE->m_PlayMode;
-			switch (mode) {
-				case PLAY_MODE_REGULAR:
-					if (GAMESTATE->OneIsHot())
-						PlayAnnouncer("gameplay comment hot",
-									  SECONDS_BETWEEN_COMMENTS);
-					else if (GAMESTATE->AllAreInDangerOrWorse())
-						PlayAnnouncer("gameplay comment danger",
-									  SECONDS_BETWEEN_COMMENTS);
-					else
-						PlayAnnouncer("gameplay comment good",
-									  SECONDS_BETWEEN_COMMENTS);
-					break;
-				default:
-					break;
-			}
+			if (GAMESTATE->OneIsHot())
+				PlayAnnouncer("gameplay comment hot", SECONDS_BETWEEN_COMMENTS);
+			else if (GAMESTATE->AllAreInDangerOrWorse())
+				PlayAnnouncer("gameplay comment danger",
+							  SECONDS_BETWEEN_COMMENTS);
+			else
+				PlayAnnouncer("gameplay comment good",
+							  SECONDS_BETWEEN_COMMENTS);
 		}
 		default:
 			break;
@@ -1434,8 +1414,6 @@ ScreenGameplay::Input(const InputEventPlus& input)
 void
 ScreenGameplay::SaveStats()
 {
-	float fMusicLen = GAMESTATE->m_pCurSong->m_fMusicLengthSeconds;
-
 	/* Note that adding stats is only meaningful for the counters (eg.
 	 * RadarCategory_Jumps), not for the percentages (RadarCategory_Air). */
 	RadarValues rv;
@@ -1444,9 +1422,9 @@ ScreenGameplay::SaveStats()
 	PlayerNumber pn = m_vPlayerInfo.m_pn;
 
 	GAMESTATE->SetProcessedTimingData(GAMESTATE->m_pCurSteps->GetTimingData());
-	NoteDataUtil::CalculateRadarValues(nd, fMusicLen, rv);
+	NoteDataUtil::CalculateRadarValues(nd, rv);
 	pss.m_radarPossible += rv;
-	NoteDataWithScoring::GetActualRadarValues(nd, pss, fMusicLen, rv);
+	NoteDataWithScoring::GetActualRadarValues(nd, pss, rv);
 	pss.m_radarActual += rv;
 	GAMESTATE->SetProcessedTimingData(nullptr);
 }
@@ -1866,7 +1844,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	{
 		PlayerNumber pn = PLAYER_1;
 		float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-		float bps = GAMESTATE->m_pPlayerState->m_Position.m_fCurBPS;
+		float bps = GAMESTATE->m_Position.m_fCurBPS;
 		float true_bps = rate * bps;
 		lua_pushnumber(L, true_bps);
 		return 1;

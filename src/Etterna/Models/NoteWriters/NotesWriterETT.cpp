@@ -26,7 +26,7 @@ JoinLineList(vector<std::string>& lines)
 
 	// Skip leading blanks.
 	unsigned j = 0;
-	while (j < lines.size() && lines.size() == 0)
+	while (j < lines.size() && lines.empty())
 		++j;
 
 	return join("\r\n", lines.begin() + j, lines.end());
@@ -336,7 +336,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 		f.PutLine(";");
 	}
 
-	if (out.GetForegroundChanges().size()) {
+	if (!out.GetForegroundChanges().empty()) {
 		f.Write("#FGCHANGES:");
 		for (auto const& bgc : out.GetForegroundChanges()) {
 			f.PutLine(bgc.ToString() + ",");
@@ -351,7 +351,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 			// which makes MsdFile fail parsing the whole declaration.
 			// in this case, add a backslash at the front
 			// (#KEYSOUNDS:\#bgm.wav,01.wav,02.wav,..) and handle that on load.
-			if (i == 0 && out.m_vsKeysoundFile[i].size() > 0 &&
+			if (i == 0 && !out.m_vsKeysoundFile[i].empty() &&
 				out.m_vsKeysoundFile[i][0] == '#') {
 				f.Write("\\");
 			}
@@ -490,7 +490,7 @@ NotesWriterETT::Write(std::string& sPath,
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
 		auto pSteps = *s;
-		if (pSteps->GetChartKey() != "") { // Avoid writing cache tags for
+		if (!pSteps->GetChartKey().empty()) { // Avoid writing cache tags for
 			// invalid chartkey files(empty
 			// steps) -Mina
 			auto sTag = GetETTNoteData(out, *pSteps);

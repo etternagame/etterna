@@ -261,7 +261,7 @@ scale(mad_fixed_t sample)
 static int
 get_this_frame_byte(const madlib_t* mad)
 {
-	int ret = mad->inbuf_filepos;
+	auto ret = mad->inbuf_filepos;
 
 	/* If we have a frame, adjust. */
 	if (mad->Stream.this_frame != nullptr)
@@ -276,7 +276,7 @@ bool
 RageSoundReader_MP3::handle_first_frame()
 {
 	using std::max;
-	bool ret = false;
+	auto ret = false;
 
 	/* Check for a XING tag. */
 	xing_init(&mad->xingtag);
@@ -302,14 +302,14 @@ RageSoundReader_MP3::handle_first_frame()
 
 		mad->has_xing = true;
 
-		mad_timer_t tm = mad->Frame.header.duration;
+		auto tm = mad->Frame.header.duration;
 		/* XXX: does this include the Xing header itself? */
 		mad_timer_multiply(&tm, mad->xingtag.frames);
 		mad->length = mad_timer_count(tm, MAD_UNITS_MILLISECONDS);
 
 		/* XXX: an id3v2 footer tag would throw this off a little. This also
 		 * assumes the Xing tag is the last header; it always is, I think. */
-		int bytes = mad->filesize - mad->header_bytes;
+		auto bytes = mad->filesize - mad->header_bytes;
 		mad->bitrate = static_cast<int>(bytes * 8 / (mad->length / 1000.f));
 
 		if (mad->xingtag.type == xing::XING)
@@ -325,7 +325,7 @@ int
 RageSoundReader_MP3::fill_buffer()
 {
 	/* Need more data. */
-	int inbytes = 0;
+	auto inbytes = 0;
 	if (mad->Stream.next_frame != nullptr) {
 		/* Pull out remaining data from the last buffer. */
 		inbytes = mad->Stream.bufend - mad->Stream.next_frame;
@@ -333,10 +333,10 @@ RageSoundReader_MP3::fill_buffer()
 		mad->inbuf_filepos += mad->Stream.next_frame - mad->inbuf;
 	}
 
-	const bool bWasAtEOF = m_pFile->AtEOF();
+	const auto bWasAtEOF = m_pFile->AtEOF();
 
-	int rc = m_pFile->Read(mad->inbuf + inbytes,
-						   sizeof(mad->inbuf) - inbytes - MAD_BUFFER_GUARD);
+	auto rc = m_pFile->Read(mad->inbuf + inbytes,
+							sizeof(mad->inbuf) - inbytes - MAD_BUFFER_GUARD);
 	if (rc < 0) {
 		SetError(m_pFile->GetError());
 		return -1;
@@ -372,7 +372,7 @@ fill_frame_index_cache(madlib_t* mad)
 	/* Fill in the TOC percent. */
 	if (!mad->tocmap.empty()) {
 		/* Don't add an entry if one already exists near this time. */
-		madlib_t::tocmap_t::iterator it = mad->tocmap.upper_bound(mad->Timer);
+		auto it = mad->tocmap.upper_bound(mad->Timer);
 		if (it != mad->tocmap.begin()) {
 			--it;
 			int iDiffSeconds = mad->Timer.seconds - it->first.seconds;
@@ -388,7 +388,7 @@ fill_frame_index_cache(madlib_t* mad)
 int
 RageSoundReader_MP3::do_mad_frame_decode(bool headers_only)
 {
-	int bytes_read = 0;
+	auto bytes_read = 0;
 
 	for (;;) {
 		int ret;
@@ -506,9 +506,9 @@ RageSoundReader_MP3::synth_output()
 	}
 
 	mad_synth_frame(&mad->Synth, &mad->Frame);
-	for (int i = 0; i < mad->Synth.pcm.length; i++) {
-		for (int chan = 0; chan < this->Channels; ++chan) {
-			float Sample = scale(mad->Synth.pcm.samples[chan][i]);
+	for (auto i = 0; i < mad->Synth.pcm.length; i++) {
+		for (auto chan = 0; chan < this->Channels; ++chan) {
+			auto Sample = scale(mad->Synth.pcm.samples[chan][i]);
 			mad->outbuf[mad->outleft] = Sample;
 			++mad->outleft;
 		}
@@ -633,7 +633,7 @@ RageSoundReader_MP3::Open(RageFileBasic* pFile)
 	 * header info. */
 	mad->outpos = 0;
 
-	int ret = do_mad_frame_decode();
+	auto ret = do_mad_frame_decode();
 	switch (ret) {
 		case 0:
 			SetError("Failed to read any data at all");
@@ -657,9 +657,8 @@ RageSoundReader_MP3::Open(RageFileBasic* pFile)
 
 	if (mad->length == -1) {
 		/* If vbr and !xing, this is just an estimate. */
-		int bps = mad->bitrate / 8;
-		float secs =
-		  static_cast<float>(mad->filesize - mad->header_bytes) / bps;
+		auto bps = mad->bitrate / 8;
+		auto secs = static_cast<float>(mad->filesize - mad->header_bytes) / bps;
 		mad->length = static_cast<int>(secs * 1000.f);
 	}
 
@@ -669,7 +668,7 @@ RageSoundReader_MP3::Open(RageFileBasic* pFile)
 RageSoundReader_MP3*
 RageSoundReader_MP3::Copy() const
 {
-	RageSoundReader_MP3* ret = new RageSoundReader_MP3;
+	auto ret = new RageSoundReader_MP3;
 
 	ret->m_pFile = m_pFile->Copy();
 	ret->m_pFile->Seek(0);
@@ -692,11 +691,11 @@ int
 RageSoundReader_MP3::Read(float* buf, int iFrames)
 {
 	using std::min;
-	int iFramesWritten = 0;
+	auto iFramesWritten = 0;
 
 	while (iFrames > 0) {
 		if (mad->outleft > 0) {
-			int iFramesToCopy =
+			auto iFramesToCopy =
 			  min(iFrames, static_cast<int>(mad->outleft / GetNumChannels()));
 			const int iSamplesToCopy = iFramesToCopy * GetNumChannels();
 			const int iBytesToCopy = iSamplesToCopy * sizeof(float);
@@ -712,7 +711,7 @@ RageSoundReader_MP3::Read(float* buf, int iFrames)
 		}
 
 		/* Decode more from the MP3 stream. */
-		int ret = do_mad_frame_decode();
+		auto ret = do_mad_frame_decode();
 		if (ret == 0)
 			return END_OF_FILE;
 		if (ret == -1)
@@ -781,14 +780,14 @@ RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 	 * if we're using Xing. */
 	mad->timer_accurate = !Xing;
 
-	int bytepos = -1;
+	auto bytepos = -1;
 	if (Xing) {
 		/* We can speed up the seek using the XING tag.  First, figure
 		 * out what percentage the requested position falls in. */
 		ASSERT(SampleRate != 0);
-		int ms = static_cast<int>((iFrame * 1000LL) / SampleRate);
+		auto ms = static_cast<int>((iFrame * 1000LL) / SampleRate);
 		ASSERT(mad->length != 0);
-		int percent = ms * 100 / mad->length;
+		auto percent = ms * 100 / mad->length;
 		if (percent < 100) {
 			int jump = mad->xingtag.toc[percent];
 			bytepos = mad->filesize * jump / 256;
@@ -805,7 +804,7 @@ RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 
 		/* Find the last entry <= iFrame that we actually have an entry for;
 		 * this will get us as close as possible. */
-		madlib_t::tocmap_t::iterator it = mad->tocmap.upper_bound(desired);
+		auto it = mad->tocmap.upper_bound(desired);
 		if (it == mad->tocmap.begin())
 			return 1; /* don't have any info */
 		--it;
@@ -816,11 +815,11 @@ RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 
 	if (bytepos != -1) {
 		/* Seek backwards up to 4k. */
-		const int seekpos = std::max(0, bytepos - 1024 * 4);
+		const auto seekpos = std::max(0, bytepos - 1024 * 4);
 		seek_stream_to_byte(seekpos);
 
 		do {
-			int ret = do_mad_frame_decode();
+			auto ret = do_mad_frame_decode();
 			if (ret <= 0)
 				return ret; /* it set the error */
 		} while (get_this_frame_byte(mad) < bytepos);
@@ -844,7 +843,7 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 
 	/* We always come in here with data synthed.  Be careful not to synth the
 	 * same frame twice. */
-	bool synthed = true;
+	auto synthed = true;
 
 	/* If we're already past the requested position, rewind. */
 	if (mad_timer_compare(mad->Timer, desired) > 0) {
@@ -857,7 +856,7 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 	for (;;) {
 		/* If desired < next_frame_timer, this frame contains the position.
 		 * Since we've already decoded the frame, synth it, too. */
-		mad_timer_t next_frame_timer = mad->Timer;
+		auto next_frame_timer = mad->Timer;
 		mad_timer_add(&next_frame_timer, mad->framelength);
 
 		if (mad_timer_compare(desired, next_frame_timer) < 0) {
@@ -871,7 +870,7 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 			/* We just synthed data starting at mad->Timer, containing the
 			 * desired offset. Skip (desired - mad->Timer) worth of frames in
 			 * the output to line up. */
-			mad_timer_t skip = desired;
+			auto skip = desired;
 			mad_timer_sub(&skip, mad->Timer);
 
 			int samples =
@@ -885,14 +884,14 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 
 		/* Otherwise, if the desired time will be in the *next* decode, then
 		 * synth this one, too. */
-		mad_timer_t next_next_frame_timer = next_frame_timer;
+		auto next_next_frame_timer = next_frame_timer;
 		mad_timer_add(&next_next_frame_timer, mad->framelength);
 
 		if (mad_timer_compare(desired, next_next_frame_timer) < 0 && !synthed) {
 			synth_output();
 		}
 
-		int ret = do_mad_frame_decode();
+		auto ret = do_mad_frame_decode();
 		if (ret <= 0) {
 			mad->outleft = mad->outpos = 0;
 			return ret; /* it set the error */
@@ -914,7 +913,7 @@ RageSoundReader_MP3::SetPosition_estimate(int iFrame)
 	{
 		/* We're going to skip ahead two samples below, so seek earlier than
 		 * we were asked to. */
-		mad_timer_t back_len = mad->framelength;
+		auto back_len = mad->framelength;
 		mad_timer_multiply(&back_len, -2);
 		mad_timer_add(&seekamt, back_len);
 		if (mad_timer_compare(seekamt, mad_timer_zero) < 0)
@@ -928,8 +927,8 @@ RageSoundReader_MP3::SetPosition_estimate(int iFrame)
 
 	/* We've jumped across the file, so the decoder is currently desynced.
 	 * Don't use resync(); it's slow.  Just decode a few frames. */
-	for (int i = 0; i < 2; ++i) {
-		int ret = do_mad_frame_decode();
+	for (auto i = 0; i < 2; ++i) {
+		auto ret = do_mad_frame_decode();
 		if (ret <= 0)
 			return ret;
 	}
@@ -939,8 +938,8 @@ RageSoundReader_MP3::SetPosition_estimate(int iFrame)
 	mad->outleft = 0;
 
 	/* Find out where we really seeked to. */
-	int ms = (get_this_frame_byte(mad) - mad->header_bytes) /
-			 (mad->bitrate / 8 / 1000);
+	auto ms = (get_this_frame_byte(mad) - mad->header_bytes) /
+			  (mad->bitrate / 8 / 1000);
 	mad_timer_set(&mad->Timer, 0, ms, 1000);
 
 	return 1;
@@ -1027,7 +1026,7 @@ RageSoundReader_MP3::GetLengthInternal(bool fast)
 
 	MADLIB_rewind();
 	for (;;) {
-		int ret = do_mad_frame_decode(true);
+		auto ret = do_mad_frame_decode(true);
 		if (ret == -1) {
 			return -1; /* it set the error */
 		}
@@ -1039,7 +1038,7 @@ RageSoundReader_MP3::GetLengthInternal(bool fast)
 
 	/* mad->Timer is the timestamp of the current frame; find the timestamp of
 	 * the very end. */
-	mad_timer_t end = mad->Timer;
+	auto end = mad->Timer;
 	mad_timer_add(&end, mad->framelength);
 
 	/* Count milliseconds. */
@@ -1049,9 +1048,9 @@ RageSoundReader_MP3::GetLengthInternal(bool fast)
 int
 RageSoundReader_MP3::GetLengthConst(bool fast) const
 {
-	RageSoundReader_MP3* pCopy = this->Copy();
+	auto pCopy = this->Copy();
 
-	int iLength = pCopy->GetLengthInternal(fast);
+	auto iLength = pCopy->GetLengthInternal(fast);
 
 	delete pCopy;
 	return iLength;
@@ -1113,7 +1112,7 @@ xing_parse(struct xing* xing, struct mad_bitptr ptr, unsigned int bitlen)
 		if (bitlen < 800)
 			goto fail;
 
-		for (int i = 0; i < 100; ++i)
+		for (auto i = 0; i < 100; ++i)
 			xing->toc[i] = static_cast<unsigned char>(mad_bit_read(&ptr, 8));
 
 		bitlen -= 800;

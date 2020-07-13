@@ -631,21 +631,23 @@ void
 ActorMultiVertex::AMV_TweenState::SetDrawState(DrawMode dm, int first, int num)
 {
 	if (first >= static_cast<int>(vertices.size()) && !vertices.empty()) {
-		LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex:SetDrawState: "
-										 "FirstToDraw > vertices.size(), %d > "
-										 "%u",
-										 FirstToDraw + 1,
-										 (unsigned int)vertices.size());
+		LuaHelpers::ReportScriptErrorFmt(
+		  "ActorMultiVertex:SetDrawState: "
+		  "FirstToDraw > vertices.size(), %d > "
+		  "%u",
+		  FirstToDraw + 1,
+		  static_cast<unsigned int>(vertices.size()));
 		return;
 	}
 	const auto safe_num = GetSafeNumToDraw(dm, num);
 	if (num != safe_num && num != -1) {
-		LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex:SetDrawState: "
-										 "NumToDraw %d is not valid for %u "
-										 "vertices with DrawMode %s",
-										 num,
-										 (unsigned int)vertices.size(),
-										 DrawModeNames[dm]);
+		LuaHelpers::ReportScriptErrorFmt(
+		  "ActorMultiVertex:SetDrawState: "
+		  "NumToDraw %d is not valid for %u "
+		  "vertices with DrawMode %s",
+		  num,
+		  static_cast<unsigned int>(vertices.size()),
+		  DrawModeNames[dm]);
 		return;
 	}
 	_DrawMode = dm;
@@ -726,7 +728,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 				LuaHelpers::ReportScriptErrorFmt(
 				  "ActorMultiVertex::SetVertex: non-table parameter %u "
 				  "supplied inside table of parameters, table expected.",
-				  (unsigned int)i);
+				  static_cast<unsigned int>(i));
 				return;
 			}
 			auto pushes = 1;
@@ -758,8 +760,8 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 				LuaHelpers::ReportScriptErrorFmt(
 				  "ActorMultiVertex::SetVertex: Parameter %u has %u elements "
 				  "supplied. 2, 3, or 4 expected.",
-				  (unsigned int)i,
-				  (unsigned int)DataPieceElements);
+				  static_cast<unsigned int>(i),
+				  static_cast<unsigned int>(DataPieceElements));
 			}
 			// Avoid a stack underflow by only popping the amount we pushed.
 			lua_pop(L, pushes);
@@ -780,12 +782,13 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		if (Index == static_cast<int>(p->GetNumVertices())) {
 			p->AddVertices(1);
 		} else if (Index > static_cast<int>(p->GetNumVertices())) {
-			LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex::SetVertex: "
-											 "Cannot set vertex %d if there is "
-											 "no vertex %d, only %u vertices.",
-											 Index + 1,
-											 Index,
-											 (unsigned int)p->GetNumVertices());
+			LuaHelpers::ReportScriptErrorFmt(
+			  "ActorMultiVertex::SetVertex: "
+			  "Cannot set vertex %d if there is "
+			  "no vertex %d, only %u vertices.",
+			  Index + 1,
+			  Index,
+			  static_cast<unsigned int>(p->GetNumVertices()));
 			COMMON_RETURN_SELF;
 		}
 		SetVertexFromStack(p, L, Index, lua_gettop(L));

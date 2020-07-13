@@ -15,7 +15,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderBMS.h"
@@ -29,6 +29,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/FilterManager.h"
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "Etterna/Globals/SoloCalc.h"
@@ -289,7 +290,7 @@ Steps::TidyUpData()
 }
 
 void
-Steps::CalculateRadarValues(float fMusicLengthSeconds)
+Steps::CalculateRadarValues()
 {
 	if (m_bAreCachedRadarValuesJustLoaded) {
 		m_bAreCachedRadarValuesJustLoaded = false;
@@ -311,8 +312,7 @@ Steps::CalculateRadarValues(float fMusicLengthSeconds)
 	// instead of getnotedata if it turns out we need it -mina
 	auto td = this->GetTimingData();
 	GAMESTATE->SetProcessedTimingData(td);
-	NoteDataUtil::CalculateRadarValues(
-	  *m_pNoteData, fMusicLengthSeconds, m_CachedRadarValues, td);
+	NoteDataUtil::CalculateRadarValues(*m_pNoteData, m_CachedRadarValues, td);
 
 	GAMESTATE->SetProcessedTimingData(nullptr);
 }
@@ -367,6 +367,71 @@ Steps::IsRecalcValid() -> bool
 	}
 
 	return true;
+}
+
+auto
+Steps::IsSkillsetHighest(Skillset skill, float rate) -> bool
+{
+	auto sorted_skills = SortSkillsetsAtRate(rate, false);
+	return (sorted_skills[0].first == skill);
+}
+
+auto
+Steps::MatchesFilter(const float rate) -> bool
+{
+	auto addchart = FILTERMAN->ExclusiveFilter;
+
+	/* The default behaviour of an exclusive filter is to accept
+	 * by default, (i.e. addsong=true) and reject if any
+	 * filters fail. The default behaviour of a non-exclusive filter is
+	 * the exact opposite: reject by default (i.e.
+	 * addsong=false), and accept if any filters match.
+	 */
+
+	for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
+		// Iterate over all skillsets, up to and
+		// including the placeholder NUM_Skillset
+		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
+		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
+		if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
+
+			if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
+				if (FILTERMAN->HighestSkillsetsOnly)
+					if (!IsSkillsetHighest(static_cast<Skillset>(ss), rate) &&
+						ss < NUM_Skillset) // The current skill is not
+										   // in highest in the chart
+						continue;
+			}
+			float val;
+			if (ss < NUM_Skillset)
+				val = GetMSD(rate, ss);
+			else {
+				// If we are on the placeholder skillset, look at song
+				// length instead of a skill
+				val = GetLengthSeconds(rate);
+			}
+			if (FILTERMAN->ExclusiveFilter) {
+				/* Our behaviour is to accept by default,
+				 * but reject if any filters don't match.*/
+				if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
+					/* If we're below the lower bound and it's set,
+					 * or above the upper bound and it's set*/
+					addchart = false;
+					break;
+				}
+			} else { // Non-Exclusive Filter
+				/* Our behaviour is to reject by default,
+				 * but accept if any filters match.*/
+				if ((val > lb || !(lb > 0.f)) && (val < ub || !(ub > 0.f))) {
+					/* If we're above the lower bound or it's not set
+					 * and also below the upper bound or it isn't set*/
+					addchart = true;
+					break;
+				}
+			}
+		}
+	}
+	return addchart;
 }
 
 auto
@@ -579,9 +644,8 @@ Steps::Compress() const
 
 void
 Steps::CopyFrom(Steps* pSource,
-				StepsType ntTo,
-				float fMusicLengthSeconds) // pSource does not have to be of the
-										   // same StepsType
+				StepsType ntTo) // pSource does not have to be of the
+								// same StepsType
 {
 	m_StepsType = ntTo;
 	m_StepsTypeStr = GAMEMAN->GetStepsTypeInfo(ntTo).szName;
@@ -594,7 +658,7 @@ Steps::CopyFrom(Steps* pSource,
 	this->SetDescription(pSource->GetDescription());
 	this->SetDifficulty(pSource->GetDifficulty());
 	this->SetMeter(pSource->GetMeter());
-	this->CalculateRadarValues(fMusicLengthSeconds);
+	this->CalculateRadarValues();
 }
 
 void
@@ -1101,8 +1165,18 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetLengthSeconds(T* p, lua_State* L) -> int
 	{
-		float curr_rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+		auto curr_rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		lua_pushnumber(L, p->GetLengthSeconds(curr_rate));
+		return 1;
+	}
+	static auto GetFirstSecond(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->firstsecond);
+		return 1;
+	}
+	static auto GetLastSecond(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->lastsecond);
 		return 1;
 	}
 	LunaSteps()
@@ -1137,6 +1211,8 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCalcDebugOutput);
 		ADD_METHOD(GetDebugStrings);
 		ADD_METHOD(GetLengthSeconds);
+		ADD_METHOD(GetFirstSecond);
+		ADD_METHOD(GetLastSecond);
 	}
 };
 

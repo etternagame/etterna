@@ -56,10 +56,6 @@ class PlayerState
 	// to fit in the space available. -Kyz
 	float m_NotefieldZoom;
 
-	// Music statistics:
-	SongPosition m_Position;
-
-	auto GetDisplayedPosition() const -> const SongPosition&;
 	auto GetDisplayedTiming() const -> const TimingData&;
 
 	/**

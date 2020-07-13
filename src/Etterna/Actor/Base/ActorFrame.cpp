@@ -156,7 +156,6 @@ ActorFrame::AddChild(Actor* pActor)
 #endif
 
 	ASSERT(pActor != nullptr);
-	ASSERT(static_cast<void*>(pActor) != (void*)0xC0000005);
 	m_SubActors.push_back(pActor);
 
 	pActor->SetParent(this);

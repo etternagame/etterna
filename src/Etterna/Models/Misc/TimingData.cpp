@@ -1235,6 +1235,7 @@ TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 	const auto segs = GetTimingSegments(tst);
 	vector<std::string> ret;
 
+	ret.reserve(segs.size());
 	for (auto* seg : segs) {
 		ret.push_back(seg->ToString(dec));
 	}
@@ -1368,6 +1369,7 @@ TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
 											  float rate)
 {
 	vector<float> o;
+	o.reserve(nrv.size());
 	for (auto nr : nrv)
 		o.emplace_back(WhereUAtBro(nr) / rate);
 	return o;
@@ -1539,6 +1541,7 @@ class LunaTimingData : public Luna<TimingData>
 		vector<float> vBPMs;
 		const auto& bpms = p->GetTimingSegments(SEGMENT_BPM);
 
+		vBPMs.reserve(bpms.size());
 		for (auto* bpm : bpms)
 			vBPMs.push_back(ToBPM(bpm)->GetBPM());
 

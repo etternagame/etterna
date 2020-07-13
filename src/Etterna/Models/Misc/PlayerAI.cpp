@@ -559,6 +559,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	// some snapshots end up with 0 values due to being "missing" from the
 	// replay data and we have to account for those
 	vector<int> snapShotsUnused;
+	snapShotsUnused.reserve(m_ReplaySnapshotMap.size());
 	for (auto& it : m_ReplaySnapshotMap)
 		snapShotsUnused.push_back(it.first);
 	auto cws = 0.f;

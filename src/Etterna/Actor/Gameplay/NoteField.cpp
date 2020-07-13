@@ -344,8 +344,7 @@ NoteField::Update(float fDeltaTime)
 
 	// update m_fBoardOffsetPixels, m_fCurrentBeatLastUpdate,
 	// m_fYPosCurrentBeatLastUpdate
-	const auto fCurrentBeat =
-	  m_pPlayerState->GetDisplayedPosition().m_fSongBeat;
+	const auto fCurrentBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto bTweeningOn =
 	  m_sprBoard->GetCurrentDiffuseAlpha() >= 0.98 &&
 	  m_sprBoard->GetCurrentDiffuseAlpha() < 1.00; // HACK
@@ -602,31 +601,6 @@ NoteField::DrawBGChangeText(const float beat,
 	m_textMeasureNumber.Draw();
 }
 
-static CacheNoteStat
-GetNumNotesFromBeginning(const PlayerState* pPlayerState, float beat)
-{
-	// XXX: I realized that I have copied and pasted my binary search code 3
-	// times already.
-	//      how can we abstract this?
-	const auto& data = pPlayerState->m_CacheNoteStat;
-	const int max = data.size() - 1;
-	auto l = 0, r = max;
-	while (l <= r) {
-		const auto m = (l + r) / 2;
-		if ((m == 0 || data[m].beat <= beat) &&
-			(m == max || beat < data[m + 1].beat)) {
-			return data[m];
-		}
-		if (data[m].beat <= beat) {
-			l = m + 1;
-		} else {
-			r = m - 1;
-		}
-	}
-	const CacheNoteStat dummy = { 0, 0, 0 };
-	return dummy;
-}
-
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
 				   float& firstBeat,
@@ -634,13 +608,12 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 				   int iDrawDistanceAfterTargetsPixels,
 				   int iDrawDistanceBeforeTargetsPixels)
 {
-	auto fFirstBeatToDraw =
-	  pPlayerState->GetDisplayedPosition().m_fSongBeatVisible;
+	auto fFirstBeatToDraw = GAMESTATE->m_Position.m_fSongBeatVisible;
 	auto fLastBeatToDraw = fFirstBeatToDraw;
 	const auto fSpeedMultiplier =
 	  pPlayerState->GetDisplayedTiming().GetDisplayedSpeedPercent(
-		pPlayerState->GetDisplayedPosition().m_fSongBeatVisible,
-		pPlayerState->GetDisplayedPosition().m_fMusicSecondsVisible);
+		GAMESTATE->m_Position.m_fSongBeatVisible,
+		GAMESTATE->m_Position.m_fMusicSecondsVisible);
 
 	bool bBoomerang;
 	{
@@ -696,11 +669,9 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 
 	if (fSpeedMultiplier < 0.75f) {
 		fFirstBeatToDraw =
-		  std::min(fFirstBeatToDraw,
-				   pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		  std::min(fFirstBeatToDraw, GAMESTATE->m_Position.m_fSongBeat + 16);
 		fLastBeatToDraw =
-		  std::min(fLastBeatToDraw,
-				   pPlayerState->GetDisplayedPosition().m_fSongBeat + 16);
+		  std::min(fLastBeatToDraw, GAMESTATE->m_Position.m_fSongBeat + 16);
 	}
 
 	firstBeat = fFirstBeatToDraw;

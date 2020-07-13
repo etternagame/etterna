@@ -57,14 +57,6 @@ PlayerState::ResetToDefaultPlayerOptions(ModsLevel l)
 	m_PlayerOptions.Assign(l, po);
 }
 
-const SongPosition&
-PlayerState::GetDisplayedPosition() const
-{
-	if (GAMESTATE->m_bIsUsingStepTiming)
-		return m_Position;
-	return GAMESTATE->m_Position;
-}
-
 const TimingData&
 PlayerState::GetDisplayedTiming() const
 {
@@ -90,7 +82,7 @@ class LunaPlayerState : public Luna<PlayerState>
 	DEFINE_METHOD(GetPlayerNumber, m_PlayerNumber);
 	static int GetSongPosition(T* p, lua_State* L)
 	{
-		p->m_Position.PushSelf(L);
+		GAMESTATE->m_Position.PushSelf(L);
 		return 1;
 	}
 	DEFINE_METHOD(GetMultiPlayerNumber, m_mp);

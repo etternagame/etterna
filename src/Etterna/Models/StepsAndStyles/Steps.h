@@ -48,7 +48,7 @@ class Steps
 	~Steps();
 
 	// initializers
-	void CopyFrom(Steps* pSource, StepsType ntTo, float fMusicLengthSeconds);
+	void CopyFrom(Steps* pSource, StepsType ntTo);
 	void CreateBlank(StepsType ntTo);
 
 	void Compress() const;
@@ -149,7 +149,7 @@ class Steps
 
 	void GetETTNoteData(std::string& notes_comp_out) const;
 	void TidyUpData();
-	void CalculateRadarValues(float fMusicLengthSeconds);
+	void CalculateRadarValues();
 
 	/**
 	 * @brief The TimingData used by the Steps.
@@ -262,6 +262,8 @@ class Steps
 	{
 		return debugstrings;
 	}
+	auto IsSkillsetHighest(Skillset skill, float rate) -> bool;
+	auto MatchesFilter(const float rate) -> bool;
 
   private:
 	std::string ChartKey = "";

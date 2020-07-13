@@ -1092,7 +1092,6 @@ DoRowEndRadarCalc(crv_state& state, RadarValues& out)
 
 void
 NoteDataUtil::CalculateRadarValues(const NoteData& in,
-								   float fSongSeconds,
 								   RadarValues& out,
 								   TimingData* td)
 {

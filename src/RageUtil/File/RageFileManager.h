@@ -26,14 +26,14 @@ class RageFileManager
 	void MountUserFilesystems();
 
 	void GetDirListing(const std::string& sPath,
-					   vector<std::string>& AddTo,
+					   std::vector<std::string>& AddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
 	void GetDirListingWithMultipleExtensions(
 	  const std::string& sPath,
-	  vector<std::string> const& ExtensionList,
-	  vector<std::string>& AddTo,
+	  std::vector<std::string> const& ExtensionList,
+	  std::vector<std::string>& AddTo,
 	  bool bOnlyDirs = false,
 	  bool bReturnPathToo = false);
 
@@ -82,7 +82,7 @@ class RageFileManager
 	{
 		std::string Type, Root, MountPoint;
 	};
-	void GetLoadedDrivers(vector<DriverLocation>& asMounts);
+	void GetLoadedDrivers(std::vector<DriverLocation>& asMounts);
 
 	void FlushDirCache(const std::string& sPath = std::string());
 

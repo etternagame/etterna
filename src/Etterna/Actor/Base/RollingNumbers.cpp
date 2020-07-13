@@ -67,7 +67,7 @@ RollingNumbers::DrawPrimitives()
 	auto s = this->GetText();
 	int i;
 	// find the first non-zero non-comma character, or the last character
-	for (i = 0; i < (int)(s.length() - 1); i++) {
+	for (i = 0; i < static_cast<int>(s.length() - 1); i++) {
 		if (s[i] != '0' && s[i] != ',')
 			break;
 	}
