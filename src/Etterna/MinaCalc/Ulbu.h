@@ -1,8 +1,8 @@
 #pragma once
 
 // stepmania garbage
-#include "Etterna/FileTypes/XmlFile.h"
-#include "Etterna/FileTypes/XmlFileUtil.h"
+#include "../FileTypes/XmlFile.h"
+#include "../FileTypes/XmlFileUtil.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"

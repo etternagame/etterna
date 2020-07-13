@@ -1,5 +1,4 @@
 #pragma once
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <string>
 #include <array>
 #include <vector>
