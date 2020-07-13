@@ -1651,73 +1651,32 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 bool
 Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 {
-	auto sorted_skills = chart->SortSkillsetsAtRate(rate, false);
-	return (sorted_skills[0].first == skill);
+	return chart->IsSkillsetHighest(skill, rate);
 }
 
 bool
-Song::MatchesFilter(const float rate) const
+Song::MatchesFilter(const float rate, std::vector<Steps*>* vMatchingStepsOut) const
 {
 	auto charts = GetChartsOfCurrentGameMode();
 
 	for (auto* const chart : charts) {
-		// Iterate over all maps of the given type
-		auto addsong = FILTERMAN->ExclusiveFilter;
-		/* The default behaviour of an exclusive filter is to accept
-		 * by default, (i.e. addsong=true) and reject if any
-		 * filters fail. The default behaviour of a non-exclusive filter is
-		 * the exact opposite: reject by default (i.e.
-		 * addsong=false), and accept if any filters match.
-		 */
-		for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
-			// Iterate over all skillsets, up to and
-			// including the placeholder NUM_Skillset
-			const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-			const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
-			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
+		// Iterate over all charts of the given type
 
-				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
-					if (FILTERMAN->HighestSkillsetsOnly)
-						if (!IsSkillsetHighestOfChart(
-							  chart, static_cast<Skillset>(ss), rate) &&
-							ss < NUM_Skillset) // The current skill is not
-											   // in highest in the chart
-							continue;
-				}
-				float val;
-				if (ss < NUM_Skillset)
-					val = chart->GetMSD(rate, ss);
-				else {
-					// If we are on the placeholder skillset, look at song
-					// length instead of a skill
-					val = chart->GetLengthSeconds(rate);
-				}
-				if (FILTERMAN->ExclusiveFilter) {
-					/* Our behaviour is to accept by default,
-					 * but reject if any filters don't match.*/
-					if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
-						/* If we're below the lower bound and it's set,
-						 * or above the upper bound and it's set*/
-						addsong = false;
-						break;
-					}
-				} else { // Non-Exclusive Filter
-					/* Our behaviour is to reject by default,
-					 * but accept if any filters match.*/
-					if ((val > lb || !(lb > 0.f)) &&
-						(val < ub || !(ub > 0.f))) {
-						/* If we're above the lower bound or it's not set
-						 * and also below the upper bound or it isn't set*/
-						addsong = true;
-						break;
-					}
-				}
-			}
+		bool addchart = chart->MatchesFilter(rate);
+
+		// terminate early if not grabbing each matching chart
+		// otherwise continue and add to the list
+		if (addchart) {
+			if (vMatchingStepsOut != nullptr)
+				vMatchingStepsOut->push_back(chart);
+			else
+				return true;
 		}
-		if (addsong)
-			return true;
 	}
-	return false;
+	// if we reach this and we arent adding to a vector, its false
+	// if we reach this and we are adding to a vector, it COULD be false
+	// (if adding, false would be if the list size is 0)
+	return (vMatchingStepsOut != nullptr && vMatchingStepsOut->size() != 0);
 }
 
 bool

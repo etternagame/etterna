@@ -346,7 +346,7 @@ class Song
 												float rate) const -> bool;
 	/** @brief This functions returns whether it has any chart of the given
 	   types with the given rate. If no type is given  it checks all charts.*/
-	[[nodiscard]] auto MatchesFilter(float rate) const -> bool;
+	[[nodiscard]] auto MatchesFilter(float rate, std::vector<Steps*>* vMatchingStepsOut = nullptr) const -> bool;
 
 	auto HasChartByHash(const std::string& hash) -> bool;
 
