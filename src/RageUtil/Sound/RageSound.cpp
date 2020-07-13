@@ -41,12 +41,6 @@
 #include <algorithm>
 #include <iterator>
 
-struct cfloat
-{
-	float real;
-	float imag;
-};
-
 #define samplerate() m_pSource->GetSampleRate()
 
 RageSoundParams::RageSoundParams()
@@ -349,20 +343,10 @@ RageSound::GetDataToPlay(float* pBuffer,
 			auto samplesToCopy =
 			  std::min(iFramesStored * m_pSource->GetNumChannels(),
 					   recentPCMSamplesBufferSize - currentSamples);
-			auto samplesLeft =
-			  recentPCMSamplesBufferSize - currentSamples - samplesToCopy;
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
-				auto out = static_cast<cfloat*>(fftBuffer);
-				auto plan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize,
-													 MUFFT_FLAG_CPU_ANY);
-				auto in = static_cast<float*>(mufft_alloc(recentPCMSamplesBufferSize * sizeof(float)));
-				copy(recentPCMSamples.begin(), recentPCMSamples.begin() + recentPCMSamplesBufferSize, in);
-				mufft_execute_plan_1d(plan, out, in);
-				mufft_free_plan_1d(plan);
-				mufft_free(in);
-				copy(pBuffer, until, back_inserter(recentPCMSamples));
+				mufft_execute_plan_1d(fftPlan, fftBuffer.data(), recentPCMSamples.data());
 				recentPCMSamples.clear();
 				pendingPlayBackCall = true;
 			}
@@ -377,14 +361,12 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
-	auto out = static_cast<cfloat*>(fftBuffer);
 	std::string error;
-	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
 	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
-	for (auto i = 0; i < nOut; ++i) {
-		auto r = out[i].real;
-		auto im = out[i].imag;
+	for (auto i = 0; i < fftBuffer.size(); ++i) {
+		auto r = fftBuffer[i].real;
+		auto im = fftBuffer[i].imag;
 		lua_pushnumber(L,
 					   (r * r + im * im) / (0.01f + SOUNDMAN->GetMixVolume()) /
 						 (0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
@@ -775,10 +757,9 @@ RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
-	if (fftBuffer != nullptr)
-		mufft_free(fftBuffer);
-	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
-	fftBuffer = mufft_alloc(sizeof(cfloat) * nOut);
+	fftBuffer.resize(recentPCMSamplesBufferSize / 2 + 1, {});
+	if (fftPlan) mufft_free_plan_1d(fftPlan);
+	fftPlan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
 }
 
 void
