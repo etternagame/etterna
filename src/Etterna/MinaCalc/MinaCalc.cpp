@@ -33,19 +33,6 @@ static const std::array<std::pair<unsigned, std::string_view>, 16>
 					 { 14U, "-xxx" },
 					 { 15U, "xxxx" } } };
 
-/* Note: if we want max control over stamina we need to have one model for
- * affecting the other skillsets to a certain degree, enough to push up longer
- * stream ratings into contention with shorter ones, and another for both a more
- * granular and influential modifier to calculate the end stamina rating with so
- * todo on that */
-
-// Stamina Model params
-static const float stam_ceil = 1.075234F; // stamina multiplier max
-static const float stam_mag = 243.F;	  // multiplier generation scaler
-static const float stam_fscale = 500.F; // how fast the floor rises (it's lava)
-static const float stam_prop =
-  0.69424F; // proportion of player difficulty at which stamina tax begins
-
 static auto
 TotalMaxPoints(const Calc& calc) -> float
 {
@@ -141,17 +128,21 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		 * rating scaling down stuff that has no stamina component will help
 		 * preventing pollution of stamina leaderboards with charts that are
 		 * just very high rated but take no stamina */
-		const auto poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
+		auto poodle_in_a_porta_potty = mcbloop[highest_base_skillset];
+
+		if (highest_stam_adjusted_skillset == Skill_JackSpeed) {
+			poodle_in_a_porta_potty *= 0.8F;
+		}
 
 		/* the bigger this number the more stamina has to influence a file
 		 * before it counts in the stam skillset, i.e. something that only
-		 * benefits 2% from the stam modifiers will drop below the 1.0 mark and
-		 * move closer to 0 with the pow, resulting in a very low stamina rating
-		 * (we want this), something that benefits 5.5% will have the 0.5%
-		 * overflow multiplied and begin gaining some stam, and something that
-		 * benefits 15% will max out the possible stam rating, which is
-		 * (currently) a 1.07 multiplier to the base maybe using a multiplier
-		 * and not a difference would be better? */
+		 * benefits 2% from the stam modifiers will drop below the 1.0 mark
+		 * and move closer to 0 with the pow, resulting in a very low
+		 * stamina rating (we want this), something that benefits 5.5% will
+		 * have the 0.5% overflow multiplied and begin gaining some stam,
+		 * and something that benefits 15% will max out the possible stam
+		 * rating, which is (currently) a 1.07 multiplier to the base maybe
+		 * using a multiplier and not a difference would be better? */
 		static const auto stam_curve_shift = 0.015F;
 		// ends up being a multiplier between ~0.8 and ~1
 		auto mcfroggerbopper =
@@ -203,7 +194,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 		}
 	}
 	vector<float> yo_momma(NUM_Skillset);
-	for (auto farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
+	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
 		vector<float> girls;
 		girls.reserve(the_hizzle_dizzles.size());
 		for (auto& the_hizzle_dizzle : the_hizzle_dizzles) {
@@ -216,18 +207,35 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	return yo_momma;
 }
 
-/*	The stamina model works by asserting a minimum difficulty relative to
-	the supplied player skill level for which the player's stamina begins to
-	wane. Experience in both gameplay and algorithm testing has shown the
-	appropriate value to be around 0.8. The multiplier is scaled to the
-	proportionate difference in player skill. */
-
+/* The stamina model works by asserting a minimum difficulty relative to the
+ * supplied player skill level for which the player's stamina begins to wane.
+ * Experience in both gameplay and algorithm testing has shown the appropriate
+ * value to be around 0.8. The multiplier is scaled to the proportionate
+ * difference in player skill. */
 inline void
-StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
+StamAdjust(const float x,
+		   const int ss,
+		   Calc& calc,
+		   const int hi,
+		   const bool debug = false)
 {
-	auto stam_floor =
-	  0.95F;		  // stamina multiplier min (increases as chart advances)
-	auto mod = 0.95F; // mutliplier
+	/* Note: if we want max control over stamina we need to have one model for
+	 * affecting the other skillsets to a certain degree, enough to push up
+	 * longer stream ratings into contention with shorter ones, and another for
+	 * both a more granular and influential modifier to calculate the end
+	 * stamina rating with so todo on that */
+
+	// Stamina Model params
+	static const auto stam_ceil = 1.075234F; // stamina multiplier max
+	static const auto stam_mag = 243.F;		 // multiplier generation scalar
+	// how fast the floor rises (it's lava)
+	static const auto stam_fscale = 500.F;
+	// proportion of player difficulty at which stamina tax begins
+	static const auto stam_prop = 0.69424F;
+
+	// stamina multiplier min (increases as chart advances)
+	auto stam_floor = 0.95F;
+	auto mod = 0.95F; // multiplier
 
 	float avs1;
 	auto avs2 = 0.F;
@@ -274,12 +282,46 @@ StamAdjust(float x, int ss, Calc& calc, int hi, bool debug = false)
 	}
 }
 
-static const float magic_num = 16.F;
+// tuned for jacks, dunno what this functionally means, yet
+inline auto
+JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
+{
+	// Jack stamina Model params (see above)
+	static const auto stam_ceil = 1.075234F;
+	static const auto stam_mag = 23.F;
+	static const auto stam_fscale = 2150.F;
+	static const auto stam_prop = 0.49424F;
+	auto stam_floor = 0.95F;
+	auto mod = 0.95F;
+
+	auto avs2 = 0.F;
+	const auto super_stam_ceil = 1.11F;
+
+	const auto& diff = calc.jack_diff.at(hi);
+	vector<float> doot(diff.size());
+
+	for (size_t i = 0; i < diff.size(); i++) {
+		const auto avs1 = avs2;
+		avs2 = diff.at(i);
+		mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
+		if (mod > 0.95F) {
+			stam_floor += (mod - 0.95F) / stam_fscale;
+		}
+		const auto local_ceil = stam_ceil * stam_floor;
+
+		mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+		doot.at(i) = diff.at(i) * mod;
+	}
+
+	return doot;
+}
+
+static const float magic_num = 15.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
 {
-	return std::max(magic_num * erf(0.05F * (y - x)), 0.F);
+	return std::max(static_cast<float>(magic_num * erf(0.05F * (y - x))), 0.F);
 }
 
 /* ok this is a little jank, we are calculating jack loss looping over the
@@ -291,19 +333,19 @@ hit_the_road(const float& x, const float& y) -> float
  * this sets pointloss debug values only, not diff. Note: jackloss should always
  * be a positive value, and be subtracted */
 inline auto
-jackloss(const float& x, Calc& calc, const int& hi) -> float
+jackloss(const float& x, Calc& calc, const int& hi, const bool stam) -> float
 {
 	calc.jack_loss.at(hi).resize(calc.numitv);
 	for (auto itv = 0; itv < calc.numitv; ++itv) {
 		calc.jack_loss.at(hi).at(itv) = 0.F;
 	}
 
+	const auto& v = stam ? JackStamAdjust(x, calc, hi) : calc.jack_diff.at(hi);
 	auto total = 0.F;
 
-	for (const auto& y : calc.jack_diff.at(hi)) {
+	for (const auto& y : v) {
 		if (x < y && y > 0.F) {
 			const auto zzerp = hit_the_road(x, y);
-
 			total += zzerp;
 		}
 	}
@@ -415,7 +457,7 @@ Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
 	// debug info loop
 	if (debugmode) {
 		for (const auto& hi : { left_hand, right_hand }) {
-			// pattern mods and base msd never change, set degbug
+			// pattern mods and base msd never change, set debug
 			// output for them now
 
 			// 3 = number of different debug types
@@ -513,7 +555,7 @@ Calc::Chisel(float player_skill,
 				 * just the first hand's losses are totaled */
 				if (gotpoints > reqpoints) {
 					if (ss == Skill_JackSpeed) {
-						gotpoints -= jackloss(player_skill, *this, hi);
+						gotpoints -= jackloss(player_skill, *this, hi, stamina);
 					} else {
 						CalcInternal(
 						  gotpoints, player_skill, ss, stamina, *this, hi);
@@ -521,7 +563,8 @@ Calc::Chisel(float player_skill,
 					if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(min(
 						  max_slap_dash_jack_cap_hack_tech_hat,
-						  jackloss(player_skill * 0.6F, *this, hi) * 0.75F));
+						  jackloss(player_skill * 0.6F, *this, hi, stamina) *
+							0.75F));
 					}
 				}
 			}
@@ -574,7 +617,7 @@ Calc::Chisel(float player_skill,
 	return player_skill + 2.F * resolution;
 }
 
-/* the new way we wil attempt to diffrentiate skillsets rather than using
+/* the new way we wil attempt to differentiate skillsets rather than using
  * normalizers is by detecting whether or not we think a file is mostly
  * comprised of a given pattern, producing a downscaler that slightly buffs
  * up those files and produces a downscaler for files not detected of that
@@ -851,12 +894,12 @@ MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
 
 	// asdkfhjasdkfhaskdfjhasfd
 	if (!DoesFileExist(calc_params_xml)) {
-		TheGreatBazoinkazoinkInTheSky ublov(calc);
+		const TheGreatBazoinkazoinkInTheSky ublov(calc);
 		ublov.write_params_to_disk();
 	}
 }
 
-int mina_calc_version = 424;
+int mina_calc_version = 425;
 auto
 GetCalcVersion() -> int
 {

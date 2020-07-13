@@ -98,7 +98,6 @@ struct Anchor_Sequencing
 		 * one in the sequence, remember, if we reset the start of the new
 		 * anchor was the last row_time, and the new max_ms should be the
 		 * current ms value */
-
 		if (_sc_ms > _max_ms + anchor_spacing_buffer_ms) {
 			_status = reset_too_slow;
 		} else if (_sc_ms * anchor_speed_increase_cutoff_factor < _max_ms) {
@@ -149,7 +148,7 @@ struct Anchor_Sequencing
 
 		static const auto avg_ms_mult = 1.075F;
 		static const auto anchor_time_buffer_ms = 25.F;
-		static const auto min_ms = 90.F;
+		static const auto min_ms = 82.5F;
 
 		// get total ms
 		const auto total_ms = ms_from(_last, _start);
