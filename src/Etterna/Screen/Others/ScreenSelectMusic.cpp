@@ -30,6 +30,7 @@
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
+#include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
@@ -1507,7 +1508,7 @@ ScreenSelectMusic::AfterMusicChange()
 			}
 
 			if (pSong != nullptr)
-				SongUtil::GetPlayableSteps(pSong, m_vpSteps);
+				SongUtil::GetPlayableSteps(pSong, m_vpSteps, FILTERMAN->AnyActiveFilter());
 			if (m_vpSteps.empty()) {
 				// LuaHelpers::ReportScriptError("GetPlayableSteps returned
 				// nothing.");
