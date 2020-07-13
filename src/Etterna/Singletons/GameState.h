@@ -54,8 +54,7 @@ class GameState
 	auto JoinInput(PlayerNumber pn) -> bool;
 	auto JoinPlayers() -> bool;
 	void LoadProfiles(bool bLoadEdits = true);
-	void SavePlayerProfiles();
-	void SavePlayerProfile(PlayerNumber pn);
+	void SavePlayerProfile();
 	auto HaveProfileToLoad() -> bool;
 	auto HaveProfileToSave() -> bool;
 	void AddStageToPlayer(PlayerNumber pn);

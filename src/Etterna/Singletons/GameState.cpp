@@ -433,21 +433,13 @@ GameState::LoadProfiles(bool bLoadEdits)
 }
 
 void
-GameState::SavePlayerProfiles()
+GameState::SavePlayerProfile()
 {
-	SavePlayerProfile(PLAYER_1);
-}
-
-void
-GameState::SavePlayerProfile(PlayerNumber pn)
-{
-	// AutoplayCPU should not save scores. -aj
-	// xxx: this MAY cause issues with Multiplayer. However, without a working
-	// Multiplayer build, we'll never know. -aj
+	// AutoplayCPU should not save scores
 	if (m_pPlayerState->m_PlayerController != PC_HUMAN)
 		return;
 
-	PROFILEMAN->SaveProfile(pn);
+	PROFILEMAN->SaveProfile(PLAYER_1);
 }
 
 bool
@@ -1792,7 +1784,7 @@ class LunaGameState : public Luna<GameState>
 
 	static int SaveProfiles(T* p, lua_State* L)
 	{
-		p->SavePlayerProfiles();
+		p->SavePlayerProfile();
 		SCREENMAN->ZeroNextUpdate();
 		COMMON_RETURN_SELF;
 	}
