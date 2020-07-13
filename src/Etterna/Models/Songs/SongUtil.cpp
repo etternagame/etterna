@@ -487,10 +487,30 @@ get_best_wife_score_for_song_and_profile(const Song* song, const Profile* p)
   -> float
 {
 	assert(p != nullptr);
-	return p->GetBestWifeScore(
-	  song,
-	  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-		->m_StepsType);
+	auto st = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
+				->m_StepsType;
+	auto score = p->GetBestWifeScore(song, st);
+
+	// if the only score is a fail we want them all sorted into the same group
+	// and all fails best wife scores should be 0% (technically)
+	// so ... set them to .001
+	// because that is different from 0, for files that have no score
+	if (score <= 0.F) {
+		// alas, it is possible to get a D if you have nofail on...
+		auto g = p->GetBestGrade(song, st);
+		if (g == Grade_Failed)
+			// the F tier will be filled with random looking F scores
+			return 0.001F;
+		else if (g == Grade_Tier16)
+			// this fills up the D tier with weird looking scores
+			// their order changes seemingly randomly
+			// to be tbh honest thats not important
+			return 0.002F;
+		else
+			// ????
+			return 0.F;
+	}
+	return score;
 }
 
 static int
