@@ -27,6 +27,7 @@ Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](http
 - [Bug Reporting](#Bug-Reporting)
 - [Contributing](#Contributing)
 - [License](#License)
+- [Special Thanks](#Special-Thanks)
 
 ## Installing
 
@@ -70,3 +71,9 @@ Etterna uses the MIT License, as is required since we are derivative of StepMani
 In short, you are free to modify, sell, distribute, and sublicense this project. We ask that you include a reference to this github repository in your derivative, and do not hold us liable when something breaks.
 
 Etterna uses the [MAD library](http://www.underbit.com/products/mad/) and [FFMPEG codecs](https://www.ffmpeg.org/). Those libraries, when built, use the [GPL license](http://www.gnu.org).
+
+## Special Thanks
+
+- All original SM devs/contributors
+- [Jet Brains](https://www.jetbrains.com/?from=Etterna) for giving us free licenses
+- [Coverity](https://scan.coverity.com/) for giving us free scans
