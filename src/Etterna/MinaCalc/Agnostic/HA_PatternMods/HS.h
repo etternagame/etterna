@@ -1,10 +1,6 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/MinaCalc/Agnostic/MetaIntervalInfo.h"
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include "../../PatternModHelpers.h"
+#include "../MetaIntervalInfo.h"
 
 struct HSMod
 {
@@ -39,7 +35,7 @@ struct HSMod
 
 	float decay_factor = 0.05F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },

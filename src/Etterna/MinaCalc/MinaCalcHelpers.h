@@ -10,13 +10,13 @@ static const float default_score_goal = 0.93F;
 static const float low_acc_cutoff = 0.9F;
 static const float ssr_goal_cap = 0.965F;
 
-static const vector<float> dimples_the_all_zero_output{
+static const std::vector<float> dimples_the_all_zero_output{
 	min_rating, min_rating, min_rating, min_rating,
 	min_rating, min_rating, min_rating, min_rating
 };
 
 // unused atm but would be used for easily identifying scores on joke files
-static const vector<float> gertrude_the_all_max_output{
+static const std::vector<float> gertrude_the_all_max_output{
 	max_rating, max_rating, max_rating, max_rating,
 	max_rating, max_rating, max_rating, max_rating
 };
@@ -39,7 +39,7 @@ downscale_low_accuracy_scores(const float f, const float sg) -> float
 
 // kinda copied and pasted but also kinda use case specific
 inline auto
-AggregateRatings(const vector<float>& skillsets,
+AggregateRatings(const std::vector<float>& skillsets,
 				 float rating = 0.F,
 				 const float res = 10.24F,
 				 const int iter = 1.F) -> float

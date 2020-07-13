@@ -1,6 +1,4 @@
 #pragma once
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-
 #include <vector>
 #include <string>
 
@@ -115,7 +113,7 @@ time_to_itv_idx(const float& time) -> int
 // checks to see if the noteinfo will fit in our static arrays, if it won't it's
 // some garbage joke file and we can throw it out, setting values to 0
 inline auto
-fast_walk_and_check_for_skip(const vector<NoteInfo>& ni,
+fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 const float& rate,
 							 Calc& calc,
 							 const float& offset = 0.F) -> bool

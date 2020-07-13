@@ -1,7 +1,7 @@
 #pragma once
 #include "HA_Sequencing.h"
 #include "MetaIntervalInfo.h"
-#include "Etterna/MinaCalc/SequencingHelpers.h"
+#include "../SequencingHelpers.h"
 
 /* counterpart to metahandinfo */
 
@@ -69,7 +69,7 @@ struct metaRowInfo
 				++mitvi.actual_jacks;
 				twas_jack = true;
 				// try to pick up gluts maybe?
-				if (count > 1 && column_count(last_notes) > 1U) {
+				if (count > 1 && column_count(last_notes) > 1) {
 					++mitvi.shared_chord_jacks;
 				}
 			}

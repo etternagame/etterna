@@ -1,10 +1,5 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/MinaCalc/PatternModHelpers.h"
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include "../../PatternModHelpers.h"
 
 // since the calc skillset balance now operates on +- rather than
 // just - and then normalization, we will use this to depress the
@@ -28,7 +23,7 @@ struct StreamMod
 
 	float vibro_flag = 1.F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "prop_buffer", &prop_buffer },

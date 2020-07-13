@@ -1,10 +1,6 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/MinaCalc/PatternModHelpers.h"
-#include "Etterna/MinaCalc/Agnostic/HA_Sequencers/ThingSequencing.h"
+#include "../../PatternModHelpers.h"
+#include "../HA_Sequencers/ThingSequencing.h"
 
 // the a things, they are there, we must find them...
 // probably add a timing check to this as well
@@ -24,7 +20,7 @@ struct TheThingLookerFinderThing
 	float step_tol = 17.5F;
 	float scaler = 0.2F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },
@@ -81,7 +77,7 @@ struct TheThingLookerFinderThing2
 	float step_tol = 17.5F;
 	float scaler = 0.2F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },

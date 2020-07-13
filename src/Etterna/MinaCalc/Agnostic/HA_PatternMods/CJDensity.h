@@ -1,9 +1,5 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include "../../PatternModHelpers.h"
 
 struct CJDensityMod
 {
@@ -22,7 +18,7 @@ struct CJDensityMod
 	float hand_scaler = 0.95F;
 	float quad_scaler = 0.95F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },

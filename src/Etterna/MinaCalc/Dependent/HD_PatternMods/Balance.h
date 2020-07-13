@@ -1,9 +1,5 @@
 #pragma once
-#include <string>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "../IntervalHandInfo.h"
 
 struct BalanceMod
 {
@@ -19,7 +15,7 @@ struct BalanceMod
 	float scaler = 1.F;
 	float other_scaler = 4.F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },   { "max_mod", &max_mod },
 		{ "mod_base", &mod_base }, { "buffer", &buffer },
 		{ "scaler", &scaler },	   { "other_scaler", &other_scaler },

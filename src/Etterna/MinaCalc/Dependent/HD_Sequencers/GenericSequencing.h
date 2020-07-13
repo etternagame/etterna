@@ -1,7 +1,5 @@
 #pragma once
-#include "Etterna/MinaCalc/CalcWindow.h"
-
-#include <array>
+#include "../../CalcWindow.h"
 
 /* Contains generic sequencers passed to metahandinfo to be advanced in the row
  * loop */

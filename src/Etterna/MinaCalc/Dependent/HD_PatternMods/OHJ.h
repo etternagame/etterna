@@ -1,18 +1,10 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/MetaIntervalHandInfo.h"
-#include "Etterna/MinaCalc/Dependent/HD_Sequencers/OHJSequencing.h"
+#include "../MetaIntervalHandInfo.h"
+#include "../HD_Sequencers/OHJSequencing.h"
 
 struct OHJumpModGuyThing
 {
 	const CalcPatternMod _pmod = OHJumpMod;
-	// const vector<CalcPatternMod> _dbg = { OHJBaseProp, OHJPropComp,
-	// OHJSeqComp,
-	//									  OHJMaxSeq,   OHJCCTaps,	OHJHTaps };
 	const std::string name = "OHJumpMod";
 
 #pragma region params
@@ -27,7 +19,7 @@ struct OHJumpModGuyThing
 	float prop_pool = 1.4F;
 	float prop_scaler = 1.F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 

@@ -1,11 +1,6 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/PatternModHelpers.h"
-#include "Etterna/MinaCalc/Agnostic/HA_Sequencers/FlamSequencing.h"
+#include "../../PatternModHelpers.h"
+#include "../HA_Sequencers/FlamSequencing.h"
 
 // MAKE FLAM WIDE RANGE?
 // ^ YES DO THIS
@@ -23,7 +18,7 @@ struct FlamJamMod
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "scaler", &scaler },

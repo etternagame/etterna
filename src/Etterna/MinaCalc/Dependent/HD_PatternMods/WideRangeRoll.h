@@ -1,9 +1,5 @@
 #pragma once
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
-
-#include <string>
-#include <vector>
+#include "../IntervalHandInfo.h"
 
 // ok new plan we will incloop the joomp
 struct WideRangeRollMod
@@ -24,7 +20,7 @@ struct WideRangeRollMod
 	float cv_threshold = 0.35F;
 	float other_cv_threshold = 0.3F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },
@@ -52,8 +48,8 @@ struct WideRangeRollMod
 	float hi_im_a_float = 0.F;
 
 	// WE CAN JUST MOVE THE TIMING CHECK FUNCTIONS INTO CALCWINDOW LUL
-	vector<float> idk_ms = { 0.F, 0.F, 0.F, 0.F };
-	vector<float> seq_ms = { 0.F, 0.F, 0.F };
+	std::vector<float> idk_ms = { 0.F, 0.F, 0.F, 0.F };
+	std::vector<float> seq_ms = { 0.F, 0.F, 0.F };
 
 	float moving_cv = cv_reset;
 	float pmod = min_mod;

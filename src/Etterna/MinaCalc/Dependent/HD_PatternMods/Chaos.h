@@ -1,10 +1,5 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/CalcWindow.h"
+#include "../IntervalHandInfo.h"
 
 // slightly different implementation of the old chaos mod, basically picks up
 // polyishness and tries to detect awkward transitions
@@ -20,7 +15,7 @@ struct ChaosMod
 	float max_mod = 1.05F;
 	float base = -0.1F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "base", &base },

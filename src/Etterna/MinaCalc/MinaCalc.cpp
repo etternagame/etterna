@@ -13,7 +13,6 @@
 using std::max;
 using std::min;
 using std::pow;
-using std::vector;
 
 static const std::array<std::pair<unsigned, std::string_view>, 16>
   note_mapping = { { { 0U, "----" },
@@ -45,9 +44,9 @@ TotalMaxPoints(const Calc& calc) -> float
 }
 
 auto
-Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
+Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			   const float music_rate,
-			   const float score_goal) -> vector<float>
+			   const float score_goal) -> std::vector<float>
 {
 	// in flux
 	const auto grindscaler =
@@ -67,7 +66,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 	// for multi offset passes
 	// const int fo_rizzy = ssr ? 3 : 1;
 	const auto fo_rizzy = 1;
-	vector<vector<float>> the_hizzle_dizzles(fo_rizzy);
+	std::vector<std::vector<float>> the_hizzle_dizzles(fo_rizzy);
 	for (auto WHAT_IS_EVEN_HAPPEN_THE_BOMB = 0;
 		 WHAT_IS_EVEN_HAPPEN_THE_BOMB < fo_rizzy;
 		 ++WHAT_IS_EVEN_HAPPEN_THE_BOMB) {
@@ -85,7 +84,7 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 
 		MaxPoints = TotalMaxPoints(*this);
 
-		vector<float> mcbloop(NUM_Skillset);
+		std::vector<float> mcbloop(NUM_Skillset);
 		// overall and stam will be left as 0.f by this loop
 		for (auto i = 0; i < NUM_Skillset; ++i) {
 			mcbloop[i] = Chisel(0.1F, 10.24F, score_goal, i, false);
@@ -193,9 +192,9 @@ Calc::CalcMain(const vector<NoteInfo>& NoteInfo,
 			the_hizzle_dizzles[WHAT_IS_EVEN_HAPPEN_THE_BOMB].push_back(bagles);
 		}
 	}
-	vector<float> yo_momma(NUM_Skillset);
+	std::vector<float> yo_momma(NUM_Skillset);
 	for (size_t farts = 0; farts < the_hizzle_dizzles[0].size(); ++farts) {
-		vector<float> girls;
+		std::vector<float> girls;
 		girls.reserve(the_hizzle_dizzles.size());
 		for (auto& the_hizzle_dizzle : the_hizzle_dizzles) {
 			girls.push_back(the_hizzle_dizzle[farts]);
@@ -298,7 +297,7 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
 	const auto super_stam_ceil = 1.11F;
 
 	const auto& diff = calc.jack_diff.at(hi);
-	vector<float> doot(diff.size());
+	std::vector<float> doot(diff.size());
 
 	for (size_t i = 0; i < diff.size(); i++) {
 		const auto avs1 = avs2;
@@ -435,7 +434,7 @@ CalcInternal(float& gotpoints,
 }
 
 auto
-Calc::InitializeHands(const vector<NoteInfo>& NoteInfo,
+Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 					  const float music_rate,
 					  const float offset) -> bool
 {
@@ -634,7 +633,7 @@ Calc::Chisel(float player_skill,
 inline void
 Calc::InitAdjDiff(Calc& calc, const int& hi)
 {
-	static const std::array<vector<int>, NUM_Skillset> pmods_used = { {
+	static const std::array<std::vector<int>, NUM_Skillset> pmods_used = { {
 	  // overall, nothing, don't handle here
 	  {},
 
@@ -812,7 +811,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 }
 
 inline void
-make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
+make_debug_strings(const Calc& calc, std::vector<std::string>& debugstrings)
 {
 	debugstrings.resize(calc.numitv);
 
@@ -834,10 +833,10 @@ make_debug_strings(const Calc& calc, vector<std::string>& debugstrings)
 
 // Function to generate SSR rating
 auto
-MinaSDCalc(const vector<NoteInfo>& NoteInfo,
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   const float musicrate,
 		   const float goal,
-		   Calc* calc) -> vector<float>
+		   Calc* calc) -> std::vector<float>
 {
 	if (NoteInfo.size() <= 1) {
 		return dimples_the_all_zero_output;
@@ -850,7 +849,7 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo,
 
 // Wrap difficulty calculation for all standard rates
 auto
-MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 {
 	MinaSD allrates;
 	const auto lower_rate = 7;
@@ -873,12 +872,13 @@ MinaSDCalc(const vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 
 // Debug output
 void
-MinaSDCalcDebug(const vector<NoteInfo>& NoteInfo,
-				const float musicrate,
-				const float goal,
-				vector<vector<vector<vector<float>>>>& handInfo,
-				vector<std::string>& debugstrings,
-				Calc& calc)
+MinaSDCalcDebug(
+  const std::vector<NoteInfo>& NoteInfo,
+  const float musicrate,
+  const float goal,
+  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
+  std::vector<std::string>& debugstrings,
+  Calc& calc)
 {
 	if (NoteInfo.size() <= 1) {
 		return;

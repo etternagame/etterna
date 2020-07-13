@@ -1,10 +1,5 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "../IntervalHandInfo.h"
 
 /* this is complex enough it should probably have its own sequencer, there's
  * also a fair bit of redundancy between this, wrjt, wrr. Currently this has the
@@ -31,7 +26,7 @@ struct OHTrillMod
 	float cv_reset = 1.F;
 	float cv_threshhold = 0.5F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

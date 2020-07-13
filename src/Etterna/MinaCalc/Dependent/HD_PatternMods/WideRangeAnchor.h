@@ -1,10 +1,6 @@
 #pragma once
-#include <string>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
-#include "Etterna/MinaCalc/Dependent/HD_Sequencers/GenericSequencing.h"
+#include "../IntervalHandInfo.h"
+#include "../HD_Sequencers/GenericSequencing.h"
 
 // general mod, should maybe make cj specific one
 struct WideRangeAnchorMod
@@ -24,7 +20,7 @@ struct WideRangeAnchorMod
 	float diff_max = 8.F;
 	float scaler = 0.1F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

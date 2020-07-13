@@ -1,5 +1,5 @@
 #pragma once
-#include "Etterna/MinaCalc/Dependent/HD_MetaSequencing.h"
+#include "../HD_MetaSequencing.h"
 
 static const float rma_diff_scaler = 1.21F;
 

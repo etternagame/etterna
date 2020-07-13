@@ -1,10 +1,6 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/MinaCalc/PatternModHelpers.h"
-#include "Etterna/MinaCalc/Dependent/HD_Sequencers/RMSequencing.h"
+#include "../../PatternModHelpers.h"
+#include "../HD_Sequencers/RMSequencing.h"
 
 /* Unlike other pattern mods runningman sequencing has 2 core purposes, the
  * primary one involves tracking the anchor speed of a runningman sequence and
@@ -60,7 +56,7 @@ struct RunningManMod
 	float max_jack_len = 3.F;
 	float max_anch_len = 5.F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },

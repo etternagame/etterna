@@ -1,7 +1,6 @@
 #pragma once
 
 // stepmania garbage
-#include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "RageUtil/File/RageFile.h"
@@ -42,7 +41,7 @@
 #include "UlbuAcolytes.h"
 
 // a new thing
-#include "Etterna/MinaCalc/SequencedBaseDiffCalc.h"
+#include "SequencedBaseDiffCalc.h"
 
 /* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
@@ -446,7 +445,7 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma endregion
 
 	[[nodiscard]] static auto make_mod_param_node(
-	  const vector<std::pair<std::string, float*>>& param_map,
+	  const std::vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name) -> XNode*
 	{
 		auto* pmod = new XNode(name);
@@ -459,7 +458,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	static void load_params_for_mod(
 	  const XNode* node,
-	  const vector<std::pair<std::string, float*>>& param_map,
+	  const std::vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name)
 	{
 		auto boat = 0.F;

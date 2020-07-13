@@ -1,10 +1,5 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "../IntervalHandInfo.h"
 
 // big brain stuff
 static const float wrjt_cv_factor = 3.F;
@@ -25,7 +20,7 @@ struct WideRangeJumptrillMod
 
 	float cv_threshhold = 0.05F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

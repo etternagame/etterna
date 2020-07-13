@@ -1,9 +1,5 @@
 #pragma once
-#include <string>
-#include <vector>
-
-#include "Etterna/MinaCalc/PatternModHelpers.h"
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include "../../PatternModHelpers.h"
 
 struct CJMod
 {
@@ -34,7 +30,7 @@ struct CJMod
 
 	float vibro_flag = 1.F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "mod_base", &mod_base },

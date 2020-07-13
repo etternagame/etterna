@@ -60,19 +60,19 @@ ms_to_scaled_nps(const float& ms) -> float
 }
 
 inline auto
-max_val(const vector<int>& v) -> int
+max_val(const std::vector<int>& v) -> int
 {
 	return *std::max_element(v.begin(), v.end());
 }
 
 inline auto
-max_val(const vector<float>& v) -> float
+max_val(const std::vector<float>& v) -> float
 {
 	return *std::max_element(v.begin(), v.end());
 }
 
 inline auto
-max_index(const vector<float>& v) -> int
+max_index(const std::vector<float>& v) -> int
 {
 	return static_cast<int>(
 	  std::distance(v.begin(), std::max_element(v.begin(), v.end())));

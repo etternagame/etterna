@@ -1,9 +1,5 @@
 #pragma once
-#include <string>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "../IntervalHandInfo.h"
 
 // this should mayb track offhand taps like the old behavior did
 struct WideRangeBalanceMod
@@ -23,7 +19,7 @@ struct WideRangeBalanceMod
 	float scaler = 1.F;
 	float other_scaler = 4.F;
 
-	const vector<std::pair<std::string, float*>> _params{
+	const std::vector<std::pair<std::string, float*>> _params{
 		{ "window_param", &window_param },
 
 		{ "min_mod", &min_mod },

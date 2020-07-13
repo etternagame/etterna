@@ -1,11 +1,6 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/MetaIntervalHandInfo.h"
-#include "Etterna/MinaCalc/Dependent/HD_Sequencers/OHJSequencing.h"
+#include "../IntervalHandInfo.h"
+#include "../HD_Sequencers/OHJSequencing.h"
 
 /* initially copied from ohj but the logic should probably be adjusted on
  * multiple levels */

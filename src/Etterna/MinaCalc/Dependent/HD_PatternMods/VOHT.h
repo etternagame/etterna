@@ -1,10 +1,5 @@
 #pragma once
-#include <string>
-#include <array>
-#include <vector>
-
-#include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/MinaCalc/Dependent/IntervalHandInfo.h"
+#include "../IntervalHandInfo.h"
 
 /* retuned oht mod focus tuned to for catching vibro trills like bagatelle */
 

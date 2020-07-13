@@ -1,4 +1,8 @@
 #pragma once
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
+#include <string>
+#include <array>
+#include <vector>
 #include <algorithm>
 #include <xmmintrin.h>
 #include <numeric>
@@ -34,21 +38,21 @@ fastsqrt(float _in) -> float
 
 template<typename T>
 auto
-sum(const vector<T>& v) -> T
+sum(const std::vector<T>& v) -> T
 {
 	return std::accumulate(begin(v), end(v), static_cast<T>(0));
 }
 
 template<typename T>
 auto
-mean(const vector<T>& v) -> float
+mean(const std::vector<T>& v) -> float
 {
 	return static_cast<float>(sum(v)) / static_cast<float>(v.size());
 }
 
 // Coefficient of variation
 inline auto
-cv(const vector<float>& input) -> float
+cv(const std::vector<float>& input) -> float
 {
 	auto sd = 0.F;
 	const auto average = mean(input);
