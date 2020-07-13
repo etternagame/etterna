@@ -727,6 +727,10 @@ StageStats::FinalizeScores(bool bSummary)
 							 hs);
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+	if (m_bLivePlay) {
+		PROFILEMAN->SaveLocalProfile(
+		  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	}
 
 	CHECKPOINT_M("Finished Finalizing Score");
 	LOG->Trace("done saving stats and high scores");
