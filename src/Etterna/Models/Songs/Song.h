@@ -341,8 +341,9 @@ class Song
 	// objects for the song at a given rate
 	[[nodiscard]] auto HighestMSDOfSkillset(Skillset x, float rate) const
 	  -> float;
-	[[nodiscard]] auto IsSkillsetHighestOfAnySteps(Skillset ss,
-												   float rate) const -> bool;
+	[[nodiscard]] auto IsSkillsetHighestOfChart(Steps* chart,
+												Skillset skill,
+												float rate) const -> bool;
 	/** @brief This functions returns whether it has any chart of the given
 	   types with the given rate. If no type is given  it checks all charts.*/
 	[[nodiscard]] auto MatchesFilter(float rate) const -> bool;
