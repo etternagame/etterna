@@ -289,7 +289,7 @@ hit_the_road(const float& x, const float& y) -> float
  * the point loss the same way, and then dump them into intervals just for calc
  * debug display. this also lets us put back some sort of jack stam model.
  * this sets pointloss debug values only, not diff. Note: jackloss should always
- * be a positive value, and be substracted */
+ * be a positive value, and be subtracted */
 inline auto
 jackloss(const float& x, Calc& calc, const int& hi) -> float
 {
