@@ -511,8 +511,8 @@ Calc::Chisel(float player_skill,
 			 const bool debugoutput) -> float
 {
 	auto gotpoints = 0.F;
-	const auto reqpoints = MaxPoints * score_goal;
-	const auto max_slap_dash_jack_cap_hack_tech_hat = MaxPoints * 0.1F;
+	static const auto reqpoints = MaxPoints * score_goal;
+	static const auto max_slap_dash_jack_cap_hack_tech_hat = MaxPoints * 0.1F;
 	for (auto iter = 1; iter <= 8; iter++) {
 		do {
 			// overall and stamina are calculated differently

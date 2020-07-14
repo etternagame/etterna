@@ -18,13 +18,15 @@ static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 static const float interval_span = 0.5F;
 
 inline void
-Smooth(std::array<float, max_intervals>& input, float neutral, int end_interval)
+Smooth(std::array<float, max_intervals>& input,
+	   const float neutral,
+	   const int end_interval)
 {
 	auto f2 = neutral;
 	auto f3 = neutral;
 
 	for (auto i = 0; i < end_interval; ++i) {
-		float f1 = f2;
+		const auto f1 = f2;
 		f2 = f3;
 		f3 = input.at(i);
 		input.at(i) = (f1 + f2 + f3) / 3.F;
@@ -33,13 +35,13 @@ Smooth(std::array<float, max_intervals>& input, float neutral, int end_interval)
 
 inline void
 MSSmooth(std::array<float, max_intervals>& input,
-		 float neutral,
-		 int end_interval)
+		 const float neutral,
+		 const int end_interval)
 {
 	auto f2 = neutral;
 
 	for (auto i = 0; i < end_interval; ++i) {
-		float f1 = f2;
+		const auto f1 = f2;
 		f2 = input.at(i);
 		input.at(i) = (f1 + f2) / 2.F;
 	}
@@ -77,14 +79,14 @@ struct PatternMods
 
 	static void run_agnostic_smoothing_pass(const int& end_itv, Calc& calc)
 	{
-		for (auto& pmod : agnostic_mods) {
+		for (const auto& pmod : agnostic_mods) {
 			Smooth(calc.doot.at(left_hand).at(pmod), neutral, end_itv);
 		}
 	}
 
 	static void run_dependent_smoothing_pass(const int& end_itv, Calc& calc)
 	{
-		for (auto& pmod : dependent_mods) {
+		for (const auto& pmod : dependent_mods) {
 			for (auto& h : calc.doot) {
 				Smooth(h.at(pmod), neutral, end_itv);
 			}
@@ -93,7 +95,7 @@ struct PatternMods
 
 	static void bruh_they_the_same(const int& end_itv, Calc& calc)
 	{
-		for (auto& pmod : agnostic_mods) {
+		for (const auto& pmod : agnostic_mods) {
 			for (auto i = 0; i < end_itv; i++) {
 				calc.doot.at(right_hand).at(pmod).at(i) =
 				  calc.doot.at(left_hand).at(pmod).at(i);
@@ -130,7 +132,7 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 
 	// for various reasons we actually have to do this, scan the file and make
 	// sure each successive row time is greater than the last
-	for (auto i = 1; i < ni.size(); ++i) {
+	for (auto i = 1; i < static_cast<int>(ni.size()); ++i) {
 		if (ni.at(i - 1).rowTime >= ni.at(i).rowTime) {
 			return true;
 		}
