@@ -315,12 +315,12 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
 	return doot;
 }
 
-static const float magic_num = 15.F;
+static const float magic_num = 16.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
 {
-	return std::max(static_cast<float>(magic_num * erf(0.05F * (y - x))), 0.F);
+	return std::max(static_cast<float>(magic_num * erf(0.04F * (y - x))), 0.F);
 }
 
 /* ok this is a little jank, we are calculating jack loss looping over the
@@ -496,8 +496,8 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 /* pbm = point buffer multiplier, or basically starting with a max points some
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
-static const float tech_pbm = 1.F;
-static const float jack_pbm = 1.F;
+static const float tech_pbm = 1.025F;
+static const float jack_pbm = 1.015F;
 static const float stream_pbm = 1.01F;
 static const float bad_newbie_skillsets_pbm = 1.05F;
 
@@ -557,12 +557,12 @@ Calc::Chisel(float player_skill,
 						CalcInternal(
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
-					if (ss == Skill_Technical) {
+					/*if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(min(
 						  max_slap_dash_jack_cap_hack_tech_hat,
 						  jackloss(player_skill * 0.6F, *this, hi, stamina) *
 							0.75F));
-					}
+					}*/
 				}
 			}
 		} while (gotpoints < reqpoints);
@@ -897,7 +897,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 426;
+int mina_calc_version = 427;
 auto
 GetCalcVersion() -> int
 {
