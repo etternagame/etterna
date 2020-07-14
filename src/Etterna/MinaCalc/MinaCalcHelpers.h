@@ -64,8 +64,8 @@ set_jack_diff_debug(Calc& calc, const int& hi)
 {
 	// interval loop
 	for (int itv = 0; itv < calc.numitv; ++itv) {
-		float diff_total = 0.F;
-		int counter = 0;
+		// float diff_total = 0.F;
+		// int counter = 0;
 
 		//// rows per interval now
 		// for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
