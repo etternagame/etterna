@@ -553,7 +553,7 @@ ssprintf(const char* format, Args... args) -> std::string
 	snprintf(buf.get(), size, format, args...);
 
 	// Don't want the '\0' inside
-	return std::string(std::string(buf.get(), buf.get() + size - 1));
+	return std::string(buf.get(), buf.get() + size - 1);
 }
 
 template<typename... Args>
