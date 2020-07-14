@@ -152,7 +152,7 @@ DeviceButtonToString(DeviceButton key)
 
 	// Check the name map first to allow making names for keys that are inside
 	// the ascii range. -Kyz
-	std::map<DeviceButton, std::string>::const_iterator it =
+	const std::map<DeviceButton, std::string>::const_iterator it =
 	  g_mapNamesToString.find(key);
 	if (it != g_mapNamesToString.end())
 		return it->second;
@@ -194,7 +194,7 @@ StringToDeviceButton(const std::string& s)
 	if (sscanf(s.c_str(), "Mouse %i", &i) == 1)
 		return enum_add2(MOUSE_LEFT, i);
 
-	std::map<std::string, DeviceButton>::const_iterator it =
+	const std::map<std::string, DeviceButton>::const_iterator it =
 	  g_mapStringToNames.find(s);
 	if (it != g_mapStringToNames.end())
 		return it->second;

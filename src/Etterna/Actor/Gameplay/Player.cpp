@@ -2076,8 +2076,7 @@ Player::Step(int col,
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				GAMESTATE->m_Position.m_fMusicSeconds +
-				StepSearchDistance)) -
+				GAMESTATE->m_Position.m_fMusicSeconds + StepSearchDistance)) -
 				iSongRow,
 			  iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
 						   GAMESTATE->m_Position.m_fMusicSeconds -
@@ -2709,8 +2708,7 @@ Player::UpdateJudgedRows(float /*fDeltaTime*/)
 {
 	// Look into the future only as far as we need to
 	const auto iEndRow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-	  GAMESTATE->m_Position.m_fMusicSeconds +
-	  GetMaxStepDistanceSeconds()));
+	  GAMESTATE->m_Position.m_fMusicSeconds + GetMaxStepDistanceSeconds()));
 	auto bAllJudged = true;
 
 	if (!GAMESTATE->CountNotesSeparately()) {

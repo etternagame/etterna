@@ -398,7 +398,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 	  "#GAP:%ld;", -lround(out.m_SongTiming.m_fBeat0OffsetInSeconds * 1000)));
 	f.PutLine(ssprintf("#SAMPLESTART:%.3f;", out.m_fMusicSampleStartSeconds));
 	f.PutLine(ssprintf("#SAMPLELENGTH:%.3f;", out.m_fMusicSampleLengthSeconds));
-	if (out.m_sCDTitleFile.size())
+	if (!out.m_sCDTitleFile.empty())
 		f.PutLine(
 		  ssprintf("#CDTITLE:%s;", DwiEscape(out.m_sCDTitleFile).c_str()));
 	switch (out.m_DisplayBPMType) {
@@ -451,9 +451,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 	}
 
 	const vector<Steps*>& vpSteps = out.GetAllSteps();
-	for (unsigned i = 0; i < vpSteps.size(); i++) {
-		const Steps* pSteps = vpSteps[i];
-
+	for (auto pSteps : vpSteps) {
 		if (!WriteDWINotesTag(f, *pSteps))
 			continue;
 

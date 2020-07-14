@@ -111,7 +111,6 @@ Branch = {
 	AfterSelectStyle = function()
 		if IsNetConnected() then
 			ReportStyle()
-			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
 		return "ScreenProfileLoad"
 	end,
@@ -124,9 +123,6 @@ Branch = {
 	end,
 	AfterNetSelectProfile = function()
 		return SMOnlineScreen()
-	end,
-	AfterProfileLoad = function()
-		return "ScreenSelectPlayMode"
 	end,
 	AfterProfileSave = function()
 		-- Might be a little too broken? -- Midiman
@@ -173,16 +169,8 @@ Branch = {
 		end
 	end,
 	PlayerOptions = function()
-		local pm = GAMESTATE:GetPlayMode()
-		local restricted = {
-			--"PlayMode_Battle" -- ??
-		}
-		local optionsScreen = "ScreenPlayerOptions"
-		if restricted[pm] then
-			optionsScreen = "ScreenPlayerOptionsRestricted"
-		end
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
-			return optionsScreen
+			return "ScreenPlayerOptions"
 		else
 			return "ScreenStageInformation"
 		end

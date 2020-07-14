@@ -156,9 +156,6 @@ ScreenGameplay::Init()
 
 	ASSERT(GAMESTATE->m_pCurSteps.Get() != NULL);
 
-	// Doesn't technically do anything for now
-	// Since playmodes/courses are gone
-	STATSMAN->m_CurStageStats.m_playMode = GAMESTATE->m_PlayMode;
 	STATSMAN->m_CurStageStats.m_player.m_pStyle =
 	  GAMESTATE->GetCurrentStyle(PLAYER_1);
 
@@ -260,27 +257,18 @@ ScreenGameplay::Init()
 	if (GAMESTATE->m_bPlayingMulti)
 		NSMAN->StartRequest(0);
 
-	// Add individual life meter
-	switch (GAMESTATE->m_PlayMode) {
-		case PLAY_MODE_REGULAR:
-			if (!GAMESTATE->IsPlayerEnabled(m_vPlayerInfo.m_pn) ||
-				m_sName == "ScreenGameplaySyncMachine")
-				break;
-
-			m_vPlayerInfo.m_pLifeMeter =
-			  LifeMeter::MakeLifeMeter(m_vPlayerInfo.GetPlayerState()
-										 ->m_PlayerOptions.GetStage()
-										 .m_LifeType);
-			m_vPlayerInfo.m_pLifeMeter->Load(
-			  m_vPlayerInfo.GetPlayerState(),
-			  m_vPlayerInfo.GetPlayerStageStats());
-			m_vPlayerInfo.m_pLifeMeter->SetName(
-			  ssprintf("Life%s", m_vPlayerInfo.GetName().c_str()));
-			LOAD_ALL_COMMANDS_AND_SET_XY(m_vPlayerInfo.m_pLifeMeter);
-			this->AddChild(m_vPlayerInfo.m_pLifeMeter);
-			break;
-		default:
-			break;
+	// Add individual life meter, when not in sync mode
+	if (m_sName != "ScreenGameplaySyncMachine") {
+		m_vPlayerInfo.m_pLifeMeter =
+		  LifeMeter::MakeLifeMeter(m_vPlayerInfo.GetPlayerState()
+									 ->m_PlayerOptions.GetStage()
+									 .m_LifeType);
+		m_vPlayerInfo.m_pLifeMeter->Load(m_vPlayerInfo.GetPlayerState(),
+										 m_vPlayerInfo.GetPlayerStageStats());
+		m_vPlayerInfo.m_pLifeMeter->SetName(
+		  ssprintf("Life%s", m_vPlayerInfo.GetName().c_str()));
+		LOAD_ALL_COMMANDS_AND_SET_XY(m_vPlayerInfo.m_pLifeMeter);
+		this->AddChild(m_vPlayerInfo.m_pLifeMeter);
 	}
 
 	// For multi scoreboard; may be used in the future
@@ -1067,22 +1055,14 @@ ScreenGameplay::Update(float fDeltaTime)
 			// Check to see if it's time to play a ScreenGameplay comment
 			m_fTimeSinceLastDancingComment += fDeltaTime;
 
-			PlayMode mode = GAMESTATE->m_PlayMode;
-			switch (mode) {
-				case PLAY_MODE_REGULAR:
-					if (GAMESTATE->OneIsHot())
-						PlayAnnouncer("gameplay comment hot",
-									  SECONDS_BETWEEN_COMMENTS);
-					else if (GAMESTATE->AllAreInDangerOrWorse())
-						PlayAnnouncer("gameplay comment danger",
-									  SECONDS_BETWEEN_COMMENTS);
-					else
-						PlayAnnouncer("gameplay comment good",
-									  SECONDS_BETWEEN_COMMENTS);
-					break;
-				default:
-					break;
-			}
+			if (GAMESTATE->OneIsHot())
+				PlayAnnouncer("gameplay comment hot", SECONDS_BETWEEN_COMMENTS);
+			else if (GAMESTATE->AllAreInDangerOrWorse())
+				PlayAnnouncer("gameplay comment danger",
+							  SECONDS_BETWEEN_COMMENTS);
+			else
+				PlayAnnouncer("gameplay comment good",
+							  SECONDS_BETWEEN_COMMENTS);
 		}
 		default:
 			break;

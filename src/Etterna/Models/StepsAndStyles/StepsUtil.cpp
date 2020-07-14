@@ -33,7 +33,7 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 										   ProfileSlot slot,
 										   bool bDescending)
 {
-	Profile* pProfile = PROFILEMAN->GetProfile(slot);
+	auto pProfile = PROFILEMAN->GetProfile(slot);
 	SortStepsPointerArrayByNumPlays(vStepsPointers, pProfile, bDescending);
 }
 
@@ -43,15 +43,13 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 										   bool bDecending)
 {
 	// ugly...
-	vector<Song*> vpSongs = SONGMAN->GetAllSongs();
+	auto vpSongs = SONGMAN->GetAllSongs();
 	vector<Steps*> vpAllSteps;
 	std::map<Steps*, Song*> mapStepsToSong;
 	{
-		for (unsigned i = 0; i < vpSongs.size(); i++) {
-			Song* pSong = vpSongs[i];
-			vector<Steps*> vpSteps = pSong->GetAllSteps();
-			for (unsigned j = 0; j < vpSteps.size(); j++) {
-				Steps* pSteps = vpSteps[j];
+		for (auto pSong : vpSongs) {
+			auto vpSteps = pSong->GetAllSteps();
+			for (auto pSteps : vpSteps) {
 				vpAllSteps.push_back(pSteps);
 				mapStepsToSong[pSteps] = pSong;
 			}
@@ -75,8 +73,8 @@ bool
 StepsUtil::CompareNotesPointersByRadarValues(const Steps* pSteps1,
 											 const Steps* pSteps2)
 {
-	float fScore1 = 0;
-	float fScore2 = 0;
+	auto fScore1 = 0.F;
+	auto fScore2 = 0.F;
 
 	fScore1 += pSteps1->GetRadarValues()[RadarCategory_TapsAndHolds];
 	fScore2 += pSteps2->GetRadarValues()[RadarCategory_TapsAndHolds];
@@ -198,9 +196,9 @@ StepsID::ToSteps(const Song* p, bool bAllowNull) const
 	Steps* pRet = nullptr;
 	if (dc == Difficulty_Edit) {
 		pRet = SongUtil::GetOneSteps(
-		  p, st, dc, -1, -1, sDescription, "", uHash, true);
+		  p, st, dc, -1, -1, false, sDescription, "", uHash, true);
 	} else {
-		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, "", "", 0, true);
+		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, false, "", "", 0, true);
 	}
 
 	if (!bAllowNull && pRet == nullptr)
@@ -213,7 +211,7 @@ StepsID::ToSteps(const Song* p, bool bAllowNull) const
 XNode*
 StepsID::CreateNode() const
 {
-	XNode* pNode = new XNode("Steps");
+	auto pNode = new XNode("Steps");
 
 	pNode->AppendAttr("StepsType", GAMEMAN->GetStepsTypeInfo(st).szName);
 	pNode->AppendAttr("Difficulty", DifficultyToString(dc));

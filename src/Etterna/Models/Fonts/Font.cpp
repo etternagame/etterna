@@ -45,7 +45,7 @@ FontPage::Load(const FontPageSettings& cfg)
 
 	RageTextureID ID2 = ID1;
 	// "arial 20 16x16 [main].png" => "arial 20 16x16 [main-stroke].png"
-	if (ID2.filename.find("]") != std::string::npos) {
+	if (ID2.filename.find(']') != std::string::npos) {
 		s_replace(ID2.filename, "]", "-stroke]");
 		if (IsAFile(ID2.filename)) {
 			m_FontPageTextures.m_pTextureStroke = TEXTUREMAN->LoadTexture(ID2);

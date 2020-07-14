@@ -948,8 +948,10 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
   public:
 	void Allocate(const vector<msMesh>& /*vMeshes*/) override
 	{
-		m_vVertex.resize(std::max(1U, (unsigned)GetTotalVertices()));
-		m_vTriangles.resize(std::max(1U, (unsigned)GetTotalTriangles()));
+		m_vVertex.resize(
+		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vTriangles.resize(
+		  std::max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
 
 	void Change(const vector<msMesh>& vMeshes) override
@@ -1660,7 +1662,7 @@ RageDisplay_D3D::DeleteTexture(intptr_t iTexHandle)
 		return;
 	}
 
-	auto* pTex = (IDirect3DTexture9*)iTexHandle;
+	auto* pTex = reinterpret_cast<IDirect3DTexture9*>(iTexHandle);
 	pTex->Release();
 
 	// Delete render target (if any)
@@ -1707,7 +1709,7 @@ RageDisplay_D3D::CreateTexture(RagePixelFormat pixfmt,
 							 GetErrorString(hr).c_str());
 	}
 
-	const auto uTexHandle = (intptr_t)pTex;
+	const auto uTexHandle = reinterpret_cast<intptr_t>(pTex);
 
 	if (pixfmt == RagePixelFormat_PAL) {
 		// Save palette
@@ -1739,7 +1741,7 @@ RageDisplay_D3D::UpdateTexture(intptr_t uTexHandle,
 							   int width,
 							   int height)
 {
-	auto* pTex = (IDirect3DTexture9*)uTexHandle;
+	auto* pTex = reinterpret_cast<IDirect3DTexture9*>(uTexHandle);
 	ASSERT(pTex != nullptr);
 
 	RECT rect;
@@ -1815,7 +1817,7 @@ class D3DRenderTarget_FramebufferObject : public RenderTarget
 				int& iTextureHeightOut) override;
 	[[nodiscard]] auto GetTexture() const -> intptr_t override
 	{
-		return (intptr_t)m_uTexHandle;
+		return reinterpret_cast<intptr_t>(m_uTexHandle);
 	}
 	void StartRenderingTo() override;
 	void FinishRenderingTo() override;

@@ -67,7 +67,6 @@ class GameCommand
 	int m_iIndex{ -1 };
 	MultiPlayer m_MultiPlayer{ MultiPlayer_Invalid };
 	const Style* m_pStyle{ nullptr };
-	PlayMode m_pm{ PlayMode_Invalid };
 	Difficulty m_dc{ Difficulty_Invalid };
 	std::string m_sAnnouncer;
 	std::string m_sPreferredModifiers;

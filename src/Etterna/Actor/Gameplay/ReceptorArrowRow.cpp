@@ -122,13 +122,13 @@ ReceptorArrowRow::DrawOverlay()
 void
 ReceptorArrowRow::Step(int iCol, TapNoteScore score)
 {
-	ASSERT(iCol >= 0 && iCol < (int)m_ReceptorArrow.size());
+	ASSERT(iCol >= 0 && iCol < static_cast<int>(m_ReceptorArrow.size()));
 	m_ReceptorArrow[iCol]->Step(score);
 }
 
 void
 ReceptorArrowRow::SetPressed(int iCol)
 {
-	ASSERT(iCol >= 0 && iCol < (int)m_ReceptorArrow.size());
+	ASSERT(iCol >= 0 && iCol < static_cast<int>(m_ReceptorArrow.size()));
 	m_ReceptorArrow[iCol]->SetPressed();
 }

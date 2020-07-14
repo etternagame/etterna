@@ -335,19 +335,21 @@ local function rankingLabel(i)
 					if not showOnline then
 						if ths then
 							local srate = ths:GetMusicRate()
-							whee:SelectSong(thssong)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							if whee:SelectSong(thssong) then
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							end
 						end
 					elseif onlineScore and onlineScore.chartkey then
 						local song = SONGMAN:GetSongByChartKey(onlineScore.chartkey)
 						if song then
 							local srate = onlineScore.rate
-							whee:SelectSong(song)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							if whee:SelectSong(song) then
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+							end
 						end
 					end
 				end
@@ -548,10 +550,11 @@ local function recentLabel(i)
 				if recentactive and ButtonActive(self) then
 					if ths then
 						local srate = ths:GetMusicRate()
-						whee:SelectSong(thssong)
-						GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-						GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-						GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+						if whee:SelectSong(thssong) then
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
+						end
 					end
 				end
 			end

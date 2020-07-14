@@ -279,7 +279,7 @@ RoomWheel::FilterBySearch()
 		}
 	}
 	roomsInWheel.clear();
-	for (auto x : *allRooms)
+	for (const auto& x : *allRooms)
 		if (!check(x))
 			roomsInWheel.emplace_back(x);
 }

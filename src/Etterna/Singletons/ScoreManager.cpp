@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/HighScore.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "RageUtil/Misc/RageTimer.h"
@@ -410,7 +410,6 @@ ScoresAtRate::HandleNoCCPB(HighScore& hs) -> bool
 	return false;
 }
 
-static const float ld_update = 0.02F;
 void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 {

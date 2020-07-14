@@ -394,7 +394,7 @@ Song::FinalizeLoading()
 
 	// Load the cached Images, if it's not loaded already.
 	if (PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD) {
-		for (auto Image : ImageDir) {
+		for (const auto& Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 	}
@@ -577,7 +577,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		m_bHasBanner = IsAFile(GetBannerPath());
 		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 		m_bHasBackground = IsAFile(GetBackgroundPath());
-		for (auto Image : ImageDir) {
+		for (const auto& Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 
@@ -1153,11 +1153,11 @@ Song::Save()
 
 	// Save the new files. These calls make backups on their own.
 	if (!SaveToSSCFile(GetSongFilePath(), false)) {
-		for (auto fileName : backedDotOldFileNames)
+		for (const auto& fileName : backedDotOldFileNames)
 			FILEMAN->Remove(fileName);
 		return;
 	}
-	for (auto fileName : backedOrigFileNames)
+	for (const auto& fileName : backedOrigFileNames)
 		FILEMAN->Remove(fileName);
 
 	SaveToCacheFile();
@@ -1359,11 +1359,11 @@ Song::GetCacheFile(const std::string& sType)
 	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
 	vector<std::string> image_list;
 	auto fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (auto Image : song_dir_listing) {
+	for (const auto& Image : song_dir_listing) {
 		auto FileExt = GetExtension(Image);
 		std::transform(
 		  FileExt.begin(), FileExt.end(), FileExt.begin(), tolower);
-		for (auto FindExt : fill_exts) {
+		for (const auto& FindExt : fill_exts) {
 			if (FileExt == FindExt)
 				image_list.push_back(Image);
 		}
@@ -1386,7 +1386,7 @@ Song::GetCacheFile(const std::string& sType)
 	for (auto Image : image_list) {
 		// We want to make it lower case.
 		std::transform(Image.begin(), Image.end(), Image.begin(), tolower);
-		for (auto PreSet : PreSets[sType]) {
+		for (const auto& PreSet : PreSets[sType]) {
 			// Search for image using PreSets.
 			const auto Found = Image.find(PreSet.second);
 			if (Found != std::string::npos)
@@ -1534,6 +1534,7 @@ vector<std::string>
 Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
 	vector<std::string> ret;
+	ret.reserve(changes.size());
 	for (const auto& bgc : changes) {
 		ret.push_back(bgc.ToString());
 	}
@@ -1648,81 +1649,34 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 }
 
 bool
-Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
+Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 {
-	auto vsteps = GetAllSteps();
-	for (auto& steps : vsteps) {
-		auto sortedstuffs = steps->SortSkillsetsAtRate(rate, false);
-		if (sortedstuffs[0].first == ss)
-			return true;
-	}
-
-	return false;
+	return chart->IsSkillsetHighest(skill, rate);
 }
 
 bool
-Song::MatchesFilter(const float rate) const
+Song::MatchesFilter(const float rate, std::vector<Steps*>* vMatchingStepsOut) const
 {
 	auto charts = GetChartsOfCurrentGameMode();
 
 	for (auto* const chart : charts) {
-		// Iterate over all maps of the given type
-		auto addsong = FILTERMAN->ExclusiveFilter;
-		/* The default behaviour of an exclusive filter is to accept
-		 * by default, (i.e. addsong=true) and reject if any
-		 * filters fail. The default behaviour of a non-exclusive filter is
-		 * the exact opposite: reject by default (i.e.
-		 * addsong=false), and accept if any filters match.
-		 */
-		for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
-			// Iterate over all skillsets, up to and
-			// including the placeholder NUM_Skillset
-			const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-			const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
-			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
+		// Iterate over all charts of the given type
 
-				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
-					if (FILTERMAN->HighestSkillsetsOnly)
-						if (!IsSkillsetHighestOfAnySteps(
-							  static_cast<Skillset>(ss), rate) &&
-							ss < NUM_Skillset) // The current skill is not
-											   // in highest in the chart
-							continue;
-				}
-				float val;
-				if (ss < NUM_Skillset)
-					val = chart->GetMSD(rate, ss);
-				else {
-					// If we are on the placeholder skillset, look at song
-					// length instead of a skill
-					val = chart->GetLengthSeconds(rate);
-				}
-				if (FILTERMAN->ExclusiveFilter) {
-					/* Our behaviour is to accept by default,
-					 * but reject if any filters don't match.*/
-					if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
-						/* If we're below the lower bound and it's set,
-						 * or above the upper bound and it's set*/
-						addsong = false;
-						break;
-					}
-				} else { // Non-Exclusive Filter
-					/* Our behaviour is to reject by default,
-					 * but accept if any filters match.*/
-					if ((val > lb || !(lb > 0.f)) &&
-						(val < ub || !(ub > 0.f))) {
-						/* If we're above the lower bound or it's not set
-						 * and also below the upper bound or it isn't set*/
-						addsong = true;
-						break;
-					}
-				}
-			}
+		bool addchart = chart->MatchesFilter(rate);
+
+		// terminate early if not grabbing each matching chart
+		// otherwise continue and add to the list
+		if (addchart) {
+			if (vMatchingStepsOut != nullptr)
+				vMatchingStepsOut->push_back(chart);
+			else
+				return true;
 		}
-		if (addsong)
-			return true;
 	}
-	return false;
+	// if we reach this and we arent adding to a vector, its false
+	// if we reach this and we are adding to a vector, it COULD be false
+	// (if adding, false would be if the list size is 0)
+	return (vMatchingStepsOut != nullptr && vMatchingStepsOut->size() != 0);
 }
 
 bool
@@ -2022,7 +1976,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetMusicPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetMusicPath();
+		const auto& s = p->GetMusicPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2031,7 +1985,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBannerPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetBannerPath();
+		const auto& s = p->GetBannerPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2040,7 +1994,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBackgroundPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetBackgroundPath();
+		const auto& s = p->GetBackgroundPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2049,7 +2003,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewVidPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetPreviewVidPath();
+		const auto& s = p->GetPreviewVidPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2058,13 +2012,13 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewMusicPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetPreviewMusicPath();
+		const auto& s = p->GetPreviewMusicPath();
 		lua_pushstring(L, s.c_str());
 		return 1;
 	}
 	static int GetJacketPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetJacketPath();
+		const auto& s = p->GetJacketPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2073,7 +2027,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDImagePath(T* p, lua_State* L)
 	{
-		const auto s = p->GetCDImagePath();
+		const auto& s = p->GetCDImagePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2082,7 +2036,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetDiscPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetDiscPath();
+		const auto& s = p->GetDiscPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2091,7 +2045,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDTitlePath(T* p, lua_State* L)
 	{
-		const auto s = p->GetCDTitlePath();
+		const auto& s = p->GetCDTitlePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2100,7 +2054,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetLyricsPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetLyricsPath();
+		const auto& s = p->GetLyricsPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else

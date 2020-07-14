@@ -76,8 +76,8 @@ MenuTimer::EnableStealth(bool bStealth)
 {
 	EnableSilent(bStealth);
 
-	for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++) {
-		m_text[i].SetVisible(!bStealth);
+	for (auto& i : m_text) {
+		i.SetVisible(!bStealth);
 	}
 }
 
@@ -113,8 +113,8 @@ MenuTimer::Update(float fDeltaTime)
 	if (fOldSecondsLeft > iCrossed && fNewSecondsLeft < iCrossed) // crossed
 	{
 		if (iCrossed <= WARNING_START) {
-			for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++)
-				m_text[i].RunCommands(WARNING_COMMAND->GetValue(iCrossed));
+			for (auto& i : m_text)
+				i.RunCommands(WARNING_COMMAND->GetValue(iCrossed));
 		}
 
 		if (iCrossed <= WARNING_BEEP_START && m_soundBeep.IsLoaded() &&
@@ -125,8 +125,8 @@ MenuTimer::Update(float fDeltaTime)
 	if (fNewSecondsLeft == 0) {
 		Stop();
 		SCREENMAN->PostMessageToTopScreen(SM_MenuTimer, 0);
-		for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++)
-			m_text[i].StopEffect();
+		for (auto& i : m_text)
+			i.StopEffect();
 	}
 }
 
@@ -171,8 +171,8 @@ MenuTimer::SetSeconds(float fSeconds)
 {
 	m_fSecondsLeft = fSeconds;
 
-	for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++)
-		m_text[i].PlayCommand("On");
+	for (auto& i : m_text)
+		i.PlayCommand("On");
 
 	SetText(fSeconds);
 }

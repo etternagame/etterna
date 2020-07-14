@@ -18,9 +18,11 @@
 void
 RageVec2RotateFromOrigin(RageVector2* pOut, float degrees)
 {
-	auto radians = degrees * PI / 180;
-	auto outx = pOut->x * RageFastCos(radians) - pOut->y * RageFastSin(radians);
-	auto outy = pOut->x * RageFastSin(radians) + pOut->y * RageFastCos(radians);
+	const auto radians = degrees * PI / 180;
+	const auto outx =
+	  pOut->x * RageFastCos(radians) - pOut->y * RageFastSin(radians);
+	const auto outy =
+	  pOut->x * RageFastSin(radians) + pOut->y * RageFastCos(radians);
 	pOut->x = outx;
 	pOut->y = outy;
 }
@@ -28,8 +30,8 @@ RageVec2RotateFromOrigin(RageVector2* pOut, float degrees)
 void
 RageVec2RotateFromPoint(RageVector2* p1, RageVector2* p2, float degrees)
 {
-	auto xdiff = p2->x - p1->x;
-	auto ydiff = p2->y - p1->y;
+	const auto xdiff = p2->x - p1->x;
+	const auto ydiff = p2->y - p1->y;
 	RageVector2 p3(xdiff, ydiff);
 	RageVec2RotateFromOrigin(&p3, degrees);
 	p2->x = p1->x + p3.x;
@@ -83,7 +85,7 @@ void
 VectorFloatNormalize(vector<float>& v)
 {
 	ASSERT_M(v.size() == 3, "Can't normalize a non-3D vector.");
-	auto scale = 1.0f / sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	const auto scale = 1.0f / sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	v[0] *= scale;
 	v[1] *= scale;
 	v[2] *= scale;
@@ -478,11 +480,11 @@ RageMatrixRotationXYZ(RageMatrix* pOut, float rX, float rY, float rZ)
 void
 RageAARotate(RageVector3* inret, RageVector3 const* axis, float angle)
 {
-	auto ha = angle / 2.0f;
-	auto ca2 = RageFastCos(ha);
-	auto sa2 = RageFastSin(ha);
-	RageVector4 quat(axis->x * sa2, axis->y * sa2, axis->z * sa2, ca2);
-	RageVector4 quatc(-quat.x, -quat.y, -quat.z, ca2);
+	const auto ha = angle / 2.0f;
+	const auto ca2 = RageFastCos(ha);
+	const auto sa2 = RageFastSin(ha);
+	const RageVector4 quat(axis->x * sa2, axis->y * sa2, axis->z * sa2, ca2);
+	const RageVector4 quatc(-quat.x, -quat.y, -quat.z, ca2);
 	RageVector4 point(inret->x, inret->y, inret->z, 0.0f);
 	RageQuatMultiply(&point, quat, point);
 	RageQuatMultiply(&point, point, quatc);
@@ -617,18 +619,18 @@ void
 RageMatrixFromQuat(RageMatrix* pOut, const RageVector4& q)
 {
 	// D3DXMatrixRotationQuaternion is slower
-	auto xx = q.x * (q.x + q.x);
-	auto xy = q.x * (q.y + q.y);
-	auto xz = q.x * (q.z + q.z);
+	const auto xx = q.x * (q.x + q.x);
+	const auto xy = q.x * (q.y + q.y);
+	const auto xz = q.x * (q.z + q.z);
 
-	auto wx = q.w * (q.x + q.x);
-	auto wy = q.w * (q.y + q.y);
-	auto wz = q.w * (q.z + q.z);
+	const auto wx = q.w * (q.x + q.x);
+	const auto wy = q.w * (q.y + q.y);
+	const auto wz = q.w * (q.z + q.z);
 
-	auto yy = q.y * (q.y + q.y);
-	auto yz = q.y * (q.z + q.z);
+	const auto yy = q.y * (q.y + q.y);
+	const auto yz = q.y * (q.z + q.z);
 
-	auto zz = q.z * (q.z + q.z);
+	const auto zz = q.z * (q.z + q.z);
 	// careful.  The param order is row-major, which is the
 	// transpose of the order shown in the OpenGL docs.
 	*pOut = RageMatrix(1 - (yy + zz),
@@ -805,7 +807,7 @@ struct sine_initter
 	sine_initter()
 	{
 		for (unsigned int i = 0; i < sine_table_size; ++i) {
-			auto angle = SCALE(i, 0, sine_table_size, 0.0f, PI);
+			const auto angle = SCALE(i, 0, sine_table_size, 0.0f, PI);
 			sine_table[i] = sinf(angle);
 		}
 	}
@@ -819,10 +821,10 @@ RageFastSin(float angle)
 	if (angle == 0) {
 		return 0;
 	}
-	auto index = angle * static_cast<float>(sine_table_index_mult);
+	const auto index = angle * static_cast<float>(sine_table_index_mult);
 	auto first_index = static_cast<int>(index);
-	int second_index = (first_index + 1) % sine_index_mod;
-	auto remainder = index - first_index;
+	const int second_index = (first_index + 1) % sine_index_mod;
+	const auto remainder = index - first_index;
 	first_index %= sine_index_mod;
 	auto first = 0.0f;
 	auto second = 0.0f;
@@ -835,7 +837,7 @@ RageFastSin(float angle)
 	SET_SAMPLE(first);
 	SET_SAMPLE(second);
 #undef SET_SAMPLE
-	auto result = lerp(remainder, first, second);
+	const auto result = lerp(remainder, first, second);
 	return result;
 }
 
@@ -904,14 +906,14 @@ RageBezier2D::EvaluateYFromX(float fX) const
 	auto fT = SCALE(fX, m_X.GetBezierStart(), m_X.GetBezierEnd(), 0, 1);
 	// Don't try more than 100 times, the curve might be a bit nonsensical. -Kyz
 	for (auto i = 0; i < 100; ++i) {
-		auto fGuessedX = m_X.Evaluate(fT);
-		auto fError = fX - fGuessedX;
+		const auto fGuessedX = m_X.Evaluate(fT);
+		const auto fError = fX - fGuessedX;
 
 		/* If our guess is good enough, evaluate the result Y and return. */
 		if (unlikely(fabsf(fError) < 0.0001f))
 			return m_Y.Evaluate(fT);
 
-		auto fSlope = m_X.GetSlope(fT);
+		const auto fSlope = m_X.GetSlope(fT);
 		fT += fError / fSlope;
 	}
 	return m_Y.Evaluate(fT);

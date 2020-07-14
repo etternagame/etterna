@@ -15,7 +15,7 @@
 static std::string
 LIFE_PERCENT_CHANGE_NAME(size_t i)
 {
-	return "LifePercentChange" + ScoreEventToString((ScoreEvent)i);
+	return "LifePercentChange" + ScoreEventToString(static_cast<ScoreEvent>(i));
 }
 
 float

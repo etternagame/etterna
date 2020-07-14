@@ -611,7 +611,7 @@ ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 	// Get ScreenMessage
 	lua_getfield(L, iTab, "SendOnPop");
 	const char* pStr = lua_tostring(L, -1);
-	if (pStr == NULL)
+	if (pStr == nullptr)
 		smSendOnPop = SM_None;
 	else
 		smSendOnPop = ScreenMessageHelpers::ToScreenMessage(pStr);
@@ -620,7 +620,7 @@ ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 	// Get Question
 	lua_getfield(L, iTab, "Question");
 	pStr = lua_tostring(L, -1);
-	if (pStr == NULL) {
+	if (pStr == nullptr) {
 		LuaHelpers::ReportScriptError(
 		  "ScreenTextEntry \"Question\" entry is not a string.");
 		pStr = "";
@@ -631,7 +631,7 @@ ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 	// Get Initial Answer
 	lua_getfield(L, iTab, "InitialAnswer");
 	pStr = lua_tostring(L, -1);
-	if (pStr == NULL)
+	if (pStr == nullptr)
 		pStr = "";
 	sInitialAnswer = pStr;
 	lua_settop(L, iTab);

@@ -15,6 +15,8 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"
+#include "Etterna/Singletons/FilterManager.h"
+#include "Etterna/Models/Misc/PlayerState.h"
 
 #include <functional>
 #include <algorithm>
@@ -34,6 +36,7 @@ SongUtil::GetSteps(const Song* pSong,
 				   Difficulty dc,
 				   int iMeterLow,
 				   int iMeterHigh,
+				   bool filteringSteps,
 				   const std::string& sDescription,
 				   const std::string& sCredit,
 				   bool bIncludeAutoGen,
@@ -61,6 +64,22 @@ SongUtil::GetSteps(const Song* pSong,
 		if (uHash != 0 && uHash != pSteps->GetHash())
 			continue;
 
+		if (FILTERMAN != nullptr && FILTERMAN->AnyActiveFilter()) {
+			// iterating over all rates until it just works
+			// explanation in MusicWheel::FilterBySkillsets
+			auto success = false;
+			for (auto currate = FILTERMAN->MaxFilterRate;
+				 currate > FILTERMAN->m_pPlayerState->wtFFF - .01f;
+				 currate -= 0.1f) {
+				if (pSteps->MatchesFilter(currate)) {
+					success = true;
+					break;
+				}
+			}
+			if (!success)
+				continue;
+		}
+
 		arrayAddTo.push_back(pSteps);
 
 		if (iMaxToGet != -1) {
@@ -77,6 +96,7 @@ SongUtil::GetOneSteps(const Song* pSong,
 					  Difficulty dc,
 					  int iMeterLow,
 					  int iMeterHigh,
+					  bool filteringSteps,
 					  const std::string& sDescription,
 					  const std::string& sCredit,
 					  unsigned uHash,
@@ -89,6 +109,7 @@ SongUtil::GetOneSteps(const Song* pSong,
 			 dc,
 			 iMeterLow,
 			 iMeterHigh,
+			 filteringSteps,
 			 sDescription,
 			 sCredit,
 			 bIncludeAutoGen,
@@ -147,7 +168,8 @@ SongUtil::GetStepsByDescription(const Song* pSong,
 								const std::string& sDescription)
 {
 	vector<Steps*> vNotes;
-	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, sDescription, "");
+	GetSteps(
+	  pSong, vNotes, st, Difficulty_Invalid, -1, -1, false, sDescription, "");
 	if (vNotes.empty())
 		return nullptr;
 	return vNotes[0];
@@ -159,7 +181,7 @@ SongUtil::GetStepsByCredit(const Song* pSong,
 						   const std::string& sCredit)
 {
 	vector<Steps*> vNotes;
-	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, "", sCredit);
+	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, false, "", sCredit);
 	if (vNotes.empty())
 		return nullptr;
 	return vNotes[0];
@@ -305,12 +327,6 @@ CompareSongPointersBySortValueAscending(const Song* pSong1, const Song* pSong2)
 	return g_mapSongSortVal[pSong1] < g_mapSongSortVal[pSong2];
 }
 
-static bool
-CompareSongPointersBySortValueDescending(const Song* pSong1, const Song* pSong2)
-{
-	return g_mapSongSortVal[pSong1] > g_mapSongSortVal[pSong2];
-}
-
 void
 SongUtil::MakeSortString(std::string& s)
 {
@@ -405,7 +421,7 @@ CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 		return false;
 
 	return CompareStringsAsc(pSong1->GetSongFilePath(),
-							  pSong2->GetSongFilePath());
+							 pSong2->GetSongFilePath());
 }
 
 void
@@ -471,10 +487,30 @@ get_best_wife_score_for_song_and_profile(const Song* song, const Profile* p)
   -> float
 {
 	assert(p != nullptr);
-	return p->GetBestWifeScore(
-	  song,
-	  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-		->m_StepsType);
+	auto st = GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
+				->m_StepsType;
+	auto score = p->GetBestWifeScore(song, st);
+
+	// if the only score is a fail we want them all sorted into the same group
+	// and all fails best wife scores should be 0% (technically)
+	// so ... set them to .001
+	// because that is different from 0, for files that have no score
+	if (score <= 0.F) {
+		// alas, it is possible to get a D if you have nofail on...
+		auto g = p->GetBestGrade(song, st);
+		if (g == Grade_Failed)
+			// the F tier will be filled with random looking F scores
+			return 0.001F;
+		else if (g == Grade_Tier16)
+			// this fills up the D tier with weird looking scores
+			// their order changes seemingly randomly
+			// to be tbh honest thats not important
+			return 0.002F;
+		else
+			// ????
+			return 0.F;
+	}
+	return score;
 }
 
 static int
@@ -1004,13 +1040,13 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 }
 
 void
-SongUtil::GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut)
+SongUtil::GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut, bool filteringSteps)
 {
 	set<StepsType> vStepsType;
 	GetPlayableStepsTypes(pSong, vStepsType);
 
 	for (const auto& st : vStepsType) {
-		GetSteps(pSong, vOut, st);
+		GetSteps(pSong, vOut, st, Difficulty_Invalid, -1, -1, filteringSteps);
 	}
 
 	StepsUtil::SortNotesArrayByDifficulty(vOut);

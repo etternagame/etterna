@@ -54,8 +54,7 @@ class GameState
 	auto JoinInput(PlayerNumber pn) -> bool;
 	auto JoinPlayers() -> bool;
 	void LoadProfiles(bool bLoadEdits = true);
-	void SavePlayerProfiles();
-	void SavePlayerProfile(PlayerNumber pn);
+	void SavePlayerProfile();
 	auto HaveProfileToLoad() -> bool;
 	auto HaveProfileToSave() -> bool;
 	void AddStageToPlayer(PlayerNumber pn);
@@ -96,8 +95,6 @@ class GameState
 	 * The left side is player 1, and the right side is player 2. */
 	bool m_bSideIsJoined; // left side, right side
 	MultiPlayerStatus m_MultiPlayerStatus[NUM_MultiPlayer];
-	BroadcastOnChange<PlayMode>
-	  m_PlayMode; // many screens display different info depending on this value
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
@@ -216,7 +213,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.70.1"; }
+	static auto GetEtternaVersion() -> std::string { return "0.70.2"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4

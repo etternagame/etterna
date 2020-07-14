@@ -1383,6 +1383,7 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 			std::string sNameString = GameI.ToString(pInputScheme);
 
 			vector<std::string> asValues;
+			asValues.reserve(NUM_USER_GAME_TO_DEVICE_SLOTS);
 			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS;
 				 ++slot) // don't save data from the last (keyboard automap)
 						 // slot
