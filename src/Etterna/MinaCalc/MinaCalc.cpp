@@ -415,8 +415,7 @@ CalcInternal(float& gotpoints,
 			const auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
 			calc.debugValues.at(hi)[2][Pts].at(i) = pts;
 			if (x < (*v).at(i)) {
-				const auto lostpoints =
-				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
+				const auto lostpoints = hit_the_road(x, (*v).at(i));
 				gotpoints -= lostpoints;
 				calc.debugValues.at(hi)[2][PtLoss].at(i) = abs(lostpoints);
 			}
@@ -426,8 +425,7 @@ CalcInternal(float& gotpoints,
 			if (x < (*v).at(i)) {
 				const auto pts =
 				  static_cast<float>(calc.itv_points.at(hi).at(i));
-				gotpoints -=
-				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
+				gotpoints -= hit_the_road(x, (*v).at(i));
 			}
 		}
 	}
@@ -899,7 +897,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 425;
+int mina_calc_version = 426;
 auto
 GetCalcVersion() -> int
 {
