@@ -18,7 +18,7 @@ struct CJMod
 	float total_prop_max = max_mod;
 	float total_prop_scaler = 5.428F; // ~38/7
 
-	float jack_base = 2.F;
+	float jack_base = 1.F;
 	float jack_min = 0.625F;
 	float jack_max = 1.F;
 	float jack_scaler = 1.F;
