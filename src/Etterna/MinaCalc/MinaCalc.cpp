@@ -415,7 +415,8 @@ CalcInternal(float& gotpoints,
 			const auto pts = static_cast<float>(calc.itv_points.at(hi).at(i));
 			calc.debugValues.at(hi)[2][Pts].at(i) = pts;
 			if (x < (*v).at(i)) {
-				const auto lostpoints = hit_the_road(x, (*v).at(i));
+				const auto lostpoints =
+				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
 				gotpoints -= lostpoints;
 				calc.debugValues.at(hi)[2][PtLoss].at(i) = abs(lostpoints);
 			}
@@ -425,7 +426,8 @@ CalcInternal(float& gotpoints,
 			if (x < (*v).at(i)) {
 				const auto pts =
 				  static_cast<float>(calc.itv_points.at(hi).at(i));
-				gotpoints -= hit_the_road(x, (*v).at(i));
+				gotpoints -=
+				  (pts - (pts * fastpow(x / (*v).at(i), powindromemordniwop)));
 			}
 		}
 	}
@@ -496,7 +498,7 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 /* pbm = point buffer multiplier, or basically starting with a max points some
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
-static const float tech_pbm = 1.025F;
+static const float tech_pbm = 1.F;
 static const float jack_pbm = 1.015F;
 static const float stream_pbm = 1.01F;
 static const float bad_newbie_skillsets_pbm = 1.05F;
@@ -557,12 +559,12 @@ Calc::Chisel(float player_skill,
 						CalcInternal(
 						  gotpoints, player_skill, ss, stamina, *this, hi);
 					}
-					/*if (ss == Skill_Technical) {
+					if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(min(
 						  max_slap_dash_jack_cap_hack_tech_hat,
-						  jackloss(player_skill * 0.6F, *this, hi, stamina) *
-							0.75F));
-					}*/
+						  jackloss(player_skill * 0.75F, *this, hi, stamina) *
+							0.85F));
+					}
 				}
 			}
 		} while (gotpoints < reqpoints);
