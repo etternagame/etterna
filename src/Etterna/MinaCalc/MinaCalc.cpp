@@ -178,6 +178,10 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
 				r = CalcClamp(r, r, ssrcap);
+
+				if (highest_stam_adjusted_skillset == Skill_JackSpeed) {
+					r = downscale_low_accuracy_scores(r, score_goal);
+				}
 			}
 		}
 
@@ -286,7 +290,7 @@ inline auto
 JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
 {
 	// Jack stamina Model params (see above)
-	static const auto stam_ceil = 1.075234F;
+	static const auto stam_ceil = 1.05234F;
 	static const auto stam_mag = 23.F;
 	static const auto stam_fscale = 2150.F;
 	static const auto stam_prop = 0.49424F;
@@ -294,7 +298,7 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
 	auto mod = 0.95F;
 
 	auto avs2 = 0.F;
-	const auto super_stam_ceil = 1.11F;
+	const auto super_stam_ceil = 1.09F;
 
 	const auto& diff = calc.jack_diff.at(hi);
 	std::vector<float> doot(diff.size());
@@ -499,7 +503,7 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
 static const float tech_pbm = 1.F;
-static const float jack_pbm = 1.015F;
+static const float jack_pbm = 1.0175F;
 static const float stream_pbm = 1.01F;
 static const float bad_newbie_skillsets_pbm = 1.05F;
 
@@ -899,7 +903,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 432;
+int mina_calc_version = 433;
 auto
 GetCalcVersion() -> int
 {
