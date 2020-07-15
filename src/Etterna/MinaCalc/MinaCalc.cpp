@@ -649,7 +649,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		FlamJam,
 		OHJumpMod,
 		Balance,
-		RanMan,
+		// RanMan,
 		WideRangeBalance,
 	  },
 
@@ -664,7 +664,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		WideRangeBalance,
 		WideRangeJumptrill,
 		// WideRangeRoll,
-		OHTrill,
+		// OHTrill,
 		VOHTrill,
 		RanMan,
 		// Roll,
@@ -899,7 +899,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 430;
+int mina_calc_version = 431;
 auto
 GetCalcVersion() -> int
 {
