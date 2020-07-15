@@ -681,7 +681,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		OHTrill,
 		VOHTrill,
 		// Roll
-		RanMan,
+		// RanMan,
 	  },
 
 	  // stam, nothing, don't handle here
@@ -899,7 +899,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 431;
+int mina_calc_version = 432;
 auto
 GetCalcVersion() -> int
 {
