@@ -64,7 +64,7 @@ local function getGraphBounds()
         return 0, 1
     else
         -- get the x position of the first and last item, normalize the position, and then convert them to percentages [0,1]
-        return (fitX(firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(#graphVecs["JS"][1] + firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth
+        return (fitX(firstSecond  / getCurRateValue(), finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(#graphVecs["JS"][1] + firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth
     end
 end
 
@@ -316,6 +316,7 @@ local function updateCoolStuff()
         firstSecond = steps:GetFirstSecond() * 2
         finalSecond = steps:GetLastSecond() * 2
         steplength = (finalSecond - firstSecond)
+        ms.ok(finalSecond / getCurRateValue())
     end
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
@@ -1057,7 +1058,7 @@ local function topGraphLine(mod, colorToUse, hand)
                 if not values or not values[1] then return end
                 for i = 1, #values do
                     --local x = fitX(i, #values) -- vector length based positioning
-                    local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
+                    local x = fitX(i + firstSecond / getCurRateValue() - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY1(values[i])
                     y = y + plotHeight / 2
                     setOffsetVerts(verts, x, y, colorToUse) 
@@ -1114,7 +1115,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
 
                 for i = 1, #values do
                     --local x = fitX(i, #values) -- vector length based positioning
-                    local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
+                    local x = fitX(i + firstSecond  / getCurRateValue() - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(values[i], lowerGraphMin, lowerGraphMax)
 
                     setOffsetVerts(verts, x, y, colorToUse)
@@ -1158,7 +1159,7 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
 
                 for i = 1, #ssrs[lineNum] do
                     local x = fitX(i, #ssrs[lineNum]) -- vector length based positioning
-                    --local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
+                    --local x = fitX(i + firstSecond  / getCurRateValue() - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(ssrs[lineNum][i])
 
                     setOffsetVerts(verts, x, y, colorToUse)
