@@ -22,6 +22,7 @@ class FilterManager
 	float GetSSFilter(Skillset ss, int bound);
 	void SetSSFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
+	void ResetAllFilters();
 	bool HighestSkillsetsOnly = false;
 	bool AnyActiveFilter();
 
