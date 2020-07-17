@@ -18,6 +18,7 @@ local firstSecond = 0
 local steplength = 0
 
 local graphVecs = {}
+local jackdiffs = {}
 local ssrs = {}
 local activeModGroup = 1
 local activeDiffGroup = 1
@@ -313,8 +314,8 @@ local function updateCoolStuff()
         firstSecond = steps:GetFirstSecond() * 2
         finalSecond = steps:GetLastSecond() * 2
         steplength = (finalSecond - firstSecond)
-        ms.ok(finalSecond / getCurRateValue())
     end
+    jackdiffs = {Left = {}, Right = {}}
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
         if diffGroups[activeDiffGroup]["SSRS"] then
@@ -325,6 +326,20 @@ local function updateCoolStuff()
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
         debugstrings = steps:GetDebugStrings()
+
+        -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
+        -- basically jackdiffs[hand][index] = {row time, diff}
+        -- this is so we can place the indices based on row time instead of index
+        local jap = steps:GetCalcDebugJack()["JackHand"]
+        local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
+        for i = 1, upperiter do
+            if jap["Left"][i] then
+                jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1], jap["Left"][i][2] }
+            end
+            if jap["Right"][i] then
+                jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1], jap["Right"][i][2] }
+            end
+        end
 
         -- for each debug output type and its corresponding list of values
         for debugtype, sublist in pairs(CalcDebugTypes) do
