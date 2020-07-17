@@ -682,6 +682,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		TheThing,
 		WideRangeAnchor,
 		WideRangeRoll,
+	  	WideRangeJumptrill,
 		OHTrill,
 		VOHTrill,
 		// Roll
@@ -903,7 +904,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 433;
+int mina_calc_version = 434;
 auto
 GetCalcVersion() -> int
 {
