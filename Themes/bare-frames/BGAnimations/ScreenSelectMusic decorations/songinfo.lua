@@ -84,7 +84,21 @@ t[#t+1] = Def.ActorFrame {
             self:xy(songinfoLine, 20):zoom(.3)
             self:settext("BPM:"):halign(1)
         end
-    }
+    },
+
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(songinfoLine, 30):zoom(0.3)
+		end,
+		CurrentStepsP1ChangedMessageCommand = function(self)
+			self:settext(getCurRateDisplayString())
+		end,
+        CodeMessageCommand = function(self, params)
+			local rate = getCurRateValue()
+			ChangeMusicRate(rate, params)
+			self:settext(getCurRateDisplayString())
+		end
+	}
     
 }
 
