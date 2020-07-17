@@ -707,7 +707,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv) const
 			 currate -= 0.1f) { /* Iterate over all possible rates.
 								 * The .01f delta is because floating points
 								 * don't like exact equivalency*/
-			if (song->MatchesFilter(currate)) {
+			if (song->MatchesFilter(currate + 0.001f)) {
 				addsong = true;
 				break; // We don't need to keep checking rates
 			}

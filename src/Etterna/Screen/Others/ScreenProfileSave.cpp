@@ -22,11 +22,8 @@ ScreenProfileSave::Input(const InputEventPlus& input)
 void
 ScreenProfileSave::Continue()
 {
-	DLMAN->chartLeaderboards.clear(); // clear cached leaderboard scores when
-									  // saving after gameplay -mina
-	if (!STATSMAN->m_vPlayedStageStats.empty())
-		if (STATSMAN->m_vPlayedStageStats.back().m_bLivePlay)
-			GAMESTATE->SavePlayerProfiles();
+	// clear cached leaderboard scores after gameplay
+	DLMAN->chartLeaderboards.clear();
 
 	SCREENMAN->ZeroNextUpdate();
 

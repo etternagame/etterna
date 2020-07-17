@@ -171,6 +171,9 @@ local f =
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
 		},
 	Def.Quad {
@@ -201,6 +204,9 @@ local f =
 				self:settextf("%s:%5.1fx", translated_info["MinRate"], FILTERMAN:GetMinFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		},
@@ -237,6 +243,9 @@ local f =
 			end,
 			FilterModeChangedMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
 		},
 	Def.Quad {
@@ -269,6 +278,9 @@ local f =
 				end
 			end,
 			FilterModeChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		},
@@ -314,6 +326,9 @@ local f =
 				self:settextf("%s: %s", translated_info["CommonPackFilter"], (self.packlistFiltering and translated_info["On"] or translated_info["Off"]))
 			end,
 			FilterModeChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		}
@@ -457,7 +472,7 @@ f[#f + 1] =
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) and active then
-			FILTERMAN:ResetSSFilters()
+			FILTERMAN:ResetAllFilters()
 			for i = 1, #ms.SkillSets do
 				SSQuery[0][i] = "0"
 				SSQuery[1][i] = "0"
@@ -465,6 +480,7 @@ f[#f + 1] =
 			activebound = 0
 			ActiveSS = 0
 			MESSAGEMAN:Broadcast("UpdateFilter")
+			MESSAGEMAN:Broadcast("ResetFilter")
 			MESSAGEMAN:Broadcast("NumericInputEnded")
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
 			whee:SongSearch("")

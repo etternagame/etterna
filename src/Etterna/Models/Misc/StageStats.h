@@ -73,11 +73,6 @@ class StageStats
 	// using a Replay
 	bool m_bLivePlay = false;
 
-	/**
-	 * @brief Determine if the PlayerNumber has a high score.
-	 * @param pn the PlayerNumber in question.
-	 * @return true if the PlayerNumber has a high score, false otherwise. */
-	[[nodiscard]] auto PlayerHasHighScore(PlayerNumber pn) const -> bool;
 	[[nodiscard]] auto GetMinimumMissCombo() const -> unsigned int;
 
 	// Lua

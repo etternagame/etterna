@@ -1237,7 +1237,7 @@ class DebugLineWriteProfiles : public IDebugLine
 	{
 		auto pn = static_cast<PlayerNumber>(g_ProfileSlot);
 		GAMESTATE->SaveCurrentSettingsToProfile(pn);
-		GAMESTATE->SavePlayerProfile(pn);
+		GAMESTATE->SavePlayerProfile();
 		IDebugLine::DoAndLog(sMessageOut);
 	}
 };

@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Profile.h"
@@ -28,6 +28,7 @@
 #pragma comment(lib, "IPHLPAPI.lib")
 
 #include <algorithm>
+#include <cassert>
 
 // we just need this for purposes of unique machine id.
 // So any one or two mac's is fine.
@@ -51,7 +52,7 @@ getMacHash(uint16_t& mac1, uint16_t& mac2)
 	if (dwStatus != ERROR_SUCCESS)
 		return; // no adapters.
 
-	const auto pAdapterInfo = AdapterInfo;
+	auto* const pAdapterInfo = AdapterInfo;
 	mac1 = hashMacAddress(pAdapterInfo);
 	if (pAdapterInfo->Next)
 		mac2 = hashMacAddress(pAdapterInfo->Next);
@@ -71,7 +72,7 @@ getCpuHash()
 	int cpuinfo[4] = { 0, 0, 0, 0 };
 	__cpuid(cpuinfo, 0);
 	uint16_t hash = 0;
-	auto ptr = (uint16_t*)(&cpuinfo[0]);
+	auto* ptr = (uint16_t*)(&cpuinfo[0]);
 	for (uint32_t i = 0; i < 8; i++)
 		hash += ptr[i];
 
@@ -277,7 +278,7 @@ getSystemUniqueId()
 	// get the name of the computer
 	auto str = getMachineName();
 
-	auto id = computeSystemUniqueId();
+	auto* id = computeSystemUniqueId();
 	for (uint32_t i = 0; i < 3; i++)
 		str = str + "." + std::to_string(id[i]);
 	return str;
@@ -319,7 +320,8 @@ StageStats::AssertValid(PlayerNumber pn) const
 	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("Invalid Difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
-	ASSERT_M((int)m_vpPlayedSongs.size() == m_player.m_iStepsPlayed,
+	ASSERT_M(static_cast<int>(m_vpPlayedSongs.size()) ==
+			   m_player.m_iStepsPlayed,
 			 ssprintf("%i Songs Played != %i Steps Played for player %i",
 					  (int)m_vpPlayedSongs.size(),
 					  (int)m_player.m_iStepsPlayed,
@@ -341,7 +343,7 @@ StageStats::AssertValid(MultiPlayer pn) const
 	ASSERT_M(m_player.m_vpPossibleSteps[0]->GetDifficulty() < NUM_Difficulty,
 			 ssprintf("difficulty %i",
 					  m_player.m_vpPossibleSteps[0]->GetDifficulty()));
-	ASSERT((int)m_vpPlayedSongs.size() == m_player.m_iStepsPlayed);
+	ASSERT(static_cast<int>(m_vpPlayedSongs.size()) == m_player.m_iStepsPlayed);
 	ASSERT(m_vpPossibleSongs.size() == m_player.m_vpPossibleSteps.size());
 }
 
@@ -364,11 +366,11 @@ void
 StageStats::AddStats(const StageStats& other)
 {
 	ASSERT(!other.m_vpPlayedSongs.empty());
-	for (auto& s : other.m_vpPlayedSongs) {
+	for (const auto& s : other.m_vpPlayedSongs) {
 		m_vpPlayedSongs.push_back(s);
 	}
 
-	for (auto& s : other.m_vpPossibleSongs) {
+	for (const auto& s : other.m_vpPossibleSongs) {
 		m_vpPossibleSongs.push_back(s);
 	}
 
@@ -404,7 +406,7 @@ float
 StageStats::GetTotalPossibleStepsSeconds() const
 {
 	float fSecs = 0;
-	for (auto& s : m_vpPossibleSongs)
+	for (const auto& s : m_vpPossibleSongs)
 		fSecs += s->GetStepsSeconds();
 	return fSecs / m_fMusicRate;
 }
@@ -429,7 +431,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 
 	// just because you had failoff, doesn't mean you didn't fail.
-	for (auto& fail : pss.m_fLifeRecord)
+	for (const auto& fail : pss.m_fLifeRecord)
 		if (fail.second == 0.F)
 			return false;
 
@@ -655,8 +657,8 @@ StageStats::FinalizeScores(bool bSummary)
 
 	const Steps* pSteps = GAMESTATE->m_pCurSteps;
 
-	ASSERT(pSteps != NULL);
-	auto zzz = PROFILEMAN->GetProfile(PLAYER_1);
+	assert(pSteps != nullptr);
+	auto* const zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData) {
 			CHECKPOINT_M("Determined a Replay is loaded");
@@ -727,16 +729,12 @@ StageStats::FinalizeScores(bool bSummary)
 							 hs);
 	mostrecentscorekey = hs.GetScoreKey();
 	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+	if (m_bLivePlay) {
+		GAMESTATE->SavePlayerProfile();
+	}
 
 	CHECKPOINT_M("Finished Finalizing Score");
 	LOG->Trace("done saving stats and high scores");
-}
-
-// all scores are saved so all scores are highscores, remove this later -mina
-bool
-StageStats::PlayerHasHighScore(PlayerNumber pn) const
-{
-	return true;
 }
 
 unsigned int
@@ -767,7 +765,7 @@ class LunaStageStats : public Luna<StageStats>
 	static int GetPlayedSongs(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for (auto i = 0; i < (int)p->m_vpPlayedSongs.size(); ++i) {
+		for (auto i = 0; i < static_cast<int>(p->m_vpPlayedSongs.size()); ++i) {
 			p->m_vpPlayedSongs[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
@@ -776,7 +774,8 @@ class LunaStageStats : public Luna<StageStats>
 	static int GetPossibleSongs(T* p, lua_State* L)
 	{
 		lua_newtable(L);
-		for (auto i = 0; i < (int)p->m_vpPossibleSongs.size(); ++i) {
+		for (auto i = 0; i < static_cast<int>(p->m_vpPossibleSongs.size());
+			 ++i) {
 			p->m_vpPossibleSongs[i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
@@ -804,11 +803,6 @@ class LunaStageStats : public Luna<StageStats>
 	}
 	DEFINE_METHOD(GetStageIndex, m_iStageIndex)
 	DEFINE_METHOD(GetStepsSeconds, m_fStepsSeconds)
-	static int PlayerHasHighScore(T* p, lua_State* L)
-	{
-		lua_pushboolean(L, p->PlayerHasHighScore(PLAYER_1));
-		return 1;
-	}
 	static int GetLivePlay(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->m_bLivePlay);
@@ -827,7 +821,6 @@ class LunaStageStats : public Luna<StageStats>
 		ADD_METHOD(GetStage);
 		ADD_METHOD(GetStageIndex);
 		ADD_METHOD(GetStepsSeconds);
-		ADD_METHOD(PlayerHasHighScore);
 		ADD_METHOD(GetLivePlay);
 	}
 };

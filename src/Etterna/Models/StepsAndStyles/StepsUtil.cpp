@@ -196,9 +196,9 @@ StepsID::ToSteps(const Song* p, bool bAllowNull) const
 	Steps* pRet = nullptr;
 	if (dc == Difficulty_Edit) {
 		pRet = SongUtil::GetOneSteps(
-		  p, st, dc, -1, -1, sDescription, "", uHash, true);
+		  p, st, dc, -1, -1, false, sDescription, "", uHash, true);
 	} else {
-		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, "", "", 0, true);
+		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, false, "", "", 0, true);
 	}
 
 	if (!bAllowNull && pRet == nullptr)

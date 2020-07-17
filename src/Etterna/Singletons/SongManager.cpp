@@ -28,7 +28,7 @@
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
 #include "Etterna/Globals/rngthing.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 
 #include <numeric>
@@ -1520,9 +1520,11 @@ SongManager::SaveCalcTestCreateNode() const
 {
 	CHECKPOINT_M("Saving the Calc Test node.");
 
-	auto calctestlists = new XNode("CalcTest");
-	FOREACHM_CONST(Skillset, CalcTestList, testChartList, i)
-	calctestlists->AppendChild(i->second.CreateNode());
+	auto* calctestlists = new XNode("CalcTest");
+	for (const auto& i : testChartList) {
+		calctestlists->AppendChild(i.second.CreateNode());
+	}
+
 	return calctestlists;
 }
 
@@ -1531,7 +1533,7 @@ SongManager::SaveCalcTestXmlToDir() const
 {
 	auto fn = "Save/" + calctest_XML;
 	// calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
-	std::unique_ptr<XNode> xml(SaveCalcTestCreateNode());
+	const std::unique_ptr<XNode> xml(SaveCalcTestCreateNode());
 	string err;
 	RageFile f;
 	if (!f.Open(fn, RageFile::WRITE)) {

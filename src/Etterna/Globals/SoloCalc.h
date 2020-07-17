@@ -5,7 +5,7 @@
 #ifndef MINACALC_SOLOCALC_H
 #define MINACALC_SOLOCALC_H
 
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 
 // This is a very basic difficulty calculator for solo files that I am putting
 // together as a proof of concept
