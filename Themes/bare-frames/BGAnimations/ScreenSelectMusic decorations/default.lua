@@ -1,10 +1,14 @@
 local t = Def.ActorFrame {}
+-- Controls the middle layer of ScreenSelectMusic
+-- this file is loaded first, as default
+-- load additional files below to make children in an organized way
 
 t[#t+1] = LoadActor("profile")
 t[#t+1] = LoadActor("songinfo")
 t[#t+1] = LoadActor("search")
 
-
+-- 5 is a random song button
+-- ctrl+5 is random song in group
 local function randomInputter(event)
 	if event.type == "InputEventType_FirstPress" then
 		if event.DeviceInput.button == "DeviceButton_5" then
@@ -38,6 +42,7 @@ local arbitraryWheelXThing = 17
 local space = 20
 local stepsdisplayx = wheelX + arbitraryWheelXThing + space + capWideScale(get43size(365),365)-50
 
+-- This works in conjunction with the ScreenSelectMusic StepsDisplayList.lua
 t[#t + 1] =
 	Def.ActorFrame {
 	Name = "StepsDisplay",

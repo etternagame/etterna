@@ -1,3 +1,7 @@
+-- Controls the topmost layer of ScreenSelectProfile
+-- all of this basically allows for selecting a profile while still supporting players joining
+-- but player joining is obsoleted so a lot of this code can be simplified
+
 local translated_info = {
 	Title = "Select Profile",
 	SongPlayed = "Song Played",

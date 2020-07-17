@@ -1,4 +1,5 @@
 local t = Def.ActorFrame {}
+-- Controls the topmost layer of ScreenEvaluation
 
 local song = GAMESTATE:GetCurrentSong()
 local steps = GAMESTATE:GetCurrentSteps()
@@ -14,6 +15,7 @@ local judges = {
 	"TapNoteScore_Miss"
 }
 
+-- functionally create the judgment things to save space
 local function makejudges()
     local t = Def.ActorFrame {}
     local function makejudge(i)
@@ -30,8 +32,10 @@ local function makejudges()
     return t
 end
 
+-- the "everything" container
 t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
+        -- children are relative to the center of the screen (relative to this position)
         self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
     end,
     LoadFont("Common Normal") .. {

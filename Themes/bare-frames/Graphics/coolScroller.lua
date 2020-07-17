@@ -1,4 +1,7 @@
 local gc = Var("GameCommand")
+-- A scroller that can be loaded from elsewhere
+-- It is placed into redir files to save space
+
 return Def.ActorFrame {
 	LoadFont("Common Normal") ..
 		{

@@ -1,4 +1,6 @@
 local t = Def.ActorFrame {}
+-- Controls the lowermost layer of ScreenEvaluation
+-- Just making the background full black in case something weird is going on
 
 t[#t+1] = Def.Quad {
     InitCommand = function(self)

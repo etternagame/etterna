@@ -1,4 +1,5 @@
 local t = Def.ActorFrame {}
+-- Controls the song info relevant children of the ScreenSelectMusic decorations actorframe
 
 local wheelX = 15
 local arbitraryWheelXThing = 17
@@ -8,6 +9,7 @@ meter[1] = 0
 local steps
 local song
 
+-- functionally make skillset rating text to save space
 local function makeSSes()
     local ss = Def.ActorFrame {}
     local function makeSS(i)
@@ -87,6 +89,7 @@ t[#t+1] = Def.ActorFrame {
     },
 
 	LoadFont("Common Normal") .. {
+        Name = "RateDisplay",
 		InitCommand = function(self)
 			self:xy(songinfoLine, 30):zoom(0.3)
 		end,

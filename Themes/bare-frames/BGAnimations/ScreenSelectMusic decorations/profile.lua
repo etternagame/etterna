@@ -1,4 +1,6 @@
 local t = Def.ActorFrame {}
+-- the Profile relevant children of the ScreenSelectMusic decorations actorframe
+-- just using it for profile rating as an example
 
 local profile = GetPlayerOrMachineProfile(PLAYER_1)
 local wheelX = 15

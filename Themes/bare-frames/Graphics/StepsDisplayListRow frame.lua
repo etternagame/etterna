@@ -1,4 +1,5 @@
 local t = Def.ActorFrame {}
+-- Controls the children of the StepsDisplayListRow if loaded anywhere
 
 t[#t + 1] =
 	Def.Quad {

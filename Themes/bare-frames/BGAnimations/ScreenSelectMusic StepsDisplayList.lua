@@ -1,3 +1,6 @@
+-- Overrides the built in StepsDisplayList in ScreenSelectMusic
+-- allows for custom lua for the display
+
 return Def.StepsDisplayList {
 	Name = "StepsDisplayList",
 	CursorP1 = Def.ActorFrame {

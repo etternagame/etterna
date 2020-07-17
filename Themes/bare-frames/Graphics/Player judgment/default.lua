@@ -1,6 +1,8 @@
 local c
 local player = Var "Player"
 
+-- Controls the Gameplay Judgments
+
 local JudgeCmds = {
 	TapNoteScore_W1 = THEME:GetMetric("Judgment", "JudgmentW1Command"),
 	TapNoteScore_W2 = THEME:GetMetric("Judgment", "JudgmentW2Command"),

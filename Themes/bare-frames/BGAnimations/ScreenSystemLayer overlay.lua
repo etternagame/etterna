@@ -1,4 +1,10 @@
 local t = Def.ActorFrame {}
+-- Controls the overlay ScreenSystemLayer
+-- meant more for critical messages
+-- this is mostly identical to the Til Death instance of this file
+-- but is not stored in fallback in this condition due to the possibility of not supporting some features of this overlay
+-- for example, we may not want to display downloads on the overlay or something else
+
 -- Text
 t[#t + 1] =
 	Def.ActorFrame {

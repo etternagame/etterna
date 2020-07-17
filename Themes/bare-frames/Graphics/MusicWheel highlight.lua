@@ -1,3 +1,5 @@
+-- Controls the dot next to the MusicWheel
+
 return Def.ActorFrame {
 	Def.Quad {
 		Name = "Horizontal",

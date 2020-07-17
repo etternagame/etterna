@@ -1,9 +1,11 @@
 local t = Def.ActorFrame {}
+-- Controls the song search relevant children of the ScreenSelectMusic decorations actorframe
 
 local searchstring = ""
 local active = false
 local whee
 
+-- imagine making a text input field just a regex char match of keyboard presses
 local function searcher(event)
 	if event.type ~= "InputEventType_Release" and active == true then
 		if event.button == "Back" then

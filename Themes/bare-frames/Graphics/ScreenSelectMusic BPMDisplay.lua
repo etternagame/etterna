@@ -1,3 +1,5 @@
+-- Controls the BPMDisplay if loaded on ScreenSelectMusic
+
 return Def.BPMDisplay {
 	Name = "BPMDisplay",
 	InitCommand = function(self)
