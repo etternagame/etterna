@@ -168,7 +168,6 @@ local CalcDebugTypes = {
 -- it is assumed these are members of CalcDebugMisc
 local miscToUpperMods = {
     StamMod = true,
-    JackStamMod = true,
 }
 
 -- list of all additional enums to include in the lower graph
@@ -176,7 +175,6 @@ local miscToUpperMods = {
 local miscToLowerMods = {
     Pts = true,
     PtLoss = true,
-    JackPtLoss = true,
 }
 
 -- this list is used for functional purposes to keep the order of the lists generated in a certain order
@@ -272,7 +270,7 @@ local diffGroups = {
         MSD = true,
     },
     {   -- Group 2
-        JackBase = true,
+
     },
     {   -- Group 3
         TechBase = true,
@@ -283,7 +281,6 @@ local diffGroups = {
     {   -- Group 5
         Pts = true,
         PtLoss = true,
-        JackPtLoss = true,
     },
     [6] = { -- Group 6
         SSRS = true,
@@ -819,7 +816,6 @@ local modnames = {
     -- CalcDebugMisc mods meant for only the top graph:
     -- (this list should match the miscToUpperMods list)
     "stam",
-    "jkstm",
 }
 
 -- this list has order
@@ -877,7 +873,6 @@ local modColors = {
     -- place CalcPatternMod Colors above this line
     -- MISC MODS START HERE (same order as miscToUpperMods)
     color("0.7,1,0"),		-- lime			= stam
-    color("0.7,1,0"),		-- lime			= jackstam
 }
 
 local skillsetColors = {
@@ -896,7 +891,7 @@ local skillsetColors = {
 local calcDiffValueColors = {
     color("#7d6b91"),   -- NPSBase
     --color("#7d6b91"),
-    color("#8481db"),   -- JackBase
+    --color("#8481db"),   -- JackBase
     --color("#8481db"),
     color("#995fa3"),   -- TechBase
     --color("#995fa3"),
@@ -910,7 +905,7 @@ local calcDiffValueColors = {
 local miscColors = {
     color("0,1,1"),     -- pts
     color("1,0,0"),     -- ptloss
-    color("1,0.4,0"),   -- jackptloss
+    --color("1,0.4,0"),   -- jackptloss
 }
 
 -- a remapping of modnames to colors (any mod really please dont make 2 enums the same name)

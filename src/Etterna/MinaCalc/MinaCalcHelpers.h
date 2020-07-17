@@ -74,6 +74,6 @@ set_jack_diff_debug(Calc& calc, const int& hi)
 		//}
 
 		// technically this is kind of a waste of an array but whatever
-		calc.soap.at(hi)[JackBase].at(itv) = 1.F;
+		//calc.soap.at(hi)[JackBase].at(itv) = 1.F;
 	}
 }
