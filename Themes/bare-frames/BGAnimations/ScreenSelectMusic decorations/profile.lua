@@ -10,10 +10,13 @@ local function makeSSes()
     local function makeSS(i)
         return LoadFont("Common Normal") .. {
             InitCommand = function(self)
+                -- oddly enough the SS_Overall entry of the second thing here doesnt match the right number
+                -- so this approach must be taken instead
+                local rating = i == 1 and profile:GetPlayerRating() or profile:GetPlayerSkillsetRating(ms.SkillSets[i])
                 self:y(10 * i)
                 self:zoom(.3)
                 self:halign(0)
-                self:settextf("%s: %5.2f", ms.SkillSetsTranslated[i], profile:GetPlayerSkillsetRating(ms.SkillSets[i]))
+                self:settextf("%s: %5.2f", ms.SkillSetsTranslated[i], rating)
             end
         }
     end
