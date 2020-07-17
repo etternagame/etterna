@@ -46,8 +46,6 @@ t[#t + 1] =
 		local iNumStates = c.Judgment:GetNumStates()
 		local iFrame = TNSFrames[param.TapNoteScore]
 
-		local iTapNoteOffset = param.TapNoteOffset
-
 		if not iFrame then
 			return
 		end

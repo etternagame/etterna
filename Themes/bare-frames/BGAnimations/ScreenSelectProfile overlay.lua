@@ -144,15 +144,6 @@ t[#t + 1] =
     OnCommand = function(self)
         SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, 0)
     end,
-	StorageDevicesChangedMessageCommand = function(self, params)
-		self:queuecommand("UpdateInternal2")
-	end,
-	PlayerJoinedMessageCommand = function(self, params)
-		self:queuecommand("UpdateInternal2")
-	end,
-	PlayerUnjoinedMessageCommand = function(self, params)
-		self:queuecommand("UpdateInternal2")
-	end,
 	OnCommand = function(self, params)
 		self:queuecommand("UpdateInternal2")
 	end,
