@@ -41,9 +41,7 @@ t[#t+1] = Def.ActorFrame {
         self:x(wheelX + arbitraryWheelXThing + space + capWideScale(get43size(365),365)-50)
         self:y(20)
     end,
-    CurrentStepsP1ChangedMessageCommand = function(self)
-        steps = GAMESTATE:GetCurrentSteps()
-        song = GAMESTATE:GetCurrentSong()
+    SetMeterCommand = function(self)
         if steps then
             meter = {}
             for i = 1, #ms.SkillSets do
@@ -51,6 +49,15 @@ t[#t+1] = Def.ActorFrame {
                 meter[i] = m
             end
         end
+    end,
+    CurrentStepsP1ChangedMessageCommand = function(self)
+        steps = GAMESTATE:GetCurrentSteps()
+        song = GAMESTATE:GetCurrentSong()
+        self:playcommand("SetMeter")
+        self:playcommand("SetStuff")
+    end,
+    CurrentRateChangedMessageCommand = function(self)
+        self:playcommand("SetMeter")
         self:playcommand("SetStuff")
     end,
 
