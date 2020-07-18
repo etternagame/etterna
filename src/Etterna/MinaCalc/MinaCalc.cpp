@@ -178,6 +178,10 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
 				r = CalcClamp(r, r, ssrcap);
+
+				if (highest_stam_adjusted_skillset == Skill_JackSpeed) {
+					r = downscale_low_accuracy_scores(r, score_goal);
+				}
 			}
 		}
 
@@ -283,10 +287,10 @@ StamAdjust(const float x,
 
 // tuned for jacks, dunno what this functionally means, yet
 inline auto
-JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
+JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<std::pair<float,float>>
 {
 	// Jack stamina Model params (see above)
-	static const auto stam_ceil = 1.075234F;
+	static const auto stam_ceil = 1.05234F;
 	static const auto stam_mag = 23.F;
 	static const auto stam_fscale = 2150.F;
 	static const auto stam_prop = 0.49424F;
@@ -294,14 +298,14 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
 	auto mod = 0.95F;
 
 	auto avs2 = 0.F;
-	const auto super_stam_ceil = 1.11F;
+	const auto super_stam_ceil = 1.09F;
 
 	const auto& diff = calc.jack_diff.at(hi);
-	std::vector<float> doot(diff.size());
+	std::vector<std::pair<float,float>> doot(diff.size());
 
 	for (size_t i = 0; i < diff.size(); i++) {
 		const auto avs1 = avs2;
-		avs2 = diff.at(i);
+		avs2 = diff.at(i).second;
 		mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
 		if (mod > 0.95F) {
 			stam_floor += (mod - 0.95F) / stam_fscale;
@@ -309,18 +313,20 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<float>
 		const auto local_ceil = stam_ceil * stam_floor;
 
 		mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
-		doot.at(i) = diff.at(i) * mod;
+
+		doot.at(i).first = diff.at(i).first;
+		doot.at(i).second = diff.at(i).second * mod;
 	}
 
 	return doot;
 }
 
-static const float magic_num = 15.F;
+static const float magic_num = 16.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
 {
-	return std::max(static_cast<float>(magic_num * erf(0.05F * (y - x))), 0.F);
+	return std::max(static_cast<float>(magic_num * erf(0.04F * (y - x))), 0.F);
 }
 
 /* ok this is a little jank, we are calculating jack loss looping over the
@@ -343,8 +349,8 @@ jackloss(const float& x, Calc& calc, const int& hi, const bool stam) -> float
 	auto total = 0.F;
 
 	for (const auto& y : v) {
-		if (x < y && y > 0.F) {
-			const auto zzerp = hit_the_road(x, y);
+		if (x < y.second && y.second > 0.F) {
+			const auto zzerp = hit_the_road(x, y.second);
 			total += zzerp;
 		}
 	}
@@ -403,7 +409,6 @@ CalcInternal(float& gotpoints,
 		calc.debugValues.at(hi)[2][StamMod].resize(calc.numitv);
 		calc.debugValues.at(hi)[2][Pts].resize(calc.numitv);
 		calc.debugValues.at(hi)[2][PtLoss].resize(calc.numitv);
-		calc.debugValues.at(hi)[2][JackPtLoss].resize(calc.numitv);
 		calc.debugValues.at(hi)[1][MSD].resize(calc.numitv);
 		// final debug output should always be with stam activated
 		StamAdjust(x, ss, calc, hi, true);
@@ -479,12 +484,6 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 			for (auto diff = 0; diff < NUM_CalcDiffValue - 1; ++diff) {
 				debugValues.at(hi)[1][diff].resize(numitv);
 
-				// these are calculated by row, so we need to aggregate them
-				// into intervals before setting the values
-				if (diff == JackBase) {
-					set_jack_diff_debug(*this, hi);
-				}
-
 				for (auto itv = 0; itv < numitv; ++itv) {
 					debugValues.at(hi)[1][diff][itv] =
 					  soap.at(hi).at(diff).at(itv);
@@ -499,7 +498,7 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
 static const float tech_pbm = 1.F;
-static const float jack_pbm = 1.F;
+static const float jack_pbm = 1.0175F;
 static const float stream_pbm = 1.01F;
 static const float bad_newbie_skillsets_pbm = 1.05F;
 
@@ -562,8 +561,8 @@ Calc::Chisel(float player_skill,
 					if (ss == Skill_Technical) {
 						gotpoints -= fastsqrt(min(
 						  max_slap_dash_jack_cap_hack_tech_hat,
-						  jackloss(player_skill * 0.6F, *this, hi, stamina) *
-							0.75F));
+						  jackloss(player_skill * 0.75F, *this, hi, stamina) *
+							0.85F));
 					}
 				}
 			}
@@ -581,11 +580,6 @@ Calc::Chisel(float player_skill,
 		for (const auto& hi : { left_hand, right_hand }) {
 			CalcInternal(
 			  gotpoints, player_skill, ss, stamina, *this, hi, debugoutput);
-
-			for (auto i = 0; i < numitv; ++i) {
-				debugValues.at(hi)[2][JackPtLoss].at(i) =
-				  jack_loss.at(hi).at(i);
-			}
 
 			/* set total pattern mod value (excluding stam for now), essentially
 			 * this value is the cumulative effect of pattern mods on base nps
@@ -649,7 +643,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		FlamJam,
 		OHJumpMod,
 		Balance,
-		RanMan,
+		// RanMan,
 		WideRangeBalance,
 	  },
 
@@ -664,7 +658,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		WideRangeBalance,
 		WideRangeJumptrill,
 		// WideRangeRoll,
-		OHTrill,
+		// OHTrill,
 		VOHTrill,
 		RanMan,
 		// Roll,
@@ -678,10 +672,11 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		TheThing,
 		WideRangeAnchor,
 		WideRangeRoll,
+	  	WideRangeJumptrill,
 		OHTrill,
 		VOHTrill,
 		// Roll
-		RanMan,
+		// RanMan,
 	  },
 
 	  // stam, nothing, don't handle here
@@ -899,7 +894,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 425;
+int mina_calc_version = 434;
 auto
 GetCalcVersion() -> int
 {

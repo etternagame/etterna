@@ -626,6 +626,7 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 	float fSearchDistance = 10;
 	const auto NUM_ITERATIONS = 20;
 
+	// the imaginary line to start drawing "until" the receptor
 	for (auto i = 0; i < NUM_ITERATIONS; i++) {
 		bool bIsPastPeakYOffset;
 		float fPeakYOffset;
@@ -647,6 +648,7 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 	}
 
 	fSearchDistance = 10;
+	// the imaginary line to start drawing "after" the receptor
 	for (auto i = 0; i < NUM_ITERATIONS; i++) {
 		bool bIsPastPeakYOffset;
 		float fPeakYOffset;

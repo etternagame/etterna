@@ -1089,6 +1089,35 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->GetNoteData().GetNumTracks());
 		return 1;
 	}
+	static auto GetCalcDebugJack(T* p, lua_State* L) -> int
+	{
+		lua_newtable(L);
+		lua_pushstring(L, "JackHand");
+		lua_createtable(L, 0, 2);
+		if (p->calcdebugoutput.empty()) {
+			for (auto i = 0; i < 2; i++) {
+				lua_pushstring(L, i ? "Right" : "Left");
+				vector<float> nothing;
+				LuaHelpers::CreateTableFromArray(nothing, L);
+				lua_rawset(L, -3);
+			}
+			return 1;
+		}
+		for (auto hand = 0; hand < 2; hand++) {
+			lua_pushstring(L, hand ? "Right" : "Left");
+			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
+			auto vals = SONGMAN->calc->jack_diff.at(hand);
+			for (auto i = 0; i < vals.size(); i++) {
+				auto p = vals[i];
+				vector<float> pair{ p.first, p.second };
+				LuaHelpers::CreateTableFromArray(pair, L);
+				lua_rawseti(L, -2, i + 1);
+			}
+			lua_rawset(L, -3);
+		}
+		lua_rawset(L, -3);
+		return 1;
+	}
 	static auto GetCalcDebugOutput(T* p, lua_State* L) -> int
 	{
 		p->GetCalcDebugOutput();
@@ -1208,6 +1237,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
+		ADD_METHOD(GetCalcDebugJack);
 		ADD_METHOD(GetCalcDebugOutput);
 		ADD_METHOD(GetDebugStrings);
 		ADD_METHOD(GetLengthSeconds);

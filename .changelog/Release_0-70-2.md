@@ -4,7 +4,7 @@
 ## [0.70.2] - 2020-07-13 - MSD Update
 
 ### Changed
-- MinaCalc updates (to Jacks primarily) - [74eed96](../../../commit/74eed96cb0f4f0575c5973bf2b263d0e138fc70d) [0fa0117](../../../commit/0fa0117fdee473a5ca93438581d82e3927ee68b2) [b3f25ad](../../../commit/b3f25adcaa3749add7cbd12c24015fd535e4f2d7) [92518e5](../../../commit/92518e5fa00832ec8afb9eae929ab441dc68b753) [82b67dd](../../../commit/82b67ddb8ccec93f526020bffbd59bff1b46b24d) [6a5a06d](../../../commit/6a5a06d2bc7680580eae6ea9792c6467e64cf409) [79797de](../../../commit/79797dea45b853ebc7ebdd4ba995e821bc98addc)
+- MinaCalc updates (to Jacks & JS primarily) - [74eed96](../../../commit/74eed96cb0f4f0575c5973bf2b263d0e138fc70d) [0fa0117](../../../commit/0fa0117fdee473a5ca93438581d82e3927ee68b2) [b3f25ad](../../../commit/b3f25adcaa3749add7cbd12c24015fd535e4f2d7) [92518e5](../../../commit/92518e5fa00832ec8afb9eae929ab441dc68b753) [82b67dd](../../../commit/82b67ddb8ccec93f526020bffbd59bff1b46b24d) [6a5a06d](../../../commit/6a5a06d2bc7680580eae6ea9792c6467e64cf409) [79797de](../../../commit/79797dea45b853ebc7ebdd4ba995e821bc98addc)
 - Profile will now save after score upload but before reaching Evaluation - [c62833f](../../../commit/c62833ff2a695594d57ece1e976465e234bd05e4) [be84d66](../../../commit/be84d669bbfcbbdf140dead164082c3c357f1d1c)
 
 ### Removed

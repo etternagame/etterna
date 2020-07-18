@@ -18,6 +18,7 @@ local firstSecond = 0
 local steplength = 0
 
 local graphVecs = {}
+local jackdiffs = {}
 local ssrs = {}
 local activeModGroup = 1
 local activeDiffGroup = 1
@@ -58,13 +59,24 @@ local function fitY2(y, lb, ub)
 end
 
 -- restrict the x bounds of the graph to a specific range of percentages
-local function getGraphBounds()
+local function getGraphBounds(vec)
     -- if these vectors are empty, dont restrict
-    if graphVecs["JS"] == nil or #graphVecs["JS"][1] == 0 then
+    if vec == nil or #vec[1] == 0 then
         return 0, 1
     else
         -- get the x position of the first and last item, normalize the position, and then convert them to percentages [0,1]
-        return (fitX(firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(#graphVecs["JS"][1] + firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth
+        return (fitX(firstSecond  / getCurRateValue(), finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(#vec[1] + firstSecond, finalSecond / getCurRateValue()) + plotWidth/2) / plotWidth
+    end
+end
+
+-- restrict the x bounds of the graph to a specific range of percentages
+local function getGraphBoundsJack(vec)
+    -- if these vectors are empty, dont restrict
+    if vec == nil or #vec == 0 then
+        return 0, 1
+    else
+        -- get the x position of the first and last item, normalize the position, and then convert them to percentages [0,1]
+        return (fitX(vec[1][1], finalSecond/2 / getCurRateValue()) + plotWidth/2) / plotWidth, (fitX(vec[#vec][1], finalSecond/2 / getCurRateValue()) + plotWidth/2) / plotWidth
     end
 end
 
@@ -89,7 +101,7 @@ end
 -- graph percentage to index (dependent on mod/song length)
 local function convertPercentToIndexForMods(leftX, rightX)
     local percent = leftX / rightX
-    local lower, upper = getGraphBounds()
+    local lower, upper = getGraphBounds(graphVecs["JS"])
 
     -- if the percentage given is outside the desired bounds, restrict it to sane bounds
     if percent < lower then
@@ -101,6 +113,53 @@ local function convertPercentToIndexForMods(leftX, rightX)
         percent = scale(percent, lower, upper, 0, 1)
         return _internalConvPercToInd(percent, graphVecs["JS"])
     end
+end
+
+-- graph percentage to index (dependent on nerv/jack length)
+local function convertPercentToIndexForJack(leftX, rightX, vec)
+    local percent = leftX / rightX
+    local lower, upper = getGraphBoundsJack(vec)
+
+    -- if the percentage given is outside the desired bounds, restrict it to sane bounds
+    if percent < lower then
+        finalIndex = 1
+    elseif percent > upper then
+        finalIndex = #vec
+    else
+        local timepercent = percent
+        -- otherwise scale the number to a percentage .. of a percentage
+        percent = scale(percent, lower, upper, 0, 1)
+        
+        -- heres the time value of the index we want to end up with but its REALLY likely that wont happen
+        local intendedtime = finalSecond/2/getCurRateValue() * timepercent
+        -- but we have to binary search the values to find the true index
+        -- HAHAHAHAHAHA THIS IS SO BAD BUT IM TRYING TO MAKE IT NOT SO BAD
+        local searchpoint = notShit.round(percent * #vec)
+        if searchpoint < 1 then searchpoint = 1 end
+        if searchpoint > #vec then searchpoint = #vec end
+        local lastsearchpoint = 0
+        local lastlastsearchpoint = -1 -- checking this to prevent loops
+        local lb, ub = 0, #vec
+        while lastlastsearchpoint ~= searchpoint do
+            if vec[searchpoint][1] < intendedtime then
+                lb = searchpoint
+                lastlastsearchpoint = lastsearchpoint
+                lastsearchpoint = searchpoint
+                searchpoint = notShit.round((ub-lb)/2 + lb)
+            elseif vec[searchpoint][1] > intendedtime then
+                ub = searchpoint
+                lastlastsearchpoint = lastsearchpoint
+                lastsearchpoint = searchpoint
+                searchpoint = notShit.round((ub-lb)/2 + lb)
+            else
+                -- well this would be exceptionally rare to match a float...
+                return searchpoint
+            end
+        end
+
+        finalIndex = searchpoint
+    end
+    return finalIndex
 end
 
 -- transforms the position of the mouse from the cd graph to the calc info graph
@@ -168,7 +227,6 @@ local CalcDebugTypes = {
 -- it is assumed these are members of CalcDebugMisc
 local miscToUpperMods = {
     StamMod = true,
-    JackStamMod = true,
 }
 
 -- list of all additional enums to include in the lower graph
@@ -176,7 +234,6 @@ local miscToUpperMods = {
 local miscToLowerMods = {
     Pts = true,
     PtLoss = true,
-    JackPtLoss = true,
 }
 
 -- this list is used for functional purposes to keep the order of the lists generated in a certain order
@@ -265,6 +322,7 @@ local debugGroups = {
 -- specify enum names here
 -- only CalcDiffValue enums
 -- also specify SSR to show all SSRs (recommend to leave a group alone)
+-- also specify Jack to show the Jack diffs for both hands
 -- miscDebugMods that are also specified under miscToLowerMods can be placed here
 local diffGroups = {
     {   -- Group 1
@@ -272,7 +330,7 @@ local diffGroups = {
         MSD = true,
     },
     {   -- Group 2
-        JackBase = true,
+        Jack = true,
     },
     {   -- Group 3
         TechBase = true,
@@ -283,7 +341,6 @@ local diffGroups = {
     {   -- Group 5
         Pts = true,
         PtLoss = true,
-        JackPtLoss = true,
     },
     [6] = { -- Group 6
         SSRS = true,
@@ -315,8 +372,9 @@ local function updateCoolStuff()
         -- double the output because intervals are half seconds
         firstSecond = steps:GetFirstSecond() * 2
         finalSecond = steps:GetLastSecond() * 2
-        steplength = (finalSecond - firstSecond)
+        steplength = (finalSecond - firstSecond) -- this is "doubled" here
     end
+    jackdiffs = {Left = {}, Right = {}}
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
         if diffGroups[activeDiffGroup]["SSRS"] then
@@ -327,6 +385,22 @@ local function updateCoolStuff()
         lowerGraphMax = 0
         local bap = steps:GetCalcDebugOutput()
         debugstrings = steps:GetDebugStrings()
+
+        -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
+        -- basically jackdiffs[hand][index] = {row time, diff}
+        -- this is so we can place the indices based on row time instead of index
+        -- also keep in mind the row times are already changed for each rate so 1.1 will be smaller than 1.0
+        -- also all the row times are relative to the first non empty noterow so lets just pad it by the firstsecond/2 too
+        local jap = steps:GetCalcDebugJack()["JackHand"]
+        local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
+        for i = 1, upperiter do
+            if jap["Left"][i] then
+                jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2] }
+            end
+            if jap["Right"][i] then
+                jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2] }
+            end
+        end
 
         -- for each debug output type and its corresponding list of values
         for debugtype, sublist in pairs(CalcDebugTypes) do
@@ -504,14 +578,6 @@ local function yetAnotherInputCallback(event)
             elseif isOver(bottomgraph) then
                 addToDiffGroup(-1)
                 return true
-            end
-        end
-
-        local CtrlPressed = INPUTFILTER:IsControlPressed()
-        if tonumber(event.char) and CtrlPressed and enabled then
-            local num = tonumber(event.char)
-            if num == 0 then
-                switchSSRGraph()
             end
         end
 	end
@@ -700,8 +766,21 @@ o[#o + 1] = Def.Quad {
             if not diffGroups[activeDiffGroup]["SSRS"] then
                 local index = convertPercentToIndexForMods(mx - leftEnd, rightEnd - leftEnd)
                 local modText = getDebugModsForIndex(CalcDiffValue, "CalcDiffValue", miscToLowerMods, index, false)
+
+                if diffGroups[activeDiffGroup]["Jack"] then
+                    modText = modText .. "\n"
+                    for h = 1,2 do
+                        local hnd = h == 1 and "Left" or "Right"
+                        local hand = h == 1 and "L" or "R"
+                        local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
+                        local txt = string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                        modText = modText .. txt
+                    end
+                    modText = modText:sub(1, #modText-1) -- remove the end whitespace
+                end
+
                 txt:settext(modText)
-            else
+            elseif diffGroups[activeDiffGroup]["SSRS"] then
                 local ssrindex = convertPercentToIndex(perc)
                 -- The names here are made under the assumption the skillsets and their positions never change
                 local ssrAtIndex = {
@@ -818,7 +897,6 @@ local modnames = {
     -- CalcDebugMisc mods meant for only the top graph:
     -- (this list should match the miscToUpperMods list)
     "stam",
-    "jkstm",
 }
 
 -- this list has order
@@ -876,7 +954,6 @@ local modColors = {
     -- place CalcPatternMod Colors above this line
     -- MISC MODS START HERE (same order as miscToUpperMods)
     color("0.7,1,0"),		-- lime			= stam
-    color("0.7,1,0"),		-- lime			= jackstam
 }
 
 local skillsetColors = {
@@ -890,12 +967,17 @@ local skillsetColors = {
     color("#b0cec2"),    -- tech
 }
 
+local jackdiffColors = {
+    color("1,1,0"), -- jack diff left
+    color(".6,0,.7") -- jack diff right
+}
+
 -- these are all CalcDiffValue mods only
 -- in the same order
 local calcDiffValueColors = {
     color("#7d6b91"),   -- NPSBase
     --color("#7d6b91"),
-    color("#8481db"),   -- JackBase
+    --color("#8481db"),   -- JackBase
     --color("#8481db"),
     color("#995fa3"),   -- TechBase
     --color("#995fa3"),
@@ -909,7 +991,7 @@ local calcDiffValueColors = {
 local miscColors = {
     color("0,1,1"),     -- pts
     color("1,0,0"),     -- ptloss
-    color("1,0.4,0"),   -- jackptloss
+    --color("1,0.4,0"),   -- jackptloss
 }
 
 -- a remapping of modnames to colors (any mod really please dont make 2 enums the same name)
@@ -1057,7 +1139,7 @@ local function topGraphLine(mod, colorToUse, hand)
                 if not values or not values[1] then return end
                 for i = 1, #values do
                     --local x = fitX(i, #values) -- vector length based positioning
-                    local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
+                    local x = fitX(i + firstSecond / getCurRateValue() - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY1(values[i])
                     y = y + plotHeight / 2
                     setOffsetVerts(verts, x, y, colorToUse) 
@@ -1114,7 +1196,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
 
                 for i = 1, #values do
                     --local x = fitX(i, #values) -- vector length based positioning
-                    local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
+                    local x = fitX(i + firstSecond  / getCurRateValue() - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(values[i], lowerGraphMin, lowerGraphMax)
 
                     setOffsetVerts(verts, x, y, colorToUse)
@@ -1129,6 +1211,55 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
         UpdateActiveLowerGraphMessageCommand = function(self)
             if song and enabled then
                 if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup][mod]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+            end
+        end
+    }
+end
+
+local function bottomGraphLineJack(colorToUse, hand)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+                
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
+                local hand = hand == 1 and "Left" or "Right"
+                local verts = {}
+                local values = jackdiffs[hand]
+                if not values or not values[1] then return end
+
+                for i = 1, #values do
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    -- if used, final/firstsecond must be halved
+                    -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
+                    local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
+                    local y = fitY2(values[i][2], lowerGraphMin, lowerGraphMax)
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
                     self:visible(true)
                 else
                     self:visible(false)
@@ -1158,7 +1289,7 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
 
                 for i = 1, #ssrs[lineNum] do
                     local x = fitX(i, #ssrs[lineNum]) -- vector length based positioning
-                    --local x = fitX(i + firstSecond - 1, finalSecond / getCurRateValue()) -- song length based positioning
+                    --local x = fitX(i + firstSecond  / getCurRateValue() - 1, finalSecond / getCurRateValue()) -- song length based positioning
                     local y = fitY2(ssrs[lineNum][i])
 
                     setOffsetVerts(verts, x, y, colorToUse)
@@ -1244,6 +1375,12 @@ end
 -- SSR skillset lines
 for i = 1,8 do
     o[#o+1] = bottomGraphLineSSR(i, skillsetColors[i])
+end
+
+-- Jack diff line(s)
+for h = 1,2 do
+    local colr = jackdiffColors[h]
+    o[#o+1] = bottomGraphLineJack(colr, h)
 end
 
 -- a bunch of things for stuff and things

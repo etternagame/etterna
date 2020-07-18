@@ -12,8 +12,8 @@ struct ChaosMod
 #pragma region params
 
 	float min_mod = 0.95F;
-	float max_mod = 1.05F;
-	float base = -0.1F;
+	float max_mod = 1.045F;
+	float base = -0.075F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },

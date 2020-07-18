@@ -316,13 +316,14 @@ struct TheGreatBazoinkazoinkInTheSky
 	// update base difficulty stuff
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
-									 const int& jack_counter)
+									 const int& jack_counter,
+							const float& row_time)
 	{
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
 		_calc.jack_diff.at(hand).push_back(
-		  ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
-		  basescalers[Skill_JackSpeed]);
+		  { row_time, ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+			basescalers[Skill_JackSpeed] });
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -415,7 +416,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * are sequenced here, meaning they are order dependent
 					 * (jack might not be for the moment actually) nps base
 					 * is still calculated in the old way */
-					update_sequenced_base_diffs(ct, itv, jack_counter);
+					update_sequenced_base_diffs(ct, itv, jack_counter, row_time);
 					++jack_counter;
 
 					// only ohj uses this atm (and probably into the future)

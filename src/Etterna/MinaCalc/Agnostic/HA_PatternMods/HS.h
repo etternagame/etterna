@@ -23,7 +23,7 @@ struct HSMod
 	float total_prop_scaler = 5.571F;
 	float total_prop_base = 0.4F;
 
-	float split_hand_pool = 1.45F;
+	float split_hand_pool = 1.6F;
 	float split_hand_min = 0.89F;
 	float split_hand_max = 1.F;
 	float split_hand_scaler = 1.F;

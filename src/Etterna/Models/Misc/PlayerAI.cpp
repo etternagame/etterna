@@ -515,7 +515,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 
 		} else {
 			// If the current row is after the last recorded row, make a new one
-			if (m_ReplaySnapshotMap.rbegin()->first < row) {
+			if (m_ReplaySnapshotMap.empty() ||
+				m_ReplaySnapshotMap.rbegin()->first < row) {
 				ReplaySnapshot rs;
 				FOREACH_ENUM(TapNoteScore, tns)
 				rs.judgments[tns] = tempJudgments[tns];
