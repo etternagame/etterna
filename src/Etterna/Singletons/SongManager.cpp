@@ -628,11 +628,15 @@ SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
 
 	// kinda messy but, trim unloaded charts from the favorites playlist
 	// -mina
-	for (size_t i = 0; i < pl.chartlist.size(); ++i)
-		if (!pl.chartlist[i].loaded)
+	for (size_t i = 0; i < pl.chartlist.size(); ++i) {
+		if (!pl.chartlist[i].loaded) {
 			pl.DeleteChart(i);
+		}
+	}
 
-	playlists.emplace("Favorites", pl);
+	if (!pl.chartlist.empty()) {
+		playlists.emplace("Favorites", pl);
+	}
 }
 
 void

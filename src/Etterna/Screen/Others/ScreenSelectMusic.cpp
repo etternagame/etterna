@@ -472,6 +472,9 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					pProfile->AddToFavorites(
 					  GAMESTATE->m_pCurSteps->GetChartKey());
 					DLMAN->AddFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
+
+					// now update favorites playlist
+					// we have to do this here or it won't work for ??? reasons
 					pProfile->allplaylists.erase("Favorites");
 					SONGMAN->MakePlaylistFromFavorites(
 					  pProfile->FavoritedCharts, pProfile->allplaylists);
@@ -481,10 +484,18 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					  GAMESTATE->m_pCurSteps->GetChartKey());
 					DLMAN->RemoveFavorite(
 					  GAMESTATE->m_pCurSteps->GetChartKey());
+
+					// we have to do this here or it won't work for ??? reasons
+					pProfile->allplaylists.erase("Favorites");
+					SONGMAN->MakePlaylistFromFavorites(
+					  pProfile->FavoritedCharts, pProfile->allplaylists);
 				}
 				DLMAN->RefreshFavourites();
-				Message msg("FavoritesUpdated");
-				MESSAGEMAN->Broadcast(msg);
+				MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+				// update favorites playlist _display_
+				MESSAGEMAN->Broadcast("DisplayAll");
+
 				m_MusicWheel.ChangeMusic(0);
 				return true;
 			}
