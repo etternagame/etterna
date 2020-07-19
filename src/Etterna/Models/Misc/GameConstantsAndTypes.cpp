@@ -258,7 +258,7 @@ XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 
 static const char* CalcDiffValueNames[] = { "NPSBase",
-											"JackBase",
+											// "JackBase",
 											// "CJBase",
 											"TechBase",
 											"RMABase",
@@ -268,9 +268,8 @@ LuaXType(CalcDiffValue);
 
 static const char* CalcDebugMiscNames[] = { "Pts",
 											"PtLoss",
-											"JackPtLoss",
-											"StamMod",
-											"JackStamMod" };
+											//"JackPtLoss",
+											"StamMod"};
 XToString(CalcDebugMisc);
 LuaXType(CalcDebugMisc);
 

@@ -605,6 +605,12 @@ local function DeletePlaylistButton(i)
 						self:zoom(fontScale)
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					end
+
+					if allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName() == "Favorites" then
+						self:visible(false)
+					else
+						self:visible(true)
+					end
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if ButtonActive(self) and allplaylistsactive then

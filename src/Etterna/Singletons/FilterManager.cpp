@@ -58,6 +58,19 @@ FilterManager::ResetSSFilters()
 	}
 }
 
+void
+FilterManager::ResetAllFilters()
+{
+	ResetSSFilters();
+	ExclusiveFilter = false;
+	HighestSkillsetsOnly = false;
+
+	if (m_pPlayerState != nullptr)
+		m_pPlayerState->wtFFF = 1.F;
+	MaxFilterRate = 1.F;
+	
+}
+
 // tmp filter stuff - mina
 bool
 FilterManager::AnyActiveFilter()
@@ -108,6 +121,11 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int ResetSSFilters(T* p, lua_State* L)
 	{
 		p->ResetSSFilters();
+		return 0;
+	}
+	static int ResetAllFilters(T* p, lua_State* L)
+	{
+		p->ResetAllFilters();
 		return 0;
 	}
 	static int SetMaxFilterRate(T* p, lua_State* L)
@@ -201,6 +219,7 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(SetSSFilter);
 		ADD_METHOD(GetSSFilter);
 		ADD_METHOD(ResetSSFilters);
+		ADD_METHOD(ResetAllFilters);
 		ADD_METHOD(AnyActiveFilter);
 		ADD_METHOD(SetMaxFilterRate);
 		ADD_METHOD(GetMaxFilterRate);

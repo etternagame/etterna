@@ -481,15 +481,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
-			auto per_thread_calc = std::make_unique<Calc>();
+			const auto per_thread_calc = std::make_unique<Calc>();
 
 			auto* pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
-			auto onePercent = pair->first;
+			const auto onePercent = pair->first;
 			auto* ld = pair->second;
 			auto scoreIndex = 0;
 			auto lastUpdate = 0;
-			for (auto it = workload.first; it != workload.second; it++) {
+			for (auto it = workload.first; it != workload.second; ++it) {
 				auto* hs = *it;
 				if ((ld != nullptr) && scoreIndex % onePercent == 0) {
 					data->_progress += scoreIndex - lastUpdate;
@@ -512,8 +512,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				auto ssrpercent = hs->GetSSRNormPercent();
-				auto musicrate = hs->GetMusicRate();
+				const auto ssrpercent = hs->GetSSRNormPercent();
+				const auto musicrate = hs->GetMusicRate();
 
 				// ghasgh we need to decompress to get maxpoints
 				auto* td = steps->GetTimingData();
@@ -523,7 +523,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
 					hs->HasReplayData()) {
 					steps->GetNoteData(nd);
-					auto maxpoints = nd.WifeTotalScoreCalc(td);
+					const auto maxpoints = nd.WifeTotalScoreCalc(td);
 					if (maxpoints <= 0) {
 						continue;
 					}
@@ -598,7 +598,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				 * up to this point should be a fully completed pass. This will
 				 * also allow us to mark files with 0 chords as being nocc
 				 * (since it doesn't apply to them). */
-				auto totalstepsnotes =
+				const auto totalstepsnotes =
 				  steps->GetRadarValues()[RadarCategory_Notes];
 				auto totalscorenotes = 0;
 				totalscorenotes += hs->GetTapNoteScore(TNS_W1);
@@ -690,10 +690,10 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
-			auto per_thread_calc = std::make_unique<Calc>();
+			const auto per_thread_calc = std::make_unique<Calc>();
 
 			auto scoreIndex = 0;
-			for (auto it = workload.first; it != workload.second; it++) {
+			for (auto it = workload.first; it != workload.second; ++it) {
 				auto* hs = *it;
 				++scoreIndex;
 
@@ -706,7 +706,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 					continue;
 				}
 
-				auto ssrpercent = hs->GetSSRNormPercent();
+				const auto ssrpercent = hs->GetSSRNormPercent();
 
 				// don't waste time on <= 0%s
 				if (ssrpercent <= 0.f || !steps->IsRecalcValid()) {
@@ -717,7 +717,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 							songVectorPtrMutex,
 							reinterpret_cast<std::uintptr_t>(steps->m_pSong));
 
-				auto musicrate = hs->GetMusicRate();
+				const auto musicrate = hs->GetMusicRate();
 
 				auto* td = steps->GetTimingData();
 				NoteData nd;

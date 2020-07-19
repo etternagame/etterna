@@ -138,7 +138,8 @@ class Calc
 	 * but that might just be too confusing idk */
 	std::array<float, max_intervals> stam_adj_diff{};
 
-	std::array<std::vector<float>, num_hands> jack_diff{};
+	// a vector of {row_time, diff} for each hand
+	std::array<std::vector<std::pair<float,float>>, num_hands> jack_diff{};
 
 	// number of jacks by hand for intervals
 	// std::array<std::array<int, max_intervals>, num_hands>

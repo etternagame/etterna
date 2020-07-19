@@ -758,8 +758,7 @@ InitializeConfOptions()
 	ADD(ConfOption("RandomBackgroundMode",
 				   MovePref<RandomBackgroundMode>,
 				   "Off",
-				   "Animations",
-				   "Random Movies"));
+				   "Animations"));
 	ADD(ConfOption("BGBrightness",
 				   BGBrightness,
 				   "|0%",

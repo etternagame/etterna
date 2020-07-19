@@ -78,7 +78,7 @@ enum CalcPatternMod
 enum CalcDiffValue
 {
 	NPSBase,
-	JackBase,
+	// JackBase,
 	// CJBase,
 	TechBase,
 	RMABase,
@@ -90,9 +90,9 @@ enum CalcDebugMisc
 {
 	Pts,
 	PtLoss, // expected points loss (not really a diff thing but w.e)
-	JackPtLoss,
+	// JackPtLoss,
 	StamMod, // stam adjust (values between 1- ~1.15)
-	JackStamMod,
+	// JackStamMod,
 	NUM_CalcDebugMisc,
 	CalcDebugMisc_Invalid,
 };

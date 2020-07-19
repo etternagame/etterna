@@ -64,8 +64,8 @@ set_jack_diff_debug(Calc& calc, const int& hi)
 {
 	// interval loop
 	for (int itv = 0; itv < calc.numitv; ++itv) {
-		float diff_total = 0.F;
-		int counter = 0;
+		// float diff_total = 0.F;
+		// int counter = 0;
 
 		//// rows per interval now
 		// for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
@@ -74,6 +74,6 @@ set_jack_diff_debug(Calc& calc, const int& hi)
 		//}
 
 		// technically this is kind of a waste of an array but whatever
-		calc.soap.at(hi)[JackBase].at(itv) = 1.F;
+		//calc.soap.at(hi)[JackBase].at(itv) = 1.F;
 	}
 }

@@ -483,8 +483,7 @@ Playlist::AddChart(const string& ck)
 void
 Playlist::DeleteChart(int i)
 {
-	if (chartlist.size() == 0 || i < 0 ||
-		i > static_cast<int>(chartlist.size()))
+	if (chartlist.empty() || i < 0 || i > static_cast<int>(chartlist.size()))
 		return;
 
 	chartlist.erase(chartlist.begin() + i);
@@ -609,7 +608,7 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 	// stuff gets weird if all playlists have been deleted and a chart
 	// is added
 	// - mina
-	if (playlists.size() > 0)
+	if (!playlists.empty())
 		activeplaylist = playlists.begin()->first;
 
 	// clear out the entry for the music wheel as well or it'll crash
@@ -618,8 +617,9 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 }
 
 void
-SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
-									   map<string, Playlist>& playlists)
+SongManager::MakePlaylistFromFavorites(
+  std::set<string>& favs,
+  std::map<std::string, Playlist>& playlists)
 {
 	Playlist pl;
 	pl.name = "Favorites";
@@ -628,16 +628,21 @@ SongManager::MakePlaylistFromFavorites(std::set<string>& favs,
 
 	// kinda messy but, trim unloaded charts from the favorites playlist
 	// -mina
-	for (size_t i = 0; i < pl.chartlist.size(); ++i)
-		if (!pl.chartlist[i].loaded)
+	for (size_t i = 0; i < pl.chartlist.size(); ++i) {
+		if (!pl.chartlist[i].loaded) {
 			pl.DeleteChart(i);
+		}
+	}
 
-	playlists.emplace("Favorites", pl);
+	if (!pl.chartlist.empty()) {
+		playlists.emplace("Favorites", pl);
+	}
 }
 
 void
-SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
-											   vector<string> oldChartkeys)
+SongManager::ReconcileChartKeysForReloadedSong(
+  const Song* reloadedSong,
+  std::vector<std::string> oldChartkeys)
 {
 	for (const auto& ck : oldChartkeys)
 		SONGMAN->StepsByKey.erase(ck);
@@ -667,7 +672,7 @@ SongManager::AddKeyedPointers(Song* new_song)
 // Get a steps pointer given a chartkey, the assumption here is we want
 // _a_ matching steps, not the original steps - mina
 Steps*
-SongManager::GetStepsByChartkey(const string& ck)
+SongManager::GetStepsByChartkey(const std::string& ck)
 {
 	if (StepsByKey.count(ck))
 		return StepsByKey[ck];
@@ -675,7 +680,7 @@ SongManager::GetStepsByChartkey(const string& ck)
 }
 
 Song*
-SongManager::GetSongByChartkey(const string& ck)
+SongManager::GetSongByChartkey(const std::string& ck)
 {
 	if (SongsByKey.count(ck))
 		return SongsByKey[ck];
@@ -699,7 +704,7 @@ bool
 SongManager::IsSongDir(const std::string& sDir)
 {
 	// Check to see if they put a song directly inside the group folder.
-	vector<std::string> arrayFiles;
+	std::vector<std::string> arrayFiles;
 	GetDirListing(sDir + "/*", arrayFiles);
 	const auto& audio_exts = ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (auto& fname : arrayFiles) {
@@ -725,7 +730,7 @@ SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 		return false; // the group is already added
 
 	// Look for a group banner in this group folder
-	vector<std::string> arrayGroupBanners;
+	std::vector<std::string> arrayGroupBanners;
 
 	FILEMAN->GetDirListingWithMultipleExtensions(
 	  sDir + sGroupDirName + "/",
@@ -764,7 +769,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 		ld->SetTotalWork(songFolders.size());
 		ld->SetText("Checking song folders...");
 	}
-	vector<Group> groups;
+	std::vector<Group> groups;
 	auto unknownGroup = Group(std::string("Unknown Group"));
 	int foldersChecked = 0;
 	int onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
@@ -903,36 +908,41 @@ SongManager::IsGroupNeverCached(const std::string& group) const
 void
 SongManager::SetFavoritedStatus(std::set<string>& favs)
 {
-	FOREACH(Song*, m_pSongs, song)
-	{
+	for (auto song : m_pSongs) {
 		auto fav = false;
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (favs.count((*steps)->GetChartKey()))
-			fav = true;
-		(*song)->SetFavorited(fav);
+		for (auto steps : song->GetAllSteps()) {
+			if (favs.count(steps->GetChartKey())) {
+				fav = true;
+			}
+		}
+
+		song->SetFavorited(fav);
 	}
 }
 
 void
 SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 {
-	FOREACH(Song*, m_pSongs, song)
-	FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-	if (pmir.count((*steps)->GetChartKey()))
-		(*song)->SetPermaMirror(true);
+	for (auto song : m_pSongs) {
+		for (auto steps : song->GetAllSteps()) {
+			if (pmir.count(steps->GetChartKey())) {
+				song->SetPermaMirror(true);
+			}
+		}
+	}
 }
 
 // hurr should probably redo both (all three) of these -mina
 void
 SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 {
-	FOREACH(Song*, m_pSongs, song)
-	{
+	for (auto song : m_pSongs) {
 		auto hasGoal = false;
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (goalmap.count((*steps)->GetChartKey()))
-			hasGoal = true;
-		(*song)->SetHasGoal(hasGoal);
+		for (auto steps : song->GetAllSteps()) {
+			if (goalmap.count(steps->GetChartKey()))
+				hasGoal = true;
+			song->SetHasGoal(hasGoal);
+		}
 	}
 }
 
@@ -990,16 +1000,13 @@ SongManager::GetSongGroupColor(const std::string& sSongGroup,
 		}
 	}
 
-	/*ASSERT_M(0,
-			 ssprintf("requested color for song group '%s' that doesn't exist",
-					  sSongGroup.c_str()));*/
 	return RageColor(1, 1, 1, 1);
 }
 
 RageColor
 SongManager::GetSongColor(const Song* pSong) const
 {
-	ASSERT(pSong != NULL);
+	assert(pSong != nullptr);
 	if (USE_PREFERRED_SORT_COLOR) {
 		FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
 		{
@@ -1014,43 +1021,26 @@ SongManager::GetSongColor(const Song* pSong) const
 
 		int i = m_vPreferredSongSort.size();
 		return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
-	} else // TODO: Have a better fallback plan with colors?
-	{
-		/* XXX: Previously, this matched all notes, which set a song to
-		 * "extra" if it had any 10-foot steps at all, even edits or
-		 * doubles.
-		 *
-		 * For now, only look at notes for the current note type. This
-		 * means that if a song has 10-foot steps on Doubles, it'll only
-		 * show up red in Doubles. That's not too bad, I think. This
-		 * will also change it in the song scroll, which is a little odd
-		 * but harmless.
-		 *
-		 * XXX: Ack. This means this function can only be called when we
-		 * have
-		 * a style set up, which is too restrictive. How to handle this?
-		 */
-		// const StepsType st =
-		// GAMESTATE->GetCurrentStyle()->m_StepsType;
-		const auto& vpSteps = pSong->GetAllSteps();
-		for (auto pSteps : vpSteps) {
-			switch (pSteps->GetDifficulty()) {
-				case Difficulty_Challenge:
-				case Difficulty_Edit:
-					continue;
-				default:
-					break;
-			}
+	}
 
-			// if(pSteps->m_StepsType != st)
-			//	continue;
-
-			if (pSteps->GetMeter() >= EXTRA_COLOR_METER)
-				return static_cast<RageColor>(EXTRA_COLOR);
+	const auto& vpSteps = pSong->GetAllSteps();
+	for (auto pSteps : vpSteps) {
+		switch (pSteps->GetDifficulty()) {
+			case Difficulty_Challenge:
+			case Difficulty_Edit:
+				continue;
+			default:
+				break;
 		}
 
-		return GetSongGroupColor(pSong->m_sGroupName);
+		// if(pSteps->m_StepsType != st)
+		//	continue;
+
+		if (pSteps->GetMeter() >= EXTRA_COLOR_METER)
+			return static_cast<RageColor>(EXTRA_COLOR);
 	}
+
+	return GetSongGroupColor(pSong->m_sGroupName);
 }
 
 void
@@ -1072,8 +1062,7 @@ SongManager::GetSongs(const std::string& sGroupName) const
 
 	if (sGroupName == GROUP_ALL)
 		return m_pSongs;
-	map<std::string, SongPointerVector, Comp>::const_iterator iter =
-	  m_mapSongGroupIndex.find(sGroupName);
+	auto iter = m_mapSongGroupIndex.find(sGroupName);
 	if (iter != m_mapSongGroupIndex.end())
 		return iter->second;
 	return vEmpty;
@@ -1097,10 +1086,10 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 void
 SongManager::GetFavoriteSongs(vector<Song*>& songs) const
 {
-	FOREACH_CONST(Song*, m_pSongs, song)
-	{
-		if ((*song)->IsFavorited())
-			songs.emplace_back((*song));
+	for (const auto& song : m_pSongs) {
+		if (song->IsFavorited()) {
+			songs.emplace_back(song);
+		}
 	}
 }
 
@@ -1114,10 +1103,10 @@ int
 SongManager::GetNumAdditionalSongs() const
 {
 	auto iNum = 0;
-	FOREACH_CONST(Song*, m_pSongs, i)
-	{
-		if (WasLoadedFromAdditionalSongs(*i))
+	for (auto song : m_pSongs) {
+		if (WasLoadedFromAdditionalSongs(song)) {
 			++iNum;
+		}
 	}
 	return iNum;
 }
@@ -1414,11 +1403,10 @@ makePlaylist(const std::string& answer)
 {
 	Playlist pl;
 	pl.name = answer;
-	if (pl.name != "") {
+	if (!pl.name.empty()) {
 		SONGMAN->GetPlaylists().emplace(pl.name, pl);
 		SONGMAN->activeplaylist = pl.name;
-		Message msg("DisplayAll");
-		MESSAGEMAN->Broadcast(msg);
+		MESSAGEMAN->Broadcast("DisplayAll");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
