@@ -29,6 +29,7 @@
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Singletons/GameState.h"
+#include <RageUtil/Sound/RageSound.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -1866,6 +1867,23 @@ Song::IsMarathon() const
 void
 Song::PlaySampleMusicExtended()
 {
+	RageSoundParams p;
+
+	p.m_StartSecond = m_fMusicSampleStartSeconds;
+	p.m_LengthSeconds = GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
+	p.m_fFadeOutSeconds = 1.f;
+	p.m_bAccurateSync = true;
+
+	if (p.m_LengthSeconds < 3.f) {
+		p.m_StartSecond = 5.f;
+		p.m_LengthSeconds = GetLastSecond() + 2.f;
+	}
+
+	p.StopMode = RageSoundParams::M_LOOP;
+
+	SOUND->SetPlayingMusicParams(p);
+
+	/*
 	GameSoundManager::PlayMusicParams PlayParams;
 	PlayParams.sFile = GetMusicPath();
 	PlayParams.pTiming = nullptr;
@@ -1883,6 +1901,7 @@ Song::PlaySampleMusicExtended()
 	FallbackMusic.fFadeInLengthSeconds = 1.f;
 	FallbackMusic.bAlignBeat = true;
 	FallbackMusic.bAccurateSync = true;
+	
 
 	if (PlayParams.fLengthSeconds <
 		3.f) { // if the songpreview is after the last note
@@ -1890,8 +1909,10 @@ Song::PlaySampleMusicExtended()
 		  5.f; // chartpreview wont play, just set it near the start -mina
 		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
 	}
-	SOUND->PlayMusic(PlayParams, FallbackMusic);
-	GAMESTATE->SetPaused(false);
+
+	*/
+	// SOUND->PlayMusic(PlayParams, FallbackMusic);
+	// GAMESTATE->SetPaused(false);
 }
 
 // lua start
