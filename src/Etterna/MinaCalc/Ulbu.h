@@ -50,7 +50,7 @@ struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 
-	Calc& _calc;
+	Calc* _calc;
 	int hand = 0;
 
 	// to generate these
@@ -106,23 +106,18 @@ struct TheGreatBazoinkazoinkInTheSky
 	// so we can apply them here
 	diffz _diffz;
 
-	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
-	  : _calc(calc)
+	void praise_the_glory_of_ulbu() const
 	{
 #ifndef RELWITHDEBINFO
 #if NDEBUG
-		load_calc_params_from_disk();
+		load_params_from_disk();
 #endif
 #endif
-		/* ok so the problem atm is the multithreading of songload, if we want
-		 * to update the file on disk with new values and not just overwrite it
-		 * we have to write out after loading the values player defined, so the
-		 * quick hack solution to do that is to only do it during debug output
-		 * generation, which is fine for the time being, though not ideal */
-		if (calc.debugmode) {
-			write_params_to_disk();
-		}
+	}
 
+	TheGreatBazoinkazoinkInTheSky()
+	  : _calc(nullptr)
+	{
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
@@ -130,8 +125,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mhi = std::make_unique<metaHandInfo>();
 	}
 
-	void operator()()
+	void operator()(Calc* calc)
 	{
+		_calc = calc;
+		hand = 0;
+
+		// should redundant but w.e not sure
+		full_hand_reset();
+
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
 	}
@@ -147,9 +148,9 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void setup_agnostic_pmods()
 	{
-		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern
-		// sequencing
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing */
 		_fj.setup();
 		_tt.setup();
 		_tt2.setup();
@@ -157,10 +158,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void set_agnostic_pmods(const int& itv)
 	{
-		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern
-		// sequencing just set only one hand's values and we'll copy them
-		// over (or figure out how not to need to) later
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing. Just set only one hand's values and we'll copy them
+		 * over (or figure out how not to need to) later */
 
 		PatternMods::set_agnostic(_s._pmod, _s(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_js._pmod, _js(_mitvi), itv, _calc);
@@ -176,10 +177,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		setup_agnostic_pmods();
 
-		for (auto itv = 0; itv < _calc.numitv; ++itv) {
-			for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
+		for (auto itv = 0; itv < _calc->numitv; ++itv) {
+			for (auto row = 0; row < _calc->itv_size.at(itv); ++row) {
 
-				const auto& ri = _calc.adj_ni.at(itv).at(row);
+				const auto& ri = _calc->adj_ni.at(itv).at(row);
 				(*_mri)(
 				  *_last_mri, _mitvi, ri.row_time, ri.row_count, ri.row_notes);
 
@@ -198,10 +199,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			_mitvi.handle_interval_end();
 		}
 
-		PatternMods::run_agnostic_smoothing_pass(_calc.numitv, _calc);
+		PatternMods::run_agnostic_smoothing_pass(_calc->numitv, _calc);
 
 		// copy left -> right for agnostic mods
-		PatternMods::bruh_they_the_same(_calc.numitv, _calc);
+		PatternMods::bruh_they_the_same(_calc->numitv, _calc);
 	}
 
 #pragma endregion
@@ -317,13 +318,18 @@ struct TheGreatBazoinkazoinkInTheSky
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,
-							const float& row_time)
+									 const float& row_time)
 	{
+		auto thing =
+		  std::pair{ row_time,
+					 ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+					   basescalers[Skill_JackSpeed] };
+		if (isnan(thing.second)) {
+			thing.second = 0.F;
+		}
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc.jack_diff.at(hand).push_back(
-		  { row_time, ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
-			basescalers[Skill_JackSpeed] });
+		_calc->jack_diff.at(hand).push_back(thing);
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -333,16 +339,16 @@ struct TheGreatBazoinkazoinkInTheSky
 	void set_sequenced_base_diffs(const int& itv) const
 	{
 		// this is no longer done for intervals, but per row, in the row
-		// loop _calc.soap.at(hand)[JackBase].at(itv) =
+		// loop _calc->soap.at(hand)[JackBase].at(itv) =
 		// _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_calc.soap.at(hand)[TechBase].at(itv) =
-		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv), _calc);
+		_calc->soap.at(hand)[TechBase].at(itv) =
+		  _diffz._tc.get_itv_diff(_calc->soap.at(hand)[NPSBase].at(itv), _calc);
 
 		// mostly for debug output.. optimize later
-		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
+		_calc->soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
 	}
 
 	void run_dependent_pmod_loop()
@@ -360,19 +366,19 @@ struct TheGreatBazoinkazoinkInTheSky
 			full_hand_reset();
 
 			// arrays are super bug prone with jacks so try vectors for now
-			_calc.jack_diff.at(hand).clear();
+			_calc->jack_diff.at(hand).clear();
 
 			nps::actual_cancer(_calc, hand);
 
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
-			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
+			Smooth(_calc->soap.at(hand).at(NPSBase), 0.F, _calc->numitv);
 
-			for (auto itv = 0; itv < _calc.numitv; ++itv) {
+			for (auto itv = 0; itv < _calc->numitv; ++itv) {
 				auto jack_counter = 0;
-				for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
+				for (auto row = 0; row < _calc->itv_size.at(itv); ++row) {
 
-					const auto& ri = _calc.adj_ni.at(itv).at(row);
+					const auto& ri = _calc->adj_ni.at(itv).at(row);
 					row_time = ri.row_time;
 					row_notes = ri.row_notes;
 					const auto row_count = ri.row_count;
@@ -416,7 +422,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * are sequenced here, meaning they are order dependent
 					 * (jack might not be for the moment actually) nps base
 					 * is still calculated in the old way */
-					update_sequenced_base_diffs(ct, itv, jack_counter, row_time);
+					update_sequenced_base_diffs(
+					  ct, itv, jack_counter, row_time);
 					++jack_counter;
 
 					// only ohj uses this atm (and probably into the future)
@@ -432,11 +439,11 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 
 				// maybe this should go back into the diffz object...
-				// _calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
+				// _calc->itv_jack_diff_size.at(hand).at(itv) = jack_counter;
 
 				handle_dependent_interval_end(itv);
 			}
-			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
+			PatternMods::run_dependent_smoothing_pass(_calc->numitv, _calc);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand

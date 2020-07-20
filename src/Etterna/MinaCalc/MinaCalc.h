@@ -15,18 +15,16 @@
 #endif
 
 using MinaSD = std::vector<std::vector<float>>;
-using Finger = std::vector<std::vector<float>>;
-using ProcessedFingers = std::vector<Finger>;
 
 class Calc;
 
 // should be able to handle 1hr 54min easily
 static const int max_intervals = 40000;
 
-// intervals are _half_ second, no point in wasting time or cpu cycles on 100
-// nps joke files. even at most generous, 100 nps spread across all fingers,
-// that's still 25 nps which is considerably faster than anyone can sustain
-// vibro for a full second
+/* intervals are _half_ second, no point in wasting time or cpu cycles on 100
+ * nps joke files. even at most generous, 100 nps spread across all fingers,
+ * that's still 25 nps which is considerably faster than anyone can sustain
+ * vibro for a full second */
 static const int max_rows_for_single_interval = 50;
 
 enum hands
@@ -36,7 +34,8 @@ enum hands
 	num_hands,
 };
 
-// uhhh
+// this cuts a small amount of redudant calculation at the cost of large memory
+// allocation... not sure if worth...
 struct RowInfo
 {
 	unsigned row_notes = 0U;
@@ -48,37 +47,40 @@ struct RowInfo
 class Calc
 {
   public:
-	/*	Primary calculator function that wraps everything else. Initializes the
-	hand objects and then runs the chisel function under varying circumstances
-	to estimate difficulty for each different skillset. Currently only
-	overall/stamina are being produced. */
+	/* Primary calculator function that wraps everything else. Runs notedata
+	 * through ulbu which builds the base diff values and then runs the chisel
+	 * function over the produced diff vectors for each skillset. The main
+	 * drawback of this approach is files with multiple skillsets tend to get
+	 * significantly underrated */
 	auto CalcMain(const std::vector<NoteInfo>& NoteInfo,
 				  float music_rate,
 				  float score_goal) -> std::vector<float>;
 
+	// for music select debug output, should only ever be true at music select
 	bool debugmode = false;
-	bool ssr = true; // set to true for scores, false for cache
+
+	// set to true for scores, false for cache
+	bool ssr = true;
 
   private:
-	/*	Splits up the chart by each hand and calls ProcessFinger on each "track"
-	before passing the results to the hand initialization functions. Also passes
-	the input timingscale value. Hardcode a limit for nps and if we hit it just
-	return max value for the calc and move on, there's no point in calculating
-	values for 500 nps joke files. Mem optimization can be better if we only
-	allow 100 maximum notes for a single half second interval, return value is
-	whether or not we should continue calculation */
+	/* Splits up the chart by each hand and processes them individually to
+	 * produce hand specific base difficulty values, which are then passed to
+	 * the chisel functions. Hardcode a limit for nps and if we hit it just
+	 * return max value for the calc and move on, there's no point in
+	 * calculating values for 500 nps joke files. Return value is whether or not
+	 * we should skip calculation */
 	auto InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 						 float music_rate,
 						 float offset) -> bool;
 
-	/*	Returns estimate of player skill needed to achieve score goal on chart.
-	 *  The player_skill parameter gives an initial guess and floor for player
+	/* Returns estimate of player skill needed to achieve score goal on chart.
+	 * The player_skill parameter gives an initial guess and floor for player
 	 * skill. Resolution relates to how precise the answer is. Additional
 	 * parameters give specific skill sets being tested for.*/
 	auto Chisel(float player_skill,
 				float resolution,
 				float score_goal,
-				int ss, // skillset
+				Skillset ss,
 				bool stamina,
 				bool debugoutput = false) -> float;
 
@@ -105,7 +107,7 @@ class Calc
 			   num_hands>
 	  soap{};
 
-	/* apply stam model to these (but output is sent to stam_adj_diff, not
+	/* Apply stam model to these (but output is sent to stam_adj_diff, not
 	 * modified here). There are at least two valid reasons to use different
 	 * base values used for stam, the first being because something that
 	 * alternates frequently between js and hs (du und ich), and has low
@@ -131,7 +133,7 @@ class Calc
 			   num_hands>
 	  base_diff_for_stam_mod{};
 
-	/* pattern adjusted difficulty, allocate only once, stam needs to be based
+	/* Pattern adjusted difficulty, allocate only once, stam needs to be based
 	 * on the above, and it needs to be recalculated every time the player_skill
 	 * value changes, again based on the above, technically we could use the
 	 * skill_stamina element of the arrays to store this and save an allocation
@@ -139,13 +141,16 @@ class Calc
 	std::array<float, max_intervals> stam_adj_diff{};
 
 	// a vector of {row_time, diff} for each hand
-	std::array<std::vector<std::pair<float,float>>, num_hands> jack_diff{};
+	std::array<std::vector<std::pair<float, float>>, num_hands> jack_diff{};
 
 	// number of jacks by hand for intervals
 	// std::array<std::array<int, max_intervals>, num_hands>
 	// itv_jack_diff_size{};
 
 	std::array<std::vector<float>, num_hands> jack_loss{};
+
+	// jack stam stuff for debug
+	std::array<std::vector<float>, num_hands> jack_stam_stuff;
 
 	// base techdifficulty per row of current interval being scanned
 	std::array<float, max_rows_for_single_interval> tc_static{};
@@ -161,6 +166,11 @@ class Calc
 	 * pulled straight from the calc */
 	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
 	  debugValues;
+
+	Calc() { InitParamsFromDiskAndDevoteSelfToUlbu(); }
+
+	// load the params file from disk, you know, like, only once
+	void InitParamsFromDiskAndDevoteSelfToUlbu();
 };
 
 MINACALC_API auto

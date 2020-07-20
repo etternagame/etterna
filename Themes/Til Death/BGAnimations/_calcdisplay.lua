@@ -395,10 +395,10 @@ local function updateCoolStuff()
         local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
         for i = 1, upperiter do
             if jap["Left"][i] then
-                jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2] }
+                jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3] }
             end
             if jap["Right"][i] then
-                jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2] }
+                jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3] }
             end
         end
 
@@ -774,6 +774,7 @@ o[#o + 1] = Def.Quad {
                         local hand = h == 1 and "L" or "R"
                         local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
                         local txt = string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                        local txt = string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
                         modText = modText .. txt
                     end
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
@@ -1174,6 +1175,55 @@ local function topGraphLine(mod, colorToUse, hand)
     }
 end
 
+local function topGraphLineJackStam(mod, colorToUse, hand)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+                
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
+                local hand = hand == 1 and "Left" or "Right"
+                local verts = {}
+                local values = jackdiffs[hand]
+                if not values or not values[1] then return end
+
+                for i = 1, #values do
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    -- if used, final/firstsecond must be halved
+                    -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
+                    local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
+                    local y = fitY2(values[i][3] * 20, lowerGraphMin, lowerGraphMax)
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+            end
+        end
+    }
+end
+
 local function bottomGraphLineMSD(mod, colorToUse, hand)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
@@ -1381,6 +1431,11 @@ end
 for h = 1,2 do
     local colr = jackdiffColors[h]
     o[#o+1] = bottomGraphLineJack(colr, h)
+end
+
+-- jack stam
+for h = 1,2 do
+    o[#o+1] = topGraphLineJackStam("jack_stam", color("1,1,1,1"), h)
 end
 
 -- a bunch of things for stuff and things

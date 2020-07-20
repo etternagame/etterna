@@ -1107,10 +1107,11 @@ class LunaSteps : public Luna<Steps>
 			lua_pushstring(L, hand ? "Right" : "Left");
 			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
+			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
 			for (auto i = 0; i < vals.size(); i++) {
 				auto p = vals[i];
-				vector<float> pair{ p.first, p.second };
-				LuaHelpers::CreateTableFromArray(pair, L);
+				vector<float> stuff{ p.first, p.second, stam_vals[i] };
+				LuaHelpers::CreateTableFromArray(stuff, L);
 				lua_rawseti(L, -2, i + 1);
 			}
 			lua_rawset(L, -3);

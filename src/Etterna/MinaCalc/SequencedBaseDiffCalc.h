@@ -10,23 +10,23 @@
 
 struct nps
 {
-	static void actual_cancer(Calc& calc, const int& hi)
+	static void actual_cancer(Calc* calc, const int& hi)
 	{
-		for (auto itv = 0; itv < calc.numitv; ++itv) {
+		for (auto itv = 0; itv < calc->numitv; ++itv) {
 
 			auto notes = 0;
 
-			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
-				const auto& cur = calc.adj_ni.at(itv).at(row);
+			for (auto row = 0; row < calc->itv_size.at(itv); ++row) {
+				const auto& cur = calc->adj_ni.at(itv).at(row);
 				notes += cur.hand_counts.at(hi);
 			}
 
 			// nps for this interval
-			calc.soap.at(hi).at(NPSBase).at(itv) =
+			calc->soap.at(hi).at(NPSBase).at(itv) =
 			  static_cast<float>(notes) * finalscaler * 1.6F;
 
 			// set points for this interval
-			calc.itv_points.at(hi).at(itv) = notes * 2;
+			calc->itv_points.at(hi).at(itv) = notes * 2;
 		}
 	}
 };
@@ -36,14 +36,14 @@ struct techyo
 	// if this looks ridiculous, that's because it is
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
-					  Calc& calc)
+					  Calc* calc)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
 		}
 
 		const auto a = seq.get_sc_ms_now(ct);
-		auto b = ms_init;
+		float b;
 		if (ct == col_ohjump) {
 			b = seq.get_sc_ms_now(ct, false);
 		} else {
@@ -62,7 +62,7 @@ struct techyo
 
 		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
 		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
-		auto obliosis = 0.F;
+		float obliosis;
 
 		if (ct == col_left) {
 			obliosis = poliosis / scoliosis;
@@ -79,7 +79,7 @@ struct techyo
 
 		teehee(c / vertebrae);
 
-		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(2);
+		calc->tc_static.at(row_counter) = teehee.get_mean_of_window(2);
 		++row_counter;
 	}
 
@@ -96,7 +96,7 @@ struct techyo
 
 	// final output difficulty for this interval, merges base diff, runningman
 	// anchor diff
-	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
+	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc* calc) const
 	  -> float
 	{
 		// for now do simple thing, for this interval either use the higher
@@ -129,7 +129,7 @@ struct techyo
 
 	// get the interval base diff, which will then be merged via weighted
 	// average with npsbase, and then compared to max_rm diff
-	[[nodiscard]] auto get_tc_base(Calc& calc) const -> float
+	[[nodiscard]] auto get_tc_base(Calc* calc) const -> float
 	{
 		if (row_counter == 0) {
 			return 0.F;
@@ -137,7 +137,7 @@ struct techyo
 
 		auto ms_total = 0.F;
 		for (auto i = 0; i < row_counter; ++i) {
-			ms_total += calc.tc_static.at(i);
+			ms_total += calc->tc_static.at(i);
 		}
 
 		const auto ms_mean = ms_total / static_cast<float>(row_counter);
