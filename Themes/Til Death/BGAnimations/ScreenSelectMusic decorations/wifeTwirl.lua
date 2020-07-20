@@ -201,7 +201,6 @@ local t =
 		-- should play the music if we already should and we either jumped song or we didnt change the style/song
 		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong) and not tryingToStart
 
-		ms.ok(shouldPlayMusic and 1 or 0)
 		-- at this point the music will or will not play ....
 
 		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
