@@ -1943,10 +1943,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	// This will return the Preview Notefield if it is successful.
 	static int CreatePreviewNoteField(T* p, lua_State* L)
 	{
-		const float helloiamafloat = GAMESTATE->m_Position.m_fMusicSeconds;
 		p->GeneratePreviewNoteField();
 		if (p->m_pPreviewNoteField != nullptr) {
-			p->SetPreviewNoteFieldMusicPosition(helloiamafloat);
 			p->m_pPreviewNoteField->PushSelf(L);
 		} else {
 			lua_pushnil(L);
