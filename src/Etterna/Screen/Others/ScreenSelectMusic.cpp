@@ -1541,8 +1541,7 @@ ScreenSelectMusic::AfterMusicChange()
 			if (!m_sSampleMusicToPlay.empty())
 				// dont run basic preview if chart preview is running
 				// lua handles that stuff (we need to change that)
-				g_bSampleMusicWaiting = !(GAMESTATE->m_bIsChartPreviewActive &&
-										  m_pPreviewNoteField->IsVisible());
+				g_bSampleMusicWaiting = true;
 		}
 	}
 
