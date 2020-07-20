@@ -5,6 +5,7 @@
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include "MessageManager.h"
 
+struct RageSoundParams;
 class TimingData;
 class Screen;
 class RageSound;
@@ -80,12 +81,18 @@ class GameSoundManager : MessageSubscriber
 	// Meant to avoid blocking the game execution (stutter)
 	void SetSoundPosition(RageSound* s, float fSeconds);
 
+	void SetPlayingMusicParams(RageSoundParams p);
+
+	const RageSoundParams& GetPlayingMusicParams();
+
 	void StartMusic(MusicToPlay& ToPlay);
 	void DoPlayOnce(std::string sPath);
 	void StartQueuedSounds();
 	void DoPlayOnceFromDir(std::string sPath);
 	auto SoundWaiting() -> bool;
 	void HandleSetPosition();
+
+	void HandleSetParams();
 
 	std::shared_ptr<LuaReference> soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
