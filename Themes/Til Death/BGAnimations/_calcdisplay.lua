@@ -387,18 +387,24 @@ local function updateCoolStuff()
         debugstrings = steps:GetDebugStrings()
 
         -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
-        -- basically jackdiffs[hand][index] = {row time, diff}
+        -- basically jackdiffs[hand][index] = {row time, diff, stam}
         -- this is so we can place the indices based on row time instead of index
         -- also keep in mind the row times are already changed for each rate so 1.1 will be smaller than 1.0
         -- also all the row times are relative to the first non empty noterow so lets just pad it by the firstsecond/2 too
+        -- the odd logic below is done because the length of the hand vectors are often different, but the stam and diff vectors are the same
+        -- that allows us to combine the two
+        -- the reassignment is done based on the longest vector so 2n iterations are not necessary
+        -- (in hindsight this is probably exactly the same runtime whatever)
         local jap = steps:GetCalcDebugJack()["JackHand"]
-        local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
-        for i = 1, upperiter do
-            if jap["Left"][i] then
-                jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3] }
-            end
-            if jap["Right"][i] then
-                jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3] }
+        if jap then
+            local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
+            for i = 1, upperiter do
+                if jap["Left"][i] then
+                    jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3] }
+                end
+                if jap["Right"][i] then
+                    jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3] }
+                end
             end
         end
 
@@ -769,14 +775,16 @@ o[#o + 1] = Def.Quad {
 
                 if diffGroups[activeDiffGroup]["Jack"] then
                     modText = modText .. "\n"
+                    local jktxt = ""
+                    local jkstmtxt = ""
                     for h = 1,2 do
                         local hnd = h == 1 and "Left" or "Right"
                         local hand = h == 1 and "L" or "R"
                         local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
-                        local txt = string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
-                        local txt = string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
-                        modText = modText .. txt
+                        jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                        jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3]) 
                     end
+                    modText = modText .. jktxt .. jkstmtxt
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
                 end
 
@@ -1201,7 +1209,7 @@ local function topGraphLineJackStam(mod, colorToUse, hand)
                     -- if used, final/firstsecond must be halved
                     -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
                     local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(values[i][3] * 20, lowerGraphMin, lowerGraphMax)
+                    local y = fitY1(values[i][3]) + plotHeight/2
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
