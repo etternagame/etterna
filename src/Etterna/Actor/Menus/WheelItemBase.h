@@ -44,7 +44,10 @@ class WheelItemBase : public ActorFrame
 	WheelItemBase(const std::string& sType);
 	WheelItemBase(const WheelItemBase& cpy);
 	void DrawPrimitives() override;
-	WheelItemBase* Copy() const override { return new WheelItemBase(*this); }
+	[[nodiscard]] auto Copy() const -> WheelItemBase* override
+	{
+		return new WheelItemBase(*this);
+	}
 
 	void Load();
 	void DrawGrayBar(Actor& bar);
@@ -57,22 +60,22 @@ class WheelItemBase : public ActorFrame
 
 	RageColor m_colorLocked;
 
-	const std::string GetText()
+	auto GetText() -> const std::string
 	{
 		assert(m_pData != nullptr);
 		return m_pData->m_sText;
 	}
-	const RageColor GetColor()
+	auto GetColor() -> const RageColor
 	{
 		assert(m_pData != nullptr);
 		return m_pData->m_color;
 	}
-	WheelItemDataType GetType()
+	auto GetType() -> WheelItemDataType
 	{
 		assert(m_pData != nullptr);
 		return m_pData->m_Type;
 	}
-	bool IsLoaded() { return m_pData != nullptr; }
+	auto IsLoaded() -> bool { return m_pData != nullptr; }
 
 	// Lua
 	void PushSelf(lua_State* L) override;

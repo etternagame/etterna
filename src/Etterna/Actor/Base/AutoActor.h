@@ -12,7 +12,7 @@ class XNode;
 class AutoActor
 {
   public:
-	AutoActor() {}
+	AutoActor() = default;
 	~AutoActor() { Unload(); }
 	AutoActor(const AutoActor& cpy);
 	auto operator=(const AutoActor& cpy) -> AutoActor&;

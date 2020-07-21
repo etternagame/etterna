@@ -33,9 +33,9 @@ class LuaExpressionTransform
 							 float fPositionOffsetFromCenter,
 							 int iItemIndex,
 							 int iNumItems) const;
-	const Actor::TweenState& GetTransformCached(float fPositionOffsetFromCenter,
-												int iItemIndex,
-												int iNumItems) const;
+	auto GetTransformCached(float fPositionOffsetFromCenter,
+							int iItemIndex,
+							int iNumItems) const -> const Actor::TweenState&;
 	void ClearCache() { m_mapPositionToTweenStateCache.clear(); }
 
   protected:
@@ -47,11 +47,12 @@ class LuaExpressionTransform
 		float fPositionOffsetFromCenter;
 		int iItemIndex;
 
-		bool operator<(const PositionOffsetAndItemIndex& other) const
+		auto operator<(const PositionOffsetAndItemIndex& other) const -> bool
 		{
-			if (fPositionOffsetFromCenter != other.fPositionOffsetFromCenter)
+			if (fPositionOffsetFromCenter != other.fPositionOffsetFromCenter) {
 				return fPositionOffsetFromCenter <
 					   other.fPositionOffsetFromCenter;
+			}
 			return iItemIndex < other.iItemIndex;
 		}
 	};
