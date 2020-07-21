@@ -328,7 +328,8 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		// The way music playing works does not cause stutter, but
 		// will cause inconsistent music playing experience and an overall
 		// negative feel.
-		PlayParams.bAccurateSync = false;
+		// But if chart preview is active, force it to be synced
+		PlayParams.bAccurateSync = GAMESTATE->m_bIsChartPreviewActive;
 
 		GameSoundManager::PlayMusicParams FallbackMusic;
 		FallbackMusic.sFile = m_sLoopMusicPath;
