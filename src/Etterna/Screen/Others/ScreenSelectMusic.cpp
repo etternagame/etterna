@@ -438,7 +438,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 
 		// Reload currently selected song
 		if (holding_shift && bHoldingCtrl && c == 'R' &&
-			m_MusicWheel.IsSettled()) {
+			m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			Song* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr) {
 				auto stepses = to_reload->GetAllSteps();
@@ -454,7 +454,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				return true;
 			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
-				   m_MusicWheel.IsSettled()) {
+				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			SONGMAN->ForceReloadSongGroup(
 			  GetMusicWheel()->GetSelectedSection());
 			AfterMusicChange();
