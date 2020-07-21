@@ -130,6 +130,8 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// should redundant but w.e not sure
 		full_hand_reset();
+		full_agnostic_reset();
+		reset_row_sequencing();
 
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
@@ -152,6 +154,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		_fj.setup();
 		_tt.setup();
 		_tt2.setup();
+	}
+
+	void full_agnostic_reset()
+	{
+		_mri.get()->reset();
+		_last_mri.get()->reset();
 	}
 
 	void set_agnostic_pmods(const int& itv)
@@ -291,6 +299,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mhi->full_reset();
 		_last_mhi->full_reset();
 		_diffz.full_reset();
+	}
+
+	void reset_row_sequencing()
+	{
+		_mitvi.reset();
 	}
 
 	void handle_dependent_interval_end(const int& itv)
