@@ -449,19 +449,6 @@ CalcInternal(float& gotpoints,
 	}
 }
 
-TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all;
-
-void
-Calc::InitParamsFromDiskAndDevoteSelfToUlbu()
-{
-// only load the params file for release
-#ifndef RELWITHDEBINFO
-#if NDEBUG
-	ulbu_that_which_consumes_all.praise_the_glory_of_ulbu();
-#endif
-#endif
-}
-
 auto
 Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 					  const float music_rate,
@@ -472,8 +459,12 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 		return true;
 
 	// ulbu calculates everything needed for the block below (mostly pmods)
-	ulbu_that_which_consumes_all(this);
-
+	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(*this);
+	// if debug, force params to load
+	if (debugmode)
+		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
+	ulbu_that_which_consumes_all();
+	
 	// main hand loop
 	for (const auto& hi : { left_hand, right_hand }) {
 		InitAdjDiff(*this, hi);
@@ -904,9 +895,7 @@ MinaSDCalcDebug(
 		return;
 	}
 
-	// always load params file for debug mode
-	ulbu_that_which_consumes_all.praise_the_glory_of_ulbu();
-
+	// debugmode true will cause params to reload
 	calc.debugmode = true;
 	calc.ssr = true;
 	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
@@ -921,12 +910,12 @@ MinaSDCalcDebug(
 	 * quick hack solution to do that is to only do it during debug output
 	 * generation, which is fine for the time being, though not ideal */
 	if (!DoesFileExist(calc_params_xml)) {
-		const TheGreatBazoinkazoinkInTheSky ublov;
+		const TheGreatBazoinkazoinkInTheSky ublov(calc);
 		ublov.write_params_to_disk();
 	}
 }
 
-int mina_calc_version = 435;
+int mina_calc_version = 436;
 auto
 GetCalcVersion() -> int
 {

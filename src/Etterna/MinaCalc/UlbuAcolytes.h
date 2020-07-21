@@ -63,42 +63,42 @@ struct PatternMods
 	static void set_agnostic(const CalcPatternMod& pmod,
 							 const float& val,
 							 const int& pos,
-							 Calc* calc)
+							 Calc& calc)
 	{
-		calc->doot.at(left_hand).at(pmod).at(pos) = val;
+		calc.doot.at(left_hand).at(pmod).at(pos) = val;
 	}
 
 	static void set_dependent(const int& hand,
 							  const CalcPatternMod& pmod,
 							  const float& val,
 							  const int& pos,
-							  Calc* calc)
+							  Calc& calc)
 	{
-		calc->doot.at(hand).at(pmod).at(pos) = val;
+		calc.doot.at(hand).at(pmod).at(pos) = val;
 	}
 
-	static void run_agnostic_smoothing_pass(const int& end_itv, Calc* calc)
+	static void run_agnostic_smoothing_pass(const int& end_itv, Calc& calc)
 	{
 		for (const auto& pmod : agnostic_mods) {
-			Smooth(calc->doot.at(left_hand).at(pmod), neutral, end_itv);
+			Smooth(calc.doot.at(left_hand).at(pmod), neutral, end_itv);
 		}
 	}
 
-	static void run_dependent_smoothing_pass(const int& end_itv, Calc* calc)
+	static void run_dependent_smoothing_pass(const int& end_itv, Calc& calc)
 	{
 		for (const auto& pmod : dependent_mods) {
-			for (auto& h : calc->doot) {
+			for (auto& h : calc.doot) {
 				Smooth(h.at(pmod), neutral, end_itv);
 			}
 		}
 	}
 
-	static void bruh_they_the_same(const int& end_itv, Calc* calc)
+	static void bruh_they_the_same(const int& end_itv, Calc& calc)
 	{
 		for (const auto& pmod : agnostic_mods) {
 			for (auto i = 0; i < end_itv; i++) {
-				calc->doot.at(right_hand).at(pmod).at(i) =
-				  calc->doot.at(left_hand).at(pmod).at(i);
+				calc.doot.at(right_hand).at(pmod).at(i) =
+				  calc.doot.at(left_hand).at(pmod).at(i);
 			}
 		}
 	}

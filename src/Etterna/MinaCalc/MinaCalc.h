@@ -166,11 +166,6 @@ class Calc
 	 * pulled straight from the calc */
 	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
 	  debugValues;
-
-	Calc() { InitParamsFromDiskAndDevoteSelfToUlbu(); }
-
-	// load the params file from disk, you know, like, only once
-	void InitParamsFromDiskAndDevoteSelfToUlbu();
 };
 
 MINACALC_API auto

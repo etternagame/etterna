@@ -50,7 +50,7 @@ struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
 
-	Calc* _calc;
+	Calc& _calc;
 	int hand = 0;
 
 	// to generate these
@@ -106,28 +106,24 @@ struct TheGreatBazoinkazoinkInTheSky
 	// so we can apply them here
 	diffz _diffz;
 
-	void praise_the_glory_of_ulbu() const
+	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
+	  : _calc(calc)
 	{
 #ifndef RELWITHDEBINFO
 #if NDEBUG
-		load_params_from_disk();
+		load_calc_params_from_disk();
 #endif
 #endif
-	}
-
-	TheGreatBazoinkazoinkInTheSky()
-	  : _calc(nullptr)
-	{
+		
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
 	}
-
-	void operator()(Calc* calc)
+	
+	void operator()()
 	{
-		_calc = calc;
 		hand = 0;
 
 		// should redundant but w.e not sure
@@ -177,10 +173,10 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		setup_agnostic_pmods();
 
-		for (auto itv = 0; itv < _calc->numitv; ++itv) {
-			for (auto row = 0; row < _calc->itv_size.at(itv); ++row) {
+		for (auto itv = 0; itv < _calc.numitv; ++itv) {
+			for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
 
-				const auto& ri = _calc->adj_ni.at(itv).at(row);
+				const auto& ri = _calc.adj_ni.at(itv).at(row);
 				(*_mri)(
 				  *_last_mri, _mitvi, ri.row_time, ri.row_count, ri.row_notes);
 
@@ -199,10 +195,10 @@ struct TheGreatBazoinkazoinkInTheSky
 			_mitvi.handle_interval_end();
 		}
 
-		PatternMods::run_agnostic_smoothing_pass(_calc->numitv, _calc);
+		PatternMods::run_agnostic_smoothing_pass(_calc.numitv, _calc);
 
 		// copy left -> right for agnostic mods
-		PatternMods::bruh_they_the_same(_calc->numitv, _calc);
+		PatternMods::bruh_they_the_same(_calc.numitv, _calc);
 	}
 
 #pragma endregion
@@ -329,7 +325,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc->jack_diff.at(hand).push_back(thing);
+		_calc.jack_diff.at(hand).push_back(thing);
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -344,11 +340,11 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_calc->soap.at(hand)[TechBase].at(itv) =
-		  _diffz._tc.get_itv_diff(_calc->soap.at(hand)[NPSBase].at(itv), _calc);
+		_calc.soap.at(hand)[TechBase].at(itv) =
+		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv), _calc);
 
 		// mostly for debug output.. optimize later
-		_calc->soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
+		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
 	}
 
 	void run_dependent_pmod_loop()
@@ -366,19 +362,19 @@ struct TheGreatBazoinkazoinkInTheSky
 			full_hand_reset();
 
 			// arrays are super bug prone with jacks so try vectors for now
-			_calc->jack_diff.at(hand).clear();
+			_calc.jack_diff.at(hand).clear();
 
 			nps::actual_cancer(_calc, hand);
 
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
-			Smooth(_calc->soap.at(hand).at(NPSBase), 0.F, _calc->numitv);
+			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
-			for (auto itv = 0; itv < _calc->numitv; ++itv) {
+			for (auto itv = 0; itv < _calc.numitv; ++itv) {
 				auto jack_counter = 0;
-				for (auto row = 0; row < _calc->itv_size.at(itv); ++row) {
+				for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
 
-					const auto& ri = _calc->adj_ni.at(itv).at(row);
+					const auto& ri = _calc.adj_ni.at(itv).at(row);
 					row_time = ri.row_time;
 					row_notes = ri.row_notes;
 					const auto row_count = ri.row_count;
@@ -443,7 +439,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 				handle_dependent_interval_end(itv);
 			}
-			PatternMods::run_dependent_smoothing_pass(_calc->numitv, _calc);
+			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
@@ -485,19 +481,38 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 	}
 
-	void load_calc_params_from_disk() const
+	void load_calc_params_from_disk(bool bForce = false) const
 	{
 		const auto fn = calc_params_xml;
 		int iError;
-		const std::unique_ptr<RageFileBasic> pFile(
-		  FILEMAN->Open(fn, RageFile::READ, iError));
-		if (pFile == nullptr) {
+
+		// Hold calc params program-global persistent info
+		static RageFileBasic* pFile;
+		static XNode params;
+		// Only ever try to load params once per thread unless forcing
+		thread_local bool paramsLoaded = false;
+
+		// Don't keep loading params if nothing to load/no reason to
+		// Allow a force to bypass
+		if (paramsLoaded && !bForce)
 			return;
+
+		// Load if missing or allow a force reload
+		if (pFile == nullptr || bForce) {
+			delete pFile;
+			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
+			paramsLoaded = true;
+			// Failed to load
+			if (pFile == nullptr)
+				return;
 		}
 
-		XNode params;
-		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
-			return;
+		// If it isn't loaded or we are forcing a load, load it
+		if (params.ChildrenEmpty() || bForce)
+		{
+			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
+				return;
+			}
 		}
 
 		// ignore params from older versions
