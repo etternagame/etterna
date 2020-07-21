@@ -298,8 +298,6 @@ GameState::Reset()
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();
 
-	SONGMAN->UpdateShuffled();
-
 	STATSMAN->Reset();
 	m_bTemporaryEventMode = false;
 	sExpandedSectionName = "";

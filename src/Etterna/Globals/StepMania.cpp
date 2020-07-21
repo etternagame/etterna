@@ -1229,7 +1229,6 @@ sm_main(int argc, char* argv[])
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
 	SONGMAN->CalcTestStuff();		  // must be after profileman init
 
-	SONGMAN->UpdatePreferredSort();
 	NSMAN = new NetworkSyncManager(pLoadingWindow);
 	STATSMAN = new StatsManager;
 

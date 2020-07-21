@@ -236,13 +236,6 @@ GameCommand::LoadOne(const Command& cmd)
 		}
 	}
 
-	else if (sName == "song") {
-		CHECK_INVALID_COND(m_pSong,
-						   SONGMAN->FindSong(sValue),
-						   (SONGMAN->FindSong(sValue) == NULL),
-						   (ssprintf("Song \"%s\" not found", sValue.c_str())));
-	}
-
 	else if (sName == "steps") {
 		const auto sSteps = sValue;
 
