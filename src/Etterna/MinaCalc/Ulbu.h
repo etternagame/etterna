@@ -322,7 +322,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		  std::pair{ row_time,
 					 ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
 					   basescalers[Skill_JackSpeed] };
-		if (isnan(thing.second)) {
+		if (std::isnan(thing.second)) {
 			thing.second = 0.F;
 		}
 		// jack speed updates with highest anchor difficulty seen
