@@ -43,6 +43,8 @@
 // a new thing
 #include "SequencedBaseDiffCalc.h"
 
+#include <cmath>
+
 /* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
 
