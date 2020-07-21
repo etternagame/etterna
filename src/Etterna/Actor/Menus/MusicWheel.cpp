@@ -823,6 +823,7 @@ MusicWheel::BuildWheelItemDatas(
 		// sort the songs
 		switch (so) {
 			case SORT_FAVORITES:
+				bUseSections = false;
 				break;
 			case SORT_GROUP:
 				SongUtil::SortSongPointerArrayByGroupAndTitle(arraySongs);
