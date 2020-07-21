@@ -100,6 +100,8 @@ class GameSoundManager : MessageSubscriber
 
 	void HandleMessage(const Message& msg) override;
 
+	void ResyncMusicPlaying();
+
 	// Lua
 	void PushSelf(lua_State* L);
 };

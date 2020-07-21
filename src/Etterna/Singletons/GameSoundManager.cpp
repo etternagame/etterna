@@ -778,6 +778,15 @@ GameSoundManager::GetPlayingMusicParams()
 }
 
 void
+GameSoundManager::ResyncMusicPlaying()
+{
+	// This function is primarily just useful for hacking MP3 sync back to normal since moving sound backwards force it to completely resync at the moment
+	auto* rs = g_Playing->m_Music;
+	auto now = rs->GetPositionSeconds();
+	SetSoundPosition(rs, now - 0.01F);
+}
+
+void
 GameSoundManager::PlayMusic(const std::string& sFile,
 							const TimingData* pTiming,
 							bool bForceLoop,
@@ -1032,6 +1041,11 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
+	static int ResyncMusicPlaying(T* p, lua_State* L)
+	{
+		p->ResyncMusicPlaying();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaGameSoundManager()
 	{
@@ -1045,6 +1059,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
 		ADD_METHOD(SetVolume);
+		ADD_METHOD(ResyncMusicPlaying);
 	}
 };
 
