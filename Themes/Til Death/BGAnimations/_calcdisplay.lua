@@ -662,7 +662,7 @@ o[#o + 1] = Def.Quad {
 			
             txt:visible(true)
 			txt:x(goodXPos + 36)
-            txt:y(ypos - 40)
+            txt:y(ypos - 20)
 
             local index = convertPercentToIndexForMods(mx - leftEnd, rightEnd - leftEnd)
             txt:settext(debugstrings[index])
@@ -966,14 +966,14 @@ local modColors = {
 }
 
 local skillsetColors = {
-    color("1,0,1"),     -- overall
-    color("#7d6b91"),   -- stream
-    color("#8481db"),   -- jumpstream
-    color("#995fa3"),   -- handstream
-    color("#f2b5fa"),   -- stamina
-    color("#6c969d"),   -- jack
-    color("#a5f8d3"),   -- chordjack
-    color("#b0cec2"),    -- tech
+    color("1,1,1"),     -- overall
+    color("#333399"),   -- stream
+    color("#6666ff"),   -- jumpstream
+    color("#cc33ff"),   -- handstream
+    color("#ff99cc"),   -- stamina
+    color("#009933"),   -- jack
+    color("#66ff66"),   -- chordjack
+    color("#808080"),    -- tech
 }
 
 local jackdiffColors = {
@@ -1506,7 +1506,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "DebugStringText",
     InitCommand = function(self)
-        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.5)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.5):maxheight(500)
     end
 }
 
