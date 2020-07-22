@@ -205,7 +205,7 @@ sd[#sd + 1] = Def.Quad {
 			currentidx = currentidx - displayindexoffset
 		end
 
-		if #thesteps - displayindexoffset < numshown then
+		if #thesteps > numshown and #thesteps - displayindexoffset < numshown then
 			displayindexoffset = #thesteps - numshown 
 		end
 
