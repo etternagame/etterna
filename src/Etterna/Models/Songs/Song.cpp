@@ -1618,15 +1618,21 @@ Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
-const vector<Steps*>
+std::vector<Steps*>
 Song::GetChartsOfCurrentGameMode() const
 {
 	std::vector<StepsType> types;
 	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
 
-	vector<Steps*> steps;
+	std::vector<Steps*> steps;
 	for (auto type : types) {
 		auto tmp = GetStepsByStepsType(type);
+
+		auto comp = [](const Steps* a, const Steps* b) {
+			return a->GetDifficulty() < b->GetDifficulty();
+		};
+		sort(tmp.begin(), tmp.end(), comp);
+
 		steps.insert(steps.end(), tmp.begin(), tmp.end());
 	}
 	return steps;
@@ -1656,7 +1662,8 @@ Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 }
 
 bool
-Song::MatchesFilter(const float rate, std::vector<Steps*>* vMatchingStepsOut) const
+Song::MatchesFilter(const float rate,
+					std::vector<Steps*>* vMatchingStepsOut) const
 {
 	auto charts = GetChartsOfCurrentGameMode();
 
@@ -2293,6 +2300,11 @@ class LunaSong : public Luna<Song>
 		p->PlaySampleMusicExtended();
 		return 0;
 	}
+	static int GetChartsOfCurrentGameMode(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetChartsOfCurrentGameMode(), L);
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2358,6 +2370,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
 		ADD_METHOD(PlaySampleMusicExtended);
+		ADD_METHOD(GetChartsOfCurrentGameMode);
 	}
 };
 
