@@ -44,11 +44,7 @@ void
 End();
 
 void
-InitSongsFromDisk(LoadingWindow* ld);
-void
 CalcTestStuff();
-void
-FreeSongs();
 void
 Cleanup();
 
@@ -58,8 +54,6 @@ auto
 GetPlaylists() -> std::map<std::string, Playlist>&;
 void
 SaveEnabledSongsToPref();
-void
-LoadEnabledSongsFromPref();
 
 void
 InitAll(LoadingWindow* ld); // songs, groups - everything.

@@ -76,6 +76,8 @@ namespace SONGMAN {
 namespace { // Anonymous namespace
 // Foward Function Declarations:
 void
+LoadEnabledSongsFromPref();
+void
 LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
 auto
 IsSongDir(const std::string& sDir) -> bool;
@@ -86,6 +88,10 @@ AddSongToList(Song* new_song);
 // Indexed by chartkeys
 void
 AddKeyedPointers(Song* new_song);
+void
+InitSongsFromDisk(LoadingWindow* ld);
+void
+FreeSongs();
 
 /** @brief All of the songs that can be played. */
 std::vector<Song*> m_pSongs;
@@ -112,7 +118,9 @@ Init()
 	{
 		auto L = LUA->Get();
 		lua_pushstring(L, "SONGMAN");
-		PushSelf(L);
+		// PushSelf(L);
+		// TODO: Check if this is neccesary. This was used when SongManager was
+		// a class
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
@@ -326,93 +334,6 @@ FinalizeSong(Song* pNewSong, const std::string& dir)
 }
 
 std::mutex songLoadingSONGMANMutex;
-void
-InitSongsFromDisk(LoadingWindow* ld)
-{
-	RageTimer tm;
-	// Tell SONGINDEX to not write the cache index file every time a song adds
-	// an entry. -Kyz
-	SONGINDEX->delay_save_cache = true;
-	if (PREFSMAN->m_bFastLoad) {
-		SONGINDEX->LoadCache(ld, cache);
-	}
-	if (ld != nullptr) {
-		ld->SetIndeterminate(false);
-		ld->SetTotalWork(cache.size());
-		ld->SetText("Loading songs from cache");
-		ld->SetProgress(0);
-	}
-	auto onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
-
-	std::function<void(
-	  std::pair<
-		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
-		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>,
-	  ThreadData*)>
-	  callback =
-		[](std::pair<
-			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
-			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>
-			 workload,
-		   ThreadData* data) {
-			auto pair =
-			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
-			auto onePercent = pair->first;
-			auto ld = pair->second;
-			auto cacheIndex = 0;
-			auto lastUpdate = 0;
-			for (auto it = workload.first; it != workload.second; it++) {
-				auto pair = *it;
-				cacheIndex++;
-				if (cacheIndex % onePercent == 0) {
-					data->_progress += cacheIndex - lastUpdate;
-					lastUpdate = cacheIndex;
-					data->setUpdated(true);
-				}
-				auto& pNewSong = pair->second;
-				const std::string& dir = pNewSong->GetSongDir();
-				if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) ||
-					(!PREFSMAN->m_bBlindlyTrustCache.Get() &&
-					 pair->first.second != GetHashForDirectory(dir))) {
-					if (PREFSMAN->m_bShrinkSongCache) {
-						SONGINDEX->DeleteSongFromDB(pair->second);
-					}
-					delete pair->second;
-					continue;
-				}
-				pNewSong->FinalizeLoading();
-				{
-					std::lock_guard<std::mutex> lock(songLoadingSONGMANMutex);
-					FinalizeSong(pNewSong, dir);
-				}
-			}
-		};
-	auto onUpdate = [ld](int progress) {
-		if (ld != nullptr) {
-			ld->SetProgress(progress);
-		}
-	};
-	parallelExecution<std::pair<std::pair<std::string, unsigned int>, Song*>*>(
-	  cache,
-	  onUpdate,
-	  callback,
-	  static_cast<void*>(new std::pair<int, LoadingWindow*>(onePercent, ld)));
-	LoadStepManiaSongDir(SpecialFiles::SONGS_DIR, ld);
-	LoadStepManiaSongDir(ADDITIONAL_SONGS_DIR, ld);
-	LoadEnabledSongsFromPref();
-	SONGINDEX->delay_save_cache = false;
-
-	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Trace("Found %u songs in %f seconds.",
-				   static_cast<unsigned int>(m_pSongs.size()),
-				   tm.GetDeltaTime());
-	}
-	for (auto& pair : cache) {
-		delete pair;
-	}
-
-	cache.clear();
-}
 
 void
 CalcTestStuff()
@@ -576,30 +497,6 @@ static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
 std::mutex diskLoadSongMutex;
 std::mutex diskLoadGroupMutex;
 static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
-
-void
-FreeSongs()
-{
-	m_sSongGroupNames.clear();
-	m_sSongGroupBannerPaths.clear();
-	// m_sSongGroupBackgroundPaths.clear();
-
-	for (unsigned i = 0; i < m_pSongs.size(); ++i) {
-		SAFE_DELETE(m_pSongs[i]);
-	}
-
-	m_pSongs.clear();
-	m_SongsByDir.clear();
-
-	m_mapSongGroupIndex.clear();
-	m_sSongGroupBannerPaths.clear();
-
-	SongsByKey.clear();
-	StepsByKey.clear();
-	groupderps.clear();
-
-	m_pPopularSongs.clear();
-}
 
 auto
 IsGroupNeverCached(const std::string& group) -> bool
@@ -870,22 +767,6 @@ SaveEnabledSongsToPref()
 }
 
 void
-LoadEnabledSongsFromPref()
-{
-	vector<std::string> asDisabledSongs;
-	split(g_sDisabledSongs, ";", asDisabledSongs, true);
-
-	for (auto& s : asDisabledSongs) {
-		SongID sid;
-		sid.FromString(s);
-		auto pSong = sid.ToSong();
-		if (pSong != nullptr) {
-			pSong->SetEnabled(false);
-		}
-	}
-}
-
-void
 DeleteSteps(Steps* pSteps)
 {
 	pSteps->m_pSong->DeleteSteps(pSteps);
@@ -1024,6 +905,133 @@ SaveCalcTestXmlToDir()
 	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 }
 namespace { // Anonymous forward-declared functions
+void
+LoadEnabledSongsFromPref()
+{
+	vector<std::string> asDisabledSongs;
+	split(g_sDisabledSongs, ";", asDisabledSongs, true);
+
+	for (auto& s : asDisabledSongs) {
+		SongID sid;
+		sid.FromString(s);
+		auto pSong = sid.ToSong();
+		if (pSong != nullptr) {
+			pSong->SetEnabled(false);
+		}
+	}
+}
+
+void
+FreeSongs()
+{
+	m_sSongGroupNames.clear();
+	m_sSongGroupBannerPaths.clear();
+	// m_sSongGroupBackgroundPaths.clear();
+
+	for (unsigned i = 0; i < m_pSongs.size(); ++i) {
+		SAFE_DELETE(m_pSongs[i]);
+	}
+
+	m_pSongs.clear();
+	m_SongsByDir.clear();
+
+	m_mapSongGroupIndex.clear();
+	m_sSongGroupBannerPaths.clear();
+
+	SongsByKey.clear();
+	StepsByKey.clear();
+	groupderps.clear();
+
+	m_pPopularSongs.clear();
+}
+
+void
+InitSongsFromDisk(LoadingWindow* ld)
+{
+	RageTimer tm;
+	// Tell SONGINDEX to not write the cache index file every time a song adds
+	// an entry. -Kyz
+	SONGINDEX->delay_save_cache = true;
+	if (PREFSMAN->m_bFastLoad) {
+		SONGINDEX->LoadCache(ld, cache);
+	}
+	if (ld != nullptr) {
+		ld->SetIndeterminate(false);
+		ld->SetTotalWork(cache.size());
+		ld->SetText("Loading songs from cache");
+		ld->SetProgress(0);
+	}
+	auto onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
+
+	std::function<void(
+	  std::pair<
+		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
+		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>,
+	  ThreadData*)>
+	  callback =
+		[](std::pair<
+			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
+			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>
+			 workload,
+		   ThreadData* data) {
+			auto pair =
+			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
+			auto onePercent = pair->first;
+			auto ld = pair->second;
+			auto cacheIndex = 0;
+			auto lastUpdate = 0;
+			for (auto it = workload.first; it != workload.second; it++) {
+				auto pair = *it;
+				cacheIndex++;
+				if (cacheIndex % onePercent == 0) {
+					data->_progress += cacheIndex - lastUpdate;
+					lastUpdate = cacheIndex;
+					data->setUpdated(true);
+				}
+				auto& pNewSong = pair->second;
+				const std::string& dir = pNewSong->GetSongDir();
+				if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) ||
+					(!PREFSMAN->m_bBlindlyTrustCache.Get() &&
+					 pair->first.second != GetHashForDirectory(dir))) {
+					if (PREFSMAN->m_bShrinkSongCache) {
+						SONGINDEX->DeleteSongFromDB(pair->second);
+					}
+					delete pair->second;
+					continue;
+				}
+				pNewSong->FinalizeLoading();
+				{
+					std::lock_guard<std::mutex> lock(songLoadingSONGMANMutex);
+					FinalizeSong(pNewSong, dir);
+				}
+			}
+		};
+	auto onUpdate = [ld](int progress) {
+		if (ld != nullptr) {
+			ld->SetProgress(progress);
+		}
+	};
+	parallelExecution<std::pair<std::pair<std::string, unsigned int>, Song*>*>(
+	  cache,
+	  onUpdate,
+	  callback,
+	  static_cast<void*>(new std::pair<int, LoadingWindow*>(onePercent, ld)));
+	LoadStepManiaSongDir(SpecialFiles::SONGS_DIR, ld);
+	LoadStepManiaSongDir(ADDITIONAL_SONGS_DIR, ld);
+	LoadEnabledSongsFromPref();
+	SONGINDEX->delay_save_cache = false;
+
+	if (PREFSMAN->m_verbose_log > 1) {
+		LOG->Trace("Found %u songs in %f seconds.",
+				   static_cast<unsigned int>(m_pSongs.size()),
+				   tm.GetDeltaTime());
+	}
+	for (auto& pair : cache) {
+		delete pair;
+	}
+
+	cache.clear();
+}
 
 // Only store 1 steps/song pointer per key -Mina
 void
