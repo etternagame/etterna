@@ -27,106 +27,88 @@ CompareNotesPointersForExtra(const Steps* n1, const Steps* n2) -> bool;
 
 /** @brief The holder for the Songs and its Steps. */
 namespace SONGMAN {
-std::unordered_map<std::string, Song*> SongsByKey;
-std::unordered_map<std::string, Steps*> StepsByKey;
 
-std::set<std::string> m_GroupsToNeverCache;
+extern std::unordered_map<std::string, Song*> SongsByKey;
+extern std::unordered_map<std::string, Steps*> StepsByKey;
+extern std::set<std::string> m_GroupsToNeverCache;
 /** @brief The most popular songs ranked by number of plays. */
-std::vector<Song*> m_pPopularSongs;
+extern std::vector<Song*> m_pPopularSongs;
 
-std::vector<std::string> m_sSongGroupNames;
-std::vector<std::string> m_sSongGroupBannerPaths; // each song group may have a
+extern std::vector<std::string> m_sSongGroupNames;
+extern std::vector<std::string> m_sSongGroupBannerPaths; // each song group may have a
 												  // banner associated with it
+extern std::string activeplaylist;
+extern std::string playlistcourse;
 
-void
-Init();
-void
-End();
+extern std::map<std::string, std::vector<Song*>> groupderps;
+/**@brief To delete from groupderps when rebuilding playlist groups*/
+extern std::vector<std::string> playlistGroups;
 
-void
-CalcTestStuff();
-void
-Cleanup();
+extern std::map<Skillset, CalcTestList> testChartList;
+extern std::unique_ptr<Calc> calc;
 
-void
-Invalidate(const Song* pStaleSong);
-auto
-GetPlaylists() -> std::map<std::string, Playlist>&;
-void
-SaveEnabledSongsToPref();
 
-void
-InitAll(LoadingWindow* ld); // songs, groups - everything.
-auto
-DifferentialReload() -> int;
-auto
-DifferentialReloadDir(std::string dir) -> int;
 
-auto
-IsGroupNeverCached(const std::string& group) -> bool;
-void
-SetFavoritedStatus(std::set<std::string>& favs);
-void
-SetPermaMirroredStatus(std::set<std::string>& pmir);
-void
-SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap);
 
-auto
-GetSongGroupBannerPath(const std::string& sSongGroup) -> std::string;
-auto
-GetSongGroupBannerPaths() -> std::vector<std::string>
+extern void Init();
+extern void End();
+extern void CalcTestStuff();
+extern void Cleanup();
+
+extern void Invalidate(const Song* pStaleSong);
+extern auto GetPlaylists() -> std::map<std::string, Playlist>&;
+extern void SaveEnabledSongsToPref();
+
+extern void InitAll(LoadingWindow* ld); // songs, groups - everything.
+extern auto DifferentialReload() -> int;
+extern auto DifferentialReloadDir(std::string dir) -> int;
+
+extern auto IsGroupNeverCached(const std::string& group) -> bool;
+extern void SetFavoritedStatus(std::set<std::string>& favs);
+extern void SetPermaMirroredStatus(std::set<std::string>& pmir);
+extern void SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap);
+
+extern auto GetSongGroupBannerPath(const std::string& sSongGroup) -> std::string;
+inline auto GetSongGroupBannerPaths() -> std::vector<std::string>
 {
 	return m_sSongGroupBannerPaths;
 }
 // std::string GetSongGroupBackgroundPath( std::string sSongGroup ) const;
-void
-GetSongGroupNames(std::vector<std::string>& AddTo);
-auto
-GetSongGroupNames() -> const std::vector<std::string>&;
-auto
-DoesSongGroupExist(const std::string& sSongGroup) -> bool;
-auto
-GetSongGroupColor(const std::string& sSongGroupName,
+extern void GetSongGroupNames(std::vector<std::string>& AddTo);
+extern auto GetSongGroupNames() -> const std::vector<std::string>&;
+extern auto DoesSongGroupExist(const std::string& sSongGroup) -> bool;
+extern auto GetSongGroupColor(const std::string& sSongGroupName,
 				  std::map<std::string, Playlist>& playlists = GetPlaylists())
   -> RageColor;
-auto
-GetSongColor(const Song* pSong) -> RageColor;
+extern auto GetSongColor(const Song* pSong) -> RageColor;
 
 // temporary solution to reorganizing the entire songid/stepsid system -
 // mina
-auto
-GetStepsByChartkey(const std::string& ck) -> Steps*;
-auto
-GetSongByChartkey(const std::string& ck) -> Song*;
-void
-UnloadAllCalcDebugOutput();
-auto
-IsChartLoaded(const std::string& ck) -> bool
+extern auto GetStepsByChartkey(const std::string& ck) -> Steps*;
+extern auto GetSongByChartkey(const std::string& ck) -> Song*;
+extern void UnloadAllCalcDebugOutput();
+inline auto IsChartLoaded(const std::string& ck) -> bool
 {
 	return SongsByKey.count(ck) == 1 &&
 		   StepsByKey.count(ck) ==
 			 1; // shouldn't be necessary but apparently it is -mina
 }
 
-void
-ResetGroupColors();
+extern void ResetGroupColors();
 
-auto
-ShortenGroupName(const std::string& sLongGroupName) -> std::string;
+extern auto ShortenGroupName(const std::string& sLongGroupName) -> std::string;
 
 // Lookup
 /**
  * @brief Retrieve all of the songs that belong to a particular group.
  * @param sGroupName the name of the group.
  * @return the songs that belong in the group. */
-auto
-GetSongs(const std::string& sGroupName) -> const std::vector<Song*>&;
-void
-ForceReloadSongGroup(const std::string& sGroupName);
+extern auto GetSongs(const std::string& sGroupName) -> const std::vector<Song*>&;
+extern void ForceReloadSongGroup(const std::string& sGroupName);
 /**
  * @brief Retrieve all of the songs in the game.
  * @return all of the songs. */
-auto
+inline auto
 GetAllSongs() -> const std::vector<Song*>&
 {
 	return GetSongs(GROUP_ALL);
@@ -137,77 +119,53 @@ GetAllSongs() -> const std::vector<Song*>&
  * Popularity is determined specifically by the number of times
  * a song is chosen.
  * @return all of the popular songs. */
-auto
+inline auto
 GetPopularSongs() -> const std::vector<Song*>&
 {
 	return m_pPopularSongs;
 }
 
-void
-GetFavoriteSongs(std::vector<Song*>& songs);
+extern void GetFavoriteSongs(std::vector<Song*>& songs);
 /**
  * @brief Retrieve the number of songs in the game.
  * @return the number of songs. */
-auto
-GetNumSongs() -> int;
-auto
-GetNumAdditionalSongs() -> int;
-auto
-GetNumSongGroups() -> int;
+extern auto GetNumSongs() -> int;
+extern auto GetNumAdditionalSongs() -> int;
+extern auto GetNumSongGroups() -> int;
 // sm-ssc addition:
-auto
+inline auto
 GetSongGroupByIndex(const unsigned index) -> std::string
 {
 	return m_sSongGroupNames[index];
 }
 
-void
-DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
-auto
-WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
+extern void DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
+extern auto WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
+extern auto GetSongFromDir(std::string sDir) -> Song*;
+extern void SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
 
-auto
-GetSongFromDir(std::string sDir) -> Song*;
+/* Possibly unneccesary since SONGMAN is no longer a class? //TODO: CHECK THIS
+	// Lua
+	void
+	PushSelf(lua_State* L);
+ **/
 
-void
-SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
-
-// Lua
-void
-PushSelf(lua_State* L);
-
-std::string activeplaylist = "";
-std::string playlistcourse = "";
-void
-ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
+extern void ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 								  const std::vector<std::string>& oldChartkeys);
-void
-MakeSongGroupsFromPlaylists(
+extern void MakeSongGroupsFromPlaylists(
   std::map<std::string, Playlist>& playlists = GetPlaylists());
-void
-DeletePlaylist(const std::string& pl,
+extern void DeletePlaylist(const std::string& pl,
 			   std::map<std::string, Playlist>& playlists = GetPlaylists());
-void
-MakePlaylistFromFavorites(
+extern void MakePlaylistFromFavorites(
   std::set<std::string>& favs,
   std::map<std::string, Playlist>& playlists = GetPlaylists());
 
-std::map<std::string, std::vector<Song*>> groupderps;
-std::vector<std::string> playlistGroups; // To delete from groupderps when
-										 // rebuilding
-										 // playlist groups
 
-void
-FinalizeSong(Song* pNewSong, const std::string& dir);
+extern void FinalizeSong(Song* pNewSong, const std::string& dir);
 
 // calc test stuff
-auto
-SaveCalcTestCreateNode() -> XNode*;
-void
-LoadCalcTestNode();
-void
-SaveCalcTestXmlToDir();
-std::map<Skillset, CalcTestList> testChartList;
-std::unique_ptr<Calc> calc;
+extern auto SaveCalcTestCreateNode() -> XNode*;
+extern void LoadCalcTestNode();
+extern void SaveCalcTestXmlToDir();
 };
 #endif

@@ -73,25 +73,17 @@ SONG_GROUP_COLOR_NAME(size_t i) -> std::string
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
 namespace SONGMAN {
-namespace { // Anonymous namespace
+namespace { // Anonymous namespace (For internally-used functions and variables)
 // Foward Function Declarations:
-void
-LoadEnabledSongsFromPref();
-void
-LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
-auto
-IsSongDir(const std::string& sDir) -> bool;
-auto
-AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
-void
-AddSongToList(Song* new_song);
+void LoadEnabledSongsFromPref();
+void LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
+auto IsSongDir(const std::string& sDir) -> bool;
+auto AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
+void AddSongToList(Song* new_song);
 // Indexed by chartkeys
-void
-AddKeyedPointers(Song* new_song);
-void
-InitSongsFromDisk(LoadingWindow* ld);
-void
-FreeSongs();
+void AddKeyedPointers(Song* new_song);
+void InitSongsFromDisk(LoadingWindow* ld);
+void FreeSongs();
 
 /** @brief All of the songs that can be played. */
 std::vector<Song*> m_pSongs;
@@ -111,18 +103,54 @@ std::map<std::string, SongPointerVector, Comp> m_mapSongGroupIndex;
 ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
 } // End anonymous namespace
+
+//Extern Variables:
+std::unordered_map<std::string, Song*> SongsByKey;
+std::unordered_map<std::string, Steps*> StepsByKey;
+
+std::set<std::string> m_GroupsToNeverCache;
+/** @brief The most popular songs ranked by number of plays. */
+std::vector<Song*> m_pPopularSongs;
+
+std::vector<std::string> m_sSongGroupNames;
+std::vector<std::string> m_sSongGroupBannerPaths; // each song group may have a
+												  // banner associated with it
+std::string activeplaylist = "";
+std::string playlistcourse = "";
+
+std::map<std::string, std::vector<Song*>> groupderps;
+std::vector<std::string> playlistGroups; // To delete from groupderps when
+										 // rebuilding
+										 // playlist groups
+
+
+
+std::map<Skillset, CalcTestList> testChartList;
+std::unique_ptr<Calc> calc;
+
+
+
+
+
+
+
+
+
 void
 Init()
 {
 	// Register with Lua.
 	{
+		//TODO: This Lua stuff is broken.
+		/*
 		auto L = LUA->Get();
 		lua_pushstring(L, "SONGMAN");
 		// PushSelf(L);
-		// TODO: Check if this is neccesary. This was used when SongManager was
+		// TODO: Check how to fix this. This was used when SongManager was
 		// a class
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
+		 */
 	}
 
 	NUM_SONG_GROUP_COLORS.Load("SongManager", "NumSongGroupColors");
@@ -137,7 +165,7 @@ void
 End()
 {
 	// Unregister with Lua.
-	LUA->UnsetGlobal("SONGMAN");
+	LUA->UnsetGlobal("SONGMAN"); //TODO: This will probably crash horribly since it's not set.
 
 	// Courses depend on Songs and Songs don't depend on Courses.
 	// So, delete the Courses first.
