@@ -468,7 +468,7 @@ Download*
 DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
 	vector<std::string> packs;
-	SONGMAN->GetSongGroupNames(packs);
+	SONGMAN::GetSongGroupNames(packs);
 	for (auto packName : packs) {
 		if (packName == pack->name) {
 			SCREENMAN->SystemMessage("Already have pack " + packName +
@@ -592,7 +592,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else if (screen && screen->GetName() == "ScreenNetSelectMusic")
 			static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 		else
-			SONGMAN->DifferentialReload();
+			SONGMAN::DifferentialReload();
 	}
 	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() &&
 		timeSinceLastDownload > DownloadCooldownTime) {
@@ -700,7 +700,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else if (screen && screen->GetName() == "ScreenNetSelectMusic")
 			static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
 		else
-			SONGMAN->DifferentialReload();
+			SONGMAN::DifferentialReload();
 	}
 }
 
@@ -875,7 +875,7 @@ SetCURLPOSTScore(CURL*& curlHandle,
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
 	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->musics);
-	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+	auto chart = SONGMAN::GetStepsByChartkey(hs->GetChartKey());
 	if (chart == nullptr)
 		return;
 	SetCURLFormPostField(curlHandle,
@@ -943,7 +943,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	const auto& rows = hs->GetNoteRowVector();
 	if (!offsets.empty()) {
 		replayString = "[";
-		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		auto steps = SONGMAN::GetStepsByChartkey(hs->GetChartKey());
 		if (steps == nullptr) {
 			LOG->Trace("Attempted to upload score with no loaded steps "
 					   "(scorekey: \"%s\" chartkey: \"%s\")",
@@ -1236,7 +1236,7 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 										  bool startnow)
 {
 	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
-	auto songs = SONGMAN->GetSongs(pack);
+	auto songs = SONGMAN::GetSongs(pack);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
 			ForceUploadScoresForChart(c->GetChartKey(), false);
@@ -1254,7 +1254,7 @@ DownloadManager::ForceUploadAllScores()
 {
 	bool not_already_uploading = this->ScoreUploadSequentialQueue.empty();
 
-	auto songs = SONGMAN->GetSongs(GROUP_ALL);
+	auto songs = SONGMAN::GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
 			ForceUploadScoresForChart(c->GetChartKey(), false);

@@ -142,8 +142,8 @@ DBProfile::LoadFavourites(SQLite::Database* db)
 		const char* key = query.getColumn(0);
 		loadingProfile->FavoritedCharts.emplace(key);
 	}
-	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
+	SONGMAN::SetFavoritedStatus(loadingProfile->FavoritedCharts);
+	SONGMAN::MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
 }
 
 void
@@ -219,7 +219,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 
 	pls.emplace(tmp->name, *tmp);
 	delete tmp;
-	SONGMAN->activeplaylist = tmp->name;
+	SONGMAN::activeplaylist = tmp->name;
 	// Now read courseruns
 
 	SQLite::Statement courseRunsQuery(
@@ -416,7 +416,7 @@ DBProfile::LoadPermaMirrors(SQLite::Database* db)
 		const char* key = query.getColumn(0);
 		loadingProfile->PermaMirrorCharts.emplace(key);
 	}
-	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
+	SONGMAN::SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 void
 DBProfile::LoadScoreGoals(SQLite::Database* db)

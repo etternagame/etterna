@@ -215,8 +215,8 @@ XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 
 	FOREACH_CONST_Child(pNode, ck)
 	  loadingProfile->FavoritedCharts.emplace(ck->GetName());
-	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts,
+	SONGMAN::SetFavoritedStatus(loadingProfile->FavoritedCharts);
+	SONGMAN::MakePlaylistFromFavorites(loadingProfile->FavoritedCharts,
 									   loadingProfile->allplaylists);
 }
 
@@ -227,7 +227,7 @@ XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
 
 	FOREACH_CONST_Child(pNode, ck)
 	  loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
-	SONGMAN->SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
+	SONGMAN::SetPermaMirroredStatus(loadingProfile->PermaMirrorCharts);
 }
 
 void
@@ -274,7 +274,7 @@ XMLProfile::LoadPlaylistsFromNode(const XNode* pNode)
 		Playlist tmp;
 		tmp.LoadFromNode(pl);
 		pls.emplace(tmp.name, tmp);
-		SONGMAN->activeplaylist = tmp.name;
+		SONGMAN::activeplaylist = tmp.name;
 	}
 }
 

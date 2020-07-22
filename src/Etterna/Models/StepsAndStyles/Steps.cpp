@@ -483,7 +483,7 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	} else if (m_StepsType == StepsType_dance_single) {
 		if (calc == nullptr) {
 			// reloading at music select
-			diffByRate = MinaSDCalc(cereal, SONGMAN->calc.get());
+			diffByRate = MinaSDCalc(cereal, SONGMAN::calc.get());
 		} else {
 			diffByRate = MinaSDCalc(cereal, calc);
 		}
@@ -511,7 +511,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 		return 0.f;
 	}
 	auto& vh =
-	  SONGMAN->testChartList[ss].filemapping.at(ChartKey).version_history;
+	  SONGMAN::testChartList[ss].filemapping.at(ChartKey).version_history;
 
 	Decompress();
 	const auto& nerv = m_pNoteData->BuildAndGetNerv(GetTimingData());
@@ -564,7 +564,7 @@ Steps::GetCalcDebugOutput()
 					0.93f,
 					calcdebugoutput,
 					debugstrings,
-					*SONGMAN->calc.get());
+					*SONGMAN::calc.get());
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -983,7 +983,7 @@ class LunaSteps : public Luna<Steps>
 		if (p->m_StepsType == StepsType_dance_solo) {
 			d = SoloCalc(ni, rate, goal);
 		} else {
-			d = MinaSDCalc(ni, rate, goal, SONGMAN->calc.get());
+			d = MinaSDCalc(ni, rate, goal, SONGMAN::calc.get());
 		}
 
 		auto ssrs = d;
@@ -1105,9 +1105,9 @@ class LunaSteps : public Luna<Steps>
 		}
 		for (auto hand = 0; hand < 2; hand++) {
 			lua_pushstring(L, hand ? "Right" : "Left");
-			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
-			auto vals = SONGMAN->calc->jack_diff.at(hand);
-			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
+			lua_createtable(L, 0, SONGMAN::calc->jack_diff.at(hand).size());
+			auto vals = SONGMAN::calc->jack_diff.at(hand);
+			auto stam_vals = SONGMAN::calc->jack_stam_stuff.at(hand);
 			for (auto i = 0; i < vals.size(); i++) {
 				auto p = vals[i];
 				vector<float> stuff{ p.first, p.second, stam_vals[i] };

@@ -43,7 +43,7 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 										   bool bDecending)
 {
 	// ugly...
-	auto vpSongs = SONGMAN->GetAllSongs();
+	auto vpSongs = SONGMAN::GetAllSongs();
 	vector<Steps*> vpAllSteps;
 	std::map<Steps*, Song*> mapStepsToSong;
 	{

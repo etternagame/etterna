@@ -194,7 +194,7 @@ AfterDeleteScreen()
 
 	/* Cleanup song data. This can free up a fair bit of memory, so do it
 	 * after deleting screens. */
-	SONGMAN->Cleanup();
+	SONGMAN::Cleanup();
 }
 
 /* Take ownership of all screens and backgrounds that are owned by
@@ -302,7 +302,7 @@ ScreenManager::ThemeChanged()
 	m_soundScreenshot.Load(THEME->GetPathS("Common", "screenshot"));
 
 	// reload song manager colors (to avoid crashes) -aj
-	SONGMAN->ResetGroupColors();
+	SONGMAN::ResetGroupColors();
 
 	ReloadOverlayScreens();
 

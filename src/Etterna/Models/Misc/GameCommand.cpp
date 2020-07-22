@@ -282,7 +282,7 @@ GameCommand::LoadOne(const Command& cmd)
 	else if (sName == "songgroup") {
 		CHECK_INVALID_COND(m_sSongGroup,
 						   sValue,
-						   (!SONGMAN->DoesSongGroupExist(sValue)),
+						   (!SONGMAN::DoesSongGroupExist(sValue)),
 						   ("Song group \"" + sValue + "\" does not exist."));
 	}
 
@@ -370,7 +370,7 @@ GameCommand::IsPlayable(std::string* why) const
 	}
 
 	if (!CompareNoCase(m_sScreen, "ScreenEditMenu")) {
-		if (SONGMAN->GetNumSongs() == 0) {
+		if (SONGMAN::GetNumSongs() == 0) {
 			if (why)
 				*why = "No songs are installed";
 			return false;

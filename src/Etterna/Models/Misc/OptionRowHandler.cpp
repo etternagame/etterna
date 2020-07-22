@@ -677,7 +677,7 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 		m_Default.m_sSongGroup = GROUP_ALL;
 
 		vector<std::string> vSongGroups;
-		SONGMAN->GetSongGroupNames(vSongGroups);
+		SONGMAN::GetSongGroupNames(vSongGroups);
 		ASSERT(!vSongGroups.empty());
 
 		{
@@ -739,7 +739,7 @@ class OptionRowHandlerListSongsInCurrentSongGroup : public OptionRowHandlerList
 	bool LoadInternal(const Commands&) override
 	{
 		const auto& vpSongs =
-		  SONGMAN->GetSongs(GAMESTATE->m_sPreferredSongGroup);
+		  SONGMAN::GetSongs(GAMESTATE->m_sPreferredSongGroup);
 
 		if (GAMESTATE->m_pCurSong == nullptr)
 			GAMESTATE->m_pCurSong.Set(vpSongs[0]);

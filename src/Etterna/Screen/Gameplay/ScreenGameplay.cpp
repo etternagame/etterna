@@ -358,7 +358,7 @@ ScreenGameplay::InitSongQueues()
 		m_apSongsQueue.clear();
 		m_vPlayerInfo.m_vpStepsQueue.clear();
 
-		Playlist& pl = SONGMAN->GetPlaylists()[SONGMAN->playlistcourse];
+		Playlist& pl = SONGMAN::GetPlaylists()[SONGMAN::playlistcourse];
 		FOREACH(Chart, pl.chartlist, ch)
 		{
 			m_apSongsQueue.emplace_back(ch->songptr);
@@ -1617,7 +1617,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		MESSAGEMAN->Broadcast(msg);
 
 		if (GAMESTATE->IsPlaylistCourse()) {
-			SONGMAN->GetPlaylists()[SONGMAN->playlistcourse]
+			SONGMAN::GetPlaylists()[SONGMAN::playlistcourse]
 			  .courseruns.emplace_back(playlistscorekeys);
 		}
 
@@ -1698,7 +1698,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 
 		if (GAMESTATE->IsPlaylistCourse()) {
 			GAMESTATE->isplaylistcourse = false;
-			SONGMAN->playlistcourse = "";
+			SONGMAN::playlistcourse = "";
 		}
 	} else if (SM == SM_GainFocus) {
 		// We do this ourself.

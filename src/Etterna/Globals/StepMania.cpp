@@ -1217,9 +1217,9 @@ sm_main(int argc, char* argv[])
 	IMAGECACHE = new ImageCache;
 
 	// depends on SONGINDEX:
-	SONGMAN = new SongManager;
+	// SONGMAN = new SongManager; TODO: Call SONGMAN "constructor" here
 	SONGINDEX->StartTransaction();
-	SONGMAN->InitAll(pLoadingWindow); // this takes a long time
+	SONGMAN::InitAll(pLoadingWindow); // this takes a long time
 	SONGINDEX->FinishTransaction();
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	if (PREFSMAN->m_bSignProfileData)
@@ -1227,7 +1227,7 @@ sm_main(int argc, char* argv[])
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
-	SONGMAN->CalcTestStuff();		  // must be after profileman init
+	SONGMAN::CalcTestStuff();		  // must be after profileman init
 
 	NSMAN = new NetworkSyncManager(pLoadingWindow);
 	STATSMAN = new StatsManager;

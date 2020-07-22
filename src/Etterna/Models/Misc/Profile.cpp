@@ -514,7 +514,7 @@ Profile::FillGoalTable()
 	goaltable.clear();
 	for (auto& sgv : goalmap)
 		for (auto& sg : sgv.second.goals)
-			if (SONGMAN->GetStepsByChartkey(sg.chartkey))
+			if (SONGMAN::GetStepsByChartkey(sg.chartkey))
 				goaltable.emplace_back(&sg);
 
 	auto comp = [](ScoreGoal* a, ScoreGoal* b) {
@@ -960,9 +960,9 @@ class LunaProfile : public Luna<Profile>
 		if (p->sortmode == 3)
 			if (p->asc) {
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-					return make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
+					return make_lower(SONGMAN::GetSongByChartkey(a->chartkey)
 										->GetDisplayMainTitle()) >
-						   make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
+						   make_lower(SONGMAN::GetSongByChartkey(b->chartkey)
 										->GetDisplayMainTitle());
 				}; // custom operators?
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
@@ -970,9 +970,9 @@ class LunaProfile : public Luna<Profile>
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-			return make_lower(SONGMAN->GetSongByChartkey(a->chartkey)
+			return make_lower(SONGMAN::GetSongByChartkey(a->chartkey)
 								->GetDisplayMainTitle()) <
-				   make_lower(SONGMAN->GetSongByChartkey(b->chartkey)
+				   make_lower(SONGMAN::GetSongByChartkey(b->chartkey)
 								->GetDisplayMainTitle());
 		};
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
@@ -1006,9 +1006,9 @@ class LunaProfile : public Luna<Profile>
 		if (p->sortmode == 5)
 			if (p->asc) {
 				auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-					return SONGMAN->GetStepsByChartkey(a->chartkey)
+					return SONGMAN::GetStepsByChartkey(a->chartkey)
 							 ->GetMSD(a->rate, 0) <
-						   SONGMAN->GetStepsByChartkey(b->chartkey)
+						   SONGMAN::GetStepsByChartkey(b->chartkey)
 							 ->GetMSD(b->rate, 0);
 				};
 				sort(p->goaltable.begin(), p->goaltable.end(), comp);
@@ -1016,9 +1016,9 @@ class LunaProfile : public Luna<Profile>
 				return 0;
 			}
 		auto comp = [](ScoreGoal* a, ScoreGoal* b) {
-			return SONGMAN->GetStepsByChartkey(a->chartkey)
+			return SONGMAN::GetStepsByChartkey(a->chartkey)
 					 ->GetMSD(a->rate, 0) >
-				   SONGMAN->GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0);
+				   SONGMAN::GetStepsByChartkey(b->chartkey)->GetMSD(b->rate, 0);
 		};
 		sort(p->goaltable.begin(), p->goaltable.end(), comp);
 		p->sortmode = 5;

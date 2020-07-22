@@ -345,7 +345,7 @@ ScoreManager::GetAllPBPtrs(const string& profileID)
 {
 	vector<vector<HighScore*>> vec;
 	for (auto& i : pscores.at(profileID)) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
+		if (!SONGMAN::IsChartLoaded(i.first)) {
 			continue;
 		}
 		vec.emplace_back(i.second.GetAllPBPtrs());
@@ -382,7 +382,7 @@ void
 ScoreManager::SetAllTopScores(const string& profileID)
 {
 	for (auto& i : pscores[profileID]) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
+		if (!SONGMAN::IsChartLoaded(i.first)) {
 			continue;
 		}
 		i.second.SetTopScores();
@@ -499,7 +499,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				++scoreIndex;
 
 				auto ck = hs->GetChartKey();
-				auto* steps = SONGMAN->GetStepsByChartkey(ck);
+				auto* steps = SONGMAN::GetStepsByChartkey(ck);
 
 				// this _should_ be impossible since ischartloaded() checks
 				// are required on all charts before getting here but just
@@ -698,7 +698,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 				++scoreIndex;
 
 				auto ck = hs->GetChartKey();
-				auto* steps = SONGMAN->GetStepsByChartkey(ck);
+				auto* steps = SONGMAN::GetStepsByChartkey(ck);
 
 				// check for unloaded steps, only allow 4k
 				if (steps == nullptr ||
@@ -822,7 +822,7 @@ ScoreManager::AggregateSSRs(Skillset ss,
 				ts->GetEtternaValid() &&
 				static_cast<int>(ts->GetChordCohesion()) == 0 &&
 				ts->GetTopScore() != 0 &&
-				SONGMAN->GetStepsByChartkey(ts->GetChartKey())->m_StepsType ==
+				SONGMAN::GetStepsByChartkey(ts->GetChartKey())->m_StepsType ==
 				  StepsType_dance_single) {
 				sum += std::max(
 				  0.0, 2.F / erfc(0.1 * (ts->GetSkillsetSSR(ss) - rating)) - 2);
@@ -841,7 +841,7 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 {
 	TopSSRs.clear();
 	for (auto& i : pscores[profileID]) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
+		if (!SONGMAN::IsChartLoaded(i.first)) {
 			continue;
 		}
 		for (const auto& hs : i.second.GetAllPBPtrs()) {
@@ -861,8 +861,8 @@ ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
-		if (!SONGMAN->IsChartLoaded(i.first) ||
-			!SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+		if (!SONGMAN::IsChartLoaded(i.first) ||
+			!SONGMAN::GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
 			continue;
 		}
 		for (const auto& hs : i.second.GetAllPBPtrs()) {
@@ -902,7 +902,7 @@ ScoreManager::SortRecentScores(const string& profileID)
 {
 	TopSSRs.clear();
 	for (auto& i : pscores[profileID]) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
+		if (!SONGMAN::IsChartLoaded(i.first)) {
 			continue;
 		}
 		for (const auto& hs : i.second.GetAllScores()) {
@@ -922,8 +922,8 @@ ScoreManager::SortRecentScoresForGame(const string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
-		if (!SONGMAN->IsChartLoaded(i.first) ||
-			!SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+		if (!SONGMAN::IsChartLoaded(i.first) ||
+			!SONGMAN::GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
 			continue;
 		}
 		for (const auto& hs : i.second.GetAllScores()) {
@@ -1108,7 +1108,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)) {
+		if ((oldcalc || getremarried) && SONGMAN::IsChartLoaded(ck)) {
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 		}
 	}

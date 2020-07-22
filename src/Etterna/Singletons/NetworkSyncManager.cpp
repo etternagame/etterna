@@ -672,7 +672,7 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, Value& ch)
 	  ch.HasMember("meter") && ch["meter"].IsInt() ? ch["meter"].GetInt() : -1;
 
 	if (!n->chartkey.empty()) {
-		auto song = SONGMAN->GetSongByChartkey(n->chartkey);
+		auto song = SONGMAN::GetSongByChartkey(n->chartkey);
 		if (song == nullptr)
 			return;
 		if ((n->m_sArtist.empty() ||
@@ -694,7 +694,7 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, Value& ch)
 			}
 		}
 	} else {
-		vector<Song*> AllSongs = SONGMAN->GetAllSongs();
+		vector<Song*> AllSongs = SONGMAN::GetAllSongs();
 		for (size_t i = 0; i < AllSongs.size(); i++) {
 			auto& m_cSong = AllSongs[i];
 			if ((n->m_sArtist.empty() ||
@@ -823,7 +823,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						writer.String(GAMESTATE->GetEtternaVersion().c_str());
 						writer.Key("packs");
 						writer.StartArray();
-						auto& packs = SONGMAN->GetSongGroupNames();
+						auto& packs = SONGMAN::GetSongGroupNames();
 						for (auto& pack : packs) {
 							writer.String(correct_non_utf_8(pack).c_str());
 						}
@@ -1612,7 +1612,7 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 						.GetString()
 						.c_str());
 	}
-	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+	auto chart = SONGMAN::GetStepsByChartkey(hs->GetChartKey());
 	writer.Key("negsolo");
 	writer.Int(chart->GetTimingData()->HasWarps() ||
 			   chart->m_StepsType != StepsType_dance_single);

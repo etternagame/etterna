@@ -996,7 +996,7 @@ void
 SongUtil::GetAllSongGenres(vector<std::string>& vsOut)
 {
 	set<std::string> genres;
-	for (const auto& song : SONGMAN->GetAllSongs()) {
+	for (const auto& song : SONGMAN::GetAllSongs()) {
 		if (!song->m_sGenre.empty())
 			genres.insert(song->m_sGenre);
 	}
@@ -1040,7 +1040,9 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 }
 
 void
-SongUtil::GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut, bool filteringSteps)
+SongUtil::GetPlayableSteps(const Song* pSong,
+						   vector<Steps*>& vOut,
+						   bool filteringSteps)
 {
 	set<StepsType> vStepsType;
 	GetPlayableStepsTypes(pSong, vStepsType);
@@ -1125,7 +1127,7 @@ SongID::ToSong() const
 			if (sDir2.front() != '/') {
 				sDir2 = "/" + sDir2;
 			}
-			pRet = SONGMAN->GetSongFromDir(sDir2);
+			pRet = SONGMAN::GetSongFromDir(sDir2);
 		}
 		m_Cache.Set(pRet);
 	}

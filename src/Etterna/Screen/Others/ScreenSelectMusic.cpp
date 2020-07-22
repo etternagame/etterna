@@ -162,7 +162,7 @@ ScreenSelectMusic::Init()
 
 	// build the playlist groups here, songmanager's init from disk can't
 	// because profiles aren't loaded until after that's done -mina
-	SONGMAN->MakeSongGroupsFromPlaylists();
+	SONGMAN::MakeSongGroupsFromPlaylists();
 
 	m_MusicWheel.SetName("MusicWheel");
 	m_MusicWheel.Load(MUSIC_WHEEL_TYPE);
@@ -202,10 +202,10 @@ ScreenSelectMusic::BeginScreen()
 	g_ScreenStartedLoadingAt.Touch();
 	m_timerIdleComment.GetDeltaTime();
 
-	SONGMAN->MakeSongGroupsFromPlaylists();
-	SONGMAN->SetFavoritedStatus(
+	SONGMAN::MakeSongGroupsFromPlaylists();
+	SONGMAN::SetFavoritedStatus(
 	  PROFILEMAN->GetProfile(PLAYER_1)->FavoritedCharts);
-	SONGMAN->SetHasGoal(PROFILEMAN->GetProfile(PLAYER_1)->goalmap);
+	SONGMAN::SetHasGoal(PROFILEMAN->GetProfile(PLAYER_1)->goalmap);
 	if (CommonMetrics::AUTO_SET_STYLE) {
 		GAMESTATE->SetCompatibleStylesForPlayers();
 	}
@@ -248,7 +248,7 @@ ScreenSelectMusic::BeginScreen()
 
 	if (GAMESTATE->IsPlaylistCourse()) {
 		GAMESTATE->isplaylistcourse = false;
-		SONGMAN->playlistcourse = "";
+		SONGMAN::playlistcourse = "";
 	}
 
 	// Update the leaderboard for the file we may have just left
@@ -367,7 +367,7 @@ void
 ScreenSelectMusic::DifferentialReload()
 {
 	// reload songs
-	SONGMAN->DifferentialReload();
+	SONGMAN::DifferentialReload();
 
 	const auto selSong = GAMESTATE->m_pCurSong;
 	const auto currentHoveredGroup = m_MusicWheel.GetCurrentGroup();
@@ -448,7 +448,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					oldChartkeys.emplace_back(steps->GetChartKey());
 
 				to_reload->ReloadFromSongDir();
-				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload,
+				SONGMAN::ReconcileChartKeysForReloadedSong(to_reload,
 														   oldChartkeys);
 
 				AfterMusicChange();
@@ -456,7 +456,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			SONGMAN->ForceReloadSongGroup(
+			SONGMAN::ForceReloadSongGroup(
 			  GetMusicWheel()->GetSelectedSection());
 			AfterMusicChange();
 			SCREENMAN->SystemMessage("Current pack reloaded");
@@ -477,7 +477,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					// now update favorites playlist
 					// we have to do this here or it won't work for ??? reasons
 					pProfile->allplaylists.erase("Favorites");
-					SONGMAN->MakePlaylistFromFavorites(
+					SONGMAN::MakePlaylistFromFavorites(
 					  pProfile->FavoritedCharts, pProfile->allplaylists);
 				} else {
 					fav_me_biatch->SetFavorited(false);
@@ -488,7 +488,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 
 					// we have to do this here or it won't work for ??? reasons
 					pProfile->allplaylists.erase("Favorites");
-					SONGMAN->MakePlaylistFromFavorites(
+					SONGMAN::MakePlaylistFromFavorites(
 					  pProfile->FavoritedCharts, pProfile->allplaylists);
 				}
 				DLMAN->RefreshFavourites();
@@ -565,16 +565,16 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
-			if (SONGMAN->GetPlaylists().empty())
+			if (SONGMAN::GetPlaylists().empty())
 				return true;
 
-			SONGMAN->GetPlaylists()[SONGMAN->activeplaylist].AddChart(
+			SONGMAN::GetPlaylists()[SONGMAN::activeplaylist].AddChart(
 			  GAMESTATE->m_pCurSteps->GetChartKey());
 			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
 			SCREENMAN->SystemMessage(
 			  ssprintf(ADDED_TO_PLAYLIST.GetValue(),
 					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
-					   SONGMAN->activeplaylist.c_str()));
+					   SONGMAN::activeplaylist.c_str()));
 			return true;
 		} else if (bHoldingCtrl && c == 'T' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
@@ -582,7 +582,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 
 			auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
 			Skillset foundSS = Skillset_Invalid;
-			for (const auto& ss : SONGMAN->testChartList) {
+			for (const auto& ss : SONGMAN::testChartList) {
 				if (ss.second.filemapping.count(ck)) {
 					foundSS = ss.first;
 					break;
@@ -596,7 +596,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				  "",
 				  128);
 			else {
-				// SONGMAN->testChartList[foundSS].filemapping.erase(ck);
+				// SONGMAN::testChartList[foundSS].filemapping.erase(ck);
 				SCREENMAN->SystemMessage(ssprintf(
 				  "Removed this chart from the test list (skillset %d)",
 				  foundSS));
@@ -1079,11 +1079,11 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
 					CalcTest thetest;
 					auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
-					if (SONGMAN->testChartList.count(ss)) {
+					if (SONGMAN::testChartList.count(ss)) {
 						thetest.ck = ck;
 						thetest.ev = target;
 						thetest.rate = 1.f;
-						SONGMAN->testChartList[ss].filemapping[ck] = thetest;
+						SONGMAN::testChartList[ss].filemapping[ck] = thetest;
 					} else {
 						CalcTestList tl;
 						tl.skillset = ss;
@@ -1091,15 +1091,15 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 						thetest.ev = target;
 						thetest.rate = 1.f;
 						tl.filemapping[ck] = thetest;
-						SONGMAN->testChartList[ss] = tl;
+						SONGMAN::testChartList[ss] = tl;
 					}
 					SCREENMAN->SystemMessage(
 					  ssprintf("added %s to %s at rate 1.0",
 							   ck.c_str(),
 							   SkillsetToString(ss).c_str()));
-					SONGMAN->SaveCalcTestXmlToDir();
+					SONGMAN::SaveCalcTestXmlToDir();
 					float woo = GAMESTATE->m_pCurSteps->DoATestThing(
-					  target, ss, 1.f, SONGMAN->calc.get());
+					  target, ss, 1.f, SONGMAN::calc.get());
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");
@@ -1114,11 +1114,11 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 				else if (GAMESTATE->m_pCurSteps != nullptr) {
 					CalcTest thetest;
 					auto ck = GAMESTATE->m_pCurSteps->GetChartKey();
-					if (SONGMAN->testChartList.count(ss)) {
+					if (SONGMAN::testChartList.count(ss)) {
 						thetest.ck = ck;
 						thetest.ev = target;
 						thetest.rate = rate;
-						SONGMAN->testChartList[ss].filemapping[ck] = thetest;
+						SONGMAN::testChartList[ss].filemapping[ck] = thetest;
 					} else {
 						CalcTestList tl;
 						tl.skillset = ss;
@@ -1126,16 +1126,16 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 						thetest.ev = target;
 						thetest.rate = rate;
 						tl.filemapping[ck] = thetest;
-						SONGMAN->testChartList[ss] = tl;
+						SONGMAN::testChartList[ss] = tl;
 					}
 					SCREENMAN->SystemMessage(
 					  ssprintf("added %s to %s at rate %f",
 							   ck.c_str(),
 							   SkillsetToString(ss).c_str(),
 							   rate));
-					SONGMAN->SaveCalcTestXmlToDir();
+					SONGMAN::SaveCalcTestXmlToDir();
 					float woo = GAMESTATE->m_pCurSteps->DoATestThing(
-					  target, ss, rate, SONGMAN->calc.get());
+					  target, ss, rate, SONGMAN::calc.get());
 				}
 			} catch (...) {
 				SCREENMAN->SystemMessage("you messed up (input exception)");
@@ -1149,8 +1149,8 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 		Playlist pl;
 		pl.name = ScreenTextEntry::s_sLastAnswer;
 		if (pl.name != "") {
-			SONGMAN->GetPlaylists().emplace(pl.name, pl);
-			SONGMAN->activeplaylist = pl.name;
+			SONGMAN::GetPlaylists().emplace(pl.name, pl);
+			SONGMAN::activeplaylist = pl.name;
 			MESSAGEMAN->Broadcast("DisplayAll");
 		}
 
@@ -1393,7 +1393,7 @@ ScreenSelectMusic::AfterMusicChange()
 			// handling) manually call songmans cleanup function (compresses all
 			// steps); we could optimize by only compressing the pack but this
 			// is pretty fast anyway -mina
-			SONGMAN->Cleanup();
+			SONGMAN::Cleanup();
 		}
 	} else {
 		GAMESTATE->m_pPreferredSong = pSong;
@@ -1701,7 +1701,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	static int StartPlaylistAsCourse(T* p, lua_State* L)
 	{
 		const string name = SArg(1);
-		Playlist& pl = SONGMAN->GetPlaylists()[name];
+		Playlist& pl = SONGMAN::GetPlaylists()[name];
 
 		// don't allow empty playlists to be started as a course
 		if (pl.chartlist.empty()) {
@@ -1723,7 +1723,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 			return 1;
 		}
 
-		SONGMAN->playlistcourse = name;
+		SONGMAN::playlistcourse = name;
 		GAMESTATE->isplaylistcourse = true;
 		p->GetMusicWheel()->SelectSong(pl.chartlist[0].songptr);
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =

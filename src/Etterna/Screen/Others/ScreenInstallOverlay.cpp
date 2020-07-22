@@ -92,9 +92,9 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 			EnsureSlashEnding(imgsOutputPath);
 
 			// Save pack banners
-			auto packs = SONGMAN->GetSongGroupNames();
+			auto packs = SONGMAN::GetSongGroupNames();
 			for (auto& pack : packs) {
-				auto path = SONGMAN->GetSongGroupBannerPath(pack);
+				auto path = SONGMAN::GetSongGroupBannerPath(pack);
 				if (path == "" || !FILEMAN->IsAFile(path))
 					continue;
 				RageFile f;
@@ -113,7 +113,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 				dst << src.rdbuf();
 				dst.close();
 			}
-			for (auto& pSong : SONGMAN->GetAllSongs()) {
+			for (auto& pSong : SONGMAN::GetAllSongs()) {
 				// Fill steps to save
 				vector<Steps*> vpStepsToSave;
 				for (auto& pSteps : pSong->m_vpSteps) {
