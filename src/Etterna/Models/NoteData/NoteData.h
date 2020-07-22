@@ -270,7 +270,10 @@ class NoteData
 							bool unset_etaner_when_done = true)
 	  -> const std::vector<NoteInfo>&;
 
-	auto GetNumTracks() const -> int { return m_TapNotes.size(); }
+	auto GetNumTracks() const -> int
+	{
+		return static_cast<int>(m_TapNotes.size());
+	}
 	void SetNumTracks(int iNewNumTracks);
 	auto operator==(const NoteData& nd) const -> bool
 	{
