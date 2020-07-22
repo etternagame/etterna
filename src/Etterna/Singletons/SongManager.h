@@ -45,38 +45,37 @@ extern std::vector<std::string> playlistGroups;
 extern std::map<Skillset, CalcTestList> testChartList;
 extern std::unique_ptr<Calc> calc;
 
-extern void Init();
-extern void End();
-extern void CalcTestStuff();
-extern void Cleanup();
+void Init();
+void End();
+void CalcTestStuff();
+void Cleanup();
 
-extern auto
-GetPlaylists() -> std::map<std::string, Playlist>&;
+auto GetPlaylists() -> std::map<std::string, Playlist>&;
 
-extern void InitAll(LoadingWindow* ld); // songs, groups - everything.
-extern auto DifferentialReload() -> int;
-extern auto DifferentialReloadDir(std::string dir) -> int; // TODO: INTERNAL
+void InitAll(LoadingWindow* ld); // songs, groups - everything.
+auto DifferentialReload() -> int;
+auto DifferentialReloadDir(std::string dir) -> int; // TODO: INTERNAL
 
-extern auto IsGroupNeverCached(const std::string& group) -> bool;
-extern void SetFavoritedStatus(std::set<std::string>& favs);
-extern void SetPermaMirroredStatus(std::set<std::string>& pmir);
-extern void SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap);
+auto IsGroupNeverCached(const std::string& group) -> bool;
+void SetFavoritedStatus(std::set<std::string>& favs);
+void SetPermaMirroredStatus(std::set<std::string>& pmir);
+void SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap);
 
-extern auto GetSongGroupBannerPath(const std::string& sSongGroup) -> std::string;
+auto GetSongGroupBannerPath(const std::string& sSongGroup) -> std::string;
 
-extern void GetSongGroupNames(std::vector<std::string>& AddTo);
-extern auto GetSongGroupNames() -> const std::vector<std::string>&;
-extern auto DoesSongGroupExist(const std::string& sSongGroup) -> bool;
-extern auto GetSongGroupColor(const std::string& sSongGroupName,
+void GetSongGroupNames(std::vector<std::string>& AddTo);
+auto GetSongGroupNames() -> const std::vector<std::string>&;
+auto DoesSongGroupExist(const std::string& sSongGroup) -> bool;
+auto GetSongGroupColor(const std::string& sSongGroupName,
 				  std::map<std::string, Playlist>& playlists = GetPlaylists())
   -> RageColor;
-extern auto GetSongColor(const Song* pSong) -> RageColor;
+auto GetSongColor(const Song* pSong) -> RageColor;
 
 // temporary solution to reorganizing the entire songid/stepsid system -
 // mina
-extern auto GetStepsByChartkey(const std::string& ck) -> Steps*;
-extern auto GetSongByChartkey(const std::string& ck) -> Song*;
-extern void UnloadAllCalcDebugOutput(); // TODO: Should be used but isn't.
+auto GetStepsByChartkey(const std::string& ck) -> Steps*;
+auto GetSongByChartkey(const std::string& ck) -> Song*;
+void UnloadAllCalcDebugOutput(); // TODO: Should be used but isn't.
 inline auto IsChartLoaded(const std::string& ck) -> bool //Lua binding only
 {
 	return SongsByKey.count(ck) == 1 &&
@@ -84,11 +83,9 @@ inline auto IsChartLoaded(const std::string& ck) -> bool //Lua binding only
 			 1; // shouldn't be necessary but apparently it is -mina
 }
 
-extern void
-ResetGroupColors();
+void ResetGroupColors();
 
-extern auto
-ShortenGroupName(const std::string& sLongGroupName)
+auto ShortenGroupName(const std::string& sLongGroupName)
   -> std::string; // Lua binding only
 
 // Lookup
@@ -96,8 +93,8 @@ ShortenGroupName(const std::string& sLongGroupName)
  * @brief Retrieve all of the songs that belong to a particular group.
  * @param sGroupName the name of the group.
  * @return the songs that belong in the group. */
-extern auto GetSongs(const std::string& sGroupName) -> const std::vector<Song*>&;
-extern void ForceReloadSongGroup(const std::string& sGroupName);
+auto GetSongs(const std::string& sGroupName) -> const std::vector<Song*>&;
+void ForceReloadSongGroup(const std::string& sGroupName);
 /**
  * @brief Retrieve all of the songs in the game.
  * @return all of the songs. */
@@ -116,41 +113,41 @@ inline auto GetPopularSongs() -> const std::vector<Song*>& // Lua binding only
 	return m_pPopularSongs;
 }
 
-extern void GetFavoriteSongs(std::vector<Song*>& songs);
+void GetFavoriteSongs(std::vector<Song*>& songs);
 /**
  * @brief Retrieve the number of songs in the game.
  * @return the number of songs. */
-extern auto GetNumSongs() -> int;
-extern auto GetNumAdditionalSongs() -> int; // Lua binding only
-extern auto GetNumSongGroups() -> int;
+auto GetNumSongs() -> int;
+auto GetNumAdditionalSongs() -> int; // Lua binding only
+auto GetNumSongGroups() -> int;
 // sm-ssc addition:
 inline auto GetSongGroupByIndex(const unsigned index) -> std::string
 {
 	return m_sSongGroupNames[index];
 }
 
-extern auto WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
-extern auto GetSongFromDir(std::string sDir) -> Song*;
-extern void SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
+auto WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
+auto GetSongFromDir(std::string sDir) -> Song*;
+void SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
 
-extern void
+void
 ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 								  const std::vector<std::string>& oldChartkeys);
-// ^ TODO: INTERNAL
-extern void MakeSongGroupsFromPlaylists(
+// ^ TODO: INTERNAL?
+void MakeSongGroupsFromPlaylists(
   std::map<std::string, Playlist>& playlists = GetPlaylists());
-extern void DeletePlaylist(
+void DeletePlaylist(
   const std::string& pl,
   std::map<std::string, Playlist>& playlists = GetPlaylists()); // Lua only
-extern void MakePlaylistFromFavorites(
+void MakePlaylistFromFavorites(
   std::set<std::string>& favs,
   std::map<std::string, Playlist>& playlists = GetPlaylists());
 
-extern void FinalizeSong(Song* pNewSong, const std::string& dir); // TODO: INTERNAL
+void FinalizeSong(Song* pNewSong, const std::string& dir); // TODO: INTERNAL
 
 // calc test stuff
-extern auto SaveCalcTestCreateNode() -> XNode*; // TODO: INTERNAL
-extern void LoadCalcTestNode(); // TODO: INTERNAL
-extern void SaveCalcTestXmlToDir();
+auto SaveCalcTestCreateNode() -> XNode*; // TODO: INTERNAL
+void LoadCalcTestNode(); // TODO: INTERNAL
+void SaveCalcTestXmlToDir();
 };
 #endif
