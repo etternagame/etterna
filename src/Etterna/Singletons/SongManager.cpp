@@ -1258,8 +1258,22 @@ GetSongFromSteps(lua_State* L) -> int
 	return 1;
 }
 
-DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
-DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
+// DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
+// TODO: DELETE ABOVE COMMENT IF FUNCTION BELOW WORKS
+
+static auto
+GetSongColor(lua_State* L) -> int
+{
+	LuaHelpers::Push(L, SONGMAN::GetSongColor(Luna<Song>::check(L, 1)));
+	return 1;
+}
+
+static auto
+GetSongGroupColor(lua_State* L) -> int
+{
+	LuaHelpers::Push(L, SONGMAN::GetSongGroupColor(SArg(1)));
+	return 1;
+}
 
 static auto
 GetSongGroupNames(lua_State* L) -> int
@@ -1278,10 +1292,33 @@ GetSongsInGroup(lua_State* L) -> int
 	return 1;
 }
 
-DEFINE_METHOD(ShortenGroupName, ShortenGroupName(SArg(1)))
-DEFINE_METHOD(GetSongGroupBannerPath, GetSongGroupBannerPath(SArg(1)));
-DEFINE_METHOD(DoesSongGroupExist, DoesSongGroupExist(SArg(1)));
-DEFINE_METHOD(IsChartLoaded, IsChartLoaded(SArg(1)));
+static auto
+ShortenGroupName(lua_State* L) -> int
+{
+	LuaHelpers::Push(L, SONGMAN::ShortenGroupName(SArg(1)));
+	return 1;
+}
+
+static auto
+GetSongGroupBannerPath(lua_State* L) -> int
+{
+	LuaHelpers::Push(L, SONGMAN::GetSongGroupBannerPath(SArg(1)));
+	return 1;
+}
+
+static auto
+DoesSongGroupExist(lua_State* L) -> int
+{
+	LuaHelpers::Push(L, SONGMAN::DoesSongGroupExist(SArg(1)));
+	return 1;
+}
+
+static auto
+IsChartLoaded(lua_State* L) -> int
+{
+	LuaHelpers::Push(L, SONGMAN::IsChartLoaded(SArg(1)));
+	return 1;
+}
 
 static auto
 GetPopularSongs(lua_State* L) -> int
@@ -1379,19 +1416,21 @@ const luaL_Reg SongManagerTable[] = { LIST_METHOD(GetAllSongs),
 									  LIST_METHOD(GetSongGroupColor),
 									  LIST_METHOD(GetSongGroupNames),
 									  LIST_METHOD(GetSongsInGroup),
-									  LIST_METHOD(ShortenGroupName);
-LIST_METHOD(GetSongGroupBannerPath), LIST_METHOD(DoesSongGroupExist),
-  LIST_METHOD(GetPopularSongs), LIST_METHOD(WasLoadedFromAdditionalSongs),
-  LIST_METHOD(GetSongByChartKey), LIST_METHOD(GetStepsByChartKey),
-  LIST_METHOD(GetActivePlaylist), LIST_METHOD(SetActivePlaylist),
-  LIST_METHOD(NewPlaylist), LIST_METHOD(GetPlaylists),
-  LIST_METHOD(DeletePlaylist),
-{
-	nullptr, nullptr
-}
-}
-}
-;
+									  LIST_METHOD(ShortenGroupName),
+									  LIST_METHOD(GetSongGroupBannerPath),
+									  LIST_METHOD(DoesSongGroupExist),
+									  LIST_METHOD(GetPopularSongs),
+									  LIST_METHOD(WasLoadedFromAdditionalSongs),
+									  LIST_METHOD(GetSongByChartKey),
+									  LIST_METHOD(GetStepsByChartKey),
+									  LIST_METHOD(GetActivePlaylist),
+									  LIST_METHOD(SetActivePlaylist),
+									  LIST_METHOD(NewPlaylist),
+									  LIST_METHOD(GetPlaylists),
+									  LIST_METHOD(DeletePlaylist),
+									  { nullptr, nullptr } };
+
+}; // Anonymous namespace
 
 LUA_REGISTER_NAMESPACE(SongManager)
 
@@ -1508,11 +1547,11 @@ Chart::FromKey(const string& ck)
 {
 	// TODO: This function should really be defined in
 	// Etterna/Models/Misc/Difficulty.cpp
-	auto song = GetSongByChartkey(ck);
+	auto song = SONGMAN::GetSongByChartkey(ck);
 	key = ck;
 
 	if (song != nullptr) {
-		auto steps = GetStepsByChartkey(ck);
+		auto steps = SONGMAN::GetStepsByChartkey(ck);
 		if (steps !=
 			nullptr) { // happens when you edit a file for playtesting -mina
 			lastpack = song->m_sGroupName;
