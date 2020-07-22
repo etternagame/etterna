@@ -75,15 +75,23 @@ AutoScreenMessage(SM_BackFromNamePlaylist);
 namespace SONGMAN {
 namespace { // Anonymous namespace (For internally-used functions and variables)
 // Foward Function Declarations:
-void LoadEnabledSongsFromPref();
-void LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
-auto IsSongDir(const std::string& sDir) -> bool;
-auto AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
-void AddSongToList(Song* new_song);
+void
+LoadEnabledSongsFromPref();
+void
+LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
+auto
+IsSongDir(const std::string& sDir) -> bool;
+auto
+AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
+void
+AddSongToList(Song* new_song);
 // Indexed by chartkeys
-void AddKeyedPointers(Song* new_song);
-void InitSongsFromDisk(LoadingWindow* ld);
-void FreeSongs();
+void
+AddKeyedPointers(Song* new_song);
+void
+InitSongsFromDisk(LoadingWindow* ld);
+void
+FreeSongs();
 
 /** @brief All of the songs that can be played. */
 std::vector<Song*> m_pSongs;
@@ -104,7 +112,7 @@ ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
 } // End anonymous namespace
 
-//Extern Variables:
+// Extern Variables:
 std::unordered_map<std::string, Song*> SongsByKey;
 std::unordered_map<std::string, Steps*> StepsByKey;
 
@@ -123,36 +131,12 @@ std::vector<std::string> playlistGroups; // To delete from groupderps when
 										 // rebuilding
 										 // playlist groups
 
-
-
 std::map<Skillset, CalcTestList> testChartList;
 std::unique_ptr<Calc> calc;
-
-
-
-
-
-
-
-
 
 void
 Init()
 {
-	// Register with Lua.
-	{
-		//TODO: This Lua stuff is broken.
-		/*
-		auto L = LUA->Get();
-		lua_pushstring(L, "SONGMAN");
-		// PushSelf(L);
-		// TODO: Check how to fix this. This was used when SongManager was
-		// a class
-		lua_settable(L, LUA_GLOBALSINDEX);
-		LUA->Release(L);
-		 */
-	}
-
 	NUM_SONG_GROUP_COLORS.Load("SongManager", "NumSongGroupColors");
 	SONG_GROUP_COLOR.Load(
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
@@ -165,7 +149,7 @@ void
 End()
 {
 	// Unregister with Lua.
-	LUA->UnsetGlobal("SONGMAN"); //TODO: This will probably crash horribly since it's not set.
+	LUA->UnsetGlobal("SONGMAN");
 
 	// Courses depend on Songs and Songs don't depend on Courses.
 	// So, delete the Courses first.
@@ -1331,9 +1315,6 @@ GetSongFromSteps(lua_State* L) -> int
 	return 1;
 }
 
-// DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
-// TODO: DELETE ABOVE COMMENT IF FUNCTION BELOW WORKS
-
 static auto
 GetSongColor(lua_State* L) -> int
 {
@@ -1479,33 +1460,33 @@ DeletePlaylist(lua_State* L) -> int
 	return 0;
 }
 
-const luaL_Reg SongManagerTable[] = { LIST_METHOD(GetAllSongs),
-									  LIST_METHOD(DifferentialReload),
-									  LIST_METHOD(GetNumSongs),
-									  LIST_METHOD(GetNumAdditionalSongs),
-									  LIST_METHOD(GetNumSongGroups),
-									  LIST_METHOD(GetSongFromSteps),
-									  LIST_METHOD(GetSongColor),
-									  LIST_METHOD(GetSongGroupColor),
-									  LIST_METHOD(GetSongGroupNames),
-									  LIST_METHOD(GetSongsInGroup),
-									  LIST_METHOD(ShortenGroupName),
-									  LIST_METHOD(GetSongGroupBannerPath),
-									  LIST_METHOD(DoesSongGroupExist),
-									  LIST_METHOD(GetPopularSongs),
-									  LIST_METHOD(WasLoadedFromAdditionalSongs),
-									  LIST_METHOD(GetSongByChartKey),
-									  LIST_METHOD(GetStepsByChartKey),
-									  LIST_METHOD(GetActivePlaylist),
-									  LIST_METHOD(SetActivePlaylist),
-									  LIST_METHOD(NewPlaylist),
-									  LIST_METHOD(GetPlaylists),
-									  LIST_METHOD(DeletePlaylist),
-									  { nullptr, nullptr } };
+const luaL_Reg SONGMANTable[] = { LIST_METHOD(GetAllSongs),
+								  LIST_METHOD(DifferentialReload),
+								  LIST_METHOD(GetNumSongs),
+								  LIST_METHOD(GetNumAdditionalSongs),
+								  LIST_METHOD(GetNumSongGroups),
+								  LIST_METHOD(GetSongFromSteps),
+								  LIST_METHOD(GetSongColor),
+								  LIST_METHOD(GetSongGroupColor),
+								  LIST_METHOD(GetSongGroupNames),
+								  LIST_METHOD(GetSongsInGroup),
+								  LIST_METHOD(ShortenGroupName),
+								  LIST_METHOD(GetSongGroupBannerPath),
+								  LIST_METHOD(DoesSongGroupExist),
+								  LIST_METHOD(GetPopularSongs),
+								  LIST_METHOD(WasLoadedFromAdditionalSongs),
+								  LIST_METHOD(GetSongByChartKey),
+								  LIST_METHOD(GetStepsByChartKey),
+								  LIST_METHOD(GetActivePlaylist),
+								  LIST_METHOD(SetActivePlaylist),
+								  LIST_METHOD(NewPlaylist),
+								  LIST_METHOD(GetPlaylists),
+								  LIST_METHOD(DeletePlaylist),
+								  { nullptr, nullptr } };
 
 }; // Anonymous namespace
 
-LUA_REGISTER_NAMESPACE(SongManager)
+LUA_REGISTER_NAMESPACE(SONGMAN)
 
 class LunaPlaylist : public Luna<Playlist>
 {
