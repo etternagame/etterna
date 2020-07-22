@@ -1592,7 +1592,9 @@ ScreenSelectMusic::GeneratePreviewNoteField()
 	const auto song = GAMESTATE->m_pCurSong;
 	Steps* steps = GAMESTATE->m_pCurSteps;
 
-	if (song && steps) {
+	if (song && steps &&
+		GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType ==
+		  GAMESTATE->m_pCurSteps->m_StepsType) {
 		steps->GetNoteData(m_PreviewNoteData);
 	} else {
 		return;
