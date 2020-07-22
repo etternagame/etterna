@@ -149,11 +149,6 @@ Init()
 void
 End()
 {
-	// Unregister with Lua.
-	LUA->UnsetGlobal("SONGMAN");
-
-	// Courses depend on Songs and Songs don't depend on Courses.
-	// So, delete the Courses first.
 	FreeSongs();
 }
 
