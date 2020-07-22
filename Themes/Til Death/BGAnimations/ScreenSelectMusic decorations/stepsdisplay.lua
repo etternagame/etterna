@@ -9,12 +9,12 @@ local cursorwidth = 6
 local cursorheight = 20
 
 local numshown = 7
-local currentidx = 1
+local currentindex = 1
 local displayindexoffset = 0
 
 local sd =
 	Def.ActorFrame {
-	Name = "StepsDisplay",
+	Name = "StepsDisplayList",
 	InitCommand = function(self)
 		self:xy(stepsdisplayx, 70):valign(0)
 	end,
@@ -82,8 +82,6 @@ local sd =
 	end
 }
 
-
-
 local function stepsRows(i)
 	local o = Def.ActorFrame {
 		InitCommand = function(self)
@@ -106,7 +104,8 @@ local function stepsRows(i)
 			MouseLeftClickMessageCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
 				if steps and isOver(self) then
-					GAMESTATE:SetCurrentSteps(PLAYER_1, steps)
+					SCREENMAN:GetTopScreen():ChangeSteps(i - currentindex)
+					SCREENMAN:GetTopScreen():ChangeSteps(0)
 				end
 			end
 		},
@@ -191,25 +190,25 @@ sd[#sd + 1] = Def.Quad {
 	CurrentStepsChangedMessageCommand = function(self, steps)
 		for i = 1, 20 do
 			if thesteps[i] and thesteps[i] == steps.ptr then
-				currentidx = i
+				currentindex = i
 				break
 			end
 		end
 
-		if currentidx <= center then
+		if currentindex <= center then
 			displayindexoffset = 0
 		elseif #thesteps - displayindexoffset > numshown then
-			displayindexoffset = currentidx - center
-			currentidx = center
+			displayindexoffset = currentindex - center
+			currentindex = center
 		else
-			currentidx = currentidx - displayindexoffset
+			currentindex = currentindex - displayindexoffset
 		end
 
 		if #thesteps > numshown and #thesteps - displayindexoffset < numshown then
 			displayindexoffset = #thesteps - numshown 
 		end
 
-		self:y(cursorheight * (currentidx - 1))
+		self:y(cursorheight * (currentindex - 1))
 		self:GetParent():GetChild("StepsRows"):queuecommand("UpdateStepsRows")
 	end
 }
