@@ -118,6 +118,11 @@ class Steps
 							 const std::vector<int>& nerv,
 							 float rate) -> std::vector<int>;
 
+	auto GetNPSPerMeasure(const NoteData& nd,
+						  const std::vector<float>& etaner,
+						  const std::vector<int>& nerv,
+						  float rate) -> std::vector<float>;
+
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina

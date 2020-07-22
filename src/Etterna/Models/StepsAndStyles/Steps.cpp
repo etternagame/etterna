@@ -782,7 +782,7 @@ Steps::GetNPSVector(const NoteData& nd,
 	auto notecounter = 0;
 	auto lastinterval = 0;
 
-	for (int i = 0; i < static_cast<int>(nerv.size()); ++i) {
+	for (auto i = 0; i < static_cast<int>(nerv.size()); ++i) {
 		const auto curinterval = static_cast<int>(etaner[i] / rate);
 		if (curinterval > lastinterval) {
 			doot[lastinterval] = notecounter;
@@ -797,6 +797,48 @@ Steps::GetNPSVector(const NoteData& nd,
 			}
 		}
 	}
+	return doot;
+}
+
+// YEAH THIS IS LIKE, REALLY INEFFICIENT
+auto
+Steps::GetNPSPerMeasure(const NoteData& nd,
+						const std::vector<float>& etaner,
+						const std::vector<int>& nerv,
+						const float rate) -> std::vector<float>
+{
+	std::vector<float> doot;
+
+	auto* td = GetTimingData();
+	const auto lastbeat = td->GetBeatFromElapsedTime(lastsecond);
+	const auto lastmeasure = std::ceil(lastbeat / 4.F);
+
+	for (auto i = 0; i < lastmeasure; ++i) {
+		const auto m_start = td->GetElapsedTimeFromBeat(i * 4.F);
+		const auto m_end =
+		  td->GetElapsedTimeFromBeat(static_cast<float>(i + 1) * 4.F);
+		const auto m_time = m_end - m_start;
+
+		auto m_counter = 0;
+		for (auto j = 0; j < static_cast<int>(nerv.size()); ++j) {
+			if (etaner[j] > m_end) {
+				continue;
+			}
+
+			if (etaner[j] > m_start) {
+				for (auto t = 0; t < nd.GetNumTracks(); ++t) {
+					const auto& tn = nd.GetTapNote(t, nerv[j]);
+					if (tn.type == TapNoteType_Tap ||
+						tn.type == TapNoteType_HoldHead) {
+						++m_counter;
+					}
+				}
+			}
+		}
+
+		doot.emplace_back(static_cast<float>(m_counter) / m_time);
+	}
+
 	return doot;
 }
 
@@ -1128,7 +1170,7 @@ class LunaSteps : public Luna<Steps>
 			  L, CalcDiffValueToString(static_cast<CalcDiffValue>(i)).c_str());
 			lua_createtable(L, 0, 2);
 			for (auto j = 0; j < 2; ++j) {
-				vector<float> poop;
+				std::vector<float> poop;
 				if (!p->calcdebugoutput.empty()) { // empty for non 4k
 					if (!p->calcdebugoutput[j]
 						   .empty()) { // empty for "garbage files"
@@ -1186,6 +1228,24 @@ class LunaSteps : public Luna<Steps>
 		lua_pushnumber(L, p->lastsecond);
 		return 1;
 	}
+	static auto GetNPSPerMeasure(T* p, lua_State* L) -> int
+	{
+		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+
+		auto nd = p->GetNoteData();
+		if (nd.IsEmpty()) {
+			return 0;
+		}
+		auto nerv = nd.BuildAndGetNerv(p->GetTimingData());
+		if (nerv.back() != nd.GetLastRow()) {
+			nerv.emplace_back(nd.GetLastRow());
+		}
+		const auto& etaner = p->GetTimingData()->BuildAndGetEtaner(nerv);
+
+		auto ee = p->GetNPSPerMeasure(nd, etaner, nerv, rate);
+		LuaHelpers::CreateTableFromArray(ee, L);
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1220,6 +1280,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetLengthSeconds);
 		ADD_METHOD(GetFirstSecond);
 		ADD_METHOD(GetLastSecond);
+		ADD_METHOD(GetNPSPerMeasure);
 	}
 };
 
