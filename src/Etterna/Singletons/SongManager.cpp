@@ -74,25 +74,18 @@ AutoScreenMessage(SM_BackFromNamePlaylist);
 
 namespace SONGMAN {
 namespace { // Anonymous namespace (For internally-used functions and variables)
-// Foward Function Declarations:
-void
-LoadEnabledSongsFromPref();
-void
-LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
-auto
-IsSongDir(const std::string& sDir) -> bool;
-auto
-AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
-void
-AddSongToList(Song* new_song);
+//------------- Foward Function Declarations -------------
+void LoadEnabledSongsFromPref();
+void LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
+auto IsSongDir(const std::string& sDir) -> bool;
+auto AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
+void AddSongToList(Song* new_song);
 // Indexed by chartkeys
-void
-AddKeyedPointers(Song* new_song);
-void
-InitSongsFromDisk(LoadingWindow* ld);
-void
-FreeSongs();
+void AddKeyedPointers(Song* new_song);
+void InitSongsFromDisk(LoadingWindow* ld);
+void FreeSongs();
 
+//------------- Internal Variables and Structs -------------
 /** @brief All of the songs that can be played. */
 std::vector<Song*> m_pSongs;
 std::map<std::string, Song*> m_SongsByDir;
@@ -110,13 +103,13 @@ using SongPointerVector = std::vector<Song*>;
 std::map<std::string, SongPointerVector, Comp> m_mapSongGroupIndex;
 ThemeMetric<int> NUM_SONG_GROUP_COLORS;
 ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
+std::set<std::string> m_GroupsToNeverCache;
 } // End anonymous namespace
 
 // Extern Variables:
 std::unordered_map<std::string, Song*> SongsByKey;
 std::unordered_map<std::string, Steps*> StepsByKey;
 
-std::set<std::string> m_GroupsToNeverCache;
 /** @brief The most popular songs ranked by number of plays. */
 std::vector<Song*> m_pPopularSongs;
 
@@ -135,8 +128,7 @@ std::vector<std::string> playlistGroups; // To delete from groupderps when
 std::map<Skillset, CalcTestList> testChartList;
 std::unique_ptr<Calc> calc;
 
-void
-Init()
+void Init()
 {
 	NUM_SONG_GROUP_COLORS.Load("SongManager", "NumSongGroupColors");
 	SONG_GROUP_COLOR.Load(
@@ -146,14 +138,12 @@ Init()
 	calc = std::make_unique<Calc>();
 }
 
-void
-End()
+void End()
 {
 	FreeSongs();
 }
 
-void
-InitAll(LoadingWindow* ld)
+void InitAll(LoadingWindow* ld)
 {
 	vector<std::string> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
@@ -170,8 +160,7 @@ static LocalizedString SANITY_CHECKING_GROUPS("SongManager",
 											  "Sanity checking groups...");
 
 // See InitSongsFromDisk for any comment clarification -mina
-auto
-DifferentialReload() -> int
+auto DifferentialReload() -> int
 {
 	MESSAGEMAN->Broadcast("DFRStarted");
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
@@ -189,8 +178,7 @@ DifferentialReload() -> int
 }
 
 // See LoadStepManiaSongDir for any comment clarification -mina
-auto
-DifferentialReloadDir(string dir) -> int
+auto DifferentialReloadDir(string dir) -> int
 {
 	if (dir.back() != '/') {
 		dir += "/";
@@ -324,8 +312,7 @@ split(vector<T>& v, size_t elementsPerThread) -> std::vector<p<T>>
 	return ranges;
 }
 
-void
-FinalizeSong(Song* pNewSong, const std::string& dir)
+void FinalizeSong(Song* pNewSong, const std::string& dir)
 {
 	// never load stray songs from the cache -mina
 	if (pNewSong->m_sGroupName == "Songs" ||
