@@ -123,6 +123,7 @@ std::vector<Song*> m_pPopularSongs;
 std::vector<std::string> m_sSongGroupNames;
 std::vector<std::string> m_sSongGroupBannerPaths; // each song group may have a
 												  // banner associated with it
+												  // TODO: INTERNAL
 std::string activeplaylist = "";
 std::string playlistcourse = "";
 
@@ -741,17 +742,6 @@ Cleanup()
 			}
 		}
 	}
-}
-
-/* Flush all Song*, Steps* and Course* caches. This is when a Song or
- * its Steps are removed or changed. This doesn't touch GAMESTATE and
- * StageStats pointers. Currently, the only time Steps are altered
- * independently of the Courses and Songs is in Edit Mode, which updates
- * the other pointers it needs.
- */
-void
-Invalidate(const Song* pStaleSong)
-{
 }
 
 auto
