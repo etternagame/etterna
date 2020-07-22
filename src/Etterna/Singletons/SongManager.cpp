@@ -745,30 +745,6 @@ GetPlaylists() -> map<string, Playlist>&
 	return PROFILEMAN->GetProfile(PLAYER_1)->allplaylists;
 }
 
-void
-SaveEnabledSongsToPref()
-{
-	vector<std::string> vsDisabledSongs;
-
-	// Intentionally drop disabled song entries for songs that aren't
-	// currently loaded.
-
-	for (auto& s : SONGMAN::GetAllSongs()) {
-		SongID sid;
-		sid.FromSong(s);
-		if (!s->GetEnabled()) {
-			vsDisabledSongs.emplace_back(sid.ToString());
-		}
-	}
-	g_sDisabledSongs.Set(join(";", vsDisabledSongs));
-}
-
-void
-DeleteSteps(Steps* pSteps)
-{
-	pSteps->m_pSong->DeleteSteps(pSteps);
-}
-
 auto
 WasLoadedFromAdditionalSongs(const Song* pSong) -> bool
 {

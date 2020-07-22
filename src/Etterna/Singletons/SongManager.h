@@ -59,8 +59,6 @@ Cleanup();
 
 extern auto
 GetPlaylists() -> std::map<std::string, Playlist>&;
-extern void
-SaveEnabledSongsToPref(); // TODO: DEAD CODE
 
 extern void
 InitAll(LoadingWindow* ld); // songs, groups - everything.
@@ -80,12 +78,7 @@ SetHasGoal(std::unordered_map<std::string, GoalsForChart>& goalmap);
 
 extern auto
 GetSongGroupBannerPath(const std::string& sSongGroup) -> std::string;
-inline auto
-GetSongGroupBannerPaths() -> std::vector<std::string>
-{
-	return m_sSongGroupBannerPaths;
-} // TODO: DEAD CODE
-// std::string GetSongGroupBackgroundPath( std::string sSongGroup ) const;
+
 extern void
 GetSongGroupNames(std::vector<std::string>& AddTo);
 extern auto
@@ -119,7 +112,8 @@ extern void
 ResetGroupColors();
 
 extern auto
-ShortenGroupName(const std::string& sLongGroupName) -> std::string;
+ShortenGroupName(const std::string& sLongGroupName)
+  -> std::string; // Lua binding only
 
 // Lookup
 /**
@@ -168,9 +162,6 @@ GetSongGroupByIndex(const unsigned index) -> std::string
 	return m_sSongGroupNames[index];
 }
 
-extern void
-DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
-							// ^ TODO: DEAD CODE
 extern auto
 WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
 extern auto
