@@ -692,7 +692,7 @@ StageStats::FinalizeScores(bool bSummary)
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
 		CHECKPOINT_M("Uploading score with replaydata.");
 		hs.SetTopScore(istop2); // ayy i did it --lurker
-		auto* steps = SONGMAN::GetStepsByChartkey(hs.GetChartKey());
+		auto* steps = SongManager::GetStepsByChartkey(hs.GetChartKey());
 		auto* td = steps->GetTimingData();
 		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(
 		  m_player.GetNoteRowVector(), hs.GetMusicRate());

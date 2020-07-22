@@ -99,7 +99,7 @@ MusicWheel::Load(const string& sType)
 	/* Sort SONGMAN's songs by CompareSongPointersByTitle, so we can do other
 	 * sorts (with stable_sort) from its output, and title will be the secondary
 	 * sort, without having to re-sort by title each time. */
-	SONGMAN::SortSongs();
+	SongManager::SortSongs();
 
 	FOREACH_ENUM(SortOrder, so) { m_WheelItemDatasStatus[so] = INVALID; }
 }
@@ -161,7 +161,7 @@ MusicWheel::BeginScreen()
 		// gameplay or your last round song (profiles) is not the first one in
 		// the group.
 		for (unsigned idx = 0; idx < m_viWheelPositions.size(); idx++) {
-			if (m_sExpandedSectionName == SONGMAN::GetSongGroupByIndex(idx)) {
+			if (m_sExpandedSectionName == SongManager::GetSongGroupByIndex(idx)) {
 				m_viWheelPositions[idx] = m_iSelection;
 			}
 		}
@@ -319,7 +319,7 @@ MusicWheel::SelectSong(const Song* p) -> bool
 			SetOpenSection(from[i]->m_sText);
 
 			// skip any playlist groups
-			if (SONGMAN::GetPlaylists().count(GetExpandedSectionName()) == 0u) {
+			if (SongManager::GetPlaylists().count(GetExpandedSectionName()) == 0u) {
 				break;
 			}
 		}
@@ -382,7 +382,7 @@ MusicWheel::GetSongList(std::vector<Song*>& arraySongs,
 	std::vector<Song*> apAllSongs;
 	switch (so) {
 		case SORT_FAVORITES:
-			SONGMAN::GetFavoriteSongs(apAllSongs);
+			SongManager::GetFavoriteSongs(apAllSongs);
 			break;
 		case SORT_GROUP:
 			// if we're not using sections with a preferred song group, and
@@ -390,12 +390,12 @@ MusicWheel::GetSongList(std::vector<Song*>& arraySongs,
 			if (GAMESTATE->m_sPreferredSongGroup != GROUP_ALL &&
 				!USE_SECTIONS_WITH_PREFERRED_GROUP) {
 				apAllSongs =
-				  SONGMAN::GetSongs(GAMESTATE->m_sPreferredSongGroup);
+				  SongManager::GetSongs(GAMESTATE->m_sPreferredSongGroup);
 				break;
 			}
 			// otherwise fall through
 		default:
-			apAllSongs = SONGMAN::GetAllSongs();
+			apAllSongs = SongManager::GetAllSongs();
 			break;
 	}
 
@@ -709,7 +709,7 @@ MusicWheel::FilterByStepKeys(vector<Song*>& inv)
 auto
 MusicWheel::SearchGroupNames(const std::string& findme) -> bool
 {
-	const auto& grps = SONGMAN::GetSongGroupNames();
+	const auto& grps = SongManager::GetSongGroupNames();
 	for (const auto& grp : grps) {
 		auto lc = make_lower(std::string(grp));
 		const auto droop = lc.find(findme);
@@ -958,7 +958,7 @@ MusicWheel::BuildWheelItemDatas(
 						// todo: preferred sort section color handling? -aj
 						auto colorSection =
 						  (so == SORT_GROUP)
-							? SONGMAN::GetSongGroupColor(pSong->m_sGroupName)
+							? SongManager::GetSongGroupColor(pSong->m_sGroupName)
 							: SECTION_COLORS.GetValue(iSectionColorIndex);
 						iSectionColorIndex =
 						  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
@@ -975,7 +975,7 @@ MusicWheel::BuildWheelItemDatas(
 				  new MusicWheelItemData(WheelItemDataType_Song,
 										 pSong,
 										 sLastSection,
-										 SONGMAN::GetSongColor(pSong),
+										 SongManager::GetSongColor(pSong),
 										 0));
 			}
 		} else {
@@ -989,7 +989,7 @@ MusicWheel::BuildWheelItemDatas(
 				hurp.emplace(a);
 			}
 
-			auto& groups = SONGMAN::groupderps;
+			auto& groups = SongManager::groupderps;
 
 			std::map<std::string, std::string> shitterstrats;
 			for (auto& n : groups) {
@@ -1001,7 +1001,7 @@ MusicWheel::BuildWheelItemDatas(
 				auto& gname = n.second;
 				auto& gsongs = groups[n.second];
 
-				auto colorSection = SONGMAN::GetSongGroupColor(gname);
+				auto colorSection = SongManager::GetSongGroupColor(gname);
 				iSectionColorIndex =
 				  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
 				arrayWheelItemDatas.emplace_back(
@@ -1019,7 +1019,7 @@ MusicWheel::BuildWheelItemDatas(
 						  new MusicWheelItemData(WheelItemDataType_Song,
 												 s,
 												 gname,
-												 SONGMAN::GetSongColor(s),
+												 SongManager::GetSongColor(s),
 												 0));
 						if (allSongsByGroupFiltered.count(gname) != 0u) {
 							allSongsByGroupFiltered[gname].emplace_back(s);
@@ -1268,7 +1268,7 @@ MusicWheel::ChangeMusic(int iDist)
 	if (REMIND_WHEEL_POSITIONS && HIDE_INACTIVE_SECTIONS) {
 		// store the group song index
 		for (unsigned idx = 0; idx < m_viWheelPositions.size(); idx++) {
-			if (m_sExpandedSectionName == SONGMAN::GetSongGroupByIndex(idx)) {
+			if (m_sExpandedSectionName == SongManager::GetSongGroupByIndex(idx)) {
 				m_viWheelPositions[idx] = m_iSelection;
 			}
 		}
@@ -1427,7 +1427,7 @@ MusicWheel::SetOpenSection(const std::string& group)
 
 	// wheel positions = num song groups
 	if (REMIND_WHEEL_POSITIONS && HIDE_INACTIVE_SECTIONS) {
-		m_viWheelPositions.resize(SONGMAN::GetNumSongGroups());
+		m_viWheelPositions.resize(SongManager::GetNumSongGroups());
 	}
 
 	const WheelItemBaseData* old = nullptr;
@@ -1473,7 +1473,7 @@ MusicWheel::SetOpenSection(const std::string& group)
 	// restore the past group song index
 	if (REMIND_WHEEL_POSITIONS && HIDE_INACTIVE_SECTIONS) {
 		for (auto idx = 0; idx < (int)m_viWheelPositions.size(); ++idx) {
-			if (m_sExpandedSectionName == SONGMAN::GetSongGroupByIndex(idx)) {
+			if (m_sExpandedSectionName == SongManager::GetSongGroupByIndex(idx)) {
 				m_iSelection = m_viWheelPositions[idx];
 			}
 		}
@@ -1499,15 +1499,15 @@ MusicWheel::JumpToNextGroup() -> std::string
 	// Thanks to Juanelote for this logic:
 	if (HIDE_INACTIVE_SECTIONS) {
 		// todo: make it work with other sort types
-		const unsigned iNumGroups = SONGMAN::GetNumSongGroups();
+		const unsigned iNumGroups = SongManager::GetNumSongGroups();
 
 		for (unsigned i = 0; i < iNumGroups; i++) {
-			if (m_sExpandedSectionName == SONGMAN::GetSongGroupByIndex(i)) {
+			if (m_sExpandedSectionName == SongManager::GetSongGroupByIndex(i)) {
 				if (i < iNumGroups - 1) {
-					return SONGMAN::GetSongGroupByIndex(i + 1);
+					return SongManager::GetSongGroupByIndex(i + 1);
 				}
 				// i = 0;
-				return SONGMAN::GetSongGroupByIndex(0);
+				return SongManager::GetSongGroupByIndex(0);
 			}
 		}
 	} else {
@@ -1539,15 +1539,15 @@ auto
 MusicWheel::JumpToPrevGroup() -> std::string
 {
 	if (HIDE_INACTIVE_SECTIONS) {
-		const unsigned iNumGroups = SONGMAN::GetNumSongGroups();
+		const unsigned iNumGroups = SongManager::GetNumSongGroups();
 
 		for (unsigned i = 0; i < iNumGroups; i++) {
-			if (m_sExpandedSectionName == SONGMAN::GetSongGroupByIndex(i)) {
+			if (m_sExpandedSectionName == SongManager::GetSongGroupByIndex(i)) {
 				if (i > 0) {
-					return SONGMAN::GetSongGroupByIndex(i - 1);
+					return SongManager::GetSongGroupByIndex(i - 1);
 				}
 				// i = iNumGroups - 1;
-				return SONGMAN::GetSongGroupByIndex(iNumGroups - 1);
+				return SongManager::GetSongGroupByIndex(iNumGroups - 1);
 			}
 		}
 	} else {

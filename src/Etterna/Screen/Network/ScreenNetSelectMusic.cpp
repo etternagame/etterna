@@ -301,9 +301,9 @@ void
 ScreenNetSelectMusic::BeginScreen()
 {
 	Profile* prof = PROFILEMAN->GetProfile(PLAYER_1);
-	SONGMAN::MakeSongGroupsFromPlaylists();
-	SONGMAN::SetFavoritedStatus(prof->FavoritedCharts);
-	SONGMAN::SetHasGoal(prof->goalmap);
+	SongManager::MakeSongGroupsFromPlaylists();
+	SongManager::SetFavoritedStatus(prof->FavoritedCharts);
+	SongManager::SetHasGoal(prof->goalmap);
 	ScreenSelectMusic::BeginScreen();
 }
 

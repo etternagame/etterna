@@ -24,7 +24,7 @@ auto SONG_GROUP_COLOR_NAME(size_t i) -> std::string;
 auto CompareNotesPointersForExtra(const Steps* n1, const Steps* n2) -> bool;
 
 /** @brief The holder for the Songs and its Steps. */
-namespace SONGMAN {
+namespace SongManager {
 
 extern std::unordered_map<std::string, Song*> SongsByKey;
 extern std::unordered_map<std::string, Steps*> StepsByKey;

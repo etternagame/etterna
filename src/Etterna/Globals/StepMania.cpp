@@ -292,7 +292,7 @@ ShutdownGame()
 	SAFE_DELETE(MODELMAN);
 	SAFE_DELETE(PROFILEMAN); // PROFILEMAN needs the songs still loaded
 	SAFE_DELETE(CRYPTMAN);
-	SONGMAN::End(); // Equivalent to old destructor
+	SongManager::End(); // Equivalent to old destructor
 	SAFE_DELETE(IMAGECACHE);
 	SAFE_DELETE(SONGINDEX);
 	SAFE_DELETE(SOUND); // uses GAMESTATE, PREFSMAN
@@ -1217,9 +1217,9 @@ sm_main(int argc, char* argv[])
 	IMAGECACHE = new ImageCache;
 
 	// depends on SONGINDEX:
-	SONGMAN::Init();
+	SongManager::Init();
 	SONGINDEX->StartTransaction();
-	SONGMAN::InitAll(pLoadingWindow); // this takes a long time
+	SongManager::InitAll(pLoadingWindow); // this takes a long time
 	SONGINDEX->FinishTransaction();
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	if (PREFSMAN->m_bSignProfileData)
@@ -1227,7 +1227,7 @@ sm_main(int argc, char* argv[])
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
-	SONGMAN::CalcTestStuff();		  // must be after profileman init
+	SongManager::CalcTestStuff();		  // must be after profileman init
 
 	NSMAN = new NetworkSyncManager(pLoadingWindow);
 	STATSMAN = new StatsManager;

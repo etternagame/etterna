@@ -1216,7 +1216,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		for (auto* s : vpStepsToSave) {
 			s->Decompress();
-			s->CalcEtternaMetadata(SONGMAN::calc.get());
+			s->CalcEtternaMetadata(SongManager::calc.get());
 			s->SetFilename(path);
 		}
 	if (bSavingCache) {
@@ -1317,7 +1317,7 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 bool
 Song::SaveToCacheFile()
 {
-	if (SONGMAN::IsGroupNeverCached(m_sGroupName)) {
+	if (SongManager::IsGroupNeverCached(m_sGroupName)) {
 		return true;
 	}
 	return SONGINDEX->CacheSong(*this, m_sSongDir);

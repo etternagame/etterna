@@ -189,7 +189,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 			RefreshGrades();
 			break;
 		case WheelItemDataType_Section: {
-			sDisplayName = SONGMAN::ShortenGroupName(pWID->m_sText);
+			sDisplayName = SongManager::ShortenGroupName(pWID->m_sText);
 
 			if (GAMESTATE->sExpandedSectionName == pWID->m_sText)
 				type = MusicWheelItemType_SectionExpanded;

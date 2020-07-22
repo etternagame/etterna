@@ -72,7 +72,7 @@ SONG_GROUP_COLOR_NAME(size_t i) -> std::string
 
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
-namespace SONGMAN {
+namespace SongManager {
 namespace { // Anonymous namespace (For internally-used functions and variables)
 //------------- Foward Function Declarations -------------
 void LoadEnabledSongsFromPref();
@@ -765,8 +765,8 @@ makePlaylist(const std::string& answer)
 	Playlist pl;
 	pl.name = answer;
 	if (!pl.name.empty()) {
-		SONGMAN::GetPlaylists().emplace(pl.name, pl);
-		SONGMAN::activeplaylist = pl.name;
+		SongManager::GetPlaylists().emplace(pl.name, pl);
+		SongManager::activeplaylist = pl.name;
 		MESSAGEMAN->Broadcast("DisplayAll");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
@@ -832,7 +832,7 @@ LoadCalcTestNode()
 				tl.filemapping[key] = ct;
 			}
 		}
-		SONGMAN::testChartList[ss] = tl;
+		SongManager::testChartList[ss] = tl;
 	}
 }
 
@@ -1028,7 +1028,7 @@ LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	auto onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
 	for (const auto& folder : songFolders) {
 		auto burp = sDir + folder;
-		if (SONGMAN::IsSongDir(burp)) {
+		if (SongManager::IsSongDir(burp)) {
 			unknownGroup.songs.emplace_back(burp);
 		} else {
 			auto group = Group(folder);
@@ -1090,7 +1090,7 @@ LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 				  {
 					  std::lock_guard<std::mutex> lk(diskLoadSongMutex);
 					  AddSongToList(pNewSong);
-					  SONGMAN::AddKeyedPointers(pNewSong);
+					  SongManager::AddKeyedPointers(pNewSong);
 				  }
 				  index_entry.emplace_back(pNewSong);
 				  loaded++;
@@ -1103,7 +1103,7 @@ LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 						 (sDir + sGroupName).c_str());
 			  {
 				  std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
-				  SONGMAN::AddGroup(sDir, sGroupName);
+				  SongManager::AddGroup(sDir, sGroupName);
 				  IMAGECACHE->CacheImage(
 					"Banner", GetSongGroupBannerPath(sDir + sGroupName));
 			  }
@@ -1211,7 +1211,7 @@ namespace {
 static auto
 GetAllSongs(lua_State* L) -> int
 {
-	const auto& v = SONGMAN::GetAllSongs();
+	const auto& v = SongManager::GetAllSongs();
 	LuaHelpers::CreateTableFromArray<Song*>(v, L);
 	return 1;
 }
@@ -1219,28 +1219,28 @@ GetAllSongs(lua_State* L) -> int
 static auto
 DifferentialReload(lua_State* L) -> int
 {
-	lua_pushnumber(L, SONGMAN::DifferentialReload());
+	lua_pushnumber(L, SongManager::DifferentialReload());
 	return 1;
 }
 
 static auto
 GetNumSongs(lua_State* L) -> int
 {
-	lua_pushnumber(L, SONGMAN::GetNumSongs());
+	lua_pushnumber(L, SongManager::GetNumSongs());
 	return 1;
 }
 
 static auto
 GetNumAdditionalSongs(lua_State* L) -> int
 {
-	lua_pushnumber(L, SONGMAN::GetNumAdditionalSongs());
+	lua_pushnumber(L, SongManager::GetNumAdditionalSongs());
 	return 1;
 }
 
 static auto
 GetNumSongGroups(lua_State* L) -> int
 {
-	lua_pushnumber(L, SONGMAN::GetNumSongGroups());
+	lua_pushnumber(L, SongManager::GetNumSongGroups());
 	return 1;
 }
 
@@ -1266,14 +1266,14 @@ GetSongFromSteps(lua_State* L) -> int
 static auto
 GetSongColor(lua_State* L) -> int
 {
-	LuaHelpers::Push(L, SONGMAN::GetSongColor(Luna<Song>::check(L, 1)));
+	LuaHelpers::Push(L, SongManager::GetSongColor(Luna<Song>::check(L, 1)));
 	return 1;
 }
 
 static auto
 GetSongGroupColor(lua_State* L) -> int
 {
-	LuaHelpers::Push(L, SONGMAN::GetSongGroupColor(SArg(1)));
+	LuaHelpers::Push(L, SongManager::GetSongGroupColor(SArg(1)));
 	return 1;
 }
 
@@ -1281,7 +1281,7 @@ static auto
 GetSongGroupNames(lua_State* L) -> int
 {
 	vector<std::string> v;
-	SONGMAN::GetSongGroupNames(v);
+	SongManager::GetSongGroupNames(v);
 	LuaHelpers::CreateTableFromArray<std::string>(v, L);
 	return 1;
 }
@@ -1289,7 +1289,7 @@ GetSongGroupNames(lua_State* L) -> int
 static auto
 GetSongsInGroup(lua_State* L) -> int
 {
-	vector<Song*> v = SONGMAN::GetSongs(SArg(1));
+	vector<Song*> v = SongManager::GetSongs(SArg(1));
 	LuaHelpers::CreateTableFromArray<Song*>(v, L);
 	return 1;
 }
@@ -1297,35 +1297,35 @@ GetSongsInGroup(lua_State* L) -> int
 static auto
 ShortenGroupName(lua_State* L) -> int
 {
-	LuaHelpers::Push(L, SONGMAN::ShortenGroupName(SArg(1)));
+	LuaHelpers::Push(L, SongManager::ShortenGroupName(SArg(1)));
 	return 1;
 }
 
 static auto
 GetSongGroupBannerPath(lua_State* L) -> int
 {
-	LuaHelpers::Push(L, SONGMAN::GetSongGroupBannerPath(SArg(1)));
+	LuaHelpers::Push(L, SongManager::GetSongGroupBannerPath(SArg(1)));
 	return 1;
 }
 
 static auto
 DoesSongGroupExist(lua_State* L) -> int
 {
-	LuaHelpers::Push(L, SONGMAN::DoesSongGroupExist(SArg(1)));
+	LuaHelpers::Push(L, SongManager::DoesSongGroupExist(SArg(1)));
 	return 1;
 }
 
 static auto
 IsChartLoaded(lua_State* L) -> int
 {
-	LuaHelpers::Push(L, SONGMAN::IsChartLoaded(SArg(1)));
+	LuaHelpers::Push(L, SongManager::IsChartLoaded(SArg(1)));
 	return 1;
 }
 
 static auto
 GetPopularSongs(lua_State* L) -> int
 {
-	const auto& v = SONGMAN::GetPopularSongs();
+	const auto& v = SongManager::GetPopularSongs();
 	LuaHelpers::CreateTableFromArray<Song*>(v, L);
 	return 1;
 }
@@ -1335,7 +1335,7 @@ WasLoadedFromAdditionalSongs(lua_State* L) -> int
 {
 	const Song* pSong = Luna<Song>::check(L, 1);
 	lua_pushboolean(
-	  L, static_cast<int>(SONGMAN::WasLoadedFromAdditionalSongs(pSong)));
+	  L, static_cast<int>(SongManager::WasLoadedFromAdditionalSongs(pSong)));
 	return 1;
 }
 
@@ -1343,7 +1343,7 @@ static auto
 GetSongByChartKey(lua_State* L) -> int
 {
 	std::string ck = SArg(1);
-	Song* pSong = SONGMAN::GetSongByChartkey(ck);
+	Song* pSong = SongManager::GetSongByChartkey(ck);
 	if (pSong != nullptr) {
 		pSong->PushSelf(L);
 	} else {
@@ -1356,7 +1356,7 @@ static auto
 GetStepsByChartKey(lua_State* L) -> int
 {
 	std::string ck = SArg(1);
-	Steps* pSteps = SONGMAN::GetStepsByChartkey(ck);
+	Steps* pSteps = SongManager::GetStepsByChartkey(ck);
 	if (pSteps != nullptr) {
 		pSteps->PushSelf(L);
 	} else {
@@ -1368,21 +1368,21 @@ GetStepsByChartKey(lua_State* L) -> int
 static auto
 GetActivePlaylist(lua_State* L) -> int
 {
-	SONGMAN::GetPlaylists()[SONGMAN::activeplaylist].PushSelf(L);
+	SongManager::GetPlaylists()[SongManager::activeplaylist].PushSelf(L);
 	return 1;
 }
 
 static auto
 SetActivePlaylist(lua_State* L) -> int
 {
-	SONGMAN::activeplaylist = SArg(1);
+	SongManager::activeplaylist = SArg(1);
 	return 0;
 }
 
 static auto NewPlaylist(lua_State * /*L*/) -> int
 {
 	ScreenTextEntry::TextEntry(
-	  SM_None, "Name Playlist", "", 128, nullptr, SONGMAN::makePlaylist);
+	  SM_None, "Name Playlist", "", 128, nullptr, SongManager::makePlaylist);
 	return 0;
 }
 
@@ -1391,7 +1391,7 @@ GetPlaylists(lua_State* L) -> int
 {
 	auto idx = 1;
 	lua_newtable(L);
-	for (auto pl : SONGMAN::GetPlaylists()) {
+	for (auto pl : SongManager::GetPlaylists()) {
 		pl.second.PushSelf(L);
 		lua_rawseti(L, -2, idx);
 		++idx;
@@ -1403,12 +1403,12 @@ GetPlaylists(lua_State* L) -> int
 static auto
 DeletePlaylist(lua_State* L) -> int
 {
-	SONGMAN::DeletePlaylist(SArg(1));
+	SongManager::DeletePlaylist(SArg(1));
 	PROFILEMAN->SaveProfile(PLAYER_1);
 	return 0;
 }
 
-const luaL_Reg SONGMANTable[] = { LIST_METHOD(GetAllSongs),
+const luaL_Reg SongManagerTable[] = { LIST_METHOD(GetAllSongs),
 								  LIST_METHOD(DifferentialReload),
 								  LIST_METHOD(GetNumSongs),
 								  LIST_METHOD(GetNumAdditionalSongs),
@@ -1434,7 +1434,7 @@ const luaL_Reg SONGMANTable[] = { LIST_METHOD(GetAllSongs),
 
 }; // Anonymous namespace
 
-LUA_REGISTER_NAMESPACE(SONGMAN)
+LUA_REGISTER_NAMESPACE(SongManager)
 
 class LunaPlaylist : public Luna<Playlist>
 {
@@ -1549,11 +1549,11 @@ Chart::FromKey(const string& ck)
 {
 	// TODO: This function should really be defined in
 	// Etterna/Models/Misc/Difficulty.cpp
-	auto song = SONGMAN::GetSongByChartkey(ck);
+	auto song = SongManager::GetSongByChartkey(ck);
 	key = ck;
 
 	if (song != nullptr) {
-		auto steps = SONGMAN::GetStepsByChartkey(ck);
+		auto steps = SongManager::GetStepsByChartkey(ck);
 		if (steps !=
 			nullptr) { // happens when you edit a file for playtesting -mina
 			lastpack = song->m_sGroupName;
