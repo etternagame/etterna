@@ -1196,195 +1196,210 @@ SaveCalcTestXmlToDir()
 	}
 	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 }
+
+}
 // TODO: All of the Lua stuff is hecked here
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
-/** @brief Allow Lua to have access to the SongManager. */
-class LunaSongManager : public Luna<SongManager>
+namespace {
+static auto
+GetAllSongs(lua_State* L) -> int
 {
-  public:
-	static auto GetAllSongs(T* p, lua_State* L) -> int
-	{
-		const auto& v = p->GetAllSongs();
-		LuaHelpers::CreateTableFromArray<Song*>(v, L);
-		return 1;
+	const auto& v = SONGMAN::GetAllSongs();
+	LuaHelpers::CreateTableFromArray<Song*>(v, L);
+	return 1;
+}
+
+static auto
+DifferentialReload(lua_State* L) -> int
+{
+	lua_pushnumber(L, SONGMAN::DifferentialReload());
+	return 1;
+}
+
+static auto
+GetNumSongs(lua_State* L) -> int
+{
+	lua_pushnumber(L, SONGMAN::GetNumSongs());
+	return 1;
+}
+
+static auto
+GetNumAdditionalSongs(lua_State* L) -> int
+{
+	lua_pushnumber(L, SONGMAN::GetNumAdditionalSongs());
+	return 1;
+}
+
+static auto
+GetNumSongGroups(lua_State* L) -> int
+{
+	lua_pushnumber(L, SONGMAN::GetNumSongGroups());
+	return 1;
+}
+
+/* Note: this could now be implemented as Luna<Steps>::GetSong */
+static auto
+GetSongFromSteps(lua_State* L) -> int
+{
+	Song* pSong = nullptr;
+	if (lua_isnil(L, 1)) {
+		pSong = nullptr;
+	} else {
+		auto pSteps = Luna<Steps>::check(L, 1);
+		pSong = pSteps->m_pSong;
+	}
+	if (pSong != nullptr) {
+		pSong->PushSelf(L);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
+DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
+
+static auto
+GetSongGroupNames(lua_State* L) -> int
+{
+	vector<std::string> v;
+	SONGMAN::GetSongGroupNames(v);
+	LuaHelpers::CreateTableFromArray<std::string>(v, L);
+	return 1;
+}
+
+static auto
+GetSongsInGroup(lua_State* L) -> int
+{
+	vector<Song*> v = SONGMAN::GetSongs(SArg(1));
+	LuaHelpers::CreateTableFromArray<Song*>(v, L);
+	return 1;
+}
+
+DEFINE_METHOD(ShortenGroupName, ShortenGroupName(SArg(1)))
+DEFINE_METHOD(GetSongGroupBannerPath, GetSongGroupBannerPath(SArg(1)));
+DEFINE_METHOD(DoesSongGroupExist, DoesSongGroupExist(SArg(1)));
+DEFINE_METHOD(IsChartLoaded, IsChartLoaded(SArg(1)));
+
+static auto
+GetPopularSongs(lua_State* L) -> int
+{
+	const auto& v = SONGMAN::GetPopularSongs();
+	LuaHelpers::CreateTableFromArray<Song*>(v, L);
+	return 1;
+}
+
+static auto
+WasLoadedFromAdditionalSongs(lua_State* L) -> int
+{
+	const Song* pSong = Luna<Song>::check(L, 1);
+	lua_pushboolean(
+	  L, static_cast<int>(SONGMAN::WasLoadedFromAdditionalSongs(pSong)));
+	return 1;
+}
+
+static auto
+GetSongByChartKey(lua_State* L) -> int
+{
+	std::string ck = SArg(1);
+	Song* pSong = SONGMAN::GetSongByChartkey(ck);
+	if (pSong != nullptr) {
+		pSong->PushSelf(L);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+static auto
+GetStepsByChartKey(lua_State* L) -> int
+{
+	std::string ck = SArg(1);
+	Steps* pSteps = SONGMAN::GetStepsByChartkey(ck);
+	if (pSteps != nullptr) {
+		pSteps->PushSelf(L);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+static auto
+GetActivePlaylist(lua_State* L) -> int
+{
+	SONGMAN::GetPlaylists()[SONGMAN::activeplaylist].PushSelf(L);
+	return 1;
+}
+
+static auto
+SetActivePlaylist(lua_State* L) -> int
+{
+	SONGMAN::activeplaylist = SArg(1);
+	return 0;
+}
+
+static auto NewPlaylist(lua_State * /*L*/) -> int
+{
+	ScreenTextEntry::TextEntry(
+	  SM_None, "Name Playlist", "", 128, nullptr, SONGMAN::makePlaylist);
+	return 0;
+}
+
+static auto
+GetPlaylists(lua_State* L) -> int
+{
+	auto idx = 1;
+	lua_newtable(L);
+	for (auto pl : SONGMAN::GetPlaylists()) {
+		pl.second.PushSelf(L);
+		lua_rawseti(L, -2, idx);
+		++idx;
 	}
 
-	static auto DifferentialReload(T* p, lua_State* L) -> int
-	{
-		lua_pushnumber(L, p->DifferentialReload());
-		return 1;
-	}
+	return 1;
+}
 
-	static auto GetNumSongs(T* p, lua_State* L) -> int
-	{
-		lua_pushnumber(L, p->GetNumSongs());
-		return 1;
-	}
+static auto
+DeletePlaylist(lua_State* L) -> int
+{
+	SONGMAN::DeletePlaylist(SArg(1));
+	PROFILEMAN->SaveProfile(PLAYER_1);
+	return 0;
+}
 
-	static auto GetNumAdditionalSongs(T* p, lua_State* L) -> int
-	{
-		lua_pushnumber(L, p->GetNumAdditionalSongs());
-		return 1;
-	}
+const luaL_Reg SongManagerTable[] = { LIST_METHOD(GetAllSongs),
+									  LIST_METHOD(DifferentialReload),
+									  LIST_METHOD(GetNumSongs),
+									  LIST_METHOD(GetNumAdditionalSongs),
+									  LIST_METHOD(GetNumSongGroups),
+									  LIST_METHOD(GetSongFromSteps),
+									  LIST_METHOD(GetSongColor),
+									  LIST_METHOD(GetSongGroupColor),
+									  LIST_METHOD(GetSongGroupNames),
+									  LIST_METHOD(GetSongsInGroup),
+									  LIST_METHOD(ShortenGroupName);
+LIST_METHOD(GetSongGroupBannerPath), LIST_METHOD(DoesSongGroupExist),
+  LIST_METHOD(GetPopularSongs), LIST_METHOD(WasLoadedFromAdditionalSongs),
+  LIST_METHOD(GetSongByChartKey), LIST_METHOD(GetStepsByChartKey),
+  LIST_METHOD(GetActivePlaylist), LIST_METHOD(SetActivePlaylist),
+  LIST_METHOD(NewPlaylist), LIST_METHOD(GetPlaylists),
+  LIST_METHOD(DeletePlaylist),
+{
+	nullptr, nullptr
+}
+}
+}
+;
 
-	static auto GetNumSongGroups(T* p, lua_State* L) -> int
-	{
-		lua_pushnumber(L, p->GetNumSongGroups());
-		return 1;
-	}
-
-	/* Note: this could now be implemented as Luna<Steps>::GetSong */
-	static auto GetSongFromSteps(T* /*p*/, lua_State* L) -> int
-	{
-		Song* pSong = nullptr;
-		if (lua_isnil(L, 1)) {
-			pSong = nullptr;
-		} else {
-			auto pSteps = Luna<Steps>::check(L, 1);
-			pSong = pSteps->m_pSong;
-		}
-		if (pSong != nullptr) {
-			pSong->PushSelf(L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
-	DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
-
-	static auto GetSongGroupNames(T* p, lua_State* L) -> int
-	{
-		vector<std::string> v;
-		p->GetSongGroupNames(v);
-		LuaHelpers::CreateTableFromArray<std::string>(v, L);
-		return 1;
-	}
-
-	static auto GetSongsInGroup(T* p, lua_State* L) -> int
-	{
-		vector<Song*> v = p->GetSongs(SArg(1));
-		LuaHelpers::CreateTableFromArray<Song*>(v, L);
-		return 1;
-	}
-
-	DEFINE_METHOD(ShortenGroupName, ShortenGroupName(SArg(1)))
-	DEFINE_METHOD(GetSongGroupBannerPath, GetSongGroupBannerPath(SArg(1)));
-	DEFINE_METHOD(DoesSongGroupExist, DoesSongGroupExist(SArg(1)));
-	DEFINE_METHOD(IsChartLoaded, IsChartLoaded(SArg(1)));
-
-	static auto GetPopularSongs(T* p, lua_State* L) -> int
-	{
-		const auto& v = p->GetPopularSongs();
-		LuaHelpers::CreateTableFromArray<Song*>(v, L);
-		return 1;
-	}
-
-	static auto WasLoadedFromAdditionalSongs(T* p, lua_State* L) -> int
-	{
-		const Song* pSong = Luna<Song>::check(L, 1);
-		lua_pushboolean(
-		  L, static_cast<int>(p->WasLoadedFromAdditionalSongs(pSong)));
-		return 1;
-	}
-
-	static auto GetSongByChartKey(T* p, lua_State* L) -> int
-	{
-		std::string ck = SArg(1);
-		Song* pSong = p->GetSongByChartkey(ck);
-		if (pSong != nullptr) {
-			pSong->PushSelf(L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetStepsByChartKey(T* p, lua_State* L) -> int
-	{
-		std::string ck = SArg(1);
-		Steps* pSteps = p->GetStepsByChartkey(ck);
-		if (pSteps != nullptr) {
-			pSteps->PushSelf(L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetActivePlaylist(T* p, lua_State* L) -> int
-	{
-		p->GetPlaylists()[p->activeplaylist].PushSelf(L);
-		return 1;
-	}
-
-	static auto SetActivePlaylist(T* p, lua_State* L) -> int
-	{
-		p->activeplaylist = SArg(1);
-		return 0;
-	}
-
-	static auto NewPlaylist(T* /*p*/, lua_State * /*L*/) -> int
-	{
-		ScreenTextEntry::TextEntry(
-		  SM_None, "Name Playlist", "", 128, nullptr, makePlaylist);
-		return 0;
-	}
-
-	static auto GetPlaylists(T* p, lua_State* L) -> int
-	{
-		auto idx = 1;
-		lua_newtable(L);
-		for (auto pl : p->GetPlaylists()) {
-			pl.second.PushSelf(L);
-			lua_rawseti(L, -2, idx);
-			++idx;
-		}
-
-		return 1;
-	}
-
-	static auto DeletePlaylist(T* p, lua_State* L) -> int
-	{
-		p->DeletePlaylist(SArg(1));
-		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 0;
-	}
-
-	LunaSongManager()
-	{
-		ADD_METHOD(GetAllSongs);
-		ADD_METHOD(DifferentialReload);
-		ADD_METHOD(GetNumSongs);
-		ADD_METHOD(GetNumAdditionalSongs);
-		ADD_METHOD(GetNumSongGroups);
-		ADD_METHOD(GetSongFromSteps);
-		ADD_METHOD(GetSongColor);
-		ADD_METHOD(GetSongGroupColor);
-		ADD_METHOD(GetSongGroupNames);
-		ADD_METHOD(GetSongsInGroup);
-		ADD_METHOD(ShortenGroupName);
-		ADD_METHOD(GetSongGroupBannerPath);
-		ADD_METHOD(DoesSongGroupExist);
-		ADD_METHOD(GetPopularSongs);
-		ADD_METHOD(WasLoadedFromAdditionalSongs);
-		ADD_METHOD(GetSongByChartKey);
-		ADD_METHOD(GetStepsByChartKey);
-		ADD_METHOD(GetActivePlaylist);
-		ADD_METHOD(SetActivePlaylist);
-		ADD_METHOD(NewPlaylist);
-		ADD_METHOD(GetPlaylists);
-		ADD_METHOD(DeletePlaylist);
-	}
-};
-
-LUA_REGISTER_CLASS(SongManager)
+LUA_REGISTER_NAMESPACE(SongManager)
 
 class LunaPlaylist : public Luna<Playlist>
 {
+	// TODO: This should really be defined in
+	// Etterna/Models/Misc/Difficulty.cpp
+
   public:
 	static auto GetChartkeys(T* p, lua_State* L) -> int
 	{
@@ -1458,6 +1473,8 @@ LUA_REGISTER_CLASS(Playlist)
 
 class LunaChart : public Luna<Chart>
 {
+	// TODO: This should really be defined in
+	// Etterna/Models/Misc/Difficulty.cpp
   public:
 	DEFINE_METHOD(GetRate, rate);
 	DEFINE_METHOD(IsLoaded, IsLoaded());
@@ -1486,7 +1503,6 @@ class LunaChart : public Luna<Chart>
 LUA_REGISTER_CLASS(Chart)
 // Lua end
 
-}
 void
 Chart::FromKey(const string& ck)
 {
