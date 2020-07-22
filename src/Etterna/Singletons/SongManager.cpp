@@ -73,13 +73,46 @@ SONG_GROUP_COLOR_NAME(size_t i) -> std::string
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
 namespace SONGMAN {
-/*SongManager::SongManager()  //TODO: FIXME
+namespace { // Anonymous namespace
+// Foward Function Declarations:
+void
+LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
+auto
+IsSongDir(const std::string& sDir) -> bool;
+auto
+AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
+void
+AddSongToList(Song* new_song);
+// Indexed by chartkeys
+void
+AddKeyedPointers(Song* new_song);
+
+/** @brief All of the songs that can be played. */
+std::vector<Song*> m_pSongs;
+std::map<std::string, Song*> m_SongsByDir;
+
+std::vector<std::pair<std::pair<std::string, unsigned int>, Song*>*> cache;
+
+struct Comp
+{
+	auto operator()(const std::string& s, const std::string& t) const -> bool
+	{
+		return CompareStringsAsc(s, t);
+	}
+};
+using SongPointerVector = std::vector<Song*>;
+std::map<std::string, SongPointerVector, Comp> m_mapSongGroupIndex;
+ThemeMetric<int> NUM_SONG_GROUP_COLORS;
+ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
+} // End anonymous namespace
+void
+Init()
 {
 	// Register with Lua.
 	{
 		auto L = LUA->Get();
 		lua_pushstring(L, "SONGMAN");
-		this->PushSelf(L);
+		PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
@@ -90,9 +123,10 @@ namespace SONGMAN {
 
 	// calc for debug/session scores
 	calc = std::make_unique<Calc>();
-}**/
+}
 
-/* SongManager::~SongManager() //TODO: FIXME
+void
+End()
 {
 	// Unregister with Lua.
 	LUA->UnsetGlobal("SONGMAN");
@@ -100,7 +134,7 @@ namespace SONGMAN {
 	// Courses depend on Songs and Songs don't depend on Courses.
 	// So, delete the Courses first.
 	FreeSongs();
-}**/
+}
 
 void
 InitAll(LoadingWindow* ld)
@@ -504,24 +538,6 @@ ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 	}
 }
 
-// Only store 1 steps/song pointer per key -Mina
-void
-AddKeyedPointers(Song* new_song)
-{
-	const auto steps = new_song->GetAllSteps();
-	for (auto step : steps) {
-		const auto& ck = step->GetChartKey();
-		if (StepsByKey.count(ck) == 0u) {
-			StepsByKey.emplace(ck, step);
-			if (SongsByKey.count(ck) == 0u) {
-				SongsByKey.emplace(ck, new_song);
-			}
-		}
-	}
-
-	groupderps[new_song->m_sGroupName].emplace_back(new_song);
-}
-
 // Get a steps pointer given a chartkey, the assumption here is we want
 // _a_ matching steps, not the original steps - mina
 auto
@@ -556,190 +572,10 @@ static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
   "must "
   "reside in a group folder.  For example, \"Songs/Originals/My "
   "Song\".");
-auto
-IsSongDir(const std::string& sDir) -> bool
-{
-	// Check to see if they put a song directly inside the group folder.
-	std::vector<std::string> arrayFiles;
-	GetDirListing(sDir + "/*", arrayFiles);
-	const auto& audio_exts = ActorUtil::GetTypeExtensionList(FT_Sound);
-	for (auto& fname : arrayFiles) {
-		const std::string ext = GetExtension(fname);
-		for (auto& aud : audio_exts) {
-			if (ext == aud) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-auto
-AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool
-{
-	unsigned j;
-	for (j = 0; j < m_sSongGroupNames.size(); ++j) {
-		if (sGroupDirName == m_sSongGroupNames[j]) {
-			break;
-		}
-	}
-
-	if (j != m_sSongGroupNames.size()) {
-		return false; // the group is already added
-	}
-
-	// Look for a group banner in this group folder
-	std::vector<std::string> arrayGroupBanners;
-
-	FILEMAN->GetDirListingWithMultipleExtensions(
-	  sDir + sGroupDirName + "/",
-	  ActorUtil::GetTypeExtensionList(FT_Bitmap),
-	  arrayGroupBanners);
-
-	std::string sBannerPath;
-	if (!arrayGroupBanners.empty()) {
-		sBannerPath = sDir + sGroupDirName + "/" + arrayGroupBanners[0];
-	} else {
-		// Look for a group banner in the parent folder
-		FILEMAN->GetDirListingWithMultipleExtensions(
-		  sDir + sGroupDirName,
-		  ActorUtil::GetTypeExtensionList(FT_Bitmap),
-		  arrayGroupBanners);
-		if (!arrayGroupBanners.empty()) {
-			sBannerPath = sDir + arrayGroupBanners[0];
-		}
-	}
-
-	m_sSongGroupNames.emplace_back(sGroupDirName);
-	m_sSongGroupBannerPaths.emplace_back(sBannerPath);
-	return true;
-}
 
 std::mutex diskLoadSongMutex;
 std::mutex diskLoadGroupMutex;
 static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
-void
-LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
-{
-	std::vector<std::string> songFolders;
-	GetDirListing(sDir + "*", songFolders, true);
-	auto songCount = 0;
-	if (ld != nullptr) {
-		ld->SetIndeterminate(false);
-		ld->SetTotalWork(songFolders.size());
-		ld->SetText("Checking song folders...");
-	}
-	std::vector<Group> groups;
-	auto unknownGroup = Group(std::string("Unknown Group"));
-	auto foldersChecked = 0;
-	auto onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
-	for (const auto& folder : songFolders) {
-		auto burp = sDir + folder;
-		if (SONGMAN::IsSongDir(burp)) {
-			unknownGroup.songs.emplace_back(burp);
-		} else {
-			auto group = Group(folder);
-			GetDirListing(sDir + folder + "/*", group.songs, true, true);
-			songCount += group.songs.size();
-			groups.emplace_back(group);
-		}
-	}
-	if (!unknownGroup.songs.empty()) {
-		groups.emplace_back(unknownGroup);
-	}
-
-	if (ld != nullptr) {
-		ld->SetIndeterminate(false);
-		ld->SetTotalWork(groups.size());
-		ld->SetText("Loading Songs From Disk\n");
-		ld->SetProgress(0);
-	}
-	auto groupIndex = 0;
-	onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
-
-	auto callback =
-	  [&sDir](std::pair<vectorIt<Group>, vectorIt<Group>> workload,
-			  ThreadData* data) {
-		  auto per_thread_calc = std::make_unique<Calc>();
-
-		  auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
-		  auto onePercent = pair->first;
-		  auto ld = pair->second;
-		  auto counter = 0;
-		  auto lastUpdate = 0;
-		  for (auto it = workload.first; it != workload.second; it++) {
-			  auto pair = *it;
-			  auto& sGroupName = it->name;
-			  counter++;
-			  auto& arraySongDirs = it->songs;
-			  if (counter % onePercent == 0) {
-				  data->_progress += counter - lastUpdate;
-				  lastUpdate = counter;
-				  data->setUpdated(true);
-			  }
-			  auto loaded = 0;
-			  auto index_entry = m_mapSongGroupIndex[sGroupName];
-			  const auto& group_base_name = sGroupName;
-			  for (auto& sSongDirName : arraySongDirs) {
-				  auto hur = make_lower(sSongDirName + "/");
-				  if (m_SongsByDir.count(hur) != 0u) {
-					  continue;
-				  }
-				  auto pNewSong = new Song;
-				  if (!pNewSong->LoadFromSongDir(sSongDirName,
-												 per_thread_calc.get())) {
-					  delete pNewSong;
-					  continue;
-				  }
-				  if (sGroupName == "Unknown Group") {
-					  pNewSong->m_sGroupName = "Ungrouped Songs";
-				  }
-				  {
-					  std::lock_guard<std::mutex> lk(diskLoadSongMutex);
-					  AddSongToList(pNewSong);
-					  SONGMAN::AddKeyedPointers(pNewSong);
-				  }
-				  index_entry.emplace_back(pNewSong);
-				  loaded++;
-			  }
-			  if (loaded == 0) {
-				  continue;
-			  }
-			  LOG->Trace("Loaded %i songs from \"%s\"",
-						 loaded,
-						 (sDir + sGroupName).c_str());
-			  {
-				  std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
-				  SONGMAN::AddGroup(sDir, sGroupName);
-				  IMAGECACHE->CacheImage(
-					"Banner", GetSongGroupBannerPath(sDir + sGroupName));
-			  }
-		  }
-	  };
-	auto onUpdate = [ld](int progress) {
-		if (ld != nullptr) {
-			ld->SetProgress(progress);
-		}
-	};
-	vector<Group> workload;
-	workload.reserve(groups.size());
-	for (auto& group : groups) {
-		workload.emplace_back(group);
-	}
-
-	if (!workload.empty()) {
-		parallelExecution<Group>(
-		  workload,
-		  onUpdate,
-		  callback,
-		  static_cast<void*>(
-			new std::pair<int, LoadingWindow*>(onePercent, ld)));
-	}
-
-	if (ld != nullptr) {
-		ld->SetIndeterminate(true);
-	}
-}
 
 void
 FreeSongs()
@@ -1083,15 +919,6 @@ SortSongs()
 }
 
 void
-AddSongToList(Song* new_song)
-{
-	new_song->SetEnabled(true);
-	m_pSongs.emplace_back(new_song);
-	std::string dir = make_lower(new_song->GetSongDir());
-	m_SongsByDir.insert(make_pair(dir, new_song));
-}
-
-void
 makePlaylist(const std::string& answer)
 {
 	Playlist pl;
@@ -1196,9 +1023,219 @@ SaveCalcTestXmlToDir()
 	}
 	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 }
+namespace { // Anonymous forward-declared functions
 
+// Only store 1 steps/song pointer per key -Mina
+void
+AddKeyedPointers(Song* new_song)
+{
+	const auto steps = new_song->GetAllSteps();
+	for (auto step : steps) {
+		const auto& ck = step->GetChartKey();
+		if (StepsByKey.count(ck) == 0u) {
+			StepsByKey.emplace(ck, step);
+			if (SongsByKey.count(ck) == 0u) {
+				SongsByKey.emplace(ck, new_song);
+			}
+		}
+	}
+
+	groupderps[new_song->m_sGroupName].emplace_back(new_song);
 }
-// TODO: All of the Lua stuff is hecked here
+
+void
+LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
+{
+	std::vector<std::string> songFolders;
+	GetDirListing(sDir + "*", songFolders, true);
+	auto songCount = 0;
+	if (ld != nullptr) {
+		ld->SetIndeterminate(false);
+		ld->SetTotalWork(songFolders.size());
+		ld->SetText("Checking song folders...");
+	}
+	std::vector<Group> groups;
+	auto unknownGroup = Group(std::string("Unknown Group"));
+	auto foldersChecked = 0;
+	auto onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
+	for (const auto& folder : songFolders) {
+		auto burp = sDir + folder;
+		if (SONGMAN::IsSongDir(burp)) {
+			unknownGroup.songs.emplace_back(burp);
+		} else {
+			auto group = Group(folder);
+			GetDirListing(sDir + folder + "/*", group.songs, true, true);
+			songCount += group.songs.size();
+			groups.emplace_back(group);
+		}
+	}
+	if (!unknownGroup.songs.empty()) {
+		groups.emplace_back(unknownGroup);
+	}
+
+	if (ld != nullptr) {
+		ld->SetIndeterminate(false);
+		ld->SetTotalWork(groups.size());
+		ld->SetText("Loading Songs From Disk\n");
+		ld->SetProgress(0);
+	}
+	auto groupIndex = 0;
+	onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
+
+	auto callback =
+	  [&sDir](std::pair<vectorIt<Group>, vectorIt<Group>> workload,
+			  ThreadData* data) {
+		  auto per_thread_calc = std::make_unique<Calc>();
+
+		  auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
+		  auto onePercent = pair->first;
+		  auto ld = pair->second;
+		  auto counter = 0;
+		  auto lastUpdate = 0;
+		  for (auto it = workload.first; it != workload.second; it++) {
+			  auto pair = *it;
+			  auto& sGroupName = it->name;
+			  counter++;
+			  auto& arraySongDirs = it->songs;
+			  if (counter % onePercent == 0) {
+				  data->_progress += counter - lastUpdate;
+				  lastUpdate = counter;
+				  data->setUpdated(true);
+			  }
+			  auto loaded = 0;
+			  auto index_entry = m_mapSongGroupIndex[sGroupName];
+			  const auto& group_base_name = sGroupName;
+			  for (auto& sSongDirName : arraySongDirs) {
+				  auto hur = make_lower(sSongDirName + "/");
+				  if (m_SongsByDir.count(hur) != 0u) {
+					  continue;
+				  }
+				  auto pNewSong = new Song;
+				  if (!pNewSong->LoadFromSongDir(sSongDirName,
+												 per_thread_calc.get())) {
+					  delete pNewSong;
+					  continue;
+				  }
+				  if (sGroupName == "Unknown Group") {
+					  pNewSong->m_sGroupName = "Ungrouped Songs";
+				  }
+				  {
+					  std::lock_guard<std::mutex> lk(diskLoadSongMutex);
+					  AddSongToList(pNewSong);
+					  SONGMAN::AddKeyedPointers(pNewSong);
+				  }
+				  index_entry.emplace_back(pNewSong);
+				  loaded++;
+			  }
+			  if (loaded == 0) {
+				  continue;
+			  }
+			  LOG->Trace("Loaded %i songs from \"%s\"",
+						 loaded,
+						 (sDir + sGroupName).c_str());
+			  {
+				  std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
+				  SONGMAN::AddGroup(sDir, sGroupName);
+				  IMAGECACHE->CacheImage(
+					"Banner", GetSongGroupBannerPath(sDir + sGroupName));
+			  }
+		  }
+	  };
+	auto onUpdate = [ld](int progress) {
+		if (ld != nullptr) {
+			ld->SetProgress(progress);
+		}
+	};
+	vector<Group> workload;
+	workload.reserve(groups.size());
+	for (auto& group : groups) {
+		workload.emplace_back(group);
+	}
+
+	if (!workload.empty()) {
+		parallelExecution<Group>(
+		  workload,
+		  onUpdate,
+		  callback,
+		  static_cast<void*>(
+			new std::pair<int, LoadingWindow*>(onePercent, ld)));
+	}
+
+	if (ld != nullptr) {
+		ld->SetIndeterminate(true);
+	}
+}
+
+auto
+IsSongDir(const std::string& sDir) -> bool
+{
+	// Check to see if they put a song directly inside the group folder.
+	std::vector<std::string> arrayFiles;
+	GetDirListing(sDir + "/*", arrayFiles);
+	const auto& audio_exts = ActorUtil::GetTypeExtensionList(FT_Sound);
+	for (auto& fname : arrayFiles) {
+		const std::string ext = GetExtension(fname);
+		for (auto& aud : audio_exts) {
+			if (ext == aud) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+auto
+AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool
+{
+	unsigned j;
+	for (j = 0; j < m_sSongGroupNames.size(); ++j) {
+		if (sGroupDirName == m_sSongGroupNames[j]) {
+			break;
+		}
+	}
+
+	if (j != m_sSongGroupNames.size()) {
+		return false; // the group is already added
+	}
+
+	// Look for a group banner in this group folder
+	std::vector<std::string> arrayGroupBanners;
+
+	FILEMAN->GetDirListingWithMultipleExtensions(
+	  sDir + sGroupDirName + "/",
+	  ActorUtil::GetTypeExtensionList(FT_Bitmap),
+	  arrayGroupBanners);
+
+	std::string sBannerPath;
+	if (!arrayGroupBanners.empty()) {
+		sBannerPath = sDir + sGroupDirName + "/" + arrayGroupBanners[0];
+	} else {
+		// Look for a group banner in the parent folder
+		FILEMAN->GetDirListingWithMultipleExtensions(
+		  sDir + sGroupDirName,
+		  ActorUtil::GetTypeExtensionList(FT_Bitmap),
+		  arrayGroupBanners);
+		if (!arrayGroupBanners.empty()) {
+			sBannerPath = sDir + arrayGroupBanners[0];
+		}
+	}
+
+	m_sSongGroupNames.emplace_back(sGroupDirName);
+	m_sSongGroupBannerPaths.emplace_back(sBannerPath);
+	return true;
+}
+
+void
+AddSongToList(Song* new_song)
+{
+	new_song->SetEnabled(true);
+	m_pSongs.emplace_back(new_song);
+	std::string dir = make_lower(new_song->GetSongDir());
+	m_SongsByDir.insert(make_pair(dir, new_song));
+}
+} // End anonymous forward-declared functions
+} // End SONGMAN namespace
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 

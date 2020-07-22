@@ -7,6 +7,7 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 
 #include <unordered_map>
 
@@ -37,8 +38,10 @@ std::vector<std::string> m_sSongGroupNames;
 std::vector<std::string> m_sSongGroupBannerPaths; // each song group may have a
 												  // banner associated with it
 
-// SongManager(); //TODO: FIXME
-//~SongManager(); //TODO: FIXME
+void
+Init();
+void
+End();
 
 void
 InitSongsFromDisk(LoadingWindow* ld);
@@ -114,7 +117,7 @@ IsChartLoaded(const std::string& ck) -> bool
 void
 ResetGroupColors();
 
-static auto
+auto
 ShortenGroupName(const std::string& sLongGroupName) -> std::string;
 
 // Lookup
@@ -164,9 +167,9 @@ GetSongGroupByIndex(const unsigned index) -> std::string
 	return m_sSongGroupNames[index];
 }
 
-static void
+void
 DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
-static auto
+auto
 WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
 
 auto
@@ -181,7 +184,7 @@ PushSelf(lua_State* L);
 
 std::string activeplaylist = "";
 std::string playlistcourse = "";
-static void
+void
 ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
 								  const std::vector<std::string>& oldChartkeys);
 void
@@ -190,7 +193,7 @@ MakeSongGroupsFromPlaylists(
 void
 DeletePlaylist(const std::string& pl,
 			   std::map<std::string, Playlist>& playlists = GetPlaylists());
-static void
+void
 MakePlaylistFromFavorites(
   std::set<std::string>& favs,
   std::map<std::string, Playlist>& playlists = GetPlaylists());
@@ -200,54 +203,17 @@ std::vector<std::string> playlistGroups; // To delete from groupderps when
 										 // rebuilding
 										 // playlist groups
 
-static void
+void
 FinalizeSong(Song* pNewSong, const std::string& dir);
 
 // calc test stuff
 auto
 SaveCalcTestCreateNode() -> XNode*;
-static void
+void
 LoadCalcTestNode();
 void
 SaveCalcTestXmlToDir();
 std::map<Skillset, CalcTestList> testChartList;
 std::unique_ptr<Calc> calc;
-
-namespace { // Anonymous namespace -- functions equivalently to private for a
-			// class
-void
-LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
-static auto
-IsSongDir(const std::string& sDir) -> bool;
-auto
-AddGroup(const std::string& sDir, const std::string& sGroupDirName) -> bool;
-
-void
-AddSongToList(Song* new_song);
-/** @brief All of the songs that can be played. */
-std::vector<Song*> m_pSongs;
-std::map<std::string, Song*> m_SongsByDir;
-
-std::vector<std::pair<std::pair<std::string, unsigned int>, Song*>*> cache;
-
-// Indexed by chartkeys
-void
-AddKeyedPointers(Song* new_song);
-// vector<std::string>		m_sSongGroupBackgroundPaths; // each song group
-// may have a background associated with it (very rarely)
-
-struct Comp
-{
-	auto operator()(const std::string& s, const std::string& t) const -> bool
-	{
-		return CompareStringsAsc(s, t);
-	}
-};
-using SongPointerVector = std::vector<Song*>;
-std::map<std::string, SongPointerVector, Comp> m_mapSongGroupIndex;
-
-ThemeMetric<int> NUM_SONG_GROUP_COLORS;
-ThemeMetric1D<RageColor> SONG_GROUP_COLOR;
-}
 };
 #endif

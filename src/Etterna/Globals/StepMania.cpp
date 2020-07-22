@@ -292,7 +292,7 @@ ShutdownGame()
 	SAFE_DELETE(MODELMAN);
 	SAFE_DELETE(PROFILEMAN); // PROFILEMAN needs the songs still loaded
 	SAFE_DELETE(CRYPTMAN);
-	SAFE_DELETE(SONGMAN);
+	SONGMAN::End(); // Equivalent to old destructor
 	SAFE_DELETE(IMAGECACHE);
 	SAFE_DELETE(SONGINDEX);
 	SAFE_DELETE(SOUND); // uses GAMESTATE, PREFSMAN
@@ -1217,7 +1217,7 @@ sm_main(int argc, char* argv[])
 	IMAGECACHE = new ImageCache;
 
 	// depends on SONGINDEX:
-	// SONGMAN = new SongManager; TODO: Call SONGMAN "constructor" here
+	SONGMAN::Init();
 	SONGINDEX->StartTransaction();
 	SONGMAN::InitAll(pLoadingWindow); // this takes a long time
 	SONGINDEX->FinishTransaction();
