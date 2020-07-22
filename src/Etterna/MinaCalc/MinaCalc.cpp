@@ -332,7 +332,7 @@ JackStamAdjust(const float x, Calc& calc, const int hi)
 	return doot;
 }
 
-static const float magic_num = 16.F;
+constexpr float magic_num = 16.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
@@ -514,10 +514,10 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 /* pbm = point buffer multiplier, or basically starting with a max points some
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
-static const float tech_pbm = 1.F;
-static const float jack_pbm = 1.0175F;
-static const float stream_pbm = 1.01F;
-static const float bad_newbie_skillsets_pbm = 1.05F;
+constexpr float tech_pbm = 1.F;
+constexpr float jack_pbm = 1.0175F;
+constexpr float stream_pbm = 1.01F;
+constexpr float bad_newbie_skillsets_pbm = 1.05F;
 
 // each skillset should just be a separate calc function [todo]
 auto

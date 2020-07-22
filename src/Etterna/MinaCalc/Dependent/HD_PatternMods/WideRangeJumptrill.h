@@ -2,7 +2,7 @@
 #include "../IntervalHandInfo.h"
 
 // big brain stuff
-static const float wrjt_cv_factor = 3.F;
+constexpr float wrjt_cv_factor = 3.F;
 
 // should update detection so it's more similar to updated wrr
 // probably needs better debugoutput

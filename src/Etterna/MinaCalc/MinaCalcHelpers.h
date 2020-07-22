@@ -4,11 +4,11 @@
 
 /* enums and other definitions that only the calcmain and its components need */
 
-static const float max_rating = 100.F;
-static const float min_rating = 0.F;
-static const float default_score_goal = 0.93F;
-static const float low_acc_cutoff = 0.9F;
-static const float ssr_goal_cap = 0.965F;
+constexpr float max_rating = 100.F;
+constexpr float min_rating = 0.F;
+constexpr float default_score_goal = 0.93F;
+constexpr float low_acc_cutoff = 0.9F;
+constexpr float ssr_goal_cap = 0.965F;
 
 static const std::vector<float> dimples_the_all_zero_output{
 	min_rating, min_rating, min_rating, min_rating,

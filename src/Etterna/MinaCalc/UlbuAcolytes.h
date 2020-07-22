@@ -15,7 +15,7 @@ static const std::array<float, NUM_Skillset> basescalers = {
 
 static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
-static const float interval_span = 0.5F;
+constexpr float interval_span = 0.5F;
 
 inline void
 Smooth(std::array<float, max_intervals>& input,
