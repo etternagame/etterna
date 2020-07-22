@@ -88,6 +88,8 @@ ScreenGameplay::ScreenGameplay()
 		SCOREMAN->UnloadAllReplayData();
 	}
 
+	SONGMAN->UnloadAllCalcDebugOutput();
+
 	m_DancingState = STATE_INTRO;
 	m_fTimeSinceLastDancingComment = 0.f;
 	m_bShowScoreboard = false;
