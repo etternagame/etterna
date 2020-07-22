@@ -615,7 +615,7 @@ local o =
         enabled = false
         SCREENMAN:GetTopScreen():GetMusicWheel():visible(true)
     end,
-    CurrentStepsP1ChangedMessageCommand = function(self)
+    CurrentStepsChangedMessageCommand = function(self)
         if not enabled then return end
         updateCoolStuff()
         self:RunCommandsOnChildren(
@@ -625,7 +625,7 @@ local o =
         )
     end,
     CurrentRateChangedMessageCommand = function(self)
-        self:playcommand("CurrentStepsP1Changed")
+        self:playcommand("CurrentStepsChanged")
     end,
     Def.Quad {
         Name = "GraphPos",

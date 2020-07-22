@@ -81,7 +81,7 @@ local t = Def.ActorFrame {
 		self:GetChild("pausetext"):settext("")
 
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
             musicratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
 		end

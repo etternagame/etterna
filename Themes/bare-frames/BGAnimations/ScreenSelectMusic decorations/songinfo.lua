@@ -50,7 +50,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     end,
-    CurrentStepsP1ChangedMessageCommand = function(self)
+    CurrentStepsChangedMessageCommand = function(self)
         steps = GAMESTATE:GetCurrentSteps()
         song = GAMESTATE:GetCurrentSong()
         self:playcommand("SetMeter")
@@ -100,7 +100,7 @@ t[#t+1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(songinfoLine, 30):zoom(0.3)
 		end,
-		CurrentStepsP1ChangedMessageCommand = function(self)
+		CurrentStepsChangedMessageCommand = function(self)
 			self:settext(getCurRateDisplayString())
 		end,
         CodeMessageCommand = function(self, params)

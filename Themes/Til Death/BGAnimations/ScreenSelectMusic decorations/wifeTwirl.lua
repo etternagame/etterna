@@ -296,7 +296,7 @@ local t =
 			toggleCalcInfo(false)
 		end
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
 	end,
 	Def.Quad {
@@ -648,9 +648,9 @@ local function radarPairs(i)
 				InitCommand = function(self)
 					self:xy(frameX + 105, frameY + -52 + 13 * i):zoom(0.5):halign(1):maxwidth(60)
 				end,
-				MintyFreshCommand = function(self)
-					if song then
-						self:settext(steps:GetRelevantRadars(PLAYER_1)[i])
+				CurrentStepsChangedMessageCommand = function(self, steps)
+					if steps.ptr then
+						self:settext(steps.ptr:GetRelevantRadars()[i])
 					else
 						self:settext("")
 					end
@@ -917,7 +917,7 @@ t[#t + 1] =
 -- self:settext("")
 -- end
 -- end,
--- CurrentStepsP1ChangedMessageCommand=function(self)
+-- CurrentStepsChangedMessageCommand=function(self)
 -- 	self:queuecommand("Set")
 -- end,
 -- RefreshChartInfoMessageCommand=function(self)

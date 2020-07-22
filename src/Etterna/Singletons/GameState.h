@@ -128,7 +128,6 @@ class GameState
 	void SetCurrentStyle(const Style* style, PlayerNumber pn);
 	auto SetCompatibleStyle(StepsType stype, PlayerNumber pn) -> bool;
 
-	void GetPlayerInfo(PlayerNumber pn, bool& bIsEnabledOut, bool& bIsHumanOut);
 	[[nodiscard]] auto IsPlayerEnabled(PlayerNumber pn) const -> bool;
 	[[nodiscard]] auto IsMultiPlayerEnabled(MultiPlayer mp) const -> bool;
 	auto IsPlayerEnabled(const PlayerState* pPlayerState) const -> bool;
@@ -197,8 +196,6 @@ class GameState
 	std::string sExpandedSectionName;
 
 	static auto GetNumStagesMultiplierForSong(const Song* pSong) -> int;
-	static auto GetNumStagesForSongAndStyleType(const Song* pSong, StyleType st)
-	  -> int;
 	[[nodiscard]] auto GetNumStagesForCurrentSongAndStepsOrCourse() const
 	  -> int;
 
@@ -232,10 +229,10 @@ class GameState
 
 	// NULL on ScreenSelectMusic if the currently selected wheel item isn't a
 	// Song.
-	BroadcastOnChangePtr<Song> m_pCurSong;
+	BroadcastOnChangePtrWithSelf<Song> m_pCurSong;
 	// The last Song that the user manually changed to.
 	Song* m_pPreferredSong;
-	BroadcastOnChangePtr<Steps> m_pCurSteps;
+	BroadcastOnChangePtrWithSelf<Steps> m_pCurSteps;
 
 	// Music statistics:
 	SongPosition m_Position;
@@ -349,7 +346,6 @@ class GameState
 	bool m_paused;
 
 	GameState(const GameState& rhs);
-	auto operator=(const GameState& rhs) -> GameState&;
 };
 
 extern GameState*

@@ -106,7 +106,7 @@ local t =
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("BORPBORPNORFNORFc")
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("BORPBORPNORFNORFc")
 	end
 }
