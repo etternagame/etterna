@@ -95,10 +95,8 @@ MusicWheelItem::MusicWheelItem(const std::string& sType)
 	this->AddChild(m_pGradeDisplay);
 	LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay);
 
-	this->SubscribeToMessage(Message_CurrentStepsP1Changed);
-	this->SubscribeToMessage(Message_CurrentStepsP2Changed);
+	this->SubscribeToMessage(Message_CurrentStepsChanged);
 	this->SubscribeToMessage(Message_PreferredDifficultyP1Changed);
-	this->SubscribeToMessage(Message_PreferredDifficultyP2Changed);
 }
 
 MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)

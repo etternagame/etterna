@@ -227,7 +227,7 @@ struct FJ_Sequencer
 		// punished less than those that register at 2%
 		float dur_prop = dur / group_tol;
 		dur_prop /= (static_cast<float>(flim.size) / mod_scaler);
-		dur_prop = CalcClamp(dur_prop, 0.F, 1.F);
+		dur_prop = std::clamp(dur_prop, 0.F, 1.F);
 
 		return fastsqrt(dur_prop);
 	}

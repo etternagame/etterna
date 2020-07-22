@@ -69,7 +69,7 @@ struct JSMod
 
 	void decay_mod()
 	{
-		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
+		pmod = std::clamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
 	}
 
@@ -97,11 +97,11 @@ struct JSMod
 		  static_cast<float>(itvi.taps_by_size.at(_tap_size) + prop_buffer) /
 		  (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
-		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
+		  std::clamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// punish lots splithand jumptrills
 		// uhh this might also catch oh jumptrills can't remember
-		jumptrill_prop = CalcClamp(
+		jumptrill_prop = std::clamp(
 		  split_hand_pool - (static_cast<float>(mitvi.not_js) / t_taps),
 		  split_hand_min,
 		  split_hand_max);
@@ -110,13 +110,13 @@ struct JSMod
 		// theoretically the ohjump downscaler should handle
 		// this but handling it here gives us more flexbility
 		// with the ohjump mod
-		jack_prop = CalcClamp(
+		jack_prop = std::clamp(
 		  jack_pool - (static_cast<float>(mitvi.actual_jacks) / t_taps),
 		  jack_min,
 		  jack_max);
 
 		pmod =
-		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+		  std::clamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
 		if (mitvi.dunk_it) {
 			pmod *= 0.99F;

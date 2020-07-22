@@ -58,7 +58,7 @@ struct FlamJamMod
 			pmod += mp;
 		}
 		pmod /= 5.F;
-		pmod = CalcClamp(base + pmod, min_mod, max_mod);
+		pmod = std::clamp(base + pmod, min_mod, max_mod);
 
 		// reset flags n stuff
 		fj.handle_interval_end();

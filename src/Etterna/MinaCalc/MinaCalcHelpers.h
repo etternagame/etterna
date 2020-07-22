@@ -56,24 +56,3 @@ AggregateRatings(const std::vector<float>& skillsets,
 		return rating * 1.11F;
 	return AggregateRatings(skillsets, rating - res, res / 2.f, iter + 1);
 }
-
-// we want intervals not row values here, just average them, it's only for calc
-// display and doesn't affect internal calculations
-inline void
-set_jack_diff_debug(Calc& calc, const int& hi)
-{
-	// interval loop
-	for (int itv = 0; itv < calc.numitv; ++itv) {
-		// float diff_total = 0.F;
-		// int counter = 0;
-
-		//// rows per interval now
-		// for (int row = 0; row < calc.itv_jack_diff_size.at(hi).at(itv);
-		// ++row) { 	diff_total += calc.jack_diff.at(hi).at(itv).at(row);
-		//	++counter;
-		//}
-
-		// technically this is kind of a waste of an array but whatever
-		//calc.soap.at(hi)[JackBase].at(itv) = 1.F;
-	}
-}

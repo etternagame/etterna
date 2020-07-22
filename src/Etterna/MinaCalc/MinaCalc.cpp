@@ -50,15 +50,15 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 {
 	// in flux
 	const auto grindscaler =
-	  CalcClamp(
+	  std::clamp(
 		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 35.F) / 35.F),
 		0.9F,
 		1.F) *
-	  CalcClamp(
+	  std::clamp(
 		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 15.F) / 15.F),
 		0.9F,
 		1.F) *
-	  CalcClamp(
+	  std::clamp(
 		0.4F + (0.6F * ((NoteInfo.back().rowTime / music_rate) - 10.F) / 10.F),
 		0.4F,
 		1.F);
@@ -159,7 +159,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 * don't want to push up the high end stuff anymore so just add to let
 		 * stuff down the curve catch up a little remember we're operating on a
 		 * multiplier */
-		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8F, 1.08F);
+		mcfroggerbopper = std::clamp(mcfroggerbopper, 0.8F, 1.08F);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 
@@ -183,7 +183,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
-				r = CalcClamp(r, r, ssrcap);
+				r = std::clamp(r, r, ssrcap);
 
 				if (highest_stam_adjusted_skillset == Skill_JackSpeed) {
 					r = downscale_low_accuracy_scores(r, score_goal);
@@ -271,7 +271,7 @@ StamAdjust(const float x,
 			}
 			local_ceil = stam_ceil * stam_floor;
 
-			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+			mod = min(std::clamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			calc.stam_adj_diff.at(i) = diff->at(i) * mod;
 			calc.debugValues.at(hi)[2][StamMod][i] = mod;
 		}
@@ -285,7 +285,7 @@ StamAdjust(const float x,
 			}
 			local_ceil = stam_ceil * stam_floor;
 
-			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+			mod = min(std::clamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			calc.stam_adj_diff.at(i) = diff->at(i) * mod;
 		}
 	}
@@ -321,7 +321,7 @@ JackStamAdjust(const float x, Calc& calc, const int hi)
 		}
 		const auto local_ceil = stam_ceil * stam_floor;
 
-		mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+		mod = min(std::clamp(mod, stam_floor, local_ceil), super_stam_ceil);
 
 		doot.at(i).first = diff.at(i).first;
 		doot.at(i).second = diff.at(i).second * mod;
@@ -459,12 +459,13 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 		return true;
 
 	// ulbu calculates everything needed for the block below (mostly pmods)
-	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(*this);
+	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(
+	  *this);
 	// if debug, force params to load
 	if (debugmode)
 		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
 	ulbu_that_which_consumes_all();
-	
+
 	// main hand loop
 	for (const auto& hi : { left_hand, right_hand }) {
 		InitAdjDiff(*this, hi);
@@ -915,7 +916,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 437;
+int mina_calc_version = 438;
 auto
 GetCalcVersion() -> int
 {
