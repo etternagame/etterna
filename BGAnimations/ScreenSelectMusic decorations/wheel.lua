@@ -1,5 +1,5 @@
 local t = Def.ActorFrame {Name = "WheelFile"}
-ms.ok(1)
+
 t[#t+1] = Def.ActorFrame {
     Name = "WheelContainer",
     InitCommand = function(self)
