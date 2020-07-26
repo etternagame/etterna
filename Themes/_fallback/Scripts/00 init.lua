@@ -25,6 +25,13 @@ Warn = lua.Warn
 -- @function print
 print = Trace
 
+--- alias for all Singletons for backwards compatibility
+--- moving to namespaces broke these, so this should allow them to function mostly the same.
+SONGMAN = {}
+for k,v in pairs(SongManager) do
+	SONGMAN[k] = function(_, ...) return v(...) end
+end
+
 -- Use MersenneTwister in place of math.random and math.randomseed.
 if MersenneTwister then
 	math.random = MersenneTwister.Random
