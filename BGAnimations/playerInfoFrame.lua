@@ -1,6 +1,6 @@
 local t = Def.ActorFrame {Name = "PlayerInfoFrame"}
 
-local vizEnabled = Var("visualizer")
+local visEnabled = Var("visualizer")
 
 local ratios = {
     Height = 109 / 1080,
@@ -18,7 +18,7 @@ local ratios = {
     RightTextTopGap2 = 54 / 1080, -- from top to center of line 2
     RightTextTopGap3 = 89 / 1080, -- from top to center of line 3
     VisualizerLeftGap = 707 / 1920, -- from left side of screen to leftmost bin
-    VisualizerWidth = 797 / 1920,
+    VisualizerWidth = 693 / 1920,
     IconSize = 48 / 1920, -- icons are 48x48
     IconUpperGap = 32 / 1080,
     IconExitRightGap = 19 / 1920, -- from right side of screen to right end of icon
@@ -250,7 +250,20 @@ t[#t+1] = Def.ActorFrame {
     }
 }
 
-if vizEnabled then
+
+if visEnabled then
+    local intervals = {0, 10, 26, 48, 60, 92, 120, 140, 240, 400, 800, 1600, 2600, 3500, 4000}
+    t[#t+1] = audioVisualizer:new {
+        x = actuals.VisualizerLeftGap,
+        y = actuals.Height,
+        width = actuals.VisualizerWidth,
+        maxHeight = actuals.Height / 1.8,
+        freqIntervals = audioVisualizer.multiplyIntervals(intervals, 9),
+        color = color("1,1,1,1"),
+        onBarUpdate = function(self)
+            -- hmm
+        end
+    }
 end
 
 return t
