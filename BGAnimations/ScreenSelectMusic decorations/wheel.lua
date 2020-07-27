@@ -63,7 +63,7 @@ local function wheelItemBase()
             Name = "ItemBG",
             InitCommand = function(self)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
-                self:diffuse(color("0,0,0,0.8"))
+                self:diffuse(color("0,0,0,0.6"))
             end
         },
         Def.Quad { 
@@ -218,7 +218,7 @@ t[#t+1] = Def.ActorFrame {
             Name = "BG",
             InitCommand = function(self)
                 self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
-                self:diffuse(color("0,0,0,0.8"))
+                self:diffuse(color("0,0,0,0.6"))
             end
         },
         Def.Sprite {
