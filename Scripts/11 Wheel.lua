@@ -202,6 +202,7 @@ function Wheel:new(params)
                 local left = gameButton == "MenuLeft" or key == "DeviceButton_left"
                 local enter = gameButton == "Start" or key == "DeviceButton_enter"
                 local right = gameButton == "MenuRight" or key == "DeviceButton_right"
+                local exit = gameButton == "Back" or key == "DeviceButton_escape"
                 if left or right then
                     if event.type == "InputEventType_FirstPress" then
                         if interval then
@@ -224,6 +225,11 @@ function Wheel:new(params)
                 elseif enter then
                     if event.type == "InputEventType_FirstPress" then
                         whee.onSelection(whee:getCurrentFrame(), whee:getCurrentItem())
+                    end
+                elseif exit then
+                    if event.type == "InputEventType_FirstPress" then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        SCREENMAN:GetTopScreen():Cancel()
                     end
                 end
                 return false
@@ -314,16 +320,22 @@ function MusicWheel:new(params)
     local songActorBuilder = params.songActorBuilder
     local songActorUpdater = params.songActorUpdater
     local groupActorUpdater = params.groupActorUpdater
+    
     -- Cache all pack counts
     local packCounts = SONGMAN:GetSongGroupNames()
-    for i, song in ipairs(SONGMAN:GetAllSongs()) do
-        local pack = song:GetGroupName()
-        local x = packCounts[pack]
-        packCounts[pack] = x and x + 1 or 1
+    local function packCounter()
+        for i, song in ipairs(SONGMAN:GetAllSongs()) do
+            local pack = song:GetGroupName()
+            local x = packCounts[pack]
+            packCounts[pack] = x and x + 1 or 1
+        end
     end
+    packCounter()
+
     local w
     w =
         Wheel:new {
+        count = params.count,
         frameTransformer = params.frameTransformer,
         x = params.x,
         highlightBuilder = params.highlightBuilder,
