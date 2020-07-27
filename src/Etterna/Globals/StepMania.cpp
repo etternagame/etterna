@@ -1375,6 +1375,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 				{
 					SCREENMAN->SystemMessage(SERVICE_SWITCH_PRESSED);
 					SCREENMAN->PopAllScreens();
+					SCREENMAN->set_input_redirected(PLAYER_1, false);
 					GAMESTATE->Reset();
 					SCREENMAN->SetNewScreen(
 					  CommonMetrics::OPERATOR_MENU_SCREEN);
