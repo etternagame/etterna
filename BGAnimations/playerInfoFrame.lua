@@ -19,14 +19,25 @@ local ratios = {
     RightTextTopGap3 = 89 / 1080, -- from top to center of line 3
     VisualizerLeftGap = 707 / 1920, -- from left side of screen to leftmost bin
     VisualizerWidth = 693 / 1920,
-    IconSize = 48 / 1920, -- icons are 48x48
-    IconUpperGap = 32 / 1080,
+    IconUpperGap = 36 / 1080,
+    IconExitWidth = 47 / 1920,
+    IconExitHeight = 36 / 1080,
     IconExitRightGap = 19 / 1920, -- from right side of screen to right end of icon
-    IconSettingsRightGap = 102 / 1920,
-    IconHelpRightGap = 185 / 1920,
-    IconDownloadsRightGap = 265 / 1920,
-    IconRandomRightGap = 342 / 1920,
-    IconSearchRightGap = 434 / 1920,
+    IconSettingsWidth = 44 / 1920,
+    IconSettingsHeight = 35 / 1080,
+    IconSettingsRightGap = 104 / 1920,
+    IconHelpWidth = 36 / 1920,
+    IconHelpHeight = 36 / 1080,
+    IconHelpRightGap = 186 / 1920,
+    IconDownloadsWidth = 51 / 1920,
+    IconDownloadsHeight = 36 / 1080,
+    IconDownloadsRightGap = 259 / 1920,
+    IconRandomWidth = 41 / 1920,
+    IconRandomHeight = 36 / 1080,
+    IconRandomRightGap = 348 / 1920,
+    IconSearchWidth = 36 / 1920,
+    IconSearchHeight = 36 / 1080,
+    IconSearchRightGap = 427 / 1920,
 }
 
 local actuals = {
@@ -46,13 +57,24 @@ local actuals = {
     RightTextTopGap3 = ratios.RightTextTopGap3 * SCREEN_HEIGHT,
     VisualizerLeftGap = ratios.VisualizerLeftGap * SCREEN_WIDTH,
     VisualizerWidth = ratios.VisualizerWidth * SCREEN_WIDTH,
-    IconSize = ratios.IconSize * SCREEN_WIDTH,
     IconUpperGap = ratios.IconUpperGap * SCREEN_HEIGHT,
+    IconExitWidth = ratios.IconExitWidth * SCREEN_WIDTH,
+    IconExitHeight = ratios.IconExitHeight * SCREEN_HEIGHT,
     IconExitRightGap = ratios.IconExitRightGap * SCREEN_WIDTH,
+    IconSettingsWidth = ratios.IconSettingsWidth * SCREEN_WIDTH,
+    IconSettingsHeight = ratios.IconSettingsHeight * SCREEN_HEIGHT,
     IconSettingsRightGap = ratios.IconSettingsRightGap * SCREEN_WIDTH,
+    IconHelpWidth = ratios.IconHelpWidth * SCREEN_WIDTH,
+    IconHelpHeight = ratios.IconHelpHeight * SCREEN_HEIGHT,
     IconHelpRightGap = ratios.IconHelpRightGap * SCREEN_WIDTH,
+    IconDownloadsWidth = ratios.IconDownloadsWidth * SCREEN_WIDTH,
+    IconDownloadsHeight = ratios.IconDownloadsHeight * SCREEN_HEIGHT,
     IconDownloadsRightGap = ratios.IconDownloadsRightGap * SCREEN_WIDTH,
+    IconRandomWidth = ratios.IconRandomWidth * SCREEN_WIDTH,
+    IconRandomHeight = ratios.IconRandomHeight * SCREEN_HEIGHT,
     IconRandomRightGap = ratios.IconRandomRightGap * SCREEN_WIDTH,
+    IconSearchWidth = ratios.IconSearchWidth * SCREEN_WIDTH,
+    IconSearchHeight = ratios.IconSearchHeight * SCREEN_HEIGHT,
     IconSearchRightGap = ratios.IconSearchRightGap * SCREEN_WIDTH,
 }
 
@@ -200,7 +222,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconExitRightGap)
-            self:zoomto(actuals.IconSize, actuals.IconSize)
+            self:zoomto(actuals.IconExitWidth, actuals.IconExitHeight)
         end
     },
     Def.Sprite {
@@ -209,7 +231,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconSettingsRightGap)
-            self:zoomto(actuals.IconSize, actuals.IconSize)
+            self:zoomto(actuals.IconSettingsWidth, actuals.IconSettingsHeight)
         end
     },
     Def.Sprite {
@@ -218,7 +240,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconHelpRightGap)
-            self:zoomto(actuals.IconSize, actuals.IconSize)
+            self:zoomto(actuals.IconHelpWidth, actuals.IconHelpHeight)
         end
     },
     Def.Sprite {
@@ -227,7 +249,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconDownloadsRightGap)
-            self:zoomto(actuals.IconSize, actuals.IconSize)
+            self:zoomto(actuals.IconDownloadsWidth, actuals.IconDownloadsHeight)
         end
     },
     Def.Sprite {
@@ -236,7 +258,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconRandomRightGap)
-            self:zoomto(actuals.IconSize, actuals.IconSize)
+            self:zoomto(actuals.IconRandomWidth, actuals.IconRandomHeight)
         end
     },
     Def.Sprite {
@@ -245,7 +267,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconSearchRightGap)
-            self:zoomto(actuals.IconSize, actuals.IconSize)
+            self:zoomto(actuals.IconSearchWidth, actuals.IconSearchHeight)
         end
     }
 }
