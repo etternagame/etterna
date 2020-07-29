@@ -762,14 +762,11 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	if (NSMAN->loggedIn) {
 		NSMAN->ReportHighScore(&hs, m_player);
 	}
-	if (m_player.m_fWifeScore > 0.F) {
 
+	if (m_player.m_fWifeScore > 0.F) {
 		const auto writesuccess = hs.WriteReplayData();
-		if (writesuccess) {
-			CHECKPOINT_M("Unloading ReplayData after successful write");
-			hs.UnloadReplayData();
-		}
 	}
+
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
 							 hs);
