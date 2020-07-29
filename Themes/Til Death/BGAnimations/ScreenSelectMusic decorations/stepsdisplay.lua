@@ -190,7 +190,7 @@ sd[#sd + 1] = Def.Quad {
 	end,
 	CurrentStepsChangedMessageCommand = function(self, steps)
 		for i = 1, 20 do
-			if thesteps[i] and thesteps[i] == steps.ptr then
+			if thesteps and thesteps[i] and thesteps[i] == steps.ptr then
 				currentindex = i
 				break
 			end
