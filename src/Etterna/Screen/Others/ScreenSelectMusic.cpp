@@ -976,40 +976,6 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 void
 ScreenSelectMusic::HandleMessage(const Message& msg)
 {
-	if (m_bRunning && msg == Message_PlayerJoined) {
-		PlayerNumber master_pn = GAMESTATE->GetMasterPlayerNumber();
-		// The current steps may no longer be playable. If one player has double
-		// steps selected, they are no longer playable now that P2 has joined.
-
-		// TODO: Invalidate the CurSteps only if they are no longer playable.
-		// That way, after music change will clamp to the nearest in the
-		// StepsDisplayList.
-		GAMESTATE->m_pCurSteps.SetWithoutBroadcast(nullptr);
-
-		/* If a course is selected, it may no longer be playable.
-		 * Let MusicWheel know about the late join. */
-		m_MusicWheel.PlayerJoined();
-
-		AfterMusicChange();
-
-		const int iSel = 0;
-		PlayerNumber pn;
-		const bool b = msg.GetParam("Player", pn);
-		ASSERT(b);
-
-		// load player profiles
-		if (GAMESTATE->HaveProfileToLoad()) {
-			GAMESTATE->LoadProfiles(
-			  true); // I guess you could always load edits here...
-			SCREENMAN->ZeroNextUpdate(); // be kind, don't skip frames if you
-										 // can avoid it
-		}
-
-		m_iSelection = iSel;
-		Steps* pSteps = m_vpSteps.empty() ? nullptr : m_vpSteps[m_iSelection];
-
-		GAMESTATE->m_pCurSteps.Set(pSteps);
-	}
 
 	ScreenWithMenuElements::HandleMessage(msg);
 }
