@@ -90,9 +90,9 @@ end
 
 local o =
 	Def.ActorFrame {
+	Name = "OffsetPlot",
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
-
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
 		if name == "ScreenNetEvaluation" then -- moving away from grabbing anything in pss, dont want to mess with net stuff atm
@@ -140,6 +140,21 @@ local o =
 		end
 
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
+	end,
+	SetFromScoreCommand = function(self, params)
+		if params.score then
+			local score = params.score
+			dvt = score:GetOffsetVector()
+			nrt = score:GetNoteRowVector()
+			ctt = score:GetTrackVector()
+			ntt = score:GetTapNoteTypeVector()
+			
+			for i = 1, #nrt do
+				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+			end
+
+			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+		end
 	end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == "PrevJudge" and judge > 1 then

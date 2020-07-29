@@ -183,6 +183,7 @@ function scoreBoard(pn, position)
 
 	local t =
 		Def.ActorFrame {
+		Name = "BLah",
 		BeginCommand = function(self)
 			if position == 1 then
 				self:x(SCREEN_WIDTH - (frameX * 2) - frameWidth)
@@ -199,6 +200,13 @@ function scoreBoard(pn, position)
 				clampJudge()
 				judge2 = judge
 			end
+		end,
+		ChangeScoreCommand = function(self, params)
+			if params.score then
+				score = params.score
+			end
+
+			MESSAGEMAN:Broadcast("ScoreChanged")
 		end,
 		UpdateNetEvalStatsMessageCommand = function(self)
 			local s = SCREENMAN:GetTopScreen():GetHighScore()
