@@ -47,7 +47,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/**
 	 * @brief Determine if we are to center the columns for just one player.
 	 * @return true if we center the solo player, false otherwise. */
-	bool Center1Player() const;
+	static bool Center1Player();
 
 	// Lua
 	void PushSelf(lua_State* L) override;
