@@ -276,7 +276,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 	  "scorekeys.scorekey, scores.calcversion, "
 	  "scores.grade, scores.wifescore, scores.ssrnormpercent, "
 	  "scores.judgescale, scores.nochordcohesion, scores.etternavalid, "
-	  "scores.surviveseconds, scores.maxcombo, scores.modifiers, "
+	  "scores.playedseconds, scores.maxcombo, scores.modifiers, "
 	  "scores.datetime, "
 	  "scores.hitmine, scores.avoidmine, scores.miss, scores.w5, scores.w4, "
 	  "scores.w3, "
@@ -329,7 +329,7 @@ DBProfile::LoadPlayerScores(SQLite::Database* db)
 		hs.SetEtternaValid(static_cast<int>(query.getColumn(12)) != 0);
 		hs.SetChartKey(key);
 		hs.SetScoreKey(ScoreKey);
-		hs.SetSurviveSeconds(
+		hs.SetPlayedSeconds(
 		  static_cast<float>(static_cast<double>(query.getColumn(13))));
 		hs.SetMaxCombo(query.getColumn(14));
 		hs.SetModifiers(query.getColumn(15));
@@ -938,7 +938,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 						insertScore->bind(7, hs->GetJudgeScale());
 						insertScore->bind(8, hs->GetChordCohesion());
 						insertScore->bind(9, hs->GetEtternaValid());
-						insertScore->bind(10, hs->GetSurviveSeconds());
+						insertScore->bind(10, hs->GetPlayedSeconds());
 						insertScore->bind(11, hs->GetMaxCombo());
 						insertScore->bind(12, hs->GetModifiers());
 						insertScore->bind(13, hs->GetDateTime().GetString());

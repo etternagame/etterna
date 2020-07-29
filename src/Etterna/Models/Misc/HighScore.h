@@ -69,11 +69,7 @@ struct HighScore
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() const -> int;
-	/**
-	 * @brief Determine how many seconds the player had left in Survival mode.
-	 * @return the number of seconds left. */
-	[[nodiscard]] auto GetSurviveSeconds() const -> float;
-	[[nodiscard]] auto GetSurvivalSeconds() const -> float;
+	[[nodiscard]] auto GetPlayedSeconds() const -> float;
 	[[nodiscard]] auto GetMaxCombo() const -> unsigned int;
 	/**
 	 * @brief Get the modifiers used for this run.
@@ -107,7 +103,7 @@ struct HighScore
 	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
-	void SetSurviveSeconds(float f);
+	void SetPlayedSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
@@ -120,7 +116,6 @@ struct HighScore
 	void SetOnlineReplayTimestampVector(const std::vector<float>& v);
 	void SetScoreKey(const std::string& sk);
 	void SetRescoreJudgeVector(const std::vector<int>& v);
-	void SetAliveSeconds(float f);
 	void SetMaxCombo(unsigned int i);
 	void SetModifiers(const std::string& s);
 	void SetDateTime(DateTime d);

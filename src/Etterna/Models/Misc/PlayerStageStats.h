@@ -64,14 +64,9 @@ class PlayerStageStats
 
 	bool m_bJoined{};
 	bool m_bPlayerCanAchieveFullCombo{};
-	vector<Steps*> m_vpPossibleSteps;
+	std::vector<Steps*> m_vpPossibleSteps;
 	int m_iStepsPlayed{}; // how many of m_vpPossibleStepshow many of
 						  // m_vpPossibleSteps were played
-	/**
-	 * @brief How far into the music did the Player last before failing?
-	 *
-	 * This is updated by Gameplay, and scaled by the music rate. */
-	float m_fAliveSeconds{};
 
 	/**
 	 * @brief Have the Players failed at any point during the song?
@@ -215,11 +210,6 @@ class PlayerStageStats
 	[[nodiscard]] auto GetPercentageOfTaps(TapNoteScore tns) const -> float;
 	void UpdateComboList(float fSecond, bool rollover);
 	[[nodiscard]] auto GetMaxCombo() const -> Combo_t;
-
-	[[nodiscard]] auto GetSurvivalSeconds() const -> float
-	{
-		return m_fAliveSeconds + m_fLifeRemainingSeconds;
-	}
 
 	int m_iPersonalHighScoreIndex{};
 	int m_iMachineHighScoreIndex{};

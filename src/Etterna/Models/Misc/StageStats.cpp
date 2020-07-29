@@ -301,9 +301,7 @@ StageStats::StageStats()
 	m_vpPossibleSongs.clear();
 	m_bGaveUp = false;
 	m_bUsedAutoplay = false;
-	m_fGameplaySeconds = 0;
-	m_fStepsSeconds = 0;
-	m_fMusicRate = 1;
+	m_fMusicRate = 1.F;
 	m_player.Init(PLAYER_1);
 	FOREACH_MultiPlayer(pn) { m_multiPlayer[pn].Init(pn); }
 }
@@ -384,9 +382,6 @@ StageStats::AddStats(const StageStats& other)
 
 	m_bGaveUp |= static_cast<int>(other.m_bGaveUp);
 	m_bUsedAutoplay |= static_cast<int>(other.m_bUsedAutoplay);
-
-	m_fGameplaySeconds += other.m_fGameplaySeconds;
-	m_fStepsSeconds += other.m_fStepsSeconds;
 
 	m_player.AddStats(other.m_player);
 }
@@ -569,10 +564,12 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetMusicRate(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	hs.SetJudgeScale(pss.GetTimingScale());
 	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
-	hs.SetAliveSeconds(pss.m_fAliveSeconds);
 	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
 
-	vector<std::string> asModifiers;
+	auto played_seconds = 1.F;
+	hs.SetPlayedSeconds(played_seconds);
+
+	std::vector<std::string> asModifiers;
 	{
 		auto sPlayerOptions = ps.m_PlayerOptions.GetStage().GetString();
 		if (!sPlayerOptions.empty()) {
@@ -830,11 +827,6 @@ class LunaStageStats : public Luna<StageStats>
 		}
 		return 1;
 	}
-	static auto GetGameplaySeconds(T* p, lua_State* L) -> int
-	{
-		lua_pushnumber(L, p->m_fGameplaySeconds);
-		return 1;
-	}
 	static auto Failed(T* p, lua_State* L) -> int
 	{
 		lua_pushboolean(L, p->Failed());
@@ -846,7 +838,6 @@ class LunaStageStats : public Luna<StageStats>
 		return 1;
 	}
 	DEFINE_METHOD(GetStageIndex, m_iStageIndex)
-	DEFINE_METHOD(GetStepsSeconds, m_fStepsSeconds)
 	static auto GetLivePlay(T* p, lua_State* L) -> int
 	{
 		lua_pushboolean(L, static_cast<int>(p->m_bLivePlay));
@@ -859,11 +850,9 @@ class LunaStageStats : public Luna<StageStats>
 		ADD_METHOD(GetMultiPlayerStageStats);
 		ADD_METHOD(GetPlayedSongs);
 		ADD_METHOD(GetPossibleSongs);
-		ADD_METHOD(GetGameplaySeconds);
 		ADD_METHOD(Failed);
 		ADD_METHOD(GetStage);
 		ADD_METHOD(GetStageIndex);
-		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(GetLivePlay);
 	}
 };

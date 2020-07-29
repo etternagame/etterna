@@ -391,7 +391,7 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 	 * we can't use GAMESTATE->m_fMusicSeconds. Use fStepsSeconds instead. */
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->UpdateComboList(
-		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds, false);
 
 	ChangeLife(scoreOfLastTap);
 }
@@ -465,8 +465,7 @@ PlayerReplay::Step(int col,
 	  std::chrono::steady_clock::now() - tm;
 	const auto stepAgo = stepDelta.count() - padStickSeconds;
 
-	const auto fLastBeatUpdate =
-	  GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
+	const auto fLastBeatUpdate = GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
 	const auto fPositionSeconds =
 	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
 	const auto fTimeSinceStep = stepAgo;
@@ -560,13 +559,13 @@ PlayerReplay::Step(int col,
 
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
-		  std::max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-					 GAMESTATE->m_Position.m_fMusicSeconds +
-					 StepSearchDistance)) -
-					 iSongRow,
-				   iSongRow - BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-								GAMESTATE->m_Position.m_fMusicSeconds -
-								StepSearchDistance))) +
+		  std::max(
+			BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+			  GAMESTATE->m_Position.m_fMusicSeconds + StepSearchDistance)) -
+			  iSongRow,
+			iSongRow -
+			  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+				GAMESTATE->m_Position.m_fMusicSeconds - StepSearchDistance))) +
 		  ROWS_PER_BEAT;
 	} else {
 		/* Buncha bullshit that speeds up searching for the rows that we're

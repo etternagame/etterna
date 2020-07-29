@@ -355,7 +355,7 @@ Player::Init(const std::string& sType,
 	if ((m_pLifeMeter != nullptr) && (m_pPlayerStageStats != nullptr)) {
 		const auto fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
 		// m_pPlayerStageStats->SetWifeRecordAt( 1.f,
 		// STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
@@ -1638,7 +1638,7 @@ Player::ChangeLifeRecord() const
 	if (fLife != -1) {
 		if (m_pPlayerStageStats != nullptr) {
 			m_pPlayerStageStats->SetLifeRecordAt(
-			  fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds);
+			  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
 		}
 	}
 }
@@ -1650,8 +1650,7 @@ Player::ChangeWifeRecord() const
 	// That's not right.
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  curwifescore / maxwifescore,
-		  STATSMAN->m_CurStageStats.m_fStepsSeconds);
+		  curwifescore / maxwifescore, GAMESTATE->m_Position.m_fMusicSeconds);
 	}
 }
 
@@ -2920,7 +2919,7 @@ Player::HandleTapRowScore(unsigned row)
 	 * fStepsSeconds instead. */
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->UpdateComboList(
-		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds, false);
 	}
 
 	ChangeLife(scoreOfLastTap);
@@ -2979,7 +2978,7 @@ Player::HandleHoldCheckpoint(int iRow,
 		SetCombo(m_pPlayerStageStats->m_iCurCombo,
 				 m_pPlayerStageStats->m_iCurMissCombo);
 		m_pPlayerStageStats->UpdateComboList(
-		  STATSMAN->m_CurStageStats.m_fStepsSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds, false);
 	}
 
 	ChangeLife(iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit

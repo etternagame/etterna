@@ -1023,27 +1023,6 @@ ScreenGameplay::Update(float fDeltaTime)
 				}
 			}
 
-			// Update living players' alive time
-			// HACK: Don't scale alive time when using tab/tilde.  Instead of
-			// accumulating time from a timer, this time should instead be tied
-			// to the music position.
-			const auto fUnscaledDeltaTime =
-			  m_timerGameplaySeconds.GetDeltaTime();
-			if (!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
-				m_vPlayerInfo.GetPlayerStageStats()->m_fAliveSeconds +=
-				  fUnscaledDeltaTime *
-				  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-			}
-
-			// update fGameplaySeconds
-			STATSMAN->m_CurStageStats.m_fGameplaySeconds += fUnscaledDeltaTime;
-			const auto curBeat = GAMESTATE->m_Position.m_fSongBeat;
-			auto& s = *GAMESTATE->m_pCurSong;
-
-			if (curBeat >= s.GetFirstBeat() && curBeat < s.GetLastBeat()) {
-				STATSMAN->m_CurStageStats.m_fStepsSeconds += fUnscaledDeltaTime;
-			}
-
 			// Check for end of song
 			{
 				float fSecondsToStartFadingOutMusic;
@@ -1590,7 +1569,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		// set a life record at the point of failure
 		if (m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
 			m_vPlayerInfo.GetPlayerStageStats()->SetLifeRecordAt(
-			  0, STATSMAN->m_CurStageStats.m_fGameplaySeconds);
+			  0.F, GAMESTATE->m_Position.m_fMusicSeconds);
 		}
 
 		/* If all players have *really* failed (bFailed, not the life meter or
