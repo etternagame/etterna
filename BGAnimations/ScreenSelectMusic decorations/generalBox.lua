@@ -122,7 +122,6 @@ local function createStatLines()
                     self:x(actuals.LeftTextLeftGap)
                     self:halign(0)
                     self:zoom(generalTabTextSize)
-                    -- dont fudge this one since it is static and introduces extra squish
                     self:maxwidth(((actuals.VerticalDividerLeftGap - actuals.LeftTextLeftGap) / 2) / generalTabTextSize - textzoomFudge)
                     self:settextf("%s:", statNames[i])
                 end
