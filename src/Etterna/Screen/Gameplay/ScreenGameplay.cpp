@@ -4,7 +4,6 @@
 #include "Etterna/Actor/Gameplay/ArrowEffects.h"
 #include "Etterna/Actor/Gameplay/Background.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Actor/Gameplay/Foreground.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
@@ -197,7 +196,7 @@ ScreenGameplay::Init()
 	// in, and the engine can have players on different styles without the
 	// notefields overlapping. -Kyz
 	LuaReference margarine;
-	float margins[2] = { 40, 40 };
+	std::array<float, 2> margins = { 40, 40 };
 	THEME->GetMetric(m_sName, "MarginFunction", margarine);
 	if (margarine.GetLuaType() != LUA_TFUNCTION) {
 		LuaHelpers::ReportScriptErrorFmt(
@@ -364,11 +363,10 @@ ScreenGameplay::InitSongQueues()
 		m_vPlayerInfo.m_vpStepsQueue.clear();
 
 		auto& pl = SongManager::GetPlaylists()[SONGMAN->playlistcourse];
-		FOREACH(Chart, pl.chartlist, ch)
-		{
-			m_apSongsQueue.emplace_back(ch->songptr);
-			m_vPlayerInfo.m_vpStepsQueue.emplace_back(ch->stepsptr);
-			ratesqueue.emplace_back(ch->rate);
+		for (auto& ch : pl.chartlist) {
+			m_apSongsQueue.emplace_back(ch.songptr);
+			m_vPlayerInfo.m_vpStepsQueue.emplace_back(ch.stepsptr);
+			ratesqueue.emplace_back(ch.rate);
 		}
 	}
 }
@@ -844,11 +842,8 @@ ScreenGameplay::BeginScreen()
 auto
 ScreenGameplay::AllAreFailing() -> bool
 {
-	if ((m_vPlayerInfo.m_pLifeMeter != nullptr) &&
-		!m_vPlayerInfo.m_pLifeMeter->IsFailing()) {
-		return false;
-	}
-	return true;
+	return !((m_vPlayerInfo.m_pLifeMeter != nullptr) &&
+			 !m_vPlayerInfo.m_pLifeMeter->IsFailing());
 }
 
 void
@@ -999,32 +994,29 @@ ScreenGameplay::Update(float fDeltaTime)
 				}
 				if (bAllowOniDie && failtype == FailType_Immediate) {
 					if (!STATSMAN->m_CurStageStats
-						   .AllFailed()) // if not the last one to fail
+						   .Failed()) // if not the last one to fail
 					{
 						// kill them!
 						FailFadeRemovePlayer(&m_vPlayerInfo);
 					}
 				}
 
-				auto bAllFailed = true;
+				auto failed = true;
 				switch (failtype) {
 					case FailType_Immediate:
 						if (!m_vPlayerInfo.m_pLifeMeter->IsFailing()) {
-							bAllFailed = false;
+							failed = false;
 						}
 						break;
-					case FailType_ImmediateContinue:
-						bAllFailed =
-						  false; // wait until the end of the song to fail.
-						break;
+					case FailType_ImmediateContinue: // fail at end
 					case FailType_Off:
-						bAllFailed = false; // never fail.
+						failed = false; // never fail.
 						break;
 					default:
 						FAIL_M("Invalid fail type! Aborting...");
 				}
 
-				if (bAllFailed) {
+				if (failed) {
 					m_pSoundMusic->StopPlaying();
 					SCREENMAN->PostMessageToTopScreen(SM_NotesEnded, 0);
 					m_LyricDisplay.Stop();
@@ -1060,7 +1052,7 @@ ScreenGameplay::Update(float fDeltaTime)
 								  fSecondsToStartTransitioningOut);
 
 				const auto bAllReallyFailed =
-				  STATSMAN->m_CurStageStats.AllFailed();
+				  STATSMAN->m_CurStageStats.Failed();
 				if (bAllReallyFailed) {
 					fSecondsToStartTransitioningOut += BEGIN_FAILED_DELAY;
 				}
@@ -1497,7 +1489,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	}
 
 	// If all players failed, kill.
-	if (STATSMAN->m_CurStageStats.AllFailed()) {
+	if (STATSMAN->m_CurStageStats.Failed()) {
 		GAMESTATE->m_iPlayerStageTokens = 0;
 	}
 
@@ -1603,7 +1595,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 
 		/* If all players have *really* failed (bFailed, not the life meter or
 		 * bFailedEarlier): */
-		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
+		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.Failed();
 		const auto bIsLastSong = m_apSongsQueue.size() == 1;
 
 		LOG->Trace("bAllReallyFailed = %d "
@@ -1654,7 +1646,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		m_DancingState = STATE_OUTRO;
 		ResetGiveUpTimers(false);
 
-		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.AllFailed();
+		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.Failed();
 
 		if (bAllReallyFailed) {
 			this->PostScreenMessage(SM_BeginFailed, 0);

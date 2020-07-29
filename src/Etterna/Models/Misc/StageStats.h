@@ -25,12 +25,11 @@ class StageStats
 	/**
 	 * @brief Ensure that the Player is valid.
 	 * @param mp the Multiplayer to check. */
-	void AssertValid(MultiPlayer mp) const;
+	void AssertValid(MultiPlayer pn) const;
 
 	void AddStats(const StageStats& other); // accumulate
 
-	[[nodiscard]] auto OnePassed() const -> bool;
-	[[nodiscard]] auto AllFailed() const -> bool;
+	[[nodiscard]] auto Failed() const -> bool;
 
 	[[nodiscard]] auto GetAverageMeter(PlayerNumber pn) const -> int;
 
