@@ -96,7 +96,8 @@ local function stepsRows(i)
 				if steps then 
 					self:visible(true)
 					local diff = steps:GetDifficulty()
-					self:diffuse(Saturation(byDifficulty(diff), 2.25))
+					self:diffuse(getDifficultyColor(diff))
+					self:diffusealpha(0.4)
 				else 
 					self:visible(false)
 				end
@@ -118,7 +119,7 @@ local function stepsRows(i)
 				if steps then 
 					self:visible(true)
 					local diff = steps:GetDifficulty()
-					self:diffuse(byDifficulty(diff))
+					self:diffuse(byDifficulty(diff))					
 				else 
 					self:visible(false)
 				end
@@ -127,7 +128,7 @@ local function stepsRows(i)
 		-- Chart defined "Meter" value, not msd (useful to have this for reference)
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(rowwidth - cursorwidth - 5):addy(-1):zoom(0.4):settext(""):halign(1)
+				self:x(rowwidth - cursorwidth - 5):addy(-1):zoom(0.35):settext(""):halign(1)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
