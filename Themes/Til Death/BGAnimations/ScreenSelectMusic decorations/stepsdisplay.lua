@@ -14,7 +14,7 @@ local displayindexoffset = 0
 
 local sd =
 	Def.ActorFrame {
-	Name = "StepsDisplayList",
+	Name = "StepsDisplay",
 	InitCommand = function(self)
 		self:xy(stepsdisplayx, 70):valign(0)
 	end,
