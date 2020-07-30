@@ -159,10 +159,7 @@ t[#t + 1] =
 		CurrentSongChangedMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		CurrentStepsP1ChangedMessageCommand = function(self)
-			self:queuecommand("Set")
-		end,
-		CurrentStepsP2ChangedMessageCommand = function(self)
+		CurrentStepsChangedMessageCommand = function(self)
 			self:queuecommand("Set")
 		end
 	}
@@ -190,10 +187,7 @@ t[#t + 1] =
 		CurrentSongChangedMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		CurrentStepsP1ChangedMessageCommand = function(self)
-			self:queuecommand("Set")
-		end,
-		CurrentStepsP2ChangedMessageCommand = function(self)
+		CurrentStepsChangedMessageCommand = function(self)
 			self:queuecommand("Set")
 		end
 	}
@@ -396,10 +390,7 @@ for k, v in ipairs(radarValues) do
 			CurrentSongChangedMessageCommand = function(self)
 				self:queuecommand("Set")
 			end,
-			CurrentStepsP1ChangedMessageCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			CurrentStepsP2ChangedMessageCommand = function(self)
+			CurrentStepsChangedMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		}

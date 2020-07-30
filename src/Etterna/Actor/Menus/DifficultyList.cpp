@@ -29,9 +29,7 @@ StepsDisplayList::StepsDisplayList()
 	m_CurSong = nullptr;
 	m_bShown = true;
 	SubscribeToMessage(
-	  static_cast<MessageID>(Message_CurrentStepsP1Changed + PLAYER_1));
-	SubscribeToMessage(
-	  static_cast<MessageID>(Message_CurrentTrailP1Changed + PLAYER_1));
+	  static_cast<MessageID>(Message_CurrentStepsChanged + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -356,7 +354,7 @@ void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
 	if (msg.GetName() == MessageIDToString(static_cast<MessageID>(
-						   Message_CurrentStepsP1Changed + PLAYER_1)))
+						   Message_CurrentStepsChanged + PLAYER_1)))
 		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);

@@ -19,11 +19,7 @@ static const char* MessageIDNames[] = {
 	"PlayModeChanged",
 	"CoinsChanged",
 	"CurrentSongChanged",
-	"CurrentStepsP1Changed",
-	"CurrentStepsP2Changed",
-	"CurrentCourseChanged",
-	"CurrentTrailP1Changed",
-	"CurrentTrailP2Changed",
+	"CurrentStepsChanged",
 	"GameplayLeadInChanged",
 	"GameplayModeChanged",
 	"EditStepsTypeChanged",
@@ -112,7 +108,7 @@ Message::Message(const std::string& s, const LuaReference& params)
 {
 	m_sName = s;
 	m_bBroadcast = false;
-	Lua* L = LUA->Get();
+	auto* L = LUA->Get();
 	m_pParams = new LuaTable; // XXX: creates an extra table
 	params.PushSelf(L);
 	m_pParams->SetFromStack(L);
@@ -134,7 +130,7 @@ Message::PushParamTable(lua_State* L)
 void
 Message::SetParamTable(const LuaReference& params)
 {
-	Lua* L = LUA->Get();
+	auto* L = LUA->Get();
 	params.PushSelf(L);
 	m_pParams->SetFromStack(L);
 	LUA->Release(L);
@@ -163,7 +159,7 @@ MessageManager::MessageManager()
 	m_Logging = false;
 	// Register with Lua.
 	{
-		Lua* L = LUA->Get();
+		auto* L = LUA->Get();
 		lua_pushstring(L, "MESSAGEMAN");
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
@@ -183,7 +179,7 @@ MessageManager::Subscribe(IMessageSubscriber* pSubscriber,
 {
 	LockMut(g_Mutex);
 
-	SubscribersSet& subs = g_MessageToSubscribers[sMessage];
+	auto& subs = g_MessageToSubscribers[sMessage];
 #ifdef DEBUG
 	SubscribersSet::iterator iter = subs.find(pSubscriber);
 	ASSERT_M(iter == subs.end(),
@@ -204,8 +200,8 @@ MessageManager::Unsubscribe(IMessageSubscriber* pSubscriber,
 {
 	LockMut(g_Mutex);
 
-	SubscribersSet& subs = g_MessageToSubscribers[sMessage];
-	SubscribersSet::iterator iter = subs.find(pSubscriber);
+	auto& subs = g_MessageToSubscribers[sMessage];
+	auto iter = subs.find(pSubscriber);
 	ASSERT(iter != subs.end());
 	subs.erase(iter);
 }
@@ -234,8 +230,8 @@ MessageManager::Broadcast(Message& msg) const
 	if (iter == g_MessageToSubscribers.end())
 		return;
 
-	for (auto& p : iter->second) {
-		IMessageSubscriber* pSub = p;
+	for (const auto& p : iter->second) {
+		auto* pSub = p;
 		pSub->HandleMessage(msg);
 	}
 }
@@ -258,7 +254,7 @@ bool
 MessageManager::IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
 									  const std::string& sMessage) const
 {
-	SubscribersSet& subs = g_MessageToSubscribers[sMessage];
+	auto& subs = g_MessageToSubscribers[sMessage];
 	return subs.find(pSubscriber) != subs.end();
 }
 

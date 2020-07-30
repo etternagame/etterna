@@ -387,18 +387,24 @@ local function updateCoolStuff()
         debugstrings = steps:GetDebugStrings()
 
         -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
-        -- basically jackdiffs[hand][index] = {row time, diff}
+        -- basically jackdiffs[hand][index] = {row time, diff, stam}
         -- this is so we can place the indices based on row time instead of index
         -- also keep in mind the row times are already changed for each rate so 1.1 will be smaller than 1.0
         -- also all the row times are relative to the first non empty noterow so lets just pad it by the firstsecond/2 too
+        -- the odd logic below is done because the length of the hand vectors are often different, but the stam and diff vectors are the same
+        -- that allows us to combine the two
+        -- the reassignment is done based on the longest vector so 2n iterations are not necessary
+        -- (in hindsight this is probably exactly the same runtime whatever)
         local jap = steps:GetCalcDebugJack()["JackHand"]
-        local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
-        for i = 1, upperiter do
-            if jap["Left"][i] then
-                jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2] }
-            end
-            if jap["Right"][i] then
-                jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2] }
+        if jap then
+            local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
+            for i = 1, upperiter do
+                if jap["Left"][i] then
+                    jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3] }
+                end
+                if jap["Right"][i] then
+                    jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3] }
+                end
             end
         end
 
@@ -609,7 +615,7 @@ local o =
         enabled = false
         SCREENMAN:GetTopScreen():GetMusicWheel():visible(true)
     end,
-    CurrentStepsP1ChangedMessageCommand = function(self)
+    CurrentStepsChangedMessageCommand = function(self)
         if not enabled then return end
         updateCoolStuff()
         self:RunCommandsOnChildren(
@@ -619,7 +625,7 @@ local o =
         )
     end,
     CurrentRateChangedMessageCommand = function(self)
-        self:playcommand("CurrentStepsP1Changed")
+        self:playcommand("CurrentStepsChanged")
     end,
     Def.Quad {
         Name = "GraphPos",
@@ -656,7 +662,7 @@ o[#o + 1] = Def.Quad {
 			
             txt:visible(true)
 			txt:x(goodXPos + 36)
-            txt:y(ypos - 40)
+            txt:y(ypos - 20)
 
             local index = convertPercentToIndexForMods(mx - leftEnd, rightEnd - leftEnd)
             txt:settext(debugstrings[index])
@@ -769,13 +775,16 @@ o[#o + 1] = Def.Quad {
 
                 if diffGroups[activeDiffGroup]["Jack"] then
                     modText = modText .. "\n"
+                    local jktxt = ""
+                    local jkstmtxt = ""
                     for h = 1,2 do
                         local hnd = h == 1 and "Left" or "Right"
                         local hand = h == 1 and "L" or "R"
                         local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
-                        local txt = string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
-                        modText = modText .. txt
+                        jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                        jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3]) 
                     end
+                    modText = modText .. jktxt .. jkstmtxt
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
                 end
 
@@ -957,14 +966,14 @@ local modColors = {
 }
 
 local skillsetColors = {
-    color("1,0,1"),     -- overall
-    color("#7d6b91"),   -- stream
-    color("#8481db"),   -- jumpstream
-    color("#995fa3"),   -- handstream
-    color("#f2b5fa"),   -- stamina
-    color("#6c969d"),   -- jack
-    color("#a5f8d3"),   -- chordjack
-    color("#b0cec2"),    -- tech
+    color("1,1,1"),     -- overall
+    color("#333399"),   -- stream
+    color("#6666ff"),   -- jumpstream
+    color("#cc33ff"),   -- handstream
+    color("#ff99cc"),   -- stamina
+    color("#009933"),   -- jack
+    color("#66ff66"),   -- chordjack
+    color("#808080"),    -- tech
 }
 
 local jackdiffColors = {
@@ -1168,6 +1177,55 @@ local function topGraphLine(mod, colorToUse, hand)
                 -- hide unselected groups
                 if mod ~= "base_line" then
                     self:diffusealpha(0)
+                end
+            end
+        end
+    }
+end
+
+local function topGraphLineJackStam(mod, colorToUse, hand)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+                
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
+                local hand = hand == 1 and "Left" or "Right"
+                local verts = {}
+                local values = jackdiffs[hand]
+                if not values or not values[1] then return end
+
+                for i = 1, #values do
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    -- if used, final/firstsecond must be halved
+                    -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
+                    local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
+                    local y = fitY1(values[i][3]) + plotHeight/2
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
                 end
             end
         end
@@ -1383,6 +1441,11 @@ for h = 1,2 do
     o[#o+1] = bottomGraphLineJack(colr, h)
 end
 
+-- jack stam
+for h = 1,2 do
+    o[#o+1] = topGraphLineJackStam("jack_stam", color("1,1,1,1"), h)
+end
+
 -- a bunch of things for stuff and things
 o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "Seektext1",
@@ -1443,7 +1506,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 o[#o + 1] = LoadFont("Common Normal") .. {
     Name = "DebugStringText",
     InitCommand = function(self)
-        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.5)
+        self:y(8 + plotHeight+5):halign(1):draworder(1100):diffuse(color("1,1,1")):zoom(0.5):maxheight(500)
     end
 }
 

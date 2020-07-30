@@ -21,6 +21,7 @@ local songChanged2 = false
 local previewVisible = false
 local justChangedStyles = false
 local onlyChangedSteps = false
+local shouldPlayMusic = false
 local prevtab = 0
 
 local itsOn = false
@@ -189,7 +190,7 @@ local t =
 		local s = GAMESTATE:GetCurrentSong()
 		local unexpectedlyChangedSong = s ~= song
 
-		local shouldPlayMusic = false
+		shouldPlayMusic = false
 		-- should play the music because the notefield is visible
 		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
 		-- should play the music if we switched songs while on a different tab
@@ -200,16 +201,25 @@ local t =
 		-- should play the music if we already should and we either jumped song or we didnt change the style/song
 		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong) and not tryingToStart
 
-		if s and shouldPlayMusic then
-			if mcbootlarder and mcbootlarder:GetChild("NoteField") then mcbootlarder:GetChild("NoteField"):diffusealpha(1) end
-			playMusicForPreview(s)
-		end
+		-- at this point the music will or will not play ....
+
 		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 		hackysack = false
 		justChangedStyles = false
 		tryingToStart = false
 		songChanged = false
 		onlyChangedSteps = true
+	end,
+	PlayingSampleMusicMessageCommand = function(self)
+		-- delay setting the music for preview up until after the sample music starts (smoothness)
+		if shouldPlayMusic then
+			shouldPlayMusic = false
+			local s = GAMESTATE:GetCurrentSong()
+			if s then
+				if mcbootlarder and mcbootlarder:GetChild("NoteField") then mcbootlarder:GetChild("NoteField"):diffusealpha(1) end
+				playMusicForPreview(s)
+			end
+		end
 	end,
 	MintyFreshCommand = function(self)
 		self:finishtweening()
@@ -286,7 +296,7 @@ local t =
 			toggleCalcInfo(false)
 		end
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
 	end,
 	Def.Quad {
@@ -638,9 +648,9 @@ local function radarPairs(i)
 				InitCommand = function(self)
 					self:xy(frameX + 105, frameY + -52 + 13 * i):zoom(0.5):halign(1):maxwidth(60)
 				end,
-				MintyFreshCommand = function(self)
-					if song then
-						self:settext(steps:GetRelevantRadars(PLAYER_1)[i])
+				CurrentStepsChangedMessageCommand = function(self, steps)
+					if steps.ptr then
+						self:settext(steps.ptr:GetRelevantRadars()[i])
 					else
 						self:settext("")
 					end
@@ -907,7 +917,7 @@ t[#t + 1] =
 -- self:settext("")
 -- end
 -- end,
--- CurrentStepsP1ChangedMessageCommand=function(self)
+-- CurrentStepsChangedMessageCommand=function(self)
 -- 	self:queuecommand("Set")
 -- end,
 -- RefreshChartInfoMessageCommand=function(self)

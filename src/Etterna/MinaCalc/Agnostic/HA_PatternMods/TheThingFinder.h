@@ -50,7 +50,7 @@ struct TheThingLookerFinderThing
 		pmod =
 		  tt.mod_parts[0] + tt.mod_parts[1] + tt.mod_parts[2] + tt.mod_parts[3];
 		pmod /= 4.F;
-		pmod = CalcClamp(base + pmod, min_mod, max_mod);
+		pmod = std::clamp(base + pmod, min_mod, max_mod);
 
 		// reset flags n stuff
 		tt.reset();
@@ -107,7 +107,7 @@ struct TheThingLookerFinderThing2
 		pmod = tt2.mod_parts[0] + tt2.mod_parts[1] + tt2.mod_parts[2] +
 			   tt2.mod_parts[3];
 		pmod /= 4.F;
-		pmod = CalcClamp(base + pmod, min_mod, max_mod);
+		pmod = std::clamp(base + pmod, min_mod, max_mod);
 
 		// reset flags n stuff
 		tt2.reset();

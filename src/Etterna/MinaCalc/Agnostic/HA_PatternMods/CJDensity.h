@@ -56,7 +56,7 @@ struct CJDensityMod
 
 		auto aaa = a0 + a1 + a2 + a3;
 
-		pmod = CalcClamp(base + fastsqrt(aaa), min_mod, max_mod);
+		pmod = std::clamp(base + fastsqrt(aaa), min_mod, max_mod);
 
 		return pmod;
 	}

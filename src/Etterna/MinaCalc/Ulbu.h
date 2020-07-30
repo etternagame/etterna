@@ -43,6 +43,8 @@
 // a new thing
 #include "SequencedBaseDiffCalc.h"
 
+#include <cmath>
+
 /* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
 
@@ -114,24 +116,23 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_calc_params_from_disk();
 #endif
 #endif
-		/* ok so the problem atm is the multithreading of songload, if we want
-		 * to update the file on disk with new values and not just overwrite it
-		 * we have to write out after loading the values player defined, so the
-		 * quick hack solution to do that is to only do it during debug output
-		 * generation, which is fine for the time being, though not ideal */
-		if (calc.debugmode) {
-			write_params_to_disk();
-		}
-
+		
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
 	}
-
+	
 	void operator()()
 	{
+		hand = 0;
+
+		// should redundant but w.e not sure
+		full_hand_reset();
+		full_agnostic_reset();
+		reset_row_sequencing();
+
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
 	}
@@ -147,20 +148,26 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void setup_agnostic_pmods()
 	{
-		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern
-		// sequencing
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing */
 		_fj.setup();
 		_tt.setup();
 		_tt2.setup();
 	}
 
+	void full_agnostic_reset()
+	{
+		_mri.get()->reset();
+		_last_mri.get()->reset();
+	}
+
 	void set_agnostic_pmods(const int& itv)
 	{
-		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern
-		// sequencing just set only one hand's values and we'll copy them
-		// over (or figure out how not to need to) later
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing. Just set only one hand's values and we'll copy them
+		 * over (or figure out how not to need to) later */
 
 		PatternMods::set_agnostic(_s._pmod, _s(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_js._pmod, _js(_mitvi), itv, _calc);
@@ -294,6 +301,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz.full_reset();
 	}
 
+	void reset_row_sequencing()
+	{
+		_mitvi.reset();
+	}
+
 	void handle_dependent_interval_end(const int& itv)
 	{
 		/* this calls itvhi's interval end, which is what updates the hand
@@ -317,13 +329,18 @@ struct TheGreatBazoinkazoinkInTheSky
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,
-							const float& row_time)
+									 const float& row_time)
 	{
+		auto thing =
+		  std::pair{ row_time,
+					 ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+					   basescalers[Skill_JackSpeed] };
+		if (std::isnan(thing.second)) {
+			thing.second = 0.F;
+		}
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc.jack_diff.at(hand).push_back(
-		  { row_time, ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
-			basescalers[Skill_JackSpeed] });
+		_calc.jack_diff.at(hand).push_back(thing);
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -333,7 +350,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	void set_sequenced_base_diffs(const int& itv) const
 	{
 		// this is no longer done for intervals, but per row, in the row
-		// loop _calc.soap.at(hand)[JackBase].at(itv) =
+		// loop _calc->soap.at(hand)[JackBase].at(itv) =
 		// _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
@@ -416,7 +433,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * are sequenced here, meaning they are order dependent
 					 * (jack might not be for the moment actually) nps base
 					 * is still calculated in the old way */
-					update_sequenced_base_diffs(ct, itv, jack_counter, row_time);
+					update_sequenced_base_diffs(
+					  ct, itv, jack_counter, row_time);
 					++jack_counter;
 
 					// only ohj uses this atm (and probably into the future)
@@ -432,7 +450,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 
 				// maybe this should go back into the diffz object...
-				// _calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
+				// _calc->itv_jack_diff_size.at(hand).at(itv) = jack_counter;
 
 				handle_dependent_interval_end(itv);
 			}
@@ -478,19 +496,38 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 	}
 
-	void load_calc_params_from_disk() const
+	void load_calc_params_from_disk(bool bForce = false) const
 	{
 		const auto fn = calc_params_xml;
 		int iError;
-		const std::unique_ptr<RageFileBasic> pFile(
-		  FILEMAN->Open(fn, RageFile::READ, iError));
-		if (pFile == nullptr) {
+
+		// Hold calc params program-global persistent info
+		static RageFileBasic* pFile;
+		static XNode params;
+		// Only ever try to load params once per thread unless forcing
+		thread_local bool paramsLoaded = false;
+
+		// Don't keep loading params if nothing to load/no reason to
+		// Allow a force to bypass
+		if (paramsLoaded && !bForce)
 			return;
+
+		// Load if missing or allow a force reload
+		if (pFile == nullptr || bForce) {
+			delete pFile;
+			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
+			paramsLoaded = true;
+			// Failed to load
+			if (pFile == nullptr)
+				return;
 		}
 
-		XNode params;
-		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
-			return;
+		// If it isn't loaded or we are forcing a load, load it
+		if (params.ChildrenEmpty() || bForce)
+		{
+			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
+				return;
+			}
 		}
 
 		// ignore params from older versions

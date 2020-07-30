@@ -48,7 +48,6 @@ PlayerStageStats::InternalInit()
 	m_bJoined = false;
 	m_vpPossibleSteps.clear();
 	m_iStepsPlayed = 0;
-	m_fAliveSeconds = 0;
 	m_bFailed = false;
 	m_iPossibleDancePoints = 0;
 	m_iCurPossibleDancePoints = 0;
@@ -119,7 +118,6 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	for (const auto& s : other.m_vpPossibleSteps)
 		m_vpPossibleSteps.push_back(s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
-	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
 	m_iPossibleDancePoints += other.m_iPossibleDancePoints;
 	m_iActualDancePoints += other.m_iActualDancePoints;
@@ -471,7 +469,7 @@ PlayerStageStats::ResetScoreForLesson()
 void
 PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 {
-	if (fStepsSecond < 0)
+	if (fStepsSecond < 0.F)
 		return;
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
@@ -867,7 +865,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
   public:
 	DEFINE_METHOD(GetNumControllerSteps, m_iNumControllerSteps)
 	DEFINE_METHOD(GetLifeRemainingSeconds, m_fLifeRemainingSeconds)
-	DEFINE_METHOD(GetSurvivalSeconds, GetSurvivalSeconds())
 	DEFINE_METHOD(GetCurrentCombo, m_iCurCombo)
 	DEFINE_METHOD(GetCurrentMissCombo, m_iCurMissCombo)
 	DEFINE_METHOD(GetCurrentScoreMultiplier, m_iCurScoreMultiplier)
@@ -896,7 +893,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	DEFINE_METHOD(GetPersonalHighScoreIndex, m_iPersonalHighScoreIndex)
 	DEFINE_METHOD(GetMachineHighScoreIndex, m_iMachineHighScoreIndex)
 	DEFINE_METHOD(IsDisqualified, IsDisqualified())
-	DEFINE_METHOD(GetAliveSeconds, m_fAliveSeconds)
 	DEFINE_METHOD(GetTotalTaps, GetTotalTaps())
 	DEFINE_METHOD(GetPercentageOfTaps,
 				  GetPercentageOfTaps(Enum::Check<TapNoteScore>(L, 1)))
@@ -938,7 +934,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	{
 		auto& offs = p->m_vOffsetVector;
 		auto& type = p->m_vTapNoteTypeVector;
-		vector<float> doot;
+		std::vector<float> doot;
 		// type would not be empty in Full Replays (> v0.60)
 		if (!type.empty()) {
 			for (size_t i = 0; i < offs.size(); ++i)
@@ -1096,7 +1092,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	{
 		ADD_METHOD(GetNumControllerSteps);
 		ADD_METHOD(GetLifeRemainingSeconds);
-		ADD_METHOD(GetSurvivalSeconds);
 		ADD_METHOD(GetCurrentCombo);
 		ADD_METHOD(GetCurrentMissCombo);
 		ADD_METHOD(GetCurrentScoreMultiplier);
@@ -1133,7 +1128,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		ADD_METHOD(GetComboList);
 		ADD_METHOD(GetLifeRecord);
 		ADD_METHOD(GetWifeRecord);
-		ADD_METHOD(GetAliveSeconds);
 		ADD_METHOD(GetPercentageOfTaps);
 		ADD_METHOD(GetTotalTaps);
 		ADD_METHOD(GetRadarActual);

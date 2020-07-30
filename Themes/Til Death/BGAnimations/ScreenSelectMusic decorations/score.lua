@@ -211,7 +211,7 @@ local ret =
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,

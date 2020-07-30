@@ -6,11 +6,11 @@
  * sequencers do their stuff */
 static const std::array<unsigned, 4> col_ids = { 1U, 2U, 4U, 8U };
 
-static const float s_init = -5.F;
-static const float ms_init = 5000.F;
+constexpr float s_init = -5.F;
+constexpr float ms_init = 5000.F;
 
 // global multiplier to standardize baselines
-static const float finalscaler = 3.632F * 1.06F;
+constexpr float finalscaler = 3.632F * 1.06F;
 
 inline auto
 column_count(const unsigned& notes) -> int

@@ -20,7 +20,7 @@ enum SelectType
 	SelectType_Invalid
 };
 const std::string&
-SelectTypeToString(SelectType pm);
+SelectTypeToString(SelectType x);
 SelectType
 StringToSelectType(const std::string& s);
 LuaDeclareType(SelectType);
@@ -33,7 +33,7 @@ enum LayoutType
 	LayoutType_Invalid
 };
 const std::string&
-LayoutTypeToString(LayoutType pm);
+LayoutTypeToString(LayoutType x);
 LayoutType
 StringToLayoutType(const std::string& s);
 LuaDeclareType(LayoutType);
@@ -47,7 +47,7 @@ enum ReloadChanged
 	ReloadChanged_Invalid
 };
 const std::string&
-ReloadChangedToString(ReloadChanged rc);
+ReloadChangedToString(ReloadChanged x);
 ReloadChanged
 StringToReloadChanged(const std::string& s);
 LuaDeclareType(ReloadChanged);

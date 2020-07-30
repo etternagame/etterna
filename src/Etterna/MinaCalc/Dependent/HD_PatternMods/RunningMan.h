@@ -174,7 +174,7 @@ struct RunningManMod
 		float oht_p = 1.5F - (highest_rm._rm.get_offhand_tap_prop() *
 							  offhand_tap_prop_scaler);
 
-		oht_p = CalcClamp(oht_p, 0.75F, 1.0F);
+		oht_p = std::clamp(oht_p, 0.75F, 1.0F);
 		return highest_rm.get_difficulty() * oht_p;
 	}
 
@@ -233,7 +233,7 @@ struct RunningManMod
 		 * ohjump usage on the other hand, which is probably? good */
 		offhand_tap_prop = offhand_tap_prop_base - (rm.get_offhand_tap_prop() *
 													offhand_tap_prop_scaler);
-		offhand_tap_prop = CalcClamp(
+		offhand_tap_prop = std::clamp(
 		  offhand_tap_prop, offhand_tap_prop_min, offhand_tap_prop_max);
 
 		/* number of same hand off anchor taps / anchor taps, basically stuffs
@@ -249,7 +249,7 @@ struct RunningManMod
 		  off_tap_same_prop_base +
 		  (rm.get_off_tap_same_prop() * off_tap_same_prop_scaler);
 
-		off_tap_same_prop = CalcClamp(
+		off_tap_same_prop = std::clamp(
 		  off_tap_same_prop, off_tap_same_prop_min, off_tap_same_prop_max);
 
 		/* anchor length component, we want longer runningmen to inherently
@@ -258,7 +258,7 @@ struct RunningManMod
 		 * just through length alone */
 		anchor_len_comp = static_cast<float>(rm._len) / anchor_len_divisor;
 		anchor_len_comp =
-		  CalcClamp(anchor_len_comp, anchor_len_comp_min, anchor_len_comp_max);
+		  std::clamp(anchor_len_comp, anchor_len_comp_min, anchor_len_comp_max);
 
 		// jacks in anchor component, give a small bonus i guess
 		jack_bonus =
@@ -269,9 +269,9 @@ struct RunningManMod
 		  rm.oht_taps >= min_oht_taps_for_bonus ? oht_bonus_base : 0.F;
 
 		pmod = base + anchor_len_comp + jack_bonus + oht_bonus;
-		pmod = CalcClamp(fastsqrt(pmod * off_tap_same_prop * offhand_tap_prop),
-						 min_mod,
-						 max_mod);
+		pmod = std::clamp(fastsqrt(pmod * off_tap_same_prop * offhand_tap_prop),
+						  min_mod,
+						  max_mod);
 	}
 
 	[[nodiscard]] auto operator()(const int& total_taps) -> float

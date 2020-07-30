@@ -50,15 +50,15 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 {
 	// in flux
 	const auto grindscaler =
-	  CalcClamp(
+	  std::clamp(
 		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 35.F) / 35.F),
 		0.9F,
 		1.F) *
-	  CalcClamp(
+	  std::clamp(
 		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 15.F) / 15.F),
 		0.9F,
 		1.F) *
-	  CalcClamp(
+	  std::clamp(
 		0.4F + (0.6F * ((NoteInfo.back().rowTime / music_rate) - 10.F) / 10.F),
 		0.4F,
 		1.F);
@@ -83,16 +83,17 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		}
 
 		MaxPoints = TotalMaxPoints(*this);
-
 		std::vector<float> mcbloop(NUM_Skillset);
+
 		// overall and stam will be left as 0.f by this loop
 		for (auto i = 0; i < NUM_Skillset; ++i) {
-			mcbloop[i] = Chisel(0.1F, 10.24F, score_goal, i, false);
+			mcbloop[i] =
+			  Chisel(0.1F, 10.24F, score_goal, static_cast<Skillset>(i), false);
 		}
 
-		// stam is based on which calc produced the highest
-		// output without it
-		const auto highest_base_skillset = max_index(mcbloop);
+		// stam is based on which calc produced the highest output without it
+		const auto highest_base_skillset =
+		  static_cast<Skillset>(max_index(mcbloop));
 		const auto base = mcbloop[highest_base_skillset];
 
 		/* rerun all with stam on, optimize by starting at the non-stam adjusted
@@ -104,10 +105,15 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 * file as a whole, we could run it for the 2nd/3rd highest skillsets
 		 * but i'm too lazy to implement that right now */
 		for (auto i = 0; i < NUM_Skillset; ++i) {
-			mcbloop[i] = Chisel(mcbloop[i] * 0.9F, 0.32F, score_goal, i, true);
+			mcbloop[i] = Chisel(mcbloop[i] * 0.9F,
+								0.32F,
+								score_goal,
+								static_cast<Skillset>(i),
+								true);
 		}
 
-		const auto highest_stam_adjusted_skillset = max_index(mcbloop);
+		const auto highest_stam_adjusted_skillset =
+		  static_cast<Skillset>(max_index(mcbloop));
 
 		/* all relative scaling to specific skillsets should occur before this
 		 * point, not after (it ended up this way due to the normalizers which
@@ -153,7 +159,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 * don't want to push up the high end stuff anymore so just add to let
 		 * stuff down the curve catch up a little remember we're operating on a
 		 * multiplier */
-		mcfroggerbopper = CalcClamp(mcfroggerbopper, 0.8F, 1.08F);
+		mcfroggerbopper = std::clamp(mcfroggerbopper, 0.8F, 1.08F);
 		mcbloop[Skill_Stamina] = poodle_in_a_porta_potty * mcfroggerbopper *
 								 basescalers[Skill_Stamina];
 
@@ -177,7 +183,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
-				r = CalcClamp(r, r, ssrcap);
+				r = std::clamp(r, r, ssrcap);
 
 				if (highest_stam_adjusted_skillset == Skill_JackSpeed) {
 					r = downscale_low_accuracy_scores(r, score_goal);
@@ -265,7 +271,7 @@ StamAdjust(const float x,
 			}
 			local_ceil = stam_ceil * stam_floor;
 
-			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+			mod = min(std::clamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			calc.stam_adj_diff.at(i) = diff->at(i) * mod;
 			calc.debugValues.at(hi)[2][StamMod][i] = mod;
 		}
@@ -279,7 +285,7 @@ StamAdjust(const float x,
 			}
 			local_ceil = stam_ceil * stam_floor;
 
-			mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+			mod = min(std::clamp(mod, stam_floor, local_ceil), super_stam_ceil);
 			calc.stam_adj_diff.at(i) = diff->at(i) * mod;
 		}
 	}
@@ -287,7 +293,8 @@ StamAdjust(const float x,
 
 // tuned for jacks, dunno what this functionally means, yet
 inline auto
-JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<std::pair<float,float>>
+JackStamAdjust(const float x, Calc& calc, const int hi)
+  -> std::vector<std::pair<float, float>>
 {
 	// Jack stamina Model params (see above)
 	static const auto stam_ceil = 1.05234F;
@@ -301,7 +308,9 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<std::pair
 	const auto super_stam_ceil = 1.09F;
 
 	const auto& diff = calc.jack_diff.at(hi);
-	std::vector<std::pair<float,float>> doot(diff.size());
+	std::vector<std::pair<float, float>> doot(diff.size());
+
+	calc.jack_stam_stuff.at(hi).resize(diff.size());
 
 	for (size_t i = 0; i < diff.size(); i++) {
 		const auto avs1 = avs2;
@@ -312,16 +321,18 @@ JackStamAdjust(const float x, Calc& calc, const int hi) -> std::vector<std::pair
 		}
 		const auto local_ceil = stam_ceil * stam_floor;
 
-		mod = min(CalcClamp(mod, stam_floor, local_ceil), super_stam_ceil);
+		mod = min(std::clamp(mod, stam_floor, local_ceil), super_stam_ceil);
 
 		doot.at(i).first = diff.at(i).first;
 		doot.at(i).second = diff.at(i).second * mod;
+
+		calc.jack_stam_stuff.at(hi).at(i) = mod;
 	}
 
 	return doot;
 }
 
-static const float magic_num = 16.F;
+constexpr float magic_num = 16.F;
 
 [[nodiscard]] inline auto
 hit_the_road(const float& x, const float& y) -> float
@@ -447,7 +458,12 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
 		return true;
 
-	TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(*this);
+	// ulbu calculates everything needed for the block below (mostly pmods)
+	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(
+	  *this);
+	// if debug, force params to load
+	if (debugmode)
+		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
 	ulbu_that_which_consumes_all();
 
 	// main hand loop
@@ -491,23 +507,24 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 			}
 		}
 	}
+
 	return false;
 }
 
 /* pbm = point buffer multiplier, or basically starting with a max points some
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
-static const float tech_pbm = 1.F;
-static const float jack_pbm = 1.0175F;
-static const float stream_pbm = 1.01F;
-static const float bad_newbie_skillsets_pbm = 1.05F;
+constexpr float tech_pbm = 1.F;
+constexpr float jack_pbm = 1.0175F;
+constexpr float stream_pbm = 1.01F;
+constexpr float bad_newbie_skillsets_pbm = 1.05F;
 
 // each skillset should just be a separate calc function [todo]
 auto
 Calc::Chisel(float player_skill,
 			 float resolution,
 			 const float score_goal,
-			 const int ss,
+			 const Skillset ss,
 			 const bool stamina,
 			 const bool debugoutput) -> float
 {
@@ -551,7 +568,7 @@ Calc::Chisel(float player_skill,
 				 * point. i.e. we're so far below the skill
 				 * benchmark it's impossible to reach the goal after
 				 * just the first hand's losses are totaled */
-				if (gotpoints > reqpoints) {
+				if (true /*gotpoints > reqpoints*/) {
 					if (ss == Skill_JackSpeed) {
 						gotpoints -= jackloss(player_skill, *this, hi, stamina);
 					} else {
@@ -610,7 +627,7 @@ Calc::Chisel(float player_skill,
 	return player_skill + 2.F * resolution;
 }
 
-/* the new way we wil attempt to differentiate skillsets rather than using
+/* The new way we wil attempt to differentiate skillsets rather than using
  * normalizers is by detecting whether or not we think a file is mostly
  * comprised of a given pattern, producing a downscaler that slightly buffs
  * up those files and produces a downscaler for files not detected of that
@@ -672,7 +689,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		TheThing,
 		WideRangeAnchor,
 		WideRangeRoll,
-	  	WideRangeJumptrill,
+		WideRangeJumptrill,
 		OHTrill,
 		VOHTrill,
 		// Roll
@@ -682,7 +699,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	  // stam, nothing, don't handle here
 	  {},
 
-	  // jackspeed
+	  // jackspeed, doesn't use pmods (atm)
 	  {},
 
 	  // chordjack
@@ -719,23 +736,23 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	for (auto i = 0; i < calc.numitv; ++i) {
 		tp_mods.fill(1.F);
 
-		// total pattern mods for each skillset, we want this to be
-		// calculated before the main skillset loop because we might
-		// want access to the total js mod while on stream, or
-		// something
+		/* total pattern mods for each skillset, we want this to be
+		 * calculated before the main skillset loop because we might
+		 * want access to the total js mod while on stream, or
+		 * something */
 		for (auto ss = 0; ss < NUM_Skillset; ++ss) {
-			// is this even faster than multiplying 1.f by 1.f a
-			// billion times?
+
+			// is this even faster than multiplying 1.f by 1.f a billion times?
 			if (ss == Skill_Overall || ss == Skill_Stamina) {
 				continue;
 			}
+
 			for (const auto& pmod : pmods_used.at(ss)) {
 				tp_mods.at(ss) *= calc.doot.at(hi).at(pmod).at(i);
 			}
 		}
 
-		// main skillset loop, for each skillset that isn't overall
-		// or stam
+		// main loop, for each skillset that isn't overall or stam
 		for (auto ss = 0; ss < NUM_Skillset; ++ss) {
 			if (ss == Skill_Overall || ss == Skill_Stamina) {
 				continue;
@@ -746,9 +763,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 			auto* stam_base =
 			  &(calc.base_diff_for_stam_mod.at(hi).at(ss).at(i));
 
-			// might need optimization, or not since this is not
-			// outside of a dumb loop now and is done once instead
-			// of a few hundred times
+			// ditto?
 			const auto funk = calc.soap.at(hi).at(NPSBase).at(i) *
 							  tp_mods.at(ss) * basescalers.at(ss);
 			*adj_diff = funk;
@@ -820,8 +835,10 @@ make_debug_strings(const Calc& calc, std::vector<std::string>& debugstrings)
 			itvstring.append("\n");
 		}
 
-		if (!itvstring.empty())
+		if (!itvstring.empty()) {
 			itvstring.pop_back();
+		}
+
 		debugstrings.at(itv) = itvstring;
 	}
 }
@@ -879,6 +896,7 @@ MinaSDCalcDebug(
 		return;
 	}
 
+	// debugmode true will cause params to reload
 	calc.debugmode = true;
 	calc.ssr = true;
 	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
@@ -887,14 +905,18 @@ MinaSDCalcDebug(
 	handInfo.emplace_back(calc.debugValues.at(left_hand));
 	handInfo.emplace_back(calc.debugValues.at(right_hand));
 
-	// asdkfhjasdkfhaskdfjhasfd
+	/* ok so the problem atm is the multithreading of songload, if we want
+	 * to update the file on disk with new values and not just overwrite it
+	 * we have to write out after loading the values player defined, so the
+	 * quick hack solution to do that is to only do it during debug output
+	 * generation, which is fine for the time being, though not ideal */
 	if (!DoesFileExist(calc_params_xml)) {
 		const TheGreatBazoinkazoinkInTheSky ublov(calc);
 		ublov.write_params_to_disk();
 	}
 }
 
-int mina_calc_version = 434;
+int mina_calc_version = 438;
 auto
 GetCalcVersion() -> int
 {

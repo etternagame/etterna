@@ -8,7 +8,7 @@
 
 /* generic pattern mod functions and defs to help either agnostic or dependent
  * mods do their stuff */
-static const float neutral = 1.F;
+constexpr float neutral = 1.F;
 
 // Relies on endiannes (significantly inaccurate)
 inline auto
@@ -60,13 +60,6 @@ cv(const std::vector<float>& input) -> float
 	}
 
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
-}
-
-template<typename T>
-auto
-CalcClamp(T x, T l, T h) -> T
-{
-	return x > h ? h : (x < l ? l : x);
 }
 
 inline auto

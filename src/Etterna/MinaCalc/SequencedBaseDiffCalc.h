@@ -43,7 +43,7 @@ struct techyo
 		}
 
 		const auto a = seq.get_sc_ms_now(ct);
-		auto b = ms_init;
+		float b;
 		if (ct == col_ohjump) {
 			b = seq.get_sc_ms_now(ct, false);
 		} else {
@@ -56,13 +56,13 @@ struct techyo
 		auto porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
 		auto sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
 		const auto oioi = 0.5F;
-		pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
-		porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
-		sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
+		pineapple = std::clamp(pineapple + oioi, oioi, 1.F + oioi);
+		porcupine = std::clamp(porcupine + oioi, oioi, 1.F + oioi);
+		sequins = std::clamp(sequins + oioi, oioi, 1.F + oioi);
 
 		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
 		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
-		auto obliosis = 0.F;
+		float obliosis;
 
 		if (ct == col_left) {
 			obliosis = poliosis / scoliosis;
@@ -70,11 +70,11 @@ struct techyo
 			obliosis = scoliosis / poliosis;
 		}
 
-		obliosis = CalcClamp(obliosis, 1.F, 10.F);
+		obliosis = std::clamp(obliosis, 1.F, 10.F);
 		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
 		pewp /= obliosis;
-		const auto vertebrae = CalcClamp(
+		const auto vertebrae = std::clamp(
 		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
 
 		teehee(c / vertebrae);

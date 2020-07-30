@@ -19,7 +19,7 @@ StatsManager::StatsManager()
 {
 	// Register with Lua.
 	{
-		Lua* L = LUA->Get();
+		auto* L = LUA->Get();
 		lua_pushstring(L, "STATSMAN");
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
@@ -43,24 +43,26 @@ StatsManager::Reset()
 	CalcAccumPlayedStageStats();
 }
 
-static StageStats
-AccumPlayedStageStats(const vector<StageStats>& vss)
+static auto
+AccumPlayedStageStats(const std::vector<StageStats>& vss) -> StageStats
 {
 	StageStats ssreturn;
 
-	for (auto& ss : vss)
+	for (const auto& ss : vss) {
 		ssreturn.AddStats(ss);
+	}
 
-	unsigned uNumSongs = ssreturn.m_vpPlayedSongs.size();
+	const unsigned uNumSongs = ssreturn.m_vpPlayedSongs.size();
 
-	if (uNumSongs == 0)
+	if (uNumSongs == 0) {
 		return ssreturn; // don't divide by 0 below
+	}
 
 	/* Scale radar percentages back down to roughly 0..1.  Don't scale
 	 * RadarCategory_TapsAndHolds and the rest, which are counters. */
 	// FIXME: Weight each song by the number of stages it took to account for
 	// long, marathon.
-	for (int r = 0; r < RadarCategory_TapsAndHolds; r++) {
+	for (auto r = 0; r < RadarCategory_TapsAndHolds; ++r) {
 		ssreturn.m_player.m_radarPossible[r] /= uNumSongs;
 		ssreturn.m_player.m_radarActual[r] /= uNumSongs;
 	}
@@ -71,7 +73,7 @@ void
 StatsManager::GetFinalEvalStageStats(StageStats& statsOut) const
 {
 	statsOut.Init();
-	vector<StageStats> vssToCount;
+	std::vector<StageStats> vssToCount;
 	for (const auto& m_vPlayedStageStat : m_vPlayedStageStats) {
 		vssToCount.push_back(m_vPlayedStageStat);
 	}
@@ -101,19 +103,19 @@ StatsManager::CommitStatsToProfiles(const StageStats* pSS)
 	// Add step totals.  Use radarActual, since the player might have failed
 	// part way through the song, in which case we don't want to give credit for
 	// the rest of the song.
-	int iNumTapsAndHolds =
+	const auto iNumTapsAndHolds =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_TapsAndHolds]);
-	int iNumJumps =
+	const auto iNumJumps =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Jumps]);
-	int iNumHolds =
+	const auto iNumHolds =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Holds]);
-	int iNumRolls =
+	const auto iNumRolls =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Rolls]);
-	int iNumMines =
+	const auto iNumMines =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Mines]);
-	int iNumHands =
+	const auto iNumHands =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Hands]);
-	int iNumLifts =
+	const auto iNumLifts =
 	  static_cast<int>(pSS->m_player.m_radarActual[RadarCategory_Lifts]);
 	PROFILEMAN->AddStepTotals(PLAYER_1,
 							  iNumTapsAndHolds,
@@ -123,29 +125,30 @@ StatsManager::CommitStatsToProfiles(const StageStats* pSS)
 							  iNumMines,
 							  iNumHands,
 							  iNumLifts);
-
-	// Update profile stats
-	int iGameplaySeconds = static_cast<int>(truncf(pSS->m_fGameplaySeconds));
 }
 
-void
-StatsManager::UnjoinPlayer(PlayerNumber pn)
+void StatsManager::UnjoinPlayer(PlayerNumber /*pn*/)
 {
 	/* A player has been unjoined.  Clear his data from m_vPlayedStageStats, and
 	 * purge any m_vPlayedStageStats that no longer have any player data because
 	 * all of the players that were playing at the time have been unjoined. */
-	for (auto& ss : m_vPlayedStageStats)
+	for (auto& ss : m_vPlayedStageStats) {
 		ss.m_player = PlayerStageStats();
+	}
 
-	for (int i = 0; i < static_cast<int>(m_vPlayedStageStats.size()); ++i) {
-		StageStats& ss = m_vPlayedStageStats[i];
-		bool bIsActive = false;
-		if (ss.m_player.m_bJoined)
+	for (auto i = 0; i < static_cast<int>(m_vPlayedStageStats.size()); ++i) {
+		auto& ss = m_vPlayedStageStats[i];
+		auto bIsActive = false;
+		if (ss.m_player.m_bJoined) {
 			bIsActive = true;
-		FOREACH_MultiPlayer(mp) if (ss.m_multiPlayer[mp].m_bJoined) bIsActive =
-		  true;
-		if (bIsActive)
+		}
+		FOREACH_MultiPlayer(mp) if (ss.m_multiPlayer[mp].m_bJoined)
+		{
+			bIsActive = true;
+		}
+		if (bIsActive) {
 			continue;
+		}
 
 		m_vPlayedStageStats.erase(m_vPlayedStageStats.begin() + i);
 		--i;
@@ -156,13 +159,13 @@ void
 StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 {
 	for (const auto& m_vPlayedStageStat : m_vPlayedStageStats) {
-		const PlayerStageStats& pss = m_vPlayedStageStat.m_player;
+		const auto& pss = m_vPlayedStageStat.m_player;
 		apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
 						  pss.m_vpPossibleSteps.end());
 
 		FOREACH_MultiPlayer(mp)
 		{
-			const PlayerStageStats& pss = m_vPlayedStageStat.m_multiPlayer[mp];
+			const auto& pss = m_vPlayedStageStat.m_multiPlayer[mp];
 			apInUseOut.insert(pss.m_vpPossibleSteps.begin(),
 							  pss.m_vpPossibleSteps.end());
 		}
@@ -176,81 +179,82 @@ StatsManager::GetStepsInUse(set<Steps*>& apInUseOut) const
 class LunaStatsManager : public Luna<StatsManager>
 {
   public:
-	static int GetCurStageStats(T* p, lua_State* L)
+	static auto GetCurStageStats(T* p, lua_State* L) -> int
 	{
 		p->m_CurStageStats.PushSelf(L);
 		return 1;
 	}
-	static int GetPlayedStageStats(T* p, lua_State* L)
+	static auto GetPlayedStageStats(T* p, lua_State* L) -> int
 	{
-		int iAgo = IArg(1);
-		int iIndex = p->m_vPlayedStageStats.size() - iAgo;
+		const auto iAgo = IArg(1);
+		const int iIndex = p->m_vPlayedStageStats.size() - iAgo;
 		if (iIndex < 0 ||
-			iIndex >= static_cast<int>(p->m_vPlayedStageStats.size()))
+			iIndex >= static_cast<int>(p->m_vPlayedStageStats.size())) {
 			return 0;
+		}
 
 		p->m_vPlayedStageStats[iIndex].PushSelf(L);
 		return 1;
 	}
-	static int Reset(T* p, lua_State* L)
+	static auto Reset(T* p, lua_State * /*L*/) -> int
 	{
 		p->Reset();
 		return 0;
 	}
-	static int GetAccumPlayedStageStats(T* p, lua_State* L)
+	static auto GetAccumPlayedStageStats(T* p, lua_State* L) -> int
 	{
 		p->GetAccumPlayedStageStats().PushSelf(L);
 		return 1;
 	}
-	static int GetFinalEvalStageStats(T* p, lua_State* L)
+	static auto GetFinalEvalStageStats(T* p, lua_State* L) -> int
 	{
 		StageStats stats;
 		p->GetFinalEvalStageStats(stats);
 		stats.PushSelf(L);
 		return 1;
 	}
-	static int GetFinalGrade(T* p, lua_State* L)
+	static auto GetFinalGrade(T* p, lua_State* L) -> int
 	{
-		PlayerNumber pn = PLAYER_1;
+		const auto pn = PLAYER_1;
 
-		if (!GAMESTATE->IsHumanPlayer(pn))
+		if (!GAMESTATE->IsHumanPlayer(pn)) {
 			lua_pushnumber(L, Grade_Invalid);
-		else {
+		} else {
 			StageStats stats;
 			p->GetFinalEvalStageStats(stats);
 			lua_pushnumber(L, stats.m_player.GetGrade());
 		}
 		return 1;
 	}
-	static int GetStagesPlayed(T* p, lua_State* L)
+	static auto GetStagesPlayed(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->m_vPlayedStageStats.size());
 		return 1;
 	}
 
-	static int GetBestGrade(T* p, lua_State* L)
+	static auto GetBestGrade(T* /*p*/, lua_State* L) -> int
 	{
-		Grade g = NUM_Grade;
+		auto g = NUM_Grade;
 		g = std::min(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
 
-	static int GetWorstGrade(T* p, lua_State* L)
+	static auto GetWorstGrade(T* /*p*/, lua_State* L) -> int
 	{
-		Grade g = Grade_Tier01;
+		auto g = Grade_Tier01;
 		g = std::max(g, STATSMAN->m_CurStageStats.m_player.GetGrade());
 		lua_pushnumber(L, g);
 		return 1;
 	}
 
-	static int GetBestFinalGrade(T* t, lua_State* L)
+	static auto GetBestFinalGrade(T* t, lua_State* L) -> int
 	{
-		Grade top_grade = Grade_Failed;
+		auto top_grade = Grade_Failed;
 		StageStats stats;
 		t->GetFinalEvalStageStats(stats);
 		// If this player failed any stage, then their final grade is an F.
-		bool bPlayerFailedOneStage = false;
+		auto bPlayerFailedOneStage = false;
 		for (auto& ss : STATSMAN->m_vPlayedStageStats) {
 			if (ss.m_player.m_bFailed) {
 				bPlayerFailedOneStage = true;
@@ -264,9 +268,9 @@ class LunaStatsManager : public Luna<StatsManager>
 		return 1;
 	}
 
-	static int UpdatePlayerRating(T* p, lua_State* L)
+	static auto UpdatePlayerRating(T* p, lua_State * /*L*/) -> int
 	{
-		Profile* profile = PROFILEMAN->GetProfile(PLAYER_1);
+		auto* const profile = PROFILEMAN->GetProfile(PLAYER_1);
 		p->AddPlayerStatsToProfile(profile);
 		return 0;
 	}

@@ -1229,7 +1229,6 @@ sm_main(int argc, char* argv[])
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
 	SONGMAN->CalcTestStuff();		  // must be after profileman init
 
-	SONGMAN->UpdatePreferredSort();
 	NSMAN = new NetworkSyncManager(pLoadingWindow);
 	STATSMAN = new StatsManager;
 
@@ -1376,6 +1375,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 				{
 					SCREENMAN->SystemMessage(SERVICE_SWITCH_PRESSED);
 					SCREENMAN->PopAllScreens();
+					SCREENMAN->set_input_redirected(PLAYER_1, false);
 					GAMESTATE->Reset();
 					SCREENMAN->SetNewScreen(
 					  CommonMetrics::OPERATOR_MENU_SCREEN);

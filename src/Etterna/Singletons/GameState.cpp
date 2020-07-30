@@ -92,7 +92,7 @@ GameState::GameState()
   , m_PreferredDifficulty(Message_PreferredDifficultyP1Changed)
   , m_SortOrder(Message_SortOrderChanged)
   , m_pCurSong(Message_CurrentSongChanged)
-  , m_pCurSteps(Message_CurrentStepsP1Changed)
+  , m_pCurSteps(Message_CurrentStepsChanged)
   , m_bGameplayLeadIn(Message_GameplayLeadInChanged)
   , m_sEditLocalProfileID(Message_EditLocalProfileIDChanged)
   , m_gameplayMode(Message_GameplayModeChanged)
@@ -297,8 +297,6 @@ GameState::Reset()
 	ResetMusicStatistics();
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();
-
-	SONGMAN->UpdateShuffled();
 
 	STATSMAN->Reset();
 	m_bTemporaryEventMode = false;

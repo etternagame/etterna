@@ -128,7 +128,7 @@ struct CJOHJumpMod
 			  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
 			set_prop_comp();
 
-			pmod = CalcClamp(prop_component, min_mod, max_mod);
+			pmod = std::clamp(prop_component, min_mod, max_mod);
 			return;
 		}
 
@@ -140,7 +140,7 @@ struct CJOHJumpMod
 			base_seq_prop = floatymcfloatface / itvhi.get_taps_nowf();
 			set_max_seq_comp();
 
-			pmod = CalcClamp(max_seq_component, min_mod, max_mod);
+			pmod = std::clamp(max_seq_component, min_mod, max_mod);
 			return;
 		}
 
@@ -149,16 +149,16 @@ struct CJOHJumpMod
 		floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
 		base_seq_prop = floatymcfloatface / mitvhi._itvhi.get_taps_nowf();
 		set_max_seq_comp();
-		max_seq_component = CalcClamp(max_seq_component, 0.1F, max_mod);
+		max_seq_component = std::clamp(max_seq_component, 0.1F, max_mod);
 
 		base_jump_prop =
 		  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
 		set_prop_comp();
-		prop_component = CalcClamp(prop_component, 0.1F, max_mod);
+		prop_component = std::clamp(prop_component, 0.1F, max_mod);
 
 		pmod = weighted_average(
 		  max_seq_component, prop_component, max_seq_weight, 1.F);
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(pmod, min_mod, max_mod);
 	}
 
 	auto operator()(const metaItvHandInfo& mitvhi) -> float

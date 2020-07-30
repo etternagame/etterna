@@ -111,6 +111,14 @@ struct SoundPositionSetter
 };
 vector<SoundPositionSetter> g_PositionsToSet;
 
+// A param to set on a sound
+struct MusicParamSetter
+{
+	RageSound* m_psound;
+	RageSoundParams p;
+};
+vector<MusicParamSetter> g_ParamsToSet;
+
 void
 GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 {
@@ -329,7 +337,8 @@ GameSoundManager::SoundWaiting()
 {
 	return !g_SoundsToPlayOnce.empty() || !g_SoundsToPlayOnceFromDir.empty() ||
 		   !g_SoundsToPlayOnceFromAnnouncer.empty() ||
-		   !g_MusicsToPlay.empty() || !g_PositionsToSet.empty();
+		   !g_MusicsToPlay.empty() || !g_PositionsToSet.empty() ||
+		   !g_ParamsToSet.empty();
 }
 
 void
@@ -406,6 +415,20 @@ GameSoundManager::HandleSetPosition()
 }
 
 void
+GameSoundManager::HandleSetParams()
+{
+	g_Mutex->Lock();
+	vector<MusicParamSetter> vec = g_ParamsToSet;
+	g_ParamsToSet.clear();
+	g_Mutex->Unlock();
+	for (unsigned i = 0; i < vec.size(); i++) {
+		CHECKPOINT_M("Setting params for sound.");
+		// vec[i].m_psound->SetParams(vec[i].p);
+		g_Playing->m_Music->SetParams(vec[i].p);
+	}
+}
+
+void
 GameSoundManager::Flush()
 {
 	g_Mutex->Lock();
@@ -437,6 +460,7 @@ MusicThread_start(void* p)
 
 		soundman->StartQueuedSounds();
 
+		soundman->HandleSetParams();
 		soundman->HandleSetPosition();
 
 		if (bFlushing) {
@@ -733,6 +757,36 @@ GameSoundManager::SetSoundPosition(RageSound* s, float fSeconds)
 }
 
 void
+GameSoundManager::SetPlayingMusicParams(RageSoundParams p)
+{
+	// This will replace the params for the music pointer
+	// So needs to be first filled out by the existing params
+	// (preferably, unless the intention is to overwrite them)
+	MusicParamSetter prm;
+	// prm.m_psound = g_Playing->m_Music;
+	prm.p = p;
+	g_Mutex->Lock();
+	g_ParamsToSet.push_back(prm);
+	g_Mutex->Broadcast();
+	g_Mutex->Unlock();
+}
+
+const RageSoundParams&
+GameSoundManager::GetPlayingMusicParams()
+{
+	return g_Playing->m_Music->GetParams();
+}
+
+void
+GameSoundManager::ResyncMusicPlaying()
+{
+	// This function is primarily just useful for hacking MP3 sync back to normal since moving sound backwards force it to completely resync at the moment
+	auto* rs = g_Playing->m_Music;
+	auto now = rs->GetPositionSeconds();
+	SetSoundPosition(rs, now - 0.01F);
+}
+
+void
 GameSoundManager::PlayMusic(const std::string& sFile,
 							const TimingData* pTiming,
 							bool bForceLoop,
@@ -987,6 +1041,11 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
+	static int ResyncMusicPlaying(T* p, lua_State* L)
+	{
+		p->ResyncMusicPlaying();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaGameSoundManager()
 	{
@@ -1000,6 +1059,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
 		ADD_METHOD(SetVolume);
+		ADD_METHOD(ResyncMusicPlaying);
 	}
 };
 

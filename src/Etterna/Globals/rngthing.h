@@ -1,6 +1,6 @@
 #include <random>
 
-typedef std::mt19937 RandomGen;
+using RandomGen = std::mt19937;
 extern RandomGen g_RandomNumberGenerator;
 
 void

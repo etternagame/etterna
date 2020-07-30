@@ -49,7 +49,7 @@ struct BalanceMod
 
 		pmod = itvhi.get_col_prop_low_by_high();
 		pmod = (mod_base + (buffer + (scaler / pmod)) / other_scaler);
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(pmod, min_mod, max_mod);
 
 		return pmod;
 	}

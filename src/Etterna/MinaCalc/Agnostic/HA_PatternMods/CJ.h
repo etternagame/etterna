@@ -91,17 +91,17 @@ struct CJMod
 										prop_buffer) /
 					 (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
-		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
+		  std::clamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// make sure there's at least a couple of jacks
 		jack_prop =
-		  CalcClamp(static_cast<float>(mitvi.actual_jacks_cj) - jack_base,
-					jack_min,
-					jack_max);
+		  std::clamp(static_cast<float>(mitvi.actual_jacks_cj) - jack_base,
+					 jack_min,
+					 jack_max);
 
 		// explicitly detect broken chordstream type stuff so we can give more
 		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
-		not_jack_prop = CalcClamp(
+		not_jack_prop = std::clamp(
 		  not_jack_pool -
 			(static_cast<float>(static_cast<float>(mitvi.definitely_not_jacks) *
 								not_jack_scaler) /
@@ -110,7 +110,7 @@ struct CJMod
 		  not_jack_max);
 
 		pmod =
-		  CalcClamp(total_prop * jack_prop * not_jack_prop, min_mod, max_mod);
+		  std::clamp(total_prop * jack_prop * not_jack_prop, min_mod, max_mod);
 
 		// ITS JUST VIBRO THEN(unique note permutations per interval < 3 ), use
 		// this other places ?

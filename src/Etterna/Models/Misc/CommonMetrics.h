@@ -16,11 +16,11 @@ class ThemeMetricDifficultiesToShow : public ThemeMetric<std::string>
 	}
 	ThemeMetricDifficultiesToShow(const std::string& sGroup,
 								  const std::string& sName);
-	void Read();
-	const vector<Difficulty>& GetValue() const;
+	void Read() override;
+	auto GetValue() const -> const std::vector<Difficulty>&;
 
   private:
-	vector<Difficulty> m_v;
+	std::vector<Difficulty> m_v;
 };
 class ThemeMetricStepsTypesToShow : public ThemeMetric<std::string>
 {
@@ -31,11 +31,11 @@ class ThemeMetricStepsTypesToShow : public ThemeMetric<std::string>
 	}
 	ThemeMetricStepsTypesToShow(const std::string& sGroup,
 								const std::string& sName);
-	void Read();
-	const vector<StepsType>& GetValue() const;
+	void Read() override;
+	auto GetValue() const -> const std::vector<StepsType>&;
 
   private:
-	vector<StepsType> m_v;
+	std::vector<StepsType> m_v;
 };
 
 /**
@@ -68,8 +68,8 @@ extern ThemeMetric<int> PERCENT_SCORE_DECIMAL_PLACES;
 
 extern ThemeMetric<std::string> IMAGES_TO_CACHE;
 
-std::string
-LocalizeOptionItem(const std::string& s, bool bOptional);
-};
+auto
+LocalizeOptionItem(const std::string& s, bool bOptional) -> std::string;
+} // namespace CommonMetrics;
 
 #endif

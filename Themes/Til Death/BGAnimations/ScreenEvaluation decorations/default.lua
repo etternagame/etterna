@@ -70,8 +70,6 @@ t[#t + 1] =
 
 -- lifegraph
 local function GraphDisplay(pn)
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
-
 	local t =
 		Def.ActorFrame {
 		Def.GraphDisplay {
@@ -135,18 +133,16 @@ local judges = {
 local dvt
 local totalTaps
 
-local getRescoreElements = function(pss, score)
+local getRescoreElements = function(score)
 	local o = {}
 	o["dvt"] = dvt
-	o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
 	o["holdsHit"] = score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
 	o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
-	o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
+	o["minesHit"] = score:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
 	o["totalTaps"] = totalTaps
 	return o
 end
-
-local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
 
 local frameX = 20
 local frameY = 140
@@ -155,13 +151,16 @@ local frameWidth = SCREEN_CENTER_X - 120
 function scoreBoard(pn, position)
 	local judge = PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty()
 	local judge2 = judge
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 	local score = SCOREMAN:GetMostRecentScore()
 	if not score then 
 		score = SCOREMAN:GetTempReplayScore()
 	end
-	dvt = pss:GetOffsetVector()
-	totalTaps = pss:GetTotalTaps()
+	dvt = score:GetOffsetVector()
+
+	totalTaps = 0
+	for k, v in ipairs(judges) do
+		totalTaps = totalTaps + score:GetTapNoteScore(v)
+	end
 
 	local function scaleToJudge(scale)
 		scale = notShit.round(scale, 2)
@@ -184,6 +183,7 @@ function scoreBoard(pn, position)
 
 	local t =
 		Def.ActorFrame {
+		Name = "BLah",
 		BeginCommand = function(self)
 			if position == 1 then
 				self:x(SCREEN_WIDTH - (frameX * 2) - frameWidth)
@@ -200,6 +200,13 @@ function scoreBoard(pn, position)
 				clampJudge()
 				judge2 = judge
 			end
+		end,
+		ChangeScoreCommand = function(self, params)
+			if params.score then
+				score = params.score
+			end
+
+			MESSAGEMAN:Broadcast("ScoreChanged")
 		end,
 		UpdateNetEvalStatsMessageCommand = function(self)
 			local s = SCREENMAN:GetTopScreen():GetHighScore()
@@ -331,7 +338,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
-					local rescoretable = getRescoreElements(pss, score)
+					local rescoretable = getRescoreElements(score)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
 					local ws = "Wife3" .. " J"
@@ -384,7 +391,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
-					local rescoretable = getRescoreElements(pss, score)
+					local rescoretable = getRescoreElements(score)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
 					local ws = "Wife3" .. " J"
@@ -444,11 +451,11 @@ function scoreBoard(pn, position)
 				self:xy(frameX, frameY + 80 + ((k - 1) * 22)):zoomto(0, 18):halign(0):diffuse(byJudgment(v)):diffusealpha(0.5)
 			end,
 			BeginCommand = function(self)
-				self:glowshift():effectcolor1(color("1,1,1," .. tostring(pss:GetPercentageOfTaps(v) * 0.4))):effectcolor2(
+				self:glowshift():effectcolor1(color("1,1,1," .. tostring(score:GetTapNoteScore(v) / totalTaps * 0.4))):effectcolor2(
 					color("1,1,1,0")
 				)
 				if aboutToForceWindowSettings then return end
-				self:sleep(0.5):decelerate(2):zoomx(frameWidth * pss:GetPercentageOfTaps(v))
+				self:sleep(0.5):decelerate(2):zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
 			end,
 			ForceWindowMessageCommand = function(self, params)
 				local rescoreJudges = getRescoredJudge(dvt, judge, k)
@@ -460,7 +467,7 @@ function scoreBoard(pn, position)
 					self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
 				end
 				if params.Name == "ResetJudge" then
-					self:finishtweening():decelerate(2):zoomx(frameWidth * pss:GetPercentageOfTaps(v))
+					self:finishtweening():decelerate(2):zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
 				end
 			end
 		}
@@ -525,7 +532,7 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settextf("(%03.2f%%)", pss:GetPercentageOfTaps(v) * 100)
+					self:settextf("(%03.2f%%)", score:GetTapNoteScore(v) / totalTaps * 100)
 				end,
 				ForceWindowMessageCommand = function(self, params)
 					local rescoredJudge
@@ -671,8 +678,8 @@ function scoreBoard(pn, position)
 				SetCommand = function(self)
 					self:settextf(
 						"%03d/%03d",
-						pss:GetRadarActual():GetValue("RadarCategory_" .. fart[i]),
-						pss:GetRadarPossible():GetValue("RadarCategory_" .. fart[i])
+						score:GetRadarValues():GetValue("RadarCategory_" .. fart[i]),
+						score:GetRadarPossible():GetValue("RadarCategory_" .. fart[i])
 					)
 				end,
 				ScoreChangedMessageCommand = function(self)
@@ -682,8 +689,8 @@ function scoreBoard(pn, position)
 	end
 
 	-- stats stuff
-	local tracks = pss:GetTrackVector()
-	local devianceTable = pss:GetOffsetVector()
+	local tracks = score:GetTrackVector()
+	local devianceTable = score:GetOffsetVector()
 	local cbl = 0
 	local cbr = 0
 	local cbm = 0
@@ -835,7 +842,7 @@ local state =
 	"MSD: " ..
 	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
-			string.format("%05.2f%%", notShit.floor(pssP1:GetWifeScore() * 10000) / 100) ..
+			string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100) ..
 				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
 GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
 

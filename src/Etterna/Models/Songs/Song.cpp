@@ -29,6 +29,7 @@
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Singletons/GameState.h"
+#include <RageUtil/Sound/RageSound.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -1617,15 +1618,21 @@ Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
-const vector<Steps*>
+std::vector<Steps*>
 Song::GetChartsOfCurrentGameMode() const
 {
 	std::vector<StepsType> types;
 	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
 
-	vector<Steps*> steps;
+	std::vector<Steps*> steps;
 	for (auto type : types) {
 		auto tmp = GetStepsByStepsType(type);
+
+		auto comp = [](const Steps* a, const Steps* b) {
+			return a->GetDifficulty() < b->GetDifficulty();
+		};
+		sort(tmp.begin(), tmp.end(), comp);
+
 		steps.insert(steps.end(), tmp.begin(), tmp.end());
 	}
 	return steps;
@@ -1655,7 +1662,8 @@ Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 }
 
 bool
-Song::MatchesFilter(const float rate, std::vector<Steps*>* vMatchingStepsOut) const
+Song::MatchesFilter(const float rate,
+					std::vector<Steps*>* vMatchingStepsOut) const
 {
 	auto charts = GetChartsOfCurrentGameMode();
 
@@ -1866,32 +1874,21 @@ Song::IsMarathon() const
 void
 Song::PlaySampleMusicExtended()
 {
-	GameSoundManager::PlayMusicParams PlayParams;
-	PlayParams.sFile = GetMusicPath();
-	PlayParams.pTiming = nullptr;
-	PlayParams.bForceLoop = true;
-	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds =
-	  GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
-	PlayParams.fFadeOutLengthSeconds = 1.f;
-	PlayParams.bAlignBeat = true;
-	PlayParams.bApplyMusicRate = true;
-	PlayParams.bAccurateSync = true;
+	RageSoundParams p;
 
-	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = "";
-	FallbackMusic.fFadeInLengthSeconds = 1.f;
-	FallbackMusic.bAlignBeat = true;
-	FallbackMusic.bAccurateSync = true;
+	p.m_StartSecond = m_fMusicSampleStartSeconds;
+	p.m_LengthSeconds = GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
+	p.m_fFadeOutSeconds = 1.f;
+	p.m_bAccurateSync = true;
 
-	if (PlayParams.fLengthSeconds <
-		3.f) { // if the songpreview is after the last note
-		PlayParams.fStartSecond =
-		  5.f; // chartpreview wont play, just set it near the start -mina
-		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
+	if (p.m_LengthSeconds < 3.f) {
+		p.m_StartSecond = 5.f;
+		p.m_LengthSeconds = GetLastSecond() + 2.f;
 	}
-	SOUND->PlayMusic(PlayParams, FallbackMusic);
-	GAMESTATE->SetPaused(false);
+
+	p.StopMode = RageSoundParams::M_LOOP;
+
+	SOUND->SetPlayingMusicParams(p);
 }
 
 // lua start
@@ -2303,6 +2300,11 @@ class LunaSong : public Luna<Song>
 		p->PlaySampleMusicExtended();
 		return 0;
 	}
+	static int GetChartsOfCurrentGameMode(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetChartsOfCurrentGameMode(), L);
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2368,6 +2370,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
 		ADD_METHOD(PlaySampleMusicExtended);
+		ADD_METHOD(GetChartsOfCurrentGameMode);
 	}
 };
 

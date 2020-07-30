@@ -93,12 +93,12 @@ end
 
 local o =
 	Def.ActorFrame {
+	Name = "OffsetPlot",
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
-
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
-		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
+		if name == "ScreenNetEvaluation" then -- moving away from grabbing anything in pss, dont want to mess with net stuff atm
 			if not forcedWindow then
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 				clampJudge()
@@ -113,7 +113,7 @@ local o =
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
-		elseif name == "ScreenScoreTabOffsetPlot" then -- loaded from scoretab not eval so we need to read from disk and adjust plot display
+		elseif name == "ScreenScoreTabOffsetPlot" then -- should be default behavior 
 			plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
 			textzoom = 0.5
@@ -143,6 +143,21 @@ local o =
 		end
 
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
+	end,
+	SetFromScoreCommand = function(self, params)
+		if params.score then
+			local score = params.score
+			dvt = score:GetOffsetVector()
+			nrt = score:GetNoteRowVector()
+			ctt = score:GetTrackVector()
+			ntt = score:GetTapNoteTypeVector()
+			
+			for i = 1, #nrt do
+				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+			end
+
+			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+		end
 	end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == "PrevJudge" and judge > 1 then

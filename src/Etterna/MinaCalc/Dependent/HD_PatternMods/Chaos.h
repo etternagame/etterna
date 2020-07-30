@@ -80,7 +80,7 @@ struct ChaosMod
 		}
 
 		pmod = base + _wot.get_mean_of_window(max_moving_window_size);
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(pmod, min_mod, max_mod);
 		return pmod;
 	}
 };

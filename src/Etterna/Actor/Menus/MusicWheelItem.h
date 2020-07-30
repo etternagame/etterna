@@ -26,8 +26,8 @@ enum MusicWheelItemType
 	NUM_MusicWheelItemType,
 	MusicWheelItemType_Invalid,
 };
-const std::string&
-MusicWheelItemTypeToString(MusicWheelItemType i);
+auto
+MusicWheelItemTypeToString(MusicWheelItemType i) -> const std::string&;
 /** @brief An item on the MusicWheel. */
 class MusicWheelItem final : public WheelItemBase
 {
@@ -35,7 +35,10 @@ class MusicWheelItem final : public WheelItemBase
 	MusicWheelItem(const std::string& sType = "MusicWheelItem");
 	MusicWheelItem(const MusicWheelItem& cpy);
 	~MusicWheelItem() override;
-	MusicWheelItem* Copy() const override { return new MusicWheelItem(*this); }
+	[[nodiscard]] auto Copy() const -> MusicWheelItem* override
+	{
+		return new MusicWheelItem(*this);
+	}
 
 	void LoadFromWheelItemData(const WheelItemBaseData* pWID,
 							   int iIndex,
@@ -58,8 +61,7 @@ class MusicWheelItem final : public WheelItemBase
 struct MusicWheelItemData : WheelItemBaseData
 {
 	MusicWheelItemData()
-	  : m_pSong(nullptr)
-	  , m_sLabel("")
+	  : m_sLabel("")
 	{
 	}
 	MusicWheelItemData(WheelItemDataType type,
@@ -68,7 +70,7 @@ struct MusicWheelItemData : WheelItemBaseData
 					   const RageColor& color,
 					   int iSectionCount);
 
-	Song* m_pSong;
+	Song* m_pSong{ nullptr };
 
 	// for TYPE_SECTION
 	int m_iSectionCount{ 0 };

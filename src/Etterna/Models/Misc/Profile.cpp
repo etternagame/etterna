@@ -365,7 +365,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 	m_iTotalMines = 0;
 
 	for (auto* hs : all) {
-		TotalGameplaySeconds += hs->GetSurvivalSeconds();
+		TotalGameplaySeconds += hs->GetPlayedSeconds();
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W3);
