@@ -2,11 +2,10 @@ local itsOn = false
 local stepsdisplayx = SCREEN_WIDTH * 0.56 - capWideScale(48, 56)
 local thesteps
 
-local rowspacingy = 10
 local rowwidth = 60
-local rowheight = 20
+local rowheight = 17
 local cursorwidth = 6
-local cursorheight = 20
+local cursorheight = 17
 
 local numshown = 7
 local currentindex = 1
@@ -16,7 +15,7 @@ local sd =
 	Def.ActorFrame {
 	Name = "StepsDisplay",
 	InitCommand = function(self)
-		self:xy(stepsdisplayx, 70):valign(0)
+		self:xy(stepsdisplayx, 68):valign(0)
 	end,
 	OffCommand = function(self)
 		self:visible(false)
@@ -40,11 +39,10 @@ local sd =
 	end,
 	CurrentSongChangedMessageCommand = function(self, song)
 		local song = song.ptr
-		if song and getTabIndex() < 3 then
+		if song then 
 			thesteps = song:GetChartsOfCurrentGameMode()
-			self:playcommand("On")
-			self:queuecommand("UpdateStepsRows")
-		elseif not song then
+			self:playcommand("UpdateStepsRows")
+		else 
 			self:playcommand("Off")
 		end
 	end,
@@ -182,7 +180,7 @@ for i = 1, numshown do
 end
 sd[#sd + 1] = sdr
 
-local center = 4
+local center = math.ceil(numshown / 2)
 -- cursor goes on top
 sd[#sd + 1] = Def.Quad {
 	InitCommand = function(self)
