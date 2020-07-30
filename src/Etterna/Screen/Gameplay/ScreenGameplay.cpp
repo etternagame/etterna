@@ -607,26 +607,17 @@ ScreenGameplay::LoadNextSong()
 		}
 	}
 
-	auto bAllReverse = true;
-	auto bAtLeastOneReverse = false;
-	if (m_vPlayerInfo.GetPlayerState()
-		  ->m_PlayerOptions.GetCurrent()
-		  .m_fScrolls[PlayerOptions::SCROLL_REVERSE] == 1) {
-		bAtLeastOneReverse = true;
-	} else {
-		bAllReverse = false;
-	}
-
-	const auto bReverse = m_vPlayerInfo.GetPlayerState()
-							->m_PlayerOptions.GetCurrent()
-							.m_fScrolls[PlayerOptions::SCROLL_REVERSE] == 1;
+	const auto using_reverse =
+	  m_vPlayerInfo.GetPlayerState()
+		->m_PlayerOptions.GetCurrent()
+		.m_fScrolls[PlayerOptions::SCROLL_REVERSE] == 1;
 
 	if (m_vPlayerInfo.m_pStepsDisplay != nullptr) {
-		m_vPlayerInfo.m_pStepsDisplay->PlayCommand(bReverse ? "SetReverse"
-															: "SetNoReverse");
+		m_vPlayerInfo.m_pStepsDisplay->PlayCommand(
+		  using_reverse ? "SetReverse" : "SetNoReverse");
 	}
 
-	m_LyricDisplay.PlayCommand(bAllReverse ? "SetReverse" : "SetNoReverse");
+	m_LyricDisplay.PlayCommand(using_reverse ? "SetReverse" : "SetNoReverse");
 
 	// Load lyrics
 	// XXX: don't load this here (who and why? -aj)
@@ -1762,7 +1753,7 @@ ScreenGameplay::HandleMessage(const Message& msg)
 			TapNoteScore tns;
 			msg.GetParam("TapNoteScore", tns);
 
-			auto bOn = false;
+			bool bOn;
 			if (hns != HoldNoteScore_Invalid) {
 				bOn = hns != HNS_LetGo;
 			} else {
