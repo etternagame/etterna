@@ -154,17 +154,17 @@ void
 ScreenGameplayPractice::Update(const float fDeltaTime)
 {
 	if (GAMESTATE->m_pCurSong == nullptr) {
-		ScreenGameplay::Update(fDeltaTime);
+		Screen::Update(fDeltaTime); // NOLINT(bugprone-parent-virtual-call)
 		return;
 	}
 
 	UpdateSongPosition(fDeltaTime);
 
 	if (m_bZeroDeltaOnNextUpdate) {
-		ScreenGameplay::Update(0);
+		Screen::Update(0); // NOLINT(bugprone-parent-virtual-call)
 		m_bZeroDeltaOnNextUpdate = false;
 	} else {
-		ScreenGameplay::Update(fDeltaTime);
+		Screen::Update(fDeltaTime); // NOLINT(bugprone-parent-virtual-call)
 	}
 
 	if (SCREENMAN->GetTopScreen() != this) {
