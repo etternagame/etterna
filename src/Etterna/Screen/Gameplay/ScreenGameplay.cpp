@@ -223,7 +223,6 @@ ScreenGameplay::Init()
 	const auto left_edge = 0.0F;
 	const std::string sName("PlayerP1");
 	m_vPlayerInfo.m_pPlayer->SetName(sName);
-	const auto* style = GAMESTATE->GetCurrentStyle(PLAYER_1);
 	const auto edge = left_edge;
 	const auto screen_space = SCREEN_WIDTH / 2.0F;
 	const auto left_marge = margins[0];
@@ -1033,9 +1032,7 @@ ScreenGameplay::Update(float fDeltaTime)
 				}
 			}
 
-			// update give up
-			auto bGiveUpTimerFired = false;
-			bGiveUpTimerFired =
+			const auto bGiveUpTimerFired =
 			  !m_GiveUpTimer.IsZero() && m_GiveUpTimer.Ago() > GIVE_UP_SECONDS;
 			m_gave_up = bGiveUpTimerFired;
 
