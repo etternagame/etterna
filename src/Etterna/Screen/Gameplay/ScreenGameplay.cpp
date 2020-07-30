@@ -1366,7 +1366,7 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 		Column_Invalid) {
 		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
 	}
-	if (bHoldingRestart) {
+	if (bHoldingRestart && m_DancingState != STATE_OUTRO) {
 		RestartGameplay();
 	}
 
