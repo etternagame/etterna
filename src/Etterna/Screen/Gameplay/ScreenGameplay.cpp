@@ -224,7 +224,6 @@ ScreenGameplay::Init()
 	const std::string sName("PlayerP1");
 	m_vPlayerInfo.m_pPlayer->SetName(sName);
 	const auto* style = GAMESTATE->GetCurrentStyle(PLAYER_1);
-	auto style_width = style->GetWidth(PLAYER_1);
 	const auto edge = left_edge;
 	const auto screen_space = SCREEN_WIDTH / 2.0F;
 	const auto left_marge = margins[0];
@@ -1438,7 +1437,6 @@ ScreenGameplay::SaveStats()
 	RadarValues rv;
 	auto& pss = *m_vPlayerInfo.GetPlayerStageStats();
 	const auto& nd = m_vPlayerInfo.m_pPlayer->GetNoteData();
-	auto pn = m_vPlayerInfo.m_pn;
 
 	GAMESTATE->SetProcessedTimingData(GAMESTATE->m_pCurSteps->GetTimingData());
 	NoteDataUtil::CalculateRadarValues(nd, rv);
@@ -1873,7 +1871,6 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static auto GetTrueBPS(T* /*p*/, lua_State* L) -> int
 	{
-		auto pn = PLAYER_1;
 		const auto rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 		const auto bps = GAMESTATE->m_Position.m_fCurBPS;
 		const auto true_bps = rate * bps;
