@@ -1549,7 +1549,7 @@ class LunaSongManager : public Luna<SongManager>
 	{
 		auto idx = 1;
 		lua_newtable(L);
-		for (auto pl : p->GetPlaylists()) {
+		for (auto& pl : p->GetPlaylists()) {
 			pl.second.PushSelf(L);
 			lua_rawseti(L, -2, idx);
 			++idx;
