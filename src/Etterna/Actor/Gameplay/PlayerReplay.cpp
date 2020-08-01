@@ -227,7 +227,7 @@ PlayerReplay::Update(float fDeltaTime)
 	if (!m_bLoaded || GAMESTATE->m_pCurSong == nullptr)
 		return;
 
-	ActorFrame::Update(fDeltaTime);
+	ActorFrame::Update(fDeltaTime); // NOLINT(bugprone-parent-virtual-call)
 
 	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto iSongRow = BeatToNoteRow(fSongBeat);

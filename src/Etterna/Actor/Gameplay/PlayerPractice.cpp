@@ -47,7 +47,7 @@ PlayerPractice::Update(const float fDeltaTime)
 		return;
 	}
 
-	Player::Update(fDeltaTime);
+	ActorFrame::Update(fDeltaTime); // NOLINT(bugprone-parent-virtual-call)
 
 	ArrowEffects::SetCurrentOptions(
 	  &m_pPlayerState->m_PlayerOptions.GetCurrent());
