@@ -1,6 +1,6 @@
 local t = Def.ActorFrame {Name = "WheelFile"}
 
-local numWheelItems = 10 -- 10 visible items
+local numWheelItems = 11 -- 11 visible items (top is a group header)
 
 local ratios = {
     LeftGap = 77 / 1920,
@@ -59,11 +59,20 @@ local headerFudge = 5 -- used to make the header slightly bigger to account for 
 local function wheelItemBase()
     return Def.ActorFrame {
         Name = "WheelItemBase",
+
         Def.Quad {
             Name = "ItemBG",
             InitCommand = function(self)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
                 self:diffuse(color("0,0,0,0.6"))
+            end,
+            HeaderOnCommand = function(self, params)
+                self:smooth(0.1)
+                self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
+            end,
+            HeaderOffCommand = function(self)
+                self:smooth(0.1)
+                self:zoomto(actuals.Width, actuals.ItemHeight)
             end
         },
         Def.Quad { 
@@ -73,6 +82,12 @@ local function wheelItemBase()
                 self:zoomto(actuals.ItemDividerLength, actuals.ItemDividerThickness)
                 self:xy(actuals.Width / 2 - actuals.ItemDividerLength, -actuals.ItemHeight/2)
                 self:diffuse(color("0.6,0.6,0.6,1"))
+            end,
+            HeaderOnCommand = function(self)
+                self:visible(false)
+            end,
+            HeaderOffCommand = function(self)
+                self:visible(true)
             end
         },
     }
@@ -96,6 +111,149 @@ local function groupBannerSetter(self, group)
     self:LoadBackground(bnpath)
 end
 
+-- to offer control of the actors specifically to us instead of the scripts
+-- we have make separate local functions for the song/group builders
+local function songActorBuilder()
+    return Def.ActorFrame {
+        Name = "SongFrame",
+        wheelItemBase(),
+        LoadFont("Common Normal") .. {
+            Name = "Title",
+            InitCommand = function(self)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
+                self:strokecolor(color("1,1,1,1"))
+                self:zoom(wheelItemTextSize)
+                self:halign(0)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Title = self
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "SubTitle",
+            InitCommand = function(self)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextCenterDistance)
+                self:zoom(wheelItemTextSize)
+                self:halign(0)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().SubTitle = self
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "Artist",
+            InitCommand = function(self)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+                self:zoom(wheelItemTextSize)
+                self:halign(0)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Artist = self
+            end
+        },
+        Def.Sprite {
+            Name = "Banner",
+            InitCommand = function(self)
+                -- y is already set: relative to "center"
+                self:x(-actuals.Width / 2):halign(0)
+                self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Banner = self
+            end
+        }
+    }
+end
+
+local function groupActorBuilder()
+    return Def.ActorFrame {
+        Name = "GroupFrame",
+        wheelItemBase(),
+        LoadFont("Common Normal") .. {
+            Name = "GroupName",
+            InitCommand = function(self)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
+                self:zoom(wheelItemTextSize)
+                self:halign(0)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Title = self
+            end,
+            HeaderOnCommand = function(self)
+                self:smooth(0.05)
+                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, -actuals.HeaderHeight / 2 + actuals.HeaderTextUpperGap)
+                self:zoom(wheelHeaderTextSize)
+                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
+            end,
+            HeaderOffCommand = function(self)
+                self:smooth(0.05)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
+                self:zoom(wheelItemTextSize)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "HeaderGroupInfo",
+            InitCommand = function(self)
+                self:visible(false)
+                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
+                self:halign(0)
+                self:zoom(wheelHeaderTextSize)
+                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
+                self:settext("200 Files (Average MSD: 13.37)")
+            end,
+            HeaderOnCommand = function(self)
+                self:visible(true)
+            end,
+            HeaderOffCommand = function(self)
+                self:visible(false)
+            end
+        },
+        Def.Sprite {
+            Name = "Banner",
+            InitCommand = function(self)
+                -- y is already set: relative to "center"
+                self:x(-actuals.Width / 2):halign(0)
+                self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Banner = self
+            end,
+            HeaderOnCommand = function(self)
+                self:smooth(0.05)
+                self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight + headerFudge)
+            end,
+            HeaderOffCommand = function(self)
+                self:smooth(0.05)
+                self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
+            end
+        }
+    }
+end
+
+local function songActorUpdater(songFrame, song)
+    songFrame.Title:settext(song:GetDisplayMainTitle())
+    songFrame.SubTitle:settext(song:GetDisplaySubTitle())
+    songFrame.Artist:settext("~"..song:GetDisplayArtist())
+    songBannerSetter(songFrame.Banner, song)
+end
+
+local function groupActorUpdater(groupFrame, packName)
+    groupFrame.Title:settext(packName)
+    groupBannerSetter(groupFrame.Banner, packName)
+end
+
+local openedGroup = ""
+
 t[#t+1] = Def.ActorFrame {
     Name = "WheelContainer",
     InitCommand = function(self)
@@ -106,95 +264,21 @@ t[#t+1] = Def.ActorFrame {
     end,
     OnCommand = function(self)
     end,
+    OpenedGroupMessageCommand = function(self, params)
+        openedGroup = params.group
+    end,
+    ClosedGroupMessageCommand = function(self)
+        openedGroup = ""
+    end,
 
     -- because of the above, all of the X/Y positions are "relative" to center of the wheel
     -- ugh
     MusicWheel:new({
         count = numWheelItems,
-        songActorBuilder = function() return Def.ActorFrame {
-            wheelItemBase(),
-            LoadFont("Common Normal") .. {
-                Name = "Title",
-                InitCommand = function(self)
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
-                    self:strokecolor(color("1,1,1,1"))
-                    self:zoom(wheelItemTextSize)
-                    self:halign(0)
-                    self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
-                end,
-                BeginCommand = function(self)
-                    self:GetParent().Title = self
-                end
-            },
-            LoadFont("Common Normal") .. {
-                Name = "SubTitle",
-                InitCommand = function(self)
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:y(actuals.ItemHeight / 2 - actuals.ItemTextCenterDistance)
-                    self:zoom(wheelItemTextSize)
-                    self:halign(0)
-                    self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
-                end,
-                BeginCommand = function(self)
-                    self:GetParent().SubTitle = self
-                end
-            },
-            LoadFont("Common Normal") .. {
-                Name = "Artist",
-                InitCommand = function(self)
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
-                    self:zoom(wheelItemTextSize)
-                    self:halign(0)
-                    self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
-                end,
-                BeginCommand = function(self)
-                    self:GetParent().Artist = self
-                end
-            },
-            Def.Sprite {
-                Name = "Banner",
-                InitCommand = function(self)
-                    -- y is already set: relative to "center"
-                    self:x(-actuals.Width / 2):halign(0)
-                    self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
-                end,
-                BeginCommand = function(self)
-                    self:GetParent().Banner = self
-                end
-            }
-        }
-        end,
-        groupActorBuilder = function() return Def.ActorFrame {
-            wheelItemBase(),
-            LoadFont("Common Normal") .. {
-                Name = "GroupName",
-                InitCommand = function(self)
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
-                    self:zoom(wheelItemTextSize)
-                    self:halign(0)
-                    self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
-                end,
-                BeginCommand = function(self)
-                    self:GetParent().Title = self
-                end
-            },
-            Def.Sprite {
-                Name = "Banner",
-                InitCommand = function(self)
-                    -- y is already set: relative to "center"
-                    self:x(-actuals.Width / 2):halign(0)
-                    self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
-                end,
-                BeginCommand = function(self)
-                    self:GetParent().Banner = self
-                end
-            }
-        }
-        end,
+        songActorBuilder = songActorBuilder,
+        groupActorBuilder = groupActorBuilder,
         highlightBuilder = function() return Def.ActorFrame {
+            Name = "HighlightFrame",
             Def.Quad {
                 Name = "Highlight",
                 InitCommand = function(self)
@@ -205,20 +289,76 @@ t[#t+1] = Def.ActorFrame {
             }
         }
         end,
-        songActorUpdater = function(songFrame, song)
-            songFrame.Title:settext(song:GetDisplayMainTitle())
-            songFrame.SubTitle:settext(song:GetDisplaySubTitle())
-            songFrame.Artist:settext("~"..song:GetDisplayArtist())
-            songBannerSetter(songFrame.Banner, song)
+        songActorUpdater = songActorUpdater,
+        groupActorUpdater = groupActorUpdater,
+        frameTransformer = function(frame, offsetFromCenter, index, total, theWheel)
+            if index == 1 and openedGroup ~= nil then
+                if openedGroup == frame:GetChild("GroupFrame").Title:GetText() then
+                    
+                    if not frame.sticky then
+                        ms.ok("on")
+                        frame.sticky = true
+                        frame:playcommand("HeaderOn", {offsetFromCenter = -math.ceil(numWheelItems / 2)})
+                    end
+                else
+                    if frame.sticky then
+                        ms.ok("off")
+                        frame.sticky = false
+                        frame:playcommand("HeaderOff")
+                    end
+                    frame:y(offsetFromCenter * actuals.ItemHeight)
+                end
+            else
+                frame:y(offsetFromCenter * actuals.ItemHeight)
+            end
         end,
-        groupActorUpdater = function(groupFrame, packName)
-            groupFrame.Title:settext(packName)
-            groupBannerSetter(groupFrame.Banner, packName)
+        frameBuilder = function()
+            local f
+            f = Def.ActorFrame {
+                Name = "ItemFrame",
+                InitCommand = function(self)
+                    f.actor = self
+                end,
+                HeaderOnCommand = function(self, params)
+                    self:smooth(0.05)
+                    self:y(params.offsetFromCenter * actuals.ItemHeight - (actuals.HeaderHeight - actuals.ItemHeight) + headerFudge)
+                end,
+
+                groupActorBuilder() .. {
+                    BeginCommand = function(self)
+                        f.actor.g = self
+                    end
+                },
+                songActorBuilder() .. {
+                    BeginCommand = function(self)
+                        f.actor.s = self
+                    end
+                }
+            }
+            return f
         end,
-        frameTransformer = function(frame, offsetFromCenter, index, total)
-            frame:y(offsetFromCenter * actuals.ItemHeight)
+        frameUpdater = function(frame, songOrPack)
+            if songOrPack.GetAllSteps then
+                -- This is a song
+                -- dont mess around with sticky'd frames
+                if not frame.sticky then
+                    local s = frame.s
+                    s:visible(true)
+                    local g = frame.g
+                    g:visible(false)
+                    songActorUpdater(s, songOrPack)
+                end
+            else
+                -- This is a group
+                local s = frame.s
+                s:visible(false)
+                local g = (frame.g)
+                g:visible(true)
+                groupActorUpdater(g, songOrPack)
+            end
         end
     }),
+    --[[
     Def.ActorFrame {
         Name = "WheelHeader",
         InitCommand = function(self)
@@ -260,7 +400,7 @@ t[#t+1] = Def.ActorFrame {
                 self:settext("200 Files (Average MSD: 13.37)")
             end
         }
-    }
+    }]]
 }
 
 

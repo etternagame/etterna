@@ -141,7 +141,7 @@ Wheel.mt = {
         idx = idx - math.ceil(numFrames / 2)
         for i, frame in ipairs(whee.frames) do
             local offset = i - math.ceil(numFrames / 2) + whee.floatingOffset
-            whee.frameTransformer(frame, offset - 1, i, whee.count)
+            whee.frameTransformer(frame, offset - 1, i, whee.count, whee)
             whee.frameUpdater(frame, whee:getItem(idx), offset)
             idx = idx + 1
         end
@@ -341,7 +341,15 @@ MusicWheel.defaultParams = {
 }
 
 function MusicWheel:new(params)
+    local noOverrideFrameBuilder = false
+    local noOverrideFrameUpdater = false
     params = params or {}
+    if params.frameBuilder ~= nil then
+        noOverrideFrameBuilder = true
+    end
+    if params.frameUpdater ~= nil then
+        noOverrideFrameUpdater = true
+    end
     fillNilTableFieldsFrom(params, MusicWheel.defaultParams)
     local groupActorBuilder = params.groupActorBuilder
     local songActorBuilder = params.songActorBuilder
@@ -367,7 +375,7 @@ function MusicWheel:new(params)
         x = params.x,
         highlightBuilder = params.highlightBuilder,
         y = params.y,
-        frameBuilder = function()
+        frameBuilder = noOverrideFrameBuilder and params.frameBuilder or function()
             local x
             x =
                 Def.ActorFrame {
@@ -389,7 +397,7 @@ function MusicWheel:new(params)
             }
             return x
         end,
-        frameUpdater = function(frame, songOrPack)
+        frameUpdater = noOverrideFrameUpdater and params.frameUpdater or function(frame, songOrPack)
             if songOrPack.GetAllSteps then -- song
                 -- Update songActor and make group actor invis
                 local s = frame.s
@@ -412,9 +420,11 @@ function MusicWheel:new(params)
                 -- TODO: Add C++
                 -- SCREENMAN:GetTopScreen():StartSong(songOrPack)
                 -- steps???
+                MESSAGEMAN:Broadcast("SelectedSong")
             else
                 local group = songOrPack
                 if w.group and w.group == group then -- close pack
+                    MESSAGEMAN:Broadcast("ClosedGroup")
                     w.group = nil
                     local newItems = SONGMAN:GetSongGroupNames()
                     w.index = findKeyOf(newItems, group)
@@ -423,6 +433,7 @@ function MusicWheel:new(params)
                     end
                 else -- open pack
                     w.group = group
+                    MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                     local groups = SONGMAN:GetSongGroupNames()
                     local g1, g2 = split(groups, group)
                     local newItems = concat(g1, {group}, SONGMAN:GetSongsInGroup(group), g2)
