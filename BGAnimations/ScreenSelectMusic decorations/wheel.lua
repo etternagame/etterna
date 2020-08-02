@@ -194,6 +194,17 @@ t[#t+1] = Def.ActorFrame {
             }
         }
         end,
+        highlightBuilder = function() return Def.ActorFrame {
+            Def.Quad {
+                Name = "Highlight",
+                InitCommand = function(self)
+                    self:zoomto(actuals.Width, actuals.ItemHeight)
+                    self:diffusealpha(0.1)
+                    self:diffuseramp()
+                end
+            }
+        }
+        end,
         songActorUpdater = function(songFrame, song)
             songFrame.Title:settext(song:GetDisplayMainTitle())
             songFrame.SubTitle:settext(song:GetDisplaySubTitle())
