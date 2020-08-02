@@ -351,6 +351,7 @@ t[#t+1] = Def.ActorFrame {
                     if openedGroup == "" then
                         return
                     end
+                    self:finishtweening()
                     self:smooth(0.05)
                     self.g:visible(true)
                     self.s:visible(false)
