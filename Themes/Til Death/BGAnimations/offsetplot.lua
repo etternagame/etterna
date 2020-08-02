@@ -113,13 +113,19 @@ local o =
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
-		elseif name == "ScreenScoreTabOffsetPlot" then -- should be default behavior 
-			plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
-			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
-			textzoom = 0.5
-			bgalpha = 1
+		else -- should be default behavior 
+			if name == "ScreenScoreTabOffsetPlot" then
+				plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
+				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)			
+				textzoom = 0.5
+				bgalpha = 1
+			else
+				local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
+				if allowHovering then
+					self:SetUpdateFunction(HighlightUpdaterThing)
+				end
+			end
 
-			-- the internals here are really inefficient this should be handled better (internally) -mina
 			local score = getScoreForPlot()
 			dvt = score:GetOffsetVector()
 			nrt = score:GetNoteRowVector()
