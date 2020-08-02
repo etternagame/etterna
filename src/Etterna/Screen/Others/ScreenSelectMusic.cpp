@@ -304,14 +304,40 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 
 	// Nothing else is going.  Start the music, if we haven't yet.
 	if (g_bSampleMusicWaiting) {
+		PlayCurrentSongSampleMusic(bForce);
+	}
+}
+
+void
+ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate)
+{
+	if (g_bSampleMusicWaiting || bForcePlay) {
 		if (g_ScreenStartedLoadingAt.Ago() < SAMPLE_MUSIC_DELAY_INIT)
 			return;
 
 		// Don't start the music sample when moving fast.
-		if (g_StartedLoadingAt.Ago() < SAMPLE_MUSIC_DELAY && !bForce)
+		if (g_StartedLoadingAt.Ago() < SAMPLE_MUSIC_DELAY && !bForcePlay)
 			return;
 
 		g_bSampleMusicWaiting = false;
+		
+		Song* pSong = GAMESTATE->m_pCurSong;
+		// Lua is what usually calls this with force on
+		// Since that bypasses a lot, update values if being forced.
+		if (bForcePlay && pSong != nullptr) {
+			m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+			if (!m_sSampleMusicToPlay.empty() &&
+				ActorUtil::GetFileType(m_sSampleMusicToPlay) != FT_Sound) {
+				LuaHelpers::ReportScriptErrorFmt(
+				  "Music file %s for song is not a sound file, "
+				  "ignoring.",
+				  m_sSampleMusicToPlay.c_str());
+				m_sSampleMusicToPlay = "";
+			}
+			m_pSampleMusicTimingData = &pSong->m_SongTiming;
+			m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
+			m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
+		}
 
 		GameSoundManager::PlayMusicParams PlayParams;
 		PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
@@ -329,7 +355,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 		// will cause inconsistent music playing experience and an overall
 		// negative feel.
 		// But if chart preview is active, force it to be synced
-		PlayParams.bAccurateSync = GAMESTATE->m_bIsChartPreviewActive;
+		PlayParams.bAccurateSync = GAMESTATE->m_bIsChartPreviewActive || bForceAccurate;
 
 		GameSoundManager::PlayMusicParams FallbackMusic;
 		FallbackMusic.sFile = m_sLoopMusicPath;
@@ -1990,6 +2016,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->OpenOptions();
 		return 0;
 	}
+	static int PlayCurrentSongSampleMusic(T* p, lua_State* L)
+	{
+		p->PlayCurrentSongSampleMusic(true, BArg(1));
+		return 0;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(OpenOptions);
@@ -2011,6 +2042,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(IsPreviewNoteFieldPaused);
 		ADD_METHOD(dootforkfive);
 		ADD_METHOD(ChangeSteps);
+		ADD_METHOD(PlayCurrentSongSampleMusic);
 	}
 };
 
