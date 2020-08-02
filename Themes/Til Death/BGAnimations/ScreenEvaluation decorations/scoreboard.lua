@@ -6,29 +6,19 @@ local spacing = 34
 
 local song = STATSMAN:GetCurStageStats():GetPlayedSongs()[1]
 
-local profile
-local steps
-local origTable
-local hsTable
-local rtTable
-local scoreIndex
-local score
+local steps = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPlayedSteps()[1]
+local origTable = getScoresByKey(player)
+local score = SCOREMAN:GetMostRecentScore()
+local rtTable = getRateTable(origTable)
+local hsTable = rtTable[getRate(score)] or {score}
+local scoreIndex = getHighScoreIndex(hsTable, score)
+
 local usingSSRSort = PREFSMAN:GetPreference("SortBySSRNormPercent")
-
-local player = GAMESTATE:GetEnabledPlayers()[1]
-
-if GAMESTATE:IsPlayerEnabled(player) then
-	profile = GetPlayerOrMachineProfile(player)
-	steps = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPlayedSteps()[1]
-	origTable = getScoresByKey(player)
-	score = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetHighScore()
-	rtTable = getRateTable(origTable)
-	if rtTable == nil then
-		return
-	end
-	hsTable = rtTable[getRate(score)] or {score}
-	scoreIndex = getHighScoreIndex(hsTable, score)
+	
+if rtTable == nil then
+	return {}
 end
+	
 
 local curPage = 1
 local maxPages = math.ceil(#hsTable/lines)
@@ -338,7 +328,7 @@ if lines > #hsTable then
 	lines = #hsTable
 	curPage = 1
 else
-	curPage = math.ceil(scoreIndex / (lines-1))
+	curPage = math.ceil(scoreIndex / (lines))
 end
 
 -- weird math explanation can be found above somewhere
