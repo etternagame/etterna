@@ -99,7 +99,7 @@ Wheel.mt = {
             return
         end
         whee.floatingOffset = num
-        local interval = whee.pollingSeconds / 5
+        local interval = whee.pollingSeconds / 60
         whee.index = getIndexCircularly(whee.items, whee.index + num)
         whee.moveInterval =
             SCREENMAN:GetTopScreen():setInterval(
