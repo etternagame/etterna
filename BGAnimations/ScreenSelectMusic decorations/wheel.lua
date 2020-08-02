@@ -55,6 +55,16 @@ local wheelHeaderTextSize = 1.2
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
 local headerFudge = 5 -- used to make the header slightly bigger to account for ??? vertical gaps
 
+local packCounts = SONGMAN:GetSongGroupNames()
+local function packCounter()
+    for i, song in ipairs(SONGMAN:GetAllSongs()) do
+        local pack = song:GetGroupName()
+        local x = packCounts[pack]
+        packCounts[pack] = x and x + 1 or 1
+    end
+end
+packCounter()
+
 -- functionally create each item base because they are identical (BG and divider)
 local function wheelItemBase()
     return Def.ActorFrame {
@@ -247,12 +257,16 @@ local function songActorUpdater(songFrame, song)
     songBannerSetter(songFrame.Banner, song)
 end
 
-local function groupActorUpdater(groupFrame, packName)
+local function groupActorUpdater(groupFrame, packName, packCount)
+    if packCount == nil then
+        packCount = packCounts[packName]
+    end
     groupFrame.Title:settext(packName)
     groupBannerSetter(groupFrame.Banner, packName)
 end
 
 local openedGroup = ""
+local onAnAdventure = false -- true if scrolling on groups
 
 t[#t+1] = Def.ActorFrame {
     Name = "WheelContainer",
@@ -266,10 +280,19 @@ t[#t+1] = Def.ActorFrame {
     end,
     OpenedGroupMessageCommand = function(self, params)
         openedGroup = params.group
+        onAnAdventure = false
     end,
     ClosedGroupMessageCommand = function(self)
         openedGroup = ""
+        onAnAdventure = true
     end,
+    ScrolledIntoGroupMessageCommand = function(self, params)
+        onAnAdventure = false
+    end,
+    ScrolledOutOfGroupMessageCommand = function(self)
+        onAnAdventure = true
+    end,
+
 
     -- because of the above, all of the X/Y positions are "relative" to center of the wheel
     -- ugh
@@ -294,15 +317,14 @@ t[#t+1] = Def.ActorFrame {
         frameTransformer = function(frame, offsetFromCenter, index, total, theWheel)
             if index == 1 and openedGroup ~= nil then
                 if openedGroup == frame:GetChild("GroupFrame").Title:GetText() then
-                    
-                    if not frame.sticky then
-                        ms.ok("on")
+                    if not frame.sticky and not onAnAdventure then
                         frame.sticky = true
                         frame:playcommand("HeaderOn", {offsetFromCenter = -math.ceil(numWheelItems / 2)})
+                    elseif onAnAdventure then
+                        frame:y(offsetFromCenter * actuals.ItemHeight)
                     end
                 else
                     if frame.sticky then
-                        ms.ok("off")
                         frame.sticky = false
                         frame:playcommand("HeaderOff")
                     end
@@ -321,7 +343,16 @@ t[#t+1] = Def.ActorFrame {
                 end,
                 HeaderOnCommand = function(self, params)
                     self:smooth(0.05)
+                    self.g:visible(true)
+                    self.s:visible(false)
                     self:y(params.offsetFromCenter * actuals.ItemHeight - (actuals.HeaderHeight - actuals.ItemHeight) + headerFudge)
+                end,
+                ScrolledIntoGroupMessageCommand = function(self)
+                    if self.sticky then
+                    end
+                end,
+                ScrolledOutOfGroupMessageCommand = function(self)
+
                 end,
 
                 groupActorBuilder() .. {
@@ -350,11 +381,14 @@ t[#t+1] = Def.ActorFrame {
                 end
             else
                 -- This is a group
-                local s = frame.s
-                s:visible(false)
-                local g = (frame.g)
-                g:visible(true)
-                groupActorUpdater(g, songOrPack)
+                -- dont mess with sticky'd frames
+                if not frame.sticky then
+                    local s = frame.s
+                    s:visible(false)
+                    local g = (frame.g)
+                    g:visible(true)
+                    groupActorUpdater(g, songOrPack, packCounts[songOrPack])
+                end
             end
         end
     }),

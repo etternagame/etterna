@@ -82,6 +82,13 @@ local function getIndexCircularly(table, idx)
     end
     return idx
 end
+
+-- false if outside of a group
+-- true if inside a group
+-- toggles within the move function
+-- becomes false if all groups are closed
+local crossedGroupBorder = false
+
 Wheel.mt = {
     move = function(whee, num)
         if whee.moveInterval then
@@ -115,9 +122,27 @@ Wheel.mt = {
         if currentItem.GetDisplayMainTitle then
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
+            if whee.group and not crossedGroupBorder then
+                crossedGroupBorder = not crossedGroupBorder
+                -- header wheelitem behavior stuff
+                whee.frameUpdater(whee.frames[1], whee.group, 0)
+                whee.frames[1].sticky = true
+                whee.frames[1]:playcommand("HeaderOn", {offsetFromCenter = -math.ceil(whee.count / 2)})
+
+                MESSAGEMAN:Broadcast("ScrolledIntoGroup", {group = whee.group})
+            end
         else
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
+            if whee.group and crossedGroupBorder then
+                crossedGroupBorder = not crossedGroupBorder
+                -- header wheelitem behavior stuff
+                whee.frames[1].sticky = false
+                whee.frameUpdater(whee.frames[1], whee:getItem(whee.index - math.ceil(whee.count / 2)), 0)
+                whee.frames[1]:playcommand("HeaderOff")
+
+                MESSAGEMAN:Broadcast("ScrolledOutOfGroup")
+            end
         end
         
     end,
@@ -416,6 +441,7 @@ function MusicWheel:new(params)
         end,
         onSelection = function(frame, songOrPack)
             if songOrPack.GetAllSteps then -- song
+                crossedGroupBorder = true
                 -- Start song
                 -- TODO: Add C++
                 -- SCREENMAN:GetTopScreen():StartSong(songOrPack)
@@ -424,16 +450,22 @@ function MusicWheel:new(params)
             else
                 local group = songOrPack
                 if w.group and w.group == group then -- close pack
-                    MESSAGEMAN:Broadcast("ClosedGroup")
+                    crossedGroupBorder = false
                     w.group = nil
                     local newItems = SONGMAN:GetSongGroupNames()
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function()
                         return newItems
                     end
+
+                    -- unset sticky for the header item
+                    -- dont have to update the sticky bool
+                    local replacinggroup = w:getItem(w.index - math.ceil(#w.frames / 2))
+                    groupActorUpdater(w.frames[1].g, replacinggroup, packCounts[replacinggroup])
+                    MESSAGEMAN:Broadcast("ClosedGroup", {group = group})
                 else -- open pack
+                    crossedGroupBorder = false
                     w.group = group
-                    MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                     local groups = SONGMAN:GetSongGroupNames()
                     local g1, g2 = split(groups, group)
                     local newItems = concat(g1, {group}, SONGMAN:GetSongsInGroup(group), g2)
@@ -441,6 +473,12 @@ function MusicWheel:new(params)
                     w.itemsGetter = function()
                         return newItems
                     end
+
+                    -- force update the header item
+                    -- dont have to update the sticky bool
+                    groupActorUpdater(w.frames[1].g, group, packCounts[group])
+                    crossedGroupBorder = true
+                    MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 end
                 w:rebuildFrames()
             end
