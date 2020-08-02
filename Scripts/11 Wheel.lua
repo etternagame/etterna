@@ -108,6 +108,8 @@ Wheel.mt = {
             interval
         )
 
+        SOUND:StopMusic()
+
         -- update Gamestate current song
         local currentItem = whee:getItem(whee.index)
         if currentItem.GetDisplayMainTitle then
@@ -117,6 +119,7 @@ Wheel.mt = {
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
         end
+        
     end,
     getItem = function(whee, idx)
         return whee.items[getIndexCircularly(whee.items, idx)]
@@ -142,6 +145,19 @@ Wheel.mt = {
             whee.frameUpdater(frame, whee:getItem(idx), offset)
             idx = idx + 1
         end
+
+        -- the wheel has settled
+        if whee.floatingOffset == 0 then
+            local top = SCREENMAN:GetTopScreen()
+            -- only for ScreenSelectMusic
+            if top.PlayCurrentSongSampleMusic then
+                if GAMESTATE:GetCurrentSong() ~= nil then
+                    -- currentItem should be a song
+                    top:PlayCurrentSongSampleMusic(false)
+                end
+            end
+        end
+
     end,
     rebuildFrames = function(whee, newIndex)
         whee.items = whee.itemsGetter()
