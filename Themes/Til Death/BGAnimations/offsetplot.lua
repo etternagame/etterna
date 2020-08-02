@@ -130,7 +130,6 @@ local o =
 		-- missing noterows. this happens with many online replays.
 		-- we can approximate, but i dont want to do that right now.
 		if nrt == nil then
-			ms.ok("While constructing the offset plot, an error occurred. Press ESC to continue.")
 			return
 		end
 
@@ -152,11 +151,12 @@ local o =
 			ctt = score:GetTrackVector()
 			ntt = score:GetTapNoteTypeVector()
 			
-			for i = 1, #nrt do
+			if nrt then 
+				for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+				end
+				MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 			end
-
-			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 	end,
 	CodeMessageCommand = function(self, params)

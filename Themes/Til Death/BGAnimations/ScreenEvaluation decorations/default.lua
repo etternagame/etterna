@@ -700,19 +700,22 @@ function scoreBoard(pn, position)
 	local tso = tst[judge]
 	local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 -- cpp indexing -mina
 	local middleCol = ncol/2
-	for i = 1, #devianceTable do
-		if tracks[i] then	-- we dont load track data when reconstructing eval screen apparently so we have to nil check -mina
-			if math.abs(devianceTable[i]) > tso * 90 then
-				if tracks[i] < middleCol then
-					cbl = cbl + 1
-				elseif tracks[i] > middleCol then
-					cbr = cbr + 1
-				else
-					cbm = cbm + 1
+
+	if devianceTable then
+		for i = 1, #devianceTable do
+			if tracks[i] then	-- we dont load track data when reconstructing eval screen apparently so we have to nil check -mina
+				if math.abs(devianceTable[i]) > tso * 90 then
+					if tracks[i] < middleCol then
+						cbl = cbl + 1
+					elseif tracks[i] > middleCol then
+						cbr = cbr + 1
+					else
+						cbm = cbm + 1
+					end
 				end
 			end
 		end
-	end
+	
 
 	t[#t + 1] =
 		Def.Quad {
@@ -810,7 +813,7 @@ function scoreBoard(pn, position)
 				end
 			}
 	end
-
+end
 	return t
 end
 
