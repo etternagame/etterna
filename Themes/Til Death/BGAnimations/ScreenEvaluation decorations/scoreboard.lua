@@ -122,6 +122,9 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			else
 				self:playcommand("Hide")
 			end
+
+			-- we won't have a score selected upon changing the page so make sure the highlights go away at first
+			self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = nil})
 		end,
 		BeginCommand = function(self)
 			if hsTable[index] == nil then 
@@ -146,6 +149,10 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					color("#ffffff")
 				):diffusealpha(0.3):diffuserightedge(color("#33333300"))
 			end,
+			HahaThisCodeINeedHelpCommand = function(self, params)
+				local equis = params.doot == index
+				self:visible(GAMESTATE:IsHumanPlayer(pn) and equis)
+			end,
 			BeginCommand = function(self)
 				self:visible(GAMESTATE:IsHumanPlayer(pn) and equals)
 				
@@ -168,6 +175,8 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			LeftClickMessageCommand = function(self)
 				if isOver(self) then
+					newindex = getHighScoreIndex(hsTable, hsTable[index])
+					self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
 					self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
 					self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
 				end
@@ -189,6 +198,13 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			{
 				InitCommand = function(self)
 					self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
+				end,
+				HahaThisCodeINeedHelpCommand = function(self, params)
+					if params.doot == index then
+						self:diffuse(color("#ffcccc"))
+					else
+						self:diffuse(color("ffffff"))
+					end
 				end,
 				BeginCommand = function(self)
 					if hsTable[index] == nil then return end

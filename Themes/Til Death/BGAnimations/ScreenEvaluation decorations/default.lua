@@ -688,6 +688,61 @@ function scoreBoard(pn, position)
 			}
 	end
 
+	local function hahahahahaha(score)
+		local tracks = score:GetTrackVector()
+		local devianceTable = score:GetOffsetVector()
+
+		local cbl = 0
+		local cbr = 0
+		local cbm = 0
+		local tst = ms.JudgeScalers
+		local tso = tst[judge]
+		local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 
+		local middleCol = ncol/2
+	
+		for i = 1, #devianceTable do
+			if tracks[i] then
+				if math.abs(devianceTable[i]) > tso * 90 then
+					if tracks[i] < middleCol then
+						cbl = cbl + 1
+					elseif tracks[i] > middleCol then
+						cbr = cbr + 1
+					else
+						cbm = cbm + 1
+					end
+				end
+			end
+		end
+
+		t[#t + 1] =
+			Def.Quad {
+			InitCommand = function(self)
+				self:xy(frameWidth + 25, frameY + 230):zoomto(frameWidth / 2 + 10, 60):halign(1):valign(0):diffuse(
+					color("#333333CC")
+				)
+			end
+		}
+		local smallest, largest = wifeRange(devianceTable)
+		local doot = {
+			THEME:GetString("ScreenEvaluation", "Mean"),
+			THEME:GetString("ScreenEvaluation", "StandardDev"),
+			THEME:GetString("ScreenEvaluation", "LargestDev"),
+			THEME:GetString("ScreenEvaluation", "LeftCB"),
+			THEME:GetString("ScreenEvaluation", "RightCB"),
+			THEME:GetString("ScreenEvaluation", "MiddleCB")
+		}
+
+		local mcscoot = {
+			wifeMean(devianceTable),
+			wifeSd(devianceTable),
+			largest,
+			cbl,
+			cbr,
+			cbm
+		}
+		return mcscoot
+	end
+
 	-- stats stuff
 	local tracks = score:GetTrackVector()
 	local devianceTable = score:GetOffsetVector()
@@ -761,6 +816,14 @@ function scoreBoard(pn, position)
 			{
 				Name=i,
 				InitCommand = function(self)
+					if i < 4 then
+						self:xy(frameWidth + 20, frameY + 230 + ySpacing * i):zoom(tzoom):halign(1):settextf("%5.2fms", mcscoot[i])
+					else
+						self:xy(frameWidth + 20, frameY + 230 + ySpacing * i):zoom(tzoom):halign(1):settext(mcscoot[i])
+					end
+				end,
+				ChangeScoreCommand = function(self, params)
+					local mcscoot = hahahahahaha(params.score)
 					if i < 4 then
 						self:xy(frameWidth + 20, frameY + 230 + ySpacing * i):zoom(tzoom):halign(1):settextf("%5.2fms", mcscoot[i])
 					else
