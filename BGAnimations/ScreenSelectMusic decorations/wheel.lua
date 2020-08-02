@@ -267,6 +267,7 @@ end
 
 local openedGroup = ""
 local onAnAdventure = false -- true if scrolling on groups
+local firstUpdate = true -- for not triggering the header switch on init
 
 t[#t+1] = Def.ActorFrame {
     Name = "WheelContainer",
@@ -317,7 +318,10 @@ t[#t+1] = Def.ActorFrame {
         frameTransformer = function(frame, offsetFromCenter, index, total, theWheel)
             if index == 1 and openedGroup ~= nil then
                 if openedGroup == frame:GetChild("GroupFrame").Title:GetText() then
-                    if not frame.sticky and not onAnAdventure then
+                    if firstUpdate then
+                        firstUpdate = false
+                        frame:y(offsetFromCenter * actuals.ItemHeight)
+                    elseif not frame.sticky and not onAnAdventure then
                         frame.sticky = true
                         frame:playcommand("HeaderOn", {offsetFromCenter = -math.ceil(numWheelItems / 2)})
                     elseif onAnAdventure then
@@ -342,6 +346,11 @@ t[#t+1] = Def.ActorFrame {
                     f.actor = self
                 end,
                 HeaderOnCommand = function(self, params)
+                    -- if the opened group is not real, then stop
+                    -- this happens on init basically
+                    if openedGroup == "" then
+                        return
+                    end
                     self:smooth(0.05)
                     self.g:visible(true)
                     self.s:visible(false)
@@ -381,7 +390,7 @@ t[#t+1] = Def.ActorFrame {
                 end
             else
                 -- This is a group
-                -- dont mess with sticky'd frames
+                -- dont mess with non sticky'd frames
                 if not frame.sticky then
                     local s = frame.s
                     s:visible(false)
