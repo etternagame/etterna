@@ -107,6 +107,16 @@ Wheel.mt = {
             end,
             interval
         )
+
+        -- update Gamestate current song
+        local currentItem = whee:getItem(whee.index)
+        if currentItem.GetDisplayMainTitle then
+            -- currentItem is a SONG
+            GAMESTATE:SetCurrentSong(currentItem)
+        else
+            -- currentItem is a GROUP
+            GAMESTATE:SetCurrentSong(nil)
+        end
     end,
     getItem = function(whee, idx)
         return whee.items[getIndexCircularly(whee.items, idx)]
