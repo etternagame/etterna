@@ -148,6 +148,7 @@ Wheel.mt = {
 
         -- the wheel has settled
         if whee.floatingOffset == 0 then
+            MESSAGEMAN:Broadcast("WheelSettled")
             local top = SCREENMAN:GetTopScreen()
             -- only for ScreenSelectMusic
             if top.PlayCurrentSongSampleMusic then
