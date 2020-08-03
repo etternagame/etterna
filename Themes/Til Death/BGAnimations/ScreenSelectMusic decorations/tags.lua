@@ -24,6 +24,7 @@ local displayindex = {}
 
 local translated_info = {
 	AddTag = THEME:GetString("TabTags", "AddTag"),
+	ExcludeMode = THEME:GetString("TabTags", "ExcludeMode"),
 	Mode = THEME:GetString("TabTags", "Mode"),
 	AND = THEME:GetString("TabTags", "AND"),
 	OR = THEME:GetString("TabTags", "OR"),
@@ -149,57 +150,103 @@ local r =
 		if filterTags == nil then
 			filterTags = {}
 		end
+		if filterAgainstTags == nil then
+			filterAgainstTags = {}
+		end
 		-- apparently i cant just do if charts and next(charts) to check nil charts
-		if charts ~= nil and next(charts) then
+		if (charts ~= nil and #charts ~= 0) or (outCharts ~= nil and #outCharts ~= 0) then
 			-- not sure why the other song doesnt work i hate this
 			local ssong = GAMESTATE:GetCurrentSong()
-			whee:FilterByStepKeys(charts)
+			whee:FilterByAndAgainstStepKeys(charts, oCharts)
 			whee:SelectSong(ssong)
 		end
+
 	end,
 	RefreshTagsMessageCommand = function(self)
 		if filterMode == nil then
 			filterMode = true
 		end
+		if filterAgainstMode == nil then
+			filterAgainstMode = false
+		end
 		ptags = tags:get_data().playerTags
 		-- filtering
 		if filterChanged then
 			charts = {}
+			oCharts = {}
+			
 			if next(filterTags) then
-				toFilterTags = {}
-				for k, v in pairs(filterTags) do
-					toFilterTags[#toFilterTags + 1] = k
-				end
-				if filterMode then --and
-					inCharts = {}
-					for k, v in pairs(ptags[toFilterTags[1]]) do
-						inCharts[k] = 1
+				-- MODE == AND in menu, requires all tags to be active
+				if filterMode then
+					toFilterTags = {}
+					for tag, v in pairs(filterTags) do
+						toFilterTags[#toFilterTags + 1] = tag
 					end
-					toFilterTags[1] = nil
-					for k, v in pairs(toFilterTags) do
-						for ki, vi in pairs(inCharts) do
-							if ptags[v][ki] == nil then
-								inCharts[ki] = nil
+
+					inCharts = {}
+					-- Gather initial first tags chart keys
+					for chartKey, v in pairs(ptags[toFilterTags[1]]) do
+						inCharts[#inCharts + 1] = chartKey
+					end
+					-- Subtract all the charts that dont have the additional keys
+					for i = 2, #toFilterTags do
+						for k, chartKey in pairs(inCharts) do
+							if ptags[toFilterTags[i]][chartKey] == nil then
+								inCharts[k] = nil
 							end
 						end
 					end
-					-- gotta repack those
-					for k, v in pairs(inCharts) do
-						charts[#charts + 1] = k
+					for k, chartKey in pairs(inCharts) do
+						charts[#charts + 1] = chartKey
 					end
-				else -- or
-					for k, v in pairs(toFilterTags) do
-						for ki, vi in pairs(ptags[v]) do
-							if charts[ki] == nil then
-								charts[#charts + 1] = ki
-							end
+				-- MODE == OR in menu, requires only one tag to be active
+				else
+					-- Just collect everything that has the filter tag
+					for tag, v in pairs(filterTags) do
+						for chartKey, v in pairs(ptags[tag]) do
+							charts[#charts + 1] = chartKey
 						end
 					end
 				end
 			end
-			whee:FilterByStepKeys(charts)
+			if next(filterAgainstTags) then
+				-- MODE == AND in menu, requires all tags to be active
+				if filterAgainstMode then
+					toFilterAgainstTags = {}
+					for tag, v in pairs(filterAgainstTags) do
+						toFilterAgainstTags[#toFilterAgainstTags + 1] = tag
+					end
+
+					outCharts = {}
+					-- Gather initial first tags chart keys
+					for chartKey, v in pairs(ptags[toFilterAgainstTags[1]]) do
+						outCharts[#outCharts + 1] = chartKey
+					end
+					-- Subtract all the oCharts that dont have the additional keys
+					for i = 2, #toFilterAgainstTags do
+						for k, chartKey in pairs(outCharts) do
+							if ptags[toFilterAgainstTags[i]][chartKey] == nil then
+								outCharts[k] = nil
+							end
+						end
+					end
+					for k, chartKey in pairs(outCharts) do
+						oCharts[#oCharts + 1] = chartKey
+					end
+				-- MODE == OR in menu, requires only one tag to be active
+				else
+					-- Just collect everything that has the filter tag
+					for tag, v in pairs(filterAgainstTags) do
+						for chartKey, v in pairs(ptags[tag]) do
+							oCharts[#oCharts + 1] = chartKey
+						end
+					end
+				end
+			end
+			whee:FilterByAndAgainstStepKeys(charts, oCharts)
 			filterChanged = false
 		end
+		
 
 		playertags = {}
 		for k, v in pairs(ptags) do
@@ -247,6 +294,8 @@ local function makeTag(i)
 					elseif tagFunction == 2 then
 						if filterTags[curTag] then
 							self:diffuse(getMainColor("positive"))
+						elseif filterAgainstTags[curTag] then
+							self:diffuse(getMainColor("negative"))
 						else
 							self:diffuse(getMainColor("frames")):diffusealpha(0.35)
 						end
@@ -267,6 +316,10 @@ local function makeTag(i)
 							tags:set_dirty()
 							tags:save()
 						elseif tagFunction == 2 then
+							if filterAgainstTags[curTag] then
+								filterAgainstTags[curTag] = nil
+							end
+
 							if filterTags[curTag] then
 								filterTags[curTag] = nil
 							else
@@ -281,6 +334,24 @@ local function makeTag(i)
 							tags:get_data().playerTags[curTag] = nil
 							tags:set_dirty()
 							tags:save()
+						end
+						MESSAGEMAN:Broadcast("RefreshTags")
+					end
+				end,
+				MouseRightClickMessageCommand = function(self)
+					if isOver(self) then
+						curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
+						if tagFunction == 2 then
+							if filterTags[curTag] then
+								filterTags[curTag] = nil
+							end
+
+							if filterAgainstTags[curTag] then
+								filterAgainstTags[curTag] = nil
+							else
+								filterAgainstTags[curTag] = 1
+							end
+							filterChanged = true
 						end
 						MESSAGEMAN:Broadcast("RefreshTags")
 					end
@@ -447,6 +518,44 @@ r[#r + 1] =
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and onTab then
 				filterMode = not filterMode
+				filterChanged = true
+				MESSAGEMAN:Broadcast("RefreshTags")
+			end
+		end
+	}
+}
+
+-- filter against type
+r[#r + 1] =
+	Def.ActorFrame {
+	InitCommand = function(self)
+		self:xy(frameX + 200, frameY + capWideScale(80, 80) + 225)
+	end,
+	BORPBORPNORFNORFcCommand = function(self)
+		self:visible(tagFunction == 2)
+	end,
+	UpdateTagsMessageCommand = function(self)
+		self:queuecommand("BORPBORPNORFNORFc")
+	end,
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:zoom(fontScale):halign(0)
+			end,
+			BORPBORPNORFNORFcCommand = function(self)
+				self:settextf("%s: %s", translated_info["ExcludeMode"], (filterAgainstMode and translated_info["AND"] or translated_info["OR"]))
+			end,
+			UpdateTagsMessageCommand = function(self)
+				self:queuecommand("BORPBORPNORFNORFc")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(120, 18):halign(0):diffusealpha(0)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and onTab then
+				filterAgainstMode = not filterAgainstMode
 				filterChanged = true
 				MESSAGEMAN:Broadcast("RefreshTags")
 			end
