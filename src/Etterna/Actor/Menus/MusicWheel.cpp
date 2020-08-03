@@ -1791,15 +1791,16 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		std::vector<string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
-		p->SetHashList(newHashList);
 		luaL_checktype(L, 2, LUA_TTABLE);
 		lua_pushvalue(L, 2);
 		std::vector<string> newOutHashList;
 		LuaHelpers::ReadArrayFromTable(newOutHashList, L);
 		lua_pop(L, 1);
-		p->SetOutHashList(newOutHashList);
 
+		p->SetHashList(newHashList);
+		p->SetOutHashList(newOutHashList);
 		p->ReloadSongList(false, "");
+
 		return 1;
 	}
 
