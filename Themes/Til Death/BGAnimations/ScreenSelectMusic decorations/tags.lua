@@ -154,7 +154,7 @@ local r =
 			filterAgainstTags = {}
 		end
 		-- apparently i cant just do if charts and next(charts) to check nil charts
-		if (charts ~= nil and #charts ~= 0) or (outCharts ~= nil and #outCharts ~= 0) then
+		if (charts ~= nil and #charts ~= 0) or (oCharts ~= nil and #oCharts ~= 0) then
 			-- not sure why the other song doesnt work i hate this
 			local ssong = GAMESTATE:GetCurrentSong()
 			whee:FilterByAndAgainstStepKeys(charts, oCharts)
