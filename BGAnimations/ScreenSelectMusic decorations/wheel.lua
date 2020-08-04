@@ -1,6 +1,10 @@
 local t = Def.ActorFrame {Name = "WheelFile"}
 
-local numWheelItems = 11 -- 11 visible items (top is a group header)
+ -- 11 visible items (top is a group header)
+ -- an unfortunate amount of code is reliant on the fact that there are 11 items
+ -- but thankfully everything works fine if you change it
+ -- ... the header wont look very good if you push it off the screen though
+local numWheelItems = 11
 
 local ratios = {
     LeftGap = 77 / 1920,
