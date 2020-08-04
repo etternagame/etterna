@@ -361,13 +361,6 @@ t[#t+1] = Def.ActorFrame {
                     self.s:visible(false)
                     self:y(params.offsetFromCenter * actuals.ItemHeight - (actuals.HeaderHeight - actuals.ItemHeight) + headerFudge)
                 end,
-                ScrolledIntoGroupMessageCommand = function(self)
-                    if self.sticky then
-                    end
-                end,
-                ScrolledOutOfGroupMessageCommand = function(self)
-
-                end,
 
                 groupActorBuilder() .. {
                     BeginCommand = function(self)
