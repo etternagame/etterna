@@ -166,7 +166,7 @@ Wheel.mt = {
         idx = idx - math.ceil(numFrames / 2)
         for i, frame in ipairs(whee.frames) do
             local offset = i - math.ceil(numFrames / 2) + whee.floatingOffset
-            whee.frameTransformer(frame, offset - 1, i, whee.count, whee)
+            whee.frameTransformer(frame, offset - 1, i, whee.count)
             whee.frameUpdater(frame, whee:getItem(idx), offset)
             idx = idx + 1
         end

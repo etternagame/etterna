@@ -317,7 +317,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         songActorUpdater = songActorUpdater,
         groupActorUpdater = groupActorUpdater,
-        frameTransformer = function(frame, offsetFromCenter, index, total, theWheel)
+        frameTransformer = function(frame, offsetFromCenter, index, total)
             if index == 1 and openedGroup ~= nil then
                 if openedGroup == frame:GetChild("GroupFrame").Title:GetText() then
                     if firstUpdate then
