@@ -1,4 +1,5 @@
 local currentTags = {"","","",""}
+local displayScore
 local t = Def.ActorFrame {
     Name = "GeneralPageFile",
     WheelSettledMessageCommand = function(self, params)
@@ -14,6 +15,10 @@ local t = Def.ActorFrame {
                 end
             end
         end
+
+        -- update displayscore
+        -- it sets to nil properly by itself
+        displayScore = GetDisplayScore()
 
         -- cascade visual update to everything
         self:playcommand("Set", {song = params.song, group = params.group})
@@ -339,6 +344,13 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:zoom(largerTextSize)
         self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / largerTextSize - textzoomFudge)
         self:settext("99.99%")
+    end,
+    SetCommand = function(self, params)
+        if displayScore then
+            self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
+        else
+            self:settext("")
+        end
     end
 }
 
