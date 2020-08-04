@@ -77,11 +77,11 @@ local function wheelItemBase()
                 self:diffuse(color("0,0,0,0.6"))
             end,
             HeaderOnCommand = function(self, params)
-                self:smooth(0.1)
+                self:smooth(0.05)
                 self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
             end,
             HeaderOffCommand = function(self)
-                self:smooth(0.1)
+                self:smooth(0.05)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
             end
         },
@@ -94,10 +94,12 @@ local function wheelItemBase()
                 self:diffuse(color("0.6,0.6,0.6,1"))
             end,
             HeaderOnCommand = function(self)
-                self:visible(false)
+                self:smooth(0.05)
+                self:diffusealpha(0)
             end,
             HeaderOffCommand = function(self)
-                self:visible(true)
+                self:smooth(0.05)
+                self:diffusealpha(1)
             end
         },
     }
@@ -204,28 +206,28 @@ local function groupActorBuilder()
                 self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
             end,
             HeaderOffCommand = function(self)
-                self:smooth(0.05)
-                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
                 self:zoom(wheelItemTextSize)
                 self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
             end
         },
         LoadFont("Common Normal") .. {
             Name = "HeaderGroupInfo",
             InitCommand = function(self)
-                self:visible(false)
                 self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
                 self:halign(0)
                 self:zoom(wheelHeaderTextSize)
                 self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
+                self:diffusealpha(0)
                 self:settext("200 Files (Average MSD: 13.37)")
             end,
             HeaderOnCommand = function(self)
-                self:visible(true)
+                self:smooth(0.05)
+                self:diffusealpha(1)
             end,
             HeaderOffCommand = function(self)
-                self:visible(false)
+                self:diffusealpha(0)
             end
         },
         Def.Sprite {
@@ -330,6 +332,8 @@ t[#t+1] = Def.ActorFrame {
                 else
                     if frame.sticky then
                         frame.sticky = false
+                        frame:finishtweening()
+                        frame:smooth(0.05)
                         frame:playcommand("HeaderOff")
                     end
                     frame:y(offsetFromCenter * actuals.ItemHeight)
