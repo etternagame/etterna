@@ -31,6 +31,12 @@ local findKeyOf = function(t, x)
     end
 end
 
+local clamp = function(x, l, u)
+    if x < l then return l end
+    if x > u then return u end
+    return x
+end
+
 local find = function(t, x)
     local k = findKeyOf(t, x)
     return k and t[k] or nil
@@ -88,6 +94,7 @@ end
 -- toggles within the move function
 -- becomes false if all groups are closed
 local crossedGroupBorder = false
+local diffSelection = 1 -- index of the selected chart
 
 Wheel.mt = {
     move = function(whee, num)
@@ -123,6 +130,26 @@ Wheel.mt = {
         if currentItem.GetDisplayMainTitle then
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
+
+            -- setting diff stuff
+            local stepslist = currentItem:GetChartsOfCurrentGameMode()
+            if #stepslist == 0 then
+                -- this scenario should be impossible but lets prepare for the case
+                diffSelection = 1
+                GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            else
+                local prefdiff = GAMESTATE:GetPreferredDifficulty()
+                diffSelection = clamp(diffSelection, 1, #stepslist)
+                for i = 1,#stepslist do
+                    if stepslist[i]:GetDifficulty() == prefdiff then
+                        diffSelection = i
+                        break
+                    end
+                end
+                GAMESTATE:SetPreferredDifficulty(PLAYER_1, stepslist[diffSelection]:GetDifficulty())
+                GAMESTATE:SetCurrentSteps(PLAYER_1, stepslist[diffSelection])
+            end
+
             if whee.group and not crossedGroupBorder then
                 crossedGroupBorder = not crossedGroupBorder
                 -- header wheelitem behavior stuff
@@ -135,6 +162,7 @@ Wheel.mt = {
         else
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
             if whee.group and crossedGroupBorder then
                 crossedGroupBorder = not crossedGroupBorder
                 -- header wheelitem behavior stuff
@@ -142,7 +170,7 @@ Wheel.mt = {
                 whee.frameUpdater(whee.frames[1], whee:getItem(whee.index - math.ceil(whee.count / 2)), 0)
                 whee.frames[1]:playcommand("HeaderOff")
 
-                MESSAGEMAN:Broadcast("ScrolledOutOfGroup")
+                MESSAGEMAN:Broadcast("ScrolledOutOfGroup", {group = whee.group})
             end
         end
         
@@ -176,7 +204,7 @@ Wheel.mt = {
 
         -- the wheel has settled
         if whee.floatingOffset == 0 and not whee.settled then
-            MESSAGEMAN:Broadcast("WheelSettled")
+            MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group})
             whee.settled = true
             local top = SCREENMAN:GetTopScreen()
             -- only for ScreenSelectMusic
@@ -236,6 +264,8 @@ function Wheel:new(params)
     fillNilTableFieldsFrom(params, Wheel.defaultParams)
     local whee = Def.ActorFrame {}
     setmetatable(whee, {__index = Wheel.mt})
+    crossedGroupBorder = false -- reset default
+    diffSelection = 1 -- reset default
     whee.settled = false -- leaving this false causes 1 settle message on init
     whee.itemsGetter = params.itemsGetter
     whee.count = params.count
