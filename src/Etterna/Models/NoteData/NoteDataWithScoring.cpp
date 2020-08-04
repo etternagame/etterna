@@ -38,7 +38,7 @@ LastTapNoteScoreTrack(const NoteData& in, const unsigned& row)
 		const auto tns = tn.result.tns;
 
 		if (tns == TNS_Miss ||
-			!GAMESTATE->CountNotesSeparately() && tns == TNS_None) {
+			(!GAMESTATE->CountNotesSeparately() && tns == TNS_None)) {
 			return t;
 		}
 		if (tns == TNS_None)

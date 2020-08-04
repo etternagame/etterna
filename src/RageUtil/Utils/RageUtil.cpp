@@ -1633,7 +1633,7 @@ utf8_to_wchar_ec(const std::string& s, unsigned& start, wchar_t& ch)
 			start += i;
 			return false;
 		}
-		ch = ch << 6 | byte & 0x3F;
+		ch = ch << 6 | (byte & 0x3F);
 	}
 
 	auto bValid = true;
@@ -1677,26 +1677,26 @@ utf8_to_wchar(const char* s, size_t iLength, unsigned& start, wchar_t& ch)
 			ch = s[start + 0] & 0x7F;
 			break;
 		case 2:
-			ch = (s[start + 0] & 0x1F) << 6 | s[start + 1] & 0x3F;
+			ch = (s[start + 0] & 0x1F) << 6 | (s[start + 1] & 0x3F);
 			break;
 		case 3:
 			ch = (s[start + 0] & 0x0F) << 12 | (s[start + 1] & 0x3F) << 6 |
-				 s[start + 2] & 0x3F;
+				 (s[start + 2] & 0x3F);
 			break;
 		case 4:
 			ch = (s[start + 0] & 0x07) << 18 | (s[start + 1] & 0x3F) << 12 |
-				 (s[start + 2] & 0x3F) << 6 | s[start + 3] & 0x3F;
+				 (s[start + 2] & 0x3F) << 6 | (s[start + 3] & 0x3F);
 			break;
 		case 5:
 			ch = (s[start + 0] & 0x03) << 24 | (s[start + 1] & 0x3F) << 18 |
 				 (s[start + 2] & 0x3F) << 12 | (s[start + 3] & 0x3F) << 6 |
-				 s[start + 4] & 0x3F;
+				 (s[start + 4] & 0x3F);
 			break;
 
 		case 6:
 			ch = (s[start + 0] & 0x01) << 30 | (s[start + 1] & 0x3F) << 24 |
 				 (s[start + 2] & 0x3F) << 18 | (s[start + 3] & 0x3F) << 12 |
-				 (s[start + 4] & 0x3F) << 6 | s[start + 5] & 0x3F;
+				 (s[start + 4] & 0x3F) << 6 | (s[start + 5] & 0x3F);
 			break;
 	}
 
@@ -1733,7 +1733,7 @@ wchar_to_utf8(wchar_t ch, std::string& out)
 
 	for (auto i = 0; i < cbytes; ++i) {
 		const auto shift = (cbytes - i - 1) * 6;
-		out.append(1, static_cast<char>(0x80 | ch >> shift & 0x3F));
+		out.append(1, static_cast<char>(0x80 | (ch >> shift & 0x3F)));
 	}
 }
 
@@ -2220,7 +2220,7 @@ CollapsePath(std::string& sPath, bool bRemoveLeadingDot)
 			sPath[iPos + 2] == '/') {
 			/* If this is the first path element (nothing to delete),
 			 * or all we have is a slash, leave it. */
-			if (sOut.empty() || sOut.size() == 1 && sOut[0] == '/') {
+			if (sOut.empty() || (sOut.size() == 1 && sOut[0] == '/')) {
 				sOut.append(sPath, iPos, iNext - iPos);
 				continue;
 			}
