@@ -189,9 +189,11 @@ local function createMSDLines()
                             -- notecount / length * rate
                             local avg = steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes") / GetPlayableTime() * getCurRateValue()
                             self:settextf("%05.2f", avg)
+                            self:diffuse(byNPS(avg))
                         else
                             -- failsafe
                             self:settext("--.--")
+                            self:diffuse(color("1,1,1,1"))
                         end
                     else
                         if params.song then

@@ -272,6 +272,14 @@ function byFileSize(x)
 	return HSV(0, 0.9, 0.9)
 end
 
+function byNPS(x)
+	if x then
+		x = math.min(x, 60)
+		return HSV(math.max(95 - (x / 50) * 150, -50), 0.9, 0.9)
+	end
+	return HSV(0, 0.9, 0.9)
+end
+
 -- yes i know i shouldnt hardcode this -mina
 function bySkillRange(x)
 	if x <= 10 then
