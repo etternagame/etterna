@@ -172,8 +172,9 @@ Wheel.mt = {
         end
 
         -- the wheel has settled
-        if whee.floatingOffset == 0 then
+        if whee.floatingOffset == 0 and not whee.settled then
             MESSAGEMAN:Broadcast("WheelSettled")
+            whee.settled = true
             local top = SCREENMAN:GetTopScreen()
             -- only for ScreenSelectMusic
             if top.PlayCurrentSongSampleMusic then
@@ -183,7 +184,9 @@ Wheel.mt = {
                 end
             end
         end
-
+        if whee.floatingOffset ~= 0 then
+            whee.settled = false
+        end
     end,
     rebuildFrames = function(whee, newIndex)
         whee.items = whee.itemsGetter()
@@ -230,6 +233,7 @@ function Wheel:new(params)
     fillNilTableFieldsFrom(params, Wheel.defaultParams)
     local whee = Def.ActorFrame {}
     setmetatable(whee, {__index = Wheel.mt})
+    whee.settled = false -- leaving this false causes 1 settle message on init
     whee.itemsGetter = params.itemsGetter
     whee.count = params.count
     whee.sort = params.sort
