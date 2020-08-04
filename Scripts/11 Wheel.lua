@@ -118,7 +118,8 @@ Wheel.mt = {
         SOUND:StopMusic()
 
         -- update Gamestate current song
-        local currentItem = whee:getItem(whee.index)
+        -- subtract 1 because the getCurrentItem follows that behavior
+        local currentItem = whee:getItem(whee.index - 1)
         if currentItem.GetDisplayMainTitle then
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
@@ -151,14 +152,16 @@ Wheel.mt = {
         -- For some reason i have to +1 here
     end,
     getCurrentItem = function(whee)
-        return whee:getItem(whee.index)
+        -- subtract 1 because i wanted to move the select index up by 1
+        return whee:getItem(whee.index - 1)
     end,
     getFrame = function(whee, idx)
         return whee.frames[getIndexCircularly(whee.frames, idx)]
         -- For some reason i have to +1 here
     end,
     getCurrentFrame = function(whee)
-        return whee:getFrame(whee.index)
+        -- subtract 1 because i wanted to move the select index up by 1
+        return whee:getFrame(whee.index - 1)
     end,
     update = function(whee)
         local numFrames = #(whee.frames)
@@ -457,7 +460,8 @@ function MusicWheel:new(params)
                     crossedGroupBorder = false
                     w.group = nil
                     local newItems = SONGMAN:GetSongGroupNames()
-                    w.index = findKeyOf(newItems, group)
+                    -- adding 1 here for a hack, prevent index from moving weirdly when opening pack
+                    w.index = findKeyOf(newItems, group) + 1
                     w.itemsGetter = function()
                         return newItems
                     end
@@ -473,7 +477,8 @@ function MusicWheel:new(params)
                     local groups = SONGMAN:GetSongGroupNames()
                     local g1, g2 = split(groups, group)
                     local newItems = concat(g1, {group}, SONGMAN:GetSongsInGroup(group), g2)
-                    w.index = findKeyOf(newItems, group)
+                    -- adding 1 here for a hack, prevent index from moving weirdly when opening pack
+                    w.index = findKeyOf(newItems, group) + 1
                     w.itemsGetter = function()
                         return newItems
                     end

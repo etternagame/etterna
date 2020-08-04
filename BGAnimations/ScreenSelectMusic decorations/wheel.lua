@@ -308,6 +308,7 @@ t[#t+1] = Def.ActorFrame {
             Def.Quad {
                 Name = "Highlight",
                 InitCommand = function(self)
+                    self:y(-actuals.ItemHeight)
                     self:zoomto(actuals.Width, actuals.ItemHeight)
                     self:diffusealpha(0.1)
                     self:diffuseramp()
