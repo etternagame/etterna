@@ -405,50 +405,7 @@ t[#t+1] = Def.ActorFrame {
                 end
             end
         end
-    }),
-    --[[
-    Def.ActorFrame {
-        Name = "WheelHeader",
-        InitCommand = function(self)
-            -- frame position is now center of header
-            self:y(-actuals.Height / 2 - actuals.HeaderHeight / 2 - actuals.ItemHeight / 2)
-        end,
-        Def.Quad {
-            Name = "BG",
-            InitCommand = function(self)
-                self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
-                self:diffuse(color("0,0,0,0.6"))
-            end
-        },
-        Def.Sprite {
-            Name = "GroupBanner",
-            InitCommand = function(self)
-                self:x(-actuals.Width / 2):halign(0)
-                self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight)
-                self:LoadBackground(THEME:GetPathG("Common", "fallback banner"))
-            end
-        },
-        LoadFont("Common Normal") .. {
-            Name = "GroupName",
-            InitCommand = function(self)
-                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, -actuals.HeaderHeight / 2 + actuals.HeaderTextUpperGap)
-                self:halign(0)
-                self:zoom(wheelHeaderTextSize)
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
-                self:settext("Placeholder Pack Name")
-            end
-        },
-        LoadFont("Common Normal") .. {
-            Name = "GroupInfo",
-            InitCommand = function(self)
-                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
-                self:halign(0)
-                self:zoom(wheelHeaderTextSize)
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
-                self:settext("200 Files (Average MSD: 13.37)")
-            end
-        }
-    }]]
+    })
 }
 
 
