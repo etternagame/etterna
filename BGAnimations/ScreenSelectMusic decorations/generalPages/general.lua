@@ -115,7 +115,14 @@ local function createStatLines()
                     self:halign(1):valign(0)
                     self:zoom(mainTextSize)
                     self:maxwidth(((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / 2) / mainTextSize - textzoomFudge)
-                    self:settext("1234")
+                end,
+                SetCommand = function(self, params)
+                    local steps = GAMESTATE:GetCurrentSteps()
+                    if steps then
+                        self:settext(steps:GetRelevantRadars()[i])
+                    else
+                        self:settext("")
+                    end
                 end
             }
         }
@@ -143,6 +150,15 @@ local function createTopSkillsetLines()
                     self:zoom(mainTextSize)
                     self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftTextColumn1LabelsMargin - actuals.LeftTextColumn2Margin) / mainTextSize - textzoomFudge)
                     self:settext("Jumpstream")
+                end,
+                SetCommand = function(self, params)
+                    local steps = GAMESTATE:GetCurrentSteps()
+                    if steps then
+                        local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), i)
+                        self:settext(ss)
+                    else
+                        self:settext("")
+                    end
                 end
             }
         }
