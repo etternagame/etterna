@@ -1,6 +1,21 @@
+local currentTags = {"","","",""}
 local t = Def.ActorFrame {
     Name = "GeneralPageFile",
     WheelSettledMessageCommand = function(self, params)
+        
+        -- update tag data
+        currentTags = {"","","",""}
+        if params.song and GAMESTATE:GetCurrentSteps() then
+            local playerTags = tags:get_data().playerTags
+            local ck = GAMESTATE:GetCurrentSteps():GetChartKey()
+            for k,v in pairs(playerTags) do
+                if playerTags[k][ck] then
+                    currentTags[#currentTags + 1] = k
+                end
+            end
+        end
+
+        -- cascade visual update to everything
         self:playcommand("Set", {song = params.song, group = params.group})
     end
 }
@@ -86,7 +101,7 @@ local msdNames = {
 }
 
 local mainTextSize = 1
-local largerTextSize = 1.3
+local largerTextSize = 1.35
 local textzoomFudge = 5
 
 local function createStatLines()
@@ -250,7 +265,16 @@ local function createTagDisplays()
                 self:halign(0):valign(0)
                 self:zoom(mainTextSize)
                 self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftTextColumn1LabelsMargin - actuals.LeftTextColumn2Margin) / mainTextSize - textzoomFudge)
-                self:settext("Placeholder Tag?")
+            end,
+            SetCommand = function(self, params)
+                local steps = GAMESTATE:GetCurrentSteps()
+                if steps then
+                    if currentTags[i] then
+                        self:settext(currentTags[i])
+                    end
+                else
+                    self:settext("")
+                end
             end
         }
     end
@@ -286,7 +310,24 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:halign(1):valign(0)
         self:zoom(largerTextSize)
         self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / largerTextSize - textzoomFudge)
-        self:settext("24.24")
+        self:settext("")
+    end,
+    SetCommand = function(self, params)
+        local steps = GAMESTATE:GetCurrentSteps()
+        if steps then
+            local stype = steps:GetStepsType()
+            if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
+                local meter = steps:GetMSD(getCurRateValue(), 1)
+                self:settextf("%05.2f", meter)
+                self:diffuse(byMSD(meter))
+            else
+                -- use manual diff for non dance/solo
+                self:settextf("%05.2f", steps:GetMeter())
+                self:diffuse(byMSD(steps:GetMeter()))
+            end
+        else
+            self:settext("")
+        end
     end
 }
 
