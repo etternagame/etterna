@@ -1,4 +1,9 @@
-local t = Def.ActorFrame {Name = "GeneralPageFile"}
+local t = Def.ActorFrame {
+    Name = "GeneralPageFile",
+    WheelSettledMessageCommand = function(self, params)
+        self:playcommand("Set", {song = params.song, group = params.group})
+    end
+}
 
 local ratios = {
     VerticalDividerLeftGap = 387 / 1920, -- from left edge to left edge of divider
@@ -175,7 +180,36 @@ local function createMSDLines()
                     self:halign(1):valign(0)
                     self:zoom(mainTextSize)
                     self:maxwidth(((actuals.RightTextLabelsMargin - actuals.RightTextNumbersMargin) / 2) / mainTextSize - textzoomFudge)
-                    self:settext("12.34")
+                end,
+                SetCommand = function(self, params)
+                    -- i == 1 is Average NPS, otherwise are skillsets
+                    if i == 1 then
+                        local steps = GAMESTATE:GetCurrentSteps()
+                        if steps then
+                            -- notecount / length * rate
+                            local avg = steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes") / GetPlayableTime() * getCurRateValue()
+                            self:settextf("%05.2f", avg)
+                        else
+                            -- failsafe
+                            self:settext("--.--")
+                        end
+                    else
+                        if params.song then
+                            local steps = GAMESTATE:GetCurrentSteps()
+                            if steps then
+                                local val = steps:GetMSD(getCurRateValue(), i)
+                                self:settextf("%05.2f", val)
+                                self:diffuse(byMSD(val))
+                            else
+                                -- failsafe
+                                self:settext("--.--")
+                                self:diffuse(color("1,1,1,1"))
+                            end
+                        else
+                            self:settext("--.--")
+                            self:diffuse(color("1,1,1,1"))
+                        end
+                    end
                 end
             }
         }
