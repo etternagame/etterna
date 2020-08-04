@@ -325,16 +325,15 @@ local function makeTag(i)
 							else
 								filterTags[curTag] = 1
 							end
-							filterChanged = true
 						else
 							if filterTags[curTag] then
 								filterTags[curTag] = nil
-								filterChanged = true
 							end
 							tags:get_data().playerTags[curTag] = nil
 							tags:set_dirty()
 							tags:save()
 						end
+						filterChanged = true
 						MESSAGEMAN:Broadcast("RefreshTags")
 					end
 				end,
