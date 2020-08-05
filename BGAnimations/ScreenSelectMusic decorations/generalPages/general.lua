@@ -94,6 +94,22 @@ local statNames = {
     "Rolls",
     "Mines",
 }
+
+-- output of the relevant radars function is in a certain order
+-- it isnt the order of the above list
+-- so this list takes those indices and points them in another direction
+local statMapping = {
+       -- output -> desired
+    1, -- notes - notes
+    2, -- jumps - jumps
+    3, -- hands - hands
+    4, -- holds - holds
+    6, -- mines - rolls
+    5, -- rolls - mines
+    7, -- lifts
+    8, -- fakes
+}
+
 local msdNames = {
     "Average NPS",
     "Stream",
@@ -138,7 +154,7 @@ local function createStatLines()
                 end,
                 SetCommand = function(self, params)
                     if params.steps then
-                        self:settext(params.steps:GetRelevantRadars()[i])
+                        self:settext(params.steps:GetRelevantRadars()[statMapping[i]])
                     else
                         self:settext("")
                     end
