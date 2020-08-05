@@ -544,10 +544,15 @@ auto
 GetLocalTime() -> struct tm;
 
 // Supress warnings about format strings not being string literals
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
+#elif defined(_MSC_VER)
+// TODO: Suppress warnings for Windows
+#endif
 template<typename... Args>
 auto
 ssprintf(const char* format, Args... args) -> std::string
@@ -559,8 +564,13 @@ ssprintf(const char* format, Args... args) -> std::string
 	// Don't want the '\0' inside
 	return std::string(buf.get(), buf.get() + size - 1);
 }
+#if defined(__clang__)
 #pragma clang pop
+#elif defined(__GNUC__)
 #pragma GCC pop
+#elif defined(_MSC_VER)
+// TODO: Suppress warnings for Windows
+#endif
 
 template<typename... Args>
 auto
