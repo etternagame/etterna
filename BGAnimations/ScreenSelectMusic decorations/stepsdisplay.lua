@@ -33,6 +33,9 @@ do
     end
 end
 
+local textSize = 0.75
+local textzoomFudge = 5
+
 local t = Def.ActorFrame {
 	Name = "StepsDisplayFile",
 	InitCommand = function(self)
@@ -95,8 +98,8 @@ local function stepsRows(i)
 			Name = "StepsType",
 			InitCommand = function(self)
 				self:xy(actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4)
-				self:zoom(1)
-				self:maxwidth(actuals.DiffItemWidth / 1)
+				self:zoom(textSize)
+				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
@@ -112,8 +115,8 @@ local function stepsRows(i)
 			Name = "NameAndMeter",
 			InitCommand = function(self)
 				self:xy(actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4 * 3)
-				self:maxwidth(actuals.DiffItemWidth)
-				self:zoom(1)
+				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
+				self:zoom(textSize)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
