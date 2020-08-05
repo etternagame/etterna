@@ -1,5 +1,4 @@
 local itsOn = false
-local stepsdisplayx = SCREEN_WIDTH * 0.56 - capWideScale(48, 56)
 local thesteps
 
 local rowwidth = 60
@@ -7,76 +6,47 @@ local rowheight = 17
 local cursorwidth = 6
 local cursorheight = 17
 
-local numshown = 7
+local numshown = 5
 local currentindex = 1
 local displayindexoffset = 0
 
-local sd =
-	Def.ActorFrame {
-	Name = "StepsDisplay",
-	InitCommand = function(self)
-		self:xy(stepsdisplayx, 68):valign(0)
-	end,
-	OffCommand = function(self)
-		self:visible(false)
-	end,
-	OnCommand = function(self)
-		self:visible(true)
-	end,
-	TabChangedMessageCommand = function(self, params)
-		self:finishtweening()
-		if getTabIndex() < 3 and GAMESTATE:GetCurrentSong() then
-			-- dont display this if the score nested tab is already online
-			-- prevents repeat 3 presses to break the display
-			-- (let page 2 handle this specifically)
-			if params.to == 2 then
-				return
-			end
-			self:playcommand("On")
+local ratios = {
+    DiffItemWidth = 60 / 1920,
+    DiffItemHeight = 40 / 1080,
+    DiffFrameLeftGap = 429 / 1920,
+    DiffFrameRightGap = 11 / 1920,
+}
+
+local actuals = {
+	DiffItemWidth = ratios.DiffItemWidth * SCREEN_WIDTH,
+    DiffItemHeight = ratios.DiffItemHeight * SCREEN_HEIGHT,
+    DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH,
+    DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
+}
+
+-- scoping magic
+do
+    -- copying the provided ratios and actuals tables to have access to the sizing for the overall frame
+    local rt = Var("ratios")
+    for k,v in pairs(rt) do
+        ratios[k] = v
+    end
+    local at = Var("actuals")
+    for k,v in pairs(at) do
+        actuals[k] = v
+    end
+end
+
+local t = Def.ActorFrame {
+	Name = "StepsDisplayFile",
+	SetCommand = function(self, params)
+		if params.song then
+			thesteps = params.song:GetChartsOfCurrentGameMode()
+			self:visible(true)
+			self:playcommand("Set", {song = params.song})
 		else
-			self:playcommand("Off")
+			self:visible(false)
 		end
-	end,
-	CurrentSongChangedMessageCommand = function(self, song)
-		local song = song.ptr
-		if song then 
-			thesteps = song:GetChartsOfCurrentGameMode()
-			self:playcommand("UpdateStepsRows")
-		else 
-			self:playcommand("Off")
-		end
-	end,
-	DelayedChartUpdateMessageCommand = function(self)
-		local leaderboardEnabled =
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if leaderboardEnabled and GAMESTATE:GetCurrentSteps(PLAYER_1) then
-			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
-			if SCREENMAN:GetTopScreen():GetMusicWheel():IsSettled() then
-				DLMAN:RequestChartLeaderBoardFromOnline(
-					chartkey,
-					function(leaderboard)
-					end
-				)
-			end
-		end
-	end,
-	ChartPreviewOnMessageCommand = function(self)
-		if not itsOn then
-			self:addx(capWideScale(12, 0)):addy(capWideScale(18, 0))
-			itsOn = true
-		end
-	end,
-	ChartPreviewOffMessageCommand = function(self)
-		if itsOn then
-			self:addx(capWideScale(-12, 0)):addy(capWideScale(-18, 0))
-			itsOn = false
-		end
-	end,
-	CalcInfoOnMessageCommand = function(self)
-		self:x(20)
-	end,
-	CalcInfoOffMessageCommand = function(self)
-		self:x(stepsdisplayx)
 	end
 }
 
@@ -178,11 +148,11 @@ local sdr =
 for i = 1, numshown do
 	sdr[#sdr + 1] = stepsRows(i)
 end
-sd[#sd + 1] = sdr
+t[#t + 1] = sdr
 
 local center = math.ceil(numshown / 2)
 -- cursor goes on top
-sd[#sd + 1] = Def.Quad {
+t[#t + 1] = Def.Quad {
 	InitCommand = function(self)
 		self:x(rowwidth):zoomto(cursorwidth, cursorheight):halign(1):valign(0.5):diffusealpha(0.6)
 	end,
@@ -212,4 +182,4 @@ sd[#sd + 1] = Def.Quad {
 	end
 }
 
-return sd
+return t

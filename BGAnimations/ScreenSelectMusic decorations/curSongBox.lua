@@ -19,10 +19,6 @@ local ratios = {
     BannerHeight = 243 / 1080,
     LowerLipHeight = 34 / 1080,
     LeftTextLeftGap = 10 / 1920,
-    DiffItemWidth = 60 / 1920,
-    DiffItemHeight = 40 / 1080,
-    DiffFrameLeftGap = 429 / 1920,
-    DiffFrameRightGap = 11 / 1920,
     TextLowerGap1 = 6 / 1080, -- subtracting 2 here because thats about how much letters go "down"
     TextLowerGap2 = 39 / 1080, -- these gaps are from bottom frame to bottom text
     TextLowerGap3 = 75 / 1080,
@@ -42,10 +38,6 @@ local actuals = {
     BannerHeight = ratios.BannerHeight * SCREEN_HEIGHT,
     LowerLipHeight = ratios.LowerLipHeight * SCREEN_HEIGHT,
     LeftTextLeftGap = ratios.LeftTextLeftGap * SCREEN_WIDTH,
-    DiffItemWidth = ratios.DiffItemWidth * SCREEN_WIDTH,
-    DiffItemHeight = ratios.DiffItemHeight * SCREEN_HEIGHT,
-    DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH,
-    DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
     TextLowerGap1 = ratios.TextLowerGap1 * SCREEN_HEIGHT,
     TextLowerGap2 = ratios.TextLowerGap2 * SCREEN_HEIGHT,
     TextLowerGap3 = ratios.TextLowerGap3 * SCREEN_HEIGHT,
@@ -215,7 +207,8 @@ t[#t+1] = Def.ActorFrame {
                 self:visible(false)
             end
         end
-    }
+    },
+    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals})
 
 }
 
