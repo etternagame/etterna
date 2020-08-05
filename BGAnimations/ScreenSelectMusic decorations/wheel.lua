@@ -284,7 +284,9 @@ t[#t+1] = Def.ActorFrame {
         self:xy(actuals.LeftGap + actuals.Width / 2, actuals.UpperGap + actuals.HeaderHeight + actuals.Height / 2 + actuals.ItemHeight / 2)
         SCREENMAN:set_input_redirected(PLAYER_1, true)
     end,
-    OnCommand = function(self)
+    BeginCommand = function(self)
+        -- hide the old musicwheel
+        SCREENMAN:GetTopScreen():GetMusicWheel():visible(false)
     end,
     OpenedGroupMessageCommand = function(self, params)
         openedGroup = params.group
