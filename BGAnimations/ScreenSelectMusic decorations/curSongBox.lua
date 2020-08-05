@@ -28,6 +28,8 @@ local ratios = {
     LengthTextRightGap = 197 / 1920,
     LengthNumberRightGap = 135 / 1920, -- from right edge to right edge of numbers
     LengthWidth = 62 / 1920, -- from right edge of len number to right edge of len text
+
+    DiffFrameLeftGap = 429 / 1920,
 }
 
 local actuals = {
@@ -47,6 +49,8 @@ local actuals = {
     LengthTextRightGap = ratios.LengthTextRightGap * SCREEN_WIDTH,
     LengthNumberRightGap = ratios.LengthNumberRightGap * SCREEN_WIDTH,
     LengthWidth = ratios.LengthWidth * SCREEN_WIDTH,
+
+    DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH,
 }
 
 local textsize = 0.8
