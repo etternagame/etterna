@@ -204,7 +204,7 @@ Wheel.mt = {
 
         -- the wheel has settled
         if whee.floatingOffset == 0 and not whee.settled then
-            MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group})
+            MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group, hovered = whee:getCurrentItem()})
             whee.settled = true
             local top = SCREENMAN:GetTopScreen()
             -- only for ScreenSelectMusic

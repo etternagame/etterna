@@ -21,7 +21,7 @@ local t = Def.ActorFrame {
         displayScore = GetDisplayScore()
 
         -- cascade visual update to everything
-        self:playcommand("Set", {song = params.song, group = params.group})
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered})
     end
 }
 
