@@ -67,7 +67,8 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(actuals.Width, actuals.Height)
-            self:diffuse(color("0,0,0,0.6"))
+            self:diffuse(color("#111111"))
+            self:diffusealpha(0.6)
         end
     },
     Def.Quad {
@@ -76,7 +77,8 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0):valign(1)
             self:y(actuals.Height)
             self:zoomto(actuals.Width, actuals.LowerLipHeight)
-            self:diffuse(color("0,0,0,0.6"))
+            self:diffuse(color("#111111"))
+            self:diffusealpha(0.6)
         end
     },
     Def.Sprite {

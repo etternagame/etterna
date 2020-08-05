@@ -97,7 +97,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.Height)
-        self:diffuse(color("0,0,0,0.8"))
+        self:diffuse(color("#111111"))
+        self:diffusealpha(0.8)
     end
 }
 

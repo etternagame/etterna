@@ -78,7 +78,8 @@ local function wheelItemBase()
             Name = "ItemBG",
             InitCommand = function(self)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
-                self:diffuse(color("0,0,0,0.6"))
+                self:diffuse(color("#111111"))
+                self:diffusealpha(0.6)
             end,
             HeaderOnCommand = function(self, params)
                 self:smooth(0.05)
