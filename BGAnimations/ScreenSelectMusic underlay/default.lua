@@ -1,10 +1,28 @@
-local t = Def.ActorFrame {}
+local t = Def.ActorFrame {
+    Name = "UnderlayFile",
+    WheelSettledMessageCommand = function(self, params)
+        -- cascade visual update to everything
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered})
+    end
+}
 
-t[#t+1] = Def.Quad {
+t[#t+1] = Def.Sprite {
     InitCommand = function(self)
         self:valign(0):halign(0)
-        self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self:diffuse(color("0.5,0.1,0.5"))
+        self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
+        self:diffusealpha(0)
+    end,
+    SetCommand = function(self, params)
+        self:finishtweening()
+        if params.song and params.song:GetBackgroundPath() then
+            self:visible(true)
+            self:LoadBackground(params.song:GetBackgroundPath())
+            self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
+            self:smooth(0.5)
+            self:diffusealpha(0.3)
+        else
+            self:visible(false)
+        end
     end
 }
 
