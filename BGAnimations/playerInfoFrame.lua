@@ -14,11 +14,15 @@ local ratios = {
     LeftTextTopGap3 = 72 / 1080, -- from top to center of line 3
     LeftTextTopGap4 = 95 / 1080, -- from top to center of line 4
     RightTextLeftGap = 412 / 1920, -- this is from avatar to right text
-    RightTextTopGap1 = 25 / 1080, -- why did this have to be different from Left line 1
+    RightTextTopGap1 = 21 / 1080, -- why did this have to be different from Left line 1
     RightTextTopGap2 = 54 / 1080, -- from top to center of line 2
     RightTextTopGap3 = 89 / 1080, -- from top to center of line 3
     VisualizerLeftGap = 707 / 1920, -- from left side of screen to leftmost bin
     VisualizerWidth = 693 / 1920,
+
+    RatingEdgeToVisualizerBuffer = 32 / 1920,
+    RatingSideBuffer = 25 / 1920, -- an area of buffer to the left and right of the player rating text
+
     IconUpperGap = 36 / 1080,
     IconExitWidth = 47 / 1920,
     IconExitHeight = 36 / 1080,
@@ -57,6 +61,10 @@ local actuals = {
     RightTextTopGap3 = ratios.RightTextTopGap3 * SCREEN_HEIGHT,
     VisualizerLeftGap = ratios.VisualizerLeftGap * SCREEN_WIDTH,
     VisualizerWidth = ratios.VisualizerWidth * SCREEN_WIDTH,
+
+    RatingEdgeToVisualizerBuffer = ratios.RatingEdgeToVisualizerBuffer * SCREEN_WIDTH,
+    RatingSideBuffer = ratios.RatingSideBuffer * SCREEN_WIDTH,
+
     IconUpperGap = ratios.IconUpperGap * SCREEN_HEIGHT,
     IconExitWidth = ratios.IconExitWidth * SCREEN_WIDTH,
     IconExitHeight = ratios.IconExitHeight * SCREEN_HEIGHT,
@@ -178,6 +186,11 @@ t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
         self:x(actuals.AvatarWidth + actuals.RightTextLeftGap)
     end,
+    BeginCommand = function(self)
+        local lt = self:GetParent():GetChild("LeftText")
+        local longestWidth = math.max(lt:GetChild("NameRank"):GetZoomedWidth(), lt:GetChild("Playcount"):GetZoomedWidth(), lt:GetChild("Arrows"):GetZoomedWidth(), lt:GetChild("Playtime"):GetZoomedWidth())
+        self:x(actuals.AvatarWidth + longestWidth + actuals.RatingSideBuffer)
+    end,
 
     LoadFont("Common Normal") .. {
         Name = "Header",
@@ -285,6 +298,17 @@ if visEnabled then
         color = color("1,1,1,1"),
         onBarUpdate = function(self)
             -- hmm
+        end,
+        
+    } .. { 
+        BeginCommand = function(self)
+            local rt = self:GetParent():GetChild("RightText")
+            local x = rt:GetX()
+            local longestWidth = math.max(rt:GetChild("Header"):GetZoomedWidth(), rt:GetChild("OnlineRating"):GetZoomedWidth(), rt:GetChild("OfflineRating"):GetZoomedWidth())
+            x = x + longestWidth + actuals.RatingEdgeToVisualizerBuffer
+            local newVisualizerWidth = actuals.VisualizerWidth + (actuals.VisualizerLeftGap - x)
+            self:x(x)
+            self:playcommand("ResetWidth", {width = newVisualizerWidth})
         end
     }
 end

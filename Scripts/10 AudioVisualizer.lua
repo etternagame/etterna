@@ -168,6 +168,12 @@ function audioVisualizer:new(params)
                         InitCommand = function(self)
                             (frame.bars)[i - 2] = self
                             self:valign(1):x(pos * (i - 2)):diffuse(color):zoomtowidth(width)
+                        end,
+                        ResetWidthCommand = function(self, given)
+                            local width = (given.width - intCount * params.spacing) / (#freqIntervals - 2)
+                            local pos = width + params.spacing
+                            self:x(pos * (i-2))
+                            self:zoomtowidth(width)
                         end
                     }
                 end)(params)
