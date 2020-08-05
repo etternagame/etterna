@@ -188,7 +188,7 @@ t[#t+1] = Def.ActorFrame {
     end,
     BeginCommand = function(self)
         local lt = self:GetParent():GetChild("LeftText")
-        local longestWidth = math.max(lt:GetChild("NameRank"):GetZoomedWidth(), lt:GetChild("Playcount"):GetZoomedWidth(), lt:GetChild("Arrows"):GetZoomedWidth(), lt:GetChild("Playtime"):GetZoomedWidth())
+        local longestWidth = getLargestChildWidth(lt)
         self:x(actuals.AvatarWidth + longestWidth + actuals.RatingSideBuffer)
     end,
 
@@ -298,13 +298,12 @@ if visEnabled then
         color = color("1,1,1,1"),
         onBarUpdate = function(self)
             -- hmm
-        end,
-        
-    } .. { 
+        end
+    } .. {
         BeginCommand = function(self)
             local rt = self:GetParent():GetChild("RightText")
             local x = rt:GetX()
-            local longestWidth = math.max(rt:GetChild("Header"):GetZoomedWidth(), rt:GetChild("OnlineRating"):GetZoomedWidth(), rt:GetChild("OfflineRating"):GetZoomedWidth())
+            local longestWidth = getLargestChildWidth(rt)
             x = x + longestWidth + actuals.RatingEdgeToVisualizerBuffer
             local newVisualizerWidth = actuals.VisualizerWidth + (actuals.VisualizerLeftGap - x)
             self:x(x)
