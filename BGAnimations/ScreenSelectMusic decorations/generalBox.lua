@@ -22,9 +22,9 @@ local actuals = {
 local choiceNames = {
     "General",
     "Scores",
-    "Preview",
     "Tags",
     "Goals",
+    "Preview",
     "",
     "",
 }
