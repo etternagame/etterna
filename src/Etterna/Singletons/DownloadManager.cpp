@@ -1262,7 +1262,7 @@ DownloadManager::ForceUploadAllScores()
 	if (not_already_uploading) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
-		LOG->Trace("Starting sequential upload of %d scores",
+		LOG->Trace("Starting sequential upload of %lu scores",
 				   this->ScoreUploadSequentialQueue.size());
 		uploadSequentially();
 	}
