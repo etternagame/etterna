@@ -482,9 +482,7 @@ function MusicWheel:new(params)
             if songOrPack.GetAllSteps then -- song
                 crossedGroupBorder = true
                 -- Start song
-                -- TODO: Add C++
-                -- SCREENMAN:GetTopScreen():StartSong(songOrPack)
-                -- steps???
+                SCREENMAN:GetTopScreen():SelectCurrent()
                 MESSAGEMAN:Broadcast("SelectedSong")
             else
                 local group = songOrPack
