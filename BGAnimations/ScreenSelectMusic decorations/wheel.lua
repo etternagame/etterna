@@ -180,6 +180,8 @@ local function songActorBuilder()
                 -- y is already set: relative to "center"
                 self:x(-actuals.Width / 2):halign(0)
                 self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
+                -- dont play movies because they lag the wheel so much like wow please dont ever use those (for now)
+                self:SetDecodeMovie(false)
             end,
             BeginCommand = function(self)
                 self:GetParent().Banner = self
@@ -241,6 +243,8 @@ local function groupActorBuilder()
                 -- y is already set: relative to "center"
                 self:x(-actuals.Width / 2):halign(0)
                 self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
+                -- dont play movies because they lag the wheel so much like wow please dont ever use those (for now)
+                self:SetDecodeMovie(false)
             end,
             BeginCommand = function(self)
                 self:GetParent().Banner = self
