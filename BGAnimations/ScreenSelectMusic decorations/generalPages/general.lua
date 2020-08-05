@@ -6,9 +6,9 @@ local t = Def.ActorFrame {
         
         -- update tag data
         currentTags = {"","","",""}
-        if params.song and GAMESTATE:GetCurrentSteps() then
+        if params.song and params.steps then
             local playerTags = tags:get_data().playerTags
-            local ck = GAMESTATE:GetCurrentSteps():GetChartKey()
+            local ck = params.steps:GetChartKey()
             for k,v in pairs(playerTags) do
                 if playerTags[k][ck] then
                     currentTags[#currentTags + 1] = k
@@ -21,7 +21,7 @@ local t = Def.ActorFrame {
         displayScore = GetDisplayScore()
 
         -- cascade visual update to everything
-        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered})
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end
 }
 
@@ -137,9 +137,8 @@ local function createStatLines()
                     self:maxwidth(((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / 2) / mainTextSize - textzoomFudge)
                 end,
                 SetCommand = function(self, params)
-                    local steps = GAMESTATE:GetCurrentSteps()
-                    if steps then
-                        self:settext(steps:GetRelevantRadars()[i])
+                    if params.steps then
+                        self:settext(params.steps:GetRelevantRadars()[i])
                     else
                         self:settext("")
                     end
@@ -172,9 +171,8 @@ local function createTopSkillsetLines()
                     self:settext("Jumpstream")
                 end,
                 SetCommand = function(self, params)
-                    local steps = GAMESTATE:GetCurrentSteps()
-                    if steps then
-                        local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), i)
+                    if params.steps then
+                        local ss = params.steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), i)
                         self:settext(ss)
                     else
                         self:settext("")
@@ -220,10 +218,9 @@ local function createMSDLines()
                 SetCommand = function(self, params)
                     -- i == 1 is Average NPS, otherwise are skillsets
                     if i == 1 then
-                        local steps = GAMESTATE:GetCurrentSteps()
-                        if steps then
+                        if params.steps then
                             -- notecount / length * rate
-                            local avg = steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes") / GetPlayableTime() * getCurRateValue()
+                            local avg = params.steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes") / GetPlayableTime() * getCurRateValue()
                             self:settextf("%05.2f", avg)
                             self:diffuse(byNPS(avg))
                         else
@@ -233,9 +230,8 @@ local function createMSDLines()
                         end
                     else
                         if params.song then
-                            local steps = GAMESTATE:GetCurrentSteps()
-                            if steps then
-                                local val = steps:GetMSD(getCurRateValue(), i)
+                            if params.steps then
+                                local val = params.steps:GetMSD(getCurRateValue(), i)
                                 self:settextf("%05.2f", val)
                                 self:diffuse(byMSD(val))
                             else
@@ -272,8 +268,7 @@ local function createTagDisplays()
                 self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftTextColumn1LabelsMargin - actuals.LeftTextColumn2Margin) / mainTextSize - textzoomFudge)
             end,
             SetCommand = function(self, params)
-                local steps = GAMESTATE:GetCurrentSteps()
-                if steps then
+                if params.steps then
                     if currentTags[i] then
                         self:settext(currentTags[i])
                     end
@@ -318,17 +313,16 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:settext("")
     end,
     SetCommand = function(self, params)
-        local steps = GAMESTATE:GetCurrentSteps()
-        if steps then
-            local stype = steps:GetStepsType()
+        if params.steps then
+            local stype = params.steps:GetStepsType()
             if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
-                local meter = steps:GetMSD(getCurRateValue(), 1)
+                local meter = params.steps:GetMSD(getCurRateValue(), 1)
                 self:settextf("%05.2f", meter)
                 self:diffuse(byMSD(meter))
             else
                 -- use manual diff for non dance/solo
-                self:settextf("%05.2f", steps:GetMeter())
-                self:diffuse(byMSD(steps:GetMeter()))
+                self:settextf("%05.2f", params.steps:GetMeter())
+                self:diffuse(byMSD(params.steps:GetMeter()))
             end
         else
             self:settext("")

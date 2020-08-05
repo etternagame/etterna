@@ -2,7 +2,7 @@ local t = Def.ActorFrame {
     Name = "UnderlayFile",
     WheelSettledMessageCommand = function(self, params)
         -- cascade visual update to everything
-        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered})
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end
 }
 

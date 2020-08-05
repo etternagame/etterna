@@ -7,7 +7,7 @@ local t = Def.ActorFrame {
         displayScore = GetDisplayScore()
 
         -- cascade visual update to everything
-        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered})
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end
 }
 
@@ -176,8 +176,7 @@ t[#t+1] = Def.ActorFrame {
             self:settext("55:55")
         end,
         SetCommand = function(self, params)
-            local steps = GAMESTATE:GetCurrentSteps()
-            if steps then
+            if params.steps then
                 local len = GetPlayableTime()
                 self:settext(SecondsToMMSS(len))
                 self:diffuse(byMusicLength(len))
@@ -207,10 +206,9 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth(actuals.BPMWidth / textsize - textzoomFudge)
         end,
         SetCommand = function(self, params)
-            local steps = GAMESTATE:GetCurrentSteps()
             -- it appears that SetFromSteps is broken...
             -- note to self.
-            if steps then
+            if params.steps then
                 self:visible(true)
                 self:SetFromSong(params.song)
             else
