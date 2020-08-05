@@ -19,3 +19,14 @@ function getLargestChildWidth(actorFrame)
 
     return largest
 end
+
+-- recursively print the names of all children of this actorframe
+function nameAllChildren(actorFrame)
+    local s = actorFrame:GetName()
+    actorFrame:RunCommandsRecursively(
+        function(self)
+            s = s .. "\n" .. self:GetName()
+        end
+    )
+    ms.ok(s)
+end
