@@ -94,6 +94,7 @@ target_link_libraries(Etterna PRIVATE stb)
 target_link_libraries(Etterna PRIVATE libcurl)
 target_link_libraries(Etterna PRIVATE picosha2)
 target_link_libraries(Etterna PRIVATE fmt::fmt)
+target_link_libraries(Etterna PRIVATE plog::plog)
 
 # OS Specific Initialization
 if(WIN32)
