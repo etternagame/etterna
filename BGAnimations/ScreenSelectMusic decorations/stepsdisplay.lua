@@ -9,7 +9,9 @@ local ratios = {
 	DiffItemHeight = 40 / 1080,
 	DiffFrameUpperGap = 257 / 1080, -- from top edge to top edge
     --DiffFrameLeftGap = 429 / 1920, -- this number is provided by the parent at this time
-    DiffFrameRightGap = 11 / 1920,
+	DiffFrameRightGap = 11 / 1920,
+	DiffItemGlowVerticalSpan = 14 / 1080, -- measurement of the visible portion of the glow, doubled
+	DiffItemGlowHorizontalSpan = 14 / 1920, -- same as above
 }
 
 local actuals = {
@@ -17,7 +19,9 @@ local actuals = {
 	DiffItemHeight = ratios.DiffItemHeight * SCREEN_HEIGHT,
 	DiffFrameUpperGap = ratios.DiffFrameUpperGap * SCREEN_HEIGHT,
     --DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH, -- this number is provided by the parent at this time
-    DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
+	DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
+	DiffItemGlowVerticalSpan = ratios.DiffItemGlowVerticalSpan * SCREEN_HEIGHT,
+	DiffItemGlowHorizontalSpan = ratios.DiffItemGlowHorizontalSpan * SCREEN_WIDTH,
 }
 
 -- scoping magic
@@ -147,13 +151,14 @@ t[#t + 1] = sdr
 
 local center = math.ceil(numshown / 2)
 
-t[#t + 1] = Def.Quad {
+t[#t + 1] = Def.Sprite {
+	Texture = THEME:GetPathG("", "stepsdisplayGlow"),
 	Name = "Cursor",
 	InitCommand = function(self)
 		self:halign(0):valign(0)
-		self:y(actuals.DiffItemHeight)
-		self:zoomto(actuals.DiffItemWidth, 5)
-		self:diffusealpha(0.6)
+		self:y(-actuals.DiffItemGlowVerticalSpan / 2)
+		self:zoomto(actuals.DiffItemWidth + actuals.DiffItemGlowHorizontalSpan, actuals.DiffItemHeight + actuals.DiffItemGlowVerticalSpan)
+		self:diffusealpha(1)
 	end,
 	SetCommand = function(self, params)
 		for i = 1, 20 do
@@ -176,7 +181,9 @@ t[#t + 1] = Def.Quad {
 			displayindexoffset = #thesteps - numshown 
 		end
 
-		self:x(actuals.DiffItemWidth * (currentindex - 1) + actuals.DiffFrameRightGap * (currentindex - 1))
+		-- find the left edge of the desired item, consider item width and gap width
+		-- then offset by half the glow span (which is doubled for sizing)
+		self:x(actuals.DiffItemWidth * (currentindex - 1) + actuals.DiffFrameRightGap * (currentindex - 1) - actuals.DiffItemGlowHorizontalSpan / 2)
 		self:GetParent():GetChild("StepsRows"):queuecommand("UpdateStepsRows")
 	end
 }
