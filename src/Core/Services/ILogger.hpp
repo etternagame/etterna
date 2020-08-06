@@ -22,7 +22,7 @@ protected:
      * Severity Enum - Middle man between each logging backed
      * and their own severity terminology.
      */
-    enum Severity {TRACE, DEBUG, INFO, WARN, ERR, FATAL};
+    enum class Severity {TRACE, DEBUG, INFO, WARN, ERR, FATAL};
 
     /**
      * Implementations only need to implement this log function to send logs
