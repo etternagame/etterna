@@ -92,6 +92,8 @@ target_link_libraries(Etterna PRIVATE pcre)
 target_link_libraries(Etterna PRIVATE libmad)
 target_link_libraries(Etterna PRIVATE stb)
 target_link_libraries(Etterna PRIVATE libcurl)
+target_link_libraries(Etterna PRIVATE picosha2)
+target_link_libraries(Etterna PRIVATE fmt::fmt)
 
 # OS Specific Initialization
 if(WIN32)

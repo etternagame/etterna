@@ -45,6 +45,7 @@ add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
+add_subdirectory(fmt)
 
 ## Vorbis depends on Vorbis
 add_subdirectory(newogg)
