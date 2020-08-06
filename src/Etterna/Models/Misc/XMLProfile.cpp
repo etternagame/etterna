@@ -17,7 +17,6 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Core/Services/Locator.hpp"
 
 using std::string;
 
