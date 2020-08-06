@@ -13,7 +13,6 @@
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/InputFilter.h"
-#include "Core/Services/Locator.hpp"
 
 
 #include <algorithm>
