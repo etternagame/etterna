@@ -561,8 +561,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 	if (achieved) {
 		pNode->GetChildValue("TimeAchieved", s);
 		timeachieved.FromString(s);
-		pNode->GetChildValue("ScoreKey", s);
-		scorekey;
+		pNode->GetChildValue("ScoreKey", scorekey);
 	}
 
 	pNode->GetChildValue("Comment", comment);
