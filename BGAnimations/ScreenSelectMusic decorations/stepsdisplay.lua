@@ -70,7 +70,7 @@ local function stepsRows(i)
 					self:visible(true)
 					local diff = steps:GetDifficulty()
 					self:diffuse(getDifficultyColor(diff))
-					self:diffusealpha(0.4)
+					self:diffusealpha(1)
 				else 
 					self:visible(false)
 				end
@@ -87,8 +87,8 @@ local function stepsRows(i)
 				local steps = thesteps[i + displayindexoffset]
 				if steps then 
 					self:visible(true)
-					local diff = steps:GetDifficulty()
-					self:diffuse(byDifficulty(diff))					
+					self:diffuse(color("#111111"))
+					self:diffusealpha(0.2)
 				else 
 					self:visible(false)
 				end
