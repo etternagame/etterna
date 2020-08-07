@@ -165,6 +165,7 @@ function audioVisualizer:new(params)
                 (params.barBuilder or
                 function()
                     return Def.Quad {
+                        Name = "VisualizerBar_"..i-2,
                         InitCommand = function(self)
                             (frame.bars)[i - 2] = self
                             self:valign(1):x(pos * (i - 2)):diffuse(color):zoomtowidth(width)
