@@ -736,7 +736,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 	for (auto* song : inv) {
 		auto addsong = false;
 		for (auto currate = FILTERMAN->MaxFilterRate;
-			 currate > FILTERMAN->m_pPlayerState->wtFFF - .01F;
+			 currate > FILTERMAN->MinFilterRate - .01F;
 			 currate -= 0.1F) { /* Iterate over all possible rates.
 								 * The .01f delta is because floating points
 								 * don't like exact equivalency*/

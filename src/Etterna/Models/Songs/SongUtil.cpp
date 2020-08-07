@@ -69,7 +69,7 @@ SongUtil::GetSteps(const Song* pSong,
 			// explanation in MusicWheel::FilterBySkillsets
 			auto success = false;
 			for (auto currate = FILTERMAN->MaxFilterRate;
-				 currate > FILTERMAN->m_pPlayerState->wtFFF - .01f;
+				 currate > FILTERMAN->MinFilterRate - .01f;
 				 currate -= 0.1f) {
 				if (pSteps->MatchesFilter(currate + 0.001f)) {
 					success = true;
@@ -1040,7 +1040,9 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 }
 
 void
-SongUtil::GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut, bool filteringSteps)
+SongUtil::GetPlayableSteps(const Song* pSong,
+						   vector<Steps*>& vOut,
+						   bool filteringSteps)
 {
 	set<StepsType> vStepsType;
 	GetPlayableStepsTypes(pSong, vStepsType);
