@@ -30,3 +30,23 @@ function nameAllChildren(actorFrame)
     )
     ms.ok(s)
 end
+
+-- find the height and width while maintaining aspect ratio
+function getHWKeepAspectRatio(h, w, ratio)
+    local he = h / math.sqrt(ratio * ratio + 1)
+    local we = w / math.sqrt(1 / (ratio * ratio) + 1)
+
+    return he, we
+end
+
+-- string split, return a list given a string and a separator between items
+function strsplit(given, separator)
+    if sep == nil then
+        sep = "%s" -- whitespace
+    end
+    local t = {}
+    for str in string.gmatch(given, "([^"..separator.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
