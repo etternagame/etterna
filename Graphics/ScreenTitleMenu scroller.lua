@@ -1,17 +1,14 @@
 local gc = Var("GameCommand")
 
+local choiceTextZoom = 0.6
+
 return Def.ActorFrame {
-	LoadFont("Common Normal") ..
+	LoadFont("Common Large") ..
 		{
 			OnCommand = function(self)
 				self:halign(0)
+				self:zoom(choiceTextZoom)
 				self:settext(THEME:GetString(SCREENMAN:GetTopScreen():GetName(), gc:GetText()))
-			end,
-			GainFocusCommand = function(self)
-				self:zoom(1)
-			end,
-			LoseFocusCommand = function(self)
-				self:zoom(1)
 			end
 		}
 }
