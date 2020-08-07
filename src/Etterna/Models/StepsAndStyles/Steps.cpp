@@ -369,12 +369,11 @@ Steps::IsRecalcValid() -> bool
 }
 
 auto
-Steps::IsSkillsetHighest(Skillset skill, float rate) -> bool
+Steps::IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool
 {
 	auto sorted_skills = SortSkillsetsAtRate(rate, false);
 	return (sorted_skills[0].first == skill);
 }
-
 auto
 Steps::MatchesFilter(const float rate) -> bool
 {
@@ -397,7 +396,8 @@ Steps::MatchesFilter(const float rate) -> bool
 
 			if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
 				if (FILTERMAN->HighestSkillsetsOnly) {
-					if (!IsSkillsetHighest(static_cast<Skillset>(ss), rate) &&
+					if (!IsSkillsetHighestOfChart(static_cast<Skillset>(ss),
+												  rate) &&
 						ss < NUM_Skillset) { // The current skill is not
 											 // in highest in the chart
 						continue;

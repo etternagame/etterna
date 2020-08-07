@@ -1685,7 +1685,7 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 bool
 Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 {
-	return chart->IsSkillsetHighest(skill, rate);
+	return chart->IsSkillsetHighestOfChart(skill, rate);
 }
 
 bool
