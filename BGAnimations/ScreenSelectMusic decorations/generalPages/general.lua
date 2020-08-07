@@ -51,10 +51,10 @@ local ratios = {
     TagTextAllottedVerticalSpace = 42 / 1080, -- from top edge of top text to top edge of bottom text
 
     CDTitleRightGap = 5 / 1920, -- estimated right side gap for the cdtitle (restrict width)
-    CDTitleLeftGap = 203 / 1920, -- left edge to approximate left edge
+    CDTitleLeftGap = 190 / 1920, -- left edge to approximate left edge
     -- CDTitle width is VerticalDividerX - CDTitleRightGap - CDTitleLeftGap
     CDTitleUpperGap = 62 / 1080, -- top edge to approximate top edge
-    CDTitleAllowedHeight = 120 / 1080, -- approximated allowed height, from top edge to bottom edge
+    CDTitleAllowedHeight = 100 / 1080, -- approximated allowed height, from top edge to bottom edge
 }
 
 local actuals = {
