@@ -378,6 +378,7 @@ Steps::IsSkillsetHighest(Skillset skill, float rate) -> bool
 auto
 Steps::MatchesFilter(const float rate) -> bool
 {
+	// TODO: ADD SUPPORT FOR HighestDifficultyOnly
 	auto addchart = FILTERMAN->ExclusiveFilter;
 
 	/* The default behaviour of an exclusive filter is to accept
