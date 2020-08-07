@@ -117,6 +117,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(0):valign(0)
                 self:x(logoNameLeftGap + logoW)
                 self:zoom(nameTextSize)
+                self:maxwidth((separatorxpos - (logoNameLeftGap + logoW) - logoNameLeftGap) / nameTextSize)
                 self:settext("ETTERNA")
             end
         },
@@ -126,6 +127,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(0):valign(0)
                 self:xy(logoThemeNameLeftGap + logoW, logoThemeNameUpperGap)
                 self:zoom(themenameTextSize)
+                self:maxwidth((separatorxpos - (logoNameLeftGap + logoW) - logoThemeNameLeftGap) / themenameTextSize)
                 self:settext("ThemeName")
             end
         }
@@ -172,6 +174,21 @@ t[#t+1] = Def.ActorFrame {
             self:x(-selectorHeight)
             self:halign(0)
             self:zoomto(selectorWidth, selectorHeight)
+            self:queuecommand("UpdateWidth")
+        end,
+        UpdateWidthCommand = function(self)
+            -- the minimum width is going to be about 10% longer than the longest choice text
+            local widest = selectorWidth
+            for name, child in pairs(self:GetParent():GetFakeParent():GetChildren()) do
+                local w = child:GetChild("ScrollerText"):GetZoomedWidth()
+                if w > widest - (selectorHeight * 2) then
+                    widest = w + selectorHeight * 2
+                end
+            end
+            if widest ~= selectorWidth then
+                widest = widest * 1.1
+            end
+            self:zoomto(widest, selectorHeight)
         end
     },
     Def.Sprite {
