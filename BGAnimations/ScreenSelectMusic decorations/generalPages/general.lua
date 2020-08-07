@@ -49,6 +49,12 @@ local ratios = {
     -- right text also has allotted space but we will extrapolate from this number
     TagTextUpperGap = 479 / 1080, -- from top edge to top edge
     TagTextAllottedVerticalSpace = 42 / 1080, -- from top edge of top text to top edge of bottom text
+
+    CDTitleRightGap = 5 / 1920, -- estimated right side gap for the cdtitle (restrict width)
+    CDTitleLeftGap = 203 / 1920, -- left edge to approximate left edge
+    -- CDTitle width is VerticalDividerX - CDTitleRightGap - CDTitleLeftGap
+    CDTitleUpperGap = 62 / 1080, -- top edge to approximate top edge
+    CDTitleAllowedHeight = 120 / 1080, -- approximated allowed height, from top edge to bottom edge
 }
 
 local actuals = {
@@ -71,6 +77,10 @@ local actuals = {
     LeftTextAllottedVerticalSpace = ratios.LeftTextAllottedVerticalSpace * SCREEN_HEIGHT,
     TagTextUpperGap = ratios.TagTextUpperGap * SCREEN_HEIGHT,
     TagTextAllottedVerticalSpace = ratios.TagTextAllottedVerticalSpace * SCREEN_HEIGHT,
+    CDTitleRightGap = ratios.CDTitleRightGap * SCREEN_WIDTH,
+    CDTitleLeftGap = ratios.CDTitleLeftGap * SCREEN_WIDTH,
+    CDTitleUpperGap = ratios.CDTitleUpperGap * SCREEN_HEIGHT,
+    CDTitleAllowedHeight = ratios.CDTitleAllowedHeight * SCREEN_HEIGHT,
 }
 
 -- scoping magic
@@ -360,6 +370,52 @@ t[#t+1] = LoadFont("Common Normal") .. {
             self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
         else
             self:settext("")
+        end
+    end
+}
+
+t[#t+1] = Def.Sprite {
+    Name = "CDTitle",
+    InitCommand = function(self)
+        -- lets... avoid aligning this.
+        -- we want to try to avoid moving the cdtitle a lot
+        -- so find the center position of the measure coordinates
+        local leftEdge = actuals.CDTitleLeftGap
+        local rightEdge = actuals.VerticalDividerLeftGap - actuals.CDTitleRightGap
+        local bottomEdge = actuals.CDTitleUpperGap + actuals.CDTitleAllowedHeight
+        local topEdge = actuals.CDTitleUpperGap
+        local cX = (leftEdge + rightEdge) / 2
+        local cY = (bottomEdge + topEdge) / 2
+        self:xy(cX, cY)
+    end,
+    SetCommand = function(self, params)
+        self:finishtweening()
+        if params.song then
+            if params.song:HasCDTitle() then
+                self:diffusealpha(1)
+                self:Load(params.song:GetCDTitlePath())
+
+                local h = self:GetHeight()
+                local w = self:GetWidth()
+                local allowedWidth = actuals.VerticalDividerLeftGap - actuals.CDTitleRightGap - actuals.CDTitleLeftGap
+                if h >= actuals.CDTitleAllowedHeight and w >= allowedWidth then
+                    if h * (allowedWidth / actuals.CDTitleAllowedHeight) >= w then
+                        self:zoom(actuals.CDTitleAllowedHeight / h)
+                    else
+                        self:zoom(allowedWidth / w)
+                    end
+                elseif h >= actuals.CDTitleAllowedHeight then
+                    self:zoom(actuals.CDTitleAllowedHeight / h)
+                elseif w >= allowedWidth then
+                    self:zoom(allowedWidth / w)
+                else
+                    self:zoom(1)
+                end
+            else
+                self:diffusealpha(0)
+            end
+        else
+            self:diffusealpha(0)
         end
     end
 }
