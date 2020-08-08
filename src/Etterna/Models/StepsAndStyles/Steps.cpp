@@ -374,67 +374,6 @@ Steps::IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool
 	auto sorted_skills = SortSkillsetsAtRate(rate, false);
 	return (sorted_skills[0].first == skill);
 }
-auto
-Steps::MatchesFilter(const float rate) -> bool
-{
-	// TODO: ADD SUPPORT FOR HighestDifficultyOnly
-	auto addchart = FILTERMAN->ExclusiveFilter;
-
-	/* The default behaviour of an exclusive filter is to accept
-	 * by default, (i.e. addsong=true) and reject if any
-	 * filters fail. The default behaviour of a non-exclusive filter is
-	 * the exact opposite: reject by default (i.e.
-	 * addsong=false), and accept if any filters match.
-	 */
-
-	for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
-		// Iterate over all skillsets, up to and
-		// including the placeholder NUM_Skillset
-		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
-		if (lb > 0.F || ub > 0.F) { // If either bound is active, continue
-
-			if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
-				if (FILTERMAN->HighestSkillsetsOnly) {
-					if (!IsSkillsetHighestOfChart(static_cast<Skillset>(ss),
-												  rate) &&
-						ss < NUM_Skillset) { // The current skill is not
-											 // in highest in the chart
-						continue;
-					}
-				}
-			}
-			float val;
-			if (ss < NUM_Skillset) {
-				val = GetMSD(rate, ss);
-			} else {
-				// If we are on the placeholder skillset, look at song
-				// length instead of a skill
-				val = GetLengthSeconds(rate);
-			}
-			if (FILTERMAN->ExclusiveFilter) {
-				/* Our behaviour is to accept by default,
-				 * but reject if any filters don't match.*/
-				if ((val < lb && lb > 0.F) || (val > ub && ub > 0.F)) {
-					/* If we're below the lower bound and it's set,
-					 * or above the upper bound and it's set*/
-					addchart = false;
-					break;
-				}
-			} else { // Non-Exclusive Filter
-				/* Our behaviour is to reject by default,
-				 * but accept if any filters match.*/
-				if ((val > lb || !(lb > 0.F)) && (val < ub || !(ub > 0.F))) {
-					/* If we're above the lower bound or it's not set
-					 * and also below the upper bound or it isn't set*/
-					addchart = true;
-					break;
-				}
-			}
-		}
-	}
-	return addchart;
-}
 
 auto
 Steps::GetMSD(float rate, Skillset ss) const -> float

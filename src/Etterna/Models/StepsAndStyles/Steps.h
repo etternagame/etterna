@@ -268,7 +268,6 @@ class Steps
 		return debugstrings;
 	}
 	auto IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool;
-	auto MatchesFilter(float rate) -> bool;
 
   private:
 	std::string ChartKey = "";
