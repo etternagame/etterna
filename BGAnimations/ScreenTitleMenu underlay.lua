@@ -40,7 +40,6 @@ local function bgCheckerBoard()
 end
 t[#t+1] = bgCheckerBoard()
 
-
 local gradientwidth = 1104 / 1920 * SCREEN_WIDTH
 local gradientheight = SCREEN_HEIGHT
 local separatorxpos = 814 / 1920 * SCREEN_WIDTH -- basically the top right edge of the gradient
@@ -57,8 +56,12 @@ local logosourceWidth = 102
 local logoratio = math.min(1920 / SCREEN_WIDTH, 1080 / SCREEN_HEIGHT)
 local logoH, logoW = getHWKeepAspectRatio(logosourceHeight, logosourceWidth, logosourceWidth / logosourceWidth)
 
+local versionNumberLeftGap = 5 / 1920 * SCREEN_WIDTH
+local versionNumberUpperGap = 980 / 1080 * SCREEN_HEIGHT
+
 local nameTextSize = 0.9
 local themenameTextSize = 0.8
+local versionTextSize = 0.5
 local animationSeconds = 0.5 -- the intro animation
 
 t[#t+1] = Def.ActorFrame {
@@ -136,6 +139,15 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth((separatorxpos - (logoNameLeftGap + logoW) - logoThemeNameLeftGap) / themenameTextSize)
                 self:settext("ThemeName")
             end
+        },
+        LoadFont("Menu Normal") .. {
+            Name = "VersionNumber",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(versionNumberLeftGap, versionNumberUpperGap)
+                self:zoom(versionTextSize)
+                self:settext("V "..GAMESTATE:GetEtternaVersion())
+            end
         }
     }
 }
@@ -209,6 +221,5 @@ t[#t+1] = Def.ActorFrame {
         end
     }
 }
-
 
 return t
