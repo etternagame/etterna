@@ -12,7 +12,6 @@ t[#t+1] = Def.Sprite {
         self:valign(0):halign(0)
         self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
         self:diffusealpha(0)
-        self:queuecommand("Set")
     end,
     SetCommand = function(self, params)
         self:finishtweening()
