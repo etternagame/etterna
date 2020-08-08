@@ -1,4 +1,10 @@
-local t = Def.ActorFrame {Name = "UnderlayFile"}
+local t = Def.ActorFrame {
+    Name = "UnderlayFile",
+    OnCommand = function(self)
+        -- go
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong()})
+    end
+}
 
 t[#t+1] = Def.Sprite {
     Name = "BG",
