@@ -7,6 +7,7 @@ local t = Def.ActorFrame {
 }
 
 t[#t+1] = Def.Sprite {
+    Name = "BG",
     InitCommand = function(self)
         self:valign(0):halign(0)
         self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
