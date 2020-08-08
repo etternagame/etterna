@@ -45,7 +45,7 @@ local logoFrameUpperGap = 39 / 1080 * SCREEN_HEIGHT -- from top edge to logo
 local logoFrameLeftGap = 61 / 1920 * SCREEN_WIDTH -- from left edge to logo
 local logoNameLeftGap = 33 / 1920 * SCREEN_WIDTH -- from end of logo to left of text
 local logoThemeNameLeftGap = 28 / 1920 * SCREEN_WIDTH -- from end of logo to left of text
-local logoThemeNameUpperGap = 60 / 1080 * SCREEN_HEIGHT -- from top of name text to top of theme text
+local logoThemeNameUpperGap = 67 / 1080 * SCREEN_HEIGHT -- from top of name text to top of theme text
 local logosourceHeight = 133
 local logosourceWidth = 102
 local logoratio = math.min(1920 / SCREEN_WIDTH, 1080 / SCREEN_HEIGHT)
@@ -137,7 +137,8 @@ t[#t+1] = Def.ActorFrame {
 
 
 
-local scrollerX = 102 / 1920 * SCREEN_WIDTH
+local scrollerX = 99 / 1920 * SCREEN_WIDTH
+local scrollerY = 440 / 1920 * SCREEN_HEIGHT
 local selectorHeight = 37 / 1080 * SCREEN_HEIGHT
 local selectorWidth = 574 / 1920 * SCREEN_WIDTH
 local choiceTable = strsplit(THEME:GetMetric("ScreenTitleMenu", "ChoiceNames"), ",")
@@ -157,6 +158,7 @@ t[#t+1] = Def.ActorFrame {
         -- we set it to start off screen using the metrics
         scr:smooth(animationSeconds)
         scr:x(scrollerX)
+		scr:y(scrollerY)        
     end,
     MenuSelectionChangedMessageCommand = function(self)
         local i = self:GetFakeParent():GetDestinationItem() + 1
