@@ -84,10 +84,12 @@ local function wheelItemBase()
             HeaderOnCommand = function(self, params)
                 self:smooth(0.05)
                 self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
+            				self:diffuse(color("#111111"))    
             end,
             HeaderOffCommand = function(self)
                 self:smooth(0.05)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
+            				self:diffusealpha(0.6)    
             end
         },
         Def.Quad { 
