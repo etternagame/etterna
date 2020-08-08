@@ -18,21 +18,27 @@ local adjustedsize = 200 / 1080 * SCREEN_HEIGHT
 local verticalcount = math.ceil(SCREEN_HEIGHT / adjustedsize)
 local horizontalcount = math.ceil(SCREEN_WIDTH / adjustedsize)
 
-for i = 1,verticalcount do
-    for j = 1, horizontalcount do
-        t[#t+1] = Def.Sprite {
-            Name = "BGCheckerboard_"..i.."_"..j,
-            Texture = THEME:GetPathG("", "bg-pattern"),
-            InitCommand = function(self)
-                self:halign(0):valign(0)
-                self:xy((j-1) * adjustedsize, (i-1) * adjustedsize)
-                self:zoomto(adjustedsize, adjustedsize)
-            end
-        }
+-- generate the bg checkerboard as a frame
+local function bgCheckerBoard()
+    local d = Def.ActorFrame {Name = "BGCheckerboardFrame"}
+
+    for i = 1,verticalcount do
+        for j = 1, horizontalcount do
+            d[#d+1] = Def.Sprite {
+                Name = "BGCheckerboard_"..i.."_"..j,
+                Texture = THEME:GetPathG("", "bg-pattern"),
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy((j-1) * adjustedsize, (i-1) * adjustedsize)
+                    self:zoomto(adjustedsize, adjustedsize)
+                end
+            }
+        end
     end
+
+    return d
 end
-
-
+t[#t+1] = bgCheckerBoard()
 
 
 local gradientwidth = 1104 / 1920 * SCREEN_WIDTH
