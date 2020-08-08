@@ -158,7 +158,7 @@ t[#t+1] = Def.ActorFrame {
         -- we set it to start off screen using the metrics
         scr:smooth(animationSeconds)
         scr:x(scrollerX)
-		scr:y(scrollerY)        
+	scr:y(scrollerY)        
     end,
     MenuSelectionChangedMessageCommand = function(self)
         local i = self:GetFakeParent():GetDestinationItem() + 1
