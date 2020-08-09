@@ -11,12 +11,12 @@ t[#t+1] = Def.Quad {
 
 -- the grid image we are using is 200x200
 -- determine how many images we need to load to cover the screen
-local imageheight = 200 -- unused
-local imagewidth = 200 -- unused
 local adjustedsize = 200 / 1080 * SCREEN_HEIGHT
 
-local verticalcount = math.ceil(SCREEN_HEIGHT / adjustedsize)
-local horizontalcount = math.ceil(SCREEN_WIDTH / adjustedsize)
+-- adding 1 to these counts for the moving background stuff, give us more room to work with
+local verticalcount = math.ceil(SCREEN_HEIGHT / adjustedsize) + 1
+local horizontalcount = math.ceil(SCREEN_WIDTH / adjustedsize) + 1
+local checkerboardAnimationSeconds = 7
 
 -- generate the bg checkerboard as a frame
 local function bgCheckerBoard()
@@ -38,7 +38,18 @@ local function bgCheckerBoard()
 
     return d
 end
-t[#t+1] = bgCheckerBoard()
+t[#t+1] = bgCheckerBoard() .. {
+    -- These extra commands will move the checkerboard diagonally up left infinitely
+    BeginCommand = function(self)
+        self:queuecommand("Animate")
+    end,
+    AnimateCommand = function(self)
+        self:xy(0,0)
+        self:linear(checkerboardAnimationSeconds)
+        self:xy(-adjustedsize,-adjustedsize)
+        self:queuecommand("Animate")
+    end
+}
 
 local gradientwidth = 1104 / 1920 * SCREEN_WIDTH
 local gradientheight = SCREEN_HEIGHT
@@ -176,7 +187,7 @@ t[#t+1] = Def.ActorFrame {
         -- we set it to start off screen using the metrics
         scr:smooth(animationSeconds)
         scr:x(scrollerX)
-        scr:y(scrollerY)        
+        scr:y(scrollerY)
     end,
     MenuSelectionChangedMessageCommand = function(self)
         local i = self:GetFakeParent():GetDestinationItem() + 1
