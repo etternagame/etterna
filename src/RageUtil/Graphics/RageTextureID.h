@@ -73,13 +73,11 @@ struct RageTextureID
 inline auto
 operator==(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 {
-#define EQUAL(a) (lhs.a == rhs.a)
-	return EQUAL(filename) && EQUAL(iMaxSize) && EQUAL(bMipMaps) &&
-		   EQUAL(iAlphaBits) && EQUAL(iGrayscaleBits) && EQUAL(iColorDepth) &&
-		   EQUAL(bDither) && EQUAL(bStretch) && EQUAL(bHotPinkColorKey) &&
-		   EQUAL(AdditionalTextureHints);
-	// EQUAL(Policy); // don't do this
-#undef EQUAL
+	return lhs.filename == rhs.filename && lhs.iMaxSize == rhs.iMaxSize && lhs.bMipMaps == rhs.bMipMaps &&
+		   lhs.iAlphaBits == rhs.iAlphaBits && lhs.iGrayscaleBits == rhs.iGrayscaleBits && lhs.iColorDepth == rhs.iColorDepth &&
+		   lhs.bDither == rhs.bDither && lhs.bStretch == rhs.bStretch && lhs.bHotPinkColorKey == rhs.bHotPinkColorKey &&
+		   lhs.AdditionalTextureHints == rhs.AdditionalTextureHints;
+	// && lhs.Policy == rhs.Policy; // don't do this
 }
 
 inline auto
