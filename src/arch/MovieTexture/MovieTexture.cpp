@@ -87,7 +87,7 @@ static LocalizedString MOVIE_DRIVERS_EMPTY("Arch",
 static LocalizedString COULDNT_CREATE_MOVIE_DRIVER(
   "Arch",
   "Couldn't create a movie driver.");
-RageMovieTexture*
+std::shared_ptr<RageMovieTexture>
 RageMovieTexture::Create(const RageTextureID& ID)
 {
 	DumpAVIDebugInfo(ID.filename);
@@ -102,7 +102,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 	if (DriversToTry.empty())
 		RageException::Throw("%s", MOVIE_DRIVERS_EMPTY.GetValue().c_str());
 
-	RageMovieTexture* ret = nullptr;
+	std::shared_ptr<RageMovieTexture> ret;
 
 	for (auto& Driver : DriversToTry) {
 		LOG->Trace("Initializing driver: %s", Driver.c_str());
@@ -125,7 +125,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 		if (ret == nullptr) {
 			LOG->Trace(
 			  "Couldn't load driver %s: %s", Driver.c_str(), sError.c_str());
-			SAFE_DELETE(ret);
+			ret.reset();
 			continue;
 		}
 		LOG->Trace("Created movie texture \"%s\" with driver \"%s\"",

@@ -785,10 +785,9 @@ RageDisplay_Legacy::UseOffscreenRenderTarget()
 		// (not GC'd yet). If it exists and we try to recreate
 		// it, we'll get an error
 		if (TEXTUREMAN->IsTextureRegistered(id)) {
-			offscreenRenderTarget = static_cast<RageTextureRenderTarget*>(
-			  TEXTUREMAN->LoadTexture(id));
+			offscreenRenderTarget = std::static_pointer_cast<RageTextureRenderTarget>(TEXTUREMAN->LoadTexture(id));
 		} else {
-			offscreenRenderTarget = new RageTextureRenderTarget(id, param);
+			offscreenRenderTarget = std::make_shared<RageTextureRenderTarget>(id, param);
 			TEXTUREMAN->RegisterTexture(id, offscreenRenderTarget);
 		}
 	}

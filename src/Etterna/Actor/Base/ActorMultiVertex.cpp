@@ -119,7 +119,7 @@ ActorMultiVertex::LoadFromNode(const XNode* Node)
 }
 
 void
-ActorMultiVertex::SetTexture(RageTexture* Texture)
+ActorMultiVertex::SetTexture(std::shared_ptr<RageTexture> Texture)
 {
 	if (_Texture != Texture) {
 		UnloadTexture();
@@ -130,7 +130,7 @@ ActorMultiVertex::SetTexture(RageTexture* Texture)
 void
 ActorMultiVertex::LoadFromTexture(const RageTextureID& ID)
 {
-	RageTexture* Texture = nullptr;
+	std::shared_ptr<RageTexture> Texture;
 	if ((_Texture != nullptr) && _Texture->GetID() == ID) {
 		return;
 	}
@@ -1011,7 +1011,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	static int AddState(T* p, lua_State* L)
 	{
 		ActorMultiVertex::State s;
-		FillStateFromLua(L, s, p->GetTexture(), 1);
+		FillStateFromLua(L, s, p->GetTexture().get(), 1);
 		p->AddState(s);
 		COMMON_RETURN_SELF;
 	}
@@ -1040,7 +1040,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	}
 	static int GetStateData(T* p, lua_State* L)
 	{
-		auto* const tex = p->GetTexture();
+		auto const tex = p->GetTexture();
 		if (tex == nullptr) {
 			luaL_error(L, "The texture must be set before adding states.");
 		}
@@ -1067,7 +1067,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	static int SetStateData(T* p, lua_State* L)
 	{
 		auto& state = p->GetStateData(ValidStateIndex(p, L, 1));
-		FillStateFromLua(L, state, p->GetTexture(), 2);
+		FillStateFromLua(L, state, p->GetTexture().get(), 2);
 		COMMON_RETURN_SELF;
 	}
 	static int SetStateProperties(T* p, lua_State* L)
@@ -1075,7 +1075,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		if (!lua_istable(L, 1)) {
 			luaL_error(L, "The states must be inside a table.");
 		}
-		auto* const tex = p->GetTexture();
+		auto const tex = p->GetTexture();
 		if (tex == nullptr) {
 			luaL_error(L, "The texture must be set before adding states.");
 		}
@@ -1084,7 +1084,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		new_states.resize(num_states);
 		for (size_t i = 0; i < num_states; ++i) {
 			lua_rawgeti(L, 1, i + 1);
-			FillStateFromLua(L, new_states[i], tex, -1);
+			FillStateFromLua(L, new_states[i], tex.get(), -1);
 			lua_pop(L, 1);
 		}
 		p->SetStateProperties(new_states);
@@ -1148,14 +1148,15 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 
 	static int SetTexture(T* p, lua_State* L)
 	{
-		auto* Texture = Luna<RageTexture>::check(L, 1);
-		Texture = TEXTUREMAN->CopyTexture(Texture);
-		p->SetTexture(Texture);
+		auto pTexture = Luna<RageTexture>::check(L, 1);
+		std::shared_ptr<RageTexture> rt(pTexture);
+		rt = TEXTUREMAN->CopyTexture(rt);
+		p->SetTexture(rt);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		auto* texture = p->GetTexture();
+		auto texture = p->GetTexture();
 		if (texture != nullptr) {
 			texture->PushSelf(L);
 		} else {
