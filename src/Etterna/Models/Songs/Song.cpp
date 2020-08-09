@@ -1638,6 +1638,24 @@ Song::GetChartsOfCurrentGameMode() const
 	return steps;
 }
 
+std::vector<Steps*>
+Song::GetChartsMatchingFilter() const
+{
+	std::vector<Steps*> charts = GetChartsOfCurrentGameMode();
+	std::vector<Steps*> matches;
+	for (auto& i : charts) {
+		for (auto currate = FILTERMAN->MaxFilterRate;
+			 currate > FILTERMAN->MinFilterRate - .01F;
+			 currate -= 0.1F) { /* Iterate over all possible rates.
+								 * The .01f delta is because floating points
+								 * don't like exact equivalency*/
+			if (i->MatchesFilter(currate))
+				matches.push_back(i);
+		}
+	}
+	return matches;
+}
+
 float
 Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 {
@@ -2305,6 +2323,11 @@ class LunaSong : public Luna<Song>
 		LuaHelpers::CreateTableFromArray(p->GetChartsOfCurrentGameMode(), L);
 		return 1;
 	}
+	static int GetChartsMatchingFilter(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetChartsMatchingFilter(), L);
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2371,6 +2394,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(ReloadFromSongDir);
 		ADD_METHOD(PlaySampleMusicExtended);
 		ADD_METHOD(GetChartsOfCurrentGameMode);
+		ADD_METHOD(GetChartsMatchingFilter);
 	}
 };
 

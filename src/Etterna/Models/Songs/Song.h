@@ -474,6 +474,7 @@ class Song
 	/** @brief Get the steps of all types within the current game mode */
 	[[nodiscard]] auto GetChartsOfCurrentGameMode() const
 	  -> std::vector<Steps*>;
+	[[nodiscard]] auto GetChartsMatchingFilter() const -> std::vector<Steps*>;
 	[[nodiscard]] auto HasEdits(StepsType st) const -> bool;
 
 	auto IsFavorited() const -> bool { return isfavorited; }
