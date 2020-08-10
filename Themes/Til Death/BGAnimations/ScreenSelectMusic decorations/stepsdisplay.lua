@@ -40,7 +40,7 @@ local sd =
 	CurrentSongChangedMessageCommand = function(self, song)
 		local song = song.ptr
 		if song then 
-			thesteps = song:GetChartsOfCurrentGameMode()
+			thesteps = song:GetChartsMatchingFilter()
 			self:playcommand("UpdateStepsRows")
 		else 
 			self:playcommand("Off")
