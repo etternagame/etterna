@@ -1642,6 +1642,8 @@ std::vector<Steps*>
 Song::GetChartsMatchingFilter() const
 {
 	std::vector<Steps*> charts = GetChartsOfCurrentGameMode();
+	if (!FILTERMAN->AnyActiveFilter())
+		return charts;
 	std::vector<Steps*> matches;
 	for (auto& i : charts) {
 		for (auto currate = FILTERMAN->MaxFilterRate;
