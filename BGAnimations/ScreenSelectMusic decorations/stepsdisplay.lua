@@ -161,8 +161,8 @@ t[#t + 1] = Def.Sprite {
 		self:diffusealpha(1)
 	end,
 	SetCommand = function(self, params)
-		for i = 1, 20 do
-			if thesteps and thesteps[i] and thesteps[i] == params.steps then
+		for i, chart in ipairs(thesteps) do
+			if chart == params.steps then
 				currentindex = i
 				break
 			end
@@ -183,7 +183,12 @@ t[#t + 1] = Def.Sprite {
 
 		-- find the left edge of the desired item, consider item width and gap width
 		-- then offset by half the glow span (which is doubled for sizing)
-		self:x(actuals.DiffItemWidth * (currentindex - 1) + actuals.DiffFrameRightGap * (currentindex - 1) - actuals.DiffItemGlowHorizontalSpan / 2)
+		if thesteps[currentindex] then
+			self:diffusealpha(1)
+			self:x(actuals.DiffItemWidth * (currentindex - 1) + actuals.DiffFrameRightGap * (currentindex - 1) - actuals.DiffItemGlowHorizontalSpan / 2)
+		else
+			self:diffusealpha(0)
+		end
 		self:GetParent():GetChild("StepsRows"):queuecommand("UpdateStepsRows")
 	end
 }
