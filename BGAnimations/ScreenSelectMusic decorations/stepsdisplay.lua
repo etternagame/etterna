@@ -162,7 +162,7 @@ t[#t + 1] = Def.Sprite {
 	end,
 	SetCommand = function(self, params)
 		for i = 1, 20 do
-			if thesteps and thesteps[i] and thesteps[i] == params.song then
+			if thesteps and thesteps[i] and thesteps[i] == params.steps then
 				currentindex = i
 				break
 			end
