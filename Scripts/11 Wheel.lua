@@ -192,14 +192,22 @@ Wheel.mt = {
         return whee:getFrame(whee.index - 1)
     end,
     update = function(whee)
+        -- this is written so that iteration runs in a specific direction
+        -- pretty much to avoid certain texture updating issues
+        local direction = whee.floatingOffset >= 0 and 1 or -1
+        local startI = direction == 1 and 1 or #whee.frames
+        local endI = startI == 1 and #whee.frames or 1
+
         local numFrames = #(whee.frames)
         local idx = whee.index
-        idx = idx - math.ceil(numFrames / 2)
-        for i, frame in ipairs(whee.frames) do
+        idx = idx - (direction == 1 and math.ceil(numFrames / 2) or -math.floor(numFrames / 2) + 1)
+
+        for i = startI, endI, direction do
+            local frame = whee.frames[i]
             local offset = i - math.ceil(numFrames / 2) + whee.floatingOffset
             whee.frameTransformer(frame, offset - 1, i, whee.count)
             whee.frameUpdater(frame, whee:getItem(idx), offset)
-            idx = idx + 1
+            idx = idx + direction
         end
 
         -- the wheel has settled

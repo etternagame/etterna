@@ -118,7 +118,10 @@ local function songBannerSetter(self, song)
         if not bnpath then
             bnpath = THEME:GetPathG("Common", "fallback banner")
         end
-        self:Load(bnpath)
+        if self.bnpath ~= bnpath then
+            self:Load(bnpath)
+        end
+        self.bnpath = bnpath
     end
 end
 
@@ -127,7 +130,10 @@ local function groupBannerSetter(self, group)
     if not bnpath or bnpath == "" then
         bnpath = THEME:GetPathG("Common", "fallback banner")
     end
-    self:Load(bnpath)
+    if self.bnpath ~= bnpath then
+        self:Load(bnpath)
+    end
+    self.bnpath = bnpath
 end
 
 -- to offer control of the actors specifically to us instead of the scripts
