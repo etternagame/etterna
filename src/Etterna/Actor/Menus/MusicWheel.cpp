@@ -683,23 +683,37 @@ MusicWheel::SetHashList(const vector<string>& newHashList)
 {
 	hashList = newHashList;
 }
+void
+MusicWheel::SetOutHashList(const vector<string>& newOutHashList)
+{
+	outHashList = newOutHashList;
+}
 
 void
-MusicWheel::FilterByStepKeys(vector<Song*>& inv)
+MusicWheel::FilterByAndAgainstStepKeys(vector<Song*>& inv)
 {
 	vector<Song*> tmp;
-	const std::function<bool(Song*)> check = [this](Song* x) {
-		for (auto& ck : hashList) {
-			if (x->HasChartByHash(ck)) {
-				return true;
+	const std::function<bool(Song*, vector<string>&)> check = [this](Song* x, vector<string>& hl) {
+		  for (auto& ck : hl) {
+			  if (x->HasChartByHash(ck)) {
+				  return true;
+			  }
+		  }
+
+		  return false;
+	  };
+
+	if (!hashList.empty()) {
+		for (auto* x : inv) {
+			if (check(x, hashList) && !check(x, outHashList)) {
+				tmp.emplace_back(x);
 			}
 		}
-
-		return false;
-	};
-	for (auto* x : inv) {
-		if (check(x)) {
-			tmp.emplace_back(x);
+	} else {
+		for (auto* x : inv) {
+			if (!check(x, outHashList)) {
+				tmp.emplace_back(x);
+			}
 		}
 	}
 	if (!tmp.empty()) {
@@ -809,8 +823,8 @@ MusicWheel::BuildWheelItemDatas(
 			FilterBySearch(arraySongs, findme);
 		}
 
-		if (!hashList.empty()) {
-			FilterByStepKeys(arraySongs);
+		if (!hashList.empty() || !outHashList.empty()) {
+			FilterByAndAgainstStepKeys(arraySongs);
 		}
 
 		if (FILTERMAN->AnyActiveFilter()) {
@@ -1763,7 +1777,30 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		p->SetHashList(newHashList);
+		
+		std::vector<string> newOutHashList;
+		p->SetOutHashList(newOutHashList);
+
 		p->ReloadSongList(false, "");
+	}
+
+	static auto FilterByAndAgainstStepKeys(T* p, lua_State* L) -> int
+	{
+		luaL_checktype(L, 1, LUA_TTABLE);
+		lua_pushvalue(L, 1);
+		std::vector<string> newHashList;
+		LuaHelpers::ReadArrayFromTable(newHashList, L);
+		lua_pop(L, 1);
+		luaL_checktype(L, 2, LUA_TTABLE);
+		lua_pushvalue(L, 2);
+		std::vector<string> newOutHashList;
+		LuaHelpers::ReadArrayFromTable(newOutHashList, L);
+		lua_pop(L, 1);
+
+		p->SetHashList(newHashList);
+		p->SetOutHashList(newOutHashList);
+		p->ReloadSongList(false, "");
+
 		return 1;
 	}
 
@@ -1819,6 +1856,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		ADD_METHOD(Move);
 		ADD_METHOD(MoveAndCheckType);
 		ADD_METHOD(FilterByStepKeys);
+		ADD_METHOD(FilterByAndAgainstStepKeys);
 		ADD_METHOD(SetPackListFiltering);
 		ADD_METHOD(GetSongs);
 		ADD_METHOD(GetSongsInGroup);

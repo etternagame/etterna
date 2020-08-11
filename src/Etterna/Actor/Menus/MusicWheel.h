@@ -60,6 +60,7 @@ class MusicWheel : public WheelBase
 
 	virtual void ReloadSongList(bool searching, const std::string& findme);
 	void SetHashList(const vector<string>& newHashList);
+	void SetOutHashList(const vector<string>& newOutHashList);
 
 	// multiplayer common pack filtering
 	bool packlistFiltering{ false };
@@ -76,10 +77,12 @@ class MusicWheel : public WheelBase
 	auto MakeItem() -> MusicWheelItem* override;
 
 	vector<string> hashList;
+	vector<string> outHashList;
+
 	void GetSongList(vector<Song*>& arraySongs, SortOrder so) const;
 	auto SelectModeMenuItem() -> bool;
 
-	void FilterByStepKeys(vector<Song*>& inv);
+	void FilterByAndAgainstStepKeys(vector<Song*>& inv);
 	void FilterBySearch(vector<Song*>& inv, std::string findme_);
 	auto SearchGroupNames(const std::string& findme) -> bool;
 	static void FilterBySkillsets(vector<Song*>& inv);
