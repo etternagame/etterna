@@ -16,6 +16,7 @@ class FilterManager
 	float SSFilterLowerBounds[NUM_Skillset + 1];
 	float SSFilterUpperBounds[NUM_Skillset + 1];
 	float MaxFilterRate = 1.F;
+	float MinFilterRate = 1.F;
 	bool ExclusiveFilter = false; // if true the filter system will only match
 								  // songs that meet all criteria rather than
 								  // all that meet any - mina
