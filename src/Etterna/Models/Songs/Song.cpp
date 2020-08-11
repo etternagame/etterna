@@ -1687,6 +1687,12 @@ Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 {
 	return chart->IsSkillsetHighestOfChart(skill, rate);
 }
+bool
+Song::IsChartHighestDifficulty(Steps* chart, Skillset skill, float rate) const
+{
+	float highest = HighestMSDOfSkillset(skill, rate);
+	return (fabs(chart->GetMSD(rate, skill) - highest) <= 0.1F);
+}
 
 bool
 Song::MatchesFilter(const float rate,
@@ -1717,7 +1723,6 @@ Song::MatchesFilter(const float rate,
 bool
 Song::ChartMatchesFilter(Steps* chart, float rate) const
 {
-	// TODO: ADD SUPPORT FOR HighestDifficultyOnly
 	auto addchart = FILTERMAN->ExclusiveFilter;
 
 	/* The default behaviour of an exclusive filter is to accept
@@ -1733,14 +1738,19 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
 		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
 		if (lb > 0.F || ub > 0.F) { // If either bound is active, continue
-
 			if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
-				if (FILTERMAN->HighestSkillsetsOnly) {
-					if (!(chart->IsSkillsetHighestOfChart(
-							static_cast<Skillset>(ss),
-							rate) &&
-						  ss < NUM_Skillset)) { // The current skill is not
-												// in highest in the chart
+				if (FILTERMAN->HighestSkillsetsOnly && ss < NUM_Skillset) {
+					if (!chart->IsSkillsetHighestOfChart(
+						  static_cast<Skillset>(ss), rate)) {
+						// The current skill is not the highest of the chart
+						continue;
+					}
+				}
+				if (FILTERMAN->HighestDifficultyOnly && ss < NUM_Skillset) {
+					if (!IsChartHighestDifficulty(
+						  chart, static_cast<Skillset>(ss), rate)) {
+						// The song has a more difficult chart of the given
+						// skillset
 						continue;
 					}
 				}

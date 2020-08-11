@@ -24,11 +24,11 @@ class FilterManager
 	void SetSSFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
 	void ResetAllFilters();
-	bool HighestSkillsetsOnly =
-	  false; // Skillset is highest of the chart's skillset
-	bool HighestDifficultyOnly =
-	  false; // Chart's skillset's MSD is the highest of all the MSDS of that
-			 // skillset for all charts for that song.
+	bool HighestSkillsetsOnly = false;
+	// Skillset is highest of the chart's skillset
+	bool HighestDifficultyOnly = false;
+	// Chart's skillset's MSD is the highest of all the MSDS of that
+	// skillset for all charts for that song.
 
 	auto AnyActiveFilter() -> bool;
 
