@@ -561,14 +561,14 @@ MovieTexture_FFMpeg::MovieTexture_FFMpeg(const RageTextureID& ID)
 {
 }
 
-RageMovieTexture*
+std::shared_ptr<RageMovieTexture>
 RageMovieTextureDriver_FFMpeg::Create(const RageTextureID& ID,
 									  std::string& sError)
 {
-	MovieTexture_FFMpeg* pRet = new MovieTexture_FFMpeg(ID);
+	auto pRet = std::make_shared<MovieTexture_FFMpeg>(ID);
 	sError = pRet->Init();
 	if (!sError.empty())
-		SAFE_DELETE(pRet);
+		pRet.reset();
 	return pRet;
 }
 

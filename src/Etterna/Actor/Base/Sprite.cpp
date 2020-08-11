@@ -119,6 +119,8 @@ Sprite::SongBGTexture(RageTextureID ID)
 
 	ID.bDither = true;
 
+	TEXTUREMAN->AdjustTextureID(ID);
+
 	return ID;
 }
 
@@ -144,6 +146,8 @@ Sprite::SongBannerTexture(RageTextureID ID)
 	// ID.bDither = true;
 
 	ID.Policy = RageTextureID::TEX_VOLATILE;
+
+	TEXTUREMAN->AdjustTextureID(ID);
 
 	return ID;
 }
@@ -317,7 +321,7 @@ Sprite::EnableAnimation(bool bEnable)
 }
 
 void
-Sprite::SetTexture(RageTexture* pTexture)
+Sprite::SetTexture(std::shared_ptr<RageTexture> pTexture)
 {
 	ASSERT(pTexture != nullptr);
 
@@ -347,7 +351,7 @@ Sprite::LoadFromTexture(const RageTextureID& ID)
 {
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
-	RageTexture* pTexture = nullptr;
+	std::shared_ptr<RageTexture> pTexture;
 	if ((m_pTexture != nullptr) && m_pTexture->GetID() == ID)
 		pTexture = m_pTexture;
 	else
@@ -1178,7 +1182,8 @@ class LunaSprite : public Luna<Sprite>
 		if (lua_isnil(L, 1)) {
 			p->UnloadTexture();
 		} else {
-			const RageTextureID ID(SArg(1));
+			RageTextureID ID(SArg(1));
+			TEXTUREMAN->AdjustTextureID(ID);
 			p->Load(ID);
 		}
 		COMMON_RETURN_SELF;
@@ -1189,7 +1194,7 @@ class LunaSprite : public Luna<Sprite>
 		TEXTUREMAN->DisableOddDimensionWarning();
 		p->Load(Sprite::SongBGTexture(ID));
 		TEXTUREMAN->EnableOddDimensionWarning();
-		return 1;
+		COMMON_RETURN_SELF;
 	}
 	static int LoadBanner(T* p, lua_State* L)
 	{
@@ -1197,7 +1202,7 @@ class LunaSprite : public Luna<Sprite>
 		TEXTUREMAN->DisableOddDimensionWarning();
 		p->Load(Sprite::SongBannerTexture(ID));
 		TEXTUREMAN->EnableOddDimensionWarning();
-		return 1;
+		COMMON_RETURN_SELF;
 	}
 
 	/* Commands that go in the tweening queue:
@@ -1362,8 +1367,9 @@ class LunaSprite : public Luna<Sprite>
 	static int SetTexture(T* p, lua_State* L)
 	{
 		auto pTexture = Luna<RageTexture>::check(L, 1);
-		pTexture = TEXTUREMAN->CopyTexture(pTexture);
-		p->SetTexture(pTexture);
+		std::shared_ptr<RageTexture> rt(pTexture);
+		rt = TEXTUREMAN->CopyTexture(rt);
+		p->SetTexture(rt);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)

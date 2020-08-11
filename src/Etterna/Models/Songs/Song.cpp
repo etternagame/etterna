@@ -478,7 +478,7 @@ Song::ReloadFromSongDir(const std::string& sDir)
 	for (auto& file : to_reload) {
 		RageTextureID id(file);
 		if (TEXTUREMAN->IsTextureRegistered(id)) {
-			auto* tex = TEXTUREMAN->LoadTexture(id);
+			auto tex = TEXTUREMAN->LoadTexture(id);
 			if (tex) {
 				tex->Reload();
 			}

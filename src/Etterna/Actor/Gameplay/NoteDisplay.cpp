@@ -1177,7 +1177,7 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 			/* The queue is full.  Render it. */
 			if (!bAllAreTransparent) {
 				for (auto& spr : vpSpr) {
-					auto* pTexture = spr->GetTexture();
+					auto pTexture = spr->GetTexture();
 					DISPLAY->SetTexture(TextureUnit_1,
 										pTexture->GetTexHandle());
 					DISPLAY->SetBlendMode(spr == vpSpr.front() ? BLEND_NORMAL

@@ -393,5 +393,8 @@ RageBitmapTexture::Create()
 void
 RageBitmapTexture::Destroy()
 {
-	DISPLAY->DeleteTexture(m_uTexHandle);
+	// if DISPLAY is dead at this point, the program is probably dead
+	// memory will be free.... hopefully....
+	if (DISPLAY != nullptr)
+		DISPLAY->DeleteTexture(m_uTexHandle);
 }
