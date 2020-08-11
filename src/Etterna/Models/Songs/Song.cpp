@@ -1653,13 +1653,13 @@ Song::GetChartsMatchingFilter() const
 								 * don't like exact equivalency*/
 			// we must add 0.001 to the currate to force it to align when
 			// converting the rate to an index within GetMSD
-			// TODO: less hacky solution for this (this isnt the only place we do this)
-			if (i->MatchesFilter(currate + 0.001F)) {
+			// TODO: less hacky solution for this (this isnt the only place we
+			// do this)
+			if (ChartMatchesFilter(i, currate + 0.001F)) {
 				// chart matched on a rate, add it only once
 				matches.push_back(i);
 				break;
 			}
-			
 		}
 	}
 	return matches;
