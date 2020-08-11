@@ -19,7 +19,7 @@ public:
 
     // Providers
     static void provide(ArchHooks* hooks);
-    static void provide(Core::ILogger* logger);
+    static void provide(std::unique_ptr<Core::ILogger> log);
 
 private:
     static std::unique_ptr<ArchHooks> archHooks;

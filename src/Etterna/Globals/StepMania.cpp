@@ -1009,7 +1009,7 @@ sm_main(int argc, char* argv[])
 	seed_lua_prng();
 
 	// Initialize Logging
-    Locator::provide(new PlogLogger());
+    Locator::provide(std::make_unique<PlogLogger>());
 
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);

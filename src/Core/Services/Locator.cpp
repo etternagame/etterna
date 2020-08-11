@@ -17,7 +17,7 @@ void Locator::provide(ArchHooks *hooks) {
         Locator::archHooks = std::unique_ptr<ArchHooks>(hooks);
 }
 
-void Locator::provide(Core::ILogger *logger) {
+void Locator::provide(std::unique_ptr<Core::ILogger> log) {
     if(!Locator::logger)
-        Locator::logger = std::unique_ptr<Core::ILogger>(logger);
+        Locator::logger = std::move(log);
 }
