@@ -41,6 +41,12 @@ local sd =
 		local song = song.ptr
 		if song then 
 			thesteps = song:GetChartsMatchingFilter()
+			-- if in online scores tab it still pops up for 1 frame
+			-- so the bug fixed in the above command makes a return
+			-- how sad
+			if getTabIndex() < 3 then
+				self:playcommand("On")
+			end
 			self:playcommand("UpdateStepsRows")
 		else 
 			self:playcommand("Off")
