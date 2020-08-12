@@ -127,10 +127,14 @@ local o =
 			end
 
 			local score = getScoreForPlot()
-			dvt = score:GetOffsetVector()
-			nrt = score:GetNoteRowVector()
-			ctt = score:GetTrackVector()
-			ntt = score:GetTapNoteTypeVector()
+			if score ~= nil then
+				if score:HasReplayData() then
+					dvt = score:GetOffsetVector()
+					nrt = score:GetNoteRowVector()
+					ctt = score:GetTrackVector()
+					ntt = score:GetTapNoteTypeVector()
+				end
+			end
 		end
 
 		-- missing noterows. this happens with many online replays.
@@ -152,17 +156,19 @@ local o =
 	SetFromScoreCommand = function(self, params)
 		if params.score then
 			local score = params.score
-			dvt = score:GetOffsetVector()
-			nrt = score:GetNoteRowVector()
-			ctt = score:GetTrackVector()
-			ntt = score:GetTapNoteTypeVector()
 			
-			if nrt then 
-				for i = 1, #nrt do
-				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
-				end
-				MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+			if score:HasReplayData() then
+				dvt = score:GetOffsetVector()
+				nrt = score:GetNoteRowVector()
+				ctt = score:GetTrackVector()
+				ntt = score:GetTapNoteTypeVector()
 			end
+
+			for i = 1, #nrt do
+				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+			end
+			
+			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 	end,
 	CodeMessageCommand = function(self, params)
