@@ -1782,6 +1782,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		p->SetOutHashList(newOutHashList);
 
 		p->ReloadSongList(false, "");
+		return 1;
 	}
 
 	static auto FilterByAndAgainstStepKeys(T* p, lua_State* L) -> int
