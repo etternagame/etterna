@@ -5,7 +5,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
 #ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
 #endif

@@ -18,7 +18,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include "archutils/Unix/CrashHandler.h"
 #ifdef __linux__
 #include <limits.h>
 #endif
@@ -59,17 +58,6 @@ DoCleanShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
 	/* ^C. */
 	ArchHooks::SetUserQuit();
 	return true;
-}
-
-static bool
-DoCrashSignalHandler(int signal, siginfo_t* si, const ucontext_t* uc)
-{
-	/* Don't dump a debug file if the user just hit ^C. */
-	if (!IsFatalSignal(signal))
-		return true;
-
-	CrashHandler::CrashSignalHandler(signal, si, uc);
-	return false;
 }
 
 static bool
@@ -210,10 +198,6 @@ ArchHooks_Unix::Init()
 	/* First, handle non-fatal termination signals. */
 	SignalHandler::OnClose(DoCleanShutdown);
 
-	CrashHandler::CrashHandlerHandleArgs(g_argc, g_argv);
-	CrashHandler::InitializeCrashHandler();
-	SignalHandler::OnClose(DoCrashSignalHandler);
-
 	/* Set up EmergencyShutdown, to try to shut down the window if we crash.
 	 * This might blow up, so be sure to do it after the crash handler. */
 	SignalHandler::OnClose(EmergencyShutdown);
@@ -259,27 +243,6 @@ LibcVersion()
 		return "(unknown)";
 
 	return buf;
-}
-
-void
-ArchHooks_Unix::DumpDebugInfo()
-{
-	std::string sys;
-	int vers;
-	GetKernel(sys, vers);
-	Locator::getLogger()->info("OS: {} ver {}", sys.c_str(), vers);
-
-	Locator::getLogger()->info("Crash backtrace component: {}", BACKTRACE_METHOD_TEXT);
-	Locator::getLogger()->info("Crash lookup component: {}", BACKTRACE_LOOKUP_METHOD_TEXT);
-#if defined(BACKTRACE_DEMANGLE_METHOD_TEXT)
-	Locator::getLogger()->info("Crash demangle component: {}", BACKTRACE_DEMANGLE_METHOD_TEXT);
-#endif
-
-	Locator::getLogger()->info("Runtime library: {}", LibcVersion().c_str());
-	Locator::getLogger()->info("Threads library: {}", ThreadsVersion().c_str());
-#if defined(HAVE_FFMPEG)
-	Locator::getLogger()->info("libavcodec: {:#x} ({})", avcodec_version(), avcodec_version());
-#endif
 }
 
 void

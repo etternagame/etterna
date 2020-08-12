@@ -107,18 +107,9 @@ endif()
 
 if(UNIX) # Includes Apple
 	list(APPEND OS_UNIX_CRASH_SRC
-		"Unix/Backtrace.cpp"
-		"Unix/BacktraceNames.cpp"
-		"Unix/CrashHandler.cpp"
-		"Unix/CrashHandlerChild.cpp"
-		"Unix/CrashHandlerInternal.cpp"
 		"Unix/SignalHandler.cpp")
 
 	list(APPEND OS_UNIX_CRASH_HPP
-		"Unix/Backtrace.h"
-		"Unix/BacktraceNames.h" 
-		"Unix/CrashHandler.h"
-		"Unix/CrashHandlerInternal.h"
 		"Unix/SignalHandler.h")
 
 	list(APPEND OS_SRC ${OS_UNIX_CRASH_SRC})
