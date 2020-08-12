@@ -15,10 +15,6 @@ using CrashHandler::DebugBreak;
 using CrashHandler::IsDebuggerPresent;
 #endif
 
-#if (defined(__unix__) || defined(__APPLE__))
-#include "archutils/Unix/CrashHandler.h"
-#endif
-
 void NORETURN
 sm_crash(const char* reason)
 {
@@ -32,7 +28,7 @@ sm_crash(const char* reason)
 	}
 #endif
 
-	CrashHandler::ForceCrash(reason);
+//	CrashHandler::ForceCrash(reason);
 
 #ifdef _WIN32
 	/* Do something after the above, so the call/return isn't optimized to a

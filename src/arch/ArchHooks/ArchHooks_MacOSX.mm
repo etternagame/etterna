@@ -2,7 +2,6 @@
 #include "ArchHooks_MacOSX.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
-#include "archutils/Unix/CrashHandler.h"
 #include "archutils/Unix/SignalHandler.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Globals/ProductInfo.h"
@@ -47,16 +46,6 @@ static bool DoCleanShutdown( int signal, siginfo_t *si, const ucontext_t *uc )
 	return true;
 }
 
-static bool DoCrashSignalHandler( int signal, siginfo_t *si, const ucontext_t *uc )
-{
-	// Don't dump a debug file if the user just hit ^C.
-	if( !IsFatalSignal(signal) )
-		return true;
-
-	CrashHandler::CrashSignalHandler( signal, si, uc );
-	return true; // Unreached
-}
-
 static bool DoEmergencyShutdown( int signal, siginfo_t *si, const ucontext_t *us )
 {
 	if( IsFatalSignal(signal) )
@@ -68,9 +57,6 @@ void ArchHooks_MacOSX::Init()
 {
 	// First, handle non-fatal termination signals.
 	SignalHandler::OnClose( DoCleanShutdown );
-	CrashHandler::CrashHandlerHandleArgs( g_argc, g_argv );
-	CrashHandler::InitializeCrashHandler();
-	SignalHandler::OnClose( DoCrashSignalHandler );
 	SignalHandler::OnClose( DoEmergencyShutdown );
 
 	// Now that the crash handler is set up, disable crash reporter.

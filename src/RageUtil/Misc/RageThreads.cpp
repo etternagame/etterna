@@ -26,8 +26,6 @@
 
 #ifdef _WIN32
 #include "archutils/Win32/crash.h"
-#elif defined(__linux__) || defined(__APPLE__)
-#include "archutils/Unix/CrashHandler.h"
 #endif
 
 /* Assume TLS doesn't work until told otherwise.  It's ArchHooks's job to set
@@ -551,7 +549,7 @@ RageMutex::Lock()
 
 		/* Pass the crash handle of the other thread, so it can backtrace that
 		 * thread. */
-		CrashHandler::ForceDeadlock(sReason, CrashHandle);
+//		CrashHandler::ForceDeadlock(sReason, CrashHandle);
 	}
 
 	m_LockedBy = iThisThreadId;
@@ -718,7 +716,7 @@ RageSemaphore::Wait(bool bFailOnTimeout)
 			   ThisSlot ? ThisSlot->GetThreadName()
 						: "(???"
 						  ")"); // stupid trigraph warnings
-	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
+//	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
 }
 
 bool
