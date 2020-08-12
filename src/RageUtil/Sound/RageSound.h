@@ -97,11 +97,17 @@ struct RageSoundLoadParams
 };
 
 template <class T>
-class MufftAllocator {
+class MufftAllocator
+{
   public:
 	typedef T value_type;
-	T* allocate (size_t n) { return static_cast<T*>(mufft_alloc(n * sizeof(T))); }
-	void deallocate (T* p, size_t n) { mufft_free(p); }
+	MufftAllocator() noexcept {};
+	
+	T* allocate(size_t n) {	return static_cast<T*>(mufft_alloc(n * sizeof(T)));	}
+	void deallocate(T* p, size_t n) { mufft_free(p); }
+
+	template<typename U>
+	MufftAllocator(const MufftAllocator<U>& other) throw(){};
 };
 
 struct cfloat
