@@ -7,6 +7,7 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include "openssl/rand.h"
 #include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
@@ -49,7 +50,6 @@ HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
  private.der
 */
 
-
 CryptManager::CryptManager()
 {
 	// Register with Lua.
@@ -60,7 +60,6 @@ CryptManager::CryptManager()
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
-
 }
 
 CryptManager::~CryptManager()
@@ -72,7 +71,8 @@ CryptManager::~CryptManager()
 void
 CryptManager::GetRandomBytes(void* pData, int iBytes)
 {
-	//TODO: IMPLEMENT WITH OPENSSL
+	int retval = RAND_bytes((unsigned char*)pData, iBytes);
+	ASSERT(retval == 1);
 }
 
 std::string
