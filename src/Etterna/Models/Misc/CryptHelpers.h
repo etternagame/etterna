@@ -1,8 +1,6 @@
 #ifndef CRYPT_HELPERS_H
 #define CRYPT_HELPERS_H
 
-#if !defined(DISABLE_CRYPTO)
-
 #include "tomcrypt.h"
 
 class PRNGWrapper
@@ -14,7 +12,5 @@ class PRNGWrapper
 	int m_iPRNG;
 	prng_state m_PRNG;
 };
-
-#endif
 
 #endif

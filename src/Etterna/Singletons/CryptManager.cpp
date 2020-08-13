@@ -42,20 +42,6 @@ HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
 	return true;
 }
 
-#if defined(DISABLE_CRYPTO)
-CryptManager::CryptManager() {}
-CryptManager::~CryptManager() {}
-
-void
-CryptManager::GetRandomBytes(void* pData, int iBytes)
-{
-	uint8_t* pBuf = (uint8_t*)pData;
-	while (iBytes--)
-		*pBuf++ = (uint8_t)RandomInt(256);
-}
-
-#else
-
 /*
  openssl genrsa -out testing -outform DER
  openssl rsa -in testing -out testing2 -outform DER
@@ -63,7 +49,6 @@ CryptManager::GetRandomBytes(void* pData, int iBytes)
  openssl pkcs8 -inform DER -outform DER -nocrypt -in private.rsa -out
  private.der
 */
-
 static PRNGWrapper* g_pPRNG = nullptr;
 
 CryptManager::CryptManager()
@@ -94,7 +79,6 @@ CryptManager::GetRandomBytes(void* pData, int iBytes)
 	  reinterpret_cast<unsigned char*>(pData), iBytes, &g_pPRNG->m_PRNG);
 	ASSERT(iRet == iBytes);
 }
-#endif
 
 std::string
 CryptManager::GetMD5ForFile(const std::string& fn)
