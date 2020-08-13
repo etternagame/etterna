@@ -114,7 +114,6 @@ class GameState
 	// This is set to a random number per-game/round; it can be used for a
 	// random seed.
 	int m_iGameSeed, m_iStageSeed;
-	std::string m_sStageGUID;
 
 	void SetNewStageSeed();
 

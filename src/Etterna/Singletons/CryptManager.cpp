@@ -162,27 +162,6 @@ CryptManager::GetSHA1ForFile(const std::string& fn)
 	return std::string((const char*)digest, sizeof(digest));
 }
 
-/* Generate a version 4 random UUID. */
-std::string
-CryptManager::GenerateRandomUUID()
-{
-	uint32_t buf[4];
-	CryptManager::GetRandomBytes(buf, sizeof(buf));
-
-	buf[1] &= 0xFFFF0FFF;
-	buf[1] |= 0x00004000;
-	buf[2] &= 0x0FFFFFFF;
-	buf[2] |= 0xA0000000;
-
-	return ssprintf("%08x-%04x-%04x-%04x-%04x%08x",
-					buf[0],
-					buf[1] >> 16,
-					buf[1] & 0xFFFF,
-					buf[2] >> 16,
-					buf[2] & 0xFFFF,
-					buf[3]);
-}
-
 // lua start
 
 /** @brief Allow Lua to have access to the CryptManager. */
@@ -217,13 +196,6 @@ class LunaCryptManager : public Luna<CryptManager>
 		lua_pushlstring(L, sha1fout.c_str(), sha1fout.size());
 		return 1;
 	}
-	static int GenerateRandomUUID(T* p, lua_State* L)
-	{
-		std::string uuidOut;
-		uuidOut = p->GenerateRandomUUID();
-		lua_pushlstring(L, uuidOut.c_str(), uuidOut.size());
-		return 1;
-	}
 
 	LunaCryptManager()
 	{
@@ -231,7 +203,6 @@ class LunaCryptManager : public Luna<CryptManager>
 		ADD_METHOD(MD5File);
 		ADD_METHOD(SHA1String);
 		ADD_METHOD(SHA1File);
-		ADD_METHOD(GenerateRandomUUID);
 	}
 };
 
