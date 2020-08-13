@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/CryptHelpers.h"
 #include "CryptManager.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "LuaManager.h"
@@ -49,7 +48,7 @@ HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
  openssl pkcs8 -inform DER -outform DER -nocrypt -in private.rsa -out
  private.der
 */
-static PRNGWrapper* g_pPRNG = nullptr;
+
 
 CryptManager::CryptManager()
 {
@@ -62,12 +61,10 @@ CryptManager::CryptManager()
 		LUA->Release(L);
 	}
 
-	g_pPRNG = new PRNGWrapper(&yarrow_desc);
 }
 
 CryptManager::~CryptManager()
 {
-	SAFE_DELETE(g_pPRNG);
 	// Unregister with Lua.
 	LUA->UnsetGlobal("CRYPTMAN");
 }
@@ -75,9 +72,7 @@ CryptManager::~CryptManager()
 void
 CryptManager::GetRandomBytes(void* pData, int iBytes)
 {
-	int iRet = prng_descriptor[g_pPRNG->m_iPRNG].read(
-	  reinterpret_cast<unsigned char*>(pData), iBytes, &g_pPRNG->m_PRNG);
-	ASSERT(iRet == iBytes);
+	//TODO: IMPLEMENT WITH OPENSSL
 }
 
 std::string
