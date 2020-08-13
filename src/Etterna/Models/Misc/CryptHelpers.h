@@ -10,8 +10,6 @@ class PRNGWrapper
   public:
 	PRNGWrapper(const struct ltc_prng_descriptor* pPRNGDescriptor);
 	~PRNGWrapper();
-	void AddEntropy(const void* pData, int iSize);
-	void AddRandomEntropy();
 
 	int m_iPRNG;
 	prng_state m_PRNG;
