@@ -9,6 +9,7 @@
 
 #include "openssl/rand.h"
 #include "openssl/sha.h"
+#include "openssl/md5.h"
 #include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
@@ -89,23 +90,16 @@ CryptManager::GetMD5ForFile(const std::string& fn)
 
 	unsigned char digest[16];
 	HashFile(file, digest, iHash);
-	printf("Sample");
 	return std::string((const char*)digest, sizeof(digest));
 }
 
 std::string
 CryptManager::GetMD5ForString(const std::string& sData)
 {
-	unsigned char digest[16];
-
-	int iHash = register_hash(&md5_desc);
-
-	hash_state hash;
-	hash_descriptor[iHash].init(&hash);
-	hash_descriptor[iHash].process(
-	  &hash, (const unsigned char*)sData.data(), sData.size());
-	hash_descriptor[iHash].done(&hash, digest);
-
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	const unsigned char* data =
+	  reinterpret_cast<const unsigned char*>(sData.data());
+	MD5(data, sData.size(), digest);
 	return std::string((const char*)digest, sizeof(digest));
 }
 
