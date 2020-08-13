@@ -40,7 +40,6 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(libtomcrypt)
 add_subdirectory(libtommath)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(muFFT)
