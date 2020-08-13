@@ -1978,12 +1978,6 @@ PacketFunctions::ClearPacket()
 	Position = 0;
 }
 
-std::string
-NetworkSyncManager::MD5Hex(const std::string& sInput)
-{
-	return make_upper(BinaryToHex(CryptManager::GetMD5ForString(sInput)));
-}
-
 void
 NetworkSyncManager::GetListOfLANServers(vector<NetServerInfo>& AllServers)
 {

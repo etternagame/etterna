@@ -1602,7 +1602,8 @@ LuaFunc_SaveScreenshot(lua_State* L)
 	// Otherwise, save to the machine.
 	PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1, true);
 	bool compress = lua_toboolean(L, 2) != 0;
-	bool sign = lua_toboolean(L, 3) != 0; // Legacy, unused.
+	bool sign =
+	  lua_toboolean(L, 3) != 0; // Legacy, unused. This should be removed later.
 	std::string prefix = luaL_optstring(L, 4, "");
 	std::string suffix = luaL_optstring(L, 5, "");
 	std::string dir;
