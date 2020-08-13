@@ -26,13 +26,14 @@ class CryptManager
 					 const std::string& sPrivateKey) -> bool;
 	static auto VerifyFileWithFile(const std::string& sPath,
 								   const std::string& sSignatureFile = "")
-	  -> bool;
+	  -> bool; // Unused
 	static auto VerifyFileWithFile(const std::string& sPath,
 								   std::string sSignatureFile,
-								   const std::string& sPublicKeyFile) -> bool;
+								   const std::string& sPublicKeyFile)
+	  -> bool; // Unused
 	static auto Verify(RageFileBasic& file,
 					   const std::string& sSignature,
-					   const std::string& sPublicKey) -> bool;
+					   const std::string& sPublicKey) -> bool; // Unused
 
 	static void GetRandomBytes(void* pData, int iBytes);
 	static auto GenerateRandomUUID() -> std::string;

@@ -124,8 +124,8 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 	m_bNeedToBackUpLastLoad = false;
 
 	// Try to load the original, non-backup data.
-	ProfileLoadResult lr = GetProfile(pn)->LoadAllFromDir(
-	  m_sProfileDir, PREFSMAN->m_bSignProfileData, nullptr);
+	ProfileLoadResult lr =
+	  GetProfile(pn)->LoadAllFromDir(m_sProfileDir, nullptr);
 
 	std::string sBackupDir = m_sProfileDir + LAST_GOOD_SUBDIR;
 
@@ -141,8 +141,7 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 	// Try to load from the backup if the original data fails to load
 	//
 	if (lr == ProfileLoadResult_FailedTampered) {
-		lr = GetProfile(pn)->LoadAllFromDir(
-		  sBackupDir, PREFSMAN->m_bSignProfileData, nullptr);
+		lr = GetProfile(pn)->LoadAllFromDir(sBackupDir, nullptr);
 		m_bLastLoadWasFromLastGood = lr == ProfileLoadResult_Success;
 
 		/* If the LastGood profile doesn't exist at all, and the actual profile
@@ -211,8 +210,7 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 		Profile::MoveBackupToDir(m_sProfileDir, sBackupDir);
 	}
 
-	bool b =
-	  GetProfile(pn)->SaveAllToDir(m_sProfileDir, PREFSMAN->m_bSignProfileData);
+	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir);
 
 	return b;
 }
@@ -223,7 +221,7 @@ ProfileManager::SaveLocalProfile(const std::string& sProfileID)
 	const Profile* pProfile = GetLocalProfile(sProfileID);
 	ASSERT(pProfile != NULL);
 	std::string sDir = LocalProfileIDToDir(sProfileID);
-	bool b = pProfile->SaveAllToDir(sDir, PREFSMAN->m_bSignProfileData);
+	bool b = pProfile->SaveAllToDir(sDir);
 	return b;
 }
 
@@ -283,7 +281,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	}
 
 	for (auto& p : g_vLocalProfile) {
-		p.profile.LoadAllFromDir(p.sDir, PREFSMAN->m_bSignProfileData, ld);
+		p.profile.LoadAllFromDir(p.sDir, ld);
 	}
 }
 
@@ -350,7 +348,7 @@ ProfileManager::CreateLocalProfile(const std::string& sName,
 
 	// Save it to disk.
 	std::string sProfileDir = LocalProfileIDToDir(profile_id);
-	if (!pProfile->SaveAllToDir(sProfileDir, PREFSMAN->m_bSignProfileData)) {
+	if (!pProfile->SaveAllToDir(sProfileDir)) {
 		delete pProfile;
 		sProfileIDOut = "";
 		return false;
@@ -403,7 +401,7 @@ ProfileManager::RenameLocalProfile(const std::string& sProfileID,
 	pProfile->m_sDisplayName = sNewName;
 
 	std::string sProfileDir = LocalProfileIDToDir(sProfileID);
-	return pProfile->SaveAllToDir(sProfileDir, PREFSMAN->m_bSignProfileData);
+	return pProfile->SaveAllToDir(sProfileDir);
 }
 
 bool
@@ -560,7 +558,7 @@ ProfileManager::SetStatsPrefix(std::string const& prefix)
 	m_stats_prefix = prefix;
 	for (size_t i = 0; i < g_vLocalProfile.size(); ++i) {
 		g_vLocalProfile[i].profile.HandleStatsPrefixChange(
-		  g_vLocalProfile[i].sDir, PREFSMAN->m_bSignProfileData);
+		  g_vLocalProfile[i].sDir);
 	}
 }
 

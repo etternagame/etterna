@@ -211,12 +211,6 @@ class PrefsManager
 											  // on.  Not mutually exclusive
 											  // with trilinear.
 
-	// If true, then signatures created when writing profile data and verified
-	// when reading profile data. Leave this false if you want to use a profile
-	// on different machines that don't have the same key, or else the
-	// profile's data will be discarded.
-	Preference<bool> m_bSignProfileData;
-
 	Preference<std::string> m_sAdditionalSongFolders;
 	Preference<std::string> m_sAdditionalFolders;
 

@@ -1222,8 +1222,6 @@ sm_main(int argc, char* argv[])
 	SONGMAN->InitAll(pLoadingWindow); // this takes a long time
 	SONGINDEX->FinishTransaction();
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
-	if (PREFSMAN->m_bSignProfileData)
-		CRYPTMAN->GenerateGlobalKeys();
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
@@ -1288,7 +1286,6 @@ sm_main(int argc, char* argv[])
 std::string
 StepMania::SaveScreenshot(const std::string& Dir,
 						  bool SaveCompressed,
-						  bool MakeSignature,
 						  const std::string& NamePrefix,
 						  const std::string& NameSuffix)
 {
@@ -1321,9 +1318,6 @@ StepMania::SaveScreenshot(const std::string& Dir,
 	}
 
 	SCREENMAN->PlayScreenshotSound();
-
-	if (PREFSMAN->m_bSignProfileData && MakeSignature)
-		CryptManager::SignFileToFile(Path);
 
 	return FileName;
 }
@@ -1492,8 +1486,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 								DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
-		StepMania::SaveScreenshot(
-		  "Screenshots/", bSaveCompressed, false, "", "");
+		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
 		LOG->Trace("Screenshot took %f seconds.", timer.GetDeltaTime());
 		return true; // handled
 	}
@@ -1601,8 +1594,7 @@ HandleInputEvents(float fDeltaTime)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-int
-LuaFunc_SaveScreenshot(lua_State* L);
+
 int
 LuaFunc_SaveScreenshot(lua_State* L)
 {
@@ -1610,7 +1602,7 @@ LuaFunc_SaveScreenshot(lua_State* L)
 	// Otherwise, save to the machine.
 	PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1, true);
 	bool compress = lua_toboolean(L, 2) != 0;
-	bool sign = lua_toboolean(L, 3) != 0;
+	bool sign = lua_toboolean(L, 3) != 0; // Legacy, unused.
 	std::string prefix = luaL_optstring(L, 4, "");
 	std::string suffix = luaL_optstring(L, 5, "");
 	std::string dir;
@@ -1621,7 +1613,7 @@ LuaFunc_SaveScreenshot(lua_State* L)
 			  "Screenshots/";
 	}
 	std::string filename =
-	  StepMania::SaveScreenshot(dir, compress, sign, prefix, suffix);
+	  StepMania::SaveScreenshot(dir, compress, prefix, suffix);
 	if (pn != PlayerNumber_Invalid) {
 	}
 	std::string path = dir + filename;
