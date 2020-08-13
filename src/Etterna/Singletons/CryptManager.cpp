@@ -10,7 +10,7 @@
 #include "openssl/rand.h"
 #include "openssl/sha.h"
 #include "openssl/md5.h"
-#include "tomcrypt.h"
+
 #include <functional>
 
 CryptManager* CRYPTMAN =
