@@ -11,36 +11,33 @@
 #include "openssl/sha.h"
 #include "openssl/md5.h"
 #include "tomcrypt.h"
+#include <functional>
 
 CryptManager* CRYPTMAN =
   nullptr; // global and accessible from anywhere in our program
 
+///@brief Read from a file, running the lamda `hash` on every read block
 static bool
-HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
+HashFile(std::string fn,
+		 std::function<void(const unsigned char* data, size_t length)> hash)
 {
-	hash_state hash;
-	int iRet = hash_descriptor[iHash].init(&hash);
-	ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
-
-	std::string s;
-	while (!f.AtEOF()) {
-		s.erase();
-		if (f.Read(s, 1024 * 4) == -1) {
-			LOG->Warn("Error reading %s: %s",
-					  f.GetDisplayPath().c_str(),
-					  f.GetError().c_str());
-			hash_descriptor[iHash].done(&hash, buf_hash);
-			return false;
-		}
-
-		iRet = hash_descriptor[iHash].process(
-		  &hash, (const unsigned char*)s.data(), s.size());
-		ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
+	RageFile file;
+	if (!file.Open(fn, RageFile::READ)) {
+		LOG->Warn("GetMD5ForFile: Failed to open file '%s'", fn.c_str());
+		return false;
 	}
 
-	iRet = hash_descriptor[iHash].done(&hash, buf_hash);
-	ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
-
+	std::string s;
+	while (!file.AtEOF()) {
+		s.erase();
+		if (file.Read(s, 1024 * 4) == -1) {
+			LOG->Warn("Error reading %s: %s",
+					  file.GetDisplayPath().c_str(),
+					  file.GetError().c_str());
+			return false;
+		}
+		hash(reinterpret_cast<const unsigned char*>(s.data()), s.size());
+	}
 	return true;
 }
 
@@ -74,23 +71,26 @@ void
 CryptManager::GetRandomBytes(void* pData, int iBytes)
 {
 	int retval = RAND_bytes((unsigned char*)pData, iBytes);
-	ASSERT(retval == 1);
+	if (retval != 1) {
+		LOG->Warn("The error %d occured in RAND_bytes", retval);
+	}
 }
 
 std::string
 CryptManager::GetMD5ForFile(const std::string& fn)
 {
-	RageFile file;
-	if (!file.Open(fn, RageFile::READ)) {
-		LOG->Warn("GetMD5: Failed to open file '%s'", fn.c_str());
+	MD5_CTX* hash = new MD5_CTX;
+	MD5_Init(hash);
+	auto update = [&hash](const unsigned char* data, size_t length) {
+		MD5_Update(hash, data, length);
+	};
+	if (!HashFile(fn, update)) {
+		LOG->Warn("An error occuring when calculating MD5 of \n%s", fn.c_str());
 		return std::string();
 	}
-	int iHash = register_hash(&md5_desc);
-	ASSERT(iHash >= 0);
-
-	unsigned char digest[16];
-	HashFile(file, digest, iHash);
-	return std::string((const char*)digest, sizeof(digest));
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 std::string
@@ -100,7 +100,7 @@ CryptManager::GetMD5ForString(const std::string& sData)
 	const unsigned char* data =
 	  reinterpret_cast<const unsigned char*>(sData.data());
 	MD5(data, sData.size(), digest);
-	return std::string((const char*)digest, sizeof(digest));
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 std::string
@@ -110,24 +110,25 @@ CryptManager::GetSHA1ForString(const std::string& sData)
 	const unsigned char* data =
 	  reinterpret_cast<const unsigned char*>(sData.data());
 	SHA1(data, sData.size(), digest);
-	return std::string((const char*)digest, sizeof(digest));
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 std::string
 CryptManager::GetSHA1ForFile(const std::string& fn)
 {
-	RageFile file;
-	if (!file.Open(fn, RageFile::READ)) {
-		LOG->Warn("GetSHA1: Failed to open file '%s'", fn.c_str());
+	SHA_CTX* hash = new SHA_CTX;
+	SHA1_Init(hash);
+	auto update = [&hash](const unsigned char* data, size_t length) {
+		SHA1_Update(hash, data, length);
+	};
+	if (!HashFile(fn, update)) {
+		LOG->Warn("An error occuring when calculating SHA1 of \n%s",
+				  fn.c_str());
 		return std::string();
 	}
-	int iHash = register_hash(&sha1_desc);
-	ASSERT(iHash >= 0);
-
-	unsigned char digest[20];
-	HashFile(file, digest, iHash);
-
-	return std::string((const char*)digest, sizeof(digest));
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	SHA1_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 // lua start
