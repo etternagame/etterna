@@ -8,6 +8,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include "openssl/rand.h"
+#include "openssl/sha.h"
 #include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
@@ -88,7 +89,7 @@ CryptManager::GetMD5ForFile(const std::string& fn)
 
 	unsigned char digest[16];
 	HashFile(file, digest, iHash);
-
+	printf("Sample");
 	return std::string((const char*)digest, sizeof(digest));
 }
 
@@ -111,16 +112,10 @@ CryptManager::GetMD5ForString(const std::string& sData)
 std::string
 CryptManager::GetSHA1ForString(const std::string& sData)
 {
-	unsigned char digest[20];
-
-	int iHash = register_hash(&sha1_desc);
-
-	hash_state hash;
-	hash_descriptor[iHash].init(&hash);
-	hash_descriptor[iHash].process(
-	  &hash, (const unsigned char*)sData.data(), sData.size());
-	hash_descriptor[iHash].done(&hash, digest);
-
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	const unsigned char* data =
+	  reinterpret_cast<const unsigned char*>(sData.data());
+	SHA1(data, sData.size(), digest);
 	return std::string((const char*)digest, sizeof(digest));
 }
 
