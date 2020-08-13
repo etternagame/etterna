@@ -1,20 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "AnnouncerManager.h"
-#include "Etterna/Models/Misc/BackgroundUtil.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/Foreach.h"
-#include "GameManager.h"
 #include "GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/FileTypes/MsdFile.h"
 #include "NoteSkinManager.h"
-#include <algorithm>
 #include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
-#include <mutex>
-#include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
-#include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
@@ -27,33 +20,39 @@
 #include "SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "Etterna/Actor/Base/Sprite.h"
-#include "StatsManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/StepsAndStyles/StepsUtil.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
-#include "ThemeManager.h"
 #include "Etterna/Models/Misc/TitleSubstitution.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "ScreenManager.h"
 #include "NetworkSyncManager.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
-typedef RString SongDir;
+#include <numeric>
+#include <algorithm>
+#include <mutex>
+#include <utility>
+
+using std::map;
+using std::string;
+using std::vector;
+
+typedef std::string SongDir;
 struct Group
 {
-	RString name;
+	std::string name;
 	vector<SongDir> songs;
-	Group(RString name)
-	  : name(name)
+	Group(std::string name)
+	  : name(std::move(std::move(name)))
 	{
 	}
 };
 
 SongManager* SONGMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
-const RString ADDITIONAL_SONGS_DIR = "/AdditionalSongs/";
-const RString EDIT_SUBDIR = "Edits/";
+const std::string ADDITIONAL_SONGS_DIR = "/AdditionalSongs/";
+const std::string EDIT_SUBDIR = "Edits/";
 
 static const ThemeMetric<RageColor> EXTRA_COLOR("SongManager", "ExtraColor");
 static const ThemeMetric<int> EXTRA_COLOR_METER("SongManager",
@@ -65,16 +64,14 @@ static const ThemeMetric<int> EXTRA_STAGE2_DIFFICULTY_MAX(
   "SongManager",
   "ExtraStage2DifficultyMax");
 
-static Preference<RString> g_sDisabledSongs("DisabledSongs", "");
+static Preference<std::string> g_sDisabledSongs("DisabledSongs", "");
 static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
 
-RString
-SONG_GROUP_COLOR_NAME(size_t i)
+auto
+SONG_GROUP_COLOR_NAME(size_t i) -> std::string
 {
-	return ssprintf("SongGroupColor%i", (int)i + 1);
+	return ssprintf("SongGroupColor%i", static_cast<int>(i) + 1);
 }
-
-static const float next_loading_window_update = 0.02f;
 
 AutoScreenMessage(SM_BackFromNamePlaylist);
 
@@ -82,7 +79,7 @@ SongManager::SongManager()
 {
 	// Register with Lua.
 	{
-		Lua* L = LUA->Get();
+		auto L = LUA->Get();
 		lua_pushstring(L, "SONGMAN");
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
@@ -92,6 +89,9 @@ SongManager::SongManager()
 	NUM_SONG_GROUP_COLORS.Load("SongManager", "NumSongGroupColors");
 	SONG_GROUP_COLOR.Load(
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
+
+	// calc for debug/session scores
+	calc = std::make_unique<Calc>();
 }
 
 SongManager::~SongManager()
@@ -107,14 +107,13 @@ SongManager::~SongManager()
 void
 SongManager::InitAll(LoadingWindow* ld)
 {
-	vector<RString> never_cache;
+	vector<std::string> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
-	for (vector<RString>::iterator group = never_cache.begin();
-		 group != never_cache.end();
-		 ++group) {
-		m_GroupsToNeverCache.insert(*group);
+	for (auto& group : never_cache) {
+		m_GroupsToNeverCache.insert(group);
 	}
 	InitSongsFromDisk(ld);
+	LoadCalcTestNode();
 }
 
 static LocalizedString RELOADING("SongManager", "Reloading...");
@@ -123,14 +122,14 @@ static LocalizedString SANITY_CHECKING_GROUPS("SongManager",
 											  "Sanity checking groups...");
 
 // See InitSongsFromDisk for any comment clarification -mina
-int
-SongManager::DifferentialReload()
+auto
+SongManager::DifferentialReload() -> int
 {
 	MESSAGEMAN->Broadcast("DFRStarted");
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
 	FILEMAN->FlushDirCache(EDIT_SUBDIR);
-	int newsongs = 0;
+	auto newsongs = 0;
 	newsongs += DifferentialReloadDir(SpecialFiles::SONGS_DIR);
 	newsongs += DifferentialReloadDir(ADDITIONAL_SONGS_DIR);
 	LoadEnabledSongsFromPref();
@@ -142,22 +141,23 @@ SongManager::DifferentialReload()
 }
 
 // See LoadStepManiaSongDir for any comment clarification -mina
-int
-SongManager::DifferentialReloadDir(string dir)
+auto
+SongManager::DifferentialReloadDir(string dir) -> int
 {
-	if (dir.back() != '/')
+	if (dir.back() != '/') {
 		dir += "/";
+	}
 
-	int newsongs = 0;
+	auto newsongs = 0;
 
-	vector<RString> folders;
+	vector<std::string> folders;
 	GetDirListing(dir + "*", folders, true);
-	StripCvsAndSvn(folders);
-	StripMacResourceForks(folders);
 
 	vector<Group> groups;
 	Group unknownGroup("Unknown Group");
-	int groupIndex, songCount, songIndex;
+	int groupIndex;
+	int songCount;
+	int songIndex;
 
 	groupIndex = 0;
 	songCount = 0;
@@ -166,10 +166,8 @@ SongManager::DifferentialReloadDir(string dir)
 			songCount++;
 			unknownGroup.songs.emplace_back(SongDir(folder));
 		} else {
-			vector<RString> songdirs;
+			vector<std::string> songdirs;
 			GetDirListing(dir + folder + "/*", songdirs, true, true);
-			StripCvsAndSvn(songdirs);
-			StripMacResourceForks(songdirs);
 			Group group(folder);
 			for (auto& song : songdirs) {
 				group.songs.emplace_back(SongDir(song));
@@ -184,39 +182,41 @@ SongManager::DifferentialReloadDir(string dir)
 		songCount += unknownGroup.songs.size();
 	}
 
-	if (songCount == 0)
+	if (songCount == 0) {
 		return 0;
+	}
 
 	groupIndex = 0;
 	songIndex = 0;
 
 	for (auto& group : groups) {
-		vector<SongDir>& songDirs = group.songs;
-		int loaded = 0;
+		auto& songDirs = group.songs;
+		auto loaded = 0;
 
 		SongPointerVector& index_entry = m_mapSongGroupIndex[group.name];
-		RString group_base_name = Basename(group.name);
+		std::string group_base_name = Basename(group.name);
 		for (auto& songDir : songDirs) {
 			// skip any dir we've already loaded -mina
-			RString hur = songDir + "/";
-			hur.MakeLower();
-			if (m_SongsByDir.count(hur))
+			std::string hur = make_lower(songDir + "/");
+			if (m_SongsByDir.count(hur) != 0u) {
 				continue;
+			}
 
-			Song* pNewSong = new Song;
+			auto pNewSong = new Song;
 			if (!pNewSong->LoadFromSongDir(songDir)) {
 				delete pNewSong;
 				continue;
 			}
-			if (group.name == "Unknown Group")
+			if (group.name == "Unknown Group") {
 				pNewSong->m_sGroupName = "Ungrouped Songs";
+			}
 			AddSongToList(pNewSong);
 			AddKeyedPointers(pNewSong);
 
 			index_entry.emplace_back(pNewSong);
 
 			// Update nsman to keep us from getting disconnected
-			NSMAN->Update(0.0f);
+			NSMAN->Update(0.0F);
 
 			Message msg("DFRUpdate");
 			msg.SetParam("txt",
@@ -231,8 +231,9 @@ SongManager::DifferentialReloadDir(string dir)
 			newsongs++;
 		}
 
-		if (!loaded)
+		if (loaded == 0) {
 			continue;
+		}
 		LOG->Trace("Differential load of %i songs from \"%s\"",
 				   loaded,
 				   (dir + group.name).c_str());
@@ -249,8 +250,8 @@ using it = typename vector<T>::iterator;
 template<typename T>
 using p = std::pair<it<T>, it<T>>;
 template<typename T>
-std::vector<p<T>>
-split(vector<T>& v, size_t elementsPerThread)
+auto
+split(vector<T>& v, size_t elementsPerThread) -> std::vector<p<T>>
 {
 	std::vector<p<T>> ranges;
 	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
@@ -276,19 +277,21 @@ split(vector<T>& v, size_t elementsPerThread)
 }
 
 void
-SongManager::FinalizeSong(Song* pNewSong, const RString& dir)
+SongManager::FinalizeSong(Song* pNewSong, const std::string& dir)
 {
 	// never load stray songs from the cache -mina
 	if (pNewSong->m_sGroupName == "Songs" ||
-		pNewSong->m_sGroupName == "AdditionalSongs")
+		pNewSong->m_sGroupName == "AdditionalSongs") {
 		return;
+	}
 	SONGMAN->AddSongToList(pNewSong);
 	SONGMAN->AddKeyedPointers(pNewSong);
 	SONGMAN->m_mapSongGroupIndex[pNewSong->m_sGroupName].emplace_back(pNewSong);
 	if (SONGMAN->AddGroup(dir.substr(0, dir.find('/', 1) + 1),
-						  pNewSong->m_sGroupName))
+						  pNewSong->m_sGroupName)) {
 		IMAGECACHE->CacheImage(
 		  "Banner", SONGMAN->GetSongGroupBannerPath(pNewSong->m_sGroupName));
+	}
 }
 
 std::mutex songLoadingSONGMANMutex;
@@ -299,31 +302,34 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
 	SONGINDEX->delay_save_cache = true;
-	if (PREFSMAN->m_bFastLoad)
+	if (PREFSMAN->m_bFastLoad) {
 		SONGINDEX->LoadCache(ld, cache);
-	if (ld) {
+	}
+	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(cache.size());
 		ld->SetText("Loading songs from cache");
 		ld->SetProgress(0);
 	}
-	int onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
+	auto onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 
-	function<void(
-	  std::pair<vectorIt<pair<pair<RString, unsigned int>, Song*>*>,
-				vectorIt<pair<pair<RString, unsigned int>, Song*>*>>,
+	std::function<void(
+	  std::pair<
+		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
+		vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>,
 	  ThreadData*)>
 	  callback =
-		[](std::pair<vectorIt<pair<pair<RString, unsigned int>, Song*>*>,
-					 vectorIt<pair<pair<RString, unsigned int>, Song*>*>>
+		[](std::pair<
+			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>,
+			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>
 			 workload,
 		   ThreadData* data) {
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
 			auto ld = pair->second;
-			int cacheIndex = 0;
-			int lastUpdate = 0;
+			auto cacheIndex = 0;
+			auto lastUpdate = 0;
 			for (auto it = workload.first; it != workload.second; it++) {
 				auto pair = *it;
 				cacheIndex++;
@@ -333,12 +339,13 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 					data->setUpdated(true);
 				}
 				auto& pNewSong = pair->second;
-				const RString& dir = pNewSong->GetSongDir();
+				const std::string& dir = pNewSong->GetSongDir();
 				if (!FILEMAN->IsADirectory(dir.substr(0, dir.length() - 1)) ||
 					(!PREFSMAN->m_bBlindlyTrustCache.Get() &&
 					 pair->first.second != GetHashForDirectory(dir))) {
-					if (PREFSMAN->m_bShrinkSongCache)
+					if (PREFSMAN->m_bShrinkSongCache) {
 						SONGINDEX->DeleteSongFromDB(pair->second);
+					}
 					delete pair->second;
 					continue;
 				}
@@ -350,36 +357,85 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 			}
 		};
 	auto onUpdate = [ld](int progress) {
-		if (ld)
+		if (ld != nullptr) {
 			ld->SetProgress(progress);
+		}
 	};
-	parallelExecution<pair<pair<RString, unsigned int>, Song*>*>(
+	parallelExecution<std::pair<std::pair<std::string, unsigned int>, Song*>*>(
 	  cache,
 	  onUpdate,
 	  callback,
-	  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+	  static_cast<void*>(new std::pair<int, LoadingWindow*>(onePercent, ld)));
 	LoadStepManiaSongDir(SpecialFiles::SONGS_DIR, ld);
 	LoadStepManiaSongDir(ADDITIONAL_SONGS_DIR, ld);
 	LoadEnabledSongsFromPref();
 	SONGINDEX->delay_save_cache = false;
 
-	if (PREFSMAN->m_verbose_log > 1)
+	if (PREFSMAN->m_verbose_log > 1) {
 		LOG->Trace("Found %u songs in %f seconds.",
-				   (unsigned int)m_pSongs.size(),
+				   static_cast<unsigned int>(m_pSongs.size()),
 				   tm.GetDeltaTime());
-	for (auto& pair : cache)
+	}
+	for (auto& pair : cache) {
 		delete pair;
+	}
+
 	cache.clear();
+}
+
+void
+SongManager::CalcTestStuff()
+{
+	vector<float> test_vals[NUM_Skillset];
+
+	// output calc differences for chartkeys and targets and stuff
+	for (const auto& p : testChartList) {
+		auto ss = p.first;
+		LOG->Trace("\nStarting calc test group %s\n",
+				   SkillsetToString(ss).c_str());
+		for (const auto& chart : p.second.filemapping) {
+
+			if (StepsByKey.count(chart.first) != 0u) {
+				test_vals[ss].emplace_back(
+				  StepsByKey[chart.first]->DoATestThing(
+					chart.second.ev, ss, chart.second.rate, calc.get()));
+			}
+		}
+		LOG->Trace("\n\n");
+	}
+
+	FOREACH_ENUM(Skillset, ss)
+	{
+		if (!test_vals[ss].empty()) {
+			LOG->Trace(
+			  "%+0.2f avg delta for test group %s",
+			  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.F) /
+				test_vals[ss].size(),
+			  SkillsetToString(ss).c_str());
+		}
+	}
+
+	// bzzzzzzzzzzzz this won't work for what i want unless we also make dummy
+	// entries in testlist for stuff and don't set an ev
+	// int counter = 0;
+	// for (auto& ohno : StepsByKey){
+	//	ohno.second->DoATestThing(40.f, Skill_Overall, 1.f);
+	//	++counter;
+	//	if (counter > 500)
+	//		break;
+	//}
+
+	SaveCalcTestXmlToDir();
 }
 
 void
 Chart::FromKey(const string& ck)
 {
-	Song* song = SONGMAN->GetSongByChartkey(ck);
+	auto song = SONGMAN->GetSongByChartkey(ck);
 	key = ck;
 
 	if (song != nullptr) {
-		Steps* steps = SONGMAN->GetStepsByChartkey(ck);
+		auto steps = SONGMAN->GetStepsByChartkey(ck);
 		if (steps !=
 			nullptr) { // happens when you edit a file for playtesting -mina
 			lastpack = song->m_sGroupName;
@@ -394,17 +450,18 @@ Chart::FromKey(const string& ck)
 	loaded = false;
 }
 
-XNode*
-Chart::CreateNode(bool includerate) const
+auto
+Chart::CreateNode(bool includerate) const -> XNode*
 {
-	XNode* ch = new XNode("Chart");
+	auto ch = new XNode("Chart");
 	ch->AppendAttr("Key", key);
 	ch->AppendAttr("Pack", lastpack);
 	ch->AppendAttr("Song", lastsong);
 	ch->AppendAttr("Steps", DifficultyToString(lastdiff));
 
-	if (includerate)
+	if (includerate) {
 		ch->AppendAttr("Rate", ssprintf("%.3f", rate));
+	}
 	return ch;
 }
 
@@ -413,7 +470,7 @@ Chart::LoadFromNode(const XNode* node)
 {
 	ASSERT(node->GetName() == "Chart");
 
-	RString s;
+	std::string s;
 	node->GetAttrValue("Pack", lastpack);
 	node->GetAttrValue("Song", lastsong);
 	node->GetAttrValue("Steps", s);
@@ -431,7 +488,7 @@ Chart::LoadFromNode(const XNode* node)
 void
 Playlist::AddChart(const string& ck)
 {
-	float rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	auto rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	Chart ch;
 	ch.FromKey(ck);
 	ch.rate = rate;
@@ -441,40 +498,42 @@ Playlist::AddChart(const string& ck)
 void
 Playlist::DeleteChart(int i)
 {
-	if (chartlist.size() == 0 || i < 0 ||
-		i > static_cast<int>(chartlist.size()))
+	if (chartlist.empty() || i < 0 || i > static_cast<int>(chartlist.size())) {
 		return;
+	}
 
 	chartlist.erase(chartlist.begin() + i);
 }
 
-XNode*
-Playlist::CreateNode() const
+auto
+Playlist::CreateNode() const -> XNode*
 {
-	XNode* pl = new XNode("Playlist");
+	auto pl = new XNode("Playlist");
 	pl->AppendAttr("Name", name);
 
-	XNode* cl = new XNode("Chartlist");
+	auto cl = new XNode("Chartlist");
 	FOREACH_CONST(Chart, chartlist, ch)
 	cl->AppendChild(ch->CreateNode(true));
 
-	XNode* cr = new XNode("CourseRuns");
+	auto cr = new XNode("CourseRuns");
 	FOREACH_CONST(vector<string>, courseruns, run)
 	{
-		XNode* r = new XNode("Run");
+		auto r = new XNode("Run");
 		FOREACH_CONST(string, *run, sk)
 		r->AppendChild(*sk);
 		cr->AppendChild(r);
 	}
 
-	if (!cl->ChildrenEmpty())
+	if (!cl->ChildrenEmpty()) {
 		pl->AppendChild(cl);
-	else
+	} else {
 		delete cl;
-	if (!cr->ChildrenEmpty())
+	}
+	if (!cr->ChildrenEmpty()) {
 		pl->AppendChild(cr);
-	else
+	} else {
 		delete cr;
+	}
 
 	return pl;
 }
@@ -486,8 +545,8 @@ Playlist::LoadFromNode(const XNode* node)
 
 	node->GetAttrValue("Name", name);
 	if (!node->ChildrenEmpty()) {
-		const XNode* cl = node->GetChild("Chartlist");
-		if (cl) {
+		auto cl = node->GetChild("Chartlist");
+		if (cl != nullptr) {
 			FOREACH_CONST_Child(cl, chart)
 			{
 				Chart ch;
@@ -496,8 +555,8 @@ Playlist::LoadFromNode(const XNode* node)
 			}
 		}
 
-		const XNode* cr = node->GetChild("CourseRuns");
-		if (cr) {
+		auto cr = node->GetChild("CourseRuns");
+		if (cr != nullptr) {
 			FOREACH_CONST_Child(cr, run)
 			{
 				vector<string> tmp;
@@ -511,17 +570,21 @@ Playlist::LoadFromNode(const XNode* node)
 void
 SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists)
 {
-	if (!PlaylistsAreSongGroups)
+	if (!PlaylistsAreSongGroups) {
 		return;
+	}
 
-	for (auto& plName : playlistGroups)
+	for (auto& plName : playlistGroups) {
 		groupderps.erase(plName);
+	}
 	playlistGroups.clear();
 	for (auto& p : playlists) {
 		vector<Song*> playlistgroup;
-		for (auto& n : p.second.chartlist)
-			if (n.loaded)
+		for (auto& n : p.second.chartlist) {
+			if (n.loaded) {
 				playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
+			}
+		}
 
 		groupderps.erase(p.first);
 		groupderps[p.first] = playlistgroup;
@@ -530,32 +593,35 @@ SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists)
 	}
 }
 
-float
-Playlist::GetAverageRating()
+auto
+Playlist::GetAverageRating() -> float
 {
-	if (chartlist.empty())
+	if (chartlist.empty()) {
 		return 0;
-	float o = 0.f;
-	int numloaded = 0;
+	}
+	auto o = 0.F;
+	auto numloaded = 0;
 	for (auto& n : chartlist) {
 		if (n.loaded) {
 			auto rate = n.rate;
-			CLAMP(rate, 0.7f, 3.f);
+			CLAMP(rate, 0.7F, 3.F);
 			o += n.stepsptr->GetMSD(rate, 0);
 			++numloaded;
 		}
 	}
-	if (numloaded == 0)
-		return 0.f;
+	if (numloaded == 0) {
+		return 0.F;
+	}
 	return o / static_cast<float>(numloaded);
 }
 
-vector<string>
-Playlist::GetKeys()
+auto
+Playlist::GetKeys() -> vector<string>
 {
 	vector<string> o;
-	for (size_t i = 0; i < chartlist.size(); ++i)
-		o.emplace_back(chartlist[i].key);
+	for (auto& i : chartlist) {
+		o.emplace_back(i.key);
+	}
 	return o;
 }
 
@@ -567,8 +633,9 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 	// stuff gets weird if all playlists have been deleted and a chart
 	// is added
 	// - mina
-	if (playlists.size() > 0)
+	if (!playlists.empty()) {
 		activeplaylist = playlists.begin()->first;
+	}
 
 	// clear out the entry for the music wheel as well or it'll crash
 	// -mina
@@ -576,44 +643,53 @@ SongManager::DeletePlaylist(const string& pl, map<string, Playlist>& playlists)
 }
 
 void
-SongManager::MakePlaylistFromFavorites(set<string>& favs,
-									   map<string, Playlist>& playlists)
+SongManager::MakePlaylistFromFavorites(
+  std::set<string>& favs,
+  std::map<std::string, Playlist>& playlists)
 {
 	Playlist pl;
 	pl.name = "Favorites";
-	for (auto& n : favs)
+	for (auto& n : favs) {
 		pl.AddChart(n);
+	}
 
 	// kinda messy but, trim unloaded charts from the favorites playlist
 	// -mina
-	for (size_t i = 0; i < pl.chartlist.size(); ++i)
-		if (!pl.chartlist[i].loaded)
+	for (size_t i = 0; i < pl.chartlist.size(); ++i) {
+		if (!pl.chartlist[i].loaded) {
 			pl.DeleteChart(i);
+		}
+	}
 
-	playlists.emplace("Favorites", pl);
+	if (!pl.chartlist.empty()) {
+		playlists.emplace("Favorites", pl);
+	}
 }
 
 void
-SongManager::ReconcileChartKeysForReloadedSong(const Song* reloadedSong,
-											   vector<string> oldChartkeys)
+SongManager::ReconcileChartKeysForReloadedSong(
+  const Song* reloadedSong,
+  const std::vector<std::string>& oldChartkeys)
 {
-	for (auto ck : oldChartkeys)
+	for (const auto& ck : oldChartkeys) {
 		SONGMAN->StepsByKey.erase(ck);
+	}
 	auto stepses = reloadedSong->GetAllSteps();
-	for (auto steps : stepses)
+	for (auto steps : stepses) {
 		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
+	}
 }
 
 // Only store 1 steps/song pointer per key -Mina
 void
 SongManager::AddKeyedPointers(Song* new_song)
 {
-	const vector<Steps*> steps = new_song->GetAllSteps();
-	for (size_t i = 0; i < steps.size(); ++i) {
-		const string& ck = steps[i]->GetChartKey();
-		if (!StepsByKey.count(ck)) {
-			StepsByKey.emplace(ck, steps[i]);
-			if (!SongsByKey.count(ck)) {
+	const auto steps = new_song->GetAllSteps();
+	for (auto step : steps) {
+		const auto& ck = step->GetChartKey();
+		if (StepsByKey.count(ck) == 0u) {
+			StepsByKey.emplace(ck, step);
+			if (SongsByKey.count(ck) == 0u) {
 				SongsByKey.emplace(ck, new_song);
 			}
 		}
@@ -624,20 +700,30 @@ SongManager::AddKeyedPointers(Song* new_song)
 
 // Get a steps pointer given a chartkey, the assumption here is we want
 // _a_ matching steps, not the original steps - mina
-Steps*
-SongManager::GetStepsByChartkey(const string& ck)
+auto
+SongManager::GetStepsByChartkey(const std::string& ck) -> Steps*
 {
-	if (StepsByKey.count(ck))
+	if (StepsByKey.count(ck) != 0u) {
 		return StepsByKey[ck];
+	}
 	return nullptr;
 }
 
-Song*
-SongManager::GetSongByChartkey(const string& ck)
+auto
+SongManager::GetSongByChartkey(const std::string& ck) -> Song*
 {
-	if (SongsByKey.count(ck))
+	if (SongsByKey.count(ck) != 0u) {
 		return SongsByKey[ck];
+	}
 	return nullptr;
+}
+
+void
+SongManager::UnloadAllCalcDebugOutput()
+{
+	for (auto s : m_pSongs) {
+		s->UnloadAllCalcDebugOutput();
+	}
 }
 
 static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
@@ -646,16 +732,15 @@ static LocalizedString FOLDER_CONTAINS_MUSIC_FILES(
   "must "
   "reside in a group folder.  For example, \"Songs/Originals/My "
   "Song\".");
-bool
-SongManager::IsSongDir(const RString& sDir)
+auto
+SongManager::IsSongDir(const std::string& sDir) -> bool
 {
 	// Check to see if they put a song directly inside the group folder.
-	vector<RString> arrayFiles;
+	std::vector<std::string> arrayFiles;
 	GetDirListing(sDir + "/*", arrayFiles);
-	const vector<RString>& audio_exts =
-	  ActorUtil::GetTypeExtensionList(FT_Sound);
+	const auto& audio_exts = ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (auto& fname : arrayFiles) {
-		const RString ext = GetExtension(fname);
+		const std::string ext = GetExtension(fname);
 		for (auto& aud : audio_exts) {
 			if (ext == aud) {
 				return true;
@@ -665,80 +750,45 @@ SongManager::IsSongDir(const RString& sDir)
 	return false;
 }
 
-bool
-SongManager::AddGroup(const RString& sDir, const RString& sGroupDirName)
+auto
+SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
+  -> bool
 {
 	unsigned j;
-	for (j = 0; j < m_sSongGroupNames.size(); ++j)
-		if (sGroupDirName == m_sSongGroupNames[j])
+	for (j = 0; j < m_sSongGroupNames.size(); ++j) {
+		if (sGroupDirName == m_sSongGroupNames[j]) {
 			break;
+		}
+	}
 
-	if (j != m_sSongGroupNames.size())
+	if (j != m_sSongGroupNames.size()) {
 		return false; // the group is already added
+	}
 
 	// Look for a group banner in this group folder
-	vector<RString> arrayGroupBanners;
+	std::vector<std::string> arrayGroupBanners;
 
 	FILEMAN->GetDirListingWithMultipleExtensions(
 	  sDir + sGroupDirName + "/",
 	  ActorUtil::GetTypeExtensionList(FT_Bitmap),
 	  arrayGroupBanners);
 
-	RString sBannerPath;
-	if (!arrayGroupBanners.empty())
+	std::string sBannerPath;
+	if (!arrayGroupBanners.empty()) {
 		sBannerPath = sDir + sGroupDirName + "/" + arrayGroupBanners[0];
-	else {
+	} else {
 		// Look for a group banner in the parent folder
 		FILEMAN->GetDirListingWithMultipleExtensions(
 		  sDir + sGroupDirName,
 		  ActorUtil::GetTypeExtensionList(FT_Bitmap),
 		  arrayGroupBanners);
-		if (!arrayGroupBanners.empty())
+		if (!arrayGroupBanners.empty()) {
 			sBannerPath = sDir + arrayGroupBanners[0];
-	}
-
-	/* Other group graphics are a bit trickier, and usually don't exist.
-	 * A themer has a few options, namely checking the aspect ratio and
-	 * operating on it. -aj
-	 * TODO: Once the files are implemented in Song, bring the
-	 * extensions from there into here. -aj */
-	// Group background
-
-	// vector<RString> arrayGroupBackgrounds;
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.png", arrayGroupBanners
-	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.jpg",
-	// arrayGroupBanners ); GetDirListing(
-	// sDir+sGroupDirName+"/*-bg.jpeg", arrayGroupBanners );
-	// GetDirListing( sDir+sGroupDirName+"/*-bg.gif", arrayGroupBanners
-	// ); GetDirListing( sDir+sGroupDirName+"/*-bg.bmp",
-	// arrayGroupBanners );
-	/*
-		RString sBackgroundPath;
-		if( !arrayGroupBackgrounds.empty() )
-			sBackgroundPath =
-	   sDir+sGroupDirName+"/"+arrayGroupBackgrounds[0]; else
-		{
-			// Look for a group background in the parent folder
-			GetDirListing( sDir+sGroupDirName+"-bg.png",
-	   arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.jpg",
-	   arrayGroupBackgrounds ); GetDirListing(
-	   sDir+sGroupDirName+"-bg.jpeg", arrayGroupBackgrounds
-	   ); GetDirListing( sDir+sGroupDirName+"-bg.gif",
-	   arrayGroupBackgrounds ); GetDirListing(
-	   sDir+sGroupDirName+"-bg.bmp", arrayGroupBackgrounds
-	   ); if( !arrayGroupBackgrounds.empty() ) sBackgroundPath =
-	   sDir+arrayGroupBackgrounds[0];
 		}
-	*/
-	/*
-	LOG->Trace( "Group banner for '%s' is '%s'.", sGroupDirName.c_str(),
-				sBannerPath != ""? sBannerPath.c_str():"(none)" );
-	*/
+	}
 
 	m_sSongGroupNames.emplace_back(sGroupDirName);
 	m_sSongGroupBannerPaths.emplace_back(sBannerPath);
-	// m_sSongGroupBackgroundPaths.emplace_back( sBackgroundPath );
 	return true;
 }
 
@@ -746,22 +796,20 @@ std::mutex diskLoadSongMutex;
 std::mutex diskLoadGroupMutex;
 static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
 void
-SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
+SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 {
-	vector<RString> songFolders;
+	std::vector<std::string> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
-	StripCvsAndSvn(songFolders);
-	StripMacResourceForks(songFolders);
-	int songCount = 0;
+	auto songCount = 0;
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songFolders.size());
 		ld->SetText("Checking song folders...");
 	}
-	vector<Group> groups;
-	auto unknownGroup = Group(RString("Unknown Group"));
-	int foldersChecked = 0;
-	int onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
+	std::vector<Group> groups;
+	auto unknownGroup = Group(std::string("Unknown Group"));
+	auto foldersChecked = 0;
+	auto onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
 	for (const auto& folder : songFolders) {
 		auto burp = sDir + folder;
 		if (IsSongDir(burp)) {
@@ -769,14 +817,13 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);
-			StripCvsAndSvn(group.songs);
-			StripMacResourceForks(group.songs);
 			songCount += group.songs.size();
 			groups.emplace_back(group);
 		}
 	}
-	if (!unknownGroup.songs.empty())
+	if (!unknownGroup.songs.empty()) {
 		groups.emplace_back(unknownGroup);
+	}
 
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
@@ -784,43 +831,46 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		ld->SetText("Loading Songs From Disk\n");
 		ld->SetProgress(0);
 	}
-	int groupIndex = 0;
+	auto groupIndex = 0;
 	onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
 
 	auto callback = [&sDir](
 					  std::pair<vectorIt<Group>, vectorIt<Group>> workload,
 					  ThreadData* data) {
+		auto per_thread_calc = std::make_unique<Calc>();
+
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
 		auto ld = pair->second;
-		int counter = 0;
-		int lastUpdate = 0;
+		auto counter = 0;
+		auto lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
 			auto pair = *it;
 			auto& sGroupName = it->name;
 			counter++;
-			vector<SongDir>& arraySongDirs = it->songs;
+			auto& arraySongDirs = it->songs;
 			if (counter % onePercent == 0) {
 				data->_progress += counter - lastUpdate;
 				lastUpdate = counter;
 				data->setUpdated(true);
 			}
-			int loaded = 0;
-			SongPointerVector& index_entry =
-			  SONGMAN->m_mapSongGroupIndex[sGroupName];
-			RString group_base_name = sGroupName;
+			auto loaded = 0;
+			auto index_entry = SONGMAN->m_mapSongGroupIndex[sGroupName];
+			const auto& group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
-				RString hur = sSongDirName + "/";
-				hur.MakeLower();
-				if (SONGMAN->m_SongsByDir.count(hur))
+				auto hur = make_lower(sSongDirName + "/");
+				if (SONGMAN->m_SongsByDir.count(hur) != 0u) {
 					continue;
-				Song* pNewSong = new Song;
-				if (!pNewSong->LoadFromSongDir(sSongDirName)) {
+				}
+				auto pNewSong = new Song;
+				if (!pNewSong->LoadFromSongDir(sSongDirName,
+											   per_thread_calc.get())) {
 					delete pNewSong;
 					continue;
 				}
-				if (sGroupName == "Unknown Group")
+				if (sGroupName == "Unknown Group") {
 					pNewSong->m_sGroupName = "Ungrouped Songs";
+				}
 				{
 					std::lock_guard<std::mutex> lk(diskLoadSongMutex);
 					SONGMAN->AddSongToList(pNewSong);
@@ -829,8 +879,9 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 				index_entry.emplace_back(pNewSong);
 				loaded++;
 			}
-			if (!loaded)
+			if (loaded == 0) {
 				continue;
+			}
 			LOG->Trace("Loaded %i songs from \"%s\"",
 					   loaded,
 					   (sDir + sGroupName).c_str());
@@ -843,20 +894,24 @@ SongManager::LoadStepManiaSongDir(RString sDir, LoadingWindow* ld)
 		}
 	};
 	auto onUpdate = [ld](int progress) {
-		if (ld != nullptr)
+		if (ld != nullptr) {
 			ld->SetProgress(progress);
+		}
 	};
 	vector<Group> workload;
+	workload.reserve(groups.size());
 	for (auto& group : groups) {
 		workload.emplace_back(group);
 	}
 
-	if (!workload.empty())
+	if (!workload.empty()) {
 		parallelExecution<Group>(
 		  workload,
 		  onUpdate,
 		  callback,
-		  (void*)new pair<int, LoadingWindow*>(onePercent, ld));
+		  static_cast<void*>(
+			new std::pair<int, LoadingWindow*>(onePercent, ld)));
+	}
 
 	if (ld != nullptr) {
 		ld->SetIndeterminate(true);
@@ -870,8 +925,10 @@ SongManager::FreeSongs()
 	m_sSongGroupBannerPaths.clear();
 	// m_sSongGroupBackgroundPaths.clear();
 
-	for (unsigned i = 0; i < m_pSongs.size(); i++)
+	for (unsigned i = 0; i < m_pSongs.size(); ++i) {
 		SAFE_DELETE(m_pSongs[i]);
+	}
+
 	m_pSongs.clear();
 	m_SongsByDir.clear();
 
@@ -883,63 +940,70 @@ SongManager::FreeSongs()
 	groupderps.clear();
 
 	m_pPopularSongs.clear();
-	m_pShuffledSongs.clear();
 }
 
-bool
-SongManager::IsGroupNeverCached(const RString& group) const
+auto
+SongManager::IsGroupNeverCached(const std::string& group) const -> bool
 {
 	return m_GroupsToNeverCache.find(group) != m_GroupsToNeverCache.end();
 }
 
 void
-SongManager::SetFavoritedStatus(set<string>& favs)
+SongManager::SetFavoritedStatus(std::set<string>& favs)
 {
-	FOREACH(Song*, m_pSongs, song)
-	{
-		bool fav = false;
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (favs.count((*steps)->GetChartKey()))
-			fav = true;
-		(*song)->SetFavorited(fav);
+	for (auto song : m_pSongs) {
+		auto fav = false;
+		for (auto steps : song->GetAllSteps()) {
+			if (favs.count(steps->GetChartKey()) != 0u) {
+				fav = true;
+			}
+		}
+
+		song->SetFavorited(fav);
 	}
 }
 
 void
-SongManager::SetPermaMirroredStatus(set<string>& pmir)
+SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 {
-	FOREACH(Song*, m_pSongs, song)
-	FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-	if (pmir.count((*steps)->GetChartKey()))
-		(*song)->SetPermaMirror(true);
+	for (auto song : m_pSongs) {
+		for (auto steps : song->GetAllSteps()) {
+			if (pmir.count(steps->GetChartKey()) != 0u) {
+				song->SetPermaMirror(true);
+			}
+		}
+	}
 }
 
 // hurr should probably redo both (all three) of these -mina
 void
-SongManager::SetHasGoal(unordered_map<string, GoalsForChart>& goalmap)
+SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 {
-	FOREACH(Song*, m_pSongs, song)
-	{
-		bool hasGoal = false;
-		FOREACH_CONST(Steps*, (*song)->GetAllSteps(), steps)
-		if (goalmap.count((*steps)->GetChartKey()))
-			hasGoal = true;
-		(*song)->SetHasGoal(hasGoal);
+	for (auto song : m_pSongs) {
+		auto hasGoal = false;
+		for (auto steps : song->GetAllSteps()) {
+			if (goalmap.count(steps->GetChartKey()) != 0u) {
+				hasGoal = true;
+			}
+			song->SetHasGoal(hasGoal);
+		}
 	}
 }
 
-RString
-SongManager::GetSongGroupBannerPath(const RString& sSongGroup) const
+auto
+SongManager::GetSongGroupBannerPath(const std::string& sSongGroup) const
+  -> std::string
 {
 	for (unsigned i = 0; i < m_sSongGroupNames.size(); ++i) {
-		if (sSongGroup == m_sSongGroupNames[i])
+		if (sSongGroup == m_sSongGroupNames[i]) {
 			return m_sSongGroupBannerPaths[i];
+		}
 	}
 
-	return RString();
+	return std::string();
 }
 /*
-RString SongManager::GetSongGroupBackgroundPath( RString sSongGroup )
+std::string SongManager::GetSongGroupBackgroundPath( std::string sSongGroup )
 const
 {
 	for( unsigned i = 0; i < m_sSongGroupNames.size(); ++i )
@@ -948,102 +1012,66 @@ const
 			return m_sSongGroupBackgroundPaths[i];
 	}
 
-	return RString();
+	return std::string();
 }
 */
 void
-SongManager::GetSongGroupNames(vector<RString>& AddTo) const
+SongManager::GetSongGroupNames(vector<std::string>& AddTo) const
 {
 	AddTo.insert(
 	  AddTo.end(), m_sSongGroupNames.begin(), m_sSongGroupNames.end());
 }
 
-const vector<RString>&
-SongManager::GetSongGroupNames() const
+auto
+SongManager::GetSongGroupNames() const -> const vector<std::string>&
 {
 	return m_sSongGroupNames;
 }
 
-bool
-SongManager::DoesSongGroupExist(const RString& sSongGroup) const
+auto
+SongManager::DoesSongGroupExist(const std::string& sSongGroup) const -> bool
 {
 	return find(m_sSongGroupNames.begin(),
 				m_sSongGroupNames.end(),
 				sSongGroup) != m_sSongGroupNames.end();
 }
 
-RageColor
-SongManager::GetSongGroupColor(const RString& sSongGroup,
+auto
+SongManager::GetSongGroupColor(const std::string& sSongGroup,
 							   map<string, Playlist>& playlists) const
+  -> RageColor
 {
 	for (unsigned i = 0; i < m_sSongGroupNames.size(); i++) {
-		if (m_sSongGroupNames[i] == sSongGroup || playlists.count(sSongGroup)) {
+		if (m_sSongGroupNames[i] == sSongGroup ||
+			(playlists.count(sSongGroup) != 0u)) {
 			return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
 		}
 	}
 
-	/*ASSERT_M(0,
-			 ssprintf("requested color for song group '%s' that doesn't exist",
-					  sSongGroup.c_str()));*/
 	return RageColor(1, 1, 1, 1);
 }
 
-RageColor
-SongManager::GetSongColor(const Song* pSong) const
+auto
+SongManager::GetSongColor(const Song* pSong) const -> RageColor
 {
-	ASSERT(pSong != NULL);
-	if (USE_PREFERRED_SORT_COLOR) {
-		FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-		{
-			FOREACH_CONST(Song*, v->vpSongs, s)
-			{
-				if (*s == pSong) {
-					int i = v - m_vPreferredSongSort.begin();
-					return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
-				}
-			}
+	assert(pSong != nullptr);
+
+	const auto& vpSteps = pSong->GetAllSteps();
+	for (auto pSteps : vpSteps) {
+		switch (pSteps->GetDifficulty()) {
+			case Difficulty_Challenge:
+			case Difficulty_Edit:
+				continue;
+			default:
+				break;
 		}
 
-		int i = m_vPreferredSongSort.size();
-		return SONG_GROUP_COLOR.GetValue(i % NUM_SONG_GROUP_COLORS);
-	} else // TODO: Have a better fallback plan with colors?
-	{
-		/* XXX: Previously, this matched all notes, which set a song to
-		 * "extra" if it had any 10-foot steps at all, even edits or
-		 * doubles.
-		 *
-		 * For now, only look at notes for the current note type. This
-		 * means that if a song has 10-foot steps on Doubles, it'll only
-		 * show up red in Doubles. That's not too bad, I think. This
-		 * will also change it in the song scroll, which is a little odd
-		 * but harmless.
-		 *
-		 * XXX: Ack. This means this function can only be called when we
-		 * have
-		 * a style set up, which is too restrictive. How to handle this?
-		 */
-		// const StepsType st =
-		// GAMESTATE->GetCurrentStyle()->m_StepsType;
-		const vector<Steps*>& vpSteps = pSong->GetAllSteps();
-		for (unsigned i = 0; i < vpSteps.size(); i++) {
-			const Steps* pSteps = vpSteps[i];
-			switch (pSteps->GetDifficulty()) {
-				case Difficulty_Challenge:
-				case Difficulty_Edit:
-					continue;
-				default:
-					break;
-			}
-
-			// if(pSteps->m_StepsType != st)
-			//	continue;
-
-			if (pSteps->GetMeter() >= EXTRA_COLOR_METER)
-				return (RageColor)EXTRA_COLOR;
+		if (pSteps->GetMeter() >= EXTRA_COLOR_METER) {
+			return static_cast<RageColor>(EXTRA_COLOR);
 		}
-
-		return GetSongGroupColor(pSong->m_sGroupName);
 	}
+
+	return GetSongGroupColor(pSong->m_sGroupName);
 }
 
 void
@@ -1058,28 +1086,32 @@ SongManager::ResetGroupColors()
 	  "SongManager", SONG_GROUP_COLOR_NAME, NUM_SONG_GROUP_COLORS);
 }
 
-const vector<Song*>&
-SongManager::GetSongs(const RString& sGroupName) const
+auto
+SongManager::GetSongs(const std::string& sGroupName) const
+  -> const vector<Song*>&
 {
 	static const vector<Song*> vEmpty;
 
-	if (sGroupName == GROUP_ALL)
+	if (sGroupName == GROUP_ALL) {
 		return m_pSongs;
-	map<RString, SongPointerVector, Comp>::const_iterator iter =
-	  m_mapSongGroupIndex.find(sGroupName);
-	if (iter != m_mapSongGroupIndex.end())
+	}
+	auto iter = m_mapSongGroupIndex.find(sGroupName);
+	if (iter != m_mapSongGroupIndex.end()) {
 		return iter->second;
+	}
 	return vEmpty;
 }
 void
-SongManager::ForceReloadSongGroup(const RString& sGroupName) const
+SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 {
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
 		vector<string> oldChartkeys;
-		for (auto steps : stepses)
+		oldChartkeys.reserve(stepses.size());
+		for (auto steps : stepses) {
 			oldChartkeys.emplace_back(steps->GetChartKey());
+		}
 
 		s->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(s, oldChartkeys);
@@ -1089,65 +1121,39 @@ SongManager::ForceReloadSongGroup(const RString& sGroupName) const
 void
 SongManager::GetFavoriteSongs(vector<Song*>& songs) const
 {
-	FOREACH_CONST(Song*, m_pSongs, song)
-	{
-		if ((*song)->IsFavorited())
-			songs.emplace_back((*song));
-	}
-}
-
-void
-SongManager::GetPreferredSortSongs(vector<Song*>& AddTo) const
-{
-	if (m_vPreferredSongSort.empty()) {
-		AddTo.insert(AddTo.end(), m_pSongs.begin(), m_pSongs.end());
-		return;
-	}
-
-	FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-	AddTo.insert(AddTo.end(), v->vpSongs.begin(), v->vpSongs.end());
-}
-
-RString
-SongManager::SongToPreferredSortSectionName(const Song* pSong) const
-{
-	FOREACH_CONST(PreferredSortSection, m_vPreferredSongSort, v)
-	{
-		FOREACH_CONST(Song*, v->vpSongs, s)
-		{
-			if (*s == pSong)
-				return v->sName;
+	for (const auto& song : m_pSongs) {
+		if (song->IsFavorited()) {
+			songs.emplace_back(song);
 		}
 	}
-	return RString();
 }
 
-int
-SongManager::GetNumSongs() const
+auto
+SongManager::GetNumSongs() const -> int
 {
 	return m_pSongs.size();
 }
 
-int
-SongManager::GetNumAdditionalSongs() const
+auto
+SongManager::GetNumAdditionalSongs() const -> int
 {
-	int iNum = 0;
-	FOREACH_CONST(Song*, m_pSongs, i)
-	{
-		if (WasLoadedFromAdditionalSongs(*i))
+	auto iNum = 0;
+	for (auto song : m_pSongs) {
+		if (WasLoadedFromAdditionalSongs(song)) {
 			++iNum;
+		}
 	}
 	return iNum;
 }
 
-int
-SongManager::GetNumSongGroups() const
+auto
+SongManager::GetNumSongGroups() const -> int
 {
 	return m_sSongGroupNames.size();
 }
 
-RString
-SongManager::ShortenGroupName(const RString& sLongGroupName)
+auto
+SongManager::ShortenGroupName(const std::string& sLongGroupName) -> std::string
 {
 	static TitleSubst tsub("Groups");
 
@@ -1162,12 +1168,10 @@ SongManager::ShortenGroupName(const RString& sLongGroupName)
 void
 SongManager::Cleanup()
 {
-	for (unsigned i = 0; i < m_pSongs.size(); i++) {
-		Song* pSong = m_pSongs[i];
-		if (pSong) {
-			const vector<Steps*>& vpSteps = pSong->GetAllSteps();
-			for (unsigned n = 0; n < vpSteps.size(); n++) {
-				Steps* pSteps = vpSteps[n];
+	for (auto pSong : m_pSongs) {
+		if (pSong != nullptr) {
+			const auto& vpSteps = pSong->GetAllSteps();
+			for (auto pSteps : vpSteps) {
 				pSteps->Compress();
 			}
 		}
@@ -1183,11 +1187,10 @@ SongManager::Cleanup()
 void
 SongManager::Invalidate(const Song* pStaleSong)
 {
-	UpdateShuffled();
 }
 
-map<string, Playlist>&
-SongManager::GetPlaylists()
+auto
+SongManager::GetPlaylists() -> map<string, Playlist>&
 {
 	return PROFILEMAN->GetProfile(PLAYER_1)->allplaylists;
 }
@@ -1195,19 +1198,17 @@ SongManager::GetPlaylists()
 void
 SongManager::SaveEnabledSongsToPref()
 {
-	vector<RString> vsDisabledSongs;
+	vector<std::string> vsDisabledSongs;
 
 	// Intentionally drop disabled song entries for songs that aren't
 	// currently loaded.
 
-	const vector<Song*>& apSongs = SONGMAN->GetAllSongs();
-	FOREACH_CONST(Song*, apSongs, s)
-	{
-		Song* pSong = (*s);
+	for (auto& s : SONGMAN->GetAllSongs()) {
 		SongID sid;
-		sid.FromSong(pSong);
-		if (!pSong->GetEnabled())
+		sid.FromSong(s);
+		if (!s->GetEnabled()) {
 			vsDisabledSongs.emplace_back(sid.ToString());
+		}
 	}
 	g_sDisabledSongs.Set(join(";", vsDisabledSongs));
 }
@@ -1215,27 +1216,16 @@ SongManager::SaveEnabledSongsToPref()
 void
 SongManager::LoadEnabledSongsFromPref()
 {
-	vector<RString> asDisabledSongs;
+	vector<std::string> asDisabledSongs;
 	split(g_sDisabledSongs, ";", asDisabledSongs, true);
 
-	FOREACH_CONST(RString, asDisabledSongs, s)
-	{
+	for (auto& s : asDisabledSongs) {
 		SongID sid;
-		sid.FromString(*s);
-		Song* pSong = sid.ToSong();
-		if (pSong)
+		sid.FromString(s);
+		auto pSong = sid.ToSong();
+		if (pSong != nullptr) {
 			pSong->SetEnabled(false);
-	}
-}
-
-void
-SongManager::GetStepsLoadedFromProfile(vector<Steps*>& AddTo,
-									   ProfileSlot slot) const
-{
-	const vector<Song*>& vSongs = GetAllSongs();
-	FOREACH_CONST(Song*, vSongs, song)
-	{
-		(*song)->GetStepsLoadedFromProfile(slot, AddTo);
+		}
 	}
 }
 
@@ -1245,282 +1235,25 @@ SongManager::DeleteSteps(Steps* pSteps)
 	pSteps->m_pSong->DeleteSteps(pSteps);
 }
 
-bool
-SongManager::WasLoadedFromAdditionalSongs(const Song* pSong) const
+auto
+SongManager::WasLoadedFromAdditionalSongs(const Song* pSong) -> bool
 {
-	RString sDir = pSong->GetSongDir();
+	const auto& sDir = pSong->GetSongDir();
 	return BeginsWith(sDir, ADDITIONAL_SONGS_DIR);
 }
 
-// Return true if n1 < n2.
-bool
-CompareNotesPointersForExtra(const Steps* n1, const Steps* n2)
+auto
+SongManager::GetSongFromDir(std::string dir) const -> Song*
 {
-	// Equate CHALLENGE to HARD.
-	Difficulty d1 = min(n1->GetDifficulty(), Difficulty_Hard);
-	Difficulty d2 = min(n2->GetDifficulty(), Difficulty_Hard);
+	ensure_slash_at_end(dir);
 
-	if (d1 < d2)
-		return true;
-	if (d1 > d2)
-		return false;
-	// n1 difficulty == n2 difficulty
-
-	if (StepsUtil::CompareNotesPointersByMeter(n1, n2))
-		return true;
-	if (StepsUtil::CompareNotesPointersByMeter(n2, n1))
-		return false;
-	// n1 meter == n2 meter
-
-	return StepsUtil::CompareNotesPointersByRadarValues(n1, n2);
-}
-
-void
-SongManager::GetExtraStageInfo(bool bExtra2,
-							   const Style* sd,
-							   Song*& pSongOut,
-							   Steps*& pStepsOut)
-{
-	RString sGroup = GAMESTATE->m_sPreferredSongGroup;
-	if (sGroup == GROUP_ALL) {
-		if (GAMESTATE->m_pCurSong == NULL) {
-			// This normally shouldn't happen, but it's helpful to
-			// permit it for testing.
-			LuaHelpers::ReportScriptErrorFmt("GetExtraStageInfo() called in "
-											 "GROUP_ALL, but "
-											 "GAMESTATE->m_pCurSong == NULL");
-			GAMESTATE->m_pCurSong.Set(GetRandomSong());
-		}
-		sGroup = GAMESTATE->m_pCurSong->m_sGroupName;
-	}
-
-	ASSERT_M(sGroup != "",
-			 ssprintf("%p '%s' '%s'",
-					  GAMESTATE->m_pCurSong.Get(),
-					  GAMESTATE->m_pCurSong
-						? GAMESTATE->m_pCurSong->GetSongDir().c_str()
-						: "",
-					  GAMESTATE->m_pCurSong
-						? GAMESTATE->m_pCurSong->m_sGroupName.c_str()
-						: ""));
-
-	// Choose a hard song for the extra stage
-	Song* pExtra1Song = NULL; // the absolute hardest Song and Steps.
-							  // Use this for extra stage 1.
-	Steps* pExtra1Notes = NULL;
-	Song* pExtra2Song = NULL; // a medium-hard Song and Steps.  Use this
-							  // for extra stage 2.
-	Steps* pExtra2Notes = NULL;
-
-	const vector<Song*>& apSongs = GetSongs(sGroup);
-	for (unsigned s = 0; s < apSongs.size(); s++) // foreach song
-	{
-		Song* pSong = apSongs[s];
-
-		vector<Steps*> apSteps;
-		SongUtil::GetSteps(pSong, apSteps, sd->m_StepsType);
-		for (unsigned n = 0; n < apSteps.size(); n++) // foreach Steps
-		{
-			Steps* pSteps = apSteps[n];
-
-			if (pExtra1Notes == NULL ||
-				CompareNotesPointersForExtra(
-				  pExtra1Notes,
-				  pSteps)) // pSteps is harder than pHardestNotes
-			{
-				pExtra1Song = pSong;
-				pExtra1Notes = pSteps;
-			}
-
-			// for extra 2, we don't want to choose the hardest notes
-			// possible. So, we'll disgard Steps with meter > 8
-			// (assuming dance)
-			if (bExtra2 && pSteps->GetMeter() > EXTRA_STAGE2_DIFFICULTY_MAX)
-				continue; // skip
-			if (pExtra2Notes == NULL ||
-				CompareNotesPointersForExtra(
-				  pExtra2Notes,
-				  pSteps)) // pSteps is harder than pHardestNotes
-			{
-				pExtra2Song = pSong;
-				pExtra2Notes = pSteps;
-			}
-		}
-	}
-
-	if (pExtra2Song == NULL && pExtra1Song != NULL) {
-		pExtra2Song = pExtra1Song;
-		pExtra2Notes = pExtra1Notes;
-	}
-
-	// If there are any notes at all that match this StepsType,
-	// everything should be filled out. Also, it's guaranteed that there
-	// is at least one Steps that matches the StepsType because the
-	// player had to play something before reaching the extra stage!
-	ASSERT(pExtra2Song && pExtra1Song && pExtra2Notes && pExtra1Notes);
-
-	pSongOut = (bExtra2 ? pExtra2Song : pExtra1Song);
-	pStepsOut = (bExtra2 ? pExtra2Notes : pExtra1Notes);
-}
-
-Song*
-SongManager::GetRandomSong()
-{
-	if (m_pShuffledSongs.empty())
-		return NULL;
-
-	static int i = 0;
-
-	Song* pSong = nullptr;
-
-	for (int iThrowAway = 0; iThrowAway < 100; iThrowAway++) {
-		i++;
-		wrap(i, m_pShuffledSongs.size());
-		pSong = m_pShuffledSongs[i];
-	}
-
-	return pSong;
-}
-
-Song*
-SongManager::GetSongFromDir(RString dir) const
-{
-	if (dir.Right(1) != "/") {
-		dir += "/";
-	}
-
-	dir.Replace('\\', '/');
-	dir.MakeLower();
-	map<RString, Song*>::const_iterator entry = m_SongsByDir.find(dir);
+	s_replace(dir, "\\", "/");
+	dir = make_lower(dir);
+	auto entry = m_SongsByDir.find(dir);
 	if (entry != m_SongsByDir.end()) {
 		return entry->second;
 	}
-	return NULL;
-}
-
-/* GetSongDir() contains a path to the song, possibly a full path, eg:
- * Songs\Group\SongName                   or
- * My Other Song Folder\Group\SongName    or
- * c:\Corny J-pop\Group\SongName
- *
- * Most course group names are "Group\SongName", so we want to match
- * against the last two elements. Let's also support "SongName" alone,
- * since the group is only important when it's potentially ambiguous.
- *
- * Let's *not* support "Songs\Group\SongName" in course files. That's
- * probably a common error, but that would result in course files
- * floating around that only work for people who put songs in "Songs";
- * we don't want that. */
-
-Song*
-SongManager::FindSong(RString sPath) const
-{
-	sPath.Replace('\\', '/');
-	vector<RString> bits;
-	split(sPath, "/", bits);
-
-	if (bits.size() == 1)
-		return FindSong("", bits[0]);
-	else if (bits.size() == 2)
-		return FindSong(bits[0], bits[1]);
-
-	return NULL;
-}
-
-Song*
-SongManager::FindSong(RString sGroup, RString sSong) const
-{
-	// foreach song
-	const vector<Song*>& vSongs = GetSongs(sGroup.empty() ? GROUP_ALL : sGroup);
-	FOREACH_CONST(Song*, vSongs, s)
-	{
-		if ((*s)->Matches(sGroup, sSong))
-			return *s;
-	}
-
-	return NULL;
-}
-
-void
-SongManager::UpdateShuffled()
-{
-	// update shuffled
-	m_pShuffledSongs = m_pSongs;
-	std::shuffle(m_pShuffledSongs.begin(),
-				 m_pShuffledSongs.end(),
-				 g_RandomNumberGenerator);
-}
-
-void
-SongManager::UpdatePreferredSort(const RString& sPreferredSongs,
-								 const RString& sPreferredCourses)
-{
-	{
-		m_vPreferredSongSort.clear();
-
-		vector<RString> asLines;
-		RString sFile = THEME->GetPathO("SongManager", sPreferredSongs);
-		GetFileContents(sFile, asLines);
-		if (asLines.empty())
-			return;
-
-		PreferredSortSection section;
-		map<Song*, float> mapSongToPri;
-
-		FOREACH(RString, asLines, s)
-		{
-			RString sLine = *s;
-
-			bool bSectionDivider = BeginsWith(sLine, "---");
-			if (bSectionDivider) {
-				if (!section.vpSongs.empty()) {
-					m_vPreferredSongSort.emplace_back(section);
-					section = PreferredSortSection();
-				}
-
-				section.sName =
-				  sLine.Right(sLine.length() - RString("---").length());
-				TrimLeft(section.sName);
-				TrimRight(section.sName);
-			} else {
-				/* if the line ends in slash-star, check if the section
-				 * exists, and if it does, add all the songs in that
-				 * group to the list.
-				 */
-				if (EndsWith(sLine, "/*")) {
-					RString group =
-					  sLine.Left(sLine.length() - RString("/*").length());
-					if (DoesSongGroupExist(group)) {
-						// add all songs in group
-						const vector<Song*>& vSongs = GetSongs(group);
-						FOREACH_CONST(Song*, vSongs, song)
-						{
-							section.vpSongs.emplace_back(*song);
-						}
-					}
-				}
-
-				Song* pSong = FindSong(sLine);
-				if (pSong == NULL)
-					continue;
-				section.vpSongs.emplace_back(pSong);
-			}
-		}
-
-		if (!section.vpSongs.empty()) {
-			m_vPreferredSongSort.emplace_back(section);
-			section = PreferredSortSection();
-		}
-
-		// prune empty groups
-		for (int i = m_vPreferredSongSort.size() - 1; i >= 0; i--)
-			if (m_vPreferredSongSort[i].vpSongs.empty())
-				m_vPreferredSongSort.erase(m_vPreferredSongSort.begin() + i);
-
-		FOREACH(PreferredSortSection, m_vPreferredSongSort, i)
-		FOREACH(Song*, i->vpSongs, j)
-		ASSERT(*j != NULL);
-	}
+	return nullptr;
 }
 
 void
@@ -1534,63 +1267,147 @@ SongManager::AddSongToList(Song* new_song)
 {
 	new_song->SetEnabled(true);
 	m_pSongs.emplace_back(new_song);
-	RString dir = new_song->GetSongDir();
-	dir.MakeLower();
+	std::string dir = make_lower(new_song->GetSongDir());
 	m_SongsByDir.insert(make_pair(dir, new_song));
 }
 
 void
-SongManager::FreeAllLoadedFromProfile(ProfileSlot slot)
-{
-	// Popular and Shuffled may refer to courses that we just freed.
-	UpdateShuffled();
-
-	// Free profile steps.
-	set<Steps*> setInUse;
-	if (STATSMAN)
-		STATSMAN->GetStepsInUse(setInUse);
-	FOREACH(Song*, m_pSongs, s)
-	(*s)->FreeAllLoadedFromProfile(slot, &setInUse);
-}
-
-int
-SongManager::GetNumStepsLoadedFromProfile()
-{
-	int iCount = 0;
-	FOREACH(Song*, m_pSongs, s)
-	{
-		vector<Steps*> vpAllSteps = (*s)->GetAllSteps();
-
-		FOREACH(Steps*, vpAllSteps, ss)
-		{
-			if ((*ss)->GetLoadedFromProfileSlot() != ProfileSlot_Invalid)
-				iCount++;
-		}
-	}
-
-	return iCount;
-}
-
-int
-SongManager::GetSongRank(Song* pSong)
-{
-	const int index =
-	  FindIndex(m_pPopularSongs.begin(), m_pPopularSongs.end(), pSong);
-	return index; // -1 means we didn't find it
-}
-void
-makePlaylist(const RString& answer)
+makePlaylist(const std::string& answer)
 {
 	Playlist pl;
 	pl.name = answer;
-	if (pl.name != "") {
+	if (!pl.name.empty()) {
 		SONGMAN->GetPlaylists().emplace(pl.name, pl);
 		SONGMAN->activeplaylist = pl.name;
-		Message msg("DisplayAll");
-		MESSAGEMAN->Broadcast(msg);
+		MESSAGEMAN->Broadcast("DisplayAll");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
+static const string calctest_XML = "CalcTestList.xml";
+
+auto
+CalcTestList::CreateNode() const -> XNode*
+{
+	auto pl = new XNode("CalcTestList");
+	pl->AppendAttr("Skillset", skillset);
+
+	auto cl = new XNode("Chartlist");
+	for (const auto& p : filemapping) {
+		auto chart = new XNode("Chart");
+		Chart loot;
+		loot.FromKey(p.first);
+		chart->AppendAttr("aKey", p.first);
+		chart->AppendAttr("zSong", loot.lastsong);
+		chart->AppendAttr("cTarget", ssprintf("%.2f", p.second.ev));
+		chart->AppendAttr("bRate", ssprintf("%.2f", p.second.rate));
+		auto vers_hist = chart->AppendChild("VersionHistory");
+		for (const auto& vh : p.second.version_history) {
+			vers_hist->AppendChild(std::to_string(vh.first), vh.second);
+		}
+		cl->AppendChild(chart);
+	}
+
+	if (!cl->ChildrenEmpty()) {
+		pl->AppendChild(cl);
+	} else {
+		delete cl;
+	}
+
+	return pl;
+}
+
+void
+SongManager::LoadCalcTestNode()
+{
+	auto fn = "Save/" + calctest_XML;
+	int iError;
+	std::unique_ptr<RageFileBasic> pFile(
+	  FILEMAN->Open(fn, RageFile::READ, iError));
+	if (pFile == nullptr) {
+		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
+		return;
+	}
+
+	XNode xml;
+	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile)) {
+		return;
+	}
+
+	CHECKPOINT_M("Loading the Calc Test node.");
+
+	FOREACH_CONST_Child(&xml, chartlist) // "For Each Skillset
+	{
+		int ssI;
+		chartlist->GetAttrValue("Skillset", ssI);
+		auto ss = static_cast<Skillset>(ssI);
+		CalcTestList tl;
+		tl.skillset = ss;
+		FOREACH_CONST_Child(chartlist, uhh) // For Each Chartlist (oops)
+		{
+			FOREACH_CONST_Child(uhh, entry) // For Each Chart
+			{
+				std::string key;
+				float target;
+				float rate;
+				entry->GetAttrValue("aKey", key);
+				entry->GetAttrValue("bRate", rate);
+				entry->GetAttrValue("cTarget", target);
+				CalcTest ct;
+				ct.ck = key;
+				ct.ev = target;
+				ct.rate = rate;
+
+				auto vers_hist = entry->GetChild("VersionHistory");
+				if (vers_hist != nullptr) {
+					FOREACH_CONST_Child(vers_hist, thing)
+					{
+						// don't load any values for the current version, it's
+						// in flux
+						if (stoi(thing->GetName()) != GetCalcVersion()) {
+							auto mumbo = 0.F;
+							thing->GetTextValue(mumbo);
+							ct.version_history.emplace(std::pair<int, float>(
+							  stoi(thing->GetName()), mumbo));
+						}
+					}
+				}
+
+				tl.filemapping[key] = ct;
+			}
+		}
+		SONGMAN->testChartList[ss] = tl;
+	}
+}
+
+auto
+SongManager::SaveCalcTestCreateNode() const -> XNode*
+{
+	CHECKPOINT_M("Saving the Calc Test node.");
+
+	auto* calctestlists = new XNode("CalcTest");
+	for (const auto& i : testChartList) {
+		calctestlists->AppendChild(i.second.CreateNode());
+	}
+
+	return calctestlists;
+}
+
+void
+SongManager::SaveCalcTestXmlToDir() const
+{
+	auto fn = "Save/" + calctest_XML;
+	// calc test hardcode stuff cuz ASDKLFJASKDJLFHASHDFJ
+	const std::unique_ptr<XNode> xml(SaveCalcTestCreateNode());
+	string err;
+	RageFile f;
+	if (!f.Open(fn, RageFile::WRITE)) {
+		LuaHelpers::ReportScriptErrorFmt(
+		  "Couldn't open %s for writing: %s", fn.c_str(), f.GetError().c_str());
+		return;
+	}
+	XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -1598,122 +1415,67 @@ makePlaylist(const RString& answer)
 class LunaSongManager : public Luna<SongManager>
 {
   public:
-	static int SetPreferredSongs(T* p, lua_State* L)
+	static auto GetAllSongs(T* p, lua_State* L) -> int
 	{
-		p->UpdatePreferredSort(SArg(1), "PreferredCourses.txt");
-		COMMON_RETURN_SELF;
-	}
-	static int GetAllSongs(T* p, lua_State* L)
-	{
-		const vector<Song*>& v = p->GetAllSongs();
+		const auto& v = p->GetAllSongs();
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
-	static int DifferentialReload(T* p, lua_State* L)
+
+	static auto DifferentialReload(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->DifferentialReload());
 		return 1;
 	}
-	static int GetPreferredSortSongs(T* p, lua_State* L)
-	{
-		vector<Song*> v;
-		p->GetPreferredSortSongs(v);
-		LuaHelpers::CreateTableFromArray<Song*>(v, L);
-		return 1;
-	}
 
-	static int FindSong(T* p, lua_State* L)
-	{
-		Song* pS = p->FindSong(SArg(1));
-		if (pS != nullptr)
-			pS->PushSelf(L);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	static int GetRandomSong(T* p, lua_State* L)
-	{
-		Song* pS = p->GetRandomSong();
-		if (pS != nullptr)
-			pS->PushSelf(L);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	static int GetNumSongs(T* p, lua_State* L)
+	static auto GetNumSongs(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetNumSongs());
 		return 1;
 	}
-	static int GetNumAdditionalSongs(T* p, lua_State* L)
+
+	static auto GetNumAdditionalSongs(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetNumAdditionalSongs());
 		return 1;
 	}
-	static int GetNumSongGroups(T* p, lua_State* L)
+
+	static auto GetNumSongGroups(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetNumSongGroups());
 		return 1;
 	}
+
 	/* Note: this could now be implemented as Luna<Steps>::GetSong */
-	static int GetSongFromSteps(T* p, lua_State* L)
+	static auto GetSongFromSteps(T* /*p*/, lua_State* L) -> int
 	{
-		Song* pSong = NULL;
+		Song* pSong = nullptr;
 		if (lua_isnil(L, 1)) {
-			pSong = NULL;
+			pSong = nullptr;
 		} else {
-			Steps* pSteps = Luna<Steps>::check(L, 1);
+			auto pSteps = Luna<Steps>::check(L, 1);
 			pSong = pSteps->m_pSong;
 		}
-		if (pSong != nullptr)
+		if (pSong != nullptr) {
 			pSong->PushSelf(L);
-		else
+		} else {
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 
-	static int GetExtraStageInfo(T* p, lua_State* L)
-	{
-		bool bExtra2 = BArg(1);
-		const Style* pStyle = Luna<Style>::check(L, 2);
-		Song* pSong;
-		Steps* pSteps;
-
-		p->GetExtraStageInfo(bExtra2, pStyle, pSong, pSteps);
-		pSong->PushSelf(L);
-		pSteps->PushSelf(L);
-
-		return 2;
-	}
 	DEFINE_METHOD(GetSongColor, GetSongColor(Luna<Song>::check(L, 1)))
 	DEFINE_METHOD(GetSongGroupColor, GetSongGroupColor(SArg(1)))
 
-	static int GetSongRank(T* p, lua_State* L)
+	static auto GetSongGroupNames(T* p, lua_State* L) -> int
 	{
-		Song* pSong = Luna<Song>::check(L, 1);
-		int index = p->GetSongRank(pSong);
-		if (index != -1)
-			lua_pushnumber(L, index + 1);
-		else
-			lua_pushnil(L);
-		return 1;
-	}
-	/*
-	static int GetSongRankFromProfile( T* p, lua_State *L )
-	{
-		// it's like the above but also takes in a ProfileSlot as well.
-	}
-	*/
-
-	static int GetSongGroupNames(T* p, lua_State* L)
-	{
-		vector<RString> v;
+		vector<std::string> v;
 		p->GetSongGroupNames(v);
-		LuaHelpers::CreateTableFromArray<RString>(v, L);
+		LuaHelpers::CreateTableFromArray<std::string>(v, L);
 		return 1;
 	}
 
-	static int GetSongsInGroup(T* p, lua_State* L)
+	static auto GetSongsInGroup(T* p, lua_State* L) -> int
 	{
 		vector<Song*> v = p->GetSongs(SArg(1));
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
@@ -1725,77 +1487,70 @@ class LunaSongManager : public Luna<SongManager>
 	DEFINE_METHOD(DoesSongGroupExist, DoesSongGroupExist(SArg(1)));
 	DEFINE_METHOD(IsChartLoaded, IsChartLoaded(SArg(1)));
 
-	static int GetPopularSongs(T* p, lua_State* L)
+	static auto GetPopularSongs(T* p, lua_State* L) -> int
 	{
-		const vector<Song*>& v = p->GetPopularSongs();
+		const auto& v = p->GetPopularSongs();
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
-	static int SongToPreferredSortSectionName(T* p, lua_State* L)
+
+	static auto WasLoadedFromAdditionalSongs(T* p, lua_State* L) -> int
 	{
 		const Song* pSong = Luna<Song>::check(L, 1);
-		lua_pushstring(L, p->SongToPreferredSortSectionName(pSong));
+		lua_pushboolean(
+		  L, static_cast<int>(p->WasLoadedFromAdditionalSongs(pSong)));
 		return 1;
 	}
-	static int WasLoadedFromAdditionalSongs(T* p, lua_State* L)
+
+	static auto GetSongByChartKey(T* p, lua_State* L) -> int
 	{
-		const Song* pSong = Luna<Song>::check(L, 1);
-		lua_pushboolean(L, p->WasLoadedFromAdditionalSongs(pSong));
-		return 1;
-	}
-	static int GetSongByChartKey(T* p, lua_State* L)
-	{
-		RString ck = SArg(1);
+		std::string ck = SArg(1);
 		Song* pSong = p->GetSongByChartkey(ck);
-		if (pSong != nullptr)
+		if (pSong != nullptr) {
 			pSong->PushSelf(L);
-		else
+		} else {
 			lua_pushnil(L);
+		}
 		return 1;
 	}
-	static int GetStepsByChartKey(T* p, lua_State* L)
+
+	static auto GetStepsByChartKey(T* p, lua_State* L) -> int
 	{
-		RString ck = SArg(1);
+		std::string ck = SArg(1);
 		Steps* pSteps = p->GetStepsByChartkey(ck);
-		if (pSteps != nullptr)
+		if (pSteps != nullptr) {
 			pSteps->PushSelf(L);
-		else
+		} else {
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 
-	static int GetNumCourses(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, 0);
-		return 1;
-	}
-
-	static int GetActivePlaylist(T* p, lua_State* L)
+	static auto GetActivePlaylist(T* p, lua_State* L) -> int
 	{
 		p->GetPlaylists()[p->activeplaylist].PushSelf(L);
 		return 1;
 	}
 
-	static int SetActivePlaylist(T* p, lua_State* L)
+	static auto SetActivePlaylist(T* p, lua_State* L) -> int
 	{
 		p->activeplaylist = SArg(1);
 		return 0;
 	}
 
-	static int NewPlaylist(T* p, lua_State* L)
+	static auto NewPlaylist(T* /*p*/, lua_State * /*L*/) -> int
 	{
 		ScreenTextEntry::TextEntry(
 		  SM_None, "Name Playlist", "", 128, nullptr, makePlaylist);
 		return 0;
 	}
 
-	static int GetPlaylists(T* p, lua_State* L)
+	static auto GetPlaylists(T* p, lua_State* L) -> int
 	{
-		int idx = 1;
+		auto idx = 1;
 		lua_newtable(L);
-		FOREACHM(string, Playlist, p->GetPlaylists(), pl)
-		{
-			pl->second.PushSelf(L);
+		for (auto& pl : p->GetPlaylists()) {
+			pl.second.PushSelf(L);
 			lua_rawseti(L, -2, idx);
 			++idx;
 		}
@@ -1803,7 +1558,7 @@ class LunaSongManager : public Luna<SongManager>
 		return 1;
 	}
 
-	static int DeletePlaylist(T* p, lua_State* L)
+	static auto DeletePlaylist(T* p, lua_State* L) -> int
 	{
 		p->DeletePlaylist(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
@@ -1814,29 +1569,21 @@ class LunaSongManager : public Luna<SongManager>
 	{
 		ADD_METHOD(GetAllSongs);
 		ADD_METHOD(DifferentialReload);
-		ADD_METHOD(FindSong);
-		ADD_METHOD(GetRandomSong);
 		ADD_METHOD(GetNumSongs);
 		ADD_METHOD(GetNumAdditionalSongs);
 		ADD_METHOD(GetNumSongGroups);
 		ADD_METHOD(GetSongFromSteps);
-		ADD_METHOD(GetExtraStageInfo);
 		ADD_METHOD(GetSongColor);
 		ADD_METHOD(GetSongGroupColor);
-		ADD_METHOD(GetSongRank);
 		ADD_METHOD(GetSongGroupNames);
 		ADD_METHOD(GetSongsInGroup);
 		ADD_METHOD(ShortenGroupName);
-		ADD_METHOD(SetPreferredSongs);
-		ADD_METHOD(GetPreferredSortSongs);
 		ADD_METHOD(GetSongGroupBannerPath);
 		ADD_METHOD(DoesSongGroupExist);
 		ADD_METHOD(GetPopularSongs);
-		ADD_METHOD(SongToPreferredSortSectionName);
 		ADD_METHOD(WasLoadedFromAdditionalSongs);
 		ADD_METHOD(GetSongByChartKey);
 		ADD_METHOD(GetStepsByChartKey);
-		ADD_METHOD(GetNumCourses);
 		ADD_METHOD(GetActivePlaylist);
 		ADD_METHOD(SetActivePlaylist);
 		ADD_METHOD(NewPlaylist);
@@ -1850,14 +1597,14 @@ LUA_REGISTER_CLASS(SongManager)
 class LunaPlaylist : public Luna<Playlist>
 {
   public:
-	static int GetChartkeys(T* p, lua_State* L)
+	static auto GetChartkeys(T* p, lua_State* L) -> int
 	{
-		vector<string> keys = p->GetKeys();
+		auto keys = p->GetKeys();
 		LuaHelpers::CreateTableFromArray(keys, L);
 		return 1;
 	}
 
-	static int GetAllSteps(T* p, lua_State* L)
+	static auto GetAllSteps(T* p, lua_State* L) -> int
 	{
 		lua_newtable(L);
 		for (size_t i = 0; i < p->chartlist.size(); ++i) {
@@ -1867,7 +1614,7 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
-	static int GetSonglist(T* p, lua_State* L)
+	static auto GetSonglist(T* p, lua_State* L) -> int
 	{
 		lua_newtable(L);
 		for (size_t i = 0; i < p->chartlist.size(); ++i) {
@@ -1877,7 +1624,7 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
-	static int GetStepslist(T* p, lua_State* L)
+	static auto GetStepslist(T* p, lua_State* L) -> int
 	{
 		lua_newtable(L);
 		for (size_t i = 0; i < p->chartlist.size(); ++i) {
@@ -1887,14 +1634,14 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
-	static int AddChart(T* p, lua_State* L)
+	static auto AddChart(T* p, lua_State* L) -> int
 	{
 		p->AddChart(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
 		return 1;
 	}
 
-	static int DeleteChart(T* p, lua_State* L)
+	static auto DeleteChart(T* p, lua_State* L) -> int
 	{
 		p->DeleteChart(IArg(1) - 1);
 		PROFILEMAN->SaveProfile(PLAYER_1);
@@ -1929,10 +1676,10 @@ class LunaChart : public Luna<Chart>
 	DEFINE_METHOD(GetSongTitle, lastsong);
 	DEFINE_METHOD(GetPackName, lastpack);
 
-	static int ChangeRate(T* p, lua_State* L)
+	static auto ChangeRate(T* p, lua_State* L) -> int
 	{
 		p->rate += FArg(1);
-		CLAMP(p->rate, 0.7f, 3.f);
+		p->rate = std::clamp(p->rate, 0.7F, 3.F);
 		return 1;
 	}
 

@@ -4,6 +4,8 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongOptions.h"
 
+#include "Etterna/Models/Misc/Foreach.h"
+
 static const char* AutosyncTypeNames[] = {
 	"Off",
 	"Song",
@@ -34,7 +36,6 @@ SongOptions::Init()
 	m_bStaticBackground = false;
 	m_bRandomBGOnly = false;
 	m_bSaveScore = true;
-	m_bSaveReplay = false; // don't save replays by default?
 }
 
 void
@@ -52,28 +53,15 @@ SongOptions::Approach(const SongOptions& other, float fDeltaSeconds)
 	DO_COPY(m_bStaticBackground);
 	DO_COPY(m_bRandomBGOnly);
 	DO_COPY(m_bSaveScore);
-	DO_COPY(m_bSaveReplay);
 #undef APPROACH
 #undef DO_COPY
 }
 
-static void
-AddPart(vector<RString>& AddTo, float level, RString name)
-{
-	if (level == 0)
-		return;
-
-	const RString LevelStr =
-	  (level == 1) ? RString("") : ssprintf("%ld%% ", lround(level * 100));
-
-	AddTo.push_back(LevelStr + name);
-}
-
 void
-SongOptions::GetMods(vector<RString>& AddTo) const
+SongOptions::GetMods(vector<std::string>& AddTo) const
 {
 	if (m_fMusicRate != 1) {
-		RString s = ssprintf("%2.2f", m_fMusicRate);
+		auto s = ssprintf("%2.2f", m_fMusicRate);
 		if (s[s.size() - 1] == '0')
 			s.erase(s.size() - 1);
 		AddTo.push_back(s + "xMusic");
@@ -118,24 +106,26 @@ SongOptions::GetMods(vector<RString>& AddTo) const
 }
 
 void
-SongOptions::GetLocalizedMods(vector<RString>& v) const
+SongOptions::GetLocalizedMods(vector<std::string>& v) const
 {
 	GetMods(v);
-	FOREACH(RString, v, s) { *s = CommonMetrics::LocalizeOptionItem(*s, true); }
+	for (auto& s : v) {
+		s = CommonMetrics::LocalizeOptionItem(s, true);
+	}
 }
 
-RString
+std::string
 SongOptions::GetString() const
 {
-	vector<RString> v;
+	vector<std::string> v;
 	GetMods(v);
 	return join(", ", v);
 }
 
-RString
+std::string
 SongOptions::GetLocalizedString() const
 {
-	vector<RString> v;
+	vector<std::string> v;
 	GetLocalizedMods(v);
 	return join(", ", v);
 }
@@ -143,24 +133,26 @@ SongOptions::GetLocalizedString() const
 /* Options are added to the current settings; call Init() beforehand if
  * you don't want this. */
 void
-SongOptions::FromString(const RString& sMultipleMods)
+SongOptions::FromString(const std::string& sMultipleMods)
 {
-	RString sTemp = sMultipleMods;
-	vector<RString> vs;
+	const auto sTemp = sMultipleMods;
+	vector<std::string> vs;
 	split(sTemp, ",", vs, true);
-	RString sThrowAway;
-	FOREACH(RString, vs, s) { FromOneModString(*s, sThrowAway); }
+	std::string sThrowAway;
+	for (auto& s : vs) {
+		FromOneModString(s, sThrowAway);
+	}
 }
 
 bool
-SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
+SongOptions::FromOneModString(const std::string& sOneMod,
+							  std::string& sErrorOut)
 {
-	RString sBit = sOneMod;
-	sBit.MakeLower();
+	auto sBit = make_lower(sOneMod);
 	Trim(sBit);
 
 	Regex mult("^([0-9]+(\\.[0-9]+)?)xmusic$");
-	vector<RString> matches;
+	vector<std::string> matches;
 	if (mult.Compare(sBit, matches)) {
 		m_fMusicRate = StringToFloat(matches[0]);
 		MESSAGEMAN->Broadcast("RateChanged");
@@ -169,9 +161,9 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 
 	matches.clear();
 
-	vector<RString> asParts;
+	vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
-	bool on = true;
+	auto on = true;
 	if (asParts.size() > 1) {
 		sBit = asParts[1];
 		if (asParts[0] == "no")
@@ -198,8 +190,6 @@ SongOptions::FromOneModString(const RString& sOneMod, RString& sErrorOut)
 		m_bRandomBGOnly = on;
 	else if (sBit == "savescore")
 		m_bSaveScore = on;
-	else if (sBit == "savereplay")
-		m_bSaveReplay = on;
 	else
 		return false;
 
@@ -222,7 +212,6 @@ SongOptions::operator==(const SongOptions& other) const
 	COMPARE(m_bStaticBackground);
 	COMPARE(m_bRandomBGOnly);
 	COMPARE(m_bSaveScore);
-	COMPARE(m_bSaveReplay);
 #undef COMPARE
 	return true;
 }
@@ -244,14 +233,13 @@ class LunaSongOptions : public Luna<SongOptions>
 	BOOL_INTERFACE(StaticBackground, StaticBackground);
 	BOOL_INTERFACE(RandomBGOnly, RandomBGOnly);
 	BOOL_INTERFACE(SaveScore, SaveScore);
-	BOOL_INTERFACE(SaveReplay, SaveReplay);
 	static int MusicRate(T* p, lua_State* L)
 	{
-		int original_top = lua_gettop(L);
+		const auto original_top = lua_gettop(L);
 		lua_pushnumber(L, p->m_fMusicRate);
 		lua_pushnumber(L, p->m_SpeedfMusicRate);
 		if (lua_isnumber(L, 1) && original_top >= 1) {
-			float v = FArg(1);
+			const auto v = FArg(1);
 			if (!(v > 0.0f && v <= 3.0f)) {
 				luaL_error(L, "Invalid value %f", v);
 			} else {
@@ -274,7 +262,6 @@ class LunaSongOptions : public Luna<SongOptions>
 		ADD_METHOD(StaticBackground);
 		ADD_METHOD(RandomBGOnly);
 		ADD_METHOD(SaveScore);
-		ADD_METHOD(SaveReplay);
 		ADD_METHOD(MusicRate);
 	}
 };

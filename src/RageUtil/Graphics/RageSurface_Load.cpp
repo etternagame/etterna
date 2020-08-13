@@ -7,13 +7,14 @@
 #include <stb/stb_image.h>
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageSurface.h"
+
 #include <set>
 
 RageSurfaceUtils::OpenResult
-RageSurface_stb_Load(const RString& sPath,
+RageSurface_stb_Load(const std::string& sPath,
 					 RageSurface*& ret,
 					 bool bHeaderOnly,
-					 RString& error)
+					 std::string& error)
 {
 	RageFile f;
 	if (!f.Open(sPath)) {
@@ -22,7 +23,7 @@ RageSurface_stb_Load(const RString& sPath,
 	}
 
 	int x, y, n;
-	unsigned char* doot = stbi_load(f.GetPath(), &x, &y, &n, 4);
+	const auto doot = stbi_load(f.GetPath().c_str(), &x, &y, &n, 4);
 	if (doot == nullptr) {
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
@@ -50,10 +51,10 @@ RageSurface_stb_Load(const RString& sPath,
 	return RageSurfaceUtils::OPEN_OK;
 }
 static RageSurface*
-TryOpenFile(RString sPath,
+TryOpenFile(const std::string& sPath,
 			bool bHeaderOnly,
-			RString& error,
-			RString format,
+			std::string& error,
+			const std::string& format,
 			bool& bKeepTrying)
 {
 	RageSurface* ret = nullptr;
@@ -70,8 +71,8 @@ TryOpenFile(RString sPath,
 }
 
 RageSurface*
-RageSurfaceUtils::LoadFile(const RString& sPath,
-						   RString& error,
+RageSurfaceUtils::LoadFile(const std::string& sPath,
+						   std::string& error,
 						   bool bHeaderOnly)
 {
 	{
@@ -82,32 +83,29 @@ RageSurfaceUtils::LoadFile(const RString& sPath,
 		}
 	}
 
-	set<RString> FileTypes;
-	vector<RString> const& exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (vector<RString>::const_iterator curr = exts.begin();
-		 curr != exts.end();
-		 ++curr) {
-		FileTypes.insert(*curr);
+	std::set<std::string> FileTypes;
+	auto const& exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
+	for (const auto& ext : exts) {
+		FileTypes.insert(ext);
 	}
 
-	RString format = GetExtension(sPath);
-	format.MakeLower();
+	auto format = GetExtension(sPath);
+	MakeLower(format);
 
-	bool bKeepTrying = true;
+	auto bKeepTrying = true;
 
 	/* If the extension matches a format, try that first. */
 	if (FileTypes.find(format) != FileTypes.end()) {
-		RageSurface* ret =
+		const auto ret =
 		  TryOpenFile(sPath, bHeaderOnly, error, format, bKeepTrying);
 		if (ret)
 			return ret;
 		FileTypes.erase(format);
 	}
 
-	for (set<RString>::iterator it = FileTypes.begin();
-		 bKeepTrying && it != FileTypes.end();
+	for (auto it = FileTypes.begin(); bKeepTrying && it != FileTypes.end();
 		 ++it) {
-		RageSurface* ret =
+		const auto ret =
 		  TryOpenFile(sPath, bHeaderOnly, error, *it, bKeepTrying);
 		if (ret) {
 			LOG->UserLog("Graphic file", sPath, "is really %s", it->c_str());

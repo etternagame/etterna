@@ -1,4 +1,4 @@
-﻿#ifndef NOTE_DISPLAY_H
+#ifndef NOTE_DISPLAY_H
 #define NOTE_DISPLAY_H
 
 #include "Etterna/Actor/Base/Actor.h"
@@ -35,14 +35,14 @@ enum NotePart
 enum NoteColorType
 {
 	NoteColorType_Denominator, /**< Color by note type. */
-	NoteColorType_Progress,	/**< Color by progress. */
+	NoteColorType_Progress,	   /**< Color by progress. */
 	NUM_NoteColorType,
 	NoteColorType_Invalid
 };
-const RString&
-NoteColorTypeToString(NoteColorType nct);
-NoteColorType
-StringToNoteColorType(const RString& s);
+auto
+NoteColorTypeToString(NoteColorType nct) -> const std::string&;
+auto
+StringToNoteColorType(const std::string& s) -> NoteColorType;
 
 struct NoteResource;
 
@@ -50,30 +50,30 @@ struct NoteColorActor
 {
 	NoteColorActor();
 	~NoteColorActor();
-	void Load(const RString& sButton,
-			  const RString& sElement,
+	void Load(const std::string& sButton,
+			  const std::string& sElement,
 			  PlayerNumber,
 			  GameController,
-			  RString);
-	Actor* Get(RString);
+			  const std::string&);
+	auto Get(const std::string&) -> Actor*;
 
   private:
-	map<RString, NoteResource*> g_p;
+	std::map<std::string, NoteResource*> g_p;
 };
 
 struct NoteColorSprite
 {
 	NoteColorSprite();
 	~NoteColorSprite();
-	void Load(const RString& sButton,
-			  const RString& sElement,
+	void Load(const std::string& sButton,
+			  const std::string& sElement,
 			  PlayerNumber,
 			  GameController,
-			  RString);
-	Sprite* Get(RString);
+			  const std::string&);
+	auto Get(const std::string&) -> Sprite*;
 
   private:
-	map<RString, NoteResource*> g_p;
+	std::map<std::string, NoteResource*> g_p;
 };
 /** @brief What types of holds are there? */
 enum HoldType
@@ -86,8 +86,8 @@ enum HoldType
 };
 /** @brief Loop through each HoldType. */
 #define FOREACH_HoldType(i) FOREACH_ENUM(HoldType, i)
-const RString&
-HoldTypeToString(HoldType ht);
+auto
+HoldTypeToString(HoldType ht) -> const std::string&;
 
 enum ActiveType
 {
@@ -98,8 +98,8 @@ enum ActiveType
 };
 /** @brief Loop through each ActiveType. */
 #define FOREACH_ActiveType(i) FOREACH_ENUM(ActiveType, i)
-const RString&
-ActiveTypeToString(ActiveType at);
+auto
+ActiveTypeToString(ActiveType at) -> const std::string&;
 
 enum NoteColumnSplineMode
 {
@@ -110,8 +110,8 @@ enum NoteColumnSplineMode
 	NoteColumnSplineMode_Invalid
 };
 
-const RString&
-NoteColumnSplineModeToString(NoteColumnSplineMode ncsm);
+auto
+NoteColumnSplineModeToString(NoteColumnSplineMode ncsm) -> const std::string&;
 LuaDeclareType(NoteColumnSplineMode);
 
 // A little pod struct to carry the data the NoteField needs to pass to the
@@ -146,11 +146,13 @@ struct NCSplineHandler
 		m_spline.redimension(3);
 		m_spline.m_owned_by_actor = true;
 		m_spline_mode = NCSM_Disabled;
-		m_receptor_t = 0.0f;
-		m_beats_per_t = 1.0f;
+		m_receptor_t = 0.0F;
+		m_beats_per_t = 1.0F;
 		m_subtract_song_beat_from_curr = true;
 	}
-	float BeatToTValue(float song_beat, float note_beat) const;
+
+	[[nodiscard]] auto BeatToTValue(float song_beat, float note_beat) const
+	  -> float;
 	void EvalForBeat(float song_beat, float note_beat, RageVector3& ret) const;
 	void EvalDerivForBeat(float song_beat,
 						  float note_beat,
@@ -182,13 +184,13 @@ struct NoteColumnRenderArgs
 							float beat,
 							RageVector3& sp_zoom,
 							RageVector3& ae_zoom) const;
-	void SetPRZForActor(Actor* actor,
-						const RageVector3& sp_pos,
-						const RageVector3& ae_pos,
-						const RageVector3& sp_rot,
-						const RageVector3& ae_rot,
-						const RageVector3& sp_zoom,
-						const RageVector3& ae_zoom) const;
+	static void SetPRZForActor(Actor* actor,
+							   const RageVector3& sp_pos,
+							   const RageVector3& ae_pos,
+							   const RageVector3& sp_rot,
+							   const RageVector3& ae_rot,
+							   const RageVector3& sp_zoom,
+							   const RageVector3& ae_zoom);
 	const NCSplineHandler* pos_handler;
 	const NCSplineHandler* rot_handler;
 	const NCSplineHandler* zoom_handler;
@@ -211,14 +213,14 @@ class NoteDisplay
 
 	static void Update(float fDeltaTime);
 
-	bool DrawHoldsInRange(
+	auto DrawHoldsInRange(
 	  const NoteFieldRenderArgs& field_args,
 	  const NoteColumnRenderArgs& column_args,
-	  const vector<NoteData::TrackMap::const_iterator>& tap_set);
-	bool DrawTapsInRange(
+	  const vector<NoteData::TrackMap::const_iterator>& tap_set) -> bool;
+	auto DrawTapsInRange(
 	  const NoteFieldRenderArgs& field_args,
 	  const NoteColumnRenderArgs& column_args,
-	  const vector<NoteData::TrackMap::const_iterator>& tap_set);
+	  const vector<NoteData::TrackMap::const_iterator>& tap_set) -> bool;
 	/**
 	 * @brief Draw the TapNote onto the NoteField.
 	 * @param tn the TapNote in question.
@@ -251,25 +253,26 @@ class NoteDisplay
 				  bool bIsAddition,
 				  float fPercentFadeToFail);
 
-	bool DrawHoldHeadForTapsOnSameRow() const;
-	bool DrawRollHeadForTapsOnSameRow() const;
+	[[nodiscard]] auto DrawHoldHeadForTapsOnSameRow() const -> bool;
+	[[nodiscard]] auto DrawRollHeadForTapsOnSameRow() const -> bool;
 
   private:
 	void SetActiveFrame(float fNoteBeat,
 						Actor& actorToSet,
 						float fAnimationLength,
-						bool bVivid);
-	Actor* GetTapActor(NoteColorActor& nca, NotePart part, float fNoteBeat);
-	Actor* GetHoldActor(NoteColorActor nca[NUM_HoldType][NUM_ActiveType],
-						NotePart part,
-						float fNoteBeat,
-						bool bIsRoll,
-						bool bIsBeingHeld);
-	Sprite* GetHoldSprite(NoteColorSprite ncs[NUM_HoldType][NUM_ActiveType],
-						  NotePart part,
-						  float fNoteBeat,
-						  bool bIsRoll,
-						  bool bIsBeingHeld);
+						bool bVivid) const;
+	auto GetTapActor(NoteColorActor& nca, NotePart part, float fNoteBeat) const
+	  -> Actor*;
+	auto GetHoldActor(NoteColorActor nca[NUM_HoldType][NUM_ActiveType],
+					  NotePart part,
+					  float fNoteBeat,
+					  bool bIsRoll,
+					  bool bIsBeingHeld) const -> Actor*;
+	auto GetHoldSprite(NoteColorSprite ncs[NUM_HoldType][NUM_ActiveType],
+					   NotePart part,
+					   float fNoteBeat,
+					   bool bIsRoll,
+					   bool bIsBeingHeld) const -> Sprite*;
 
 	struct draw_hold_part_args
 	{
@@ -299,27 +302,27 @@ class NoteDisplay
 				   bool bIsAddition,
 				   float fPercentFadeToFail,
 				   float fColorScale,
-				   bool is_being_held);
+				   bool is_being_held) const;
 	void DrawHoldPart(vector<Sprite*>& vpSpr,
 					  const NoteFieldRenderArgs& field_args,
 					  const NoteColumnRenderArgs& column_args,
 					  const draw_hold_part_args& part_args,
 					  bool glow,
-					  int part_type);
+					  int part_type) const;
 	void DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
 							  vector<Sprite*>& sprite_body,
 							  vector<Sprite*>& sprite_bottom,
 							  const NoteFieldRenderArgs& field_args,
 							  const NoteColumnRenderArgs& column_args,
 							  draw_hold_part_args& part_args,
-							  const float head_minus_top,
-							  const float tail_plus_bottom,
-							  const float y_head,
-							  const float y_tail,
-							  const float y_length,
-							  const float top_beat,
-							  const float bottom_beat,
-							  bool glow);
+							  float head_minus_top,
+							  float tail_plus_bottom,
+							  float y_head,
+							  float y_tail,
+							  float y_length,
+							  float top_beat,
+							  float bottom_beat,
+							  bool glow) const;
 	void DrawHoldBody(const TapNote& tn,
 					  const NoteFieldRenderArgs& field_args,
 					  const NoteColumnRenderArgs& column_args,
@@ -382,22 +385,22 @@ struct NoteColumnRenderer : public Actor
 										const NCR_TweenState& from,
 										const NCR_TweenState& to,
 										float between);
-		bool operator==(const NCR_TweenState& other) const;
-		bool operator!=(const NCR_TweenState& other) const
+		auto operator==(const NCR_TweenState& other) const -> bool;
+		auto operator!=(const NCR_TweenState& other) const -> bool
 		{
 			return !operator==(other);
 		}
 	};
 
-	NCR_TweenState& NCR_DestTweenState()
+	auto NCR_DestTweenState() -> NCR_TweenState&
 	{
 		if (NCR_Tweens.empty()) {
 			return NCR_current;
-		} else {
-			return NCR_Tweens.back();
 		}
+		return NCR_Tweens.back();
 	}
-	const NCR_TweenState& NCR_DestTweenState() const
+
+	[[nodiscard]] auto NCR_DestTweenState() const -> const NCR_TweenState&
 	{
 		return const_cast<NoteColumnRenderer*>(this)->NCR_DestTweenState();
 	}
@@ -409,15 +412,15 @@ struct NoteColumnRenderer : public Actor
 	void StopTweening() override;
 	void FinishTweening() override;
 
-	NCSplineHandler* GetPosHandler()
+	auto GetPosHandler() -> NCSplineHandler*
 	{
 		return &NCR_DestTweenState().m_pos_handler;
 	}
-	NCSplineHandler* GetRotHandler()
+	auto GetRotHandler() -> NCSplineHandler*
 	{
 		return &NCR_DestTweenState().m_rot_handler;
 	}
-	NCSplineHandler* GetZoomHandler()
+	auto GetZoomHandler() -> NCSplineHandler*
 	{
 		return &NCR_DestTweenState().m_zoom_handler;
 	}

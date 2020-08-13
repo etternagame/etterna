@@ -1,11 +1,8 @@
 #include "Etterna/Globals/global.h"
-
-#include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetworkOptions.h"
 #include "Etterna/Screen/Others/ScreenPrompt.h"
@@ -41,8 +38,8 @@ enum DisplayScoreboard
 
 AutoScreenMessage(SM_DoneConnecting);
 
-Preference<RString> g_sLastServer("LastConnectedMultiServer",
-								  "multi.etternaonline.com");
+Preference<std::string> g_sLastServer("LastConnectedMultiServer",
+									  "multi.etternaonline.com");
 
 REGISTER_SCREEN_CLASS(ScreenNetworkOptions);
 
@@ -97,11 +94,11 @@ ScreenNetworkOptions::Init()
 }
 
 void
-ScreenNetworkOptions::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetworkOptions::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_DoneConnecting) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
-			RString sNewName = ScreenTextEntry::s_sLastAnswer;
+			std::string sNewName = ScreenTextEntry::s_sLastAnswer;
 			NSMAN->PostStartUp(sNewName);
 			UpdateConnectStatus();
 		}

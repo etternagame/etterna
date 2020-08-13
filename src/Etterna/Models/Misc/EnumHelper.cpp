@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -28,7 +28,7 @@ CheckEnum(lua_State* L,
 
 	// If not found, check case-insensitively for legacy compatibility
 	if (lua_isnil(L, -1) && (lua_isstring(L, iPos) != 0)) {
-		RString sLower;
+		std::string sLower;
 
 		// Get rid of nil value on stack
 		lua_pop(L, 1);
@@ -36,7 +36,7 @@ CheckEnum(lua_State* L,
 		// Get the string and lowercase it
 		lua_pushvalue(L, iPos);
 		LuaHelpers::Pop(L, sLower);
-		sLower.MakeLower();
+		sLower = make_lower(sLower);
 
 		// Try again to read the value
 		table.PushSelf(L);
@@ -49,7 +49,7 @@ CheckEnum(lua_State* L,
 	// That way, typos will throw an error, and not silently result in nil, or
 	// an out-of-bounds value.
 	if (unlikely(lua_isnil(L, -1))) {
-		RString sGot;
+		std::string sGot;
 		if (lua_isstring(L, iPos) != 0) {
 			/* We were given a string, but it wasn't a valid value for this
 			 * enum.  Show the string. */
@@ -69,7 +69,7 @@ CheckEnum(lua_State* L,
 		// StepMania crashes out completely.  bAllowAnything allows those places
 		// to avoid crashing over theme mistakes.
 		if (bAllowAnything) {
-			RString errmsg;
+			std::string errmsg;
 			LuaHelpers::Pop(L, errmsg);
 			LuaHelpers::ReportScriptError(errmsg);
 			lua_pop(L, 2);
@@ -77,25 +77,25 @@ CheckEnum(lua_State* L,
 		}
 		lua_error(L);
 	}
-	int iRet = lua_tointeger(L, -1);
+	const int iRet = lua_tointeger(L, -1);
 	lua_pop(L, 2);
 	return iRet;
 }
 
 // szNameArray is of size iMax; pNameCache is of size iMax+2.
-const RString&
+const std::string&
 EnumToString(int iVal,
 			 int iMax,
 			 const char** szNameArray,
-			 unique_ptr<RString>* pNameCache)
+			 std::unique_ptr<std::string>* pNameCache)
 {
-	if (unlikely(pNameCache[0].get() == NULL)) {
-		for (int i = 0; i < iMax; ++i) {
-			unique_ptr<RString> ap(new RString(szNameArray[i]));
+	if (unlikely(pNameCache[0].get() == nullptr)) {
+		for (auto i = 0; i < iMax; ++i) {
+			std::unique_ptr<std::string> ap(new std::string(szNameArray[i]));
 			pNameCache[i] = std::move(ap);
 		}
 
-		unique_ptr<RString> ap(new RString);
+		std::unique_ptr<std::string> ap(new std::string);
 		pNameCache[iMax + 1] = std::move(ap);
 	}
 
@@ -129,10 +129,8 @@ GetName(lua_State* L)
 	luaL_checktype(L, 1, LUA_TTABLE);
 
 	/* Look up the reverse table. */
-	luaL_getmetafield(L, 1, "name");
-
 	/* If there was no metafield, then we were called on the wrong type. */
-	if (lua_isnil(L, -1))
+	if (luaL_getmetafield(L, 1, "name") == 0 || lua_isnil(L, -1))
 		luaL_typerror(L, 1, "enum");
 
 	return 1;
@@ -154,7 +152,7 @@ Reverse(lua_State* L)
 
 static const luaL_Reg EnumLib[] = { { "GetName", GetName },
 									{ "Reverse", Reverse },
-									{ NULL, NULL } };
+									{ nullptr, nullptr } };
 
 static void
 PushEnumMethodTable(lua_State* L)

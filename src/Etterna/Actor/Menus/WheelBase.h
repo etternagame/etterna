@@ -3,11 +3,9 @@
 
 #include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Actor/Base/AutoActor.h"
-#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Lua/LuaExpressionTransform.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Misc/RageTimer.h"
-#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "ScrollBar.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
@@ -26,10 +24,10 @@ enum WheelState
 	NUM_WheelState,
 	WheelState_Invalid,
 };
-const RString&
-WheelStateToString(WheelState ws);
-WheelState
-StringToWheelState(const RString& sDC);
+auto
+WheelStateToString(WheelState ws) -> const std::string&;
+auto
+StringToWheelState(const std::string& sDC) -> WheelState;
 LuaDeclareType(WheelState);
 
 /** @brief A wheel with data elements. */
@@ -37,19 +35,19 @@ class WheelBase : public ActorFrame
 {
   public:
 	~WheelBase() override;
-	virtual void Load(const string& sType);
+	virtual void Load(const std::string& sType);
 	void BeginScreen();
 
 	void Update(float fDeltaTime) override;
 
 	virtual void Move(int n);
 	void ChangeMusicUnlessLocked(int n); /* +1 or -1 */
-	virtual void ChangeMusic(int dist);  /* +1 or -1 */
-	virtual void SetOpenSection(const RString& group) {}
+	virtual void ChangeMusic(int dist);	 /* +1 or -1 */
+	virtual void SetOpenSection(const std::string& group) {}
 
 	// Return true if we're moving fast automatically.
-	int IsMoving() const;
-	bool IsSettled() const;
+	auto IsMoving() const -> int;
+	auto IsSettled() const -> bool;
 
 	void GetItemPosition(float fPosOffsetsFromMiddle,
 						 float& fX_out,
@@ -58,11 +56,14 @@ class WheelBase : public ActorFrame
 						 float& fRotationX_out);
 	void SetItemPosition(Actor& item, int item_index, float offset_from_middle);
 
-	virtual bool Select(); // return true if this selection can end the screen
+	virtual auto Select()
+	  -> bool; // return true if this selection can end the screen
 
-	WheelState GetWheelState() { return m_WheelState; }
+	auto GetCurrentGroup() -> std::string;
+
+	auto GetWheelState() -> WheelState { return m_WheelState; }
 	void Lock() { m_WheelState = STATE_LOCKED; }
-	bool WheelIsLocked()
+	auto WheelIsLocked() -> bool
 	{
 		return (m_WheelState == STATE_LOCKED ? true : false);
 	}
@@ -71,23 +72,27 @@ class WheelBase : public ActorFrame
 	// manager (SONGMAN)
 	virtual void ReloadSongList() {}
 
-	virtual unsigned int GetNumItems() const
+	virtual auto GetNumItems() const -> unsigned int
 	{
 		return m_CurWheelItemData.size();
 	}
-	bool IsEmpty() { return m_bEmpty; }
-	WheelItemBaseData* GetItem(unsigned int index);
-	WheelItemBaseData* LastSelected();
-	WheelItemBase* GetWheelItem(int i)
+	auto IsEmpty() -> bool { return m_bEmpty; }
+	auto GetItem(unsigned int index) -> WheelItemBaseData*;
+	auto LastSelected() -> WheelItemBaseData*;
+	auto GetWheelItem(int i) -> WheelItemBase*
 	{
-		if (i < 0 || i >= (int)m_WheelBaseItems.size())
-			return NULL;
+		if (i < 0 || i >= static_cast<int>(m_WheelBaseItems.size())) {
+			return nullptr;
+		}
 		return m_WheelBaseItems[i];
 	}
-	RString GetExpandedSectionName() { return m_sExpandedSectionName; }
-	int GetCurrentIndex() { return m_iSelection; }
+	auto GetExpandedSectionName() -> std::string
+	{
+		return m_sExpandedSectionName;
+	}
+	auto GetCurrentIndex() -> int { return m_iSelection; }
 
-	WheelItemDataType GetSelectedType()
+	auto GetSelectedType() -> WheelItemDataType
 	{
 		return m_CurWheelItemData[m_iSelection]->m_Type;
 	}
@@ -99,35 +104,35 @@ class WheelBase : public ActorFrame
 	void TweenOnScreenForSort();
 	void TweenOffScreenForSort();
 
-	virtual WheelItemBase* MakeItem() = 0;
+	virtual auto MakeItem() -> WheelItemBase* = 0;
 	virtual void UpdateSwitch();
-	virtual bool MoveSpecific(int n);
+	virtual auto MoveSpecific(int n) -> bool;
 	void SetPositions();
 
-	int FirstVisibleIndex();
+	auto FirstVisibleIndex() -> int;
 
 	ScrollBar m_ScrollBar;
 	AutoActor m_sprHighlight;
 
 	vector<WheelItemBaseData*> m_CurWheelItemData;
 	vector<WheelItemBase*> m_WheelBaseItems;
-	WheelItemBaseData* m_LastSelection;
+	WheelItemBaseData* m_LastSelection{};
 
-	bool m_bEmpty;
-	int m_iSelection; // index into m_CurWheelItemBaseData
-	RString m_sExpandedSectionName;
+	bool m_bEmpty{};
+	int m_iSelection{}; // index into m_CurWheelItemBaseData
+	std::string m_sExpandedSectionName;
 
-	int m_iSwitchesLeftInSpinDown;
-	float m_fLockedWheelVelocity;
+	int m_iSwitchesLeftInSpinDown{};
+	float m_fLockedWheelVelocity{};
 	// 0 = none; -1 or 1 = up/down
-	int m_Moving;
+	int m_Moving{};
 	RageTimer m_MovingSoundTimer;
-	float m_TimeBeforeMovingBegins;
-	float m_SpinSpeed;
+	float m_TimeBeforeMovingBegins{};
+	float m_SpinSpeed{};
 
 	WheelState m_WheelState;
-	float m_fTimeLeftInState;
-	float m_fPositionOffsetFromSelection;
+	float m_fTimeLeftInState{};
+	float m_fPositionOffsetFromSelection{};
 
 	RageSound m_soundChangeMusic;
 	RageSound m_soundExpand;

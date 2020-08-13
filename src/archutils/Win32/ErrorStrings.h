@@ -1,15 +1,15 @@
 #ifndef ERROR_STRINGS_H
 #define ERROR_STRINGS_H
 
-RString
+std::string
 werr_ssprintf(int err, const char* fmt, ...);
-RString
-ConvertWstringToCodepage(const wstring& s, int iCodePage);
-RString
-ConvertUTF8ToACP(const RString& s);
-wstring
-ConvertCodepageToWString(const RString& s, int iCodePage);
-RString
-ConvertACPToUTF8(const RString& s);
+std::string
+ConvertWstringToCodepage(const std::wstring& s, int iCodePage);
+std::string
+ConvertUTF8ToACP(const std::string& s);
+std::wstring
+ConvertCodepageToWString(const std::string& s, int iCodePage);
+std::string
+ConvertACPToUTF8(const std::string& s);
 
 #endif

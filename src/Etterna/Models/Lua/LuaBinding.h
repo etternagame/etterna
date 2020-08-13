@@ -1,4 +1,4 @@
-﻿/* LuaBinding - helpers to expose Lua bindings for C++ classes. */
+/* LuaBinding - helpers to expose Lua bindings for C++ classes. */
 
 #ifndef LuaBinding_H
 #define LuaBinding_H
@@ -15,27 +15,30 @@ class LuaBinding
 
 	static void RegisterTypes(lua_State* L);
 
-	bool IsDerivedClass() const { return GetClassName() != GetBaseClassName(); }
-	virtual const std::string& GetClassName() const = 0;
-	virtual const std::string& GetBaseClassName() const = 0;
+	[[nodiscard]] auto IsDerivedClass() const -> bool
+	{
+		return GetClassName() != GetBaseClassName();
+	}
+	[[nodiscard]] virtual auto GetClassName() const -> const std::string& = 0;
+	[[nodiscard]] virtual auto GetBaseClassName() const
+	  -> const std::string& = 0;
 
 	static void ApplyDerivedType(Lua* L,
 								 const std::string& sClassname,
 								 void* pSelf);
-	static bool CheckLuaObjectType(lua_State* L,
+	static auto CheckLuaObjectType(lua_State* L,
 								   int narg,
-								   std::string const& szType);
+								   std::string const& szType) -> bool;
 
   protected:
 	virtual void Register(Lua* L, int iMethods, int iMetatable) = 0;
 
 	static void CreateMethodsTable(lua_State* L, const std::string& szName);
-	static void* GetPointerFromStack(Lua* L,
-									 const std::string& sType,
-									 int iArg);
+	static auto GetPointerFromStack(Lua* L, const std::string& sType, int iArg)
+	  -> void*;
 
-	static bool Equal(lua_State* L);
-	static int PushEqual(lua_State* L);
+	static auto Equal(lua_State* L) -> bool;
+	static auto PushEqual(lua_State* L) -> int;
 };
 
 /** @brief Allow the binding of Lua to various classes. */
@@ -58,7 +61,7 @@ class Luna : public LuaBinding
 		lua_setfield(L, iMetatable, "__tostring");
 
 		// fill method table with methods from class T
-		for (auto const m : m_aMethods) {
+		for (auto const& m : m_aMethods) {
 			lua_pushlightuserdata(L, (void*)m.mfunc);
 			lua_pushcclosure(L, thunk, 1);
 			lua_setfield(L, iMethods, m.regName.c_str());
@@ -66,8 +69,11 @@ class Luna : public LuaBinding
 	}
 
   public:
-	const std::string& GetClassName() const override { return m_sClassName; }
-	const std::string& GetBaseClassName() const override
+	[[nodiscard]] auto GetClassName() const -> const std::string& override
+	{
+		return m_sClassName;
+	}
+	[[nodiscard]] auto GetBaseClassName() const -> const std::string& override
 	{
 		return m_sBaseClassName;
 	}
@@ -75,7 +81,7 @@ class Luna : public LuaBinding
 	static std::string m_sBaseClassName;
 
 	// Get userdata from the Lua stack and return a pointer to T object.
-	static T* check(lua_State* L, int narg, bool bIsSelf = false)
+	static auto check(lua_State* L, int narg, bool bIsSelf = false) -> T*
 	{
 		if (!LuaBinding::CheckLuaObjectType(L, narg, m_sClassName)) {
 			if (bIsSelf) {
@@ -87,7 +93,7 @@ class Luna : public LuaBinding
 		return get(L, narg);
 	}
 
-	static T* get(lua_State* L, int narg)
+	static auto get(lua_State* L, int narg) -> T*
 	{
 		return (T*)GetPointerFromStack(L, m_sClassName, narg);
 	}
@@ -105,7 +111,7 @@ class Luna : public LuaBinding
 
   private:
 	// member function dispatcher
-	static int thunk(Lua* L)
+	static auto thunk(Lua* L) -> int
 	{
 		// stack has userdata, followed by method args
 		T* obj = check(L, 1, true); // get self
@@ -118,7 +124,7 @@ class Luna : public LuaBinding
 
 	std::vector<RegType> m_aMethods;
 
-	static int tostring_T(lua_State* L)
+	static auto tostring_T(lua_State* L) -> int
 	{
 		char buff[32];
 		const void* pData = check(L, 1);
@@ -139,7 +145,7 @@ class LuaClass : public LuaTable
 	LuaClass() = default;
 	LuaClass(const LuaClass& cpy);
 	~LuaClass() override;
-	LuaClass& operator=(const LuaClass& cpy);
+	auto operator=(const LuaClass& cpy) -> LuaClass&;
 };
 
 /* Only a base class has to indicate that it's instanced (has a per-object
@@ -354,7 +360,7 @@ class LuaClass : public LuaTable
 // This way, the stack can safely be used to store the previous values.
 void
 DefaultNilArgs(lua_State* L, int n);
-float
-FArgGTEZero(lua_State* L, int index);
+auto
+FArgGTEZero(lua_State* L, int index) -> float;
 
 #endif

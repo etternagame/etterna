@@ -1,4 +1,4 @@
-﻿/* RageTypes - vector and matrix types. */
+/* RageTypes - vector and matrix types. */
 
 #ifndef RAGETYPES_H
 #define RAGETYPES_H
@@ -117,25 +117,25 @@ struct RageVector2
 	operator const float*() const { return &x; };
 
 	// assignment operators
-	RageVector2& operator+=(const RageVector2& other)
+	auto operator+=(const RageVector2& other) -> RageVector2&
 	{
 		x += other.x;
 		y += other.y;
 		return *this;
 	}
-	RageVector2& operator-=(const RageVector2& other)
+	auto operator-=(const RageVector2& other) -> RageVector2&
 	{
 		x -= other.x;
 		y -= other.y;
 		return *this;
 	}
-	RageVector2& operator*=(float f)
+	auto operator*=(float f) -> RageVector2&
 	{
 		x *= f;
 		y *= f;
 		return *this;
 	}
-	RageVector2& operator/=(float f)
+	auto operator/=(float f) -> RageVector2&
 	{
 		x /= f;
 		y /= f;
@@ -143,18 +143,24 @@ struct RageVector2
 	}
 
 	// binary operators
-	RageVector2 operator+(const RageVector2& other) const
+	auto operator+(const RageVector2& other) const -> RageVector2
 	{
 		return RageVector2(x + other.x, y + other.y);
 	}
-	RageVector2 operator-(const RageVector2& other) const
+	auto operator-(const RageVector2& other) const -> RageVector2
 	{
 		return RageVector2(x - other.x, y - other.y);
 	}
-	RageVector2 operator*(float f) const { return RageVector2(x * f, y * f); }
-	RageVector2 operator/(float f) const { return RageVector2(x / f, y / f); }
+	auto operator*(float f) const -> RageVector2
+	{
+		return RageVector2(x * f, y * f);
+	}
+	auto operator/(float f) const -> RageVector2
+	{
+		return RageVector2(x / f, y / f);
+	}
 
-	friend RageVector2 operator*(float f, const RageVector2& other)
+	friend auto operator*(float f, const RageVector2& other) -> RageVector2
 	{
 		return other * f;
 	}
@@ -184,28 +190,28 @@ struct RageVector3
 	operator const float*() const { return &x; };
 
 	// assignment operators
-	RageVector3& operator+=(const RageVector3& other)
+	auto operator+=(const RageVector3& other) -> RageVector3&
 	{
 		x += other.x;
 		y += other.y;
 		z += other.z;
 		return *this;
 	}
-	RageVector3& operator-=(const RageVector3& other)
+	auto operator-=(const RageVector3& other) -> RageVector3&
 	{
 		x -= other.x;
 		y -= other.y;
 		z -= other.z;
 		return *this;
 	}
-	RageVector3& operator*=(float f)
+	auto operator*=(float f) -> RageVector3&
 	{
 		x *= f;
 		y *= f;
 		z *= f;
 		return *this;
 	}
-	RageVector3& operator/=(float f)
+	auto operator/=(float f) -> RageVector3&
 	{
 		x /= f;
 		y /= f;
@@ -214,24 +220,24 @@ struct RageVector3
 	}
 
 	// binary operators
-	RageVector3 operator+(const RageVector3& other) const
+	auto operator+(const RageVector3& other) const -> RageVector3
 	{
 		return RageVector3(x + other.x, y + other.y, z + other.z);
 	}
-	RageVector3 operator-(const RageVector3& other) const
+	auto operator-(const RageVector3& other) const -> RageVector3
 	{
 		return RageVector3(x - other.x, y - other.y, z - other.z);
 	}
-	RageVector3 operator*(float f) const
+	auto operator*(float f) const -> RageVector3
 	{
 		return RageVector3(x * f, y * f, z * f);
 	}
-	RageVector3 operator/(float f) const
+	auto operator/(float f) const -> RageVector3
 	{
 		return RageVector3(x / f, y / f, z / f);
 	}
 
-	friend RageVector3 operator*(float f, const RageVector3& other)
+	friend auto operator*(float f, const RageVector3& other) -> RageVector3
 	{
 		return other * f;
 	}
@@ -263,7 +269,7 @@ struct RageVector4
 	operator const float*() const { return &x; };
 
 	// assignment operators
-	RageVector4& operator+=(const RageVector4& other)
+	auto operator+=(const RageVector4& other) -> RageVector4&
 	{
 		x += other.x;
 		y += other.y;
@@ -271,7 +277,7 @@ struct RageVector4
 		w += other.w;
 		return *this;
 	}
-	RageVector4& operator-=(const RageVector4& other)
+	auto operator-=(const RageVector4& other) -> RageVector4&
 	{
 		x -= other.x;
 		y -= other.y;
@@ -279,7 +285,7 @@ struct RageVector4
 		w -= other.w;
 		return *this;
 	}
-	RageVector4& operator*=(float f)
+	auto operator*=(float f) -> RageVector4&
 	{
 		x *= f;
 		y *= f;
@@ -287,7 +293,7 @@ struct RageVector4
 		w *= f;
 		return *this;
 	}
-	RageVector4& operator/=(float f)
+	auto operator/=(float f) -> RageVector4&
 	{
 		x /= f;
 		y /= f;
@@ -297,24 +303,24 @@ struct RageVector4
 	}
 
 	// binary operators
-	RageVector4 operator+(const RageVector4& other) const
+	auto operator+(const RageVector4& other) const -> RageVector4
 	{
 		return RageVector4(x + other.x, y + other.y, z + other.z, w + other.w);
 	}
-	RageVector4 operator-(const RageVector4& other) const
+	auto operator-(const RageVector4& other) const -> RageVector4
 	{
 		return RageVector4(x - other.x, y - other.y, z - other.z, w - other.w);
 	}
-	RageVector4 operator*(float f) const
+	auto operator*(float f) const -> RageVector4
 	{
 		return RageVector4(x * f, y * f, z * f, w * f);
 	}
-	RageVector4 operator/(float f) const
+	auto operator/(float f) const -> RageVector4
 	{
 		return RageVector4(x / f, y / f, z / f, w / f);
 	}
 
-	friend RageVector4 operator*(float f, const RageVector4& other)
+	friend auto operator*(float f, const RageVector4& other) -> RageVector4
 	{
 		return other * f;
 	}
@@ -346,7 +352,7 @@ struct RageColor
 	operator const float*() const { return &r; };
 
 	// assignment operators
-	RageColor& operator+=(const RageColor& other)
+	auto operator+=(const RageColor& other) -> RageColor&
 	{
 		r += other.r;
 		g += other.g;
@@ -354,7 +360,7 @@ struct RageColor
 		a += other.a;
 		return *this;
 	}
-	RageColor& operator-=(const RageColor& other)
+	auto operator-=(const RageColor& other) -> RageColor&
 	{
 		r -= other.r;
 		g -= other.g;
@@ -362,7 +368,7 @@ struct RageColor
 		a -= other.a;
 		return *this;
 	}
-	RageColor& operator*=(const RageColor& other)
+	auto operator*=(const RageColor& other) -> RageColor&
 	{
 		r *= other.r;
 		g *= other.g;
@@ -370,7 +376,7 @@ struct RageColor
 		a *= other.a;
 		return *this;
 	}
-	RageColor& operator*=(float f)
+	auto operator*=(float f) -> RageColor&
 	{
 		r *= f;
 		g *= f;
@@ -384,59 +390,67 @@ struct RageColor
 	//    return *this; }
 
 	// binary operators
-	RageColor operator+(const RageColor& other) const
+	auto operator+(const RageColor& other) const -> RageColor
 	{
 		return RageColor(r + other.r, g + other.g, b + other.b, a + other.a);
 	}
-	RageColor operator-(const RageColor& other) const
+	auto operator-(const RageColor& other) const -> RageColor
 	{
 		return RageColor(r - other.r, g - other.g, b - other.b, a - other.a);
 	}
-	RageColor operator*(const RageColor& other) const
+	auto operator*(const RageColor& other) const -> RageColor
 	{
 		return RageColor(r * other.r, g * other.g, b * other.b, a * other.a);
 	}
-	RageColor operator*(float f) const
+	auto operator*(float f) const -> RageColor
 	{
 		return RageColor(r * f, g * f, b * f, a * f);
 	}
 	// Divide is useful for using with the SCALE macro
-	RageColor operator/(float f) const
+	auto operator/(float f) const -> RageColor
 	{
 		return RageColor(r / f, g / f, b / f, a / f);
 	}
 
-	friend RageColor operator*(float f, const RageColor& other)
+	friend auto operator*(float f, const RageColor& other) -> RageColor
 	{
 		return other * f;
 	} // What is this for?  Did I add this?  -Chris
 
-	bool operator==(const RageColor& other) const
+	auto operator==(const RageColor& other) const -> bool
 	{
 		return r == other.r && g == other.g && b == other.b && a == other.a;
 	}
-	bool operator!=(const RageColor& other) const { return !operator==(other); }
-
-	bool FromString(const RString& str)
+	auto operator!=(const RageColor& other) const -> bool
 	{
-		int result = sscanf(str, "%f,%f,%f,%f", &r, &g, &b, &a);
+		return !operator==(other);
+	}
+
+	auto FromString(const std::string& str) -> bool
+	{
+		int result = sscanf(str.c_str(), "%f,%f,%f,%f", &r, &g, &b, &a);
 		if (result == 3) {
 			a = 1;
 			return true;
 		}
-		if (result == 4)
+		if (result == 4) {
 			return true;
+		}
 
-		int ir = 255, ib = 255, ig = 255, ia = 255;
-		result = sscanf(str, "#%2x%2x%2x%2x", &ir, &ig, &ib, &ia);
+		int ir = 255;
+		int ib = 255;
+		int ig = 255;
+		int ia = 255;
+		result = sscanf(str.c_str(), "#%2x%2x%2x%2x", &ir, &ig, &ib, &ia);
 		if (result >= 3) {
-			r = ir / 255.0f;
-			g = ig / 255.0f;
-			b = ib / 255.0f;
-			if (result == 4)
-				a = ia / 255.0f;
-			else
+			r = ir / 255.0F;
+			g = ig / 255.0F;
+			b = ib / 255.0F;
+			if (result == 4) {
+				a = ia / 255.0F;
+			} else {
 				a = 1;
+			}
 			return true;
 		}
 
@@ -447,8 +461,8 @@ struct RageColor
 		return false;
 	}
 
-	RString ToString() const;
-	static RString NormalizeColorString(const RString& sColor);
+	[[nodiscard]] auto ToString() const -> std::string;
+	static auto NormalizeColorString(const std::string& sColor) -> std::string;
 
 	void PushTable(lua_State* L) const;
 	void FromStack(lua_State* L, int iPos);
@@ -457,15 +471,10 @@ struct RageColor
 	float r{ 0 }, g{ 0 }, b{ 0 }, a{ 0 };
 };
 
-inline unsigned char
-FTOC(float a)
+static auto
+FTOC(float a) -> unsigned char
 {
-	/* Double Update: Missed a decimal point when previous test was done.
-	Casting as int results in 128 out of the 10million possible values
-	converted to be one shade different compared to using lround. This is
-	not a level of precision I care about. - Mina */
-
-	auto ret = static_cast<int>(a * 256.f);
+	auto ret = static_cast<int>(a * 256.F);
 	CLAMP(ret, 0, 255);
 	return static_cast<unsigned char>(ret);
 }
@@ -474,35 +483,18 @@ FTOC(float a)
  * r, g, b, a order, independent of endianness, so storing them this
  * way avoids endianness problems.  Don't try to manipulate this; only
  * manip RageColors. */
-/* Perhaps the math in RageColor could be moved to RageVColor.  We don't need
- * the precision of a float for our calculations anyway.   -Chris */
 class RageVColor
 {
   public:
-	uint8_t b, g, r, a; // specific ordering required by Direct3D
-
-	RageVColor()
-	  : b(0)
-	  , g(0)
-	  , r(0)
-	  , a(0)
-	{
-	}
+	uint8_t b{ 0 }, g{ 0 }, r{ 0 },
+	  a{ 0 }; // specific ordering required by Direct3D
+	RageVColor() = default;
 	RageVColor(const RageColor& rc)
-	  : b(0)
-	  , g(0)
-	  , r(0)
-	  , a(0)
-	{
-		*this = rc;
-	}
-	RageVColor& operator=(const RageColor& rc)
 	{
 		r = FTOC(rc.r);
 		g = FTOC(rc.g);
 		b = FTOC(rc.b);
 		a = FTOC(rc.a);
-		return *this;
 	}
 };
 
@@ -526,15 +518,15 @@ class Rect
 	{
 	}
 
-	T GetWidth() const { return right - left; };
-	T GetHeight() const { return bottom - top; };
-	T GetCenterX() const { return (left + right) / 2; };
-	T GetCenterY() const { return (top + bottom) / 2; };
+	[[nodiscard]] auto GetWidth() const -> T { return right - left; };
+	[[nodiscard]] auto GetHeight() const -> T { return bottom - top; };
+	[[nodiscard]] auto GetCenterX() const -> T { return (left + right) / 2; };
+	[[nodiscard]] auto GetCenterY() const -> T { return (top + bottom) / 2; };
 
-	bool operator==(const Rect& other) const
+	auto operator==(const Rect& other) const -> bool
 	{
 #define COMPARE(x)                                                             \
-	if (x != other.x)                                                          \
+	if ((x) != other.x)                                                        \
 	return false
 		COMPARE(left);
 		COMPARE(top);
@@ -543,11 +535,14 @@ class Rect
 #undef COMPARE
 		return true;
 	}
-	bool operator!=(const Rect& other) const { return !operator==(other); }
+	auto operator!=(const Rect& other) const -> bool
+	{
+		return !operator==(other);
+	}
 
 	T left, top, right, bottom;
 };
-}
+} // namespace StepMania
 using RectI = StepMania::Rect<int>;
 using RectF = StepMania::Rect<float>;
 
@@ -555,13 +550,6 @@ using RectF = StepMania::Rect<float>;
  * have the same layout that D3D expects. */
 struct RageSpriteVertex // has color
 {
-	RageSpriteVertex()
-	  : p()
-	  , n()
-	  , c()
-	  , t()
-	{
-	}
 	RageVector3 p; // position
 	RageVector3 n; // normal
 	RageVColor c;  // diffuse color
@@ -586,14 +574,13 @@ struct RageModelVertex // doesn't have color.  Relies on material color
 	  : p(0, 0, 0)
 	  , n(0, 0, 0)
 	  , t(0, 0)
-	  , bone(0)
 	  , TextureMatrixScale(1, 1)
 	{
 	}
 	RageVector3 p; // position
 	RageVector3 n; // normal
 	RageVector2 t; // texture coordinates
-	int8_t bone;
+	int8_t bone{ 0 };
 	RageVector2 TextureMatrixScale; // usually 1,1
 };
 
@@ -609,15 +596,19 @@ struct RageMatrix
 	RageMatrix() = default;
 	RageMatrix(const float* f)
 	{
-		for (int i = 0; i < 4; i++)
-			for (int j = 0; j < 4; j++)
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
 				m[j][i] = f[j * 4 + i];
+			}
+		}
 	}
 	RageMatrix(const RageMatrix& other)
 	{
-		for (int i = 0; i < 4; i++)
-			for (int j = 0; j < 4; j++)
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
 				m[j][i] = other.m[j][i];
+			}
+		}
 	}
 	RageMatrix(float v00,
 			   float v01,
@@ -637,16 +628,16 @@ struct RageMatrix
 			   float v33);
 
 	// access grants
-	float& operator()(int iRow, int iCol) { return m[iCol][iRow]; }
-	float operator()(int iRow, int iCol) const { return m[iCol][iRow]; }
+	auto operator()(int iRow, int iCol) -> float& { return m[iCol][iRow]; }
+	auto operator()(int iRow, int iCol) const -> float { return m[iCol][iRow]; }
 
 	// casting operators
 	operator float*() { return m[0]; }
 	operator const float*() const { return m[0]; }
 
-	RageMatrix GetTranspose() const;
+	[[nodiscard]] auto GetTranspose() const -> RageMatrix;
 
-	float m[4][4];
+	float m[4][4]{};
 };
 
 #endif

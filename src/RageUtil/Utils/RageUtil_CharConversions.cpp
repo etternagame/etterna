@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
@@ -10,42 +10,42 @@
 
 /* Convert from the given codepage to UTF-8.  Return true if successful. */
 static bool
-CodePageConvert(RString& sText, int iCodePage)
+CodePageConvert(std::string& sText, int iCodePage)
 {
 	int iSize = MultiByteToWideChar(
-	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), NULL, 0);
+	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), nullptr, 0);
 	if (iSize == 0) {
 		LOG->Trace("%s\n", werr_ssprintf(GetLastError(), "err: ").c_str());
 		return false; /* error */
 	}
 
-	wstring sOut;
+	std::wstring sOut;
 	sOut.append(iSize, ' ');
 	/* Nonportable: */
 	iSize = MultiByteToWideChar(iCodePage,
 								MB_ERR_INVALID_CHARS,
 								sText.data(),
 								sText.size(),
-								(wchar_t*)sOut.data(),
+								static_cast<wchar_t*>(sOut.data()),
 								iSize);
 	ASSERT(iSize != 0);
 
-	sText = WStringToRString(sOut);
+	sText = WStringToString(sOut);
 	return true;
 }
 
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return CodePageConvert(sText, 1252);
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return CodePageConvert(sText, 949);
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return CodePageConvert(sText, 932);
 }
@@ -55,7 +55,7 @@ AttemptJapaneseConversion(RString& sText)
 #include <iconv.h>
 
 static bool
-ConvertFromCharset(RString& sText, const char* szCharset)
+ConvertFromCharset(std::string& sText, const char* szCharset)
 {
 	iconv_t converter = iconv_open("UTF-8", szCharset);
 	if (converter == (iconv_t)-1) {
@@ -71,7 +71,7 @@ ConvertFromCharset(RString& sText, const char* szCharset)
 	size_t iInLeft = sText.size();
 
 	/* Create a new string with enough room for the new conversion */
-	RString sBuf;
+	std::string sBuf;
 	sBuf.resize(sText.size() * 5);
 
 	char* sTextOut = const_cast<char*>(sBuf.data());
@@ -104,17 +104,17 @@ ConvertFromCharset(RString& sText, const char* szCharset)
 }
 
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return ConvertFromCharset(sText, "CP1252");
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return ConvertFromCharset(sText, "CP949");
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return ConvertFromCharset(sText, "CP932");
 }
@@ -123,7 +123,7 @@ AttemptJapaneseConversion(RString& sText)
 #include <CoreFoundation/CoreFoundation.h>
 
 static bool
-ConvertFromCP(RString& sText, int iCodePage)
+ConvertFromCP(std::string& sText, int iCodePage)
 {
 	CFStringEncoding encoding =
 	  CFStringConvertWindowsCodepageToEncoding(iCodePage);
@@ -132,7 +132,7 @@ ConvertFromCP(RString& sText, int iCodePage)
 		return false;
 
 	CFStringRef old =
-	  CFStringCreateWithCString(kCFAllocatorDefault, sText, encoding);
+	  CFStringCreateWithCString(kCFAllocatorDefault, sText.c_str(), encoding);
 
 	if (old == NULL)
 		return false;
@@ -149,17 +149,17 @@ ConvertFromCP(RString& sText, int iCodePage)
 }
 
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return ConvertFromCP(sText, 1252);
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return ConvertFromCP(sText, 949);
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return ConvertFromCP(sText, 932);
 }
@@ -168,17 +168,17 @@ AttemptJapaneseConversion(RString& sText)
 
 /* No converters are available, so all fail--we only accept UTF-8. */
 static bool
-AttemptEnglishConversion(RString& sText)
+AttemptEnglishConversion(std::string& sText)
 {
 	return false;
 }
 static bool
-AttemptKoreanConversion(RString& sText)
+AttemptKoreanConversion(std::string& sText)
 {
 	return false;
 }
 static bool
-AttemptJapaneseConversion(RString& sText)
+AttemptJapaneseConversion(std::string& sText)
 {
 	return false;
 }
@@ -186,34 +186,34 @@ AttemptJapaneseConversion(RString& sText)
 #endif
 
 bool
-ConvertString(RString& str, const RString& encodings)
+ConvertString(std::string& str, const std::string& encodings)
 {
 	if (str.empty())
 		return true;
 
-	vector<RString> lst;
+	std::vector<std::string> lst;
 	split(encodings, ",", lst);
 
-	for (unsigned i = 0; i < lst.size(); ++i) {
-		if (lst[i] == "utf-8") {
+	for (auto& s : lst) {
+		if (s == "utf-8") {
 			/* Is the string already valid utf-8? */
 			if (utf8_is_valid(str))
 				return true;
 			continue;
 		}
-		if (lst[i] == "english") {
+		if (s == "english") {
 			if (AttemptEnglishConversion(str))
 				return true;
 			continue;
 		}
 
-		if (lst[i] == "japanese") {
+		if (s == "japanese") {
 			if (AttemptJapaneseConversion(str))
 				return true;
 			continue;
 		}
 
-		if (lst[i] == "korean") {
+		if (s == "korean") {
 			if (AttemptKoreanConversion(str))
 				return true;
 			continue;
@@ -221,7 +221,7 @@ ConvertString(RString& str, const RString& encodings)
 
 		RageException::Throw(
 		  "Unexpected conversion string \"%s\" (string \"%s\").",
-		  lst[i].c_str(),
+		  s.c_str(),
 		  str.c_str());
 	}
 

@@ -56,11 +56,7 @@ class PlayerState
 	// to fit in the space available. -Kyz
 	float m_NotefieldZoom;
 
-	// Music statistics:
-	SongPosition m_Position;
-
-	const SongPosition& GetDisplayedPosition() const;
-	const TimingData& GetDisplayedTiming() const;
+	auto GetDisplayedTiming() const -> const TimingData&;
 
 	/**
 	 * @brief Holds a vector sorted by real beat, the beat that would be
@@ -69,14 +65,14 @@ class PlayerState
 	 * Player::Load() be used a lot in ArrowEffects to determine the
 	 * target beat in O(log N).
 	 */
-	vector<CacheDisplayedBeat> m_CacheDisplayedBeat;
+	std::vector<CacheDisplayedBeat> m_CacheDisplayedBeat;
 
 	/**
 	 * @brief Holds a vector sorted by beat, the cumulative number of notes from
 	 *        the start of the song. This will be used by [insert more
 	 * description here]
 	 */
-	vector<CacheNoteStat> m_CacheNoteStat;
+	std::vector<CacheNoteStat> m_CacheNoteStat;
 
 	/**
 	 * @brief Change the PlayerOptions to their default.
@@ -107,11 +103,11 @@ class PlayerState
 
 	/* why is the slow getstyles function called every time to get
 	number of columns in places where it can't change? - Mina */
-	float playertargetgoal = 0.93f;
 	int m_NumCols;
 	void SetNumCols(int ncol) { m_NumCols = ncol; };
-	int GetNumCols() { return m_NumCols; };
-	float wtFFF = 1.f; // lol dont ask - mina
+	auto GetNumCols() -> int { return m_NumCols; };
+
+	float playertargetgoal = 0.93F;
 
 	// Lua
 	void PushSelf(lua_State* L);

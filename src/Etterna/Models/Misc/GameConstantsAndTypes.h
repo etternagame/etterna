@@ -5,6 +5,7 @@
 #define GAME_CONSTANTS_AND_TYPES_H
 
 #include "EnumHelper.h"
+#include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include <cfloat> // need the max for default.
 
 // Note definitions
@@ -27,22 +28,12 @@ enum GameplayMode
 	GameplayMode_Invalid
 };
 
-enum Skillset
-{
-	Skill_Overall,
-	Skill_Stream,
-	Skill_Jumpstream,
-	Skill_Handstream,
-	Skill_Stamina,
-	Skill_JackSpeed,
-	Skill_Chordjack,
-	Skill_Technical,
-	NUM_Skillset,
-	Skillset_Invalid,
-};
+auto
+SkillsetToString(Skillset ss) -> const std::string&;
 
-const RString&
-SkillsetToString(Skillset ss);
+auto CalcPatternModToString(CalcPatternMod) -> const std::string&;
+auto CalcDiffValueToString(CalcDiffValue) -> const std::string&;
+auto CalcDebugMiscToString(CalcDebugMisc) -> const std::string&;
 
 enum NSScoreBoardColumn
 {
@@ -61,8 +52,8 @@ enum ValidationKey
 	ValidationKey_Invalid,
 };
 
-const RString&
-ValidationKeyToString(ValidationKey ss);
+auto
+ValidationKeyToString(ValidationKey ss) -> const std::string&;
 
 /**
  * @brief The various radar categories available.
@@ -88,15 +79,15 @@ enum RadarCategory
  * @param cat the radar category.
  * @return the string version of the radar category.
  */
-const RString&
-RadarCategoryToString(RadarCategory cat);
+auto
+RadarCategoryToString(RadarCategory cat) -> const std::string&;
 /**
  * @brief Turn the radar category into a proper localized string.
  * @param cat the radar category.
  * @return the localized string version of the radar category.
  */
-const RString&
-RadarCategoryToLocalizedString(RadarCategory cat);
+auto
+RadarCategoryToLocalizedString(RadarCategory cat) -> const std::string&;
 LuaDeclareType(RadarCategory);
 
 /** @brief The different game categories available to play. */
@@ -134,54 +125,18 @@ enum StepsType
 };
 LuaDeclareType(StepsType);
 
-/** @brief The various play modes available. */
-enum PlayMode
-{
-	PLAY_MODE_REGULAR, /**< The normal game mode, often with a set number of
-						  stages. */
-	NUM_PlayMode,
-	PlayMode_Invalid
-};
-/**
- * @brief Turn the play mode into a proper string.
- * @param pm the play mode.
- * @return the string version of the play mode.
- */
-const RString&
-PlayModeToString(PlayMode pm);
-/**
- * @brief Turn the play mode into a proper localized string.
- * @param pm the play mode.
- * @return the localized string version of the play mode.
- */
-const RString&
-PlayModeToLocalizedString(PlayMode pm);
-/**
- * @brief Turn the string into the proper play mode.
- * @param s the string.
- * @return the play mode based on the string.
- */
-PlayMode
-StringToPlayMode(const RString& s);
-LuaDeclareType(PlayMode);
-
 /**
  * @brief The list of ways to sort songs
  */
 enum SortOrder
 {
-	// song sorts
-	SORT_PREFERRED,  /**< Sort by the user's preferred settings. */
 	SORT_GROUP,		 /**< Sort by the groups the Songs are in. */
 	SORT_TITLE,		 /**< Sort by the Song's title. */
 	SORT_BPM,		 /**< Sort by the Song's BPM. */
-	SORT_POPULARITY, /**< Sort by how popular the Song is. */
 	SORT_TOP_GRADES, /**< Sort by the highest grades earned on a Song. */
 	SORT_ARTIST,	 /**< Sort by the name of the artist of the Song. */
 	SORT_GENRE,		 /**< Sort by the Song's genre. */
-	//
-	SORT_MODE_MENU, /**< Have access to the menu for choosing the sort. */
-	SORT_RECENT,
+	SORT_MODE_MENU,	 /**< Have access to the menu for choosing the sort. */
 	SORT_FAVORITES,
 	SORT_Overall,
 	SORT_Stream,
@@ -195,39 +150,38 @@ enum SortOrder
 	NUM_SortOrder,
 	SortOrder_Invalid
 };
-/** @brief Only allow certain sort modes to be selectable. */
-const SortOrder MAX_SELECTABLE_SORT = static_cast<SortOrder>(SORT_RECENT - 1);
+
 /**
  * @brief Turn the sort order into a proper string.
  * @param so the sort order.
  * @return the string version of the sort order.
  */
-const RString&
-SortOrderToString(SortOrder so);
+auto
+SortOrderToString(SortOrder so) -> const std::string&;
 /**
  * @brief Turn the sort order into a proper localized string.
  * @param so the sort order.
  * @return the localized string version of the sort order.
  */
-const RString&
-SortOrderToLocalizedString(SortOrder so);
+auto
+SortOrderToLocalizedString(SortOrder so) -> const std::string&;
 /**
  * @brief Turn the string into the proper sort order.
  * @param str the string.
  * @return the sort order based on the string.
  */
-SortOrder
-StringToSortOrder(const RString& str);
+auto
+StringToSortOrder(const std::string& str) -> SortOrder;
 LuaDeclareType(SortOrder);
 /**
  * @brief Determine if the sort order in question is for songs or not.
  *
  * This function is mainly used for saving sort order to the profile. -aj
  */
-inline bool
-IsSongSort(SortOrder so)
+inline auto
+IsSongSort(SortOrder so) -> bool
 {
-	return so >= SORT_PREFERRED && so <= SORT_GENRE;
+	return so >= SORT_GROUP && so <= SORT_GENRE;
 }
 
 /** @brief The list of tap note scores available during play. */
@@ -253,30 +207,30 @@ enum TapNoteScore
  * @param tns the tap note score.
  * @return the string version of the tap note score.
  */
-const RString&
-TapNoteScoreToString(TapNoteScore tns);
+auto
+TapNoteScoreToString(TapNoteScore tns) -> const std::string&;
 /**
  * @brief Turn the tap note score into a proper localized string.
  * @param tns the tap note score.
  * @return the localized string version of the tap note score.
  */
-const RString&
-TapNoteScoreToLocalizedString(TapNoteScore tns);
+auto
+TapNoteScoreToLocalizedString(TapNoteScore tns) -> const std::string&;
 /**
  * @brief Turn the string into the proper tap note score.
  * @param str the string.
  * @return the tap note score based on the string.
  */
-TapNoteScore
-StringToTapNoteScore(const RString& str);
+auto
+StringToTapNoteScore(const std::string& str) -> TapNoteScore;
 LuaDeclareType(TapNoteScore);
 
 /** @brief The list of hold note scores available during play. */
 enum HoldNoteScore
 {
-	HNS_None,   /**< The HoldNote was not scored yet. */
-	HNS_LetGo,  /**< The HoldNote has passed, but the player missed it. */
-	HNS_Held,   /**< The HoldNote has passed, and was successfully held all the
+	HNS_None,	/**< The HoldNote was not scored yet. */
+	HNS_LetGo,	/**< The HoldNote has passed, but the player missed it. */
+	HNS_Held,	/**< The HoldNote has passed, and was successfully held all the
 				   way. */
 	HNS_Missed, /**< The HoldNote has passed, and was never initialized. */
 	NUM_HoldNoteScore, /**< The number of hold note scores. */
@@ -287,23 +241,23 @@ enum HoldNoteScore
  * @param hns the hold note score.
  * @return the string version of the hold note score.
  */
-const RString&
-HoldNoteScoreToString(HoldNoteScore hns);
+auto
+HoldNoteScoreToString(HoldNoteScore hns) -> const std::string&;
 
 /**
  * @brief Turn the hold note score into a proper localized string.
  * @param hns the hold note score.
  * @return the localized string version of the hold note score.
  */
-const RString&
-HoldNoteScoreToLocalizedString(HoldNoteScore hns);
+auto
+HoldNoteScoreToLocalizedString(HoldNoteScore hns) -> const std::string&;
 /**
  * @brief Turn the string into the proper hold note score.
  * @param str the string.
  * @return the hold note score based on the string.
  */
-HoldNoteScore
-StringToHoldNoteScore(const RString& str);
+auto
+StringToHoldNoteScore(const std::string& str) -> HoldNoteScore;
 LuaDeclareType(HoldNoteScore);
 
 /** @brief The list of timing windows to deal with when playing. */
@@ -320,8 +274,8 @@ enum TimingWindow
 	TW_Checkpoint,
 	NUM_TimingWindow
 };
-const RString&
-TimingWindowToString(TimingWindow tw);
+auto
+TimingWindowToString(TimingWindow tw) -> const std::string&;
 
 /** @brief The list of score events that can take place while playing. */
 enum ScoreEvent
@@ -340,8 +294,8 @@ enum ScoreEvent
 	SE_Missed,
 	NUM_ScoreEvent
 };
-const RString&
-ScoreEventToString(ScoreEvent se);
+auto
+ScoreEventToString(ScoreEvent se) -> const std::string&;
 
 /** @brief The list of game button types available for all game modes. */
 enum GameButtonType
@@ -358,8 +312,8 @@ enum TapNoteScoreJudgeType
 	NUM_TapNoteScoreJudgeType,
 	TapNoteScoreJudgeType_Invalid,
 };
-const RString&
-TapNoteScoreJudgeTypeToString(TapNoteScoreJudgeType jt);
+auto
+TapNoteScoreJudgeTypeToString(TapNoteScoreJudgeType jt) -> const std::string&;
 LuaDeclareType(TapNoteScoreJudgeType);
 
 /** @brief The profile slots available. This is mainly for Profiles and Memory
@@ -371,19 +325,19 @@ enum ProfileSlot
 	NUM_ProfileSlot,
 	ProfileSlot_Invalid
 };
-const RString&
-ProfileSlotToString(ProfileSlot ps);
+auto
+ProfileSlotToString(ProfileSlot ps) -> const std::string&;
 LuaDeclareType(ProfileSlot);
 
-extern const RString RANKING_TO_FILL_IN_MARKER;
-inline bool
-IsRankingToFillIn(const RString& sName)
+extern const std::string RANKING_TO_FILL_IN_MARKER;
+inline auto
+IsRankingToFillIn(const std::string& sName) -> bool
 {
 	return !sName.empty() && sName[0] == '#';
 }
 
 // Group stuff
-extern const RString GROUP_ALL;
+extern const std::string GROUP_ALL;
 
 /** @brief The different types of players in the game. */
 enum PlayerController
@@ -395,17 +349,17 @@ enum PlayerController
 	NUM_PlayerController,
 	PlayerController_Invalid
 };
-const RString&
-PlayerControllerToString(PlayerController pc);
+auto
+PlayerControllerToString(PlayerController pc) -> const std::string&;
 LuaDeclareType(PlayerController);
 
 /** @brief The different health bar states. */
 enum HealthState
 {
 	HealthState_Hot,	/**< The health bar is very full. */
-	HealthState_Alive,  /**< The health bar is at a decent size. */
+	HealthState_Alive,	/**< The health bar is at a decent size. */
 	HealthState_Danger, /**< The health bar is about to run out. */
-	HealthState_Dead,   /**< The health bar is drained completely. */
+	HealthState_Dead,	/**< The health bar is drained completely. */
 	NUM_HealthState,
 	HealthState_Invalid
 };
@@ -423,47 +377,47 @@ struct DisplayBpms
 	 * @brief Retrieve the minimum BPM of the set.
 	 * @return the minimum BPM.
 	 */
-	float GetMin() const;
+	[[nodiscard]] auto GetMin() const -> float;
 	/**
 	 * @brief Retrieve the maximum BPM of the set.
 	 * @return the maximum BPM.
 	 */
-	float GetMax() const;
+	[[nodiscard]] auto GetMax() const -> float;
 	/**
 	 * @brief Retrieve the maximum BPM of the set,
 	 * but no higher than a certain value.
 	 * @param highest the highest BPM to use.
 	 * @return the maximum BPM.
 	 */
-	float GetMaxWithin(float highest = FLT_MAX) const;
+	[[nodiscard]] auto GetMaxWithin(float highest = FLT_MAX) const -> float;
 	/**
 	 * @brief Determine if the BPM is really constant.
 	 * @return Whether the BPM is constant or not.
 	 */
-	bool BpmIsConstant() const;
+	[[nodiscard]] auto BpmIsConstant() const -> bool;
 	/**
 	 * @brief Determine if the BPM is meant to be a secret.
 	 * @return Whether the BPM is a secret or not.
 	 */
-	bool IsSecret() const;
+	[[nodiscard]] auto IsSecret() const -> bool;
 	/**
 	 * @brief The list of the BPMs for the song.
 	 */
-	vector<float> vfBpms;
+	std::vector<float> vfBpms;
 };
 
 /** @brief The various style types available. */
 enum StyleType
 {
-	StyleType_OnePlayerOneSide,  /**< Single style */
+	StyleType_OnePlayerOneSide,	 /**< Single style */
 	StyleType_OnePlayerTwoSides, /**< Double style */
 	NUM_StyleType,
 	StyleType_Invalid
 };
-const RString&
-StyleTypeToString(StyleType s);
-StyleType
-StringToStyleType(const RString& s);
+auto
+StyleTypeToString(StyleType s) -> const std::string&;
+auto
+StringToStyleType(const std::string& s) -> StyleType;
 LuaDeclareType(StyleType);
 
 /**
@@ -491,9 +445,10 @@ enum SampleMusicPreviewMode
 	NUM_SampleMusicPreviewMode,
 	SampleMusicPreviewMode_Invalid,
 };
-const RString& SampleMusicPreviewModeToString(SampleMusicPreviewMode);
-SampleMusicPreviewMode
-StringToSampleMusicPreviewMode(const RString& s);
+auto SampleMusicPreviewModeToString(SampleMusicPreviewMode)
+  -> const std::string&;
+auto
+StringToSampleMusicPreviewMode(const std::string& s) -> SampleMusicPreviewMode;
 LuaDeclareType(SampleMusicPreviewMode);
 
 /**
@@ -504,28 +459,28 @@ LuaDeclareType(SampleMusicPreviewMode);
  */
 enum Stage
 {
-	Stage_1st,	/**< The first stage. */
-	Stage_2nd,	/**< The second stage. */
-	Stage_3rd,	/**< The third stage. */
-	Stage_4th,	/**< The fourth stage. */
-	Stage_5th,	/**< The fifth stage. */
-	Stage_6th,	/**< The sixth stage. */
-	Stage_Next,   /**< Somewhere between the sixth and final stage.
+	Stage_1st,	  /**< The first stage. */
+	Stage_2nd,	  /**< The second stage. */
+	Stage_3rd,	  /**< The third stage. */
+	Stage_4th,	  /**< The fourth stage. */
+	Stage_5th,	  /**< The fifth stage. */
+	Stage_6th,	  /**< The sixth stage. */
+	Stage_Next,	  /**< Somewhere between the sixth and final stage.
 				   * This won't normally happen because 7 stages is the max in the
 				   * UI. */
 	Stage_Final,  /**< The last stage. */
 	Stage_Extra1, /**< The first bonus stage, AKA the extra stage. */
 	Stage_Extra2, /**< The last bonus stage, AKA the encore extra stage. */
 	Stage_Event,  /**< Playing in event mode. */
-	Stage_Demo,   /**< Playing the demonstration. */
-	NUM_Stage,	/**< The number of stage types. */
+	Stage_Demo,	  /**< Playing the demonstration. */
+	NUM_Stage,	  /**< The number of stage types. */
 	Stage_Invalid,
 };
-const RString&
-StageToString(Stage s);
+auto
+StageToString(Stage s) -> const std::string&;
 LuaDeclareType(Stage);
-const RString&
-StageToLocalizedString(Stage i);
+auto
+StageToLocalizedString(Stage i) -> const std::string&;
 
 /** @brief The different results of loading a profile. */
 enum ProfileLoadResult
@@ -545,8 +500,8 @@ enum MultiPlayerStatus
 	NUM_MultiPlayerStatus,
 	MultiPlayerStatus_Invalid
 };
-const RString&
-MultiPlayerStatusToString(MultiPlayerStatus i);
+auto
+MultiPlayerStatusToString(MultiPlayerStatus i) -> const std::string&;
 
 /** @brief How can the Player fail a song? */
 enum FailType
@@ -559,10 +514,10 @@ enum FailType
 	FailType_Invalid
 };
 
-const RString&
-FailTypeToString(FailType cat);
-const RString&
-FailTypeToLocalizedString(FailType cat);
+auto
+FailTypeToString(FailType cat) -> const std::string&;
+auto
+FailTypeToLocalizedString(FailType cat) -> const std::string&;
 LuaDeclareType(FailType);
 
 #endif

@@ -9,6 +9,8 @@
 #include "RageUtil/Sound/RageSound.h"
 #include "ScreenWithMenuElements.h"
 
+#include <set>
+
 class ScreenMapControllers : public ScreenWithMenuElements
 {
   public:
@@ -20,7 +22,7 @@ class ScreenMapControllers : public ScreenWithMenuElements
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
 	void HandleMessage(const Message& msg) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 
   private:
 	Actor* GetActorWithFocus();
@@ -40,10 +42,10 @@ class ScreenMapControllers : public ScreenWithMenuElements
 	void SetCursorFromSetListCurrent();
 	void StartWaitingForPress();
 
-	unsigned int m_CurController;
-	unsigned int m_CurButton;
-	unsigned int m_CurSlot;
-	unsigned int m_MaxDestItem;
+	unsigned int m_CurController = 0;
+	unsigned int m_CurButton = 0;
+	unsigned int m_CurSlot = 0;
+	unsigned int m_MaxDestItem = 0;
 
 	bool m_ChangeOccurred;
 
@@ -67,13 +69,13 @@ class ScreenMapControllers : public ScreenWithMenuElements
 	BitmapText m_ListHeaderLabels[NUM_GameController]
 								 [NUM_SHOWN_GAME_TO_DEVICE_SLOTS];
 
-	float m_AutoDismissWarningSecs;
+	float m_AutoDismissWarningSecs = 2.5f;
 	AutoActor m_Warning;
 
-	float m_AutoDismissNoSetListPromptSecs;
+	float m_AutoDismissNoSetListPromptSecs = 5.f;
 	AutoActor m_NoSetListPrompt;
 
-	float m_AutoDismissSanitySecs;
+	float m_AutoDismissSanitySecs = 5.f;
 	AutoActor m_SanityMessage;
 
 	struct SetListEntry
@@ -98,18 +100,18 @@ class ScreenMapControllers : public ScreenWithMenuElements
 			return m_slot < rhs.m_slot;
 		}
 	};
-	set<SetListEntry> m_SetList;
-	set<SetListEntry>::iterator m_SetListCurrent;
+	std::set<SetListEntry> m_SetList;
+	std::set<SetListEntry>::iterator m_SetListCurrent;
 	bool m_InSetListMode;
 
 	using action_fun_t = void (ScreenMapControllers::*)();
 	struct ActionRow
 	{
-		RString m_name;
+		std::string m_name;
 		AutoActor m_actor;
 		action_fun_t m_action;
-		void Load(RString const& scr_name,
-				  RString const& name,
+		void Load(std::string const& scr_name,
+				  std::string const& name,
 				  ScreenMapControllers::action_fun_t action,
 				  ActorFrame* line,
 				  ActorScroller* scroller);

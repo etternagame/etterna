@@ -1,19 +1,21 @@
 #include "Etterna/Globals/global.h"
 #include "CommonMetrics.h"
-#include "Foreach.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-ThemeMetric<RString> CommonMetrics::OPERATOR_MENU_SCREEN("Common",
-														 "OperatorMenuScreen");
-ThemeMetric<RString> CommonMetrics::DEFAULT_MODIFIERS("Common",
-													  "DefaultModifiers");
+#include <algorithm>
+
+ThemeMetric<std::string> CommonMetrics::OPERATOR_MENU_SCREEN(
+  "Common",
+  "OperatorMenuScreen");
+ThemeMetric<std::string> CommonMetrics::DEFAULT_MODIFIERS("Common",
+														  "DefaultModifiers");
 LocalizedString CommonMetrics::WINDOW_TITLE("Common", "WindowTitle");
 ThemeMetric<float> CommonMetrics::TICK_EARLY_SECONDS("ScreenGameplay",
 													 "TickEarlySeconds");
-ThemeMetric<RString> CommonMetrics::DEFAULT_NOTESKIN_NAME(
+ThemeMetric<std::string> CommonMetrics::DEFAULT_NOTESKIN_NAME(
   "Common",
   "DefaultNoteSkinName");
 ThemeMetricDifficultiesToShow CommonMetrics::DIFFICULTIES_TO_SHOW(
@@ -26,12 +28,12 @@ ThemeMetric<bool> CommonMetrics::AUTO_SET_STYLE("Common", "AutoSetStyle");
 ThemeMetric<int> CommonMetrics::PERCENT_SCORE_DECIMAL_PLACES(
   "Common",
   "PercentScoreDecimalPlaces");
-ThemeMetric<RString> CommonMetrics::IMAGES_TO_CACHE("Common", "ImageCache");
+ThemeMetric<std::string> CommonMetrics::IMAGES_TO_CACHE("Common", "ImageCache");
 
 ThemeMetricDifficultiesToShow::ThemeMetricDifficultiesToShow(
-  const RString& sGroup,
-  const RString& sName)
-  : ThemeMetric<RString>(sGroup, sName)
+  const std::string& sGroup,
+  const std::string& sName)
+  : ThemeMetric<std::string>(sGroup, sName)
 {
 	// re-read because ThemeMetric::ThemeMetric calls ThemeMetric::Read, not the
 	// derived one
@@ -41,27 +43,26 @@ ThemeMetricDifficultiesToShow::ThemeMetricDifficultiesToShow(
 void
 ThemeMetricDifficultiesToShow::Read()
 {
-	ASSERT(GetName().Right(6) == "ToShow");
+	ASSERT(tail(GetName(), 6) == "ToShow");
 
-	ThemeMetric<RString>::Read();
+	ThemeMetric<std::string>::Read();
 
 	m_v.clear();
 
-	vector<RString> v;
-	split(ThemeMetric<RString>::GetValue(), ",", v);
+	vector<std::string> v;
+	split(ThemeMetric<std::string>::GetValue(), ",", v);
 	if (v.empty()) {
 		LuaHelpers::ReportScriptError(
 		  "DifficultiesToShow must have at least one entry.");
 		return;
 	}
 
-	FOREACH_CONST(RString, v, i)
-	{
-		Difficulty d = StringToDifficulty(*i);
+	for (auto& i : v) {
+		auto d = StringToDifficulty(i);
 		if (d == Difficulty_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Unknown difficulty \"%s\" in CourseDifficultiesToShow.",
-			  i->c_str());
+			  i.c_str());
 		} else {
 			m_v.push_back(d);
 		}
@@ -74,34 +75,34 @@ ThemeMetricDifficultiesToShow::GetValue() const
 }
 
 static void
-RemoveStepsTypes(vector<StepsType>& inout, RString sStepsTypesToRemove)
+RemoveStepsTypes(vector<StepsType>& inout,
+				 const std::string& sStepsTypesToRemove)
 {
-	vector<RString> v;
+	vector<std::string> v;
 	split(sStepsTypesToRemove, ",", v);
-	if (v.size() == 0)
+	if (v.empty())
 		return; // Nothing to do!
 
 	// subtract StepsTypes
-	FOREACH_CONST(RString, v, i)
-	{
-		StepsType st = GAMEMAN->StringToStepsType(*i);
+	for (auto& i : v) {
+		auto st = GAMEMAN->StringToStepsType(i);
 		if (st == StepsType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid StepsType value '%s' in '%s'",
-			  i->c_str(),
+			  i.c_str(),
 			  sStepsTypesToRemove.c_str());
 			continue;
 		}
 
-		const vector<StepsType>::iterator iter =
-		  find(inout.begin(), inout.end(), st);
+		const auto iter = std::find(inout.begin(), inout.end(), st);
 		if (iter != inout.end())
 			inout.erase(iter);
 	}
 }
-ThemeMetricStepsTypesToShow::ThemeMetricStepsTypesToShow(const RString& sGroup,
-														 const RString& sName)
-  : ThemeMetric<RString>(sGroup, sName)
+ThemeMetricStepsTypesToShow::ThemeMetricStepsTypesToShow(
+  const std::string& sGroup,
+  const std::string& sName)
+  : ThemeMetric<std::string>(sGroup, sName)
 {
 	// re-read because ThemeMetric::ThemeMetric calls ThemeMetric::Read, not the
 	// derived one
@@ -111,14 +112,14 @@ ThemeMetricStepsTypesToShow::ThemeMetricStepsTypesToShow(const RString& sGroup,
 void
 ThemeMetricStepsTypesToShow::Read()
 {
-	ASSERT(GetName().Right(6) == "ToHide");
+	ASSERT(tail(GetName(), 6) == "ToHide");
 
-	ThemeMetric<RString>::Read();
+	ThemeMetric<std::string>::Read();
 
 	m_v.clear();
 	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, m_v);
 
-	RemoveStepsTypes(m_v, ThemeMetric<RString>::GetValue());
+	RemoveStepsTypes(m_v, ThemeMetric<std::string>::GetValue());
 }
 const vector<StepsType>&
 ThemeMetricStepsTypesToShow::GetValue() const
@@ -126,8 +127,8 @@ ThemeMetricStepsTypesToShow::GetValue() const
 	return m_v;
 }
 
-RString
-CommonMetrics::LocalizeOptionItem(const RString& s, bool bOptional)
+std::string
+CommonMetrics::LocalizeOptionItem(const std::string& s, bool bOptional)
 {
 	if (bOptional && !THEME->HasString("OptionNames", s))
 		return s;

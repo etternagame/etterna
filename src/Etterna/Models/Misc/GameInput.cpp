@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "GameInput.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -12,20 +12,20 @@ XToString(GameController);
 StringToX(GameController);
 LuaXType(GameController);
 
-RString
+std::string
 GameButtonToString(const InputScheme* pInputs, GameButton i)
 {
 	return pInputs->GetGameButtonName(i);
 }
 
-RString
+std::string
 GameButtonToLocalizedString(const InputScheme* pInputs, GameButton i)
 {
 	return THEME->GetString("GameButton", GameButtonToString(pInputs, i));
 }
 
 GameButton
-StringToGameButton(const InputScheme* pInputs, const RString& s)
+StringToGameButton(const InputScheme* pInputs, const std::string& s)
 {
 	FOREACH_GameButtonInScheme(pInputs, i)
 	{
@@ -35,20 +35,20 @@ StringToGameButton(const InputScheme* pInputs, const RString& s)
 	return GameButton_Invalid;
 }
 
-RString
+std::string
 GameInput::ToString(const InputScheme* pInputs) const
 {
-	return GameControllerToString(controller) + RString("_") +
+	return GameControllerToString(controller) + std::string("_") +
 		   GameButtonToString(pInputs, button);
 }
 
 bool
-GameInput::FromString(const InputScheme* pInputs, const RString& s)
+GameInput::FromString(const InputScheme* pInputs, const std::string& s)
 {
 	char szController[32] = "";
 	char szButton[32] = "";
 
-	if (2 != sscanf(s, "%31[^_]_%31[^_]", szController, szButton)) {
+	if (2 != sscanf(s.c_str(), "%31[^_]_%31[^_]", szController, szButton)) {
 		controller = GameController_Invalid;
 		return false;
 	}

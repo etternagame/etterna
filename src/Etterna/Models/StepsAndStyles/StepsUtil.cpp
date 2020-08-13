@@ -1,15 +1,18 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Steps.h"
 #include "StepsUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <map>
+#include <algorithm>
+
 // Sorting stuff
-map<const Steps*, RString> steps_sort_val;
+std::map<const Steps*, std::string> steps_sort_val;
 
 static bool
 CompareStepsPointersBySortValueAscending(const Steps* pSteps1,
@@ -30,9 +33,7 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 										   ProfileSlot slot,
 										   bool bDescending)
 {
-	if (!PROFILEMAN->IsPersistentProfile(slot))
-		return; // nothing to do since we don't have data
-	Profile* pProfile = PROFILEMAN->GetProfile(slot);
+	auto pProfile = PROFILEMAN->GetProfile(slot);
 	SortStepsPointerArrayByNumPlays(vStepsPointers, pProfile, bDescending);
 }
 
@@ -42,27 +43,24 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 										   bool bDecending)
 {
 	// ugly...
-	vector<Song*> vpSongs = SONGMAN->GetAllSongs();
+	auto vpSongs = SONGMAN->GetAllSongs();
 	vector<Steps*> vpAllSteps;
-	map<Steps*, Song*> mapStepsToSong;
+	std::map<Steps*, Song*> mapStepsToSong;
 	{
-		for (unsigned i = 0; i < vpSongs.size(); i++) {
-			Song* pSong = vpSongs[i];
-			vector<Steps*> vpSteps = pSong->GetAllSteps();
-			for (unsigned j = 0; j < vpSteps.size(); j++) {
-				Steps* pSteps = vpSteps[j];
+		for (auto pSong : vpSongs) {
+			auto vpSteps = pSong->GetAllSteps();
+			for (auto pSteps : vpSteps) {
 				vpAllSteps.push_back(pSteps);
 				mapStepsToSong[pSteps] = pSong;
 			}
 		}
 	}
 
-	ASSERT(pProfile != NULL);
-	for (unsigned i = 0; i < vStepsPointers.size(); ++i) {
-		Steps* pSteps = vStepsPointers[i];
-		Song* pSong = mapStepsToSong[pSteps];
-		steps_sort_val[vStepsPointers[i]] =
-		  ssprintf("%9i", pProfile->GetStepsNumTimesPlayed(pSong, pSteps));
+	ASSERT(pProfile != nullptr);
+	for (auto& steps : vStepsPointers) {
+		steps_sort_val[steps] = ssprintf(
+		  "%9i",
+		  SCOREMAN->GetScoresForChart(steps->GetChartKey())->GetNumScores());
 	}
 	stable_sort(vStepsPointers.begin(),
 				vStepsPointers.end(),
@@ -75,8 +73,8 @@ bool
 StepsUtil::CompareNotesPointersByRadarValues(const Steps* pSteps1,
 											 const Steps* pSteps2)
 {
-	float fScore1 = 0;
-	float fScore2 = 0;
+	auto fScore1 = 0.F;
+	auto fScore2 = 0.F;
 
 	fScore1 += pSteps1->GetRadarValues()[RadarCategory_TapsAndHolds];
 	fScore2 += pSteps2->GetRadarValues()[RadarCategory_TapsAndHolds];
@@ -136,7 +134,8 @@ bool
 StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 											 const Steps* pStep2)
 {
-	return pStep1->GetDescription().CompareNoCase(pStep2->GetDescription()) < 0;
+	return CompareNoCase(pStep1->GetDescription(), pStep2->GetDescription()) <
+		   0;
 }
 
 void
@@ -154,7 +153,7 @@ StepsUtil::SortStepsByDescription(vector<Steps*>& arraySongPointers)
 void
 StepsID::FromSteps(const Steps* p)
 {
-	if (p == NULL) {
+	if (p == nullptr) {
 		st = StepsType_Invalid;
 		dc = Difficulty_Invalid;
 		sDescription = "";
@@ -189,20 +188,20 @@ Steps*
 StepsID::ToSteps(const Song* p, bool bAllowNull) const
 {
 	if (st == StepsType_Invalid || dc == Difficulty_Invalid)
-		return NULL;
+		return nullptr;
 
 	SongID songID;
 	songID.FromSong(p);
 
-	Steps* pRet = NULL;
+	Steps* pRet = nullptr;
 	if (dc == Difficulty_Edit) {
 		pRet = SongUtil::GetOneSteps(
-		  p, st, dc, -1, -1, sDescription, "", uHash, true);
+		  p, st, dc, -1, -1, false, sDescription, "", uHash, true);
 	} else {
-		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, "", "", 0, true);
+		pRet = SongUtil::GetOneSteps(p, st, dc, -1, -1, false, "", "", 0, true);
 	}
 
-	if (!bAllowNull && pRet == NULL)
+	if (!bAllowNull && pRet == nullptr)
 		FAIL_M(ssprintf("%i, %i, \"%s\"", st, dc, sDescription.c_str()));
 
 	m_Cache.Set(pRet);
@@ -212,7 +211,7 @@ StepsID::ToSteps(const Song* p, bool bAllowNull) const
 XNode*
 StepsID::CreateNode() const
 {
-	XNode* pNode = new XNode("Steps");
+	auto pNode = new XNode("Steps");
 
 	pNode->AppendAttr("StepsType", GAMEMAN->GetStepsTypeInfo(st).szName);
 	pNode->AppendAttr("Difficulty", DifficultyToString(dc));
@@ -230,7 +229,7 @@ StepsID::LoadFromNode(const XNode* pNode)
 {
 	ASSERT(pNode->GetName() == "Steps");
 
-	RString sTemp;
+	std::string sTemp;
 
 	pNode->GetAttrValue("StepsType", sTemp);
 	st = GAMEMAN->StringToStepsType(sTemp);
@@ -252,10 +251,10 @@ StepsID::LoadFromNode(const XNode* pNode)
 	m_Cache.Unset();
 }
 
-RString
+std::string
 StepsID::ToString() const
 {
-	RString s = GAMEMAN->GetStepsTypeInfo(st).szName;
+	std::string s = GAMEMAN->GetStepsTypeInfo(st).szName;
 	s += " " + DifficultyToString(dc);
 	if (dc == Difficulty_Edit) {
 		s += " " + sDescription;

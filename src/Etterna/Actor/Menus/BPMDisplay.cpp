@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "BPMDisplay.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
@@ -7,8 +7,10 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Globals/rngthing.h"
 
 #include <climits>
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(BPMDisplay);
 
@@ -60,9 +62,9 @@ BPMDisplay::Update(float fDeltaTime)
 {
 	BitmapText::Update(fDeltaTime);
 
-	if (!(bool)CYCLE)
+	if (!static_cast<bool>(CYCLE))
 		return;
-	if (m_BPMS.size() == 0)
+	if (m_BPMS.empty())
 		return; // no bpm
 
 	m_fPercentInState -= fDeltaTime / m_fCycleTime;
@@ -76,14 +78,15 @@ BPMDisplay::Update(float fDeltaTime)
 
 		if (m_fBPMTo == -1) {
 			m_fBPMFrom = -1;
-			if ((bool)SHOW_QMARKS)
-				SetText((RandomFloat(0, 1) > 0.90f)
-						  ? (RString)QUESTIONMARKS_TEXT
-						  : ssprintf((RString)BPM_FORMAT_STRING,
-									 RandomFloat(0, 999)));
-			else
+			if (static_cast<bool>(SHOW_QMARKS))
 				SetText(
-				  ssprintf((RString)BPM_FORMAT_STRING, RandomFloat(0, 999)));
+				  (RandomFloat(0, 1) > 0.90f)
+					? static_cast<std::string>(QUESTIONMARKS_TEXT)
+					: ssprintf(static_cast<std::string>(BPM_FORMAT_STRING),
+							   RandomFloat(0, 999)));
+			else
+				SetText(ssprintf(static_cast<std::string>(BPM_FORMAT_STRING),
+								 RandomFloat(0, 999)));
 		} else if (m_fBPMFrom == -1) {
 			m_fBPMFrom = m_fBPMTo;
 		}
@@ -91,7 +94,8 @@ BPMDisplay::Update(float fDeltaTime)
 
 	if (m_fBPMTo != -1) {
 		const float fActualBPM = GetActiveBPM();
-		SetText(ssprintf((RString)BPM_FORMAT_STRING, fActualBPM));
+		SetText(
+		  ssprintf(static_cast<std::string>(BPM_FORMAT_STRING), fActualBPM));
 	}
 }
 
@@ -110,12 +114,12 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 			AllIdentical = false;
 	}
 
-	if (!(bool)CYCLE) {
+	if (!static_cast<bool>(CYCLE)) {
 		int MinBPM = INT_MAX;
 		int MaxBPM = INT_MIN;
-		for (unsigned i = 0; i < BPMS.size(); ++i) {
-			MinBPM = min(MinBPM, static_cast<int>(lround(BPMS[i])));
-			MaxBPM = max(MaxBPM, static_cast<int>(lround(BPMS[i])));
+		for (float i : BPMS) {
+			MinBPM = std::min(MinBPM, static_cast<int>(lround(i)));
+			MaxBPM = std::max(MaxBPM, static_cast<int>(lround(i)));
 		}
 		if (MinBPM == MaxBPM) {
 			if (MinBPM == -1)
@@ -127,13 +131,14 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 			  ssprintf("%i%s%i", MinBPM, SEPARATOR.GetValue().c_str(), MaxBPM));
 		}
 	} else {
-		for (unsigned i = 0; i < BPMS.size(); ++i) {
-			m_BPMS.push_back(BPMS[i]);
-			if (BPMS[i] != -1)
-				m_BPMS.push_back(BPMS[i]); // hold
+		for (float i : BPMS) {
+			m_BPMS.push_back(i);
+			if (i != -1)
+				m_BPMS.push_back(i); // hold
 		}
 
-		m_iCurrentBPM = min(1u, m_BPMS.size()); // start on the first hold
+		m_iCurrentBPM = std::min(
+		  1, static_cast<int>(m_BPMS.size())); // start on the first hold
 		m_fBPMFrom = BPMS[0];
 		m_fBPMTo = BPMS[0];
 		m_fPercentInState = 1;
@@ -248,7 +253,7 @@ SongBPMDisplay::SongBPMDisplay()
 void
 SongBPMDisplay::Update(float fDeltaTime)
 {
-	float fGameStateBPM = GAMESTATE->m_Position.m_fCurBPS * 60.0f;
+	const float fGameStateBPM = GAMESTATE->m_Position.m_fCurBPS * 60.0f;
 	if (m_fLastGameStateBPM != fGameStateBPM) {
 		m_fLastGameStateBPM = fGameStateBPM;
 		SetConstantBpm(fGameStateBPM);
@@ -291,7 +296,7 @@ class LunaBPMDisplay : public Luna<BPMDisplay>
 	}
 	static int GetText(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetText());
+		lua_pushstring(L, p->GetText().c_str());
 		return 1;
 	}
 

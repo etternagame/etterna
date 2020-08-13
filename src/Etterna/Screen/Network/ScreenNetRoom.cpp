@@ -31,6 +31,12 @@ static LocalizedString ENTER_ROOM_REQPASSWORD("ScreenNetRoom",
 
 REGISTER_SCREEN_CLASS(ScreenNetRoom);
 
+ScreenNetRoom::ScreenNetRoom()
+{
+	m_Rooms = nullptr;
+	m_iRoomPlace = 0;
+}
+
 void
 ScreenNetRoom::Init()
 {
@@ -75,7 +81,7 @@ ScreenNetRoom::GetRoomWheel()
 }
 
 void
-ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToPrevScreen) {
 		SCREENMAN->SetNewScreen(THEME->GetMetric(m_sName, "PrevScreen"));
@@ -110,7 +116,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage SM)
 		int i =
 		  m_RoomWheel.GetCurrentIndex() - m_RoomWheel.GetPerminateOffset();
 		const RoomWheelItemData* data = m_RoomWheel.GetItem(i);
-		if (data != NULL)
+		if (data != nullptr)
 			m_roomInfo.SetRoom(data);
 	}
 
@@ -199,9 +205,9 @@ ScreenNetRoom::UpdateRoomsList()
 }
 
 void
-ScreenNetRoom::CreateNewRoom(const RString& rName,
-							 const RString& rDesc,
-							 const RString& rPass)
+ScreenNetRoom::CreateNewRoom(const std::string& rName,
+							 const std::string& rDesc,
+							 const std::string& rPass)
 {
 	NSMAN->CreateNewRoom(rName, rDesc, rPass);
 }

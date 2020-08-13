@@ -1,11 +1,7 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenServiceAction.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -29,8 +25,8 @@ static LocalizedString PROFILE_CORRUPT(
   "The profile on P%d card contains corrupt or tampered data.");
 
 static void
-CopyEdits(const RString& sFromProfileDir,
-		  const RString& sToProfileDir,
+CopyEdits(const std::string& sFromProfileDir,
+		  const std::string& sToProfileDir,
 		  int& iNumSucceeded,
 		  int& iNumOverwritten,
 		  int& iNumIgnored,
@@ -42,16 +38,15 @@ CopyEdits(const RString& sFromProfileDir,
 	iNumErrored = 0;
 
 	{
-		RString sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
-		RString sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
+		std::string sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
+		std::string sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
 
-		vector<RString> vsFiles;
+		vector<std::string> vsFiles;
 		GetDirListing(sFromDir + "*.edit", vsFiles, false, false);
-		FOREACH_CONST(RString, vsFiles, i)
-		{
-			if (DoesFileExist(sToDir + *i))
+		for (auto& i : vsFiles) {
+			if (DoesFileExist(sToDir + i))
 				iNumOverwritten++;
-			bool bSuccess = FileCopy(sFromDir + *i, sToDir + *i);
+			bool bSuccess = FileCopy(sFromDir + i, sToDir + i);
 			if (bSuccess)
 				iNumSucceeded++;
 			else
@@ -72,107 +67,12 @@ static LocalizedString IGNORED("ScreenServiceAction", "%d ignored");
 static LocalizedString FAILED("ScreenServiceAction", "%d failed");
 static LocalizedString DELETED("ScreenServiceAction", "%d deleted");
 
-static RString
-CopyEdits(const RString& sFromProfileDir,
-		  const RString& sToProfileDir,
-		  const RString& sDisplayDir)
-{
-	int iNumSucceeded = 0;
-	int iNumOverwritten = 0;
-	int iNumIgnored = 0;
-	int iNumErrored = 0;
-
-	CopyEdits(sFromProfileDir,
-			  sToProfileDir,
-			  iNumSucceeded,
-			  iNumOverwritten,
-			  iNumIgnored,
-			  iNumErrored);
-
-	vector<RString> vs;
-	vs.push_back(sDisplayDir);
-	vs.push_back(ssprintf(COPIED.GetValue(), iNumSucceeded) + ", " +
-				 ssprintf(OVERWRITTEN.GetValue(), iNumOverwritten));
-	if (iNumIgnored)
-		vs.push_back(ssprintf(IGNORED.GetValue(), iNumIgnored));
-	if (iNumErrored)
-		vs.push_back(ssprintf(FAILED.GetValue(), iNumErrored));
-	return join("\n", vs);
-}
-
-static void
-SyncFiles(const RString& sFromDir,
-		  const RString& sToDir,
-		  const RString& sMask,
-		  int& iNumAdded,
-		  int& iNumDeleted,
-		  int& iNumOverwritten,
-		  int& iNumFailed)
-{
-	vector<RString> vsFilesSource;
-	GetDirListing(sFromDir + sMask, vsFilesSource, false, false);
-
-	vector<RString> vsFilesDest;
-	GetDirListing(sToDir + sMask, vsFilesDest, false, false);
-
-	vector<RString> vsToDelete;
-	GetAsNotInBs(vsFilesDest, vsFilesSource, vsToDelete);
-
-	for (unsigned i = 0; i < vsToDelete.size(); ++i) {
-		RString sFile = sToDir + vsToDelete[i];
-		LOG->Trace("Delete \"%s\"", sFile.c_str());
-
-		if (FILEMAN->Remove(sFile))
-			++iNumDeleted;
-		else
-			++iNumFailed;
-	}
-
-	for (unsigned i = 0; i < vsFilesSource.size(); ++i) {
-		RString sFileFrom = sFromDir + vsFilesSource[i];
-		RString sFileTo = sToDir + vsFilesSource[i];
-		LOG->Trace("Copy \"%s\"", sFileFrom.c_str());
-		bool bOverwrite = DoesFileExist(sFileTo);
-		bool bSuccess = FileCopy(sFileFrom, sFileTo);
-		if (bSuccess) {
-			if (bOverwrite)
-				++iNumOverwritten;
-			else
-				++iNumAdded;
-		} else
-			++iNumFailed;
-	}
-	FILEMAN->FlushDirCache(sToDir);
-}
-
-static void
-SyncEdits(const RString& sFromDir,
-		  const RString& sToDir,
-		  int& iNumAdded,
-		  int& iNumDeleted,
-		  int& iNumOverwritten,
-		  int& iNumFailed)
-{
-	iNumAdded = 0;
-	iNumDeleted = 0;
-	iNumOverwritten = 0;
-	iNumFailed = 0;
-
-	SyncFiles(sFromDir + EDIT_STEPS_SUBDIR,
-			  sToDir + EDIT_STEPS_SUBDIR,
-			  "*.edit",
-			  iNumAdded,
-			  iNumDeleted,
-			  iNumOverwritten,
-			  iNumFailed);
-}
-
 static LocalizedString COPIED_FROM_CARD("ScreenServiceAction",
 										"Copied from P%d card:");
 
 static LocalizedString PREFERENCES_RESET("ScreenServiceAction",
 										 "Preferences reset.");
-static RString
+static std::string
 ResetPreferences()
 {
 	StepMania::ResetPreferences();
@@ -183,21 +83,20 @@ REGISTER_SCREEN_CLASS(ScreenServiceAction);
 void
 ScreenServiceAction::BeginScreen()
 {
-	RString sActions = THEME->GetMetric(m_sName, "Actions");
-	vector<RString> vsActions;
+	std::string sActions = THEME->GetMetric(m_sName, "Actions");
+	vector<std::string> vsActions;
 	split(sActions, ",", vsActions);
 
-	vector<RString> vsResults;
-	FOREACH(RString, vsActions, s)
-	{
-		RString (*pfn)() = NULL;
+	vector<std::string> vsResults;
+	for (auto& s : vsActions) {
+		std::string (*pfn)() = nullptr;
 
-		if (*s == "ResetPreferences")
+		if (s == "ResetPreferences")
 			pfn = ResetPreferences;
 
-		ASSERT_M(pfn != NULL, *s);
+		ASSERT_M(pfn != nullptr, s);
 
-		RString sResult = pfn();
+		std::string sResult = pfn();
 		vsResults.push_back(sResult);
 	}
 

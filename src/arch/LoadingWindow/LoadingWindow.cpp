@@ -11,52 +11,52 @@ LoadingWindow::Create()
 		return new LoadingWindow_Null;
 #if defined(__unix__) && !defined(HAVE_GTK)
 	return new LoadingWindow_Null;
-#endif
+#else
 	// Don't load NULL by default.
-	const RString drivers = "win32,macosx,gtk";
-	vector<RString> DriversToTry;
+	const std::string drivers = "win32,macosx,gtk";
+	vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	ASSERT(DriversToTry.size() != 0);
 
-	RString Driver;
-	LoadingWindow* ret = NULL;
+	std::string Driver;
+	LoadingWindow* ret = nullptr;
 
-	for (unsigned i = 0; ret == NULL && i < DriversToTry.size(); ++i) {
+	for (unsigned i = 0; ret == nullptr && i < DriversToTry.size(); ++i) {
 		Driver = DriversToTry[i];
 
 #ifdef USE_LOADING_WINDOW_MACOSX
-		if (!DriversToTry[i].CompareNoCase("MacOSX")) {
+		if (!CompareNoCase(DriversToTry[i], "MacOSX")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_MacOSX;
 		}
 #endif
 #ifdef USE_LOADING_WINDOW_GTK
-		if (!DriversToTry[i].CompareNoCase("Gtk")) {
+		if (!CompareNoCase(DriversToTry[i], "Gtk")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_Gtk;
 		}
 #endif
 #ifdef USE_LOADING_WINDOW_WIN32
-		if (!DriversToTry[i].CompareNoCase("Win32")) {
+		if (!CompareNoCase(DriversToTry[i], "Win32")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_Win32;
 		}
 
 #endif
-		if (!DriversToTry[i].CompareNoCase("Null")) {
+		if (!CompareNoCase(DriversToTry[i], "Null")) {
 			if (ret != nullptr)
 				delete ret;
 			ret = new LoadingWindow_Null;
 		}
 
-		if (ret == NULL)
+		if (ret == nullptr)
 			continue;
 
-		RString sError = ret->Init();
+		std::string sError = ret->Init();
 		if (sError != "") {
 			LOG->Info("Couldn't load driver %s: %s",
 					  DriversToTry[i].c_str(),
@@ -73,4 +73,5 @@ LoadingWindow::Create()
 	}
 
 	return ret;
+#endif
 }

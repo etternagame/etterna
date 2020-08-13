@@ -1,18 +1,20 @@
 list(APPEND GLOBAL_FILES_SRC
+	"SoloCalc.cpp"
 	"GameLoop.cpp"
 	"global.cpp"
+	"rngthing.cpp"
 	"SpecialFiles.cpp"
 	"StepMania.cpp") # TODO: Refactor into separate main project.
 
 list(APPEND GLOBAL_FILES_HPP
+	"SoloCalc.h"
 	"GameLoop.h"
 	"global.h"
 	"OptionsBinding.h"
 	"ProductInfo.h" # TODO: Have this be auto-generated.
 	"SpecialFiles.h"
-	"StdString.h" # TODO: Remove the need for this file, transition to std::string.
-	"StepMania.h" # TODO: Refactor into separate main project.
-	"picosha2.h")
+	"rngthing.h"
+	"StepMania.h") # TODO: Refactor into separate main project.
 
 if(NOT APPLE)
 	list(APPEND GLOBAL_FILES_SRC "Main.cpp")

@@ -1,4 +1,4 @@
-﻿/** @brief ActorMultiVertex - An actor with mutiple vertices. Can be used to
+/** @brief ActorMultiVertex - An actor with mutiple vertices. Can be used to
  * create shapes that quads can't. */
 
 #ifndef ACTOR_MULTI_VERTEX_H
@@ -22,9 +22,9 @@ enum DrawMode
 	DrawMode_Invalid
 };
 
-const RString&
+const std::string&
 DrawModeToString(DrawMode cat);
-const RString&
+const std::string&
 DrawModeToLocalizedString(DrawMode cat);
 LuaDeclareType(DrawMode);
 
@@ -39,7 +39,7 @@ class ActorMultiVertex : public Actor
 	~ActorMultiVertex() override;
 
 	void LoadFromNode(const XNode* Node) override;
-	ActorMultiVertex* Copy() const override;
+	[[nodiscard]] ActorMultiVertex* Copy() const override;
 
 	struct AMV_TweenState
 	{
@@ -55,7 +55,7 @@ class ActorMultiVertex : public Actor
 		}
 
 		void SetDrawState(DrawMode dm, int first, int num);
-		int GetSafeNumToDraw(DrawMode dm, int num) const;
+		[[nodiscard]] int GetSafeNumToDraw(DrawMode dm, int num) const;
 
 		vector<RageSpriteVertex> vertices;
 		vector<size_t> quad_states;
@@ -76,14 +76,15 @@ class ActorMultiVertex : public Actor
 
 		return AMV_Tweens.back();
 	}
-	const AMV_TweenState& AMV_DestTweenState() const
+
+	[[nodiscard]] const AMV_TweenState& AMV_DestTweenState() const
 	{
 		return const_cast<ActorMultiVertex*>(this)->AMV_DestTweenState();
 	}
 
 	void EnableAnimation(bool bEnable) override;
 	void Update(float fDelta) override;
-	bool EarlyAbortDraw() const override;
+	[[nodiscard]] bool EarlyAbortDraw() const override;
 	void DrawPrimitives() override;
 	virtual void DrawInternal(const AMV_TweenState* TS);
 
@@ -95,8 +96,11 @@ class ActorMultiVertex : public Actor
 	void StopTweening() override;
 	void FinishTweening() override;
 
-	void SetTexture(RageTexture* Texture);
-	RageTexture* GetTexture() { return _Texture; };
+	void SetTexture(std::shared_ptr<RageTexture> Texture);
+	[[nodiscard]] std::shared_ptr<RageTexture> GetTexture() const
+	{
+		return _Texture;
+	};
 	void LoadFromTexture(const RageTextureID& ID);
 
 	void UnloadTexture();
@@ -114,12 +118,27 @@ class ActorMultiVertex : public Actor
 		AMV_DestTweenState().SetDrawState(dm, first, num);
 	}
 
-	DrawMode GetDestDrawMode() const { return AMV_DestTweenState()._DrawMode; }
-	int GetDestFirstToDraw() const { return AMV_DestTweenState().FirstToDraw; }
-	int GetDestNumToDraw() const { return AMV_DestTweenState().NumToDraw; }
-	DrawMode GetCurrDrawMode() const { return AMV_current._DrawMode; }
-	int GetCurrFirstToDraw() const { return AMV_current.FirstToDraw; }
-	int GetCurrNumToDraw() const { return AMV_current.NumToDraw; }
+	[[nodiscard]] DrawMode GetDestDrawMode() const
+	{
+		return AMV_DestTweenState()._DrawMode;
+	}
+	[[nodiscard]] int GetDestFirstToDraw() const
+	{
+		return AMV_DestTweenState().FirstToDraw;
+	}
+	[[nodiscard]] int GetDestNumToDraw() const
+	{
+		return AMV_DestTweenState().NumToDraw;
+	}
+	[[nodiscard]] DrawMode GetCurrDrawMode() const
+	{
+		return AMV_current._DrawMode;
+	}
+	[[nodiscard]] int GetCurrFirstToDraw() const
+	{
+		return AMV_current.FirstToDraw;
+	}
+	[[nodiscard]] int GetCurrNumToDraw() const { return AMV_current.NumToDraw; }
 	size_t GetNumVertices() { return AMV_DestTweenState().vertices.size(); }
 
 	void SetVertexPos(int index, float x, float y, float z);
@@ -136,14 +155,16 @@ class ActorMultiVertex : public Actor
 		RectF rect;
 		float delay;
 	};
-	int GetNumStates() const override { return _states.size(); }
+
+	[[nodiscard]] int GetNumStates() const override { return _states.size(); }
 	void AddState(const State& new_state) { _states.push_back(new_state); }
 	void RemoveState(size_t i)
 	{
 		ASSERT(i < _states.size());
 		_states.erase(_states.begin() + i);
 	}
-	size_t GetState() { return _cur_state; }
+
+	[[nodiscard]] size_t GetState() const { return _cur_state; }
 	State& GetStateData(size_t i)
 	{
 		ASSERT(i < _states.size());
@@ -161,10 +182,11 @@ class ActorMultiVertex : public Actor
 	}
 	void SetState(size_t i);
 	void SetAllStateDelays(float delay);
-	float GetAnimationLengthSeconds() const override;
+	[[nodiscard]] float GetAnimationLengthSeconds() const override;
 	void SetSecondsIntoAnimation(float seconds) override;
 	void UpdateAnimationState(bool force_update = false);
-	size_t GetNumQuadStates() const
+
+	[[nodiscard]] size_t GetNumQuadStates() const
 	{
 		return AMV_DestTweenState().quad_states.size();
 	}
@@ -191,7 +213,7 @@ class ActorMultiVertex : public Actor
 	void PushSelf(lua_State* L) override;
 
   private:
-	RageTexture* _Texture;
+	std::shared_ptr<RageTexture> _Texture;
 
 	vector<RageSpriteVertex> _Vertices;
 	vector<AMV_TweenState> AMV_Tweens;

@@ -1,12 +1,14 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageTypes.h"
+
+#include <algorithm>
 
 void
 RageColor::PushTable(lua_State* L) const
 {
 	lua_newtable(L);
-	int iTable = lua_gettop(L);
+	const auto iTable = lua_gettop(L);
 
 	lua_pushnumber(L, r);
 	lua_rawseti(L, iTable, 1);
@@ -25,7 +27,7 @@ RageColor::FromStack(lua_State* L, int iPos)
 		return;
 
 	lua_pushvalue(L, iPos);
-	int iFrom = lua_gettop(L);
+	const auto iFrom = lua_gettop(L);
 
 	lua_rawgeti(L, iFrom, 1);
 	r = static_cast<float>(lua_tonumber(L, -1));
@@ -51,22 +53,22 @@ RageColor::FromStackCompat(lua_State* L, int iPos)
 	}
 }
 
-RString
+std::string
 RageColor::ToString() const
 {
-	int iR = clamp((int)lround(r * 255), 0, 255);
-	int iG = clamp((int)lround(g * 255), 0, 255);
-	int iB = clamp((int)lround(b * 255), 0, 255);
-	int iA = clamp((int)lround(a * 255), 0, 255);
+	const auto iR = std::clamp(static_cast<int>(r * 255), 0, 255);
+	const auto iG = std::clamp(static_cast<int>(g * 255), 0, 255);
+	const auto iB = std::clamp(static_cast<int>(b * 255), 0, 255);
+	const auto iA = std::clamp(static_cast<int>(a * 255), 0, 255);
 
 	if (iA == 255)
 		return ssprintf("#%02X%02X%02X", iR, iG, iB);
-	else
-		return ssprintf("#%02X%02X%02X%02X", iR, iG, iB, iA);
+
+	return ssprintf("#%02X%02X%02X%02X", iR, iG, iB, iA);
 }
 
-RString
-RageColor::NormalizeColorString(const RString& sColor)
+std::string
+RageColor::NormalizeColorString(const std::string& sColor)
 {
 	if (sColor.empty())
 		return "";
@@ -204,7 +206,7 @@ LuaXType(TextGlowMode);
 int
 LuaFunc_color(lua_State* L)
 {
-	RString sColor = SArg(1);
+	const std::string sColor = SArg(1);
 	RageColor c;
 	c.FromString(sColor);
 	c.PushTable(L);
@@ -217,7 +219,7 @@ LuaFunc_lerp_color(lua_State* L)
 {
 	// Args:  percent, color, color
 	// Returns:  color
-	float percent = FArg(1);
+	const auto percent = FArg(1);
 	RageColor a, b, c;
 	a.FromStack(L, 2);
 	b.FromStack(L, 3);

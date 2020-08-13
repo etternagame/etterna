@@ -1,6 +1,9 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundReader_ThreadedBuffer.h"
 #include "RageUtil/Misc/RageTimer.h"
+
+#include <algorithm>
+
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h> /* correct place with correct definitions */
 #endif
@@ -197,7 +200,7 @@ RageSoundReader_ThreadedBuffer::GetLength_Fast() const
 }
 
 bool
-RageSoundReader_ThreadedBuffer::SetProperty(const RString& sProperty,
+RageSoundReader_ThreadedBuffer::SetProperty(const std::string& sProperty,
 											float fValue)
 {
 	return m_pSource->SetProperty(sProperty, fValue);
@@ -219,7 +222,7 @@ RageSoundReader_ThreadedBuffer::BufferingThread()
 		int iFramesToFill = g_iReadBlockSizeFrames;
 		if (GetFilledFrames() < g_iMinFillFrames)
 			iFramesToFill =
-			  max(iFramesToFill, g_iMinFillFrames - GetFilledFrames());
+			  std::max(iFramesToFill, g_iMinFillFrames - GetFilledFrames());
 
 		int iRet = FillFrames(iFramesToFill);
 
@@ -236,10 +239,12 @@ RageSoundReader_ThreadedBuffer::BufferingThread()
 
 		/* Sleep proportionately to the amount of data we buffered, so we
 		 * fill at a reasonable pace. */
-		float fTimeFilled = float(g_iReadBlockSizeFrames) / m_iSampleRate;
+		float fTimeFilled =
+		  static_cast<float>(g_iReadBlockSizeFrames) / m_iSampleRate;
 		float fTimeToSleep = fTimeFilled / 2;
 		if (fTimeToSleep == 0)
-			fTimeToSleep = float(g_iReadBlockSizeFrames) / m_iSampleRate;
+			fTimeToSleep =
+			  static_cast<float>(g_iReadBlockSizeFrames) / m_iSampleRate;
 
 		if (m_Event.WaitTimeoutSupported()) {
 			RageTimer time;
@@ -296,7 +301,7 @@ RageSoundReader_ThreadedBuffer::FillBlock()
 		ASSERT((iBufSize % iSamplesPerFrame) == 0);
 		iGotFrames = m_pSource->RetriedRead(
 		  pBuf,
-		  min(g_iReadBlockSizeFrames, iBufSize / iSamplesPerFrame),
+		  std::min(g_iReadBlockSizeFrames, iBufSize / iSamplesPerFrame),
 		  &iNextSourceFrame,
 		  &fRate);
 	}
@@ -334,7 +339,7 @@ RageSoundReader_ThreadedBuffer::Read(float* pBuffer, int iFrames)
 		/* Delete any empty mappings from the beginning, but don't empty the
 		 * list, so we always have the current position and rate. If we delete
 		 * an item, the rate or position has probably changed, so return. */
-		list<Mapping>::iterator it = m_StreamPosition.begin();
+		std::list<Mapping>::iterator it = m_StreamPosition.begin();
 		++it;
 		if (it != m_StreamPosition.end() &&
 			!m_StreamPosition.front().iFramesBuffered) {
@@ -348,7 +353,7 @@ RageSoundReader_ThreadedBuffer::Read(float* pBuffer, int iFrames)
 	int iRet;
 	if (m_StreamPosition.front().iFramesBuffered) {
 		Mapping& pos = m_StreamPosition.front();
-		int iFramesToRead = min(iFrames, pos.iFramesBuffered);
+		int iFramesToRead = std::min(iFrames, pos.iFramesBuffered);
 		int iSamplesPerFrame = this->GetNumChannels();
 		m_DataBuffer.read(pBuffer, iFramesToRead * iSamplesPerFrame);
 		pos.iPositionOfFirstFrame += iFramesToRead;

@@ -1,4 +1,4 @@
-﻿#ifndef ENUM_HELPER_H
+#ifndef ENUM_HELPER_H
 #define ENUM_HELPER_H
 
 #include "Etterna/Models/Lua/LuaReference.h"
@@ -13,14 +13,14 @@
 #define FOREACH_ENUM(e, var)                                                   \
 	for (e var = (e)0; (var) < NUM_##e; enum_add<e>((var), +1))
 
-int
+auto
 CheckEnum(lua_State* L,
 		  LuaReference& table,
 		  int iPos,
 		  int iInvalid,
 		  const char* szType,
 		  bool bAllowInvalid,
-		  bool bAllowAnything = false);
+		  bool bAllowAnything = false) -> int;
 
 template<typename T>
 struct EnumTraits
@@ -35,21 +35,92 @@ LuaReference EnumTraits<T>::StringToEnum;
 template<typename T>
 LuaReference EnumTraits<T>::EnumToString;
 /** @brief Lua helpers for Enumerators. */
+
+auto
+EnumToString(int iVal,
+			 int iMax,
+			 const char** szNameArray,
+			 std::unique_ptr<std::string>* pNameCache)
+  -> const std::string&; // XToString helper
+
+#define XToString(X)                                                           \
+                                                                               \
+	const std::string& X##ToString(X x);                                       \
+                                                                               \
+	COMPILE_ASSERT(NUM_##X == ARRAYLEN(X##Names));                             \
+                                                                               \
+	const std::string& X##ToString(X x)                                        \
+                                                                               \
+	{                                                                          \
+		static std::unique_ptr<std::string> as_##X##Name[NUM_##X + 2];         \
+		return EnumToString(x, NUM_##X, X##Names, as_##X##Name);               \
+	}                                                                          \
+                                                                               \
+	namespace StringConversion {                                               \
+	template<>                                                                 \
+	std::string ToString<X>(const X& value)                                    \
+	{                                                                          \
+		return X##ToString(value);                                             \
+	}                                                                          \
+	}
+
+#define XToLocalizedString(X)                                                  \
+                                                                               \
+	const std::string& X##ToLocalizedString(X x);                              \
+                                                                               \
+	const std::string& X##ToLocalizedString(X x)                               \
+                                                                               \
+	{                                                                          \
+		static std::unique_ptr<LocalizedString> g_##X##Name[NUM_##X];          \
+		if (g_##X##Name[0].get() == nullptr) {                                 \
+			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
+				std::unique_ptr<LocalizedString> ap(                           \
+				  new LocalizedString(#X, X##ToString((X)i)));                 \
+				g_##X##Name[i] = std::move(ap);                                \
+			}                                                                  \
+		}                                                                      \
+		return g_##X##Name[x]->GetValue();                                     \
+	}
+
+#define StringToX(X)                                                           \
+                                                                               \
+	X StringTo##X(const std::string&);                                         \
+                                                                               \
+	X StringTo##X(const std::string& s)                                        \
+                                                                               \
+	{                                                                          \
+		for (unsigned i = 0; i < ARRAYLEN(X##Names); ++i)                      \
+			if (!CompareNoCase(s, X##Names[i]))                                \
+				return (X)i;                                                   \
+		return X##_Invalid;                                                    \
+	}                                                                          \
+                                                                               \
+	namespace StringConversion                                                 \
+                                                                               \
+	{                                                                          \
+	template<>                                                                 \
+	bool FromString<X>(const std::string& sValue, X& out)                      \
+	{                                                                          \
+		out = StringTo##X(sValue);                                             \
+		return out != X##_Invalid;                                             \
+	}                                                                          \
+	}
+
 namespace Enum {
 template<typename T>
-static T
+static auto
 Check(lua_State* L,
 	  int iPos,
 	  bool bAllowInvalid = false,
-	  bool bAllowAnything = false)
+	  bool bAllowAnything = false) -> T
 {
-	return (T)CheckEnum(L,
-						EnumTraits<T>::StringToEnum,
-						iPos,
-						EnumTraits<T>::Invalid,
-						EnumTraits<T>::szName,
-						bAllowInvalid,
-						bAllowAnything);
+	return static_cast<T>(CheckEnum(L,
+									EnumTraits<T>::StringToEnum,
+									iPos,
+									EnumTraits<T>::Invalid,
+									EnumTraits<T>::szName,
+									bAllowInvalid,
+									bAllowAnything));
 }
 template<typename T>
 static void
@@ -72,78 +143,8 @@ SetMetatable(lua_State* L,
 			 LuaReference& EnumTable,
 			 LuaReference& EnumIndexTable,
 			 const char* szName);
-};
+} // namespace Enum
 
-const RString&
-EnumToString(int iVal,
-			 int iMax,
-			 const char** szNameArray,
-			 unique_ptr<RString>* pNameCache); // XToString helper
-
-#define XToString(X)                                                           \
-                                                                               \
-	const RString& X##ToString(X x);                                           \
-                                                                               \
-	COMPILE_ASSERT(NUM_##X == ARRAYLEN(X##Names));                             \
-                                                                               \
-	const RString& X##ToString(X x)                                            \
-                                                                               \
-	{                                                                          \
-		static unique_ptr<RString> as_##X##Name[NUM_##X + 2];                  \
-		return EnumToString(x, NUM_##X, X##Names, as_##X##Name);               \
-	}                                                                          \
-                                                                               \
-	namespace StringConversion {                                               \
-	template<>                                                                 \
-	RString ToString<X>(const X& value)                                        \
-	{                                                                          \
-		return X##ToString(value);                                             \
-	}                                                                          \
-	}
-
-#define XToLocalizedString(X)                                                  \
-                                                                               \
-	const RString& X##ToLocalizedString(X x);                                  \
-                                                                               \
-	const RString& X##ToLocalizedString(X x)                                   \
-                                                                               \
-	{                                                                          \
-		static unique_ptr<LocalizedString> g_##X##Name[NUM_##X];               \
-		if (g_##X##Name[0].get() == NULL) {                                    \
-			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
-				unique_ptr<LocalizedString> ap(                                \
-				  new LocalizedString(#X, X##ToString((X)i)));                 \
-				g_##X##Name[i] = std::move(ap);                                \
-			}                                                                  \
-		}                                                                      \
-		return g_##X##Name[x]->GetValue();                                     \
-	}
-
-#define StringToX(X)                                                           \
-                                                                               \
-	X StringTo##X(const RString&);                                             \
-                                                                               \
-	X StringTo##X(const RString& s)                                            \
-                                                                               \
-	{                                                                          \
-		for (unsigned i = 0; i < ARRAYLEN(X##Names); ++i)                      \
-			if (!s.CompareNoCase(X##Names[i]))                                 \
-				return (X)i;                                                   \
-		return X##_Invalid;                                                    \
-	}                                                                          \
-                                                                               \
-	namespace StringConversion                                                 \
-                                                                               \
-	{                                                                          \
-	template<>                                                                 \
-	bool FromString<X>(const RString& sValue, X& out)                          \
-	{                                                                          \
-		out = StringTo##X(sValue);                                             \
-		return out != X##_Invalid;                                             \
-	}                                                                          \
-	}
-
-// currently unused
 #define LuaDeclareType(X)
 
 #define LuaXType(X)                                                            \
@@ -156,8 +157,8 @@ EnumToString(int iVal,
 		lua_newtable(L);                                                       \
 		FOREACH_ENUM(X, i)                                                     \
 		{                                                                      \
-			RString s = X##ToString(i);                                        \
-			lua_pushstring(L, (#X "_") + s);                                   \
+			std::string s = X##ToString(i);                                    \
+			lua_pushstring(L, ((#X "_") + s).c_str());                         \
 			lua_rawseti(L, -2, i + 1); /* 1-based */                           \
 		}                                                                      \
 		EnumTraits<X>::EnumToString.SetFromStack(L);                           \
@@ -166,13 +167,13 @@ EnumToString(int iVal,
 		lua_newtable(L);                                                       \
 		FOREACH_ENUM(X, i)                                                     \
 		{                                                                      \
-			RString s = X##ToString(i);                                        \
-			lua_pushstring(L, (#X "_") + s);                                   \
+			std::string s = X##ToString(i);                                    \
+			lua_pushstring(L, ((#X "_") + s).c_str());                         \
 			lua_pushnumber(L, i); /* 0-based */                                \
 			lua_rawset(L, -3);                                                 \
 			/* Compatibility with old, case-insensitive values */              \
-			s.MakeLower();                                                     \
-			lua_pushstring(L, s);                                              \
+			s = make_lower(s);                                                 \
+			lua_pushstring(L, s.c_str());                                      \
 			lua_pushnumber(L, i); /* 0-based */                                \
 			lua_rawset(L, -3);                                                 \
 			/* Compatibility with old, raw values */                           \

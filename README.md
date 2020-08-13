@@ -3,8 +3,7 @@
 </p>
 
 <p align=center>
-    <a href="https://travis-ci.org/etternagame/etterna"><img src="https://img.shields.io/travis/etternagame/etterna/master.svg?label=travis"/></a>
-    <a href="https://ci.appveyor.com/project/Nickito12/etterna"><img src="https://img.shields.io/appveyor/ci/Nickito12/etterna/master.svg?label=appveyor"/></a>
+    <a href="https://github.com/etternagame/etterna/actions"><img src="https://github.com/etternagame/etterna/workflows/Etterna%20CI/badge.svg"/></a>
     <a href="https://scan.coverity.com/projects/etternagame-etterna"><img src="https://img.shields.io/coverity/scan/12978.svg"/></a>
     <a href="https://github.com/etternagame/etterna/releases"><img src="https://img.shields.io/github/downloads/etternagame/etterna/total.svg?label=total%20downloads"/></a>
     <a href="https://github.com/etternagame/etterna/releases"><img src="https://img.shields.io/github/downloads/etternagame/etterna/latest/total.svg?label=latest%20downloads"/></a>
@@ -28,6 +27,7 @@ Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](http
 - [Bug Reporting](#Bug-Reporting)
 - [Contributing](#Contributing)
 - [License](#License)
+- [Special Thanks](#Special-Thanks)
 
 ## Installing
 
@@ -71,3 +71,9 @@ Etterna uses the MIT License, as is required since we are derivative of StepMani
 In short, you are free to modify, sell, distribute, and sublicense this project. We ask that you include a reference to this github repository in your derivative, and do not hold us liable when something breaks.
 
 Etterna uses the [MAD library](http://www.underbit.com/products/mad/) and [FFMPEG codecs](https://www.ffmpeg.org/). Those libraries, when built, use the [GPL license](http://www.gnu.org).
+
+## Special Thanks
+
+- All original SM devs/contributors
+- [Jet Brains](https://www.jetbrains.com/?from=Etterna) for giving us free licenses
+- [Coverity](https://scan.coverity.com/) for giving us free scans

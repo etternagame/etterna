@@ -7,8 +7,6 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPlayerOptions.h"
 #include "ScreenSongOptions.h"
@@ -95,7 +93,7 @@ ScreenPlayerOptions::Input(const InputEventPlus& input)
 }
 
 void
-ScreenPlayerOptions::HandleScreenMessage(const ScreenMessage SM)
+ScreenPlayerOptions::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_BeginFadingOut &&
 		m_bAskOptionsMessage) // user accepts the page of options

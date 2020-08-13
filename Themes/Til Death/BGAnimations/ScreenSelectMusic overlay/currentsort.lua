@@ -23,17 +23,14 @@ local frameX = SCREEN_WIDTH - 5
 local frameY = 15
 
 local sortTable = {
-	SortOrder_Preferred = THEME:GetString("SortOrder", "Preferred"),
 	SortOrder_Group = THEME:GetString("SortOrder", "Group"),
 	SortOrder_Title = THEME:GetString("SortOrder", "Title"),
 	SortOrder_BPM = THEME:GetString("SortOrder", "BPM"),
-	SortOrder_Popularity = THEME:GetString("SortOrder", "Popularity"),
 	SortOrder_TopGrades = THEME:GetString("SortOrder", "TopGrades"),
 	SortOrder_Artist = THEME:GetString("SortOrder", "Artist"),
 	SortOrder_Genre = THEME:GetString("SortOrder", "Genre"),
 	SortOrder_ModeMenu = THEME:GetString("SortOrder", "ModeMenu"),
 	SortOrder_Length = THEME:GetString("SortOrder", "Length"),
-	SortOrder_Recent = THEME:GetString("SortOrder", "Recent"),
 	SortOrder_Favorites = THEME:GetString("SortOrder", "Favorites"),
 	SortOrder_Overall = THEME:GetString("SortOrder", "Overall"),
 	SortOrder_Stream = THEME:GetString("SortOrder", "Stream"),
@@ -47,14 +44,6 @@ local sortTable = {
 
 local translated_info = {
 	Sort = THEME:GetString("SortOrder", "SortWord")
-}
-
-t[#t + 1] =
-	Def.Quad {
-	Name = "CurrentSort",
-	InitCommand = function(self)
-		self:xy(frameX, frameY):halign(1):zoomto(frameWidth, frameHeight):diffuse(getMainColor("frames"))
-	end
 }
 
 local group_rand = ""
@@ -106,21 +95,4 @@ t[#t + 1] =
 t[#t + 1] = StandardDecorationFromFileOptional("BPMDisplay", "BPMDisplay")
 t[#t + 1] = StandardDecorationFromFileOptional("BPMLabel", "BPMLabel")
 
---just a simple mouse rollover test.
---[[ 
-local function Update(self)
-	t.InitCommand=function(self)
-		self:SetUpdateFunction(Update)
-	end;
-	if isOver(self:GetChild("CurrentSort")) then
-    	self:GetChild("CurrentSort"):diffusealpha(0.5)
-    else
-    	self:GetChild("CurrentSort"):diffusealpha(1)
-    end;
-end; 
-
-t.InitCommand=function(self)
-	self:SetUpdateFunction(Update)
-end;
---]]
 return t

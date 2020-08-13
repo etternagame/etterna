@@ -13,10 +13,10 @@ enum AutosyncType
 	NUM_AutosyncType,
 	AutosyncType_Invalid
 };
-const RString&
-AutosyncTypeToString(AutosyncType cat);
-const RString&
-AutosyncTypeToLocalizedString(AutosyncType cat);
+auto
+AutosyncTypeToString(AutosyncType cat) -> const std::string&;
+auto
+AutosyncTypeToLocalizedString(AutosyncType cat) -> const std::string&;
 LuaDeclareType(AutosyncType);
 
 enum SoundEffectType
@@ -27,10 +27,10 @@ enum SoundEffectType
 	NUM_SoundEffectType,
 	SoundEffectType_Invalid
 };
-const RString&
-SoundEffectTypeToString(SoundEffectType cat);
-const RString&
-SoundEffectTypeToLocalizedString(SoundEffectType cat);
+auto
+SoundEffectTypeToString(SoundEffectType cat) -> const std::string&;
+auto
+SoundEffectTypeToLocalizedString(SoundEffectType cat) -> const std::string&;
 LuaDeclareType(SoundEffectType);
 
 class SongOptions
@@ -38,13 +38,12 @@ class SongOptions
   public:
 	bool m_bAssistClap{ false };
 	bool m_bAssistMetronome{ false };
-	float m_fMusicRate{ 1.0f }, m_SpeedfMusicRate{ 1.0f };
+	float m_fMusicRate{ 1.0F }, m_SpeedfMusicRate{ 1.0F };
 	AutosyncType m_AutosyncType{ AutosyncType_Off };
 	SoundEffectType m_SoundEffectType{ SoundEffectType_Off };
 	bool m_bStaticBackground{ false };
 	bool m_bRandomBGOnly{ false };
 	bool m_bSaveScore{ true };
-	bool m_bSaveReplay{ false };
 
 	/**
 	 * @brief Set up the SongOptions with reasonable defaults.
@@ -54,18 +53,19 @@ class SongOptions
 	SongOptions() = default;
 	void Init();
 	void Approach(const SongOptions& other, float fDeltaSeconds);
-	void GetMods(vector<RString>& AddTo) const;
-	void GetLocalizedMods(vector<RString>& AddTo) const;
-	RString GetString() const;
-	RString GetLocalizedString() const;
-	void FromString(const RString& sOptions);
-	bool FromOneModString(const RString& sOneMod,
-						  RString& sErrorDetailOut); // On error, return false
-													 // and optionally set
-													 // sErrorDetailOut
+	void GetMods(std::vector<std::string>& AddTo) const;
+	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
+	[[nodiscard]] auto GetString() const -> std::string;
+	[[nodiscard]] auto GetLocalizedString() const -> std::string;
+	void FromString(const std::string& sOptions);
+	auto FromOneModString(const std::string& sOneMod,
+						  std::string& sErrorDetailOut)
+	  -> bool; // On error, return
+			   // false and optionally
+			   // set sErrorDetailOut
 
-	bool operator==(const SongOptions& other) const;
-	bool operator!=(const SongOptions& other) const
+	auto operator==(const SongOptions& other) const -> bool;
+	auto operator!=(const SongOptions& other) const -> bool
 	{
 		return !operator==(other);
 	}

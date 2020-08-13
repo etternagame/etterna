@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
@@ -9,8 +9,10 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
-RString
-OptimizeDWIString(RString holds, RString taps);
+#include <algorithm>
+
+std::string
+OptimizeDWIString(std::string holds, std::string taps);
 
 /**
  * @brief Optimize an individual pair of characters whenever possible.
@@ -20,8 +22,8 @@ OptimizeDWIString(RString holds, RString taps);
 static char
 OptimizeDWIPair(char c1, char c2)
 {
-	typedef pair<char, char> cpair;
-	static map<cpair, char> joins;
+	typedef std::pair<char, char> cpair;
+	static std::map<cpair, char> joins;
 	static bool Initialized = false;
 	if (!Initialized) {
 		Initialized = true;
@@ -44,9 +46,9 @@ OptimizeDWIPair(char c1, char c2)
 	}
 
 	if (c1 > c2)
-		swap(c1, c2);
+		std::swap(c1, c2);
 
-	map<cpair, char>::const_iterator it = joins.find(cpair(c1, c2));
+	std::map<cpair, char>::const_iterator it = joins.find(cpair(c1, c2));
 	ASSERT(it != joins.end());
 
 	return it->second;
@@ -57,8 +59,8 @@ OptimizeDWIPair(char c1, char c2)
  * @param holds the holds in the file.
  * @param taps the taps in the file.
  * @return the optimized string. */
-RString
-OptimizeDWIString(RString holds, RString taps)
+std::string
+OptimizeDWIString(std::string holds, std::string taps)
 {
 	/* First, sort the holds and taps in ASCII order.  This puts 2468 first.
 	 * This way 1379 combinations will always be found first, so we'll always
@@ -67,7 +69,7 @@ OptimizeDWIString(RString holds, RString taps)
 	sort(taps.begin(), taps.end());
 
 	/* Combine characters as much as possible. */
-	RString comb_taps, comb_holds;
+	std::string comb_taps, comb_holds;
 
 	/* 24 -> 1 */
 	while (taps.size() > 1) {
@@ -95,7 +97,7 @@ OptimizeDWIString(RString holds, RString taps)
 
 	/* Now we have at most one single tap and one hold remaining, and any
 	 * number of taps and holds in comb_taps and comb_holds. */
-	RString ret;
+	std::string ret;
 	ret += taps;
 	ret += comb_taps;
 	if (holds.size() == 1)
@@ -113,11 +115,11 @@ OptimizeDWIString(RString holds, RString taps)
  * possible.
  * @param tnCols the columns of TapNotes in question.
  * @return the DWI'ed string. */
-static RString
+static std::string
 NotesToDWIString(const TapNote tnCols[6])
 {
 	const char dirs[] = { '4', 'C', '2', '8', 'D', '6' };
-	RString taps, holds, ret;
+	std::string taps, holds, ret;
 	for (int col = 0; col < 6; ++col) {
 		switch (tnCols[col].type) {
 			case TapNoteType_Empty:
@@ -150,7 +152,7 @@ NotesToDWIString(const TapNote tnCols[6])
  * @param tnCol5 the fifth column.
  * @param tnCol6 the sisth column.
  * @return the DWI'ed string. */
-static RString
+static std::string
 NotesToDWIString(TapNote tnCol1,
 				 TapNote tnCol2,
 				 TapNote tnCol3,
@@ -176,7 +178,7 @@ NotesToDWIString(TapNote tnCol1,
  * @param tnCol3 the third column.
  * @param tnCol4 the fourth column.
  * @return the DWI'ed string. */
-static RString
+static std::string
 NotesToDWIString(TapNote tnCol1, TapNote tnCol2, TapNote tnCol3, TapNote tnCol4)
 {
 	return NotesToDWIString(
@@ -246,7 +248,7 @@ WriteDWINotesField(RageFile& f, const Steps& out, int start)
 		{
 			int row = BeatToNoteRow(static_cast<float>(b));
 
-			RString str;
+			std::string str;
 			switch (out.m_StepsType) {
 				case StepsType_dance_single:
 				case StepsType_dance_double:
@@ -366,7 +368,7 @@ WriteDWINotesTag(RageFile& f, const Steps& out)
 }
 
 bool
-NotesWriterDWI::Write(const RString& sPath, const Song& out)
+NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 {
 	RageFile f;
 	if (!f.Open(sPath, RageFile::WRITE)) {
@@ -396,7 +398,7 @@ NotesWriterDWI::Write(const RString& sPath, const Song& out)
 	  "#GAP:%ld;", -lround(out.m_SongTiming.m_fBeat0OffsetInSeconds * 1000)));
 	f.PutLine(ssprintf("#SAMPLESTART:%.3f;", out.m_fMusicSampleStartSeconds));
 	f.PutLine(ssprintf("#SAMPLELENGTH:%.3f;", out.m_fMusicSampleLengthSeconds));
-	if (out.m_sCDTitleFile.size())
+	if (!out.m_sCDTitleFile.empty())
 		f.PutLine(
 		  ssprintf("#CDTITLE:%s;", DwiEscape(out.m_sCDTitleFile).c_str()));
 	switch (out.m_DisplayBPMType) {
@@ -449,9 +451,7 @@ NotesWriterDWI::Write(const RString& sPath, const Song& out)
 	}
 
 	const vector<Steps*>& vpSteps = out.GetAllSteps();
-	for (unsigned i = 0; i < vpSteps.size(); i++) {
-		const Steps* pSteps = vpSteps[i];
-
+	for (auto pSteps : vpSteps) {
 		if (!WriteDWINotesTag(f, *pSteps))
 			continue;
 

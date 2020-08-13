@@ -20,7 +20,7 @@ class MovieTexture_Null : public RageMovieTexture
 	void SetLooping(bool looping = true) { loop = looping; }
 
   private:
-	bool loop;
+	bool loop = false;
 	intptr_t texHandle;
 };
 
@@ -73,8 +73,9 @@ MovieTexture_Null::~MovieTexture_Null()
 
 REGISTER_MOVIE_TEXTURE_CLASS(Null);
 
-RageMovieTexture*
-RageMovieTextureDriver_Null::Create(const RageTextureID& ID, RString& sError)
+std::shared_ptr<RageMovieTexture>
+RageMovieTextureDriver_Null::Create(const RageTextureID& ID,
+									std::string& sError)
 {
-	return new MovieTexture_Null(ID);
+	return std::make_shared<MovieTexture_Null>(ID);
 }

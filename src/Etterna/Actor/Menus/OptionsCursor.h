@@ -1,4 +1,4 @@
-﻿#ifndef OPTIONS_CURSOR_H
+#ifndef OPTIONS_CURSOR_H
 #define OPTIONS_CURSOR_H
 
 #include "Etterna/Actor/Base/ActorFrame.h"
@@ -15,7 +15,7 @@ class OptionsCursor : public ActorFrame
 	 * @param cpy the OptionsCursor we are copying. */
 	OptionsCursor(const OptionsCursor& cpy);
 
-	void Load(const RString& sMetricsGroup, bool bLoadCanGos);
+	void Load(const std::string& sMetricsGroup, bool bLoadCanGos);
 
 	void StopTweening() override;
 	void BeginTweening(float fSecs);

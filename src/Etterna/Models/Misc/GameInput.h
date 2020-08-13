@@ -9,12 +9,12 @@ class InputScheme;
 enum GameController
 {
 	GameController_1 = 0, /**< The left controller */
-	GameController_2,	 /**< The right controller */
-	NUM_GameController,   /**< The number of controllers allowed. */
+	GameController_2,	  /**< The right controller */
+	NUM_GameController,	  /**< The number of controllers allowed. */
 	GameController_Invalid,
 };
-const RString&
-GameControllerToString(GameController mp);
+auto
+GameControllerToString(GameController mp) -> const std::string&;
 LuaDeclareType(GameController);
 
 /** @brief the list of buttons StepMania recognizes. */
@@ -22,12 +22,12 @@ enum GameButton
 {
 	GAME_BUTTON_MENULEFT,  /**< Navigate the menus to the left. */
 	GAME_BUTTON_MENURIGHT, /**< Navigate the menus to the right. */
-	GAME_BUTTON_MENUUP,	/**< Navigate the menus to the top. */
+	GAME_BUTTON_MENUUP,	   /**< Navigate the menus to the top. */
 	GAME_BUTTON_MENUDOWN,  /**< Navigate the menus to the bottom. */
 	GAME_BUTTON_START,
 	GAME_BUTTON_SELECT,
 	GAME_BUTTON_BACK,
-	GAME_BUTTON_COIN,	 /**< Insert a coin to play. */
+	GAME_BUTTON_COIN,	  /**< Insert a coin to play. */
 	GAME_BUTTON_OPERATOR, /**< Access the operator menu. */
 	GAME_BUTTON_EFFECT_UP,
 	GAME_BUTTON_EFFECT_DOWN,
@@ -56,16 +56,18 @@ enum GameButton
 	GameButton_Invalid
 };
 
-RString
-GameButtonToString(const InputScheme* pInputs, GameButton i);
-RString
-GameButtonToLocalizedString(const InputScheme* pInputs, GameButton i);
-GameButton
-StringToGameButton(const InputScheme* pInputs, const RString& s);
+auto
+GameButtonToString(const InputScheme* pInputs, GameButton i) -> std::string;
+auto
+GameButtonToLocalizedString(const InputScheme* pInputs, GameButton i)
+  -> std::string;
+auto
+StringToGameButton(const InputScheme* pInputs, const std::string& s)
+  -> GameButton;
 
 /** @brief A special way to loop through each game button. */
 #define FOREACH_GameButton_Custom(gb)                                          \
-	for (GameButton gb = GAME_BUTTON_CUSTOM_01; gb < NUM_GameButton;           \
+	for (GameButton gb = GAME_BUTTON_CUSTOM_01; (gb) < NUM_GameButton;         \
 		 enum_add(gb, +1))
 
 #define GAME_BUTTON_NEXT GAME_BUTTON_CUSTOM_01
@@ -79,11 +81,12 @@ StringToGameButton(const InputScheme* pInputs, const RString& s);
 #define DANCE_BUTTON_UP GAME_BUTTON_CUSTOM_03
 /** @brief Set up the down arrow for dance mode. */
 #define DANCE_BUTTON_DOWN GAME_BUTTON_CUSTOM_04
-/** @brief Set up the upleft arrow for dance mode (solo). */
+/** @brief Set up the upleft arrow for solo mode (dance-solo). */
 #define DANCE_BUTTON_UPLEFT GAME_BUTTON_CUSTOM_05
-/** @brief Set up the upright arrow for dance mode (solo). */
+/** @brief Set up the upright arrow for solo mode (dance-solo). */
 #define DANCE_BUTTON_UPRIGHT GAME_BUTTON_CUSTOM_06
-#define NUM_DANCE_BUTTONS GAME_BUTTON_CUSTOM_07
+#define NUM_DANCE_BUTTONS GAME_BUTTON_CUSTOM_05
+#define NUM_SOLO_BUTTONS GAME_BUTTON_CUSTOM_07
 // pump
 /** @brief Set up the upleft arrow for pump mode. */
 #define PUMP_BUTTON_UPLEFT GAME_BUTTON_CUSTOM_01
@@ -203,20 +206,22 @@ struct GameInput
 	GameController controller{ GameController_Invalid };
 	GameButton button{ GameButton_Invalid };
 
-	bool operator==(const GameInput& other) const
+	auto operator==(const GameInput& other) const -> bool
 	{
 		return controller == other.controller && button == other.button;
 	};
-	bool operator<(const GameInput& other) const
+	auto operator<(const GameInput& other) const -> bool
 	{
-		if (controller < other.controller)
+		if (controller < other.controller) {
 			return true;
-		if (controller > other.controller)
+		}
+		if (controller > other.controller) {
 			return false;
+		}
 		return button < other.button;
 	}
 
-	inline bool IsValid() const
+	[[nodiscard]] inline auto IsValid() const -> bool
 	{
 		return controller != GameController_Invalid &&
 			   button != GameButton_Invalid;
@@ -227,8 +232,8 @@ struct GameInput
 		button = GameButton_Invalid;
 	};
 
-	RString ToString(const InputScheme* pInputs) const;
-	bool FromString(const InputScheme* pInputs, const RString& s);
+	auto ToString(const InputScheme* pInputs) const -> std::string;
+	auto FromString(const InputScheme* pInputs, const std::string& s) -> bool;
 };
 
 #endif

@@ -51,8 +51,8 @@ GetChronoTime()
 float
 RageTimer::GetTimeSinceStart()
 {
-	auto usecs = GetChronoTime();
-	std::chrono::microseconds g = usecs - g_iStartTime;
+	const auto usecs = GetChronoTime();
+	const std::chrono::microseconds g = usecs - g_iStartTime;
 
 	return static_cast<float>(g.count()) / TIMESTAMP_RESOLUTION;
 }
@@ -116,16 +116,14 @@ RageTimer::operator-(const RageTimer& rhs) const
 bool
 RageTimer::operator<(const RageTimer& rhs) const
 {
-	if (c_dur != rhs.c_dur)
-		return c_dur < rhs.c_dur;
 	return c_dur < rhs.c_dur;
 }
 
 RageTimer
 RageTimer::Sum(const RageTimer& lhs, float tm)
 {
-	uint64_t usecs = static_cast<uint64_t>(tm * TIMESTAMP_RESOLUTION);
-	std::chrono::microseconds period(usecs);
+	const uint64_t usecs = static_cast<uint64_t>(tm * TIMESTAMP_RESOLUTION);
+	const std::chrono::microseconds period(usecs);
 
 	RageTimer ret(0); // Prevent unnecessarily checking the time
 	ret.c_dur = period + lhs.c_dur;
@@ -136,7 +134,7 @@ RageTimer::Sum(const RageTimer& lhs, float tm)
 float
 RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 {
-	std::chrono::microseconds diff = lhs.c_dur - rhs.c_dur;
+	const std::chrono::microseconds diff = lhs.c_dur - rhs.c_dur;
 
 	return static_cast<float>(diff.count()) / TIMESTAMP_RESOLUTION;
 }

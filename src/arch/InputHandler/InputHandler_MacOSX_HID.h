@@ -42,7 +42,7 @@ class InputHandler_MacOSX_HID : public InputHandler
 		return m_bChanged;
 	}
 	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
-	RString GetDeviceSpecificInputString(const DeviceInput& di);
+	std::string GetDeviceSpecificInputString(const DeviceInput& di);
 	wchar_t DeviceButtonToChar(DeviceButton button,
 							   bool bUseCurrentKeyModifiers);
 	static void QueueCallback(void* target,

@@ -6,6 +6,8 @@
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <algorithm>
+
 const int MinComboSizeToShow = 5;
 
 REGISTER_ACTOR_CLASS(ComboGraph);
@@ -14,13 +16,14 @@ ComboGraph::ComboGraph()
 {
 	DeleteChildrenWhenDone(true);
 
-	m_pNormalCombo = NULL;
-	m_pMaxCombo = NULL;
-	m_pComboNumber = NULL;
+	m_pNormalCombo = nullptr;
+	m_pMaxCombo = nullptr;
+	m_pComboNumber = nullptr;
+	m_pBacking = nullptr;
 }
 
 void
-ComboGraph::Load(const RString& sMetricsGroup)
+ComboGraph::Load(const std::string& sMetricsGroup)
 {
 	BODY_WIDTH.Load(sMetricsGroup, "BodyWidth");
 	BODY_HEIGHT.Load(sMetricsGroup, "BodyHeight");
@@ -30,11 +33,11 @@ ComboGraph::Load(const RString& sMetricsGroup)
 	this->SetWidth(BODY_WIDTH);
 	this->SetHeight(BODY_HEIGHT);
 
-	Actor* pActor = NULL;
+	Actor* pActor = nullptr;
 
 	m_pBacking =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "Backing"));
-	if (m_pBacking != NULL) {
+	if (m_pBacking != nullptr) {
 		m_pBacking->ZoomToWidth(BODY_WIDTH);
 		m_pBacking->ZoomToHeight(BODY_HEIGHT);
 		this->AddChild(m_pBacking);
@@ -42,7 +45,7 @@ ComboGraph::Load(const RString& sMetricsGroup)
 
 	m_pNormalCombo =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "NormalCombo"));
-	if (m_pNormalCombo != NULL) {
+	if (m_pNormalCombo != nullptr) {
 		m_pNormalCombo->ZoomToWidth(BODY_WIDTH);
 		m_pNormalCombo->ZoomToHeight(BODY_HEIGHT);
 		this->AddChild(m_pNormalCombo);
@@ -50,7 +53,7 @@ ComboGraph::Load(const RString& sMetricsGroup)
 
 	m_pMaxCombo =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "MaxCombo"));
-	if (m_pMaxCombo != NULL) {
+	if (m_pMaxCombo != nullptr) {
 		m_pMaxCombo->ZoomToWidth(BODY_WIDTH);
 		m_pMaxCombo->ZoomToHeight(BODY_HEIGHT);
 		this->AddChild(m_pMaxCombo);
@@ -58,9 +61,9 @@ ComboGraph::Load(const RString& sMetricsGroup)
 
 	pActor =
 	  ActorUtil::MakeActor(THEME->GetPathG(sMetricsGroup, "ComboNumber"));
-	if (pActor != NULL) {
+	if (pActor != nullptr) {
 		m_pComboNumber = dynamic_cast<BitmapText*>(pActor);
-		if (m_pComboNumber != NULL)
+		if (m_pComboNumber != nullptr)
 			this->AddChild(m_pComboNumber);
 		else
 			LuaHelpers::ReportScriptErrorFmt("ComboGraph: \"sMetricsGroup\" "
@@ -83,7 +86,8 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 	// Find the largest combo.
 	int iMaxComboSize = 0;
 	for (unsigned i = 0; i < pss.m_ComboList.size(); ++i)
-		iMaxComboSize = max(iMaxComboSize, pss.m_ComboList[i].GetStageCnt());
+		iMaxComboSize =
+		  std::max(iMaxComboSize, pss.m_ComboList[i].GetStageCnt());
 
 	for (unsigned i = 0; i < pss.m_ComboList.size(); ++i) {
 		const PlayerStageStats::Combo_t& combo = pss.m_ComboList[i];

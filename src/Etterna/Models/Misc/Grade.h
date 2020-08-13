@@ -1,32 +1,27 @@
-﻿#ifndef GRADE_H
+#ifndef GRADE_H
 #define GRADE_H
 
 #include "EnumHelper.h"
 #include "ThemeMetric.h"
 
-/** @brief The list of grading tiers available.
- *
- * TODO: Look into a more flexible system without a fixed number of grades.
- * -Wolfman2000
- */
 enum Grade
 {
-	Grade_Tier01, /**< Usually an AAAA */
-	Grade_Tier02, /**< Usually an AAA */
-	Grade_Tier03, /**< Usually an AA */
-	Grade_Tier04, /**< Usually an A */
-	Grade_Tier05, /**< Usually a B */
-	Grade_Tier06, /**< Usually a C */
-	Grade_Tier07, /**< Usually a D */
-	Grade_Tier08,
-	Grade_Tier09,
-	Grade_Tier10,
-	Grade_Tier11,
-	Grade_Tier12,
-	Grade_Tier13,
-	Grade_Tier14,
-	Grade_Tier15,
-	Grade_Tier16,
+	Grade_Tier01, /**< Usually an AAAAA */
+	Grade_Tier02, /**< Usually an AAAA++ */
+	Grade_Tier03, /**< Usually an AAAA+ */
+	Grade_Tier04, /**< Usually an AAAA */
+	Grade_Tier05, /**< Usually an AAA++ */
+	Grade_Tier06, /**< Usually an AAA+ */
+	Grade_Tier07, /**< Usually an AAA */
+	Grade_Tier08, /**< Usually an AA++ */
+	Grade_Tier09, /**< Usually an AA+ */
+	Grade_Tier10, /**< Usually an AA */
+	Grade_Tier11, /**< Usually an A++ */
+	Grade_Tier12, /**< Usually an A+ */
+	Grade_Tier13, /**< Usually an A */
+	Grade_Tier14, /**< Usually a B */
+	Grade_Tier15, /**< Usually a C */
+	Grade_Tier16, /**< Usually a D */
 	Grade_Tier17,
 	Grade_Tier18,
 	Grade_Tier19,
@@ -35,8 +30,6 @@ enum Grade
 	NUM_Grade,
 	Grade_Invalid,
 };
-/** @brief Have an alternative for if there is no data for grading. */
-#define Grade_NoData Grade_Invalid
 
 /**
  * @brief Convert the grade supplied to a string representation.
@@ -46,14 +39,14 @@ enum Grade
  * @param g the grade to convert.
  * @return the string reprsentation.
  */
-static inline RString
-GradeToString(Grade g)
+static auto
+GradeToString(Grade g) -> std::string
 {
-	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_NoData,
+	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_Invalid,
 			 ssprintf("grade = %d", g));
 
 	switch (g) {
-		case Grade_NoData:
+		case Grade_Invalid:
 			return "NoData";
 		case Grade_Failed:
 			return "Failed";
@@ -70,17 +63,17 @@ GradeToString(Grade g)
  * This is only referenced in ScreenEvaluation at the moment.
  * @param g the current Grade.
  * @return the old styled grade string. */
-RString
-GradeToOldString(Grade g);
-RString
-GradeToLocalizedString(Grade g);
+auto
+GradeToOldString(Grade g) -> std::string;
+auto
+GradeToLocalizedString(Grade g) -> std::string;
 /**
- * @brief Convert the given RString into a proper Grade.
+ * @brief Convert the given std::string into a proper Grade.
  * @param s the string to convert.
  * @return the expected Grade.
  */
-Grade
-StringToGrade(const RString& s);
+auto
+StringToGrade(const std::string& s) -> Grade;
 LuaDeclareType(Grade);
 extern ThemeMetric<int> NUM_GRADE_TIERS_USED;
 #define NUM_POSSIBLE_GRADES (NUM_GRADE_TIERS_USED + 1)
@@ -88,11 +81,15 @@ extern ThemeMetric<int> NUM_GRADE_TIERS_USED;
  * @brief Step through the enumerator one at a time to get the next Grade.
  * @param g the current Grade.
  * @return the next Grade. */
-Grade
-GetNextPossibleGrade(Grade g);
+auto
+GetNextPossibleGrade(Grade g) -> Grade;
 /** @brief Loop through each possible Grade. */
 #define FOREACH_PossibleGrade(g)                                               \
                                                                                \
-	for (Grade g = (Grade)(0); g != Grade_Invalid; g = GetNextPossibleGrade(g))
+	for (Grade g = (Grade)(0); (g) != Grade_Invalid;                           \
+		 (g) = GetNextPossibleGrade(g))
 
 #endif
+
+auto
+GetGradeFromPercent(float pc) -> Grade;

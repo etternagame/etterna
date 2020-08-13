@@ -1,23 +1,25 @@
-﻿#ifndef RAGE_UTIL_FILEDB
+#ifndef RAGE_UTIL_FILEDB
 #define RAGE_UTIL_FILEDB
 
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
+#include "RageUtil/Utils/RageUtil.h"
+
 #include <map>
 #include <set>
 
 struct FileSet;
 struct File
 {
-	RString name;
-	RString lname;
+	std::string name;
+	std::string lname;
 
-	void SetName(const RString& fn)
+	void SetName(const std::string& fn)
 	{
 		name = fn;
 		lname = name;
-		lname.MakeLower();
+		MakeLower(lname);
 	}
 
 	bool dir;
@@ -37,28 +39,27 @@ struct File
 	File()
 	{
 		dir = false;
-		dirp = NULL;
+		dirp = nullptr;
 		size = -1;
 		hash = -1;
-		priv = NULL;
+		priv = nullptr;
 	}
-	File(const RString& fn)
+	File(const std::string& fn)
 	{
 		SetName(fn);
 		dir = false;
 		size = -1;
 		hash = -1;
-		priv = NULL;
-		dirp = NULL;
+		priv = nullptr;
+		dirp = nullptr;
 	}
 
 	bool operator<(const File& rhs) const { return lname < rhs.lname; }
 
 	bool equal(const File& rhs) const { return lname == rhs.lname; }
-	bool equal(const RString& rhs) const
+	bool equal(const std::string& rhs) const
 	{
-		RString l = rhs;
-		l.MakeLower();
+		std::string l = make_lower(rhs);
 		return lname == l;
 	}
 };
@@ -77,7 +78,7 @@ operator!=(File const& lhs, File const& rhs)
 /** @brief This represents a directory. */
 struct FileSet
 {
-	set<File> files;
+	std::set<File> files;
 	RageTimer age;
 
 	/*
@@ -89,18 +90,18 @@ struct FileSet
 
 	FileSet() { m_bFilled = true; }
 
-	void GetFilesMatching(const RString& sBeginning,
-						  const RString& sContaining,
-						  const RString& sEnding,
-						  vector<RString>& asOut,
+	void GetFilesMatching(const std::string& sBeginning,
+						  const std::string& sContaining,
+						  const std::string& sEnding,
+						  std::vector<std::string>& asOut,
 						  bool bOnlyDirs) const;
-	void GetFilesEqualTo(const RString& pat,
-						 vector<RString>& out,
+	void GetFilesEqualTo(const std::string& pat,
+						 std::vector<std::string>& out,
 						 bool bOnlyDirs) const;
 
-	RageFileManager::FileType GetFileType(const RString& sPath) const;
-	int GetFileSize(const RString& sPath) const;
-	int GetFileHash(const RString& sPath) const;
+	RageFileManager::FileType GetFileType(const std::string& sPath) const;
+	int GetFileSize(const std::string& sPath) const;
+	int GetFileHash(const std::string& sPath) const;
 };
 /** @brief A container for a file listing. */
 class FilenameDB
@@ -112,64 +113,67 @@ class FilenameDB
 	}
 	virtual ~FilenameDB() { FlushDirCache(); }
 
-	void AddFile(const RString& sPath,
+	void AddFile(const std::string& sPath,
 				 int iSize,
 				 int iHash,
-				 void* pPriv = NULL);
-	void DelFile(const RString& sPath);
-	void* GetFilePriv(const RString& sPath);
+				 void* pPriv = nullptr);
+	void DelFile(const std::string& sPath);
+	void* GetFilePriv(const std::string& sPath);
 
 	/* This handles at most two * wildcards.  If we need anything more
 	 * complicated, we'll need to use fnmatch or regex. */
-	void GetFilesSimpleMatch(const RString& sDir,
-							 const RString& sFile,
-							 vector<RString>& asOut,
+	void GetFilesSimpleMatch(const std::string& sDir,
+							 const std::string& sFile,
+							 std::vector<std::string>& asOut,
 							 bool bOnlyDirs);
 
 	/* Search for "path" case-insensitively and replace it with the correct
 	 * case.  If only a portion of the path exists, resolve as much as possible.
 	 * Return true if the entire path was matched. */
-	bool ResolvePath(RString& sPath);
+	bool ResolvePath(std::string& sPath);
 
-	RageFileManager::FileType GetFileType(const RString& sPath);
-	int GetFileSize(const RString& sPath);
-	int GetFileHash(const RString& sFilePath);
-	void GetDirListing(const RString& sPath,
-					   vector<RString>& asAddTo,
+	RageFileManager::FileType GetFileType(const std::string& sPath);
+	int GetFileSize(const std::string& sPath);
+	int GetFileHash(const std::string& sFilePath);
+	void GetDirListing(const std::string& sPath,
+					   std::vector<std::string>& asAddTo,
 					   bool bOnlyDirs,
 					   bool bReturnPathToo);
 
-	void FlushDirCache(const RString& sDir = RString());
+	void FlushDirCache(const std::string& sDir = std::string());
 
-	void GetFileSetCopy(const RString& dir, FileSet& out);
+	void GetFileSetCopy(const std::string& dir, FileSet& out);
 	/* Probably slow, so override it. */
-	virtual void CacheFile(const RString& sPath);
+	virtual void CacheFile(const std::string& sPath);
 
   protected:
 	RageEvent m_Mutex;
 
-	const File* GetFile(const RString& sPath);
-	FileSet* GetFileSet(const RString& sDir, bool create = true);
+	const File* GetFile(const std::string& sPath);
+	FileSet* GetFileSet(const std::string& sDir, bool create = true);
 
 	/* Directories we have cached: */
-	map<RString, FileSet*> dirs;
+	std::map<std::string, FileSet*> dirs;
 
 	int ExpireSeconds{ -1 };
 
-	void GetFilesEqualTo(const RString& sDir,
-						 const RString& sName,
-						 vector<RString>& asOut,
+	void GetFilesEqualTo(const std::string& sDir,
+						 const std::string& sName,
+						 vector<std::string>& asOut,
 						 bool bOnlyDirs);
-	void GetFilesMatching(const RString& sDir,
-						  const RString& sBeginning,
-						  const RString& sContaining,
-						  const RString& sEnding,
-						  vector<RString>& asOut,
+
+	void GetFilesMatching(const std::string& sDir,
+						  const std::string& sBeginning,
+						  const std::string& sContaining,
+						  const std::string& sEnding,
+						  vector<std::string>& asOut,
 						  bool bOnlyDirs);
-	void DelFileSet(map<RString, FileSet*>::iterator dir);
+
+	void DelFileSet(std::map<std::string, FileSet*>::iterator dir);
 
 	/* The given path wasn't cached.  Cache it. */
-	virtual void PopulateFileSet(FileSet& /* fs */, const RString& /* sPath */)
+	virtual void PopulateFileSet(FileSet& /* fs */,
+								 const std::string& /* sPath */)
 	{
 	}
 };
@@ -179,7 +183,7 @@ class NullFilenameDB : public FilenameDB
 {
   public:
 	NullFilenameDB() { ExpireSeconds = -1; }
-	void CacheFile(const RString& /* sPath */) override {}
+	void CacheFile(const std::string& /* sPath */) override {}
 };
 
 #endif

@@ -153,6 +153,14 @@ local function arbitraryErrorBarValue(value)
 	wscale = errorBarFrameWidth / 180
 end
 
+local function spaceNotefieldCols(inc)
+	if inc == nil then inc = 0 end
+	local hCols = math.floor(#noteColumns/2)
+	for i, col in ipairs(noteColumns) do
+	    col:addx((i-hCols-1) * inc)
+	end
+end
+
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 								     **Wife deviance tracker. Basically half the point of the theme.**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,7 +171,7 @@ local t =
 	Def.ActorFrame {
 	Name = "WifePerch",
 	OnCommand = function(self)
-		if allowedCustomization then
+		if allowedCustomization and SCREENMAN:GetTopScreen():GetName() ~= "ScreenGameplaySyncMachine" then
 			-- auto enable autoplay
 			GAMESTATE:SetAutoplay(true)
 		else
@@ -221,6 +229,9 @@ local t =
 			Movable.DeviceButton_k.condition = true
 			Movable.DeviceButton_l.element = lifebar
 			Movable.DeviceButton_l.condition = true
+			Movable.DeviceButton_n.condition = true
+			Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNotefieldCols
+			Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNotefieldCols
 		end
 
 		if lifebar ~= nil then
@@ -234,6 +245,8 @@ local t =
 			actor:zoomtowidth(MovableValues.NotefieldWidth)
 			actor:zoomtoheight(MovableValues.NotefieldHeight)
 		end
+
+		spaceNotefieldCols(MovableValues.NotefieldSpacing)
 	end,
 	DoneLoadingNextSongMessageCommand = function(self)
 		-- put notefield y pos back on doneloadingnextsong because playlist courses reset this for w.e reason -mina
@@ -548,9 +561,11 @@ function smeltErrorBar(index)
 			finishtweening(self) -- note: it really looks like shit without the fade out
 			diffusealpha(self, 1)
 			diffuse(self, jcT[jdgCur])
-			x(self, MovableValues.ErrorBarX + dvCur * wscale)
-			y(self, MovableValues.ErrorBarY)
-			Zoomtoheight(self, MovableValues.ErrorBarHeight)
+			if MovableValues and MovableValues.ErrorBarX then
+				x(self, MovableValues.ErrorBarX + dvCur * wscale)
+				y(self, MovableValues.ErrorBarY)
+				Zoomtoheight(self, MovableValues.ErrorBarHeight)
+			end
 			linear(self, barDuration)
 			diffusealpha(self, 0)
 		end,
@@ -708,9 +723,9 @@ local replaySlider =
 	Widg.SliderBase {
 		width = width,
 		height = height,
-		min = GAMESTATE:GetCurrentSong():GetFirstSecond(),
+		min = GAMESTATE:GetCurrentSteps():GetFirstSecond(),
 		visible = true,
-		max = GAMESTATE:GetCurrentSong():GetLastSecond(),
+		max = GAMESTATE:GetCurrentSteps():GetLastSecond(),
 		onInit = function(slider)
 			slider.actor:diffusealpha(0)
 		end,
@@ -1142,14 +1157,14 @@ local pm =
 		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / (wodth)
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / (wodth)
 		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
 		cd:GetChild("cdbg"):diffusealpha(0)
 		self:SortByDrawOrder()
 		self:queuecommand("GraphUpdate")
 	end,
 	PracticeModeReloadMessageCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSong():GetLastSecond() / wodth
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / wodth
 	end,
 	Def.Quad {
 		Name = "BG",
@@ -1265,5 +1280,101 @@ pm[#pm + 1] =
 if practiceMode and not isReplay then
 	t[#t + 1] = pm
 end
+
+--[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+															  **Measure Counter**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	bruh
+]]
+
+local measures = {}
+local beatcounter = 0
+local measure = 1
+local thingy = 1
+local active = false
+mc = Def.ActorFrame {
+	InitCommand = function(self)
+		self:x(200)
+		self:y(200)
+
+		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+		local loot = steps:GetNPSPerMeasure(1)
+						
+		local peak = 0
+		for i = 1, #loot do
+			if loot[i] > peak then
+				
+				peak = loot[i]
+			end
+		end
+	
+		local m_len = 0
+		local m_spd = 0
+		local m_start = 0
+		for i = 1, #loot do
+			if m_len == 0 then
+				m_spd = loot[i]
+				m_start = i
+			end
+	
+			if math.abs(m_spd - loot[i]) < 2 then
+				m_len = m_len + 1
+				m_spd = (m_spd + loot[i]) / 2
+			elseif m_len > 1 and m_spd > peak / 1.6 then
+				measures[#measures + 1] = { m_start, m_len, m_spd }
+				m_len = 0
+			else
+				m_len = 0
+			end
+		end
+	end,
+	LoadFont("Common Normal") ..
+	{
+		OnCommand = function(self)
+			self:visible(false)
+			settext(self, "")
+
+			if measure == measures[thingy][1] then	
+				playcommand(self, "Dootz")
+			end
+		end,
+		BeatCrossedMessageCommand = function(self)
+			if thingy <= #measures then
+				beatcounter = beatcounter + 1
+			if beatcounter == 4 then
+				measure = measure + 1
+				beatcounter = 0
+
+				if measure == measures[thingy][1] then
+					playcommand(self, "Dootz")
+				end
+
+				if measure > measures[thingy][1] + measures[thingy][2] then
+					playcommand(self, "UnDootz")
+					thingy = thingy + 1
+				end
+
+				if active then
+					playcommand(self, "MeasureCrossed")
+				end
+			end
+			end
+		end,
+		DootzCommand = function(self)
+			self:visible(true)
+			active = true
+			settext(self, measure - measures[thingy][1] .. " / " .. measures[thingy][2])
+		end,
+		MeasureCrossedCommand = function(self)
+			settext(self, measure - measures[thingy][1] .. " / " .. measures[thingy][2])
+		end,
+		UnDootzCommand = function(self)
+			self:visible(false)
+			active = false
+		end
+	}
+}
+
+-- t[#t + 1] = mc
 
 return t

@@ -20,9 +20,9 @@ StyleID::FromStyle(const Style* p)
 const Style*
 StyleID::ToStyle() const
 {
-	const Game* pGame = GAMEMAN->StringToGame(sGame);
-	if (pGame == NULL)
-		return NULL;
+	auto pGame = GAMEMAN->StringToGame(sGame);
+	if (pGame == nullptr)
+		return nullptr;
 
 	return GAMEMAN->GameAndStringToStyle(pGame, sStyle);
 }
@@ -30,7 +30,7 @@ StyleID::ToStyle() const
 XNode*
 StyleID::CreateNode() const
 {
-	XNode* pNode = new XNode("Style");
+	auto pNode = new XNode("Style");
 
 	pNode->AppendAttr("Game", sGame);
 	pNode->AppendAttr("Style", sStyle);

@@ -4,23 +4,23 @@
 void
 DriverList::Add(const istring& sName, CreateRageDriverFn pfn)
 {
-	if (m_pRegistrees == NULL)
-		m_pRegistrees = new map<istring, CreateRageDriverFn>;
+	if (m_pRegistrees == nullptr)
+		m_pRegistrees = new std::map<istring, CreateRageDriverFn>;
 
 	ASSERT(m_pRegistrees->find(sName) == m_pRegistrees->end());
 	(*m_pRegistrees)[sName] = pfn;
 }
 
 RageDriver*
-DriverList::Create(const RString& sDriverName)
+DriverList::Create(const std::string& sDriverName)
 {
-	if (m_pRegistrees == NULL)
-		return NULL;
+	if (m_pRegistrees == nullptr)
+		return nullptr;
 
-	map<istring, CreateRageDriverFn>::const_iterator iter =
-	  m_pRegistrees->find(istring(sDriverName));
+	std::map<istring, CreateRageDriverFn>::const_iterator iter =
+	  m_pRegistrees->find(istring(sDriverName.c_str()));
 	if (iter == m_pRegistrees->end())
-		return NULL;
+		return nullptr;
 	return (iter->second)();
 }
 

@@ -1,10 +1,12 @@
-﻿/* RageDisplay_Legacy: OpenGL renderer. */
+/* RageDisplay_Legacy: OpenGL renderer. */
 
 #ifndef RAGE_DISPLAY_OGL_H
 #define RAGE_DISPLAY_OGL_H
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
+#include "Etterna/Actor/Base/Sprite.h"
+#include "RageUtil/Graphics/RageTextureRenderTarget.h"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -33,11 +35,11 @@ class RageDisplay_Legacy : public RageDisplay
   public:
 	RageDisplay_Legacy();
 	~RageDisplay_Legacy() override;
-	RString Init(const VideoModeParams& p,
-				 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoModeParams& p,
+					 bool bAllowUnacceleratedRenderer) override;
 
-	RString GetApiDescription() const override { return "OpenGL"; }
-	void GetDisplayResolutions(DisplayResolutions& out) const override;
+	std::string GetApiDescription() const override { return "OpenGL"; }
+	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
@@ -50,7 +52,7 @@ class RageDisplay_Legacy : public RageDisplay
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const VideoModeParams* GetActualVideoModeParams() const override;
+	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
@@ -65,6 +67,7 @@ class RageDisplay_Legacy : public RageDisplay
 					   int width,
 					   int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
+	bool UseOffscreenRenderTarget();
 	RageSurface* GetTexture(intptr_t iTexture) override;
 	RageTextureLock* CreateTextureLock() override;
 
@@ -78,6 +81,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void SetEffectMode(EffectMode effect) override;
 	bool IsEffectModeSupported(EffectMode effect) override;
 	bool SupportsRenderToTexture() const;
+	bool SupportsFullscreenBorderlessWindow() const;
 	intptr_t CreateRenderTarget(const RenderTargetParam& param,
 								int& iTextureWidthOut,
 								int& iTextureHeightOut) override;
@@ -116,7 +120,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void SetPolygonMode(PolygonMode pm) override;
 	void SetLineWidth(float fWidth) override;
 
-	RString GetTextureDiagnostics(unsigned id) const override;
+	std::string GetTextureDiagnostics(unsigned id) const override;
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;
@@ -134,8 +138,8 @@ class RageDisplay_Legacy : public RageDisplay
 	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 										int iNumVerts) override;
 
-	RString TryVideoMode(const VideoModeParams& p,
-						 bool& bNewDeviceOut) override;
+	std::string TryVideoMode(const VideoModeParams& p,
+							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 	RagePixelFormat GetImgPixelFormat(RageSurface*& img,
 									  bool& FreeImg,
@@ -145,6 +149,9 @@ class RageDisplay_Legacy : public RageDisplay
 	bool SupportsSurfaceFormat(RagePixelFormat pixfmt);
 
 	void SendCurrentMatrices();
+
+  private:
+	std::shared_ptr<RageTextureRenderTarget> offscreenRenderTarget = nullptr;
 };
 
 #endif

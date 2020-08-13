@@ -1,24 +1,36 @@
 #ifndef SCREEN_OPTIONS_MASTER_PREFS_H
 #define SCREEN_OPTIONS_MASTER_PREFS_H
 
+#include "Etterna/Models/Misc/EnumHelper.h"
+
 static const int MAX_OPTIONS = 16;
-#define OPT_SAVE_PREFERENCES (1 << 0)
-#define OPT_APPLY_GRAPHICS (1 << 1)
-#define OPT_APPLY_THEME (1 << 2)
-#define OPT_CHANGE_GAME (1 << 3)
-#define OPT_APPLY_SOUND (1 << 4)
-#define OPT_APPLY_SONG (1 << 5)
-#define OPT_APPLY_ASPECT_RATIO (1 << 6)
+enum OptEffect
+{
+	OPT_SAVE_PREFERENCES = (1 << 0),
+	OPT_APPLY_GRAPHICS = (1 << 1),
+	OPT_APPLY_THEME = (1 << 2),
+	OPT_CHANGE_GAME = (1 << 3),
+	OPT_APPLY_SOUND = (1 << 4),
+	OPT_APPLY_SONG = (1 << 5),
+	OPT_APPLY_ASPECT_RATIO = (1 << 6),
+	NUM_OptEffect = 7,
+	OptEffect_Invalid = MAX_OPTIONS + 1
+};
+const std::string&
+OptEffectToString(OptEffect e);
+OptEffect
+StringToOptEffect(const std::string& e);
+LuaDeclareType(OptEffect);
 
 struct ConfOption
 {
-	static struct ConfOption* Find(RString name);
+	static struct ConfOption* Find(const std::string& name);
 
 	// Name of this option.
-	RString name;
+	std::string name;
 
 	// Name of the preference this option affects.
-	RString m_sPrefName;
+	std::string m_sPrefName;
 
 	using MoveData_t = void (*)(int&, bool, const ConfOption*);
 	MoveData_t MoveData;
@@ -32,7 +44,7 @@ struct ConfOption
 	/* Return the list of available selections; Get() and Put() use indexes into
 	 * this array. UpdateAvailableOptions() should be called before using this.
 	 */
-	void MakeOptionsList(vector<RString>& out) const;
+	void MakeOptionsList(vector<std::string>& out) const;
 
 	inline int Get() const
 	{
@@ -45,31 +57,31 @@ struct ConfOption
 
 	ConfOption(const char* n,
 			   MoveData_t m,
-			   const char* c0 = NULL,
-			   const char* c1 = NULL,
-			   const char* c2 = NULL,
-			   const char* c3 = NULL,
-			   const char* c4 = NULL,
-			   const char* c5 = NULL,
-			   const char* c6 = NULL,
-			   const char* c7 = NULL,
-			   const char* c8 = NULL,
-			   const char* c9 = NULL,
-			   const char* c10 = NULL,
-			   const char* c11 = NULL,
-			   const char* c12 = NULL,
-			   const char* c13 = NULL,
-			   const char* c14 = NULL,
-			   const char* c15 = NULL,
-			   const char* c16 = NULL,
-			   const char* c17 = NULL,
-			   const char* c18 = NULL,
-			   const char* c19 = NULL)
+			   const char* c0 = nullptr,
+			   const char* c1 = nullptr,
+			   const char* c2 = nullptr,
+			   const char* c3 = nullptr,
+			   const char* c4 = nullptr,
+			   const char* c5 = nullptr,
+			   const char* c6 = nullptr,
+			   const char* c7 = nullptr,
+			   const char* c8 = nullptr,
+			   const char* c9 = nullptr,
+			   const char* c10 = nullptr,
+			   const char* c11 = nullptr,
+			   const char* c12 = nullptr,
+			   const char* c13 = nullptr,
+			   const char* c14 = nullptr,
+			   const char* c15 = nullptr,
+			   const char* c16 = nullptr,
+			   const char* c17 = nullptr,
+			   const char* c18 = nullptr,
+			   const char* c19 = nullptr)
 	{
 		name = n;
 		m_sPrefName = name; // copy from name (not n), to allow refcounting
 		MoveData = m;
-		MakeOptionsListCB = NULL;
+		MakeOptionsListCB = nullptr;
 		m_iEffects = 0;
 		m_bAllowThemeItems = true;
 #define PUSH(c)                                                                \
@@ -96,10 +108,12 @@ struct ConfOption
 		PUSH(c18);
 		PUSH(c19);
 	}
-	void AddOption(const RString& sName) { PUSH(sName); }
+	void AddOption(const std::string& sName) { PUSH(sName.c_str()); }
 #undef PUSH
 
-	ConfOption(const char* n, MoveData_t m, void (*lst)(vector<RString>& out))
+	ConfOption(const char* n,
+			   MoveData_t m,
+			   void (*lst)(vector<std::string>& out))
 	{
 		name = n;
 		MoveData = m;
@@ -109,8 +123,8 @@ struct ConfOption
 	}
 
 	// private:
-	vector<RString> names;
-	void (*MakeOptionsListCB)(vector<RString>& out);
+	vector<std::string> names;
+	void (*MakeOptionsListCB)(vector<std::string>& out);
 };
 
 #endif

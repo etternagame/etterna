@@ -1,5 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageLog.h"
 #include "RageThreads.h"
@@ -11,6 +10,7 @@
 #include <windows.h>
 #endif
 #include <map>
+#include <algorithm>
 
 RageLog* LOG; // global and accessible from anywhere in the program
 
@@ -52,7 +52,7 @@ RageLog* LOG; // global and accessible from anywhere in the program
  *
  * The identifier is never displayed, so we can use a simple local object to
  * map/unmap, using any mechanism to generate unique IDs. */
-static map<RString, RString> LogMaps;
+static std::map<std::string, std::string> LogMaps;
 
 #define LOG_PATH "/Logs/log.txt"
 #define INFO_PATH "/Logs/info.txt"
@@ -102,12 +102,12 @@ RageLog::RageLog()
 RageLog::~RageLog()
 {
 	/* Add the mapped log data to info.txt. */
-	const RString AdditionalLog = GetAdditionalLog();
-	vector<RString> AdditionalLogLines;
+	const std::string AdditionalLog = GetAdditionalLog();
+	std::vector<std::string> AdditionalLogLines;
 	split(AdditionalLog, "\n", AdditionalLogLines);
-	for (unsigned i = 0; i < AdditionalLogLines.size(); ++i) {
-		Trim(AdditionalLogLines[i]);
-		this->Info("%s", AdditionalLogLines[i].c_str());
+	for (auto& AdditionalLogLine : AdditionalLogLines) {
+		Trim(AdditionalLogLine);
+		this->Info("%s", AdditionalLogLine.c_str());
 	}
 
 	Flush();
@@ -215,7 +215,7 @@ RageLog::Trace(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(0, sBuff);
@@ -228,7 +228,7 @@ RageLog::Info(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(WRITE_TO_INFO, sBuff);
@@ -239,7 +239,7 @@ RageLog::Warn(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(WRITE_TO_INFO | WRITE_LOUD, sBuff);
@@ -250,38 +250,40 @@ RageLog::Time(const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	RString sBuff = vssprintf(fmt, va);
+	const std::string sBuff = vssprintf(fmt, va);
 	va_end(va);
 
 	Write(WRITE_TO_TIME, sBuff);
 }
 
 void
-RageLog::UserLog(const RString& sType,
-				 const RString& sElement,
+RageLog::UserLog(const std::string& sType,
+				 const std::string& sElement,
 				 const char* fmt,
 				 ...)
 {
-	va_list va;
-	va_start(va, fmt);
-	RString sBuf = vssprintf(fmt, va);
-	va_end(va);
+	return;
+	/*
+		va_list va;
+		va_start(va, fmt);
+		std::string sBuf = vssprintf(fmt, va);
+		va_end(va);
 
-	if (!sType.empty())
-		sBuf = ssprintf(
-		  "%s \"%s\" %s", sType.c_str(), sElement.c_str(), sBuf.c_str());
+		if (!sType.empty())
+			sBuf = ssprintf(
+			  "%s \"%s\" %s", sType.c_str(), sElement.c_str(), sBuf.c_str());
 
-	Write(WRITE_TO_USER_LOG, sBuf);
+		Write(WRITE_TO_USER_LOG, sBuf);*/
 }
 
 void
-RageLog::Write(int where, const RString& sLine)
+RageLog::Write(int where, const std::string& sLine)
 {
 	LockMut(*g_Mutex);
 
 	const char* const sWarningSeparator =
 	  "/////////////////////////////////////////";
-	vector<RString> asLines;
+	std::vector<std::string> asLines;
 	split(sLine, "\n", asLines, false);
 	if (where & WRITE_LOUD) {
 		if (m_bLogToDisk && g_fileLog->IsOpen())
@@ -289,20 +291,19 @@ RageLog::Write(int where, const RString& sLine)
 		puts(sWarningSeparator);
 	}
 
-	RString sTimestamp =
+	const std::string sTimestamp =
 	  SecondsToMMSSMsMsMs(RageTimer::GetTimeSinceStart()) + ": ";
-	RString sWarning;
+	std::string sWarning;
 	if (where & WRITE_LOUD)
 		sWarning = "WARNING: ";
 
-	for (unsigned i = 0; i < asLines.size(); ++i) {
-		RString& sStr = asLines[i];
-
+	for (auto& sStr : asLines) {
 		if (sWarning.size())
 			sStr.insert(0, sWarning);
 
 		if (m_bShowLogOutput || (where & WRITE_TO_INFO))
-			puts(sStr); // fputws( (const wchar_t *)sStr.c_str(), stdout );
+			puts(
+			  sStr.c_str()); // fputws( (const wchar_t *)sStr.c_str(), stdout );
 		if (where & WRITE_TO_INFO)
 			AddToInfo(sStr);
 		if (m_bLogToDisk && (where & WRITE_TO_INFO) && g_fileInfo->IsOpen())
@@ -347,18 +348,19 @@ RageLog::Flush()
 static char staticlog[1024 * 32] = "";
 static unsigned staticlog_size = 0;
 void
-RageLog::AddToInfo(const RString& str)
+RageLog::AddToInfo(const std::string& str)
 {
 	static bool limit_reached = false;
 	if (limit_reached)
 		return;
 
-	unsigned len = str.size() + strlen(NEWLINE);
+	const unsigned len = str.size() + strlen(NEWLINE);
 	if (staticlog_size + len > sizeof(staticlog)) {
-		const RString txt(NEWLINE "Staticlog limit reached" NEWLINE);
+		const std::string txt(NEWLINE "Staticlog limit reached" NEWLINE);
 
 		const unsigned pos =
-		  min(staticlog_size, sizeof(staticlog) - txt.size());
+		  std::min(staticlog_size,
+				   static_cast<unsigned>(sizeof(staticlog) - txt.size()));
 		memcpy(staticlog + pos, txt.data(), txt.size());
 		limit_reached = true;
 		return;
@@ -381,13 +383,13 @@ static const int BACKLOG_LINES = 10;
 static char backlog[BACKLOG_LINES][1024];
 static int backlog_start = 0, backlog_cnt = 0;
 void
-RageLog::AddToRecentLogs(const RString& str)
+RageLog::AddToRecentLogs(const std::string& str)
 {
 	unsigned len = str.size();
 	if (len > sizeof(backlog[backlog_start]) - 1)
 		len = sizeof(backlog[backlog_start]) - 1;
 
-	strncpy(backlog[backlog_start], str, len);
+	strncpy(backlog[backlog_start], str.c_str(), len);
 	backlog[backlog_start][len] = 0;
 
 	backlog_start++;
@@ -400,7 +402,7 @@ const char*
 RageLog::GetRecentLog(int n)
 {
 	if (n >= BACKLOG_LINES || n >= backlog_cnt)
-		return NULL;
+		return nullptr;
 
 	if (backlog_cnt == BACKLOG_LINES) {
 		n += backlog_start;
@@ -418,11 +420,11 @@ static int g_AdditionalLogSize = 0;
 void
 RageLog::UpdateMappedLog()
 {
-	RString str;
-	FOREACHM_CONST(RString, RString, LogMaps, i)
-	str += ssprintf("%s" NEWLINE, i->second.c_str());
+	std::string str;
+	for (auto& i : LogMaps)
+		str += ssprintf("%s" NEWLINE, i.second.c_str());
 
-	g_AdditionalLogSize = min(sizeof(g_AdditionalLogStr), str.size() + 1);
+	g_AdditionalLogSize = std::min(sizeof(g_AdditionalLogStr), str.size() + 1);
 	memcpy(g_AdditionalLogStr, str.c_str(), g_AdditionalLogSize);
 	g_AdditionalLogStr[sizeof(g_AdditionalLogStr) - 1] = 0;
 }
@@ -430,15 +432,16 @@ RageLog::UpdateMappedLog()
 const char*
 RageLog::GetAdditionalLog()
 {
-	int size = min(g_AdditionalLogSize, (int)sizeof(g_AdditionalLogStr) - 1);
+	const int size = std::min(g_AdditionalLogSize,
+							  static_cast<int>(sizeof(g_AdditionalLogStr)) - 1);
 	g_AdditionalLogStr[size] = 0;
 	return g_AdditionalLogStr;
 }
 
 void
-RageLog::MapLog(const RString& key, const char* fmt, ...)
+RageLog::MapLog(const std::string& key, const char* fmt, ...)
 {
-	RString s;
+	std::string s;
 
 	va_list va;
 	va_start(va, fmt);
@@ -450,7 +453,7 @@ RageLog::MapLog(const RString& key, const char* fmt, ...)
 }
 
 void
-RageLog::UnmapLog(const RString& key)
+RageLog::UnmapLog(const std::string& key)
 {
 	LogMaps.erase(key);
 	UpdateMappedLog();

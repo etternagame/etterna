@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "Etterna/Singletons/GameSoundManager.h"
@@ -8,7 +8,9 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
-RString
+#include <algorithm>
+
+std::string
 WARNING_COMMAND_NAME(size_t i)
 {
 	return ssprintf("Warning%dCommand", static_cast<int>(i));
@@ -22,7 +24,7 @@ MenuTimer::MenuTimer()
 	m_fStallSecondsLeft = 0;
 	m_bPaused = false;
 	m_bSilent = false;
-	WARNING_COMMAND = NULL;
+	WARNING_COMMAND = nullptr;
 }
 
 MenuTimer::~MenuTimer()
@@ -31,7 +33,7 @@ MenuTimer::~MenuTimer()
 }
 
 void
-MenuTimer::Load(const RString& sMetricsGroup)
+MenuTimer::Load(const std::string& sMetricsGroup)
 {
 	m_sprFrame.Load(THEME->GetPathG(sMetricsGroup, "Frame"));
 	m_sprFrame->SetName("Frame");
@@ -74,8 +76,8 @@ MenuTimer::EnableStealth(bool bStealth)
 {
 	EnableSilent(bStealth);
 
-	for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++) {
-		m_text[i].SetVisible(!bStealth);
+	for (auto& i : m_text) {
+		i.SetVisible(!bStealth);
 	}
 }
 
@@ -89,13 +91,13 @@ MenuTimer::Update(float fDeltaTime)
 
 	// run down the stall time if any
 	if (m_fStallSeconds > 0)
-		m_fStallSeconds = max(m_fStallSeconds - fDeltaTime, 0);
+		m_fStallSeconds = std::max(m_fStallSeconds - fDeltaTime, 0.F);
 	if (m_fStallSeconds > 0)
 		return;
 
 	const float fOldSecondsLeft = m_fSecondsLeft;
 	m_fSecondsLeft -= fDeltaTime;
-	m_fSecondsLeft = max(0, m_fSecondsLeft);
+	m_fSecondsLeft = std::max(0.F, m_fSecondsLeft);
 	const float fNewSecondsLeft = m_fSecondsLeft;
 
 	SetText(fNewSecondsLeft);
@@ -107,12 +109,12 @@ MenuTimer::Update(float fDeltaTime)
 		fNewSecondsLeft < HURRY_UP_TRANSITION)
 		SOUND->PlayOnceFromAnnouncer("hurry up");
 
-	int iCrossed = (int)floorf(fOldSecondsLeft);
+	const int iCrossed = static_cast<int>(floorf(fOldSecondsLeft));
 	if (fOldSecondsLeft > iCrossed && fNewSecondsLeft < iCrossed) // crossed
 	{
 		if (iCrossed <= WARNING_START) {
-			for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++)
-				m_text[i].RunCommands(WARNING_COMMAND->GetValue(iCrossed));
+			for (auto& i : m_text)
+				i.RunCommands(WARNING_COMMAND->GetValue(iCrossed));
 		}
 
 		if (iCrossed <= WARNING_BEEP_START && m_soundBeep.IsLoaded() &&
@@ -123,8 +125,8 @@ MenuTimer::Update(float fDeltaTime)
 	if (fNewSecondsLeft == 0) {
 		Stop();
 		SCREENMAN->PostMessageToTopScreen(SM_MenuTimer, 0);
-		for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++)
-			m_text[i].StopEffect();
+		for (auto& i : m_text)
+			i.StopEffect();
 	}
 }
 
@@ -155,7 +157,7 @@ void
 MenuTimer::Stall()
 {
 	// Max amount of stall time we'll use:
-	const float Amt = min(0.5f, m_fStallSecondsLeft);
+	const float Amt = std::min(0.5f, m_fStallSecondsLeft);
 
 	// Amount of stall time to add:
 	const float ToAdd = Amt - m_fStallSeconds;
@@ -169,8 +171,8 @@ MenuTimer::SetSeconds(float fSeconds)
 {
 	m_fSecondsLeft = fSeconds;
 
-	for (int i = 0; i < NUM_MENU_TIMER_TEXTS; i++)
-		m_text[i].PlayCommand("On");
+	for (auto& i : m_text)
+		i.PlayCommand("On");
 
 	SetText(fSeconds);
 }
@@ -195,11 +197,11 @@ MenuTimer::SetText(float fSeconds)
 		LuaHelpers::Push(L, fSeconds);
 
 		// call function with 1 argument and 1 result
-		RString Error = "Error running Text " + to_string(i + 1);
+		std::string Error = "Error running Text " + std::to_string(i + 1);
 		Error += "FormatFunction: ";
 		LuaHelpers::RunScriptOnStack(L, Error, 1, 1, true);
 
-		RString sText;
+		std::string sText;
 		LuaHelpers::Pop(L, sText);
 
 		m_text[i].SetText(sText);

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Model.h"
 #include "ModelManager.h"
@@ -13,23 +12,28 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <cstring>
+#include <algorithm>
+
 REGISTER_ACTOR_CLASS(Model);
 
 static const float FRAMES_PER_SECOND = 30;
-static const RString DEFAULT_ANIMATION_NAME = "default";
+static const std::string DEFAULT_ANIMATION_NAME = "default";
 
 Model::Model()
 {
 	m_bTextureWrapping = true;
 	SetUseZBuffer(true);
 	SetCullMode(CULL_BACK);
-	m_pGeometry = NULL;
-	m_pCurAnimation = NULL;
+	m_pGeometry = nullptr;
+	m_pCurAnimation = nullptr;
 	m_fDefaultAnimationRate = 1;
 	m_fCurAnimationRate = 1;
 	m_bLoop = true;
 	m_bDrawCelShaded = false;
-	m_pTempGeometry = NULL;
+	m_pTempGeometry = nullptr;
+	m_animation_length_seconds = 0.f;
+	m_fCurFrame = 0.f;
 }
 
 Model::~Model()
@@ -42,12 +46,12 @@ Model::Clear()
 {
 	if (m_pGeometry != nullptr) {
 		MODELMAN->UnloadModel(m_pGeometry);
-		m_pGeometry = NULL;
+		m_pGeometry = nullptr;
 	}
 	m_vpBones.clear();
 	m_Materials.clear();
 	m_mapNameToAnimation.clear();
-	m_pCurAnimation = NULL;
+	m_pCurAnimation = nullptr;
 	RecalcAnimationLengthSeconds();
 
 	if (m_pTempGeometry != nullptr)
@@ -55,13 +59,12 @@ Model::Clear()
 }
 
 void
-Model::Load(const RString& sFile)
+Model::Load(const std::string& sFile)
 {
-	if (sFile == "")
+	if (sFile.empty())
 		return;
 
-	RString sExt = GetExtension(sFile);
-	sExt.MakeLower();
+	const auto sExt = make_lower(GetExtension(sFile));
 	if (sExt == "txt")
 		LoadMilkshapeAscii(sFile);
 	RecalcAnimationLengthSeconds();
@@ -75,15 +78,15 @@ Model::Load(const RString& sFile)
 
 // TODO: Move MS3D loading into its own class. - Colby
 void
-Model::LoadMilkshapeAscii(const RString& sPath)
+Model::LoadMilkshapeAscii(const std::string& sPath)
 {
 	LoadPieces(sPath, sPath, sPath);
 }
 
 void
-Model::LoadPieces(const RString& sMeshesPath,
-				  const RString& sMaterialsPath,
-				  const RString& sBonesPath)
+Model::LoadPieces(const std::string& sMeshesPath,
+				  const std::string& sMaterialsPath,
+				  const std::string& sBonesPath)
 {
 	Clear();
 
@@ -91,13 +94,13 @@ Model::LoadPieces(const RString& sMeshesPath,
 	// materials require normals.
 	LoadMaterialsFromMilkshapeAscii(sMaterialsPath);
 
-	ASSERT(m_pGeometry == NULL);
+	ASSERT(m_pGeometry == nullptr);
 	m_pGeometry =
 	  MODELMAN->LoadMilkshapeAscii(sMeshesPath, this->MaterialsNeedNormals());
 
 	// Validate material indices.
-	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
-		const msMesh* pMesh = &m_pGeometry->m_Meshes[i];
+	for (auto& m_Meshe : m_pGeometry->m_Meshes) {
+		const msMesh* pMesh = &m_Meshe;
 
 		if (pMesh->nMaterialIndex >= static_cast<int>(m_Materials.size()))
 			RageException::Throw("Model \"%s\" mesh \"%s\" references material "
@@ -123,7 +126,7 @@ Model::LoadPieces(const RString& sMeshesPath,
 void
 Model::LoadFromNode(const XNode* pNode)
 {
-	RString s1, s2, s3;
+	std::string s1, s2, s3;
 	ActorUtil::GetAttrPath(pNode, "Meshes", s1);
 	ActorUtil::GetAttrPath(pNode, "Materials", s2);
 	ActorUtil::GetAttrPath(pNode, "Bones", s3);
@@ -137,12 +140,12 @@ Model::LoadFromNode(const XNode* pNode)
 }
 
 void
-Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
+Model::LoadMaterialsFromMilkshapeAscii(const std::string& _sPath)
 {
-	RString sPath = _sPath;
+	auto sPath = _sPath;
 
 	FixSlashesInPlace(sPath);
-	const RString sDir = Dirname(sPath);
+	const auto sDir = Dirname(sPath);
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -151,39 +154,39 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 		  sPath.c_str(),
 		  f.GetError().c_str());
 
-	RString sLine;
-	int iLineNum = 0;
+	std::string sLine;
+	auto iLineNum = 0;
 
 	while (f.GetLine(sLine) > 0) {
 		iLineNum++;
 
-		if (!strncmp(sLine, "//", 2))
+		if (!strncmp(sLine.c_str(), "//", 2))
 			continue;
 
 		int nFrame;
-		if (sscanf(sLine, "Frames: %d", &nFrame) == 1) {
+		if (sscanf(sLine.c_str(), "Frames: %d", &nFrame) == 1) {
 			// ignore
 			// m_pModel->nTotalFrames = nFrame;
 		}
-		if (sscanf(sLine, "Frame: %d", &nFrame) == 1) {
+		if (sscanf(sLine.c_str(), "Frame: %d", &nFrame) == 1) {
 			// ignore
 			// m_pModel->nFrame = nFrame;
 		}
 
 		// materials
-		int nNumMaterials = 0;
-		if (sscanf(sLine, "Materials: %d", &nNumMaterials) == 1) {
+		auto nNumMaterials = 0;
+		if (sscanf(sLine.c_str(), "Materials: %d", &nNumMaterials) == 1) {
 			m_Materials.resize(nNumMaterials);
 
 			char szName[256];
 
-			for (int i = 0; i < nNumMaterials; i++) {
-				msMaterial& Material = m_Materials[i];
+			for (auto i = 0; i < nNumMaterials; i++) {
+				auto& Material = m_Materials[i];
 
 				// name
 				if (f.GetLine(sLine) <= 0)
 					THROW;
-				if (sscanf(sLine, "\"%255[^\"]\"", szName) != 1)
+				if (sscanf(sLine.c_str(), "\"%255[^\"]\"", szName) != 1)
 					THROW;
 				Material.sName = szName;
 
@@ -191,7 +194,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Ambient;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Ambient[0],
 						   &Ambient[1],
@@ -204,7 +207,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Diffuse;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Diffuse[0],
 						   &Diffuse[1],
@@ -217,7 +220,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Specular;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Specular[0],
 						   &Specular[1],
@@ -231,7 +234,7 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				RageVector4 Emissive;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &Emissive[0],
 						   &Emissive[1],
@@ -261,13 +264,13 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				strcpy(szName, "");
-				sscanf(sLine, "\"%255[^\"]\"", szName);
-				RString sDiffuseTexture = szName;
+				sscanf(sLine.c_str(), "\"%255[^\"]\"", szName);
+				std::string sDiffuseTexture = szName;
 
-				if (sDiffuseTexture == "") {
+				if (sDiffuseTexture.empty()) {
 					Material.diffuse.LoadBlank();
 				} else {
-					RString sTexturePath = sDir + sDiffuseTexture;
+					auto sTexturePath = sDir + sDiffuseTexture;
 					FixSlashesInPlace(sTexturePath);
 					CollapsePath(sTexturePath);
 					if (!IsAFile(sTexturePath))
@@ -283,13 +286,13 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 				strcpy(szName, "");
-				sscanf(sLine, "\"%255[^\"]\"", szName);
-				RString sAlphaTexture = szName;
+				sscanf(sLine.c_str(), "\"%255[^\"]\"", szName);
+				std::string sAlphaTexture = szName;
 
-				if (sAlphaTexture == "") {
+				if (sAlphaTexture.empty()) {
 					Material.alpha.LoadBlank();
 				} else {
-					RString sTexturePath = sDir + sAlphaTexture;
+					auto sTexturePath = sDir + sAlphaTexture;
 					FixSlashesInPlace(sTexturePath);
 					CollapsePath(sTexturePath);
 					if (!IsAFile(sTexturePath))
@@ -306,10 +309,11 @@ Model::LoadMaterialsFromMilkshapeAscii(const RString& _sPath)
 }
 
 bool
-Model::LoadMilkshapeAsciiBones(const RString& sAniName, const RString& sPath)
+Model::LoadMilkshapeAsciiBones(const std::string& sAniName,
+							   const std::string& sPath)
 {
 	m_mapNameToAnimation[sAniName] = msAnimation();
-	msAnimation& Animation = m_mapNameToAnimation[sAniName];
+	auto& Animation = m_mapNameToAnimation[sAniName];
 
 	if (Animation.LoadMilkshapeAsciiBones(sAniName, sPath)) {
 		m_mapNameToAnimation.erase(sAniName);
@@ -322,7 +326,7 @@ Model::LoadMilkshapeAsciiBones(const RString& sAniName, const RString& sPath)
 bool
 Model::EarlyAbortDraw() const
 {
-	return m_pGeometry == NULL || m_pGeometry->m_Meshes.empty();
+	return m_pGeometry == nullptr || m_pGeometry->m_Meshes.empty();
 }
 
 void
@@ -367,11 +371,11 @@ Model::DrawPrimitives()
 			if (pMesh->nMaterialIndex != -1) // has a material
 			{
 				// apply material
-				msMaterial& mat = m_Materials[pMesh->nMaterialIndex];
+				auto& mat = m_Materials[pMesh->nMaterialIndex];
 
-				RageColor Emissive = mat.Emissive;
-				RageColor Ambient = mat.Ambient;
-				RageColor Diffuse = mat.Diffuse;
+				auto Emissive = mat.Emissive;
+				auto Ambient = mat.Ambient;
+				auto Diffuse = mat.Diffuse;
 
 				Emissive *= m_pTempState->diffuse[0];
 				Ambient *= m_pTempState->diffuse[0];
@@ -380,7 +384,7 @@ Model::DrawPrimitives()
 				DISPLAY->SetMaterial(
 				  Emissive, Ambient, Diffuse, mat.Specular, mat.fShininess);
 
-				RageVector2 vTexTranslate = mat.diffuse.GetTextureTranslate();
+				const auto vTexTranslate = mat.diffuse.GetTextureTranslate();
 				if (vTexTranslate.x != 0 || vTexTranslate.y != 0) {
 					DISPLAY->TexturePushMatrix();
 					DISPLAY->TextureTranslate(vTexTranslate.x, vTexTranslate.y);
@@ -388,8 +392,9 @@ Model::DrawPrimitives()
 
 				/* There's some common code that could be folded out here, but
 				 * it seems clearer to keep it separate. */
-				bool bUseMultitexture = PREFSMAN->m_bAllowMultitexture &&
-										DISPLAY->GetNumTextureUnits() >= 2;
+				const auto bUseMultitexture =
+				  PREFSMAN->m_bAllowMultitexture &&
+				  DISPLAY->GetNumTextureUnits() >= 2;
 				if (bUseMultitexture) {
 					// render the diffuse texture with texture unit 1
 					DISPLAY->SetTexture(
@@ -491,17 +496,17 @@ Model::DrawPrimitives()
 			const msMesh* pMesh = &m_pGeometry->m_Meshes[i];
 
 			// apply material
-			RageColor emissive = RageColor(0, 0, 0, 0);
-			RageColor ambient = RageColor(0, 0, 0, 0);
-			RageColor diffuse = m_pTempState->glow;
-			RageColor specular = RageColor(0, 0, 0, 0);
-			float shininess = 1;
+			auto emissive = RageColor(0, 0, 0, 0);
+			auto ambient = RageColor(0, 0, 0, 0);
+			auto diffuse = m_pTempState->glow;
+			auto specular = RageColor(0, 0, 0, 0);
+			const float shininess = 1;
 
 			DISPLAY->SetMaterial(
 			  emissive, ambient, diffuse, specular, shininess);
 
 			if (pMesh->nMaterialIndex != -1) {
-				msMaterial& mat = m_Materials[pMesh->nMaterialIndex];
+				auto& mat = m_Materials[pMesh->nMaterialIndex];
 				DISPLAY->SetTexture(
 				  TextureUnit_1,
 				  mat.diffuse.GetCurrentTexture()
@@ -525,7 +530,7 @@ Model::DrawMesh(int i) const
 	if (pMesh->m_iBoneIndex != -1) {
 		DISPLAY->PushMatrix();
 
-		const RageMatrix& mat = m_vpBones[pMesh->m_iBoneIndex].m_Final;
+		const auto& mat = m_vpBones[pMesh->m_iBoneIndex].m_Final;
 		DISPLAY->PreMultMatrix(mat);
 	}
 
@@ -540,14 +545,14 @@ Model::DrawMesh(int i) const
 }
 
 void
-Model::SetDefaultAnimation(const RString& sAnimation, float fPlayRate)
+Model::SetDefaultAnimation(const std::string& sAnimation, float fPlayRate)
 {
 	m_sDefaultAnimation = sAnimation;
 	m_fDefaultAnimationRate = fPlayRate;
 }
 
 void
-Model::PlayAnimation(const RString& sAniName, float fPlayRate)
+Model::PlayAnimation(const std::string& sAniName, float fPlayRate)
 {
 	if (m_mapNameToAnimation.find(sAniName) == m_mapNameToAnimation.end())
 		return;
@@ -566,8 +571,8 @@ Model::PlayAnimation(const RString& sAniName, float fPlayRate)
 	m_vpBones.resize(m_pCurAnimation->Bones.size());
 
 	for (unsigned i = 0; i < m_pCurAnimation->Bones.size(); i++) {
-		const msBone* pBone = &m_pCurAnimation->Bones[i];
-		const RageVector3& vRot = pBone->Rotation;
+		const auto* const pBone = &m_pCurAnimation->Bones[i];
+		const auto& vRot = pBone->Rotation;
 
 		RageMatrixAngles(&m_vpBones[i].m_Relative, vRot);
 
@@ -575,7 +580,8 @@ Model::PlayAnimation(const RString& sAniName, float fPlayRate)
 		m_vpBones[i].m_Relative.m[3][1] = pBone->Position[1];
 		m_vpBones[i].m_Relative.m[3][2] = pBone->Position[2];
 
-		int nParentBone = m_pCurAnimation->FindBoneByName(pBone->sParentName);
+		const auto nParentBone =
+		  m_pCurAnimation->FindBoneByName(pBone->sParentName);
 		if (nParentBone != -1) {
 			RageMatrixMultiply(&m_vpBones[i].m_Absolute,
 							   &m_vpBones[nParentBone].m_Absolute,
@@ -587,14 +593,14 @@ Model::PlayAnimation(const RString& sAniName, float fPlayRate)
 	}
 
 	// subtract out the bone's resting position
-	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
-		msMesh* pMesh = &m_pGeometry->m_Meshes[i];
-		vector<RageModelVertex>& Vertices = pMesh->Vertices;
-		for (unsigned j = 0; j < Vertices.size(); j++) {
+	for (auto& m_Meshe : m_pGeometry->m_Meshes) {
+		auto* pMesh = &m_Meshe;
+		auto& Vertices = pMesh->Vertices;
+		for (auto& Vertice : Vertices) {
 			// int iBoneIndex = (pMesh->m_iBoneIndex!=-1) ? pMesh->m_iBoneIndex
 			// : bone;
-			RageVector3& pos = Vertices[j].p;
-			int8_t bone = Vertices[j].bone;
+			auto& pos = Vertice.p;
+			const auto bone = Vertice.bone;
 			if (bone != -1) {
 				pos[0] -= m_vpBones[bone].m_Absolute.m[3][0];
 				pos[1] -= m_vpBones[bone].m_Absolute.m[3][1];
@@ -623,14 +629,14 @@ void
 Model::SetPosition(float fSeconds)
 {
 	m_fCurFrame = FRAMES_PER_SECOND * fSeconds;
-	m_fCurFrame =
-	  clamp(m_fCurFrame, 0, static_cast<float>(m_pCurAnimation->nTotalFrames));
+	m_fCurFrame = std::clamp(
+	  m_fCurFrame, 0.F, static_cast<float>(m_pCurAnimation->nTotalFrames));
 }
 
 void
 Model::AdvanceFrame(float fDeltaTime)
 {
-	if (m_pGeometry == NULL || m_pGeometry->m_Meshes.empty() ||
+	if (m_pGeometry == nullptr || m_pGeometry->m_Meshes.empty() ||
 		!m_pCurAnimation) {
 		return; // bail early
 	}
@@ -639,7 +645,7 @@ Model::AdvanceFrame(float fDeltaTime)
 
 	m_fCurFrame += FRAMES_PER_SECOND * fDeltaTime * m_fCurAnimationRate;
 	if (m_fCurFrame < 0 || m_fCurFrame >= m_pCurAnimation->nTotalFrames) {
-		if (m_sDefaultAnimation != "") {
+		if (!m_sDefaultAnimation.empty()) {
 			this->PlayAnimation(m_sDefaultAnimation, m_fDefaultAnimationRate);
 			/* XXX: add to m_fCurFrame the wrapover from the previous
 			 * m_fCurFrame-m_pCurAnimation->nTotalFrames, so it doesn't skip */
@@ -648,9 +654,9 @@ Model::AdvanceFrame(float fDeltaTime)
 				 static_cast<float>(m_pCurAnimation->nTotalFrames));
 		else
 			m_fCurFrame =
-			  clamp(m_fCurFrame,
-					0,
-					static_cast<float>(m_pCurAnimation->nTotalFrames));
+			  std::clamp(m_fCurFrame,
+						 0.F,
+						 static_cast<float>(m_pCurAnimation->nTotalFrames));
 	}
 
 	SetBones(m_pCurAnimation, m_fCurFrame, m_vpBones);
@@ -663,17 +669,17 @@ Model::SetBones(const msAnimation* pAnimation,
 				vector<myBone_t>& vpBones)
 {
 	for (size_t i = 0; i < pAnimation->Bones.size(); ++i) {
-		const msBone* pBone = &pAnimation->Bones[i];
-		if (pBone->PositionKeys.size() == 0 &&
-			pBone->RotationKeys.size() == 0) {
+		const auto* pBone = &pAnimation->Bones[i];
+		if (pBone->PositionKeys.empty() && pBone->RotationKeys.empty()) {
 			vpBones[i].m_Final = vpBones[i].m_Absolute;
 			continue;
 		}
 
 		// search for the adjacent position keys
-		const msPositionKey *pLastPositionKey = NULL, *pThisPositionKey = NULL;
-		for (size_t j = 0; j < pBone->PositionKeys.size(); ++j) {
-			const msPositionKey* pPositionKey = &pBone->PositionKeys[j];
+		const msPositionKey *pLastPositionKey = nullptr,
+							*pThisPositionKey = nullptr;
+		for (const auto& PositionKey : pBone->PositionKeys) {
+			const auto* const pPositionKey = &PositionKey;
 			if (pPositionKey->fTime >= fFrame) {
 				pThisPositionKey = pPositionKey;
 				break;
@@ -682,21 +688,22 @@ Model::SetBones(const msAnimation* pAnimation,
 		}
 
 		RageVector3 vPos;
-		if (pLastPositionKey != NULL && pThisPositionKey != NULL) {
-			const float s = SCALE(
+		if (pLastPositionKey != nullptr && pThisPositionKey != nullptr) {
+			const auto s = SCALE(
 			  fFrame, pLastPositionKey->fTime, pThisPositionKey->fTime, 0, 1);
 			vPos =
 			  pLastPositionKey->Position +
 			  (pThisPositionKey->Position - pLastPositionKey->Position) * s;
-		} else if (pLastPositionKey == NULL)
+		} else if (pLastPositionKey == nullptr && pThisPositionKey != nullptr)
 			vPos = pThisPositionKey->Position;
-		else if (pThisPositionKey == NULL)
+		else if (pThisPositionKey == nullptr && pLastPositionKey != nullptr)
 			vPos = pLastPositionKey->Position;
 
 		// search for the adjacent rotation keys
-		const msRotationKey *pLastRotationKey = NULL, *pThisRotationKey = NULL;
-		for (size_t j = 0; j < pBone->RotationKeys.size(); ++j) {
-			const msRotationKey* pRotationKey = &pBone->RotationKeys[j];
+		const msRotationKey *pLastRotationKey = nullptr,
+							*pThisRotationKey = nullptr;
+		for (const auto& RotationKey : pBone->RotationKeys) {
+			const auto* const pRotationKey = &RotationKey;
 			if (pRotationKey->fTime >= fFrame) {
 				pThisRotationKey = pRotationKey;
 				break;
@@ -705,14 +712,14 @@ Model::SetBones(const msAnimation* pAnimation,
 		}
 
 		RageVector4 vRot;
-		if (pLastRotationKey != NULL && pThisRotationKey != NULL) {
-			const float s = SCALE(
+		if (pLastRotationKey != nullptr && pThisRotationKey != nullptr) {
+			const auto s = SCALE(
 			  fFrame, pLastRotationKey->fTime, pThisRotationKey->fTime, 0, 1);
 			RageQuatSlerp(
 			  &vRot, pLastRotationKey->Rotation, pThisRotationKey->Rotation, s);
-		} else if (pLastRotationKey == NULL) {
+		} else if (pLastRotationKey == nullptr && pThisRotationKey != nullptr) {
 			vRot = pThisRotationKey->Rotation;
-		} else if (pThisRotationKey == NULL) {
+		} else if (pThisRotationKey == nullptr && pLastRotationKey != nullptr) {
 			vRot = pLastRotationKey->Rotation;
 		}
 
@@ -726,7 +733,7 @@ Model::SetBones(const msAnimation* pAnimation,
 		RageMatrix RelativeFinal;
 		RageMatrixMultiply(&RelativeFinal, &vpBones[i].m_Relative, &m);
 
-		int iParentBone = pAnimation->FindBoneByName(pBone->sParentName);
+		const auto iParentBone = pAnimation->FindBoneByName(pBone->sParentName);
 		if (iParentBone == -1)
 			vpBones[i].m_Final = RelativeFinal;
 		else
@@ -739,20 +746,20 @@ Model::SetBones(const msAnimation* pAnimation,
 void
 Model::UpdateTempGeometry()
 {
-	if (m_pGeometry == NULL || m_pTempGeometry == NULL)
+	if (m_pGeometry == nullptr || m_pTempGeometry == nullptr)
 		return;
 
 	for (unsigned i = 0; i < m_pGeometry->m_Meshes.size(); ++i) {
-		const msMesh& origMesh = m_pGeometry->m_Meshes[i];
-		msMesh& tempMesh = m_vTempMeshes[i];
-		const vector<RageModelVertex>& origVertices = origMesh.Vertices;
-		vector<RageModelVertex>& tempVertices = tempMesh.Vertices;
+		const auto& origMesh = m_pGeometry->m_Meshes[i];
+		auto& tempMesh = m_vTempMeshes[i];
+		const auto& origVertices = origMesh.Vertices;
+		auto& tempVertices = tempMesh.Vertices;
 		for (unsigned j = 0; j < origVertices.size(); j++) {
-			RageVector3& tempPos = tempVertices[j].p;
-			RageVector3& tempNormal = tempVertices[j].n;
-			const RageVector3& originalPos = origVertices[j].p;
-			const RageVector3& originalNormal = origVertices[j].n;
-			int8_t bone = origVertices[j].bone;
+			auto& tempPos = tempVertices[j].p;
+			auto& tempNormal = tempVertices[j].n;
+			const auto& originalPos = origVertices[j].p;
+			const auto& originalNormal = origVertices[j].n;
+			const auto bone = origVertices[j].bone;
 
 			if (bone == -1) {
 				tempNormal = originalNormal;
@@ -776,28 +783,27 @@ Model::Update(float fDelta)
 	Actor::Update(fDelta);
 	AdvanceFrame(fDelta);
 
-	for (unsigned i = 0; i < m_Materials.size(); ++i) {
-		m_Materials[i].diffuse.Update(fDelta);
-		m_Materials[i].alpha.Update(fDelta);
+	for (auto& m_Material : m_Materials) {
+		m_Material.diffuse.Update(fDelta);
+		m_Material.alpha.Update(fDelta);
 	}
 }
 
 int
 Model::GetNumStates() const
 {
-	int iMaxStates = 0;
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	iMaxStates = max(iMaxStates, m->diffuse.GetNumStates());
+	auto iMaxStates = 0;
+	for (const auto& m : m_Materials)
+		iMaxStates = std::max(iMaxStates, m.diffuse.GetNumStates());
 	return iMaxStates;
 }
 
 void
 Model::SetState(int iNewState)
 {
-	FOREACH(msMaterial, m_Materials, m)
-	{
-		m->diffuse.SetState(iNewState);
-		m->alpha.SetState(iNewState);
+	for (auto& m : m_Materials) {
+		m.diffuse.SetState(iNewState);
+		m.alpha.SetState(iNewState);
 	}
 }
 
@@ -805,29 +811,26 @@ void
 Model::RecalcAnimationLengthSeconds()
 {
 	m_animation_length_seconds = 0;
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	{
-		m_animation_length_seconds = max(
-		  m_animation_length_seconds, m->diffuse.GetAnimationLengthSeconds());
+	for (auto& m : m_Materials) {
+		m_animation_length_seconds = std::max(
+		  m_animation_length_seconds, m.diffuse.GetAnimationLengthSeconds());
 	}
 }
 
 void
 Model::SetSecondsIntoAnimation(float fSeconds)
 {
-	FOREACH(msMaterial, m_Materials, m)
-	{
-		m->diffuse.SetSecondsIntoAnimation(fSeconds);
-		m->alpha.SetSecondsIntoAnimation(fSeconds);
+	for (auto& m : m_Materials) {
+		m.diffuse.SetSecondsIntoAnimation(fSeconds);
+		m.alpha.SetSecondsIntoAnimation(fSeconds);
 	}
 }
 
 bool
 Model::MaterialsNeedNormals() const
 {
-	FOREACH_CONST(msMaterial, m_Materials, m)
-	{
-		if (m->NeedsNormals())
+	for (auto& m : m_Materials) {
+		if (m.NeedsNormals())
 			return true;
 	}
 	return false;
@@ -857,7 +860,7 @@ class LunaModel : public Luna<Model>
 	}
 	static int GetDefaultAnimation(T* p, lua_State* L)
 	{
-		lua_pushstring(L, p->GetDefaultAnimation());
+		lua_pushstring(L, p->GetDefaultAnimation().c_str());
 		return 1;
 	}
 	static int loop(T* p, lua_State* L)

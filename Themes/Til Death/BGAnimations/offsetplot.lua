@@ -5,12 +5,6 @@ local tst = ms.JudgeScalers
 local judge = GetTimingDifficulty()
 local tso = tst[judge]
 
-local enabledCustomWindows = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomEvaluationWindowTimings
-judge = enabledCustomWindows and 0 or judge
-local customWindowsData = timingWindowConfig:get_data()
-local customWindows = timingWindowConfig:get_data().customWindows
-local customWindow = timingWindowConfig:get_data()[customWindows[1]]
-
 local plotWidth, plotHeight = 400, 120
 local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth / 2, SCREEN_HEIGHT - 56 - plotHeight / 2
 local dotDims, plotMargin = 2, 4
@@ -34,13 +28,16 @@ local nrt = {}
 local ctt = {}
 local ntt = {}
 local wuab = {}
-local finalSecond = GAMESTATE:GetCurrentSong(PLAYER_1):GetLastSecond()
+local finalSecond = GAMESTATE:GetCurrentSteps():GetLastSecond()
 local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
 local oddColumns = false
 local middleColumn = 1.5 -- middle column for 4k but accounting for trackvector indexing at 0
 
 local handspecific = false
 local left = false
+local down = false
+local up = false
+local right = false
 local middle = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
@@ -58,9 +55,16 @@ local function HighlightUpdaterThing(self)
 	self:GetChild("BGQuad"):queuecommand("Highlight")
 end
 
+-- we removed j1-3 so uhhh this stops things lazily
+local function clampJudge()
+	if judge < 4 then judge = 4 end
+	if judge > 9 then judge = 9 end
+end
+clampJudge()
+
 local function scaleToJudge(scale)
 	scale = notShit.round(scale, 2)
-	local scales = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+	local scales = ms.JudgeScalers
 	local out = 4
 	for k,v in pairs(scales) do
 		if v == scale then
@@ -89,14 +93,15 @@ end
 
 local o =
 	Def.ActorFrame {
+	Name = "OffsetPlot",
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
-
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
-		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
-			if not enabledCustomWindows then
+		if name == "ScreenNetEvaluation" then -- moving away from grabbing anything in pss, dont want to mess with net stuff atm
+			if not forcedWindow then
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
+				clampJudge()
 				tso = tst[judge]
 			end
 			local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
@@ -108,24 +113,33 @@ local o =
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
-		elseif name == "ScreenScoreTabOffsetPlot" then -- loaded from scoretab not eval so we need to read from disk and adjust plot display
-			plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
-			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
-			textzoom = 0.5
-			bgalpha = 1
+		else -- should be default behavior 
+			if name == "ScreenScoreTabOffsetPlot" then
+				plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
+				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)			
+				textzoom = 0.5
+				bgalpha = 1
+			else
+				local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
+				if allowHovering then
+					self:SetUpdateFunction(HighlightUpdaterThing)
+				end
+			end
 
-			-- the internals here are really inefficient this should be handled better (internally) -mina
 			local score = getScoreForPlot()
-			dvt = score:GetOffsetVector()
-			nrt = score:GetNoteRowVector()
-			ctt = score:GetTrackVector()
-			ntt = score:GetTapNoteTypeVector()
+			if score ~= nil then
+				if score:HasReplayData() then
+					dvt = score:GetOffsetVector()
+					nrt = score:GetNoteRowVector()
+					ctt = score:GetTrackVector()
+					ntt = score:GetTapNoteTypeVector()
+				end
+			end
 		end
 
 		-- missing noterows. this happens with many online replays.
 		-- we can approximate, but i dont want to do that right now.
 		if nrt == nil then
-			ms.ok("While constructing the offset plot, an error occurred. Press ESC to continue.")
 			return
 		end
 
@@ -136,47 +150,71 @@ local o =
 		for i = 1, #nrt do
 			wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 		end
+
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
 	end,
-	CodeMessageCommand = function(self, params)
-		if enabledCustomWindows then
-			if params.Name == "PrevJudge" then
-				judge = judge < 2 and #customWindows or judge - 1
-				customWindow = timingWindowConfig:get_data()[customWindows[judge]]
-			elseif params.Name == "NextJudge" then
-				judge = judge == #customWindows and 1 or judge + 1
-				customWindow = timingWindowConfig:get_data()[customWindows[judge]]
+	SetFromScoreCommand = function(self, params)
+		if params.score then
+			local score = params.score
+			
+			if score:HasReplayData() then
+				dvt = score:GetOffsetVector()
+				nrt = score:GetNoteRowVector()
+				ctt = score:GetTrackVector()
+				ntt = score:GetTapNoteTypeVector()
 			end
-		elseif params.Name == "PrevJudge" and judge > 1 then
+
+			for i = 1, #nrt do
+				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+			end
+			
+			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+		end
+	end,
+	CodeMessageCommand = function(self, params)
+		if params.Name == "PrevJudge" and judge > 1 then
 			judge = judge - 1
+			clampJudge()
 			tso = tst[judge]
 		elseif params.Name == "NextJudge" and judge < 9 then
 			judge = judge + 1
+			clampJudge()
 			tso = tst[judge]
 		end
 		if params.Name == "ToggleHands" and #ctt > 0 then --super ghetto toggle -mina
 			if not handspecific then -- moving from none to left
 				handspecific = true
 				left = true
-			elseif handspecific and left then -- moving from left to middle
-				if oddColumns then
-					middle = true
-				end
+			elseif handspecific and left then 
+				down = true
 				left = false
-			elseif handspecific and middle then -- moving from middle to right
-				middle = false
-			elseif handspecific and not left then -- moving from right to none
+			elseif handspecific and down then 
+				down = false
+				up = true
+			elseif handspecific and up then 
+				up = false
+				right = true
+			elseif handspecific and right then -- moving from right to none
+				right = false
 				handspecific = false
 			end
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 		if params.Name == "ResetJudge" then
-			judge = enabledCustomWindows and 0 or GetTimingDifficulty()
+			judge = GetTimingDifficulty()
+			clampJudge()
 			tso = tst[GetTimingDifficulty()]
 		end
 		if params.Name ~= "ResetJudge" and params.Name ~= "PrevJudge" and params.Name ~= "NextJudge" and params.Name ~= "ToggleHands" then return end
-		maxOffset = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo or math.max(180, 180 * tso)
+		maxOffset = math.max(180, 180 * tso)
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+	end,
+	ForceWindowMessageCommand = function(self, params)
+		judge = params.judge
+		clampJudge()
+		tso = tst[judge]
+		maxOffset = math.max(180, 180 * tso)
+		forcedWindow = true
 	end,
 	UpdateNetEvalStatsMessageCommand = function(self) -- i haven't updated or tested neteval during last round of work -mina
 		local s = SCREENMAN:GetTopScreen():GetHighScore()
@@ -217,6 +255,7 @@ o[#o + 1] =
 			local row = convertXToRow(xpos)
 			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
 			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
+			local timebro = td:GetElapsedTimeFromNoteRow(row)
 			local marvCount = judgments[10]
 			local perfCount = judgments[9]
 			local greatCount = judgments[8]
@@ -226,7 +265,7 @@ o[#o + 1] =
 
 			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
 			-- The odd formatting here is in case we want to add translation support.
-			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d", wifescore, "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount)
+			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2f", wifescore, "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount, "timebro", timebro)
 		else
 			bar:visible(false)
 			txt:visible(false)
@@ -248,7 +287,7 @@ for i = 1, #fantabars do
 		Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows[judges[i]] or tso * fantabars[i]
+			local fit = tso * fantabars[i]
 			self:y(fitY(fit))
 		end
 	}
@@ -256,7 +295,7 @@ for i = 1, #fantabars do
 		Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows[judges[i]] or tso * fantabars[i]
+			local fit = tso * fantabars[i]
 			self:y(fitY(-fit))
 		end
 	}
@@ -288,12 +327,10 @@ o[#o + 1] =
 		for i = 1, #dvt do
 			local x = fitX(wuab[i])
 			local y = fitY(dvt[i])
-			local fit = (enabledCustomWindows and judge ~= 0) and customWindow.judgeWindows.boo + 3 or math.max(183, 183 * tso)
+			local fit = math.max(183, 183 * tso)
 			
 			-- get the color for the tap
-			local cullur =
-				(enabledCustomWindows and judge ~= 0) and customOffsetToJudgeColor(dvt[i], customWindow.judgeWindows) or
-				offsetToJudgeColor(dvt[i], tst[judge])
+			local cullur = offsetToJudgeColor(dvt[i], tst[judge])
 			cullur[4] = 1
 			local cullurFaded = {}
 
@@ -313,19 +350,25 @@ o[#o + 1] =
 			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
 			if ntt[i] ~= "TapNoteType_Mine" then
 				if handspecific and left then
-					if ctt[i] < middleColumn then
+					if ctt[i] == 0 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight left
 					end
-				elseif handspecific and middle then
-					if ctt[i] == middleColumn then
+				elseif handspecific and down then
+					if ctt[i] == 1 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
-						setOffsetVerts(verts, x, y, cullurFaded) -- highlight middle
+						setOffsetVerts(verts, x, y, cullurFaded) 
 					end
-				elseif handspecific then
-					if ctt[i] > middleColumn then
+				elseif handspecific and up then
+					if ctt[i] == 2 then
+						setOffsetVerts(verts, x, y, cullur)
+					else
+						setOffsetVerts(verts, x, y, cullurFaded)
+					end
+				elseif handspecific and right then
+					if ctt[i] == 3 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight right
@@ -349,11 +392,13 @@ o[#o + 1] =
 			if #ntt > 0 then
 				if handspecific then
 					if left then
-						self:settext(translated_info["Left"])
-					elseif middle then
-						self:settext(translated_info["Middle"])
-					else
-						self:settext(translated_info["Right"])
+						self:settext("left")
+					elseif down then
+						self:settext("down")
+					elseif up then
+						self:settext("up")
+					elseif right then
+						self:settext("right")
 					end
 				else
 					self:settext(translated_info["Down"])
@@ -417,11 +462,7 @@ o[#o + 1] =
 			end
 		end,
 		SetCommand = function(self)
-			if enabledCustomWindows then
-				jdgname = customWindow.name
-			else
-				jdgname = "J" .. judge
-			end
+			local jdgname = "J" .. judge
 			self:settextf("%s", jdgname)
 		end,
 		JudgeDisplayChangedMessageCommand = function(self)

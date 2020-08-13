@@ -1,9 +1,6 @@
-﻿#include "Etterna/Globals/global.h"
-#include <cassert>
-
+#include "Etterna/Globals/global.h"
 #include "ActorMultiVertex.h"
 #include "ActorUtil.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -12,6 +9,9 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include <cassert>
+#include <algorithm>
 
 const float min_state_delay = 0.0001f;
 
@@ -53,7 +53,7 @@ REGISTER_ACTOR_CLASS(ActorMultiVertex);
 ActorMultiVertex::ActorMultiVertex()
 {
 	// Use blank texture by default.
-	RageTextureID ID = TEXTUREMAN->GetDefaultTextureID();
+	const auto ID = TEXTUREMAN->GetDefaultTextureID();
 	_Texture = TEXTUREMAN->LoadTexture(ID);
 
 	_EffectMode = EffectMode_Normal;
@@ -68,6 +68,7 @@ ActorMultiVertex::ActorMultiVertex()
 	_use_animation_state = false;
 	_secs_into_state = 0.0f;
 	_cur_state = 0;
+	AMV_TempState = nullptr;
 }
 
 ActorMultiVertex::~ActorMultiVertex()
@@ -90,6 +91,7 @@ ActorMultiVertex::ActorMultiVertex(const ActorMultiVertex& cpy)
 	CPY(_secs_into_state);
 	CPY(_cur_state);
 	CPY(_states);
+	CPY(_decode_movie);
 #undef CPY
 
 	if (cpy._Texture != nullptr) {
@@ -97,12 +99,13 @@ ActorMultiVertex::ActorMultiVertex(const ActorMultiVertex& cpy)
 	} else {
 		_Texture = nullptr;
 	}
+	AMV_TempState = nullptr;
 }
 
 void
 ActorMultiVertex::LoadFromNode(const XNode* Node)
 {
-	RString path;
+	std::string path;
 	Node->GetAttrValue("Texture", path);
 	if (!path.empty() &&
 		!TEXTUREMAN->IsTextureRegistered(RageTextureID(path))) {
@@ -116,7 +119,7 @@ ActorMultiVertex::LoadFromNode(const XNode* Node)
 }
 
 void
-ActorMultiVertex::SetTexture(RageTexture* Texture)
+ActorMultiVertex::SetTexture(std::shared_ptr<RageTexture> Texture)
 {
 	if (_Texture != Texture) {
 		UnloadTexture();
@@ -127,7 +130,7 @@ ActorMultiVertex::SetTexture(RageTexture* Texture)
 void
 ActorMultiVertex::LoadFromTexture(const RageTextureID& ID)
 {
-	RageTexture* Texture = nullptr;
+	std::shared_ptr<RageTexture> Texture;
 	if ((_Texture != nullptr) && _Texture->GetID() == ID) {
 		return;
 	}
@@ -148,14 +151,14 @@ void
 ActorMultiVertex::SetNumVertices(size_t n)
 {
 	if (n == 0) {
-		for (size_t i = 0; i < AMV_Tweens.size(); ++i) {
-			AMV_Tweens[i].vertices.clear();
+		for (auto& AMV_Tween : AMV_Tweens) {
+			AMV_Tween.vertices.clear();
 		}
 		AMV_current.vertices.clear();
 		AMV_start.vertices.clear();
 	} else {
-		for (size_t i = 0; i < AMV_Tweens.size(); ++i) {
-			AMV_Tweens[i].vertices.resize(n);
+		for (auto& AMV_Tween : AMV_Tweens) {
+			AMV_Tween.vertices.resize(n);
 		}
 		AMV_current.vertices.resize(n);
 		AMV_start.vertices.resize(n);
@@ -165,8 +168,8 @@ ActorMultiVertex::SetNumVertices(size_t n)
 void
 ActorMultiVertex::AddVertex()
 {
-	for (size_t i = 0; i < AMV_Tweens.size(); ++i) {
-		AMV_Tweens[i].vertices.push_back(RageSpriteVertex());
+	for (auto& AMV_Tween : AMV_Tweens) {
+		AMV_Tween.vertices.push_back(RageSpriteVertex());
 	}
 	AMV_current.vertices.push_back(RageSpriteVertex());
 	AMV_start.vertices.push_back(RageSpriteVertex());
@@ -177,8 +180,8 @@ ActorMultiVertex::AddVertices(int Add)
 {
 	int size = AMV_DestTweenState().vertices.size();
 	size += Add;
-	for (size_t i = 0; i < AMV_Tweens.size(); ++i) {
-		AMV_Tweens[i].vertices.resize(size);
+	for (auto& AMV_Tween : AMV_Tweens) {
+		AMV_Tween.vertices.resize(size);
 	}
 	AMV_current.vertices.resize(size);
 	AMV_start.vertices.resize(size);
@@ -222,7 +225,7 @@ ActorMultiVertex::DrawPrimitives()
 	if (m_pTempState->diffuse[0] != RageColor(1, 1, 1, 1) &&
 		m_pTempState->diffuse[0].a > 0) {
 
-		for (size_t i = 0; i < TS.vertices.size(); i++) {
+		for (auto& vertice : TS.vertices) {
 			// RageVColor uses a uint8_t for each channel.  0-255.
 			// RageColor uses a float. 0-1.
 			// So each channel of the RageVColor needs to be converted to a
@@ -234,10 +237,10 @@ ActorMultiVertex::DrawPrimitives()
 #define MULT_COLOR_ELEMENTS(color_a, color_b)                                  \
 	color_a = static_cast<uint8_t>(static_cast<float>(color_a) * (color_b));
 			// RageVColor * RageColor
-			MULT_COLOR_ELEMENTS(TS.vertices[i].c.b, m_pTempState->diffuse[0].b);
-			MULT_COLOR_ELEMENTS(TS.vertices[i].c.r, m_pTempState->diffuse[0].r);
-			MULT_COLOR_ELEMENTS(TS.vertices[i].c.g, m_pTempState->diffuse[0].g);
-			MULT_COLOR_ELEMENTS(TS.vertices[i].c.a, m_pTempState->diffuse[0].a);
+			MULT_COLOR_ELEMENTS(vertice.c.b, m_pTempState->diffuse[0].b);
+			MULT_COLOR_ELEMENTS(vertice.c.r, m_pTempState->diffuse[0].r);
+			MULT_COLOR_ELEMENTS(vertice.c.g, m_pTempState->diffuse[0].g);
+			MULT_COLOR_ELEMENTS(vertice.c.a, m_pTempState->diffuse[0].a);
 #undef MULT_COLOR_ELEMENTS
 		}
 	}
@@ -251,8 +254,8 @@ ActorMultiVertex::DrawPrimitives()
 	// Draw the glow pass
 	if (m_pTempState->glow.a > 0) {
 
-		for (size_t i = 0; i < TS.vertices.size(); i++) {
-			TS.vertices[i].c = m_pTempState->glow;
+		for (auto& vertice : TS.vertices) {
+			vertice.c = m_pTempState->glow;
 		}
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
 		DrawInternal(AMV_TempState);
@@ -262,9 +265,8 @@ ActorMultiVertex::DrawPrimitives()
 void
 ActorMultiVertex::DrawInternal(const AMV_TweenState* TS)
 {
-
-	int FirstToDraw = TS->FirstToDraw;
-	int NumToDraw = TS->GetSafeNumToDraw(TS->_DrawMode, TS->NumToDraw);
+	const auto FirstToDraw = TS->FirstToDraw;
+	const auto NumToDraw = TS->GetSafeNumToDraw(TS->_DrawMode, TS->NumToDraw);
 
 	if (NumToDraw == 0) {
 		// Nothing to draw.
@@ -324,14 +326,14 @@ ActorMultiVertex::EarlyAbortDraw() const
 void
 ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t offset)
 {
-	vector<RageSpriteVertex>& verts = AMV_DestTweenState().vertices;
-	size_t first = AMV_DestTweenState().FirstToDraw + offset;
-	size_t num_verts =
+	auto& verts = AMV_DestTweenState().vertices;
+	const auto first = AMV_DestTweenState().FirstToDraw + offset;
+	const auto num_verts =
 	  AMV_DestTweenState().GetSafeNumToDraw(AMV_DestTweenState()._DrawMode,
 											AMV_DestTweenState().NumToDraw) -
 	  offset;
 	vector<float> tper(num_splines, 0.0f);
-	float num_parts =
+	const auto num_parts =
 	  (static_cast<float>(num_verts) / static_cast<float>(num_splines)) - 1.0f;
 	for (size_t i = 0; i < num_splines; ++i) {
 		tper[i] = _splines[i].get_max_t() / num_parts;
@@ -339,7 +341,7 @@ ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t offset)
 	for (size_t v = 0; v < num_verts; ++v) {
 		vector<float> pos;
 		const int spi = v % num_splines;
-		auto part = static_cast<float>(v / num_splines);
+		const auto part = static_cast<float>(v) / num_splines;
 		_splines[spi].evaluate(part * tper[spi], pos);
 		verts[v + first].p.x = pos[0];
 		verts[v + first].p.y = pos[1];
@@ -395,14 +397,19 @@ ActorMultiVertex::SetState(size_t i)
 void
 ActorMultiVertex::SetAllStateDelays(float delay)
 {
-	FOREACH(State, _states, s) { s->delay = delay; }
+	for (auto& s : _states) {
+		s.delay = delay;
+	}
 }
 
 float
 ActorMultiVertex::GetAnimationLengthSeconds() const
 {
-	float tot = 0.0f;
-	FOREACH_CONST(State, _states, s) { tot += s->delay; }
+	auto tot = 0.0f;
+	for (const auto& s : _states) {
+		tot += s.delay;
+	}
+
 	return tot;
 }
 
@@ -420,14 +427,14 @@ ActorMultiVertex::SetSecondsIntoAnimation(float seconds)
 void
 ActorMultiVertex::UpdateAnimationState(bool force_update)
 {
-	AMV_TweenState& dest = AMV_DestTweenState();
-	vector<RageSpriteVertex>& verts = dest.vertices;
-	vector<size_t>& qs = dest.quad_states;
+	auto& dest = AMV_DestTweenState();
+	auto& verts = dest.vertices;
+	auto& qs = dest.quad_states;
 	if (!_use_animation_state || _states.empty() ||
 		dest._DrawMode == DrawMode_LineStrip || qs.empty()) {
 		return;
 	}
-	bool state_changed = force_update;
+	auto state_changed = force_update;
 	if (_states.size() > 1) {
 		while (_states[_cur_state].delay > min_state_delay &&
 			   _secs_into_state + min_state_delay > _states[_cur_state].delay) {
@@ -437,16 +444,16 @@ ActorMultiVertex::UpdateAnimationState(bool force_update)
 		}
 	}
 	if (state_changed) {
-		size_t first = dest.FirstToDraw;
-		size_t last =
+		const size_t first = dest.FirstToDraw;
+		const auto last =
 		  first + dest.GetSafeNumToDraw(dest._DrawMode, dest.NumToDraw);
 #define STATE_ID                                                               \
 	const size_t state_id =                                                    \
 	  (_cur_state + qs[quad_id % qs.size()]) % _states.size();
 		switch (AMV_DestTweenState()._DrawMode) {
 			case DrawMode_Quads:
-				for (size_t i = first; i < last; ++i) {
-					const size_t quad_id = (i - first) / 4;
+				for (auto i = first; i < last; ++i) {
+					const auto quad_id = (i - first) / 4;
 					STATE_ID;
 					switch ((i - first) % 4) {
 						case 0:
@@ -469,8 +476,8 @@ ActorMultiVertex::UpdateAnimationState(bool force_update)
 				}
 				break;
 			case DrawMode_QuadStrip:
-				for (size_t i = first; i < last; ++i) {
-					const size_t quad_id = (i - first) / 2;
+				for (auto i = first; i < last; ++i) {
+					const auto quad_id = (i - first) / 2;
 					STATE_ID;
 					switch ((i - first) % 2) {
 						case 0:
@@ -486,16 +493,16 @@ ActorMultiVertex::UpdateAnimationState(bool force_update)
 				break;
 			case DrawMode_Strip:
 			case DrawMode_Fan:
-				for (size_t i = first; i < last; ++i) {
-					const size_t quad_id = (i - first);
+				for (auto i = first; i < last; ++i) {
+					const auto quad_id = (i - first);
 					STATE_ID;
 					verts[i].t.x = _states[state_id].rect.left;
 					verts[i].t.y = _states[state_id].rect.top;
 				}
 				break;
 			case DrawMode_Triangles:
-				for (size_t i = first; i < last; ++i) {
-					const size_t quad_id = (i - first) / 3;
+				for (auto i = first; i < last; ++i) {
+					const auto quad_id = (i - first) / 3;
 					STATE_ID;
 					switch ((i - first) % 3) {
 						case 0:
@@ -514,8 +521,8 @@ ActorMultiVertex::UpdateAnimationState(bool force_update)
 				}
 				break;
 			case DrawMode_SymmetricQuadStrip:
-				for (size_t i = first; i < last; ++i) {
-					const size_t quad_id = (i - first) / 3;
+				for (auto i = first; i < last; ++i) {
+					const auto quad_id = (i - first) / 3;
 					STATE_ID;
 					switch ((i - first) % 3) {
 						case 0:
@@ -540,7 +547,7 @@ ActorMultiVertex::UpdateAnimationState(bool force_update)
 void
 ActorMultiVertex::EnableAnimation(bool bEnable)
 {
-	bool bWasEnabled = m_bIsAnimating;
+	const auto bWasEnabled = m_bIsAnimating;
 	Actor::EnableAnimation(bEnable);
 
 	if (bEnable && !bWasEnabled) {
@@ -552,7 +559,7 @@ void
 ActorMultiVertex::Update(float fDelta)
 {
 	Actor::Update(fDelta); // do tweening
-	const bool skip_this_movie_update = _skip_next_update;
+	const auto skip_this_movie_update = _skip_next_update;
 	_skip_next_update = false;
 	if (!m_bIsAnimating) {
 		return;
@@ -560,14 +567,14 @@ ActorMultiVertex::Update(float fDelta)
 	if (_Texture == nullptr) {
 		return;
 	}
-	float time_passed = GetEffectDeltaTime();
+	const auto time_passed = GetEffectDeltaTime();
 	_secs_into_state += time_passed;
 	if (_secs_into_state < 0) {
 		wrap(_secs_into_state, GetAnimationLengthSeconds());
 	}
 	UpdateAnimationState();
 	if (!skip_this_movie_update && _decode_movie) {
-		_Texture->DecodeSeconds(max(0, time_passed));
+		_Texture->DecodeSeconds(std::max(0.F, time_passed));
 	}
 }
 
@@ -596,7 +603,7 @@ ActorMultiVertex::BeginTweening(float time, ITween* pTween)
 {
 	Actor::BeginTweening(time, pTween);
 
-	if (AMV_Tweens.size() >= 1) // if there was already a TS on the stack
+	if (!AMV_Tweens.empty()) // if there was already a TS on the stack
 	{
 		AMV_Tweens.push_back(AMV_Tweens.back());
 	} else {
@@ -623,22 +630,24 @@ ActorMultiVertex::FinishTweening()
 void
 ActorMultiVertex::AMV_TweenState::SetDrawState(DrawMode dm, int first, int num)
 {
-	if (first >= static_cast<int>(vertices.size()) && vertices.size() > 0) {
-		LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex:SetDrawState: "
-										 "FirstToDraw > vertices.size(), %d > "
-										 "%u",
-										 FirstToDraw + 1,
-										 (unsigned int)vertices.size());
+	if (first >= static_cast<int>(vertices.size()) && !vertices.empty()) {
+		LuaHelpers::ReportScriptErrorFmt(
+		  "ActorMultiVertex:SetDrawState: "
+		  "FirstToDraw > vertices.size(), %d > "
+		  "%u",
+		  FirstToDraw + 1,
+		  static_cast<unsigned int>(vertices.size()));
 		return;
 	}
-	int safe_num = GetSafeNumToDraw(dm, num);
+	const auto safe_num = GetSafeNumToDraw(dm, num);
 	if (num != safe_num && num != -1) {
-		LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex:SetDrawState: "
-										 "NumToDraw %d is not valid for %u "
-										 "vertices with DrawMode %s",
-										 num,
-										 (unsigned int)vertices.size(),
-										 DrawModeNames[dm]);
+		LuaHelpers::ReportScriptErrorFmt(
+		  "ActorMultiVertex:SetDrawState: "
+		  "NumToDraw %d is not valid for %u "
+		  "vertices with DrawMode %s",
+		  num,
+		  static_cast<unsigned int>(vertices.size()),
+		  DrawModeNames[dm]);
 		return;
 	}
 	_DrawMode = dm;
@@ -666,7 +675,7 @@ ActorMultiVertex::AMV_TweenState::MakeWeightedAverage(
 int
 ActorMultiVertex::AMV_TweenState::GetSafeNumToDraw(DrawMode dm, int num) const
 {
-	int max = vertices.size() - FirstToDraw;
+	const int max = vertices.size() - FirstToDraw;
 	// NumToDraw == -1 draws all vertices
 	if (num == -1 || num > max) {
 		num = max;
@@ -709,35 +718,35 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 			  "Table of tables of vertex data expected.");
 			return;
 		}
-		size_t NumDataParts = lua_objlen(L, DataStackIndex);
+		const auto NumDataParts = lua_objlen(L, DataStackIndex);
 		for (size_t i = 0; i < NumDataParts; ++i) {
 			lua_pushnumber(L, i + 1);
 			lua_gettable(L, DataStackIndex);
-			int DataPieceIndex = lua_gettop(L);
-			size_t DataPieceElements = lua_objlen(L, DataPieceIndex);
+			const auto DataPieceIndex = lua_gettop(L);
+			const auto DataPieceElements = lua_objlen(L, DataPieceIndex);
 			if (lua_type(L, DataPieceIndex) != LUA_TTABLE) {
 				LuaHelpers::ReportScriptErrorFmt(
 				  "ActorMultiVertex::SetVertex: non-table parameter %u "
 				  "supplied inside table of parameters, table expected.",
-				  (unsigned int)i);
+				  static_cast<unsigned int>(i));
 				return;
 			}
-			int pushes = 1;
+			auto pushes = 1;
 			if (DataPieceElements == 2) {
 				pushes += 2;
 				lua_rawgeti(L, DataPieceIndex, 1);
-				float x = FArg(-1);
+				const auto x = FArg(-1);
 				lua_rawgeti(L, DataPieceIndex, 2);
-				float y = FArg(-1);
+				const auto y = FArg(-1);
 				p->SetVertexCoords(VertexIndex, x, y);
 			} else if (DataPieceElements == 3) {
 				pushes += 3;
 				lua_rawgeti(L, DataPieceIndex, 1);
-				float x = FArg(-1);
+				const auto x = FArg(-1);
 				lua_rawgeti(L, DataPieceIndex, 2);
-				float y = FArg(-1);
+				const auto y = FArg(-1);
 				lua_rawgeti(L, DataPieceIndex, 3);
-				float z = FArg(-1);
+				const auto z = FArg(-1);
 				p->SetVertexPos(VertexIndex, x, y, z);
 			} else if (DataPieceElements == 4) {
 				// RageColor pops the things it pushes onto the stack, so we
@@ -751,19 +760,18 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 				LuaHelpers::ReportScriptErrorFmt(
 				  "ActorMultiVertex::SetVertex: Parameter %u has %u elements "
 				  "supplied. 2, 3, or 4 expected.",
-				  (unsigned int)i,
-				  (unsigned int)DataPieceElements);
+				  static_cast<unsigned int>(i),
+				  static_cast<unsigned int>(DataPieceElements));
 			}
 			// Avoid a stack underflow by only popping the amount we pushed.
 			lua_pop(L, pushes);
 		}
-		return;
 	}
 
 	static int SetVertex(T* p, lua_State* L)
 	{
 		// Indices from Lua are one-indexed.  -1 to adjust.
-		int Index = IArg(1) - 1;
+		const auto Index = IArg(1) - 1;
 		if (Index < 0) {
 			LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex::SetVertex: "
 											 "index %d provided, cannot set "
@@ -774,12 +782,13 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		if (Index == static_cast<int>(p->GetNumVertices())) {
 			p->AddVertices(1);
 		} else if (Index > static_cast<int>(p->GetNumVertices())) {
-			LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex::SetVertex: "
-											 "Cannot set vertex %d if there is "
-											 "no vertex %d, only %u vertices.",
-											 Index + 1,
-											 Index,
-											 (unsigned int)p->GetNumVertices());
+			LuaHelpers::ReportScriptErrorFmt(
+			  "ActorMultiVertex::SetVertex: "
+			  "Cannot set vertex %d if there is "
+			  "no vertex %d, only %u vertices.",
+			  Index + 1,
+			  Index,
+			  static_cast<unsigned int>(p->GetNumVertices()));
 			COMMON_RETURN_SELF;
 		}
 		SetVertexFromStack(p, L, Index, lua_gettop(L));
@@ -788,8 +797,8 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 
 	static int SetVertices(T* p, lua_State* L)
 	{
-		int First = 0;
-		int StackIndex = lua_gettop(L);
+		auto First = 0;
+		const auto StackIndex = lua_gettop(L);
 		// Allow the user to just pass a table without specifying a starting
 		// point.
 		if (lua_type(L, 1) == LUA_TNUMBER) {
@@ -803,11 +812,11 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 				COMMON_RETURN_SELF;
 			}
 		}
-		int Last = First + lua_objlen(L, StackIndex);
+		const int Last = First + lua_objlen(L, StackIndex);
 		if (Last > static_cast<int>(p->GetNumVertices())) {
 			p->AddVertices(Last - p->GetNumVertices());
 		}
-		for (int n = First; n < Last; ++n) {
+		for (auto n = First; n < Last; ++n) {
 			lua_pushnumber(L, n - First + 1);
 			lua_gettable(L, StackIndex);
 			SetVertexFromStack(p, L, n, lua_gettop(L));
@@ -818,21 +827,21 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 
 	static int SetEffectMode(T* p, lua_State* L)
 	{
-		EffectMode em = Enum::Check<EffectMode>(L, 1);
+		const auto em = Enum::Check<EffectMode>(L, 1);
 		p->SetEffectMode(em);
 		COMMON_RETURN_SELF;
 	}
 
 	static int SetTextureMode(T* p, lua_State* L)
 	{
-		TextureMode tm = Enum::Check<TextureMode>(L, 1);
+		const auto tm = Enum::Check<TextureMode>(L, 1);
 		p->SetTextureMode(tm);
 		COMMON_RETURN_SELF;
 	}
 
 	static int SetLineWidth(T* p, lua_State* L)
 	{
-		float Width = FArg(1);
+		const auto Width = FArg(1);
 		if (Width < 0) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "ActorMultiVertex::SetLineWidth: cannot set negative width.");
@@ -844,10 +853,10 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 
 	static int SetDrawState(T* p, lua_State* L)
 	{
-		DrawMode dm = p->GetDestDrawMode();
-		int first = p->GetDestFirstToDraw();
-		int num = p->GetDestNumToDraw();
-		int ArgsIndex = 1;
+		auto dm = p->GetDestDrawMode();
+		auto first = p->GetDestFirstToDraw();
+		auto num = p->GetDestNumToDraw();
+		const auto ArgsIndex = 1;
 		if (!lua_istable(L, ArgsIndex)) {
 			LuaHelpers::ReportScriptErrorFmt("ActorMultiVertex:SetDrawState: "
 											 "Table expected, something else "
@@ -921,7 +930,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 			p->UnloadTexture();
 			p->LoadFromTexture(TEXTUREMAN->GetDefaultTextureID());
 		} else {
-			RageTextureID ID(SArg(1));
+			const RageTextureID ID(SArg(1));
 			TEXTUREMAN->DisableOddDimensionWarning();
 			p->LoadFromTexture(ID);
 			TEXTUREMAN->EnableOddDimensionWarning();
@@ -931,7 +940,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 
 	static int GetSpline(T* p, lua_State* L)
 	{
-		auto i = static_cast<size_t>(IArg(1) - 1);
+		const auto i = static_cast<size_t>(IArg(1) - 1);
 		if (i >= ActorMultiVertex::num_vert_splines) {
 			luaL_error(L,
 					   "Spline index must be greater than 0 and less than or "
@@ -989,8 +998,8 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		SET_SIDE(4, rect.bottom);
 		lua_pop(L, 1);
 		SET_SIDE(2, delay);
-		const float width_ratio = tex->GetImageToTexCoordsRatioX();
-		const float height_ratio = tex->GetImageToTexCoordsRatioY();
+		const auto width_ratio = tex->GetImageToTexCoordsRatioX();
+		const auto height_ratio = tex->GetImageToTexCoordsRatioY();
 		state.rect.left = state.rect.left * width_ratio;
 		state.rect.top = state.rect.top * height_ratio;
 		// Pixel centers are at .5, so add an extra pixel to the size to adjust.
@@ -1002,13 +1011,13 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	static int AddState(T* p, lua_State* L)
 	{
 		ActorMultiVertex::State s;
-		FillStateFromLua(L, s, p->GetTexture(), 1);
+		FillStateFromLua(L, s, p->GetTexture().get(), 1);
 		p->AddState(s);
 		COMMON_RETURN_SELF;
 	}
 	static size_t ValidStateIndex(T* p, lua_State* L, int pos)
 	{
-		int index = IArg(pos) - 1;
+		const auto index = IArg(pos) - 1;
 		if (index < 0 || index >= p->GetNumStates()) {
 			luaL_error(L, "Invalid state index %d.", index + 1);
 		}
@@ -1031,16 +1040,15 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	}
 	static int GetStateData(T* p, lua_State* L)
 	{
-		RageTexture* tex = p->GetTexture();
+		auto const tex = p->GetTexture();
 		if (tex == nullptr) {
 			luaL_error(L, "The texture must be set before adding states.");
 		}
-		const float width_pix = tex->GetImageToTexCoordsRatioX();
-		const float height_pix = tex->GetImageToTexCoordsRatioY();
-		const float width_ratio = 1.0f / tex->GetImageToTexCoordsRatioX();
-		const float height_ratio = 1.0f / tex->GetImageToTexCoordsRatioY();
-		const ActorMultiVertex::State& state =
-		  p->GetStateData(ValidStateIndex(p, L, 1));
+		const auto width_pix = tex->GetImageToTexCoordsRatioX();
+		const auto height_pix = tex->GetImageToTexCoordsRatioY();
+		const auto width_ratio = 1.0f / tex->GetImageToTexCoordsRatioX();
+		const auto height_ratio = 1.0f / tex->GetImageToTexCoordsRatioY();
+		const auto& state = p->GetStateData(ValidStateIndex(p, L, 1));
 		lua_createtable(L, 2, 0);
 		lua_createtable(L, 4, 0);
 		lua_pushnumber(L, state.rect.left * width_ratio);
@@ -1058,9 +1066,8 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	}
 	static int SetStateData(T* p, lua_State* L)
 	{
-		ActorMultiVertex::State& state =
-		  p->GetStateData(ValidStateIndex(p, L, 1));
-		FillStateFromLua(L, state, p->GetTexture(), 2);
+		auto& state = p->GetStateData(ValidStateIndex(p, L, 1));
+		FillStateFromLua(L, state, p->GetTexture().get(), 2);
 		COMMON_RETURN_SELF;
 	}
 	static int SetStateProperties(T* p, lua_State* L)
@@ -1068,16 +1075,16 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		if (!lua_istable(L, 1)) {
 			luaL_error(L, "The states must be inside a table.");
 		}
-		RageTexture* tex = p->GetTexture();
+		auto const tex = p->GetTexture();
 		if (tex == nullptr) {
 			luaL_error(L, "The texture must be set before adding states.");
 		}
 		vector<ActorMultiVertex::State> new_states;
-		size_t num_states = lua_objlen(L, 1);
+		const auto num_states = lua_objlen(L, 1);
 		new_states.resize(num_states);
 		for (size_t i = 0; i < num_states; ++i) {
 			lua_rawgeti(L, 1, i + 1);
-			FillStateFromLua(L, new_states[i], tex, -1);
+			FillStateFromLua(L, new_states[i], tex.get(), -1);
 			lua_pop(L, 1);
 		}
 		p->SetStateProperties(new_states);
@@ -1101,7 +1108,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 	}
 	static size_t QuadStateIndex(T* p, lua_State* L, int pos)
 	{
-		size_t index = IArg(pos) - 1;
+		const size_t index = IArg(pos) - 1;
 		if (index >= p->GetNumQuadStates()) {
 			luaL_error(L, "Invalid state index %d.", index + 1);
 		}
@@ -1141,14 +1148,15 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 
 	static int SetTexture(T* p, lua_State* L)
 	{
-		RageTexture* Texture = Luna<RageTexture>::check(L, 1);
-		Texture = TEXTUREMAN->CopyTexture(Texture);
-		p->SetTexture(Texture);
+		auto pTexture = Luna<RageTexture>::check(L, 1);
+		std::shared_ptr<RageTexture> rt(pTexture);
+		rt = TEXTUREMAN->CopyTexture(rt);
+		p->SetTexture(rt);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		RageTexture* texture = p->GetTexture();
+		auto texture = p->GetTexture();
 		if (texture != nullptr) {
 			texture->PushSelf(L);
 		} else {

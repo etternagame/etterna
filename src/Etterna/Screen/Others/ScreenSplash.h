@@ -12,7 +12,7 @@ class ScreenSplash : public ScreenWithMenuElements
 	void Init() override;
 	void BeginScreen() override;
 
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	bool MenuBack(const InputEventPlus& input) override;
 	bool MenuStart(const InputEventPlus& input) override;
 

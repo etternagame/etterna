@@ -1,6 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "DifficultyList.h"
+
+#include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -9,6 +11,8 @@
 #include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
 
 /** @brief Specifies the max number of charts available for a song.
  *
@@ -22,9 +26,10 @@ REGISTER_ACTOR_CLASS(StepsDisplayList);
 
 StepsDisplayList::StepsDisplayList()
 {
+	m_CurSong = nullptr;
 	m_bShown = true;
-	SubscribeToMessage((MessageID)(Message_CurrentStepsP1Changed + PLAYER_1));
-	SubscribeToMessage((MessageID)(Message_CurrentTrailP1Changed + PLAYER_1));
+	SubscribeToMessage(
+	  static_cast<MessageID>(Message_CurrentStepsChanged + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -45,10 +50,10 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	MOVE_COMMAND.Load(m_sName, "MoveCommand");
 
 	m_Lines.resize(MAX_METERS);
-	m_CurSong = NULL;
+	m_CurSong = nullptr;
 
 	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
-	if (pChild == NULL) {
+	if (pChild == nullptr) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "%s: StepsDisplayList: missing the node \"CursorP%d\"",
 		  ActorUtil::GetWhere(pNode).c_str(),
@@ -65,7 +70,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	 * stacks.  This means the Cursor command can't change diffuse colors; I
 	 * think we do need a diffuse color stack ... */
 	pChild = pNode->GetChild(ssprintf("CursorP%iFrame", PLAYER_1 + 1));
-	if (pChild == NULL) {
+	if (pChild == nullptr) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "%s: StepsDisplayList: missing the node \"CursorP%dFrame\"",
 		  ActorUtil::GetWhere(pNode).c_str(),
@@ -76,11 +81,11 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 		this->AddChild(&m_CursorFrames);
 	}
 
-	for (unsigned m = 0; m < m_Lines.size(); ++m) {
+	for (auto& m_Line : m_Lines) {
 		// todo: Use Row1, Row2 for names? also m_sName+"Row" -aj
-		m_Lines[m].m_Meter.SetName("Row");
-		m_Lines[m].m_Meter.Load("StepsDisplayListRow", NULL);
-		this->AddChild(&m_Lines[m].m_Meter);
+		m_Line.m_Meter.SetName("Row");
+		m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
+		this->AddChild(&m_Line.m_Meter);
 	}
 
 	UpdatePositions();
@@ -90,12 +95,13 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 int
 StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 {
-	Difficulty ClosestDifficulty = GAMESTATE->GetClosestShownDifficulty(pn);
+	const Difficulty ClosestDifficulty =
+	  GAMESTATE->GetClosestShownDifficulty(pn);
 
 	for (unsigned i = 0; i < m_Rows.size(); i++) {
 		const Row& row = m_Rows[i];
 
-		if (GAMESTATE->m_pCurSteps == NULL) {
+		if (GAMESTATE->m_pCurSteps == nullptr) {
 			if (row.m_dc == ClosestDifficulty)
 				return i;
 		} else {
@@ -111,7 +117,7 @@ StepsDisplayList::GetCurrentRowIndex(PlayerNumber pn) const
 void
 StepsDisplayList::UpdatePositions()
 {
-	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
+	const int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
 	const int total = NUM_SHOWN_ITEMS;
 	const int halfsize = total / 2;
@@ -120,41 +126,41 @@ StepsDisplayList::UpdatePositions()
 
 	// Choices for each player. If only one player is active, it's the same for
 	// both.
-	int P1Choice = iCurrentRow;
+	const int P1Choice = iCurrentRow;
 
 	vector<Row>& Rows = m_Rows;
 
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if (!BothPlayersActivated) {
 		// Simply center the cursor.
-		first_start = max(P1Choice - halfsize, 0);
+		first_start = std::max(P1Choice - halfsize, 0);
 		first_end = first_start + total;
 		second_start = second_end = first_end;
 	} else {
 		// First half:
 		const int earliest = P1Choice;
-		first_start = max(earliest - halfsize / 2, 0);
+		first_start = std::max(earliest - halfsize / 2, 0);
 		first_end = first_start + halfsize;
 
 		// Second half:
 		const int latest = P1Choice;
 
-		second_start = max(latest - halfsize / 2, 0);
+		second_start = std::max(latest - halfsize / 2, 0);
 
 		// Don't overlap.
-		second_start = max(second_start, first_end);
+		second_start = std::max(second_start, first_end);
 
 		second_end = second_start + halfsize;
 	}
 
-	first_end = min(first_end, (int)Rows.size());
-	second_end = min(second_end, (int)Rows.size());
+	first_end = std::min(first_end, static_cast<int>(Rows.size()));
+	second_end = std::min(second_end, static_cast<int>(Rows.size()));
 
 	/* If less than total (and Rows.size()) are displayed, fill in the empty
 	 * space intelligently. */
 	for (;;) {
 		const int sum = (first_end - first_start) + (second_end - second_start);
-		if (sum >= (int)Rows.size() || sum >= total)
+		if (sum >= static_cast<int>(Rows.size()) || sum >= total)
 			break; // nothing more to display, or no room
 
 		/* First priority: expand the top of the second half until it meets
@@ -164,14 +170,14 @@ StepsDisplayList::UpdatePositions()
 		// Otherwise, expand either end.
 		else if (first_start > 0)
 			first_start--;
-		else if (second_end < (int)Rows.size())
+		else if (second_end < static_cast<int>(Rows.size()))
 			second_end++;
 		else
 			FAIL_M("Do we have room to grow, or don't we?");
 	}
 
 	int pos = 0;
-	for (int i = 0; i < (int)Rows.size(); i++) // foreach row
+	for (int i = 0; i < static_cast<int>(Rows.size()); i++) // foreach row
 	{
 		float ItemPosition;
 		if (i < first_start)
@@ -187,7 +193,7 @@ StepsDisplayList::UpdatePositions()
 
 		Row& row = Rows[i];
 
-		float fY = ITEMS_SPACING_Y * ItemPosition;
+		const float fY = ITEMS_SPACING_Y * ItemPosition;
 		row.m_fY = fY;
 		row.m_bHidden = i < first_start ||
 						(i >= first_end && i < second_start) || i >= second_end;
@@ -198,11 +204,11 @@ void
 StepsDisplayList::PositionItems()
 {
 	for (int i = 0; i < MAX_METERS; ++i) {
-		bool bUnused = (i >= (int)m_Rows.size());
+		const bool bUnused = (i >= static_cast<int>(m_Rows.size()));
 		m_Lines[i].m_Meter.SetVisible(!bUnused);
 	}
 
-	for (int m = 0; m < (int)m_Rows.size(); ++m) {
+	for (int m = 0; m < static_cast<int>(m_Rows.size()); ++m) {
 		Row& row = m_Rows[m];
 		bool bHidden = row.m_bHidden;
 		if (!m_bShown)
@@ -221,18 +227,18 @@ StepsDisplayList::PositionItems()
 
 	for (int m = 0; m < MAX_METERS; ++m) {
 		bool bHidden = true;
-		if (m_bShown && m < (int)m_Rows.size())
+		if (m_bShown && m < static_cast<int>(m_Rows.size()))
 			bHidden = m_Rows[m].m_bHidden;
 
-		float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
+		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
 
 		m_Lines[m].m_Meter.SetDiffuseAlpha(fDiffuseAlpha);
 	}
 
-	int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
+	const int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
 
 	float fY = 0;
-	if (iCurrentRow < (int)m_Rows.size())
+	if (iCurrentRow < static_cast<int>(m_Rows.size()))
 		fY = m_Rows[iCurrentRow].m_fY;
 
 	m_CursorFrames.PlayCommand("Change");
@@ -245,7 +251,7 @@ StepsDisplayList::SetFromGameState()
 	const Song* pSong = GAMESTATE->m_pCurSong;
 	unsigned i = 0;
 
-	if (pSong == NULL) {
+	if (pSong == nullptr) {
 		// FIXME: This clamps to between the min and the max difficulty, but
 		// it really should round to the nearest difficulty that's in
 		// DIFFICULTIES_TO_SHOW.
@@ -347,8 +353,8 @@ StepsDisplayList::Hide()
 void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
-	if (msg.GetName() == MessageIDToString((MessageID)(
-						   Message_CurrentStepsP1Changed + PLAYER_1)))
+	if (msg.GetName() == MessageIDToString(static_cast<MessageID>(
+						   Message_CurrentStepsChanged + PLAYER_1)))
 		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);

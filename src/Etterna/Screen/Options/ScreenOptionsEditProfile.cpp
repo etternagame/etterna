@@ -44,7 +44,7 @@ ScreenOptionsEditProfile::BeginScreen()
 		def.m_bExportOnChange = true;
 		def.m_sName = "nothing";
 		def.m_vsChoices.clear();
-		def.m_vsChoices.push_back(RString());
+		def.m_vsChoices.push_back(std::string());
 	}
 
 	InitMenu(vHands);
@@ -76,7 +76,7 @@ ScreenOptionsEditProfile::ExportOptions(int iRow, const PlayerNumber& vpns)
 	ASSERT(pProfile != NULL);
 	OptionRow& row = *m_pRows[iRow];
 	int iIndex = row.GetOneSharedSelection(true);
-	RString sValue;
+	std::string sValue;
 	if (iIndex >= 0)
 		sValue = row.GetRowDef().m_vsChoices[iIndex];
 
@@ -97,7 +97,7 @@ ScreenOptionsEditProfile::GoToPrevScreen()
 }
 
 void
-ScreenOptionsEditProfile::HandleScreenMessage(const ScreenMessage SM)
+ScreenOptionsEditProfile::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {
 		PROFILEMAN->SaveLocalProfile(GAMESTATE->m_sEditLocalProfileID);

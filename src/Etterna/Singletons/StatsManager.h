@@ -25,13 +25,16 @@ class StatsManager
 	// All stages played.  Returns a ref to the private member so that
 	// the object will remain alive while Lua is operating on it.
 	void CalcAccumPlayedStageStats();
-	StageStats& GetAccumPlayedStageStats() { return m_AccumPlayedStageStats; }
+	auto GetAccumPlayedStageStats() -> StageStats&
+	{
+		return m_AccumPlayedStageStats;
+	}
 
 	static void CommitStatsToProfiles(const StageStats* pSS);
-	void AddPlayerStatsToProfile(Profile* pProfile);
+	static void AddPlayerStatsToProfile(Profile* pProfile);
 
 	void UnjoinPlayer(PlayerNumber pn);
-	void GetStepsInUse(set<Steps*>& apInUseOut) const;
+	void GetStepsInUse(std::set<Steps*>& apInUseOut) const;
 
 	// Lua
 	void PushSelf(lua_State* L);

@@ -7,16 +7,16 @@ class ScreenSMOnlineLogin : public ScreenOptions
 {
   public:
 	void Init() override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	bool MenuStart(const InputEventPlus& input) override;
-	void SendLogin(RString sPassword);
-	void SendLogin(RString sPassword, RString user);
+	void SendLogin(std::string sPassword);
+	void SendLogin(std::string sPassword, std::string user);
 
   private:
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
-	RString GetSelectedProfileID();
-	int m_iPlayer;
+	std::string GetSelectedProfileID();
+	int m_iPlayer = 0;
 	bool typeUsername{ false };
 	string username;
 };

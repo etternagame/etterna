@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "ScreenMessage.h"
+
 #include <map>
 
 const ScreenMessage SM_Invalid = "";
@@ -18,13 +17,13 @@ AutoScreenMessage(SM_Success);
 AutoScreenMessage(SM_Failure);
 AutoScreenMessage(SM_GoToDisconnectScreen);
 
-static map<RString, ScreenMessage>* m_pScreenMessages;
+static std::map<std::string, ScreenMessage>* m_pScreenMessages;
 
 ScreenMessage
-ScreenMessageHelpers::ToScreenMessage(const RString& sName)
+ScreenMessageHelpers::ToScreenMessage(const std::string& sName)
 {
-	if (m_pScreenMessages == NULL)
-		m_pScreenMessages = new map<RString, ScreenMessage>;
+	if (m_pScreenMessages == nullptr)
+		m_pScreenMessages = new std::map<std::string, ScreenMessage>;
 
 	if (m_pScreenMessages->find(sName) == m_pScreenMessages->end())
 		(*m_pScreenMessages)[sName] = (ScreenMessage)sName;
@@ -32,12 +31,12 @@ ScreenMessageHelpers::ToScreenMessage(const RString& sName)
 	return (*m_pScreenMessages)[sName];
 }
 
-RString
+std::string
 ScreenMessageHelpers::ScreenMessageToString(ScreenMessage SM)
 {
-	FOREACHM(RString, ScreenMessage, *m_pScreenMessages, it)
-	if (SM == it->second)
-		return (*it).first;
+	for (auto& it : *m_pScreenMessages)
+		if (SM == it.second)
+			return it.first;
 
-	return RString();
+	return std::string();
 }

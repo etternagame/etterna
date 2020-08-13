@@ -70,7 +70,8 @@ local o =
 		end
 	end,
 	DFRFinishedMessageCommand = function(self)
-		self:queuecommand("PackTableRefresh")
+		packtable = packlist:GetPackTable()
+		self:queuecommand("Update")
 	end,
 	NextPageCommand = function(self)
 		ind = ind + numpacks
@@ -245,7 +246,7 @@ local function makePackDisplay(i)
 						if packinfo:GetSize() > 2000000000 then
 							GAMESTATE:ApplyGameCommand("urlnoexit," .. packinfo:GetURL())
 						else
-							packinfo:DownloadAndInstall(true)
+							packinfo:DownloadAndInstall(false)
 						end
 					end
 				end

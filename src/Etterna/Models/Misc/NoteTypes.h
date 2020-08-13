@@ -1,10 +1,9 @@
-﻿/** @brief NoteTypes - Types for holding tap notes and scores. */
+/** @brief NoteTypes - Types for holding tap notes and scores. */
 
 #ifndef NOTE_TYPES_H
 #define NOTE_TYPES_H
 
 #include "GameConstantsAndTypes.h"
-#include "PlayerNumber.h"
 #include "RageUtil/Misc/RageLog.h"
 
 class XNode;
@@ -25,14 +24,14 @@ struct TapNoteResult
 	 * Negative numbers mean the note was hit early; positive numbers mean
 	 * it was hit late. These values are only meaningful for graded taps
 	 * (tns >= TNS_W5). */
-	float fTapNoteOffset{ 1.f };
+	float fTapNoteOffset{ 1.F };
 
 	/** @brief If the whole row has been judged, all taps on the row will be set
 	 * to hidden. */
 	bool bHidden{ false };
 
 	// XML
-	XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
@@ -42,7 +41,7 @@ struct TapNoteResult
 struct HoldNoteResult
 {
 	HoldNoteResult() = default;
-	float GetLastHeldBeat() const;
+	[[nodiscard]] auto GetLastHeldBeat() const -> float;
 
 	HoldNoteScore hns{ HNS_None };
 
@@ -56,7 +55,7 @@ struct HoldNoteResult
 	 * When this value hits 0.0 for the first time, m_HoldScore becomes
 	 * HNS_LetGo. If the life is > 0.0 when the HoldNote ends, then m_HoldScore
 	 * becomes HNS_Held. */
-	float fLife{ 1.f };
+	float fLife{ 1.F };
 
 	/** @brief The number of seconds the hold note has overlapped the current
 	 * beat.
@@ -82,7 +81,7 @@ struct HoldNoteResult
 	bool bActive{ false };
 
 	// XML
-	XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
@@ -92,7 +91,7 @@ struct HoldNoteResult
 /** @brief What is the TapNote's core type? */
 enum TapNoteType
 {
-	TapNoteType_Empty,	/**< There is no note here. */
+	TapNoteType_Empty,	  /**< There is no note here. */
 	TapNoteType_Tap,	  /**< The player simply steps on this. */
 	TapNoteType_HoldHead, /**< This is graded like the Tap type, but should be
 							 held. */
@@ -108,10 +107,10 @@ enum TapNoteType
 	NUM_TapNoteType,
 	TapNoteType_Invalid
 };
-const RString&
-TapNoteTypeToString(TapNoteType tnt);
-const RString&
-TapNoteTypeToLocalizedString(TapNoteType tnt);
+auto
+TapNoteTypeToString(TapNoteType tnt) -> const std::string&;
+auto
+TapNoteTypeToLocalizedString(TapNoteType tnt) -> const std::string&;
 LuaDeclareType(TapNoteType);
 
 /** @brief The list of a TapNote's sub types. */
@@ -124,10 +123,10 @@ enum TapNoteSubType
 	NUM_TapNoteSubType,
 	TapNoteSubType_Invalid
 };
-const RString&
-TapNoteSubTypeToString(TapNoteSubType tnst);
-const RString&
-TapNoteSubTypeToLocalizedString(TapNoteSubType tnst);
+auto
+TapNoteSubTypeToString(TapNoteSubType tnst) -> const std::string&;
+auto
+TapNoteSubTypeToLocalizedString(TapNoteSubType tnst) -> const std::string&;
 LuaDeclareType(TapNoteSubType);
 
 /** @brief The different places a TapNote could come from. */
@@ -139,10 +138,10 @@ enum TapNoteSource
 	NUM_TapNoteSource,
 	TapNoteSource_Invalid
 };
-const RString&
-TapNoteSourceToString(TapNoteSource tns);
-const RString&
-TapNoteSourceToLocalizedString(TapNoteSource tns);
+auto
+TapNoteSourceToString(TapNoteSource tns) -> const std::string&;
+auto
+TapNoteSourceToLocalizedString(TapNoteSource tns) -> const std::string&;
 LuaDeclareType(TapNoteSource);
 
 /** @brief The various properties of a tap note. */
@@ -157,9 +156,6 @@ struct TapNote
 	TapNoteSource source{ TapNoteSource_Original };
 	/** @brief The result of hitting or missing the TapNote. */
 	TapNoteResult result;
-	/** @brief The Player that is supposed to hit this note. This is mainly for
-	 * Routine Mode. */
-	PlayerNumber pn;
 
 	// Index into Song's vector of keysound files if nonnegative:
 	int iKeysoundIndex{ -1 };
@@ -169,30 +165,24 @@ struct TapNote
 	HoldNoteResult HoldResult;
 
 	// XML
-	XNode* CreateNode() const;
+	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
 
 	// Lua
 	void PushSelf(lua_State* L);
 
 	// So I'm not repeatedly typing this out - Mina
-	bool IsNote() const
+	[[nodiscard]] auto IsNote() const -> bool
 	{
 		return type == TapNoteType_Tap || type == TapNoteType_HoldHead;
 	}
 
-	TapNote()
-	  : result()
-	  , pn(PLAYER_INVALID)
-	  , HoldResult()
-	{
-	}
+	TapNote() = default;
 	void Init()
 	{
 		type = TapNoteType_Empty;
 		subType = TapNoteSubType_Invalid;
 		source = TapNoteSource_Original;
-		pn = PLAYER_INVALID, iKeysoundIndex = -1;
 		iDuration = 0;
 	}
 	TapNote(TapNoteType type_,
@@ -202,10 +192,7 @@ struct TapNote
 	  : type(type_)
 	  , subType(subType_)
 	  , source(source_)
-	  , result()
-	  , pn(PLAYER_INVALID)
 	  , iKeysoundIndex(iKeysoundIndex_)
-	  , HoldResult()
 	{
 		if (type_ > TapNoteType_Fake) {
 			LOG->Trace("Invalid tap note type %s (most likely) due to random "
@@ -219,17 +206,16 @@ struct TapNote
 	 * @brief Determine if the two TapNotes are equal to each other.
 	 * @param other the other TapNote we're checking.
 	 * @return true if the two TapNotes are equal, or false otherwise. */
-	bool operator==(const TapNote& other) const
+	auto operator==(const TapNote& other) const -> bool
 	{
 #define COMPARE(x)                                                             \
-	if (x != other.x)                                                          \
+	if ((x) != other.x)                                                        \
 	return false
 		COMPARE(type);
 		COMPARE(subType);
 		COMPARE(source);
 		COMPARE(iKeysoundIndex);
 		COMPARE(iDuration);
-		COMPARE(pn);
 #undef COMPARE
 		return true;
 	}
@@ -237,7 +223,10 @@ struct TapNote
 	 * @brief Determine if the two TapNotes are not equal to each other.
 	 * @param other the other TapNote we're checking.
 	 * @return true if the two TapNotes are not equal, or false otherwise. */
-	bool operator!=(const TapNote& other) const { return !operator==(other); }
+	auto operator!=(const TapNote& other) const -> bool
+	{
+		return !operator==(other);
+	}
 };
 
 struct HoldReplayResult
@@ -245,6 +234,13 @@ struct HoldReplayResult
 	int row;
 	int track; // column
 	TapNoteSubType subType;
+
+	HoldReplayResult()
+	{
+		row = 0;
+		track = 0;
+		subType = TapNoteSubType_Invalid;
+	}
 };
 
 struct TapReplayResult
@@ -252,14 +248,23 @@ struct TapReplayResult
 	int row;
 	int track;			   // column
 	float offset;		   // 0
-	TapNoteType type;	  // typically mines, holds, rolls, etc
+	TapNoteType type;	   // typically mines, holds, rolls, etc
 	int offsetAdjustedRow; // row assigned later on for full replays
+
+	TapReplayResult()
+	{
+		row = 0;
+		track = 0;
+		offset = 0.F;
+		type = TapNoteType_Invalid;
+		offsetAdjustedRow = 0;
+	}
 };
 
 extern TapNote TAP_EMPTY;				   // '0'
 extern TapNote TAP_ORIGINAL_TAP;		   // '1'
-extern TapNote TAP_ORIGINAL_HOLD_HEAD;	 // '2'
-extern TapNote TAP_ORIGINAL_ROLL_HEAD;	 // '4'
+extern TapNote TAP_ORIGINAL_HOLD_HEAD;	   // '2'
+extern TapNote TAP_ORIGINAL_ROLL_HEAD;	   // '4'
 extern TapNote TAP_ORIGINAL_MINE;		   // 'M'
 extern TapNote TAP_ORIGINAL_LIFT;		   // 'L'
 extern TapNote TAP_ORIGINAL_ATTACK;		   // 'A'
@@ -294,33 +299,33 @@ const int MAX_NOTE_ROW = (1 << 30);
 /** @brief The list of quantized note types allowed at present. */
 enum NoteType
 {
-	NOTE_TYPE_4TH,   /**< quarter note */
-	NOTE_TYPE_8TH,   /**< eighth note */
-	NOTE_TYPE_12TH,  /**< quarter note triplet */
-	NOTE_TYPE_16TH,  /**< sixteenth note */
-	NOTE_TYPE_24TH,  /**< eighth note triplet */
-	NOTE_TYPE_32ND,  /**< thirty-second note */
-	NOTE_TYPE_48TH,  /**< sixteenth note triplet */
-	NOTE_TYPE_64TH,  /**< sixty-fourth note */
+	NOTE_TYPE_4TH,	 /**< quarter note */
+	NOTE_TYPE_8TH,	 /**< eighth note */
+	NOTE_TYPE_12TH,	 /**< quarter note triplet */
+	NOTE_TYPE_16TH,	 /**< sixteenth note */
+	NOTE_TYPE_24TH,	 /**< eighth note triplet */
+	NOTE_TYPE_32ND,	 /**< thirty-second note */
+	NOTE_TYPE_48TH,	 /**< sixteenth note triplet */
+	NOTE_TYPE_64TH,	 /**< sixty-fourth note */
 	NOTE_TYPE_192ND, /**< sixty-fourth note triplet */
 	NUM_NoteType,
 	NoteType_Invalid
 };
-const RString&
-NoteTypeToString(NoteType nt);
-const RString&
-NoteTypeToLocalizedString(NoteType nt);
+auto
+NoteTypeToString(NoteType nt) -> const std::string&;
+auto
+NoteTypeToLocalizedString(NoteType nt) -> const std::string&;
 LuaDeclareType(NoteType);
-float
-NoteTypeToBeat(NoteType nt);
-int
-NoteTypeToRow(NoteType nt);
-NoteType
-GetNoteType(int row);
-NoteType
-BeatToNoteType(float fBeat);
-bool
-IsNoteOfType(int row, NoteType t);
+auto
+NoteTypeToBeat(NoteType nt) -> float;
+auto
+NoteTypeToRow(NoteType nt) -> int;
+auto
+GetNoteType(int row) -> NoteType;
+auto
+BeatToNoteType(float fBeat) -> NoteType;
+auto
+IsNoteOfType(int row, NoteType t) -> bool;
 
 /* This is more accurate: by computing the integer and fractional parts
 separately, we
@@ -341,17 +346,17 @@ inline int   BeatToNoteRow( float fBeatNum )
  * @brief Convert the beat into a note row.
  * @param fBeatNum the beat to convert.
  * @return the note row. */
-inline int
-BeatToNoteRow(float fBeatNum)
+inline auto
+BeatToNoteRow(float fBeatNum) -> int
 {
-	return lround(fBeatNum * ROWS_PER_BEAT);
+	return lround(fBeatNum * 48.F);
 }
 /**
  * @brief Convert the note row to a beat.
  * @param iRow the row to convert.
  * @return the beat. */
-inline float
-NoteRowToBeat(int iRow)
+inline auto
+NoteRowToBeat(int iRow) -> float
 {
 	return iRow / static_cast<float>(ROWS_PER_BEAT);
 }
@@ -363,8 +368,8 @@ NoteRowToBeat(int iRow)
  * @brief Convert the note row to note row (returns itself).
  * @param row the row to convert.
  */
-static inline int
-ToNoteRow(int row)
+static inline auto
+ToNoteRow(int row) -> int
 {
 	return row;
 }
@@ -373,8 +378,8 @@ ToNoteRow(int row)
  * @brief Convert the beat to note row.
  * @param beat the beat to convert.
  */
-static inline int
-ToNoteRow(float beat)
+static inline auto
+ToNoteRow(float beat) -> int
 {
 	return BeatToNoteRow(beat);
 }
@@ -383,8 +388,8 @@ ToNoteRow(float beat)
  * @brief Convert the note row to beat.
  * @param row the row to convert.
  */
-static inline float
-ToBeat(int row)
+static inline auto
+ToBeat(int row) -> float
 {
 	return NoteRowToBeat(row);
 }
@@ -393,8 +398,8 @@ ToBeat(int row)
  * @brief Convert the beat row to beat (return itself).
  * @param beat the beat to convert.
  */
-static inline float
-ToBeat(float beat)
+static inline auto
+ToBeat(float beat) -> float
 {
 	return beat;
 }
@@ -408,8 +413,8 @@ ToBeat(float beat)
  * @return T the scaled position
  */
 template<typename T>
-inline T
-ScalePosition(T start, T length, T newLength, T position)
+auto
+ScalePosition(T start, T length, T newLength, T position) -> T
 {
 	if (position < start)
 		return position;

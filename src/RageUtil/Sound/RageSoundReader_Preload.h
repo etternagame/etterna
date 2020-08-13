@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_Preload - Preload sounds from another reader into memory. */
+/* RageSoundReader_Preload - Preload sounds from another reader into memory. */
 
 #ifndef RAGE_SOUND_READER_PRELOAD
 #define RAGE_SOUND_READER_PRELOAD
@@ -21,7 +21,7 @@ class RageSoundReader_Preload : public RageSoundReader
 	unsigned GetNumChannels() const override { return m_iChannels; }
 	int GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override { return m_fRate; }
-	RString GetError() const override { return ""; }
+	std::string GetError() const override { return ""; }
 
 	/* Return the total number of copies of this sound.  (If 1 is returned,
 	 * this is the last copy.) */
@@ -34,7 +34,7 @@ class RageSoundReader_Preload : public RageSoundReader
 	static bool PreloadSound(RageSoundReader*& pSound);
 
   private:
-	AutoPtrCopyOnWrite<RString> m_Buffer;
+	AutoPtrCopyOnWrite<std::string> m_Buffer;
 	bool m_bBufferIs16Bit{ false };
 
 	/* Bytes: */

@@ -1,17 +1,16 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Fonts/FontCharAliases.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenMiniMenu.h"
+
+#include <utility>
 #include "Etterna/Singletons/ThemeManager.h"
 
 void
-PrepareToLoadScreen(const RString& sScreenName);
+PrepareToLoadScreen(const std::string& sScreenName);
 void
 FinishedLoadingScreen();
 
@@ -24,7 +23,7 @@ vector<int> ScreenMiniMenu::s_viLastAnswers;
 
 // Hooks for profiling
 void
-PrepareToLoadScreen(const RString& sScreenName)
+PrepareToLoadScreen(const std::string& sScreenName)
 {
 }
 void
@@ -49,8 +48,8 @@ ScreenMiniMenu::MiniMenu(const MenuDef* pDef,
 	PrepareToLoadScreen(pDef->sClassName);
 
 	g_pMenuDef = pDef;
-	g_SendOnOK = SM_SendOnOK;
-	g_SendOnCancel = SM_SendOnCancel;
+	g_SendOnOK = std::move(SM_SendOnOK);
+	g_SendOnCancel = std::move(SM_SendOnCancel);
 
 	SCREENMAN->AddNewScreenToTop(pDef->sClassName);
 	Screen* pNewScreen = SCREENMAN->GetTopScreen();
@@ -146,7 +145,7 @@ ScreenMiniMenu::ExportOptions(int r, const PlayerNumber& vpns)
 }
 
 void
-ScreenMiniMenu::HandleScreenMessage(const ScreenMessage SM)
+ScreenMiniMenu::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {
 		s_bCancelled = false;

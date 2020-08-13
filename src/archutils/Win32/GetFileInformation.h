@@ -4,10 +4,10 @@
 #define GET_FILE_INFORMATION_H
 
 bool
-GetFileVersion(const RString& fsFile, RString& sOut);
-RString
-FindSystemFile(const RString& sFile);
+GetFileVersion(const std::string& fsFile, std::string& sOut);
+std::string
+FindSystemFile(const std::string& sFile);
 bool
-GetProcessFileName(uint32_t iProcessID, RString& sName);
+GetProcessFileName(uint32_t iProcessID, std::string& sName);
 
 #endif

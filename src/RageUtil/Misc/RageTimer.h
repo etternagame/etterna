@@ -15,47 +15,50 @@ class RageTimer
 	}
 	RageTimer(unsigned secs, unsigned microseconds)
 	{
-		this->c_dur = std::chrono::microseconds(secs * 1000000 + microseconds);
+		auto seconds = std::chrono::seconds(secs);
+		auto microsecs = std::chrono::microseconds(microseconds);
+		this->c_dur = seconds + microsecs;
 	}
 
 	/* Time ago this RageTimer represents. */
-	float Ago() const;
+	[[nodiscard]] auto Ago() const -> float;
 	void Touch();
-	bool IsZero() const
+	[[nodiscard]] auto IsZero() const -> bool
 	{
 		return this->c_dur == std::chrono::microseconds::zero();
 	}
 	void SetZero() { this->c_dur = std::chrono::microseconds::zero(); }
 
 	/* Time between last call to GetDeltaTime() (Ago() + Touch()): */
-	float GetDeltaTime();
+	auto GetDeltaTime() -> float;
 	/* Alias for Ago */
-	float PeekDeltaTime() const { return Ago(); }
+	[[nodiscard]] auto PeekDeltaTime() const -> float { return Ago(); }
 
-	static float GetTimeSinceStart(); // seconds since the program was started
-	static uint64_t
-	GetUsecsSinceStart(); // microseconds since the program was started
+	static auto GetTimeSinceStart()
+	  -> float; // seconds since the program was started
+	static auto GetUsecsSinceStart()
+	  -> uint64_t; // microseconds since the program was started
 
 	/* Get a timer representing half of the time ago as this one. */
-	RageTimer Half() const;
+	[[nodiscard]] auto Half() const -> RageTimer;
 
 	/* Add (or subtract) a duration from a timestamp.  The result is another
 	 * timestamp. */
-	RageTimer operator+(float tm) const;
-	RageTimer operator-(float tm) const { return *this + -tm; }
+	auto operator+(float tm) const -> RageTimer;
+	auto operator-(float tm) const -> RageTimer { return *this + -tm; }
 	void operator+=(float tm) { *this = *this + tm; }
 	void operator-=(float tm) { *this = *this + -tm; }
 
 	/* Find the amount of time between two timestamps.  The result is a
 	 * duration. */
-	float operator-(const RageTimer& rhs) const;
+	auto operator-(const RageTimer& rhs) const -> float;
 
-	bool operator<(const RageTimer& rhs) const;
-	std::chrono::microseconds c_dur;
+	auto operator<(const RageTimer& rhs) const -> bool;
+	std::chrono::microseconds c_dur{};
 
   private:
-	static RageTimer Sum(const RageTimer& lhs, float tm);
-	static float Difference(const RageTimer& lhs, const RageTimer& rhs);
+	static auto Sum(const RageTimer& lhs, float tm) -> RageTimer;
+	static auto Difference(const RageTimer& lhs, const RageTimer& rhs) -> float;
 };
 
 extern const RageTimer RageZeroTimer;

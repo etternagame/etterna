@@ -4,81 +4,32 @@
 #define RAGE_UTIL_H
 
 #include <map>
-#include <random>
 #include <sstream>
+#include <cstring>
 #include <vector>
 #include <memory>
+#include <cmath>
+
 class RageFileDriver;
 
 /** @brief Safely delete pointers. */
 #define SAFE_DELETE(p)                                                         \
 	do {                                                                       \
 		delete (p);                                                            \
-		(p) = NULL;                                                            \
+		(p) = nullptr;                                                         \
 	} while (false)
 /** @brief Safely delete array pointers. */
 #define SAFE_DELETE_ARRAY(p)                                                   \
 	do {                                                                       \
 		delete[](p);                                                           \
-		(p) = NULL;                                                            \
+		(p) = nullptr;                                                         \
 	} while (false)
 
 /** @brief Zero out the memory. */
 #define ZERO(x) memset(&(x), 0, sizeof(x))
-/** @brief Copy from a to b. */
-#define COPY(a, b)                                                             \
-	do {                                                                       \
-		ASSERT(sizeof(a) == sizeof(b));                                        \
-		memcpy(&(a), &(b), sizeof(a));                                         \
-	} while (false)
+
 /** @brief Get the length of the array. */
 #define ARRAYLEN(a) (sizeof(a) / sizeof((a)[0]))
-
-/* Common harmless mismatches.  All min(T,T) and max(T,T) cases are handled
- * by the generic template we get from <algorithm>. */
-inline float
-min(float a, int b)
-{
-	return a < b ? a : b;
-}
-inline float
-min(int a, float b)
-{
-	return a < b ? a : b;
-}
-inline float
-max(float a, int b)
-{
-	return a > b ? a : b;
-}
-inline float
-max(int a, float b)
-{
-	return a > b ? a : b;
-}
-inline unsigned long
-min(unsigned int a, unsigned long b)
-{
-	return a < b ? a : b;
-}
-inline unsigned long
-min(unsigned long a, unsigned int b)
-{
-	return a < b ? a : b;
-}
-inline unsigned long
-max(unsigned int a, unsigned long b)
-{
-	return a > b ? a : b;
-}
-inline unsigned long
-max(unsigned long a, unsigned int b)
-{
-	return a > b ? a : b;
-}
-
-/** @brief If outside the range from low to high, bring it within range. */
-#define clamp(val, low, high) (max((low), min((val), (high))))
 
 /**
  * @brief Scales x so that l1 corresponds to l2 and h1 corresponds to h2.
@@ -92,20 +43,21 @@ max(unsigned long a, unsigned int b)
 	(((x) - (l1)) * ((h2) - (l2)) / ((h1) - (l1)) + (l2))
 
 template<typename T, typename U>
-U
-lerp(T x, U l, U h)
+auto
+lerp(T x, U l, U h) -> U
 {
 	return static_cast<U>(x * (h - l) + l);
 }
 
 template<typename T, typename U, typename V>
-bool
-CLAMP(T& x, U l, V h)
+auto
+CLAMP(T& x, U l, V h) -> bool
 {
 	if (x > static_cast<T>(h)) {
 		x = static_cast<T>(h);
 		return true;
-	} else if (x < static_cast<T>(l)) {
+	}
+	if (x < static_cast<T>(l)) {
 		x = static_cast<T>(l);
 		return true;
 	}
@@ -113,8 +65,8 @@ CLAMP(T& x, U l, V h)
 }
 
 template<class T>
-bool
-ENUM_CLAMP(T& x, T l, T h)
+auto
+ENUM_CLAMP(T& x, T l, T h) -> bool
 {
 	if (x > h) {
 		x = h;
@@ -126,22 +78,87 @@ ENUM_CLAMP(T& x, T l, T h)
 	return false;
 }
 
-inline float
-wife2(float maxms, float ts)
+inline auto
+wife2(float maxms, float ts) -> float
 {
-	maxms = maxms * 1000.f;
-	float avedeviation = 95.f * ts;
+	maxms = maxms * 1000.F;
+	float avedeviation = 95.F * ts;
 	float y = 1 - static_cast<float>(
 					pow(2, -1 * maxms * maxms / (avedeviation * avedeviation)));
 	y = pow(y, 2);
 	return (2 - -8) * (1 - y) + -8;
 }
 
+static const float wife3_mine_hit_weight = -7.F;
+static const float wife3_hold_drop_weight = -4.5F;
+static const float wife3_miss_weight = -5.5F;
+
+// erf approximation A&S formula 7.1.26
+inline auto
+werwerwerwerf(float x) -> float
+{
+	static const float a1 = 0.254829592F;
+	static const float a2 = -0.284496736F;
+	static const float a3 = 1.421413741F;
+	static const float a4 = -1.453152027F;
+	static const float a5 = 1.061405429F;
+	static const float p = 0.3275911F;
+
+	int sign = 1;
+	if (x < 0.F) {
+		sign = -1;
+	}
+	x = std::abs(x);
+
+	auto t = 1.F / (1.F + p * x);
+	auto y =
+	  1.F - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-x * x);
+
+	return sign * y;
+}
+
+inline auto
+wife3(float maxms, float ts) -> float
+{
+	// so judge scaling isn't so extreme
+	static const float j_pow = 0.75F;
+	// min/max points
+	static const float max_points = 2.F;
+	// offset at which points starts decreasing(ms)
+	float ridic = 5.F * ts;
+
+	// technically the max boo is always 180ms above j4 however this is
+	// immaterial to the end purpose of the scoring curve - assignment of point
+	// values
+	float max_boo_weight = 180.F * ts;
+
+	// need positive values for this
+	maxms = std::abs(maxms * 1000.F);
+
+	// case optimizations
+	if (maxms <= ridic) {
+		return max_points;
+	}
+
+	// piecewise inflection
+	float zero = 65.F * pow(ts, j_pow);
+	float dev = 22.7F * pow(ts, j_pow);
+
+	if (maxms <= zero) {
+		return max_points * werwerwerwerf((zero - maxms) / dev);
+	}
+	if (maxms <= max_boo_weight) {
+		return (maxms - zero) * wife3_miss_weight / (max_boo_weight - zero);
+	}
+	return wife3_miss_weight;
+}
+
 inline void
 wrap(int& x, int n)
 {
-	if (x < 0)
+	if (x < 0) {
 		x += ((-x / n) + 1) * n;
+	}
 	x %= n;
 }
 inline void
@@ -152,22 +169,23 @@ wrap(unsigned& x, unsigned n)
 inline void
 wrap(float& x, float n)
 {
-	if (x < 0)
+	if (x < 0) {
 		x += truncf(((-x / n) + 1)) * n;
+	}
 	x = fmodf(x, n);
 }
 
-inline float
-fracf(float f)
+inline auto
+fracf(float f) -> float
 {
 	return f - truncf(f);
 }
 
 template<class T>
 void
-CircularShift(vector<T>& v, int dist)
+CircularShift(std::vector<T>& v, int dist)
 {
-	for (int i = abs(dist); i > 0; i--) {
+	for (int i = std::abs(dist); i > 0; i--) {
 		if (dist > 0) {
 			T t = v[0];
 			v.erase(v.begin());
@@ -180,29 +198,71 @@ CircularShift(vector<T>& v, int dist)
 	}
 }
 
-template<typename Type, typename Ret>
-static Ret*
-CreateClass()
+inline auto
+sstolower(char ch) -> char
 {
-	return new Type;
+	return (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch + 'a' - 'A') : ch;
 }
 
-/*
- * Helper function to remove all objects from an STL container for which the
- * Predicate pred is true. If you want to remove all objects for which the
- * predicate returns false, wrap the predicate with not1().
- */
-template<typename Container, typename Predicate>
-void
-RemoveIf(Container& c, Predicate p)
+template<typename CT>
+inline auto
+ssicmp(const CT* pA1, const CT* pA2) -> int
 {
-	c.erase(remove_if(c.begin(), c.end(), p), c.end());
+	CT f;
+	CT l;
+
+	do {
+		f = sstolower(*(pA1++));
+		l = sstolower(*(pA2++));
+	} while ((f) && (f == l));
+
+	return static_cast<int>(f - l);
 }
-template<typename Container, typename Value>
-void
-RemoveIfEqual(Container& c, const Value& v)
+
+static auto
+CompareNoCase(const std::string& a, const std::string& b) -> int
 {
-	c.erase(remove(c.begin(), c.end(), v), c.end());
+	return ssicmp(a.c_str(), b.c_str());
+}
+
+static auto
+EqualsNoCase(const std::string& a, const std::string& b) -> bool
+{
+	return CompareNoCase(a, b) == 0;
+}
+
+void
+s_replace(std::string& target, std::string const& from, std::string const& to);
+
+static inline void
+ensure_slash_at_end(std::string& s)
+{
+	if (s.back() != '/') {
+		s += "/";
+	}
+}
+
+/** @brief Determine if the source string begins with the specified content. */
+auto
+starts_with(std::string const& source, std::string const& target) -> bool;
+
+/** @brief Determine if the source string ends with the specified content. */
+auto
+ends_with(std::string const& source, std::string const& target) -> bool;
+
+/** @brief Convert the string into its uppercase variant. */
+auto
+make_upper(std::string const& source) -> std::string;
+
+/** @brief Convert the string into its lowercase variant. */
+auto
+make_lower(std::string const& source) -> std::string;
+
+template<typename Type, typename Ret>
+static auto
+CreateClass() -> Ret*
+{
+	return new Type;
 }
 
 /* Helper for ConvertValue(). */
@@ -217,7 +277,7 @@ struct ConvertValueHelper
 
 	~ConvertValueHelper() { *m_pFromValue = static_cast<FROM>(m_ToValue); }
 
-	TO& operator*() { return m_ToValue; }
+	auto operator*() -> TO& { return m_ToValue; }
 	operator TO*() { return &m_ToValue; }
 
   private:
@@ -231,8 +291,8 @@ struct ConvertValueHelper
  * *ConvertValue<int>(&f) = 12;
  */
 template<typename TO, typename FROM>
-ConvertValueHelper<TO, FROM>
-ConvertValue(FROM* pValue)
+auto
+ConvertValue(FROM* pValue) -> ConvertValueHelper<TO, FROM>
 {
 	return ConvertValueHelper<TO, FROM>(pValue);
 }
@@ -258,15 +318,15 @@ enum_add(T& val, int iAmt)
 }
 
 template<typename T>
-static T
-enum_add2(T val, int iAmt)
+static auto
+enum_add2(T val, int iAmt) -> T
 {
 	return static_cast<T>(val + iAmt);
 }
 
 template<typename T>
-static T
-enum_cycle(T val, int iMax, int iAmt = 1)
+static auto
+enum_cycle(T val, int iMax, int iAmt = 1) -> T
 {
 	int iVal = val + iAmt;
 	iVal %= iMax;
@@ -285,172 +345,101 @@ enum_cycle(T val, int iMax, int iAmt = 1)
 #define Swap24 ArchSwap24
 #define Swap16 ArchSwap16
 #else
-inline uint32_t
-Swap32(uint32_t n)
+inline auto
+Swap32(uint32_t n) -> uint32_t
 {
 	return (n >> 24) | ((n >> 8) & 0x0000FF00) | ((n << 8) & 0x00FF0000) |
 		   (n << 24);
 }
 
-inline uint32_t
-Swap24(uint32_t n)
+inline auto
+Swap24(uint32_t n) -> uint32_t
 {
 	return Swap32(n) >> 8; // xx223344 -> 443322xx -> 00443322
 }
 
-inline uint16_t
-Swap16(uint16_t n)
+inline auto
+Swap16(uint16_t n) -> uint16_t
 {
 	return (n >> 8) | (n << 8);
 }
 #endif
 
-inline uint32_t
-Swap32LE(uint32_t n)
+inline auto
+Swap32LE(uint32_t n) -> uint32_t
 {
 	return n;
 }
-inline uint32_t
-Swap24LE(uint32_t n)
+inline auto
+Swap24LE(uint32_t n) -> uint32_t
 {
 	return n;
 }
-inline uint16_t
-Swap16LE(uint16_t n)
+inline auto
+Swap16LE(uint16_t n) -> uint16_t
 {
 	return n;
 }
-inline uint32_t
-Swap32BE(uint32_t n)
+inline auto
+Swap32BE(uint32_t n) -> uint32_t
 {
 	return Swap32(n);
 }
-inline uint32_t
-Swap24BE(uint32_t n)
+inline auto
+Swap24BE(uint32_t n) -> uint32_t
 {
 	return Swap24(n);
 }
-inline uint16_t
-Swap16BE(uint16_t n)
+inline auto
+Swap16BE(uint16_t n) -> uint16_t
 {
 	return Swap16(n);
 }
 
-typedef std::mt19937 RandomGen;
-
-extern RandomGen g_RandomNumberGenerator;
-
-void
-seed_lua_prng();
-
-inline int
-random_up_to(RandomGen& rng, int limit)
-{
-	RandomGen::result_type res = rng();
-	// Cutting off the incomplete [0,n) chunk at the max value makes the result
-	// more evenly distributed. -Kyz
-	RandomGen::result_type up_to_max =
-	  RandomGen::max() - (RandomGen::max() % limit);
-	while (res > up_to_max) {
-		res = rng();
-	}
-
-	return int(res % limit);
-}
-
-inline int
-random_up_to(int limit)
-{
-	return random_up_to(g_RandomNumberGenerator, limit);
-}
-
-/**
- * @brief Generate a random float between 0 inclusive and 1 exclusive.
- * @return the random float.
- */
-inline float
-RandomFloat()
-{
-	return float(g_RandomNumberGenerator() / 4294967296.0);
-}
-
-/**
- * @brief Return a float between the low and high values.
- * @param fLow the low value, inclusive.
- * @param fHigh the high value, inclusive.
- * @return the random float.
- */
-inline float
-RandomFloat(float fLow, float fHigh)
-{
-	return SCALE(RandomFloat(), 0.0f, 1.0f, fLow, fHigh);
-}
-
-// Returns an integer between nLow and nHigh inclusive
-inline int
-RandomInt(int low, int high)
-{
-	return random_up_to(g_RandomNumberGenerator, high - low + 1) + low;
-}
-
-// Returns an integer between 0 and n-1 inclusive (replacement for rand() % n).
-inline int
-RandomInt(int n)
-{
-	return random_up_to(g_RandomNumberGenerator, n);
-}
-
-// Simple function for generating random numbers
-inline float
-randomf(const float low = -1.0f, const float high = 1.0f)
-{
-	return RandomFloat(low, high);
-}
-
 /* return f rounded to the nearest multiple of fRoundInterval */
-inline float
-Quantize(const float f, const float fRoundInterval)
+inline auto
+Quantize(const float f, const float fRoundInterval) -> float
 {
 	return static_cast<int>((f + fRoundInterval / 2) / fRoundInterval) *
 		   fRoundInterval;
 }
 
-inline int
-Quantize(const int i, const int iRoundInterval)
+inline auto
+Quantize(const int i, const int iRoundInterval) -> int
 {
 	return static_cast<int>((i + iRoundInterval / 2) / iRoundInterval) *
 		   iRoundInterval;
 }
 
 /* return f truncated to the nearest multiple of fTruncInterval */
-inline float
-ftruncf(const float f, const float fTruncInterval)
+inline auto
+ftruncf(const float f, const float fTruncInterval) -> float
 {
 	return static_cast<int>((f) / fTruncInterval) * fTruncInterval;
 }
 
 /* Return i rounded up to the nearest multiple of iInterval. */
-inline int
-QuantizeUp(int i, int iInterval)
+inline auto
+QuantizeUp(int i, int iInterval) -> int
 {
 	return static_cast<int>((i + iInterval - 1) / iInterval) * iInterval;
 }
 
-inline float
-QuantizeUp(float i, float iInterval)
+inline auto
+QuantizeUp(float i, float iInterval) -> float
 {
 	return ceilf(i / iInterval) * iInterval;
 }
 
 /* Return i rounded down to the nearest multiple of iInterval. */
-inline int
-QuantizeDown(int i, int iInterval)
+inline auto
+QuantizeDown(int i, int iInterval) -> int
 {
 	return static_cast<int>((i - iInterval + 1) / iInterval) * iInterval;
 }
 
-inline float
-QuantizeDown(float i, float iInterval)
+inline auto
+QuantizeDown(float i, float iInterval) -> float
 {
 	return floorf(i / iInterval) * iInterval;
 }
@@ -460,124 +449,192 @@ void
 fapproach(float& val, float other_val, float to_move);
 
 /* Return a positive x mod y. */
-float
-fmodfp(float x, float y);
+inline auto
+fmodfp(float x, float y) -> float
+{
+	x = fmodf(x, y); /* x is [-y,y] */
+	x += y;			 /* x is [0,y*2] */
+	x = fmodf(x, y); /* x is [0,y] */
+	return x;
+}
 
-int
-power_of_two(int input);
-bool
-IsAnInt(const RString& s);
-bool
-IsHexVal(const RString& s);
-RString
-BinaryToHex(const void* pData_, int iNumBytes);
-RString
-BinaryToHex(const RString& sString);
-bool
-HexToBinary(const RString& s, unsigned char* stringOut);
-bool
-HexToBinary(const RString& s, RString* sOut);
-float
-HHMMSSToSeconds(const RString& sHMS);
-RString
-SecondsToHHMMSS(float fSecs);
-RString
-SecondsToMSSMsMs(float fSecs);
-RString
-SecondsToMMSSMsMs(float fSecs);
-RString
-SecondsToMMSSMsMsMs(float fSecs);
-RString
-SecondsToMSS(float fSecs);
-RString
-SecondsToMMSS(float fSecs);
-RString
-PrettyPercent(float fNumerator, float fDenominator);
-inline RString
-PrettyPercent(int fNumerator, int fDenominator)
+inline auto
+power_of_two(int input) -> int
+{
+	auto exp = 31;
+	auto i = input;
+	if (i >> 16 != 0) {
+		i >>= 16;
+	} else {
+		exp -= 16;
+	}
+	if (i >> 8 != 0) {
+		i >>= 8;
+	} else {
+		exp -= 8;
+	}
+	if (i >> 4 != 0) {
+		i >>= 4;
+	} else {
+		exp -= 4;
+	}
+	if (i >> 2 != 0) {
+		i >>= 2;
+	} else {
+		exp -= 2;
+	}
+	if (i >> 1 == 0) {
+		exp -= 1;
+	}
+	const auto value = 1 << exp;
+	return input == value ? value : value << 1;
+}
+inline auto
+IsAnInt(const std::string& s) -> bool
+{
+	if (s.empty()) {
+		return false;
+	}
+
+	for (auto i : s) {
+		if (i < '0' || i > '9') {
+			return false;
+		}
+	}
+
+	return true;
+}
+auto
+IsHexVal(const std::string& s) -> bool;
+auto
+BinaryToHex(const void* pData_, int iNumBytes) -> std::string;
+auto
+BinaryToHex(const std::string& sString) -> std::string;
+auto
+HHMMSSToSeconds(const std::string& sHMS) -> float;
+auto
+SecondsToHHMMSS(float fSecs) -> std::string;
+auto
+SecondsToMSSMsMs(float fSecs) -> std::string;
+auto
+SecondsToMMSSMsMs(float fSecs) -> std::string;
+auto
+SecondsToMMSSMsMsMs(float fSecs) -> std::string;
+auto
+SecondsToMSS(float fSecs) -> std::string;
+auto
+SecondsToMMSS(float fSecs) -> std::string;
+auto
+PrettyPercent(float fNumerator, float fDenominator) -> std::string;
+inline auto
+PrettyPercent(int fNumerator, int fDenominator) -> std::string
 {
 	return PrettyPercent(float(fNumerator), float(fDenominator));
 }
-RString
-Commify(int iNum);
-RString
-Commify(const RString& num, const RString& sep = ",", const RString& dot = ".");
-RString
-FormatNumberAndSuffix(int i);
+auto
+Commify(int iNum) -> std::string;
+auto
+Commify(const std::string& num,
+		const std::string& sep = ",",
+		const std::string& dot = ".") -> std::string;
+auto
+FormatNumberAndSuffix(int i) -> std::string;
 
-struct tm
-GetLocalTime();
+auto
+GetLocalTime() -> struct tm;
 
+// Supress warnings about format strings not being string literals
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+#elif defined(_MSC_VER)
+// TODO: Suppress warnings for Windows
+#endif
 template<typename... Args>
-RString
-ssprintf(const char* format, Args... args)
+auto
+ssprintf(const char* format, Args... args) -> std::string
 {
 	// Extra space for '\0'
 	size_t size = snprintf(nullptr, 0, format, args...) + 1;
 	std::unique_ptr<char[]> buf(new char[size]);
 	snprintf(buf.get(), size, format, args...);
-
 	// Don't want the '\0' inside
-	return RString(std::string(buf.get(), buf.get() + size - 1));
+	return std::string(buf.get(), buf.get() + size - 1);
 }
+#if defined(__clang__)
+#pragma clang pop
+#elif defined(__GNUC__)
+#pragma GCC pop
+#elif defined(_MSC_VER)
+// TODO: Suppress warnings for Windows
+#endif
 
 template<typename... Args>
-RString
-ssprintf(const std::string& format, Args... args)
+auto
+ssprintf(const std::string& format, Args... args) -> std::string
 {
 	return ssprintf(format.c_str(), args...);
 }
 
-RString
-vssprintf(const char* fmt, va_list argList);
-RString
-ConvertI64FormatString(const RString& sStr);
+auto
+vssprintf(const char* fmt, va_list argList) -> std::string;
+auto
+ConvertI64FormatString(const std::string& sStr) -> std::string;
 
 /*
- * Splits a Path into 4 parts (Directory, Drive, Filename, Extention).  Supports
- * UNC path names. If Path is a directory (eg. c:\games\stepmania"), append a
- * slash so the last element will end up in Dir, not FName:
- * "c:\games\stepmania\".
+ * Splits a Path into 4 parts (Directory, Drive, Filename, Extention).
+ * Supports UNC path names. If Path is a directory (eg.
+ * c:\games\stepmania"), append a slash so the last element will end up in
+ * Dir, not FName: "c:\games\stepmania\".
  * */
 void
-splitpath(const RString& Path, RString& Dir, RString& Filename, RString& Ext);
+splitpath(const std::string& Path,
+		  std::string& Dir,
+		  std::string& Filename,
+		  std::string& Ext);
 
-RString
-SetExtension(const RString& path, const RString& ext);
-RString
-GetExtension(const RString& sPath);
-RString
-GetFileNameWithoutExtension(const RString& sPath);
+auto
+SetExtension(const std::string& path, const std::string& ext) -> std::string;
+auto
+GetExtension(const std::string& sPath) -> std::string;
+auto
+GetFileNameWithoutExtension(const std::string& sPath) -> std::string;
 void
-MakeValidFilename(RString& sName);
+MakeValidFilename(std::string& sName);
 
-bool
-FindFirstFilenameContaining(const vector<RString>& filenames,
-							RString& out,
-							const vector<RString>& starts_with,
-							const vector<RString>& contains,
-							const vector<RString>& ends_with);
+auto
+FindFirstFilenameContaining(const std::vector<std::string>& filenames,
+							std::string& out,
+							const std::vector<std::string>& starts_with,
+							const std::vector<std::string>& contains,
+							const std::vector<std::string>& ends_with) -> bool;
 
 extern const wchar_t INVALID_CHAR;
 
-int
-utf8_get_char_len(char p);
-bool
-utf8_to_wchar(const char* s, size_t iLength, unsigned& start, wchar_t& ch);
-bool
-utf8_to_wchar_ec(const RString& s, unsigned& start, wchar_t& ch);
+auto
+utf8_get_char_len(char p) -> int;
+auto
+utf8_to_wchar(const char* s, size_t iLength, unsigned& start, wchar_t& ch)
+  -> bool;
+auto
+utf8_to_wchar_ec(const std::string& s, unsigned& start, wchar_t& ch) -> bool;
 void
-wchar_to_utf8(wchar_t ch, RString& out);
-wchar_t
-utf8_get_char(const RString& s);
-bool
-utf8_is_valid(const RString& s);
+wchar_to_utf8(wchar_t ch, std::string& out);
+auto
+utf8_get_char(const std::string& s) -> wchar_t;
+auto
+utf8_is_valid(const std::string& s) -> bool;
 void
-utf8_remove_bom(RString& s);
+utf8_remove_bom(std::string& s);
 void
 MakeUpper(char* p, size_t iLen);
 void
 MakeLower(char* p, size_t iLen);
+void
+MakeLower(std::string& data);
 void
 MakeUpper(wchar_t* p, size_t iLen);
 void
@@ -586,34 +643,34 @@ MakeLower(wchar_t* p, size_t iLen);
  * @brief Have a standard way of converting Strings to integers.
  * @param sString the string to convert.
  * @return the integer we are after. */
-int
-StringToInt(const RString& sString);
+auto
+StringToInt(const std::string& sString) -> int;
 /**
  * @brief Have a standard way of converting integers to Strings.
  * @param iNum the integer to convert.
  * @return the string we are after. */
-RString
-IntToString(const int& iNum);
-float
-StringToFloat(const RString& sString);
-RString
-FloatToString(const float& num);
-bool
-StringToFloat(const RString& sString, float& fOut);
+auto
+IntToString(const int& iNum) -> std::string;
+auto
+StringToFloat(const std::string& sString) -> float;
+auto
+FloatToString(const float& num) -> std::string;
+auto
+StringToFloat(const std::string& sString, float& fOut) -> bool;
 // Better than IntToString because you can check for success.
 template<class T>
-bool
-operator>>(const RString& lhs, T& rhs)
+auto
+operator>>(const std::string& lhs, T& rhs) -> bool
 {
-	return !!(istringstream(lhs) >> rhs);
+	return !!(std::istringstream(lhs) >> rhs);
 }
 
-RString
-WStringToRString(const wstring& sString);
-RString
-WcharToUTF8(wchar_t c);
-wstring
-RStringToWstring(const RString& sString);
+auto
+WStringToString(const std::wstring& sString) -> std::string;
+auto
+WcharToUTF8(wchar_t c) -> std::string;
+auto
+StringToWString(const std::string& sString) -> std::wstring;
 
 struct LanguageInfo
 {
@@ -621,224 +678,188 @@ struct LanguageInfo
 	const char* szEnglishName;
 };
 void
-GetLanguageInfos(vector<const LanguageInfo*>& vAddTo);
-const LanguageInfo*
-GetLanguageInfo(const RString& sIsoCode);
-RString
-GetLanguageNameFromISO639Code(const RString& sName);
+GetLanguageInfos(std::vector<const LanguageInfo*>& vAddTo);
+auto
+GetLanguageInfo(const std::string& sIsoCode) -> const LanguageInfo*;
 
-// Splits a RString into an vector<RString> according the Delimitor.
+// Splits a std::string into an std::vector<std::string> according the
+// Delimitor.
 void
-split(const RString& sSource,
-	  const RString& sDelimitor,
-	  vector<RString>& asAddIt,
-	  const bool bIgnoreEmpty = true);
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
+	  std::vector<std::string>& asAddIt,
+	  bool bIgnoreEmpty = true);
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
-	  vector<wstring>& asAddIt,
-	  const bool bIgnoreEmpty = true);
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
+	  std::vector<std::wstring>& asAddIt,
+	  bool bIgnoreEmpty = true);
 
 /* In-place split. */
 void
-split(const RString& sSource,
-	  const RString& sDelimitor,
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  bool bIgnoreEmpty = true);
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  bool bIgnoreEmpty = true);
 
 /* In-place split of partial string. */
 void
-split(const RString& sSource,
-	  const RString& sDelimitor,
+split(const std::string& sSource,
+	  const std::string& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  int iLen,
 	  bool bIgnoreEmpty); /* no default to avoid ambiguity */
 void
-split(const wstring& sSource,
-	  const wstring& sDelimitor,
+split(const std::wstring& sSource,
+	  const std::wstring& sDelimitor,
 	  int& iBegin,
 	  int& iSize,
 	  int iLen,
 	  bool bIgnoreEmpty);
 
-// Joins a vector<RString> to create a RString according the Deliminator.
-RString
-join(const RString& sDelimitor, const vector<RString>& sSource);
-RString
-join(const RString& sDelimitor,
-	 vector<RString>::const_iterator begin,
-	 vector<RString>::const_iterator end);
+// Joins a std::vector<std::string> to create a std::string according the
+// Deliminator.
+auto
+join(const std::string& sDelimitor, const std::vector<std::string>& sSource)
+  -> std::string;
+auto
+join(const std::string& sDelimitor,
+	 std::vector<std::string>::const_iterator begin,
+	 std::vector<std::string>::const_iterator end) -> std::string;
 
-std::string
-luajoin(const std::string& sDelimitor, const vector<std::string>& sSource);
-std::string
+auto
+luajoin(const std::string& sDelimitor, const std::vector<std::string>& sSource)
+  -> std::string;
+auto
 luajoin(const std::string& sDelimitor,
-		vector<std::string>::const_iterator begin,
-		vector<std::string>::const_iterator end);
+		std::vector<std::string>::const_iterator begin,
+		std::vector<std::string>::const_iterator end) -> std::string;
 
 // These methods escapes a string for saving in a .sm or .crs file
-RString
-SmEscape(const RString& sUnescaped);
-RString
-SmEscape(const char* cUnescaped, int len);
+auto
+SmEscape(const std::string& sUnescaped) -> std::string;
+auto
+SmEscape(const char* cUnescaped, int len) -> std::string;
 
-// These methods "escape" a string for .dwi by turning = into -, ] into I, etc.
-// That is "lossy".
-RString
-DwiEscape(const RString& sUnescaped);
-RString
-DwiEscape(const char* cUnescaped, int len);
+// These methods "escape" a string for .dwi by turning = into -, ] into I,
+// etc. That is "lossy".
+auto
+DwiEscape(const std::string& sUnescaped) -> std::string;
+auto
+DwiEscape(const char* cUnescaped, int len) -> std::string;
 
-RString
-GetCwd();
+auto
+GetCwd() -> std::string;
 
 void
 SetCommandlineArguments(int argc, char** argv);
 void
 GetCommandLineArguments(int& argc, char**& argv);
-bool
-GetCommandlineArgument(const RString& option,
-					   RString* argument = nullptr,
-					   int iIndex = 0);
+auto
+GetCommandlineArgument(const std::string& option,
+					   std::string* argument = nullptr,
+					   int iIndex = 0) -> bool;
 extern int g_argc;
 extern char** g_argv;
 
 void
 CRC32(unsigned int& iCRC, const void* pBuffer, size_t iSize);
-unsigned int
-GetHashForString(const RString& s);
-unsigned int
-GetHashForFile(const RString& sPath);
-unsigned int
-GetHashForDirectory(const RString& sDir); // a hash value that remains the same
-										  // as long as nothing in the directory
-										  // has changed
-bool
-DirectoryIsEmpty(const RString& sPath);
+auto
+GetHashForString(const std::string& s) -> unsigned int;
+auto
+GetHashForFile(const std::string& sPath) -> unsigned int;
+auto
+GetHashForDirectory(const std::string& sDir)
+  -> unsigned int; // a hash value that remains the
+				   // same as long as nothing in the
+				   // directory has changed
+auto
+DirectoryIsEmpty(const std::string& sPath) -> bool;
 
-bool
-CompareRStringsAsc(const RString& sStr1, const RString& sStr2);
-bool
-CompareRStringsDesc(const RString& sStr1, const RString& sStr2);
+auto
+CompareStringsAsc(const std::string& sStr1, const std::string& sStr2) -> bool;
 void
-SortRStringArray(vector<RString>& asAddTo, const bool bSortAscending = true);
+SortStringArray(std::vector<std::string>& asAddTo, bool bSortAscending = true);
 
 /* Find the mean and standard deviation of all numbers in [start,end). */
-float
-calc_mean(const float* pStart, const float* pEnd);
-/* When bSample is true, it calculates the square root of an unbiased estimator
- * for the population variance. Note that this is not an unbiased estimator for
- * the population standard deviation but it is close and an unbiased estimator
- * is complicated (apparently). When the entire population is known, bSample
- * should be false to calculate the exact standard deviation. */
-float
-calc_stddev(const float* pStart, const float* pEnd, bool bSample = false);
+auto
+calc_mean(const float* pStart, const float* pEnd) -> float;
+/* When bSample is true, it calculates the square root of an unbiased
+ * estimator for the population variance. Note that this is not an unbiased
+ * estimator for the population standard deviation but it is close and an
+ * unbiased estimator is complicated (apparently). When the entire
+ * population is known, bSample should be false to calculate the exact
+ * standard deviation. */
+auto
+calc_stddev(const float* pStart, const float* pEnd, bool bSample = false)
+  -> float;
 
-/*
- * Find the slope, intercept, and error of a linear least squares regression
- * of the points given.  Error is returned as the sqrt of the average squared
- * Y distance from the chosen line.
- * Returns true on success, false on failure.
- */
-bool
-CalcLeastSquares(const vector<pair<float, float>>& vCoordinates,
-				 float& fSlope,
-				 float& fIntercept,
-				 float& fError);
-
-/*
- * This method throws away any points that are more than fCutoff away from
- * the line defined by fSlope and fIntercept.
- */
-void
-FilterHighErrorPoints(vector<pair<float, float>>& vCoordinates,
-					  float fSlope,
-					  float fIntercept,
-					  float fCutoff);
-
-template<class T1, class T2>
-int
-FindIndex(T1 begin, T1 end, const T2* p)
-{
-	T1 iter = find(begin, end, p);
-	if (iter == end)
-		return -1;
-	return iter - begin;
-}
-
-/* Useful for objects with no operator-, eg. map::iterator (more convenient than
- * advance). */
+/* Useful for objects with no operator-, eg. std::map::iterator (more
+ * convenient than advance). */
 template<class T>
-T
-Increment(T a)
+inline auto
+Increment(T a) -> T
 {
 	++a;
 	return a;
 }
 template<class T>
-T
-Decrement(T a)
+inline auto
+Decrement(T a) -> T
 {
 	--a;
 	return a;
 }
 
 void
-TrimLeft(RString& sStr, const char* szTrim = "\r\n\t ");
+TrimLeft(std::string& sStr, const char* szTrim = "\r\n\t ");
 void
-TrimRight(RString& sStr, const char* szTrim = "\r\n\t ");
+TrimRight(std::string& sStr, const char* szTrim = "\r\n\t ");
 void
-Trim(RString& sStr, const char* szTrim = "\r\n\t ");
+Trim(std::string& sStr, const char* szTrim = "\r\n\t ");
 void
-StripCrnl(RString& sStr);
-bool
-BeginsWith(const RString& sTestThis, const RString& sBeginning);
-bool
-EndsWith(const RString& sTestThis, const RString& sEnding);
-RString
-URLEncode(const RString& sStr);
+StripCrnl(std::string& sStr);
+auto
+BeginsWith(const std::string& sTestThis, const std::string& sBeginning) -> bool;
+auto
+EndsWith(const std::string& sTestThis, const std::string& sEnding) -> bool;
+auto
+URLEncode(const std::string& sStr) -> std::string;
 
-void
-StripCvsAndSvn(
-  vector<RString>& vs); // Removes various versioning system metafolders.
-void
-StripMacResourceForks(vector<RString>& vs); // Removes files starting with "._"
-
-RString
-DerefRedir(const RString& sPath);
-bool
-GetFileContents(const RString& sPath, RString& sOut, bool bOneLine = false);
-bool
-GetFileContents(const RString& sFile, vector<RString>& asOut);
-bool
+auto
+DerefRedir(const std::string& sPath) -> std::string;
+auto
 GetFileContents(const std::string& sPath,
 				std::string& sOut,
-				bool bOneLine = false);
-bool
-GetFileContents(const std::string& sFile, vector<std::string>& asOut);
+				bool bOneLine = false) -> bool;
+auto
+GetFileContents(const std::string& sFile, std::vector<std::string>& asOut)
+  -> bool;
 
 class Regex
 {
   public:
-	Regex(const RString& sPat = "");
+	Regex(const std::string& sPat = "");
 	Regex(const Regex& rhs);
-	Regex& operator=(const Regex& rhs);
+	auto operator=(const Regex& rhs) -> Regex&;
+	auto operator=(Regex&& rhs) noexcept -> Regex&;
 	~Regex();
-	bool IsSet() const { return !m_sPattern.empty(); }
-	void Set(const RString& str);
-	bool Compare(const RString& sStr);
-	bool Compare(const RString& sStr, vector<RString>& asMatches);
-	bool Replace(const RString& sReplacement,
-				 const RString& sSubject,
-				 RString& sOut);
+	[[nodiscard]] auto IsSet() const -> bool { return !m_sPattern.empty(); }
+	void Set(const std::string& str);
+	auto Compare(const std::string& sStr) -> bool;
+	auto Compare(const std::string& sStr, std::vector<std::string>& asMatches)
+	  -> bool;
+	auto Replace(const std::string& sReplacement,
+				 const std::string& sSubject,
+				 std::string& sOut) -> bool;
 
   private:
 	void Compile();
@@ -846,28 +867,25 @@ class Regex
 
 	void* m_pReg;
 	unsigned m_iBackrefs;
-	RString m_sPattern;
+	std::string m_sPattern;
 };
 
 void
-ReplaceEntityText(RString& sText, const map<RString, RString>& m);
+ReplaceEntityText(std::string& sText,
+				  const std::map<std::string, std::string>& m);
 void
-ReplaceEntityText(RString& sText, const map<char, RString>& m);
+ReplaceEntityText(std::string& sText, const std::map<char, std::string>& m);
 void
-ReplaceEntityText(std::string& sText, const map<std::string, std::string>& m);
-void
-ReplaceEntityText(std::string& sText, const map<char, std::string>& m);
-void
-Replace_Unicode_Markers(RString& Text);
-RString
-WcharDisplayText(wchar_t c);
+Replace_Unicode_Markers(std::string& Text);
+auto
+WcharDisplayText(wchar_t c) -> std::string;
 
-RString
-Basename(const RString& dir);
-RString
-Dirname(const RString& dir);
-RString
-Capitalize(const RString& s);
+auto
+Basename(const std::string& dir) -> std::string;
+auto
+Dirname(const std::string& dir) -> std::string;
+auto
+Capitalize(const std::string& s) -> std::string;
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h> /* correct place with correct definitions */
@@ -877,137 +895,150 @@ extern unsigned char g_UpperCase[256];
 extern unsigned char g_LowerCase[256];
 
 /* ASCII-only case insensitivity. */
-struct char_traits_char_nocase : public char_traits<char>
+struct char_traits_char_nocase : public std::char_traits<char>
 {
-	static bool eq(char c1, char c2)
+	static auto eq(char c1, char c2) -> bool
 	{
 		return g_UpperCase[static_cast<unsigned char>(c1)] ==
 			   g_UpperCase[static_cast<unsigned char>(c2)];
 	}
 
-	static bool ne(char c1, char c2)
+	static auto ne(char c1, char c2) -> bool
 	{
 		return g_UpperCase[static_cast<unsigned char>(c1)] !=
 			   g_UpperCase[static_cast<unsigned char>(c2)];
 	}
 
-	static bool lt(char c1, char c2)
+	static auto lt(char c1, char c2) -> bool
 	{
 		return g_UpperCase[static_cast<unsigned char>(c1)] <
 			   g_UpperCase[static_cast<unsigned char>(c2)];
 	}
 
-	static int compare(const char* s1, const char* s2, size_t n)
+	static auto compare(const char* s1, const char* s2, size_t n) -> int
 	{
 		int ret = 0;
-		while (n--) {
+		while ((n--) != 0U) {
 			ret = fasttoupper(*s1++) - fasttoupper(*s2++);
-			if (ret != 0)
+			if (ret != 0) {
 				break;
+			}
 		}
 		return ret;
 	}
 
-	static char fasttoupper(char a)
+	static auto fasttoupper(char a) -> char
 	{
 		return g_UpperCase[static_cast<unsigned char>(a)];
 	}
 
-	static const char* find(const char* s, int n, char a)
+	static auto find(const char* s, int n, char a) -> const char*
 	{
 		a = fasttoupper(a);
-		while (n-- > 0 && fasttoupper(*s) != a)
+		while (n-- > 0 && fasttoupper(*s) != a) {
 			++s;
+		}
 
-		if (fasttoupper(*s) == a)
+		if (fasttoupper(*s) == a) {
 			return s;
+		}
 		return nullptr;
 	}
 };
-typedef basic_string<char, char_traits_char_nocase> istring;
+using istring = std::basic_string<char, char_traits_char_nocase>;
 
 /* Compatibility/convenience shortcuts. These are actually defined in
- * RageFileManager.h, but declared here since they're used in many places. */
+ * RageFileManager.h, but declared here since they're used in many places.
+ */
 void
-GetDirListing(const RString& sPath,
-			  vector<RString>& AddTo,
+GetDirListing(const std::string& sPath,
+			  std::vector<std::string>& AddTo,
 			  bool bOnlyDirs = false,
 			  bool bReturnPathToo = false);
 void
-GetDirListingRecursive(const RString& sDir,
-					   const RString& sMatch,
-					   vector<RString>& AddTo); /* returns path too */
+GetDirListingRecursive(const std::string& sDir,
+					   const std::string& sMatch,
+					   std::vector<std::string>& AddTo); /* returns path too */
 void
 GetDirListingRecursive(RageFileDriver* prfd,
-					   const RString& sDir,
-					   const RString& sMatch,
-					   vector<RString>& AddTo); /* returns path too */
-bool
-DeleteRecursive(
-  const RString& sDir); /* delete the dir and all files/subdirs inside it */
-bool
-DeleteRecursive(
-  RageFileDriver* prfd,
-  const RString& sDir); /* delete the dir and all files/subdirs inside it */
-bool
-DoesFileExist(const RString& sPath);
-bool
-IsAFile(const RString& sPath);
-bool
-IsADirectory(const RString& sPath);
-int
-GetFileSizeInBytes(const RString& sFilePath);
+					   const std::string& sDir,
+					   const std::string& sMatch,
+					   std::vector<std::string>& AddTo); /* returns path too */
+auto
+DoesFileExist(const std::string& sPath) -> bool;
+auto
+IsAFile(const std::string& sPath) -> bool;
+auto
+IsADirectory(const std::string& sPath) -> bool;
+auto
+GetFileSizeInBytes(const std::string& sFilePath) -> int;
+
+/** @brief Get the first x characters of a string. Allow negative warping.
+ *
+ * This comes from http://stackoverflow.com/a/7597469/445373
+ */
+auto
+head(std::string const& source, int32_t length) -> std::string;
+
+/** @brief Get the last x characters of a string. Allow negative warping.
+ *
+ * This comes from http://stackoverflow.com/a/7597469/445373
+ */
+auto
+tail(std::string const& source, int32_t length) -> std::string;
 
 // call FixSlashesInPlace on any path that came from the user
 void
-FixSlashesInPlace(RString& sPath);
+FixSlashesInPlace(std::string& sPath);
 void
-CollapsePath(RString& sPath, bool bRemoveLeadingDot = false);
+CollapsePath(std::string& sPath, bool bRemoveLeadingDot = false);
 
-/** @brief Utilities for converting the RStrings. */
+/** @brief Utilities for converting the Strings. */
 namespace StringConversion {
 template<typename T>
-bool
-FromString(const RString& sValue, T& out);
+auto
+FromString(const std::string& sValue, T& out) -> bool;
 
 template<typename T>
-RString
-ToString(const T& value);
+auto
+ToString(const T& value) -> std::string;
 
 template<>
-inline bool
-FromString<RString>(const RString& sValue, RString& out)
+inline auto
+FromString<std::string>(const std::string& sValue, std::string& out) -> bool
 {
 	out = sValue;
 	return true;
 }
 template<>
-inline RString
-ToString<RString>(const RString& value)
+inline auto
+ToString<std::string>(const std::string& value) -> std::string
 {
 	return value;
 }
-}
+} // namespace StringConversion
 
 class RageFileBasic;
-bool
-FileCopy(const RString& sSrcFile, const RString& sDstFile);
-bool
+auto
+FileCopy(const std::string& sSrcFile, const std::string& sDstFile) -> bool;
+auto
 FileCopy(RageFileBasic& in,
 		 RageFileBasic& out,
-		 RString& sError,
-		 bool* bReadError = nullptr);
+		 std::string& sError,
+		 bool* bReadError = nullptr) -> bool;
 
 template<class T>
 void
-GetAsNotInBs(const vector<T>& as, const vector<T>& bs, vector<T>& difference)
+GetAsNotInBs(const std::vector<T>& as,
+			 const std::vector<T>& bs,
+			 std::vector<T>& difference)
 {
-	vector<T> bsUnmatched = bs;
-	// Cannot use FOREACH_CONST here because vector<T>::const_iterator is an
-	// implicit type.
-	for (typename vector<T>::const_iterator a = as.begin(); a != as.end();
+	std::vector<T> bsUnmatched = bs;
+	// Cannot use FOREACH_CONST here because std::vector<T>::const_iterator
+	// is an implicit type.
+	for (typename std::vector<T>::const_iterator a = as.begin(); a != as.end();
 		 ++a) {
-		typename vector<T>::iterator iter =
+		typename std::vector<T>::iterator iter =
 		  find(bsUnmatched.begin(), bsUnmatched.end(), *a);
 		if (iter != bsUnmatched.end())
 			bsUnmatched.erase(iter);
@@ -1018,10 +1049,10 @@ GetAsNotInBs(const vector<T>& as, const vector<T>& bs, vector<T>& difference)
 
 template<class T>
 void
-GetConnectsDisconnects(const vector<T>& before,
-					   const vector<T>& after,
-					   vector<T>& disconnects,
-					   vector<T>& connects)
+GetConnectsDisconnects(const std::vector<T>& before,
+					   const std::vector<T>& after,
+					   std::vector<T>& disconnects,
+					   std::vector<T>& connects)
 {
 	GetAsNotInBs(before, after, disconnects);
 	GetAsNotInBs(after, before, connects);

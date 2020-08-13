@@ -83,8 +83,9 @@ local function searchInput(event)
 			searchopen = true
 			whee:Search(searchtitle, searchdesc, searchingame, searchpassword, searchopen)
 			whee:StopSearch()
+			local tind = getTabIndex()
 			resetTabIndex(0)
-			MESSAGEMAN:Broadcast("TabChanged")
+			MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 			MESSAGEMAN:Broadcast("EndingSearch")
 		elseif event.button == "Start" then
 			inputting = 0

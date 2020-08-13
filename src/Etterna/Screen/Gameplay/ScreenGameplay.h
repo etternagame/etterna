@@ -7,12 +7,8 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Actor/Gameplay/LyricDisplay.h"
-#include "Etterna/Models/Misc/PlayerStageStats.h"
-#include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Screen/Others/ScreenWithMenuElements.h"
-#include "Etterna/Models/Misc/SoundEffectControl.h"
-#include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Actor/GameplayAndMenus/Transition.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
@@ -37,7 +33,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	void Update(float fDeltaTime) override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void HandleMessage(const Message& msg) override;
 	void Cancel(ScreenMessage smSendWhenDone) override;
 
@@ -51,7 +47,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/**
 	 * @brief Determine if we are to center the columns for just one player.
 	 * @return true if we center the solo player, false otherwise. */
-	bool Center1Player() const;
+	static bool Center1Player();
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -71,8 +67,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	virtual bool UseSongBackgroundAndForeground() const { return true; }
 
-	ThemeMetric<RString> PLAYER_TYPE;
-	ThemeMetric<RString> SCORE_DISPLAY_TYPE;
+	ThemeMetric<std::string> PLAYER_TYPE;
+	ThemeMetric<std::string> SCORE_DISPLAY_TYPE;
 	ThemeMetric<apActorCommands> PLAYER_INIT_COMMAND;
 	LocalizedString GIVE_UP_START_TEXT;
 	LocalizedString GIVE_UP_BACK_TEXT;
@@ -85,7 +81,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	ThemeMetric<float> MIN_SECONDS_TO_STEP;
 	ThemeMetric<float> MIN_SECONDS_TO_MUSIC;
 	ThemeMetric<float> MIN_SECONDS_TO_STEP_NEXT_SONG;
-	ThemeMetric<RString> SONG_NUMBER_FORMAT;
+	ThemeMetric<std::string> SONG_NUMBER_FORMAT;
 
 	void SetupSong(int iSongIndex);
 	void ReloadCurrentSong();
@@ -93,10 +89,10 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic);
 	void GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 						   float& fSecondsToStartTransitioningOut);
-	void PlayAnnouncer(const RString& type,
+	void PlayAnnouncer(const std::string& type,
 					   float fSeconds,
 					   float* fDeltaSeconds);
-	void PlayAnnouncer(const RString& type, float fSeconds)
+	void PlayAnnouncer(const std::string& type, float fSeconds)
 	{
 		PlayAnnouncer(type, fSeconds, &m_fTimeSinceLastDancingComment);
 	}
@@ -108,7 +104,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void SongFinished();
 	virtual void SaveStats();
 	virtual void StageFinished(bool bBackedOut);
-	void SaveReplay();
 	bool AllAreFailing();
 
 	void RestartGameplay();
@@ -133,9 +128,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	 * @brief The songs left to play.
 	 *
 	 * The size can be greater than 1 if playing a course. */
-	vector<Song*> m_apSongsQueue;
-	vector<float> ratesqueue;
-	vector<string> playlistscorekeys;
+	std::vector<Song*> m_apSongsQueue;
+	std::vector<float> ratesqueue;
+	std::vector<std::string> playlistscorekeys;
 
 	float m_fTimeSinceLastDancingComment; // this counter is only running while
 										  // STATE_DANCING

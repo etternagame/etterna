@@ -1,6 +1,8 @@
 #ifndef SCREEN_TEXT_ENTRY_H
 #define SCREEN_TEXT_ENTRY_H
 
+#include <utility>
+
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "RageUtil/Sound/RageSound.h"
@@ -39,50 +41,63 @@ class ScreenTextEntry : public ScreenWithMenuElements
 {
   public:
 	void SetTextEntrySettings(
-	  RString sQuestion,
-	  RString sInitialAnswer,
+	  std::string sQuestion,
+	  std::string sInitialAnswer,
 	  int iMaxInputLength,
-	  bool (*Validate)(const RString& sAnswer, RString& sErrorOut) = NULL,
-	  void (*OnOK)(const RString& sAnswer) = NULL,
-	  void (*OnCancel)() = NULL,
+	  bool (*Validate)(const std::string& sAnswer,
+					   std::string& sErrorOut) = nullptr,
+	  void (*OnOK)(const std::string& sAnswer) = nullptr,
+	  void (*OnCancel)() = nullptr,
 	  bool bPassword = false,
-	  bool (*ValidateAppend)(const RString& sAnswerBeforeChar,
-							 const RString& sAppend) = NULL,
-	  RString (*FormatAnswerForDisplay)(const RString& sAnswer) = NULL);
+	  bool (*ValidateAppend)(const std::string& sAnswerBeforeChar,
+							 const std::string& sAppend) = nullptr,
+	  std::string (*FormatAnswerForDisplay)(const std::string& sAnswer) =
+		nullptr);
 	void SetTextEntrySettings(
-	  RString sQuestion,
-	  RString sInitialAnswer,
+	  std::string sQuestion,
+	  std::string sInitialAnswer,
 	  int iMaxInputLength,
-	  LuaReference,
-	  LuaReference,
-	  LuaReference,
-	  LuaReference,
-	  LuaReference,
-	  bool (*Validate)(const RString& sAnswer, RString& sErrorOut) = NULL,
-	  void (*OnOK)(const RString& sAnswer) = NULL,
-	  void (*OnCancel)() = NULL,
+	  const LuaReference&,
+	  const LuaReference&,
+	  const LuaReference&,
+	  const LuaReference&,
+	  const LuaReference&,
+	  bool (*Validate)(const std::string& sAnswer,
+					   std::string& sErrorOut) = nullptr,
+	  void (*OnOK)(const std::string& sAnswer) = nullptr,
+	  void (*OnCancel)() = nullptr,
 	  bool bPassword = false,
-	  bool (*ValidateAppend)(const RString& sAnswerBeforeChar,
-							 const RString& sAppend) = NULL,
-	  RString (*FormatAnswerForDisplay)(const RString& sAnswer) = NULL);
+	  bool (*ValidateAppend)(const std::string& sAnswerBeforeChar,
+							 const std::string& sAppend) = nullptr,
+	  std::string (*FormatAnswerForDisplay)(const std::string& sAnswer) =
+		nullptr);
 	static void TextEntry(
 	  ScreenMessage smSendOnPop,
-	  RString sQuestion,
-	  RString sInitialAnswer,
+	  std::string sQuestion,
+	  std::string sInitialAnswer,
 	  int iMaxInputLength,
-	  bool (*Validate)(const RString& sAnswer, RString& sErrorOut) = NULL,
-	  void (*OnOK)(const RString& sAnswer) = NULL,
-	  void (*OnCancel)() = NULL,
+	  bool (*Validate)(const std::string& sAnswer,
+					   std::string& sErrorOut) = nullptr,
+	  void (*OnOK)(const std::string& sAnswer) = nullptr,
+	  void (*OnCancel)() = nullptr,
 	  bool bPassword = false,
-	  bool (*ValidateAppend)(const RString& sAnswerBeforeChar,
-							 const RString& sAppend) = NULL,
-	  RString (*FormatAnswerForDisplay)(const RString& sAnswer) = NULL);
+	  bool (*ValidateAppend)(const std::string& sAnswerBeforeChar,
+							 const std::string& sAppend) = nullptr,
+	  std::string (*FormatAnswerForDisplay)(const std::string& sAnswer) =
+		nullptr);
 	static void Password(ScreenMessage smSendOnPop,
-						 const RString& sQuestion,
-						 void (*OnOK)(const RString& sPassword) = NULL,
-						 void (*OnCancel)() = NULL)
+						 const std::string& sQuestion,
+						 void (*OnOK)(const std::string& sPassword) = nullptr,
+						 void (*OnCancel)() = nullptr)
 	{
-		TextEntry(smSendOnPop, sQuestion, "", 255, NULL, OnOK, OnCancel, true);
+		TextEntry(std::move(smSendOnPop),
+				  sQuestion,
+				  "",
+				  255,
+				  nullptr,
+				  OnOK,
+				  OnCancel,
+				  true);
 	}
 
 	struct TextEntrySettings
@@ -99,19 +114,20 @@ class ScreenTextEntry : public ScreenWithMenuElements
 		{
 		}
 		ScreenMessage smSendOnPop;
-		RString sQuestion;
-		RString sInitialAnswer;
+		std::string sQuestion;
+		std::string sInitialAnswer;
 		int iMaxInputLength{ 0 };
 		/** @brief Is there a password involved with this setting?
 		 *
 		 * This parameter doesn't have to be used. */
 		bool bPassword{ false };
-		LuaReference Validate; // (RString sAnswer, RString sErrorOut; optional)
-		LuaReference OnOK;	 // (RString sAnswer; optional)
-		LuaReference OnCancel; // (optional)
-		LuaReference ValidateAppend; // (RString sAnswerBeforeChar, RString
-									 // sAppend; optional)
-		LuaReference FormatAnswerForDisplay; // (RString sAnswer; optional)
+		LuaReference
+		  Validate; // (std::string sAnswer, std::string sErrorOut; optional)
+		LuaReference OnOK;					 // (std::string sAnswer; optional)
+		LuaReference OnCancel;				 // (optional)
+		LuaReference ValidateAppend;		 // (std::string sAnswerBeforeChar,
+											 // std::string sAppend; optional)
+		LuaReference FormatAnswerForDisplay; // (std::string sAnswer; optional)
 
 		// see BitmapText.cpp Attribute::FromStack()  and
 		// OptionRowHandler.cpp LoadInternal() for ideas on how to implement the
@@ -121,19 +137,23 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	};
 	void LoadFromTextEntrySettings(const TextEntrySettings& settings);
 
-	static bool FloatValidate(const RString& sAnswer, RString& sErrorOut);
-	static bool IntValidate(const RString& sAnswer, RString& sErrorOut);
+	static bool FloatValidate(const std::string& sAnswer,
+							  std::string& sErrorOut);
+	static bool IntValidate(const std::string& sAnswer, std::string& sErrorOut);
 
-	RString sQuestion{ "" };
-	RString sInitialAnswer{ "" };
+	std::string sQuestion{ "" };
+	std::string sInitialAnswer{ "" };
 	int iMaxInputLength{ 0 };
-	bool (*pValidate)(const RString& sAnswer, RString& sErrorOut){ NULL };
-	void (*pOnOK)(const RString& sAnswer){ NULL };
-	void (*pOnCancel)(){ NULL };
+	bool (*pValidate)(const std::string& sAnswer,
+					  std::string& sErrorOut){ nullptr };
+	void (*pOnOK)(const std::string& sAnswer){ nullptr };
+	void (*pOnCancel)(){ nullptr };
 	bool bPassword{ false };
-	bool (*pValidateAppend)(const RString& sAnswerBeforeChar,
-							const RString& sAppend){ NULL };
-	RString (*pFormatAnswerForDisplay)(const RString& sAnswer){ NULL };
+	bool (*pValidateAppend)(const std::string& sAnswerBeforeChar,
+							const std::string& sAppend){ nullptr };
+	std::string (*pFormatAnswerForDisplay)(const std::string& sAnswer){
+		nullptr
+	};
 
 	// Lua bridge
 	LuaReference ValidateFunc;
@@ -148,14 +168,14 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	void Update(float fDelta) override;
 	bool Input(const InputEventPlus& input) override;
 
-	static RString s_sLastAnswer;
+	static std::string s_sLastAnswer;
 	static bool s_bCancelledLast;
 
 	// Lua
 	void PushSelf(lua_State* L) override;
 
   protected:
-	void TryAppendToAnswer(const RString& s);
+	void TryAppendToAnswer(const std::string& s);
 	void BackspaceInAnswer();
 	virtual void TextEnteredDirectly() {}
 
@@ -167,7 +187,7 @@ class ScreenTextEntry : public ScreenWithMenuElements
 
 	void UpdateAnswerText();
 
-	wstring m_sAnswer;
+	std::wstring m_sAnswer;
 	bool m_bShowAnswerCaret = false;
 	// todo: allow Left/Right to change caret location -aj
 	// int			m_iCaretLocation;

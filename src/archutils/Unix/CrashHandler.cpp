@@ -173,7 +173,8 @@ parent_process(int to_child, const CrashData* crash)
 	while (cnt < 1024 && (ps[cnt] = RageLog::GetRecentLog(cnt)) != NULL)
 		++cnt;
 
-	parent_write(to_child, &cnt, sizeof(cnt));
+	if (!parent_write(to_child, &cnt, sizeof(cnt)))
+		return;
 	for (int i = 0; i < cnt; ++i) {
 		size = strlen(ps[i]) + 1;
 		if (!parent_write(to_child, &size, sizeof(size)))
@@ -390,7 +391,7 @@ CrashHandler::ForceCrash(const char* reason)
 }
 
 void
-CrashHandler::ForceDeadlock(RString reason, uint64_t iID)
+CrashHandler::ForceDeadlock(std::string reason, uint64_t iID)
 {
 	CrashData crash;
 	memset(&crash, 0, sizeof(crash));
@@ -418,7 +419,7 @@ CrashHandler::ForceDeadlock(RString reason, uint64_t iID)
 			sizeof(crash.m_ThreadName[0]) - 1);
 
 	strncpy(
-	  crash.reason, reason, min(sizeof(crash.reason) - 1, reason.length()));
+	  crash.reason, reason.c_str(), std::min(sizeof(crash.reason) - 1, reason.length()));
 	crash.reason[sizeof(crash.reason) - 1] = 0;
 
 	RunCrashHandler(&crash);

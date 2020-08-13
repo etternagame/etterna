@@ -1,8 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RadarValues.h"
-#include "RageUtil/Utils/RageUtil.h"
-#include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+
+#include <algorithm>
 
 RadarValues::RadarValues()
 {
@@ -45,14 +45,15 @@ RadarValues::LoadFromNode(const XNode* pNode)
 
 /* iMaxValues is only used for writing compatibility fields in non-cache
  * SM files; they're never actually read. */
-RString
+std::string
 RadarValues::ToString(int iMaxValues) const
 {
 	if (iMaxValues == -1)
 		iMaxValues = NUM_RadarCategory;
-	iMaxValues = min(iMaxValues, static_cast<int>(NUM_RadarCategory));
+	iMaxValues = std::min(iMaxValues, static_cast<int>(NUM_RadarCategory));
 
-	vector<RString> asRadarValues;
+	vector<std::string> asRadarValues;
+	asRadarValues.reserve(iMaxValues);
 	for (int r = 0; r < iMaxValues; r++) {
 		asRadarValues.push_back(IntToString((*this)[r]));
 	}
@@ -61,9 +62,9 @@ RadarValues::ToString(int iMaxValues) const
 }
 
 void
-RadarValues::FromString(const RString& sRadarValues)
+RadarValues::FromString(const std::string& sRadarValues)
 {
-	vector<RString> saValues;
+	vector<std::string> saValues;
 	split(sRadarValues, ",", saValues, true);
 
 	if (saValues.size() != NUM_RadarCategory) {

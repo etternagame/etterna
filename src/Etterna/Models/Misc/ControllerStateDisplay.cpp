@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "ControllerStateDisplay.h"
 #include "EnumHelper.h"
@@ -15,7 +15,7 @@ XToString(ControllerStateButton);
 
 // TODO: Generalize for all game types
 static const GameButton ControllerStateButtonToGameButton[] = {
-	PUMP_BUTTON_UPLEFT,   PUMP_BUTTON_UPRIGHT,   PUMP_BUTTON_CENTER,
+	PUMP_BUTTON_UPLEFT,	  PUMP_BUTTON_UPRIGHT,	 PUMP_BUTTON_CENTER,
 	PUMP_BUTTON_DOWNLEFT, PUMP_BUTTON_DOWNRIGHT,
 };
 
@@ -29,20 +29,21 @@ ControllerStateDisplay::ControllerStateDisplay()
 }
 
 void
-ControllerStateDisplay::LoadMultiPlayer(const RString& sType, MultiPlayer mp)
+ControllerStateDisplay::LoadMultiPlayer(const std::string& sType,
+										MultiPlayer mp)
 {
 	LoadInternal(sType, mp, GameController_1);
 }
 
 void
-ControllerStateDisplay::LoadGameController(const RString& sType,
+ControllerStateDisplay::LoadGameController(const std::string& sType,
 										   GameController gc)
 {
 	LoadInternal(sType, MultiPlayer_Invalid, gc);
 }
 
 void
-ControllerStateDisplay::LoadInternal(const RString& sType,
+ControllerStateDisplay::LoadInternal(const std::string& sType,
 									 MultiPlayer mp,
 									 GameController gc)
 {
@@ -56,10 +57,9 @@ ControllerStateDisplay::LoadInternal(const RString& sType,
 
 	FOREACH_ENUM(ControllerStateButton, b)
 	{
-		Button& button = m_Buttons[b];
+		auto& button = m_Buttons[b];
 
-		RString sPath =
-		  THEME->GetPathG(sType, ControllerStateButtonToString(b));
+		auto sPath = THEME->GetPathG(sType, ControllerStateButtonToString(b));
 		button.spr.Load(sPath);
 		this->AddChild(m_Buttons[b].spr);
 
@@ -73,8 +73,8 @@ ControllerStateDisplay::Update(float fDelta)
 	ActorFrame::Update(fDelta);
 
 	if (m_mp != MultiPlayer_Invalid) {
-		InputDevice id = InputMapper::MultiPlayerToInputDevice(m_mp);
-		InputDeviceState ids = INPUTMAN->GetInputDeviceState(id);
+		auto id = InputMapper::MultiPlayerToInputDevice(m_mp);
+		auto ids = INPUTMAN->GetInputDeviceState(id);
 		if (ids != m_idsLast) {
 			PlayCommand(InputDeviceStateToString(ids));
 		}
@@ -83,11 +83,11 @@ ControllerStateDisplay::Update(float fDelta)
 
 	FOREACH_ENUM(ControllerStateButton, b)
 	{
-		Button& button = m_Buttons[b];
+		auto& button = m_Buttons[b];
 		if (!button.spr.IsLoaded())
 			continue;
 
-		bool bVisible = INPUTMAPPER->IsBeingPressed(button.gi, m_mp);
+		auto bVisible = INPUTMAPPER->IsBeingPressed(button.gi, m_mp);
 
 		button.spr->SetVisible(bVisible);
 	}

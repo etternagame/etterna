@@ -1,4 +1,3 @@
-﻿#include "Etterna/Globals/global.h"
 #include "RageUnicode.h"
 #include <vector>
 
@@ -19,21 +18,6 @@ convert_unicode_casing(std::wstring const& s, unsigned char const mapping[256])
 	return std::wstring{ letters.begin(), letters.end() };
 }
 
-void
-utf8_sanitize(std::string& s)
-{
-	std::string ret;
-	for (unsigned start = 0; start < s.size();) {
-		wchar_t ch;
-		if (!Rage::utf8_to_wchar_ec(s, start, ch)) {
-			ch = Rage::invalid_char;
-		}
-		Rage::wchar_to_utf8(ch, ret);
-	}
-
-	s = ret;
-}
-
 int
 Rage::utf8_get_char_len(char p)
 {
@@ -51,7 +35,7 @@ Rage::utf8_get_char_len(char p)
 		return 5; /* 111110xx */
 	if (!(p & 0x02))
 		return 6; /* 1111110x */
-	return 1;	 /* 1111111x */
+	return 1;	  /* 1111111x */
 }
 
 bool
@@ -74,11 +58,11 @@ Rage::utf8_to_wchar_ec(std::string const& s, unsigned& start, wchar_t& ch)
 		return false;
 	}
 
-	int len = Rage::utf8_get_char_len(s[start]);
+	const int len = Rage::utf8_get_char_len(s[start]);
 
 	const int first_byte_mask[] = { -1, 0x7F, 0x1F, 0x0F, 0x07, 0x03, 0x01 };
 
-	ch = wchar_t(s[start] & first_byte_mask[len]);
+	ch = static_cast<wchar_t>(s[start] & first_byte_mask[len]);
 
 	for (int i = 1; i < len; ++i) {
 		if (start + i >= s.size()) {
@@ -89,7 +73,7 @@ Rage::utf8_to_wchar_ec(std::string const& s, unsigned& start, wchar_t& ch)
 			return false;
 		}
 
-		char byte = s[start + i];
+		const char byte = s[start + i];
 		if (!Rage::is_utf8_continuation_byte(byte)) {
 			/* We expected a continuation byte, but didn't get one. Return
 			 * error, and point start at the unexpected byte; it's probably a
@@ -102,9 +86,9 @@ Rage::utf8_to_wchar_ec(std::string const& s, unsigned& start, wchar_t& ch)
 
 	bool bValid = true;
 	{
-		unsigned c1 = (unsigned)s[start] & 0xFF;
-		unsigned c2 = (unsigned)s[start + 1] & 0xFF;
-		int c = (c1 << 8) + c2;
+		const unsigned c1 = static_cast<unsigned>(s[start]) & 0xFF;
+		const unsigned c2 = static_cast<unsigned>(s[start + 1]) & 0xFF;
+		const int c = (c1 << 8) + c2;
 		if ((c & 0xFE00) == 0xC000 || (c & 0xFFE0) == 0xE080 ||
 			(c & 0xFFF0) == 0xF080 || (c & 0xFFF8) == 0xF880 ||
 			(c & 0xFFFC) == 0xFC80) {
@@ -125,7 +109,7 @@ Rage::utf8_to_wchar(const char* s, size_t iLength, unsigned& start, wchar_t& ch)
 	if (start >= iLength)
 		return false;
 
-	int len = Rage::utf8_get_char_len(s[start]);
+	const int len = Rage::utf8_get_char_len(s[start]);
 
 	if (start + len > iLength) {
 		// We don't have room for enough continuation bytes. Return error.
@@ -186,14 +170,14 @@ Rage::wchar_to_utf8(wchar_t ch, std::string& out)
 	else
 		cbytes = 5;
 	{
-		int shift = cbytes * 6;
+		const int shift = cbytes * 6;
 		const int init_masks[] = { 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 		out.append(1,
 				   static_cast<char>(init_masks[cbytes - 1] | (ch >> shift)));
 	}
 
 	for (int i = 0; i < cbytes; ++i) {
-		int shift = (cbytes - i - 1) * 6;
+		const int shift = (cbytes - i - 1) * 6;
 		out.append(1, static_cast<char>(0x80 | ((ch >> shift) & 0x3F)));
 	}
 }

@@ -1,4 +1,4 @@
-﻿/* ComboGraph - A bar displaying the player's combo on Evaluation. */
+/* ComboGraph - A bar displaying the player's combo on Evaluation. */
 #ifndef COMBO_GRAPH_H
 #define COMBO_GRAPH_H
 
@@ -13,7 +13,7 @@ class ComboGraph : public ActorFrame
 {
   public:
 	ComboGraph();
-	void Load(const RString& sMetricsGroup);
+	void Load(const std::string& sMetricsGroup);
 	void Set(const StageStats& s, const PlayerStageStats& pss);
 	ComboGraph* Copy() const override;
 	bool AutoLoadChildren() const override { return true; }

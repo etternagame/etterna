@@ -10,11 +10,11 @@
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/Globals/rngthing.h"
+
+#include <algorithm>
 
 const float PARTICLE_SPEED = 300;
-
-const float SPIRAL_MAX_ZOOM = 2;
-const float SPIRAL_MIN_ZOOM = 0.3f;
 
 #define MAX_TILES_WIDE static_cast<int>(SCREEN_WIDTH / 32 + 2)
 #define MAX_TILES_HIGH static_cast<int>(SCREEN_HEIGHT / 32 + 2)
@@ -136,16 +136,15 @@ BGAnimationLayer::~BGAnimationLayer()
 }
 
 void
-BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
+BGAnimationLayer::LoadFromAniLayerFile(const std::string& sPath)
 {
 	/* Generic BGAs are new.  Animation directories with no INI are old and
 	 * obsolete. Don't combine them. */
-	RString lcPath = sPath;
-	lcPath.MakeLower();
+	auto lcPath = make_lower(sPath);
 
-	if (lcPath.find("usesongbg") != RString::npos) {
+	if (lcPath.find("usesongbg") != std::string::npos) {
 		const Song* pSong = GAMESTATE->m_pCurSong;
-		RString sSongBGPath;
+		std::string sSongBGPath;
 		if (pSong && pSong->HasBackground())
 			sSongBGPath = pSong->GetBackgroundPath();
 		else
@@ -190,7 +189,7 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 		EFFECT_INVALID
 	};
 
-	const RString EFFECT_STRING[NUM_EFFECTS] = {
+	const std::string EFFECT_STRING[NUM_EFFECTS] = {
 		"center",
 		"stretchstill",
 		"stretchscrollleft",
@@ -218,10 +217,10 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 		"tilepulse",
 	};
 
-	Effect effect = EFFECT_CENTER;
+	auto effect = EFFECT_CENTER;
 
-	for (int i = 0; i < NUM_EFFECTS; i++)
-		if (lcPath.find(EFFECT_STRING[i]) != string::npos)
+	for (auto i = 0; i < NUM_EFFECTS; i++)
+		if (lcPath.find(EFFECT_STRING[i]) != std::string::npos)
 			effect = static_cast<Effect>(i);
 
 	switch (effect) {
@@ -293,14 +292,14 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 			m_Type = TYPE_PARTICLES;
 			Sprite s;
 			s.Load(sPath);
-			int iSpriteArea =
+			auto iSpriteArea =
 			  static_cast<int>(s.GetUnzoomedWidth() * s.GetUnzoomedHeight());
 			const auto iMaxArea =
 			  static_cast<int>(SCREEN_WIDTH * SCREEN_HEIGHT);
-			int iNumParticles = iMaxArea / iSpriteArea;
-			iNumParticles = min(iNumParticles, MAX_SPRITES);
+			auto iNumParticles = iMaxArea / iSpriteArea;
+			iNumParticles = std::min(iNumParticles, MAX_SPRITES);
 
-			for (int i = 0; i < iNumParticles; i++) {
+			for (auto i = 0; i < iNumParticles; i++) {
 				auto* pSprite = new Sprite;
 				this->AddChild(pSprite);
 				pSprite->Load(sPath);
@@ -371,16 +370,16 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 			s.Load(ID);
 			m_iNumTilesWide =
 			  2 + static_cast<int>(SCREEN_WIDTH / s.GetUnzoomedWidth());
-			m_iNumTilesWide = min(m_iNumTilesWide, MAX_TILES_WIDE);
+			m_iNumTilesWide = std::min(m_iNumTilesWide, MAX_TILES_WIDE);
 			m_iNumTilesHigh =
 			  2 + static_cast<int>(SCREEN_HEIGHT / s.GetUnzoomedHeight());
-			m_iNumTilesHigh = min(m_iNumTilesHigh, MAX_TILES_HIGH);
+			m_iNumTilesHigh = std::min(m_iNumTilesHigh, MAX_TILES_HIGH);
 			m_fTilesStartX = s.GetUnzoomedWidth() / 2;
 			m_fTilesStartY = s.GetUnzoomedHeight() / 2;
 			m_fTilesSpacingX = s.GetUnzoomedWidth();
 			m_fTilesSpacingY = s.GetUnzoomedHeight();
-			for (int x = 0; x < m_iNumTilesWide; x++) {
-				for (int y = 0; y < m_iNumTilesHigh; y++) {
+			for (auto x = 0; x < m_iNumTilesWide; x++) {
+				for (auto y = 0; y < m_iNumTilesHigh; y++) {
 					auto* pSprite = new Sprite;
 					this->AddChild(pSprite);
 					pSprite->Load(ID);
@@ -421,27 +420,26 @@ BGAnimationLayer::LoadFromAniLayerFile(const RString& sPath)
 			FAIL_M(ssprintf("Unrecognized layer effect: %i", effect));
 	}
 
-	RString sHint = sPath;
-	sHint.MakeLower();
+	auto sHint = make_lower(sPath);
 
-	if (sHint.find("cyclecolor") != RString::npos)
+	if (sHint.find("cyclecolor") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetEffectRainbow(5);
 
-	if (sHint.find("cyclealpha") != RString::npos)
+	if (sHint.find("cyclealpha") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetEffectDiffuseShift(
 			  2, RageColor(1, 1, 1, 1), RageColor(1, 1, 1, 0));
 
-	if (sHint.find("startonrandomframe") != RString::npos)
+	if (sHint.find("startonrandomframe") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetState(RandomInt(m_SubActors[i]->GetNumStates()));
 
-	if (sHint.find("dontanimate") != RString::npos)
+	if (sHint.find("dontanimate") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->StopAnimating();
 
-	if (sHint.find("add") != RString::npos)
+	if (sHint.find("add") != std::string::npos)
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
 			m_SubActors[i]->SetBlendMode(BLEND_ADD);
 }
@@ -455,11 +453,11 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 			return;
 	}
 
-	bool bStretch = false;
+	auto bStretch = false;
 	{
-		RString type = "sprite";
+		std::string type = "sprite";
 		pNode->GetAttrValue("Type", type);
-		type.MakeLower();
+		type = make_lower(type);
 
 		/* The preferred way of stretching a sprite to fit the screen is
 		 * "Type=sprite" and "stretch=1".  "type=1" is for
@@ -469,11 +467,11 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 		// Check for string match first, then do integer match.
 		// "if(StringType(type)==0)" was matching against all string matches.
 		// -Chris
-		if (type.EqualsNoCase("sprite")) {
+		if (EqualsNoCase(type, "sprite")) {
 			m_Type = TYPE_SPRITE;
-		} else if (type.EqualsNoCase("particles")) {
+		} else if (EqualsNoCase(type, "particles")) {
 			m_Type = TYPE_PARTICLES;
-		} else if (type.EqualsNoCase("tiles")) {
+		} else if (EqualsNoCase(type, "tiles")) {
 			m_Type = TYPE_TILES;
 		} else if (StringToInt(type) == 1) {
 			m_Type = TYPE_SPRITE;
@@ -515,7 +513,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 	pNode->GetAttrValue("VelocityZMax", fVelocityZMax);
 	pNode->GetAttrValue("OverrideSpeed", fOverrideSpeed);
 
-	int iNumParticles = 10;
+	auto iNumParticles = 10;
 	pNode->GetAttrValue("NumParticles", iNumParticles);
 
 	pNode->GetAttrValue("ParticlesBounce", m_bParticlesBounce);
@@ -528,27 +526,28 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 
 	switch (m_Type) {
 		case TYPE_SPRITE: {
-			Actor* pActor = ActorUtil::LoadFromNode(pNode, this);
+			auto pActor = ActorUtil::LoadFromNode(pNode, this);
 			this->AddChild(pActor);
 			if (bStretch)
 				pActor->StretchTo(FullScreenRectF);
 		} break;
 		case TYPE_PARTICLES: {
-			RString sFile;
+			std::string sFile;
 			ActorUtil::GetAttrPath(pNode, "File", sFile);
 			FixSlashesInPlace(sFile);
 
 			CollapsePath(sFile);
 
-			for (int i = 0; i < iNumParticles; i++) {
-				Actor* pActor = ActorUtil::MakeActor(sFile, this);
+			for (auto i = 0; i < iNumParticles; i++) {
+				auto pActor = ActorUtil::MakeActor(sFile, this);
 				if (pActor == nullptr)
 					continue;
 				this->AddChild(pActor);
-				pActor->SetXY(randomf(float(FullScreenRectF.left),
-									  float(FullScreenRectF.right)),
-							  randomf(float(FullScreenRectF.top),
-									  float(FullScreenRectF.bottom)));
+				pActor->SetXY(
+				  randomf(static_cast<float>(FullScreenRectF.left),
+						  static_cast<float>(FullScreenRectF.right)),
+				  randomf(static_cast<float>(FullScreenRectF.top),
+						  static_cast<float>(FullScreenRectF.bottom)));
 				pActor->SetZoom(randomf(fZoomMin, fZoomMax));
 				m_vParticleVelocity.push_back(
 				  RageVector3(randomf(fVelocityXMin, fVelocityXMax),
@@ -562,7 +561,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 			}
 		} break;
 		case TYPE_TILES: {
-			RString sFile;
+			std::string sFile;
 			ActorUtil::GetAttrPath(pNode, "File", sFile);
 			FixSlashesInPlace(sFile);
 
@@ -580,7 +579,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 			  2 + static_cast<int>(SCREEN_HEIGHT / m_fTilesSpacingY);
 			unsigned NumSprites = m_iNumTilesWide * m_iNumTilesHigh;
 			for (unsigned i = 0; i < NumSprites; i++) {
-				Actor* pSprite = ActorUtil::MakeActor(sFile, this);
+				auto pSprite = ActorUtil::MakeActor(sFile, this);
 				if (pSprite == nullptr)
 					continue;
 				this->AddChild(pSprite);
@@ -592,7 +591,7 @@ BGAnimationLayer::LoadFromNode(const XNode* pNode)
 			FAIL_M(ssprintf("Unrecognized layer type: %i", m_Type));
 	}
 
-	bool bStartOnRandomFrame = false;
+	auto bStartOnRandomFrame = false;
 	pNode->GetAttrValue("StartOnRandomFrame", bStartOnRandomFrame);
 	if (bStartOnRandomFrame) {
 		for (unsigned i = 0; i < m_SubActors.size(); i++)
@@ -614,7 +613,7 @@ BGAnimationLayer::UpdateInternal(float fDeltaTime)
 				for (unsigned i = 0; i < m_SubActors.size(); i++) {
 					// XXX: there's no longer any guarantee that this is a
 					// Sprite
-					Sprite* pSprite = (Sprite*)m_SubActors[i];
+					auto pSprite = static_cast<Sprite*>(m_SubActors[i]);
 					pSprite->StretchTexCoords(fDeltaTime * m_fTexCoordVelocityX,
 											  fDeltaTime *
 												m_fTexCoordVelocityY);
@@ -623,8 +622,8 @@ BGAnimationLayer::UpdateInternal(float fDeltaTime)
 			break;
 		case TYPE_PARTICLES:
 			for (unsigned i = 0; i < m_SubActors.size(); i++) {
-				Actor* pActor = m_SubActors[i];
-				RageVector3& vel = m_vParticleVelocity[i];
+				auto pActor = m_SubActors[i];
+				auto& vel = m_vParticleVelocity[i];
 
 				m_SubActors[i]->SetX(pActor->GetX() + fDeltaTime * vel.x);
 				m_SubActors[i]->SetY(pActor->GetY() + fDeltaTime * vel.y);
@@ -660,21 +659,21 @@ BGAnimationLayer::UpdateInternal(float fDeltaTime)
 			}
 			break;
 		case TYPE_TILES: {
-			float fSecs = RageTimer::GetTimeSinceStart();
-			float fTotalWidth = m_iNumTilesWide * m_fTilesSpacingX;
-			float fTotalHeight = m_iNumTilesHigh * m_fTilesSpacingY;
+			auto fSecs = RageTimer::GetTimeSinceStart();
+			auto fTotalWidth = m_iNumTilesWide * m_fTilesSpacingX;
+			auto fTotalHeight = m_iNumTilesHigh * m_fTilesSpacingY;
 
 			ASSERT(static_cast<int>(m_SubActors.size()) ==
 				   m_iNumTilesWide * m_iNumTilesHigh);
 
-			for (int x = 0; x < m_iNumTilesWide; x++) {
-				for (int y = 0; y < m_iNumTilesHigh; y++) {
-					int i = y * m_iNumTilesWide + x;
+			for (auto x = 0; x < m_iNumTilesWide; x++) {
+				for (auto y = 0; y < m_iNumTilesHigh; y++) {
+					auto i = y * m_iNumTilesWide + x;
 
-					float fX = m_fTilesStartX + m_fTilesSpacingX * x +
-							   fSecs * m_fTileVelocityX;
-					float fY = m_fTilesStartY + m_fTilesSpacingY * y +
-							   fSecs * m_fTileVelocityY;
+					auto fX = m_fTilesStartX + m_fTilesSpacingX * x +
+							  fSecs * m_fTileVelocityX;
+					auto fY = m_fTilesStartY + m_fTilesSpacingY * y +
+							  fSecs * m_fTileVelocityY;
 
 					fX += m_fTilesSpacingX / 2;
 					fY += m_fTilesSpacingY / 2;

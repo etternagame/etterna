@@ -33,6 +33,7 @@ local function loadValuesTable()
 	MovableValues.NotefieldY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY
 	MovableValues.NotefieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
 	MovableValues.NotefieldHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight
+	MovableValues.NotefieldSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldSpacing
 	MovableValues.JudgeCounterX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX
 	MovableValues.JudgeCounterY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY
 	MovableValues.ReplayButtonsX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ReplayButtonsX
@@ -66,7 +67,10 @@ local function loadValuesTable()
 	MovableValues.MusicRateX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MusicRateX
 	MovableValues.MusicRateY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MusicRateY
 	MovableValues.MusicRateZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].MusicRateZoom
+end
 
+function unsetMovableKeymode()
+	MovableValues = {}
 end
 
 function setMovableKeymode(key)
@@ -841,6 +845,23 @@ Movable = {
 			inc = -0.01
 		}
 	},
+	DeviceButton_n = {
+		name = "Notefield",
+		textHeader = "Notefield Columns:",
+		properties = {"Spacing"},
+		elementTree = "GameplaySizes",
+		noBorder = true,
+		DeviceButton_up = {
+			arbitraryInc = true,
+			property = "Spacing",
+			inc = 1
+		},
+		DeviceButton_down = {
+			arbitraryInc = true,
+			property = "Spacing",
+			inc = -1
+		},
+	},
 }
 
 local function updatetext(button)
@@ -854,6 +875,7 @@ local function updatetext(button)
 end
 
 function MovableInput(event)
+	if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplaySyncMachine" then return end
 	if getAutoplay() ~= 0 then
 		-- this will eat any other mouse input than a right click (toggle)
 		-- so we don't have to worry about anything weird happening with the ersatz inputs -mina
@@ -1015,6 +1037,12 @@ function MovableBorder(width, height, bw, x, y)
 		InitCommand=function(self)
 			self:xy(x,y):diffusealpha(0)
 			self:SetUpdateFunction(bordermousereact)
+		end,
+		OnCommand=function(self)
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplaySyncMachine" then
+				self:visible(false)
+				self:SetUpdateFunction(nil)
+			end
 		end,
 		ChangeWidthCommand=function(self, params)
 			self:GetChild("xbar"):zoomx(params.val)

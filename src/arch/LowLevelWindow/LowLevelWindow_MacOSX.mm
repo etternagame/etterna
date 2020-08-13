@@ -1,6 +1,6 @@
 #import "Etterna/Globals/global.h"
 #import "arch/LowLevelWindow/LowLevelWindow_MacOSX.h"
-#import "Etterna/Models/Misc/DisplayResolutions.h"
+#import "Etterna/Models/Misc/DisplaySpec.h"
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/Misc/RageThreads.h"
 #import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
@@ -317,21 +317,21 @@ LowLevelWindow_MacOSX::~LowLevelWindow_MacOSX()
 	[m_WindowDelegate release];
 }
 
-void *LowLevelWindow_MacOSX::GetProcAddress( const RString &s )
+void *LowLevelWindow_MacOSX::GetProcAddress( const std::string &s )
 {
 	// http://developer.apple.com/qa/qa2001/qa1188.html
 	// Both functions mentioned in there are deprecated in 10.4.
-	const RString& symbolName( '_' + s );
+	const std::string& symbolName( '_' + s );
 	const uint32_t count = _dyld_image_count();
 	NSSymbol symbol = NULL;
 	const uint32_t options = NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR;
 	
 	for( uint32_t i = 0; i < count && !symbol; ++i )
-		symbol = NSLookupSymbolInImage( _dyld_get_image_header(i), symbolName, options );
+		symbol = NSLookupSymbolInImage( _dyld_get_image_header(i), symbolName.c_str(), options );
 	return symbol ? NSAddressOfSymbol( symbol ) : NULL;
 }
 
-RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& newDeviceOut )
+std::string LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& newDeviceOut )
 {
 	// Always set these params.
 	m_CurrentParams.bSmoothLines = p.bSmoothLines;
@@ -348,7 +348,7 @@ RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& new
 #undef X
 	
 	if( !bChangeMode && !bChangeVsync )
-		return RString();
+		return std::string();
 	
 	POOL;
 	newDeviceOut = false;
@@ -382,14 +382,17 @@ RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& new
 		}
 		
 		[m_WindowDelegate performSelectorOnMainThread:@selector(setParams:) withObject:[NSValue valueWithPointer:&p] waitUntilDone:YES];
-		[m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+
+		dispatch_async(dispatch_get_main_queue(), ^{
+            [m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+		});
 		[m_Context update];
 		[m_Context makeCurrentContext];
 		m_CurrentParams.windowed = true;
 		SetActualParamsFromMode( CGDisplayCurrentMode(kCGDirectMainDisplay) );
 		m_CurrentParams.vsync = p.vsync; // hack
 
-		return RString();
+		return std::string();
 	}
 	if( bChangeMode )
 	{
@@ -433,7 +436,9 @@ RString LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& new
 		m_CurrentParams.vsync = p.vsync;
 	}
 	
-	return RString();
+	m_ActualParams = ActualVideoModeParams(m_CurrentParams);
+	
+	return std::string();
 }
 
 void LowLevelWindow_MacOSX::ShutDownFullScreen()
@@ -548,6 +553,7 @@ void LowLevelWindow_MacOSX::SetActualParamsFromMode( CFDictionaryRef mode )
 	}
 
 	m_CurrentParams.bpp = GetDisplayBitsPerPixel( kCGDirectMainDisplay );
+	m_ActualParams = ActualVideoModeParams(m_CurrentParams);
 }
 
 static int GetIntValue( CFTypeRef r )
@@ -564,28 +570,51 @@ static bool GetBoolValue( CFTypeRef r )
 	return r && CFGetTypeID( r ) == CFBooleanGetTypeID() && CFBooleanGetValue( CFBooleanRef(r) );
 }
 
-void LowLevelWindow_MacOSX::GetDisplayResolutions( DisplayResolutions &dr ) const
+static double GetDoubleValue( CFTypeRef r )
+{
+	double ret;
+
+	if( !r || CFGetTypeID(r) != CFNumberGetTypeID() || !CFNumberGetValue(CFNumberRef(r), kCFNumberDoubleType, &ret) )
+		return 0;
+	return ret;
+}
+
+static DisplayMode ConvertDisplayMode( CFDictionaryRef dict )
+{
+	int width = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayWidth) );
+	int height = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayHeight) );
+	double rate = GetDoubleValue( CFDictionaryGetValue(dict, kCGDisplayRefreshRate) );
+
+	return { static_cast<unsigned int> (width), static_cast<unsigned int> (height), rate};
+}
+
+void LowLevelWindow_MacOSX::GetDisplaySpecs( DisplaySpecs &specs ) const
 {
 	CFArrayRef modes = CGDisplayAvailableModes( kCGDirectMainDisplay );
 	ASSERT( modes );
 	const CFIndex count = CFArrayGetCount( modes );
 	
+	std::set<DisplayMode> available;
+	CFDictionaryRef currentModeDict = CGDisplayCurrentMode( kCGDirectMainDisplay );
+	DisplayMode current = ConvertDisplayMode( currentModeDict );
+	
 	for( CFIndex i = 0; i < count; ++i )
 	{
 		CFDictionaryRef dict = (CFDictionaryRef)CFArrayGetValueAtIndex( modes, i );
-		int width = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayWidth) );
-		int height = GetIntValue( CFDictionaryGetValue(dict, kCGDisplayHeight) );
 		CFTypeRef safe = CFDictionaryGetValue( dict, kCGDisplayModeIsSafeForHardware );
-		bool stretched = GetBoolValue( CFDictionaryGetValue(dict, kCGDisplayModeIsStretched) );
 		
-		if( !width || !height )
+		DisplayMode mode = ConvertDisplayMode( dict );
+
+		if( !mode.width || !mode.height )
 			continue;
 		if( safe && !GetBoolValue( safe ) )
 			continue;
-		DisplayResolution res = { static_cast<unsigned int>(width), static_cast<unsigned int>(height), stretched };
-		dr.insert( res );
+		available.insert( mode );
 	}
 	// Do not release modes! We don't own them here.
+	RectI bounds( 0, 0, current.width, current.height );
+	DisplaySpec s( "", "Fullscreen", available, current, bounds );
+	specs.insert( s );
 }
 
 void LowLevelWindow_MacOSX::SwapBuffers()
@@ -606,8 +635,12 @@ void LowLevelWindow_MacOSX::Update()
 		return;
 	m_CurrentParams.width = g_iWidth;
 	m_CurrentParams.height = g_iHeight;
+	m_ActualParams.windowWidth = g_iWidth;
+	m_ActualParams.windowHeight = g_iHeight;
 	lock.Unlock(); // Unlock before calling ResolutionChanged().
-	[m_Context update];
+	dispatch_async(dispatch_get_main_queue(), ^{
+	  [m_Context update];
+	});
 	DISPLAY->ResolutionChanged();
 }
 

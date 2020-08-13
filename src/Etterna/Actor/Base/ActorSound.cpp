@@ -17,7 +17,7 @@ ActorSound::Update(float dt)
 {
 	Actor::Update(dt);
 	if (m_Sound.pendingPlayBackCall) {
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 		m_Sound.ExecutePlayBackCallback(L);
 		LUA->Release(L);
 	}
@@ -49,12 +49,12 @@ ActorSound::LoadFromNode(const XNode* pNode)
 	pNode->GetAttrValue("SupportRateChanging", params.m_bSupportRateChanging);
 	pNode->GetAttrValue("IsAction", m_is_action);
 
-	bool bPrecache = true;
+	auto bPrecache = true;
 	pNode->GetAttrValue("Precache", bPrecache);
 
 	Actor::LoadFromNode(pNode);
 
-	RString sFile;
+	std::string sFile;
 	if (ActorUtil::GetAttrPath(pNode, "File", sFile))
 		m_Sound.Load(sFile, bPrecache, &params);
 }

@@ -98,7 +98,7 @@ ms.SkillSetsTranslated = {
 	THEME:GetString("Skillsets", "Technical"),
 }
 
-ms.JudgeScalers = {1.50, 1.33, 1.16, 1.00, 0.84, 0.66, 0.50, 0.33, 0.20}
+ms.JudgeScalers = GAMESTATE:GetTimingScales()
 
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
@@ -254,7 +254,7 @@ end
 function wifeRange(t)
 	local x, y = 10000, 0
 	for i = 1, #t do
-		if t[i] ~= 1000 then
+		if math.abs(t[i]) <= 180 then		-- some replays (online ones i think?) are flagging misses as 1100 for some reason
 			if math.abs(t[i]) < math.abs(x) then
 				x = t[i]
 			end
@@ -347,10 +347,8 @@ function formLink(x, y)
 end
 
 function GetPlayableTime()
-	local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
-	local song = GAMESTATE:GetCurrentSong()
-	return (td:GetElapsedTimeFromBeat(song:GetLastBeat()) - td:GetElapsedTimeFromBeat(song:GetFirstBeat())) /
-		getCurRateValue()
+	local step = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	return step:GetLengthSeconds()
 end
 
 function ChangeMusicRate(rate, params)
@@ -377,4 +375,9 @@ function ChangeMusicRate(rate, params)
 		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
 	end
+end
+
+-- hur dur floats
+for i = 1, #ms.JudgeScalers do
+	ms.JudgeScalers[i] = notShit.round(ms.JudgeScalers[i], 2)
 end

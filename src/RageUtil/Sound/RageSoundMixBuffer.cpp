@@ -1,6 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageSoundMixBuffer.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <algorithm>
 
 #ifdef __APPLE__
 #include "archutils/Darwin/VectorHelper.h"
@@ -33,7 +35,7 @@ RageSoundMixBuffer::SetWriteOffset(int iOffset)
 void
 RageSoundMixBuffer::Extend(unsigned iSamples)
 {
-	const unsigned realsize = iSamples + m_iOffset;
+	const auto realsize = iSamples + m_iOffset;
 	if (m_iBufSize < realsize) {
 		m_pMixbuf = (float*)realloc(m_pMixbuf, sizeof(float) * realsize);
 		m_iBufSize = realsize;
@@ -60,7 +62,7 @@ RageSoundMixBuffer::write(const float* pBuf,
 	Extend(iSize * iDestStride - (iDestStride - 1));
 
 	/* Scale volume and add. */
-	float* pDestBuf = m_pMixbuf + m_iOffset;
+	auto pDestBuf = m_pMixbuf + m_iOffset;
 
 #ifdef USE_VEC
 	if (g_bVector && iSourceStride == 1 && iDestStride == 1) {
@@ -81,8 +83,8 @@ void
 RageSoundMixBuffer::read(int16_t* pBuf)
 {
 	for (unsigned iPos = 0; iPos < m_iBufUsed; ++iPos) {
-		float iOut = m_pMixbuf[iPos];
-		iOut = clamp(iOut, -1.0f, +1.0f);
+		auto iOut = m_pMixbuf[iPos];
+		iOut = std::clamp(iOut, -1.0f, +1.0f);
 		pBuf[iPos] = static_cast<int16_t>(lround(iOut * 32767));
 	}
 	m_iBufUsed = 0;
@@ -99,7 +101,7 @@ void
 RageSoundMixBuffer::read_deinterlace(float** pBufs, int channels)
 {
 	for (unsigned i = 0; i < m_iBufUsed / channels; ++i)
-		for (int ch = 0; ch < channels; ++ch)
+		for (auto ch = 0; ch < channels; ++ch)
 			pBufs[ch][i] = m_pMixbuf[channels * i + ch];
 	m_iBufUsed = 0;
 }

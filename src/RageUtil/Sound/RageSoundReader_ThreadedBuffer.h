@@ -1,4 +1,4 @@
-﻿/* RageSoundReader_ThreadedBuffer - Buffer sounds into memory. */
+/* RageSoundReader_ThreadedBuffer - Buffer sounds into memory. */
 
 #ifndef RAGE_SOUND_READER_THREADED_BUFFER
 #define RAGE_SOUND_READER_THREADED_BUFFER
@@ -28,7 +28,7 @@ class RageSoundReader_ThreadedBuffer : public RageSoundReader_Filter
 	int GetLength_Fast() const override;
 	int GetSampleRate() const override { return m_iSampleRate; }
 	unsigned GetNumChannels() const override { return m_iChannels; }
-	bool SetProperty(const RString& sProperty, float fValue) override;
+	bool SetProperty(const std::string& sProperty, float fValue) override;
 	float GetStreamToSourceRatio() const override;
 	RageSoundReader* GetSource() override { return NULL; }
 
@@ -66,7 +66,7 @@ class RageSoundReader_ThreadedBuffer : public RageSoundReader_Filter
 		float fRate{ 1.0f };
 		Mapping() = default;
 	};
-	list<Mapping> m_StreamPosition;
+	std::list<Mapping> m_StreamPosition;
 
 	bool m_bEOF;
 

@@ -1,9 +1,6 @@
 #include "Etterna/Globals/global.h"
-
 #include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Globals/GameLoop.h"
-#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -14,7 +11,6 @@
 #include "ScreenOptionsMaster.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
 #define LINE_NAMES THEME->GetMetric(m_sName, "LineNames")
@@ -29,7 +25,7 @@ REGISTER_SCREEN_CLASS(ScreenOptionsMaster);
 void
 ScreenOptionsMaster::Init()
 {
-	vector<RString> asLineNames;
+	vector<std::string> asLineNames;
 	split(LINE_NAMES, ",", asLineNames);
 	if (asLineNames.empty()) {
 		LuaHelpers::ReportScriptErrorFmt("\"%s:LineNames\" is empty.",
@@ -54,14 +50,14 @@ ScreenOptionsMaster::Init()
 
 	vector<OptionRowHandler*> OptionRowHandlers;
 	for (unsigned i = 0; i < asLineNames.size(); ++i) {
-		RString sLineName = asLineNames[i];
-		RString sRowCommands = LINE(sLineName);
+		std::string sLineName = asLineNames[i];
+		std::string sRowCommands = LINE(sLineName);
 
 		Commands cmds;
 		ParseCommands(sRowCommands, cmds, false);
 
 		OptionRowHandler* pHand = OptionRowHandlerUtil::Make(cmds);
-		if (pHand == NULL) {
+		if (pHand == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
 			  "Invalid OptionRowHandler \"%s\" in \"%s:Line:%s\".",
 			  cmds.GetOriginalCommandString().c_str(),
@@ -85,7 +81,8 @@ ScreenOptionsMaster::ImportOptions(int r, const PlayerNumber& vpns)
 void
 ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 {
-	CHECKPOINT_M(ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())));
+	CHECKPOINT_M(
+	  ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())).c_str());
 
 	OptionRow& row = *m_pRows[r];
 	bool bRowHasFocus = false;
@@ -95,7 +92,7 @@ ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 }
 
 void
-ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage SM)
+ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_ExportOptions) {
 		// Override ScreenOptions's calling of ExportOptions
@@ -124,7 +121,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage SM)
 			((m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0)) {
 			/* If the resolution or aspect ratio changes, always reload the
 			 * theme. Otherwise, only reload it if it changed. */
-			RString sNewTheme = PREFSMAN->m_sTheme.Get();
+			std::string sNewTheme = PREFSMAN->m_sTheme.Get();
 			GameLoop::ChangeTheme(sNewTheme);
 		}
 

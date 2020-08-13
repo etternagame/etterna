@@ -1,5 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/Foreach.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "ModelTypes.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -8,6 +7,9 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+
+#include <cstring>
+#include <algorithm>
 
 #define MS_MAX_NAME 32
 
@@ -29,22 +31,22 @@ AnimatedTexture::~AnimatedTexture()
 void
 AnimatedTexture::LoadBlank()
 {
-	AnimatedTextureState state(NULL, 1, RageVector2(0, 0));
+	const AnimatedTextureState state(nullptr, 1, RageVector2(0, 0));
 	vFrames.push_back(state);
 }
 
 void
-AnimatedTexture::Load(const RString& sTexOrIniPath)
+AnimatedTexture::Load(const std::string& sTexOrIniPath)
 {
 	ASSERT(vFrames.empty()); // don't load more than once
 
-	m_bSphereMapped = sTexOrIniPath.find("sphere") != RString::npos;
-	if (sTexOrIniPath.find("add") != string::npos)
+	m_bSphereMapped = sTexOrIniPath.find("sphere") != std::string::npos;
+	if (sTexOrIniPath.find("add") != std::string::npos)
 		m_BlendMode = BLEND_ADD;
 	else
 		m_BlendMode = BLEND_NORMAL;
 
-	if (GetExtension(sTexOrIniPath).CompareNoCase("ini") == 0) {
+	if (CompareNoCase(GetExtension(sTexOrIniPath), "ini") == 0) {
 		IniFile ini;
 		if (!ini.ReadFile(sTexOrIniPath))
 			RageException::Throw("Error reading \"%s\": %s",
@@ -52,7 +54,7 @@ AnimatedTexture::Load(const RString& sTexOrIniPath)
 								 ini.GetError().c_str());
 
 		const XNode* pAnimatedTexture = ini.GetChild("AnimatedTexture");
-		if (pAnimatedTexture == NULL)
+		if (pAnimatedTexture == nullptr)
 			RageException::Throw("The animated texture file \"%s\" doesn't "
 								 "contain a section called "
 								 "\"AnimatedTexture\".",
@@ -63,16 +65,16 @@ AnimatedTexture::Load(const RString& sTexOrIniPath)
 		pAnimatedTexture->GetAttrValue("TexOffsetX", m_vTexOffset.x);
 		pAnimatedTexture->GetAttrValue("TexOffsetY", m_vTexOffset.y);
 
-		for (int i = 0; i < 1000; i++) {
-			RString sFileKey = ssprintf("Frame%04d", i);
-			RString sDelayKey = ssprintf("Delay%04d", i);
+		for (auto i = 0; i < 1000; i++) {
+			auto sFileKey = ssprintf("Frame%04d", i);
+			auto sDelayKey = ssprintf("Delay%04d", i);
 
-			RString sFileName;
+			std::string sFileName;
 			float fDelay = 0;
 			if (pAnimatedTexture->GetAttrValue(sFileKey, sFileName) &&
 				pAnimatedTexture->GetAttrValue(sDelayKey, fDelay)) {
-				RString sTranslateXKey = ssprintf("TranslateX%04d", i);
-				RString sTranslateYKey = ssprintf("TranslateY%04d", i);
+				auto sTranslateXKey = ssprintf("TranslateX%04d", i);
+				auto sTranslateYKey = ssprintf("TranslateY%04d", i);
 
 				RageVector2 vOffset(0, 0);
 				pAnimatedTexture->GetAttrValue(sTranslateXKey, vOffset.x);
@@ -107,7 +109,7 @@ AnimatedTexture::Update(float fDelta)
 {
 	if (vFrames.empty())
 		return;
-	ASSERT(m_iCurState < (int)vFrames.size());
+	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	m_fSecsIntoFrame += fDelta;
 	if (m_fSecsIntoFrame > vFrames[m_iCurState].fDelaySecs) {
 		m_fSecsIntoFrame -= vFrames[m_iCurState].fDelaySecs;
@@ -115,12 +117,12 @@ AnimatedTexture::Update(float fDelta)
 	}
 }
 
-RageTexture*
+std::shared_ptr<RageTexture>
 AnimatedTexture::GetCurrentTexture()
 {
 	if (vFrames.empty())
-		return NULL;
-	ASSERT(m_iCurState < (int)vFrames.size());
+		return nullptr;
+	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	return vFrames[m_iCurState].pTexture;
 }
 
@@ -141,8 +143,8 @@ float
 AnimatedTexture::GetAnimationLengthSeconds() const
 {
 	float fTotalSeconds = 0;
-	FOREACH_CONST(AnimatedTextureState, vFrames, ats)
-	fTotalSeconds += ats->fDelaySecs;
+	for (const auto& ats : vFrames)
+		fTotalSeconds += ats.fDelaySecs;
 	return fTotalSeconds;
 }
 
@@ -153,7 +155,7 @@ AnimatedTexture::SetSecondsIntoAnimation(float fSeconds)
 
 	m_iCurState = 0;
 	for (unsigned i = 0; i < vFrames.size(); i++) {
-		AnimatedTextureState& ats = vFrames[i];
+		auto& ats = vFrames[i];
 		if (fSeconds >= ats.fDelaySecs) {
 			fSeconds -= ats.fDelaySecs;
 			m_iCurState = i + 1;
@@ -170,7 +172,7 @@ AnimatedTexture::GetSecondsIntoAnimation() const
 	float fSeconds = 0;
 
 	for (unsigned i = 0; i < vFrames.size(); i++) {
-		const AnimatedTextureState& ats = vFrames[i];
+		const auto& ats = vFrames[i];
 		if (static_cast<int>(i) >= m_iCurState)
 			break;
 
@@ -183,8 +185,8 @@ AnimatedTexture::GetSecondsIntoAnimation() const
 void
 AnimatedTexture::Unload()
 {
-	for (unsigned i = 0; i < vFrames.size(); ++i)
-		TEXTUREMAN->UnloadTexture(vFrames[i].pTexture);
+	for (auto& vFrame : vFrames)
+		TEXTUREMAN->UnloadTexture(vFrame.pTexture);
 	vFrames.clear();
 	m_iCurState = 0;
 	m_fSecsIntoFrame = 0;
@@ -193,14 +195,14 @@ AnimatedTexture::Unload()
 RageVector2
 AnimatedTexture::GetTextureTranslate()
 {
-	float fPercentIntoAnimation =
+	const auto fPercentIntoAnimation =
 	  GetSecondsIntoAnimation() / GetAnimationLengthSeconds();
-	RageVector2 v = m_vTexVelocity * fPercentIntoAnimation + m_vTexOffset;
+	auto v = m_vTexVelocity * fPercentIntoAnimation + m_vTexOffset;
 
 	if (vFrames.empty())
 		return v;
 
-	ASSERT(m_iCurState < (int)vFrames.size());
+	ASSERT(m_iCurState < static_cast<int>(vFrames.size()));
 	v += vFrames[m_iCurState].vTranslate;
 
 	return v;
@@ -213,10 +215,11 @@ AnimatedTexture::GetTextureTranslate()
 						 sLine.c_str())
 
 bool
-msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
+msAnimation::LoadMilkshapeAsciiBones(const std::string& sAniName,
+									 std::string sPath)
 {
 	FixSlashesInPlace(sPath);
-	const RString sDir = Dirname(sPath);
+	const auto sDir = Dirname(sPath);
 
 	RageFile f;
 	if (!f.Open(sPath))
@@ -224,34 +227,34 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 							 sPath.c_str(),
 							 f.GetError().c_str());
 
-	RString sLine;
-	int iLineNum = 0;
+	std::string sLine;
+	auto iLineNum = 0;
 
-	msAnimation& Animation = *this;
+	auto& Animation = *this;
 
-	bool bLoaded = false;
+	const auto bLoaded = false;
 	while (f.GetLine(sLine) > 0) {
 		iLineNum++;
 
-		if (!strncmp(sLine, "//", 2))
+		if (!strncmp(sLine.c_str(), "//", 2))
 			continue;
 
 		// bones
-		int nNumBones = 0;
-		if (sscanf(sLine, "Bones: %d", &nNumBones) != 1)
+		auto nNumBones = 0;
+		if (sscanf(sLine.c_str(), "Bones: %d", &nNumBones) != 1)
 			continue;
 
 		char szName[MS_MAX_NAME];
 
 		Animation.Bones.resize(nNumBones);
 
-		for (int i = 0; i < nNumBones; i++) {
-			msBone& Bone = Animation.Bones[i];
+		for (auto i = 0; i < nNumBones; i++) {
+			auto& Bone = Animation.Bones[i];
 
 			// name
 			if (f.GetLine(sLine) <= 0)
 				THROW;
-			if (sscanf(sLine, "\"%31[^\"]\"", szName) != 1)
+			if (sscanf(sLine.c_str(), "\"%31[^\"]\"", szName) != 1)
 				THROW;
 			Bone.sName = szName;
 
@@ -259,7 +262,7 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 			if (f.GetLine(sLine) <= 0)
 				THROW;
 			strcpy(szName, "");
-			sscanf(sLine, "\"%31[^\"]\"", szName);
+			sscanf(sLine.c_str(), "\"%31[^\"]\"", szName);
 
 			Bone.sParentName = szName;
 
@@ -269,7 +272,7 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 				THROW;
 
 			int nFlags;
-			if (sscanf(sLine,
+			if (sscanf(sLine.c_str(),
 					   "%d %f %f %f %f %f %f",
 					   &nFlags,
 					   &Position[0],
@@ -289,18 +292,18 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 			// position key count
 			if (f.GetLine(sLine) <= 0)
 				THROW;
-			int nNumPositionKeys = 0;
-			if (sscanf(sLine, "%d", &nNumPositionKeys) != 1)
+			auto nNumPositionKeys = 0;
+			if (sscanf(sLine.c_str(), "%d", &nNumPositionKeys) != 1)
 				THROW;
 
 			Bone.PositionKeys.resize(nNumPositionKeys);
 
-			for (int j = 0; j < nNumPositionKeys; ++j) {
+			for (auto j = 0; j < nNumPositionKeys; ++j) {
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 
 				float fTime;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &fTime,
 						   &Position[0],
@@ -318,18 +321,18 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 			// rotation key count
 			if (f.GetLine(sLine) <= 0)
 				THROW;
-			int nNumRotationKeys = 0;
-			if (sscanf(sLine, "%d", &nNumRotationKeys) != 1)
+			auto nNumRotationKeys = 0;
+			if (sscanf(sLine.c_str(), "%d", &nNumRotationKeys) != 1)
 				THROW;
 
 			Bone.RotationKeys.resize(nNumRotationKeys);
 
-			for (int j = 0; j < nNumRotationKeys; ++j) {
+			for (auto j = 0; j < nNumRotationKeys; ++j) {
 				if (f.GetLine(sLine) <= 0)
 					THROW;
 
 				float fTime;
-				if (sscanf(sLine,
+				if (sscanf(sLine.c_str(),
 						   "%f %f %f %f",
 						   &fTime,
 						   &Rotation[0],
@@ -348,14 +351,14 @@ msAnimation::LoadMilkshapeAsciiBones(const RString& sAniName, RString sPath)
 
 		// Ignore "Frames:" in file.  Calculate it ourself
 		Animation.nTotalFrames = 0;
-		for (int i = 0; i < (int)Animation.Bones.size(); i++) {
-			msBone& Bone = Animation.Bones[i];
-			for (unsigned j = 0; j < Bone.PositionKeys.size(); ++j)
-				Animation.nTotalFrames =
-				  max(Animation.nTotalFrames, (int)Bone.PositionKeys[j].fTime);
-			for (unsigned j = 0; j < Bone.RotationKeys.size(); ++j)
-				Animation.nTotalFrames =
-				  max(Animation.nTotalFrames, (int)Bone.RotationKeys[j].fTime);
+		for (auto i = 0; i < static_cast<int>(Animation.Bones.size()); i++) {
+			auto& Bone = Animation.Bones[i];
+			for (auto& PositionKey : Bone.PositionKeys)
+				Animation.nTotalFrames = std::max(
+				  Animation.nTotalFrames, static_cast<int>(PositionKey.fTime));
+			for (auto& RotationKey : Bone.RotationKeys)
+				Animation.nTotalFrames = std::max(
+				  Animation.nTotalFrames, static_cast<int>(RotationKey.fTime));
 		}
 	}
 

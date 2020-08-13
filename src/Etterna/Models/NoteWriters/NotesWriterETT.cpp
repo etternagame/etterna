@@ -18,28 +18,29 @@
  * characters.
  * @param lines the list of lines to join.
  * @return the joined lines. */
-static RString
-JoinLineList(vector<RString>& lines)
+static std::string
+JoinLineList(vector<std::string>& lines)
 {
-	for (unsigned i = 0; i < lines.size(); ++i)
-		TrimRight(lines[i]);
+	for (auto& line : lines)
+		TrimRight(line);
 
 	// Skip leading blanks.
 	unsigned j = 0;
-	while (j < lines.size() && lines.size() == 0)
+	while (j < lines.size() && lines.empty())
 		++j;
 
 	return join("\r\n", lines.begin() + j, lines.end());
 }
 
-RString
-MSDToString2(MinaSD x)
+std::string
+MSDToString2(std::vector<std::vector<float>> x)
 {
-	RString o = "";
+	std::string o = "";
 	for (size_t i = 0; i < x.size(); i++) {
-		for (size_t ii = 0; ii < x[i].size(); ii++) {
-			o.append(to_string(x[i][ii]).substr(0, 5));
-			if (ii != x[i].size() - 1)
+		auto msds = x[i];
+		for (size_t ii = 0; ii < msds.size(); ii++) {
+			o.append(std::to_string(msds[ii]).substr(0, 5));
+			if (ii != msds.size() - 1)
 				o.append(",");
 		}
 		if (i != x.size() - 1)
@@ -52,10 +53,10 @@ MSDToString2(MinaSD x)
 struct TimingTagWriter
 {
 
-	vector<RString>* m_pvsLines;
-	RString m_sNext;
+	vector<std::string>* m_pvsLines;
+	std::string m_sNext;
 
-	TimingTagWriter(vector<RString>* pvsLines)
+	TimingTagWriter(vector<std::string>* pvsLines)
 	  : m_pvsLines(pvsLines)
 	{
 	}
@@ -69,29 +70,29 @@ struct TimingTagWriter
 
 	void Write(const int row, const float value)
 	{
-		Write(row, ssprintf("%.6f", value));
+		Write(row, ssprintf("%.6f", value).c_str());
 	}
 	void Write(const int row, const int value)
 	{
-		Write(row, ssprintf("%d", value));
+		Write(row, ssprintf("%d", value).c_str());
 	}
 	void Write(const int row, const int a, const int b)
 	{
-		Write(row, ssprintf("%d=%d", a, b));
+		Write(row, ssprintf("%d=%d", a, b).c_str());
 	}
 	void Write(const int row, const float a, const float b)
 	{
-		Write(row, ssprintf("%.6f=%.6f", a, b));
+		Write(row, ssprintf("%.6f=%.6f", a, b).c_str());
 	}
 	void Write(const int row,
 			   const float a,
 			   const float b,
 			   const unsigned short c)
 	{
-		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c));
+		Write(row, ssprintf("%.6f=%.6f=%hd", a, b, c).c_str());
 	}
 
-	void Init(const RString sTag) { m_sNext = "#" + sTag + ":"; }
+	void Init(const std::string sTag) { m_sNext = "#" + sTag + ":"; }
 	void Finish()
 	{
 		m_pvsLines->emplace_back((m_sNext != "," ? m_sNext : "") + ";");
@@ -99,7 +100,7 @@ struct TimingTagWriter
 };
 
 static void
-GetTimingTags(vector<RString>& lines,
+GetTimingTags(vector<std::string>& lines,
 			  const TimingData& timing,
 			  bool bIsSong = false)
 {
@@ -181,7 +182,7 @@ GetTimingTags(vector<RString>& lines,
 
 	WRITE_SEG_LOOP_OPEN(SEGMENT_LABEL, LabelSegment, "LABELS", ToLabel);
 	if (!segment->GetLabel().empty()) {
-		writer.Write(segment->GetRow(), segment->GetLabel());
+		writer.Write(segment->GetRow(), segment->GetLabel().c_str());
 	}
 	WRITE_SEG_LOOP_CLOSE;
 
@@ -190,7 +191,7 @@ GetTimingTags(vector<RString>& lines,
 }
 
 static void
-write_tag(RageFile& f, RString const& format, std::string const& value)
+write_tag(RageFile& f, std::string const& format, std::string const& value)
 {
 	if (!value.empty()) {
 		f.PutLine(ssprintf(format, SmEscape(value).c_str()));
@@ -257,7 +258,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 	{
 		auto vs = out.GetInstrumentTracksToVectorString();
 		if (!vs.empty()) {
-			std::string s = join(",", vs);
+			auto s = join(",", vs);
 			f.PutLine("#INSTRUMENTTRACK:" + s + ";\n");
 		}
 	}
@@ -335,7 +336,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 		f.PutLine(";");
 	}
 
-	if (out.GetForegroundChanges().size()) {
+	if (!out.GetForegroundChanges().empty()) {
 		f.Write("#FGCHANGES:");
 		for (auto const& bgc : out.GetForegroundChanges()) {
 			f.PutLine(bgc.ToString() + ",");
@@ -350,7 +351,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 			// which makes MsdFile fail parsing the whole declaration.
 			// in this case, add a backslash at the front
 			// (#KEYSOUNDS:\#bgm.wav,01.wav,02.wav,..) and handle that on load.
-			if (i == 0 && out.m_vsKeysoundFile[i].size() > 0 &&
+			if (i == 0 && !out.m_vsKeysoundFile[i].empty() &&
 				out.m_vsKeysoundFile[i][0] == '#') {
 				f.Write("\\");
 			}
@@ -366,9 +367,9 @@ WriteGlobalTags(RageFile& f, const Song& out)
 }
 
 static void
-emplace_back_tag(vector<RString>& lines,
-				 RString const& format,
-				 RString const& value)
+emplace_back_tag(std::vector<std::string>& lines,
+				 std::string const& format,
+				 std::string const& value)
 {
 	if (!value.empty()) {
 		lines.emplace_back(ssprintf(format, SmEscape(value).c_str()));
@@ -380,11 +381,11 @@ emplace_back_tag(vector<RString>& lines,
  * @param song the Song in question.
  * @param in the Steps in question.
  * @param bSavingCache a flag to see if we're saving certain cache data.
- * @return the NoteData in RString form. */
-static RString
+ * @return the NoteData in std::string form. */
+static std::string
 GetETTNoteData(const Song& song, Steps& in)
 {
-	vector<RString> lines;
+	std::vector<std::string> lines;
 
 	lines.emplace_back("");
 	// Escape to prevent some clown from making a comment of "\r\n;"
@@ -406,8 +407,8 @@ GetETTNoteData(const Song& song, Steps& in)
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
-	vector<RString> asRadarValues;
-	const RadarValues& rv = in.GetRadarValues();
+	std::vector<std::string> asRadarValues;
+	const auto& rv = in.GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
 	lines.emplace_back(
@@ -428,8 +429,8 @@ GetETTNoteData(const Song& song, Steps& in)
 			// write nothing
 			break;
 		case DISPLAY_BPM_SPECIFIED: {
-			float small = in.GetMinBPM();
-			float big = in.GetMaxBPM();
+			auto small = in.GetMinBPM();
+			auto big = in.GetMaxBPM();
 			if (small == big)
 				lines.emplace_back(ssprintf("#DISPLAYBPM:%.6f;", small));
 			else
@@ -444,7 +445,7 @@ GetETTNoteData(const Song& song, Steps& in)
 			break;
 	}
 
-	RString sNoteData;
+	std::string sNoteData;
 	in.GetETTNoteData(sNoteData);
 	lines.emplace_back(song.m_vsKeysoundFile.empty() ? "#NOTES:" : "#NOTES2:");
 
@@ -455,7 +456,7 @@ GetETTNoteData(const Song& song, Steps& in)
 }
 
 bool
-NotesWriterETT::Write(RString& sPath,
+NotesWriterETT::Write(std::string& sPath,
 					  const Song& out,
 					  const vector<Steps*>& vpStepsToSave)
 {
@@ -488,11 +489,11 @@ NotesWriterETT::Write(RString& sPath,
 	// Save specified Steps to this file
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
-		Steps* pSteps = *s;
-		if (pSteps->GetChartKey() != "") { // Avoid writing cache tags for
-										   // invalid chartkey files(empty
-										   // steps) -Mina
-			RString sTag = GetETTNoteData(out, *pSteps);
+		auto pSteps = *s;
+		if (!pSteps->GetChartKey().empty()) { // Avoid writing cache tags for
+			// invalid chartkey files(empty
+			// steps) -Mina
+			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
 			LOG->Info("Not caching empty difficulty in file %s", sPath.c_str());

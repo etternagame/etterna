@@ -2,12 +2,14 @@
 #define RAGE_THREADS_H
 
 #include "Etterna/Globals/global.h"
+#include "Etterna/Singletons/PrefsManager.h"
+
 #include <mutex>
 #include <atomic>
 #include <thread>
 #include <chrono>
+#include <functional>
 #include <condition_variable>
-#include "Etterna/Singletons/PrefsManager.h"
 
 class ThreadData
 {
@@ -15,8 +17,9 @@ class ThreadData
 	void waitForUpdate()
 	{
 		std::unique_lock<std::mutex> lk(_updatedMutex);
-		_updatedCV.wait_for(
-		  lk, chrono::milliseconds(100), [this] { return this->getUpdated(); });
+		_updatedCV.wait_for(lk, std::chrono::milliseconds(100), [this] {
+			return this->getUpdated();
+		});
 	}
 	void setUpdated(bool b)
 	{
@@ -26,7 +29,7 @@ class ThreadData
 		}
 		_updatedCV.notify_all();
 	}
-	bool getUpdated() { return _updated; }
+	auto getUpdated() -> bool { return _updated; }
 	std::atomic<int> _threadsFinished{ 0 };
 	std::atomic<int> _progress{ 0 };
 	std::mutex _updatedMutex;
@@ -38,13 +41,14 @@ class ThreadData
 };
 
 template<class T>
-using vectorIt = typename vector<T>::iterator;
+using vectorIt = typename std::vector<T>::iterator;
 template<class T>
 using vectorRange = std::pair<vectorIt<T>, vectorIt<T>>;
 
 template<typename T>
-std::vector<vectorRange<T>>
-splitWorkLoad(vector<T>& v, size_t elementsPerThread)
+auto
+splitWorkLoad(std::vector<T>& v, size_t elementsPerThread)
+  -> std::vector<vectorRange<T>>
 {
 	std::vector<vectorRange<T>> ranges;
 	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
@@ -71,15 +75,18 @@ splitWorkLoad(vector<T>& v, size_t elementsPerThread)
 
 template<typename T>
 void
-parallelExecution(vector<T> vec,
-				  function<void(int)> update,
-				  function<void(vectorRange<T>, ThreadData*)> exec,
+parallelExecution(std::vector<T> vec,
+				  std::function<void(int)> update,
+				  std::function<void(vectorRange<T>, ThreadData*)> exec,
 				  void* stuff)
 {
-	const int THREADS = PREFSMAN->ThreadsToUse <= 0
-						  ? std::thread::hardware_concurrency()
-						  : min((int)PREFSMAN->ThreadsToUse,
-								(int)std::thread::hardware_concurrency());
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0
+		? std::thread::hardware_concurrency()
+		: PREFSMAN->ThreadsToUse <
+			  static_cast<int>(std::thread::hardware_concurrency())
+			? PREFSMAN->ThreadsToUse
+			: static_cast<int>(std::thread::hardware_concurrency());
 	std::vector<vectorRange<T>> workloads =
 	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
 	ThreadData data;
@@ -89,9 +96,9 @@ parallelExecution(vector<T> vec,
 		data._threadsFinished++;
 		data.setUpdated(true);
 	};
-	vector<thread> threadpool;
+	std::vector<std::thread> threadpool;
 	for (auto& workload : workloads)
-		threadpool.emplace_back(thread(threadCallback, workload));
+		threadpool.emplace_back(std::thread(threadCallback, workload));
 	while (data._threadsFinished < (int)workloads.size()) {
 		data.waitForUpdate();
 		update(data._progress);
@@ -102,11 +109,42 @@ parallelExecution(vector<T> vec,
 }
 template<typename T>
 void
-parallelExecution(vector<T> vec,
-				  function<void(int)> update,
-				  function<void(vectorRange<T>, ThreadData)> exec)
+parallelExecution(std::vector<T> vec,
+				  std::function<void(int)> update,
+				  std::function<void(vectorRange<T>, ThreadData)> exec)
 {
 	parallelExecution(vec, update, exec, nullptr);
+}
+
+template<typename T>
+void
+parallelExecution(std::vector<T> vec,
+				  std::function<void(vectorRange<T>, ThreadData*)> exec)
+{
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0
+		? std::thread::hardware_concurrency()
+		: PREFSMAN->ThreadsToUse <
+			  static_cast<int>(std::thread::hardware_concurrency())
+			? PREFSMAN->ThreadsToUse
+			: static_cast<int>(std::thread::hardware_concurrency());
+	std::vector<vectorRange<T>> workloads =
+	  splitWorkLoad(vec, static_cast<size_t>(vec.size() / THREADS));
+	ThreadData data;
+	auto threadCallback = [&data, &exec](vectorRange<T> workload) {
+		exec(workload, &data);
+		data._threadsFinished++;
+		data.setUpdated(true);
+	};
+	std::vector<std::thread> threadpool;
+	for (auto& workload : workloads)
+		threadpool.emplace_back(std::thread(threadCallback, workload));
+	while (data._threadsFinished < (int)workloads.size()) {
+		data.waitForUpdate();
+		data.setUpdated(false);
+	}
+	for (auto& thread : threadpool)
+		thread.join();
 }
 
 struct ThreadSlot;
@@ -120,8 +158,8 @@ class RageThread
 	RageThread(const RageThread& cpy);
 	~RageThread();
 
-	void SetName(const RString& n) { m_sName = n; }
-	RString GetName() const { return m_sName; }
+	void SetName(const std::string& n) { m_sName = n; }
+	[[nodiscard]] auto GetName() const -> std::string { return m_sName; }
 	void Create(int (*fn)(void*), void* data);
 
 	void Halt(bool Kill = false);
@@ -134,34 +172,34 @@ class RageThread
 	/* If HaltAllThreads was called (with Kill==false), resume. */
 	static void ResumeAllThreads();
 
-	static uint64_t GetCurrentThreadID();
+	static auto GetCurrentThreadID() -> uint64_t;
 
-	static const char* GetCurrentThreadName();
-	static const char* GetThreadNameByID(uint64_t iID);
-	static bool EnumThreadIDs(int n, uint64_t& iID);
-	int Wait();
-	bool IsCreated() const { return m_pSlot != nullptr; }
+	static auto GetCurrentThreadName() -> const char*;
+	static auto GetThreadNameByID(uint64_t iID) -> const char*;
+	static auto EnumThreadIDs(int n, uint64_t& iID) -> bool;
+	auto Wait() -> int;
+	[[nodiscard]] auto IsCreated() const -> bool { return m_pSlot != nullptr; }
 
 	/* A system can define HAVE_TLS, indicating that it can compile thread_local
 	 * code, but an individual environment may not actually have functional TLS.
 	 * If this returns false, thread_local variables are considered undefined.
 	 */
-	static bool GetSupportsTLS() { return s_bSystemSupportsTLS; }
+	static auto GetSupportsTLS() -> bool { return s_bSystemSupportsTLS; }
 	static void SetSupportsTLS(bool b) { s_bSystemSupportsTLS = b; }
 
-	static bool GetIsShowingDialog() { return s_bIsShowingDialog; }
+	static auto GetIsShowingDialog() -> bool { return s_bIsShowingDialog; }
 	static void SetIsShowingDialog(bool b) { s_bIsShowingDialog = b; }
-	static uint64_t GetInvalidThreadID();
+	static auto GetInvalidThreadID() -> uint64_t;
 
   private:
 	ThreadSlot* m_pSlot;
-	RString m_sName;
+	std::string m_sName;
 
 	static bool s_bSystemSupportsTLS;
 	static bool s_bIsShowingDialog;
 
 	// Swallow up warnings. If they must be used, define them.
-	RageThread& operator=(const RageThread& rhs);
+	auto operator=(const RageThread& rhs) -> RageThread&;
 };
 
 /**
@@ -172,13 +210,14 @@ class RageThread
 class RageThreadRegister
 {
   public:
-	RageThreadRegister(const RString& sName);
+	RageThreadRegister(const std::string& sName);
 	~RageThreadRegister();
 
   private:
 	ThreadSlot* m_pSlot;
 	// Swallow up warnings. If they must be used, define them.
-	RageThreadRegister& operator=(const RageThreadRegister& rhs) = delete;
+	auto operator=(const RageThreadRegister& rhs)
+	  -> RageThreadRegister& = delete;
 	RageThreadRegister(const RageThreadRegister& rhs) = delete;
 };
 
@@ -191,7 +230,8 @@ void
 GetLogs(char* pBuf, int iSize, const char* delim);
 };
 
-#define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
+#define CHECKPOINT_M(m)                                                        \
+	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
 
 /* Mutex class that follows the behavior of Windows mutexes: if the same
  * thread locks the same mutex twice, we just increase a refcount; a mutex
@@ -202,21 +242,19 @@ class MutexImpl;
 class RageMutex
 {
   public:
-	RString GetName() const { return m_sName; }
-	void SetName(const RString& s) { m_sName = s; }
+	[[nodiscard]] auto GetName() const -> std::string { return m_sName; }
+	void SetName(const std::string& s) { m_sName = s; }
 	virtual void Lock();
-	virtual bool TryLock();
+	virtual auto TryLock() -> bool;
 	virtual void Unlock();
-	virtual bool IsLockedByThisThread() const;
+	[[nodiscard]] virtual auto IsLockedByThisThread() const -> bool;
 
-	RageMutex(const RString& name);
+	RageMutex(const std::string& name);
 	virtual ~RageMutex();
 
   protected:
 	MutexImpl* m_pMutex;
-	RString m_sName;
-
-	int m_UniqueID;
+	std::string m_sName;
 
 	uint64_t m_LockedBy;
 	int m_LockCnt;
@@ -225,7 +263,7 @@ class RageMutex
 
   private:
 	// Swallow up warnings. If they must be used, define them.
-	RageMutex& operator=(const RageMutex& rhs);
+	auto operator=(const RageMutex& rhs) -> RageMutex&;
 	RageMutex(const RageMutex& rhs);
 };
 
@@ -272,7 +310,7 @@ class LockMutex
 
   private:
 	// Swallow up warnings. If they must be used, define them.
-	LockMutex& operator=(const LockMutex& rhs) = delete;
+	auto operator=(const LockMutex& rhs) -> LockMutex& = delete;
 };
 
 #define LockMut(m) LockMutex SM_UNIQUE_NAME(LocalLock)(m, __FILE__, __LINE__)
@@ -281,7 +319,7 @@ class EventImpl;
 class RageEvent : public RageMutex
 {
   public:
-	RageEvent(const RString& name);
+	RageEvent(const std::string& name);
 	~RageEvent() override;
 
 	/*
@@ -290,12 +328,12 @@ class RageEvent : public RageMutex
 	 * archs support it. If false is returned, the wait timed out (and the mutex
 	 * is locked, as if the event had been signalled).
 	 */
-	bool Wait(RageTimer* pTimeout = nullptr);
+	auto Wait(RageTimer* pTimeout = nullptr) -> bool;
 	void Signal();
 	void Broadcast();
-	bool WaitTimeoutSupported() const;
+	[[nodiscard]] auto WaitTimeoutSupported() const -> bool;
 	// Swallow up warnings. If they must be used, define them.
-	RageEvent& operator=(const RageEvent& rhs);
+	auto operator=(const RageEvent& rhs) -> RageEvent&;
 	RageEvent(const RageEvent& rhs);
 
   private:
@@ -306,21 +344,21 @@ class SemaImpl;
 class RageSemaphore
 {
   public:
-	RageSemaphore(const RString& sName, int iInitialValue = 0);
+	RageSemaphore(const std::string& sName, int iInitialValue = 0);
 	~RageSemaphore();
 
-	RString GetName() const { return m_sName; }
-	int GetValue() const;
+	[[nodiscard]] auto GetName() const -> std::string { return m_sName; }
+	[[nodiscard]] auto GetValue() const -> int;
 	void Post();
 	void Wait(bool bFailOnTimeout = true);
-	bool TryWait();
+	auto TryWait() -> bool;
 
   private:
 	SemaImpl* m_pSema;
-	RString m_sName;
+	std::string m_sName;
 
 	// Swallow up warnings. If they must be used, define them.
-	RageSemaphore& operator=(const RageSemaphore& rhs) = delete;
+	auto operator=(const RageSemaphore& rhs) -> RageSemaphore& = delete;
 	RageSemaphore(const RageSemaphore& rhs) = delete;
 };
 

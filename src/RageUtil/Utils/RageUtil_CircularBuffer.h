@@ -16,8 +16,8 @@ class CircBuf
 	 * buffer (read_pos == write_pos) is indistinguishable from an empty buffer.
 	 *
 	 * Invariants: read_pos < size, write_pos < size. */
-	unsigned size;
-	unsigned m_iBlockSize;
+	unsigned size = 0;
+	unsigned m_iBlockSize = 0;
 
 	/* These are volatile to prevent reads and writes to them from being
 	 * optimized. */
@@ -58,7 +58,7 @@ class CircBuf
 			buf = new T[size];
 			memcpy(buf, cpy.buf, size * sizeof(T));
 		} else {
-			buf = NULL;
+			buf = nullptr;
 		}
 	}
 
@@ -212,7 +212,7 @@ class CircBuf
 		if (buffer_size > sizes[0] + sizes[1])
 			return false;
 
-		const int from_first = min(buffer_size, sizes[0]);
+		const int from_first = buffer_size <= sizes[0] ? buffer_size : sizes[0];
 		memcpy(p[0], buffer, from_first * sizeof(T));
 		if (buffer_size > sizes[0])
 			memcpy(
@@ -235,7 +235,7 @@ class CircBuf
 		if (buffer_size > sizes[0] + sizes[1])
 			return false;
 
-		const int from_first = min(buffer_size, sizes[0]);
+		const int from_first = buffer_size <= sizes[0] ? buffer_size : sizes[0];
 		memcpy(buffer, p[0], from_first * sizeof(T));
 		if (buffer_size > sizes[0])
 			memcpy(

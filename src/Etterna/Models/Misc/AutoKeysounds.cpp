@@ -20,7 +20,6 @@
 
 #include "Etterna/Globals/global.h"
 #include "AutoKeysounds.h"
-#include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Sound/RageSoundReader_Chain.h"
@@ -33,6 +32,8 @@
 #include "RageUtil/Sound/RageSoundReader_PostBuffering.h"
 #include "RageUtil/Sound/RageSoundReader_ThreadedBuffer.h"
 #include "Etterna/Models/Songs/Song.h"
+
+#include <algorithm>
 
 void
 AutoKeysounds::Load(PlayerNumber pn, const NoteData& ndAutoKeysoundsOnly)
@@ -47,27 +48,27 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 	// Load sounds.
 	//
 	Song* pSong = GAMESTATE->m_pCurSong;
-	RString sSongDir = pSong->GetSongDir();
+	auto sSongDir = pSong->GetSongDir();
 
 	/*
 	 * Add all current autoplay sounds in both players to the chain.
 	 */
-	int iNumTracks = m_ndAutoKeysoundsOnly.GetNumTracks();
-	for (int t = 0; t < iNumTracks; t++) {
-		int iRow = -1;
+	auto iNumTracks = m_ndAutoKeysoundsOnly.GetNumTracks();
+	for (auto t = 0; t < iNumTracks; t++) {
+		auto iRow = -1;
 		for (;;) {
 			/* Find the next row that either player has a note on. */
-			int iNextRow = INT_MAX;
+			auto iNextRow = INT_MAX;
 			// XXX Hack. Enabled players need not have their own note data.
 			if (!(t >= m_ndAutoKeysoundsOnly.GetNumTracks())) {
-				int iNextRowForPlayer = iRow;
+				auto iNextRowForPlayer = iRow;
 				/* XXX: If a BMS file only has one tap note per track,
 				 * this will prevent any keysounds from loading.
 				 * This leads to failure later on.
 				 * We need a better way to prevent this. */
 				if (m_ndAutoKeysoundsOnly.GetNextTapNoteRowForTrack(
 					  t, iNextRowForPlayer))
-					iNextRow = min(iNextRow, iNextRowForPlayer);
+					iNextRow = std::min(iNextRow, iNextRowForPlayer);
 			}
 
 			if (iNextRow == INT_MAX)
@@ -82,15 +83,15 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 
 			ASSERT(tn.type == TapNoteType_AutoKeysound);
 			if (tn.iKeysoundIndex >= 0) {
-				RString sKeysoundFilePath =
+				auto sKeysoundFilePath =
 				  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
-				float fSeconds =
+				auto fSeconds =
 				  GAMESTATE->m_pCurSteps->GetTimingData()->WhereUAtBroNoOffset(
 					NoteRowToBeat(iRow)) +
 				  SOUNDMAN->GetPlayLatency();
 
 				float fPan = 0;
-				int iIndex = pChain->LoadSound(sKeysoundFilePath);
+				auto iIndex = pChain->LoadSound(sKeysoundFilePath);
 				pChain->AddSound(iIndex, fSeconds, fPan);
 			}
 		}
@@ -105,23 +106,22 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	pPlayer1 = nullptr;
 	pShared = nullptr;
 
-	vector<RString> vsMusicFile;
-	const RString sMusicPath = GAMESTATE->m_pCurSteps->GetMusicPath();
+	vector<std::string> vsMusicFile;
+	const auto sMusicPath = GAMESTATE->m_pCurSteps->GetMusicPath();
 
 	if (!sMusicPath.empty())
 		vsMusicFile.push_back(sMusicPath);
 
 	vector<RageSoundReader*> vpSounds;
-	FOREACH(RString, vsMusicFile, s)
-	{
-		RString sError;
+	for (auto& s : vsMusicFile) {
+		std::string sError;
 		RageSoundReader* pSongReader =
-		  RageSoundReader_FileReader::OpenFile(*s, sError);
+		  RageSoundReader_FileReader::OpenFile(s, sError);
 		vpSounds.push_back(pSongReader);
 	}
 
 	if (vpSounds.size() == 1) {
-		RageSoundReader* pSongReader = vpSounds[0];
+		auto pSongReader = vpSounds[0];
 
 		// Load the buffering filter before the effects filters, so effects
 		// aren't delayed.
@@ -131,8 +131,8 @@ AutoKeysounds::LoadTracks(const Song* pSong,
 	} else if (!vpSounds.empty()) {
 		auto* pMerge = new RageSoundReader_Merge;
 
-		FOREACH(RageSoundReader*, vpSounds, so)
-		pMerge->AddSound(*so);
+		for (auto& so : vpSounds)
+			pMerge->AddSound(so);
 		pMerge->Finish(SOUNDMAN->GetDriverSampleRate());
 
 		RageSoundReader* pSongReader = pMerge;
@@ -165,7 +165,7 @@ AutoKeysounds::FinishLoading()
 
 		if (pChain->GetNumSounds() > 0 || (m_pSharedSound == nullptr)) {
 			if (m_pSharedSound != nullptr) {
-				int iIndex = pChain->LoadSound(m_pSharedSound);
+				auto iIndex = pChain->LoadSound(m_pSharedSound);
 				pChain->AddSound(iIndex, 0.0f, 0);
 			}
 			pChain->Finish();
@@ -193,8 +193,9 @@ AutoKeysounds::FinishLoading()
 	if (apSounds.size() > 1) {
 		auto* pMerge = new RageSoundReader_Merge;
 
-		FOREACH(RageSoundReader*, apSounds, ps)
-		pMerge->AddSound(*ps);
+		for (auto& ps : apSounds) {
+			pMerge->AddSound(ps);
+		}
 
 		pMerge->Finish(SOUNDMAN->GetDriverSampleRate());
 

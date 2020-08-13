@@ -5,6 +5,8 @@
 #include "ALSA9Dynamic.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <algorithm>
+
 /* int err; must be defined before using this macro */
 #define ALSA_CHECK(x)                                                          \
 	if (err < 0) {                                                             \
@@ -124,7 +126,7 @@ Alsa9Buf::ErrorHandler(const char* file,
 {
 	va_list va;
 	va_start(va, fmt);
-	RString str = vssprintf(fmt, va);
+	std::string str = vssprintf(fmt, va);
 	va_end(va);
 
 	if (err)
@@ -142,7 +144,7 @@ Alsa9Buf::InitializeErrorHandler()
 	dsnd_lib_error_set_handler(ErrorHandler);
 }
 
-static RString
+static std::string
 DeviceName()
 {
 	if (!PREFSMAN->m_iSoundDevice.Get().empty())
@@ -159,7 +161,7 @@ Alsa9Buf::GetSoundCardDebugInfo()
 	done = true;
 
 	if (DoesFileExist("/rootfs/proc/asound/version")) {
-		RString sVersion;
+		std::string sVersion;
 		GetFileContents("/rootfs/proc/asound/version", sVersion, true);
 		LOG->Info("ALSA: %s", sVersion.c_str());
 	}
@@ -168,10 +170,10 @@ Alsa9Buf::GetSoundCardDebugInfo()
 
 	int card = -1;
 	while (dsnd_card_next(&card) >= 0 && card >= 0) {
-		const RString id = ssprintf("hw:%d", card);
+		const std::string id = ssprintf("hw:%d", card);
 		snd_ctl_t* handle;
 		int err;
-		err = dsnd_ctl_open(&handle, id, 0);
+		err = dsnd_ctl_open(&handle, id.c_str(), 0);
 		if (err < 0) {
 			LOG->Info("Couldn't open card #%i (\"%s\") to probe: %s",
 					  card,
@@ -239,9 +241,13 @@ Alsa9Buf::Alsa9Buf()
 	preferred_writeahead = 8192;
 	preferred_chunksize = 1024;
 	pcm = NULL;
+	channels = 1;
+	buffersize = 16;
+	writeahead = false;
+	chunksize = 1024;
 }
 
-RString
+std::string
 Alsa9Buf::Init(int channels_, int iWriteahead, int iChunkSize, int iSampleRate)
 {
 	channels = channels_;
@@ -259,7 +265,7 @@ Alsa9Buf::Init(int channels_, int iWriteahead, int iChunkSize, int iSampleRate)
 	/* Open the device. */
 	int err;
 	err = dsnd_pcm_open(
-	  &pcm, DeviceName(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
+	  &pcm, DeviceName().c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
 	if (err < 0)
 		return ssprintf(
 		  "dsnd_pcm_open(%s): %s", DeviceName().c_str(), dsnd_strerror(err));
@@ -299,7 +305,7 @@ Alsa9Buf::GetNumFramesToFill()
 {
 	/* Make sure we can write ahead at least two chunks.  Otherwise, we'll only
 	 * fill one chunk ahead, and underrun. */
-	int ActualWriteahead = max(writeahead, chunksize * 2);
+	int ActualWriteahead = std::max(writeahead, chunksize * 2);
 
 	snd_pcm_sframes_t avail_frames = dsnd_pcm_avail_update(pcm);
 
@@ -333,13 +339,13 @@ Alsa9Buf::GetNumFramesToFill()
 
 	/* Number of frames that have data: */
 	const snd_pcm_sframes_t filled_frames =
-	  max(0l, total_frames - avail_frames);
+	  std::max(0l, total_frames - avail_frames);
 
 	/* Number of frames that don't have data, that are within the writeahead: */
 	snd_pcm_sframes_t unfilled_frames =
-	  clamp(ActualWriteahead - filled_frames,
-			0l,
-			(snd_pcm_sframes_t)ActualWriteahead);
+	  std::clamp(ActualWriteahead - filled_frames,
+				 0l,
+				 (snd_pcm_sframes_t)ActualWriteahead);
 
 	//	LOG->Trace( "total_fr: %i; avail_fr: %i; filled_fr: %i; ActualWr %i;
 	// chunksize %i; unfilled_frames %i ", 			total_frames, avail_frames,
@@ -445,8 +451,8 @@ Alsa9Buf::Stop()
 	last_cursor_pos = 0;
 }
 
-RString
-Alsa9Buf::GetHardwareID(RString name)
+std::string
+Alsa9Buf::GetHardwareID(std::string name)
 {
 	InitializeErrorHandler();
 
@@ -455,7 +461,7 @@ Alsa9Buf::GetHardwareID(RString name)
 
 	snd_ctl_t* handle;
 	int err;
-	err = dsnd_ctl_open(&handle, name, 0);
+	err = dsnd_ctl_open(&handle, name.c_str(), 0);
 	if (err < 0) {
 		LOG->Info("Couldn't open card \"%s\" to get ID: %s",
 				  name.c_str(),
@@ -466,7 +472,7 @@ Alsa9Buf::GetHardwareID(RString name)
 	snd_ctl_card_info_t* info;
 	dsnd_ctl_card_info_alloca(&info);
 	err = dsnd_ctl_card_info(handle, info);
-	RString ret = dsnd_ctl_card_info_get_id(info);
+	std::string ret = dsnd_ctl_card_info_get_id(info);
 	dsnd_ctl_close(handle);
 
 	return ret;

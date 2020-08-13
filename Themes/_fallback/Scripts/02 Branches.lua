@@ -111,7 +111,6 @@ Branch = {
 	AfterSelectStyle = function()
 		if IsNetConnected() then
 			ReportStyle()
-			GAMESTATE:ApplyGameCommand("playmode,regular")
 		end
 		return "ScreenProfileLoad"
 	end,
@@ -125,14 +124,11 @@ Branch = {
 	AfterNetSelectProfile = function()
 		return SMOnlineScreen()
 	end,
-	AfterProfileLoad = function()
-		return "ScreenSelectPlayMode"
-	end,
 	AfterProfileSave = function()
 		-- Might be a little too broken? -- Midiman
 		if GAMESTATE:IsEventMode() then
 			return "ScreenSelectMusic"
-		elseif STATSMAN:GetCurStageStats():AllFailed() then
+		elseif STATSMAN:GetCurStageStats():Failed() then
 			return GameOverOrContinue()
 		else
 			return "ScreenSelectMusic"
@@ -142,7 +138,7 @@ Branch = {
 		-- Might be a little too broken? -- Midiman
 		if GAMESTATE:IsEventMode() then
 			return "ScreenNetSelectMusic"
-		elseif STATSMAN:GetCurStageStats():AllFailed() then
+		elseif STATSMAN:GetCurStageStats():Failed() then
 			return GameOverOrContinue()
 		else
 			return "ScreenNetSelectMusic"
@@ -173,16 +169,8 @@ Branch = {
 		end
 	end,
 	PlayerOptions = function()
-		local pm = GAMESTATE:GetPlayMode()
-		local restricted = {
-			--"PlayMode_Battle" -- ??
-		}
-		local optionsScreen = "ScreenPlayerOptions"
-		if restricted[pm] then
-			optionsScreen = "ScreenPlayerOptionsRestricted"
-		end
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
-			return optionsScreen
+			return "ScreenPlayerOptions"
 		else
 			return "ScreenStageInformation"
 		end
@@ -201,36 +189,36 @@ Branch = {
 		return "ScreenNetEvaluation"
 	end,
 	AfterEvaluation = function()
-		local allFailed = STATSMAN:GetCurStageStats():AllFailed()
+		local Failed = STATSMAN:GetCurStageStats():Failed()
 		local song = GAMESTATE:GetCurrentSong()
 
 		if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
 			return "ScreenProfileSave"
-		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and allFailed then
+		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
-		elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and allFailed then
+		elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
-		elseif maxStages >= 2 and stagesLeft < 1 and allFailed then
+		elseif maxStages >= 2 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
-		elseif allFailed then
+		elseif Failed then
 			return "ScreenProfileSaveSummary"
 		else
 			return "ScreenProfileSave"
 		end
 	end,
 	AfterNetEvaluation = function()
-		local allFailed = STATSMAN:GetCurStageStats():AllFailed()
+		local Failed = STATSMAN:GetCurStageStats():Failed()
 		local song = GAMESTATE:GetCurrentSong()
 
 		if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
 			return "ScreenNetProfileSave"
-		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and allFailed then
+		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
-		elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and allFailed then
+		elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
-		elseif maxStages >= 2 and stagesLeft < 1 and allFailed then
+		elseif maxStages >= 2 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
-		elseif allFailed then
+		elseif Failed then
 			return "ScreenProfileSaveSummary"
 		else
 			return "ScreenNetProfileSave"

@@ -1,10 +1,11 @@
 #ifndef GRAPHICS_WINDOW_H
 #define GRAPHICS_WINDOW_H
 
-#include "Etterna/Models/Misc/DisplayResolutions.h"
+#include "Etterna/Models/Misc/DisplaySpec.h"
 #include <windows.h>
+
 class VideoModeParams;
-class DisplayResolution;
+class ActualVideoModeParams;
 
 /** @brief Sets up a window for OpenGL/D3D. */
 namespace GraphicsWindow {
@@ -22,8 +23,8 @@ Shutdown();
  *
  * p will not be second-guessed, except to try disabling the refresh rate
  * setting. */
-RString
-SetScreenMode(const VideoModeParams& p);
+auto
+SetScreenMode(const VideoModeParams& p) -> std::string;
 
 /** @brief Create the window.
  *
@@ -35,17 +36,21 @@ void
 DestroyGraphicsWindow();
 
 void
-GetDisplayResolutions(DisplayResolutions& out);
+GetDisplaySpecs(DisplaySpecs& out);
 
-VideoModeParams*
-GetParams();
-HDC
-GetHDC();
+auto
+PushWindow(int a, int b) -> BOOL;
+
+auto
+GetParams() -> ActualVideoModeParams*;
+
+auto
+GetHDC() -> HDC;
 void
 Update();
 
-HWND
-GetHwnd();
-};
+auto
+GetHwnd() -> HWND;
+} // namespace GraphicsWindow;
 
 #endif

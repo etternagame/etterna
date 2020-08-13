@@ -9,18 +9,20 @@ local instantSearch = themeConfig:get_data().global.InstantSearch
 local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active == true then
 		if event.button == "Back" then
+			local tind = getTabIndex()
 			searchstring = ""
 			whee:SongSearch(searchstring)
 			resetTabIndex(0)
-			MESSAGEMAN:Broadcast("TabChanged")
+			MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 			MESSAGEMAN:Broadcast("EndingSearch")
 		elseif event.button == "Start" then
+			local tind = getTabIndex()
 			resetTabIndex(0)
 			if not instantSearch then
 				whee:SongSearch(searchstring)
 			end
 			MESSAGEMAN:Broadcast("EndingSearch")
-			MESSAGEMAN:Broadcast("TabChanged")
+			MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 		elseif event.DeviceInput.button == "DeviceButton_space" then -- add space to the string
 			searchstring = searchstring .. " "
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
@@ -96,7 +98,7 @@ local t =
 			SetCommand = function(self)
 				if active then
 					self:settextf("%s:", translated_info["Active"])
-					self:diffuse(getGradeColor("Grade_Tier03"))
+					self:diffuse(getGradeColor("Grade_Tier10"))
 				else
 					self:settextf("%s:", translated_info["Complete"])
 					self:diffuse(byJudgment("TapNoteScore_Miss"))

@@ -9,6 +9,9 @@
 #include "ScreenWithMenuElements.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <algorithm>
+#include <utility>
+
 #define TIMER_STEALTH THEME->GetMetricB(m_sName, "TimerStealth")
 #define SHOW_STAGE_DISPLAY THEME->GetMetricB(m_sName, "ShowStageDisplay")
 #define FORCE_TIMER THEME->GetMetricB(m_sName, "ForceTimer")
@@ -19,7 +22,7 @@
 REGISTER_SCREEN_CLASS(ScreenWithMenuElements);
 ScreenWithMenuElements::ScreenWithMenuElements()
 {
-	m_MenuTimer = NULL;
+	m_MenuTimer = nullptr;
 	m_bShouldAllowLateJoin = false;
 }
 
@@ -70,8 +73,9 @@ ScreenWithMenuElements::Init()
 		  dynamic_cast<ActorFrame*>(static_cast<Actor*>(decorations));
 		if (pFrame != nullptr) {
 			m_vDecorations = pFrame->GetChildren();
-			FOREACH(Actor*, m_vDecorations, child)
-			this->AddChild(*child);
+			for (auto& child : m_vDecorations) {
+				this->AddChild(child);
+			}
 			pFrame->RemoveAllChildren();
 		}
 	}
@@ -121,7 +125,7 @@ ScreenWithMenuElements::BeginScreen()
 }
 
 void
-ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage SM)
+ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_MenuTimer) {
 		InputEventPlus iep;
@@ -135,26 +139,27 @@ ScreenWithMenuElements::HandleScreenMessage(const ScreenMessage SM)
 ScreenWithMenuElements::~ScreenWithMenuElements()
 {
 	SAFE_DELETE(m_MenuTimer);
-	FOREACH(Actor*, m_vDecorations, actor)
-	delete *actor;
+	for (auto& a : m_vDecorations) {
+		delete a;
+	}
 }
 
 void
-ScreenWithMenuElements::SetHelpText(const RString& s)
+ScreenWithMenuElements::SetHelpText(const std::string& s)
 {
 	Message msg("SetHelpText");
 	msg.SetParam("Text", s);
 	this->HandleMessage(msg);
 }
 
-RString
-ScreenWithMenuElements::HandleLuaMusicFile(RString const& path)
+std::string
+ScreenWithMenuElements::HandleLuaMusicFile(std::string const& path)
 {
 	FileType ft = ActorUtil::GetFileType(path);
-	RString ret = path;
+	std::string ret = path;
 	if (ft == FT_Lua) {
-		RString script;
-		RString error = "Lua runtime error: ";
+		std::string script;
+		std::string error = "Lua runtime error: ";
 		if (GetFileContents(path, script)) {
 			Lua* L = LUA->Get();
 			if (!LuaHelpers::RunScript(
@@ -164,7 +169,7 @@ ScreenWithMenuElements::HandleLuaMusicFile(RString const& path)
 				// there are two possible ways to load a music file via Lua.
 				// 1) return the path to the sound
 				// (themer has to use THEME:GetPathS())
-				RString music_path_from_lua;
+				std::string music_path_from_lua;
 				LuaHelpers::Pop(L, music_path_from_lua);
 				if (!music_path_from_lua.empty()) {
 					ret = music_path_from_lua;
@@ -216,7 +221,7 @@ ScreenWithMenuElements::Update(float fDeltaTime)
 void
 ScreenWithMenuElements::ResetTimer()
 {
-	if (m_MenuTimer == NULL)
+	if (m_MenuTimer == nullptr)
 		return;
 
 	if (TIMER_SECONDS > 0.0f && (PREFSMAN->m_bMenuTimer || FORCE_TIMER)) {
@@ -232,13 +237,13 @@ ScreenWithMenuElements::StartTransitioningScreen(ScreenMessage smSendWhenDone)
 {
 	TweenOffScreen();
 
-	m_Out.StartTransitioning(smSendWhenDone);
+	m_Out.StartTransitioning(std::move(smSendWhenDone));
 	if (WAIT_FOR_CHILDREN_BEFORE_TWEENING_OUT) {
 		// Time the transition so that it finishes exactly when all actors have
 		// finished tweening.
 		float fSecondsUntilFinished = GetTweenTimeLeft();
 		float fSecondsUntilBeginOff =
-		  max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0);
+		  std::max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0.F);
 	}
 }
 
@@ -362,7 +367,7 @@ class LunaScreenWithMenuElements : public Luna<ScreenWithMenuElements>
 
 	static int StartTransitioningScreen(T* p, lua_State* L)
 	{
-		RString sMessage = SArg(1);
+		std::string sMessage = SArg(1);
 		ScreenMessage SM = ScreenMessageHelpers::ToScreenMessage(sMessage);
 		p->StartTransitioningScreen(SM);
 		COMMON_RETURN_SELF;

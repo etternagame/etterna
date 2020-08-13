@@ -186,14 +186,18 @@ ArchHooks::GetMicrosecondsSinceStart()
 }
 #endif
 
-RString
+std::string
 ArchHooks::GetPreferredLanguage()
 {
-	RString locale;
+	std::string locale;
 
-	if (getenv("LANG")) {
-		locale = getenv("LANG");
-		locale = locale.substr(0, 2);
+	const char* env = getenv("LANG");
+
+	if (env != NULL) {
+		char loc[64] = { 0 };
+		strncat(loc, env, sizeof(loc) - 1);
+		std::string t(loc);
+		locale = t.substr(0, 2);
 	} else
 		locale = "en";
 
@@ -222,7 +226,7 @@ ArchHooks_Unix::Init()
 }
 
 bool
-ArchHooks_Unix::GoToURL(const RString& sUrl)
+ArchHooks_Unix::GoToURL(const std::string& sUrl)
 {
 	int status;
 	pid_t p = fork();
@@ -246,7 +250,7 @@ ArchHooks_Unix::GoToURL(const RString& sUrl)
 #define _CS_GNU_LIBC_VERSION 2
 #endif
 
-static RString
+static std::string
 LibcVersion()
 {
 	char buf[1024] = "(error)";
@@ -260,7 +264,7 @@ LibcVersion()
 void
 ArchHooks_Unix::DumpDebugInfo()
 {
-	RString sys;
+	std::string sys;
 	int vers;
 	GetKernel(sys, vers);
 	LOG->Info("OS: %s ver %06i", sys.c_str(), vers);
@@ -281,7 +285,7 @@ ArchHooks_Unix::DumpDebugInfo()
 void
 ArchHooks_Unix::SetTime(tm newtime)
 {
-	RString sCommand = ssprintf("date %02d%02d%02d%02d%04d.%02d",
+	std::string sCommand = ssprintf("date %02d%02d%02d%02d%04d.%02d",
 								newtime.tm_mon + 1,
 								newtime.tm_mday,
 								newtime.tm_hour,
@@ -290,7 +294,7 @@ ArchHooks_Unix::SetTime(tm newtime)
 								newtime.tm_sec);
 
 	LOG->Trace("executing '%s'", sCommand.c_str());
-	int ret = system(sCommand);
+	int ret = system(sCommand.c_str());
 	if (ret == -1 || ret == 127 || !WIFEXITED(ret) || WEXITSTATUS(ret))
 		LOG->Trace("'%s' failed", sCommand.c_str());
 
@@ -299,7 +303,7 @@ ArchHooks_Unix::SetTime(tm newtime)
 		LOG->Trace("'hwclock --systohc' failed");
 }
 
-RString
+std::string
 ArchHooks_Unix::GetClipboard()
 {
 #ifdef HAVE_X11
@@ -307,7 +311,7 @@ ArchHooks_Unix::GetClipboard()
 	// Why isn't this defined by Xlib headers?
 	Atom XA_CLIPBOARD = XInternAtom(Dpy, "CLIPBOARD", 0);
 	Atom pstType;
-	RString ret;
+	std::string ret;
 	unsigned char* paste;
 	unsigned long remainder;
 	int ck;
@@ -373,7 +377,7 @@ ArchHooks_Unix::GetClipboard()
 		return "";
 	}
 
-	ret = RString((char*)paste);
+	ret = std::string((char*)paste);
 	XFree(paste);
 	return ret;
 #else
@@ -389,7 +393,7 @@ ArchHooks_Unix::GetClipboard()
 static LocalizedString COULDNT_FIND_SONGS("ArchHooks_Unix",
 										  "Couldn't find 'Songs'");
 void
-ArchHooks::MountInitialFilesystems(const RString& sDirOfExecutable)
+ArchHooks::MountInitialFilesystems(const std::string& sDirOfExecutable)
 {
 #ifdef __unix__
 	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
@@ -402,13 +406,13 @@ ArchHooks::MountInitialFilesystems(const RString& sDirOfExecutable)
 	FILEMAN->Mount("dir", "/proc", "/proc");
 #endif
 
-	RString Root;
+	std::string Root;
 	struct stat st;
-	if (!stat(sDirOfExecutable + "/Packages", &st) && st.st_mode & S_IFDIR)
+	if (!stat((sDirOfExecutable + "/Packages").c_str(), &st) && st.st_mode & S_IFDIR)
 		Root = sDirOfExecutable;
-	else if (!stat(sDirOfExecutable + "/Songs", &st) && st.st_mode & S_IFDIR)
+	else if (!stat((sDirOfExecutable + "/Songs").c_str(), &st) && st.st_mode & S_IFDIR)
 		Root = sDirOfExecutable;
-	else if (!stat(RageFileManagerUtil::sInitialWorkingDirectory + "/Songs",
+	else if (!stat((RageFileManagerUtil::sInitialWorkingDirectory + "/Songs").c_str(),
 				   &st) &&
 			 st.st_mode & S_IFDIR)
 		Root = RageFileManagerUtil::sInitialWorkingDirectory;
@@ -419,14 +423,14 @@ ArchHooks::MountInitialFilesystems(const RString& sDirOfExecutable)
 }
 
 void
-ArchHooks::MountUserFilesystems(const RString& sDirOfExecutable)
+ArchHooks::MountUserFilesystems(const std::string& sDirOfExecutable)
 {
 	/* Path to write general mutable user data when not Portable
 	 * Lowercase the PRODUCT_ID; dotfiles and directories are almost always
 	 * lowercase.
 	 */
 	const char* szHome = getenv("HOME");
-	RString sUserDataPath = ssprintf(
+	std::string sUserDataPath = ssprintf(
 	  "%s/.%s", szHome ? szHome : ".", "stepmania-5.0"); // call an ambulance!
 	FILEMAN->Mount("dir", sUserDataPath + "/Announcers", "/Announcers");
 	FILEMAN->Mount("dir", sUserDataPath + "/BGAnimations", "/BGAnimations");

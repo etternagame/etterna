@@ -6,9 +6,7 @@
 #endif
 
 #include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Sound/RageSoundManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
 
@@ -23,7 +21,7 @@ const int num_chunks = 8;
 const int chunksize_frames = buffersize_frames / num_chunks;
 const int chunksize = buffersize / num_chunks; /* in bytes */
 
-static RString
+static std::string
 wo_ssprintf(MMRESULT err, const char* szFmt, ...)
 {
 	char szBuf[MAXERRORLENGTH];
@@ -31,7 +29,7 @@ wo_ssprintf(MMRESULT err, const char* szFmt, ...)
 
 	va_list va;
 	va_start(va, szFmt);
-	RString s = vssprintf(szFmt, va);
+	std::string s = vssprintf(szFmt, va);
 	va_end(va);
 
 	return s += ssprintf("(%s)", szBuf);
@@ -49,7 +47,8 @@ RageSoundDriver_WaveOut::MixerThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
 		LOG->Warn(
-		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority"));
+		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority")
+			.c_str());
 
 	while (!m_bShutdown) {
 		while (GetData())
@@ -97,7 +96,8 @@ RageSoundDriver_WaveOut::SetupDecodingThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
 		LOG->Warn(
-		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority"));
+		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority")
+			.c_str());
 }
 
 int64_t
@@ -117,12 +117,12 @@ RageSoundDriver_WaveOut::RageSoundDriver_WaveOut()
 	m_bShutdown = false;
 	m_iLastCursorPos = 0;
 
-	m_hSoundEvent = CreateEvent(NULL, false, true, NULL);
+	m_hSoundEvent = CreateEvent(nullptr, false, true, nullptr);
 
-	m_hWaveOut = NULL;
+	m_hWaveOut = nullptr;
 }
 
-RString
+std::string
 RageSoundDriver_WaveOut::Init()
 {
 	m_iSampleRate = PREFSMAN->m_iSoundPreferredSampleRate;
@@ -148,14 +148,13 @@ RageSoundDriver_WaveOut::Init()
 		return wo_ssprintf(ret, "waveOutOpen failed");
 
 	ZERO(m_aBuffers);
-	for (int b = 0; b < num_chunks; ++b) {
-		m_aBuffers[b].dwBufferLength = chunksize;
-		m_aBuffers[b].lpData = new char[chunksize];
-		ret = waveOutPrepareHeader(
-		  m_hWaveOut, &m_aBuffers[b], sizeof(m_aBuffers[b]));
+	for (auto& m_aBuffer : m_aBuffers) {
+		m_aBuffer.dwBufferLength = chunksize;
+		m_aBuffer.lpData = new char[chunksize];
+		ret = waveOutPrepareHeader(m_hWaveOut, &m_aBuffer, sizeof(m_aBuffer));
 		if (ret != MMSYSERR_NOERROR)
 			return wo_ssprintf(ret, "waveOutPrepareHeader failed");
-		m_aBuffers[b].dwFlags |= WHDR_DONE;
+		m_aBuffer.dwFlags |= WHDR_DONE;
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)
@@ -169,7 +168,7 @@ RageSoundDriver_WaveOut::Init()
 	MixingThread.SetName("Mixer thread");
 	MixingThread.Create(MixerThread_start, this);
 
-	return RString();
+	return std::string();
 }
 
 RageSoundDriver_WaveOut::~RageSoundDriver_WaveOut()
@@ -185,8 +184,9 @@ RageSoundDriver_WaveOut::~RageSoundDriver_WaveOut()
 			LOG->Trace("Mixer thread shut down.");
 	}
 
-	if (m_hWaveOut != NULL) {
-		for (int b = 0; b < num_chunks && m_aBuffers[b].lpData != NULL; ++b) {
+	if (m_hWaveOut != nullptr) {
+		for (int b = 0; b < num_chunks && m_aBuffers[b].lpData != nullptr;
+			 ++b) {
 			waveOutUnprepareHeader(
 			  m_hWaveOut, &m_aBuffers[b], sizeof(m_aBuffers[b]));
 			delete[] m_aBuffers[b].lpData;

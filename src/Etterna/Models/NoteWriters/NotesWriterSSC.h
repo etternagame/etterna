@@ -1,4 +1,4 @@
-﻿#ifndef NOTES_WRITER_SSC_H
+#ifndef NOTES_WRITER_SSC_H
 #define NOTES_WRITER_SSC_H
 
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -15,7 +15,7 @@ namespace NotesWriterSSC {
  * @param bSavingCache a flag to see if we're saving certain cache data.
  * @return its success or failure. */
 bool
-Write(RString& sPath,
+Write(std::string& sPath,
 	  const Song& out,
 	  const vector<Steps*>& vpStepsToSave,
 	  bool bSavingCache);
@@ -26,13 +26,13 @@ Write(RString& sPath,
  * @param sOut the start of the file contents.
  */
 void
-GetEditFileContents(const Song* pSong, const Steps* pSteps, RString& sOut);
+GetEditFileContents(const Song* pSong, const Steps* pSteps, std::string& sOut);
 /**
  * @brief Get the name of the edit file to use.
  * @param pSong the Song in question.
  * @param pSteps the Steps in question.
  * @return the name of the edit file. */
-RString
+std::string
 GetEditFileName(const Song* pSong, const Steps* pSteps);
 /**
  * @brief Write the edit file to the machine for future use.
@@ -41,11 +41,14 @@ GetEditFileName(const Song* pSong, const Steps* pSteps);
  * @param sErrorOut any error messages that may have occurred.
  * @return its success or failure. */
 bool
-WriteEditFileToMachine(const Song* pSong, Steps* pSteps, RString& sErrorOut);
-RString
-MSDToString(MinaSD x);
-RString
-MSDsAtRateToString(SDiffs x);
+WriteEditFileToMachine(const Song* pSong,
+					   Steps* pSteps,
+					   std::string& sErrorOut);
+std::string
+MSDToString(const std::vector<std::vector<float>>& x);
+
+std::string
+MSDsAtRateToString(const std::vector<float>& x);
 }
 
 #endif

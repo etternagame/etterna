@@ -1,4 +1,4 @@
-﻿/* RageFileDriverMemory: Simple memory-based "filesystem". */
+/* RageFileDriverMemory: Simple memory-based "filesystem". */
 
 #ifndef RAGE_FILE_DRIVER_MEMORY_H
 #define RAGE_FILE_DRIVER_MEMORY_H
@@ -23,8 +23,8 @@ class RageFileObjMem : public RageFileObj
 	RageFileObjMem* Copy() const override;
 
 	/* Retrieve the contents of this file. */
-	const RString& GetString() const;
-	void PutString(const RString& sBuf);
+	const std::string& GetString() const;
+	void PutString(const std::string& sBuf);
 
   private:
 	RageFileObjMemFile* m_pFile;
@@ -37,10 +37,10 @@ class RageFileDriverMem : public RageFileDriver
 	RageFileDriverMem();
 	~RageFileDriverMem() override;
 
-	RageFileBasic* Open(const RString& sPath, int mode, int& err) override;
-	void FlushDirCache(const RString& /* sPath */) override {}
+	RageFileBasic* Open(const std::string& sPath, int mode, int& err) override;
+	void FlushDirCache(const std::string& /* sPath */) override {}
 
-	bool Remove(const RString& sPath) override;
+	bool Remove(const std::string& sPath) override;
 
   private:
 	RageMutex m_Mutex;

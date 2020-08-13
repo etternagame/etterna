@@ -35,9 +35,15 @@ RageSoundReader_PitchChange::RageSoundReader_PitchChange(
 	/* The source tree has already been copied.  Our source is m_pResample; its
 	 * source is m_pSpeedChange (and its source is a copy of the pSource we were
 	 * initialized with). */
-	m_pResample = dynamic_cast<RageSoundReader_Resample_Good*>(&*m_pSource);
-	m_pSpeedChange =
+	auto prsmpl = dynamic_cast<RageSoundReader_Resample_Good*>(&*m_pSource);
+	ASSERT_M(prsmpl != nullptr,
+			 "Dynamic cast to RageSoundReader Resample failed at runtime.");
+	m_pResample = prsmpl;
+	auto pspdchng =
 	  dynamic_cast<RageSoundReader_SpeedChange*>(m_pResample->GetSource());
+	ASSERT_M(pspdchng != nullptr,
+			 "Dynamic cast to RageSoundReader SpeedChange failed at runtime.");
+	m_pSpeedChange = pspdchng;
 	m_fSpeedRatio = cpy.m_fSpeedRatio;
 	m_fPitchRatio = cpy.m_fPitchRatio;
 	m_fLastSetSpeedRatio = cpy.m_fLastSetSpeedRatio;
@@ -82,7 +88,8 @@ RageSoundReader_PitchChange::Read(float* pBuf, int iFrames)
 }
 
 bool
-RageSoundReader_PitchChange::SetProperty(const RString& sProperty, float fValue)
+RageSoundReader_PitchChange::SetProperty(const std::string& sProperty,
+										 float fValue)
 {
 	if (sProperty == "Rate") {
 		/* Don't propagate this.  m_pResample will take it, but it's under

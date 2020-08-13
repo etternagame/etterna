@@ -16,7 +16,7 @@ TextBanner::LoadFromNode(const XNode* pNode)
 }
 
 void
-TextBanner::Load(const RString& sMetricsGroup)
+TextBanner::Load(const std::string& sMetricsGroup)
 {
 	m_bInitted = true;
 
@@ -60,12 +60,12 @@ TextBanner::TextBanner(const TextBanner& cpy)
 }
 
 void
-TextBanner::SetFromString(const string& sDisplayTitle,
-						  const string& sTranslitTitle,
-						  const string& sDisplaySubTitle,
-						  const string& sTranslitSubTitle,
-						  const string& sDisplayArtist,
-						  const string& sTranslitArtist)
+TextBanner::SetFromString(const std::string& sDisplayTitle,
+						  const std::string& sTranslitTitle,
+						  const std::string& sDisplaySubTitle,
+						  const std::string& sTranslitSubTitle,
+						  const std::string& sDisplayArtist,
+						  const std::string& sTranslitArtist)
 {
 	ASSERT(m_bInitted);
 
@@ -80,7 +80,7 @@ TextBanner::SetFromString(const string& sDisplayTitle,
 void
 TextBanner::SetFromSong(const Song* pSong)
 {
-	if (pSong == NULL) {
+	if (pSong == nullptr) {
 		SetFromString("", "", "", "", "", "");
 		return;
 	}

@@ -9,6 +9,8 @@
 #pragma warning(disable : 4251)
 #pragma warning(disable : 4275)
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4244)
 /** @brief This macro is for INT8_MIN, etc. */
 #define __STDC_LIMIT_MACROS
 /** @brief This macro is for INT64_C, etc. */
@@ -23,20 +25,11 @@
 #include "archutils/Unix/arch_setup.h"
 #endif
 
-/* Make sure everyone has min and max: */
-#include <algorithm>
-
-/* Everything will need string for one reason or another: */
-#include <string>
-
-/* And vector: */
-#include <vector>
-
 #if defined(HAVE_STDINT_H) /* need to define int64_t if so */
-#include <stdint.h>
+#include <cstdint>
 #endif
 #if defined(HAVE_INTTYPES_H)
-#include <inttypes.h>
+#include <cinttypes>
 #endif
 
 /* Branch optimizations: */
@@ -52,8 +45,6 @@
 #define llabs ::llabs
 #endif
 
-using namespace std;
-
 #ifdef ASSERT
 #undef ASSERT
 #endif
@@ -66,7 +57,8 @@ SetCheckpoint(const char* file, int line, const char* message);
 /** @brief Set a checkpoint with no message. */
 #define CHECKPOINT (Checkpoints::SetCheckpoint(__FILE__, __LINE__, NULL))
 /** @brief Set a checkpoint with a specified message. */
-#define CHECKPOINT_M(m) (Checkpoints::SetCheckpoint(__FILE__, __LINE__, m))
+#define CHECKPOINT_M(m)                                                        \
+	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
 
 /**
  * @brief Define a macro to tell the compiler that a function doesn't return.
@@ -104,13 +96,13 @@ sm_crash(const char* reason = "Internal error");
  * such as DSound init failure.) */
 #define FAIL_M(MESSAGE)                                                        \
 	do {                                                                       \
-		CHECKPOINT_M(MESSAGE);                                                 \
-		sm_crash(MESSAGE);                                                     \
+		CHECKPOINT_M(std::string(MESSAGE).c_str());                            \
+		sm_crash(std::string(MESSAGE).c_str());                                \
 	} while (0)
 #define ASSERT_M(COND, MESSAGE)                                                \
 	do {                                                                       \
 		if (unlikely(!(COND))) {                                               \
-			FAIL_M(MESSAGE);                                                   \
+			FAIL_M(std::string(MESSAGE).c_str());                              \
 		}                                                                      \
 	} while (0)
 
@@ -167,15 +159,11 @@ struct CompileAssertDecl
 #define COMPILE_ASSERT(COND)                                                   \
 	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
 
-#include "StdString.h"
-/** @brief Use RStrings throughout the program. */
-using RString = StdString::CStdStringA;
-
 #include "RageUtil/Misc/RageException.h"
-
-/* Define a few functions if necessary */
-#include <cmath>
-
 /* Don't include our own headers here, since they tend to change often. */
+
+// SHOULD BE REMOVED EVENTUALLY, STOP GAP SO STUFF CAN COMPILE
+#include <vector>
+using std::vector;
 
 #endif

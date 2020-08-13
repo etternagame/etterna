@@ -8,12 +8,12 @@ struct RageSurface;
 class LoadingWindow
 {
   public:
-	static LoadingWindow* Create();
+	static auto Create() -> LoadingWindow*;
 
-	virtual RString Init() { return RString(); }
+	virtual auto Init() -> std::string { return std::string(); }
 	virtual ~LoadingWindow() = default;
 
-	virtual void SetText(const RString& str) = 0;
+	virtual void SetText(const std::string& str) = 0;
 	virtual void SetIcon(const RageSurface* pIcon) {}
 	virtual void SetSplash(const RageSurface* pSplash) {}
 	virtual void SetProgress(const int progress) { m_progress = progress; }
@@ -24,9 +24,9 @@ class LoadingWindow
 	}
 
   protected:
-	int m_progress;
-	int m_totalWork;
-	bool m_indeterminate;
+	int m_progress{};
+	int m_totalWork{};
+	bool m_indeterminate{};
 };
 
 #endif

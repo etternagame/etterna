@@ -1,7 +1,9 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "RageFileBasic.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
+
+#include <algorithm>
 
 REGISTER_CLASS_TRAITS(RageFileBasic, pCopy->Copy());
 
@@ -14,6 +16,7 @@ RageFileObj::RageFileObj()
 
 	m_iReadBufAvail = 0;
 	m_iWriteBufferPos = 0;
+	m_iWriteBufferSize = 0;
 	m_iWriteBufferUsed = 0;
 	m_bEOF = false;
 	m_iFilePos = 0;
@@ -33,6 +36,7 @@ RageFileObj::RageFileObj(const RageFileObj& cpy)
 		m_pReadBuf = m_pReadBuffer + iOffsetIntoBuffer;
 	} else {
 		m_pReadBuffer = NULL;
+		m_pReadBuf = NULL;
 	}
 
 	if (cpy.m_pWriteBuffer != NULL) {
@@ -103,7 +107,7 @@ RageFileObj::Read(void* pBuffer, size_t iBytes)
 	while (!m_bEOF && iBytes > 0) {
 		if (m_pReadBuffer != NULL && m_iReadBufAvail) {
 			/* Copy data out of the buffer first. */
-			int iFromBuffer = min((int)iBytes, m_iReadBufAvail);
+			int iFromBuffer = std::min((int)iBytes, m_iReadBufAvail);
 			memcpy(pBuffer, m_pReadBuf, iFromBuffer);
 			if (m_bCRC32Enabled)
 				CRC32(m_iCRC32, pBuffer, iFromBuffer);
@@ -155,7 +159,7 @@ RageFileObj::Read(void* pBuffer, size_t iBytes)
 }
 
 int
-RageFileObj::Read(RString& sBuffer, int iBytes)
+RageFileObj::Read(std::string& sBuffer, int iBytes)
 {
 	sBuffer.reserve(iBytes != -1 ? iBytes : this->GetFileSize());
 
@@ -164,7 +168,7 @@ RageFileObj::Read(RString& sBuffer, int iBytes)
 	while (iBytes == -1 || iRet < iBytes) {
 		int ToRead = sizeof(buf);
 		if (iBytes != -1)
-			ToRead = min(ToRead, iBytes - iRet);
+			ToRead = std::min(ToRead, iBytes - iRet);
 
 		const int iGot = Read(buf, ToRead);
 		if (iGot == 0)
@@ -252,7 +256,8 @@ RageFileObj::Write(const void* pBuffer, size_t iBytes)
 		/* We're writing a lot of data, and it won't fit in the buffer.  We
 		 * already flushed above, so m_iWriteBufferUsed; fall through and write
 		 * the block normally. */
-		ASSERT_M(m_iWriteBufferUsed == 0, ssprintf("%i", m_iWriteBufferUsed));
+		ASSERT_M(m_iWriteBufferUsed == 0,
+				 ssprintf("%i", m_iWriteBufferUsed).c_str());
 	}
 
 	int iRet = WriteInternal(pBuffer, iBytes);
@@ -325,7 +330,7 @@ RageFileObj::GetCRC32(uint32_t* iRet)
 /* Read up to the next \n, and return it in out.  Strip the \n.  If the \n is
  * preceded by a \r (DOS newline), strip that, too. */
 int
-RageFileObj::GetLine(RString& sOut)
+RageFileObj::GetLine(std::string& sOut)
 {
 	sOut = "";
 
@@ -413,11 +418,11 @@ RageFileObj::GetLine(RString& sOut)
 //#endif
 
 int
-RageFileObj::PutLine(const RString& sStr)
+RageFileObj::PutLine(const std::string& sStr)
 {
 	if (Write(sStr) == -1)
 		return -1;
-	return Write(RString(NEWLINE));
+	return Write(std::string(NEWLINE));
 }
 
 /* Fill the internal buffer.  This never marks EOF, since this is an internal,
@@ -434,8 +439,10 @@ RageFileObj::FillReadBuf()
 	 * can use it for seeking backwards.) */
 	const int iBufAvail =
 	  BSIZE - (m_pReadBuf - m_pReadBuffer) - m_iReadBufAvail;
-	ASSERT_M(iBufAvail >= 0,
-			 ssprintf("%p, %p, %i", m_pReadBuf, m_pReadBuffer, (int)BSIZE));
+	ASSERT_M(
+	  iBufAvail >= 0,
+	  ssprintf("%p, %p, %i", m_pReadBuf, m_pReadBuffer, static_cast<int>(BSIZE))
+		.c_str());
 	const int iSize =
 	  this->ReadInternal(m_pReadBuf + m_iReadBufAvail, iBufAvail);
 

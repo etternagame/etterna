@@ -7,21 +7,21 @@ class ArchHooks_Unix : public ArchHooks
 {
   public:
 	void Init();
-	RString GetArchName() const { return "Unix"; }
+	std::string GetArchName() const { return "Unix"; }
 	void DumpDebugInfo();
 
 	void SetTime(tm newtime);
 	int64_t GetMicrosecondsSinceStart();
 	std::chrono::microseconds GetChronoDurationSinceStart();
 
-	void MountInitialFilesystems(const RString& sDirOfExecutable);
+	void MountInitialFilesystems(const std::string& sDirOfExecutable);
 	float GetDisplayAspectRatio() { return 4.0f / 3; }
 
-	bool GoToURL(const RString& sUrl);
+	bool GoToURL(const std::string& sUrl);
 
 	static clockid_t GetClock();
 
-	RString GetClipboard();
+	std::string GetClipboard();
 };
 
 #ifdef ARCH_HOOKS

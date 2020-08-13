@@ -112,6 +112,7 @@ end
 
 local ret =
 	Def.ActorFrame {
+	Name = "Scoretab",
 	BeginCommand = function(self)
 		moped = self:GetChild("ScoreDisplay")
 		self:queuecommand("Set"):visible(false)
@@ -142,6 +143,8 @@ local ret =
 		if getTabIndex() == 2 then -- switching to this tab
 			if nestedTab == 2 then
 				self:GetParent():GetChild("StepsDisplay"):visible(false)
+			else
+				self:GetParent():GetChild("StepsDisplay"):visible(true)
 			end
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")
@@ -168,16 +171,19 @@ local ret =
 	end,
 	CollapseCommand = function(self)
 		collapsed = true
+		local tind = getTabIndex()
 		resetTabIndex()
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 0})
 	end,
 	ExpandCommand = function(self)
 		collapsed = false
+		local tind = getTabIndex()
 		if getTabIndex() ~= 2 then
 			setTabIndex(2)
 		end
+		local after = getTabIndex()
 		self:GetChild("ScoreDisplay"):xy(frameX, frameY)
-		MESSAGEMAN:Broadcast("TabChanged")
+		MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = after})
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
@@ -205,7 +211,7 @@ local ret =
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
@@ -387,7 +393,17 @@ local l =
 				if score:GetWifeScore() == 0 then
 					self:settextf("NA")
 				else
-					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100):diffuse(byGrade(score:GetWifeGrade()))
+					local wv = score:GetWifeVers()
+					local ws = "Wife" .. wv .. " J"
+					local judge = 4
+					if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then
+						judge = table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))
+					end
+					if not judge then judge = 4 end
+					if judge < 4 then judge = 4 end
+					local js = judge ~= 9 and judge or "ustice"
+					local perc = score:GetWifeScore() * 100
+					self:settextf("%05.2f%% (%s)", notShit.floor(perc, 2), ws .. js):diffuse(byGrade(score:GetWifeGrade()))
 				end
 			end
 		},
@@ -513,9 +529,8 @@ local l =
 			end,
 			DisplayCommand = function(self)
 				local j = table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))
-				if not j then
-					j = 4
-				end
+				if not j then j = 4 end
+				if j < 4 then j = 4 end
 				self:settextf("%s %i", translated_info["Judge"], j)
 			end
 		}
@@ -525,7 +540,7 @@ local function makeText(index)
 	return LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameWidth - frameX, offsetY + 105 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
+				self:xy(frameWidth - frameX, offsetY + 110 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
 			end,
 			DisplayCommand = function(self)
 				local count = 0
@@ -713,7 +728,7 @@ l[#l + 1] =
 	{
 		Name = "TheDootButton",
 		InitCommand = function(self)
-			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 70 - offsetY):zoom(0.5):halign(1):settext("")
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 45 - offsetY):zoom(0.45):halign(1):settext("")
 		end,
 		DisplayCommand = function(self)
 			if hasReplayData then
@@ -730,6 +745,69 @@ l[#l + 1] =
 				if getTabIndex() == 2 and isOver(self) then
 					DLMAN:SendReplayDataForOldScore(score:GetScoreKey())
 					ms.ok(translated_info["UploadingReplay"]) --should have better feedback -mina
+				end
+			end
+		end
+	}
+	l[#l + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButtonTWO",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 56 - offsetY):zoom(0.45):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			self:settext("Upload all scores for this chart")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:UploadScoresForChart(score:GetChartKey())
+				end
+			end
+		end
+	}
+	l[#l + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButtonTHREEEEEEEE",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 67 - offsetY):zoom(0.45):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			self:settext("Upload all scores for charts in this pack")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:UploadScoresForPack(GAMESTATE:GetCurrentSong():GetGroupName())
+				end
+			end
+		end
+	}
+	l[#l + 1] =
+	LoadFont("Common Normal") ..
+	{
+		Name = "TheDootButtonFOUR",
+		InitCommand = function(self)
+			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 78 - offsetY):zoom(0.45):halign(1):settext("")
+		end,
+		DisplayCommand = function(self)
+			self:settext("MOVE EVERY ZIG")
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if nestedTab == 1 then
+				if getTabIndex() == 2 and isOver(self) then
+					DLMAN:UploadAllScores()
 				end
 			end
 		end

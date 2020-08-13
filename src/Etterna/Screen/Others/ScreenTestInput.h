@@ -3,7 +3,6 @@
 #ifndef SCREEN_TEST_INPUT_H
 #define SCREEN_TEST_INPUT_H
 
-#include "Etterna/Actor/Base/BitmapText.h"
 #include "ScreenWithMenuElements.h"
 
 class ScreenTestInput : public ScreenWithMenuElements

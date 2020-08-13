@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/CryptHelpers.h"
 #include "CryptManager.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -11,11 +11,11 @@
 #include "tomcrypt.h"
 
 CryptManager* CRYPTMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
-static const RString PRIVATE_KEY_PATH = "Data/private.rsa";
-static const RString PUBLIC_KEY_PATH = "Data/public.rsa";
-static const RString ALTERNATE_PUBLIC_KEY_DIR = "Data/keys/";
+static const std::string PRIVATE_KEY_PATH = "Data/private.rsa";
+static const std::string PUBLIC_KEY_PATH = "Data/public.rsa";
+static const std::string ALTERNATE_PUBLIC_KEY_DIR = "Data/keys/";
 
 static bool
 HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
@@ -24,7 +24,7 @@ HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
 	int iRet = hash_descriptor[iHash].init(&hash);
 	ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
 
-	RString s;
+	std::string s;
 	while (!f.AtEOF()) {
 		s.erase();
 		if (f.Read(s, 1024 * 4) == -1) {
@@ -51,23 +51,24 @@ CryptManager::CryptManager() {}
 CryptManager::~CryptManager() {}
 void
 CryptManager::GenerateRSAKey(unsigned int keyLength,
-							 RString privFilename,
-							 RString pubFilename)
+							 std::string privFilename,
+							 std::string pubFilename)
 {
 }
 void
-CryptManager::SignFileToFile(const RString& sPath, RString sSignatureFile)
+CryptManager::SignFileToFile(const std::string& sPath,
+							 std::string sSignatureFile)
 {
 }
 bool
-CryptManager::VerifyFileWithFile(RString sPath,
-								 RString sSignatureFile,
-								 RString sPublicKeyFile)
+CryptManager::VerifyFileWithFile(std::string sPath,
+								 std::string sSignatureFile,
+								 std::string sPublicKeyFile)
 {
 	return true;
 }
 bool
-CryptManager::VerifyFileWithFile(RString sPath, RString sSignatureFile)
+CryptManager::VerifyFileWithFile(std::string sPath, std::string sSignatureFile)
 {
 	return true;
 }
@@ -93,7 +94,7 @@ static const int KEY_LENGTH = 1024;
  private.der
 */
 
-static PRNGWrapper* g_pPRNG = NULL;
+static PRNGWrapper* g_pPRNG = nullptr;
 
 CryptManager::CryptManager()
 {
@@ -106,8 +107,6 @@ CryptManager::CryptManager()
 		LUA->Release(L);
 	}
 
-	ltc_mp = ltm_desc;
-
 	g_pPRNG = new PRNGWrapper(&yarrow_desc);
 }
 
@@ -119,8 +118,8 @@ CryptManager::GenerateGlobalKeys()
 	//
 	bool bGenerate = false;
 	RSAKeyWrapper key;
-	RString sKey;
-	RString sError;
+	std::string sKey;
+	std::string sError;
 	if (!DoesFileExist(PRIVATE_KEY_PATH) ||
 		!GetFileContents(PRIVATE_KEY_PATH, sKey) || !key.Load(sKey, sError))
 		bGenerate = true;
@@ -148,7 +147,7 @@ CryptManager::~CryptManager()
 }
 
 static bool
-WriteFile(const RString& sFile, const RString& sBuf)
+WriteFile(const std::string& sFile, const std::string& sBuf)
 {
 	RageFile output;
 	if (!output.Open(sFile, RageFile::WRITE)) {
@@ -172,8 +171,8 @@ WriteFile(const RString& sFile, const RString& sBuf)
 
 void
 CryptManager::GenerateRSAKey(unsigned int keyLength,
-							 RString& sPrivKey,
-							 RString& sPubKey)
+							 std::string& sPrivKey,
+							 std::string& sPubKey)
 {
 	int iRet;
 
@@ -194,7 +193,7 @@ CryptManager::GenerateRSAKey(unsigned int keyLength,
 		return;
 	}
 
-	sPubKey = RString((const char*)buf, iSize);
+	sPubKey = std::string((const char*)buf, iSize);
 
 	iSize = sizeof(buf);
 	iRet = rsa_export(buf, &iSize, PK_PRIVATE, &key);
@@ -203,15 +202,15 @@ CryptManager::GenerateRSAKey(unsigned int keyLength,
 		return;
 	}
 
-	sPrivKey = RString((const char*)buf, iSize);
+	sPrivKey = std::string((const char*)buf, iSize);
 }
 
 void
 CryptManager::GenerateRSAKeyToFile(unsigned int keyLength,
-								   const RString& privFilename,
-								   const RString& pubFilename)
+								   const std::string& privFilename,
+								   const std::string& pubFilename)
 {
-	RString sPrivKey, sPubKey;
+	std::string sPrivKey, sPubKey;
 	GenerateRSAKey(keyLength, sPrivKey, sPubKey);
 
 	if (!WriteFile(pubFilename, sPubKey))
@@ -224,17 +223,18 @@ CryptManager::GenerateRSAKeyToFile(unsigned int keyLength,
 }
 
 void
-CryptManager::SignFileToFile(const RString& sPath, RString sSignatureFile)
+CryptManager::SignFileToFile(const std::string& sPath,
+							 std::string sSignatureFile)
 {
-	RString sPrivFilename = PRIVATE_KEY_PATH;
+	std::string sPrivFilename = PRIVATE_KEY_PATH;
 	if (sSignatureFile.empty())
 		sSignatureFile = sPath + SIGNATURE_APPEND;
 
-	RString sPrivKey;
+	std::string sPrivKey;
 	if (!GetFileContents(sPrivFilename, sPrivKey))
 		return;
 
-	RString sSignature;
+	std::string sSignature;
 	if (!Sign(sPath, sSignature, sPrivKey))
 		return;
 
@@ -242,9 +242,9 @@ CryptManager::SignFileToFile(const RString& sPath, RString sSignatureFile)
 }
 
 bool
-CryptManager::Sign(const RString& sPath,
-				   RString& sSignatureOut,
-				   const RString& sPrivKey)
+CryptManager::Sign(const std::string& sPath,
+				   std::string& sSignatureOut,
+				   const std::string& sPrivKey)
 {
 	if (!IsAFile(sPath)) {
 		LOG->Trace("SignFileToFile: \"%s\" doesn't exist", sPath.c_str());
@@ -260,7 +260,7 @@ CryptManager::Sign(const RString& sPath,
 	}
 
 	RSAKeyWrapper key;
-	RString sError;
+	std::string sError;
 	if (!key.Load(sPrivKey, sError)) {
 		LOG->Warn("Error loading RSA key: %s", sError.c_str());
 		return false;
@@ -296,16 +296,16 @@ CryptManager::Sign(const RString& sPath,
 }
 
 bool
-CryptManager::VerifyFileWithFile(const RString& sPath,
-								 const RString& sSignatureFile)
+CryptManager::VerifyFileWithFile(const std::string& sPath,
+								 const std::string& sSignatureFile)
 {
 	if (VerifyFileWithFile(sPath, sSignatureFile, PUBLIC_KEY_PATH))
 		return true;
 
-	vector<RString> asKeys;
+	vector<std::string> asKeys;
 	GetDirListing(ALTERNATE_PUBLIC_KEY_DIR, asKeys, false, true);
 	for (unsigned i = 0; i < asKeys.size(); ++i) {
-		const RString& sKey = asKeys[i];
+		const std::string& sKey = asKeys[i];
 		LOG->Trace("Trying alternate key \"%s\" ...", sKey.c_str());
 
 		if (VerifyFileWithFile(sPath, sSignatureFile, sKey))
@@ -316,14 +316,14 @@ CryptManager::VerifyFileWithFile(const RString& sPath,
 }
 
 bool
-CryptManager::VerifyFileWithFile(const RString& sPath,
-								 RString sSignatureFile,
-								 const RString& sPublicKeyFile)
+CryptManager::VerifyFileWithFile(const std::string& sPath,
+								 std::string sSignatureFile,
+								 const std::string& sPublicKeyFile)
 {
 	if (sSignatureFile.empty())
 		sSignatureFile = sPath + SIGNATURE_APPEND;
 
-	RString sPublicKey;
+	std::string sPublicKey;
 	if (!GetFileContents(sPublicKeyFile, sPublicKey))
 		return false;
 
@@ -331,7 +331,7 @@ CryptManager::VerifyFileWithFile(const RString& sPath,
 	if (iBytes > MAX_SIGNATURE_SIZE_BYTES)
 		return false;
 
-	RString sSignature;
+	std::string sSignature;
 	if (!GetFileContents(sSignatureFile, sSignature))
 		return false;
 
@@ -348,11 +348,11 @@ CryptManager::VerifyFileWithFile(const RString& sPath,
 
 bool
 CryptManager::Verify(RageFileBasic& file,
-					 const RString& sSignature,
-					 const RString& sPublicKey)
+					 const std::string& sSignature,
+					 const std::string& sPublicKey)
 {
 	RSAKeyWrapper key;
-	RString sError;
+	std::string sError;
 	if (!key.Load(sPublicKey, sError)) {
 		LOG->Warn("Error loading RSA key: %s", sError.c_str());
 		return false;
@@ -400,13 +400,13 @@ CryptManager::GetRandomBytes(void* pData, int iBytes)
 }
 #endif
 
-RString
-CryptManager::GetMD5ForFile(const RString& fn)
+std::string
+CryptManager::GetMD5ForFile(const std::string& fn)
 {
 	RageFile file;
 	if (!file.Open(fn, RageFile::READ)) {
 		LOG->Warn("GetMD5: Failed to open file '%s'", fn.c_str());
-		return RString();
+		return std::string();
 	}
 	int iHash = register_hash(&md5_desc);
 	ASSERT(iHash >= 0);
@@ -414,11 +414,11 @@ CryptManager::GetMD5ForFile(const RString& fn)
 	unsigned char digest[16];
 	HashFile(file, digest, iHash);
 
-	return RString((const char*)digest, sizeof(digest));
+	return std::string((const char*)digest, sizeof(digest));
 }
 
-RString
-CryptManager::GetMD5ForString(const RString& sData)
+std::string
+CryptManager::GetMD5ForString(const std::string& sData)
 {
 	unsigned char digest[16];
 
@@ -430,11 +430,11 @@ CryptManager::GetMD5ForString(const RString& sData)
 	  &hash, (const unsigned char*)sData.data(), sData.size());
 	hash_descriptor[iHash].done(&hash, digest);
 
-	return RString((const char*)digest, sizeof(digest));
+	return std::string((const char*)digest, sizeof(digest));
 }
 
-RString
-CryptManager::GetSHA1ForString(const RString& sData)
+std::string
+CryptManager::GetSHA1ForString(const std::string& sData)
 {
 	unsigned char digest[20];
 
@@ -446,16 +446,16 @@ CryptManager::GetSHA1ForString(const RString& sData)
 	  &hash, (const unsigned char*)sData.data(), sData.size());
 	hash_descriptor[iHash].done(&hash, digest);
 
-	return RString((const char*)digest, sizeof(digest));
+	return std::string((const char*)digest, sizeof(digest));
 }
 
-RString
-CryptManager::GetSHA1ForFile(const RString& fn)
+std::string
+CryptManager::GetSHA1ForFile(const std::string& fn)
 {
 	RageFile file;
 	if (!file.Open(fn, RageFile::READ)) {
 		LOG->Warn("GetSHA1: Failed to open file '%s'", fn.c_str());
-		return RString();
+		return std::string();
 	}
 	int iHash = register_hash(&sha1_desc);
 	ASSERT(iHash >= 0);
@@ -463,17 +463,17 @@ CryptManager::GetSHA1ForFile(const RString& fn)
 	unsigned char digest[20];
 	HashFile(file, digest, iHash);
 
-	return RString((const char*)digest, sizeof(digest));
+	return std::string((const char*)digest, sizeof(digest));
 }
 
-RString
+std::string
 CryptManager::GetPublicKeyFileName()
 {
 	return PUBLIC_KEY_PATH;
 }
 
 /* Generate a version 4 random UUID. */
-RString
+std::string
 CryptManager::GenerateRandomUUID()
 {
 	uint32_t buf[4];
@@ -494,7 +494,6 @@ CryptManager::GenerateRandomUUID()
 }
 
 // lua start
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 /** @brief Allow Lua to have access to the CryptManager. */
 class LunaCryptManager : public Luna<CryptManager>
@@ -502,37 +501,37 @@ class LunaCryptManager : public Luna<CryptManager>
   public:
 	static int MD5String(T* p, lua_State* L)
 	{
-		RString md5out;
+		std::string md5out;
 		md5out = p->GetMD5ForString(SArg(1));
-		lua_pushlstring(L, md5out, md5out.size());
+		lua_pushlstring(L, md5out.c_str(), md5out.size());
 		return 1;
 	}
 	static int MD5File(T* p, lua_State* L)
 	{
-		RString md5fout;
+		std::string md5fout;
 		md5fout = p->GetMD5ForFile(SArg(1));
-		lua_pushlstring(L, md5fout, md5fout.size());
+		lua_pushlstring(L, md5fout.c_str(), md5fout.size());
 		return 1;
 	}
 	static int SHA1String(T* p, lua_State* L)
 	{
-		RString sha1out;
+		std::string sha1out;
 		sha1out = p->GetSHA1ForString(SArg(1));
-		lua_pushlstring(L, sha1out, sha1out.size());
+		lua_pushlstring(L, sha1out.c_str(), sha1out.size());
 		return 1;
 	}
 	static int SHA1File(T* p, lua_State* L)
 	{
-		RString sha1fout;
+		std::string sha1fout;
 		sha1fout = p->GetSHA1ForFile(SArg(1));
-		lua_pushlstring(L, sha1fout, sha1fout.size());
+		lua_pushlstring(L, sha1fout.c_str(), sha1fout.size());
 		return 1;
 	}
 	static int GenerateRandomUUID(T* p, lua_State* L)
 	{
-		RString uuidOut;
+		std::string uuidOut;
 		uuidOut = p->GenerateRandomUUID();
-		lua_pushlstring(L, uuidOut, uuidOut.size());
+		lua_pushlstring(L, uuidOut.c_str(), uuidOut.size());
 		return 1;
 	}
 

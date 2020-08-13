@@ -23,14 +23,14 @@ struct RageSurfaceColor
 	}
 };
 
-inline bool
-operator==(RageSurfaceColor const& lhs, RageSurfaceColor const& rhs)
+inline auto
+operator==(RageSurfaceColor const& lhs, RageSurfaceColor const& rhs) -> bool
 {
 	return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a;
 }
 
-inline bool
-operator!=(RageSurfaceColor const& lhs, RageSurfaceColor const& rhs)
+inline auto
+operator!=(RageSurfaceColor const& lhs, RageSurfaceColor const& rhs) -> bool
 {
 	return !operator==(lhs, rhs);
 }
@@ -38,11 +38,13 @@ operator!=(RageSurfaceColor const& lhs, RageSurfaceColor const& rhs)
 struct RageSurfacePalette
 {
 	RageSurfaceColor colors[256];
-	int32_t ncolors;
+	int32_t ncolors{};
 
 	/* Find the exact color; returns -1 if not found. */
-	int32_t FindColor(const RageSurfaceColor& color) const;
-	int32_t FindClosestColor(const RageSurfaceColor& color) const;
+	[[nodiscard]] auto FindColor(const RageSurfaceColor& color) const
+	  -> int32_t;
+	[[nodiscard]] auto FindClosestColor(const RageSurfaceColor& color) const
+	  -> int32_t;
 };
 
 struct RageSurfaceFormat
@@ -51,8 +53,8 @@ struct RageSurfaceFormat
 	RageSurfaceFormat(const RageSurfaceFormat& cpy);
 	~RageSurfaceFormat();
 
-	int32_t BytesPerPixel;
-	int32_t BitsPerPixel;
+	int32_t BytesPerPixel = 1;
+	int32_t BitsPerPixel = 8;
 	uint32_t Mask[4];
 	uint32_t Shift[4];
 	uint8_t Loss[4];
@@ -65,20 +67,23 @@ struct RageSurfaceFormat
 	/* Return the decoded value for the given color; the result can be compared
 	 * to decodepixel() results.  If the image is paletted and the color isn't
 	 * found, val is undefined and false is returned. */
-	bool MapRGBA(uint8_t r,
+	auto MapRGBA(uint8_t r,
 				 uint8_t g,
 				 uint8_t b,
 				 uint8_t a,
-				 uint32_t& val) const;
+				 uint32_t& val) const -> bool;
 
 	/* MapRGBA, but also do a nearest-match on palette colors. */
-	uint32_t MapNearestRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a) const;
+	[[nodiscard]] auto MapNearestRGBA(uint8_t r,
+									  uint8_t g,
+									  uint8_t b,
+									  uint8_t a) const -> uint32_t;
 
-	bool operator==(const RageSurfaceFormat& rhs) const;
+	auto operator==(const RageSurfaceFormat& rhs) const -> bool;
 
 	/* Like operator==, but ignores the palette (which is really a part of the
 	 * surface, not the format). */
-	bool Equivalent(const RageSurfaceFormat& rhs) const;
+	[[nodiscard]] auto Equivalent(const RageSurfaceFormat& rhs) const -> bool;
 };
 
 struct RageSurface
@@ -87,23 +92,23 @@ struct RageSurface
 	uint8_t* pixels;
 	bool pixels_owned;
 	bool stb_loadpoint;
-	int32_t w, h, pitch;
-	int32_t flags;
+	int32_t w = 0, h = 0, pitch = 0;
+	int32_t flags = 0;
 
 	RageSurface();
 	RageSurface(const RageSurface& cpy);
 	~RageSurface();
 };
 
-RageSurface*
+auto
 CreateSurface(int width,
 			  int height,
 			  int bpp,
 			  uint32_t Rmask,
 			  uint32_t Gmask,
 			  uint32_t Bmask,
-			  uint32_t Amask);
-RageSurface*
+			  uint32_t Amask) -> RageSurface*;
+auto
 CreateSurfaceFrom(int width,
 				  int height,
 				  int bpp,
@@ -112,6 +117,6 @@ CreateSurfaceFrom(int width,
 				  uint32_t Bmask,
 				  uint32_t Amask,
 				  uint8_t* pPixels,
-				  uint32_t pitch);
+				  uint32_t pitch) -> RageSurface*;
 
 #endif

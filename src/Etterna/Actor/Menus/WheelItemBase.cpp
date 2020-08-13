@@ -11,7 +11,7 @@ StringToX(WheelItemDataType);
 LuaXType(WheelItemDataType);
 
 WheelItemBaseData::WheelItemBaseData(WheelItemDataType type,
-									 const RString& sText,
+									 const std::string& sText,
 									 const RageColor& color)
 {
 	m_Type = type;
@@ -25,17 +25,20 @@ WheelItemBase::WheelItemBase(const WheelItemBase& cpy)
   , m_pData(cpy.m_pData)
   , m_bExpanded(cpy.m_bExpanded)
 {
+	// what
+	m_pGrayBar = nullptr;
+
 	// FIXME
 	// if( cpy.m_pGrayBar == cpy.m_sprBar )
 	//	m_pGrayBar = m_sprBar;
 }
 
-WheelItemBase::WheelItemBase(const RString& sType)
+WheelItemBase::WheelItemBase(const std::string& sType)
 {
 	SetName(sType);
-	m_pData = NULL;
+	m_pData = nullptr;
 	m_bExpanded = false;
-	m_pGrayBar = NULL;
+	m_pGrayBar = nullptr;
 	Load();
 }
 
@@ -78,7 +81,7 @@ WheelItemBase::DrawPrimitives()
 {
 	ActorFrame::DrawPrimitives();
 
-	if (m_pGrayBar != NULL)
+	if (m_pGrayBar != nullptr)
 		DrawGrayBar(*m_pGrayBar);
 }
 

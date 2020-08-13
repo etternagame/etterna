@@ -11,7 +11,7 @@ class WindowsFileIO
   public:
 	WindowsFileIO();
 	~WindowsFileIO();
-	bool Open(const RString& sPath, int iBlockSize);
+	bool Open(const std::string& sPath, int iBlockSize);
 	bool IsOpen() const;
 
 	/* Nonblocking read.  size must always be the same.  Returns the number of

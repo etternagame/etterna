@@ -7,10 +7,10 @@ class ArchHooks_MacOSX : public ArchHooks
 {
   public:
 	void Init();
-	RString GetArchName() const;
+	std::string GetArchName() const;
 	void DumpDebugInfo();
-	RString GetPreferredLanguage();
-	bool GoToURL(const RString& sUrl);
+	std::string GetPreferredLanguage();
+	bool GoToURL(const std::string& sUrl);
 	float GetDisplayAspectRatio();
 };
 

@@ -21,7 +21,7 @@ class MovieDecoder
   public:
 	virtual ~MovieDecoder() {}
 
-	virtual RString Open(const RString& sFile) = 0;
+	virtual std::string Open(const std::string& sFile) = 0;
 	virtual void Close() = 0;
 	virtual void Rewind() = 0;
 
@@ -84,7 +84,7 @@ class MovieTexture_Generic : public RageMovieTexture
   public:
 	MovieTexture_Generic(const RageTextureID& ID, MovieDecoder* pDecoder);
 	virtual ~MovieTexture_Generic();
-	RString Init();
+	std::string Init();
 
 	/* only called by RageTextureManager::InvalidateTextures */
 	void Invalidate();
@@ -105,15 +105,15 @@ class MovieTexture_Generic : public RageMovieTexture
 	float m_fRate;
 	enum
 	{
-		FRAME_NONE,   /* no frame available; call GetFrame to get one */
+		FRAME_NONE,	  /* no frame available; call GetFrame to get one */
 		FRAME_DECODED /* frame decoded; waiting until it's time to display it */
 	} m_ImageWaiting;
 	bool m_bLoop;
 	bool m_bWantRewind;
 
 	intptr_t m_uTexHandle;
-	RageTextureRenderTarget* m_pRenderTarget;
-	RageTexture* m_pTextureIntermediate;
+	std::shared_ptr<RageTextureRenderTarget> m_pRenderTarget;
+	std::shared_ptr<RageTexture> m_pTextureIntermediate;
 	Sprite* m_pSprite;
 
 	RageSurface* m_pSurface;

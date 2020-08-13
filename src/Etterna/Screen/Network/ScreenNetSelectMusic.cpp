@@ -1,33 +1,24 @@
 #include "Etterna/Globals/global.h"
-
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/AnnouncerManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
-#include "Etterna/Actor/Menus/MenuTimer.h"
 #include "Etterna/Actor/Menus/MusicWheel.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Misc/RageLog.h"
-#include "Etterna/Models/StepsAndStyles/Style.h"
-#include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetSelectMusic.h"
 #include "ScreenNetSelectBase.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Models/Misc/CodeDetector.h"
-#include "Etterna/Singletons/ProfileManager.h"
-#include "Etterna/Singletons/FilterManager.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "Etterna/Screen/Others/ScreenPrompt.h"
+
+#include <vector>
 
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_FriendsUpdate);
@@ -62,13 +53,6 @@ ScreenNetSelectMusic::Init()
 
 	m_bInitialSelect = false;
 	m_bAllowInput = NSMAN->IsETTP();
-}
-
-void
-ScreenNetSelectMusic::DifferentialReload()
-{
-	SONGMAN->DifferentialReload();
-	m_MusicWheel.ReloadSongList(false, "");
 }
 
 bool
@@ -132,7 +116,7 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 	}
 }
 void
-ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage SM)
+ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {
 		SOUND->StopMusic();

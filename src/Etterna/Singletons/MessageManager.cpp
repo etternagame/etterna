@@ -11,7 +11,7 @@
 #include <set>
 
 MessageManager* MESSAGEMAN =
-  NULL; // global and accessible from anywhere in our program
+  nullptr; // global and accessible from anywhere in our program
 
 static const char* MessageIDNames[] = {
 	"CurrentGameChanged",
@@ -19,11 +19,7 @@ static const char* MessageIDNames[] = {
 	"PlayModeChanged",
 	"CoinsChanged",
 	"CurrentSongChanged",
-	"CurrentStepsP1Changed",
-	"CurrentStepsP2Changed",
-	"CurrentCourseChanged",
-	"CurrentTrailP1Changed",
-	"CurrentTrailP2Changed",
+	"CurrentStepsChanged",
 	"GameplayLeadInChanged",
 	"GameplayModeChanged",
 	"EditStepsTypeChanged",
@@ -91,10 +87,10 @@ XToString(MessageID);
 
 static RageMutex g_Mutex("MessageManager");
 
-typedef set<IMessageSubscriber*> SubscribersSet;
-static map<RString, SubscribersSet> g_MessageToSubscribers;
+typedef std::set<IMessageSubscriber*> SubscribersSet;
+static std::map<std::string, SubscribersSet> g_MessageToSubscribers;
 
-Message::Message(const RString& s)
+Message::Message(const std::string& s)
 {
 	m_sName = s;
 	m_pParams = new LuaTable;
@@ -108,11 +104,11 @@ Message::Message(const MessageID id)
 	m_bBroadcast = false;
 }
 
-Message::Message(const RString& s, const LuaReference& params)
+Message::Message(const std::string& s, const LuaReference& params)
 {
 	m_sName = s;
 	m_bBroadcast = false;
-	Lua* L = LUA->Get();
+	auto* L = LUA->Get();
 	m_pParams = new LuaTable; // XXX: creates an extra table
 	params.PushSelf(L);
 	m_pParams->SetFromStack(L);
@@ -134,7 +130,7 @@ Message::PushParamTable(lua_State* L)
 void
 Message::SetParamTable(const LuaReference& params)
 {
-	Lua* L = LUA->Get();
+	auto* L = LUA->Get();
 	params.PushSelf(L);
 	m_pParams->SetFromStack(L);
 	LUA->Release(L);
@@ -147,13 +143,13 @@ Message::GetParamTable() const
 }
 
 void
-Message::GetParamFromStack(lua_State* L, const RString& sName) const
+Message::GetParamFromStack(lua_State* L, const std::string& sName) const
 {
 	m_pParams->Get(L, sName);
 }
 
 void
-Message::SetParamFromStack(lua_State* L, const RString& sName)
+Message::SetParamFromStack(lua_State* L, const std::string& sName)
 {
 	m_pParams->Set(L, sName);
 }
@@ -163,7 +159,7 @@ MessageManager::MessageManager()
 	m_Logging = false;
 	// Register with Lua.
 	{
-		Lua* L = LUA->Get();
+		auto* L = LUA->Get();
 		lua_pushstring(L, "MESSAGEMAN");
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
@@ -179,11 +175,11 @@ MessageManager::~MessageManager()
 
 void
 MessageManager::Subscribe(IMessageSubscriber* pSubscriber,
-						  const RString& sMessage)
+						  const std::string& sMessage)
 {
 	LockMut(g_Mutex);
 
-	SubscribersSet& subs = g_MessageToSubscribers[sMessage];
+	auto& subs = g_MessageToSubscribers[sMessage];
 #ifdef DEBUG
 	SubscribersSet::iterator iter = subs.find(pSubscriber);
 	ASSERT_M(iter == subs.end(),
@@ -200,12 +196,12 @@ MessageManager::Subscribe(IMessageSubscriber* pSubscriber, MessageID m)
 
 void
 MessageManager::Unsubscribe(IMessageSubscriber* pSubscriber,
-							const RString& sMessage)
+							const std::string& sMessage)
 {
 	LockMut(g_Mutex);
 
-	SubscribersSet& subs = g_MessageToSubscribers[sMessage];
-	SubscribersSet::iterator iter = subs.find(pSubscriber);
+	auto& subs = g_MessageToSubscribers[sMessage];
+	auto iter = subs.find(pSubscriber);
 	ASSERT(iter != subs.end());
 	subs.erase(iter);
 }
@@ -222,27 +218,26 @@ MessageManager::Broadcast(Message& msg) const
 	// GAMESTATE is created before MESSAGEMAN, and has several
 	// BroadcastOnChangePtr members, so they all broadcast when they're
 	// initialized.
-	if (this != NULL && m_Logging) {
+	if (this != nullptr && m_Logging) {
 		LOG->Trace("MESSAGEMAN:Broadcast: %s", msg.GetName().c_str());
 	}
 	msg.SetBroadcast(true);
 
 	LockMut(g_Mutex);
 
-	map<RString, SubscribersSet>::const_iterator iter =
+	std::map<std::string, SubscribersSet>::const_iterator iter =
 	  g_MessageToSubscribers.find(msg.GetName());
 	if (iter == g_MessageToSubscribers.end())
 		return;
 
-	FOREACHS_CONST(IMessageSubscriber*, iter->second, p)
-	{
-		IMessageSubscriber* pSub = *p;
+	for (const auto& p : iter->second) {
+		auto* pSub = p;
 		pSub->HandleMessage(msg);
 	}
 }
 
 void
-MessageManager::Broadcast(const RString& sMessage) const
+MessageManager::Broadcast(const std::string& sMessage) const
 {
 	ASSERT(!sMessage.empty());
 	Message msg(sMessage);
@@ -257,21 +252,21 @@ MessageManager::Broadcast(MessageID m) const
 
 bool
 MessageManager::IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-									  const RString& sMessage) const
+									  const std::string& sMessage) const
 {
-	SubscribersSet& subs = g_MessageToSubscribers[sMessage];
+	auto& subs = g_MessageToSubscribers[sMessage];
 	return subs.find(pSubscriber) != subs.end();
 }
 
 void
-IMessageSubscriber::ClearMessages(const RString& sMessage)
+IMessageSubscriber::ClearMessages(const std::string& sMessage)
 {
 }
 
 MessageSubscriber::MessageSubscriber(const MessageSubscriber& cpy)
   : IMessageSubscriber(cpy)
 {
-	FOREACH_CONST(RString, cpy.m_vsSubscribedTo, msg)
+	FOREACH_CONST(std::string, cpy.m_vsSubscribedTo, msg)
 	this->SubscribeToMessage(*msg);
 }
 
@@ -283,14 +278,14 @@ MessageSubscriber::operator=(const MessageSubscriber& cpy)
 
 	UnsubscribeAll();
 
-	FOREACH_CONST(RString, cpy.m_vsSubscribedTo, msg)
+	FOREACH_CONST(std::string, cpy.m_vsSubscribedTo, msg)
 	this->SubscribeToMessage(*msg);
 
 	return *this;
 }
 
 void
-MessageSubscriber::SubscribeToMessage(const RString& sMessageName)
+MessageSubscriber::SubscribeToMessage(const std::string& sMessageName)
 {
 	MESSAGEMAN->Subscribe(this, sMessageName);
 	m_vsSubscribedTo.push_back(sMessageName);
@@ -306,7 +301,7 @@ MessageSubscriber::SubscribeToMessage(MessageID message)
 void
 MessageSubscriber::UnsubscribeAll()
 {
-	FOREACH_CONST(RString, m_vsSubscribedTo, s)
+	FOREACH_CONST(std::string, m_vsSubscribedTo, s)
 	MESSAGEMAN->Unsubscribe(this, *s);
 	m_vsSubscribedTo.clear();
 }

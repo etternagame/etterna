@@ -1,4 +1,4 @@
-﻿/* MenuTimer - A timer on the menu that ticks down. */
+/* MenuTimer - A timer on the menu that ticks down. */
 
 #ifndef MENU_TIMER_H
 #define MENU_TIMER_H
@@ -9,7 +9,7 @@
 #include "RageUtil/Sound/RageSound.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
-RString
+std::string
 WARNING_COMMAND_NAME(size_t i);
 
 class MenuTimer : public ActorFrame
@@ -17,17 +17,17 @@ class MenuTimer : public ActorFrame
   public:
 	MenuTimer();
 	~MenuTimer() override;
-	void Load(const RString& sMetricsGroup);
+	void Load(const std::string& sMetricsGroup);
 
 	void Update(float fDeltaTime) override;
 
 	void SetSeconds(float fSeconds);
 	float GetSeconds() const { return m_fSecondsLeft; }
-	void Start();   // resume countdown from paused
-	void Pause();   // don't count down
+	void Start();	// resume countdown from paused
+	void Pause();	// don't count down
 	void Stop();	// set to "00" and pause
 	void Disable(); // set to "99" and pause
-	void Stall();   // pause countdown for a sec
+	void Stall();	// pause countdown for a sec
 	void EnableSilent(bool bSilent)
 	{
 		m_bSilent = bSilent;
@@ -38,7 +38,7 @@ class MenuTimer : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   protected:
-	float m_fSecondsLeft;
+	float m_fSecondsLeft = 0.f;
 	float m_fStallSeconds, m_fStallSecondsLeft;
 	bool m_bPaused;
 

@@ -1,12 +1,9 @@
 #ifndef Profile_DB
 #define Profile_DB
 
-#include "Etterna/Globals/global.h"
 #include "GameConstantsAndTypes.h"
 #include "HighScore.h"
-#include "sqlite3.h"
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <SQLiteCpp/VariadicBind.h>
 
 enum DBProfileMode
 {
@@ -20,39 +17,43 @@ enum DBProfileMode
 class DBProfile
 {
   public:
-	enum ProfileLoadResult LoadDBFromDir(string dir);
-	ProfileLoadResult LoadDBFromDir(string dir, Profile* profile);
+	enum ProfileLoadResult LoadDBFromDir(std::string dir);
+	ProfileLoadResult LoadDBFromDir(std::string dir, Profile* profile);
 
-	ProfileLoadResult SaveDBToDir(string sDir,
+	ProfileLoadResult SaveDBToDir(std::string sDir,
 								  const Profile* profile,
 								  DBProfileMode mode) const;
 
-	void MoveBackupToDir(const string& sFromDir,
-						 const string& sToDir,
+	void MoveBackupToDir(const std::string& sFromDir,
+						 const std::string& sToDir,
 						 DBProfileMode mode);
 
 	void SetLoadingProfile(Profile* p) { loadingProfile = p; }
 
-	static bool WriteReplayData(const HighScore* hs);
+	static auto WriteReplayData(const HighScore* hs) -> bool;
 
   private:
 	Profile* loadingProfile{ nullptr };
-	static int GetChartKeyID(SQLite::Database* db, string key);
-	static string GetChartKeyByID(SQLite::Database* db, int id);
-	static int FindOrCreateChartKey(SQLite::Database* db, string key);
-	static int FindOrCreateSong(SQLite::Database* db, string pack, string song);
-	static int FindOrCreateChart(SQLite::Database* db,
-								 string chartkey,
-								 string pack,
-								 string song,
-								 Difficulty diff);
-	static int GetScoreKeyID(SQLite::Database* db, string key);
-	static int FindOrCreateScoreKey(SQLite::Database* db, string key);
+	static auto GetChartKeyID(SQLite::Database* db, std::string key) -> int;
+	static auto GetChartKeyByID(SQLite::Database* db, int id) -> std::string;
+	static auto FindOrCreateChartKey(SQLite::Database* db, std::string key)
+	  -> int;
+	static auto FindOrCreateSong(SQLite::Database* db,
+								 std::string pack,
+								 std::string song) -> int;
+	static auto FindOrCreateChart(SQLite::Database* db,
+								  std::string chartkey,
+								  std::string pack,
+								  std::string song,
+								  Difficulty diff) -> int;
+	static auto GetScoreKeyID(SQLite::Database* db, std::string key) -> int;
+	static auto FindOrCreateScoreKey(SQLite::Database* db, std::string key)
+	  -> int;
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);
 	void LoadPlayerScores(SQLite::Database* db);
-	bool LoadGeneralData(SQLite::Database* db);
+	auto LoadGeneralData(SQLite::Database* db) -> bool;
 	void LoadPermaMirrors(SQLite::Database* db);
 	void LoadScoreGoals(SQLite::Database* db);
 

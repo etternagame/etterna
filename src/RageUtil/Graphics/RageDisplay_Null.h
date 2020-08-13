@@ -1,4 +1,4 @@
-﻿/* RageDisplay_Null - No-op diagnostic renderer. */
+/* RageDisplay_Null - No-op diagnostic renderer. */
 
 #ifndef RAGE_DISPLAY_NULL_H
 #define RAGE_DISPLAY_NULL_H
@@ -7,19 +7,19 @@ class RageDisplay_Null : public RageDisplay
 {
   public:
 	RageDisplay_Null();
-	RString Init(const VideoModeParams& p,
-				 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoModeParams& p,
+					 bool bAllowUnacceleratedRenderer) override;
 
-	RString GetApiDescription() const override { return "Null"; }
-	void GetDisplayResolutions(DisplayResolutions& out) const override;
+	std::string GetApiDescription() const override { return "Null"; }
+	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
 
 	bool BeginFrame() override { return true; }
 	void EndFrame() override;
-	const VideoModeParams* GetActualVideoModeParams() const override
+	const ActualVideoModeParams* GetActualVideoModeParams() const override
 	{
-		return (VideoModeParams*)&m_Params;
+		return (ActualVideoModeParams*)&m_Params;
 	}
 	void SetBlendMode(BlendMode) override {}
 	bool SupportsTextureFormat(RagePixelFormat,
@@ -125,11 +125,11 @@ class RageDisplay_Null : public RageDisplay
 	}
 
 	VideoModeParams m_Params;
-	RString TryVideoMode(const VideoModeParams& p,
-						 bool& /* bNewDeviceOut */) override
+	std::string TryVideoMode(const VideoModeParams& p,
+							 bool& /* bNewDeviceOut */) override
 	{
 		m_Params = p;
-		return RString();
+		return std::string();
 	}
 	RageSurface* CreateScreenshot() override;
 	RageMatrix GetOrthoMatrix(float l,

@@ -19,6 +19,9 @@ end
 
 return Def.ActorFrame {
 	OnCommand = function(self)
+		if SCREENMAN:GetTopScreen():GetName() == "ScreenGameplaySyncMachine" then 
+			self:visible(false)
+		end
 		SCREENMAN:GetTopScreen():AddInputCallback(MovableInput)
 		self:SetUpdateFunction(highlight)
 	end,
@@ -80,7 +83,8 @@ return Def.ActorFrame {
 				"x: "..transStr("BPMPosition"),
 				"c: "..transStr("BPMSize"),
 				"v: "..transStr("RatePosition"),
-				"b: "..transStr("RateSize")
+				"b: "..transStr("RateSize"),
+				"n: "..transStr("NotefieldSpacing")
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 				local selectStr = THEME:GetString("GameButton", "Select")

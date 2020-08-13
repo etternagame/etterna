@@ -14,6 +14,7 @@ RageSoundDriver_JACK::RageSoundDriver_JACK()
 	client = NULL;
 	port_l = NULL;
 	port_r = NULL;
+	sample_rate = 0;
 }
 
 RageSoundDriver_JACK::~RageSoundDriver_JACK()
@@ -29,11 +30,11 @@ RageSoundDriver_JACK::~RageSoundDriver_JACK()
 	jack_client_close(client);
 }
 
-RString
+std::string
 RageSoundDriver_JACK::Init()
 {
 	jack_status_t status;
-	RString error;
+	std::string error;
 
 	// Open JACK client and call it "StepMania" or whatever
 	client = jack_client_open(PRODUCT_FAMILY, JackNoStartServer, &status);
@@ -91,7 +92,7 @@ RageSoundDriver_JACK::Init()
 
 	// Success!
 	LOG->Trace("JACK sound driver started successfully");
-	return RString();
+	return std::string();
 
 	// Not success!
 out_unreg_r:
@@ -104,10 +105,10 @@ out_close:
 	return error;
 }
 
-RString
+std::string
 RageSoundDriver_JACK::ConnectPorts()
 {
-	vector<RString> portNames;
+	vector<std::string> portNames;
 	split(PREFSMAN->m_iSoundDevice.Get(), ",", portNames, true);
 
 	const char *port_out_l = NULL, *port_out_r = NULL;
@@ -138,9 +139,9 @@ RageSoundDriver_JACK::ConnectPorts()
 		// jack_port_name to use their canonical name.  (I'm not sure
 		// if that second step is necessary, I've seen something about
 		// "aliases" in the docs.)
-		FOREACH(RString, portNames, portName)
+		FOREACH(std::string, portNames, portName)
 		{
-			jack_port_t* out = jack_port_by_name(client, *portName);
+			jack_port_t* out = jack_port_by_name(client, portName->c_str());
 			// Make sure the port is a sink.
 			if (!(jack_port_flags(out) & JackPortIsInput))
 				continue;
@@ -162,7 +163,7 @@ RageSoundDriver_JACK::ConnectPorts()
 			port_out_r = port_out_l;
 	}
 
-	RString ret = RString();
+	std::string ret = std::string();
 
 	if (jack_connect(client, jack_port_name(port_l), port_out_l) != 0)
 		ret = "Couldn't connect left JACK port";

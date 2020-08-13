@@ -16,20 +16,20 @@ void
 ResetPreferences();
 void
 ResetGame();
-RString
+std::string
 GetInitialScreen();
-RString
+std::string
 GetSelectMusicScreen();
 void
 InitializeCurrentGame(const Game* g);
 
 // If successful, return filename of screenshot in sDir, else return ""
-RString
-SaveScreenshot(const RString& Dir,
+std::string
+SaveScreenshot(const std::string& Dir,
 			   bool SaveCompressed,
 			   bool MakeSignature,
-			   const RString& NamePrefix,
-			   const RString& NameSuffix);
+			   const std::string& NamePrefix,
+			   const std::string& NameSuffix);
 
 void
 InsertCoin(int iNum = 1, bool bCountInBookkeeping = true);

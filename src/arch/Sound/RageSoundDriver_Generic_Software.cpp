@@ -1,13 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver.h"
-
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Sound/RageSoundMixBuffer.h"
 #include "RageUtil/Sound/RageSoundReader.h"
-#include "RageUtil/Sound/RageSoundManager.h"
+
+#include <algorithm>
 
 static const int channels = 2;
 
@@ -52,7 +52,7 @@ RageSoundDriver::Sound::Deallocate()
 int
 RageSoundDriver::DecodeThread_start(void* p)
 {
-	((RageSoundDriver*)p)->DecodeThread();
+	static_cast<RageSoundDriver*>(p)->DecodeThread();
 	return 0;
 }
 
@@ -68,15 +68,16 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 			 "RageSoundDriver::StartDecodeThread() was never called");
 
 	if (iFrameNumber - iCurrentFrame + iFrames > 0) {
-		g_iTotalAhead += (int)(iFrameNumber - iCurrentFrame + iFrames);
+		g_iTotalAhead +=
+		  static_cast<int>(iFrameNumber - iCurrentFrame + iFrames);
 		++g_iTotalAheadCount;
 	}
 
 	static RageSoundMixBuffer mix;
 
-	for (unsigned i = 0; i < ARRAYLEN(m_Sounds); ++i) {
+	for (auto& m_Sound : m_Sounds) {
 		/* s.m_pSound can not safely be accessed from here. */
-		Sound& s = m_Sounds[i];
+		Sound& s = m_Sound;
 		if (s.m_State == Sound::HALTING) {
 			/* This indicates that this stream can be reused. */
 			s.m_bPaused = false;
@@ -91,7 +92,7 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 			continue;
 
 		/* STOPPING or PLAYING.  Read sound data. */
-		if (m_Sounds[i].m_bPaused)
+		if (m_Sound.m_bPaused)
 			continue;
 
 		int iGotFrames = 0;
@@ -105,7 +106,7 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 			const float fSecondsBeforeStart = -s.m_StartTime.Ago();
 			const int64_t iFramesBeforeStart =
 			  int64_t(fSecondsBeforeStart * GetSampleRate());
-			const int iSilentFramesInThisBuffer = clamp(
+			const int iSilentFramesInThisBuffer = std::clamp(
 			  static_cast<int>(iFramesBeforeStart - iFramesUntilThisBuffer),
 			  0,
 			  iFramesLeft);
@@ -137,14 +138,15 @@ RageSoundDriver::MixIntoBuffer(int iFrames,
 					continue; // more data
 
 				/* We've used up p[0].  Try p[1]. */
-				swap(p[0], p[1]);
-				swap(pSize[0], pSize[1]);
+				std::swap(p[0], p[1]);
+				std::swap(pSize[0], pSize[1]);
 				continue;
 			}
 
 			/* Note that, until we call advance_read_pointer, we can safely
 			 * write to p[0]. */
-			const int frames_to_read = min(iFramesLeft, p[0]->m_FramesInBuffer);
+			const int frames_to_read =
+			  std::min(iFramesLeft, p[0]->m_FramesInBuffer);
 			mix.SetWriteOffset(iGotFrames * channels);
 			mix.write(p[0]->m_BufferNext, frames_to_read * channels);
 
@@ -226,11 +228,11 @@ RageSoundDriver::DecodeThread()
 		LockMut(m_Mutex);
 		//		LOG->Trace("begin mix");
 
-		for (unsigned i = 0; i < ARRAYLEN(m_Sounds); ++i) {
-			if (m_Sounds[i].m_State != Sound::PLAYING)
+		for (auto& m_Sound : m_Sounds) {
+			if (m_Sound.m_State != Sound::PLAYING)
 				continue;
 
-			Sound* pSound = &m_Sounds[i];
+			Sound* pSound = &m_Sound;
 
 			CHECKPOINT_M("Processing the sound while buffers are available.");
 			while (pSound->m_Buffer.num_writable()) {
@@ -281,21 +283,21 @@ void
 RageSoundDriver::Update()
 {
 	m_Mutex.Lock();
-	for (unsigned i = 0; i < ARRAYLEN(m_Sounds); ++i) {
+	for (auto& m_Sound : m_Sounds) {
 		{
 			Sound::QueuedPosMap p;
-			while (m_Sounds[i].m_PosMapQueue.read(&p, 1)) {
-				RageSoundBase* pSound = m_Sounds[i].m_pSound;
+			while (m_Sound.m_PosMapQueue.read(&p, 1)) {
+				RageSoundBase* pSound = m_Sound.m_pSound;
 				if (pSound != NULL)
 					pSound->CommitPlayingPosition(
 					  p.iStreamFrame, p.iHardwareFrame, p.iFrames);
 			}
 		}
 
-		switch (m_Sounds[i].m_State) {
+		switch (m_Sound.m_State) {
 			case Sound::STOPPED:
-				m_Sounds[i].Deallocate();
-				m_Sounds[i].m_State = Sound::AVAILABLE;
+				m_Sound.Deallocate();
+				m_Sound.m_State = Sound::AVAILABLE;
 				continue;
 			case Sound::STOPPING:
 				break;
@@ -303,18 +305,18 @@ RageSoundDriver::Update()
 				continue;
 		}
 
-		if (m_Sounds[i].m_Buffer.num_readable() != 0)
+		if (m_Sound.m_Buffer.num_readable() != 0)
 			continue;
 
 		//		LOG->Trace("finishing sound %i", i);
 
-		m_Sounds[i].m_pSound->SoundIsFinishedPlaying();
-		m_Sounds[i].m_pSound = NULL;
+		m_Sound.m_pSound->SoundIsFinishedPlaying();
+		m_Sound.m_pSound = NULL;
 
 		/* This sound is done.  Set it to HALTING, since the mixer thread might
 		 * be accessing it; it'll change it back to STOPPED once it's ready to
 		 * be used again. */
-		m_Sounds[i].m_State = Sound::HALTING;
+		m_Sound.m_State = Sound::HALTING;
 		//		LOG->Trace("set (#%i) %p from STOPPING to HALTING", i,
 		// m_Sounds[i].m_pSound);
 	}
@@ -505,7 +507,8 @@ RageSoundDriver::~RageSoundDriver()
 
 		if (PREFSMAN->m_verbose_log > 1)
 			LOG->Info("Mixing %f ahead in %i Mix() calls",
-					  float(g_iTotalAhead) / max(g_iTotalAheadCount, 1),
+					  static_cast<float>(g_iTotalAhead) /
+						std::max(g_iTotalAheadCount, 1),
 					  g_iTotalAheadCount);
 	}
 }
@@ -523,14 +526,14 @@ RageSoundDriver::ClampHardwareFrame(int64_t iHardwareFrame) const
 		if (last.IsZero() || last.Ago() > 1.0f) {
 			LOG->Trace(
 			  "RageSoundDriver: driver returned a lesser position (%d < %d)",
-			  (int)iHardwareFrame,
-			  (int)m_iMaxHardwareFrame);
+			  static_cast<int>(iHardwareFrame),
+			  static_cast<int>(m_iMaxHardwareFrame));
 			last.Touch();
 		}
 		return m_iMaxHardwareFrame;
 	}
 	m_iMaxHardwareFrame = iHardwareFrame =
-	  max(iHardwareFrame, m_iMaxHardwareFrame);
+	  std::max(iHardwareFrame, m_iMaxHardwareFrame);
 	return iHardwareFrame;
 }
 

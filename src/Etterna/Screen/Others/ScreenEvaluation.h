@@ -1,14 +1,8 @@
 #ifndef SCREEN_EVALUATION_H
 #define SCREEN_EVALUATION_H
 
-#include "Etterna/Actor/Base/ActorUtil.h"
-#include "Etterna/Actor/Base/BitmapText.h"
-#include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "RageUtil/Sound/RageSound.h"
-#include "Etterna/Actor/Base/RollingNumbers.h"
 #include "ScreenWithMenuElements.h"
-#include "Etterna/Actor/Base/Sprite.h"
-#include "Etterna/Models/Misc/ThemeMetric.h"
 
 /**
  * @brief How many songs are shown at the end?
@@ -26,7 +20,7 @@ class ScreenEvaluation : public ScreenWithMenuElements
 	~ScreenEvaluation() override;
 	void Init() override;
 	bool Input(const InputEventPlus& input) override;
-	void HandleScreenMessage(ScreenMessage SM) override;
+	void HandleScreenMessage(const ScreenMessage& SM) override;
 	ScreenType GetScreenType() const override { return evaluation; }
 	bool MenuBack(const InputEventPlus& input) override;
 	bool MenuStart(const InputEventPlus& input) override;
