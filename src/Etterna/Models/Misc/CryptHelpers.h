@@ -17,18 +17,6 @@ class PRNGWrapper
 	prng_state m_PRNG;
 };
 
-class RSAKeyWrapper
-{
-  public:
-	RSAKeyWrapper();
-	~RSAKeyWrapper();
-	void Unload();
-	void Generate(PRNGWrapper& prng, int iKeyLenBits);
-	bool Load(const std::string& sKey, std::string& sError);
-
-	rsa_key m_Key;
-};
-
 #endif
 
 #endif
