@@ -939,7 +939,7 @@ InitializeConfOptions()
 	ADD(ConfOption("TextureColorDepth", TextureColorDepth, "16bit", "32bit"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("MovieColorDepth", MovieColorDepth, "16bit", "32bit"));
-	ADD(ConfOption("DelayedTextureDelete", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("DelayedTextureDeletion", MovePref<bool>, "Off", "On"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("CelShadeModels", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("SmoothLines", MovePref<bool>, "Off", "On"));
