@@ -40,7 +40,6 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(libtommath)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
@@ -61,7 +60,6 @@ endif()
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
     discord-rpc muFFT
-    libtommath
     zlib libmad pcre
     ogg vorbis glfw
     libcurl)
