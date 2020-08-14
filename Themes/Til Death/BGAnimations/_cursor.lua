@@ -55,6 +55,7 @@ local function Update(self)
 end
 t.InitCommand = function(self)
 	self:SetUpdateFunction(Update)
+	self:SetUpdateFunctionInterval( 1 / DISPLAY:GetDisplayRefreshRate() )
 end
 
 return t
