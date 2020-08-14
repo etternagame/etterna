@@ -275,10 +275,11 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175 + spacingY * 3):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
+				local translated = translated_info["HighestOnly"]
 				if FILTERMAN:GetHighestSkillsetsOnly() then
-					self:settextf("%s: %s", translated_info["HighestOnly"], translated_info["On"])
+					self:settextf("%s: %s", translated, translated_info["On"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				else
-					self:settextf("%s: %s", translated_info["HighestOnly"], translated_info["Off"])
+					self:settextf("%s: %s", translated, translated_info["Off"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				end
 				if FILTERMAN:GetFilterMode() then
 					self:diffuse(color("#666666"))
@@ -311,10 +312,11 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175 + spacingY * 4):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
+				local translated = translated_info["HighestDifficultyOnly"]
 				if FILTERMAN:GetHighestDifficultyOnly() then
-					self:settextf("%s: %s", translated_info["HighestDifficultyOnly"], translated_info["On"])
+					self:settextf("%s: %s", translated, translated_info["On"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				else
-					self:settextf("%s: %s", translated_info["HighestDifficultyOnly"], translated_info["Off"])
+					self:settextf("%s: %s", translated, translated_info["Off"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				end
 				if FILTERMAN:GetFilterMode() then
 					self:diffuse(color("#666666"))
