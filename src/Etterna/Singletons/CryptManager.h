@@ -13,7 +13,6 @@ class CryptManager
 	~CryptManager();
 
 	static void GetRandomBytes(void* pData, int iBytes);
-	static auto GenerateRandomUUID() -> std::string;
 
 	static auto GetMD5ForFile(const std::string& fn)
 	  -> std::string; // in binary

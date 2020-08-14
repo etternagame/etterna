@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "Etterna/Models/Misc/CryptHelpers.h"
 #include "CryptManager.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "LuaManager.h"
@@ -8,53 +7,39 @@
 #include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#include "tomcrypt.h"
+#include "openssl/rand.h"
+#include "openssl/sha.h"
+#include "openssl/md5.h"
+
+#include <functional>
 
 CryptManager* CRYPTMAN =
   nullptr; // global and accessible from anywhere in our program
 
+///@brief Read from a file, running the lamda `hash` on every read block
 static bool
-HashFile(RageFileBasic& f, unsigned char buf_hash[20], int iHash)
+HashFile(std::string fn,
+		 std::function<void(const unsigned char* data, size_t length)> hash)
 {
-	hash_state hash;
-	int iRet = hash_descriptor[iHash].init(&hash);
-	ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
-
-	std::string s;
-	while (!f.AtEOF()) {
-		s.erase();
-		if (f.Read(s, 1024 * 4) == -1) {
-			LOG->Warn("Error reading %s: %s",
-					  f.GetDisplayPath().c_str(),
-					  f.GetError().c_str());
-			hash_descriptor[iHash].done(&hash, buf_hash);
-			return false;
-		}
-
-		iRet = hash_descriptor[iHash].process(
-		  &hash, (const unsigned char*)s.data(), s.size());
-		ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
+	RageFile file;
+	if (!file.Open(fn, RageFile::READ)) {
+		LOG->Warn("GetMD5ForFile: Failed to open file '%s'", fn.c_str());
+		return false;
 	}
 
-	iRet = hash_descriptor[iHash].done(&hash, buf_hash);
-	ASSERT_M(iRet == CRYPT_OK, error_to_string(iRet));
-
+	std::string s;
+	while (!file.AtEOF()) {
+		s.erase();
+		if (file.Read(s, 1024 * 4) == -1) {
+			LOG->Warn("Error reading %s: %s",
+					  file.GetDisplayPath().c_str(),
+					  file.GetError().c_str());
+			return false;
+		}
+		hash(reinterpret_cast<const unsigned char*>(s.data()), s.size());
+	}
 	return true;
 }
-
-#if defined(DISABLE_CRYPTO)
-CryptManager::CryptManager() {}
-CryptManager::~CryptManager() {}
-
-void
-CryptManager::GetRandomBytes(void* pData, int iBytes)
-{
-	uint8_t* pBuf = (uint8_t*)pData;
-	while (iBytes--)
-		*pBuf++ = (uint8_t)RandomInt(256);
-}
-
-#else
 
 /*
  openssl genrsa -out testing -outform DER
@@ -63,8 +48,6 @@ CryptManager::GetRandomBytes(void* pData, int iBytes)
  openssl pkcs8 -inform DER -outform DER -nocrypt -in private.rsa -out
  private.der
 */
-
-static PRNGWrapper* g_pPRNG = nullptr;
 
 CryptManager::CryptManager()
 {
@@ -76,13 +59,10 @@ CryptManager::CryptManager()
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
-
-	g_pPRNG = new PRNGWrapper(&yarrow_desc);
 }
 
 CryptManager::~CryptManager()
 {
-	SAFE_DELETE(g_pPRNG);
 	// Unregister with Lua.
 	LUA->UnsetGlobal("CRYPTMAN");
 }
@@ -90,97 +70,65 @@ CryptManager::~CryptManager()
 void
 CryptManager::GetRandomBytes(void* pData, int iBytes)
 {
-	int iRet = prng_descriptor[g_pPRNG->m_iPRNG].read(
-	  reinterpret_cast<unsigned char*>(pData), iBytes, &g_pPRNG->m_PRNG);
-	ASSERT(iRet == iBytes);
+	int retval = RAND_bytes((unsigned char*)pData, iBytes);
+	if (retval != 1) {
+		LOG->Warn("The error %d occured in RAND_bytes", retval);
+	}
 }
-#endif
 
 std::string
 CryptManager::GetMD5ForFile(const std::string& fn)
 {
-	RageFile file;
-	if (!file.Open(fn, RageFile::READ)) {
-		LOG->Warn("GetMD5: Failed to open file '%s'", fn.c_str());
+	MD5_CTX* hash = new MD5_CTX;
+	MD5_Init(hash);
+	auto update = [&hash](const unsigned char* data, size_t length) {
+		MD5_Update(hash, data, length);
+	};
+	if (!HashFile(fn, update)) {
+		LOG->Warn("An error occuring when calculating MD5 of \n%s", fn.c_str());
 		return std::string();
 	}
-	int iHash = register_hash(&md5_desc);
-	ASSERT(iHash >= 0);
-
-	unsigned char digest[16];
-	HashFile(file, digest, iHash);
-
-	return std::string((const char*)digest, sizeof(digest));
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 std::string
 CryptManager::GetMD5ForString(const std::string& sData)
 {
-	unsigned char digest[16];
-
-	int iHash = register_hash(&md5_desc);
-
-	hash_state hash;
-	hash_descriptor[iHash].init(&hash);
-	hash_descriptor[iHash].process(
-	  &hash, (const unsigned char*)sData.data(), sData.size());
-	hash_descriptor[iHash].done(&hash, digest);
-
-	return std::string((const char*)digest, sizeof(digest));
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	const unsigned char* data =
+	  reinterpret_cast<const unsigned char*>(sData.data());
+	MD5(data, sData.size(), digest);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 std::string
 CryptManager::GetSHA1ForString(const std::string& sData)
 {
-	unsigned char digest[20];
-
-	int iHash = register_hash(&sha1_desc);
-
-	hash_state hash;
-	hash_descriptor[iHash].init(&hash);
-	hash_descriptor[iHash].process(
-	  &hash, (const unsigned char*)sData.data(), sData.size());
-	hash_descriptor[iHash].done(&hash, digest);
-
-	return std::string((const char*)digest, sizeof(digest));
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	const unsigned char* data =
+	  reinterpret_cast<const unsigned char*>(sData.data());
+	SHA1(data, sData.size(), digest);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 std::string
 CryptManager::GetSHA1ForFile(const std::string& fn)
 {
-	RageFile file;
-	if (!file.Open(fn, RageFile::READ)) {
-		LOG->Warn("GetSHA1: Failed to open file '%s'", fn.c_str());
+	SHA_CTX* hash = new SHA_CTX;
+	SHA1_Init(hash);
+	auto update = [&hash](const unsigned char* data, size_t length) {
+		SHA1_Update(hash, data, length);
+	};
+	if (!HashFile(fn, update)) {
+		LOG->Warn("An error occuring when calculating SHA1 of \n%s",
+				  fn.c_str());
 		return std::string();
 	}
-	int iHash = register_hash(&sha1_desc);
-	ASSERT(iHash >= 0);
-
-	unsigned char digest[20];
-	HashFile(file, digest, iHash);
-
-	return std::string((const char*)digest, sizeof(digest));
-}
-
-/* Generate a version 4 random UUID. */
-std::string
-CryptManager::GenerateRandomUUID()
-{
-	uint32_t buf[4];
-	CryptManager::GetRandomBytes(buf, sizeof(buf));
-
-	buf[1] &= 0xFFFF0FFF;
-	buf[1] |= 0x00004000;
-	buf[2] &= 0x0FFFFFFF;
-	buf[2] |= 0xA0000000;
-
-	return ssprintf("%08x-%04x-%04x-%04x-%04x%08x",
-					buf[0],
-					buf[1] >> 16,
-					buf[1] & 0xFFFF,
-					buf[2] >> 16,
-					buf[2] & 0xFFFF,
-					buf[3]);
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	SHA1_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
 // lua start
@@ -217,13 +165,6 @@ class LunaCryptManager : public Luna<CryptManager>
 		lua_pushlstring(L, sha1fout.c_str(), sha1fout.size());
 		return 1;
 	}
-	static int GenerateRandomUUID(T* p, lua_State* L)
-	{
-		std::string uuidOut;
-		uuidOut = p->GenerateRandomUUID();
-		lua_pushlstring(L, uuidOut.c_str(), uuidOut.size());
-		return 1;
-	}
 
 	LunaCryptManager()
 	{
@@ -231,7 +172,6 @@ class LunaCryptManager : public Luna<CryptManager>
 		ADD_METHOD(MD5File);
 		ADD_METHOD(SHA1String);
 		ADD_METHOD(SHA1File);
-		ADD_METHOD(GenerateRandomUUID);
 	}
 };
 

@@ -521,7 +521,6 @@ GameState::BeginStage()
 	m_iPlayerStageTokens -= m_iNumStagesOfThisSong;
 	if (CurrentOptionsDisqualifyPlayer(PLAYER_1))
 		STATSMAN->m_CurStageStats.m_player.m_bDisqualified = true;
-	m_sStageGUID = CryptManager::GenerateRandomUUID();
 }
 
 void
