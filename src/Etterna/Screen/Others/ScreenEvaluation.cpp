@@ -142,8 +142,8 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
 						   "Screenshots/";
-					sFileName = StepMania::SaveScreenshot(
-					  sDir, bHoldingShift, true, "", "");
+					sFileName =
+					  StepMania::SaveScreenshot(sDir, bHoldingShift, "", "");
 					if (!sFileName.empty()) {
 						std::string sPath = sDir + sFileName;
 
@@ -161,7 +161,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			} else {
 				sDir = "Screenshots/";
 				sFileName =
-				  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
+				  StepMania::SaveScreenshot(sDir, bHoldingShift, "", "");
 			}
 			return true; // handled
 		}
