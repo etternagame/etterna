@@ -504,7 +504,7 @@ r[#r + 1] =
 				self:zoom(fontScale):halign(0)
 			end,
 			BORPBORPNORFNORFcCommand = function(self)
-				self:settextf("%s: %s", translated_info["Mode"], (filterMode and translated_info["AND"] or translated_info["OR"]))
+				self:settextf("%s: %s", translated_info["Mode"], (filterMode and translated_info["AND"] or translated_info["OR"])):maxwidth(((frameWidth - 40) / 2) / fontScale)
 			end,
 			UpdateTagsMessageCommand = function(self)
 				self:queuecommand("BORPBORPNORFNORFc")
@@ -512,7 +512,7 @@ r[#r + 1] =
 		},
 	Def.Quad {
 		InitCommand = function(self)
-			self:zoomto(120, 18):halign(0):diffusealpha(0)
+			self:zoomto((frameWidth - 40) / 2, 18):halign(0):diffusealpha(0)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and onTab then
@@ -528,7 +528,8 @@ r[#r + 1] =
 r[#r + 1] =
 	Def.ActorFrame {
 	InitCommand = function(self)
-		self:xy(frameX + 200, frameY + capWideScale(80, 80) + 225)
+		-- Is inverse of frameX + 10, makes it start at exactly half way + 10px each side padding
+		self:xy(frameX + ((frameWidth - 40) / 2) + 30, frameY + capWideScale(80, 80) + 225)
 	end,
 	BORPBORPNORFNORFcCommand = function(self)
 		self:visible(tagFunction == 2)
@@ -542,7 +543,7 @@ r[#r + 1] =
 				self:zoom(fontScale):halign(0)
 			end,
 			BORPBORPNORFNORFcCommand = function(self)
-				self:settextf("%s: %s", translated_info["ExcludeMode"], (filterAgainstMode and translated_info["AND"] or translated_info["OR"]))
+				self:settextf("%s: %s", translated_info["ExcludeMode"], (filterAgainstMode and translated_info["AND"] or translated_info["OR"])):maxwidth(((frameWidth - 40) / 2) / fontScale)
 			end,
 			UpdateTagsMessageCommand = function(self)
 				self:queuecommand("BORPBORPNORFNORFc")
@@ -550,7 +551,7 @@ r[#r + 1] =
 		},
 	Def.Quad {
 		InitCommand = function(self)
-			self:zoomto(120, 18):halign(0):diffusealpha(0)
+			self:zoomto(((frameWidth - 40) / 2), 18):halign(0):diffusealpha(0)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and onTab then
