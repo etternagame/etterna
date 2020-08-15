@@ -154,19 +154,21 @@ local function createStatLines()
                     self:settextf("%s:", statNames[i])
                 end
             },
-            LoadFont("Common Normal") .. {
+            Def.RollingNumbers {
                 Name = "Count",
+                Font = "Common Normal",
                 InitCommand = function(self)
                     self:x(actuals.LeftTextColumn1NumbersMargin)
                     self:halign(1):valign(0)
                     self:zoom(mainTextSize)
                     self:maxwidth(((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / 2) / mainTextSize - textzoomFudge)
+                    self:Load("RollingNumbersNoLead")
                 end,
                 SetCommand = function(self, params)
                     if params.steps then
-                        self:settext(params.steps:GetRelevantRadars()[statMapping[i]])
+                        self:targetnumber(params.steps:GetRelevantRadars()[statMapping[i]])
                     else
-                        self:settext("")
+                        self:targetnumber(0)
                     end
                 end
             }
@@ -233,13 +235,15 @@ local function createMSDLines()
                     self:settextf("%s:", msdNames[i])
                 end
             },
-            LoadFont("Common Normal") .. {
+            Def.RollingNumbers {
                 Name = "Number",
+                Font = "Common Normal",
                 InitCommand = function(self)
                     self:x(actuals.Width - actuals.RightTextNumbersMargin)
                     self:halign(1):valign(0)
                     self:zoom(mainTextSize)
                     self:maxwidth(((actuals.RightTextLabelsMargin - actuals.RightTextNumbersMargin) / 2) / mainTextSize - textzoomFudge)
+                    self:Load("RollingNumbers2Decimal")
                 end,
                 SetCommand = function(self, params)
                     -- i == 1 is Average NPS, otherwise are skillsets
@@ -247,26 +251,26 @@ local function createMSDLines()
                         if params.steps then
                             -- notecount / length * rate
                             local avg = params.steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes") / GetPlayableTime() * getCurRateValue()
-                            self:settextf("%05.2f", avg)
+                            self:targetnumber(avg)
                             self:diffuse(byNPS(avg))
                         else
                             -- failsafe
-                            self:settext("--.--")
+                            self:targetnumber(0)
                             self:diffuse(color("1,1,1,1"))
                         end
                     else
                         if params.song then
                             if params.steps then
                                 local val = params.steps:GetMSD(getCurRateValue(), i)
-                                self:settextf("%05.2f", val)
+                                self:targetnumber(val)
                                 self:diffuse(byMSD(val))
                             else
                                 -- failsafe
-                                self:settext("--.--")
+                                self:targetnumber(0)
                                 self:diffuse(color("1,1,1,1"))
                             end
                         else
-                            self:settext("--.--")
+                            self:targetnumber(0)
                             self:diffuse(color("1,1,1,1"))
                         end
                     end
@@ -329,29 +333,30 @@ t[#t+1] = Def.Quad {
     end
 }
 
-t[#t+1] = LoadFont("Common Normal") .. {
+t[#t+1] = Def.RollingNumbers {
     Name = "MSD",
+    Font = "Common Normal",
     InitCommand = function(self)
         self:xy(actuals.LeftTextColumn1NumbersMargin, actuals.MSDUpperGap)
         self:halign(1):valign(0)
         self:zoom(largerTextSize)
         self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / largerTextSize - textzoomFudge)
-        self:settext("")
+        self:Load("RollingNumbers2Decimal")
     end,
     SetCommand = function(self, params)
         if params.steps then
             local stype = params.steps:GetStepsType()
             if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
                 local meter = params.steps:GetMSD(getCurRateValue(), 1)
-                self:settextf("%05.2f", meter)
+                self:targetnumber(meter)
                 self:diffuse(byMSD(meter))
             else
                 -- use manual diff for non dance/solo
-                self:settextf("%05.2f", params.steps:GetMeter())
+                self:targetnumber(params.steps:GetMeter())
                 self:diffuse(byMSD(params.steps:GetMeter()))
             end
         else
-            self:settext("")
+            self:targetnumber(0)
         end
     end
 }
