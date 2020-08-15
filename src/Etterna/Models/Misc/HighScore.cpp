@@ -1153,9 +1153,9 @@ HighScore::GenerateValidationKeys() -> std::string
 	key.append(std::to_string(static_cast<int>(GetEtternaValid())));
 	key.append(GradeToString(GetWifeGrade()));
 
-	std::string hash_hex_str;
-
-	picosha2::hash256_hex_string(key, hash_hex_str);
+	std::string hash_string = CryptManager::GetSHA256ForString(key);
+	std::string hash_hex_str =
+	  BinaryToHex(hash_string.data(), hash_string.size());
 
 	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
