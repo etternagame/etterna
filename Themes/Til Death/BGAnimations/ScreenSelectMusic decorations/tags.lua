@@ -243,7 +243,9 @@ local r =
 					end
 				end
 			end
+			local ssong = GAMESTATE:GetCurrentSong()
 			whee:FilterByAndAgainstStepKeys(charts, oCharts)
+			whee:SelectSong(ssong)
 			filterChanged = false
 		end
 		
