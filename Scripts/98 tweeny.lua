@@ -57,3 +57,43 @@ function BitmapText:stoptweening()
 
     return self
 end
+
+-- shadow the real hurrytweening to skip the scrollnumbers tween
+-- we cant reliably change the interval time so just skip all numbers
+function BitmapText:hurrytweening(factor)
+
+    if self.numberFunc ~= nil and self.numberFinal ~= nil then
+        -- kill the update function
+        local top = SCREENMAN:GetTopScreen()
+        if top ~= nil then
+            top:clearInterval(self.numberFunc)
+        end
+        -- skip all numbers
+        self:settext(self.numberFinal)
+    end
+
+    -- pass it on
+    Actor.hurrytweening(self, factor)
+
+    return self
+end
+
+-- shadow the real finishtweening to skip the scrollnumbers tween
+-- we cant reliably change the interval time so just skip all the numbers
+function BitmapText:finishtweening()
+
+    if self.numberFunc ~= nil and self.numberFinal ~= nil then
+        -- kill the update function
+        local top = SCREENMAN:GetTopScreen()
+        if top ~= nil then
+            top:clearInterval(self.numberFunc)
+        end
+        -- skip all numbers
+        self:settext(self.numberFinal)
+    end
+
+    -- pass it on
+    Actor.finishtweening(self)
+
+    return self
+end
