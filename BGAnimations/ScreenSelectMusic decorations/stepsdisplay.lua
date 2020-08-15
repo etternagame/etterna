@@ -139,10 +139,7 @@ local function stepsRows(i)
 	return o
 end
 
-local sdr =
-	Def.ActorFrame {
-	Name = "StepsRows"
-}
+local sdr = Def.ActorFrame {Name = "StepsRows"}
 
 for i = 1, numshown do
 	sdr[#sdr + 1] = stepsRows(i)
