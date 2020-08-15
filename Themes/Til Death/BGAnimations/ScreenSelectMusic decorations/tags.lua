@@ -178,12 +178,12 @@ local r =
 			if next(filterTags) then
 				-- MODE == AND in menu, requires all tags to be active
 				if filterMode then
-					toFilterTags = {}
+					local toFilterTags = {}
 					for tag, v in pairs(filterTags) do
 						toFilterTags[#toFilterTags + 1] = tag
 					end
 
-					inCharts = {}
+					local inCharts = {}
 					-- Gather initial first tags chart keys
 					for chartKey, v in pairs(ptags[toFilterTags[1]]) do
 						inCharts[#inCharts + 1] = chartKey
@@ -212,12 +212,12 @@ local r =
 			if next(filterAgainstTags) then
 				-- MODE == AND in menu, requires all tags to be active
 				if filterAgainstMode then
-					toFilterAgainstTags = {}
+					local toFilterAgainstTags = {}
 					for tag, v in pairs(filterAgainstTags) do
 						toFilterAgainstTags[#toFilterAgainstTags + 1] = tag
 					end
 
-					outCharts = {}
+					local outCharts = {}
 					-- Gather initial first tags chart keys
 					for chartKey, v in pairs(ptags[toFilterAgainstTags[1]]) do
 						outCharts[#outCharts + 1] = chartKey
