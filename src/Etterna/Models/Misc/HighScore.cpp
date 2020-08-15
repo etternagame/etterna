@@ -13,7 +13,6 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
 
-#include <picosha2/picosha2.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
