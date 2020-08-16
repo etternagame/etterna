@@ -16,7 +16,9 @@ local ratios = {
     UpperGap = 135 / 1080, -- from top edge of screen to edge of bg
     Width = 1765 / 1920,
     Height = 863 / 1080,
+    LipLeftGap = 758 / 1920, -- the lip starts at the end of the banner
     LipHeight = 50 / 1080,
+    LipLength = 1007 / 1920, -- runs to the right end of the frame
 
     GraphLeftGap = 18 / 1920,
     GraphWidth = 739 / 1920, -- this must be the same as in metrics [GraphDisplay/ComboGraph]
@@ -29,7 +31,7 @@ local ratios = {
 
     DividerThickness = 2 / 1080,
     LeftDividerLeftGap = 18 / 1920,
-    LeftDividerLength = 740 / 1920,
+    LeftDividerLength = 739 / 1920,
 
     LeftDivider1UpperGap = 338 / 1080,
     LeftDivider2UpperGap = 399 / 1080,
@@ -37,7 +39,7 @@ local ratios = {
     ModTextLeftGap = 19 / 1920,
     -- modtext Y pos is half between the 2 dividers.
 
-    JudgmentBarLeftGap = 20 / 1920, -- edge of frame to left of bar
+    JudgmentBarLeftGap = 18 / 1920, -- edge of frame to left of bar
     JudgmentBarUpperGap = 408 / 1080, -- top edge of from to top edge of top bar
     JudgmentBarHeight = 44 / 1080,
     JudgmentBarAllottedSpace = 264 / 1080, -- top of top bar to top of bottom bar (valign 0)
@@ -52,7 +54,9 @@ local actuals = {
     UpperGap = ratios.UpperGap * SCREEN_HEIGHT,
     Width = ratios.Width * SCREEN_WIDTH,
     Height = ratios.Height * SCREEN_HEIGHT,
+    LipLeftGap = ratios.LipLeftGap * SCREEN_WIDTH,
     LipHeight = ratios.LipHeight * SCREEN_HEIGHT,
+    LipLength = ratios.LipLength * SCREEN_WIDTH,
     GraphLeftGap = ratios.GraphLeftGap * SCREEN_WIDTH,
     GraphWidth = ratios.GraphWidth * SCREEN_WIDTH,
     GraphBannerGap = ratios.GraphBannerGap * SCREEN_HEIGHT,
@@ -91,6 +95,7 @@ local modTextZoom = 1
 local judgmentTextZoom = 0.95
 local judgmentCountZoom = 0.95
 local judgmentPercentZoom = 0.6
+local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
 local textzoomFudge = 5
 
 local function judgmentBars()
@@ -151,7 +156,7 @@ local function judgmentBars()
                 InitCommand = function(self)
                     self:Load("RollingNumbersNoLead")
                     self:halign(1)
-                    self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap, actuals.JudgmentBarHeight / 2)
+                    self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap - judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentCountZoom)
                     self:targetnumber(0)
                 end,
@@ -166,7 +171,7 @@ local function judgmentBars()
                 InitCommand = function(self)
                     self:Load("RollingNumbersJudgmentPercentage")
                     self:halign(0)
-                    self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap, actuals.JudgmentBarHeight / 2)
+                    self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap + judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentPercentZoom)
                     self:targetnumber(0)
                 end,
@@ -203,7 +208,8 @@ t[#t+1] = Def.ActorFrame {
         Name = "BGLip",
         InitCommand = function(self)
             self:valign(0):halign(0)
-            self:zoomto(actuals.Width, actuals.LipHeight)
+            self:x(actuals.LipLeftGap)
+            self:zoomto(actuals.LipLength, actuals.LipHeight)
             self:diffuse(color("#111111"))
         end
     },
@@ -254,8 +260,11 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:xy(actuals.GraphLeftGap, actuals.GraphBannerGap + actuals.BannerHeight)
             -- due to reasons, the sizing for this is in metrics [GraphDisplay]
-            -- self:zoomto(actuals.GraphWidth, actuals.LifeGraphHeight)
+            -- we override them with the following zoomto
+            -- so the ones in metrics can be anything....
+            -- i don't like that
             self:Load("GraphDisplay")
+            self:zoomto(actuals.GraphWidth, actuals.LifeGraphHeight)
 
             -- hide the max life line and its dots (why does this exist)
             self:GetChild("Line"):diffusealpha(0)
