@@ -1,8 +1,13 @@
 local t = Def.ActorFrame {
     Name = "MainDisplayFile",
     OnCommand = function(self)
+        local score = SCOREMAN:GetMostRecentScore()
+        if not score then
+            score = SCOREMAN:GetTempReplayScore()
+        end
+
         --- propagate set command through children with the song
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps()})
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = score})
     end
 }
 
@@ -14,13 +19,13 @@ local ratios = {
     LipHeight = 50 / 1080,
 
     GraphLeftGap = 18 / 1920,
-    GraphWidth = 740 / 1920,
+    GraphWidth = 739 / 1920, -- this must be the same as in metrics [GraphDisplay/ComboGraph]
     GraphBannerGap = 16 / 1080, -- from bottom of banner to top of graph
-    BannerLeftGap = 22 / 1920,
+    BannerLeftGap = 18 / 1920,
     BannerHeight = 228 / 1080,
-    BannerWidth = 731 / 1920,
-    LifeGraphHeight = 71 / 1080,
-    ComboGraphHeight = 16 / 1080,
+    BannerWidth = 739 / 1920,
+    LifeGraphHeight = 71 / 1080, -- this must be the same as in metrics [GraphDisplay]
+    ComboGraphHeight = 16 / 1080, -- this must be the same as in metrics [ComboGraph]
 
     DividerThickness = 2 / 1080,
     LeftDividerLeftGap = 18 / 1920,
@@ -33,9 +38,13 @@ local ratios = {
     -- modtext Y pos is half between the 2 dividers.
 
     JudgmentBarLeftGap = 20 / 1920, -- edge of frame to left of bar
+    JudgmentBarUpperGap = 408 / 1080, -- top edge of from to top edge of top bar
     JudgmentBarHeight = 44 / 1080,
     JudgmentBarAllottedSpace = 264 / 1080, -- top of top bar to top of bottom bar (valign 0)
     JudgmentBarLength = 739 / 1920,
+    JudgmentBarSpacing = 7 / 1080, -- the emptiness between judgments
+    JudgmentNameLeftGap = 25 / 1920, -- from left edge of bar to left edge of text
+    JudgmentCountRightGap = 95 / 1920, -- from right edge of bar to left edge of percentage, right edge of count
 }
 
 local actuals = {
@@ -59,14 +68,121 @@ local actuals = {
     LeftDivider2UpperGap = ratios.LeftDivider2UpperGap * SCREEN_HEIGHT,
     ModTextLeftGap = ratios.ModTextLeftGap * SCREEN_WIDTH,
     JudgmentBarLeftGap = ratios.JudgmentBarLeftGap * SCREEN_WIDTH,
+    JudgmentBarUpperGap = ratios.JudgmentBarUpperGap * SCREEN_HEIGHT,
     JudgmentBarHeight = ratios.JudgmentBarHeight * SCREEN_HEIGHT,
     JudgmentBarAllottedSpace = ratios.JudgmentBarAllottedSpace * SCREEN_HEIGHT,
     JudgmentBarLength = ratios.JudgmentBarLength * SCREEN_WIDTH,
+    JudgmentBarSpacing = ratios.JudgmentBarSpacing * SCREEN_HEIGHT,
+    JudgmentNameLeftGap = ratios.JudgmentNameLeftGap * SCREEN_WIDTH,
+    JudgmentCountRightGap = ratios.JudgmentCountRightGap * SCREEN_WIDTH
+}
+
+-- list of judgments to display the bar/counts for
+local judgmentsChosen = {
+    "TapNoteScore_W1", -- marvelous
+    "TapNoteScore_W2", -- perfect
+    "TapNoteScore_W3", -- great
+    "TapNoteScore_W4", -- good
+    "TapNoteScore_W5", -- bad
+    "TapNoteScore_Miss", -- miss
 }
 
 local modTextZoom = 1
+local judgmentTextZoom = 0.95
+local judgmentCountZoom = 0.95
+local judgmentPercentZoom = 0.6
 local textzoomFudge = 5
 
+local function judgmentBars()
+    local totalTaps = 0
+    local t = Def.ActorFrame {
+        Name = "JudgmentBarParentFrame",
+        SetCommand = function(self, params)
+            totalTaps = 0
+            for i, j in ipairs(judgmentsChosen) do
+                totalTaps = totalTaps + params.score:GetTapNoteScore(j)
+            end
+        end
+    }
+    local function makeJudgment(i)
+        local jdg = judgmentsChosen[i]
+
+        return Def.ActorFrame {
+            Name = "Judgment_"..i,
+            InitCommand = function(self)
+                -- finds the top of every bar given the requested spacing and the height of each bar within the allotted space
+                self:y((((i-1) * actuals.JudgmentBarHeight + (i-1) * actuals.JudgmentBarSpacing) / actuals.JudgmentBarAllottedSpace) * actuals.JudgmentBarAllottedSpace)
+            end,
+
+            Def.Quad {
+                Name = "BG",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:zoomto(actuals.JudgmentBarLength, actuals.JudgmentBarHeight)
+                    self:diffuse(byJudgment(jdg))
+                    self:diffusealpha(0.7)
+                end
+            },
+            Def.Quad {
+                Name = "Fill",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:zoomto(0, actuals.JudgmentBarHeight)
+                    self:diffuse(byJudgment(jdg))
+                end,
+                SetCommand = function(self, params)
+                    local percent = params.score:GetTapNoteScore(jdg) / totalTaps
+                    self:zoomx(actuals.JudgmentBarLength * percent)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Name",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:xy(actuals.JudgmentNameLeftGap, actuals.JudgmentBarHeight / 2)
+                    self:zoom(judgmentTextZoom)
+                    --self:maxwidth()
+                    self:settext(ms.JudgeCount[i])
+                end
+            },
+            Def.RollingNumbers {
+                Name = "Count",
+                Font = "Common Normal",
+                InitCommand = function(self)
+                    self:Load("RollingNumbersNoLead")
+                    self:halign(1)
+                    self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap, actuals.JudgmentBarHeight / 2)
+                    self:zoom(judgmentCountZoom)
+                    self:targetnumber(0)
+                end,
+                SetCommand = function(self, params)
+                    local count = params.score:GetTapNoteScore(jdg)
+                    self:targetnumber(count)
+                end
+            },
+            Def.RollingNumbers {
+                Name = "Percentage",
+                Font = "Common Normal",
+                InitCommand = function(self)
+                    self:Load("RollingNumbersJudgmentPercentage")
+                    self:halign(0)
+                    self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap, actuals.JudgmentBarHeight / 2)
+                    self:zoom(judgmentPercentZoom)
+                    self:targetnumber(0)
+                end,
+                SetCommand = function(self, params)
+                    local percent = params.score:GetTapNoteScore(jdg) / totalTaps * 100
+                    self:targetnumber(percent)
+                end
+            }
+        }
+    end
+    for i = 1, #judgmentsChosen do
+        t[#t+1] = makeJudgment(i)
+    end
+
+    return t
+end
 
 t[#t+1] = Def.ActorFrame {
     Name = "OwnerFrame",
@@ -186,8 +302,13 @@ t[#t+1] = Def.ActorFrame {
             end
             self:settext(mstr)
         end
+    },
+    judgmentBars() .. {
+        InitCommand = function(self)
+            self:xy(actuals.JudgmentBarLeftGap, actuals.JudgmentBarUpperGap)
+        end
+    },
 
-    }
 
 }
 
