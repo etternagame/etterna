@@ -135,10 +135,14 @@ t[#t+1] = Def.ActorFrame {
     Def.GraphDisplay {
         Name = "LifeGraph",
         InitCommand = function(self)
-            self:Load("GraphDisplay")
             self:valign(0):halign(0)
             self:xy(actuals.GraphLeftGap, actuals.GraphBannerGap + actuals.BannerHeight)
-            self:zoomto(actuals.GraphWidth, actuals.LifeGraphHeight)
+            -- due to reasons, the sizing for this is in metrics [GraphDisplay]
+            -- self:zoomto(actuals.GraphWidth, actuals.LifeGraphHeight)
+            self:Load("GraphDisplay")
+
+            -- hide the max life line and its dots (why does this exist)
+            self:GetChild("Line"):diffusealpha(0)
         end,
         SetCommand = function(self, params)
             local ss = SCREENMAN:GetTopScreen():GetStageStats()
@@ -148,12 +152,18 @@ t[#t+1] = Def.ActorFrame {
     Def.ComboGraph {
         Name = "ComboGraph",
         InitCommand = function(self)
-            self:Load("ComboGraph")
             self:valign(0):halign(0)
             self:xy(actuals.GraphLeftGap, actuals.GraphBannerGap + actuals.BannerHeight + actuals.LifeGraphHeight)
-            self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)
+            -- due to reasons, the sizing for this is in metrics [ComboGraph]
+            -- self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)
         end,
         SetCommand = function(self, params)
+            -- we have to destroy and reload all children of the ComboGraph when setting it
+            -- this crashes really easily if you do it wrong
+            if #(self:GetChildren()) > 0 then
+                self:Clear()
+            end
+            self:Load("ComboGraph")
             local ss = SCREENMAN:GetTopScreen():GetStageStats()
             self:Set(ss, ss:GetPlayerStageStats(PLAYER_1))
         end
