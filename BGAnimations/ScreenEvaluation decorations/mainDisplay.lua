@@ -501,7 +501,10 @@ local function calculatedStats()
                 end,
                 UpdateStatsCommand = function(self, params)
                     -- move the number over according to the suffix
-                    self:x(actuals.StatTextRightGap - self:GetParent():GetChild("Suffix"):GetZoomedWidth())
+                    -- and adjust the maxwidth to compensate for the reduced room
+                    local suffixWidth = self:GetParent():GetChild("Suffix"):GetZoomedWidth()
+                    self:x(actuals.StatTextRightGap - suffixWidth)
+                    self:maxwidth((actuals.StatCountWidth - suffixWidth) / statTextZoom - textzoomFudge)
                     self:targetnumber(statData[i])
                 end
             },
