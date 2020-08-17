@@ -1,3 +1,5 @@
+local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+
 local t = Def.ActorFrame {
     Name = "MainDisplayFile",
     OnCommand = function(self)
@@ -134,6 +136,8 @@ local judgmentCountZoom = 0.95
 local judgmentPercentZoom = 0.6
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
 local subTypeTextZoom = 0.7
+local statTextZoom = 0.7
+local statTextSuffixZoom = 0.6
 local textzoomFudge = 5
 
 local function judgmentBars()
@@ -247,7 +251,7 @@ local function subTypeStats()
         return Def.ActorFrame {
             Name = "SubTypeLine_"..i,
             InitCommand = function(self)
-                self:y((((i-1) * actuals.BottomTextHeight + (i-1) * actuals.BottomTextSpacing) / actuals.SubTypeAllottedSpace) * actuals.SubTypeAllottedSpace)
+                self:y((actuals.SubTypeAllottedSpace / (#subTypesChosen - 1)) * (i-1))
             end,
 
             LoadFont("Common Normal") .. {
@@ -315,6 +319,186 @@ local function subTypeStats()
         t[#t+1] = makeLine(i)
     end
 
+    return t
+end
+
+local function calculatedStats()
+    -- list of stats
+    -- do not allow this list to be shorter than 2 in length
+    local statStrings = {
+        "Mean",
+        "Sd",
+        "Largest",
+        "Left CBs",
+        "Middle CBs", -- skip this index for even column types
+        "Right CBs",
+    }
+    
+    local statSuffixes = {
+        "ms", -- Mean milliseconds
+        "ms", -- Standard Deviation milliseconds
+        "ms", -- Largest Deviation milliseconds
+        "", -- count
+        "", -- count
+        "", -- count
+    }
+
+    -- RollingNumber types in metrics
+    -- so we can assign it without so much work
+    local statTypes = {
+        "2DecimalNoLead",
+        "2DecimalNoLead",
+        "2DecimalNoLead",
+        "NoLead",
+        "NoLead",
+        "NoLead",
+    }
+
+    local evenColumns = true
+    local indexToSkip = 5 -- the middle cb index
+    
+    -- contains the data corresponding to each of the above stat strings
+    local statData = {
+        0, -- mean
+        0, -- sd
+        0, -- largest deviation
+        0, -- left cb
+        0, -- middle cb
+        0, -- right cb
+    }
+
+    local function calculateStatData(score, numColumns)
+        local tracks = score:GetTrackVector()
+        local offsetTable = score:GetOffsetVector()
+
+        local middleColumn = numColumns / 2
+
+        local cbThreshold = ms.JudgeScalers[judgeSetting]
+        local leftCB = 0
+        local middleCB = 0
+        local rightCB = 0
+        local smallest, largest = wifeRange(offsetTable)
+
+        -- count CBs
+        for i = 1, #offsetTable do
+            if tracks[i] then
+                if math.abs(offsetTable[i]) > cbThreshold * 90 then
+                    if tracks[i] < middleColumn then
+                        leftCB = leftCB + 1
+                    elseif tracks[i] > middleColumn then
+                        rightCB = rightCB + 1
+                    else
+                        middleCB = middleCB + 1
+                    end
+                end
+            end
+        end
+
+        -- MUST MATCH statData above
+        local output = {
+            wifeMean(offsetTable), -- mean
+            wifeSd(offsetTable), -- sd
+            largest,
+            leftCB,
+            middleCB,
+            rightCB,
+        }
+        return output
+    end
+
+    local t = Def.ActorFrame {
+        Name = "CalculatedStatsParentFrame",
+        SetCommand = function(self, params)
+            if params.steps ~= nil then
+                if params.steps:GetNumColumns() % 2 ~= 0 then
+                    evenColumns = false
+                end
+                -- this recalculates the stats to display for the following texts
+                -- subtract 1 from the number of columns because we are indexing at 0 in some of the data
+                -- and it produces the numbers we want
+                statData = calculateStatData(params.score, params.steps:GetNumColumns() - 1)
+
+                self:playcommand("UpdateStats", {score = params.score})
+            end
+        end
+    }
+    local function makeLine(i)
+        local statname = statStrings[i]
+        return Def.ActorFrame {
+            Name = "Stat_"..i,
+            InitCommand = function(self)
+                self:y((actuals.StatTextAllottedSpace / (#statStrings - 1)) * (i-1))
+            end,
+            UpdateStatsCommand = function(self, params)
+                if evenColumns and i == indexToSkip then
+                    self:diffusealpha(0)
+                else
+                    self:diffusealpha(1)
+                end
+                if evenColumns then
+                    if i ~= indexToSkip then
+                        -- this will convert the index to either i or i-1
+                        -- because when we skip an index we want to place it as if nothing changed
+                        -- and we are using a slightly shorter range than usual anyways
+                        local j = (i < indexToSkip and i or i-1)
+                        self:y((actuals.StatTextAllottedSpace / (#statStrings - 2)) * (j-1))
+                    end
+                end
+            end,
+
+            LoadFont("Common Normal") .. {
+                Name = "Name",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:zoom(statTextZoom)
+                    self:maxwidth(actuals.StatCountWidth / statTextZoom - textzoomFudge)
+                    self:settext(statname)
+                end
+            },
+            Def.RollingNumbers {
+                Name = "Number",
+                Font = "Common Normal",
+                InitCommand = function(self)
+                    self:Load("RollingNumbers" .. statTypes[i])
+                    self:halign(1):valign(0)
+                    -- note to self make this name less confusing
+                    self:x(actuals.StatTextRightGap)
+                    self:zoom(statTextZoom)
+                    self:maxwidth(actuals.StatCountWidth / statTextZoom - textzoomFudge)
+                    self:targetnumber(0)
+                end,
+                UpdateStatsCommand = function(self, params)
+                    -- move the number over according to the suffix
+                    self:x(actuals.StatTextRightGap - self:GetParent():GetChild("Suffix"):GetZoomedWidth())
+                    self:targetnumber(statData[i])
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Suffix",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.StatTextRightGap)
+                    self:zoom(statTextSuffixZoom)
+                    self:settext(statSuffixes[i])
+                    self:diffusealpha(0)
+                end,
+                UpdateStatsCommand = function(self, params)
+                    -- all of this garbage to get the text to align to the bottom of the line instead of the top
+                    -- (thanks to me for having foresight and setting parent Y appropriately first)
+                    local aligningtext = self:GetParent():GetChild("Number")
+                    local heightaligningto = aligningtext:GetZoomedHeight()
+                    self:valign(1):y(heightaligningto)
+
+                    self:diffusealpha(1)
+                end
+            }
+        }
+
+    end
+
+    for i = 1, #statStrings do
+        t[#t+1] = makeLine(i)
+    end
     return t
 end
 
@@ -449,6 +633,11 @@ t[#t+1] = Def.ActorFrame {
     subTypeStats() .. {
         InitCommand = function(self)
             self:xy(actuals.SubTypeTextLeftGap, actuals.BottomTextUpperGap)
+        end
+    },
+    calculatedStats() .. {
+        InitCommand = function(self)
+            self:xy(actuals.JudgmentBarLeftGap + actuals.JudgmentBarLength - actuals.StatTextRightGap, actuals.BottomTextUpperGap)
         end
     }
 
