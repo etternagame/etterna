@@ -64,6 +64,7 @@ FilterManager::ResetAllFilters()
 	ResetSSFilters();
 	ExclusiveFilter = false;
 	HighestSkillsetsOnly = false;
+	HighestDifficultyOnly = false;
 
 	MinFilterRate = 1.F;
 	MaxFilterRate = 1.F;
@@ -171,7 +172,16 @@ class LunaFilterManager : public Luna<FilterManager>
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
 		return 1;
 	}
-
+	static int ToggleHighestDifficultyOnly(T* p, lua_State* L)
+	{
+		p->HighestDifficultyOnly = !p->HighestDifficultyOnly;
+		return 0;
+	}
+	static int GetHighestDifficultyOnly(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->HighestDifficultyOnly);
+		return 1;
+	}
 	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L)
 	{
 		p->galaxycollapsed = BArg(1);
@@ -225,6 +235,8 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(GetFilterMode);
 		ADD_METHOD(ToggleHighestSkillsetsOnly);
 		ADD_METHOD(GetHighestSkillsetsOnly);
+		ADD_METHOD(ToggleHighestDifficultyOnly);
+		ADD_METHOD(GetHighestDifficultyOnly);
 		ADD_METHOD(HelpImTrappedInAChineseFortuneCodingFactory);
 		ADD_METHOD(oopsimlazylol);
 		ADD_METHOD(grabposx);
