@@ -7,7 +7,6 @@
 #include "Core/Services/Locator.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
-#include "archutils/Win32/Crash.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "archutils/Win32/GetFileInformation.h"
@@ -337,7 +336,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		}
 
 		g_hWndMain = hWnd;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 		g_HDC = GetDC(g_hWndMain);
 	}
 
@@ -434,7 +433,7 @@ GraphicsWindow::DestroyGraphicsWindow()
 	if (g_hWndMain != nullptr) {
 		DestroyWindow(g_hWndMain);
 		g_hWndMain = nullptr;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 	}
 
 	CHECKPOINT;
