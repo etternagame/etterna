@@ -412,6 +412,20 @@ local function calculatedStats()
 
         local middleColumn = numColumns / 2
 
+        -- MUST MATCH statData above
+        local output = {
+            0, -- mean
+            0, -- sd
+            0, -- largest deviation
+            0, -- left cb
+            0, -- middle cb
+            0, -- right cb
+        }
+
+        if offsetTable == nil or #offsetTable == 0 then
+            return output
+        end
+
         local cbThreshold = ms.JudgeScalers[judgeSetting] * 90
         local leftCB = 0
         local middleCB = 0
@@ -434,7 +448,7 @@ local function calculatedStats()
         end
 
         -- MUST MATCH statData above
-        local output = {
+        output = {
             wifeMean(offsetTable), -- mean
             wifeSd(offsetTable), -- sd
             largest,
