@@ -100,6 +100,30 @@ ms.SkillSetsTranslated = {
 
 ms.JudgeScalers = GAMESTATE:GetTimingScales()
 
+ms.BaseJudgeWindows = {
+	22.5, -- max marvelous
+	45.0, -- max perfect
+	90.0, -- max great
+	135.0, -- max good
+	180.0 -- max bad
+}
+
+-- convert a Judge and Judgment to ms of the upper or lower bound of the window
+function ms.getLowerWindowForJudgment(judgment, scale)
+	local jdgIndex = ms.JudgeCountInverse[judgment]
+	if jdgIndex == 1 then
+		return 0
+	end
+	return ms.BaseJudgeWindows[jdgIndex - 1] * scale
+end
+function ms.getUpperWindowForJudgment(judgment, scale)
+	local jdgIndex = ms.JudgeCountInverse[judgment]
+	if jdgIndex > 5 then
+		return 180 -- capped at 180
+	end
+	return ms.BaseJudgeWindows[jdgIndex] * scale
+end
+
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
 -- **Functions**
