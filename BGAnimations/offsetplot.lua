@@ -16,6 +16,8 @@ local timingScale = ms.JudgeScalers[judgeSetting]
 local maxOffset = 180
 local lineThickness = 2
 local lineAlpha = 0.2
+local textPadding = 5
+local textSize = 0.65
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -102,6 +104,34 @@ for i, j in ipairs(barJudgments) do
         end
     }
 end
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "LateText",
+    InitCommand = function(self)
+        self:halign(0):valign(0)
+        self:zoom(textSize)
+        self:playcommand("UpdateSizing")
+    end,
+    UpdateSizingCommand = function(self)
+        local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
+        self:xy(textPadding, textPadding)
+        self:settextf("Late (+%dms)", bound)
+    end
+}
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "EarlyText",
+    InitCommand = function(self)
+        self:halign(0):valign(1)
+        self:zoom(textSize)
+        self:playcommand("UpdateSizing")
+    end,
+    UpdateSizingCommand = function(self)
+        local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
+        self:xy(textPadding, sizing.Height - textPadding)
+        self:settextf("Early (-%dms)", bound)
+    end
+}
 
 
 
