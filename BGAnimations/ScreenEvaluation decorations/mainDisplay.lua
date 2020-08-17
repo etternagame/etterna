@@ -130,15 +130,17 @@ local subTypesChosen = {
     "RadarCategory_Fakes",
 }
 
-local modTextZoom = 1
-local judgmentTextZoom = 0.95
-local judgmentCountZoom = 0.95
-local judgmentPercentZoom = 0.6
+local modTextZoom = 0.6
+local judgmentTextZoom = 0.6
+local judgmentCountZoom = 0.6
+local judgmentPercentZoom = 0.3
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
 local subTypeTextZoom = 0.7
 local statTextZoom = 0.7
 local statTextSuffixZoom = 0.6
 local textzoomFudge = 5
+
+local textEmbossColor = color("0,0,0,0")
 
 local function judgmentBars()
     local totalTaps = 0
@@ -186,24 +188,26 @@ local function judgmentBars()
                     self:zoomx(actuals.JudgmentBarLength * percent)
                 end
             },
-            LoadFont("Common Normal") .. {
+            LoadFont("Common Large") .. {
                 Name = "Name",
                 InitCommand = function(self)
                     self:halign(0)
                     self:xy(actuals.JudgmentNameLeftGap, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentTextZoom)
+                    self:strokecolor(textEmbossColor)
                     --self:maxwidth()
                     self:settext(ms.JudgeCount[i])
                 end
             },
             Def.RollingNumbers {
                 Name = "Count",
-                Font = "Common Normal",
+                Font = "Common Large",
                 InitCommand = function(self)
                     self:Load("RollingNumbersNoLead")
                     self:halign(1)
                     self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap - judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentCountZoom)
+                    self:strokecolor(textEmbossColor)
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
@@ -217,12 +221,13 @@ local function judgmentBars()
             },
             Def.RollingNumbers {
                 Name = "Percentage",
-                Font = "Common Normal",
+                Font = "Common Large",
                 InitCommand = function(self)
                     self:Load("RollingNumbersJudgmentPercentage")
                     self:halign(0)
                     self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap + judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentPercentZoom)
+                    self:strokecolor(textEmbossColor)
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
@@ -606,7 +611,7 @@ t[#t+1] = Def.ActorFrame {
             self:Set(ss, ss:GetPlayerStageStats(PLAYER_1))
         end
     },
-    LoadFont("Common Normal") .. {
+    LoadFont("Common Large") .. {
         Name = "ModString",
         InitCommand = function(self)
             -- should be the upper divider + half the space between (accounting for the width of the top divider)
