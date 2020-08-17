@@ -64,6 +64,19 @@ local ratios = {
     StatCountTotalRightGap = 0 / 1920, -- this is a base line, probably 0, here for consistency
     StatCountWidth = 95 / 1920, -- approximate width of the numbers including the /
     StatTextAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
+
+    RightHalfLeftGap = 803 / 1920, -- left edge of frame to left edge of everything on the right side
+    RightHorizontalDividerLength = 936 / 1920,
+    RightVerticalDividerLength = 250 / 1080,
+    RightHorizontalDivider1UpperGap = 244 / 1080, -- top of frame to top of divider
+    RightHorizontalDivider2UpperGap = 544 / 1080, -- same
+    RightVerticalDividerLeftGap = 131 / 1920, -- from RightHalfLeftGap to left edge of divider
+    RightVerticalDividerUpperGap = 274 / 1080, -- from top of frame to top of divider
+
+    SongInfoUpperGap = 75 / 1080, -- from top of frame to top of title
+    SongArtistUpperGap = 43 / 1080, -- from top of song title to top of artist
+    SongPackUpperGap = 87 / 1080, -- from top of song title to top of pack name
+    SongRateUpperGap = 131 / 1080, -- from top of song title to top of rate
 }
 
 local actuals = {
@@ -109,6 +122,17 @@ local actuals = {
     StatCountTotalRightGap = ratios.StatCountTotalRightGap * SCREEN_WIDTH,
     StatCountWidth = ratios.StatCountWidth * SCREEN_WIDTH,
     StatTextAllottedSpace = ratios.StatTextAllottedSpace * SCREEN_HEIGHT,
+    RightHalfLeftGap = ratios.RightHalfLeftGap * SCREEN_WIDTH,
+    RightHorizontalDividerLength = ratios.RightHorizontalDividerLength * SCREEN_WIDTH,
+    RightVerticalDividerLength = ratios.RightVerticalDividerLength * SCREEN_HEIGHT,
+    RightHorizontalDivider1UpperGap = ratios.RightHorizontalDivider1UpperGap * SCREEN_HEIGHT,
+    RightHorizontalDivider2UpperGap = ratios.RightHorizontalDivider2UpperGap * SCREEN_HEIGHT,
+    RightVerticalDividerLeftGap = ratios.RightVerticalDividerLeftGap * SCREEN_WIDTH,
+    RightVerticalDividerUpperGap = ratios.RightVerticalDividerUpperGap * SCREEN_HEIGHT,
+    SongInfoUpperGap = ratios.SongInfoUpperGap * SCREEN_HEIGHT,
+    SongArtistUpperGap = ratios.SongArtistUpperGap * SCREEN_HEIGHT,
+    SongPackUpperGap = ratios.SongPackUpperGap * SCREEN_HEIGHT,
+    SongRateUpperGap = ratios.SongRateUpperGap * SCREEN_HEIGHT,
 }
 
 -- list of judgments to display the bar/counts for
@@ -122,12 +146,13 @@ local judgmentsChosen = {
 }
 
 -- list of tap/hold subtypes to display the counts for
+-- these are each a part of RadarCategory_x
 local subTypesChosen = {
-    "RadarCategory_Holds",
-    "RadarCategory_Mines",
-    "RadarCategory_Rolls",
-    "RadarCategory_Lifts",
-    "RadarCategory_Fakes",
+    "Holds",
+    "Mines",
+    "Rolls",
+    "Lifts",
+    "Fakes",
 }
 
 local modTextZoom = 0.6
@@ -138,6 +163,8 @@ local judgmentCountPercentBump = 1 -- a bump in position added to the Count and 
 local subTypeTextZoom = 0.7
 local statTextZoom = 0.7
 local statTextSuffixZoom = 0.6
+local titleTextSize = 0.8
+local songInfoTextSize = 0.55
 local textzoomFudge = 5
 
 local textEmbossColor = color("0,0,0,0")
@@ -196,7 +223,7 @@ local function judgmentBars()
                     self:zoom(judgmentTextZoom)
                     self:strokecolor(textEmbossColor)
                     --self:maxwidth()
-                    self:settext(ms.JudgeCount[i])
+                    self:settext(getJudgeStrings(ms.JudgeCount[i]))
                 end
             },
             Def.RollingNumbers {
@@ -314,7 +341,7 @@ local function subTypeStats()
                         self:targetnumber(0)
                         return
                     end
-                    local num = params.score:GetRadarPossible():GetValue(rdr)
+                    local num = params.score:GetRadarPossible():GetValue("RadarCategory_"..rdr)
                     self:targetnumber(num)
                 end
             }
@@ -547,7 +574,30 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.LeftDividerLeftGap, actuals.LeftDivider2UpperGap)
         end
     },
-
+    Def.Quad {
+        Name = "RightUpperHorizontalDivider",
+        InitCommand = function(self)
+            self:valign(0):halign(0)
+            self:zoomto(actuals.RightHorizontalDividerLength, actuals.DividerThickness)
+            self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider1UpperGap)
+        end
+    },
+    Def.Quad {
+        Name = "RightLowerHorizontalDivider",
+        InitCommand = function(self)
+            self:valign(0):halign(0)
+            self:zoomto(actuals.RightHorizontalDividerLength, actuals.DividerThickness)
+            self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider2UpperGap)
+        end
+    },
+    Def.Quad {
+        Name = "RightVerticalDivider",
+        InitCommand = function(self)
+            self:valign(0):halign(0)
+            self:zoomto(actuals.DividerThickness, actuals.RightVerticalDividerLength)
+            self:xy(actuals.RightHalfLeftGap + actuals.RightVerticalDividerLeftGap, actuals.RightVerticalDividerUpperGap)
+        end
+    },
 
     Def.Sprite {
         Name = "Banner",
@@ -584,7 +634,7 @@ t[#t+1] = Def.ActorFrame {
             self:Load("GraphDisplay")
             self:zoomto(actuals.GraphWidth, actuals.LifeGraphHeight)
 
-            -- hide the max life line and its dots (why does this exist)
+            -- hide the max life line and its dots (why does this exist?)
             self:GetChild("Line"):diffusealpha(0)
         end,
         SetCommand = function(self, params)
@@ -644,6 +694,63 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:xy(actuals.JudgmentBarLeftGap + actuals.JudgmentBarLength - actuals.StatTextRightGap, actuals.BottomTextUpperGap)
         end
+    },
+
+    LoadFont("Common Large") .. {
+        Name = "ScreenTitle",
+        InitCommand = function(self)
+            self:xy(actuals.RightHalfLeftGap, actuals.LipHeight / 2)
+            self:halign(0)
+            self:zoom(titleTextSize)
+            self:settext("Results")
+        end
+    },
+    Def.ActorFrame {
+        Name = "BasicSongInfo",
+        InitCommand = function(self)
+            self:xy(actuals.RightHalfLeftGap, actuals.SongInfoUpperGap)
+        end,
+
+        LoadFont("Common Large") .. {
+            Name = "SongTitle",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:zoom(songInfoTextSize)
+                self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+            end
+        },
+        LoadFont("Common Large") .. {
+            Name = "SongArtist",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:y(actuals.SongArtistUpperGap)
+                self:zoom(songInfoTextSize)
+                self:settext(GAMESTATE:GetCurrentSong():GetDisplayArtist())
+            end
+        },
+        LoadFont("Common Large") .. {
+            Name = "SongPack",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:y(actuals.SongPackUpperGap)
+                self:zoom(songInfoTextSize)
+                self:settext(GAMESTATE:GetCurrentSong():GetGroupName())
+            end
+        },
+        LoadFont("Common Large") .. {
+            Name = "SongRate",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:y(actuals.SongRateUpperGap)
+                self:zoom(songInfoTextSize)
+            end,
+            BeginCommand = function(self)
+                local rate = SCREENMAN:GetTopScreen():GetReplayRate()
+                if not rate then rate = getCurRateValue() end
+                local ratestr = getRateString(rate)
+                self:settext(ratestr)
+            end
+        }
     }
 
 
