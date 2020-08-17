@@ -24,10 +24,6 @@
 
 #include "arch/Threads/Threads.h"
 
-#ifdef _WIN32
-#include "archutils/Win32/crash.h"
-#endif
-
 /* Assume TLS doesn't work until told otherwise.  It's ArchHooks's job to set
  * this. */
 bool RageThread::s_bSystemSupportsTLS = false;

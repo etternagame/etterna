@@ -5,8 +5,6 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Globals/ProductInfo.h"
 #include "archutils/win32/AppInstance.h"
-#include "archutils/win32/crash.h"
-#include "archutils/win32/DebugInfoHunt.h"
 #include "archutils/win32/ErrorStrings.h"
 #include "archutils/win32/RestartProgram.h"
 #include "archutils/win32/GotoURL.h"
@@ -61,8 +59,8 @@ ArchHooks_Win32::ArchHooks_Win32()
 	 * "drive not ready", etc. dialogs to pop up. */
 	SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
 
-	CrashHandler::CrashHandlerHandleArgs(g_argc, g_argv);
-	SetUnhandledExceptionFilter(CrashHandler::ExceptionHandler);
+//	CrashHandler::CrashHandlerHandleArgs(g_argc, g_argv);
+//	SetUnhandledExceptionFilter(CrashHandler::ExceptionHandler);
 
 #if _MSC_VER >= 1400 // VC8
 	_set_invalid_parameter_handler(InvalidParameterHandler);
@@ -89,7 +87,7 @@ ArchHooks_Win32::DumpDebugInfo()
 {
 	/* This is a good time to do the debug search: before we actually
 	 * start OpenGL (in case something goes wrong). */
-	SearchForDebugInfo();
+//	SearchForDebugInfo();
 }
 
 struct CallbackData
