@@ -77,6 +77,10 @@ local ratios = {
     SongArtistUpperGap = 43 / 1080, -- from top of song title to top of artist
     SongPackUpperGap = 87 / 1080, -- from top of song title to top of pack name
     SongRateUpperGap = 131 / 1080, -- from top of song title to top of rate
+
+    OffsetPlotUpperGap = 559 / 1080, -- from top of frame to top of plot
+    OffsetPlotHeight = 295 / 1080,
+    OffsetPlotWidth = 936 / 1920,
 }
 
 local actuals = {
@@ -133,6 +137,9 @@ local actuals = {
     SongArtistUpperGap = ratios.SongArtistUpperGap * SCREEN_HEIGHT,
     SongPackUpperGap = ratios.SongPackUpperGap * SCREEN_HEIGHT,
     SongRateUpperGap = ratios.SongRateUpperGap * SCREEN_HEIGHT,
+    OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
+    OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
+    OffsetPlotWidth = ratios.OffsetPlotWidth * SCREEN_WIDTH,
 }
 
 -- list of judgments to display the bar/counts for
@@ -405,7 +412,7 @@ local function calculatedStats()
 
         local middleColumn = numColumns / 2
 
-        local cbThreshold = ms.JudgeScalers[judgeSetting]
+        local cbThreshold = ms.JudgeScalers[judgeSetting] * 90
         local leftCB = 0
         local middleCB = 0
         local rightCB = 0
@@ -414,7 +421,7 @@ local function calculatedStats()
         -- count CBs
         for i = 1, #offsetTable do
             if tracks[i] then
-                if math.abs(offsetTable[i]) > cbThreshold * 90 then
+                if math.abs(offsetTable[i]) > cbThreshold then
                     if tracks[i] < middleColumn then
                         leftCB = leftCB + 1
                     elseif tracks[i] > middleColumn then
@@ -651,6 +658,7 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:xy(actuals.GraphLeftGap, actuals.GraphBannerGap + actuals.BannerHeight + actuals.LifeGraphHeight)
             -- due to reasons, the sizing for this is in metrics [ComboGraph]
+            -- we dont override them here because the combo text is broken by the zoom
             -- self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)
         end,
         SetCommand = function(self, params)
@@ -754,6 +762,11 @@ t[#t+1] = Def.ActorFrame {
                 self:settext(ratestr)
             end
         }
+    },
+    LoadActorWithParams("../offsetplot.lua", {sizing = {Width = actuals.OffsetPlotWidth, Height = actuals.OffsetPlotHeight}}) .. {
+        InitCommand = function(self)
+            self:xy(actuals.RightHalfLeftGap, actuals.OffsetPlotUpperGap)
+        end
     }
 
 
