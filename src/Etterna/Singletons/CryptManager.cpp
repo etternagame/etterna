@@ -131,6 +131,33 @@ CryptManager::GetSHA1ForFile(const std::string& fn)
 	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
 }
 
+std::string
+CryptManager::GetSHA256ForString(const std::string& sData)
+{
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	const unsigned char* data =
+	  reinterpret_cast<const unsigned char*>(sData.data());
+	SHA256(data, sData.size(), digest);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
+}
+
+std::string
+CryptManager::GetSHA256ForFile(const std::string& fn)
+{
+	SHA256_CTX* hash = new SHA256_CTX;
+	SHA256_Init(hash);
+	auto update = [&hash](const unsigned char* data, size_t length) {
+		SHA256_Update(hash, data, length);
+	};
+	if (!HashFile(fn, update)) {
+		LOG->Warn("An error occuring when calculating SHA256 of \n%s",
+				  fn.c_str());
+		return std::string();
+	}
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	SHA256_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
+}
 // lua start
 
 /** @brief Allow Lua to have access to the CryptManager. */
@@ -165,13 +192,28 @@ class LunaCryptManager : public Luna<CryptManager>
 		lua_pushlstring(L, sha1fout.c_str(), sha1fout.size());
 		return 1;
 	}
-
+	static int SHA256String(T* p, lua_State* L)
+	{
+		std::string sha256out;
+		sha256out = p->GetSHA256ForString(SArg(1));
+		lua_pushlstring(L, sha256out.c_str(), sha256out.size());
+		return 1;
+	}
+	static int SHA256File(T* p, lua_State* L)
+	{
+		std::string sha256fout;
+		sha256fout = p->GetSHA256ForFile(SArg(1));
+		lua_pushlstring(L, sha256fout.c_str(), sha256fout.size());
+		return 1;
+	}
 	LunaCryptManager()
 	{
 		ADD_METHOD(MD5String);
 		ADD_METHOD(MD5File);
 		ADD_METHOD(SHA1String);
 		ADD_METHOD(SHA1File);
+		ADD_METHOD(SHA256String);
+		ADD_METHOD(SHA256File);
 	}
 };
 
