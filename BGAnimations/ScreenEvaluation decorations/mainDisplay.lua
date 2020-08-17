@@ -47,6 +47,21 @@ local ratios = {
     JudgmentBarSpacing = 7 / 1080, -- the emptiness between judgments
     JudgmentNameLeftGap = 25 / 1920, -- from left edge of bar to left edge of text
     JudgmentCountRightGap = 95 / 1920, -- from right edge of bar to left edge of percentage, right edge of count
+
+    BottomTextUpperGap = 733 / 1080, -- top edge of frame to top edge of the text at the bottom left of the screen
+    BottomTextHeight = 16 / 1080, -- fudge
+    BottomTextSpacing = 10 / 1080, -- mix with the immediately above value
+    SubTypeTextLeftGap = 18 / 1920, -- edge of frame to left of text
+    SubTypeCountLeftGap = 102 / 1920, -- left edge of name to left edge of number
+    SubTypeCountTotalLeftGap = 196 / 1920, -- left edge of name to right edge of number
+    SubTypeCountWidth = 95 / 1920, -- approximate width of the numbers including the /
+    SubTypeAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
+
+    StatTextRightGap = 195 / 1920, -- right edge of stat count text to left edge of name text
+    StatCountRightGap = 54 / 1920, -- right edge of stat count text to right edge of count text
+    StatCountTotalRightGap = 0 / 1920, -- this is a base line, probably 0, here for consistency
+    StatCountWidth = 95 / 1920, -- approximate width of the numbers including the /
+    StatTextAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
 }
 
 local actuals = {
@@ -78,7 +93,20 @@ local actuals = {
     JudgmentBarLength = ratios.JudgmentBarLength * SCREEN_WIDTH,
     JudgmentBarSpacing = ratios.JudgmentBarSpacing * SCREEN_HEIGHT,
     JudgmentNameLeftGap = ratios.JudgmentNameLeftGap * SCREEN_WIDTH,
-    JudgmentCountRightGap = ratios.JudgmentCountRightGap * SCREEN_WIDTH
+    JudgmentCountRightGap = ratios.JudgmentCountRightGap * SCREEN_WIDTH,
+    BottomTextUpperGap = ratios.BottomTextUpperGap * SCREEN_HEIGHT,
+    BottomTextHeight = ratios.BottomTextHeight * SCREEN_HEIGHT,
+    BottomTextSpacing = ratios.BottomTextSpacing * SCREEN_HEIGHT,
+    SubTypeTextLeftGap = ratios.SubTypeTextLeftGap * SCREEN_WIDTH,
+    SubTypeCountLeftGap = ratios.SubTypeCountLeftGap * SCREEN_WIDTH,
+    SubTypeCountTotalLeftGap = ratios.SubTypeCountTotalLeftGap * SCREEN_WIDTH,
+    SubTypeCountWidth = ratios.SubTypeCountWidth * SCREEN_WIDTH,
+    SubTypeAllottedSpace = ratios.SubTypeAllottedSpace * SCREEN_HEIGHT,
+    StatTextRightGap = ratios.StatTextRightGap * SCREEN_WIDTH,
+    StatCountRightGap = ratios.StatCountRightGap * SCREEN_WIDTH,
+    StatCountTotalRightGap = ratios.StatCountTotalRightGap * SCREEN_WIDTH,
+    StatCountWidth = ratios.StatCountWidth * SCREEN_WIDTH,
+    StatTextAllottedSpace = ratios.StatTextAllottedSpace * SCREEN_HEIGHT,
 }
 
 -- list of judgments to display the bar/counts for
@@ -91,11 +119,21 @@ local judgmentsChosen = {
     "TapNoteScore_Miss", -- miss
 }
 
+-- list of tap/hold subtypes to display the counts for
+local subTypesChosen = {
+    "RadarCategory_Holds",
+    "RadarCategory_Mines",
+    "RadarCategory_Rolls",
+    "RadarCategory_Lifts",
+    "RadarCategory_Fakes",
+}
+
 local modTextZoom = 1
 local judgmentTextZoom = 0.95
 local judgmentCountZoom = 0.95
 local judgmentPercentZoom = 0.6
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
+local subTypeTextZoom = 0.7
 local textzoomFudge = 5
 
 local function judgmentBars()
@@ -136,6 +174,10 @@ local function judgmentBars()
                     self:diffuse(byJudgment(jdg))
                 end,
                 SetCommand = function(self, params)
+                    if params.score == nil then
+                        self:zoomx(0)
+                        return
+                    end
                     local percent = params.score:GetTapNoteScore(jdg) / totalTaps
                     self:zoomx(actuals.JudgmentBarLength * percent)
                 end
@@ -161,6 +203,10 @@ local function judgmentBars()
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
+                    if params.score == nil then
+                        self:targetnumber(0)
+                        return
+                    end
                     local count = params.score:GetTapNoteScore(jdg)
                     self:targetnumber(count)
                 end
@@ -176,6 +222,10 @@ local function judgmentBars()
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
+                    if params.score == nil then
+                        self:targetnumber(0)
+                        return
+                    end
                     local percent = params.score:GetTapNoteScore(jdg) / totalTaps * 100
                     self:targetnumber(percent)
                 end
@@ -184,6 +234,85 @@ local function judgmentBars()
     end
     for i = 1, #judgmentsChosen do
         t[#t+1] = makeJudgment(i)
+    end
+
+    return t
+end
+
+local function subTypeStats()
+    local t = Def.ActorFrame {Name = "SubTypeParentFrame"}
+    local function makeLine(i)
+        local rdr = subTypesChosen[i]
+
+        return Def.ActorFrame {
+            Name = "SubTypeLine_"..i,
+            InitCommand = function(self)
+                self:y((((i-1) * actuals.BottomTextHeight + (i-1) * actuals.BottomTextSpacing) / actuals.SubTypeAllottedSpace) * actuals.SubTypeAllottedSpace)
+            end,
+
+            LoadFont("Common Normal") .. {
+                Name = "Name",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:zoom(subTypeTextZoom)
+                    self:maxwidth(actuals.SubTypeCountLeftGap / subTypeTextZoom - textzoomFudge)
+                    self:settext(rdr)
+                end
+            },
+            Def.RollingNumbers {
+                Name = "Count",
+                Font = "Common Normal",
+                InitCommand = function(self)
+                    self:Load("RollingNumbers3Leading")
+                    self:halign(0):valign(0)
+                    self:x(actuals.SubTypeCountLeftGap)
+                    self:zoom(subTypeTextZoom)
+                    self:maxwidth(actuals.SubTypeCountWidth / 2 / subTypeTextZoom - textzoomFudge)
+                    self:targetnumber(0)
+                end,
+                SetCommand = function(self, params)
+                    if params.score == nil then
+                        self:targetnumber(0)
+                        return
+                    end
+                    local num = params.score:GetRadarValues():GetValue(rdr)
+                    self:targetnumber(num)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Slash",
+                InitCommand = function(self)
+                    -- when you want to do something in a really particular way and dont trust anything else to get it right
+                    self:valign(0)
+                    self:x(actuals.SubTypeCountLeftGap + actuals.SubTypeCountWidth / 2)
+                    self:zoom(subTypeTextZoom)
+                    self:settext("/")
+                end
+            },
+            Def.RollingNumbers {
+                Name = "Total",
+                Font = "Common Normal",
+                InitCommand = function(self)
+                    self:Load("RollingNumbers3Leading")
+                    self:halign(1):valign(0)
+                    self:x(actuals.SubTypeCountTotalLeftGap)
+                    self:zoom(subTypeTextZoom)
+                    self:maxwidth(actuals.SubTypeCountWidth / 2 / subTypeTextZoom - textzoomFudge)
+                    self:targetnumber(0)
+                end,
+                SetCommand = function(self, params)
+                    if params.score == nil then
+                        self:targetnumber(0)
+                        return
+                    end
+                    local num = params.score:GetRadarPossible():GetValue(rdr)
+                    self:targetnumber(num)
+                end
+            }
+        }
+    end
+    for i = 1, #subTypesChosen do
+        t[#t+1] = makeLine(i)
     end
 
     return t
@@ -317,6 +446,11 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.JudgmentBarLeftGap, actuals.JudgmentBarUpperGap)
         end
     },
+    subTypeStats() .. {
+        InitCommand = function(self)
+            self:xy(actuals.SubTypeTextLeftGap, actuals.BottomTextUpperGap)
+        end
+    }
 
 
 }
