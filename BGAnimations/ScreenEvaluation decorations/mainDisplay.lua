@@ -750,6 +750,7 @@ t[#t+1] = Def.ActorFrame {
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoom(songInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
             end
         },
@@ -759,6 +760,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(0):valign(0)
                 self:y(actuals.SongArtistUpperGap)
                 self:zoom(songInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayArtist())
             end
         },
@@ -768,6 +770,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(0):valign(0)
                 self:y(actuals.SongPackUpperGap)
                 self:zoom(songInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetGroupName())
             end
         },
@@ -777,6 +780,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(0):valign(0)
                 self:y(actuals.SongRateUpperGap)
                 self:zoom(songInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
             end,
             BeginCommand = function(self)
                 local rate = SCREENMAN:GetTopScreen():GetReplayRate()
@@ -791,6 +795,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(1):valign(0)
                 self:x(actuals.RightHalfRightAlignLeftGap)
                 self:zoom(scoreInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
             end,
             SetCommand = function(self, params)
                 if params.score ~= nil then
@@ -808,6 +813,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(1):valign(0)
                 self:xy(actuals.RightHalfRightAlignLeftGap, actuals.WifePercentUpperGap)
                 self:zoom(scoreInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
             end,
             SetCommand = function(self, params)
                 if params.score ~= nil then
@@ -827,6 +833,7 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(1):valign(0)
                 self:xy(actuals.RightHalfRightAlignLeftGap, actuals.MSDInfoUpperGap)
                 self:zoom(scoreInfoTextSize)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
             end,
             SetCommand = function(self, params)
                 if params.steps ~= nil then
