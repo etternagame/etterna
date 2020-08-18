@@ -16,7 +16,7 @@ jobs:
           - { os: ubuntu-18.04, cpp-version: clang++-9 }
 
     steps:
-      - name: Checkout project
+      - name: Checkout Etterna
         uses: actions/checkout@v2
 
       - name: Install apt packages
@@ -37,15 +37,27 @@ jobs:
     name: macOS x64
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Etterna
+        uses: actions/checkout@v2
+
+      - name: Add Breakpad to Path
+        run: echo "::add-path::${{github.workspace}}/extern/crashpad/breakpad/mac/"
+
       - name: Install homebrew packages
         run: brew install cmake nasm ninja
 
       - name: Generate CMake
-        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G Ninja ..
+        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
       - name: Build Project
         run: cd build && ninja
+
+      - name: Generate Symbols
+        run: |
+          echo "Running dsymutil..."
+          dsymutil -o ${{github.workspace}}/Etterna.dsym Etterna-RelWithDebInfo.app/Contents/MacOS/Etterna-RelWithDebInfo > /dev/null
+          echo "Dumping Symbols..."
+          dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna-RelWithDebInfo.app/Contents/MacOS/Etterna-RelWithDebInfo > ${{github.workspace}}/Etterna.sym
 
       - name: Generate binary
         run: cd build && cpack
