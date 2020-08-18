@@ -66,6 +66,7 @@ local ratios = {
     StatTextAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
 
     RightHalfLeftGap = 803 / 1920, -- left edge of frame to left edge of everything on the right side
+    RightHalfRightAlignLeftGap = 936 / 1920, -- basically the same length as the divider, right end of rightest right text
     RightHorizontalDividerLength = 936 / 1920,
     RightVerticalDividerLength = 250 / 1080,
     RightHorizontalDivider1UpperGap = 244 / 1080, -- top of frame to top of divider
@@ -77,6 +78,8 @@ local ratios = {
     SongArtistUpperGap = 43 / 1080, -- from top of song title to top of artist
     SongPackUpperGap = 87 / 1080, -- from top of song title to top of pack name
     SongRateUpperGap = 131 / 1080, -- from top of song title to top of rate
+    WifePercentUpperGap = 60 / 1080, -- top of grade to top of text
+    MSDInfoUpperGap = 124 / 1080, -- top of grade to top of text
 
     OffsetPlotUpperGap = 559 / 1080, -- from top of frame to top of plot
     OffsetPlotHeight = 295 / 1080,
@@ -127,6 +130,7 @@ local actuals = {
     StatCountWidth = ratios.StatCountWidth * SCREEN_WIDTH,
     StatTextAllottedSpace = ratios.StatTextAllottedSpace * SCREEN_HEIGHT,
     RightHalfLeftGap = ratios.RightHalfLeftGap * SCREEN_WIDTH,
+    RightHalfRightAlignLeftGap = ratios.RightHalfRightAlignLeftGap * SCREEN_WIDTH,
     RightHorizontalDividerLength = ratios.RightHorizontalDividerLength * SCREEN_WIDTH,
     RightVerticalDividerLength = ratios.RightVerticalDividerLength * SCREEN_HEIGHT,
     RightHorizontalDivider1UpperGap = ratios.RightHorizontalDivider1UpperGap * SCREEN_HEIGHT,
@@ -137,6 +141,8 @@ local actuals = {
     SongArtistUpperGap = ratios.SongArtistUpperGap * SCREEN_HEIGHT,
     SongPackUpperGap = ratios.SongPackUpperGap * SCREEN_HEIGHT,
     SongRateUpperGap = ratios.SongRateUpperGap * SCREEN_HEIGHT,
+    WifePercentUpperGap = ratios.WifePercentUpperGap * SCREEN_HEIGHT,
+    MSDInfoUpperGap = ratios.MSDInfoUpperGap * SCREEN_HEIGHT,
     OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
     OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
     OffsetPlotWidth = ratios.OffsetPlotWidth * SCREEN_WIDTH,
@@ -172,6 +178,7 @@ local statTextZoom = 0.7
 local statTextSuffixZoom = 0.6
 local titleTextSize = 0.8
 local songInfoTextSize = 0.55
+local scoreInfoTextSize = 0.8
 local textzoomFudge = 5
 
 local textEmbossColor = color("0,0,0,0")
@@ -508,6 +515,8 @@ local function calculatedStats()
                     self:settext(statname)
                 end
             },
+            -- reminder to attempt to use AddAttribute to this later on
+            -- so we dont have to make suffix its own separate actor and complicate stuff
             Def.RollingNumbers {
                 Name = "Number",
                 Font = "Common Normal",
@@ -775,11 +784,93 @@ t[#t+1] = Def.ActorFrame {
                 local ratestr = getRateString(rate)
                 self:settext(ratestr)
             end
+        },
+        LoadFont("Common Large") .. {
+            Name = "Grade",
+            InitCommand = function(self)
+                self:halign(1):valign(0)
+                self:x(actuals.RightHalfRightAlignLeftGap)
+                self:zoom(scoreInfoTextSize)
+            end,
+            SetCommand = function(self, params)
+                if params.score ~= nil then
+                    local gra = THEME:GetString("Grade", ToEnumShortString(params.score:GetWifeGrade()))
+                    self:settext(gra)
+                    self:diffuse(getGradeColor(params.score:GetWifeGrade()))
+                else
+                    self:settext("")
+                end
+            end
+        },
+        LoadFont("Common Large") .. {
+            Name = "WifePercent",
+            InitCommand = function(self)
+                self:halign(1):valign(0)
+                self:xy(actuals.RightHalfRightAlignLeftGap, actuals.WifePercentUpperGap)
+                self:zoom(scoreInfoTextSize)
+            end,
+            SetCommand = function(self, params)
+                if params.score ~= nil then
+                    local ver = params.score:GetWifeVers()
+                    local ws = "W"..ver.." J"
+                    ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
+                    self:diffuse(getGradeColor(params.score:GetWifeGrade()))
+                    self:settextf("%05.2f%% (%s)", notShit.floor(params.score:GetWifeScore() * 100, 2), ws)
+                else
+                    self:settext("")
+                end
+            end
+        },
+        LoadFont("Common Large") .. {
+            Name = "MSDSSRDiff",
+            InitCommand = function(self)
+                self:halign(1):valign(0)
+                self:xy(actuals.RightHalfRightAlignLeftGap, actuals.MSDInfoUpperGap)
+                self:zoom(scoreInfoTextSize)
+            end,
+            SetCommand = function(self, params)
+                if params.steps ~= nil then
+                    local msd = params.steps:GetMSD(getCurRateValue(), 1)
+                    local msdstr = string.format("%5.2f", msd)
+                    local diff = getShortDifficulty(getDifficulty(params.steps:GetDifficulty()))
+                    local diffcolor = getDifficultyColor(GetCustomDifficulty(params.steps:GetStepsType(), params.steps:GetDifficulty()))
+                    local ssrstr = "0.00"
+                    if params.score ~= nil then
+                        local ssr = params.score:GetSkillsetSSR("Overall")
+                        ssrstr = string.format("%5.2f", ssr)
+                    end
+                    self:settextf("%s  ~  %s %s", msdstr, ssrstr, diff)
+                    self:ClearAttributes()
+                    self:AddAttribute(0, {Length = #msdstr, Zoom = scoreInfoTextSize, Diffuse = byMSD(msd)})
+                    self:AddAttribute(#msdstr + #"  ~  ", {Length = #ssrstr, Zoom = scoreInfoTextSize, Diffuse = byMSD(tonumber(ssrstr))})
+                    self:AddAttribute(#msdstr + #"  ~  " + #ssrstr, {Length = -1, Zoom = scoreInfoTextSize, Diffuse = diffcolor})
+                else
+                    self:settext("")
+                end
+            end
         }
     },
     LoadActorWithParams("../offsetplot.lua", {sizing = {Width = actuals.OffsetPlotWidth, Height = actuals.OffsetPlotHeight}}) .. {
         InitCommand = function(self)
             self:xy(actuals.RightHalfLeftGap, actuals.OffsetPlotUpperGap)
+        end,
+        SetCommand = function(self, params)
+            if params.score ~= nil and params.steps ~= nil then
+                if params.score:HasReplayData() then
+                    local offsets = params.score:GetOffsetVector()
+                    local tracks = params.score:GetTrackVector()
+                    local types = params.score:GetTapNoteTypeVector()
+                    local noterows = params.score:GetNoteRowVector()
+                    local timing = {}
+                    local timingdata = params.steps:GetTimingData()
+                    for i, row in ipairs(noterows) do
+                        timing[i] = timingdata:GetElapsedTimeFromNoteRow(row)
+                    end
+                    local lastSecond = params.steps:GetLastSecond()
+
+                    self:playcommand("LoadOffsets", {offsetVector = offsets, trackVector = tracks, timingVector = timing, typeVector = types, maxTime = lastSecond})
+                end
+            end
         end
     }
 
