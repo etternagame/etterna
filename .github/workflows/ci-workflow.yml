@@ -78,6 +78,11 @@ jobs:
           repository: nico-abram/dxsdk
           path: dxsdk
 
+      - name: Add Python to PATH
+        uses: actions/setup-python@v2
+        with:
+          python-version: '2.x'
+
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
 
