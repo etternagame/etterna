@@ -18,6 +18,7 @@ local lineThickness = 2
 local lineAlpha = 0.2
 local textPadding = 5
 local textSize = 0.65
+local dotLineLength = 0.75
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -39,6 +40,12 @@ local function fitY(y, maxY)
     return -1 * y / maxY * sizing.Height / 2 + sizing.Height / 2
 end
 
+local function placeDotVertices(vertList, x, y, color)
+    vertList[#vertList + 1] = {{x - dotLineLength, y + dotLineLength, 0}, color}
+    vertList[#vertList + 1] = {{x + dotLineLength, y + dotLineLength, 0}, color}
+    vertList[#vertList + 1] = {{x + dotLineLength, y - dotLineLength, 0}, color}
+    vertList[#vertList + 1] = {{x - dotLineLength, y - dotLineLength, 0}, color}
+end
 
 local t = Def.ActorFrame {
     Name = "OffsetPlotFile",
@@ -130,6 +137,67 @@ t[#t+1] = LoadFont("Common Normal") .. {
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, sizing.Height - textPadding)
         self:settextf("Early (-%dms)", bound)
+    end
+}
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "InstructionText",
+    InitCommand = function(self)
+        self:valign(1)
+        self:zoom(textSize)
+        self:settext("")
+        self:playcommand("UpdateSizing")
+    end,
+    UpdateSizingCommand = function(self)
+        self:xy(sizing.Width / 2, sizing.Height - textPadding)
+    end
+}
+
+t[#t+1] = Def.ActorMultiVertex {
+    Name = "Dots",
+    InitCommand = function(self)
+        --self:zoomto(0, 0)
+        self:playcommand("UpdateSizing")
+    end,
+    UpdateSizingCommand = function(self)
+        --self:y(sizing.Height / 2)
+        --self:linear(2)
+        --self:zoomto(1, 1)
+
+    end,
+    LoadOffsetsCommand = function(self, params)
+        self:playcommand("UpdateSizing")
+        local vertices = {}
+        local offsets = params.offsetVector
+        local tracks = params.trackVector
+        local timing = params.timingVector
+        local types = params.typeVector
+        local maxTime = params.maxTime
+
+        if offsets == nil or #offsets == 0 then
+            self:SetVertices(vertices)
+            return
+        end
+
+        for i, offset in ipairs(offsets) do
+            local x = fitX(timing[i], maxTime)
+            local y = fitY(offset, maxOffset)
+
+            local cappedY = math.max(maxOffset, (maxOffset) * timingScale)
+            if y < 0 or y > sizing.Height then
+                y = fitY(cappedY, maxOffset)
+            end
+
+            local dotColor = offsetToJudgeColor(offset, timingScale)
+            dotColor[4] = 1
+
+            if types[i] ~= "TapNoteType_Mine" then
+                placeDotVertices(vertices, x, y, dotColor)
+            end
+
+        end
+        self:SetVertices(vertices)
+        self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = #vertices}
     end
 }
 
