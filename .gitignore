@@ -10,8 +10,8 @@
 /Etterna-debug
 /Etterna-MinSizeRelease
 /Etterna-RelWithDebInfo
-*.app
-*.exe
+/*.app
+/*.exe
 
 # Etterna Related Ignore
 /Cache/
