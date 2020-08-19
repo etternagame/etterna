@@ -18,9 +18,9 @@ local ratios = {
     UpperGap = 135 / 1080, -- from top edge of screen to edge of bg
     Width = 1765 / 1920,
     Height = 863 / 1080,
-    LipLeftGap = 758 / 1920, -- the lip starts at the end of the banner
+    LipLeftGap = 800 / 1920, -- the lip starts at the end of the banner
     LipHeight = 50 / 1080,
-    LipLength = 1007 / 1920, -- runs to the right end of the frame
+    LipLength = 965 / 1920, -- runs to the right end of the frame
 
     GraphLeftGap = 18 / 1920,
     GraphWidth = 739 / 1920, -- this must be the same as in metrics [GraphDisplay/ComboGraph]
