@@ -40,11 +40,19 @@ jobs:
       - name: Checkout Etterna
         uses: actions/checkout@v2
 
-      - name: Add Breakpad to Path
+      - name: Update Environment Variables
         run: echo "::add-path::${{github.workspace}}/extern/crashpad/breakpad/mac/"
 
       - name: Install homebrew packages
         run: brew install cmake nasm ninja
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        if: github.ref == 'refs/heads/master'
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: us-east-1
 
       - name: Generate CMake
         run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
@@ -53,11 +61,16 @@ jobs:
         run: cd build && ninja
 
       - name: Generate Symbols
+        if: github.ref == 'refs/heads/master'
         run: |
           echo "Running dsymutil..."
           dsymutil -o ${{github.workspace}}/Etterna.dsym Etterna-RelWithDebInfo.app/Contents/MacOS/Etterna-RelWithDebInfo > /dev/null
           echo "Dumping Symbols..."
           dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna-RelWithDebInfo.app/Contents/MacOS/Etterna-RelWithDebInfo > ${{github.workspace}}/Etterna.sym
+
+      - name: Upload Symbols
+        if: github.ref == 'refs/heads/master'
+        run: ${{github.workspace}}/.ci/upload_symbols.py
 
       - name: Generate binary
         run: cd build && cpack
