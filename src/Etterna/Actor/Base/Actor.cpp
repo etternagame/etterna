@@ -2678,6 +2678,7 @@ class LunaActor : public Luna<Actor>
 	DEFINE_METHOD(GetTrueX, GetTrueX());
 	DEFINE_METHOD(GetTrueY, GetTrueY());
 	DEFINE_METHOD(GetTrueZoom, GetTrueZoom());
+	DEFINE_METHOD(GetTrueRotationZ, GetTrueRotationZ());
 	DEFINE_METHOD(IsVisible, IsVisible());
 	LunaActor()
 	{
@@ -2858,6 +2859,7 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(GetTrueX);
 		ADD_METHOD(GetTrueY);
 		ADD_METHOD(GetTrueZoom);
+		ADD_METHOD(GetTrueRotationZ);
 		ADD_METHOD(IsVisible);
 		ADD_METHOD(IsOver);
 	}
