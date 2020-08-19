@@ -68,11 +68,8 @@ local ratios = {
     RightHalfLeftGap = 803 / 1920, -- left edge of frame to left edge of everything on the right side
     RightHalfRightAlignLeftGap = 936 / 1920, -- basically the same length as the divider, right end of rightest right text
     RightHorizontalDividerLength = 936 / 1920,
-    RightVerticalDividerLength = 250 / 1080,
     RightHorizontalDivider1UpperGap = 244 / 1080, -- top of frame to top of divider
     RightHorizontalDivider2UpperGap = 544 / 1080, -- same
-    RightVerticalDividerLeftGap = 131 / 1920, -- from RightHalfLeftGap to left edge of divider
-    RightVerticalDividerUpperGap = 274 / 1080, -- from top of frame to top of divider
 
     SongInfoUpperGap = 75 / 1080, -- from top of frame to top of title
     SongArtistUpperGap = 43 / 1080, -- from top of song title to top of artist
@@ -80,6 +77,8 @@ local ratios = {
     SongRateUpperGap = 131 / 1080, -- from top of song title to top of rate
     WifePercentUpperGap = 60 / 1080, -- top of grade to top of text
     MSDInfoUpperGap = 124 / 1080, -- top of grade to top of text
+
+    ScoreBoardHeight = 298 / 1080, -- inner edge of divider to inner edge of divider
 
     OffsetPlotUpperGap = 559 / 1080, -- from top of frame to top of plot
     OffsetPlotHeight = 295 / 1080,
@@ -132,17 +131,16 @@ local actuals = {
     RightHalfLeftGap = ratios.RightHalfLeftGap * SCREEN_WIDTH,
     RightHalfRightAlignLeftGap = ratios.RightHalfRightAlignLeftGap * SCREEN_WIDTH,
     RightHorizontalDividerLength = ratios.RightHorizontalDividerLength * SCREEN_WIDTH,
-    RightVerticalDividerLength = ratios.RightVerticalDividerLength * SCREEN_HEIGHT,
     RightHorizontalDivider1UpperGap = ratios.RightHorizontalDivider1UpperGap * SCREEN_HEIGHT,
     RightHorizontalDivider2UpperGap = ratios.RightHorizontalDivider2UpperGap * SCREEN_HEIGHT,
-    RightVerticalDividerLeftGap = ratios.RightVerticalDividerLeftGap * SCREEN_WIDTH,
-    RightVerticalDividerUpperGap = ratios.RightVerticalDividerUpperGap * SCREEN_HEIGHT,
+
     SongInfoUpperGap = ratios.SongInfoUpperGap * SCREEN_HEIGHT,
     SongArtistUpperGap = ratios.SongArtistUpperGap * SCREEN_HEIGHT,
     SongPackUpperGap = ratios.SongPackUpperGap * SCREEN_HEIGHT,
     SongRateUpperGap = ratios.SongRateUpperGap * SCREEN_HEIGHT,
     WifePercentUpperGap = ratios.WifePercentUpperGap * SCREEN_HEIGHT,
     MSDInfoUpperGap = ratios.MSDInfoUpperGap * SCREEN_HEIGHT,
+    ScoreBoardHeight = ratios.ScoreBoardHeight * SCREEN_HEIGHT,
     OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
     OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
     OffsetPlotWidth = ratios.OffsetPlotWidth * SCREEN_WIDTH,
@@ -623,14 +621,6 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider2UpperGap)
         end
     },
-    Def.Quad {
-        Name = "RightVerticalDivider",
-        InitCommand = function(self)
-            self:valign(0):halign(0)
-            self:zoomto(actuals.DividerThickness, actuals.RightVerticalDividerLength)
-            self:xy(actuals.RightHalfLeftGap + actuals.RightVerticalDividerLeftGap, actuals.RightVerticalDividerUpperGap)
-        end
-    },
 
     Def.Sprite {
         Name = "Banner",
@@ -856,6 +846,11 @@ t[#t+1] = Def.ActorFrame {
                 end
             end
         }
+    },
+    LoadActorWithParams("scoreBoard.lua", {Width = actuals.RightHorizontalDividerLength, Height = actuals.ScoreBoardHeight, DividerThickness = actuals.DividerThickness}) .. {
+        InitCommand = function(self)
+            self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider1UpperGap + actuals.DividerThickness)
+        end
     },
     LoadActorWithParams("../offsetplot.lua", {sizing = {Width = actuals.OffsetPlotWidth, Height = actuals.OffsetPlotHeight}}) .. {
         InitCommand = function(self)
