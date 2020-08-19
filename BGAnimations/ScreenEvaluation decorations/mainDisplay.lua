@@ -911,7 +911,7 @@ t[#t+1] =
 t[#t+1] = LoadFont("Common Large") .. {
 	Name = "currentTime",
 	InitCommand=function(self)
-		self:xy(SCREEN_WIDTH-10,actuals.TimeAndDateBottomGap):zoom(0.45):halign(1)
+		self:xy(SCREEN_WIDTH-15,actuals.TimeAndDateBottomGap):zoom(0.45):halign(1)
 	end,
 	OnCommand = function(self)
 		self:diffuse(color(colorConfig:get_data().main.headerText))
