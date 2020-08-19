@@ -38,12 +38,15 @@ add_executable(Etterna)
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
 ### Usually it is separated by directory, but since we have the same directory for every
-### binary, we need to rename the binary
-set_target_properties(Etterna PROPERTIES
-        RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
-        RUNTIME_OUTPUT_NAME_RELEASE "Etterna"
-        RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
-        RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
+### binary, we need to rename the binary. We don't rename if we are compiling on CI,
+### as we want the executable to be "Etterna" regardless of which version is deployed.
+if(NOT DEFINED ENV{CI})
+    set_target_properties(Etterna PROPERTIES
+            RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
+            RUNTIME_OUTPUT_NAME_RELEASE "Etterna"
+            RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
+            RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
+endif()
 
 ### macOS and Linux place binary in root directory
 if(NOT WIN32)

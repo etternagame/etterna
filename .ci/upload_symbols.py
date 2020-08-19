@@ -12,18 +12,20 @@ import os
 import sys
 import platform
 import subprocess
+from pathlib import PurePosixPath
 
 # Ensure AWS Environment Variables exist
 if 'AWS_ACCESS_KEY_ID' not in os.environ or 'AWS_SECRET_ACCESS_KEY' not in os.environ:
     print("Ensure 'AWS_ACCESS_KEY_ID' and 'AWS_SECRET_ACCESS_KEY' are properly defined environment variables")
     sys.exit(1)
 
-
+# TODO: TAG SYMBOL FILE WITH GAME VERSION DURING UPLOAD
 # Program Variables
 SYMBOL_FILE = "Etterna.sym"
 AWS_BUCKET_NAME = "etterna"
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+ETTERNA_ARCH = os.environ['ETTERNA_ARCH']
 
 
 def get_s3_upload_directory():
@@ -36,8 +38,7 @@ def get_s3_upload_directory():
     :return: The correct base directory
     """
     base_dir = platform.system()
-    ett_arch = "x64"
-    return "{}.{}/Etterna/".format(base_dir, ett_arch)
+    return "{}.{}/Etterna/".format(base_dir, ETTERNA_ARCH)
 
 
 def get_metadata(filename: str):
@@ -52,10 +53,10 @@ def upload_to_s3(filename: str):
     # Collect Metadata
     prefix_dir = get_s3_upload_directory()
     build_uuid, module_id = get_metadata(filename)
-    upload_prefix = os.path.join('symbols', prefix_dir, build_uuid, filename)
+    upload_prefix = PurePosixPath('symbols', prefix_dir, build_uuid, filename)
 
     # Upload to S3
-    upload_path = 's3://{}'.format(os.path.join(AWS_BUCKET_NAME, upload_prefix))
+    upload_path = 's3://{}'.format(AWS_BUCKET_NAME / upload_prefix)
     s3_command = ['aws', 's3', 'cp', filename, upload_path]
     subprocess.run(s3_command)
 
