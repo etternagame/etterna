@@ -41,14 +41,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Update Environment Variables
-        run: echo "::add-path::${{github.workspace}}/extern/crashpad/breakpad/mac/"
+        run: |
+          echo "::add-path::${{github.workspace}}/extern/crashpad/breakpad/mac/"
+          echo "::set-env name=ETTERNA_ARCH::x64"
 
       - name: Install homebrew packages
         run: brew install cmake nasm ninja
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
-        if: github.ref == 'refs/heads/master'
+#        if: github.ref == 'refs/heads/master'
         with:
           aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
           aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
@@ -61,15 +63,15 @@ jobs:
         run: cd build && ninja
 
       - name: Generate Symbols
-        if: github.ref == 'refs/heads/master'
+#        if: github.ref == 'refs/heads/master'
         run: |
           echo "Running dsymutil..."
-          dsymutil -o ${{github.workspace}}/Etterna.dsym Etterna-RelWithDebInfo.app/Contents/MacOS/Etterna-RelWithDebInfo > /dev/null
+          dsymutil -o ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > /dev/null
           echo "Dumping Symbols..."
-          dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna-RelWithDebInfo.app/Contents/MacOS/Etterna-RelWithDebInfo > ${{github.workspace}}/Etterna.sym
+          dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/Etterna.sym
 
       - name: Upload Symbols
-        if: github.ref == 'refs/heads/master'
+#        if: github.ref == 'refs/heads/master'
         run: ${{github.workspace}}/.ci/upload_symbols.py
 
       - name: Generate binary
@@ -103,13 +105,26 @@ jobs:
           repository: nico-abram/dxsdk
           path: dxsdk
 
-      - name: Add Python to PATH
+      - name: Update Environment Variables
+        run: |
+          echo "::add-path::${{github.workspace}}/main/extern/crashpad/breakpad/win/"
+          echo "::set-env name=ETTERNA_ARCH::${{matrix.cfg.name}}"
+
+      - name: Setup Python 2.7
         uses: actions/setup-python@v2
         with:
-          python-version: '2.x'
+          python-version: '2.7'
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+#        if: github.ref == 'refs/heads/master'
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: us-east-1
 
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'Win32' }}
@@ -120,12 +135,27 @@ jobs:
         run: choco install ninja nsis openssl -y
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
+        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
       - name: Build Project
-        run: cd main/build && MSBuild Etterna.sln /p:Configuration=Release /p:Platform=${{matrix.cfg.arch}}
+        run: cd main/build && MSBuild Etterna.sln /p:Configuration=RelWithDebInfo /p:Platform=${{matrix.cfg.arch}}
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Generate Symbols
+#        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "Dumping Symbols..."
+          dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
+
+      - name: Upload Symbols
+#        if: github.ref == 'refs/heads/master'
+        run: cd main && python ${{github.workspace}}/main/.ci/upload_symbols.py
 
       - name: Generate binary
         run: cd main/build && cpack
