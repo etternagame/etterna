@@ -903,6 +903,7 @@ t[#t+1] =
             self:valign(0):halign(0)
             self:zoomto(actuals.QuotebarWidth, actuals.QuotebarHeight)
             self:diffuse(color("#111111"))
+            self:diffusealpha(0.75)
             self:xy(actuals.QuotebarLeftGap,actuals.QuotebarTopGap)
         end
     }
