@@ -115,24 +115,23 @@ local o =
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
 		else -- should be default behavior 
 			if name == "ScreenScoreTabOffsetPlot" then
-				score = getScoreForPlot()
+				local score = getScoreForPlot()
 				plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
 				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)			
 				textzoom = 0.5
 				bgalpha = 1
+				if score ~= nil then
+					if score:HasReplayData() then
+						dvt = score:GetOffsetVector()
+						nrt = score:GetNoteRowVector()
+						ctt = score:GetTrackVector()
+						ntt = score:GetTapNoteTypeVector()
+					end
+				end
 			else
 				local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
 				if allowHovering then
 					self:SetUpdateFunction(HighlightUpdaterThing)
-				end
-			end
-
-			if score ~= nil then
-				if score:HasReplayData() then
-					dvt = score:GetOffsetVector()
-					nrt = score:GetNoteRowVector()
-					ctt = score:GetTrackVector()
-					ntt = score:GetTapNoteTypeVector()
 				end
 			end
 		end
