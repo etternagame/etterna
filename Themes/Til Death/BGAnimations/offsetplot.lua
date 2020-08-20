@@ -115,6 +115,7 @@ local o =
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
 		else -- should be default behavior 
 			if name == "ScreenScoreTabOffsetPlot" then
+				score = getScoreForPlot()
 				plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
 				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)			
 				textzoom = 0.5
@@ -126,7 +127,6 @@ local o =
 				end
 			end
 
-			local score = getScoreForPlot()
 			if score ~= nil then
 				if score:HasReplayData() then
 					dvt = score:GetOffsetVector()
