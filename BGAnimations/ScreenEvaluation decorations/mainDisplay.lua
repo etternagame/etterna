@@ -84,13 +84,6 @@ local ratios = {
     OffsetPlotUpperGap = 559 / 1080, -- from top of frame to top of plot
     OffsetPlotHeight = 295 / 1080,
     OffsetPlotWidth = 936 / 1920,
-	
-	QuotebarHeight = 50 / 1080,
-	QuotebarWidth = 1920/1920,
-	QuotebarLeftGap = 0 / 1920,
-	QuotebarTopGap = 1030 / 1080,
-	
-	TimeAndDateBottomGap = 1055/1080,
 }
 
 local actuals = {
@@ -152,11 +145,6 @@ local actuals = {
     OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
     OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
     OffsetPlotWidth = ratios.OffsetPlotWidth * SCREEN_WIDTH,
-	QuotebarHeight = ratios.QuotebarHeight * SCREEN_HEIGHT,
-	QuotebarWidth = ratios.QuotebarWidth * SCREEN_WIDTH,
-	QuotebarLeftGap = ratios.QuotebarLeftGap * SCREEN_WIDTH,
-	QuotebarTopGap = ratios.QuotebarTopGap * SCREEN_HEIGHT,
-	TimeAndDateBottomGap = ratios.TimeAndDateBottomGap * SCREEN_HEIGHT,
 }
 
 -- list of judgments to display the bar/counts for
