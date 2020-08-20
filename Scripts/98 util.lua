@@ -41,8 +41,8 @@ end
 
 -- string split, return a list given a string and a separator between items
 function strsplit(given, separator)
-    if sep == nil then
-        sep = "%s" -- whitespace
+    if separator == nil then
+        separator = "%s" -- whitespace
     end
     local t = {}
     for str in string.gmatch(given, "([^"..separator.."]+)") do
