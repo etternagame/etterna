@@ -55,9 +55,18 @@ def upload_to_s3(filename: str):
     build_uuid, module_id = get_metadata(filename)
     upload_prefix = PurePosixPath('symbols', prefix_dir, build_uuid, filename)
 
+    # Get git hash
+    git_command = ['git', 'rev-parse', 'HEAD']
+    process = subprocess.run(git_command, capture_output=True)
+    full_hash = process.stdout.decode('utf-8').strip()
+
     # Upload to S3
-    upload_path = 's3://{}'.format(AWS_BUCKET_NAME / upload_prefix)
-    s3_command = ['aws', 's3', 'cp', filename, upload_path]
+    s3_command = [
+        'aws', 's3api', 'put-object',
+        '--bucket', AWS_BUCKET_NAME,
+        '--body', filename,
+        '--key', upload_prefix,
+        '--tagging', 'GitHash={}'.format(full_hash)]
     subprocess.run(s3_command)
 
 
