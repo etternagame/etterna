@@ -63,7 +63,6 @@ jobs:
         run: cd build && ninja
 
       - name: Generate Symbols
-#        if: github.ref == 'refs/heads/master'
         run: |
           echo "Stripping debug symbols from binary..."
           strip Etterna.app/Contents/MacOS/Etterna
@@ -72,9 +71,15 @@ jobs:
           echo "Dumping Symbols..."
           dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/Etterna.sym
 
-      - name: Upload Symbols
+      - name: Upload Symbols to AWS S3
 #        if: github.ref == 'refs/heads/master'
         run: ${{github.workspace}}/.ci/upload_symbols.py
+
+      - name: Upload Symbols to action artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna.mac.sym"
+          path: '${{github.workspace}}/Etterna.sym'
 
       - name: Generate binary
         run: cd build && cpack
@@ -150,14 +155,19 @@ jobs:
           python-version: '3.8'
 
       - name: Generate Symbols
-#        if: github.ref == 'refs/heads/master'
         run: |
           echo "Dumping Symbols..."
           dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
 
-      - name: Upload Symbols
+      - name: Upload Symbols to AWS S3
 #        if: github.ref == 'refs/heads/master'
         run: cd main && python ${{github.workspace}}/main/.ci/upload_symbols.py
+
+      - name: Upload Symbols to action artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna.win.sym"
+          path: '${{github.workspace}}/main/Etterna.sym'
 
       - name: Generate binary
         run: cd main/build && cpack
