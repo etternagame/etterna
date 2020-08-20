@@ -50,3 +50,36 @@ function strsplit(given, separator)
     end
     return t
 end
+
+-- convert a shortened date string into month day year
+function expandDateString(given)
+    if given == nil then
+        return MonthToLocalizedString(1), "1st", "0001"
+    end
+    local arglist = strsplit(given)
+
+    if #arglist == 2 or #arglist == 1 then
+        arglist = strsplit(arglist[1], "-")
+    else
+        return MonthToLocalizedString(1), "1st", "0001"
+    end
+
+    local month = MonthToLocalizedString(tonumber(arglist[2]))
+    local day = tonumber(arglist[3])
+    local year = arglist[1]
+
+    if day % 100 >= 11 and day % 100 <= 13 then
+        day = tostring(day) .. "th"
+    else
+        if day % 10 == 1 then
+            day = tostring(day) .. "st"
+        elseif day % 10 == 2 then
+            day = tostring(day) .. "nd"
+        elseif day % 10 == 3 then
+            day = tostring(day) .. "rd"
+        else
+            day = tostring(day) .. "th"
+        end
+    end
+    return month, day, year
+end

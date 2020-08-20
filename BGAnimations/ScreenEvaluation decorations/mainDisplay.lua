@@ -71,12 +71,13 @@ local ratios = {
     RightHorizontalDivider1UpperGap = 244 / 1080, -- top of frame to top of divider
     RightHorizontalDivider2UpperGap = 544 / 1080, -- same
 
-    SongInfoUpperGap = 75 / 1080, -- from top of frame to top of title
-    SongArtistUpperGap = 43 / 1080, -- from top of song title to top of artist
-    SongPackUpperGap = 87 / 1080, -- from top of song title to top of pack name
-    SongRateUpperGap = 131 / 1080, -- from top of song title to top of rate
-    WifePercentUpperGap = 60 / 1080, -- top of grade to top of text
-    MSDInfoUpperGap = 124 / 1080, -- top of grade to top of text
+    SongTitleLowerGap = 147 / 1080, -- top of divider to bottom of text
+    SongArtistLowerGap = 103 / 1080, -- same
+    SongPackLowerGap = 59 / 1080, -- ...
+    SongRateLowerGap = 15 / 1080,
+    GradeLowerGap = 141 / 1080,
+    WifePercentLowerGap = 77 / 1080,
+    MSDInfoLowerGap = 17 / 1080,
 
     ScoreBoardHeight = 298 / 1080, -- inner edge of divider to inner edge of divider
 
@@ -133,13 +134,13 @@ local actuals = {
     RightHorizontalDividerLength = ratios.RightHorizontalDividerLength * SCREEN_WIDTH,
     RightHorizontalDivider1UpperGap = ratios.RightHorizontalDivider1UpperGap * SCREEN_HEIGHT,
     RightHorizontalDivider2UpperGap = ratios.RightHorizontalDivider2UpperGap * SCREEN_HEIGHT,
-
-    SongInfoUpperGap = ratios.SongInfoUpperGap * SCREEN_HEIGHT,
-    SongArtistUpperGap = ratios.SongArtistUpperGap * SCREEN_HEIGHT,
-    SongPackUpperGap = ratios.SongPackUpperGap * SCREEN_HEIGHT,
-    SongRateUpperGap = ratios.SongRateUpperGap * SCREEN_HEIGHT,
-    WifePercentUpperGap = ratios.WifePercentUpperGap * SCREEN_HEIGHT,
-    MSDInfoUpperGap = ratios.MSDInfoUpperGap * SCREEN_HEIGHT,
+    SongTitleLowerGap = ratios.SongTitleLowerGap * SCREEN_HEIGHT,
+    SongArtistLowerGap = ratios.SongArtistLowerGap * SCREEN_HEIGHT,
+    SongPackLowerGap = ratios.SongPackLowerGap * SCREEN_HEIGHT,
+    SongRateLowerGap = ratios.SongRateLowerGap * SCREEN_HEIGHT,
+    GradeLowerGap = ratios.GradeLowerGap * SCREEN_HEIGHT,
+    WifePercentLowerGap = ratios.WifePercentLowerGap * SCREEN_HEIGHT,
+    MSDInfoLowerGap = ratios.MSDInfoLowerGap * SCREEN_HEIGHT,
     ScoreBoardHeight = ratios.ScoreBoardHeight * SCREEN_HEIGHT,
     OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
     OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
@@ -377,22 +378,13 @@ local function calculatedStats()
         "Middle CBs", -- skip this index for even column types
         "Right CBs",
     }
-    
-    local statSuffixes = {
-        "ms", -- Mean milliseconds
-        "ms", -- Standard Deviation milliseconds
-        "ms", -- Largest Deviation milliseconds
-        "", -- count
-        "", -- count
-        "", -- count
-    }
 
     -- RollingNumber types in metrics
     -- so we can assign it without so much work
     local statTypes = {
-        "2DecimalNoLead",
-        "2DecimalNoLead",
-        "2DecimalNoLead",
+        "2DecimalNoLeadMilliseconds",
+        "2DecimalNoLeadMilliseconds",
+        "2DecimalNoLeadMilliseconds",
         "NoLead",
         "NoLead",
         "NoLead",
@@ -513,8 +505,6 @@ local function calculatedStats()
                     self:settext(statname)
                 end
             },
-            -- reminder to attempt to use AddAttribute to this later on
-            -- so we dont have to make suffix its own separate actor and complicate stuff
             Def.RollingNumbers {
                 Name = "Number",
                 Font = "Common Normal",
@@ -528,31 +518,7 @@ local function calculatedStats()
                     self:targetnumber(0)
                 end,
                 UpdateStatsCommand = function(self, params)
-                    -- move the number over according to the suffix
-                    -- and adjust the maxwidth to compensate for the reduced room
-                    local suffixWidth = self:GetParent():GetChild("Suffix"):GetZoomedWidth()
-                    self:x(actuals.StatTextRightGap - suffixWidth)
-                    self:maxwidth((actuals.StatCountWidth - suffixWidth) / statTextZoom - textzoomFudge)
                     self:targetnumber(statData[i])
-                end
-            },
-            LoadFont("Common Normal") .. {
-                Name = "Suffix",
-                InitCommand = function(self)
-                    self:halign(1):valign(0)
-                    self:x(actuals.StatTextRightGap)
-                    self:zoom(statTextSuffixZoom)
-                    self:settext(statSuffixes[i])
-                    self:diffusealpha(0)
-                end,
-                UpdateStatsCommand = function(self, params)
-                    -- all of this garbage to get the text to align to the bottom of the line instead of the top
-                    -- (thanks to me for having foresight and setting parent Y appropriately first)
-                    local aligningtext = self:GetParent():GetChild("Number")
-                    local heightaligningto = aligningtext:GetZoomedHeight()
-                    self:valign(1):y(heightaligningto)
-
-                    self:diffusealpha(1)
                 end
             }
         }
@@ -732,13 +698,16 @@ t[#t+1] = Def.ActorFrame {
     Def.ActorFrame {
         Name = "BasicSongInfo",
         InitCommand = function(self)
-            self:xy(actuals.RightHalfLeftGap, actuals.SongInfoUpperGap)
+            -- children y pos relative to the divider
+            -- dont get confused
+            self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider1UpperGap)
         end,
 
         LoadFont("Common Large") .. {
             Name = "SongTitle",
             InitCommand = function(self)
-                self:halign(0):valign(0)
+                self:halign(0):valign(1)
+                self:y(-actuals.SongTitleLowerGap)
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
@@ -747,8 +716,8 @@ t[#t+1] = Def.ActorFrame {
         LoadFont("Common Large") .. {
             Name = "SongArtist",
             InitCommand = function(self)
-                self:halign(0):valign(0)
-                self:y(actuals.SongArtistUpperGap)
+                self:halign(0):valign(1)
+                self:y(-actuals.SongArtistLowerGap)
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayArtist())
@@ -757,8 +726,8 @@ t[#t+1] = Def.ActorFrame {
         LoadFont("Common Large") .. {
             Name = "SongPack",
             InitCommand = function(self)
-                self:halign(0):valign(0)
-                self:y(actuals.SongPackUpperGap)
+                self:halign(0):valign(1)
+                self:y(-actuals.SongPackLowerGap)
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetGroupName())
@@ -767,8 +736,8 @@ t[#t+1] = Def.ActorFrame {
         LoadFont("Common Large") .. {
             Name = "SongRate",
             InitCommand = function(self)
-                self:halign(0):valign(0)
-                self:y(actuals.SongRateUpperGap)
+                self:halign(0):valign(1)
+                self:y(-actuals.SongRateLowerGap)
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
             end,
@@ -779,11 +748,20 @@ t[#t+1] = Def.ActorFrame {
                 self:settext(ratestr)
             end
         },
+    },
+    Def.ActorFrame {
+        Name = "ScoreSpecificInfo",
+        InitCommand = function(self)
+            -- children y pos relative to the divider
+            -- dont get confused
+            self:xy(actuals.RightHalfLeftGap + actuals.RightHalfRightAlignLeftGap, actuals.RightHorizontalDivider1UpperGap)
+        end,
+
         LoadFont("Common Large") .. {
             Name = "Grade",
             InitCommand = function(self)
-                self:halign(1):valign(0)
-                self:x(actuals.RightHalfRightAlignLeftGap)
+                self:halign(1):valign(1)
+                self:y(-actuals.GradeLowerGap)
                 self:zoom(scoreInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
             end,
@@ -800,8 +778,8 @@ t[#t+1] = Def.ActorFrame {
         LoadFont("Common Large") .. {
             Name = "WifePercent",
             InitCommand = function(self)
-                self:halign(1):valign(0)
-                self:xy(actuals.RightHalfRightAlignLeftGap, actuals.WifePercentUpperGap)
+                self:halign(1):valign(1)
+                self:y(-actuals.WifePercentLowerGap)
                 self:zoom(scoreInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
             end,
@@ -820,8 +798,8 @@ t[#t+1] = Def.ActorFrame {
         LoadFont("Common Large") .. {
             Name = "MSDSSRDiff",
             InitCommand = function(self)
-                self:halign(1):valign(0)
-                self:xy(actuals.RightHalfRightAlignLeftGap, actuals.MSDInfoUpperGap)
+                self:halign(1):valign(1)
+                self:y(-actuals.MSDInfoLowerGap)
                 self:zoom(scoreInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
             end,
@@ -847,7 +825,12 @@ t[#t+1] = Def.ActorFrame {
             end
         }
     },
-    LoadActorWithParams("scoreBoard.lua", {Width = actuals.RightHorizontalDividerLength, Height = actuals.ScoreBoardHeight, DividerThickness = actuals.DividerThickness}) .. {
+    LoadActorWithParams("scoreBoard.lua", {
+        Width = actuals.RightHorizontalDividerLength,
+        Height = actuals.ScoreBoardHeight,
+        DividerThickness = actuals.DividerThickness,
+        ItemCount = 4,
+        }) .. {
         InitCommand = function(self)
             self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider1UpperGap + actuals.DividerThickness)
         end
