@@ -50,7 +50,7 @@ jobs:
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
-#        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         with:
           aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
           aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
@@ -64,22 +64,25 @@ jobs:
 
       - name: Generate Symbols
         run: |
-          echo "Stripping debug symbols from binary..."
-          strip Etterna.app/Contents/MacOS/Etterna
           echo "Running dsymutil..."
           dsymutil -o ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > /dev/null
           echo "Dumping Symbols..."
           dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/Etterna.sym
+          echo "Stripping debug symbols from binary..."
+          strip Etterna.app/Contents/MacOS/Etterna
 
       - name: Upload Symbols to AWS S3
-#        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         run: ${{github.workspace}}/.ci/upload_symbols.py
+
+      - name: Prepare symbols for upload artifacts
+        run: ${{github.workspace}}/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: "Etterna.mac.sym"
-          path: '${{github.workspace}}/Etterna.sym'
+          name: Symbols - Mac x64
+          path: '${{github.workspace}}/EtternaSymbolsUploadDir'
 
       - name: Generate binary
         run: cd build && cpack
@@ -87,7 +90,7 @@ jobs:
       - name: Upload Binary
         uses: actions/upload-artifact@v2
         with:
-          name: "Etterna - macOS x64.dmg"
+          name: "Etterna - macOS x64"
           path: '${{github.workspace}}/build/*.dmg'
 
   windows: # Windows x64 and x86 build matrix
@@ -127,7 +130,7 @@ jobs:
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
-#        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         with:
           aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
           aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
@@ -160,14 +163,17 @@ jobs:
           dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
 
       - name: Upload Symbols to AWS S3
-#        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         run: cd main && python ${{github.workspace}}/main/.ci/upload_symbols.py
+
+      - name: Prepare symbols for action artifacts
+        run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: "Etterna.win.sym"
-          path: '${{github.workspace}}/main/Etterna.sym'
+          name: Symbols - Windows ${{matrix.cfg.name}}
+          path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Generate binary
         run: cd main/build && cpack

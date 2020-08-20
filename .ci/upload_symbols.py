@@ -19,7 +19,6 @@ if 'AWS_ACCESS_KEY_ID' not in os.environ or 'AWS_SECRET_ACCESS_KEY' not in os.en
     print("Ensure 'AWS_ACCESS_KEY_ID' and 'AWS_SECRET_ACCESS_KEY' are properly defined environment variables")
     sys.exit(1)
 
-# TODO: TAG SYMBOL FILE WITH GAME VERSION DURING UPLOAD
 # Program Variables
 SYMBOL_FILE = "Etterna.sym"
 AWS_BUCKET_NAME = "etterna"
