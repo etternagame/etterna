@@ -21,9 +21,9 @@ local ratios = {
     ScoreItemWidth = 467 / 1920, -- inner edge of glow to inner edge
     ScoreItemHeight = 43 / 1080,
     ScoreItemSpacing = 28 / 1080, -- distance between items
-    ScoreClearInfoSpace = 67 / 1920, -- percentage of the item width to dedicate to this -- 67 / 467
-    ScoreMetaInfoSpace = 340 / 1920, -- same as above -- 340 / 467
-    ScorePlayerRateSpace = 60 / 1920, -- same as above -- 60 / 467
+    ScoreClearInfoSpace = 67 / 1920, -- basically a portion of the width of the item, eyeballed
+    ScoreMetaInfoSpace = 340 / 1920,
+    ScorePlayerRateSpace = 60 / 1920,
 }
 
 local actuals = {
