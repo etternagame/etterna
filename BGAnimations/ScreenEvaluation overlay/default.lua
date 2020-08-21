@@ -6,6 +6,9 @@ t[#t+1] = LoadActor("../_mouse.lua", "ScreenEvaluation")
 t[#t+1] = LoadActor("../playerInfoFrame.lua")
 
 -- footer
--- []
+t[#t+1] = LoadActorWithParams("../footer.lua", {
+    Width = SCREEN_WIDTH,
+    Height = 50 / 1080 * SCREEN_HEIGHT,
+})
 
 return t

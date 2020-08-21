@@ -860,9 +860,4 @@ t[#t+1] = Def.ActorFrame {
     }
 }
 
-t[#t+1] = LoadActorWithParams("../footer.lua", {
-    Width = SCREEN_WIDTH,
-    Height = 50 / 1080 * SCREEN_HEIGHT,
-})
-
 return t
