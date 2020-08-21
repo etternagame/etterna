@@ -5,7 +5,9 @@
 // Rage global classes
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/PlogLogger.hpp"
+#include "Core/Crash/CrashpadHandler.hpp"
 #include "Core/Misc/AppInfo.hpp"
+
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -1033,6 +1035,13 @@ sm_main(int argc, char* argv[])
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
 	FILEMAN->MountInitialFilesystems();
+
+    // Init Crash Handling
+    // TODO: This should be initialized much sooner, but fileman needs to be initialized first.
+	bool success = Core::Crash::initCrashpad();
+	if(!success){
+	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
+	}
 
 	bool bPortable = DoesFileExist("Portable.ini");
 	if (!bPortable)
