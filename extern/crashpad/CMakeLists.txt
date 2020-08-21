@@ -65,7 +65,7 @@ endif()
 set(GN_IS_DEBUG false)	# Build crashpad in debug or release (default is release)
 set(GN_WIN_LINK_FLAG "")	# Dynamically link to C runtime library
 if(WIN32)
-	set(GN_WIN_LINK_FLAG /MD)	# Dynamically link to C runtime library
+	set(GN_WIN_LINK_FLAG /MT)	# Dynamically link to C runtime library
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug) #TODO: Fix for multi-config generators
