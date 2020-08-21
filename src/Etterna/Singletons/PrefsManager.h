@@ -106,7 +106,6 @@ class PrefsManager
 	// Game-specific prefs.  Copy these off and save them every time the game
 	// changes
 	Preference<std::string> m_sAnnouncer;
-	Preference<std::string> m_sTheme;
 	Preference<std::string> m_sDefaultModifiers;
 
   protected:
@@ -119,12 +118,12 @@ class PrefsManager
 		GamePrefs();
 
 		std::string m_sAnnouncer;
-		std::string m_sTheme;
 		std::string m_sDefaultModifiers;
 	};
 	std::map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
 
   public:
+	Preference<std::string> m_sTheme;
 	Preference<bool> m_bWindowed;
 	Preference<std::string> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;

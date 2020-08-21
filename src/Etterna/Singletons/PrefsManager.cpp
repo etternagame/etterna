@@ -279,7 +279,6 @@ PrefsManager::StoreGamePrefs()
 	// save off old values
 	GamePrefs& gp = m_mapGameNameToGamePrefs[m_sCurrentGame.ToString()];
 	gp.m_sAnnouncer = m_sAnnouncer.Get();
-	gp.m_sTheme = m_sTheme.Get();
 	gp.m_sDefaultModifiers = m_sDefaultModifiers.Get();
 }
 
@@ -296,7 +295,6 @@ PrefsManager::RestoreGamePrefs()
 		gp = iter->second;
 
 	m_sAnnouncer.Set(gp.m_sAnnouncer);
-	m_sTheme.Set(gp.m_sTheme);
 	m_sDefaultModifiers.Set(gp.m_sDefaultModifiers);
 
 	// give Static.ini a chance to clobber the saved game prefs
@@ -306,7 +304,6 @@ PrefsManager::RestoreGamePrefs()
 
 PrefsManager::GamePrefs::GamePrefs()
   : m_sAnnouncer("")
-  , m_sTheme(SpecialFiles::BASE_THEME_NAME)
   , m_sDefaultModifiers("")
 {
 }
@@ -390,9 +387,7 @@ PrefsManager::ReadGamePrefsFromIni(const std::string& sIni)
 		  section_name, section_name.length() - GAME_SECTION_PREFIX.length());
 		GamePrefs& gp = m_mapGameNameToGamePrefs[sGame];
 
-		// todo: read more prefs here? -aj
 		ini.GetValue(section_name, "Announcer", gp.m_sAnnouncer);
-		ini.GetValue(section_name, "Theme", gp.m_sTheme);
 		ini.GetValue(section_name, "DefaultModifiers", gp.m_sDefaultModifiers);
 	}
 }
@@ -445,7 +440,6 @@ PrefsManager::SavePrefsToIni(IniFile& ini)
 
 		// todo: write more values here? -aj
 		ini.SetValue(sSection, "Announcer", iter.second.m_sAnnouncer);
-		ini.SetValue(sSection, "Theme", iter.second.m_sTheme);
 		ini.SetValue(
 		  sSection, "DefaultModifiers", iter.second.m_sDefaultModifiers);
 	}

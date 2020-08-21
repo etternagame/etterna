@@ -334,6 +334,8 @@ StepMania::ResetGame()
 {
 	GAMESTATE->Reset();
 
+	// if somehow the current theme loaded does not exist anymore
+	// reset to a real one
 	if (!THEME->DoesThemeExist(THEME->GetCurThemeName())) {
 		std::string sGameName = GAMESTATE->GetCurrentGame()->m_szName;
 		if (!THEME->DoesThemeExist(sGameName))

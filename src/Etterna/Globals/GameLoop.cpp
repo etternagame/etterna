@@ -190,40 +190,15 @@ DoChangeGame()
 	ASSERT(g != nullptr);
 	GAMESTATE->SetCurGame(g);
 
-	bool theme_changing = false;
-	// The prefs allow specifying a different default theme to use for each
-	// game type.  So if a theme name isn't passed in, fetch from the prefs.
-	if (g_NewTheme.empty()) {
-		g_NewTheme = PREFSMAN->m_sTheme.Get();
-	}
-	if (g_NewTheme != THEME->GetCurThemeName() &&
-		THEME->IsThemeSelectable(g_NewTheme)) {
-		theme_changing = true;
-	}
-
-	if (theme_changing) {
-		SAFE_DELETE(SCREENMAN);
-		TEXTUREMAN->DoDelayedDelete();
-		LUA->RegisterTypes();
-		THEME->SwitchThemeAndLanguage(
-		  g_NewTheme, THEME->GetCurLanguage(), PREFSMAN->m_bPseudoLocalize);
-		PREFSMAN->m_sTheme.Set(g_NewTheme);
-		StepMania::ApplyGraphicOptions();
-		SCREENMAN = new ScreenManager();
-	}
+	// reset gamestate to deal with new Game
 	StepMania::ResetGame();
+
+	// point us to the new Screen to end up on after Game change
+	// either the initialscreen or something else
 	std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
 	std::string after_screen;
-	if (theme_changing) {
-		SCREENMAN->ThemeChanged();
-		if (THEME->HasMetric("Common", "AfterGameAndThemeChangeScreen")) {
-			after_screen =
-			  THEME->GetMetric("Common", "AfterGameAndThemeChangeScreen");
-		}
-	} else {
-		if (THEME->HasMetric("Common", "AfterGameChangeScreen")) {
-			after_screen = THEME->GetMetric("Common", "AfterGameChangeScreen");
-		}
+	if (THEME->HasMetric("Common", "AfterGameChangeScreen")) {
+		after_screen = THEME->GetMetric("Common", "AfterGameChangeScreen");
 	}
 	if (SCREENMAN->IsScreenNameValid(after_screen)) {
 		new_screen = after_screen;
