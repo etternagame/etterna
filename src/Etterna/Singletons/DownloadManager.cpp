@@ -1800,6 +1800,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
 				hs.SetScoreKey("Online_" + tmp.scoreid);
+				hs.SetGrade(hs.GetWifeGrade());
 
 				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
 				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
