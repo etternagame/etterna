@@ -614,7 +614,7 @@ Profile::SetAnyAchievedGoals(const string& ck,
 							 float& rate,
 							 const HighScore& pscore)
 {
-	CHECKPOINT_M("Scanning for any goals that may have been accomplished.");
+	Locator::getLogger()->trace("Scanning for any goals that may have been accomplished.");
 
 	if (!HasGoal(ck))
 		return;

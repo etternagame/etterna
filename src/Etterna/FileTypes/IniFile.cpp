@@ -19,7 +19,7 @@ bool
 IniFile::ReadFile(const std::string& sPath)
 {
 	m_sPath = sPath;
-	CHECKPOINT_M(ssprintf("Reading '%s'", m_sPath.c_str()));
+	Locator::getLogger()->trace("Reading '%s'", m_sPath.c_str());
 
 	RageFile f;
 	if (!f.Open(m_sPath)) {
