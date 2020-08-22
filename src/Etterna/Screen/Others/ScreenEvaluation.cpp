@@ -267,10 +267,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		PlayerAI::SetScoreData(hs, 0);
 		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
 		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
-		pPSS->m_fLifeRecord.clear();
-		pPSS->m_ComboList.clear();
-		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
-		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
+		PlayerAI::SetPlayerStageStatsForReplay(pPSS, ts);
 		lua_pushboolean(L, true);
 		return 1;
 	}
