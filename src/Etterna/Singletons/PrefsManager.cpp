@@ -152,10 +152,6 @@ PrefsManager::PrefsManager()
   ,
 
   m_fLifeDifficultyScale("LifeDifficultyScale", 1.0f)
-  ,
-
-  m_iRegenComboAfterMiss("RegenComboAfterMiss", 5)
-  , m_iMaxRegenComboAfterMiss("MaxRegenComboAfterMiss", 5)
   , // this was 10 by default in SM3.95 -dguzek
   m_bDelayedBack("DelayedBack", false)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
@@ -183,9 +179,6 @@ PrefsManager::PrefsManager()
   , m_iCenterImageTranslateY("CenterImageTranslateY", 0)
   , m_fCenterImageAddWidth("CenterImageAddWidth", 0)
   , m_fCenterImageAddHeight("CenterImageAddHeight", 0)
-  , m_bCelShadeModels("CelShadeModels", false)
-  , // Work-In-Progress.. disable by default.
-  m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
   , EnablePitchRates("EnablePitchRates", true)
   , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
   , m_bEasterEggs("EasterEggs", true)

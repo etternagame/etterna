@@ -160,12 +160,6 @@ class PrefsManager
 
 	Preference<float> m_fLifeDifficultyScale;
 
-	// Whoever added these: Please add a comment saying what they do. -Chris
-	Preference<int> m_iRegenComboAfterMiss;	   // combo that must be met after a
-											   // Miss to regen life
-	Preference<int> m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if
-											   // multiple Misses occur in rapid
-											   // succession
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
 	Preference<bool> m_bShowInstructions;
@@ -191,8 +185,6 @@ class PrefsManager
 	Preference<int> m_iCenterImageTranslateY;
 	Preference<int> m_fCenterImageAddWidth;
 	Preference<int> m_fCenterImageAddHeight;
-	Preference<bool> m_bCelShadeModels;
-	Preference<bool> m_bPreferredSortUsesGroups;
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
