@@ -260,6 +260,18 @@ local function scoreList()
                         -- this actor great grandparent is the ScoreBoardFrame (the file level t)
                         distributeScore(self:GetParent():GetParent():GetParent(), score)
                     end
+                end,
+                MouseOverCommand = function(self) self:playcommand("RolloverUpdate",{update = "over"}) end,
+        		MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
+                RolloverUpdateCommand = function(self, params)
+                    if score ~= nil and not score:HasReplayData() then
+                        if params.update == "over" then
+                            TOOLTIP:Show()
+                            TOOLTIP:SetText("No Replay Data")
+                        elseif params.update == "out" then
+                            TOOLTIP:Hide()
+                        end
+                    end
                 end
             },
             LoadFont("Common Normal") .. {
