@@ -23,7 +23,7 @@ HashFile(std::string fn,
 {
 	RageFile file;
 	if (!file.Open(fn, RageFile::READ)) {
-		LOG->Warn("GetMD5ForFile: Failed to open file '%s'", fn.c_str());
+		Locator::getLogger()->warn("GetMD5ForFile: Failed to open file '{}'", fn.c_str());
 		return false;
 	}
 
@@ -31,7 +31,7 @@ HashFile(std::string fn,
 	while (!file.AtEOF()) {
 		s.erase();
 		if (file.Read(s, 1024 * 4) == -1) {
-			Locator::getLogger()->warn("Error reading {}: {}", f.GetDisplayPath(), f.GetError());
+			Locator::getLogger()->warn("Error reading {}: {}", file.GetDisplayPath(), file.GetError());
 			return false;
 		}
 		hash(reinterpret_cast<const unsigned char*>(s.data()), s.size());
@@ -148,7 +148,7 @@ CryptManager::GetSHA256ForFile(const std::string& fn)
 		SHA256_Update(hash, data, length);
 	};
 	if (!HashFile(fn, update)) {
-		LOG->Warn("An error occuring when calculating SHA256 of \n%s",
+		Locator::getLogger()->warn("An error occurred when calculating SHA256 of \n{}",
 				  fn.c_str());
 		return std::string();
 	}
