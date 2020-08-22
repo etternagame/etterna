@@ -2,7 +2,7 @@
 -- minor modifications by poco0317
 
 -- Singleton for accessing the tooltip actor.
-local textScale = 0.4
+local textScale = 0.5
 local height = 10
 local boxBorder = 3
 local screenBorder = 10
@@ -29,7 +29,7 @@ function TOOLTIP.New(self)
         end,
     }
 
-    t[#t+1] = LoadFont("Common Normal")..{
+    t[#t+1] = LoadFont("Common Large")..{
         Name = "Text",
         InitCommand = function(self)
             self:zoom(textScale)
