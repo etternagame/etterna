@@ -64,7 +64,7 @@ function expandDateString(given)
         return MonthToLocalizedString(1), "1st", "0001"
     end
 
-    local month = MonthToLocalizedString(tonumber(arglist[2]))
+    local month = MonthToLocalizedString(tonumber(arglist[2]) - 1)
     local day = tonumber(arglist[3])
     local year = arglist[1]
 
