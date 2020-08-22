@@ -94,36 +94,16 @@ local allScores = not DLMAN:GetTopScoresOnlyFilter()
 -- it will only work properly with a replay, so restrict it to replay-only scores
 local function distributeScore(callerActor, highscore)
     if highscore == nil or not highscore:HasReplayData() then return end
-    local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-    if steps ~= nil then
-        local timingdata = steps:GetTimingData()
-
-        local function actuallyDistributeScore(callerActor, highscore)
-            local params = {}
-            params.offsetVector = highscore:GetOffsetVector()
-            params.trackVector = highscore:GetTrackVector()
-            local noterows = highscore:GetNoteRowVector()
-            params.timingVector = {}
-            for i, row in ipairs(noterows) do
-                params.timingVector[i] = timingdata:GetElapsedTimeFromNoteRow(row)
-            end
-            params.typeVector = highscore:GetTapNoteTypeVector()
-            params.maxTime = steps:GetLastSecond()
-
-            callerActor:GetParent():GetChild("OffsetPlotFile"):playcommand("LoadOffsets", params)
-        end
-
-
-        -- this highscore is an online score so must request ReplayData
-        if highscore:GetScoreKey():find("^Online_") ~= nil then
-            DLMAN:RequestOnlineScoreReplayData(highscore,
-            function()
-                actuallyDistributeScore(callerActor, highscore)
-            end)
-        else
-            -- otherwise we can immediately do the thing
-            actuallyDistributeScore(callerActor, highscore)
-        end
+    -- this highscore is an online score so must request ReplayData
+    if highscore:GetScoreKey():find("^Online_") ~= nil then
+        -- this gets replay data and calls the given function upon completion
+        DLMAN:RequestOnlineScoreReplayData(highscore,
+        function()
+            callerActor:GetParent():GetParent():playcommand("UpdateScore", {score = highscore})
+        end)
+    else
+        -- otherwise we can immediately do the thing
+        callerActor:GetParent():GetParent():playcommand("UpdateScore", {score = highscore})
     end
 end
 

@@ -10,6 +10,12 @@ local t = Def.ActorFrame {
 
         --- propagate set command through children with the song
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = score})
+    end,
+    UpdateScoreCommand = function(self, params)
+        --- update all relevant information according to the given score
+        -- should work with offset plot as well as all regular information on this screen
+        -- this is intended for use only with replays but may partially work without it
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = params.score})
     end
 }
 
