@@ -427,33 +427,23 @@ GraphicsWindow::DestroyGraphicsWindow()
 		ReleaseDC(g_hWndMain, g_HDC);
 		g_HDC = nullptr;
 	}
-
-	CHECKPOINT;
-
 	if (g_hWndMain != nullptr) {
 		DestroyWindow(g_hWndMain);
 		g_hWndMain = nullptr;
 //		CrashHandler::SetForegroundWindow(g_hWndMain);
 	}
 
-	CHECKPOINT;
-
 	if (g_hIcon != nullptr) {
 		DestroyIcon(g_hIcon);
 		g_hIcon = nullptr;
 	}
 
-	CHECKPOINT;
-
 	MSG msg;
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
-		CHECKPOINT;
 		GetMessage(&msg, nullptr, 0, 0);
-		CHECKPOINT;
 		DispatchMessage(&msg);
 	}
 
-	CHECKPOINT;
 }
 
 void

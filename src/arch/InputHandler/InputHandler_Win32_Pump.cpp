@@ -146,19 +146,16 @@ InputHandler_Win32_Pump::InputThreadMain()
 	}
 
 	while (!m_bShutdown) {
-		CHECKPOINT;
 		int iActual = 0, iVal = 0;
 		int iRet =
 		  WindowsFileIO::read_several(apSources, &iVal, iActual, 0.100f);
 
-		CHECKPOINT;
 		if (iRet <= 0)
 			continue; /* no event */
 
 		HandleInput(iActual, iVal);
 		InputHandler::UpdateTimer();
 	}
-	CHECKPOINT;
 }
 
 void

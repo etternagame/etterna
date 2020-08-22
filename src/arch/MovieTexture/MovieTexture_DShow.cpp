@@ -93,10 +93,8 @@ GetVideoCodecDebugInfo()
 {
 	ICINFO info = { sizeof(ICINFO) };
 	Locator::getLogger()->info("Video codecs:");
-	CHECKPOINT;
 	int i;
 	for (i = 0; ICInfo(ICTYPE_VIDEO, i, &info); ++i) {
-		CHECKPOINT;
 		if (FourCCToString(info.fccHandler) == "ASV1") {
 			/* Broken. */
 			Locator::getLogger()->info("{}: {}: skipped", i, FourCCToString(info.fccHandler).c_str());
@@ -104,18 +102,15 @@ GetVideoCodecDebugInfo()
 		}
 
 		Locator::getLogger()->trace("Scanning codec {}", FourCCToString(info.fccHandler).c_str());
-		CHECKPOINT;
 		HIC hic = ICOpen(info.fccType, info.fccHandler, ICMODE_DECOMPRESS);
 		if (!hic) {
 			Locator::getLogger()->info("Couldn't open video codec {}", FourCCToString(info.fccHandler).c_str());
 			continue;
 		}
 
-		CHECKPOINT;
 		if (ICGetInfo(hic, &info, sizeof(ICINFO))) {
 			CheckCodecVersion(FourCCToString(info.fccHandler),
 							  WStringToString(info.szDescription));
-			CHECKPOINT;
 
 			Locator::getLogger()->info("    {}: {} ({})",
 					  FourCCToString(info.fccHandler).c_str(),
@@ -125,7 +120,6 @@ GetVideoCodecDebugInfo()
 			Locator::getLogger()->info("ICGetInfo({}) failed",
 					  FourCCToString(info.fccHandler).c_str());
 
-		CHECKPOINT;
 		ICClose(hic);
 	}
 
@@ -224,8 +218,6 @@ MovieTexture_DShow::CheckFrame()
 	if (buffer == NULL)
 		return;
 
-	CHECKPOINT;
-
 	/* Just in case we were invalidated: */
 	CreateTexture();
 
@@ -251,28 +243,20 @@ MovieTexture_DShow::CheckFrame()
 	 * it'll have to do a very slow conversion.  Both RGB8 and BGR8 are both
 	 * (usually) valid formats.
 	 */
-	CHECKPOINT;
 	DISPLAY->UpdateTexture(
 	  m_uTexHandle, pFromDShow, 0, 0, m_iImageWidth, m_iImageHeight);
-	CHECKPOINT;
 
 	delete pFromDShow;
 
 	buffer = NULL;
 
-	CHECKPOINT;
-
 	/* Start the decoding thread again. */
 	buffer_finished.Post();
-
-	CHECKPOINT;
 }
 
 void
 MovieTexture_DShow::Update(float fDeltaTime)
 {
-	CHECKPOINT;
-
 	// restart the movie if we reach the end
 	if (m_bLoop) {
 		// Check for completion events
@@ -284,9 +268,6 @@ MovieTexture_DShow::Update(float fDeltaTime)
 		if (lEventCode == EC_COMPLETE)
 			SetPosition(0);
 	}
-
-	CHECKPOINT;
-
 	CheckFrame();
 }
 
@@ -417,11 +398,8 @@ MovieTexture_DShow::Create()
 	 * set when this function returns. */
 	Pause();
 
-	CHECKPOINT;
 	pCTR->m_OneFrameDecoded.Wait();
-	CHECKPOINT;
 	CheckFrame();
-	CHECKPOINT;
 
 	// Start the graph running
 	Play();
