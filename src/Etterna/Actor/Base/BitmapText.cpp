@@ -11,6 +11,7 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Services/Locator.hpp"
 
 #include <algorithm>
 
@@ -233,8 +234,7 @@ BitmapText::LoadFromNode(const XNode* node)
 bool
 BitmapText::LoadFromFont(const std::string& sFontFilePath)
 {
-	CHECKPOINT_M(
-	  ssprintf("BitmapText::LoadFromFont(%s)", sFontFilePath.c_str()));
+	Locator::getLogger()->trace("BitmapText::LoadFromFont({})", sFontFilePath.c_str());
 
 	if (m_pFont != nullptr) {
 		FONT->UnloadFont(m_pFont);
@@ -254,9 +254,8 @@ bool
 BitmapText::LoadFromTextureAndChars(const std::string& sTexturePath,
 									const std::string& sChars)
 {
-	CHECKPOINT_M(ssprintf("BitmapText::LoadFromTextureAndChars(\"%s\",\"%s\")",
-						  sTexturePath.c_str(),
-						  sChars.c_str()));
+	Locator::getLogger()->trace("BitmapText::LoadFromTextureAndChars(\"{}\",\"{}\")",
+						  sTexturePath.c_str(), sChars.c_str());
 
 	if (m_pFont != nullptr) {
 		FONT->UnloadFont(m_pFont);

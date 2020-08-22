@@ -208,7 +208,6 @@ PrefsManager::PrefsManager()
   , m_bShowLogOutput("ShowLogOutput", false)
 #endif
   , m_bLogSkips("LogSkips", false)
-  , m_bLogCheckpoints("LogCheckpoints", false)
   , m_show_theme_errors("ShowThemeErrors", false)
 
 {

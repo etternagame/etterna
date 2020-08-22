@@ -550,7 +550,7 @@ FillInHighScore(const PlayerStageStats& pss,
 				const std::string& sRankingToFillInMarker,
 				const std::string& sPlayerGuid) -> HighScore
 {
-	CHECKPOINT_M("Filling Highscore");
+	Locator::getLogger()->trace("Filling Highscore");
 	HighScore hs;
 	hs.SetName(sRankingToFillInMarker);
 
@@ -674,7 +674,7 @@ FillInHighScore(const PlayerStageStats& pss,
 void
 StageStats::FinalizeScores(bool /*bSummary*/)
 {
-	CHECKPOINT_M("Finalizing Score");
+	Locator::getLogger()->trace("Finalizing Score");
 	SCOREMAN->camefromreplay =
 	  false; // if we're viewing an online replay this gets set to true -mina
 	if (!PREFSMAN->m_sTestInitialScreen.Get().empty()) {
@@ -707,7 +707,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	auto* const zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData != nullptr) {
-			CHECKPOINT_M("Determined a Replay is loaded");
+			Locator::getLogger()->trace("Determined a Replay is loaded");
 			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
 				SCOREMAN->tempscoreforonlinereplayviewing =
@@ -739,7 +739,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	// new score structure -mina
 	const auto istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
-		CHECKPOINT_M("Uploading score with replaydata.");
+		Locator::getLogger()->trace("Uploading score with replaydata.");
 		hs.SetTopScore(istop2); // ayy i did it --lurker
 		auto* steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto* td = steps->GetTimingData();
@@ -780,7 +780,6 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 		GAMESTATE->SavePlayerProfile();
 	}
 
-	CHECKPOINT_M("Finished Finalizing Score");
 	Locator::getLogger()->trace("done saving stats and high scores");
 }
 

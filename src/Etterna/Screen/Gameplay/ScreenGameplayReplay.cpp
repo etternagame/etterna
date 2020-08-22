@@ -278,7 +278,7 @@ ScreenGameplayReplay::SaveStats()
 void
 ScreenGameplayReplay::StageFinished(bool bBackedOut)
 {
-	CHECKPOINT_M("Finishing Stage");
+	Locator::getLogger()->trace("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -294,7 +294,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
-	CHECKPOINT_M("Done Finishing Stage");
+	Locator::getLogger()->trace("Done Finishing Stage");
 }
 
 auto

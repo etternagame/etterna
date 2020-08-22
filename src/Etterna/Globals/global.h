@@ -49,15 +49,6 @@
 #undef ASSERT
 #endif
 
-/** @brief RageThreads defines (don't pull in all of RageThreads.h here) */
-namespace Checkpoints {
-void
-SetCheckpoint(const char* file, int line, const char* message);
-}
-/** @brief Set a checkpoint with a specified message. */
-#define CHECKPOINT_M(m)                                                        \
-	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
-
 /**
  * @brief Define a macro to tell the compiler that a function doesn't return.
  *
@@ -94,7 +85,6 @@ sm_crash(const char* reason = "Internal error");
  * such as DSound init failure.) */
 #define FAIL_M(MESSAGE)                                                        \
 	do {                                                                       \
-		CHECKPOINT_M(std::string(MESSAGE).c_str());                            \
 		sm_crash(std::string(MESSAGE).c_str());                                \
 	} while (0)
 #define ASSERT_M(COND, MESSAGE)                                                \

@@ -511,7 +511,7 @@ WinWdmFilter::CreatePin(unsigned long iPinId, std::string& sError)
 
 	/* Success */
 	sError = "";
-	CHECKPOINT_M("Pin created successfully");
+	Locator::getLogger()->trace("Pin created successfully");
 	return pPin;
 
 error:
@@ -990,7 +990,7 @@ BuildFilterList(vector<WinWdmFilter*>& aFilters, std::string& sError)
 		return false;
 	}
 
-	CHECKPOINT_M("Setup called");
+	Locator::getLogger()->trace("Setup called");
 
 	/* Create filter objects for each interface */
 	for (int device = 0;; device++) {

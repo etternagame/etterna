@@ -1332,7 +1332,7 @@ SongManager::LoadCalcTestNode()
 		return;
 	}
 
-	CHECKPOINT_M("Loading the Calc Test node.");
+	Locator::getLogger()->trace("Loading the Calc Test node.");
 
 	FOREACH_CONST_Child(&xml, chartlist) // "For Each Skillset
 	{
@@ -1381,7 +1381,7 @@ SongManager::LoadCalcTestNode()
 auto
 SongManager::SaveCalcTestCreateNode() const -> XNode*
 {
-	CHECKPOINT_M("Saving the Calc Test node.");
+	Locator::getLogger()->trace("Saving the Calc Test node.");
 
 	auto* calctestlists = new XNode("CalcTest");
 	for (const auto& i : testChartList) {

@@ -1446,7 +1446,7 @@ ScreenGameplay::SongFinished()
 void
 ScreenGameplay::StageFinished(bool bBackedOut)
 {
-	CHECKPOINT_M("Finishing Stage");
+	Locator::getLogger()->trace("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -1481,15 +1481,14 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
-	CHECKPOINT_M("Done Finishing Stage");
+	Locator::getLogger()->trace("Done Finishing Stage");
 }
 
 void
 ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 {
-	CHECKPOINT_M(
-	  ssprintf("HandleScreenMessage(%s)",
-			   ScreenMessageHelpers::ScreenMessageToString(SM).c_str()));
+	Locator::getLogger()->trace("HandleScreenMessage({})",
+			   ScreenMessageHelpers::ScreenMessageToString(SM).c_str());
 	if (SM == SM_DoneFadingIn) {
 		// If the ready animation is zero length, then playing the sound will
 		// make it overlap with the go sound.

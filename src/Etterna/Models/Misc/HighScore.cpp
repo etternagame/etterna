@@ -340,7 +340,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 auto
 HighScoreImpl::WriteReplayData() -> bool
 {
-	CHECKPOINT_M("Writing out replay data to disk.");
+	Locator::getLogger()->trace("Writing out replay data to disk.");
 	std::string append;
 	std::string profiledir;
 	// These two lines should probably be somewhere else

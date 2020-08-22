@@ -246,7 +246,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
 	{
-		CHECKPOINT_M("Setting PSS from ReplayData via Lua");
+		Locator::getLogger()->trace("Setting PSS from ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
@@ -293,7 +293,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
-		CHECKPOINT_M("Getting replay rate");
+		Locator::getLogger()->trace("Getting replay rate");
 		// if we have a replay, give the data
 		if (PlayerAI::pScoreData != nullptr) {
 			lua_pushnumber(L, PlayerAI::pScoreData->GetMusicRate());
@@ -306,41 +306,41 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{
-		CHECKPOINT_M("Getting replay judge");
+		Locator::getLogger()->trace("Getting replay judge");
 		if (PlayerAI::pScoreData != nullptr) {
 			lua_pushnumber(L, PlayerAI::pScoreData->GetJudgeScale());
 		} else {
 			lua_pushnumber(L, Player::GetTimingWindowScale());
 		}
-		CHECKPOINT_M("Got replay judge");
+		Locator::getLogger()->trace("Got replay judge");
 		return 1;
 	}
 	static int GetReplayModifiers(T* p, lua_State* L)
 	{
-		CHECKPOINT_M("Getting replay modifiers");
+		Locator::getLogger()->trace("Getting replay modifiers");
 		if (PlayerAI::pScoreData != nullptr) {
 			LuaHelpers::Push(L, PlayerAI::pScoreData->GetModifiers());
 		} else {
 			lua_pushnil(L);
 		}
-		CHECKPOINT_M("Got replay modifiers");
+		Locator::getLogger()->trace("Got replay modifiers");
 		return 1;
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
-		CHECKPOINT_M("Checking for invalid modifiers on Highscore via Lua");
+		Locator::getLogger()->trace("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
 		if (hs == nullptr) {
 			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
 			lua_pushboolean(L, true);
 			return 1;
 		}
-		CHECKPOINT_M("Getting Player Options from HighScore...");
+		Locator::getLogger()->trace("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
-		CHECKPOINT_M("Checking modifiers...");
+		Locator::getLogger()->trace("Checking modifiers...");
 		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
-		CHECKPOINT_M("Done checking.");
+		Locator::getLogger()->trace("Done checking.");
 		return 1;
 	}
 
