@@ -516,7 +516,14 @@ function MusicWheel:new(params)
                     local groups = SONGMAN:GetSongGroupNames()
                     table.sort(groups)
                     local g1, g2 = split(groups, group)
-                    local newItems = concat(g1, {group}, SONGMAN:GetSongsInGroup(group), g2)
+                    local sngs = SONGMAN:GetSongsInGroup(group)
+                    table.sort(
+                        sngs,
+                        function(a, b)
+                            return a:GetDisplayMainTitle() < b:GetDisplayMainTitle()
+                        end
+                    )
+                    local newItems = concat(g1, {group}, sngs, g2)
                     -- adding 1 here for a hack, prevent index from moving weirdly when opening pack
                     w.index = findKeyOf(newItems, group) + 1
                     w.itemsGetter = function()
