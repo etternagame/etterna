@@ -22,7 +22,7 @@ InvalidParameterHandler(const wchar_t* szExpression,
 						unsigned int iLine,
 						uintptr_t pReserved)
 {
-	CHECKPOINT_M("Entered Invalid Parameter Handler");
+	Locator::getLogger()->trace("Entered Invalid Parameter Handler");
 
 	std::mbstate_t state = std::mbstate_t();
 	int lenExpr = 1 + std::wcsrtombs(NULL, &szExpression, 0, &state);
