@@ -163,7 +163,12 @@ BUTTON = {
 BUTTON.AcceptedDeviceInput = {
 	["DeviceButton_left mouse button"] = true,
 	["DeviceButton_right mouse button"] = true,
-	["DeviceButton_middle mouse button"] = true
+	["DeviceButton_middle mouse button"] = true,
+}
+
+BUTTON.ScrollWheelInput = {
+	["DeviceButton_mousewheel up"] = "Up",
+	["DeviceButton_mousewheel down"] = "Down",
 }
 
 -- Function for handling input callbacks
@@ -177,6 +182,12 @@ function BUTTON.InputCallback(event)
 
 		if event.type == "InputEventType_Release" then
 			BUTTON:SetMouseUp(event.DeviceInput.button)
+		end
+	elseif BUTTON.ScrollWheelInput[event.DeviceInput.button] ~= nil then
+		if event.type == "InputEventType_FirstPress" then
+			-- produces a broadcast message of this for each "snap" of the wheel
+			-- MouseScroll -- params: direction = Up/Down
+			MESSAGEMAN:Broadcast("MouseScroll", {direction = BUTTON.ScrollWheelInput[event.DeviceInput.button]})
 		end
 	end
 
