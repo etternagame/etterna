@@ -1,7 +1,12 @@
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+local screen
 
 local t = Def.ActorFrame {
     Name = "MainDisplayFile",
+    BeginCommand = function(self)
+        screen = SCREENMAN:GetTopScreen()
+    end,
     OnCommand = function(self)
         local score = SCOREMAN:GetMostRecentScore()
         if not score then
@@ -12,6 +17,10 @@ local t = Def.ActorFrame {
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = score})
     end,
     UpdateScoreCommand = function(self, params)
+        -- we assume the score has a replay
+        -- recalculate playerstagestats using the replay
+        screen:SetPlayerStageStatsFromReplayData(pss, ms.JudgeScalers[judgeSetting], params.score)
+
         --- update all relevant information according to the given score
         -- should work with offset plot as well as all regular information on this screen
         -- this is intended for use only with replays but may partially work without it
@@ -331,6 +340,12 @@ local function subTypeStats()
                         return
                     end
                     local num = params.score:GetRadarValues():GetValue(rdr)
+                    -- this happens for replay-loaded scores
+                    -- we expect PlayerStageStats to have the info instead
+                    -- we don't want to pollute HighScores with potentially fake info, so it has to go here
+                    if num == -1 then
+                        pss:GetRadarActual():GetValue(rdr)
+                    end
                     self:targetnumber(num)
                 end
             },
@@ -633,8 +648,8 @@ t[#t+1] = Def.ActorFrame {
             self:GetChild("Line"):diffusealpha(0)
         end,
         SetCommand = function(self, params)
-            local ss = SCREENMAN:GetTopScreen():GetStageStats()
-            self:Set(ss, ss:GetPlayerStageStats(PLAYER_1))
+            local ss = screen:GetStageStats()
+            self:Set(ss, pss)
         end
     },
     Def.ComboGraph {
@@ -647,14 +662,10 @@ t[#t+1] = Def.ActorFrame {
             -- self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)
         end,
         SetCommand = function(self, params)
-            -- we have to destroy and reload all children of the ComboGraph when setting it
-            -- this crashes really easily if you do it wrong
-            if #(self:GetChildren()) > 0 then
-                self:Clear()
-            end
+            self:Clear()
             self:Load("ComboGraph")
-            local ss = SCREENMAN:GetTopScreen():GetStageStats()
-            self:Set(ss, ss:GetPlayerStageStats(PLAYER_1))
+            local ss = screen:GetStageStats()
+            self:Set(ss, pss)
         end
     },
     LoadFont("Common Large") .. {
@@ -668,10 +679,10 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth(actuals.BannerWidth / modTextZoom - textzoomFudge)
         end,
         SetCommand = function(self, params)
-            local mstr = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")
-            local ss = SCREENMAN:GetTopScreen():GetStageStats()
+            local mstr = params.score:GetModifiers()
+            local ss = screen:GetStageStats()
             if not ss:GetLivePlay() then
-                mstr = SCREENMAN:GetTopScreen():GetReplayModifiers()
+                mstr = screen:GetReplayModifiers()
             end
             self:settext(mstr)
         end
@@ -748,7 +759,7 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
             end,
             BeginCommand = function(self)
-                local rate = SCREENMAN:GetTopScreen():GetReplayRate()
+                local rate = screen:GetReplayRate()
                 if not rate then rate = getCurRateValue() end
                 local ratestr = getRateString(rate)
                 self:settext(ratestr)
