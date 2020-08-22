@@ -1545,7 +1545,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
 				it->hs.SetNoteRowVector(rows);
-				it->hs.SetScoreKey("Online_" + scoreid);
 
 				if (tracks.empty())
 					it->hs.SetReplayType(1);
@@ -1566,7 +1565,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			it->hs.SetTrackVector(tracks);
 			it->hs.SetTapNoteTypeVector(types);
 			it->hs.SetNoteRowVector(rows);
-			it->hs.SetScoreKey("Online_" + scoreid);
 
 			if (tracks.empty())
 				it->hs.SetReplayType(1);
@@ -1801,6 +1799,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetSSRNormPercent(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
+				hs.SetScoreKey("Online_" + tmp.scoreid);
 
 				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
 				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
