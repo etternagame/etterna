@@ -344,7 +344,7 @@ local function subTypeStats()
                     -- we expect PlayerStageStats to have the info instead
                     -- we don't want to pollute HighScores with potentially fake info, so it has to go here
                     if num == -1 then
-                        pss:GetRadarActual():GetValue(rdr)
+                        num = pss:GetRadarActual():GetValue(rdr)
                     end
                     self:targetnumber(num)
                 end
