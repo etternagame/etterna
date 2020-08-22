@@ -4,7 +4,6 @@
 #include "BackgroundUtil.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 

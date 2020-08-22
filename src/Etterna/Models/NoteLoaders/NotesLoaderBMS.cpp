@@ -10,6 +10,7 @@
 #include "Etterna/Globals/rngthing.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
