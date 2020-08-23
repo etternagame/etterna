@@ -2,21 +2,25 @@
 
 #ifdef _WIN32
 #include "RageUtil/Utils/RageUtil.h"
+#endif
+
 #include "RageUtil/File/RageFileManager.h"
-#include "Core/Services/Locator.hpp"
 #include "client/crashpad_client.h"
 #include "client/crash_report_database.h"
 #include "client/settings.h"
 #include <string>
-#include <vector>
-#endif
 
 bool Core::Crash::initCrashpad() {
-#ifdef _WIN32 // Only windows is ready
+#ifdef _WIN32
 	std::wstring exeDir = StringToWString(RageFileManagerUtil::sDirOfExecutable);
     base::FilePath handler(exeDir + L"./crashpad_handler.exe");
     base::FilePath dataDir(exeDir + L"./CrashData");
-    std::string url;
+#else
+    std::string exeDir = RageFileManagerUtil::sDirOfExecutable;
+    base::FilePath handler(exeDir + "./crashpad_handler");
+    base::FilePath dataDir(exeDir + "./CrashData");
+#endif
+    std::string url; // A url is required, even if nothing is uploaded.
 
     auto database = crashpad::CrashReportDatabase::Initialize(dataDir);
     if (database == nullptr) return false;
@@ -33,7 +37,4 @@ bool Core::Crash::initCrashpad() {
         true // start handler from background thread (currently windows only)
     );
     return status;
-#else
-    return false;
-#endif
 }
