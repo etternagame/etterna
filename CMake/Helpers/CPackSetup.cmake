@@ -46,6 +46,7 @@ elseif(APPLE)
     set(CPACK_DMG_VOLUME_NAME Etterna)
 
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
+    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler COMPONENT Etterna DESTINATION ${INSTALL_DIR})
 endif()
 
 # Universal Install Directories

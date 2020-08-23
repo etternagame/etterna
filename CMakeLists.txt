@@ -37,7 +37,6 @@ add_executable(Etterna)
 
 # Project Compile Options
 set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires Python 2 installed)")
-message(WARNING ${WITH_CRASHPAD})
 
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
