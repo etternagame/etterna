@@ -35,6 +35,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders
 # Project Build Targets
 add_executable(Etterna)
 
+# Project Compile Options
+set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires Python 2 installed)")
+message(WARNING ${WITH_CRASHPAD})
+
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
 ### Usually it is separated by directory, but since we have the same directory for every
@@ -97,7 +101,10 @@ target_link_libraries(Etterna PRIVATE stb)
 target_link_libraries(Etterna PRIVATE libcurl)
 target_link_libraries(Etterna PRIVATE fmt::fmt)
 target_link_libraries(Etterna PRIVATE plog::plog)
-target_link_libraries(Etterna PRIVATE crashpad)
+
+if(WITH_CRASHPAD)
+    target_link_libraries(Etterna PRIVATE crashpad)
+endif()
 
 # OS Specific Initialization
 if(WIN32)

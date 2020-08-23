@@ -8,9 +8,14 @@ list(APPEND CORE_HPP
         Misc/PlogLogger.hpp
         Services/Locator.hpp)
 list(APPEND CORE_CPP
-        Crash/CrashpadHandler.cpp
         Services/ILogger.cpp
         Services/Locator.cpp
         Misc/PlogLogger.cpp)
+
+if(WITH_CRASHPAD)
+	list(APPEND CORE_CPP Crash/CrashpadHandler.cpp)
+else()
+	list(APPEND CORE_CPP Crash/CrashpadHandlerNull.cpp)
+endif()
 
 target_sources(Etterna PRIVATE ${CORE_HPP} ${CORE_CPP})
