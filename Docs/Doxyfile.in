@@ -6,9 +6,11 @@ PROJECT_NAME           = Etterna
 OUTPUT_LANGUAGE        = English
 PROJECT_NUMBER         = @PROJECT_VERSION@
 OUTPUT_DIRECTORY       = @PROJECT_BINARY_DIR@/doxygen
-INPUT                  = @PROJECT_SOURCE_DIR@/src
+INPUT                  = @PROJECT_SOURCE_DIR@/src \
+                         @PROJECT_SOURCE_DIR@/Docs/Dox \
 INPUT_ENCODING         = UTF-8
 RECURSIVE              = YES
+FILE_PATTERNS          = *.h *.hpp *.cpp *.dox
 
 # HTML
 GENERATE_HTML          = YES
