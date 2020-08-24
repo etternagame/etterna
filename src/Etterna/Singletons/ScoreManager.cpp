@@ -1311,7 +1311,10 @@ class LunaScoreManager : public Luna<ScoreManager>
 	{
 		// this _should_ always be viable if only called from eval
 		auto* last = p->GetMostRecentScore();
-		last->PushSelf(L);
+		if (last == nullptr)
+			lua_pushnil(L);
+		else
+			last->PushSelf(L);
 		return 1;
 	}
 

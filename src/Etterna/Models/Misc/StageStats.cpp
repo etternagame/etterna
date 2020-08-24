@@ -719,8 +719,11 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 					 // happens -mina
 				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
 				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
-				SCOREMAN->GetMostRecentScore()->SetRadarValues(
-				  hs.GetRadarValues());
+				if (SCOREMAN->GetMostRecentScore() == nullptr)
+					Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
+				else
+					SCOREMAN->GetMostRecentScore()->SetRadarValues(
+					  hs.GetRadarValues());
 			}
 		}
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);

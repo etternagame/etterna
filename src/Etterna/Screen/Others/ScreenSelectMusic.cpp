@@ -1868,7 +1868,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		SCOREMAN->camefromreplay =
 		  false; // disallow viewing online score eval screens -mina
 		auto* score = SCOREMAN->GetMostRecentScore();
-		if (!score->LoadReplayData()) {
+		if (score == nullptr || !score->LoadReplayData()) {
 			SCREENMAN->SystemMessage(
 			  "Failed to load Replay Data for some reason.");
 			lua_pushboolean(L, false);

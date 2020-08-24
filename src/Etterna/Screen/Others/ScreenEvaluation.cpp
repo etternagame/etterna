@@ -330,6 +330,11 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		CHECKPOINT_M("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		if (hs == nullptr) {
+			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
+			lua_pushboolean(L, true);
+			return 1;
+		}
 		CHECKPOINT_M("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
