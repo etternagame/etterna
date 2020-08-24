@@ -329,7 +329,7 @@ InputHandler_DInput::UpdatePolled(
 				return;
 
 			if (hr != DI_OK) {
-                Locator::getLogger()->trace(hr_ssprintf(hr, "Failures on polled keyboard update"));
+                Locator::getLogger()->debug(hr_ssprintf(hr, "Failures on polled keyboard update"));
 				return;
 			}
 
@@ -398,7 +398,7 @@ InputHandler_DInput::UpdatePolled(
 							pos = JOY_AUX_4;
 							val = state.rglSlider[1];
 						} else
-							Locator::getLogger()->trace("Controller '{}' is returning an unknown joystick offset, {}",
+							Locator::getLogger()->warn("Controller '{}' is returning an unknown joystick offset, {}",
 										device.m_sName.c_str(), in.ofs);
 
 						if (neg != DeviceButton_Invalid) {
@@ -501,7 +501,7 @@ InputHandler_DInput::UpdatePolled(
 								ButtonPressed(DeviceInput(dev, pos, 0, tm));
 							}
 						} else
-							Locator::getLogger()->trace("Mouse '{}' is returning an unknown mouse offset, {}",
+							Locator::getLogger()->warn("Mouse '{}' is returning an unknown mouse offset, {}",
 										device.m_sName.c_str(), in.ofs);
 						break;
 					}
@@ -580,7 +580,7 @@ InputHandler_DInput::UpdateBuffered(
 						else if (in.ofs == DIMOFS_BUTTON2)
 							mouseInput = MOUSE_MIDDLE;
 						else
-							Locator::getLogger()->trace("Mouse '{}' is returning an unknown mouse offset [button], {}",
+							Locator::getLogger()->warn("Mouse '{}' is returning an unknown mouse offset [button], {}",
 										device.m_sName.c_str(),in.ofs);
 						ButtonPressed(
 						  DeviceInput(dev, mouseInput, !!evtbuf[i].dwData, tm));
@@ -667,7 +667,7 @@ InputHandler_DInput::UpdateBuffered(
 								}
 							}
 						} else
-							Locator::getLogger()->trace("Mouse '{}' is returning an unknown mouse offset [axis], {}",
+							Locator::getLogger()->warn("Mouse '{}' is returning an unknown mouse offset [axis], {}",
 										device.m_sName.c_str(), in.ofs);
 					} else {
 						// joystick
@@ -696,7 +696,7 @@ InputHandler_DInput::UpdateBuffered(
 							up = JOY_AUX_3;
 							down = JOY_AUX_4;
 						} else
-							Locator::getLogger()->trace("Controller '{}' is returning an unknown joystick offset, {}",
+							Locator::getLogger()->warn("Controller '{}' is returning an unknown joystick offset, {}",
 										device.m_sName.c_str(), in.ofs);
 
 						float l = SCALE(static_cast<int>(evtbuf[i].dwData),

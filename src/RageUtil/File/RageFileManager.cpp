@@ -7,7 +7,6 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
-#include "Core/Services/Locator.hpp"
 
 #include <cerrno>
 #include <algorithm>

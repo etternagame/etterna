@@ -431,7 +431,7 @@ PlayerOptions::FromString(const std::string& sMultipleMods)
 	std::string sThrowAway;
 	for (auto& s : vs) {
 		if (!FromOneModString(s, sThrowAway)) {
-			Locator::getLogger()->warn("Attempted to load a non-existing mod \'{}\' for the "
+			Locator::getLogger()->trace("Attempted to load a non-existing mod \'{}\' for the "
 					   "Player. Ignoring.", s.c_str());
 		}
 	}

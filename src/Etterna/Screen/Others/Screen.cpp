@@ -8,7 +8,6 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "Core/Services/Locator.hpp"
 
 #include <tuple>
 #include <algorithm>

@@ -16,7 +16,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
-#include "Core/Services/Locator.hpp"
 
 #include <chrono>
 #include <thread>
