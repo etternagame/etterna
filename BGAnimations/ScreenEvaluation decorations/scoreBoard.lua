@@ -116,7 +116,7 @@ local function scoreList()
             return
         end
         -- the tooltip gets stuck on if it is visible and page changes
-        TOOLTIP.Hide()
+        TOOLTIP:Hide()
 
         -- math to make pages loop both directions
         local nn = (page + n) % (maxPage + 1)
