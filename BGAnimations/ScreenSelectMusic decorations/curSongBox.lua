@@ -136,7 +136,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self, params)
             if params.song then
-                self:settextf(params.song:GetDisplaySubTitle())
+                self:settext(params.song:GetDisplaySubTitle())
             else
                 self:settext("")
             end
