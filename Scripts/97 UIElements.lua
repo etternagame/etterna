@@ -474,12 +474,12 @@ function UIElements.TextButton(z, depth, font)
 			end,
 			MouseOverCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "in"}) end,
 			MouseOutCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "out"}) end,
-			MouseUpCommand = function(self, params) self:GetParent():playcommand("MouseUp", params) end,
-			MouseDownCommand = function(self, params) self:GetParent():playcommand("MouseDown", params) end,
-			MouseClickCommand = function(self, params) self:GetParent():playcommand("MouseClick", params) end,
-			MouseReleaseCommand = function(self, params) self:GetParent():playcommand("MouseRelease", params) end,
-			MouseDragCommand = function(self, params) self:GetParent():playcommand("MouseDrag", params) end,
-			MouseHoldCommand = function(self, params) self:GetParent():playcommand("MouseHold", params) end,
+			MouseUpCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseUp", event = params.event}) end,
+			MouseDownCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseDown", event = params.event}) end,
+			MouseClickCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseClicked", event = params.event}) end,
+			MouseReleaseCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseReleased", event = params.event}) end,
+			MouseDragCommand = function(self, params) self:GetParent():playcommand("DragUpdate", params) end,
+	
 		},
 		Def.BitmapText {
 			Name = "Text",

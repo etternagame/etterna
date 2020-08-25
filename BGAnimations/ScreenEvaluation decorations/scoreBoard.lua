@@ -469,9 +469,11 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
-        MouseDownCommand = function(self)
-            isLocal = true
-            MESSAGEMAN:Broadcast("ToggleLocal")
+        ClickCommand = function(self, params)
+            if params.update == "OnMouseDown" then
+                isLocal = true
+                MESSAGEMAN:Broadcast("ToggleLocal")
+            end
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
@@ -495,9 +497,11 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
-        MouseDownCommand = function(self)
-            isLocal = false
-            MESSAGEMAN:Broadcast("ToggleLocal")
+        ClickCommand = function(self, params)
+            if params.update == "OnMouseDown" then
+                isLocal = false
+                MESSAGEMAN:Broadcast("ToggleLocal")
+            end
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
@@ -522,9 +526,11 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
-        MouseDownCommand = function(self)
-            allScores = true
-            MESSAGEMAN:Broadcast("ToggleAllScores")
+        ClickCommand = function(self, params)
+            if params.update == "OnMouseDown" then
+                allScores = true
+                MESSAGEMAN:Broadcast("ToggleAllScores")
+            end
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
@@ -548,9 +554,11 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
-        MouseDownCommand = function(self)
-            allScores = false
-            MESSAGEMAN:Broadcast("ToggleAllScores")
+        ClickCommand = function(self, params)
+            if params.update == "OnMouseDown" then
+                allScores = false
+                MESSAGEMAN:Broadcast("ToggleAllScores")
+            end
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
@@ -574,9 +582,11 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
-        MouseDownCommand = function(self)
-            allRates = false
-            MESSAGEMAN:Broadcast("ToggleCurrentRate")
+        ClickCommand = function(self, params)
+            if params.update == "OnMouseDown" then
+                allRates = false
+                MESSAGEMAN:Broadcast("ToggleCurrentRate")
+            end
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
@@ -600,9 +610,11 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
-        MouseDownCommand = function(self)
-            allRates = true
-            MESSAGEMAN:Broadcast("ToggleCurrentRate")
+        ClickCommand = function(self, params)
+            if params.update == "OnMouseDown" then
+                allRates = true
+                MESSAGEMAN:Broadcast("ToggleCurrentRate")
+            end
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
