@@ -83,3 +83,22 @@ function expandDateString(given)
     end
     return month, day, year
 end
+
+-- a kind of alias of "not IsVisible" to include the diffuse
+-- also recursive
+function Actor.IsInvisible(self)
+    local a = self:GetFakeParent()
+    if a == nil then
+        a = self:GetParent()
+        if a == nil then
+            -- no parents, no fake parents
+            return self:GetDiffuseAlpha() == 0 or not self:IsVisible()
+        else
+            -- no parent, has fake parent
+            return self:GetDiffuseAlpha() == 0 or a:IsInvisible()
+        end
+    else
+        -- has parent
+        return self:GetDiffuseAlpha() == 0 or a:IsInvisible()
+    end
+end
