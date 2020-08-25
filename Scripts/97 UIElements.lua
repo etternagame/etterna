@@ -516,7 +516,7 @@ function ButtonDemo(z)
 		InitCommand= function(self) 
 			self:z(z):zoomto(150,50):diffuse(color("#000000")):diffusealpha(0.5)
 		end,
-		MouseOverCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "over"}) end,
+		MouseOverCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "in"}) end,
 		MouseOutCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "out"}) end,
 		MouseUpCommand = function(self,params) self:diffuse(color("#FF0000")):diffusealpha(0.5) self:GetParent():playcommand("Click",{update = "OnMouseUp", event = params.event}) end,
 		MouseDownCommand = function(self,params) self:diffuse(color("#00FF00")):diffusealpha(0.5) self:GetParent():playcommand("Click",{update = "OnMouseDown", event = params.event}) end,
