@@ -27,6 +27,9 @@ local ratios = {
 
     CursorVerticalSpan = 12 / 1080, -- visible cursor glow measured, doubled
     CursorHorizontalSpan = 12 / 1920, -- same
+
+    LeftButtonWidth = 128 / 1920, -- guesstimation of max text width
+    -- didnt measure height because it can be weird
 }
 
 local actuals = {
@@ -50,6 +53,7 @@ local actuals = {
     ScorePlayerRateSpace = ratios.ScorePlayerRateSpace * SCREEN_WIDTH,
     CursorVerticalSpan = ratios.CursorVerticalSpan * SCREEN_HEIGHT,
     CursorHorizontalSpan = ratios.CursorHorizontalSpan * SCREEN_WIDTH,
+    LeftButtonWidth = ratios.LeftButtonWidth * SCREEN_WIDTH,
 }
 
 -- we are expecting this file to be loaded with these params precalculated
@@ -70,6 +74,10 @@ local dateSSRSize = 0.6
 local playerNameSize = 0.6
 local rateSize = 0.6
 local textZoomFudge = 5
+
+-- increase the highlight area height of the buttons
+local buttonSizingFudge = 8
+local buttonBGYOffset = -1
 
 t[#t+1] = Def.Quad {
     Name = "VerticalDivider",
@@ -450,122 +458,158 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "LocalButton",
         InitCommand = function(self)
-            self:valign(0):halign(0)
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
             self:y(actuals.LocalUpperGap)
-            self:zoom(topButtonSize)
-            self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
-            self:settext("Local")
+            txt:zoom(topButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
+            txt:settext("Local")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
         MouseDownCommand = function(self)
             isLocal = true
             MESSAGEMAN:Broadcast("ToggleLocal")
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(0.8)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(0.8)
+            else
+                self:diffusealpha(1)
+            end
         end
     },
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "OnlineButton",
         InitCommand = function(self)
-            self:valign(0):halign(0)
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
             self:y(actuals.OnlineUpperGap)
-            self:zoom(topButtonSize)
-            self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
-            self:settext("Online")
+            txt:zoom(topButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
+            txt:settext("Online")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
         MouseDownCommand = function(self)
             isLocal = false
             MESSAGEMAN:Broadcast("ToggleLocal")
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(0.8)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(0.8)
+            else
+                self:diffusealpha(1)
+            end
         end
     },
 
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "AllScoresButton",
         InitCommand = function(self)
-            self:valign(0):halign(0)
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
             self:y(actuals.AllScoresUpperGap)
-            self:zoom(bottomButtonSize)
-            self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            self:settext("All Scores")
+            txt:zoom(bottomButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
+            txt:settext("All Scores")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
         MouseDownCommand = function(self)
             allScores = true
             MESSAGEMAN:Broadcast("ToggleAllScores")
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(0.8)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(0.8)
+            else
+                self:diffusealpha(1)
+            end
         end
     },
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "TopScoresButton",
         InitCommand = function(self)
-            self:valign(0):halign(0)
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
             self:y(actuals.TopScoresUpperGap)
-            self:zoom(bottomButtonSize)
-            self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            self:settext("Top Scores")
+            txt:zoom(bottomButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
+            txt:settext("Top Scores")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
         MouseDownCommand = function(self)
             allScores = false
             MESSAGEMAN:Broadcast("ToggleAllScores")
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(0.8)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(0.8)
+            else
+                self:diffusealpha(1)
+            end
         end
     },
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "CurrentRateButton",
         InitCommand = function(self)
-            self:valign(0):halign(0)
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
             self:y(actuals.CurrentRateUpperGap)
-            self:zoom(bottomButtonSize)
-            self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            self:settext("Current Rate")
+            txt:zoom(bottomButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
+            txt:settext("Current Rate")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
         MouseDownCommand = function(self)
             allRates = false
             MESSAGEMAN:Broadcast("ToggleCurrentRate")
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(0.8)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(0.8)
+            else
+                self:diffusealpha(1)
+            end
         end
     },
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "AllRatesButton",
         InitCommand = function(self)
-            self:valign(0):halign(0)
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
             self:y(actuals.AllRatesUpperGap)
-            self:zoom(bottomButtonSize)
-            self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            self:settext("All Rates")
+            txt:zoom(bottomButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
+            txt:settext("All Rates")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
         MouseDownCommand = function(self)
             allRates = true
             MESSAGEMAN:Broadcast("ToggleCurrentRate")
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(0.8)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(0.8)
+            else
+                self:diffusealpha(1)
+            end
         end
     }
 
