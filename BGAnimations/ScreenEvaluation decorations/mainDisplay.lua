@@ -282,6 +282,7 @@ local function judgmentBars()
                     self:halign(0)
                     self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap + judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentPercentZoom)
+                    self:maxwidth((actuals.JudgmentCountRightGap - judgmentCountPercentBump) / judgmentPercentZoom - textzoomFudge)
                     self:strokecolor(textEmbossColor)
                     self:targetnumber(0)
                 end,
@@ -726,7 +727,8 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(0):valign(1)
                 self:y(-actuals.SongTitleLowerGap)
                 self:zoom(songInfoTextSize)
-                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
+                -- allow 3/4 the width of the area
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 * 3 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
             end
         },
@@ -780,7 +782,8 @@ t[#t+1] = Def.ActorFrame {
                 self:halign(1):valign(1)
                 self:y(-actuals.GradeLowerGap)
                 self:zoom(scoreInfoTextSize)
-                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
+                -- allow 1/4 of the area (opposite of the title maxwidth)
+                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 / scoreInfoTextSize - textzoomFudge)
             end,
             SetCommand = function(self, params)
                 if params.score ~= nil then
