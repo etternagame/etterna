@@ -454,28 +454,42 @@ function UIElements.QuadButton(z, depth)
 	return t
 end
 
+---
+--- the point of this is to have a square hover area for a text button
+--- it is possible to just hover the text but that introduces some odd issues
+--- and come on, really, it is harder to click text than it is a square button
 function UIElements.TextButton(z, depth, font)
-	
-	local t = Def.BitmapText {
-		Font = font,
-		InitCommand = function(self)
-			self:z(z)
-		end,
-		OnCommand = function(self)
-			local screen = SCREENMAN:GetTopScreen()
-			if screen ~= nil then
-				BUTTON:AddButton(self, screen:GetName(), depth)
-			end
-		end,
-		MouseOverCommand = function(self) end,
-		MouseOutCommand = function(self) end,
-		MouseUpCommand = function(self, params) end,
-		MouseDownCommand = function(self, params) end,
-		MouseClickCommand = function(self, params) end,
-		MouseReleaseCommand = function(self, params) end,
-		MouseDragCommand = function(self, params) end,
-		MouseHoldCommand = function(self, params) end,
+	local t = Def.ActorFrame {
+		Def.Quad {
+			Name = "BG",
+			InitCommand = function(self)
+				self:diffusealpha(0)
+				self:z(z)
+			end,
+			OnCommand = function(self)
+				local screen = SCREENMAN:GetTopScreen()
+				if screen ~= nil then
+					BUTTON:AddButton(self, screen:GetName(), depth)
+				end
+			end,
+			MouseOverCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "in"}) end,
+			MouseOutCommand = function(self) self:GetParent():playcommand("RolloverUpdate",{update = "out"}) end,
+			MouseUpCommand = function(self, params) self:GetParent():playcommand("MouseUp", params) end,
+			MouseDownCommand = function(self, params) self:GetParent():playcommand("MouseDown", params) end,
+			MouseClickCommand = function(self, params) self:GetParent():playcommand("MouseClick", params) end,
+			MouseReleaseCommand = function(self, params) self:GetParent():playcommand("MouseRelease", params) end,
+			MouseDragCommand = function(self, params) self:GetParent():playcommand("MouseDrag", params) end,
+			MouseHoldCommand = function(self, params) self:GetParent():playcommand("MouseHold", params) end,
+		},
+		Def.BitmapText {
+			Name = "Text",
+			Font = font,
+			InitCommand = function(self)
+				self:z(z)
+			end,
+		}
 	}
+
 	return t
 end
 
