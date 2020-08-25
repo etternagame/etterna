@@ -183,3 +183,27 @@ jobs:
         with:
           name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
+
+  docs:
+    name: "Documentation Generation"
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout Etterna
+        uses: actions/checkout@v2
+
+      - name: Install apt packages
+        run: sudo apt update && sudo apt install doxygen clang++-9 nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+
+      - name: Generate CMake
+        run: mkdir build && cd build && cmake -G Ninja ..
+        env:
+          CXX: ${{matrix.cfg.cpp-version}}
+
+      - name: Build Doxygen
+        run: cd build && ninja doxygen
+
+      - name: Upload HTML to Github Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Doxygen HTML"
+          path: '${{github.workspace}}/build/doxygen/html'
