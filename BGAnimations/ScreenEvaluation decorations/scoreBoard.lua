@@ -300,6 +300,8 @@ local function scoreList()
                     if score ~= nil and isOver(self) and not score:HasReplayData() then
                         TOOLTIP:Show()
                         TOOLTIP:SetText("No Replay Data")
+                    elseif score ~= nil and isOver(self) and score:HasReplayData() then
+                        TOOLTIP:Hide()
                     end
                 end
             },
