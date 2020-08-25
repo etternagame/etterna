@@ -205,6 +205,11 @@ t[#t+1] = Def.ActorMultiVertex {
             end
 
         end
+        -- animation breaks if we start from nothing
+        if self:GetNumVertices() ~= 0 then
+            self:finishtweening()
+            self:smooth(1)
+        end
         self:SetVertices(vertices)
         self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = #vertices}
     end
