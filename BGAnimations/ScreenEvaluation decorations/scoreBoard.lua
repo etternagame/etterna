@@ -77,8 +77,12 @@ local pageTextSize = 0.8
 local textZoomFudge = 5
 
 -- increase the highlight area height of the buttons
+-- only for the left buttons, not the scoreitems
 local buttonSizingFudge = 8
 local buttonBGYOffset = -1
+local buttonHoverAlpha = 0.8
+local buttonRegularAlpha = 1
+local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
 t[#t+1] = Def.Quad {
     Name = "VerticalDivider",
@@ -97,6 +101,7 @@ local isLocal = true
 -- but do not replace the variable
 local allRates = false
 -- all scores or top scores (online only)
+-- dont have to modify this var with direct values, call DLMAN to update it
 local allScores = not DLMAN:GetTopScoresOnlyFilter()
 
 -- this will distribute a given highscore to the offsetplot and the other eval elements
@@ -230,19 +235,20 @@ local function scoreList()
                 local index = (page - 1) * itemCount + i
                 self:GetChild("ScoreItem_"..i):playcommand("SetScore", {scoreIndex = index})
             end
+            MESSAGEMAN:Broadcast("UpdateButtons")
         end,
         MovedPageMessageCommand = function(self)
             self:playcommand("UpdateList")
         end,
-        ToggleCurrentRateMessageCommand = function(self, params)
+        ToggleCurrentRateMessageCommand = function(self)
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
-        ToggleAllScoresMessageCommand = function(self, params)
+        ToggleAllScoresMessageCommand = function(self)
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
-        ToggleLocalMessageCommand = function(self, params)
+        ToggleLocalMessageCommand = function(self)
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
@@ -500,6 +506,10 @@ t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
         self:x(actuals.LeftButtonLeftGap)
     end,
+    UpdateButtonsMessageCommand = function(self)
+        allScores = not DLMAN:GetTopScoresOnlyFilter()
+        self:playcommand("UpdateToggleStatus")
+    end,
 
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "LocalButton",
@@ -515,6 +525,14 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
+        UpdateToggleStatusCommand = function(self)
+            -- lit when isLocal is true
+            if not isLocal then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+            end
+        end,
         ClickCommand = function(self, params)
             if params.update == "OnMouseDown" then
                 isLocal = true
@@ -523,7 +541,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
-                self:diffusealpha(0.8)
+                self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
             end
@@ -542,16 +560,29 @@ t[#t+1] = Def.ActorFrame {
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            if not DLMAN:IsLoggedIn() then
+                self:diffusealpha(0)
+            end
+        end,
+        UpdateToggleStatusCommand = function(self)
+            -- lit when isLocal is false
+            if isLocal then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+            end
         end,
         ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
                 isLocal = false
                 MESSAGEMAN:Broadcast("ToggleLocal")
             end
         end,
         RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
             if params.update == "in" then
-                self:diffusealpha(0.8)
+                self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
             end
@@ -571,16 +602,29 @@ t[#t+1] = Def.ActorFrame {
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            if not DLMAN:IsLoggedIn() then
+                self:diffusealpha(0)
+            end
+        end,
+        UpdateToggleStatusCommand = function(self)
+            -- lit if allScores is true
+            if not allScores then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+            end
         end,
         ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
                 allScores = true
                 MESSAGEMAN:Broadcast("ToggleAllScores")
             end
         end,
         RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
             if params.update == "in" then
-                self:diffusealpha(0.8)
+                self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
             end
@@ -599,16 +643,29 @@ t[#t+1] = Def.ActorFrame {
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            if not DLMAN:IsLoggedIn() then
+                self:diffusealpha(0)
+            end
+        end,
+        UpdateToggleStatusCommand = function(self)
+            -- lit if allScores is false
+            if allScores then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+            end
         end,
         ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
                 allScores = false
                 MESSAGEMAN:Broadcast("ToggleAllScores")
             end
         end,
         RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
             if params.update == "in" then
-                self:diffusealpha(0.8)
+                self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
             end
@@ -628,6 +685,14 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
+        UpdateToggleStatusCommand = function(self)
+            -- lit if allRates is false
+            if allRates then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+            end
+        end,
         ClickCommand = function(self, params)
             if params.update == "OnMouseDown" then
                 allRates = false
@@ -636,7 +701,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
-                self:diffusealpha(0.8)
+                self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
             end
@@ -656,6 +721,14 @@ t[#t+1] = Def.ActorFrame {
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
         end,
+        UpdateToggleStatusCommand = function(self)
+            -- lit if allRates is true
+            if not allRates then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+            end
+        end,
         ClickCommand = function(self, params)
             if params.update == "OnMouseDown" then
                 allRates = true
@@ -664,7 +737,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         RolloverUpdateCommand = function(self, params)
             if params.update == "in" then
-                self:diffusealpha(0.8)
+                self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
             end
