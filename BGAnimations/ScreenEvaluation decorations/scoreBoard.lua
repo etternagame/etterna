@@ -86,6 +86,8 @@ local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
 -- when moving the cursor from one place to another
 local cursorAnimationSeconds = 0.05
+-- when refreshing the score list
+local scoreListAnimationSeconds = 0.05
 
 t[#t+1] = Def.Quad {
     Name = "VerticalDivider",
@@ -274,9 +276,10 @@ local function scoreList()
             SetScoreCommand = function(self, params)
                 scoreIndex = params.scoreIndex
                 score = scores[scoreIndex]
-                if score == nil then
-                    self:diffusealpha(0)
-                else
+                self:finishtweening()
+                self:diffusealpha(0)
+                if score ~= nil then
+                    self:smooth(scoreListAnimationSeconds * i)
                     self:diffusealpha(1)
                     if score:GetScoreKey() == selectedScorekey then
                         self:GetParent():GetChild("Cursor"):playcommand("SetIndex", {index = i})
