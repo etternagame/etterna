@@ -18,7 +18,12 @@ local lineThickness = 2
 local lineAlpha = 0.2
 local textPadding = 5
 local textSize = 0.65
+
+-- the dot sizes
+-- the "classic" default is 1.0
 local dotLineLength = 0.75
+local dotLineUpperBound = 1.2
+local dotLineLowerBound = 0.7
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -178,6 +183,10 @@ t[#t+1] = Def.ActorMultiVertex {
             self:SetVertices(vertices)
             return
         end
+
+        -- dynamically change the dot size depending on the number of dots
+        -- for clarity on ultra dense scores
+        dotLineLength = clamp(scale(#offsets, 1000, 5000, dotLineUpperBound, dotLineLowerBound), dotLineLowerBound, dotLineUpperBound)
 
         for i, offset in ipairs(offsets) do
             local x = fitX(timing[i], maxTime)
