@@ -458,9 +458,9 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "LocalButton",
         InitCommand = function(self)
+            self:y(actuals.LocalUpperGap)
             local txt = self:GetChild("Text")
             txt:valign(0):halign(0)
-            self:y(actuals.LocalUpperGap)
             txt:zoom(topButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
             txt:settext("Local")
@@ -484,9 +484,9 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "OnlineButton",
         InitCommand = function(self)
+            self:y(actuals.OnlineUpperGap)
             local txt = self:GetChild("Text")
             txt:valign(0):halign(0)
-            self:y(actuals.OnlineUpperGap)
             txt:zoom(topButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
             txt:settext("Online")
@@ -511,9 +511,9 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "AllScoresButton",
         InitCommand = function(self)
+            self:y(actuals.AllScoresUpperGap)
             local txt = self:GetChild("Text")
             txt:valign(0):halign(0)
-            self:y(actuals.AllScoresUpperGap)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("All Scores")
@@ -537,9 +537,9 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "TopScoresButton",
         InitCommand = function(self)
+            self:y(actuals.TopScoresUpperGap)
             local txt = self:GetChild("Text")
             txt:valign(0):halign(0)
-            self:y(actuals.TopScoresUpperGap)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("Top Scores")
@@ -563,9 +563,9 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "CurrentRateButton",
         InitCommand = function(self)
+            self:y(actuals.CurrentRateUpperGap)
             local txt = self:GetChild("Text")
             txt:valign(0):halign(0)
-            self:y(actuals.CurrentRateUpperGap)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("Current Rate")
@@ -589,9 +589,9 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "AllRatesButton",
         InitCommand = function(self)
+            self:y(actuals.AllRatesUpperGap)
             local txt = self:GetChild("Text")
             txt:valign(0):halign(0)
-            self:y(actuals.AllRatesUpperGap)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("All Rates")
