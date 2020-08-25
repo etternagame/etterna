@@ -449,12 +449,16 @@ local function calculatedStats()
         local leftCB = 0
         local middleCB = 0
         local rightCB = 0
-        local smallest, largest = wifeRange(offsetTable)
 
         -- count CBs
-        for i = 1, #offsetTable do
+        for i, o in ipairs(offsetTable) do
+            -- online replays return 180 instead of "1000" for misses
+            if o == 180 then
+                offsetTable[i] = 1000
+                o = 1000
+            end
             if tracks[i] then
-                if math.abs(offsetTable[i]) > cbThreshold then
+                if math.abs(o) > cbThreshold then
                     if tracks[i] < middleColumn then
                         leftCB = leftCB + 1
                     elseif tracks[i] > middleColumn then
@@ -465,6 +469,8 @@ local function calculatedStats()
                 end
             end
         end
+
+        local smallest, largest = wifeRange(offsetTable)
 
         -- MUST MATCH statData above
         output = {
@@ -863,6 +869,12 @@ t[#t+1] = Def.ActorFrame {
             if params.score ~= nil and params.steps ~= nil then
                 if params.score:HasReplayData() then
                     local offsets = params.score:GetOffsetVector()
+                    -- for online offset vectors a 180 offset is a miss
+                    for i, o in ipairs(offsets) do
+                        if o == 180 then
+                            offsets[i] = 1000
+                        end
+                    end
                     local tracks = params.score:GetTrackVector()
                     local types = params.score:GetTapNoteTypeVector()
                     local noterows = params.score:GetNoteRowVector()
