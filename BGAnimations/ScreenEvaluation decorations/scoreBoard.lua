@@ -156,6 +156,18 @@ local function scoreList()
         end,
         OnCommand = function(self)
             self:playcommand("UpdateScores")
+            -- set the current page so we immediately see where our score is
+            if #scores > 0 then
+                local ind = 1
+                for i, s in ipairs(scores) do
+                    if s:GetName() == "#P1#" then
+                        ind = i
+                        break
+                    end
+                end
+                page = 1 + math.floor((ind-1) / itemCount)
+            end
+
             self:playcommand("UpdateList")
         end,
         UpdateScoresCommand = function(self)
