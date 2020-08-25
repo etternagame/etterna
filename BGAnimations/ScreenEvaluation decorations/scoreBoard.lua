@@ -18,12 +18,12 @@ local ratios = {
     ScoreListUpperGap = 26 / 1080, -- inner edge of divider to inner edge of glow of top item
     ScoreListLeftGap = 158 / 1920, -- left edge of frame to inner edge of glow
 
-    ScoreItemWidth = 467 / 1920, -- inner edge of glow to inner edge
+    ScoreItemWidth = 778 / 1920, -- inner edge of glow to inner edge (updated to end at divider length)
     ScoreItemHeight = 43 / 1080,
-    ScoreItemSpacing = 28 / 1080, -- distance between items
-    ScoreClearInfoSpace = 67 / 1920, -- basically a portion of the width of the item, eyeballed
-    ScoreMetaInfoSpace = 340 / 1920,
-    ScorePlayerRateSpace = 60 / 1920,
+    ScoreItemSpacing = 16 / 1080, -- distance between items
+    ScoreClearInfoSpace = 109 / 1920, -- about 14% of ScoreItemWidth
+    ScoreMetaInfoSpace = 560 / 1920, -- about 72%
+    ScorePlayerRateSpace = 109 / 1920, -- about 14%
 
     CursorVerticalSpan = 12 / 1080, -- visible cursor glow measured, doubled
     CursorHorizontalSpan = 12 / 1920, -- same
@@ -73,6 +73,7 @@ local wifeJudgmentsSize = 0.6
 local dateSSRSize = 0.6
 local playerNameSize = 0.6
 local rateSize = 0.6
+local pageTextSize = 0.8
 local textZoomFudge = 5
 
 -- increase the highlight area height of the buttons
@@ -261,7 +262,7 @@ local function scoreList()
                 InitCommand = function(self)
                     self:halign(0):valign(0)
                     self:zoomto(actuals.ScoreItemWidth, actuals.ScoreItemHeight)
-                    self:diffusealpha(0.2)
+                    self:diffusealpha(0)
                 end,
                 MouseDownCommand = function(self)
                     if score ~= nil and score:HasReplayData() then
@@ -381,7 +382,15 @@ local function scoreList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        self:settext(score:GetName())
+                        local n = score:GetName()
+                        if n == "" then
+                            if isLocal then
+                                n = "You"
+                            end
+                        elseif n == "#P1#" then
+                            n = "Last Score"
+                        end
+                        self:settext(n)
                     end
                 end
             },
@@ -444,6 +453,29 @@ local function scoreList()
             end
         end
     }
+
+    t[#t+1] = LoadFont("Common Normal") .. {
+        Name = "PageText",
+        InitCommand = function(self)
+            self:valign(1)
+            self:xy(actuals.ScoreItemWidth / 2, actuals.VerticalDividerLength)
+            self:zoom(pageTextSize)
+            self:maxwidth(actuals.ScoreItemWidth / pageTextSize - textZoomFudge)
+            self:settext("")
+        end,
+        UpdateListCommand = function(self)
+            local lb = (page-1) * (itemCount) + 1
+            if lb > #scores then
+                lb = #scores
+            end
+            local ub  = page * itemCount
+            if ub > #scores then
+                ub = #scores
+            end
+            self:settextf("Showing %d-%d of %d scores", lb, ub, #scores)
+        end
+    }
+    
     return t
 end
 
