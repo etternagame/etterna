@@ -195,6 +195,8 @@ local songInfoTextSize = 0.55
 local scoreInfoTextSize = 0.8
 local textzoomFudge = 5
 
+local animationSeconds = 1
+
 local textEmbossColor = color("0,0,0,0")
 
 local function judgmentBars()
@@ -235,6 +237,8 @@ local function judgmentBars()
                     self:diffuse(byJudgment(jdg))
                 end,
                 SetCommand = function(self, params)
+                    self:finishtweening()
+                    self:smooth(animationSeconds)
                     if params.score == nil then
                         self:zoomx(0)
                         return
@@ -717,6 +721,15 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(titleTextSize)
             self:settext("Results")
+        end,
+        SetCommand = function(self, params)
+            if params.score then
+                if params.score:GetName() == "#P1#" then
+                    self:settext("Results")
+                else
+                    self:settext("Replay Results")
+                end
+            end
         end
     },
     Def.ActorFrame {
@@ -766,11 +779,12 @@ t[#t+1] = Def.ActorFrame {
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
             end,
-            BeginCommand = function(self)
-                local rate = screen:GetReplayRate()
-                if not rate then rate = getCurRateValue() end
-                local ratestr = getRateString(rate)
-                self:settext(ratestr)
+            SetCommand = function(self, params)
+                if params.score then
+                    local r = params.score:GetMusicRate()
+                    local rstr = getRateString(r)
+                    self:settext(rstr)
+                end
             end
         },
     },
@@ -831,15 +845,12 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetCommand = function(self, params)
                 if params.steps ~= nil then
-                    local msd = params.steps:GetMSD(getCurRateValue(), 1)
+                    local msd = params.steps:GetMSD(params.score:GetMusicRate(), 1)
                     local msdstr = string.format("%5.2f", msd)
                     local diff = getShortDifficulty(getDifficulty(params.steps:GetDifficulty()))
                     local diffcolor = getDifficultyColor(GetCustomDifficulty(params.steps:GetStepsType(), params.steps:GetDifficulty()))
-                    local ssrstr = "0.00"
-                    if params.score ~= nil then
-                        local ssr = params.score:GetSkillsetSSR("Overall")
-                        ssrstr = string.format("%5.2f", ssr)
-                    end
+                    local ssr = params.score:GetSkillsetSSR("Overall")
+                    local ssrstr = string.format("%5.2f", ssr)
                     self:settextf("%s  ~  %s %s", msdstr, ssrstr, diff)
                     self:ClearAttributes()
                     self:AddAttribute(0, {Length = #msdstr, Zoom = scoreInfoTextSize, Diffuse = byMSD(msd)})
