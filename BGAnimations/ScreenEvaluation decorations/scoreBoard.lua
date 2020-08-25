@@ -241,10 +241,16 @@ local function scoreList()
             self:playcommand("UpdateList")
         end,
         ToggleCurrentRateMessageCommand = function(self)
+            if isLocal then
+                allRates = not allRates
+            else
+                DLMAN:ToggleRateFilter()
+            end
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
         ToggleAllScoresMessageCommand = function(self)
+            DLMAN:ToggleTopScoresOnlyFilter()
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
@@ -602,11 +608,14 @@ t[#t+1] = Def.ActorFrame {
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
-            if not DLMAN:IsLoggedIn() then
-                self:diffusealpha(0)
-            end
         end,
         UpdateToggleStatusCommand = function(self)
+            -- invisible if local
+            if isLocal then
+                self:diffusealpha(0)
+            else
+                self:diffusealpha(1)
+            end
             -- lit if allScores is true
             if not allScores then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
@@ -617,7 +626,6 @@ t[#t+1] = Def.ActorFrame {
         ClickCommand = function(self, params)
             if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
-                allScores = true
                 MESSAGEMAN:Broadcast("ToggleAllScores")
             end
         end,
@@ -643,11 +651,14 @@ t[#t+1] = Def.ActorFrame {
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
-            if not DLMAN:IsLoggedIn() then
-                self:diffusealpha(0)
-            end
         end,
         UpdateToggleStatusCommand = function(self)
+            -- invisible if local
+            if isLocal then
+                self:diffusealpha(0)
+            else
+                self:diffusealpha(1)
+            end
             -- lit if allScores is false
             if allScores then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
@@ -658,7 +669,6 @@ t[#t+1] = Def.ActorFrame {
         ClickCommand = function(self, params)
             if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
-                allScores = false
                 MESSAGEMAN:Broadcast("ToggleAllScores")
             end
         end,
@@ -687,7 +697,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit if allRates is false
-            if allRates then
+            if (allRates and isLocal) or (not DLMAN:GetCurrentRateFilter() and not isLocal) then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
                 self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
@@ -695,7 +705,6 @@ t[#t+1] = Def.ActorFrame {
         end,
         ClickCommand = function(self, params)
             if params.update == "OnMouseDown" then
-                allRates = false
                 MESSAGEMAN:Broadcast("ToggleCurrentRate")
             end
         end,
@@ -723,7 +732,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit if allRates is true
-            if not allRates then
+            if (not allRates and isLocal) or (DLMAN:GetCurrentRateFilter() and not isLocal) then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
                 self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
@@ -731,7 +740,6 @@ t[#t+1] = Def.ActorFrame {
         end,
         ClickCommand = function(self, params)
             if params.update == "OnMouseDown" then
-                allRates = true
                 MESSAGEMAN:Broadcast("ToggleCurrentRate")
             end
         end,
