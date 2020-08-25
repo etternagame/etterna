@@ -308,7 +308,7 @@ local function scoreList()
                         end
                     end
                 end,
-                MovedPageMessageCommand = function(self)
+                SetScoreCommand = function(self)
                     if score ~= nil and isOver(self) and not score:HasReplayData() then
                         TOOLTIP:Show()
                         TOOLTIP:SetText("No Replay Data")
