@@ -84,6 +84,9 @@ local buttonHoverAlpha = 0.8
 local buttonRegularAlpha = 1
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
+-- when moving the cursor from one place to another
+local cursorAnimationSeconds = 0.05
+
 t[#t+1] = Def.Quad {
     Name = "VerticalDivider",
     InitCommand = function(self)
@@ -450,7 +453,12 @@ local function scoreList()
             if scores[i] == nil then
                 self:diffusealpha(0)
             else
-                self:diffusealpha(1)
+                self:finishtweening()
+                if self:GetDiffuseAlpha() ~= 0 then
+                    self:linear(cursorAnimationSeconds)
+                else
+                    self:diffusealpha(1)
+                end
                 self:y((i-1) * actuals.ScoreItemSpacing + (i-1) * actuals.ScoreItemHeight - actuals.CursorVerticalSpan / 2)
             end
         end,
