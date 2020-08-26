@@ -144,4 +144,12 @@ class RageTexture
 	virtual void CreateFrameRects();
 };
 
+class RTPtrContainer
+{
+  public:
+	std::shared_ptr<RageTexture> handle;
+
+	void PushSelf(lua_State* L);
+};
+
 #endif

@@ -165,3 +165,148 @@ class LunaRageTexture : public Luna<RageTexture>
 
 LUA_REGISTER_CLASS(RageTexture)
 // lua end
+
+class LunaRTPtrContainer : public Luna<RTPtrContainer>
+{
+public:
+
+	static int position(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		p->handle->SetPosition(FArg(1));
+		COMMON_RETURN_SELF;
+	}
+	static int loop(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		p->handle->SetLooping(BIArg(1));
+		COMMON_RETURN_SELF;
+	}
+	static int rate(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		p->handle->SetPlaybackRate(FArg(1));
+		COMMON_RETURN_SELF;
+	}
+	static int GetTextureCoordRect(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		const auto pRect = p->handle->GetTextureCoordRect(IArg(1));
+		lua_pushnumber(L, pRect->left);
+		lua_pushnumber(L, pRect->top);
+		lua_pushnumber(L, pRect->right);
+		lua_pushnumber(L, pRect->bottom);
+		return 4;
+	}
+	static int GetNumFrames(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetNumFrames());
+		return 1;
+	}
+	static int Reload(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		p->handle->Reload();
+		COMMON_RETURN_SELF;
+	}
+	static int GetSourceWidth(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetSourceWidth());
+		return 1;
+	}
+	static int GetSourceHeight(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetSourceHeight());
+		return 1;
+	}
+	static int GetTextureWidth(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetTextureWidth());
+		return 1;
+	}
+	static int GetTextureHeight(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetTextureHeight());
+		return 1;
+	}
+	static int GetImageWidth(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetImageWidth());
+		return 1;
+	}
+	static int GetImageHeight(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushnumber(L, p->handle->GetImageHeight());
+		return 1;
+	}
+	static int GetPath(T* p, lua_State* L)
+	{
+		if (p->handle == nullptr) {
+			lua_pushnil(L);
+			return 1;
+		}
+		lua_pushstring(L, p->handle->GetID().filename.c_str());
+		return 1;
+	}
+	
+	LunaRTPtrContainer()
+	{
+		ADD_METHOD(position);
+		ADD_METHOD(loop);
+		ADD_METHOD(rate);
+		ADD_METHOD(GetTextureCoordRect);
+		ADD_METHOD(GetNumFrames);
+		ADD_METHOD(Reload);
+		ADD_METHOD(GetSourceWidth);
+		ADD_METHOD(GetSourceHeight);
+		ADD_METHOD(GetTextureWidth);
+		ADD_METHOD(GetTextureHeight);
+		ADD_METHOD(GetImageWidth);
+		ADD_METHOD(GetImageHeight);
+		ADD_METHOD(GetPath);
+	}
+};
+LUA_REGISTER_CLASS(RTPtrContainer)

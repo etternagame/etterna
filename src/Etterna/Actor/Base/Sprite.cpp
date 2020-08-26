@@ -1366,19 +1366,22 @@ class LunaSprite : public Luna<Sprite>
 	}
 	static int SetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = Luna<RageTexture>::check(L, 1);
-		std::shared_ptr<RageTexture> rt(pTexture);
-		rt = TEXTUREMAN->CopyTexture(rt);
-		p->SetTexture(rt);
+		RTPtrContainer* pTexture = Luna<RTPtrContainer>::check(L, 1);
+		if (pTexture->handle != nullptr)
+			pTexture->handle->m_iRefCount++;
+		p->SetTexture(pTexture->handle);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = p->GetTexture();
-		if (pTexture != nullptr)
+		RTPtrContainer* pTexture = new RTPtrContainer;
+		pTexture->handle = p->GetTexture();
+		if (pTexture->handle != nullptr)
 			pTexture->PushSelf(L);
-		else
+		else {
+			delete pTexture;
 			lua_pushnil(L);
+		}
 		return 1;
 	}
 	static int SetEffectMode(T* p, lua_State* L)
