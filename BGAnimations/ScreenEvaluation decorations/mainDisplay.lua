@@ -115,15 +115,12 @@ local ratios = {
     BottomTextHeight = 16 / 1080, -- fudge
     BottomTextSpacing = 10 / 1080, -- mix with the immediately above value
     SubTypeTextLeftGap = 18 / 1920, -- edge of frame to left of text
-    SubTypeCountLeftGap = 102 / 1920, -- left edge of name to left edge of number
-    SubTypeCountTotalLeftGap = 196 / 1920, -- left edge of name to right edge of number
-    SubTypeCountWidth = 95 / 1920, -- approximate width of the numbers including the /
+    SubTypeNumberCenter = 170 / 1920, -- from left edge of text to center of the /
+    SubTypeNumberWidth = 145 / 1920, -- approximate width of the numbers including the /
     SubTypeAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
 
-    StatTextRightGap = 195 / 1920, -- right edge of stat count text to left edge of name text
-    StatCountRightGap = 54 / 1920, -- right edge of stat count text to right edge of count text
+    StatTextRightGap = 225 / 1920, -- right edge of stat count text to left edge of name text
     StatCountTotalRightGap = 0 / 1920, -- this is a base line, probably 0, here for consistency
-    StatCountWidth = 95 / 1920, -- approximate width of the numbers including the /
     StatTextAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
 
     RightHalfLeftGap = 803 / 1920, -- left edge of frame to left edge of everything on the right side
@@ -181,14 +178,11 @@ local actuals = {
     BottomTextHeight = ratios.BottomTextHeight * SCREEN_HEIGHT,
     BottomTextSpacing = ratios.BottomTextSpacing * SCREEN_HEIGHT,
     SubTypeTextLeftGap = ratios.SubTypeTextLeftGap * SCREEN_WIDTH,
-    SubTypeCountLeftGap = ratios.SubTypeCountLeftGap * SCREEN_WIDTH,
-    SubTypeCountTotalLeftGap = ratios.SubTypeCountTotalLeftGap * SCREEN_WIDTH,
-    SubTypeCountWidth = ratios.SubTypeCountWidth * SCREEN_WIDTH,
+    SubTypeNumberCenter = ratios.SubTypeNumberCenter * SCREEN_WIDTH,
+    SubTypeNumberWidth = ratios.SubTypeNumberWidth * SCREEN_WIDTH,
     SubTypeAllottedSpace = ratios.SubTypeAllottedSpace * SCREEN_HEIGHT,
     StatTextRightGap = ratios.StatTextRightGap * SCREEN_WIDTH,
-    StatCountRightGap = ratios.StatCountRightGap * SCREEN_WIDTH,
     StatCountTotalRightGap = ratios.StatCountTotalRightGap * SCREEN_WIDTH,
-    StatCountWidth = ratios.StatCountWidth * SCREEN_WIDTH,
     StatTextAllottedSpace = ratios.StatTextAllottedSpace * SCREEN_HEIGHT,
     RightHalfLeftGap = ratios.RightHalfLeftGap * SCREEN_WIDTH,
     RightHalfRightAlignLeftGap = ratios.RightHalfRightAlignLeftGap * SCREEN_WIDTH,
@@ -240,17 +234,24 @@ local subTypesChosen = {
 }
 
 local modTextZoom = 0.6
+
 local judgmentTextZoom = 0.6
 local judgmentCountZoom = 0.6
 local judgmentPercentZoom = 0.3
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
+
 local subTypeTextZoom = 0.7
+local subTypeTextBump = 5 -- a bump in position added to the bottom left numbers for spacing
+
 local statTextZoom = 0.7
 local statTextSuffixZoom = 0.6
+
 local titleTextSize = 0.8
 local songInfoTextSize = 0.55
 local scoreInfoTextSize = 0.8
+
 local textzoomFudge = 5
+
 
 -- this number should stay the same as ApproachSeconds under metrics.ini [RollingNumbersJudgmentPercentage]
 -- (or the associated RollingNumbers classes used in this file)
@@ -426,7 +427,7 @@ local function subTypeStats()
                 InitCommand = function(self)
                     self:halign(0):valign(0)
                     self:zoom(subTypeTextZoom)
-                    self:maxwidth(actuals.SubTypeCountLeftGap / subTypeTextZoom - textzoomFudge)
+                    self:maxwidth((actuals.SubTypeNumberCenter - subTypeTextBump - actuals.SubTypeNumberWidth / 2) / subTypeTextZoom - textzoomFudge)
                     self:settext(rdr)
                 end
             },
@@ -435,10 +436,10 @@ local function subTypeStats()
                 Font = "Common Normal",
                 InitCommand = function(self)
                     self:Load("RollingNumbersSlow3Leading")
-                    self:halign(0):valign(0)
-                    self:x(actuals.SubTypeCountLeftGap)
+                    self:halign(1):valign(0)
+                    self:x(actuals.SubTypeNumberCenter - subTypeTextBump)
                     self:zoom(subTypeTextZoom)
-                    self:maxwidth(actuals.SubTypeCountWidth / 2 / subTypeTextZoom - textzoomFudge)
+                    self:maxwidth((actuals.SubTypeNumberWidth / 2 - subTypeTextBump) / subTypeTextZoom - textzoomFudge)
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
@@ -455,7 +456,7 @@ local function subTypeStats()
                 InitCommand = function(self)
                     -- when you want to do something in a really particular way and dont trust anything else to get it right
                     self:valign(0)
-                    self:x(actuals.SubTypeCountLeftGap + actuals.SubTypeCountWidth / 2)
+                    self:x(actuals.SubTypeNumberCenter)
                     self:zoom(subTypeTextZoom)
                     self:settext("/")
                 end
@@ -465,10 +466,10 @@ local function subTypeStats()
                 Font = "Common Normal",
                 InitCommand = function(self)
                     self:Load("RollingNumbersSlow3Leading")
-                    self:halign(1):valign(0)
-                    self:x(actuals.SubTypeCountTotalLeftGap)
+                    self:halign(0):valign(0)
+                    self:x(actuals.SubTypeNumberCenter + subTypeTextBump)
                     self:zoom(subTypeTextZoom)
-                    self:maxwidth(actuals.SubTypeCountWidth / 2 / subTypeTextZoom - textzoomFudge)
+                    self:maxwidth((actuals.SubTypeNumberWidth / 2 - subTypeTextBump) / subTypeTextZoom - textzoomFudge)
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
@@ -629,7 +630,7 @@ local function calculatedStats()
                 InitCommand = function(self)
                     self:halign(0):valign(0)
                     self:zoom(statTextZoom)
-                    self:maxwidth(actuals.StatCountWidth / statTextZoom - textzoomFudge)
+                    self:maxwidth(actuals.StatTextRightGap / 2 / statTextZoom - textzoomFudge)
                     self:settext(statname)
                 end
             },
@@ -642,7 +643,8 @@ local function calculatedStats()
                     -- note to self make this name less confusing
                     self:x(actuals.StatTextRightGap)
                     self:zoom(statTextZoom)
-                    self:maxwidth(actuals.StatCountWidth / statTextZoom - textzoomFudge)
+                    -- no fudge
+                    self:maxwidth(actuals.StatTextRightGap / 2 / statTextZoom)
                     self:targetnumber(0)
                 end,
                 UpdateStatsCommand = function(self, params)
