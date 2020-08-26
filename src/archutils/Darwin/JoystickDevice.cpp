@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "JoystickDevice.h"
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Core/Services/Locator.hpp"
 
 using __gnu_cxx::hash_map;
 

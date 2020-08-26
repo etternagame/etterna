@@ -2140,6 +2140,7 @@ DownloadManager::StartSession(
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			DLMAN->loggingIn = false;
 			return;
 		}
 

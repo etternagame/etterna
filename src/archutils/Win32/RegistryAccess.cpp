@@ -63,7 +63,7 @@ OpenRegKey(const std::string& sKey, RegKeyMode mode, bool bWarnOnError = true)
 	if (retval != ERROR_SUCCESS) {
 		if (bWarnOnError)
 			Locator::getLogger()->warn(werr_ssprintf(retval, "RegOpenKeyEx(%x,%s) error", hType, sSubkey.c_str()));
-		return NULL;
+		return nullptr;
 	}
 
 	return hRetKey;

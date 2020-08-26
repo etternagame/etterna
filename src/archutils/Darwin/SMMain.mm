@@ -7,6 +7,7 @@
 #include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #import "archutils/Darwin/MouseDevice.h"
+#include "Core/Services/Locator.hpp"
 
 CGFloat scrolled;
 

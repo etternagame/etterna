@@ -438,9 +438,6 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
 	{
-		if (pScreenshot->GetName() != "Screenshot")
-            Locator::getLogger()->warn("Unable to load file {}", pScreenshot->GetName());
-
 		Screenshot ss;
 		ss.LoadFromNode(pScreenshot);
 
