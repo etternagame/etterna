@@ -256,17 +256,27 @@ local animationSeconds = 1
 
 local textEmbossColor = color("0,0,0,0")
 
+-- a helper to get the radar value for a score and fall back to playerstagestats if that fails
+-- it tends to fail a lot...
+local function gatherRadarValue(radar, score)
+    local n = score:GetRadarValues():GetValue(radar)
+    if n == -1 then
+        return pss:GetRadarActual():GetValue(radar)
+    end
+    return n
+end
+
 -- construct a table that is passed to the wife rescoring function
 local function gatherRescoreTableFromScore(score)
     local o = {}
     -- tap offsets
     o["dvt"] = score:GetOffsetVector()
     -- holds
-    o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
-	o["holdsHit"] = score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+    o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
     o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
     -- mines
-    o["minesHit"] = score:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
+    o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
     -- taps
     o["totalTaps"] = 0
     for _, j in ipairs(tapJudgments) do
@@ -434,13 +444,7 @@ local function subTypeStats()
                         self:targetnumber(0)
                         return
                     end
-                    local num = params.score:GetRadarValues():GetValue(rdr)
-                    -- this happens for replay-loaded scores
-                    -- we expect PlayerStageStats to have the info instead
-                    -- we don't want to pollute HighScores with potentially fake info, so it has to go here
-                    if num == -1 then
-                        num = pss:GetRadarActual():GetValue(rdr)
-                    end
+                    local num = gatherRadarValue(rdr, params.score)
                     self:targetnumber(num)
                 end
             },
@@ -470,7 +474,7 @@ local function subTypeStats()
                         self:targetnumber(0)
                         return
                     end
-                    local num = params.score:GetRadarPossible():GetValue("RadarCategory_"..rdr)
+                    local num = pss:GetRadarPossible():GetValue("RadarCategory_"..rdr)
                     self:targetnumber(num)
                 end
             }
@@ -903,7 +907,7 @@ t[#t+1] = Def.ActorFrame {
                         percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
                     end
                     local grade = GetGradeFromPercent(percent / 100)
-                    
+
                     local gra = THEME:GetString("Grade", ToEnumShortString(grade))
                     self:settext(gra)
                     self:diffuse(getGradeColor(grade))
