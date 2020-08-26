@@ -196,8 +196,6 @@ jobs:
 
       - name: Generate CMake
         run: mkdir build && cd build && cmake -G Ninja ..
-        env:
-          CXX: ${{matrix.cfg.cpp-version}}
 
       - name: Build Doxygen
         run: cd build && ninja doxygen
