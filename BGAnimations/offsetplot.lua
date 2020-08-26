@@ -28,6 +28,10 @@ local resizeAnimationSeconds = 0.1
 local dotLineLength = 0.75
 local dotLineUpperBound = 1.2
 local dotLineLowerBound = 0.7
+-- length of the dot lines for the mine X
+local mineXSize = 3
+local mineXThickness = 1
+local mineColor = color("1,0,0,1")
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -49,11 +53,25 @@ local function fitY(y, maxY)
     return -1 * y / maxY * sizing.Height / 2 + sizing.Height / 2
 end
 
+-- 4 xyz coordinates are given to make up the 4 corners of a quad to draw
 local function placeDotVertices(vertList, x, y, color)
     vertList[#vertList + 1] = {{x - dotLineLength, y + dotLineLength, 0}, color}
     vertList[#vertList + 1] = {{x + dotLineLength, y + dotLineLength, 0}, color}
     vertList[#vertList + 1] = {{x + dotLineLength, y - dotLineLength, 0}, color}
     vertList[#vertList + 1] = {{x - dotLineLength, y - dotLineLength, 0}, color}
+end
+
+-- 2 pairs of 4 coordinates to draw a big X
+local function placeMineVertices(vertList, x, y, color)
+    vertList[#vertList + 1] = {{x - mineXSize - mineXThickness / 2, y - mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXSize + mineXThickness / 2, y - mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
+
+    vertList[#vertList + 1] = {{x + mineXSize + mineXThickness / 2, y - mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXSize - mineXThickness / 2, y - mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
 end
 
 local t = Def.ActorFrame {
@@ -231,6 +249,8 @@ t[#t+1] = Def.ActorMultiVertex {
 
             if types[i] ~= "TapNoteType_Mine" then
                 placeDotVertices(vertices, x, y, dotColor)
+            else
+                placeMineVertices(vertices, x, fitY(-maxOffset, maxOffset), mineColor)
             end
 
         end
