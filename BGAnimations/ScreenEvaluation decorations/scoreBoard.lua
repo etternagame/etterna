@@ -65,6 +65,9 @@ actuals.DividerThickness = Var("DividerThickness")
 local itemCount = Var("ItemCount")
 if itemCount == nil or itemCount < 0 then itemCount = 1 end
 
+-- we dont actually use this but we pass it back just to make things work smoothly
+local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+
 local topButtonSize = 1
 local bottomButtonSize = 0.7
 local gradeSize = 0.8
@@ -118,11 +121,11 @@ local function distributeScore(callerActor, highscore)
         -- this gets replay data and calls the given function upon completion
         DLMAN:RequestOnlineScoreReplayData(highscore,
         function()
-            callerActor:GetParent():GetParent():playcommand("UpdateScore", {score = highscore})
+            callerActor:GetParent():GetParent():playcommand("UpdateScore", {score = highscore, judgeSetting = judgeSetting})
         end)
     else
         -- otherwise we can immediately do the thing
-        callerActor:GetParent():GetParent():playcommand("UpdateScore", {score = highscore})
+        callerActor:GetParent():GetParent():playcommand("UpdateScore", {score = highscore, judgeSetting = judgeSetting})
     end
 end
 
@@ -179,6 +182,13 @@ local function scoreList()
             end
 
             self:playcommand("UpdateList")
+        end,
+        SetCommand = function(self, params)
+            -- only used to update the judge setting for the purpose of updating to the correct judge
+            -- when picking new scores in the list
+            if params.judgeSetting ~= nil then
+                judgeSetting = params.judgeSetting
+            end
         end,
         UpdateScoresCommand = function(self)
             page = 1

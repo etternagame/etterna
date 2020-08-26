@@ -62,6 +62,11 @@ local t = Def.ActorFrame {
         if params.sizing ~= nil then
             sizing = params.sizing
         end
+        if params.judgeSetting ~= nil then
+            judgeSetting = params.judgeSetting
+            timingScale = ms.JudgeScalers[judgeSetting]
+        end
+    end
 }
 
 t[#t+1] = Def.Quad {

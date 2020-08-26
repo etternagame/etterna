@@ -1,30 +1,76 @@
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
 local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+-- keep track of the current displayed score so we can refer back to it
+local chosenScore
 local screen
+
+local function evalInput(event)
+    if event.type == "InputEventType_FirstPress" then
+        local btn = event.GameButton
+        if btn ~= nil then
+            if btn == "EffectUp" then
+                -- judge window increase
+                judgeSetting = clamp(judgeSetting + 1, 4, 9)
+                MESSAGEMAN:Broadcast("JudgeWindowChanged")
+            elseif btn == "EffectDown" then
+                -- judge window decrease
+                judgeSetting = clamp(judgeSetting - 1, 4, 9)
+                MESSAGEMAN:Broadcast("JudgeWindowChanged")
+            elseif btn == "MenuUp" then
+                -- reset judge window
+                judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+                MESSAGEMAN:Broadcast("JudgeWindowChanged")
+            end
+        end
+    end
+end
 
 local t = Def.ActorFrame {
     Name = "MainDisplayFile",
     BeginCommand = function(self)
         screen = SCREENMAN:GetTopScreen()
+        screen:AddInputCallback(evalInput)
     end,
     OnCommand = function(self)
         local score = SCOREMAN:GetMostRecentScore()
         if not score then
             score = SCOREMAN:GetTempReplayScore()
         end
+        chosenScore = score
+
+        -- use this to force J4 init for SSRNorm
+        local forcedScreenEntryJudgeWindow = nil
+        if PREFSMAN:GetPreference("SortBySSRNormPercent") then
+            forcedScreenEntryJudgeWindow = 4
+        end
 
         --- propagate set command through children with the song
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = score})
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = score, judgeSetting = forcedScreenEntryJudgeWindow})
     end,
     UpdateScoreCommand = function(self, params)
+        -- update the global judge setting if it is provided and just in case it happens to be desynced here
+        -- (it desyncs if picking scores, this will fix it)
+        -- otherwise it should already be set by the input event
+        if params.judgeSetting ~= nil then
+            judgeSetting = params.judgeSetting
+        end
+
         -- we assume the score has a replay
         -- recalculate playerstagestats using the replay
         screen:SetPlayerStageStatsFromReplayData(pss, ms.JudgeScalers[judgeSetting], params.score)
 
+        chosenScore = params.score
+
         --- update all relevant information according to the given score
         -- should work with offset plot as well as all regular information on this screen
         -- this is intended for use only with replays but may partially work without it
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = params.score})
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = params.score, judgeSetting = params.judgeSetting})
+    end,
+    JudgeWindowChangedMessageCommand = function(self)
+        -- we assume a score is already set
+        -- so we run it back through again
+        -- the fact that the param table has judgeSetting in it causes things to recalc according to judge
+        self:playcommand("UpdateScore", {score = chosenScore, judgeSetting = judgeSetting})
     end
 }
 
@@ -162,6 +208,17 @@ local actuals = {
     OffsetPlotWidth = ratios.OffsetPlotWidth * SCREEN_WIDTH,
 }
 
+-- constant list of judgments for rescoring purposes
+-- for the most part this list is the same as the one below but remains separate just "in case"
+local tapJudgments = {
+    "TapNoteScore_W1",
+    "TapNoteScore_W2",
+    "TapNoteScore_W3",
+    "TapNoteScore_W4",
+    "TapNoteScore_W5",
+    "TapNoteScore_Miss",
+}
+
 -- list of judgments to display the bar/counts for
 local judgmentsChosen = {
     "TapNoteScore_W1", -- marvelous
@@ -199,6 +256,25 @@ local animationSeconds = 1
 
 local textEmbossColor = color("0,0,0,0")
 
+-- construct a table that is passed to the wife rescoring function
+local function gatherRescoreTableFromScore(score)
+    local o = {}
+    -- tap offsets
+    o["dvt"] = score:GetOffsetVector()
+    -- holds
+    o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	o["holdsHit"] = score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+    o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
+    -- mines
+    o["minesHit"] = score:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
+    -- taps
+    o["totalTaps"] = 0
+    for _, j in ipairs(tapJudgments) do
+        o["totalTaps"] = o["totalTaps"] + score:GetTapNoteScore(j)
+    end
+	return o
+end
+
 local function judgmentBars()
     local totalTaps = 0
     local t = Def.ActorFrame {
@@ -212,12 +288,24 @@ local function judgmentBars()
     }
     local function makeJudgment(i)
         local jdg = judgmentsChosen[i]
+        local count = 0
 
         return Def.ActorFrame {
             Name = "Judgment_"..i,
             InitCommand = function(self)
                 -- finds the top of every bar given the requested spacing and the height of each bar within the allotted space
                 self:y((((i-1) * actuals.JudgmentBarHeight + (i-1) * actuals.JudgmentBarSpacing) / actuals.JudgmentBarAllottedSpace) * actuals.JudgmentBarAllottedSpace)
+            end,
+            SetCommand = function(self, params)
+                if params.score ~= nil then
+                    if params.judgeSetting ~= nil then
+                        count = getRescoredJudge(params.score:GetOffsetVector(), params.judgeSetting, i)
+                    else
+                        count = params.score:GetTapNoteScore(jdg)
+                    end
+                else
+                    count = 0
+                end
             end,
 
             Def.Quad {
@@ -243,7 +331,7 @@ local function judgmentBars()
                         self:zoomx(0)
                         return
                     end
-                    local percent = params.score:GetTapNoteScore(jdg) / totalTaps
+                    local percent = count / totalTaps
                     self:zoomx(actuals.JudgmentBarLength * percent)
                 end
             },
@@ -277,7 +365,6 @@ local function judgmentBars()
                         self:targetnumber(0)
                         return
                     end
-                    local count = params.score:GetTapNoteScore(jdg)
                     self:targetnumber(count)
                 end
             },
@@ -298,7 +385,7 @@ local function judgmentBars()
                         self:targetnumber(0)
                         return
                     end
-                    local percent = params.score:GetTapNoteScore(jdg) / totalTaps * 100
+                    local percent = count / totalTaps * 100
                     self:targetnumber(percent)
                 end
             }
@@ -810,9 +897,16 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetCommand = function(self, params)
                 if params.score ~= nil then
-                    local gra = THEME:GetString("Grade", ToEnumShortString(params.score:GetWifeGrade()))
+                    local percent = params.score:GetWifeScore() * 100
+                    if params.judgeSetting ~= nil then
+                        local rescoreTable = gatherRescoreTableFromScore(params.score)
+                        percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
+                    end
+                    local grade = GetGradeFromPercent(percent / 100)
+                    
+                    local gra = THEME:GetString("Grade", ToEnumShortString(grade))
                     self:settext(gra)
-                    self:diffuse(getGradeColor(params.score:GetWifeGrade()))
+                    self:diffuse(getGradeColor(grade))
                 else
                     self:settext("")
                 end
@@ -831,8 +925,22 @@ t[#t+1] = Def.ActorFrame {
                     local ver = params.score:GetWifeVers()
                     local ws = "W"..ver.." J"
                     ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
-                    self:diffuse(getGradeColor(params.score:GetWifeGrade()))
-                    self:settextf("%05.2f%% (%s)", notShit.floor(params.score:GetWifeScore() * 100, 2), ws)
+                    local percent = params.score:GetWifeScore() * 100
+                    local decimals = 2
+                    local strfrmat = "%05.2f%% (%s)"
+                    if params.judgeSetting ~= nil then
+                        local rescoreTable = gatherRescoreTableFromScore(params.score)
+                        percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
+                    end
+                    -- scores over 99% should show more decimals
+                    if percent > 99 then
+                        decimals = 5
+                        strfrmat = "%05.5f%% (%s)"
+                    end
+                    percent = notShit.floor(percent, decimals)
+                    local grade = GetGradeFromPercent(percent / 100)
+                    self:diffuse(getGradeColor(grade))
+                    self:settextf(strfrmat, percent, ws)
                 else
                     self:settext("")
                 end
@@ -899,7 +1007,7 @@ t[#t+1] = Def.ActorFrame {
                     end
                     local lastSecond = params.steps:GetLastSecond()
 
-                    self:playcommand("LoadOffsets", {offsetVector = offsets, trackVector = tracks, timingVector = timing, typeVector = types, maxTime = lastSecond})
+                    self:playcommand("LoadOffsets", {offsetVector = offsets, trackVector = tracks, timingVector = timing, typeVector = types, maxTime = lastSecond, judgeSetting = params.judgeSetting})
                 end
             end
         end
