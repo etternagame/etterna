@@ -253,6 +253,7 @@ local scoreInfoTextSize = 0.8
 local textzoomFudge = 5
 
 -- this number should stay the same as ApproachSeconds under metrics.ini [RollingNumbersJudgmentPercentage]
+-- (or the associated RollingNumbers classes used in this file)
 local animationSeconds = 0.5
 
 local textEmbossColor = color("0,0,0,0")
@@ -433,7 +434,7 @@ local function subTypeStats()
                 Name = "Count",
                 Font = "Common Normal",
                 InitCommand = function(self)
-                    self:Load("RollingNumbers3Leading")
+                    self:Load("RollingNumbersSlow3Leading")
                     self:halign(0):valign(0)
                     self:x(actuals.SubTypeCountLeftGap)
                     self:zoom(subTypeTextZoom)
@@ -463,7 +464,7 @@ local function subTypeStats()
                 Name = "Total",
                 Font = "Common Normal",
                 InitCommand = function(self)
-                    self:Load("RollingNumbers3Leading")
+                    self:Load("RollingNumbersSlow3Leading")
                     self:halign(1):valign(0)
                     self:x(actuals.SubTypeCountTotalLeftGap)
                     self:zoom(subTypeTextZoom)
@@ -503,12 +504,12 @@ local function calculatedStats()
     -- RollingNumber types in metrics
     -- so we can assign it without so much work
     local statTypes = {
-        "2DecimalNoLeadMilliseconds",
-        "2DecimalNoLeadMilliseconds",
-        "2DecimalNoLeadMilliseconds",
-        "NoLead",
-        "NoLead",
-        "NoLead",
+        "Slow2DecimalNoLeadMilliseconds",
+        "Slow2DecimalNoLeadMilliseconds",
+        "Slow2DecimalNoLeadMilliseconds",
+        "SlowNoLead",
+        "SlowNoLead",
+        "SlowNoLead",
     }
 
     local evenColumns = true
