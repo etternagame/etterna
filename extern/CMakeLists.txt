@@ -48,9 +48,11 @@ add_subdirectory(mad-0.15.1b)
 add_subdirectory(fmt)
 add_subdirectory(plog)
 
-## Vorbis depends on Vorbis
+## Vorbis depends on ogg
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
+target_link_libraries(vorbis ogg)
+
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
