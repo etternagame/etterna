@@ -253,7 +253,7 @@ local scoreInfoTextSize = 0.8
 local textzoomFudge = 5
 
 -- this number should stay the same as ApproachSeconds under metrics.ini [RollingNumbersJudgmentPercentage]
-local animationSeconds = 1
+local animationSeconds = 0.5
 
 local textEmbossColor = color("0,0,0,0")
 
@@ -362,7 +362,7 @@ local function judgmentBars()
                 Name = "Count",
                 Font = "Common Large",
                 InitCommand = function(self)
-                    self:Load("RollingNumbersNoLead")
+                    self:Load("RollingNumbersJudgmentNoLead")
                     self:halign(1)
                     self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap - judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentCountZoom)
