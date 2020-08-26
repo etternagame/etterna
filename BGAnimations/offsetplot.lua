@@ -19,6 +19,10 @@ local lineAlpha = 0.2
 local textPadding = 5
 local textSize = 0.65
 
+local bgColor = color("0,0,0,0.8")
+local dotAnimationSeconds = 1
+local resizeAnimationSeconds = 0.1
+
 -- the dot sizes
 -- the "classic" default is 1.0
 local dotLineLength = 0.75
@@ -55,18 +59,22 @@ end
 local t = Def.ActorFrame {
     Name = "OffsetPlotFile",
     UpdateSizingCommand = function(self, params)
-        sizing = params.sizing
-    end
+        if params.sizing ~= nil then
+            sizing = params.sizing
+        end
 }
 
 t[#t+1] = Def.Quad {
     Name = "BG",
     InitCommand = function(self)
         self:halign(0)
-        self:diffuse(color("0,0,0,0.8"))
+        self:diffuse(bgColor)
         self:playcommand("UpdateSizing")
+        self:finishtweening()
     end,
     UpdateSizingCommand = function(self)
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
         self:y(sizing.Height / 2)
         self:zoomto(sizing.Width, sizing.Height)
     end
@@ -79,8 +87,11 @@ t[#t+1] = Def.Quad {
         self:diffuse(byJudgment("TapNoteScore_W1"))
         self:diffusealpha(lineAlpha)
         self:playcommand("UpdateSizing")
+        self:finishtweening()
     end,
     UpdateSizingCommand = function(self)
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
         self:y(sizing.Height / 2)
         self:zoomto(sizing.Width, lineThickness)
     end
@@ -94,8 +105,11 @@ for i, j in ipairs(barJudgments) do
             self:diffuse(byJudgment(j))
             self:diffusealpha(lineAlpha)
             self:playcommand("UpdateSizing")
+            self:finishtweening()
         end,
         UpdateSizingCommand = function(self)
+            self:finishtweening()
+            self:smooth(resizeAnimationSeconds)
             local window = ms.getLowerWindowForJudgment(j, timingScale)
             self:y(fitY(window, maxOffset))
             self:zoomto(sizing.Width, lineThickness)
@@ -108,8 +122,11 @@ for i, j in ipairs(barJudgments) do
             self:diffuse(byJudgment(j))
             self:diffusealpha(lineAlpha)
             self:playcommand("UpdateSizing")
+            self:finishtweening()
         end,
         UpdateSizingCommand = function(self)
+            self:finishtweening()
+            self:smooth(resizeAnimationSeconds)
             local window = ms.getLowerWindowForJudgment(j, timingScale)
             self:y(fitY(-window, maxOffset))
             self:zoomto(sizing.Width, lineThickness)
@@ -123,8 +140,11 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:halign(0):valign(0)
         self:zoom(textSize)
         self:playcommand("UpdateSizing")
+        self:finishtweening()
     end,
     UpdateSizingCommand = function(self)
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, textPadding)
         self:settextf("Late (+%dms)", bound)
@@ -137,8 +157,11 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:halign(0):valign(1)
         self:zoom(textSize)
         self:playcommand("UpdateSizing")
+        self:finishtweening()
     end,
     UpdateSizingCommand = function(self)
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, sizing.Height - textPadding)
         self:settextf("Early (-%dms)", bound)
@@ -152,8 +175,11 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:zoom(textSize)
         self:settext("")
         self:playcommand("UpdateSizing")
+        self:finishtweening()
     end,
     UpdateSizingCommand = function(self)
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
         self:xy(sizing.Width / 2, sizing.Height - textPadding)
     end
 }
@@ -165,13 +191,11 @@ t[#t+1] = Def.ActorMultiVertex {
         self:playcommand("UpdateSizing")
     end,
     UpdateSizingCommand = function(self)
-        --self:y(sizing.Height / 2)
-        --self:linear(2)
-        --self:zoomto(1, 1)
 
     end,
     LoadOffsetsCommand = function(self, params)
-        self:playcommand("UpdateSizing")
+        -- makes sure all sizes are updated
+        self:GetParent():playcommand("UpdateSizing", params)
         local vertices = {}
         local offsets = params.offsetVector
         local tracks = params.trackVector
@@ -208,7 +232,7 @@ t[#t+1] = Def.ActorMultiVertex {
         -- animation breaks if we start from nothing
         if self:GetNumVertices() ~= 0 then
             self:finishtweening()
-            self:smooth(1)
+            self:smooth(dotAnimationSeconds)
         end
         self:SetVertices(vertices)
         self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = #vertices}
