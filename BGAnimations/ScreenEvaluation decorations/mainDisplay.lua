@@ -941,7 +941,10 @@ t[#t+1] = Def.ActorFrame {
                         decimals = 5
                         strfrmat = "%05.5f%% (%s)"
                     end
-                    percent = notShit.floor(percent, decimals)
+                    -- this magic math "fixes" float precision error and also floors the result
+                    -- it makes a difference at the 0.00001 or so level which is kind of rare
+                    -- but i found a single case and i had to do this to fix it so im leaving it here
+                    percent = notShit.floor(percent * 10000, decimals) / 10000
                     local grade = GetGradeFromPercent(percent / 100)
                     self:diffuse(getGradeColor(grade))
                     self:settextf(strfrmat, percent, ws)
