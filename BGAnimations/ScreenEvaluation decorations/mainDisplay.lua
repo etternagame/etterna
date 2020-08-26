@@ -254,7 +254,8 @@ local function judgmentBars()
                     self:xy(actuals.JudgmentNameLeftGap, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentTextZoom)
                     self:strokecolor(textEmbossColor)
-                    --self:maxwidth()
+                    -- allow 3/4 of the judgment area between the number alignment and the name alignment
+                    self:maxwidth((actuals.JudgmentBarLength - actuals.JudgmentNameLeftGap - actuals.JudgmentCountRightGap - judgmentCountPercentBump) / 4 * 3 / judgmentTextZoom)
                     self:settext(getJudgeStrings(ms.JudgeCount[i]))
                 end
             },
@@ -267,6 +268,8 @@ local function judgmentBars()
                     self:xy(actuals.JudgmentBarLength - actuals.JudgmentCountRightGap - judgmentCountPercentBump, actuals.JudgmentBarHeight / 2)
                     self:zoom(judgmentCountZoom)
                     self:strokecolor(textEmbossColor)
+                    -- allow 1/4 of the judgment area between the number alignment and the name alignment
+                    self:maxwidth((actuals.JudgmentBarLength - actuals.JudgmentNameLeftGap - actuals.JudgmentCountRightGap - judgmentCountPercentBump) / 4 / judgmentTextZoom)
                     self:targetnumber(0)
                 end,
                 SetCommand = function(self, params)
