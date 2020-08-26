@@ -85,8 +85,9 @@ local ratios = {
 
     GraphLeftGap = 18 / 1920,
     GraphWidth = 739 / 1920, -- this must be the same as in metrics [GraphDisplay/ComboGraph]
-    GraphBannerGap = 16 / 1080, -- from bottom of banner to top of graph
+    GraphBannerGap = 9 / 1080, -- from bottom of banner to top of graph
     BannerLeftGap = 18 / 1920,
+    BannerUpperGap = 7 / 1080,
     BannerHeight = 228 / 1080,
     BannerWidth = 739 / 1920,
     LifeGraphHeight = 71 / 1080, -- this must be the same as in metrics [GraphDisplay]
@@ -156,6 +157,7 @@ local actuals = {
     GraphWidth = ratios.GraphWidth * SCREEN_WIDTH,
     GraphBannerGap = ratios.GraphBannerGap * SCREEN_HEIGHT,
     BannerLeftGap = ratios.BannerLeftGap * SCREEN_WIDTH,
+    BannerUpperGap = ratios.BannerUpperGap * SCREEN_HEIGHT,
     BannerHeight = ratios.BannerHeight * SCREEN_HEIGHT,
     BannerWidth = ratios.BannerWidth * SCREEN_WIDTH,
     LifeGraphHeight = ratios.LifeGraphHeight * SCREEN_HEIGHT,
@@ -721,7 +723,7 @@ t[#t+1] = Def.ActorFrame {
     Def.Sprite {
         Name = "Banner",
         InitCommand = function(self)
-            self:x(actuals.BannerLeftGap)
+            self:xy(actuals.BannerLeftGap, actuals.BannerUpperGap)
             self:valign(0):halign(0)
             self:scaletoclipped(actuals.BannerWidth, actuals.BannerHeight)
         end,
@@ -745,7 +747,7 @@ t[#t+1] = Def.ActorFrame {
         Name = "LifeGraph",
         InitCommand = function(self)
             self:valign(0):halign(0)
-            self:xy(actuals.GraphLeftGap, actuals.GraphBannerGap + actuals.BannerHeight)
+            self:xy(actuals.GraphLeftGap, actuals.BannerUpperGap + actuals.GraphBannerGap + actuals.BannerHeight)
             -- due to reasons, the sizing for this is in metrics [GraphDisplay]
             -- we override them with the following zoomto
             -- so the ones in metrics can be anything....
@@ -765,7 +767,7 @@ t[#t+1] = Def.ActorFrame {
         Name = "ComboGraph",
         InitCommand = function(self)
             self:valign(0):halign(0)
-            self:xy(actuals.GraphLeftGap, actuals.GraphBannerGap + actuals.BannerHeight + actuals.LifeGraphHeight)
+            self:xy(actuals.GraphLeftGap, actuals.BannerUpperGap + actuals.GraphBannerGap + actuals.BannerHeight + actuals.LifeGraphHeight)
             -- due to reasons, the sizing for this is in metrics [ComboGraph]
             -- we dont override them here because the combo text is broken by the zoom
             -- self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)
