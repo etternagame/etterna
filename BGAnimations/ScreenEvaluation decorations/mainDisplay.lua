@@ -252,6 +252,7 @@ local songInfoTextSize = 0.55
 local scoreInfoTextSize = 0.8
 local textzoomFudge = 5
 
+-- this number should stay the same as ApproachSeconds under metrics.ini [RollingNumbersJudgmentPercentage]
 local animationSeconds = 1
 
 local textEmbossColor = color("0,0,0,0")
