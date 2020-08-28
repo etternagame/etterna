@@ -4,7 +4,7 @@
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/Misc/RageThreads.h"
 #import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
-#import "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
@@ -61,12 +61,12 @@ public:
 
 - (void) windowDidBecomeKey:(NSNotification *)aNotification
 {
-	HOOKS->SetHasFocus( true );
+	Locator::getArchHooks()->SetHasFocus( true );
 }
 
 - (void) windowDidResignKey:(NSNotification *)aNotification
 {
-	HOOKS->SetHasFocus( false );
+    Locator::getArchHooks()->SetHasFocus( false );
 }
 
 - (void) windowWillClose:(NSNotification *)aNotification
@@ -301,7 +301,7 @@ LowLevelWindow_MacOSX::LowLevelWindow_MacOSX() : m_Context(nil), m_BGContext(nil
 	
 	m_CurrentParams.windowed = true; // We are essentially windowed to begin with.
 	SetActualParamsFromMode( CGDisplayCurrentMode(kCGDirectMainDisplay) );
-	HOOKS->SetHasFocus( [NSApp isActive] );
+	Locator::getArchHooks()->SetHasFocus( [NSApp isActive] );
 }
 
 LowLevelWindow_MacOSX::~LowLevelWindow_MacOSX()
@@ -356,7 +356,7 @@ std::string LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool&
 	ASSERT( p.bpp == 16 || p.bpp == 32 );
 	
 	// If we don't have focus, we cannot be full screen.
-	if( p.windowed || !HOOKS->AppHasFocus() )
+	if( p.windowed || !Locator::getArchHooks()->AppHasFocus() )
 	{		
 		if( bRebuildContext )
 		{

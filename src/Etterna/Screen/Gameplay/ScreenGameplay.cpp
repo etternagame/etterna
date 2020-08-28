@@ -23,7 +23,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundReader.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
@@ -83,7 +83,7 @@ ScreenGameplay::ScreenGameplay()
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		LOG->Trace("Unloading excess data.");
+		Locator::getLogger()->trace("Unloading excess data.");
 		SCOREMAN->UnloadAllReplayData();
 	}
 
@@ -149,9 +149,9 @@ ScreenGameplay::Init()
 		auto* curSteps = m_vPlayerInfo.m_vpStepsQueue[i];
 		if (curSteps->IsNoteDataEmpty()) {
 			if (curSteps->GetNoteDataFromSimfile()) {
-				LOG->Trace("Notes should be loaded for player 1");
+				Locator::getLogger()->trace("Notes should be loaded for player 1");
 			} else {
-				LOG->Trace("Error loading notes for player 1");
+				Locator::getLogger()->trace("Error loading notes for player 1");
 			}
 		}
 	}
@@ -378,9 +378,8 @@ ScreenGameplay::~ScreenGameplay()
 		GAMESTATE->CancelStage();
 	}
 
-	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Trace("ScreenGameplay::~ScreenGameplay()");
-	}
+	if (PREFSMAN->m_verbose_log > 1)
+		Locator::getLogger()->trace("ScreenGameplay::~ScreenGameplay()");
 
 	SAFE_DELETE(m_pSongBackground);
 	SAFE_DELETE(m_pSongForeground);
@@ -961,7 +960,7 @@ ScreenGameplay::Update(float fDeltaTime)
 					m_vPlayerInfo.m_pLifeMeter->IsFailing() &&
 					!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
 
-					LOG->Trace("Player %d failed", static_cast<int>(pn));
+					Locator::getLogger()->trace("Player {} failed", static_cast<int>(pn));
 					m_vPlayerInfo.GetPlayerStageStats()->m_bFailed =
 					  true; // fail
 
@@ -1042,7 +1041,7 @@ ScreenGameplay::Update(float fDeltaTime)
 				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
 				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
 				ResetGiveUpTimers(false);
-				LOG->Trace("Exited Gameplay to Evaluation");
+				Locator::getLogger()->trace("Exited Gameplay to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
 			}
@@ -1326,7 +1325,7 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 				 (input.DeviceI.device != DEVICE_KEYBOARD &&
 				  INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F))) {
 				if (PREFSMAN->m_verbose_log > 1) {
-					LOG->Trace("Player %i went back", input.pn + 1);
+					Locator::getLogger()->trace("Player {} went back", input.pn + 1);
 				}
 				BeginBackingOutFromGameplay();
 			} else if (PREFSMAN->m_bDelayedBack &&
@@ -1563,11 +1562,10 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.Failed();
 		const auto bIsLastSong = m_apSongsQueue.size() == 1;
 
-		LOG->Trace("bAllReallyFailed = %d "
-				   "bIsLastSong = %d, m_gave_up = %d",
-				   static_cast<int>(bAllReallyFailed),
-				   static_cast<int>(bIsLastSong),
-				   static_cast<int>(m_gave_up));
+		Locator::getLogger()->trace("bAllReallyFailed = {} bIsLastSong = {}, m_gave_up = {}",
+				   bAllReallyFailed,
+				   bIsLastSong,
+				   m_gave_up);
 
 		if (GAMESTATE->IsPlaylistCourse()) {
 			m_apSongsQueue.erase(m_apSongsQueue.begin(),

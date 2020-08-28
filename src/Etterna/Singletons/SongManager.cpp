@@ -13,7 +13,7 @@
 #include "ProfileManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Songs/SongCacheIndex.h"
@@ -234,9 +234,8 @@ SongManager::DifferentialReloadDir(string dir) -> int
 		if (loaded == 0) {
 			continue;
 		}
-		LOG->Trace("Differential load of %i songs from \"%s\"",
-				   loaded,
-				   (dir + group.name).c_str());
+		Locator::getLogger()->trace("Differential load of {} songs from \"{}\"",
+				   loaded, (dir + group.name).c_str());
 
 		AddGroup(dir, group.name);
 		IMAGECACHE->CacheImage("Banner",
@@ -372,7 +371,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	SONGINDEX->delay_save_cache = false;
 
 	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Trace("Found %u songs in %f seconds.",
+		Locator::getLogger()->trace("Found {} songs in {} seconds.",
 				   static_cast<unsigned int>(m_pSongs.size()),
 				   tm.GetDeltaTime());
 	}
@@ -391,8 +390,7 @@ SongManager::CalcTestStuff()
 	// output calc differences for chartkeys and targets and stuff
 	for (const auto& p : testChartList) {
 		auto ss = p.first;
-		LOG->Trace("\nStarting calc test group %s\n",
-				   SkillsetToString(ss).c_str());
+		Locator::getLogger()->trace("\nStarting calc test group {}\n", SkillsetToString(ss).c_str());
 		for (const auto& chart : p.second.filemapping) {
 
 			if (StepsByKey.count(chart.first) != 0u) {
@@ -401,14 +399,12 @@ SongManager::CalcTestStuff()
 					chart.second.ev, ss, chart.second.rate, calc.get()));
 			}
 		}
-		LOG->Trace("\n\n");
 	}
 
 	FOREACH_ENUM(Skillset, ss)
 	{
 		if (!test_vals[ss].empty()) {
-			LOG->Trace(
-			  "%+0.2f avg delta for test group %s",
+			Locator::getLogger()->trace("%{:+0.2f} avg delta for test group %s",
 			  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.F) /
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
@@ -882,9 +878,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			if (loaded == 0) {
 				continue;
 			}
-			LOG->Trace("Loaded %i songs from \"%s\"",
-					   loaded,
-					   (sDir + sGroupName).c_str());
+			Locator::getLogger()->trace("Loaded {} songs from \"{}\"",
+					   loaded,(sDir + sGroupName).c_str());
 			{
 				std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
 				SONGMAN->AddGroup(sDir, sGroupName);
@@ -1324,7 +1319,7 @@ SongManager::LoadCalcTestNode()
 	std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile == nullptr) {
-		LOG->Trace("Error opening %s: %s", fn.c_str(), strerror(iError));
+		Locator::getLogger()->trace("Error opening {}: {}", fn.c_str(), strerror(iError));
 		return;
 	}
 

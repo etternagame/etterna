@@ -31,6 +31,7 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Services/Locator.hpp"
 
 #include <algorithm>
 
@@ -45,7 +46,7 @@ class GameStateMessageHandler : public MessageSubscriber
 			std::string sJoined("P1");
 
 			if (PREFSMAN->m_verbose_log > 0)
-				LOG->MapLog("JOINED", "Players joined: %s", sJoined.c_str());
+				Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
 		}
 	}
 };
@@ -489,7 +490,7 @@ GameState::BeginStage()
 
 	// This should only be called once per stage.
 	if (m_iNumStagesOfThisSong != 0)
-		LOG->Warn("XXX: m_iNumStagesOfThisSong == %i?", m_iNumStagesOfThisSong);
+		Locator::getLogger()->warn("XXX: m_iNumStagesOfThisSong == {}?", m_iNumStagesOfThisSong);
 
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();

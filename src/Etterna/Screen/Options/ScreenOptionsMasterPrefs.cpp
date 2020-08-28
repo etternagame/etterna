@@ -10,7 +10,7 @@
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Models/Songs/SongOptions.h"
@@ -237,10 +237,8 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 				sel = i;
 
 		if (sel == -1) {
-			LOG->Warn(
-			  "Couldn't find language \"%s\" or fallback \"%s\"; using \"%s\"",
-			  THEME->GetCurLanguage().c_str(),
-			  SpecialFiles::BASE_LANGUAGE.c_str(),
+			Locator::getLogger()->warn("Couldn't find language \"{}\" or fallback \"{}\"; using \"{}\"",
+			  THEME->GetCurLanguage().c_str(), SpecialFiles::BASE_LANGUAGE.c_str(),
 			  vs[0].c_str());
 			sel = 0;
 		}

@@ -14,7 +14,7 @@
 #include "Etterna/Screen/Others/ScreenPrompt.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
@@ -492,7 +492,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	ProfileManager::m_sDefaultLocalProfileID[*pn].Set(m_sProfileID);
 	if (!m_sUrl.empty()) {
-		if (HOOKS->GoToURL(m_sUrl)) {
+		if (Locator::getArchHooks()->GoToURL(m_sUrl)) {
 			if (m_bUrlExits)
 				SCREENMAN->SetNewScreen("ScreenExit");
 		} else

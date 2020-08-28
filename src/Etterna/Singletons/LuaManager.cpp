@@ -4,7 +4,7 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -458,29 +458,29 @@ LuaHelpers::rec_print_table(lua_State* L,
 {
 	switch (lua_type(L, -1)) {
 		case LUA_TNIL:
-			LOG->Trace("%s%s: nil", indent.c_str(), name.c_str());
+			Locator::getLogger()->trace("{}{}: nil", indent.c_str(), name.c_str());
 			break;
 		case LUA_TNUMBER:
-			LOG->Trace("%s%s number: %f",
+			Locator::getLogger()->trace("{}{} number: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tonumber(L, -1));
 			break;
 		case LUA_TBOOLEAN:
-			LOG->Trace("%s%s bool: %d",
+			Locator::getLogger()->trace("{}{} bool: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_toboolean(L, -1));
 			break;
 		case LUA_TSTRING:
-			LOG->Trace("%s%s string: %s",
+			Locator::getLogger()->trace("{}{} string: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tostring(L, -1));
 			break;
 		case LUA_TTABLE: {
 			size_t tablen = lua_objlen(L, -1);
-			LOG->Trace("%s%s table: %zu", indent.c_str(), name.c_str(), tablen);
+			Locator::getLogger()->trace("{}{} table: {}", indent.c_str(), name.c_str(), tablen);
 			std::string subindent = indent + "  ";
 			lua_pushnil(L);
 			while (lua_next(L, -2) != 0) {
@@ -492,16 +492,16 @@ LuaHelpers::rec_print_table(lua_State* L,
 			}
 		} break;
 		case LUA_TFUNCTION:
-			LOG->Trace("%s%s function:", indent.c_str(), name.c_str());
+			Locator::getLogger()->trace("{}{} function:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TUSERDATA:
-			LOG->Trace("%s%s userdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->trace("{}{} userdata:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TTHREAD:
-			LOG->Trace("%s%s thread:", indent.c_str(), name.c_str());
+			Locator::getLogger()->trace("{}{} thread:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TLIGHTUSERDATA:
-			LOG->Trace("%s%s lightuserdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->trace("{}{} lightuserdata:", indent.c_str(), name.c_str());
 			break;
 		default:
 			break;
@@ -1213,7 +1213,7 @@ LuaHelpers::ReportScriptError(std::string const& Error,
 		ScriptErrorMessage(Error);
 		InReportScriptError = false;
 	}
-	LOG->Warn("%s", Error.c_str());
+	Locator::getLogger()->warn(Error.c_str());
 	if (UseAbort) {
 		std::string with_correct =
 		  Error + "\nCorrect this and click Retry, click Abort to crash, or "
@@ -1398,7 +1398,7 @@ LuaHelpers::ParseCommandList(Lua* L,
 
 	std::string sError;
 	if (!LuaHelpers::RunScript(L, sLuaFunction, sName, sError, 0, 1))
-		LOG->Warn("Compiling \"%s\": %s", sLuaFunction.c_str(), sError.c_str());
+		Locator::getLogger()->warn("Compiling \"{}\": {}", sLuaFunction.c_str(), sError.c_str());
 
 	// The function is now on the stack.
 }
@@ -1494,20 +1494,19 @@ static int
 Trace(lua_State* L)
 {
 	std::string sString = SArg(1);
-	LOG->Trace("%s", sString.c_str());
+	Locator::getLogger()->trace(sString.c_str());
 	return 0;
 }
 static int
 Warn(lua_State* L)
 {
 	std::string sString = SArg(1);
-	LOG->Warn("%s", sString.c_str());
+	Locator::getLogger()->warn(sString.c_str());
 	return 0;
 }
 static int
 Flush(lua_State*)
 {
-	LOG->Flush();
 	return 0;
 }
 static int

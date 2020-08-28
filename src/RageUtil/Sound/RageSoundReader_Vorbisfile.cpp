@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundReader_Vorbisfile.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -190,8 +190,8 @@ RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
 			if (curofs < read_offset) {
 				/* The timestamps moved backwards.  Ignore it.  This file
 				 * probably won't sync correctly. */
-				LOG->Trace("p ahead %p %i < %i, we're ahead by %i",
-						   this,
+				Locator::getLogger()->trace("p ahead {} {} < {}, we're ahead by {}",
+                                            (void*)this,
 						   curofs,
 						   read_offset,
 						   read_offset - curofs);

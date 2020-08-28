@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver_OSS.h"
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -46,7 +46,7 @@ RageSoundDriver_OSS::MixerThread()
 	 * < 0, which is silly.  Give it a try, anyway. */
 	int status = nice(-10);
 	if (status != -1)
-		LOG->Trace("Set MixerThread nice value to %d", status);
+		Locator::getLogger()->trace("Set MixerThread nice value to {}", status);
 
 	while (!shutdown) {
 		while (GetData())
@@ -68,7 +68,7 @@ RageSoundDriver_OSS::SetupDecodingThread()
 {
 	int status = nice(-5);
 	if (status != -1)
-		LOG->Trace("Set DecodingThread nice value to %d", status);
+		Locator::getLogger()->trace("Set DecodingThread nice value to {}", status);
 }
 
 bool
@@ -123,7 +123,7 @@ RageSoundDriver_OSS::CheckOSSVersion(int fd)
 
 #if defined(HAVE_OSS_GETVERSION)
 	if (ioctl(fd, OSS_GETVERSION, &version) != 0) {
-		LOG->Warn("OSS_GETVERSION failed: %s", strerror(errno));
+		Locator::getLogger()->warn("OSS_GETVERSION failed: {}", strerror(errno));
 		version = 0;
 	}
 #endif
@@ -162,7 +162,7 @@ RageSoundDriver_OSS::CheckOSSVersion(int fd)
 			rev = (version / 0x00001) % 0x100;
 		}
 
-		LOG->Info("OSS: %i.%i.%i", major, minor, rev);
+		Locator::getLogger()->info("OSS: {}.{}.{}", major, minor, rev);
 	}
 
 	return "";
@@ -216,7 +216,7 @@ RageSoundDriver_OSS::Init()
 						i,
 						strerror(errno));
 	samplerate = i;
-	LOG->Trace("RageSoundDriver_OSS: sample rate %i", samplerate);
+	Locator::getLogger()->trace("RageSoundDriver_OSS: sample rate {}", samplerate);
 	i = (num_chunks << 16) + chunk_order;
 	if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &i) == -1)
 		return ssprintf(
@@ -236,9 +236,9 @@ RageSoundDriver_OSS::~RageSoundDriver_OSS()
 	if (MixingThread.IsCreated()) {
 		/* Signal the mixing thread to quit. */
 		shutdown = true;
-		LOG->Trace("Shutting down mixer thread ...");
+		Locator::getLogger()->trace("Shutting down mixer thread ...");
 		MixingThread.Wait();
-		LOG->Trace("Mixer thread shut down.");
+		Locator::getLogger()->trace("Mixer thread shut down.");
 	}
 
 	if (fd != -1)

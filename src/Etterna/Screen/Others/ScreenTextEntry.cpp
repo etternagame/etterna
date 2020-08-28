@@ -6,14 +6,14 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/InputFilter.h"
-#include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
+
 
 #include <algorithm>
 #include <utility>
@@ -463,7 +463,7 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 		auto vPressed =
 		  input.DeviceI.button == KEY_CV || input.DeviceI.button == KEY_Cv;
 		if (vPressed && ctrlPressed) {
-			TryAppendToAnswer(HOOKS->GetClipboard());
+			TryAppendToAnswer(Locator::getArchHooks()->GetClipboard());
 
 			TextEnteredDirectly(); // XXX: This doesn't seem appropriate but
 								   // there's no TextPasted()
@@ -601,7 +601,7 @@ void
 ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 {
 	if (lua_type(L, 1) != LUA_TTABLE) {
-		LOG->Trace("not a table");
+		Locator::getLogger()->trace("not a table");
 		return;
 	}
 

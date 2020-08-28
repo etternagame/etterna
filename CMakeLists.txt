@@ -92,6 +92,8 @@ target_link_libraries(Etterna PRIVATE pcre)
 target_link_libraries(Etterna PRIVATE libmad)
 target_link_libraries(Etterna PRIVATE stb)
 target_link_libraries(Etterna PRIVATE libcurl)
+target_link_libraries(Etterna PRIVATE fmt::fmt)
+target_link_libraries(Etterna PRIVATE plog::plog)
 
 # OS Specific Initialization
 if(WIN32)
@@ -108,6 +110,7 @@ add_subdirectory(src/Etterna)
 add_subdirectory(src/arch)
 add_subdirectory(src/archutils)
 add_subdirectory(src/RageUtil)
+add_subdirectory(src/Core)
 
 ## The source_group line creates the full visual studio filter layout
 get_target_property(sources Etterna SOURCES)

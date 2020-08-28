@@ -15,9 +15,9 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
-#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
 #include "Etterna/Globals/ProductInfo.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
+
 
 #ifdef __APPLE__
 #include "archutils/Darwin/Crash.h"
@@ -238,7 +238,7 @@ child_process()
 			break;
 	}
 
-	fprintf(CrashDump, "Architecture:   %s\n", HOOKS->GetArchName().c_str());
+	fprintf(CrashDump, "Architecture:   %s\n", Locator::getArchHooks()->GetArchName().c_str());
 	fprintf(CrashDump, "Crash reason:   %s\n", reason.c_str());
 	fprintf(CrashDump, "Crashed thread: %s\n\n", CrashedThread.c_str());
 

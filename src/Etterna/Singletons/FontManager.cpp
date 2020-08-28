@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Fonts/Font.h"
 #include "FontManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <map>
@@ -23,9 +23,7 @@ FontManager::~FontManager()
 		const FontName& fn = i->first;
 		Font* pFont = i->second;
 		if (pFont->m_iRefCount > 0) {
-			LOG->Trace("FONT LEAK: '%s', RefCount = %d.",
-					   fn.first.c_str(),
-					   pFont->m_iRefCount);
+			Locator::getLogger()->trace("FONT LEAK: '{}', RefCount = {}.", fn.first, pFont->m_iRefCount);
 		}
 		delete pFont;
 	}

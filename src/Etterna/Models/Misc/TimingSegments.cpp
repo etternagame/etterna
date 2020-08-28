@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "EnumHelper.h"
 #include "TimingSegments.h"
+#include "Core/Services/Locator.hpp"
 
 const double TimingSegment::EPSILON = 1e-6;
 
@@ -25,13 +26,13 @@ TimingSegment::Scale(int start, int length, int newLength)
 void
 TimingSegment::DebugPrint() const
 {
-	LOG->Trace("\tTimingSegment(%d [%f])", GetRow(), GetBeat());
+	Locator::getLogger()->trace("\tTimingSegment({} [{}])", GetRow(), GetBeat());
 }
 
 void
 BPMSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %f)",
+	Locator::getLogger()->trace("\t{}({} [{}], {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -41,7 +42,7 @@ BPMSegment::DebugPrint() const
 void
 StopSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %f)",
+	Locator::getLogger()->trace("\t{}({} [{}], {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -51,7 +52,7 @@ StopSegment::DebugPrint() const
 void
 DelaySegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %f)",
+	Locator::getLogger()->trace("\t{}({} [{}], {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -61,7 +62,7 @@ DelaySegment::DebugPrint() const
 void
 TimeSignatureSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %d/%d)",
+	Locator::getLogger()->trace("\t{}({} [{}], {}/{})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -72,7 +73,7 @@ TimeSignatureSegment::DebugPrint() const
 void
 WarpSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %d [%f])",
+	Locator::getLogger()->trace("\t{}({} [{}], {} [{}])",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -83,7 +84,7 @@ WarpSegment::DebugPrint() const
 void
 LabelSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %s)",
+	Locator::getLogger()->trace("\t{}({} [{}], {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -93,7 +94,7 @@ LabelSegment::DebugPrint() const
 void
 TickcountSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %d)",
+	Locator::getLogger()->trace("\t{}({} [{}], {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -103,7 +104,7 @@ TickcountSegment::DebugPrint() const
 void
 ComboSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %d, %d)",
+	Locator::getLogger()->trace("\t{}({} [{}], {}, {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -114,7 +115,7 @@ ComboSegment::DebugPrint() const
 void
 SpeedSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %f, %f, %d)",
+	Locator::getLogger()->trace("\t{}({} [{}], {}, {}, {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -126,7 +127,7 @@ SpeedSegment::DebugPrint() const
 void
 ScrollSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %f)",
+	Locator::getLogger()->trace("\t{}({} [{}], {})",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),
@@ -136,7 +137,7 @@ ScrollSegment::DebugPrint() const
 void
 FakeSegment::DebugPrint() const
 {
-	LOG->Trace("\t%s(%d [%f], %d [%f])",
+	Locator::getLogger()->trace("\t{}({} [{}], {} [{}])",
 			   TimingSegmentTypeToString(GetType()).c_str(),
 			   GetRow(),
 			   GetBeat(),

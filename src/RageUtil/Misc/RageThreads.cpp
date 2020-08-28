@@ -12,7 +12,7 @@
 #include "Etterna/Globals/global.h"
 
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -270,8 +270,8 @@ RageThread::Create(int (*fn)(void*), void* data)
 
 	strcpy(m_pSlot->m_szName, m_sName.c_str());
 
-	if (LOG && PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Starting thread: %s", m_sName.c_str());
+	if (PREFSMAN->m_verbose_log > 1)
+		Locator::getLogger()->trace("Starting thread: {}", m_sName.c_str());
 	sprintf(m_pSlot->m_szThreadFormattedOutput, "Thread: %s", m_sName.c_str());
 
 	/* Start a thread using our own startup function.  We pass the id to fill
@@ -432,8 +432,7 @@ Checkpoints::SetCheckpoint(const char* file, int line, const char* message)
 	slot->m_Checkpoints[slot->m_iCurCheckpoint].Set(file, line, message);
 
 	if (g_LogCheckpoints)
-		LOG->Trace(
-		  "%s", slot->m_Checkpoints[slot->m_iCurCheckpoint].m_szFormattedBuf);
+		Locator::getLogger()->trace( slot->m_Checkpoints[slot->m_iCurCheckpoint].m_szFormattedBuf);
 
 	++slot->m_iCurCheckpoint;
 	slot->m_iNumCheckpoints =
@@ -625,7 +624,7 @@ LockMutex::Unlock()
 	if (file && locked_at != -1) {
 		const float dur = RageTimer::GetTimeSinceStart() - locked_at;
 		if (dur > 0.015f)
-			LOG->Trace("Lock at %s:%i took %f", file, line, dur);
+			Locator::getLogger()->trace("Lock at {}:{} took {}", file, line, dur);
 	}
 }
 

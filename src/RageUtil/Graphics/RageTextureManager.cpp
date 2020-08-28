@@ -24,7 +24,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
@@ -51,7 +51,7 @@ RageTextureManager::~RageTextureManager()
 	for (auto& i : m_mapPathToTexture) {
 		auto pTexture = i.second;
 		if (pTexture->m_iRefCount)
-			LOG->Trace("TEXTUREMAN LEAK: '%s', RefCount = %d.",
+			Locator::getLogger()->trace("TEXTUREMAN LEAK: '{}', RefCount = {}.",
 					   i.first.filename.c_str(),
 					   pTexture->m_iRefCount);
 		pTexture.reset();
@@ -290,7 +290,7 @@ RageTextureManager::GarbageCollect(GCType type)
 {
 	// Search for old textures with refcount==0 to unload
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Performing texture garbage collection.");
+		Locator::getLogger()->trace("Performing texture garbage collection.");
 
 	for (auto i = m_mapPathToTexture.begin(); i != m_mapPathToTexture.end();) {
 		const auto j = i;
@@ -383,7 +383,7 @@ RageTextureManager::DiagnosticOutput() const
 {
 	const unsigned iCount =
 	  distance(m_mapPathToTexture.begin(), m_mapPathToTexture.end());
-	LOG->Trace("%u textures loaded:", iCount);
+	Locator::getLogger()->trace("{} textures loaded:", iCount);
 
 	auto iTotal = 0;
 	for (auto& i : m_mapPathToTexture) {
@@ -399,8 +399,8 @@ RageTextureManager::DiagnosticOutput() const
 		if (!sDiags.empty())
 			sStr += " " + sDiags;
 
-		LOG->Trace(" %-40s %s", sStr.c_str(), Basename(ID.filename).c_str());
+		Locator::getLogger()->trace(" {:<40s} {}", sStr.c_str(), Basename(ID.filename).c_str());
 		iTotal += pTex->GetTextureHeight() * pTex->GetTextureWidth();
 	}
-	LOG->Trace("total %3i texels", iTotal);
+	Locator::getLogger()->trace("total {:3i} texels", iTotal);
 }

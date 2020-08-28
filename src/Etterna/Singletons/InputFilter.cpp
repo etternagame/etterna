@@ -6,11 +6,10 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 
 #include <map>
 #include <set>
@@ -199,15 +198,15 @@ InputFilter::ButtonPressed(const DeviceInput& di)
 	LockMut(*queuemutex);
 
 	if (di.ts == std::chrono::time_point<std::chrono::steady_clock>())
-		LOG->Warn("InputFilter::ButtonPressed: zero timestamp is invalid");
+		Locator::getLogger()->warn("InputFilter::ButtonPressed: zero timestamp is invalid");
 
 	// Filter out input that is beyond the range of the current system.
 	if (di.device >= NUM_InputDevice) {
-		LOG->Trace("InputFilter::ButtonPressed: Invalid device %i", di.device);
+		Locator::getLogger()->trace("InputFilter::ButtonPressed: Invalid device {}", di.device);
 		return;
 	}
 	if (di.button >= NUM_DeviceButton) {
-		LOG->Trace("InputFilter::ButtonPressed: Invalid button %i", di.button);
+		Locator::getLogger()->trace("InputFilter::ButtonPressed: Invalid button {}", di.button);
 		return;
 	}
 
@@ -544,14 +543,14 @@ class LunaInputFilter : public Luna<InputFilter>
 	static int GetMouseX(T* p, lua_State* L)
 	{
 		float fX = p->GetCursorX();
-		fX = SCALE(fX, 0, HOOKS->GetWindowWidth(), SCREEN_LEFT, SCREEN_RIGHT);
+		fX = SCALE(fX, 0, Locator::getArchHooks()->GetWindowWidth(), SCREEN_LEFT, SCREEN_RIGHT);
 		lua_pushnumber(L, fX);
 		return 1;
 	}
 	static int GetMouseY(T* p, lua_State* L)
 	{
 		float fY = p->GetCursorY();
-		fY = SCALE(fY, 0, HOOKS->GetWindowHeight(), SCREEN_TOP, SCREEN_BOTTOM);
+		fY = SCALE(fY, 0, Locator::getArchHooks()->GetWindowHeight(), SCREEN_TOP, SCREEN_BOTTOM);
 		lua_pushnumber(L, fY);
 		return 1;
 	}

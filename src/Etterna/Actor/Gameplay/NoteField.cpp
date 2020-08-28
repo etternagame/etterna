@@ -7,7 +7,7 @@
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -106,7 +106,7 @@ NoteField::CacheNoteSkin(const std::string& sNoteSkin_, PlayerNumber pn)
 	LockNoteSkin l(sNoteSkin_, pn);
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkin_.c_str());
+		Locator::getLogger()->trace("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
 	auto* nd = new NoteDisplayCols(
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 		->m_iColsPerPlayer);
@@ -125,7 +125,7 @@ NoteField::CacheNoteSkin(const std::string& sNoteSkin_, PlayerNumber pn)
 void
 NoteField::UncacheNoteSkin(const std::string& sNoteSkin_)
 {
-	LOG->Trace("NoteField::CacheNoteSkin: release %s", sNoteSkin_.c_str());
+	Locator::getLogger()->trace("NoteField::CacheNoteSkin: release {}", sNoteSkin_.c_str());
 	ASSERT_M(m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end(),
 			 sNoteSkin_);
 	delete m_NoteDisplays[sNoteSkin_];

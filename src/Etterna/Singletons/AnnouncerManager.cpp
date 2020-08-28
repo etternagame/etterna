@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "AnnouncerManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include <cstring>
 
@@ -133,9 +133,8 @@ AnnouncerManager::GetPathTo(const std::string& sAnnouncerName,
 	/* No announcer directory matched.  In debug, create the directory by
 	 * its preferred name. */
 #ifdef DEBUG
-	LOG->Trace("The announcer in '%s' is missing the folder '%s'.",
-			   AnnouncerPath.c_str(),
-			   sFolderName.c_str());
+	Locator::getLogger()->trace("The announcer in '{}' is missing the folder '{}'.",
+			   AnnouncerPath.c_str(), sFolderName.c_str());
 	//	MessageBeep( MB_OK );
 	RageFile temp;
 	temp.Open(AnnouncerPath + sFolderName + "/announcer files go here.txt",

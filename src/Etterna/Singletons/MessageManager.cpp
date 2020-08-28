@@ -3,7 +3,7 @@
 #include "Etterna/Models/Misc/Foreach.h"
 #include "LuaManager.h"
 #include "MessageManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -219,7 +219,7 @@ MessageManager::Broadcast(Message& msg) const
 	// BroadcastOnChangePtr members, so they all broadcast when they're
 	// initialized.
 	if (this != nullptr && m_Logging) {
-		LOG->Trace("MESSAGEMAN:Broadcast: %s", msg.GetName().c_str());
+		Locator::getLogger()->trace("MESSAGEMAN:Broadcast: {}", msg.GetName().c_str());
 	}
 	msg.SetBroadcast(true);
 

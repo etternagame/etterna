@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageInput.h"
-#include "RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "arch/InputHandler/InputHandler.h"
 
 #include <map>
@@ -27,7 +27,7 @@ std::map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 RageInput::RageInput()
 {
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("RageInput::RageInput()");
+		Locator::getLogger()->trace("RageInput::RageInput()");
 
 	// Register with Lua.
 	{
@@ -72,7 +72,7 @@ RageInput::LoadDrivers()
 
 	// If no input devices are loaded, the user won't be able to input anything.
 	if (apDevices.size() == 0)
-		LOG->Warn("%s", NO_INPUT_DEVICES_LOADED.GetValue().c_str());
+		Locator::getLogger()->warn(NO_INPUT_DEVICES_LOADED.GetValue().c_str());
 }
 
 void

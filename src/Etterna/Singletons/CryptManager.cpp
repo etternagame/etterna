@@ -4,7 +4,7 @@
 #include "LuaManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include "openssl/rand.h"
@@ -23,7 +23,7 @@ HashFile(std::string fn,
 {
 	RageFile file;
 	if (!file.Open(fn, RageFile::READ)) {
-		LOG->Warn("GetMD5ForFile: Failed to open file '%s'", fn.c_str());
+		Locator::getLogger()->warn("GetMD5ForFile: Failed to open file '{}'", fn.c_str());
 		return false;
 	}
 
@@ -31,9 +31,7 @@ HashFile(std::string fn,
 	while (!file.AtEOF()) {
 		s.erase();
 		if (file.Read(s, 1024 * 4) == -1) {
-			LOG->Warn("Error reading %s: %s",
-					  file.GetDisplayPath().c_str(),
-					  file.GetError().c_str());
+			Locator::getLogger()->warn("Error reading {}: {}", file.GetDisplayPath(), file.GetError());
 			return false;
 		}
 		hash(reinterpret_cast<const unsigned char*>(s.data()), s.size());
@@ -72,7 +70,7 @@ CryptManager::GetRandomBytes(void* pData, int iBytes)
 {
 	int retval = RAND_bytes((unsigned char*)pData, iBytes);
 	if (retval != 1) {
-		LOG->Warn("The error %d occured in RAND_bytes", retval);
+		Locator::getLogger()->warn("The error {} occured in RAND_bytes", retval);
 	}
 }
 
@@ -85,7 +83,7 @@ CryptManager::GetMD5ForFile(const std::string& fn)
 		MD5_Update(hash, data, length);
 	};
 	if (!HashFile(fn, update)) {
-		LOG->Warn("An error occuring when calculating MD5 of \n%s", fn.c_str());
+		Locator::getLogger()->warn("An error occuring when calculating MD5 of \n{}", fn.c_str());
 		return std::string();
 	}
 	unsigned char digest[MD5_DIGEST_LENGTH];
@@ -122,7 +120,7 @@ CryptManager::GetSHA1ForFile(const std::string& fn)
 		SHA1_Update(hash, data, length);
 	};
 	if (!HashFile(fn, update)) {
-		LOG->Warn("An error occuring when calculating SHA1 of \n%s",
+		Locator::getLogger()->warn("An error occuring when calculating SHA1 of \n{}",
 				  fn.c_str());
 		return std::string();
 	}
@@ -150,7 +148,7 @@ CryptManager::GetSHA256ForFile(const std::string& fn)
 		SHA256_Update(hash, data, length);
 	};
 	if (!HashFile(fn, update)) {
-		LOG->Warn("An error occuring when calculating SHA256 of \n%s",
+		Locator::getLogger()->warn("An error occurred when calculating SHA256 of \n{}",
 				  fn.c_str());
 		return std::string();
 	}

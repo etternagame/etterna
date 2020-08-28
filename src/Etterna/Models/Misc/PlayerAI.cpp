@@ -10,6 +10,7 @@
 #include "Etterna/Actor/Gameplay/LifeMeterBar.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Core/Services/Locator.hpp"
 
 #include <map>
 #include <algorithm>
@@ -1150,7 +1151,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			}
 			++holdIter;
 		} else {
-			LOG->Trace("Somehow while calculating the life graph, something "
+			Locator::getLogger()->trace("Somehow while calculating the life graph, something "
 					   "went wrong.");
 			++holdIter;
 			++tapIter;

@@ -8,7 +8,7 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -168,7 +168,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 
 	/* See if we can find timing data, if it's not already loaded. */
 	if (!ToPlay.HasTiming && IsAFile(ToPlay.m_sTimingFile)) {
-		LOG->Trace("Found '%s'", ToPlay.m_sTimingFile.c_str());
+		Locator::getLogger()->trace("Found '{}'", ToPlay.m_sTimingFile.c_str());
 		Song song;
 		SSCLoader loaderSSC;
 		SMLoader loaderSM;
@@ -510,14 +510,14 @@ GameSoundManager::~GameSoundManager()
 
 	/* Signal the mixing thread to quit. */
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Shutting down music start thread ...");
+		Locator::getLogger()->trace("Shutting down music start thread ...");
 	g_Mutex->Lock();
 	g_Shutdown = true;
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
 	MusicThread.Wait();
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Music start thread shut down.");
+		Locator::getLogger()->trace("Music start thread shut down.");
 
 	SAFE_DELETE(g_Playing);
 	SAFE_DELETE(g_Mutex);
@@ -672,14 +672,10 @@ GameSoundManager::Update(float fDeltaTime)
 		/* If fSoundTimePassed < 0, the sound has probably looped. */
 		if (sLastFile == ThisFile && fSoundTimePassed >= 0 &&
 			fabsf(fDiff) > 0.003f)
-			LOG->Trace("Song position skip in %s: expected %.3f, got %.3f (cur "
-					   "%f, prev %f) (%.3f difference)",
-					   Basename(ThisFile).c_str(),
-					   fExpectedTimePassed,
-					   fSoundTimePassed,
-					   fSeconds,
-					   GAMESTATE->m_Position.m_fMusicSeconds,
-					   fDiff);
+			Locator::getLogger()->trace("Song position skip in {}: expected {:.3f}, got {:.3f} (cur "
+					   "{}, prev {}) ({:.3f} difference)",
+					   Basename(ThisFile).c_str(), fExpectedTimePassed, fSoundTimePassed,
+					   fSeconds, GAMESTATE->m_Position.m_fMusicSeconds, fDiff);
 		sLastFile = ThisFile;
 	}
 

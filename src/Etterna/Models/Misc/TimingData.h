@@ -3,7 +3,7 @@
 
 #include "NoteTypes.h"
 #include "TimingSegments.h"
-
+#include "Core/Services/Locator.hpp"
 #include <cfloat> // max float
 
 struct lua_State;
@@ -762,7 +762,7 @@ class TimingData
 		for (auto& i : bpms) {
 			auto bpm = ToBPM(i);
 			if (0 > bpm->GetBPM()) {
-				LOG->Warn("Sequential Assumption Invalidated.");
+				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
 				return;
 			}
@@ -771,7 +771,7 @@ class TimingData
 		for (auto& stop : stops) {
 			auto s = ToStop(stop);
 			if (0 > s->GetPause()) {
-				LOG->Warn("Sequential Assumption Invalidated.");
+				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
 				return;
 			}

@@ -4,7 +4,7 @@
 
 #include "FontCharAliases.h"
 #include "FontCharmaps.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -558,12 +558,11 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 						   static_cast<int>(sCodepoint.size())) {
 					c = utf8_get_char(sCodepoint.c_str());
 					if (c == static_cast<wchar_t>(-1))
-						LOG->Warn(
-						  "Font definition '%s' has an invalid value '%s'.",
+						Locator::getLogger()->warn("Font definition '{}' has an invalid value '{}'.",
 						  ini.GetPath().c_str(),
 						  sName.c_str());
 				} else if (!FontCharAliases::GetChar(sCodepoint, c)) {
-					LOG->Warn("Font definition '%s' has an invalid value '%s'.",
+					Locator::getLogger()->warn("Font definition '{}' has an invalid value '{}'.",
 							  ini.GetPath().c_str(),
 							  sName.c_str());
 					continue;
@@ -708,8 +707,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				cfg.MapRange("numbers", 0, 0, -1);
 				break;
 			default:
-				LOG->Trace("Font page \"%s\" has no characters",
-						   sTexturePath.c_str());
+				Locator::getLogger()->trace("Font page \"{}\" has no characters", sTexturePath.c_str());
 		}
 	}
 

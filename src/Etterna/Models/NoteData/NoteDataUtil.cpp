@@ -4,7 +4,7 @@
 #include "NoteDataUtil.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/Misc/RadarValues.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/TimingData.h"
@@ -172,7 +172,6 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 						int iHeadRow;
 						if (!out.IsHoldNoteAtRow(iTrack, iIndex, &iHeadRow)) {
 							int n = intptr_t(endLine) - intptr_t(beginLine);
-							LOG->Warn("Unmatched 3 in \"%.*s\"", n, beginLine);
 						} else {
 							out.FindTapNote(iTrack, iHeadRow)
 							  ->second.iDuration = iIndex - iHeadRow;
@@ -255,10 +254,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 			if (tn.type == TapNoteType_HoldHead &&
 				tn.iDuration == MAX_NOTE_ROW) {
 				auto iRow = begin->first;
-				LOG->UserLog("",
-							 "",
-							 "While loading .sm/.ssc note data, there was an "
-							 "unmatched 2 at beat %f",
+				Locator::getLogger()->info("While loading .sm/.ssc note data, there was an unmatched 2 at beat {}",
 							 NoteRowToBeat(iRow));
 				out.RemoveTapNote(t, begin);
 			}

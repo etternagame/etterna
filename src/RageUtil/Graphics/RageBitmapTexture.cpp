@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurfaceUtils_Dither.h"
@@ -95,7 +95,7 @@ RageBitmapTexture::Create()
 		auto warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
 								actualID.filename.c_str(),
 								error.c_str());
-		LOG->Warn("%s", warning.c_str());
+		Locator::getLogger()->warn(warning.c_str());
 		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface(64, 64);
 		ASSERT(pImg != nullptr);
@@ -352,7 +352,7 @@ RageBitmapTexture::Create()
 				  fBetterSourceHeight,
 				  fBetterFrameWidth,
 				  fBetterFrameHeight);
-				LOG->Warn("%s", sWarning.c_str());
+				Locator::getLogger()->warn(sWarning.c_str());
 				Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
 			}
 		}

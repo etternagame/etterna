@@ -1,10 +1,10 @@
-#include "global.h"
+﻿#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -60,12 +60,8 @@ CheckGameLoopTimerSkips(float fDeltaTime)
 	const float fExpectedTime = 1.0f / iThisFPS;
 	const float fDifference = fDeltaTime - fExpectedTime;
 	if (fabsf(fDifference) > 0.002f && fabsf(fDifference) < 0.100f)
-		LOG->Trace("GameLoop timer skip: %i FPS, expected %.3f, got %.3f (%.3f "
-				   "difference)",
-				   iThisFPS,
-				   fExpectedTime,
-				   fDeltaTime,
-				   fDifference);
+		Locator::getLogger()->trace("GameLoop timer skip: {} FPS, expected {:.3f}, got {:.3f} ({:.3f} difference)",
+				   iThisFPS, fExpectedTime, fDeltaTime, fDifference);
 }
 
 static bool
@@ -84,7 +80,7 @@ ChangeAppPri()
 			INPUTMAN->GetDevicesAndDescriptions(vDevices);
 			for (auto& d : vDevices) {
 				if (d.sDesc.find("NTPAD") != std::string::npos) {
-					LOG->Trace("Using NTPAD.  Don't boost priority.");
+					Locator::getLogger()->trace("Using NTPAD.  Don't boost priority.");
 					return false;
 				}
 			}
@@ -103,17 +99,18 @@ ChangeAppPri()
 static void
 CheckFocus()
 {
-	if (!HOOKS->AppFocusChanged())
+    ArchHooks* hooks = Locator::getArchHooks();
+	if (!hooks->AppFocusChanged())
 		return;
 
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
 
 	if (ChangeAppPri()) {
-		if (HOOKS->AppHasFocus())
-			HOOKS->BoostPriority();
+		if (hooks->AppHasFocus())
+            hooks->BoostPriority();
 		else
-			HOOKS->UnBoostPriority();
+            hooks->UnBoostPriority();
 	}
 }
 
@@ -229,7 +226,7 @@ GameLoop::RunGameLoop()
 	/* People may want to do something else while songs are loading, so do
 	 * this after loading songs. */
 	if (ChangeAppPri())
-		HOOKS->BoostPriority();
+        Locator::getArchHooks()->BoostPriority();
 
 	while (!ArchHooks::UserQuit()) {
 		if (!g_NewGame.empty()) {
@@ -294,7 +291,7 @@ GameLoop::RunGameLoop()
 	}
 
 	if (ChangeAppPri())
-		HOOKS->UnBoostPriority();
+        Locator::getArchHooks()->UnBoostPriority();
 }
 
 class ConcurrentRenderer
@@ -384,9 +381,9 @@ ConcurrentRenderer::RenderThread()
 			/* We're starting to render. Set up, and then kick the event to wake
 			 * up the calling thread. */
 			DISPLAY->BeginConcurrentRendering();
-			HOOKS->SetupConcurrentRenderingThread();
+            Locator::getArchHooks()->SetupConcurrentRenderingThread();
 
-			LOG->Trace("ConcurrentRenderer::RenderThread start");
+			Locator::getLogger()->trace("ConcurrentRenderer::RenderThread start");
 
 			m_Event.Lock();
 			m_State = RENDERING_ACTIVE;
@@ -407,7 +404,7 @@ ConcurrentRenderer::RenderThread()
 		}
 
 		if (m_State == RENDERING_END) {
-			LOG->Trace("ConcurrentRenderer::RenderThread done");
+			Locator::getLogger()->trace("ConcurrentRenderer::RenderThread done");
 
 			DISPLAY->EndConcurrentRendering();
 

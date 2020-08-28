@@ -6,7 +6,7 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "OptionRowHandler.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenMiniMenu.h" // for MenuRowDef
@@ -323,7 +323,7 @@ class OptionRowHandlerList : public OptionRowHandler
 				  ssprintf("No options in row \"list,%s\" were selected, "
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
-				LOG->Warn("%s", s.c_str());
+				Locator::getLogger()->warn(s.c_str());
 				CHECKPOINT_M(s);
 				iFallbackOption = 0;
 			}

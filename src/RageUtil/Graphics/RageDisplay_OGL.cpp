@@ -5,7 +5,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
@@ -243,8 +243,8 @@ TurnOffHardwareVBO()
 RageDisplay_Legacy::RageDisplay_Legacy()
 {
 	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Trace("RageDisplay_Legacy::RageDisplay_Legacy()");
-		LOG->MapLog("renderer", "Current renderer: OpenGL");
+		Locator::getLogger()->trace("RageDisplay_Legacy::RageDisplay_Legacy()");
+		Locator::getLogger()->trace("Current renderer: OpenGL");
 	}
 
 	FixLittleEndian();
@@ -279,7 +279,7 @@ CompileShader(GLenum ShaderType,
 	 * Cel. */
 	if (ShaderType == GL_FRAGMENT_SHADER_ARB &&
 		!glewIsSupported("GL_VERSION_2_0")) {
-		LOG->Warn("Fragment shaders not supported by driver. Some effects will "
+		Locator::getLogger()->warn("Fragment shaders not supported by driver. Some effects will "
 				  "not be available.");
 		return 0;
 	}
@@ -288,14 +288,14 @@ CompileShader(GLenum ShaderType,
 	{
 		RageFile file;
 		if (!file.Open(sFile)) {
-			LOG->Warn("Error compiling shader %s: %s",
+			Locator::getLogger()->warn("Error compiling shader {}: {}",
 					  sFile.c_str(),
 					  file.GetError().c_str());
 			return 0;
 		}
 
 		if (file.Read(sBuffer, file.GetFileSize()) == -1) {
-			LOG->Warn("Error compiling shader %s: %s",
+			Locator::getLogger()->warn("Error compiling shader {}: {}",
 					  sFile.c_str(),
 					  file.GetError().c_str());
 			return 0;
@@ -303,7 +303,7 @@ CompileShader(GLenum ShaderType,
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Compiling shader %s", sFile.c_str());
+		Locator::getLogger()->trace("Compiling shader {}", sFile.c_str());
 	const auto hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
 	vector<GLint> aiLength;
@@ -327,15 +327,13 @@ CompileShader(GLenum ShaderType,
 	glGetObjectParameterivARB(
 	  hShader, GL_OBJECT_COMPILE_STATUS_ARB, &bCompileStatus);
 	if (!bCompileStatus) {
-		LOG->Warn(
-		  "Error compiling shader %s:\n%s", sFile.c_str(), sInfo.c_str());
+		Locator::getLogger()->warn("Error compiling shader {}:\n{}", sFile.c_str(), sInfo.c_str());
 		glDeleteObjectARB(hShader);
 		return 0;
 	}
 
 	if (!sInfo.empty())
-		LOG->Trace(
-		  "Messages compiling shader %s:\n%s", sFile.c_str(), sInfo.c_str());
+		Locator::getLogger()->trace("Messages compiling shader {}:\n{}", sFile.c_str(), sInfo.c_str());
 
 	return hShader;
 }
@@ -352,7 +350,7 @@ LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
 		 !glewIsSupported("GL_VERSION_2_0")) ||
 		(ShaderType == GL_VERTEX_SHADER_ARB &&
 		 !glewIsSupported("GL_ARB_vertex_shader"))) {
-		LOG->Warn("%s shaders not supported by driver. Some effects will not "
+		Locator::getLogger()->warn("{} shaders not supported by driver. Some effects will not "
 				  "be available.",
 				  (ShaderType == GL_FRAGMENT_SHADER_ARB) ? "Fragment"
 														 : "Vertex");
@@ -388,9 +386,7 @@ LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
 	  hProgram, GL_OBJECT_LINK_STATUS_ARB, &bLinkStatus);
 
 	if (!bLinkStatus) {
-		LOG->Warn("Error linking shader %s: %s",
-				  sFile.c_str(),
-				  GetInfoLog(hProgram).c_str());
+		Locator::getLogger()->warn("Error linking shader {}: {}", sFile.c_str(), GetInfoLog(hProgram).c_str());
 		glDeleteObjectARB(hProgram);
 		return 0;
 	}
@@ -455,8 +451,7 @@ InitShaders()
 		g_iAttribTextureMatrixScale =
 		  glGetAttribLocationARB(g_bTextureMatrixShader, "TextureMatrixScale");
 		if (g_iAttribTextureMatrixScale == -1) {
-			LOG->Trace(
-			  R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
+			Locator::getLogger()->trace(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
 			glDeleteObjectARB(g_bTextureMatrixShader);
 			g_bTextureMatrixShader = 0;
 		} else {
@@ -467,7 +462,7 @@ InitShaders()
 			glVertexAttrib2fARB(g_iAttribTextureMatrixScale, 1, 1);
 			const auto iError = glGetError();
 			if (iError == GL_INVALID_OPERATION) {
-				LOG->Trace("Scaling shader failed: glVertexAttrib2fARB "
+				Locator::getLogger()->trace("Scaling shader failed: glVertexAttrib2fARB "
 						   "returned GL_INVALID_OPERATION");
 				glDeleteObjectARB(g_bTextureMatrixShader);
 				g_bTextureMatrixShader = 0;
@@ -500,15 +495,15 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 	// Log driver details
 	g_pWind->LogDebugInformation();
 	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
-		LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
-		LOG->Info("OGL Version: %s", glGetString(GL_VERSION));
-		LOG->Info("OGL Max texture size: %i", GetMaxTextureSize());
-		LOG->Info("OGL Texture units: %i", g_iMaxTextureUnits);
-		LOG->Info("GLU Version: %s", gluGetString(GLU_VERSION));
+		Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
+		Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
+		Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
+		Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
+		Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
+		Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
 
 		/* Pretty-print the extension string: */
-		LOG->Info("OGL Extensions:");
+		Locator::getLogger()->trace("OGL Extensions:");
 		{
 			const auto szExtensionString =
 			  (const char*)glGetString(GL_EXTENSIONS);
@@ -533,7 +528,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				}
 
 				if (iNextToPrint == iLastToPrint) {
-					LOG->Info("  %s", asExtensions[iNextToPrint].c_str());
+					Locator::getLogger()->trace("  {}", asExtensions[iNextToPrint].c_str());
 					++iNextToPrint;
 					continue;
 				}
@@ -550,7 +545,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					if (iNextToPrint == iLastToPrint ||
 						sList.size() + asExtensions[iNextToPrint + 1].size() >
 						  120) {
-						LOG->Info("%s", sList.c_str());
+						Locator::getLogger()->trace(sList.c_str());
 						sList = "    ";
 					}
 					++iNextToPrint;
@@ -563,7 +558,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		if (!bAllowUnacceleratedRenderer)
 			return sError + "  " + OBTAIN_AN_UPDATED_VIDEO_DRIVER.GetValue() +
 				   "\n\n";
-		LOG->Warn("Low-performance OpenGL renderer: %s", sError.c_str());
+		Locator::getLogger()->warn("Low-performance OpenGL renderer: {}", sError.c_str());
 	}
 
 #ifdef _WIN32
@@ -701,7 +696,7 @@ CheckPalettedTextures()
 	 * palettes if it can't even get 8-bit ones right. */
 	glColorTableEXT = nullptr;
 	glGetColorTableParameterivEXT = nullptr;
-	LOG->Info("Paletted textures disabled: %s.", sError.c_str());
+	Locator::getLogger()->trace("Paletted textures disabled: {}.", sError.c_str());
 }
 
 static void
@@ -724,7 +719,7 @@ CheckReversePackedPixels()
 		g_bReversePackedPixelsWorks = true;
 	} else {
 		g_bReversePackedPixelsWorks = false;
-		LOG->Info("GL_UNSIGNED_SHORT_1_5_5_5_REV failed (%s), disabled",
+		Locator::getLogger()->trace("GL_UNSIGNED_SHORT_1_5_5_5_REV failed ({}), disabled",
 				  GLToString(glError).c_str());
 	}
 }
@@ -756,7 +751,7 @@ SetupExtensions()
 			/* The minimum GL_MAX_PIXEL_MAP_TABLE is 32; if it's not at least
 			 * 256, we can't fit a palette in it, so we can't send paletted data
 			 * as input for a non-paletted texture. */
-			LOG->Info("GL_MAX_PIXEL_MAP_TABLE is only %d",
+			Locator::getLogger()->trace("GL_MAX_PIXEL_MAP_TABLE is only {}",
 					  static_cast<int>(iMaxTableSize));
 			g_bColorIndexTableWorks = false;
 		} else {
@@ -2348,8 +2343,8 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 				break;
 			// OpenGL 1.2 types
 			default:
-				LOG->Trace("Can't generate mipmaps for type %s because GLU "
-						   "version %.1f is too old.",
+				Locator::getLogger()->trace("Can't generate mipmaps for type {} because GLU "
+						   "version {:.1f} is too old.",
 						   GLToString(glImageType).c_str(),
 						   g_gluVersion / 10.f);
 				bGenerateMipMaps = false;
@@ -2405,8 +2400,8 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace(
-		  "%s (format %s, %ix%i, format %s, type %s, pixfmt %i, imgpixfmt %i)",
+		Locator::getLogger()->trace(
+		  "{} (format {}, {}x{}, format {}, type {}, pixfmt {}, imgpixfmt {})",
 		  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
 		  GLToString(glTexFormat).c_str(),
 		  pImg->w,

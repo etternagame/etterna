@@ -2,9 +2,7 @@
 #include "Etterna/Models/Fonts/FontCharAliases.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #if !defined(SMPACKAGE)
 #include "Etterna/Actor/Base/ActorUtil.h"
@@ -19,6 +17,7 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
+#include "Core/Services/Locator.hpp"
 
 #include "PrefsManager.h"
 
@@ -97,7 +96,7 @@ class LocalizedStringImplThemeMetric
 		std::string const& curLanguage =
 		  (THEME && THEME->IsThemeLoaded() ? THEME->GetCurLanguage()
 										   : "current");
-		LOG->Warn("Missing translation for %s in the %s language.",
+		Locator::getLogger()->warn("Missing translation for {} in the {} language.",
 				  m_sName.c_str(),
 				  curLanguage.c_str());
 		return m_sName;
@@ -387,16 +386,15 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 	}
 
 	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->MapLog("theme", "Theme: %s", m_sCurThemeName.c_str());
-		LOG->MapLog("language", "Language: %s", m_sCurLanguage.c_str());
+        Locator::getLogger()->trace("Theme: %s", m_sCurThemeName.c_str());
+        Locator::getLogger()->trace("Language: %s", m_sCurLanguage.c_str());
 	}
 }
 
 std::string
 ThemeManager::GetDefaultLanguage()
 {
-	std::string sLangCode = HOOKS->GetPreferredLanguage();
-	return sLangCode;
+	return Locator::getArchHooks()->GetPreferredLanguage();
 }
 
 void
@@ -412,8 +410,8 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 	// SpecialFiles::BASE_THEME_NAME is _fallback now. -aj
 	if (!IsThemeSelectable(sThemeName)) {
 		std::string to_try = PREFSMAN->m_sTheme.GetDefault();
-		LOG->Warn("Selected theme '%s' not found.  "
-				  "Trying Theme preference default value '%s'.",
+		Locator::getLogger()->warn("Selected theme '{}' not found.  "
+				  "Trying Theme preference default value '{}'.",
 				  sThemeName.c_str(),
 				  to_try.c_str());
 		sThemeName = to_try;
@@ -422,8 +420,8 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 		// other purposes (e.g. PARASTAR).
 		if (!IsThemeSelectable(sThemeName)) {
 			to_try = PREFSMAN->m_sDefaultTheme.Get();
-			LOG->Warn("Theme preference defaults to '%s', which cannot be used."
-					  "  Trying DefaultTheme preference '%s'.",
+			Locator::getLogger()->warn("Theme preference defaults to '{}', which cannot be used."
+					  "  Trying DefaultTheme preference '{}'.",
 					  sThemeName.c_str(),
 					  to_try.c_str());
 			sThemeName = to_try;
@@ -433,9 +431,7 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 				ASSERT_M(!theme_names.empty(),
 						 "No themes found, unable to start stepmania.");
 				to_try = theme_names[0];
-				LOG->Warn(
-				  "DefaultTheme preference is '%s', which cannot be found."
-				  "  Using '%s'.",
+				Locator::getLogger()->warn("DefaultTheme preference is '{}', which cannot be found. Using '{}'.",
 				  sThemeName.c_str(),
 				  to_try.c_str());
 				sThemeName = to_try;
@@ -451,7 +447,7 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 		sLanguage = GetDefaultLanguage();
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("ThemeManager::SwitchThemeAndLanguage: \"%s\", \"%s\"",
+		Locator::getLogger()->trace("ThemeManager::SwitchThemeAndLanguage: \"{}\", \"{}\"",
 				   sThemeName.c_str(),
 				   sLanguage.c_str());
 
@@ -560,15 +556,14 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 		// load Lua files
 		for (auto& sPath : asElementPaths) {
 			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Trace("Loading \"%s\" ...", sPath.c_str());
+				Locator::getLogger()->trace("Loading \"{}\" ...", sPath.c_str());
 			LuaHelpers::RunScriptFile(sPath);
 		}
 	} while (iter != g_vThemes.begin());
 
 	/* TODO: verify whether this final check is necessary. */
 	if (sCurThemeName != m_sCurThemeName) {
-		LOG->Warn(
-		  "ThemeManager: theme name was not restored after RunLuaScripts");
+		Locator::getLogger()->warn("ThemeManager: theme name was not restored after RunLuaScripts");
 		m_sCurThemeName = sCurThemeName;
 	}
 }
@@ -599,7 +594,7 @@ struct CompareLanguageTag
 	CompareLanguageTag(const std::string& sLang)
 	{
 		m_sLanguageString = std::string("(lang ") + sLang + ")";
-		LOG->Trace("try \"%s\"", sLang.c_str());
+		Locator::getLogger()->trace("try \"{}\"", sLang.c_str());
 		m_sLanguageString = make_lower(m_sLanguageString);
 	}
 
@@ -904,8 +899,7 @@ try_element_again:
 			  "could not be found in \"" +
 			  GetThemeDirFromName(m_sCurThemeName) + "\" or \"" +
 			  GetThemeDirFromName(SpecialFiles::BASE_THEME_NAME) + "\".";
-			LOG->UserLog("Theme element", element.c_str(), "%s", error.c_str());
-			LOG->Warn("%s %s", element.c_str(), error.c_str());
+			Locator::getLogger()->warn("Theme element {} {}", element.c_str(), error.c_str());
 			LuaHelpers::ScriptErrorMessage("'" + element + "' " + error);
 		}
 
@@ -920,11 +914,8 @@ try_element_again:
 			Cache[sFileName] = out;
 			return true;
 		case Dialog::abort:
-			LOG->UserLog(
-			  "Theme element",
-			  sCategory + '/' + sFileName,
-			  "could not be found in \"%s\" or \"%s\".",
-			  GetThemeDirFromName(m_sCurThemeName).c_str(),
+            Locator::getLogger()->warn("Theme element {}/{} could not be found in \"{}\" or \"{}\"",
+			  sCategory, sFileName, GetThemeDirFromName(m_sCurThemeName).c_str(),
 			  GetThemeDirFromName(SpecialFiles::BASE_THEME_NAME).c_str());
 			RageException::Throw(
 			  "Theme element \"%s/%s\" could not be found in \"%s\" or \"%s\".",
@@ -1101,11 +1092,9 @@ ThemeManager::GetMetricRaw(const IniFile& ini,
 				ReloadMetrics();
 				continue;
 			case Dialog::ignore:
-				LOG->UserLog(sType,
-							 sMetricsGroup + "::" + sValueName,
-							 "could not be found in \"%s\" or \"%s\".",
-							 sCurMetricPath.c_str(),
-							 sDefaultMetricPath.c_str());
+				Locator::getLogger()->warn("{} {}::{} could not be found in \"{}\" or \"{}\".",
+			            sType, sMetricsGroup, sValueName, sCurMetricPath.c_str(),
+						sDefaultMetricPath.c_str());
 				return std::string();
 			default:
 				FAIL_M("Unexpected answer to Abort/Retry/Ignore dialog");

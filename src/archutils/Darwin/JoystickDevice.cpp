@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "JoystickDevice.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Core/Services/Locator.hpp"
 
 using __gnu_cxx::hash_map;
 
@@ -136,7 +136,7 @@ JoystickDevice::AddElement(int usagePage,
 			if (buttonID <= JOY_BUTTON_32)
 				js.mapping[cookie] = buttonID;
 			else
-				LOG->Warn("Button id too large: %d.", int(buttonID));
+				Locator::getLogger()->warn("Button id too large: {}.", int(buttonID));
 			break;
 		}
 		default:
@@ -182,7 +182,7 @@ JoystickDevice::InitDevice(int vid, int pid)
 	IOReturn ret = SetReport(kIOHIDReportTypeFeature, 0, &powerOn, 1, 10);
 
 	if (ret)
-		LOG->Warn("Failed to power on the Para controller: %#08x", ret);
+		Locator::getLogger()->warn("Failed to power on the Para controller: {:#x}", ret);
 	return ret == kIOReturnSuccess;
 }
 

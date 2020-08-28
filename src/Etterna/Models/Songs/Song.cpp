@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -334,8 +334,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// There was no entry in the cache for this song, or it was out of date.
 	// Let's load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		LOG->UserLog(
-		  "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.");
+		Locator::getLogger()->info("Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
 
 		vector<std::string> vs;
 		FILEMAN->GetDirListingWithMultipleExtensions(
@@ -344,10 +343,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		const auto bHasMusic = !vs.empty();
 
 		if (!bHasMusic) {
-			LOG->UserLog(
-			  "Song",
-			  sDir,
-			  "has no music file either. Ignoring this song directory.");
+            Locator::getLogger()->info("Song {} has no music file either. Ignoring this song directory.", sDir);
 			return false;
 		}
 		// Make sure we have a future filename figured out.
@@ -368,7 +364,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	FinalizeLoading();
 
 	if (!m_bHasMusic) {
-		LOG->UserLog("Song", sDir, "has no music; ignored.");
+	    Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
 		return false; // don't load this song
 	}
 	return true; // do load this song
@@ -634,10 +630,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			// available, don't use it--it's probably a KSF intro music
 			// file, which we don't (yet) support.
 			if (!music_list.empty()) {
-				LOG->Trace("Song '%s' points to a music file that doesn't "
+				/*LOG->Trace("Song '%s' points to a music file that doesn't "
 						   "exist, found music file '%s'",
 						   m_sSongDir.c_str(),
-						   music_list[0].c_str());
+						   music_list[0].c_str());*/
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
@@ -657,10 +653,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			 * originating from BMS files (which have no music file, per se)
 			 * but it's something of a hack. */
 			if (Sample == nullptr && !m_sMusicFile.empty()) {
-				LOG->UserLog("Sound file",
+				/*LOG->UserLog("Sound file",
 							 GetMusicPath(),
 							 "couldn't be opened: %s",
-							 error.c_str());
+							 error.c_str());*/
 
 				// Don't use this file.
 				m_sMusicFile = "";
@@ -673,22 +669,22 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 					// a warning.
 					m_fMusicLengthSeconds = 100; // guess
 				} else if (m_fMusicLengthSeconds == 0) {
-					LOG->UserLog("Sound file", GetMusicPath(), "is empty.");
+					/*LOG->UserLog("Sound file", GetMusicPath(), "is empty.");*/
 				}
 			}
 		} else // ! HasMusic()
 		{
 			m_fMusicLengthSeconds = 100; // guess
-			LOG->UserLog("Song",
+			/*LOG->UserLog("Song",
 						 GetSongDir(),
 						 "has no music file; guessing at %f seconds",
-						 m_fMusicLengthSeconds);
+						 m_fMusicLengthSeconds);*/
 		}
 		if (m_fMusicLengthSeconds < 0) {
-			LOG->UserLog("Sound file",
+			/*LOG->UserLog("Sound file",
 						 GetMusicPath(),
 						 "has a negative length %f.",
-						 m_fMusicLengthSeconds);
+						 m_fMusicLengthSeconds);*/
 			m_fMusicLengthSeconds = 0;
 		}
 		if (!m_PreviewFile.empty() &&
@@ -700,10 +696,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			RageSoundReader* Sample = RageSoundReader_FileReader::OpenFile(
 			  GetPreviewMusicPath(), error);
 			if (Sample == nullptr && !m_sMusicFile.empty()) {
-				LOG->UserLog("Sound file",
+				/*LOG->UserLog("Sound file",
 							 GetPreviewMusicPath(),
 							 "couldn't be opened: %s",
-							 error.c_str());
+							 error.c_str());*/
 
 				// Don't use this file.
 				m_PreviewFile = "";
@@ -717,8 +713,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 					// a warning.
 					m_fMusicSampleLengthSeconds = DEFAULT_MUSIC_SAMPLE_LENGTH;
 				} else if (m_fMusicSampleLengthSeconds == 0) {
-					LOG->UserLog(
-					  "Sound file", GetPreviewMusicPath(), "is empty.");
+					/*LOG->UserLog(
+					  "Sound file", GetPreviewMusicPath(), "is empty.");*/
 				}
 			}
 		} else { // no preview file, calculate sample from music as normal
@@ -896,10 +892,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			std::string error;
 			auto* img = RageSurfaceUtils::LoadFile(sPath, error, true);
 			if (!img) {
-				LOG->UserLog("Graphic file",
+			/*	LOG->UserLog("Graphic file",
 							 sPath,
 							 "couldn't be loaded: %s",
-							 error.c_str());
+							 error.c_str());*/
 				continue;
 			}
 
@@ -1127,7 +1123,7 @@ void
 Song::Save()
 {
 	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
-	LOG->Trace("Song::SaveToSongFile()");
+//	LOG->Trace("Song::SaveToSongFile()");
 
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
@@ -1145,7 +1141,7 @@ Song::Save()
 		const auto sNewPath = sOldPath + ".old";
 
 		if (!FileCopy(sOldPath, sNewPath)) {
-			LOG->UserLog("Song file", sOldPath, "couldn't be backed up.");
+			Locator::getLogger()->info("Song file {} couldn't be backed up.", sOldPath);
 		} else {
 			backedDotOldFileNames.emplace_back(sNewPath);
 			backedOrigFileNames.emplace_back(sOldPath);
@@ -1169,7 +1165,7 @@ bool
 Song::SaveToSMFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "sm");
-	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
+//	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))
@@ -1203,7 +1199,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ssc");
 
-	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
+//	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path)) {
@@ -1246,10 +1242,9 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile += ssprintf(".old");
 
 		if (FileCopy(path, sBackupFile))
-			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
+		    Locator::getLogger()->trace("Backed up {} to {}", path, sBackupFile);
 		else
-			LOG->Trace(
-			  "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+            Locator::getLogger()->trace("Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1266,7 +1261,7 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ett");
 
-	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
+//	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path))
@@ -1300,11 +1295,10 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile = SetExtension(sBackupFile, sExt);
 		sBackupFile += ssprintf(".old");
 
-		if (FileCopy(path, sBackupFile))
-			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
-		else
-			LOG->Trace(
-			  "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+        if (FileCopy(path, sBackupFile))
+            Locator::getLogger()->trace("Backed up {} to {}", path, sBackupFile);
+        else
+            Locator::getLogger()->trace("Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1327,7 +1321,7 @@ bool
 Song::SaveToDWIFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "dwi");
-	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
+//	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))

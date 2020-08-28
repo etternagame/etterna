@@ -1,13 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 
 #import <Cocoa/Cocoa.h>
 #include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #import "archutils/Darwin/MouseDevice.h"
+#include "Core/Services/Locator.hpp"
 
 CGFloat scrolled;
 
@@ -123,7 +123,7 @@ float MACWindowWidth()
 {
     const char *url = [[[event paramDescriptorForKeyword:keyDirectObject] stringValue] UTF8String];
     
-    LOG->Info("Parsing URL: %s", url);
+    Locator::getLogger()->info("Parsing URL: {}", url);
     
     // I'm not sure this handles everything it needs to. - Colby
     CommandLineActions::CommandLineArgs args;

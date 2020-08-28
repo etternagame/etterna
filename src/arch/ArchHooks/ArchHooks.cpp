@@ -1,10 +1,10 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks.h"
 #include "Etterna/Models/Lua/LuaReference.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "arch/arch_default.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Core/Services/Locator.hpp"
 
 #ifdef __APPLE__
 #include "../../archutils/Darwin/MouseDevice.h"
@@ -71,7 +71,7 @@ ArchHooks::SetHasFocus(bool bHasFocus)
 		return;
 	m_bHasFocus = bHasFocus;
 
-	LOG->Trace("App %s focus", bHasFocus ? "has" : "doesn't have");
+	Locator::getLogger()->trace("App {} focus", bHasFocus ? "has" : "doesn't have");
 	LockMut(g_Mutex);
 	m_bFocusChanged = true;
 }
@@ -101,7 +101,7 @@ ArchHooks::Create()
 std::string
 ArchHooks::GetClipboard()
 {
-	LOG->Warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");
+	Locator::getLogger()->warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");
 	return "";
 }
 
@@ -114,7 +114,7 @@ ArchHooks::RegisterWithLua()
 {
 	Lua* L = LUA->Get();
 	lua_pushstring(L, "HOOKS");
-	HOOKS->PushSelf(L);
+    Locator::getArchHooks()->PushSelf(L);
 	lua_settable(L, LUA_GLOBALSINDEX);
 	LUA->Release(L);
 }

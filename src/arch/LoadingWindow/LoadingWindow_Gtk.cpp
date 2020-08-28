@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "LoadingWindow_Gtk.h"

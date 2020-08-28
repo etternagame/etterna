@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader_Merge.h"
 #include "RageSoundReader_Pan.h"
@@ -99,9 +99,9 @@ RageSoundReader_Merge::Finish(int iPreferredSampleRate)
 			vector<RageSoundReader*> aSounds;
 			for (auto& it : m_aSounds) {
 				if (it->GetNumChannels() != m_iChannels) {
-					LOG->Warn("Discarded sound with %i channels, not %i",
-							  it->GetNumChannels(),
-							  m_iChannels);
+					Locator::getLogger()->warn("Discarded sound with {} channels, not {}",
+						  it->GetNumChannels(),
+						  m_iChannels);
 					delete it;
 					it = nullptr;
 				} else {
@@ -271,7 +271,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 						   m_iNextSourceFrame +
 							 lround(iFramesRead * aRatios[i])) >
 				ERROR_CORRECTION_THRESHOLD) {
-				LOG->Trace("*** hurk %i",
+				Locator::getLogger()->trace("*** hurk {}",
 						   Difference(aNextSourceFrames[i],
 									  m_iNextSourceFrame +
 										lround(iFramesRead * aRatios[i])));
@@ -283,7 +283,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 				int iAt =
 				  aNextSourceFrames[i] + lround(iGotFrames * aRatios[i]);
 				if (iAt != m_aSounds[i]->GetNextSourceFrame())
-					LOG->Trace("%i: at %i, expected %i",
+					Locator::getLogger()->trace("{}: at {}, expected {}",
 							   i,
 							   iAt,
 							   m_aSounds[i]->GetNextSourceFrame());

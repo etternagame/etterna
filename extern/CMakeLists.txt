@@ -45,11 +45,14 @@ add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
+add_subdirectory(fmt)
+add_subdirectory(plog)
 
-## Vorbis depends on Vorbis
+## Vorbis depends on ogg
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
+
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
@@ -61,7 +64,7 @@ list(APPEND EXT_TARGETS
     discord-rpc muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl)
+    libcurl fmt)
 
 list(APPEND LUA_TARGETS luajit lua minilua buildvm)
 
