@@ -252,11 +252,11 @@ StamAdjust(const float x,
 	const auto super_stam_ceil = 1.11F;
 
 	// use this to calculate the mod growth
-	const std::array<float, max_intervals>* base_diff =
+	const std::vector<float>* base_diff =
 	  &(calc.base_diff_for_stam_mod.at(hi).at(ss));
 	// but apply the mod growth to these values
 	// they might be the same, or not
-	const std::array<float, max_intervals>* diff =
+	const std::vector<float>* diff =
 	  &(calc.base_adj_diff.at(hi).at(ss));
 
 	// i don't like the copypasta either but the boolchecks where
@@ -407,7 +407,7 @@ CalcInternal(float& gotpoints,
 	}
 
 	// final difficulty values to use
-	const std::array<float, max_intervals>* v =
+	const std::vector<float>* v =
 	  &(stam ? calc.stam_adj_diff : calc.base_adj_diff.at(hi).at(ss));
 	auto powindromemordniwop = 1.7F;
 	if (ss == Skill_Chordjack) {
@@ -916,7 +916,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 438;
+int mina_calc_version = 440;
 auto
 GetCalcVersion() -> int
 {
