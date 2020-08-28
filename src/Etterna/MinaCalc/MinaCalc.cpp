@@ -521,71 +521,93 @@ constexpr float bad_newbie_skillsets_pbm = 1.05F;
 
 // each skillset should just be a separate calc function [todo]
 auto
-Calc::Chisel(float player_skill,
-			 float resolution,
+Calc::Chisel(const float player_skill,
+			 const float resolution,
 			 const float score_goal,
 			 const Skillset ss,
 			 const bool stamina,
 			 const bool debugoutput) -> float
 {
-	auto gotpoints = 0.F;
+	// overall and stamina are calculated differently
+	if (ss == Skill_Overall || ss == Skill_Stamina) {
+		return min_rating;
+	}
+
 	const auto reqpoints = MaxPoints * score_goal;
 	const auto max_slap_dash_jack_cap_hack_tech_hat = MaxPoints * 0.1F;
-	for (auto iter = 1; iter <= 8; iter++) {
-		do {
-			// overall and stamina are calculated differently
-			if (player_skill > max_rating || ss == Skill_Overall ||
-				ss == Skill_Stamina) {
-				return min_rating;
-			}
 
-			player_skill += resolution;
-
-			// reset tallied score and adjust for point buffer
-			switch (ss) {
-				case Skill_Technical:
-					gotpoints = MaxPoints * tech_pbm;
-					break;
-				case Skill_JackSpeed:
-					gotpoints = MaxPoints * jack_pbm;
-					break;
-				case Skill_Stream:
-					gotpoints = MaxPoints * stream_pbm;
-					break;
-				case Skill_Jumpstream:
-				case Skill_Handstream:
-				case Skill_Chordjack:
-					gotpoints = MaxPoints * bad_newbie_skillsets_pbm;
-					break;
-				default:
-					assert(0);
-					break;
-			}
-
-			for (const auto& hi : { left_hand, right_hand }) {
-				/* only run the other hand if we're still above the
-				 * reqpoints, if we're already below, there's no
-				 * point. i.e. we're so far below the skill
-				 * benchmark it's impossible to reach the goal after
-				 * just the first hand's losses are totaled */
-				if (true /*gotpoints > reqpoints*/) {
-					if (ss == Skill_JackSpeed) {
-						gotpoints -= jackloss(player_skill, *this, hi, stamina);
-					} else {
-						CalcInternal(
-						  gotpoints, player_skill, ss, stamina, *this, hi);
-					}
-					if (ss == Skill_Technical) {
-						gotpoints -= fastsqrt(min(
-						  max_slap_dash_jack_cap_hack_tech_hat,
-						  jackloss(player_skill * 0.75F, *this, hi, stamina) *
-							0.85F));
-					}
+	auto calc_gotpoints = [&](float curr_player_skill) -> float {
+		auto gotpoints = 0.F;
+		switch (ss) {
+			case Skill_Technical:
+				gotpoints = MaxPoints * tech_pbm;
+				break;
+			case Skill_JackSpeed:
+				gotpoints = MaxPoints * jack_pbm;
+				break;
+			case Skill_Stream:
+				gotpoints = MaxPoints * stream_pbm;
+				break;
+			case Skill_Jumpstream:
+			case Skill_Handstream:
+			case Skill_Chordjack:
+				gotpoints = MaxPoints * bad_newbie_skillsets_pbm;
+				break;
+			default:
+				assert(0);
+				break;
+		}
+		for (const auto& hi : { left_hand, right_hand }) {
+			/* only run the other hand if we're still above the
+			 * reqpoints, if we're already below, there's no
+			 * point. i.e. we're so far below the skill
+			 * benchmark it's impossible to reach the goal after
+			 * just the first hand's losses are totaled */
+			if (true /*gotpoints > reqpoints*/) {
+				if (ss == Skill_JackSpeed) {
+					gotpoints -=
+					  jackloss(curr_player_skill, *this, hi, stamina);
+				} else {
+					CalcInternal(
+					  gotpoints, curr_player_skill, ss, stamina, *this, hi);
+				}
+				if (ss == Skill_Technical) {
+					gotpoints -= fastsqrt(min(
+					  max_slap_dash_jack_cap_hack_tech_hat,
+					  jackloss(curr_player_skill * 0.75F, *this, hi, stamina) *
+						0.85F));
 				}
 			}
-		} while (gotpoints < reqpoints);
-		player_skill -= resolution;
-		resolution /= 2.F;
+		}
+		return gotpoints;
+	};
+
+	float gotpoints;
+	float curr_player_skill = player_skill;
+	float curr_resolution = resolution;
+
+	do {
+		if (curr_player_skill > max_rating) {
+			return min_rating;
+		}
+
+		curr_player_skill += curr_resolution;
+		gotpoints = calc_gotpoints(curr_player_skill);
+	} while (gotpoints < reqpoints);
+	curr_player_skill -= curr_resolution; // We're too high. Undo our last move.
+	curr_resolution /= 2;
+
+	for (auto iter = 1; iter <= 7; iter++) { // Refine
+		if (curr_player_skill > max_rating) {
+			return min_rating;
+		}
+		curr_player_skill += curr_resolution;
+		gotpoints = calc_gotpoints(curr_player_skill);
+		if (gotpoints > reqpoints) {
+			curr_player_skill -=
+			  curr_resolution; // We're too high. Undo our last move.
+		}
+		curr_resolution /= 2.F;
 	}
 
 	/* these are the values for msd/stam adjusted msd/pointloss the
@@ -595,8 +617,13 @@ Calc::Chisel(float player_skill,
 	 * the final value we've determined */
 	if (debugoutput) {
 		for (const auto& hi : { left_hand, right_hand }) {
-			CalcInternal(
-			  gotpoints, player_skill, ss, stamina, *this, hi, debugoutput);
+			CalcInternal(gotpoints,
+						 curr_player_skill,
+						 ss,
+						 stamina,
+						 *this,
+						 hi,
+						 debugoutput);
 
 			/* set total pattern mod value (excluding stam for now), essentially
 			 * this value is the cumulative effect of pattern mods on base nps
@@ -624,7 +651,7 @@ Calc::Chisel(float player_skill,
 		}
 	}
 
-	return player_skill + 2.F * resolution;
+	return curr_player_skill + 2.F * curr_resolution;
 }
 
 /* The new way we wil attempt to differentiate skillsets rather than using
@@ -916,7 +943,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 438;
+int mina_calc_version = 439;
 auto
 GetCalcVersion() -> int
 {
