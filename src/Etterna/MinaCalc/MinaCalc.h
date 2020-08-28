@@ -18,8 +18,15 @@ using MinaSD = std::vector<std::vector<float>>;
 
 class Calc;
 
-// should be able to handle 1hr 54min easily
-static const int max_intervals = 40000;
+// intervals are half seconds
+// this number is a default which should work for most files
+// the calc should internally grow the vector if a larger number is needed
+static const int default_interval_count = 1000;
+
+// this should allow for anything except for things like 24 hours of stream
+// 24 hours of 100 bpm stream takes up around 130k intervals
+// this cap will prevent extremely unnecessary huge allocations for end users
+static const int max_intervals = 100000;
 
 /* intervals are _half_ second, no point in wasting time or cpu cycles on 100
  * nps joke files. even at most generous, 100 nps spread across all fingers,
@@ -87,23 +94,25 @@ class Calc
 	static inline void InitAdjDiff(Calc& calc, const int& hi);
 
   public:
-	// the most basic derviations from the most basic notedata
-	std::array<std::array<RowInfo, max_rows_for_single_interval>, max_intervals>
+	Calc() { resize_interval_dependent_vectors(default_interval_count); }
+	
+	// the most basic derivations from the most basic notedata
+	std::vector<std::array<RowInfo, max_rows_for_single_interval>>
 	  adj_ni;
 
 	// size of each interval in rows
-	std::array<int, max_intervals> itv_size{};
+	std::vector<int> itv_size{};
 
 	// Point allotment for each interval
-	std::array<std::array<int, max_intervals>, num_hands> itv_points{};
+	std::array<std::vector<int>, num_hands> itv_points{};
 
 	// holds pattern mods
-	std::array<std::array<std::array<float, max_intervals>, NUM_CalcPatternMod>,
+	std::array<std::array<std::vector<float>, NUM_CalcPatternMod>,
 			   num_hands>
 	  doot{};
 
 	// Calculated difficulty for each interval
-	std::array<std::array<std::array<float, max_intervals>, NUM_CalcDiffValue>,
+	std::array<std::array<std::vector<float>, NUM_CalcDiffValue>,
 			   num_hands>
 	  soap{};
 
@@ -124,12 +133,12 @@ class Calc
 	 * any way, and no estimation is made on how much this actually messes with
 	 * stuff (could be minor, could be major, could be minor for most files and
 	 * major for a select few) */
-	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
+	std::array<std::array<std::vector<float>, NUM_Skillset>,
 			   num_hands>
 	  base_adj_diff{};
 
 	// input that the stamina model uses to apply to the base diff
-	std::array<std::array<std::array<float, max_intervals>, NUM_Skillset>,
+	std::array<std::array<std::vector<float>, NUM_Skillset>,
 			   num_hands>
 	  base_diff_for_stam_mod{};
 
@@ -138,13 +147,13 @@ class Calc
 	 * value changes, again based on the above, technically we could use the
 	 * skill_stamina element of the arrays to store this and save an allocation
 	 * but that might just be too confusing idk */
-	std::array<float, max_intervals> stam_adj_diff{};
+	std::vector<float> stam_adj_diff{};
 
 	// a vector of {row_time, diff} for each hand
 	std::array<std::vector<std::pair<float, float>>, num_hands> jack_diff{};
 
 	// number of jacks by hand for intervals
-	// std::array<std::array<int, max_intervals>, num_hands>
+	// std::array<std::vector<int>, num_hands>
 	// itv_jack_diff_size{};
 
 	std::array<std::vector<float>, num_hands> jack_loss{};
@@ -166,6 +175,36 @@ class Calc
 	 * pulled straight from the calc */
 	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
 	  debugValues;
+
+	// grow every interval-dependent vector we use
+	// the size could be reduced but there isn't a big need for it
+	// this does nothing if amt < the size of the vectors
+	void resize_interval_dependent_vectors(size_t amt)
+	{
+		// there isn't a real need to make our vectors smaller
+		if (amt < adj_ni.size())
+			return;
+		
+		// grow each vector
+		// resize is used to construct defaults, the space should be used immediately
+		adj_ni.resize(amt);
+		itv_size.resize(amt);
+		for (auto& v : itv_points)
+			v.resize(amt);
+		for (auto& a : doot)
+			for (auto& v : a)
+				v.resize(amt);
+		for (auto& a : soap)
+			for (auto& v : a)
+				v.resize(amt);
+		for (auto& a : base_adj_diff)
+			for (auto& v : a)
+				v.resize(amt);
+		for (auto& a : base_diff_for_stam_mod)
+			for (auto& v : a)
+				v.resize(amt);
+		stam_adj_diff.resize(amt);
+	}
 };
 
 MINACALC_API auto

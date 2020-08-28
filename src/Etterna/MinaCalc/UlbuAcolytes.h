@@ -18,7 +18,7 @@ static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 constexpr float interval_span = 0.5F;
 
 inline void
-Smooth(std::array<float, max_intervals>& input,
+Smooth(std::vector<float>& input,
 	   const float neutral,
 	   const int end_interval)
 {
@@ -34,7 +34,7 @@ Smooth(std::array<float, max_intervals>& input,
 }
 
 inline void
-MSSmooth(std::array<float, max_intervals>& input,
+MSSmooth(std::vector<float>& input,
 		 const float neutral,
 		 const int end_interval)
 {
@@ -125,9 +125,13 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 	 * the end */
 	calc.numitv = time_to_itv_idx(ni.back().rowTime / rate) + 1;
 
-	// are there more intervals than our alloted max
-	if (calc.numitv >= max_intervals) {
-		return true;
+	// are there more intervals than our emplaced max
+	if (calc.numitv >= calc.itv_size.size()) {
+		// hard cap for memory considerations
+		if (calc.numitv >= max_intervals)
+			return true;
+		// accesses can happen way at the end so give it some breathing room
+		calc.resize_interval_dependent_vectors(calc.numitv + 2);
 	}
 
 	// for various reasons we actually have to do this, scan the file and make
