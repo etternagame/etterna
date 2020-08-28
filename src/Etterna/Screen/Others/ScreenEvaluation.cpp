@@ -249,7 +249,14 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		CHECKPOINT_M("Setting PSS from ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
-		HighScore* hs = SCOREMAN->GetMostRecentScore();
+
+		// allow either a highscore or nothing, which defaults to most recent
+		HighScore* hs;
+		if (lua_isnil(L, 3))
+			hs = SCOREMAN->GetMostRecentScore();
+		else
+			hs = Luna<HighScore>::check(L, 3);
+		
 		float ts = FArg(2);
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
@@ -260,10 +267,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		PlayerAI::SetScoreData(hs, 0);
 		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
 		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
-		pPSS->m_fLifeRecord.clear();
-		pPSS->m_ComboList.clear();
-		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
-		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
+		PlayerAI::SetPlayerStageStatsForReplay(pPSS, ts);
 		lua_pushboolean(L, true);
 		return 1;
 	}

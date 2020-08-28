@@ -12,6 +12,7 @@
 #include "arch/Dialog/Dialog.h"
 #include "ver.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <csetjmp>

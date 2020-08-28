@@ -131,7 +131,8 @@ class PlayerAI
 	static auto IsTapAtRowAndColumn(int noteRow, int col) -> bool;
 
 	// Fake the player stage stats using the current replay data
-	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss);
+	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss,
+											 float ts = 1.F);
 
 	// Calculate the Wifescore for the given position in replay data
 	static auto GetWifeScoreForRow(int row, float ts)

@@ -1012,7 +1012,7 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 }
 
 void
-PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
+PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss, float ts)
 {
 	CHECKPOINT_M("Entered PSSFromReplayData function");
 	// Radar values.
@@ -1045,9 +1045,9 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 
 	// Life record
 	pss->m_fLifeRecord.clear();
-	pss->m_fLifeRecord = GenerateLifeRecordForReplay();
+	pss->m_fLifeRecord = GenerateLifeRecordForReplay(ts);
 	pss->m_ComboList.clear();
-	pss->m_ComboList = GenerateComboListForReplay();
+	pss->m_ComboList = GenerateComboListForReplay(ts);
 	CHECKPOINT_M("Finished PSSFromReplayData function");
 }
 
