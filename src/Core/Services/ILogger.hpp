@@ -17,24 +17,13 @@ namespace Core {
  */
 class ILogger {
 
-protected:
+public:
     /**
      * Severity Enum - Middle man between each logging backed
      * and their own severity terminology.
      */
     enum class Severity {TRACE, DEBUG, INFO, WARN, ERR, FATAL};
 
-    /**
-     * Implementations only need to implement this log function to send logs
-     * to file, console, network, etc. This function is kept protected as
-     * for the majority of logs, the six severity functions should be sufficient
-     * for most logging purposes.
-     * @param logLevel Log Severity
-     * @param message Formatted string to log
-     */
-    virtual void log(ILogger::Severity logLevel, const std::string_view message) = 0;
-
-public:
     // Logging Specific
     template <typename... Args> void trace(const std::string_view log, const Args& ... args) {
         this->log(Severity::TRACE, fmt::format(log, args...));
@@ -57,6 +46,18 @@ public:
 
     /** @brief Enabled or disable a stdout prompt on Windows */
     bool setConsoleEnabled(bool enable);
+    virtual void setLogLevel(ILogger::Severity logLevel) = 0;
+
+protected:
+    /**
+     * Implementations only need to implement this log function to send logs
+     * to file, console, network, etc. This function is kept protected as
+     * for the majority of logs, the six severity functions should be sufficient
+     * for most logging purposes.
+     * @param logLevel Log Severity
+     * @param message Formatted string to log
+     */
+    virtual void log(ILogger::Severity logLevel, const std::string_view message) = 0;
 };
 }
 

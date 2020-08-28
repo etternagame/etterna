@@ -1082,6 +1082,7 @@ sm_main(int argc, char* argv[])
     // Setup options that require preference variables
     // Used to be contents of ApplyLogPreferences
     Locator::getLogger()->setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
+    Locator::getLogger()->setLogLevel(static_cast<Core::ILogger::Severity>(PREFSMAN->m_verbose_log.Get()));
     Checkpoints::LogCheckpoints(PREFSMAN->m_bLogCheckpoints);
 
 	// This needs PREFSMAN.

@@ -69,6 +69,10 @@ void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view me
     PLOG(PlogLogger::convertSeverity(logLevel)) << message;
 }
 
+void PlogLogger::setLogLevel(Core::ILogger::Severity logLevel) {
+    plog::get()->setMaxSeverity(convertSeverity(logLevel));
+}
+
 plog::Severity PlogLogger::convertSeverity(ILogger::Severity logLevel) {
 	switch (logLevel) {
 		case Severity::TRACE:	return plog::Severity::verbose;
