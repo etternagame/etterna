@@ -24,9 +24,8 @@ local choiceNames = {
     "Scores",
     "Tags",
     "Goals",
-    "Preview",
-    "",
-    "",
+    "Playlists",
+    "Profile",
 }
 
 local choiceTextSize = 0.8
