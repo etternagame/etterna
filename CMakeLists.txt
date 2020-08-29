@@ -101,7 +101,9 @@ target_link_libraries(Etterna PRIVATE libcurl)
 target_link_libraries(Etterna PRIVATE fmt::fmt)
 target_link_libraries(Etterna PRIVATE plog::plog)
 
-if(WITH_CRASHPAD)
+# If the user wants crashpad, and the target exists (in-case
+# the user wants it, but crashpad couldn't find python)
+if(WITH_CRASHPAD AND TARGET crashpad)
     target_link_libraries(Etterna PRIVATE crashpad)
 endif()
 

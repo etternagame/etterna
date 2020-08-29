@@ -1,3 +1,13 @@
+# First, we check to see if the user has Python2. The crashpad gn build invokes
+# a Python2 script. We will see if we can find Python2. If we can, we will assume
+# it's on the system path, otherwise, we will notify the user, then disable crashpad.
+find_package (Python2)
+if(NOT Python2_FOUND)
+	message(WARNING " Python 2 was not found. Crashpad will be disabled. If you would like to build"
+					" crashpad, please ensure Python 2 is installed and apart of the system path.")
+	return()
+endif()
+
 # Google uses depot_tools to download and build crashpad. We will do the same.
 # This file make assumptions about where crashpad is located. Chromium uses depot_tools
 # to download and setup a directory for the crashpad/breakpad/chromium tools. We do not
