@@ -53,6 +53,7 @@ def upload_to_s3(filename: str):
     prefix_dir = get_s3_upload_directory()
     build_uuid, module_id = get_metadata(filename)
     upload_prefix = PurePosixPath('symbols', prefix_dir, build_uuid, filename)
+    print("The upload_prefix is {}".format(upload_prefix))
 
     # Get git hash
     git_command = ['git', 'rev-parse', 'HEAD']
