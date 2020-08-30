@@ -937,7 +937,7 @@ t[#t+1] = Def.ActorFrame {
                     ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
                     local percent = params.score:GetWifeScore() * 100
                     local decimals = 2
-                    local strfrmat = "%05.2f%% (%s)"
+                    local strfrmat = "%05.2f%% [%s]"
                     if params.judgeSetting ~= nil then
                         local rescoreTable = gatherRescoreTableFromScore(params.score)
                         percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
@@ -945,7 +945,7 @@ t[#t+1] = Def.ActorFrame {
                     -- scores over 99% should show more decimals
                     if percent > 99 then
                         decimals = 5
-                        strfrmat = "%05.5f%% (%s)"
+                        strfrmat = "%05.5f%% [%s]"
                     end
                     percent = notShit.floor(percent, decimals)
                     local grade = GetGradeFromPercent(percent / 100)
