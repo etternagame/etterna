@@ -349,7 +349,11 @@ class Song
 	[[nodiscard]] auto MatchesFilter(
 	  float rate,
 	  std::vector<Steps*>* vMatchingStepsOut = nullptr) const -> bool;
-
+	[[nodiscard]] auto ChartMatchesFilter(Steps* chart, float rate) const
+	  -> bool;
+	[[nodiscard]] auto IsChartHighestDifficulty(Steps* chart,
+												Skillset skill,
+												float rate) const -> bool;
 	auto HasChartByHash(const std::string& hash) -> bool;
 
 	// For loading only:

@@ -13,7 +13,7 @@
 #endif
 #include <csignal>
 
-#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc, only */
+//#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc, only */
 #include "RageUtil/Misc/RageThreads.h"
 #include "Backtrace.h"
 
@@ -152,53 +152,53 @@ parent_process(int to_child, const CrashData* crash)
 		return;
 
 	/* 2. Write info. */
-	const char* p = RageLog::GetInfo();
-	int size = strlen(p) + 1;
-	if (!parent_write(to_child, &size, sizeof(size)))
-		return;
-	if (!parent_write(to_child, p, size))
-		return;
+//	const char* p = RageLog::GetInfo();
+//	int size = strlen(p) + 1;
+//	if (!parent_write(to_child, &size, sizeof(size)))
+//		return;
+//	if (!parent_write(to_child, p, size))
+//		return;
 
 	/* 3. Write AdditionalLog. */
-	p = RageLog::GetAdditionalLog();
-	size = strlen(p) + 1;
-	if (!parent_write(to_child, &size, sizeof(size)))
-		return;
-	if (!parent_write(to_child, p, size))
-		return;
+//	p = RageLog::GetAdditionalLog();
+//	size = strlen(p) + 1;
+//	if (!parent_write(to_child, &size, sizeof(size)))
+//		return;
+//	if (!parent_write(to_child, p, size))
+//		return;
 
 	/* 4. Write RecentLogs. */
-	int cnt = 0;
-	const char* ps[1024];
-	while (cnt < 1024 && (ps[cnt] = RageLog::GetRecentLog(cnt)) != NULL)
-		++cnt;
+//	int cnt = 0;
+//	const char* ps[1024];
+//	while (cnt < 1024 && (ps[cnt] = RageLog::GetRecentLog(cnt)) != NULL)
+//		++cnt;
+//
+//	if (!parent_write(to_child, &cnt, sizeof(cnt)))
+//		return;
+//	for (int i = 0; i < cnt; ++i) {
+//		size = strlen(ps[i]) + 1;
+//		if (!parent_write(to_child, &size, sizeof(size)))
+//			return;
+//		if (!parent_write(to_child, ps[i], size))
+//			return;
+//	}
 
-	if (!parent_write(to_child, &cnt, sizeof(cnt)))
-		return;
-	for (int i = 0; i < cnt; ++i) {
-		size = strlen(ps[i]) + 1;
-		if (!parent_write(to_child, &size, sizeof(size)))
-			return;
-		if (!parent_write(to_child, ps[i], size))
-			return;
-	}
-
-	/* 5. Write CHECKPOINTs. */
-	static char buf[1024 * 32];
-	Checkpoints::GetLogs(buf, sizeof(buf), "\n");
-	size = strlen(buf) + 1;
-	if (!parent_write(to_child, &size, sizeof(size)))
-		return;
-	if (!parent_write(to_child, buf, size))
-		return;
-
-	/* 6. Write the crashed thread's name. */
-	p = RageThread::GetCurrentThreadName();
-	size = strlen(p) + 1;
-	if (!parent_write(to_child, &size, sizeof(size)))
-		return;
-	if (!parent_write(to_child, p, size))
-		return;
+//	/* 5. Write CHECKPOINTs. */
+//	static char buf[1024 * 32];
+//	Checkpoints::GetLogs(buf, sizeof(buf), "\n");
+//	size = strlen(buf) + 1;
+//	if (!parent_write(to_child, &size, sizeof(size)))
+//		return;
+//	if (!parent_write(to_child, buf, size))
+//		return;
+//
+//	/* 6. Write the crashed thread's name. */
+//	p = RageThread::GetCurrentThreadName();
+//	size = strlen(p) + 1;
+//	if (!parent_write(to_child, &size, sizeof(size)))
+//		return;
+//	if (!parent_write(to_child, p, size))
+//		return;
 }
 
 /* The parent process is the crashed process.  It'll send data to the

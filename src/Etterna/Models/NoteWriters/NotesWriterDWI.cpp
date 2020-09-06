@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesWriterDWI.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -326,7 +326,7 @@ WriteDWINotesTag(RageFile& f, const Steps& out)
 	if (out.GetDifficulty() == Difficulty_Edit)
 		return false; // not supported by DWI
 
-	LOG->Trace("Steps::WriteDWINotesTag");
+	Locator::getLogger()->trace("Steps::WriteDWINotesTag");
 
 	switch (out.m_StepsType) {
 		case StepsType_dance_single:
@@ -372,10 +372,9 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 {
 	RageFile f;
 	if (!f.Open(sPath, RageFile::WRITE)) {
-		LOG->UserLog("Song file",
-					 sPath,
-					 "couldn't be opened for writing: %s",
-					 f.GetError().c_str());
+	    Locator::getLogger()->info("Song file \"{}\" couldn't be opened for writing: {}",
+	            sPath, f.GetError().c_str());
+
 		return false;
 	}
 

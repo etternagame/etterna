@@ -2,7 +2,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Actor/Base/BitmapText.h"
 #include "ComboGraph.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Misc/StageStats.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
@@ -97,11 +97,8 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 		const bool bIsMax = (combo.GetStageCnt() == iMaxComboSize);
 
 		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("combo %i is %f+%f of %f",
-					   i,
-					   combo.m_fStartSecond,
-					   combo.m_fSizeSeconds,
-					   fLastSecond);
+			Locator::getLogger()->trace("combo {} is {}+{} of {}",
+					   i, combo.m_fStartSecond,combo.m_fSizeSeconds, fLastSecond);
 		Actor* pSprite = bIsMax ? m_pMaxCombo->Copy() : m_pNormalCombo->Copy();
 
 		const float fStart =

@@ -10,6 +10,7 @@
 #include "Etterna/Actor/Gameplay/LifeMeterBar.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Core/Services/Locator.hpp"
 
 #include <map>
 #include <algorithm>
@@ -1011,7 +1012,7 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 }
 
 void
-PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
+PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss, float ts)
 {
 	CHECKPOINT_M("Entered PSSFromReplayData function");
 	// Radar values.
@@ -1044,9 +1045,9 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 
 	// Life record
 	pss->m_fLifeRecord.clear();
-	pss->m_fLifeRecord = GenerateLifeRecordForReplay();
+	pss->m_fLifeRecord = GenerateLifeRecordForReplay(ts);
 	pss->m_ComboList.clear();
-	pss->m_ComboList = GenerateComboListForReplay();
+	pss->m_ComboList = GenerateComboListForReplay(ts);
 	CHECKPOINT_M("Finished PSSFromReplayData function");
 }
 
@@ -1150,7 +1151,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			}
 			++holdIter;
 		} else {
-			LOG->Trace("Somehow while calculating the life graph, something "
+			Locator::getLogger()->trace("Somehow while calculating the life graph, something "
 					   "went wrong.");
 			++holdIter;
 			++tapIter;

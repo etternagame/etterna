@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "VideoDriverInfo.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RegistryAccess.h"
 #include <windows.h>
 
@@ -51,7 +51,7 @@ GetPrimaryVideoDriverName()
 	if (!sPrimaryDeviceName.empty())
 		return sPrimaryDeviceName;
 
-	LOG->Warn("GetPrimaryVideoName failed; renderer selection may be wrong");
+	Locator::getLogger()->warn("GetPrimaryVideoName failed; renderer selection may be wrong");
 
 	VideoDriverInfo info;
 	if (!GetVideoDriverInfo(0, info))
@@ -96,7 +96,7 @@ GetVideoDriverInfo(int iCardno, VideoDriverInfo& info)
 		}
 
 		if (lst.empty()) {
-			LOG->Warn("GetVideoDriverInfo error: no cards found!");
+			Locator::getLogger()->warn("GetVideoDriverInfo error: no cards found!");
 			return false;
 		}
 	}

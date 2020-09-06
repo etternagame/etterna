@@ -12,7 +12,7 @@
 #endif
 #include <shellapi.h>
 
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 #include "archutils/Win32/WindowsResources.h"
 #include "archutils/Win32/DialogUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
@@ -803,7 +803,7 @@ CrashDialog::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 					m_pPost = new NetworkPostData;
 					m_pPost->SetData("Product", PRODUCT_ID);
 					m_pPost->SetData("Version", product_version);
-					m_pPost->SetData("Arch", HOOKS->GetArchName().c_str());
+					m_pPost->SetData("Arch", Locator::getArchHooks()->GetArchName().c_str());
 					m_pPost->SetData("Report", m_sCrashReport);
 					m_pPost->SetData("Reason",
 									 m_CrashData.m_CrashInfo.m_CrashReason);

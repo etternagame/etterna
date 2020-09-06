@@ -6,7 +6,7 @@
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenPrompt.h"
 #include "ScreenSMOnlineLogin.h"
@@ -162,7 +162,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage& SM)
 			}
 		}
 	} else if (SM == SM_GoToNextScreen) {
-		LOG->Trace("[ScreenSMOnlineLogin::HandleScreenMessage] GoToNextScreen");
+		Locator::getLogger()->trace("[ScreenSMOnlineLogin::HandleScreenMessage] GoToNextScreen");
 		for (unsigned r = 0; r < m_pRows.size(); r++)
 			ExportOptions(r, GAMESTATE->GetMasterPlayerNumber());
 

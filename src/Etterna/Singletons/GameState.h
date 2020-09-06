@@ -114,7 +114,6 @@ class GameState
 	// This is set to a random number per-game/round; it can be used for a
 	// random seed.
 	int m_iGameSeed, m_iStageSeed;
-	std::string m_sStageGUID;
 
 	void SetNewStageSeed();
 
@@ -210,7 +209,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.70.3"; }
+	static auto GetEtternaVersion() -> std::string { return "0.71.0"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4

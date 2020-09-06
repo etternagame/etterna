@@ -232,7 +232,9 @@ class ScoreManager
 					 "Temp score for Replay & Practice viewing was empty.");
 			return tempscoreforonlinereplayviewing;
 		}
-		ASSERT_M(!AllScores.empty(), "Profile has no Scores.");
+		// Allow Lua to receive null HS here
+		if (AllScores.empty())
+			return nullptr;
 		return AllScores.back();
 	}
 	void PutScoreAtTheTop(const std::string& scorekey)

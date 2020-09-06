@@ -4,7 +4,7 @@
 #define NOTE_TYPES_H
 
 #include "GameConstantsAndTypes.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 
 class XNode;
 
@@ -195,7 +195,7 @@ struct TapNote
 	  , iKeysoundIndex(iKeysoundIndex_)
 	{
 		if (type_ > TapNoteType_Fake) {
-			LOG->Trace("Invalid tap note type %s (most likely) due to random "
+			Locator::getLogger()->trace("Invalid tap note type {} (most likely) due to random "
 					   "vanish issues. Assume it doesn't need judging.",
 					   TapNoteTypeToString(type_).c_str());
 			type = TapNoteType_Empty;

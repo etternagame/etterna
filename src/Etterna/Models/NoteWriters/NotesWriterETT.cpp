@@ -8,7 +8,7 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -468,10 +468,8 @@ NotesWriterETT::Write(std::string& sPath,
 
 	RageFile f;
 	if (!f.Open(sPath, flags)) {
-		LOG->UserLog("Song file",
-					 sPath,
-					 "couldn't be opened for writing: %s",
-					 f.GetError().c_str());
+        Locator::getLogger()->info("Song file \"{}\" couldn't be opened for writing: {}",
+                                   sPath, f.GetError().c_str());
 		return false;
 	}
 
@@ -496,7 +494,7 @@ NotesWriterETT::Write(std::string& sPath,
 			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
-			LOG->Info("Not caching empty difficulty in file %s", sPath.c_str());
+            //Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
 		}
 	}
 	if (f.Flush() == -1)

@@ -35,24 +35,24 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
 add_subdirectory(discord-rpc)
 
 ## Header Only
-add_subdirectory(picosha2)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(libtomcrypt)
-add_subdirectory(libtommath)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
+add_subdirectory(fmt)
+add_subdirectory(plog)
 
-## Vorbis depends on Vorbis
+## Vorbis depends on ogg
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
+
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
@@ -62,10 +62,9 @@ endif()
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
     discord-rpc muFFT
-    tomcrypt libtommath
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl)
+    libcurl fmt)
 
 list(APPEND LUA_TARGETS luajit lua minilua buildvm)
 

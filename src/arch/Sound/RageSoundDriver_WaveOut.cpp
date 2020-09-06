@@ -5,7 +5,7 @@
 #pragma comment(lib, "winmm.lib")
 #endif
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
@@ -46,9 +46,8 @@ void
 RageSoundDriver_WaveOut::MixerThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
-		LOG->Warn(
-		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority")
-			.c_str());
+		Locator::getLogger()->warn(
+		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority"));
 
 	while (!m_bShutdown) {
 		while (GetData())
@@ -95,9 +94,8 @@ void
 RageSoundDriver_WaveOut::SetupDecodingThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
-		LOG->Warn(
-		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority")
-			.c_str());
+		Locator::getLogger()->warn(
+		  werr_ssprintf(GetLastError(), "Failed to set sound thread priority"));
 }
 
 int64_t
@@ -158,7 +156,7 @@ RageSoundDriver_WaveOut::Init()
 	}
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Info("WaveOut software mixing at %i hz", m_iSampleRate);
+		Locator::getLogger()->info("WaveOut software mixing at {}hz", m_iSampleRate);
 
 	/* We have a very large writeahead; make sure we have a large enough decode
 	 * buffer to recover cleanly from underruns. */
@@ -178,10 +176,10 @@ RageSoundDriver_WaveOut::~RageSoundDriver_WaveOut()
 		m_bShutdown = true;
 		SetEvent(m_hSoundEvent);
 		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Shutting down mixer thread ...");
+			Locator::getLogger()->trace("Shutting down mixer thread ...");
 		MixingThread.Wait();
 		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Mixer thread shut down.");
+			Locator::getLogger()->trace("Mixer thread shut down.");
 	}
 
 	if (m_hWaveOut != nullptr) {

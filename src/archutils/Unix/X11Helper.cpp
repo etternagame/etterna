@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "X11Helper.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX: only used for m_bShowMouseCursor -aj
@@ -58,7 +58,7 @@ X11Helper::OpenXConnection()
 	display_supports_dpms_extension =
 	  DPMSQueryExtension(Dpy, &event_base, &error_base);
 	if (display_supports_dpms_extension) {
-		LOG->Trace("DPMSQueryExtension returned true.  Stepmania will disable "
+		Locator::getLogger()->trace("DPMSQueryExtension returned true.  Stepmania will disable "
 				   "power management, and restore the original state on exit.");
 		CARD16 power_level;
 		BOOL state;
@@ -66,11 +66,11 @@ X11Helper::OpenXConnection()
 			dpms_state_at_startup = state;
 			DPMSDisable(Dpy);
 		} else {
-			LOG->Trace("DPMSInfo returned false.  Stepmania will not be able "
+			Locator::getLogger()->trace("DPMSInfo returned false.  Stepmania will not be able "
 					   "to disable power management.");
 		}
 	} else {
-		LOG->Trace("DPMSQueryExtension returned false, which means this "
+		Locator::getLogger()->trace("DPMSQueryExtension returned false, which means this "
 				   "display does not support the DPMS extension.  Stepmania "
 				   "will not be able to disable power management.");
 	}
@@ -143,7 +143,7 @@ X11Helper::MakeWindow(Window& win,
 
 	XClassHint* hint = XAllocClassHint();
 	if (hint == NULL) {
-		LOG->Warn("Could not set class hint for X11 Window");
+		Locator::getLogger()->warn("Could not set class hint for X11 Window");
 	} else {
 		hint->res_name = (char*)g_XWMName.Get().c_str();
 		hint->res_class = (char*)PRODUCT_FAMILY;
@@ -198,8 +198,8 @@ ErrorCallback(Display* d, XErrorEvent* err)
 {
 	char errText[512];
 	XGetErrorText(d, err->error_code, errText, 512);
-	LOG->Warn("X11 Protocol error %s (%d) has occurred, caused by request "
-			  "%d,%d, resource ID %d",
+	Locator::getLogger()->warn("X11 Protocol error {} ({}) has occurred, caused by request "
+			  "{},{}, resource ID {}",
 			  errText,
 			  err->error_code,
 			  err->request_code,

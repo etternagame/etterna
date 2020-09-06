@@ -1,5 +1,5 @@
 ﻿#include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundReader.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
@@ -34,7 +34,7 @@ RageSoundReader::RetriedRead(float* pBuffer,
 			return iGotFrames;
 	}
 
-	LOG->Warn("Read() busy looping");
+	Locator::getLogger()->warn("Read() busy looping");
 
 	/* Pretend we got EOF. */
 	return END_OF_FILE;

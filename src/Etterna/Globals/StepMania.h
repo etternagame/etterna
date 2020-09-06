@@ -27,7 +27,6 @@ InitializeCurrentGame(const Game* g);
 std::string
 SaveScreenshot(const std::string& Dir,
 			   bool SaveCompressed,
-			   bool MakeSignature,
 			   const std::string& NamePrefix,
 			   const std::string& NameSuffix);
 

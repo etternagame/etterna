@@ -21,7 +21,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSound.h"
 #include "RageSoundManager.h"
 #include "Etterna/Screen/Others/Screen.h"
@@ -181,7 +181,7 @@ RageSound::Load(const std::string& sSoundFilePath,
 				const RageSoundLoadParams* pParams)
 {
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("RageSound: Load \"%s\" (precache: %i)",
+		Locator::getLogger()->trace("RageSound: Load \"{}\" (precache: {})",
 				   sSoundFilePath.c_str(),
 				   bPrecache);
 
@@ -200,9 +200,8 @@ RageSound::Load(const std::string& sSoundFilePath,
 		pSound = RageSoundReader_FileReader::OpenFile(
 		  sSoundFilePath, error, &bPrebuffer);
 		if (pSound == nullptr) {
-			LOG->Warn("RageSound::Load: error opening sound \"%s\": %s",
-					  sSoundFilePath.c_str(),
-					  error.c_str());
+			Locator::getLogger()->warn("RageSound::Load: error opening sound \"{}\": {}",
+					  sSoundFilePath.c_str(), error.c_str());
 
 			pSound = new RageSoundReader_Silence;
 		}
@@ -312,7 +311,7 @@ RageSound::GetDataToPlay(float* pBuffer,
 
 		if (iGotFrames == RageSoundReader::RSRERROR) {
 			m_sError = m_pSource->GetError();
-			LOG->Warn("Decoding %s failed: %s",
+			Locator::getLogger()->warn("Decoding {} failed: {}",
 					  GetLoadedFilePath().c_str(),
 					  m_sError.c_str());
 		}
@@ -410,7 +409,7 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	 */
 	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 &&
 		PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Sound \"%s\" has a start time %f seconds in the past",
+		Locator::getLogger()->trace("Sound \"{}\" has a start time {} seconds in the past",
 				   GetLoadedFilePath().c_str(),
 				   m_Param.m_StartTime.Ago());
 
@@ -506,7 +505,7 @@ void
 RageSound::Play(bool is_action, const RageSoundParams* pParams)
 {
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::Play: sound not loaded");
+		Locator::getLogger()->warn("RageSound::Play: sound not loaded");
 		return;
 	}
 	if (is_action && PREFSMAN->m_MuteActions) {
@@ -549,7 +548,7 @@ bool
 RageSound::Pause(bool bPause)
 {
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::Pause: sound not loaded");
+		Locator::getLogger()->warn("RageSound::Pause: sound not loaded");
 		return false;
 	}
 	m_bPaused = bPause;
@@ -561,14 +560,14 @@ float
 RageSound::GetLengthSeconds()
 {
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::GetLengthSeconds: sound not loaded");
+		Locator::getLogger()->warn("RageSound::GetLengthSeconds: sound not loaded");
 		return -1;
 	}
 
 	auto iLength = m_pSource->GetLength();
 
 	if (iLength < 0) {
-		LOG->Warn("GetLengthSeconds failed on %s: %s",
+		Locator::getLogger()->warn("GetLengthSeconds failed on {}: {}",
 				  GetLoadedFilePath().c_str(),
 				  m_pSource->GetError().c_str());
 		return -1;
@@ -640,20 +639,19 @@ RageSound::SetPositionFrames(int iFrames)
 	LockMut(m_Mutex);
 
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::SetPositionFrames(%d): sound not loaded",
-				  iFrames);
+		Locator::getLogger()->warn("RageSound::SetPositionFrames({}): sound not loaded", iFrames);
 		return false;
 	}
 
 	auto iRet = m_pSource->SetPosition(iFrames);
 	if (iRet == -1) {
 		m_sError = m_pSource->GetError();
-		LOG->Warn("SetPositionFrames: seek %s failed: %s",
+		Locator::getLogger()->warn("SetPositionFrames: seek {} failed: {}",
 				  GetLoadedFilePath().c_str(),
 				  m_sError.c_str());
 	} else if (iRet == 0) {
 		/* Seeked past EOF. */
-		LOG->Warn("SetPositionFrames: %i samples is beyond EOF in %s",
+		Locator::getLogger()->warn("SetPositionFrames: {} samples is beyond EOF in {}",
 				  iFrames,
 				  GetLoadedFilePath().c_str());
 	} else {

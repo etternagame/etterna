@@ -10,7 +10,7 @@
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -270,7 +270,7 @@ Profile::LoadCustomFunction(const std::string& sDir)
 }
 
 void
-Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
+Profile::HandleStatsPrefixChange(std::string dir)
 {
 	// Temp variables to preserve stuff across the reload.
 	// Some stuff intentionally left out because the original reason for the
@@ -290,7 +290,7 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	const auto user_table = m_UserTable;
 	auto need_to_create_file = false;
 	if (IsAFile(dir + PROFILEMAN->GetStatsPrefix() + ETT_XML)) {
-		LoadAllFromDir(dir, require_signature, nullptr);
+		LoadAllFromDir(dir, nullptr);
 	} else {
 		ClearStats();
 		need_to_create_file = true;
@@ -309,16 +309,14 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	m_iTotalGameplaySeconds = total_gameplay_seconds;
 	m_UserTable = user_table;
 	if (need_to_create_file) {
-		SaveAllToDir(dir, require_signature);
+		SaveAllToDir(dir);
 	}
 }
 
 ProfileLoadResult
-Profile::LoadAllFromDir(const std::string& sDir,
-						bool bRequireSignature,
-						LoadingWindow* ld)
+Profile::LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
 {
-	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	Locator::getLogger()->trace("Profile::LoadAllFromDir({})", sDir.c_str());
 	ASSERT(sDir.back() == '/');
 
 	InitAll();
@@ -357,7 +355,7 @@ Profile::LoadTypeFromDir(const std::string& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	LOG->Trace("Calculating stats from scores");
+	Locator::getLogger()->trace("Calculating stats from scores");
 	const auto& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	auto TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
@@ -391,7 +389,7 @@ Profile::CalculateStatsFromScores()
 }
 
 bool
-Profile::SaveAllToDir(const std::string& sDir, bool bSignData) const
+Profile::SaveAllToDir(const std::string& sDir) const
 {
 	m_LastPlayedDate = DateTime::GetNowDate();
 
@@ -654,14 +652,6 @@ void
 Profile::SaveStatsWebPageToDir(const std::string& sDir) const
 {
 	ASSERT(PROFILEMAN != nullptr);
-}
-
-void
-Profile::SaveMachinePublicKeyToDir(const std::string& sDir) const
-{
-	if (PREFSMAN->m_bSignProfileData &&
-		IsAFile(CRYPTMAN->GetPublicKeyFileName()))
-		FileCopy(CRYPTMAN->GetPublicKeyFileName(), sDir + PUBLIC_KEY_FILE);
 }
 
 void

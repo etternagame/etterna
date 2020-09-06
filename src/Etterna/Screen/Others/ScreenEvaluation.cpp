@@ -12,7 +12,7 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "ScreenEvaluation.h"
@@ -49,7 +49,7 @@ ScreenEvaluation::~ScreenEvaluation() = default;
 void
 ScreenEvaluation::Init()
 {
-	LOG->Trace("ScreenEvaluation::Init()");
+	Locator::getLogger()->trace("ScreenEvaluation::Init()");
 
 	if (STATSMAN->m_vPlayedStageStats.empty()) {
 		LuaHelpers::ReportScriptError("PlayerStageStats is empty!  Do not use "
@@ -142,8 +142,8 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
 						   "Screenshots/";
-					sFileName = StepMania::SaveScreenshot(
-					  sDir, bHoldingShift, true, "", "");
+					sFileName =
+					  StepMania::SaveScreenshot(sDir, bHoldingShift, "", "");
 					if (!sFileName.empty()) {
 						std::string sPath = sDir + sFileName;
 
@@ -161,7 +161,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			} else {
 				sDir = "Screenshots/";
 				sFileName =
-				  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
+				  StepMania::SaveScreenshot(sDir, bHoldingShift, "", "");
 			}
 			return true; // handled
 		}
@@ -249,7 +249,14 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		CHECKPOINT_M("Setting PSS from ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
-		HighScore* hs = SCOREMAN->GetMostRecentScore();
+
+		// allow either a highscore or nothing, which defaults to most recent
+		HighScore* hs;
+		if (lua_isnil(L, 3))
+			hs = SCOREMAN->GetMostRecentScore();
+		else
+			hs = Luna<HighScore>::check(L, 3);
+		
 		float ts = FArg(2);
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
@@ -260,10 +267,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		PlayerAI::SetScoreData(hs, 0);
 		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
 		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
-		pPSS->m_fLifeRecord.clear();
-		pPSS->m_ComboList.clear();
-		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
-		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
+		PlayerAI::SetPlayerStageStatsForReplay(pPSS, ts);
 		lua_pushboolean(L, true);
 		return 1;
 	}
@@ -326,6 +330,11 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		CHECKPOINT_M("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		if (hs == nullptr) {
+			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
+			lua_pushboolean(L, true);
+			return 1;
+		}
 		CHECKPOINT_M("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());

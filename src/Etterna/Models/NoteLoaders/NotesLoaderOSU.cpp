@@ -353,8 +353,8 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	RageFile f;
 	if (!f.Open(path)) {
-		LOG->UserLog(
-		  "Song file", path, "couldn't be opened: %s", f.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", path, "couldn't be opened: %s", f.GetError().c_str());
 		return false;
 	}
 

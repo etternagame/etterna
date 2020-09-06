@@ -294,15 +294,14 @@ class Profile
 	void swap(Profile& other);
 
 	// Loading and saving
-	void HandleStatsPrefixChange(std::string dir, bool require_signature);
-	auto LoadAllFromDir(const std::string& sDir,
-						bool bRequireSignature,
-						LoadingWindow* ld) -> ProfileLoadResult;
+	void HandleStatsPrefixChange(std::string dir);
+	auto LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
+	  -> ProfileLoadResult;
 	auto LoadStatsFromDir(std::string dir, bool require_signature)
 	  -> ProfileLoadResult;
 	void LoadTypeFromDir(const std::string& dir);
 	void LoadCustomFunction(const std::string& sDir);
-	auto SaveAllToDir(const std::string& sDir, bool bSignData) const -> bool;
+	auto SaveAllToDir(const std::string& sDir) const -> bool;
 
 	auto LoadEditableDataFromDir(const std::string& sDir) -> ProfileLoadResult;
 
@@ -313,7 +312,6 @@ class Profile
 	void CalculateStatsFromScores();
 
 	void SaveStatsWebPageToDir(const std::string& sDir) const;
-	void SaveMachinePublicKeyToDir(const std::string& sDir) const;
 
 	static void MoveBackupToDir(const std::string& sFromDir,
 								const std::string& sToDir);

@@ -1051,12 +1051,52 @@ class LunaScreenSelectMaster : public Luna<ScreenSelectMaster>
 		lua_pushnumber(L, p->GetPlayerSelectionIndex(PLAYER_1));
 		return 1;
 	}
+	static int SetSelectionIndex(T* p, lua_State* L)
+	{
+		auto i = IArg(1);
+		auto current = p->GetPlayerSelectionIndex(PLAYER_1);
+		auto result = false;
+		CLAMP(i, 0, p->GetChoiceCount() - 1);
+		if (i < current) {
+			result = p->ChangeSelection(PLAYER_1, MenuDir_Up, i);
+			if (result) {
+				MESSAGEMAN->Broadcast((Message_MenuSelectionChanged));
+				MESSAGEMAN->Broadcast(
+				  static_cast<MessageID>(Message_MenuUpP1 + PLAYER_1));
+			}
+		} else {
+			result = p->ChangeSelection(PLAYER_1, MenuDir_Down, i);
+			if (result) {
+				MESSAGEMAN->Broadcast((Message_MenuSelectionChanged));
+				MESSAGEMAN->Broadcast(
+				  static_cast<MessageID>(Message_MenuDownP1 + PLAYER_1));
+			}
+		}
+		lua_pushboolean(L, result);
+		return 1;
+	}
+	static int PlayChangeSound(T* p, lua_State* L)
+	{
+		p->PlayChangeSound();
+		return 0;
+	}
+	static int PlaySelectSound(T* p, lua_State* L)
+	{
+		p->PlaySelectSound();
+		return 0;
+	}
 	// should I even bother adding this? -aj
 	// would have to make a public function to get this in ssmaster.h:
 	// m_aGameCommands[i].m_sName
 	// static int SelectionIndexToChoiceName( T* p, lua_State *L ){  return 1; }
 
-	LunaScreenSelectMaster() { ADD_METHOD(GetSelectionIndex); }
+	LunaScreenSelectMaster()
+	{
+		ADD_METHOD(GetSelectionIndex);
+		ADD_METHOD(SetSelectionIndex);
+		ADD_METHOD(PlayChangeSound);
+		ADD_METHOD(PlaySelectSound);
+	}
 };
 
 LUA_REGISTER_DERIVED_CLASS(ScreenSelectMaster, ScreenWithMenuElements)

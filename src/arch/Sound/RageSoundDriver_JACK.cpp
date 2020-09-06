@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver_JACK.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Globals/ProductInfo.h"
@@ -42,7 +42,7 @@ RageSoundDriver_JACK::Init()
 		return "Couldn't connect to JACK server";
 
 	sample_rate = jack_get_sample_rate(client);
-	LOG->Trace("JACK connected at %u Hz", sample_rate);
+	Locator::getLogger()->trace("JACK connected at {}Hz", sample_rate);
 
 	// Start this before callbacks
 	StartDecodeThread();
@@ -87,11 +87,10 @@ RageSoundDriver_JACK::Init()
 		// Eh. Not fatal. JACK *is* running and we successfully created
 		// our source ports, so it's unlkely any other driver will
 		// function.
-		LOG->Warn("RageSoundDriver_JACK: Couldn't connect ports: %s",
-				  error.c_str());
+		Locator::getLogger()->warn("RageSoundDriver_JACK: Couldn't connect ports: {}",error.c_str());
 
 	// Success!
-	LOG->Trace("JACK sound driver started successfully");
+	Locator::getLogger()->trace("JACK sound driver started successfully");
 	return std::string();
 
 	// Not success!

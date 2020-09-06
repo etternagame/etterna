@@ -4,7 +4,7 @@
 #include "InputHandler_Linux_Joystick.h"
 
 #include "RageUtil/Misc/RageInput.h" // g_sInputDrivers
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Misc/Foreach.h"
 
 #include <string> // std::string::npos
@@ -21,9 +21,8 @@ getDevice(std::string inputDir, std::string type)
 	std::string result = "";
 	DIR* dir = opendir(inputDir.c_str());
 	if (dir == NULL) {
-		LOG->Warn("LinuxInputManager: Couldn't open %s: %s.",
-				  inputDir.c_str(),
-				  strerror(errno));
+        Locator::getLogger()->warn("LinuxInputManager: Couldn't open {}: {}.",
+				  inputDir.c_str(), strerror(errno));
 		return "";
 	}
 
@@ -58,9 +57,7 @@ LinuxInputManager::LinuxInputManager()
 	if (sysClassInput == NULL) {
 		// XXX: Probably should throw a Dialog. But Linux doesn't have a
 		// DialogDriver yet so eh.
-		LOG->Warn(
-		  "Couldn't open /sys/class/input: %s. Joysticks will not work!",
-		  strerror(errno));
+        Locator::getLogger()->warn("Couldn't open /sys/class/input: {}. Joysticks will not work!", strerror(errno));
 		return;
 	}
 
@@ -84,7 +81,7 @@ LinuxInputManager::LinuxInputManager()
 		}
 
 		if (!bEventPresent && !bJoystickPresent)
-			LOG->Info("LinuxInputManager: %s seems to have no eventNN or jsNN.",
+            Locator::getLogger()->info("LinuxInputManager: {} seems to have no eventNN or jsNN.",
 					  dName.c_str());
 	}
 	closedir(sysClassInput);

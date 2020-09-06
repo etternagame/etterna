@@ -14,6 +14,7 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Models/Songs/Song.h"
+#include "Core/Services/Locator.hpp"
 #include "GamePreferences.h"
 
 #ifndef _WIN32
@@ -686,7 +687,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 		return;
 	}
 
-	LOG->Trace("saving stats and high scores");
+	Locator::getLogger()->trace("saving stats and high scores");
 
 	// generate a HighScore for each player
 
@@ -718,8 +719,11 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 					 // happens -mina
 				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
 				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
-				SCOREMAN->GetMostRecentScore()->SetRadarValues(
-				  hs.GetRadarValues());
+				if (SCOREMAN->GetMostRecentScore() == nullptr)
+					Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
+				else
+					SCOREMAN->GetMostRecentScore()->SetRadarValues(
+					  hs.GetRadarValues());
 			}
 		}
 		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
@@ -777,7 +781,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	}
 
 	CHECKPOINT_M("Finished Finalizing Score");
-	LOG->Trace("done saving stats and high scores");
+	Locator::getLogger()->trace("done saving stats and high scores");
 }
 
 auto

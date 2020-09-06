@@ -2,6 +2,7 @@
 #define ARCH_HOOKS_H
 
 #include <chrono>
+#include <string>
 
 struct lua_State;
 class ArchHooks
@@ -138,5 +139,3 @@ class ArchHooks
 };
 
 #endif
-
-extern ArchHooks* HOOKS; // global and accessible from anywhere in our program

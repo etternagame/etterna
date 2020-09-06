@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurface_Save_PNG.h"

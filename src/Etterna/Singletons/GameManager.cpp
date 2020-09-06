@@ -244,7 +244,7 @@ static const Style g_Style_Solo_Single = {
 	true,						// m_bUsedForGameplay
 	true,						// m_bUsedForEdit
 	false,						// m_bUsedForDemonstration
-	false,						// m_bUsedForHowToPlay
+	true,						// m_bUsedForHowToPlay
 	"single",					// m_szName
 	StepsType_dance_solo,		// m_StepsType
 	StyleType_OnePlayerOneSide, // m_StyleType

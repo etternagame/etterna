@@ -262,10 +262,8 @@ NotesWriterSM::Write(const std::string& sPath,
 
 	RageFile f;
 	if (!f.Open(sPath, flags)) {
-		LOG->UserLog("Song file",
-					 sPath,
-					 "couldn't be opened for writing: %s",
-					 f.GetError().c_str());
+
+        Locator::getLogger()->info("Song file \"{}\" couldn't be opened for writing: {}", sPath, f.GetError().c_str());
 		return false;
 	}
 

@@ -8,7 +8,7 @@
 #include "arch/Threads/Threads_Win32.h"
 #include "crash.h"
 #include "CrashHandlerInternal.h"
-#include "RageUtil/Misc/RageLog.h" // for RageLog::GetAdditionalLog and Flush
+//#include "RageUtil/Misc/RageLog.h" // for RageLog::GetAdditionalLog and Flush
 #include "RageUtil/Misc/RageThreads.h"		 // for GetCheckpointLogs
 #include "Etterna/Singletons/PrefsManager.h" // for g_bAutoRestart
 #include "RestartProgram.h"
@@ -214,6 +214,7 @@ CrashGetModuleBaseName(HMODULE hmod, char* pszBaseName)
 void
 RunChild()
 {
+#if 0
 	HANDLE hProcess, hToStdin, hFromStdout;
 	StartChild(hProcess, hToStdin, hFromStdout);
 
@@ -291,6 +292,7 @@ RunChild()
 		WriteToChild(hToStdin, &iSize, sizeof(iSize));
 		WriteToChild(hToStdin, szName, iSize);
 	}
+#endif
 }
 
 static DWORD WINAPI

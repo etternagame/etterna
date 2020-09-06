@@ -3,7 +3,7 @@
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
 #include "RageDisplay_Null.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -48,7 +48,7 @@ static RageDisplay::RagePixelFormatDesc
 
 RageDisplay_Null::RageDisplay_Null()
 {
-	LOG->MapLog("renderer", "Current renderer: null");
+	Locator::getLogger()->trace("Current renderer: null");
 }
 
 std::string

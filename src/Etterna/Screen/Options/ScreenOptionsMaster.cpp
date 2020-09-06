@@ -4,7 +4,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
@@ -127,7 +127,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 
 		if ((m_iChangeMask & OPT_SAVE_PREFERENCES) != 0) {
 			// Save preferences.
-			LOG->Trace("ROW_CONFIG used; saving ...");
+			Locator::getLogger()->trace("ROW_CONFIG used; saving ...");
 			PREFSMAN->SavePrefsToDisk();
 		}
 

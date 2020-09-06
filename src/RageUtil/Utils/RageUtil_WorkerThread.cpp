@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil.h"
 #include "RageUtil_WorkerThread.h"
 
@@ -50,7 +50,7 @@ RageWorkerThread::StopThread()
 	/* If we're timed out, wait. */
 	m_WorkerEvent.Lock();
 	if (m_bTimedOut) {
-		LOG->Trace("Waiting for timed-out worker thread \"%s\" to complete ...",
+		Locator::getLogger()->trace("Waiting for timed-out worker thread \"{}\" to complete ...",
 				   m_sName.c_str());
 		while (m_bTimedOut)
 			m_WorkerEvent.Wait();
@@ -63,7 +63,7 @@ RageWorkerThread::StopThread()
 
 	/* Shut down. */
 	if (!DoRequest(REQ_SHUTDOWN))
-		LOG->Warn("May have failed to shut down worker thread \"%s\"",
+		Locator::getLogger()->warn("May have failed to shut down worker thread \"{}\"",
 				  m_sName.c_str());
 	m_WorkerThread.Wait();
 }
@@ -75,9 +75,7 @@ RageWorkerThread::DoRequest(int iRequest)
 	ASSERT(m_iRequest == REQ_NONE);
 
 	if (m_Timeout.IsZero() && iRequest != REQ_SHUTDOWN)
-		LOG->Warn("Request made with timeout disabled (%s, iRequest = %i)",
-				  m_sName.c_str(),
-				  iRequest);
+		Locator::getLogger()->warn("Request made with timeout disabled ({}, iRequest = {})", m_sName.c_str(), iRequest);
 
 	/* Set the request, and wake up the worker thread. */
 	m_WorkerEvent.Lock();
@@ -155,7 +153,7 @@ RageWorkerThread::WorkerMain()
 			m_WorkerEvent.Lock();
 
 			if (m_bTimedOut) {
-				LOG->Trace("Request %i timed out", iRequest);
+				Locator::getLogger()->trace("Request {} timed out", iRequest);
 
 				/* The calling thread timed out.  It's already gone and moved
 				 * on, so it's our responsibility to clean up.  No new requests
