@@ -2,12 +2,15 @@ local t = Def.ActorFrame {
     Name = "ScoresPageFile",
     WheelSettledMessageCommand = function(self, params)
         -- cascade visual update to everything
-        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
+        -- self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
+        self:playcommand("UpdateScores")
+        self:playcommand("UpdateList")
     end
 }
 
 local ratios = {
     LowerLipHeight = 43 / 1080,
+    ItemUpperSpacing = 68 / 1080, -- top of frame to top of text, to push all the items down
 
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
     PageTextUpperGap = 505 / 1080, -- top of frame, top of text
@@ -33,6 +36,7 @@ local ratios = {
 
 local actuals = {
     LowerLipHeight = ratios.LowerLipHeight * SCREEN_HEIGHT,
+    ItemUpperSpacing = ratios.ItemUpperSpacing * SCREEN_HEIGHT,
     PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
     PageTextUpperGap = ratios.PageTextUpperGap * SCREEN_HEIGHT,
     ItemWidth = ratios.ItemWidth * SCREEN_WIDTH,
@@ -84,6 +88,20 @@ local allRates = false
 -- all scores or top scores (online only)
 -- dont have to modify this var with direct values, call DLMAN to update it
 local allScores = not DLMAN:GetTopScoresOnlyFilter()
+
+-- how many to display
+local itemCount = 7
+local scoreListAnimationSeconds = 0.05
+
+local itemIndexSize = 1
+local ssrTextSize = 1
+local rateTextSize = 1
+local nameTextSize = 1
+local judgmentTextSize = 1
+local wifePercentTextSize = 1
+local dateTextSize = 1
+local textzoomFudge = 5
+
 
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
@@ -141,7 +159,13 @@ function createList()
                     -- it is already sorted by percent
                     -- the first half of this returns nil sometimes
                     -- particularly for scores that dont actually exist in your profile, like online replays
-                    scores = scoresByRate[getCurrentRateValue()] or {}
+                    if scoresByRate ~= nil then
+                        -- scores maybe on this rate
+                        scores = scoresByRate[getRateDisplayString2(getCurRateString())] or {}
+                    else
+                        -- no scores at all
+                        scores = {}
+                    end
                 end
             else
                 local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -215,7 +239,187 @@ function createList()
 
 
     function createItem(i)
+        local score = nil
+        local scoreIndex = i
 
+        return Def.ActorFrame {
+            Name = "ScoreItem_"..i,
+            InitCommand = function(self)
+                self:y((actuals.ItemAllottedSpace / (itemCount - 1)) * (i-1) + actuals.ItemUpperSpacing)
+            end,
+            SetScoreCommand = function(self, params)
+                scoreIndex = params.scoreIndex
+                score = scores[scoreIndex]
+                self:finishtweening()
+                self:diffusealpha(0)
+                if score ~= nil then
+                    self:smooth(scoreListAnimationSeconds * i)
+                    self:diffusealpha(1)
+                end
+            end,
+
+            LoadFont("Common Normal") .. {
+                Name = "Index",
+                InitCommand = function(self)
+                    self:halign(0):valign(1)
+                    self:xy(actuals.ItemIndexLeftGap, actuals.ItemHeight)
+                    self:zoom(itemIndexSize)
+                    self:maxwidth(actuals.ItemIndexWidth / itemIndexSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        self:settextf("%d.", scoreIndex)
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "SSR",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.LeftCenteredAlignmentLineLeftGap - actuals.LeftCenteredAlignmentDistance)
+                    self:zoom(ssrTextSize)
+                    self:maxwidth(actuals.SSRRateWidth / ssrTextSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        local ssr = score:GetSkillsetSSR("Overall")
+                        self:settext(ssr)
+                        self:diffuse(byMSD(ssr))
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Rate",
+                InitCommand = function(self)
+                    self:halign(1):valign(1)
+                    self:xy(actuals.LeftCenteredAlignmentLineLeftGap - actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
+                    self:zoom(rateTextSize)
+                    self:maxwidth(actuals.SSRRateWidth / rateTextSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        local rt = score:GetMusicRate()
+                        self:settext(getRateString(rt))
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "PlayerName",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance)
+                    self:zoom(nameTextSize)
+                    self:maxwidth(actuals.NameJudgmentWidth / nameTextSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        local n = score:GetName()
+                        if n == "" then
+                            if isLocal then
+                                n = "You"
+                            end
+                        elseif n == "#P1#" then
+                            -- this case probably isnt possible here
+                            n = "Last Score"
+                        end
+                        self:settext(n)
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "JudgmentsAndCombo",
+                InitCommand = function(self)
+                    self:halign(0):valign(1)
+                    self:xy(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
+                    self:zoom(judgmentTextSize)
+                    self:maxwidth(actuals.NameJudgmentWidth / judgmentTextSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        -- a HighScore method does exist to produce this but we want to be able to modify it from the theme
+                        local jgMaStr = tostring(score:GetTapNoteScore("TapNoteScore_W1"))
+                        local jgPStr = tostring(score:GetTapNoteScore("TapNoteScore_W2"))
+                        local jgGrStr = tostring(score:GetTapNoteScore("TapNoteScore_W3"))
+                        local jgGoStr = tostring(score:GetTapNoteScore("TapNoteScore_W4"))
+                        local jgBStr = tostring(score:GetTapNoteScore("TapNoteScore_W5"))
+                        local jgMiStr = tostring(score:GetTapNoteScore("TapNoteScore_Miss"))
+                        local comboStr = tostring(score:GetMaxCombo())
+                        self:settextf("%s | %s | %s | %s | %s | %s x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "WifePercent",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.ItemWidth - actuals.RightInfoRightAlignRightGap)
+                    self:zoom(wifePercentTextSize)
+                    -- half the space allowed vs the date
+                    -- the icons take up the other half probably
+                    self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / 2 / wifePercentTextSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        local wifeStr = string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
+                        local grade = GetGradeFromPercent(score:GetWifeScore())
+                        self:settext(wifeStr)
+                        self:diffuse(getGradeColor(grade))
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "DateTime",
+                InitCommand = function(self)
+                    self:halign(1):valign(1)
+                    self:xy(actuals.ItemWidth - actuals.RightInfoRightAlignRightGap, actuals.ItemHeight)
+                    self:zoom(dateTextSize)
+                    self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / dateTextSize - textzoomFudge)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        self:settext(score:GetDate())
+                    end
+                end
+            },
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
+                Name = "ShowEval",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.RightInfoLeftAlignLeftGap)
+                    self:zoomto(actuals.TrophySize, actuals.TrophySize)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        if score:HasReplayData() then
+                            self:diffusealpha(1)
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end
+                end
+            },
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
+                Name = "ShowReplay",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.RightInfoLeftAlignLeftGap + actuals.TrophySize * 1.2)
+                    self:zoomto(actuals.PlaySize, actuals.PlaySize)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        if score:HasReplayData() then
+                            self:diffusealpha(1)
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end
+                end
+            }
+        }
+    end
+
+    for i = 1, itemCount do
+        t[#t+1] = createItem(i)
     end
 
     -- this list defines the appearance of the lower lip buttons
@@ -247,7 +451,7 @@ function createList()
         function() return true end, -- empty space
 
         function() -- invalid score toggle
-            -- true means Invalid csores are hidden
+            -- true means invalid scores are hidden
             return not DLMAN:GetCCFilter()
         end,
 
@@ -294,7 +498,6 @@ function createList()
     }
 
     local choiceTextSize = 0.8
-    local textzoomFudge = 5
 
     local function createChoices()
         local function createChoice(i)
@@ -326,9 +529,9 @@ function createList()
                         return
                     end
                     -- update things
-                    if choiceFunctions[i] then
-                        choiceFunctions[i](self)
-                    end
+                    --if choiceFunctions[i] then
+                    --    choiceFunctions[i](self)
+                    --end
 
                     -- have to separate things because order of execution gets wacky
                     self:playcommand("UpdateText")
