@@ -423,9 +423,10 @@ function createList()
                         end
                     end
                 end,
-                ClickCommand = function(self, params)
+                MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
 
+                    SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -454,9 +455,10 @@ function createList()
                         end
                     end
                 end,
-                ClickCommand = function(self, params)
+                MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
 
+                    SCREENMAN:GetTopScreen():PlayReplay(score)
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
