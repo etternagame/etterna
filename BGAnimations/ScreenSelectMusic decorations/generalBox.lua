@@ -18,7 +18,7 @@ local actuals = {
     PageTextTopGap = ratios.PageTextTopGap * SCREEN_HEIGHT,
 }
 
--- preferably, these match an actorframe name below for organization purposes
+-- the page names in the order they go
 local choiceNames = {
     "General",
     "Scores",
@@ -29,21 +29,40 @@ local choiceNames = {
 }
 
 local choiceTextSize = 0.8
+local buttonHoverAlpha = 0.6
 local textzoomFudge = 5
 
 local function createChoices()
     local function createChoice(i)
-        return LoadFont("Common Normal") .. {
-            Name = choiceNames[i],
+        return UIElements.TextButton(1, 1, "Common Normal") .. {
+            Name = "ButtonTab_"..choiceNames[i],
             InitCommand = function(self)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
+
                 -- this position is the center of the text
                 -- divides the space into slots for the choices then places them half way into them
                 -- should work for any count of choices
                 -- and the maxwidth will make sure they stay nonoverlapping
                 self:x((actuals.Width / #choiceNames) * (i-1) + (actuals.Width / #choiceNames / 2))
-                self:zoom(choiceTextSize)
-                self:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
-                self:settext(choiceNames[i])
+                txt:zoom(choiceTextSize)
+                txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
+                txt:settext(choiceNames[i])
+                bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
+            end,
+            ClickCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "OnMouseDown" then
+                    MESSAGEMAN:Broadcast("GeneralTabSet", {tab = i})
+                end
+            end,
+            RolloverUpdateCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "in" then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
             end
         }
     end
@@ -84,7 +103,15 @@ t[#t+1] = Def.ActorFrame {
         end
     },
     createChoices(),
-    LoadActorWithParams("generalPages/general.lua", {ratios = ratios, actuals = actuals})
+    LoadActorWithParams("generalPages/general.lua", {ratios = ratios, actuals = actuals}) .. {
+        BeginCommand = function(self)
+            -- this will cause the tab to become visible
+            self:playcommand("GeneralTabSet", {tab = 1})
+            -- skip animation
+            self:finishtweening()
+        end
+    },
+    LoadActorWithParams("generalPages/scores.lua", {ratios = ratios, actuals = actuals}),
 }
 
 return t

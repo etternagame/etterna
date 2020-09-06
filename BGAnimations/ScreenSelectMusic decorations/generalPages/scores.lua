@@ -1,10 +1,25 @@
 local t = Def.ActorFrame {
     Name = "ScoresPageFile",
+    InitCommand = function(self)
+        -- hide all general box tabs on startup
+        self:diffusealpha(0)
+    end,
     WheelSettledMessageCommand = function(self, params)
         -- cascade visual update to everything
         -- self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
         self:playcommand("UpdateScores")
         self:playcommand("UpdateList")
+    end,
+    GeneralTabSetMessageCommand = function(self, params)
+        if params and params.tab ~= nil then
+            if params.tab == 2 then
+                self:smooth(0.2)
+                self:diffusealpha(1)
+            else
+                self:smooth(0.2)
+                self:diffusealpha(0)
+            end
+        end
     end
 }
 

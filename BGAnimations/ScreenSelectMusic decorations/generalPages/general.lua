@@ -2,6 +2,10 @@ local currentTags = {"","","",""}
 local displayScore
 local t = Def.ActorFrame {
     Name = "GeneralPageFile",
+    InitCommand = function(self)
+        -- hide all general box tabs on startup
+        self:diffusealpha(0)
+    end,
     WheelSettledMessageCommand = function(self, params)
         
         -- update tag data
@@ -22,6 +26,17 @@ local t = Def.ActorFrame {
 
         -- cascade visual update to everything
         self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
+    end,
+    GeneralTabSetMessageCommand = function(self, params)
+        if params and params.tab ~= nil then
+            if params.tab == 1 then
+                self:smooth(0.2)
+                self:diffusealpha(1)
+            else
+                self:smooth(0.2)
+                self:diffusealpha(0)
+            end
+        end
     end
 }
 
