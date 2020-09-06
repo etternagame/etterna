@@ -158,6 +158,13 @@ function createList()
         Name = "ScoreListFrame",
         UpdateScoresCommand = function(self)
             page = 1
+            -- no steps, no scores.
+            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            if steps == nil then
+                scores = {}
+                return
+            end
+
             if isLocal then
                 local scoresByRate = getRateTable(getScoresByKey(PLAYER_1))
 
@@ -188,11 +195,6 @@ function createList()
                     end
                 end
             else
-                local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-                if steps == nil then
-                    scores = {}
-                    return
-                end
                 -- operate with dlman scores
                 -- ... everything here is determined by internal bools set by the toggle buttons
                 scores = DLMAN:GetChartLeaderBoard(steps:GetChartKey(), dlmanScoreboardCountryFilter)
