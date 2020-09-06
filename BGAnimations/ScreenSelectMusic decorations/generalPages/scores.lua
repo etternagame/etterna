@@ -30,8 +30,9 @@ local ratios = {
     SSRRateWidth = 70 / 1920, -- rough measurement of the area needed for SSR (rate should be smaller but will be restricted the same)
     NameJudgmentWidth = 430 / 1920, -- same but for name and judgments
 
-    TrophySize = 21 / 1920, -- height and width of the icon
-    PlaySize = 19 / 1920,
+    TrophySize = 21 / 1080, -- height and width of the icon
+    PlaySize = 19 / 1080,
+    IconHeight = 19 / 1080, -- uhhhhh
 }
 
 local actuals = {
@@ -52,6 +53,7 @@ local actuals = {
     NameJudgmentWidth = ratios.NameJudgmentWidth * SCREEN_WIDTH,
     TrophySize = ratios.TrophySize * SCREEN_HEIGHT,
     PlaySize = ratios.PlaySize * SCREEN_HEIGHT,
+    IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
 }
 
 -- scoping magic
@@ -93,14 +95,17 @@ local allScores = not DLMAN:GetTopScoresOnlyFilter()
 local itemCount = 7
 local scoreListAnimationSeconds = 0.05
 
-local itemIndexSize = 1
-local ssrTextSize = 1
-local rateTextSize = 1
-local nameTextSize = 1
-local judgmentTextSize = 1
-local wifePercentTextSize = 1
-local dateTextSize = 1
+local itemIndexSize = 0.95
+local ssrTextSize = 0.9
+local rateTextSize = 0.92
+local nameTextSize = 0.9
+local judgmentTextSize = 0.6
+local wifePercentTextSize = 0.92
+local dateTextSize = 0.6
+local pageTextSize = 0.9
 local textzoomFudge = 5
+
+local buttonHoverAlpha = 0.6
 
 
 -- functionally create the score list
@@ -283,7 +288,7 @@ function createList()
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         local ssr = score:GetSkillsetSSR("Overall")
-                        self:settext(ssr)
+                        self:settextf("%05.2f", ssr)
                         self:diffuse(byMSD(ssr))
                     end
                 end
@@ -344,7 +349,7 @@ function createList()
                         local jgBStr = tostring(score:GetTapNoteScore("TapNoteScore_W5"))
                         local jgMiStr = tostring(score:GetTapNoteScore("TapNoteScore_Miss"))
                         local comboStr = tostring(score:GetMaxCombo())
-                        self:settextf("%s | %s | %s | %s | %s | %s x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
+                        self:settextf("%s  |  %s  |  %s  |  %s  |  %s  |  %s  x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
                     end
                 end
             },
@@ -354,9 +359,9 @@ function createList()
                     self:halign(1):valign(0)
                     self:x(actuals.ItemWidth - actuals.RightInfoRightAlignRightGap)
                     self:zoom(wifePercentTextSize)
-                    -- half the space allowed vs the date
+                    -- 5/6 the space allowed vs the date
                     -- the icons take up the other half probably
-                    self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / 2 / wifePercentTextSize - textzoomFudge)
+                    self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / 6 * 4 / wifePercentTextSize)
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -396,6 +401,20 @@ function createList()
                             self:diffusealpha(0)
                         end
                     end
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(1)
                 end
             },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
@@ -413,6 +432,20 @@ function createList()
                             self:diffusealpha(0)
                         end
                     end
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(1)
                 end
             }
         }
@@ -421,6 +454,45 @@ function createList()
     for i = 1, itemCount do
         t[#t+1] = createItem(i)
     end
+
+    t[#t+1] = Def.Quad {
+        Name = "MouseWheelRegion",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:diffusealpha(0)
+            self:zoomto(actuals.Width, actuals.Height)
+        end,
+        MouseScrollMessageCommand = function(self, params)
+            if isOver(self) then
+                if params.direction == "Up" then
+                    movePage(-1)
+                else
+                    movePage(1)
+                end
+            end
+        end
+    }
+
+    t[#t+1] = LoadFont("Common Normal") .. {
+        Name = "PageText",
+        InitCommand = function(self)
+            self:halign(1):valign(0)
+            self:xy(actuals.Width - actuals.PageTextRightGap, actuals.PageTextUpperGap)
+            self:zoom(pageTextSize)
+            self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
+        end,
+        UpdateListCommand = function(self)
+            local lb = (page-1) * (itemCount) + 1
+            if lb > #scores then
+                lb = #scores
+            end
+            local ub  = page * itemCount
+            if ub > #scores then
+                ub = #scores
+            end
+            self:settextf("%d-%d/%d", lb, ub, #scores)
+        end
+    }
 
     -- this list defines the appearance of the lower lip buttons
     -- the text can be anything
@@ -456,7 +528,7 @@ function createList()
         end,
 
         function() -- current/all rates
-            return (allRates and isLocal) or (not DLMAN:GetCurrentRateFilter() and not isLocal)
+            return (not allRates and isLocal) or (DLMAN:GetCurrentRateFilter() and not isLocal)
         end,
     }
 
@@ -524,6 +596,7 @@ function createList()
                     end
                 end,
                 UpdateToggleStatusCommand = function(self)
+                    -- for online only elements, hide if not online
                     if choiceOnlineOnly[i] and not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
                         return
@@ -540,6 +613,23 @@ function createList()
                     local txt = self:GetChild("Text")
                     nameIndex = (choiceTextIndexGetters[i]() and 1 or 2)
                     txt:settext(choiceNames[i][nameIndex])
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        if choiceFunctions[i] then
+                            choiceFunctions[i](self)
+                        end
+                        self:playcommand("UpdateText")
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end
             }
         end
