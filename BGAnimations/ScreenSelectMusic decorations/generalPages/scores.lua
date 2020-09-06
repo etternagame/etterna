@@ -464,8 +464,21 @@ function createList()
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
-
-                    SCREENMAN:GetTopScreen():PlayReplay(score)
+                    if isLocal then
+                        SCREENMAN:GetTopScreen():PlayReplay(score)
+                    else
+                        local sng = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                        DLMAN:RequestOnlineScoreReplayData(
+							score,
+                            function()
+                                local scr = SCREENMAN:GetTopScreen()
+                                local sng2 = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                                if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
+                                    SCREENMAN:GetTopScreen():PlayReplay(score)
+                                end
+							end
+						)
+                    end
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
