@@ -273,11 +273,15 @@ function byFileSize(x)
 end
 
 function byNPS(x)
+	return color("#ffffff")
+	-- if we want to make a gradient
+	--[[
 	if x then
 		x = math.min(x, 60)
 		return HSV(math.max(95 - (x / 50) * 150, -50), 0.9, 0.9)
 	end
 	return HSV(0, 0.9, 0.9)
+	]]
 end
 
 -- yes i know i shouldnt hardcode this -mina
