@@ -522,7 +522,6 @@ function createList()
     local choiceNames = {
         {"Local", "Online"},
         {"Top Scores", "All Scores"},
-        {"", ""},
         {"Hide Invalid", "Show Invalid"},
         {"Current Rate", "All Rates"},
     }
@@ -540,8 +539,6 @@ function createList()
         function()  -- top/all scores
             return not allScores
         end,
-
-        function() return true end, -- empty space
 
         function() -- invalid score toggle
             -- true means invalid scores are hidden
@@ -567,9 +564,6 @@ function createList()
             self:GetParent():GetParent():playcommand("ToggleAllScores")
         end,
 
-        -- empty space
-        nil,
-
         -- Invalid Score Toggle
         function(self)
             self:GetParent():GetParent():playcommand("ToggleInvalid")
@@ -585,7 +579,6 @@ function createList()
     local choiceOnlineOnly = {
         true,   -- local/online
         true,   -- top/all scores
-        false,  -- empty space
         true,   -- toggle invalid scores
         false,  -- current/all rates
     }
