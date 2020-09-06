@@ -205,13 +205,18 @@ function createList()
                 -- on the second passthrough, the leaderboard is hopefully filled out
                 if #scores == 0 then
                     if steps then
-                        if not alreadyRequestedLeaderboard[steps:GetChartKey()] then
-                            alreadyRequestedLeaderboard[steps:GetChartKey()] = true
+                        local kee = steps:GetChartKey()
+                        if not alreadyRequestedLeaderboard[kee] then
+                            alreadyRequestedLeaderboard[kee] = true
                             DLMAN:RequestChartLeaderBoardFromOnline(
                                 steps:GetChartKey(),
                                 function(leaderboard)
-                                    self:queuecommand("UpdateScores")
-                                    self:queuecommand("UpdateList")
+                                    -- disallow replacing the leaderboard if the request doesnt match the current steps
+                                    local s = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                                    if s and s:GetChartKey() == kee then
+                                        self:queuecommand("UpdateScores")
+                                        self:queuecommand("UpdateList")
+                                    end
                                 end
                             )
                         end
