@@ -272,7 +272,7 @@ Wheel.defaultParams = {
 function Wheel:new(params)
     params = params or {}
     fillNilTableFieldsFrom(params, Wheel.defaultParams)
-    local whee = Def.ActorFrame {}
+    local whee = Def.ActorFrame {Name = "Wheel"}
     setmetatable(whee, {__index = Wheel.mt})
     crossedGroupBorder = false -- reset default
     diffSelection = 1 -- reset default
@@ -550,6 +550,12 @@ function MusicWheel:new(params)
             return groups
         end
     }
+
+    w.MoveCommand = function(self, params)
+        if params and params.direction and tonumber(params.direction) then
+            w:move(params.direction)
+        end
+    end
     return w
 end
 

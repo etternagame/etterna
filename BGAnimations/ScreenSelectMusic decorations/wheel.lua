@@ -418,11 +418,31 @@ t[#t+1] = Def.ActorFrame {
                 end
             end
         end
-    })
+    }),
+    
+    Def.Quad {
+        Name = "MouseWheelRegion",
+        InitCommand = function(self)
+            self:diffusealpha(0)
+            -- the sizing here should make everything left of the wheel a mousewheel region
+            -- and also just a bit above and below it
+            -- and a miniscule amount to the right
+            -- the wheel positioning is not as clear as it could be
+            self:y(-(actuals.HeaderHeight + actuals.ItemHeight) / 2)
+            self:x(-actuals.LeftGap / 2)
+            self:zoomto(actuals.Width * 1.01 + actuals.LeftGap, actuals.Height + actuals.HeaderHeight * 1.2)
+        end,
+        MouseScrollMessageCommand = function(self, params)
+            if isOver(self) then
+                if params.direction == "Up" then
+                    self:GetParent():GetChild("Wheel"):playcommand("Move", {direction = -1})
+                else
+                    self:GetParent():GetChild("Wheel"):playcommand("Move", {direction = 1})
+                end
+            end
+        end
+    }
 }
-
-
-
 
 
 return t
