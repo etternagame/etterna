@@ -152,7 +152,8 @@ function createList()
     local scores = {}
 
     -- to prevent bombing the server repeatedly with leaderboard requests
-    local alreadyRequestedLeaderboard = false
+    -- chartkeys to booleans
+    local alreadyRequestedLeaderboard = {}
 
     local t = Def.ActorFrame {
         Name = "ScoreListFrame",
@@ -204,8 +205,8 @@ function createList()
                 -- on the second passthrough, the leaderboard is hopefully filled out
                 if #scores == 0 then
                     if steps then
-                        if not alreadyRequestedLeaderboard then
-                            alreadyRequestedLeaderboard = true
+                        if not alreadyRequestedLeaderboard[steps:GetChartKey()] then
+                            alreadyRequestedLeaderboard[steps:GetChartKey()] = true
                             DLMAN:RequestChartLeaderBoardFromOnline(
                                 steps:GetChartKey(),
                                 function(leaderboard)
