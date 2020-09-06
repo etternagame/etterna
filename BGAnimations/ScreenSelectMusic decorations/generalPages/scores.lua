@@ -189,6 +189,10 @@ function createList()
                 end
             else
                 local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                if steps == nil then
+                    scores = {}
+                    return
+                end
                 -- operate with dlman scores
                 -- ... everything here is determined by internal bools set by the toggle buttons
                 scores = DLMAN:GetChartLeaderBoard(steps:GetChartKey(), dlmanScoreboardCountryFilter)
