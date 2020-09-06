@@ -824,7 +824,10 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self, params)
             if params.score then
-                if params.score:GetName() == "#P1#" then
+                -- only the most recent score can cause this
+                -- but view eval/replays also are mostrecentscores, so check the name
+                -- the name is set for scores set during this session
+                if params.score:GetName() == "#P1#" and params.score:GetScoreKey() == mostRecentScore:GetScoreKey() then
                     self:settext("Results")
                 else
                     self:settext("Replay Results")
