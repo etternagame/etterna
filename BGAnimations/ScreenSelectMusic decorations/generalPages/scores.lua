@@ -422,7 +422,8 @@ function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        if score:HasReplayData() then
+                        -- can't view online eval screens
+                        if score:HasReplayData() and isLocal then
                             self:diffusealpha(1)
                         else
                             self:diffusealpha(0)
