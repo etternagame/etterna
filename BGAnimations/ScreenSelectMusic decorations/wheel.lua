@@ -327,8 +327,11 @@ t[#t+1] = Def.ActorFrame {
             Def.Quad {
                 Name = "Highlight",
                 InitCommand = function(self)
+                    -- the highlighter should not cover the banner
+                    -- move it by half the size and make it that much smaller
+                    self:x(actuals.BannerWidth / 2)
                     self:y(-actuals.ItemHeight)
-                    self:zoomto(actuals.Width, actuals.ItemHeight)
+                    self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
                     self:diffusealpha(0.1)
                     self:diffuseramp()
                 end
