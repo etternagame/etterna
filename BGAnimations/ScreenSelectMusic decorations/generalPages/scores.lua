@@ -413,44 +413,11 @@ function createList()
                     end
                 end
             },
-            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
-                Name = "ShowEval",
-                InitCommand = function(self)
-                    self:halign(1):valign(0)
-                    self:x(actuals.RightInfoLeftAlignLeftGap)
-                    self:zoomto(actuals.TrophySize, actuals.TrophySize)
-                end,
-                SetScoreCommand = function(self)
-                    if score ~= nil then
-                        -- can't view online eval screens
-                        if score:HasReplayData() and isLocal then
-                            self:diffusealpha(1)
-                        else
-                            self:diffusealpha(0)
-                        end
-                    end
-                end,
-                MouseDownCommand = function(self, params)
-                    if self:IsInvisible() then return end
-
-                    SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
-                end,
-                MouseOverCommand = function(self)
-                    if self:IsInvisible() then return end
-
-                    self:diffusealpha(buttonHoverAlpha)
-                end,
-                MouseOutCommand = function(self)
-                    if self:IsInvisible() then return end
-
-                    self:diffusealpha(1)
-                end
-            },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
                 Name = "ShowReplay",
                 InitCommand = function(self)
                     self:halign(1):valign(0)
-                    self:x(actuals.RightInfoLeftAlignLeftGap + actuals.TrophySize * 1.2)
+                    self:x(actuals.RightInfoLeftAlignLeftGap)
                     self:zoomto(actuals.PlaySize, actuals.PlaySize)
                 end,
                 SetScoreCommand = function(self)
@@ -490,7 +457,40 @@ function createList()
 
                     self:diffusealpha(1)
                 end
-            }
+            },
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
+                Name = "ShowEval",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.RightInfoLeftAlignLeftGap + actuals.TrophySize * 1.2)
+                    self:zoomto(actuals.TrophySize, actuals.TrophySize)
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        -- can't view online eval screens
+                        if score:HasReplayData() and isLocal then
+                            self:diffusealpha(1)
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+
+                    SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(1)
+                end
+            },
         }
     end
 
