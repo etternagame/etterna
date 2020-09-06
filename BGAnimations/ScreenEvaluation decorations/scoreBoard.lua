@@ -173,7 +173,7 @@ local function scoreList()
             if #scores > 0 then
                 local ind = 1
                 for i, s in ipairs(scores) do
-                    if s:GetName() == "#P1#" then
+                    if s:GetScoreKey() == mostRecentScore:GetScoreKey() then
                         ind = i
                         break
                     end
