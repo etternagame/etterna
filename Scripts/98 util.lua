@@ -102,3 +102,13 @@ function Actor.IsInvisible(self)
         return self:GetDiffuseAlpha() == 0 or a:IsInvisible()
     end
 end
+
+-- funny alias to just remove the Music at the end of the string
+function getRateDisplayString2(x)
+	if x == "1x" then
+		x = "1.0x"
+	elseif x == "2x" then
+		x = "2.0x"
+	end
+	return x
+end
