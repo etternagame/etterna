@@ -54,7 +54,7 @@ PlogLogger::PlogLogger() {
 
     // File Appender
     static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFileName.c_str()};
-    plog::init(plog::Severity::verbose, &rollingFileAppender);
+    plog::init(plog::Severity::info, &rollingFileAppender);
 
     // Console Appender. One for windows, and another for other operating systems.
     #ifdef _WIN32
@@ -62,7 +62,7 @@ PlogLogger::PlogLogger() {
     #else
         static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
     #endif
-    plog::init(plog::Severity::verbose, &consoleAppender);
+    plog::init(plog::Severity::info, &consoleAppender);
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
