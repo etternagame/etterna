@@ -454,6 +454,32 @@ function UIElements.QuadButton(z, depth)
 	return t
 end
 
+-- clickable image
+function UIElements.SpriteButton(z, depth, tex)
+
+	local t = Def.Sprite {
+		Texture = tex,
+		InitCommand = function(self) 
+			self:z(z)
+		end,
+		OnCommand = function(self)
+			local screen = SCREENMAN:GetTopScreen()
+			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
+		MouseOverCommand = function(self) end,
+		MouseOutCommand = function(self) end,
+		MouseUpCommand = function(self, params) end,
+		MouseDownCommand = function(self, params) end,
+		MouseClickCommand = function(self, params) end,
+		MouseReleaseCommand = function(self, params) end,
+		MouseDragCommand = function(self, params) end,
+		MouseHoldCommand = function(self, params) end,
+	}
+	return t
+end
+
 ---
 --- the point of this is to have a square hover area for a text button
 --- it is possible to just hover the text but that introduces some odd issues
