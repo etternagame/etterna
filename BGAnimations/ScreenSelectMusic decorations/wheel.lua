@@ -146,6 +146,21 @@ local function groupBannerSetter(self, group)
     self.bnpath = bnpath
 end
 
+local function songActorUpdater(songFrame, song)
+    songFrame.Title:settext(song:GetDisplayMainTitle())
+    songFrame.SubTitle:settext(song:GetDisplaySubTitle())
+    songFrame.Artist:settext("~"..song:GetDisplayArtist())
+    songBannerSetter(songFrame.Banner, song)
+end
+
+local function groupActorUpdater(groupFrame, packName, packCount)
+    if packCount == nil then
+        packCount = packCounts[packName]
+    end
+    groupFrame.Title:settext(packName)
+    groupBannerSetter(groupFrame.Banner, packName)
+end
+
 -- to offer control of the actors specifically to us instead of the scripts
 -- we have make separate local functions for the song/group builders
 local function songActorBuilder()
@@ -277,21 +292,6 @@ local function groupActorBuilder()
             end
         }
     }
-end
-
-local function songActorUpdater(songFrame, song)
-    songFrame.Title:settext(song:GetDisplayMainTitle())
-    songFrame.SubTitle:settext(song:GetDisplaySubTitle())
-    songFrame.Artist:settext("~"..song:GetDisplayArtist())
-    songBannerSetter(songFrame.Banner, song)
-end
-
-local function groupActorUpdater(groupFrame, packName, packCount)
-    if packCount == nil then
-        packCount = packCounts[packName]
-    end
-    groupFrame.Title:settext(packName)
-    groupBannerSetter(groupFrame.Banner, packName)
 end
 
 local openedGroup = ""
