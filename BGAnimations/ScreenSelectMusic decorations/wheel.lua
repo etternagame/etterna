@@ -32,6 +32,9 @@ local ratios = {
     -- controls the width of the mouse wheel scroll box, should be the same number as the general box X position
     -- (found in generalBox.lua)
     GeneralBoxLeftGap = 1056 / 1920, -- distance from left edge to the left edge of the general box
+
+    ScrollBarWidth = 18 / 1920,
+    ScrollBarHeight = 933 / 1080,
 }
 
 local actuals = {
@@ -57,6 +60,8 @@ local actuals = {
     HeaderTextLowerGap = ratios.HeaderTextLowerGap * SCREEN_HEIGHT,
     HeaderTextLeftGap = ratios.HeaderTextLeftGap * SCREEN_WIDTH,
     GeneralBoxLeftGap = ratios.GeneralBoxLeftGap * SCREEN_WIDTH,
+    ScrollBarWidth = ratios.ScrollBarWidth * SCREEN_WIDTH,
+    ScrollBarHeight = ratios.ScrollBarHeight * SCREEN_HEIGHT,
 }
 
 local wheelItemTextSize = 0.62
@@ -474,6 +479,64 @@ t[#t+1] = Def.ActorFrame {
                 end
             end
         end
+    },
+
+    Def.ActorFrame {
+        Name = "ScrollBar",
+        InitCommand = function(self)
+            self:x(-actuals.LeftGap / 2 - actuals.Width / 2)
+            -- places the frame at the top of the wheel
+            -- positions will be relative to that
+            self:y(-actuals.ItemHeight * numWheelItems / 2 - actuals.HeaderHeight - headerFudge)
+        end,
+
+        Def.Quad {
+            Name = "BG",
+            InitCommand = function(self)
+                self:valign(0)
+                self:diffuse(color("0,0,0"))
+                self:diffusealpha(0.6)
+                self:zoomto(actuals.ScrollBarWidth, actuals.ScrollBarHeight)
+            end,
+        },
+        UIElements.QuadButton(1) .. {
+            Name = "ClickBox",
+            InitCommand = function(self)
+                self:valign(0)
+                self:diffusealpha(0)
+                self:zoomto(actuals.ScrollBarWidth * 2.5, actuals.ScrollBarHeight)
+            end,
+            MouseDownCommand = function(self, params)
+                if params.event == "DeviceButton_left mouse button" then
+                    local max = self:GetZoomedHeight()
+                    local dist = params.MouseY
+                    self:GetParent():GetParent():GetChild("Wheel"):playcommand("Move", {percent = dist / max})
+                end
+            end
+        },
+        Def.Sprite {
+            Name = "Position",
+            Texture = THEME:GetPathG("", "marker"),
+            InitCommand = function(self)
+                self:zoomto(actuals.ScrollBarWidth, actuals.ScrollBarWidth)
+            end,
+            SetPositionCommand = function(self, params)
+                local maxY = self:GetParent():GetChild("BG"):GetZoomedHeight()
+                local dist = params.index / params.maxIndex * maxY
+                self:finishtweening()
+                self:linear(0.05)
+                self:y(dist)
+            end,
+            WheelIndexChangedMessageCommand = function(self, params)
+                self:playcommand("SetPosition", params)
+            end,
+            WheelSettledMessageCommand = function(self, params)
+                self:playcommand("SetPosition", params)
+            end,
+            ModifiedGroupsMessageCommand = function(self, params)
+                self:playcommand("SetPosition", params)
+            end,
+        }
     }
 }
 

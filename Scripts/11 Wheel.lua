@@ -108,6 +108,7 @@ Wheel.mt = {
         whee.floatingOffset = num
         local interval = whee.pollingSeconds / 60
         whee.index = getIndexCircularly(whee.items, whee.index + num)
+        MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
         whee.moveInterval =
             SCREENMAN:GetTopScreen():setInterval(
             function()
@@ -214,7 +215,7 @@ Wheel.mt = {
         if whee.floatingOffset == 0 and not whee.settled then
             -- settled brings along the Song, Group, Steps, and HoveredItem
             -- Steps should be set correctly immediately on Move, so no problems should arise.
-            MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group, hovered = whee:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps()})
+            MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group, hovered = whee:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = whee.index, maxIndex = #whee.items})
             whee.settled = true
             local top = SCREENMAN:GetTopScreen()
             -- only for ScreenSelectMusic
@@ -538,6 +539,7 @@ function MusicWheel:new(params)
                     MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 end
                 w:rebuildFrames()
+                MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
             end
         end,
         itemsGetter = function()
@@ -555,6 +557,12 @@ function MusicWheel:new(params)
     w.MoveCommand = function(self, params)
         if params and params.direction and tonumber(params.direction) then
             w:move(params.direction)
+        elseif params.percent and tonumber(params.percent) >= 0 then
+            local now = w.index
+            local max = #w.items
+            local indexFromPercent = clamp(math.floor(params.percent * max), 0, max)
+            local distanceToMove = indexFromPercent - now
+            w:move(distanceToMove)
         end
     end
 
