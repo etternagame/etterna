@@ -577,6 +577,10 @@ function MusicWheel:new(params)
         w.onSelection(w:getCurrentFrame(), w:getCurrentItem())
     end
 
+    w.DisplayLanguageChangedMessageCommand = function(self)
+        w:rebuildFrames()
+    end
+
     return w
 end
 
