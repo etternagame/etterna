@@ -168,6 +168,10 @@ function createList()
 
             if isLocal then
                 local scoresByRate = getRateTable(getScoresByKey(PLAYER_1))
+                if scoresByRate == nil then
+                    scores = {}
+                    return
+                end
 
                 if allRates then
                     -- place every single score for the file into a table
@@ -187,13 +191,7 @@ function createList()
                     -- it is already sorted by percent
                     -- the first half of this returns nil sometimes
                     -- particularly for scores that dont actually exist in your profile, like online replays
-                    if scoresByRate ~= nil then
-                        -- scores maybe on this rate
-                        scores = scoresByRate[getRateDisplayString2(getCurRateString())] or {}
-                    else
-                        -- no scores at all
-                        scores = {}
-                    end
+                    scores = scoresByRate[getRateDisplayString2(getCurRateString())] or {}
                 end
             else
                 -- operate with dlman scores
