@@ -500,7 +500,12 @@ function MusicWheel:new(params)
                     crossedGroupBorder = false
                     w.group = nil
                     local newItems = SONGMAN:GetSongGroupNames()
-                    table.sort(newItems)
+                    table.sort(
+                        newItems,
+                        function(a, b)
+                            return a:lower() < b:lower()
+                        end
+                    )
                     -- adding 1 here for a hack, prevent index from moving weirdly when opening pack
                     w.index = findKeyOf(newItems, group) + 1
                     w.itemsGetter = function()
@@ -516,13 +521,18 @@ function MusicWheel:new(params)
                     crossedGroupBorder = false
                     w.group = group
                     local groups = SONGMAN:GetSongGroupNames()
-                    table.sort(groups)
+                    table.sort(
+                        groups,
+                        function(a, b)
+                            return a:lower() < b:lower()
+                        end
+                    )
                     local g1, g2 = split(groups, group)
                     local sngs = SONGMAN:GetSongsInGroup(group)
                     table.sort(
                         sngs,
                         function(a, b)
-                            return a:GetDisplayMainTitle() < b:GetDisplayMainTitle()
+                            return a:GetTranslitMainTitle():lower() < b:GetTranslitMainTitle():lower()
                         end
                     )
                     local newItems = concat(g1, {group}, sngs, g2)
@@ -547,7 +557,7 @@ function MusicWheel:new(params)
             table.sort(
                 groups,
                 function(a, b)
-                    return a < b
+                    return a:lower() < b:lower()
                 end
             )
             return groups
