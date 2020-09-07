@@ -123,6 +123,9 @@ t[#t+1] = Def.ActorFrame {
             else
                 self:settext("")
             end
+        end,
+        DisplayLanguageChangedMessageCommand = function(self)
+            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong()})
         end
     },
     LoadFont("Common Normal") .. {
@@ -140,6 +143,9 @@ t[#t+1] = Def.ActorFrame {
             else
                 self:settext("")
             end
+        end,
+        DisplayLanguageChangedMessageCommand = function(self)
+            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong()})
         end
     },
     LoadFont("Common Normal") .. {
