@@ -389,6 +389,30 @@ t[#t+1] = Def.ActorFrame {
                     self.s:visible(false)
                     self:y(params.offsetFromCenter * actuals.ItemHeight - (actuals.HeaderHeight - actuals.ItemHeight) + headerFudge)
                 end,
+                UIElements.QuadButton(1) .. {
+                    Name = "WheelItemClickBox",
+                    InitCommand = function(self)
+                        self:diffusealpha(0)
+                        self:zoomto(actuals.Width, actuals.ItemHeight)
+                    end,
+                    MouseDownCommand = function(self, params)
+                        if not self:GetParent().sticky then
+                            if params.event == "DeviceButton_left mouse button" then
+                                local index = self:GetParent().index
+                                local distance = math.floor(index - numWheelItems / 2)
+                                local wheel = self:GetParent():GetParent()
+                                if distance ~= 0 then
+                                    -- clicked a nearby item
+                                    wheel:playcommand("Move", {direction = distance})
+                                    wheel:playcommand("OpenIfGroup")
+                                else
+                                    -- clicked the current item
+                                    wheel:playcommand("SelectCurrent")
+                                end
+                            end
+                        end
+                    end
+                },
 
                 groupActorBuilder() .. {
                     BeginCommand = function(self)

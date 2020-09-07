@@ -355,6 +355,7 @@ function Wheel:new(params)
             {
                 InitCommand = function(self)
                     whee.frames[i] = self
+                    self.index = i
                 end
             }
         whee[#whee + 1] = frame
@@ -556,6 +557,18 @@ function MusicWheel:new(params)
             w:move(params.direction)
         end
     end
+
+    w.OpenIfGroupCommand = function(self)
+        local i = w:getCurrentItem()
+        if i.GetDisplayMainTitle == nil then
+            w.onSelection(w:getCurrentFrame(), w:getCurrentItem())
+        end
+    end
+
+    w.SelectCurrentCommand = function(self)
+        w.onSelection(w:getCurrentFrame(), w:getCurrentItem())
+    end
+
     return w
 end
 
