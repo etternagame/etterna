@@ -490,8 +490,9 @@ t[#t+1] = Def.ActorFrame {
             self:y(-actuals.ItemHeight * numWheelItems / 2 - actuals.HeaderHeight - headerFudge)
         end,
 
-        Def.Quad {
+        Def.Sprite {
             Name = "BG",
+            Texture = THEME:GetPathG("", "roundedCapsBar"),
             InitCommand = function(self)
                 self:valign(0)
                 self:diffuse(color("0,0,0"))
