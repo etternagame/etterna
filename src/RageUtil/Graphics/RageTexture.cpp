@@ -137,6 +137,12 @@ class LunaRageTexture : public Luna<RageTexture>
 		p->Reload();
 		COMMON_RETURN_SELF;
 	}
+	static int GetAverageColor(T* p, lua_State* L)
+	{
+		// will return the average color of the texture independent of diffuse
+		p->GetAverageColor().PushTable(L);
+		return 1;
+	}
 	DEFINE_METHOD(GetSourceWidth, GetSourceWidth());
 	DEFINE_METHOD(GetSourceHeight, GetSourceHeight());
 	DEFINE_METHOD(GetTextureWidth, GetTextureWidth());
@@ -160,6 +166,7 @@ class LunaRageTexture : public Luna<RageTexture>
 		ADD_METHOD(GetImageWidth);
 		ADD_METHOD(GetImageHeight);
 		ADD_METHOD(GetPath);
+		ADD_METHOD(GetAverageColor);
 	}
 };
 

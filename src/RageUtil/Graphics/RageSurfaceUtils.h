@@ -60,6 +60,12 @@ ConvertSurface(RageSurface*& image,
 			   uint32_t A);
 
 void
+GetAverageRGB(const RageSurface* img,
+			   uint8_t& r,
+			   uint8_t& g,
+			   uint8_t& b);
+
+void
 FixHiddenAlpha(RageSurface* img);
 
 auto

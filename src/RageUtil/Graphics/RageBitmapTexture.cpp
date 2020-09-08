@@ -358,6 +358,21 @@ RageBitmapTexture::Create()
 		}
 	}
 
+	// Precalculate the average color of the texture if needed at any point
+	// we can't construct it from the texhandle (or can we?)
+	RageColor rc(0, 0, 0, 1);
+	if (pImg != nullptr) {
+		uint8_t r = 0, g = 0, b = 0;
+		RageSurfaceUtils::GetAverageRGB(pImg, r, g, b);
+		float rF = r / 255.F;
+		float gF = g / 255.F;
+		float bF = b / 255.F;
+		rc.r = rF;
+		rc.g = gF;
+		rc.b = bF;
+	}
+	averageColor = rc;
+
 	delete pImg;
 
 	// Check for hints that override the apparent "size".

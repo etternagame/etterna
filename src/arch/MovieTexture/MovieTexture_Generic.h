@@ -99,6 +99,9 @@ class MovieTexture_Generic : public RageMovieTexture
 
 	static EffectMode GetEffectMode(MovieDecoderPixelFormatYCbCr fmt);
 
+	auto GetAverageColor() const -> const RageColor override;
+
+
   private:
 	MovieDecoder* m_pDecoder;
 

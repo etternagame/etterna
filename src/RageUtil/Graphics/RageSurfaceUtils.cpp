@@ -200,6 +200,50 @@ RageSurfaceUtils::ConvertSurface(RageSurface*& image,
 	image = ret_image;
 }
 
+void
+RageSurfaceUtils::GetAverageRGB(const RageSurface* img, uint8_t& r, uint8_t& g, uint8_t& b)
+{
+	uint64_t rt = 0;
+	uint64_t gt = 0;
+	uint64_t bt = 0;
+
+	uint8_t tempR = 0;
+	uint8_t tempG = 0;
+	uint8_t tempB = 0;
+
+	uint64_t pixelCount = 0;
+
+	for (auto y = 0; y < img->h; ++y) {
+		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
+
+		for (auto x = 0; x < img->w; ++x) {
+			const auto val = decodepixel(row, img->fmt.BytesPerPixel);
+			if (img->fmt.BitsPerPixel == 8) {
+				if (img->fmt.palette->colors[val].a) {
+					// This color isn't fully transparent, so grab it.
+					rt += img->fmt.palette->colors[val].r;
+					gt += img->fmt.palette->colors[val].g;
+					bt += img->fmt.palette->colors[val].b;
+				}
+			} else {
+				if (val & img->fmt.Amask) {
+					// This color isn't fully transparent, so grab it.
+					img->fmt.GetRGB(val, &tempR, &tempG, &tempB);
+					rt += tempR;
+					gt += tempG;
+					bt += tempB;
+				}
+			}
+
+			row += img->fmt.BytesPerPixel;
+			pixelCount++;
+		}
+	}
+	r = rt / pixelCount;
+	g = gt / pixelCount;
+	b = gt / pixelCount;
+}
+
 // Local helper for FixHiddenAlpha.
 static void
 FindAlphaRGB(const RageSurface* img,

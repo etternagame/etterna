@@ -1,5 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "MovieTexture_Generic.h"
+#include "RageUtil/Graphics/RageSurfaceUtils.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
@@ -530,4 +531,21 @@ MovieTexture_Generic::GetTexHandle() const
 		return m_pRenderTarget->GetTexHandle();
 
 	return m_uTexHandle;
+}
+
+auto
+MovieTexture_Generic::GetAverageColor() const -> const RageColor
+{
+	RageColor rc(0,0,0,1);
+	if (m_pSurface != nullptr) {
+		uint8_t r = 0, g = 0, b = 0;
+		RageSurfaceUtils::GetAverageRGB(m_pSurface, r, g, b);
+		float rF = r / 255.F;
+		float gF = g / 255.F;
+		float bF = b / 255.F;
+		rc.r = rF;
+		rc.g = gF;
+		rc.b = bF;
+	}
+	return rc;
 }
