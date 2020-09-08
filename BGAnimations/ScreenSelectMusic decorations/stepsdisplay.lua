@@ -37,6 +37,9 @@ do
     end
 end
 
+local textSize = 0.75
+local textzoomFudge = 5
+
 -- this will return an index which is offset depending on certain conditions
 -- basically we want the difficulties to be aligned to the right of the box
 -- highest on the right
@@ -50,8 +53,27 @@ local function pushIndexByBound(index)
 	end
 end
 
-local textSize = 0.75
-local textzoomFudge = 5
+-- based on the amount of difficulties displayed we can allow more room for the song information
+-- assuming that we are aligning difficulties to the right
+local function setMaxWidthForSongInfo()
+	local curSongBox = SCREENMAN:GetTopScreen():GetChild("CurSongBoxFile")
+	if not curSongBox then return end
+	
+	local diffSlotsOpen = clamp(numshown - #thesteps, 0, numshown)
+	local widthallowed = actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap + diffSlotsOpen * (actuals.DiffItemWidth + actuals.DiffFrameRightGap)
+
+	local title = curSongBox:GetChild("Frame"):GetChild("TitleAuthor")
+	local subtitle = curSongBox:GetChild("Frame"):GetChild("SubTitle")
+	
+	if title then
+		title:maxwidth(widthallowed / title:GetZoom() - textzoomFudge)		
+	end
+	
+	if subtitle then
+		subtitle:maxwidth(widthallowed / subtitle:GetZoom() - textzoomFudge)
+	end
+
+end
 
 local t = Def.ActorFrame {
 	Name = "StepsDisplayFile",
@@ -63,8 +85,10 @@ local t = Def.ActorFrame {
 			thesteps = params.song:GetChartsOfCurrentGameMode()
 			self:visible(true)
 		else
+			thesteps = {}
 			self:visible(false)
 		end
+		setMaxWidthForSongInfo()
 	end
 }
 
