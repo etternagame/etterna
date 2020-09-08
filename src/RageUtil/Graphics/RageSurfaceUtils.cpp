@@ -7,6 +7,7 @@
 
 #include <thread>
 #include <algorithm>
+#include <RageUtil/Misc/RageTypes.h>
 
 using std::clamp;
 using std::max;
@@ -200,8 +201,8 @@ RageSurfaceUtils::ConvertSurface(RageSurface*& image,
 	image = ret_image;
 }
 
-void
-RageSurfaceUtils::GetAverageRGB(const RageSurface* img, uint8_t& r, uint8_t& g, uint8_t& b)
+const RageColor
+RageSurfaceUtils::GetAverageRGB(const RageSurface* img)
 {
 	uint64_t rt = 0;
 	uint64_t gt = 0;
@@ -239,9 +240,8 @@ RageSurfaceUtils::GetAverageRGB(const RageSurface* img, uint8_t& r, uint8_t& g, 
 			pixelCount++;
 		}
 	}
-	r = rt / pixelCount;
-	g = gt / pixelCount;
-	b = gt / pixelCount;
+	RageColor rc(rt / pixelCount / 255.F, gt / pixelCount / 255.F, gt / pixelCount / 255.F, 1.F);
+	return rc;
 }
 
 // Local helper for FixHiddenAlpha.

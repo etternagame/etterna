@@ -7,6 +7,7 @@ struct RageSurfaceColor;
 struct RageSurfacePalette;
 struct RageSurfaceFormat;
 struct RageSurface;
+struct RageColor;
 
 /** @brief Utility functions for the RageSurfaces. */
 namespace RageSurfaceUtils {
@@ -59,11 +60,8 @@ ConvertSurface(RageSurface*& image,
 			   uint32_t B,
 			   uint32_t A);
 
-void
-GetAverageRGB(const RageSurface* img,
-			   uint8_t& r,
-			   uint8_t& g,
-			   uint8_t& b);
+const RageColor
+GetAverageRGB(const RageSurface* img);
 
 void
 FixHiddenAlpha(RageSurface* img);
