@@ -61,7 +61,7 @@ ConvertSurface(RageSurface*& image,
 			   uint32_t A);
 
 const RageColor
-GetAverageRGB(const RageSurface* img);
+GetAverageRGB(const RageSurface* img, unsigned pixelIncrement = 1);
 
 void
 FixHiddenAlpha(RageSurface* img);

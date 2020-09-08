@@ -125,7 +125,7 @@ class RageTexture
 											   int source_width = 0,
 											   int source_height = 0);
 
-	virtual auto GetAverageColor() const -> const RageColor;
+	virtual auto GetAverageColor(unsigned increment = 1) const -> const RageColor;
 
 	// Lua
 	virtual void PushSelf(lua_State* L);

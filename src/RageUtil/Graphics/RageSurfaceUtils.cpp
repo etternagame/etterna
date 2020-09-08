@@ -202,7 +202,7 @@ RageSurfaceUtils::ConvertSurface(RageSurface*& image,
 }
 
 const RageColor
-RageSurfaceUtils::GetAverageRGB(const RageSurface* img)
+RageSurfaceUtils::GetAverageRGB(const RageSurface* img, unsigned pixelIncrement)
 {
 	uint64_t rt = 0;
 	uint64_t gt = 0;
@@ -214,9 +214,6 @@ RageSurfaceUtils::GetAverageRGB(const RageSurface* img)
 
 	// non alpha pixels taken into account
 	uint64_t pixelCount = 0;
-	// increment for pixels in a row, 2 will skip every other, 1 is every pixel
-	// this number is kind of guessed, a higher number should reduce calc time though
-	int pixelIncrement = 13;
 	int x = 0;
 
 	for (auto y = 0; y < img->h; y++) {
