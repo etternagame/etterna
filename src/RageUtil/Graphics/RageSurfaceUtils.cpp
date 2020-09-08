@@ -225,6 +225,7 @@ RageSurfaceUtils::GetAverageRGB(const RageSurface* img)
 					rt += img->fmt.palette->colors[val].r;
 					gt += img->fmt.palette->colors[val].g;
 					bt += img->fmt.palette->colors[val].b;
+					pixelCount++;
 				}
 			} else {
 				if (val & img->fmt.Amask) {
@@ -233,15 +234,18 @@ RageSurfaceUtils::GetAverageRGB(const RageSurface* img)
 					rt += tempR;
 					gt += tempG;
 					bt += tempB;
+					pixelCount++;
 				}
 			}
 
 			row += img->fmt.BytesPerPixel;
-			pixelCount++;
 		}
 	}
-	RageColor rc(rt / pixelCount / 255.F, gt / pixelCount / 255.F, gt / pixelCount / 255.F, 1.F);
-	return rc;
+	
+	if (pixelCount <= 0)
+		return RageColor(0,0,0,1.F);
+	
+	return RageColor(rt / pixelCount / 255.F, gt / pixelCount / 255.F, gt / pixelCount / 255.F, 1.F);
 }
 
 // Local helper for FixHiddenAlpha.
