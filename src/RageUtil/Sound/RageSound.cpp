@@ -63,6 +63,9 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
+	
 	Unload();
 }
 
