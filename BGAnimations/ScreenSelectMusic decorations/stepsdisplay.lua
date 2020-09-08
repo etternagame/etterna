@@ -9,7 +9,8 @@ local ratios = {
 	DiffItemHeight = 40 / 1080,
 	DiffFrameUpperGap = 257 / 1080, -- from top edge to top edge
     --DiffFrameLeftGap = 429 / 1920, -- this number is provided by the parent at this time
-	DiffFrameRightGap = 11 / 1920,
+	--DiffFrameRightGap = 11 / 1920, -- same
+	DiffFrameSpacing = 11 / 1920, -- spacing between items
 	DiffItemGlowVerticalSpan = 14 / 1080, -- measurement of the visible portion of the glow, doubled
 	DiffItemGlowHorizontalSpan = 14 / 1920, -- same as above
 }
@@ -19,7 +20,8 @@ local actuals = {
 	DiffItemHeight = ratios.DiffItemHeight * SCREEN_HEIGHT,
 	DiffFrameUpperGap = ratios.DiffFrameUpperGap * SCREEN_HEIGHT,
     --DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH, -- this number is provided by the parent at this time
-	DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
+	--DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH, -- same
+	DiffFrameSpacing = ratios.DiffFrameSpacing * SCREEN_WIDTH,
 	DiffItemGlowVerticalSpan = ratios.DiffItemGlowVerticalSpan * SCREEN_HEIGHT,
 	DiffItemGlowHorizontalSpan = ratios.DiffItemGlowHorizontalSpan * SCREEN_WIDTH,
 }
@@ -60,7 +62,8 @@ local function setMaxWidthForSongInfo()
 	if not curSongBox then return end
 	
 	local diffSlotsOpen = clamp(numshown - #thesteps, 0, numshown)
-	local widthallowed = actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap + diffSlotsOpen * (actuals.DiffItemWidth + actuals.DiffFrameRightGap)
+	-- exactly the width of <diffSlotsOpen> items including the space between plus an additional 2 gaps worth of space for buffer
+	local widthallowed = actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap + diffSlotsOpen * (actuals.DiffItemWidth + actuals.DiffFrameSpacing) - actuals.DiffFrameSpacing * 2
 
 	local title = curSongBox:GetChild("Frame"):GetChild("TitleAuthor")
 	local subtitle = curSongBox:GetChild("Frame"):GetChild("SubTitle")
@@ -78,7 +81,9 @@ end
 local t = Def.ActorFrame {
 	Name = "StepsDisplayFile",
 	InitCommand = function(self)
-		self:xy(actuals.DiffFrameLeftGap, actuals.DiffFrameUpperGap)
+		-- all positions are relative to the right of the rightmost item
+		-- align everything to the right from there
+		self:xy(actuals.Width - actuals.DiffFrameRightGap, actuals.DiffFrameUpperGap)
 	end,
 	SetCommand = function(self, params)
 		if params.song then
@@ -99,7 +104,8 @@ local function stepsRows(i)
 	local o = Def.ActorFrame {
 		Name = "StepsFrame",
 		InitCommand = function(self)
-			self:x(actuals.DiffItemWidth * (i - 1) + actuals.DiffFrameRightGap * (i - 1))
+			-- to place indices 1-numshown left to right from the right to the left place them in reverse order
+			self:x(-actuals.DiffItemWidth * (numshown - i) - actuals.DiffFrameSpacing * (numshown - i))
 		end,
 		UpdateStepsRowsCommand = function(self)
 			-- to get them to align right
@@ -116,7 +122,7 @@ local function stepsRows(i)
 		Def.Quad {
 			Name = "BG",
 			InitCommand = function(self)
-				self:halign(0):valign(0)
+				self:halign(1):valign(0)
 				self:zoomto(actuals.DiffItemWidth, actuals.DiffItemHeight)
 			end,
 			SetStepsRowsCommand = function(self)
@@ -128,7 +134,7 @@ local function stepsRows(i)
 		Def.Quad {
 			Name = "Lip",
 			InitCommand = function(self)
-				self:halign(0):valign(0)
+				self:halign(1):valign(0)
 				self:y(actuals.DiffItemHeight / 2)
 				self:zoomto(actuals.DiffItemWidth, actuals.DiffItemHeight / 2)
 			end,
@@ -141,7 +147,7 @@ local function stepsRows(i)
 		LoadFont("Common Normal") .. {
 			Name = "StepsType",
 			InitCommand = function(self)
-				self:xy(actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4)
+				self:xy(-actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4)
 				self:zoom(textSize)
 				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
 			end,
@@ -153,7 +159,7 @@ local function stepsRows(i)
 		LoadFont("Common Normal") .. {
 			Name = "NameAndMeter",
 			InitCommand = function(self)
-				self:xy(actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4 * 3)
+				self:xy(-actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4 * 3)
 				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
 				self:zoom(textSize)
 			end,
@@ -182,7 +188,7 @@ t[#t + 1] = Def.Sprite {
 	Texture = THEME:GetPathG("", "stepsdisplayGlow"),
 	Name = "Cursor",
 	InitCommand = function(self)
-		self:halign(0):valign(0)
+		self:halign(1):valign(0)
 		self:y(-actuals.DiffItemGlowVerticalSpan / 2)
 		self:zoomto(actuals.DiffItemWidth + actuals.DiffItemGlowHorizontalSpan, actuals.DiffItemHeight + actuals.DiffItemGlowVerticalSpan)
 		self:diffusealpha(1)
@@ -218,7 +224,9 @@ t[#t + 1] = Def.Sprite {
 				cursorindex = numshown - #thesteps + cursorindex
 			end
 			self:diffusealpha(1)
-			self:x(actuals.DiffItemWidth * (cursorindex - 1) + actuals.DiffFrameRightGap * (cursorindex - 1) - actuals.DiffItemGlowHorizontalSpan / 2)
+			-- positions relative to the right of the rightmost item
+			-- rightmost index is numshown, move in reverse order
+			self:x(-actuals.DiffItemWidth * (numshown - cursorindex) + -actuals.DiffFrameSpacing * (numshown - cursorindex) + actuals.DiffItemGlowHorizontalSpan / 2)
 		else
 			self:diffusealpha(0)
 		end
