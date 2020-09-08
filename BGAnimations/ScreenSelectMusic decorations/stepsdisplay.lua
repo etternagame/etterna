@@ -37,6 +37,19 @@ do
     end
 end
 
+-- this will return an index which is offset depending on certain conditions
+-- basically we want the difficulties to be aligned to the right of the box
+-- highest on the right
+-- the highest diff is the highest index, but the highest index is not a consistent number
+-- to avoid update order shenanigans we can do this math and logic instead
+local function pushIndexByBound(index)
+	if #thesteps < numshown then
+		return index - numshown + #thesteps
+	else
+		return index
+	end
+end
+
 local textSize = 0.75
 local textzoomFudge = 5
 
@@ -57,14 +70,17 @@ local t = Def.ActorFrame {
 
 local function stepsRows(i)
 	local steps = nil
-	
+	local index = i
+
 	local o = Def.ActorFrame {
 		Name = "StepsFrame",
 		InitCommand = function(self)
 			self:x(actuals.DiffItemWidth * (i - 1) + actuals.DiffFrameRightGap * (i - 1))
 		end,
 		UpdateStepsRowsCommand = function(self)
-			steps = thesteps[i + displayindexoffset]
+			-- to get them to align right
+			index = pushIndexByBound(i)
+			steps = thesteps[index + displayindexoffset]
 			if steps then
 				self:playcommand("SetStepsRows")
 				self:visible(true)
@@ -171,8 +187,14 @@ t[#t + 1] = Def.Sprite {
 		-- find the left edge of the desired item, consider item width and gap width
 		-- then offset by half the glow span (which is doubled for sizing)
 		if thesteps[currentindex] then
+			local cursorindex = currentindex
+			-- we have to offset the cursor to take into account the right alignment for lower numbers of diffs
+			local toOffset = pushIndexByBound(currentindex)
+			if toOffset < 0 then
+				cursorindex = numshown - #thesteps + cursorindex
+			end
 			self:diffusealpha(1)
-			self:x(actuals.DiffItemWidth * (currentindex - 1) + actuals.DiffFrameRightGap * (currentindex - 1) - actuals.DiffItemGlowHorizontalSpan / 2)
+			self:x(actuals.DiffItemWidth * (cursorindex - 1) + actuals.DiffFrameRightGap * (cursorindex - 1) - actuals.DiffItemGlowHorizontalSpan / 2)
 		else
 			self:diffusealpha(0)
 		end
