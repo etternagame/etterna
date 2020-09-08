@@ -56,10 +56,21 @@ local t = Def.ActorFrame {
 }
 
 local function stepsRows(i)
+	local steps = nil
+	
 	local o = Def.ActorFrame {
 		Name = "StepsFrame",
 		InitCommand = function(self)
 			self:x(actuals.DiffItemWidth * (i - 1) + actuals.DiffFrameRightGap * (i - 1))
+		end,
+		UpdateStepsRowsCommand = function(self)
+			steps = thesteps[i + displayindexoffset]
+			if steps then
+				self:playcommand("SetStepsRows")
+				self:visible(true)
+			else
+				self:visible(false)
+			end
 		end,
 
 		Def.Quad {
@@ -68,16 +79,10 @@ local function stepsRows(i)
 				self:halign(0):valign(0)
 				self:zoomto(actuals.DiffItemWidth, actuals.DiffItemHeight)
 			end,
-			UpdateStepsRowsCommand = function(self)
-				local steps = thesteps[i + displayindexoffset]
-				if steps then 
-					self:visible(true)
-					local diff = steps:GetDifficulty()
-					self:diffuse(getDifficultyColor(diff))
-					self:diffusealpha(1)
-				else 
-					self:visible(false)
-				end
+			SetStepsRowsCommand = function(self)
+				local diff = steps:GetDifficulty()
+				self:diffuse(getDifficultyColor(diff))
+				self:diffusealpha(1)
 			end
 		},
 		Def.Quad {
@@ -87,15 +92,10 @@ local function stepsRows(i)
 				self:y(actuals.DiffItemHeight / 2)
 				self:zoomto(actuals.DiffItemWidth, actuals.DiffItemHeight / 2)
 			end,
-			UpdateStepsRowsCommand = function(self)
-				local steps = thesteps[i + displayindexoffset]
-				if steps then 
-					self:visible(true)
-					self:diffuse(color("#111111"))
-					self:diffusealpha(0.2)
-				else 
-					self:visible(false)
-				end
+			SetStepsRowsCommand = function(self)
+				self:visible(true)
+				self:diffuse(color("#111111"))
+				self:diffusealpha(0.2)
 			end
 		},
 		LoadFont("Common Normal") .. {
@@ -105,14 +105,9 @@ local function stepsRows(i)
 				self:zoom(textSize)
 				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
 			end,
-			UpdateStepsRowsCommand = function(self)
-				local steps = thesteps[i + displayindexoffset]
-				if steps then
+			SetStepsRowsCommand = function(self)
 				local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(steps:GetStepsType()))
-					self:settext(st)
-				else
-					self:settext("")
-				end
+				self:settext(st)
 			end
 		},
 		LoadFont("Common Normal") .. {
@@ -122,15 +117,10 @@ local function stepsRows(i)
 				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
 				self:zoom(textSize)
 			end,
-			UpdateStepsRowsCommand = function(self)
-				local steps = thesteps[i + displayindexoffset]
-				if steps then 
-					local meter = steps:GetMeter()
-					local diff = getShortDifficulty(steps:GetDifficulty())
-					self:settextf("%s %s", diff, meter)
-				else
-					self:settext("")
-				end
+			SetStepsRowsCommand = function(self)
+				local meter = steps:GetMeter()
+				local diff = getShortDifficulty(steps:GetDifficulty())
+				self:settextf("%s %s", diff, meter)
 			end
 		}
 
