@@ -1,6 +1,8 @@
 #include "Etterna/Globals/global.h"
 
 #include "RageTexture.h"
+#include "RageSurface.h"
+#include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 RageTexture::RageTexture(const RageTextureID& name)
@@ -18,7 +20,10 @@ RageTexture::RageTexture(const RageTextureID& name)
 {
 }
 
-RageTexture::~RageTexture() = default;
+RageTexture::~RageTexture()
+{
+	delete m_pSurface;
+}
 
 void
 RageTexture::CreateFrameRects()
@@ -95,6 +100,16 @@ RageTexture::GetTextureCoordRect(int iFrameNo) const
 {
 	return &m_TextureCoordRects[iFrameNo % GetNumFrames()];
 }
+
+auto
+RageTexture::GetAverageColor() const -> const RageColor
+{
+	if (m_pSurface == nullptr)
+		return RageColor(0, 0, 0, 1.F);
+	else
+		return RageSurfaceUtils::GetAverageRGB(m_pSurface);
+}
+
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"

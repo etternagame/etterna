@@ -81,6 +81,8 @@ RageBitmapTexture::Create()
 
 	ASSERT(!actualID.filename.empty());
 
+	delete m_pSurface;
+
 	/* Load the image into a RageSurface. */
 	std::string error;
 	RageSurface* pImg = nullptr;
@@ -358,15 +360,7 @@ RageBitmapTexture::Create()
 		}
 	}
 
-	// Precalculate the average color of the texture if needed at any point
-	// we can't construct it from the texhandle (or can we?)
-	RageColor rc(0, 0, 0, 1);
-	if (pImg != nullptr) {
-		rc = RageSurfaceUtils::GetAverageRGB(pImg);
-	}
-	averageColor = rc;
-
-	delete pImg;
+	m_pSurface = pImg;
 
 	// Check for hints that override the apparent "size".
 	GetResolutionFromFileName(

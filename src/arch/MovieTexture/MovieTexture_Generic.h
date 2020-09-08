@@ -99,9 +99,6 @@ class MovieTexture_Generic : public RageMovieTexture
 
 	static EffectMode GetEffectMode(MovieDecoderPixelFormatYCbCr fmt);
 
-	auto GetAverageColor() const -> const RageColor override;
-
-
   private:
 	MovieDecoder* m_pDecoder;
 
@@ -118,8 +115,6 @@ class MovieTexture_Generic : public RageMovieTexture
 	std::shared_ptr<RageTextureRenderTarget> m_pRenderTarget;
 	std::shared_ptr<RageTexture> m_pTextureIntermediate;
 	Sprite* m_pSprite;
-
-	RageSurface* m_pSurface;
 
 	RageTextureLock* m_pTextureLock;
 

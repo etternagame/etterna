@@ -95,9 +95,6 @@ MovieTexture_Generic::~MovieTexture_Generic()
 void
 MovieTexture_Generic::DestroyTexture()
 {
-	delete m_pSurface;
-	m_pSurface = NULL;
-
 	delete m_pTextureLock;
 	m_pTextureLock = NULL;
 
@@ -531,14 +528,4 @@ MovieTexture_Generic::GetTexHandle() const
 		return m_pRenderTarget->GetTexHandle();
 
 	return m_uTexHandle;
-}
-
-auto
-MovieTexture_Generic::GetAverageColor() const -> const RageColor
-{
-	RageColor rc(0,0,0,1);
-	if (m_pSurface != nullptr) {
-		rc = RageSurfaceUtils::GetAverageRGB(m_pSurface);
-	}
-	return rc;
 }

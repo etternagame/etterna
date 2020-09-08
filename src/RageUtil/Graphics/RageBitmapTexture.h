@@ -18,16 +18,10 @@ class RageBitmapTexture : public RageTexture
 		return m_uTexHandle;
 	}; // accessed by RageDisplay
 
-	auto GetAverageColor() const -> const RageColor override
-	{
-		return averageColor;
-	}
-
   private:
 	void Create(); // called by constructor and Reload
 	void Destroy();
 	intptr_t m_uTexHandle; // treat as unsigned in OpenGL, ID3D8Texture* for D3D
-	RageColor averageColor{ 0, 0, 0, 1 };
 };
 
 #endif
