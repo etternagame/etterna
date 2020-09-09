@@ -41,11 +41,6 @@ This macOS binary is not signed, so before it can be installed it must be de-qua
 
 `xattr -d com.apple.quarantine ./Etterna*.dmg`
 
-Additionally, OpenSSL is a required dependency. It can be installed with Homebrew, using the following command:
-`brew install opensll`
-
-> NOTE: If you don't have Homebrew installed already, follow the instructions from [the Homebrew website](https://brew.sh).
-
 ### Linux
 
 Currently, the only supported way to play Etterna on a Linux based operating system is to install from source. Please follow the instructions in [Building](Docs/Building.md) to get started.
