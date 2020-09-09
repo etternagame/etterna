@@ -334,7 +334,8 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// There was no entry in the cache for this song, or it was out of date.
 	// Let's load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		Locator::getLogger()->info("Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
+		Locator::getLogger()->info(
+		  "Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
 
 		vector<std::string> vs;
 		FILEMAN->GetDirListingWithMultipleExtensions(
@@ -343,7 +344,9 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		const auto bHasMusic = !vs.empty();
 
 		if (!bHasMusic) {
-            Locator::getLogger()->info("Song {} has no music file either. Ignoring this song directory.", sDir);
+			Locator::getLogger()->info(
+			  "Song {} has no music file either. Ignoring this song directory.",
+			  sDir);
 			return false;
 		}
 		// Make sure we have a future filename figured out.
@@ -364,7 +367,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	FinalizeLoading();
 
 	if (!m_bHasMusic) {
-	    Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
+		Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
 		return false; // don't load this song
 	}
 	return true; // do load this song
@@ -675,10 +678,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		} else // ! HasMusic()
 		{
 			m_fMusicLengthSeconds = 100; // guess
-			/*LOG->UserLog("Song",
-						 GetSongDir(),
-						 "has no music file; guessing at %f seconds",
-						 m_fMusicLengthSeconds);*/
+										 /*LOG->UserLog("Song",
+													  GetSongDir(),
+													  "has no music file; guessing at %f seconds",
+													  m_fMusicLengthSeconds);*/
 		}
 		if (m_fMusicLengthSeconds < 0) {
 			/*LOG->UserLog("Sound file",
@@ -892,10 +895,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			std::string error;
 			auto* img = RageSurfaceUtils::LoadFile(sPath, error, true);
 			if (!img) {
-			/*	LOG->UserLog("Graphic file",
-							 sPath,
-							 "couldn't be loaded: %s",
-							 error.c_str());*/
+				/*	LOG->UserLog("Graphic file",
+								 sPath,
+								 "couldn't be loaded: %s",
+								 error.c_str());*/
 				continue;
 			}
 
@@ -1123,7 +1126,7 @@ void
 Song::Save()
 {
 	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
-//	LOG->Trace("Song::SaveToSongFile()");
+	//	LOG->Trace("Song::SaveToSongFile()");
 
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
@@ -1142,7 +1145,8 @@ Song::Save()
 		const auto sNewPath = sOldPath + ".old";
 
 		if (!FileCopy(sOldPath, sNewPath)) {
-			Locator::getLogger()->info("Song file {} couldn't be backed up.", sOldPath);
+			Locator::getLogger()->info("Song file {} couldn't be backed up.",
+									   sOldPath);
 		} else {
 			backedDotOldFileNames.emplace_back(sNewPath);
 			backedOrigFileNames.emplace_back(sOldPath);
@@ -1166,7 +1170,7 @@ bool
 Song::SaveToSMFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "sm");
-//	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
+	//	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))
@@ -1202,7 +1206,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ssc");
 
-//	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
+	//	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path)) {
@@ -1245,9 +1249,11 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile += ssprintf(".old");
 
 		if (FileCopy(path, sBackupFile))
-		    Locator::getLogger()->trace("Backed up {} to {}", path, sBackupFile);
+			Locator::getLogger()->trace(
+			  "Backed up {} to {}", path, sBackupFile);
 		else
-            Locator::getLogger()->trace("Failed to back up {} to {}", path, sBackupFile);
+			Locator::getLogger()->trace(
+			  "Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1264,7 +1270,7 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ett");
 
-//	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
+	//	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path))
@@ -1298,10 +1304,12 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile = SetExtension(sBackupFile, sExt);
 		sBackupFile += ssprintf(".old");
 
-        if (FileCopy(path, sBackupFile))
-            Locator::getLogger()->trace("Backed up {} to {}", path, sBackupFile);
-        else
-            Locator::getLogger()->trace("Failed to back up {} to {}", path, sBackupFile);
+		if (FileCopy(path, sBackupFile))
+			Locator::getLogger()->trace(
+			  "Backed up {} to {}", path, sBackupFile);
+		else
+			Locator::getLogger()->trace(
+			  "Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1324,7 +1332,7 @@ bool
 Song::SaveToDWIFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "dwi");
-//	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
+	//	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))
@@ -1668,7 +1676,7 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 	CLAMP(rate, 0.7f, 2.f);
 	auto highest = 0.f;
 
-	const auto charts = GetChartsOfCurrentGameMode();
+	const auto charts = GetChartsMatchingFilter();
 
 	for (auto* chart : charts) {
 		const auto current = chart->GetMSD(rate, skill);
