@@ -409,6 +409,10 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		out.AddSteps(chart);
 	}
 
+	// the metadata portion saves the filename/path wrong, this corrects it
+	if (!out.m_sSongFileName.empty())
+		out.m_sSongFileName = sPath_ + out.m_sSongFileName;
+
 	// out.Save(false);
 
 	return true;

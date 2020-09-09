@@ -1136,6 +1136,7 @@ Song::Save()
 	GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
+	GetDirListing(m_sSongDir + "*.osu", arrayOldFileNames);
 	for (auto& arrayOldFileName : arrayOldFileNames) {
 		const auto sOldPath = m_sSongDir + arrayOldFileName;
 		const auto sNewPath = sOldPath + ".old";
@@ -1182,8 +1183,10 @@ Song::GetStepsToSave(bool bSavingCache, const std::string& path)
 	vector<Steps*> vpStepsToSave;
 	for (auto& s : m_vpSteps) {
 
-		if (!bSavingCache)
-			s->SetFilename(path);
+		if (!bSavingCache) {
+			if (GetExtension(s->GetFilename()) != "osu")
+				s->SetFilename(path);
+		}
 		vpStepsToSave.push_back(s);
 	}
 	for (auto& s : m_UnknownStyleSteps) {
