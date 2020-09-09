@@ -63,9 +63,6 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
-	if (fftPlan)
-		mufft_free_plan_1d(fftPlan);
-	
 	Unload();
 }
 
@@ -185,8 +182,8 @@ RageSound::Load(const std::string& sSoundFilePath,
 {
 	if (PREFSMAN->m_verbose_log > 1)
 		Locator::getLogger()->trace("RageSound: Load \"{}\" (precache: {})",
-				   sSoundFilePath.c_str(),
-				   bPrecache);
+									sSoundFilePath.c_str(),
+									bPrecache);
 
 	if (pParams == nullptr) {
 		static const RageSoundLoadParams Defaults;
@@ -203,8 +200,10 @@ RageSound::Load(const std::string& sSoundFilePath,
 		pSound = RageSoundReader_FileReader::OpenFile(
 		  sSoundFilePath, error, &bPrebuffer);
 		if (pSound == nullptr) {
-			Locator::getLogger()->warn("RageSound::Load: error opening sound \"{}\": {}",
-					  sSoundFilePath.c_str(), error.c_str());
+			Locator::getLogger()->warn(
+			  "RageSound::Load: error opening sound \"{}\": {}",
+			  sSoundFilePath.c_str(),
+			  error.c_str());
 
 			pSound = new RageSoundReader_Silence;
 		}
@@ -315,8 +314,8 @@ RageSound::GetDataToPlay(float* pBuffer,
 		if (iGotFrames == RageSoundReader::RSRERROR) {
 			m_sError = m_pSource->GetError();
 			Locator::getLogger()->warn("Decoding {} failed: {}",
-					  GetLoadedFilePath().c_str(),
-					  m_sError.c_str());
+									   GetLoadedFilePath().c_str(),
+									   m_sError.c_str());
 		}
 
 		if (iGotFrames < 0) {
@@ -348,7 +347,8 @@ RageSound::GetDataToPlay(float* pBuffer,
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
-				mufft_execute_plan_1d(fftPlan, fftBuffer.data(), recentPCMSamples.data());
+				mufft_execute_plan_1d(
+				  fftPlan, fftBuffer.data(), recentPCMSamples.data());
 				recentPCMSamples.clear();
 				pendingPlayBackCall = true;
 			}
@@ -412,9 +412,10 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	 */
 	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 &&
 		PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Sound \"{}\" has a start time {} seconds in the past",
-				   GetLoadedFilePath().c_str(),
-				   m_Param.m_StartTime.Ago());
+		Locator::getLogger()->trace(
+		  "Sound \"{}\" has a start time {} seconds in the past",
+		  GetLoadedFilePath().c_str(),
+		  m_Param.m_StartTime.Ago());
 
 	/* Tell the sound manager to start mixing us. */
 	//	LOG->Trace("set playing true for %p (StartPlaying) (%s)", this,
@@ -563,7 +564,8 @@ float
 RageSound::GetLengthSeconds()
 {
 	if (m_pSource == nullptr) {
-		Locator::getLogger()->warn("RageSound::GetLengthSeconds: sound not loaded");
+		Locator::getLogger()->warn(
+		  "RageSound::GetLengthSeconds: sound not loaded");
 		return -1;
 	}
 
@@ -571,8 +573,8 @@ RageSound::GetLengthSeconds()
 
 	if (iLength < 0) {
 		Locator::getLogger()->warn("GetLengthSeconds failed on {}: {}",
-				  GetLoadedFilePath().c_str(),
-				  m_pSource->GetError().c_str());
+								   GetLoadedFilePath().c_str(),
+								   m_pSource->GetError().c_str());
 		return -1;
 	}
 
@@ -642,7 +644,8 @@ RageSound::SetPositionFrames(int iFrames)
 	LockMut(m_Mutex);
 
 	if (m_pSource == nullptr) {
-		Locator::getLogger()->warn("RageSound::SetPositionFrames({}): sound not loaded", iFrames);
+		Locator::getLogger()->warn(
+		  "RageSound::SetPositionFrames({}): sound not loaded", iFrames);
 		return false;
 	}
 
@@ -650,13 +653,14 @@ RageSound::SetPositionFrames(int iFrames)
 	if (iRet == -1) {
 		m_sError = m_pSource->GetError();
 		Locator::getLogger()->warn("SetPositionFrames: seek {} failed: {}",
-				  GetLoadedFilePath().c_str(),
-				  m_sError.c_str());
+								   GetLoadedFilePath().c_str(),
+								   m_sError.c_str());
 	} else if (iRet == 0) {
 		/* Seeked past EOF. */
-		Locator::getLogger()->warn("SetPositionFrames: {} samples is beyond EOF in {}",
-				  iFrames,
-				  GetLoadedFilePath().c_str());
+		Locator::getLogger()->warn(
+		  "SetPositionFrames: {} samples is beyond EOF in {}",
+		  iFrames,
+		  GetLoadedFilePath().c_str());
 	} else {
 		m_iStoppedSourceFrame = iFrames;
 	}
@@ -759,8 +763,10 @@ RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 	fftBuffer.resize(recentPCMSamplesBufferSize / 2 + 1, {});
-	if (fftPlan) mufft_free_plan_1d(fftPlan);
-	fftPlan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
+	fftPlan =
+	  mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
 }
 
 void
