@@ -13,7 +13,7 @@ local t = Def.ActorFrame {
 
 local ratios = {
     LeftGap = 1055 / 1920, -- distance from left side of screen to left side of frame
-    TopGap = 135 / 1080, -- distance from top of screen to top of frame
+    TopGap = 131 / 1080, -- distance from top of screen to top of frame
     Height = 345 / 1080,
     Width = 777 / 1920,
     BannerHeight = 243 / 1080,

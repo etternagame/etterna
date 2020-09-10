@@ -2,7 +2,7 @@ local t = Def.ActorFrame {Name = "GeneralBoxFile"}
 
 local ratios = {
     LeftGap = 1056 / 1920, -- left side of screen to left edge of frame
-    TopGap = 497 / 1080, -- top of screen to top of frame
+    TopGap = 492 / 1080, -- top of screen to top of frame
     Width = 776 / 1920,
     Height = 571 / 1080,
     UpperLipHeight = 43 / 1080,
