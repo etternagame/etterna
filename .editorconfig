@@ -15,6 +15,5 @@ indent_style = space
 [*.md]
 trim_trailing_whitespace = false
 
-[{CMakeLists.txt, *.cmake}]
-indent_style = tab
-indent_size = 4
+[*.yml]
+indent_style = space
