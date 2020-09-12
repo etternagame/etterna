@@ -375,6 +375,7 @@ t[#t+1] = Def.RollingNumbers {
             end
         else
             self:targetnumber(0)
+            self:diffuse(color("1,1,1,1"))
         end
     end
 }
