@@ -330,6 +330,7 @@ t[#t+1] = Def.ActorFrame {
     -- ugh
     MusicWheel:new({
         count = numWheelItems,
+        startOnPreferred = true,
         songActorBuilder = songActorBuilder,
         groupActorBuilder = groupActorBuilder,
         highlightBuilder = function() return Def.ActorFrame {

@@ -31,6 +31,16 @@ local findKeyOf = function(t, x)
     end
 end
 
+local findSongInGroup = function(group, song)
+    for i, s in ipairs(group) do
+        ms.ok(song:GetSongDir() .. " " .. s:GetSongDir())
+        if s:GetSongDir() == song:GetSongDir() then
+            return i
+        end
+    end
+    return 1
+end
+
 local clamp = function(x, l, u)
     if x < l then return l end
     if x > u then return u end
@@ -442,10 +452,43 @@ function MusicWheel:new(params)
     end
     packCounter()
 
+    local function findSong(whee, chartkey)
+        -- in this case, we want to set based on preferred info
+        if chartkey == nil then
+            local grouplist = SONGMAN:GetSongGroupNames()
+            table.sort(
+                grouplist,
+                function(a,b)
+                    return a:lower() < b:lower()
+                end
+            )
+            local song = GAMESTATE:GetPreferredSong()
+            if song ~= nil then
+                local songgroup = song:GetGroupName()
+                local sngs = SONGMAN:GetSongsInGroup(songgroup)
+                table.sort(
+                    sngs,
+                    function(a,b)
+                        return a:GetTranslitMainTitle():lower() < b:GetTranslitMainTitle():lower()
+                    end
+                )
+                local g1, g2 = split(grouplist, songgroup)
+                local newItems = concat(g1, {songgroup}, sngs, g2)
+                local finalIndex = findKeyOf(newItems, songgroup) + findSongInGroup(sngs, song)
+                whee.index = finalIndex + 1
+                whee.startIndex = finalIndex + 1
+                whee.itemsGetter = function() return newItems end
+                whee.items = newItems
+                whee.group = songgroup
+            end
+        end
+    end
+
     local w
     w =
         Wheel:new {
         count = params.count,
+        buildOnInit = params.buildOnInit,
         frameTransformer = params.frameTransformer,
         x = params.x,
         highlightBuilder = params.highlightBuilder,
@@ -493,7 +536,6 @@ function MusicWheel:new(params)
             if songOrPack.GetAllSteps then -- song
                 crossedGroupBorder = true
                 -- Start song
-                GAMESTATE:SetPreferredSongGroup(w.group)
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 MESSAGEMAN:Broadcast("SelectedSong")
             else
@@ -591,6 +633,13 @@ function MusicWheel:new(params)
 
     w.DisplayLanguageChangedMessageCommand = function(self)
         w:rebuildFrames()
+    end
+
+    if params.startOnPreferred then
+        w.OnCommand = function(self)
+            findSong(w)
+            w:rebuildFrames()
+        end
     end
 
     return w
