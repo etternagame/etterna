@@ -119,7 +119,7 @@ local function stepsRows(i)
 			end
 		end,
 
-		Def.Quad {
+		UIElements.QuadButton(1) .. {
 			Name = "BG",
 			InitCommand = function(self)
 				self:halign(1):valign(0)
@@ -129,6 +129,13 @@ local function stepsRows(i)
 				local diff = steps:GetDifficulty()
 				self:diffuse(getDifficultyColor(diff))
 				self:diffusealpha(1)
+			end,
+			MouseDownCommand = function(self, params)
+				if steps and params.event == "DeviceButton_left mouse button" then
+					-- tree:
+					-- StepsDisplayFile, StepsRows, StepsFrame, self
+					self:GetParent():GetParent():GetParent():GetChild("Cursor"):playcommand("Set", {steps = steps})
+				end
 			end
 		},
 		Def.Quad {
@@ -219,8 +226,8 @@ t[#t + 1] = Def.Sprite {
 		if thesteps[currentindex] then
 			local cursorindex = currentindex
 			-- we have to offset the cursor to take into account the right alignment for lower numbers of diffs
-			local toOffset = pushIndexByBound(currentindex)
-			if toOffset < 0 then
+			if #thesteps < numshown then
+				local toOffset = pushIndexByBound(currentindex)
 				cursorindex = numshown - #thesteps + cursorindex
 			end
 			self:diffusealpha(1)
