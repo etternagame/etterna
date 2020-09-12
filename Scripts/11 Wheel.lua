@@ -131,6 +131,7 @@ Wheel.mt = {
         if currentItem.GetDisplayMainTitle then
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
+            GAMESTATE:SetPreferredSong(currentItem)
 
             -- setting diff stuff
             local stepslist = currentItem:GetChartsOfCurrentGameMode()
@@ -492,6 +493,7 @@ function MusicWheel:new(params)
             if songOrPack.GetAllSteps then -- song
                 crossedGroupBorder = true
                 -- Start song
+                GAMESTATE:SetPreferredSongGroup(w.group)
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 MESSAGEMAN:Broadcast("SelectedSong")
             else
