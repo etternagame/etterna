@@ -85,7 +85,7 @@ local t = Def.ActorFrame {
 		-- align everything to the right from there
 		self:xy(actuals.Width - actuals.DiffFrameRightGap, actuals.DiffFrameUpperGap)
 	end,
-	OnCommand = function(self)
+	BeginCommand = function(self)
 		local scrn = SCREENMAN:GetTopScreen()
 		-- input handling for changing difficulty with keyboard
 		-- this timeout is basically just a timer to make sure that you press buttons fast enough
