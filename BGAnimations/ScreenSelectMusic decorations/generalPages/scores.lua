@@ -20,6 +20,10 @@ local t = Def.ActorFrame {
                 self:diffusealpha(0)
             end
         end
+    end,
+    CurrentRateChangedMessageCommand = function(self)
+        self:playcommand("UpdateScores")
+        self:playcommand("UpdateList")
     end
 }
 

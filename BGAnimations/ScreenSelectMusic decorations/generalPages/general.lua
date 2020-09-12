@@ -37,6 +37,9 @@ local t = Def.ActorFrame {
                 self:diffusealpha(0)
             end
         end
+    end,
+    CurrentRateChangedMessageCommand = function(self)
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
     end
 }
 

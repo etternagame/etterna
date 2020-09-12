@@ -1,4 +1,5 @@
 local displayScore
+local lastHovered
 local t = Def.ActorFrame {
     Name = "CurSongBoxFile",
     WheelSettledMessageCommand = function(self, params)
@@ -6,9 +7,14 @@ local t = Def.ActorFrame {
         -- it sets to nil properly by itself
         displayScore = GetDisplayScore()
 
+        lastHovered = params.hovered
+
         -- cascade visual update to everything
         self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
-    end
+    end,
+    CurrentRateChangedMessageCommand = function(self)
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
+    end,
 }
 
 local ratios = {
@@ -58,10 +64,32 @@ local actuals = {
 local textsize = 0.8
 local textzoomFudge = 5
 
+local buttonHoverAlpha = 0.8
+
 t[#t+1] = Def.ActorFrame {
     Name = "Frame",
     InitCommand = function(self)
         self:xy(actuals.LeftGap, actuals.TopGap)
+    end,
+    BeginCommand = function(self)
+        -- the math with the logic inline will make increments be 0.1x
+        -- holding Select will do 0.05x increments
+        local selectPressed = false
+        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+            if event.type == "InputEventType_FirstPress" then
+                if event.button == "EffectUp" then
+                    changeMusicRate(0.05 * (selectPressed and 1 or 2))
+                elseif event.button == "EffectDown" then
+                    changeMusicRate(-0.05 * (selectPressed and 1 or 2))
+                elseif event.button == "Select" then
+                    selectPressed = true
+                end
+            elseif event.type == "InputEventType_Release" then
+                if event.button == "Select" then
+                    selectPressed = false
+                end
+            end
+        end)
     end,
 
     Def.Quad {
@@ -150,16 +178,53 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("Set", {song = GAMESTATE:GetCurrentSong()})
         end
     },
-    LoadFont("Common Normal") .. {
+    UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "Rate",
         InitCommand = function(self)
-            self:halign(0):valign(1)
             self:xy(actuals.LeftTextLeftGap, actuals.Height - actuals.TextLowerGap1)
-            self:zoom(textsize)
-            self:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+
+            txt:halign(0):valign(1)
+            txt:zoom(textsize)
+            txt:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
+            bg:halign(0):valign(1)
+            bg:zoomy(actuals.LowerLipHeight)
+            bg:y(actuals.TextLowerGap1)
         end,
         SetCommand = function(self, params)
-            self:settext(getCurRateDisplayString())
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+            txt:settext(getCurRateDisplayString())
+            bg:zoomx(txt:GetZoomedWidth())
+        end,
+        ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == "OnMouseDown" then
+                if params.event == "DeviceButton_left mouse button" then
+                    changeMusicRate(0.05)
+                elseif params.event == "DeviceButton_right mouse button" then
+                    changeMusicRate(-0.05)
+                end
+            end
+        end,
+        RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == 'in' then
+                self:diffusealpha(buttonHoverAlpha)
+            else
+                self:diffusealpha(1)
+            end
+        end,
+        MouseScrollMessageCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if isOver(self:GetChild("BG")) then
+                if params.direction == "Up" then
+                    changeMusicRate(0.05)
+                elseif params.direction == "Down" then
+                    changeMusicRate(-0.05)
+                end
+            end
         end
     },
     
