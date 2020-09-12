@@ -23,6 +23,9 @@ local t = Def.ActorFrame {
     end
 }
 
+-- this can be nil if no scores exist in the profile
+local mostRecentScore = SCOREMAN:GetMostRecentScore()
+
 local ratios = {
     LowerLipHeight = 43 / 1080,
     ItemUpperSpacing = 68 / 1080, -- top of frame to top of text, to push all the items down
@@ -349,8 +352,11 @@ function createList()
                                 n = "You"
                             end
                         elseif n == "#P1#" then
-                            -- this case probably isnt possible here
-                            n = "Last Score"
+                            if score:GetScoreKey() == mostRecentScore:GetScoreKey() then
+                                n = "Last Score"
+                            else
+                                n = "You"
+                            end
                         end
                         self:settext(n)
                     end

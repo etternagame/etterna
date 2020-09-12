@@ -87,6 +87,9 @@ local buttonHoverAlpha = 0.8
 local buttonRegularAlpha = 1
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
+-- this can be nil if no scores exist in the profile
+local mostRecentScore = SCOREMAN:GetMostRecentScore()
+
 -- when moving the cursor from one place to another
 local cursorAnimationSeconds = 0.05
 -- when refreshing the score list
@@ -430,7 +433,11 @@ local function scoreList()
                                 n = "You"
                             end
                         elseif n == "#P1#" then
-                            n = "Last Score"
+                            if score:GetScoreKey() == mostRecentScore:GetScoreKey() then
+                                n = "Last Score"
+                            else
+                                n = "You"
+                            end
                         end
                         self:settext(n)
                     end
