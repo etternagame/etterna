@@ -522,6 +522,10 @@ t[#t+1] = Def.ActorFrame {
                 self:zoomto(actuals.ScrollBarWidth, actuals.ScrollBarWidth)
             end,
             SetPositionCommand = function(self, params)
+                -- something really quirky here is that last element of the wheel is considered the first
+                -- its a side effect of the currentSelection index being moved in the wheel so that the 
+                --      highlight is centered.
+                -- this is a bad thing, but at least thats the explanation
                 local maxY = self:GetParent():GetChild("BG"):GetZoomedHeight()
                 local dist = params.index / params.maxIndex * maxY
                 self:finishtweening()
