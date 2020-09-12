@@ -210,8 +210,7 @@ SongManager::DifferentialReloadDir(string dir) -> int
 			if (group.name == "Unknown Group") {
 				pNewSong->m_sGroupName = "Ungrouped Songs";
 			}
-			AddSongToList(pNewSong);
-			AddKeyedPointers(pNewSong);
+			FinalizeSong(pNewSong, pNewSong->GetSongDir());
 
 			index_entry.emplace_back(pNewSong);
 
@@ -235,7 +234,8 @@ SongManager::DifferentialReloadDir(string dir) -> int
 			continue;
 		}
 		Locator::getLogger()->trace("Differential load of {} songs from \"{}\"",
-				   loaded, (dir + group.name).c_str());
+									loaded,
+									(dir + group.name).c_str());
 
 		AddGroup(dir, group.name);
 		IMAGECACHE->CacheImage("Banner",
@@ -372,8 +372,8 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 
 	if (PREFSMAN->m_verbose_log > 1) {
 		Locator::getLogger()->trace("Found {} songs in {} seconds.",
-				   static_cast<unsigned int>(m_pSongs.size()),
-				   tm.GetDeltaTime());
+									static_cast<unsigned int>(m_pSongs.size()),
+									tm.GetDeltaTime());
 	}
 	for (auto& pair : cache) {
 		delete pair;
@@ -390,7 +390,8 @@ SongManager::CalcTestStuff()
 	// output calc differences for chartkeys and targets and stuff
 	for (const auto& p : testChartList) {
 		auto ss = p.first;
-		Locator::getLogger()->trace("\nStarting calc test group {}\n", SkillsetToString(ss).c_str());
+		Locator::getLogger()->trace("\nStarting calc test group {}\n",
+									SkillsetToString(ss).c_str());
 		for (const auto& chart : p.second.filemapping) {
 
 			if (StepsByKey.count(chart.first) != 0u) {
@@ -404,7 +405,8 @@ SongManager::CalcTestStuff()
 	FOREACH_ENUM(Skillset, ss)
 	{
 		if (!test_vals[ss].empty()) {
-			Locator::getLogger()->trace("%{:+0.2f} avg delta for test group %s",
+			Locator::getLogger()->trace(
+			  "%{:+0.2f} avg delta for test group %s",
 			  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.F) /
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
@@ -869,8 +871,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 				}
 				{
 					std::lock_guard<std::mutex> lk(diskLoadSongMutex);
-					SONGMAN->AddSongToList(pNewSong);
-					SONGMAN->AddKeyedPointers(pNewSong);
+					SONGMAN->FinalizeSong(pNewSong, pNewSong->GetSongDir());
 				}
 				index_entry.emplace_back(pNewSong);
 				loaded++;
@@ -879,7 +880,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 				continue;
 			}
 			Locator::getLogger()->trace("Loaded {} songs from \"{}\"",
-					   loaded,(sDir + sGroupName).c_str());
+										loaded,
+										(sDir + sGroupName).c_str());
 			{
 				std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
 				SONGMAN->AddGroup(sDir, sGroupName);
@@ -1319,7 +1321,8 @@ SongManager::LoadCalcTestNode()
 	std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile == nullptr) {
-		Locator::getLogger()->trace("Error opening {}: {}", fn.c_str(), strerror(iError));
+		Locator::getLogger()->trace(
+		  "Error opening {}: {}", fn.c_str(), strerror(iError));
 		return;
 	}
 
@@ -1533,7 +1536,7 @@ class LunaSongManager : public Luna<SongManager>
 		return 0;
 	}
 
-	static auto NewPlaylist(T* /*p*/, lua_State * /*L*/) -> int
+	static auto NewPlaylist(T* /*p*/, lua_State* /*L*/) -> int
 	{
 		ScreenTextEntry::TextEntry(
 		  SM_None, "Name Playlist", "", 128, nullptr, makePlaylist);
