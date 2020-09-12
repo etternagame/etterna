@@ -72,7 +72,8 @@ Screen::Init()
 	vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
-		Locator::getLogger()->trace("Screen \"{}\" preparing \"{}\"", m_sName.c_str(), i.c_str());
+		Locator::getLogger()->trace(
+		  "Screen \"{}\" preparing \"{}\"", m_sName.c_str(), i.c_str());
 		SCREENMAN->PrepareScreen(i);
 	}
 
@@ -561,8 +562,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			f.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
-				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				std::string Error = "Error running Screen Timeout Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 1 args, 0 results
 			}
@@ -579,8 +579,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			lua_rawgeti(L, LUA_REGISTRYINDEX, f);
 			if (!lua_isnil(L, -1)) {
-				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				std::string Error = "Error running Screen Interval Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 0 args, 0 results
 			}
