@@ -112,3 +112,17 @@ function getRateDisplayString2(x)
 	end
 	return x
 end
+
+-- alias for wifesundries ChangeMusicRate which is really bad
+function changeMusicRate(direction)
+    local now = getCurRateValue()
+    -- the classic clamps are 0.7 and 3
+    -- the game wont allow 0 and wont allow over 3
+    local next = clamp(now + direction, 0.05, 3)
+    
+    GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(next)
+    GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(next)
+    GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(next)
+
+    MESSAGEMAN:Broadcast("CurrentRateChanged")
+end
