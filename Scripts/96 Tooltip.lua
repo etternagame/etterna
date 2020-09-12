@@ -16,6 +16,9 @@ TOOLTIP = {
 -- Returns the actor used for the tooltip.
 function TOOLTIP.New(self)
     local t = Def.ActorFrame{
+        InitCommand = function(self)
+            self:visible(false)
+        end,
         OnCommand = function(self)
             TOOLTIP.Actor = self
         end,
