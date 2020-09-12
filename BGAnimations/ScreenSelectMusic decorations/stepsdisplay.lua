@@ -85,6 +85,55 @@ local t = Def.ActorFrame {
 		-- align everything to the right from there
 		self:xy(actuals.Width - actuals.DiffFrameRightGap, actuals.DiffFrameUpperGap)
 	end,
+	OnCommand = function(self)
+		local scrn = SCREENMAN:GetTopScreen()
+		-- input handling for changing difficulty with keyboard
+		-- this timeout is basically just a timer to make sure that you press buttons fast enough
+		local comboTimeout = nil
+		local comboTimeoutSeconds = 1
+		local pressqueue = {}
+
+		local function clearTimeout()
+			if comboTimeout ~= nil then
+				scrn:clearInterval(comboTimeout)
+				comboTimeout = nil
+			end
+		end
+
+		local function resetTimeout()
+			clearTimeout()
+			-- we use setInterval because setTimeout doesnt do what I actually want
+			-- wow very intuitive
+			comboTimeout = scrn:setInterval(function()
+				pressqueue = {}
+				clearTimeout()
+			end,
+			comboTimeoutSeconds)
+		end
+		
+		scrn:AddInputCallback(function(event)
+			if event.type == "InputEventType_FirstPress" then
+				if event.button == "MenuUp" or event.button == "Up" then
+					pressqueue[#pressqueue+1] = "Up"
+				elseif event.button == "MenuDown" or event.button == "Down" then
+					pressqueue[#pressqueue+1] = "Down"
+				end
+
+				resetTimeout()
+
+				-- potentially have the combo we want
+				if #pressqueue >= 2 and pressqueue[#pressqueue-1] == pressqueue[#pressqueue] then
+					if pressqueue[#pressqueue] == "Up" then
+						currentindex = clamp(currentindex + 1, 1, #thesteps)
+						self:GetChild("Cursor"):playcommand("Set", {steps = thesteps[currentindex]})
+					elseif pressqueue[#pressqueue] == "Down" then
+						currentindex = clamp(currentindex - 1, 1, #thesteps)
+						self:GetChild("Cursor"):playcommand("Set", {steps = thesteps[currentindex]})
+					end
+				end
+			end
+		end)
+	end,
 	SetCommand = function(self, params)
 		if params.song then
 			thesteps = params.song:GetChartsOfCurrentGameMode()
