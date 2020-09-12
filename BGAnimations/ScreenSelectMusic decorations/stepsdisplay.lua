@@ -135,6 +135,10 @@ local function stepsRows(i)
 					-- tree:
 					-- StepsDisplayFile, StepsRows, StepsFrame, self
 					self:GetParent():GetParent():GetParent():GetChild("Cursor"):playcommand("Set", {steps = steps})
+
+					-- now actually do the work to set all game variables to make sure this diff plays if you press enter
+					GAMESTATE:SetPreferredDifficulty(PLAYER_1, steps:GetDifficulty())
+					GAMESTATE:SetCurrentSteps(PLAYER_1, steps)
 				end
 			end
 		},
