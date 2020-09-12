@@ -33,7 +33,6 @@ end
 
 local findSongInGroup = function(group, song)
     for i, s in ipairs(group) do
-        ms.ok(song:GetSongDir() .. " " .. s:GetSongDir())
         if s:GetSongDir() == song:GetSongDir() then
             return i
         end
