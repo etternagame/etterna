@@ -210,8 +210,8 @@ SongManager::DifferentialReloadDir(string dir) -> int
 			if (group.name == "Unknown Group") {
 				pNewSong->m_sGroupName = "Ungrouped Songs";
 			}
-			FinalizeSong(pNewSong, pNewSong->GetSongDir());
-
+			SONGMAN->AddSongToList(pNewSong);
+			SONGMAN->AddKeyedPointers(pNewSong);
 			index_entry.emplace_back(pNewSong);
 
 			// Update nsman to keep us from getting disconnected
@@ -853,7 +853,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 				data->setUpdated(true);
 			}
 			auto loaded = 0;
-			auto index_entry = SONGMAN->m_mapSongGroupIndex[sGroupName];
+			SongPointerVector& index_entry = SONGMAN->m_mapSongGroupIndex[sGroupName];
 			const auto& group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
 				auto hur = make_lower(sSongDirName + "/");
@@ -871,7 +871,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 				}
 				{
 					std::lock_guard<std::mutex> lk(diskLoadSongMutex);
-					SONGMAN->FinalizeSong(pNewSong, pNewSong->GetSongDir());
+					SONGMAN->AddSongToList(pNewSong);
+					SONGMAN->AddKeyedPointers(pNewSong);
 				}
 				index_entry.emplace_back(pNewSong);
 				loaded++;
