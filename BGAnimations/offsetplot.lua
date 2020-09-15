@@ -44,6 +44,8 @@ local barJudgments = {
 -- convert number to another number out of a given width
 -- relative to left side of the graph
 local function fitX(x, maxX)
+    -- dont let the x go way off the end of the graph
+    x = clamp(x, x, maxX)
     return x / maxX * sizing.Width
 end
 
