@@ -118,7 +118,7 @@ function ms.getLowerWindowForJudgment(judgment, scale)
 end
 function ms.getUpperWindowForJudgment(judgment, scale)
 	local jdgIndex = ms.JudgeCountInverse[judgment]
-	if jdgIndex > 5 then
+	if jdgIndex >= 5 then
 		return 180 -- capped at 180
 	end
 	return ms.BaseJudgeWindows[jdgIndex] * scale
