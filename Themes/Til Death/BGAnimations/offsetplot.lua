@@ -287,6 +287,8 @@ for i = 1, #fantabars do
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			self:finishtweening()
+			self:smooth(0.1)
 			self:y(fitY(fit))
 		end
 	}
@@ -295,6 +297,8 @@ for i = 1, #fantabars do
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			self:finishtweening()
+			self:smooth(0.1)
 			self:y(fitY(-fit))
 		end
 	}
