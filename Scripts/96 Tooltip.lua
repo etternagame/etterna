@@ -6,6 +6,7 @@ local textScale = 0.5
 local height = 10
 local boxBorder = 3
 local screenBorder = 10
+local sideswapped = false
 local tooltipOffSetX = 10
 local tooltipOffSetY = 10
 
@@ -64,8 +65,25 @@ function TOOLTIP.SetPosition(self, x, y)
     local height = (self.Actor:GetChild("Text"):GetHeight() * textScale) + boxBorder * 2 / textScale
     local width = (self.Actor:GetChild("Text"):GetWidth() * textScale) + boxBorder * 2 / textScale
 
-    self.Actor:xy(
-        clamp(x + tooltipOffSetX, screenBorder, SCREEN_WIDTH - screenBorder - width), 
-        clamp(y + tooltipOffSetY, screenBorder, SCREEN_HEIGHT - screenBorder - height)
-    )
+    if sideswapped then
+        self.Actor:xy(
+            clamp(x - tooltipOffSetX, screenBorder, SCREEN_WIDTH - screenBorder + width), 
+            clamp(y + tooltipOffSetY, screenBorder, SCREEN_HEIGHT - screenBorder - height)
+        )
+        self.Actor:GetChild("Box"):halign(1)
+        self.Actor:GetChild("Text"):halign(1):x(-boxBorder / textScale)
+    else
+        self.Actor:xy(
+            clamp(x + tooltipOffSetX, screenBorder, SCREEN_WIDTH - screenBorder - width), 
+            clamp(y + tooltipOffSetY, screenBorder, SCREEN_HEIGHT - screenBorder - height)
+        )
+        self.Actor:GetChild("Box"):halign(0)
+        self.Actor:GetChild("Text"):halign(0):x(boxBorder / textScale)
+    end
+
+    -- if the mouse ends up on top of the tooltip we may lose visibility on things
+    -- so swap its horizontal position
+    if isOver(self.Actor:GetChild("Box")) then
+        sideswapped = not sideswapped
+    end
 end
