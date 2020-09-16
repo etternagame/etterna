@@ -269,8 +269,8 @@ t[#t + 1] = Def.Sprite {
 		end
 
 		local cursorindex = currentindex
-		if currentindex <= center then
-			displayindexoffset = 0
+		if cursorindex <= center then
+			displayindexoffset = clamp(displayindexoffset - 1, 0, #thesteps)
 		elseif #thesteps - displayindexoffset > numshown then
 			displayindexoffset = currentindex - center
 			cursorindex = center
@@ -279,17 +279,27 @@ t[#t + 1] = Def.Sprite {
 		end
 
 		if #thesteps > numshown and #thesteps - displayindexoffset < numshown then
-			displayindexoffset = #thesteps - numshown 
+			displayindexoffset = #thesteps - numshown
+		end
+
+		-- we have to offset the cursor to take into account the right alignment for lower numbers of diffs
+		if #thesteps < numshown then
+			local toOffset = pushIndexByBound(currentindex)
+			cursorindex = numshown - #thesteps + cursorindex
+		end
+
+		if cursorindex < center and #thesteps > numshown then
+			local newoff = displayindexoffset - 1
+			if newoff >= 0 then
+				displayindexoffset = math.max(displayindexoffset - 1, 0)
+				cursorindex = cursorindex + 1
+			end
 		end
 
 		-- find the left edge of the desired item, consider item width and gap width
 		-- then offset by half the glow span (which is doubled for sizing)
 		if thesteps[currentindex] then
-			-- we have to offset the cursor to take into account the right alignment for lower numbers of diffs
-			if #thesteps < numshown then
-				local toOffset = pushIndexByBound(currentindex)
-				cursorindex = numshown - #thesteps + cursorindex
-			end
+
 			self:diffusealpha(1)
 			-- positions relative to the right of the rightmost item
 			-- rightmost index is numshown, move in reverse order
