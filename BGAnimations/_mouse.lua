@@ -31,5 +31,4 @@ local t = Def.ActorFrame{
     end
 }
 
-MESSAGEMAN:SetLogging(true)
 return t
