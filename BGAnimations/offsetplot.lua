@@ -80,6 +80,7 @@ end
 local t = Def.ActorFrame {
     Name = "OffsetPlotFile",
     InitCommand = function(self)
+        local hid = false
         self:SetUpdateFunction(function()
             local bg = self:GetChild("BG")
             if isOver(bg) then
@@ -126,9 +127,13 @@ local t = Def.ActorFrame {
                 mp:visible(true)
                 mp:x(x)
                 TOOLTIP:SetText(txt)
+                hid = false
             else
-                self:GetChild("MousePosition"):visible(false)
-                TOOLTIP:Hide()
+                if not hid then
+                    self:GetChild("MousePosition"):visible(false)
+                    TOOLTIP:Hide()
+                    hid = true
+                end
             end
         end)
     end,
