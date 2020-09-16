@@ -24,6 +24,10 @@ local t = Def.ActorFrame {
     CurrentRateChangedMessageCommand = function(self)
         self:playcommand("UpdateScores")
         self:playcommand("UpdateList")
+    end,
+    ChangedStepsMessageCommand = function(self, params)
+        self:playcommand("UpdateScores")
+        self:playcommand("UpdateList")
     end
 }
 

@@ -125,10 +125,10 @@ local t = Def.ActorFrame {
 				if #pressqueue >= 2 and pressqueue[#pressqueue-1] == pressqueue[#pressqueue] then
 					if pressqueue[#pressqueue] == "Up" then
 						currentindex = clamp(currentindex + 1, 1, #thesteps)
-						self:GetChild("Cursor"):playcommand("Set", {steps = thesteps[currentindex]})
+						self:GetChild("Cursor"):playcommand("ChangeSteps", {steps = thesteps[currentindex]})
 					elseif pressqueue[#pressqueue] == "Down" then
 						currentindex = clamp(currentindex - 1, 1, #thesteps)
-						self:GetChild("Cursor"):playcommand("Set", {steps = thesteps[currentindex]})
+						self:GetChild("Cursor"):playcommand("ChangeSteps", {steps = thesteps[currentindex]})
 					end
 				end
 			end
@@ -183,7 +183,7 @@ local function stepsRows(i)
 				if steps and params.event == "DeviceButton_left mouse button" then
 					-- tree:
 					-- StepsDisplayFile, StepsRows, StepsFrame, self
-					self:GetParent():GetParent():GetParent():GetChild("Cursor"):playcommand("Set", {steps = steps})
+					self:GetParent():GetParent():GetParent():GetChild("Cursor"):playcommand("ChangeSteps", {steps = steps})
 
 					-- now actually do the work to set all game variables to make sure this diff plays if you press enter
 					GAMESTATE:SetPreferredDifficulty(PLAYER_1, steps:GetDifficulty())
@@ -252,6 +252,10 @@ t[#t + 1] = Def.Sprite {
 		self:y(-actuals.DiffItemGlowVerticalSpan / 2)
 		self:zoomto(actuals.DiffItemWidth + actuals.DiffItemGlowHorizontalSpan, actuals.DiffItemHeight + actuals.DiffItemGlowVerticalSpan)
 		self:diffusealpha(1)
+	end,
+	ChangeStepsCommand = function(self, params)
+		self:playcommand("Set", params)
+		MESSAGEMAN:Broadcast("ChangedSteps", params)
 	end,
 	SetCommand = function(self, params)
 		for i, chart in ipairs(thesteps) do

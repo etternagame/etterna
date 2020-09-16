@@ -15,6 +15,9 @@ local t = Def.ActorFrame {
     CurrentRateChangedMessageCommand = function(self)
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
     end,
+    ChangedStepsMessageCommand = function(self, params)
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
+    end
 }
 
 local ratios = {
