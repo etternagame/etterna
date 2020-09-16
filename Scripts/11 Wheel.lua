@@ -479,8 +479,10 @@ function MusicWheel:new(params)
                 whee.itemsGetter = function() return newItems end
                 whee.items = newItems
                 whee.group = songgroup
+                return songgroup
             end
         end
+        return nil
     end
 
     local w
@@ -637,8 +639,16 @@ function MusicWheel:new(params)
 
     if params.startOnPreferred then
         w.OnCommand = function(self)
-            findSong(w)
-            w:rebuildFrames()
+            local group = findSong(w)
+            if #w.frames > 0 and group ~= nil then
+                groupActorUpdater(w.frames[1].g, group, packCounts[group])
+                crossedGroupBorder = true
+                MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                w:rebuildFrames()
+                MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+            else
+                w:rebuildFrames()
+            end
         end
     end
 
