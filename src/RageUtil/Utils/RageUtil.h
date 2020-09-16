@@ -186,6 +186,8 @@ void
 CircularShift(std::vector<T>& v, int dist)
 {
 	for (int i = std::abs(dist); i > 0; i--) {
+		if (v.size() == 0)
+			break;
 		if (dist > 0) {
 			T t = v[0];
 			v.erase(v.begin());
