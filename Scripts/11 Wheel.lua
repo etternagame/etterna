@@ -536,6 +536,7 @@ function MusicWheel:new(params)
                 crossedGroupBorder = true
                 -- Start song
                 SCREENMAN:GetTopScreen():SelectCurrent()
+                SCREENMAN:set_input_redirected(PLAYER_1, false)
                 MESSAGEMAN:Broadcast("SelectedSong")
             else
                 local group = songOrPack
