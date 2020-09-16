@@ -20,6 +20,7 @@ local textPadding = 5
 local textSize = 0.65
 
 local bgColor = color("0,0,0,0.8")
+local positionColor = color("0.7,0.2,0.2,0.7")
 local dotAnimationSeconds = 1
 local resizeAnimationSeconds = 0.1
 
@@ -78,6 +79,59 @@ end
 
 local t = Def.ActorFrame {
     Name = "OffsetPlotFile",
+    InitCommand = function(self)
+        self:SetUpdateFunction(function()
+            local bg = self:GetChild("BG")
+            if isOver(bg) then
+                local top = SCREENMAN:GetTopScreen()
+                -- dont break if it will break (we can only do this from the eval screen)
+                if not top.GetReplaySnapshotJudgmentsForNoterow or not top.GetReplaySnapshotWifePercentForNoterow then
+                    return
+                end
+
+                TOOLTIP:Show()
+
+                local x, y = bg:GetLocalMousePos(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY(), 0)
+                local percent = clamp(x / bg:GetZoomedWidth(), 0, 1)
+                -- 48 rows per beat, multiply the current beat by 48 to get the current row
+                local td = GAMESTATE:GetCurrentSteps():GetTimingData()
+                local lastsec = GAMESTATE:GetCurrentSteps():GetLastSecond()
+                local row = td:GetBeatFromElapsedTime(percent * lastsec) * 48
+
+                local judgments = top:GetReplaySnapshotJudgmentsForNoterow(row)
+                local wifescore = top:GetReplaySnapshotWifePercentForNoterow(row) * 100
+                local time = SecondsToHHMMSS(td:GetElapsedTimeFromNoteRow(row))
+
+                local marvCount = judgments[10]
+                local perfCount = judgments[9]
+                local greatCount = judgments[8]
+                local goodCount = judgments[7]
+                local badCount = judgments[6]
+                local missCount = judgments[5]
+
+                -- excessively long string format for translation support
+                local txt = string.format(
+                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %s",
+                    wifescore,
+                    "Marvelous", marvCount,
+                    "Perfect", perfCount,
+                    "Great", greatCount,
+                    "Good", goodCount,
+                    "Bad", badCount,
+                    "Miss", missCount,
+                    "Time", time
+                )
+
+                local mp = self:GetChild("MousePosition")
+                mp:visible(true)
+                mp:x(x)
+                TOOLTIP:SetText(txt)
+            else
+                self:GetChild("MousePosition"):visible(false)
+                TOOLTIP:Hide()
+            end
+        end)
+    end,
     UpdateSizingCommand = function(self, params)
         if params.sizing ~= nil then
             sizing = params.sizing
@@ -102,6 +156,22 @@ t[#t+1] = Def.Quad {
         self:smooth(resizeAnimationSeconds)
         self:y(sizing.Height / 2)
         self:zoomto(sizing.Width, sizing.Height)
+    end
+}
+
+t[#t+1] = Def.Quad {
+    Name = "MousePosition",
+    InitCommand = function(self)
+        self:valign(0)
+        self:diffuse(positionColor)
+        self:zoomx(lineThickness)
+        self:playcommand("UpdateSizing")
+        self:finishtweening()
+    end,
+    UpdateSizingCommand = function(self)
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
+        self:zoomy(sizing.Height)
     end
 }
 
