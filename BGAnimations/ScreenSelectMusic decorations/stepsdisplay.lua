@@ -268,13 +268,14 @@ t[#t + 1] = Def.Sprite {
 			end
 		end
 
+		local cursorindex = currentindex
 		if currentindex <= center then
 			displayindexoffset = 0
 		elseif #thesteps - displayindexoffset > numshown then
 			displayindexoffset = currentindex - center
-			currentindex = center
+			cursorindex = center
 		else
-			currentindex = currentindex - displayindexoffset
+			cursorindex = currentindex - displayindexoffset
 		end
 
 		if #thesteps > numshown and #thesteps - displayindexoffset < numshown then
@@ -284,7 +285,6 @@ t[#t + 1] = Def.Sprite {
 		-- find the left edge of the desired item, consider item width and gap width
 		-- then offset by half the glow span (which is doubled for sizing)
 		if thesteps[currentindex] then
-			local cursorindex = currentindex
 			-- we have to offset the cursor to take into account the right alignment for lower numbers of diffs
 			if #thesteps < numshown then
 				local toOffset = pushIndexByBound(currentindex)
