@@ -339,12 +339,26 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 	return t
 end
 
+curPage = 1
 --can't have more lines than the # of scores huehuehu
 if lines > #hsTable then
 	lines = #hsTable
-	curPage = 1
 else
-	curPage = math.ceil(scoreIndex / (lines))
+	-- linear search for the score index to set the proper curPage
+	if scoreIndex > lines then
+		curPage = curPage + 1
+		local j = 0
+		for i = lines+1, #hsTable do
+			j = j + 1
+			if j == lines - 1 then
+				j = 0
+				curPage = curPage + 1
+			end
+			if i == scoreIndex then
+				break
+			end
+		end
+	end
 end
 
 -- weird math explanation can be found above somewhere
