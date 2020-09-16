@@ -42,6 +42,7 @@ local t = Def.ActorFrame {
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
     end,
     ChangedStepsMessageCommand = function(self, params)
+        displayScore = GetDisplayScore()
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
     end
 }
