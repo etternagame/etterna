@@ -9,9 +9,11 @@ local screenBorder = 10
 local sideswapped = false
 local tooltipOffSetX = 10
 local tooltipOffSetY = 10
+local cursorSize = 5
 
 TOOLTIP = {
     Actor = nil,
+    Pointer = nil,
 }
 
 -- Returns the actor used for the tooltip.
@@ -42,7 +44,21 @@ function TOOLTIP.New(self)
         end,
     }
 
-    return t
+    local p = Def.Quad {
+        InitCommand = function(self)
+            self:rotationz(45)
+            self:zoomto(cursorSize, cursorSize)
+            self:visible(false)
+        end,
+        OnCommand = function(self)
+            TOOLTIP.Pointer = self
+        end,
+        BeginCommand = function(self)
+            self:visible(false)
+        end
+    }
+
+    return t, p
 end
 
 function TOOLTIP.SetText(self, text, wrapWidth)
@@ -61,9 +77,19 @@ function TOOLTIP.Hide(self)
     self.Actor:visible(false)
 end
 
+function TOOLTIP.ShowPointer(self)
+    self.Pointer:visible(true)
+end
+
+function TOOLTIP.HidePointer(self)
+    self.Pointer:visible(false)
+end
+
 function TOOLTIP.SetPosition(self, x, y)
     local height = (self.Actor:GetChild("Text"):GetHeight() * textScale) + boxBorder * 2 / textScale
     local width = (self.Actor:GetChild("Text"):GetWidth() * textScale) + boxBorder * 2 / textScale
+
+    self.Pointer:xy(x, y)
 
     if sideswapped then
         self.Actor:xy(

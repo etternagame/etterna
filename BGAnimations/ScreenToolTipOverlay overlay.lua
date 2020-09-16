@@ -14,7 +14,9 @@ local t = Def.ActorFrame {
     end
 }
 
-t[#t+1] = TOOLTIP:New()
+local tooltip, pointer = TOOLTIP:New()
+t[#t+1] = tooltip
+t[#t+1] = pointer
 
 
 return t;

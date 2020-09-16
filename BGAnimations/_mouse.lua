@@ -8,6 +8,7 @@ local t = Def.ActorFrame{
     OnCommand = function(self)
         topScreen = SCREENMAN:GetTopScreen()
         topScreen:AddInputCallback(BUTTON.InputCallback)
+        TOOLTIP:ShowPointer()
     end,
     OffCommand = function(self)
         BUTTON:ResetButtonTable(screenName)
