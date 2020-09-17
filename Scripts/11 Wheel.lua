@@ -479,8 +479,39 @@ function MusicWheel:new(params)
                 whee.itemsGetter = function() return newItems end
                 whee.items = newItems
                 whee.group = songgroup
+                GAMESTATE:SetCurrentSong(song)
+                GAMESTATE:SetCurrentSteps(PLAYER_1, song:GetChartsOfCurrentGameMode()[1])
                 return songgroup
             end
+        else
+            local grouplist = SONGMAN:GetSongGroupNames()
+            table.sort(
+                grouplist,
+                function(a,b)
+                    return a:lower() < b:lower()
+                end
+            )
+            local song = SONGMAN:GetSongByChartKey(chartkey)
+            if song == nil then return nil end
+            local songgroup = song:GetGroupName()
+            local sngs = SONGMAN:GetSongsInGroup(songgroup)
+            table.sort(
+                sngs,
+                function(a,b)
+                    return a:GetTranslitMainTitle():lower() < b:GetTranslitMainTitle():lower()
+                end
+            )
+            local g1, g2 = split(grouplist, songgroup)
+            local newItems = concat(g1, {songgroup}, sngs, g2)
+            local finalIndex = findKeyOf(newItems, songgroup) + findSongInGroup(sngs, song)
+            whee.index = finalIndex + 1
+            whee.startIndex = finalIndex + 1
+            whee.itemsGetter = function() return newItems end
+            whee.items = newItems
+            whee.group = songgroup
+            GAMESTATE:SetCurrentSong(song)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, SONGMAN:GetStepsByChartKey(chartkey))
+            return songgroup
         end
         return nil
     end
@@ -610,6 +641,9 @@ function MusicWheel:new(params)
         end
     }
 
+    -- external access to move the wheel in a direction
+    -- give either a percentage (musicwheel scrollbar movement) or a distance from current position
+    -- params.percent or params.direction
     w.MoveCommand = function(self, params)
         if params and params.direction and tonumber(params.direction) then
             w:move(params.direction)
@@ -622,6 +656,7 @@ function MusicWheel:new(params)
         end
     end
 
+    -- external access command for SelectCurrent with a condition
     w.OpenIfGroupCommand = function(self)
         local i = w:getCurrentItem()
         if i.GetDisplayMainTitle == nil then
@@ -629,25 +664,78 @@ function MusicWheel:new(params)
         end
     end
 
+    -- grant external access to the selection function
     w.SelectCurrentCommand = function(self)
         w.onSelection(w:getCurrentFrame(), w:getCurrentItem())
     end
 
+    -- trigger a rebuild on F9 presses in case any specific text uses transliteration
     w.DisplayLanguageChangedMessageCommand = function(self)
         w:rebuildFrames()
     end
 
+    -- building the wheel with startOnPreferred causes init to start on the chart stored in Gamestate
     if params.startOnPreferred then
         w.OnCommand = function(self)
             local group = findSong(w)
             if #w.frames > 0 and group ~= nil then
+                -- found the song, set up the group focus and send out the related messages for consistency
                 groupActorUpdater(w.frames[1].g, group, packCounts[group])
                 crossedGroupBorder = true
                 MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 w:rebuildFrames()
                 MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
             else
+                -- if the song was not found or there are no items to refresh, do nothing
                 w:rebuildFrames()
+            end
+        end
+    end
+
+    w.FindSongCommand = function(self, params)
+        if params.chartkey ~= nil then
+            local group = findSong(w, params.chartkey)
+            if group ~= nil then
+                -- found the song, set up the group focus and send out the related messages for consistency
+                groupActorUpdater(w.frames[1].g, group, packCounts[group])
+                crossedGroupBorder = true
+                MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                w:rebuildFrames()
+                MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                w:move(0)
+                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                w.settled = true
+                local top = SCREENMAN:GetTopScreen()
+                -- only for ScreenSelectMusic
+                if top.PlayCurrentSongSampleMusic then
+                    if GAMESTATE:GetCurrentSong() ~= nil then
+                        -- currentItem should be a song
+                        top:PlayCurrentSongSampleMusic(false)
+                    end
+                end
+            end
+        elseif params.song ~= nil then
+            local charts = params.song:GetChartsOfCurrentGameMode()
+            if #charts > 0 then
+                local group = findSong(w, charts[1]:GetChartKey())
+                if group ~= nil then
+                    -- found the song, set up the group focus and send out the related messages for consistency
+                    groupActorUpdater(w.frames[1].g, group, packCounts[group])
+                    crossedGroupBorder = true
+                    MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                    w:rebuildFrames()
+                    MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                    MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                    w.settled = true
+                    local top = SCREENMAN:GetTopScreen()
+                    -- only for ScreenSelectMusic
+                    if top.PlayCurrentSongSampleMusic then
+                        if GAMESTATE:GetCurrentSong() ~= nil then
+                            -- currentItem should be a song
+                            top:PlayCurrentSongSampleMusic(false)
+                        end
+                    end
+                end
             end
         end
     end

@@ -266,13 +266,22 @@ t[#t+1] = Def.ActorFrame {
             self:zoomto(actuals.IconDownloadsWidth, actuals.IconDownloadsHeight)
         end
     },
-    Def.Sprite {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "random")) .. {
         Name = "Random",
-        Texture = THEME:GetPathG("", "random"),
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconRandomRightGap)
             self:zoomto(actuals.IconRandomWidth, actuals.IconRandomHeight)
+        end,
+        MouseDownCommand = function(self, params)
+            local scr = SCREENMAN:GetTopScreen()
+            -- selectmusic only
+            if scr.GetMusicWheel then
+                local songs = SONGMAN:GetAllSongs()
+                if #songs == 0 then return end
+                local song = songs[math.random(#songs)]
+                scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
+            end
         end
     },
     Def.Sprite {
