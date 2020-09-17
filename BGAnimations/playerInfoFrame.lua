@@ -86,6 +86,37 @@ local actuals = {
     IconSearchRightGap = ratios.IconSearchRightGap * SCREEN_WIDTH,
 }
 
+-- the list of buttons and the lists of screens those buttons are allowed on
+-- if "All" is listed, the button is always active
+local screensAllowedForButtons = {
+    Exit = {
+        All = true,
+    },
+    Settings = {
+
+    },
+    Help = {
+
+    },
+    Downloads = {
+
+    },
+    Random = {
+        ScreenSelectMusic = true,
+    },
+    Search = {
+
+    },
+}
+
+-- find out if a button from the above list is selectable based on the current screen
+-- wont work on Init, only when the screen exists (at or after BeginCommand)
+local function selectable(name)
+    local screen = SCREENMAN:GetTopScreen():GetName()
+    return screensAllowedForButtons[name]["All"] ~= nil or screensAllowedForButtons[name][screen]
+end
+
+local disabledButtonAlpha = 0.4
 local visualizerBins = 126
 local leftTextBigSize = 0.7
 local leftTextSmallSize = 0.65
@@ -230,41 +261,67 @@ t[#t+1] = Def.ActorFrame {
         self:xy(SCREEN_WIDTH, actuals.IconUpperGap)
     end,
 
-    Def.Sprite {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "exit")) .. {
         Name = "Exit",
-        Texture = THEME:GetPathG("", "exit"),
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconExitRightGap)
             self:zoomto(actuals.IconExitWidth, actuals.IconExitHeight)
+            self:diffusealpha(disabledButtonAlpha)
+        end,
+        OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
+        MouseDownCommand = function(self, params)
+            if params.event == "DeviceButton_left mouse button" then
+                SCREENMAN:set_input_redirected(PLAEYR_1, false)
+                SCREENMAN:GetTopScreen():Cancel()
+            end
         end
     },
-    Def.Sprite {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "settings")) .. {
         Name = "Settings",
-        Texture = THEME:GetPathG("", "settings"),
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconSettingsRightGap)
             self:zoomto(actuals.IconSettingsWidth, actuals.IconSettingsHeight)
-        end
+            self:diffusealpha(disabledButtonAlpha)
+        end,
+        OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
     },
-    Def.Sprite {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "gameinfoandhelp")) .. {
         Name = "Help",
-        Texture = THEME:GetPathG("", "gameinfoandhelp"),
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconHelpRightGap)
             self:zoomto(actuals.IconHelpWidth, actuals.IconHelpHeight)
-        end
+            self:diffusealpha(disabledButtonAlpha)
+        end,
+        OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
     },
-    Def.Sprite {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdownloads")) .. {
         Name = "Downloads",
-        Texture = THEME:GetPathG("", "packdownloads"),
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconDownloadsRightGap)
             self:zoomto(actuals.IconDownloadsWidth, actuals.IconDownloadsHeight)
-        end
+            self:diffusealpha(disabledButtonAlpha)
+        end,
+        OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "random")) .. {
         Name = "Random",
@@ -272,11 +329,16 @@ t[#t+1] = Def.ActorFrame {
             self:halign(1):valign(0)
             self:x(-actuals.IconRandomRightGap)
             self:zoomto(actuals.IconRandomWidth, actuals.IconRandomHeight)
+            self:diffusealpha(disabledButtonAlpha)
+        end,
+        OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
         end,
         MouseDownCommand = function(self, params)
             local scr = SCREENMAN:GetTopScreen()
-            -- selectmusic only
-            if scr.GetMusicWheel then
+            if selectable(self:GetName()) then
                 local songs = SONGMAN:GetAllSongs()
                 if #songs == 0 then return end
                 local song = songs[math.random(#songs)]
@@ -284,14 +346,19 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     },
-    Def.Sprite {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "search")) .. {
         Name = "Search",
-        Texture = THEME:GetPathG("", "search"),
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:x(-actuals.IconSearchRightGap)
             self:zoomto(actuals.IconSearchWidth, actuals.IconSearchHeight)
-        end
+            self:diffusealpha(disabledButtonAlpha)
+        end,
+        OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
     }
 }
 
