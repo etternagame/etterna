@@ -65,12 +65,27 @@ local actuals = {
 }
 
 local wheelItemTextSize = 0.62
+local wheelItemTitleTextSize = 0.65
+local wheelItemSubTitleTextSize = 0.62
+local wheelItemArtistTextSize = 0.62
+local wheelItemGroupTextSize = 0.75
+local wheelItemGroupInfoTextSize = 0.62
 local wheelHeaderTextSize = 1.2
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
 local headerFudge = 5 -- used to make the header slightly bigger to account for ??? vertical gaps
 
+-- check to see if a stepstype is countable for average diff reasons
+local function countableStepsType(stepstype)
+    local thelist = {
+        stepstype_dance_single = true,
+        stepstype_dance_solo = true,
+    }
+    return thelist[stepstype:lower()] ~= nil
+end
+
 local packCounts = SONGMAN:GetSongGroupNames()
 local function packCounter()
+    packCounts = {}
     for i, song in ipairs(SONGMAN:GetAllSongs()) do
         local pack = song:GetGroupName()
         local x = packCounts[pack]
@@ -78,6 +93,27 @@ local function packCounter()
     end
 end
 packCounter()
+
+local avgDiffByPack = {}
+local function calcAverageDiffByPack()
+    avgDiffByPack = {}
+    for pack, _ in pairs(packCounts) do
+        local chartcount = 0
+        avgDiffByPack[pack] = 0
+        for i, song in ipairs(SONGMAN:GetSongsInGroup(pack)) do
+            for _, chart in ipairs(song:GetAllSteps()) do
+                if countableStepsType(chart:GetStepsType()) then
+                    chartcount = chartcount + 1
+                    avgDiffByPack[pack] = avgDiffByPack[pack] + chart:GetMSD(1, 1)
+                end
+            end
+        end
+        if chartcount > 0 then
+            avgDiffByPack[pack] = avgDiffByPack[pack] / chartcount
+        end
+    end
+end
+calcAverageDiffByPack()
 
 -- functionally create each item base because they are identical (BG and divider)
 local function wheelItemBase()
@@ -153,11 +189,15 @@ local function songActorUpdater(songFrame, song)
     songBannerSetter(songFrame.Banner, song)
 end
 
-local function groupActorUpdater(groupFrame, packName, packCount)
+local function groupActorUpdater(groupFrame, packName, packCount, packAverageDiff)
     if packCount == nil then
-        packCount = packCounts[packName]
+        packCount = packCounts[packName] or 0
+    end
+    if packAverageDiff == nil then
+        packAverageDiff = avgDiffByPack[packName] or 0
     end
     groupFrame.Title:settext(packName)
+    groupFrame.GroupInfo:playcommand("Setinfo", {count = packCount, avg = packAverageDiff})
     groupBannerSetter(groupFrame.Banner, packName)
 end
 
@@ -173,9 +213,9 @@ local function songActorBuilder()
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
                 self:strokecolor(color("1,1,1,1"))
-                self:zoom(wheelItemTextSize)
+                self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemTitleTextSize - textzoomfudge)
             end,
             BeginCommand = function(self)
                 self:GetParent().Title = self
@@ -186,9 +226,9 @@ local function songActorBuilder()
             InitCommand = function(self)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextCenterDistance)
-                self:zoom(wheelItemTextSize)
+                self:zoom(wheelItemSubTitleTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemSubTitleTextSize - textzoomfudge)
             end,
             BeginCommand = function(self)
                 self:GetParent().SubTitle = self
@@ -199,9 +239,9 @@ local function songActorBuilder()
             InitCommand = function(self)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
-                self:zoom(wheelItemTextSize)
+                self:zoom(wheelItemArtistTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemArtistTextSize - textzoomfudge)
             end,
             BeginCommand = function(self)
                 self:GetParent().Artist = self
@@ -232,9 +272,11 @@ local function groupActorBuilder()
             InitCommand = function(self)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
-                self:zoom(wheelItemTextSize)
+                self:zoom(wheelItemGroupTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupTextSize - textzoomfudge)
+                -- we make the background of groups fully opaque to distinguish them from songs
+                self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG"):diffusealpha(1)
             end,
             BeginCommand = function(self)
                 self:GetParent().Title = self
@@ -246,28 +288,51 @@ local function groupActorBuilder()
                 self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
             end,
             HeaderOffCommand = function(self)
-                self:zoom(wheelItemTextSize)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemTextSize - textzoomfudge)
+                self:zoom(wheelItemGroupTextSize)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupTextSize - textzoomfudge)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
             end
         },
         LoadFont("Common Normal") .. {
-            Name = "HeaderGroupInfo",
+            Name = "GroupInfo",
             InitCommand = function(self)
-                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+                self:zoom(wheelItemGroupInfoTextSize)
                 self:halign(0)
-                self:zoom(wheelHeaderTextSize)
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
-                self:diffusealpha(0)
-                self:settext("200 Files (Average MSD: 13.37)")
+                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize - textzoomfudge)
+                self.avg = 0
+                self.count = 0
+            end,
+            BeginCommand = function(self)
+                self:GetParent().GroupInfo = self
+            end,
+            SetinfoCommand = function(self, params)
+                self.count = params.count
+                self.avg = params.avg
+                self:playcommand("UpdateText")
+            end,
+            UpdateTextCommand = function(self)
+                if self:GetParent():GetParent().sticky then
+                    self:settextf("%d Files (Average MSD: %5.2f)", self.count, self.avg)
+                else
+                    self:settextf("%d Files (Avg %5.2f)", self.count, self.avg)
+                end
             end,
             HeaderOnCommand = function(self)
+                self:playcommand("UpdateText")
                 self:smooth(0.05)
-                self:diffusealpha(1)
+                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
+                self:zoom(wheelHeaderTextSize)
+                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
             end,
             HeaderOffCommand = function(self)
-                self:diffusealpha(0)
+                self:playcommand("UpdateText")
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+                self:zoom(wheelItemGroupInfoTextSize)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize - textzoomfudge)
             end
         },
         Def.Sprite {
@@ -452,7 +517,7 @@ t[#t+1] = Def.ActorFrame {
                     s:visible(false)
                     local g = (frame.g)
                     g:visible(true)
-                    groupActorUpdater(g, songOrPack, packCounts[songOrPack])
+                    groupActorUpdater(g, songOrPack, packCounts[songOrPack], avgDiffByPack[songOrPack])
                 end
             end
         end
