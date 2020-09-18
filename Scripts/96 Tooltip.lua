@@ -25,6 +25,9 @@ function TOOLTIP.New(self)
         OnCommand = function(self)
             TOOLTIP.Actor = self
         end,
+        OffCommand = function(self)
+            self:visible(false)
+        end
     }
 
     t[#t+1] = Def.Quad{
