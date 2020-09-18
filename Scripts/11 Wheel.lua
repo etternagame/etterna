@@ -313,33 +313,61 @@ function Wheel:new(params)
     whee.moveHeight = 10
     whee.items = {}
     whee.BeginCommand = function(self)
+        local heldButtons = {}
         local interval = nil
+        -- the polling interval for button presses to keep moving the wheel
+        -- basically replaces the repeat event type for the input stuff
+        -- because we want to go faster
+        local repeatseconds = 0.09
         SCREENMAN:GetTopScreen():AddInputCallback(
             function(event)
                 local gameButton = event.button
                 local key = event.DeviceInput.button
-                local left = gameButton == "MenuLeft" or key == "DeviceButton_left"
-                local enter = gameButton == "Start" or key == "DeviceButton_enter"
-                local right = gameButton == "MenuRight" or key == "DeviceButton_right"
-                local exit = gameButton == "Back" or key == "DeviceButton_escape"
+                local left = gameButton == "MenuLeft" or gameButton == "Left"
+                local enter = gameButton == "Start"
+                local right = gameButton == "MenuRight" or gameButton == "Right"
+                local exit = gameButton == "Back"
+
                 if left or right then
+                    local direction = left and "left" or "right"
+
                     if event.type == "InputEventType_FirstPress" then
-                        if interval then
-                            SCREENMAN:GetTopScreen():clearInterval(interval)
+                        heldButtons[direction] = true
+                        -- dont move if holding both buttons
+                        if (left and heldButtons["right"]) or (right and heldButtons["left"]) then
+                            if interval ~= nil then
+                                SCREENMAN:GetTopScreen():clearInterval(interval)
+                                interval = nil
+                            end
+                        else
+                            -- move on a single press
+                            whee:move(right and 1 or -1)
+
+                            if interval ~= nil then
+                                SCREENMAN:GetTopScreen():clearInterval(interval)
+                                interval = nil
+                            end
+                            interval = SCREENMAN:GetTopScreen():setInterval(
+                                function()
+                                    if heldButtons["left"] then
+                                        whee:move(-1)
+                                    elseif heldButtons["right"] then
+                                        whee:move(1)
+                                    end
+                                end,
+                                repeatseconds
+                            )
                         end
-                        whee:move(right and 1 or -1)
-                        interval =
-                            SCREENMAN:GetTopScreen():setInterval(
-                            function()
-                                whee:move(right and 1 or -1)
-                            end,
-                            whee.pollingSeconds
-                        )
                     elseif event.type == "InputEventType_Release" then
-                        if interval then
+                        heldButtons[direction] = false
+                        if interval ~= nil then
                             SCREENMAN:GetTopScreen():clearInterval(interval)
                             interval = nil
                         end
+                    else
+                        -- input repeat event
+                        -- keep moving
+                        -- (movement is handled by the interval function above)
                     end
                 elseif enter then
                     if event.type == "InputEventType_FirstPress" then
