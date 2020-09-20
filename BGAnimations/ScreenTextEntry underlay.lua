@@ -6,7 +6,7 @@ local bgColor = color("0,0,0")
 local boxColor = color("0,0,0")
 
 return Def.ActorFrame {
-    Name = "TextEntryFile",
+    Name = "TextEntryUnderlayFile",
     InitCommand = function(self)
         self:diffusealpha(0)
     end,
