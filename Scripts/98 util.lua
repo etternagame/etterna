@@ -126,3 +126,16 @@ function changeMusicRate(direction)
 
     MESSAGEMAN:Broadcast("CurrentRateChanged")
 end
+
+function askForInputStringWithFunction(question, maxInputLength, obfuscate, f, params)
+    SCREENMAN:AddNewScreenToTop("ScreenTextEntry")
+	local settings = {
+		Question = question,
+		MaxInputLength = maxInputLength,
+		Password = obfuscate,
+		OnOK = function(answer)
+			f(answer, params)
+		end
+	}
+	SCREENMAN:GetTopScreen():Load(settings)
+end
