@@ -51,6 +51,7 @@ local actuals = {
 }
 
 local profileIDs = PROFILEMAN:GetLocalProfileIDs()
+local renameNewProfile = false
 
 -- how many items to put on screen -- will fit for any screen height
 local numItems = #profileIDs > 1 and math.floor(SCREEN_HEIGHT / (actuals.ItemHeight + actuals.ItemGap)) or 1
@@ -66,6 +67,13 @@ local offlineTextSize = 0.6
 
 local textzoomFudge = 5
 
+-- if there are no profiles, make a new one
+if #profileIDs == 0 then
+    local new = PROFILEMAN:CreateDefaultProfile()
+    profileIDs = PROFILEMAN:GetLocalProfileIDs()
+    renameNewProfile = true
+end
+
 local function generateItems()
     local function generateItem(i)
         local index = i
@@ -78,10 +86,16 @@ local function generateItems()
                 self:y((i-1) * (actuals.ItemHeight + actuals.ItemGap))
             end,
             BeginCommand = function(self)
-                if profileIDs[i] then
-                    id = profileIDs[i]
+                self:playcommand("Set")
+            end,
+            UpdateProfilesCommand = function(self)
+                self:playcommand("Set")
+            end,
+            SetCommand = function(self)
+                if profileIDs[index] then
+                    id = profileIDs[index]
                     profile = PROFILEMAN:GetLocalProfile(id)
-                    self:playcommand("Set")
+                    self:visible(true)
                 else
                     self:visible(false)
                 end
@@ -218,6 +232,29 @@ local function generateItems()
         Name = "ItemList",
         InitCommand = function(self)
             self:xy(actuals.FrameLeftGap, actuals.FrameUpperGap)
+        end,
+        FirstUpdateCommand = function(self)
+            if renameNewProfile then
+                local profile = PROFILEMAN:GetLocalProfile(profileIDs[1])
+                local function f(answer)
+                    profile:RenameProfile(answer)
+                    self:playcommand("UpdateProfiles")
+                end
+                local question = "No Profiles detected! A new one was made for you.\nPlease enter a new profile name."
+                askForInputStringWithFunction(
+                    question,
+                    64,
+                    false,
+                    f,
+                    function(answer)
+                        local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
+                        if not result then
+                            SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'")
+                        end
+                        return result, "Response invalid."
+                    end
+                )
+            end
         end,
 
         Def.Sprite {
