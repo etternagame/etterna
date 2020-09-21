@@ -52,6 +52,7 @@ local actuals = {
 
 local profileIDs = PROFILEMAN:GetLocalProfileIDs()
 local renameNewProfile = false
+local focused = false
 
 -- how many items to put on screen -- will fit for any screen height
 local numItems = #profileIDs > 1 and math.floor(SCREEN_HEIGHT / (actuals.ItemHeight + actuals.ItemGap)) or 1
@@ -233,6 +234,28 @@ local function generateItems()
         InitCommand = function(self)
             self:xy(actuals.FrameLeftGap, actuals.FrameUpperGap)
         end,
+        BeginCommand = function(self)
+            -- make sure the focus is set on the scroller options
+            -- false means that we are focused on the profile choices
+            TITLE:SetFocus(true)
+            SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                if focused then
+                    if event.type == "InputEventType_FirstPress" then
+                        if event.button == "MenuUp" or event.button == "Up" 
+                        or event.button == "MenuLeft" or event.button == "Left" then
+                            move(-1)
+                        elseif event.button == "MenuDown" or event.button == "Down" 
+                        or event.button == "MenuRight" or event.button == "Right" then
+                            move(1)
+                        elseif event.button == "Start" then
+                            selectCurrent()
+                        elseif event.button == "Cancel" then
+                            backOut()
+                        end
+                    end
+                end
+            end)
+        end,
         FirstUpdateCommand = function(self)
             if renameNewProfile then
                 local profile = PROFILEMAN:GetLocalProfile(profileIDs[1])
@@ -256,6 +279,20 @@ local function generateItems()
                 )
             end
         end,
+        ToggledTitleFocusMessageCommand = function(self, params)
+            focused = params.scrollerFocused
+            if not focused then
+                if #profileIDs == 1 then
+                    -- there is only 1 choice, no need to care about picking a profile
+                    -- skip forward
+                    TITLE:HandleFinalGameStart()
+                else
+                    -- consider our options...
+
+                end
+            end
+        end,
+
 
         Def.Sprite {
             Name = "Cursor",
