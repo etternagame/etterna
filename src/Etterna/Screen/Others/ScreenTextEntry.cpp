@@ -555,7 +555,9 @@ ScreenTextEntry::End(bool bCancelled)
 		std::string sError;
 
 		if (!ValidateFunc.IsNil() && ValidateFunc.IsSet()) {
-			ValidateFromLua(sAnswer, sError, ValidateFunc);
+			bool bValidAnswer = ValidateFromLua(sAnswer, sError, ValidateFunc);
+			if (!bValidAnswer)
+				return;
 		} else if (pValidate != nullptr) {
 			bool bValidAnswer = pValidate(sAnswer, sError);
 			if (!bValidAnswer) {
