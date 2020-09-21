@@ -700,6 +700,34 @@ class LunaProfileManager : public Luna<ProfileManager>
 		LuaHelpers::CreateTableFromArray<std::string>(vsProfileNames, L);
 		return 1;
 	}
+	static int CreateDefaultProfile(T* p, lua_State* L)
+	{
+		std::string profileID;
+		p->CreateLocalProfile("Default Profile", profileID);
+		p->m_sDefaultLocalProfileID[PLAYER_1].Set(profileID);
+		p->LoadLocalProfileFromMachine(PLAYER_1);
+		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+
+		Profile* pProfile = p->GetLocalProfile(profileID);
+		if (pProfile != nullptr)
+			pProfile->PushSelf(L);
+		else
+			lua_pushnil(L);
+		
+		return 1;
+	}
+	static int SetProfileIDToUse(T* p, lua_State* L)
+	{
+		p->UnloadProfile(PLAYER_1);
+		// no checking to make sure this is right.
+		// do it yourself. set this from an existing profile.
+		std::string id = SArg(1);
+		p->m_sDefaultLocalProfileID[PLAYER_1].Set(id);
+		p->LoadLocalProfileFromMachine(PLAYER_1);
+		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+
+		COMMON_RETURN_SELF;
+	}
 	LunaProfileManager()
 	{
 		ADD_METHOD(GetStatsPrefix);
@@ -723,6 +751,8 @@ class LunaProfileManager : public Luna<ProfileManager>
 		ADD_METHOD(GetLocalProfileIDs);
 		ADD_METHOD(GetLocalProfileDisplayNames);
 		ADD_METHOD(LocalProfileIDToDir);
+		ADD_METHOD(CreateDefaultProfile);
+		ADD_METHOD(SetProfileIDToUse);
 	}
 };
 
