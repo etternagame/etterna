@@ -166,10 +166,14 @@ local function generateItems()
                     self:diffuse(itemBGColor)
                 end,
                 MouseDownCommand = function(self, params)
-                    if IsInvisible(self) then return end
+                    if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
-                        selectionIndex = index
-                        MESSAGEMAN:Broadcast("MovedIndex")
+                        if selectionIndex == index and focused then
+                            selectCurrent()
+                        else
+                            selectionIndex = index
+                            MESSAGEMAN:Broadcast("MovedIndex")
+                        end
                     end
                 end
             },
@@ -361,13 +365,59 @@ local function generateItems()
                     TITLE:HandleFinalGameStart()
                 else
                     -- consider our options...
+                    -- (locking input here because of a race condition that counts our enter button press twice)
                     SCREENMAN:GetTopScreen():lockinput(0.05)
                     SCREENMAN:set_input_redirected(PLAYER_1, true)
                 end
             else
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
             end
+            self:GetChild("FocusBG"):playcommand("FocusChange")
         end,
+
+        Def.Quad {
+            Name = "FocusBG",
+            InitCommand = function(self)
+                self:diffuse(color("0,0,0"))
+                self:diffusealpha(0)
+            end,
+            BeginCommand = function(self)
+                -- offset position to fill whole screen
+                self:xy(-self:GetParent():GetX(), -self:GetParent():GetY())
+                self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+                self:halign(0):valign(0)
+            end,
+            FocusChangeCommand = function(self)
+                if focused then
+                    self:hurrytweening(0.5)
+                    self:smooth(0.4)
+                    self:diffusealpha(0.75)
+                else
+                    self:hurrytweening(0.5)
+                    self:smooth(0.4)
+                    self:diffusealpha(0)
+                end
+            end
+        },
+        Def.Quad {
+            Name = "MouseWheelRegion",
+            InitCommand = function(self)
+                self:diffusealpha(0)
+            end,
+            BeginCommand = function(self)
+                -- offset position to fill whole screen
+                self:xy(-self:GetParent():GetX(), -self:GetParent():GetY())
+                self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+                self:halign(0):valign(0)
+            end,
+            MouseScrollMessageCommand = function(self, params)
+                if params.direction == "Up" then
+                    movePage(-1)
+                else
+                    movePage(1)
+                end
+            end
+        },
 
 
         Def.Sprite {
@@ -379,6 +429,13 @@ local function generateItems()
                 self:zoomto(actuals.Width + actuals.ItemGlowHorizontalSpan, actuals.ItemHeight + actuals.ItemGlowVerticalSpan)
             end,
             MovedPageMessageCommand = function(self)
+                local lowerbound = numItems * (page-1) + 1
+                local upperbound = numItems * page
+                if lowerbound > selectionIndex or upperbound < selectionIndex then
+                    local cursorpos = (selectionIndex-1) % numItems
+                    local newpos = cursorpos + (page-1) * numItems + 1
+                    selectionIndex = newpos
+                end
                 self:playcommand("MovedIndex")
             end,
             MovedIndexMessageCommand = function(self)
