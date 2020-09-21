@@ -1,4 +1,13 @@
-local t = Def.ActorFrame {Name = "ProfileSelectFile"}
+local t = Def.ActorFrame {
+    Name = "ProfileSelectFile",
+    InitCommand = function(self)
+        self:x(SCREEN_WIDTH)
+    end,
+    BeginCommand = function(self)
+        self:smooth(0.5)
+        self:x(0)
+    end,
+}
 
 local ratios = {
     FrameLeftGap = 1303 / 1920, -- left of screen to left of item bg
