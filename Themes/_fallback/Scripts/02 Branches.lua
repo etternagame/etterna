@@ -134,6 +134,9 @@ Branch = {
 			return "ScreenSelectMusic"
 		end
 	end,
+	AfterProfileLoad = function()
+		return "ScreenSelectMusic"
+	end,
 	AfterNetProfileSave = function()
 		-- Might be a little too broken? -- Midiman
 		if GAMESTATE:IsEventMode() then
