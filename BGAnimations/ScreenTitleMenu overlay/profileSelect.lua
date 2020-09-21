@@ -430,11 +430,16 @@ local function generateItems()
             end,
             MovedPageMessageCommand = function(self)
                 local lowerbound = numItems * (page-1) + 1
-                local upperbound = numItems * page
+                local upperbound = math.min(numItems * page, #profileIDs)
                 if lowerbound > selectionIndex or upperbound < selectionIndex then
                     local cursorpos = (selectionIndex-1) % numItems
                     local newpos = cursorpos + (page-1) * numItems + 1
-                    selectionIndex = newpos
+                    if profileIDs[newpos] == nil then
+                        -- dont let the cursor get into an impossible position
+                        selectionIndex = clamp(newpos, lowerbound, upperbound)
+                    else
+                        selectionIndex = newpos
+                    end
                 end
                 self:playcommand("MovedIndex")
             end,
