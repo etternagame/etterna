@@ -83,6 +83,7 @@ local function generateItems()
     -- select current option with keyboard or mouse double click
     local function selectCurrent()
         PROFILEMAN:SetProfileIDToUse(profileIDs[selectionIndex])
+        SCREENMAN:GetTopScreen():PlaySelectSound()
         TITLE:HandleFinalGameStart()
     end
 
@@ -104,6 +105,7 @@ local function generateItems()
 
     -- move current selection using keyboard
     local function move(n)
+        local beforeindex = selectionIndex
         selectionIndex = clamp(selectionIndex + n, 1, #profileIDs)
         local lowerbound = numItems * (page-1) + 1
         local upperbound = numItems * page
@@ -112,6 +114,9 @@ local function generateItems()
             MESSAGEMAN:Broadcast("MovedPage")
         else
             MESSAGEMAN:Broadcast("MovedIndex")
+        end
+        if beforeindex ~= selectionIndex then
+            SCREENMAN:GetTopScreen():PlayChangeSound()
         end
     end
 
