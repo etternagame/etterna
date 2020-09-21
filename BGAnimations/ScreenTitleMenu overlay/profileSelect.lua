@@ -76,6 +76,51 @@ if #profileIDs == 0 then
 end
 
 local function generateItems()
+    local maxPage = math.ceil(#profileIDs / numItems)
+    local page = 1
+    local selectionIndex = 1
+
+    -- select current option with keyboard or mouse double click
+    local function selectCurrent()
+        PROFILEMAN:SetProfileIDToUse(profileIDs[selectionIndex])
+        TITLE:HandleFinalGameStart()
+    end
+
+    -- move page with keyboard or mouse
+    local function movePage(n)
+        if maxPage <= 1 then
+            return
+        end
+
+        -- math to make pages loop both directions
+        local nn = (page + n) % (maxPage + 1)
+        if nn == 0 then
+            nn = n > 0 and 1 or maxPage
+        end
+        page = nn
+
+        MESSAGEMAN:Broadcast("MovedPage")
+    end
+
+    -- move current selection using keyboard
+    local function move(n)
+        selectionIndex = clamp(selectionIndex + n, 1, #profileIDs)
+        local lowerbound = numItems * (page-1) + 1
+        local upperbound = numItems * page
+        if lowerbound > selectionIndex or upperbound < selectionIndex then
+            page = clamp(math.floor((selectionIndex-1) / numItems) + 1, 1, maxPage)
+            MESSAGEMAN:Broadcast("MovedPage")
+        else
+            MESSAGEMAN:Broadcast("MovedIndex")
+        end
+    end
+
+    -- change focus back to scroller options with keyboard
+    local function backOut()
+        TITLE:ChangeFocus()
+    end
+
+
     local function generateItem(i)
         local index = i
         local profile = nil
@@ -85,6 +130,7 @@ local function generateItems()
             Name = "Choice_"..i,
             InitCommand = function(self)
                 self:y((i-1) * (actuals.ItemHeight + actuals.ItemGap))
+                self:diffusealpha(0)
             end,
             BeginCommand = function(self)
                 self:playcommand("Set")
@@ -92,13 +138,23 @@ local function generateItems()
             UpdateProfilesCommand = function(self)
                 self:playcommand("Set")
             end,
+            MovedPageMessageCommand = function(self)
+                index = (page-1) * numItems + i
+                self:playcommand("Set")
+            end,
             SetCommand = function(self)
                 if profileIDs[index] then
                     id = profileIDs[index]
                     profile = PROFILEMAN:GetLocalProfile(id)
-                    self:visible(true)
+                    self:finishtweening()
+                    self:smooth(0.1)
+                    self:diffusealpha(1)
                 else
-                    self:visible(false)
+                    id = nil
+                    profile = nil
+                    self:finishtweening()
+                    self:smooth(0.1)
+                    self:diffusealpha(0)
                 end
             end,
 
@@ -108,6 +164,13 @@ local function generateItems()
                     self:halign(0):valign(0)
                     self:zoomto(actuals.Width, actuals.ItemHeight)
                     self:diffuse(itemBGColor)
+                end,
+                MouseDownCommand = function(self, params)
+                    if IsInvisible(self) then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        selectionIndex = index
+                        MESSAGEMAN:Broadcast("MovedIndex")
+                    end
                 end
             },
             Def.Sprite {
@@ -136,8 +199,10 @@ local function generateItems()
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.NameLeftGap) / nameTextSize - textzoomFudge)
                     end,
                     SetCommand = function(self)
-                        local name = profile:GetDisplayName()
-                        self:settextf("%s (#9999)", name)
+                        if profile then
+                            local name = profile:GetDisplayName()
+                            self:settextf("%s (#9999)", name)
+                        end
                     end
                 },
                 LoadFont("Common Normal") .. {
@@ -165,8 +230,10 @@ local function generateItems()
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.InfoLeftGap) / arrowsTextSize - textzoomFudge)
                     end,
                     SetCommand = function(self)
-                        local taps = profile:GetTotalTapsAndHolds()
-                        self:settextf("%d arrows smashed", taps)
+                        if profile then
+                            local taps = profile:GetTotalTapsAndHolds()
+                            self:settextf("%d arrows smashed", taps)
+                        end
                     end
                 },
                 LoadFont("Common Normal") .. {
@@ -179,8 +246,10 @@ local function generateItems()
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.InfoLeftGap) / playTimeTextSize - textzoomFudge)
                     end,
                     SetCommand = function(self)
-                        local secs = profile:GetTotalSessionSeconds()
-                        self:settextf("%s playtime", SecondsToHHMMSS(secs))
+                        if profile then
+                            local secs = profile:GetTotalSessionSeconds()
+                            self:settextf("%s playtime", SecondsToHHMMSS(secs))
+                        end
                     end
                 }
             },
@@ -221,8 +290,10 @@ local function generateItems()
                         self:maxwidth((actuals.Width - actuals.RatingLeftGap) / offlineTextSize - textzoomFudge)
                     end,
                     SetCommand = function(self)
-                        local rating = profile:GetPlayerRating()
-                        self:settextf("Offline - %5.2f", rating)
+                        if profile then
+                            local rating = profile:GetPlayerRating()
+                            self:settextf("Offline - %5.2f", rating)
+                        end
                     end
                 }
             }
@@ -238,6 +309,7 @@ local function generateItems()
             -- make sure the focus is set on the scroller options
             -- false means that we are focused on the profile choices
             TITLE:SetFocus(true)
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 if focused then
                     if event.type == "InputEventType_FirstPress" then
@@ -249,7 +321,7 @@ local function generateItems()
                             move(1)
                         elseif event.button == "Start" then
                             selectCurrent()
-                        elseif event.button == "Cancel" then
+                        elseif event.button == "Back" then
                             backOut()
                         end
                     end
@@ -280,16 +352,20 @@ local function generateItems()
             end
         end,
         ToggledTitleFocusMessageCommand = function(self, params)
-            focused = params.scrollerFocused
-            if not focused then
+            focused = not params.scrollerFocused
+            -- focused means we must pay attention to the profiles instead of the left scroller
+            if focused then
                 if #profileIDs == 1 then
                     -- there is only 1 choice, no need to care about picking a profile
                     -- skip forward
                     TITLE:HandleFinalGameStart()
                 else
                     -- consider our options...
-
+                    SCREENMAN:GetTopScreen():lockinput(0.05)
+                    SCREENMAN:set_input_redirected(PLAYER_1, true)
                 end
+            else
+                SCREENMAN:set_input_redirected(PLAYER_1, false)
             end
         end,
 
@@ -301,6 +377,15 @@ local function generateItems()
                 self:xy(-actuals.ItemGlowHorizontalSpan / 2, -actuals.ItemGlowVerticalSpan / 2)
                 self:halign(0):valign(0)
                 self:zoomto(actuals.Width + actuals.ItemGlowHorizontalSpan, actuals.ItemHeight + actuals.ItemGlowVerticalSpan)
+            end,
+            MovedPageMessageCommand = function(self)
+                self:playcommand("MovedIndex")
+            end,
+            MovedIndexMessageCommand = function(self)
+                local cursorindex = (selectionIndex-1) % numItems
+                self:finishtweening()
+                self:linear(0.05)
+                self:y(cursorindex * (actuals.ItemHeight + actuals.ItemGap) - actuals.ItemGlowVerticalSpan / 2)
             end
         }
     }
