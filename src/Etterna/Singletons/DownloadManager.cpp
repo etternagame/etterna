@@ -599,7 +599,9 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto it = DownloadQueue.begin();
 		DownloadQueue.pop_front();
 		auto pack = *it;
-		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
+		auto* dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
+		if (dl)
+			dl->p_Pack->downloading = true;
 	}
 	if (!downloadingPacks)
 		return;
@@ -2381,6 +2383,15 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		}
 		return 1;
 	}
+	static int GetQueuedPacks(T* p, lua_State* L)
+	{
+		lua_createtable(L, p->DownloadQueue.size(), 0);
+		for (unsigned i = 0; i < p->DownloadQueue.size(); i++) {
+			p->DownloadQueue[i].first->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
 	static int GetUsername(T* p, lua_State* L)
 	{
 		lua_pushstring(L, DLMAN->sessionUser.c_str());
@@ -2775,6 +2786,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetAllPacks);
 		ADD_METHOD(GetDownloadingPacks);
+		ADD_METHOD(GetQueuedPacks);
 		ADD_METHOD(GetDownloads);
 		ADD_METHOD(GetToken);
 		ADD_METHOD(IsLoggedIn);
@@ -2818,8 +2830,10 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		bool mirror = false;
 		if (lua_gettop(L) > 0)
 			mirror = BArg(1);
-		if (p->downloading)
+		if (p->downloading) {
+			p->PushSelf(L);
 			return 1;
+		}
 		Download* dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
@@ -2853,6 +2867,22 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}
+	static int RemoveFromQueue(T* p, lua_State* L)
+	{
+		auto it = std::find_if(
+		  DLMAN->DownloadQueue.begin(),
+		  DLMAN->DownloadQueue.end(),
+		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
+		if (it == DLMAN->DownloadQueue.end())
+			// does not exist
+			lua_pushboolean(L, false);
+		else {
+			DLMAN->DownloadQueue.erase(it);
+			// success?
+			lua_pushboolean(L, true);
+		}
+		return 1;
+	}
 	static int IsDownloading(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->downloading == 0);
@@ -2881,6 +2911,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(DownloadAndInstall);
 		ADD_METHOD(IsDownloading);
 		ADD_METHOD(IsQueued);
+		ADD_METHOD(RemoveFromQueue);
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
