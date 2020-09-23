@@ -287,6 +287,7 @@ local function generateItems()
                         self:settext("Player Ratings:")
                     end
                 },
+                --[[-- online ratings for individual profiles have no direct api
                 LoadFont("Common Normal") .. {
                     Name = "Online",
                     InitCommand = function(self)
@@ -298,7 +299,7 @@ local function generateItems()
                     SetCommand = function(self)
                         self:settext("Online - 00.00")
                     end
-                },
+                },]]
                 LoadFont("Common Normal") .. {
                     Name = "Offline",
                     InitCommand = function(self)
