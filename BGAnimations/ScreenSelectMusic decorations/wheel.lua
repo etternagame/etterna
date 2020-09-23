@@ -481,6 +481,15 @@ t[#t+1] = Def.ActorFrame {
                                     wheel:playcommand("SelectCurrent")
                                 end
                             end
+                        else
+                            -- this means we clicked the header
+                            -- hidden feature: random song in group if doing that
+                            local group = self:GetParent().g.Title:GetText()
+                            if group == nil or group == "" then return end
+                            local songs = SONGMAN:GetSongsInGroup(group)
+                            if #songs == 0 then return end
+                            local song = songs[math.random(#songs)]
+                            SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("FindSong", {song = song})
                         end
                     end
                 },
