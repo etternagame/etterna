@@ -31,11 +31,12 @@ local ratios = {
     TextLowerGap1 = 6 / 1080, -- subtracting 2 here because thats about how much letters go "down"
     TextLowerGap2 = 39 / 1080, -- these gaps are from bottom frame to bottom text
     TextLowerGap3 = 75 / 1080,
-    BPMTextRightGap = 62 / 1920,
-    BPMNumberRightGap = 12 / 1920, -- from right edge to right edge of numbers
+    RateTextLeftGap = 330 / 1920,
+    BPMTextLeftGap = 210 / 1920,
+    BPMNumberLeftGap = 265 / 1920, -- from right edge to right edge of numbers
     BPMWidth = 50 / 1920, -- from right edge of bpm number to right edge of bpm text
-    LengthTextRightGap = 197 / 1920,
-    LengthNumberRightGap = 135 / 1920, -- from right edge to right edge of numbers
+    LengthTextLeftGap = 10 / 1920,
+    LengthNumberLeftGap = 110 / 1920, -- from right edge to right edge of numbers
     LengthWidth = 62 / 1920, -- from right edge of len number to right edge of len text
 
     DiffFrameLeftGap = 429 / 1920,
@@ -53,11 +54,12 @@ local actuals = {
     TextLowerGap1 = ratios.TextLowerGap1 * SCREEN_HEIGHT,
     TextLowerGap2 = ratios.TextLowerGap2 * SCREEN_HEIGHT,
     TextLowerGap3 = ratios.TextLowerGap3 * SCREEN_HEIGHT,
-    BPMTextRightGap = ratios.BPMTextRightGap * SCREEN_WIDTH,
-    BPMNumberRightGap = ratios.BPMNumberRightGap * SCREEN_WIDTH,
+    RateTextLeftGap = ratios.RateTextLeftGap * SCREEN_WIDTH,
+    BPMTextLeftGap = ratios.BPMTextLeftGap * SCREEN_WIDTH,
+    BPMNumberLeftGap = ratios.BPMNumberLeftGap * SCREEN_WIDTH,
     BPMWidth = ratios.BPMWidth * SCREEN_WIDTH,
-    LengthTextRightGap = ratios.LengthTextRightGap * SCREEN_WIDTH,
-    LengthNumberRightGap = ratios.LengthNumberRightGap * SCREEN_WIDTH,
+    LengthTextLeftGap = ratios.LengthTextLeftGap * SCREEN_WIDTH,
+    LengthNumberLeftGap = ratios.LengthNumberLeftGap * SCREEN_WIDTH,
     LengthWidth = ratios.LengthWidth * SCREEN_WIDTH,
 
     DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH,
@@ -184,13 +186,13 @@ t[#t+1] = Def.ActorFrame {
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "Rate",
         InitCommand = function(self)
-            self:xy(actuals.LeftTextLeftGap, actuals.Height - actuals.TextLowerGap1)
+            self:xy(actuals.RateTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             local txt = self:GetChild("Text")
             local bg = self:GetChild("BG")
 
             txt:halign(0):valign(1)
             txt:zoom(textsize)
-            txt:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
+            txt:maxwidth((actuals.Width - actuals.RateTextLeftGap) / textsize - textzoomFudge)
             bg:halign(0):valign(1)
             bg:zoomy(actuals.LowerLipHeight)
             bg:y(actuals.TextLowerGap1)
@@ -198,7 +200,8 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self, params)
             local txt = self:GetChild("Text")
             local bg = self:GetChild("BG")
-            txt:settext(getCurRateDisplayString())
+            local str = string.format("%.2f", getCurRateValue()) .. "x"
+            txt:settext(str)
             bg:zoomx(txt:GetZoomedWidth())
         end,
         ClickCommand = function(self, params)
@@ -234,8 +237,8 @@ t[#t+1] = Def.ActorFrame {
     LoadFont("Common Normal") .. {
         Name = "LengthText",
         InitCommand = function(self)
-            self:halign(1):valign(1)
-            self:xy(actuals.Width - actuals.LengthTextRightGap, actuals.Height - actuals.TextLowerGap1)
+            self:halign(0):valign(1)
+            self:xy(actuals.LengthTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:settext("LENGTH")
         end
@@ -243,10 +246,10 @@ t[#t+1] = Def.ActorFrame {
     LoadFont("Common Normal") .. {
         Name = "LengthNumbers",
         InitCommand = function(self)
-            self:halign(1):valign(1)
-            self:xy(actuals.Width - actuals.LengthNumberRightGap, actuals.Height - actuals.TextLowerGap1)
+            self:halign(0):valign(1)
+            self:xy(actuals.LengthNumberLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
-            self:maxwidth(actuals.LengthWidth / textsize - textzoomFudge)
+            self:maxwidth((actuals.BPMTextLeftGap - actuals.LengthNumberLeftGap) / textsize - textzoomFudge)
             self:settext("55:55")
         end,
         SetCommand = function(self, params)
@@ -264,8 +267,8 @@ t[#t+1] = Def.ActorFrame {
     LoadFont("Common Normal") .. {
         Name = "BPMText",
         InitCommand = function(self)
-            self:halign(1):valign(1)
-            self:xy(actuals.Width - actuals.BPMTextRightGap, actuals.Height - actuals.TextLowerGap1)
+            self:halign(0):valign(1)
+            self:xy(actuals.BPMTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:settext("BPM")
         end
@@ -274,8 +277,8 @@ t[#t+1] = Def.ActorFrame {
         File = THEME:GetPathF("Common", "Normal"),
         Name = "BPMDisplay",
         InitCommand = function(self)
-            self:halign(1):valign(1)
-            self:xy(actuals.Width - actuals.BPMNumberRightGap, actuals.Height - actuals.TextLowerGap1)
+            self:halign(0):valign(1)
+            self:xy(actuals.BPMNumberLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:maxwidth(actuals.BPMWidth / textsize - textzoomFudge)
         end,
