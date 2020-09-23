@@ -214,12 +214,16 @@ local function generateItems()
                         self:y(actuals.NameUpperGap)
                         self:valign(0):halign(0)
                         self:zoom(nameTextSize)
+                        -- this maxwidth probably wont cause issues
+                        -- .... but if it does.....
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.NameLeftGap) / nameTextSize - textzoomFudge)
                     end,
                     SetCommand = function(self)
                         if profile then
                             local name = profile:GetDisplayName()
-                            self:settextf("%s (#9999)", name)
+                            self:visible(false)
+                            self:truncateToWidth(name, (actuals.RatingLeftGap - actuals.AvatarWidth - actuals.NameLeftGap) - textzoomFudge - 25)
+                            self:visible(true)
                         end
                     end
                 },

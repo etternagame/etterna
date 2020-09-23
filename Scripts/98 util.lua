@@ -142,3 +142,16 @@ function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK
 	}
 	SCREENMAN:GetTopScreen():Load(settings)
 end
+
+-- set the given text but truncate it if a width is reached
+function BitmapText.truncateToWidth(self, text, maxwidth)
+    for i = 1, #text do
+        self:settext(text:sub(1, i).."...")
+        if self:GetZoomedWidth() > maxwidth then
+            break
+        end
+        if i == #text then
+            self:settext(text)
+        end
+    end
+end
