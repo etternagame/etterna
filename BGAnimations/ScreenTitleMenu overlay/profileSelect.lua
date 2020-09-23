@@ -237,9 +237,10 @@ local function generateItems()
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.InfoLeftGap) / playcountTextSize - textzoomFudge)
                     end,
                     SetCommand = function(self)
-                        -- wrong
-                        local scores = SCOREMAN:GetTotalNumberOfScores()
-                        self:settextf("%d plays", scores)
+                        if profile then
+                            local scores = profile:GetTotalNumSongsPlayed()
+                            self:settextf("%d plays", scores)
+                        end
                     end
                 },
                 LoadFont("Common Normal") .. {
