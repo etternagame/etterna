@@ -101,9 +101,11 @@ local diffTextSize = 1
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
+local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 
 local function createChoices()
+    local selectedIndex = 1
     local function createChoice(i)
         return UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "ButtonTab_"..choiceNames[i],
@@ -121,14 +123,24 @@ local function createChoices()
                 txt:settext(choiceNames[i])
                 bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
             end,
+            UpdateSelectedIndexCommand = function(self)
+                local txt = self:GetChild("Text")
+                if selectedIndex == i then
+                    txt:strokecolor(buttonActiveStrokeColor)
+                else
+                    txt:strokecolor(color("0,0,0,0"))
+                end
+            end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "OnMouseDown" then
+                    selectedIndex = i
                     if i == 1 then
                         -- overall does something different
                     else
                         -- sort by skillset
                     end
+                    self:GetParent():playcommand("UpdateSelectedIndex")
                 end
             end,
             RolloverUpdateCommand = function(self, params)
@@ -145,6 +157,7 @@ local function createChoices()
         Name = "Choices",
         InitCommand = function(self)
             self:y(actuals.Height - actuals.BottomLipHeight / 2)
+            self:playcommand("UpdateSelectedIndex")
         end
     }
     for i = 1, #choiceNames do
