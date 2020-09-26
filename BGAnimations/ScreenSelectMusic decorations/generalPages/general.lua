@@ -39,6 +39,9 @@ local t = Def.ActorFrame {
         end
     end,
     CurrentRateChangedMessageCommand = function(self)
+        -- update displayscore
+        -- it sets to nil properly by itself
+        displayScore = GetDisplayScore()
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
     end,
     ChangedStepsMessageCommand = function(self, params)
@@ -62,7 +65,7 @@ local ratios = {
     LeftTextUpperGap = 195 / 1080, -- from top edge to top edge
     -- use the column1 and column2 x positions for the tag locations as well
     MSDUpperGap = 69 / 1080, -- top edge to top edge
-    WifePercentUpperGap = 127 / 1080, -- top edge to top edge
+    WifePercentUpperGap = 116 / 1080, -- top edge to top edge
 
     RightTextLabelsMargin = 327 / 1920, -- from right edge to left edge of text
     RightTextNumbersMargin = 66 / 1920, -- from right edge to right edge of text
@@ -155,7 +158,11 @@ local msdNames = {
 
 local mainTextSize = 1
 local largerTextSize = 1.35
+local displayScoreInfoTextSize = 0.75
+
 local textzoomFudge = 5
+-- bump the second line of the display score info down by this much
+local displayScoreBump = 8
 
 local function createStatLines()
     local function createStatLine(i)
@@ -384,22 +391,58 @@ t[#t+1] = Def.RollingNumbers {
     end
 }
 
-t[#t+1] = LoadFont("Common Normal") .. {
-    Name = "WifePercent",
+t[#t+1] = Def.ActorFrame {
+    Name = "DisplayScoreFrame",
     InitCommand = function(self)
         self:xy(actuals.LeftTextColumn1NumbersMargin, actuals.WifePercentUpperGap)
-        self:halign(1):valign(0)
-        self:zoom(largerTextSize)
-        self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / largerTextSize - textzoomFudge)
-        self:settext("99.99%")
     end,
-    SetCommand = function(self, params)
-        if displayScore then
-            self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
-        else
-            self:settext("")
+
+    LoadFont("Common Normal") .. {
+        Name = "WifePercent",
+        InitCommand = function(self)
+            self:halign(1):valign(0)
+            self:zoom(largerTextSize)
+            self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / largerTextSize - textzoomFudge)
+            self:settext("99.99%")
+        end,
+        SetCommand = function(self, params)
+            if displayScore then
+                self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
+            else
+                self:settext("")
+            end
         end
-    end
+    },
+    LoadFont("Common Normal") .. {
+        Name = "CurScoreInfoIndicator",
+        InitCommand = function(self)
+            self:valign(0):halign(1)
+            -- bump
+            self:y(self:GetZoomedHeight() * largerTextSize)
+            self:zoom(displayScoreInfoTextSize)
+            self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / displayScoreInfoTextSize - textzoomFudge)
+        end,
+        BeginCommand = function(self)
+            --self:x(-self:GetParent():GetX() +(actuals.LeftTextColumn1LabelsMargin + actuals.LeftTextColumn1NumbersMargin) / 2)
+            self:y(self:GetParent():GetChild("WifePercent"):GetZoomedHeight() + displayScoreBump)
+        end,
+        SetCommand = function(self, params)
+            if displayScore then
+                local wvstr = "W"..displayScore:GetWifeVers()
+
+                local rate = notShit.round(displayScore:GetMusicRate(), 3)
+                local notCurRate = notShit.round(getCurRateValue(), 3) ~= rate
+                if notCurRate then
+                    local ratestr = string.format("%.2f", rate) .. "x"
+                    self:settextf("%s [%s]", wvstr, ratestr)
+                else
+                    self:settext(wvstr)
+                end
+            else
+                self:settext("")
+            end
+        end
+    }
 }
 
 t[#t+1] = Def.Sprite {
