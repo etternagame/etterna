@@ -410,6 +410,7 @@ t[#t+1] = Def.ActorFrame {
                     self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
                     self:diffusealpha(0.1)
                     self:diffuseramp()
+                    self:effectclock("beat")
                 end
             }
         }
