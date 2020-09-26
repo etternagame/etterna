@@ -135,6 +135,7 @@ end
 local function scoreList()
     local page = 1
     local maxPage = 1
+    local scorelistframe = nil
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -150,7 +151,7 @@ local function scoreList()
         end
         page = nn
 
-        MESSAGEMAN:Broadcast("MovedPage")
+        scorelistframe:playcommand("MovedPage")
     end
 
     -- yes, we do have a country filter
@@ -167,6 +168,9 @@ local function scoreList()
 
     local t = Def.ActorFrame {
         Name = "ScoreListFrame",
+        BeginCommand = function(self)
+            scorelistframe = self
+        end,
         InitCommand = function(self)
             self:xy(actuals.ScoreListLeftGap, actuals.ScoreListUpperGap)
         end,
@@ -255,7 +259,7 @@ local function scoreList()
             end
             MESSAGEMAN:Broadcast("UpdateButtons")
         end,
-        MovedPageMessageCommand = function(self)
+        MovedPageCommand = function(self)
             self:playcommand("UpdateList")
         end,
         ToggleCurrentRateMessageCommand = function(self)

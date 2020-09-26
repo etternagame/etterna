@@ -1,3 +1,4 @@
+local focused = false
 local t = Def.ActorFrame {
     Name = "ScoresPageFile",
     InitCommand = function(self)
@@ -15,9 +16,11 @@ local t = Def.ActorFrame {
             if params.tab == 2 then
                 self:smooth(0.2)
                 self:diffusealpha(1)
+                focused = true
             else
                 self:smooth(0.2)
                 self:diffusealpha(0)
+                focused = false
             end
         end
     end,
@@ -139,6 +142,7 @@ local buttonHoverAlpha = 0.6
 function createList()
     local page = 1
     local maxPage = 1
+    local scorelistframe = nil
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -152,7 +156,9 @@ function createList()
         end
         page = nn
 
-        MESSAGEMAN:Broadcast("MovedPage")
+        if scorelistframe then
+            scorelistframe:playcommand("MovedPage")
+        end
     end
 
     -- yes, we do have a country filter
@@ -168,6 +174,9 @@ function createList()
 
     local t = Def.ActorFrame {
         Name = "ScoreListFrame",
+        BeginCommand = function(self)
+            scorelistframe = self
+        end,
         UpdateScoresCommand = function(self)
             page = 1
             -- no steps, no scores.
@@ -242,7 +251,7 @@ function createList()
             end
             self:GetParent():playcommand("UpdateButtons")
         end,
-        MovedPageMessageCommand = function(self)
+        MovedPageCommand = function(self)
             self:playcommand("UpdateList")
         end,
         ToggleCurrentRateCommand = function(self)
@@ -279,7 +288,7 @@ function createList()
     }
 
 
-    function createItem(i)
+    local function createItem(i)
         local score = nil
         local scoreIndex = i
 
@@ -518,7 +527,7 @@ function createList()
             self:zoomto(actuals.Width, actuals.Height)
         end,
         MouseScrollMessageCommand = function(self, params)
-            if isOver(self) then
+            if isOver(self) and focused then
                 if params.direction == "Up" then
                     movePage(-1)
                 else
