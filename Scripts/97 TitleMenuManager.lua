@@ -7,6 +7,10 @@ TITLE = {
     scrollerFocused = true, -- focused on the main choices
 }
 
+function TITLE.GetFocus(self)
+    return self.scrollerFocused
+end
+
 function TITLE.SetFocus(self, status)
     self.scrollerFocused = status
 end

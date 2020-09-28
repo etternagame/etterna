@@ -56,10 +56,15 @@ return Def.ActorFrame {
 			self:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() + buttonVerticalFudge)
 		end,
 		MouseOverCommand = function(self)
+			-- if not focused on the scroller, don't allow controlling it
+			if not TITLE:GetFocus() then return end
 			local ind = findChoiceIndex(self:GetParent():GetName())
 			screen:SetSelectionIndex(ind)
 		end,
 		MouseDownCommand = function(self)
+			-- if not focused on the scroller, don't allow controlling it
+			if not TITLE:GetFocus() then return end
+
 			-- this should make clicking work the same as pressing enter
 			screen:PlaySelectSound()
 			screen:playcommand("MadeChoiceP1")

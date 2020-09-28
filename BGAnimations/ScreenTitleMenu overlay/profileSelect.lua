@@ -172,7 +172,7 @@ local function generateItems()
                 end
             end,
 
-            UIElements.QuadButton(1) .. {
+            UIElements.QuadButton(3) .. {
                 Name = "BG",
                 InitCommand = function(self)
                     self:halign(0):valign(0)
@@ -180,13 +180,20 @@ local function generateItems()
                     self:diffuse(itemBGColor)
                 end,
                 MouseDownCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if params.event == "DeviceButton_left mouse button" then
-                        if selectionIndex == index and focused then
-                            selectCurrent()
-                        else
-                            selectionIndex = index
-                            MESSAGEMAN:Broadcast("MovedIndex")
+                    if self:IsInvisible() then
+                        -- because of button layering, pretend we are clicking through this button when it is invisible
+                        -- (this stuff immediately below is the expected behavior)
+                        if focused then
+                           TITLE:ChangeFocus() 
+                        end
+                    else
+                        if params.event == "DeviceButton_left mouse button" then
+                            if selectionIndex == index and focused then
+                                selectCurrent()
+                            else
+                                selectionIndex = index
+                                MESSAGEMAN:Broadcast("MovedIndex")
+                            end
                         end
                     end
                 end
@@ -395,7 +402,7 @@ local function generateItems()
             self:GetChild("FocusBG"):playcommand("FocusChange")
         end,
 
-        Def.Quad {
+        UIElements.QuadButton(1, 1) .. {
             Name = "FocusBG",
             InitCommand = function(self)
                 self:diffuse(color("0,0,0"))
@@ -412,10 +419,29 @@ local function generateItems()
                     self:hurrytweening(0.5)
                     self:smooth(0.4)
                     self:diffusealpha(0.75)
+                    self:z(2)
                 else
                     self:hurrytweening(0.5)
                     self:smooth(0.4)
                     self:diffusealpha(0)
+                    self:z(1)
+                end
+            end,
+            MouseDownCommand = function(self, params)
+                -- only allow clicking when focused on profile select
+                -- though this button covers the whole screen, the button system should
+                --  properly handle the behavior of overlapping the profile buttons and this
+                -- Button Layers --
+                --      -- (Focus On)
+                -- [Scroller Buttons] [THIS] [Profile Buttons]
+                --      -- (Focus Off)
+                -- [THIS] [Scroller Buttons] [Profile Buttons]
+                -- Because depth alone wont help, we have to employ Z coordinates in focus changes to assist.
+                -- Also, the invisible buttons still take priority because we don't account for it in the implementation
+                -- So invisible buttons do exactly the same as this:
+                -- (why is this comment so long)
+                if focused then
+                    TITLE:ChangeFocus()
                 end
             end
         },
