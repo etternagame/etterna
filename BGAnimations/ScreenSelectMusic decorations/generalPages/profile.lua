@@ -266,15 +266,13 @@ local function createList()
                 self:GetChild("ScoreItem_"..i):playcommand("SetScore", {scoreIndex = index})
             end
             if chosenSkillset == "Overall" then
-                self:smooth(0.2)
-                self:GetChild("OverallPage"):diffusealpha(1)
-                self:GetChild("OnlineOfflineToggle"):diffusealpha(0)
-                self:GetChild("PageText"):diffusealpha(0)
+                self:GetChild("OverallPage"):smooth(0.2):diffusealpha(1)
+                self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(0)
+                self:GetChild("PageText"):smooth(0.2):diffusealpha(0)
             else
-                self:smooth(0.2)
-                self:GetChild("OverallPage"):diffusealpha(0)
-                self:GetChild("OnlineOfflineToggle"):diffusealpha(1)
-                self:GetChild("PageText"):diffusealpha(1)
+                self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0)
+                self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
+                self:GetChild("PageText"):smooth(0.2):diffusealpha(1)
             end
         end,
         MovedPageCommand = function(self)
