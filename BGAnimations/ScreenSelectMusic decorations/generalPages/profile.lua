@@ -13,10 +13,12 @@ local t = Def.ActorFrame {
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
             if params.tab == 6 then
+                self:z(2)
                 self:smooth(0.2)
                 self:diffusealpha(1)
                 focused = true
             else
+                self:z(-1)
                 self:smooth(0.2)
                 self:diffusealpha(0)
                 focused = false

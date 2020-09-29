@@ -30,9 +30,11 @@ local t = Def.ActorFrame {
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
             if params.tab == 1 then
+                self:z(2)
                 self:smooth(0.2)
                 self:diffusealpha(1)
             else
+                self:z(-1)
                 self:smooth(0.2)
                 self:diffusealpha(0)
             end
