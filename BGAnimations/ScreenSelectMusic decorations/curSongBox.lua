@@ -240,6 +240,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0):valign(1)
             self:xy(actuals.LengthTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
+            self:maxwidth((actuals.LengthNumberLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
             self:settext("LENGTH")
         end
     },
@@ -270,6 +271,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0):valign(1)
             self:xy(actuals.BPMTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
+            self:maxwidth((actuals.BPMNumberLeftGap - actuals.BPMTextLeftGap) / textsize - textzoomFudge)
             self:settext("BPM")
         end
     },
