@@ -267,8 +267,8 @@ local function createList()
             end
             if chosenSkillset == "Overall" then
                 self:GetChild("OverallPage"):smooth(0.2):diffusealpha(1)
-                self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(0)
-                self:GetChild("PageText"):smooth(0.2):diffusealpha(0)
+                self:GetChild("OnlineOfflineToggle"):diffusealpha(0)
+                self:GetChild("PageText"):diffusealpha(0)
             else
                 self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0)
                 self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
@@ -650,6 +650,12 @@ local function createList()
         UpdateToggleCommand = function(self)
             local txt = self:GetChild("Text")
             local bg = self:GetChild("BG")
+
+            if chosenSkillset == "Overall" then
+                self:diffusealpha(0)
+            else
+                self:diffusealpha(1)
+            end
 
             if isLocal then
                 txt:settext("Showing Local")
