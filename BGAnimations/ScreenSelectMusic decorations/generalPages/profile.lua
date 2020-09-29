@@ -5,11 +5,6 @@ local t = Def.ActorFrame {
         -- hide all general box tabs on startup
         self:diffusealpha(0)
     end,
-    BeginCommand = function(self)
-        SCOREMAN:SortSSRsForGame("Stream")
-        self:playcommand("UpdateScores")
-        self:playcommand("UpdateList")
-    end,
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
             if params.tab == 6 then
@@ -47,6 +42,20 @@ local ratios = {
     ItemListUpperGap = 87 / 1080, -- top of frame to top of first item
     ItemSpacing = 29 / 1080, -- from top of item to top of next item
     ItemAllottedSpace = 441 / 1080, -- from first item to top of bottom lip
+
+    -- Overall tab is like a subtab, partially separate measurements
+    InfoUpperMargin = 87 / 1080, -- this appears to be the gap for everything from top of frame to top of everything
+    AvatarLeftGap = 19 / 1920, -- left edge to avatar
+    AvatarSize = 109 / 1080, -- height based for squareness
+    -- positions are relative to the avatar to work with all sizes (complexification)
+    NameInfoLeftMargin = 8 / 1920, -- avatar to left edge of text
+    NameInfoLargeLineSpacing = 32 / 1080, -- top of top line to top of next line
+    NameInfoSmallerUpperGap = 150 / 1080, -- top of frame to top of third line of text
+    NameInfoSmallerLineSpacing = 26 / 1080, -- top of top line to top of next line
+    RightTextLeftGap = 414 / 1920, -- left frame edge to left edge of rightmost text
+    RightTextSlightOffset = 1 / 1920, -- really?
+    RightSmallTextUpperGap = 119 / 1080, -- top of frame to top of stream skillset
+    RightSmallTextAllottedSpace = 410 / 1080, -- the reference doesnt show overall so we have to position based on this to be dynamic
 }
 
 local actuals = {
@@ -67,6 +76,17 @@ local actuals = {
     ItemListUpperGap = ratios.ItemListUpperGap * SCREEN_HEIGHT,
     ItemSpacing = ratios.ItemSpacing * SCREEN_HEIGHT,
     ItemAllottedSpace = ratios.ItemAllottedSpace * SCREEN_HEIGHT,
+    InfoUpperMargin = ratios.InfoUpperMargin * SCREEN_HEIGHT,
+    AvatarLeftGap = ratios.AvatarLeftGap * SCREEN_WIDTH,
+    AvatarSize = ratios.AvatarSize * SCREEN_HEIGHT,
+    NameInfoLeftMargin = ratios.NameInfoLeftMargin * SCREEN_WIDTH,
+    NameInfoLargeLineSpacing = ratios.NameInfoLargeLineSpacing * SCREEN_HEIGHT,
+    NameInfoSmallerUpperGap = ratios.NameInfoSmallerUpperGap * SCREEN_HEIGHT,
+    NameInfoSmallerLineSpacing = ratios.NameInfoSmallerLineSpacing * SCREEN_HEIGHT,
+    RightTextLeftGap = ratios.RightTextLeftGap * SCREEN_WIDTH,
+    RightTextSlightOffset = ratios.RightTextSlightOffset * SCREEN_WIDTH,
+    RightSmallTextUpperGap = ratios.RightSmallTextUpperGap * SCREEN_HEIGHT,
+    RightSmallTextAllottedSpace = ratios.RightSmallTextAllottedSpace * SCREEN_HEIGHT,
 }
 
 -- scoping magic
@@ -101,6 +121,11 @@ local nameTextSize = 0.9
 local rateTextSize = 0.9
 local percentTextSize = 0.9
 local diffTextSize = 0.9
+
+-- overall page text sizes
+local largelineTextSize = 0.8
+local smalllineTextSize = 0.6
+local skillsetTextSize = 0.7
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
@@ -138,13 +163,9 @@ local function createChoices()
                 if self:IsInvisible() then return end
                 if params.update == "OnMouseDown" then
                     selectedIndex = i
-                    if i == 1 then
-                        -- overall does something different
-
-                    else
-                        -- change chosen skillset and regrab all scores
-                        self:GetParent():GetParent():playcommand("UpdateScores", {index = i})
-                    end
+                    -- change chosen skillset and regrab all scores
+                    -- but know that overall does something different
+                    self:GetParent():GetParent():playcommand("UpdateScores", {index = i})
                     self:GetParent():playcommand("UpdateSelectedIndex")
                     self:GetParent():GetParent():playcommand("UpdateList")
                 end
@@ -179,7 +200,7 @@ local function createList()
     local maxPage = 1
     local scorelistframe = nil
     local isLocal = true
-    local chosenSkillset = ms.SkillSets[1]
+    local chosenSkillset = ms.SkillSets[1] -- Overall default
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -211,10 +232,20 @@ local function createList()
             -- if an index is given, we are switching the chosenSkillset
             if params ~= nil and params.index ~= nil and ms.SkillSets[params.index] ~= nil then
                 chosenSkillset = ms.SkillSets[params.index]
-                SCOREMAN:SortSSRsForGame(ms.SkillSets[params.index])
+                if chosenSkillset ~= "Overall" then
+                    -- sort all top scores by skillset
+                    SCOREMAN:SortSSRsForGame(ms.SkillSets[params.index])
+                else
+                    -- for overall, we dont want to sort
+                    -- we are showing a special page instead
+                    -- UpdateList (UpdateListCommand) should handle that
+                    scores = {}
+                    return
+                end
             end
 
             if isLocal then
+                -- repopulate the scores list with the internally sorted score list
                 scores = {}
                 local sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(1, chosenSkillset)
                 while sortedScore ~= nil and #scores < upperBoundOfScoreCount do
@@ -233,6 +264,17 @@ local function createList()
             for i = 1, itemCount do
                 local index = (page - 1) * itemCount + i
                 self:GetChild("ScoreItem_"..i):playcommand("SetScore", {scoreIndex = index})
+            end
+            if chosenSkillset == "Overall" then
+                self:smooth(0.2)
+                self:GetChild("OverallPage"):diffusealpha(1)
+                self:GetChild("OnlineOfflineToggle"):diffusealpha(0)
+                self:GetChild("PageText"):diffusealpha(0)
+            else
+                self:smooth(0.2)
+                self:GetChild("OverallPage"):diffusealpha(0)
+                self:GetChild("OnlineOfflineToggle"):diffusealpha(1)
+                self:GetChild("PageText"):diffusealpha(1)
             end
         end,
         MovedPageCommand = function(self)
@@ -364,9 +406,212 @@ local function createList()
         }
     end
 
+    -- this generates the overall page
+    -- it is within the createList function because it is really part of the skillset list
+    -- but overall just needs its own special behavior
+    local function overallPage()
+        local textmarginX = actuals.AvatarLeftGap + actuals.AvatarSize + actuals.NameInfoLeftMargin
+
+        local profile = GetPlayerOrMachineProfile(PLAYER_1)
+        local pname = profile:GetDisplayName()
+
+        local offlinerating = profile:GetPlayerRating()
+        local onlinerating = DLMAN:IsLoggedIn() and DLMAN:GetSkillsetRating("Overall") or 0
+
+        -- a list of functions which basically determine the behavior of each small text line in the overall page
+        -- self refers to the text actor
+        -- the amount of functions listed here determines how many small lines appear
+        local smallTextFunctions = {
+            -- playcount
+            function(self)
+                local pcount = SCOREMAN:GetTotalNumberOfScores()
+                self:settextf("%d plays", pcount)
+            end,
+            -- arrow count
+            function(self)
+                local parrows = profile:GetTotalTapsAndHolds()
+                self:settextf("%d arrows smashed", parrows)
+            end,
+            -- songs loaded
+            function(self)
+                local count = SONGMAN:GetNumSongs()
+                self:settextf("%d songs loaded", count)
+            end,
+            -- playtime (overall, not gameplay)
+            function(self)
+                local ptime = profile:GetTotalSessionSeconds()
+                self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+            end,
+            -- current session time
+            function(self)
+                local sesstime = GAMESTATE:GetSessionTime()
+                self:settextf("%s session time", SecondsToHHMMSS(sesstime))
+            end,
+            -- current judge
+            function(self)
+                local judge = GetTimingDifficulty()
+                self:settextf("Judge: %d", judge)
+            end,
+        }
+
+        -- these functions run immediately after init if they exist
+        -- they should have access to the top screen
+        local smallTextInitFunctions = {
+            -- 5 is the index for current session time
+            [5] = function(self)
+                -- you can only set 1 update function
+                -- ... i had other plans for this table but this is its only use at the moment
+                self:GetParent():SetUpdateFunction(function(s)
+                    s:GetChild(self:GetName()):playcommand("Set")
+                end)
+                self:GetParent():SetUpdateFunctionInterval(0.5)
+            end
+        }
+
+        local function leftTextSmall(i)
+            return LoadFont("Common Normal") .. {
+                Name = "LeftSmallText_"..i,
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(textmarginX, actuals.NameInfoSmallerUpperGap + (i-1) * actuals.NameInfoSmallerLineSpacing)
+                    self:zoom(smalllineTextSize)
+                    self:maxwidth((actuals.RightTextLeftGap - actuals.AvatarLeftGap - actuals.AvatarSize - actuals.NameInfoLeftMargin) / smalllineTextSize - textzoomFudge)
+                    self:settext("")
+                    self:queuecommand("Startup")
+                end,
+                SetCommand = smallTextFunctions[i],
+                StartupCommand = smallTextInitFunctions[i],
+            }
+        end
+
+        local function rightTextSmall(i)
+            local skillsetIndex = math.ceil(i/2)
+            local skillset = ms.SkillSets[skillsetIndex]
+
+            return LoadFont("Common Normal") .. {
+                Name = "RightText_"..i,
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.RightTextLeftGap)
+                    -- for rating indices, give a tiny right shift
+                    if i % 2 == 0 then
+                        self:addx(actuals.RightTextSlightOffset)
+                    end
+                    self:y(actuals.RightSmallTextUpperGap + (actuals.RightSmallTextAllottedSpace / (#ms.SkillSets * 2)) * (i-1))
+                    self:zoom(skillsetTextSize)
+                    self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / skillsetTextSize - textzoomFudge)
+                    self:settext("")
+                end,
+                SetCommand = function(self)
+                    -- even indices are the ratings
+                    -- odd indices are the titles
+                    if i % 2 == 0 then
+                        if DLMAN:IsLoggedIn() then
+                            local lrating = profile:GetPlayerSkillsetRating(skillset)
+                            -- for some reason the above returns the wrong number
+                            -- but this number is correct...
+                            if skillset == "Overall" then
+                                lrating = profile:GetPlayerRating()
+                            end
+                            local orating = DLMAN:GetSkillsetRating(skillset)
+                            self:settextf("%5.2f (#9999) / %5.2f", orating, lrating)
+                            self:diffuse(byMSD(orating))
+                        else
+                            local rating = profile:GetPlayerSkillsetRating(skillset)
+                            -- for some reason the above returns the wrong number
+                            -- but this number is correct...
+                            if skillset == "Overall" then
+                                rating = profile:GetPlayerRating()
+                            end
+                            self:settextf("%5.2f", rating)
+                            self:diffuse(byMSD(rating))
+                        end
+                    else
+                        self:settextf("%s:", skillset)
+                    end
+                end
+            }
+        end
+
+        local t = Def.ActorFrame {
+            Name = "OverallPage",
+            BeginCommand = function(self)
+                self:playcommand("Set")
+            end,
+
+            Def.Sprite {
+                Name = "Avatar",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(actuals.AvatarLeftGap, actuals.InfoUpperMargin)
+                end,
+                SetCommand = function(self)
+                    self:Load(getAvatarPath(PLAYER_1))
+                    self:zoomto(actuals.AvatarSize, actuals.AvatarSize)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "NameRank",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(textmarginX, actuals.InfoUpperMargin)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.RightTextLeftGap - actuals.AvatarLeftGap - actuals.AvatarSize - actuals.NameInfoLeftMargin) / largelineTextSize - textzoomFudge)
+                    self:settext("")
+                end,
+                SetCommand = function(self)
+                    if DLMAN:IsLoggedIn() then
+                        self:settextf("%s (#9999)", pname)
+                    else
+                        self:settext(pname)
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "LoggedInAs",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(textmarginX, actuals.InfoUpperMargin + actuals.NameInfoLargeLineSpacing)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.RightTextLeftGap - actuals.AvatarLeftGap - actuals.AvatarSize - actuals.NameInfoLeftMargin) / largelineTextSize - textzoomFudge)
+                    self:settext("")
+                end,
+                SetCommand = function(self)
+                    if DLMAN:IsLoggedIn() then
+                        self:settext("logged in")
+                    else
+                        self:settext("")
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "PlayerRatingsTitle",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(actuals.RightTextLeftGap, actuals.InfoUpperMargin)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+                    self:settext("Player Ratings (Online/Offline):")
+                end
+            }
+        }
+
+        for i = 1, #smallTextFunctions do
+            t[#t+1] = leftTextSmall(i)
+        end
+
+        for i = 1, (#ms.SkillSets * 2) do
+            t[#t+1] = rightTextSmall(i)
+        end
+
+        return t
+    end
+
     for i = 1, itemCount do
         t[#t+1] = createItem(i)
     end
+
+    t[#t+1] = overallPage()
 
     t[#t+1] = Def.Quad {
         Name = "MouseWheelRegion",
@@ -376,7 +621,7 @@ local function createList()
             self:zoomto(actuals.Width, actuals.Height)
         end,
         MouseScrollMessageCommand = function(self, params)
-            if isOver(self) and focused then
+            if isOver(self) and focused and chosenSkillset ~= "Overall" then
                 if params.direction == "Up" then
                     movePage(-1)
                 else
