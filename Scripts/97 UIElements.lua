@@ -147,6 +147,26 @@ function Actor.GetLocalMousePos(self, mouseX, mouseY, depth)
 
 end
 
+-- recursively get the Z of an actor through itself and its parents
+-- NOTE: this does not account for Xrotation or Yrotation.
+function Actor.GetTrueZ(self)
+	if self == nil then
+		return 0
+	end
+
+	-- defer to fakeparent first
+	local parent = self:GetFakeParent()
+	if parent == nil then
+		parent = self:GetParent()
+	end
+
+	if parent == nil then
+		return self:GetZ()
+	else
+		return self:GetZ() + parent:GetTrueZ()
+	end
+end
+
 -- Singleton for button related events.
 BUTTON = {
 	ButtonTable = {}, -- Table containing all the registered buttons for the current screen.
@@ -342,7 +362,7 @@ function BUTTON.GetTopButton(self, x, y)
 
 	for i,v in ipairs(self.ButtonTable[topScreen:GetName()]) do
 		if v:IsOver(x, y) then 
-			local z = v:GetZ()
+			local z = v:GetTrueZ()
 			if z >= topZ then
 				topButton = v
 				topZ = z
