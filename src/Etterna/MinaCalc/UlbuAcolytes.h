@@ -208,6 +208,11 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 			++right;
 		}
 
+		if (nri.row_count < 0 || nri.row_count > 0b1111) {
+			// not a 4k file
+			return true;
+		}
+
 		assert(left + right == nri.row_count);
 
 		nri.hand_counts[left_hand] = left;
