@@ -93,6 +93,7 @@ local scoreListAnimationSeconds = 0.05
 -- so let's just default to about twice as many as we are used to
 local upperBoundOfScoreCount = itemCount * 40
 
+local indicatorTextSize = 1
 local pageTextSize = 1
 local itemIndexSize = 1
 local ssrTextSize = 1
@@ -139,10 +140,13 @@ local function createChoices()
                     selectedIndex = i
                     if i == 1 then
                         -- overall does something different
+                        
                     else
-                        -- sort by skillset
+                        -- change chosen skillset and regrab all scores
+                        self:GetParent():GetParent():playcommand("UpdateScores", {index = i})
                     end
                     self:GetParent():playcommand("UpdateSelectedIndex")
+                    self:GetParent():GetParent():playcommand("UpdateList")
                 end
             end,
             RolloverUpdateCommand = function(self, params)
@@ -175,7 +179,7 @@ local function createList()
     local maxPage = 1
     local scorelistframe = nil
     local isLocal = true
-    local chosenSkillset = "Stream"
+    local chosenSkillset = ms.SkillSets[1]
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -201,8 +205,14 @@ local function createList()
         BeginCommand = function(self)
             scorelistframe = self
         end,
-        UpdateScoresCommand = function(self)
+        UpdateScoresCommand = function(self, params)
             page = 1
+
+            -- if an index is given, we are switching the chosenSkillset
+            if params ~= nil and params.index ~= nil and ms.SkillSets[params.index] ~= nil then
+                chosenSkillset = ms.SkillSets[params.index]
+                SCOREMAN:SortSSRsForGame(ms.SkillSets[params.index])
+            end
 
             if isLocal then
                 scores = {}
@@ -376,13 +386,60 @@ local function createList()
         end
     }
 
+    t[#t+1] = UIElements.TextButton(1, 1, "Common Normal") .. {
+        Name = "OnlineOfflineToggle",
+        InitCommand = function(self)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+
+            self:x(actuals.MainIndicatorLeftGap)
+            self:y(actuals.MainIndicatorUpperGap)
+            txt:halign(0):valign(0)
+            txt:zoom(indicatorTextSize)
+            txt:maxwidth((actuals.ItemSongNameWidth + actuals.ItemSongNameLeftGap) / indicatorTextSize - textzoomFudge)
+            txt:settext("")
+            bg:halign(0)
+            -- really really bad approximation in conjunction with the zoomto height below
+            -- there must be a better way (dont suggest txt:GetZoomedHeight())
+            bg:y(actuals.ItemSpacing / 2.4)
+            self:queuecommand("UpdateToggle")
+        end,
+        UpdateToggleCommand = function(self)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+
+            if isLocal then
+                txt:settext("Showing Local")
+            else
+                txt:settext("Showing Online")
+            end
+
+            -- itemspacing is probably a good approximation for this button height
+            bg:zoomto(txt:GetZoomedWidth(), actuals.ItemSpacing + textzoomFudge)
+        end,
+        ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == "OnMouseDown" then
+                
+            end
+        end,
+        RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == "in" then
+                self:diffusealpha(buttonHoverAlpha)
+            else
+                self:diffusealpha(1)
+            end
+        end
+    }
+
     t[#t+1] = LoadFont("Common Normal") .. {
         Name = "PageText",
         InitCommand = function(self)
             self:halign(1):valign(0)
-            self:xy(actuals.Width, actuals.MainIndicatorUpperGap)
+            self:xy(actuals.ItemDiffRightAlignLeftGap, actuals.MainIndicatorUpperGap)
             self:zoom(pageTextSize)
-            self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
+            self:maxwidth((actuals.ItemDiffRightAlignLeftGap - actuals.ItemRateRightAlignLeftGap) / pageTextSize - textzoomFudge)
         end,
         UpdateListCommand = function(self)
             local lb = (page-1) * (itemCount) + 1
