@@ -197,7 +197,7 @@ local function groupActorUpdater(groupFrame, packName, packCount, packAverageDif
         packAverageDiff = avgDiffByPack[packName] or 0
     end
     groupFrame.Title:settext(packName)
-    groupFrame.GroupInfo:playcommand("Setinfo", {count = packCount, avg = packAverageDiff})
+    groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff})
     groupBannerSetter(groupFrame.Banner, packName)
 end
 
@@ -308,16 +308,16 @@ local function groupActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().GroupInfo = self
             end,
-            SetinfoCommand = function(self, params)
+            SetInfoCommand = function(self, params)
                 self.count = params.count
                 self.avg = params.avg
                 self:playcommand("UpdateText")
             end,
             UpdateTextCommand = function(self)
                 if self:GetParent():GetParent().sticky then
-                    self:settextf("%d Files (Average MSD: %5.2f)", self.count, self.avg)
+                    self:settextf("%d Songs (Average MSD: %5.2f)", self.count, self.avg)
                 else
-                    self:settextf("%d Files (Avg %5.2f)", self.count, self.avg)
+                    self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
                 end
             end,
             HeaderOnCommand = function(self)
