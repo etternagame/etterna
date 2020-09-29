@@ -93,14 +93,14 @@ local scoreListAnimationSeconds = 0.05
 -- so let's just default to about twice as many as we are used to
 local upperBoundOfScoreCount = itemCount * 40
 
-local indicatorTextSize = 1
-local pageTextSize = 1
-local itemIndexSize = 1
-local ssrTextSize = 1
-local nameTextSize = 1
-local rateTextSize = 1
-local percentTextSize = 1
-local diffTextSize = 1
+local indicatorTextSize = 0.7
+local pageTextSize = 0.9
+local itemIndexSize = 0.9
+local ssrTextSize = 0.9
+local nameTextSize = 0.9
+local rateTextSize = 0.9
+local percentTextSize = 0.9
+local diffTextSize = 0.9
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
@@ -140,7 +140,7 @@ local function createChoices()
                     selectedIndex = i
                     if i == 1 then
                         -- overall does something different
-                        
+
                     else
                         -- change chosen skillset and regrab all scores
                         self:GetParent():GetParent():playcommand("UpdateScores", {index = i})
