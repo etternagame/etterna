@@ -5,9 +5,10 @@ local visEnabled = Var("visualizer")
 local ratios = {
     Height = 109 / 1080,
     Width = 1,
-    AvatarWidth = 109 / 1920, -- this should end up square
-    ConnectionLogoLeftGap = 76 / 1920,
-    ConnectionLogoSize = 36 / 1920, -- this is 36x36
+    AvatarWidth = 109 / 1080, -- this should end up square
+    ConnectionLogoRightGap = 0 / 1080, -- logo position relative to the right edge of avatar (height based for square)
+    ConnectionLogoBottomGap = 0 / 1080, -- same as above
+    ConnectionLogoSize = 36 / 1080, -- this is 36x36
     LeftTextLeftGap = 8 / 1920, -- this is after the avatar
     LeftTextTopGap1 = 24 / 1080, -- from top to center of line 1
     LeftTextTopGap2 = 49 / 1080, -- from top to center of line 2
@@ -47,9 +48,10 @@ local ratios = {
 local actuals = {
     Height = ratios.Height * SCREEN_HEIGHT,
     Width = ratios.Width * SCREEN_WIDTH,
-    AvatarWidth = ratios.AvatarWidth * SCREEN_WIDTH,
-    ConnectionLogoLeftGap = ratios.ConnectionLogoLeftGap * SCREEN_WIDTH,
-    ConnectionLogoSize = ratios.ConnectionLogoSize * SCREEN_WIDTH,
+    AvatarWidth = ratios.AvatarWidth * SCREEN_HEIGHT,
+    ConnectionLogoRightGap = ratios.ConnectionLogoRightGap * SCREEN_HEIGHT,
+    ConnectionLogoBottomGap = ratios.ConnectionLogoBottomGap * SCREEN_HEIGHT,
+    ConnectionLogoSize = ratios.ConnectionLogoSize * SCREEN_HEIGHT,
     LeftTextLeftGap = ratios.LeftTextLeftGap * SCREEN_WIDTH,
     LeftTextTopGap1 = ratios.LeftTextTopGap1 * SCREEN_HEIGHT,
     LeftTextTopGap2 = ratios.LeftTextTopGap2 * SCREEN_HEIGHT,
@@ -122,6 +124,9 @@ local leftTextBigSize = 0.7
 local leftTextSmallSize = 0.65
 local rightTextSize = 0.7
 local textzoomFudge = 5 -- for gaps in maxwidth
+-- a controllable hack to give more girth to the rating text (RightText) on smaller aspect ratios
+-- should push the visualizer further right and make less problems
+local textzoomBudge = 25
 
 local profile = GetPlayerOrMachineProfile(PLAYER_1)
 local pname = profile:GetDisplayName()
@@ -155,8 +160,9 @@ t[#t+1] = Def.Sprite {
 t[#t+1] = Def.Sprite {
     Name = "ConnectionSprite",
     InitCommand = function(self)
-        self:halign(0):valign(1)
-        self:xy(actuals.ConnectionLogoLeftGap, actuals.Height)
+        self:halign(1):valign(1)
+        -- position relative to the bottom right corner of the avatar
+        self:xy(actuals.AvatarWidth - actuals.ConnectionLogoRightGap, actuals.AvatarWidth - actuals.ConnectionLogoBottomGap)
     end,
     BeginCommand = function(self)
         self:Load(THEME:GetPathG("", "loggedin"))
@@ -229,7 +235,7 @@ t[#t+1] = Def.ActorFrame {
             self:y(actuals.RightTextTopGap1)
             self:halign(0)
             self:zoom(rightTextSize)
-            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize - textzoomFudge)
+            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
             self:settext("Player Ratings:")
         end
     },
@@ -239,7 +245,7 @@ t[#t+1] = Def.ActorFrame {
             self:y(actuals.RightTextTopGap2)
             self:halign(0)
             self:zoom(rightTextSize)
-            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize - textzoomFudge)
+            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
             self:settextf("Online - %5.2f", onlinerating)
         end
     },
@@ -249,7 +255,7 @@ t[#t+1] = Def.ActorFrame {
             self:y(actuals.RightTextTopGap3)
             self:halign(0)
             self:zoom(rightTextSize)
-            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize - textzoomFudge)
+            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
             self:settextf("Offline - %5.2f", offlinerating)
         end
     }
