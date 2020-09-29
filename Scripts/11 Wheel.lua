@@ -318,7 +318,7 @@ function Wheel:new(params)
         -- the polling interval for button presses to keep moving the wheel
         -- basically replaces the repeat event type for the input stuff
         -- because we want to go faster
-        local repeatseconds = 0.09
+        local repeatseconds = 0.097
         SCREENMAN:GetTopScreen():AddInputCallback(
             function(event)
                 local gameButton = event.button
