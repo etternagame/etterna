@@ -255,7 +255,11 @@ local function createList()
             else
                 -- operate with dlman scores
                 scores = {}
-
+                local sortedScore = DLMAN:GetTopSkillsetScore(1, chosenSkillset)
+                while sortedScore ~= nil and #scores < upperBoundOfScoreCount do
+                    scores[#scores+1] = sortedScore
+                    sortedScore = DLMAN:GetTopSkillsetScore(#scores + 1, chosenSkillset)
+                end
             end
         end,
         UpdateListCommand = function(self)
@@ -324,7 +328,12 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        local ssr = score:GetSkillsetSSR(chosenSkillset)
+                        local ssr = 0
+                        if isLocal then
+                            ssr = score:GetSkillsetSSR(chosenSkillset)
+                        else
+                            ssr = score.ssr
+                        end
                         self:settextf("%05.2f", ssr)
                         self:diffuse(byMSD(ssr))
                     end
@@ -340,11 +349,15 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        local song = SONGMAN:GetSongByChartKey(score:GetChartKey())
-                        if song then
-                            self:settext(song:GetDisplayMainTitle())
+                        if isLocal then
+                            local song = SONGMAN:GetSongByChartKey(score:GetChartKey())
+                            if song then
+                                self:settext(song:GetDisplayMainTitle())
+                            else
+                                self:settext("")
+                            end
                         else
-                            self:settext("")
+                            self:settext(score.songName)
                         end
                     end
                 end,
@@ -362,7 +375,13 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        local ratestring = string.format("%.2f", score:GetMusicRate()):gsub("%.?0+$", "") .. "x"
+                        local rate = 0
+                        if isLocal then
+                            rate = score:GetMusicRate()
+                        else
+                            rate = score.rate
+                        end
+                        local ratestring = string.format("%.2f", rate):gsub("%.?0+$", "") .. "x"
                         self:settext(ratestring)
                     end
                 end
@@ -377,7 +396,11 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        self:settextf("%5.2f%%", score:GetWifeScore() * 100)
+                        if isLocal then
+                            self:settextf("%5.2f%%", score:GetWifeScore() * 100)
+                        else
+                            self:settextf("%5.2f%%", score.wife * 100)
+                        end
                     end
                 end
             },
@@ -391,11 +414,18 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        local steps = SONGMAN:GetStepsByChartKey(score:GetChartKey())
-                        if steps then
-                            self:settext(getShortDifficulty(steps:GetDifficulty()))
+                        if isLocal then
+                            local steps = SONGMAN:GetStepsByChartKey(score:GetChartKey())
+                            if steps then
+                                self:settext(getShortDifficulty(steps:GetDifficulty()))
+                                self:diffuse(byDifficulty(steps:GetDifficulty()))
+                            else
+                                self:settext("")
+                            end
                         else
-                            self:settext("")
+                            local diff = score.difficulty
+                            self:settext(getShortDifficulty(diff))
+                            self:diffuse(byDifficulty(diff))
                         end
                     end
                 end
@@ -669,7 +699,19 @@ local function createList()
         ClickCommand = function(self, params)
             if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
-                
+                if DLMAN:IsLoggedIn() then
+                    isLocal = not isLocal
+                    self:GetParent():playcommand("UpdateScores")
+                    self:GetParent():playcommand("UpdateList")
+                else
+                    -- to avoid being stuck in online mode when somehow not logged in
+                    if not isLocal then
+                        isLocal = true
+                        self:GetParent():playcommand("UpdateScores")
+                        self:GetParent():playcommand("UpdateList")
+                    end
+                end
+                self:playcommand("UpdateToggle")
             end
         end,
         RolloverUpdateCommand = function(self, params)
