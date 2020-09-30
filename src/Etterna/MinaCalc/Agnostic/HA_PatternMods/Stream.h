@@ -1,5 +1,6 @@
 #pragma once
 #include "../../PatternModHelpers.h"
+#include <algorithm>
 
 // since the calc skillset balance now operates on +- rather than
 // just - and then normalization, we will use this to depress the

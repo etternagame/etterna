@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 #include <cassert>
+#include <phpcpp.h>
 
 using std::max;
 using std::min;
@@ -463,8 +464,6 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(
 	  *this);
 	// if debug, force params to load
-	if (debugmode)
-		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
 	ulbu_that_which_consumes_all();
 
 	// main hand loop
@@ -910,43 +909,62 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 	return allrates;
 }
 
-// Debug output
-void
-MinaSDCalcDebug(
-  const std::vector<NoteInfo>& NoteInfo,
-  const float musicrate,
-  const float goal,
-  std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
-  std::vector<std::string>& debugstrings,
-  Calc& calc)
-{
-	if (NoteInfo.size() <= 1) {
-		return;
-	}
-
-	// debugmode true will cause params to reload
-	calc.debugmode = true;
-	calc.ssr = true;
-	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
-	make_debug_strings(calc, debugstrings);
-
-	handInfo.emplace_back(calc.debugValues.at(left_hand));
-	handInfo.emplace_back(calc.debugValues.at(right_hand));
-
-	/* ok so the problem atm is the multithreading of songload, if we want
-	 * to update the file on disk with new values and not just overwrite it
-	 * we have to write out after loading the values player defined, so the
-	 * quick hack solution to do that is to only do it during debug output
-	 * generation, which is fine for the time being, though not ideal */
-	if (!DoesFileExist(calc_params_xml)) {
-		const TheGreatBazoinkazoinkInTheSky ublov(calc);
-		ublov.write_params_to_disk();
-	}
-}
-
 int mina_calc_version = 441;
 auto
 GetCalcVersion() -> int
 {
 	return mina_calc_version;
+}
+
+#include <fstream>
+
+Php::Value webcalc(Php::Parameters &parameters)
+{
+
+    const char* const FileName = parameters[0];
+    const double rate = parameters[1];
+    const double wife = parameters[2];
+
+
+    std::ifstream checkFile(FileName);
+
+    if(checkFile.fail()){
+        return false;
+    }
+
+    std::vector<NoteInfo> newVector;
+    std::ifstream INFILE(FileName, std::ios::in | std::ifstream::binary);
+    INFILE.seekg(0, std::ios::end);
+    newVector.resize(INFILE.tellg() / sizeof(NoteInfo));
+    INFILE.seekg(0, std::ios::beg);
+    INFILE.read((char *)&newVector[0], newVector.capacity() * sizeof(NoteInfo));
+    INFILE.close();
+
+    auto calc = std::make_unique<Calc>();
+    std::vector<float> ssr = calc->CalcMain(newVector, rate, wife);
+
+    Php::Value assoc;
+    assoc["Overall"]         = ssr[0];
+    assoc["Stream"]         = ssr[1];
+    assoc["Jumpstream"]     = ssr[2];
+    assoc["Handstream"]        = ssr[3];
+    assoc["Stamina"]        = ssr[4];
+    assoc["JackSpeed"]        = ssr[5];
+    assoc["Chordjack"]        = ssr[6];
+    assoc["Technical"]        = ssr[7];
+
+    return assoc;
+
+}
+
+extern "C" {
+    PHPCPP_EXPORT void *get_module() {
+        static Php::Extension myExtension("minacalc", "2.0");
+        myExtension.add<webcalc>("webcalc", {
+        	Php::ByVal("a", Php::Type::String),
+            Php::ByVal("b", Php::Type::Float),
+            Php::ByVal("c", Php::Type::Float)
+        });
+        return myExtension;
+    }
 }

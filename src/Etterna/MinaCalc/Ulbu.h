@@ -1,12 +1,5 @@
 #pragma once
 
-// stepmania garbage
-#include "../FileTypes/XmlFile.h"
-#include "../FileTypes/XmlFileUtil.h"
-#include "RageUtil/File/RageFile.h"
-#include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Utils/RageUtil.h"
-
 // hand agnostic data structures/functions
 #include "Agnostic/MetaRowInfo.h"
 
@@ -44,6 +37,8 @@
 #include "SequencedBaseDiffCalc.h"
 
 #include <cmath>
+#include <algorithm>
+
 
 /* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
@@ -111,11 +106,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
 	{
-#ifndef RELWITHDEBINFO
-#if NDEBUG
-		load_calc_params_from_disk();
-#endif
-#endif
 		
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
@@ -460,144 +450,5 @@ struct TheGreatBazoinkazoinkInTheSky
 			// when we finish left hand
 			++hand;
 		}
-	}
-#pragma endregion
-
-	[[nodiscard]] static auto make_mod_param_node(
-	  const std::vector<std::pair<std::string, float*>>& param_map,
-	  const std::string& name) -> XNode*
-	{
-		auto* pmod = new XNode(name);
-		for (const auto& p : param_map) {
-			pmod->AppendChild(p.first, std::to_string(*p.second));
-		}
-
-		return pmod;
-	}
-
-	static void load_params_for_mod(
-	  const XNode* node,
-	  const std::vector<std::pair<std::string, float*>>& param_map,
-	  const std::string& name)
-	{
-		auto boat = 0.F;
-		const auto* pmod = node->GetChild(name);
-		if (pmod == nullptr) {
-			return;
-		}
-		for (const auto& p : param_map) {
-			const auto* ch = pmod->GetChild(p.first);
-			if (ch == nullptr) {
-				continue;
-			}
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-
-	void load_calc_params_from_disk(bool bForce = false) const
-	{
-		const auto fn = calc_params_xml;
-		int iError;
-
-		// Hold calc params program-global persistent info
-		static RageFileBasic* pFile;
-		static XNode params;
-		// Only ever try to load params once per thread unless forcing
-		thread_local bool paramsLoaded = false;
-
-		// Don't keep loading params if nothing to load/no reason to
-		// Allow a force to bypass
-		if (paramsLoaded && !bForce)
-			return;
-
-		// Load if missing or allow a force reload
-		if (pFile == nullptr || bForce) {
-			delete pFile;
-			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
-			paramsLoaded = true;
-			// Failed to load
-			if (pFile == nullptr)
-				return;
-		}
-
-		// If it isn't loaded or we are forcing a load, load it
-		if (params.ChildrenEmpty() || bForce)
-		{
-			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
-				return;
-			}
-		}
-
-		// ignore params from older versions
-		std::string vers;
-		params.GetAttrValue("vers", vers);
-		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
-			return;
-		}
-
-		load_params_for_mod(&params, _s._params, _s.name);
-		load_params_for_mod(&params, _js._params, _js.name);
-		load_params_for_mod(&params, _hs._params, _hs.name);
-		load_params_for_mod(&params, _cj._params, _cj.name);
-		load_params_for_mod(&params, _cjd._params, _cjd.name);
-		load_params_for_mod(&params, _ohj._params, _ohj.name);
-		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
-		load_params_for_mod(&params, _bal._params, _bal.name);
-		load_params_for_mod(&params, _oht._params, _oht.name);
-		load_params_for_mod(&params, _voht._params, _voht.name);
-		load_params_for_mod(&params, _ch._params, _ch.name);
-		load_params_for_mod(&params, _rm._params, _rm.name);
-		load_params_for_mod(&params, _wrb._params, _wrb.name);
-		load_params_for_mod(&params, _wrr._params, _wrr.name);
-		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
-		load_params_for_mod(&params, _wra._params, _wra.name);
-		load_params_for_mod(&params, _fj._params, _fj.name);
-		load_params_for_mod(&params, _tt._params, _tt.name);
-		load_params_for_mod(&params, _tt2._params, _tt2.name);
-	}
-
-	[[nodiscard]] auto make_param_node() const -> XNode*
-	{
-		auto* calcparams = new XNode("CalcParams");
-		calcparams->AppendAttr("vers", GetCalcVersion());
-
-		calcparams->AppendChild(make_mod_param_node(_s._params, _s.name));
-		calcparams->AppendChild(make_mod_param_node(_js._params, _js.name));
-		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
-		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
-		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
-		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
-		calcparams->AppendChild(
-		  make_mod_param_node(_cjohj._params, _cjohj.name));
-		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
-		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
-		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));
-		calcparams->AppendChild(make_mod_param_node(_ch._params, _ch.name));
-		calcparams->AppendChild(make_mod_param_node(_rm._params, _rm.name));
-		calcparams->AppendChild(make_mod_param_node(_wrb._params, _wrb.name));
-		calcparams->AppendChild(make_mod_param_node(_wrr._params, _wrr.name));
-		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));
-		calcparams->AppendChild(make_mod_param_node(_wra._params, _wra.name));
-		calcparams->AppendChild(make_mod_param_node(_fj._params, _fj.name));
-		calcparams->AppendChild(make_mod_param_node(_tt._params, _tt.name));
-		calcparams->AppendChild(make_mod_param_node(_tt2._params, _tt2.name));
-
-		return calcparams;
-	}
-#pragma endregion
-
-	void write_params_to_disk() const
-	{
-		const auto fn = calc_params_xml;
-		const std::unique_ptr<XNode> xml(make_param_node());
-
-		std::string err;
-		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE)) {
-			return;
-		}
-		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 	}
 };

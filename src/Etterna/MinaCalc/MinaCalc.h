@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <cstring>
+#include <memory>
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
