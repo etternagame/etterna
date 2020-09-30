@@ -114,7 +114,7 @@ local scoreListAnimationSeconds = 0.03
 local upperBoundOfScoreCount = itemCount * 40
 
 local indicatorTextSize = 0.7
-local pageTextSize = 0.9
+local pageTextSize = 0.7
 local itemIndexSize = 0.9
 local ssrTextSize = 0.9
 local nameTextSize = 0.9
