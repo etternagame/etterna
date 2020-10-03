@@ -609,7 +609,14 @@ local function createList()
                     self:xy(actuals.RightTextLeftGap, actuals.InfoUpperMargin)
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
-                    self:settext("Player Ratings (Online/Offline):")
+                    self:settext("")
+                end,
+                SetCommand = function(self)
+                    if DLMAN:IsLoggedIn() then
+                        self:settext("Player Ratings (Online/Offline):")
+                    else
+                        self:settext("Player Ratings:")
+                    end
                 end
             }
         }
