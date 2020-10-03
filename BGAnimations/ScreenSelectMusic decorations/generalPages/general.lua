@@ -281,7 +281,18 @@ local function createMSDLines()
                     if i == 1 then
                         if params.steps then
                             -- notecount / length * rate
-                            local avg = params.steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes") / GetPlayableTime() * getCurRateValue()
+                            local len = params.steps:GetLengthSeconds() * getCurRateValue()
+                            local notes = params.steps:GetRadarValues(PLAYER_1):GetValue("RadarCategory_Notes")
+                            local avg = notes / len
+                            if len == 0 then
+                                if notes > 0 then
+                                    avg = notes
+                                else
+                                    avg = 0
+                                end
+                            elseif len < 1 then
+                                avg = clamp(avg, 0, notes)
+                            end
                             self:targetnumber(avg)
                             self:diffuse(byNPS(avg))
                         else
