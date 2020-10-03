@@ -803,6 +803,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 	}
 
 	prating = AggregateSkillsets(skillz, 0.F, 10.24F, 1) * 1.125F;
+	pskillsets[Skill_Overall] = prating;
 }
 
 // perhaps we will need a generalized version again someday, but not today
