@@ -536,21 +536,11 @@ local function createList()
                     if i % 2 == 0 then
                         if DLMAN:IsLoggedIn() then
                             local lrating = profile:GetPlayerSkillsetRating(skillset)
-                            -- for some reason the above returns the wrong number
-                            -- but this number is correct...
-                            if skillset == "Overall" then
-                                lrating = profile:GetPlayerRating()
-                            end
                             local orating = DLMAN:GetSkillsetRating(skillset)
                             self:settextf("%5.2f (#9999) / %5.2f", orating, lrating)
                             self:diffuse(byMSD(orating))
                         else
                             local rating = profile:GetPlayerSkillsetRating(skillset)
-                            -- for some reason the above returns the wrong number
-                            -- but this number is correct...
-                            if skillset == "Overall" then
-                                rating = profile:GetPlayerRating()
-                            end
                             self:settextf("%5.2f", rating)
                             self:diffuse(byMSD(rating))
                         end
