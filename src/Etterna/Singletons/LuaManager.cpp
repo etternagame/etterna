@@ -1213,7 +1213,7 @@ LuaHelpers::ReportScriptError(std::string const& Error,
 		ScriptErrorMessage(Error);
 		InReportScriptError = false;
 	}
-	Locator::getLogger()->warn(Error.c_str());
+	Locator::getLogger()->warn("{}", Error.c_str());
 	if (UseAbort) {
 		std::string with_correct =
 		  Error + "\nCorrect this and click Retry, click Abort to crash, or "
@@ -1494,14 +1494,14 @@ static int
 Trace(lua_State* L)
 {
 	std::string sString = SArg(1);
-	Locator::getLogger()->trace(sString.c_str());
+	Locator::getLogger()->trace("{}", sString.c_str());
 	return 0;
 }
 static int
 Warn(lua_State* L)
 {
 	std::string sString = SArg(1);
-	Locator::getLogger()->warn(sString.c_str());
+	Locator::getLogger()->warn("{}", sString.c_str());
 	return 0;
 }
 static int

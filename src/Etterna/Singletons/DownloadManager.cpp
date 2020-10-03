@@ -723,7 +723,7 @@ DownloadManager::AddFavorite(const string& chartkey)
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.push_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
-		Locator::getLogger()->warn((requ.result + req + DLMAN->sessionUser).c_str());
+		Locator::getLogger()->warn("Favorited: {}{}{}", requ.result, req, DLMAN->sessionUser);
 	};
 	SendRequest(req, { make_pair("chartkey", chartkey) }, done, true, true);
 }
@@ -1305,7 +1305,7 @@ DownloadManager::RefreshUserRank()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshUserRank Error: Malformed request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("errors") && d["errors"].IsObject() &&
@@ -1380,11 +1380,12 @@ DownloadManager::SendRequestToURL(
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone](HTTPRequest& req,
+	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone, url](HTTPRequest& req,
 															  CURLMsg* msg) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "SendRequestToURL ({}) Parse Error: {}", url, req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
@@ -1456,7 +1457,7 @@ DownloadManager::RefreshCountryCodes()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshCountryCodes Error: Malformed request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("data") && d["data"].IsArray())
@@ -1492,16 +1493,14 @@ DownloadManager::RequestReplayData(const string& scoreid,
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed replay data request response: " + req.result).c_str());
+			Locator::getLogger()->trace("Malformed replay data request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			Locator::getLogger()->trace((string("Replay data request failed for ") + scoreid +
-						" (Response: " + buffer.GetString() + ")")
-						 .c_str());
+			Locator::getLogger()->trace("Replay data request failed for {} (Response: {})", scoreid, buffer.GetString());
 			return;
 		}
 
@@ -1608,7 +1607,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RequestChartLeaderBoard Error: Malformed request response: {}", req.result);
 			return;
 		}
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
@@ -1631,9 +1630,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					StringBuffer buffer;
 					Writer<StringBuffer> writer(buffer);
 					score_obj.Accept(writer);
-					Locator::getLogger()->trace(("Malformed score in chart leaderboard (chart:" +
-								chartkey + "): " + buffer.GetString())
-								 .c_str());
+					Locator::getLogger()->trace("Malformed score in chart leaderboard (chart: {}): {}", chartkey, buffer.GetString());
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -1857,7 +1854,7 @@ DownloadManager::RefreshCoreBundles()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshCoreBundles Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1919,7 +1916,7 @@ DownloadManager::RefreshLastVersion()
 	auto done = [this](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshLastVersion Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1945,7 +1942,7 @@ DownloadManager::RefreshRegisterPage()
 	auto done = [this](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshRegisterPage Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1982,8 +1979,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 			 d["errors"]["status"].GetInt() == 404) ||
 			!d.HasMember("data") || !d["data"].IsArray()) {
 			Locator::getLogger()->trace(
-			  ("Malformed top25 scores request response: " + req.result)
-				.c_str());
+			  "Malformed top25 scores request response: {}", req.result);
 			return;
 		}
 		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
@@ -1993,10 +1989,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
-				Locator::getLogger()->trace((std::string("Malformed single score in top25 "
-										"scores request response: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Malformed single score in top25 scores request response: {}",
+				  buffer.GetString());
 				continue;
 			}
 			auto& score = score_obj["attributes"];
@@ -2016,10 +2011,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
-				Locator::getLogger()->trace((std::string("Malformed single score in top25 "
-										"scores request response: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Malformed single score in top25 scores request response: {}",
+				  buffer.GetString());
 				continue;
 			}
 			OnlineTopScore tmp;
@@ -2051,7 +2045,9 @@ DownloadManager::RefreshUserData()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "RefreshUserData Error: Malformed request response: {}",
+			  req.result);
 			return;
 		}
 
@@ -2141,7 +2137,8 @@ DownloadManager::StartSession(
 	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "StartSession Error: Malformed request response: {}", req.result);
 			DLMAN->loggingIn = false;
 			return;
 		}
@@ -2235,9 +2232,8 @@ DownloadManager::RefreshPackList(const string& url)
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
 				Locator::getLogger()->trace(
-				  (std::string("Missing pack name in packlist element: ") +
-				   buffer.GetString())
-					.c_str());
+				  "Missing pack name in packlist element: {}",
+				  buffer.GetString());
 				continue;
 			}
 
@@ -2255,7 +2251,9 @@ DownloadManager::RefreshPackList(const string& url)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
-				Locator::getLogger()->trace("Missing download link in packlist element: {}", buffer.GetString());
+				Locator::getLogger()->trace(
+				  "Missing download link in packlist element: {}",
+				  buffer.GetString());
 				continue;
 			}
 			if (tmp.url.empty())

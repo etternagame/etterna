@@ -437,7 +437,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 		auto sub = ServerIP.substr(cLoc + 1);
 		iPort = static_cast<unsigned short>(strtol(sub.c_str(), &cEnd, 10));
 		if (*cEnd != 0 || errno != 0) {
-			Locator::getLogger()->warn("Invalid port");
+			Locator::getLogger()->warn("Invalid port {}", sub);
 			return;
 		}
 	} else {
@@ -750,23 +750,20 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				d.Accept(writer);
-				Locator::getLogger()->trace((string("Recieved ETTP message with no type: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Recieved ETTP message with no type: {}", buffer.GetString());
 				continue;
 			}
 			if (d.HasMember("error") && d["error"].IsString()) {
-				Locator::getLogger()->trace((string("Error on ETTP message ") +
-							d["type"].GetString() + ": " +
-							d["error"].GetString())
-							 .c_str());
+				Locator::getLogger()->trace("Error on ETTP message {}: {}",
+											d["type"].GetString(),
+											d["error"].GetString());
 				continue;
 			}
 			auto type = ettServerMessageMap.find(d["type"].GetString());
 			if (ettServerMessageMap.end() == type) {
-				Locator::getLogger()->trace(
-				  (string("Unknown ETTP message type ") + d["type"].GetString())
-					.c_str());
+				Locator::getLogger()->trace("Unknown ETTP message type {}",
+											d["type"].GetString());
 				continue;
 			}
 			switch (type->second) {
@@ -1157,7 +1154,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						!payload["room"].IsObject() ||
 						!payload["room"].HasMember("name") ||
 						!payload["room"]["name"].IsString()) {
-						Locator::getLogger()->trace("Invalid ETTP  deleteroom room message");
+						Locator::getLogger()->trace("Invalid ETTP deleteroom room message");
 						continue;
 					}
 					string name = payload["room"]["name"].GetString();

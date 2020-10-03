@@ -876,7 +876,7 @@ InputMapper::CheckForChangedInputDevicesAndRemap(std::string& sMessageOut)
 		MESSAGEMAN->Broadcast(Message_AutoJoyMappingApplied);
 	}
 
-	Locator::getLogger()->info(sMessageOut.c_str());
+	Locator::getLogger()->info("{}", sMessageOut.c_str());
 
 	// see above comment about not using ",". -aj
 	g_sLastSeenInputDevices.Set(join("|", vsCurrent));
