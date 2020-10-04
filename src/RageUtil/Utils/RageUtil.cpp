@@ -1115,7 +1115,7 @@ GetCommandlineArgument(const std::string& option,
 
 		const auto i = CurArgument.find('=');
 		auto CurOption = CurArgument.substr(0, i);
-		if (EqualsNoCase(CurOption, optstr))
+		if (!EqualsNoCase(CurOption, optstr))
 			continue; // no match
 
 		// Found it.
