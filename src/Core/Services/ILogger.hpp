@@ -47,7 +47,7 @@ public:
     /** @brief Enabled or disable a stdout prompt on Windows */
     bool setConsoleEnabled(bool enable);
     virtual void setLogLevel(ILogger::Severity logLevel) = 0;
-
+	virtual ~ILogger() = default; 
 protected:
     /**
      * Implementations only need to implement this log function to send logs
