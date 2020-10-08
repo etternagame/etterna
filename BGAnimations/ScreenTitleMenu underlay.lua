@@ -195,7 +195,9 @@ t[#t+1] = Def.ActorFrame {
 
         self:finishtweening()
         self:smooth(0.05)
-        self:y(actorScroller:GetY())
+        -- this upwards offset is because of the font being offset i think
+        -- its necessary, trust
+        self:y(actorScroller:GetY() - (1/1080*SCREEN_HEIGHT))
     end,
 
     Def.Sprite {
