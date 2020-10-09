@@ -65,10 +65,10 @@ local actuals = {
 }
 
 local wheelItemTextSize = 0.62
-local wheelItemTitleTextSize = 0.65
+local wheelItemTitleTextSize = 0.82
 local wheelItemSubTitleTextSize = 0.62
 local wheelItemArtistTextSize = 0.62
-local wheelItemGroupTextSize = 0.75
+local wheelItemGroupTextSize = 0.82
 local wheelItemGroupInfoTextSize = 0.62
 local wheelHeaderTextSize = 1.2
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
@@ -212,7 +212,7 @@ local function songActorBuilder()
             InitCommand = function(self)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
-                self:strokecolor(color("1,1,1,1"))
+                self:strokecolor(color("0.6,0.6,0.6,0.75"))
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
                 self:maxwidth(actuals.ItemDividerLength / wheelItemTitleTextSize - textzoomfudge)
@@ -285,7 +285,8 @@ local function groupActorBuilder()
                 self:smooth(0.05)
                 self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, -actuals.HeaderHeight / 2 + actuals.HeaderTextUpperGap)
                 self:zoom(wheelHeaderTextSize)
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
+                -- subtract double HeaderTextLeftGap to make a right margin equal to size of left margin from banner
+                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap * 2) / wheelHeaderTextSize)
             end,
             HeaderOffCommand = function(self)
                 self:zoom(wheelItemGroupTextSize)
@@ -325,7 +326,8 @@ local function groupActorBuilder()
                 self:smooth(0.05)
                 self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
                 self:zoom(wheelHeaderTextSize)
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap) / wheelHeaderTextSize - textzoomfudge)
+                -- subtract double HeaderTextLeftGap to make a right margin equal to size of left margin from banner
+                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap * 2) / wheelHeaderTextSize)
             end,
             HeaderOffCommand = function(self)
                 self:playcommand("UpdateText")
