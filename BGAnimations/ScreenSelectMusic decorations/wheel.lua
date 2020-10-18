@@ -4,17 +4,17 @@ local t = Def.ActorFrame {Name = "WheelFile"}
  -- an unfortunate amount of code is reliant on the fact that there are 11 items
  -- but thankfully everything works fine if you change it
  -- ... the header wont look very good if you push it off the screen though
-local numWheelItems = 11
+local numWheelItems = 13
 
 local ratios = {
-    LeftGap = 77 / 1920,
-    UpperGap = 135 / 1080, -- distance from top of screen, not info frame
-    LowerGap = 12 / 1080, -- expected, maybe unused
-    Width = 883 / 1920,
-    Height = 827 / 1080, -- does not include the header
-    ItemHeight = 82 / 1080, -- 80 + 2 to account for half of the upper and lower item dividers
+    LeftGap = 16 / 1920,
+    UpperGap = 219 / 1080, -- distance from top of screen, not info frame
+    LowerGap = 0 / 1080, -- expected, maybe unused
+    Width = 867 / 1920,
+    Height = 861 / 1080, -- does not include the header
+    ItemHeight = 85 / 1080, -- 85 + 2 to account for half of the upper and lower item dividers
     ItemDividerThickness = 2 / 1080,
-    ItemDividerLength = 600 / 1920,
+    ItemDividerLength = 584 / 1920,
     ItemGradeWidth = 163 / 1920,
     ItemGradeHeight = 23 / 1080, -- 23 + 2 for a 1px shadow on top and bottom
     ItemGradeLowerGap = 11 / 1080, -- gap between center of divider to inside of grade shadow
@@ -23,18 +23,20 @@ local ratios = {
     ItemTextCenterDistance = 40 / 1080, -- distance from lower (divider center) to center of subtitle
     BannerWidth = 265 / 1920,
     BannerItemGap = 18 / 1920, -- gap between banner and item text/dividers
-    HeaderHeight = 105 / 1080,
+    HeaderHeight = 110 / 1080,
+    HeaderUpperGap = 109 / 1080, -- top of screen to top of frame (same as playerinfo height)
     HeaderBannerWidth = 336 / 1920,
     HeaderTextUpperGap = 30 / 1080, -- distance from top edge to center of text
     HeaderTextLowerGap = 27 / 1080, -- distance from bottom edge to center of text
     HeaderTextLeftGap = 30 / 1920, -- distance from edge of banner to left of text
+    wtffudge = 37 / 1080, -- this random number fixes the weird offset of the wheel vertically so that it fits perfectly with the header
 
     -- controls the width of the mouse wheel scroll box, should be the same number as the general box X position
     -- (found in generalBox.lua)
-    GeneralBoxLeftGap = 1056 / 1920, -- distance from left edge to the left edge of the general box
+    GeneralBoxLeftGap = 1140 / 1920, -- distance from left edge to the left edge of the general box
 
     ScrollBarWidth = 18 / 1920,
-    ScrollBarHeight = 933 / 1080,
+    ScrollBarHeight = 971 / 1080,
 }
 
 local actuals = {
@@ -55,10 +57,12 @@ local actuals = {
     BannerWidth = ratios.BannerWidth * SCREEN_WIDTH,
     BannerItemGap = ratios.BannerItemGap * SCREEN_WIDTH,
     HeaderHeight = ratios.HeaderHeight * SCREEN_HEIGHT,
+    HeaderUpperGap = ratios.HeaderUpperGap * SCREEN_HEIGHT,
     HeaderBannerWidth = ratios.HeaderBannerWidth * SCREEN_WIDTH,
     HeaderTextUpperGap = ratios.HeaderTextUpperGap * SCREEN_HEIGHT,
     HeaderTextLowerGap = ratios.HeaderTextLowerGap * SCREEN_HEIGHT,
     HeaderTextLeftGap = ratios.HeaderTextLeftGap * SCREEN_WIDTH,
+    wtffudge = ratios.wtffudge * SCREEN_HEIGHT,
     GeneralBoxLeftGap = ratios.GeneralBoxLeftGap * SCREEN_WIDTH,
     ScrollBarWidth = ratios.ScrollBarWidth * SCREEN_WIDTH,
     ScrollBarHeight = ratios.ScrollBarHeight * SCREEN_HEIGHT,
@@ -127,6 +131,7 @@ local function wheelItemBase()
                 self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
             end,
+            --[[
             HeaderOnCommand = function(self, params)
                 self:smooth(0.05)
                 self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
@@ -137,6 +142,7 @@ local function wheelItemBase()
                 self:zoomto(actuals.Width, actuals.ItemHeight)
                 self:diffusealpha(0.6)
             end
+            ]]
         },
         Def.Quad { 
             Name = "Divider",
@@ -146,6 +152,7 @@ local function wheelItemBase()
                 self:xy(actuals.Width / 2 - actuals.ItemDividerLength, -actuals.ItemHeight/2)
                 self:diffuse(color("0.6,0.6,0.6,1"))
             end,
+            --[[
             HeaderOnCommand = function(self)
                 self:smooth(0.05)
                 self:diffusealpha(0)
@@ -154,6 +161,7 @@ local function wheelItemBase()
                 self:smooth(0.05)
                 self:diffusealpha(1)
             end
+            ]]
         },
     }
 end
@@ -281,6 +289,7 @@ local function groupActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().Title = self
             end,
+            --[[
             HeaderOnCommand = function(self)
                 self:smooth(0.05)
                 self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, -actuals.HeaderHeight / 2 + actuals.HeaderTextUpperGap)
@@ -294,6 +303,7 @@ local function groupActorBuilder()
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
             end
+            ]]
         },
         LoadFont("Common Normal") .. {
             Name = "GroupInfo",
@@ -321,6 +331,7 @@ local function groupActorBuilder()
                     self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
                 end
             end,
+            --[[
             HeaderOnCommand = function(self)
                 self:playcommand("UpdateText")
                 self:smooth(0.05)
@@ -336,6 +347,7 @@ local function groupActorBuilder()
                 self:zoom(wheelItemGroupInfoTextSize)
                 self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize - textzoomfudge)
             end
+            ]]
         },
         Def.Sprite {
             Name = "Banner",
@@ -349,6 +361,7 @@ local function groupActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().Banner = self
             end,
+            --[[
             HeaderOnCommand = function(self)
                 self:smooth(0.05)
                 self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight + headerFudge)
@@ -357,6 +370,7 @@ local function groupActorBuilder()
                 self:smooth(0.05)
                 self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
             end
+            ]]
         }
     }
 end
@@ -370,7 +384,7 @@ t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
         -- push from top left of screen, this position is CENTER of the wheel X/Y
         -- also for some odd reason we have to move down by half a wheelItem....
-        self:xy(actuals.LeftGap + actuals.Width / 2, actuals.UpperGap + actuals.HeaderHeight + actuals.Height / 2 + actuals.ItemHeight / 2)
+        self:xy(actuals.LeftGap + actuals.Width / 2, actuals.UpperGap + actuals.Height / 2 + actuals.ItemHeight + actuals.wtffudge)
         SCREENMAN:set_input_redirected(PLAYER_1, true)
     end,
     BeginCommand = function(self)
@@ -420,29 +434,12 @@ t[#t+1] = Def.ActorFrame {
         songActorUpdater = songActorUpdater,
         groupActorUpdater = groupActorUpdater,
         frameTransformer = function(frame, offsetFromCenter, index, total)
-            if index == 1 and openedGroup ~= nil then
-                if openedGroup == frame:GetChild("GroupFrame").Title:GetText() then
-                    if firstUpdate then
-                        firstUpdate = false
-                        frame:y(offsetFromCenter * actuals.ItemHeight)
-                    elseif not frame.sticky and not onAnAdventure then
-                        frame.sticky = true
-                        frame:playcommand("HeaderOn", {offsetFromCenter = -math.ceil(numWheelItems / 2)})
-                    elseif onAnAdventure then
-                        frame:y(offsetFromCenter * actuals.ItemHeight)
-                    end
-                else
-                    if frame.sticky then
-                        frame.sticky = false
-                        frame:finishtweening()
-                        frame:smooth(0.05)
-                        frame:playcommand("HeaderOff")
-                    end
-                    frame:y(offsetFromCenter * actuals.ItemHeight)
-                end
-            else
-                frame:y(offsetFromCenter * actuals.ItemHeight)
-            end
+            -- this stuff makes the x position of the item go way off screen for the end indices
+            -- should induce less of a feeling of items materializing from nothing
+            local bias = -actuals.Width * 3
+            local ofc = math.ceil(total / 2) + offsetFromCenter + 1
+            local xp = bias * math.pow(ofc / ((total-1) / 2) - (((total + 1) / 2) / ((total - 1) / 2)), 40)
+            frame:xy(xp, offsetFromCenter * actuals.ItemHeight)
         end,
         frameBuilder = function()
             local f
@@ -451,6 +448,7 @@ t[#t+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     f.actor = self
                 end,
+                --[[
                 HeaderOnCommand = function(self, params)
                     -- if the opened group is not real, then stop
                     -- this happens on init basically
@@ -462,7 +460,7 @@ t[#t+1] = Def.ActorFrame {
                     self.g:visible(true)
                     self.s:visible(false)
                     self:y(params.offsetFromCenter * actuals.ItemHeight - (actuals.HeaderHeight - actuals.ItemHeight) + headerFudge)
-                end,
+                end,]]
                 UIElements.QuadButton(1) .. {
                     Name = "WheelItemClickBox",
                     InitCommand = function(self)
@@ -546,7 +544,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:y(-(actuals.HeaderHeight + actuals.ItemHeight) / 2)
             self:x(-actuals.LeftGap - actuals.Width / 2)
-            self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 1.2)
+            self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.45)
         end,
         MouseScrollMessageCommand = function(self, params)
             if isOver(self) then
@@ -565,7 +563,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.LeftGap / 2 - actuals.Width / 2)
             -- places the frame at the top of the wheel
             -- positions will be relative to that
-            self:y(-actuals.ItemHeight * numWheelItems / 2 - actuals.HeaderHeight - headerFudge)
+            self:y(-actuals.ItemHeight * numWheelItems / 2 - actuals.HeaderHeight)
         end,
 
         Def.Sprite {
@@ -620,8 +618,15 @@ t[#t+1] = Def.ActorFrame {
                 self:playcommand("SetPosition", params)
             end,
         }
-    }
+    },
 }
 
+t[#t+1] = Def.Quad {
+    InitCommand = function(self)
+        self:halign(0):valign(0)
+        self:xy(actuals.LeftGap,actuals.HeaderUpperGap)
+        self:zoomto(actuals.Width, actuals.HeaderHeight)
+    end
+}
 
 return t
