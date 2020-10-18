@@ -159,6 +159,7 @@ local function stepsRows(i)
 		InitCommand = function(self)
 			-- to place indices 1-numshown left to right from the right to the left place them in reverse order
 			self:x(-actuals.DiffItemWidth * (numshown - i) - actuals.DiffFrameSpacing * (numshown - i))
+			self:visible(false)
 		end,
 		UpdateStepsRowsCommand = function(self)
 			-- to get them to align right
