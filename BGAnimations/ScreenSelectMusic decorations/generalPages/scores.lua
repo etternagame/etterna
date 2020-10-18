@@ -40,11 +40,11 @@ local t = Def.ActorFrame {
 local mostRecentScore = SCOREMAN:GetMostRecentScore()
 
 local ratios = {
-    LowerLipHeight = 43 / 1080,
+    UpperLipHeight = 43 / 1080,
     ItemUpperSpacing = 68 / 1080, -- top of frame to top of text, to push all the items down
 
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
-    PageTextUpperGap = 505 / 1080, -- top of frame, top of text
+    PageTextUpperGap = 525 / 1080, -- top of frame, top of text
 
     ItemWidth = 776 / 1920, -- this should just be frame width
     ItemHeight = 45 / 1080, -- rough approximation of height (top of text to somewhere down below)
@@ -67,7 +67,7 @@ local ratios = {
 }
 
 local actuals = {
-    LowerLipHeight = ratios.LowerLipHeight * SCREEN_HEIGHT,
+    UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
     ItemUpperSpacing = ratios.ItemUpperSpacing * SCREEN_HEIGHT,
     PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
     PageTextUpperGap = ratios.PageTextUpperGap * SCREEN_HEIGHT,
@@ -101,11 +101,10 @@ do
 end
 
 t[#t+1] = Def.Quad {
-    Name = "LowerLip",
+    Name = "UpperLip",
     InitCommand = function(self)
-        self:halign(0):valign(1)
-        self:y(actuals.Height)
-        self:zoomto(actuals.Width, actuals.LowerLipHeight)
+        self:halign(0):valign(0)
+        self:zoomto(actuals.Width, actuals.UpperLipHeight)
         self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
     end
@@ -649,7 +648,7 @@ function createList()
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                     txt:settext(choiceNames[i][nameIndex])
-                    bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
+                    bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
                     if choiceOnlineOnly[i] and not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
                     end
@@ -695,7 +694,7 @@ function createList()
         local t = Def.ActorFrame {
             Name = "Choices",
             InitCommand = function(self)
-                self:y(actuals.Height - actuals.LowerLipHeight / 2)
+                self:y(actuals.UpperLipHeight / 2)
             end,
             UpdateButtonsMessageCommand = function(self)
                 allScores = not DLMAN:GetTopScoresOnlyFilter()

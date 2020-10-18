@@ -1,12 +1,11 @@
 local t = Def.ActorFrame {Name = "GeneralBoxFile"}
 
 local ratios = {
-    LeftGap = 1056 / 1920, -- left side of screen to left edge of frame
-    TopGap = 492 / 1080, -- top of screen to top of frame
-    Width = 776 / 1920,
-    Height = 571 / 1080,
-    UpperLipHeight = 43 / 1080,
-    PageTextTopGap = 24 / 1080, -- from top edge to center of text
+    LeftGap = 1140 / 1920, -- left side of screen to left edge of frame
+    TopGap = 468 / 1080, -- top of screen to top of frame
+    Width = 780 / 1920,
+    Height = 612 / 1080,
+    LowerLipHeight = 57 / 1080,
 }
 
 local actuals = {
@@ -14,8 +13,7 @@ local actuals = {
     TopGap = ratios.TopGap * SCREEN_HEIGHT,
     Width = ratios.Width * SCREEN_WIDTH,
     Height = ratios.Height * SCREEN_HEIGHT,
-    UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
-    PageTextTopGap = ratios.PageTextTopGap * SCREEN_HEIGHT,
+    LowerLipHeight = ratios.LowerLipHeight * SCREEN_HEIGHT
 }
 
 -- the page names in the order they go
@@ -50,7 +48,7 @@ local function createChoices()
                 txt:zoom(choiceTextSize)
                 txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                 txt:settext(choiceNames[i])
-                bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
+                bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
             end,
             UpdateSelectedIndexCommand = function(self)
                 local txt = self:GetChild("Text")
@@ -81,7 +79,7 @@ local function createChoices()
     local t = Def.ActorFrame {
         Name = "Choices",
         InitCommand = function(self)
-            self:y(actuals.PageTextTopGap)
+            self:y(actuals.Height - actuals.LowerLipHeight / 2)
             self:playcommand("UpdateSelectedIndex")
         end
     }
@@ -107,10 +105,11 @@ t[#t+1] = Def.ActorFrame {
         end
     },
     Def.Quad {
-        Name = "UpperLip",
+        Name = "Lip",
         InitCommand = function(self)
-            self:halign(0):valign(0)
-            self:zoomto(actuals.Width, actuals.UpperLipHeight)
+            self:halign(0):valign(1)
+            self:y(actuals.Height)
+            self:zoomto(actuals.Width, actuals.LowerLipHeight)
             self:diffuse(color("#111111"))
             self:diffusealpha(0.6)
         end

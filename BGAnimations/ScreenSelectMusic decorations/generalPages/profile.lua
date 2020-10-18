@@ -23,7 +23,7 @@ local t = Def.ActorFrame {
 }
 
 local ratios = {
-    BottomLipHeight = 43 / 1080, -- frame edge to lip edge
+    UpperLipHeight = 43 / 1080, -- frame edge to lip edge
 
     MainIndicatorLeftGap = 12 / 1920, -- left edge to left edge of text, this is the online/local thing
     MainIndicatorUpperGap = 52 / 1080,
@@ -41,7 +41,7 @@ local ratios = {
 
     ItemListUpperGap = 87 / 1080, -- top of frame to top of first item
     ItemSpacing = 29 / 1080, -- from top of item to top of next item
-    ItemAllottedSpace = 441 / 1080, -- from first item to top of bottom lip
+    ItemAllottedSpace = 470 / 1080, -- from first item to top of bottom lip
 
     -- Overall tab is like a subtab, partially separate measurements
     InfoUpperMargin = 87 / 1080, -- this appears to be the gap for everything from top of frame to top of everything
@@ -59,7 +59,7 @@ local ratios = {
 }
 
 local actuals = {
-    BottomLipHeight = ratios.BottomLipHeight * SCREEN_HEIGHT,
+    UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
     MainIndicatorLeftGap = ratios.MainIndicatorLeftGap * SCREEN_WIDTH,
     MainIndicatorUpperGap = ratios.MainIndicatorUpperGap * SCREEN_HEIGHT,
     ItemIndexMargin = ratios.ItemIndexMargin * SCREEN_WIDTH,
@@ -149,7 +149,7 @@ local function createChoices()
                 txt:zoom(choiceTextSize)
                 txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                 txt:settext(choiceNames[i])
-                bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
+                bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
             end,
             UpdateSelectedIndexCommand = function(self)
                 local txt = self:GetChild("Text")
@@ -183,7 +183,7 @@ local function createChoices()
     local t = Def.ActorFrame {
         Name = "Choices",
         InitCommand = function(self)
-            self:y(actuals.Height - actuals.BottomLipHeight / 2)
+            self:y(actuals.UpperLipHeight / 2)
             self:playcommand("UpdateSelectedIndex")
         end
     }
@@ -746,11 +746,10 @@ local function createList()
 end
 
 t[#t+1] = Def.Quad {
-    Name = "BottomLip",
+    Name = "UpperLip",
     InitCommand = function(self)
-        self:y(actuals.Height)
-        self:halign(0):valign(1)
-        self:zoomto(actuals.Width, actuals.BottomLipHeight)
+        self:halign(0):valign(0)
+        self:zoomto(actuals.Width, actuals.UpperLipHeight)
         self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
     end

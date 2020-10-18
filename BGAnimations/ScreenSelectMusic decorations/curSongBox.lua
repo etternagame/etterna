@@ -21,16 +21,17 @@ local t = Def.ActorFrame {
 }
 
 local ratios = {
-    LeftGap = 1055 / 1920, -- distance from left side of screen to left side of frame
-    TopGap = 131 / 1080, -- distance from top of screen to top of frame
-    Height = 345 / 1080,
-    Width = 777 / 1920,
+    LeftGap = 1138 / 1920, -- distance from left side of screen to left side of frame
+    TopGap = 109 / 1080, -- distance from top of screen to top of frame
+    Height = 359 / 1080,
+    Width = 782 / 1920,
     BannerHeight = 243 / 1080,
     LowerLipHeight = 34 / 1080,
     LeftTextLeftGap = 10 / 1920,
-    TextLowerGap1 = 6 / 1080, -- subtracting 2 here because thats about how much letters go "down"
-    TextLowerGap2 = 39 / 1080, -- these gaps are from bottom frame to bottom text
-    TextLowerGap3 = 75 / 1080,
+    TextLowerGap1 = 8 / 1080, -- lowest text line, bottom frame to bottom letters (subtracted 2 from these after measurements to compensate for font baseline)
+    TextLowerGap2 = 49 / 1080, -- these gaps are from bottom frame to bottom text
+    TextLowerGap3 = 87 / 1080,
+
     RateTextLeftGap = 330 / 1920,
     BPMTextLeftGap = 210 / 1920,
     BPMNumberLeftGap = 265 / 1920, -- from right edge to right edge of numbers
@@ -39,8 +40,12 @@ local ratios = {
     LengthNumberLeftGap = 110 / 1920, -- from right edge to right edge of numbers
     LengthWidth = 62 / 1920, -- from right edge of len number to right edge of len text
 
-    DiffFrameLeftGap = 429 / 1920,
-    DiffFrameRightGap = 12 / 1920, -- from right edge of frame to right edge of rightmost item
+    -- deprecated values but still used for initialization at the very least
+    -- these numbers are used for max width of the text
+    -- after initialization, it is dependent on the actual size of the diff frame, so these numbers are not used
+    -- DiffFrameRightGap IS USED for positioning the diff frame itself, do not remove
+    DiffFrameLeftGap = 407 / 1920, -- left edge of frame to left edge of leftmost item (?)
+    DiffFrameRightGap = 22 / 1920, -- from right edge of frame to right edge of rightmost item
 }
 
 local actuals = {
@@ -103,9 +108,10 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0):valign(0)
             self:zoomto(actuals.Width, actuals.Height)
             self:diffuse(color("#111111"))
-            self:diffusealpha(0.6)
+            self:diffusealpha(0.83)
         end
     },
+    --[[
     Def.Quad {
         Name = "LowerLip",
         InitCommand = function(self)
@@ -116,6 +122,7 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(0.6)
         end
     },
+    ]]
     Def.Sprite {
         Name = "Banner",
         InitCommand = function(self)
