@@ -21,7 +21,7 @@ local t = Def.ActorFrame {
 }
 
 local ratios = {
-    LeftGap = 1138 / 1920, -- distance from left side of screen to left side of frame
+    LeftGap = 1140 / 1920, -- distance from left side of screen to left side of frame
     TopGap = 109 / 1080, -- distance from top of screen to top of frame
     Height = 359 / 1080,
     Width = 782 / 1920,
