@@ -12,7 +12,7 @@ local ratios = {
     LowerGap = 0 / 1080, -- expected, maybe unused
     Width = 867 / 1920,
     Height = 861 / 1080, -- does not include the header
-    ItemHeight = 85 / 1080, -- 85 + 2 to account for half of the upper and lower item dividers
+    ItemHeight = 86.5 / 1080, -- 85 + 2 to account for half of the upper and lower item dividers
     ItemDividerThickness = 2 / 1080,
     ItemDividerLength = 584 / 1920,
     ItemGradeWidth = 163 / 1920,
@@ -29,7 +29,7 @@ local ratios = {
     HeaderTextUpperGap = 30 / 1080, -- distance from top edge to center of text
     HeaderTextLowerGap = 27 / 1080, -- distance from bottom edge to center of text
     HeaderTextLeftGap = 30 / 1920, -- distance from edge of banner to left of text
-    wtffudge = 37 / 1080, -- this random number fixes the weird offset of the wheel vertically so that it fits perfectly with the header
+    wtffudge = 45 / 1080, -- this random number fixes the weird offset of the wheel vertically so that it fits perfectly with the header
 
     -- controls the width of the mouse wheel scroll box, should be the same number as the general box X position
     -- (found in generalBox.lua)
