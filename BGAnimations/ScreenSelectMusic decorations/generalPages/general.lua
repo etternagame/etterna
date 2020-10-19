@@ -54,33 +54,33 @@ local t = Def.ActorFrame {
 
 local ratios = {
     VerticalDividerLeftGap = 387 / 1920, -- from left edge to left edge of divider
-    VerticalDividerUpperGap = 68 / 1080, -- from top edge to top edge
+    VerticalDividerUpperGap = 42 / 1080, -- from top edge to top edge
     VerticalDividerHeight = 374 / 1080,
     HorizontalDividerLeftGap = 11 / 1920, -- from left edge to left edge of divider
-    HorizontalDividerUpperGap = 457 / 1080, -- from top edge to top edge
+    HorizontalDividerUpperGap = 431 / 1080, -- from top edge to top edge
     HorizontalDividerLength = 753 / 1920,
     DividerThickness = 2 / 1080, -- consistently 2 pixels basically
 
     LeftTextColumn1NumbersMargin = 172 / 1920, -- from left edge to right edge of text
     LeftTextColumn1LabelsMargin = 12 / 1920, -- from left edge to left edge of text
     LeftTextColumn2Margin = 207 / 1920, -- from left edge to left edge
-    LeftTextUpperGap = 195 / 1080, -- from top edge to top edge
+    LeftTextUpperGap = 169 / 1080, -- from top edge to top edge
     -- use the column1 and column2 x positions for the tag locations as well
-    MSDUpperGap = 69 / 1080, -- top edge to top edge
-    WifePercentUpperGap = 116 / 1080, -- top edge to top edge
+    MSDUpperGap = 43 / 1080, -- top edge to top edge
+    WifePercentUpperGap = 90 / 1080, -- top edge to top edge
 
     RightTextLabelsMargin = 327 / 1920, -- from right edge to left edge of text
     RightTextNumbersMargin = 66 / 1920, -- from right edge to right edge of text
 
     LeftTextAllottedVerticalSpace = 210 / 1080, -- from top edge of top text to top edge of bottom text
     -- right text also has allotted space but we will extrapolate from this number
-    TagTextUpperGap = 479 / 1080, -- from top edge to top edge
+    TagTextUpperGap = 453 / 1080, -- from top edge to top edge
     TagTextAllottedVerticalSpace = 42 / 1080, -- from top edge of top text to top edge of bottom text
 
     CDTitleRightGap = 5 / 1920, -- estimated right side gap for the cdtitle (restrict width)
     CDTitleLeftGap = 190 / 1920, -- left edge to approximate left edge
     -- CDTitle width is VerticalDividerX - CDTitleRightGap - CDTitleLeftGap
-    CDTitleUpperGap = 62 / 1080, -- top edge to approximate top edge
+    CDTitleUpperGap = 36 / 1080, -- top edge to approximate top edge
     CDTitleAllowedHeight = 100 / 1080, -- approximated allowed height, from top edge to bottom edge
 }
 
