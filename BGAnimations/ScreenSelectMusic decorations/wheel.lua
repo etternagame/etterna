@@ -130,19 +130,7 @@ local function wheelItemBase()
                 self:zoomto(actuals.Width, actuals.ItemHeight)
                 self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
-            end,
-            --[[
-            HeaderOnCommand = function(self, params)
-                self:smooth(0.05)
-                self:zoomto(actuals.Width, actuals.HeaderHeight + headerFudge)
-                self:diffusealpha(0.8)
-            end,
-            HeaderOffCommand = function(self)
-                self:smooth(0.05)
-                self:zoomto(actuals.Width, actuals.ItemHeight)
-                self:diffusealpha(0.6)
             end
-            ]]
         },
         Def.Quad { 
             Name = "Divider",
@@ -151,17 +139,7 @@ local function wheelItemBase()
                 self:zoomto(actuals.ItemDividerLength, actuals.ItemDividerThickness)
                 self:xy(actuals.Width / 2 - actuals.ItemDividerLength, -actuals.ItemHeight/2)
                 self:diffuse(color("0.6,0.6,0.6,1"))
-            end,
-            --[[
-            HeaderOnCommand = function(self)
-                self:smooth(0.05)
-                self:diffusealpha(0)
-            end,
-            HeaderOffCommand = function(self)
-                self:smooth(0.05)
-                self:diffusealpha(1)
             end
-            ]]
         },
     }
 end
@@ -288,22 +266,7 @@ local function groupActorBuilder()
             end,
             BeginCommand = function(self)
                 self:GetParent().Title = self
-            end,
-            --[[
-            HeaderOnCommand = function(self)
-                self:smooth(0.05)
-                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, -actuals.HeaderHeight / 2 + actuals.HeaderTextUpperGap)
-                self:zoom(wheelHeaderTextSize)
-                -- subtract double HeaderTextLeftGap to make a right margin equal to size of left margin from banner
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap * 2) / wheelHeaderTextSize)
-            end,
-            HeaderOffCommand = function(self)
-                self:zoom(wheelItemGroupTextSize)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupTextSize - textzoomfudge)
-                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
             end
-            ]]
         },
         LoadFont("Common Normal") .. {
             Name = "GroupInfo",
@@ -325,29 +288,8 @@ local function groupActorBuilder()
                 self:playcommand("UpdateText")
             end,
             UpdateTextCommand = function(self)
-                if self:GetParent():GetParent().sticky then
-                    self:settextf("%d Songs (Average MSD: %5.2f)", self.count, self.avg)
-                else
-                    self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
-                end
-            end,
-            --[[
-            HeaderOnCommand = function(self)
-                self:playcommand("UpdateText")
-                self:smooth(0.05)
-                self:xy(-actuals.Width / 2 + actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderHeight / 2 - actuals.HeaderTextLowerGap)
-                self:zoom(wheelHeaderTextSize)
-                -- subtract double HeaderTextLeftGap to make a right margin equal to size of left margin from banner
-                self:maxwidth((actuals.Width - actuals.HeaderBannerWidth - actuals.HeaderTextLeftGap * 2) / wheelHeaderTextSize)
-            end,
-            HeaderOffCommand = function(self)
-                self:playcommand("UpdateText")
-                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
-                self:zoom(wheelItemGroupInfoTextSize)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize - textzoomfudge)
+                self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
             end
-            ]]
         },
         Def.Sprite {
             Name = "Banner",
@@ -360,17 +302,7 @@ local function groupActorBuilder()
             end,
             BeginCommand = function(self)
                 self:GetParent().Banner = self
-            end,
-            --[[
-            HeaderOnCommand = function(self)
-                self:smooth(0.05)
-                self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight + headerFudge)
-            end,
-            HeaderOffCommand = function(self)
-                self:smooth(0.05)
-                self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
             end
-            ]]
         }
     }
 end
@@ -448,19 +380,6 @@ t[#t+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     f.actor = self
                 end,
-                --[[
-                HeaderOnCommand = function(self, params)
-                    -- if the opened group is not real, then stop
-                    -- this happens on init basically
-                    if openedGroup == "" then
-                        return
-                    end
-                    self:finishtweening()
-                    self:smooth(0.05)
-                    self.g:visible(true)
-                    self.s:visible(false)
-                    self:y(params.offsetFromCenter * actuals.ItemHeight - (actuals.HeaderHeight - actuals.ItemHeight) + headerFudge)
-                end,]]
                 UIElements.QuadButton(1) .. {
                     Name = "WheelItemClickBox",
                     InitCommand = function(self)
@@ -468,29 +387,18 @@ t[#t+1] = Def.ActorFrame {
                         self:zoomto(actuals.Width, actuals.ItemHeight)
                     end,
                     MouseDownCommand = function(self, params)
-                        if not self:GetParent().sticky then
-                            if params.event == "DeviceButton_left mouse button" then
-                                local index = self:GetParent().index
-                                local distance = math.floor(index - numWheelItems / 2)
-                                local wheel = self:GetParent():GetParent()
-                                if distance ~= 0 then
-                                    -- clicked a nearby item
-                                    wheel:playcommand("Move", {direction = distance})
-                                    wheel:playcommand("OpenIfGroup")
-                                else
-                                    -- clicked the current item
-                                    wheel:playcommand("SelectCurrent")
-                                end
+                        if params.event == "DeviceButton_left mouse button" then
+                            local index = self:GetParent().index
+                            local distance = math.floor(index - numWheelItems / 2)
+                            local wheel = self:GetParent():GetParent()
+                            if distance ~= 0 then
+                                -- clicked a nearby item
+                                wheel:playcommand("Move", {direction = distance})
+                                wheel:playcommand("OpenIfGroup")
+                            else
+                                -- clicked the current item
+                                wheel:playcommand("SelectCurrent")
                             end
-                        else
-                            -- this means we clicked the header
-                            -- hidden feature: random song in group if doing that
-                            local group = self:GetParent().g.Title:GetText()
-                            if group == nil or group == "" then return end
-                            local songs = SONGMAN:GetSongsInGroup(group)
-                            if #songs == 0 then return end
-                            local song = songs[math.random(#songs)]
-                            SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("FindSong", {song = song})
                         end
                     end
                 },
@@ -511,24 +419,18 @@ t[#t+1] = Def.ActorFrame {
         frameUpdater = function(frame, songOrPack)
             if songOrPack.GetAllSteps then
                 -- This is a song
-                -- dont mess around with sticky'd frames
-                if not frame.sticky then
-                    local s = frame.s
-                    s:visible(true)
-                    local g = frame.g
-                    g:visible(false)
-                    songActorUpdater(s, songOrPack)
-                end
+                local s = frame.s
+                s:visible(true)
+                local g = frame.g
+                g:visible(false)
+                songActorUpdater(s, songOrPack)
             else
                 -- This is a group
-                -- dont mess with non sticky'd frames
-                if not frame.sticky then
-                    local s = frame.s
-                    s:visible(false)
-                    local g = (frame.g)
-                    g:visible(true)
-                    groupActorUpdater(g, songOrPack, packCounts[songOrPack], avgDiffByPack[songOrPack])
-                end
+                local s = frame.s
+                s:visible(false)
+                local g = (frame.g)
+                g:visible(true)
+                groupActorUpdater(g, songOrPack, packCounts[songOrPack], avgDiffByPack[songOrPack])
             end
         end
     }),
@@ -626,7 +528,17 @@ t[#t+1] = Def.Quad {
         self:halign(0):valign(0)
         self:xy(actuals.LeftGap,actuals.HeaderUpperGap)
         self:zoomto(actuals.Width, actuals.HeaderHeight)
-    end
+    end,
+    --[[
+        -- this means we clicked the header
+        -- hidden feature: random song in group if doing that
+        local group = self:GetParent().g.Title:GetText()
+        if group == nil or group == "" then return end
+        local songs = SONGMAN:GetSongsInGroup(group)
+        if #songs == 0 then return end
+        local song = songs[math.random(#songs)]
+        SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("FindSong", {song = song})
+    ]]
 }
 
 return t

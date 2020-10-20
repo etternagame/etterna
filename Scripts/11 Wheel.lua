@@ -172,11 +172,6 @@ Wheel.mt = {
 
             if whee.group and not crossedGroupBorder then
                 crossedGroupBorder = not crossedGroupBorder
-                -- header wheelitem behavior stuff
-                whee.frameUpdater(whee.frames[1], whee.group, 0)
-                whee.frames[1].sticky = true
-                whee.frames[1]:playcommand("HeaderOn", {offsetFromCenter = -math.ceil(whee.count / 2)})
-
                 MESSAGEMAN:Broadcast("ScrolledIntoGroup", {group = whee.group})
             end
         else
@@ -185,11 +180,6 @@ Wheel.mt = {
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
             if whee.group and crossedGroupBorder then
                 crossedGroupBorder = not crossedGroupBorder
-                -- header wheelitem behavior stuff
-                whee.frames[1].sticky = false
-                whee.frameUpdater(whee.frames[1], whee:getItem(whee.index - math.ceil(whee.count / 2)), 0)
-                whee.frames[1]:playcommand("HeaderOff")
-
                 MESSAGEMAN:Broadcast("ScrolledOutOfGroup", {group = whee.group})
             end
         end
@@ -649,10 +639,6 @@ function MusicWheel:new(params)
                         return newItems
                     end
 
-                    -- unset sticky for the header item
-                    -- dont have to update the sticky bool
-                    local replacinggroup = w:getItem(w.index - math.ceil(#w.frames / 2))
-                    groupActorUpdater(w.frames[1].g, replacinggroup, packCounts[replacinggroup])
                     MESSAGEMAN:Broadcast("ClosedGroup", {group = group})
                 else -- open pack
                     crossedGroupBorder = false
@@ -679,9 +665,6 @@ function MusicWheel:new(params)
                         return newItems
                     end
 
-                    -- force update the header item
-                    -- dont have to update the sticky bool
-                    groupActorUpdater(w.frames[1].g, group, packCounts[group])
                     crossedGroupBorder = true
                     MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 end
@@ -740,7 +723,6 @@ function MusicWheel:new(params)
             local group = findSong(w)
             if #w.frames > 0 and group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
-                groupActorUpdater(w.frames[1].g, group, packCounts[group])
                 crossedGroupBorder = true
                 MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 w:rebuildFrames()
@@ -757,7 +739,6 @@ function MusicWheel:new(params)
             local group = findSong(w, params.chartkey)
             if group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
-                groupActorUpdater(w.frames[1].g, group, packCounts[group])
                 crossedGroupBorder = true
                 MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 w:rebuildFrames()
@@ -780,7 +761,6 @@ function MusicWheel:new(params)
                 local group = findSong(w, charts[1]:GetChartKey())
                 if group ~= nil then
                     -- found the song, set up the group focus and send out the related messages for consistency
-                    groupActorUpdater(w.frames[1].g, group, packCounts[group])
                     crossedGroupBorder = true
                     MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                     w:rebuildFrames()
