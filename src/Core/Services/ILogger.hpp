@@ -18,6 +18,9 @@ namespace Core {
 class ILogger {
 
 public:
+    /** Virtual destructor to ensure derived objects are guaranteed to have destructor */
+    virtual ~ILogger() = default;
+
     /**
      * Severity Enum - Middle man between each logging backed
      * and their own severity terminology.
@@ -47,7 +50,7 @@ public:
     /** @brief Enabled or disable a stdout prompt on Windows */
     bool setConsoleEnabled(bool enable);
     virtual void setLogLevel(ILogger::Severity logLevel) = 0;
-	virtual ~ILogger() = default; 
+
 protected:
     /**
      * Implementations only need to implement this log function to send logs
