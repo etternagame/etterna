@@ -370,7 +370,11 @@ t[#t+1] = Def.ActorFrame {
             -- should induce less of a feeling of items materializing from nothing
             local bias = -actuals.Width * 3
             local ofc = math.ceil(total / 2) + offsetFromCenter + 1
-            local xp = bias * math.pow(ofc / ((total-1) / 2) - (((total + 1) / 2) / ((total - 1) / 2)), 40)
+            -- the power of 50 and the rounding here are kind of specific for our application
+            -- if you mess with overall parameters to the wheel size or count, you will want to mess with this
+            -- maybe
+            local result = math.round(math.pow(ofc / ((total-1) / 2) - (((total + 1) / 2) / ((total - 1) / 2)), 50), 2)
+            local xp = bias * result
             frame:xy(xp, offsetFromCenter * actuals.ItemHeight)
         end,
         frameBuilder = function()
