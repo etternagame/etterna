@@ -1047,7 +1047,7 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss, float ts)
 	pss->m_fLifeRecord.clear();
 	pss->m_fLifeRecord = GenerateLifeRecordForReplay(ts);
 	pss->m_ComboList.clear();
-	pss->m_ComboList = GenerateComboListForReplay();
+	pss->m_ComboList = GenerateComboListForReplay(ts);
 	Locator::getLogger()->trace("Finished PSSFromReplayData function");
 }
 
