@@ -25,11 +25,18 @@ local ratios = {
     BannerItemGap = 18 / 1920, -- gap between banner and item text/dividers
     HeaderHeight = 110 / 1080,
     HeaderUpperGap = 109 / 1080, -- top of screen to top of frame (same as playerinfo height)
-    HeaderBannerWidth = 336 / 1920,
-    HeaderTextUpperGap = 30 / 1080, -- distance from top edge to center of text
-    HeaderTextLowerGap = 27 / 1080, -- distance from bottom edge to center of text
-    HeaderTextLeftGap = 30 / 1920, -- distance from edge of banner to left of text
     wtffudge = 45 / 1080, -- this random number fixes the weird offset of the wheel vertically so that it fits perfectly with the header
+    -- effective measurements for group specific information
+    HeaderBannerWidth = 336 / 1920,
+    HeaderText1UpperGap = 21 / 1080, -- distance from top edge to top text top edge
+    HeaderText2UpperGap = 68 / 1080, -- distance from top edge to top edge of lower text
+    HeaderTextLeftGap = 21 / 1920, -- distance from edge of banner to left of text
+    -- effective measurements for the header lines when not in group specific info mode
+    HeaderMText1UpperGap = 16 / 1080,
+    HeaderMText2UpperGap = 47 / 1080,
+    HeaderMText3UpperGap = 78 / 1080,
+    HeaderMTextLeftGap = 0 / 1920, -- text width will be the same as the banner width
+    HeaderGraphWidth = 573 / 1920, -- very approximate
 
     -- controls the width of the mouse wheel scroll box, should be the same number as the general box X position
     -- (found in generalBox.lua)
@@ -58,11 +65,16 @@ local actuals = {
     BannerItemGap = ratios.BannerItemGap * SCREEN_WIDTH,
     HeaderHeight = ratios.HeaderHeight * SCREEN_HEIGHT,
     HeaderUpperGap = ratios.HeaderUpperGap * SCREEN_HEIGHT,
-    HeaderBannerWidth = ratios.HeaderBannerWidth * SCREEN_WIDTH,
-    HeaderTextUpperGap = ratios.HeaderTextUpperGap * SCREEN_HEIGHT,
-    HeaderTextLowerGap = ratios.HeaderTextLowerGap * SCREEN_HEIGHT,
-    HeaderTextLeftGap = ratios.HeaderTextLeftGap * SCREEN_WIDTH,
     wtffudge = ratios.wtffudge * SCREEN_HEIGHT,
+    HeaderBannerWidth = ratios.HeaderBannerWidth * SCREEN_WIDTH,
+    HeaderText1UpperGap = ratios.HeaderText1UpperGap * SCREEN_HEIGHT,
+    HeaderText2UpperGap = ratios.HeaderText2UpperGap * SCREEN_HEIGHT,
+    HeaderTextLeftGap = ratios.HeaderTextLeftGap * SCREEN_WIDTH,
+    HeaderMText1UpperGap = ratios.HeaderMText1UpperGap * SCREEN_HEIGHT,
+    HeaderMText2UpperGap = ratios.HeaderMText2UpperGap * SCREEN_HEIGHT,
+    HeaderMText3UpperGap = ratios.HeaderMText3UpperGap * SCREEN_HEIGHT,
+    HeaderMTextLeftGap = ratios.HeaderMTextLeftGap * SCREEN_WIDTH,
+    HeaderGraphWidth = ratios.HeaderGraphWidth * SCREEN_WIDTH,
     GeneralBoxLeftGap = ratios.GeneralBoxLeftGap * SCREEN_WIDTH,
     ScrollBarWidth = ratios.ScrollBarWidth * SCREEN_WIDTH,
     ScrollBarHeight = ratios.ScrollBarHeight * SCREEN_HEIGHT,
@@ -75,8 +87,10 @@ local wheelItemArtistTextSize = 0.62
 local wheelItemGroupTextSize = 0.82
 local wheelItemGroupInfoTextSize = 0.62
 local wheelHeaderTextSize = 1.2
+local wheelHeaderMTextSize = 0.6
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
-local headerFudge = 5 -- used to make the header slightly bigger to account for ??? vertical gaps
+
+local headerTransitionSeconds = 0.2
 
 -- check to see if a stepstype is countable for average diff reasons
 local function countableStepsType(stepstype)
@@ -527,22 +541,160 @@ t[#t+1] = Def.ActorFrame {
     },
 }
 
-t[#t+1] = Def.Quad {
+t[#t+1] = Def.ActorFrame {
+    Name = "WheelHeader",
     InitCommand = function(self)
-        self:halign(0):valign(0)
         self:xy(actuals.LeftGap,actuals.HeaderUpperGap)
-        self:zoomto(actuals.Width, actuals.HeaderHeight)
     end,
-    --[[
-        -- this means we clicked the header
-        -- hidden feature: random song in group if doing that
-        local group = self:GetParent().g.Title:GetText()
-        if group == nil or group == "" then return end
-        local songs = SONGMAN:GetSongsInGroup(group)
-        if #songs == 0 then return end
-        local song = songs[math.random(#songs)]
-        SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("FindSong", {song = song})
-    ]]
+    ScrolledIntoGroupMessageCommand = function(self)
+        self:GetChild("MiscPage"):playcommand("Out")
+        self:GetChild("GroupPage"):playcommand("In")
+    end,
+    ScrolledOutOfGroupMessageCommand = function(self)
+        self:GetChild("GroupPage"):playcommand("Out")
+        self:GetChild("MiscPage"):playcommand("In")
+    end,
+
+    Def.ActorFrame {
+        Name = "GroupPage",
+        InitCommand = function(self)
+            self:diffusealpha(0)
+        end,
+        InCommand = function(self)
+            self:finishtweening()
+            self:smooth(headerTransitionSeconds)
+            self:diffusealpha(1)
+            self:playcommand("Set")
+        end,
+        OutCommand = function(self)
+            self:finishtweening()
+            self:smooth(headerTransitionSeconds)
+            self:diffusealpha(0)
+        end,
+
+        Def.Quad {
+            Name = "BG",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:zoomto(actuals.Width, actuals.HeaderHeight)
+                self:diffuse(color("#111111"))
+                self:diffusealpha(0.6)
+            end
+        },
+        Def.Sprite {
+            Name = "Banner",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight)
+                -- dont play movies because they lag the wheel so much like wow please dont ever use those (for now)
+                self:SetDecodeMovie(false)
+            end,
+            SetCommand = function(self)
+                local bnpath = SONGMAN:GetSongGroupBannerPath(openedGroup)
+                if not bnpath or bnpath == "" then
+                    bnpath = THEME:GetPathG("Common", "fallback banner")
+                end
+                self:Load(bnpath)
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "GroupTitle",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderText1UpperGap)
+                self:zoom(wheelHeaderTextSize)
+                self:maxwidth((actuals.Width - actuals.HeaderTextLeftGap * 2 - actuals.HeaderBannerWidth) / wheelHeaderTextSize)
+            end,
+            SetCommand = function(self)
+                self:settext(openedGroup)
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "GroupInfo",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderText2UpperGap)
+                self:zoom(wheelHeaderTextSize)
+                self:maxwidth((actuals.Width - actuals.HeaderTextLeftGap * 2 - actuals.HeaderBannerWidth) / wheelHeaderTextSize)
+            end,
+            SetCommand = function(self)
+                local files = packCounts[openedGroup]
+                local avg = avgDiffByPack[openedGroup]
+                self:settextf("%d Songs (Average MSD: %5.2f)", files, avg)
+            end
+        }
+        --[[
+            -- this means we clicked the header
+            -- hidden feature: random song in group if doing that
+            local group = self:GetParent().g.Title:GetText()
+            if group == nil or group == "" then return end
+            local songs = SONGMAN:GetSongsInGroup(group)
+            if #songs == 0 then return end
+            local song = songs[math.random(#songs)]
+            SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("FindSong", {song = song})
+        ]]
+    },
+    Def.ActorFrame {
+        Name = "MiscPage",
+        InitCommand = function(self)
+            self:diffusealpha(0)
+            self:SetUpdateFunction(function(self)
+                if not self:IsInvisible() then
+                    self:GetChild("SessionTime"):playcommand("Set")
+                end
+            end)
+            self:SetUpdateFunctionInterval(0.5)
+        end,
+        InCommand = function(self)
+            self:finishtweening()
+            self:smooth(headerTransitionSeconds)
+            self:diffusealpha(1)
+            self:playcommand("Set")
+        end,
+        OutCommand = function(self)
+            self:finishtweening()
+            self:smooth(headerTransitionSeconds)
+            self:diffusealpha(0)
+        end,
+
+        LoadFont("Common Normal") .. {
+            Name = "SessionTime",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.HeaderMTextLeftGap, actuals.HeaderMText1UpperGap)
+                self:zoom(wheelHeaderMTextSize)
+                self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
+            end,
+            SetCommand = function(self)
+                local sesstime = GAMESTATE:GetSessionTime()
+                self:settextf("Session Time: %s", SecondsToHHMMSS(sesstime))
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "SessionPlays",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.HeaderMTextLeftGap, actuals.HeaderMText2UpperGap)
+                self:zoom(wheelHeaderMTextSize)
+                self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
+            end,
+            SetCommand = function(self)
+                self:settextf("Session Plays: %d", 696969)
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "AverageAccuracy",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.HeaderMTextLeftGap, actuals.HeaderMText3UpperGap)
+                self:zoom(wheelHeaderMTextSize)
+                self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
+            end,
+            SetCommand = function(self)
+                self:settextf("Average Accuracy: %5.2f%%", 12.34)
+            end
+        }
+    }
 }
 
 return t
