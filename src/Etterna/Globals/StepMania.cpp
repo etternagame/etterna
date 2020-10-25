@@ -5,6 +5,7 @@
 // Rage global classes
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/PlogLogger.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -52,7 +53,6 @@
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "ver.h"
 #include "discord_rpc.h"
 
 #include <ctime>
@@ -971,9 +971,9 @@ MountTreeOfZips(const std::string& dir)
 static void
 WriteLogHeader()
 {
-	Locator::getLogger()->info("{}{}", PRODUCT_FAMILY, product_version);
+	Locator::getLogger()->info("{}{}", PRODUCT_FAMILY, Core::AppInfo::APP_VERSION);
 
-	Locator::getLogger()->info("(build {})", ::version_git_hash);
+	Locator::getLogger()->info("(build {})", Core::AppInfo::GIT_HASH);
 
 	time_t cur_time;
 	time(&cur_time);

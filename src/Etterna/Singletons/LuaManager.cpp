@@ -10,7 +10,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/Dialog/Dialog.h"
-#include "ver.h"
+#include "Core/Misc/AppInfo.hpp"
 
 #include <algorithm>
 #include <array>
@@ -1481,7 +1481,7 @@ GetFuncArg(int n, lua_State* L)
 
 #include "Etterna/Globals/ProductInfo.h"
 LuaFunction(ProductFamily, (std::string)PRODUCT_FAMILY);
-LuaFunction(ProductVersion, (std::string)product_version);
+LuaFunction(ProductVersion, (std::string)Core::AppInfo::APP_VERSION);
 LuaFunction(ProductID, (std::string)PRODUCT_ID);
 
 LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
