@@ -1,29 +1,3 @@
-local function CreditsText(pn)
-	local text =
-		LoadFont(Var "LoadingScreen", "credits") ..
-		{
-			InitCommand = function(self)
-				self:name("Credits" .. PlayerNumberToString(pn))
-				ActorUtil.LoadAllCommandsAndSetXY(self, Var "LoadingScreen")
-			end,
-			UpdateTextCommand = function(self)
-				local str = ScreenSystemLayerHelpers.GetCreditsMessage(pn)
-				self:settext(str)
-			end,
-			UpdateVisibleCommand = function(self)
-				local screen = SCREENMAN:GetTopScreen()
-				local bShow = true
-				if screen then
-					local sClass = screen:GetName()
-					bShow = THEME:GetMetric(sClass, "ShowCreditDisplay")
-				end
-
-				self:visible(bShow)
-			end
-		}
-	return text
-end
-
 --[[ local function PlayerPane( PlayerNumber ) 
 	local t = Def.ActorFrame {
 		InitCommand=function(self)
@@ -64,17 +38,7 @@ end
 end --]]
 --
 local t = Def.ActorFrame {}
--- Credits
-t[#t + 1] =
-	Def.ActorFrame {
-	--[[  	PlayerPane( PLAYER_1 ) .. {
-		InitCommand=function(self)
-			self:x(scale(0.125,0,1,SCREEN_LEFT,SCREEN_WIDTH)):y(SCREEN_BOTTOM-16)
-		end	
-	}; --]]
-	CreditsText(PLAYER_1),
-	CreditsText(PLAYER_2)
-}
+
 -- Text
 t[#t + 1] =
 	Def.ActorFrame {

@@ -232,46 +232,49 @@ local function generateCategoryColors()
 	return t
 end
 
-local t =
-	Def.ActorFrame {
-	CodeMessageCommand = function(self, params)
-		if params.Name == "ColorUp" then
-			if curLevel == 1 then
-				cursorIndex[curLevel] = math.max(1, cursorIndex[curLevel] - 1)
-				cursorIndex[2] = 1
-				cursorIndex[3] = 1
-			elseif curLevel == 2 then
-				cursorIndex[curLevel] = math.max(1, cursorIndex[curLevel] - 1)
+local t = Def.ActorFrame {
+	OnCommand = function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if event.type == "InputEventType_FirstPress" then
+				if event.button == "MenuUp" then
+					if curLevel == 1 then
+						cursorIndex[curLevel] = math.max(1, cursorIndex[curLevel] - 1)
+						cursorIndex[2] = 1
+						cursorIndex[3] = 1
+					elseif curLevel == 2 then
+						cursorIndex[curLevel] = math.max(1, cursorIndex[curLevel] - 1)
+					end
+		
+					MESSAGEMAN:Broadcast("RowChanged", {level = curLevel})
+				elseif event.button == "MenuDown" then
+					if curLevel == 1 then
+						cursorIndex[curLevel] = math.min(getTableSize(configData), cursorIndex[curLevel] + 1)
+						cursorIndex[2] = 1
+						cursorIndex[3] = 1
+					elseif curLevel == 2 then
+						cursorIndex[curLevel] = math.min(getTableSize(configData[selected[1]]), cursorIndex[curLevel] + 1)
+					end
+		
+					MESSAGEMAN:Broadcast("RowChanged", {level = curLevel})
+				elseif event.button == "MenuLeft" then
+					curLevel = math.max(1, curLevel - 1)
+					MESSAGEMAN:Broadcast("ColChanged", {level = curLevel})
+				elseif event.button == "MenuRight" then
+					curLevel = math.min(2, curLevel + 1)
+					MESSAGEMAN:Broadcast("ColChanged", {level = curLevel})
+				elseif event.button == "Start" then
+					if curLevel == 1 then
+						curLevel = math.min(2, curLevel + 1)
+						MESSAGEMAN:Broadcast("ColChanged", {level = curLevel})
+					elseif curLevel == 2 then
+						setTableKeys(selected)
+						SCREENMAN:AddNewScreenToTop("ScreenColorEdit")
+					end
+				elseif event.button == "Back" then
+					SCREENMAN:GetTopScreen():Cancel()
+				end
 			end
-
-			MESSAGEMAN:Broadcast("RowChanged", {level = curLevel})
-		elseif params.Name == "ColorDown" then
-			if curLevel == 1 then
-				cursorIndex[curLevel] = math.min(getTableSize(configData), cursorIndex[curLevel] + 1)
-				cursorIndex[2] = 1
-				cursorIndex[3] = 1
-			elseif curLevel == 2 then
-				cursorIndex[curLevel] = math.min(getTableSize(configData[selected[1]]), cursorIndex[curLevel] + 1)
-			end
-
-			MESSAGEMAN:Broadcast("RowChanged", {level = curLevel})
-		elseif params.Name == "ColorLeft" then
-			curLevel = math.max(1, curLevel - 1)
-			MESSAGEMAN:Broadcast("ColChanged", {level = curLevel})
-		elseif params.Name == "ColorRight" then
-			curLevel = math.min(2, curLevel + 1)
-			MESSAGEMAN:Broadcast("ColChanged", {level = curLevel})
-		elseif params.Name == "ColorStart" then
-			if curLevel == 1 then
-				curLevel = math.min(2, curLevel + 1)
-				MESSAGEMAN:Broadcast("ColChanged", {level = curLevel})
-			elseif curLevel == 2 then
-				setTableKeys(selected)
-				SCREENMAN:AddNewScreenToTop("ScreenColorEdit")
-			end
-		elseif params.Name == "ColorCancel" then
-			SCREENMAN:GetTopScreen():Cancel()
-		end
+		end)
 	end
 }
 

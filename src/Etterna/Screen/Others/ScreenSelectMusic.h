@@ -71,6 +71,8 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	void SetPreviewNoteFieldMusicPosition(float);
 	void PausePreviewNoteFieldMusic();
+	void PlayCurrentSongSampleMusic(bool bForcePlay,
+									bool bForceAccurate = false);
 
 	NoteData m_PreviewNoteData;
 	NoteField* m_pPreviewNoteField;

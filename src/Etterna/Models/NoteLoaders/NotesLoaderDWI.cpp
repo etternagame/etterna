@@ -6,7 +6,6 @@
 #include "NotesLoader.h"
 #include "NotesLoaderDWI.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -144,8 +143,8 @@ DWIcharToNote(char c,
 			note2Out = DANCE_NOTE_PAD1_UPRIGHT;
 			break;
 		default:
-			LOG->UserLog(
-			  "Song file", sPath, "has an invalid DWI note character '%c'.", c);
+			/*LOG->UserLog(
+			  "Song file", sPath, "has an invalid DWI note character '%c'.", c);*/
 			note1Out = DANCE_NOTE_NONE;
 			note2Out = DANCE_NOTE_NONE;
 			break;
@@ -374,9 +373,9 @@ ParseNoteData(std::string& step1,
 				  : // this is a note character
 				{
 					if (c == '!') {
-						LOG->UserLog("Song file",
+						/*LOG->UserLog("Song file",
 									 path,
-									 "has an unexpected character: '!'.");
+									 "has an unexpected character: '!'.");*/
 						continue;
 					}
 
@@ -473,12 +472,12 @@ ParseNoteData(std::string& step1,
 
 			if (!bFound) {
 				/* The hold was never closed.  */
-				LOG->UserLog(
+				/*LOG->UserLog(
 				  "Song file",
 				  path,
 				  "failed to close a hold note in \"%s\" on track %i",
 				  DifficultyToString(out.GetDifficulty()).c_str(),
-				  t);
+				  t);*/
 
 				newNoteData.SetTapNote(t, iHeadRow, TAP_EMPTY);
 			}
@@ -509,8 +508,6 @@ LoadFromDWITokens(std::string sMode,
 				  Steps& out,
 				  const std::string& sPath)
 {
-	CHECKPOINT_M("DWILoader::LoadFromDWITokens()");
-
 	out.m_StepsType = GetTypeFromMode(sMode);
 	if (out.m_StepsType == StepsType_Invalid)
 		return false;
@@ -553,7 +550,7 @@ ParseBrokenDWITimestamp(const std::string& arg1,
 	/* 1+ args */
 	if (arg2.empty()) {
 		/* If the value contains a period, treat it as seconds; otherwise ms. */
-		if (arg1.find_first_of(".") != arg1.npos)
+		if (arg1.find_first_of('.') != arg1.npos)
 			return StringToFloat(arg1);
 
 		return StringToFloat(arg1) / 1000.f;
@@ -580,8 +577,8 @@ DWILoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 	MsdFile msd;
 	if (!msd.ReadFile(path, false)) // don't unescape
 	{
-		LOG->UserLog(
-		  "Song file", path, "couldn't be opened: %s", msd.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", path, "couldn't be opened: %s", msd.GetError().c_str());
 		return false;
 	}
 
@@ -623,9 +620,9 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 	GetApplicableFiles(sPath_, aFileNames);
 
 	if (aFileNames.size() > 1) {
-		LOG->UserLog("Song",
-					 sPath_,
-					 "has more than one DWI file. There should be only one!");
+//		LOG->UserLog("Song",
+//					 sPath_,
+//					 "has more than one DWI file. There should be only one!");
 		return false;
 	}
 
@@ -634,13 +631,13 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 	ASSERT(aFileNames.size() == 1);
 	const std::string sPath = sPath_ + aFileNames[0];
 
-	LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str());
+//	LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(sPath, false)) // don't unescape
 	{
-		LOG->UserLog(
-		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
 		return false;
 	}
 
@@ -652,10 +649,10 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 		std::string sValueName = sParams[0];
 
 		if (iNumParams < 1) {
-			LOG->UserLog("Song file",
+			/*LOG->UserLog("Song file",
 						 sPath,
 						 "has tag \"%s\" with no parameters.",
-						 sValueName.c_str());
+						 sValueName.c_str());*/
 			continue;
 		}
 
@@ -691,11 +688,11 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 			const float fBPM = StringToFloat(sParams[1]);
 
 			if (unlikely(fBPM <= 0.0f)) {
-				LOG->UserLog("Song file",
+				/*LOG->UserLog("Song file",
 							 sPath,
 							 "has an invalid BPM change at beat %f, BPM %f.",
 							 0.0f,
-							 fBPM);
+							 fBPM);*/
 			} else {
 				out.m_SongTiming.AddSegment(BPMSegment(0, fBPM));
 			}
@@ -748,10 +745,10 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 				vector<std::string> arrayFreezeValues;
 				split(arrayFreezeExpression, "=", arrayFreezeValues);
 				if (arrayFreezeValues.size() != 2) {
-					LOG->UserLog("Song file",
+					/*LOG->UserLog("Song file",
 								 sPath,
 								 "has an invalid FREEZE: '%s'.",
-								 arrayFreezeExpression.c_str());
+								 arrayFreezeExpressions[f].c_str());*/
 					continue;
 				}
 				int iFreezeRow =
@@ -775,10 +772,10 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 				vector<std::string> arrayBPMChangeValues;
 				split(arrayBPMChangeExpression, "=", arrayBPMChangeValues);
 				if (arrayBPMChangeValues.size() != 2) {
-					LOG->UserLog("Song file",
+					/*LOG->UserLog("Song file",
 								 sPath,
 								 "has an invalid CHANGEBPM: '%s'.",
-								 arrayBPMChangeExpression.c_str());
+								 arrayBPMChangeExpressions[b].c_str());*/
 					continue;
 				}
 
@@ -787,13 +784,12 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 				float fBPM = StringToFloat(arrayBPMChangeValues[1]);
 				if (fBPM > 0.0f)
 					out.m_SongTiming.AddSegment(BPMSegment(iStartIndex, fBPM));
-				else
-					LOG->UserLog(
-					  "Song file",
-					  sPath,
-					  "has an invalid BPM change at beat %f, BPM %f.",
-					  NoteRowToBeat(iStartIndex),
-					  fBPM);
+				else {
+					//					LOG->UserLog(
+					//					  "Song file",
+					//					  sPath,
+					//					  "has an invalid BPM change at beat %f, BPM %f.", 					  NoteRowToBeat(iStartIndex), 					  fBPM);
+				}
 			}
 		}
 

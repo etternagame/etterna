@@ -13,7 +13,7 @@ class TextBanner final : public ActorFrame
   public:
 	TextBanner();
 	TextBanner(const TextBanner& cpy);
-	[[nodiscard]] TextBanner* Copy() const override;
+	[[nodiscard]] auto Copy() const -> TextBanner* override;
 
 	void LoadFromNode(const XNode* pNode) override;
 	void Load(const std::string& sMetricsGroup); // load metrics

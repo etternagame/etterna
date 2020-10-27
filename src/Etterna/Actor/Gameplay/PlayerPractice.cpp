@@ -7,14 +7,14 @@
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/GameState.h"
-#include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "PlayerPractice.h"
+#include "LifeMeter.h"
 
-PlayerPractice::PlayerPractice(NoteData& nd, bool bVisibleParts)
+PlayerPractice::PlayerPractice(NoteData& nd, const bool bVisibleParts)
   : Player(nd, bVisibleParts)
 {
 	// eh
@@ -34,18 +34,20 @@ PlayerPractice::Init(const std::string& sType,
 {
 	Player::Init(
 	  sType, pPlayerState, pPlayerStageStats, pLM, pPrimaryScoreKeeper);
-	if (m_pPlayerStageStats)
+	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->m_bDisqualified = true;
+	}
 }
 
 void
-PlayerPractice::Update(float fDeltaTime)
+PlayerPractice::Update(const float fDeltaTime)
 {
 	const auto now = std::chrono::steady_clock::now();
-	if (!m_bLoaded || GAMESTATE->m_pCurSong == nullptr)
+	if (!m_bLoaded || GAMESTATE->m_pCurSong == nullptr) {
 		return;
+	}
 
-	ActorFrame::Update(fDeltaTime);
+	ActorFrame::Update(fDeltaTime); // NOLINT(bugprone-parent-virtual-call)
 
 	ArrowEffects::SetCurrentOptions(
 	  &m_pPlayerState->m_PlayerOptions.GetCurrent());
@@ -53,8 +55,9 @@ PlayerPractice::Update(float fDeltaTime)
 	UpdateVisibleParts();
 
 	// Sure, why not?
-	if (GAMESTATE->GetPaused())
+	if (GAMESTATE->GetPaused()) {
 		return;
+	}
 
 	// Tell the NoteField we pressed (or didnt press) certain columns
 	UpdatePressedFlags();
@@ -62,8 +65,9 @@ PlayerPractice::Update(float fDeltaTime)
 	// Don't judge anything if we aren't counting stats
 	// But also don't not judge anything if we are in Autoplay.
 	// I don't know why you would use Autoplay in Practice, but yeah
-	if (!countStats && m_pPlayerState->m_PlayerController == PC_HUMAN)
+	if (!countStats && m_pPlayerState->m_PlayerController == PC_HUMAN) {
 		return;
+	}
 
 	// Tell Rolls to update (if in Autoplay)
 	// Tell Holds to update (lose life)
@@ -79,15 +83,16 @@ PlayerPractice::Update(float fDeltaTime)
 }
 
 void
-PlayerPractice::Step(int col,
-					 int row,
+PlayerPractice::Step(const int col,
+					 const int row,
 					 const std::chrono::steady_clock::time_point& tm,
-					 bool bHeld,
-					 bool bRelease,
-					 float padStickSeconds)
+					 const bool bHeld,
+					 const bool bRelease,
+					 const float padStickSeconds)
 {
-	if (GamePreferences::m_AutoPlay != PC_HUMAN)
+	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		countStats = true;
+	}
 
 	if (!countStats) {
 		// big brained override to toggle this boolean and do everything else
@@ -96,15 +101,15 @@ PlayerPractice::Step(int col,
 
 		// reset all iterators to this point so we can ignore the things we dont
 		// care about
-		const float fSongTime = GAMESTATE->m_Position.m_fMusicSeconds;
-		const float fNotesBeatAdjusted =
+		const auto fSongTime = GAMESTATE->m_Position.m_fMusicSeconds;
+		const auto fNotesBeatAdjusted =
 		  GAMESTATE->m_pCurSteps->GetTimingData()->GetBeatFromElapsedTime(
 			fSongTime - GetMaxStepDistanceSeconds());
-		const float fNotesBeat =
+		const auto fNotesBeat =
 		  GAMESTATE->m_pCurSteps->GetTimingData()->GetBeatFromElapsedTime(
 			fSongTime);
-		const int rowNowAdjusted = BeatToNoteRow(fNotesBeatAdjusted);
-		const int rowNow = BeatToNoteRow(fNotesBeat);
+		const auto rowNowAdjusted = BeatToNoteRow(fNotesBeatAdjusted);
+		const auto rowNow = BeatToNoteRow(fNotesBeat);
 
 		SAFE_DELETE(m_pIterNeedsTapJudging);
 		m_pIterNeedsTapJudging = new NoteData::all_tracks_iterator(
@@ -170,10 +175,13 @@ PlayerPractice::PositionReset()
 	// misc judge info
 	m_iFirstUncrossedRow = -1;
 	m_pJudgedRows->Reset(-1);
-	for (int i = 0;
+	for (auto i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
 		 ++i) {
-		lastHoldHeadsSeconds[i] = -1000.f;
+		lastHoldHeadsSeconds[i] = -1000.F;
 	}
+
+	// set lifebar to 100
+	m_pLifeMeter->ChangeLife(1.F);
 }

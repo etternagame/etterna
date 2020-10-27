@@ -5,12 +5,12 @@
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -101,15 +101,12 @@ Profile::InitGeneralData()
 	m_iTotalLifts = 0;
 	m_fPlayerRating = 0.f;
 
-	FOREACH_ENUM(PlayMode, i)
-	m_iNumSongsPlayedByPlayMode[i] = 0;
 	m_iNumSongsPlayedByStyle.clear();
 	FOREACH_ENUM(Difficulty, i)
 	m_iNumSongsPlayedByDifficulty[i] = 0;
 	for (auto& i : m_iNumSongsPlayedByMeter)
 		i = 0;
 	m_iNumTotalSongsPlayed = 0;
-	ZERO(m_iNumStagesPassedByPlayMode);
 	ZERO(m_iNumStagesPassedByGrade);
 	ZERO(m_fPlayerSkillsets);
 
@@ -164,34 +161,15 @@ Profile::SetDefaultModifiers(const Game* pGameType,
 		m_sDefaultModifiers[pGameType->m_szName] = sModifiers;
 }
 
-Grade
-Profile::GetBestGrade(const Song* pSong, StepsType st) const
+auto
+Profile::GetBestGrade(const Song* song, const StepsType st) const -> Grade
 {
 	auto gradeBest = Grade_Invalid;
-	if (pSong != nullptr) {
-		auto hasCurrentStyleSteps = false;
-		FOREACH_ENUM_N(Difficulty, 6, i)
-		{
-			auto* pSteps = SongUtil::GetStepsByDifficulty(pSong, st, i);
-			if (pSteps != nullptr) {
-				hasCurrentStyleSteps = true;
+	if (song != nullptr) {
+		for (const auto& s : song->GetAllSteps()) {
+			if (s != nullptr && s->m_StepsType == st) {
 				const auto dcg =
-				  SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-				if (gradeBest >= dcg) {
-					gradeBest = dcg;
-				}
-			}
-		}
-		// If no grade was found for the current style/stepstype
-		if (!hasCurrentStyleSteps) {
-			// Get the best grade among all steps
-			const auto& allSteps = pSong->GetAllSteps();
-			for (const auto& stepsPtr : allSteps) {
-				if (stepsPtr->m_StepsType ==
-					st) // Skip already checked steps of type st
-					continue;
-				const auto dcg =
-				  SCOREMAN->GetBestGradeFor(stepsPtr->GetChartKey());
+				  SCOREMAN->GetBestGradeFor(s->GetChartKey(), m_sProfileID);
 				if (gradeBest >= dcg) {
 					gradeBest = dcg;
 				}
@@ -200,6 +178,25 @@ Profile::GetBestGrade(const Song* pSong, StepsType st) const
 	}
 
 	return gradeBest;
+}
+
+auto
+Profile::GetBestWifeScore(const Song* song, const StepsType st) const -> float
+{
+	auto scorebest = 0.F;
+	if (song != nullptr) {
+		for (const auto& s : song->GetAllSteps()) {
+			if (s != nullptr && s->m_StepsType == st) {
+				const auto wsb =
+				  SCOREMAN->GetBestWifeScoreFor(s->GetChartKey(), m_sProfileID);
+				if (wsb >= scorebest) {
+					scorebest = wsb;
+				}
+			}
+		}
+	}
+
+	return scorebest;
 }
 
 void
@@ -237,12 +234,10 @@ Profile::swap(Profile& other)
 	SWAP_GENERAL(m_bNewProfile);
 	SWAP_STR_MEMBER(m_sLastPlayedMachineGuid);
 	SWAP_GENERAL(m_LastPlayedDate);
-	SWAP_ARRAY(m_iNumSongsPlayedByPlayMode, NUM_PlayMode);
 	SWAP_STR_MEMBER(m_iNumSongsPlayedByStyle);
 	SWAP_ARRAY(m_iNumSongsPlayedByDifficulty, NUM_Difficulty);
 	SWAP_ARRAY(m_iNumSongsPlayedByMeter, MAX_METER + 1);
 	SWAP_GENERAL(m_iNumTotalSongsPlayed);
-	SWAP_ARRAY(m_iNumStagesPassedByPlayMode, NUM_PlayMode);
 	SWAP_ARRAY(m_iNumStagesPassedByGrade, NUM_Grade);
 	SWAP_GENERAL(m_UserTable);
 	SWAP_STR_MEMBER(m_vScreenshots);
@@ -276,7 +271,7 @@ Profile::LoadCustomFunction(const std::string& sDir)
 }
 
 void
-Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
+Profile::HandleStatsPrefixChange(std::string dir)
 {
 	// Temp variables to preserve stuff across the reload.
 	// Some stuff intentionally left out because the original reason for the
@@ -296,7 +291,7 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	const auto user_table = m_UserTable;
 	auto need_to_create_file = false;
 	if (IsAFile(dir + PROFILEMAN->GetStatsPrefix() + ETT_XML)) {
-		LoadAllFromDir(dir, require_signature, nullptr);
+		LoadAllFromDir(dir, nullptr);
 	} else {
 		ClearStats();
 		need_to_create_file = true;
@@ -315,18 +310,15 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	m_iTotalGameplaySeconds = total_gameplay_seconds;
 	m_UserTable = user_table;
 	if (need_to_create_file) {
-		SaveAllToDir(dir, require_signature);
+		SaveAllToDir(dir);
 	}
 }
 
-static const float ld_update = 0.02f;
 ProfileLoadResult
-Profile::LoadAllFromDir(const std::string& sDir,
-						bool bRequireSignature,
-						LoadingWindow* ld)
+Profile::LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
 {
 	ZoneScoped;
-	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	Locator::getLogger()->trace("Profile::LoadAllFromDir({})", sDir.c_str());
 	ASSERT(sDir.back() == '/');
 
 	InitAll();
@@ -365,7 +357,7 @@ Profile::LoadTypeFromDir(const std::string& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	LOG->Trace("Calculating stats from scores");
+	Locator::getLogger()->trace("Calculating stats from scores");
 	const auto& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	auto TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
@@ -373,7 +365,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 	m_iTotalMines = 0;
 
 	for (auto* hs : all) {
-		TotalGameplaySeconds += hs->GetSurvivalSeconds();
+		TotalGameplaySeconds += hs->GetPlayedSeconds();
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W3);
@@ -387,7 +379,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalGameplaySeconds = static_cast<int>(TotalGameplaySeconds);
 
-	SCOREMAN->RecalculateSSRs(ld, m_sProfileID);
+	SCOREMAN->RecalculateSSRs(ld);
 	SCOREMAN->CalcPlayerRating(
 	  m_fPlayerRating, m_fPlayerSkillsets, m_sProfileID);
 }
@@ -399,7 +391,7 @@ Profile::CalculateStatsFromScores()
 }
 
 bool
-Profile::SaveAllToDir(const std::string& sDir, bool bSignData) const
+Profile::SaveAllToDir(const std::string& sDir) const
 {
 	m_LastPlayedDate = DateTime::GetNowDate();
 
@@ -455,10 +447,10 @@ Profile::LoadEditableDataFromDir(const std::string& sDir)
 	ini.GetValue("Editable", "LastUsedHighScoreName", m_sLastUsedHighScoreName);
 
 	// This is data that the user can change, so we have to validate it.
-	auto wstr = RStringToWstring(m_sDisplayName);
+	auto wstr = StringToWString(m_sDisplayName);
 	if (wstr.size() > PROFILE_MAX_DISPLAY_NAME_LENGTH)
 		wstr = wstr.substr(0, PROFILE_MAX_DISPLAY_NAME_LENGTH);
-	m_sDisplayName = WStringToRString(wstr);
+	m_sDisplayName = WStringToString(wstr);
 	// TODO: strip invalid chars?
 
 	return ProfileLoadResult_Success;
@@ -569,8 +561,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 	if (achieved) {
 		pNode->GetChildValue("TimeAchieved", s);
 		timeachieved.FromString(s);
-		pNode->GetChildValue("ScoreKey", s);
-		scorekey;
+		pNode->GetChildValue("ScoreKey", scorekey);
 	}
 
 	pNode->GetChildValue("Comment", comment);
@@ -663,14 +654,6 @@ void
 Profile::SaveStatsWebPageToDir(const std::string& sDir) const
 {
 	ASSERT(PROFILEMAN != nullptr);
-}
-
-void
-Profile::SaveMachinePublicKeyToDir(const std::string& sDir) const
-{
-	if (PREFSMAN->m_bSignProfileData &&
-		IsAFile(CRYPTMAN->GetPublicKeyFileName()))
-		FileCopy(CRYPTMAN->GetPublicKeyFileName(), sDir + PUBLIC_KEY_FILE);
 }
 
 void

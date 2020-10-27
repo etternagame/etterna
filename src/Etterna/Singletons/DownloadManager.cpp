@@ -2,7 +2,7 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "ScreenManager.h"
 #include "Etterna/Models/Misc/Preference.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/File/RageFile.h"
 #include "DownloadManager.h"
 #include "GameState.h"
@@ -16,7 +16,6 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
-#include "Etterna/Models/Misc/Grade.h"
 #include <Tracy.hpp>
 #include "curl/curl.h"
 #include "Etterna/Models/Songs/SongOptions.h"
@@ -134,7 +133,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 
 	string doot = TEMP_ZIP_MOUNT_POINT;
 	if (v_packs.size() > 1) {
-		doot += sZipFile.substr(sZipFile.find_last_of("/") +
+		doot += sZipFile.substr(sZipFile.find_last_of('/') +
 								1); // attempt to whitelist pack name, this
 									// should be pretty simple/safe solution for
 									// a lot of pad packs -mina
@@ -447,12 +446,12 @@ DownloadManager::EncodeSpaces(string& str)
 
 	// Parse spaces (curl doesnt parse them properly)
 	bool foundSpaces = false;
-	size_t index = str.find(" ", 0);
+	size_t index = str.find(' ', 0);
 	while (index != string::npos) {
 
 		str.erase(index, 1);
 		str.insert(index, "%20");
-		index = str.find(" ", index);
+		index = str.find(' ', index);
 		foundSpaces = true;
 	}
 	return foundSpaces;
@@ -552,40 +551,38 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	}
 
 	{
-		ZoneNamedN(check_msgs, "CheckMsgs", true);
-		// Check for finished http requests
-		CURLMsg* msg;
-		int msgs_left;
-		while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
-			/* Find out which handle this message is about */
-			int idx_to_delete = -1;
-			for (size_t i = 0; i < HTTPRequests.size(); ++i) {
-				if (msg->easy_handle == HTTPRequests[i]->handle) {
-					if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
-						HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-						LOG->Trace(
-						  "CURL UNSUPPORTED PROTOCOL (Probably https)");
-					} else if (msg->msg == CURLMSG_DONE) {
-						HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
-					} else
-						HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-					if (HTTPRequests[i]->handle != nullptr)
-						curl_easy_cleanup(HTTPRequests[i]->handle);
-					HTTPRequests[i]->handle = nullptr;
-					if (HTTPRequests[i]->form != nullptr)
-						curl_formfree(HTTPRequests[i]->form);
-					HTTPRequests[i]->form = nullptr;
-					delete HTTPRequests[i];
-					idx_to_delete = i;
-					break;
-				}
-			}
-			// Delete this here instead of within the loop to avoid iterator invalidation
-			if (idx_to_delete != -1) {
-				HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
-			}
-		}
-
+    ZoneNamedN(check_msgs, "CheckMsgs", true);
+	  // Check for finished http requests
+	  CURLMsg* msg;
+	  int msgs_left;
+	  while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
+		  /* Find out which handle this message is about */
+		  int idx_to_delete = -1;
+		  for (size_t i = 0; i < HTTPRequests.size(); ++i) {
+		  	if (msg->easy_handle == HTTPRequests[i]->handle) {
+		  		if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
+			  		HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+				  	Locator::getLogger()->trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
+  				} else if (msg->msg == CURLMSG_DONE) {
+	  				HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
+		  		} else
+			  		HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+				  if (HTTPRequests[i]->handle != nullptr)
+  					curl_easy_cleanup(HTTPRequests[i]->handle);
+	  			HTTPRequests[i]->handle = nullptr;
+		  		if (HTTPRequests[i]->form != nullptr)
+			  		curl_formfree(HTTPRequests[i]->form);
+				  HTTPRequests[i]->form = nullptr;
+				  delete HTTPRequests[i];
+  				idx_to_delete = i;
+	  			break;
+			  }
+      }
+		  // Delete this here instead of within the loop to avoid iterator
+		  // invalidation
+		  if (idx_to_delete != -1)
+			  HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
+    }
 	}
 }
 void
@@ -617,7 +614,9 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto it = DownloadQueue.begin();
 		DownloadQueue.pop_front();
 		auto pack = *it;
-		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
+		auto* dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
+		if (dl)
+			dl->p_Pack->downloading = true;
 	}
 	if (!downloadingPacks)
 		return;
@@ -739,7 +738,7 @@ DownloadManager::AddFavorite(const string& chartkey)
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.push_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
-		LOG->Warn((requ.result + req + DLMAN->sessionUser).c_str());
+		Locator::getLogger()->warn("Favorited: {}{}{}", requ.result, req, DLMAN->sessionUser);
 	};
 	SendRequest(req, { make_pair("chartkey", chartkey) }, done, true, true);
 }
@@ -941,8 +940,8 @@ DownloadManager::UploadScore(HighScore* hs,
 {
 	CHECKPOINT_M("Creating UploadScore request");
 	if (!LoggedIn()) {
-		LOG->Trace(
-		  "Attempted to upload score when not logged in (scorekey: \"%s\")",
+		Locator::getLogger()->trace(
+		  "Attempted to upload score when not logged in (scorekey: \"{}\")",
 		  hs->GetScoreKey().c_str());
 		callback();
 		return;
@@ -965,8 +964,8 @@ DownloadManager::UploadScore(HighScore* hs,
 		replayString = "[";
 		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 		if (steps == nullptr) {
-			LOG->Trace("Attempted to upload score with no loaded steps "
-					   "(scorekey: \"%s\" chartkey: \"%s\")",
+			Locator::getLogger()->trace("Attempted to upload score with no loaded steps "
+					   "(scorekey: \"{}\" chartkey: \"{}\")",
 					   hs->GetScoreKey().c_str(),
 					   hs->GetChartKey().c_str());
 			return;
@@ -1005,8 +1004,8 @@ DownloadManager::UploadScore(HighScore* hs,
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace("Score upload response json parse error (error: \"%s\" "
-					   "response body: \"%s\")",
+			Locator::getLogger()->trace("Score upload response json parse error (error: \"{}\" "
+					   "response body: \"{}\")",
 					   rapidjson::GetParseError_En(d.GetParseError()),
 					   req.result.c_str());
 			callback();
@@ -1019,9 +1018,9 @@ DownloadManager::UploadScore(HighScore* hs,
 							 &callback,
 							 &req](int status) {
 				if (status == 22) {
-					LOG->Trace("Score upload response contains error, retrying "
-							   "(http status: %ld error status: %d response "
-							   "body: \"%s\")",
+					Locator::getLogger()->trace("Score upload response contains error, retrying "
+							   "(http status: {} error status: {} response "
+							   "body: \"{}\")",
 							   response_code,
 							   status,
 							   req.result.c_str());
@@ -1043,10 +1042,10 @@ DownloadManager::UploadScore(HighScore* hs,
 				// We don't log 406s because those are "not a a pb"
 				// Which are normal, unless we're using verbose logging
 				if (status != 406 || PREFSMAN->m_verbose_log > 1)
-					LOG->Trace(
+					Locator::getLogger()->trace(
 					  "Score upload response contains error "
-					  "(http status: %ld error status: %d response body: "
-					  "\"%s\" score key: \"%s\")",
+					  "(http status: {} error status: {} response body: "
+					  "\"{}\" score key: \"{}\")",
 					  response_code,
 					  status,
 					  req.result.c_str(),
@@ -1066,9 +1065,9 @@ DownloadManager::UploadScore(HighScore* hs,
 				if (onStatus(d["errors"]["status"].GetInt()))
 					return;
 			} else {
-				LOG->Trace("Score upload response contains error and we failed "
+				Locator::getLogger()->trace("Score upload response contains error and we failed "
 						   "to recognize it"
-						   "(http status: %ld response body: \"%s\")",
+						   "(http status: {} response body: \"{}\")",
 						   response_code,
 						   req.result.c_str());
 			}
@@ -1100,8 +1099,8 @@ DownloadManager::UploadScore(HighScore* hs,
 			hs->forceuploadedthissession = true;
 			// HTTPRunning = response_code;// TODO: Why were we doing this?
 		} else {
-			LOG->Trace("Score upload response malformed json "
-					   "(http status: %ld response body: \"%s\")",
+			Locator::getLogger()->trace("Score upload response malformed json "
+					   "(http status: {} response body: \"{}\")",
 					   response_code,
 					   req.result.c_str());
 		}
@@ -1198,7 +1197,7 @@ DownloadManager::UploadScores()
 	}
 
 	if (!toUpload.empty())
-		LOG->Trace("Updating online scores. (Uploading %zu scores)",
+		Locator::getLogger()->trace("Updating online scores. (Uploading {} scores)",
 				   toUpload.size());
 	else
 		return false;
@@ -1245,7 +1244,7 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 	if (startnow) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
-		LOG->Trace("Starting sequential upload of %zu scores",
+		Locator::getLogger()->trace("Starting sequential upload of {} scores",
 				   this->ScoreUploadSequentialQueue.size());
 		uploadSequentially();
 	}
@@ -1264,7 +1263,7 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 	if (startnow) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
-		LOG->Trace("Starting sequential upload of %zu scores",
+		Locator::getLogger()->trace("Starting sequential upload of {} scores",
 				   this->ScoreUploadSequentialQueue.size());
 		uploadSequentially();
 	}
@@ -1282,7 +1281,7 @@ DownloadManager::ForceUploadAllScores()
 	if (not_already_uploading) {
 		this->sequentialScoreUploadTotalWorkload =
 		  this->ScoreUploadSequentialQueue.size();
-		LOG->Trace("Starting sequential upload of %d scores",
+		Locator::getLogger()->trace("Starting sequential upload of {} scores",
 				   this->ScoreUploadSequentialQueue.size());
 		uploadSequentially();
 	}
@@ -1325,7 +1324,7 @@ DownloadManager::RefreshUserRank()
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshUserRank Error: Malformed request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("errors") && d["errors"].IsObject() &&
@@ -1400,13 +1399,14 @@ DownloadManager::SendRequestToURL(
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone](HTTPRequest& req,
+	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone, url](HTTPRequest& req,
 															  CURLMsg* msg) {
 		ZoneScoped;
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "SendRequestToURL ({}) Parse Error: {}", url, req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
@@ -1480,7 +1480,7 @@ DownloadManager::RefreshCountryCodes()
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshCountryCodes Error: Malformed request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("data") && d["data"].IsArray())
@@ -1518,17 +1518,14 @@ DownloadManager::RequestReplayData(const string& scoreid,
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed replay data request response: " + req.result)
-						 .c_str());
+			Locator::getLogger()->trace("Malformed replay data request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			LOG->Trace((string("Replay data request failed for ") + scoreid +
-						" (Response: " + buffer.GetString() + ")")
-						 .c_str());
+			Locator::getLogger()->trace("Replay data request failed for {} (Response: {})", scoreid, buffer.GetString());
 			return;
 		}
 
@@ -1573,7 +1570,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
 				it->hs.SetNoteRowVector(rows);
-				it->hs.SetScoreKey("Online_" + scoreid);
 
 				if (tracks.empty())
 					it->hs.SetReplayType(1);
@@ -1594,7 +1590,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			it->hs.SetTrackVector(tracks);
 			it->hs.SetTapNoteTypeVector(types);
 			it->hs.SetNoteRowVector(rows);
-			it->hs.SetScoreKey("Online_" + scoreid);
 
 			if (tracks.empty())
 				it->hs.SetReplayType(1);
@@ -1639,7 +1634,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RequestChartLeaderBoard Error: Malformed request response: {}", req.result);
 			return;
 		}
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
@@ -1662,9 +1657,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					StringBuffer buffer;
 					Writer<StringBuffer> writer(buffer);
 					score_obj.Accept(writer);
-					LOG->Trace(("Malformed score in chart leaderboard (chart:" +
-								chartkey + "): " + buffer.GetString())
-								 .c_str());
+					Locator::getLogger()->trace("Malformed score in chart leaderboard (chart: {}): {}", chartkey, buffer.GetString());
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -1831,6 +1824,8 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetSSRNormPercent(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
+				hs.SetScoreKey("Online_" + tmp.scoreid);
+				hs.SetGrade(hs.GetWifeGrade());
 
 				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
 				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
@@ -1888,7 +1883,7 @@ DownloadManager::RefreshCoreBundles()
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshCoreBundles Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1952,7 +1947,7 @@ DownloadManager::RefreshLastVersion()
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshLastVersion Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1980,7 +1975,7 @@ DownloadManager::RefreshRegisterPage()
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshRegisterPage Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -2018,9 +2013,8 @@ DownloadManager::RefreshTop25(Skillset ss)
 			(d.HasMember("errors") && d["errors"].HasMember("status") &&
 			 d["errors"]["status"].GetInt() == 404) ||
 			!d.HasMember("data") || !d["data"].IsArray()) {
-			LOG->Trace(
-			  ("Malformed top25 scores request response: " + req.result)
-				.c_str());
+			Locator::getLogger()->trace(
+			  "Malformed top25 scores request response: {}", req.result);
 			return;
 		}
 		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
@@ -2030,10 +2024,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
-				LOG->Trace((std::string("Malformed single score in top25 "
-										"scores request response: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Malformed single score in top25 scores request response: {}",
+				  buffer.GetString());
 				continue;
 			}
 			auto& score = score_obj["attributes"];
@@ -2053,10 +2046,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
-				LOG->Trace((std::string("Malformed single score in top25 "
-										"scores request response: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Malformed single score in top25 scores request response: {}",
+				  buffer.GetString());
 				continue;
 			}
 			OnlineTopScore tmp;
@@ -2090,7 +2082,9 @@ DownloadManager::RefreshUserData()
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "RefreshUserData Error: Malformed request response: {}",
+			  req.result);
 			return;
 		}
 
@@ -2182,7 +2176,8 @@ DownloadManager::StartSession(
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			LOG->Trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "StartSession Error: Malformed request response: {}", req.result);
 			DLMAN->loggingIn = false;
 			return;
 		}
@@ -2277,10 +2272,9 @@ DownloadManager::RefreshPackList(const string& url)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
-				LOG->Trace(
-				  (std::string("Missing pack name in packlist element: ") +
-				   buffer.GetString())
-					.c_str());
+				Locator::getLogger()->trace(
+				  "Missing pack name in packlist element: {}",
+				  buffer.GetString());
 				continue;
 			}
 
@@ -2298,10 +2292,9 @@ DownloadManager::RefreshPackList(const string& url)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
-				LOG->Trace(
-				  (std::string("Missing download link in packlist element: ") +
-				   buffer.GetString())
-					.c_str());
+				Locator::getLogger()->trace(
+				  "Missing download link in packlist element: {}",
+				  buffer.GetString());
 				continue;
 			}
 			if (tmp.url.empty())
@@ -2418,13 +2411,22 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	{
 		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		vector<DownloadablePack*> dling;
-		for (unsigned i = 0; i < packs.size(); ++i) {
-			if (packs[i].downloading)
-				dling.push_back(&(packs[i]));
+		for (auto& pack : packs) {
+			if (pack.downloading)
+				dling.push_back(&pack);
 		}
 		lua_createtable(L, dling.size(), 0);
 		for (unsigned i = 0; i < dling.size(); ++i) {
 			dling[i]->PushSelf(L);
+			lua_rawseti(L, -2, i + 1);
+		}
+		return 1;
+	}
+	static int GetQueuedPacks(T* p, lua_State* L)
+	{
+		lua_createtable(L, p->DownloadQueue.size(), 0);
+		for (unsigned i = 0; i < p->DownloadQueue.size(); i++) {
+			p->DownloadQueue[i].first->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
@@ -2450,8 +2452,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		map<string, Download*>& dls = DLMAN->downloads;
 		lua_createtable(L, dls.size(), 0);
 		int j = 0;
-		for (auto it = dls.begin(); it != dls.end(); ++it) {
-			it->second->PushSelf(L);
+		for (auto& dl : dls) {
+			dl.second->PushSelf(L);
 			lua_rawseti(L, -2, j + 1);
 			j++;
 		}
@@ -2823,6 +2825,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetAllPacks);
 		ADD_METHOD(GetDownloadingPacks);
+		ADD_METHOD(GetQueuedPacks);
 		ADD_METHOD(GetDownloads);
 		ADD_METHOD(GetToken);
 		ADD_METHOD(IsLoggedIn);
@@ -2866,8 +2869,10 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		bool mirror = false;
 		if (lua_gettop(L) > 0)
 			mirror = BArg(1);
-		if (p->downloading)
+		if (p->downloading) {
+			p->PushSelf(L);
 			return 1;
+		}
 		Download* dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
@@ -2901,6 +2906,22 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
 		return 1;
 	}
+	static int RemoveFromQueue(T* p, lua_State* L)
+	{
+		auto it = std::find_if(
+		  DLMAN->DownloadQueue.begin(),
+		  DLMAN->DownloadQueue.end(),
+		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
+		if (it == DLMAN->DownloadQueue.end())
+			// does not exist
+			lua_pushboolean(L, false);
+		else {
+			DLMAN->DownloadQueue.erase(it);
+			// success?
+			lua_pushboolean(L, true);
+		}
+		return 1;
+	}
 	static int IsDownloading(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->downloading == 0);
@@ -2929,6 +2950,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(DownloadAndInstall);
 		ADD_METHOD(IsDownloading);
 		ADD_METHOD(IsQueued);
+		ADD_METHOD(RemoveFromQueue);
 		ADD_METHOD(GetAvgDifficulty);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);

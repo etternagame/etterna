@@ -4,15 +4,6 @@ local packsy
 local packspacing = 54
 local ind = 7
 
-local function input(event)
-	if event.DeviceInput.button == "DeviceButton_left mouse button" then
-		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("ScMouseLeftClick")
-		end
-	end
-	return false
-end
-
 local translated_info = {
 	Alert = THEME:GetString("ScreenCoreBundleSelect", "Alert"),
 	Task = THEME:GetString("ScreenCoreBundleSelect", "Task"),
@@ -25,29 +16,34 @@ local o =
 		self:xy(SCREEN_WIDTH / 2, 50):halign(0.5)
 	end,
 	BeginCommand = function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
-	end,
-	CodeMessageCommand = function(self, params)
-		if params.Name == "Up" then
-			ind = ind - 1
-			if ind < 1 or ind > 5 then
-				ind = 5
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if event.DeviceInput.button == "DeviceButton_left mouse button" then
+				if event.type == "InputEventType_Release" then
+					MESSAGEMAN:Broadcast("ScMouseLeftClick")
+				end
 			end
-			self:queuecommand("SelectionChanged")
-		end
-		if params.Name == "Down" then
-			ind = ind + 1
-			if ind > 5 then
-				ind = 1
+			if event.type == "InputEventType_FirstPress" then
+				if event.button == "MenuUp" then
+					ind = ind - 1
+					if ind < 1 or ind > 5 then
+						ind = 5
+					end
+					self:queuecommand("SelectionChanged")
+				elseif event.button == "MenuDown" then
+					ind = ind + 1
+					if ind > 5 then
+						ind = 1
+					end
+					self:queuecommand("SelectionChanged")
+				elseif event.button == "Start" then
+					if ind < 6 and ind > 0 then
+						DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
+						SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
+					end
+				end
 			end
-			self:queuecommand("SelectionChanged")
-		end
-		if params.Name == "Select" then
-			if ind < 6 and ind > 0 then
-				DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
-				SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
-			end
-		end
+			return false
+		end)
 	end,
 	Def.Quad {
 		InitCommand = function(self)

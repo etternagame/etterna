@@ -19,7 +19,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.70.1
+		VERSION 0.71.0
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
@@ -84,8 +84,6 @@ target_link_libraries(Etterna PRIVATE rapidjson)
 target_link_libraries(Etterna PRIVATE websocketpp)
 target_link_libraries(Etterna PRIVATE luajit)
 target_link_libraries(Etterna PRIVATE discord-rpc)
-target_link_libraries(Etterna PRIVATE tomcrypt)
-target_link_libraries(Etterna PRIVATE libtommath)
 target_link_libraries(Etterna PRIVATE muFFT)
 target_link_libraries(Etterna PRIVATE glfw)
 target_link_libraries(Etterna PRIVATE ogg)
@@ -95,6 +93,8 @@ target_link_libraries(Etterna PRIVATE libmad)
 target_link_libraries(Etterna PRIVATE stb)
 target_link_libraries(Etterna PRIVATE libcurl)
 target_link_libraries(Etterna PRIVATE tracy)
+target_link_libraries(Etterna PRIVATE fmt::fmt)
+target_link_libraries(Etterna PRIVATE plog::plog)
 
 # OS Specific Initialization
 if(WIN32)
@@ -111,6 +111,7 @@ add_subdirectory(src/Etterna)
 add_subdirectory(src/arch)
 add_subdirectory(src/archutils)
 add_subdirectory(src/RageUtil)
+add_subdirectory(src/Core)
 
 ## The source_group line creates the full visual studio filter layout
 get_target_property(sources Etterna SOURCES)

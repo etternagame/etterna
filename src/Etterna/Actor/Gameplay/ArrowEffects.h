@@ -54,7 +54,6 @@ class ArrowEffects
 	 *
 	 * In this case, reverse and post-reverse-effects are factored in (fYOffset
 	 * -> YPos).
-	 * @param pPlayerState the Player's state in question, including mods.
 	 * @param iCol the specific arrow column.
 	 * @param fYOffset the original display position.
 	 * @param fYReverseOffsetPixels the amount offset due to reverse.
@@ -95,7 +94,6 @@ class ArrowEffects
 	 * @brief Retrieve the Z position.
 	 *
 	 * This is normally 0. This is only visible with perspective modes.
-	 * @param pPlayerState the Player's state, including the mods.
 	 * @param iCol the specific arrow column.
 	 * @param fYPos the Y position of the arrow.
 	 * @return the Z position. */

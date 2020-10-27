@@ -141,15 +141,12 @@ class Profile
 
 		m_LastPlayedDate.Init();
 
-		FOREACH_ENUM(PlayMode, i)
-		m_iNumSongsPlayedByPlayMode[i] = 0;
 		FOREACH_ENUM(Difficulty, i)
 		m_iNumSongsPlayedByDifficulty[i] = 0;
 		for (auto& i : m_iNumSongsPlayedByMeter) {
 			i = 0;
 		}
 
-		ZERO(m_iNumStagesPassedByPlayMode);
 		ZERO(m_iNumStagesPassedByGrade);
 		m_UserTable.Unset();
 	}
@@ -228,7 +225,6 @@ class Profile
 	/* These stats count twice in the machine profile if two players are
 	 * playing; that's the only approach that makes sense for ByDifficulty and
 	 * ByMeter. */
-	int m_iNumSongsPlayedByPlayMode[NUM_PlayMode]{};
 	std::map<StyleID, int> m_iNumSongsPlayedByStyle;
 	int m_iNumSongsPlayedByDifficulty[NUM_Difficulty]{};
 	int m_iNumSongsPlayedByMeter[MAX_METER + 1]{};
@@ -237,7 +233,6 @@ class Profile
 	 *
 	 * This stat counts once per song, even if two players are active. */
 	int m_iNumTotalSongsPlayed{ 0 };
-	int m_iNumStagesPassedByPlayMode[NUM_PlayMode]{};
 	int m_iNumStagesPassedByGrade[NUM_Grade]{};
 
 	// if anymore of these are added they should be enum'd to reduce copy pasta
@@ -276,7 +271,8 @@ class Profile
 	LuaTable m_UserTable;
 
 	// this actually does use scoreman atm
-	auto GetBestGrade(const Song* pSong, StepsType st) const -> Grade;
+	auto GetBestGrade(const Song* song, StepsType st) const -> Grade;
+	auto GetBestWifeScore(const Song* song, StepsType st) const -> float;
 
 	// Screenshot Data
 	std::vector<Screenshot> m_vScreenshots;
@@ -298,15 +294,14 @@ class Profile
 	void swap(Profile& other);
 
 	// Loading and saving
-	void HandleStatsPrefixChange(std::string dir, bool require_signature);
-	auto LoadAllFromDir(const std::string& sDir,
-						bool bRequireSignature,
-						LoadingWindow* ld) -> ProfileLoadResult;
+	void HandleStatsPrefixChange(std::string dir);
+	auto LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
+	  -> ProfileLoadResult;
 	auto LoadStatsFromDir(std::string dir, bool require_signature)
 	  -> ProfileLoadResult;
 	void LoadTypeFromDir(const std::string& dir);
 	void LoadCustomFunction(const std::string& sDir);
-	auto SaveAllToDir(const std::string& sDir, bool bSignData) const -> bool;
+	auto SaveAllToDir(const std::string& sDir) const -> bool;
 
 	auto LoadEditableDataFromDir(const std::string& sDir) -> ProfileLoadResult;
 
@@ -317,7 +312,6 @@ class Profile
 	void CalculateStatsFromScores();
 
 	void SaveStatsWebPageToDir(const std::string& sDir) const;
-	void SaveMachinePublicKeyToDir(const std::string& sDir) const;
 
 	static void MoveBackupToDir(const std::string& sFromDir,
 								const std::string& sToDir);

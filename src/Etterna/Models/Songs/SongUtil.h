@@ -27,6 +27,7 @@ GetSteps(const Song* pSong,
 		 Difficulty dc = Difficulty_Invalid,
 		 int iMeterLow = -1,
 		 int iMeterHigh = -1,
+		 bool filteringSteps = false,
 		 const std::string& sDescription = "",
 		 const std::string& sCredit = "",
 		 bool bIncludeAutoGen = true,
@@ -38,6 +39,7 @@ GetOneSteps(const Song* pSong,
 			Difficulty dc = Difficulty_Invalid,
 			int iMeterLow = -1,
 			int iMeterHigh = -1,
+			bool filteringSteps = false,
 			const std::string& sDescription = "",
 			const std::string& sCredit = "",
 			unsigned uHash = 0,
@@ -77,7 +79,7 @@ SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut);
 void
 SortSongPointerArrayByBPM(vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByGrades(vector<Song*>& vpSongsInOut, bool bDescending);
+SortSongPointerArrayByWifeScore(vector<Song*>& v);
 void
 SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut);
 void
@@ -157,7 +159,7 @@ GetAllSongGenres(vector<std::string>& vsOut);
 void
 GetPlayableStepsTypes(const Song* pSong, std::set<StepsType>& vOut);
 void
-GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut);
+GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut, bool filteringSteps = false);
 auto
 IsStepsTypePlayable(Song* pSong, StepsType st) -> bool;
 auto

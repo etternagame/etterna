@@ -25,18 +25,16 @@ class StageStats
 	/**
 	 * @brief Ensure that the Player is valid.
 	 * @param mp the Multiplayer to check. */
-	void AssertValid(MultiPlayer mp) const;
+	void AssertValid(MultiPlayer pn) const;
 
 	void AddStats(const StageStats& other); // accumulate
 
-	[[nodiscard]] auto OnePassed() const -> bool;
-	[[nodiscard]] auto AllFailed() const -> bool;
+	[[nodiscard]] auto Failed() const -> bool;
 
 	[[nodiscard]] auto GetAverageMeter(PlayerNumber pn) const -> int;
 
 	Stage m_Stage;
 	int m_iStageIndex;
-	PlayMode m_playMode;
 	std::vector<Song*> m_vpPlayedSongs;
 	std::vector<Song*> m_vpPossibleSongs;
 
@@ -45,19 +43,6 @@ class StageStats
 	/** @brief Did the PLayer use Autoplay at any point during gameplay? */
 	bool m_bUsedAutoplay;
 
-	// TODO(Sam): These are updated in ScreenGameplay::Update based on fDelta.
-	// They should be made more accurate.
-	/**
-	 * @brief How many seconds were there before gameplay ended?
-	 *
-	 * This is updated by Gameplay, and not scaled by the music rate. */
-	float m_fGameplaySeconds;
-	/**
-	 * @brief How many seconds are we in a song?
-	 *
-	 * This is equivalent to m_fGameplaySeconds unless the song has steps past
-	 * the end. */
-	float m_fStepsSeconds;
 	/** @brief How fast was the music going compared to normal? */
 	float m_fMusicRate;
 
@@ -74,11 +59,6 @@ class StageStats
 	// using a Replay
 	bool m_bLivePlay = false;
 
-	/**
-	 * @brief Determine if the PlayerNumber has a high score.
-	 * @param pn the PlayerNumber in question.
-	 * @return true if the PlayerNumber has a high score, false otherwise. */
-	[[nodiscard]] auto PlayerHasHighScore(PlayerNumber pn) const -> bool;
 	[[nodiscard]] auto GetMinimumMissCombo() const -> unsigned int;
 
 	// Lua

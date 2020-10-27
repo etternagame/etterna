@@ -74,7 +74,7 @@ local t =
 	CurrentRateChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
 	TabChangedMessageCommand = function(self)

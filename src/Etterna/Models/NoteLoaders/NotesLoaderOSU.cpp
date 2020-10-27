@@ -343,7 +343,6 @@ OsuLoader::LoadNoteDataFromParsedData(
 			  TAP_ORIGINAL_LIFT);
 	}
 
-	// out->m_pSong->m_fMusicLengthSeconds = 80; // what's going on with this
 	out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = -firstTap / 1000.0f;
 
 	out->SetNoteData(newNoteData);
@@ -354,8 +353,8 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	RageFile f;
 	if (!f.Open(path)) {
-		LOG->UserLog(
-		  "Song file", path, "couldn't be opened: %s", f.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", path, "couldn't be opened: %s", f.GetError().c_str());
 		return false;
 	}
 
@@ -395,7 +394,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		if (parsedData.size() == 0) {
 			continue;
 		}
-		if (filename == aFileNames[0]) {
+		if (out.m_SongTiming.empty()) {
 			SetMetadata(parsedData, out);
 			SetTimingData(parsedData, out);
 		}
@@ -409,6 +408,10 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		LoadNoteDataFromParsedData(chart, parsedData);
 		out.AddSteps(chart);
 	}
+
+	// the metadata portion saves the filename/path wrong, this corrects it
+	if (!out.m_sSongFileName.empty())
+		out.m_sSongFileName = sPath_ + out.m_sSongFileName;
 
 	// out.Save(false);
 

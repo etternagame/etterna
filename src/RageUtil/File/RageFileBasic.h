@@ -100,18 +100,10 @@ class RageFileObj : public RageFileBasic
 	int GetFileSize() const override = 0;
 	int GetFD() override { return -1; }
 	std::string GetDisplayPath() const override { return std::string(); }
-	RageFileBasic* Copy() const override
-	{
-		FAIL_M("Copying unimplemented");
-		return 0;
-	}
+	RageFileBasic* Copy() const override { return 0; }
 
   protected:
-	virtual int SeekInternal(int /* iOffset */)
-	{
-		FAIL_M("Seeking unimplemented");
-		return 0;
-	}
+	virtual int SeekInternal(int /* iOffset */) { return 0; }
 	virtual int ReadInternal(void* pBuffer, size_t iBytes) = 0;
 	virtual int WriteInternal(const void* pBuffer, size_t iBytes) = 0;
 	virtual int FlushInternal() { return 0; }

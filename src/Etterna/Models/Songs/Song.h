@@ -341,12 +341,19 @@ class Song
 	// objects for the song at a given rate
 	[[nodiscard]] auto HighestMSDOfSkillset(Skillset x, float rate) const
 	  -> float;
-	[[nodiscard]] auto IsSkillsetHighestOfAnySteps(Skillset ss,
-												   float rate) const -> bool;
+	[[nodiscard]] auto IsSkillsetHighestOfChart(Steps* chart,
+												Skillset skill,
+												float rate) const -> bool;
 	/** @brief This functions returns whether it has any chart of the given
 	   types with the given rate. If no type is given  it checks all charts.*/
-	bool MatchesFilter(const float rate) const;
-
+	[[nodiscard]] auto MatchesFilter(
+	  float rate,
+	  std::vector<Steps*>* vMatchingStepsOut = nullptr) const -> bool;
+	[[nodiscard]] auto ChartMatchesFilter(Steps* chart, float rate) const
+	  -> bool;
+	[[nodiscard]] auto IsChartHighestDifficulty(Steps* chart,
+												Skillset skill,
+												float rate) const -> bool;
 	auto HasChartByHash(const std::string& hash) -> bool;
 
 	// For loading only:
@@ -469,14 +476,16 @@ class Song
 		return m_vpStepsByType[st];
 	}
 	/** @brief Get the steps of all types within the current game mode */
-	const std::vector<Steps*> GetStepsOfCurrentGameMode() const;
-	bool HasEdits(StepsType st) const;
+	[[nodiscard]] auto GetChartsOfCurrentGameMode() const
+	  -> std::vector<Steps*>;
+	[[nodiscard]] auto GetChartsMatchingFilter() const -> std::vector<Steps*>;
+	[[nodiscard]] auto HasEdits(StepsType st) const -> bool;
 
-	auto IsFavorited() -> bool { return isfavorited; }
+	auto IsFavorited() const -> bool { return isfavorited; }
 	void SetFavorited(bool b) { isfavorited = b; }
-	auto HasGoal() -> bool { return hasgoal; }
+	auto HasGoal() const -> bool { return hasgoal; }
 	void SetHasGoal(bool b) { hasgoal = b; }
-	auto IsPermaMirror() -> bool { return permamirror; }
+	auto IsPermaMirror() const -> bool { return permamirror; }
 	void SetPermaMirror(bool b) { permamirror = b; }
 
 	void SetEnabled(bool b) { m_bEnabled = b; }

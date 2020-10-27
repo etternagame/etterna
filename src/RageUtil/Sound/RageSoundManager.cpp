@@ -12,7 +12,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSound.h"
 #include "RageSoundManager.h"
 #include "RageSoundReader_Preload.h"
@@ -138,7 +138,7 @@ RageSoundManager::Update()
 			++next;
 			if (it->second->GetReferenceCount() == 1) {
 				if (PREFSMAN->m_verbose_log > 1)
-					LOG->Trace("Deleted old sound \"%s\"", it->first.c_str());
+					Locator::getLogger()->trace("Deleted old sound \"{}\"", it->first.c_str());
 				delete it->second;
 				m_mapPreloadedSounds.erase(it);
 			}

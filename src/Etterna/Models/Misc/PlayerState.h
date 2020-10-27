@@ -56,10 +56,6 @@ class PlayerState
 	// to fit in the space available. -Kyz
 	float m_NotefieldZoom;
 
-	// Music statistics:
-	SongPosition m_Position;
-
-	auto GetDisplayedPosition() const -> const SongPosition&;
 	auto GetDisplayedTiming() const -> const TimingData&;
 
 	/**
@@ -112,7 +108,6 @@ class PlayerState
 	auto GetNumCols() -> int { return m_NumCols; };
 
 	float playertargetgoal = 0.93F;
-	float wtFFF = 1.F; // lol dont ask - mina
 
 	// Lua
 	void PushSelf(lua_State* L);

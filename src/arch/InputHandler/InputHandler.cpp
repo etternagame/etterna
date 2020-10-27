@@ -2,7 +2,7 @@
 #include "Etterna/Singletons/InputFilter.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "arch/arch_default.h"
 #include "Etterna/Models/Misc/Foreach.h"
@@ -35,8 +35,7 @@ InputHandler::ButtonPressed(DeviceInput di)
 		 * counted; if the driver provides its own timestamps, UpdateTimer is
 		 * optional.
 		 */
-		LOG->Warn("InputHandler::ButtonPressed: Driver sent many updates "
-				  "without calling UpdateTimer");
+		Locator::getLogger()->warn("InputHandler::ButtonPressed: Driver sent many updates without calling UpdateTimer");
 		FAIL_M("x");
 	}
 }
@@ -189,7 +188,7 @@ InputHandler::GetDeviceSpecificInputString(const DeviceInput& di)
 		wchar_t c = DeviceButtonToChar(di.button, false);
 		if (c && c != L' ') // Don't show "Key  " for space.
 			return InputDeviceToString(di.device) + " " +
-				   Capitalize(WStringToRString(std::wstring() + c));
+				   Capitalize(WStringToString(std::wstring() + c));
 	}
 
 	std::string s = DeviceButtonToString(di.button);
@@ -234,7 +233,7 @@ InputHandler::GetLocalizedInputString(const DeviceInput& di)
 		default:
 			wchar_t c = DeviceButtonToChar(di.button, false);
 			if (c && c != L' ') // Don't show "Key  " for space.
-				return Capitalize(WStringToRString(std::wstring() + c));
+				return Capitalize(WStringToString(std::wstring() + c));
 
 			return DeviceButtonToString(di.button);
 	}
@@ -260,7 +259,7 @@ InputHandler::Create(const std::string& drivers_, vector<InputHandler*>& Add)
 	{
 		RageDriver* pDriver = InputHandler::m_pDriverList.Create(*s);
 		if (pDriver == NULL) {
-			LOG->Trace("Unknown Input Handler name: %s", s->c_str());
+			Locator::getLogger()->trace("Unknown Input Handler name: {}", s->c_str());
 			continue;
 		}
 

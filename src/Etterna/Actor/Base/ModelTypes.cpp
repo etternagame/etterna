@@ -117,7 +117,7 @@ AnimatedTexture::Update(float fDelta)
 	}
 }
 
-RageTexture*
+std::shared_ptr<RageTexture>
 AnimatedTexture::GetCurrentTexture()
 {
 	if (vFrames.empty())

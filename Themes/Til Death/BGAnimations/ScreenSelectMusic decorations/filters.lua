@@ -62,6 +62,7 @@ end
 local translated_info = {
 	Mode = THEME:GetString("TabFilter", "Mode"),
 	HighestOnly = THEME:GetString("TabFilter", "HighestOnly"),
+	HighestDifficultyOnly = THEME:GetString("TabFilter", "HighestDifficultyOnly"),
 	On = THEME:GetString("OptionNames", "On"),
 	Off = THEME:GetString("OptionNames", "Off"),
 	Matches = THEME:GetString("TabFilter", "Matches"),
@@ -74,6 +75,7 @@ local translated_info = {
 	ExplainGrey = THEME:GetString("TabFilter", "ExplainGrey"),
 	ExplainBounds = THEME:GetString("TabFilter", "ExplainBounds"),
 	ExplainHighest = THEME:GetString("TabFilter", "ExplainHighest"),
+	ExplainHighestDifficulty = THEME:GetString("TabFilter", "ExplainHighestDifficulty"),
 	MaxRate = THEME:GetString("TabFilter", "MaxRate"),
 	Title = THEME:GetString("TabFilter", "Title"),
 	MinRate = THEME:GetString("TabFilter", "MinRate")
@@ -164,12 +166,22 @@ local f =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
+				self:xy(frameX, frameY + 100):zoom(0.3):halign(0)
+				self:settext(translated_info["ExplainHighestDifficulty"])
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
 				self:xy(frameX + frameWidth / 2, 175):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
 				self:settextf("%s:%5.1fx", translated_info["MaxRate"], FILTERMAN:GetMaxFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		},
@@ -201,6 +213,9 @@ local f =
 				self:settextf("%s:%5.1fx", translated_info["MinRate"], FILTERMAN:GetMinFilterRate())
 			end,
 			MaxFilterRateChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		},
@@ -237,6 +252,9 @@ local f =
 			end,
 			FilterModeChangedMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
 		},
 	Def.Quad {
@@ -257,10 +275,11 @@ local f =
 				self:xy(frameX + frameWidth / 2, 175 + spacingY * 3):zoom(textzoom):halign(0)
 			end,
 			SetCommand = function(self)
+				local translated = translated_info["HighestOnly"]
 				if FILTERMAN:GetHighestSkillsetsOnly() then
-					self:settextf("%s: %s", translated_info["HighestOnly"], translated_info["On"])
+					self:settextf("%s: %s", translated, translated_info["On"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				else
-					self:settextf("%s: %s", translated_info["HighestOnly"], translated_info["Off"])
+					self:settextf("%s: %s", translated, translated_info["Off"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				end
 				if FILTERMAN:GetFilterMode() then
 					self:diffuse(color("#666666"))
@@ -270,11 +289,14 @@ local f =
 			end,
 			FilterModeChangedMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
+				self:queuecommand("Set")
 			end
 		},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth / 2, 175 + spacingY * 3):zoomto(160, 18):halign(0):diffusealpha(0)
+			self:xy(frameX + frameWidth / 2, 175 + spacingY * 3):zoomto(180, 18):halign(0):diffusealpha(0)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and active then
@@ -287,7 +309,44 @@ local f =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + frameWidth / 2, 175 + spacingY * 4):zoom(textzoom):halign(0):settext("")
+				self:xy(frameX + frameWidth / 2, 175 + spacingY * 4):zoom(textzoom):halign(0)
+			end,
+			SetCommand = function(self)
+				local translated = translated_info["HighestDifficultyOnly"]
+				if FILTERMAN:GetHighestDifficultyOnly() then
+					self:settextf("%s: %s", translated, translated_info["On"]):maxwidth(frameWidth / 2 / textzoom - 50)
+				else
+					self:settextf("%s: %s", translated, translated_info["Off"]):maxwidth(frameWidth / 2 / textzoom - 50)
+				end
+				if FILTERMAN:GetFilterMode() then
+					self:diffuse(color("#666666"))
+				else
+					self:diffuse(color("#FFFFFF"))
+				end
+			end,
+			FilterModeChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth / 2, 175 + spacingY * 4):zoomto(180, 18):halign(0):diffusealpha(0)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and active then
+				FILTERMAN:ToggleHighestDifficultyOnly()
+				MESSAGEMAN:Broadcast("FilterModeChanged")
+				whee:SongSearch("")
+			end
+		end
+	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth / 2, 175 + spacingY * 6):zoom(textzoom):halign(0):settext("")
 			end,
 			FilterResultsMessageCommand = function(self, msg)
 				self:settextf("%s: %i/%i", translated_info["Matches"], msg.Matches, msg.Total)
@@ -296,7 +355,7 @@ local f =
 	LoadFont("Common Large") ..
 		{
 			BeginCommand = function(self)
-				self:xy(frameX + frameWidth / 2, 175 + spacingY * 5):zoom(textzoom):halign(0):maxwidth(300)
+				self:xy(frameX + frameWidth / 2, 175 + spacingY * 7):zoom(textzoom):halign(0):maxwidth(300)
 				self.packlistFiltering = FILTERMAN:GetFilteringCommonPacks()
 				self.enabled = SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic"
 				if not self.enabled then
@@ -314,6 +373,9 @@ local f =
 				self:settextf("%s: %s", translated_info["CommonPackFilter"], (self.packlistFiltering and translated_info["On"] or translated_info["Off"]))
 			end,
 			FilterModeChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
 			end
 		}
@@ -451,13 +513,13 @@ end
 f[#f + 1] =
 	Def.Quad {
 	InitCommand = function(self)
-		self:xy(frameX + frameWidth - 150, frameY + 250):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
+		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
 			0
 		)
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) and active then
-			FILTERMAN:ResetSSFilters()
+			FILTERMAN:ResetAllFilters()
 			for i = 1, #ms.SkillSets do
 				SSQuery[0][i] = "0"
 				SSQuery[1][i] = "0"
@@ -465,6 +527,7 @@ f[#f + 1] =
 			activebound = 0
 			ActiveSS = 0
 			MESSAGEMAN:Broadcast("UpdateFilter")
+			MESSAGEMAN:Broadcast("ResetFilter")
 			MESSAGEMAN:Broadcast("NumericInputEnded")
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
 			whee:SongSearch("")
@@ -475,7 +538,7 @@ f[#f + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth - 150, frameY + 250):halign(0.5):zoom(0.35)
+			self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY):halign(0.5):zoom(0.35)
 			self:settext(THEME:GetString("TabFilter", "Reset"))
 		end
 	}

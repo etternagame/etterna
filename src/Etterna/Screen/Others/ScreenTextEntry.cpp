@@ -6,14 +6,14 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenPrompt.h"
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/InputFilter.h"
-#include "arch/ArchHooks/ArchHooks.h" // HOOKS->GetClipboard()
+
 
 #include <algorithm>
 #include <utility>
@@ -378,9 +378,9 @@ void
 ScreenTextEntry::BeginScreen()
 {
 	if (sInitialAnswer != "")
-		m_sAnswer = RStringToWstring(sInitialAnswer);
+		m_sAnswer = StringToWString(sInitialAnswer);
 	else
-		m_sAnswer = RStringToWstring(g_sInitialAnswer);
+		m_sAnswer = StringToWString(g_sInitialAnswer);
 
 	ScreenWithMenuElements::BeginScreen();
 
@@ -403,7 +403,7 @@ ScreenTextEntry::UpdateAnswerText()
 	if (g_bPassword || bPassword)
 		s = std::string(m_sAnswer.size(), '*');
 	else
-		s = WStringToRString(m_sAnswer);
+		s = WStringToString(m_sAnswer);
 
 	bool bAnswerFull = static_cast<int>(s.length()) >=
 					   std::max(g_iMaxInputLength, iMaxInputLength);
@@ -463,14 +463,14 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 		auto vPressed =
 		  input.DeviceI.button == KEY_CV || input.DeviceI.button == KEY_Cv;
 		if (vPressed && ctrlPressed) {
-			TryAppendToAnswer(HOOKS->GetClipboard());
+			TryAppendToAnswer(Locator::getArchHooks()->GetClipboard());
 
 			TextEnteredDirectly(); // XXX: This doesn't seem appropriate but
 								   // there's no TextPasted()
 			bHandled = true;
 		} else if (c >= L' ') {
 			// todo: handle caps lock -aj
-			auto str = WStringToRString(std::wstring() + c);
+			auto str = WStringToString(std::wstring() + c);
 			TryAppendToAnswer(str);
 
 			TextEnteredDirectly();
@@ -485,7 +485,7 @@ void
 ScreenTextEntry::TryAppendToAnswer(const std::string& s)
 {
 	{
-		std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+		std::wstring sNewAnswer = m_sAnswer + StringToWString(s);
 		if (static_cast<int>(sNewAnswer.length()) >
 			std::max(g_iMaxInputLength, iMaxInputLength)) {
 			SCREENMAN->PlayInvalidSound();
@@ -495,19 +495,19 @@ ScreenTextEntry::TryAppendToAnswer(const std::string& s)
 
 	if (!ValidateAppendFunc.IsNil() && ValidateAppendFunc.IsSet()) {
 		ValidateAppendFromLua(
-		  WStringToRString(m_sAnswer), s, ValidateAppendFunc);
+		  WStringToString(m_sAnswer), s, ValidateAppendFunc);
 	} else if (pValidateAppend != nullptr) {
-		if (!pValidateAppend(WStringToRString(m_sAnswer), s)) {
+		if (!pValidateAppend(WStringToString(m_sAnswer), s)) {
 			SCREENMAN->PlayInvalidSound();
 			return;
 		}
 	} else if (g_pValidateAppend &&
-			   !g_pValidateAppend(WStringToRString(m_sAnswer), s)) {
+			   !g_pValidateAppend(WStringToString(m_sAnswer), s)) {
 		SCREENMAN->PlayInvalidSound();
 		return;
 	}
 
-	std::wstring sNewAnswer = m_sAnswer + RStringToWstring(s);
+	std::wstring sNewAnswer = m_sAnswer + StringToWString(s);
 	m_sAnswer = sNewAnswer;
 	m_sndType.Play(true);
 	UpdateAnswerText();
@@ -551,11 +551,13 @@ ScreenTextEntry::End(bool bCancelled)
 		Cancel(SM_GoToNextScreen);
 		// TweenOffScreen();
 	} else {
-		std::string sAnswer = WStringToRString(m_sAnswer);
+		std::string sAnswer = WStringToString(m_sAnswer);
 		std::string sError;
 
 		if (!ValidateFunc.IsNil() && ValidateFunc.IsSet()) {
-			ValidateFromLua(sAnswer, sError, ValidateFunc);
+			bool bValidAnswer = ValidateFromLua(sAnswer, sError, ValidateFunc);
+			if (!bValidAnswer)
+				return;
 		} else if (pValidate != nullptr) {
 			bool bValidAnswer = pValidate(sAnswer, sError);
 			if (!bValidAnswer) {
@@ -570,7 +572,7 @@ ScreenTextEntry::End(bool bCancelled)
 			}
 		}
 
-		std::string ret = WStringToRString(m_sAnswer);
+		std::string ret = WStringToString(m_sAnswer);
 		FontCharAliases::ReplaceMarkers(ret);
 		if (!OnOKFunc.IsNil() && OnOKFunc.IsSet()) {
 			OnOKFromLua(ret, OnOKFunc);
@@ -585,7 +587,7 @@ ScreenTextEntry::End(bool bCancelled)
 	}
 
 	s_bCancelledLast = bCancelled;
-	s_sLastAnswer = bCancelled ? std::string("") : WStringToRString(m_sAnswer);
+	s_sLastAnswer = bCancelled ? std::string("") : WStringToString(m_sAnswer);
 }
 
 bool
@@ -601,7 +603,7 @@ void
 ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 {
 	if (lua_type(L, 1) != LUA_TTABLE) {
-		LOG->Trace("not a table");
+		Locator::getLogger()->trace("not a table");
 		return;
 	}
 
@@ -611,7 +613,7 @@ ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 	// Get ScreenMessage
 	lua_getfield(L, iTab, "SendOnPop");
 	const char* pStr = lua_tostring(L, -1);
-	if (pStr == NULL)
+	if (pStr == nullptr)
 		smSendOnPop = SM_None;
 	else
 		smSendOnPop = ScreenMessageHelpers::ToScreenMessage(pStr);
@@ -620,7 +622,7 @@ ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 	// Get Question
 	lua_getfield(L, iTab, "Question");
 	pStr = lua_tostring(L, -1);
-	if (pStr == NULL) {
+	if (pStr == nullptr) {
 		LuaHelpers::ReportScriptError(
 		  "ScreenTextEntry \"Question\" entry is not a string.");
 		pStr = "";
@@ -631,7 +633,7 @@ ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 	// Get Initial Answer
 	lua_getfield(L, iTab, "InitialAnswer");
 	pStr = lua_tostring(L, -1);
-	if (pStr == NULL)
+	if (pStr == nullptr)
 		pStr = "";
 	sInitialAnswer = pStr;
 	lua_settop(L, iTab);

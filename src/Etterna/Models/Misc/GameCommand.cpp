@@ -14,7 +14,7 @@
 #include "Etterna/Screen/Others/ScreenPrompt.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
@@ -35,7 +35,6 @@ GameCommand::Init()
 	m_iIndex = -1;
 	m_MultiPlayer = MultiPlayer_Invalid;
 	m_pStyle = nullptr;
-	m_pm = PlayMode_Invalid;
 	m_dc = Difficulty_Invalid;
 	m_sPreferredModifiers = "";
 	m_sStageModifiers = "";
@@ -73,8 +72,6 @@ GameCommand::DescribesCurrentModeForAllPlayers() const
 bool
 GameCommand::DescribesCurrentMode(PlayerNumber pn) const
 {
-	if (m_pm != PlayMode_Invalid && GAMESTATE->m_PlayMode != m_pm)
-		return false;
 	if ((m_pStyle != nullptr) && GAMESTATE->GetCurrentStyle(pn) != m_pStyle)
 		return false;
 	// HACK: don't compare m_dc if m_pSteps is set.  This causes problems
@@ -180,11 +177,6 @@ GameCommand::LoadOne(const Command& cmd)
 		CHECK_INVALID_VALUE(m_pStyle, style, NULL, style);
 	}
 
-	else if (sName == "playmode") {
-		const auto pm = StringToPlayMode(sValue);
-		CHECK_INVALID_VALUE(m_pm, pm, PlayMode_Invalid, playmode);
-	}
-
 	else if (sName == "difficulty") {
 		const auto dc = StringToDifficulty(sValue);
 		CHECK_INVALID_VALUE(m_dc, dc, Difficulty_Invalid, difficulty);
@@ -242,13 +234,6 @@ GameCommand::LoadOne(const Command& cmd)
 		if (!m_bInvalid) {
 			m_sScreen = sValue;
 		}
-	}
-
-	else if (sName == "song") {
-		CHECK_INVALID_COND(m_pSong,
-						   SONGMAN->FindSong(sValue),
-						   (SONGMAN->FindSong(sValue) == NULL),
-						   (ssprintf("Song \"%s\" not found", sValue.c_str())));
 	}
 
 	else if (sName == "steps") {
@@ -375,12 +360,6 @@ GameCommand::LoadOne(const Command& cmd)
 #undef MAKE_INVALID
 }
 
-static bool
-AreStyleAndPlayModeCompatible(const Style* style, PlayMode pm)
-{
-	return true;
-}
-
 bool
 GameCommand::IsPlayable(std::string* why) const
 {
@@ -388,25 +367,6 @@ GameCommand::IsPlayable(std::string* why) const
 		if (why)
 			*why = m_sInvalidReason;
 		return false;
-	}
-
-	/* Don't allow a PlayMode that's incompatible with our current Style (if
-	 * set), and vice versa. */
-	if (m_pm != PlayMode_Invalid || m_pStyle != nullptr) {
-		const auto pm =
-		  (m_pm != PlayMode_Invalid) ? m_pm : GAMESTATE->m_PlayMode;
-		const auto* style =
-		  (m_pStyle != nullptr)
-			? m_pStyle
-			: GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber());
-		if (!AreStyleAndPlayModeCompatible(style, pm)) {
-			if (why)
-				*why = ssprintf("mode %s is incompatible with style %s",
-								PlayModeToString(pm).c_str(),
-								style->m_szName);
-
-			return false;
-		}
 	}
 
 	if (!CompareNoCase(m_sScreen, "ScreenEditMenu")) {
@@ -461,10 +421,6 @@ GameCommand::Apply(const vector<PlayerNumber>& vpns) const
 void
 GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 {
-
-	if (m_pm != PlayMode_Invalid)
-		GAMESTATE->m_PlayMode.Set(m_pm);
-
 	if (m_pStyle != nullptr) {
 		GAMESTATE->SetCurrentStyle(m_pStyle,
 								   GAMESTATE->GetMasterPlayerNumber());
@@ -475,8 +431,8 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 			case StyleType_OnePlayerTwoSides:
 				break;
 			default:
-				LuaHelpers::ReportScriptError("Invalid StyleType: " +
-											  m_pStyle->m_StyleType);
+				LuaHelpers::ReportScriptError(ssprintf(
+				  "%s%d", "Invalid StyleType: ", m_pStyle->m_StyleType));
 		}
 	}
 	if (m_dc != Difficulty_Invalid)
@@ -536,7 +492,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	ProfileManager::m_sDefaultLocalProfileID[*pn].Set(m_sProfileID);
 	if (!m_sUrl.empty()) {
-		if (HOOKS->GoToURL(m_sUrl)) {
+		if (Locator::getArchHooks()->GoToURL(m_sUrl)) {
 			if (m_bUrlExits)
 				SCREENMAN->SetNewScreen("ScreenExit");
 		} else
@@ -568,10 +524,10 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 bool
 GameCommand::IsZero() const
 {
-	if (m_pm != PlayMode_Invalid || m_pStyle != nullptr ||
-		m_dc != Difficulty_Invalid || !m_sAnnouncer.empty() ||
-		!m_sPreferredModifiers.empty() || !m_sStageModifiers.empty() ||
-		m_pSong != nullptr || m_pSteps != nullptr || !m_sSongGroup.empty() ||
+	if (m_pStyle != nullptr || m_dc != Difficulty_Invalid ||
+		!m_sAnnouncer.empty() || !m_sPreferredModifiers.empty() ||
+		!m_sStageModifiers.empty() || m_pSong != nullptr ||
+		m_pSteps != nullptr || !m_sSongGroup.empty() ||
 		m_SortOrder != SortOrder_Invalid || !m_sProfileID.empty() ||
 		!m_sUrl.empty())
 		return false;
@@ -671,7 +627,6 @@ class LunaGameCommand : public Luna<GameCommand>
 	}
 
 	DEFINE_METHOD(GetDifficulty, m_dc)
-	DEFINE_METHOD(GetPlayMode, m_pm)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 
 	LunaGameCommand()
@@ -683,7 +638,6 @@ class LunaGameCommand : public Luna<GameCommand>
 		ADD_METHOD(GetStyle);
 		ADD_METHOD(GetDifficulty);
 		ADD_METHOD(GetScreen);
-		ADD_METHOD(GetPlayMode);
 		ADD_METHOD(GetProfileID);
 		ADD_METHOD(GetSong);
 		ADD_METHOD(GetSteps);

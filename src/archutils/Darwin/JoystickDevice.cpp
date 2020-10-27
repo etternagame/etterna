@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "JoystickDevice.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Core/Services/Locator.hpp"
 
 using __gnu_cxx::hash_map;
 
@@ -136,7 +136,7 @@ JoystickDevice::AddElement(int usagePage,
 			if (buttonID <= JOY_BUTTON_32)
 				js.mapping[cookie] = buttonID;
 			else
-				LOG->Warn("Button id too large: %d.", int(buttonID));
+				Locator::getLogger()->warn("Button id too large: {}.", int(buttonID));
 			break;
 		}
 		default:
@@ -182,7 +182,7 @@ JoystickDevice::InitDevice(int vid, int pid)
 	IOReturn ret = SetReport(kIOHIDReportTypeFeature, 0, &powerOn, 1, 10);
 
 	if (ret)
-		LOG->Warn("Failed to power on the Para controller: %#08x", ret);
+		Locator::getLogger()->warn("Failed to power on the Para controller: {:#x}", ret);
 	return ret == kIOReturnSuccess;
 }
 
@@ -201,49 +201,49 @@ JoystickDevice::GetButtonPresses(
 			float level = SCALE(value, js.x_min, js.x_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_LEFT, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_LEFT, fmax(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_RIGHT, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_RIGHT, fmax(level, 0.0f), now));
 			break;
 		} else if (js.y_axis == cookie) {
 			float level = SCALE(value, js.y_min, js.y_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_UP, fmax(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_DOWN, fmax(level, 0.0f), now));
 			break;
 		} else if (js.z_axis == cookie) {
 			float level = SCALE(value, js.z_min, js.z_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_Z_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_Z_UP, fmax(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_Z_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_Z_DOWN, fmax(level, 0.0f), now));
 			break;
 		} else if (js.x_rot == cookie) {
 			float level = SCALE(value, js.rx_min, js.rx_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_LEFT, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_LEFT, fmax(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_RIGHT, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_RIGHT, fmax(level, 0.0f), now));
 			break;
 		} else if (js.y_rot == cookie) {
 			float level = SCALE(value, js.ry_min, js.ry_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_UP, fmax(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_DOWN, fmax(level, 0.0f), now));
 			break;
 		} else if (js.z_rot == cookie) {
 			float level = SCALE(value, js.rz_min, js.rz_max, -1.0f, 1.0f);
 
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_Z_UP, max(-level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_Z_UP, fmax(-level, 0.0f), now));
 			vPresses.push_back(
-			  DeviceInput(js.id, JOY_ROT_Z_DOWN, max(level, 0.0f), now));
+			  DeviceInput(js.id, JOY_ROT_Z_DOWN, fmax(level, 0.0f), now));
 			break;
 		} else if (js.hat == cookie) {
 			float levelUp = 0.f, levelRight = 0.f, levelDown = 0.f,

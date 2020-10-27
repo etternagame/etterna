@@ -299,20 +299,9 @@ local function inputeater(event)
 				aboutToSave = false
 				MESSAGEMAN:Broadcast("UpdateStringDisplay")
 			end
-		end
-	end
-end
-
-local t = Def.ActorFrame {
-	OnCommand = function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(inputeater)
-		applyHSV()
-	end,
-	CodeMessageCommand = function(self, params)
-		if params.Name == "ColorCancel" then
+		elseif event.button == "Back" then
 			SCREENMAN:GetTopScreen():Cancel()
-		end
-		if params.Name == "ColorStart" then
+		elseif event.button == "Start" then
 			if aboutToSave then
 				colorConfig:get_data()[selected[1]][selected[2]] = "#" .. ColorToHex(currentColor)
 				colorConfig:set_dirty()
@@ -324,6 +313,13 @@ local t = Def.ActorFrame {
 				handleTextUpdate()
 			end
 		end
+	end
+end
+
+local t = Def.ActorFrame {
+	OnCommand = function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(inputeater)
+		applyHSV()
 	end,
 	Def.Quad {
 		Name = "MainBG",

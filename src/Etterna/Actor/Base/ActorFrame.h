@@ -34,7 +34,7 @@ class ActorFrame : public Actor
 
 	[[nodiscard]] auto GetNumChildren() const -> int
 	{
-		return m_SubActors.size();
+		return static_cast<int>(m_SubActors.size());
 	}
 
 	/** @brief Remove all of the children from the frame. */

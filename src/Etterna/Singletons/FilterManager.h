@@ -15,18 +15,25 @@ class FilterManager
 
 	float SSFilterLowerBounds[NUM_Skillset + 1];
 	float SSFilterUpperBounds[NUM_Skillset + 1];
-	float MaxFilterRate = 1.f;
+	float MaxFilterRate = 1.F;
+	float MinFilterRate = 1.F;
 	bool ExclusiveFilter = false; // if true the filter system will only match
 								  // songs that meet all criteria rather than
 								  // all that meet any - mina
-	float GetSSFilter(Skillset ss, int bound);
+	auto GetSSFilter(Skillset ss, int bound) -> float;
 	void SetSSFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
+	void ResetAllFilters();
 	bool HighestSkillsetsOnly = false;
-	bool AnyActiveFilter();
+	// Skillset is highest of the chart's skillset
+	bool HighestDifficultyOnly = false;
+	// Chart's skillset's MSD is the highest of all the MSDS of that
+	// skillset for all charts for that song.
+
+	auto AnyActiveFilter() -> bool;
 
 	void savepos(std::string name, int x, int y);
-	std::pair<int, int> loadpos(std::string name);
+	auto loadpos(std::string name) -> std::pair<int, int>;
 
 	// not actually filter stuff! but this doesn't get enough love so i'm going
 	// to put it here until i make something for it -mina

@@ -171,7 +171,7 @@ function getClearTypeFromScore(pn, score, ret)
 	end
 	if score ~= nil and song ~= nil and steps ~= nil then
 		playCount = profile:GetSongNumTimesPlayed(song)
-		grade = score:GetGrade()
+		grade = score:GetWifeGrade()
 		perfcount = score:GetTapNoteScore("TapNoteScore_W2")
 		greatcount = score:GetTapNoteScore("TapNoteScore_W3")
 		misscount =

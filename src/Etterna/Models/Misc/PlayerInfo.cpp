@@ -44,16 +44,6 @@ PlayerInfo::Load(PlayerNumber pn,
 	m_pLifeMeter = nullptr;
 	m_ptextStepsDescription = nullptr;
 
-	if (!IsMultiPlayer()) {
-		const PlayMode mode = GAMESTATE->m_PlayMode;
-		switch (mode) {
-			case PLAY_MODE_REGULAR:
-				break;
-			default:
-				FAIL_M(ssprintf("Invalid PlayMode: %i", mode));
-		}
-	}
-
 	const auto pPlayerState = GetPlayerState();
 	const auto pPlayerStageStats = GetPlayerStageStats();
 	m_pPrimaryScoreKeeper = ScoreKeeper::MakeScoreKeeper(

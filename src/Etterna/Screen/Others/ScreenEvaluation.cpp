@@ -12,13 +12,12 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "ScreenEvaluation.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
-#include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/StatsManager.h"
 #include "Etterna/Globals/StepMania.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -34,7 +33,6 @@
 static ThemeMetric<TapNoteScore> g_MinScoreToMaintainCombo(
   "Gameplay",
   "MinScoreToMaintainCombo");
-static const int NUM_SHOWN_RADAR_CATEGORIES = 5;
 
 AutoScreenMessage(SM_PlayCheer);
 
@@ -46,123 +44,12 @@ ScreenEvaluation::ScreenEvaluation()
 	m_bSavedScreenshot = false;
 }
 
-ScreenEvaluation::~ScreenEvaluation() {}
+ScreenEvaluation::~ScreenEvaluation() = default;
 
 void
 ScreenEvaluation::Init()
 {
-	LOG->Trace("ScreenEvaluation::Init()");
-
-	// debugging
-	// Only fill StageStats with fake info if we're the InitialScreen
-	// (i.e. StageStats not already filled)
-	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
-		PROFILEMAN->LoadFirstAvailableProfile(PLAYER_1);
-
-		STATSMAN->m_vPlayedStageStats.clear();
-		STATSMAN->m_vPlayedStageStats.push_back(StageStats());
-		StageStats& ss = STATSMAN->m_vPlayedStageStats.back();
-
-		GAMESTATE->m_PlayMode.Set(PLAY_MODE_REGULAR);
-		GAMESTATE->SetCurrentStyle(
-		  GAMEMAN->GameAndStringToStyle(GAMEMAN->GetDefaultGame(), "versus"),
-		  PLAYER_INVALID);
-		ss.m_playMode = GAMESTATE->m_PlayMode;
-		ss.m_Stage = Stage_1st;
-		enum_add(ss.m_Stage, random_up_to(3));
-		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
-		GAMESTATE->m_pCurSong.Set(SONGMAN->GetRandomSong());
-		ss.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
-		ss.m_vpPossibleSongs.push_back(GAMESTATE->m_pCurSong);
-		GAMESTATE->m_iCurrentStageIndex = 0;
-		GAMESTATE->m_iPlayerStageTokens = 1;
-
-		ss.m_player.m_pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
-		if (RandomInt(2))
-			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
-							  ModsLevel_Stage,
-							  m_bTransforms,
-							  PlayerOptions::TRANSFORM_ECHO,
-							  true); // show "disqualified"
-		SO_GROUP_ASSIGN(
-		  GAMESTATE->m_SongOptions, ModsLevel_Stage, m_fMusicRate, 1.1f);
-
-		GAMESTATE->JoinPlayer(PLAYER_1);
-		GAMESTATE->m_pCurSteps.Set(GAMESTATE->m_pCurSong->GetAllSteps()[0]);
-		ss.m_player.m_vpPossibleSteps.push_back(GAMESTATE->m_pCurSteps);
-		ss.m_player.m_iStepsPlayed = 1;
-
-		PO_GROUP_ASSIGN(GAMESTATE->m_pPlayerState->m_PlayerOptions,
-						ModsLevel_Stage,
-						m_fScrollSpeed,
-						2.0f);
-		PO_GROUP_CALL(GAMESTATE->m_pPlayerState->m_PlayerOptions,
-					  ModsLevel_Stage,
-					  ChooseRandomModifiers);
-
-		for (float f = 0; f < 100.0f; f += 1.0f) {
-			float fP1 = fmodf(f / 100 * 4 + .3f, 1);
-			ss.m_player.SetLifeRecordAt(fP1, f);
-		}
-		float fSeconds = GAMESTATE->m_pCurSong->GetStepsSeconds();
-		ss.m_player.m_iActualDancePoints = RandomInt(3);
-		ss.m_player.m_iPossibleDancePoints = 2;
-		if (RandomInt(2))
-			ss.m_player.m_iCurCombo = RandomInt(15000);
-		else
-			ss.m_player.m_iCurCombo = 0;
-		ss.m_player.UpdateComboList(0, true);
-
-		ss.m_player.m_iCurCombo += 50;
-		ss.m_player.UpdateComboList(0.10f * fSeconds, false);
-
-		ss.m_player.m_iCurCombo = 0;
-		ss.m_player.UpdateComboList(0.15f * fSeconds, false);
-		ss.m_player.m_iCurCombo = 1;
-		ss.m_player.UpdateComboList(0.25f * fSeconds, false);
-		ss.m_player.m_iCurCombo = 50;
-		ss.m_player.UpdateComboList(0.35f * fSeconds, false);
-		ss.m_player.m_iCurCombo = 0;
-		ss.m_player.UpdateComboList(0.45f * fSeconds, false);
-		ss.m_player.m_iCurCombo = 1;
-		ss.m_player.UpdateComboList(0.50f * fSeconds, false);
-		ss.m_player.m_iCurCombo = 100;
-		ss.m_player.UpdateComboList(1.00f * fSeconds, false);
-		if (RandomInt(5) == 0) {
-			ss.m_player.m_bFailed = true;
-		}
-		ss.m_player.m_iTapNoteScores[TNS_W1] = RandomInt(3);
-		ss.m_player.m_iTapNoteScores[TNS_W2] = RandomInt(3);
-		ss.m_player.m_iTapNoteScores[TNS_W3] = RandomInt(3);
-		ss.m_player.m_iPossibleGradePoints =
-		  4 * ScoreKeeperNormal::TapNoteScoreToGradePoints(TNS_W1, false);
-		ss.m_player.m_fLifeRemainingSeconds = randomf(90, 580);
-		ss.m_player.m_iScore = random_up_to(900 * 1000 * 1000);
-		ss.m_player.m_iPersonalHighScoreIndex = (random_up_to(3)) - 1;
-		ss.m_player.m_iMachineHighScoreIndex = (random_up_to(3)) - 1;
-
-		FOREACH_ENUM(RadarCategory, rc)
-		{
-			switch (rc) {
-				case RadarCategory_TapsAndHolds:
-				case RadarCategory_Jumps:
-				case RadarCategory_Holds:
-				case RadarCategory_Mines:
-				case RadarCategory_Hands:
-				case RadarCategory_Rolls:
-				case RadarCategory_Lifts:
-				case RadarCategory_Fakes:
-					ss.m_player.m_radarPossible[rc] = 1 + (random_up_to(200));
-					ss.m_player.m_radarActual[rc] = random_up_to(
-					  static_cast<int>(ss.m_player.m_radarPossible[rc]));
-					break;
-				default:
-					break;
-			}
-
-			; // filled in by ScreenGameplay on start of notes
-		}
-	}
+	Locator::getLogger()->trace("ScreenEvaluation::Init()");
 
 	if (STATSMAN->m_vPlayedStageStats.empty()) {
 		LuaHelpers::ReportScriptError("PlayerStageStats is empty!  Do not use "
@@ -255,8 +142,8 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 					Profile* pProfile = PROFILEMAN->GetProfile(pn);
 					sDir = PROFILEMAN->GetProfileDir((ProfileSlot)pn) +
 						   "Screenshots/";
-					sFileName = StepMania::SaveScreenshot(
-					  sDir, bHoldingShift, true, "", "");
+					sFileName =
+					  StepMania::SaveScreenshot(sDir, bHoldingShift, "", "");
 					if (!sFileName.empty()) {
 						std::string sPath = sDir + sFileName;
 
@@ -274,7 +161,7 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 			} else {
 				sDir = "Screenshots/";
 				sFileName =
-				  StepMania::SaveScreenshot(sDir, bHoldingShift, true, "", "");
+				  StepMania::SaveScreenshot(sDir, bHoldingShift, "", "");
 			}
 			return true; // handled
 		}
@@ -362,7 +249,14 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		CHECKPOINT_M("Setting PSS from ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
-		HighScore* hs = SCOREMAN->GetMostRecentScore();
+
+		// allow either a highscore or nothing, which defaults to most recent
+		HighScore* hs;
+		if (lua_isnil(L, 3))
+			hs = SCOREMAN->GetMostRecentScore();
+		else
+			hs = Luna<HighScore>::check(L, 3);
+		
 		float ts = FArg(2);
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
@@ -373,10 +267,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		PlayerAI::SetScoreData(hs, 0);
 		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
 		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
-		pPSS->m_fLifeRecord.clear();
-		pPSS->m_ComboList.clear();
-		pPSS->m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay(ts);
-		pPSS->m_ComboList = PlayerAI::GenerateComboListForReplay(ts);
+		PlayerAI::SetPlayerStageStatsForReplay(pPSS, ts);
 		lua_pushboolean(L, true);
 		return 1;
 	}
@@ -439,6 +330,11 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		CHECKPOINT_M("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
+		if (hs == nullptr) {
+			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
+			lua_pushboolean(L, true);
+			return 1;
+		}
 		CHECKPOINT_M("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());

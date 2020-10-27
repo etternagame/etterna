@@ -40,7 +40,7 @@ class AnimatedTexture
 	void Unload();
 	void Update(float fDelta);
 
-	auto GetCurrentTexture() -> RageTexture*;
+	auto GetCurrentTexture() -> std::shared_ptr<RageTexture>;
 
 	[[nodiscard]] auto GetNumStates() const -> int;
 	void SetState(int iNewState);
@@ -62,7 +62,7 @@ class AnimatedTexture
 	float m_fSecsIntoFrame;
 	struct AnimatedTextureState
 	{
-		AnimatedTextureState(RageTexture* pTexture_,
+		AnimatedTextureState(std::shared_ptr<RageTexture> pTexture_,
 							 float fDelaySecs_,
 							 RageVector2 vTranslate_)
 		  : pTexture(pTexture_)
@@ -71,7 +71,7 @@ class AnimatedTexture
 		{
 		}
 
-		RageTexture* pTexture;
+		std::shared_ptr<RageTexture> pTexture;
 		float fDelaySecs;
 		RageVector2 vTranslate;
 	};

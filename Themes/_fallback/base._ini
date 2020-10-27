@@ -1476,7 +1476,6 @@ GradeP2Y=5
 
 [MusicWheel]
 SwitchSeconds=0.10
-RandomPicksLockedSongs=true
 RouletteSwitchSeconds=0.05
 RouletteSlowDownSwitches=5
 LockedInitialVelocity=7
@@ -1517,16 +1516,12 @@ SectionColor4=color("0.0,0.6,0.6,1")	-- sea green
 SectionColor5=color("0.1,0.7,0.3,1")	-- green
 SectionColor6=color("0.8,0.6,0.0,1")	-- orange
 SectionColor7=color("1.0,0.3,0.3,1")	-- light red
-SongRealExtraColor=color("0.9,0.9,0,1")		-- yellow
 SortMenuColor=color("1,1,0,1")
-SortOrders={ "SortOrder_Preferred", "SortOrder_Group", "SortOrder_Title", "SortOrder_BPM", "SortOrder_Popularity", "SortOrder_Artist", "SortOrder_Genre" }
-MostPlayedSongsToShow=30
-ModeMenuChoiceNames="Preferred,Group,Title,Bpm,Popularity,TopGrades,Artist,EasyMeter,MediumMeter,HardMeter,Genre,Length"
-ChoicePreferred="sort,Preferred"
+SortOrders={ "SortOrder_Group", "SortOrder_Title", "SortOrder_BPM", "SortOrder_Artist", "SortOrder_Genre" }
+ModeMenuChoiceNames="Group,Title,Bpm,TopGrades,Artist,Genre,Length"
 ChoiceGroup="sort,Group"
 ChoiceTitle="sort,Title"
 ChoiceBpm="sort,BPM"
-ChoicePopularity="sort,Popularity"
 ChoiceTopGrades="sort,TopGrades"
 ChoiceArtist="sort,Artist"
 ChoiceGenre="sort,Genre"
@@ -1534,7 +1529,6 @@ ChoiceEasyMeter="sort,EasyMeter"
 ChoiceMediumMeter="sort,MediumMeter"
 ChoiceHardMeter="sort,HardMeter"
 ChoiceLength="sort,Length"
-UseEasyMarkerFlag=false
 
 [RoomWheel]
 Fallback="MusicWheel"
@@ -2468,7 +2462,7 @@ Line32="conf,HiddenSongs"
 
 [ScreenOptionsGraphicsSound]
 Fallback="ScreenOptionsServiceChild"
-LineNames="1,2,3,4,5,6,7,8,9,10,11,12,13,14,17,18,19"
+LineNames="1,2,3,4,5,6,7,8,9,11,12,13,14,17,18,19"
 Line1="conf,Windowed"
 Line2="conf,DisplayResolution"
 Line3="conf,DisplayAspectRatio"
@@ -2478,8 +2472,7 @@ Line6="conf,MaxTextureResolution"
 Line7="conf,TextureColorDepth"
 Line8="conf,MovieColorDepth"
 Line9="conf,SmoothLines"
-Line10="conf,CelShadeModels"
-Line11="conf,DelayedTextureDelete"
+Line11="conf,DelayedTextureDeletion"
 Line12="conf,RefreshRate"
 Line13="conf,Vsync"
 Line14="conf,ShowStats"

@@ -15,15 +15,15 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "CrashHandler.h"
 #include "CrashHandlerInternal.h"
-#include "RageUtil/Misc/RageLog.h" /* for RageLog::GetAdditionalLog, etc. only */
 #include "Etterna/Globals/ProductInfo.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
+
 
 #ifdef __APPLE__
 #include "archutils/Darwin/Crash.h"
 #endif
 
-#include "ver.h"
+#include "Core/Misc/AppInfo.hpp"
 
 bool
 child_read(int fd, void* p, int size);
@@ -202,8 +202,8 @@ child_process()
 		exit(1);
 	}
 
-	fprintf(CrashDump, "%s%s crash report", PRODUCT_FAMILY, product_version);
-	fprintf(CrashDump, " (build %s)", ::version_git_hash);
+	fprintf(CrashDump, "%s%s crash report", PRODUCT_FAMILY, Core::AppInfo::APP_VERSION);
+	fprintf(CrashDump, " (build %s)", Core::AppInfo::GIT_HASH);
 	fprintf(CrashDump, "\n");
 	fprintf(CrashDump, "--------------------------------------\n");
 	fprintf(CrashDump, "\n");
@@ -238,7 +238,7 @@ child_process()
 			break;
 	}
 
-	fprintf(CrashDump, "Architecture:   %s\n", HOOKS->GetArchName().c_str());
+	fprintf(CrashDump, "Architecture:   %s\n", Locator::getArchHooks()->GetArchName().c_str());
 	fprintf(CrashDump, "Crash reason:   %s\n", reason.c_str());
 	fprintf(CrashDump, "Crashed thread: %s\n\n", CrashedThread.c_str());
 

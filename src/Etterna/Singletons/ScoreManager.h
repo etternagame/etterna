@@ -22,6 +22,7 @@ struct ScoresAtRate
 
 	// -technically- your pb could be a fail grade so use "bestgrade" -mina
 	Grade bestGrade;
+	float bestWifeScore = 0.F;
 
 	auto AddScore(HighScore& hs) -> HighScore*;
 
@@ -47,6 +48,7 @@ struct ScoresForChart
 	ScoresForChart();
 
 	Grade bestGrade = Grade_Invalid; // best grade for any rate
+	float bestWifeScore = 0.F;
 
 	auto GetPBAt(float rate) -> HighScore*;
 	auto GetPBUpTo(float rate) -> HighScore*;
@@ -132,7 +134,20 @@ class ScoreManager
 		if (KeyHasScores(ck, profileID)) {
 			return pscores.at(profileID).at(ck).bestGrade;
 		}
+
 		return Grade_Invalid;
+	}
+
+	[[nodiscard]] auto GetBestWifeScoreFor(
+	  const std::string& ck,
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> float
+	{
+		if (KeyHasScores(ck, profileID)) {
+			return pscores.at(profileID).at(ck).bestWifeScore;
+		}
+
+		return 0.F;
 	}
 
 	// for scores achieved during this session
@@ -146,6 +161,7 @@ class ScoreManager
 		  pscores[profileID][hs.GetChartKey()].AddScore(hs), profileID);
 		return hs.GetTopScore();
 	}
+
 	void ImportScore(const HighScore& hs_,
 					 const std::string& profileID =
 					   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
@@ -160,7 +176,7 @@ class ScoreManager
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
-	void RecalculateSSRs(LoadingWindow* ld, const std::string& profileID);
+	void RecalculateSSRs(LoadingWindow* ld);
 	void RecalculateSSRs(const std::string& profileID);
 	void UnInvalidateAllScores(const string& profileID);
 	void CalcPlayerRating(float& prating,
@@ -175,7 +191,13 @@ class ScoreManager
 
 	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
 	auto GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*;
-
+	auto GetRecentScore(int rank) -> HighScore*;
+	auto GetRecentScoreForGame(int rank) -> HighScore*;
+	void SortRecentScores(const std::string& profileID =
+							PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	void SortRecentScoresForGame(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
 	[[nodiscard]] auto KeyHasScores(
 	  const std::string& ck,
@@ -210,7 +232,9 @@ class ScoreManager
 					 "Temp score for Replay & Practice viewing was empty.");
 			return tempscoreforonlinereplayviewing;
 		}
-		ASSERT_M(!AllScores.empty(), "Profile has no Scores.");
+		// Allow Lua to receive null HS here
+		if (AllScores.empty())
+			return nullptr;
 		return AllScores.back();
 	}
 	void PutScoreAtTheTop(const std::string& scorekey)

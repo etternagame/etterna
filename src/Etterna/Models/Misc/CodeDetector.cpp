@@ -7,6 +7,7 @@
 #include "PlayerOptions.h"
 #include "PlayerState.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ThemeManager.h"
 
 #include <Tracy.hpp>
@@ -231,7 +232,7 @@ CodeDetector::DetectAndAdjustMusicOptions(GameController controller)
 	const auto pn = INPUTMAPPER->ControllerToPlayerNumber(controller);
 
 	if (pn >= NUM_PlayerNumber) {
-		LOG->Warn("Invalid controller player number");
+		Locator::getLogger()->warn("Invalid controller player number");
 		return false;
 	}
 

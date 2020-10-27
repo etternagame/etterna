@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks_Win32.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Globals/ProductInfo.h"
 #include "archutils/win32/AppInstance.h"
@@ -56,7 +56,6 @@ InvalidParameterHandler(const wchar_t* szExpression,
 
 ArchHooks_Win32::ArchHooks_Win32()
 {
-	HOOKS = this;
 
 	/* Disable critical errors, and handle them internally.  We never want the
 	 * "drive not ready", etc. dialogs to pop up. */
@@ -192,7 +191,7 @@ ArchHooks_Win32::BoostPriority()
 	OSVERSIONINFO version;
 	version.dwOSVersionInfoSize = sizeof(version);
 	if (!GetVersionEx(&version)) {
-		LOG->Warn(werr_ssprintf(GetLastError(), "GetVersionEx failed").c_str());
+		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "GetVersionEx failed"));
 		return;
 	}
 
@@ -269,16 +268,14 @@ ArchHooks_Win32::GetClipboard()
 	// Yes. All this mess just to gain access to the string stored by the
 	// clipboard. I'm having flashbacks to Berkeley sockets.
 	if (unlikely(!OpenClipboard(NULL))) {
-		LOG->Warn(
-		  werr_ssprintf(GetLastError(),
-						"InputHandler_DirectInput: OpenClipboard() failed")
-			.c_str());
+		Locator::getLogger()->warn(werr_ssprintf(
+		  GetLastError(), "InputHandler_DirectInput: OpenClipboard() failed"));
 		return "";
 	}
 
 	hgl = GetClipboardData(CF_TEXT);
 	if (unlikely(hgl == NULL)) {
-		LOG->Warn(
+		Locator::getLogger()->warn(
 		  werr_ssprintf(GetLastError(),
 						"InputHandler_DirectInput: GetClipboardData() failed")
 			.c_str());
@@ -288,9 +285,8 @@ ArchHooks_Win32::GetClipboard()
 
 	lpstr = (LPTSTR)GlobalLock(hgl);
 	if (unlikely(lpstr == NULL)) {
-		LOG->Warn(werr_ssprintf(GetLastError(),
-								"InputHandler_DirectInput: GlobalLock() failed")
-					.c_str());
+		Locator::getLogger()->warn(werr_ssprintf(
+		  GetLastError(), "InputHandler_DirectInput: GlobalLock() failed"));
 		CloseClipboard();
 		return "";
 	}
@@ -299,7 +295,7 @@ ArchHooks_Win32::GetClipboard()
 	// contents, pointed to by sToPaste. (Hopefully.)
 
 #ifdef UNICODE
-	ret = WStringToRString(wstring() + *lpstr);
+	ret = WStringToString(wstring() + *lpstr);
 #else
 	ret = std::string(lpstr);
 #endif

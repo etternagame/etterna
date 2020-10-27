@@ -85,11 +85,12 @@ end
 -- [en] returns possible modes for ScreenSelectPlayMode
 function GameCompatibleModes()
 	local Modes = {
-		dance = "Single,Double,Solo",
+		dance = "Single,Double",
 		pump = "Single,Double,HalfDouble",
 		beat = "5Keys,7Keys,10Keys,14Keys",
 		kb7 = "KB7",
 		maniax = "Single,Double",
+		solo = "Single"
 	}
 	return Modes[CurGameName()]
 end

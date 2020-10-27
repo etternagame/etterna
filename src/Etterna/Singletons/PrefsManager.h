@@ -106,7 +106,6 @@ class PrefsManager
 	// Game-specific prefs.  Copy these off and save them every time the game
 	// changes
 	Preference<std::string> m_sAnnouncer;
-	Preference<std::string> m_sTheme;
 	Preference<std::string> m_sDefaultModifiers;
 
   protected:
@@ -119,12 +118,12 @@ class PrefsManager
 		GamePrefs();
 
 		std::string m_sAnnouncer;
-		std::string m_sTheme;
 		std::string m_sDefaultModifiers;
 	};
 	std::map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
 
   public:
+	Preference<std::string> m_sTheme;
 	Preference<bool> m_bWindowed;
 	Preference<std::string> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
@@ -161,12 +160,6 @@ class PrefsManager
 
 	Preference<float> m_fLifeDifficultyScale;
 
-	// Whoever added these: Please add a comment saying what they do. -Chris
-	Preference<int> m_iRegenComboAfterMiss;	   // combo that must be met after a
-											   // Miss to regen life
-	Preference<int> m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if
-											   // multiple Misses occur in rapid
-											   // succession
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
 	Preference<bool> m_bShowInstructions;
@@ -192,8 +185,6 @@ class PrefsManager
 	Preference<int> m_iCenterImageTranslateY;
 	Preference<int> m_fCenterImageAddWidth;
 	Preference<int> m_fCenterImageAddHeight;
-	Preference<bool> m_bCelShadeModels;
-	Preference<bool> m_bPreferredSortUsesGroups;
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
@@ -210,12 +201,6 @@ class PrefsManager
 	Preference<bool> m_bAnisotropicFiltering; // has no effect without mipmaps
 											  // on.  Not mutually exclusive
 											  // with trilinear.
-
-	// If true, then signatures created when writing profile data and verified
-	// when reading profile data. Leave this false if you want to use a profile
-	// on different machines that don't have the same key, or else the
-	// profile's data will be discarded.
-	Preference<bool> m_bSignProfileData;
 
 	Preference<std::string> m_sAdditionalSongFolders;
 	Preference<std::string> m_sAdditionalFolders;

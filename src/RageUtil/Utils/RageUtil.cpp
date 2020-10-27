@@ -3,7 +3,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil.h"
 #include "RageUtil/Misc/RageUnicode.h"
@@ -63,8 +63,6 @@ ends_with(std::string const& source, std::string const& target)
 		   tail(source, target.size()) == target;
 }
 
-/* Stuff taken from ragestring.cpp where they already got rid of rstring
- * apparently /shrug */
 void
 s_replace(std::string& target, std::string const& from, std::string const& to)
 {
@@ -840,8 +838,8 @@ do_split(const S& Source,
 			if (startpos == 0 && pos - startpos == Source.size())
 				AddIt.push_back(Source);
 			else {
-				const S AddRString = Source.substr(startpos, pos - startpos);
-				AddIt.push_back(AddRString);
+				const S AddString = Source.substr(startpos, pos - startpos);
+				AddIt.push_back(AddString);
 			}
 		}
 
@@ -1024,7 +1022,7 @@ GetFileNameWithoutExtension(const std::string& sPath)
 void
 MakeValidFilename(std::string& sName)
 {
-	auto wsName = RStringToWstring(sName);
+	auto wsName = StringToWString(sName);
 	const wstring wsInvalid = L"/\\:*?\"<>|";
 	for (auto& i : wsName) {
 		const auto w = i;
@@ -1044,7 +1042,7 @@ MakeValidFilename(std::string& sName)
 		i = '_';
 	}
 
-	sName = WStringToRString(wsName);
+	sName = WStringToString(wsName);
 }
 
 bool
@@ -1117,7 +1115,7 @@ GetCommandlineArgument(const std::string& option,
 
 		const auto i = CurArgument.find('=');
 		auto CurOption = CurArgument.substr(0, i);
-		if (EqualsNoCase(CurOption, optstr))
+		if (!EqualsNoCase(CurOption, optstr))
 			continue; // no match
 
 		// Found it.
@@ -1206,23 +1204,23 @@ DirectoryIsEmpty(const std::string& sDir)
 }
 
 bool
-CompareRStringsAsc(const std::string& a, const std::string& b)
+CompareStringsAsc(const std::string& a, const std::string& b)
 {
 	return CompareNoCase(a, b) > 0;
 }
 
 bool
-CompareRStringsDesc(const std::string& a, const std::string& b)
+CompareStringsDesc(const std::string& a, const std::string& b)
 {
 	return CompareNoCase(b, a) > 0;
 }
 
 void
-SortRStringArray(vector<std::string>& arrayRStrings, const bool bSortAscending)
+SortStringArray(vector<std::string>& arrayStrings, const bool bSortAscending)
 {
-	sort(arrayRStrings.begin(),
-		 arrayRStrings.end(),
-		 bSortAscending ? CompareRStringsAsc : CompareRStringsDesc);
+	sort(arrayStrings.begin(),
+		 arrayStrings.end(),
+		 bSortAscending ? CompareStringsAsc : CompareStringsDesc);
 }
 
 float
@@ -1371,8 +1369,7 @@ GetFileContents(const std::string& sPath, std::string& sOut, bool bOneLine)
 
 	RageFile file;
 	if (!file.Open(sPath)) {
-		LOG->Warn(
-		  "GetFileContents(%s): %s", sPath.c_str(), file.GetError().c_str());
+		Locator::getLogger()->warn("GetFileContents({}): {}", sPath.c_str(), file.GetError().c_str());
 		return false;
 	}
 
@@ -1385,8 +1382,7 @@ GetFileContents(const std::string& sPath, std::string& sOut, bool bOneLine)
 		iGot = file.Read(sData, file.GetFileSize());
 
 	if (iGot == -1) {
-		LOG->Warn(
-		  "GetFileContents(%s): %s", sPath.c_str(), file.GetError().c_str());
+		Locator::getLogger()->warn("GetFileContents({}): {}", sPath.c_str(), file.GetError().c_str());
 		return false;
 	}
 
@@ -1402,8 +1398,7 @@ GetFileContents(const std::string& sFile, vector<std::string>& asOut)
 {
 	RageFile file;
 	if (!file.Open(sFile)) {
-		LOG->Warn(
-		  "GetFileContents(%s): %s", sFile.c_str(), file.GetError().c_str());
+		Locator::getLogger()->warn("GetFileContents({}): {}", sFile.c_str(), file.GetError().c_str());
 		return false;
 	}
 
@@ -1635,7 +1630,7 @@ utf8_to_wchar_ec(const std::string& s, unsigned& start, wchar_t& ch)
 			start += i;
 			return false;
 		}
-		ch = ch << 6 | byte & 0x3F;
+		ch = ch << 6 | (byte & 0x3F);
 	}
 
 	auto bValid = true;
@@ -1679,26 +1674,26 @@ utf8_to_wchar(const char* s, size_t iLength, unsigned& start, wchar_t& ch)
 			ch = s[start + 0] & 0x7F;
 			break;
 		case 2:
-			ch = (s[start + 0] & 0x1F) << 6 | s[start + 1] & 0x3F;
+			ch = (s[start + 0] & 0x1F) << 6 | (s[start + 1] & 0x3F);
 			break;
 		case 3:
 			ch = (s[start + 0] & 0x0F) << 12 | (s[start + 1] & 0x3F) << 6 |
-				 s[start + 2] & 0x3F;
+				 (s[start + 2] & 0x3F);
 			break;
 		case 4:
 			ch = (s[start + 0] & 0x07) << 18 | (s[start + 1] & 0x3F) << 12 |
-				 (s[start + 2] & 0x3F) << 6 | s[start + 3] & 0x3F;
+				 (s[start + 2] & 0x3F) << 6 | (s[start + 3] & 0x3F);
 			break;
 		case 5:
 			ch = (s[start + 0] & 0x03) << 24 | (s[start + 1] & 0x3F) << 18 |
 				 (s[start + 2] & 0x3F) << 12 | (s[start + 3] & 0x3F) << 6 |
-				 s[start + 4] & 0x3F;
+				 (s[start + 4] & 0x3F);
 			break;
 
 		case 6:
 			ch = (s[start + 0] & 0x01) << 30 | (s[start + 1] & 0x3F) << 24 |
 				 (s[start + 2] & 0x3F) << 18 | (s[start + 3] & 0x3F) << 12 |
-				 (s[start + 4] & 0x3F) << 6 | s[start + 5] & 0x3F;
+				 (s[start + 4] & 0x3F) << 6 | (s[start + 5] & 0x3F);
 			break;
 	}
 
@@ -1735,7 +1730,7 @@ wchar_to_utf8(wchar_t ch, std::string& out)
 
 	for (auto i = 0; i < cbytes; ++i) {
 		const auto shift = (cbytes - i - 1) * 6;
-		out.append(1, static_cast<char>(0x80 | ch >> shift & 0x3F));
+		out.append(1, static_cast<char>(0x80 | (ch >> shift & 0x3F)));
 	}
 }
 
@@ -1856,7 +1851,7 @@ FloatToString(const float& num)
 const wchar_t INVALID_CHAR = 0xFFFD; /* U+FFFD REPLACEMENT CHARACTER */
 
 wstring
-RStringToWstring(const std::string& s)
+StringToWString(const std::string& s)
 {
 	wstring ret;
 	ret.reserve(s.size());
@@ -1879,7 +1874,7 @@ RStringToWstring(const std::string& s)
 }
 
 std::string
-WStringToRString(const wstring& sStr)
+WStringToString(const wstring& sStr)
 {
 	std::string sRet;
 
@@ -2222,7 +2217,7 @@ CollapsePath(std::string& sPath, bool bRemoveLeadingDot)
 			sPath[iPos + 2] == '/') {
 			/* If this is the first path element (nothing to delete),
 			 * or all we have is a slash, leave it. */
-			if (sOut.empty() || sOut.size() == 1 && sOut[0] == '/') {
+			if (sOut.empty() || (sOut.size() == 1 && sOut[0] == '/')) {
 				sOut.append(sPath, iPos, iNext - iPos);
 				continue;
 			}
@@ -2332,7 +2327,7 @@ bool
 FileCopy(const std::string& sSrcFile, const std::string& sDstFile)
 {
 	if (!CompareNoCase(sSrcFile, sDstFile)) {
-		LOG->Warn("Tried to copy \"%s\" over itself", sSrcFile.c_str());
+		Locator::getLogger()->warn("Tried to copy \"{}\" over itself", sSrcFile.c_str());
 		return false;
 	}
 
@@ -2346,10 +2341,7 @@ FileCopy(const std::string& sSrcFile, const std::string& sDstFile)
 
 	std::string sError;
 	if (!FileCopy(in, out, sError)) {
-		LOG->Warn("FileCopy(%s,%s): %s",
-				  sSrcFile.c_str(),
-				  sDstFile.c_str(),
-				  sError.c_str());
+		Locator::getLogger()->warn("FileCopy({},{}): {}", sSrcFile.c_str(), sDstFile.c_str(), sError.c_str());
 		return false;
 	}
 
@@ -2413,7 +2405,7 @@ LuaFunction(Lowercase, MakeLower(SArg(1))) static std::string
 	return make_upper(s);
 }
 LuaFunction(Uppercase, MakeUpper(SArg(1)))
-  LuaFunction(mbstrlen, static_cast<int>(RStringToWstring(SArg(1)).length()))
+  LuaFunction(mbstrlen, static_cast<int>(StringToWString(SArg(1)).length()))
 	LuaFunction(URLEncode, URLEncode(SArg(1)));
 LuaFunction(PrettyPercent, PrettyPercent(FArg(1), FArg(2)));
 // LuaFunction( IsHexVal, IsHexVal( SArg(1) ) );

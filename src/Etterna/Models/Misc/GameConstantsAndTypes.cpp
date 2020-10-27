@@ -57,14 +57,6 @@ ToString<StepsType>(const StepsType& value)
 
 LuaXType(StepsType);
 
-static const char* PlayModeNames[] = { "Regular" };
-XToString(PlayMode);
-XToLocalizedString(PlayMode);
-StringToX(PlayMode);
-LuaFunction(PlayModeToLocalizedString,
-			PlayModeToLocalizedString(Enum::Check<PlayMode>(L, 1)));
-LuaXType(PlayMode);
-
 static const char* PlayerControllerNames[] = {
 	"Human",
 	"Autoplay",
@@ -93,12 +85,12 @@ static const char* GameplayModeNames[] = {
 XToString(GameplayMode);
 LuaXType(GameplayMode);
 
-static const char* SortOrderNames[] = {
-	"Preferred", "Group",	  "Title",	   "BPM",		 "Popularity",
-	"TopGrades", "Artist",	  "Genre",	   "ModeMenu",	 "Recent",
-	"Favorites", "Overall",	  "Stream",	   "Jumpstream", "Handstream",
-	"Stamina",	 "JackSpeed", "Chordjack", "Technical",	 "Length"
-};
+static const char* SortOrderNames[] = { "Group",	 "Title",	   "BPM",
+										"TopGrades", "Artist",	   "Genre",
+										"ModeMenu",	 "Favorites",  "Overall",
+										"Stream",	 "Jumpstream", "Handstream",
+										"Stamina",	 "JackSpeed",  "Chordjack",
+										"Technical", "Length" };
 XToString(SortOrder);
 StringToX(SortOrder);
 LuaXType(SortOrder);
@@ -266,7 +258,7 @@ XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 
 static const char* CalcDiffValueNames[] = { "NPSBase",
-											"JackBase",
+											// "JackBase",
 											// "CJBase",
 											"TechBase",
 											"RMABase",
@@ -276,9 +268,8 @@ LuaXType(CalcDiffValue);
 
 static const char* CalcDebugMiscNames[] = { "Pts",
 											"PtLoss",
-											"JackPtLoss",
-											"StamMod",
-											"JackStamMod" };
+											//"JackPtLoss",
+											"StamMod"};
 XToString(CalcDebugMisc);
 LuaXType(CalcDebugMisc);
 

@@ -228,7 +228,7 @@ end
 
 function getScoreGrade(score)
 	if score ~= nil then
-		return score:GetGrade()
+		return score:GetWifeGrade()
 	else
 		return "Grade_None"
 	end

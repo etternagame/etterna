@@ -35,44 +35,6 @@ LuaReference EnumTraits<T>::StringToEnum;
 template<typename T>
 LuaReference EnumTraits<T>::EnumToString;
 /** @brief Lua helpers for Enumerators. */
-namespace Enum {
-template<typename T>
-static auto
-Check(lua_State* L,
-	  int iPos,
-	  bool bAllowInvalid = false,
-	  bool bAllowAnything = false) -> T
-{
-	return static_cast<T>(CheckEnum(L,
-									EnumTraits<T>::StringToEnum,
-									iPos,
-									EnumTraits<T>::Invalid,
-									EnumTraits<T>::szName,
-									bAllowInvalid,
-									bAllowAnything));
-}
-template<typename T>
-static void
-Push(lua_State* L, T iVal)
-{
-	/* Enum_Invalid values are nil in Lua. */
-	if (iVal == EnumTraits<T>::Invalid) {
-		lua_pushnil(L);
-		return;
-	}
-
-	/* Look up the string value. */
-	EnumTraits<T>::EnumToString.PushSelf(L);
-	lua_rawgeti(L, -1, iVal + 1);
-	lua_remove(L, -2);
-}
-
-void
-SetMetatable(lua_State* L,
-			 LuaReference& EnumTable,
-			 LuaReference& EnumIndexTable,
-			 const char* szName);
-} // namespace Enum
 
 auto
 EnumToString(int iVal,
@@ -144,7 +106,45 @@ EnumToString(int iVal,
 	}                                                                          \
 	}
 
-// currently unused
+namespace Enum {
+template<typename T>
+static auto
+Check(lua_State* L,
+	  int iPos,
+	  bool bAllowInvalid = false,
+	  bool bAllowAnything = false) -> T
+{
+	return static_cast<T>(CheckEnum(L,
+									EnumTraits<T>::StringToEnum,
+									iPos,
+									EnumTraits<T>::Invalid,
+									EnumTraits<T>::szName,
+									bAllowInvalid,
+									bAllowAnything));
+}
+template<typename T>
+static void
+Push(lua_State* L, T iVal)
+{
+	/* Enum_Invalid values are nil in Lua. */
+	if (iVal == EnumTraits<T>::Invalid) {
+		lua_pushnil(L);
+		return;
+	}
+
+	/* Look up the string value. */
+	EnumTraits<T>::EnumToString.PushSelf(L);
+	lua_rawgeti(L, -1, iVal + 1);
+	lua_remove(L, -2);
+}
+
+void
+SetMetatable(lua_State* L,
+			 LuaReference& EnumTable,
+			 LuaReference& EnumIndexTable,
+			 const char* szName);
+} // namespace Enum
+
 #define LuaDeclareType(X)
 
 #define LuaXType(X)                                                            \

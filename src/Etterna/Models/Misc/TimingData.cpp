@@ -2,7 +2,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "NoteTypes.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "TimingData.h"
 
@@ -521,7 +521,7 @@ static void
 EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur)
 {
 #ifdef WITH_LOGGING_TIMING_DATA
-	LOG->Trace("EraseSegment(%d, %p)", index, cur);
+	Locator::getLogger()->trace("EraseSegment({}, {})", index, cur);
 	cur->DebugPrint();
 #endif
 
@@ -535,7 +535,7 @@ void
 TimingData::AddSegment(const TimingSegment* seg)
 {
 #ifdef WITH_LOGGING_TIMING_DATA
-	LOG->Trace("AddSegment( %s )",
+	Locator::getLogger()->trace("AddSegment({})",
 			   TimingSegmentTypeToString(seg->GetType()).c_str());
 	seg->DebugPrint();
 #endif
@@ -633,7 +633,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 	// the segment at or before this row is equal to the new one; ignore it
 	if (bOnSameRow && (*cur) == (*seg)) {
 #ifdef WITH_LOGGING_TIMING_DATA
-		LOG->Trace("equals previous segment, ignoring");
+		Locator::getLogger()->trace("equals previous segment, ignoring");
 #endif
 		return;
 	}
@@ -1031,7 +1031,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 			iStartRow <= tsEnd->GetRow() &&
 			tsEnd->GetRow() < iStartRow + iRowsToDelete) {
 			// The iRowsToDelete will eventually be subtracted out
-			LOG->Trace("Segment at row %d shifted to %d",
+			Locator::getLogger()->trace("Segment at row {} shifted to {}",
 					   tsEnd->GetRow(),
 					   iStartRow + iRowsToDelete);
 			tsEnd->SetRow(iStartRow + iRowsToDelete);
@@ -1074,7 +1074,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 	const auto& speeds = GetTimingSegments(SEGMENT_SPEED);
 	if (speeds.empty()) {
 #ifdef DEBUG
-		LOG->Trace("No speed segments found: using default value.");
+		Locator::getLogger()->trace("No speed segments found: using default value.");
 #endif
 		return 1.0f;
 	}
@@ -1083,7 +1083,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 
 	if (index < 0) {
 #ifdef DEBUG
-		LOG->Trace("Speed segment negative index: using default value");
+		Locator::getLogger()->trace("Speed segment negative index: using default value");
 #endif
 		return 1.0f;
 	}
@@ -1134,8 +1134,7 @@ TimingData::TidyUpData(bool allowEmpty)
 	// If there are no BPM segments, provide a default.
 	auto segs = m_avpTimingSegments;
 	if (segs[SEGMENT_BPM].empty()) {
-		LOG->UserLog(
-		  "Song file", m_sFile, "has no BPM segments, default provided.");
+        Locator::getLogger()->info("Song file {} has no BPM segments, default provided.", m_sFile);
 		AddSegment(BPMSegment(0, 60));
 	}
 
@@ -1235,6 +1234,7 @@ TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 	const auto segs = GetTimingSegments(tst);
 	vector<std::string> ret;
 
+	ret.reserve(segs.size());
 	for (auto* seg : segs) {
 		ret.push_back(seg->ToString(dec));
 	}
@@ -1368,6 +1368,7 @@ TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
 											  float rate)
 {
 	vector<float> o;
+	o.reserve(nrv.size());
 	for (auto nr : nrv)
 		o.emplace_back(WhereUAtBro(nr) / rate);
 	return o;
@@ -1539,6 +1540,7 @@ class LunaTimingData : public Luna<TimingData>
 		vector<float> vBPMs;
 		const auto& bpms = p->GetTimingSegments(SEGMENT_BPM);
 
+		vBPMs.reserve(bpms.size());
 		for (auto* bpm : bpms)
 			vBPMs.push_back(ToBPM(bpm)->GetBPM());
 

@@ -58,6 +58,18 @@ FilterManager::ResetSSFilters()
 	}
 }
 
+void
+FilterManager::ResetAllFilters()
+{
+	ResetSSFilters();
+	ExclusiveFilter = false;
+	HighestSkillsetsOnly = false;
+	HighestDifficultyOnly = false;
+
+	MinFilterRate = 1.F;
+	MaxFilterRate = 1.F;
+}
+
 // tmp filter stuff - mina
 bool
 FilterManager::AnyActiveFilter()
@@ -110,11 +122,15 @@ class LunaFilterManager : public Luna<FilterManager>
 		p->ResetSSFilters();
 		return 0;
 	}
+	static int ResetAllFilters(T* p, lua_State* L)
+	{
+		p->ResetAllFilters();
+		return 0;
+	}
 	static int SetMaxFilterRate(T* p, lua_State* L)
 	{
 		float mfr = FArg(1);
-		auto loot = p->m_pPlayerState;
-		CLAMP(mfr, loot->wtFFF, 3.f);
+		CLAMP(mfr, p->MinFilterRate, 3.f);
 		p->MaxFilterRate = mfr;
 		return 0;
 	}
@@ -127,14 +143,13 @@ class LunaFilterManager : public Luna<FilterManager>
 	{
 		float mfr = FArg(1);
 		CLAMP(mfr, 0.7f, p->MaxFilterRate);
-		auto loot = p->m_pPlayerState;
-		loot->wtFFF = mfr;
+		p->MinFilterRate = mfr;
 		return 0;
 	}
 	static int GetMinFilterRate(T* p, lua_State* L)
 	{
 		auto loot = p->m_pPlayerState;
-		lua_pushnumber(L, loot->wtFFF);
+		lua_pushnumber(L, p->MinFilterRate);
 		return 1;
 	}
 	static int ToggleFilterMode(T* p, lua_State* L)
@@ -157,7 +172,16 @@ class LunaFilterManager : public Luna<FilterManager>
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
 		return 1;
 	}
-
+	static int ToggleHighestDifficultyOnly(T* p, lua_State* L)
+	{
+		p->HighestDifficultyOnly = !p->HighestDifficultyOnly;
+		return 0;
+	}
+	static int GetHighestDifficultyOnly(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->HighestDifficultyOnly);
+		return 1;
+	}
 	static int HelpImTrappedInAChineseFortuneCodingFactory(T* p, lua_State* L)
 	{
 		p->galaxycollapsed = BArg(1);
@@ -201,6 +225,7 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(SetSSFilter);
 		ADD_METHOD(GetSSFilter);
 		ADD_METHOD(ResetSSFilters);
+		ADD_METHOD(ResetAllFilters);
 		ADD_METHOD(AnyActiveFilter);
 		ADD_METHOD(SetMaxFilterRate);
 		ADD_METHOD(GetMaxFilterRate);
@@ -210,6 +235,8 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(GetFilterMode);
 		ADD_METHOD(ToggleHighestSkillsetsOnly);
 		ADD_METHOD(GetHighestSkillsetsOnly);
+		ADD_METHOD(ToggleHighestDifficultyOnly);
+		ADD_METHOD(GetHighestDifficultyOnly);
 		ADD_METHOD(HelpImTrappedInAChineseFortuneCodingFactory);
 		ADD_METHOD(oopsimlazylol);
 		ADD_METHOD(grabposx);

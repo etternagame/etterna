@@ -8,6 +8,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Services/Locator.hpp"
 
 #include <cmath>
 
@@ -405,7 +406,7 @@ PlayerOptions::ResetModsToStringVector(vector<std::string> mods)
 {
 	std::string error;
 	ResetToggleableMods();
-	for (auto mod : mods) {
+	for (const auto& mod : mods) {
 		FromOneModString(mod, error);
 	}
 }
@@ -430,9 +431,8 @@ PlayerOptions::FromString(const std::string& sMultipleMods)
 	std::string sThrowAway;
 	for (auto& s : vs) {
 		if (!FromOneModString(s, sThrowAway)) {
-			LOG->Trace("Attempted to load a non-existing mod \'%s\' for the "
-					   "Player. Ignoring.",
-					   (s).c_str());
+			Locator::getLogger()->trace("Attempted to load a non-existing mod \'{}\' for the "
+					   "Player. Ignoring.", s.c_str());
 		}
 	}
 }

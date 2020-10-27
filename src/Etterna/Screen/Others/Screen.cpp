@@ -3,12 +3,11 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
 
 #include <Tracy.hpp>
 #include <tuple>
@@ -52,7 +51,8 @@ Screen::Init()
 	HANDLE_BACK_BUTTON.Load(m_sName, "HandleBackButton");
 	REPEAT_RATE.Load(m_sName, "RepeatRate");
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
-	HOOKS->sShowCursor(true);
+
+	Locator::getArchHooks()->sShowCursor(true);
 
 	delayedFunctions.clear();
 	delayedPeriodicFunctionIdsToDelete.clear();
@@ -73,8 +73,8 @@ Screen::Init()
 	vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
-		LOG->Trace(
-		  "Screen \"%s\" preparing \"%s\"", m_sName.c_str(), i.c_str());
+		Locator::getLogger()->trace(
+		  "Screen \"{}\" preparing \"{}\"", m_sName.c_str(), i.c_str());
 		SCREENMAN->PrepareScreen(i);
 	}
 
@@ -565,8 +565,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			f.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
-				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				std::string Error = "Error running Screen Timeout Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 1 args, 0 results
 			}
@@ -583,8 +582,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			lua_rawgeti(L, LUA_REGISTRYINDEX, f);
 			if (!lua_isnil(L, -1)) {
-				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				std::string Error = "Error running Screen Interval Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 0 args, 0 results
 			}

@@ -57,18 +57,6 @@ SongOptions::Approach(const SongOptions& other, float fDeltaSeconds)
 #undef DO_COPY
 }
 
-static void
-AddPart(vector<std::string>& AddTo, float level, std::string name)
-{
-	if (level == 0)
-		return;
-
-	const auto LevelStr =
-	  (level == 1) ? std::string("") : ssprintf("%ld%% ", lround(level * 100));
-
-	AddTo.push_back(LevelStr + name);
-}
-
 void
 SongOptions::GetMods(vector<std::string>& AddTo) const
 {

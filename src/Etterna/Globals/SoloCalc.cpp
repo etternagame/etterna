@@ -17,12 +17,11 @@ const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
 inline void
 Smooth(vector<float>& input, float neutral)
 {
-	float f1;
 	float f2 = neutral;
 	float f3 = neutral;
 
 	for (float& i : input) {
-		f1 = f2;
+		float f1 = f2;
 		f2 = f3;
 		f3 = i;
 		i = (f1 + f2 + f3) / 3;
@@ -32,11 +31,10 @@ Smooth(vector<float>& input, float neutral)
 inline void
 DifficultyMSSmooth(vector<float>& input)
 {
-	float f1;
 	float f2 = 0.f;
 
 	for (float& i : input) {
-		f1 = f2;
+		float f1 = f2;
 		f2 = i;
 		i = (f1 + f2) / 2.f;
 	}
@@ -77,11 +75,10 @@ Chisel(float score_goal,
 {
 	float lower = 0.0f;
 	float upper = 100.0f;
-	float gotpoints;
 	while (upper - lower > 0.01f) {
 		float mid = (lower + upper) / 2.f;
-		gotpoints = CalcInternal(mid, ldiff, lv_itvpoints) +
-					CalcInternal(mid, rdiff, rv_itvpoints);
+		float gotpoints = CalcInternal(mid, ldiff, lv_itvpoints) +
+						  CalcInternal(mid, rdiff, rv_itvpoints);
 		if (gotpoints / MaxPoints < score_goal) {
 			lower = mid;
 		} else {
@@ -191,11 +188,16 @@ SoloCalc(const std::vector<NoteInfo>& notes, float music_rate, float goal)
 	float MaxPoints = 0.f;
 	for (size_t i = 0; i < lv_itvpoints.size(); i++)
 		MaxPoints += static_cast<float>(lv_itvpoints[i] + rv_itvpoints[i]);
-	float sd = Chisel(
-	  min(goal, 0.965f), lv_itvMSdiff, lv_itvpoints, rv_itvMSdiff, rv_itvpoints, MaxPoints);
+	float sd = Chisel(min(goal, 0.965f),
+					  lv_itvMSdiff,
+					  lv_itvpoints,
+					  rv_itvMSdiff,
+					  rv_itvpoints,
+					  MaxPoints);
 
 	// hack to return the same sd for all skillsets, for now
 	// doing it this way because of how ix structured this -five
+	skills.reserve(8);
 	for (int i = 0; i < 8; i++) {
 		skills.emplace_back(sd);
 	}

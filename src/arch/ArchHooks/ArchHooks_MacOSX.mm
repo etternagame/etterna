@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks_MacOSX.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Unix/CrashHandler.h"
 #include "archutils/Unix/SignalHandler.h"
@@ -123,7 +123,7 @@ void ArchHooks_MacOSX::Init()
 	{
 		CFPreferencesSetAppValue( key, newDict, appID );
 		if( !CFPreferencesAppSynchronize(appID) )
-			LOG->Warn( "Failed to record the run path." );
+			Locator::getLogger()->warn( "Failed to record the run path." );
 		CFRelease( newDict );
 	}
 	CFRelease( value );
@@ -233,10 +233,10 @@ void ArchHooks_MacOSX::DumpDebugInfo()
 #undef GET_PARAM
 
 	// Send all of the information to the log
-	LOG->Info( "Model: %s (%d/%d)", sModel.c_str(), iCPUs, iMaxCPUs );
-	LOG->Info( "Clock speed %.2f %cHz", fFreq, freqPower );
-	LOG->Info( "%s", SystemVersion.c_str());
-	LOG->Info( "Memory: %.2f %cB", fRam, ramPower );
+    Locator::getLogger()->info("Model: {} ({}/{})", sModel, iCPUs, iMaxCPUs);
+	Locator::getLogger()->info("Clock speed {:.2f} {}Hz", fFreq, freqPower);
+	Locator::getLogger()->info("{}", SystemVersion);
+	Locator::getLogger()->info("Memory: {:.2f} {}B", fRam, ramPower);
 }
 
 std::string ArchHooks::GetPreferredLanguage()
@@ -264,7 +264,7 @@ std::string ArchHooks::GetPreferredLanguage()
 		if( str )
 			ret = std::string( str, 2 );
 		else
-			LOG->Warn( "Unable to determine system language. Using English." );
+            Locator::getLogger()->warn( "Unable to determine system language. Using English." );
 	}
 
 	CFRelease( languages );

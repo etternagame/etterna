@@ -13,8 +13,10 @@ set(BUILD_SHARED_LIBS OFF) # Tell CMake to prefer static libs
 
 # External Libraries
 ## Curl Specific Options
+set(CMAKE_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
+set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)    # Tell curl not to build standalone binary
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)     # Disable curl testing
-set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE) # Require OpenSSL
+set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
 set(HTTP_ONLY ON CACHE BOOL "" FORCE)          # Disable all protocols except HTTP/S
 add_subdirectory(curl)
 
@@ -41,19 +43,20 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(libtomcrypt)
-add_subdirectory(libtommath)
 add_subdirectory(LuaJIT-2.1.0-beta3)
 add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
+add_subdirectory(fmt)
+add_subdirectory(plog)
 
 ## Vorbis depends on ogg
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
+
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
@@ -63,10 +66,10 @@ endif()
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
     discord-rpc muFFT
-    tomcrypt libtommath
     zlib libmad pcre
     ogg vorbis glfw
     libcurl tracy)
+    libcurl fmt)
 
 list(APPEND LUA_TARGETS luajit lua minilua buildvm)
 

@@ -211,7 +211,7 @@ local ret =
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
-	CurrentStepsP1ChangedMessageCommand = function(self)
+	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
@@ -540,7 +540,7 @@ local function makeText(index)
 	return LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameWidth - frameX, offsetY + 105 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
+				self:xy(frameWidth - frameX, offsetY + 110 + (index * 15)):zoom(fontScale + 0.05):halign(1):settext("")
 			end,
 			DisplayCommand = function(self)
 				local count = 0

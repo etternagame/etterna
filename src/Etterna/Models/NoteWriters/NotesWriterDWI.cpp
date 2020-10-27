@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesWriterDWI.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -326,7 +326,7 @@ WriteDWINotesTag(RageFile& f, const Steps& out)
 	if (out.GetDifficulty() == Difficulty_Edit)
 		return false; // not supported by DWI
 
-	LOG->Trace("Steps::WriteDWINotesTag");
+	Locator::getLogger()->trace("Steps::WriteDWINotesTag");
 
 	switch (out.m_StepsType) {
 		case StepsType_dance_single:
@@ -372,10 +372,9 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 {
 	RageFile f;
 	if (!f.Open(sPath, RageFile::WRITE)) {
-		LOG->UserLog("Song file",
-					 sPath,
-					 "couldn't be opened for writing: %s",
-					 f.GetError().c_str());
+	    Locator::getLogger()->info("Song file \"{}\" couldn't be opened for writing: {}",
+	            sPath, f.GetError().c_str());
+
 		return false;
 	}
 
@@ -398,7 +397,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 	  "#GAP:%ld;", -lround(out.m_SongTiming.m_fBeat0OffsetInSeconds * 1000)));
 	f.PutLine(ssprintf("#SAMPLESTART:%.3f;", out.m_fMusicSampleStartSeconds));
 	f.PutLine(ssprintf("#SAMPLELENGTH:%.3f;", out.m_fMusicSampleLengthSeconds));
-	if (out.m_sCDTitleFile.size())
+	if (!out.m_sCDTitleFile.empty())
 		f.PutLine(
 		  ssprintf("#CDTITLE:%s;", DwiEscape(out.m_sCDTitleFile).c_str()));
 	switch (out.m_DisplayBPMType) {
@@ -451,9 +450,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 	}
 
 	const vector<Steps*>& vpSteps = out.GetAllSteps();
-	for (unsigned i = 0; i < vpSteps.size(); i++) {
-		const Steps* pSteps = vpSteps[i];
-
+	for (auto pSteps : vpSteps) {
 		if (!WriteDWINotesTag(f, *pSteps))
 			continue;
 

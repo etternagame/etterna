@@ -6,7 +6,6 @@
 #include "NotesLoaderSM.h" // For programming shortcuts.
 #include "NotesLoaderSSC.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
@@ -187,10 +186,10 @@ SetSelectable(SSC::SongTagInfo& info)
 	} else if (StringToInt((*info.params)[1]) > 0) {
 		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
 	} else {
-		LOG->UserLog("Song file",
-					 info.path,
-					 "has an unknown #SELECTABLE value, \"%s\"; ignored.",
-					 (*info.params)[1].c_str());
+//		LOG->UserLog("Song file",
+//					 info.path,
+//					 "has an unknown #SELECTABLE value, \"%s\"; ignored.",
+//					 (*info.params)[1].c_str());
 	}
 }
 void
@@ -711,11 +710,11 @@ SSCLoader::ProcessBPMs(TimingData& out,
 		vector<std::string> arrayBPMValues;
 		split(arrayBPMExpression, "=", arrayBPMValues);
 		if (arrayBPMValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #BPMS value \"%s\" (must have exactly "
-						 "one '='), ignored.",
-						 arrayBPMExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #BPMS value \"%s\" (must have exactly "
+//						 "one '='), ignored.",
+//						 arrayBPMExpression.c_str());
 			continue;
 		}
 
@@ -724,11 +723,11 @@ SSCLoader::ProcessBPMs(TimingData& out,
 		if (fBeat >= 0 && fNewBPM > 0) {
 			out.AddSegment(BPMSegment(BeatToNoteRow(fBeat), fNewBPM));
 		} else {
-			LOG->UserLog("Song file",
+			/*LOG->UserLog("Song file",
 						 songName,
 						 "has an invalid BPM at beat %f, BPM %f.",
 						 fBeat,
-						 fNewBPM);
+						 fNewBPM);*/
 		}
 	}
 }
@@ -745,11 +744,11 @@ SSCLoader::ProcessStops(TimingData& out,
 		vector<std::string> arrayStopValues;
 		split(arrayStopExpression, "=", arrayStopValues);
 		if (arrayStopValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #STOPS value \"%s\" (must have "
-						 "exactly one '='), ignored.",
-						 arrayStopExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #STOPS value \"%s\" (must have "
+//						 "exactly one '='), ignored.",
+//						 arrayStopExpression.c_str());
 			continue;
 		}
 
@@ -758,11 +757,11 @@ SSCLoader::ProcessStops(TimingData& out,
 		if (fBeat >= 0 && fNewStop > 0)
 			out.AddSegment(StopSegment(BeatToNoteRow(fBeat), fNewStop));
 		else {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid Stop at beat %f, length %f.",
-						 fBeat,
-						 fNewStop);
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid Stop at beat %f, length %f.",
+//						 fBeat,
+//						 fNewStop);
 		}
 	}
 }
@@ -780,11 +779,11 @@ SSCLoader::ProcessWarps(TimingData& out,
 		vector<std::string> arrayWarpValues;
 		split(arrayWarpExpression, "=", arrayWarpValues);
 		if (arrayWarpValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #WARPS value \"%s\" (must have "
-						 "exactly one '='), ignored.",
-						 arrayWarpExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #WARPS value \"%s\" (must have "
+//						 "exactly one '='), ignored.",
+//						 arrayWarpExpression.c_str());
 			continue;
 		}
 
@@ -796,11 +795,11 @@ SSCLoader::ProcessWarps(TimingData& out,
 		} else if (fNewBeat > 0)
 			out.AddSegment(WarpSegment(BeatToNoteRow(fBeat), fNewBeat));
 		else {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid Warp at beat %f, BPM %f.",
-						 fBeat,
-						 fNewBeat);
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid Warp at beat %f, BPM %f.",
+//						 fBeat,
+//						 fNewBeat);
 		}
 	}
 }
@@ -817,11 +816,11 @@ SSCLoader::ProcessLabels(TimingData& out,
 		vector<std::string> arrayLabelValues;
 		split(arrayLabelExpression, "=", arrayLabelValues);
 		if (arrayLabelValues.size() != 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #LABELS value \"%s\" (must have "
-						 "exactly one '='), ignored.",
-						 arrayLabelExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #LABELS value \"%s\" (must have "
+//						 "exactly one '='), ignored.",
+//						 arrayLabelExpression.c_str());
 			continue;
 		}
 
@@ -831,11 +830,11 @@ SSCLoader::ProcessLabels(TimingData& out,
 		if (fBeat >= 0.0f)
 			out.AddSegment(LabelSegment(BeatToNoteRow(fBeat), sLabel));
 		else {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid Label at beat %f called %s.",
-						 fBeat,
-						 sLabel.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid Label at beat %f called %s.",
+//						 fBeat,
+//						 sLabel.c_str());
 		}
 	}
 }
@@ -861,11 +860,11 @@ SSCLoader::ProcessCombos(TimingData& out,
 		split(arrayComboExpression, "=", arrayComboValues);
 		unsigned size = arrayComboValues.size();
 		if (size < 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an invalid #COMBOS value \"%s\" (must have at "
-						 "least one '='), ignored.",
-						 arrayComboExpression.c_str());
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an invalid #COMBOS value \"%s\" (must have at "
+//						 "least one '='), ignored.",
+//						 arrayComboExpression.c_str());
 			continue;
 		}
 		const float fComboBeat = StringToFloat(arrayComboValues[0]);
@@ -890,10 +889,10 @@ SSCLoader::ProcessScrolls(TimingData& out,
 		split(s1, "=", vs2);
 
 		if (vs2.size() < 2) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an scroll change with %i values.",
-						 static_cast<int>(vs2.size()));
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an scroll change with %i values.",
+//						 static_cast<int>(vs2.size()));
 			continue;
 		}
 
@@ -901,10 +900,10 @@ SSCLoader::ProcessScrolls(TimingData& out,
 		const float fRatio = StringToFloat(vs2[1]);
 
 		if (fBeat < 0) {
-			LOG->UserLog("Song file",
-						 songName,
-						 "has an scroll change with beat %f.",
-						 fBeat);
+//			LOG->UserLog("Song file",
+//						 songName,
+//						 "has an scroll change with beat %f.",
+//						 fBeat);
 			continue;
 		}
 
@@ -915,14 +914,14 @@ SSCLoader::ProcessScrolls(TimingData& out,
 bool
 SSCLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 {
-	LOG->Trace("Loading notes from %s", cachePath.c_str());
+//	LOG->Trace("Loading notes from %s", cachePath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(cachePath, true)) {
-		LOG->UserLog("Unable to load any notes from",
-					 cachePath,
-					 "for this reason: %s",
-					 msd.GetError().c_str());
+//		LOG->UserLog("Unable to load any notes from",
+//					 cachePath,
+//					 "for this reason: %s",
+//					 msd.GetError().c_str());
 		return false;
 	}
 
@@ -1024,8 +1023,8 @@ SSCLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 
 	MsdFile msd;
 	if (!msd.ReadFile(sPath, true)) {
-		LOG->UserLog(
-		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
 		return false;
 	}
 
@@ -1104,153 +1103,4 @@ SSCLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 	out.m_fVersion = STEPFILE_VERSION_NUMBER;
 	SMLoader::TidyUpData(out, bFromCache);
 	return true;
-}
-
-bool
-SSCLoader::LoadEditFromFile(const std::string& sEditFilePath,
-							ProfileSlot slot,
-							bool bAddStepsToSong,
-							Song* givenSong /* =NULL */)
-{
-	LOG->Trace("SSCLoader::LoadEditFromFile(%s)", sEditFilePath.c_str());
-
-	int iBytes = FILEMAN->GetFileSizeInBytes(sEditFilePath);
-	if (iBytes > MAX_EDIT_STEPS_SIZE_BYTES) {
-		LOG->UserLog("Edit file",
-					 sEditFilePath,
-					 "is unreasonably large. It won't be loaded.");
-		return false;
-	}
-
-	MsdFile msd;
-	if (!msd.ReadFile(sEditFilePath, true)) // unescape
-	{
-		LOG->UserLog("Edit file",
-					 sEditFilePath,
-					 "couldn't be opened: %s",
-					 msd.GetError().c_str());
-		return false;
-	}
-
-	return LoadEditFromMsd(
-	  msd, sEditFilePath, slot, bAddStepsToSong, givenSong);
-}
-
-bool
-SSCLoader::LoadEditFromMsd(const MsdFile& msd,
-						   const std::string& sEditFilePath,
-						   ProfileSlot slot,
-						   bool bAddStepsToSong,
-						   Song* givenSong /* =NULL */)
-{
-	Song* pSong = givenSong;
-	Steps* pNewNotes = nullptr;
-	TimingData stepsTiming;
-
-	SSC::StepsTagInfo reused_steps_info(&*this, pSong, sEditFilePath, false);
-	reused_steps_info.for_load_edit = true;
-	reused_steps_info.timing = &stepsTiming;
-
-	for (unsigned int i = 0; i < msd.GetNumValues(); ++i) {
-		int iNumParams = msd.GetNumParams(i);
-		const MsdFile::value_t& sParams = msd.GetValue(i);
-		std::string sValueName = make_upper(sParams[0]);
-
-		if (pSong != nullptr) {
-			reused_steps_info.params = &sParams;
-			steps_handler_map_t::iterator handler =
-			  parser_helper.steps_tag_handlers.find(sValueName);
-			if (pNewNotes != nullptr &&
-				handler != parser_helper.steps_tag_handlers.end()) {
-				handler->second(reused_steps_info);
-			} else if (sValueName == "NOTEDATA") {
-				pNewNotes = pSong->CreateSteps();
-				reused_steps_info.steps = pNewNotes;
-				reused_steps_info.ssc_format = true;
-			} else if (sValueName == "NOTES") {
-
-				if (!reused_steps_info.ssc_format && iNumParams < 7) {
-					LOG->UserLog("Edit file",
-								 sEditFilePath,
-								 "has %d fields in a #NOTES tag, but should "
-								 "have at least 7.",
-								 iNumParams);
-					continue;
-				}
-
-				// I have no idea what the purpose of this bAddStepsToSong flag
-				// is. It looks like it causes LoadEditFromMsd to just throw
-				// away whatever steps data was loaded, possibly leaking the
-				// memory used by pNewNotes.  It was here before I rewrote
-				// LoadEditFromMsd to use a map instead of an else if chain, so
-				// I preserved it. -Kyz
-				if (!bAddStepsToSong) {
-					return true;
-				}
-
-				// Force the difficulty to edit in case the edit set its own
-				// difficulty because IsEditAlreadyLoaded has an assert and
-				// edits shouldn't be able to add charts of other difficulties.
-				// -Kyz
-				if (pNewNotes != nullptr) {
-					pNewNotes->SetDifficulty(Difficulty_Edit);
-					if (pSong->IsEditAlreadyLoaded(pNewNotes)) {
-						LOG->UserLog("Edit file",
-									 sEditFilePath,
-									 "is a duplicate of another edit that was "
-									 "already loaded.");
-						SAFE_DELETE(pNewNotes);
-						return false;
-					}
-				}
-
-				if (reused_steps_info.ssc_format) {
-					if (reused_steps_info.has_own_timing) {
-						pNewNotes->m_Timing = stepsTiming;
-					}
-					pNewNotes->SetSMNoteData(sParams[1]);
-					pNewNotes->TidyUpData();
-				} else {
-					pNewNotes = pSong->CreateSteps();
-					LoadFromTokens(sParams[1],
-								   sParams[2],
-								   sParams[3],
-								   sParams[4],
-								   /*sParams[5],*/ // radar values
-								   sParams[6],
-								   *pNewNotes);
-				}
-
-				pNewNotes->SetLoadedFromProfile(slot);
-				pNewNotes->SetDifficulty(Difficulty_Edit);
-				pNewNotes->SetFilename(sEditFilePath);
-
-				pSong->AddSteps(pNewNotes);
-				return true; // Only allow one Steps per edit file!
-			} else {
-				LOG->UserLog("Edit file",
-							 sEditFilePath,
-							 "has an unexpected value \"%s\".",
-							 sValueName.c_str());
-			}
-		} else {
-			if (sValueName == "SONG") {
-				std::string sSongFullTitle = sParams[1];
-				this->SetSongTitle(sParams[1]);
-				s_replace(sSongFullTitle, "\\", "/");
-				pSong = SONGMAN->FindSong(sSongFullTitle);
-				reused_steps_info.song = pSong;
-				if (pSong == nullptr) {
-					LOG->UserLog("Edit file",
-								 sEditFilePath,
-								 "requires a song \"%s\" that isn't present.",
-								 sSongFullTitle.c_str());
-					return false;
-				}
-				reused_steps_info.song = pSong;
-			}
-		}
-	}
-	// Edit had no valid #NOTES sections
-	return false;
 }

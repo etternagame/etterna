@@ -47,8 +47,8 @@ struct Chart
 	std::string lastpack;
 	Difficulty lastdiff = Difficulty_Invalid;
 	float rate = 1.F;
-	Song* songptr;
-	Steps* stepsptr;
+	Song* songptr{};
+	Steps* stepsptr{};
 
 	auto IsLoaded() -> bool { return loaded; }
 

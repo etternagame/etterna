@@ -75,19 +75,6 @@ struct SMLoader
 	 */
 	virtual void GetApplicableFiles(const std::string& sPath,
 									vector<std::string>& out);
-	virtual bool LoadEditFromFile(const std::string& sEditFilePath,
-								  ProfileSlot slot,
-								  bool bAddStepsToSong,
-								  Song* givenSong = nullptr);
-	virtual bool LoadEditFromBuffer(const std::string& sBuffer,
-									const std::string& sEditFilePath,
-									ProfileSlot slot,
-									Song* givenSong = nullptr);
-	virtual bool LoadEditFromMsd(const MsdFile& msd,
-								 const std::string& sEditFilePath,
-								 ProfileSlot slot,
-								 bool bAddStepsToSong,
-								 Song* givenSong = nullptr);
 	virtual bool LoadFromBGChangesString(
 	  BackgroundChange& change,
 	  const std::string& sBGChangeExpression);

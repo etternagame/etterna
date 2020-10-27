@@ -15,7 +15,7 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "ScreenDebugOverlay.h"
@@ -442,7 +442,7 @@ ScreenDebugOverlay::UpdateText()
 		 * figuring out why, so warn. */
 		if (g_HaltTimer.Ago() >= 5.0f) {
 			g_HaltTimer.Touch();
-			LOG->Warn("Game halted");
+			Locator::getLogger()->warn("Game halted");
 		}
 	}
 }
@@ -530,7 +530,7 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 			std::string sMessage;
 			(*p)->DoAndLog(sMessage);
 			if (!sMessage.empty())
-				LOG->Trace("DEBUG: %s", sMessage.c_str());
+				Locator::getLogger()->trace("DEBUG: {}", sMessage.c_str());
 			if ((*p)->ForceOffAfterUse())
 				m_bForcedHidden = true;
 
@@ -976,65 +976,6 @@ class DebugLineClearProfileStats : public IDebugLine
 	}
 };
 
-static HighScore
-MakeRandomHighScore(float fPercentDP)
-{
-	HighScore hs;
-	hs.SetName("FAKE");
-	auto g =
-	  static_cast<Grade> SCALE(RandomInt(6), 0, 4, Grade_Tier01, Grade_Tier06);
-	if (g == Grade_Tier06)
-		g = Grade_Failed;
-	hs.SetGrade(g);
-	hs.SetScore(RandomInt(100 * 1000));
-	hs.SetPercentDP(fPercentDP);
-	hs.SetAliveSeconds(randomf(30.0f, 100.0f));
-	PlayerOptions po;
-	po.ChooseRandomModifiers();
-	hs.SetModifiers(po.GetString());
-	hs.SetDateTime(DateTime::GetNowDateTime());
-	hs.SetPlayerGuid(Profile::MakeGuid());
-	hs.SetMachineGuid(Profile::MakeGuid());
-	hs.SetProductID(RandomInt(10));
-	FOREACH_ENUM(TapNoteScore, tns)
-	hs.SetTapNoteScore(tns, RandomInt(100));
-	FOREACH_ENUM(HoldNoteScore, hns)
-	hs.SetHoldNoteScore(hns, RandomInt(100));
-	RadarValues rv;
-	FOREACH_ENUM(RadarCategory, rc)
-	{
-		rv[rc] = static_cast<int>(randomf(0, 1));
-	}
-	hs.SetRadarValues(rv);
-
-	return hs;
-}
-
-// was for making random scores in a profile to test stuff, used hsl etc
-static void
-FillProfileStats(Profile* pProfile)
-{
-}
-
-class DebugLineFillProfileStats : public IDebugLine
-{
-	std::string GetDisplayTitle() override
-	{
-		return FILL_PROFILE_STATS.GetValue();
-	}
-
-	std::string GetDisplayValue() override { return std::string(); }
-	bool IsEnabled() override { return true; }
-	std::string GetPageName() const override { return "Profiles"; }
-
-	void DoAndLog(std::string& sMessageOut) override
-	{
-		Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
-		FillProfileStats(pProfile);
-		IDebugLine::DoAndLog(sMessageOut);
-	}
-};
-
 class DebugLineSendNotesEnded : public IDebugLine
 {
 	std::string GetDisplayTitle() override
@@ -1296,7 +1237,7 @@ class DebugLineWriteProfiles : public IDebugLine
 	{
 		auto pn = static_cast<PlayerNumber>(g_ProfileSlot);
 		GAMESTATE->SaveCurrentSettingsToProfile(pn);
-		GAMESTATE->SavePlayerProfile(pn);
+		GAMESTATE->SavePlayerProfile();
 		IDebugLine::DoAndLog(sMessageOut);
 	}
 };
@@ -1339,7 +1280,6 @@ class DebugLineFlushLog : public IDebugLine
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
-		LOG->Flush();
 		IDebugLine::DoAndLog(sMessageOut);
 	}
 };
@@ -1631,7 +1571,6 @@ DECLARE_ONE(DebugLineAllowMultitexture);
 DECLARE_ONE(DebugLineShowMasks);
 DECLARE_ONE(DebugLineProfileSlot);
 DECLARE_ONE(DebugLineClearProfileStats);
-DECLARE_ONE(DebugLineFillProfileStats);
 DECLARE_ONE(DebugLineSendNotesEnded);
 DECLARE_ONE(DebugLineReloadCurrentScreen);
 DECLARE_ONE(DebugLineRestartCurrentScreen);

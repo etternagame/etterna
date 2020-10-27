@@ -7,6 +7,7 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Models/Lua/LuaReference.h"
+#include "fft.h"
 
 class RageSoundReader;
 struct lua_State;
@@ -93,6 +94,26 @@ struct RageSoundLoadParams
 
 	// If true, panning will be supported for this sound.
 	bool m_bSupportPan{ false };
+};
+
+template <class T>
+class MufftAllocator
+{
+  public:
+	typedef T value_type;
+	MufftAllocator() noexcept {};
+	
+	T* allocate(size_t n) {	return static_cast<T*>(mufft_alloc(n * sizeof(T)));	}
+	void deallocate(T* p, size_t n) { mufft_free(p); }
+
+	template<typename U>
+	MufftAllocator(const MufftAllocator<U>& other) throw(){};
+};
+
+struct cfloat
+{
+	float real;
+	float imag;
 };
 
 class RageSound : public RageSoundBase
@@ -196,7 +217,6 @@ class RageSound : public RageSoundBase
 	 * play until it becomes positive. */
 	int64_t m_iStreamFrame;
 
-	void* fftBuffer{ nullptr };
 	void ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 									 unsigned int bufSize);
 	std::atomic<bool> inPlayCallback{ false };
@@ -204,7 +224,9 @@ class RageSound : public RageSoundBase
 	  recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
 	std::shared_ptr<LuaReference> soundPlayCallback;
-	vector<float> recentPCMSamples;
+	vector<float, MufftAllocator<float>> recentPCMSamples;
+	vector<cfloat, MufftAllocator<cfloat>> fftBuffer;
+	mufft_plan_1d *fftPlan{ nullptr };
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position
 	 * (we're not playing); and we can't seek back to the current playing

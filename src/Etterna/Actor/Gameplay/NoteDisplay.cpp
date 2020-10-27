@@ -630,7 +630,7 @@ NoteDisplay::DrawHoldsInRange(
 
 		const auto note_upcoming =
 		  NoteRowToBeat(start_row) >
-		  m_pPlayerState->GetDisplayedPosition().m_fSongBeat;
+		  GAMESTATE->m_Position.m_fSongBeat;
 		any_upcoming |= note_upcoming;
 	}
 	return any_upcoming;
@@ -656,12 +656,11 @@ NoteDisplay::DrawTapsInRange(
 		// was in NoteField, but those aren't available here.
 		// Well, anyone who has to investigate hitting it can use a debugger to
 		// discover the values, hopefully. -Kyz
-		ASSERT_M(
-		  NoteRowToBeat(tap_row) > -2000,
-		  ssprintf("Invalid tap_row: %i, %f %f",
-				   tap_row,
-				   m_pPlayerState->GetDisplayedPosition().m_fSongBeat,
-				   m_pPlayerState->GetDisplayedPosition().m_fMusicSeconds));
+		ASSERT_M(NoteRowToBeat(tap_row) > -2000,
+				 ssprintf("Invalid tap_row: %i, %f %f",
+						  tap_row,
+						  GAMESTATE->m_Position.m_fSongBeat,
+						  GAMESTATE->m_Position.m_fMusicSeconds));
 
 		// See if there is a hold step that begins on this index.
 		// Only do this if the noteskin cares.
@@ -710,7 +709,7 @@ NoteDisplay::DrawTapsInRange(
 								   : field_args.fail_fade);
 
 		any_upcoming |= NoteRowToBeat(tap_row) >
-						m_pPlayerState->GetDisplayedPosition().m_fSongBeat;
+						GAMESTATE->m_Position.m_fSongBeat;
 
 		if (!PREFSMAN->m_FastNoteRendering) {
 			DISPLAY->ClearZBuffer();
@@ -752,8 +751,8 @@ NoteDisplay::SetActiveFrame(float fNoteBeat,
 
 	/* -inf ... inf */
 	const auto fBeatOrSecond = cache->m_bAnimationBasedOnBeats
-								 ? m_pPlayerState->m_Position.m_fSongBeat
-								 : m_pPlayerState->m_Position.m_fMusicSeconds;
+								 ? GAMESTATE->m_Position.m_fSongBeat
+								 : GAMESTATE->m_Position.m_fMusicSeconds;
 	/* -len ... +len */
 	auto fPercentIntoAnimation = fmodf(fBeatOrSecond, fAnimationLength);
 	/* -1 ... 1 */
@@ -1178,7 +1177,7 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 			/* The queue is full.  Render it. */
 			if (!bAllAreTransparent) {
 				for (auto& spr : vpSpr) {
-					auto* pTexture = spr->GetTexture();
+					auto pTexture = spr->GetTexture();
 					DISPLAY->SetTexture(TextureUnit_1,
 										pTexture->GetTexHandle());
 					DISPLAY->SetBlendMode(spr == vpSpr.front() ? BLEND_NORMAL
@@ -1815,8 +1814,7 @@ void
 NoteColumnRenderer::UpdateReceptorGhostStuff(Actor* receptor) const
 {
 	const auto* const player_state = m_field_render_args->player_state;
-	const auto song_beat =
-	  player_state->GetDisplayedPosition().m_fSongBeatVisible;
+	const auto song_beat = GAMESTATE->m_Position.m_fSongBeatVisible;
 	// sp_* will be filled with the settings from the splines.
 	// ae_* will be filled with the settings from ArrowEffects.
 	// The two together will be applied to the actor.
@@ -1890,9 +1888,7 @@ NoteColumnRenderer::UpdateReceptorGhostStuff(Actor* receptor) const
 void
 NoteColumnRenderer::DrawPrimitives()
 {
-	m_column_render_args.song_beat =
-	  m_field_render_args->player_state->GetDisplayedPosition()
-		.m_fSongBeatVisible;
+	m_column_render_args.song_beat = GAMESTATE->m_Position.m_fSongBeatVisible;
 	m_column_render_args.pos_handler = &NCR_current.m_pos_handler;
 	m_column_render_args.rot_handler = &NCR_current.m_rot_handler;
 	m_column_render_args.zoom_handler = &NCR_current.m_zoom_handler;

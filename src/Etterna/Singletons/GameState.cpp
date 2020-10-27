@@ -31,6 +31,7 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Services/Locator.hpp"
 
 #include <algorithm>
 
@@ -47,7 +48,7 @@ class GameStateMessageHandler : public MessageSubscriber
 			std::string sJoined("P1");
 
 			if (PREFSMAN->m_verbose_log > 0)
-				LOG->MapLog("JOINED", "Players joined: %s", sJoined.c_str());
+				Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
 		}
 	}
 };
@@ -89,13 +90,12 @@ GameState::GameState()
   : processedTiming(nullptr)
   , m_pCurGame(Message_CurrentGameChanged)
   , m_pCurStyle(Message_CurrentStyleChanged)
-  , m_PlayMode(Message_PlayModeChanged)
   , m_sPreferredSongGroup(Message_PreferredSongGroupChanged)
   , m_PreferredStepsType(Message_PreferredStepsTypeChanged)
   , m_PreferredDifficulty(Message_PreferredDifficultyP1Changed)
   , m_SortOrder(Message_SortOrderChanged)
   , m_pCurSong(Message_CurrentSongChanged)
-  , m_pCurSteps(Message_CurrentStepsP1Changed)
+  , m_pCurSteps(Message_CurrentStepsChanged)
   , m_bGameplayLeadIn(Message_GameplayLeadInChanged)
   , m_sEditLocalProfileID(Message_EditLocalProfileIDChanged)
   , m_gameplayMode(Message_GameplayModeChanged)
@@ -111,9 +111,6 @@ GameState::GameState()
 	m_iStageSeed = m_iGameSeed = 0;
 
 	m_gameplayMode.Set(GameplayMode_Normal);
-
-	m_PlayMode.Set(
-	  PlayMode_Invalid); // used by IsPlayerEnabled before the first screen
 	m_bSideIsJoined =
 	  false; // used by GetNumSidesJoined before the first screen
 
@@ -281,7 +278,6 @@ GameState::Reset()
 	m_bFailTypeWasExplicitlySet = false;
 	m_SortOrder.Set(SortOrder_Invalid);
 	m_PreferredSortOrder = GetDefaultSort();
-	m_PlayMode.Set(PlayMode_Invalid);
 	m_iCurrentStageIndex = 0;
 
 	m_bGameplayLeadIn.Set(false);
@@ -304,8 +300,6 @@ GameState::Reset()
 	ResetMusicStatistics();
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();
-
-	SONGMAN->UpdateShuffled();
 
 	STATSMAN->Reset();
 	m_bTemporaryEventMode = false;
@@ -440,21 +434,13 @@ GameState::LoadProfiles(bool bLoadEdits)
 }
 
 void
-GameState::SavePlayerProfiles()
+GameState::SavePlayerProfile()
 {
-	SavePlayerProfile(PLAYER_1);
-}
-
-void
-GameState::SavePlayerProfile(PlayerNumber pn)
-{
-	// AutoplayCPU should not save scores. -aj
-	// xxx: this MAY cause issues with Multiplayer. However, without a working
-	// Multiplayer build, we'll never know. -aj
+	// AutoplayCPU should not save scores
 	if (m_pPlayerState->m_PlayerController != PC_HUMAN)
 		return;
 
-	PROFILEMAN->SaveProfile(pn);
+	PROFILEMAN->SaveProfile(PLAYER_1);
 }
 
 bool
@@ -506,7 +492,7 @@ GameState::BeginStage()
 
 	// This should only be called once per stage.
 	if (m_iNumStagesOfThisSong != 0)
-		LOG->Warn("XXX: m_iNumStagesOfThisSong == %i?", m_iNumStagesOfThisSong);
+		Locator::getLogger()->warn("XXX: m_iNumStagesOfThisSong == {}?", m_iNumStagesOfThisSong);
 
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();
@@ -538,7 +524,6 @@ GameState::BeginStage()
 	m_iPlayerStageTokens -= m_iNumStagesOfThisSong;
 	if (CurrentOptionsDisqualifyPlayer(PLAYER_1))
 		STATSMAN->m_CurStageStats.m_player.m_bDisqualified = true;
-	m_sStageGUID = CryptManager::GenerateRandomUUID();
 }
 
 void
@@ -759,8 +744,6 @@ GameState::ResetMusicStatistics()
 	m_LastPositionSeconds = 0.0f;
 
 	Actor::SetBGMTime(0, 0, 0, 0);
-
-	m_pPlayerState->m_Position.Reset();
 }
 
 void
@@ -804,10 +787,8 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 		m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
 
-		m_pPlayerState->m_Position.UpdateSongPosition(
-		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
-		Actor::SetPlayerBGMBeat(m_pPlayerState->m_Position.m_fSongBeatVisible,
-								m_pPlayerState->m_Position.m_fSongBeatNoOffset);
+		Actor::SetPlayerBGMBeat(m_Position.m_fSongBeatVisible,
+								m_Position.m_fSongBeatNoOffset);
 	} else {
 		m_Position.UpdateSongPosition(fPositionSeconds, timing, timestamp);
 	}
@@ -1572,7 +1553,6 @@ class LunaGameState : public Luna<GameState>
 		COMMON_RETURN_SELF;
 	}
 	DEFINE_METHOD(GetPreferredDifficulty, m_PreferredDifficulty)
-	DEFINE_METHOD(GetPlayMode, m_PlayMode)
 	DEFINE_METHOD(GetSortOrder, m_SortOrder)
 	DEFINE_METHOD(GetCurrentStageIndex, m_iCurrentStageIndex)
 	DEFINE_METHOD(PlayerIsUsingModifier,
@@ -1806,7 +1786,7 @@ class LunaGameState : public Luna<GameState>
 
 	static int SaveProfiles(T* p, lua_State* L)
 	{
-		p->SavePlayerProfiles();
+		p->SavePlayerProfile();
 		SCREENMAN->ZeroNextUpdate();
 		COMMON_RETURN_SELF;
 	}
@@ -1821,14 +1801,6 @@ class LunaGameState : public Luna<GameState>
 
 	DEFINE_METHOD(HaveProfileToLoad, HaveProfileToLoad())
 	DEFINE_METHOD(HaveProfileToSave, HaveProfileToSave())
-
-	static bool AreStyleAndPlayModeCompatible(T* p,
-											  lua_State* L,
-											  const Style* style,
-											  PlayMode pm)
-	{
-		return true;
-	}
 
 	static int SetCurrentStyle(T* p, lua_State* L)
 	{
@@ -1854,21 +1826,7 @@ class LunaGameState : public Luna<GameState>
 			  L, "Too many sides joined for style %s", pStyle->m_szName);
 		}
 
-		if (!AreStyleAndPlayModeCompatible(p, L, pStyle, p->m_PlayMode)) {
-			COMMON_RETURN_SELF;
-		}
-
 		p->SetCurrentStyle(pStyle, PLAYER_1);
-		COMMON_RETURN_SELF;
-	}
-
-	static int SetCurrentPlayMode(T* p, lua_State* L)
-	{
-		PlayMode pm = Enum::Check<PlayMode>(L, 1);
-		if (AreStyleAndPlayModeCompatible(
-			  p, L, p->GetCurrentStyle(PLAYER_INVALID), pm)) {
-			p->m_PlayMode.Set(pm);
-		}
 		COMMON_RETURN_SELF;
 	}
 
@@ -1953,7 +1911,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(Env);
 		ADD_METHOD(SetPreferredDifficulty);
 		ADD_METHOD(GetPreferredDifficulty);
-		ADD_METHOD(GetPlayMode);
 		ADD_METHOD(GetSortOrder);
 		ADD_METHOD(GetCurrentStageIndex);
 		ADD_METHOD(PlayerIsUsingModifier);
@@ -2007,7 +1964,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(HaveProfileToSave);
 		ADD_METHOD(SetFailTypeExplicitlySet);
 		ADD_METHOD(SetCurrentStyle);
-		ADD_METHOD(SetCurrentPlayMode);
 		ADD_METHOD(IsCourseMode);
 		ADD_METHOD(GetEtternaVersion);
 		ADD_METHOD(CountNotesSeparately);

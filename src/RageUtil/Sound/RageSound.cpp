@@ -21,7 +21,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSound.h"
 #include "RageSoundManager.h"
 #include "Etterna/Screen/Others/Screen.h"
@@ -40,12 +40,6 @@
 
 #include <algorithm>
 #include <iterator>
-
-struct cfloat
-{
-	float real;
-	float imag;
-};
 
 #define samplerate() m_pSource->GetSampleRate()
 
@@ -69,6 +63,9 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
+	
 	Unload();
 }
 
@@ -187,7 +184,7 @@ RageSound::Load(const std::string& sSoundFilePath,
 				const RageSoundLoadParams* pParams)
 {
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("RageSound: Load \"%s\" (precache: %i)",
+		Locator::getLogger()->trace("RageSound: Load \"{}\" (precache: {})",
 				   sSoundFilePath.c_str(),
 				   bPrecache);
 
@@ -206,9 +203,8 @@ RageSound::Load(const std::string& sSoundFilePath,
 		pSound = RageSoundReader_FileReader::OpenFile(
 		  sSoundFilePath, error, &bPrebuffer);
 		if (pSound == nullptr) {
-			LOG->Warn("RageSound::Load: error opening sound \"%s\": %s",
-					  sSoundFilePath.c_str(),
-					  error.c_str());
+			Locator::getLogger()->warn("RageSound::Load: error opening sound \"{}\": {}",
+					  sSoundFilePath.c_str(), error.c_str());
 
 			pSound = new RageSoundReader_Silence;
 		}
@@ -318,7 +314,7 @@ RageSound::GetDataToPlay(float* pBuffer,
 
 		if (iGotFrames == RageSoundReader::RSRERROR) {
 			m_sError = m_pSource->GetError();
-			LOG->Warn("Decoding %s failed: %s",
+			Locator::getLogger()->warn("Decoding {} failed: {}",
 					  GetLoadedFilePath().c_str(),
 					  m_sError.c_str());
 		}
@@ -349,18 +345,10 @@ RageSound::GetDataToPlay(float* pBuffer,
 			auto samplesToCopy =
 			  std::min(iFramesStored * m_pSource->GetNumChannels(),
 					   recentPCMSamplesBufferSize - currentSamples);
-			auto samplesLeft =
-			  recentPCMSamplesBufferSize - currentSamples - samplesToCopy;
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
-				auto out = static_cast<cfloat*>(fftBuffer);
-				auto n = recentPCMSamplesBufferSize;
-				auto plan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize,
-													 MUFFT_FLAG_CPU_ANY);
-				mufft_execute_plan_1d(plan, out, recentPCMSamples.data());
-				mufft_free_plan_1d(plan);
-				copy(pBuffer, until, back_inserter(recentPCMSamples));
+				mufft_execute_plan_1d(fftPlan, fftBuffer.data(), recentPCMSamples.data());
 				recentPCMSamples.clear();
 				pendingPlayBackCall = true;
 			}
@@ -375,14 +363,12 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
 	std::lock_guard<std::mutex> guard(recentSamplesMutex);
-	auto out = static_cast<cfloat*>(fftBuffer);
 	std::string error;
-	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
 	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
-	for (auto i = 0; i < nOut; ++i) {
-		auto r = out[i].real;
-		auto im = out[i].imag;
+	for (auto i = 0; i < fftBuffer.size(); ++i) {
+		auto r = fftBuffer[i].real;
+		auto im = fftBuffer[i].imag;
 		lua_pushnumber(L,
 					   (r * r + im * im) / (0.01f + SOUNDMAN->GetMixVolume()) /
 						 (0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
@@ -426,7 +412,7 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	 */
 	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 &&
 		PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Sound \"%s\" has a start time %f seconds in the past",
+		Locator::getLogger()->trace("Sound \"{}\" has a start time {} seconds in the past",
 				   GetLoadedFilePath().c_str(),
 				   m_Param.m_StartTime.Ago());
 
@@ -522,7 +508,7 @@ void
 RageSound::Play(bool is_action, const RageSoundParams* pParams)
 {
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::Play: sound not loaded");
+		Locator::getLogger()->warn("RageSound::Play: sound not loaded");
 		return;
 	}
 	if (is_action && PREFSMAN->m_MuteActions) {
@@ -565,7 +551,7 @@ bool
 RageSound::Pause(bool bPause)
 {
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::Pause: sound not loaded");
+		Locator::getLogger()->warn("RageSound::Pause: sound not loaded");
 		return false;
 	}
 	m_bPaused = bPause;
@@ -577,14 +563,14 @@ float
 RageSound::GetLengthSeconds()
 {
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::GetLengthSeconds: sound not loaded");
+		Locator::getLogger()->warn("RageSound::GetLengthSeconds: sound not loaded");
 		return -1;
 	}
 
 	auto iLength = m_pSource->GetLength();
 
 	if (iLength < 0) {
-		LOG->Warn("GetLengthSeconds failed on %s: %s",
+		Locator::getLogger()->warn("GetLengthSeconds failed on {}: {}",
 				  GetLoadedFilePath().c_str(),
 				  m_pSource->GetError().c_str());
 		return -1;
@@ -656,20 +642,19 @@ RageSound::SetPositionFrames(int iFrames)
 	LockMut(m_Mutex);
 
 	if (m_pSource == nullptr) {
-		LOG->Warn("RageSound::SetPositionFrames(%d): sound not loaded",
-				  iFrames);
+		Locator::getLogger()->warn("RageSound::SetPositionFrames({}): sound not loaded", iFrames);
 		return false;
 	}
 
 	auto iRet = m_pSource->SetPosition(iFrames);
 	if (iRet == -1) {
 		m_sError = m_pSource->GetError();
-		LOG->Warn("SetPositionFrames: seek %s failed: %s",
+		Locator::getLogger()->warn("SetPositionFrames: seek {} failed: {}",
 				  GetLoadedFilePath().c_str(),
 				  m_sError.c_str());
 	} else if (iRet == 0) {
 		/* Seeked past EOF. */
-		LOG->Warn("SetPositionFrames: %i samples is beyond EOF in %s",
+		Locator::getLogger()->warn("SetPositionFrames: {} samples is beyond EOF in {}",
 				  iFrames,
 				  GetLoadedFilePath().c_str());
 	} else {
@@ -773,10 +758,9 @@ RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
-	if (fftBuffer != nullptr)
-		mufft_free(fftBuffer);
-	auto nOut = static_cast<int>(recentPCMSamplesBufferSize / 2 + 1);
-	fftBuffer = mufft_alloc(sizeof(cfloat) * nOut);
+	fftBuffer.resize(recentPCMSamplesBufferSize / 2 + 1, {});
+	if (fftPlan) mufft_free_plan_1d(fftPlan);
+	fftPlan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
 }
 
 void

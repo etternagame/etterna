@@ -2,9 +2,10 @@
 #include "EnumHelper.h"
 #include "Grade.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 LuaXType(Grade);
 
@@ -83,6 +84,60 @@ StringToGrade(const std::string& sGrade)
 	else if (s == "NODATA")
 		return Grade_Invalid;
 
-	LOG->Warn("Invalid grade: %s", sGrade.c_str());
+	Locator::getLogger()->warn("Invalid grade: {}", sGrade.c_str());
 	return Grade_Invalid;
 };
+
+// get appropriated (for when we have scores but no highscore object to get
+// wifegrades) -mina
+Grade
+GetGradeFromPercent(float pc)
+{
+	if (pc >= 0.99996F) {
+		return Grade_Tier01;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.9998F) {
+		return Grade_Tier02;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.9997F) {
+		return Grade_Tier03;
+	}
+	if (pc >= 0.99955F) {
+		return Grade_Tier04;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.999F) {
+		return Grade_Tier05;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.998F) {
+		return Grade_Tier06;
+	}
+	if (pc >= 0.997F) {
+		return Grade_Tier07;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.99F) {
+		return Grade_Tier08;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.965F) {
+		return Grade_Tier09;
+	}
+	if (pc >= 0.93F) {
+		return Grade_Tier10;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.9F) {
+		return Grade_Tier11;
+	}
+	if (PREFSMAN->m_bUseMidGrades && pc >= 0.85F) {
+		return Grade_Tier12;
+	}
+	if (pc >= 0.8F) {
+		return Grade_Tier13;
+	}
+	if (pc >= 0.7F) {
+		return Grade_Tier14;
+	}
+	if (pc >= 0.6F) {
+		return Grade_Tier15;
+	}
+
+	return Grade_Tier16;
+}

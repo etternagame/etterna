@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenSelect.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -103,7 +103,7 @@ ScreenSelect::BeginScreen()
 ScreenSelect::~ScreenSelect()
 {
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("ScreenSelect::~ScreenSelect()");
+		Locator::getLogger()->trace("ScreenSelect::~ScreenSelect()");
 	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
 		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessage);
 }

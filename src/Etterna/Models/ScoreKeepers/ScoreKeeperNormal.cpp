@@ -124,13 +124,11 @@ ScoreKeeperNormal::Load(const vector<Song*>& apSongs,
 		iTotalPossibleDancePoints +=
 		  this->GetPossibleDancePoints(&ndPre,
 									   &ndPost,
-									   pSteps->GetTimingData(),
-									   pSong->m_fMusicLengthSeconds);
+									   pSteps->GetTimingData());
 		iTotalPossibleGradePoints +=
 		  this->GetPossibleGradePoints(&ndPre,
 									   &ndPost,
-									   pSteps->GetTimingData(),
-									   pSong->m_fMusicLengthSeconds);
+									   pSteps->GetTimingData());
 		GAMESTATE->SetProcessedTimingData(nullptr);
 	}
 
@@ -698,14 +696,13 @@ ScoreKeeperNormal::HandleHoldScore(const TapNote& tn)
 
 int
 ScoreKeeperNormal::GetPossibleDancePoints(NoteData* nd,
-										  const TimingData* td,
-										  float fSongSeconds)
+										  const TimingData* td)
 {
 	/* Note: If W1 timing is disabled or not active (not course mode),
 	 * W2 will be used instead. */
 	// XXX: That's not actually implemented!
 	RadarValues radars;
-	NoteDataUtil::CalculateRadarValues(*nd, fSongSeconds, radars);
+	NoteDataUtil::CalculateRadarValues(*nd, radars);
 
 	auto ret = 0;
 
@@ -731,26 +728,24 @@ ScoreKeeperNormal::GetPossibleDancePoints(NoteData* nd,
 int
 ScoreKeeperNormal::GetPossibleDancePoints(NoteData* ndPre,
 										  NoteData* ndPost,
-										  const TimingData* td,
-										  float fSongSeconds)
+										  const TimingData* td)
 {
 	/* The logic here is that if you use a modifier that adds notes, you should
 	 * have to hit the new notes to get a high grade. However, if you use one
 	 * that removes notes, they should simply be counted as misses. */
-	return std::max(GetPossibleDancePoints(ndPre, td, fSongSeconds),
-					GetPossibleDancePoints(ndPost, td, fSongSeconds));
+	return std::max(GetPossibleDancePoints(ndPre, td),
+					GetPossibleDancePoints(ndPost, td));
 }
 
 int
 ScoreKeeperNormal::GetPossibleGradePoints(NoteData* nd,
-										  const TimingData* td,
-										  float fSongSeconds)
+										  const TimingData* td)
 {
 	/* Note: if W1 timing is disabled or not active (not course mode),
 	 * W2 will be used instead. */
 	// XXX: That's not actually implemented!
 	RadarValues radars;
-	NoteDataUtil::CalculateRadarValues(*nd, fSongSeconds, radars);
+	NoteDataUtil::CalculateRadarValues(*nd, radars);
 
 	auto ret = 0;
 
@@ -770,14 +765,13 @@ ScoreKeeperNormal::GetPossibleGradePoints(NoteData* nd,
 int
 ScoreKeeperNormal::GetPossibleGradePoints(NoteData* ndPre,
 										  NoteData* ndPost,
-										  const TimingData* td,
-										  float fSongSeconds)
+										  const TimingData* td)
 {
 	/* The logic here is that if you use a modifier that adds notes, you should
 	 * have to hit the new notes to get a high grade. However, if you use one
 	 * that removes notes, they should simply be counted as misses. */
-	return std::max(GetPossibleGradePoints(ndPre, td, fSongSeconds),
-					GetPossibleGradePoints(ndPost, td, fSongSeconds));
+	return std::max(GetPossibleGradePoints(ndPre, td),
+					GetPossibleGradePoints(ndPost, td));
 }
 
 int

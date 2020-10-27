@@ -54,8 +54,7 @@ class GameState
 	auto JoinInput(PlayerNumber pn) -> bool;
 	auto JoinPlayers() -> bool;
 	void LoadProfiles(bool bLoadEdits = true);
-	void SavePlayerProfiles();
-	void SavePlayerProfile(PlayerNumber pn);
+	void SavePlayerProfile();
 	auto HaveProfileToLoad() -> bool;
 	auto HaveProfileToSave() -> bool;
 	void AddStageToPlayer(PlayerNumber pn);
@@ -96,8 +95,6 @@ class GameState
 	 * The left side is player 1, and the right side is player 2. */
 	bool m_bSideIsJoined; // left side, right side
 	MultiPlayerStatus m_MultiPlayerStatus[NUM_MultiPlayer];
-	BroadcastOnChange<PlayMode>
-	  m_PlayMode; // many screens display different info depending on this value
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
@@ -117,7 +114,6 @@ class GameState
 	// This is set to a random number per-game/round; it can be used for a
 	// random seed.
 	int m_iGameSeed, m_iStageSeed;
-	std::string m_sStageGUID;
 
 	void SetNewStageSeed();
 
@@ -131,7 +127,6 @@ class GameState
 	void SetCurrentStyle(const Style* style, PlayerNumber pn);
 	auto SetCompatibleStyle(StepsType stype, PlayerNumber pn) -> bool;
 
-	void GetPlayerInfo(PlayerNumber pn, bool& bIsEnabledOut, bool& bIsHumanOut);
 	[[nodiscard]] auto IsPlayerEnabled(PlayerNumber pn) const -> bool;
 	[[nodiscard]] auto IsMultiPlayerEnabled(MultiPlayer mp) const -> bool;
 	auto IsPlayerEnabled(const PlayerState* pPlayerState) const -> bool;
@@ -200,8 +195,6 @@ class GameState
 	std::string sExpandedSectionName;
 
 	static auto GetNumStagesMultiplierForSong(const Song* pSong) -> int;
-	static auto GetNumStagesForSongAndStyleType(const Song* pSong, StyleType st)
-	  -> int;
 	[[nodiscard]] auto GetNumStagesForCurrentSongAndStepsOrCourse() const
 	  -> int;
 
@@ -216,7 +209,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.70.1"; }
+	static auto GetEtternaVersion() -> std::string { return "0.71.0"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
@@ -235,10 +228,10 @@ class GameState
 
 	// NULL on ScreenSelectMusic if the currently selected wheel item isn't a
 	// Song.
-	BroadcastOnChangePtr<Song> m_pCurSong;
+	BroadcastOnChangePtrWithSelf<Song> m_pCurSong;
 	// The last Song that the user manually changed to.
 	Song* m_pPreferredSong;
-	BroadcastOnChangePtr<Steps> m_pCurSteps;
+	BroadcastOnChangePtrWithSelf<Steps> m_pCurSteps;
 
 	// Music statistics:
 	SongPosition m_Position;
@@ -352,7 +345,6 @@ class GameState
 	bool m_paused;
 
 	GameState(const GameState& rhs);
-	auto operator=(const GameState& rhs) -> GameState&;
 };
 
 extern GameState*

@@ -29,9 +29,7 @@ StepsDisplayList::StepsDisplayList()
 	m_CurSong = nullptr;
 	m_bShown = true;
 	SubscribeToMessage(
-	  static_cast<MessageID>(Message_CurrentStepsP1Changed + PLAYER_1));
-	SubscribeToMessage(
-	  static_cast<MessageID>(Message_CurrentTrailP1Changed + PLAYER_1));
+	  static_cast<MessageID>(Message_CurrentStepsChanged + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -83,11 +81,11 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 		this->AddChild(&m_CursorFrames);
 	}
 
-	for (unsigned m = 0; m < m_Lines.size(); ++m) {
+	for (auto& m_Line : m_Lines) {
 		// todo: Use Row1, Row2 for names? also m_sName+"Row" -aj
-		m_Lines[m].m_Meter.SetName("Row");
-		m_Lines[m].m_Meter.Load("StepsDisplayListRow", nullptr);
-		this->AddChild(&m_Lines[m].m_Meter);
+		m_Line.m_Meter.SetName("Row");
+		m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
+		this->AddChild(&m_Line.m_Meter);
 	}
 
 	UpdatePositions();
@@ -356,7 +354,7 @@ void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
 	if (msg.GetName() == MessageIDToString(static_cast<MessageID>(
-						   Message_CurrentStepsP1Changed + PLAYER_1)))
+						   Message_CurrentStepsChanged + PLAYER_1)))
 		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);

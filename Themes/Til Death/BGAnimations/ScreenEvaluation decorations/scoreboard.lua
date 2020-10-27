@@ -6,29 +6,19 @@ local spacing = 34
 
 local song = STATSMAN:GetCurStageStats():GetPlayedSongs()[1]
 
-local profile
-local steps
-local origTable
-local hsTable
-local rtTable
-local scoreIndex
-local score
+local steps = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPlayedSteps()[1]
+local origTable = getScoresByKey(player)
+local score = SCOREMAN:GetMostRecentScore()
+local rtTable = getRateTable(origTable)
+local hsTable = rtTable[getRate(score)] or {score}
+local scoreIndex = getHighScoreIndex(hsTable, score)
+
 local usingSSRSort = PREFSMAN:GetPreference("SortBySSRNormPercent")
-
-local player = GAMESTATE:GetEnabledPlayers()[1]
-
-if GAMESTATE:IsPlayerEnabled(player) then
-	profile = GetPlayerOrMachineProfile(player)
-	steps = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPlayedSteps()[1]
-	origTable = getScoresByKey(player)
-	score = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetHighScore()
-	rtTable = getRateTable(origTable)
-	if rtTable == nil then
-		return
-	end
-	hsTable = rtTable[getRate(score)] or {score}
-	scoreIndex = getHighScoreIndex(hsTable, score)
+	
+if rtTable == nil then
+	return {}
 end
+	
 
 local curPage = 1
 local maxPages = math.ceil(#hsTable/lines)
@@ -132,6 +122,9 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			else
 				self:playcommand("Hide")
 			end
+
+			-- we won't have a score selected upon changing the page so make sure the highlights go away at first
+			self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = nil})
 		end,
 		BeginCommand = function(self)
 			if hsTable[index] == nil then 
@@ -156,8 +149,20 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					color("#ffffff")
 				):diffusealpha(0.3):diffuserightedge(color("#33333300"))
 			end,
+			HahaThisCodeINeedHelpCommand = function(self, params)
+				local equis = params.doot == index
+				self:visible(GAMESTATE:IsHumanPlayer(pn) and equis)
+			end,
 			BeginCommand = function(self)
 				self:visible(GAMESTATE:IsHumanPlayer(pn) and equals)
+				
+				-- it was once asked if anything had been hacked so hard as some thing that had been hacked really hard.. but yes.. this is
+				-- hackered... even hardered.... force the offset plot to update if the index in the scoreboard list matches the currently
+				-- displayed score.. this is because the offset plot was previously using pss to get its info and the way the current system
+				-- is setup this is the most direct way to actually get the pointer to the score being displayed
+				if equals then
+					self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
+				end
 			end
 		},
 		--Quad that will act as the bounding box for mouse rollover/click stuff.
@@ -167,6 +172,14 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(frameWidth*2, 30):halign(0):valign(0):diffuse(
 					getMainColor("highlight")
 				):diffusealpha(0)
+			end,
+			LeftClickMessageCommand = function(self)
+				if isOver(self) then
+					newindex = getHighScoreIndex(hsTable, hsTable[index])
+					self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
+					self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
+					self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
+				end
 			end
 		},
 		--ClearType lamps
@@ -185,6 +198,13 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			{
 				InitCommand = function(self)
 					self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
+				end,
+				HahaThisCodeINeedHelpCommand = function(self, params)
+					if params.doot == index then
+						self:diffuse(color("#ffcccc"))
+					else
+						self:diffuse(color("ffffff"))
+					end
 				end,
 				BeginCommand = function(self)
 					if hsTable[index] == nil then return end
@@ -319,12 +339,26 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 	return t
 end
 
+curPage = 1
 --can't have more lines than the # of scores huehuehu
 if lines > #hsTable then
 	lines = #hsTable
-	curPage = 1
 else
-	curPage = math.ceil(scoreIndex / (lines-1))
+	-- linear search for the score index to set the proper curPage
+	if scoreIndex > lines then
+		curPage = curPage + 1
+		local j = 0
+		for i = lines+1, #hsTable do
+			j = j + 1
+			if j == lines - 1 then
+				j = 0
+				curPage = curPage + 1
+			end
+			if i == scoreIndex then
+				break
+			end
+		end
+	end
 end
 
 -- weird math explanation can be found above somewhere

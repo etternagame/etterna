@@ -16,9 +16,6 @@
 
 const float PARTICLE_SPEED = 300;
 
-const float SPIRAL_MAX_ZOOM = 2;
-const float SPIRAL_MIN_ZOOM = 0.3f;
-
 #define MAX_TILES_WIDE static_cast<int>(SCREEN_WIDTH / 32 + 2)
 #define MAX_TILES_HIGH static_cast<int>(SCREEN_HEIGHT / 32 + 2)
 #define MAX_SPRITES (MAX_TILES_WIDE * MAX_TILES_HIGH)

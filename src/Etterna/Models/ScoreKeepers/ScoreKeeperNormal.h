@@ -83,19 +83,15 @@ class ScoreKeeperNormal : public ScoreKeeper
 	// This must be calculated using only cached radar values so that we can
 	// do it quickly.
 	static auto GetPossibleDancePoints(NoteData* nd,
-									   const TimingData* td,
-									   float fSongSeconds) -> int;
+									   const TimingData* td) -> int;
 	static auto GetPossibleDancePoints(NoteData* ndPre,
 									   NoteData* ndPost,
-									   const TimingData* td,
-									   float fSongSeconds) -> int;
+									   const TimingData* td) -> int;
 	static auto GetPossibleGradePoints(NoteData* nd,
-									   const TimingData* td,
-									   float fSongSeconds) -> int;
+									   const TimingData* td) -> int;
 	static auto GetPossibleGradePoints(NoteData* ndPre,
 									   NoteData* ndPost,
-									   const TimingData* td,
-									   float fSongSeconds) -> int;
+									   const TimingData* td) -> int;
 
 	auto TapNoteScoreToDancePoints(TapNoteScore tns) const -> int;
 	auto HoldNoteScoreToDancePoints(HoldNoteScore hns) const -> int;

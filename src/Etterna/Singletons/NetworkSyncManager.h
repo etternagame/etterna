@@ -442,8 +442,6 @@ class NetworkSyncManager
 
 	StepManiaLanServer* LANserver;
 
-	auto MD5Hex(const std::string& sInput) -> std::string;
-
 	void GetListOfLANServers(vector<NetServerInfo>& AllServers);
 
 	// Aldo: Please move this method to a new class, I didn't want to create new

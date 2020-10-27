@@ -3,11 +3,10 @@
 #include "RageFile.h"
 #include "RageFileDriver.h"
 #include "RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
-#include "arch/ArchHooks/ArchHooks.h"
 
 #include <Tracy.hpp>
 #include <cerrno>
@@ -307,7 +306,7 @@ ChangeToDirOfExecutable(const std::string& argv0)
 	if (chdir(RageFileManagerUtil::sDirOfExecutable.c_str()))
 #endif
 	{
-		LOG->Warn("Can't set current working directory to %s",
+		Locator::getLogger()->warn("Can't set current working directory to {}",
 				  RageFileManagerUtil::sDirOfExecutable.c_str());
 		return;
 	}
@@ -345,14 +344,13 @@ void
 RageFileManager::MountInitialFilesystems()
 {
 	ZoneScoped;
-
-	HOOKS->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
+	Locator::getArchHooks()->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
 }
 
 void
 RageFileManager::MountUserFilesystems()
 {
-	HOOKS->MountUserFilesystems(RageFileManagerUtil::sDirOfExecutable);
+    Locator::getArchHooks()->MountUserFilesystems(RageFileManagerUtil::sDirOfExecutable);
 }
 
 RageFileManager::~RageFileManager()
@@ -600,7 +598,7 @@ RageFileManager::CreateDir(const std::string& sDir)
 	std::string sTempFile = sDir + "newdir.temp.newdir";
 	RageFile f;
 	if (!f.Open(sTempFile, RageFile::WRITE))
-		LOG->Trace("Creating temporary file '%s' failed: %s",
+		Locator::getLogger()->trace("Creating temporary file '{}' failed: {}",
 				   sTempFile.c_str(),
 				   f.GetError().c_str());
 	f.Close();
@@ -671,15 +669,10 @@ RageFileManager::Mount(const std::string& sType,
 				   sRoot.c_str())
 			.c_str());
 
-		if (LOG)
-			LOG->Warn("Can't mount unknown VFS type \"%s\", root \"%s\"",
+		Locator::getLogger()->warn("Can't mount unknown VFS type \"{}\", root \"{}\"",
 					  sType.c_str(),
 					  sRoot.c_str());
-		else
-			fprintf(stderr,
-					"Can't mount unknown VFS type \"%s\", root \"%s\"\n",
-					sType.c_str(),
-					sRoot.c_str());
+
 		return false;
 	}
 
@@ -774,15 +767,14 @@ RageFileManager::Remount(const std::string& sMountpoint,
 {
 	RageFileDriver* pDriver = GetFileDriver(sMountpoint);
 	if (pDriver == nullptr) {
-		if (LOG)
-			LOG->Warn("Remount(%s,%s): mountpoint not found",
+		Locator::getLogger()->warn("Remount({},{}): mountpoint not found",
 					  sMountpoint.c_str(),
 					  sPath.c_str());
 		return;
 	}
 
 	if (!pDriver->Remount(sPath))
-		LOG->Warn("Remount(%s,%s): remount failed (does the driver support "
+		Locator::getLogger()->warn("Remount({},{}): remount failed (does the driver support "
 				  "remounting?)",
 				  sMountpoint.c_str(),
 				  sPath.c_str());

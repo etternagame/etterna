@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -29,6 +29,7 @@
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Singletons/GameState.h"
+#include <RageUtil/Sound/RageSound.h>
 
 #include <algorithm>
 #include <cfloat>
@@ -333,8 +334,8 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// There was no entry in the cache for this song, or it was out of date.
 	// Let's load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		LOG->UserLog(
-		  "Song", sDir, "has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.");
+		Locator::getLogger()->info(
+		  "Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
 
 		vector<std::string> vs;
 		FILEMAN->GetDirListingWithMultipleExtensions(
@@ -343,10 +344,9 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		const auto bHasMusic = !vs.empty();
 
 		if (!bHasMusic) {
-			LOG->UserLog(
-			  "Song",
-			  sDir,
-			  "has no music file either. Ignoring this song directory.");
+			Locator::getLogger()->info(
+			  "Song {} has no music file either. Ignoring this song directory.",
+			  sDir);
 			return false;
 		}
 		// Make sure we have a future filename figured out.
@@ -367,7 +367,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	FinalizeLoading();
 
 	if (!m_bHasMusic) {
-		LOG->UserLog("Song", sDir, "has no music; ignored.");
+		Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
 		return false; // don't load this song
 	}
 	return true; // do load this song
@@ -394,7 +394,7 @@ Song::FinalizeLoading()
 
 	// Load the cached Images, if it's not loaded already.
 	if (PREFSMAN->m_ImageCache == IMGCACHE_LOW_RES_PRELOAD) {
-		for (auto Image : ImageDir) {
+		for (const auto& Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 	}
@@ -477,7 +477,7 @@ Song::ReloadFromSongDir(const std::string& sDir)
 	for (auto& file : to_reload) {
 		RageTextureID id(file);
 		if (TEXTUREMAN->IsTextureRegistered(id)) {
-			auto* tex = TEXTUREMAN->LoadTexture(id);
+			auto tex = TEXTUREMAN->LoadTexture(id);
 			if (tex) {
 				tex->Reload();
 			}
@@ -577,7 +577,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		m_bHasBanner = IsAFile(GetBannerPath());
 		m_sBackgroundPath = GetSongAssetPath(m_sBackgroundFile, m_sSongDir);
 		m_bHasBackground = IsAFile(GetBackgroundPath());
-		for (auto Image : ImageDir) {
+		for (const auto& Image : ImageDir) {
 			IMAGECACHE->LoadImage(Image, GetCacheFile(Image));
 		}
 
@@ -633,10 +633,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			// available, don't use it--it's probably a KSF intro music
 			// file, which we don't (yet) support.
 			if (!music_list.empty()) {
-				LOG->Trace("Song '%s' points to a music file that doesn't "
+				/*LOG->Trace("Song '%s' points to a music file that doesn't "
 						   "exist, found music file '%s'",
 						   m_sSongDir.c_str(),
-						   music_list[0].c_str());
+						   music_list[0].c_str());*/
 				m_bHasMusic = true;
 				m_sMusicFile = music_list[0];
 				m_sMusicPath = GetSongAssetPath(m_sMusicFile, m_sSongDir);
@@ -656,10 +656,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			 * originating from BMS files (which have no music file, per se)
 			 * but it's something of a hack. */
 			if (Sample == nullptr && !m_sMusicFile.empty()) {
-				LOG->UserLog("Sound file",
+				/*LOG->UserLog("Sound file",
 							 GetMusicPath(),
 							 "couldn't be opened: %s",
-							 error.c_str());
+							 error.c_str());*/
 
 				// Don't use this file.
 				m_sMusicFile = "";
@@ -672,22 +672,22 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 					// a warning.
 					m_fMusicLengthSeconds = 100; // guess
 				} else if (m_fMusicLengthSeconds == 0) {
-					LOG->UserLog("Sound file", GetMusicPath(), "is empty.");
+					/*LOG->UserLog("Sound file", GetMusicPath(), "is empty.");*/
 				}
 			}
 		} else // ! HasMusic()
 		{
 			m_fMusicLengthSeconds = 100; // guess
-			LOG->UserLog("Song",
-						 GetSongDir(),
-						 "has no music file; guessing at %f seconds",
-						 m_fMusicLengthSeconds);
+										 /*LOG->UserLog("Song",
+													  GetSongDir(),
+													  "has no music file; guessing at %f seconds",
+													  m_fMusicLengthSeconds);*/
 		}
 		if (m_fMusicLengthSeconds < 0) {
-			LOG->UserLog("Sound file",
+			/*LOG->UserLog("Sound file",
 						 GetMusicPath(),
 						 "has a negative length %f.",
-						 m_fMusicLengthSeconds);
+						 m_fMusicLengthSeconds);*/
 			m_fMusicLengthSeconds = 0;
 		}
 		if (!m_PreviewFile.empty() &&
@@ -699,10 +699,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			RageSoundReader* Sample = RageSoundReader_FileReader::OpenFile(
 			  GetPreviewMusicPath(), error);
 			if (Sample == nullptr && !m_sMusicFile.empty()) {
-				LOG->UserLog("Sound file",
+				/*LOG->UserLog("Sound file",
 							 GetPreviewMusicPath(),
 							 "couldn't be opened: %s",
-							 error.c_str());
+							 error.c_str());*/
 
 				// Don't use this file.
 				m_PreviewFile = "";
@@ -716,8 +716,8 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 					// a warning.
 					m_fMusicSampleLengthSeconds = DEFAULT_MUSIC_SAMPLE_LENGTH;
 				} else if (m_fMusicSampleLengthSeconds == 0) {
-					LOG->UserLog(
-					  "Sound file", GetPreviewMusicPath(), "is empty.");
+					/*LOG->UserLog(
+					  "Sound file", GetPreviewMusicPath(), "is empty.");*/
 				}
 			}
 		} else { // no preview file, calculate sample from music as normal
@@ -895,10 +895,10 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 			std::string error;
 			auto* img = RageSurfaceUtils::LoadFile(sPath, error, true);
 			if (!img) {
-				LOG->UserLog("Graphic file",
-							 sPath,
-							 "couldn't be loaded: %s",
-							 error.c_str());
+				/*	LOG->UserLog("Graphic file",
+								 sPath,
+								 "couldn't be loaded: %s",
+								 error.c_str());*/
 				continue;
 			}
 
@@ -1091,7 +1091,7 @@ Song::ReCalculateRadarValuesAndLastSecond(bool fromCache,
 			// string with a compressed format for both cache and internal
 			// use but not yet
 			n->CalcEtternaMetadata(calc);
-			n->CalculateRadarValues(m_fMusicLengthSeconds);
+			n->CalculateRadarValues();
 
 			// calculate lastSecond
 			localFirst = std::min(localFirst, n->firstsecond);
@@ -1126,7 +1126,7 @@ void
 Song::Save()
 {
 	SONGINDEX->DeleteSongFromDBByDir(GetSongDir());
-	LOG->Trace("Song::SaveToSongFile()");
+	//	LOG->Trace("Song::SaveToSongFile()");
 
 	ReCalculateRadarValuesAndLastSecond();
 	TranslateTitles();
@@ -1139,12 +1139,14 @@ Song::Save()
 	GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
 	GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
+	GetDirListing(m_sSongDir + "*.osu", arrayOldFileNames);
 	for (auto& arrayOldFileName : arrayOldFileNames) {
 		const auto sOldPath = m_sSongDir + arrayOldFileName;
 		const auto sNewPath = sOldPath + ".old";
 
 		if (!FileCopy(sOldPath, sNewPath)) {
-			LOG->UserLog("Song file", sOldPath, "couldn't be backed up.");
+			Locator::getLogger()->info("Song file {} couldn't be backed up.",
+									   sOldPath);
 		} else {
 			backedDotOldFileNames.emplace_back(sNewPath);
 			backedOrigFileNames.emplace_back(sOldPath);
@@ -1153,11 +1155,11 @@ Song::Save()
 
 	// Save the new files. These calls make backups on their own.
 	if (!SaveToSSCFile(GetSongFilePath(), false)) {
-		for (auto fileName : backedDotOldFileNames)
+		for (const auto& fileName : backedDotOldFileNames)
 			FILEMAN->Remove(fileName);
 		return;
 	}
-	for (auto fileName : backedOrigFileNames)
+	for (const auto& fileName : backedOrigFileNames)
 		FILEMAN->Remove(fileName);
 
 	SaveToCacheFile();
@@ -1168,7 +1170,7 @@ bool
 Song::SaveToSMFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "sm");
-	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
+	//	LOG->Trace("Song::SaveToSMFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))
@@ -1185,8 +1187,10 @@ Song::GetStepsToSave(bool bSavingCache, const std::string& path)
 	vector<Steps*> vpStepsToSave;
 	for (auto& s : m_vpSteps) {
 
-		if (!bSavingCache)
-			s->SetFilename(path);
+		if (!bSavingCache) {
+			if (GetExtension(s->GetFilename()) != "osu")
+				s->SetFilename(path);
+		}
 		vpStepsToSave.push_back(s);
 	}
 	for (auto& s : m_UnknownStyleSteps) {
@@ -1202,7 +1206,7 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ssc");
 
-	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
+	//	LOG->Trace("Song::SaveToSSCFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path)) {
@@ -1245,10 +1249,11 @@ Song::SaveToSSCFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile += ssprintf(".old");
 
 		if (FileCopy(path, sBackupFile))
-			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
+			Locator::getLogger()->trace(
+			  "Backed up {} to {}", path, sBackupFile);
 		else
-			LOG->Trace(
-			  "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+			Locator::getLogger()->trace(
+			  "Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1265,7 +1270,7 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 	if (!bSavingCache)
 		path = SetExtension(sPath, "ett");
 
-	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
+	//	LOG->Trace("Song::SaveToETTFile('%s')", path.c_str());
 
 	// If the file exists, make a backup.
 	if (!bSavingCache && IsAFile(path))
@@ -1300,10 +1305,11 @@ Song::SaveToETTFile(const std::string& sPath, bool bSavingCache)
 		sBackupFile += ssprintf(".old");
 
 		if (FileCopy(path, sBackupFile))
-			LOG->Trace("Backed up %s to %s", path.c_str(), sBackupFile.c_str());
+			Locator::getLogger()->trace(
+			  "Backed up {} to {}", path, sBackupFile);
 		else
-			LOG->Trace(
-			  "Failed to back up %s to %s", path.c_str(), sBackupFile.c_str());
+			Locator::getLogger()->trace(
+			  "Failed to back up {} to {}", path, sBackupFile);
 	}
 
 	// Mark these steps saved to disk.
@@ -1326,7 +1332,7 @@ bool
 Song::SaveToDWIFile()
 {
 	const auto sPath = SetExtension(GetSongFilePath(), "dwi");
-	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
+	//	LOG->Trace("Song::SaveToDWIFile(%s)", sPath.c_str());
 
 	// If the file exists, make a backup.
 	if (IsAFile(sPath))
@@ -1359,11 +1365,11 @@ Song::GetCacheFile(const std::string& sType)
 	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
 	vector<std::string> image_list;
 	auto fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
-	for (auto Image : song_dir_listing) {
+	for (const auto& Image : song_dir_listing) {
 		auto FileExt = GetExtension(Image);
 		std::transform(
 		  FileExt.begin(), FileExt.end(), FileExt.begin(), tolower);
-		for (auto FindExt : fill_exts) {
+		for (const auto& FindExt : fill_exts) {
 			if (FileExt == FindExt)
 				image_list.push_back(Image);
 		}
@@ -1386,7 +1392,7 @@ Song::GetCacheFile(const std::string& sType)
 	for (auto Image : image_list) {
 		// We want to make it lower case.
 		std::transform(Image.begin(), Image.end(), Image.begin(), tolower);
-		for (auto PreSet : PreSets[sType]) {
+		for (const auto& PreSet : PreSets[sType]) {
 			// Search for image using PreSets.
 			const auto Found = Image.find(PreSet.second);
 			if (Found != std::string::npos)
@@ -1534,6 +1540,7 @@ vector<std::string>
 Song::GetChangesToVectorString(const vector<BackgroundChange>& changes) const
 {
 	vector<std::string> ret;
+	ret.reserve(changes.size());
 	for (const auto& bgc : changes) {
 		ret.push_back(bgc.ToString());
 	}
@@ -1616,18 +1623,51 @@ Song::GetPreviewStartSeconds() const
 	return 0.0f;
 }
 
-const vector<Steps*>
-Song::GetStepsOfCurrentGameMode() const
+std::vector<Steps*>
+Song::GetChartsOfCurrentGameMode() const
 {
 	std::vector<StepsType> types;
 	GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, types);
 
-	vector<Steps*> steps;
+	std::vector<Steps*> steps;
 	for (auto type : types) {
 		auto tmp = GetStepsByStepsType(type);
+
+		auto comp = [](const Steps* a, const Steps* b) {
+			return a->GetDifficulty() < b->GetDifficulty();
+		};
+		sort(tmp.begin(), tmp.end(), comp);
+
 		steps.insert(steps.end(), tmp.begin(), tmp.end());
 	}
 	return steps;
+}
+
+std::vector<Steps*>
+Song::GetChartsMatchingFilter() const
+{
+	std::vector<Steps*> charts = GetChartsOfCurrentGameMode();
+	if (!FILTERMAN->AnyActiveFilter())
+		return charts;
+	std::vector<Steps*> matches;
+	for (auto& i : charts) {
+		for (auto currate = FILTERMAN->MaxFilterRate;
+			 currate > FILTERMAN->MinFilterRate - .01F;
+			 currate -= 0.1F) { /* Iterate over all possible rates.
+								 * The .01f delta is because floating points
+								 * don't like exact equivalency*/
+			// we must add 0.001 to the currate to force it to align when
+			// converting the rate to an index within GetMSD
+			// TODO: less hacky solution for this (this isnt the only place we
+			// do this)
+			if (ChartMatchesFilter(i, currate + 0.001F)) {
+				// chart matched on a rate, add it only once
+				matches.push_back(i);
+				break;
+			}
+		}
+	}
+	return matches;
 }
 
 float
@@ -1636,10 +1676,10 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 	CLAMP(rate, 0.7f, 2.f);
 	auto highest = 0.f;
 
-	const auto steps = GetStepsOfCurrentGameMode();
+	const auto charts = GetChartsMatchingFilter();
 
-	for (auto* step : steps) {
-		const auto current = step->GetMSD(rate, skill);
+	for (auto* chart : charts) {
+		const auto current = chart->GetMSD(rate, skill);
 		if (current > highest)
 			highest = current;
 	}
@@ -1648,85 +1688,108 @@ Song::HighestMSDOfSkillset(Skillset skill, float rate) const
 }
 
 bool
-Song::IsSkillsetHighestOfAnySteps(Skillset ss, float rate) const
+Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 {
-	auto vsteps = GetAllSteps();
-	for (auto& steps : vsteps) {
-		auto sortedstuffs = steps->SortSkillsetsAtRate(rate, false);
-		if (sortedstuffs[0].first == ss)
-			return true;
-	}
-
-	return false;
+	return chart->IsSkillsetHighestOfChart(skill, rate);
+}
+bool
+Song::IsChartHighestDifficulty(Steps* chart, Skillset skill, float rate) const
+{
+	float highest = HighestMSDOfSkillset(skill, rate);
+	return (fabs(chart->GetMSD(rate, skill) - highest) <= 0.1F);
 }
 
 bool
-Song::MatchesFilter(const float rate) const
+Song::MatchesFilter(const float rate,
+					std::vector<Steps*>* vMatchingStepsOut) const
 {
-	auto steps = GetStepsOfCurrentGameMode();
+	auto charts = GetChartsOfCurrentGameMode();
 
-	for (auto* const step : steps) {
-		// Iterate over all maps of the given type
-		auto addsong = FILTERMAN->ExclusiveFilter;
-		/* The default behaviour of an exclusive filter is to accept
-		 * by default, (i.e. addsong=true) and reject if any
-		 * filters fail. The default behaviour of a non-exclusive filter is
-		 * the exact opposite: reject by default (i.e.
-		 * addsong=false), and accept if any filters match.
-		 */
-		for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
-			// Iterate over all skillsets, up to and
-			// including the placeholder NUM_Skillset
-			const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-			const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
-			if (lb > 0.f || ub > 0.f) { // If either bound is active, continue
+	for (auto* const chart : charts) {
+		// Iterate over all charts of the given type
 
-				if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
-					if (FILTERMAN->HighestSkillsetsOnly)
-						if (!IsSkillsetHighestOfAnySteps(
-							  static_cast<Skillset>(ss), rate) &&
-							ss < NUM_Skillset) // The current skill is not
-											   // in highest in the chart
-							continue;
-				}
-				float val;
-				if (ss < NUM_Skillset)
-					val = step->GetMSD(rate, ss);
-				else {
-					// If we are on the placeholder skillset, look at song
-					// length instead of a skill
-					auto* td = step->GetTimingData();
-					val = (td->GetElapsedTimeFromBeat(GetLastBeat()) -
-						   td->GetElapsedTimeFromBeat(GetFirstBeat())) /
-						  rate;
-					// Rates modify the song length.
-				}
-				if (FILTERMAN->ExclusiveFilter) {
-					/* Our behaviour is to accept by default,
-					 * but reject if any filters don't match.*/
-					if ((val < lb && lb > 0.f) || (val > ub && ub > 0.f)) {
-						/* If we're below the lower bound and it's set,
-						 * or above the upper bound and it's set*/
-						addsong = false;
-						break;
+		bool addchart = ChartMatchesFilter(chart, rate);
+
+		// terminate early if not grabbing each matching chart
+		// otherwise continue and add to the list
+		if (addchart) {
+			if (vMatchingStepsOut != nullptr)
+				vMatchingStepsOut->push_back(chart);
+			else
+				return true;
+		}
+	}
+	// if we reach this and we arent adding to a vector, its false
+	// if we reach this and we are adding to a vector, it COULD be false
+	// (if adding, false would be if the list size is 0)
+	return (vMatchingStepsOut != nullptr && vMatchingStepsOut->size() != 0);
+}
+
+bool
+Song::ChartMatchesFilter(Steps* chart, float rate) const
+{
+	auto addchart = FILTERMAN->ExclusiveFilter;
+
+	/* The default behaviour of an exclusive filter is to accept
+	 * by default, (i.e. addsong=true) and reject if any
+	 * filters fail. The default behaviour of a non-exclusive filter is
+	 * the exact opposite: reject by default (i.e.
+	 * addsong=false), and accept if any filters match.
+	 */
+
+	for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
+		// Iterate over all skillsets, up to and
+		// including the placeholder NUM_Skillset
+		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
+		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
+		if (lb > 0.F || ub > 0.F) { // If either bound is active, continue
+			if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
+				if (FILTERMAN->HighestSkillsetsOnly && ss < NUM_Skillset) {
+					if (!chart->IsSkillsetHighestOfChart(
+						  static_cast<Skillset>(ss), rate)) {
+						// The current skill is not the highest of the chart
+						continue;
 					}
-				} else { // Non-Exclusive Filter
-					/* Our behaviour is to reject by default,
-					 * but accept if any filters match.*/
-					if ((val > lb || !(lb > 0.f)) &&
-						(val < ub || !(ub > 0.f))) {
-						/* If we're above the lower bound or it's not set
-						 * and also below the upper bound or it isn't set*/
-						addsong = true;
-						break;
+				}
+				if (FILTERMAN->HighestDifficultyOnly && ss < NUM_Skillset) {
+					if (!IsChartHighestDifficulty(
+						  chart, static_cast<Skillset>(ss), rate)) {
+						// The song has a more difficult chart of the given
+						// skillset
+						continue;
 					}
 				}
 			}
+			float val;
+			if (ss < NUM_Skillset) {
+				val = chart->GetMSD(rate, ss);
+			} else {
+				// If we are on the placeholder skillset, look at song
+				// length instead of a skill
+				val = chart->GetLengthSeconds(rate);
+			}
+			if (FILTERMAN->ExclusiveFilter) {
+				/* Our behaviour is to accept by default,
+				 * but reject if any filters don't match.*/
+				if ((val < lb && lb > 0.F) || (val > ub && ub > 0.F)) {
+					/* If we're below the lower bound and it's set,
+					 * or above the upper bound and it's set*/
+					addchart = false;
+					break;
+				}
+			} else { // Non-Exclusive Filter
+				/* Our behaviour is to reject by default,
+				 * but accept if any filters match.*/
+				if ((val > lb || !(lb > 0.F)) && (val < ub || !(ub > 0.F))) {
+					/* If we're above the lower bound or it's not set
+					 * and also below the upper bound or it isn't set*/
+					addchart = true;
+					break;
+				}
+			}
 		}
-		if (addsong)
-			return true;
 	}
-	return false;
+	return addchart;
 }
 
 bool
@@ -1916,32 +1979,21 @@ Song::IsMarathon() const
 void
 Song::PlaySampleMusicExtended()
 {
-	GameSoundManager::PlayMusicParams PlayParams;
-	PlayParams.sFile = GetMusicPath();
-	PlayParams.pTiming = nullptr;
-	PlayParams.bForceLoop = true;
-	PlayParams.fStartSecond = m_fMusicSampleStartSeconds;
-	PlayParams.fLengthSeconds =
-	  GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
-	PlayParams.fFadeOutLengthSeconds = 1.f;
-	PlayParams.bAlignBeat = true;
-	PlayParams.bApplyMusicRate = true;
-	PlayParams.bAccurateSync = true;
+	RageSoundParams p;
 
-	GameSoundManager::PlayMusicParams FallbackMusic;
-	FallbackMusic.sFile = "";
-	FallbackMusic.fFadeInLengthSeconds = 1.f;
-	FallbackMusic.bAlignBeat = true;
-	FallbackMusic.bAccurateSync = true;
+	p.m_StartSecond = m_fMusicSampleStartSeconds;
+	p.m_LengthSeconds = GetLastSecond() - m_fMusicSampleStartSeconds + 2.f;
+	p.m_fFadeOutSeconds = 1.f;
+	p.m_bAccurateSync = true;
 
-	if (PlayParams.fLengthSeconds <
-		3.f) { // if the songpreview is after the last note
-		PlayParams.fStartSecond =
-		  5.f; // chartpreview wont play, just set it near the start -mina
-		PlayParams.fLengthSeconds = GetLastSecond() + 2.f;
+	if (p.m_LengthSeconds < 3.f) {
+		p.m_StartSecond = 5.f;
+		p.m_LengthSeconds = GetLastSecond() + 2.f;
 	}
-	SOUND->PlayMusic(PlayParams, FallbackMusic);
-	GAMESTATE->SetPaused(false);
+
+	p.StopMode = RageSoundParams::M_LOOP;
+
+	SOUND->SetPlayingMusicParams(p);
 }
 
 // lua start
@@ -2026,7 +2078,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetMusicPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetMusicPath();
+		const auto& s = p->GetMusicPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2035,7 +2087,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBannerPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetBannerPath();
+		const auto& s = p->GetBannerPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2044,7 +2096,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetBackgroundPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetBackgroundPath();
+		const auto& s = p->GetBackgroundPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2053,7 +2105,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewVidPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetPreviewVidPath();
+		const auto& s = p->GetPreviewVidPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2062,13 +2114,13 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetPreviewMusicPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetPreviewMusicPath();
+		const auto& s = p->GetPreviewMusicPath();
 		lua_pushstring(L, s.c_str());
 		return 1;
 	}
 	static int GetJacketPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetJacketPath();
+		const auto& s = p->GetJacketPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2077,7 +2129,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDImagePath(T* p, lua_State* L)
 	{
-		const auto s = p->GetCDImagePath();
+		const auto& s = p->GetCDImagePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2086,7 +2138,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetDiscPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetDiscPath();
+		const auto& s = p->GetDiscPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2095,7 +2147,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetCDTitlePath(T* p, lua_State* L)
 	{
-		const auto s = p->GetCDTitlePath();
+		const auto& s = p->GetCDTitlePath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2104,7 +2156,7 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetLyricsPath(T* p, lua_State* L)
 	{
-		const auto s = p->GetLyricsPath();
+		const auto& s = p->GetLyricsPath();
 		if (!s.empty())
 			lua_pushstring(L, s.c_str());
 		else
@@ -2353,6 +2405,16 @@ class LunaSong : public Luna<Song>
 		p->PlaySampleMusicExtended();
 		return 0;
 	}
+	static int GetChartsOfCurrentGameMode(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetChartsOfCurrentGameMode(), L);
+		return 1;
+	}
+	static int GetChartsMatchingFilter(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetChartsMatchingFilter(), L);
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2418,6 +2480,8 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(ReloadFromSongDir);
 		ADD_METHOD(PlaySampleMusicExtended);
+		ADD_METHOD(GetChartsOfCurrentGameMode);
+		ADD_METHOD(GetChartsMatchingFilter);
 	}
 };
 

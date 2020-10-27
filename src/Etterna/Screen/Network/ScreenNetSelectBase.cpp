@@ -6,7 +6,7 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
 #include "ScreenNetSelectBase.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH THEME->GetMetricF(m_sName, "ChatTextOutputWidth")
@@ -134,7 +134,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 				wchar_t c;
 				c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
 				if (c >= L' ' && enableChatboxInput) {
-					m_sTextInput += WStringToRString(std::wstring() + c);
+					m_sTextInput += WStringToString(std::wstring() + c);
 					UpdateTextInput();
 					return true;
 				}
@@ -183,7 +183,7 @@ ScreenNetSelectBase::UpdateTextInput()
 void
 ScreenNetSelectBase::PasteClipboard()
 {
-	m_sTextInput.append(HOOKS->GetClipboard());
+	m_sTextInput.append(Locator::getArchHooks()->GetClipboard());
 	UpdateTextInput();
 }
 

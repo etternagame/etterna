@@ -71,7 +71,6 @@ InsertHoldTails(NoteData& inout);
 
 void
 CalculateRadarValues(const NoteData& in,
-					 float fSongSeconds,
 					 RadarValues& out,
 					 TimingData* td = nullptr);
 

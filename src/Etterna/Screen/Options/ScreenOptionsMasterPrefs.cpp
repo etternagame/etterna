@@ -10,7 +10,7 @@
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Models/Songs/SongOptions.h"
@@ -205,7 +205,7 @@ LanguageChoices(vector<std::string>& out)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	for (auto& s : vs) {
 		const LanguageInfo* pLI = GetLanguageInfo(s);
@@ -222,7 +222,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
 	vector<std::string> vs;
 	THEME->GetLanguages(vs);
-	SortRStringArray(vs, true);
+	SortStringArray(vs, true);
 
 	if (ToSel) {
 		sel = -1;
@@ -237,10 +237,8 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 				sel = i;
 
 		if (sel == -1) {
-			LOG->Warn(
-			  "Couldn't find language \"%s\" or fallback \"%s\"; using \"%s\"",
-			  THEME->GetCurLanguage().c_str(),
-			  SpecialFiles::BASE_LANGUAGE.c_str(),
+			Locator::getLogger()->warn("Couldn't find language \"{}\" or fallback \"{}\"; using \"{}\"",
+			  THEME->GetCurLanguage().c_str(), SpecialFiles::BASE_LANGUAGE.c_str(),
 			  vs[0].c_str());
 			sel = 0;
 		}
@@ -359,14 +357,6 @@ DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 		po.m_sNoteSkin = choices[sel];
 		SetPrefsDefaultModifiers(po, so);
 	}
-}
-
-static void
-DefaultFailChoices(vector<std::string>& out)
-{
-	out.push_back("Immediate");
-	out.push_back("ImmediateContinue");
-	out.push_back("Off");
 }
 
 static void
@@ -704,13 +694,6 @@ EditRecordModeLeadIn(int& sel, bool to_sel, const ConfOption* conf_option)
 	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
 
-static void
-EditClearPromptThreshold(int& sel, bool to_sel, const ConfOption* conf_option)
-{
-	int mapping[] = { -1, 10, 50, 100, 1000, 1000000 };
-	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
-}
-
 static vector<ConfOption> g_ConfOptions;
 static void
 InitializeConfOptions()
@@ -773,8 +756,7 @@ InitializeConfOptions()
 	ADD(ConfOption("RandomBackgroundMode",
 				   MovePref<RandomBackgroundMode>,
 				   "Off",
-				   "Animations",
-				   "Random Movies"));
+				   "Animations"));
 	ADD(ConfOption("BGBrightness",
 				   BGBrightness,
 				   "|0%",
@@ -955,9 +937,8 @@ InitializeConfOptions()
 	ADD(ConfOption("TextureColorDepth", TextureColorDepth, "16bit", "32bit"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("MovieColorDepth", MovieColorDepth, "16bit", "32bit"));
-	ADD(ConfOption("DelayedTextureDelete", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("DelayedTextureDeletion", MovePref<bool>, "Off", "On"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
-	ADD(ConfOption("CelShadeModels", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("SmoothLines", MovePref<bool>, "Off", "On"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("RefreshRate",

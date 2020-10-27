@@ -2,12 +2,11 @@
 #include "CommonMetrics.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "Etterna/Globals/MinaCalc.h"
+#include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
-#include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -38,9 +37,6 @@ static ThemeMetric<bool> g_MineHitIncrementsMissCombo(
 
 const float LESSON_PASS_THRESHOLD = 0.8f;
 
-Grade
-GetGradeFromPercent(float fPercent);
-
 void
 PlayerStageStats::InternalInit()
 {
@@ -52,7 +48,6 @@ PlayerStageStats::InternalInit()
 	m_bJoined = false;
 	m_vpPossibleSteps.clear();
 	m_iStepsPlayed = 0;
-	m_fAliveSeconds = 0;
 	m_bFailed = false;
 	m_iPossibleDancePoints = 0;
 	m_iCurPossibleDancePoints = 0;
@@ -123,7 +118,6 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	for (const auto& s : other.m_vpPossibleSteps)
 		m_vpPossibleSteps.push_back(s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
-	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
 	m_iPossibleDancePoints += other.m_iPossibleDancePoints;
 	m_iActualDancePoints += other.m_iActualDancePoints;
@@ -189,44 +183,6 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	}
 }
 
-// get appropriated (for when we have scores but no highscore object to get
-// wifegrades) -mina
-Grade
-GetGradeFromPercent(float fPercent)
-{
-	if (fPercent >= 0.99996f)
-		return Grade_Tier01;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9998f)
-		return Grade_Tier02;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9997f)
-		return Grade_Tier03;
-	if (fPercent >= 0.99955f)
-		return Grade_Tier04;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.999f)
-		return Grade_Tier05;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.998f)
-		return Grade_Tier06;
-	if (fPercent >= 0.997f)
-		return Grade_Tier07;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.99f)
-		return Grade_Tier08;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.965f)
-		return Grade_Tier09;
-	if (fPercent >= 0.93f)
-		return Grade_Tier10;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.9f)
-		return Grade_Tier11;
-	if (PREFSMAN->m_bUseMidGrades && fPercent >= 0.85f)
-		return Grade_Tier12;
-	if (fPercent >= 0.8f)
-		return Grade_Tier13;
-	if (fPercent >= 0.7f)
-		return Grade_Tier14;
-	if (fPercent >= 0.6f)
-		return Grade_Tier15;
-	return Grade_Tier16;
-}
-
 Grade
 PlayerStageStats::GetWifeGrade()
 {
@@ -241,6 +197,7 @@ PlayerStageStats::GetGrade(float p)
 {
 	return GetGradeFromPercent(p);
 }
+
 Grade
 PlayerStageStats::GetGrade() const
 {
@@ -512,7 +469,7 @@ PlayerStageStats::ResetScoreForLesson()
 void
 PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 {
-	if (fStepsSecond < 0)
+	if (fStepsSecond < 0.F)
 		return;
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
@@ -908,7 +865,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
   public:
 	DEFINE_METHOD(GetNumControllerSteps, m_iNumControllerSteps)
 	DEFINE_METHOD(GetLifeRemainingSeconds, m_fLifeRemainingSeconds)
-	DEFINE_METHOD(GetSurvivalSeconds, GetSurvivalSeconds())
 	DEFINE_METHOD(GetCurrentCombo, m_iCurCombo)
 	DEFINE_METHOD(GetCurrentMissCombo, m_iCurMissCombo)
 	DEFINE_METHOD(GetCurrentScoreMultiplier, m_iCurScoreMultiplier)
@@ -937,7 +893,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	DEFINE_METHOD(GetPersonalHighScoreIndex, m_iPersonalHighScoreIndex)
 	DEFINE_METHOD(GetMachineHighScoreIndex, m_iMachineHighScoreIndex)
 	DEFINE_METHOD(IsDisqualified, IsDisqualified())
-	DEFINE_METHOD(GetAliveSeconds, m_fAliveSeconds)
 	DEFINE_METHOD(GetTotalTaps, GetTotalTaps())
 	DEFINE_METHOD(GetPercentageOfTaps,
 				  GetPercentageOfTaps(Enum::Check<TapNoteScore>(L, 1)))
@@ -979,7 +934,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	{
 		auto& offs = p->m_vOffsetVector;
 		auto& type = p->m_vTapNoteTypeVector;
-		vector<float> doot;
+		std::vector<float> doot;
 		// type would not be empty in Full Replays (> v0.60)
 		if (!type.empty()) {
 			for (size_t i = 0; i < offs.size(); ++i)
@@ -1059,7 +1014,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
 			if (samples <= 0) {
-				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer "
+				Locator::getLogger()->trace("PlayerStageStats:GetLifeRecord requires an integer "
 						   "greater than 0.  Defaulting to 100.");
 				samples = 100;
 			}
@@ -1083,7 +1038,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
 			if (samples <= 0) {
-				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer "
+				Locator::getLogger()->trace("PlayerStageStats:GetLifeRecord requires an integer "
 						   "greater than 0.  Defaulting to 100.");
 				samples = 100;
 			}
@@ -1137,7 +1092,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	{
 		ADD_METHOD(GetNumControllerSteps);
 		ADD_METHOD(GetLifeRemainingSeconds);
-		ADD_METHOD(GetSurvivalSeconds);
 		ADD_METHOD(GetCurrentCombo);
 		ADD_METHOD(GetCurrentMissCombo);
 		ADD_METHOD(GetCurrentScoreMultiplier);
@@ -1174,7 +1128,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		ADD_METHOD(GetComboList);
 		ADD_METHOD(GetLifeRecord);
 		ADD_METHOD(GetWifeRecord);
-		ADD_METHOD(GetAliveSeconds);
 		ADD_METHOD(GetPercentageOfTaps);
 		ADD_METHOD(GetTotalTaps);
 		ADD_METHOD(GetRadarActual);

@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "DebugInfoHunt.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "VideoDriverInfo.h"
 #include "RegistryAccess.h"
@@ -12,10 +12,10 @@ static void
 LogVideoDriverInfo(VideoDriverInfo info)
 {
 	if (PREFSMAN->m_verbose_log > 1) {
-		LOG->Info("Video driver: %s [%s]",
+		Locator::getLogger()->info("Video driver: {} [{}]",
 				  info.sDescription.c_str(),
 				  info.sProvider.c_str());
-		LOG->Info("              %s, %s [%s]",
+		Locator::getLogger()->info("              {}, {} [{}]",
 				  info.sVersion.c_str(),
 				  info.sDate.c_str(),
 				  info.sDeviceID.c_str());
@@ -29,7 +29,7 @@ GetMemoryDebugInfo()
 	GlobalMemoryStatus(&mem);
 
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Info("Memory: %imb total, %imb swap (%imb swap avail)",
+		Locator::getLogger()->info("Memory: {}mb total, {}mb swap ({}mb swap avail)",
 				  mem.dwTotalPhys / 1048576,
 				  mem.dwTotalPageFile / 1048576,
 				  mem.dwAvailPageFile / 1048576);
@@ -41,7 +41,7 @@ GetDisplayDriverDebugInfo()
 	std::string sPrimaryDeviceName = GetPrimaryVideoName();
 
 	if (sPrimaryDeviceName.empty())
-		LOG->Info("Primary display driver could not be determined.");
+		Locator::getLogger()->info("Primary display driver could not be determined.");
 
 	bool LoggedSomething = false;
 	for (int i = 0; true; i++) {
@@ -61,8 +61,8 @@ GetDisplayDriverDebugInfo()
 		}
 	}
 	if (!LoggedSomething) {
-		LOG->Info("Primary display driver: %s", sPrimaryDeviceName.c_str());
-		LOG->Warn("Couldn't find primary display driver; logging all drivers");
+		Locator::getLogger()->info("Primary display driver: {}", sPrimaryDeviceName);
+		Locator::getLogger()->warn("Couldn't find primary display driver; logging all drivers");
 
 		for (int i = 0; true; i++) {
 			VideoDriverInfo info;
@@ -121,9 +121,7 @@ GetDriveDebugInfo9x()
 			  IDs[id], "DMACurrentlyUsed", DMACurrentlyUsed);
 
 			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Info("Drive: \"%s\" DMA: %s",
-						  DeviceDesc.c_str(),
-						  DMACurrentlyUsed ? "yes" : "NO");
+				Locator::getLogger()->info("Drive: \"{}\" DMA: {}", DeviceDesc.c_str(), DMACurrentlyUsed ? "yes" : "NO");
 		}
 	}
 }
@@ -176,11 +174,10 @@ GetDriveDebugInfoNT()
 					  LUIDs[luid], "Identifier", Identifier);
 					TrimRight(Identifier);
 					if (PREFSMAN->m_verbose_log > 1)
-						LOG->Info("Drive: \"%s\" Driver: %s DMA: %s",
+						Locator::getLogger()->info("Drive: \"{}\" Driver: {} DMA: {}",
 								  Identifier.c_str(),
 								  Driver.c_str(),
-								  DMAEnabled == 1
-									? "yes"
+								  DMAEnabled == 1 ? "yes"
 									: DMAEnabled == -1 ? "N/A" : "NO");
 				}
 			}
@@ -194,7 +191,7 @@ GetDriveDebugInfo()
 	OSVERSIONINFO ovi;
 	ovi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	if (!GetVersionEx(&ovi)) {
-		LOG->Info("GetVersionEx failed!");
+		Locator::getLogger()->info("GetVersionEx failed!");
 		return;
 	}
 
@@ -215,7 +212,7 @@ GetWindowsVersionDebugInfo()
 	OSVERSIONINFO ovi;
 	ovi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	if (!GetVersionEx(&ovi)) {
-		LOG->Info("GetVersionEx failed!");
+		Locator::getLogger()->info("GetVersionEx failed!");
 		return;
 	}
 
@@ -278,7 +275,7 @@ GetWindowsVersionDebugInfo()
 
 	Ver +=
 	  ssprintf(") build %i [%s]", ovi.dwBuildNumber & 0xffff, ovi.szCSDVersion);
-	LOG->Info("%s", Ver.c_str());
+	Locator::getLogger()->info(Ver);
 }
 
 static void
@@ -291,19 +288,13 @@ GetSoundDriverDebugInfo()
 
 		MMRESULT ret = waveOutGetDevCaps(i, &caps, sizeof(caps));
 		if (ret != MMSYSERR_NOERROR) {
-			LOG->Info(
-			  wo_ssprintf(ret, "waveOutGetDevCaps(%i) failed", i).c_str());
+			Locator::getLogger()->info(wo_ssprintf(ret, "waveOutGetDevCaps(%i) failed", i));
 			continue;
 		}
 		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Info(
-			  "Sound device %i: %s, %i.%i, MID %i, PID %i %s",
-			  i,
-			  caps.szPname,
-			  HIBYTE(caps.vDriverVersion),
-			  LOBYTE(caps.vDriverVersion),
-			  caps.wMid,
-			  caps.wPid,
+			Locator::getLogger()->info("Sound device {}: {}, {}.{}, MID {}, PID {} {}",
+			  i, caps.szPname, HIBYTE(caps.vDriverVersion),
+			  LOBYTE(caps.vDriverVersion), caps.wMid, caps.wPid,
 			  caps.dwSupport & WAVECAPS_SAMPLEACCURATE ? "" : "(INACCURATE)");
 	}
 }

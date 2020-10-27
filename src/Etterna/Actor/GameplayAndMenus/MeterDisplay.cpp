@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "MeterDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/FileTypes/XmlFile.h"
@@ -32,8 +32,7 @@ void
 MeterDisplay::LoadFromNode(const XNode* pNode)
 {
 	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("MeterDisplay::LoadFromNode(%s)",
-				   ActorUtil::GetWhere(pNode).c_str());
+		Locator::getLogger()->trace("MeterDisplay::LoadFromNode({})", ActorUtil::GetWhere(pNode).c_str());
 
 	const XNode* pStream = pNode->GetChild("Stream");
 	if (pStream == NULL) {
@@ -87,8 +86,17 @@ void
 SongMeterDisplay::Update(float fDeltaTime)
 {
 	if (GAMESTATE->m_pCurSong) {
-		float fSongStartSeconds = GAMESTATE->m_pCurSong->GetFirstSecond();
-		float fSongEndSeconds = GAMESTATE->m_pCurSong->GetLastSecond();
+		float fSongStartSeconds = 0.F;
+		float fSongEndSeconds = 0.F;
+		if (GAMESTATE->m_pCurSteps) {
+			fSongStartSeconds = GAMESTATE->m_pCurSteps->firstsecond;
+			fSongEndSeconds = GAMESTATE->m_pCurSteps->lastsecond;
+		}
+		else
+		{
+			fSongStartSeconds = GAMESTATE->m_pCurSong->GetFirstSecond();
+			fSongEndSeconds = GAMESTATE->m_pCurSong->GetLastSecond();
+		}
 		float fPercentPositionSong =
 		  SCALE(GAMESTATE->m_Position.m_fMusicSeconds,
 				fSongStartSeconds,

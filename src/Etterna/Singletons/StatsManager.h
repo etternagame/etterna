@@ -31,7 +31,7 @@ class StatsManager
 	}
 
 	static void CommitStatsToProfiles(const StageStats* pSS);
-	void AddPlayerStatsToProfile(Profile* pProfile);
+	static void AddPlayerStatsToProfile(Profile* pProfile);
 
 	void UnjoinPlayer(PlayerNumber pn);
 	void GetStepsInUse(std::set<Steps*>& apInUseOut) const;
