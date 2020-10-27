@@ -97,19 +97,20 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		const auto base = mcbloop[highest_base_skillset];
 
 		/* rerun all with stam on, optimize by starting at the non-stam adjusted
-		 * base value for each skillset we can actually set the stam floor to <
-		 * 1 to shift the curve a bit do we actually need to rerun _all_ with
-		 * stam on? we gain significant speed from not doing so, however the
-		 * tradeoff is files that are close in 2/3 skillsets will have the stam
-		 * bonus stripped from the second and third components, devaluing the
-		 * file as a whole, we could run it for the 2nd/3rd highest skillsets
-		 * but i'm too lazy to implement that right now */
+		 * base value for each skillset. we can actually set the stam floor to <
+		 * 1 to shift the curve a bit. chisels are expensive, so we only want
+		 * to refine the values for the most important skillsets. (base * 0.9)
+		 * is not a principled choice, but it makes the calc faster than v263 on
+		 * average and results in exactly the same value for overall for ~99% of
+		 * files */
 		for (auto i = 0; i < NUM_Skillset; ++i) {
-			mcbloop[i] = Chisel(mcbloop[i] * 0.9F,
-								0.32F,
-								score_goal,
-								static_cast<Skillset>(i),
-								true);
+			if (mcbloop[i] > base * 0.9f) {
+				mcbloop[i] = Chisel(mcbloop[i] * 0.9F,
+									0.32F,
+									score_goal,
+									static_cast<Skillset>(i),
+									true);
+			}
 		}
 
 		const auto highest_stam_adjusted_skillset =
@@ -943,7 +944,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 440;
+int mina_calc_version = 441;
 auto
 GetCalcVersion() -> int
 {

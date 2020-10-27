@@ -158,6 +158,11 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 
 		const auto& ri = i;
 
+		// either not a 4k file or malformed
+		if (ri.notes < 0 || ri.notes > 0b1111) {
+			return true;
+		}
+
 		// 90000 bpm flams may produce 0s due to float precision, we can ignore
 		// this for now, there should be no /0 errors due to it
 		/*if (i > 0) {
