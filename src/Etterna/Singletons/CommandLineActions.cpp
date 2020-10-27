@@ -10,8 +10,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "ver.h"
-
+#include "Core/Misc/AppInfo.hpp"
 // only used for Version()
 #ifdef _WIN32
 #include <windows.h>
@@ -66,8 +65,7 @@ LuaInformation()
 	pNode->AppendAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	pNode->AppendAttr("xsi:schemaLocation", "http://www.stepmania.com Lua.xsd");
 
-	pNode->AppendChild("Version",
-					   std::string(PRODUCT_FAMILY) + product_version);
+	pNode->AppendChild("Version", std::string(PRODUCT_FAMILY) + Core::AppInfo::APP_VERSION);
 	pNode->AppendChild("Date", DateTime::GetNowDate().GetString());
 
 	XmlFileUtil::SaveToFile(pNode, "Lua.xml", "Lua.xsl");
@@ -86,8 +84,8 @@ Version()
 {
 #ifdef _WIN32
 	std::string sProductID =
-	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + product_version).c_str());
-	std::string sVersion = ssprintf("build %s", ::version_git_hash);
+	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + Core::AppInfo::APP_VERSION).c_str());
+	std::string sVersion = ssprintf("build %s", Core::AppInfo::GIT_HASH);
 
 	AllocConsole();
 	freopen("CONOUT$", "wb", stdout);
