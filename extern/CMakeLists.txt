@@ -68,8 +68,7 @@ list(APPEND EXT_TARGETS
     discord-rpc muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl tracy)
-    libcurl fmt)
+    libcurl fmt tracy)
 
 list(APPEND LUA_TARGETS luajit lua minilua buildvm)
 

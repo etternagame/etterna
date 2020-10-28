@@ -551,38 +551,38 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 	}
 
 	{
-    ZoneNamedN(check_msgs, "CheckMsgs", true);
-	  // Check for finished http requests
-	  CURLMsg* msg;
-	  int msgs_left;
-	  while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
-		  /* Find out which handle this message is about */
-		  int idx_to_delete = -1;
-		  for (size_t i = 0; i < HTTPRequests.size(); ++i) {
-		  	if (msg->easy_handle == HTTPRequests[i]->handle) {
-		  		if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
-			  		HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-				  	Locator::getLogger()->trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
-  				} else if (msg->msg == CURLMSG_DONE) {
-	  				HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
-		  		} else
-			  		HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
-				  if (HTTPRequests[i]->handle != nullptr)
-  					curl_easy_cleanup(HTTPRequests[i]->handle);
-	  			HTTPRequests[i]->handle = nullptr;
-		  		if (HTTPRequests[i]->form != nullptr)
-			  		curl_formfree(HTTPRequests[i]->form);
-				  HTTPRequests[i]->form = nullptr;
-				  delete HTTPRequests[i];
-  				idx_to_delete = i;
-	  			break;
-			  }
-      }
-		  // Delete this here instead of within the loop to avoid iterator
-		  // invalidation
-		  if (idx_to_delete != -1)
-			  HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
-    }
+		ZoneNamedN(check_msgs, "CheckMsgs", true);
+		// Check for finished http requests
+		CURLMsg* msg;
+		int msgs_left;
+		while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
+			/* Find out which handle this message is about */
+			int idx_to_delete = -1;
+			for (size_t i = 0; i < HTTPRequests.size(); ++i) {
+				if (msg->easy_handle == HTTPRequests[i]->handle) {
+		  			if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
+			  			HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+						Locator::getLogger()->trace("CURL UNSUPPORTED PROTOCOL (Probably https)");
+  					} else if (msg->msg == CURLMSG_DONE) {
+	  					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
+		  			} else
+			  			HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					if (HTTPRequests[i]->handle != nullptr)
+  						curl_easy_cleanup(HTTPRequests[i]->handle);
+	  				HTTPRequests[i]->handle = nullptr;
+		  			if (HTTPRequests[i]->form != nullptr)
+			  			curl_formfree(HTTPRequests[i]->form);
+					HTTPRequests[i]->form = nullptr;
+					delete HTTPRequests[i];
+  					idx_to_delete = i;
+	  				break;
+				}
+			}
+			// Delete this here instead of within the loop to avoid iterator
+			// invalidation
+			if (idx_to_delete != -1)
+				HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
+		}
 	}
 }
 void

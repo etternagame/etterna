@@ -510,16 +510,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 			auto lastUpdate = 0;
 			for (auto it = workload.first; it != workload.second; ++it) {
 				auto* hs = *it;
-        {
+				{
 					ZoneNamedN(PerThread, "Update", true);
-  				if ((ld != nullptr) && scoreIndex % onePercent == 0) {
-					  data->_progress += scoreIndex - lastUpdate;
-				  	lastUpdate = scoreIndex;
-			  		data->setUpdated(true);
+  					if ((ld != nullptr) && scoreIndex % onePercent == 0) {
+						data->_progress += scoreIndex - lastUpdate;
+						  lastUpdate = scoreIndex;
+			  			data->setUpdated(true);
 		  			}
 	  				++scoreIndex;
   				}
-        }
 				auto ck = hs->GetChartKey();
 				auto* steps = SONGMAN->GetStepsByChartkey(ck);
 
@@ -544,15 +543,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				auto remarried = false;
 				{
 					ZoneNamedN(PerThread, "RecalcWife", true);
-				  if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
-					  hs->HasReplayData()) {
-					  steps->GetNoteData(nd);
-					  const auto maxpoints = nd.WifeTotalScoreCalc(td);
-					  if (maxpoints <= 0) {
-						  continue;
-					  }
-					  remarried =
-					    hs->RescoreToWife3(static_cast<float>(maxpoints));
+					if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
+						hs->HasReplayData()) {
+						steps->GetNoteData(nd);
+						const auto maxpoints = nd.WifeTotalScoreCalc(td);
+						if (maxpoints <= 0) {
+							continue;
+						}
+						remarried =
+							hs->RescoreToWife3(static_cast<float>(maxpoints));
 					}
 				}
 
@@ -622,24 +621,26 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 
 				{
 					ZoneNamedN(PerThread, "CheckCC", true);
-				  /* Some scores were being incorrectly marked as ccon despite
-  				 * chord cohesion being disabled. Re-determine chord cohesion
-	  			 * status from notecount, this should be robust as every score
-		  		 * up to this point should be a fully completed pass. This will
-			  	 * also allow us to mark files with 0 chords as being nocc
-				   * (since it doesn't apply to them). */
-  				const auto totalstepsnotes =
-	  			  steps->GetRadarValues()[RadarCategory_Notes];
-		  		auto totalscorenotes = 0;
-			  	totalscorenotes += hs->GetTapNoteScore(TNS_W1);
-				  totalscorenotes += hs->GetTapNoteScore(TNS_W2);
-  				totalscorenotes += hs->GetTapNoteScore(TNS_W3);
-	  			totalscorenotes += hs->GetTapNoteScore(TNS_W4);
-		  		totalscorenotes += hs->GetTapNoteScore(TNS_W5);
-			  	totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
+					/* Some scores were being incorrectly marked as ccon despite
+					 * chord cohesion being disabled. Re-determine chord
+					 * cohesion status from notecount, this should be robust as
+					 * every score up to this point should be a fully completed
+					 * pass. This will also allow us to mark files with 0 chords
+					 * as being nocc (since it doesn't apply to them). */
+					const auto totalstepsnotes =
+					  steps->GetRadarValues()[RadarCategory_Notes];
+					auto totalscorenotes = 0;
+					totalscorenotes += hs->GetTapNoteScore(TNS_W1);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W2);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W3);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W4);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W5);
+					totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
 
-				  if (totalstepsnotes == totalscorenotes) {
-					  hs->SetChordCohesion(1); // the set function isn't inverted
+					if (totalstepsnotes == totalscorenotes) {
+						hs->SetChordCohesion(
+						  1); // the set function isn't inverted
+					}
 				}
 			}
 		};
