@@ -2413,8 +2413,11 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 
 	DebugFlushGLErrors();
 
-	if (pImg->pixels) {
-		if (bGenerateMipMaps) {
+	if (bGenerateMipMaps) {
+		// We are not allowing creating mipmapped textures with empty buffers for now
+		// TODO: Consider crashing when that happens or if we can/want to allow it
+		// Would we need to update mipmaps manually in UpdateTexture?
+		if (pImg->pixels) {
 			glTexImage2D(GL_TEXTURE_2D,
 						 0,
 						 glTexFormat,
@@ -2428,19 +2431,23 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 			glGenerateMipmap(GL_TEXTURE_2D);
 
 			DebugAssertNoGLError();
-		} else {
-			glTexImage2D(GL_TEXTURE_2D,
-						 0,
-						 glTexFormat,
-						 power_of_two(pImg->w),
-						 power_of_two(pImg->h),
-						 0,
-						 glImageFormat,
-						 glImageType,
-						 pImg->pixels);
-
-			DebugAssertNoGLError();
 		}
+	} else {
+		// if pImg->pixels is null glTexImage2D copies no data
+		// but we still need to create the texture for the given size
+		// An example of code which does this is background movies
+		// which updates the image as it plays but doesn't initialize it
+		// when creating the texture handle
+		glTexImage2D(GL_TEXTURE_2D,
+						0,
+						glTexFormat,
+						power_of_two(pImg->w),
+						power_of_two(pImg->h),
+						0,
+						glImageFormat,
+						glImageType,
+						pImg->pixels);
+		DebugAssertNoGLError();
 	}
 
 	/* Sanity check: */
