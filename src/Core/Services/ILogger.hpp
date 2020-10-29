@@ -18,6 +18,9 @@ namespace Core {
 class ILogger {
 
 public:
+    /** Virtual destructor to ensure derived objects are guaranteed to have destructor */
+    virtual ~ILogger() = default;
+
     /**
      * Severity Enum - Middle man between each logging backed
      * and their own severity terminology.

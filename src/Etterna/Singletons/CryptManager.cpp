@@ -83,7 +83,7 @@ CryptManager::GetMD5ForFile(const std::string& fn)
 		MD5_Update(hash, data, length);
 	};
 	if (!HashFile(fn, update)) {
-		Locator::getLogger()->warn("An error occuring when calculating MD5 of \n{}", fn.c_str());
+		Locator::getLogger()->warn("An error occurred when calculating MD5 of \n{}", fn.c_str());
 		return std::string();
 	}
 	unsigned char digest[MD5_DIGEST_LENGTH];
@@ -120,7 +120,7 @@ CryptManager::GetSHA1ForFile(const std::string& fn)
 		SHA1_Update(hash, data, length);
 	};
 	if (!HashFile(fn, update)) {
-		Locator::getLogger()->warn("An error occuring when calculating SHA1 of \n{}",
+		Locator::getLogger()->warn("An error occurred when calculating SHA1 of \n{}",
 				  fn.c_str());
 		return std::string();
 	}

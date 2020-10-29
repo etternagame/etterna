@@ -370,7 +370,7 @@ RageFileObjDirect::~RageFileObjDirect()
 		const std::string error = werr_ssprintf(err, "Error renaming \"%s\" to \"%s\"",
 						sOldPath.c_str(),
 						sNewPath.c_str());
-		Locator::getLogger()->warn(error);
+		Locator::getLogger()->warn("{}", error);
 		SetError(error);
 		break;
 #else

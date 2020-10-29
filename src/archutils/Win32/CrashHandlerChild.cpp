@@ -13,6 +13,7 @@
 #include <shellapi.h>
 
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "archutils/Win32/WindowsResources.h"
 #include "archutils/Win32/DialogUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
@@ -27,15 +28,11 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/File/RageFileDriverDeflate.h"
-#include "ver.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dbghelp.lib")
 #endif
 
-// XXX: What happens when we *don't* have version info? Does that ever actually
-// happen?
-#include "ver.h"
 
 // VDI symbol lookup:
 namespace VDDebugInfo {
@@ -464,8 +461,8 @@ MakeCrashReport(const CompleteCrashData& Data, std::string& sOut)
 {
 	sOut += ssprintf("%s crash report (build %s)\n"
 					 "--------------------------------------\n\n",
-					 (std::string(PRODUCT_FAMILY) + product_version).c_str(),
-					 ::version_git_hash);
+					 (std::string(Core::AppInfo::APP_TITLE) + Core::AppInfo::APP_VERSION).c_str(),
+					 Core::AppInfo::GIT_HASH);
 
 	sOut += ssprintf("Crash reason: %s\n", Data.m_CrashInfo.m_CrashReason);
 	sOut += ssprintf("\n");
@@ -802,7 +799,7 @@ CrashDialog::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 					// Create the form data to send.
 					m_pPost = new NetworkPostData;
 					m_pPost->SetData("Product", PRODUCT_ID);
-					m_pPost->SetData("Version", product_version);
+					m_pPost->SetData("Version", Core::AppInfo::APP_VERSION);
 					m_pPost->SetData("Arch", Locator::getArchHooks()->GetArchName().c_str());
 					m_pPost->SetData("Report", m_sCrashReport);
 					m_pPost->SetData("Reason",

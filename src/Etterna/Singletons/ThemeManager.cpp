@@ -386,8 +386,8 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 	}
 
 	if (PREFSMAN->m_verbose_log > 1) {
-        Locator::getLogger()->trace("Theme: %s", m_sCurThemeName.c_str());
-        Locator::getLogger()->trace("Language: %s", m_sCurLanguage.c_str());
+        Locator::getLogger()->trace("Theme: {}", m_sCurThemeName.c_str());
+        Locator::getLogger()->trace("Language: {}", m_sCurLanguage.c_str());
 	}
 }
 
