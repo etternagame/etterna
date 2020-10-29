@@ -4,26 +4,35 @@ Add/Edit Background Change=Ajouter/Modifier le changement de fond
 Add Attack=Ajouter une Attaque
 Add Mod=Ajouter une Modification
 Air=Air
+
+; Not translated
+
 All timing=All timing
+
 AllowExtraStage=Stage supplémentaire Permit
-AllowHoldForOptions=Allow Hold For Options
+AllowHoldForOptions=Maintenir pour les Options
 AllowSongDeletion=Permettre l'Effacement
 AllowW1=Timing Fantastique
 AllowMultipleHighScoreWithSameName=Mode Compétition
+AllowMultipleToasties=Plus de Toast
 Alter=Altérer
 Announcer=Annonceur
 Appearance=Apparance
 Appearance Options=Options Apparence
 Theme Options=Options de Thème 
+ArcadeOptionsNavigation=Options Navigation
 Artist=Artiste
 Artist transliteration=Translitération de l'Artiste
 Assist=Assistance
-AutoAdjust=Auto Ajuste
 Attacks=Attaques
+
+; Not translated
+
 AttractSoundFrequency=Attract Sound Frequency
-AutoMapOnJoyChange=Automap Joysticks
+
+AutoAdjust=Ajustement Auto
+AutoMapOnJoyChange=Cartographie Auto des Joysticks
 AutoPlay=Jouer Automatiquement
-ArcadeOptionsNavigation=Options Navigation
 AutogenSteps=Pas Autogen
 AxisFix=Axis Fix
 BGBrightness=Luminosité
@@ -32,41 +41,41 @@ BackgroundFitMode=Ajustement de Fond
 BarDrain=Draine de la Barre
 BatLives=Vie de Pile
 Base Difficulty=Difficulté de&nbsp;Base
-Beat 0 Offset=Beat 0 Offset
+Beat 0 Offset=Décalage du preumier battement
 Bookkeeping=Comtabilité
 BPM changes=BPM changes
 Calibrate Machine Sync=Calibrer la synchronisaton
-CPUSkill=CPU Skill
-CelShadeModels=Cel-shaded Models
+CPUSkill=Compétences du CPU
+CelShadeModels=Ombrage de Celluloïd des Modèles
 Center Image=Centrer l'image
 Chaos=Chaos
 Chart Name=Nom
 Chart Style=Style
 Choose=Choisir
 Clear Bookkeeping Data=Effacer les statistiques de Comtabilité
-Clear Machine Edits=Clear Machine Edits
-Clear Machine Stats=Clear Machine Scores
-Clear USB edits=Clear USB edits
-Clear area=Clear area
+Clear Machine Edits=Éffacer les Éditions de la Machine
+Clear Machine Stats=Éffacer les Scores de la Machine
+Clear USB edits=Éffacer les Éditions sur l'USB
+Clear area=Dégager la Zone
 Clear clipboard=Nettoyer le presse-papiers
-Clear timing in region=Clear timing in region
+Clear timing in region=Éffacer les temps de la région
 CoinMode=Mode&nbsp; Jeton
 CoinModeNoHome=Mode Jeton
 CoinsPerCredit=Jetons Par&nbsp;Crédit
 ComboContinuesBetweenSongs=Continuer le Combo
-Combo segments=Combo segments
+Combo segments=Segments de Combo
 Connection=Connection
 Convert pause to beats=Convertir la pause en temps
 Convert delay to beats=Convertir le délai en temps
-Convert selection to attack=Convert selection to Attack
-Convert selection to pause=Convert selection to stop
-Convert selection to delay=Convert selection to delay
-Convert selection to warp=Convert selection to Warp Segment
-Convert selection to fake=Convert selection to Fake Segment
+Convert selection to attack=Convertir la sélection en Attaque
+Convert selection to pause=Convertir la sélection en Stop
+Convert selection to delay=Convertir la sélection en Delai
+Convert selection to warp=Convertir la sélection en Warp Segment
+Convert selection to fake=Convertir la sélection en Faux Segment
 Copy=Copier
-Copy timing data=Copy timing data
-Copy timing in region=Copy timing in region
-Copy Partial Timing=Copy Selected Timing Data
+Copy timing data=Copier les Données de Temps
+Copy timing in region=Copier les Temps de la Région
+Copy Partial Timing=Copier les Données de Temps sélectionnées.
 Create New=Créer Nouveau
 Create New Profile=Créer un Profile
 Credit=Jeton
@@ -74,13 +83,17 @@ Cut=Couper
 DefaultFailType=Default Fail&nbsp;Type
 DefaultFailTypeNoOff=Default Fail&nbsp;Type
 DefaultNoteSkin=NoteSkin par&nbsp;défaut
+
+; Not translated
+
 DelayedBack=Back Delayed
+
 DelayedTextureDelete=Garder les&nbsp;Textures En&nbsp;Mémoire
-Delays=Delays
+Delays=Retards
 Delete=Enlever
 Delete beat and shift up=Enlever un temps et bouger vers le haut
 Description=Description
-Designate as Music Preview=Designate as Music Preview
+Designate as Music Preview=Désigner comme Aperçu Musical
 Designate last second at current beat=Désigner la dernière seconde à ce temps
 Difficulty=Difficulté
 Display BPM=Afficher le BPM
@@ -96,7 +109,7 @@ FastNoteRendering=Rendu&nbsp;Rapide des&nbsp;Notes
 FailOffForFirstStageEasy=1er Stage Facile
 FailOffInBeginner=Perdre en Débutant
 Genre=Genre
-HarshHotLifePenalty=Harsh Hot Life Penalty
+HarshHotLifePenalty=Grosse Pénalitée de Vie
 Practice Songs/Steps=Practiquer Chansons/Pas
 Edit BPM change=Edit BPM change
 Edit song info=Modifier les infos de la chanson
@@ -105,8 +118,8 @@ Exit Edit Mode=Quitter le mode de modification
 Edit stop=Modifer l'arrêt
 Edit delay=Modifier le délais
 Edit Timing Data=Modifier les données de Timing
-Edit time signature=Edit time signature
-Edit tickcount=Edit tickcount
+Edit time signature=Editer la signature temporel
+Edit tickcount=Modifier le tickcount
 Edit combo=Modifier le combo
 Edit label=Modifier l'étiquette
 Edit warp=Edit warp
@@ -118,8 +131,12 @@ Edit fake=Modifier les faux segments
 Editor options=Options
 EditorShowBGChangesPlay=Montrer le Fond 
 EditRecordModeLeadIn=Débuter après ...
+
+; Not translated
+
 EditClearPromptThreshold=Clear Prompt Amount
-Erase step timing=Erase step timing
+
+Erase step timing=Effacer le Timing des Pas
 Effect=Effet
 EffectsReceptor=Effets de Cible
 EffectsArrow=Effets des Flèches
@@ -133,6 +150,9 @@ Fail=Perdre
 Fakes=Fausses
 FastLoad=Chargement\nRapide
 FastLoadAdditionalSongs=Charge Rapide\n des Chansons Additionnelles
+
+; Not translated
+
 File1 Global BGAnimation=File1 Global BGAnimation
 File1 Global Movie=File1 Global Movie
 File1 Global Movie (Group + Genre)=File1 Global Movie (Group + Genre)
@@ -154,27 +174,31 @@ Force Color 1=Force Color 1
 Force Color 2=Force Color 2
 Force Effect=Force Effect
 Force Transition=Force Transition
+
 Freeze=Gel
 Game=Jeu
-Get a better editor= Get a better editor
+Get a better editor= Obtenez un meilleur éditeur
 GetRankingName=Afficher&nbsp;les Noms
 Graphics/Sound Options=Options Graphiques/Son 
 Group=Groupe
 Hands=Mains
 HiddenSongs=Chansons Cachées
 Hide=Cacher
+
+; Not translated
+
 High Meter=High Meter
+
 HighResolutionTextures=Textures Haute-Rés 
 Holds=Tenir
-Holds=Holds
-InputDebounceTime=Input Debounce Time
+InputDebounceTime=Temps anti-rebond d'Entrée
 InputOptions=Options de Saisie
 Insert=Insérer
 Insert Credit=Insérer Jeton
 Insert beat and shift down=Insérer un temps et bouger vers le bas
 Insert Entry=Insérer Jeton
 Invalid=Invalide
-Invert notes' player=Invert player notes
+Invert notes' player=Inversé les Notes du Joueur
 Jumps=Sauts
 Key Joy Mappings=Config boutton/Joystick
 Labels=Labels
@@ -182,10 +206,14 @@ Language=Langage
 Last second hint=Indice&nbsp;de dernière seconde
 Layer=Couche
 Lifts=Lever
-LiftsOnOsuHolds=Osu Lifts
+LiftsOnOsuHolds=Levers d'Osu
 LifeDifficulty=Difficulté de&nbsp;Vie
 LifeType=Type de Vie
+
+; Not translated
+
 Low Meter=Low Meter
+
 Advanced Options=Options Avancées 
 Main title=Titre principal
 Main title transliteration=Translitération Titre Princ.
@@ -198,30 +226,46 @@ Meter=Niveau
 Min BPM=BPM Minimum
 Mines=Mines
 Mines=Mines
+
+; Not translated
+
 MinTNSToHideNotes=HideNote Judgment
+
 Modify Keysounds at current beat=Modifier les keysounds à ce temps
 Modify Attacks at current beat=Modifier les attaques à ce temps
-MoveRandomToEnd=Random At&nbsp;End
+MoveRandomToEnd=Hasard à&nbsp;la Fin
 More Options=Plus d'Options
 MovieColorDepth=Couleurs de Vidéo
+
+; Not translated
+
 Music File=Music File
 MusicWheelSwitchSpeed=Wheel Speed
+
 MusicWheelUsesSections=Sections&nbsp;de Roulette
 Network Options=Options Réseau
-No USB memory cards found=No USB memory cards found
+No USB memory cards found=Aucune carte mémoire USB trouvée
 NoteSkins=NoteSkins
 NumBackgrounds=#&nbsp;de&nbsp;Fonds Aléatoires
 OptionsRandomJukebox=Modificateurs
 OnlyDedicatedMenuButtons=Navigation du Menu
+
+; Not translated
+
 OsMountPlayer1=OS&nbsp;Mount Player1
 OsMountPlayer2=OS&nbsp;Mount Player2
 Overscan Correction=Overscan Correction
+
 Paste at begin marker=Coller au marqueur de début
 Paste at current beat=Coller au Temps actuel
+
+; Not translated
+
 Paste timing data=Paste timing data
 Paste timing from clipboard=Paste timing from clipboard
 Paste Partial Timing at current beat=Paste Partial Timing at current beat
 Persp=Perspective
+
 Play current beat to end=Jouer à partir du temps actuel
 Play preview music=Jouer le démo de la musique
 Play whole song=Jouer la chanson en entier
@@ -232,8 +276,12 @@ PlayerAutoPlay=Jouer Automatiquement
 Predicted Meter=Niveau Prédit
 Preferences=Préférences
 PreloadSounds=Précharger les Sons
+
+; Not translated
+
 Premium=Premium
 Preview=Preview
+
 Preview Length=Longueur de l'Aperçu
 Preview Start=Début de l'Aperçu
 Export Packages=Exporter les Packages
@@ -242,7 +290,11 @@ Profile=Profile
 Profiles=Profiles
 ProgressiveLifebar=Barre de Vie Progressive
 ProgressiveStageLifebar=Barre de Vie Progressive de Stage
+
+; Not translated
+
 ProTiming=Protiming
+
 Quads=Quatre
 Quantize=Quantize
 RandomBackgroundMode=Mode&nbsp;Fond Aléatoire
@@ -257,26 +309,34 @@ RemoveFeatures=
 Remove Change=Enlever le Changement
 Remove Keysound=Enlever le Keysound
 Rename=Renommer
-ReplaysUseScoreMods=Replay Mod Emulation
+ReplaysUseScoreMods=Émulation des Modes dans le Replay
 Reset To Defaults=Reset Options To Default Values
 Revert from disk=Retourner à partir du disque
 Revert to last save=Retourner à partir de la cache
 Rolls=Tambours
 Save=Sauvegarder
 SaveScores=Sauvegarder les Scores
-SaveReplays=Save Replays
-SaveStats=Save Stats
+SaveReplays=Savegarder les Replays
+SaveStats=Savegarder les Stats
 ScoreDisplay=Affichage du Score
-Scoreboard=Scoreboard
+Scoreboard=Tableau des Scores
 ScoringType=Type de Score
 ScreenFilter=Filtre d'Écran
+
+; Not translated
+
 Scroll=Scroll
 Scroll segments=Scroll segments
 Secret=Secret
+
 Secs Remaining=Secondes Restantes
 Server=Serveur
 Servers=Serveurs
+
+; Not translated
+
 Set BG Fit Mode=Set BG Fit Mode
+
 Set P1=Déterminer en tant que J1
 Set P2=Déterminer en tant que J2
 Set modifiers=Mettre des modificateurs
@@ -285,8 +345,12 @@ Set selection start=Début de la sélection
 Set selection end=Fin de la sélection
 Shift all timing changes down=Bouger tout les changements de timing vers le bas
 Shift all timing changes up=Bouger tout les changements de timing vers le haut
+
+; Not translated
+
 Shift timing in region down=Shift timing in region down
 Shift timing in region up=Shift timing in region up
+
 ShowBanners=Montrer&nbsp;les Bannières
 ShowBeginnerHelper=Aide pour Débutant
 ShowCaution=Avertissement
@@ -297,7 +361,11 @@ ShowNativeLanguage=Traductions
 ShowSelectGroup=Groupe de la Chanson
 ShowSongOptions=Options&nbsp;de Chanson
 ShowStats=Montrer&nbsp;les Statistiques
+
+; Not translated
+
 SmoothLines=SmoothLines
+
 SoundEffect=Effet de Son
 Speed segments=Speed segments
 Starting Time=Temps de départ
@@ -309,8 +377,12 @@ Song Group=Groupe de la Chanson
 Song Options=Options de la Chanson
 SongsPerPlay=Chansons Par&nbsp;Partie
 Sort=Filtrer
+
+; Not translated
+
 SortBySSRNormPercent=SSRNorm Sort
 SoundResampleQuality=Resampling Quality
+
 SoundVolume=Volume du Sonore
 SoundVolumeAttract=Volume de l'Attraction
 Speed=Vitesse
@@ -323,37 +395,61 @@ StretchBackgrounds=Étirer les Fonds
 Style=Style
 Sub title=Sous-titre
 Sub title transliteration=Translitération Sous-titre
+
+; Not translated
+
 SuperGrowth=Super Growth
+
 FullTapExplosions=Tap Explosion Animation
+
+; Not translated
+
 NoGlow=Tap Glow
+
 Tap Steps=Tapes
 Tempo=Tempo
 Test Input=Tester la Saisie
 TextureColorDepth=Couleurs de&nbsp;Texture
 Theme=Thème
 ThreeKeyNavigation=Menu de Navigation
+
+; Not translated
+
 Tickcount=Tickcount
+
 TimingWindowScale=Difficulté du&nbsp;Juge
+
+; Not translated
+
 Time Signatures=Time Signatures
+
 Transform=Transformer
 Transfer Edits to USB=Transférer des Modification vers une clé USB
 Transfer Edits from USB=Transférer des Modification depuis une clé USB
 Type=Type
 Turn=Tourner
 Undo=Annuler
+
+; Not translated
+
 UseMidGrades=Mid Grades
+
 UseUnlockSystem=Déverrouiller le&nbsp;Système
 View steps data=Voir les Données de Pas
 VisualDelaySeconds=Délai&nbsp;Visuel
 Voltage=Voltage
 Vsync=Vsync
+
+; Not translated
+
 Warps=Warps
+
 WideScreen16_9=Écran Large
 WideScreen16_10=Écran Large
 Windowed=Mode d'Affichage
 
 #
-UI Options=Options IU
+UI Options=Options d'IU
 Input Options=Options de Saisie
 Arcade Options=Options d'Arcade 
 Select Game=Choisir le Jeu
@@ -372,7 +468,8 @@ Shuffle=Mélanger
 GamePrefDefaultFail= Condition&nbsp;d'Échec par&nbsp;défault
 
 #
-UserPrefScoringMode=Scoring Mode
+UserPrefScoringMode=Mode de Score
+
 ; == Following feilds are probably unused ==
 ; Characters=Characters
 ; CourseSortOrder=Course Sort
