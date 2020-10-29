@@ -60,7 +60,7 @@ local separatorlength = math.sqrt(SCREEN_HEIGHT * SCREEN_HEIGHT + (gradientwidth
 local logoFrameUpperGap = 39 / 1080 * SCREEN_HEIGHT -- from top edge to logo
 local logoFrameLeftGap = 61 / 1920 * SCREEN_WIDTH -- from left edge to logo
 local logoNameLeftGap = 33 / 1920 * SCREEN_WIDTH -- from end of logo to left of text
-local logoThemeNameLeftGap = 28 / 1920 * SCREEN_WIDTH -- from end of logo to left of text
+local logoThemeNameLeftGap = 33 / 1920 * SCREEN_WIDTH -- from end of logo to left of text
 local logoThemeNameUpperGap = 67 / 1080 * SCREEN_HEIGHT -- from top of name text to top of theme text
 local logosourceHeight = 133
 local logosourceWidth = 102
@@ -69,10 +69,12 @@ local logoH, logoW = getHWKeepAspectRatio(logosourceHeight, logosourceWidth, log
 
 local versionNumberLeftGap = 5 / 1920 * SCREEN_WIDTH
 local versionNumberUpperGap = 980 / 1080 * SCREEN_HEIGHT
+local themeVersionUpperGap = 1015 / 1080 * SCREEN_HEIGHT
 
 local nameTextSize = 0.9
 local themenameTextSize = 0.8
 local versionTextSize = 0.5
+local versionTextSizeSmall = 0.25
 local animationSeconds = 0.5 -- the intro animation
 
 t[#t+1] = Def.ActorFrame {
@@ -148,7 +150,7 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(logoThemeNameLeftGap + logoW, logoThemeNameUpperGap)
                 self:zoom(themenameTextSize)
                 self:maxwidth((separatorxpos - (logoNameLeftGap + logoW) - logoThemeNameLeftGap) / themenameTextSize)
-                self:settext("ThemeName")
+                self:settext(getThemeName())
             end
         },
         LoadFont("Menu Normal") .. {
@@ -158,6 +160,15 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(versionNumberLeftGap, versionNumberUpperGap)
                 self:zoom(versionTextSize)
                 self:settext("V "..GAMESTATE:GetEtternaVersion())
+            end
+        },
+        LoadFont("Menu Normal") .. {
+            Name = "ThemeVersion",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(versionNumberLeftGap, themeVersionUpperGap)
+                self:zoom(versionTextSizeSmall)
+                self:settext("("..getThemeName().." v"..getThemeVersion().."@"..getThemeDate()..")")
             end
         }
     }
