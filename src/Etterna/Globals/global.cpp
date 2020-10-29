@@ -27,7 +27,13 @@ sm_crash(const char* reason)
 	}
 #endif
 
-//	CrashHandler::ForceCrash(reason);
+#ifdef __APPLE__
+    CrashHandler::InformUserOfCrash(reason);
+#endif
+
+#ifdef _WIN32
+	CrashHandler::ForceCrash(reason);
+#endif
 
 #ifdef _WIN32
 	/* Do something after the above, so the call/return isn't optimized to a
