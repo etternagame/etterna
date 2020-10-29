@@ -22,6 +22,8 @@
 /Songs/
 
 # Misc Ignores
+/CrashData
+/Program/CrashData
 /crashinfo.txt
 /nowplaying.txt
 
