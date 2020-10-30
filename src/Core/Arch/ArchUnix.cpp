@@ -111,7 +111,14 @@ namespace Core::Arch {
     std::string getSystemLanguage(){
         // Since linux systems store language per user, and not the whole system,
         // we will get the user's preferred language.
-        auto lang = std::string(getenv("LANG"));
+        char* langRes = getenv("LANG");
+        if (langRes == nullptr){
+            // Return "en" if "LANG" doesn't exist.
+            Locator::getLogger()->warn("Environment variable \"LANG\" not found. Using \"en\" for language.");
+            return "en";
+        }
+
+        auto lang = std::string(langRes);
         auto res = lang.substr(0, 2); // First two characters should be a language
         return res;
     }

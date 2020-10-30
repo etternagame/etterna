@@ -66,7 +66,7 @@ namespace Core::Arch {
 
     /**
      * @brief Get the operating system's primary language.
-     * @return A 2-letter RFC-639 language code.
+     * @return A 2-letter RFC-639 language code. If not found, return "en".
      */
     std::string getSystemLanguage();
 
