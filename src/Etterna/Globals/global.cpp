@@ -1,5 +1,7 @@
 ﻿#include "global.h"
 
+#include "Core/Crash/CrashpadHandler.hpp"
+#include "Core/Services/Locator.hpp"
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -26,7 +28,6 @@ sm_crash(const char* reason)
 			; /* don't return */
 	}
 #endif
-
 #ifdef __APPLE__
     CrashHandler::InformUserOfCrash(reason);
 #endif
@@ -34,6 +35,8 @@ sm_crash(const char* reason)
 #ifdef _WIN32
 	CrashHandler::ForceCrash(reason);
 #endif
+	Locator::getLogger()->fatal(reason);
+    Core::Crash::generateMinidump();
 
 #ifdef _WIN32
 	/* Do something after the above, so the call/return isn't optimized to a
