@@ -5,11 +5,21 @@
 #endif
 
 #include "RageUtil/File/RageFileManager.h"
-#include "client/crashpad_client.h"
+#include "Core/Misc/AppInfo.hpp"
+
 #include "client/crash_report_database.h"
+#include "client/crashpad_client.h"
+#include "client/simulate_crash.h"
 #include "client/settings.h"
 #include <string>
 
+/**
+ * Initialize the crashpad_handler watchdog, and configure the settings database.
+ * The preprocessor defines are only needed since crashpad's StartHandler
+ * function uses different parameter types for windows vs non-windows.
+ *
+ * @return True if successfully initialized, False if otherwise.
+ */
 bool Core::Crash::initCrashpad() {
 #ifdef _WIN32
 	std::wstring exeDir = StringToWString(RageFileManagerUtil::sDirOfExecutable);
@@ -37,4 +47,12 @@ bool Core::Crash::initCrashpad() {
         true // start handler from background thread (currently windows only)
     );
     return status;
+}
+
+/**
+ * Force a minidump file to be generated of the stack at the location where this function is called.
+ * It does not actually crash the program, and only generates the minidump.
+ */
+void Core::Crash::generateMinidump() {
+    CRASHPAD_SIMULATE_CRASH();
 }
