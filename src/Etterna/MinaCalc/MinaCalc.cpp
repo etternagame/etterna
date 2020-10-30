@@ -79,7 +79,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 
 		// if we exceed max_rows_for_single_interval during processing
 		if (skip) {
-			std::cout << "skipping junk file" << std::endl;
+			//std::cout << "skipping junk file" << std::endl;
 			return dimples_the_all_zero_output;
 		}
 
@@ -941,7 +941,9 @@ Php::Value webcalc(Php::Parameters &parameters)
     INFILE.close();
 
     thread_local auto calc = std::make_unique<Calc>();
-	std::vector<float> ssr = calc->CalcMain(newVector, rate, min(wife, 0.965));
+	std::vector<float> ssr = dimples_the_all_zero_output;
+	if (newVector.size() > 1)
+		ssr = calc->CalcMain(newVector, rate, min(wife, 0.965));
 
     Php::Value assoc;
     assoc["Overall"]         = ssr[0];
