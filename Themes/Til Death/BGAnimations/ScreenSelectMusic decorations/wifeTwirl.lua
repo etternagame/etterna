@@ -1125,10 +1125,15 @@ t[#t + 1] =
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
-				-- open SORT_MODE_MENU, hardcoded the enum value (8 as of this commit) because 
-				-- I can't figure out in 3 minutes how to name reference it and it's not worth
-				-- more time than that since we'll be swapping out the entire music wheel anyway
-				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(8)
+				local ind = 0 -- 0 is group sort usually
+				-- find the sort mode menu no matter where it is
+				for i, sm in ipairs(SortOrder) do
+					if sm == "SortOrder_ModeMenu" then
+						ind = i - 1
+						break
+					end
+				end
+				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(ind)
 			end
 		end,
 		HighlightCommand=function(self)
