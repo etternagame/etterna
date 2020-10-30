@@ -42,8 +42,8 @@ jobs:
 
       - name: Update Environment Variables
         run: |
-          echo "::add-path::${{github.workspace}}/extern/crashpad/breakpad/mac/"
-          echo "::set-env name=ETTERNA_ARCH::x64"
+          echo "${{github.workspace}}/extern/crashpad/breakpad/mac/" >> $GITHUB_PATH
+          echo "ETTERNA_ARCH=x64" >> $GITHUB_ENV
 
       - name: Install homebrew packages
         run: brew install cmake nasm ninja
