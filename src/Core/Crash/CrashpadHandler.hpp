@@ -3,6 +3,7 @@
 
 namespace Core::Crash {
     bool initCrashpad();
+    void generateMinidump();
 }
 
 #endif //CORE_CRASH_CRASHPADHANDLER_HPP
