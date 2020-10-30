@@ -257,16 +257,6 @@ std::string ArchHooks::GetPreferredLanguage()
 	return ret;
 }
 
-bool ArchHooks_MacOSX::GoToURL( const std::string &sUrl )
-{
-	CFURLRef url = CFURLCreateWithBytes( kCFAllocatorDefault, (const UInt8*)sUrl.data(),
-						 sUrl.length(), kCFStringEncodingUTF8, NULL );
-	OSStatus result = LSOpenCFURLRef( url, NULL );
-
-	CFRelease( url );
-	return result == 0;
-}
-
 int64_t ArchHooks::GetMicrosecondsSinceStart()
 {
 	// http://developer.apple.com/qa/qa2004/qa1398.html

@@ -16,8 +16,6 @@ class ArchHooks_Unix : public ArchHooks
 	void MountInitialFilesystems(const std::string& sDirOfExecutable);
 	float GetDisplayAspectRatio() { return 4.0f / 3; }
 
-	bool GoToURL(const std::string& sUrl);
-
 	static clockid_t GetClock();
 
 	std::string GetClipboard();

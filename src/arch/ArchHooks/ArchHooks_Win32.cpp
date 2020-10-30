@@ -7,7 +7,6 @@
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
 #include "archutils/win32/RestartProgram.h"
-#include "archutils/win32/GotoURL.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
 static HANDLE g_hInstanceMutex;
@@ -216,12 +215,6 @@ void
 ArchHooks_Win32::SetupConcurrentRenderingThread()
 {
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-}
-
-bool
-ArchHooks_Win32::GoToURL(const std::string& sUrl)
-{
-	return ::GotoURL(sUrl);
 }
 
 int

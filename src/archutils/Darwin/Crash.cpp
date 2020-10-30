@@ -2,6 +2,7 @@
 #include "Crash.h"
 #include "Etterna/Globals/ProductInfo.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Arch/Arch.hpp"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
 #if defined(HAVE_UNISTD_H)
@@ -65,11 +66,11 @@ CrashHandler::InformUserOfCrash(const std::string& sPath)
 
 	switch (response) {
 		case kCFUserNotificationDefaultResponse:
-			Locator::getArchHooks()->GoToURL(REPORT_BUG_URL);
+			Core::Arch::openWebsite(REPORT_BUG_URL);
 			// Fall through.
 		case kCFUserNotificationOtherResponse:
 			// Open the file with the default application (probably TextEdit).
-            Locator::getArchHooks()->GoToURL("file://" + sPath);
+            Core::Arch::openWebsite("file://" + sPath);
 			break;
 	}
 	CFRelease(sBody);

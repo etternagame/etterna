@@ -5,10 +5,10 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #endif
 #include "Etterna/Globals/ProductInfo.h"
+#include "Core/Arch/Arch.hpp"
 
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "archutils/win32/GotoURL.h"
 #include "archutils/win32/RestartProgram.h"
 #include "archutils/Win32/SpecialDirs.h"
 #if !defined(SMPACKAGE)
@@ -179,7 +179,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					);
 				} break;
 				case IDC_BUTTON_REPORT:
-					GotoURL(REPORT_BUG_URL);
+					Core::Arch::openWebsite(REPORT_BUG_URL);
 					break;
 				case IDC_BUTTON_RESTART:
 					Win32RestartProgram();

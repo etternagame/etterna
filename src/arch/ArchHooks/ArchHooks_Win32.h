@@ -21,7 +21,6 @@ class ArchHooks_Win32 : public ArchHooks
 	void UnBoostPriority();
 	void SetupConcurrentRenderingThread();
 
-	bool GoToURL(const std::string& sUrl);
 	virtual float GetDisplayAspectRatio();
 	std::string GetClipboard();
 	/** @brief Fetch the window width. */

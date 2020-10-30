@@ -106,11 +106,6 @@ class ArchHooks
 	 */
 	bool AppFocusChanged();
 
-	/*
-	 * Open a URL in the default web browser
-	 */
-	virtual bool GoToURL(const std::string& sUrl);
-
 	virtual float GetDisplayAspectRatio() = 0;
 
 	/** @brief Fetch the contents of the system clipboard. */
