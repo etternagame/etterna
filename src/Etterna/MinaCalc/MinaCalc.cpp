@@ -184,7 +184,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			for (auto& r : mcbloop) {
 				// so 50%s on 60s don't give 35s
 				r = downscale_low_accuracy_scores(r, score_goal);
-				r = std::clamp(r, r, ssrcap);
+				r = std::min(r, ssrcap);
 
 				if (highest_stam_adjusted_skillset == Skill_JackSpeed) {
 					r = downscale_low_accuracy_scores(r, score_goal);
