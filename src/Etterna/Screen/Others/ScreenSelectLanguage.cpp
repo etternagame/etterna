@@ -39,7 +39,7 @@ ScreenSelectLanguage::Init()
 std::string
 ScreenSelectLanguage::GetDefaultChoice()
 {
-	return Core::Arch::getSystemLanguage();
+	return Core::Arch::getLanguage();
 }
 
 void

@@ -395,7 +395,7 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 std::string
 ThemeManager::GetDefaultLanguage()
 {
-	return Core::Arch::getSystemLanguage();
+	return Core::Arch::getLanguage();
 }
 
 void

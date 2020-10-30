@@ -65,10 +65,10 @@ namespace Core::Arch {
     ScreenDimensions getScreenDimensions();
 
     /**
-     * @brief Get the operating system's primary language.
-     * @return A 2-letter RFC-639 language code. If not found, return "en".
+     * @brief Get the users preferred language.
+     * @return A 2-letter RFC-639 language code, using "en" as the default value.
      */
-    std::string getSystemLanguage();
+    std::string getLanguage();
 
     /**
      * @brief Send a URL to be opened with the system's default web browser

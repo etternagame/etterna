@@ -108,7 +108,7 @@ namespace Core::Arch {
         return {width, height};
     }
 
-    std::string getSystemLanguage(){
+    std::string getLanguage(){
         // Since linux systems store language per user, and not the whole system,
         // we will get the user's preferred language.
         char* langRes = getenv("LANG");

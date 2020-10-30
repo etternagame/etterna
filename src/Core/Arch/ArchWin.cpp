@@ -137,7 +137,7 @@ namespace Core::Arch {
 	    return dims;
 	}
 
-    std::string getSystemLanguage(){
+    std::string getLanguage(){
 	    // First, get the number of languages in the system.
 	    ULONG numLanguages = 0;
 	    DWORD languageBufferSize = 0;

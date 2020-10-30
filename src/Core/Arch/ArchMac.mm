@@ -55,7 +55,7 @@ namespace Core::Arch {
         return res;
     }
 
-    std::string getSystemLanguage(){
+    std::string getLanguage(){
         return NSLocale.currentLocale.languageCode.UTF8String;
     }
 
