@@ -259,12 +259,6 @@ GetLanguageID()
 	return GetUserDefaultLangID();
 }
 
-std::string
-ArchHooks::GetPreferredLanguage()
-{
-	return LangIdToString(GetLanguageID());
-}
-
 /*
  * (c) 2003-2004 Chris Danford
  * All rights reserved.

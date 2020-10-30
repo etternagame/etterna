@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenSelectLanguage.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Arch/Arch.hpp"
 #include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SCREEN_CLASS(ScreenSelectLanguage);
@@ -38,7 +39,7 @@ ScreenSelectLanguage::Init()
 std::string
 ScreenSelectLanguage::GetDefaultChoice()
 {
-	return Locator::getArchHooks()->GetPreferredLanguage();
+	return Core::Arch::getSystemLanguage();
 }
 
 void

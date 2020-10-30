@@ -174,24 +174,6 @@ ArchHooks::GetMicrosecondsSinceStart()
 }
 #endif
 
-std::string
-ArchHooks::GetPreferredLanguage()
-{
-	std::string locale;
-
-	const char* env = getenv("LANG");
-
-	if (env != NULL) {
-		char loc[64] = { 0 };
-		strncat(loc, env, sizeof(loc) - 1);
-		std::string t(loc);
-		locale = t.substr(0, 2);
-	} else
-		locale = "en";
-
-	return locale;
-}
-
 void
 ArchHooks_Unix::Init()
 {

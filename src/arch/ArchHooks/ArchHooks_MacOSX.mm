@@ -225,38 +225,6 @@ void ArchHooks_MacOSX::DumpDebugInfo()
 	Locator::getLogger()->info("Memory: {:.2f} {}B", fRam, ramPower);
 }
 
-std::string ArchHooks::GetPreferredLanguage()
-{
-	CFStringRef app = kCFPreferencesCurrentApplication;
-	CFTypeRef t = CFPreferencesCopyAppValue( CFSTR("AppleLanguages"), app );
-	std::string ret = "en";
-
-	if( t == NULL )
-		return ret;
-	if( CFGetTypeID(t) != CFArrayGetTypeID() )
-	{
-		CFRelease( t );
-		return ret;
-	}
-
-	CFArrayRef languages = CFArrayRef( t );
-	CFStringRef lang;
-
-	if( CFArrayGetCount(languages) > 0 &&
-		(lang = (CFStringRef)CFArrayGetValueAtIndex(languages, 0)) != NULL )
-	{
-		// MacRoman agrees with ASCII in the low-order 7 bits.
-		const char *str = CFStringGetCStringPtr( lang, kCFStringEncodingMacRoman );
-		if( str )
-			ret = std::string( str, 2 );
-		else
-            Locator::getLogger()->warn( "Unable to determine system language. Using English." );
-	}
-
-	CFRelease( languages );
-	return ret;
-}
-
 int64_t ArchHooks::GetMicrosecondsSinceStart()
 {
 	// http://developer.apple.com/qa/qa2004/qa1398.html

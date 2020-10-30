@@ -18,6 +18,7 @@
 #include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Arch/Arch.hpp"
 
 #include "PrefsManager.h"
 
@@ -394,7 +395,7 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 std::string
 ThemeManager::GetDefaultLanguage()
 {
-	return Locator::getArchHooks()->GetPreferredLanguage();
+	return Core::Arch::getSystemLanguage();
 }
 
 void

@@ -28,12 +28,6 @@ class ArchHooks
 	 * If this is implemented, it doesn't return. */
 	virtual void RestartProgram() {}
 
-	/*
-	 * Get the 2-letter RFC-639 code of the user's preferred language
-	 * for localized messages, in lowercase.
-	 */
-	static std::string GetPreferredLanguage();
-
 	/* If this is a second instance, return true.
 	 * Optionally, give focus to the existing window. */
 	virtual bool CheckForMultipleInstances(int /* argc */, char*[] /* argv[] */)
