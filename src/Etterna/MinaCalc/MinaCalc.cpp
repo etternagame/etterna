@@ -940,8 +940,8 @@ Php::Value webcalc(Php::Parameters &parameters)
     INFILE.read((char *)&newVector[0], newVector.capacity() * sizeof(NoteInfo));
     INFILE.close();
 
-    auto calc = std::make_unique<Calc>();
-    std::vector<float> ssr = calc->CalcMain(newVector, rate, wife);
+    thread_local auto calc = std::make_unique<Calc>();
+	std::vector<float> ssr = calc->CalcMain(newVector, rate, min(wife, 0.965));
 
     Php::Value assoc;
     assoc["Overall"]         = ssr[0];
