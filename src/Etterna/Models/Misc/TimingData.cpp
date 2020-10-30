@@ -1421,6 +1421,8 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 			event_row = bpms[i]->GetRow();
 			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			const auto next_event_time = last_time + time_to_next_event;
+			if (bps <= 0)
+				Locator::getLogger()->warn("Found {} bps in file {} - Very likely to crash.", bps, m_sFile);
 			while (idx < nerv.size() && nerv[idx] <= event_row) {
 				const auto perc = (nerv[idx] - lastbpmrow) /
 								  static_cast<float>(event_row - lastbpmrow);
