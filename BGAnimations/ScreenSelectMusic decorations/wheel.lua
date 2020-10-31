@@ -657,6 +657,15 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(0)
         end,
 
+        Def.Quad {
+            Name = "BG",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:zoomto(actuals.Width, actuals.HeaderHeight)
+                self:diffuse(color("#111111"))
+                self:diffusealpha(0.6)
+            end
+        },
         LoadFont("Common Normal") .. {
             Name = "SessionTime",
             InitCommand = function(self)
