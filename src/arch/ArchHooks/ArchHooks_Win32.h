@@ -16,7 +16,6 @@ class ArchHooks_Win32 : public ArchHooks
 
 	void BoostPriority();
 	void UnBoostPriority();
-	void SetupConcurrentRenderingThread();
 
 	std::string GetClipboard();
 	/** @brief Fetch the window width. */

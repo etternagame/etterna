@@ -188,12 +188,6 @@ ArchHooks_Win32::UnBoostPriority()
 	SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 }
 
-void
-ArchHooks_Win32::SetupConcurrentRenderingThread()
-{
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-}
-
 int
 ArchHooks_Win32::GetWindowWidth()
 {

@@ -38,14 +38,6 @@ class ArchHooks
 	virtual void UnBoostPriority() {}
 
 	/**
-	 * @brief Setup the rendering threads for concurrency.
-	 *
-	 * The priority of the concurrent rendering thread may need to be boosted
-	 * on some schedulers.
-	 */
-	virtual void SetupConcurrentRenderingThread() {}
-
-	/**
 	 * @brief Determine if the user wants to quit (eg. ^C, or clicked a "close
 	 * window" button).
 	 * @return true if the user wants to quit, false otherwise. */
