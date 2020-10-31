@@ -480,6 +480,15 @@ t[#t+1] = Def.ActorFrame {
                     self:GetParent():GetChild("Wheel"):playcommand("Move", {direction = 1})
                 end
             end
+        end,
+        MouseClickPressMessageCommand = function(self, params)
+            if params ~= nil and params.button ~= nil then
+                if params.button == "DeviceButton_right mouse button" then
+                    if isOver(self) then
+                        SCREENMAN:GetTopScreen():PausePreviewNoteField()
+                    end
+                end
+            end
         end
     },
 
