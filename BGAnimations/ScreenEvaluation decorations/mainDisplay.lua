@@ -330,7 +330,7 @@ local function judgmentBars()
                     self:halign(0):valign(0)
                     self:zoomto(actuals.JudgmentBarLength, actuals.JudgmentBarHeight)
                     self:diffuse(byJudgment(jdg))
-                    self:diffusealpha(0.7)
+                    self:diffusealpha(0.5)
                 end
             },
             Def.Quad {
@@ -339,6 +339,7 @@ local function judgmentBars()
                     self:halign(0):valign(0)
                     self:zoomto(0, actuals.JudgmentBarHeight)
                     self:diffuse(byJudgment(jdg))
+                    self:diffusealpha(0.5)
                 end,
                 SetCommand = function(self, params)
                     self:finishtweening()
