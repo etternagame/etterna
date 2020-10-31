@@ -978,10 +978,10 @@ sm_main(int argc, char* argv[])
                                Core::AppInfo::APP_TITLE,
                                Core::AppInfo::APP_VERSION,
                                Core::AppInfo::GIT_HASH);
-    Locator::getLogger()->info("System: {}", Core::Arch::getSystemMemory());
+    Locator::getLogger()->info("System: {}", Core::Arch::getSystem());
     Locator::getLogger()->info("CPU: {}", Core::Arch::getSystemCPU());
 	Locator::getLogger()->info("System Architecture: {}", Core::Arch::getArchitecture());
-	Locator::getLogger()->info("Total Memory: {}", Core::Arch::getSystemMemory());
+	Locator::getLogger()->info("Total Memory: {}GB", Core::Arch::getSystemMemory() / pow(1024, 3));
 
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
