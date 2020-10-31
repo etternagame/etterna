@@ -984,17 +984,28 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.LipHeight / 2)
             self:halign(0)
             self:zoom(titleTextSize)
-            self:settext("Results")
+            if GAMESTATE:GetCurrentSteps(PLAYER_1) ~= nil then
+                local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()))
+                self:settextf("%s Results", st)
+            else
+                self:settext("Results")
+            end
         end,
         SetCommand = function(self, params)
             if params.score then
+                -- include stepstype in the results string
+                local stStr = ""
+                if params.steps then
+                    stStr = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(params.steps:GetStepsType())) .. " "
+                end
+
                 -- only the most recent score can cause this
                 -- but view eval/replays also are mostrecentscores, so check the name
                 -- the name is set for scores set during this session
                 if mostRecentScore and params.score:GetName() == "#P1#" and params.score:GetScoreKey() == mostRecentScore:GetScoreKey() then
-                    self:settext("Results")
+                    self:settext(stStr.."Results")
                 else
-                    self:settext("Replay Results")
+                    self:settext(stStr.."Replay Results")
                 end
             end
         end
