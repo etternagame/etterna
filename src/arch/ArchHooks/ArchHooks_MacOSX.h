@@ -8,7 +8,6 @@ class ArchHooks_MacOSX : public ArchHooks
   public:
 	void Init();
 	std::string GetArchName() const;
-	float GetDisplayAspectRatio();
 };
 
 #ifdef ARCH_HOOKS

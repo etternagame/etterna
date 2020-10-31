@@ -227,21 +227,6 @@ static inline int GetIntValue( CFTypeRef r )
 	return ret;
 }
 
-
-float ArchHooks_MacOSX::GetDisplayAspectRatio()
-{
-	io_connect_t displayPort = CGDisplayIOServicePort( CGMainDisplayID() );
-	CFDictionaryRef dict = IODisplayCreateInfoDictionary( displayPort, 0 );
-	int width = GetIntValue( CFDictionaryGetValue(dict, CFSTR(kDisplayHorizontalImageSize)) );
-	int height = GetIntValue( CFDictionaryGetValue(dict, CFSTR(kDisplayVerticalImageSize)) );
-
-	CFRelease( dict );
-
-	if( width && height )
-		return float(width)/height;
-	return 4/3.f;
-}
-
 /*
  * (c) 2003-2006 Steve Checkoway
  * All rights reserved.

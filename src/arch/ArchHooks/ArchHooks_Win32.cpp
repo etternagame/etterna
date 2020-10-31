@@ -210,17 +210,6 @@ ArchHooks_Win32::GetWindowHeight()
 	return rect.bottom - rect.top;
 }
 
-float
-ArchHooks_Win32::GetDisplayAspectRatio()
-{
-	DEVMODE dm;
-	ZERO(dm);
-	dm.dmSize = sizeof(dm);
-	BOOL bResult = EnumDisplaySettings(NULL, ENUM_REGISTRY_SETTINGS, &dm);
-	ASSERT(bResult != 0);
-	return dm.dmPelsWidth / static_cast<float>(dm.dmPelsHeight);
-}
-
 std::string
 ArchHooks_Win32::GetClipboard()
 {

@@ -97,8 +97,6 @@ class ArchHooks
 	 */
 	bool AppFocusChanged();
 
-	virtual float GetDisplayAspectRatio() = 0;
-
 	/** @brief Fetch the contents of the system clipboard. */
 	virtual std::string GetClipboard();
 
