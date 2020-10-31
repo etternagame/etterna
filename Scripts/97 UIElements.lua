@@ -198,10 +198,12 @@ function BUTTON.InputCallback(event)
 	if BUTTON.AcceptedDeviceInput[event.DeviceInput.button] then
 		if event.type == "InputEventType_FirstPress" then
 			BUTTON:SetMouseDown(event.DeviceInput.button)
+			MESSAGEMAN:Broadcast("MouseClickPress", {button = event.DeviceInput.button})
 		end
 
 		if event.type == "InputEventType_Release" then
 			BUTTON:SetMouseUp(event.DeviceInput.button)
+			MESSAGEMAN:Broadcast("MouseClickRelease", {button = event.DeviceInput.button})
 		end
 	elseif BUTTON.ScrollWheelInput[event.DeviceInput.button] ~= nil then
 		if event.type == "InputEventType_FirstPress" then
