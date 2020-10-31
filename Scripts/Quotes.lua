@@ -5,63 +5,7 @@
 -- Also (hopefully helpful) tips regarding the game/theme,etc.
 -----------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------
-local Tips = {
-    "Did you know Ctrl + S saves your profile?",
-    "Did you know Ctrl + F adds/removes a song from your favorites?",
-    "Did you know you can login to automatically upload your scores to EtternaOnline?",
-    "Did you know you can play multiplayer with an EtternaOnline account?",
-    "Did you know most players hang out in the EtternaOnline discord?",
-    "Did you know you can change the game volume in the debug menu (F3)?",
-    "Did you know you can change the global offset in gameplay using Shift + F11/F12?",
-    "Put a picture into the Assets/Avatars folder to be able to use it ingame.",
-    "You can view a leaderboard for any ranked chart if you are logged in.",
-    "Did you know Ctrl + Enter focuses the multiplayer chat?",
-    "Did you know Insert toggles the multiplayer chat?",
-    "Did you know EtternaOnline houses a large database of Noteskins and Toasties?",
-    "Did you know you can move gameplay elements around if you turn on Customize Gameplay?",
-    "You can immediately exit the group on the song wheel by pressing Up + Down",
-    "You can use your own Early/Late Judgment skin in the assets folder!",
-    "The Theme Options contains many useful customization options.",
-    "You can suggest features for Etterna or Spawncamping-wallhack on the EtternaOnline discord",
-    "You can use the numbers on your keyboard for shortcuts to the various tabs",
-    "Use Ctrl + 4 for a shortcut to the search menu.",
-    "Click on the current sort in the top right to search.",
-    "You can toggle common pack filtering in multiplayer in the Filtering Tab.",
-    "You can right click the Notefield in the Chart Preview to pause it.",
-    "You can use the scroll wheel on the density graph in the Chart Preview to seek.",
-    "You can press F3 + F5 + T to crash the game",
-    "You can toggle pitch rates in the Advanced Options.",
-    "You can use the mouse to move elements in Customize Gameplay. Left click to teleport an element.",
-    "You can turn off the Multiplayer Gameplay Leaderboard in Network Options.",
-    "You can modify the color of most visual elements in the Color Config found on the Title Screen.",
-    "You can use the mouse to navigate nearly every menu in the game.",
-    "You can change the rate of Practice using the same buttons you usually use to change rates.",
-    "You can change rates in Music Select using EffectUp/EffectDown.",
-    "You can click the scroll bar on the Music Wheel to teleport wheel positions.",
-    "You can paste your clipboard into most text entry fields in the game.",
-    "You can use Alt + Enter to toggle fullscreen.",
-    "You can hold Tab to speed up most animations in the game.",
-    "You can hold Enter to exit the input test screen.",
-    "You can unbind any button by rebinding its default to a button you never use.",
-    "Did you know pressing / automatically focuses the chat for quick command use?",
-    "You can press the sequence 'Up Down Up Down' to open the sorting menu on the song wheel.",
-    "You can import most of your settings from Til Death by copying your playerconfig.lua from the respective folder.",
-    "Press Up to reset any judge conversions you do on the evaluation screen.",
-    "Press EffectUp/EffectDown to convert judges on the evaluation screen.",
-    "A vacuous goal is a goal set for a score you have already obtained.",
-    "The dividers on the song wheel change colors depending on the goals you set.",
-    "Press Ctrl + Q to load any new songs added to the game.",
-    "Press Ctrl + Shift + R to reload a specific song from the disk.",
-    "Press Ctrl + Shift + P to reload a whole pack from the disk.",
-    "Click your avatar to change it.",
-    "Most lists allow using the scroll wheel to browse through them. Alternatively, use Left and Right.",
-    "The only way to change your player options in multiplayer is by clicking the Player Options button.",
-    "Press Space to toggle Chart Preview.",
-    "Right click on Song Select to Pause the music.",
-    "Modify your Toasty, Avatar, and Judgment via the Assets Settings located in the Profile Tab."
-}
-
-
+local Tips = {}
 
 local Phrases = {
     "That guy is saltier than the dead sea.",
@@ -419,9 +363,7 @@ local Phrases = {
 
 }
 
---tip
-
-function getRandomQuotes(tipType)
+function getRandomQuote(tipType)
     if tipType == 2 then
         return "TIP: "..Tips[math.random(#Tips)]
     elseif tipType == 3 then
