@@ -34,9 +34,6 @@ class ArchHooks
 		return false;
 	}
 
-	virtual void BoostPriority() {}
-	virtual void UnBoostPriority() {}
-
 	/**
 	 * @brief Determine if the user wants to quit (eg. ^C, or clicked a "close
 	 * window" button).

@@ -106,12 +106,6 @@ CheckFocus()
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
 
-	if (ChangeAppPri()) {
-		if (hooks->AppHasFocus())
-            hooks->BoostPriority();
-		else
-            hooks->UnBoostPriority();
-	}
 }
 
 // On the next update, change themes, and load sNewScreen.
@@ -223,10 +217,6 @@ DoChangeGame()
 void
 GameLoop::RunGameLoop()
 {
-	/* People may want to do something else while songs are loading, so do
-	 * this after loading songs. */
-	if (ChangeAppPri())
-        Locator::getArchHooks()->BoostPriority();
 
 	while (!ArchHooks::UserQuit()) {
 		if (!g_NewGame.empty()) {
@@ -290,6 +280,4 @@ GameLoop::RunGameLoop()
 		SCREENMAN->Draw();
 	}
 
-	if (ChangeAppPri())
-        Locator::getArchHooks()->UnBoostPriority();
 }
