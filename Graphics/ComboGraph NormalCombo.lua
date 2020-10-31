@@ -2,7 +2,6 @@
 
 return Def.Quad {
 	InitCommand = function(self)
-		self:diffuse(color("1,1,1,1"))
-		self:diffusealpha(0.7)
+		self:diffuse(color("1,1,1,0.7"))
 	end
 }

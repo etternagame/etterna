@@ -3,7 +3,6 @@
 return Def.Quad {
 	Name = "MaxCombo",
 	InitCommand = function(self)
-		self:diffuse(color("1,1,1,1"))
-		self:diffusetopedge(color("0,0,1,1"))
+		self:diffuse(color("0.6,0.6,0.6,0.8"))
 	end
 }

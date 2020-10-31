@@ -3,8 +3,6 @@
 return Def.Quad {
 	Name = "Backing",
 	InitCommand = function(self)
-		self:diffuse(color("#999999"))
-		self:diffusealpha(0.7)
-		self:diffusebottomedge(color("#00000033"))
+		self:diffuse(color("0.3,0.3,0.3,1"))
 	end
 }
