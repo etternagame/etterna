@@ -7,6 +7,7 @@
 #include "Core/Misc/PlogLogger.hpp"
 #include "Core/Crash/CrashpadHandler.hpp"
 #include "Core/Misc/AppInfo.hpp"
+#include "Core/Arch/Arch.hpp"
 
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -1013,6 +1014,12 @@ sm_main(int argc, char* argv[])
 	// Initialize Logging
     Locator::provide(std::make_unique<PlogLogger>());
 
+    // Log System Information
+    Locator::getLogger()->info("System: {}", Core::Arch::getSystemMemory());
+    Locator::getLogger()->info("CPU: {}", Core::Arch::getSystemCPU());
+	Locator::getLogger()->info("System Architecture: {}", Core::Arch::getArchitecture());
+	Locator::getLogger()->info("Total Memory: {}", Core::Arch::getSystemMemory());
+
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
 
@@ -1113,12 +1120,6 @@ sm_main(int argc, char* argv[])
 			RageException::Throw(
 			  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
 	}
-
-	/* Do this early, so we have debugging output if anything else fails. LOG
-	 * and Dialog must be set up first. It shouldn't take long, but it might
-	 * take a little time; do this after the LoadingWindow is shown, since we
-	 * don't want that to appear delayed. */
-    archHooks->DumpDebugInfo();
 
 #if defined(HAVE_TLS)
 	Locator::getLogger()->info("TLS is {}available", RageThread::GetSupportsTLS() ? "" : "not ");

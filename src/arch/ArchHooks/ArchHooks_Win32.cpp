@@ -81,14 +81,6 @@ ArchHooks_Win32::~ArchHooks_Win32()
 	CloseHandle(g_hInstanceMutex);
 }
 
-void
-ArchHooks_Win32::DumpDebugInfo()
-{
-	/* This is a good time to do the debug search: before we actually
-	 * start OpenGL (in case something goes wrong). */
-//	SearchForDebugInfo();
-}
-
 struct CallbackData
 {
 	HWND hParent;
