@@ -206,26 +206,6 @@ LibcVersion()
 	return buf;
 }
 
-void
-ArchHooks_Unix::SetTime(tm newtime)
-{
-	std::string sCommand = ssprintf("date %02d%02d%02d%02d%04d.%02d",
-								newtime.tm_mon + 1,
-								newtime.tm_mday,
-								newtime.tm_hour,
-								newtime.tm_min,
-								newtime.tm_year + 1900,
-								newtime.tm_sec);
-
-	Locator::getLogger()->trace("executing '{}'", sCommand);
-	int ret = system(sCommand.c_str());
-	if (ret == -1 || ret == 127 || !WIFEXITED(ret) || WEXITSTATUS(ret))
-        Locator::getLogger()->trace("'{}' failed", sCommand);
-
-	ret = system("hwclock --systohc");
-	if (ret == -1 || ret == 127 || !WIFEXITED(ret) || WEXITSTATUS(ret))
-        Locator::getLogger()->trace("'hwclock --systohc' failed");
-}
 
 std::string
 ArchHooks_Unix::GetClipboard()

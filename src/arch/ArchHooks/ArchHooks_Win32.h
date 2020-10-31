@@ -15,8 +15,6 @@ class ArchHooks_Win32 : public ArchHooks
 	void RestartProgram();
 	bool CheckForMultipleInstances(int argc, char* argv[]);
 
-	void SetTime(tm newtime);
-
 	void BoostPriority();
 	void UnBoostPriority();
 	void SetupConcurrentRenderingThread();

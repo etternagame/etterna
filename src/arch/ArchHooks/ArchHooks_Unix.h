@@ -9,7 +9,6 @@ class ArchHooks_Unix : public ArchHooks
 	void Init();
 	std::string GetArchName() const { return "Unix"; }
 
-	void SetTime(tm newtime);
 	int64_t GetMicrosecondsSinceStart();
 	std::chrono::microseconds GetChronoDurationSinceStart();
 
