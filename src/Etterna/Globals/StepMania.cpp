@@ -943,49 +943,8 @@ StepMania::InitializeCurrentGame(const Game* g)
 }
 
 static void
-MountTreeOfZips(const std::string& dir)
-{
-	vector<std::string> dirs;
-	dirs.push_back(dir);
-
-	while (!dirs.empty()) {
-		std::string path = dirs.back();
-		dirs.pop_back();
-
-		if (!IsADirectory(path))
-			continue;
-
-		vector<std::string> zips;
-		GetDirListing(path + "/*.zip", zips, false, true);
-		GetDirListing(path + "/*.smzip", zips, false, true);
-
-		for (unsigned i = 0; i < zips.size(); ++i) {
-			if (!IsAFile(zips[i]))
-				continue;
-
-			Locator::getLogger()->trace("VFS: found {}", zips[i].c_str());
-			FILEMAN->Mount("zip", zips[i], "/");
-		}
-
-		GetDirListing(path + "/*", dirs, true, true);
-	}
-}
-
-static void
 WriteLogHeader()
 {
-	Locator::getLogger()->info("{}{}", PRODUCT_FAMILY, Core::AppInfo::APP_VERSION);
-
-	Locator::getLogger()->info("(build {})", Core::AppInfo::GIT_HASH);
-
-	time_t cur_time;
-	time(&cur_time);
-	struct tm now;
-	localtime_r(&cur_time, &now);
-
-	Locator::getLogger()->info("\tVerbosity: {}", PREFSMAN->m_verbose_log.ToString().c_str());
-	Locator::getLogger()->trace(" ");
-
 	if (g_argc > 1) {
 		std::string args;
 		for (int i = 1; i < g_argc; ++i) {
@@ -1014,7 +973,11 @@ sm_main(int argc, char* argv[])
 	// Initialize Logging
     Locator::provide(std::make_unique<PlogLogger>());
 
-    // Log System Information
+    // Log App and System Information
+    Locator::getLogger()->info("{} v{} - Build {}",
+                               Core::AppInfo::APP_TITLE,
+                               Core::AppInfo::APP_VERSION,
+                               Core::AppInfo::GIT_HASH);
     Locator::getLogger()->info("System: {}", Core::Arch::getSystemMemory());
     Locator::getLogger()->info("CPU: {}", Core::Arch::getSystemCPU());
 	Locator::getLogger()->info("System Architecture: {}", Core::Arch::getArchitecture());
@@ -1053,12 +1016,6 @@ sm_main(int argc, char* argv[])
 	bool bPortable = DoesFileExist("Portable.ini");
 	if (!bPortable)
 		FILEMAN->MountUserFilesystems();
-
-	// Set this up next. Do this early, since it's needed for
-	// RageException::Throw.
-//	LOG = new RageLog;
-
-	// Whew--we should be able to crash safely now!
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
@@ -1137,44 +1094,6 @@ sm_main(int argc, char* argv[])
 
 	CommandLineActions::Handle(pLoadingWindow);
 
-	// Aldo: Check for updates here!
-#if 0
-	if( /* PREFSMAN->m_bUpdateCheckEnable (do this later) */ 0 )
-	{
-		// TODO - Aldo_MX: Use PREFSMAN->m_iUpdateCheckIntervalSeconds & PREFSMAN->m_iUpdateCheckLastCheckedSecond
-		unsigned long current_version = NetworkSyncManager::GetCurrentSMBuild( pLoadingWindow );
-		if( current_version )
-		{
-			if( current_version > version_num )
-			{
-				switch( Dialog::YesNo( "A new version of " PRODUCT_ID " is available. Do you want to download it?", "UpdateCheck" ) )
-				{
-				case Dialog::yes:
-					//PREFSMAN->SavePrefsToDisk();
-					// TODO: GoToURL for Linux
-					if( !HOOKS->GoToURL( SM_DOWNLOAD_URL ) )
-					{
-						Dialog::Error( "Please go to the following URL to download the latest version of " PRODUCT_ID ":\n\n" SM_DOWNLOAD_URL, "UpdateCheckConfirm" );
-					}
-					ShutdownGame();
-					return 0;
-				case Dialog::no:
-					break;
-				default:
-					FAIL_M("Invalid response to Yes/No dialog");
-				}
-			}
-			else if( version_num < current_version )
-			{
-				Locator::getLogger()->info( "The current version is more recent than the public one, double check you downloaded it from " SM_DOWNLOAD_URL );
-			}
-		}
-		else
-		{
-			Locator::getLogger()->info( "Unable to check for updates. The server might be offline." );
-		}
-	}
-#endif
 	if (!noWindow) {
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */
@@ -1313,18 +1232,6 @@ StepMania::SaveScreenshot(const std::string& Dir,
 	return FileName;
 }
 
-void
-StepMania::ClearCredits()
-{
-	SCREENMAN->PlayInvalidSound();
-
-	// TODO: remove this redundant message and things that depend on it
-	Message msg("CoinInserted");
-	// below params are unused
-	// msg.SetParam( "Coins", GAMESTATE->m_iCoins );
-	// msg.SetParam( "Clear", true );
-	MESSAGEMAN->Broadcast(msg);
-}
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
