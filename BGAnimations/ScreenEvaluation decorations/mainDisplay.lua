@@ -894,11 +894,13 @@ t[#t+1] = Def.ActorFrame {
                 local bnpath = params.song:GetBannerPath()
                 if not bnpath then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
+                    self:visible(false)
+                else
+                    self:visible(true)
                 end
                 self:LoadBackground(bnpath)
             else
-                local bnpath = THEME:GetPathG("Common", "fallback banner")
-                self:LoadBackground(bnpath)
+                self:visible(false)
             end
         end
     },

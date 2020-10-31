@@ -163,6 +163,9 @@ local function songBannerSetter(self, song)
         local bnpath = song:GetBannerPath()
         if not bnpath then
             bnpath = THEME:GetPathG("Common", "fallback banner")
+            self:visible(false)
+        else
+            self:visible(true)
         end
         if self.bnpath ~= bnpath then
             self:Load(bnpath)
@@ -175,6 +178,9 @@ local function groupBannerSetter(self, group)
     local bnpath = SONGMAN:GetSongGroupBannerPath(group)
     if not bnpath or bnpath == "" then
         bnpath = THEME:GetPathG("Common", "fallback banner")
+        self:visible(false)
+    else
+        self:visible(true)
     end
     if self.bnpath ~= bnpath then
         self:Load(bnpath)
@@ -593,6 +599,9 @@ t[#t+1] = Def.ActorFrame {
                 local bnpath = SONGMAN:GetSongGroupBannerPath(openedGroup)
                 if not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
+                    self:visible(false)
+                else
+                    self:visible(true)
                 end
                 self:Load(bnpath)
             end
