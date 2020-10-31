@@ -248,6 +248,7 @@ local subTypeTextBump = 5 -- a bump in position added to the bottom left numbers
 
 local statTextZoom = 0.7
 local statTextSuffixZoom = 0.6
+local accStatZoom = 0.7
 
 local titleTextSize = 0.8
 local songInfoTextSize = 0.55
@@ -491,6 +492,162 @@ local function subTypeStats()
         t[#t+1] = makeLine(i)
     end
 
+    return t
+end
+
+local function accuracyStats()
+    local statStrings = {
+        "RA", -- Ridiculous Attack - Ratio of J7 Marvelous to J7 Perfect
+        "MA", -- Marvelous Attack - Ratio of Marvelous to Perfects
+        "PA", -- Perfect Attack - Ratio of Perfects to Greats
+        "Longest MFC", -- Longest streak of Marvelous or better
+        "Longest PFC", -- Longest streak of Perfect or better
+    }
+    local statTypes = {
+        "EvalRA",
+        "EvalMA",
+        "EvalPA",
+        "EvalLongestMFC",
+        "EvalLongestPFC",
+    }
+    local statData = {
+        0, -- Ridiculous divided by Marvelous
+        0, -- Marvelous divided by Perfect
+        0, -- Perfect divided by Great
+        0, -- MFC length
+        0, -- PFC length
+    }
+
+    -- calculates the statData based on the given score
+    local function calculateStatData(score)
+        local offsetTable = score:GetOffsetVector()
+        local typeTable = score:GetTapNoteTypeVector()
+
+        -- must match statData above
+        local output = {
+            0, -- Ridiculous divided by Marvelous
+            0, -- Marvelous and Ridiculous divided by Perfect (because we are used to that)
+            0, -- Perfect divided by Great
+            0, -- MFC length
+            0, -- PFC length
+        }
+
+        if offsetTable == nil or #offsetTable == 0 or typeTable == nil or #typeTable == 0 then
+            return output
+        end
+
+        local ridicThreshold = ms.JudgeScalers[judgeSetting] * 11.25 -- this is the J7 Marvelous window
+        local marvThreshold = ms.JudgeScalers[judgeSetting] * 22.5 -- J4 Marvelous window
+        local perfThreshold = ms.JudgeScalers[judgeSetting] * 45 -- J4 Perfect window
+        local greatThreshold = ms.JudgeScalers[judgeSetting] * 90 -- J4 Great window
+        local currentMFC = 0
+        local currentPFC = 0
+        local marvsForRA = 0 -- we are counting ridic as marvs normally, so count marvs alone separately to calculate RA
+        local greatCount = 0
+        
+        for i, o in ipairs(offsetTable) do
+            if typeTable[i] ~= nil and typeTable[i] == "TapNoteType_Tap" then
+                local off = math.abs(o)
+                
+                -- count judgments
+                if off <= ridicThreshold then
+                    currentMFC = currentMFC + 1
+                    currentPFC = currentPFC + 1
+                    output[1] = output[1] + 1
+                    output[2] = output[2] + 1
+                elseif off <= marvThreshold then
+                    currentMFC = currentMFC + 1
+                    currentPFC = currentPFC + 1
+                    output[2] = output[2] + 1
+                    marvsForRA = marvsForRA + 1
+                elseif off <= perfThreshold then
+                    currentMFC = 0
+                    currentPFC = currentPFC + 1
+                    output[3] = output[3] + 1
+                elseif off <= greatThreshold then
+                    currentMFC = 0
+                    currentPFC = 0
+                    greatCount = greatCount + 1
+                else
+                    -- worse than a great
+                    currentMFC = 0
+                    currentPFC = 0
+                end
+
+                -- set new highest MFC/PFC at end of iteration
+                if currentMFC > output[4] then
+                    output[4] = currentMFC
+                end
+                if currentPFC > output[5] then
+                    output[5] = currentPFC
+                end
+            end
+        end
+
+        -- prevent division by 0 here
+        if marvsForRA > 0 then
+            output[1] = output[1] / marvsForRA
+        else
+            output[1] = -1
+        end
+        if output[3] > 0 then
+            output[2] = output[2] / output[3]
+        else
+            output[2] = -1
+        end
+        if greatCount > 0 then
+            output[3] = output[3] / greatCount
+        else
+            output[3] = -1
+        end
+
+        return output
+    end
+
+    local t = Def.ActorFrame {
+        Name = "AccuracyStatsParentFrame",
+        SetCommand = function(self, params)
+            if params.steps ~= nil then
+                -- this recalculates the stats to display for the following texts
+                statData = calculateStatData(params.score)
+
+                self:playcommand("UpdateStats", {score = params.score})
+            end
+        end
+    }
+    local function makeLine(i)
+        local statname = statStrings[i]
+        return Def.ActorFrame {
+            Name = "Stat_"..i,
+            InitCommand = function(self)
+                self:y((actuals.StatTextAllottedSpace / (#statStrings - 1)) * (i-1))
+            end,
+            Def.RollingNumbers {
+                Name = "Number",
+                Font = "Common Normal",
+                InitCommand = function(self)
+                    self:Load("RollingNumbers" .. statTypes[i])
+                    self:valign(0)
+                    self:zoom(accStatZoom)
+                    self:maxwidth((actuals.JudgmentBarLength - actuals.StatTextRightGap - actuals.SubTypeNumberCenter - subTypeTextBump - actuals.SubTypeTextLeftGap) / 1.25 / accStatZoom - textzoomFudge)
+                    self:targetnumber(0)
+                end,
+                UpdateStatsCommand = function(self, params)
+                    if statData[i] == -1 then
+                        self:Load("RollingNumbers" .. statTypes[i] .. "INF")
+                        self:targetnumber(99999)
+                    else
+                        self:Load("RollingNumbers" .. statTypes[i])
+                        self:targetnumber(statData[i])
+                    end
+                end
+            }
+        }
+    end
+
+    for i = 1, #statStrings do
+        t[#t+1] = makeLine(i)
+    end
     return t
 end
 
@@ -808,6 +965,11 @@ t[#t+1] = Def.ActorFrame {
     subTypeStats() .. {
         InitCommand = function(self)
             self:xy(actuals.SubTypeTextLeftGap, actuals.BottomTextUpperGap)
+        end
+    },
+    accuracyStats() .. {
+        InitCommand = function(self)
+            self:xy(actuals.JudgmentBarLeftGap + actuals.JudgmentBarLength / 2, actuals.BottomTextUpperGap)
         end
     },
     calculatedStats() .. {
