@@ -524,9 +524,7 @@ function MusicWheel:new(params)
                 local sngs = SONGMAN:GetSongsInGroup(songgroup)
                 table.sort(
                     sngs,
-                    function(a,b)
-                        return a:GetTranslitMainTitle():lower() < b:GetTranslitMainTitle():lower()
-                    end
+                    WHEELDATA.CompareSongsByTitle
                 )
                 local g1, g2 = split(grouplist, songgroup)
                 local newItems = concat(g1, {songgroup}, sngs, g2)
@@ -554,9 +552,7 @@ function MusicWheel:new(params)
             local sngs = SONGMAN:GetSongsInGroup(songgroup)
             table.sort(
                 sngs,
-                function(a,b)
-                    return a:GetTranslitMainTitle():lower() < b:GetTranslitMainTitle():lower()
-                end
+                WHEELDATA.CompareSongsByTitle
             )
             local g1, g2 = split(grouplist, songgroup)
             local newItems = concat(g1, {songgroup}, sngs, g2)
