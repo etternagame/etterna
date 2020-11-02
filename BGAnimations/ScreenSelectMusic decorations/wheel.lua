@@ -412,7 +412,10 @@ t[#t+1] = Def.ActorFrame {
                     MouseDownCommand = function(self, params)
                         if params.event == "DeviceButton_left mouse button" then
                             local index = self:GetParent().index
-                            local distance = math.floor(index - numWheelItems / 2)
+                            -- subtract 1 here BASED ON numWheelItems
+                            -- ... i know its dumb but it works for the params i set myself
+                            -- if you mess with numWheelItems YOU NEED TO MAKE SURE THIS WORKS
+                            local distance = math.floor(index - numWheelItems / 2) - 1
                             local wheel = self:GetParent():GetParent()
                             if distance ~= 0 then
                                 -- clicked a nearby item
