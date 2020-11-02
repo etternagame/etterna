@@ -656,9 +656,7 @@ function MusicWheel:new(params)
                     local sngs = SONGMAN:GetSongsInGroup(group)
                     table.sort(
                         sngs,
-                        function(a, b)
-                            return a:GetTranslitMainTitle():lower() < b:GetTranslitMainTitle():lower()
-                        end
+                        WHEELDATA.CompareSongsByTitle
                     )
                     local newItems = concat(g1, {group}, sngs, g2)
                     w.index = findKeyOf(newItems, group)
