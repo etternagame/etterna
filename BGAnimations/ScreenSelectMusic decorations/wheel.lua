@@ -222,6 +222,7 @@ local function songActorBuilder()
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
                 self:maxwidth(actuals.ItemDividerLength / wheelItemTitleTextSize - textzoomfudge)
+                self:maxheight(actuals.ItemHeight / 3 / wheelItemTitleTextSize)
             end,
             BeginCommand = function(self)
                 self:GetParent().Title = self
@@ -235,6 +236,7 @@ local function songActorBuilder()
                 self:zoom(wheelItemSubTitleTextSize)
                 self:halign(0)
                 self:maxwidth(actuals.ItemDividerLength / wheelItemSubTitleTextSize - textzoomfudge)
+                self:maxheight(actuals.ItemHeight / 3 / wheelItemSubTitleTextSize)
             end,
             BeginCommand = function(self)
                 self:GetParent().SubTitle = self
@@ -248,6 +250,7 @@ local function songActorBuilder()
                 self:zoom(wheelItemArtistTextSize)
                 self:halign(0)
                 self:maxwidth(actuals.ItemDividerLength / wheelItemArtistTextSize - textzoomfudge)
+                self:maxheight(actuals.ItemHeight / 3 / wheelItemArtistTextSize)
             end,
             BeginCommand = function(self)
                 self:GetParent().Artist = self

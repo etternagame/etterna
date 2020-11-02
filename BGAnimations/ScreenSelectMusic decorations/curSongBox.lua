@@ -31,6 +31,7 @@ local ratios = {
     TextLowerGap1 = 8 / 1080, -- lowest text line, bottom frame to bottom letters (subtracted 2 from these after measurements to compensate for font baseline)
     TextLowerGap2 = 49 / 1080, -- these gaps are from bottom frame to bottom text
     TextLowerGap3 = 87 / 1080,
+    ApproximateTextVerticalHeight = 25 / 1080, -- exactly what it says, this determines the max allowed height for text.
 
     RateTextLeftGap = 330 / 1920,
     BPMTextLeftGap = 210 / 1920,
@@ -59,6 +60,7 @@ local actuals = {
     TextLowerGap1 = ratios.TextLowerGap1 * SCREEN_HEIGHT,
     TextLowerGap2 = ratios.TextLowerGap2 * SCREEN_HEIGHT,
     TextLowerGap3 = ratios.TextLowerGap3 * SCREEN_HEIGHT,
+    ApproximateTextVerticalHeight = ratios.ApproximateTextVerticalHeight * SCREEN_HEIGHT,
     RateTextLeftGap = ratios.RateTextLeftGap * SCREEN_WIDTH,
     BPMTextLeftGap = ratios.BPMTextLeftGap * SCREEN_WIDTH,
     BPMNumberLeftGap = ratios.BPMNumberLeftGap * SCREEN_WIDTH,
@@ -161,6 +163,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.LeftTextLeftGap, actuals.Height - actuals.TextLowerGap3)
             self:zoom(textsize)
             self:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
+            self:maxheight(actuals.ApproximateTextVerticalHeight / textsize)
             self:settext("Song Title - Song Author")
         end,
         SetCommand = function(self, params)
@@ -183,6 +186,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.LeftTextLeftGap, actuals.Height - actuals.TextLowerGap2)
             self:zoom(textsize)
             self:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
+            self:maxheight(actuals.ApproximateTextVerticalHeight / textsize)
             self:settext("Song SubTitle (1995)")
         end,
         SetCommand = function(self, params)
