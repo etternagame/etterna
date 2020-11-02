@@ -112,6 +112,7 @@ end
 -- toggles within the move function
 -- becomes false if all groups are closed
 local crossedGroupBorder = false
+local forceGroupCheck = false
 local diffSelection = 1 -- index of the selected chart
 
 Wheel.mt = {
@@ -168,19 +169,10 @@ Wheel.mt = {
                 GAMESTATE:SetPreferredDifficulty(PLAYER_1, stepslist[diffSelection]:GetDifficulty())
                 GAMESTATE:SetCurrentSteps(PLAYER_1, stepslist[diffSelection])
             end
-
-            if whee.group and not crossedGroupBorder then
-                crossedGroupBorder = not crossedGroupBorder
-                MESSAGEMAN:Broadcast("ScrolledIntoGroup", {group = whee.group})
-            end
         else
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-            if whee.group and crossedGroupBorder then
-                crossedGroupBorder = not crossedGroupBorder
-                MESSAGEMAN:Broadcast("ScrolledOutOfGroup", {group = whee.group})
-            end
         end
         
     end,
@@ -215,6 +207,24 @@ Wheel.mt = {
             whee.frameTransformer(frame, offset - 1, i, whee.count)
             whee.frameUpdater(frame, whee:getItem(idx), offset)
             idx = idx + direction
+        end
+
+        -- handle scrolling into and out of groups
+        if whee.group then
+            if whee:getCurrentItem().GetDisplayMainTitle then
+                if forceGroupCheck or not crossedGroupBorder then
+                    crossedGroupBorder = true
+                    forceGroupCheck = false
+                    MESSAGEMAN:Broadcast("ScrolledIntoGroup", {group = whee.group})
+                end
+            else
+                if forceGroupCheck or crossedGroupBorder then
+                    crossedGroupBorder = false
+                    forceGroupCheck = false
+                    MESSAGEMAN:Broadcast("ScrolledOutOfGroup", {group = whee.group})
+                end
+            end
+
         end
 
         -- the wheel has settled
@@ -719,6 +729,7 @@ function MusicWheel:new(params)
             if #w.frames > 0 and group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
+                forceGroupCheck = true
                 MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 w:rebuildFrames()
                 MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
@@ -735,6 +746,7 @@ function MusicWheel:new(params)
             if group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
+                forceGroupCheck = true
                 MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 w:rebuildFrames()
                 MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
@@ -757,6 +769,7 @@ function MusicWheel:new(params)
                 if group ~= nil then
                     -- found the song, set up the group focus and send out the related messages for consistency
                     crossedGroupBorder = true
+                    forceGroupCheck = true
                     MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                     w:rebuildFrames()
                     MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
