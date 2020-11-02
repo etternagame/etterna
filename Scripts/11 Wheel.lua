@@ -144,8 +144,7 @@ Wheel.mt = {
         SOUND:StopMusic()
 
         -- update Gamestate current song
-        -- subtract 1 because the getCurrentItem follows that behavior
-        local currentItem = whee:getItem(whee.index - 1)
+        local currentItem = whee:getItem(whee.index)
         if currentItem.GetDisplayMainTitle then
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
@@ -190,16 +189,14 @@ Wheel.mt = {
         -- For some reason i have to +1 here
     end,
     getCurrentItem = function(whee)
-        -- subtract 1 because i wanted to move the select index up by 1
-        return whee:getItem(whee.index - 1)
+        return whee:getItem(whee.index)
     end,
     getFrame = function(whee, idx)
         return whee.frames[getIndexCircularly(whee.frames, idx)]
         -- For some reason i have to +1 here
     end,
     getCurrentFrame = function(whee)
-        -- subtract 1 because i wanted to move the select index up by 1
-        return whee:getFrame(whee.index - 1)
+        return whee:getFrame(whee.index)
     end,
     update = function(whee)
         -- this is written so that iteration runs in a specific direction
@@ -524,8 +521,8 @@ function MusicWheel:new(params)
                 local g1, g2 = split(grouplist, songgroup)
                 local newItems = concat(g1, {songgroup}, sngs, g2)
                 local finalIndex = findKeyOf(newItems, songgroup) + findSongInGroup(sngs, song)
-                whee.index = finalIndex + 1
-                whee.startIndex = finalIndex + 1
+                whee.index = finalIndex
+                whee.startIndex = finalIndex
                 whee.itemsGetter = function() return newItems end
                 whee.items = newItems
                 whee.group = songgroup
@@ -554,8 +551,8 @@ function MusicWheel:new(params)
             local g1, g2 = split(grouplist, songgroup)
             local newItems = concat(g1, {songgroup}, sngs, g2)
             local finalIndex = findKeyOf(newItems, songgroup) + findSongInGroup(sngs, song)
-            whee.index = finalIndex + 1
-            whee.startIndex = finalIndex + 1
+            whee.index = finalIndex
+            whee.startIndex = finalIndex
             whee.itemsGetter = function() return newItems end
             whee.items = newItems
             whee.group = songgroup
@@ -633,8 +630,7 @@ function MusicWheel:new(params)
                             return a:lower() < b:lower()
                         end
                     )
-                    -- adding 1 here for a hack, prevent index from moving weirdly when opening pack
-                    w.index = findKeyOf(newItems, group) + 1
+                    w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function()
                         return newItems
                     end
@@ -659,8 +655,7 @@ function MusicWheel:new(params)
                         end
                     )
                     local newItems = concat(g1, {group}, sngs, g2)
-                    -- adding 1 here for a hack, prevent index from moving weirdly when opening pack
-                    w.index = findKeyOf(newItems, group) + 1
+                    w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function()
                         return newItems
                     end

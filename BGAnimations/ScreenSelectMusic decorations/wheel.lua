@@ -4,7 +4,7 @@ local t = Def.ActorFrame {Name = "WheelFile"}
  -- an unfortunate amount of code is reliant on the fact that there are 11 items
  -- but thankfully everything works fine if you change it
  -- ... the header wont look very good if you push it off the screen though
-local numWheelItems = 13
+local numWheelItems = 14
 
 local ratios = {
     LeftGap = 16 / 1920,
@@ -336,7 +336,7 @@ t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
         -- push from top left of screen, this position is CENTER of the wheel X/Y
         -- also for some odd reason we have to move down by half a wheelItem....
-        self:xy(actuals.LeftGap + actuals.Width / 2, actuals.UpperGap + actuals.Height / 2 + actuals.ItemHeight + actuals.wtffudge)
+        self:xy(actuals.LeftGap + actuals.Width / 2, actuals.UpperGap + actuals.Height / 2 - actuals.ItemHeight + actuals.wtffudge)
         SCREENMAN:set_input_redirected(PLAYER_1, true)
     end,
     BeginCommand = function(self)
@@ -374,7 +374,6 @@ t[#t+1] = Def.ActorFrame {
                     -- the highlighter should not cover the banner
                     -- move it by half the size and make it that much smaller
                     self:x(actuals.BannerWidth / 2)
-                    self:y(-actuals.ItemHeight)
                     self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
                     self:diffusealpha(0.1)
                     self:diffuseramp()
@@ -389,11 +388,11 @@ t[#t+1] = Def.ActorFrame {
             -- this stuff makes the x position of the item go way off screen for the end indices
             -- should induce less of a feeling of items materializing from nothing
             local bias = -actuals.Width * 3
-            local ofc = math.ceil(total / 2) + offsetFromCenter + 1
+            local ofc = math.ceil(total / 2) + offsetFromCenter
             -- the power of 50 and the rounding here are kind of specific for our application
             -- if you mess with overall parameters to the wheel size or count, you will want to mess with this
             -- maybe
-            local result = math.round(math.pow(ofc / ((total-1) / 2) - (((total + 1) / 2) / ((total - 1) / 2)), 50), 2)
+            local result = math.round(math.pow(ofc / ((total - 2) / 2) - (((total + 2) / 2) / ((total - 2) / 2)), 50), 2)
             local xp = bias * result
             frame:xy(xp, offsetFromCenter * actuals.ItemHeight)
         end,
