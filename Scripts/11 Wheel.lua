@@ -53,9 +53,19 @@ local forceGroupCheck = false
 local diffSelection = 1 -- index of the selected chart
 
 Wheel.mt = {
-    updateGlobalsFromCurrentItem = function(whee)
+    updateMusicFromCurrentItem = function(whee)
         SOUND:StopMusic()
 
+        local top = SCREENMAN:GetTopScreen()
+        -- only for ScreenSelectMusic
+        if top.PlayCurrentSongSampleMusic then
+            if GAMESTATE:GetCurrentSong() ~= nil then
+                -- currentItem should be a song
+                top:PlayCurrentSongSampleMusic(false)
+            end
+        end
+    end,
+    updateGlobalsFromCurrentItem = function(whee)
         -- update Gamestate current song
         local currentItem = whee:getItem(whee.index)
         if currentItem.GetDisplayMainTitle then
@@ -112,8 +122,9 @@ Wheel.mt = {
             end,
             interval
         )
-        
-        whee:updateGlobalsFromCurrentItem()
+
+        -- stop the music if moving so we dont leave it playing in a random place
+        SOUND:StopMusic()
     end,
     findSong = function(whee, chartkey)
         -- in this case, we want to set based on preferred info
@@ -176,6 +187,7 @@ Wheel.mt = {
         forceGroupCheck = true
         whee:findGroup(whee.group, false)
         whee:updateGlobalsFromCurrentItem()
+        whee:updateMusicFromCurrentItem()
         whee:rebuildFrames()
         MESSAGEMAN:Broadcast("ClosedGroup", {group = whee.group})
         MESSAGEMAN:Broadcast("ModifiedGroups", {group = whee.group, index = whee.index, maxIndex = #whee.items})
@@ -234,18 +246,12 @@ Wheel.mt = {
 
         -- the wheel has settled
         if whee.floatingOffset == 0 and not whee.settled then
+            whee:updateGlobalsFromCurrentItem()
+            whee:updateMusicFromCurrentItem()
             -- settled brings along the Song, Group, Steps, and HoveredItem
             -- Steps should be set correctly immediately on Move, so no problems should arise.
             MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group, hovered = whee:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = whee.index, maxIndex = #whee.items})
             whee.settled = true
-            local top = SCREENMAN:GetTopScreen()
-            -- only for ScreenSelectMusic
-            if top.PlayCurrentSongSampleMusic then
-                if GAMESTATE:GetCurrentSong() ~= nil then
-                    -- currentItem should be a song
-                    top:PlayCurrentSongSampleMusic(false)
-                end
-            end
         end
         if whee.floatingOffset ~= 0 then
             whee.settled = false
@@ -653,14 +659,7 @@ function MusicWheel:new(params)
                 w:move(0)
                 MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
                 w.settled = true
-                local top = SCREENMAN:GetTopScreen()
-                -- only for ScreenSelectMusic
-                if top.PlayCurrentSongSampleMusic then
-                    if GAMESTATE:GetCurrentSong() ~= nil then
-                        -- currentItem should be a song
-                        top:PlayCurrentSongSampleMusic(false)
-                    end
-                end
+                w:updateMusicFromCurrentItem()
             end
         elseif params.song ~= nil then
             local charts = params.song:GetChartsOfCurrentGameMode()
@@ -675,14 +674,7 @@ function MusicWheel:new(params)
                     MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
                     MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
                     w.settled = true
-                    local top = SCREENMAN:GetTopScreen()
-                    -- only for ScreenSelectMusic
-                    if top.PlayCurrentSongSampleMusic then
-                        if GAMESTATE:GetCurrentSong() ~= nil then
-                            -- currentItem should be a song
-                            top:PlayCurrentSongSampleMusic(false)
-                        end
-                    end
+                    w:updateMusicFromCurrentItem()
                 end
             end
         end
