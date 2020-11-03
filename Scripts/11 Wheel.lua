@@ -2,65 +2,11 @@
 	Note: This is still a WIP
 	Feel free to contribute to it
 --]]
-local split = function(t, x)
-    local t1, t2 = {}, {}
-    local idx = nil
-    -- Used to simulate a for break
-    local aux = function()
-        for i, v in ipairs(t) do
-            if v == x then
-                idx = t[i + 1] and i + 1 or nil
-                return
-            end
-            t1[i] = v
-        end
-    end
-    aux()
-    while idx ~= nil do
-        t2[#t2 + 1] = t[idx]
-        idx = t[idx + 1] and idx + 1 or nil
-    end
-    return t1, t2
-end
-
-local findKeyOf = function(t, x)
-    for k, v in pairs(t) do
-        if v == x then
-            return k
-        end
-    end
-end
-
-local findSongInGroup = function(group, song)
-    for i, s in ipairs(group) do
-        if s:GetSongDir() == song:GetSongDir() then
-            return i
-        end
-    end
-    return 1
-end
-
-local clamp = function(x, l, u)
-    if x < l then return l end
-    if x > u then return u end
-    return x
-end
-
 local find = function(t, x)
     local k = findKeyOf(t, x)
     return k and t[k] or nil
 end
 
-local concat = function(...)
-    local arg = {...}
-    local t = {}
-    for i = 1, #arg do
-        for i, v in ipairs(arg[i]) do
-            t[#t + 1] = v
-        end
-    end
-    return t
-end
 local Wheel = {}
 local function fillNilTableFieldsFrom(table1, defaultTable)
     for key, value in pairs(defaultTable) do
