@@ -143,7 +143,8 @@ function WHEELDATA.SortByCurrentSortmode(self)
     f()
     local tafter = GetTimeSinceStart()
 
-    ms.ok(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
+    -- sort timing debug
+    --ms.ok(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
 end
 
 -- update the song list for the current gamemode
