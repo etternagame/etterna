@@ -163,9 +163,11 @@ end
 local function groupActorUpdater(groupFrame, packName)
     local packCount = WHEELDATA:GetFolderCount(packName)
     local packAverageDiff = WHEELDATA:GetFolderAverage(packName)
+    local clearstats = WHEELDATA:GetFolderClearStats(packName)
 
     groupFrame.Title:settext(packName)
     groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff})
+    groupFrame.ClearStats:playcommand("SetInfo", {stats = clearstats})
     groupBannerSetter(groupFrame.Banner, packName)
 end
 
@@ -261,7 +263,7 @@ local function groupActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
                 self:zoom(wheelItemGroupInfoTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize - textzoomfudge)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize / 2 - textzoomfudge)
                 self.avg = 0
                 self.count = 0
             end,
@@ -275,6 +277,41 @@ local function groupActorBuilder()
             end,
             UpdateTextCommand = function(self)
                 self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "ClearStats",
+            InitCommand = function(self)
+                self:x(actuals.Width / 2)
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+                self:zoom(wheelItemGroupInfoTextSize)
+                self:halign(1)
+                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize / 2 - textzoomfudge)
+                self.lamp = nil
+                self.scores = 0
+            end,
+            BeginCommand = function(self)
+                self:GetParent().ClearStats = self
+            end,
+            SetInfoCommand = function(self, params)
+                self.lamp = params.stats.lamp
+                self.scores = params.stats.totalScores
+                self:playcommand("UpdateText")
+            end,
+            UpdateTextCommand = function(self)
+                local lstr = ""
+                if self.lamp ~= nil then
+                    lstr = "LAMP "..THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
+                end
+                local scorestr = ""
+                if self.scores > 0 then
+                    scorestr = string.format("scores %d", self.scores)
+                end
+                local mstr = ""
+                if self.lamp and self.scores then
+                    mstr = " | "
+                end
+                self:settextf("%s%s%s", lstr, mstr, scorestr)
             end
         },
         Def.Sprite {
