@@ -4,17 +4,25 @@
 -- we don't have to keep resorting the wheel every time we open a pack if this is correct
 -- etc
 
-WHEELDATA = {
-    AllSongs = {},
-    AllSongsByGroup = {},
+WHEELDATA = {}
+
+-- quickly reset the WHEELDATA storage
+function WHEELDATA.Reset(self)
+    -- 1 is the "enum value" for Group sort, it should stay that way
+    self.CurrentSort = 1
+
+    -- library of all Songs for this Game (all Styles)
+    self.AllSongs = {}
+    self.AllSongsByGroup = {}
+
     -- for the current sort, filtering and organization purposes
-    AllSongsByFolder = {}, -- multipurpose; on Group sort, is identical to AllSongsByGroup
-    AllFolders = {}, -- this can be groups or "folders" like in the Title sort, etc
-    CurrentSort = 1, -- 1 is the "enum value" for Group sort, it should stay that way
-}
+    self.AllSongsByFolder = {} -- multipurpose; on Group sort, is identical to AllSongsByGroup
+    self.AllFolders = {} -- this can be groups or "folders" like in the Title sort, etc
+    self.StatsByFolder = {} -- stats for each folder
+end
 
 -- quickly empty the sorted lists
-function WHEELDATA:ResetSorts(self)
+function WHEELDATA.ResetSorts(self)
     self.AllFolders = {}
     self.AllSongsByFolder = {}
 end
@@ -103,11 +111,11 @@ local sortmodeImplementations = {
 }
 
 -- get the value and string value of the current sort
-function WHEELDATA:GetCurrentSort(self)
+function WHEELDATA.GetCurrentSort(self)
     return self.CurrentSort, sortToString(self.CurrentSort)
 end
 
-function WHEELDATA:SortByCurrentSortmode(self)
+function WHEELDATA.SortByCurrentSortmode(self)
     local sortval, sortstr = self:GetCurrentSort()
     -- if sort is invalid, make sure the output is empty and exit
     if sortval == nil then self:ResetSorts() return end
@@ -123,7 +131,7 @@ end
 
 -- update the song list for the current gamemode
 -- sort all songs by current sort
-function WHEELDATA:GetAllSongs(self)
+function WHEELDATA.GetAllSongs(self)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
     for _, song in ipairs(SONGMAN:GetAllSongs()) do
@@ -136,8 +144,52 @@ function WHEELDATA:GetAllSongs(self)
     self:SortByCurrentSortmode()
 end
 
+-- check to see if a stepstype is countable for average diff reasons
+local function countableStepsTypeForDiff(stepstype)
+    local thelist = {
+        stepstype_dance_single = true,
+        stepstype_dance_solo = true,
+    }
+    return thelist[stepstype:lower()] ~= nil
+end
+
+-- get the average difficulty of all valid Steps in a list of Songs
+local function getAverageDifficultyOfGroup(group)
+    local out = 0
+    local chartcount = 0
+    for _, song in ipairs(group) do
+        for __, chart in ipairs(song:GetAllSteps()) do
+            if countableStepsTypeForDiff(chart:GetStepsType()) then
+                chartcount = chartcount + 1
+                out = out + chart:GetMSD(1, 1)
+            end
+        end
+    end
+    if chartcount > 0 then
+        out = out / chartcount
+    end
+    return out
+end
+
 -- refresh all stats based on the filtered song list
-function WHEELDATA:RefreshStats(self)
+function WHEELDATA.RefreshStats(self)
+    self.StatsByFolder = {}
+    for groupname, songlist in pairs(self.AllSongsByFolder) do
+        self.StatsByFolder[groupname] = {
+            count = #songlist,
+            avgDiff = getAverageDifficultyOfGroup(songlist),
+            -- to be continued
+        }
+    end
+end
 
-
+-- init all with default values
+-- group sort default
+-- etc
+function WHEELDATA.Init(self)
+    -- reset will handle setting sortmode to Group
+    self:Reset()
+    -- this will fill AllSongs and the SongsByGroup
+    self:GetAllSongs()
+    self:RefreshStats()
 end
