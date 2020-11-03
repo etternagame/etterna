@@ -470,11 +470,6 @@ local function createList()
                 local ptime = profile:GetTotalSessionSeconds()
                 self:settextf("%s playtime", SecondsToHHMMSS(ptime))
             end,
-            -- current session time
-            function(self)
-                local sesstime = GAMESTATE:GetSessionTime()
-                self:settextf("%s session time", SecondsToHHMMSS(sesstime))
-            end,
             -- current judge
             function(self)
                 local judge = GetTimingDifficulty()
@@ -485,15 +480,7 @@ local function createList()
         -- these functions run immediately after init if they exist
         -- they should have access to the top screen
         local smallTextInitFunctions = {
-            -- 5 is the index for current session time
-            [5] = function(self)
-                -- you can only set 1 update function
-                -- ... i had other plans for this table but this is its only use at the moment
-                self:GetParent():SetUpdateFunction(function(s)
-                    s:GetChild(self:GetName()):playcommand("Set")
-                end)
-                self:GetParent():SetUpdateFunctionInterval(0.5)
-            end
+            -- [index] = function(self) end,
         }
 
         local function leftTextSmall(i)
