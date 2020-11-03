@@ -638,3 +638,38 @@ function getRescoredWife3Judge(version, judgeScale, rst)
 	p = p + (rst["minesHit"] * -7)
 	return (p / (rst["totalTaps"] * 2)) * 100.0
 end
+
+-- convert midgrades to full grades to help cope with the midgrade preference
+function midgradeToGrade(grade)
+
+	local gradeTiers = {
+		Grade_Tier01 = 1,
+		Grade_Tier02 = 4,
+		Grade_Tier03 = 4,
+		Grade_Tier04 = 4,
+		Grade_Tier05 = 7,
+		Grade_Tier06 = 7,
+		Grade_Tier07 = 7,
+		Grade_Tier08 = 10,
+		Grade_Tier09 = 10,
+		Grade_Tier10 = 10,
+		Grade_Tier11 = 13,
+		Grade_Tier12 = 13,
+		Grade_Tier13 = 13,
+		Grade_Tier14 = 14,
+		Grade_Tier15 = 15,
+		Grade_Tier16 = 16,
+		Grade_Tier17 = 17,
+		Grade_Tier18 = 18,
+		Grade_Tier19 = 19,
+		Grade_Tier20 = 20,
+		Grade_Failed = 21
+	}
+	return grades[grade]
+end
+
+-- returns true if A is worth more than B
+-- (based on gradeTiers, A would have a smaller value)
+function compareGrades(a, b)
+	return gradeTiers[a] < gradeTiers[b]
+end
