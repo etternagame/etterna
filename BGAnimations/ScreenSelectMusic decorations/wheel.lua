@@ -456,7 +456,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.LeftGap / 2 - actuals.Width / 2)
             -- places the frame at the top of the wheel
             -- positions will be relative to that
-            self:y(-actuals.ItemHeight * numWheelItems / 2 - actuals.HeaderHeight)
+            self:y(-actuals.ItemHeight * numWheelItems / 2 + actuals.ItemHeight * 1.242)
         end,
 
         Def.Sprite {
