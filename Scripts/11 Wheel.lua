@@ -98,15 +98,6 @@ local function getIndexCircularly(table, idx)
     return idx
 end
 
--- check to see if a stepstype is countable for average diff reasons
-local function countableStepsType(stepstype)
-    local thelist = {
-        stepstype_dance_single = true,
-        stepstype_dance_solo = true,
-    }
-    return thelist[stepstype:lower()] ~= nil
-end
-
 -- false if outside of a group
 -- true if inside a group
 -- toggles within the move function
@@ -473,40 +464,9 @@ function MusicWheel:new(params)
     local songActorBuilder = params.songActorBuilder
     local songActorUpdater = params.songActorUpdater
     local groupActorUpdater = params.groupActorUpdater
-    
-    -- Cache all pack counts
-    local packCounts = SONGMAN:GetSongGroupNames()
-    local function packCounter()
-        packCounts = {}
-        for i, song in ipairs(SONGMAN:GetAllSongs()) do
-            local pack = song:GetGroupName()
-            local x = packCounts[pack]
-            packCounts[pack] = x and x + 1 or 1
-        end
-    end
-    packCounter()
 
-    -- Cache all pack diffs
-    local avgDiffByPack = {}
-    local function calcAverageDiffByPack()
-        avgDiffByPack = {}
-        for pack, _ in pairs(packCounts) do
-            local chartcount = 0
-            avgDiffByPack[pack] = 0
-            for i, song in ipairs(SONGMAN:GetSongsInGroup(pack)) do
-                for _, chart in ipairs(song:GetAllSteps()) do
-                    if countableStepsType(chart:GetStepsType()) then
-                        chartcount = chartcount + 1
-                        avgDiffByPack[pack] = avgDiffByPack[pack] + chart:GetMSD(1, 1)
-                    end
-                end
-            end
-            if chartcount > 0 then
-                avgDiffByPack[pack] = avgDiffByPack[pack] / chartcount
-            end
-        end
-    end
-    calcAverageDiffByPack()
+    -- reset all WHEELDATA info, set up stats
+    WHEELDATA:Init()
 
     local function findSong(whee, chartkey)
         -- in this case, we want to set based on preferred info
@@ -614,7 +574,7 @@ function MusicWheel:new(params)
                 s:visible(false)
                 local g = (frame.g)
                 g:visible(true)
-                groupActorUpdater(g, songOrPack, packCounts[songOrPack])
+                groupActorUpdater(g, songOrPack)
             end
         end,
         onSelection = function(frame, songOrPack)

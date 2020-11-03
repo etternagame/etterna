@@ -183,6 +183,22 @@ function WHEELDATA.RefreshStats(self)
     end
 end
 
+-- getter for the folder count stat
+function WHEELDATA.GetFolderCount(self, name)
+    if self.StatsByFolder[name] ~= nil then
+        return self.StatsByFolder[name].count
+    end
+    return 0
+end
+
+-- getter for the folder average diff stat
+function WHEELDATA.GetFolderAverage(self, name)
+    if self.StatsByFolder[name] ~= nil then
+        return self.StatsByFolder[name].avgDiff
+    end
+    return 0
+end
+
 -- init all with default values
 -- group sort default
 -- etc

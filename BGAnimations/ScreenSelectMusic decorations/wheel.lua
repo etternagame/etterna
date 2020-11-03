@@ -92,47 +92,6 @@ local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing tex
 
 local headerTransitionSeconds = 0.2
 
--- check to see if a stepstype is countable for average diff reasons
-local function countableStepsType(stepstype)
-    local thelist = {
-        stepstype_dance_single = true,
-        stepstype_dance_solo = true,
-    }
-    return thelist[stepstype:lower()] ~= nil
-end
-
-local packCounts = SONGMAN:GetSongGroupNames()
-local function packCounter()
-    packCounts = {}
-    for i, song in ipairs(SONGMAN:GetAllSongs()) do
-        local pack = song:GetGroupName()
-        local x = packCounts[pack]
-        packCounts[pack] = x and x + 1 or 1
-    end
-end
-packCounter()
-
-local avgDiffByPack = {}
-local function calcAverageDiffByPack()
-    avgDiffByPack = {}
-    for pack, _ in pairs(packCounts) do
-        local chartcount = 0
-        avgDiffByPack[pack] = 0
-        for i, song in ipairs(SONGMAN:GetSongsInGroup(pack)) do
-            for _, chart in ipairs(song:GetAllSteps()) do
-                if countableStepsType(chart:GetStepsType()) then
-                    chartcount = chartcount + 1
-                    avgDiffByPack[pack] = avgDiffByPack[pack] + chart:GetMSD(1, 1)
-                end
-            end
-        end
-        if chartcount > 0 then
-            avgDiffByPack[pack] = avgDiffByPack[pack] / chartcount
-        end
-    end
-end
-calcAverageDiffByPack()
-
 -- functionally create each item base because they are identical (BG and divider)
 local function wheelItemBase()
     return Def.ActorFrame {
@@ -158,9 +117,11 @@ local function wheelItemBase()
     }
 end
 
+-- responsible for setting song banner for wheelitem updates
 local function songBannerSetter(self, song)
     if song then
         local bnpath = song:GetBannerPath()
+        -- we load the fallback banner but for aesthetic purpose at the moment, invisible
         if not bnpath then
             bnpath = THEME:GetPathG("Common", "fallback banner")
             self:visible(false)
@@ -174,8 +135,10 @@ local function songBannerSetter(self, song)
     end
 end
 
+-- responsible for setting group banner for wheelitem updates
 local function groupBannerSetter(self, group)
     local bnpath = SONGMAN:GetSongGroupBannerPath(group)
+    -- we load the fallback banner but for aesthetic purpose at the moment, invisible
     if not bnpath or bnpath == "" then
         bnpath = THEME:GetPathG("Common", "fallback banner")
         self:visible(false)
@@ -188,6 +151,7 @@ local function groupBannerSetter(self, group)
     self.bnpath = bnpath
 end
 
+-- updates all information for a song wheelitem
 local function songActorUpdater(songFrame, song)
     songFrame.Title:settext(song:GetDisplayMainTitle())
     songFrame.SubTitle:settext(song:GetDisplaySubTitle())
@@ -195,13 +159,11 @@ local function songActorUpdater(songFrame, song)
     songBannerSetter(songFrame.Banner, song)
 end
 
-local function groupActorUpdater(groupFrame, packName, packCount, packAverageDiff)
-    if packCount == nil then
-        packCount = packCounts[packName] or 0
-    end
-    if packAverageDiff == nil then
-        packAverageDiff = avgDiffByPack[packName] or 0
-    end
+-- updates all information for a group wheelitem
+local function groupActorUpdater(groupFrame, packName)
+    local packCount = WHEELDATA:GetFolderCount(packName)
+    local packAverageDiff = WHEELDATA:GetFolderAverage(packName)
+
     groupFrame.Title:settext(packName)
     groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff})
     groupBannerSetter(groupFrame.Banner, packName)
@@ -272,6 +234,7 @@ local function songActorBuilder()
     }
 end
 
+-- see songActorBuilder comment
 local function groupActorBuilder()
     return Def.ActorFrame {
         Name = "GroupFrame",
@@ -331,8 +294,6 @@ local function groupActorBuilder()
 end
 
 local openedGroup = ""
-local onAnAdventure = false -- true if scrolling on groups
-local firstUpdate = true -- for not triggering the header switch on init
 
 t[#t+1] = Def.ActorFrame {
     Name = "WheelContainer",
@@ -348,17 +309,9 @@ t[#t+1] = Def.ActorFrame {
     end,
     OpenedGroupMessageCommand = function(self, params)
         openedGroup = params.group
-        onAnAdventure = false
     end,
     ClosedGroupMessageCommand = function(self)
         openedGroup = ""
-        onAnAdventure = true
-    end,
-    ScrolledIntoGroupMessageCommand = function(self, params)
-        onAnAdventure = false
-    end,
-    ScrolledOutOfGroupMessageCommand = function(self)
-        onAnAdventure = true
     end,
 
 
@@ -459,7 +412,7 @@ t[#t+1] = Def.ActorFrame {
                 s:visible(false)
                 local g = (frame.g)
                 g:visible(true)
-                groupActorUpdater(g, songOrPack, packCounts[songOrPack], avgDiffByPack[songOrPack])
+                groupActorUpdater(g, songOrPack)
             end
         end
     }),
@@ -641,8 +594,8 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth((actuals.Width - actuals.HeaderTextLeftGap * 2 - actuals.HeaderBannerWidth) / wheelHeaderTextSize)
             end,
             SetCommand = function(self)
-                local files = packCounts[openedGroup]
-                local avg = avgDiffByPack[openedGroup]
+                local files = WHEELDATA:GetFolderCount(openedGroup)
+                local avg = WHEELDATA:GetFolderAverage(openedGroup)
                 self:settextf("%d Songs (Average MSD: %5.2f)", files, avg)
             end
         }
