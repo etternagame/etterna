@@ -257,7 +257,7 @@ local function getAverageDifficultyOfGroup(group)
     local out = 0
     local chartcount = 0
     for _, song in ipairs(group) do
-        for __, chart in ipairs(song:GetAllSteps()) do
+        for __, chart in ipairs(song:GetChartsOfCurrentGameMode()) do
             if countableStepsTypeForDiff(chart:GetStepsType()) then
                 chartcount = chartcount + 1
                 out = out + chart:GetMSD(1, 1)
@@ -270,6 +270,64 @@ local function getAverageDifficultyOfGroup(group)
     return out
 end
 
+-- calculate the clear stats for a group, all scores within the group
+-- does NOT consider rates
+local function getClearStatsForGroup(group)
+    local out = {
+        lamp = nil, -- starting at nil, this lamp may be any Grade_TierXX (consider midgrades)
+        clearPerGrade = {}, -- count of SONGS CLEARED per grade
+        totalScores = 0, -- count of SCORES in the whole group
+    }
+
+    local maxlamp = "Grade_Tier01"
+    local failed = false
+    for _, song in ipairs(group) do
+        local foundgrade = nil
+        -- probably need to replace this getter with something more filtered
+        for __, chart in ipairs(song:GetChartsOfCurrentGameMode()) do
+            local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
+
+            -- scorestack is nil if no scores on the chart
+            if scorestack ~= nil then
+                -- the scores are in lists for each rate
+                -- find the highest
+                for ___, l in pairs(scorestack) do
+                    local scoresatrate = l:GetScores()
+                    for ____, s in ipairs(scoresatrate) do
+                        out.totalScores = out.totalScores + 1
+                        local grade = s:GetWifeGrade()
+                        if foundgrade == nil then
+                            foundgrade = grade
+                        else
+                            if compareGrades(grade, foundgrade) then
+                                foundgrade = grade
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        -- no scores found on an entire song means no clear lamp is possible
+        if foundgrade == nil then
+            maxlamp = nil
+            failed = true
+        else
+            if not failed and compareGrades(maxlamp, foundgrade) then
+                maxlamp = foundgrade
+            end
+            if out.clearPerGrade[foundgrade] ~= nil then
+                out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
+            else
+                out.clearPerGrade[foundgrade] = 1
+            end
+        end
+    end
+    out.lamp = maxlamp
+
+    return out
+end
+
 -- refresh all stats based on the filtered song list
 function WHEELDATA.RefreshStats(self)
     self.StatsByFolder = {}
@@ -277,7 +335,7 @@ function WHEELDATA.RefreshStats(self)
         self.StatsByFolder[groupname] = {
             count = #songlist,
             avgDiff = getAverageDifficultyOfGroup(songlist),
-            -- to be continued
+            clearStats = getClearStatsForGroup(songlist),
         }
     end
 end
@@ -296,6 +354,14 @@ function WHEELDATA.GetFolderAverage(self, name)
         return self.StatsByFolder[name].avgDiff
     end
     return 0
+end
+
+-- getter for the folder clear stats (lamps, score info)
+function WHEELDATA.GetFolderClearStats(self, name)
+    if self.StatsByFolder[name] ~= nil then
+        return self.StatsByFolder[name].clearStats
+    end
+    return {nil, {}, 0}
 end
 
 -- init all with default values
