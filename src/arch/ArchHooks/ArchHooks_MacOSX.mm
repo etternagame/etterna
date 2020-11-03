@@ -116,17 +116,6 @@ void ArchHooks_MacOSX::Init()
 	CFRelease( path );
 }
 
-std::string ArchHooks_MacOSX::GetArchName() const
-{
-#if defined(__i386__)
-	return "Mac OS X (i386)";
-#elif defined(__x86_64__)
-	return "Mac OS X (x86_64)";
-#else
-#error What arch?
-#endif
-}
-
 int64_t ArchHooks::GetMicrosecondsSinceStart()
 {
 	// http://developer.apple.com/qa/qa2004/qa1398.html

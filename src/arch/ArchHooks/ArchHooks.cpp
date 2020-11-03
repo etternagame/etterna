@@ -121,7 +121,7 @@ class LunaArchHooks : public Luna<ArchHooks>
 {
   public:
 	DEFINE_METHOD(AppHasFocus, AppHasFocus());
-	DEFINE_METHOD(GetArchName, GetArchName());
+//	DEFINE_METHOD(GetArchName, GetArchName());
 	DEFINE_METHOD(GetClipboard, GetClipboard());
 	static int ShowCursor(T* p, lua_State* L)
 	{
@@ -132,7 +132,7 @@ class LunaArchHooks : public Luna<ArchHooks>
 	LunaArchHooks()
 	{
 		ADD_METHOD(AppHasFocus);
-		ADD_METHOD(GetArchName);
+//		ADD_METHOD(GetArchName);
 		ADD_METHOD(GetClipboard);
 		ADD_METHOD(ShowCursor);
 	}

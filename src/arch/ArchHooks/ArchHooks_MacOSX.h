@@ -7,7 +7,6 @@ class ArchHooks_MacOSX : public ArchHooks
 {
   public:
 	void Init();
-	std::string GetArchName() const;
 };
 
 #ifdef ARCH_HOOKS

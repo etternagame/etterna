@@ -10,7 +10,6 @@ class ArchHooks_Win32 : public ArchHooks
   public:
 	ArchHooks_Win32();
 	~ArchHooks_Win32();
-	std::string GetArchName() const { return "Windows"; }
 	void RestartProgram();
 	bool CheckForMultipleInstances(int argc, char* argv[]);
 
