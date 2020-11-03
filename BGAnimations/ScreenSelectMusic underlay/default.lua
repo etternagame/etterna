@@ -27,4 +27,35 @@ t[#t+1] = Def.Sprite {
     end
 }
 
+t[#t+1] = Def.Quad {
+    Name = "AverageColor",
+    InitCommand = function(self)
+        self:valign(0):halign(0)
+        self:zoomto(SCREEN_WIDTH, SCREEN_BOTTOM)
+        self:diffuse(color("0,0,0"))
+        self:diffusealpha(0)
+    end,
+    SetCommand = function(self, params)
+        self:finishtweening()
+        if params.song and params.song:GetBackgroundPath() then
+            self:visible(false)
+
+        else
+            -- attempt to pull the current hovered banner if it is loaded
+            -- we are allowed to do this exactly this way because of the order things are updated
+            -- if this ever changes, wow good luck
+            -- also never move the actor tree or else this breaks haha
+            local bn = SCREENMAN:GetTopScreen():GetChild("RightFrame"):GetChild("CurSongBoxFile"):GetChild("Frame"):GetChild("Banner")
+            if bn:GetVisible() then
+                self:visible(true)
+                local c = bn:GetTexture():GetAverageColor(14)
+                self:diffuse(c)
+                self:diffusealpha(0.7)
+            else
+                self:visible(false)
+            end
+        end
+    end
+}
+
 return t
