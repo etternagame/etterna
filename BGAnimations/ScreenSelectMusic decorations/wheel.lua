@@ -161,6 +161,7 @@ local function songActorUpdater(songFrame, song)
     songFrame.Title:settext(song:GetDisplayMainTitle())
     songFrame.SubTitle:settext(song:GetDisplaySubTitle())
     songFrame.Artist:settext("~"..song:GetDisplayArtist())
+    songFrame.Grade:playcommand("SetGrade", {grade = song:GetHighestGrade()})
     songBannerSetter(songFrame.Banner, song)
 end
 
@@ -190,7 +191,7 @@ local function songActorBuilder()
                 self:strokecolor(color("0.6,0.6,0.6,0.75"))
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemTitleTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemTitleTextSize)
             end,
             BeginCommand = function(self)
@@ -204,7 +205,7 @@ local function songActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextCenterDistance)
                 self:zoom(wheelItemSubTitleTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemSubTitleTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemSubTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemSubTitleTextSize)
             end,
             BeginCommand = function(self)
@@ -218,11 +219,29 @@ local function songActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
                 self:zoom(wheelItemArtistTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemArtistTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemArtistTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemArtistTextSize)
             end,
             BeginCommand = function(self)
                 self:GetParent().Artist = self
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "Grade",
+            InitCommand = function(self)
+                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap - actuals.ItemGradeTextRightBump)
+                self:zoom(wheelItemGradeTextSize)
+                self:maxwidth(actuals.ItemGradeTextRightGap * 2 / wheelItemGradeTextSize)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Grade = self
+            end,
+            SetGradeCommand = function(self, params)
+                if params.grade and params.grade ~= "Grade_Invalid" then
+                    self:settext(THEME:GetString("Grade", params.grade:sub(#"Grade_T")))
+                else
+                    self:settext("")
+                end
             end
         },
         Def.Sprite {
