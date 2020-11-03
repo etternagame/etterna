@@ -417,24 +417,11 @@ function MusicWheel:new(params)
     local function findSong(whee, chartkey)
         -- in this case, we want to set based on preferred info
         if chartkey == nil then
-            local grouplist = SONGMAN:GetSongGroupNames()
-            table.sort(
-                grouplist,
-                function(a,b)
-                    return a:lower() < b:lower()
-                end
-            )
             local song = GAMESTATE:GetPreferredSong()
+
             if song ~= nil then
-                local songgroup = song:GetGroupName()
-                local sngs = SONGMAN:GetSongsInGroup(songgroup)
-                table.sort(
-                    sngs,
-                    WHEELDATA.CompareSongsByTitle
-                )
-                local g1, g2 = split(grouplist, songgroup)
-                local newItems = concat(g1, {songgroup}, sngs, g2)
-                local finalIndex = findKeyOf(newItems, songgroup) + findSongInGroup(sngs, song)
+                local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+
                 whee.index = finalIndex
                 whee.startIndex = finalIndex
                 whee.itemsGetter = function() return newItems end
@@ -445,24 +432,11 @@ function MusicWheel:new(params)
                 return songgroup
             end
         else
-            local grouplist = SONGMAN:GetSongGroupNames()
-            table.sort(
-                grouplist,
-                function(a,b)
-                    return a:lower() < b:lower()
-                end
-            )
             local song = SONGMAN:GetSongByChartKey(chartkey)
             if song == nil then return nil end
-            local songgroup = song:GetGroupName()
-            local sngs = SONGMAN:GetSongsInGroup(songgroup)
-            table.sort(
-                sngs,
-                WHEELDATA.CompareSongsByTitle
-            )
-            local g1, g2 = split(grouplist, songgroup)
-            local newItems = concat(g1, {songgroup}, sngs, g2)
-            local finalIndex = findKeyOf(newItems, songgroup) + findSongInGroup(sngs, song)
+
+            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+
             whee.index = finalIndex
             whee.startIndex = finalIndex
             whee.itemsGetter = function() return newItems end
@@ -524,47 +498,35 @@ function MusicWheel:new(params)
             end
         end,
         onSelection = function(frame, songOrPack)
-            if songOrPack.GetAllSteps then -- song
+            if songOrPack.GetAllSteps then
+                -- STARTING SONG
                 crossedGroupBorder = true
-                -- Start song
+
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
                 MESSAGEMAN:Broadcast("SelectedSong")
             else
                 local group = songOrPack
-                if w.group and w.group == group then -- close pack
+                if w.group and w.group == group then
+                    -- CLOSING PACK
                     crossedGroupBorder = false
                     w.group = nil
-                    local newItems = SONGMAN:GetSongGroupNames()
-                    table.sort(
-                        newItems,
-                        function(a, b)
-                            return a:lower() < b:lower()
-                        end
-                    )
+
+                    local newItems = WHEELDATA:GetFilteredFolders()
+
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function()
                         return newItems
                     end
 
                     MESSAGEMAN:Broadcast("ClosedGroup", {group = group})
-                else -- open pack
+                else
+                    -- OPENING PACK
                     crossedGroupBorder = false
                     w.group = group
-                    local groups = SONGMAN:GetSongGroupNames()
-                    table.sort(
-                        groups,
-                        function(a, b)
-                            return a:lower() < b:lower()
-                        end
-                    )
-                    local g1, g2 = split(groups, group)
-                    local sngs = SONGMAN:GetSongsInGroup(group)
-                    table.sort(
-                        sngs,
-                        WHEELDATA.CompareSongsByTitle
-                    )
-                    local newItems = concat(g1, {group}, sngs, g2)
+
+                    local newItems = WHEELDATA:GetWheelItemsForOpenedFolder(group)
+                    
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function()
                         return newItems
@@ -578,14 +540,7 @@ function MusicWheel:new(params)
             end
         end,
         itemsGetter = function()
-            local groups = SONGMAN:GetSongGroupNames()
-            table.sort(
-                groups,
-                function(a, b)
-                    return a:lower() < b:lower()
-                end
-            )
-            return groups
+            return WHEELDATA:GetFilteredFolders()
         end
     }
 

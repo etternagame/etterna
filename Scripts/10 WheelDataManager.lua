@@ -54,60 +54,77 @@ local function makeSortString(s)
     return st
 end
 
+-- this function sits here for scoping reasons
+-- essentially mimics the C++ behavior to get the first letter of a song
+-- could be generalized later
+local function getTitleSortFoldernameForSong(song)
+    local title = song:GetTranslitMainTitle()
+    title = makeSortString(title)
+    if #title == 0 then return "" end
+    local fchar = string.byte(title)
+    if fchar >= string.byte("0") and fchar <= string.byte("9") then
+        return "0-9"
+    end
+    if fchar < string.byte("A") or fchar > string.byte("Z") then
+        return "?????"
+    end
+    return string.sub(st, 1, 1)
+end
+
 -- functions responsible for actually sorting things according to the sortmodes table
+-- each member is a table of functions
+-- the first function modifies WHEELDATA by sorting its items
+-- the second function describes the method used to find the folder that a song is in
 local sortmodeImplementations = {
-    function() -- "Group" sort -- by pack, alphabetical
-        WHEELDATA:ResetSorts()
-        -- sort each group
-        for groupname, songlist in pairs(WHEELDATA.AllSongsByGroup) do
-            WHEELDATA.AllSongsByFolder[groupname] = songlist
+    {   -- "Group" sort -- by pack, alphabetical
+        function()
+            WHEELDATA:ResetSorts()
+            -- sort each group
+            for groupname, songlist in pairs(WHEELDATA.AllSongsByGroup) do
+                WHEELDATA.AllSongsByFolder[groupname] = songlist
+                table.sort(
+                    WHEELDATA.AllSongsByFolder[groupname],
+                    SongUtil.SongTitleComparator
+                )
+                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = groupname
+            end
+            -- sort the groups
             table.sort(
-                WHEELDATA.AllSongsByFolder[groupname],
-                SongUtil.SongTitleComparator
+                WHEELDATA.AllFolders,
+                function(a,b) return a:lower() < b:lower() end
             )
-            WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = groupname
-        end
-        -- sort the groups
-        table.sort(
-            WHEELDATA.AllFolders,
-            function(a,b) return a:lower() < b:lower() end
-        )
-    end,
-    function() -- "Title" sort -- by song title, alphabetical
-        WHEELDATA:ResetSorts()
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+    },
 
-        local function getFoldernameForSong(song)
-            local title = song:GetTranslitMainTitle()
-            title = makeSortString(title)
-            if #title == 0 then return "" end
-            local fchar = string.byte(title)
-            if fchar >= string.byte("0") and fchar <= string.byte("9") then
-                return "0-9"
-            end
-            if fchar < string.byte("A") or fchar > string.byte("Z") then
-                return "?????"
-            end
-            return string.sub(st, 1, 1)
-        end
+    {   -- "Title" sort -- by song title, alphabetical
+        function()
+            WHEELDATA:ResetSorts()
 
-        -- go through AllSongs and construct it as we go, then sort
-        for _, song in ipairs(WHEELDATA.AllSongs) do
-            local foldername = getFoldernameForSong(song)
-            if WHEELDATA.AllSongsByFolder[foldername] ~= nil then
-                WHEELDATA.AllSongsByFolder[foldername][#WHEELDATA.AllSongsByFolder[foldername] + 1] = song
-            else
-                WHEELDATA.AllSongsByFolder[foldername] = {song}
-                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = foldername
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(WHEELDATA.AllSongs) do
+                local foldername = getFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[foldername] ~= nil then
+                    WHEELDATA.AllSongsByFolder[foldername][#WHEELDATA.AllSongsByFolder[foldername] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[foldername] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = foldername
+                end
             end
-        end
-        table.sort(WHEELDATA.AllFolders)
-        for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
-            table.sort(
-                songlist,
-                SongUtil.SongTitleComparator
-            )
-        end
-    end,
+            table.sort(WHEELDATA.AllFolders)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getFoldernameForSong(song)
+        end,
+    },
 }
 
 -- get the value and string value of the current sort
@@ -122,7 +139,7 @@ function WHEELDATA.SortByCurrentSortmode(self)
 
     -- run the sort function based on the sortmode
     local tbefore = GetTimeSinceStart()
-    local f = sortmodeImplementations[sortval]
+    local f = sortmodeImplementations[sortval][1]
     f()
     local tafter = GetTimeSinceStart()
 
@@ -131,17 +148,85 @@ end
 
 -- update the song list for the current gamemode
 -- sort all songs by current sort
-function WHEELDATA.GetAllSongs(self)
+function WHEELDATA.SetAllSongs(self)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
     for _, song in ipairs(SONGMAN:GetAllSongs()) do
         if #song:GetChartsOfCurrentGameMode() > 0 then
             self.AllSongs[#self.AllSongs+1] = song
             local group = song:GetGroupName()
+            if self.AllSongsByGroup[group] == nil then
+                self.AllSongsByGroup[group] = {}
+            end
             self.AllSongsByGroup[group][#self.AllSongsByGroup[group]+1] = song
         end
     end
     self:SortByCurrentSortmode()
+end
+
+-- getter for the list of folders
+function WHEELDATA.GetFilteredFolders(self)
+    return self.AllFolders
+end
+
+-- getter for the list of songs in a folder
+function WHEELDATA.GetSongsInFolder(self, name)
+    return self.AllSongsByFolder[name]
+end
+
+-- to simplify a lot of copy paste....
+-- builds and returns a list of folders and songs
+function WHEELDATA.GetWheelItemsForOpenedFolder(self, name)
+    local groups = self.AllFolders
+    local songs = self.AllSongsByFolder[name]
+
+    -- destroy the group we are looking for, create 2 resulting tables
+    local groupTopHalf, groupLowHalf = tablesplit(groups, name)
+    -- reconstruct the table, putting back the removed group and also the songs for it alongside
+    local finalItems = tableconcat(groupTopHalf, {name}, songs, groupLowHalf)
+
+    return finalItems
+end
+
+-- find the index of the desired song in the filtered list of songs
+-- first by looking through all groups in order, then opening a group and finding it within
+-- this could instead use self:GetWheelItemsForOpenedFolder as a shortcut but today it shall not
+function WHEELDATA.FindIndexOfSong(self, song)
+    local sortmode = self:GetCurrentSort()
+    if sortmode == nil then return 1 end
+
+    local foldername = sortmodeImplementations[sortmode][2](song)
+    local folderIndex = findKeyOf(self.AllFolders, foldername)
+    if folderIndex == nil then return 1 end
+
+    local sdir = song:GetSongDir()
+
+    local songIndex = 0
+    for i, s in ipairs(self.AllSongsByFolder[foldername]) do
+        if s:GetSongDir() == sdir then
+            songIndex = i
+            break
+        end
+    end
+
+    return folderIndex + songIndex
+end
+
+-- a very generous helper function to do both of the above functions at once
+function WHEELDATA.GetWheelItemsAndGroupAndIndexForSong(self, song)
+    local sortmode = self:GetCurrentSort()
+    
+    -- handle this exceptional case just for completeness
+    if sortmode == nil then
+        local items1, items2 = tablesplit(self.AllFolders, self.AllFolders[1])
+        return tableconcat(items1, {self.AllFolders[1]}, items2), self.AllFolders[1], 1
+    end
+
+    local group = sortmodeImplementations[sortmode][2](song)
+    local index = self:FindIndexOfSong(song)
+    local outitems = self:GetWheelItemsForOpenedFolder(group)
+
+    return outitems, group, index
 end
 
 -- check to see if a stepstype is countable for average diff reasons
@@ -206,6 +291,6 @@ function WHEELDATA.Init(self)
     -- reset will handle setting sortmode to Group
     self:Reset()
     -- this will fill AllSongs and the SongsByGroup
-    self:GetAllSongs()
+    self:SetAllSongs()
     self:RefreshStats()
 end
