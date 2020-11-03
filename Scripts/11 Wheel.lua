@@ -53,32 +53,7 @@ local forceGroupCheck = false
 local diffSelection = 1 -- index of the selected chart
 
 Wheel.mt = {
-    move = function(whee, num)
-        if whee.moveInterval then
-            SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
-        end
-        if num == 0 then
-            whee.moveInterval = nil
-            return
-        end
-        whee.floatingOffset = num
-        local interval = whee.pollingSeconds / 60
-        whee.index = getIndexCircularly(whee.items, whee.index + num)
-        MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
-        whee.moveInterval =
-            SCREENMAN:GetTopScreen():setInterval(
-            function()
-                whee.floatingOffset = whee.floatingOffset - num / (whee.pollingSeconds / interval)
-                if num < 0 and whee.floatingOffset >= 0 or num > 0 and whee.floatingOffset <= 0 then
-                    SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
-                    whee.moveInterval = nil
-                    whee.floatingOffset = 0
-                end
-                whee:update()
-            end,
-            interval
-        )
-
+    updateGlobalsFromCurrentItem = function(whee)
         SOUND:StopMusic()
 
         -- update Gamestate current song
@@ -111,7 +86,100 @@ Wheel.mt = {
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         end
+    end,
+    move = function(whee, num)
+        if whee.moveInterval then
+            SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
+        end
+        if num == 0 then
+            whee.moveInterval = nil
+            return
+        end
+        whee.floatingOffset = num
+        local interval = whee.pollingSeconds / 60
+        whee.index = getIndexCircularly(whee.items, whee.index + num)
+        MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
+        whee.moveInterval =
+            SCREENMAN:GetTopScreen():setInterval(
+            function()
+                whee.floatingOffset = whee.floatingOffset - num / (whee.pollingSeconds / interval)
+                if num < 0 and whee.floatingOffset >= 0 or num > 0 and whee.floatingOffset <= 0 then
+                    SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
+                    whee.moveInterval = nil
+                    whee.floatingOffset = 0
+                end
+                whee:update()
+            end,
+            interval
+        )
         
+        whee:updateGlobalsFromCurrentItem()
+    end,
+    findSong = function(whee, chartkey)
+        -- in this case, we want to set based on preferred info
+        if chartkey == nil then
+            local song = GAMESTATE:GetPreferredSong()
+
+            if song ~= nil then
+                local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+
+                whee.index = finalIndex
+                whee.startIndex = finalIndex
+                whee.itemsGetter = function() return newItems end
+                whee.items = newItems
+                whee.group = songgroup
+                GAMESTATE:SetCurrentSong(song)
+                GAMESTATE:SetCurrentSteps(PLAYER_1, song:GetChartsOfCurrentGameMode()[1])
+                return songgroup
+            end
+        else
+            local song = SONGMAN:GetSongByChartKey(chartkey)
+            if song == nil then return nil end
+
+            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+
+            whee.index = finalIndex
+            whee.startIndex = finalIndex
+            whee.itemsGetter = function() return newItems end
+            whee.items = newItems
+            whee.group = songgroup
+            GAMESTATE:SetCurrentSong(song)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, SONGMAN:GetStepsByChartKey(chartkey))
+            return songgroup
+        end
+        return nil
+    end,
+    findGroup = function(whee, name, openGroup)
+        if name == nil then name = whee.group end
+        if name == nil then return nil end
+
+        local items = WHEELDATA:GetFilteredFolders()
+        local index = WHEELDATA:FindIndexOfFolder(name)
+
+        if index == -1 then return false end
+        if openGroup then
+            items = WHEELDATA:GetWheelItemsForOpenedFolder(name)
+        end
+        
+        whee.index = index
+        whee.startIndex = index
+        whee.itemsGetter = function() return items end
+        whee.items = items
+        whee.group = nil
+        GAMESTATE:SetCurrentSong(nil)
+        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+        return true
+    end,
+    exitGroup = function(whee)
+        if whee.group == nil then return end
+        crossedGroupBorder = false
+        forceGroupCheck = true
+        whee:findGroup(whee.group, false)
+        whee:updateGlobalsFromCurrentItem()
+        whee:rebuildFrames()
+        MESSAGEMAN:Broadcast("ClosedGroup", {group = whee.group})
+        MESSAGEMAN:Broadcast("ModifiedGroups", {group = whee.group, index = whee.index, maxIndex = #whee.items})
+        MESSAGEMAN:Broadcast("WheelSettled", {song = nil, group = whee.group, hovered = whee:getCurrentItem(), steps = nil, index = whee.index, maxIndex = #whee.items})
     end,
     getItem = function(whee, idx)
         return whee.items[getIndexCircularly(whee.items, idx)]
@@ -261,6 +329,8 @@ function Wheel:new(params)
                 local enter = gameButton == "Start"
                 local right = gameButton == "MenuRight" or gameButton == "Right"
                 local exit = gameButton == "Back"
+                local up = gameButton == "Up" or gameButton == "MenuUp"
+                local down = gameButton == "Down" or gameButton == "MenuDown"
 
                 if left or right then
                     local direction = left and "left" or "right"
@@ -311,6 +381,16 @@ function Wheel:new(params)
                     if event.type == "InputEventType_FirstPress" then
                         SCREENMAN:set_input_redirected(PLAYER_1, false)
                         SCREENMAN:GetTopScreen():Cancel()
+                    end
+                elseif up or down then
+                    local direction = up and "up" or "down"
+                    if event.type == "InputEventType_FirstPress" then
+                        heldButtons[direction] = true
+                        if heldButtons["up"] and heldButtons["down"] then
+                            whee:exitGroup()
+                        end
+                    elseif event.type == "InputEventType_Release" then
+                        heldButtons[direction] = false
                     end
                 end
                 return false
@@ -413,41 +493,6 @@ function MusicWheel:new(params)
 
     -- reset all WHEELDATA info, set up stats
     WHEELDATA:Init()
-
-    local function findSong(whee, chartkey)
-        -- in this case, we want to set based on preferred info
-        if chartkey == nil then
-            local song = GAMESTATE:GetPreferredSong()
-
-            if song ~= nil then
-                local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
-
-                whee.index = finalIndex
-                whee.startIndex = finalIndex
-                whee.itemsGetter = function() return newItems end
-                whee.items = newItems
-                whee.group = songgroup
-                GAMESTATE:SetCurrentSong(song)
-                GAMESTATE:SetCurrentSteps(PLAYER_1, song:GetChartsOfCurrentGameMode()[1])
-                return songgroup
-            end
-        else
-            local song = SONGMAN:GetSongByChartKey(chartkey)
-            if song == nil then return nil end
-
-            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
-
-            whee.index = finalIndex
-            whee.startIndex = finalIndex
-            whee.itemsGetter = function() return newItems end
-            whee.items = newItems
-            whee.group = songgroup
-            GAMESTATE:SetCurrentSong(song)
-            GAMESTATE:SetCurrentSteps(PLAYER_1, SONGMAN:GetStepsByChartKey(chartkey))
-            return songgroup
-        end
-        return nil
-    end
 
     local w
     w =
@@ -580,7 +625,7 @@ function MusicWheel:new(params)
     -- building the wheel with startOnPreferred causes init to start on the chart stored in Gamestate
     if params.startOnPreferred then
         w.OnCommand = function(self)
-            local group = findSong(w)
+            local group = w:findSong()
             if #w.frames > 0 and group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
@@ -597,7 +642,7 @@ function MusicWheel:new(params)
 
     w.FindSongCommand = function(self, params)
         if params.chartkey ~= nil then
-            local group = findSong(w, params.chartkey)
+            local group = w:findSong(params.chartkey)
             if group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
@@ -620,7 +665,7 @@ function MusicWheel:new(params)
         elseif params.song ~= nil then
             local charts = params.song:GetChartsOfCurrentGameMode()
             if #charts > 0 then
-                local group = findSong(w, charts[1]:GetChartKey())
+                local group = w:findSong(charts[1]:GetChartKey())
                 if group ~= nil then
                     -- found the song, set up the group focus and send out the related messages for consistency
                     crossedGroupBorder = true

@@ -189,6 +189,20 @@ function WHEELDATA.GetWheelItemsForOpenedFolder(self, name)
     return finalItems
 end
 
+-- generous getter for people who like to use similarly named functions
+function WHEELDATA.GetWheelItemsForClosedFolder(self, name)
+    return self.AllFolders
+end
+
+-- getter for the index of a folder
+-- NOTE: this assumes NO GROUPS ARE OPENED
+function WHEELDATA.FindIndexOfFolder(self, name)
+    local folderIndex = findKeyOf(self.AllFolders, name)
+    if folderIndex == nil then return -1 end
+
+    return folderIndex
+end
+
 -- find the index of the desired song in the filtered list of songs
 -- first by looking through all groups in order, then opening a group and finding it within
 -- this could instead use self:GetWheelItemsForOpenedFolder as a shortcut but today it shall not
@@ -197,9 +211,8 @@ function WHEELDATA.FindIndexOfSong(self, song)
     if sortmode == nil then return 1 end
 
     local foldername = sortmodeImplementations[sortmode][2](song)
-    local folderIndex = findKeyOf(self.AllFolders, foldername)
-    if folderIndex == nil then return 1 end
-
+    local folderIndex = self:FindIndexOfFolder(foldername)
+    if folderIndex == -1 then return 1 end
     local sdir = song:GetSongDir()
 
     local songIndex = 0

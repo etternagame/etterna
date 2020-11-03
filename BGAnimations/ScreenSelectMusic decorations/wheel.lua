@@ -519,6 +519,9 @@ t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
         self:xy(actuals.LeftGap,actuals.HeaderUpperGap)
     end,
+    ClosedGroupMessageCommand = function(self)
+        self:playcommand("ScrolledOutOfGroup")
+    end,
     ScrolledIntoGroupMessageCommand = function(self)
         self:GetChild("MiscPage"):playcommand("Out")
         self:GetChild("GroupPage"):playcommand("In")
