@@ -154,6 +154,11 @@ t[#t+1] = Def.ActorFrame {
                 end
                 self:LoadBackground(bnpath)
             end
+            -- handles group banners or missing backgrounds
+            -- logic in the bg handles whether or not we successfully loaded a banner here
+            if params.song == nil or params.song:GetBackgroundPath() == nil then
+                MESSAGEMAN:Broadcast("SetAverageColor", {actor=self})
+            end
         end
     },
     LoadFont("Common Normal") .. {
