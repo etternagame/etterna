@@ -21,6 +21,8 @@ local ratios = {
     ItemTextUpperGap = 20 / 1080, -- distance from top of item to center of title text
     ItemTextLowerGap = 18 / 1080, -- distance from center of divider to center of author text
     ItemTextCenterDistance = 40 / 1080, -- distance from lower (divider center) to center of subtitle
+    ItemGradeTextRightGap = 20 / 1920, -- distance from right of item to center of grade
+    ItemGradeTextRightBump = 4 / 1920, -- placed in addition to the above measurement
     BannerWidth = 265 / 1920,
     BannerItemGap = 18 / 1920, -- gap between banner and item text/dividers
     HeaderHeight = 110 / 1080,
@@ -61,6 +63,8 @@ local actuals = {
     ItemTextUpperGap = ratios.ItemTextUpperGap * SCREEN_HEIGHT,
     ItemTextLowerGap = ratios.ItemTextLowerGap * SCREEN_HEIGHT,
     ItemTextCenterDistance = ratios.ItemTextCenterDistance * SCREEN_HEIGHT,
+    ItemGradeTextRightGap = ratios.ItemGradeTextRightGap * SCREEN_WIDTH,
+    ItemGradeTextRightBump = ratios.ItemGradeTextRightBump * SCREEN_WIDTH,
     BannerWidth = ratios.BannerWidth * SCREEN_WIDTH,
     BannerItemGap = ratios.BannerItemGap * SCREEN_WIDTH,
     HeaderHeight = ratios.HeaderHeight * SCREEN_HEIGHT,
@@ -81,6 +85,7 @@ local actuals = {
 }
 
 local wheelItemTextSize = 0.62
+local wheelItemGradeTextSize = 1
 local wheelItemTitleTextSize = 0.82
 local wheelItemSubTitleTextSize = 0.62
 local wheelItemArtistTextSize = 0.62
@@ -248,7 +253,7 @@ local function groupActorBuilder()
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
                 self:zoom(wheelItemGroupTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemGroupTextSize - textzoomfudge)
                 -- we make the background of groups fully opaque to distinguish them from songs
                 self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG"):diffusealpha(1)
             end,
@@ -263,7 +268,7 @@ local function groupActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
                 self:zoom(wheelItemGroupInfoTextSize)
                 self:halign(0)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize / 2 - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemGroupInfoTextSize - textzoomfudge)
                 self.avg = 0
                 self.count = 0
             end,
@@ -282,11 +287,9 @@ local function groupActorBuilder()
         LoadFont("Common Normal") .. {
             Name = "ClearStats",
             InitCommand = function(self)
-                self:x(actuals.Width / 2)
-                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
-                self:zoom(wheelItemGroupInfoTextSize)
-                self:halign(1)
-                self:maxwidth(actuals.ItemDividerLength / wheelItemGroupInfoTextSize / 2 - textzoomfudge)
+                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap - actuals.ItemGradeTextRightBump)
+                self:zoom(wheelItemGradeTextSize)
+                self:maxwidth(actuals.ItemGradeTextRightGap * 2 / wheelItemGradeTextSize)
                 self.lamp = nil
                 self.scores = 0
             end,
@@ -301,17 +304,9 @@ local function groupActorBuilder()
             UpdateTextCommand = function(self)
                 local lstr = ""
                 if self.lamp ~= nil then
-                    lstr = "LAMP "..THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
+                    lstr = THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
                 end
-                local scorestr = ""
-                if self.scores > 0 then
-                    scorestr = string.format("scores %d", self.scores)
-                end
-                local mstr = ""
-                if self.lamp and self.scores then
-                    mstr = " | "
-                end
-                self:settextf("%s%s%s", lstr, mstr, scorestr)
+                self:settext(lstr)
             end
         },
         Def.Sprite {
