@@ -1479,7 +1479,6 @@ GetFuncArg(int n, lua_State* L)
 	return ref;
 }
 
-#include "Etterna/Globals/ProductInfo.h"
 LuaFunction(ProductFamily, (std::string)Core::AppInfo::APP_TITLE);
 LuaFunction(ProductVersion, (std::string)Core::AppInfo::APP_VERSION);
 LuaFunction(ProductID, (std::string)Core::AppInfo::APP_TITLE);

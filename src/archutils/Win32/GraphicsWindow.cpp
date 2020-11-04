@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "GraphicsWindow.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"

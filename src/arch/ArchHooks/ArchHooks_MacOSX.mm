@@ -5,7 +5,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Unix/SignalHandler.h"
 #include "Etterna/Globals/SpecialFiles.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include <CoreServices/CoreServices.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <sys/types.h>

@@ -2,7 +2,6 @@
 #include "ArchHooks.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/SpecialDirs.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Core/Services/Locator.hpp"

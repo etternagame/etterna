@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "Crash.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Arch/Arch.hpp"
 #include "Core/Misc/AppInfo.hpp"

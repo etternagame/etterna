@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "SpecialDirs.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include <CoreServices/CoreServices.h>
 #include <IOKit/IOKitLib.h>
 #include "RageUtil/Utils/RageUtil.h"

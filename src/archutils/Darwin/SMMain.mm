@@ -4,7 +4,6 @@
 #include "Etterna/Singletons/CommandLineActions.h"
 
 #import <Cocoa/Cocoa.h>
-#include "Etterna/Globals/ProductInfo.h"
 #include "arch/ArchHooks/ArchHooks.h"
 #import "archutils/Darwin/MouseDevice.h"
 #include "Core/Services/Locator.hpp"

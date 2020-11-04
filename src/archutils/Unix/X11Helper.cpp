@@ -2,7 +2,6 @@
 #include "X11Helper.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX: only used for m_bShowMouseCursor -aj
 
@@ -147,7 +146,7 @@ X11Helper::MakeWindow(Window& win,
 		Locator::getLogger()->warn("Could not set class hint for X11 Window");
 	} else {
 		hint->res_name = (char*)g_XWMName.Get().c_str();
-		hint->res_class = Core::AppInfo::APP_TITLE;
+		hint->res_class = (char*)Core::AppInfo::APP_TITLE;
 		XSetClassHint(Dpy, win, hint);
 		XFree(hint);
 	}

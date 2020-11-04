@@ -1,5 +1,4 @@
 #import <Cocoa/Cocoa.h>
-#import "Etterna/Globals/ProductInfo.h"
 #import "LoadingWindow_MacOSX.h"
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/File/RageFile.h"

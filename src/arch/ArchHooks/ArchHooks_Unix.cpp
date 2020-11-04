@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks_Unix.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"

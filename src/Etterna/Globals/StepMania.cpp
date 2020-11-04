@@ -21,7 +21,6 @@
 #include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "ProductInfo.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"

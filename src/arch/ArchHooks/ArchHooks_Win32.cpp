@@ -4,7 +4,6 @@
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
 #include "archutils/win32/RestartProgram.h"

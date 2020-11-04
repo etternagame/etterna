@@ -4,7 +4,6 @@
 #if !defined(SMPACKAGE)
 #include "Etterna/Models/Misc/LocalizedString.h"
 #endif
-#include "Etterna/Globals/ProductInfo.h"
 #include "Core/Arch/Arch.hpp"
 #include "Core/Misc/AppInfo.hpp"
 

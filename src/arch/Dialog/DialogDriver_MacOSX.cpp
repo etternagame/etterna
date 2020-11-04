@@ -2,7 +2,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "DialogDriver_MacOSX.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Core/Services/Locator.hpp"
 #include <CoreFoundation/CoreFoundation.h>

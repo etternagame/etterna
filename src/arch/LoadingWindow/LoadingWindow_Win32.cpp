@@ -13,7 +13,6 @@
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
 #include "Core/Misc/AppInfo.hpp"
 

@@ -3,7 +3,6 @@
 #include "Etterna/Models/Misc/DateTime.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
@@ -84,8 +83,7 @@ static void
 Version()
 {
 #ifdef _WIN32
-	std::string sProductID =
-	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + Core::AppInfo::APP_VERSION).c_str());
+	std::string sProductID = fmt::format("{}{}", Core::AppInfo::APP_TITLE, Core::AppInfo::APP_VERSION).c_str();
 	std::string sVersion = ssprintf("build %s", Core::AppInfo::GIT_HASH);
 
 	AllocConsole();
