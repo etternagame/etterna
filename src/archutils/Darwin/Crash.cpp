@@ -3,6 +3,7 @@
 #include "Etterna/Globals/ProductInfo.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Arch/Arch.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
 #if defined(HAVE_UNISTD_H)
@@ -48,7 +49,7 @@ CrashHandler::InformUserOfCrash(const std::string& sPath)
 					 "Debugging information has been output to\n\n%s\n\n"
 					 "Please file a bug report at\n\n%s");
 	CFStringRef sBody = CFStringCreateWithFormat(
-	  kCFAllocatorDefault, NULL, sFormat, sPath.c_str(), REPORT_BUG_URL);
+	  kCFAllocatorDefault, NULL, sFormat, sPath.c_str(), Core::AppInfo::BUG_REPORT_URL);
 	CFOptionFlags response = kCFUserNotificationCancelResponse;
 	CFTimeInterval timeout = 0.0; // Should we ever time out?
 
@@ -66,7 +67,7 @@ CrashHandler::InformUserOfCrash(const std::string& sPath)
 
 	switch (response) {
 		case kCFUserNotificationDefaultResponse:
-			Core::Arch::openWebsite(REPORT_BUG_URL);
+			Core::Arch::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 			// Fall through.
 		case kCFUserNotificationOtherResponse:
 			// Open the file with the default application (probably TextEdit).

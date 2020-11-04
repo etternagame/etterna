@@ -799,7 +799,7 @@ CreateDisplay()
 
 	std::string error =
 	  ERROR_INITIALIZING_CARD.GetValue() + "\n\n" +
-	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" VIDEO_TROUBLESHOOTING_URL "\n\n" +
+	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" +
 	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
 	  "\n\n";
 

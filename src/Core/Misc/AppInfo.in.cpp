@@ -5,4 +5,5 @@ namespace Core::AppInfo {
     const char *APP_TITLE = "@PROJECT_NAME@";
     const char *APP_VERSION = "@PROJECT_VERSION@";
     const char *GIT_HASH = "@PROJECT_GIT_HASH@";
+    const char* BUG_REPORT_URL = "https://github.com/etternagame/etterna/issues";
 }

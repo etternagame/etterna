@@ -22,12 +22,4 @@
 #define PRODUCT_FAMILY PRODUCT_XSTRINGIFY(PRODUCT_FAMILY_BARE)
 #define PRODUCT_ID PRODUCT_XSTRINGIFY(PRODUCT_ID_BARE)
 
-#define VIDEO_TROUBLESHOOTING_URL                                              \
-	"http://ec2.stepmania.com/wiki/Video_Driver_Troubleshooting"
-/** @brief The URL to report bugs on the program. */
-#define REPORT_BUG_URL "https://github.com/etternagame/etterna/issues"
-#define SM_DOWNLOAD_URL "https://github.com/etternagame/etterna"
-
-#define CAN_INSTALL_PACKAGES true
-
 #endif

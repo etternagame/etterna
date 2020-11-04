@@ -6,6 +6,7 @@
 #endif
 #include "Etterna/Globals/ProductInfo.h"
 #include "Core/Arch/Arch.hpp"
+#include "Core/Misc/AppInfo.hpp"
 
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
@@ -179,7 +180,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					);
 				} break;
 				case IDC_BUTTON_REPORT:
-					Core::Arch::openWebsite(REPORT_BUG_URL);
+					Core::Arch::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 					break;
 				case IDC_BUTTON_RESTART:
 					Win32RestartProgram();
