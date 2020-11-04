@@ -11,6 +11,7 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "Core/Misc/AppInfo.hpp"
+#include <fmt/format.h>
 // only used for Version()
 #ifdef _WIN32
 #include <windows.h>
@@ -65,7 +66,7 @@ LuaInformation()
 	pNode->AppendAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	pNode->AppendAttr("xsi:schemaLocation", "http://www.stepmania.com Lua.xsd");
 
-	pNode->AppendChild("Version", std::string(PRODUCT_FAMILY) + Core::AppInfo::APP_VERSION);
+	pNode->AppendChild("Version", fmt::format("{} {}", Core::AppInfo::APP_TITLE, Core::AppInfo::APP_VERSION));
 	pNode->AppendChild("Date", DateTime::GetNowDate().GetString());
 
 	XmlFileUtil::SaveToFile(pNode, "Lua.xml", "Lua.xsl");

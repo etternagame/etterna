@@ -2,6 +2,7 @@
 #include "ArchHooks_Win32.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Globals/ProductInfo.h"
 #include "archutils/win32/AppInstance.h"
@@ -69,7 +70,7 @@ ArchHooks_Win32::ArchHooks_Win32()
 	 * that for the main thread. */
 	SetThreadPriorityBoost(GetCurrentThread(), TRUE);
 
-	g_hInstanceMutex = CreateMutex(NULL, TRUE, PRODUCT_ID);
+	g_hInstanceMutex = CreateMutex(NULL, TRUE, Core::AppInfo::APP_TITLE);
 
 	g_bIsMultipleInstance = false;
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
@@ -113,9 +114,9 @@ ArchHooks_Win32::CheckForMultipleInstances(int argc, char* argv[])
 	 * less likely to have a false match, and will match the gameplay window.
 	 * If that fails, try the window name, which should match the loading
 	 * window. */
-	HWND hWnd = FindWindow(PRODUCT_ID, NULL);
+	HWND hWnd = FindWindow(Core::AppInfo::APP_TITLE, NULL);
 	if (hWnd == NULL)
-		hWnd = FindWindow(NULL, PRODUCT_ID);
+		hWnd = FindWindow(NULL, Core::AppInfo::APP_TITLE);
 
 	if (hWnd != NULL) {
 		/* If the application has a model dialog box open, we want to be sure to

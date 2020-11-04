@@ -15,6 +15,7 @@
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
 #include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
+#include "Core/Misc/AppInfo.hpp"
 
 #pragma comment(lib, "Dwmapi.lib")
 
@@ -120,7 +121,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						STM_SETIMAGE,
 						(WPARAM)IMAGE_BITMAP,
 						(LPARAM)(HANDLE)g_hBitmap);
-			SetWindowTextA(hWnd, PRODUCT_ID);
+			SetWindowTextA(hWnd, Core::AppInfo::APP_TITLE);
 			break;
 
 		case WM_DESTROY:

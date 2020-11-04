@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "X11Helper.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Etterna/Singletons/PrefsManager.h" // XXX: only used for m_bShowMouseCursor -aj
@@ -34,7 +35,7 @@ ErrorCallback(Display*, XErrorEvent*);
 static int
 FatalCallback(Display*);
 
-static Preference<std::string> g_XWMName("XWMName", PRODUCT_ID);
+static Preference<std::string> g_XWMName("XWMName", Core::AppInfo::APP_TITLE);
 
 static bool display_supports_dpms_extension = false;
 static bool dpms_state_at_startup = false;
@@ -146,7 +147,7 @@ X11Helper::MakeWindow(Window& win,
 		Locator::getLogger()->warn("Could not set class hint for X11 Window");
 	} else {
 		hint->res_name = (char*)g_XWMName.Get().c_str();
-		hint->res_class = (char*)PRODUCT_FAMILY;
+		hint->res_class = Core::AppInfo::APP_TITLE;
 		XSetClassHint(Dpy, win, hint);
 		XFree(hint);
 	}

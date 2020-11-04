@@ -5,6 +5,7 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/ErrorStrings.h"
@@ -20,7 +21,7 @@
 #include <set>
 #include <dbt.h>
 
-static const std::string g_sClassName = PRODUCT_ID;
+static const std::string g_sClassName = Core::AppInfo::APP_TITLE;
 
 static HWND g_hWndMain;
 static HDC g_HDC;

@@ -8,6 +8,7 @@
 #include "arch/ArchHooks/ArchHooks.h"
 #import "archutils/Darwin/MouseDevice.h"
 #include "Core/Services/Locator.hpp"
+#import <Core/Misc/AppInfo.hpp>
 
 CGFloat scrolled;
 
@@ -204,15 +205,15 @@ static void SetupMenus( void )
     // Get the localized strings from the file.
     NSString *sWindow =          NSLocalizedString( @"Window",                @"Menu title" );
     NSString *sHideOthers =      NSLocalizedString( @"Hide Others",           @"Menu item" );
-    NSString *sAbout =           NSLocalizedString( @"About " PRODUCT_FAMILY, @"Menu item" );
-    NSString *sHide =            NSLocalizedString( @"Hide " PRODUCT_FAMILY,  @"Menu item" );
+    NSString *sAbout =           NSLocalizedString( [NSString stringWithUTF8String:fmt::format("About {}", Core::AppInfo::APP_TITLE).c_str()], @"Menu item" );
+    NSString *sHide =            NSLocalizedString( [NSString stringWithUTF8String:fmt::format("Hide {}", Core::AppInfo::APP_TITLE).c_str()],  @"Menu item" );
     NSString *sShowAll =         NSLocalizedString( @"Show All",              @"Menu item" );
-    NSString *sQuit =            NSLocalizedString( @"Quit " PRODUCT_FAMILY,  @"Menu item" );
+    NSString *sQuit =            NSLocalizedString( [NSString stringWithUTF8String:fmt::format("Quit {}", Core::AppInfo::APP_TITLE).c_str()],  @"Menu item" );
     NSString *sMinimize =        NSLocalizedString( @"Minimize",              @"Menu item" );
     NSString *sEnterFullScreen = NSLocalizedString( @"Enter Full Screen",     @"Menu item" );
     
     NSMenu *mainMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
-    NSMenu *appMenu = [[[NSMenu alloc] initWithTitle:@PRODUCT_FAMILY] autorelease];
+    NSMenu *appMenu = [[[NSMenu alloc] initWithTitle:[NSString stringWithUTF8String:Core::AppInfo::APP_TITLE]] autorelease];
     NSMenu *windowMenu = [[[NSMenu alloc] initWithTitle:sWindow] autorelease];
     NSMenuItem *hideOthers = MenuItem( sHideOthers, @selector(hideOtherApplications:), @"h" );
     

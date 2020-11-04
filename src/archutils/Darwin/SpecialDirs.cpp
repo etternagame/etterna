@@ -4,6 +4,7 @@
 #include <CoreServices/CoreServices.h>
 #include <IOKit/IOKitLib.h>
 #include "RageUtil/Utils/RageUtil.h"
+#include "Core/Misc/AppInfo.hpp"
 
 static void
 PathForFolderType(char dir[PATH_MAX], OSType folderType)
@@ -21,7 +22,7 @@ SpecialDirs::GetDesktopDir()
 {
 	char dir[PATH_MAX];
 	PathForFolderType(dir, kDesktopFolderType);
-	return std::string(ssprintf("%s/" PRODUCT_ID, dir));
+	return std::string(ssprintf("%s/%s", dir, Core::AppInfo::APP_TITLE));
 }
 
 /*

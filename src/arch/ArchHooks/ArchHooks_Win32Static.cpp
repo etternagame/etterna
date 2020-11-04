@@ -6,6 +6,7 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -86,7 +87,7 @@ ArchHooks::MountUserFilesystems(const std::string& sDirOfExecutable)
 	 * happen. Just don't do it, seriously. Keep them in one place.
 	 * - Colby
 	 */
-	std::string sAppDataDir = SpecialDirs::GetAppDataDir() + PRODUCT_ID;
+	std::string sAppDataDir = SpecialDirs::GetAppDataDir() + Core::AppInfo::APP_TITLE;
 	// std::string sCommonAppDataDir = SpecialDirs::GetCommonAppDataDir() +
 	// PRODUCT_ID;  std::string sLocalAppDataDir =
 	// SpecialDirs::GetLocalAppDataDir()

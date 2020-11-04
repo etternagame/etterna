@@ -7,7 +7,6 @@
 /**
  * @brief A friendly string to refer to the product in crash dialogs, etc.
  */
-#define PRODUCT_FAMILY_BARE Etterna
 
 /**
  * @brief A unique name for each application that you might want installed
@@ -19,7 +18,5 @@
 #define PRODUCT_STRINGIFY(x) #x
 #define PRODUCT_XSTRINGIFY(x) PRODUCT_STRINGIFY(x)
 
-#define PRODUCT_FAMILY PRODUCT_XSTRINGIFY(PRODUCT_FAMILY_BARE)
-#define PRODUCT_ID PRODUCT_XSTRINGIFY(PRODUCT_ID_BARE)
 
 #endif

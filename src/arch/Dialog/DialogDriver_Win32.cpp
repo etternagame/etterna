@@ -164,7 +164,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 					std::string sAppDataDir = SpecialDirs::GetAppDataDir();
 					std::string sCommand = "notepad \"" + sAppDataDir +
-										   PRODUCT_ID + "/Logs/log.txt\"";
+										   Core::AppInfo::APP_TITLE + "/Logs/log.txt\"";
 					CreateProcess(
 					  nullptr, // pointer to name of executable module
 					  const_cast<char*>(

@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "ArchHooks_MacOSX.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Unix/SignalHandler.h"
 #include "Etterna/Globals/SpecialFiles.h"
@@ -173,34 +174,34 @@ void ArchHooks::MountUserFilesystems( const std::string &sDirOfExecutable )
 
 	// /Save -> ~/Library/Preferences/PRODUCT_ID
 	PathForFolderType( dir, kPreferencesFolderType );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID, dir), "/Save" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s", dir, Core::AppInfo::APP_TITLE), "/Save" );
 
 	// Other stuff -> ~/Library/Application Support/PRODUCT_ID/*
 	PathForFolderType( dir, kApplicationSupportFolderType );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/Announcers", dir), "/Announcers" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/BGAnimations", dir), "/BGAnimations" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/BackgroundEffects", dir), "/BackgroundEffects" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/BackgroundTransitions", dir), "/BackgroundTransitions" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/CDTitles", dir), "/CDTitles" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/Characters", dir), "/Characters" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/Courses", dir), "/Courses" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/NoteSkins", dir), "/NoteSkins" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/Packages", dir), "/" + SpecialFiles::USER_PACKAGES_DIR );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/Songs", dir), "/Songs" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/RandomMovies", dir), "/RandomMovies" );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID "/Themes", dir), "/Themes" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/Announcers", dir, Core::AppInfo::APP_TITLE), "/Announcers" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/BGAnimations", dir, Core::AppInfo::APP_TITLE), "/BGAnimations" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/BackgroundEffects", dir, Core::AppInfo::APP_TITLE), "/BackgroundEffects" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/BackgroundTransitions", dir, Core::AppInfo::APP_TITLE), "/BackgroundTransitions" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/CDTitles", dir, Core::AppInfo::APP_TITLE), "/CDTitles" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/Characters", dir, Core::AppInfo::APP_TITLE), "/Characters" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/Courses", dir, Core::AppInfo::APP_TITLE), "/Courses" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/NoteSkins", dir, Core::AppInfo::APP_TITLE), "/NoteSkins" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/Packages", dir, Core::AppInfo::APP_TITLE), "/" + SpecialFiles::USER_PACKAGES_DIR );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/Songs", dir, Core::AppInfo::APP_TITLE), "/Songs" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/RandomMovies", dir, Core::AppInfo::APP_TITLE), "/RandomMovies" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s/Themes", dir, Core::AppInfo::APP_TITLE), "/Themes" );
 
 	// /Screenshots -> ~/Pictures/PRODUCT_ID Screenshots
 	PathForFolderType( dir, kPictureDocumentsFolderType );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID " Screenshots", dir), "/Screenshots" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s Screenshots", dir, Core::AppInfo::APP_TITLE), "/Screenshots" );
 
 	// /Cache -> ~/Library/Caches/PRODUCT_ID
 	PathForFolderType( dir, kCachedDataFolderType );
-	FILEMAN->Mount( "dir", ssprintf("%s/" PRODUCT_ID, dir), "/Cache" );
+	FILEMAN->Mount( "dir", ssprintf("%s/%s", dir, Core::AppInfo::APP_TITLE), "/Cache" );
 
 	// /Logs -> ~/Library/Logs/PRODUCT_ID
 	PathForFolderType( dir, kDomainLibraryFolderType );
-	FILEMAN->Mount( "dir", ssprintf("%s/Logs/" PRODUCT_ID, dir), "/Logs" );
+	FILEMAN->Mount( "dir", ssprintf("%s/Logs/%s", dir, Core::AppInfo::APP_TITLE), "/Logs" );
 
 	// /Desktop -> /Users/<user>/Desktop/PRODUCT_ID
 	// PathForFolderType( dir, kDesktopFolderType );
