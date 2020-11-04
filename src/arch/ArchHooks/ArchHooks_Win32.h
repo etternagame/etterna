@@ -13,7 +13,6 @@ class ArchHooks_Win32 : public ArchHooks
 	void RestartProgram();
 	bool CheckForMultipleInstances(int argc, char* argv[]);
 
-	std::string GetClipboard();
 	/** @brief Fetch the window width. */
 	int GetWindowWidth();
 

@@ -12,8 +12,6 @@ class ArchHooks_Unix : public ArchHooks
 
 	void MountInitialFilesystems(const std::string& sDirOfExecutable);
 	static clockid_t GetClock();
-
-	std::string GetClipboard();
 };
 
 #ifdef ARCH_HOOKS

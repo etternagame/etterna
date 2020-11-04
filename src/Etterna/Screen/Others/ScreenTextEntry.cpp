@@ -13,7 +13,7 @@
 #include "ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/InputFilter.h"
-
+#include "Core/Arch/Arch.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -463,7 +463,7 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 		auto vPressed =
 		  input.DeviceI.button == KEY_CV || input.DeviceI.button == KEY_Cv;
 		if (vPressed && ctrlPressed) {
-			TryAppendToAnswer(Locator::getArchHooks()->GetClipboard());
+			TryAppendToAnswer(Core::Arch::getClipboard());
 
 			TextEnteredDirectly(); // XXX: This doesn't seem appropriate but
 								   // there's no TextPasted()

@@ -92,12 +92,6 @@ ArchHooks::Create()
 	return new ARCH_HOOKS;
 }
 
-std::string
-ArchHooks::GetClipboard()
-{
-	Locator::getLogger()->warn("ArchHooks: GetClipboard() NOT IMPLEMENTED");
-	return "";
-}
 
 /* XXX: Most singletons register with lua in their constructor.  ArchHooks is
  * instantiated before Lua, so we encounter a dependency problem when
@@ -122,7 +116,7 @@ class LunaArchHooks : public Luna<ArchHooks>
   public:
 	DEFINE_METHOD(AppHasFocus, AppHasFocus());
 //	DEFINE_METHOD(GetArchName, GetArchName());
-	DEFINE_METHOD(GetClipboard, GetClipboard());
+//	DEFINE_METHOD(GetClipboard, GetClipboard());
 	static int ShowCursor(T* p, lua_State* L)
 	{
 		p->sShowCursor(BArg(1));
@@ -133,7 +127,7 @@ class LunaArchHooks : public Luna<ArchHooks>
 	{
 		ADD_METHOD(AppHasFocus);
 //		ADD_METHOD(GetArchName);
-		ADD_METHOD(GetClipboard);
+//		ADD_METHOD(GetClipboard);
 		ADD_METHOD(ShowCursor);
 	}
 };

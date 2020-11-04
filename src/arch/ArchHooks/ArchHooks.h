@@ -81,9 +81,6 @@ class ArchHooks
 	 */
 	bool AppFocusChanged();
 
-	/** @brief Fetch the contents of the system clipboard. */
-	virtual std::string GetClipboard();
-
 	/** @brief Fetch the window width. */
 	virtual int GetWindowWidth();
 
