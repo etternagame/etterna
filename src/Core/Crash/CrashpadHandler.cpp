@@ -1,12 +1,9 @@
 #include "CrashpadHandler.hpp"
 
-#ifdef _WIN32
-#include "RageUtil/Utils/RageUtil.h"
-#endif
-
-#include "RageUtil/File/RageFileManager.h"
+#include "Core/Arch/Arch.hpp"
 #include "Core/Misc/AppInfo.hpp"
 
+#include <ghc/filesystem.hpp>
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/simulate_crash.h"
@@ -21,16 +18,27 @@
  * @return True if successfully initialized, False if otherwise.
  */
 bool Core::Crash::initCrashpad() {
+    auto exeDir = Core::Arch::getExecutableDirectory();
+    auto dataPath = exeDir / "CrashData";
+
+    /* Core::AppInfo::CRASHPAD_HANDLER_EXE may either be a full path, or only an executable name.
+     * - If it is an absolute path, it is assumed to be running on a development machine, and will pass
+     * in that path for the handler location.
+     *
+     * - If it is not an absolute path, it is assumed to be the executable name, for the exe file
+     * place in the same directory as this binary.
+     */
+    auto handlerPath = ghc::filesystem::path{Core::AppInfo::CRASHPAD_HANDLER_EXE};
+    if (!handlerPath.is_absolute())
+        handlerPath = exeDir / handlerPath;
+
 #ifdef _WIN32
-	std::wstring exeDir = StringToWString(RageFileManagerUtil::sDirOfExecutable);
-    base::FilePath handler(exeDir + L"./crashpad_handler.exe");
-    base::FilePath dataDir(exeDir + L"./CrashData");
+    base::FilePath handler(handlerPath.generic_wstring());
+    base::FilePath dataDir(dataPath.generic_wstring());
 #else
-    std::string exeDir = RageFileManagerUtil::sDirOfExecutable;
-    base::FilePath handler(exeDir + "./crashpad_handler");
-    base::FilePath dataDir(exeDir + "./CrashData");
+    base::FilePath handler(handlerPath);
+    base::FilePath dataDir(dataPath);
 #endif
-    std::string url; // A url is required, even if nothing is uploaded.
 
     auto database = crashpad::CrashReportDatabase::Initialize(dataDir);
     if (database == nullptr) return false;
@@ -40,7 +48,7 @@ bool Core::Crash::initCrashpad() {
         handler, // relative path to executable handler file
         dataDir, // the crashpad database
         dataDir, // an existing directory for metrics data
-        url, // an upload server
+        "", // an upload server. A url is required, even if nothing is uploaded.
         {}, // crash report metadata
         {}, // any additional handler arguments
         true, // auto-restart if handler dies
