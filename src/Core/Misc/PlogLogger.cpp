@@ -1,5 +1,7 @@
 #include "PlogLogger.hpp"
 
+#include "Core/Arch/Arch.hpp"
+
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <fmt/chrono.h>
 
@@ -50,10 +52,10 @@ PlogLogger::PlogLogger() {
     char timeString[20]; // Date and time portion only
     std::time_t t = std::time(nullptr);
     std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
-    std::string logFileName = fmt::format("Logs/{}.log", timeString);
+    auto logFilePath = Core::Arch::getAppDirectory() / "Logs" / fmt::format("{}.log", timeString);
 
     // File Appender
-    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFileName.c_str()};
+    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};
     plog::init(plog::Severity::info, &rollingFileAppender);
 
     // Console Appender. One for windows, and another for other operating systems.
