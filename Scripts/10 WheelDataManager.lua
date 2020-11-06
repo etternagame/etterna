@@ -40,10 +40,10 @@ end
 local function makeSortString(s)
     local st = s:upper()
     if #st > 0 then
-        if st:find(".") == 1 then
+        if st:find("[.]") == 1 then
             st = string.sub(st, 2)
         end
-        if st:find("#") == 1 then
+        if st:find("[#]") == 1 then
             return st
         end
 
@@ -69,7 +69,7 @@ local function getTitleSortFoldernameForSong(song)
     if fchar < string.byte("A") or fchar > string.byte("Z") then
         return "?????"
     end
-    return string.sub(st, 1, 1)
+    return string.sub(title, 1, 1)
 end
 
 -- functions responsible for actually sorting things according to the sortmodes table
@@ -106,7 +106,7 @@ local sortmodeImplementations = {
 
             -- go through AllSongs and construct it as we go, then sort
             for _, song in ipairs(WHEELDATA.AllSongs) do
-                local foldername = getFoldernameForSong(song)
+                local foldername = getTitleSortFoldernameForSong(song)
                 if WHEELDATA.AllSongsByFolder[foldername] ~= nil then
                     WHEELDATA.AllSongsByFolder[foldername][#WHEELDATA.AllSongsByFolder[foldername] + 1] = song
                 else
@@ -123,7 +123,7 @@ local sortmodeImplementations = {
             end
         end,
         function(song)
-            return getFoldernameForSong(song)
+            return getTitleSortFoldernameForSong(song)
         end,
     },
 }
