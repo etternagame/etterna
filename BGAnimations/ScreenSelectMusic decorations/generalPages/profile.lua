@@ -508,6 +508,14 @@ local function createList()
                 local ptime = profile:GetTotalSessionSeconds()
                 self:settextf("%s playtime", SecondsToHHMMSS(ptime))
             end,
+            -- current judge
+            function(self)
+                local judge = GetTimingDifficulty()
+                self:settextf("Judge: %d", judge)
+            end,
+            -- a line break
+            function(self)
+            end,
             -- top skillset plays header
             function(self)
                 self:settext("Top 3 Played Skillsets")
@@ -515,22 +523,17 @@ local function createList()
             -- top played skillset
             function(self)
                 local count, name = getSkillsetPlaysByPosition(1)
-                self:settextf(" #1: %s (%d)", name, count)
+                self:settextf("  %s (%d)", name, count)
             end,
             -- 2nd top played skillset
             function(self)
                 local count, name = getSkillsetPlaysByPosition(2)
-                self:settextf(" #2: %s (%d)", name, count)
+                self:settextf("  %s (%d)", name, count)
             end,
             -- 3rd top played skillset
             function(self)
                 local count, name = getSkillsetPlaysByPosition(3)
-                self:settextf(" #3: %s (%d)", name, count)
-            end,
-            -- current judge
-            function(self)
-                local judge = GetTimingDifficulty()
-                self:settextf("Judge: %d", judge)
+                self:settextf("  %s (%d)", name, count)
             end,
         }
 
