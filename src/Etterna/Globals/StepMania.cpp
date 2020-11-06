@@ -972,6 +972,11 @@ sm_main(int argc, char* argv[])
 	// Initialize Logging
     Locator::provide(std::make_unique<PlogLogger>());
 
+    // Init Crash Handling
+	bool success = Core::Crash::initCrashpad();
+	if(!success)
+	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
+
     // Log App and System Information
     Locator::getLogger()->info("{} v{} - Build {}",
                                Core::AppInfo::APP_TITLE,
@@ -1005,12 +1010,6 @@ sm_main(int argc, char* argv[])
 	FILEMAN = new RageFileManager(argv[0]);
 	FILEMAN->MountInitialFilesystems();
 
-    // Init Crash Handling
-    // TODO: This should be initialized much sooner, but fileman needs to be initialized first.
-	bool success = Core::Crash::initCrashpad();
-	if(!success){
-	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
-	}
 
 	bool bPortable = DoesFileExist("Portable.ini");
 	if (!bPortable)
