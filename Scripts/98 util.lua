@@ -84,6 +84,37 @@ function expandDateString(given)
     return month, day, year
 end
 
+-- convert a long number string into a shorter one
+function shortenNumber(num)
+    local suffixes = {
+        "", -- less than 1k
+        "k",
+        "m",
+        "b",
+        "t",
+        "q", -- nothing should be any higher than m but...
+    }
+
+    local numNUM = tonumber(num)
+    local ind = 1
+    while math.abs(numNUM) >= 1000 and ind < #suffixes do
+        ind = ind + 1
+        numNUM = numNUM / 1000
+    end
+
+    if ind == 1 then return tostring(num) end
+    return string.format("%.3f%s", numNUM, suffixes[ind])
+end
+
+-- convenience to reduce copy paste
+function shortenIfOver1Mil(num)
+    if num >= 1000000 then
+        return shortenNumber(num)
+    else
+        return tostring(num)
+    end
+end
+
 -- a kind of alias of "not IsVisible" to include the diffuse
 -- also recursive
 function Actor.IsInvisible(self)
