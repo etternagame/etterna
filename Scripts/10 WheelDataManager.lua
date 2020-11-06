@@ -14,6 +14,7 @@ function WHEELDATA.Reset(self)
     -- library of all Songs for this Game (all Styles)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
+    self.AllGroups = {}
 
     -- for the current sort, filtering and organization purposes
     self.AllSongsByFolder = {} -- multipurpose; on Group sort, is identical to AllSongsByGroup
@@ -158,11 +159,17 @@ function WHEELDATA.SetAllSongs(self)
             local group = song:GetGroupName()
             if self.AllSongsByGroup[group] == nil then
                 self.AllSongsByGroup[group] = {}
+                self.AllGroups[#self.AllGroups+1] = group
             end
             self.AllSongsByGroup[group][#self.AllSongsByGroup[group]+1] = song
         end
     end
     self:SortByCurrentSortmode()
+end
+
+-- getter for the list of unfiltered groups
+function WHEELDATA.GetAllGroups(self)
+    return self.AllGroups
 end
 
 -- getter for the list of folders
