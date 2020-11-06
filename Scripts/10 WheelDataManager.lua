@@ -254,18 +254,22 @@ end
 
 -- get the average difficulty of all valid Steps in a list of Songs
 local function getAverageDifficultyOfGroup(group)
-    local out = 0
+    local out = {0,0,0,0,0,0,0,0}
     local chartcount = 0
     for _, song in ipairs(group) do
         for __, chart in ipairs(song:GetChartsOfCurrentGameMode()) do
             if countableStepsTypeForDiff(chart:GetStepsType()) then
                 chartcount = chartcount + 1
-                out = out + chart:GetMSD(1, 1)
+                for i, ___ in ipairs(ms.SkillSets) do
+                    out[i] = out[i] + chart:GetMSD(1, i)
+                end
             end
         end
     end
     if chartcount > 0 then
-        out = out / chartcount
+        for i, v in ipairs(out) do
+            out[i] = v / chartcount
+        end
     end
     return out
 end
@@ -349,11 +353,11 @@ function WHEELDATA.GetFolderCount(self, name)
 end
 
 -- getter for the folder average diff stat
-function WHEELDATA.GetFolderAverage(self, name)
+function WHEELDATA.GetFolderAverageDifficulty(self, name)
     if self.StatsByFolder[name] ~= nil then
         return self.StatsByFolder[name].avgDiff
     end
-    return 0
+    return {0,0,0,0,0,0,0,0}
 end
 
 -- getter for the folder clear stats (lamps, score info)

@@ -168,11 +168,11 @@ end
 -- updates all information for a group wheelitem
 local function groupActorUpdater(groupFrame, packName)
     local packCount = WHEELDATA:GetFolderCount(packName)
-    local packAverageDiff = WHEELDATA:GetFolderAverage(packName)
+    local packAverageDiff = WHEELDATA:GetFolderAverageDifficulty(packName)
     local clearstats = WHEELDATA:GetFolderClearStats(packName)
 
     groupFrame.Title:settext(packName)
-    groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff})
+    groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff[1]})
     groupFrame.ClearStats:playcommand("SetInfo", {stats = clearstats})
     groupBannerSetter(groupFrame.Banner, packName)
 end
@@ -649,7 +649,7 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetCommand = function(self)
                 local files = WHEELDATA:GetFolderCount(openedGroup)
-                local avg = WHEELDATA:GetFolderAverage(openedGroup)
+                local avg = WHEELDATA:GetFolderAverageDifficulty(openedGroup)[1]
                 self:settextf("%d Songs (Average MSD: %5.2f)", files, avg)
             end
         }
