@@ -95,17 +95,14 @@ ArchHooks::MountUserFilesystems(const std::string& sDirOfExecutable)
 
 	FILEMAN->Mount("dir", sAppDataDir + "/Announcers", "/Announcers");
 	FILEMAN->Mount("dir", sAppDataDir + "/BGAnimations", "/BGAnimations");
-	FILEMAN->Mount(
-	  "dir", sAppDataDir + "/BackgroundEffects", "/BackgroundEffects");
-	FILEMAN->Mount(
-	  "dir", sAppDataDir + "/BackgroundTransitions", "/BackgroundTransitions");
+	FILEMAN->Mount("dir", sAppDataDir + "/BackgroundEffects", "/BackgroundEffects");
+	FILEMAN->Mount("dir", sAppDataDir + "/BackgroundTransitions", "/BackgroundTransitions");
 	FILEMAN->Mount("dir", sAppDataDir + "/Cache", "/Cache");
 	FILEMAN->Mount("dir", sAppDataDir + "/CDTitles", "/CDTitles");
 	FILEMAN->Mount("dir", sAppDataDir + "/Courses", "/Courses");
 	FILEMAN->Mount("dir", sAppDataDir + "/Logs", "/Logs");
 	FILEMAN->Mount("dir", sAppDataDir + "/NoteSkins", "/NoteSkins");
-	FILEMAN->Mount(
-	  "dir", sAppDataDir + "/Packages", "/" + SpecialFiles::USER_PACKAGES_DIR);
+	FILEMAN->Mount("dir", sAppDataDir + "/Packages", "/" + SpecialFiles::USER_PACKAGES_DIR);
 	FILEMAN->Mount("dir", sAppDataDir + "/Save", "/Save");
 	FILEMAN->Mount("dir", sAppDataDir + "/Screenshots", "/Screenshots");
 	FILEMAN->Mount("dir", sAppDataDir + "/Songs", "/Songs");
@@ -113,151 +110,6 @@ ArchHooks::MountUserFilesystems(const std::string& sDirOfExecutable)
 	FILEMAN->Mount("dir", sAppDataDir + "/Themes", "/Themes");
 }
 
-static std::string
-LangIdToString(LANGID l)
-{
-	switch (PRIMARYLANGID(l)) {
-		case LANG_ARABIC:
-			return "ar";
-		case LANG_BULGARIAN:
-			return "bg";
-		case LANG_CATALAN:
-			return "ca";
-		case LANG_CHINESE:
-			return "zh";
-		case LANG_CZECH:
-			return "cs";
-		case LANG_DANISH:
-			return "da";
-		case LANG_GERMAN:
-			return "de";
-		case LANG_GREEK:
-			return "el";
-		case LANG_SPANISH:
-			return "es";
-		case LANG_FINNISH:
-			return "fi";
-		case LANG_FRENCH:
-			return "fr";
-		case LANG_HEBREW:
-			return "iw";
-		case LANG_HUNGARIAN:
-			return "hu";
-		case LANG_ICELANDIC:
-			return "is";
-		case LANG_ITALIAN:
-			return "it";
-		case LANG_JAPANESE:
-			return "ja";
-		case LANG_KOREAN:
-			return "ko";
-		case LANG_DUTCH:
-			return "nl";
-		case LANG_NORWEGIAN:
-			return "no";
-		case LANG_POLISH:
-			return "pl";
-		case LANG_PORTUGUESE:
-			return "pt";
-		case LANG_ROMANIAN:
-			return "ro";
-		case LANG_RUSSIAN:
-			return "ru";
-		case LANG_CROATIAN:
-			return "hr";
-		// case LANG_SERBIAN: return "sr"; // same as LANG_CROATIAN?
-		case LANG_SLOVAK:
-			return "sk";
-		case LANG_ALBANIAN:
-			return "sq";
-		case LANG_SWEDISH:
-			return "sv";
-		case LANG_THAI:
-			return "th";
-		case LANG_TURKISH:
-			return "tr";
-		case LANG_URDU:
-			return "ur";
-		case LANG_INDONESIAN:
-			return "in";
-		case LANG_UKRAINIAN:
-			return "uk";
-		case LANG_SLOVENIAN:
-			return "sl";
-		case LANG_ESTONIAN:
-			return "et";
-		case LANG_LATVIAN:
-			return "lv";
-		case LANG_LITHUANIAN:
-			return "lt";
-		case LANG_VIETNAMESE:
-			return "vi";
-		case LANG_ARMENIAN:
-			return "hy";
-		case LANG_BASQUE:
-			return "eu";
-		case LANG_MACEDONIAN:
-			return "mk";
-		case LANG_AFRIKAANS:
-			return "af";
-		case LANG_GEORGIAN:
-			return "ka";
-		case LANG_FAEROESE:
-			return "fo";
-		case LANG_HINDI:
-			return "hi";
-		case LANG_MALAY:
-			return "ms";
-		case LANG_KAZAK:
-			return "kk";
-		case LANG_SWAHILI:
-			return "sw";
-		case LANG_UZBEK:
-			return "uz";
-		case LANG_TATAR:
-			return "tt";
-		case LANG_PUNJABI:
-			return "pa";
-		case LANG_GUJARATI:
-			return "gu";
-		case LANG_TAMIL:
-			return "ta";
-		case LANG_KANNADA:
-			return "kn";
-		case LANG_MARATHI:
-			return "mr";
-		case LANG_SANSKRIT:
-			return "sa";
-		// These aren't present in the VC6 headers. We'll never have
-		// translations to these languages anyway. -C
-		// case LANG_MONGOLIAN: return "mn";
-		// case LANG_GALICIAN: return "gl";
-		default:
-		case LANG_ENGLISH:
-			return "en";
-	}
-}
-
-static LANGID
-GetLanguageID()
-{
-	HINSTANCE hDLL = LoadLibrary("kernel32.dll");
-	if (hDLL) {
-		typedef LANGID(GET_USER_DEFAULT_UI_LANGUAGE)(void);
-
-		GET_USER_DEFAULT_UI_LANGUAGE* pGetUserDefaultUILanguage =
-		  (GET_USER_DEFAULT_UI_LANGUAGE*)GetProcAddress(
-			hDLL, "GetUserDefaultUILanguage");
-		if (pGetUserDefaultUILanguage) {
-			LANGID ret = pGetUserDefaultUILanguage();
-			FreeLibrary(hDLL);
-			return ret;
-		}
-		FreeLibrary(hDLL);
-	}
-
-	return GetUserDefaultLangID();
-}
 
 /*
  * (c) 2003-2004 Chris Danford
