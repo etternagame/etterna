@@ -260,6 +260,13 @@ class ScoreManager
 	}
 	void RegisterScoreInProfile(HighScore* hs_, const std::string& profileID);
 
+	// return all skillsets ordered by number of plays
+	std::vector<Skillset> GetTopPlayedSkillsets(
+	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+
+	std::vector<int> GetPlaycountPerSkillset(
+	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+
 	void SetAllTopScores(const std::string& profileID =
 						   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void PurgeScores();
