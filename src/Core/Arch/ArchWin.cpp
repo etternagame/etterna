@@ -185,18 +185,18 @@ namespace Core::Arch {
 		return res;
 	}
 
-    std::string getExecutableDirectory(){
+    ghc::filesystem::path getExecutableDirectory(){
 	    // Get a handle on the current executable.
         HMODULE hModule = GetModuleHandleW(nullptr);
         WCHAR path[MAX_PATH]; // A variable to store the path
 
         // Get the full path for the current executable
         DWORD retVal = GetModuleFileNameW(hModule, path, MAX_PATH);
-        if (retVal == 0) return nullptr;
+        if (retVal == 0) return "";
 
         // Find the last backslash, and set it to a null character
         wchar_t *lastBackslash = wcsrchr(path, '\\');
-        if (lastBackslash == nullptr) return nullptr;
+        if (lastBackslash == nullptr) return "";
         *lastBackslash = 0;
 
         // Convert the UTF-16 into UTF-8

@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <string>
+#include <ghc/filesystem.hpp>
 
 /**
  * A namespace to hold all system specific tasks. Intended to be implemented once
@@ -91,7 +92,7 @@ namespace Core::Arch {
      *
      * @return A UTF-8 string of the directory containing the binary.
      */
-    std::string getExecutableDirectory();
+    ghc::filesystem::path getExecutableDirectory();
 }
 
 #endif //CORE_ARCH_ARCH_HPP

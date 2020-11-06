@@ -190,7 +190,7 @@ namespace Core::Arch {
         return res;
     }
 
-    std::string getExecutableDirectory(){
+    ghc::filesystem::path getExecutableDirectory(){
         char locationBuffer[FILENAME_MAX];
         int maxSize = sizeof(locationBuffer);
         int bytesRead = std::min<int>(readlink("/proc/self/exe", locationBuffer, maxSize), maxSize - 1);
@@ -200,9 +200,9 @@ namespace Core::Arch {
 
         // Remove last element of path
         char* lastForwardSlash = strrchr(&locationBuffer[0], '/');
-        if (lastForwardSlash == NULL) return NULL;
+        if (lastForwardSlash == NULL) return "";
         *lastForwardSlash = '\0';
 
-        return std::string(locationBuffer);
+        return locationBuffer;
     }
 }

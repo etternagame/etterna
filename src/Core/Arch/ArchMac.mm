@@ -82,7 +82,7 @@ namespace Core::Arch {
         return [item stringForType:(NSPasteboardTypeString)].UTF8String;
     }
 
-    std::string getExecutableDirectory(){
+    ghc::filesystem::path getExecutableDirectory(){
         return NSBundle.mainBundle.bundleURL.URLByDeletingLastPathComponent.path.UTF8String;
     }
 }
