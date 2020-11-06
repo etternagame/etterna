@@ -446,6 +446,34 @@ local function createList()
         local offlinerating = profile:GetPlayerRating()
         local onlinerating = DLMAN:IsLoggedIn() and DLMAN:GetSkillsetRating("Overall") or 0
 
+        -- list of skillsets mapped to number of plays
+        -- sorted immediately after being emplaced here
+        local playsbyskillset = SCOREMAN:GetPlaycountPerSkillset(profile)
+        local playsbyskillsetSorted = {}
+
+        -- sort and replace the skillsetplays table
+        local function sortPlaysBySkillset()
+            local t = {}
+            for i,v in ipairs(playsbyskillset) do
+                t[i] = {v, ms.SkillSets[i]}
+            end
+
+            table.sort(
+                t,
+                function(a,b)
+                    return a[1] > b[1]
+                end
+            )
+            return t
+        end
+        playsbyskillsetSorted = sortPlaysBySkillset()
+
+        -- returns the skillset and count of the skillset in the desired position
+        local function getSkillsetPlaysByPosition(position)
+            clamp(position, 1, #ms.SkillSets)
+            return playsbyskillsetSorted[position][1], playsbyskillsetSorted[position][2]
+        end
+
         -- a list of functions which basically determine the behavior of each small text line in the overall page
         -- self refers to the text actor
         -- the amount of functions listed here determines how many small lines appear
@@ -465,10 +493,39 @@ local function createList()
                 local count = SONGMAN:GetNumSongs()
                 self:settextf("%d songs loaded", count)
             end,
+            -- song packs installed (and filtered)
+            function(self)
+                local packcount = SONGMAN:GetNumSongGroups()
+                local groupcount = #WHEELDATA:GetAllGroups()
+                if packcount ~= groupcount then
+                    self:settextf("%d packs loaded (%d visible)", packcount, groupcount)
+                else
+                    self:settextf("%d packs loaded", packcount)
+                end
+            end,
             -- playtime (overall, not gameplay)
             function(self)
                 local ptime = profile:GetTotalSessionSeconds()
                 self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+            end,
+            -- top skillset plays header
+            function(self)
+                self:settext("Top 3 Played Skillsets")
+            end,
+            -- top played skillset
+            function(self)
+                local count, name = getSkillsetPlaysByPosition(1)
+                self:settextf(" #1: %s (%d)", name, count)
+            end,
+            -- 2nd top played skillset
+            function(self)
+                local count, name = getSkillsetPlaysByPosition(2)
+                self:settextf(" #2: %s (%d)", name, count)
+            end,
+            -- 3rd top played skillset
+            function(self)
+                local count, name = getSkillsetPlaysByPosition(3)
+                self:settextf(" #3: %s (%d)", name, count)
             end,
             -- current judge
             function(self)
