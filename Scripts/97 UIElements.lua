@@ -541,6 +541,23 @@ function UIElements.TextButton(z, depth, font)
 	return t
 end
 
+-- this is the bare minimum implementation of the above function
+-- this can be used as a text button as well, but due to reasons, this is more inaccurate.
+function UIElements.TextToolTip(z, depth, font)
+	return Def.BitmapText {
+		Font = font,
+		InitCommand = function(self)
+			self:z(z)
+		end,
+		OnCommand = function(self)
+			local screen = SCREENMAN:GetTopScreen()
+			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end
+	}
+end
+
 -- Basic clickable button implementation with quads
 function ButtonDemo(z)
 
