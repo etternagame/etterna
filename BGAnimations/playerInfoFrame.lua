@@ -132,6 +132,7 @@ local profile = GetPlayerOrMachineProfile(PLAYER_1)
 local pname = profile:GetDisplayName()
 local pcount = SCOREMAN:GetTotalNumberOfScores()
 local parrows = profile:GetTotalTapsAndHolds()
+local strparrows = shortenIfOver1Mil(parrows)
 local ptime = profile:GetTotalSessionSeconds()
 local offlinerating = profile:GetPlayerRating()
 local onlinerating = DLMAN:IsLoggedIn() and DLMAN:GetSkillsetRating("Overall") or 0
@@ -196,15 +197,24 @@ t[#t+1] = Def.ActorFrame {
             self:settextf("%d plays", pcount)
         end
     },
-    LoadFont("Common Normal") .. {
+    UIElements.TextToolTip(1, 1, "Common Normal") .. {
         Name = "Arrows",
         InitCommand = function(self)
             self:y(actuals.LeftTextTopGap3)
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%d arrows smashed", parrows)
-        end
+            self:settextf("%s arrows smashed", strparrows)
+        end,
+        MouseOverCommand = function(self)
+            if self:IsInvisible() then return end
+            TOOLTIP:SetText(parrows)
+            TOOLTIP:Show()
+        end,
+        MouseOutCommand = function(self)
+            if self:IsInvisible() then return end
+            TOOLTIP:Hide()
+        end,
     },
     LoadFont("Common Normal") .. {
         Name = "Playtime",

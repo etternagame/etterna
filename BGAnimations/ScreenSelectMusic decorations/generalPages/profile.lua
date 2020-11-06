@@ -486,7 +486,9 @@ local function createList()
             -- arrow count
             function(self)
                 local parrows = profile:GetTotalTapsAndHolds()
-                self:settextf("%d arrows smashed", parrows)
+                -- shorten if over 1 million since the number is kind of long
+                local nstr = shortenIfOver1Mil(parrows)
+                self:settextf("%s arrows smashed", nstr)
             end,
             -- songs loaded
             function(self)
@@ -543,8 +545,44 @@ local function createList()
             -- [index] = function(self) end,
         }
 
+        -- these functions run as you mouse over the text
+        -- each entry is 2 functions accepting no params, only self
+        -- first function is onHover (mouse on)
+        -- second function is onUnHover (mouse out)
+        -- invisible checks are not necessary
+        -- the index corresponds to the function index implicitly defined in the tables above
+        local smallTextHoverFunctions = {
+            -- [index] = { function(self) end, function(self) end }
+            [2] = {
+                function(self)
+                    -- for these functions i could just be changing the text itself
+                    -- but to keep it consistent with how i did the other thing
+                    -- im going to use tooltips here
+                    TOOLTIP:SetText(profile:GetTotalTapsAndHolds())
+                    TOOLTIP:Show()
+                end,
+                function(self)
+                    TOOLTIP:Hide()
+                end,
+            }
+        }
+
         local function leftTextSmall(i)
-            return LoadFont("Common Normal") .. {
+            local cHover = nil
+            local cUnHover = nil
+            -- set the hover commands if they exist
+            if smallTextHoverFunctions[i] ~= nil then
+                cHover = function(self, params)
+                    if self:IsInvisible() then return end
+                    smallTextHoverFunctions[i][1](self)
+                end
+                cUnHover = function(self, params)
+                    if self:IsInvisible() then return end
+                    smallTextHoverFunctions[i][2](self)
+                end
+            end
+
+            return UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "LeftSmallText_"..i,
                 InitCommand = function(self)
                     self:halign(0):valign(0)
@@ -556,6 +594,8 @@ local function createList()
                 end,
                 SetCommand = smallTextFunctions[i],
                 StartupCommand = smallTextInitFunctions[i],
+                MouseOverCommand = cHover,
+                MouseOutCommand = cUnHover,
             }
         end
 
