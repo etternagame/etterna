@@ -52,7 +52,8 @@ FilterManager::SetSSFilter(float v, Skillset ss, int bound)
 void
 FilterManager::ResetSSFilters()
 {
-	for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
+	for (int ss = 0; ss < NUM_Skillset + 2; ss++) {
+		// Skillsets + 2 other values (time, clear %)
 		SSFilterLowerBounds[ss] = 0;
 		SSFilterUpperBounds[ss] = 0;
 	}
@@ -65,7 +66,6 @@ FilterManager::ResetAllFilters()
 	ExclusiveFilter = false;
 	HighestSkillsetsOnly = false;
 	HighestDifficultyOnly = false;
-
 	MinFilterRate = 1.F;
 	MaxFilterRate = 1.F;
 }
@@ -74,7 +74,8 @@ FilterManager::ResetAllFilters()
 bool
 FilterManager::AnyActiveFilter()
 {
-	for (int ss = 0; ss < NUM_Skillset + 1; ss++) {
+	for (int ss = 0; ss < NUM_Skillset + 2; ss++) {
+		// Skillsets + 2 other values (time, clear %)
 		if (SSFilterLowerBounds[ss] > 0)
 			return true;
 		if (SSFilterUpperBounds[ss] > 0)

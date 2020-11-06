@@ -1730,22 +1730,27 @@ Song::MatchesFilter(const float rate,
 bool
 Song::ChartMatchesFilter(Steps* chart, float rate) const
 {
-	auto addchart = FILTERMAN->ExclusiveFilter;
-
+	// TODO: ADD CHECKS FOR CLEAR %
+	auto matches_skills = FILTERMAN->ExclusiveFilter;
 	/* The default behaviour of an exclusive filter is to accept
-	 * by default, (i.e. addsong=true) and reject if any
+	 * by default, (i.e. matches_skills=true) and reject if any skill
 	 * filters fail. The default behaviour of a non-exclusive filter is
 	 * the exact opposite: reject by default (i.e.
-	 * addsong=false), and accept if any filters match.
+	 * matches_skills=false), and accept if any skill filters match.
 	 */
 
-	for (auto ss = 0; ss < NUM_Skillset + 1; ss++) {
-		// Iterate over all skillsets, up to and
-		// including the placeholder NUM_Skillset
+	for (auto ss = 0; ss < NUM_Skillset + 2; ss++) {
+		/* Iterate over all skillsets, as well as
+		 * two placeholders for song length and best clear %
+		 */
 		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
 		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
 		if (lb > 0.F || ub > 0.F) { // If either bound is active, continue
-			if (!FILTERMAN->ExclusiveFilter) { // Non-Exclusive filter
+			if (!FILTERMAN->ExclusiveFilter) {
+				/* Non-Exclusive filter
+				 * (It doesn't make sense for either to trigger on exclusive
+				 * filters, as it would have to be true for *all* skillsets)
+				 */
 				if (FILTERMAN->HighestSkillsetsOnly && ss < NUM_Skillset) {
 					if (!chart->IsSkillsetHighestOfChart(
 						  static_cast<Skillset>(ss), rate)) {
@@ -1765,10 +1770,15 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 			float val;
 			if (ss < NUM_Skillset) {
 				val = chart->GetMSD(rate, ss);
-			} else {
-				// If we are on the placeholder skillset, look at song
+			} else if (ss == NUM_Skillset) {
+				// If we are on the first placeholder skillset, look at chart
 				// length instead of a skill
 				val = chart->GetLengthSeconds(rate);
+			} else { // ss == NUM_Skillset + 1
+				// If we are on the second placeholder skillset, look at best
+				// clear percent instead of a skill
+				// TODO: ADD IN MAGIC "GET BEST CLEAR% VALUE HERE"
+				continue; // Unimplemented
 			}
 			if (FILTERMAN->ExclusiveFilter) {
 				/* Our behaviour is to accept by default,
@@ -1776,8 +1786,8 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 				if ((val < lb && lb > 0.F) || (val > ub && ub > 0.F)) {
 					/* If we're below the lower bound and it's set,
 					 * or above the upper bound and it's set*/
-					addchart = false;
-					break;
+					matches_skills = false;
+					break; // We've already failed
 				}
 			} else { // Non-Exclusive Filter
 				/* Our behaviour is to reject by default,
@@ -1785,13 +1795,16 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 				if ((val > lb || !(lb > 0.F)) && (val < ub || !(ub > 0.F))) {
 					/* If we're above the lower bound or it's not set
 					 * and also below the upper bound or it isn't set*/
-					addchart = true;
-					break;
+					matches_skills = true;
+				} else if ((ss == NUM_Skillset) || (ss == NUM_Skillset + 1)) {
+					// This is an always-required filter,
+					// but we didn't match it.
+					return false;
 				}
 			}
 		}
 	}
-	return addchart;
+	return matches_skills;
 }
 
 bool
@@ -2419,7 +2432,8 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetHighestGrade(T* p, lua_State* L)
 	{
-		// this shadows (and essentially doesnt even do remotely the same thing as) the MusicWheelItem best grade thing for the item grades
+		// this shadows (and essentially doesnt even do remotely the same thing
+		// as) the MusicWheelItem best grade thing for the item grades
 		auto charts = p->GetChartsMatchingFilter();
 
 		Grade best = Grade_Invalid;
