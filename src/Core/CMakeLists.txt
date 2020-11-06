@@ -5,10 +5,12 @@ target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/AppInfo.cpp)
 
 list(APPEND CORE_HPP
         Misc/PlogLogger.hpp
+		Misc/Timer.hpp
         Services/Locator.hpp)
 list(APPEND CORE_CPP
         Services/ILogger.cpp
         Services/Locator.cpp
-        Misc/PlogLogger.cpp)
+        Misc/PlogLogger.cpp
+		Misc/Timer.cpp)
 
 target_sources(Etterna PRIVATE ${CORE_HPP} ${CORE_CPP})
