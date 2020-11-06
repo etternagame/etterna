@@ -85,4 +85,8 @@ namespace Core::Arch {
     ghc::filesystem::path getExecutableDirectory(){
         return NSBundle.mainBundle.bundleURL.URLByDeletingLastPathComponent.path.UTF8String;
     }
+
+    ghc::filesystem::path getAppDirectory() {
+	    return getExecutableDirectory();
+	}
 }

@@ -205,4 +205,8 @@ namespace Core::Arch {
 
         return locationBuffer;
     }
+
+    ghc::filesystem::path getAppDirectory() {
+	    return getExecutableDirectory();
+	}
 }

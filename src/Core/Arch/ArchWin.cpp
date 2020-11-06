@@ -203,4 +203,9 @@ namespace Core::Arch {
         return nowide::narrow(path);
 	}
 
+	ghc::filesystem::path getAppDirectory() {
+	    auto dir = getExecutableDirectory();
+	    return dir.parent_path();
+	}
+
 }

@@ -87,12 +87,24 @@ namespace Core::Arch {
     /**
      * @brief Get the location of the binary
      *
-     * Using std::filesystem::path would be preferable, though we must target a minimum
-     * version of macOS 10.15 for cross-platform availability.
-     *
      * @return A UTF-8 string of the directory containing the binary.
      */
     ghc::filesystem::path getExecutableDirectory();
+
+    /**
+     * @brief Get the base game directory. "The etterna folder".
+     *
+     * This is the folder where the user chose to install the application.
+     * NOTE: This directory is retrieved based on the binary location.
+     *
+     * - Windows: Will return one directory up from binary location.
+     * - macOS and Linux: Will return same directory as getExecutableDirectory.
+     *
+     * If the binary locations are changed, the functions and documentation must be chagned accordingly.
+     *
+     * @return A UTF-8 string of the directory containing the binary.
+     */
+    ghc::filesystem::path getAppDirectory();
 }
 
 #endif //CORE_ARCH_ARCH_HPP
