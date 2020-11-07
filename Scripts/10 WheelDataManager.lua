@@ -31,6 +31,7 @@ end
 local sortmodes = {
     "Group", -- group by pack, all "alphabetical order"
     "Title", -- group by title letter
+    "Author", -- group by chartist
 }
 local function sortToString(val)
     return sortmodes[val]
@@ -72,12 +73,20 @@ local function getTitleSortFoldernameForSong(song)
     return string.sub(title, 1, 1)
 end
 
+-- this function sits here for scoping reasons
+-- gets the author of a file, for foldername purposes
+local function getAuthorSortFoldernameForSong(song)
+    local author = song:GetOrTryAtLeastToGetSimfileAuthor()
+    if author:upper() == "AUTHOR UNKNOWN" then author = "??????" end
+    return author
+end
+
 -- functions responsible for actually sorting things according to the sortmodes table
 -- each member is a table of functions
 -- the first function modifies WHEELDATA by sorting its items
 -- the second function describes the method used to find the folder that a song is in
 local sortmodeImplementations = {
-    {   -- "Group" sort -- by pack, alphabetical
+    {   -- "Group" sort -- by pack, alphabetical within
         function()
             WHEELDATA:ResetSorts()
             -- sort each group
@@ -100,7 +109,7 @@ local sortmodeImplementations = {
         end,
     },
 
-    {   -- "Title" sort -- by song title, alphabetical
+    {   -- "Title" sort -- by song title, alphabetical within
         function()
             WHEELDATA:ResetSorts()
 
@@ -114,6 +123,7 @@ local sortmodeImplementations = {
                     WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = foldername
                 end
             end
+            -- sort groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders)
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
@@ -125,6 +135,34 @@ local sortmodeImplementations = {
         function(song)
             return getTitleSortFoldernameForSong(song)
         end,
+    },
+
+    {   -- "Author" sort -- by chart artist(s), alphabetical within
+        function()
+            WHEELDATA:ResetSorts()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(WHEELDATA.AllSongs) do
+                local fname = getAuthorSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+            end
+            -- sort groups and then songlists in groups
+            table.sort(WHEELDATA.AllFolders)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getAuthorSortFoldernameForSong(song)
+        end
     },
 }
 
