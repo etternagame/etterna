@@ -1662,7 +1662,7 @@ Song::GetChartsMatchingFilter() const
 			// converting the rate to an index within GetMSD
 			// TODO: less hacky solution for this (this isnt the only place we
 			// do this)
-			if (ChartMatchesFilter(i, currate + 0.001F)) {
+			if (ChartMatchesFilter(i, currate)) {
 				// chart matched on a rate, add it only once
 				matches.push_back(i);
 				break;
@@ -1709,7 +1709,6 @@ Song::MatchesFilter(const float rate,
 
 	for (auto* const chart : charts) {
 		// Iterate over all charts of the given type
-
 		bool addchart = ChartMatchesFilter(chart, rate);
 
 		// terminate early if not grabbing each matching chart
@@ -1730,7 +1729,6 @@ Song::MatchesFilter(const float rate,
 bool
 Song::ChartMatchesFilter(Steps* chart, float rate) const
 {
-	// TODO: ADD CHECKS FOR CLEAR %
 	auto matches_skills = FILTERMAN->ExclusiveFilter;
 	/* The default behaviour of an exclusive filter is to accept
 	 * by default, (i.e. matches_skills=true) and reject if any skill
@@ -1753,14 +1751,14 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 				 */
 				if (FILTERMAN->HighestSkillsetsOnly && ss < NUM_Skillset) {
 					if (!chart->IsSkillsetHighestOfChart(
-						  static_cast<Skillset>(ss), rate)) {
+						  static_cast<Skillset>(ss), rate + 0.001F)) {
 						// The current skill is not the highest of the chart
 						continue;
 					}
 				}
 				if (FILTERMAN->HighestDifficultyOnly && ss < NUM_Skillset) {
 					if (!IsChartHighestDifficulty(
-						  chart, static_cast<Skillset>(ss), rate)) {
+						  chart, static_cast<Skillset>(ss), rate + 0.001F)) {
 						// The song has a more difficult chart of the given
 						// skillset
 						continue;
@@ -1769,7 +1767,7 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 			}
 			float val;
 			if (ss < NUM_Skillset) {
-				val = chart->GetMSD(rate, ss);
+				val = chart->GetMSD(rate + 0.001F, ss);
 			} else if (ss == NUM_Skillset) {
 				// If we are on the first placeholder skillset, look at chart
 				// length instead of a skill
@@ -1777,9 +1775,17 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 			} else { // ss == NUM_Skillset + 1
 				// If we are on the second placeholder skillset, look at best
 				// clear percent instead of a skill
-				// TODO: ADD IN MAGIC "GET BEST CLEAR% VALUE HERE"
-				continue; // Unimplemented
+				const auto score =
+				  SCOREMAN->GetChartPBAt(chart->GetChartKey(), rate);
+				if (score == nullptr) {
+					val = 0;
+				} else if (PREFSMAN->m_bSortBySSRNorm) {
+					val = 100 * score->GetSSRNormPercent();
+				} else {
+					val = 100 * score->GetWifeScore();
+				}
 			}
+
 			if (FILTERMAN->ExclusiveFilter) {
 				/* Our behaviour is to accept by default,
 				 * but reject if any filters don't match.*/

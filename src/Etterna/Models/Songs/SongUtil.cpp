@@ -71,7 +71,7 @@ SongUtil::GetSteps(const Song* pSong,
 			for (auto currate = FILTERMAN->MaxFilterRate;
 				 currate > FILTERMAN->MinFilterRate - .01f;
 				 currate -= 0.1f) {
-				if (pSong->ChartMatchesFilter(pSteps, currate + 0.001f)) {
+				if (pSong->ChartMatchesFilter(pSteps, currate)) {
 					success = true;
 					break;
 				}
@@ -293,14 +293,15 @@ SongUtil::DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps)
 				RemoveInitialWhitespace(sSMNoteData2))
 				continue;
 
-			Locator::getLogger()->trace("Removed {} duplicate steps in song \"{}\" with "
-					   "description \"{}\", step author \"{}\", and meter "
-					   "\"{}\"",
-					   (void*)s2,
-					   pSong->GetSongDir().c_str(),
-					   s1->GetDescription().c_str(),
-					   s1->GetCredit().c_str(),
-					   s1->GetMeter());
+			Locator::getLogger()->trace(
+			  "Removed {} duplicate steps in song \"{}\" with "
+			  "description \"{}\", step author \"{}\", and meter "
+			  "\"{}\"",
+			  (void*)s2,
+			  pSong->GetSongDir().c_str(),
+			  s1->GetDescription().c_str(),
+			  s1->GetCredit().c_str(),
+			  s1->GetMeter());
 
 			pSong->DeleteSteps(s2, false);
 
