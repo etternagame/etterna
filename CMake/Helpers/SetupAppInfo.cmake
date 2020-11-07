@@ -1,5 +1,5 @@
 # Get proper CRASHPAD_HANDLER_EXE
-if(NOT DEFINED $ENV{CI})
+if(NOT DEFINED ENV{CI})
     set(CRASHPAD_HANDLER_EXE ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler)
 else()
     set(CRASHPAD_HANDLER_EXE crashpad_handler)
