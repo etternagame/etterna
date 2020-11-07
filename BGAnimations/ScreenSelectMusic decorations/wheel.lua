@@ -903,12 +903,9 @@ t[#t+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     self:x(actuals.HeaderMTextLeftGap)
                     self:y(actuals.HeaderHeight / 8 * 7)
-                end,
-                OnCommand = function(self)
                     local v = generateRecentWifeScoreGraph()
                     self:SetVertices(v)
                     self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #v}
-                    
                 end
             }
         }
