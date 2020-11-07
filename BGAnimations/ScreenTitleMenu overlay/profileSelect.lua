@@ -378,6 +378,11 @@ local function generateItems()
                             SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'")
                         end
                         return result, "Response invalid."
+                    end,
+                    function()
+                        -- do nothing
+                        -- the profile name is Default Profile
+                        -- cringe name tbh
                     end
                 )
             end
