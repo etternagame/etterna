@@ -95,20 +95,123 @@ local wheelHeaderTextSize = 1.2
 local wheelHeaderMTextSize = 0.6
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
 
+-----
 -- header related things
 local headerTransitionSeconds = 0.2
+local graphBoundTextSize = 0.4
+local graphBoundOffset = 10 / 1080 * SCREEN_HEIGHT -- offset the graph bounds diagonally by this much for alignment reasons
+local graphWidth = actuals.ItemDividerLength - actuals.ItemGradeTextRightGap + actuals.ItemGradeTextRightBump + textzoomfudge
 local playsThisSession = SCOREMAN:GetNumScoresThisSession()
 local scoresThisSession = SCOREMAN:GetScoresThisSession()
 local accThisSession = 0
+-- the vertical bounds for the graph
+-- need to keep them respectable ... dont allow below 50 or above 100
+local graphUpperBound = 100
+local graphLowerBound = 50
 
+-- calculate average wife percent for scores set this session
+-- ignores negative percents
 local function calcAverageWifePercentThisSession()
     local sum = 0
     for i, s in ipairs(scoresThisSession) do
-        sum = sum + (s:GetWifeScore() * 100)
+        sum = sum + clamp(s:GetWifeScore() * 100, 0, 100)
     end
     return sum / #scoresThisSession
 end
+
+-- figure out the graph bounds in a very slightly more intelligent way than normal
+local function calculateGraphBounds()
+    local max = -10000
+    local min = 10000
+
+    local sum = 0
+    local sd = 0
+    local mean = 0
+    for _, s in ipairs(scoresThisSession) do
+        local w = clamp(s:GetWifeScore() * 100, 0, 100)
+        if w > max then
+            max = w
+        end
+        if w < min then
+            min = w
+        end
+        sum = sum + w
+    end
+    mean = sum / playsThisSession
+    -- 2nd pass for sd
+    for _, s in ipairs(scoresThisSession) do
+        local w = clamp(s:GetWifeScore() * 100, 0, 100)
+        sd = sd + (w - mean) ^ 2
+    end
+    sd = math.sqrt(sd / playsThisSession)
+    max = clamp(mean + sd, min, 100)
+    min = clamp(mean - sd / 2, 0, max)
+
+    -- probably possible if your only score is outside the 0-100 range somehow
+    -- allow impossible bounds here (negative and +100%)
+    if min == max then
+        max = max + 2.5
+        min = min - 2.5
+    end
+    graphUpperBound = max
+    graphLowerBound = min
+end
+
+-- convert x value to x position in graph
+local function graphXPos(x, width)
+    -- dont hit the edge
+    local buffer = 0.01
+    local minX = width * buffer
+    local maxX = width * (1 - buffer)
+
+    local count = playsThisSession
+    -- the left end of segments should be where the points go
+    -- for 1, this is the middle
+    -- 2 points makes 3 segments
+    -- ...etc
+    local xsegmentsize = (width - buffer * 2) / (count + 1)
+
+    -- remember offset by minX and then push it over by the segmentsize
+    return minX + xsegmentsize * x
+end
+
+-- convert y value to y position in graph
+local function graphYPos(y, height)
+    -- dont quite allow hitting the edges
+    local buffer = 1
+    local minY = graphLowerBound - buffer
+    local maxY = graphUpperBound + buffer
+    y = clamp(y, graphLowerBound, graphUpperBound)
+
+    local percentage = (y - minY) / (maxY - minY)
+
+    -- negate the output, the graph line position is relative to bottom left corner of graph
+    -- negative numbers go upward on the screen
+    return -1 * percentage * height
+end
+
+-- generate vertices for 1 dot in the graph
+local function createVertices(vt, x, y, c)
+	vt[#vt + 1] = {{x, y, 0}, c}
+end
+
+-- generate the vertices to put into the ActorFrameTexture for the MiscPage graph
+local function generateRecentWifeScoreGraph()
+    local v = {}
+
+    for i, s in ipairs(scoresThisSession) do
+        local w = s:GetWifeScore() * 100
+        local x = graphXPos(i, graphWidth)
+        local y = graphYPos(w, actuals.HeaderHeight / 8 * 6)
+        createVertices(v, x, y, color("1,1,1,1"))
+    end
+
+    return v
+end
+
 accThisSession = calcAverageWifePercentThisSession()
+calculateGraphBounds()
+-----
 
 
 -- functionally create each item base because they are identical (BG and divider)
@@ -742,6 +845,72 @@ t[#t+1] = Def.ActorFrame {
             SetCommand = function(self)
                 self:settextf("Average Accuracy: %5.2f%%", accThisSession)
             end
+        },
+        Def.ActorFrame {
+            Name = "Graph",
+            InitCommand = function(self)
+                -- the graph is placed relative to the top of the header and left aligned the same as the wheel items left alignment
+                self:x(actuals.Width - actuals.ItemDividerLength)
+            end,
+            -- the "vertical space" of the graph is essentially 6/8 of the height of the header
+            -- 1/8 from the top and 1/8 from the bottom
+            -- the "width" of the graph is (the width - banner width - distance from left banner - distance from right)
+            -- not a clear number
+
+            Def.Quad {
+                Name = "YAxisLine",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.HeaderMTextLeftGap)
+                    self:y(actuals.HeaderHeight / 8)
+                    self:zoomto(actuals.ItemDividerThickness, actuals.HeaderHeight / 8 * 6)
+                end,
+            },
+            Def.Quad {
+                Name = "XAxisLine",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.HeaderMTextLeftGap)
+                    self:y(actuals.HeaderHeight - actuals.HeaderHeight / 8)
+                    self:zoomto(graphWidth, actuals.ItemDividerThickness)
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "YMax",
+                InitCommand = function(self)
+                    self:halign(1)
+                    self:x(actuals.HeaderMTextLeftGap - graphBoundOffset / 2)
+                    self:y(actuals.HeaderHeight / 8 - graphBoundOffset)
+                    self:rotationz(-45)
+                    self:zoom(graphBoundTextSize)
+                    self:settextf("%d%%", notShit.round(graphUpperBound))
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "YMin",
+                InitCommand = function(self)
+                    self:halign(1)
+                    self:x(actuals.HeaderMTextLeftGap - graphBoundOffset / 2)
+                    self:y(actuals.HeaderHeight / 8 * 7 - graphBoundOffset)
+                    self:rotationz(-45)
+                    self:zoom(graphBoundTextSize)
+                    self:settextf("%d%%", notShit.round(graphLowerBound))
+                end,
+            },
+
+            Def.ActorMultiVertex {
+                Name = "Line",
+                InitCommand = function(self)
+                    self:x(actuals.HeaderMTextLeftGap)
+                    self:y(actuals.HeaderHeight / 8 * 7)
+                end,
+                OnCommand = function(self)
+                    local v = generateRecentWifeScoreGraph()
+                    self:SetVertices(v)
+                    self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #v}
+                    
+                end
+            }
         }
     }
 }
