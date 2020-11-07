@@ -136,6 +136,90 @@ local strparrows = shortenIfOver1Mil(parrows)
 local ptime = profile:GetTotalSessionSeconds()
 local offlinerating = profile:GetPlayerRating()
 local onlinerating = DLMAN:IsLoggedIn() and DLMAN:GetSkillsetRating("Overall") or 0
+local username = ""
+local redir = false -- tell whether or not redirected input is on for the login prompt stuff
+
+-- handle logging in
+local function beginLoginProcess(self)
+    redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+
+    username = ""
+    
+    -- this sets up 2 text entry windows to pull your username and pass
+    -- if you press escape or just enter nothing, you are forced out
+    -- input redirects are controlled here because we want to be careful not to break any prior redirects
+    askForInputStringWithFunction(
+        "Enter Username",
+        64,
+        false,
+        function(answer)
+            username = answer
+            -- moving on to step 2 if the answer isnt blank
+            if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+                self:sleep(0.01):queuecommand("LoginStep2")
+            else
+                ms.ok("Login cancelled")
+                on()
+            end
+        end,
+        function() return true, "" end,
+        function()
+            on()
+            ms.ok("Login cancelled")
+        end
+    )
+end
+
+-- do not use this function outside of first calling beginLoginProcess
+local function loginStep2()
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    -- try to keep the scope of password here
+    -- if we open up the scope, if a lua error happens on this screen
+    -- the password may show up in the error message
+    local password = ""
+    askForInputStringWithFunction(
+        "Enter Password",
+        128,
+        true,
+        function(answer)
+            password = answer
+            -- log in if not blank
+            if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+                DLMAN:Login(username, password)
+            else
+                ms.ok("Login cancelled")
+            end
+            on()
+        end,
+        function() return true, "" end,
+        function()
+            on()
+            ms.ok("Login cancelled")
+        end
+    )
+end
+
+
 
 t[#t+1] = Def.Quad {
     Name = "BG",
@@ -158,16 +242,33 @@ t[#t+1] = Def.Sprite {
     end
 }
 
-t[#t+1] = Def.Sprite {
+t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     Name = "ConnectionSprite",
     InitCommand = function(self)
         self:halign(1):valign(1)
         -- position relative to the bottom right corner of the avatar
         self:xy(actuals.AvatarWidth - actuals.ConnectionLogoRightGap, actuals.AvatarWidth - actuals.ConnectionLogoBottomGap)
+        self:playcommand("Set")
     end,
-    BeginCommand = function(self)
-        self:Load(THEME:GetPathG("", "loggedin"))
+    SetCommand = function(self)
+        if DLMAN:IsLoggedIn() then
+            self:Load(THEME:GetPathG("", "loggedin"))
+        else
+            self:Load(THEME:GetPathG("", "loggedout"))
+        end
         self:zoomto(actuals.ConnectionLogoSize, actuals.ConnectionLogoSize)
+    end,
+    MouseDownCommand = function(self, params)
+        if params.event == "DeviceButton_left mouse button" then
+            if DLMAN:IsLoggedIn() then
+                DLMAN:Logout()
+            else
+                beginLoginProcess(self)
+            end
+        end
+    end,
+    LoginStep2Command = function(self)
+        loginStep2()
     end
 }
 
