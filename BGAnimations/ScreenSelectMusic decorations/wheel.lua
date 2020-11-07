@@ -95,7 +95,21 @@ local wheelHeaderTextSize = 1.2
 local wheelHeaderMTextSize = 0.6
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
 
+-- header related things
 local headerTransitionSeconds = 0.2
+local playsThisSession = SCOREMAN:GetNumScoresThisSession()
+local scoresThisSession = SCOREMAN:GetScoresThisSession()
+local accThisSession = 0
+
+local function calcAverageWifePercentThisSession()
+    local sum = 0
+    for i, s in ipairs(scoresThisSession) do
+        sum = sum + (s:GetWifeScore() * 100)
+    end
+    return sum / #scoresThisSession
+end
+accThisSession = calcAverageWifePercentThisSession()
+
 
 -- functionally create each item base because they are identical (BG and divider)
 local function wheelItemBase()
@@ -714,8 +728,7 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
             end,
             SetCommand = function(self)
-                local plays = SCOREMAN:GetNumScoresThisSession()
-                self:settextf("Session Plays: %d", plays)
+                self:settextf("Session Plays: %d", playsThisSession)
             end
         },
         LoadFont("Common Normal") .. {
@@ -727,7 +740,7 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
             end,
             SetCommand = function(self)
-                self:settextf("Average Accuracy: %5.2f%%", 12.34)
+                self:settextf("Average Accuracy: %5.2f%%", accThisSession)
             end
         }
     }
