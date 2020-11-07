@@ -714,7 +714,8 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
             end,
             SetCommand = function(self)
-                self:settextf("Session Plays: %d", 696969)
+                local plays = SCOREMAN:GetNumScoresThisSession()
+                self:settextf("Session Plays: %d", plays)
             end
         },
         LoadFont("Common Normal") .. {
