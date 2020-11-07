@@ -214,6 +214,10 @@ function scoreBoard(pn, position)
 				score = s
 			end
 			dvt = score:GetOffsetVector()
+			totalTaps = 0
+			for k, v in ipairs(judges) do
+				totalTaps = totalTaps + score:GetTapNoteScore(v)
+			end
 			MESSAGEMAN:Broadcast("ScoreChanged")
 		end
 	}
@@ -460,6 +464,9 @@ function scoreBoard(pn, position)
 			ForceWindowMessageCommand = function(self, params)
 				local rescoreJudges = getRescoredJudge(dvt, judge, k)
 				self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
 			end,
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
