@@ -355,9 +355,8 @@ t[#t+1] = Def.ActorFrame {
         MouseDownCommand = function(self, params)
             local scr = SCREENMAN:GetTopScreen()
             if selectable(self:GetName()) then
-                local songs = SONGMAN:GetAllSongs()
-                if #songs == 0 then return end
-                local song = songs[math.random(#songs)]
+                local group = WHEELDATA:GetRandomFolder()
+                local song = WHEELDATA:GetRandomSongInFolder(group)
                 scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
             end
         end

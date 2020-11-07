@@ -582,13 +582,28 @@ t[#t+1] = Def.ActorFrame {
         self:GetChild("MiscPage"):playcommand("In")
     end,
 
-    Def.Quad {
+    UIElements.QuadButton(1) .. {
         Name = "BG",
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(actuals.Width, actuals.HeaderHeight)
             self:diffuse(color("#111111"))
             self:diffusealpha(0.6)
+        end,
+        MouseDownCommand = function(self, params)
+            if params.event == "DeviceButton_left mouse button" then
+                if not self:GetParent():GetChild("GroupPage"):IsInvisible() then
+                    -- left clicking the group header gives a random song in the group
+                    -- for some reason this breaks you out of groups into others
+                    -- i believe this is either a race condition (???) or duplicate songs being found in other groups
+                    local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
+                    self:GetParent():GetParent():GetChild("WheelContainer"):playcommand("FindSong", {song = song})
+                elseif not self:GetParent():GetChild("MiscPage"):IsInvisible() then
+                    -- left clicking the normal header gives a random group (???)
+                    local group = WHEELDATA:GetRandomFolder()
+                    self:GetParent():GetParent():GetChild("WheelContainer"):playcommand("FindGroup", {group = group})
+                end
+            end
         end
     },
     Def.ActorFrame {
@@ -653,16 +668,6 @@ t[#t+1] = Def.ActorFrame {
                 self:settextf("%d Songs (Average MSD: %5.2f)", files, avg)
             end
         }
-        --[[
-            -- this means we clicked the header
-            -- hidden feature: random song in group if doing that
-            local group = self:GetParent().g.Title:GetText()
-            if group == nil or group == "" then return end
-            local songs = SONGMAN:GetSongsInGroup(group)
-            if #songs == 0 then return end
-            local song = songs[math.random(#songs)]
-            SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("FindSong", {song = song})
-        ]]
     },
     Def.ActorFrame {
         Name = "MiscPage",

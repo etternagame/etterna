@@ -182,6 +182,20 @@ function WHEELDATA.GetSongsInFolder(self, name)
     return self.AllSongsByFolder[name]
 end
 
+-- getter for a random song in a folder
+function WHEELDATA.GetRandomSongInFolder(self, name)
+    if self.AllSongsByFolder[name] == nil then
+        return nil
+    else
+        return self.AllSongsByFolder[name][math.random(#self.AllSongsByFolder[name])]
+    end
+end
+
+-- getter for a random folder
+function WHEELDATA.GetRandomFolder(self)
+    return self.AllFolders[math.random(#self.AllFolders)]
+end
+
 -- to simplify a lot of copy paste....
 -- builds and returns a list of folders and songs
 function WHEELDATA.GetWheelItemsForOpenedFolder(self, name)
