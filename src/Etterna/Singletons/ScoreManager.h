@@ -157,8 +157,9 @@ class ScoreManager
 					PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) -> int
 	{
 		HighScore hs = hs_;
-		RegisterScoreInProfile(
-		  pscores[profileID][hs.GetChartKey()].AddScore(hs), profileID);
+		HighScore* h = pscores[profileID][hs.GetChartKey()].AddScore(hs);
+		RegisterScoreThisSession(h);
+		RegisterScoreInProfile(h, profileID);
 		return hs.GetTopScore();
 	}
 
@@ -292,6 +293,19 @@ class ScoreManager
 	// probably can avoid copying strings if we're sure it's safe
 	std::set<HighScore*> rescores;
 
+	auto GetNumScoresThisSession() -> int
+	{
+		return scoresThisSession.size();
+	}
+	auto GetScoresThisSession() -> vector<HighScore*>
+	{
+		return scoresThisSession;
+	}
+	void RegisterScoreThisSession(HighScore* hs)
+	{
+		scoresThisSession.push_back(hs);
+	}
+
   private:
 	std::unordered_map<std::string,
 					   std::unordered_map<std::string, ScoresForChart>>
@@ -307,6 +321,11 @@ class ScoreManager
 	// pointers in a keyed index (by scorekey, in case it's not immediately
 	// obvious)
 	std::unordered_map<std::string, HighScore*> ScoresByKey;
+
+	// a more thought out (not really) replacement for STATSMAN played stage stats
+	// note: scoresThisSession is NOT meant to reset on profile load
+	// (design choice)
+	vector<HighScore*> scoresThisSession;
 };
 
 extern ScoreManager* SCOREMAN;

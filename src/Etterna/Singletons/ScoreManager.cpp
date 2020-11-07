@@ -1389,6 +1389,19 @@ class LunaScoreManager : public Luna<ScoreManager>
 		return 1;
 	}
 
+	static auto GetScoresThisSession(T* p, lua_State* L) -> int
+	{
+		auto v = p->GetScoresThisSession();
+		LuaHelpers::CreateTableFromArray(v, L);
+		return 1;
+	}
+
+	static auto GetNumScoresThisSession(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetNumScoresThisSession());
+		return 1;
+	}
+
 	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
@@ -1406,6 +1419,8 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(GetTotalNumberOfScores);
 		ADD_METHOD(GetTopPlayedSkillsets);
 		ADD_METHOD(GetPlaycountPerSkillset);
+		ADD_METHOD(GetScoresThisSession);
+		ADD_METHOD(GetNumScoresThisSession);
 	}
 };
 
