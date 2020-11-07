@@ -680,5 +680,24 @@ function MusicWheel:new(params)
         end
     end
 
+    w.FindGroupCommand = function(self, params)
+        if params.group ~= nil then
+            local success = w:findGroup(params.group, false)
+            if success then
+                crossedGroupBorder = true
+                forceGroupCheck = true
+                MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                w:rebuildFrames()
+                MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                w.settled = true
+                w:updateMusicFromCurrentItem()
+            else
+                -- in this case there was something wrong with the input
+                -- usually it always is "successful" but gives an index of 1 if nothing is actually found
+            end
+        end
+    end
+
     return w
 end
