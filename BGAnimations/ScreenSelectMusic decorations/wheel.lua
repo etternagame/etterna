@@ -15,14 +15,11 @@ local ratios = {
     ItemHeight = 86.5 / 1080, -- 85 + 2 to account for half of the upper and lower item dividers
     ItemDividerThickness = 2 / 1080,
     ItemDividerLength = 584 / 1920,
-    ItemGradeWidth = 163 / 1920,
-    ItemGradeHeight = 23 / 1080, -- 23 + 2 for a 1px shadow on top and bottom
-    ItemGradeLowerGap = 11 / 1080, -- gap between center of divider to inside of grade shadow
     ItemTextUpperGap = 20 / 1080, -- distance from top of item to center of title text
     ItemTextLowerGap = 18 / 1080, -- distance from center of divider to center of author text
     ItemTextCenterDistance = 40 / 1080, -- distance from lower (divider center) to center of subtitle
-    ItemGradeTextRightGap = 20 / 1920, -- distance from right of item to center of grade
-    ItemGradeTextRightBump = 4 / 1920, -- placed in addition to the above measurement
+    ItemGradeTextRightGap = 24 / 1920, -- distance from right of item to right edge of text
+    ItemGradeTextMaxWidth = 48 / 1920, -- approximation of width of the AAAAA grade
     BannerWidth = 265 / 1920,
     BannerItemGap = 18 / 1920, -- gap between banner and item text/dividers
     HeaderHeight = 110 / 1080,
@@ -57,14 +54,11 @@ local actuals = {
     ItemHeight = ratios.ItemHeight * SCREEN_HEIGHT,
     ItemDividerThickness = 2, -- maybe needs to be constant
     ItemDividerLength = ratios.ItemDividerLength * SCREEN_WIDTH,
-    ItemGradeWidth = ratios.ItemGradeWidth * SCREEN_WIDTH,
-    ItemGradeHeight = ratios.ItemGradeHeight * SCREEN_HEIGHT,
-    ItemGradeLowerGap = ratios.ItemGradeLowerGap * SCREEN_HEIGHT,
     ItemTextUpperGap = ratios.ItemTextUpperGap * SCREEN_HEIGHT,
     ItemTextLowerGap = ratios.ItemTextLowerGap * SCREEN_HEIGHT,
     ItemTextCenterDistance = ratios.ItemTextCenterDistance * SCREEN_HEIGHT,
     ItemGradeTextRightGap = ratios.ItemGradeTextRightGap * SCREEN_WIDTH,
-    ItemGradeTextRightBump = ratios.ItemGradeTextRightBump * SCREEN_WIDTH,
+    ItemGradeTextMaxWidth = ratios.ItemGradeTextMaxWidth * SCREEN_WIDTH,
     BannerWidth = ratios.BannerWidth * SCREEN_WIDTH,
     BannerItemGap = ratios.BannerItemGap * SCREEN_WIDTH,
     HeaderHeight = ratios.HeaderHeight * SCREEN_HEIGHT,
@@ -100,7 +94,7 @@ local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing tex
 local headerTransitionSeconds = 0.2
 local graphBoundTextSize = 0.4
 local graphBoundOffset = 10 / 1080 * SCREEN_HEIGHT -- offset the graph bounds diagonally by this much for alignment reasons
-local graphWidth = actuals.ItemDividerLength - actuals.ItemGradeTextRightGap + actuals.ItemGradeTextRightBump + textzoomfudge
+local graphWidth = actuals.ItemDividerLength - actuals.ItemGradeTextRightGap / 2
 local playsThisSession = SCOREMAN:GetNumScoresThisSession()
 local scoresThisSession = SCOREMAN:GetScoresThisSession()
 local accThisSession = 0
@@ -324,7 +318,7 @@ local function songActorBuilder()
                 self:strokecolor(color("0.6,0.6,0.6,0.75"))
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
-                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemTitleTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemTitleTextSize)
             end,
             BeginCommand = function(self)
@@ -338,7 +332,7 @@ local function songActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextCenterDistance)
                 self:zoom(wheelItemSubTitleTextSize)
                 self:halign(0)
-                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemSubTitleTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemSubTitleTextSize)
             end,
             BeginCommand = function(self)
@@ -352,7 +346,7 @@ local function songActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
                 self:zoom(wheelItemArtistTextSize)
                 self:halign(0)
-                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemArtistTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemArtistTextSize)
             end,
             BeginCommand = function(self)
@@ -362,9 +356,10 @@ local function songActorBuilder()
         LoadFont("Common Normal") .. {
             Name = "Grade",
             InitCommand = function(self)
-                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap - actuals.ItemGradeTextRightBump)
+                self:halign(1)
+                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
                 self:zoom(wheelItemGradeTextSize)
-                self:maxwidth(actuals.ItemGradeTextRightGap * 2 / wheelItemGradeTextSize)
+                self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
             end,
             BeginCommand = function(self)
                 self:GetParent().Grade = self
@@ -405,7 +400,7 @@ local function groupActorBuilder()
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
                 self:zoom(wheelItemGroupTextSize)
                 self:halign(0)
-                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemGroupTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
                 -- we make the background of groups fully opaque to distinguish them from songs
                 self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG"):diffusealpha(1)
             end,
@@ -420,7 +415,7 @@ local function groupActorBuilder()
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
                 self:zoom(wheelItemGroupInfoTextSize)
                 self:halign(0)
-                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextRightBump - actuals.ItemGradeTextRightGap * 2) / wheelItemGroupInfoTextSize - textzoomfudge)
+                self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
                 self.avg = 0
                 self.count = 0
             end,
@@ -439,9 +434,10 @@ local function groupActorBuilder()
         LoadFont("Common Normal") .. {
             Name = "ClearStats",
             InitCommand = function(self)
-                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap - actuals.ItemGradeTextRightBump)
+                self:halign(1)
+                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
                 self:zoom(wheelItemGradeTextSize)
-                self:maxwidth(actuals.ItemGradeTextRightGap * 2 / wheelItemGradeTextSize)
+                self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
                 self.lamp = nil
                 self.scores = 0
             end,
