@@ -116,7 +116,13 @@ local function calcAverageWifePercentThisSession()
     for i, s in ipairs(scoresThisSession) do
         sum = sum + clamp(s:GetWifeScore() * 100, 0, 100)
     end
-    return sum / #scoresThisSession
+
+    -- prevent division by 0
+    if playsThisSession == 0 then 
+        return 0
+    else
+        return sum / playsThisSession
+    end
 end
 
 -- figure out the graph bounds in a very slightly more intelligent way than normal
@@ -137,13 +143,23 @@ local function calculateGraphBounds()
         end
         sum = sum + w
     end
-    mean = sum / playsThisSession
-    -- 2nd pass for sd
-    for _, s in ipairs(scoresThisSession) do
-        local w = clamp(s:GetWifeScore() * 100, 0, 100)
-        sd = sd + (w - mean) ^ 2
+
+    -- prevent division by 0
+    if playsThisSession == 0 then
+        mean = 85
+        sd = 15
+        min = 0
+        max = 100
+    else
+        mean = sum / playsThisSession
+        -- 2nd pass for sd
+        for _, s in ipairs(scoresThisSession) do
+            local w = clamp(s:GetWifeScore() * 100, 0, 100)
+            sd = sd + (w - mean) ^ 2
+        end
+        sd = math.sqrt(sd / playsThisSession)
     end
-    sd = math.sqrt(sd / playsThisSession)
+
     max = clamp(mean + sd, min, 100)
     min = clamp(mean - sd / 2, 0, max)
 
