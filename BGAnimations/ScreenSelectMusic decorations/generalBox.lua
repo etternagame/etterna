@@ -1,4 +1,18 @@
-local t = Def.ActorFrame {Name = "GeneralBoxFile"}
+local t = Def.ActorFrame {
+    Name = "GeneralBoxFile",
+    LoginMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end,
+    LogOutMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end,
+    LoginFailedMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end,
+    OnlineUpdateMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end
+}
 
 local ratios = {
     LeftGap = 1140 / 1920, -- left side of screen to left edge of frame
