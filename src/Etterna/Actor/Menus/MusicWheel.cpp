@@ -20,6 +20,7 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -1073,8 +1074,8 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 		m_WheelItemDatasStatus[so] = VALID;
 
 		if (PREFSMAN->m_verbose_log > 0) {
-			Locator::getLogger()->trace("MusicWheel sorting took: {}",
-					   RageTimer::GetTimeSinceStart());
+			Locator::getLogger()->trace("MusicWheel sorting took: {}ms",
+					   Core::Timer::getDeltaSinceStart().count());
 		}
 	}
 }

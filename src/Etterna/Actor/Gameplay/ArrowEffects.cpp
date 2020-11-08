@@ -13,6 +13,7 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -138,7 +139,7 @@ void
 ArrowEffects::Update()
 {
 	static float fLastTime = 0;
-	const auto fTime = RageTimer::GetTimeSinceStart();
+	const auto fTime = Core::Timer::getDeltaSinceStart().count();
 
 	const auto* const pStyle = GAMESTATE->GetCurrentStyle(PLAYER_1);
 	const auto* const pCols = pStyle->m_ColumnInfo;
@@ -233,7 +234,7 @@ ArrowEffects::Update()
 
 	// Update Tipsy
 	if (effects[PlayerOptions::EFFECT_TIPSY] != 0) {
-		const auto time = RageTimer::GetTimeSinceStart();
+		const auto time = Core::Timer::getDeltaSinceStart().count();
 		const auto time_times_timer = time * TIPSY_TIMER_FREQUENCY;
 		const auto arrow_times_mag = ARROW_SIZE * TIPSY_ARROW_MAGNITUDE;
 		const auto time_times_offset_timer =
@@ -583,7 +584,7 @@ ArrowEffects::GetXPos(const PlayerState* pPlayerState,
 	if (fEffects[PlayerOptions::EFFECT_DRUNK] != 0)
 		fPixelOffsetFromCenter +=
 		  fEffects[PlayerOptions::EFFECT_DRUNK] *
-		  (RageFastCos(RageTimer::GetTimeSinceStart() +
+		  (RageFastCos(static_cast<float>(Core::Timer::getDeltaSinceStart().count()) +
 					   iColNum * DRUNK_COLUMN_FREQUENCY +
 					   fYOffset * DRUNK_OFFSET_FREQUENCY / SCREEN_HEIGHT) *
 		   ARROW_SIZE * DRUNK_ARROW_MAGNITUDE);
@@ -796,7 +797,7 @@ ArrowGetPercentVisible(float fYPosWithoutReverse)
 	if (fAppearances[PlayerOptions::APPEARANCE_STEALTH] != 0)
 		fVisibleAdjust -= fAppearances[PlayerOptions::APPEARANCE_STEALTH];
 	if (fAppearances[PlayerOptions::APPEARANCE_BLINK] != 0) {
-		auto f = RageFastSin(RageTimer::GetTimeSinceStart() * 10);
+		auto f = RageFastSin(static_cast<float>(Core::Timer::getDeltaSinceStart().count()) * 10);
 		f = Quantize(f, BLINK_MOD_FREQUENCY);
 		fVisibleAdjust += SCALE(f, 0, 1, -1, 0);
 	}

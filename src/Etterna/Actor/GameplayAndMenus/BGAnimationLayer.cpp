@@ -11,6 +11,7 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -659,7 +660,7 @@ BGAnimationLayer::UpdateInternal(float fDeltaTime)
 			}
 			break;
 		case TYPE_TILES: {
-			auto fSecs = RageTimer::GetTimeSinceStart();
+			auto fSecs = static_cast<float>(Core::Timer::getDeltaSinceStart().count());
 			auto fTotalWidth = m_iNumTilesWide * m_fTilesSpacingX;
 			auto fTotalHeight = m_iNumTilesHigh * m_fTilesSpacingY;
 

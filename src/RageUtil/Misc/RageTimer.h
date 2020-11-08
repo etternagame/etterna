@@ -34,8 +34,6 @@ class RageTimer
 	/* Alias for Ago */
 	[[nodiscard]] auto PeekDeltaTime() const -> float { return Ago(); }
 
-	static auto GetTimeSinceStart()
-	  -> float; // seconds since the program was started
 	static auto GetUsecsSinceStart()
 	  -> uint64_t; // microseconds since the program was started
 

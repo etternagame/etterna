@@ -6,6 +6,8 @@
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/PlogLogger.hpp"
 #include "Core/Misc/AppInfo.hpp"
+#include "Core/Misc/Timer.hpp"
+
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -1467,9 +1469,9 @@ HandleGlobalInputs(const InputEventPlus& input)
 							  INPUTFILTER->IsBeingPressed(
 								DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
 		bool bSaveCompressed = bHoldingShift;
-		RageTimer timer;
+		auto time = Core::Timer::getCurrentTime();
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
-		Locator::getLogger()->trace("Screenshot took {} seconds.", timer.GetDeltaTime());
+		Locator::getLogger()->info("Screenshot took {}ms.", Core::Timer::getDuration(time).count());
 		return true; // handled
 	}
 

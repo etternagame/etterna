@@ -11,6 +11,7 @@
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -366,7 +367,7 @@ BitmapText::BuildChars()
 	}
 
 	if (m_bUsingDistortion) {
-		const int iSeed = lround(RageTimer::GetTimeSinceStart() * 500000.0f);
+		const int iSeed = static_cast<int>(lround(Core::Timer::getDeltaSinceStart().count() * 500000.0f));
 		RandomGen rnd(iSeed);
 		for (unsigned int i = 0; i < m_aVertices.size(); i += 4) {
 			const auto w = m_aVertices[i + 2].p.x - m_aVertices[i].p.x;
@@ -793,7 +794,7 @@ BitmapText::DrawPrimitives()
 		// render the diffuse pass
 		if (m_bRainbowScroll) {
 			int color_index =
-			  static_cast<int>(RageTimer::GetTimeSinceStart() / 0.200) %
+			  static_cast<int>(Core::Timer::getDeltaSinceStart().count() / 0.200) %
 			  RAINBOW_COLORS.size();
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
 				const auto color = RAINBOW_COLORS[color_index];
@@ -853,7 +854,7 @@ BitmapText::DrawPrimitives()
 		// apply jitter to verts
 		vector<RageVector3> vGlyphJitter;
 		if (m_bJitter) {
-			const int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
+			const int iSeed = lround(Core::Timer::getDeltaSinceStart().count() * 8);
 			RandomGen rnd(iSeed);
 
 			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {

@@ -22,6 +22,7 @@
 #include "Etterna/Globals/global.h"
 
 #include "RageTimer.h"
+#include "Core/Misc/Timer.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include "arch/ArchHooks/ArchHooks.h"
@@ -46,15 +47,6 @@ static std::chrono::microseconds
 GetChronoTime()
 {
 	return ArchHooks::GetChronoDurationSinceStart();
-}
-
-float
-RageTimer::GetTimeSinceStart()
-{
-	const auto usecs = GetChronoTime();
-	const std::chrono::microseconds g = usecs - g_iStartTime;
-
-	return static_cast<float>(g.count()) / TIMESTAMP_RESOLUTION;
 }
 
 uint64_t
@@ -140,4 +132,4 @@ RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStart())
+LuaFunction(GetTimeSinceStart, static_cast<float>(Core::Timer::getDeltaSinceStart<std::chrono::milliseconds>().count()) / 1000.0f)

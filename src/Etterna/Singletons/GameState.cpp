@@ -32,6 +32,7 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -1572,7 +1573,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(CountNotesSeparately, CountNotesSeparately())
 	static int GetSessionTime(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->m_timeGameStarted.GetTimeSinceStart());
+		lua_pushnumber(L, Core::Timer::getDeltaSinceStart().count());
 		return 1;
 	}
 	static int GetSongOptions(T* p, lua_State* L)

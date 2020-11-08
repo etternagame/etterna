@@ -15,6 +15,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -828,7 +829,7 @@ NoteField::DrawPrimitives()
 	if (*m_FieldRenderArgs.selection_begin_marker != -1 &&
 		*m_FieldRenderArgs.selection_end_marker != -1) {
 		m_FieldRenderArgs.selection_glow = SCALE(
-		  RageFastCos(RageTimer::GetTimeSinceStart() * 2), -1, 1, 0.1f, 0.3f);
+		  RageFastCos(Core::Timer::getDeltaSinceStart().count() * 2), -1, 1, 0.1f, 0.3f);
 	}
 	m_FieldRenderArgs.fade_before_targets = FADE_BEFORE_TARGETS_PERCENT;
 

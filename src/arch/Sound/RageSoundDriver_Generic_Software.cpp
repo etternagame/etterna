@@ -6,6 +6,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Sound/RageSoundMixBuffer.h"
 #include "RageUtil/Sound/RageSoundReader.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <algorithm>
 
@@ -322,7 +323,7 @@ RageSoundDriver::Update()
 	}
 
 	static float fNext = 0;
-	if (RageTimer::GetTimeSinceStart() >= fNext) {
+	if (Core::Timer::getDeltaSinceStart().count() >= fNext) {
 		/* Lockless: only Mix() can write to underruns. */
 		int current_underruns = underruns;
 		if (current_underruns > logged_underruns) {
@@ -333,7 +334,7 @@ RageSoundDriver::Update()
 
 			/* Don't log again for at least a second, or we'll burst output
 			 * and possibly cause more underruns. */
-			fNext = RageTimer::GetTimeSinceStart() + 1;
+			fNext = Core::Timer::getDeltaSinceStart().count() + 1;
 		}
 	}
 

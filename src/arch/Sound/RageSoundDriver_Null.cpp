@@ -2,6 +2,7 @@
 #include "RageSoundDriver_Null.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Core/Misc/Timer.hpp"
 
 REGISTER_SOUND_DRIVER_CLASS(Null);
 
@@ -23,7 +24,7 @@ RageSoundDriver_Null::Update()
 int64_t
 RageSoundDriver_Null::GetPosition() const
 {
-	return int64_t(RageTimer::GetTimeSinceStart() * m_iSampleRate);
+	return int64_t(Core::Timer::getDeltaSinceStart().count() * m_iSampleRate);
 }
 
 RageSoundDriver_Null::RageSoundDriver_Null()

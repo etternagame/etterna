@@ -30,6 +30,7 @@
 #include "Etterna/FileTypes/XmlToLua.h"
 #include "Etterna/Globals/rngthing.h"
 #include "Etterna/Models/Misc/Foreach.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <map>
 
@@ -1401,7 +1402,7 @@ class DebugLineUptime : public IDebugLine
 
 	std::string GetDisplayValue() override
 	{
-		return SecondsToMMSSMsMsMs(RageTimer::GetTimeSinceStart());
+		return SecondsToMMSSMsMsMs(Core::Timer::getDeltaSinceStart().count());
 	}
 
 	bool IsEnabled() override { return false; }

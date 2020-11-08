@@ -16,6 +16,7 @@
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <atomic>
 #include <thread>
@@ -600,7 +601,7 @@ LockMutex::LockMutex(RageMutex& pMutex, const char* file_, int line_)
   : mutex(pMutex)
   , file(file_)
   , line(line_)
-  , locked_at(RageTimer::GetTimeSinceStart())
+  , locked_at(Core::Timer::getDeltaSinceStart().count())
   , locked(false) // ensure it gets locked inside.
 {
 	mutex.Lock();
@@ -622,7 +623,7 @@ LockMutex::Unlock()
 	mutex.Unlock();
 
 	if (file && locked_at != -1) {
-		const float dur = RageTimer::GetTimeSinceStart() - locked_at;
+		const float dur = Core::Timer::getDeltaSinceStart().count() - locked_at;
 		if (dur > 0.015f)
 			Locator::getLogger()->trace("Lock at {}:{} took {}", file, line, dur);
 	}
