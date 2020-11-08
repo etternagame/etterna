@@ -285,6 +285,15 @@ function createList()
                 self:playcommand("UpdateScores")
                 self:playcommand("UpdateList")
             end
+        end,
+        UpdateLoginStatusCommand = function(self)
+            local nowloggedin = DLMAN:IsLoggedIn()
+            if not isLocal and not nowloggedin then
+                isLocal = true
+                self:playcommand("UpdateScores")
+                self:playcommand("UpdateList")
+            end
+
         end
     }
 
@@ -651,6 +660,8 @@ function createList()
                     bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
                     if choiceOnlineOnly[i] and not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
+                    else
+                        self:diffusealpha(1)
                     end
                 end,
                 UpdateToggleStatusCommand = function(self)
@@ -658,11 +669,9 @@ function createList()
                     if choiceOnlineOnly[i] and not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
                         return
+                    else
+                        self:diffusealpha(1)
                     end
-                    -- update things
-                    --if choiceFunctions[i] then
-                    --    choiceFunctions[i](self)
-                    --end
 
                     -- have to separate things because order of execution gets wacky
                     self:playcommand("UpdateText")
@@ -698,6 +707,9 @@ function createList()
             end,
             UpdateButtonsMessageCommand = function(self)
                 allScores = not DLMAN:GetTopScoresOnlyFilter()
+                self:playcommand("UpdateToggleStatus")
+            end,
+            UpdateLoginStatusCommand = function(self)
                 self:playcommand("UpdateToggleStatus")
             end,
         }
