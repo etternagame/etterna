@@ -96,7 +96,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	vector<Steps*> m_vpSteps;
 	int m_iSelection;
 
-	RageTimer m_timerIdleComment;
+	Core::Timer::time_point m_timerIdleComment;
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 
 	ThemeMetric<std::string> PLAYER_OPTIONS_SCREEN;

@@ -343,7 +343,7 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 		}
 
 		if (ExpireSeconds == -1 ||
-			pFileSet->age.PeekDeltaTime() < ExpireSeconds) {
+			Core::Timer::getDuration<std::chrono::seconds>(pFileSet->age).count() < ExpireSeconds) {
 			/* Found it, and it hasn't expired. */
 			return pFileSet;
 		}
@@ -390,7 +390,7 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 	if (pParentDirp != nullptr)
 		*pParentDirp = pRet;
 
-	pRet->age.Touch();
+	pRet->age = Core::Timer::getCurrentTime();
 	pRet->m_bFilled = true;
 
 	/* Signal the event, to wake up any other threads that might be waiting for

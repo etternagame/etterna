@@ -8,6 +8,7 @@
 #include "Etterna/Models/Songs/SongPosition.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
+#include "Core/Misc/Timer.hpp"
 
 struct Game;
 struct lua_State;
@@ -107,8 +108,7 @@ class GameState
 	  -> Difficulty;
 	[[nodiscard]] auto GetEasiestStepsDifficulty() const -> Difficulty;
 	[[nodiscard]] auto GetHardestStepsDifficulty() const -> Difficulty;
-	RageTimer m_timeGameStarted; // from the moment the first
-								 // player pressed Start
+	Core::Timer::time_point m_timeGameStarted; // from the moment the first  player pressed Start
 	LuaTable* m_Environment;
 
 	// This is set to a random number per-game/round; it can be used for a

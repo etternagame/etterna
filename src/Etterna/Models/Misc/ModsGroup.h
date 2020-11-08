@@ -3,6 +3,7 @@
 
 #include "EnumHelper.h"
 #include "RageUtil/Misc/RageTimer.h"
+#include "Core/Misc/Timer.hpp"
 // ReSharper disable once CppUnusedIncludeDirective MACROS LUL
 #include "Etterna/Models/Songs/SongOptions.h"
 
@@ -43,7 +44,7 @@ template<class T>
 class ModsGroup
 {
 	T m_[NUM_ModsLevel];
-	RageTimer m_Timer;
+	Core::Timer::time_point m_Timer;
 
   public:
 	void Init() { Call(ModsLevel_Preferred, &T::Init); }
@@ -52,7 +53,8 @@ class ModsGroup
 	{
 		// Don't let the mod approach speed be affected by Tab.
 		// TODO(Sam): Find a more elegant way of handling this.
-		fDelta = m_Timer.GetDeltaTime();
+		fDelta = Core::Timer::getDuration<std::chrono::seconds>(m_Timer).count();
+		m_Timer = Core::Timer::getCurrentTime();
 		m_[ModsLevel_Current].Approach(m_[ModsLevel_Song], fDelta);
 	}
 

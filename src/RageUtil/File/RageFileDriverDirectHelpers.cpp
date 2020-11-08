@@ -214,7 +214,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 	// Resolve path cases (path/Path -> PATH/path).
 	ResolvePath(sPath);
 
-	fs.age.GetDeltaTime(); // reset
+	fs.age = Core::Timer::getCurrentTime();
 	fs.files.clear();
 
 #ifdef _WIN32

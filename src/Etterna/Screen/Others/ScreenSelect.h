@@ -4,6 +4,8 @@
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "ScreenWithMenuElements.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include "Core/Misc/Timer.hpp"
+
 /** @brief Base class for Style, Difficulty, and Mode selection screens. */
 class ScreenSelect : public ScreenWithMenuElements
 {
@@ -33,9 +35,9 @@ class ScreenSelect : public ScreenWithMenuElements
 	vector<std::string> m_asSubscribedMessages;
 
 	/** @brief Count up to the time between idle comment announcer sounds. */
-	RageTimer m_timerIdleComment;
+	Core::Timer::time_point m_timerIdleComment;
 	/** @brief Count up to go to the timeout screen. */
-	RageTimer m_timerIdleTimeout;
+	Core::Timer::time_point m_timerIdleTimeout;
 
 	ThemeMetric<float> IDLE_COMMENT_SECONDS;
 	ThemeMetric<float> IDLE_TIMEOUT_SECONDS;

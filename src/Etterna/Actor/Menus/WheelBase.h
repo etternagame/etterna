@@ -9,6 +9,7 @@
 #include "ScrollBar.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "WheelItemBase.h"
+#include "Core/Misc/Timer.hpp"
 
 #define NUM_WHEEL_ITEMS (static_cast<int>(ceil(NUM_WHEEL_ITEMS_TO_DRAW + 2)))
 
@@ -126,7 +127,7 @@ class WheelBase : public ActorFrame
 	float m_fLockedWheelVelocity{};
 	// 0 = none; -1 or 1 = up/down
 	int m_Moving{};
-	RageTimer m_MovingSoundTimer;
+	Core::Timer::time_point m_MovingSoundTimer;
 	float m_TimeBeforeMovingBegins{};
 	float m_SpinSpeed{};
 

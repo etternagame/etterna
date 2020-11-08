@@ -198,9 +198,9 @@ WheelBase::Update(float fDeltaTime)
 		}
 
 		if (PREFSMAN->m_iMusicWheelSwitchSpeed >= MAX_WHEEL_SOUND_SPEED &&
-			m_MovingSoundTimer.PeekDeltaTime() >=
+			Core::Timer::getDuration<std::chrono::seconds>(m_MovingSoundTimer).count() >=
 			  1.0f / MAX_WHEEL_SOUND_SPEED) {
-			m_MovingSoundTimer.GetDeltaTime();
+			m_MovingSoundTimer = Core::Timer::getCurrentTime();
 			m_soundChangeMusic.Play(true);
 		}
 	} else {

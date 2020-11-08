@@ -105,7 +105,6 @@ GameState::GameState()
 	m_SeparatedStyles[PLAYER_1] = nullptr;
 
 	m_pCurGame.Set(nullptr);
-	m_timeGameStarted.SetZero();
 
 	m_iStageSeed = m_iGameSeed = 0;
 
@@ -266,7 +265,6 @@ GameState::Reset()
 
 	ASSERT(THEME != NULL);
 
-	m_timeGameStarted.SetZero();
 	SetCurrentStyle(nullptr, PLAYER_INVALID);
 	FOREACH_MultiPlayer(p) m_MultiPlayerStatus[p] = MultiPlayerStatus_NotJoined;
 
@@ -413,7 +411,7 @@ GameState::JoinPlayers()
 void
 GameState::BeginGame()
 {
-	m_timeGameStarted.Touch();
+	m_timeGameStarted = Core::Timer::getCurrentTime();
 }
 
 void
@@ -541,7 +539,7 @@ GameState::CommitStageStats()
 
 	// Update TotalPlaySeconds.
 	int iPlaySeconds =
-	  std::max(0, static_cast<int>(m_timeGameStarted.GetDeltaTime()));
+	  std::max(0, static_cast<int>(Core::Timer::getDuration<std::chrono::seconds>(m_timeGameStarted).count()));
 
 	Profile* pPlayerProfile = PROFILEMAN->GetProfile(PLAYER_1);
 	if (pPlayerProfile) {

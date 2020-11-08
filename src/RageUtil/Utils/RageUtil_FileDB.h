@@ -5,6 +5,7 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <map>
 #include <set>
@@ -79,7 +80,7 @@ operator!=(File const& lhs, File const& rhs)
 struct FileSet
 {
 	std::set<File> files;
-	RageTimer age;
+	Core::Timer::time_point age;
 
 	/*
 	 * If m_bFilled is false, this FileSet hasn't completed being filled in yet;

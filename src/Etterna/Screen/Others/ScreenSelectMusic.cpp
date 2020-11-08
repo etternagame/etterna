@@ -200,7 +200,7 @@ void
 ScreenSelectMusic::BeginScreen()
 {
 	g_ScreenStartedLoadingAt.Touch();
-	m_timerIdleComment.GetDeltaTime();
+	m_timerIdleComment = Core::Timer::getCurrentTime();
 
 	SONGMAN->MakeSongGroupsFromPlaylists();
 	SONGMAN->SetFavoritedStatus(
@@ -373,9 +373,9 @@ ScreenSelectMusic::Update(float fDeltaTime)
 {
 	if (!IsTransitioning()) {
 		if (IDLE_COMMENT_SECONDS > 0 &&
-			m_timerIdleComment.PeekDeltaTime() >= IDLE_COMMENT_SECONDS) {
+			Core::Timer::getDuration<std::chrono::seconds>(m_timerIdleComment).count() >= IDLE_COMMENT_SECONDS) {
 			SOUND->PlayOnceFromAnnouncer(m_sName + " IdleComment");
-			m_timerIdleComment.GetDeltaTime();
+			m_timerIdleComment = Core::Timer::getCurrentTime();
 		}
 	}
 	ScreenWithMenuElements::Update(fDeltaTime);
@@ -435,7 +435,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	//	LOG->Trace( "ScreenSelectMusic::Input()" );
 
 	// reset announcer timer
-	m_timerIdleComment.GetDeltaTime();
+	m_timerIdleComment = Core::Timer::getCurrentTime();
 
 	// debugging?
 	// I just like being able to see untransliterated titles occasionally.
