@@ -275,7 +275,9 @@ local function createList()
                 self:GetChild("PageText"):diffusealpha(0)
             else
                 self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0)
-                self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
+                if DLMAN:IsLoggedIn() then
+                    self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
+                end
                 self:GetChild("PageText"):smooth(0.2):diffusealpha(1)
             end
         end,
@@ -442,9 +444,6 @@ local function createList()
 
         local profile = GetPlayerOrMachineProfile(PLAYER_1)
         local pname = profile:GetDisplayName()
-
-        local offlinerating = profile:GetPlayerRating()
-        local onlinerating = DLMAN:IsLoggedIn() and DLMAN:GetSkillsetRating("Overall") or 0
 
         -- list of skillsets mapped to number of plays
         -- sorted immediately after being emplaced here
@@ -624,7 +623,8 @@ local function createList()
                         if DLMAN:IsLoggedIn() then
                             local lrating = profile:GetPlayerSkillsetRating(skillset)
                             local orating = DLMAN:GetSkillsetRating(skillset)
-                            self:settextf("%5.2f (#9999) / %5.2f", orating, lrating)
+                            local rank = DLMAN:GetSkillsetRank(skillset)
+                            self:settextf("%5.2f (#%d) / %5.2f", orating, rank, lrating)
                             self:diffuse(byMSD(orating))
                         else
                             local rating = profile:GetPlayerSkillsetRating(skillset)
@@ -634,6 +634,9 @@ local function createList()
                     else
                         self:settextf("%s:", skillset)
                     end
+                end,
+                UpdateLoginStatusCommand = function(self)
+                    self:playcommand("Set")
                 end
             }
         end
@@ -666,10 +669,14 @@ local function createList()
                 end,
                 SetCommand = function(self)
                     if DLMAN:IsLoggedIn() then
-                        self:settextf("%s (#9999)", pname)
+                        local rank = DLMAN:GetSkillsetRank("Overall")
+                        self:settextf("%s (#%d)", pname, rank)
                     else
                         self:settext(pname)
                     end
+                end,
+                UpdateLoginStatusCommand = function(self)
+                    self:playcommand("Set")
                 end
             },
             LoadFont("Common Normal") .. {
@@ -683,10 +690,13 @@ local function createList()
                 end,
                 SetCommand = function(self)
                     if DLMAN:IsLoggedIn() then
-                        self:settext("logged in")
+                        self:settextf("(EO: %s)", DLMAN:GetUsername())
                     else
                         self:settext("")
                     end
+                end,
+                UpdateLoginStatusCommand = function(self)
+                    self:playcommand("Set")
                 end
             },
             LoadFont("Common Normal") .. {
@@ -704,6 +714,9 @@ local function createList()
                     else
                         self:settext("Player Ratings:")
                     end
+                end,
+                UpdateLoginStatusCommand = function(self)
+                    self:playcommand("Set")
                 end
             }
         }
@@ -765,7 +778,7 @@ local function createList()
             local txt = self:GetChild("Text")
             local bg = self:GetChild("BG")
 
-            if chosenSkillset == "Overall" then
+            if chosenSkillset == "Overall" or not DLMAN:IsLoggedIn() then
                 self:diffusealpha(0)
             else
                 self:diffusealpha(1)
@@ -804,6 +817,17 @@ local function createList()
                 self:diffusealpha(buttonHoverAlpha)
             else
                 self:diffusealpha(1)
+            end
+        end,
+        UpdateLoginStatusCommand = function(self)
+            -- this logic should handle case where you are logged out while in the online portion of the menu
+            -- will force an exit
+            local loggedIn = DLMAN:IsLoggedIn()
+            if not isLocal and not loggedIn then
+                self:playcommand("Click", {update = "OnMouseDown"})
+                isLocal = true
+            else
+                self:playcommand("UpdateToggle")
             end
         end
     }
