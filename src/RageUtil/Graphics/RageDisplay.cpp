@@ -957,7 +957,6 @@ RageDisplay::UpdateCentering()
 bool
 RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 {
-	RageTimer timer;
 	auto surface = this->CreateScreenshot();
 	//	LOG->Trace( "CreateScreenshot took %f seconds", timer.GetDeltaTime() );
 	/* Unless we're in lossless, resize the image to 640x480.  If we're saving
@@ -971,12 +970,7 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 		// 639x480 (4:3) and 853x480 (16:9). ceilf gives correct values. -aj
 		const auto iWidth = static_cast<int>(
 		  ceilf(iHeight * (*GetActualVideoModeParams()).fDisplayAspectRatio));
-		timer.Touch();
 		RageSurfaceUtils::Zoom(surface, iWidth, iHeight);
-		//		LOG->Trace( "%ix%i -> %ix%i (%.3f) in %f seconds", surface->w,
-		// surface->h, iWidth, iHeight,
-		// GetActualVideoModeParams().fDisplayAspectRatio, timer.GetDeltaTime()
-		//);
 	}
 
 	RageFile out;
@@ -987,7 +981,6 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	}
 
 	auto bSuccess = false;
-	timer.Touch();
 	std::string strError = "";
 	switch (format) {
 		case SAVE_LOSSLESS:
@@ -1004,8 +997,6 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 			break;
 			DEFAULT_FAIL(format);
 	}
-	//	LOG->Trace( "Saving Screenshot file took %f seconds.",
-	// timer.GetDeltaTime() );
 
 	SAFE_DELETE(surface);
 

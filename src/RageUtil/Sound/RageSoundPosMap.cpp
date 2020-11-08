@@ -3,6 +3,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageSoundPosMap.h"
 #include "RageUtil/Misc/RageTimer.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <climits>
 #include <vector>
@@ -192,9 +193,9 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	 * about.
 	 */
 
-	static RageTimer last;
-	if (last.PeekDeltaTime() >= 1.0f) {
-		last.GetDeltaTime();
+	static auto lastTime = Core::Timer::getCurrentTime();
+	if (Core::Timer::getDuration<std::chrono::seconds>(lastTime).count() >= 1.0f) {
+		lastTime = Core::Timer::getCurrentTime();
 		if (PREFSMAN->m_verbose_log > 1)
 			Locator::getLogger()->trace("Approximate sound time: driver frame {}, m_pImpl->m_Queue frame {}..{} (dist {}), closest position is {}",
 					   iSourceFrame, pClosestBlock->m_iDestFrame,

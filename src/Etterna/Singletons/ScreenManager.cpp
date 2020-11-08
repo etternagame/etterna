@@ -75,6 +75,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <set>
 #include <map>
@@ -581,7 +582,7 @@ ScreenManager::Input(const InputEventPlus& input)
 Screen*
 ScreenManager::MakeNewScreen(const std::string& sScreenName)
 {
-	RageTimer t;
+	auto time = Core::Timer::getCurrentTime();
 	if (PREFSMAN->m_verbose_log > 1)
 		Locator::getLogger()->trace("Loading screen: \"{}\"", sScreenName.c_str());
 
@@ -603,10 +604,10 @@ ScreenManager::MakeNewScreen(const std::string& sScreenName)
 	Screen* ret = pfn(sScreenName);
 
 	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Loaded \"{}\" (\"{}\") in {}",
+		Locator::getLogger()->trace("Loaded \"{}\" (\"{}\") in {}ms",
 				   sScreenName.c_str(),
 				   sClassName.c_str(),
-				   t.GetDeltaTime());
+				   Core::Timer::getDuration(time).count());
 
 	return ret;
 }

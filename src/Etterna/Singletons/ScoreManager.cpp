@@ -413,12 +413,10 @@ ScoresAtRate::HandleNoCCPB(HighScore& hs) -> bool
 void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 {
-	RageTimer ld_timer;
 	auto& scores = SCOREMAN->scorestorecalc;
 
 	if (ld != nullptr) {
 		ld->SetProgress(0);
-		ld_timer.Touch();
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(scores.size());
 		ld->SetText("\nUpdating Ratings for " + std::to_string(scores.size()) +

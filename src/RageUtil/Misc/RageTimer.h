@@ -34,9 +34,6 @@ class RageTimer
 	/* Alias for Ago */
 	[[nodiscard]] auto PeekDeltaTime() const -> float { return Ago(); }
 
-	/* Get a timer representing half of the time ago as this one. */
-	[[nodiscard]] auto Half() const -> RageTimer;
-
 	/* Add (or subtract) a duration from a timestamp.  The result is another
 	 * timestamp. */
 	auto operator+(float tm) const -> RageTimer;

@@ -27,6 +27,7 @@
 #include "NetworkSyncManager.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <numeric>
 #include <algorithm>
@@ -297,7 +298,7 @@ std::mutex songLoadingSONGMANMutex;
 void
 SongManager::InitSongsFromDisk(LoadingWindow* ld)
 {
-	RageTimer tm;
+	auto initStart = Core::Timer::getCurrentTime();
 	// Tell SONGINDEX to not write the cache index file every time a song adds
 	// an entry. -Kyz
 	SONGINDEX->delay_save_cache = true;
@@ -371,9 +372,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	SONGINDEX->delay_save_cache = false;
 
 	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("Found {} songs in {} seconds.",
+		Locator::getLogger()->trace("Found {} songs in {}ms.",
 									static_cast<unsigned int>(m_pSongs.size()),
-									tm.GetDeltaTime());
+									Core::Timer::getDuration(initStart).count());
 	}
 	for (auto& pair : cache) {
 		delete pair;

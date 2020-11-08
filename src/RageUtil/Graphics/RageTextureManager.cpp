@@ -31,6 +31,7 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "arch/MovieTexture/MovieTexture.h"
 #include "Etterna/Singletons/ScoreManager.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <map>
 #include <algorithm>
@@ -63,12 +64,13 @@ RageTextureManager::~RageTextureManager()
 void
 RageTextureManager::Update(float fDeltaTime)
 {
-	static RageTimer garbageCollector;
-	if (garbageCollector.PeekDeltaTime() >= 30.0f) {
+//	static RageTimer garbageCollector;
+	static auto garbageTimer = Core::Timer::getCurrentTime();
+	if (static_cast<float>(Core::Timer::getDuration<std::chrono::seconds>(garbageTimer).count()) >= 30.0f) {
 		if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) &&
 			SCREENMAN->GetTopScreen()->GetScreenType() != gameplay) {
 			DoDelayedDelete();
-			garbageCollector.Touch();
+			garbageTimer = Core::Timer::getCurrentTime();
 		}
 	}
 
