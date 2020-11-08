@@ -14,6 +14,12 @@ namespace Core::Timer {
     using time_point = std::chrono::time_point<timer_clock>;
 
     /**
+     * All duration values will be returned as a standard_duration type, to keep consistency among all .count()
+     * functions (regardless of how much their used). It can be changed for each template function.
+     */
+    using default_duration = std::chrono::milliseconds;
+
+    /**
      * A time point storing the initialization time of the application. Most times in Etterna aren't concerned
      * with wall-clock time, but are concerned with delta time. This variable acts are a started point to track
      * deltas from.
@@ -24,9 +30,10 @@ namespace Core::Timer {
      * Get how long has passed since the program has started in the desired duration type.
      *
      * @tparam Duration std::chrono duration to return result in.
+     *         Defaults to seconds to match RageTimer::GetTimeSinceStart()
      * @return The duration in desired units since application start.
      */
-    template<class Duration=std::chrono::milliseconds> Duration getDeltaSinceStart() {
+    template<class Duration=std::chrono::seconds> Duration getDeltaSinceStart() {
         return std::chrono::duration_cast<Duration>(timer_clock::now() - APP_START_TIME);
     }
 
@@ -36,7 +43,7 @@ namespace Core::Timer {
      * @param inputTime Desired time to compare with
      * @return The duration from inputTime in the desired units
      */
-    template<class Duration=std::chrono::milliseconds> Duration getDeltaSinceTime(time_point inputTime) {
+    template<class Duration=default_duration> Duration getDuration(time_point inputTime) {
         return std::chrono::duration_cast<Duration>(timer_clock::now() - inputTime);
     }
 
