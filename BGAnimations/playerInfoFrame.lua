@@ -1,4 +1,19 @@
-local t = Def.ActorFrame {Name = "PlayerInfoFrame"}
+local t = Def.ActorFrame {
+    Name = "PlayerInfoFrame",
+    LoginMessageCommand = function(self)
+        self:playcommand("Set")
+        ms.ok("Login Successful")
+    end,
+    LogOutMessageCommand = function(self)
+        self:playcommand("Set")
+    end,
+    LoginFailedMessageCommand = function(self)
+        self:playcommand("Set")
+    end,
+    OnlineUpdateMessageCommand = function(self)
+        self:playcommand("Set")
+    end
+}
 
 local visEnabled = Var("visualizer")
 
@@ -134,8 +149,6 @@ local pcount = SCOREMAN:GetTotalNumberOfScores()
 local parrows = profile:GetTotalTapsAndHolds()
 local strparrows = shortenIfOver1Mil(parrows)
 local ptime = profile:GetTotalSessionSeconds()
-local offlinerating = profile:GetPlayerRating()
-local onlinerating = DLMAN:IsLoggedIn() and DLMAN:GetSkillsetRating("Overall") or 0
 local username = ""
 local redir = false -- tell whether or not redirected input is on for the login prompt stuff
 
@@ -285,7 +298,14 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(leftTextBigSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextBigSize - textzoomFudge)
-            self:settextf("%s (#9999)", pname)
+            self:playcommand("Set")
+        end,
+        SetCommand = function(self)
+            if DLMAN:IsLoggedIn() then
+                self:settextf("%s (#%d)", pname, DLMAN:GetSkillsetRank("Overall"))
+            else
+                self:settext(pname)
+            end
         end
     },
     LoadFont("Common Normal") .. {
@@ -347,29 +367,51 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(rightTextSize)
             self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
-            self:settext("Player Ratings:")
-        end
-    },
-    LoadFont("Common Normal") .. {
-        Name = "OnlineRating",
-        InitCommand = function(self)
-            self:y(actuals.RightTextTopGap2)
-            self:halign(0)
-            self:zoom(rightTextSize)
-            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
-            self:settextf("Online - %5.2f", onlinerating)
+            self:playcommand("Set")
+        end,
+        SetCommand = function(self)
+            if DLMAN:IsLoggedIn() then
+                self:settext("Player Ratings:")
+            else
+                self:settext("Player Rating:")
+            end
         end
     },
     LoadFont("Common Normal") .. {
         Name = "OfflineRating",
         InitCommand = function(self)
+            self:y(actuals.RightTextTopGap2)
+            self:halign(0)
+            self:zoom(rightTextSize)
+            self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
+            self:playcommand("Set")
+        end,
+        SetCommand = function(self)
+            local offlinerating = profile:GetPlayerRating()
+            if DLMAN:IsLoggedIn() then
+                self:settextf("Offline - %5.2f", offlinerating)
+            else
+                self:settextf("%5.2f", offlinerating)
+            end
+        end
+    },
+    LoadFont("Common Normal") .. {
+        Name = "OnlineRating",
+        InitCommand = function(self)
             self:y(actuals.RightTextTopGap3)
             self:halign(0)
             self:zoom(rightTextSize)
             self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
-            self:settextf("Offline - %5.2f", offlinerating)
+            self:playcommand("Set")
+        end,
+        SetCommand = function(self)
+            if DLMAN:IsLoggedIn() then
+                self:settextf("Online - %5.2f", DLMAN:GetSkillsetRating("Overall"))
+            else
+                self:settext("")
+            end
         end
-    }
+    },
 }
 
 t[#t+1] = Def.ActorFrame {
