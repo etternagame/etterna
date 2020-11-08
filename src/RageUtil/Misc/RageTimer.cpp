@@ -49,12 +49,6 @@ GetChronoTime()
 	return ArchHooks::GetChronoDurationSinceStart();
 }
 
-uint64_t
-RageTimer::GetUsecsSinceStart()
-{
-	return GetTime() - g_iStartTime.count();
-}
-
 void
 RageTimer::Touch()
 {

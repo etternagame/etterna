@@ -13,6 +13,7 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Globals/rngthing.h"
 #include "Etterna/Singletons/FilterManager.h"
+#include "Core/Misc/Timer.hpp"
 
 #include <typeinfo>
 #include <tuple>
@@ -900,7 +901,7 @@ Actor::UpdateInternal(float delta_time)
 			break;
 		case CLOCK_TIMER_GLOBAL:
 			generic_global_timer_update(
-			  static_cast<float>(RageTimer::GetUsecsSinceStart()),
+			  static_cast<float>(Core::Timer::getDeltaSinceStart<std::chrono::microseconds>().count()),
 			  m_fEffectDelta,
 			  m_fSecsIntoEffect);
 			break;
