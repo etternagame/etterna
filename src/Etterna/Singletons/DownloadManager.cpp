@@ -2139,6 +2139,7 @@ DownloadManager::StartSession(
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->trace(
 			  "StartSession Error: Malformed request response: {}", req.result);
+			MESSAGEMAN->Broadcast("LoginFailed");
 			DLMAN->loggingIn = false;
 			return;
 		}
