@@ -426,12 +426,12 @@ local function scoreList()
                     if score ~= nil then
                         local date = score:GetDate()
                         local m, d, y = expandDateString(date)
-                        local leftHalf = string.format("%s %s, %s", m, d, y)
+                        local dstr = string.format("%s %s, %s", m, d, y)
                         local ssr = score:GetSkillsetSSR("Overall")
                         local ssrStr = string.format("%05.2f", ssr)
                         self:ClearAttributes()
-                        self:settextf("%s | %s", leftHalf, ssrStr)
-                        self:AddAttribute(#leftHalf + #" | ", {Length = -1, Zoom = dateSSRSize, Diffuse = byMSD(ssr)})
+                        self:settextf("%s | %s", ssrStr, dstr)
+                        self:AddAttribute(0, {Length = #ssrStr, Zoom = dateSSRSize, Diffuse = byMSD(ssr)})
                     end
                 end
             },
