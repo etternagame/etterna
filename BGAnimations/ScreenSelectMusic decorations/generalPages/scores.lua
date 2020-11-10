@@ -463,7 +463,10 @@ function createList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if isLocal then
-                        SCREENMAN:GetTopScreen():PlayReplay(score)
+                        local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                        if success then
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        end
                     else
                         local sng = GAMESTATE:GetCurrentSteps(PLAYER_1)
                         DLMAN:RequestOnlineScoreReplayData(
@@ -472,7 +475,10 @@ function createList()
                                 local scr = SCREENMAN:GetTopScreen()
                                 local sng2 = GAMESTATE:GetCurrentSteps(PLAYER_1)
                                 if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
-                                    SCREENMAN:GetTopScreen():PlayReplay(score)
+                                    local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                                    if success then
+                                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                    end
                                 end
 							end
 						)
@@ -509,7 +515,10 @@ function createList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
 
-                    SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
+                    local success = SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
+                    if success then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    end
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
