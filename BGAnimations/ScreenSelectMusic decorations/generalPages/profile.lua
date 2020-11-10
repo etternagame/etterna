@@ -469,7 +469,7 @@ local function createList()
 
         -- returns the skillset and count of the skillset in the desired position
         local function getSkillsetPlaysByPosition(position)
-            clamp(position, 1, #ms.SkillSets)
+            position = clamp(position, 1, #ms.SkillSets)
             return playsbyskillsetSorted[position][1], playsbyskillsetSorted[position][2]
         end
 
