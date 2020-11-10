@@ -72,6 +72,18 @@ local t = Def.ActorFrame {
         -- so we run it back through again
         -- the fact that the param table has judgeSetting in it causes things to recalc according to judge
         self:playcommand("UpdateScore", {score = chosenScore, judgeSetting = judgeSetting})
+    end,
+    LoginMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end,
+    LogOutMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end,
+    LoginFailedMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
+    end,
+    OnlineUpdateMessageCommand = function(self)
+        self:playcommand("UpdateLoginStatus")
     end
 }
 

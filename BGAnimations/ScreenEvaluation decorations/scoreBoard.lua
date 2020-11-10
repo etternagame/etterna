@@ -280,6 +280,19 @@ local function scoreList()
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
+        UpdateLoginStatusCommand = function(self)
+            -- handling any online status update
+            -- reset scores and list if in an impossible state
+            if not DLMAN:IsLoggedIn() and not isLocal then
+                isLocal = true
+                self:playcommand("UpdateScores")
+                self:playcommand("UpdateList")
+            else
+                -- for this state, we just make sure the buttons are correct
+                -- we should be in local screen and offline/online
+                MESSAGEMAN:Broadcast("UpdateButtons")
+            end
+        end,
     }
     local function scoreItem(i)
         local score = nil
@@ -598,11 +611,19 @@ t[#t+1] = Def.ActorFrame {
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
             bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
-            if not DLMAN:IsLoggedIn() then
-                self:diffusealpha(0)
-            end
+            self:playcommand("UpdateToggleStatus")
         end,
         UpdateToggleStatusCommand = function(self)
+            if not DLMAN:IsLoggedIn() then
+                self:diffusealpha(0)
+            else
+                if isOver(self) then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end
+
             -- lit when isLocal is false
             if isLocal then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
@@ -646,7 +667,11 @@ t[#t+1] = Def.ActorFrame {
             if isLocal then
                 self:diffusealpha(0)
             else
-                self:diffusealpha(1)
+                if isOver(self) then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
             end
             -- lit if allScores is true
             if not allScores then
@@ -689,7 +714,11 @@ t[#t+1] = Def.ActorFrame {
             if isLocal then
                 self:diffusealpha(0)
             else
-                self:diffusealpha(1)
+                if isOver(self) then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
             end
             -- lit if allScores is false
             if allScores then
