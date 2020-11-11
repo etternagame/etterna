@@ -26,6 +26,21 @@ function WHEELDATA.Reset(self)
         search = "", -- search term to filter by; filters out all non matches
         valid = nil, -- a song or chart which passes this function is ACCEPTED
     }
+
+    -- last generated list of WheelItems
+    self.WheelItems = {}
+end
+
+-- get wheelItems
+function WHEELDATA.GetWheelItems(self)
+    return self.WheelItems
+end
+
+-- set wheel items
+-- meant to be used to keep a sense of global persistence to the wheelItems
+-- use it after rebuilds
+function WHEELDATA.SetWheelItems(self, t)
+    self.WheelItems = t
 end
 
 -- check if the filter is active
@@ -497,4 +512,6 @@ function WHEELDATA.Init(self)
     -- this will fill AllSongs and the SongsByGroup
     self:SetAllSongs()
     self:RefreshStats()
+    -- update wheel items
+    self:SetWheelItems(self:GetFilteredFolders())
 end

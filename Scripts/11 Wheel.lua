@@ -133,10 +133,11 @@ Wheel.mt = {
 
             if song ~= nil then
                 local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+                WHEELDATA:SetWheelItems(newItems)
 
                 whee.index = finalIndex
                 whee.startIndex = finalIndex
-                whee.itemsGetter = function() return newItems end
+                whee.itemsGetter = function() return WHEELDATA:GetWheelItems() end
                 whee.items = newItems
                 whee.group = songgroup
                 GAMESTATE:SetCurrentSong(song)
@@ -148,10 +149,11 @@ Wheel.mt = {
             if song == nil then return nil end
 
             local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+            WHEELDATA:SetWheelItems(newItems)
 
             whee.index = finalIndex
             whee.startIndex = finalIndex
-            whee.itemsGetter = function() return newItems end
+            whee.itemsGetter = function() return WHEELDATA:GetWheelItems() end
             whee.items = newItems
             whee.group = songgroup
             GAMESTATE:SetCurrentSong(song)
@@ -171,10 +173,11 @@ Wheel.mt = {
         if openGroup then
             items = WHEELDATA:GetWheelItemsForOpenedFolder(name)
         end
+        WHEELDATA:SetWheelItems(items)
         
         whee.index = index
         whee.startIndex = index
-        whee.itemsGetter = function() return items end
+        whee.itemsGetter = function() return WHEELDATA:GetWheelItems() end
         whee.items = items
         whee.group = nil
         GAMESTATE:SetCurrentSong(nil)
@@ -564,11 +567,10 @@ function MusicWheel:new(params)
                     w.group = nil
 
                     local newItems = WHEELDATA:GetFilteredFolders()
+                    WHEELDATA:SetWheelItems(newItems)
 
                     w.index = findKeyOf(newItems, group)
-                    w.itemsGetter = function()
-                        return newItems
-                    end
+                    w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
 
                     MESSAGEMAN:Broadcast("ClosedGroup", {group = group})
                 else
@@ -577,11 +579,10 @@ function MusicWheel:new(params)
                     w.group = group
 
                     local newItems = WHEELDATA:GetWheelItemsForOpenedFolder(group)
+                    WHEELDATA:SetWheelItems(newItems)
                     
                     w.index = findKeyOf(newItems, group)
-                    w.itemsGetter = function()
-                        return newItems
-                    end
+                    w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
 
                     crossedGroupBorder = true
                     MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
@@ -591,7 +592,7 @@ function MusicWheel:new(params)
             end
         end,
         itemsGetter = function()
-            return WHEELDATA:GetFilteredFolders()
+            return WHEELDATA:GetWheelItems()
         end
     }
 
