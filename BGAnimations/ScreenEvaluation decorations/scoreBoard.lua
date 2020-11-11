@@ -86,6 +86,8 @@ local buttonBGYOffset = -1
 local buttonHoverAlpha = 0.8
 local buttonRegularAlpha = 1
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
+local itemBGHoverAlpha = 0.2
+local itemBGHoverAnimationSeconds = 0.05
 
 -- this can be nil if no scores exist in the profile
 local mostRecentScore = SCOREMAN:GetMostRecentScore()
@@ -335,6 +337,19 @@ local function scoreList()
                 MouseOverCommand = function(self) self:playcommand("RolloverUpdate",{update = "over"}) end,
         		MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
                 RolloverUpdateCommand = function(self, params)
+                    -- hovering
+                    if self:GetParent():GetDiffuseAlpha() ~= 0 then
+                        if params.update == "over" then
+                            self:finishtweening()
+                            self:smooth(itemBGHoverAnimationSeconds)
+                            self:diffusealpha(itemBGHoverAlpha)
+                        elseif params.update == "out" then
+                            self:smooth(itemBGHoverAnimationSeconds)
+                            self:diffusealpha(0)
+                        end
+                    end
+
+                    -- replay data tooltip
                     if score ~= nil and not score:HasReplayData() then
                         if params.update == "over" then
                             TOOLTIP:Show()
@@ -345,6 +360,18 @@ local function scoreList()
                     end
                 end,
                 SetScoreCommand = function(self)
+                    -- hovering
+                    if self:GetParent():GetDiffuseAlpha() ~= 0 then
+                        if isOver(self) then
+                            self:finishtweening()
+                            self:smooth(itemBGHoverAnimationSeconds)
+                            self:diffusealpha(itemBGHoverAlpha)
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end
+
+                    -- replay data tooltip
                     if score ~= nil and isOver(self) and not score:HasReplayData() then
                         TOOLTIP:Show()
                         TOOLTIP:SetText("No Replay Data")
