@@ -700,5 +700,31 @@ function MusicWheel:new(params)
         end
     end
 
+    w.UpdateFiltersCommand = function(self)
+        -- reset wheel position to 1 (todo: dont)
+        -- refresh filters
+        WHEELDATA:UpdateFilteredSonglist()
+        
+        local newItems = WHEELDATA:GetFilteredFolders()
+        WHEELDATA:SetWheelItems(newItems)
+
+        w.index = 1
+        w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
+        w.startIndex = 1
+        w.items = items
+        w.group = nil
+        crossedGroupBorder = true
+        forceGroupCheck = true
+        GAMESTATE:SetCurrentSong(nil)
+        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+        
+        MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
+        w:rebuildFrames()
+        MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+        MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+        w.settled = true
+        w:updateMusicFromCurrentItem()
+    end
+
     return w
 end
