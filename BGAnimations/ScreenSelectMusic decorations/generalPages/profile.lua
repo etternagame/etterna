@@ -131,6 +131,15 @@ local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
+-- movement on the Z axis to fix button related issues
+-- this value doesnt change anything as long as it is smaller than 1
+-- basically z movement is necessary to tell which buttons are on top even if they are invisible
+-- invisible buttons on top of other buttons will make the bottom buttons inaccessible
+local overallPageZBump = 0.1
+-- upward vertical distance to move the button bg to fix positional related issues with the button bg quad relative to the text
+-- if we used a sane baseline for text then this wouldnt be an issue
+-- ... too late to fix this.
+local scoreitembgbump = 3
 
 local function createChoices()
     local selectedIndex = 1
@@ -270,11 +279,11 @@ local function createList()
                 self:GetChild("ScoreItem_"..i):playcommand("SetScore", {scoreIndex = index})
             end
             if chosenSkillset == "Overall" then
-                self:GetChild("OverallPage"):smooth(0.2):diffusealpha(1)
+                self:GetChild("OverallPage"):smooth(0.2):diffusealpha(1):z(overallPageZBump)
                 self:GetChild("OnlineOfflineToggle"):diffusealpha(0)
                 self:GetChild("PageText"):diffusealpha(0)
             else
-                self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0)
+                self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0):z(-overallPageZBump)
                 if DLMAN:IsLoggedIn() then
                     self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
                 end
@@ -341,30 +350,77 @@ local function createList()
                     end
                 end
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "Name",
                 InitCommand = function(self)
-                    self:halign(0):valign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
                     self:x(actuals.ItemSongNameLeftGap)
-                    self:zoom(nameTextSize)
-                    self:maxwidth(actuals.ItemSongNameWidth / nameTextSize - textzoomFudge)
+                    
+                    txt:halign(0):valign(0)
+                    bg:halign(0):valign(0)
+                    -- this upwards bump fixes font related positioning
+                    -- the font has a baseline which pushes it downward by some bit
+                    -- this corrects the bg so that the hover is not wrong as a result
+                    bg:y(-scoreitembgbump)
+
+                    txt:zoom(nameTextSize)
+                    txt:maxwidth(actuals.ItemSongNameWidth / nameTextSize - textzoomFudge)
+                    bg:zoomy(actuals.ItemAllottedSpace / itemCount)
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+
                         if isLocal then
                             local song = SONGMAN:GetSongByChartKey(score:GetChartKey())
                             if song then
-                                self:settext(song:GetDisplayMainTitle())
+                                txt:settext(song:GetDisplayMainTitle())
                             else
-                                self:settext("")
+                                txt:settext("")
                             end
                         else
-                            self:settext(score.songName)
+                            txt:settext(score.songName)
+                        end
+                        bg:zoomx(txt:GetZoomedWidth())
+
+                        -- if mouse is currently hovering
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
                         end
                     end
                 end,
                 DisplayLanguageChangedMessageCommand = function(self)
                     self:playcommand("SetScore")
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        -- find song on click (even if filtered)
+                        local w = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                        if w ~= nil then
+                            local ck
+                            if isLocal then
+                                ck =  score:GetChartKey()
+                            else
+                                ck = score.chartkey
+                            end
+                            if ck ~= nil then
+                                w:playcommand("FindSong", {chartkey = ck})
+                            end
+                        end
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end
             },
             LoadFont("Common Normal") .. {
@@ -644,6 +700,7 @@ local function createList()
         local t = Def.ActorFrame {
             Name = "OverallPage",
             BeginCommand = function(self)
+                self:z(overallPageZBump)
                 self:playcommand("Set")
             end,
 
