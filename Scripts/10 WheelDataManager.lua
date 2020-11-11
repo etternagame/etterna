@@ -9,6 +9,7 @@ WHEELDATA = {}
 -- quickly reset the WHEELDATA storage
 function WHEELDATA.Reset(self)
     -- 1 is the "enum value" for Group sort, it should stay that way
+    -- you can find the indices from the sortmodes table in this file
     self.CurrentSort = 1
 
     -- library of all Songs for this Game (all Styles)
@@ -48,28 +49,59 @@ function WHEELDATA.IsFiltered(self)
     return self.ActiveFilter ~= nil and (self.ActiveFilter.search ~= "" or self.ActiveFilter.valid ~= nil)
 end
 
+-- get the current search string
+function WHEELDATA.GetSearch(self)
+    return self.ActiveFilter.search
+end
+
+-- set the search string for filtering
+-- does not actually sort the songs, trigger that with WHEELDATA:SortByCurrentSortmode()
+function WHEELDATA.SetSearch(self, s)
+    if s == nil or s:gsub("^%s*(.-)%s*$", "%1") == "" then
+        self.ActiveFilter.search = ""
+    else
+        self.ActiveFilter.search = s:lower()
+    end
+end
+
 -- give a song, chartkey, or steps
+-- works as AND for now, where if both search and valid are set then both have to pass
 -- returns true if filter passed
 function WHEELDATA.FilterCheck(self, g)
     if not self:IsFiltered() then return true end
-    local passed = false
+    local passed = true
 
+    -- todo: although this function almost only runs on Songs, needs to be generalized to work with all of these
     if type(g) == "string" then
         -- working with a Chartkey
+
+        if self.ActiveFilter.valid ~= nil then
+            if not self.ActiveFilter.valid(g) then
+                return false
+            end
+        end
     elseif g.GetAllSteps then
         -- working with a Song
         local t = g:GetDisplayMainTitle():lower()
         if self.ActiveFilter.search ~= "" then
-            if t:find(self.ActiveFilter.search:lower()) ~= nil then
-                passed = true
+            if t:find(self.ActiveFilter.search) == nil then
+                return false
             end
         end
         if self.ActiveFilter.valid ~= nil then
-            -- filter by function
+            if not self.ActiveFilter.valid(g) then
+                return false
+            end
         end
 
     elseif g.GetChartKey then
         -- working with a Steps
+
+        if self.ActiveFilter.valid ~= nil then
+            if not self.ActiveFilter.valid(g) then
+                return false
+            end
+        end
     end
 
     return passed
@@ -245,6 +277,23 @@ local sortmodeImplementations = {
 -- get the value and string value of the current sort
 function WHEELDATA.GetCurrentSort(self)
     return self.CurrentSort, sortToString(self.CurrentSort)
+end
+
+-- set the value for the current sort
+-- needs either a string or an index
+-- returns a status of successful sort value change
+function WHEELDATA.SetCurrentSort(self, s)
+    if sortmodes[s] ~= nil then
+        self.CurrentSort = s
+        return true
+    else
+        local k = findKeyOf(sortmodes, s)
+        if k ~= nil then
+            self.CurrentSort = k
+            return true
+        end
+    end
+    return false
 end
 
 function WHEELDATA.SortByCurrentSortmode(self)
@@ -501,6 +550,13 @@ function WHEELDATA.GetFolderClearStats(self, name)
         return self.StatsByFolder[name].clearStats
     end
     return {nil, {}, 0}
+end
+
+-- sort all songs again basically
+-- requires that AllSongs is set
+function WHEELDATA.UpdateFilteredSonglist(self)
+    self:SortByCurrentSortmode()
+    self:RefreshStats()
 end
 
 -- init all with default values
