@@ -202,7 +202,7 @@ local sortmodeImplementations = {
                 end
             end
             -- sort the groups and then songlists in groups
-            table.sort(WHEELDATA.AllFolders)
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
@@ -231,7 +231,7 @@ local sortmodeImplementations = {
                 end
             end
             -- sort groups and then songlists in groups
-            table.sort(WHEELDATA.AllFolders)
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
@@ -260,7 +260,7 @@ local sortmodeImplementations = {
                 end
             end
             -- sort groups and then songlists in groups
-            table.sort(WHEELDATA.AllFolders)
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
