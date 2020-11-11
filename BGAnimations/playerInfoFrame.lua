@@ -122,7 +122,7 @@ local screensAllowedForButtons = {
         ScreenSelectMusic = true,
     },
     Search = {
-
+        ScreenSelectMusic = true,
     },
 }
 
@@ -517,6 +517,41 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        MouseDownCommand = function(self, params)
+            local scr = SCREENMAN:GetTopScreen()
+            if selectable(self:GetName()) then
+                local w = scr:GetChild("WheelFile")
+                if w ~= nil then
+                    redir = SCREENMAN:get_input_redirected(PLAYER_1)
+                    local function off()
+                        if redir then
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        end
+                    end
+                    local function on()
+                        if redir then
+                            SCREENMAN:set_input_redirected(PLAYER_1, true)
+                        end
+                    end
+                    off()
+                    askForInputStringWithFunction(
+                        "Enter Search",
+                        1024,
+                        false,
+                        function(answer)
+                            -- moving on to step 2 if the answer isnt blank
+                            WHEELDATA:SetSearch(answer)
+                            w:sleep(0.01):queuecommand("UpdateFilters")
+                            on()
+                        end,
+                        function() return true, "" end,
+                        function()
+                            on()
+                        end
+                    )
+                end
+            end
+        end
     }
 }
 
