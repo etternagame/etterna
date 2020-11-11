@@ -20,12 +20,65 @@ function WHEELDATA.Reset(self)
     self.AllSongsByFolder = {} -- multipurpose; on Group sort, is identical to AllSongsByGroup
     self.AllFolders = {} -- this can be groups or "folders" like in the Title sort, etc
     self.StatsByFolder = {} -- stats for each folder
+
+    -- filter info
+    self.ActiveFilter = {
+        search = "", -- search term to filter by; filters out all non matches
+        valid = nil, -- a song or chart which passes this function is ACCEPTED
+    }
+end
+
+-- check if the filter is active
+function WHEELDATA.IsFiltered(self)
+    return self.ActiveFilter ~= nil and (self.ActiveFilter.search ~= "" or self.ActiveFilter.valid ~= nil)
+end
+
+-- give a song, chartkey, or steps
+-- returns true if filter passed
+function WHEELDATA.FilterCheck(self, g)
+    if not self:IsFiltered() then return true end
+    local passed = false
+
+    if type(g) == "string" then
+        -- working with a Chartkey
+    elseif g.GetAllSteps then
+        -- working with a Song
+        local t = g:GetDisplayMainTitle():lower()
+        if self.ActiveFilter.search ~= "" then
+            if t:find(self.ActiveFilter.search:lower()) ~= nil then
+                passed = true
+            end
+        end
+        if self.ActiveFilter.valid ~= nil then
+            -- filter by function
+        end
+
+    elseif g.GetChartKey then
+        -- working with a Steps
+    end
+
+    return passed
+end
+
+-- obtain all songs loaded that pass the active filter
+-- requires WHEELDATA.AllSongs to be filled already
+function WHEELDATA.GetAllSongsPassingFilter(self)
+    if not self:IsFiltered() then return self.AllSongs end
+
+    local t = {}
+    for _, song in ipairs(self.AllSongs) do
+        if self:FilterCheck(song) then
+            t[#t+1] = song
+        end
+    end
+    return t
 end
 
 -- quickly empty the sorted lists
 function WHEELDATA.ResetSorts(self)
     self.AllFolders = {}
     self.AllSongsByFolder = {}
+    self.StatsByFolder = {}
 end
 
 local sortmodes = {
@@ -89,20 +142,26 @@ local sortmodeImplementations = {
     {   -- "Group" sort -- by pack, alphabetical within
         function()
             WHEELDATA:ResetSorts()
-            -- sort each group
-            for groupname, songlist in pairs(WHEELDATA.AllSongsByGroup) do
-                WHEELDATA.AllSongsByFolder[groupname] = songlist
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- for reasons determined by higher powers, literally mimic the behavior of AllSongsByGroup construction
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+            end
+            -- sort the groups and then songlists in groups
+            table.sort(WHEELDATA.AllFolders)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
-                    WHEELDATA.AllSongsByFolder[groupname],
+                    songlist,
                     SongUtil.SongTitleComparator
                 )
-                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = groupname
             end
-            -- sort the groups
-            table.sort(
-                WHEELDATA.AllFolders,
-                function(a,b) return a:lower() < b:lower() end
-            )
         end,
         function(song)
             return song:GetGroupName()
@@ -112,15 +171,16 @@ local sortmodeImplementations = {
     {   -- "Title" sort -- by song title, alphabetical within
         function()
             WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
 
             -- go through AllSongs and construct it as we go, then sort
-            for _, song in ipairs(WHEELDATA.AllSongs) do
-                local foldername = getTitleSortFoldernameForSong(song)
-                if WHEELDATA.AllSongsByFolder[foldername] ~= nil then
-                    WHEELDATA.AllSongsByFolder[foldername][#WHEELDATA.AllSongsByFolder[foldername] + 1] = song
+            for _, song in ipairs(songs) do
+                local fname = getTitleSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
                 else
-                    WHEELDATA.AllSongsByFolder[foldername] = {song}
-                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = foldername
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
                 end
             end
             -- sort groups and then songlists in groups
@@ -140,9 +200,10 @@ local sortmodeImplementations = {
     {   -- "Author" sort -- by chart artist(s), alphabetical within
         function()
             WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
 
             -- go through AllSongs and construct it as we go, then sort
-            for _, song in ipairs(WHEELDATA.AllSongs) do
+            for _, song in ipairs(songs) do
                 local fname = getAuthorSortFoldernameForSong(song)
                 if WHEELDATA.AllSongsByFolder[fname] ~= nil then
                     WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
