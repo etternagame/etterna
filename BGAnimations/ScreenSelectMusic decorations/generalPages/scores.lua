@@ -133,6 +133,7 @@ local judgmentTextSize = 0.6
 local wifePercentTextSize = 0.92
 local dateTextSize = 0.6
 local pageTextSize = 0.9
+local loadingTextSize = 0.9
 local textzoomFudge = 5
 
 local buttonHoverAlpha = 0.6
@@ -172,6 +173,8 @@ function createList()
     -- to prevent bombing the server repeatedly with leaderboard requests
     -- chartkeys to booleans
     local alreadyRequestedLeaderboard = {}
+    -- to signify whether or not an active request for a chart leaderboard is taking place
+    local fetchingScores = {}
 
     local t = Def.ActorFrame {
         Name = "ScoreListFrame",
@@ -219,6 +222,15 @@ function createList()
                 -- ... everything here is determined by internal bools set by the toggle buttons
                 scores = DLMAN:GetChartLeaderBoard(steps:GetChartKey(), dlmanScoreboardCountryFilter)
 
+                -- if scores comes back nil, then the chart is unranked
+                if scores == nil then
+                    if steps then
+                        local kee = steps:GetChartKey()
+                        fetchingScores[kee] = false
+                    end
+                    return
+                end
+
                 -- this is the initial request for the leaderboard which should only end up running once
                 -- and when it finishes, it loops back through this command
                 -- on the second passthrough, the leaderboard is hopefully filled out
@@ -227,12 +239,14 @@ function createList()
                         local kee = steps:GetChartKey()
                         if not alreadyRequestedLeaderboard[kee] then
                             alreadyRequestedLeaderboard[kee] = true
+                            fetchingScores[kee] = true
                             DLMAN:RequestChartLeaderBoardFromOnline(
                                 steps:GetChartKey(),
                                 function(leaderboard)
                                     -- disallow replacing the leaderboard if the request doesnt match the current steps
                                     local s = GAMESTATE:GetCurrentSteps(PLAYER_1)
                                     if s and s:GetChartKey() == kee then
+                                        fetchingScores[kee] = false
                                         self:queuecommand("UpdateScores")
                                         self:queuecommand("UpdateList")
                                     end
@@ -244,7 +258,11 @@ function createList()
             end
         end,
         UpdateListCommand = function(self)
-            maxPage = math.ceil(#scores / itemCount)
+            if scores == nil then
+                maxPage = 1
+            else
+                maxPage = math.ceil(#scores / itemCount)
+            end
 
             for i = 1, itemCount do
                 local index = (page - 1) * itemCount + i
@@ -309,7 +327,12 @@ function createList()
             end,
             SetScoreCommand = function(self, params)
                 scoreIndex = params.scoreIndex
-                score = scores[scoreIndex]
+                -- nil scores table: unranked chart
+                if scores ~= nil then
+                    score = scores[scoreIndex]
+                else
+                    score = nil
+                end
                 self:finishtweening()
                 self:diffusealpha(0)
                 if score ~= nil then
@@ -557,6 +580,46 @@ function createList()
     }
 
     t[#t+1] = LoadFont("Common Normal") .. {
+        Name = "LoadingText",
+        InitCommand = function(self)
+            self:y((actuals.ItemAllottedSpace / (itemCount - 1)) + actuals.ItemUpperSpacing)
+            self:x(actuals.Width / 2)
+            self:maxwidth(actuals.Width / loadingTextSize - textzoomFudge)
+            self:diffusealpha(0)
+        end,
+        UpdateListCommand = function(self)
+            self:finishtweening()
+            self:smooth(scoreListAnimationSeconds)
+            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            
+            if isLocal then
+                if scores ~= nil and #scores == 0 then
+                    self:diffusealpha(1)
+                    self:settext("No local scores recorded")
+                else
+                    self:diffusealpha(0)
+                    self:settext("")
+                end
+                return
+            end
+
+            if scores == nil then
+                self:diffusealpha(1)
+                self:settext("Chart is unranked")
+            elseif #scores == 0 and steps and fetchingScores[steps:GetChartKey()] == true then
+                self:diffusealpha(1)
+                self:settext("Fetching scores...")
+            elseif #scores == 0 and steps and fetchingScores[steps:GetChartKey()] == false then
+                self:diffusealpha(1)
+                self:settext("No online scores recorded")
+            else
+                self:diffusealpha(0)
+                self:settext("")
+            end
+        end
+    }
+
+    t[#t+1] = LoadFont("Common Normal") .. {
         Name = "PageText",
         InitCommand = function(self)
             self:halign(1):valign(0)
@@ -565,6 +628,12 @@ function createList()
             self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
         end,
         UpdateListCommand = function(self)
+            -- nil scores = no scores
+            if scores == nil then
+                self:settext("0-0/0")
+                return
+            end
+
             local lb = (page-1) * (itemCount) + 1
             if lb > #scores then
                 lb = #scores
