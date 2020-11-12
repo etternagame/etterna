@@ -307,7 +307,8 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                self:settextf("%s (#%d)", pname, DLMAN:GetSkillsetRank("Overall"))
+                local pn = DLMAN:GetUsername()
+                self:settextf("%s (#%d)", pn, DLMAN:GetSkillsetRank("Overall"))
             else
                 self:settext(pname)
             end
