@@ -93,15 +93,17 @@ local function updateLeaderBoardForCurrentChart()
 			local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
 			if steps then
 				local leaderboardAttempt = DLMAN:GetChartLeaderboard(steps:GetChartKey())
-				if #leaderboardAttempt > 0 then
+				if leaderboardAttempt ~= nil and #leaderboardAttempt > 0 then
 					moped:playcommand("SetFromLeaderboard", leaderboardAttempt)
-				else
+				elseif leaderboardAttempt ~= nil and #leaderboardAttempt == 0 then
 					DLMAN:RequestChartLeaderBoardFromOnline(
 						steps:GetChartKey(),
 						function(leaderboard)
 							moped:queuecommand("SetFromLeaderboard", leaderboard)
 						end
 					)
+				else
+					moped:queuecommand("SetFromLeaderboard", nil)
 				end
 			else
 				moped:playcommand("SetFromLeaderboard", {})
