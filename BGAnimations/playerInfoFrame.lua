@@ -152,6 +152,11 @@ local ptime = profile:GetTotalSessionSeconds()
 local username = ""
 local redir = false -- tell whether or not redirected input is on for the login prompt stuff
 
+-- this does not include the exit button
+-- from left to right starting at 1, the user may press a number while holding to control to activate them
+-- assuming context is set and the button is allowed
+local iconCountForKeyboardInput = 5
+
 -- handle logging in
 local function beginLoginProcess(self)
     redir = SCREENMAN:get_input_redirected(PLAYER_1)
@@ -419,6 +424,42 @@ t[#t+1] = Def.ActorFrame {
     InitCommand = function(self)
         self:xy(SCREEN_WIDTH, actuals.IconUpperGap)
     end,
+    BeginCommand = function(self)
+        local snm = SCREENMAN:GetTopScreen():GetName()
+        local anm = self:GetName()
+        -- this keeps track of whether or not the user is allowed to use the keyboard to change tabs
+        CONTEXTMAN:RegisterContext(snm, anm)
+
+        -- enable the possibility to press the keyboard to switch tabs
+        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+            -- if locked out, dont allow
+            if not CONTEXTMAN:CheckContext(snm, anm) then return end
+            if event.type == "InputEventType_FirstPress" then
+                -- must be a number with control held down
+                if event.char and tonumber(event.char) and INPUTFILTER:IsControlPressed() then
+                    local n = tonumber(event.char)
+                    if n == 0 then n = 10 end
+                    if n >= 1 and n <= iconCountForKeyboardInput then
+                        local childToInvoke = nil
+                        if n == 1 then
+                            childToInvoke = self:GetChild("Search")
+                        elseif n == 2 then
+                            childToInvoke = self:GetChild("Random")
+                        elseif n == 3 then
+                            childToInvoke = self:GetChild("Downloads")
+                        elseif n == 4 then
+                            childToInvoke = self:GetChild("Help")
+                        elseif n == 5 then
+                            childToInvoke = self:GetChild("Settings")
+                        end
+                        if childToInvoke ~= nil then
+                            childToInvoke:playcommand("Invoke")
+                        end
+                    end
+                end
+            end
+        end)
+    end,
 
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "exit")) .. {
         Name = "Exit",
@@ -453,6 +494,13 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        InvokeCommand = function(self)
+            if selectable(self:GetName()) then
+            end
+        end,
+        MouseDownCommand = function(self, params)
+            self:playcommand("Invoke")
+        end
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "gameinfoandhelp")) .. {
         Name = "Help",
@@ -467,6 +515,13 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        InvokeCommand = function(self)
+            if selectable(self:GetName()) then
+            end
+        end,
+        MouseDownCommand = function(self, params)
+            self:playcommand("Invoke")
+        end
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdownloads")) .. {
         Name = "Downloads",
@@ -481,6 +536,13 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        InvokeCommand = function(self)
+            if selectable(self:GetName()) then
+            end
+        end,
+        MouseDownCommand = function(self, params)
+            self:playcommand("Invoke")
+        end
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "random")) .. {
         Name = "Random",
@@ -495,13 +557,16 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
-        MouseDownCommand = function(self, params)
-            local scr = SCREENMAN:GetTopScreen()
+        InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                local scr = SCREENMAN:GetTopScreen()
                 local group = WHEELDATA:GetRandomFolder()
                 local song = WHEELDATA:GetRandomSongInFolder(group)
                 scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
             end
+        end,
+        MouseDownCommand = function(self, params)
+            self:playcommand("Invoke")
         end
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "search")) .. {
@@ -517,9 +582,9 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
-        MouseDownCommand = function(self, params)
-            local scr = SCREENMAN:GetTopScreen()
+        InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                local scr = SCREENMAN:GetTopScreen()
                 local w = scr:GetChild("WheelFile")
                 if w ~= nil then
                     redir = SCREENMAN:get_input_redirected(PLAYER_1)
@@ -551,6 +616,9 @@ t[#t+1] = Def.ActorFrame {
                     )
                 end
             end
+        end,
+        MouseDownCommand = function(self, params)
+            self:playcommand("Invoke")
         end
     }
 }

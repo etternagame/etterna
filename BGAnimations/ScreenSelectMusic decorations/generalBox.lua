@@ -108,7 +108,8 @@ local function createChoices()
                 -- if locked out, dont allow
                 if not CONTEXTMAN:CheckContext(snm, anm) then return end
                 if event.type == "InputEventType_FirstPress" then
-                    if event.char and tonumber(event.char) then
+                    -- must be a number and control not held down
+                    if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then
                         local n = tonumber(event.char)
                         if n == 0 then n = 10 end
                         if n >= 1 and n <= #choiceNames and n ~= selectedIndex then
