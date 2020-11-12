@@ -52,7 +52,13 @@ PlogLogger::PlogLogger() {
     char timeString[20]; // Date and time portion only
     std::time_t t = std::time(nullptr);
     std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
-    auto logFilePath = Core::Arch::getAppDirectory() / "Logs" / fmt::format("{}.log", timeString);
+    auto logDirectory = Core::Arch::getAppDirectory() / "Logs";
+
+    // Ensure log directory exists before initializing logger.
+    if(!ghc::filesystem::exists(logDirectory))
+        ghc::filesystem::create_directory(logDirectory);
+
+    auto logFilePath = logDirectory / fmt::format("{}.log", timeString);
 
     // File Appender
     static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};
