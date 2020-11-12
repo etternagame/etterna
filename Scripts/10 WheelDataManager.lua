@@ -313,7 +313,7 @@ function WHEELDATA.SortByCurrentSortmode(self)
     end
 
     -- sort timing debug
-    --ms.ok(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
+    print(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
 end
 
 -- update the song list for the current gamemode
