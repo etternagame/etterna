@@ -307,6 +307,11 @@ function WHEELDATA.SortByCurrentSortmode(self)
     f()
     local tafter = GetTimeSinceStart()
 
+    -- prevent some errors for empty song list
+    if #self.AllFolders == 0 then
+        self.AllFolders = {"NO SONGS"}
+    end
+
     -- sort timing debug
     --ms.ok(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
 end

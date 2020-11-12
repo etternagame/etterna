@@ -36,6 +36,7 @@ local function print(x)
 end
 
 local function getIndexCircularly(table, idx)
+    if #table == 0 then return 1 end
     if idx <= 0 then
         return getIndexCircularly(table, idx + #table)
     elseif idx > #table then
@@ -711,7 +712,7 @@ function MusicWheel:new(params)
         w.index = 1
         w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
         w.startIndex = 1
-        w.items = items
+        w.items = newItems
         w.group = nil
         crossedGroupBorder = true
         forceGroupCheck = true
