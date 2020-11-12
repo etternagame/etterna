@@ -48,11 +48,6 @@ local textzoomFudge = 5
 local function createChoices()
     local selectedIndex = 1
 
-    -- this keeps track of whether or not the user is allowed to use the keyboard to change tabs
-    -- for now it is stuck true
-    -- will be used later to facilitate focus changes easier
-    local allowed = true
-
     local function createChoice(i)
         return UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "ButtonTab_"..choiceNames[i],
@@ -102,18 +97,16 @@ local function createChoices()
             self:y(actuals.Height - actuals.LowerLipHeight / 2)
             self:playcommand("UpdateSelectedIndex")
         end,
-        KeyboardFocusChangedMessageCommand = function(self, params)
-            if params.generalbox then
-                allowed = true
-            else
-                allowed = false
-            end
-        end,
         BeginCommand = function(self)
+            local snm = SCREENMAN:GetTopScreen():GetName()
+            local anm = self:GetName()
+            -- this keeps track of whether or not the user is allowed to use the keyboard to change tabs
+            CONTEXTMAN:RegisterContext(snm, anm)
+
             -- enable the possibility to press the keyboard to switch tabs
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 -- if locked out, dont allow
-                if not allowed then return end
+                if not CONTEXTMAN:CheckContext(snm, anm) then return end
                 if event.type == "InputEventType_FirstPress" then
                     if event.char and tonumber(event.char) then
                         local n = tonumber(event.char)
