@@ -77,6 +77,7 @@ local dateSSRSize = 0.6
 local playerNameSize = 0.6
 local rateSize = 0.6
 local pageTextSize = 0.8
+local loadingTextSize = 0.8
 local textZoomFudge = 5
 
 -- increase the highlight area height of the buttons
@@ -116,6 +117,9 @@ local allRates = false
 -- all scores or top scores (online only)
 -- dont have to modify this var with direct values, call DLMAN to update it
 local allScores = not DLMAN:GetTopScoresOnlyFilter()
+
+-- indicate whether or not we are currently fetching the leaderboard
+local fetchingScores = false
 
 -- this will distribute a given highscore to the offsetplot and the other eval elements
 -- it will only work properly with a replay, so restrict it to replay-only scores
@@ -179,7 +183,7 @@ local function scoreList()
         OnCommand = function(self)
             self:playcommand("UpdateScores")
             -- set the current page so we immediately see where our score is
-            if #scores > 0 then
+            if scores ~= nil and #scores > 0 then
                 local ind = 1
                 for i, s in ipairs(scores) do
                     if s:GetScoreKey() == mostRecentScore:GetScoreKey() then
@@ -232,6 +236,14 @@ local function scoreList()
                 -- ... everything here is determined by internal bools set by the toggle buttons
                 scores = DLMAN:GetChartLeaderBoard(steps:GetChartKey(), dlmanScoreboardCountryFilter)
 
+                -- if scores comes back nil, then the chart is unranked
+                if scores == nil then
+                    if steps then
+                        fetchingScores = false
+                    end
+                    return
+                end
+
                 -- this is the initial request for the leaderboard which should only end up running once
                 -- and when it finishes, it loops back through this command
                 -- on the second passthrough, the leaderboard is hopefully filled out
@@ -239,9 +251,11 @@ local function scoreList()
                     if steps then
                         if not alreadyRequestedLeaderboard then
                             alreadyRequestedLeaderboard = true
+                            fetchingScores = true
                             DLMAN:RequestChartLeaderBoardFromOnline(
                                 steps:GetChartKey(),
                                 function(leaderboard)
+                                    fetchingScores = false
                                     self:queuecommand("UpdateScores")
                                     self:queuecommand("UpdateList")
                                 end
@@ -252,7 +266,12 @@ local function scoreList()
             end
         end,
         UpdateListCommand = function(self)
-            maxPage = math.ceil(#scores / itemCount)
+            if scores == nil then
+                maxPage = 1
+            else
+                maxPage = math.ceil(#scores / itemCount)
+            end
+
             self:GetChild("Cursor"):diffusealpha(0)
 
             for i = 1, itemCount do
@@ -307,7 +326,12 @@ local function scoreList()
             end,
             SetScoreCommand = function(self, params)
                 scoreIndex = params.scoreIndex
-                score = scores[scoreIndex]
+                -- nil scores table: unranked chart
+                if scores == nil then
+                    score = nil
+                else
+                    score = scores[scoreIndex]
+                end
                 self:finishtweening()
                 self:diffusealpha(0)
                 if score ~= nil then
@@ -553,6 +577,46 @@ local function scoreList()
     }
 
     t[#t+1] = LoadFont("Common Normal") .. {
+        Name = "LoadingText",
+        InitCommand = function(self)
+            self:valign(0)
+            self:x(actuals.ScoreItemWidth / 2)
+            self:maxwidth(actuals.ScoreItemWidth / loadingTextSize - textZoomFudge)
+            self:diffusealpha(0)
+        end,
+        UpdateListCommand = function(self)
+            self:finishtweening()
+            self:smooth(scoreListAnimationSeconds)
+            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            
+            if isLocal then
+                if scores ~= nil and #scores == 0 then
+                    self:diffusealpha(1)
+                    self:settext("No local scores recorded")
+                else
+                    self:diffusealpha(0)
+                    self:settext("")
+                end
+                return
+            end
+
+            if scores == nil then
+                self:diffusealpha(1)
+                self:settext("Chart is unranked")
+            elseif #scores == 0 and steps and fetchingScores == true then
+                self:diffusealpha(1)
+                self:settext("Fetching scores...")
+            elseif #scores == 0 and steps and fetchingScores == false then
+                self:diffusealpha(1)
+                self:settext("No online scores recorded")
+            else
+                self:diffusealpha(0)
+                self:settext("")
+            end
+        end
+    }
+
+    t[#t+1] = LoadFont("Common Normal") .. {
         Name = "PageText",
         InitCommand = function(self)
             self:valign(1)
@@ -562,6 +626,12 @@ local function scoreList()
             self:settext("")
         end,
         UpdateListCommand = function(self)
+             -- nil scores = no scores
+             if scores == nil then
+                self:settext("0-0/0")
+                return
+            end
+
             local lb = (page-1) * (itemCount) + 1
             if lb > #scores then
                 lb = #scores
