@@ -15,6 +15,7 @@ function CONTEXTMAN.Reset(self)
     -- so things depending on the context being true would fail
     self.ContextIgnored = false
 end
+CONTEXTMAN:Reset()
 
 -- emplace a context (ActorFrame) into the context for the screen
 -- the given actor
