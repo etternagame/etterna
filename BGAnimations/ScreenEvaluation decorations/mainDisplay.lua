@@ -699,6 +699,8 @@ local function calculatedStats()
         0, -- right cb
     }
 
+    local cbInfo = {0,0,0,0} -- per column cb info
+
     local function calculateStatData(score, numColumns)
         local tracks = score:GetTrackVector()
         local offsetTable = score:GetOffsetVector()
@@ -715,8 +717,13 @@ local function calculatedStats()
             0, -- right cb
         }
 
+        local cbInfo = {}
+        for _ = 1, numColumns + 1 do
+            cbInfo[#cbInfo+1] = 0
+        end
+
         if offsetTable == nil or #offsetTable == 0 then
-            return output
+            return output, cbInfo
         end
 
         local cbThreshold = ms.JudgeScalers[judgeSetting] * 90
@@ -740,6 +747,8 @@ local function calculatedStats()
                     else
                         middleCB = middleCB + 1
                     end
+                    
+                    cbInfo[tracks[i]+1] = cbInfo[tracks[i]+1] + 1
                 end
             end
         end
@@ -755,7 +764,7 @@ local function calculatedStats()
             middleCB,
             rightCB,
         }
-        return output
+        return output, cbInfo
     end
 
     local t = Def.ActorFrame {
@@ -768,7 +777,7 @@ local function calculatedStats()
                 -- this recalculates the stats to display for the following texts
                 -- subtract 1 from the number of columns because we are indexing at 0 in some of the data
                 -- and it produces the numbers we want
-                statData = calculateStatData(params.score, params.steps:GetNumColumns() - 1)
+                statData, cbInfo = calculateStatData(params.score, params.steps:GetNumColumns() - 1)
 
                 self:playcommand("UpdateStats", {score = params.score})
             end
@@ -831,6 +840,37 @@ local function calculatedStats()
     for i = 1, #statStrings do
         t[#t+1] = makeLine(i)
     end
+
+    -- displays some extra stats on hover
+    t[#t+1] = UIElements.QuadButton(1) .. {
+        Name = "StatMouseHoverBox",
+        InitCommand = function(self)
+            self:halign(1):valign(0)
+            self:x(actuals.StatTextRightGap)
+            self:zoomto(actuals.JudgmentBarLength, actuals.StatTextAllottedSpace / (#statStrings - 1) * #statStrings)
+            self:diffusealpha(0)
+        end,
+        MouseOverCommand = function(self) self:playcommand("RolloverUpdate",{update = "over"}) end,
+        MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
+        RolloverUpdateCommand = function(self, params)
+            -- hovering
+            if params.update == "over" then
+                local cbstr = {"CBs Per Column", "\n"}
+                for _ = 1, #cbInfo do
+                    cbstr[#cbstr+1] = string.format("Column %d: %d", _, cbInfo[_])
+                    cbstr[#cbstr+1] = "\n"
+                end
+                cbstr[#cbstr] = nil
+                cbstr = table.concat(cbstr)
+
+                TOOLTIP:SetText(cbstr)
+                TOOLTIP:Show()
+            elseif params.update == "out" then
+                TOOLTIP:Hide()
+            end
+        end,
+    }
+
     return t
 end
 
