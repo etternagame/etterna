@@ -96,7 +96,7 @@ function TOOLTIP.SetPosition(self, x, y)
 
     if sideswapped then
         self.Actor:xy(
-            clamp(x - tooltipOffSetX, screenBorder, SCREEN_WIDTH - screenBorder + width), 
+            clamp(x - tooltipOffSetX, screenBorder + width, SCREEN_WIDTH - screenBorder), 
             clamp(y + tooltipOffSetY, screenBorder, SCREEN_HEIGHT - screenBorder - height)
         )
         self.Actor:GetChild("Box"):halign(1)
