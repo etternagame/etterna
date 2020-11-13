@@ -1044,7 +1044,9 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self, params)
             local ss = screen:GetStageStats()
-            self:Set(ss, pss)
+            if params.song ~= nil then
+                self:SetWithoutStageStats(pss, params.song:GetStepsSeconds() / params.score:GetMusicRate())
+            end
         end
     },
     Def.ComboGraph {
@@ -1059,8 +1061,9 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self, params)
             self:Clear()
             self:Load("ComboGraph")
-            local ss = screen:GetStageStats()
-            self:Set(ss, pss)
+            if params.song ~= nil then
+                self:SetWithoutStageStats(pss, params.song:GetStepsSeconds() / params.score:GetMusicRate())
+            end
         end
     },
     LoadFont("Common Large") .. {
