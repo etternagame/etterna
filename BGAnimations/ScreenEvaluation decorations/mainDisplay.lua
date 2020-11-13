@@ -874,6 +874,77 @@ local function calculatedStats()
     return t
 end
 
+local function wifePercentDisplay()
+    -- internal value storage defaults
+    local value = 0
+    local decimals = 2
+    local stringformat = "%05."..decimals.."f%% [%s]"
+
+    -- """constants"""
+    local nothoverdecimals = 2 -- when not hovering
+    local hoverdecimals = 5 -- when hovering
+    local infostr = "" -- example: W3 J4
+
+    return UIElements.TextToolTip(1, 1, "Common Large") .. {
+        Name = "WifePercent",
+        InitCommand = function(self)
+            self:halign(1):valign(1)
+            self:zoom(scoreInfoTextSize)
+            self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
+        end,
+        UpdateParametersCommand = function(self, params)
+            if params.decimals ~= nil then
+                decimals = params.decimals
+                stringformat = "%05."..decimals.."f%% [%s]"
+            end
+            if params.infostr ~= nil then
+                infostr = params.infostr
+            end
+            if params.value ~= nil then
+                value = params.value
+            end
+        end,
+        UpdateTextCommand = function(self)
+            self:settextf(stringformat, notShit.floor(value, decimals), infostr)
+        end,
+        SetCommand = function(self, params)
+            if params.score ~= nil then
+                local ver = params.score:GetWifeVers()
+                local ws = "W"..ver.." J"
+                ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
+                local percent = params.score:GetWifeScore() * 100
+                decimals = 2
+                if params.judgeSetting ~= nil then
+                    local rescoreTable = gatherRescoreTableFromScore(params.score)
+                    percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
+                end
+                -- scores over 99% should show more decimals
+                if percent > 99 or isOver(self) then
+                    decimals = 5
+                end
+                local pg = notShit.floor(percent, decimals)
+                local grade = GetGradeFromPercent(pg / 100)
+                self:diffuse(getGradeColor(grade))
+                self:playcommand("UpdateParameters", {decimals = decimals, infostr = ws, value = percent})
+                self:playcommand("UpdateText")
+            else
+                self:settext("")
+            end
+        end,
+        MouseOverCommand = function(self) self:playcommand("RolloverUpdate",{update = "over"}) end,
+        MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
+        RolloverUpdateCommand = function(self, params)
+            -- hovering
+            if params.update == "over" then
+                self:playcommand("UpdateParameters", {decimals = hoverdecimals})
+            elseif params.update == "out" then
+                self:playcommand("UpdateParameters", {decimals = nothoverdecimals})
+            end
+            self:playcommand("UpdateText")
+        end
+    }
+end
+
 t[#t+1] = Def.ActorFrame {
     Name = "OwnerFrame",
     InitCommand = function(self)
@@ -1154,40 +1225,17 @@ t[#t+1] = Def.ActorFrame {
                 end
             end
         },
-        LoadFont("Common Large") .. {
-            Name = "WifePercent",
+
+        -- to allow hovering for higher precision, wrap this in a function
+        -- we use the function to store the numbers in order to change precision on the fly
+        -- and that way we can store any number from any source and just change precision on it
+        -- (only because i dont want to make the variables for it global: it just feels cleaner that way)
+        wifePercentDisplay() .. {
             InitCommand = function(self)
-                self:halign(1):valign(1)
                 self:y(-actuals.WifePercentLowerGap)
-                self:zoom(scoreInfoTextSize)
-                self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
-            end,
-            SetCommand = function(self, params)
-                if params.score ~= nil then
-                    local ver = params.score:GetWifeVers()
-                    local ws = "W"..ver.." J"
-                    ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
-                    local percent = params.score:GetWifeScore() * 100
-                    local decimals = 2
-                    local strfrmat = "%05.2f%% [%s]"
-                    if params.judgeSetting ~= nil then
-                        local rescoreTable = gatherRescoreTableFromScore(params.score)
-                        percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
-                    end
-                    -- scores over 99% should show more decimals
-                    if percent > 99 then
-                        decimals = 5
-                        strfrmat = "%05.5f%% [%s]"
-                    end
-                    percent = notShit.floor(percent, decimals)
-                    local grade = GetGradeFromPercent(percent / 100)
-                    self:diffuse(getGradeColor(grade))
-                    self:settextf(strfrmat, percent, ws)
-                else
-                    self:settext("")
-                end
             end
         },
+        
         LoadFont("Common Large") .. {
             Name = "MSDSSRDiff",
             InitCommand = function(self)
