@@ -9,8 +9,6 @@ local t = Def.ActorFrame {
 t[#t+1] = Def.Sprite {
     Name = "BG",
     InitCommand = function(self)
-        self:valign(0):halign(0)
-        self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
         self:diffusealpha(0)
     end,
     SetCommand = function(self, params)
@@ -18,7 +16,7 @@ t[#t+1] = Def.Sprite {
         if params.song and params.song:GetBackgroundPath() then
             self:visible(true)
             self:LoadBackground(params.song:GetBackgroundPath())
-            self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
+            self:scale_or_crop_background()
             self:smooth(0.5)
             self:diffusealpha(0.3)
         else
