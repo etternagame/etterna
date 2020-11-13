@@ -74,22 +74,77 @@ Wheel.mt = {
             GAMESTATE:SetCurrentSong(currentItem)
             GAMESTATE:SetPreferredSong(currentItem)
 
+            -- dude how do we even mimic the spaghetti behavior the c++ causes
+            local function findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(charts, prefdiff, stepstype)
+                local diffs = {
+                    ["none"] = 0,
+                    ["Difficulty_Beginner"] = 1,
+                    ["Difficulty_Easy"] = 2,
+                    ["Difficulty_Medium"] = 3,
+                    ["Difficulty_Hard"] = 4,
+                    ["Difficulty_Challenge"] = 5,
+                    ["Difficulty_Edit"] = 6,
+                }
+                local dadiff = "none"
+                local smallestdifferencefrompreferreddifficulty = 20
+                local index = 1
+
+                -- YOU CANT STOP ME FROM NESTING FUNCTIONS
+                local function getTheDifferenceBetweenTwoDifficultiesAbsolutely(d1,d2)
+                    return math.abs(diffs[d1] - diffs[d2])
+                end
+
+                for i, chart in ipairs(charts) do
+                    -- look for the closest and/or preferred difficulty for this stepstype
+                    if chart:GetStepsType() == stepstype then
+                        if chart:GetDifficulty() == prefdiff then
+                            dadiff = chart:GetDifficulty()
+                            index = i
+                            break
+                        end
+
+                        local difference = getTheDifferenceBetweenTwoDifficultiesAbsolutely(chart:GetDifficulty(), prefdiff)
+                        if difference <= smallestdifferencefrompreferreddifficulty then
+                            dadiff = chart:GetDifficulty()
+                            smallestdifferencefrompreferreddifficulty = difference
+                            index = i
+                        end
+                    end
+                end
+                -- look for the diff that matches closest to the current one
+                if dadiff == "none" then
+                    for i, chart in ipairs(charts) do
+                        if chart:GetDifficulty() == prefdiff then
+                            dadiff = chart:GetDifficulty()
+                            index = i
+                            break
+                        end
+
+                        local difference = getTheDifferenceBetweenTwoDifficultiesAbsolutely(chart:GetDifficulty(), prefdiff)
+                        if difference <= smallestdifferencefrompreferreddifficulty then
+                            dadiff = chart:GetDifficulty()
+                            smallestdifferencefrompreferreddifficulty = difference
+                            index = i
+                        end
+                    end
+                end
+                if dadiff == "none" then
+                    -- only possible if no charts were given...
+                end
+                return index, dadiff
+            end
+
             -- setting diff stuff
             local stepslist = currentItem:GetChartsOfCurrentGameMode()
             if #stepslist == 0 then
                 -- this scenario should be impossible but lets prepare for the case
-                diffSelection = 1
                 GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
             else
                 local prefdiff = GAMESTATE:GetPreferredDifficulty()
+                
+                diffSelection = findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(stepslist, prefdiff, GAMESTATE:GetPreferredStepsType())
                 diffSelection = clamp(diffSelection, 1, #stepslist)
-                for i = 1,#stepslist do
-                    if stepslist[i]:GetDifficulty() == prefdiff then
-                        diffSelection = i
-                        break
-                    end
-                end
-                GAMESTATE:SetPreferredDifficulty(PLAYER_1, stepslist[diffSelection]:GetDifficulty())
+
                 GAMESTATE:SetCurrentSteps(PLAYER_1, stepslist[diffSelection])
             end
         else
