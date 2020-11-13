@@ -15,6 +15,7 @@ class ComboGraph : public ActorFrame
 	ComboGraph();
 	void Load(const std::string& sMetricsGroup);
 	void Set(const StageStats& s, const PlayerStageStats& pss);
+	void SetWithoutStageStats(const PlayerStageStats& pss, const float fLastSecond);
 	ComboGraph* Copy() const override;
 	bool AutoLoadChildren() const override { return true; }
 
