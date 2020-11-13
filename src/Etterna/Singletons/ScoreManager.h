@@ -205,7 +205,7 @@ class ScoreManager
 	  const std::string& profileID =
 		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> bool
 	{
-		return pscores.at(profileID).count(ck) == 1;
+		return pscores.count(profileID) == 1 && pscores.at(profileID).count(ck) == 1;
 	}
 	[[nodiscard]] auto HasAnyScores() const -> bool
 	{
