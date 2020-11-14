@@ -36,7 +36,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders
 add_executable(Etterna)
 
 # Project Compile Options
-set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires Python 2 installed)")
+set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed)")
 
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
