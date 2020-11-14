@@ -2,8 +2,10 @@
 # "gclient" is a binary known to be apart of depot_tools.
 find_program(DEPOT_TOOLS_EXIST gclient)
 if(NOT DEPOT_TOOLS_EXIST)
-	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build"
-					" crashpad, please ensure depot_tools have been added to your system path.")
+	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build crashpad,"
+					" please ensure depot_tools have been added to your system path. Install instructions are at: "
+					" https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up")
+	return()
 endif()
 
 # Google uses depot_tools to download and build crashpad. We will do the same.
