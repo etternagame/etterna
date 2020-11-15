@@ -558,7 +558,7 @@ local function accuracyStats()
         local greatCount = 0
         
         for i, o in ipairs(offsetTable) do
-            if typeTable[i] ~= nil and typeTable[i] == "TapNoteType_Tap" then
+            if typeTable[i] ~= nil and (typeTable[i] == "TapNoteType_Tap" or typeTable[i] == "TapNoteType_HoldHead") then
                 local off = math.abs(o)
                 
                 -- count judgments
