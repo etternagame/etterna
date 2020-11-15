@@ -18,11 +18,13 @@ local lineThickness = 2
 local lineAlpha = 0.2
 local textPadding = 5
 local textSize = 0.65
+local instructionTextSize = 0.55
 
 local bgColor = color("0,0,0,0.8")
 local positionColor = color("0.7,0.2,0.2,0.7")
 local dotAnimationSeconds = 1
 local resizeAnimationSeconds = 0.1
+local unHighlightedAlpha = 0.2
 
 -- the dot sizes
 -- the "classic" default is 1.0
@@ -41,6 +43,82 @@ local barJudgments = {
     "TapNoteScore_W4",
     "TapNoteScore_W5",
 }
+
+-- tracking the index of dot highlighting for each column
+local highlightIndex = 1
+-- each index corresponds to a type of column setup to highlight
+local highlightTable = {}
+
+local function columnIsHighlighted(column)
+    return column == nil or #highlightTable == 0 or highlightTable[highlightIndex][column] == true
+end
+
+-- allow moving the highlightIndex in either direction and loop around if under/overflow
+local function moveHighlightIndex(direction)
+    local newg = (((highlightIndex) + direction) % (#highlightTable + 1))
+    if newg == 0 then
+        newg = direction > 0 and 1 or #highlightTable
+    end
+    highlightIndex = newg
+end
+
+local function getMineColor(column)
+    -- cant highlight or currently set to highlight this column
+    if columnIsHighlighted(column) then
+        return mineColor
+    else
+        -- not highlighting this column
+        local c = {}
+        for i,v in ipairs(mineColor) do
+            c[i] = v
+        end
+        c[4] = unHighlightedAlpha
+        return c
+    end
+end
+
+-- produces the highlightTable in the format:
+-- { {x,y,z...}, {x,y,z...} ... } where each subtable is a list of columns to highlight, the keys are the columns
+local function calcDotHighlightTable(tracks, columns)
+    local out = {}
+    if tracks ~= nil and #tracks ~= 0 then
+        -- all columns
+        out = {{}}
+        for i = 1, columns do
+            out[1][i] = true
+        end
+
+        if columns % 2 == 0 then
+            out[#out+1] = {}
+            out[#out+1] = {}
+            -- even columns, 1 per hand
+            for i = 1, columns / 2 do
+                out[2][i] = true
+            end
+            for i = columns / 2 + 1, columns do
+                out[3][i] = true
+            end
+
+        else
+            out[#out+1] = {}
+            out[#out+1] = {}
+            out[#out+1] = {}
+            -- odd columns, 1 left - 1 middle - 1 right
+            for i = 1, math.floor(columns / 2) do
+                out[2][i] = true
+            end
+            out[3][math.ceil(columns / 2)] = true
+            for i = math.ceil(columns / 2) + 1, columns do
+                out[4][i] = true
+            end
+        end
+        -- add single highlights for each column
+        for i = 1, columns do
+            out[#out+1] = {[i] = true}
+        end
+    end
+    return out
+end
 
 -- convert number to another number out of a given width
 -- relative to left side of the graph
@@ -133,6 +211,23 @@ local t = Def.ActorFrame {
                     self:GetChild("MousePosition"):visible(false)
                     TOOLTIP:Hide()
                     hid = true
+                end
+            end
+        end)
+    end,
+    BeginCommand = function(self)
+        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+            if #highlightTable ~= 0 then
+                if event.type == "InputEventType_FirstPress" then
+                    if event.button == "MenuDown" or event.button == "Down" then
+                        moveHighlightIndex(1)
+                        self:playcommand("DrawOffsets")
+                        self:hurrytweening(0.2)
+                    elseif event.button == "MenuUp" or event.button == "Up" then
+                        moveHighlightIndex(-1)
+                        self:playcommand("DrawOffsets")
+                        self:hurrytweening(0.2)
+                    end
                 end
             end
         end)
@@ -272,7 +367,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
     Name = "InstructionText",
     InitCommand = function(self)
         self:valign(1)
-        self:zoom(textSize)
+        self:zoom(instructionTextSize)
         self:settext("")
         self:playcommand("UpdateSizing")
         self:finishtweening()
@@ -281,8 +376,31 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:finishtweening()
         self:smooth(resizeAnimationSeconds)
         self:xy(sizing.Width / 2, sizing.Height - textPadding)
+        self:maxwidth((sizing.Width - self:GetParent():GetChild("EarlyText"):GetZoomedWidth() * 2) / instructionTextSize - textPadding)
+    end,
+    UpdateTextCommand = function(self)
+        local cols = {}
+        if #highlightTable == 0 or highlightTable[highlightIndex] == nil then
+            self:settext("")
+        else
+            for col, _ in pairs(highlightTable[highlightIndex]) do
+                cols[#cols+1] = col
+                cols[#cols+1] = " "
+            end
+            cols[#cols] = nil
+            cols = table.concat(cols)
+            self:settextf("Up/Down for column highlights (Now: %s)", cols)
+        end
     end
 }
+
+-- keeping track of stuff for persistence dont look at this
+local lastOffsets = {}
+local lastTracks = {}
+local lastTiming = {}
+local lastTypes = {}
+local lastMaxTime = 0
+local lastColumns = nil
 
 t[#t+1] = Def.ActorMultiVertex {
     Name = "Dots",
@@ -296,12 +414,27 @@ t[#t+1] = Def.ActorMultiVertex {
     LoadOffsetsCommand = function(self, params)
         -- makes sure all sizes are updated
         self:GetParent():playcommand("UpdateSizing", params)
+
+        lastOffsets = params.offsetVector
+        lastTracks = params.trackVector
+        lastTiming = params.timingVector
+        lastTypes = params.typeVector
+        lastMaxTime = params.maxTime
+        lastColumns = params.columns
+        highlightTable = calcDotHighlightTable(lastTracks, lastColumns)
+        highlightIndex = 1
+
+        -- draw dots
+        self:playcommand("DrawOffsets")
+    end,
+    DrawOffsetsCommand = function(self)
         local vertices = {}
-        local offsets = params.offsetVector
-        local tracks = params.trackVector
-        local timing = params.timingVector
-        local types = params.typeVector
-        local maxTime = params.maxTime
+        local offsets = lastOffsets
+        local tracks = lastTracks
+        local timing = lastTiming
+        local types = lastTypes
+        local maxTime = lastMaxTime
+        self:GetParent():playcommand("UpdateText")
 
         if offsets == nil or #offsets == 0 then
             self:SetVertices(vertices)
@@ -315,18 +448,24 @@ t[#t+1] = Def.ActorMultiVertex {
         for i, offset in ipairs(offsets) do
             local x = fitX(timing[i], maxTime)
             local y = fitY(offset, maxOffset)
+            local column = tracks ~= nil and tracks[i] + 1 or nil
 
             local cappedY = math.max(maxOffset, (maxOffset) * timingScale)
             if y < 0 or y > sizing.Height then
                 y = fitY(cappedY, maxOffset)
             end
 
-            local dotColor = offsetToJudgeColor(offset, timingScale)
-            dotColor[4] = 1
 
             if types[i] ~= "TapNoteType_Mine" then
+                -- handle highlighting logic
+                local dotColor = offsetToJudgeColor(offset, timingScale)
+                if not columnIsHighlighted(column) then
+                    dotColor[4] = unHighlightedAlpha
+                end
                 placeDotVertices(vertices, x, y, dotColor)
             else
+                -- this function handles the highlight logic
+                local mineColor = getMineColor(column)
                 placeMineVertices(vertices, x, fitY(-maxOffset, maxOffset), mineColor)
             end
 
