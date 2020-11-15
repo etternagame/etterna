@@ -17,10 +17,6 @@ local function evalInput(event)
                 -- judge window decrease
                 judgeSetting = clamp(judgeSetting - 1, 4, 9)
                 MESSAGEMAN:Broadcast("JudgeWindowChanged")
-            elseif btn == "MenuUp" then
-                -- reset judge window
-                judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
-                MESSAGEMAN:Broadcast("JudgeWindowChanged")
             end
         end
     end
