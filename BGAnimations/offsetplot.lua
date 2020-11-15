@@ -421,8 +421,10 @@ t[#t+1] = Def.ActorMultiVertex {
         lastTypes = params.typeVector
         lastMaxTime = params.maxTime
         lastColumns = params.columns
-        highlightTable = calcDotHighlightTable(lastTracks, lastColumns)
-        highlightIndex = 1
+        if not params.rejudged then
+            highlightTable = calcDotHighlightTable(lastTracks, lastColumns)
+            highlightIndex = 1
+        end
 
         -- draw dots
         self:playcommand("DrawOffsets")

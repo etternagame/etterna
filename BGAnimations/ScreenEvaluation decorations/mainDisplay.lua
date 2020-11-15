@@ -44,7 +44,12 @@ local t = Def.ActorFrame {
         end
 
         --- propagate set command through children with the song
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = score, judgeSetting = forcedScreenEntryJudgeWindow})
+        self:playcommand("Set", {
+            song = GAMESTATE:GetCurrentSong(),
+            steps = GAMESTATE:GetCurrentSteps(),
+            score = score,
+            judgeSetting = forcedScreenEntryJudgeWindow
+        })
     end,
     UpdateScoreCommand = function(self, params)
         -- update the global judge setting if it is provided and just in case it happens to be desynced here
@@ -63,13 +68,23 @@ local t = Def.ActorFrame {
         --- update all relevant information according to the given score
         -- should work with offset plot as well as all regular information on this screen
         -- this is intended for use only with replays but may partially work without it
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(), score = params.score, judgeSetting = params.judgeSetting})
+        self:playcommand("Set", {
+            song = GAMESTATE:GetCurrentSong(),
+            steps = GAMESTATE:GetCurrentSteps(),
+            score = params.score,
+            judgeSetting = params.judgeSetting,
+            rejudged = params.rejudged, -- optional param to know if need to reload offset plot
+        })
     end,
     JudgeWindowChangedMessageCommand = function(self)
         -- we assume a score is already set
         -- so we run it back through again
         -- the fact that the param table has judgeSetting in it causes things to recalc according to judge
-        self:playcommand("UpdateScore", {score = chosenScore, judgeSetting = judgeSetting})
+        self:playcommand("UpdateScore", {
+            score = chosenScore,
+            judgeSetting = judgeSetting,
+            rejudged = true,
+        })
     end,
     LoginMessageCommand = function(self)
         self:playcommand("UpdateLoginStatus")
@@ -1298,7 +1313,16 @@ t[#t+1] = Def.ActorFrame {
                     end
                     local lastSecond = params.steps:GetLastSecond()
 
-                    self:playcommand("LoadOffsets", {offsetVector = offsets, trackVector = tracks, timingVector = timing, typeVector = types, maxTime = lastSecond, judgeSetting = params.judgeSetting, columns = params.steps:GetNumColumns()})
+                    self:playcommand("LoadOffsets", {
+                        offsetVector = offsets,
+                        trackVector = tracks,
+                        timingVector = timing,
+                        typeVector = types,
+                        maxTime = lastSecond,
+                        judgeSetting = params.judgeSetting,
+                        columns = params.steps:GetNumColumns(),
+                        rejudged = params.rejudged,
+                    })
                 end
             end
         end
