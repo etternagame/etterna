@@ -1296,7 +1296,7 @@ t[#t+1] = Def.ActorFrame {
                     end
                     local lastSecond = params.steps:GetLastSecond()
 
-                    self:playcommand("LoadOffsets", {offsetVector = offsets, trackVector = tracks, timingVector = timing, typeVector = types, maxTime = lastSecond, judgeSetting = params.judgeSetting})
+                    self:playcommand("LoadOffsets", {offsetVector = offsets, trackVector = tracks, timingVector = timing, typeVector = types, maxTime = lastSecond, judgeSetting = params.judgeSetting, columns = params.steps:GetNumColumns()})
                 end
             end
         end
