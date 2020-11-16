@@ -79,11 +79,6 @@ class ArchHooks
 	void RegisterWithLua();
 
   private:
-	/* This are helpers for GetMicrosecondsSinceStart on systems with a timer
-	 * that may loop or move backwards. */
-	static int64_t FixupTimeIfLooped(int64_t usecs);
-	static int64_t FixupTimeIfBackwards(int64_t usecs);
-
 	static bool g_bQuitting;
 	static bool g_bToggleWindowed;
 	bool m_bHasFocus;

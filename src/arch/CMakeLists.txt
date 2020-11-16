@@ -192,7 +192,6 @@ list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks.cpp")
 list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks.h")
 
 if(NOT APPLE)
-  list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooksUtil.cpp")
   if(WIN32)
     list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_Win32.cpp" "ArchHooks/ArchHooks_Win32Static.cpp")
     list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_Win32.h")
