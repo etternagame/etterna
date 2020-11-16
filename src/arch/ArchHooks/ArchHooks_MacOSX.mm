@@ -116,26 +116,6 @@ void ArchHooks_MacOSX::Init()
 	CFRelease( path );
 }
 
-int64_t ArchHooks::GetMicrosecondsSinceStart()
-{
-	// http://developer.apple.com/qa/qa2004/qa1398.html
-	static double factor = 0.0;
-
-	if( unlikely(factor == 0.0) )
-	{
-		mach_timebase_info_data_t timeBase;
-
-		mach_timebase_info( &timeBase );
-		factor = timeBase.numer / ( 1000.0 * timeBase.denom );
-	}
-	return int64_t( mach_absolute_time() * factor );
-}
-
-std::chrono::microseconds ArchHooks::GetChronoDurationSinceStart()
-{
-	return std::chrono::microseconds(GetMicrosecondsSinceStart());
-}
-
 #include "RageUtil/File/RageFileManager.h"
 
 static void PathForFolderType( char dir[PATH_MAX], OSType folderType )

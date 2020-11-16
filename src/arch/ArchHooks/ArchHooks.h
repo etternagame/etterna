@@ -44,19 +44,6 @@ class ArchHooks
 	static void SetToggleWindowed();
 
 	/*
-	 * Return the amount of time since the program started.  (This may actually
-	 * be since the initialization of HOOKS.
-	 *
-	 * This is a static function, implemented in whichever ArchHooks source is
-	 * used, so it can be used at any time (such as in global constructors),
-	 * before HOOKS is initialized.
-	 *
-	 * RageTimer layers on top of this.
-	 */
-	static int64_t GetMicrosecondsSinceStart();
-	static std::chrono::microseconds GetChronoDurationSinceStart();
-
-	/*
 	 * Add file search paths, higher priority first.
 	 */
 	static void MountInitialFilesystems(const std::string& sDirOfExecutable);

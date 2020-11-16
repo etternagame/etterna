@@ -15,44 +15,6 @@
 
 #include <chrono>
 
-static bool g_bTimerInitialized;
-
-static void
-InitTimer()
-{
-	if (g_bTimerInitialized)
-		return;
-	g_bTimerInitialized = true;
-
-	// Set Windows clock resolution to 1ms
-	timeBeginPeriod(1);
-}
-
-int64_t
-ArchHooks::GetMicrosecondsSinceStart()
-{
-	if (!g_bTimerInitialized)
-		InitTimer();
-
-	int64_t ret = timeGetTime() * int64_t(1000);
-	ret = FixupTimeIfLooped(ret);
-	ret = FixupTimeIfBackwards(ret);
-
-	return ret;
-}
-
-std::chrono::microseconds
-ArchHooks::GetChronoDurationSinceStart()
-{
-	if (!g_bTimerInitialized)
-		InitTimer();
-
-	// You may be thinking "why dont we use ::now() compared with a duration and
-	// return that?" well, that didnt work, is all i can say right now. maybe
-	// rewriting it later will work
-	return std::chrono::microseconds(GetMicrosecondsSinceStart());
-}
-
 static std::string
 GetMountDir(const std::string& sDirOfExecutable)
 {

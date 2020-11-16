@@ -1,4 +1,5 @@
 list(APPEND CORE_ARCH_HPP Arch.hpp)
+list(APPEND CORE_ARCH_CPP Arch.cpp)
 
 if(WIN32)
     list(APPEND CORE_ARCH_CPP ArchWin.cpp)

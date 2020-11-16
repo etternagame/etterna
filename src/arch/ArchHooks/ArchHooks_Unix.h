@@ -2,16 +2,12 @@
 #define ARCH_HOOKS_UNIX_H
 
 #include "ArchHooks.h"
-#include <chrono>
 class ArchHooks_Unix : public ArchHooks
 {
   public:
 	void Init();
-	int64_t GetMicrosecondsSinceStart();
-	std::chrono::microseconds GetChronoDurationSinceStart();
 
 	void MountInitialFilesystems(const std::string& sDirOfExecutable);
-	static clockid_t GetClock();
 };
 
 #ifdef ARCH_HOOKS

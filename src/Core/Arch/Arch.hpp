@@ -105,6 +105,19 @@ namespace Core::Arch {
      * @return A UTF-8 string of the directory containing the binary.
      */
     ghc::filesystem::path getAppDirectory();
-}
+
+    namespace Time {
+
+        /**
+         * @return Get microseconds since computer boot time.
+         *
+         * This function is defined in the universal "Arch.cpp", as after testing on each
+         * platform, std::chrono was able to return a value similar to the previously used
+         * GetMicrosecondsSinceStart. The API used on each platform is the same, or a better
+         * API that was wrapped around std::chrono
+         */
+        std::chrono::microseconds GetChronoDurationSinceStart();
+    } // namespace Time
+} // namespace Core::Arch
 
 #endif //CORE_ARCH_ARCH_HPP
