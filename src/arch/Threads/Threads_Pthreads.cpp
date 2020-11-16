@@ -229,7 +229,7 @@ bool bInitialized = false;
 clockid_t
 GetClock()
 {
-	return ArchHooks_Unix::GetClock();
+	return CLOCK_MONOTONIC;
 }
 
 void
