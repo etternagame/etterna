@@ -16,10 +16,11 @@ local t = Def.ActorFrame {
 }
 
 local visEnabled = Var("visualizer")
+local loadingScreenName = Var("screen")
 
 local ratios = {
-    Height = 109 / 1080,
-    Width = 1,
+    Height = 109 / 1080, -- frame height
+    Width = 1, -- full screen width
     AvatarWidth = 109 / 1080, -- this should end up square
     ConnectionLogoRightGap = 0 / 1080, -- logo position relative to the right edge of avatar (height based for square)
     ConnectionLogoBottomGap = 0 / 1080, -- same as above
@@ -129,7 +130,7 @@ local screensAllowedForButtons = {
 -- find out if a button from the above list is selectable based on the current screen
 -- wont work on Init, only when the screen exists (at or after BeginCommand)
 local function selectable(name)
-    local screen = SCREENMAN:GetTopScreen():GetName()
+    local screen = loadingScreenName
     return screensAllowedForButtons[name]["All"] ~= nil or screensAllowedForButtons[name][screen]
 end
 
@@ -648,6 +649,33 @@ if visEnabled then
             self:playcommand("ResetWidth", {width = newVisualizerWidth})
         end
     }
+end
+
+-- below this point we load things that only work on specific screens
+-- buttons that arent meant to function on some screens dont need their intended targets loaded
+-- this saves on load time and fps
+if selectable("Exit") then
+    -- nothing, it's just a button
+end
+
+if selectable("Settings") then
+    -- nothing yet
+end
+
+if selectable("Help") then
+    -- nothing yet
+end
+
+if selectable("Downloads") then
+    -- nothing yet
+end
+
+if selectable("Random") then
+    -- nothing, it's just a button
+end
+
+if selectable("Search") then
+    t[#t+1] = LoadActor("searchfilter.lua")
 end
 
 return t

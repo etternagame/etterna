@@ -3,7 +3,7 @@ local t = Def.ActorFrame {Name = "OverlayFile"}
 t[#t+1] = LoadActor("../_mouse.lua", "ScreenEvaluationNormal")
 
 -- header
-t[#t+1] = LoadActor("../playerInfoFrame.lua")
+t[#t+1] = LoadActor("../playerInfoFrame/main.lua", {screen = "ScreenEvaluationNormal"})
 
 -- footer
 t[#t+1] = LoadActorWithParams("../footer.lua", {
