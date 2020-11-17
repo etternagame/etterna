@@ -104,7 +104,7 @@ function shortenNumber(num)
     end
 
     if ind == 1 then return tostring(num) end
-    return string.format("%.3f%s", numNUM, suffixes[ind])
+    return string.format("%.3f%s", math.floor(numNUM * 10^3) / 10^3, suffixes[ind])
 end
 
 -- convenience to reduce copy paste
