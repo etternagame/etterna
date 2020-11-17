@@ -159,7 +159,7 @@ local function calculateGraphBounds()
 
     -- probably possible if your only score is outside the 0-100 range somehow
     -- allow impossible bounds here (negative and +100%)
-    if min == max then
+    if min == max and playsThisSession > 1 then
         max = max + 2.5
         min = min - 2.5
     end
