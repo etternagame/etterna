@@ -116,7 +116,7 @@ namespace Core::Arch {
          * GetMicrosecondsSinceStart. The API used on each platform is the same, or a better
          * API that was wrapped around std::chrono
          */
-        std::chrono::microseconds GetChronoDurationSinceStart();
+        std::chrono::milliseconds GetChronoDurationSinceStart();
     } // namespace Time
 } // namespace Core::Arch
 
