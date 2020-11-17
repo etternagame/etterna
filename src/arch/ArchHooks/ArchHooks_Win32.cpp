@@ -155,23 +155,6 @@ ArchHooks_Win32::RestartProgram()
 	Win32RestartProgram();
 }
 
-int
-ArchHooks_Win32::GetWindowWidth()
-{
-	RECT rect;
-	GetClientRect(GraphicsWindow::GetHwnd(), &rect);
-	return rect.right - rect.left;
-}
-
-int
-ArchHooks_Win32::GetWindowHeight()
-{
-	RECT rect;
-	GetClientRect(GraphicsWindow::GetHwnd(), &rect);
-	return rect.bottom - rect.top;
-}
-
-
 /*
  * (c) 2003-2004 Glenn Maynard, Chris Danford
  * All rights reserved.

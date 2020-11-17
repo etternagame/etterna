@@ -10,6 +10,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Arch/Arch.hpp"
 
 #include <map>
 #include <set>
@@ -543,14 +544,14 @@ class LunaInputFilter : public Luna<InputFilter>
 	static int GetMouseX(T* p, lua_State* L)
 	{
 		float fX = p->GetCursorX();
-		fX = SCALE(fX, 0, Locator::getArchHooks()->GetWindowWidth(), SCREEN_LEFT, SCREEN_RIGHT);
+		fX = SCALE(fX, 0, Core::Arch::getWindowDimensions().width, SCREEN_LEFT, SCREEN_RIGHT);
 		lua_pushnumber(L, fX);
 		return 1;
 	}
 	static int GetMouseY(T* p, lua_State* L)
 	{
 		float fY = p->GetCursorY();
-		fY = SCALE(fY, 0, Locator::getArchHooks()->GetWindowHeight(), SCREEN_TOP, SCREEN_BOTTOM);
+		fY = SCALE(fY, 0, Core::Arch::getWindowDimensions().height, SCREEN_TOP, SCREEN_BOTTOM);
 		lua_pushnumber(L, fY);
 		return 1;
 	}

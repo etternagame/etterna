@@ -68,12 +68,6 @@ class ArchHooks
 	 */
 	bool AppFocusChanged();
 
-	/** @brief Fetch the window width. */
-	virtual int GetWindowWidth();
-
-	/** @brief Fetch the window height. */
-	virtual int GetWindowHeight();
-
 	// Lua
 	void PushSelf(lua_State* L);
 	void RegisterWithLua();

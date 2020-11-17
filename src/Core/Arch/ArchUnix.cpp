@@ -1,5 +1,7 @@
 #include "Arch.hpp"
 #include "Core/Services/Locator.hpp"
+#include "Etterna/Singletons/PrefsManager.h"
+
 #include <fmt/format.h>
 
 #include <string>
@@ -105,6 +107,12 @@ namespace Core::Arch {
         auto screen = XDefaultScreen(display);
         unsigned width = XDisplayWidth(display, screen);
         unsigned height = XDisplayHeight(display, screen);
+        return {width, height};
+    }
+
+    ScreenDimensions getWindowDimensions(){
+        auto width = static_cast<unsigned>(PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
+        auto height = static_cast<unsigned>(PREFSMAN->m_iDisplayHeight);
         return {width, height};
     }
 

@@ -6,35 +6,6 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Core/Services/Locator.hpp"
 
-#ifdef __APPLE__
-#include "../../archutils/Darwin/MouseDevice.h"
-
-int
-ArchHooks::GetWindowWidth()
-{
-	return MACWindowWidth();
-}
-
-int
-ArchHooks::GetWindowHeight()
-{
-	return MACWindowHeight();
-}
-#else
-int
-ArchHooks::GetWindowWidth()
-{
-	return (static_cast<int>(PREFSMAN->m_iDisplayHeight *
-							 PREFSMAN->m_fDisplayAspectRatio));
-}
-
-int
-ArchHooks::GetWindowHeight()
-{
-	return PREFSMAN->m_iDisplayHeight;
-}
-#endif
-
 bool ArchHooks::g_bQuitting = false;
 bool ArchHooks::g_bToggleWindowed = false;
 // Keep from pulling RageThreads.h into ArchHooks.h

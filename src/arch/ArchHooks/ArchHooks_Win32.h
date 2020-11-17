@@ -13,9 +13,6 @@ class ArchHooks_Win32 : public ArchHooks
 	void RestartProgram();
 	bool CheckForMultipleInstances(int argc, char* argv[]);
 
-	/** @brief Fetch the window width. */
-	int GetWindowWidth();
-
 	void sShowCursor(bool set) override
 	{
 		if (set)
@@ -25,9 +22,6 @@ class ArchHooks_Win32 : public ArchHooks
 			while (ShowCursor(false) >= 0)
 				;
 	}
-
-	/** @brief Fetch the window height. */
-	int GetWindowHeight();
 };
 
 #ifdef ARCH_HOOKS

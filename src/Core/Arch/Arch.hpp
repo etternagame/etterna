@@ -66,6 +66,12 @@ namespace Core::Arch {
     ScreenDimensions getScreenDimensions();
 
     /**
+     * @brief Get the dimensions of the game window.
+     * @return A pair with the first being the width, and second, height
+     */
+    ScreenDimensions getWindowDimensions();
+
+    /**
      * @brief Get the users preferred language.
      * @return A 2-letter RFC-639 language code, using "en" as the default value.
      */
@@ -100,7 +106,7 @@ namespace Core::Arch {
      * - Windows: Will return one directory up from binary location.
      * - macOS and Linux: Will return same directory as getExecutableDirectory.
      *
-     * If the binary locations are changed, the functions and documentation must be chagned accordingly.
+     * If the binary locations are changed, the functions and documentation must be changed accordingly.
      *
      * @return A UTF-8 string of the directory containing the binary.
      */

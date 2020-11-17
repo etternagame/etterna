@@ -55,6 +55,14 @@ namespace Core::Arch {
         return res;
     }
 
+    ScreenDimensions getWindowDimensions(){
+        auto dims = NSApplication.sharedApplication.mainWindow.frame;
+        ScreenDimensions res{
+            static_cast<unsigned int>(dims.size.width),
+            static_cast<unsigned int>(dims.size.height)};
+        return res;
+    }
+
     std::string getLanguage(){
         return NSLocale.currentLocale.languageCode.UTF8String;
     }

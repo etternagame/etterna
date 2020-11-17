@@ -1,6 +1,7 @@
 #include "Arch.hpp"
 
 #include "Core/Services/Locator.hpp"
+#include "archutils/Win32/GraphicsWindow.h"
 
 #include <windows.h>
 #include <GL/glew.h>
@@ -133,6 +134,20 @@ namespace Core::Arch {
 	    ScreenDimensions dims{};
 	    dims.width = static_cast<unsigned>(screen.right);
 	    dims.height = static_cast<unsigned>(screen.bottom);
+
+	    return dims;
+	}
+
+	ScreenDimensions getWindowDimensions(){
+	    // TODO: Should this be handled by the window class?
+        // Get screen information
+	    RECT window;
+	    GetClientRect(GraphicsWindow::GetHwnd(), &window);
+
+	    // Convert into ScreenDimensions struct
+	    ScreenDimensions dims{};
+	    dims.width = static_cast<unsigned>(window.right - window.left);
+	    dims.height = static_cast<unsigned>(window.bottom - window.top);
 
 	    return dims;
 	}
