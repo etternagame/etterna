@@ -91,7 +91,7 @@ class LunaArchHooks : public Luna<ArchHooks>
 //	DEFINE_METHOD(GetClipboard, GetClipboard());
 	static int ShowCursor(T* p, lua_State* L)
 	{
-		Core::Arch::setCursorVisible(BArg(1))
+		Core::Arch::setCursorVisible(BArg(1));
 		return 0;
 	}
 
