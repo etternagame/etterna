@@ -91,6 +91,12 @@ namespace Core::Arch {
     std::string getClipboard();
 
     /**
+     * Set if the mouse is visible or invisible
+     * @param value True if visible mouse desired, false if not.
+     */
+    void setCursorVisible(bool value);
+
+    /**
      * @brief Get the location of the binary
      *
      * @return A UTF-8 string of the directory containing the binary.

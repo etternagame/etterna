@@ -200,6 +200,14 @@ namespace Core::Arch {
 		return res;
 	}
 
+	void setCursorVisible(bool value){
+ 		if (value){
+		    while (ShowCursor(true) < 0);
+		} else {
+		    while (ShowCursor(false) >= 0);
+		}
+    }
+
     ghc::filesystem::path getExecutableDirectory(){
 	    // Get a handle on the current executable.
         HMODULE hModule = GetModuleHandleW(nullptr);

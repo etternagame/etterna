@@ -198,6 +198,10 @@ namespace Core::Arch {
         return res;
     }
 
+    void setCursorVisible(bool value){
+        Locator::getLogger()->warn("Core::Arch::setCursorVisible not implemented");
+    }
+
     ghc::filesystem::path getExecutableDirectory(){
         char locationBuffer[FILENAME_MAX];
         int maxSize = sizeof(locationBuffer);

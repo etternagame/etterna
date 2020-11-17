@@ -1,14 +1,15 @@
 #include "Arch.hpp"
+#include <Core/Services/Locator.hpp>
 
 #include <Foundation/Foundation.h>
 #include <AppKit/AppKit.h>
 #include <Metal/Metal.h>
 #include <mach-o/dyld.h>
 #include <sys/sysctl.h>
+#include <vector>
 
 #include <fmt/format.h>
 
-#include <vector>
 
 // Translation Unit Specific Functions
 static std::string getSysctlName(const char* name) {
@@ -88,6 +89,10 @@ namespace Core::Arch {
         // Get first element in pasteboard, and return converted string.
         NSPasteboardItem *item = NSPasteboard.generalPasteboard.pasteboardItems[0];
         return [item stringForType:(NSPasteboardTypeString)].UTF8String;
+    }
+
+    void setCursorVisible(bool value){
+        Locator::getLogger()->warn("Core::Arch::setCursorVisible not implemented");
     }
 
     ghc::filesystem::path getExecutableDirectory(){

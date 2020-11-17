@@ -13,9 +13,6 @@ class ArchHooks
 	virtual ~ArchHooks() = default;
 	virtual void Init() {}
 
-	/* This is called as soon as the loading window is shown, and we can
-	 * safely log. */
-	virtual void sShowCursor(bool set) {}
 	/**
 	 * @brief Re-exec the game.
 	 *

@@ -12,16 +12,6 @@ class ArchHooks_Win32 : public ArchHooks
 	~ArchHooks_Win32();
 	void RestartProgram();
 	bool CheckForMultipleInstances(int argc, char* argv[]);
-
-	void sShowCursor(bool set) override
-	{
-		if (set)
-			while (ShowCursor(true) < 0)
-				;
-		else
-			while (ShowCursor(false) >= 0)
-				;
-	}
 };
 
 #ifdef ARCH_HOOKS
