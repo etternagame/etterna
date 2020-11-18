@@ -238,7 +238,7 @@ namespace Core::Arch {
             Locator::getLogger()->warn("Could not open folder. Note a folder. Path: \"{}\"", path.string());
             return false;
         }
-        ShellExecute(NULL, NULL, path.native(), NULL, NULL, SW_SHOWNORMAL);
+        ShellExecuteA(nullptr, nullptr, path.native().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
 
     std::string getClipboard(){
