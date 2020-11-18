@@ -27,13 +27,6 @@ class ArchHooks
 	 * If this is implemented, it doesn't return. */
 	virtual void RestartProgram() {}
 
-	/* If this is a second instance, return true.
-	 * Optionally, give focus to the existing window. */
-	virtual bool CheckForMultipleInstances(int /* argc */, char*[] /* argv[] */)
-	{
-		return false;
-	}
-
 	/**
 	 * @brief Determine if the user wants to quit (eg. ^C, or clicked a "close
 	 * window" button).

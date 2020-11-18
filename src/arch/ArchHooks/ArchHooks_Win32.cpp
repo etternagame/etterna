@@ -9,9 +9,6 @@
 #include "archutils/win32/RestartProgram.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
-static HANDLE g_hInstanceMutex;
-static bool g_bIsMultipleInstance = false;
-
 #if _MSC_VER >= 1400 // VC8
 #include <cwchar>
 void
@@ -68,85 +65,6 @@ ArchHooks_Win32::ArchHooks_Win32()
 	/* Windows boosts priority on keyboard input, among other things.  Disable
 	 * that for the main thread. */
 	SetThreadPriorityBoost(GetCurrentThread(), TRUE);
-
-	g_hInstanceMutex = CreateMutex(NULL, TRUE, Core::AppInfo::APP_TITLE);
-
-	g_bIsMultipleInstance = false;
-	if (GetLastError() == ERROR_ALREADY_EXISTS)
-		g_bIsMultipleInstance = true;
-}
-
-ArchHooks_Win32::~ArchHooks_Win32()
-{
-	CloseHandle(g_hInstanceMutex);
-}
-
-struct CallbackData
-{
-	HWND hParent;
-	HWND hResult;
-};
-
-// Like GW_ENABLEDPOPUP:
-static BOOL CALLBACK
-GetEnabledPopup(HWND hWnd, LPARAM lParam)
-{
-	CallbackData* pData = (CallbackData*)lParam;
-	if (GetParent(hWnd) != pData->hParent)
-		return TRUE;
-	if ((GetWindowLong(hWnd, GWL_STYLE) & WS_POPUP) != WS_POPUP)
-		return TRUE;
-	if (!IsWindowEnabled(hWnd))
-		return TRUE;
-
-	pData->hResult = hWnd;
-	return FALSE;
-}
-
-bool
-ArchHooks_Win32::CheckForMultipleInstances(int argc, char* argv[])
-{
-	if (!g_bIsMultipleInstance)
-		return false;
-
-	/* Search for the existing window.  Prefer to use the class name, which is
-	 * less likely to have a false match, and will match the gameplay window.
-	 * If that fails, try the window name, which should match the loading
-	 * window. */
-	HWND hWnd = FindWindow(Core::AppInfo::APP_TITLE, NULL);
-	if (hWnd == NULL)
-		hWnd = FindWindow(NULL, Core::AppInfo::APP_TITLE);
-
-	if (hWnd != NULL) {
-		/* If the application has a model dialog box open, we want to be sure to
-		 * give focus to it, not the main window. */
-		CallbackData data;
-		data.hParent = hWnd;
-		data.hResult = NULL;
-		EnumWindows(GetEnabledPopup, (LPARAM)&data);
-
-		if (data.hResult != NULL)
-			SetForegroundWindow(data.hResult);
-		else
-			SetForegroundWindow(hWnd);
-
-		// Send the command line to the existing window.
-		vector<std::string> vsArgs;
-		for (int i = 0; i < argc; i++)
-			vsArgs.push_back(argv[i]);
-		std::string sAllArgs = join("|", vsArgs);
-		COPYDATASTRUCT cds;
-		cds.dwData = 0;
-		cds.cbData = sAllArgs.size();
-		cds.lpData = (void*)sAllArgs.data();
-		SendMessage(
-		  (HWND)hWnd, // HWND hWnd = handle of destination window
-		  WM_COPYDATA,
-		  (WPARAM)NULL,	 // HANDLE OF SENDING WINDOW
-		  (LPARAM)&cds); // 2nd msg parameter = pointer to COPYDATASTRUCT
-	}
-
-	return true;
 }
 
 void

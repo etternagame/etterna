@@ -102,4 +102,9 @@ namespace Core::Arch {
     ghc::filesystem::path getAppDirectory() {
 	    return getExecutableDirectory();
 	}
+
+    bool isOtherInstanceRunning(int argc, char** argv){
+        Locator::getLogger()->warn("Core::Arch::isOtherInstanceRunning not implemented");
+        return false;
+    }
 }

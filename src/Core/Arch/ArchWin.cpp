@@ -1,6 +1,7 @@
 #include "Arch.hpp"
 
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "archutils/Win32/GraphicsWindow.h"
 
 #include <windows.h>
@@ -13,6 +14,8 @@
 
 
 // Translation Unit Specific Functions
+struct CallbackData { HWND hParent; HWND hResult; };
+
 // TODO: Consider *any* possibility where we don't need to access the registry. Works, but is it ideal?
 std::string RegistryGetString(HKEY hKey, const std::string& subKey, const std::string& value){
     LONG retCode; // Return code for registry functions
@@ -61,6 +64,19 @@ unsigned RegistryGetDWORD(HKEY hKey, const std::string& subKey, const std::strin
     }
 
     return static_cast<unsigned>(result);
+}
+
+static BOOL CALLBACK GetEnabledPopup(HWND hWnd, LPARAM lParam) {
+	CallbackData* pData = (CallbackData*)lParam;
+	if (GetParent(hWnd) != pData->hParent)
+		return TRUE;
+	if ((GetWindowLong(hWnd, GWL_STYLE) & WS_POPUP) != WS_POPUP)
+		return TRUE;
+	if (!IsWindowEnabled(hWnd))
+		return TRUE;
+
+	pData->hResult = hWnd;
+	return FALSE;
 }
 
 namespace Core::Arch {
@@ -230,5 +246,52 @@ namespace Core::Arch {
 	    auto dir = getExecutableDirectory();
 	    return dir.parent_path();
 	}
+
+	bool isOtherInstanceRunning(int argc, char** argv){
+        /* Search for the existing window.  Prefer to use the class name, which is
+         * less likely to have a false match, and will match the gameplay window.
+         * If that fails, try the window name, which should match the loading
+         * window. */
+        HWND hWnd = FindWindow(Core::AppInfo::APP_TITLE, nullptr);
+        if (hWnd == nullptr)
+            hWnd = FindWindow(nullptr, Core::AppInfo::APP_TITLE);
+
+        // If after two find window attempts, the pointer is still null,
+        // then no other game instance was found.
+        if (hWnd == nullptr)
+            return false;
+
+        // If we reach this point in the function, another instance of the
+        // game was found.
+
+        /* If the application has a model dialog box open, we want to be sure to
+         * give focus to it, not the main window. */
+        CallbackData data;
+        data.hParent = hWnd;
+        data.hResult = nullptr;
+        EnumWindows(GetEnabledPopup, (LPARAM)&data);
+
+        if (data.hResult != nullptr){
+            SetForegroundWindow(data.hResult);
+        } else {
+            SetForegroundWindow(hWnd);
+        }
+
+        // Send the command line to the existing window.
+        std::vector<std::string> vsArgs;
+        for (int i = 0; i < argc; i++)
+            vsArgs.push_back(argv[i]);
+        std::string sAllArgs = join("|", vsArgs);
+        COPYDATASTRUCT cds;
+        cds.dwData = 0;
+        cds.cbData = sAllArgs.size();
+        cds.lpData = (void*)sAllArgs.data();
+        SendMessage((HWND)hWnd, // HWND hWnd = handle of destination window
+            WM_COPYDATA,
+            (WPARAM)NULL,	 // HANDLE OF SENDING WINDOW
+            (LPARAM)&cds); // 2nd msg parameter = pointer to COPYDATASTRUCT
+
+        return true; // Return true because the window exists
+    }
 
 }

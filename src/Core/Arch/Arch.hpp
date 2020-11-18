@@ -118,6 +118,14 @@ namespace Core::Arch {
      */
     ghc::filesystem::path getAppDirectory();
 
+    /**
+     * Check if another instance of this application is already running
+     * @param argc argc from main
+     * @param argv argv from main
+     * @return True if other instance is running, False otherwise
+     */
+    bool isOtherInstanceRunning(int argc, char** argv);
+
     namespace Time {
 
         /**

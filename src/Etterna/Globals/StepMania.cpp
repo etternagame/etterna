@@ -1024,8 +1024,8 @@ sm_main(int argc, char* argv[])
 	 * another instance, we don't try to clobber its log.  We also want to do
 	 * this before opening the loading window, so if we give focus away, we
 	 * don't flash the window. */
-	if (!g_bAllowMultipleInstances.Get() &&
-	    archHooks->CheckForMultipleInstances(argc, argv)) {
+	if (!g_bAllowMultipleInstances.Get() && Core::Arch::isOtherInstanceRunning(argc, argv)) {
+	    Locator::getLogger()->warn("Multiple instances are disabled. Other instance detected. Shutting down...");
 		ShutdownGame();
 		return 0;
 	}
