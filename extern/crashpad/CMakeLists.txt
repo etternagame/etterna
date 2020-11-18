@@ -1,7 +1,7 @@
 # Crashpad needs google's depot_tools to be in the system path.
 # "gclient" is a binary known to be apart of depot_tools.
 find_program(DEPOT_TOOLS_EXIST gclient)
-if(NOT DEPOT_TOOLS_EXIST)
+if(NOT DEPOT_TOOLS_EXIST AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
 	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build crashpad,"
 					" please ensure depot_tools have been added to your system path. Install instructions are at: "
 					" https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up")
