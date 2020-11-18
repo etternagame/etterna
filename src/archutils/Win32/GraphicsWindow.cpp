@@ -533,7 +533,7 @@ GraphicsWindow::Update()
 		DispatchMessage(&msg);
 	}
 
-	Locator::getArchHooks()->SetHasFocus(g_bHasFocus);
+	GameLoop::setGameFocused(g_bHasFocus);
 
 	if (g_bResolutionChanged && DISPLAY != nullptr) {
 		// LOG->Warn( "Changing resolution" );

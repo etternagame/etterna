@@ -17,9 +17,13 @@
 #include "Etterna/Singletons/ScreenManager.h"
 
 #include <chrono>
+#include <mutex>
 
 // Static Variables
 //// On the next update, change themes, and load sNewScreen.
+static std::mutex archMutex;
+static bool toggleWindowed, hasFocus, focusChanged;
+
 static bool userQuit = false;
 static std::string g_NewTheme;
 static std::string g_NewGame;
@@ -54,10 +58,8 @@ static void CheckGameLoopTimerSkips(float fDeltaTime) {
 }
 
 static void CheckFocus() {
-    ArchHooks* hooks = Locator::getArchHooks();
-	if (!hooks->AppFocusChanged())
+	if (!GameLoop::didFocusChange())
 		return;
-
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
 }
@@ -148,8 +150,48 @@ namespace {
     }
 } // namespace
 
-
 namespace GameLoop {
+    bool hasUserQuit(){
+        return userQuit;
+    }
+
+    void setUserQuit(){
+        userQuit = true;
+    }
+
+    void setGameFocused(bool isFocused){
+        if(isFocused == hasFocus)
+            return;
+        hasFocus = isFocused;
+
+        Locator::getLogger()->trace("App {} focus", isFocused ? "has" : "doesn't have");
+        std::lock_guard<std::mutex> lock(archMutex);
+        focusChanged = true;
+    }
+
+    bool isGameFocused(){
+        return hasFocus;
+    }
+
+    bool didFocusChange(){
+        std::lock_guard<std::mutex> lock(archMutex);
+        bool temp = focusChanged;
+        focusChanged = false;
+        return temp;
+    }
+
+    void setToggleWindowed(){
+        std::lock_guard<std::mutex> lock(archMutex);
+        toggleWindowed = true;
+    }
+
+    bool GetAndClearToggleWindowed(){
+        std::lock_guard<std::mutex> lock(archMutex);
+        bool temp = toggleWindowed;
+        toggleWindowed = false;
+        return temp;
+    }
+
     void SetUpdateRate(float fUpdateRate) {
         g_fUpdateRate = fUpdateRate;
     }
@@ -229,13 +271,6 @@ namespace GameLoop {
 
     }
 
-    bool hasUserQuit(){
-        return userQuit;
-    }
-
-    void setUserQuit(){
-        userQuit = true;
-    }
 }
 
 

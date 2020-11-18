@@ -1458,7 +1458,7 @@ class DebugLineFullscreen : public IDebugLine
 	void DoAndLog(std::string& sMessageOut) override
 	{
 #if !defined(__APPLE__)
-		ArchHooks::SetToggleWindowed();
+		GameLoop::SetToggleWindowed();
 		IDebugLine::DoAndLog(sMessageOut);
 #endif
 	}

@@ -21,28 +21,6 @@ class ArchHooks
 	virtual ~ArchHooks() = default;
 	virtual void Init() {}
 
-	/*
-	 * Returns true if the user wants to toggle windowed mode and atomically
-	 * clears the boolean.
-	 */
-	static bool GetAndClearToggleWindowed();
-	static void SetToggleWindowed();
-
-	/*
-	 * Platform-specific code calls this to indicate focus changes.
-	 */
-	void SetHasFocus(bool bAppHasFocus);
-
-	/*
-	 * Return true if the application has input focus.
-	 */
-	bool AppHasFocus() const { return m_bHasFocus; }
-
-	/*
-	 * Returns true if the application's focus has changed since last called.
-	 */
-	bool AppFocusChanged();
-
 	// Lua
 	void PushSelf(lua_State* L);
 	void RegisterWithLua();

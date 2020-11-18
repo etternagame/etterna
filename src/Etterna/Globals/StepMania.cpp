@@ -1394,7 +1394,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * to put a timer in ArchHooks::SetToggleWindowed() and just not set the
 		 * bool it if it's been less than, say, half a second. */
 #if !defined(__APPLE__)
-		ArchHooks::SetToggleWindowed();
+		GameLoop::SetToggleWindowed();
 #endif
 		return true;
 	}
@@ -1417,8 +1417,7 @@ void StepMania::HandleInputEvents(float fDeltaTime) {
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.
-	ArchHooks* archHooks = Locator::getArchHooks();
-	if (!archHooks->AppHasFocus())
+	if (!GameLoop::isGameFocused())
 		return;
 
 	for (unsigned i = 0; i < ieArray.size(); i++) {
@@ -1476,7 +1475,7 @@ void StepMania::HandleInputEvents(float fDeltaTime) {
 		SCREENMAN->Input(input);
 	}
 
-	if (ArchHooks::GetAndClearToggleWindowed()) {
+	if (GameLoop::GetAndClearToggleWindowed()) {
 		PREFSMAN->m_bWindowed.Set(!PREFSMAN->m_bWindowed);
 		StepMania::ApplyGraphicOptions();
 	}

@@ -18,45 +18,6 @@ ArchHooks::ArchHooks()
 {
 }
 
-bool
-ArchHooks::GetAndClearToggleWindowed()
-{
-	LockMut(g_Mutex);
-	bool bToggle = g_bToggleWindowed;
-
-	g_bToggleWindowed = false;
-	return bToggle;
-}
-
-void
-ArchHooks::SetToggleWindowed()
-{
-	LockMut(g_Mutex);
-	g_bToggleWindowed = true;
-}
-
-void
-ArchHooks::SetHasFocus(bool bHasFocus)
-{
-	if (bHasFocus == m_bHasFocus)
-		return;
-	m_bHasFocus = bHasFocus;
-
-	Locator::getLogger()->trace("App {} focus", bHasFocus ? "has" : "doesn't have");
-	LockMut(g_Mutex);
-	m_bFocusChanged = true;
-}
-
-bool
-ArchHooks::AppFocusChanged()
-{
-	LockMut(g_Mutex);
-	bool bFocusChanged = m_bFocusChanged;
-
-	m_bFocusChanged = false;
-	return bFocusChanged;
-}
-
 ArchHooks*
 ArchHooks::Create()
 {
@@ -85,7 +46,7 @@ ArchHooks::RegisterWithLua()
 class LunaArchHooks : public Luna<ArchHooks>
 {
   public:
-	DEFINE_METHOD(AppHasFocus, AppHasFocus());
+//	DEFINE_METHOD(AppHasFocus, AppHasFocus());
 //	DEFINE_METHOD(GetArchName, GetArchName());
 //	DEFINE_METHOD(GetClipboard, GetClipboard());
 	static int ShowCursor(T* p, lua_State* L)
@@ -96,7 +57,7 @@ class LunaArchHooks : public Luna<ArchHooks>
 
 	LunaArchHooks()
 	{
-		ADD_METHOD(AppHasFocus);
+//		ADD_METHOD(AppHasFocus);
 //		ADD_METHOD(GetArchName);
 //		ADD_METHOD(GetClipboard);
 		ADD_METHOD(ShowCursor);
