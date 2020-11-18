@@ -18,30 +18,18 @@
 
 #include <chrono>
 
+// Static Variables
+//// On the next update, change themes, and load sNewScreen.
+static std::string g_NewTheme;
+static std::string g_NewGame;
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
-
-static Preference<bool> g_bNeverBoostAppPriority("NeverBoostAppPriority",
-												 false);
-
-/* experimental: force a specific update rate. This prevents big  animation
- * jumps on frame skips. 0 to disable. */
-static Preference<float> g_fConstantUpdateDeltaSeconds(
-  "ConstantUpdateDeltaSeconds",
-  0);
-
-void
-HandleInputEvents(float fDeltaTime);
-
 static float g_fUpdateRate = 1;
-void
-GameLoop::SetUpdateRate(float fUpdateRate)
-{
-	g_fUpdateRate = fUpdateRate;
-}
+static Preference<bool> g_bNeverBoostAppPriority("NeverBoostAppPriority",false);
+/* experimental: force a specific update rate. This prevents big  animation jumps on frame skips. 0 to disable. */
+static Preference<float> g_fConstantUpdateDeltaSeconds("ConstantUpdateDeltaSeconds",0);
 
-static void
-CheckGameLoopTimerSkips(float fDeltaTime)
-{
+// Static Functions
+static void CheckGameLoopTimerSkips(float fDeltaTime) {
 	if (!PREFSMAN->m_bLogSkips)
 		return;
 
@@ -64,220 +52,185 @@ CheckGameLoopTimerSkips(float fDeltaTime)
 				   iThisFPS, fExpectedTime, fDeltaTime, fDifference);
 }
 
-static bool
-ChangeAppPri()
-{
-	if (g_bNeverBoostAppPriority.Get())
-		return false;
-
-		// if using NTPAD don't boost or else input is laggy
-#ifdef _WIN32
-	{
-		vector<InputDeviceInfo> vDevices;
-
-		// This can get called before INPUTMAN is constructed.
-		if (INPUTMAN) {
-			INPUTMAN->GetDevicesAndDescriptions(vDevices);
-			for (auto& d : vDevices) {
-				if (d.sDesc.find("NTPAD") != std::string::npos) {
-					Locator::getLogger()->trace("Using NTPAD.  Don't boost priority.");
-					return false;
-				}
-			}
-		}
-	}
-#endif
-
-	// If this is a debug build, don't. It makes the VC debugger sluggish.
-#if defined(_WIN32) && defined(DEBUG)
-	return false;
-#else
-	return true;
-#endif
-}
-
-static void
-CheckFocus()
-{
+static void CheckFocus() {
     ArchHooks* hooks = Locator::getArchHooks();
 	if (!hooks->AppFocusChanged())
 		return;
 
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
-
 }
 
-// On the next update, change themes, and load sNewScreen.
-static std::string g_NewTheme;
-static std::string g_NewGame;
-void
-GameLoop::ChangeTheme(const std::string& sNewTheme)
-{
-	g_NewTheme = sNewTheme;
-}
-
-void
-GameLoop::ChangeGame(const std::string& new_game, const std::string& new_theme)
-{
-	g_NewGame = new_game;
-	g_NewTheme = new_theme;
-}
-
+// Anonymous Namespace
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Singletons/GameManager.h"
 #include "StepMania.h" // XXX
 namespace {
-void
-DoChangeTheme()
-{
-	SAFE_DELETE(SCREENMAN);
-	TEXTUREMAN->DoDelayedDelete();
+    void DoChangeTheme() {
+        SAFE_DELETE(SCREENMAN);
+        TEXTUREMAN->DoDelayedDelete();
 
-	// In case the previous theme overloaded class bindings, reinitialize them.
-	LUA->RegisterTypes();
+        // In case the previous theme overloaded class bindings, reinitialize them.
+        LUA->RegisterTypes();
 
-	// We always need to force the theme to reload because we cleared the lua
-	// state by calling RegisterTypes so the scripts in Scripts/ need to run.
-	THEME->SwitchThemeAndLanguage(
-	  g_NewTheme, THEME->GetCurLanguage(), PREFSMAN->m_bPseudoLocalize, true);
-	PREFSMAN->m_sTheme.Set(g_NewTheme);
+        // We always need to force the theme to reload because we cleared the lua
+        // state by calling RegisterTypes so the scripts in Scripts/ need to run.
+        THEME->SwitchThemeAndLanguage(
+          g_NewTheme, THEME->GetCurLanguage(), PREFSMAN->m_bPseudoLocalize, true);
+        PREFSMAN->m_sTheme.Set(g_NewTheme);
 
-	// Apply the new window title, icon and aspect ratio.
-	StepMania::ApplyGraphicOptions();
+        // Apply the new window title, icon and aspect ratio.
+        StepMania::ApplyGraphicOptions();
 
-	SCREENMAN = new ScreenManager();
+        SCREENMAN = new ScreenManager();
 
-	StepMania::ResetGame();
-	SCREENMAN->ThemeChanged();
-	// The previous system for changing the theme fetched the "NextScreen"
-	// metric from the current theme, then changed the theme, then tried to
-	// set the new screen to the name that had been fetched.
-	// If the new screen didn't exist in the new theme, there would be a
-	// crash.
-	// So now the correct thing to do is for a theme to specify its entry
-	// point after a theme change, ensuring that we are going to a valid
-	// screen and not crashing. -Kyz
-	std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
-	if (THEME->HasMetric("Common", "AfterThemeChangeScreen")) {
-		std::string after_screen =
-		  THEME->GetMetric("Common", "AfterThemeChangeScreen");
-		if (SCREENMAN->IsScreenNameValid(after_screen)) {
-			new_screen = after_screen;
-		}
-	}
-	if (!SCREENMAN->IsScreenNameValid(new_screen)) {
-		new_screen = "ScreenInitialScreenIsInvalid";
-	}
-	SCREENMAN->SetNewScreen(new_screen);
+        StepMania::ResetGame();
+        SCREENMAN->ThemeChanged();
+        // The previous system for changing the theme fetched the "NextScreen"
+        // metric from the current theme, then changed the theme, then tried to
+        // set the new screen to the name that had been fetched.
+        // If the new screen didn't exist in the new theme, there would be a
+        // crash.
+        // So now the correct thing to do is for a theme to specify its entry
+        // point after a theme change, ensuring that we are going to a valid
+        // screen and not crashing. -Kyz
+        std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
+        if (THEME->HasMetric("Common", "AfterThemeChangeScreen")) {
+            std::string after_screen =
+              THEME->GetMetric("Common", "AfterThemeChangeScreen");
+            if (SCREENMAN->IsScreenNameValid(after_screen)) {
+                new_screen = after_screen;
+            }
+        }
+        if (!SCREENMAN->IsScreenNameValid(new_screen)) {
+            new_screen = "ScreenInitialScreenIsInvalid";
+        }
+        SCREENMAN->SetNewScreen(new_screen);
 
-	g_NewTheme = std::string();
-}
+        g_NewTheme = std::string();
+    }
+    void DoChangeGame() {
+        const Game* g = GAMEMAN->StringToGame(g_NewGame);
+        ASSERT(g != nullptr);
+        GAMESTATE->SetCurGame(g);
 
-void
-DoChangeGame()
-{
-	const Game* g = GAMEMAN->StringToGame(g_NewGame);
-	ASSERT(g != nullptr);
-	GAMESTATE->SetCurGame(g);
+        // reset gamestate to deal with new Game
+        StepMania::ResetGame();
 
-	// reset gamestate to deal with new Game
-	StepMania::ResetGame();
+        // point us to the new Screen to end up on after Game change
+        // either the initialscreen or something else
+        std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
+        std::string after_screen;
+        if (THEME->HasMetric("Common", "AfterGameChangeScreen")) {
+            after_screen = THEME->GetMetric("Common", "AfterGameChangeScreen");
+        }
+        if (SCREENMAN->IsScreenNameValid(after_screen)) {
+            new_screen = after_screen;
+        }
+        SCREENMAN->SetNewScreen(new_screen);
 
-	// point us to the new Screen to end up on after Game change
-	// either the initialscreen or something else
-	std::string new_screen = THEME->GetMetric("Common", "InitialScreen");
-	std::string after_screen;
-	if (THEME->HasMetric("Common", "AfterGameChangeScreen")) {
-		after_screen = THEME->GetMetric("Common", "AfterGameChangeScreen");
-	}
-	if (SCREENMAN->IsScreenNameValid(after_screen)) {
-		new_screen = after_screen;
-	}
-	SCREENMAN->SetNewScreen(new_screen);
-
-	// Set the input scheme for the new game, and load keymaps.
-	if (INPUTMAPPER != nullptr) {
-		INPUTMAPPER->SetInputScheme(&g->m_InputScheme);
-		INPUTMAPPER->ReadMappingsFromDisk();
-	}
-	// aj's comment transplanted from ScreenOptionsMasterPrefs.cpp:GameSel. -Kyz
-	/* Reload metrics to force a refresh of CommonMetrics::DIFFICULTIES_TO_SHOW,
-	 * mainly if we're not switching themes. I'm not sure if this was the
-	 * case going from theme to theme, but if it was, it should be fixed
-	 * now. There's probably be a better way to do it, but I'm not sure
-	 * what it'd be. -aj */
-	THEME->UpdateLuaGlobals();
-	THEME->ReloadMetrics();
-	g_NewGame = std::string();
-	g_NewTheme = std::string();
-}
+        // Set the input scheme for the new game, and load keymaps.
+        if (INPUTMAPPER != nullptr) {
+            INPUTMAPPER->SetInputScheme(&g->m_InputScheme);
+            INPUTMAPPER->ReadMappingsFromDisk();
+        }
+        // aj's comment transplanted from ScreenOptionsMasterPrefs.cpp:GameSel. -Kyz
+        /* Reload metrics to force a refresh of CommonMetrics::DIFFICULTIES_TO_SHOW,
+         * mainly if we're not switching themes. I'm not sure if this was the
+         * case going from theme to theme, but if it was, it should be fixed
+         * now. There's probably be a better way to do it, but I'm not sure
+         * what it'd be. -aj */
+        THEME->UpdateLuaGlobals();
+        THEME->ReloadMetrics();
+        g_NewGame = std::string();
+        g_NewTheme = std::string();
+    }
 } // namespace
 
-void
-GameLoop::RunGameLoop()
-{
 
-	while (!ArchHooks::UserQuit()) {
-		if (!g_NewGame.empty()) {
-			DoChangeGame();
-		}
-		if (!g_NewTheme.empty()) {
-			DoChangeTheme();
-		}
+namespace GameLoop {
+    void SetUpdateRate(float fUpdateRate) {
+        g_fUpdateRate = fUpdateRate;
+    }
 
-		// Update
-		auto now = std::chrono::steady_clock::now();
-		std::chrono::duration<float> frameStart = now - g_AccurateGameplayTimer;
-		float fDeltaTime = frameStart.count();
-		g_AccurateGameplayTimer = now;
+    void ChangeTheme(const std::string& sNewTheme) {
+        g_NewTheme = sNewTheme;
+    }
 
-		if (g_fConstantUpdateDeltaSeconds > 0)
-			fDeltaTime = g_fConstantUpdateDeltaSeconds;
+    void ChangeGame(const std::string& new_game, const std::string& new_theme) {
+        g_NewGame = new_game;
+        g_NewTheme = new_theme;
+    }
 
-		CheckGameLoopTimerSkips(fDeltaTime);
+    void RunGameLoop() {
 
-		fDeltaTime *= g_fUpdateRate;
+        while (!ArchHooks::UserQuit()) {
+            if (!g_NewGame.empty()) {
+                DoChangeGame();
+            }
+            if (!g_NewTheme.empty()) {
+                DoChangeTheme();
+            }
 
-		CheckFocus();
+            // Update
+            auto now = std::chrono::steady_clock::now();
+            std::chrono::duration<float> frameStart = now - g_AccurateGameplayTimer;
+            float fDeltaTime = frameStart.count();
+            g_AccurateGameplayTimer = now;
 
-		// Update SOUNDMAN early (before any RageSound::GetPosition calls), to
-		// flush position data.
-		SOUNDMAN->Update();
+            if (g_fConstantUpdateDeltaSeconds > 0)
+                fDeltaTime = g_fConstantUpdateDeltaSeconds;
 
-		/* Update song beat information -before- calling update on all the
-		 * classes that depend on it. If you don't do this first, the classes
-		 * are all acting on old information and will lag. (but no longer
-		 * fatally, due to timestamping -glenn) */
-		SOUND->Update(fDeltaTime);
-		TEXTUREMAN->Update(fDeltaTime);
-		GAMESTATE->Update(fDeltaTime);
-		SCREENMAN->Update(fDeltaTime);
-		NSMAN->Update(fDeltaTime);
-		DLMAN->Update(fDeltaTime);
+            CheckGameLoopTimerSkips(fDeltaTime);
 
-		/* Important: Process input AFTER updating game logic, or input will be
-		 * acting on song beat from last frame */
-		HandleInputEvents(fDeltaTime);
+            fDeltaTime *= g_fUpdateRate;
 
-		static float deviceCheckWait = 0.f;
-		deviceCheckWait += fDeltaTime;
+            CheckFocus();
 
-		if (deviceCheckWait >= 1.0f) {
-			deviceCheckWait = 0.f;
+            // Update SOUNDMAN early (before any RageSound::GetPosition calls), to
+            // flush position data.
+            SOUNDMAN->Update();
 
-			if (INPUTMAN->DevicesChanged()) {
-				INPUTFILTER->Reset(); // fix "buttons stuck" if button held
-									  // while unplugged
-				INPUTMAN->LoadDrivers();
-				std::string sMessage;
-				if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
-					SCREENMAN->SystemMessage(sMessage);
-			}
-		}
+            /* Update song beat information -before- calling update on all the
+             * classes that depend on it. If you don't do this first, the classes
+             * are all acting on old information and will lag. (but no longer
+             * fatally, due to timestamping -glenn) */
+            SOUND->Update(fDeltaTime);
+            TEXTUREMAN->Update(fDeltaTime);
+            GAMESTATE->Update(fDeltaTime);
+            SCREENMAN->Update(fDeltaTime);
+            NSMAN->Update(fDeltaTime);
+            DLMAN->Update(fDeltaTime);
 
-		// Render
-		SCREENMAN->Draw();
-	}
+            /* Important: Process input AFTER updating game logic, or input will be
+             * acting on song beat from last frame */
+            StepMania::HandleInputEvents(fDeltaTime);
+
+            static float deviceCheckWait = 0.f;
+            deviceCheckWait += fDeltaTime;
+
+            if (deviceCheckWait >= 1.0f) {
+                deviceCheckWait = 0.f;
+
+                if (INPUTMAN->DevicesChanged()) {
+                    INPUTFILTER->Reset(); // fix "buttons stuck" if button held
+                                          // while unplugged
+                    INPUTMAN->LoadDrivers();
+                    std::string sMessage;
+                    if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
+                        SCREENMAN->SystemMessage(sMessage);
+                }
+            }
+
+            // Render
+            SCREENMAN->Draw();
+        }
+
+    }
 
 }
+
+
+
+
+

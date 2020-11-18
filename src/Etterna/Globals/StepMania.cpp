@@ -1408,9 +1408,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 	return false;
 }
 
-void
-HandleInputEvents(float fDeltaTime)
-{
+void StepMania::HandleInputEvents(float fDeltaTime) {
 	INPUTFILTER->Update(fDeltaTime);
 
 	/* Hack: If the topmost screen hasn't been updated yet, don't process input,

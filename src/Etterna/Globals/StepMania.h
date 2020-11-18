@@ -17,6 +17,7 @@ namespace StepMania {
     void InitializeCurrentGame(const Game* g);
     void GetPreferredVideoModeParams(VideoModeParams& paramsOut);
     bool GetHighResolutionTextures();
+    void HandleInputEvents(float fDeltaTime);
 
     // If successful, return filename of screenshot in sDir, else return ""
     std::string SaveScreenshot(const std::string& Dir, bool SaveCompressed,
