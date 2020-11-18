@@ -1329,7 +1329,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LALT),
 										&input.InputList)) {
 			// pressed Alt+F4
-			ArchHooks::SetUserQuit();
+			GameLoop::setUserQuit();
 			return true;
 		}
 	}
@@ -1394,7 +1394,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * to put a timer in ArchHooks::SetToggleWindowed() and just not set the
 		 * bool it if it's been less than, say, half a second. */
 #if !defined(__APPLE__)
-		GameLoop::SetToggleWindowed();
+		GameLoop::setToggleWindowed();
 #endif
 		return true;
 	}
