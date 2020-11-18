@@ -6,7 +6,7 @@
 
 #ifdef __APPLE__
 #define ARCH_HOOKS ArchHooks
-#elif defiend(__unix__)
+#elif defined(__unix__)
 #define ARCH_HOOKS ArchHooks_Unix
 #elif defined(_WIN32)
 #define ARCH_HOOKS ArchHooks_Win32
