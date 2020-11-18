@@ -119,10 +119,8 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
-          echo "${{github.workspace}}/main/extern/crashpad/breakpad/win/" >> $GITHUB_PATH
-          echo "ETTERNA_ARCH=${{matrix.cfg.name}}" >> $GITHUB_ENV
-#          echo "::add-path::${{github.workspace}}/main/extern/crashpad/breakpad/win/"
-#          echo "::set-env name=ETTERNA_ARCH::${{matrix.cfg.name}}"
+          echo "::add-path::${{github.workspace}}/main/extern/crashpad/breakpad/win/"
+          echo "::set-env name=ETTERNA_ARCH::${{matrix.cfg.name}}"
 
       - name: Setup Python 2.7
         uses: actions/setup-python@v2
