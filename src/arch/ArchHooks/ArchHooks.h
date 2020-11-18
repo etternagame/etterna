@@ -27,13 +27,6 @@ class ArchHooks
 	 * If this is implemented, it doesn't return. */
 	virtual void RestartProgram() {}
 
-	/**
-	 * @brief Determine if the user wants to quit (eg. ^C, or clicked a "close
-	 * window" button).
-	 * @return true if the user wants to quit, false otherwise. */
-	static bool UserQuit() { return g_bQuitting; }
-	static void SetUserQuit() { g_bQuitting = true; }
-
 	/*
 	 * Returns true if the user wants to toggle windowed mode and atomically
 	 * clears the boolean.
@@ -66,7 +59,6 @@ class ArchHooks
 	void RegisterWithLua();
 
   private:
-	static bool g_bQuitting;
 	static bool g_bToggleWindowed;
 	bool m_bHasFocus;
 	bool m_bFocusChanged;

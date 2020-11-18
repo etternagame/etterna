@@ -10,6 +10,8 @@
 #include "archutils/Common/PthreadHelpers.h"
 #include "archutils/Unix/EmergencyShutdown.h"
 #include "archutils/Unix/AssertionHandler.h"
+#include "Etterna/Globals/GameLoop.h"
+
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -55,7 +57,7 @@ DoCleanShutdown(int signal, siginfo_t* si, const ucontext_t* uc)
 		return false;
 
 	/* ^C. */
-	ArchHooks::SetUserQuit();
+	GameLoop::setUserQuit();
 	return true;
 }
 

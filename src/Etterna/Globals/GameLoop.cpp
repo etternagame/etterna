@@ -20,6 +20,7 @@
 
 // Static Variables
 //// On the next update, change themes, and load sNewScreen.
+static bool userQuit = false;
 static std::string g_NewTheme;
 static std::string g_NewGame;
 static auto g_AccurateGameplayTimer = std::chrono::steady_clock::now();
@@ -164,7 +165,7 @@ namespace GameLoop {
 
     void RunGameLoop() {
 
-        while (!ArchHooks::UserQuit()) {
+        while (!GameLoop::hasUserQuit()) {
             if (!g_NewGame.empty()) {
                 DoChangeGame();
             }
@@ -228,6 +229,13 @@ namespace GameLoop {
 
     }
 
+    bool hasUserQuit(){
+        return userQuit;
+    }
+
+    void setUserQuit(){
+        userQuit = true;
+    }
 }
 
 

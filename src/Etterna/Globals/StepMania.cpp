@@ -29,6 +29,7 @@
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
+#include "Etterna/Globals/GameLoop.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -1144,7 +1145,7 @@ sm_main(int argc, char* argv[])
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */
-	if (ArchHooks::UserQuit()) {
+	if (GameLoop::hasUserQuit()) {
 		ShutdownGame();
 		return 0;
 	}

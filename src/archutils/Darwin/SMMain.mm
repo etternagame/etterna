@@ -3,11 +3,11 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 
-#import <Cocoa/Cocoa.h>
-#include "arch/ArchHooks/ArchHooks.h"
-#import "archutils/Darwin/MouseDevice.h"
+#include <Cocoa/Cocoa.h>
+#include "archutils/Darwin/MouseDevice.h"
 #include "Core/Services/Locator.hpp"
-#import <Core/Misc/AppInfo.hpp>
+#include "Core/Misc/AppInfo.hpp"
+#include "Etterna/Globals/GameLoop.h"
 
 CGFloat scrolled;
 
@@ -183,7 +183,7 @@ float MACWindowWidth()
 
 - (NSApplicationTerminateReply) applicationShouldTerminate:(NSApplication *)sender
 {
-    ArchHooks::SetUserQuit();
+    GameLoop::setUserQuit();
     return NSTerminateCancel;
 }
 @end

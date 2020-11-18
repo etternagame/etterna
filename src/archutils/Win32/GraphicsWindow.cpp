@@ -3,6 +3,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
+#include "Etterna/Globals/GameLoop.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
@@ -151,7 +152,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_CLOSE:
 			Locator::getLogger()->trace("WM_CLOSE: shutting down");
-			ArchHooks::SetUserQuit();
+			GameLoop::setUserQuit();
 			return 0;
 
 		case WM_WINDOWPOSCHANGED: {

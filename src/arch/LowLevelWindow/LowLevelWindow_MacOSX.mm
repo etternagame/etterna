@@ -5,6 +5,7 @@
 #import "RageUtil/Misc/RageThreads.h"
 #import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 #include "Core/Services/Locator.hpp"
+#include "Etterna/Globals/GameLoop.h"
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
@@ -71,7 +72,7 @@ public:
 
 - (void) windowWillClose:(NSNotification *)aNotification
 {
-	ArchHooks::SetUserQuit();
+	GameLoop::setUserQuit();
 }
 
 - (void) windowDidResize:(NSNotification *)aNotification
