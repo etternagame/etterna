@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Globals/GameLoop.h"

@@ -18,7 +18,6 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
@@ -991,13 +990,7 @@ sm_main(int argc, char* argv[])
 
 	SetCommandlineArguments(argc, argv);
 
-	// Set up arch hooks first.  This may set up crash handling.
-	Locator::provide(ArchHooks::Create());
-    ArchHooks* archHooks = Locator::getArchHooks();
-    archHooks->Init();
-
 	LUA = new LuaManager;
-    archHooks->RegisterWithLua();
 
 	MESSAGEMAN = new MessageManager;
 

@@ -25,8 +25,6 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Core/Arch/Arch.hpp"
 
-#include "arch/ArchHooks/ArchHooks.h"
-
 #include <chrono>
 
 // let this henceforth be referred to as the difference between a second and a

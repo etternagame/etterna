@@ -3,7 +3,6 @@
 
 /* Define the default driver sets. */
 #ifdef _WIN32
-#include "ArchHooks/ArchHooks_Win32.h"
 #include "LoadingWindow/LoadingWindow_Win32.h"
 #include "LowLevelWindow/LowLevelWindow_Win32.h"
 #define DEFAULT_INPUT_DRIVER_LIST "DirectInput,Pump,Para"
