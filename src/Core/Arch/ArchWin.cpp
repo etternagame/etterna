@@ -3,6 +3,7 @@
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
 #include "archutils/Win32/GraphicsWindow.h"
+#include "Etterna/Globals/global.h"
 
 #include <windows.h>
 #include <GL/glew.h>
@@ -11,7 +12,7 @@
 #include <intsafe.h>
 #include <limits>
 #include <iostream>
-
+#include <cwchar>
 
 // Translation Unit Specific Functions
 struct CallbackData { HWND hParent; HWND hResult; };
@@ -79,7 +80,46 @@ static BOOL CALLBACK GetEnabledPopup(HWND hWnd, LPARAM lParam) {
 	return FALSE;
 }
 
+void InvalidParameterHandler(const wchar_t* szExpression, const wchar_t* szFunction, const wchar_t* szFile,
+						unsigned int iLine, uintptr_t pReserved) {
+	Locator::getLogger()->trace("Entered Invalid Parameter Handler");
+
+	std::mbstate_t state = std::mbstate_t();
+	int lenExpr = 1 + std::wcsrtombs(NULL, &szExpression, 0, &state);
+	state = std::mbstate_t();
+	int lenFunc = 1 + std::wcsrtombs(NULL, &szFunction, 0, &state);
+	state = std::mbstate_t();
+	int lenFile = 1 + std::wcsrtombs(NULL, &szFile, 0, &state);
+
+	std::vector<char> strExpr(lenExpr);
+	std::vector<char> strFunc(lenFunc);
+	std::vector<char> strFile(lenFile);
+
+	std::wcsrtombs(&strExpr[0], &szExpression, lenExpr, &state);
+	std::wcsrtombs(&strFunc[0], &szFunction, lenFunc, &state);
+	std::wcsrtombs(&strFile[0], &szFile, lenFile, &state);
+
+	std::string expr(strExpr.begin(), strExpr.end());
+	std::string func(strFunc.begin(), strFunc.end());
+	std::string file(strFile.begin(), strFile.end());
+
+	FAIL_M(ssprintf("Invalid Parameter In C Function %s\n File: %s Line %d\n Expression: %s",
+	  func, file, iLine, expr));
+}
+
 namespace Core::Arch {
+
+    void init(){
+        /* Disable critical errors, and handle them internally.  We never want the
+         * "drive not ready", etc. dialogs to pop up. */
+        SetErrorMode(SetErrorMode(0) | SEM_FAILCRITICALERRORS);
+
+        _set_invalid_parameter_handler(InvalidParameterHandler);
+
+        /* Windows boosts priority on keyboard input, among other things.  Disable
+         * that for the main thread. */
+        SetThreadPriorityBoost(GetCurrentThread(), TRUE);
+    }
 
 	std::string getSystem(){
 	    // Registry subkey where values are located

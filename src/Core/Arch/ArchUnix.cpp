@@ -1,6 +1,7 @@
 #include "Arch.hpp"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Globals/global.h"
 
 #include <fmt/format.h>
 
@@ -11,6 +12,7 @@
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
 #include <unistd.h>
+#include <cxxabi.h> // For UnexpectedExceptionHandler
 
 // Translation unit specific functions
 std::string getX11UTF8String(Display *dpy, Window w, Atom p) {
@@ -42,7 +44,39 @@ std::string getX11UTF8String(Display *dpy, Window w, Atom p) {
     return res;
 }
 
+/* Catch unhandled C++ exceptions.  Note that this works in g++ even with
+ * -fno-exceptions, in which case it'll be called if any exceptions are thrown
+ * at all. */
+void UnexpectedExceptionHandler() {
+	std::type_info* pException = abi::__cxa_current_exception_type();
+	char const* pName = pException->name();
+	int iStatus = -1;
+	char* pDem = abi::__cxa_demangle(pName, 0, 0, &iStatus);
+
+	const std::string error =
+	  ssprintf("Unhandled exception: %s", iStatus ? pName : pDem);
+	sm_crash(error.c_str());
+}
+
+/* We can define these symbol to catch failed assert() calls.  This is only used for library code that uses assert().
+ * Internally we always use ASSERT, which does this for all platforms, not just glibc. */
+extern "C" {
+    void __assert_fail(const char* assertion, const char* file, unsigned int line, const char* function) throw() {
+        const std::string error = ssprintf("Assertion failure: %s: %s", function, assertion);
+        sm_crash(assertion);
+    }
+
+    void __assert_perror_fail(int errnum, const char* file, unsigned int line, const char* function) throw() {
+        const std::string error = ssprintf("Assertion failure: %s: %s", function, strerror(errnum));
+        sm_crash(strerror(errnum));
+    }
+}
+
 namespace Core::Arch {
+
+    void init(){
+        std::set_terminate(UnexpectedExceptionHandler);
+    }
 
     std::string getSystem(){
         // Get system info

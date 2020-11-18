@@ -191,14 +191,6 @@ source_group("Arch Specific\\\\Dialog" FILES ${SMDATA_ARCH_DIALOG_SRC} ${SMDATA_
 list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks.cpp")
 list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks.h")
 
-if(WIN32)
-  list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_Win32.cpp")
-  list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_Win32.h")
-else(NOT APPLE)
-  list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_Unix.cpp")
-  list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_Unix.h")
-endif()
-
 source_group("Arch Specific\\\\Arch Hooks" FILES ${SMDATA_ARCH_HOOKS_SRC} ${SMDATA_ARCH_HOOKS_HPP})
 
 list(APPEND SMDATA_ALL_ARCH_SRC

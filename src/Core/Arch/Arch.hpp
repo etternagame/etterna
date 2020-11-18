@@ -17,6 +17,12 @@ namespace Core::Arch {
     struct ScreenDimensions { unsigned width; unsigned height; };
 
     /**
+     * Run any desired initialization processes specific
+     * to a particular operating system.
+     */
+    void init();
+
+    /**
      * @brief Determine the system name with the version number.
      * - Unix should return it's distributions name (Ubuntu 18.04, Debian 9, ArchLinux, Xubuntu...)
      * - Windows should return "Windows 10"
