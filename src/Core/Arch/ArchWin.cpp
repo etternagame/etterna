@@ -233,6 +233,14 @@ namespace Core::Arch {
 	    return res > 32;
 	}
 
+	bool openFolder(const ghc::filesystem::path& path){
+        if(!ghc::filesystem::is_directory(path)){
+            Locator::getLogger()->warn("Could not open folder. Note a folder. Path: \"{}\"", path.string());
+            return false;
+        }
+        ShellExecute(NULL, NULL, path.native(), NULL, NULL, SW_SHOWNORMAL);
+    }
+
     std::string getClipboard(){
 		// Attempt to open the clipboard, and prevent others from accessing
 		if(!OpenClipboard(nullptr)) return "";

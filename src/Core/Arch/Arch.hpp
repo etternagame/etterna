@@ -91,6 +91,13 @@ namespace Core::Arch {
     bool openWebsite(const std::string& url);
 
     /**
+     * @brief Send a path to be opened with the system's default file browser
+     * @param path Path to open
+     * @return true if successful, false if unsuccessful.
+     */
+    bool openFolder(const ghc::filesystem::path& path);
+
+    /**
      * @brief Get contents of the system clipboard.
      * @return UTF-8 clipboard contents, or an empty string if the the clipboard is a non-text type.
      */

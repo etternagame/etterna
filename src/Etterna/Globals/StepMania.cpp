@@ -985,6 +985,9 @@ sm_main(int argc, char* argv[])
 	Locator::getLogger()->info("System Architecture: {}", Core::Arch::getArchitecture());
 	Locator::getLogger()->info("Total Memory: {}GB", Core::Arch::getSystemMemory() / pow(1024, 3));
 
+    // Run Platform Initialization
+    Core::Arch::init();
+
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
 

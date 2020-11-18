@@ -21,6 +21,10 @@ static std::string getSysctlName(const char* name) {
 
 namespace Core::Arch {
 
+    void init(){
+        Locator::getLogger()->info("macOS has not platform specific initialization");
+    }
+
     std::string getSystem(){
         return fmt::format("macOS {}", NSProcessInfo.processInfo.operatingSystemVersionString.UTF8String);
     }
@@ -76,6 +80,19 @@ namespace Core::Arch {
         // Deallocate string and return success value.
         [nsurl release];
         return successful;
+    }
+
+    bool openFolder(const ghc::filesystem::path& path){
+        if(!ghc::filesystem::is_directory(path)){
+            Locator::getLogger()->warn("Could not open folder. Note a folder. Path: \"{}\"", path.string());
+            return false;
+        }
+        int res = system(fmt::format("open {}", path.string()).c_str());
+        if(res != 0){
+            Locator::getLogger()->warn("Unable to open folder. \"open\" command return code: {}. URL: {}", res, path.string());
+            return false;
+        }
+        return true;
     }
 
     std::string getClipboard(){

@@ -175,6 +175,10 @@ namespace Core::Arch {
         return true;
     }
 
+    bool openFolder(const ghc::filesystem::path& path){
+        return openWebsite(path.string());
+    }
+
     std::string getClipboard(){
         // Final string to be returned to user
         std::string res;
