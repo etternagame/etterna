@@ -7,7 +7,6 @@
 #include "Core/Services/Locator.hpp"
 #include "Core/Arch/Arch.hpp"
 
-bool ArchHooks::g_bQuitting = false;
 bool ArchHooks::g_bToggleWindowed = false;
 // Keep from pulling RageThreads.h into ArchHooks.h
 static RageMutex g_Mutex("ArchHooks");
