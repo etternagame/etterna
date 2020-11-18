@@ -18,7 +18,6 @@
 #define DEFAULT_SOUND_DRIVER_LIST "AudioUnit,Null"
 
 #elif defined(__unix__)
-#include "ArchHooks/ArchHooks_Unix.h"
 #include "LowLevelWindow/LowLevelWindow_X11.h"
 
 #if defined(HAVE_GTK)

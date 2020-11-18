@@ -218,7 +218,6 @@ MakeMutex(RageMutex* pParent)
  * RageTimer selected. */
 #ifdef __unix__
 #include <dlfcn.h>
-#include "arch/ArchHooks/ArchHooks_Unix.h"
 #endif // On MinGW clockid_t is defined in pthread.h
 namespace {
 typedef int (*CONDATTR_SET_CLOCK)(pthread_condattr_t* attr, clockid_t clock_id);
