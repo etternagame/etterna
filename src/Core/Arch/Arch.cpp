@@ -9,3 +9,39 @@ namespace Core::Arch::Time {
     }
 
 } // namespace Core::Arch::Time
+
+// Lua Link
+// TODO: Isolate all Lua code to it's own section of the codebase
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Singletons/LuaManager.h"
+#include "Etterna/Globals/GameLoop.h"
+
+int isGameFocused(lua_State* L) {
+    lua_pushboolean(L, GameLoop::isGameFocused());
+    return 1;
+}
+
+int getSystem(lua_State* L) {
+    lua_pushstring(L, Core::Arch::getSystem().c_str());
+    return 1;
+}
+
+int getClipboard(lua_State* L) {
+    lua_pushstring(L, Core::Arch::getClipboard().c_str());
+    return 1;
+}
+
+int setCursorVisible(lua_State* L){
+    Core::Arch::setCursorVisible(BArg(1));
+    return 0;
+}
+
+const luaL_Reg ArchHooksTable[] = {
+        LIST_METHOD(isGameFocused),
+        LIST_METHOD(getSystem),
+        LIST_METHOD(getClipboard),
+        LIST_METHOD(setCursorVisible),
+        { nullptr, nullptr }
+};
+
+LUA_REGISTER_NAMESPACE(ArchHooks);
