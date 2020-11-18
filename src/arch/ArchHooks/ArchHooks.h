@@ -4,6 +4,14 @@
 #include <chrono>
 #include <string>
 
+#ifdef __APPLE__
+#define ARCH_HOOKS ArchHooks
+#elif defiend(__unix__)
+#define ARCH_HOOKS ArchHooks_Unix
+#elif defined(_WIN32)
+#define ARCH_HOOKS ArchHooks_Win32
+#endif
+
 struct lua_State;
 class ArchHooks
 {
@@ -39,11 +47,6 @@ class ArchHooks
 	 */
 	static bool GetAndClearToggleWindowed();
 	static void SetToggleWindowed();
-
-	/*
-	 * Add file search paths, higher priority first.
-	 */
-	static void MountInitialFilesystems(const std::string& sDirOfExecutable);
 
 	/*
 	 * Add file search paths for user-writable directories.

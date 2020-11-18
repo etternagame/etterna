@@ -1008,7 +1008,7 @@ sm_main(int argc, char* argv[])
 
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
-	FILEMAN->MountInitialFilesystems();
+	FILEMAN->Mount("dir", Core::Arch::getAppDirectory(), "/");
 
 
 	bool bPortable = DoesFileExist("Portable.ini");

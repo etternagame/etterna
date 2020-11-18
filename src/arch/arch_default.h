@@ -11,7 +11,6 @@
 #define DEFAULT_SOUND_DRIVER_LIST "WaveOut,DirectSound-sw,WDMKS,Null"
 
 #elif defined(__APPLE__)
-#include "ArchHooks/ArchHooks_MacOSX.h"
 #include "LoadingWindow/LoadingWindow_MacOSX.h"
 #include "LowLevelWindow/LowLevelWindow_MacOSX.h"
 #define DEFAULT_INPUT_DRIVER_LIST "HID"

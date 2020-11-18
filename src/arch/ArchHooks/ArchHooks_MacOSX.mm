@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "ArchHooks_MacOSX.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
 #include "RageUtil/Utils/RageUtil.h"
@@ -23,98 +22,6 @@ extern "C" {
 
 #import <Foundation/Foundation.h>
 
-static bool IsFatalSignal( int signal )
-{
-	switch( signal )
-	{
-	case SIGINT:
-	case SIGTERM:
-	case SIGHUP:
-		return false;
-	default:
-		return true;
-	}
-}
-
-static bool DoCleanShutdown( int signal, siginfo_t *si, const ucontext_t *uc )
-{
-	if( IsFatalSignal(signal) )
-		return false;
-
-	// ^C.
-	ArchHooks::SetUserQuit();
-	return true;
-}
-
-static bool DoEmergencyShutdown( int signal, siginfo_t *si, const ucontext_t *us )
-{
-	if( IsFatalSignal(signal) )
-		_exit( 1 ); // We ran the crash handler already
-	return false;
-}
-
-void ArchHooks_MacOSX::Init()
-{
-	// First, handle non-fatal termination signals.
-	SignalHandler::OnClose( DoCleanShutdown );
-	SignalHandler::OnClose( DoEmergencyShutdown );
-
-	// Now that the crash handler is set up, disable crash reporter.
-	// Breaks gdb
-	// task_set_exception_ports( mach_task_self(), EXC_MASK_ALL, MACH_PORT_NULL, EXCEPTION_DEFAULT, 0 );
-
-	// CF*Copy* functions' return values need to be released, CF*Get* functions' do not.
-	CFStringRef key = CFSTR( "ApplicationBundlePath" );
-
-	CFBundleRef bundle = CFBundleGetMainBundle();
-	CFStringRef appID = CFBundleGetIdentifier( bundle );
-	if( appID == NULL )
-	{
-		// We were probably launched through a symlink. Don't bother hunting down the real path.
-		return;
-	}
-	CFStringRef version = CFStringRef( CFBundleGetValueForInfoDictionaryKey(bundle, kCFBundleVersionKey) );
-	CFPropertyListRef old = CFPreferencesCopyAppValue( key, appID );
-	CFURLRef path = CFBundleCopyBundleURL( bundle );
-	CFPropertyListRef value = CFURLCopyFileSystemPath( path, kCFURLPOSIXPathStyle );
-	CFMutableDictionaryRef newDict = NULL;
-
-	if( old && CFGetTypeID(old) != CFDictionaryGetTypeID() )
-	{
-		CFRelease( old );
-		old = NULL;
-	}
-
-	if( !old )
-	{
-		newDict = CFDictionaryCreateMutable( kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks,
-						     &kCFTypeDictionaryValueCallBacks );
-		CFDictionaryAddValue( newDict, version, value );
-	}
-	else
-	{
-		CFTypeRef oldValue;
-		CFDictionaryRef dict = CFDictionaryRef( old );
-
-		if( !CFDictionaryGetValueIfPresent(dict, version, &oldValue) || !CFEqual(oldValue, value) )
-		{
-			// The value is either not present or it is but it is different
-			newDict = CFDictionaryCreateMutableCopy( kCFAllocatorDefault, 0, dict );
-			CFDictionarySetValue( newDict, version, value );
-		}
-		CFRelease( old );
-	}
-
-	if( newDict )
-	{
-		CFPreferencesSetAppValue( key, newDict, appID );
-		if( !CFPreferencesAppSynchronize(appID) )
-			Locator::getLogger()->warn( "Failed to record the run path." );
-		CFRelease( newDict );
-	}
-	CFRelease( value );
-	CFRelease( path );
-}
 
 #include "RageUtil/File/RageFileManager.h"
 
@@ -128,27 +35,7 @@ static void PathForFolderType( char dir[PATH_MAX], OSType folderType )
 		FAIL_M( "FSRefMakePath() failed." );
 }
 
-void ArchHooks::MountInitialFilesystems( const std::string &sDirOfExecutable )
-{
-	char dir[PATH_MAX];
-	CFURLRef dataUrl = CFBundleCopyResourceURL( CFBundleGetMainBundle(), CFSTR("StepMania"), CFSTR("smzip"), NULL );
-
-	FILEMAN->Mount( "dir", sDirOfExecutable, "/" );
-
-	if( dataUrl )
-	{
-		CFStringRef dataPath = CFURLCopyFileSystemPath( dataUrl, kCFURLPOSIXPathStyle );
-		CFStringGetCString( dataPath, dir, PATH_MAX, kCFStringEncodingUTF8 );
-
-		if( strncmp(sDirOfExecutable.c_str(), dir, sDirOfExecutable.length()) == 0 )
-			FILEMAN->Mount( "zip", dir + sDirOfExecutable.length(), "/" );
-		CFRelease( dataPath );
-		CFRelease( dataUrl );
-	}
-}
-
-void ArchHooks::MountUserFilesystems( const std::string &sDirOfExecutable )
-{
+void ArchHooks::MountUserFilesystems(const std::string &sDirOfExecutable)  {
 	char dir[PATH_MAX];
 
 	// /Save -> ~/Library/Preferences/PRODUCT_ID

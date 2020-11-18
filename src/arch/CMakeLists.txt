@@ -199,10 +199,9 @@ if(NOT APPLE)
     list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_Unix.cpp")
     list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_Unix.h")
   endif()
-  
+
 else()
   list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_MacOSX.mm")
-  list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_MacOSX.h")
 endif()
 
 source_group("Arch Specific\\\\Arch Hooks" FILES ${SMDATA_ARCH_HOOKS_SRC} ${SMDATA_ARCH_HOOKS_HPP})

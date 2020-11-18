@@ -14,9 +14,4 @@ class ArchHooks_Win32 : public ArchHooks
 	bool CheckForMultipleInstances(int argc, char* argv[]);
 };
 
-#ifdef ARCH_HOOKS
-#error "More than one ArchHooks selected!"
-#endif
-#define ARCH_HOOKS ArchHooks_Win32
-
 #endif

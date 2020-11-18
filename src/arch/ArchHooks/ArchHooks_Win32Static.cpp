@@ -15,28 +15,6 @@
 
 #include <chrono>
 
-static std::string
-GetMountDir(const std::string& sDirOfExecutable)
-{
-	/* All Windows data goes in the directory one level above the executable. */
-	Locator::getLogger()->trace("DOE \"{}\"", sDirOfExecutable);
-	vector<std::string> asParts;
-	split(sDirOfExecutable, "/", asParts);
-	Locator::getLogger()->trace("... {} asParts", asParts.size());
-	ASSERT_M(
-	  asParts.size() > 1,
-	  ssprintf("Strange sDirOfExecutable: %s", sDirOfExecutable.c_str()));
-	std::string sDir = join("/", asParts.begin(), asParts.end() - 1);
-	return sDir;
-}
-
-void
-ArchHooks::MountInitialFilesystems(const std::string& sDirOfExecutable)
-{
-	std::string sDir = GetMountDir(sDirOfExecutable);
-
-	FILEMAN->Mount("dir", sDir, "/");
-}
 
 void
 ArchHooks::MountUserFilesystems(const std::string& sDirOfExecutable)

@@ -118,61 +118,10 @@ ArchHooks_Unix::Init()
 	SignalHandler::OnClose(EmergencyShutdown);
 
 	InstallExceptionHandler();
-
-#if defined(HAVE_TLS)
-	TestTLS();
-#endif
-}
-
-#ifndef _CS_GNU_LIBC_VERSION
-#define _CS_GNU_LIBC_VERSION 2
-#endif
-
-static std::string
-LibcVersion()
-{
-	char buf[1024] = "(error)";
-	int ret = confstr(_CS_GNU_LIBC_VERSION, buf, sizeof(buf));
-	if (ret == -1)
-		return "(unknown)";
-
-	return buf;
 }
 
 #include "RageUtil/File/RageFileManager.h"
 #include <sys/stat.h>
-
-static LocalizedString COULDNT_FIND_SONGS("ArchHooks_Unix",
-										  "Couldn't find 'Songs'");
-void
-ArchHooks::MountInitialFilesystems(const std::string& sDirOfExecutable)
-{
-#ifdef __unix__
-	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
-	 * on. This is /rootfs, not /root, to avoid confusion with root's home
-	 * directory. */
-	FILEMAN->Mount("dir", "/", "/rootfs");
-
-	/* Mount /proc, so Alsa9Buf::GetSoundCardDebugInfo() and others can access
-	 * it. (Deprecated; use rootfs.) */
-	FILEMAN->Mount("dir", "/proc", "/proc");
-#endif
-
-	std::string Root;
-	struct stat st;
-	if (!stat((sDirOfExecutable + "/Packages").c_str(), &st) && st.st_mode & S_IFDIR)
-		Root = sDirOfExecutable;
-	else if (!stat((sDirOfExecutable + "/Songs").c_str(), &st) && st.st_mode & S_IFDIR)
-		Root = sDirOfExecutable;
-	else if (!stat((RageFileManagerUtil::sInitialWorkingDirectory + "/Songs").c_str(),
-				   &st) &&
-			 st.st_mode & S_IFDIR)
-		Root = RageFileManagerUtil::sInitialWorkingDirectory;
-	else
-		RageException::Throw("%s", COULDNT_FIND_SONGS.GetValue().c_str());
-
-	FILEMAN->Mount("dir", Root, "/");
-}
 
 void
 ArchHooks::MountUserFilesystems(const std::string& sDirOfExecutable)
