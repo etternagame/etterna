@@ -9,7 +9,6 @@ class ArchHooks_Win32 : public ArchHooks
 {
   public:
 	ArchHooks_Win32();
-	void RestartProgram();
 };
 
 #endif

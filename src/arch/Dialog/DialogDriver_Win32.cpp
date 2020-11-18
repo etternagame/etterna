@@ -9,7 +9,6 @@
 
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "archutils/win32/RestartProgram.h"
 #include "archutils/Win32/SpecialDirs.h"
 #if !defined(SMPACKAGE)
 #include "archutils/win32/WindowsResources.h"
@@ -182,7 +181,6 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					Core::Arch::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 					break;
 				case IDC_BUTTON_RESTART:
-					Win32RestartProgram();
 					// Possibly make W32RP a NORETURN call?
 					FAIL_M("Win32RestartProgram failed?");
 				case IDOK:

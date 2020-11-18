@@ -51,7 +51,6 @@ endif()
 
 # Universal Install Directories
 ## Files Only
-install(FILES portable.ini                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(FILES Songs/instructions.txt        COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Songs")
 install(FILES Announcers/instructions.txt   COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Announcers")
 

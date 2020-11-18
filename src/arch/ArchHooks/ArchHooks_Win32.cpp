@@ -6,7 +6,6 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "archutils/win32/RestartProgram.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
 #if _MSC_VER >= 1400 // VC8
@@ -65,12 +64,6 @@ ArchHooks_Win32::ArchHooks_Win32()
 	/* Windows boosts priority on keyboard input, among other things.  Disable
 	 * that for the main thread. */
 	SetThreadPriorityBoost(GetCurrentThread(), TRUE);
-}
-
-void
-ArchHooks_Win32::RestartProgram()
-{
-	Win32RestartProgram();
 }
 
 /*

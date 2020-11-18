@@ -25,7 +25,6 @@ class RageFileManager
   public:
 	RageFileManager(const std::string& argv0);
 	~RageFileManager();
-	void MountUserFilesystems();
 
 	void GetDirListing(const std::string& sPath,
 					   std::vector<std::string>& AddTo,

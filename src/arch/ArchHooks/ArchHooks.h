@@ -21,23 +21,12 @@ class ArchHooks
 	virtual ~ArchHooks() = default;
 	virtual void Init() {}
 
-	/**
-	 * @brief Re-exec the game.
-	 *
-	 * If this is implemented, it doesn't return. */
-	virtual void RestartProgram() {}
-
 	/*
 	 * Returns true if the user wants to toggle windowed mode and atomically
 	 * clears the boolean.
 	 */
 	static bool GetAndClearToggleWindowed();
 	static void SetToggleWindowed();
-
-	/*
-	 * Add file search paths for user-writable directories.
-	 */
-	static void MountUserFilesystems(const std::string& sDirOfExecutable);
 
 	/*
 	 * Platform-specific code calls this to indicate focus changes.

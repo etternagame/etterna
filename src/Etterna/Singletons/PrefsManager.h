@@ -263,12 +263,6 @@ class PrefsManager
 							  const std::string& sSection);
 };
 
-/* This is global, because it can be accessed by crash handlers and error
- * handlers that are run after PREFSMAN shuts down (and probably don't want to
- * deref that pointer anyway). */
-extern bool g_bAutoRestart;
-
-extern PrefsManager*
-  PREFSMAN; // global and accessible from anywhere in our program
+extern PrefsManager* PREFSMAN; // global and accessible from anywhere in our program
 
 #endif

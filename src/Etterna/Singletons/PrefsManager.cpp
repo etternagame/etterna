@@ -89,7 +89,6 @@ XToString(BackgroundFitMode);
 StringToX(BackgroundFitMode);
 LuaXType(BackgroundFitMode);
 
-bool g_bAutoRestart = false;
 #ifdef DEBUG
 #define TRUE_IF_DEBUG true
 #else

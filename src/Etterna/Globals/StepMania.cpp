@@ -321,8 +321,6 @@ ShutdownGame()
 static void
 HandleException(const std::string& sError)
 {
-	if (g_bAutoRestart)
-        Locator::getArchHooks()->RestartProgram();
 
 	// Shut down first, so we exit graphics mode before trying to open a dialog.
 	ShutdownGame();
@@ -1010,11 +1008,6 @@ sm_main(int argc, char* argv[])
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
 	FILEMAN->Mount("dir", Core::Arch::getAppDirectory(), "/");
-
-
-	bool bPortable = DoesFileExist("Portable.ini");
-	if (!bPortable)
-		FILEMAN->MountUserFilesystems();
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
