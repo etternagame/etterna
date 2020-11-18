@@ -116,6 +116,8 @@ jobs:
           path: dxsdk
 
       - name: Update Environment Variables
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
           echo "::add-path::${{github.workspace}}/main/extern/crashpad/breakpad/win/"
           echo "::set-env name=ETTERNA_ARCH::${{matrix.cfg.name}}"
