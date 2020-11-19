@@ -8,7 +8,6 @@ if(APPLE)
 		"Darwin/MouseDevice.cpp"
 		"Darwin/PumpDevice.cpp"
 		"Darwin/SMMain.mm"
-		"Darwin/SpecialDirs.cpp"
 		"Darwin/VectorHelper.cpp")
 
 	list(APPEND OS_DARWIN_HPP
@@ -20,7 +19,6 @@ if(APPLE)
 		"Darwin/KeyboardDevice.h"
 		"Darwin/MouseDevice.h"
 		"Darwin/PumpDevice.h"
-		"Darwin/SpecialDirs.h"
 		"Darwin/VectorHelper.h")
 
 	list(APPEND OS_SRC ${OS_DARWIN_SRC})
@@ -41,7 +39,6 @@ if(WIN32)
 		"Win32/GraphicsWindow.cpp"
 		"Win32/MessageWindow.cpp"
 		"Win32/RegistryAccess.cpp"
-		"Win32/SpecialDirs.cpp"
 		"Win32/USB.cpp"
 		"Win32/VideoDriverInfo.cpp"
 		"Win32/WindowIcon.cpp"
@@ -59,7 +56,6 @@ if(WIN32)
 		"Win32/GraphicsWindow.h"
 		"Win32/MessageWindow.h"
 		"Win32/RegistryAccess.h"
-		"Win32/SpecialDirs.h"
 		"Win32/USB.h"
 		"Win32/VideoDriverInfo.h"
 		"Win32/WindowIcon.h"
@@ -73,7 +69,6 @@ if(NOT APPLE AND UNIX)
 		"Unix/GetSysInfo.cpp"
 		"Unix/RunningUnderValgrind.cpp"
 		"Unix/SignalHandler.cpp"
-		"Unix/SpecialDirs.cpp"
 		"Unix/StackCheck.cpp")
 
 	list(APPEND OS_HPP
@@ -82,7 +77,6 @@ if(NOT APPLE AND UNIX)
 		"Unix/GetSysInfo.h"
 		"Unix/RunningUnderValgrind.h"
 		"Unix/SignalHandler.h"
-		"Unix/SpecialDirs.h"
 		"Common/gcc_byte_swaps.h")
 
 	list(APPEND OS_SRC "Unix/X11Helper.cpp")

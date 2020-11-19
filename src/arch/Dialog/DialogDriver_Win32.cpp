@@ -9,7 +9,6 @@
 
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "archutils/Win32/SpecialDirs.h"
 #if !defined(SMPACKAGE)
 #include "archutils/win32/WindowsResources.h"
 #include "archutils/win32/GraphicsWindow.h"
@@ -160,22 +159,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					STARTUPINFO si;
 					ZeroMemory(&si, sizeof(si));
 
-					std::string sAppDataDir = SpecialDirs::GetAppDataDir();
-					std::string sCommand = "notepad \"" + sAppDataDir +
-										   Core::AppInfo::APP_TITLE + "/Logs/log.txt\"";
-					CreateProcess(
-					  nullptr, // pointer to name of executable module
-					  const_cast<char*>(
-						sCommand.c_str()), // pointer to command line string
-					  nullptr,			   // process security attributes
-					  nullptr,			   // thread security attributes
-					  false,			   // handle inheritance flag
-					  0,				   // creation flags
-					  nullptr,			   // pointer to new environment block
-					  nullptr,			   // pointer to current directory name
-					  &si,				   // pointer to STARTUPINFO
-					  &pi				   // pointer to PROCESS_INFORMATION
-					);
+					Core::Arch::openFolder(Core::Arch::getAppDirectory() / "Logs");
 				} break;
 				case IDC_BUTTON_REPORT:
 					Core::Arch::openWebsite(Core::AppInfo::BUG_REPORT_URL);
