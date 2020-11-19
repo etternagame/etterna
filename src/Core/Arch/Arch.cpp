@@ -36,7 +36,7 @@ int setCursorVisible(lua_State* L){
     return 0;
 }
 
-const luaL_Reg ArchHooksTable[] = {
+const luaL_Reg ArchTable[] = {
         LIST_METHOD(isGameFocused),
         LIST_METHOD(getSystem),
         LIST_METHOD(getClipboard),
@@ -44,4 +44,4 @@ const luaL_Reg ArchHooksTable[] = {
         { nullptr, nullptr }
 };
 
-LUA_REGISTER_NAMESPACE(ArchHooks);
+LUA_REGISTER_NAMESPACE(Arch);
