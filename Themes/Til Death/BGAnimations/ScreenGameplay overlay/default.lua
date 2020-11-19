@@ -4,7 +4,7 @@ local inCustomize = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).Customiz
 local isPractice = GAMESTATE:IsPracticeMode()
 
 if not inReplay and not inCustomize and not isPractice then
-	HOOKS:ShowCursor(false)
+	ArchHooks.setCursorVisible(false)
 end
 
 local t = Def.ActorFrame {}
