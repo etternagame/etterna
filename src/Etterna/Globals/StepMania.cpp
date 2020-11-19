@@ -313,7 +313,6 @@ ShutdownGame()
 	DLMAN.reset();
 	SAFE_DELETE(FILEMAN);
 	SAFE_DELETE(LUA);
-//	SAFE_DELETE(HOOKS);
 	Discord_Shutdown();
 }
 
@@ -722,11 +721,6 @@ CheckVideoDefaultSettings()
 			PREFSMAN->m_iMovieColorDepth.Set(defaults.iMovieColor);
 			PREFSMAN->m_iMaxTextureResolution.Set(defaults.iTextureSize);
 			PREFSMAN->m_bSmoothLines.Set(defaults.bSmoothLines);
-			// this only worked when we started in fullscreen by default. -aj
-			// PREFSMAN->m_fDisplayAspectRatio.Set(
-			// HOOKS->GetDisplayAspectRatio() );
-			// now that we start in windowed mode, use the new default aspect
-			// ratio.
 			PREFSMAN->m_fDisplayAspectRatio.Set(
 			  PREFSMAN->m_fDisplayAspectRatio);
 		}
@@ -1008,7 +1002,7 @@ sm_main(int argc, char* argv[])
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
-	/* Allow HOOKS to check for multiple instances.  We need to do this after
+	/* Allow ArchHooks to check for multiple instances.  We need to do this after
 	 * PREFS is initialized, so ArchHooks can use a preference to turn this off.
 	 * We want to do this before ApplyLogPreferences, so if we exit because of
 	 * another instance, we don't try to clobber its log.  We also want to do
