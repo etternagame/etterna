@@ -65,7 +65,6 @@ endif()
 
 if(NOT APPLE AND UNIX)
 	list(APPEND OS_SRC # TODO: X11 check, crash handler check
-		"Unix/EmergencyShutdown.cpp"
 		"Unix/GetSysInfo.cpp"
 		"Unix/RunningUnderValgrind.cpp"
 		"Unix/SignalHandler.cpp"
@@ -73,7 +72,6 @@ if(NOT APPLE AND UNIX)
 
 	list(APPEND OS_HPP
 		"Unix/arch_setup.h"
-		"Unix/EmergencyShutdown.h"
 		"Unix/GetSysInfo.h"
 		"Unix/RunningUnderValgrind.h"
 		"Unix/SignalHandler.h"
