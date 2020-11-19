@@ -34,18 +34,6 @@ float MACMouseY()
     // This padding should be replaced in the future to use Cocoa calls to content
 }
 
-float MACWindowHeight()
-{
-    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
-    return frame.size.height;
-}
-float MACWindowWidth()
-{
-    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
-    return frame.size.width;
-}
-
-
 @interface NSApplication (PrivateShutUpWarning)
 - (void) setAppleMenu:(NSMenu *)menu;
 @end
