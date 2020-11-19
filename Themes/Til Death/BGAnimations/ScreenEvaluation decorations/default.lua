@@ -204,6 +204,10 @@ function scoreBoard(pn, position)
 		ChangeScoreCommand = function(self, params)
 			if params.score then
 				score = params.score
+				totalTaps = 0
+				for k, v in ipairs(judges) do
+					totalTaps = totalTaps + score:GetTapNoteScore(v)
+				end
 			end
 
 			MESSAGEMAN:Broadcast("ScoreChanged")
