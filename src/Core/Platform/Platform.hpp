@@ -139,6 +139,21 @@ namespace Core::Platform {
      */
     bool isOtherInstanceRunning(int argc, char** argv);
 
+    /**
+     * Enable or disable the system output console.
+     *
+     * This is defined in Platform.cpp
+     *
+     * Mac and Unix always have an associated console with the program, and can be seen
+     * depending on how the application is launched. This function is written for windows,
+     * which when linked with the `/SUBSYSTEM:WINDOWS` flag, needs a separate console
+     * to be allocated, and linked to the IO of this application.
+     *
+     * @param enable Boolean to enable or disable
+     * @return True if successful.
+     */
+    bool setConsoleEnabled(bool enable);
+
     namespace Time {
 
         /**

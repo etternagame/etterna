@@ -1,7 +1,36 @@
 #include "Platform.hpp"
 
 /** This file is where functions which have a cross-platform implementation may be defined. */
-namespace Core::Platform::Time {
+namespace Core::Platform {
+
+    bool setConsoleEnabled(bool enable) {
+    #ifdef _WIN32
+        // Disable the console
+        if (!enable){
+            FreeConsole();
+            return true;
+        }
+
+        // If we reach this point in the code, attempt to enable the console.
+        // Return value of zero means failure to allocate console
+        if(AllocConsole() == 0){
+            Locator::getLogger()->error("Console window failed to initialize.");
+            return false;
+        }
+
+        // Usually freopen_s would be used to reassign a file pointer to a new or different file.
+        // Since out "file" is standard out, and we only want to redirect it, we can give
+        // a dummy value for the file pointer. It can't be null as it is required for the
+        // operation to occur, but we don't need to hold onto it afterwards.
+        // The following functions should return zero after executing sucessfully. We don't check it here.
+        FILE* dummy;
+        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        freopen_s(&dummy, "CONOUT$", "w", stderr);
+    #endif
+        return true;
+    }
+
+    namespace Time {
 
     /** TODO: Move time related functions to their own class/namespace */
     std::chrono::milliseconds GetChronoDurationSinceStart(){
