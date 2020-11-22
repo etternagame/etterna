@@ -1,6 +1,8 @@
 #ifndef CORE_ARCH_ARCH_HPP
 #define CORE_ARCH_ARCH_HPP
 
+#include "Core/Platform/Model/Dimensions.hpp"
+
 #include <cstddef>
 #include <string>
 #include <ghc/filesystem.hpp>
@@ -12,9 +14,6 @@
  * All std::string types returned must be UTF-8.
  */
 namespace Core::Platform {
-
-    /** @brief Platform-independent struct to store screen dimensions */
-    struct Dimensions { unsigned width; unsigned height; };
 
     /**
      * Run any desired initialization processes specific
