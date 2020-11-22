@@ -49,6 +49,7 @@ add_subdirectory(fmt)
 add_subdirectory(plog)
 add_subdirectory(boost/nowide)
 add_subdirectory(filesystem)
+add_subdirectory(glfw)
 
 ## Vorbis depends on ogg
 add_subdirectory(newogg)

@@ -105,6 +105,7 @@ target_link_libraries(Etterna PRIVATE fmt::fmt)
 target_link_libraries(Etterna PRIVATE plog::plog)
 target_link_libraries(Etterna PRIVATE nowide::nowide)
 target_link_libraries(Etterna PRIVATE ghc_filesystem)
+target_link_libraries(Etterna PRIVATE glfw)
 
 # If the user wants crashpad, and the target exists (in-case
 # the user wants it, but crashpad couldn't find python)
