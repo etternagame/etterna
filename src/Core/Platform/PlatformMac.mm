@@ -52,17 +52,17 @@ namespace Core::Platform {
         return [MTLCreateSystemDefaultDevice() name].UTF8String;
     }
 
-    ScreenDimensions getScreenDimensions(){
+    Dimensions getScreenDimensions(){
         auto dims = NSScreen.mainScreen.frame;
-        ScreenDimensions res{
+        Dimensions res{
             static_cast<unsigned int>(dims.size.width),
             static_cast<unsigned int>(dims.size.height)};
         return res;
     }
 
-    ScreenDimensions getWindowDimensions(){
+    Dimensions getWindowDimensions(){
         auto dims = NSApplication.sharedApplication.mainWindow.frame;
-        ScreenDimensions res{
+        Dimensions res{
             static_cast<unsigned int>(dims.size.width),
             static_cast<unsigned int>(dims.size.height)};
         return res;

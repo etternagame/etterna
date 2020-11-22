@@ -180,28 +180,28 @@ namespace Core::Platform {
 		return fmt::format("{} {}", vendor, renderer);
 	}
 
-    ScreenDimensions getScreenDimensions(){
+    Dimensions getScreenDimensions(){
         // Get screen information
 	    RECT screen;
 	    HWND hDesktop = GetDesktopWindow();
 	    GetWindowRect(hDesktop, &screen);
 
-	    // Convert into ScreenDimensions struct
-	    ScreenDimensions dims{};
+	    // Convert into Dimensions struct
+	    Dimensions dims{};
 	    dims.width = static_cast<unsigned>(screen.right);
 	    dims.height = static_cast<unsigned>(screen.bottom);
 
 	    return dims;
 	}
 
-	ScreenDimensions getWindowDimensions(){
+	Dimensions getWindowDimensions(){
 	    // TODO: Should this be handled by the window class?
         // Get screen information
 	    RECT window;
 	    GetClientRect(GraphicsWindow::GetHwnd(), &window);
 
-	    // Convert into ScreenDimensions struct
-	    ScreenDimensions dims{};
+	    // Convert into Dimensions struct
+	    Dimensions dims{};
 	    dims.width = static_cast<unsigned>(window.right - window.left);
 	    dims.height = static_cast<unsigned>(window.bottom - window.top);
 

@@ -14,7 +14,7 @@
 namespace Core::Platform {
 
     /** @brief Platform-independent struct to store screen dimensions */
-    struct ScreenDimensions { unsigned width; unsigned height; };
+    struct Dimensions { unsigned width; unsigned height; };
 
     /**
      * Run any desired initialization processes specific
@@ -69,13 +69,13 @@ namespace Core::Platform {
      * @brief Get the screen dimensions of the screen the game window is currently displayed on.
      * @return A pair with the first being the width, and second, height
      */
-    ScreenDimensions getScreenDimensions();
+    Dimensions getScreenDimensions();
 
     /**
      * @brief Get the dimensions of the game window.
      * @return A pair with the first being the width, and second, height
      */
-    ScreenDimensions getWindowDimensions();
+    Dimensions getWindowDimensions();
 
     /**
      * @brief Get the users preferred language.

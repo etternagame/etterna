@@ -135,7 +135,7 @@ namespace Core::Platform {
         return "Unknown";
     }
 
-    ScreenDimensions getScreenDimensions(){
+    Dimensions getScreenDimensions(){
         // Using X11 since it's currently a dependency, but is this the most portable?
         auto display = XOpenDisplay(nullptr);
         auto screen = XDefaultScreen(display);
@@ -144,7 +144,7 @@ namespace Core::Platform {
         return {width, height};
     }
 
-    ScreenDimensions getWindowDimensions(){
+    Dimensions getWindowDimensions(){
         auto width = static_cast<unsigned>(PREFSMAN->m_iDisplayHeight * PREFSMAN->m_fDisplayAspectRatio);
         auto height = static_cast<unsigned>(PREFSMAN->m_iDisplayHeight);
         return {width, height};
