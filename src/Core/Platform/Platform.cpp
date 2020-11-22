@@ -32,12 +32,14 @@ namespace Core::Platform {
 
     namespace Time {
 
-    /** TODO: Move time related functions to their own class/namespace */
-    std::chrono::milliseconds GetChronoDurationSinceStart(){
-        return std::chrono::milliseconds(std::chrono::steady_clock::now().time_since_epoch().count() / 1000000);
-    }
+        /** TODO: Move time related functions to their own class/namespace */
+        std::chrono::milliseconds GetChronoDurationSinceStart() {
+            return std::chrono::milliseconds(std::chrono::steady_clock::now().time_since_epoch().count() / 1000000);
+        }
 
-} // namespace Core::Platform::Time
+    } //namespace Time
+
+} // namespace Core::Platform
 
 // Lua Link
 // TODO: Isolate all Lua code to it's own section of the codebase
