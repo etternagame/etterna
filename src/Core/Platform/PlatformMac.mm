@@ -1,4 +1,4 @@
-#include "Arch.hpp"
+#include "Platform.hpp"
 #include <Core/Services/Locator.hpp>
 
 #include <Foundation/Foundation.h>
@@ -19,7 +19,7 @@ static std::string getSysctlName(const char* name) {
     return buffer;
 }
 
-namespace Core::Arch {
+namespace Core::Platform {
 
     void init(){
         Locator::getLogger()->info("macOS has not platform specific initialization");
@@ -109,7 +109,7 @@ namespace Core::Arch {
     }
 
     void setCursorVisible(bool value){
-        Locator::getLogger()->warn("Core::Arch::setCursorVisible not implemented");
+        Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
     }
 
     ghc::filesystem::path getExecutableDirectory(){
@@ -121,7 +121,7 @@ namespace Core::Arch {
 	}
 
     bool isOtherInstanceRunning(int argc, char** argv){
-        Locator::getLogger()->warn("Core::Arch::isOtherInstanceRunning not implemented");
+        Locator::getLogger()->warn("Core::Platform::isOtherInstanceRunning not implemented");
         return false;
     }
 }

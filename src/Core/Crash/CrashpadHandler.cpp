@@ -1,6 +1,6 @@
 #include "CrashpadHandler.hpp"
 
-#include "Core/Arch/Arch.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Core/Misc/AppInfo.hpp"
 
 #include <ghc/filesystem.hpp>
@@ -18,7 +18,7 @@
  * @return True if successfully initialized, False if otherwise.
  */
 bool Core::Crash::initCrashpad() {
-    auto exeDir = Core::Arch::getExecutableDirectory();
+    auto exeDir = Core::Platform::getExecutableDirectory();
     auto dataPath = exeDir / "CrashData";
 
     /* Core::AppInfo::CRASHPAD_HANDLER_EXE may either be a full path, or only an executable name.

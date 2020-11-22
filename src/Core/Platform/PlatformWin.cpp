@@ -1,4 +1,4 @@
-#include "Arch.hpp"
+#include "Platform.hpp"
 
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
@@ -107,7 +107,7 @@ void InvalidParameterHandler(const wchar_t* szExpression, const wchar_t* szFunct
 	  func, file, iLine, expr));
 }
 
-namespace Core::Arch {
+namespace Core::Platform {
 
     void init(){
         /* Disable critical errors, and handle them internally.  We never want the

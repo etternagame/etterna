@@ -7,7 +7,7 @@
 #include "Core/Misc/PlogLogger.hpp"
 #include "Core/Crash/CrashpadHandler.hpp"
 #include "Core/Misc/AppInfo.hpp"
-#include "Core/Arch/Arch.hpp"
+#include "Core/Platform/Platform.hpp"
 
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -974,13 +974,13 @@ sm_main(int argc, char* argv[])
                                Core::AppInfo::APP_TITLE,
                                Core::AppInfo::APP_VERSION,
                                Core::AppInfo::GIT_HASH);
-    Locator::getLogger()->info("System: {}", Core::Arch::getSystem());
-    Locator::getLogger()->info("CPU: {}", Core::Arch::getSystemCPU());
-	Locator::getLogger()->info("System Architecture: {}", Core::Arch::getArchitecture());
-	Locator::getLogger()->info("Total Memory: {}GB", Core::Arch::getSystemMemory() / pow(1024, 3));
+    Locator::getLogger()->info("System: {}", Core::Platform::getSystem());
+    Locator::getLogger()->info("CPU: {}", Core::Platform::getSystemCPU());
+	Locator::getLogger()->info("System Architecture: {}", Core::Platform::getArchitecture());
+	Locator::getLogger()->info("Total Memory: {}GB", Core::Platform::getSystemMemory() / pow(1024, 3));
 
     // Run Platform Initialization
-    Core::Arch::init();
+    Core::Platform::init();
 
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
@@ -997,7 +997,7 @@ sm_main(int argc, char* argv[])
 
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
-	FILEMAN->Mount("dir", Core::Arch::getAppDirectory(), "/");
+	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
@@ -1008,7 +1008,7 @@ sm_main(int argc, char* argv[])
 	 * another instance, we don't try to clobber its log.  We also want to do
 	 * this before opening the loading window, so if we give focus away, we
 	 * don't flash the window. */
-	if (!g_bAllowMultipleInstances.Get() && Core::Arch::isOtherInstanceRunning(argc, argv)) {
+	if (!g_bAllowMultipleInstances.Get() && Core::Platform::isOtherInstanceRunning(argc, argv)) {
 	    Locator::getLogger()->warn("Multiple instances are disabled. Other instance detected. Shutting down...");
 		ShutdownGame();
 		return 0;

@@ -4,7 +4,7 @@
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Core/Services/Locator.hpp"
-#include "Core/Arch/Arch.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
@@ -52,7 +52,7 @@ Screen::Init()
 	REPEAT_RATE.Load(m_sName, "RepeatRate");
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
 
-	Core::Arch::setCursorVisible(true);
+	Core::Platform::setCursorVisible(true);
 
 	delayedFunctions.clear();
 	delayedPeriodicFunctionIdsToDelete.clear();

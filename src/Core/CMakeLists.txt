@@ -12,7 +12,7 @@ list(APPEND CORE_CPP
         Services/Locator.cpp
         Misc/PlogLogger.cpp)
 
-add_subdirectory(Arch)
+add_subdirectory(Platform)
 
 if(WITH_CRASHPAD)
 	list(APPEND CORE_CPP Crash/CrashpadHandler.cpp)

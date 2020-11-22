@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Crash.h"
 #include "Core/Services/Locator.hpp"
-#include "Core/Arch/Arch.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Core/Misc/AppInfo.hpp"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
@@ -60,11 +60,11 @@ CrashHandler::InformUserOfCrash(const std::string& sPath)
 
 	switch (response) {
 		case kCFUserNotificationDefaultResponse:
-			Core::Arch::openWebsite(Core::AppInfo::BUG_REPORT_URL);
+			Core::Platform::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 			// Fall through.
 		case kCFUserNotificationOtherResponse:
 			// Open the file with the default application (probably TextEdit).
-            Core::Arch::openWebsite("file://" + sPath);
+            Core::Platform::openWebsite("file://" + sPath);
 			break;
 	}
 	CFRelease(sBody);

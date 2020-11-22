@@ -1,4 +1,4 @@
-#include "Arch.hpp"
+#include "Platform.hpp"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Globals/global.h"
@@ -72,7 +72,7 @@ extern "C" {
     }
 }
 
-namespace Core::Arch {
+namespace Core::Platform {
 
     void init(){
         std::set_terminate(UnexpectedExceptionHandler);
@@ -237,7 +237,7 @@ namespace Core::Arch {
     }
 
     void setCursorVisible(bool value){
-        Locator::getLogger()->warn("Core::Arch::setCursorVisible not implemented");
+        Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
     }
 
     ghc::filesystem::path getExecutableDirectory(){
@@ -261,7 +261,7 @@ namespace Core::Arch {
 	}
 
 	bool isOtherInstanceRunning(int argc, char** argv){
-        Locator::getLogger()->warn("Core::Arch::isOtherInstanceRunning not implemented");
+        Locator::getLogger()->warn("Core::Platform::isOtherInstanceRunning not implemented");
         return false;
     }
 }

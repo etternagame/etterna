@@ -1,6 +1,6 @@
 #include "PlogLogger.hpp"
 
-#include "Core/Arch/Arch.hpp"
+#include "Core/Platform/Platform.hpp"
 
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <fmt/chrono.h>
@@ -52,7 +52,7 @@ PlogLogger::PlogLogger() {
     char timeString[20]; // Date and time portion only
     std::time_t t = std::time(nullptr);
     std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
-    auto logDirectory = Core::Arch::getAppDirectory() / "Logs";
+    auto logDirectory = Core::Platform::getAppDirectory() / "Logs";
 
     // Ensure log directory exists before initializing logger.
     if(!ghc::filesystem::exists(logDirectory))

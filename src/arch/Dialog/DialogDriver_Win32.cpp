@@ -4,7 +4,7 @@
 #if !defined(SMPACKAGE)
 #include "Etterna/Models/Misc/LocalizedString.h"
 #endif
-#include "Core/Arch/Arch.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Core/Misc/AppInfo.hpp"
 
 #include "archutils/win32/AppInstance.h"
@@ -159,10 +159,10 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					STARTUPINFO si;
 					ZeroMemory(&si, sizeof(si));
 
-					Core::Arch::openFolder(Core::Arch::getAppDirectory() / "Logs");
+					Core::Platform::openFolder(Core::Platform::getAppDirectory() / "Logs");
 				} break;
 				case IDC_BUTTON_REPORT:
-					Core::Arch::openWebsite(Core::AppInfo::BUG_REPORT_URL);
+					Core::Platform::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 					break;
 				case IDC_BUTTON_RESTART:
 					// Possibly make W32RP a NORETURN call?
