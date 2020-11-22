@@ -8,7 +8,7 @@ elseif(APPLE)
 elseif(UNIX)
     list(APPEND CORE_PLATFORM_CPP PlatformUnix.cpp)
 else()
-    message(FATAL_ERROR " What operating system is this? There is no ArchHooks defined for this platform.")
+    message(FATAL_ERROR " What operating system is this? There is no platform source file defined.")
 endif()
 
 target_sources(Etterna PRIVATE ${CORE_PLATFORM_HPP} ${CORE_PLATFORM_CPP})
