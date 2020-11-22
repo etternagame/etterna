@@ -239,6 +239,7 @@ namespace Core::Platform {
             return false;
         }
         ShellExecuteA(nullptr, nullptr, path.native().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        return true;
     }
 
     std::string getClipboard(){
