@@ -83,8 +83,6 @@ class RageDisplay_Null : public RageDisplay
 	}
 	void SetCelShaded(int /* stage */) override {}
 
-	bool IsD3DInternal() override;
-
 	RageCompiledGeometry* CreateCompiledGeometry() override;
 	void DeleteCompiledGeometry(RageCompiledGeometry*) override;
 

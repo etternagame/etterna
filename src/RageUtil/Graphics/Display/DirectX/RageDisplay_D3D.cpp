@@ -2024,12 +2024,6 @@ RageDisplay_D3D::SetCelShaded(int stage)
 	// todo: implement me!
 }
 
-auto
-RageDisplay_D3D::IsD3DInternal() -> bool
-{
-	return true;
-}
-
 /*
  * Copyright (c) 2001-2004 Chris Danford, Glenn Maynard
  * All rights reserved.

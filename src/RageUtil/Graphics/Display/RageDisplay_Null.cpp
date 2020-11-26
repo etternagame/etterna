@@ -126,12 +126,6 @@ RageDisplay_Null::EndFrame()
 	ProcessStatsOnFlip();
 }
 
-bool
-RageDisplay_Null::IsD3DInternal()
-{
-	return false;
-}
-
 class RageCompiledGeometryNull : public RageCompiledGeometry
 {
   public:

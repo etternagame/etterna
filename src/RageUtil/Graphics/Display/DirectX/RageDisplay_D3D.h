@@ -71,7 +71,6 @@ class RageDisplay_D3D : public RageDisplay
 	void SetSphereEnvironmentMapping(TextureUnit tu, bool b) override;
 	void SetCelShaded(int stage) override;
 
-	auto IsD3DInternal() -> bool override;
 	[[nodiscard]] auto SupportsFullscreenBorderlessWindow() const
 	  -> bool override
 	{

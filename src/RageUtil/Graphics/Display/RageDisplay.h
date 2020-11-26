@@ -269,8 +269,6 @@ class RageDisplay
 
 	// Call this when the resolution has been changed externally:
 	virtual void ResolutionChanged();
-	auto IsD3D() -> bool;
-
 	virtual auto BeginFrame() -> bool;
 	virtual void EndFrame();
 	[[nodiscard]] virtual auto GetActualVideoModeParams() const
@@ -442,8 +440,6 @@ class RageDisplay
 	virtual void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 												int iNumVerts) = 0;
 	virtual void DrawCircleInternal(const RageSpriteVertex& v, float radius);
-
-	virtual auto IsD3DInternal() -> bool;
 
 	// return std::string() if mode change was successful, an error message
 	// otherwise. bNewDeviceOut is set true if a new device was created and

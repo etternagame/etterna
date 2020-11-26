@@ -104,8 +104,6 @@ class RageDisplay_Legacy : public RageDisplay
 	void SetSphereEnvironmentMapping(TextureUnit tu, bool b) override;
 	void SetCelShaded(int stage) override;
 
-	bool IsD3DInternal() override;
-
 	RageCompiledGeometry* CreateCompiledGeometry() override;
 	void DeleteCompiledGeometry(RageCompiledGeometry* p) override;
 

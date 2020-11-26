@@ -367,11 +367,6 @@ RageDisplay::SetDefaultRenderStates()
 	LoadMenuPerspective(0, 640, 480, 320, 240); // 0 FOV = ortho
 }
 
-bool
-RageDisplay::IsD3DInternal()
-{
-	return false;
-}
 
 // Matrix stuff
 class MatrixStack
@@ -1229,12 +1224,6 @@ void
 RageDisplay::SetPresentTime(std::chrono::nanoseconds presentTime)
 {
 	g_LastFramePresentTime = presentTime;
-}
-
-bool
-RageDisplay::IsD3D()
-{
-	return DISPLAY->IsD3DInternal();
 }
 
 RageCompiledGeometry::~RageCompiledGeometry()
