@@ -500,15 +500,6 @@ RageDisplay_Legacy::Init(const VideoModeParams& p)  {
     Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
     Locator::getLogger()->trace("OGL Extensions: {}", glGetString(GL_EXTENSIONS));
 
-#ifdef _WIN32
-	/* GLDirect is a Direct3D wrapper for OpenGL.  It's rather buggy; and if in
-	 * any case GLDirect can successfully render us, we should be able to do so
-	 * too using Direct3D directly.  (If we can't, it's a bug that we can work
-	 * around--if GLDirect can do it, so can we!) */
-	if (!strncmp((const char*)glGetString(GL_RENDERER), "GLDirect", 8))
-		return GLDIRECT_IS_NOT_COMPATIBLE.GetValue() + "\n";
-#endif
-
 	/* Log this, so if people complain that the radar looks bad on their
 	 * system we can compare them: */
 	glGetFloatv(GL_LINE_WIDTH_RANGE, g_line_range);
