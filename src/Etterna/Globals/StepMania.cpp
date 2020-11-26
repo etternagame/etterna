@@ -427,7 +427,7 @@ GetVideoDriverName()
 
 
 #if defined(SUPPORT_OPENGL)
-#include "RageUtil/Graphics/RageDisplay_OGL.h"
+#include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL.h"
 #endif
 
 #include "RageUtil/Graphics/RageDisplay_Null.h"

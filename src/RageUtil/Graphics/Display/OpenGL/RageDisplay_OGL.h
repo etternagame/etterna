@@ -4,7 +4,7 @@
 #define RAGE_DISPLAY_OGL_H
 
 #include "Etterna/Models/Misc/DisplaySpec.h"
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
 

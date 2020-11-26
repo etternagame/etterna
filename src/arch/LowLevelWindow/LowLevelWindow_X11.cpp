@@ -8,7 +8,7 @@
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 
-#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL_Helpers.h"
 using namespace RageDisplay_Legacy_Helpers;
 using namespace X11Helper;
 

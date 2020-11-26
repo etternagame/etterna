@@ -3,7 +3,7 @@
 #import "Etterna/Models/Misc/DisplaySpec.h"
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/Misc/RageThreads.h"
-#import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
+#import "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL_Helpers.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Globals/GameLoop.h"
 

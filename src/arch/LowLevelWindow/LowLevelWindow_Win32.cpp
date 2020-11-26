@@ -8,8 +8,8 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
-#include "RageUtil/Graphics/RageDisplay_OGL.h"
+#include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL.h"
 
 #include <GL/glew.h>
 

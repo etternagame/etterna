@@ -7,9 +7,9 @@
 #include "RageUtil/File/RageFile.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
-#include "RageSurface.h"
-#include "RageSurfaceUtils.h"
-#include "RageTextureManager.h"
+#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RageSurfaceUtils.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 
