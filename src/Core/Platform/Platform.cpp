@@ -1,4 +1,5 @@
 #include "Platform.hpp"
+#include "Core/Services/Locator.hpp"
 
 /** This file is where functions which have a cross-platform implementation may be defined. */
 namespace Core::Platform {
