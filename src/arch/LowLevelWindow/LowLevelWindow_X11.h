@@ -31,12 +31,6 @@ class LowLevelWindow_X11 : public LowLevelWindow
 
 	bool SupportsFullscreenBorderlessWindow() const;
 
-	bool SupportsThreadedRendering();
-	void BeginConcurrentRenderingMainThread();
-	void EndConcurrentRenderingMainThread();
-	void BeginConcurrentRendering();
-	void EndConcurrentRendering();
-
   private:
 	void RestoreOutputConfig();
 

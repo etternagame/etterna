@@ -36,9 +36,6 @@ class LowLevelWindow_MacOSX : public LowLevelWindow
 	bool SupportsRenderToTexture() const { return true; }
 	RenderTarget* CreateRenderTarget();
 
-	bool SupportsThreadedRendering() { return m_BGContext; }
-	void BeginConcurrentRendering();
-
   private:
 	void ShutDownFullScreen();
 	int ChangeDisplayMode(const VideoModeParams& p);

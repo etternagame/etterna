@@ -737,12 +737,6 @@ RageDisplay_D3D::SupportsTextureFormat(RagePixelFormat pixfmt,
 }
 
 auto
-RageDisplay_D3D::SupportsThreadedRendering() -> bool
-{
-	return true;
-}
-
-auto
 RageDisplay_D3D::CreateScreenshot() -> RageSurface*
 {
 	RageSurface* result = nullptr;

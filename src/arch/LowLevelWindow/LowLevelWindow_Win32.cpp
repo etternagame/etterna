@@ -276,27 +276,6 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 	return std::string(); // we set the video mode successfully
 }
 
-bool
-LowLevelWindow_Win32::SupportsThreadedRendering()
-{
-	return g_HGLRC_Background != nullptr;
-}
-
-void
-LowLevelWindow_Win32::BeginConcurrentRendering()
-{
-	if (!wglMakeCurrent(GraphicsWindow::GetHDC(), g_HGLRC_Background)) {
-		Locator::getLogger()->warn(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
-		FAIL_M(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
-	}
-}
-
-void
-LowLevelWindow_Win32::EndConcurrentRendering()
-{
-	wglMakeCurrent(nullptr, nullptr);
-}
-
 static LocalizedString OPENGL_NOT_AVAILABLE(
   "LowLevelWindow_Win32",
   "OpenGL hardware acceleration is not available.");

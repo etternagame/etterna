@@ -27,7 +27,6 @@ class RageDisplay_D3D : public RageDisplay
 	void SetBlendMode(BlendMode mode) override;
 	auto SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime = false)
 	  -> bool override;
-	auto SupportsThreadedRendering() -> bool override;
 	auto SupportsPerVertexMatrixScale() -> bool override { return false; }
 	auto CreateTexture(RagePixelFormat pixfmt,
 					   RageSurface* img,

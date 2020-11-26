@@ -892,12 +892,6 @@ LowLevelWindow_X11::GetDisplaySpecs(DisplaySpecs& out) const
 	}
 }
 
-bool
-LowLevelWindow_X11::SupportsThreadedRendering()
-{
-	return g_pBackgroundContext != NULL;
-}
-
 class RenderTarget_X11 : public RenderTarget
 {
   public:
@@ -1122,35 +1116,4 @@ RenderTarget*
 LowLevelWindow_X11::CreateRenderTarget()
 {
 	return new RenderTarget_X11(this);
-}
-
-void
-LowLevelWindow_X11::BeginConcurrentRenderingMainThread()
-{
-	/* Move the main thread, which is going to be loading textures, etc.
-	 * but not rendering, to an undisplayed window. This results in
-	 * smoother rendering. */
-	bool b = glXMakeCurrent(Dpy, g_AltWindow, g_pContext);
-	ASSERT(b);
-}
-
-void
-LowLevelWindow_X11::EndConcurrentRenderingMainThread()
-{
-	bool b = glXMakeCurrent(Dpy, Win, g_pContext);
-	ASSERT(b);
-}
-
-void
-LowLevelWindow_X11::BeginConcurrentRendering()
-{
-	bool b = glXMakeCurrent(Dpy, Win, g_pBackgroundContext);
-	ASSERT(b);
-}
-
-void
-LowLevelWindow_X11::EndConcurrentRendering()
-{
-	bool b = glXMakeCurrent(Dpy, None, NULL);
-	ASSERT(b);
 }
