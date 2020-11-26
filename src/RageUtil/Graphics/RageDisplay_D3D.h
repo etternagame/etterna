@@ -11,10 +11,6 @@ class RageDisplay_D3D : public RageDisplay
 	auto Init(const VideoModeParams& p, bool bAllowUnacceleratedRenderer)
 	  -> std::string override;
 
-	[[nodiscard]] auto GetApiDescription() const -> std::string override
-	{
-		return "D3D";
-	}
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	[[nodiscard]] auto GetPixelFormatDesc(RagePixelFormat pf) const

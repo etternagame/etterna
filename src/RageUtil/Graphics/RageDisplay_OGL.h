@@ -38,7 +38,6 @@ class RageDisplay_Legacy : public RageDisplay
 	std::string Init(const VideoModeParams& p,
 					 bool bAllowUnacceleratedRenderer) override;
 
-	std::string GetApiDescription() const override { return "OpenGL"; }
 	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(

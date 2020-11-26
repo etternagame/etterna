@@ -120,6 +120,8 @@ static LocalizedString NO_VSYNC("Etterna", "NoVsync");
 static LocalizedString SMOOTH_LINES("Etterna", "SmoothLines");
 static LocalizedString NO_SMOOTH_LINES("Etterna", "NoSmoothLines");
 
+static std::string GetVideoDriverName();
+
 static std::string
 GetActualGraphicOptionsString()
 {
@@ -128,7 +130,7 @@ GetActualGraphicOptionsString()
 						  TEXTURE.GetValue() + " %dHz %s %s";
 	std::string sLog =
 	  ssprintf(sFormat,
-			   DISPLAY->GetApiDescription().c_str(),
+			   GetVideoDriverName().c_str(),
 			   (params.windowed ? WINDOWED : FULLSCREEN).GetValue().c_str(),
 			   params.width,
 			   params.height,
@@ -370,6 +372,8 @@ StepMania::GetSelectMusicScreen()
 }
 
 #ifdef _WIN32
+#include "RageUtil/Graphics/RageDisplay_D3D.h"
+#include "archutils/Win32/VideoDriverInfo.h"
 static Preference<int> g_iLastSeenMemory("LastSeenMemory", 0);
 #endif
 
@@ -410,10 +414,17 @@ AdjustForChangedSystemCapabilities()
 #endif
 }
 
+static std::string
+GetVideoDriverName()
+{
 #ifdef _WIN32
-#include "RageUtil/Graphics/RageDisplay_D3D.h"
-#include "archutils/Win32/VideoDriverInfo.h"
+	return GetPrimaryVideoDriverName();
+#else
+	return "OpenGL";
 #endif
+}
+
+
 
 #if defined(SUPPORT_OPENGL)
 #include "RageUtil/Graphics/RageDisplay_OGL.h"
@@ -421,6 +432,7 @@ AdjustForChangedSystemCapabilities()
 
 #include "RageUtil/Graphics/RageDisplay_Null.h"
 
+#pragma region VideoCardDefaults
 struct VideoCardDefaults
 {
 	std::string sDriverRegex;
@@ -653,16 +665,8 @@ struct VideoCardDefaults
 	  )
 #endif
 };
+#pragma endregion
 
-static std::string
-GetVideoDriverName()
-{
-#ifdef _WIN32
-	return GetPrimaryVideoDriverName();
-#else
-	return "OpenGL";
-#endif
-}
 
 bool
 CheckVideoDefaultSettings()

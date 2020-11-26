@@ -257,7 +257,6 @@ class RageDisplay
 	virtual auto Init(const VideoModeParams& p,
 					  bool bAllowUnacceleratedRenderer) -> std::string = 0;
 
-	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
