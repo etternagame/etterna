@@ -27,7 +27,6 @@ class LowLevelWindow
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	virtual void LogDebugInformation() const {}
-	virtual bool IsSoftwareRenderer(std::string& /* sError */) { return false; }
 
 	virtual void SwapBuffers() = 0;
 	virtual void Update() {}

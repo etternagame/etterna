@@ -11,7 +11,6 @@ class LowLevelWindow_Win32 : public LowLevelWindow
 	void* GetProcAddress(const std::string& s);
 	std::string TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut);
 	void GetDisplaySpecs(DisplaySpecs& out) const;
-	bool IsSoftwareRenderer(std::string& sError);
 	void SwapBuffers();
 	void Update();
 	virtual bool SupportsRenderToTexture() const { return true; }

@@ -718,16 +718,6 @@ LowLevelWindow_X11::LogDebugInformation() const
 	Locator::getLogger()->info("Direct rendering: {}", glXIsDirect(Dpy, glXGetCurrentContext()) ? "yes" : "no");
 }
 
-bool
-LowLevelWindow_X11::IsSoftwareRenderer(std::string& sError)
-{
-	if (glXIsDirect(Dpy, glXGetCurrentContext()))
-		return false;
-
-	sError = "Direct rendering is not available.";
-	return true;
-}
-
 void
 LowLevelWindow_X11::SwapBuffers()
 {

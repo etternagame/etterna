@@ -276,23 +276,6 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 	return std::string(); // we set the video mode successfully
 }
 
-static LocalizedString OPENGL_NOT_AVAILABLE(
-  "LowLevelWindow_Win32",
-  "OpenGL hardware acceleration is not available.");
-bool
-LowLevelWindow_Win32::IsSoftwareRenderer(std::string& sError)
-{
-	std::string sVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-	std::string sRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-
-	if (sVendor == "Microsoft Corporation" && sRenderer == "GDI Generic") {
-		sError = OPENGL_NOT_AVAILABLE;
-		return true;
-	}
-
-	return false;
-}
-
 void
 LowLevelWindow_Win32::SwapBuffers()
 {
