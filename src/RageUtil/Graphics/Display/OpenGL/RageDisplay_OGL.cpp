@@ -494,65 +494,13 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
-		Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
-		Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
-
-		/* Pretty-print the extension string: */
-		Locator::getLogger()->trace("OGL Extensions:");
-		{
-			const auto szExtensionString =
-			  (const char*)glGetString(GL_EXTENSIONS);
-			vector<std::string> asExtensions;
-			split(szExtensionString, " ", asExtensions);
-			sort(asExtensions.begin(), asExtensions.end());
-			size_t iNextToPrint = 0;
-			while (iNextToPrint < asExtensions.size()) {
-				auto iLastToPrint = iNextToPrint;
-				std::string sType;
-				for (auto i = iNextToPrint; i < asExtensions.size(); ++i) {
-					vector<std::string> asBits;
-					split(asExtensions[i], "_", asBits);
-					std::string sThisType;
-					if (asBits.size() > 2)
-						sThisType = join(
-						  std::string("_"), asBits.begin(), asBits.begin() + 2);
-					if (i > iNextToPrint && sThisType != sType)
-						break;
-					sType = sThisType;
-					iLastToPrint = i;
-				}
-
-				if (iNextToPrint == iLastToPrint) {
-					Locator::getLogger()->trace("  {}", asExtensions[iNextToPrint].c_str());
-					++iNextToPrint;
-					continue;
-				}
-
-				auto sList = ssprintf("  %s: ", sType.c_str());
-				while (iNextToPrint <= iLastToPrint) {
-					vector<std::string> asBits;
-					split(asExtensions[iNextToPrint], "_", asBits);
-					const auto sShortExt =
-					  join(std::string("_"), asBits.begin() + 2, asBits.end());
-					sList += sShortExt;
-					if (iNextToPrint < iLastToPrint)
-						sList += ", ";
-					if (iNextToPrint == iLastToPrint ||
-						sList.size() + asExtensions[iNextToPrint + 1].size() >
-						  120) {
-						Locator::getLogger()->trace(sList.c_str());
-						sList = "    ";
-					}
-					++iNextToPrint;
-				}
-			}
-		}
-	}
+    Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
+    Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
+    Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
+    Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
+    Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
+    Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
+    Locator::getLogger()->trace("OGL Extensions: {}", glGetString(GL_EXTENSIONS));
 
 	if (g_pWind->IsSoftwareRenderer(sError)) {
 		if (!bAllowUnacceleratedRenderer)
