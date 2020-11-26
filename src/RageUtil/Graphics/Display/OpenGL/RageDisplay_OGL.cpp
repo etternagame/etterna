@@ -481,14 +481,14 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "GLDirect is not compatible "
 												  "with this game and should "
 												  "be disabled.");
-std::string
-RageDisplay_Legacy::Init(const VideoModeParams& p)  {
+
+void RageDisplay_Legacy::Init(const VideoModeParams& p)  {
 	g_pWind = LowLevelWindow::Create();
 
 	auto bIgnore = false;
 	auto sError = SetVideoMode(p, bIgnore);
 	if (!sError.empty())
-		return sError;
+		throw std::runtime_error(sError);
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
@@ -504,8 +504,6 @@ RageDisplay_Legacy::Init(const VideoModeParams& p)  {
 	 * system we can compare them: */
 	glGetFloatv(GL_LINE_WIDTH_RANGE, g_line_range);
 	glGetFloatv(GL_POINT_SIZE_RANGE, g_point_range);
-
-	return std::string();
 }
 
 RageDisplay_Legacy::~RageDisplay_Legacy()

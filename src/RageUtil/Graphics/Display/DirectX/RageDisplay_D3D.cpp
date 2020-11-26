@@ -196,9 +196,7 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "available.  Please obtain an updated driver from your video card "
   "manufacturer.");
 
-auto
-RageDisplay_D3D::Init(const VideoModeParams& p) -> std::string
-{
+void RageDisplay_D3D::Init(const VideoModeParams& p) {
 	GraphicsWindow::Initialize(true);
 
 	Locator::getLogger()->trace("RageDisplay_D3D::RageDisplay_D3D()");

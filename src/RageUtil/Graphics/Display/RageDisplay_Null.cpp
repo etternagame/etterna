@@ -51,10 +51,9 @@ RageDisplay_Null::RageDisplay_Null()
 	Locator::getLogger()->trace("Current renderer: null");
 }
 
-std::string RageDisplay_Null::Init(const VideoModeParams& p)  {
+void RageDisplay_Null::Init(const VideoModeParams& p) {
 	auto bIgnore = false;
 	SetVideoMode(p, bIgnore);
-	return std::string();
 }
 
 void

@@ -8,7 +8,7 @@ class RageDisplay_D3D : public RageDisplay
   public:
 	RageDisplay_D3D();
 	~RageDisplay_D3D() override;
-	auto Init(const VideoModeParams& p) -> std::string override;
+	virtual void Init(const VideoModeParams& p) override;
 
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;

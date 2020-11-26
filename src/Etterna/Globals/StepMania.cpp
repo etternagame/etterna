@@ -831,17 +831,7 @@ CreateDisplay()
 			if (pRet == nullptr)
 				continue;
 
-			std::string sError =
-			  pRet->Init(params);
-			if (!sError.empty()) {
-				error +=
-				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +
-				  "\n" + sError;
-				SAFE_DELETE(pRet);
-				error += "\n\n\n";
-				continue;
-			}
-
+			pRet->Init(params);
 			break; // the display is ready to go
 		}
 	}

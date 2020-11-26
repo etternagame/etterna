@@ -254,7 +254,7 @@ class RageDisplay
 	RageDisplay();
 	virtual ~RageDisplay();
 
-	virtual auto Init(const VideoModeParams& p) -> std::string = 0;
+	virtual void Init(const VideoModeParams& p) = 0;
 
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
