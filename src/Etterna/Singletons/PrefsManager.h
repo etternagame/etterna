@@ -217,7 +217,6 @@ class PrefsManager
 	Preference<int> m_iSoundWriteAhead;
 	Preference<std::string> m_iSoundDevice;
 	Preference<int> m_iSoundPreferredSampleRate;
-	Preference<bool> m_bAllowUnacceleratedRenderer;
 	Preference<bool> m_bThreadedInput;
 	Preference<bool> m_bThreadedMovieDecode;
 	Preference<std::string> m_sTestInitialScreen;

@@ -7,8 +7,7 @@ class RageDisplay_Null : public RageDisplay
 {
   public:
 	RageDisplay_Null();
-	std::string Init(const VideoModeParams& p,
-					 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoModeParams& p) override;
 
 	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	const RagePixelFormatDesc* GetPixelFormatDesc(

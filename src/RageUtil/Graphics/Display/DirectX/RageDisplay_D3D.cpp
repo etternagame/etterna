@@ -197,8 +197,7 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "manufacturer.");
 
 auto
-RageDisplay_D3D::Init(const VideoModeParams& p,
-					  bool /* bAllowUnacceleratedRenderer */) -> std::string
+RageDisplay_D3D::Init(const VideoModeParams& p) -> std::string
 {
 	GraphicsWindow::Initialize(true);
 

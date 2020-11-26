@@ -482,9 +482,7 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "with this game and should "
 												  "be disabled.");
 std::string
-RageDisplay_Legacy::Init(const VideoModeParams& p,
-						 bool bAllowUnacceleratedRenderer)
-{
+RageDisplay_Legacy::Init(const VideoModeParams& p)  {
 	g_pWind = LowLevelWindow::Create();
 
 	auto bIgnore = false;
@@ -501,13 +499,6 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
     Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
     Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
     Locator::getLogger()->trace("OGL Extensions: {}", glGetString(GL_EXTENSIONS));
-
-	if (g_pWind->IsSoftwareRenderer(sError)) {
-		if (!bAllowUnacceleratedRenderer)
-			return sError + "  " + OBTAIN_AN_UPDATED_VIDEO_DRIVER.GetValue() +
-				   "\n\n";
-		Locator::getLogger()->warn("Low-performance OpenGL renderer: {}", sError.c_str());
-	}
 
 #ifdef _WIN32
 	/* GLDirect is a Direct3D wrapper for OpenGL.  It's rather buggy; and if in

@@ -35,8 +35,7 @@ class RageDisplay_Legacy : public RageDisplay
   public:
 	RageDisplay_Legacy();
 	~RageDisplay_Legacy() override;
-	std::string Init(const VideoModeParams& p,
-					 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoModeParams& p) override;
 
 	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;

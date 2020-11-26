@@ -832,7 +832,7 @@ CreateDisplay()
 				continue;
 
 			std::string sError =
-			  pRet->Init(params, PREFSMAN->m_bAllowUnacceleratedRenderer);
+			  pRet->Init(params);
 			if (!sError.empty()) {
 				error +=
 				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +
