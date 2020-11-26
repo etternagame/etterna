@@ -92,11 +92,6 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
 if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RageDisplay_D3D.h")
-elseif(LINUX)
-  if (WITH_GLES2)
-    list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_GLES2.cpp")
-    list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RageDisplay_GLES2.h")
-  endif()
 endif()
 
 source_group("Rage\\\\Graphics" FILES ${SMDATA_RAGE_GRAPHICS_SRC} ${SMDATA_RAGE_GRAPHICS_HPP})

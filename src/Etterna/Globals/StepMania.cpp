@@ -419,10 +419,6 @@ AdjustForChangedSystemCapabilities()
 #include "RageUtil/Graphics/RageDisplay_OGL.h"
 #endif
 
-#if defined(SUPPORT_GLES2)
-#include "RageUtil/Graphics/RageDisplay_GLES2.h"
-#endif
-
 #include "RageUtil/Graphics/RageDisplay_Null.h"
 
 struct VideoCardDefaults
