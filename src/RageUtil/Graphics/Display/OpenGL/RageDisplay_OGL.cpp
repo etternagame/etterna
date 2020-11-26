@@ -473,15 +473,6 @@ InitShaders()
 	}
 }
 
-static LocalizedString OBTAIN_AN_UPDATED_VIDEO_DRIVER(
-  "RageDisplay_Legacy",
-  "Obtain an updated driver from your video card manufacturer.");
-static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
-												  "GLDirect was detected.  "
-												  "GLDirect is not compatible "
-												  "with this game and should "
-												  "be disabled.");
-
 void RageDisplay_Legacy::Init(const VideoModeParams& p)  {
 	g_pWind = LowLevelWindow::Create();
 
