@@ -29,17 +29,17 @@ if(WIN32)
     "Sound/RageSoundDriver_DSound_Software.h"
     "Sound/RageSoundDriver_WaveOut.h"
     "Sound/RageSoundDriver_WDMKS.h")
-  
+
 elseif(APPLE)
   list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_AU.cpp")
   list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_AU.h")
-  
+
 else() # Unix
   if(PULSEAUDIO_FOUND)
     list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_PulseAudio.cpp")
     list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_PulseAudio.h")
   endif()
-  
+
   if (ALSA_FOUND)
     list(APPEND SMDATA_ARCH_SOUND_SRC
       "Sound/ALSA9Dynamic.cpp"
@@ -51,12 +51,12 @@ else() # Unix
       "Sound/ALSA9Helpers.h"
       "Sound/RageSoundDriver_ALSA9_Software.h")
   endif()
-  
+
   if (JACK_FOUND)
     list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_JACK.cpp")
     list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_JACK.h")
   endif()
-  
+
   if (OSS_FOUND)
     list(APPEND SMDATA_ARCH_SOUND_SRC "Sound/RageSoundDriver_OSS.cpp")
     list(APPEND SMDATA_ARCH_SOUND_HPP "Sound/RageSoundDriver_OSS.h")
@@ -76,17 +76,17 @@ list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP
 if(APPLE)
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
-  
+
 elseif(MSVC)
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
-  
+
 else() # Unix
   if (${HAS_FFMPEG})
     list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
     list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
   endif()
-  
+
 endif()
 source_group("Arch Specific\\\\Movie Texture" FILES ${SMDATA_ARCH_MOVIE_TEXTURE_SRC} ${SMDATA_ARCH_MOVIE_TEXTURE_HPP})
 
@@ -95,15 +95,15 @@ list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow.h")
 if(WIN32)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_Win32.cpp")
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_Win32.h")
-  
+
 elseif(APPLE)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_MacOSX.mm")
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_MacOSX.h")
-  
+
 else(UNIX)
     list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_X11.cpp")
     list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_X11.h")
-  
+
 endif(WIN32)
 source_group("Arch Specific\\\\Low Level Window" FILES ${SMDATA_ARCH_LOWLEVEL_SRC} ${SMDATA_ARCH_LOWLEVEL_HPP})
 
@@ -115,18 +115,10 @@ if(WIN32)
   list(APPEND SMDATA_ARCH_LOADING_HPP "LoadingWindow/LoadingWindow_Win32.h")
 else()
   list(APPEND SMDATA_ARCH_LOADING_HPP "LoadingWindow/LoadingWindow_Null.h")
-  
+
   if(APPLE)
     list(APPEND SMDATA_ARCH_LOADING_SRC "LoadingWindow/LoadingWindow_MacOSX.mm")
     list(APPEND SMDATA_ARCH_LOADING_HPP "LoadingWindow/LoadingWindow_MacOSX.h")
-    
-  elseif(LINUX)
-    
-    if (GTK2_FOUND)
-      list(APPEND SMDATA_ARCH_LOADING_SRC "LoadingWindow/LoadingWindow_Gtk.cpp")
-      list(APPEND SMDATA_ARCH_LOADING_HPP "LoadingWindow/LoadingWindow_Gtk.h")
-    endif()
-    
   endif()
 endif()
 source_group("Arch Specific\\\\Loading Window" FILES ${SMDATA_ARCH_LOADING_SRC} ${SMDATA_ARCH_LOADING_HPP})
@@ -172,7 +164,7 @@ else() # Unix/Linux
   endif()
     list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_X11.cpp")
     list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_X11.h")
-  
+
 endif()
 source_group("Arch Specific\\\\Input Handler" FILES ${SMDATA_ARCH_INPUT_SRC} ${SMDATA_ARCH_INPUT_HPP})
 
