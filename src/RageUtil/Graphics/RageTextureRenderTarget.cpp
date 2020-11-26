@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageTextureRenderTarget.h"
 
 RageTextureRenderTarget::RageTextureRenderTarget(const RageTextureID& name,

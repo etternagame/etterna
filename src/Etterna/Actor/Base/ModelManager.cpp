@@ -1,6 +1,6 @@
 ﻿#include "Etterna/Globals/global.h"
 #include "ModelManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 

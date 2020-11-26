@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Singletons/GameState.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "StreamDisplay.h"
 #include "Etterna/Singletons/ThemeManager.h"
 

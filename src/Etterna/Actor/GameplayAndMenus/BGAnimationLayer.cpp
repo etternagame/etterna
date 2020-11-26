@@ -3,7 +3,7 @@
 #include "Etterna/Actor/Base/AutoActor.h"
 #include "BGAnimationLayer.h"
 #include "Etterna/Singletons/GameState.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Models/Songs/Song.h"

@@ -6,7 +6,7 @@
 #include "NoteField.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"

@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"

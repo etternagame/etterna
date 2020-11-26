@@ -3,7 +3,7 @@
 #include "LuaManager.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "PrefsManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"

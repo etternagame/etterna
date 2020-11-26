@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageBitmapTexture.h"
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"

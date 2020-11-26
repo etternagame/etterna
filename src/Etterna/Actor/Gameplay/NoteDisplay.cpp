@@ -9,7 +9,7 @@
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "Etterna/Models/Misc/PlayerState.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "Etterna/Actor/Base/Sprite.h"

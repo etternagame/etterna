@@ -11,7 +11,7 @@
 
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
@@ -372,7 +372,7 @@ StepMania::GetSelectMusicScreen()
 }
 
 #ifdef _WIN32
-#include "RageUtil/Graphics/RageDisplay_D3D.h"
+#include "RageUtil/Graphics/Display/DirectX/RageDisplay_D3D.h"
 #include "archutils/Win32/VideoDriverInfo.h"
 static Preference<int> g_iLastSeenMemory("LastSeenMemory", 0);
 #endif
@@ -430,7 +430,7 @@ GetVideoDriverName()
 #include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL.h"
 #endif
 
-#include "RageUtil/Graphics/RageDisplay_Null.h"
+#include "RageUtil/Graphics/Display/RageDisplay_Null.h"
 
 #pragma region VideoCardDefaults
 struct VideoCardDefaults
@@ -963,6 +963,8 @@ sm_main(int argc, char* argv[])
 
 	// Initialize Logging
     Locator::provide(std::make_unique<PlogLogger>());
+
+    Locator::getLogger()->info("{}", GetVideoDriverName());
 
     // Init Crash Handling
 	bool success = Core::Crash::initCrashpad();

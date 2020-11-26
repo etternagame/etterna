@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageModelGeometry.h"

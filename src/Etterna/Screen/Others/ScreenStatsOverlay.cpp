@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "ScreenStatsOverlay.h"

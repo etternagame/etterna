@@ -6,7 +6,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Core/Services/Locator.hpp"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL_Helpers.h"
 #include "RageUtil/Graphics/Display/OpenGL/RageDisplay_OGL.h"

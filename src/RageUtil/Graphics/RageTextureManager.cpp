@@ -23,7 +23,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageBitmapTexture.h"
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"

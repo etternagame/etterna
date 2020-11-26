@@ -4,7 +4,7 @@
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
 #include "Etterna/Globals/GameLoop.h"
-#include "RageUtil/Graphics/RageDisplay.h" // VideoModeParams
+#include "RageUtil/Graphics/Display/RageDisplay.h" // VideoModeParams
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 

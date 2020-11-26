@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/FileTypes/XmlFile.h"

@@ -2,7 +2,7 @@
 #define LOW_LEVEL_WINDOW_MACOSX_H
 
 #include "LowLevelWindow.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include <objc/objc.h>
 
 typedef const struct __CFDictionary* CFDictionaryRef;

@@ -1,7 +1,7 @@
 #include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "Core/Services/Locator.hpp"

@@ -6,7 +6,7 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Models/Misc/Preference.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"

@@ -9,7 +9,7 @@
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenOptionsMasterPrefs.h"

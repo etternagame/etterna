@@ -25,7 +25,7 @@ typedef char TCHAR, *PTCHAR;
 
 #include "baseclasses/streams.h"
 
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Misc/RageThreads.h"
 

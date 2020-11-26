@@ -7,7 +7,7 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSM.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"

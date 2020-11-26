@@ -4,7 +4,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Sprite.h"

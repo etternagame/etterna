@@ -11,7 +11,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
@@ -256,7 +256,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			hs = SCOREMAN->GetMostRecentScore();
 		else
 			hs = Luna<HighScore>::check(L, 3);
-		
+
 		float ts = FArg(2);
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());

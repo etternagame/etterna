@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "ModelTypes.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/RageTexture.h"

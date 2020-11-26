@@ -2,7 +2,7 @@
 #include "ImageCache.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"

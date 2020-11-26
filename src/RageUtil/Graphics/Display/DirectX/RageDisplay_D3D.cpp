@@ -2,7 +2,7 @@
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageDisplay_D3D.h"
 #include "RageUtil/Misc/RageException.h"
 #include "Core/Services/Locator.hpp"

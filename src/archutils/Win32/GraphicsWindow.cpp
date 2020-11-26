@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "GraphicsWindow.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Globals/GameLoop.h"
 #include "Core/Services/Locator.hpp"

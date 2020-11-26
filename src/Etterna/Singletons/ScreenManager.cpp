@@ -65,7 +65,7 @@
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/Preference.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
