@@ -205,12 +205,11 @@ void RageDisplay_D3D::Init(const VideoModeParams& p) {
 	g_pd3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (g_pd3d == nullptr) {
 		Locator::getLogger()->trace("Direct3DCreate9 failed");
-		return D3D_NOT_INSTALLED.GetValue();
+		Locator::getLogger()->warn(D3D_NOT_INSTALLED.GetValue());
 	}
 
-	if (FAILED(g_pd3d->GetDeviceCaps(
-		  D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &g_DeviceCaps))) {
-		return HARDWARE_ACCELERATION_NOT_AVAILABLE.GetValue();
+	if (FAILED(g_pd3d->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &g_DeviceCaps))) {
+	    Locator::getLogger()->warn(HARDWARE_ACCELERATION_NOT_AVAILABLE.GetValue());
 	}
 
 	D3DADAPTER_IDENTIFIER9 identifier;
@@ -251,7 +250,7 @@ void RageDisplay_D3D::Init(const VideoModeParams& p) {
 	 * possible, because if we have to shut it down again we'll flash a window
 	 * briefly. */
 	auto bIgnore = false;
-	return SetVideoMode(p, bIgnore);
+	SetVideoMode(p, bIgnore);
 }
 
 RageDisplay_D3D::~RageDisplay_D3D()
