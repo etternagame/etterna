@@ -270,11 +270,7 @@ GetInfoLog(GLhandleARB h)
 	return sRet;
 }
 
-GLhandleARB
-CompileShader(GLenum ShaderType,
-			  std::string sFile,
-			  vector<std::string> asDefines)
-{
+GLhandleARB CompileShader(GLenum ShaderType, std::string sFile) {
 	/* XXX: This would not be necessary if it wasn't for the special case for
 	 * Cel. */
 	if (ShaderType == GL_FRAGMENT_SHADER_ARB &&
@@ -307,11 +303,6 @@ CompileShader(GLenum ShaderType,
 	const auto hShader = glCreateShaderObjectARB(ShaderType);
 	vector<const GLcharARB*> apData;
 	vector<GLint> aiLength;
-	for (auto& s : asDefines) {
-		s = ssprintf("#define %s\n", s.c_str());
-		apData.push_back(s.data());
-		aiLength.push_back(s.size());
-	}
 	apData.push_back("#line 1\n");
 	aiLength.push_back(8);
 
@@ -338,9 +329,7 @@ CompileShader(GLenum ShaderType,
 	return hShader;
 }
 
-GLhandleARB
-LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
-{
+GLhandleARB LoadShader(GLenum ShaderType, std::string sFile) {
 	/* Vertex shaders are supported by more hardware than fragment shaders.
 	 * If this causes any trouble I will have to up the requirement for both
 	 * of them to at least GL 2.0. Regardless we need basic GLSL support.
@@ -361,12 +350,12 @@ LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
 	GLhandleARB secondaryShader = 0;
 	if (sFile == "Data/Shaders/GLSL/Cel.vert")
 		secondaryShader = CompileShader(
-		  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Cel.frag", asDefines);
+		  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Cel.frag");
 	else if (sFile == "Data/Shaders/GLSL/Shell.vert")
 		secondaryShader = CompileShader(
-		  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Shell.frag", asDefines);
+		  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Shell.frag");
 
-	const auto hShader = CompileShader(ShaderType, sFile, asDefines);
+	const auto hShader = CompileShader(ShaderType, sFile);
 	if (hShader == 0)
 		return 0;
 
@@ -406,50 +395,28 @@ static GLhandleARB g_hYUYV422Shader = 0;
 static GLhandleARB g_gShellShader = 0;
 static GLhandleARB g_gCelShader = 0;
 
-void
-InitShaders()
-{
-	// xxx: replace this with a ShaderManager or something that reads in
-	// the shaders and determines shader type by file extension. -aj
-	// argh shaders in stepmania are painful -colby
-	const vector<std::string> asDefines;
-
+void InitShaders() {
 	// used for scrolling textures (I think)
-	g_bTextureMatrixShader =
-	  LoadShader(GL_VERTEX_SHADER_ARB,
-				 "Data/Shaders/GLSL/Texture matrix scaling.vert",
-				 asDefines);
+	g_bTextureMatrixShader = LoadShader(GL_VERTEX_SHADER_ARB,"Data/Shaders/GLSL/Texture matrix scaling.vert");
 
 	// these two are for dancing characters and are both actually shader pairs
-	g_gShellShader = LoadShader(
-	  GL_VERTEX_SHADER_ARB, "Data/Shaders/GLSL/Shell.vert", asDefines);
-	g_gCelShader =
-	  LoadShader(GL_VERTEX_SHADER_ARB, "Data/Shaders/GLSL/Cel.vert", asDefines);
+	g_gShellShader = LoadShader(GL_VERTEX_SHADER_ARB, "Data/Shaders/GLSL/Shell.vert");
+	g_gCelShader = LoadShader(GL_VERTEX_SHADER_ARB, "Data/Shaders/GLSL/Cel.vert");
 
 	// effects
-	g_bUnpremultiplyShader = LoadShader(GL_FRAGMENT_SHADER_ARB,
-										"Data/Shaders/GLSL/Unpremultiply.frag",
-										asDefines);
-	g_bColorBurnShader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Color burn.frag", asDefines);
-	g_bColorDodgeShader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Color dodge.frag", asDefines);
-	g_bVividLightShader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Vivid light.frag", asDefines);
-	g_hHardMixShader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Hard mix.frag", asDefines);
-	g_hOverlayShader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Overlay.frag", asDefines);
-	g_hScreenShader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Screen.frag", asDefines);
-	g_hYUYV422Shader = LoadShader(
-	  GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/YUYV422.frag", asDefines);
+	g_bUnpremultiplyShader = LoadShader(GL_FRAGMENT_SHADER_ARB,"Data/Shaders/GLSL/Unpremultiply.frag");
+	g_bColorBurnShader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Color burn.frag");
+	g_bColorDodgeShader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Color dodge.frag");
+	g_bVividLightShader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Vivid light.frag");
+	g_hHardMixShader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Hard mix.frag");
+	g_hOverlayShader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Overlay.frag");
+	g_hScreenShader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/Screen.frag");
+	g_hYUYV422Shader = LoadShader(GL_FRAGMENT_SHADER_ARB, "Data/Shaders/GLSL/YUYV422.frag");
 
 	// Bind attributes.
 	if (g_bTextureMatrixShader) {
 		FlushGLErrors();
-		g_iAttribTextureMatrixScale =
-		  glGetAttribLocationARB(g_bTextureMatrixShader, "TextureMatrixScale");
+		g_iAttribTextureMatrixScale = glGetAttribLocationARB(g_bTextureMatrixShader, "TextureMatrixScale");
 		if (g_iAttribTextureMatrixScale == -1) {
 			Locator::getLogger()->trace(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
 			glDeleteObjectARB(g_bTextureMatrixShader);
