@@ -462,7 +462,7 @@ CheckVideoDefaultSettings()
 	// detected - mina
 	static Preference<bool> TKGP("ResetVideoSettingsWithNewGPU", true);
 
-	VideoCardDefaults defaults{"", "d3d, opengl", 800, 600, 32, 32, 32, 1024, false};
+	VideoCardDefaults defaults{"", "d3d,opengl", 800, 600, 32, 32, 32, 1024, false};
     Locator::getLogger()->trace("Card matches '{}'.",!defaults.sDriverRegex.empty() ? defaults.sDriverRegex.c_str() : "(unknown card)");
 
 
