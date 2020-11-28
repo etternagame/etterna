@@ -6,7 +6,7 @@
 #include "Etterna/Globals/global.h"
 
 #include <windows.h>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <string>
 #include <nowide/convert.hpp>
 #include <intsafe.h>

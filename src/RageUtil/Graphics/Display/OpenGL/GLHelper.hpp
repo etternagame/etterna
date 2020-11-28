@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <iostream>
 
 #ifndef RAGEUTIL_GRAPHICS_DISPLAY_OPENGL_GLHELPER_HPP

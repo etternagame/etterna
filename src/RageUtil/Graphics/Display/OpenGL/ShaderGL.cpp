@@ -5,7 +5,7 @@
 #include "Core/Services/Locator.hpp"
 
 #include <fmt/format.h>
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 #include <vector>
 #include <stdexcept>
