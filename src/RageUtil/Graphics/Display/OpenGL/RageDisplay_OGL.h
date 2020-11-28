@@ -41,25 +41,16 @@ class RageDisplay_Legacy : public RageDisplay
 
 	void GetDisplaySpecs(DisplaySpecs& out) const override;
 	void ResolutionChanged() override;
-	const RagePixelFormatDesc* GetPixelFormatDesc(
-	  RagePixelFormat pf) const override;
+	const RagePixelFormatDesc* GetPixelFormatDesc(RagePixelFormat pf) const override;
 
 	bool BeginFrame() override;
 	void EndFrame() override;
 	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
-	bool SupportsTextureFormat(RagePixelFormat pixfmt,
-							   bool realtime = false) override;
+	bool SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime = false) override;
 	bool SupportsPerVertexMatrixScale() override;
-	intptr_t CreateTexture(RagePixelFormat pixfmt,
-						   RageSurface* img,
-						   bool bGenerateMipMaps) override;
-	void UpdateTexture(intptr_t iTexHandle,
-					   RageSurface* img,
-					   int xoffset,
-					   int yoffset,
-					   int width,
-					   int height) override;
+	intptr_t CreateTexture(RagePixelFormat pixfmt, RageSurface* img, bool bGenerateMipMaps) override;
+	void UpdateTexture(intptr_t iTexHandle, RageSurface* img, int xoffset, int yoffset, int width, int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
 	bool UseOffscreenRenderTarget();
 	RageSurface* GetTexture(intptr_t iTexture) override;
@@ -76,9 +67,7 @@ class RageDisplay_Legacy : public RageDisplay
 	bool IsEffectModeSupported(EffectMode effect) override;
 	bool SupportsRenderToTexture() const;
 	bool SupportsFullscreenBorderlessWindow() const;
-	intptr_t CreateRenderTarget(const RenderTargetParam& param,
-								int& iTextureWidthOut,
-								int& iTextureHeightOut) override;
+	intptr_t CreateRenderTarget(const RenderTargetParam& param, int& iTextureWidthOut, int& iTextureHeightOut) override;
 	intptr_t GetRenderTarget() override;
 	void SetRenderTarget(intptr_t iHandle, bool bPreserveTexture) override;
 	bool IsZWriteEnabled() const override;
@@ -89,18 +78,10 @@ class RageDisplay_Legacy : public RageDisplay
 	void ClearZBuffer() override;
 	void SetCullMode(CullMode mode) override;
 	void SetAlphaTest(bool b) override;
-	void SetMaterial(const RageColor& emissive,
-					 const RageColor& ambient,
-					 const RageColor& diffuse,
-					 const RageColor& specular,
-					 float shininess) override;
+	void SetMaterial(const RageColor& emissive, const RageColor& ambient, const RageColor& diffuse, const RageColor& specular, float shininess) override;
 	void SetLighting(bool b) override;
 	void SetLightOff(int index) override;
-	void SetLightDirectional(int index,
-							 const RageColor& ambient,
-							 const RageColor& diffuse,
-							 const RageColor& specular,
-							 const RageVector3& dir) override;
+	void SetLightDirectional(int index, const RageColor& ambient, const RageColor& diffuse, const RageColor& specular, const RageVector3& dir) override;
 
 	void SetSphereEnvironmentMapping(TextureUnit tu, bool b) override;
 	void SetCelShaded(int stage) override;
@@ -116,28 +97,17 @@ class RageDisplay_Legacy : public RageDisplay
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;
-	void DrawQuadStripInternal(const RageSpriteVertex v[],
-							   int iNumVerts) override;
+	void DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts) override;
 	void DrawFanInternal(const RageSpriteVertex v[], int iNumVerts) override;
 	void DrawStripInternal(const RageSpriteVertex v[], int iNumVerts) override;
-	void DrawTrianglesInternal(const RageSpriteVertex v[],
-							   int iNumVerts) override;
-	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
-									  int iMeshIndex) override;
-	void DrawLineStripInternal(const RageSpriteVertex v[],
-							   int iNumVerts,
-							   float LineWidth) override;
-	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
-										int iNumVerts) override;
+	void DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts) override;
+	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p, int iMeshIndex) override;
+	void DrawLineStripInternal(const RageSpriteVertex v[], int iNumVerts, float LineWidth) override;
+	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],int iNumVerts) override;
 
-	std::string TryVideoMode(const VideoModeParams& p,
-							 bool& bNewDeviceOut) override;
+	std::string TryVideoMode(const VideoModeParams& p,bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
-	RagePixelFormat GetImgPixelFormat(RageSurface*& img,
-									  bool& FreeImg,
-									  int width,
-									  int height,
-									  bool bPalettedTexture);
+	RagePixelFormat GetImgPixelFormat(RageSurface*& img, bool& FreeImg, int width, int height, bool bPalettedTexture);
 	bool SupportsSurfaceFormat(RagePixelFormat pixfmt);
 
 	void SendCurrentMatrices();
