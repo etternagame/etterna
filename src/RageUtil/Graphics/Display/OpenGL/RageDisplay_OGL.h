@@ -144,10 +144,11 @@ class RageDisplay_Legacy : public RageDisplay
 
   private:
     // Shader references
-    ShaderGL shaderUnPreMultiply;
-    ShaderGL shaderColorBurn;
-    ShaderGL shaderColorDodge;
-    ShaderGL shaderVividLight;
+    ShaderGL shaderTextureMatrix;
+    ShaderGL shaderBUnPreMultiply;
+    ShaderGL shaderBColorBurn;
+    ShaderGL shaderBColorDodge;
+    ShaderGL shaderBVividLight;
     ShaderGL shaderHHardMix;
     ShaderGL shaderHOverlay;
     ShaderGL shaderHScreen;
