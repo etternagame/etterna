@@ -7,6 +7,8 @@
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "RageUtil/Graphics/Display/OpenGL/ShaderGL.hpp"
+
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -141,6 +143,19 @@ class RageDisplay_Legacy : public RageDisplay
 	void SendCurrentMatrices();
 
   private:
+    // Shader references
+    ShaderGL shaderUnPreMultiply;
+    ShaderGL shaderColorBurn;
+    ShaderGL shaderColorDodge;
+    ShaderGL shaderVividLight;
+    ShaderGL shaderHHardMix;
+    ShaderGL shaderHOverlay;
+    ShaderGL shaderHScreen;
+    ShaderGL shaderHYUYV422;
+    ShaderGL shaderGShell;
+    ShaderGL shaderGCel;
+    void setupGLShaders();
+
 	RageTextureRenderTarget* offscreenRenderTarget = nullptr;
 };
 
