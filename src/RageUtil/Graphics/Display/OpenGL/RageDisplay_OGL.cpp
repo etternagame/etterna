@@ -1273,42 +1273,17 @@ void RageDisplay_Legacy::SetEffectMode(EffectMode effect) {
 
 	ShaderGL* shader;
 	switch (effect) {
-		case EffectMode_Normal: glUseProgram(0); return;
-		case EffectMode_Unpremultiply:
-			shader = &shaderBUnPreMultiply;
-			Locator::getLogger()->info("SetEffectMode: ID: {}", "EffectMode_Unpremultiply");
-			break;
-		case EffectMode_ColorBurn:
-			shader = &shaderBColorBurn;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_ColorBurn");
-			break;
-		case EffectMode_ColorDodge:
-			shader = &shaderBColorDodge;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_ColorDodge");
-			break;
-		case EffectMode_VividLight:
-			shader = &shaderBVividLight;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_VividLight");
-			break;
-		case EffectMode_HardMix:
-			shader = &shaderHHardMix;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_HardMix");
-			break;
-		case EffectMode_Overlay:
-			shader = &shaderHOverlay;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_Overlay");
-			break;
-		case EffectMode_Screen:
-			shader = &shaderHScreen;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_Screen");
-			break;
-		case EffectMode_YUYV422:
-			shader = &shaderHYUYV422;
-			Locator::getLogger()->info("SetEffectMode:ID: {}", "EffectMode_YUYV422");
-			break;
-		default:
-			Locator::getLogger()->info("SetEffectMode: Bad ID");
-			break;
+		case EffectMode_Unpremultiply: shader = &shaderBUnPreMultiply; break;
+		case EffectMode_ColorBurn: shader = &shaderBColorBurn; break;
+		case EffectMode_ColorDodge: shader = &shaderBColorDodge; break;
+		case EffectMode_VividLight: shader = &shaderBVividLight; break;
+		case EffectMode_HardMix: shader = &shaderHHardMix; break;
+		case EffectMode_Overlay: shader = &shaderHOverlay; break;
+		case EffectMode_Screen: shader = &shaderHScreen; break;
+		case EffectMode_YUYV422: shader = &shaderHYUYV422; break;
+        default:
+		case EffectMode_Normal:
+		    glUseProgram(0); return;
 	}
 
 	DebugFlushGLErrors();
