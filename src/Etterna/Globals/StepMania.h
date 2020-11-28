@@ -5,10 +5,10 @@ struct Game;
 class RageTimer;
 class VideoModeParams;
 
-int sm_main(int argc, char* argv[]);
 
 /** @brief Utility functions for controlling the whole game. */
 namespace StepMania {
+    int sm_main(int argc, char* argv[]);
     void ApplyGraphicOptions();
     void ResetPreferences();
     void ResetGame();
@@ -22,6 +22,8 @@ namespace StepMania {
     // If successful, return filename of screenshot in sDir, else return ""
     std::string SaveScreenshot(const std::string& Dir, bool SaveCompressed,
                    const std::string& NamePrefix, const std::string& NameSuffix);
+
+    void ShutdownGame();
 }
 
 #endif
