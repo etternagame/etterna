@@ -91,7 +91,14 @@ Wheel.mt = {
 
                 -- YOU CANT STOP ME FROM NESTING FUNCTIONS
                 local function getTheDifferenceBetweenTwoDifficultiesAbsolutely(d1,d2)
-                    return math.abs(diffs[d1] - diffs[d2])
+                    -- so many nil errors im not going to try to figure out the behavior for
+                    -- hahahaha HAHAHAH AH AH AHAHAHADASHGDJASHDASGSA
+                    -- (good luck future reader)
+                    if d1 == nil or d2 == nil then
+                        return 0
+                    else
+                        return math.abs(diffs[d1] - diffs[d2])
+                    end
                 end
 
                 for i, chart in ipairs(charts) do
