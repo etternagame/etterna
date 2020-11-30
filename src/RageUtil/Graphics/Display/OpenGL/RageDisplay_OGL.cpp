@@ -626,8 +626,7 @@ void RageDisplay_Legacy::Init(const VideoModeParams& p)  {
     Locator::getLogger()->trace("OGL Version: {}.{}", GLVersion.major, GLVersion.minor);
     Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
     Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
-    Locator::getLogger()->trace("GLU Version: {}.{}", GLAD_GL_VERSION_1_0);
-    Locator::getLogger()->trace("OGL Extensions: {}", glGetString(GL_EXTENSIONS));
+//    Locator::getLogger()->trace("OGL Extensions: {}", glGetString(GL_EXTENSIONS)); // Returns null ptr on undefined OpenGL version
 
 	/* Log this, so if people complain that the radar looks bad on their
 	 * system we can compare them: */
