@@ -1,7 +1,7 @@
 #ifndef MODEL_MANAGER_H
 #define MODEL_MANAGER_H
 
-#include "RageUtil/Graphics/RageModelGeometry.h"
+#include "RageUtil/Graphics/Display/Model/RageModelGeometry.h"
 
 #include <map>
 
