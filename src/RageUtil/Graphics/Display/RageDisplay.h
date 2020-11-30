@@ -272,7 +272,7 @@ class RageDisplay {
 	void DrawFan(const RageSpriteVertex v[], int iNumVerts);
 	void DrawStrip(const RageSpriteVertex v[], int iNumVerts);
 	void DrawTriangles(const RageSpriteVertex v[], int iNumVerts);
-	void DrawCompiledGeometry(const RageCompiledGeometry* p, int iMeshIndex, const vector<msMesh>& vMeshes);
+	void DrawCompiledGeometry(const RageCompiledGeometry* p, int iMeshIndex, const std::vector<msMesh>& vMeshes);
 	void DrawLineStrip(const RageSpriteVertex v[], int iNumVerts, float LineWidth);
 	void DrawSymmetricQuadStrip(const RageSpriteVertex v[], int iNumVerts);
 	void DrawCircle(const RageSpriteVertex& v, float radius);
