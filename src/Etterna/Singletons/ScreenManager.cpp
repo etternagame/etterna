@@ -67,7 +67,7 @@
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"

@@ -7,7 +7,7 @@
 #include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils_Dither.h"
 #include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils_Zoom.h"
 #include "RageUtil/Graphics/Display/Surface/RageSurface_Load.h"
-#include "RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/StepMania.h"
 #include "arch/Dialog/Dialog.h"

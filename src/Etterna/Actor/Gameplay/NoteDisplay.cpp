@@ -11,7 +11,7 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Misc/RageMath.h"
-#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Graphics/Display/Texture/RageTexture.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 

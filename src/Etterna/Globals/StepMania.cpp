@@ -15,7 +15,7 @@
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "RageUtil/Sound/RageSoundManager.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Actor/Base/ActorUtil.h"

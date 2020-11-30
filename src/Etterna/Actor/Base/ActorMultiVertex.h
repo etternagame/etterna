@@ -7,7 +7,7 @@
 #include "Actor.h"
 #include "Etterna/Models/Misc/CubicSpline.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
-#include "RageUtil/Graphics/RageTextureID.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureID.h"
 
 enum DrawMode
 {

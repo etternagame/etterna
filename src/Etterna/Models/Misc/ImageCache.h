@@ -3,7 +3,7 @@
 
 #include "Etterna/FileTypes/IniFile.h"
 
-#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Graphics/Display/Texture/RageTexture.h"
 
 class LoadingWindow;
 /** @brief Maintains a cache of reduced-quality banners. */

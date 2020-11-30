@@ -3,7 +3,7 @@
 #ifndef RAGEBITMAPTEXTURE_H
 #define RAGEBITMAPTEXTURE_H
 
-#include "RageTexture.h"
+#include "RageUtil/Graphics/Display/Texture/RageTexture.h"
 
 class RageBitmapTexture : public RageTexture
 {

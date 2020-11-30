@@ -45,7 +45,7 @@ list(APPEND SMDATA_RAGE_MISC_HPP
 source_group("Rage\\\\Misc" FILES ${SMDATA_RAGE_MISC_SRC} ${SMDATA_RAGE_MISC_HPP})
 
 list(APPEND SMDATA_RAGE_GRAPHICS_SRC
-  "Graphics/RageBitmapTexture.cpp"
+  "Graphics/Display/Texture/RageBitmapTexture.cpp"
   "Graphics/Display/RageDisplay.cpp"
   "Graphics/Display/RageDisplay_Null.cpp"
   "Graphics/Display/OpenGL/RageDisplay_OGL.cpp"
@@ -64,13 +64,13 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "Graphics/Display/Surface/RageSurfaceUtils_Dither.cpp"
   "Graphics/Display/Surface/RageSurfaceUtils_Palettize.cpp"
   "Graphics/Display/Surface/RageSurfaceUtils_Zoom.cpp"
-  "Graphics/RageTexture.cpp"
-  "Graphics/RageTextureID.cpp"
-  "Graphics/RageTextureManager.cpp"
-  "Graphics/RageTextureRenderTarget.cpp"
+  "Graphics/Display/Texture/RageTexture.cpp"
+  "Graphics/Display/Texture/RageTextureID.cpp"
+  "Graphics/Display/Texture/RageTextureManager.cpp"
+  "Graphics/Display/Texture/RageTextureRenderTarget.cpp"
 )
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
-  "Graphics/RageBitmapTexture.h"
+  "Graphics/Display/Texture/RageBitmapTexture.h"
   "Graphics/Display/RageDisplay.h"
   "Graphics/Display/RageDisplay_Null.h"
   "Graphics/Display/OpenGL/RageDisplay_OGL.h"
@@ -89,10 +89,10 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Display/Surface/RageSurfaceUtils_Dither.h"
   "Graphics/Display/Surface/RageSurfaceUtils_Palettize.h"
   "Graphics/Display/Surface/RageSurfaceUtils_Zoom.h"
-  "Graphics/RageTexture.h"
-  "Graphics/RageTextureID.h"
-  "Graphics/RageTextureManager.h"
-  "Graphics/RageTextureRenderTarget.h"
+  "Graphics/Display/Texture/RageTexture.h"
+  "Graphics/Display/Texture/RageTextureID.h"
+  "Graphics/Display/Texture/RageTextureManager.h"
+  "Graphics/Display/Texture/RageTextureRenderTarget.h"
 )
 
 if(WIN32)

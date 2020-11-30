@@ -6,7 +6,7 @@
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Etterna/Actor/Base/Sprite.h"
-#include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureRenderTarget.h"
 #include "RageUtil/Graphics/Display/OpenGL/ShaderGL.hpp"
 
 

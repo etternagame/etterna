@@ -13,7 +13,7 @@
 #include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/Display/Surface/RageSurface.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "SongUtil.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h"

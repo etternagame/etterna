@@ -9,7 +9,7 @@
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Graphics/Display/Surface/RageSurface.h"
 #include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "arch/LowLevelWindow/LowLevelWindow.h"

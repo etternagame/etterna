@@ -9,7 +9,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Actor/Base/Quad.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Models/Songs/Song.h"

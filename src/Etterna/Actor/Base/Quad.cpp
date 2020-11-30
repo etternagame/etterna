@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "ActorUtil.h"
 #include "Quad.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 
 REGISTER_ACTOR_CLASS(Quad);
 

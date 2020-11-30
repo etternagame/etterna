@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "RageUtil/Sound/RageSoundManager.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Singletons/ThemeManager.h"

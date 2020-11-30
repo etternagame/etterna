@@ -6,7 +6,7 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/Display/RageDisplay.h"
-#include "RageUtil/Graphics/RageTexture.h"
+#include "RageUtil/Graphics/Display/Texture/RageTexture.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/FileTypes/XmlFile.h"

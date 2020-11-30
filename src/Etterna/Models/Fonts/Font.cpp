@@ -5,7 +5,7 @@
 #include "FontCharAliases.h"
 #include "FontCharmaps.h"
 #include "Core/Services/Locator.hpp"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/Dialog/Dialog.h"

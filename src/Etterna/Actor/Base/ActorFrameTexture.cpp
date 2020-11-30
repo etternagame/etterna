@@ -1,8 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "ActorFrameTexture.h"
 #include "ActorUtil.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
-#include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureRenderTarget.h"
 
 REGISTER_ACTOR_CLASS_WITH_NAME(ActorFrameTextureAutoDeleteChildren,
 							   ActorFrameTexture);

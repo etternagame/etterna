@@ -16,7 +16,7 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundManager.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "ScreenDebugOverlay.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Screen/Gameplay/ScreenGameplay.h"

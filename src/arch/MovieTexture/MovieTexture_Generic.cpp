@@ -5,8 +5,8 @@
 #include "RageUtil/Graphics/Display/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/Display/Surface/RageSurface.h"
-#include "RageUtil/Graphics/RageTextureManager.h"
-#include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureRenderTarget.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Actor/Base/Sprite.h"
 

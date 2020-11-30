@@ -16,7 +16,7 @@
 #include "MovieTexture_DShow.h"
 
 /* for TEXTUREMAN->GetTextureColorDepth() */
-#include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/Graphics/Display/Texture/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageException.h"
