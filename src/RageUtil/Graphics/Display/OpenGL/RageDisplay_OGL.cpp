@@ -911,11 +911,7 @@ intptr_t RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param, 
      * faster when available.
      */
 
-    RenderTarget* pTarget;
-	if (GLAD_GL_EXT_framebuffer_object)
-		pTarget = new RenderTarget_FramebufferObject;
-	else
-		pTarget = g_pWind->CreateRenderTarget();
+    RenderTarget* pTarget = new RenderTarget_FramebufferObject;
 
 	intptr_t iTexture = 0;
 	if (pTarget) {
