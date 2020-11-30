@@ -188,92 +188,7 @@ struct RageTextureLock_OGL : public RageTextureLock, public InvalidateObject {
 	unsigned m_iTexHandle;
 };
 
-class RageCompiledGeometrySWOGL : public RageCompiledGeometry {
-  public:
-	void Allocate(const vector<msMesh>& vMeshes) override {
-		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vTexture.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vNormal.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vTexMatrixScale.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vTriangles.resize(max(1U, static_cast<unsigned>(GetTotalTriangles())));
-	}
-	void Change(const vector<msMesh>& vMeshes) override {
-		for (unsigned i = 0; i < vMeshes.size(); i++) {
-			const auto& meshInfo = m_vMeshInfo[i];
-			const auto& mesh = vMeshes[i];
-			const auto& Vertices = mesh.Vertices;
-			const auto& Triangles = mesh.Triangles;
-
-			for (unsigned j = 0; j < Vertices.size(); j++) {
-				m_vPosition[meshInfo.iVertexStart + j] = Vertices[j].p;
-				m_vTexture[meshInfo.iVertexStart + j] = Vertices[j].t;
-				m_vNormal[meshInfo.iVertexStart + j] = Vertices[j].n;
-				m_vTexMatrixScale[meshInfo.iVertexStart + j] =
-				  Vertices[j].TextureMatrixScale;
-			}
-
-			for (unsigned j = 0; j < Triangles.size(); j++)
-				for (unsigned k = 0; k < 3; k++) {
-					const auto iVertexIndexInVBO = meshInfo.iVertexStart + Triangles[j].nVertexIndices[k];
-					m_vTriangles[meshInfo.iTriangleStart + j].nVertexIndices[k] = static_cast<uint16_t>(iVertexIndexInVBO);
-				}
-		}
-	}
-	void Draw(int iMeshIndex) const override {
-		TurnOffHardwareVBO();
-
-		const auto& meshInfo = m_vMeshInfo[iMeshIndex];
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, &m_vPosition[0]);
-
-		glDisableClientState(GL_COLOR_ARRAY);
-
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 0, &m_vTexture[0]);
-
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(GL_FLOAT, 0, &m_vNormal[0]);
-
-		if (meshInfo.m_bNeedsTextureMatrixScale) {
-			// Kill the texture translation.
-			// XXX: Change me to scale the translation by the
-			// TextureTranslationScale of the first vertex.
-			RageMatrix mat;
-			glGetFloatv(GL_TEXTURE_MATRIX, static_cast<float*>(mat));
-
-			/*
-			for( int i=0; i<4; i++ )
-			{
-				std::string s;
-				for( int j=0; j<4; j++ )
-					s += ssprintf( "%f ", mat.m[i][j] );
-				LOG->Trace( s );
-			}
-			*/
-
-			mat.m[3][0] = 0;
-			mat.m[3][1] = 0;
-			mat.m[3][2] = 0;
-
-			glMatrixMode(GL_TEXTURE);
-			glLoadMatrixf(static_cast<const float*>(mat));
-		}
-
-		glDrawElements(GL_TRIANGLES, meshInfo.iTriangleCount * 3,
-					   GL_UNSIGNED_SHORT, &m_vTriangles[0] + meshInfo.iTriangleStart);
-	}
-
-  protected:
-	vector<RageVector3> m_vPosition;
-	vector<RageVector2> m_vTexture;
-	vector<RageVector3> m_vNormal;
-	vector<msTriangle> m_vTriangles;
-	vector<RageVector2> m_vTexMatrixScale;
-};
-
-class RageCompiledGeometryHWOGL : public RageCompiledGeometrySWOGL, public InvalidateObject {
+class RageCompiledGeometryHWOGL : public RageCompiledGeometry, public InvalidateObject {
   protected:
 	// vertex buffer object names
 	GLuint m_nPositions;
@@ -281,6 +196,13 @@ class RageCompiledGeometryHWOGL : public RageCompiledGeometrySWOGL, public Inval
 	GLuint m_nNormals;
 	GLuint m_nTriangles;
 	GLuint m_nTextureMatrixScale;
+
+	// Moved from SWOGL, usage unlabeled, appears to be vertex attributes.
+	vector<RageVector3> m_vPosition;
+	vector<RageVector2> m_vTexture;
+	vector<RageVector3> m_vNormal;
+	vector<msTriangle> m_vTriangles;
+	vector<RageVector2> m_vTexMatrixScale;
 
 	void AllocateBuffers();
 	void UploadData();
@@ -308,6 +230,12 @@ class RenderTarget_FramebufferObject : public RenderTarget {
 	bool InvertY() const override { return true; }
 
   private:
+    std::vector<RageVector3> m_vPosition;
+	std::vector<RageVector2> m_vTexture;
+	std::vector<RageVector3> m_vNormal;
+	std::vector<msTriangle> m_vTriangles;
+	std::vector<RageVector2> m_vTexMatrixScale;
+
 	unsigned int m_iFrameBufferHandle;
 	unsigned int m_iTexHandle;
 	unsigned int m_iDepthBufferHandle;
@@ -819,10 +747,7 @@ RageTextureLock* RageDisplay_Legacy::CreateTextureLock() {
 }
 
 RageCompiledGeometry* RageDisplay_Legacy::CreateCompiledGeometry() {
-	if (GLAD_GL_ARB_vertex_buffer_object)
-		return new RageCompiledGeometryHWOGL;
-	else
-		return new RageCompiledGeometrySWOGL;
+	return new RageCompiledGeometryHWOGL;
 }
 
 intptr_t RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt, RageSurface* pImg, bool bGenerateMipMaps) {
@@ -1988,8 +1913,8 @@ bool RageDisplay_Legacy::SupportsPerVertexMatrixScale() {
 
 #pragma endregion
 
-//// RageCompiledGeometrySWOGL //////////////////////
-#pragma region RageCompiledGeometrySWOGL Function Definitions
+//// RageCompiledGeometryHWOGL //////////////////////
+#pragma region RageCompiledGeometryHWOGL Function Definitions
 RageCompiledGeometryHWOGL::RageCompiledGeometryHWOGL()
 {
 	m_nPositions = 0;
@@ -2106,33 +2031,28 @@ void RageCompiledGeometryHWOGL::Invalidate()
 	UploadData();
 }
 
-void RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
-{
+void RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes) {
 	DebugFlushGLErrors();
+	/* Always allocate at least 1 entry, so &x[0] is valid. */
+    m_vPosition.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+    m_vTexture.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+    m_vNormal.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+    m_vTexMatrixScale.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+    m_vTriangles.resize(max(1U, static_cast<unsigned>(GetTotalTriangles())));
 
-	RageCompiledGeometrySWOGL::Allocate(vMeshes);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nPositions);
 	DebugAssertNoGLError();
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-					GetTotalVertices() * sizeof(RageVector3),
-					nullptr,
-					GL_STATIC_DRAW_ARB);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, GetTotalVertices() * sizeof(RageVector3), nullptr, GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nTextureCoords);
 	DebugAssertNoGLError();
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-					GetTotalVertices() * sizeof(RageVector2),
-					nullptr,
-					GL_STATIC_DRAW_ARB);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, GetTotalVertices() * sizeof(RageVector2), nullptr, GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_nNormals);
 	DebugAssertNoGLError();
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-					GetTotalVertices() * sizeof(RageVector3),
-					nullptr,
-					GL_STATIC_DRAW_ARB);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, GetTotalVertices() * sizeof(RageVector3), nullptr, GL_STATIC_DRAW_ARB);
 	DebugAssertNoGLError();
 
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_nTriangles);
@@ -2151,9 +2071,28 @@ void RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 					GL_STATIC_DRAW_ARB);
 }
 
-void RageCompiledGeometryHWOGL::Change(const vector<msMesh>& vMeshes)
-{
-	RageCompiledGeometrySWOGL::Change(vMeshes);
+void RageCompiledGeometryHWOGL::Change(const vector<msMesh>& vMeshes) {
+    for (unsigned i = 0; i < vMeshes.size(); i++) {
+        const auto& meshInfo = m_vMeshInfo[i];
+        const auto& mesh = vMeshes[i];
+        const auto& Vertices = mesh.Vertices;
+        const auto& Triangles = mesh.Triangles;
+
+        for (unsigned j = 0; j < Vertices.size(); j++) {
+            m_vPosition[meshInfo.iVertexStart + j] = Vertices[j].p;
+            m_vTexture[meshInfo.iVertexStart + j] = Vertices[j].t;
+            m_vNormal[meshInfo.iVertexStart + j] = Vertices[j].n;
+            m_vTexMatrixScale[meshInfo.iVertexStart + j] =
+              Vertices[j].TextureMatrixScale;
+        }
+
+        for (unsigned j = 0; j < Triangles.size(); j++){
+            for (unsigned k = 0; k < 3; k++) {
+                const auto iVertexIndexInVBO = meshInfo.iVertexStart + Triangles[j].nVertexIndices[k];
+                m_vTriangles[meshInfo.iTriangleStart + j].nVertexIndices[k] = static_cast<uint16_t>(iVertexIndexInVBO);
+            }
+        }
+    }
 
 	UploadData();
 }
