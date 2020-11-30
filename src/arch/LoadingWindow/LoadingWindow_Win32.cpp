@@ -10,10 +10,10 @@
 #include <Commdlg.h>
 #include <tchar.h>
 #include "Dwmapi.h"
-#include "RageUtil/Graphics/RageSurface_Load.h"
-#include "RageUtil/Graphics/RageSurface.h"
-#include "RageUtil/Graphics/RageSurfaceUtils.h"
-#include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface_Load.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils_Zoom.h"
 #include "Core/Misc/AppInfo.hpp"
 
 #pragma comment(lib, "Dwmapi.lib")

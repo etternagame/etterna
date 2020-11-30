@@ -20,7 +20,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageException.h"
-#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
 #include "arch/Dialog/Dialog.h"
 #include "archutils/Win32/DirectXHelpers.h"
 

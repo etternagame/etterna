@@ -1,8 +1,8 @@
 #include "Etterna/Globals/global.h"
 
 #include "RageTexture.h"
-#include "RageSurface.h"
-#include "RageSurfaceUtils.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 RageTexture::RageTexture(const RageTextureID& name)

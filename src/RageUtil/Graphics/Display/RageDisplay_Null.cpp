@@ -4,7 +4,7 @@
 #include "RageDisplay.h"
 #include "RageDisplay_Null.h"
 #include "Core/Services/Locator.hpp"
-#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 

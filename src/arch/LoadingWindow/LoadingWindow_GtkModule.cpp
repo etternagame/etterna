@@ -1,9 +1,9 @@
 #include "Etterna/Globals/global.h"
 #include "LoadingWindow_GtkModule.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Graphics/RageSurface.h"
-#include "RageUtil/Graphics/RageSurfaceUtils.h"
-#include "RageUtil/Graphics/RageSurface_Load.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurfaceUtils.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface_Load.h"
 
 #include <gtk/gtk.h>
 

@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageUtil/Utils/RageUtil.h"
 #define STB_IMAGE_RESIZE_IMPLEMENTATION

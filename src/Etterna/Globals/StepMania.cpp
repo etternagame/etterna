@@ -26,8 +26,8 @@
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
-#include "RageUtil/Graphics/RageSurface.h"
-#include "RageUtil/Graphics/RageSurface_Load.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Globals/GameLoop.h"
 

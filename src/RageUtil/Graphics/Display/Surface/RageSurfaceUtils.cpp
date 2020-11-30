@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
 #include "Core/Services/Locator.hpp"
-#include "RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
 

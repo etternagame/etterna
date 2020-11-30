@@ -5,7 +5,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/Display/Surface/RageSurface.h"
 
 static void
 FixLilEndian()
