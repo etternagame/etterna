@@ -84,10 +84,18 @@ t[#t+1] = Def.ActorFrame {
         self:xy(actuals.LeftGap, actuals.TopGap)
     end,
     BeginCommand = function(self)
+        local snm = SCREENMAN:GetTopScreen():GetName()
+        local anm = self:GetName()
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+
         -- the math with the logic inline will make increments be 0.1x
         -- holding Select will do 0.05x increments
         local selectPressed = false
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+            if not CONTEXTMAN:CheckContextSet(snm, "Main1") then 
+                selectPressed = false
+                return
+            end
             if event.type == "InputEventType_FirstPress" then
                 if event.button == "EffectUp" then
                     changeMusicRate(0.05 * (selectPressed and 1 or 2))

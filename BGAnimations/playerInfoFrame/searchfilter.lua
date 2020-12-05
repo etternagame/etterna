@@ -46,9 +46,17 @@ local t = Def.ActorFrame {
     PlayerInfoFrameTabSetMessageCommand = function(self, params)
         if params.tab and params.tab == "Search" then
             self:finishtweening()
+            self:sleep(0.01)
+            self:queuecommand("FinishFocusing")
             self:smooth(animationSeconds)
             self:x(visibleframeX)
         end
+    end,
+    FinishFocusingCommand = function(self)
+        -- the purpose of this is to delay the act of focusing the screen
+        -- the reason is that we dont want to trigger Ctrl+1 inputting a 1 on the search field immediately
+        focused = true
+        CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Search")
     end
 }
 
@@ -76,6 +84,15 @@ local function upperSection()
         Artist = "",
         Author = "",
     }
+
+    -- search on the wheel immediately based on the text entered
+    local function searchNow()
+        -- Main1 is the name of the Main SelectMusic context group
+        -- we exit search context after executing a search and set the general box back up
+        CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
+
+        
+    end
 
     -- current focused text entry field, 1 is "Any"
     -- based on entryTextTable
@@ -246,6 +263,7 @@ local function upperSection()
                 InvokeCommand = function(self)
                     local txt = self:GetText()
                     entryFunction[i](txt)
+                    searchNow()
                 end
             },
             Def.Quad { -- funny we make this a quad instead of an underscore, right
@@ -253,6 +271,7 @@ local function upperSection()
                 InitCommand = function(self)
                     self:halign(0)
                     self:zoomto(10,2)
+                    -- disabled for now
                     self:visible(false)
                 end,
                 UpdateSearchFocusMessageCommand = function(self)
@@ -272,23 +291,39 @@ local function upperSection()
             self:y(actuals.TopLipHeight)
         end,
         BeginCommand = function(self)
-            SCREENMAN:GetTopScreen():AddInputCallback(function(event)
-                if event.type ~= "InputEventType_Release" then
-                    local btn = event.DeviceInput.button
-                    local shift = INPUTFILTER:IsShiftPressed()
-                    local focusedChild = self:GetChild("RowFrame_"..focusedField)
+            local snm = SCREENMAN:GetTopScreen():GetName()
+            local anm = self:GetName()
+            -- init the search input context but start it out false
+            CONTEXTMAN:RegisterToContextSet(snm, "Search", anm)
+            CONTEXTMAN:ToggleContextSet(snm, "Search", false)
 
-                    if btn == "DeviceButton_enter" or event.button == "Start" then
-                        focusedChild:playcommand("Invoke")
-                    elseif (btn == "DeviceButton_tab" and not shift) or btn == "DeviceButton_down" then
-                        changeFocus(1)
-                    elseif (btn == "DeviceButton_tab" and shift) or btn == "DeviceButton_up" then
-                        changeFocus(-1)
-                    else
-                        local del = btn == "DeviceButton_delete"
-                        local bs = btn == "DeviceButton_backspace"
-                        local char = inputToCharacter(event)
-                        focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
+            SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                -- if context is set to Search, passthrough unless not holding ctrl and a number
+                -- pressing a number alone should lead to the general tab
+                if CONTEXTMAN:CheckContextSet(snm, "Search") then
+                    if event.type ~= "InputEventType_Release" then
+                        local btn = event.DeviceInput.button
+                        local shift = INPUTFILTER:IsShiftPressed()
+                        local focusedChild = self:GetChild("RowFrame_"..focusedField)
+
+                        if btn == "DeviceButton_enter" or event.button == "Start" then
+                            focusedChild:playcommand("Invoke")
+                        elseif event.type == "InputEventType_FirstPress" and (btn == "DeviceButton_tab" and not shift) or btn == "DeviceButton_down" then
+                            changeFocus(1)
+                        elseif event.type == "InputEventType_FirstPress" and (btn == "DeviceButton_tab" and shift) or btn == "DeviceButton_up" then
+                            changeFocus(-1)
+                        else
+                            local del = btn == "DeviceButton_delete"
+                            local bs = btn == "DeviceButton_backspace"
+                            local char = inputToCharacter(event)
+
+                            -- require that ctrl is pressed for number entry
+                            if char ~= nil and tonumber(char) and not INPUTFILTER:IsControlPressed() then
+                                return
+                            end
+
+                            focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
+                        end
                     end
                 end
             end)

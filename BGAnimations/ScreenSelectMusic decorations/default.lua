@@ -5,6 +5,7 @@ t[#t+1] = LoadActor("wheel")
 t[#t+1] = Def.ActorFrame {
     Name = "RightFrame",
     GeneralTabSetMessageCommand = function(self)
+        CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
         self:finishtweening()
         self:smooth(0.1)
         self:x(0)

@@ -430,12 +430,12 @@ t[#t+1] = Def.ActorFrame {
         local snm = SCREENMAN:GetTopScreen():GetName()
         local anm = self:GetName()
         -- this keeps track of whether or not the user is allowed to use the keyboard to change tabs
-        CONTEXTMAN:RegisterContext(snm, anm)
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
 
         -- enable the possibility to press the keyboard to switch tabs
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             -- if locked out, dont allow
-            if not CONTEXTMAN:CheckContext(snm, anm) then return end
+            if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
             if event.type == "InputEventType_FirstPress" then
                 -- must be a number with control held down
                 if event.char and tonumber(event.char) and INPUTFILTER:IsControlPressed() then

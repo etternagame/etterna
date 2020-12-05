@@ -87,6 +87,9 @@ local t = Def.ActorFrame {
 	end,
 	BeginCommand = function(self)
 		local scrn = SCREENMAN:GetTopScreen()
+		local snm = scrn:GetName()
+        local anm = self:GetName()
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
 		-- input handling for changing difficulty with keyboard
 		-- this timeout is basically just a timer to make sure that you press buttons fast enough
 		local comboTimeout = nil
@@ -112,6 +115,10 @@ local t = Def.ActorFrame {
 		end
 		
 		scrn:AddInputCallback(function(event)
+			if not CONTEXTMAN:CheckContextSet(snm, "Main1") then
+				resetTimeout()
+			end
+
 			if event.type == "InputEventType_FirstPress" then
 				if event.button == "MenuUp" or event.button == "Up" then
 					pressqueue[#pressqueue+1] = "Up"

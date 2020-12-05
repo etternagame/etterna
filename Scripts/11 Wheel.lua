@@ -387,6 +387,9 @@ function Wheel:new(params)
     whee.moveHeight = 10
     whee.items = {}
     whee.BeginCommand = function(self)
+        local snm = SCREENMAN:GetTopScreen():GetName()
+        local anm = self:GetName()
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
         local interval = nil
         -- the polling interval for button presses to keep moving the wheel
@@ -403,11 +406,13 @@ function Wheel:new(params)
                 local exit = gameButton == "Back"
                 local up = gameButton == "Up" or gameButton == "MenuUp"
                 local down = gameButton == "Down" or gameButton == "MenuDown"
+                local keydirection = key == "DeviceButton_left" or key == "DeviceButton_right"
 
                 if left or right then
                     local direction = left and "left" or "right"
-
                     if event.type == "InputEventType_FirstPress" then
+                        -- dont allow input, but do allow left and right arrow input
+                        if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not keydirection then return end
                         heldButtons[direction] = true
                         -- dont move if holding both buttons
                         if (left and heldButtons["right"]) or (right and heldButtons["left"]) then
@@ -447,16 +452,19 @@ function Wheel:new(params)
                     end
                 elseif enter then
                     if event.type == "InputEventType_FirstPress" then
+                        if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         whee.onSelection(whee:getCurrentFrame(), whee:getCurrentItem())
                     end
                 elseif exit then
                     if event.type == "InputEventType_FirstPress" then
+                        if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         SCREENMAN:set_input_redirected(PLAYER_1, false)
                         SCREENMAN:GetTopScreen():Cancel()
                     end
                 elseif up or down then
                     local direction = up and "up" or "down"
                     if event.type == "InputEventType_FirstPress" then
+                        if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         heldButtons[direction] = true
                         if heldButtons["up"] and heldButtons["down"] then
                             whee:exitGroup()
