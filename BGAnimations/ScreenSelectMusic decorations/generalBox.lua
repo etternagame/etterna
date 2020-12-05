@@ -45,6 +45,11 @@ local buttonHoverAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 
+-- controls the focus of the frame
+-- starts true because it starts visible on the screen
+-- goes false when forced away, such as when pressing search
+local focused = true
+
 local function createChoices()
     local selectedIndex = 1
 
@@ -112,7 +117,7 @@ local function createChoices()
                     if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then
                         local n = tonumber(event.char)
                         if n == 0 then n = 10 end
-                        if n >= 1 and n <= #choiceNames and n ~= selectedIndex then
+                        if n >= 1 and n <= #choiceNames and (n ~= selectedIndex or not focused) then
                             selectedIndex = n
                             MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
                             self:GetParent():hurrytweening(0.5):playcommand("UpdateSelectedIndex")
@@ -132,6 +137,12 @@ t[#t+1] = Def.ActorFrame {
     Name = "Container",
     InitCommand = function(self)
         self:xy(actuals.LeftGap, actuals.TopGap)
+    end,
+    GeneralTabSetMessageCommand = function(self)
+        focused = true
+    end,
+    PlayerInfoFrameTabSetMessageCommand = function(self)
+        focused = false
     end,
 
     Def.Quad {

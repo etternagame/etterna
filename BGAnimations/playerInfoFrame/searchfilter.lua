@@ -1,9 +1,9 @@
-local t = Def.ActorFrame {Name = "SearchFile"}
-
 local ratios = {
     Width = 782 / 1920,
+    Height = 971 / 1080,
     TopLipHeight = 44 / 1080,
     EdgePadding = 13 / 1920, -- distance from left and right edges for everything
+    DividerThickness = 2 / 1080, -- consistently 2 pixels basically
     SliderColumnLeftGap = 196 / 1920, -- from left edge of text to left edge of sliders
     RightColumnLeftGap = 410 / 1920, -- from left edge of frame to left edge of text
     -- using the section height to give equidistant spacing between items with "less" work
@@ -13,13 +13,50 @@ local ratios = {
 
 local actuals = {
     Width = ratios.Width * SCREEN_WIDTH,
+    Height = ratios.Height * SCREEN_HEIGHT,
     TopLipHeight = ratios.TopLipHeight * SCREEN_HEIGHT,
     EdgePadding = ratios.EdgePadding * SCREEN_WIDTH,
+    DividerThickness = ratios.DividerThickness * SCREEN_HEIGHT,
     SliderColumnLeftGap = ratios.SliderColumnLeftGap * SCREEN_WIDTH,
     RightColumnLeftGap = ratios.RightColumnLeftGap * SCREEN_WIDTH,
     UpperSectionHeight = ratios.UpperSectionHeight * SCREEN_HEIGHT,
     LowerSectionHeight = ratios.LowerSectionHeight * SCREEN_HEIGHT,
 }
+
+local visibleframeX = SCREEN_WIDTH - actuals.Width
+local visibleframeY = SCREEN_HEIGHT - actuals.Height
+local animationSeconds = 0.1
+local focused = false
+
+local t = Def.ActorFrame {
+    Name = "SearchFile",
+    InitCommand = function(self)
+        -- lets just say uh ... despite the fact that this file might want to be portable ...
+        -- lets ... just .... assume it always goes in the same place ... and the playerInfoFrame is the same size always
+        self:x(SCREEN_WIDTH)
+        self:y(visibleframeY)
+    end,
+    GeneralTabSetMessageCommand = function(self, params)
+        -- if we ever get this message we need to hide the frame and just exit.
+        focused = false
+        self:finishtweening()
+        self:smooth(animationSeconds)
+        self:x(SCREEN_WIDTH)
+    end,
+    PlayerInfoFrameTabSetMessageCommand = function(self, params)
+        if params.tab and params.tab == "Search" then
+            self:finishtweening()
+            self:smooth(animationSeconds)
+            self:x(visibleframeX)
+        end
+    end
+}
+
+
+local textSize = 1
+local textZoomFudge = 5
+local textinputbuffer = 5 -- gap between "Search:" and input text
+local buttonHoverAlpha = 0.6
 
 local function upperSection()
 
@@ -121,33 +158,141 @@ local function upperSection()
         focusedField = focusedField + direction
         if focusedField > #entryTextTable then focusedField = 1 end
         if focusedField < 1 then focusedField = #entryTextTable end
-
+        MESSAGEMAN:Broadcast("UpdateSearchFocus")
     end
 
     local function textEntryField(i)
         return Def.ActorFrame {
-            Def.Quad {
-                Name = "CursorUnderscore",
-                InitCommand = function(self)
-                end,
-            },
+            Name = "RowFrame_"..i,
+            InitCommand = function(self)
+                local numberForSpacingItsLikeTheChoicesButMore = #entryTextTable+1
+                local allowedVerticalSpaceForTheseItems = actuals.UpperSectionHeight
+                self:xy(actuals.EdgePadding, (allowedVerticalSpaceForTheseItems / numberForSpacingItsLikeTheChoicesButMore) * (i-1) + (allowedVerticalSpaceForTheseItems / numberForSpacingItsLikeTheChoicesButMore / 2))
+            end,
+
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "RowText",
                 InitCommand = function(self)
+                    self:halign(0)
+                    self:settextf("%s:", entryTextTable[i])
+                    self:maxwidth((actuals.Width - actuals.EdgePadding * 2) / textSize - textZoomFudge)
                 end,
                 MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:GetParent():diffusealpha(buttonHoverAlpha)
                 end,
                 MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:GetParent():diffusealpha(1)
                 end,
-            }
+                MouseDownCommand = function(self, params)
+                    if params.event == "DeviceButton_left mouse button" then
+                        focusedField = i
+                        MESSAGEMAN:Broadcast("UpdateSearchFocus")
+                    end
+                end,
+                UpdateSearchFocusMessageCommand = function(self)
+                    if focusedField == i then
+                        self:strokecolor(color("0.6,0.6,0.6,0.75"))
+                        self:diffusealpha(1)
+                    else
+                        self:strokecolor(color("1,1,1,0"))
+                        self:diffusealpha(0.8)
+                    end
+                end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "RowInput",
+                BeginCommand = function(self)
+                    local rowtext = self:GetParent():GetChild("RowText")
+                    self:x(rowtext:GetZoomedWidth() + textinputbuffer)
+                    self:halign(0)
+                    self:settext("")
+                    self:maxwidth((actuals.Width - actuals.EdgePadding * 2 - rowtext:GetZoomedWidth() - textinputbuffer) / textSize - textZoomFudge)
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:GetParent():diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:GetParent():diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if params.event == "DeviceButton_left mouse button" then
+                        focusedField = i
+                        MESSAGEMAN:Broadcast("UpdateSearchFocus")
+                    end
+                end,
+                UpdateSearchFocusMessageCommand = function(self)
+                    if focusedField == i then
+                        self:strokecolor(color("0.65,0.65,0.65,0.85"))
+                        self:diffusealpha(1)
+                    else
+                        self:strokecolor(color("1,1,1,0"))
+                        self:diffusealpha(0.8)
+                    end
+                end,
+                InputCommand = function(self, params)
+                    local txt = self:GetText()
+                    if params.backspace then
+                        self:settext(txt:sub(1, -2))
+                    elseif params.delete then
+                        self:settext("")
+                    elseif params.char then
+                        self:settext(txt .. params.char)
+                    end
+                end,
+                InvokeCommand = function(self)
+                    local txt = self:GetText()
+                    entryFunction[i](txt)
+                end
+            },
+            Def.Quad { -- funny we make this a quad instead of an underscore, right
+                Name = "CursorUnderscore",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoomto(10,2)
+                    self:visible(false)
+                end,
+                UpdateSearchFocusMessageCommand = function(self)
+                    if focusedField == i then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+                end
+            },
         }
     end
 
     local t = Def.ActorFrame {
         Name = "UpperSectionFrame",
+        InitCommand = function(self)
+            self:y(actuals.TopLipHeight)
+        end,
         BeginCommand = function(self)
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                if event.type ~= "InputEventType_Release" then
+                    local btn = event.DeviceInput.button
+                    local shift = INPUTFILTER:IsShiftPressed()
+                    local focusedChild = self:GetChild("RowFrame_"..focusedField)
 
+                    if btn == "DeviceButton_enter" or event.button == "Start" then
+                        focusedChild:playcommand("Invoke")
+                    elseif (btn == "DeviceButton_tab" and not shift) or btn == "DeviceButton_down" then
+                        changeFocus(1)
+                    elseif (btn == "DeviceButton_tab" and shift) or btn == "DeviceButton_up" then
+                        changeFocus(-1)
+                    else
+                        local del = btn == "DeviceButton_delete"
+                        local bs = btn == "DeviceButton_backspace"
+                        local char = inputToCharacter(event)
+                        focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
+                    end
+                end
             end)
+            self:playcommand("UpdateSearchFocus")
         end
     }
 
@@ -159,8 +304,17 @@ local function upperSection()
 end
 
 local function lowerSection()
+    -- putting these functions here to save on space below, less copy pasting, etc
+    local function onHover(self)
+        if self:IsInvisible() then return end
+        self:diffusealpha(buttonHoverAlpha)
+    end
+    local function onUnHover(self)
+        if self:IsInvisible() then return end
+        self:diffusealpha(1)
+    end
 
-    local filterCategoryTable = {}
+    local filterCategoryTable = {1,1,1,1,1,1,1,1,1}
 
     local function filterSlider(i)
 
@@ -170,20 +324,109 @@ local function lowerSection()
     -- this column has multiple purposes, so all this function will do is generate the base
     -- the base being: they are all BitmapText on a consistent column with consistent spacing
     local function filterMiscLine(i)
-
+        return UIElements.TextToolTip(1, 1, "Common Normal") .. {
+            InitCommand = function(self)
+                -- x pos: right column
+                -- y pos: a line on the right column based on i (similar math to the Tab system positioning)
+                local tblAndOne = #filterCategoryTable + 1
+                self:xy(actuals.RightColumnLeftGap, (actuals.LowerSectionHeight / tblAndOne) * (i-1) + (actuals.LowerSectionHeight / tblAndOne / 2))
+                self:maxwidth((actuals.Width - actuals.EdgePadding - actuals.RightColumnLeftGap) / textSize - textZoomFudge)
+            end
+        }
     end
 
 
     local t = Def.ActorFrame {
         Name = "LowerSectionFrame",
+        InitCommand = function(self)
+            self:y(actuals.TopLipHeight + actuals.UpperSectionHeight + actuals.DividerThickness)
+        end,
     }
 
     for i = 1, #filterCategoryTable do
         t[#t+1] = filterSlider(i)
     end
 
+    -- well ... i tried to reduce the code duplication without going stupid
+    t[#t+1] = filterMiscLine(1) .. {
+        InitCommand = function(self)
+            self:settext("Max Rate: ")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(2) .. {
+        InitCommand = function(self)
+            self:settext("Min Rate: ")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(3) .. {
+        InitCommand = function(self)
+            self:settext("Mode: ")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(4) .. {
+        InitCommand = function(self)
+            self:settext("Highest Only: ")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(5) .. {
+        InitCommand = function(self)
+            self:settext("Matches: ")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(6) .. {
+        InitCommand = function(self)
+            self:settext("Reset")
+        end
+    }
+
     return t
 end
+
+t[#t+1] = Def.Quad {
+    Name = "SearchFilterBGQuad",
+    InitCommand = function(self)
+        self:halign(0):valign(0)
+        self:zoomto(actuals.Width, actuals.Height)
+        self:diffuse(color("#111111"))
+        self:diffusealpha(0.6)
+    end
+}
+
+t[#t+1] = Def.Quad {
+    Name = "SearchFilterLip",
+    InitCommand = function(self)
+        self:halign(0):valign(0)
+        self:zoomto(actuals.Width, actuals.TopLipHeight)
+        self:diffuse(color("#111111"))
+        self:diffusealpha(0.6)
+    end
+}
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "SearchFilterTitle",
+    InitCommand = function(self)
+        self:halign(0)
+        self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
+        self:zoom(textSize)
+        self:maxwidth(actuals.Width / textSize - textZoomFudge)
+        self:settext("Search and Filters")
+    end
+}
+
+t[#t+1] = Def.Quad {
+    Name = "Divider",
+    InitCommand = function(self)
+        self:halign(0):valign(0)
+        self:xy(actuals.EdgePadding, actuals.UpperSectionHeight)
+        self:zoomto(actuals.Width - actuals.EdgePadding * 2, actuals.DividerThickness)
+        self:diffuse(color("1,1,1,1"))
+    end
+}
 
 t[#t+1] = upperSection()
 t[#t+1] = lowerSection()

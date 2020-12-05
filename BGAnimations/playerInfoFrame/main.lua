@@ -586,6 +586,8 @@ t[#t+1] = Def.ActorFrame {
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Search"})
+                --[[ -- legacy title only search
                 local scr = SCREENMAN:GetTopScreen()
                 local w = scr:GetChild("WheelFile")
                 if w ~= nil then
@@ -617,6 +619,7 @@ t[#t+1] = Def.ActorFrame {
                         end
                     )
                 end
+                ]]
             end
         end,
         MouseDownCommand = function(self, params)
