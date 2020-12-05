@@ -232,3 +232,21 @@ function findKeyOf(t, x)
     end
     return nil
 end
+
+-- return a letter to add based on input
+-- nil return is invalid
+function inputToCharacter(event)
+    local btn = event.DeviceInput.button
+    local char = event.char
+    local shift = INPUTFILTER:IsShiftPressed()
+    if btn == "DeviceButton_space" then
+        return " "
+    elseif btn == "DeviceButton_=" and not shift then
+        return "="
+    elseif btn == "DeviceButton_=" and shift then
+        return "+"
+    elseif char and char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') then
+        return char
+    end
+    return nil
+end
