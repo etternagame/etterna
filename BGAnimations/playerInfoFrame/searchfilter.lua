@@ -328,6 +328,14 @@ local function upperSection()
                 end
             end)
             self:playcommand("UpdateSearchFocus")
+        end,
+        PlayerInfoFrameTabSetMessageCommand = function(self, params)
+            if params.tab and params.tab == "Search" then
+                if focusedField ~= 1 then
+                    focusedField = 1
+                    self:playcommand("UpdateSearchFocus")
+                end
+            end
         end
     }
 
