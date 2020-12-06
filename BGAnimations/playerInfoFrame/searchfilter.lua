@@ -91,7 +91,7 @@ local function upperSection()
         -- we exit search context after executing a search and set the general box back up
         CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
 
-        
+        MESSAGEMAN:Broadcast("GeneralTabSet")
     end
 
     -- current focused text entry field, 1 is "Any"
