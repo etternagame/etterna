@@ -117,6 +117,7 @@ local t = Def.ActorFrame {
 		scrn:AddInputCallback(function(event)
 			if not CONTEXTMAN:CheckContextSet(snm, "Main1") then
 				resetTimeout()
+				return
 			end
 
 			if event.type == "InputEventType_FirstPress" then
