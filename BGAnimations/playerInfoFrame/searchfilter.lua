@@ -337,6 +337,10 @@ local function upperSection()
                             changeFocus(1)
                         elseif event.type == "InputEventType_FirstPress" and (btn == "DeviceButton_tab" and shift) or btn == "DeviceButton_up" then
                             changeFocus(-1)
+                        elseif btn == "DeviceButton_escape" then
+                            -- shortcut to escape out of search without searching
+                            -- (alternatively ... just press a number)
+                            MESSAGEMAN:Broadcast("GeneralTabSet")
                         else
                             local del = btn == "DeviceButton_delete"
                             local bs = btn == "DeviceButton_backspace"
