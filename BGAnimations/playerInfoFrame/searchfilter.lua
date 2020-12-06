@@ -4,6 +4,7 @@ local ratios = {
     TopLipHeight = 44 / 1080,
     EdgePadding = 13 / 1920, -- distance from left and right edges for everything
     DividerThickness = 2 / 1080, -- consistently 2 pixels basically
+    SliderThickness = 18 / 1080,
     SliderColumnLeftGap = 196 / 1920, -- from left edge of text to left edge of sliders
     RightColumnLeftGap = 410 / 1920, -- from left edge of frame to left edge of text
     -- using the section height to give equidistant spacing between items with "less" work
@@ -17,6 +18,7 @@ local actuals = {
     TopLipHeight = ratios.TopLipHeight * SCREEN_HEIGHT,
     EdgePadding = ratios.EdgePadding * SCREEN_WIDTH,
     DividerThickness = ratios.DividerThickness * SCREEN_HEIGHT,
+    SliderThickness = ratios.SliderThickness * SCREEN_HEIGHT,
     SliderColumnLeftGap = ratios.SliderColumnLeftGap * SCREEN_WIDTH,
     RightColumnLeftGap = ratios.RightColumnLeftGap * SCREEN_WIDTH,
     UpperSectionHeight = ratios.UpperSectionHeight * SCREEN_HEIGHT,
@@ -408,10 +410,112 @@ local function lowerSection()
         self:diffusealpha(1)
     end
 
-    local filterCategoryTable = {1,1,1,1,1,1,1,1,1}
+    -- names for each filter line
+    local filterCategoryTable = {
+        "Overall",
+        "Stream",
+        "Jumpstream",
+        "Handstream",
+        "Stamina",
+        "JackSpeed",
+        "Chordjacks",
+        "Technical",
+        "Length",
+    }
+
+    -- functions for each filter, what they control
+    -- each of these filters are range filters, take 2 parameters
+    local filterCategoryFunction = {
+        -- Overall range
+        function(lb, ub)
+        end,
+        -- Stream range
+        function(lb, ub)
+        end,
+        -- Jumpstream range
+        function(lb, ub)
+        end,
+        -- Handstream range
+        function(lb, ub)
+        end,
+        -- Stamina range
+        function(lb, ub)
+        end,
+        -- Jackspeed range
+        function(lb, ub)
+        end,
+        -- Chordjacks range
+        function(lb, ub)
+        end,
+        -- Tech range
+        function(lb, ub)
+        end,
+        -- Length range
+        function(lb, ub)
+        end
+    }
 
     local function filterSlider(i)
+        return Def.ActorFrame {
+            Name = "SliderOwnerFrame_"..i,
+            InitCommand = function(self)
+                local tblAndOne = #filterCategoryTable + 1
+                self:xy(actuals.EdgePadding, (actuals.LowerSectionHeight / tblAndOne) * (i-1) + (actuals.LowerSectionHeight / tblAndOne / 2))
+            end,
 
+            LoadFont("Common Normal") .. {
+                Name = "SliderTitle",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoom(textSize)
+                    self:maxwidth((actuals.SliderColumnLeftGap - actuals.EdgePadding) / textSize - textZoomFudge)
+                    self:settext(filterCategoryTable[i])
+                end,
+            },
+            Def.ActorFrame {
+                Name = "SliderFrame",
+                InitCommand = function(self)
+                    local xp = actuals.SliderColumnLeftGap - actuals.EdgePadding
+                    self:x(xp)
+                end,
+
+                Def.Sprite {
+                    Name = "SliderBG",
+                    Texture = THEME:GetPathG("", "roundedCapsBar"),
+                    InitCommand = function(self)
+                        local width = actuals.RightColumnLeftGap - actuals.EdgePadding - actuals.SliderColumnLeftGap
+                        self:valign(0)
+                        self:rotationz(-90)
+                        self:diffuse(color("0,0,0"))
+                        self:diffusealpha(0.6)
+                        self:zoomto(actuals.SliderThickness, width)
+                    end,
+                },
+                Def.Quad {
+                    Name = "LowerBound",
+                    InitCommand = function(self)
+                        -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
+                        local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
+                        self:x(0)
+                        self:rotationz(45)
+                        self:zoomto(hypotenuse, hypotenuse)
+
+                    end,
+                },
+                Def.Quad {
+                    Name = "UpperBound",
+                    InitCommand = function(self)
+                        local sliderwidth = actuals.RightColumnLeftGap - actuals.EdgePadding - actuals.SliderColumnLeftGap
+                        -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
+                        local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
+                        self:x(sliderwidth)
+                        self:rotationz(45)
+                        self:zoomto(hypotenuse, hypotenuse)
+                    end,
+                }
+
+            }
+        }
     end
 
     -- use this function to generate a new line for the right column
@@ -423,6 +527,7 @@ local function lowerSection()
                 -- x pos: right column
                 -- y pos: a line on the right column based on i (similar math to the Tab system positioning)
                 local tblAndOne = #filterCategoryTable + 1
+                self:halign(0)
                 self:xy(actuals.RightColumnLeftGap, (actuals.LowerSectionHeight / tblAndOne) * (i-1) + (actuals.LowerSectionHeight / tblAndOne / 2))
                 self:maxwidth((actuals.Width - actuals.EdgePadding - actuals.RightColumnLeftGap) / textSize - textZoomFudge)
             end
@@ -445,25 +550,33 @@ local function lowerSection()
     t[#t+1] = filterMiscLine(1) .. {
         InitCommand = function(self)
             self:settext("Max Rate: ")
-        end
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
     }
 
     t[#t+1] = filterMiscLine(2) .. {
         InitCommand = function(self)
             self:settext("Min Rate: ")
-        end
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
     }
 
     t[#t+1] = filterMiscLine(3) .. {
         InitCommand = function(self)
             self:settext("Mode: ")
-        end
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
     }
 
     t[#t+1] = filterMiscLine(4) .. {
         InitCommand = function(self)
             self:settext("Highest Only: ")
-        end
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
     }
 
     t[#t+1] = filterMiscLine(5) .. {
@@ -475,7 +588,9 @@ local function lowerSection()
     t[#t+1] = filterMiscLine(6) .. {
         InitCommand = function(self)
             self:settext("Reset")
-        end
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
     }
 
     return t
