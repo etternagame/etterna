@@ -458,6 +458,10 @@ t[#t+1] = Def.ActorFrame {
                             childToInvoke:playcommand("Invoke")
                         end
                     end
+                elseif event.DeviceInput.button == "DeviceButton_F1" then
+                    -- im making a single exception that F1 alone invokes Search
+                    -- for convenience purposes
+                    self:GetChild("Search"):playcommand("Invoke")
                 end
             end
         end)
