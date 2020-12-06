@@ -367,6 +367,7 @@ local function songActorBuilder()
             SetGradeCommand = function(self, params)
                 if params.grade and params.grade ~= "Grade_Invalid" then
                     self:settext(THEME:GetString("Grade", params.grade:sub(#"Grade_T")))
+                    self:diffuse(byGrade(params.grade))
                 else
                     self:settext("")
                 end
@@ -453,6 +454,7 @@ local function groupActorBuilder()
                 local lstr = ""
                 if self.lamp ~= nil then
                     lstr = THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
+                    self:diffuse(byGrade(self.lamp))
                 end
                 self:settext(lstr)
             end

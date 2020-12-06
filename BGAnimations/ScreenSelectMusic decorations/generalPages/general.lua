@@ -421,6 +421,7 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self, params)
             if displayScore then
                 self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
+                self:diffuse(byGrade(displayScore:GetWifeGrade()))
             else
                 self:settext("")
             end

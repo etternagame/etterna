@@ -456,8 +456,10 @@ local function createList()
                     if score ~= nil then
                         if isLocal then
                             self:settextf("%5.2f%%", score:GetWifeScore() * 100)
+                            self:diffuse(byGrade(score:GetWifeGrade()))
                         else
                             self:settextf("%5.2f%%", score.wife * 100)
+                            self:diffuse(byGrade(score.grade))
                         end
                     end
                 end
