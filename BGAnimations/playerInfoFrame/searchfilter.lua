@@ -112,6 +112,9 @@ local function upperSection()
             -- same formatting as the old search
             local artistpos = input:find("artist=")
             local authorpos = input:find("author=")
+            local mapperpos = input:find("mapper=")
+            local charterpos = input:find("charter=")
+            local stepperpos = input:find("stepper=")
             local titlepos = input:find("title=")
             local subtitlepos = input:find("subtitle=")
 
@@ -125,7 +128,7 @@ local function upperSection()
             local foundtitle = ""
             local foundsubtitle = ""
 
-            if artistpos ~= nil or authorpos ~= nil or titlepos ~= nil or subtitlepos ~= nil then
+            if artistpos ~= nil or authorpos ~= nil or titlepos ~= nil or subtitlepos ~= nil or mapperpos ~= nil or charterpos ~= nil or stepperpos ~= nil then
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
@@ -135,6 +138,18 @@ local function upperSection()
                     local strend = input:find("[;]", authorpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
                     foundauthor = input:sub(authorpos + 7, strend)
+                elseif mapperpos ~= nil then
+                    local strend = input:find("[;]", mapperpos+1)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundauthor = input:sub(mapperpos + 7, strend)
+                elseif charterpos ~= nil then
+                    local strend = input:find("[;]", charterpos+1)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundauthor = input:sub(charterpos + 8, strend)
+                elseif stepperpos ~= nil then
+                    local strend = input:find("[;]", stepperpos+1)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundauthor = input:sub(stepperpos + 8, strend)
                 end
                 if titlepos ~= nil then
                     local strend = input:find("[;]", titlepos+1)
