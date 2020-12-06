@@ -6,6 +6,10 @@ local t = Def.ActorFrame {
     end
 }
 
+-- reset context manager as early as possible in the selectmusic init process
+-- this should be a safe place to do it, between all context manager registrations
+CONTEXTMAN:Reset()
+
 t[#t+1] = Def.Sprite {
     Name = "BG",
     InitCommand = function(self)
