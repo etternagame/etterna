@@ -116,7 +116,7 @@ local function upperSection()
             local subtitlepos = input:find("subtitle=")
 
             -- because title is a substring of subtitle we have to check to see if the match is incorrect
-            if titlepos ~= nil and subtitlepos ~= nil and titlepos + 3 == subtitlepos then
+            if titlepos ~= nil and subtitlepos ~= nil and titlepos == subtitlepos + 3 then
                 titlepos = input:find("title=", titlepos + 1)
             end
 
@@ -128,23 +128,23 @@ local function upperSection()
             if artistpos ~= nil or authorpos ~= nil or titlepos ~= nil or subtitlepos ~= nil then
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
-                    if strend == nil then strend = #input end
-                    foundartist = input:sub(artistpos, strend)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundartist = input:sub(artistpos + 7, strend)
                 end
                 if authorpos ~= nil then
                     local strend = input:find("[;]", authorpos+1)
-                    if strend == nil then strend = #input end
-                    foundauthor = input:sub(authorpos, strend)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundauthor = input:sub(authorpos + 7, strend)
                 end
                 if titlepos ~= nil then
                     local strend = input:find("[;]", titlepos+1)
-                    if strend == nil then strend = #input end
-                    foundtitle = input:sub(titlepos, strend)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundtitle = input:sub(titlepos + 6, strend)
                 end
                 if subtitlepos ~= nil then
                     local strend = input:find("[;]", subtitlepos+1)
-                    if strend == nil then strend = #input end
-                    foundsubtitle = input:sub(subtitlepos, strend)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundsubtitle = input:sub(subtitlepos + 9, strend)
                 end
                 searchentry.Title = foundtitle
                 searchentry.Subtitle = foundsubtitle
@@ -156,6 +156,9 @@ local function upperSection()
                 searchentry.Artist = ""
                 searchentry.Author = ""
             end
+
+            -- you know what im just going to update all the other entry fields based on this one
+            
         end,
         -- "Title Search"
         function(input)
@@ -258,16 +261,16 @@ local function upperSection()
                 InputCommand = function(self, params)
                     local txt = self:GetText()
                     if params.backspace then
-                        self:settext(txt:sub(1, -2))
+                        txt = txt:sub(1, -2)
                     elseif params.delete then
-                        self:settext("")
+                        txt = ""
                     elseif params.char then
-                        self:settext(txt .. params.char)
+                        txt = txt .. params.char
                     end
+                    self:settext(txt)
+                    entryFunction[i](txt)
                 end,
                 InvokeCommand = function(self)
-                    local txt = self:GetText()
-                    entryFunction[i](txt)
                     searchNow()
                 end
             },
@@ -328,6 +331,34 @@ local function upperSection()
                             end
 
                             focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
+
+                            -- im just gonna.. update all the fields... for your information....
+                            -- this is ... the ... worst possible way .... but also the best....
+                            if focusedField == 1 then
+                                self:GetChild("RowFrame_2"):GetChild("RowInput"):settext(searchentry.Title)
+                                self:GetChild("RowFrame_3"):GetChild("RowInput"):settext(searchentry.Subtitle)
+                                self:GetChild("RowFrame_4"):GetChild("RowInput"):settext(searchentry.Artist)
+                                self:GetChild("RowFrame_5"):GetChild("RowInput"):settext(searchentry.Author)
+                            else
+                                -- backwards engineering the any search field
+                                -- for the kids who have big brains and want bigger brains
+                                local finalstr = ""
+                                if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" then
+                                    if searchentry.Title ~= "" then
+                                        finalstr = finalstr .. "title="..searchentry.Title..";"
+                                    end
+                                    if searchentry.Subtitle ~= "" then
+                                        finalstr = finalstr .. "subtitle="..searchentry.Subtitle..";"
+                                    end
+                                    if searchentry.Artist ~= "" then
+                                        finalstr = finalstr .. "artist="..searchentry.Artist..";"
+                                    end
+                                    if searchentry.Author ~= "" then
+                                        finalstr = finalstr .. "author="..searchentry.Author..";"
+                                    end
+                                end
+                                self:GetChild("RowFrame_1"):GetChild("RowInput"):settext(finalstr)
+                            end
                         end
                     end
                 end

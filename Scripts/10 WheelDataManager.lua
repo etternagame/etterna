@@ -69,22 +69,22 @@ end
 function WHEELDATA.SetSearch(self, t)
     if s == nil or s:gsub("^%s*(.-)%s*$", "%1") == "" then
         if t.Title ~= nil then
-            self.ActiveFilter.metadata.Title = t.Title
+            self.ActiveFilter.metadata.Title = t.Title:lower()
         else
             self.ActiveFilter.metadata.Title = ""
         end
         if t.Subtitle ~= nil then
-            self.ActiveFilter.metadata.Subtitle = t.Subtitle
+            self.ActiveFilter.metadata.Subtitle = t.Subtitle:lower()
         else
             self.ActiveFilter.metadata.Subtitle = ""
         end
         if t.Artist ~= nil then
-            self.ActiveFilter.metadata.Artist = t.Artist
+            self.ActiveFilter.metadata.Artist = t.Artist:lower()
         else
             self.ActiveFilter.metadata.Artist = ""
         end
         if t.Author ~= nil then
-            self.ActiveFilter.metadata.Author = t.Author
+            self.ActiveFilter.metadata.Author = t.Author:lower()
         else
             self.ActiveFilter.metadata.Author = ""
         end
