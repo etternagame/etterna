@@ -609,7 +609,7 @@ t[#t+1] = Def.ActorFrame {
                         false,
                         function(answer)
                             -- moving on to step 2 if the answer isnt blank
-                            WHEELDATA:SetSearch(answer)
+                            WHEELDATA:SetSearch({Title = answer})
                             w:sleep(0.01):queuecommand("UpdateFilters")
                             on()
                         end,

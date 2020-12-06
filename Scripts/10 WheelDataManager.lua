@@ -24,7 +24,12 @@ function WHEELDATA.Reset(self)
 
     -- filter info
     self.ActiveFilter = {
-        search = "", -- search term to filter by; filters out all non matches
+        metadata = {    -- search metadata to filter by; filters out all non matches
+            Title = "",
+            Subtitle = "",
+            Artist = "",
+            Author = "",
+        },
         valid = nil, -- a song or chart which passes this function is ACCEPTED
     }
 
@@ -44,23 +49,45 @@ function WHEELDATA.SetWheelItems(self, t)
     self.WheelItems = t
 end
 
+-- check if the search is empty
+function WHEELDATA.IsSearchFilterEmpty(self)
+    return not (self.ActiveFilter.metadata.Title ~= "" or self.ActiveFilter.metadata.Subtitle ~= "" or self.ActiveFilter.metadata.Artist ~= "" or self.ActiveFilter.metadata.Author ~= "")
+end
+
 -- check if the filter is active
 function WHEELDATA.IsFiltered(self)
-    return self.ActiveFilter ~= nil and (self.ActiveFilter.search ~= "" or self.ActiveFilter.valid ~= nil)
+    return self.ActiveFilter ~= nil and (self.ActiveFilter.valid ~= nil or not self:IsSearchFilterEmpty())
 end
 
--- get the current search string
+-- get the current search table
 function WHEELDATA.GetSearch(self)
-    return self.ActiveFilter.search
+    return self.ActiveFilter.metadata
 end
 
--- set the search string for filtering
+-- set the search table for filtering
 -- does not actually sort the songs, trigger that with WHEELDATA:SortByCurrentSortmode()
-function WHEELDATA.SetSearch(self, s)
+function WHEELDATA.SetSearch(self, t)
     if s == nil or s:gsub("^%s*(.-)%s*$", "%1") == "" then
-        self.ActiveFilter.search = ""
-    else
-        self.ActiveFilter.search = s:lower()
+        if t.Title ~= nil then
+            self.ActiveFilter.metadata.Title = t.Title
+        else
+            self.ActiveFilter.metadata.Title = ""
+        end
+        if t.Subtitle ~= nil then
+            self.ActiveFilter.metadata.Subtitle = t.Subtitle
+        else
+            self.ActiveFilter.metadata.Subtitle = ""
+        end
+        if t.Artist ~= nil then
+            self.ActiveFilter.metadata.Artist = t.Artist
+        else
+            self.ActiveFilter.metadata.Artist = ""
+        end
+        if t.Author ~= nil then
+            self.ActiveFilter.metadata.Author = t.Author
+        else
+            self.ActiveFilter.metadata.Author = ""
+        end
     end
 end
 
@@ -82,10 +109,22 @@ function WHEELDATA.FilterCheck(self, g)
         end
     elseif g.GetAllSteps then
         -- working with a Song
-        local t = g:GetDisplayMainTitle():lower()
-        if self.ActiveFilter.search ~= "" then
-            if t:find(self.ActiveFilter.search) == nil then
-                return false
+        local title = g:GetDisplayMainTitle():lower()
+        local author = g:GetOrTryAtLeastToGetSimfileAuthor():lower()
+        local artist = g:GetDisplayArtist():lower()
+        local subtitle = g:GetDisplaySubTitle():lower()
+        if not self:IsSearchFilterEmpty() then
+            if self.ActiveFilter.metadata.Title ~= "" then
+               if title:find(self.ActiveFilter.metadata.Title) == nil then return false end
+            end
+            if self.ActiveFilter.metadata.Subtitle ~= "" then
+                if subtitle:find(self.ActiveFilter.metadata.Subtitle) == nil then return false end
+            end
+            if self.ActiveFilter.metadata.Author ~= "" then
+                if author:find(self.ActiveFilter.metadata.Author) == nil then return false end
+            end
+            if self.ActiveFilter.metadata.Artist ~= "" then
+                if artist:find(self.ActiveFilter.metadata.Artist) == nil then return false end
             end
         end
         if self.ActiveFilter.valid ~= nil then

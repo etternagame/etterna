@@ -90,7 +90,12 @@ local function upperSection()
         -- Main1 is the name of the Main SelectMusic context group
         -- we exit search context after executing a search and set the general box back up
         CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
-
+        local scr = SCREENMAN:GetTopScreen()
+        local w = scr:GetChild("WheelFile")
+        if w ~= nil then
+            WHEELDATA:SetSearch(searchentry)
+            w:sleep(0.01):queuecommand("UpdateFilters")
+        end
         MESSAGEMAN:Broadcast("GeneralTabSet")
     end
 
