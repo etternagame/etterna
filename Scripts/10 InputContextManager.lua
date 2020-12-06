@@ -90,7 +90,6 @@ function CONTEXTMAN.SetFocusedContextSet(self, screen, group)
     for _, g in pairs(self.ScreenToContext[screen]) do
         g.enabled = false
     end
-    ms.ok("set "..group)
     self.ScreenToContext[screen][group].enabled = true
 end
 
