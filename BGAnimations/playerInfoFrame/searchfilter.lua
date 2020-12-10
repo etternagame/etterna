@@ -555,6 +555,7 @@ local function lowerSection()
         -- repeated use vars here
         local xp = actuals.SliderColumnLeftGap - actuals.EdgePadding
         local width = actuals.RightColumnLeftGap - actuals.EdgePadding * 1.5 - actuals.SliderColumnLeftGap
+        local sliderBGSizeBump = 15/1920 * SCREEN_WIDTH
 
         -- internal vars
         local grabbedDot = nil -- either 0 or 1 for left/right, nil for none
@@ -590,23 +591,35 @@ local function lowerSection()
                     self:x(xp)
                 end,
 
-                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "sliderBar")) .. {
+                Def.Sprite {
                     Name = "SliderBG",
+                    Texture = THEME:GetPathG("", "sliderBar"),
                     InitCommand = function(self)
                         self:halign(0)
                         self:diffuse(color("0,0,0"))
                         self:diffusealpha(0.6)
+                        -- we want the bg to actually be just barely larger for reasons
+                        -- visually it makes everything look a lot better
+                        -- because otherwise the dots end up outside the visible bg at the edges
+                        self:zoomto(width + sliderBGSizeBump, actuals.SliderThickness)
+                        self:x(-sliderBGSizeBump/2)
+                    end
+                },
+                UIElements.QuadButton(1, 1) .. {
+                    Name = "SliderButtonArea",
+                    InitCommand = function(self)
+                        self:halign(0)
+                        self:diffuse(color("0,0,0"))
+                        self:diffusealpha(0)
                         self:zoomto(width, actuals.SliderThickness)
                     end,
                     MouseOverCommand = function(self)
-                        if self:IsInvisible() then return end
                         if grabbedSlider == nil then
                             TOOLTIP:SetText(gatherToolTipString())
                             TOOLTIP:Show()
                         end
                     end,
                     MouseOutCommand = function(self)
-                        if self:IsInvisible() then return end
                         if grabbedSlider == nil then
                             TOOLTIP:Hide()
                         end
