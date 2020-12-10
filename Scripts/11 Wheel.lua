@@ -142,7 +142,7 @@ Wheel.mt = {
             end
 
             -- setting diff stuff
-            local stepslist = currentItem:GetChartsOfCurrentGameMode()
+            local stepslist = WHEELDATA:GetChartsMatchingFilter(currentItem)
             if #stepslist == 0 then
                 -- this scenario should be impossible but lets prepare for the case
                 GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
@@ -204,7 +204,7 @@ Wheel.mt = {
                 whee.items = newItems
                 whee.group = songgroup
                 GAMESTATE:SetCurrentSong(song)
-                GAMESTATE:SetCurrentSteps(PLAYER_1, song:GetChartsOfCurrentGameMode()[1])
+                GAMESTATE:SetCurrentSteps(PLAYER_1, WHEELDATA:GetChartsMatchingFilter(song)[1])
                 return songgroup
             end
         else
@@ -734,7 +734,7 @@ function MusicWheel:new(params)
                 w:updateMusicFromCurrentItem()
             end
         elseif params.song ~= nil then
-            local charts = params.song:GetChartsOfCurrentGameMode()
+            local charts = WHEELDATA:GetChartsMatchingFilter(params.song)
             if #charts > 0 then
                 local group = w:findSong(charts[1]:GetChartKey())
                 if group ~= nil then

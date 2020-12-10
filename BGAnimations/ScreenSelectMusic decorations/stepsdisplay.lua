@@ -148,7 +148,7 @@ local t = Def.ActorFrame {
 	end,
 	SetCommand = function(self, params)
 		if params.song then
-			thesteps = params.song:GetChartsOfCurrentGameMode()
+			thesteps = WHEELDATA:GetChartsMatchingFilter(params.song)
 			self:visible(true)
 		else
 			thesteps = {}

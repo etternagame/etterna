@@ -18,6 +18,7 @@ function WHEELDATA.Reset(self)
     self.AllGroups = {}
 
     -- for the current sort, filtering and organization purposes
+    self.AllFilteredSongs = {} -- equivalent of self.AllSongs but after the filter
     self.AllSongsByFolder = {} -- multipurpose; on Group sort, is identical to AllSongsByGroup
     self.AllFolders = {} -- this can be groups or "folders" like in the Title sort, etc
     self.StatsByFolder = {} -- stats for each folder
@@ -56,7 +57,7 @@ end
 
 -- check if the filter is active
 function WHEELDATA.IsFiltered(self)
-    return self.ActiveFilter ~= nil and (self.ActiveFilter.valid ~= nil or not self:IsSearchFilterEmpty())
+    return self.ActiveFilter ~= nil and (self.ActiveFilter.valid ~= nil or not self:IsSearchFilterEmpty()) or FILTERMAN:AnyActiveFilter()
 end
 
 -- get the current search table
@@ -109,6 +110,7 @@ function WHEELDATA.FilterCheck(self, g)
         end
     elseif g.GetAllSteps then
         -- working with a Song
+        -- song search
         local title = g:GetDisplayMainTitle():lower()
         local author = g:GetOrTryAtLeastToGetSimfileAuthor():lower()
         local artist = g:GetDisplayArtist():lower()
@@ -127,19 +129,39 @@ function WHEELDATA.FilterCheck(self, g)
                 if artist:find(self.ActiveFilter.metadata.Artist) == nil then return false end
             end
         end
+        -- lua filter
         if self.ActiveFilter.valid ~= nil then
             if not self.ActiveFilter.valid(g) then
                 return false
             end
         end
 
+        -- c++ filter
+        local charts = g:GetChartsMatchingFilter()
+        if #charts == 0 then return false end
+
     elseif g.GetChartKey then
         -- working with a Steps
 
+        -- lua filter
         if self.ActiveFilter.valid ~= nil then
             if not self.ActiveFilter.valid(g) then
                 return false
             end
+        end
+
+        -- c++ filter
+        local ck = g:GetChartKey()
+        local s = SONGMAN:GetSongByChartkey(ck)
+        if s ~= nil then
+            local tmpbool = false
+            local charts = s:GetChartsMatchingFilter()
+            for _,c in ipairs(charts) do
+                if c:GetChartKey() == ck then
+                    tmpbool = true
+                end
+            end
+            return tmpbool and passed
         end
     end
 
@@ -160,8 +182,29 @@ function WHEELDATA.GetAllSongsPassingFilter(self)
     return t
 end
 
+-- a kind of shadow to get the list of charts matching the lua filter and the c++ filter
+function WHEELDATA.GetChartsMatchingFilter(self, song)
+    local charts = song:GetChartsMatchingFilter()
+    local t = {}
+    for i, c in ipairs(charts) do
+        if self.ActiveFilter.valid ~= nil then
+            if not self.ActiveFilter.valid(c) then
+                -- failed to pass
+            else
+                -- passed
+                t[#t+1] = c
+            end
+        else
+            -- passed implicitly
+            t[#t+1] = c
+        end
+    end
+    return t
+end
+
 -- quickly empty the sorted lists
 function WHEELDATA.ResetSorts(self)
+    self.AllFilteredSongs = {}
     self.AllFolders = {}
     self.AllSongsByFolder = {}
     self.StatsByFolder = {}
@@ -239,6 +282,7 @@ local sortmodeImplementations = {
                     WHEELDATA.AllSongsByFolder[fname] = {song}
                     WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
                 end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
             end
             -- sort the groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
@@ -268,6 +312,7 @@ local sortmodeImplementations = {
                     WHEELDATA.AllSongsByFolder[fname] = {song}
                     WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
                 end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
             end
             -- sort groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
@@ -297,6 +342,7 @@ local sortmodeImplementations = {
                     WHEELDATA.AllSongsByFolder[fname] = {song}
                     WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
                 end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
             end
             -- sort groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
@@ -353,6 +399,7 @@ function WHEELDATA.SortByCurrentSortmode(self)
 
     -- sort timing debug
     print(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
+    MESSAGEMAN:Broadcast("FinishedSort")
 end
 
 -- update the song list for the current gamemode
@@ -360,6 +407,7 @@ end
 function WHEELDATA.SetAllSongs(self)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
+    self.AllGroups = {}
     for _, song in ipairs(SONGMAN:GetAllSongs()) do
         if #song:GetChartsOfCurrentGameMode() > 0 then
             self.AllSongs[#self.AllSongs+1] = song
@@ -372,6 +420,16 @@ function WHEELDATA.SetAllSongs(self)
         end
     end
     self:SortByCurrentSortmode()
+end
+
+-- getter for the count of the list of songs before filtering, only for the current game
+function WHEELDATA.GetSongCount(self)
+    return #self.AllSongs
+end
+
+-- getter for the count of the list of songs visible after the filter
+function WHEELDATA.GetFilteredSongCount(self)
+    return #self.AllFilteredSongs
 end
 
 -- getter for the list of unfiltered groups
@@ -485,7 +543,7 @@ local function getAverageDifficultyOfGroup(group)
     local out = {0,0,0,0,0,0,0,0}
     local chartcount = 0
     for _, song in ipairs(group) do
-        for __, chart in ipairs(song:GetChartsOfCurrentGameMode()) do
+        for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             if countableStepsTypeForDiff(chart:GetStepsType()) then
                 chartcount = chartcount + 1
                 for i, ___ in ipairs(ms.SkillSets) do
@@ -516,7 +574,7 @@ local function getClearStatsForGroup(group)
     for _, song in ipairs(group) do
         local foundgrade = nil
         -- probably need to replace this getter with something more filtered
-        for __, chart in ipairs(song:GetChartsOfCurrentGameMode()) do
+        for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
 
             -- scorestack is nil if no scores on the chart
@@ -601,6 +659,17 @@ end
 function WHEELDATA.UpdateFilteredSonglist(self)
     self:SortByCurrentSortmode()
     self:RefreshStats()
+end
+
+-- basically the init function but doesnt reset the sortmode
+function WHEELDATA.ReloadWheelData(self)
+    -- reloads all the songs (the c++ filter is taken into account here)
+    -- also reloads the folders
+    self:SetAllSongs()
+    -- recalculate folder stats
+    self:RefreshStats()
+    -- build the wheel data
+    self:SetWheelItems(self:GetFilteredFolders())
 end
 
 -- init all with default values
