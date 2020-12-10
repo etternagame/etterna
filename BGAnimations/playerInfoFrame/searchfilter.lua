@@ -427,39 +427,147 @@ local function lowerSection()
         "Length",
     }
 
+    -- defines the bounds for each filter line
+    -- if a bound is at either limit, it is considered infinite in that direction
+    -- so a Length filter of 1400,3600 is really >1400
+    -- or a Length filter of 0,360 is really <360
+    -- etc
+    local filterCategoryLimits = {
+        { 0, 40 },  -- Overall
+        { 0, 40 },  -- Stream
+        { 0, 40 },  -- Jumpstream
+        { 0, 40 },  -- Handstream
+        { 0, 40 },  -- Stamina
+        { 0, 40 },  -- JackSpeed
+        { 0, 40 },  -- Chordjacks
+        { 0, 40 },  -- Technical
+        { 0, 600 },  -- Length (in seconds)
+    }
+
+    -- convenience to set the upper and lower bound for a skillset
+    -- for interacting with the c++ side
+    local function setSSFilter(ss, lb, ub)
+        FILTERMAN:SetSSFilter(lb, ss, 0)
+        FILTERMAN:SetSSFilter(ub, ss, 1)
+    end
+
+    -- convenience to get the upper and lower bounds for a skillset
+    -- for interacting with the c++ side
+    local function getSSFilter(ss)
+        return FILTERMAN:GetSSFilter(ss, 0), FILTERMAN:GetSSFilter(ss, 1)
+    end
+
     -- functions for each filter, what they control
     -- each of these filters are range filters, take 2 parameters
+    -- i know this looks bad but this is just in case we decide to make more filters in the future
+    -- and possibly separate the behavior for upper/lower bounds in some case
     local filterCategoryFunction = {
         -- Overall range
         function(lb, ub)
+            setSSFilter(1, lb, ub)
         end,
         -- Stream range
         function(lb, ub)
+            setSSFilter(2, lb, ub)
         end,
         -- Jumpstream range
         function(lb, ub)
+            setSSFilter(3, lb, ub)
         end,
         -- Handstream range
         function(lb, ub)
+            setSSFilter(4, lb, ub)
         end,
         -- Stamina range
         function(lb, ub)
+            setSSFilter(5, lb, ub)
         end,
         -- Jackspeed range
         function(lb, ub)
+            setSSFilter(6, lb, ub)
         end,
         -- Chordjacks range
         function(lb, ub)
+            setSSFilter(7, lb, ub)
         end,
         -- Tech range
         function(lb, ub)
+            setSSFilter(8, lb, ub)
         end,
         -- Length range
         function(lb, ub)
+            -- funny enough we put the length filter in the mysterious 9th skillset spot
+            setSSFilter(9, lb, ub)
         end
     }
 
+    -- functions for each filter, getters for what they control
+    -- OH NO I COPY PASTED THE ABOVE TABLE THIS JUST GOT A LOT WORSE
+    local filterCategoryGetters = {
+        -- Overall range
+        function()
+            return getSSFilter(1)
+        end,
+        -- Stream range
+        function()
+            return getSSFilter(2)
+        end,
+        -- Jumpstream range
+        function()
+            return getSSFilter(3)
+        end,
+        -- Handstream range
+        function()
+            return getSSFilter(4)
+        end,
+        -- Stamina range
+        function()
+            return getSSFilter(5)
+        end,
+        -- Jackspeed range
+        function()
+            return getSSFilter(6)
+        end,
+        -- Chordjacks range
+        function()
+            return getSSFilter(7)
+        end,
+        -- Tech range
+        function()
+            return getSSFilter(8)
+        end,
+        -- Length range
+        function()
+            -- funny enough we put the length filter in the mysterious 9th skillset spot
+            return getSSFilter(9)
+        end
+    }
+
+    local grabbedSlider = nil
+
     local function filterSlider(i)
+        -- convenience on convenience yo
+        local theLimits = filterCategoryLimits[i]
+        local theSetter = filterCategoryFunction[i]
+        local theGetter = filterCategoryGetters[i]
+        local theName = filterCategoryTable[i]
+
+        -- repeated use vars here
+        local xp = actuals.SliderColumnLeftGap - actuals.EdgePadding
+        local width = actuals.RightColumnLeftGap - actuals.EdgePadding - actuals.SliderColumnLeftGap
+
+        -- internal vars
+        local grabbedDot = nil -- either 0 or 1 for left/right, nil for none
+
+        local function gatherToolTipString()
+            local lb, ub = theGetter()
+            -- specifically for upper bounds, display 9999 instead to imply infinite
+            if ub == 0 then
+                ub = 9999
+            end
+            return string.format("%s\n%d - %d", theName, lb, ub)
+        end
+
         return Def.ActorFrame {
             Name = "SliderOwnerFrame_"..i,
             InitCommand = function(self)
@@ -473,26 +581,124 @@ local function lowerSection()
                     self:halign(0)
                     self:zoom(textSize)
                     self:maxwidth((actuals.SliderColumnLeftGap - actuals.EdgePadding) / textSize - textZoomFudge)
-                    self:settext(filterCategoryTable[i])
+                    self:settext(theName)
                 end,
             },
             Def.ActorFrame {
                 Name = "SliderFrame",
                 InitCommand = function(self)
-                    local xp = actuals.SliderColumnLeftGap - actuals.EdgePadding
                     self:x(xp)
                 end,
 
-                Def.Sprite {
+                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "roundedCapsBar")) .. {
                     Name = "SliderBG",
-                    Texture = THEME:GetPathG("", "roundedCapsBar"),
                     InitCommand = function(self)
-                        local width = actuals.RightColumnLeftGap - actuals.EdgePadding - actuals.SliderColumnLeftGap
                         self:valign(0)
                         self:rotationz(-90)
                         self:diffuse(color("0,0,0"))
                         self:diffusealpha(0.6)
                         self:zoomto(actuals.SliderThickness, width)
+                    end,
+                    MouseOverCommand = function(self)
+                        if self:IsInvisible() then return end
+                        if grabbedSlider == nil then
+                            TOOLTIP:SetText(gatherToolTipString())
+                            TOOLTIP:Show()
+                        end
+                    end,
+                    MouseOutCommand = function(self)
+                        if self:IsInvisible() then return end
+                        if grabbedSlider == nil then
+                            TOOLTIP:Hide()
+                        end
+                    end,
+                    MouseDownCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+
+                        if grabbedDot == nil then
+                            local localX = clamp(params.MouseX - xp, 0, width)
+                            local localY = clamp(params.MouseY, 0, actuals.SliderThickness)
+
+                            local lo, hi = theGetter()
+                            local lb, ub = theLimits[1], theLimits[2]
+                            -- convert upper 0 to 100% (infinite)
+                            if hi == 0 then hi = ub end
+                            local percentX = localX / width
+                            local leftDotPercent = lo / ub
+                            local rightDotPercent = hi / ub
+
+                            -- set the grabbed dot to the closest dot
+                            if math.abs(percentX - rightDotPercent) < math.abs(percentX - leftDotPercent) then
+                                -- closer to the right dot
+                                grabbedDot = 1
+                            else
+                                -- closer to the left dot or in the middle
+                                grabbedDot = 0
+                            end
+                            grabbedSlider = i
+                        end
+                    end,
+                    MouseHoldCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+
+                        if grabbedDot ~= nil then
+                            local localX = clamp(params.MouseX - xp, 0, width)
+                            local localY = clamp(params.MouseY, 0, actuals.SliderThickness)
+
+                            local lo, hi = theGetter()
+                            local lb, ub = theLimits[1], theLimits[2]
+                            -- convert upper 0 to 100% (infinite)
+                            if hi == 0 then hi = ub end
+                            local percentX = localX / width
+                            local leftDotPercent = lo / ub
+                            local rightDotPercent = hi / ub
+
+                            -- make sure the dot being dragged is not dragged too close to or beyond the other dot
+                            if grabbedDot == 0 then
+                                if percentX > rightDotPercent then
+                                    percentX = clamp(rightDotPercent - 0.001, 0, 1)
+                                end
+                                leftDotPercent = percentX
+                            elseif grabbedDot == 1 then
+                                if percentX < leftDotPercent then
+                                    percentX = clamp(leftDotPercent + 0.001, 0, 1)
+                                end
+                                rightDotPercent = percentX
+                            else
+                                -- dont know how this could happen, but quit if it does
+                                return
+                            end
+
+                            local fLower = ub * leftDotPercent
+                            local fUpper = ub * rightDotPercent
+                            -- an upper limit of 100% is meant to be 0 so it can be interpreted as infinite
+                            if fUpper >= ub then fUpper = 0 end
+                            fLower = clamp(fLower, 0, ub)
+                            fUpper = clamp(fUpper, 0, ub)
+
+                            theSetter(fLower, fUpper)
+                            TOOLTIP:SetText(gatherToolTipString())
+                            self:GetParent():GetChild("LowerBound"):x(width * leftDotPercent)
+                            self:GetParent():GetChild("UpperBound"):x(width * rightDotPercent)
+                        end
+                    end,
+                    MouseClickCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+                        -- for all release events while on this button (having already pressed it)
+                        grabbedDot = nil
+                        grabbedSlider = nil
+                        if not isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end,
+                    MouseReleaseCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+                        -- for all release events while not on this button (having already pressed it)
+                        grabbedDot = nil
+                        grabbedSlider = nil
+                        if not isOver(self) then
+                            TOOLTIP:Hide()
+                        end
                     end,
                 },
                 Def.Quad {
@@ -500,21 +706,24 @@ local function lowerSection()
                     InitCommand = function(self)
                         -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
-                        self:x(0)
                         self:rotationz(45)
                         self:zoomto(hypotenuse, hypotenuse)
-
+                        local lb, ub = theGetter()
+                        local percentX = lb / theLimits[2]
+                        self:x(percentX * width)
                     end,
                 },
                 Def.Quad {
                     Name = "UpperBound",
                     InitCommand = function(self)
-                        local sliderwidth = actuals.RightColumnLeftGap - actuals.EdgePadding - actuals.SliderColumnLeftGap
                         -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
-                        self:x(sliderwidth)
                         self:rotationz(45)
                         self:zoomto(hypotenuse, hypotenuse)
+                        local lb, ub = theGetter()
+                        if ub == 0 then ub = theLimits[2] end
+                        local percentX = ub / theLimits[2]
+                        self:x(percentX * width)
                     end,
                 }
 
