@@ -554,7 +554,7 @@ local function lowerSection()
 
         -- repeated use vars here
         local xp = actuals.SliderColumnLeftGap - actuals.EdgePadding
-        local width = actuals.RightColumnLeftGap - actuals.EdgePadding - actuals.SliderColumnLeftGap
+        local width = actuals.RightColumnLeftGap - actuals.EdgePadding * 1.5 - actuals.SliderColumnLeftGap
 
         -- internal vars
         local grabbedDot = nil -- either 0 or 1 for left/right, nil for none
