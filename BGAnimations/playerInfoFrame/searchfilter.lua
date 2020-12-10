@@ -678,8 +678,7 @@ local function lowerSection()
 
                             theSetter(fLower, fUpper)
                             TOOLTIP:SetText(gatherToolTipString())
-                            self:GetParent():GetChild("LowerBound"):x(width * leftDotPercent)
-                            self:GetParent():GetChild("UpperBound"):x(width * rightDotPercent)
+                            self:GetParent():playcommand("UpdateDots")
                         end
                     end,
                     MouseClickCommand = function(self, params)
@@ -708,10 +707,13 @@ local function lowerSection()
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
                         self:rotationz(45)
                         self:zoomto(hypotenuse, hypotenuse)
+                        self:playcommand("UpdateDots")
+                    end,
+                    UpdateDotsCommand = function(self)
                         local lb, ub = theGetter()
                         local percentX = lb / theLimits[2]
                         self:x(percentX * width)
-                    end,
+                    end
                 },
                 Def.Quad {
                     Name = "UpperBound",
@@ -720,11 +722,14 @@ local function lowerSection()
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
                         self:rotationz(45)
                         self:zoomto(hypotenuse, hypotenuse)
+                        self:playcommand("UpdateDots")
+                    end,
+                    UpdateDotsCommand = function(self)
                         local lb, ub = theGetter()
                         if ub == 0 then ub = theLimits[2] end
                         local percentX = ub / theLimits[2]
                         self:x(percentX * width)
-                    end,
+                    end
                 }
 
             }
@@ -761,49 +766,136 @@ local function lowerSection()
 
     -- well ... i tried to reduce the code duplication without going stupid
     t[#t+1] = filterMiscLine(1) .. {
+        Name = "MaxRateLine",
         InitCommand = function(self)
-            self:settext("Max Rate: ")
+            self:playcommand("UpdateText")
+        end,
+        UpdateTextCommand = function(self)
+            local maxrate = FILTERMAN:GetMaxFilterRate()
+            self:settextf("Max Rate: %2.1f", maxrate)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self, params)
+            local maxrate = FILTERMAN:GetMaxFilterRate()
+            local increment = 0.1
+            if params.event == "DeviceButton_left mouse button" then
+                -- it's already set haha
+            elseif params.event == "DeviceButton_right mouse button" then
+                increment = increment * -1
+            else
+                return
+            end
+
+            maxrate = clamp(clamp(maxrate + increment, FILTERMAN:GetMinFilterRate(), 3), 0.7, 3)
+            FILTERMAN:SetMaxFilterRate(maxrate)
+            self:playcommand("UpdateText")
+        end,
     }
 
     t[#t+1] = filterMiscLine(2) .. {
+        Name = "MinRateLine",
         InitCommand = function(self)
-            self:settext("Min Rate: ")
+            self:playcommand("UpdateText")
+        end,
+        UpdateTextCommand = function(self)
+            local maxrate = FILTERMAN:GetMinFilterRate()
+            self:settextf("Min Rate: %2.1f", maxrate)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self, params)
+            local minrate = FILTERMAN:GetMinFilterRate()
+            local increment = 0.1
+            if params.event == "DeviceButton_left mouse button" then
+                -- it's already set haha
+            elseif params.event == "DeviceButton_right mouse button" then
+                increment = increment * -1
+            else
+                return
+            end
+            
+            minrate = clamp(clamp(minrate + increment, 0.7, FILTERMAN:GetMaxFilterRate()), 0.7, 3)
+            FILTERMAN:SetMinFilterRate(minrate)
+            self:playcommand("UpdateText")
+        end,
     }
 
     t[#t+1] = filterMiscLine(3) .. {
+        Name = "FilterModeLine",
         InitCommand = function(self)
-            self:settext("Mode: ")
+            self:playcommand("UpdateText")
+        end,
+        UpdateTextCommand = function(self)
+            local txt = FILTERMAN:GetFilterMode() and "AND" or "OR"
+            self:settextf("Mode: %s", txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            FILTERMAN:ToggleFilterMode()
+            self:playcommand("UpdateText")
+        end
     }
 
     t[#t+1] = filterMiscLine(4) .. {
+        Name = "HighestSkillsetOnlyLine",
         InitCommand = function(self)
-            self:settext("Highest Only: ")
+            self:playcommand("UpdateText")
+        end,
+        UpdateTextCommand = function(self)
+            local txt = FILTERMAN:GetHighestSkillsetsOnly() and "ON" or "OFF"
+            self:settextf("Highest Skillset Only: %s", txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            FILTERMAN:ToggleHighestSkillsetsOnly()
+            self:playcommand("UpdateText")
+        end
     }
 
     t[#t+1] = filterMiscLine(5) .. {
+        Name = "HighestDifficultyOnlyLine",
         InitCommand = function(self)
-            self:settext("Matches: ")
+            self:playcommand("UpdateText")
+        end,
+        UpdateTextCommand = function(self)
+            local txt = FILTERMAN:GetHighestDifficultyOnly() and "ON" or "OFF"
+            self:settextf("Highest Difficulty Only: %s", txt)
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            FILTERMAN:ToggleHighestDifficultyOnly()
+            self:playcommand("UpdateText")
         end
     }
 
     t[#t+1] = filterMiscLine(6) .. {
+        Name = "MatchCountLine",
+        UpdateTextCommand = function(self)
+            local count1 = WHEELDATA:GetFilteredSongCount()
+            local count2 = WHEELDATA:GetSongCount()
+            self:settextf("Matches: %d/%d", count1, count2)
+        end,
+        FinishedSortMessageCommand = function(self)
+            self:playcommand("UpdateText")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(7) .. {
+        Name = "ResetLine",
         InitCommand = function(self)
             self:settext("Reset")
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            FILTERMAN:ResetAllFilters()
+            self:GetParent():playcommand("UpdateText")
+            self:GetParent():playcommand("UpdateDots")
+        end
     }
 
     return t
