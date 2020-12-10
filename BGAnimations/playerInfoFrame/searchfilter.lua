@@ -562,11 +562,12 @@ local function lowerSection()
 
         local function gatherToolTipString()
             local lb, ub = theGetter()
-            -- specifically for upper bounds, display 9999 instead to imply infinite
+            -- upper bound of 0 is infinite: display an indeterminant upper bound
             if ub == 0 then
-                ub = 9999
+                return string.format("%s\n%d - %d+", theName, lb, theLimits[2])
+            else
+                return string.format("%s\n%d - %d", theName, lb, ub)
             end
-            return string.format("%s\n%d - %d", theName, lb, ub)
         end
 
         return Def.ActorFrame {
