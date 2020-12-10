@@ -590,14 +590,13 @@ local function lowerSection()
                     self:x(xp)
                 end,
 
-                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "roundedCapsBar")) .. {
+                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "sliderBar")) .. {
                     Name = "SliderBG",
                     InitCommand = function(self)
-                        self:valign(0)
-                        self:rotationz(-90)
+                        self:halign(0)
                         self:diffuse(color("0,0,0"))
                         self:diffusealpha(0.6)
-                        self:zoomto(actuals.SliderThickness, width)
+                        self:zoomto(width, actuals.SliderThickness)
                     end,
                     MouseOverCommand = function(self)
                         if self:IsInvisible() then return end
@@ -700,12 +699,12 @@ local function lowerSection()
                         end
                     end,
                 },
-                Def.Quad {
+                Def.Sprite {
                     Name = "LowerBound",
+                    Texture = THEME:GetPathG("", "Marker"),
                     InitCommand = function(self)
                         -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
-                        self:rotationz(45)
                         self:zoomto(hypotenuse, hypotenuse)
                         self:playcommand("UpdateDots")
                     end,
@@ -715,12 +714,12 @@ local function lowerSection()
                         self:x(percentX * width)
                     end
                 },
-                Def.Quad {
+                Def.Sprite {
                     Name = "UpperBound",
+                    Texture = THEME:GetPathG("", "Marker"),
                     InitCommand = function(self)
                         -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
-                        self:rotationz(45)
                         self:zoomto(hypotenuse, hypotenuse)
                         self:playcommand("UpdateDots")
                     end,
