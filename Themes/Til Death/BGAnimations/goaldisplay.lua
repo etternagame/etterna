@@ -366,7 +366,7 @@ local function makeGoalDisplay(i)
 			{
 				--percent
 				InitCommand = function(self)
-					self:x(c1x):zoom(tzoom):halign(-0.5):valign(0):maxwidth(capWideScale(10, 40) / tzoom)
+					self:x(c1x):zoom(tzoom):halign(-0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
 				end,
 				DisplayCommand = function(self)
 					local perc = notShit.round(sg:GetPercent() * 100000) / 1000
