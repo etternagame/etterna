@@ -84,13 +84,102 @@ if #profileIDs == 0 then
     renameNewProfile = true
 end
 
+-- convenience to control the delete profile dialogue logic and input redir scope
+local function deleteProfileDialogue(id)
+    if id == nil then id = "(SOMETHING WENT WRONG)" end
+
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+
+
+    askForInputStringWithFunction(
+        string.format("To delete this profile, navigate to Save/LocalProfiles\nDelete the folder '%s'\nRestart the game", id),
+        0,
+        false,
+        function(answer) on() end,
+        function(answer) return true, "Response invalid." end,
+        function() on() end
+    )
+end
+
+-- convenience to control the rename profile dialogue logic and input redir scope
+-- difference between this function and the other RenameProfile dialogue way down below is this can be repeated
+-- the one way down below cannot be repeated in all contexts because input redir may or may not be on in some situations
+local function renameProfileDialogue(profile, listframe)
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+
+    local function f(answer)
+        profile:RenameProfile(answer)
+        listframe:playcommand("UpdateProfiles")
+        on()
+    end
+    local question = "RENAME PROFILE\nPlease enter a new profile name."
+    askForInputStringWithFunction(
+        question,
+        64,
+        false,
+        f,
+        function(answer)
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
+            if not result then
+                SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'\nTo exit, press Esc.")
+            end
+            return result, "Response invalid."
+        end,
+        function()
+            -- upon exit, do nothing
+            -- profile name is unchanged
+            listframe:playcommand("UpdateProfiles")
+            on()
+        end
+    )
+end
+
 local function generateItems()
-    local maxPage = math.ceil(#profileIDs / numItems)
+    -- add 1 to number of profiles so we can have a button to add profiles always as the last item
+    local maxPage = math.ceil((#profileIDs) / numItems)
     local page = 1
     local selectionIndex = 1
 
+    local function createProfileDialogue(listframe)
+        -- uhh this shouldnt be hard...
+        -- make profile, update id list, rename new profile
+        local new = PROFILEMAN:CreateDefaultProfile()
+        profileIDs = PROFILEMAN:GetLocalProfileIDs()
+        maxPage = math.ceil((#profileIDs) / numItems)
+        renameProfileDialogue(new, listframe)
+    end
+
     -- select current option with keyboard or mouse double click
     local function selectCurrent()
+        -- if holding control when this happens, trigger the delete profile dialogue
+        -- (secret functionality but just for the keyboard user convenience)
+        if INPUTFILTER:IsControlPressed() then
+            deleteProfileDialogue(profileIDs[selectionIndex])
+            return
+        end
+
         PROFILEMAN:SetProfileIDToUse(profileIDs[selectionIndex])
         SCREENMAN:GetTopScreen():PlaySelectSound()
         TITLE:HandleFinalGameStart()
@@ -188,12 +277,55 @@ local function generateItems()
                         end
                     else
                         if params.event == "DeviceButton_left mouse button" then
-                            if selectionIndex == index and focused then
-                                selectCurrent()
+                            if INPUTFILTER:IsControlPressed() then
+                                -- if holding ctrl, throw delete profile dialogue
+                                -- ... well, I would do that if the game could delete profiles (thanks mina)
+                                -- so instead I'll just give the necessary info
+                                deleteProfileDialogue(id)
                             else
-                                selectionIndex = index
-                                MESSAGEMAN:Broadcast("MovedIndex")
+                                -- otherwise, move cursor or select current profile
+                                if selectionIndex == index and focused then
+                                    selectCurrent()
+                                else
+                                    selectionIndex = index
+                                    MESSAGEMAN:Broadcast("MovedIndex")
+                                end
                             end
+                        elseif params.event == "DeviceButton_right mouse button" then
+                            -- right clicking allows profile name change
+                            -- the Actor parameter is asking for the frame that holds the whole list
+                            renameProfileDialogue(profile, self:GetParent():GetParent()) 
+                        end
+                    end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then
+                        if index == #profileIDs + 1 then
+                            -- show New Profile box (only on bottommost empty profile)
+                            MESSAGEMAN:Broadcast("NewProfileToggle", {index = i})
+                        end
+                    end
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then
+                        if index == #profileIDs + 1 then
+                            -- hide New Profile box
+                            MESSAGEMAN:Broadcast("NewProfileToggle", {index = nil})
+                        end
+                    end
+                end,
+                SetCommand = function(self)
+                    if self:IsInvisible() then
+                        if isOver(self) then
+                            if index == #profileIDs + 1 then
+                                -- show New Profile box
+                                MESSAGEMAN:Broadcast("NewProfileToggle", {index = i})
+                            end
+                        end
+                    else
+                        if isOver(self) then
+                            -- hide New Profile box
+                            MESSAGEMAN:Broadcast("NewProfileToggle", {index = nil})
                         end
                     end
                 end
@@ -342,8 +474,12 @@ local function generateItems()
             TITLE:SetFocus(true)
             SCREENMAN:set_input_redirected(PLAYER_1, false)
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
-                if focused then
-                    if event.type == "InputEventType_FirstPress" then
+                if event.type == "InputEventType_FirstPress" then
+                    if INPUTFILTER:IsControlPressed() and event.DeviceInput.button == "DeviceButton_n" then
+                        createProfileDialogue(self)
+                        return
+                    end
+                    if focused then
                         if event.button == "MenuUp" or event.button == "Up" 
                         or event.button == "MenuLeft" or event.button == "Left" then
                             move(-1)
@@ -499,6 +635,36 @@ local function generateItems()
                 self:finishtweening()
                 self:linear(0.05)
                 self:y(cursorindex * (actuals.ItemHeight + actuals.ItemGap) - actuals.ItemGlowVerticalSpan / 2)
+            end
+        },
+
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "newProfile")) .. {
+            Name = "NewProfileButton",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:zoomto(actuals.Width, actuals.ItemHeight)
+            end,
+            NewProfileToggleMessageCommand = function(self, params)
+                -- provide an index to place the button in a spot
+                -- otherwise, dont and it will disappear
+                if params.index then
+                    self:y((params.index-1) * (actuals.ItemHeight + actuals.ItemGap))
+                    self:finishtweening()
+                    self:x(0)
+                    self:smooth(0.075)
+                    self:diffusealpha(1)
+                else
+                    self:x(1000)
+                    self:diffusealpha(0)
+                end
+            end,
+            MouseDownCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.event == "DeviceButton_left mouse button" then
+                    -- make profile
+                    -- this function is asking for the Actor which is the entire list frame
+                    createProfileDialogue(self:GetParent())
+                end
             end
         }
     }
