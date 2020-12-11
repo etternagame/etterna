@@ -135,6 +135,7 @@ local function selectable(name)
 end
 
 local disabledButtonAlpha = 0.4
+local hoverAlpha = 0.6
 local visualizerBins = 126
 local leftTextBigSize = 0.7
 local leftTextSmallSize = 0.65
@@ -480,6 +481,16 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        MouseOverCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(hoverAlpha)
+            end
+        end,
+        MouseOutCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
         MouseDownCommand = function(self, params)
             if params.event == "DeviceButton_left mouse button" then
                 SCREENMAN:set_input_redirected(PLAEYR_1, false)
@@ -496,6 +507,16 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(disabledButtonAlpha)
         end,
         OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
+        MouseOverCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(hoverAlpha)
+            end
+        end,
+        MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
             end
@@ -521,6 +542,16 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        MouseOverCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(hoverAlpha)
+            end
+        end,
+        MouseOutCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
             end
@@ -538,6 +569,16 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(disabledButtonAlpha)
         end,
         OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
+        MouseOverCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(hoverAlpha)
+            end
+        end,
+        MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
             end
@@ -563,6 +604,16 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
+        MouseOverCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(hoverAlpha)
+            end
+        end,
+        MouseOutCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
                 local scr = SCREENMAN:GetTopScreen()
@@ -584,6 +635,16 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(disabledButtonAlpha)
         end,
         OnCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(1)
+            end
+        end,
+        MouseOverCommand = function(self)
+            if selectable(self:GetName()) then
+                self:diffusealpha(hoverAlpha)
+            end
+        end,
+        MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
             end
