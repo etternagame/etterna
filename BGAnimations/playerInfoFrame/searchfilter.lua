@@ -68,6 +68,8 @@ local textZoomFudge = 5
 local textinputbuffer = 5 -- gap between "Search:" and input text
 local buttonHoverAlpha = 0.6
 
+-- i made a critical mistake in planning and have to put this here for scoping reasons
+local searchentry = {}
 local function upperSection()
 
     -- the base text for each line
@@ -80,7 +82,7 @@ local function upperSection()
     }
 
     -- used to actually search for things in WheelDataManager
-    local searchentry = {
+    searchentry = {
         Title = "",
         Subtitle = "",
         Artist = "",
@@ -908,6 +910,26 @@ local function lowerSection()
             FILTERMAN:ResetAllFilters()
             self:GetParent():playcommand("UpdateText")
             self:GetParent():playcommand("UpdateDots")
+        end
+    }
+
+    t[#t+1] = filterMiscLine(8) .. {
+        Name = "ApplyLine",
+        InitCommand = function(self)
+            self:settext("Apply")
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            -- really all this does is trigger a search
+            -- since the filter is always set to what you visually see, you just have to reload the wheel
+            local scr = SCREENMAN:GetTopScreen()
+            local w = scr:GetChild("WheelFile")
+            if w ~= nil then
+                WHEELDATA:SetSearch(searchentry)
+                w:sleep(0.01):queuecommand("UpdateFilters")
+            end
+            -- but we dont change the input context to keep it from being too jarring
         end
     }
 
