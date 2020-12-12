@@ -229,7 +229,12 @@ local function createList()
     -- the Global country just shows everyone
     local dlmanScoreboardCountryFilter = "Global"
 
-    local scores = {}
+    local scores = {} -- online scores
+    local localscore = nil -- local score
+    local localscoreIndex = 1
+    local localrtTable = nil -- local rate table (scores)
+    local localrateIndex = 1
+    local localrates = nil
 
     -- to prevent bombing the server repeatedly with leaderboard requests
     -- chartkeys to booleans
@@ -254,6 +259,12 @@ local function createList()
             -- local scoreboard is somewhere else
             if isLocal then
                 scores = {}
+                localrtTable = getRateTable()
+                local sng = GAMESTATE:GetCurrentSong()
+                if localrtTable ~= nil then
+                    localrates, localrateIndex = getUsedRates(localrtTable)
+                    localscoreIndex = 1
+                end
                 return
             else
                 -- operate with dlman scores
@@ -296,6 +307,19 @@ local function createList()
             end
         end,
         UpdateListCommand = function(self)
+            -- local logic
+            if isLocal then
+                if localrtTable ~= nil and localrates ~= nil and localrates[localrateIndex] ~= nil and localrtTable[localrates[localrateIndex]] ~= nil then
+                    localscore = localrtTable[localrates[localrateIndex]][localscoreIndex]
+                else
+                    localscore = nil
+                end
+            else
+                localscore = nil
+            end
+
+
+            -- online logic
             if scores == nil then
                 maxPage = 1
             else
@@ -591,6 +615,7 @@ local function createList()
         local ratecount = 9 -- really just how many items we want spots for
 
         local function rateItem(i)
+            local index = i
             return UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "RateButton_"..i,
                 InitCommand = function(self)
@@ -599,7 +624,7 @@ local function createList()
                     self:y(actuals.ScoreRateListTopBuffer + actuals.ScoreRateListAllottedSpace / ratecount * (i-1))
                     self:zoom(rateTextSize)
                     self:maxwidth(actuals.ScoreRateListWidth / rateTextSize - textzoomFudge)
-                    self:settext("1.0x (1)")
+                    self:settext("-")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -608,6 +633,28 @@ local function createList()
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
                     self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    localrateIndex = index
+                    localscoreIndex = 1
+                    self:GetParent():GetParent():playcommand("UpdateList")
+                end,
+                UpdateListCommand = function(self)
+                    index = i
+                    local count = 0
+                    if localrtTable == nil then
+                        self:settext("")
+                        return
+                    end
+                    if localrtTable[localrates[index]] ~= nil then
+                        count = #localrtTable[localrates[index]]
+                    end
+                    if index <= #localrates then
+                        self:settextf("%s (%d)", localrates[index], count)
+                    else
+                        self:settext("?")
+                    end
                 end
             }
         end
@@ -628,6 +675,8 @@ local function createList()
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
                     self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
                 end
             },
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
@@ -645,6 +694,8 @@ local function createList()
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
                     self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
                 end
             }
         }
@@ -670,6 +721,13 @@ local function createList()
         InitCommand = function(self)
             self:y(actuals.UpperLipHeight)
         end,
+        UpdateListCommand = function(self)
+            if localscore ~= nil then
+                self:diffusealpha(1)
+            else
+                self:diffusealpha(0)
+            end
+        end,
 
         LoadFont("Common Normal") .. {
             Name = "Grade",
@@ -678,7 +736,14 @@ local function createList()
                 self:xy(actuals.SideBufferGap, actuals.GradeUpperGap)
                 self:zoom(gradeTextSize)
                 self:maxwidth((actuals.DetailLineLeftGap - actuals.SideBufferGap) / gradeTextSize - textzoomFudge)
-                self:settext("QQQQQ")
+                self:settext("")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local grade = THEME:GetString("Grade", ToEnumShortString(localscore:GetWifeGrade()))
+                    self:diffuse(getGradeColor(localscore:GetWifeGrade()))
+                    self:settext(grade)
+                end
             end
         },
         LoadFont("Common Normal") .. {
@@ -688,7 +753,14 @@ local function createList()
                 self:xy(actuals.SideBufferGap, actuals.ClearTypeUpperGap)
                 self:zoom(clearTypeTextSize)
                 self:maxwidth((actuals.DetailLineLeftGap - actuals.SideBufferGap) / clearTypeTextSize - textzoomFudge)
-                self:settext("CT")
+                self:settext("")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local ct = getClearTypeFromScore(localscore, 0)
+                    self:diffuse(getClearTypeFromScore(localscore, 2))
+                    self:settext(ct)
+                end
             end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "upload")) .. {
@@ -723,6 +795,15 @@ local function createList()
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
                 self:settext("11.11 | 11.11% (Wife 0 | Judge 0)")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local ssr = localscore:GetSkillsetSSR("Overall")
+                    local wife = localscore:GetWifeScore() * 100
+                    local wv = localscore:GetWifeVers()
+                    local j = table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2))
+                    self:settextf("%5.2f | %5.2f%% (Wife %d | Judge %d)", ssr, notShit.floor(wife, 2), wv, j)
+                end
             end
         },
         LoadFont("Common Normal") .. {
@@ -732,7 +813,17 @@ local function createList()
                 self:xy(actuals.DetailLineLeftGap, actuals.DetailLine2TopGap)
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
-                self:settext("Miss Count: 999")
+                self:settext("")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local mc = getScoreMissCount(localscore)
+                    if mc ~= nil then
+                        self:settextf("Miss Count: %s", mc)
+                    else
+                        self:settext("Miss Count: -")
+                    end
+                end
             end
         },
         LoadFont("Common Normal") .. {
@@ -742,7 +833,13 @@ local function createList()
                 self:xy(actuals.DetailLineLeftGap, actuals.DetailLine3TopGap)
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
-                self:settext("Max Combo: 9999")
+                self:settext("")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local mc = localscore:GetMaxCombo()
+                    self:settextf("Max Combo: %d", mc)
+                end
             end
         },
         LoadFont("Common Normal") .. {
@@ -752,7 +849,13 @@ local function createList()
                 self:xy(actuals.DetailLineLeftGap, actuals.DetailLine4TopGap)
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
-                self:settext("Date Achieved: 9999-88-77 66:55:44")
+                self:settext("")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local d = getScoreDate(localscore)
+                    self:settextf("Date Achieved: %s", d)
+                end
             end
         },
         LoadFont("Common Normal") .. {
@@ -762,7 +865,13 @@ local function createList()
                 self:xy(actuals.DetailLineLeftGap, actuals.DetailLine5TopGap)
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
-                self:settext("Mods: C1111, 11, 111111, 11111111, 111111111111, 11111111111, 111111, 11111111, 11, 11111")
+                self:settext("")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local m = getModifierTranslations(localscore:GetModifiers())
+                    self:settextf("Mods: %s", m)
+                end
             end
         },
         localRateFrame() .. {
@@ -783,32 +892,40 @@ local function createList()
         }) .. {
             InitCommand = function(self)
                 self:xy(actuals.SideBufferGap, actuals.JudgmentBarsTopGap)
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+                    self:playcommand("Set", {score = localscore, judgeSetting = judgeSetting})
+                end
             end
         },
         LoadActorWithParams("../../offsetplot.lua", {sizing = {Width = actuals.MainGraphicWidth, Height = actuals.OffsetPlotHeight}, textsize = 0.43}) .. {
             InitCommand = function(self)
                 self:xy(actuals.SideBufferGap, actuals.OffsetPlotUpperGap)
             end,
-            SetCommand = function(self, params)
-                if true then return end
-                if params.score ~= nil and params.steps ~= nil then
-                    if params.score:HasReplayData() then
-                        local offsets = params.score:GetOffsetVector()
+            UpdateListCommand = function(self, params)
+                if localscore == nil then return end
+                local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+                if steps ~= nil then
+                    if localscore:HasReplayData() then
+                        local offsets = localscore:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = params.score:GetTrackVector()
-                        local types = params.score:GetTapNoteTypeVector()
-                        local noterows = params.score:GetNoteRowVector()
+                        local tracks = localscore:GetTrackVector()
+                        local types = localscore:GetTapNoteTypeVector()
+                        local noterows = localscore:GetNoteRowVector()
                         local timing = {}
-                        local timingdata = params.steps:GetTimingData()
+                        local timingdata = steps:GetTimingData()
                         for i, row in ipairs(noterows) do
                             timing[i] = timingdata:GetElapsedTimeFromNoteRow(row)
                         end
-                        local lastSecond = params.steps:GetLastSecond()
+                        local lastSecond = steps:GetLastSecond()
     
                         self:playcommand("LoadOffsets", {
                             offsetVector = offsets,
@@ -816,9 +933,9 @@ local function createList()
                             timingVector = timing,
                             typeVector = types,
                             maxTime = lastSecond,
-                            judgeSetting = params.judgeSetting,
-                            columns = params.steps:GetNumColumns(),
-                            rejudged = params.rejudged,
+                            judgeSetting = judgeSetting,
+                            columns = steps:GetNumColumns(),
+                            rejudged = true,
                         })
                     end
                 end
