@@ -455,6 +455,13 @@ local function scoreStatsFrame()
         Name = "ScoreStatsFrame",
         SetInfoCommand = function(self, params)
             if params ~= nil and params.stats ~= nil then
+                -- if there are no scores in this pack, dont show the bar
+                if params.stats.totalScores == 0 then
+                    self:diffusealpha(0)
+                else
+                    self:diffusealpha(1)
+                end
+
                 local barcounts = {}
                 -- determine how many scores count for each bar
                 for gkey, gradeTable in pairs(expandedGrades) do
