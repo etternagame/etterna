@@ -120,6 +120,7 @@ local pageTextSize = 0.7
 local itemIndexSize = 0.9
 local ssrTextSize = 0.9
 local nameTextSize = 0.9
+local dateTextSize = 0.7
 local rateTextSize = 0.9
 local percentTextSize = 0.9
 local diffTextSize = 0.9
@@ -162,8 +163,11 @@ local function createChoices()
                 txt:settext(choiceNames[i])
                 bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
             end,
-            UpdateSelectedIndexCommand = function(self)
+            UpdateSelectedIndexCommand = function(self, params)
                 local txt = self:GetChild("Text")
+                if params ~= nil and params.index ~= nil then
+                    selectedIndex = params.index
+                end
                 if selectedIndex == i then
                     txt:strokecolor(buttonActiveStrokeColor)
                 else
@@ -255,6 +259,20 @@ local function createList()
                 end
             end
 
+            -- if the index -1 is given, this is the recentscores index
+            if params ~= nil and params.index == -1 then
+                isLocal = true
+                SCOREMAN:SortRecentScoresForGame()
+                chosenSkillset = "Recent"
+                scores = {}
+                local sortedScore = SCOREMAN:GetRecentScoreForGame(1)
+                while sortedScore ~= nil and #scores < upperBoundOfScoreCount do
+                    scores[#scores+1] = sortedScore
+                    sortedScore = SCOREMAN:GetRecentScoreForGame(#scores + 1)
+                end
+                return
+            end
+
             if isLocal then
                 -- repopulate the scores list with the internally sorted score list
                 scores = {}
@@ -286,7 +304,7 @@ local function createList()
                 self:GetChild("PageText"):diffusealpha(0)
             else
                 self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0):z(-overallPageZBump)
-                if DLMAN:IsLoggedIn() then
+                if DLMAN:IsLoggedIn() and chosenSkillset ~= "Recent" then
                     self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
                 end
                 self:GetChild("PageText"):smooth(0.2):diffusealpha(1)
@@ -343,7 +361,11 @@ local function createList()
                     if score ~= nil then
                         local ssr = 0
                         if isLocal then
-                            ssr = score:GetSkillsetSSR(chosenSkillset)
+                            if chosenSkillset == "Recent" then
+                                ssr = score:GetSkillsetSSR("Overall")
+                            else
+                                ssr = score:GetSkillsetSSR(chosenSkillset)
+                            end
                         else
                             ssr = score.ssr
                         end
@@ -385,6 +407,13 @@ local function createList()
                         else
                             txt:settext(score.songName)
                         end
+                        -- for recent scores, cut the width in half to make room for the date
+                        if chosenSkillset == "Recent" then
+                            txt:maxwidth(actuals.ItemSongNameWidth / 3 * 2 / nameTextSize - textzoomFudge)
+                        else
+                            txt:maxwidth(actuals.ItemSongNameWidth / nameTextSize - textzoomFudge)
+                        end
+
                         bg:zoomx(txt:GetZoomedWidth())
 
                         -- if mouse is currently hovering
@@ -422,6 +451,31 @@ local function createList()
                         self:diffusealpha(buttonHoverAlpha)
                     else
                         self:diffusealpha(1)
+                    end
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Date",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.ItemSongNameLeftGap + actuals.ItemSongNameWidth / 3 * 2)
+                    self:zoom(dateTextSize)
+                    self:maxwidth(actuals.ItemSongNameWidth / 3 / dateTextSize - textzoomFudge)
+                    self:settext("")
+                end,
+                SetScoreCommand = function(self)
+                    if score ~= nil then
+                        if chosenSkillset == "Recent" then
+                            self:diffusealpha(1)
+                            local d = score:GetDate()
+                            if d ~= nil then
+                                self:settext(d)
+                            else
+                                self:settext("")
+                            end
+                        else
+                            self:diffusealpha(0)
+                        end
                     end
                 end
             },
@@ -778,6 +832,33 @@ local function createList()
                 end,
                 UpdateLoginStatusCommand = function(self)
                     self:playcommand("Set")
+                end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "RecentScores",
+                InitCommand = function(self)
+                    self:halign(0):valign(1)
+                    self:x(actuals.AvatarLeftGap)
+                    self:y(actuals.Height - actuals.InfoUpperMargin)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+                    self:settext("View Recent Scores")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        self:GetParent():GetParent():playcommand("UpdateScores", {index = -1})
+                        self:GetParent():GetParent():playcommand("UpdateSelectedIndex")
+                        self:GetParent():GetParent():playcommand("UpdateList")
+                    end
                 end
             }
         }
