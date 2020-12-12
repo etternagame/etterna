@@ -175,6 +175,10 @@ function getComboColor(type)
 	return color(colorConfig:get_data().combo[type])
 end
 
+function byClearType(type)
+	return color(colorConfig:get_data().clearType[type])
+end
+
 -- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
 function offsetToJudgeColor(offset, scale)
 	local offset = math.abs(offset / 1000)
