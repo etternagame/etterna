@@ -684,6 +684,54 @@ local function createList()
             InitCommand = function(self)
                 framecopy = self
             end,
+            BeginCommand = function(self)
+                local snm = SCREENMAN:GetTopScreen():GetName()
+                local anm = self:GetName()
+                CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+
+                local selectPressed = false
+                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                    -- require context is set and the general box is set to this tab
+                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= 2 then 
+                        selectPressed = false
+                        return
+                    end
+
+                    if event.type == "InputEventType_FirstPress" then
+                        if event.button == "EffectUp" and localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
+                            if selectPressed then
+                                localrateIndex = clamp(localrateIndex+1, 1, #localrates)
+                                if localrateIndex > ratepage * ratecount then
+                                    ratepage = ratepage + 1
+                                end
+                            else
+                                local max = #localrtTable[localrates[localrateIndex]]
+                                local beforeindex = localscoreIndex
+                                localscoreIndex = clamp(localscoreIndex+1, 1, max)
+                            end
+                            self:GetParent():GetParent():playcommand("UpdateList")
+                        elseif event.button == "EffectDown" and localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
+                            if selectPressed then
+                                localrateIndex = clamp(localrateIndex-1, 1, #localrates)
+                                if localrateIndex < (ratepage-1) * ratecount + 1 then
+                                    ratepage = ratepage - 1
+                                end
+                            else
+                                local max = #localrtTable[localrates[localrateIndex]]
+                                local beforeindex = localscoreIndex
+                                localscoreIndex = clamp(localscoreIndex-1, 1, max)
+                            end
+                            self:GetParent():GetParent():playcommand("UpdateList")
+                        elseif event.button == "Select" then
+                            selectPressed = true
+                        end
+                    elseif event.type == "InputEventType_Release" then
+                        if event.button == "Select" then
+                            selectPressed = false
+                        end
+                    end
+                end)
+            end,
             UpdateScoresCommand = function(self)
                 maxratepage = 1
                 ratepage = 1

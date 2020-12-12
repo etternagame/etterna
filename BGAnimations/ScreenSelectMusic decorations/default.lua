@@ -6,7 +6,10 @@ t[#t+1] = LoadActor("wheel")
 
 t[#t+1] = Def.ActorFrame {
     Name = "RightFrame",
-    GeneralTabSetMessageCommand = function(self)
+    GeneralTabSetMessageCommand = function(self, params)
+        if params.tab ~= nil then
+            SCUFF.generaltab = params.tab
+        end
         if not rightFrameVisible then
             CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
             self:finishtweening()
