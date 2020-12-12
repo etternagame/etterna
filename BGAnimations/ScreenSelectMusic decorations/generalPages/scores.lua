@@ -1211,7 +1211,7 @@ local function createList()
     -- preferably the defaults are the first position
     -- the inner lists have to be length 2
     local choiceNames = {
-        {"Local", "Online"},
+        {"Show Online", "Show Local"},
         {"Top Scores", "All Scores"},
         {"Hide Invalid", "Show Invalid"},
         {"Current Rate", "All Rates"},
@@ -1266,12 +1266,12 @@ local function createList()
         end,
     }
 
-    -- which choices should only appear if logged in
+    -- which choices should only appear if in the online tab
     local choiceOnlineOnly = {
-        true,   -- local/online
+        false,   -- local/online
         true,   -- top/all scores
         true,   -- toggle invalid scores
-        false,  -- current/all rates
+        true,  -- current/all rates
     }
 
     local choiceTextSize = 0.8
@@ -1296,7 +1296,7 @@ local function createList()
                     txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                     txt:settext(choiceNames[i][nameIndex])
                     bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
-                    if choiceOnlineOnly[i] and not DLMAN:IsLoggedIn() then
+                    if choiceOnlineOnly[i] and isLocal then
                         self:diffusealpha(0)
                     else
                         self:diffusealpha(1)
@@ -1304,7 +1304,7 @@ local function createList()
                 end,
                 UpdateToggleStatusCommand = function(self)
                     -- for online only elements, hide if not online
-                    if choiceOnlineOnly[i] and not DLMAN:IsLoggedIn() then
+                    if choiceOnlineOnly[i] and isLocal then
                         self:diffusealpha(0)
                         return
                     else
