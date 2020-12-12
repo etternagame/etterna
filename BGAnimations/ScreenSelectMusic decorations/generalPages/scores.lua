@@ -1367,7 +1367,7 @@ local function createList()
                     txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                     txt:settext(choiceNames[i][nameIndex])
                     bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
-                    if choiceOnlineOnly[i] and isLocal then
+                    if choiceOnlineOnly[i] and isLocal or not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
                     else
                         self:diffusealpha(1)
@@ -1375,7 +1375,7 @@ local function createList()
                 end,
                 UpdateToggleStatusCommand = function(self)
                     -- for online only elements, hide if not online
-                    if choiceOnlineOnly[i] and isLocal then
+                    if choiceOnlineOnly[i] and isLocal or not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
                         return
                     else
