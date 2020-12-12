@@ -79,7 +79,7 @@ jobs:
           path: dxsdk
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.0
+        uses: microsoft/setup-msbuild@v1.0.2
 
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'Win32' }}
