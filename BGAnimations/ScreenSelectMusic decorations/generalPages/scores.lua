@@ -1377,7 +1377,7 @@ local function createList()
         true,  -- current/all rates
     }
 
-    local choiceTextSize = 0.8
+    local choiceTextSize = 0.7
 
     local function createChoices()
         local function createChoice(i)

@@ -129,7 +129,7 @@ local largelineTextSize = 0.8
 local smalllineTextSize = 0.6
 local skillsetTextSize = 0.7
 
-local choiceTextSize = 0.8
+local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
