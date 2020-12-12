@@ -1,5 +1,7 @@
-local sizing = Var("sizing")
+local sizing = Var("sizing") -- specify init sizing
 if sizing == nil then sizing = {} end
+local extraFeatures = Var("extraFeatures") -- toggle offset hovering and input events for highlighting
+if extraFeatures == nil then extraFeatures = false end
 --[[
     We are expecting the sizing table to be provided on file load.
     It should contain these attributes:
@@ -17,7 +19,7 @@ local maxOffset = 180
 local lineThickness = 2
 local lineAlpha = 0.2
 local textPadding = 5
-local textSize = 0.65
+local textSize = Var("textsize") or 0.65
 local instructionTextSize = 0.55
 
 local bgColor = color("0,0,0,0.8")
@@ -159,6 +161,7 @@ local t = Def.ActorFrame {
     Name = "OffsetPlotFile",
     InitCommand = function(self)
         local hid = false
+        if not extraFeatures then return end -- no extra features: dont add the hover
         self:SetUpdateFunction(function()
             local bg = self:GetChild("BG")
             if isOver(bg) then
@@ -216,6 +219,7 @@ local t = Def.ActorFrame {
         end)
     end,
     BeginCommand = function(self)
+        if not extraFeatures then return end -- no extra features: dont add the input highlight
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             if #highlightTable ~= 0 then
                 if event.type == "InputEventType_FirstPress" then
@@ -259,21 +263,23 @@ t[#t+1] = Def.Quad {
     end
 }
 
-t[#t+1] = Def.Quad {
-    Name = "MousePosition",
-    InitCommand = function(self)
-        self:valign(0)
-        self:diffuse(positionColor)
-        self:zoomx(lineThickness)
-        self:playcommand("UpdateSizing")
-        self:finishtweening()
-    end,
-    UpdateSizingCommand = function(self)
-        self:finishtweening()
-        self:smooth(resizeAnimationSeconds)
-        self:zoomy(sizing.Height)
-    end
-}
+if extraFeatures then
+    t[#t+1] = Def.Quad {
+        Name = "MousePosition",
+        InitCommand = function(self)
+            self:valign(0)
+            self:diffuse(positionColor)
+            self:zoomx(lineThickness)
+            self:playcommand("UpdateSizing")
+            self:finishtweening()
+        end,
+        UpdateSizingCommand = function(self)
+            self:finishtweening()
+            self:smooth(resizeAnimationSeconds)
+            self:zoomy(sizing.Height)
+        end
+    }
+end
 
 t[#t+1] = Def.Quad {
     Name = "CenterLine",
@@ -380,7 +386,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
     end,
     UpdateTextCommand = function(self)
         local cols = {}
-        if #highlightTable == 0 or highlightTable[highlightIndex] == nil then
+        if #highlightTable == 0 or highlightTable[highlightIndex] == nil or not extraFeatures then
             self:settext("")
         else
             for col, _ in pairs(highlightTable[highlightIndex]) do

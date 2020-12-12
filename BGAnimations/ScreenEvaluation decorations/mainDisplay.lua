@@ -1289,7 +1289,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider1UpperGap + actuals.DividerThickness)
         end
     },
-    LoadActorWithParams("../offsetplot.lua", {sizing = {Width = actuals.OffsetPlotWidth, Height = actuals.OffsetPlotHeight}}) .. {
+    LoadActorWithParams("../offsetplot.lua", {sizing = {Width = actuals.OffsetPlotWidth, Height = actuals.OffsetPlotHeight}, extraFeatures = true}) .. {
         InitCommand = function(self)
             self:xy(actuals.RightHalfLeftGap, actuals.OffsetPlotUpperGap)
         end,
@@ -1299,7 +1299,7 @@ t[#t+1] = Def.ActorFrame {
                     local offsets = params.score:GetOffsetVector()
                     -- for online offset vectors a 180 offset is a miss
                     for i, o in ipairs(offsets) do
-                        if o == 180 then
+                        if o >= 180 then
                             offsets[i] = 1000
                         end
                     end
