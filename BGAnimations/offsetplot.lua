@@ -456,7 +456,7 @@ t[#t+1] = Def.ActorMultiVertex {
         for i, offset in ipairs(offsets) do
             local x = fitX(timing[i], maxTime)
             local y = fitY(offset, maxOffset)
-            local column = tracks ~= nil and tracks[i] + 1 or nil
+            local column = tracks ~= nil and tracks[i] ~= nil and tracks[i] + 1 or nil
 
             local cappedY = math.max(maxOffset, (maxOffset) * timingScale)
             if y < 0 or y > sizing.Height then
