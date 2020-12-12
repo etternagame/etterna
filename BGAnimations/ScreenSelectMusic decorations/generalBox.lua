@@ -118,7 +118,8 @@ local function createChoices()
                     if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then
                         local n = tonumber(event.char)
                         if n == 0 then n = 10 end
-                        if n >= 1 and n <= #choiceNames and (n ~= selectedIndex or not focused) then
+                        -- n must be a valid option or we must not have focus on the general box (not in search for example)
+                        if n >= 1 and n <= #choiceNames or not focused then
                             selectedIndex = n
                             MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
                             self:GetParent():hurrytweening(0.5):playcommand("UpdateSelectedIndex")
