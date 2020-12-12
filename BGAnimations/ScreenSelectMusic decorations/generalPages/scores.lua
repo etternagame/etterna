@@ -632,13 +632,18 @@ local function createList()
                 end,
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
-                    self:diffusealpha(1)
+                    if index == localrateIndex then
+                        self:diffusealpha(0.6)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     localrateIndex = index
                     localscoreIndex = 1
-                    self:GetParent():GetParent():playcommand("UpdateList")
+                    -- [this] [rateframe] [localpage] [scorelist]
+                    self:GetParent():GetParent():GetParent():playcommand("UpdateList")
                 end,
                 UpdateListCommand = function(self)
                     index = i
@@ -650,10 +655,15 @@ local function createList()
                     if localrtTable[localrates[index]] ~= nil then
                         count = #localrtTable[localrates[index]]
                     end
+                    if index == localrateIndex then
+                        self:diffusealpha(0.6)
+                    else
+                        self:diffusealpha(1)
+                    end
                     if index <= #localrates then
                         self:settextf("%s (%d)", localrates[index], count)
                     else
-                        self:settext("?")
+                        self:settext("")
                     end
                 end
             }
@@ -769,6 +779,27 @@ local function createList()
                 self:halign(0):valign(0)
                 self:xy(actuals.SideBufferGap, actuals.IconSetUpperGap)
                 self:zoomto(actuals.PlaySize, actuals.IconHeight)
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    if localscore:HasReplayData() then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+                end
+            end,
+            MouseOverCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(buttonHoverAlpha)
+            end,
+            MouseOutCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(1)
+            end,
+            MouseDownCommand = function(self, params)
+                if self:IsInvisible() then return end
+                -- upload single score
             end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
@@ -777,6 +808,27 @@ local function createList()
                 self:halign(0):valign(0)
                 self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.IconSetSpacing, actuals.IconSetUpperGap)
                 self:zoomto(actuals.TrophySize, actuals.IconHeight)
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    if localscore:HasReplayData() then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+                end
+            end,
+            MouseOverCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(buttonHoverAlpha)
+            end,
+            MouseOutCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(1)
+            end,
+            MouseDownCommand = function(self, params)
+                if self:IsInvisible() then return end
+                -- upload single score
             end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
@@ -785,6 +837,27 @@ local function createList()
                 self:halign(0):valign(0)
                 self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.TrophySize + actuals.IconSetSpacing * 2, actuals.IconSetUpperGap)
                 self:zoomto(actuals.PlaySize, actuals.IconHeight)
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    if localscore:HasReplayData() then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+                end
+            end,
+            MouseOverCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(buttonHoverAlpha)
+            end,
+            MouseOutCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(1)
+            end,
+            MouseDownCommand = function(self, params)
+                if self:IsInvisible() then return end
+                -- upload single score
             end
         },
         LoadFont("Common Normal") .. {
@@ -798,11 +871,23 @@ local function createList()
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
-                    local ssr = localscore:GetSkillsetSSR("Overall")
+                    local ssrstr = string.format("%5.2f", localscore:GetSkillsetSSR("Overall"))
+                    local ssrcolr = byMSD(localscore:GetSkillsetSSR("Overall"))
                     local wife = localscore:GetWifeScore() * 100
-                    local wv = localscore:GetWifeVers()
-                    local j = table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2))
-                    self:settextf("%5.2f | %5.2f%% (Wife %d | Judge %d)", ssr, notShit.floor(wife, 2), wv, j)
+                    local wifecolr = byGrade(localscore:GetWifeGrade())
+                    local wv = "Wife "..localscore:GetWifeVers()
+                    local judge = 4
+					if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then
+						judge = table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2))
+					end
+					if not judge then judge = 4 end
+					if judge < 4 then judge = 4 end
+                    local js = judge ~= 9 and judge or "ustice"
+                    local perc = string.format("%5.2f%%", notShit.floor(wife, 2))
+                    self:ClearAttributes()
+                    self:settextf("%s | %s (%s | Judge %s)", ssrstr, perc, wv, js)
+                    self:AddAttribute(0, {Length = #ssrstr, Diffuse = ssrcolr})
+                    self:AddAttribute(#string.format("%s | ", ssrstr), {Length = #perc, Diffuse = wifecolr})
                 end
             end
         },
@@ -953,10 +1038,25 @@ local function createList()
         end,
         MouseScrollMessageCommand = function(self, params)
             if isOver(self) and focused then
-                if params.direction == "Up" then
-                    movePage(-1)
+                if isLocal then
+                    if localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
+                        local max = #localrtTable[localrates[localrateIndex]]
+                        local beforeindex = localscoreIndex
+                        if params.direction == "Up" then
+                            localscoreIndex = clamp(localscoreIndex-1, 1, max)
+                        else
+                            localscoreIndex = clamp(localscoreIndex+1, 1, max)
+                        end
+                        if localscoreIndex ~= beforeindex then
+                            self:GetParent():playcommand("UpdateList")
+                        end
+                    end
                 else
-                    movePage(1)
+                    if params.direction == "Up" then
+                        movePage(-1)
+                    else
+                        movePage(1)
+                    end
                 end
             end
         end
@@ -1011,15 +1111,24 @@ local function createList()
                 return
             end
 
-            local lb = (page-1) * (itemCount) + 1
-            if lb > #scores then
-                lb = #scores
+            if isLocal then
+                if localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
+                    local mx = #localrtTable[localrates[localrateIndex]]
+                    self:settextf("%d/%d", localscoreIndex, mx)
+                else
+                    self:settext("")
+                end
+            else
+                local lb = (page-1) * (itemCount) + 1
+                if lb > #scores then
+                    lb = #scores
+                end
+                local ub  = page * itemCount
+                if ub > #scores then
+                    ub = #scores
+                end
+                self:settextf("%d-%d/%d", lb, ub, #scores)
             end
-            local ub  = page * itemCount
-            if ub > #scores then
-                ub = #scores
-            end
-            self:settextf("%d-%d/%d", lb, ub, #scores)
         end
     }
 
