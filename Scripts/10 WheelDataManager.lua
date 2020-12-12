@@ -573,7 +573,6 @@ local function getClearStatsForGroup(group)
     local failed = false
     for _, song in ipairs(group) do
         local foundgrade = nil
-        -- probably need to replace this getter with something more filtered
         for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
 

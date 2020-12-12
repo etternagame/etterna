@@ -2,6 +2,7 @@
 -- manages the state of keyboard input contexts
 -- declare all specific context groups here
 -- provides toggles for contexts, etc
+-- .. at the end of the day input contexts are still hard and this makes like 1 thing easier
 CONTEXTMAN = {}
 
 --[[
