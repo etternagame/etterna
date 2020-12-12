@@ -1133,6 +1133,7 @@ local function createList()
                             columns = steps:GetNumColumns(),
                             rejudged = true,
                         })
+                        self:hurrytweening(0.2)
                     else
                         self:playcommand("LoadOffsets", {
                             offsetVector = {},
@@ -1144,6 +1145,7 @@ local function createList()
                             columns = steps:GetNumColumns(),
                             rejudged = true,
                         })
+                        self:hurrytweening(0.1)
                     end
                 end
             end
