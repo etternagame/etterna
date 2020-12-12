@@ -64,6 +64,40 @@ local ratios = {
     TrophySize = 21 / 1080, -- height and width of the icon
     PlaySize = 19 / 1080,
     IconHeight = 19 / 1080, -- uhhhhh
+
+    -- local page stuff
+    SideBufferGap = 12 / 1920, -- from edge of frame to left end of leftmost items, and rightmost of all rightmost items (ideally)
+    GradeUpperGap = 10 / 1080, -- from bottom of top lip to top of grade
+    ClearTypeUpperGap = 74 / 1080, -- bottom of top lip to top of cleartype
+    IconSetUpperGap = 109 / 1080, -- bottom of top lip to top of all icons under cleartype
+    IconSetSpacing = 6 / 1920, -- distance between icons
+
+    -- width of each of these is Width - DetailLineLeftGap - SideBufferGap*2
+    DetailLineLeftGap = 118 / 1920, -- left edge to left edge of text
+    DetailLine1TopGap = 12 / 1080, -- bottom of top lip to top of text
+    DetailLine2TopGap = 37 / 1080, -- bottom of top lip to top of text
+    DetailLine3TopGap = 62 / 1080, -- bottom of top lip to top of text
+    DetailLine4TopGap = 87 / 1080, -- bottom of top lip to top of text
+    DetailLine5TopGap = 112 / 1080, -- bottom of top lip to top of text
+
+    -- entries necessary for the copy-paste judgment bars from evaluation
+    JudgmentBarsTopGap = 145 / 1080, -- bottom of top lip to top of first judgment bar
+    JudgmentBarHeight = 22 / 1080,
+    JudgmentBarLength = 579 / 1920,
+    JudgmentBarSpacing = 4 / 1080,
+    JudgmentBarAllottedSpace = 129 / 1080,
+    JudgmentNameLeftGap = 21 / 1920,
+    JudgmentCountRightGap = 74 / 1920,
+
+    ScoreRateListTopGap = 145 / 1080, -- bottom of top lip to top of frame
+    ScoreRateListLeftGap = 664 / 1920, -- left edge to left edge of items
+    ScoreRateListTopBuffer = 29 / 1080, -- top of frame to top of first item (the top of frame holds the "up" button)
+    ScoreRateListAllottedSpace = 231 / 1080, -- top of top item to top of bottom item
+    ScoreRateListBottomTopGap = 289 / 1080, -- really bad name: top of frame to top of "down" button
+
+    MainGraphicWidth = 579 / 1920, -- width of judgment bars and offset plot
+    OffsetPlotHeight = 184 / 1080,
+    OffsetPlotUpperGap = 308 / 1080, -- bottom of top lip to top of graph
 }
 
 local actuals = {
@@ -85,6 +119,32 @@ local actuals = {
     TrophySize = ratios.TrophySize * SCREEN_HEIGHT,
     PlaySize = ratios.PlaySize * SCREEN_HEIGHT,
     IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
+    SideBufferGap = ratios.SideBufferGap * SCREEN_WIDTH,
+    GradeUpperGap = ratios.GradeUpperGap * SCREEN_HEIGHT,
+    ClearTypeUpperGap = ratios.ClearTypeUpperGap * SCREEN_HEIGHT,
+    IconSetUpperGap = ratios.IconSetUpperGap * SCREEN_HEIGHT,
+    IconSetSpacing = ratios.IconSetSpacing * SCREEN_WIDTH,
+    DetailLineLeftGap = ratios.DetailLineLeftGap * SCREEN_WIDTH,
+    DetailLine1TopGap = ratios.DetailLine1TopGap * SCREEN_HEIGHT,
+    DetailLine2TopGap = ratios.DetailLine2TopGap * SCREEN_HEIGHT,
+    DetailLine3TopGap = ratios.DetailLine3TopGap * SCREEN_HEIGHT,
+    DetailLine4TopGap = ratios.DetailLine4TopGap * SCREEN_HEIGHT,
+    DetailLine5TopGap = ratios.DetailLine5TopGap * SCREEN_HEIGHT,
+    JudgmentBarsTopGap = ratios.JudgmentBarsTopGap * SCREEN_HEIGHT,
+    JudgmentBarHeight = ratios.JudgmentBarHeight * SCREEN_HEIGHT,
+    JudgmentBarLength = ratios.JudgmentBarLength * SCREEN_WIDTH,
+    JudgmentBarSpacing = ratios.JudgmentBarSpacing * SCREEN_HEIGHT,
+    JudgmentBarAllottedSpace = ratios.JudgmentBarAllottedSpace * SCREEN_HEIGHT,
+    JudgmentNameLeftGap = ratios.JudgmentNameLeftGap * SCREEN_WIDTH,
+    JudgmentCountRightGap = ratios.JudgmentCountRightGap * SCREEN_WIDTH,
+    ScoreRateListTopGap = ratios.ScoreRateListTopGap * SCREEN_HEIGHT,
+    ScoreRateListLeftGap = ratios.ScoreRateListLeftGap * SCREEN_WIDTH,
+    ScoreRateListTopBuffer = ratios.ScoreRateListTopBuffer * SCREEN_HEIGHT,
+    ScoreRateListAllottedSpace = ratios.ScoreRateListAllottedSpace * SCREEN_HEIGHT,
+    ScoreRateListBottomTopGap = ratios.ScoreRateListBottomTopGap * SCREEN_HEIGHT,
+    MainGraphicWidth = ratios.MainGraphicWidth * SCREEN_WIDTH,
+    OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
+    OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
 }
 
 -- scoping magic
@@ -112,11 +172,6 @@ t[#t+1] = Def.Quad {
 
 -- online and offline (default is offline)
 local isLocal = true
--- current rate or not (default is current rate)
--- this is NOT the variable that controls the online scores
--- if isLocal is false, defer to allRates = not DLMAN:GetCurrentRateFilter()
--- but do not replace the variable
-local allRates = false
 -- all scores or top scores (online only)
 -- dont have to modify this var with direct values, call DLMAN to update it
 local allScores = not DLMAN:GetTopScoresOnlyFilter()
@@ -141,7 +196,7 @@ local buttonHoverAlpha = 0.6
 
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
-function createList()
+local function createList()
     local page = 1
     local maxPage = 1
     local scorelistframe = nil
@@ -190,33 +245,10 @@ function createList()
                 return
             end
 
+            -- local scoreboard is somewhere else
             if isLocal then
-                local scoresByRate = getRateTable(getScoresByKey(PLAYER_1))
-                if scoresByRate == nil then
-                    scores = {}
-                    return
-                end
-
-                if allRates then
-                    -- place every single score for the file into a table
-                    scores = {}
-                    for _, scoresAtRate in pairs(scoresByRate) do
-                        for __, s in pairs(scoresAtRate) do
-                            scores[#scores + 1] = s
-                        end
-                    end
-                    -- sort it by Overall SSR
-                    table.sort(scores, 
-                    function(a,b)
-                        return a:GetSkillsetSSR("Overall") > b:GetSkillsetSSR("Overall")
-                    end)
-                else
-                    -- place only the scores for this rate into a table
-                    -- it is already sorted by percent
-                    -- the first half of this returns nil sometimes
-                    -- particularly for scores that dont actually exist in your profile, like online replays
-                    scores = scoresByRate[getRateDisplayString2(getCurRateString())] or {}
-                end
+                scores = {}
+                return
             else
                 -- operate with dlman scores
                 -- ... everything here is determined by internal bools set by the toggle buttons
@@ -275,7 +307,7 @@ function createList()
         end,
         ToggleCurrentRateCommand = function(self)
             if isLocal then
-                allRates = not allRates
+                -- the local scoreboard is sorted by rate always
             else
                 DLMAN:ToggleRateFilter()
             end
@@ -398,9 +430,7 @@ function createList()
                     if score ~= nil then
                         local n = score:GetName()
                         if n == "" then
-                            if isLocal then
-                                n = "You"
-                            end
+                            n = "<No Name>"
                         elseif n == "#P1#" then
                             if score:GetScoreKey() == mostRecentScore:GetScoreKey() then
                                 n = "Last Score"
@@ -485,27 +515,20 @@ function createList()
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    if isLocal then
-                        local success = SCREENMAN:GetTopScreen():PlayReplay(score)
-                        if success then
-                            SCREENMAN:set_input_redirected(PLAYER_1, false)
-                        end
-                    else
-                        local sng = GAMESTATE:GetCurrentSteps(PLAYER_1)
-                        DLMAN:RequestOnlineScoreReplayData(
-							score,
-                            function()
-                                local scr = SCREENMAN:GetTopScreen()
-                                local sng2 = GAMESTATE:GetCurrentSteps(PLAYER_1)
-                                if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
-                                    local success = SCREENMAN:GetTopScreen():PlayReplay(score)
-                                    if success then
-                                        SCREENMAN:set_input_redirected(PLAYER_1, false)
-                                    end
+                    local sng = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                    DLMAN:RequestOnlineScoreReplayData(
+                        score,
+                        function()
+                            local scr = SCREENMAN:GetTopScreen()
+                            local sng2 = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                            if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
+                                local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                                if success then
+                                    SCREENMAN:set_input_redirected(PLAYER_1, false)
                                 end
-							end
-						)
-                    end
+                            end
+                        end
+                    )
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -518,6 +541,7 @@ function createList()
                     self:diffusealpha(1)
                 end
             },
+            --[[ -- can't view online eval screens
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
                 Name = "ShowEval",
                 InitCommand = function(self)
@@ -527,8 +551,7 @@ function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        -- can't view online eval screens
-                        if score:HasReplayData() and isLocal then
+                        if score:HasReplayData() then
                             self:diffusealpha(1)
                         else
                             self:diffusealpha(0)
@@ -553,13 +576,129 @@ function createList()
 
                     self:diffusealpha(1)
                 end
-            },
+            },]]
         }
     end
+
+
+    local function localRateFrame()
+
+        local function rateItem(i)
+            return UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "RateButton_"..i,
+            }
+        end
+
+        local t = Def.ActorFrame {
+            Name = "RateFrame",
+        }
+
+        return t
+    end
+
+
+
 
     for i = 1, itemCount do
         t[#t+1] = createItem(i)
     end
+
+    -- we have placed the local page into its own frame for management of everything quickly
+    -- when local, this is visible
+    -- when online, this is not visible (and the score list should show up)
+    -- etc
+    t[#t+1] = Def.ActorFrame {
+        Name = "LocalScorePageFrame",
+        InitCommand = function(self)
+        end,
+
+        LoadFont("Common Normal") .. {
+            Name = "Grade",
+        },
+        LoadFont("Common Normal") .. {
+            Name = "ClearType",
+        },
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "upload")) .. {
+            Name = "UploadButton",
+        },
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
+            Name = "ShowEval",
+        },
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
+            Name = "ShowReplay",
+        },
+        LoadFont("Common Normal") .. {
+            Name = "SSRPercentWVJudge",
+        },
+        LoadFont("Common Normal") .. {
+            Name = "MissCount",
+        },
+        LoadFont("Common Normal") .. {
+            Name = "MaxCombo",
+        },
+        LoadFont("Common Normal") .. {
+            Name = "DateAchieved",
+        },
+        LoadFont("Common Normal") .. {
+            Name = "Mods",
+        },
+        localRateFrame(),
+        LoadActorWithParams("../../judgmentBars.lua", {
+            sizing = {
+                JudgmentBarHeight = actuals.JudgmentBarHeight,
+                JudgmentBarLength = actuals.JudgmentBarLength,
+                JudgmentBarSpacing = actuals.JudgmentBarSpacing,
+                JudgmentBarAllottedSpace = actuals.JudgmentBarAllottedSpace,
+                JudgmentNameLeftGap = actuals.JudgmentNameLeftGap,
+                JudgmentCountRightGap = actuals.JudgmentCountRightGap,
+            },
+            textSizeMultiplier = 0.6
+        }) .. {
+            InitCommand = function(self)
+                self:xy(actuals.SideBufferGap, actuals.JudgmentBarsTopGap)
+            end
+        },
+        LoadActorWithParams("../../offsetplot.lua", {sizing = {Width = actuals.MainGraphicWidth, Height = actuals.OffsetPlotHeight}, textsize = 0.43}) .. {
+            InitCommand = function(self)
+                self:xy(actuals.SideBufferGap, actuals.OffsetPlotUpperGap)
+            end,
+            SetCommand = function(self, params)
+                if true then return end
+                if params.score ~= nil and params.steps ~= nil then
+                    if params.score:HasReplayData() then
+                        local offsets = params.score:GetOffsetVector()
+                        -- for online offset vectors a 180 offset is a miss
+                        for i, o in ipairs(offsets) do
+                            if o >= 180 then
+                                offsets[i] = 1000
+                            end
+                        end
+                        local tracks = params.score:GetTrackVector()
+                        local types = params.score:GetTapNoteTypeVector()
+                        local noterows = params.score:GetNoteRowVector()
+                        local timing = {}
+                        local timingdata = params.steps:GetTimingData()
+                        for i, row in ipairs(noterows) do
+                            timing[i] = timingdata:GetElapsedTimeFromNoteRow(row)
+                        end
+                        local lastSecond = params.steps:GetLastSecond()
+    
+                        self:playcommand("LoadOffsets", {
+                            offsetVector = offsets,
+                            trackVector = tracks,
+                            timingVector = timing,
+                            typeVector = types,
+                            maxTime = lastSecond,
+                            judgeSetting = params.judgeSetting,
+                            columns = params.steps:GetNumColumns(),
+                            rejudged = params.rejudged,
+                        })
+                    end
+                end
+            end
+        }
+    }
+
 
     t[#t+1] = Def.Quad {
         Name = "MouseWheelRegion",
@@ -593,13 +732,7 @@ function createList()
             local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
             
             if isLocal then
-                if scores ~= nil and #scores == 0 then
-                    self:diffusealpha(1)
-                    self:settext("No local scores recorded")
-                else
-                    self:diffusealpha(0)
-                    self:settext("")
-                end
+                self:settext("")
                 return
             end
 
@@ -677,7 +810,7 @@ function createList()
         end,
 
         function() -- current/all rates
-            return (not allRates and isLocal) or (DLMAN:GetCurrentRateFilter() and not isLocal)
+            return (DLMAN:GetCurrentRateFilter() and not isLocal)
         end,
     }
 

@@ -3,6 +3,7 @@
 -- requires sizing to be provided on init as tables
 local sizing = Var("sizing")
 if sizing == nil then sizing = {} end
+local textSizeMultiplier = Var("textSizeMultiplier") or 1
 
 -- list of judgments to display the bar/counts for
 local judgmentsChosen = {
@@ -14,9 +15,9 @@ local judgmentsChosen = {
     "TapNoteScore_Miss", -- miss
 }
 
-local judgmentTextZoom = 0.6
-local judgmentCountZoom = 0.6
-local judgmentPercentZoom = 0.3
+local judgmentTextZoom = 0.6 * textSizeMultiplier
+local judgmentCountZoom = 0.6 * textSizeMultiplier
+local judgmentPercentZoom = 0.3 * textSizeMultiplier
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
 
 local textzoomFudge = 5
