@@ -93,7 +93,7 @@ t[#t+1] = Def.ActorFrame {
         local selectPressed = false
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             -- require context is set and the general box is set to anything but the Scores tab
-            if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab == 2 then 
+            if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab == SCUFF.scoretabindex then 
                 selectPressed = false
                 return
             end

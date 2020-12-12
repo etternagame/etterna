@@ -29,7 +29,7 @@ local t = Def.ActorFrame {
     end,
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
-            if params.tab == 1 then
+            if params.tab == SCUFF.generaltabindex then
                 self:z(2)
                 self:smooth(0.2)
                 self:diffusealpha(1)

@@ -5,3 +5,7 @@
 SCUFF = {}
 
 SCUFF.generaltab = 1
+
+SCUFF.generaltabindex = 1
+SCUFF.scoretabindex = 2
+SCUFF.profiletabindex = 3

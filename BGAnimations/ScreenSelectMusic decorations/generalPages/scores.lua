@@ -12,7 +12,7 @@ local t = Def.ActorFrame {
     end,
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
-            if params.tab == 2 then
+            if params.tab == SCUFF.scoretabindex then
                 self:z(2)
                 self:smooth(0.2)
                 self:diffusealpha(1)
@@ -219,9 +219,6 @@ local clearTypeTextSize = 1.15
 local detailTextSize = 0.75
 local rateTextSize = 0.65
 
--- for use in association with SCUFFMAN to drive some of the input context stuff
-local scoretabindex = 2
-
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
 local function createList()
@@ -276,7 +273,7 @@ local function createList()
             if not isLocal then
                 SCUFF.generaltab = -1
             else
-                SCUFF.generaltab = scoretabindex
+                SCUFF.generaltab = SCUFF.scoretabindex
             end
             -- end hack
             page = 1
@@ -732,7 +729,7 @@ local function createList()
                 local selectPressed = false
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- require context is set and the general box is set to this tab
-                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= scoretabindex then 
+                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= SCUFF.scoretabindex then 
                         selectPressed = false
                         return
                     end

@@ -34,10 +34,10 @@ local actuals = {
 local choiceNames = {
     "General",
     "Scores",
-    "Tags",
+    "Profile",
     "Goals",
     "Playlists",
-    "Profile",
+    "Tags",
 }
 
 local choiceTextSize = 0.8
@@ -170,16 +170,16 @@ t[#t+1] = Def.ActorFrame {
     LoadActorWithParams("generalPages/general.lua", {ratios = ratios, actuals = actuals}) .. {
         BeginCommand = function(self)
             -- this will cause the tab to become visible
-            self:playcommand("GeneralTabSet", {tab = 1})
+            self:playcommand("GeneralTabSet", {tab = SCUFF.generaltabindex})
             -- skip animation
             self:finishtweening()
         end
     },
     LoadActorWithParams("generalPages/scores.lua", {ratios = ratios, actuals = actuals}),
-    -- tags,
+    LoadActorWithParams("generalPages/profile.lua", {ratios = ratios, actuals = actuals}),
     -- goals,
     -- playlists,
-    LoadActorWithParams("generalPages/profile.lua", {ratios = ratios, actuals = actuals}),
+    -- tags,
 }
 
 return t
