@@ -7,7 +7,7 @@ t[#t+1] = LoadActor("wheel")
 t[#t+1] = Def.ActorFrame {
     Name = "RightFrame",
     GeneralTabSetMessageCommand = function(self, params)
-        if params.tab ~= nil then
+        if params ~= nil and params.tab ~= nil then
             SCUFF.generaltab = params.tab
         end
         if not rightFrameVisible then
