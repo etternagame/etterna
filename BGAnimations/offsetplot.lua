@@ -446,6 +446,7 @@ t[#t+1] = Def.ActorMultiVertex {
 
         if offsets == nil or #offsets == 0 then
             self:SetVertices(vertices)
+            self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
             return
         end
 
