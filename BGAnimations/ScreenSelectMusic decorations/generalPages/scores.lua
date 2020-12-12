@@ -48,6 +48,7 @@ local mostRecentScore = SCOREMAN:GetMostRecentScore()
 
 local ratios = {
     UpperLipHeight = 43 / 1080,
+    LipSeparatorThickness = 2 / 1080,
     ItemUpperSpacing = 68 / 1080, -- top of frame to top of text, to push all the items down
 
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
@@ -110,6 +111,7 @@ local ratios = {
 
 local actuals = {
     UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
+    LipSeparatorThickness = ratios.LipSeparatorThickness * SCREEN_HEIGHT,
     ItemUpperSpacing = ratios.ItemUpperSpacing * SCREEN_HEIGHT,
     PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
     PageTextUpperGap = ratios.PageTextUpperGap * SCREEN_HEIGHT,
@@ -176,6 +178,15 @@ t[#t+1] = Def.Quad {
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
         self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+    end
+}
+
+t[#t+1] = Def.Quad {
+    Name = "LipTop",
+    InitCommand = function(self)
+        self:halign(0)
+        self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
+        self:diffuse(color(".4,.4,.4,.7"))
     end
 }
 

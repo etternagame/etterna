@@ -24,6 +24,7 @@ local t = Def.ActorFrame {
 
 local ratios = {
     UpperLipHeight = 43 / 1080, -- frame edge to lip edge
+    LipSeparatorThickness = 2 / 1080,
 
     MainIndicatorLeftGap = 12 / 1920, -- left edge to left edge of text, this is the online/local thing
     MainIndicatorUpperGap = 52 / 1080,
@@ -60,6 +61,7 @@ local ratios = {
 
 local actuals = {
     UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
+    LipSeparatorThickness = ratios.LipSeparatorThickness * SCREEN_HEIGHT,
     MainIndicatorLeftGap = ratios.MainIndicatorLeftGap * SCREEN_WIDTH,
     MainIndicatorUpperGap = ratios.MainIndicatorUpperGap * SCREEN_HEIGHT,
     ItemIndexMargin = ratios.ItemIndexMargin * SCREEN_WIDTH,
@@ -922,6 +924,15 @@ t[#t+1] = Def.Quad {
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
         self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+    end
+}
+
+t[#t+1] = Def.Quad {
+    Name = "LipTop",
+    InitCommand = function(self)
+        self:halign(0)
+        self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
+        self:diffuse(color(".4,.4,.4,.7"))
     end
 }
 
