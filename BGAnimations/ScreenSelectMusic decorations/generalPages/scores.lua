@@ -8,8 +8,7 @@ local t = Def.ActorFrame {
     WheelSettledMessageCommand = function(self, params)
         -- cascade visual update to everything
         -- self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
-        self:playcommand("UpdateScores")
-        self:playcommand("UpdateList")
+        self:playcommand("UpdateDisplay")
     end,
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
@@ -18,6 +17,7 @@ local t = Def.ActorFrame {
                 self:smooth(0.2)
                 self:diffusealpha(1)
                 focused = true
+                self:playcommand("UpdateDisplay")
             else
                 self:z(-1)
                 self:smooth(0.2)
@@ -27,10 +27,12 @@ local t = Def.ActorFrame {
         end
     end,
     CurrentRateChangedMessageCommand = function(self)
-        self:playcommand("UpdateScores")
-        self:playcommand("UpdateList")
+        self:playcommand("UpdateDisplay")
     end,
     ChangedStepsMessageCommand = function(self, params)
+        self:playcommand("UpdateDisplay")
+    end,
+    UpdateDisplayCommand = function(self)
         self:playcommand("UpdateScores")
         self:playcommand("UpdateList")
     end
@@ -249,6 +251,7 @@ local function createList()
             scorelistframe = self
         end,
         UpdateScoresCommand = function(self)
+            if self:IsInvisible() then return end
             page = 1
             -- no steps, no scores.
             local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
@@ -309,6 +312,8 @@ local function createList()
             end
         end,
         UpdateListCommand = function(self)
+            if self:IsInvisible() then return end
+
             -- local logic
             if isLocal then
                 if localrtTable ~= nil and localrates ~= nil and localrates[localrateIndex] ~= nil and localrtTable[localrates[localrateIndex]] ~= nil then
