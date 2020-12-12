@@ -564,15 +564,17 @@ end
 -- does NOT consider rates
 local function getClearStatsForGroup(group)
     local out = {
-        lamp = nil, -- starting at nil, this lamp may be any Grade_TierXX (consider midgrades)
-        clearPerGrade = {}, -- count of SONGS CLEARED per grade
+        lamp = nil, -- starting at nil, this lamp may be any Grade_TierXX. if Grade_Tier20, it is simply a Clear lamp
+        clearPerGrade = {}, -- count of SONGS CLEARED per grade (the highest common grade for each song)
         totalScores = 0, -- count of SCORES in the whole group
     }
 
     local maxlamp = "Grade_Tier01"
-    local failed = false
+    local failed = false -- met the condition to have no grade lamp, but may have a Clear lamp
     for _, song in ipairs(group) do
-        local foundgrade = nil
+        local foundgrade = nil -- highest grade of at least rate 1.0
+        local foundgradeUnder1 = nil -- highest grade under 1.0
+        local highestrateclear = 0 -- highest rate for this song where player obtained C or better
         for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
 
@@ -585,11 +587,29 @@ local function getClearStatsForGroup(group)
                     for ____, s in ipairs(scoresatrate) do
                         out.totalScores = out.totalScores + 1
                         local grade = s:GetWifeGrade()
-                        if foundgrade == nil then
-                            foundgrade = grade
-                        else
-                            if compareGrades(grade, foundgrade) then
-                                foundgrade = grade
+                        local rate = s:GetMusicRate()
+                        -- check if this grade is at least a C
+                        local gradepasses = compareGrades(grade, "Grade_Tier16")
+                        if gradepasses then
+                            if rate > highestrateclear then highestrateclear = rate end
+                            if rate >= 1 then
+                                if foundgrade == nil then
+                                    foundgrade = grade
+                                else
+                                    -- this returns true if score grade is higher than foundgrade
+                                    -- (looking for highest grade in this file)
+                                    if compareGrades(grade, foundgrade) then
+                                        foundgrade = grade
+                                    end
+                                end
+                            else
+                                if foundgradeUnder1 == nil then
+                                    foundgradeUnder1 = grade
+                                else
+                                    if compareGrades(grade, foundgradeUnder1) then
+                                        foundgradeUnder1 = grade
+                                    end
+                                end
                             end
                         end
                     end
@@ -597,14 +617,31 @@ local function getClearStatsForGroup(group)
             end
         end
 
-        -- no scores found on an entire song means no clear lamp is possible
+        -- no passing (C+) scores found on an entire song means no lamp is possible
         if foundgrade == nil then
-            maxlamp = nil
-            failed = true
-        else
-            if not failed and compareGrades(maxlamp, foundgrade) then
-                maxlamp = foundgrade
+            if foundgradeUnder1 == nil then
+                maxlamp = nil
+                failed = true
+            else
+                maxlamp = "Grade_Tier20"
+                -- count the number of Cleared songs (doesnt matter what grade)
+                if out.clearPerGrade[maxlamp] ~= nil then
+                    out.clearPerGrade[maxlamp] = out.clearPerGrade[maxlamp] + 1
+                else
+                    out.clearPerGrade[maxlamp] = 1
+                end
             end
+        else
+            -- check if we found a new lowest common max grade
+            if not failed then
+                if highestrateclear < 1 then
+                    maxlamp = "Grade_Tier20"
+                    failed = true
+                elseif compareGrades(maxlamp, foundgrade) then
+                    maxlamp = foundgrade
+                end
+            end
+            -- count the number of songs per grade (1 song may be assigned 1 grade)
             if out.clearPerGrade[foundgrade] ~= nil then
                 out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
             else

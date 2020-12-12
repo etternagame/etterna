@@ -453,8 +453,14 @@ local function groupActorBuilder()
             UpdateTextCommand = function(self)
                 local lstr = ""
                 if self.lamp ~= nil then
-                    lstr = THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
-                    self:diffuse(byGrade(self.lamp))
+                    if self.lamp ~= "Grade_Tier20" then
+                        lstr = THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
+                        self:diffuse(byGrade(self.lamp))
+                    else
+                        lstr = "Clear"
+                        -- color for a clear
+                        self:diffuse(byClearType("Clear"))
+                    end
                 end
                 self:settext(lstr)
             end
