@@ -193,6 +193,10 @@ local textzoomFudge = 5
 
 local buttonHoverAlpha = 0.6
 
+local gradeTextSize = 2.2
+local clearTypeTextSize = 1.15
+local detailTextSize = 0.75
+local rateTextSize = 0.75
 
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
@@ -610,39 +614,108 @@ local function createList()
     t[#t+1] = Def.ActorFrame {
         Name = "LocalScorePageFrame",
         InitCommand = function(self)
+            self:y(actuals.UpperLipHeight)
         end,
 
         LoadFont("Common Normal") .. {
             Name = "Grade",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap, actuals.GradeUpperGap)
+                self:zoom(gradeTextSize)
+                self:maxwidth((actuals.DetailLineLeftGap - actuals.SideBufferGap) / gradeTextSize - textzoomFudge)
+                self:settext("QQQQQ")
+            end
         },
         LoadFont("Common Normal") .. {
             Name = "ClearType",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap, actuals.ClearTypeUpperGap)
+                self:zoom(clearTypeTextSize)
+                self:maxwidth((actuals.DetailLineLeftGap - actuals.SideBufferGap) / clearTypeTextSize - textzoomFudge)
+                self:settext("CT")
+            end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "upload")) .. {
             Name = "UploadButton",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap, actuals.IconSetUpperGap)
+                self:zoomto(actuals.PlaySize, actuals.IconHeight)
+            end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
             Name = "ShowEval",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.IconSetSpacing, actuals.IconSetUpperGap)
+                self:zoomto(actuals.TrophySize, actuals.IconHeight)
+            end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
             Name = "ShowReplay",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.TrophySize + actuals.IconSetSpacing * 2, actuals.IconSetUpperGap)
+                self:zoomto(actuals.PlaySize, actuals.IconHeight)
+            end
         },
         LoadFont("Common Normal") .. {
             Name = "SSRPercentWVJudge",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.DetailLineLeftGap, actuals.DetailLine1TopGap)
+                self:zoom(detailTextSize)
+                self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
+                self:settext("11.11 | 11.11% (Wife 0 | Judge 0)")
+            end
         },
         LoadFont("Common Normal") .. {
             Name = "MissCount",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.DetailLineLeftGap, actuals.DetailLine2TopGap)
+                self:zoom(detailTextSize)
+                self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
+                self:settext("Miss Count: 999")
+            end
         },
         LoadFont("Common Normal") .. {
             Name = "MaxCombo",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.DetailLineLeftGap, actuals.DetailLine3TopGap)
+                self:zoom(detailTextSize)
+                self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
+                self:settext("Max Combo: 9999")
+            end
         },
         LoadFont("Common Normal") .. {
             Name = "DateAchieved",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.DetailLineLeftGap, actuals.DetailLine4TopGap)
+                self:zoom(detailTextSize)
+                self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
+                self:settext("Date Achieved: 9999-88-77 66:55:44")
+            end
         },
         LoadFont("Common Normal") .. {
             Name = "Mods",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.DetailLineLeftGap, actuals.DetailLine5TopGap)
+                self:zoom(detailTextSize)
+                self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
+                self:settext("Mods: C1111, 11, 111111, 11111111, 111111111111, 11111111111, 111111, 11111111, 11, 11111")
+            end
         },
-        localRateFrame(),
+        localRateFrame() .. {
+            InitCommand = function(self)
+                self:xy(actuals.ScoreRateListLeftGap, actuals.ScoreRateListTopGap)
+            end
+        },
         LoadActorWithParams("../../judgmentBars.lua", {
             sizing = {
                 JudgmentBarHeight = actuals.JudgmentBarHeight,
