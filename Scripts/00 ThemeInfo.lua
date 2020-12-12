@@ -1,7 +1,7 @@
 THEMEINFO = {
 	Name = "Rebirth",
 	Version = "1",
-	Date = "20201111"
+	Date = "20201212"
 }
 
 function getThemeName()
