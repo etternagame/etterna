@@ -613,6 +613,16 @@ local function createList()
 
     local function localRateFrame()
         local ratecount = 9 -- really just how many items we want spots for
+        local ratepage = 1
+        local maxratepage = 1
+        local framecopy = nil
+
+        local function moveRatePage(n)
+            ratepage = clamp(ratepage + n, 1, maxratepage)
+            if framecopy ~= nil then
+                framecopy:GetParent():playcommand("UpdateList")
+            end
+        end
 
         local function rateItem(i)
             local index = i
@@ -624,7 +634,7 @@ local function createList()
                     self:y(actuals.ScoreRateListTopBuffer + actuals.ScoreRateListAllottedSpace / ratecount * (i-1))
                     self:zoom(rateTextSize)
                     self:maxwidth(actuals.ScoreRateListWidth / rateTextSize - textzoomFudge)
-                    self:settext("-")
+                    self:settext("")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -646,7 +656,7 @@ local function createList()
                     self:GetParent():GetParent():GetParent():playcommand("UpdateList")
                 end,
                 UpdateListCommand = function(self)
-                    index = i
+                    index = i + ((ratepage-1) * ratecount)
                     local count = 0
                     if localrtTable == nil then
                         self:settext("")
@@ -671,12 +681,38 @@ local function createList()
 
         local t = Def.ActorFrame {
             Name = "RateFrame",
+            InitCommand = function(self)
+                framecopy = self
+            end,
+            UpdateScoresCommand = function(self)
+                maxratepage = 1
+                ratepage = 1
+            end,
+            UpdateListCommand = function(self)
+                if localrtTable ~= nil and localrates ~= nil then
+                    maxratepage = math.ceil(#localrates / ratecount)
+                else
+                    maxratepage = 1
+                end
+            end,
+
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "PageUp",
                 InitCommand = function(self)
                     self:valign(0)
                     self:xy(actuals.ScoreRateListWidth / 2, 0)
                     self:settext("^")
+                end,
+                UpdateListCommand = function(self)
+                    if ratepage-1 < 1 or maxratepage == 1 then
+                        self:diffusealpha(0)
+                    else
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -687,6 +723,7 @@ local function createList()
                     self:diffusealpha(1)
                 end,
                 MouseDownCommand = function(self, params)
+                    moveRatePage(-1)
                 end
             },
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
@@ -697,6 +734,17 @@ local function createList()
                     self:rotationz(180)
                     self:settext("^")
                 end,
+                UpdateListCommand = function(self)
+                    if ratepage+1 > maxratepage or maxratepage == 1 then
+                        self:diffusealpha(0)
+                    else
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+                end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
                     self:diffusealpha(buttonHoverAlpha)
@@ -706,6 +754,7 @@ local function createList()
                     self:diffusealpha(1)
                 end,
                 MouseDownCommand = function(self, params)
+                    moveRatePage(1)
                 end
             }
         }
@@ -782,7 +831,7 @@ local function createList()
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
-                    if localscore:HasReplayData() then
+                    if localscore:HasReplayData() and DLMAN:IsLoggedIn() then
                         self:diffusealpha(1)
                     else
                         self:diffusealpha(0)
@@ -799,7 +848,11 @@ local function createList()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
-                -- upload single score
+                if localscore ~= nil and localscore:HasReplayData() then
+                    DLMAN:SendReplayDataForOldScore(localscore:GetScoreKey())
+                    local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                    ms.ok(string.format("Uploading Score (chart %s key %s)", steps:GetChartKey(), localscore:GetScoreKey()))
+                end
             end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showEval")) .. {
@@ -828,7 +881,12 @@ local function createList()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
-                -- upload single score
+                if localscore ~= nil and localscore:HasReplayData() then
+                    local success = SCREENMAN:GetTopScreen():ShowEvalScreenForScore(localscore)
+                    if success then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    end
+                end
             end
         },
         UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
@@ -857,7 +915,12 @@ local function createList()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
-                -- upload single score
+                if localscore ~= nil and localscore:HasReplayData() then
+                    local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                    if success then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    end
+                end
             end
         },
         LoadFont("Common Normal") .. {
@@ -1019,6 +1082,17 @@ local function createList()
                             typeVector = types,
                             maxTime = lastSecond,
                             judgeSetting = judgeSetting,
+                            columns = steps:GetNumColumns(),
+                            rejudged = true,
+                        })
+                    else
+                        self:playcommand("LoadOffsets", {
+                            offsetVector = {},
+                            trackVector = {},
+                            timingVector = {},
+                            typeVector = {},
+                            maxTime = 1,
+                            judgeSetting = 4,
                             columns = steps:GetNumColumns(),
                             rejudged = true,
                         })
