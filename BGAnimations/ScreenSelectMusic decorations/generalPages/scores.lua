@@ -564,13 +564,14 @@ local function createList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-
                     self:diffusealpha(buttonHoverAlpha)
+                    TOOLTIP:SetText("Show Replay")
+                    TOOLTIP:Show()
                 end,
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
-
                     self:diffusealpha(1)
+                    TOOLTIP:Hide()
                 end
             },
             --[[ -- can't view online eval screens
@@ -895,10 +896,13 @@ local function createList()
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
+                TOOLTIP:SetText("Upload Score")
+                TOOLTIP:Show()
             end,
             MouseOutCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -928,10 +932,13 @@ local function createList()
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
+                TOOLTIP:SetText("Show Evaluation")
+                TOOLTIP:Show()
             end,
             MouseOutCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -962,10 +969,13 @@ local function createList()
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
+                TOOLTIP:SetText("Show Replay")
+                TOOLTIP:Show()
             end,
             MouseOutCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
