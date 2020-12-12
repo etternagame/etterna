@@ -181,6 +181,7 @@ local allScores = not DLMAN:GetTopScoresOnlyFilter()
 -- how many to display
 local itemCount = 7
 local scoreListAnimationSeconds = 0.05
+local localPageAnimationSeconds = 0.1
 
 local itemIndexSize = 0.95
 local ssrTextSize = 0.9
@@ -831,8 +832,12 @@ local function createList()
         end,
         UpdateListCommand = function(self)
             if localscore ~= nil then
+                self:finishtweening()
+                self:smooth(localPageAnimationSeconds)
                 self:diffusealpha(1)
             else
+                self:finishtweening()
+                self:smooth(localPageAnimationSeconds)
                 self:diffusealpha(0)
             end
         end,
