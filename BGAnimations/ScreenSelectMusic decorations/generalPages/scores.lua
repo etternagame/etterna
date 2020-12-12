@@ -253,6 +253,7 @@ local function createList()
             local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
             if steps == nil then
                 scores = {}
+                if isLocal then localrtTable = nil end
                 return
             end
 
