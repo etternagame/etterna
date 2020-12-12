@@ -83,7 +83,7 @@ local ratios = {
     -- entries necessary for the copy-paste judgment bars from evaluation
     JudgmentBarsTopGap = 145 / 1080, -- bottom of top lip to top of first judgment bar
     JudgmentBarHeight = 22 / 1080,
-    JudgmentBarLength = 579 / 1920,
+    JudgmentBarLength = 640 / 1920,
     JudgmentBarSpacing = 4 / 1080,
     JudgmentBarAllottedSpace = 129 / 1080,
     JudgmentNameLeftGap = 21 / 1920,
@@ -91,11 +91,12 @@ local ratios = {
 
     ScoreRateListTopGap = 145 / 1080, -- bottom of top lip to top of frame
     ScoreRateListLeftGap = 664 / 1920, -- left edge to left edge of items
-    ScoreRateListTopBuffer = 29 / 1080, -- top of frame to top of first item (the top of frame holds the "up" button)
-    ScoreRateListAllottedSpace = 231 / 1080, -- top of top item to top of bottom item
+    ScoreRateListTopBuffer = 19 / 1080, -- top of frame to top of first item (the top of frame holds the "up" button)
+    ScoreRateListAllottedSpace = 261 / 1080, -- top of top item to top of bottom item
     ScoreRateListBottomTopGap = 289 / 1080, -- really bad name: top of frame to top of "down" button
+    ScoreRateListWidth = 100 / 1920, -- width of the text
 
-    MainGraphicWidth = 579 / 1920, -- width of judgment bars and offset plot
+    MainGraphicWidth = 640 / 1920, -- width of judgment bars and offset plot
     OffsetPlotHeight = 184 / 1080,
     OffsetPlotUpperGap = 308 / 1080, -- bottom of top lip to top of graph
 }
@@ -142,6 +143,7 @@ local actuals = {
     ScoreRateListTopBuffer = ratios.ScoreRateListTopBuffer * SCREEN_HEIGHT,
     ScoreRateListAllottedSpace = ratios.ScoreRateListAllottedSpace * SCREEN_HEIGHT,
     ScoreRateListBottomTopGap = ratios.ScoreRateListBottomTopGap * SCREEN_HEIGHT,
+    ScoreRateListWidth = ratios.ScoreRateListWidth * SCREEN_WIDTH,
     MainGraphicWidth = ratios.MainGraphicWidth * SCREEN_WIDTH,
     OffsetPlotHeight = ratios.OffsetPlotHeight * SCREEN_HEIGHT,
     OffsetPlotUpperGap = ratios.OffsetPlotUpperGap * SCREEN_HEIGHT,
@@ -196,7 +198,7 @@ local buttonHoverAlpha = 0.6
 local gradeTextSize = 2.2
 local clearTypeTextSize = 1.15
 local detailTextSize = 0.75
-local rateTextSize = 0.75
+local rateTextSize = 0.65
 
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
@@ -586,21 +588,73 @@ local function createList()
 
 
     local function localRateFrame()
+        local ratecount = 9 -- really just how many items we want spots for
 
         local function rateItem(i)
             return UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "RateButton_"..i,
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:x(actuals.ScoreRateListWidth / 2)
+                    self:y(actuals.ScoreRateListTopBuffer + actuals.ScoreRateListAllottedSpace / ratecount * (i-1))
+                    self:zoom(rateTextSize)
+                    self:maxwidth(actuals.ScoreRateListWidth / rateTextSize - textzoomFudge)
+                    self:settext("1.0x (1)")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end
             }
         end
 
         local t = Def.ActorFrame {
             Name = "RateFrame",
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "PageUp",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:xy(actuals.ScoreRateListWidth / 2, 0)
+                    self:settext("^")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "PageDown",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:xy(actuals.ScoreRateListWidth / 2, actuals.ScoreRateListBottomTopGap)
+                    self:rotationz(180)
+                    self:settext("^")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end
+            }
         }
+
+        for i = 1, ratecount do
+            t[#t+1] = rateItem(i)
+        end
 
         return t
     end
-
-
 
 
     for i = 1, itemCount do
