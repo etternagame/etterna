@@ -623,12 +623,14 @@ local function getClearStatsForGroup(group)
                 maxlamp = nil
                 failed = true
             else
-                maxlamp = "Grade_Tier20"
+                if not failed then
+                    maxlamp = "Grade_Tier20"
+                end
                 -- count the number of Cleared songs (doesnt matter what grade)
-                if out.clearPerGrade[maxlamp] ~= nil then
-                    out.clearPerGrade[maxlamp] = out.clearPerGrade[maxlamp] + 1
+                if out.clearPerGrade["Grade_Tier20"] ~= nil then
+                    out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
                 else
-                    out.clearPerGrade[maxlamp] = 1
+                    out.clearPerGrade["Grade_Tier20"] = 1
                 end
             end
         else
