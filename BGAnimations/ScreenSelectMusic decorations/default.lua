@@ -17,12 +17,14 @@ t[#t+1] = Def.ActorFrame {
             self:x(0)
             rightFrameVisible = true
         end
+        TOOLTIP:Hide()
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self)
         rightFrameVisible = false
         self:finishtweening()
         self:smooth(0.1)
         self:x(SCREEN_WIDTH)
+        TOOLTIP:Hide()
     end,
 
     LoadActor("curSongBox"),
