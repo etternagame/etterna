@@ -626,6 +626,7 @@ function MusicWheel:new(params)
             if songOrPack.GetAllSteps then
                 -- STARTING SONG
                 crossedGroupBorder = true
+                w:updateGlobalsFromCurrentItem()
 
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
