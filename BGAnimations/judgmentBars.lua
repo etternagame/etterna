@@ -137,8 +137,12 @@ local function makeJudgment(i)
                     self:targetnumber(0)
                     return
                 end
-                local percent = count / totalTaps * 100
-                self:targetnumber(percent)
+                if totalTaps == 0 then
+                    self:targetnumber(100)
+                else
+                    local percent = count / totalTaps * 100
+                    self:targetnumber(percent)
+                end
             end
         }
     }
