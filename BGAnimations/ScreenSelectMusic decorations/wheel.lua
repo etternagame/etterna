@@ -301,6 +301,7 @@ local function groupActorUpdater(groupFrame, packName)
     groupFrame.Title:settext(packName)
     groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff[1]})
     groupFrame.ClearStats:playcommand("SetInfo", {stats = clearstats})
+    groupFrame.ScoreStats:playcommand("SetInfo", {stats = clearstats, count = packCount})
     groupBannerSetter(groupFrame.Banner, packName)
 end
 
@@ -389,6 +390,120 @@ local function songActorBuilder()
     }
 end
 
+-- generates the clear stats bar for each group
+local function scoreStatsFrame()
+
+    -- list of grades to consider (midgrades will be converted appropriately)
+    local gradesToUse = {
+        "Grade_Tier01", -- AAAAA
+        "Grade_Tier04", -- AAAA
+        "Grade_Tier07", -- AAA
+        "Grade_Tier10", -- AA
+        "Grade_Tier13", -- A
+        "Grade_Tier14", -- B
+        "Grade_Tier15", -- C
+        "Grade_Tier20", -- mysterious Clear grade (only referred to by WHEELDATA)
+    }
+
+    -- lists of grades that are equivalent to the current grade
+    -- all keys of this should match the above table
+    local expandedGrades = {
+        Grade_Tier01 = {"Grade_Tier01"},
+        Grade_Tier04 = {"Grade_Tier02", "Grade_Tier03", "Grade_Tier04"},
+        Grade_Tier07 = {"Grade_Tier05", "Grade_Tier06", "Grade_Tier07"},
+        Grade_Tier10 = {"Grade_Tier08", "Grade_Tier09", "Grade_Tier10"},
+        Grade_Tier13 = {"Grade_Tier11", "Grade_Tier12", "Grade_Tier13"},
+        Grade_Tier14 = {"Grade_Tier14"},
+        Grade_Tier15 = {"Grade_Tier15"},
+        Grade_Tier20 = {"Grade_Tier20"},
+    }
+
+    local function getGradeColor(grade)
+        if grade == "Grade_Tier20" then
+            return byClearType("Clear")
+        else
+            return byGrade(grade)
+        end
+    end
+
+    -- determines the size of the outline quad
+    local framelength = actuals.ItemDividerLength * (3/4)
+    local frameheight = 11 / 1080 * SCREEN_HEIGHT
+    -- determines how much to shave off to make the size fit
+    local outlineThickness = 2 / 1080 * SCREEN_HEIGHT
+    local maxbarlength = framelength - outlineThickness * 2
+    local barheight = frameheight - outlineThickness * 2
+
+    -- a colorful bar for each grade to represent
+    local function makeBar(i)
+        local grade = gradesToUse[i]
+        return Def.Quad {
+            Name = "Bar_"..grade,
+            InitCommand = function(self)
+                self:halign(0)
+                self:zoomto(0, barheight)
+                if grade ~= "Grade_Tier20" then
+                    self:diffuse(byGrade(grade))
+                else
+                    self:diffuse(byClearType("Clear"))
+                end
+            end,
+        }
+    end
+
+    local t = Def.ActorFrame {
+        Name = "ScoreStatsFrame",
+        SetInfoCommand = function(self, params)
+            if params ~= nil and params.stats ~= nil then
+                local barcounts = {}
+                -- determine how many scores count for each bar
+                for gkey, gradeTable in pairs(expandedGrades) do
+                    barcounts[gkey] = 0
+                    for _, grade in ipairs(gradeTable) do
+                        local c = params.stats.clearPerGrade[grade]
+                        if c ~= nil then
+                            barcounts[gkey] = barcounts[gkey] + c
+                        end
+                    end
+                end
+                -- update each bar
+                local runningsum = 0
+                for i = #gradesToUse, 1, -1 do
+                    local grade = gradesToUse[i]
+                    local child = self:GetChild("Bar_"..grade)
+                    local percentSoFar = runningsum / params.count
+                    local percentForThisBar = barcounts[grade] / params.count
+                    runningsum = runningsum + barcounts[grade]
+                    child:x(outlineThickness + maxbarlength * percentSoFar)
+                    child:zoomx(maxbarlength * percentForThisBar)
+                end
+            end
+        end,
+        Def.Quad {
+            Name = "Outline",
+            InitCommand = function(self)
+                self:halign(0)
+                self:zoomto(framelength, frameheight)
+            end
+        },
+        Def.Quad {
+            Name = "BG",
+            InitCommand = function(self)
+                self:halign(0)
+                self:x(outlineThickness)
+                self:zoomto(maxbarlength, barheight)
+                self:diffuse(color("0,0,0,1"))
+            end
+        }
+    }
+
+    for i = 1, #gradesToUse do
+        t[#t+1] = makeBar(i)
+    end
+
+    return t
+end
+
 -- see songActorBuilder comment
 local function groupActorBuilder()
     return Def.ActorFrame {
@@ -463,6 +578,15 @@ local function groupActorBuilder()
                     end
                 end
                 self:settext(lstr)
+            end
+        },
+        scoreStatsFrame() .. {
+            InitCommand = function(self)
+                self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                self:y(actuals.ItemHeight / 30)
+            end,
+            BeginCommand = function(self)
+                self:GetParent().ScoreStats = self
             end
         },
         Def.Sprite {
