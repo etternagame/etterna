@@ -49,7 +49,7 @@ local function makeJudgment(i)
         end,
         SetCommand = function(self, params)
             if params.score ~= nil then
-                if params.judgeSetting ~= nil then
+                if params.judgeSetting ~= nil and params.score:HasReplayData() then
                     count = getRescoredJudge(params.score:GetOffsetVector(), params.judgeSetting, i)
                 else
                     count = params.score:GetTapNoteScore(jdg)
