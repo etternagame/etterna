@@ -16,6 +16,11 @@ local t = Def.ActorFrame {
                 self:z(2)
                 self:smooth(0.2)
                 self:diffusealpha(1)
+                -- if focused was already on, we double tapped
+                -- enable "double tap" behavior
+                if focused then
+                    self:playcommand("Doubletap")
+                end
                 focused = true
                 self:playcommand("UpdateDisplay")
             else
@@ -392,7 +397,11 @@ local function createList()
                 self:playcommand("UpdateScores")
                 self:playcommand("UpdateList")
             end
-
+        end,
+        DoubletapCommand = function(self)
+            -- if double tapping the scores tab, swap online/local
+            -- convenience :)
+            self:playcommand("ToggleLocal")
         end
     }
 
