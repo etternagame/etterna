@@ -203,6 +203,9 @@ local clearTypeTextSize = 1.15
 local detailTextSize = 0.75
 local rateTextSize = 0.65
 
+-- for use in association with SCUFFMAN to drive some of the input context stuff
+local scoretabindex = 2
+
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
 local function createList()
@@ -252,7 +255,16 @@ local function createList()
         end,
         UpdateScoresCommand = function(self)
             if self:IsInvisible() then return end
+            -- HACK BEHAVIOR: use SCUFFMAN's general tab index to pretend we aren't on the scores tab if isLocal is false
+            -- this lets us change rate for the CurrentRate stuff in the online tab
+            if not isLocal then
+                SCUFF.generaltab = -1
+            else
+                SCUFF.generaltab = scoretabindex
+            end
+            -- end hack
             page = 1
+
             -- no steps, no scores.
             local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
             if steps == nil then
@@ -700,7 +712,7 @@ local function createList()
                 local selectPressed = false
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- require context is set and the general box is set to this tab
-                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= 2 then 
+                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= scoretabindex then 
                         selectPressed = false
                         return
                     end
