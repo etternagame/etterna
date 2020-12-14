@@ -31,7 +31,15 @@ function WHEELDATA.Reset(self)
             Artist = "",
             Author = "",
         },
-        valid = nil, -- a song or chart which passes this function is ACCEPTED
+        valid = nil, -- function expecting chart or song that returns true if it passes (this is left empty as free space for you, reader)
+        requireTags = { -- require that a chart has tags
+            mode = true,    -- true = AND, false = OR - requires either ALL or ANY of the tags are on the chart
+            tags = {},
+        },
+        excludeTags = { -- remove all charts that have these tags
+            mode = false,   -- true = AND, false = OR - hides charts that have either ALL or ANY of the tags
+            tags = {},
+        },
     }
 
     -- last generated list of WheelItems
@@ -55,9 +63,20 @@ function WHEELDATA.IsSearchFilterEmpty(self)
     return not (self.ActiveFilter.metadata.Title ~= "" or self.ActiveFilter.metadata.Subtitle ~= "" or self.ActiveFilter.metadata.Artist ~= "" or self.ActiveFilter.metadata.Author ~= "")
 end
 
+-- check if both tag filters are empty
+function WHEELDATA.IsTagFilterEmpty(self)
+    for _,__ in pairs(self.ActiveFilter.requireTags.tags) do
+        return false
+    end
+    for _,__ in pairs(self.ActiveFilter.excludeTags.tags) do
+        return false
+    end
+    return true
+end
+
 -- check if the filter is active
 function WHEELDATA.IsFiltered(self)
-    return self.ActiveFilter ~= nil and (self.ActiveFilter.valid ~= nil or not self:IsSearchFilterEmpty()) or FILTERMAN:AnyActiveFilter()
+    return self.ActiveFilter ~= nil and (self.ActiveFilter.valid ~= nil or not self:IsSearchFilterEmpty()) or FILTERMAN:AnyActiveFilter() or not self:IsTagFilterEmpty()
 end
 
 -- get the current search table
@@ -92,22 +111,115 @@ function WHEELDATA.SetSearch(self, t)
     end
 end
 
+-- set the list of tags to exclude
+-- does not update the wheel
+function WHEELDATA.SetExcludedTags(self, t)
+    if t == nil then t = {} end
+    self.ActiveFilter.excludeTags.tags = t
+end
+
+-- set the list of tags to require
+-- does not update the wheel
+function WHEELDATA.SetRequiredTags(self, t)
+    if t == nil then t = {} end
+    self.ActiveFilter.requireTags.tags = t
+end
+
+-- set the excluded tag mode
+-- true = AND, false = OR
+function WHEELDATA.SetExcludedTagMode(self, m)
+    if m == nil then
+        m = not self.ActiveFilter.excludeTags.mode
+    end
+    self.ActiveFilter.excludeTags.mode = m
+end
+
+-- set the required tag mode
+-- true = AND, false = OR
+function WHEELDATA.SetRequiredTagMode(self, m)
+    if m == nil then
+        m = not self.ActiveFilter.requireTags.mode
+    end
+    self.ActiveFilter.requireTags.mode = m
+end
+
+-- private function to handle checking to see if a chart passes the tag filters
+-- to reduce code copypasta
+-- expects a chart and the list of tags given by TAGMAN
+-- returns false if the chart fails (which means the chart should not appear)
+local function chartPassesTagFilters(c, tags)
+    local g = c:GetChartKey()
+    -- require tag filter
+    if #WHEELDATA.ActiveFilter.requireTags.tags > 0 then
+        if WHEELDATA.ActiveFilter.requireTags.mode then
+            -- mode true = AND
+            for _, tag in ipairs(WHEELDATA.ActiveFilter.requireTags.tags) do
+                -- fail the chart if it does not have a tag
+                if tags[tag][g] == nil or tags[tag][g] ~= 1 then
+                    return false
+                end
+            end
+        else
+            local tagpass = false
+            -- mode false = OR
+            for _, tag in ipairs(WHEELDATA.ActiveFilter.requireTags.tags) do
+                -- pass the chart if it has any tags
+                if tags[tag][g] ~= nil and tags[tag][g] == 1 then
+                    tagpass = true
+                    break
+                end
+            end
+            if not tagpass then return false end
+        end
+    end
+
+    -- exclude tag filter
+    if #WHEELDATA.ActiveFilter.excludeTags.tags > 0 then
+        if WHEELDATA.ActiveFilter.excludeTags.mode then
+            -- mode true = AND
+            local passed = false
+            for _, tag in ipairs(WHEELDATA.ActiveFilter.excludeTags.tags) do
+                -- fail the chart if it has all tags
+                -- so logically, pass the chart if it is missing a tag
+                if tags[tag][g] == nil or tags[tag][g] ~= 1 then
+                    passed = true
+                    break
+                end
+            end
+            if not passed then return false end
+        else
+            -- mode false = OR
+            for _, tag in ipairs(WHEELDATA.ActiveFilter.excludeTags.tags) do
+                -- fail the chart if it has any tags
+                if tags[tag][g] ~= nil and tags[tag][g] == 1 then
+                    return false
+                end
+            end
+        end
+    end
+end
+
 -- give a song, chartkey, or steps
 -- works as AND for now, where if both search and valid are set then both have to pass
 -- returns true if filter passed
 function WHEELDATA.FilterCheck(self, g)
     if not self:IsFiltered() then return true end
     local passed = true
+    local tags = TAGMAN:get_data().playerTags
 
-    -- todo: although this function almost only runs on Songs, needs to be generalized to work with all of these
+    -- TODO: make the chart specific portions of this work for song search just in case
     if type(g) == "string" then
         -- working with a Chartkey
-
+        local c = SONGMAN:GetStepsByChartKey(g)
+        -- arbitrary function filter (passing Steps)
         if self.ActiveFilter.valid ~= nil then
-            if not self.ActiveFilter.valid(g) then
+            if not self.ActiveFilter.valid(c) then
                 return false
             end
         end
+        
+        -- tag filters
+        passed = passed and chartPassesTagFilters(c, tags)
     elseif g.GetAllSteps then
         -- working with a Song
         -- song search
@@ -129,33 +241,44 @@ function WHEELDATA.FilterCheck(self, g)
                 if artist:find(self.ActiveFilter.metadata.Artist) == nil then return false end
             end
         end
-        -- lua filter
+
+        -- arbitrary function filter (passing Song)
         if self.ActiveFilter.valid ~= nil then
             if not self.ActiveFilter.valid(g) then
                 return false
             end
         end
 
-        -- c++ filter
-        local charts = g:GetChartsMatchingFilter()
+        -- c++ FILTERMAN mixed in with tag filtering
+        local charts = self:GetChartsMatchingFilter(g)
         if #charts == 0 then return false end
 
+        -- tag filters
+        for _, c in ipairs(charts) do
+            if not chartPassesTagFilters(c, tags) then
+                return false
+            end
+        end
     elseif g.GetChartKey then
         -- working with a Steps
 
-        -- lua filter
+        -- arbitrary function filter (passing Steps)
         if self.ActiveFilter.valid ~= nil then
             if not self.ActiveFilter.valid(g) then
                 return false
             end
         end
 
-        -- c++ filter
+        -- c++ FILTERMAN mixed in with tag filtering
+        -- note: you would think that since C++ can check to see if a chart passes the filter we can direct call here
+        -- well, we can't and the reason is that you can't do something like Steps:PassesFilter()
+        -- instead, we have to let C++ take over and give us a list of a Song's charts that pass the filter
+        -- ... of course I could implement this myself in C++ to make it a lot quicker but alas, today is not the day to do that
         local ck = g:GetChartKey()
         local s = SONGMAN:GetSongByChartkey(ck)
         if s ~= nil then
             local tmpbool = false
-            local charts = s:GetChartsMatchingFilter()
+            local charts = self:GetChartsMatchingFilter(s)
             for _,c in ipairs(charts) do
                 if c:GetChartKey() == ck then
                     tmpbool = true
@@ -163,6 +286,9 @@ function WHEELDATA.FilterCheck(self, g)
             end
             return tmpbool and passed
         end
+
+        -- tag filters
+        passed = passed and chartPassesTagFilters(g, tags)
     end
 
     return passed
