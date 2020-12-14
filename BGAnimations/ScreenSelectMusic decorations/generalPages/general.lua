@@ -9,17 +9,19 @@ local t = Def.ActorFrame {
     WheelSettledMessageCommand = function(self, params)
         
         -- update tag data
-        currentTags = {"","","",""}
+        currentTags = {}
         if params.song and params.steps then
             local playerTags = TAGMAN:get_data().playerTags
             local ck = params.steps:GetChartKey()
-            local i = 1
             for k,v in pairs(playerTags) do
                 if playerTags[k][ck] then
-                    currentTags[i] = k
-                    i = i+1
+                    currentTags[#currentTags+1] = k
                 end
             end
+            table.sort(
+                currentTags,
+                function(a,b) return a:lower() < b:lower() end
+            )
         end
 
         -- update displayscore
