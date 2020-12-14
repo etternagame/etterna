@@ -11,11 +11,13 @@ local t = Def.ActorFrame {
         -- update tag data
         currentTags = {"","","",""}
         if params.song and params.steps then
-            local playerTags = tags:get_data().playerTags
+            local playerTags = TAGMAN:get_data().playerTags
             local ck = params.steps:GetChartKey()
+            local i = 1
             for k,v in pairs(playerTags) do
                 if playerTags[k][ck] then
-                    currentTags[#currentTags + 1] = k
+                    currentTags[i] = k
+                    i = i+1
                 end
             end
         end
