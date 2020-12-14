@@ -1250,7 +1250,13 @@ local function createList()
             local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
             
             if isLocal then
-                self:settext("")
+                if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then
+                    self:diffusealpha(1)
+                    self:settext("No local scores recorded")
+                else
+                    self:diffusealpha(0)
+                    self:settext("")
+                end
                 return
             end
 
