@@ -263,6 +263,10 @@ local function tagList()
             for k, _ in pairs(storedTags) do
                 tagNameList[#tagNameList+1] = k
             end
+            table.sort(
+                tagNameList,
+                function(a,b) return a:lower() < b:lower() end
+            )
         end,
         
         tagChoices(),
