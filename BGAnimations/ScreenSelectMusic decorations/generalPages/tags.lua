@@ -64,14 +64,14 @@ local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
 local textzoomFudge = 5
 
-
 local function tagList()
     -- modifiable parameters
-    local tagsPerColumn = 12
+    local tagsPerColumn = 10
     local columns = 2
 
     -- internal var storage
-    local storedTags = {}
+    local storedTags = {} -- exact tag list, keys are tags, values are {chartkeys : 1} or {chartkey : nil}
+    local tagNameList = {} -- just a list of all tags so it can be indexed in a consistent order
     local page = 1
     local maxPage = 1
 
@@ -91,6 +91,8 @@ local function tagList()
     local function tagListItem(i)
         local column = math.floor((i-1) / tagsPerColumn)
         local allowedWidth = (actuals.Width / columns - actuals.EdgeBuffer * 2)
+        local index = i
+        local tag = ""
 
         return UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "TagButton_"..i,
@@ -101,14 +103,25 @@ local function tagList()
                 bg:halign(0)
 
                 -- this should make it so that the left column (0) is at EdgeBuffer and the right column (1) is in the middle-ish
+                -- if the column count is changed, it should adjust accordingly
                 self:x(actuals.EdgeBuffer + column * actuals.Width / columns)
                 self:y(actuals.UpperLipHeight + actuals.ItemListUpperGap + actuals.ItemAllottedSpace / tagsPerColumn * (i-1 - column * tagsPerColumn))
                 txt:zoom(tagTextSize)
                 txt:maxwidth(allowedWidth / tagTextSize - textzoomFudge)
-                bg:zoomto(allowedWidth, actuals.UpperLipHeight)                
-                txt:settext("placeholder "..i)
+                txt:settext(" ")
+                bg:zoomto(allowedWidth, actuals.UpperLipHeight)
                 bg:y(txt:GetZoomedHeight() / 2)
-
+            end,
+            UpdateTagListCommand = function(self)
+                local txt = self:GetChild("Text")
+                index = (page-1) * columns * tagsPerColumn + i
+                tag = tagNameList[index]
+                if tag ~= nil and tag ~= "" then
+                    self:diffusealpha(1)
+                    txt:settext(tag)
+                else
+                    self:diffusealpha(0)
+                end
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -170,7 +183,7 @@ local function tagList()
                 Name = "delete",
                 Type = "Exclusive",
                 Display = {"Delete"},
-                Condition = function() return #storedTags > 0 end,
+                Condition = function() return #tagNameList > 0 end,
             },
             {   -- Button to create tags
                 Name = "new",
@@ -222,7 +235,6 @@ local function tagList()
             }
         end
 
-
         local t = Def.ActorFrame {
             Name = "Choices",
             InitCommand = function(self)
@@ -241,6 +253,16 @@ local function tagList()
         Name = "TagListFrame",
         InitCommand = function(self)
             --
+        end,
+        BeginCommand = function(self)
+            self:playcommand("UpdateTagList")
+        end,
+        UpdateTagListCommand = function(self)
+            storedTags = TAGMAN:get_data().playerTags
+            tagNameList = {}
+            for k, _ in pairs(storedTags) do
+                tagNameList[#tagNameList+1] = k
+            end
         end,
         
         tagChoices(),
@@ -269,16 +291,16 @@ local function tagList()
                 self:zoom(pageTextSize)
                 self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
             end,
-            UpdateListCommand = function(self)
-                local lb = (page-1) * (itemCount) + 1
-                if lb > #storedTags then
-                    lb = #storedTags
+            UpdateTagListCommand = function(self)
+                local lb = (page-1) * (columns * tagsPerColumn) + 1
+                if lb > #tagNameList then
+                    lb = #tagNameList
                 end
-                local ub  = page * itemCount
-                if ub > #storedTags then
-                    ub = #storedTags
+                local ub = page * columns * tagsPerColumn
+                if ub > #tagNameList then
+                    ub = #tagNameList
                 end
-                self:settextf("%d-%d/%d", lb, ub, #storedTags)
+                self:settextf("%d-%d/%d", lb, ub, #tagNameList)
             end
         }
     }
