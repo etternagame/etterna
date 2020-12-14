@@ -855,6 +855,7 @@ local function createList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
+                        self:diffusealpha(1)
                         self:GetParent():GetParent():playcommand("UpdateScores", {index = -1})
                         self:GetParent():GetParent():playcommand("UpdateSelectedIndex")
                         self:GetParent():GetParent():playcommand("UpdateList")
