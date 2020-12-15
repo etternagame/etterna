@@ -815,7 +815,7 @@ function WHEELDATA.GetFolderClearStats(self, name)
     if self.StatsByFolder[name] ~= nil then
         return self.StatsByFolder[name].clearStats
     end
-    return {nil, {}, 0}
+    return {lamp = nil,clearPerGrade = {},totalScores = 0,}
 end
 
 -- sort all songs again basically
