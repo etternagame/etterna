@@ -219,6 +219,7 @@ local function chartPassesTagFilters(c, tags)
             end
         end
     end
+    return true
 end
 
 -- give a song, chartkey, or steps
