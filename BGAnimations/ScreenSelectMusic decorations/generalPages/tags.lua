@@ -223,7 +223,8 @@ local function tagList()
                         TAGMAN:get_data().playerTags[tag] = nil
                         TAGMAN:set_dirty()
                         TAGMAN:save()
-                        self:GetParent():playcommand("UpdateTagList")
+
+                        self:GetParent():playcommand("DeletedTag")
                     end
                 end
             end,
@@ -441,7 +442,12 @@ local function tagList()
             Name = "Choices",
             InitCommand = function(self)
                 self:y(actuals.UpperLipHeight / 2)
-            end
+            end,
+            DeletedTagCommand = function(self)
+                -- reset choice to Assign
+                activeChoices = {[1]=true}
+                self:playcommand("UpdateText")
+            end,
         }
 
         for i = 1, #choiceDefinitions do
@@ -453,9 +459,6 @@ local function tagList()
 
     local t = Def.ActorFrame {
         Name = "TagListFrame",
-        InitCommand = function(self)
-            --
-        end,
         BeginCommand = function(self)
             self:playcommand("UpdateTagList")
             self:playcommand("UpdateText")
@@ -497,6 +500,17 @@ local function tagList()
                     self:playcommand("UpdateTagList")
                 end
             end
+        end,
+        DeletedTagCommand = function(self)
+            -- just a little hacky but im putting this bit here so its all in one place
+            -- on tag deletions we want to reset back to the assign state so you dont keep deleting things
+            -- its better to be forced to be slow to delete than to accidentally delete tags over and over
+            tagListMode = "Assign"
+            self:playcommand("UpdateTagList")
+            -- from here the next thing that happens is the choice frame will take this Command
+            -- it will reset the choice to Assign to match
+            -- and that part is hardcoded because ive unfortunately run out of patience
+            -- (fortunately im like 95% done with this)
         end,
         
         tagChoices(),
