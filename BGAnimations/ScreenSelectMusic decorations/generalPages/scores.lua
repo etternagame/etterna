@@ -1141,7 +1141,7 @@ local function createList()
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
-                    local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+                    local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                     self:playcommand("Set", {score = localscore, judgeSetting = judgeSetting})
                 end
             end
@@ -1153,7 +1153,7 @@ local function createList()
             UpdateListCommand = function(self, params)
                 if localscore == nil then return end
                 local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
-                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
+                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                 if steps ~= nil then
                     if localscore:HasReplayData() then
                         local offsets = localscore:GetOffsetVector()
