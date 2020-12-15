@@ -21,10 +21,6 @@ local t = Def.ActorFrame {
             end
         end
     end,
-    UpdateTagsTabCommand = function(self)
-        self:playcommand("UpdateTagList")
-        self:playcommand("UpdateText")
-    end,
     WheelSettledMessageCommand = function(self, params)
         if not focused then return end
         self:playcommand("UpdateTagsTab")
@@ -82,7 +78,7 @@ local defaultTagColor = color("1,1,1,1")
 local tagAssignedColor = color("1,.5,.5,1")
 local tagExcludedColor = color(".5,1,.5,1")
 local tagRequiredColor = color(".5,.5,1,1")
-local tagListAnimationSeconds = 0.05
+local tagListAnimationSeconds = 0.03
 
 local function tagList()
     -- modifiable parameters
@@ -153,6 +149,7 @@ local function tagList()
                 local txt = self:GetChild("Text")
                 index = (page-1) * columns * tagsPerColumn + i
                 tag = tagNameList[index]
+                self:finishtweening()
                 self:diffusealpha(0)
                 if tag ~= nil and tag ~= "" then
                     self:smooth(tagListAnimationSeconds * i)
@@ -477,6 +474,11 @@ local function tagList()
             self:playcommand("UpdateTagList")
             self:playcommand("UpdateText")
         end,
+        UpdateTagsTabCommand = function(self)
+            page = 1
+            self:playcommand("UpdateTagList")
+            self:playcommand("UpdateText")
+        end,
         UpdateTagListCommand = function(self)
             -- this sets all the data things over and over and over
             -- but its all in one place and is only called once every time you touch the tag list stuff
@@ -492,6 +494,7 @@ local function tagList()
                 tagNameList,
                 function(a,b) return a:lower() < b:lower() end
             )
+            maxPage = math.ceil(#tagNameList / (columns * tagsPerColumn))
 
             requiredTags = {}
             excludedTags = {}
@@ -542,6 +545,7 @@ local function tagList()
                     else
                         movePage(1)
                     end
+                    self:GetParent():playcommand("UpdateTagList")
                 end
             end
         },
