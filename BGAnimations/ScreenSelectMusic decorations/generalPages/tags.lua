@@ -58,11 +58,18 @@ do
 end
 
 local tagTextSize = 1.2
-
 local pageTextSize = 0.9
+
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
+local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
+
+local defaultTagColor = color("1,1,1,1")
+local tagAssignedColor = color("1,.5,.5,1")
+local tagExcludedColor = color(".5,1,.5,1")
+local tagRequiredColor = color(".5,.5,1,1")
+local tagListAnimationSeconds = 0.05
 
 local function tagList()
     -- modifiable parameters
@@ -72,8 +79,25 @@ local function tagList()
     -- internal var storage
     local storedTags = {} -- exact tag list, keys are tags, values are {chartkeys : 1} or {chartkey : nil}
     local tagNameList = {} -- just a list of all tags so it can be indexed in a consistent order
+    local excludedTags = {} -- a list but instead of being indexed, the keys are the tags
+    local requiredTags = {} -- same as above
     local page = 1
     local maxPage = 1
+
+    -- determines the mode of the tag list thing
+    -- accepts "Assign", "Require", "Exclude", "Delete"
+    local tagListMode = "Assign"
+
+    -- just a list of the modes that will allow for mouse hover highlighting
+    -- this isnt necessary at the moment, but just in case i guess
+    local tagListModeForClicking = {
+        Assign = true,
+        Require = true,
+        Exclude = true,
+        Delete = true,
+    }
+
+    local tagsAssignedToCurrentChart = {}
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -103,7 +127,7 @@ local function tagList()
                 bg:halign(0)
 
                 -- this should make it so that the left column (0) is at EdgeBuffer and the right column (1) is in the middle-ish
-                -- if the column count is changed, it should adjust accordingly
+                -- and if the column count is changed, it should adjust accordingly
                 self:x(actuals.EdgeBuffer + column * actuals.Width / columns)
                 self:y(actuals.UpperLipHeight + actuals.ItemListUpperGap + actuals.ItemAllottedSpace / tagsPerColumn * (i-1 - column * tagsPerColumn))
                 txt:zoom(tagTextSize)
@@ -116,23 +140,99 @@ local function tagList()
                 local txt = self:GetChild("Text")
                 index = (page-1) * columns * tagsPerColumn + i
                 tag = tagNameList[index]
+                self:diffusealpha(0)
                 if tag ~= nil and tag ~= "" then
+                    self:smooth(tagListAnimationSeconds * i)
                     self:diffusealpha(1)
+                    self:diffuse(defaultTagColor)
                     txt:settext(tag)
-                else
-                    self:diffusealpha(0)
+
+                    if tagListMode == "Assign" then
+                        -- color if assigned on this chart
+                        local chart = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                        if chart ~= nil then
+                            local ck = chart:GetChartKey()
+                            if storedTags[tag][ck] then
+                                self:diffuse(tagAssignedColor)
+                            end
+                        end
+                    elseif tagListMode == "Require" then
+                        -- color if required
+                        if requiredTags[tag] then
+                            self:diffuse(tagRequiredColor)
+                        end
+                    elseif tagListMode == "Exclude" then
+                        -- color if excluded
+                        if excludedTags[tag] then
+                            self:diffuse(tagExcludedColor)
+                        end
+                    end
                 end
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "OnMouseDown" then
-                    --
+                    if tagListModeForClicking[tagListMode] == nil then return end
+
+                    if tagListMode == "Assign" then
+                        -- you cant assign a tag to nothing
+                        local chart = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                        if chart ~= nil then
+                            local ck = chart:GetChartKey()
+                            if storedTags[tag][ck] then
+                                TAGMAN:get_data().playerTags[tag][ck] = nil
+                            else
+                                TAGMAN:get_data().playerTags[tag][ck] = 1
+                            end
+                            TAGMAN:set_dirty()
+                            TAGMAN:save()
+                            self:GetParent():playcommand("UpdateTagList")
+                        end
+
+                    elseif tagListMode == "Require" then
+                        if requiredTags[tag] == nil then
+                            requiredTags[tag] = true
+                        else
+                            requiredTags[tag] = nil
+                        end
+                        local newtable = {}
+                        for tagname, _ in pairs(requiredTags) do
+                            newtable[#newtable+1] = tagname
+                        end
+                        WHEELDATA:SetRequiredTags(newtable)
+                        self:GetParent():playcommand("UpdateTagList")
+
+                    elseif tagListMode == "Exclude" then
+                        if excludedTags[tag] == nil then
+                            excludedTags[tag] = true
+                        else
+                            excludedTags[tag] = nil
+                        end
+                        local newtable = {}
+                        for tagname, _ in pairs(excludedTags) do
+                            newtable[#newtable+1] = tagname
+                        end
+                        WHEELDATA:SetExcludedTags(newtable)
+                        self:GetParent():playcommand("UpdateTagList")
+                        
+                    elseif tagListMode == "Delete" then
+                        if excludedTags[tag] then excludedTags[tag] = nil end
+                        if requiredTags[tag] then requiredTags[tag] = nil end
+
+                        -- delete tag record
+                        TAGMAN:get_data().playerTags[tag] = nil
+                        TAGMAN:set_dirty()
+                        TAGMAN:save()
+                        self:GetParent():playcommand("UpdateTagList")
+                    end
                 end
             end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "in" then
-                    self:diffusealpha(buttonHoverAlpha)
+                    if tagListModeForClicking[tagListMode] ~= nil then
+                        self:diffusealpha(buttonHoverAlpha)
+                    end
                 else
                     self:diffusealpha(1)
                 end
@@ -141,55 +241,97 @@ local function tagList()
     end
 
     local function tagChoices()
-        
         -- keeping track of which choices are on at any moment (a list of indices)
-        local activeChoices = {}
+        -- setting 1 to be true initially because tagListMode is set to Assign and there needs to be consistency there
+        local activeChoices = {[1]=true}
 
         -- identify each choice using this table
         --  Name: The name of the choice (NOT SHOWN TO THE USER)
         --  Type: Toggle/Exclusive/Tap
         --      Toggle - This choice can be clicked multiple times to scroll through choices
         --      Exclusive - This choice is one out of a set of Exclusive choices. Only one Exclusive choice can be picked at once
-        --      Tap - This choice can only be pressed (if visible by Condition) and will run TapFunction at that time
+        --      Tap - This choice can only be pressed (if visible by Condition) and will only run TapFunction at that time
         --  Display: The string the user sees. One option for each choice must be given if it is a Toggle choice
         --  Condition: A function that returns true or false. Determines if the choice should be visible or not
-        --  TapFunction: A function that runs when the button is pressed. This is only used by the Tap Type
+        --  IndexGetter: A function that returns an index for its status, according to the Displays set
+        --  TapFunction: A function that runs when the button is pressed
         local choiceDefinitions = {
             {   -- Button to assign tags to charts
                 Name = "assign",
                 Type = "Exclusive",
                 Display = {"Assign"},
+                IndexGetter = function() return 1 end,
                 Condition = function() return true end,
+                TapFunction = function()
+                    tagListMode = "Assign"
+                end,
             },
             {   -- Button to filter charts by tags (Require charts have these tags)
                 Name = "filter",
                 Type = "Exclusive",
                 Display = {"Require Tag"},
+                IndexGetter = function() return 1 end,
                 Condition = function() return true end,
+                TapFunction = function()
+                    tagListMode = "Require"
+                end,
             },
             {   -- Button to filter charts by tags (Hide charts with these tags)
                 Name = "hide",
                 Type = "Exclusive",
                 Display = {"Hide Tag"},
+                IndexGetter = function() return 1 end,
                 Condition = function() return true end,
+                TapFunction = function()
+                    tagListMode = "Exclude"
+                end,
             },
             {   -- Button to change filter mode AND/OR
                 Name = "filtermode",
                 Type = "Toggle",
                 Display = {"Mode: AND", "Mode: OR"},
-                Condition = function() return activeChoices[2] or activeChoices[3] end,
+                IndexGetter = function()
+                    if tagListMode == "Require" then
+                        return WHEELDATA:GetRequiredTagMode() and 1 or 2
+                    elseif tagListMode == "Exclude" then
+                        return WHEELDATA:GetExcludedTagMode() and 1 or 2
+                    else
+                        return 1 -- dont care
+                    end
+                end,
+                Condition = function() return tagListMode == "Exclude" or tagListMode == "Require" end,
+                TapFunction = function()
+                    if tagListMode == "Require" then
+                        WHEELDATA:SetRequiredTagMode()
+                    elseif tagListMode == "Exclude" then
+                        WHEELDATA:SetExcludedTagMode()
+                    else
+                        -- nothing
+                    end
+                end,
             },
             {   -- Button to delete tags
                 Name = "delete",
                 Type = "Exclusive",
-                Display = {"Delete"},
+                Display = {"Delete", "Deleting Tag"},
+                IndexGetter = function()
+                    if tagListMode == "Delete" then
+                        return 2
+                    else
+                        return 1
+                    end
+                end,
                 Condition = function() return #tagNameList > 0 end,
+                TapFunction = function()
+                    tagListMode = "Delete"
+                end,
             },
             {   -- Button to create tags
                 Name = "new",
                 Type = "Tap",
                 Display = {"New"},
                 Condition = function() return true end,
+                IndexGetter = function() return 1 end,
                 TapFunction = function() ms.ok("new tag") end,
             },
         }
@@ -216,12 +358,41 @@ local function tagList()
                 end,
                 UpdateTextCommand = function(self)
                     local txt = self:GetChild("Text")
+                    -- update index
+                    displayIndex = definition.IndexGetter()
+
+                    -- update visibility by condition
+                    if definition.Condition() then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+
+                    if activeChoices[i] then
+                        txt:strokecolor(buttonActiveStrokeColor)
+                    else
+                        txt:strokecolor(color("0,0,0,0"))
+                    end
+
+                    -- update display
                     txt:settext(definition.Display[displayIndex])
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if params.update == "OnMouseDown" then
-                        self:playcommand("UpdateText")
+                        -- exclusive choices cause activechoices to be forced to this one
+                        if definition.Type == "Exclusive" then
+                            activeChoices = {[i]=true}
+                        else
+                            -- uhh i didnt implement any other type that would ... be used for.. this
+                        end
+
+                        -- run the tap function
+                        if definition.TapFunction ~= nil then
+                            definition.TapFunction()
+                        end
+                        self:GetParent():GetParent():playcommand("UpdateTagList")
+                        self:GetParent():playcommand("UpdateText")
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -256,8 +427,14 @@ local function tagList()
         end,
         BeginCommand = function(self)
             self:playcommand("UpdateTagList")
+            self:playcommand("UpdateText")
         end,
         UpdateTagListCommand = function(self)
+            -- this sets all the data things over and over and over
+            -- but its all in one place and is only called once every time you touch the tag list stuff
+            -- ... so its probably slow but only as slow as it needs to be
+            -- (make sure you dont let this get called if you arent looking at the tag tab because thats a waste)
+            -- (but if you then decide to look at the tag tab you should probably run this)
             storedTags = TAGMAN:get_data().playerTags
             tagNameList = {}
             for k, _ in pairs(storedTags) do
@@ -267,6 +444,15 @@ local function tagList()
                 tagNameList,
                 function(a,b) return a:lower() < b:lower() end
             )
+
+            requiredTags = {}
+            excludedTags = {}
+            for _, t in ipairs(WHEELDATA:GetRequiredTags()) do
+                requiredTags[t] = true
+            end
+            for _, t in ipairs(WHEELDATA:GetExcludedTags()) do
+                excludedTags[t] = true
+            end
         end,
         
         tagChoices(),
