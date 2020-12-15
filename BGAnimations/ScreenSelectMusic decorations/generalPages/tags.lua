@@ -36,7 +36,8 @@ local ratios = {
     UpperLipHeight = 43 / 1080,
     LipSeparatorThickness = 2 / 1080,
     
-    PageNumberUpperGap = 473 / 1080, -- bottom of upper lip to top of text (this text is align right EdgeBuffer from right edge)
+    PageTextRightGap = 33 / 1920, -- right of frame, right of text
+    PageNumberUpperGap = 525 / 1080, -- bottom of upper lip to top of text
 
     ItemListUpperGap = 35 / 1080, -- bottom of upper lip to top of topmost item
     ItemAllottedSpace = 435 / 1080, -- top of topmost item to top of bottommost item
@@ -47,6 +48,7 @@ local actuals = {
     EdgeBuffer = ratios.EdgeBuffer * SCREEN_WIDTH,
     UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
     LipSeparatorThickness = ratios.LipSeparatorThickness * SCREEN_HEIGHT,
+    PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
     PageNumberUpperGap = ratios.PageNumberUpperGap * SCREEN_HEIGHT,
     ItemListUpperGap = ratios.ItemListUpperGap * SCREEN_HEIGHT,
     ItemAllottedSpace = ratios.ItemAllottedSpace * SCREEN_HEIGHT,
@@ -553,7 +555,7 @@ local function tagList()
             Name = "PageText",
             InitCommand = function(self)
                 self:halign(1):valign(0)
-                self:xy(actuals.Width - actuals.EdgeBuffer, actuals.PageNumberUpperGap)
+                self:xy(actuals.Width - actuals.PageTextRightGap, actuals.PageNumberUpperGap)
                 self:zoom(pageTextSize)
                 self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
             end,
