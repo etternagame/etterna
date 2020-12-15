@@ -347,6 +347,8 @@ local function createTagDisplays()
                 if params.steps then
                     if currentTags[i] then
                         self:settext(currentTags[i])
+                    else
+                        self:settext("")
                     end
                 else
                     self:settext("")
