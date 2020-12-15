@@ -7,23 +7,6 @@ local t = Def.ActorFrame {
         self:diffusealpha(0)
     end,
     WheelSettledMessageCommand = function(self, params)
-        
-        -- update tag data
-        currentTags = {}
-        if params.song and params.steps then
-            local playerTags = TAGMAN:get_data().playerTags
-            local ck = params.steps:GetChartKey()
-            for k,v in pairs(playerTags) do
-                if playerTags[k][ck] then
-                    currentTags[#currentTags+1] = k
-                end
-            end
-            table.sort(
-                currentTags,
-                function(a,b) return a:lower() < b:lower() end
-            )
-        end
-
         -- update displayscore
         -- it sets to nil properly by itself
         displayScore = GetDisplayScore()
@@ -356,7 +339,29 @@ local function createTagDisplays()
             end
         }
     end
-    local t = Def.ActorFrame {Name = "TagDisplays"}
+    local t = Def.ActorFrame {
+        Name = "TagDisplays",
+        SetCommand = function(self, params)
+            -- update tag data
+            currentTags = {}
+            if params.song and params.steps then
+                local playerTags = TAGMAN:get_data().playerTags
+                local ck = params.steps:GetChartKey()
+                for k,v in pairs(playerTags) do
+                    if playerTags[k][ck] then
+                        currentTags[#currentTags+1] = k
+                    end
+                end
+                table.sort(
+                    currentTags,
+                    function(a,b) return a:lower() < b:lower() end
+                )
+            end
+        end,
+        ReassignedTagsMessageCommand = function(self)
+            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
+        end
+    }
     for i = 1, 4 do
         t[#t+1] = createTagDisplay(i)
     end

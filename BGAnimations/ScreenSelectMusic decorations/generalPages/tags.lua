@@ -200,6 +200,7 @@ local function tagList()
                             TAGMAN:set_dirty()
                             TAGMAN:save()
                             self:GetParent():playcommand("UpdateTagList")
+                            MESSAGEMAN:Broadcast("ReassignedTags")
                         end
 
                     elseif tagListMode == "Require" then
