@@ -214,7 +214,7 @@ local function tagList()
                         end
                         WHEELDATA:SetExcludedTags(newtable)
                         self:GetParent():playcommand("UpdateTagList")
-                        
+
                     elseif tagListMode == "Delete" then
                         if excludedTags[tag] then excludedTags[tag] = nil end
                         if requiredTags[tag] then requiredTags[tag] = nil end
@@ -332,7 +332,38 @@ local function tagList()
                 Display = {"New"},
                 Condition = function() return true end,
                 IndexGetter = function() return 1 end,
-                TapFunction = function() ms.ok("new tag") end,
+                TapFunction = function()
+                    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+                    local function off()
+                        if redir then
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        end
+                    end
+                    local function on()
+                        if redir then
+                            SCREENMAN:set_input_redirected(PLAYER_1, true)
+                        end
+                    end
+                    off()
+                    -- input redirects are controlled here because we want to be careful not to break any prior redirects
+                    askForInputStringWithFunction(
+                        "Enter New Tag Name",
+                        128,
+                        false,
+                        function(answer)
+                            -- success if the answer isnt blank
+                            if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+                                MESSAGEMAN:Broadcast("CreateNewTag", {name = answer})
+                            else
+                                on()
+                            end
+                        end,
+                        function() return true, "" end,
+                        function()
+                            on()
+                        end
+                    )
+                end,
             },
         }
 
@@ -452,6 +483,19 @@ local function tagList()
             end
             for _, t in ipairs(WHEELDATA:GetExcludedTags()) do
                 excludedTags[t] = true
+            end
+        end,
+        CreateNewTagMessageCommand = function(self, params)
+            -- only create tag if the name isnt blank
+            if params ~= nil and params.name ~= nil and params.name ~= "" then
+                -- and dont make duplicate tags
+                -- (but allow alternate capitalization ...)
+                if storedTags[params.name] == nil then
+                    TAGMAN:get_data().playerTags[params.name] = {}
+                    TAGMAN:set_dirty()
+                    TAGMAN:save()
+                    self:playcommand("UpdateTagList")
+                end
             end
         end,
         
