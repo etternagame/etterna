@@ -12,6 +12,7 @@ local t = Def.ActorFrame {
                 self:smooth(0.2)
                 self:diffusealpha(1)
                 focused = true
+                self:playcommand("UpdateTagsTab")
             else
                 self:z(-1)
                 self:smooth(0.2)
@@ -20,6 +21,18 @@ local t = Def.ActorFrame {
             end
         end
     end,
+    UpdateTagsTabCommand = function(self)
+        self:playcommand("UpdateTagList")
+        self:playcommand("UpdateText")
+    end,
+    WheelSettledMessageCommand = function(self, params)
+        if not focused then return end
+        self:playcommand("UpdateTagsTab")
+    end,
+    ChangedStepsMessageCommand = function(self, params)
+        if not focused then return end
+        self:playcommand("UpdateTagsTab")
+    end
 }
 
 local ratios = {
