@@ -125,6 +125,16 @@ function WHEELDATA.SetRequiredTags(self, t)
     self.ActiveFilter.requireTags.tags = t
 end
 
+-- getter for list of tags to exclude
+function WHEELDATA.GetExcludedTags(self)
+    return self.ActiveFilter.excludeTags.tags
+end
+
+-- getter for list of tags to require
+function WHEELDATA.GetRequiredTags(self)
+    return self.ActiveFilter.requireTags.tags
+end
+
 -- set the excluded tag mode
 -- true = AND, false = OR
 function WHEELDATA.SetExcludedTagMode(self, m)
@@ -141,6 +151,18 @@ function WHEELDATA.SetRequiredTagMode(self, m)
         m = not self.ActiveFilter.requireTags.mode
     end
     self.ActiveFilter.requireTags.mode = m
+end
+
+-- getter for required tag mode
+-- true = AND, false = OR
+function WHEELDATA.GetRequiredTagMode(self)
+    return self.ActiveFilter.requireTags.mode
+end
+
+-- getter for excluded tag mode
+-- true = AND, false = OR
+function WHEELDATA.GetExcludedTagMode(self)
+    return self.ActiveFilter.excludeTags.mode
 end
 
 -- private function to handle checking to see if a chart passes the tag filters
