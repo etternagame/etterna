@@ -118,7 +118,6 @@ return Def.ActorFrame {
                 self:maxwidth(60 / 1920 * SCREEN_WIDTH / exittextsize)
                 self:xy(boxWidth/2 - sideMargin - exitwidth/2, boxHeight/2 - bottomMargin - exitheight/1.7)
                 self:settext("Exit")
-                MESSAGEMAN:SetLogging(true)
             end
         }
     }
