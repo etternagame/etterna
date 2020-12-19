@@ -18,6 +18,7 @@
 #include "Etterna/Models/Misc/SubscriptionManager.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
 
 #include "PrefsManager.h"
 
@@ -386,15 +387,15 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 	}
 
 	if (PREFSMAN->m_verbose_log > 1) {
-        Locator::getLogger()->trace("Theme: %s", m_sCurThemeName.c_str());
-        Locator::getLogger()->trace("Language: %s", m_sCurLanguage.c_str());
+        Locator::getLogger()->trace("Theme: {}", m_sCurThemeName.c_str());
+        Locator::getLogger()->trace("Language: {}", m_sCurLanguage.c_str());
 	}
 }
 
 std::string
 ThemeManager::GetDefaultLanguage()
 {
-	return Locator::getArchHooks()->GetPreferredLanguage();
+	return Core::Platform::getLanguage();
 }
 
 void

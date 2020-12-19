@@ -24,12 +24,6 @@
 
 #include "arch/Threads/Threads.h"
 
-#ifdef _WIN32
-#include "archutils/Win32/crash.h"
-#elif defined(__linux__) || defined(__APPLE__)
-#include "archutils/Unix/CrashHandler.h"
-#endif
-
 /* Assume TLS doesn't work until told otherwise.  It's ArchHooks's job to set
  * this. */
 bool RageThread::s_bSystemSupportsTLS = false;
@@ -406,82 +400,6 @@ RageThread::GetInvalidThreadID()
 	return GetInvalidThreadId();
 }
 
-/* Normally, checkpoints are only seen in crash logs.  It's occasionally useful
- * to see them in logs, but this outputs a huge amount of text. */
-static bool g_LogCheckpoints = false;
-void
-Checkpoints::LogCheckpoints(bool on)
-{
-	g_LogCheckpoints = on;
-}
-
-void
-Checkpoints::SetCheckpoint(const char* file, int line, const char* message)
-{
-	ThreadSlot* slot = GetCurThreadSlot();
-	if (slot == NULL)
-		slot = GetUnknownThreadSlot();
-	/* We can't ASSERT here, since that uses checkpoints. */
-	if (slot == NULL)
-		sm_crash("GetUnknownThreadSlot() returned NULL");
-
-	/* Ignore everything up to and including the first "src/". */
-	const char* temp = strstr(file, "src/");
-	if (temp != nullptr)
-		file = temp + 4;
-	slot->m_Checkpoints[slot->m_iCurCheckpoint].Set(file, line, message);
-
-	if (g_LogCheckpoints)
-		Locator::getLogger()->trace( slot->m_Checkpoints[slot->m_iCurCheckpoint].m_szFormattedBuf);
-
-	++slot->m_iCurCheckpoint;
-	slot->m_iNumCheckpoints =
-	  std::max(slot->m_iNumCheckpoints, slot->m_iCurCheckpoint);
-	slot->m_iCurCheckpoint %= CHECKPOINT_COUNT;
-}
-
-/* This is called under crash conditions.  Be careful. */
-static const char*
-GetCheckpointLog(int slotno, int lineno)
-{
-	ThreadSlot& slot = g_ThreadSlots[slotno];
-	if (!slot.m_bUsed)
-		return NULL;
-
-	/* Only show the "Unknown thread" entry if it has at least one checkpoint.
-	 */
-	if (&slot == g_pUnknownThreadSlot && slot.GetFormattedCheckpoint(0) == NULL)
-		return NULL;
-
-	if (lineno != 0)
-		return slot.GetFormattedCheckpoint(lineno - 1);
-
-	slot.m_szThreadFormattedOutput[sizeof(slot.m_szThreadFormattedOutput) - 1] =
-	  0;
-	return slot.m_szThreadFormattedOutput;
-}
-
-/* XXX: iSize check unimplemented */
-void
-Checkpoints::GetLogs(char* pBuf, int iSize, const char* delim)
-{
-	pBuf[0] = 0;
-
-	for (int slotno = 0; slotno < MAX_THREADS; ++slotno) {
-		const char* buf = GetCheckpointLog(slotno, 0);
-		if (buf == NULL)
-			continue;
-		strcat(pBuf, buf);
-		strcat(pBuf, delim);
-
-		for (int line = 1; (buf = GetCheckpointLog(slotno, line)) != NULL;
-			 ++line) {
-			strcat(pBuf, buf);
-			strcat(pBuf, delim);
-		}
-	}
-}
-
 /*
  * "Safe" mutexes: locking the same mutex more than once from the same
  * thread is refcounted and does not deadlock.
@@ -551,7 +469,7 @@ RageMutex::Lock()
 
 		/* Pass the crash handle of the other thread, so it can backtrace that
 		 * thread. */
-		CrashHandler::ForceDeadlock(sReason, CrashHandle);
+//		CrashHandler::ForceDeadlock(sReason, CrashHandle);
 	}
 
 	m_LockedBy = iThisThreadId;
@@ -718,7 +636,7 @@ RageSemaphore::Wait(bool bFailOnTimeout)
 			   ThisSlot ? ThisSlot->GetThreadName()
 						: "(???"
 						  ")"); // stupid trigraph warnings
-	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
+//	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
 }
 
 bool

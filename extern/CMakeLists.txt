@@ -47,12 +47,18 @@ add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(fmt)
 add_subdirectory(plog)
+add_subdirectory(boost/nowide)
+add_subdirectory(filesystem)
 
 ## Vorbis depends on ogg
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
 
+# Only enable crashpad if the user wants it.
+if(WITH_CRASHPAD)
+    add_subdirectory(crashpad)
+endif()
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)

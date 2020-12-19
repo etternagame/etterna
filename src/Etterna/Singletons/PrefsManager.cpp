@@ -89,7 +89,6 @@ XToString(BackgroundFitMode);
 StringToX(BackgroundFitMode);
 LuaXType(BackgroundFitMode);
 
-bool g_bAutoRestart = false;
 #ifdef DEBUG
 #define TRUE_IF_DEBUG true
 #else
@@ -200,15 +199,9 @@ PrefsManager::PrefsManager()
   , m_bTrilinearFiltering("TrilinearFiltering", false)
   , m_bUseMidGrades("UseMidGrades", false)
   , m_verbose_log("VerboseLogging", 1)
-#if defined(DEBUG)
-  , m_bForceLogFlush("ForceLogFlush", true)
-  , m_bShowLogOutput("ShowLogOutput", true)
-#else
-  , m_bForceLogFlush("ForceLogFlush", false)
-  , m_bShowLogOutput("ShowLogOutput", false)
-#endif
+  , m_bForceLogFlush("ForceLogFlush", TRUE_IF_DEBUG)
+  , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
   , m_bLogSkips("LogSkips", false)
-  , m_bLogCheckpoints("LogCheckpoints", false)
   , m_show_theme_errors("ShowThemeErrors", false)
 
 {

@@ -1,9 +1,9 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver_JACK.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SOUND_DRIVER_CLASS(JACK);
@@ -37,7 +37,7 @@ RageSoundDriver_JACK::Init()
 	std::string error;
 
 	// Open JACK client and call it "StepMania" or whatever
-	client = jack_client_open(PRODUCT_FAMILY, JackNoStartServer, &status);
+	client = jack_client_open(Core::AppInfo::APP_TITLE, JackNoStartServer, &status);
 	if (client == NULL)
 		return "Couldn't connect to JACK server";
 

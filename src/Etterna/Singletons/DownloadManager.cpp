@@ -723,7 +723,7 @@ DownloadManager::AddFavorite(const string& chartkey)
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	DLMAN->favorites.push_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
-		Locator::getLogger()->warn((requ.result + req + DLMAN->sessionUser).c_str());
+		Locator::getLogger()->warn("Favorited: {}{}{}", requ.result, req, DLMAN->sessionUser);
 	};
 	SendRequest(req, { make_pair("chartkey", chartkey) }, done, true, true);
 }
@@ -921,7 +921,7 @@ DownloadManager::UploadScore(HighScore* hs,
 							 function<void()> callback,
 							 bool load_from_disk)
 {
-	CHECKPOINT_M("Creating UploadScore request");
+	Locator::getLogger()->trace("Creating UploadScore request");
 	if (!LoggedIn()) {
 		Locator::getLogger()->trace(
 		  "Attempted to upload score when not logged in (scorekey: \"{}\")",
@@ -1096,7 +1096,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-	CHECKPOINT_M("Finished creating UploadScore request");
+	Locator::getLogger()->trace("Finished creating UploadScore request");
 }
 
 // this is for new/live played scores that have replaydata in memory
@@ -1305,7 +1305,7 @@ DownloadManager::RefreshUserRank()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshUserRank Error: Malformed request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("errors") && d["errors"].IsObject() &&
@@ -1380,11 +1380,12 @@ DownloadManager::SendRequestToURL(
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone](HTTPRequest& req,
+	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone, url](HTTPRequest& req,
 															  CURLMsg* msg) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "SendRequestToURL ({}) Parse Error: {}", url, req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
@@ -1456,7 +1457,7 @@ DownloadManager::RefreshCountryCodes()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshCountryCodes Error: Malformed request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("data") && d["data"].IsArray())
@@ -1492,16 +1493,14 @@ DownloadManager::RequestReplayData(const string& scoreid,
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed replay data request response: " + req.result).c_str());
+			Locator::getLogger()->trace("Malformed replay data request response: {}", req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			Locator::getLogger()->trace((string("Replay data request failed for ") + scoreid +
-						" (Response: " + buffer.GetString() + ")")
-						 .c_str());
+			Locator::getLogger()->trace("Replay data request failed for {} (Response: {})", scoreid, buffer.GetString());
 			return;
 		}
 
@@ -1608,11 +1607,20 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RequestChartLeaderBoard Error: Malformed request response: {}", req.result);
 			return;
 		}
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
+
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
+
+		// keep track of unranked charts
+		if (response_code == 404)
+			DLMAN->unrankedCharts.emplace(chartkey);
+		else if (response_code == 200)
+			DLMAN->unrankedCharts.erase(chartkey);
 
 		if (!d.HasMember("errors") && d.HasMember("data") &&
 			d["data"].IsArray()) {
@@ -1631,9 +1639,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					StringBuffer buffer;
 					Writer<StringBuffer> writer(buffer);
 					score_obj.Accept(writer);
-					Locator::getLogger()->trace(("Malformed score in chart leaderboard (chart:" +
-								chartkey + "): " + buffer.GetString())
-								 .c_str());
+					Locator::getLogger()->trace("Malformed score in chart leaderboard (chart: {}): {}", chartkey, buffer.GetString());
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -1833,11 +1839,23 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
-				lua_newtable(L);
-				for (unsigned i = 0; i < vec.size(); ++i) {
-					auto& s = vec[i];
-					s.Push(L);
-					lua_rawseti(L, -2, i + 1);
+
+				// 404: Chart not ranked
+				// 401: Invalid login token
+				if (response_code == 404 || response_code == 401) {
+					lua_pushnil(L);
+					// nil output means unranked to Lua
+				} else {
+					// expecting only 200 as the alternative
+					// 200: success
+					lua_newtable(L);
+					for (unsigned i = 0; i < vec.size(); ++i) {
+						auto& s = vec[i];
+						s.Push(L);
+						lua_rawseti(L, -2, i + 1);
+					}
+					// table size of 0 means ranked but no scores
+					// any larger table size means ranked with scores (duh)
 				}
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 1, 0, true); // 1 args, 0 results
@@ -1857,7 +1875,7 @@ DownloadManager::RefreshCoreBundles()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshCoreBundles Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1919,7 +1937,7 @@ DownloadManager::RefreshLastVersion()
 	auto done = [this](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshLastVersion Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1945,7 +1963,7 @@ DownloadManager::RefreshRegisterPage()
 	auto done = [this](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace("RefreshRegisterPage Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1982,8 +2000,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 			 d["errors"]["status"].GetInt() == 404) ||
 			!d.HasMember("data") || !d["data"].IsArray()) {
 			Locator::getLogger()->trace(
-			  ("Malformed top25 scores request response: " + req.result)
-				.c_str());
+			  "Malformed top25 scores request response: {}", req.result);
 			return;
 		}
 		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
@@ -1993,10 +2010,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
-				Locator::getLogger()->trace((std::string("Malformed single score in top25 "
-										"scores request response: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Malformed single score in top25 scores request response: {}",
+				  buffer.GetString());
 				continue;
 			}
 			auto& score = score_obj["attributes"];
@@ -2016,10 +2032,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				score_obj.Accept(writer);
-				Locator::getLogger()->trace((std::string("Malformed single score in top25 "
-										"scores request response: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->trace(
+				  "Malformed single score in top25 scores request response: {}",
+				  buffer.GetString());
 				continue;
 			}
 			OnlineTopScore tmp;
@@ -2051,7 +2066,9 @@ DownloadManager::RefreshUserData()
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "RefreshUserData Error: Malformed request response: {}",
+			  req.result);
 			return;
 		}
 
@@ -2141,7 +2158,9 @@ DownloadManager::StartSession(
 	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->trace(("Malformed request response: " + req.result).c_str());
+			Locator::getLogger()->trace(
+			  "StartSession Error: Malformed request response: {}", req.result);
+			MESSAGEMAN->Broadcast("LoginFailed");
 			DLMAN->loggingIn = false;
 			return;
 		}
@@ -2235,9 +2254,8 @@ DownloadManager::RefreshPackList(const string& url)
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
 				Locator::getLogger()->trace(
-				  (std::string("Missing pack name in packlist element: ") +
-				   buffer.GetString())
-					.c_str());
+				  "Missing pack name in packlist element: {}",
+				  buffer.GetString());
 				continue;
 			}
 
@@ -2255,7 +2273,9 @@ DownloadManager::RefreshPackList(const string& url)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				pack_obj.Accept(writer);
-				Locator::getLogger()->trace("Missing download link in packlist element: {}", buffer.GetString());
+				Locator::getLogger()->trace(
+				  "Missing download link in packlist element: {}",
+				  buffer.GetString());
 				continue;
 			}
 			if (tmp.url.empty())
@@ -2654,6 +2674,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	// this will not update a leaderboard to a new state.
 	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
 	{
+		// an unranked chart check could be done here
+		// but just in case, don't check
+		// allow another request for those -- if it gets ranked during a session
 		string chart = SArg(1);
 		LuaReference ref;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[chart];
@@ -2688,12 +2711,20 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	{
 		vector<HighScore*> filteredLeaderboardScores;
 		std::unordered_set<string> userswithscores;
-		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
+		auto ck = SArg(1);
+		auto& leaderboardScores = DLMAN->chartLeaderboards[ck];
 		string country = "";
 		if (!lua_isnoneornil(L, 2)) {
 			country = SArg(2);
 		}
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+		// empty chart leaderboards return empty lists
+		// unranked charts return NO lists
+		if (DLMAN->unrankedCharts.count(ck)) {
+			lua_pushnil(L);
+			return 1;
+		}
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;

@@ -75,8 +75,14 @@ ComboGraph::Load(const std::string& sMetricsGroup)
 void
 ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 {
-	const float fFirstSecond = 0;
 	const float fLastSecond = s.GetTotalPossibleStepsSeconds();
+	SetWithoutStageStats(pss, fLastSecond);
+}
+
+void
+ComboGraph::SetWithoutStageStats(const PlayerStageStats& pss, const float fLastSecond)
+{
+	const float fFirstSecond = 0;
 
 	// Unhide the templates.
 	m_pNormalCombo->SetVisible(true);
@@ -98,7 +104,10 @@ ComboGraph::Set(const StageStats& s, const PlayerStageStats& pss)
 
 		if (PREFSMAN->m_verbose_log > 1)
 			Locator::getLogger()->trace("combo {} is {}+{} of {}",
-					   i, combo.m_fStartSecond,combo.m_fSizeSeconds, fLastSecond);
+										i,
+										combo.m_fStartSecond,
+										combo.m_fSizeSeconds,
+										fLastSecond);
 		Actor* pSprite = bIsMax ? m_pMaxCombo->Copy() : m_pNormalCombo->Copy();
 
 		const float fStart =
@@ -169,6 +178,14 @@ class LunaComboGraph : public Luna<ComboGraph>
 		p->Set(*pStageStats, *pPlayerStageStats);
 		COMMON_RETURN_SELF;
 	}
+	static int SetWithoutStageStats(T* p, lua_State* L)
+	{
+		const float lastsecond = FArg(2);
+		auto* pPlayerStageStats =
+		  Luna<PlayerStageStats>::check(L, 1);
+		p->SetWithoutStageStats(*pPlayerStageStats, lastsecond);
+		COMMON_RETURN_SELF;
+	}
 	static int Clear(T* p, lua_State* L)
 	{
 		p->DeleteAllChildren();
@@ -179,6 +196,7 @@ class LunaComboGraph : public Luna<ComboGraph>
 	{
 		ADD_METHOD(Load);
 		ADD_METHOD(Set);
+		ADD_METHOD(SetWithoutStageStats);
 		ADD_METHOD(Clear);
 	}
 };

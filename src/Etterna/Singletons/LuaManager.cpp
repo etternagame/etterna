@@ -10,7 +10,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/Dialog/Dialog.h"
-#include "ver.h"
+#include "Core/Misc/AppInfo.hpp"
 
 #include <algorithm>
 #include <array>
@@ -1213,7 +1213,7 @@ LuaHelpers::ReportScriptError(std::string const& Error,
 		ScriptErrorMessage(Error);
 		InReportScriptError = false;
 	}
-	Locator::getLogger()->warn(Error.c_str());
+	Locator::getLogger()->warn("{}", Error.c_str());
 	if (UseAbort) {
 		std::string with_correct =
 		  Error + "\nCorrect this and click Retry, click Abort to crash, or "
@@ -1479,10 +1479,9 @@ GetFuncArg(int n, lua_State* L)
 	return ref;
 }
 
-#include "Etterna/Globals/ProductInfo.h"
-LuaFunction(ProductFamily, (std::string)PRODUCT_FAMILY);
-LuaFunction(ProductVersion, (std::string)product_version);
-LuaFunction(ProductID, (std::string)PRODUCT_ID);
+LuaFunction(ProductFamily, (std::string)Core::AppInfo::APP_TITLE);
+LuaFunction(ProductVersion, (std::string)Core::AppInfo::APP_VERSION);
+LuaFunction(ProductID, (std::string)Core::AppInfo::APP_TITLE);
 
 LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
 
@@ -1494,14 +1493,14 @@ static int
 Trace(lua_State* L)
 {
 	std::string sString = SArg(1);
-	Locator::getLogger()->trace(sString.c_str());
+	Locator::getLogger()->trace("{}", sString.c_str());
 	return 0;
 }
 static int
 Warn(lua_State* L)
 {
 	std::string sString = SArg(1);
-	Locator::getLogger()->warn(sString.c_str());
+	Locator::getLogger()->warn("{}", sString.c_str());
 	return 0;
 }
 static int

@@ -194,6 +194,7 @@ class DownloadManager
 		""
 	}; // Register page from server (Or empty if non was obtained)
 	std::map<std::string, std::vector<OnlineScore>> chartLeaderboards;
+	std::set<std::string> unrankedCharts;
 	std::vector<std::string> countryCodes;
 	std::map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset

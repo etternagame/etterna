@@ -265,7 +265,6 @@ Alsa9Buf::Init(int channels_, int iWriteahead, int iChunkSize, int iSampleRate)
 		  "dsnd_pcm_open(%s): %s", DeviceName().c_str(), dsnd_strerror(err));
 
 	if (!SetHWParams()) {
-		CHECKPOINT;
 		return "SetHWParams failed";
 	}
 

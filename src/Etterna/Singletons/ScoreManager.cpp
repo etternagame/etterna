@@ -803,6 +803,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 	}
 
 	prating = AggregateSkillsets(skillz, 0.F, 10.24F, 1) * 1.125F;
+	pskillsets[Skill_Overall] = prating;
 }
 
 // perhaps we will need a generalized version again someday, but not today
@@ -971,6 +972,45 @@ ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID)
 {
 	AllProfileScores[profileID].emplace_back(hs_);
 }
+
+std::vector<Skillset>
+ScoreManager::GetTopPlayedSkillsets(const string& profileID)
+{
+	std::vector<Skillset> output;
+	auto playcounts = GetPlaycountPerSkillset(profileID);
+	std::vector<std::pair<Skillset, int>> sortedcounts;
+	for (size_t i = 0; i < playcounts.size(); i++) {
+		// i+1 because skipping Overall which should be 0
+		sortedcounts.emplace_back(static_cast<Skillset>(i + 1), playcounts[i]);
+	}
+	std::sort(sortedcounts.begin(),
+			  sortedcounts.end(),
+			  [](auto& a, auto& b) -> bool { return a.second > b.second; });
+	for (auto& x : sortedcounts) {
+		output.push_back(x.first);
+	}
+	return output;
+}
+
+std::vector<int>
+ScoreManager::GetPlaycountPerSkillset(const string& profileID)
+{
+	std::vector<int> counts;
+	counts.resize(NUM_Skillset);
+
+	// get relevant msd for each score and count the highest relevant
+	for (auto& s : AllProfileScores[profileID]) {
+		auto* c = SONGMAN->GetStepsByChartkey(s->GetChartKey());
+		if (c == nullptr)
+			continue;
+
+		auto ss = c->SortSkillsetsAtRate(
+		  std::clamp(s->GetMusicRate(), 0.7F, 2.F), false);
+		counts[ss[0].first]++;
+	}
+	return counts;
+}
+
 
 // Write scores to xml
 auto
@@ -1324,6 +1364,44 @@ class LunaScoreManager : public Luna<ScoreManager>
 		return 1;
 	}
 
+	static auto GetTopPlayedSkillsets(T* p, lua_State* L) -> int
+	{
+		auto* profile = Luna<Profile>::check(L, 1);
+		auto& s = profile->m_sProfileID;
+		// expecting a profile ID here
+		auto v = p->GetTopPlayedSkillsets(s);
+		LuaHelpers::CreateTableFromArray(v, L);
+		
+		return 1;
+	}
+
+	static auto GetPlaycountPerSkillset(T* p, lua_State* L) -> int
+	{
+		auto* profile = Luna<Profile>::check(L, 1);
+		auto& s = profile->m_sProfileID;
+		// each index in the resulting vector here is essentially equal to Skillset
+		// except it is offset by 1: position 0 is Stream (at the time of writing)
+		// Overall is nowhere to be found because that doesn't make sense.
+		// expecting a profile ID here
+		auto v = p->GetPlaycountPerSkillset(s);
+		LuaHelpers::CreateTableFromArray(v, L);
+
+		return 1;
+	}
+
+	static auto GetScoresThisSession(T* p, lua_State* L) -> int
+	{
+		auto v = p->GetScoresThisSession();
+		LuaHelpers::CreateTableFromArray(v, L);
+		return 1;
+	}
+
+	static auto GetNumScoresThisSession(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetNumScoresThisSession());
+		return 1;
+	}
+
 	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
@@ -1339,6 +1417,10 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(GetMostRecentScore);
 		ADD_METHOD(GetTempReplayScore);
 		ADD_METHOD(GetTotalNumberOfScores);
+		ADD_METHOD(GetTopPlayedSkillsets);
+		ADD_METHOD(GetPlaycountPerSkillset);
+		ADD_METHOD(GetScoresThisSession);
+		ADD_METHOD(GetNumScoresThisSession);
 	}
 };
 

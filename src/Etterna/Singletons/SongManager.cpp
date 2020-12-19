@@ -406,7 +406,7 @@ SongManager::CalcTestStuff()
 	{
 		if (!test_vals[ss].empty()) {
 			Locator::getLogger()->trace(
-			  "%{:+0.2f} avg delta for test group %s",
+			  "%{:+0.2f} avg delta for test group {}",
 			  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.F) /
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
@@ -1332,7 +1332,7 @@ SongManager::LoadCalcTestNode()
 		return;
 	}
 
-	CHECKPOINT_M("Loading the Calc Test node.");
+	Locator::getLogger()->trace("Loading the Calc Test node.");
 
 	FOREACH_CONST_Child(&xml, chartlist) // "For Each Skillset
 	{
@@ -1381,7 +1381,7 @@ SongManager::LoadCalcTestNode()
 auto
 SongManager::SaveCalcTestCreateNode() const -> XNode*
 {
-	CHECKPOINT_M("Saving the Calc Test node.");
+	Locator::getLogger()->trace("Saving the Calc Test node.");
 
 	auto* calctestlists = new XNode("CalcTest");
 	for (const auto& i : testChartList) {

@@ -614,7 +614,7 @@ Profile::SetAnyAchievedGoals(const string& ck,
 							 float& rate,
 							 const HighScore& pscore)
 {
-	CHECKPOINT_M("Scanning for any goals that may have been accomplished.");
+	Locator::getLogger()->trace("Scanning for any goals that may have been accomplished.");
 
 	if (!HasGoal(ck))
 		return;
@@ -1211,15 +1211,31 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	}
 
 	static int SetPercent(T* p, lua_State* L)
-	{
+	{	
 		if (!p->achieved) {
 			auto newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
-
-			if (p->percent < 0.995f && newpercent > 0.995f)
-				newpercent = 0.9975f;
-			if (p->percent < 0.9990f && newpercent > 0.9997f)
-				newpercent = 0.9997f;
+			if (newpercent > 0.99f)
+			{
+				if (p->percent < 0.99700f)
+					newpercent = 0.99700f; // AAA
+				else if (p->percent < 0.99955f)
+					newpercent = 0.99955f; // AAAA
+				else if (p->percent < 0.99996f)
+					newpercent = 0.99996f; // AAAAA
+			}
+			else if (newpercent > 0.985f)
+			{
+				if (p->percent > 0.99996f)
+					newpercent = 0.99996f; // AAAAA
+				else if (p->percent > 0.99955f)
+					newpercent = 0.99955f; // AAAA
+				else if (p->percent > 0.99700f)
+					newpercent = 0.99700f; // AAA
+				else
+					newpercent = 0.99f;
+			}
+			
 
 			p->percent = newpercent;
 			p->CheckVacuity();

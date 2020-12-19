@@ -394,7 +394,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		if (parsedData.size() == 0) {
 			continue;
 		}
-		if (filename == aFileNames[0]) {
+		if (out.m_SongTiming.empty()) {
 			SetMetadata(parsedData, out);
 			SetTimingData(parsedData, out);
 		}

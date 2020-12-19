@@ -324,7 +324,6 @@ class OptionRowHandlerList : public OptionRowHandler
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
 				Locator::getLogger()->warn(s.c_str());
-				CHECKPOINT_M(s);
 				iFallbackOption = 0;
 			}
 

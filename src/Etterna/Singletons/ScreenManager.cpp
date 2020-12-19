@@ -872,7 +872,7 @@ ScreenManager::SendMessageToTopScreen(ScreenMessage SM)
 void
 ScreenManager::SystemMessage(const std::string& sMessage)
 {
-	Locator::getLogger()->trace(sMessage.c_str());
+	Locator::getLogger()->trace("{}", sMessage.c_str());
 	Message msg("SystemMessage");
 	msg.SetParam("Message", sMessage);
 	msg.SetParam("NoAnimate", false);

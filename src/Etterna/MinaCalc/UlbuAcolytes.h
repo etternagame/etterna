@@ -10,7 +10,7 @@
  * patterns have lower enps than streams, streams default to 1 and chordstreams
  * start lower, stam is a special case and may use normalizers again */
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.93F, 0.885F, 0.84F, 0.925F, 0.91F, 0.8F, 0.83F
+	0.F, 0.93F, 0.885F, 0.84F, 0.925F, 0.8833277F, 0.8F, 0.83F
 };
 
 static const std::string calc_params_xml = "Save/calc params.xml";
@@ -157,6 +157,11 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 		}
 
 		const auto& ri = i;
+
+		// either not a 4k file or malformed
+		if (ri.notes < 0 || ri.notes > 0b1111) {
+			return true;
+		}
 
 		// 90000 bpm flams may produce 0s due to float precision, we can ignore
 		// this for now, there should be no /0 errors due to it

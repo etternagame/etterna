@@ -1,13 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "GraphicsWindow.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
+#include "Etterna/Globals/GameLoop.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
-#include "archutils/Win32/Crash.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "archutils/Win32/GetFileInformation.h"
@@ -21,7 +21,7 @@
 #include <set>
 #include <dbt.h>
 
-static const std::string g_sClassName = PRODUCT_ID;
+static const std::string g_sClassName = Core::AppInfo::APP_TITLE;
 
 static HWND g_hWndMain;
 static HDC g_HDC;
@@ -60,7 +60,7 @@ GetNewWindow()
 static LRESULT CALLBACK
 GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	CHECKPOINT_M(
+	Locator::getLogger()->trace(
 	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
 
 	// Suppress autorun.
@@ -152,7 +152,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_CLOSE:
 			Locator::getLogger()->trace("WM_CLOSE: shutting down");
-			ArchHooks::SetUserQuit();
+			GameLoop::setUserQuit();
 			return 0;
 
 		case WM_WINDOWPOSCHANGED: {
@@ -202,7 +202,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	CHECKPOINT_M(
+	Locator::getLogger()->trace(
 	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
 
 	if (m_bWideWindowClass)
@@ -337,7 +337,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		}
 
 		g_hWndMain = hWnd;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 		g_HDC = GetDC(g_hWndMain);
 	}
 
@@ -428,33 +428,23 @@ GraphicsWindow::DestroyGraphicsWindow()
 		ReleaseDC(g_hWndMain, g_HDC);
 		g_HDC = nullptr;
 	}
-
-	CHECKPOINT;
-
 	if (g_hWndMain != nullptr) {
 		DestroyWindow(g_hWndMain);
 		g_hWndMain = nullptr;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 	}
-
-	CHECKPOINT;
 
 	if (g_hIcon != nullptr) {
 		DestroyIcon(g_hIcon);
 		g_hIcon = nullptr;
 	}
 
-	CHECKPOINT;
-
 	MSG msg;
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
-		CHECKPOINT;
 		GetMessage(&msg, nullptr, 0, 0);
-		CHECKPOINT;
 		DispatchMessage(&msg);
 	}
 
-	CHECKPOINT;
 }
 
 void
@@ -543,7 +533,7 @@ GraphicsWindow::Update()
 		DispatchMessage(&msg);
 	}
 
-	Locator::getArchHooks()->SetHasFocus(g_bHasFocus);
+	GameLoop::setGameFocused(g_bHasFocus);
 
 	if (g_bResolutionChanged && DISPLAY != nullptr) {
 		// LOG->Warn( "Changing resolution" );

@@ -557,6 +557,19 @@ local function recentLabel(i)
 						end
 					end
 				end
+			end,
+			MouseRightClickMessageCommand = function(self)
+				if recentactive and ButtonActive(self) then
+					if ths and not showOnline then
+						ths:ToggleEtternaValidation()
+						BroadcastIfActive("UpdateRanking")
+						if ths:GetEtternaValid() then
+							ms.ok(translated_info["Validated"])
+						else
+							ms.ok(translated_info["Invalidated"])
+						end
+					end
+				end
 			end
 		},
 		LoadFont("Common Normal") ..

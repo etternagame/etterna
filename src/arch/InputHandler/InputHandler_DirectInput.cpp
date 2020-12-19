@@ -832,7 +832,6 @@ InputHandler_DInput::InputThreadMain()
 	}
 
 	while (!m_bShutdown) {
-		CHECKPOINT;
 		if (BufferedDevices.size()) {
 			// Update buffered devices.
 			PollAndAcquireDevices(true);
@@ -849,15 +848,12 @@ InputHandler_DInput::InputThreadMain()
 			for (unsigned i = 0; i < BufferedDevices.size(); ++i)
 				UpdateBuffered(*BufferedDevices[i], now);
 		}
-		CHECKPOINT;
 
 		// If we have no buffered devices, we didn't delay at
 		// WaitForMultipleObjectsEx.
 		if (BufferedDevices.size() == 0)
 			usleep(50000);
-		CHECKPOINT;
 	}
-	CHECKPOINT;
 
 	for (unsigned i = 0; i < Devices.size(); ++i) {
 		if (!Devices[i].buffered)

@@ -1,5 +1,7 @@
 #include "PlogLogger.hpp"
 
+#include "Core/Platform/Platform.hpp"
+
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <fmt/chrono.h>
 
@@ -50,11 +52,17 @@ PlogLogger::PlogLogger() {
     char timeString[20]; // Date and time portion only
     std::time_t t = std::time(nullptr);
     std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
-    std::string logFileName = fmt::format("Logs/{}.log", timeString);
+    auto logDirectory = Core::Platform::getAppDirectory() / "Logs";
+
+    // Ensure log directory exists before initializing logger.
+    if(!ghc::filesystem::exists(logDirectory))
+        ghc::filesystem::create_directory(logDirectory);
+
+    auto logFilePath = logDirectory / fmt::format("{}.log", timeString);
 
     // File Appender
-    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFileName.c_str()};
-    plog::init(plog::Severity::verbose, &rollingFileAppender);
+    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};
+    plog::init(plog::Severity::info, &rollingFileAppender);
 
     // Console Appender. One for windows, and another for other operating systems.
     #ifdef _WIN32
@@ -62,7 +70,7 @@ PlogLogger::PlogLogger() {
     #else
         static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
     #endif
-    plog::init(plog::Severity::verbose, &consoleAppender);
+    plog::init(plog::Severity::info, &consoleAppender);
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
