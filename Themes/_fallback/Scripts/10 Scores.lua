@@ -665,7 +665,7 @@ function midgradeToGrade(grade)
 		Grade_Tier20 = 20,
 		Grade_Failed = 21
 	}
-	return grades[grade]
+	return gradeTiers[grade]
 end
 
 -- returns true if A is worth more than B
