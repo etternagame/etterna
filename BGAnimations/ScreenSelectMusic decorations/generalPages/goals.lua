@@ -30,7 +30,6 @@ local t = Def.ActorFrame {
 }
 
 local ratios = {
-    EdgeBuffer = 11 / 1920, -- intended buffer from leftmost edge, rightmost edge, and distance away from center of frame
     UpperLipHeight = 43 / 1080,
     LipSeparatorThickness = 2 / 1080,
     
@@ -38,12 +37,19 @@ local ratios = {
     PageNumberUpperGap = 525 / 1080, -- bottom of upper lip to top of text
 
     ItemListUpperGap = 35 / 1080, -- bottom of upper lip to top of topmost item
-    ItemAllottedSpace = 435 / 1080, -- top of topmost item to top of bottommost item
-    ItemSpacing = 45 / 1080, -- top of item to top of next item
+    ItemAllottedSpace = 397 / 1080, -- top of topmost item to top of bottommost item
+    ItemSpacing = 100 / 1080, -- top of item to top of next item
+    ItemLowerLineUpperGap = 40 / 1080, -- top of top line to top of bottom line
+    ItemDividerThickness = 3 / 1080, -- you know what it is (i hope) (ok its based on height so things are consistent-ish)
+    ItemDividerLength = 26 / 1080,
+
+    ItemPriorityLeftGap = 11 / 1920, -- left edge of frame to left edge of number
+    ItemPriorityWidth = 38 / 1920, -- left edge of number to uhh nothing
+    IconWidth = 18 / 1920, -- for the trash thing
+    IconHeight = 21 / 1080,
 }
 
 local actuals = {
-    EdgeBuffer = ratios.EdgeBuffer * SCREEN_WIDTH,
     UpperLipHeight = ratios.UpperLipHeight * SCREEN_HEIGHT,
     LipSeparatorThickness = ratios.LipSeparatorThickness * SCREEN_HEIGHT,
     PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
@@ -51,6 +57,13 @@ local actuals = {
     ItemListUpperGap = ratios.ItemListUpperGap * SCREEN_HEIGHT,
     ItemAllottedSpace = ratios.ItemAllottedSpace * SCREEN_HEIGHT,
     ItemSpacing = ratios.ItemSpacing * SCREEN_HEIGHT,
+    ItemLowerLineUpperGap = ratios.ItemLowerLineUpperGap * SCREEN_HEIGHT,
+    ItemDividerThickness = ratios.ItemDividerThickness * SCREEN_HEIGHT,
+    ItemDividerLength = ratios.ItemDividerLength * SCREEN_HEIGHT,
+    ItemPriorityLeftGap = ratios.ItemPriorityLeftGap * SCREEN_WIDTH,
+    ItemPriorityWidth = ratios.ItemPriorityWidth * SCREEN_WIDTH,
+    IconWidth = ratios.IconWidth * SCREEN_WIDTH,
+    IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
 }
 
 -- scoping magic
@@ -66,8 +79,13 @@ do
     end
 end
 
-local goalTextSize = 1
+local goalLine1TextSize = 1
+local goalLine2TextSize = 1
 local pageTextSize = 0.9
+
+-- our fontpage SUCKS so this should make things look better
+-- undo this if the fontpage doesnt SUCK
+local dividerUpwardBump = 1
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
@@ -100,42 +118,206 @@ local function goalList()
     local function goalListItem(i)
         local index = i
 
-        return UIElements.TextButton(1, 1, "Common Normal") .. {
-            Name = "GoalItem_"..i,
-            InitCommand = function(self)
-                local txt = self:GetChild("Text")
-                local bg = self:GetChild("BG")
-                txt:halign(0):valign(0)
-                bg:halign(0)
+        -- theres a lot going on here i just wanted to write down vars representing math so its a little clearer for everyone
+        -- i should have done this kind of thing in more places but ...
+        local itemWidth = actuals.Width
+        local prioX = actuals.ItemPriorityLeftGap
+        local prioW = actuals.ItemPriorityWidth
+        local remainingWidth = itemWidth - prioW - prioX
+        local diffW = remainingWidth / 10 -- keep this in line with the other divisions below (combined just under 1/1)
+        local diffX = prioX + prioW + diffW/2
+        local div1X = prioX + prioW + diffW
+        local rateW = remainingWidth / 8 -- above comment
+        local rateX = div1X + rateW/2
+        local div2X = div1X + rateW
+        local percentW = remainingWidth / 2 -- above comment
+        local percentX = div2X + percentW/2
+        local div3X = div2X + percentW
+        local msdW = remainingWidth / 8 -- above comment
+        local msdX = div3X + msdW/2
+        local trashX = div3X + msdW
+        local line2AllowedWidth = remainingWidth * 0.8 -- keep in mind the bottom item probably conflicts with page number
 
-                self:x(actuals.EdgeBuffer)
-                self:y(actuals.UpperLipHeight + actuals.ItemListUpperGap + actuals.ItemAllottedSpace / goalItemCount * (i-1 - goalItemCount))
-                txt:zoom(goalTextSize)
-                txt:maxwidth(actuals.Width / goalTextSize - textzoomFudge)
-                txt:settext(" ")
-                bg:zoomto(actuals.Width, actuals.UpperLipHeight)
-                bg:y(txt:GetZoomedHeight() / 2)
+        return Def.ActorFrame {
+            Name = "GoalItemFrame_"..i,
+            InitCommand = function(self)
+                self:y((actuals.ItemAllottedSpace / (goalItemCount - 1)) * (i-1) + actuals.ItemListUpperGap + actuals.UpperLipHeight)
             end,
-            UpdateGoalListCommand = function(self)
-                local txt = self:GetChild("Text")
-                index = (page-1) * goalItemCount + i
-                self:finishtweening()
-                self:diffusealpha(0)
-            end,
-            ClickCommand = function(self, params)
-                if self:IsInvisible() then return end
-                if params.update == "OnMouseDown" then
-                    --
+        
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "Priority",
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0):valign(0)
+                    bg:halign(0)
+                    bg:diffusealpha(0.2)
+
+                    self:x(prioX)
+                    txt:zoom(goalLine1TextSize)
+                    txt:maxwidth(prioW / goalLine1TextSize - textzoomFudge)
+                    txt:settext("1.")
+                    bg:zoomto(prioW, txt:GetZoomedHeight())
+                    bg:y(txt:GetZoomedHeight() / 2)
+                end,
+                UpdateGoalListCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    index = (page-1) * goalItemCount + i
+                    self:finishtweening()
+                    --self:diffusealpha(0)
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        --
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end
-            end,
-            RolloverUpdateCommand = function(self, params)
-                if self:IsInvisible() then return end
-                if params.update == "in" then
-                    self:diffusealpha(buttonHoverAlpha)
-                else
-                    self:diffusealpha(1)
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Difficulty",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:x(diffX)
+                    self:zoom(goalLine1TextSize)
+                    self:maxwidth(diffW / goalLine1TextSize - textzoomFudge)
+                    self:settext("IN")
+                end,
+            },
+            Def.Quad {
+                Name = "Div1",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:x(div1X)
+                    self:y(-dividerUpwardBump)
+                    self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
                 end
-            end
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "Rate",
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:valign(0)
+                    bg:diffusealpha(0.2)
+
+                    self:x(rateX)
+                    txt:zoom(goalLine1TextSize)
+                    txt:maxwidth(rateW / goalLine1TextSize - textzoomFudge)
+                    txt:settext("1.0x")
+                    bg:zoomto(rateW, txt:GetZoomedHeight())
+                    bg:y(txt:GetZoomedHeight() / 2)
+                end,
+                UpdateGoalListCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    index = (page-1) * goalItemCount + i
+                    self:finishtweening()
+                    --self:diffusealpha(0)
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        --
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                end
+            },
+            Def.Quad {
+                Name = "Div2",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:x(div2X)
+                    self:y(-dividerUpwardBump)
+                    self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
+                end
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "Percentage",
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:valign(0)
+                    bg:diffusealpha(0.2)
+
+                    self:x(percentX)
+                    txt:zoom(goalLine1TextSize)
+                    txt:maxwidth(percentW / goalLine1TextSize - textzoomFudge)
+                    txt:settext("93% (93.33%)")
+                    bg:zoomto(percentW, txt:GetZoomedHeight())
+                    bg:y(txt:GetZoomedHeight() / 2)
+                end,
+                UpdateGoalListCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    index = (page-1) * goalItemCount + i
+                    self:finishtweening()
+                    --self:diffusealpha(0)
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        --
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                end
+            },
+            Def.Quad {
+                Name = "Div3",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:x(div3X)
+                    self:y(-dividerUpwardBump)
+                    self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "MSD",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:x(msdX)
+                    self:zoom(goalLine1TextSize)
+                    self:maxwidth(msdW / goalLine1TextSize - textzoomFudge)
+                    self:settext("11.11")
+                end
+            },
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(trashX)
+                    self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "NameDate",
+                InitCommand = function(self)
+                    self:valign(0):halign(0)
+                    self:x(prioX)
+                    self:y(actuals.ItemLowerLineUpperGap)
+                    self:zoom(goalLine2TextSize)
+                    self:maxwidth(line2AllowedWidth / goalLine2TextSize - textzoomFudge)
+                    self:settext("Song Name Song Name (Achieved 11/11/11)")
+                end
+            }
         }
     end
 
