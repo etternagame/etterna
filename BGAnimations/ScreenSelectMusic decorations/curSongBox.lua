@@ -154,7 +154,7 @@ t[#t+1] = Def.ActorFrame {
                 end
                 self:LoadBackground(bnpath)
             else
-                local bnpath = SONGMAN:GetSongGroupBannerPath(params.hovered)
+                local bnpath = WHEELDATA:GetFolderBanner(params.hovered)
                 if not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)

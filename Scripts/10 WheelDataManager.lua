@@ -407,7 +407,7 @@ end
 -- this function sits here for scoping reasons
 -- gets the author of a file, for foldername purposes
 local function getAuthorSortFoldernameForSong(song)
-    local author = song:GetOrTryAtLeastToGetSimfileAuthor()
+    local author = strtrim(song:GetOrTryAtLeastToGetSimfileAuthor():lower():gsub("^%l", string.upper))
     if author:upper() == "AUTHOR UNKNOWN" then author = "??????" end
     return author
 end
@@ -416,6 +416,7 @@ end
 -- each member is a table of functions
 -- the first function modifies WHEELDATA by sorting its items
 -- the second function describes the method used to find the folder that a song is in
+-- the third function describes the method used to find the folder banner given a folder name
 local sortmodeImplementations = {
     {   -- "Group" sort -- by pack, alphabetical within
         function()
@@ -444,6 +445,9 @@ local sortmodeImplementations = {
         end,
         function(song)
             return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
         end,
     },
 
@@ -475,6 +479,9 @@ local sortmodeImplementations = {
         function(song)
             return getTitleSortFoldernameForSong(song)
         end,
+        function(packName)
+            return ""
+        end,
     },
 
     {   -- "Author" sort -- by chart artist(s), alphabetical within
@@ -504,7 +511,19 @@ local sortmodeImplementations = {
         end,
         function(song)
             return getAuthorSortFoldernameForSong(song)
-        end
+        end,
+        function(packName)
+            -- take the given folder and pull the cdtitle of the first song
+            -- we don't cache this value so looping until we find a valid image isn't a good idea
+            local s = WHEELDATA.AllSongsByFolder[packName]
+            if s ~= nil then
+                local p = s[1]:GetCDTitlePath()
+                if p ~= nil then
+                    return p
+                end
+            end
+            return ""
+        end,
     },
 }
 
@@ -528,6 +547,12 @@ function WHEELDATA.SetCurrentSort(self, s)
         end
     end
     return false
+end
+
+-- getter for the folder banner for a folder name
+-- returns either a valid path or ""
+function WHEELDATA.GetFolderBanner(self, folderName)
+    return sortmodeImplementations[self.CurrentSort][3](folderName)
 end
 
 function WHEELDATA.SortByCurrentSortmode(self)

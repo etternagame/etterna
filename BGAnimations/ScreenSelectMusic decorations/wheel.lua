@@ -269,7 +269,7 @@ end
 
 -- responsible for setting group banner for wheelitem updates
 local function groupBannerSetter(self, group)
-    local bnpath = SONGMAN:GetSongGroupBannerPath(group)
+    local bnpath = WHEELDATA:GetFolderBanner(group)
     -- we load the fallback banner but for aesthetic purpose at the moment, invisible
     if not bnpath or bnpath == "" then
         bnpath = THEME:GetPathG("Common", "fallback banner")
