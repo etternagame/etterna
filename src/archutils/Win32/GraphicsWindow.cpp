@@ -60,9 +60,6 @@ GetNewWindow()
 static LRESULT CALLBACK
 GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	Locator::getLogger()->trace(
-	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
-
 	// Suppress autorun.
 	if (msg == g_iQueryCancelAutoPlayMessage)
 		return true;
@@ -201,9 +198,6 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 	}
-
-	Locator::getLogger()->trace(
-	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
 
 	if (m_bWideWindowClass)
 		return DefWindowProcW(hWnd, msg, wParam, lParam);

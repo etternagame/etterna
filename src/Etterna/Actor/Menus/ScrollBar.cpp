@@ -70,7 +70,6 @@ ScrollBar::SetPercentage(float fCenterPercent, float fSizePercent)
 	fStartPercent = fmodf(fStartPercent + 1, 1);
 	fEndPercent = fmodf(fEndPercent + 1, 1);
 
-	Locator::getLogger()->trace("Percentages set.");
 	float fPartTopY[2], fPartBottomY[2];
 
 	if (fStartPercent < fEndPercent) // we only need to one 1 stretch thumb part

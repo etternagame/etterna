@@ -234,7 +234,7 @@ RageSoundDriver::DecodeThread()
 
 			Sound* pSound = &m_Sound;
 
-			Locator::getLogger()->trace("Processing the sound while buffers are available.");
+			//Locator::getLogger()->trace("Processing the sound while buffers are available.");
 			while (pSound->m_Buffer.num_writable()) {
 				int iWrote = GetDataForSound(*pSound);
 				if (iWrote == RageSoundReader::WOULD_BLOCK)
