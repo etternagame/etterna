@@ -20,6 +20,8 @@ local ratios = {
     ItemTextCenterDistance = 40 / 1080, -- distance from lower (divider center) to center of subtitle
     ItemGradeTextRightGap = 24 / 1920, -- distance from right of item to right edge of text
     ItemGradeTextMaxWidth = 86 / 1920, -- approximation of width of the AAAAA grade
+    ItemFavoriteIconRightGap = 18 / 1920, -- from right edge of banner to middle of favorite icon
+    ItemFavoriteIconSize = 36 / 1080, -- width and height of the icon
     BannerWidth = 265 / 1920,
     BannerItemGap = 18 / 1920, -- gap between banner and item text/dividers
     HeaderHeight = 110 / 1080,
@@ -59,6 +61,8 @@ local actuals = {
     ItemTextCenterDistance = ratios.ItemTextCenterDistance * SCREEN_HEIGHT,
     ItemGradeTextRightGap = ratios.ItemGradeTextRightGap * SCREEN_WIDTH,
     ItemGradeTextMaxWidth = ratios.ItemGradeTextMaxWidth * SCREEN_WIDTH,
+    ItemFavoriteIconRightGap = ratios.ItemFavoriteIconRightGap * SCREEN_WIDTH,
+    ItemFavoriteIconSize = ratios.ItemFavoriteIconSize * SCREEN_HEIGHT,
     BannerWidth = ratios.BannerWidth * SCREEN_WIDTH,
     BannerItemGap = ratios.BannerItemGap * SCREEN_WIDTH,
     HeaderHeight = ratios.HeaderHeight * SCREEN_HEIGHT,
@@ -88,6 +92,8 @@ local wheelItemGroupInfoTextSize = 0.62
 local wheelHeaderTextSize = 1.2
 local wheelHeaderMTextSize = 0.6
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
+
+local favoriteColor = color("1,1,0")
 
 -----
 -- header related things
@@ -289,6 +295,7 @@ local function songActorUpdater(songFrame, song)
     songFrame.SubTitle:settext(song:GetDisplaySubTitle())
     songFrame.Artist:settext("~"..song:GetDisplayArtist())
     songFrame.Grade:playcommand("SetGrade", {grade = song:GetHighestGrade()})
+    songFrame.Favorited:diffusealpha(song:IsFavorited() and 1 or 0)
     songBannerSetter(songFrame.Banner, song)
 end
 
@@ -385,6 +392,22 @@ local function songActorBuilder()
             end,
             BeginCommand = function(self)
                 self:GetParent().Banner = self
+            end
+        },
+        Def.Sprite {
+            Name = "FavoriteIcon",
+            Texture = THEME:GetPathG("", "round_star"),
+            InitCommand = function(self)
+                -- same y line as the artist text
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+                self:x(-actuals.Width / 2 + actuals.BannerWidth - actuals.ItemFavoriteIconRightGap)
+                self:zoomto(actuals.ItemFavoriteIconSize, actuals.ItemFavoriteIconSize)
+                self:diffuse(favoriteColor)
+                self:diffusealpha(0)
+                self:wag()
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Favorited = self
             end
         }
     }
