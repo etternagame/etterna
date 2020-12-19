@@ -900,7 +900,7 @@ t[#t+1] = Def.ActorFrame {
                 self:SetDecodeMovie(false)
             end,
             SetCommand = function(self)
-                local bnpath = SONGMAN:GetSongGroupBannerPath(openedGroup)
+                local bnpath = WHEELDATA:GetFolderBanner(openedGroup)
                 if not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
