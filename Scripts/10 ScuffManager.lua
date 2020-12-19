@@ -9,4 +9,5 @@ SCUFF.generaltab = 1
 SCUFF.generaltabindex = 1
 SCUFF.scoretabindex = 2
 SCUFF.profiletabindex = 3
+SCUFF.goalstabindex = 4
 SCUFF.tagstabindex = 6

@@ -177,7 +177,7 @@ t[#t+1] = Def.ActorFrame {
     },
     LoadActorWithParams("generalPages/scores.lua", {ratios = ratios, actuals = actuals}),
     LoadActorWithParams("generalPages/profile.lua", {ratios = ratios, actuals = actuals}),
-    -- goals,
+    LoadActorWithParams("generalPages/goals.lua", {ratios = ratios, actuals = actuals}),
     -- playlists,
     LoadActorWithParams("generalPages/tags.lua", {ratios = ratios, actuals = actuals}),
 }
