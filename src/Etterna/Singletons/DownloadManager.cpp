@@ -1639,7 +1639,10 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					StringBuffer buffer;
 					Writer<StringBuffer> writer(buffer);
 					score_obj.Accept(writer);
-					Locator::getLogger()->trace("Malformed score in chart leaderboard (chart: {}): {}", chartkey, buffer.GetString());
+					Locator::getLogger()->trace(
+					  "Malformed score in chart leaderboard (chart: {}): {}",
+					  chartkey,
+					  buffer.GetString());
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -1762,6 +1765,16 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					tmp.valid = score["valid"].GetBool();
 				else
 					tmp.valid = false;
+				if (score.HasMember("wifeVersion") &&
+					score["wifeVersion"].IsInt()) {
+					auto v = score["wifeVersion"].GetInt();
+					if (v == 3)
+						tmp.wifeversion = 3;
+					else
+						tmp.wifeversion = 2;
+				}
+				else
+					tmp.wifeversion = 2;
 
 				auto& ssrs = score["skillsets"];
 				FOREACH_ENUM(Skillset, ss)
@@ -1803,6 +1816,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetModifiers(tmp.modifiers);
 				hs.SetChordCohesion(tmp.nocc);
 				hs.SetWifeScore(tmp.wife);
+				hs.SetWifeVersion(tmp.wifeversion);
 				hs.SetSSRNormPercent(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
@@ -2539,6 +2553,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_setfield(L, -2, "rate");
 		lua_pushnumber(L, score.wife);
 		lua_setfield(L, -2, "wife");
+		lua_pushnumber(L, score.wifeversion);
+		lua_setfield(L, -2, "wifeversion");
 		lua_pushnumber(L, score.miss);
 		lua_setfield(L, -2, "miss");
 		lua_pushnumber(L, score.marvelous);

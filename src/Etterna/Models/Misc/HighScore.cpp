@@ -1068,6 +1068,11 @@ HighScore::GetValidationKey(ValidationKey vk) const -> const std::string&
 	return m_Impl->ValidationKeys[vk];
 }
 void
+HighScore::SetWifeVersion(int i)
+{
+	m_Impl->WifeVersion = i;
+}
+void
 HighScore::SetRadarValues(const RadarValues& rv)
 {
 	m_Impl->radarValues = rv;

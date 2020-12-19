@@ -175,6 +175,7 @@ struct HighScore
 	auto GenerateValidationKeys() -> std::string;
 	[[nodiscard]] auto GetValidationKey(ValidationKey vk) const
 	  -> const std::string&;
+	void SetWifeVersion(int i);
 	auto GetRescoreJudgeVector(int x) -> std::vector<int>;
 	// laazy
 	std::string scoreid;

@@ -132,6 +132,7 @@ class OnlineScore
 	std::map<Skillset, float> SSRs;
 	float rate{ 0.0f };
 	float wife{ 0.0f };
+	int wifeversion{ 0 };
 	int maxcombo{ 0 };
 	int miss{ 0 };
 	int bad{ 0 };
