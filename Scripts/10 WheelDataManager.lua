@@ -525,6 +525,48 @@ local sortmodeImplementations = {
             return ""
         end,
     },
+
+    {   -- Favorite sort -- alphabetical order, all favorited charts, 1 folder
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+            local fname = "Favorites"
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                -- favorited songs only
+                if song:IsFavorited() then
+                    if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                        WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                    else
+                        WHEELDATA.AllSongsByFolder[fname] = {song}
+                        WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                    end
+                    WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+                end
+            end
+
+            -- theres only 1 group, just sort the favorites alphabetically
+            table.sort(
+                WHEELDATA.AllSongsByFolder[fname],
+                SongUtil.SongTitleComparator
+            )
+        end,
+        function(song)
+            return "Favorites"
+        end,
+        function(packName)
+            local s = WHEELDATA.AllSongsByFolder["Favorites"]
+            if s ~= nil then
+                -- pick the middle cdtitle
+                local p = s[clamp(math.floor(#s/2),1,#s)]:GetCDTitlePath()
+                if p ~= nil then
+                    return p
+                end
+            end
+            return ""
+        end,
+    },
 }
 
 -- get the value and string value of the current sort
