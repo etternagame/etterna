@@ -73,14 +73,16 @@ endif()
 
 # gn build system options
 set(GN_IS_DEBUG false)	# Build crashpad in debug or release (default is release)
+if(CMAKE_BUILD_TYPE STREQUAL Debug) #TODO: Fix for multi-config generators
+	set(GN_IS_DEBUG true)
+endif()
+
 set(GN_WIN_LINK_FLAG "")	# Dynamically link to C runtime library
 if(WIN32)
 	set(GN_WIN_LINK_FLAG /MT)	# Dynamically link to C runtime library
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL Debug) #TODO: Fix for multi-config generators
-	set(GN_IS_DEBUG true)
-#	string(APPEND GN_WIN_LINK_FLAG d)
+	if(CMAKE_BUILD_TYPE STREQUAL Debug) #TODO: Fix for multi-config generators
+		string(APPEND GN_WIN_LINK_FLAG d)
+	endif()
 endif()
 
 # TODO: Can this be removed? Only the steps below are used.

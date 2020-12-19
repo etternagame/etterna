@@ -3,7 +3,6 @@
 #include "Etterna/Models/Misc/DateTime.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
@@ -11,6 +10,7 @@
 #include "Etterna/FileTypes/XmlFileUtil.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "Core/Misc/AppInfo.hpp"
+#include <fmt/format.h>
 // only used for Version()
 #ifdef _WIN32
 #include <windows.h>
@@ -65,7 +65,7 @@ LuaInformation()
 	pNode->AppendAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 	pNode->AppendAttr("xsi:schemaLocation", "http://www.stepmania.com Lua.xsd");
 
-	pNode->AppendChild("Version", std::string(PRODUCT_FAMILY) + Core::AppInfo::APP_VERSION);
+	pNode->AppendChild("Version", fmt::format("{} {}", Core::AppInfo::APP_TITLE, Core::AppInfo::APP_VERSION));
 	pNode->AppendChild("Date", DateTime::GetNowDate().GetString());
 
 	XmlFileUtil::SaveToFile(pNode, "Lua.xml", "Lua.xsl");
@@ -83,8 +83,7 @@ static void
 Version()
 {
 #ifdef _WIN32
-	std::string sProductID =
-	  ssprintf("%s", (std::string(PRODUCT_FAMILY) + Core::AppInfo::APP_VERSION).c_str());
+	std::string sProductID = fmt::format("{}{}", Core::AppInfo::APP_TITLE, Core::AppInfo::APP_VERSION).c_str();
 	std::string sVersion = ssprintf("build %s", Core::AppInfo::GIT_HASH);
 
 	AllocConsole();

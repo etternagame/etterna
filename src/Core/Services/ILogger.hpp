@@ -47,8 +47,6 @@ public:
         this->log(Severity::FATAL, fmt::format(log, args...));
     }
 
-    /** @brief Enabled or disable a stdout prompt on Windows */
-    bool setConsoleEnabled(bool enable);
     virtual void setLogLevel(ILogger::Severity logLevel) = 0;
 
 protected:

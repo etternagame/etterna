@@ -11,7 +11,6 @@ list(APPEND GLOBAL_FILES_HPP
 	"GameLoop.h"
 	"global.h"
 	"OptionsBinding.h"
-	"ProductInfo.h" # TODO: Have this be auto-generated.
 	"SpecialFiles.h"
 	"rngthing.h"
 	"StepMania.h") # TODO: Refactor into separate main project.

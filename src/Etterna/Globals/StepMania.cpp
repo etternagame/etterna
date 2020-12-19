@@ -7,6 +7,7 @@
 #include "Core/Misc/PlogLogger.hpp"
 #include "Core/Crash/CrashpadHandler.hpp"
 #include "Core/Misc/AppInfo.hpp"
+#include "Core/Platform/Platform.hpp"
 
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -17,10 +18,8 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "ProductInfo.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
@@ -29,6 +28,7 @@
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
+#include "Etterna/Globals/GameLoop.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -313,15 +313,12 @@ ShutdownGame()
 	DLMAN.reset();
 	SAFE_DELETE(FILEMAN);
 	SAFE_DELETE(LUA);
-//	SAFE_DELETE(HOOKS);
 	Discord_Shutdown();
 }
 
 static void
 HandleException(const std::string& sError)
 {
-	if (g_bAutoRestart)
-        Locator::getArchHooks()->RestartProgram();
 
 	// Shut down first, so we exit graphics mode before trying to open a dialog.
 	ShutdownGame();
@@ -724,11 +721,6 @@ CheckVideoDefaultSettings()
 			PREFSMAN->m_iMovieColorDepth.Set(defaults.iMovieColor);
 			PREFSMAN->m_iMaxTextureResolution.Set(defaults.iTextureSize);
 			PREFSMAN->m_bSmoothLines.Set(defaults.bSmoothLines);
-			// this only worked when we started in fullscreen by default. -aj
-			// PREFSMAN->m_fDisplayAspectRatio.Set(
-			// HOOKS->GetDisplayAspectRatio() );
-			// now that we start in windowed mode, use the new default aspect
-			// ratio.
 			PREFSMAN->m_fDisplayAspectRatio.Set(
 			  PREFSMAN->m_fDisplayAspectRatio);
 		}
@@ -798,7 +790,7 @@ CreateDisplay()
 
 	std::string error =
 	  ERROR_INITIALIZING_CARD.GetValue() + "\n\n" +
-	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" VIDEO_TROUBLESHOOTING_URL "\n\n" +
+	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" +
 	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
 	  "\n\n";
 
@@ -942,49 +934,8 @@ StepMania::InitializeCurrentGame(const Game* g)
 }
 
 static void
-MountTreeOfZips(const std::string& dir)
-{
-	vector<std::string> dirs;
-	dirs.push_back(dir);
-
-	while (!dirs.empty()) {
-		std::string path = dirs.back();
-		dirs.pop_back();
-
-		if (!IsADirectory(path))
-			continue;
-
-		vector<std::string> zips;
-		GetDirListing(path + "/*.zip", zips, false, true);
-		GetDirListing(path + "/*.smzip", zips, false, true);
-
-		for (unsigned i = 0; i < zips.size(); ++i) {
-			if (!IsAFile(zips[i]))
-				continue;
-
-			Locator::getLogger()->trace("VFS: found {}", zips[i].c_str());
-			FILEMAN->Mount("zip", zips[i], "/");
-		}
-
-		GetDirListing(path + "/*", dirs, true, true);
-	}
-}
-
-static void
 WriteLogHeader()
 {
-	Locator::getLogger()->info("{}{}", PRODUCT_FAMILY, Core::AppInfo::APP_VERSION);
-
-	Locator::getLogger()->info("(build {})", Core::AppInfo::GIT_HASH);
-
-	time_t cur_time;
-	time(&cur_time);
-	struct tm now;
-	localtime_r(&cur_time, &now);
-
-	Locator::getLogger()->info("\tVerbosity: {}", PREFSMAN->m_verbose_log.ToString().c_str());
-	Locator::getLogger()->trace(" ");
-
 	if (g_argc > 1) {
 		std::string args;
 		for (int i = 1; i < g_argc; ++i) {
@@ -1013,18 +964,30 @@ sm_main(int argc, char* argv[])
 	// Initialize Logging
     Locator::provide(std::make_unique<PlogLogger>());
 
+    // Init Crash Handling
+	bool success = Core::Crash::initCrashpad();
+	if(!success)
+	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
+
+    // Log App and System Information
+    Locator::getLogger()->info("{} v{} - Build {}",
+                               Core::AppInfo::APP_TITLE,
+                               Core::AppInfo::APP_VERSION,
+                               Core::AppInfo::GIT_HASH);
+    Locator::getLogger()->info("System: {}", Core::Platform::getSystem());
+    Locator::getLogger()->info("CPU: {}", Core::Platform::getSystemCPU());
+	Locator::getLogger()->info("System Architecture: {}", Core::Platform::getArchitecture());
+	Locator::getLogger()->info("Total Memory: {}GB", Core::Platform::getSystemMemory() / pow(1024, 3));
+
+    // Run Platform Initialization
+    Core::Platform::init();
+
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
 
 	SetCommandlineArguments(argc, argv);
 
-	// Set up arch hooks first.  This may set up crash handling.
-	Locator::provide(ArchHooks::Create());
-    ArchHooks* archHooks = Locator::getArchHooks();
-    archHooks->Init();
-
 	LUA = new LuaManager;
-    archHooks->RegisterWithLua();
 
 	MESSAGEMAN = new MessageManager;
 
@@ -1034,36 +997,19 @@ sm_main(int argc, char* argv[])
 
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
-	FILEMAN->MountInitialFilesystems();
-
-    // Init Crash Handling
-    // TODO: This should be initialized much sooner, but fileman needs to be initialized first.
-	bool success = Core::Crash::initCrashpad();
-	if(!success){
-	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
-	}
-
-	bool bPortable = DoesFileExist("Portable.ini");
-	if (!bPortable)
-		FILEMAN->MountUserFilesystems();
-
-	// Set this up next. Do this early, since it's needed for
-	// RageException::Throw.
-//	LOG = new RageLog;
-
-	// Whew--we should be able to crash safely now!
+	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
-	/* Allow HOOKS to check for multiple instances.  We need to do this after
+	/* Allow ArchHooks to check for multiple instances.  We need to do this after
 	 * PREFS is initialized, so ArchHooks can use a preference to turn this off.
 	 * We want to do this before ApplyLogPreferences, so if we exit because of
 	 * another instance, we don't try to clobber its log.  We also want to do
 	 * this before opening the loading window, so if we give focus away, we
 	 * don't flash the window. */
-	if (!g_bAllowMultipleInstances.Get() &&
-	    archHooks->CheckForMultipleInstances(argc, argv)) {
+	if (!g_bAllowMultipleInstances.Get() && Core::Platform::isOtherInstanceRunning(argc, argv)) {
+	    Locator::getLogger()->warn("Multiple instances are disabled. Other instance detected. Shutting down...");
 		ShutdownGame();
 		return 0;
 	}
@@ -1090,7 +1036,7 @@ sm_main(int argc, char* argv[])
 
     // Setup options that require preference variables
     // Used to be contents of ApplyLogPreferences
-    Locator::getLogger()->setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
+    Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
     Locator::getLogger()->setLogLevel(static_cast<Core::ILogger::Severity>(PREFSMAN->m_verbose_log.Get()));
 
 	// This needs PREFSMAN.
@@ -1114,12 +1060,6 @@ sm_main(int argc, char* argv[])
 			  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
 	}
 
-	/* Do this early, so we have debugging output if anything else fails. LOG
-	 * and Dialog must be set up first. It shouldn't take long, but it might
-	 * take a little time; do this after the LoadingWindow is shown, since we
-	 * don't want that to appear delayed. */
-    archHooks->DumpDebugInfo();
-
 #if defined(HAVE_TLS)
 	Locator::getLogger()->info("TLS is {}available", RageThread::GetSupportsTLS() ? "" : "not ");
 #endif
@@ -1136,44 +1076,6 @@ sm_main(int argc, char* argv[])
 
 	CommandLineActions::Handle(pLoadingWindow);
 
-	// Aldo: Check for updates here!
-#if 0
-	if( /* PREFSMAN->m_bUpdateCheckEnable (do this later) */ 0 )
-	{
-		// TODO - Aldo_MX: Use PREFSMAN->m_iUpdateCheckIntervalSeconds & PREFSMAN->m_iUpdateCheckLastCheckedSecond
-		unsigned long current_version = NetworkSyncManager::GetCurrentSMBuild( pLoadingWindow );
-		if( current_version )
-		{
-			if( current_version > version_num )
-			{
-				switch( Dialog::YesNo( "A new version of " PRODUCT_ID " is available. Do you want to download it?", "UpdateCheck" ) )
-				{
-				case Dialog::yes:
-					//PREFSMAN->SavePrefsToDisk();
-					// TODO: GoToURL for Linux
-					if( !HOOKS->GoToURL( SM_DOWNLOAD_URL ) )
-					{
-						Dialog::Error( "Please go to the following URL to download the latest version of " PRODUCT_ID ":\n\n" SM_DOWNLOAD_URL, "UpdateCheckConfirm" );
-					}
-					ShutdownGame();
-					return 0;
-				case Dialog::no:
-					break;
-				default:
-					FAIL_M("Invalid response to Yes/No dialog");
-				}
-			}
-			else if( version_num < current_version )
-			{
-				Locator::getLogger()->info( "The current version is more recent than the public one, double check you downloaded it from " SM_DOWNLOAD_URL );
-			}
-		}
-		else
-		{
-			Locator::getLogger()->info( "Unable to check for updates. The server might be offline." );
-		}
-	}
-#endif
 	if (!noWindow) {
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */
@@ -1226,7 +1128,7 @@ sm_main(int argc, char* argv[])
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */
-	if (ArchHooks::UserQuit()) {
+	if (GameLoop::hasUserQuit()) {
 		ShutdownGame();
 		return 0;
 	}
@@ -1312,18 +1214,6 @@ StepMania::SaveScreenshot(const std::string& Dir,
 	return FileName;
 }
 
-void
-StepMania::ClearCredits()
-{
-	SCREENMAN->PlayInvalidSound();
-
-	// TODO: remove this redundant message and things that depend on it
-	Message msg("CoinInserted");
-	// below params are unused
-	// msg.SetParam( "Coins", GAMESTATE->m_iCoins );
-	// msg.SetParam( "Clear", true );
-	MESSAGEMAN->Broadcast(msg);
-}
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
@@ -1429,7 +1319,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LALT),
 										&input.InputList)) {
 			// pressed Alt+F4
-			ArchHooks::SetUserQuit();
+			GameLoop::setUserQuit();
 			return true;
 		}
 	}
@@ -1494,7 +1384,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * to put a timer in ArchHooks::SetToggleWindowed() and just not set the
 		 * bool it if it's been less than, say, half a second. */
 #if !defined(__APPLE__)
-		ArchHooks::SetToggleWindowed();
+		GameLoop::setToggleWindowed();
 #endif
 		return true;
 	}
@@ -1502,9 +1392,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 	return false;
 }
 
-void
-HandleInputEvents(float fDeltaTime)
-{
+void StepMania::HandleInputEvents(float fDeltaTime) {
 	INPUTFILTER->Update(fDeltaTime);
 
 	/* Hack: If the topmost screen hasn't been updated yet, don't process input,
@@ -1519,8 +1407,7 @@ HandleInputEvents(float fDeltaTime)
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.
-	ArchHooks* archHooks = Locator::getArchHooks();
-	if (!archHooks->AppHasFocus())
+	if (!GameLoop::isGameFocused())
 		return;
 
 	for (unsigned i = 0; i < ieArray.size(); i++) {
@@ -1578,7 +1465,7 @@ HandleInputEvents(float fDeltaTime)
 		SCREENMAN->Input(input);
 	}
 
-	if (ArchHooks::GetAndClearToggleWindowed()) {
+	if (GameLoop::GetAndClearToggleWindowed()) {
 		PREFSMAN->m_bWindowed.Set(!PREFSMAN->m_bWindowed);
 		StepMania::ApplyGraphicOptions();
 	}

@@ -1,5 +1,4 @@
 #include "Etterna/Globals/global.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Models/Misc/GameCommand.h"
 #include "Etterna/Globals/GameLoop.h"
@@ -1458,7 +1457,7 @@ class DebugLineFullscreen : public IDebugLine
 	void DoAndLog(std::string& sMessageOut) override
 	{
 #if !defined(__APPLE__)
-		ArchHooks::SetToggleWindowed();
+		GameLoop::setToggleWindowed();
 		IDebugLine::DoAndLog(sMessageOut);
 #endif
 	}

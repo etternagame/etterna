@@ -100,7 +100,7 @@ local function searchInput(event)
 			backspace = true
 			inputchar = searchstring:sub(1, -2)
 		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
-			inputchar = HOOKS:GetClipboard()
+			inputchar = Arch.getClipboard()
 		else
 			for i = 1, #englishes do -- add standard characters to string
 				if event.DeviceInput.button == "DeviceButton_" .. englishes[i] then

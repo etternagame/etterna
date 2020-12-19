@@ -338,18 +338,6 @@ RageFileManager::RageFileManager(const std::string& argv0)
 	}
 }
 
-void
-RageFileManager::MountInitialFilesystems()
-{
-	Locator::getArchHooks()->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
-}
-
-void
-RageFileManager::MountUserFilesystems()
-{
-    Locator::getArchHooks()->MountUserFilesystems(RageFileManagerUtil::sDirOfExecutable);
-}
-
 RageFileManager::~RageFileManager()
 {
 	// Unregister with Lua.

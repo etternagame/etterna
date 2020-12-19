@@ -2,10 +2,10 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "DialogDriver_MacOSX.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Core/Services/Locator.hpp"
 #include <CoreFoundation/CoreFoundation.h>
+#include <Core/Misc/AppInfo.hpp>
 
 REGISTER_DIALOG_DRIVER_CLASS(MacOSX);
 
@@ -35,7 +35,7 @@ ShowAlert(CFOptionFlags flags,
 								   NULL,
 								   NULL,
 								   NULL,
-								   CFSTR(PRODUCT_FAMILY),
+								   CFStringCreateWithCString(kCFAllocatorDefault, Core::AppInfo::APP_TITLE, kCFStringEncodingUTF8),
 								   text,
 								   OK,
 								   alt,

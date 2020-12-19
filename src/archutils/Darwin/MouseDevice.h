@@ -24,10 +24,6 @@ float
 MACMouseY();
 float
 MACMouseScroll();
-float
-MACWindowHeight();
-float
-MACWindowWidth();
 
 class MouseDevice : public HIDDevice
 {

@@ -3,7 +3,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Globals/GameLoop.h"
 #include "RageUtil/Graphics/RageDisplay.h" // VideoModeParams
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -708,7 +708,7 @@ LowLevelWindow_X11::Update()
 	XEvent event;
 	if (XCheckTypedEvent(Dpy, ClientMessage, &event) &&
 		event.xclient.data.l[0] == g_wmDeleteMessage) {
-		ArchHooks::SetUserQuit();
+	    GameLoop::setUserQuit();
 	}
 }
 

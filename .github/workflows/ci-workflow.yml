@@ -116,11 +116,9 @@ jobs:
           path: dxsdk
 
       - name: Update Environment Variables
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
-          echo "::add-path::${{github.workspace}}/main/extern/crashpad/breakpad/win/"
-          echo "::set-env name=ETTERNA_ARCH::${{matrix.cfg.name}}"
+          echo "${{github.workspace}}/main/extern/crashpad/breakpad/win/" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup Python 2.7
         uses: actions/setup-python@v2

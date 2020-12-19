@@ -17,10 +17,12 @@ find_library(MAC_FRAME_AUDIOUNIT AudioUnit)
 find_library(MAC_FRAME_CARBON Carbon)
 find_library(MAC_FRAME_COREAUDIO CoreAudio)
 find_library(MAC_FRAME_IOKIT IOKit)
+find_library(MAC_FRAME_METAL Metal)
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_AUDIOUNIT})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_CARBON})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_COREAUDIO})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_IOKIT})
+target_link_libraries(Etterna PRIVATE ${MAC_FRAME_METAL})
 
 # Extern Libraries
 target_link_libraries(Etterna PRIVATE ffmpeg)

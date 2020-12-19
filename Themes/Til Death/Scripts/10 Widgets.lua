@@ -1040,7 +1040,7 @@ do
 				else
 					local key = event.DeviceInput.button:match("DeviceButton_(.+)")
 					if key == "v" and INPUTFILTER:IsControlPressed() then
-						textbox:SetText(addStrWithOffset(textbox.text, textbox.cursorOffset, HOOKS:GetClipboard()))
+						textbox:SetText(addStrWithOffset(textbox.text, textbox.cursorOffset, Arch.getClipboard()))
 					elseif key:len() == 1 and ((not params.filter) or params.filter(key)) then
 						-- xor
 						if INPUTFILTER:IsBeingPressed("caps lock") ~= INPUTFILTER:IsShiftPressed() then

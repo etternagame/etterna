@@ -4,13 +4,11 @@
 #if !defined(SMPACKAGE)
 #include "Etterna/Models/Misc/LocalizedString.h"
 #endif
-#include "Etterna/Globals/ProductInfo.h"
+#include "Core/Platform/Platform.hpp"
+#include "Core/Misc/AppInfo.hpp"
 
 #include "archutils/win32/AppInstance.h"
 #include "archutils/win32/ErrorStrings.h"
-#include "archutils/win32/GotoURL.h"
-#include "archutils/win32/RestartProgram.h"
-#include "archutils/Win32/SpecialDirs.h"
 #if !defined(SMPACKAGE)
 #include "archutils/win32/WindowsResources.h"
 #include "archutils/win32/GraphicsWindow.h"
@@ -161,28 +159,12 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					STARTUPINFO si;
 					ZeroMemory(&si, sizeof(si));
 
-					std::string sAppDataDir = SpecialDirs::GetAppDataDir();
-					std::string sCommand = "notepad \"" + sAppDataDir +
-										   PRODUCT_ID + "/Logs/log.txt\"";
-					CreateProcess(
-					  nullptr, // pointer to name of executable module
-					  const_cast<char*>(
-						sCommand.c_str()), // pointer to command line string
-					  nullptr,			   // process security attributes
-					  nullptr,			   // thread security attributes
-					  false,			   // handle inheritance flag
-					  0,				   // creation flags
-					  nullptr,			   // pointer to new environment block
-					  nullptr,			   // pointer to current directory name
-					  &si,				   // pointer to STARTUPINFO
-					  &pi				   // pointer to PROCESS_INFORMATION
-					);
+					Core::Platform::openFolder(Core::Platform::getAppDirectory() / "Logs");
 				} break;
 				case IDC_BUTTON_REPORT:
-					GotoURL(REPORT_BUG_URL);
+					Core::Platform::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 					break;
 				case IDC_BUTTON_RESTART:
-					Win32RestartProgram();
 					// Possibly make W32RP a NORETURN call?
 					FAIL_M("Win32RestartProgram failed?");
 				case IDOK:
