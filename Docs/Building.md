@@ -36,7 +36,7 @@ Here are some commands for current developers and contributors to get started. M
 
 ```bash
 cmake -G "Unix Makefiles" ..                                     # Linux
-cmake  -G "Visual Studio 16 2019" ..                             # Windows
+cmake -G "Visual Studio 16 2019" ..                              # Windows
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 ```
 
@@ -46,6 +46,7 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 - [OpenSSL](https://www.openssl.org/) (Version 1.1.1)
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
+  - Arch: `pacman -S openssl`
   - macOS: `brew install openssl`
   - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1g.exe)
 
@@ -55,6 +56,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 - Debian: `apt install libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
 - Fedora: `dnf install libssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
+- Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
 
 ### Windows Dependencies
 
@@ -119,7 +121,7 @@ cmake -G "Visual Studio 16 2019" -A Win32 ..                                    
 cmake -G "Visual Studio 16 2019" -A x64 ..                                          # 64bit Windows
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Makefiles
 ```
 
 ##### macOS Xcode Generation Note
@@ -154,6 +156,7 @@ To install ninja, use one of the following commands
 
 - Debian: `apt install ninja-build`
 - Fedora: `dnf install ninja-build`
+- Arch: `pacman -S ninja`
 - macOS: `brew install ninja`
 
 To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
@@ -205,8 +208,10 @@ To build a distribution file for the operating system you are using, run `cpack`
 
 cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system. 
 
-- macOS: `brew install cppcheck`
 - Debian: `apt install cppcheck`
+- Fedora: `dnf install cppcheck`
+- Arch: `pacman -S cppcheck`
+- macOS: `brew install cppcheck`
 - Windows: An installer is available at the [cppcheck website](http://cppcheck.sourceforge.net/). Make sure that `cppcheck` runs when you enter the command in your CLI. If it doesn't, [check your system/user path](https://www.computerhope.com/issues/ch000549.htm) to ensure that the bin folder of where you installed cppcheck is listed there.
 
 When cppcheck is run, it will generate a file in the build directory called `cppcheck.txt` which will have the output of the command. The output is saved to a file as the command produces significant output, and can take some time to run.
@@ -219,8 +224,10 @@ To run `cppcheck`, run the target. Running the target will be different dependin
 
 Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
 
-- macOS: `brew install doxygen`
 - Debian: `apt install doxygen`
+- Fedora: `dnf install doxygen`
+- Arch: `pacman -S doxygen`
+- macOS: `brew install doxygen`
 - Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
 
 Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).
