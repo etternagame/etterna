@@ -21,6 +21,7 @@ if(WIN32)
 	else ()
 		set (ProgramFiles "$ENV{ProgramFiles}")
 	endif ()
+	# first check specified paths
 	find_path (DirectX_ROOT_DIR
 		Include/d3d9.h
 		PATHS
@@ -34,8 +35,17 @@ if(WIN32)
 			"${ProgramFiles}/Microsoft DirectX SDK (November 2007)"
 			"${ProgramFiles}/Microsoft DirectX SDK (August 2007)"
 			"${ProgramFiles}/Microsoft DirectX SDK"
+		NO_DEFAULT_PATH
 		DOC "DirectX SDK root directory"
 	)
+	# if specified paths do not contain dx then search PATH
+	if (NOT DirectX_ROOT_DIR)
+		find_path(DirectX_ROOT_DIR
+			Include/d3d9.h
+			DOC "DirectX SDK root directory"
+		)
+	endif()
+
 	if (DirectX_ROOT_DIR)
 		set (DIRECTX_INCLUDE_SEARCH_PATHS "${DirectX_ROOT_DIR}/Include")
 		set (DIRECTX_LIBRARY_SEARCH_PATHS "${DirectX_ROOT_DIR}/Lib/${DirectX_ARCHITECTURE}")
