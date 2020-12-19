@@ -526,6 +526,31 @@ local function makeScoreDisplay(i)
 					self:visible(true):addy(-row2yoff)
 				end
 			},
+
+			--[[ --wife version display ... not 100% reliable
+		LoadFont("Common normal") ..
+			{
+				Name = "WifeVers" .. i,
+				InitCommand = function(self)
+					if not collapsed then
+						self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.25):halign(1):valign(0.5):maxwidth(width / 2 / tzoom):diffuse(getMainColor("negative")):addy(-pdh/4)
+					end
+				end,
+				DisplayCommand = function(self)
+					if hs:GetWifeVers() ~= 3 then
+						self:settextf("W2/XML", hs:GetWifeVers())
+					else
+						self:settext("")
+					end
+				end,
+				CollapseCommand = function(self)
+					self:visible(false)
+				end,
+				ExpandCommand = function(self)
+					self:visible(true)
+				end
+			},
+			]]
 		LoadFont("Common normal") ..
 			{
 				Name = "Replay" .. i,
