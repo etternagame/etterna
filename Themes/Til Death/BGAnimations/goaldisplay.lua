@@ -366,14 +366,16 @@ local function makeGoalDisplay(i)
 			{
 				--percent
 				InitCommand = function(self)
-					self:x(c1x):zoom(tzoom):halign(-0.5):valign(0)
+					self:x(c1x):zoom(tzoom):halign(-0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
 				end,
 				DisplayCommand = function(self)
-					local perc = notShit.floor(sg:GetPercent() * 10000) / 100
-					if perc < 99 then
+					local perc = notShit.round(sg:GetPercent() * 100000) / 1000
+					if perc <= 99 or perc == 100 then
 						self:settextf("%.f%%", perc)
-					else
+					elseif (perc < 99.8) then
 						self:settextf("%.2f%%", perc)
+					else
+						self:settextf("%.3f%%", perc)
 					end
 					self:diffuse(byAchieved(sg)):x(c1x + (2 * adjx) - self:GetZoomedWidth()) -- def doing this alignment wrong
 				end,
