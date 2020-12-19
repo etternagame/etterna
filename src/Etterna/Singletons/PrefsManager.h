@@ -227,7 +227,6 @@ class PrefsManager
 	Preference<bool> m_bForceLogFlush;
 	Preference<bool> m_bShowLogOutput;
 	Preference<bool> m_bLogSkips;
-	Preference<bool> m_bLogCheckpoints;
 	Preference<bool> m_bShowLoadingWindow;
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;

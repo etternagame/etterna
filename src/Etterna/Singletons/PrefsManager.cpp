@@ -203,7 +203,6 @@ PrefsManager::PrefsManager()
   , m_bForceLogFlush("ForceLogFlush", TRUE_IF_DEBUG)
   , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
   , m_bLogSkips("LogSkips", false)
-  , m_bLogCheckpoints("LogCheckpoints", false)
   , m_show_theme_errors("ShowThemeErrors", false)
 
 {

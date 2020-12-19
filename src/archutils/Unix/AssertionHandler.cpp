@@ -20,7 +20,6 @@ __assert_fail(const char* assertion,
 	const std::string error =
 	  ssprintf("Assertion failure: %s: %s", function, assertion);
 
-	Checkpoints::SetCheckpoint(file, line, error.c_str());
 	sm_crash(assertion);
 }
 
@@ -33,7 +32,6 @@ __assert_perror_fail(int errnum,
 	const std::string error =
 	  ssprintf("Assertion failure: %s: %s", function, strerror(errnum));
 
-	Checkpoints::SetCheckpoint(file, line, error.c_str());
 	sm_crash(strerror(errnum));
 }
 

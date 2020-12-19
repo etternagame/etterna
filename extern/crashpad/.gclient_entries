@@ -1,0 +1,15 @@
+entries = {
+  'crashpad': 'https://chromium.googlesource.com/crashpad/crashpad.git',
+  'buildtools': 'https://chromium.googlesource.com/chromium/src/buildtools.git@9e121212d42be62a7cce38072f925f8398d11e49',
+  'crashpad/third_party/googletest/googletest': 'https://chromium.googlesource.com/external/github.com/google/googletest@e589a337170554c48bc658cc857cf15080c9eacc',
+  'crashpad/third_party/gyp/gyp': 'https://chromium.googlesource.com/external/gyp@8bee09f4a57807136593ddc906b0b213c21f9014',
+  'crashpad/third_party/libfuzzer/src': 'https://chromium.googlesource.com/chromium/llvm-project/compiler-rt/lib/fuzzer.git@fda403cf93ecb8792cb1d061564d89a6553ca020',
+  'crashpad/third_party/lss/lss': 'https://chromium.googlesource.com/linux-syscall-support.git@7bde79cc274d06451bf65ae82c012a5d3e476b5a',
+  'crashpad/third_party/mini_chromium/mini_chromium': 'https://chromium.googlesource.com/chromium/mini_chromium@891e31d0b649ec9fa98ca5745f9dcd14a34de34c',
+  'crashpad/third_party/zlib/zlib': 'https://chromium.googlesource.com/chromium/src/third_party/zlib@13dc246a58e4b72104d35f9b1809af95221ebda7',
+  'buildtools/clang_format/script': 'https://chromium.googlesource.com/chromium/llvm-project/cfe/tools/clang-format.git@96636aa0e9f047f17447f2d45a094d0b59ed7917',
+  'buildtools/linux64:gn/gn/linux-amd64': 'https://chrome-infra-packages.appspot.com/gn/gn/linux-amd64@git_revision:3028c6a426a4aaf6da91c4ebafe716ae370225fe',
+  'buildtools/third_party/libc++/trunk': 'https://chromium.googlesource.com/external/github.com/llvm/llvm-project/libcxx.git@d9040c75cfea5928c804ab7c235fed06a63f743a',
+  'buildtools/third_party/libc++abi/trunk': 'https://chromium.googlesource.com/external/github.com/llvm/llvm-project/libcxxabi.git@196ba1aaa8ac285d94f4ea8d9836390a45360533',
+  'buildtools/third_party/libunwind/trunk': 'https://chromium.googlesource.com/external/github.com/llvm/llvm-project/libunwind.git@d999d54f4bca789543a2eb6c995af2d9b5a1f3ed',
+}

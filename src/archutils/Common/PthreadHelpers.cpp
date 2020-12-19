@@ -5,7 +5,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "archutils/Unix/Backtrace.h" // HACK: This should be platform-agnosticized
 #ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
 #endif
@@ -196,70 +195,6 @@ ResumeThread(uint64_t ThreadID)
 {
 	return PtraceDetach(int(ThreadID));
 	// kill( ThreadID, SIGSTOP );
-}
-
-/* Get a BacktraceContext for a thread.  ThreadID must not be the current
- * thread.
- *
- * tid() is a PID (from getpid) or a TID (from gettid).  Note that this may have
- * kernel compatibility problems, because NPTL is new and its interactions with
- * ptrace() aren't well-defined. If we're on a non-NPTL system, tid is a regular
- * PID.
- *
- * This call leaves the given thread suspended, so the returned context doesn't
- * become invalid. ResumeThread() can be used to resume a thread after this
- * call. */
-bool
-GetThreadBacktraceContext(uint64_t ThreadID, BacktraceContext* ctx)
-{
-	/* Can't GetThreadBacktraceContext the current thread. */
-	ASSERT(ThreadID != GetCurrentThreadId());
-
-	/* Attach to the thread.  This may fail with EPERM.  This can happen for at
-	 * least two common reasons: the process might be in a debugger already, or
-	 * *we* might already have attached to it via SuspendThread.
-	 *
-	 * If it's in a debugger, we won't be able to ptrace(PTRACE_GETREGS). If
-	 * it's us that attached, we will. */
-	if (PtraceAttach(int(ThreadID)) == -1 && errno != EPERM) {
-		CHECKPOINT_M(ssprintf("%s (pid %i tid %i locking tid %i)",
-							  strerror(errno),
-							  getpid(),
-							  (int)GetCurrentThreadId(),
-							  int(ThreadID)));
-		return false;
-	}
-
-#if defined(__x86_64__) || defined(__i386__)
-	user_regs_struct regs;
-	if (ptrace(PTRACE_GETREGS, pid_t(ThreadID), NULL, &regs) == -1)
-		return false;
-
-	ctx->pid = pid_t(ThreadID);
-#if defined(__x86_64__)
-	ctx->ip = (void*)regs.rip;
-	ctx->bp = (void*)regs.rbp;
-	ctx->sp = (void*)regs.rsp;
-#else
-	ctx->ip = (void*)regs.eip;
-	ctx->bp = (void*)regs.ebp;
-	ctx->sp = (void*)regs.esp;
-#endif
-#elif defined(CPU_PPC)
-	errno = 0;
-	ctx->FramePtr = (const Frame*)ptrace(
-	  PTRACE_PEEKUSER, pid_t(ThreadID), (void*)(PT_R1 << 2), 0);
-	if (errno)
-		return false;
-	ctx->PC =
-	  (void*)ptrace(PTRACE_PEEKUSER, pid_t(ThreadID), (void*)(PT_NIP << 2), 0);
-	if (errno)
-		return false;
-#else
-#error GetThreadBacktraceContext: which arch?
-#endif
-
-	return true;
 }
 
 #elif defined(__unix__)

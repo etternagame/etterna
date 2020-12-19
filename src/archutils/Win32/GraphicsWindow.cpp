@@ -7,7 +7,6 @@
 #include "Core/Services/Locator.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
-#include "archutils/Win32/Crash.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "archutils/Win32/GetFileInformation.h"
@@ -60,7 +59,7 @@ GetNewWindow()
 static LRESULT CALLBACK
 GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	CHECKPOINT_M(
+	Locator::getLogger()->trace(
 	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
 
 	// Suppress autorun.
@@ -202,7 +201,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	CHECKPOINT_M(
+	Locator::getLogger()->trace(
 	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
 
 	if (m_bWideWindowClass)
@@ -337,7 +336,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		}
 
 		g_hWndMain = hWnd;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 		g_HDC = GetDC(g_hWndMain);
 	}
 
@@ -428,33 +427,23 @@ GraphicsWindow::DestroyGraphicsWindow()
 		ReleaseDC(g_hWndMain, g_HDC);
 		g_HDC = nullptr;
 	}
-
-	CHECKPOINT;
-
 	if (g_hWndMain != nullptr) {
 		DestroyWindow(g_hWndMain);
 		g_hWndMain = nullptr;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 	}
-
-	CHECKPOINT;
 
 	if (g_hIcon != nullptr) {
 		DestroyIcon(g_hIcon);
 		g_hIcon = nullptr;
 	}
 
-	CHECKPOINT;
-
 	MSG msg;
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
-		CHECKPOINT;
 		GetMessage(&msg, nullptr, 0, 0);
-		CHECKPOINT;
 		DispatchMessage(&msg);
 	}
 
-	CHECKPOINT;
 }
 
 void

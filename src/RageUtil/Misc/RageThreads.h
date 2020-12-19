@@ -221,17 +221,6 @@ class RageThreadRegister
 	RageThreadRegister(const RageThreadRegister& rhs) = delete;
 };
 
-namespace Checkpoints {
-void
-LogCheckpoints(bool yes = true);
-void
-SetCheckpoint(const char* file, int line, const char* message);
-void
-GetLogs(char* pBuf, int iSize, const char* delim);
-};
-
-#define CHECKPOINT_M(m)                                                        \
-	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
 
 /* Mutex class that follows the behavior of Windows mutexes: if the same
  * thread locks the same mutex twice, we just increase a refcount; a mutex

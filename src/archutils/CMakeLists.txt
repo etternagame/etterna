@@ -34,10 +34,6 @@ if(WIN32)
 		"Win32/arch_setup.cpp"
 		"Win32/arch_time.cpp"
 		"Win32/CommandLine.cpp"
-		"Win32/Crash.cpp"
-		"Win32/CrashHandlerChild.cpp"
-		"Win32/CrashHandlerNetworking.cpp"
-		"Win32/DebugInfoHunt.cpp"
 		"Win32/DialogUtil.cpp"
 		"Win32/DirectXHelpers.cpp"
 		"Win32/ErrorStrings.cpp"
@@ -58,10 +54,6 @@ if(WIN32)
 		"Win32/AppInstance.h"
 		"Win32/arch_setup.h"
 		"Win32/CommandLine.h"
-		"Win32/Crash.h"
-		"Win32/CrashHandlerInternal.h"
-		"Win32/CrashHandlerNetworking.h"
-		"Win32/DebugInfoHunt.h"
 		"Win32/DialogUtil.h"
 		"Win32/DirectXHelpers.h"
 		"Win32/ErrorStrings.h"
@@ -107,18 +99,9 @@ endif()
 
 if(UNIX) # Includes Apple
 	list(APPEND OS_UNIX_CRASH_SRC
-		"Unix/Backtrace.cpp"
-		"Unix/BacktraceNames.cpp"
-		"Unix/CrashHandler.cpp"
-		"Unix/CrashHandlerChild.cpp"
-		"Unix/CrashHandlerInternal.cpp"
 		"Unix/SignalHandler.cpp")
 
 	list(APPEND OS_UNIX_CRASH_HPP
-		"Unix/Backtrace.h"
-		"Unix/BacktraceNames.h" 
-		"Unix/CrashHandler.h"
-		"Unix/CrashHandlerInternal.h"
 		"Unix/SignalHandler.h")
 
 	list(APPEND OS_SRC ${OS_UNIX_CRASH_SRC})

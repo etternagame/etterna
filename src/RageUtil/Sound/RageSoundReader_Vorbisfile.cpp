@@ -207,10 +207,8 @@ RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
 				iSilentFrames =
 				  std::min(iSilentFrames, static_cast<int>(iFrames));
 				auto silence = iSilentFrames * bytes_per_frame;
-				CHECKPOINT_M(ssprintf("p %i,%i: %i frames of silence needed",
-									  curofs,
-									  read_offset,
-									  silence));
+				Locator::getLogger()->trace("p {},{}: {} frames of silence needed",
+									  curofs, read_offset, silence);
 
 				memset(buf, 0, silence);
 				iFramesRead = iSilentFrames;

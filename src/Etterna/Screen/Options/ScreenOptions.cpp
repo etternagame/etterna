@@ -291,7 +291,7 @@ ScreenOptions::RestartOptions()
 	m_sprLineHighlight->SetVisible(m_iCurrentRow != -1 &&
 								   GAMESTATE->IsHumanPlayer(PLAYER_1));
 
-	CHECKPOINT_M("About to get the rows positioned right.");
+	Locator::getLogger()->trace("About to get the rows positioned right.");
 
 	PositionRows(false);
 	for (unsigned r = 0; r < m_pRows.size(); ++r) {
@@ -300,7 +300,7 @@ ScreenOptions::RestartOptions()
 	PositionCursor(PLAYER_1);
 
 	AfterChangeRow(PLAYER_1);
-	CHECKPOINT_M("Rows positioned.");
+	Locator::getLogger()->trace("Rows positioned.");
 }
 
 void

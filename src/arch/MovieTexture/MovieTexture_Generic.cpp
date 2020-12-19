@@ -72,7 +72,7 @@ MovieTexture_Generic::Init()
 
 	UpdateFrame();
 
-	CHECKPOINT_M("Generic initialization completed. No errors found.");
+	Locator::getLogger()->trace("Generic initialization completed. No errors found.");
 
 	return std::string();
 }
@@ -193,7 +193,7 @@ MovieTexture_Generic::CreateTexture()
 	if (m_uTexHandle || m_pRenderTarget != NULL)
 		return;
 
-	CHECKPOINT_M("About to create a generic texture.");
+	Locator::getLogger()->trace("About to create a generic texture.");
 
 	m_iSourceWidth = m_pDecoder->GetWidth();
 	m_iSourceHeight = m_pDecoder->GetHeight();
@@ -467,7 +467,7 @@ MovieTexture_Generic::UpdateFrame()
 		m_pTextureLock->Unlock(m_pSurface, true);
 
 	if (m_pRenderTarget != NULL) {
-		CHECKPOINT_M("About to upload the texture.");
+		Locator::getLogger()->trace("About to upload the texture.");
 
 		/* If we have no m_pTextureLock, we still have to upload the texture. */
 		if (m_pTextureLock == NULL) {

@@ -921,7 +921,7 @@ DownloadManager::UploadScore(HighScore* hs,
 							 function<void()> callback,
 							 bool load_from_disk)
 {
-	CHECKPOINT_M("Creating UploadScore request");
+	Locator::getLogger()->trace("Creating UploadScore request");
 	if (!LoggedIn()) {
 		Locator::getLogger()->trace(
 		  "Attempted to upload score when not logged in (scorekey: \"{}\")",
@@ -1096,7 +1096,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-	CHECKPOINT_M("Finished creating UploadScore request");
+	Locator::getLogger()->trace("Finished creating UploadScore request");
 }
 
 // this is for new/live played scores that have replaydata in memory

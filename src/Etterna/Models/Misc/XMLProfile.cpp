@@ -100,7 +100,7 @@ XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 XNode*
 XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Saving the favorites node.");
+	Locator::getLogger()->trace("Saving the favorites node.");
 
 	auto favs = new XNode("Favorites");
 	for (auto& it : profile->FavoritedCharts) {
@@ -113,7 +113,7 @@ XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 XNode*
 XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Saving the permamirror node.");
+	Locator::getLogger()->trace("Saving the permamirror node.");
 
 	auto pmir = new XNode("PermaMirror");
 	for (auto& it : profile->PermaMirrorCharts) {
@@ -138,7 +138,7 @@ GoalsForChart::CreateNode() const
 XNode*
 XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Saving the scoregoals node.");
+	Locator::getLogger()->trace("Saving the scoregoals node.");
 
 	auto goals = new XNode("ScoreGoals");
 	for (auto& i : profile->goalmap) {
@@ -151,7 +151,7 @@ XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 XNode*
 XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Saving the playlists node.");
+	Locator::getLogger()->trace("Saving the playlists node.");
 
 	auto playlists = new XNode("Playlists");
 	const auto& pls = profile->allplaylists;
@@ -165,7 +165,7 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 void
 XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
-	CHECKPOINT_M("Loading the favorites node.");
+	Locator::getLogger()->trace("Loading the favorites node.");
 
 	FOREACH_CONST_Child(pNode, ck)
 	  loadingProfile->FavoritedCharts.emplace(ck->GetName());
@@ -177,7 +177,7 @@ XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 void
 XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
 {
-	CHECKPOINT_M("Loading the permamirror node.");
+	Locator::getLogger()->trace("Loading the permamirror node.");
 
 	FOREACH_CONST_Child(pNode, ck)
 	  loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
@@ -202,7 +202,7 @@ GoalsForChart::LoadFromNode(const XNode* pNode)
 void
 XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
 {
-	CHECKPOINT_M("Loading the scoregoals node.");
+	Locator::getLogger()->trace("Loading the scoregoals node.");
 
 	string ck;
 	FOREACH_CONST_Child(pNode, chgoals)
@@ -220,7 +220,7 @@ XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
 void
 XMLProfile::LoadPlaylistsFromNode(const XNode* pNode)
 {
-	CHECKPOINT_M("Loading the playlists node.");
+	Locator::getLogger()->trace("Loading the playlists node.");
 
 	auto& pls = loadingProfile->allplaylists;
 	FOREACH_CONST_Child(pNode, pl)
@@ -235,7 +235,7 @@ XMLProfile::LoadPlaylistsFromNode(const XNode* pNode)
 XNode*
 XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Saving the general node.");
+	Locator::getLogger()->trace("Saving the general node.");
 
 	auto pGeneralDataNode = new XNode("GeneralData");
 
@@ -338,7 +338,7 @@ XMLProfile::MoveBackupToDir(string sFromDir, string sToDir)
 void
 XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 {
-	CHECKPOINT_M("Loading the general node.");
+    Locator::getLogger()->trace("Loading the general node.");
 	ASSERT(pNode->GetName() == "GeneralData");
 
 	string s;
@@ -415,7 +415,7 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 XNode*
 XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Saving the player scores node.");
+	Locator::getLogger()->trace("Saving the player scores node.");
 
 	ASSERT(profile != NULL);
 	SCOREMAN->SetAllTopScores(profile->m_sProfileID);
@@ -426,14 +426,14 @@ XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const
 void
 XMLProfile::LoadEttScoresFromNode(const XNode* pSongScores)
 {
-	CHECKPOINT_M("Loading the player scores node.");
+	Locator::getLogger()->trace("Loading the player scores node.");
 	SCOREMAN->LoadFromNode(pSongScores, loadingProfile->m_sProfileID);
 }
 
 void
 XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 {
-	CHECKPOINT_M("Loading the node containing screenshot data.");
+	Locator::getLogger()->trace("Loading the node containing screenshot data.");
 
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
@@ -448,7 +448,7 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 XNode*
 XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 {
-	CHECKPOINT_M("Getting the node containing screenshot data.");
+	Locator::getLogger()->trace("Getting the node containing screenshot data.");
 
 	ASSERT(profile != NULL);
 

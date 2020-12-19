@@ -33,7 +33,8 @@ if(WIN32)
 
     # List every DLL etterna needs.
     list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
-                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll"
+                         ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
     install(FILES ${WIN_DLLS}   COMPONENT Etterna DESTINATION Program)
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION Program)
     install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Docs)
@@ -45,6 +46,7 @@ elseif(APPLE)
     set(CPACK_DMG_VOLUME_NAME Etterna)
 
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
+    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler COMPONENT Etterna DESTINATION ${INSTALL_DIR})
 endif()
 
 # Universal Install Directories
