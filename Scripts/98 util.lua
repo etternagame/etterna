@@ -52,6 +52,30 @@ function strsplit(given, separator)
     return t
 end
 
+-- string trim, remove all whitespace from the edges of a string
+function strtrim(str)
+    if str == '' then
+        return str
+    else  
+        local startPos = 1
+        local endPos   = #str
+
+        while (startPos < endPos and str:byte(startPos) <= 32) do
+            startPos = startPos + 1
+        end
+
+        if startPos >= endPos then
+            return ''
+        else
+            while (endPos > 0 and str:byte(endPos) <= 32) do
+                endPos = endPos - 1
+            end
+
+            return str:sub(startPos, endPos)
+        end
+    end
+end
+
 -- convert a shortened date string into month day year
 function expandDateString(given)
     if given == nil then
