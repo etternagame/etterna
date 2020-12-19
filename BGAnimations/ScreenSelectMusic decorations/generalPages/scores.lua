@@ -13,7 +13,7 @@ local t = Def.ActorFrame {
     GeneralTabSetMessageCommand = function(self, params)
         if params and params.tab ~= nil then
             if params.tab == SCUFF.scoretabindex then
-                self:z(2)
+                self:z(200)
                 self:smooth(0.2)
                 self:diffusealpha(1)
                 -- if focused was already on, we double tapped
@@ -24,7 +24,7 @@ local t = Def.ActorFrame {
                 focused = true
                 self:playcommand("UpdateDisplay")
             else
-                self:z(-1)
+                self:z(-100)
                 self:smooth(0.2)
                 self:diffusealpha(0)
                 focused = false
