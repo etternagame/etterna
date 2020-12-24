@@ -79,8 +79,8 @@ do
     end
 end
 
-local goalLine1TextSize = 1
-local goalLine2TextSize = 1
+local goalLine1TextSize = 0.85
+local goalLine2TextSize = 0.8
 local pageTextSize = 0.9
 
 -- our fontpage SUCKS so this should make things look better
@@ -157,7 +157,7 @@ local function goalList()
         local msdW = remainingWidth / 60 * 13 -- above comment -- 13/60
         local msdX = div3X + msdW/2
         local trashX = div3X + msdW
-        local line2AllowedWidth = div3X - prioX -- note: bottom line intersects trash and page number; this area is full width up to the 3rd divider
+        local line2AllowedWidth = div3X - prioX - prioW -- note: bottom line intersects trash and page number; this area is full width up to the 3rd divider
 
         return Def.ActorFrame {
             Name = "GoalItemFrame_"..i,
@@ -399,11 +399,10 @@ local function goalList()
                 Name = "Name",
                 InitCommand = function(self)
                     self:valign(0):halign(0)
-                    self:x(prioX)
+                    self:x(prioX + prioW/2)
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(goalLine2TextSize)
-                    -- this area is shared: Name - Date
-                    self:maxwidth(line2AllowedWidth / 2 / goalLine2TextSize - textzoomFudge)
+                    self:maxwidth((div2X - prioX - prioW/2) / goalLine2TextSize - textzoomFudge)
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
@@ -421,12 +420,11 @@ local function goalList()
             LoadFont("Common Normal") .. {
                 Name = "Date",
                 InitCommand = function(self)
-                    self:valign(0):halign(1)
-                    self:x(prioX + line2AllowedWidth - textzoomFudge)
+                    self:valign(0)
+                    self:x(percentX)
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(goalLine2TextSize)
-                    -- this area is shared: Name - Date
-                    self:maxwidth(line2AllowedWidth / 2 / goalLine2TextSize - textzoomFudge)
+                    self:maxwidth(percentW / goalLine2TextSize - textzoomFudge)
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
@@ -435,12 +433,12 @@ local function goalList()
                     local status = goal:IsAchieved() and "Achieved" or (goal:IsVacuous() and "Vacuous" or "Set")
 
                     if status == "Achieved" then
-                        when = goal:WhenAchieved()
+                        when = extractDateFromDateString(goal:WhenAchieved())
                     elseif status == "Vacuous" then
                         when = "- Already Beat"
                     else
                         -- Created/Set
-                        when = goal:WhenAssigned()
+                        when = extractDateFromDateString(goal:WhenAssigned())
                     end
 
                     self:settextf("(%s %s)", status, when)

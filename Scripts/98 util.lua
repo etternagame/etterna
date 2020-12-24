@@ -109,6 +109,25 @@ function expandDateString(given)
     return month, day, year
 end
 
+-- convert the "YYYY-MM-DD HH:MM:SS" format to "YYYY-MM-DD" only
+function extractDateFromDateString(given)
+    if given == nil then
+        return "0001-01-01"
+    end
+    local arglist = strsplit(given)
+
+    -- 2 entries means it is the correct format
+    if #arglist == 2 then
+        return arglist[1]
+    elseif #arglist == 1 then
+        -- 1 entry means it is just the date already
+        return given
+    else
+        -- ????
+        return given
+    end
+end
+
 -- convert a long number string into a shorter one
 function shortenNumber(num)
     local suffixes = {
