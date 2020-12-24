@@ -124,19 +124,19 @@ local function goalList()
         local prioX = actuals.ItemPriorityLeftGap
         local prioW = actuals.ItemPriorityWidth
         local remainingWidth = itemWidth - prioW - prioX
-        local diffW = remainingWidth / 10 -- keep this in line with the other divisions below (combined just under 1/1)
+        local diffW = remainingWidth / 60 * 13 -- keep this in line with the other divisions below (combined at around 1/1) -- 13/60
         local diffX = prioX + prioW + diffW/2
         local div1X = prioX + prioW + diffW
-        local rateW = remainingWidth / 8 -- above comment
+        local rateW = remainingWidth / 60 * 13 -- above comment -- 13/60
         local rateX = div1X + rateW/2
         local div2X = div1X + rateW
-        local percentW = remainingWidth / 2 -- above comment
+        local percentW = remainingWidth / 60 * 21 -- above comment -- 21/60
         local percentX = div2X + percentW/2
         local div3X = div2X + percentW
-        local msdW = remainingWidth / 8 -- above comment
+        local msdW = remainingWidth / 60 * 13 -- above comment -- 13/60
         local msdX = div3X + msdW/2
         local trashX = div3X + msdW
-        local line2AllowedWidth = remainingWidth * 0.8 -- keep in mind the bottom item probably conflicts with page number
+        local line2AllowedWidth = div3X - prioX -- note: bottom line intersects trash and page number; this area is full width up to the 3rd divider
 
         return Def.ActorFrame {
             Name = "GoalItemFrame_"..i,
@@ -303,7 +303,9 @@ local function goalList()
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
                 InitCommand = function(self)
                     self:halign(0):valign(0)
-                    self:x(trashX)
+                    -- trash will be aligned under the last divider
+                    self:x(div3X)
+                    self:y(actuals.ItemLowerLineUpperGap)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
                 end
             },
