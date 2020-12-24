@@ -197,8 +197,16 @@ local function goalList()
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
+                    if goal == nil then return end
+                    if goal:IsAchieved() or goal:IsVacuous() then return end -- completed goals cant be updated
                     if params.update == "OnMouseDown" then
-                        --
+                        if params.event == "DeviceButton_left mouse button" then
+                            goal:SetPriority(goal:GetPriority() + 1)
+                            self:GetParent():GetParent():playcommand("UpdateGoalList")
+                        elseif params.event == "DeviceButton_right mouse button" then
+                            goal:SetPriority(goal:GetPriority() - 1)
+                            self:GetParent():GetParent():playcommand("UpdateGoalList")
+                        end
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -261,8 +269,16 @@ local function goalList()
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
+                    if goal == nil then return end
+                    if goal:IsAchieved() or goal:IsVacuous() then return end -- completed goals cant be updated
                     if params.update == "OnMouseDown" then
-                        --
+                        if params.event == "DeviceButton_left mouse button" then
+                            goal:SetRate(goal:GetRate() + 0.1)
+                            self:GetParent():GetParent():playcommand("UpdateGoalList")
+                        elseif params.event == "DeviceButton_right mouse button" then
+                            goal:SetRate(goal:GetRate() - 0.1)
+                            self:GetParent():GetParent():playcommand("UpdateGoalList")
+                        end
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -339,8 +355,16 @@ local function goalList()
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
+                    if goal == nil then return end
+                    if goal:IsAchieved() or goal:IsVacuous() then return end -- completed goals cant be updated
                     if params.update == "OnMouseDown" then
-                        --
+                        if params.event == "DeviceButton_left mouse button" then
+                            goal:SetPercent(goal:GetPercent() + 0.01)
+                            self:GetParent():GetParent():playcommand("UpdateGoalList")
+                        elseif params.event == "DeviceButton_right mouse button" then
+                            goal:SetPercent(goal:GetPercent() - 0.01)
+                            self:GetParent():GetParent():playcommand("UpdateGoalList")
+                        end
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -388,6 +412,25 @@ local function goalList()
                     self:halign(0):valign(0)
                     self:x(msdX + msdW/2)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if goal == nil then return end
+                    
+                    if params.event == "DeviceButton_left mouse button" then
+                        goal:Delete()
+                        self:GetParent():GetParent():playcommand("UpdateGoalList")
+                    end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(1)
                 end
             },
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
