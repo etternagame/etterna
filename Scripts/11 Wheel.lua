@@ -732,6 +732,7 @@ function MusicWheel:new(params)
                 w:move(0)
                 MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
                 w.settled = true
+                w:updateGlobalsFromCurrentItem()
                 w:updateMusicFromCurrentItem()
             end
         elseif params.song ~= nil then
@@ -747,6 +748,7 @@ function MusicWheel:new(params)
                     MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
                     MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
                     w.settled = true
+                    w:updateGlobalsFromCurrentItem()
                     w:updateMusicFromCurrentItem()
                 end
             end
@@ -764,6 +766,7 @@ function MusicWheel:new(params)
                 MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
                 MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
                 w.settled = true
+                w:updateGlobalsFromCurrentItem()
                 w:updateMusicFromCurrentItem()
             else
                 -- in this case there was something wrong with the input
@@ -795,6 +798,7 @@ function MusicWheel:new(params)
         MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
         MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
         w.settled = true
+        w:updateGlobalsFromCurrentItem()
         w:updateMusicFromCurrentItem()
     end
 
