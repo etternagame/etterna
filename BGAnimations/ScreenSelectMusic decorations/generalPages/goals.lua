@@ -94,6 +94,13 @@ local textzoomFudge = 5
 
 local goalListAnimationSeconds = 0.05
 
+local function byAchieved(scoregoal)
+	if not scoregoal or scoregoal:IsAchieved() then
+		return getMainColor("positive")
+	end
+	return color("#aaaaaa")
+end
+
 local function goalList()
     -- modifiable parameters
     local goalItemCount = 5
@@ -101,6 +108,14 @@ local function goalList()
     -- internal var storage
     local page = 1
     local maxPage = 1
+    local goalListFrame = nil
+    local profile = GetPlayerOrMachineProfile(PLAYER_1)
+    local goalTable = profile:GetGoalTable()
+
+    -- this resets the goal table and sorting done by the C++
+    -- why is this done in C++ and not Lua? great question
+    -- i'm going to handle it in Lua anyways (it just changes ascending and sortmodes for goals)
+    profile:SetFromAll()
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -113,10 +128,16 @@ local function goalList()
             nn = n > 0 and 1 or maxPage
         end
         page = nn
+
+        if goalListFrame then
+            goalListFrame:playcommand("UpdateGoalList")
+        end
     end
 
     local function goalListItem(i)
         local index = i
+        local goal = nil
+        local goalSteps = nil
 
         -- theres a lot going on here i just wanted to write down vars representing math so its a little clearer for everyone
         -- i should have done this kind of thing in more places but ...
@@ -143,6 +164,19 @@ local function goalList()
             InitCommand = function(self)
                 self:y((actuals.ItemAllottedSpace / (goalItemCount - 1)) * (i-1) + actuals.ItemListUpperGap + actuals.UpperLipHeight)
             end,
+            UpdateGoalListCommand = function(self)
+                index = (page - 1) * goalItemCount + i
+                goal = goalTable[index]
+                goalSteps = nil
+                self:finishtweening()
+                self:diffusealpha(0)
+                if goal ~= nil then
+                    goalSteps = SONGMAN:GetStepsByChartKey(goal:GetChartKey())
+                    self:playcommand("UpdateText")
+                    self:smooth(goalListAnimationSeconds * i)
+                    self:diffusealpha(1)
+                end
+            end,
         
             UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "Priority",
@@ -151,20 +185,19 @@ local function goalList()
                     local bg = self:GetChild("BG")
                     txt:halign(0):valign(0)
                     bg:halign(0)
-                    bg:diffusealpha(0.2)
 
                     self:x(prioX)
                     txt:zoom(goalLine1TextSize)
                     txt:maxwidth(prioW / goalLine1TextSize - textzoomFudge)
-                    txt:settext("1.")
+                    txt:settext(" ")
                     bg:zoomto(prioW, txt:GetZoomedHeight())
                     bg:y(txt:GetZoomedHeight() / 2)
                 end,
-                UpdateGoalListCommand = function(self)
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
                     local txt = self:GetChild("Text")
-                    index = (page-1) * goalItemCount + i
-                    self:finishtweening()
-                    --self:diffusealpha(0)
+
+                    txt:settextf("%d.", goal:GetPriority())
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
@@ -188,8 +221,17 @@ local function goalList()
                     self:x(diffX)
                     self:zoom(goalLine1TextSize)
                     self:maxwidth(diffW / goalLine1TextSize - textzoomFudge)
-                    self:settext("IN")
                 end,
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
+
+                    if goalSteps ~= nil then
+                        self:settextf("%s", getShortDifficulty(goalSteps:GetDifficulty()))
+                        self:diffuse(byDifficulty(goalSteps:GetDifficulty()))
+                    else
+                        self:settext("")
+                    end
+                end
             },
             Def.Quad {
                 Name = "Div1",
@@ -206,20 +248,20 @@ local function goalList()
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
                     txt:valign(0)
-                    bg:diffusealpha(0.2)
 
                     self:x(rateX)
                     txt:zoom(goalLine1TextSize)
                     txt:maxwidth(rateW / goalLine1TextSize - textzoomFudge)
-                    txt:settext("1.0x")
+                    txt:settext(" ")
                     bg:zoomto(rateW, txt:GetZoomedHeight())
                     bg:y(txt:GetZoomedHeight() / 2)
                 end,
-                UpdateGoalListCommand = function(self)
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
                     local txt = self:GetChild("Text")
-                    index = (page-1) * goalItemCount + i
-                    self:finishtweening()
-                    --self:diffusealpha(0)
+
+                    local ratestr = string.format("%.2f", goal:GetRate()):gsub("%.?0$", "") .. "x"
+                    txt:settext(ratestr)
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
@@ -251,20 +293,53 @@ local function goalList()
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
                     txt:valign(0)
-                    bg:diffusealpha(0.2)
 
                     self:x(percentX)
                     txt:zoom(goalLine1TextSize)
                     txt:maxwidth(percentW / goalLine1TextSize - textzoomFudge)
-                    txt:settext("93% (93.33%)")
+                    txt:settext(" ")
                     bg:zoomto(percentW, txt:GetZoomedHeight())
                     bg:y(txt:GetZoomedHeight() / 2)
                 end,
-                UpdateGoalListCommand = function(self)
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
                     local txt = self:GetChild("Text")
-                    index = (page-1) * goalItemCount + i
-                    self:finishtweening()
-                    --self:diffusealpha(0)
+
+                    local finalstr = ""
+
+                    local perc = notShit.round(goal:GetPercent() * 100000) / 1000
+                    local percStr = ""
+                    if perc <= 99 or perc == 100 then
+						percStr = string.format("%.f%%", perc)
+					elseif (perc < 99.8) then
+						percStr = string.format("%.2f%%", perc)
+					else
+						percStr = string.format("%.3f%%", perc)
+                    end
+
+                    local pb = goal:GetPBUpTo()
+                    local pbStr = ""
+                    if pb then
+                        local pbperc = notShit.round(pb:GetWifeScore() * 100000) / 1000
+                        if pbperc <= 99 or pbperc == 100 then
+                            pbStr = string.format("%.f%%", pbperc)
+                        elseif (perc < 99.8) then
+                            pbStr = string.format("%.2f%%", pbperc)
+                        else
+                            pbStr = string.format("%.3f%%", pbperc)
+                        end
+
+                        local rstr = ""
+                        if pb:GetMusicRate() < goal:GetRate() then
+                            rstr = string.format(" %.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
+                        end
+                        finalstr = string.format("%s (%s%s)", percStr, pbStr, rstr)
+                    else
+                        finalstr = string.format("%s", percStr)
+                    end
+
+                    txt:settext(finalstr)
+                    txt:diffuse(byAchieved(goal))
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
@@ -297,7 +372,18 @@ local function goalList()
                     self:x(msdX)
                     self:zoom(goalLine1TextSize)
                     self:maxwidth(msdW / goalLine1TextSize - textzoomFudge)
-                    self:settext("11.11")
+                end,
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
+
+                    if goalSteps ~= nil then
+                        local msd = goalSteps:GetMSD(goal:GetRate(), 1)
+                        self:settextf("%5.1f", msd)
+                        self:diffuse(byMSD(msd))
+                    else
+                        self:settext("??")
+                        self:diffuse(color("1,1,1,1"))
+                    end
                 end
             },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
@@ -310,14 +396,54 @@ local function goalList()
                 end
             },
             LoadFont("Common Normal") .. {
-                Name = "NameDate",
+                Name = "Name",
                 InitCommand = function(self)
                     self:valign(0):halign(0)
                     self:x(prioX)
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(goalLine2TextSize)
-                    self:maxwidth(line2AllowedWidth / goalLine2TextSize - textzoomFudge)
-                    self:settext("Song Name Song Name (Achieved 11/11/11)")
+                    -- this area is shared: Name - Date
+                    self:maxwidth(line2AllowedWidth / 2 / goalLine2TextSize - textzoomFudge)
+                end,
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
+
+                    local sname = ""
+                    if goalSteps ~= nil then
+                        sname = SONGMAN:GetSongByChartKey(goal:GetChartKey()):GetDisplayMainTitle()
+                    else
+                        sname = goal:GetChartKey()
+                    end
+
+                    self:settextf("%s", sname)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Date",
+                InitCommand = function(self)
+                    self:valign(0):halign(1)
+                    self:x(prioX + line2AllowedWidth - textzoomFudge)
+                    self:y(actuals.ItemLowerLineUpperGap)
+                    self:zoom(goalLine2TextSize)
+                    -- this area is shared: Name - Date
+                    self:maxwidth(line2AllowedWidth / 2 / goalLine2TextSize - textzoomFudge)
+                end,
+                UpdateTextCommand = function(self)
+                    if goal == nil then return end
+
+                    local when = ""
+                    local status = goal:IsAchieved() and "Achieved" or (goal:IsVacuous() and "Vacuous" or "Set")
+
+                    if status == "Achieved" then
+                        when = goal:WhenAchieved()
+                    elseif status == "Vacuous" then
+                        when = "- Already Beat"
+                    else
+                        -- Created/Set
+                        when = goal:WhenAssigned()
+                    end
+
+                    self:settextf("(%s %s)", status, when)
                 end
             }
         }
@@ -346,18 +472,18 @@ local function goalList()
                 Condition = function() return true end,
                 TapFunction = function() end,
             },
-            {   -- Sort by Rate
-                Name = "assign",
-                Type = "Exclusive",
-                Display = {"Rate"},
-                IndexGetter = function() return 1 end,
-                Condition = function() return true end,
-                TapFunction = function() end,
-            },
             {   -- Sort by Difficulty
                 Name = "assign",
                 Type = "Exclusive",
                 Display = {"Difficulty"},
+                IndexGetter = function() return 1 end,
+                Condition = function() return true end,
+                TapFunction = function() end,
+            },
+            {   -- Sort by Rate
+                Name = "assign",
+                Type = "Exclusive",
+                Display = {"Rate"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function() end,
@@ -484,6 +610,7 @@ local function goalList()
     local t = Def.ActorFrame {
         Name = "GoalListFrame",
         BeginCommand = function(self)
+            goalListFrame = self
             self:playcommand("UpdateGoalList")
             self:playcommand("UpdateText")
         end,
@@ -494,7 +621,8 @@ local function goalList()
         end,
         UpdateGoalListCommand = function(self)
             -- this sets all the data things over and over and over
-            goalList = {}
+            goalTable = profile:GetGoalTable()
+            maxPage = math.ceil(#goalTable / goalItemCount)
         end,
         
         goalChoices(),
@@ -522,18 +650,19 @@ local function goalList()
                 self:halign(1):valign(0)
                 self:xy(actuals.Width - actuals.PageTextRightGap, actuals.PageNumberUpperGap)
                 self:zoom(pageTextSize)
-                self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
+                -- oddly precise max width but this should fit with the original size
+                self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
             end,
             UpdateGoalListCommand = function(self)
                 local lb = (page-1) * (goalItemCount) + 1
-                if lb > #goalList then
-                    lb = #goalList
+                if lb > #goalTable then
+                    lb = #goalTable
                 end
                 local ub = page * goalItemCount
-                if ub > #goalList then
-                    ub = #goalList
+                if ub > #goalTable then
+                    ub = #goalTable
                 end
-                self:settextf("%d-%d/%d", lb, ub, #goalList)
+                self:settextf("%d-%d/%d", lb, ub, #goalTable)
             end
         }
     }
