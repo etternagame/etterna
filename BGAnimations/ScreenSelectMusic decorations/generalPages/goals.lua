@@ -390,7 +390,7 @@ local function goalList()
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
                 end
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "Name",
                 InitCommand = function(self)
                     self:valign(0):halign(0)
@@ -398,6 +398,25 @@ local function goalList()
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(goalLine2TextSize)
                     self:maxwidth((div2X - prioX - prioW/2) / goalLine2TextSize - textzoomFudge)
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        self:diffusealpha(1)
+                        local ck = goal:GetChartKey()
+                        local wheel = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                        if wheel then
+                            wheel:playcommand("FindSong", {chartkey = ck})
+                        end
+                    end
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
