@@ -37,16 +37,15 @@ local ratios = {
     PageNumberUpperGap = 525 / 1080, -- bottom of upper lip to top of text
 
     ItemListUpperGap = 35 / 1080, -- bottom of upper lip to top of topmost item
-    ItemAllottedSpace = 397 / 1080, -- top of topmost item to top of bottommost item
-    ItemSpacing = 100 / 1080, -- top of item to top of next item
-    ItemLowerLineUpperGap = 40 / 1080, -- top of top line to top of bottom line
+    ItemAllottedSpace = 405 / 1080, -- top of topmost item to top of bottommost item
+    ItemLowerLineUpperGap = 30 / 1080, -- top of top line to top of bottom line
     ItemDividerThickness = 3 / 1080, -- you know what it is (i hope) (ok its based on height so things are consistent-ish)
     ItemDividerLength = 26 / 1080,
 
     ItemPriorityLeftGap = 11 / 1920, -- left edge of frame to left edge of number
     ItemPriorityWidth = 38 / 1920, -- left edge of number to uhh nothing
     IconWidth = 18 / 1920, -- for the trash thing
-    IconHeight = 21 / 1080,
+    IconHeight = 19 / 1080,
 }
 
 local actuals = {
@@ -56,7 +55,6 @@ local actuals = {
     PageNumberUpperGap = ratios.PageNumberUpperGap * SCREEN_HEIGHT,
     ItemListUpperGap = ratios.ItemListUpperGap * SCREEN_HEIGHT,
     ItemAllottedSpace = ratios.ItemAllottedSpace * SCREEN_HEIGHT,
-    ItemSpacing = ratios.ItemSpacing * SCREEN_HEIGHT,
     ItemLowerLineUpperGap = ratios.ItemLowerLineUpperGap * SCREEN_HEIGHT,
     ItemDividerThickness = ratios.ItemDividerThickness * SCREEN_HEIGHT,
     ItemDividerLength = ratios.ItemDividerLength * SCREEN_HEIGHT,
@@ -80,7 +78,7 @@ do
 end
 
 local goalLine1TextSize = 0.85
-local goalLine2TextSize = 0.8
+local goalLine2TextSize = 0.75
 local pageTextSize = 0.9
 
 -- our fontpage SUCKS so this should make things look better
@@ -103,7 +101,7 @@ end
 
 local function goalList()
     -- modifiable parameters
-    local goalItemCount = 5
+    local goalItemCount = 7
 
     -- internal var storage
     local page = 1
