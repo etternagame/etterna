@@ -45,7 +45,7 @@ local ratios = {
     ItemPriorityLeftGap = 11 / 1920, -- left edge of frame to left edge of number
     ItemPriorityWidth = 38 / 1920, -- left edge of number to uhh nothing
     IconWidth = 18 / 1920, -- for the trash thing
-    IconHeight = 19 / 1080,
+    IconHeight = 21 / 1080,
 }
 
 local actuals = {
@@ -152,10 +152,8 @@ local function goalList()
         local percentW = remainingWidth / 60 * 21 -- above comment -- 21/60
         local percentX = div2X + percentW/2
         local div3X = div2X + percentW
-        local msdW = remainingWidth / 60 * 13 -- above comment -- 13/60
+        local msdW = remainingWidth / 60 * 13 - actuals.IconWidth * 2 -- above comment -- 13/60
         local msdX = div3X + msdW/2
-        local trashX = div3X + msdW
-        local line2AllowedWidth = div3X - prioX - prioW -- note: bottom line intersects trash and page number; this area is full width up to the 3rd divider
 
         return Def.ActorFrame {
             Name = "GoalItemFrame_"..i,
@@ -369,6 +367,7 @@ local function goalList()
                     self:valign(0)
                     self:x(msdX)
                     self:zoom(goalLine1TextSize)
+                    -- the trashcan intrudes in this area so dont let them overlap
                     self:maxwidth(msdW / goalLine1TextSize - textzoomFudge)
                 end,
                 UpdateTextCommand = function(self)
@@ -387,9 +386,7 @@ local function goalList()
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
                 InitCommand = function(self)
                     self:halign(0):valign(0)
-                    -- trash will be aligned under the last divider
-                    self:x(div3X)
-                    self:y(actuals.ItemLowerLineUpperGap)
+                    self:x(msdX + msdW/2)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
                 end
             },
@@ -439,7 +436,7 @@ local function goalList()
                         when = extractDateFromDateString(goal:WhenAssigned())
                     end
 
-                    self:settextf("(%s %s)", status, when)
+                    self:settextf("%s %s", status, when)
                 end
             }
         }
