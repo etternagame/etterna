@@ -403,12 +403,17 @@ local function tagList()
                 end,
                 UpdateTextCommand = function(self)
                     local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
                     -- update index
                     displayIndex = definition.IndexGetter()
 
                     -- update visibility by condition
                     if definition.Condition() then
-                        self:diffusealpha(1)
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
                     else
                         self:diffusealpha(0)
                     end
