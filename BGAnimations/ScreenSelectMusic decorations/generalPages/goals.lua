@@ -99,6 +99,293 @@ local function byAchieved(scoregoal)
 	return color("#aaaaaa")
 end
 
+--=====
+--  Sorting functions
+--  used for sorting goal tables in various ways
+--  we do this from lua because i dont want to let C++ control this
+--  and im micromanaging most of the equal cases so it comes out as clean as possible
+--  yea
+--  my only justification for doing this in a drawn out and purpose specific manner is 
+--      that i want to make all the logic exposed and in one place
+--
+--  dategetter is a function that takes a goal as input and outputs a date
+--  it lets you determine either to sort by Set date or Achieved date
+--=====
+local function sortGoalsByPriority(goaltable, dategetter, ascending)
+    if ascending == nil then ascending = true end
+    table.sort(
+        goaltable,
+        function(a, b)
+            local aprio = a:GetPriority()
+            local bprio = b:GetPriority()
+            if aprio ~= bprio then
+                if ascending then
+                    return aprio < bprio
+                else
+                    return aprio > bprio
+                end
+            else
+                -- priority the same, sort by set date
+                local adate = dategetter(a)
+                local bdate = dategetter(b)
+                if adate ~= bdate then
+                    -- whats funny about the dates is that because the format is consistent we can just compare the strings
+                    -- ... i think
+                    if ascending then
+                        return adate < bdate
+                    else
+                        return adate > bdate
+                    end
+                else
+                    -- date somehow the same, sort by song name
+                    local ack = a:GetChartKey()
+                    local bck = b:GetChartKey()
+                    local asong = SONGMAN:GetSongByChartKey(ack)
+                    local bsong = SONGMAN:GetSongByChartKey(bck)
+                    local aname = asong ~= nil and asong:GetDisplayMainTitle() or ack
+                    local bname = bsong ~= nil and bsong:GetDisplayMainTitle() or bck
+                    if aname ~= bname then
+                        -- lua handles string comparisons on a char/byte kind of level so a is different from A
+                        -- we dont want to care and we also want to keep the ordering equivalent to the wheel ordering
+                        aname = WHEELDATA.makeSortString(aname)
+                        bname = WHEELDATA.makeSortString(bname)
+                        if ascending then
+                            return aname < bname
+                        else
+                            return aname > bname
+                        end
+                    else
+                        -- name the same, sort by rate
+                        local arate = a:GetRate()
+                        local brate = b:GetRate()
+                        if arate ~= brate then
+                            if ascending then
+                                return arate < brate
+                            else
+                                return arate > brate
+                            end
+                        else
+                            -- rate the same, sort by MSD (this is as far as ill go)
+                            local asteps = SONGMAN:GetStepsByChartKey(ack)
+                            local bsteps = SONGMAN:GetStepsByChartKey(bck)
+                            -- the next 2 lines here might be backwards
+                            if asteps == nil then return ascending end
+                            if bsteps == nil then return not ascending end
+
+                            local amsd = asteps:GetMSD(arate, 1)
+                            local bmsd = bsteps:GetMSD(brate, 1)
+                            if ascending then
+                                return amsd < bmsd
+                            else
+                                return amsd > bmsd
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    )
+end
+local function sortGoalsByRate(goaltable, dategetter, ascending)
+    if ascending == nil then ascending = true end
+    table.sort(
+        goaltable,
+        function(a, b)
+            local arate = a:GetRate()
+            local brate = b:GetRate()
+            if arate ~= brate then
+                if ascending then
+                    return arate < brate
+                else
+                    return arate > brate
+                end
+            else
+                -- rate is the same, sort by priority
+                local aprio = a:GetPriority()
+                local bprio = b:GetPriority()
+                if aprio ~= bprio then
+                    if ascending then
+                        return aprio < bprio
+                    else
+                        return aprio > bprio
+                    end
+                else
+                    -- priority the same, sort by song name (a rate sort would probably be comparing goals on rates on songs)
+                    -- the alternative here would be to sort by set date which makes no sense to me if that is the assumption
+                    local ack = a:GetChartKey()
+                    local bck = b:GetChartKey()
+                    local asong = SONGMAN:GetSongByChartKey(ack)
+                    local bsong = SONGMAN:GetSongByChartKey(bck)
+                    local aname = asong ~= nil and asong:GetDisplayMainTitle() or ack
+                    local bname = bsong ~= nil and bsong:GetDisplayMainTitle() or bck
+                    if aname ~= bname then
+                        -- lua handles string comparisons on a char/byte kind of level so a is different from A
+                        -- we dont want to care and we also want to keep the ordering equivalent to the wheel ordering
+                        aname = WHEELDATA.makeSortString(aname)
+                        bname = WHEELDATA.makeSortString(bname)
+                        if ascending then
+                            return aname < bname
+                        else
+                            return aname > bname
+                        end
+                    else
+                        -- names are the same so sort by date and thats as far as we care
+                        local adate = dategetter(a)
+                        local bdate = dategetter(b)
+                        if ascending then
+                            return adate < bdate
+                        else
+                            return adate > bdate
+                        end
+                    end
+                end
+            end
+
+        end
+    )
+end
+local function sortGoalsByMSD(goaltable, dategetter, ascending)
+    if ascending == nil then ascending = true end
+    table.sort(
+        goaltable,
+        function(a, b)
+            local ack = a:GetChartKey()
+            local bck = b:GetChartKey()
+            local asteps = SONGMAN:GetStepsByChartKey(ack)
+            local bsteps = SONGMAN:GetStepsByChartKey(bck)
+            if asteps == nil then return ascending end
+            if bsteps == nil then return not ascending end
+            local arate = a:GetRate()
+            local brate = b:GetRate()
+
+            local amsd = asteps:GetMSD(arate, 1)
+            local bmsd = bsteps:GetMSD(brate, 1)
+            if amsd ~= bmsd then
+                if ascending then
+                    return amsd < bmsd
+                else
+                    return amsd > bmsd
+                end
+            else
+                -- msd is the same, sort by priority
+                local aprio = a:GetPriority()
+                local bprio = b:GetPriority()
+                if aprio ~= bprio then
+                    if ascendingn then
+                        return aprio < bprio
+                    else
+                        return aprio > bprio
+                    end
+                else
+                    -- priority is the same, sort by song name and thats as far as we care (msd is rarely equal to begin with)
+                    local asong = SONGMAN:GetSongByChartKey(ack)
+                    local bsong = SONGMAN:GetSongByChartKey(bck)
+                    local aname = asong ~= nil and asong:GetDisplayMainTitle() or ack
+                    local bname = bsong ~= nil and bsong:GetDisplayMainTitle() or bck
+                    aname = WHEELDATA.makeSortString(aname)
+                    bname = WHEELDATA.makeSortString(bname)
+                    if ascending then
+                        return aname < bname
+                    else
+                        return aname > bname
+                    end
+                end
+            end
+        end
+    )
+end
+local function sortGoalsByName(goaltable, dategetter, ascending)
+    if ascending == nil then ascending = true end
+    table.sort(
+        goaltable,
+        function(a, b)
+            local ack = a:GetChartKey()
+            local bck = b:GetChartKey()
+            local asong = SONGMAN:GetSongByChartKey(ack)
+            local bsong = SONGMAN:GetSongByChartKey(bck)
+            local aname = asong ~= nil and asong:GetDisplayMainTitle() or ack
+            local bname = bsong ~= nil and bsong:GetDisplayMainTitle() or bck
+            if aname ~= bname then
+                aname = WHEELDATA.makeSortString(aname)
+                bname = WHEELDATA.makeSortString(bname)
+                if ascending then
+                    return aname < bname
+                else
+                    return aname > bname
+                end
+            else
+                -- names the same, sort by priority
+                local aprio = a:GetPriority()
+                local bprio = b:GetPriority()
+                if aprio ~= bprio then
+                    if ascending then
+                        return aprio < bprio
+                    else
+                        return aprio > bprio
+                    end
+                else
+                    -- priority the same, sort by rate and thats as far as we care
+                    local arate = a:GetRate()
+                    local brate = b:GetRate()
+                    if ascending then
+                        return arate < brate
+                    else
+                        return arate > brate
+                    end
+                end
+            end
+        end
+    )
+end
+local function sortGoalsByDate(goaltable, dategetter, ascending)
+    if ascending == nil then ascending = true end
+    table.sort(
+        goaltable,
+        function(a, b)
+            local adate = dategetter(a)
+            local bdate = dategetter(b)
+            if adate ~= bdate then
+                if ascending then
+                    return adate < bdate
+                else
+                    return adate > bdate
+                end
+            else
+                -- date the same, sort by priority
+                -- date should basically never be the same...
+                local aprio = a:GetPriority()
+                local bprio = b:GetPriority()
+                if aprio ~= bprio then
+                    if ascending then
+                        return aprio < bprio
+                    else
+                        return aprio > bprio
+                    end
+                else
+                    -- priority the same, sort by name and thats as far as we care
+                    local ack = a:GetChartKey()
+                    local bck = b:GetChartKey()
+                    local asong = SONGMAN:GetSongByChartKey(ack)
+                    local bsong = SONGMAN:GetSongByChartKey(bck)
+                    local aname = asong ~= nil and asong:GetDisplayMainTitle() or ack
+                    local bname = bsong ~= nil and bsong:GetDisplayMainTitle() or bck
+                    aname = WHEELDATA.makeSortString(aname)
+                    bname = WHEELDATA.makeSortString(bname)
+                    if ascending then
+                        return aname < bname
+                    else
+                        return aname > bname
+                    end
+                end
+            end
+        end
+    )
+end
+
+-- end sorting functions
+--=====
+
+-- the entire goal ActorFrame
 local function goalList()
     -- modifiable parameters
     local goalItemCount = 7
@@ -110,9 +397,20 @@ local function goalList()
     local profile = GetPlayerOrMachineProfile(PLAYER_1)
     local goalTable = profile:GetGoalTable()
 
+    -- sortmode info storage
+    -- default to Priority Sort
+    -- the order of preference for cases of equality is:
+    -- valid choices: Priority, Rate, MSD, Name, Date
+    local sortMode = "Priority"
+    local defaultAscending = false
+    local sortAscending = defaultAscending
+    -- filter visible goals by achievement
+    --  valid choices: All, Complete, Incomplete
+    local visibleGoalType = "All"
+
     -- this resets the goal table and sorting done by the C++
     -- why is this done in C++ and not Lua? great question
-    -- i'm going to handle it in Lua anyways (it just changes ascending and sortmodes for goals)
+    -- this is handled in Lua anyways (it would just change ascending and sortmodes for goals)
     profile:SetFromAll()
 
     local function movePage(n)
@@ -129,6 +427,61 @@ local function goalList()
 
         if goalListFrame then
             goalListFrame:playcommand("UpdateGoalList")
+        end
+    end
+
+    -- function to reset the goal list and filter it
+    local function resortGoals()
+        goalTable = {}
+
+        -- filter the goal table by chosen visible goals
+        for _, g in ipairs(profile:GetGoalTable()) do
+            if visibleGoalType == "Complete" then
+                -- complete only
+                if g:IsAchieved() then
+                    goalTable[#goalTable+1] = g
+                end
+            elseif visibleGoalType == "Incomplete" then
+                -- incomplete only
+                if not g:IsAchieved() and not g:IsVacuous() then
+                    goalTable[#goalTable+1] = g
+                end
+            else
+                -- all goals
+                goalTable[#goalTable+1] = g
+            end
+        end
+
+        page = 1
+        maxPage = math.ceil(#goalTable / goalItemCount)
+        
+        -- set up date getter for sorting
+        local dategetter
+        if visibleGoalType == "Complete" then
+            -- if the visible goal type is Complete then we care about the achieved date
+            dategetter = function(goal)
+                return goal:WhenAchieved()
+            end
+        else
+            -- if the visible goal type is not Complete then we only care about the set date
+            dategetter = function(goal)
+                return goal:WhenAssigned()
+            end
+        end
+
+        -- sort goals by sortmode
+        if sortMode == "Priority" then
+            sortGoalsByPriority(goalTable, dategetter, sortAscending)
+        elseif sortMode == "Rate" then
+            sortGoalsByRate(goalTable, dategetter, sortAscending)
+        elseif sortMode == "MSD" then
+            sortGoalsByMSD(goalTable, dategetter, sortAscending)
+        elseif sortMode == "Name" then
+            sortGoalsByName(goalTable, dategetter, sortAscending)
+        elseif sortMode == "Date" then
+            sortGoalsByDate(goalTable, dategetter, sortAscending)
+        else
+            sortGoalsByPriority(goalTable, dategetter, sortAscending)
         end
     end
 
@@ -506,7 +859,8 @@ local function goalList()
 
     local function goalChoices()
         -- keeping track of which choices are on at any moment (keys are indices, values are true/false/nil)
-        local activeChoices = {}
+        -- starting with priority sort on
+        local activeChoices = {[1] = true}
 
         -- identify each choice using this table
         --  Name: The name of the choice (NOT SHOWN TO THE USER)
@@ -520,60 +874,121 @@ local function goalList()
         --  TapFunction: A function that runs when the button is pressed
         local choiceDefinitions = {
             {   -- Sort by Priority
-                Name = "assign",
+                Name = "prioritysort",
                 Type = "Exclusive",
                 Display = {"Priority"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
-                TapFunction = function() end,
-            },
-            {   -- Sort by Difficulty
-                Name = "assign",
-                Type = "Exclusive",
-                Display = {"Difficulty"},
-                IndexGetter = function() return 1 end,
-                Condition = function() return true end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    if sortMode == "Priority" then
+                        sortAscending = not sortAscending
+                    else
+                        sortMode = "Priority"
+                        sortAscending = defaultAscending
+                    end
+                    resortGoals()
+                end,
             },
             {   -- Sort by Rate
-                Name = "assign",
+                Name = "ratesort",
                 Type = "Exclusive",
                 Display = {"Rate"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    if sortMode == "Rate" then
+                        sortAscending = not sortAscending
+                    else
+                        sortMode = "Rate"
+                        sortAscending = defaultAscending
+                    end
+                    resortGoals()
+                end,
+            },
+            {   -- Sort by MSD
+                Name = "msdsort",
+                Type = "Exclusive",
+                Display = {"MSD"},
+                IndexGetter = function() return 1 end,
+                Condition = function() return true end,
+                TapFunction = function()
+                    if sortMode == "MSD" then
+                        sortAscending = not sortAscending
+                    else
+                        sortMode = "MSD"
+                        sortAscending = defaultAscending
+                    end
+                    resortGoals()
+                end,
             },
             {   -- Sort by Song (Song + ChartKey)
-                Name = "assign",
+                Name = "namesort",
                 Type = "Exclusive",
                 Display = {"Name"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    if sortMode == "Name" then
+                        sortAscending = not sortAscending
+                    else
+                        sortMode = "Name"
+                        sortAscending = defaultAscending
+                    end
+                    resortGoals()
+                end,
             },
             {   -- Sort by Set Date
-                Name = "assign",
+                Name = "datesort",
                 Type = "Exclusive",
                 Display = {"Date"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    if sortMode == "Date" then
+                        sortAscending = not sortAscending
+                    else
+                        sortMode = "Date"
+                        sortAscending = defaultAscending
+                    end
+                    resortGoals()
+                end,
             },
             {   -- New Goal on current Chart
-                Name = "assign",
-                Type = "Exclusive",
+                Name = "newgoal",
+                Type = "Tap",
                 Display = {"New Goal"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function() end,
             },
-            {   -- Toggle between Show All Goals and Show Goals On This Song
-                Name = "assign",
-                Type = "Exclusive",
-                Display = {"Showing All", "Song Only"},
-                IndexGetter = function() return 1 end,
+            {   -- Toggle between All, Completed, and Incomplete Goals
+                Name = "filtergoals",
+                Type = "Toggle",
+                Display = {"Showing All", "Showing Complete", "Showing Incomplete"},
+                IndexGetter = function()
+                    if visibleGoalType == "All" then
+                        return 1
+                    elseif visibleGoalType == "Complete" then
+                        return 2
+                    elseif visibleGoalType == "Incomplete" then
+                        return 3
+                    else
+                        return 1
+                    end
+                end,
                 Condition = function() return true end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    if visibleGoalType == "All" then
+                        visibleGoalType = "Complete"
+                    elseif visibleGoalType == "Complete" then
+                        visibleGoalType = "Incomplete"
+                    elseif visibleGoalType == "Incomplete" then
+                        visibleGoalType = "All"
+                    else
+                        visibleGoalType = "All"
+                    end
+                    resortGoals()
+                end,
             },
         }
 
@@ -586,7 +1001,6 @@ local function goalList()
                 InitCommand = function(self)
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
-                    bg:diffusealpha(0.1)
 
                     -- this position is the center of the text
                     -- divides the space into slots for the choices then places them half way into them
@@ -600,12 +1014,17 @@ local function goalList()
                 end,
                 UpdateTextCommand = function(self)
                     local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
                     -- update index
                     displayIndex = definition.IndexGetter()
 
                     -- update visibility by condition
                     if definition.Condition() then
-                        self:diffusealpha(1)
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
                     else
                         self:diffusealpha(0)
                     end
@@ -666,6 +1085,7 @@ local function goalList()
         Name = "GoalListFrame",
         BeginCommand = function(self)
             goalListFrame = self
+            resortGoals()
             self:playcommand("UpdateGoalList")
             self:playcommand("UpdateText")
         end,
@@ -675,9 +1095,7 @@ local function goalList()
             self:playcommand("UpdateText")
         end,
         UpdateGoalListCommand = function(self)
-            -- this sets all the data things over and over and over
-            goalTable = profile:GetGoalTable()
-            maxPage = math.ceil(#goalTable / goalItemCount)
+            --
         end,
         
         goalChoices(),
