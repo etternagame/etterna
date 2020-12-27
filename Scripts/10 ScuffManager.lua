@@ -10,4 +10,5 @@ SCUFF.generaltabindex = 1
 SCUFF.scoretabindex = 2
 SCUFF.profiletabindex = 3
 SCUFF.goalstabindex = 4
+SCUFF.playliststabindex = 5
 SCUFF.tagstabindex = 6

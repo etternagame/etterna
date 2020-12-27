@@ -169,7 +169,7 @@ t[#t+1] = Def.ActorFrame {
     createChoices(),
     LoadActorWithParams("generalPages/general.lua", {ratios = ratios, actuals = actuals}) .. {
         BeginCommand = function(self)
-            -- this will cause the tab to become visible
+            -- this will cause the general tab to become visible first on screen startup
             self:playcommand("GeneralTabSet", {tab = SCUFF.generaltabindex})
             -- skip animation
             self:finishtweening()
@@ -178,7 +178,7 @@ t[#t+1] = Def.ActorFrame {
     LoadActorWithParams("generalPages/scores.lua", {ratios = ratios, actuals = actuals}),
     LoadActorWithParams("generalPages/profile.lua", {ratios = ratios, actuals = actuals}),
     LoadActorWithParams("generalPages/goals.lua", {ratios = ratios, actuals = actuals}),
-    -- playlists,
+    LoadActorWithParams("generalPages/playlists.lua", {ratios = ratios, actuals = actuals}),
     LoadActorWithParams("generalPages/tags.lua", {ratios = ratios, actuals = actuals}),
 }
 
