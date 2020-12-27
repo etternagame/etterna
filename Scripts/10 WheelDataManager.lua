@@ -369,7 +369,7 @@ local function sortToString(val)
 end
 
 -- mimicing SongUtil::MakeSortString here to keep behavior consistent
-local function makeSortString(s)
+function WHEELDATA.makeSortString(s)
     local st = s:upper()
     if #st > 0 then
         if st:find("[.]") == 1 then
@@ -392,7 +392,7 @@ end
 -- could be generalized later
 local function getTitleSortFoldernameForSong(song)
     local title = song:GetTranslitMainTitle()
-    title = makeSortString(title)
+    title = WHEELDATA.makeSortString(title)
     if #title == 0 then return "" end
     local fchar = string.byte(title)
     if fchar >= string.byte("0") and fchar <= string.byte("9") then
