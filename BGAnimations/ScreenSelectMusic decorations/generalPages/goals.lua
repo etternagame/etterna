@@ -766,12 +766,30 @@ local function goalList()
                     self:x(msdX + msdW/2)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
                 end,
+                UpdateTextCommand = function(self)
+                    if goal == nil then
+                        self:diffusealpha(0)
+                    else
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+                end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if goal == nil then return end
                     
                     if params.event == "DeviceButton_left mouse button" then
+                        -- delete goal and then refresh the list
                         goal:Delete()
+                        local pagebefore = page
+                        -- this updates the list that comes from resetting the goal table
+                        -- (if you dont do this then delete a goal twice you crash)
+                        profile:SetFromAll()
+                        resortGoals()
+                        page = clamp(pagebefore, 1, maxPage)
                         self:GetParent():GetParent():playcommand("UpdateGoalList")
                     end
                 end,
