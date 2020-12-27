@@ -486,7 +486,7 @@ Profile::RemoveFromPermaMirror(const string& ck)
 
 // more future goalman stuff (perhaps this should be standardized to "add" in
 // order to match scoreman nomenclature) -mina
-void
+bool
 Profile::AddGoal(const string& ck)
 {
 	ScoreGoal goal;
@@ -497,13 +497,14 @@ Profile::AddGoal(const string& ck)
 	if (goalmap.count(ck))
 		for (auto& n : goalmap[ck].goals)
 			if (n.rate == goal.rate && n.percent == goal.percent)
-				return;
+				return false;
 
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
 	DLMAN->AddGoal(ck, goal.percent, goal.rate, goal.timeassigned);
 	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
+	return true;
 }
 
 void
@@ -896,6 +897,13 @@ class LunaProfile : public Luna<Profile>
 		LuaHelpers::CreateTableFromArray(p->goaltable, L);
 		return 1;
 	}
+	static int AddGoal(T* p, lua_State* L)
+	{
+		auto ck = SArg(1);
+		auto success = p->AddGoal(ck);
+		lua_pushboolean(L, success);
+		return 1;
+	}
 	static int SetFromAll(T* p, lua_State* L)
 	{
 		p->FillGoalTable();
@@ -1163,6 +1171,7 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
 		ADD_METHOD(RenameProfile);
+		ADD_METHOD(AddGoal);
 		ADD_METHOD(SetFromAll);
 		ADD_METHOD(SortByDate);
 		ADD_METHOD(SortByRate);
