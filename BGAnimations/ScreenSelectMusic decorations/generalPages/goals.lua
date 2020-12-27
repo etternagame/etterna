@@ -977,7 +977,22 @@ local function goalList()
                 Display = {"New Goal"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                    if steps ~= nil then
+                        local ck = steps:GetChartKey()
+                        local success = profile:AddGoal(ck)
+                        -- success means goal was added
+                        -- false means it was a duplicate or something else weird maybe
+                        if success then
+                            -- this will load the new goal into the list and keep the page where it already was
+                            local pagebefore = page
+                            profile:SetFromAll()
+                            resortGoals()
+                            page = clamp(pagebefore, 1, maxPage)
+                        end
+                    end
+                end,
             },
             {   -- Toggle between All, Completed, and Incomplete Goals
                 Name = "filtergoals",
