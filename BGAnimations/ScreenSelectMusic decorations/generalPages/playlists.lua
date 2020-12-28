@@ -268,6 +268,8 @@ local function playlistList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if playlist == nil then return end
+                    SONGMAN:SetActivePlaylist(playlist:GetName())
+                    SCREENMAN:GetTopScreen():StartPlaylistAsCourse(playlist:GetName())
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -296,7 +298,7 @@ local function playlistList()
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Delete Playlist")
+                            TOOLTIP:SetText("Delete Playlist\n(Triggers a Save!)")
                             TOOLTIP:Show()
                         else
                             self:diffusealpha(1)
@@ -306,10 +308,18 @@ local function playlistList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if playlist == nil then return end
+                    if playlist:GetName() == "Favorites" then
+                        -- block the ability to delete the favorites playlist here too
+                    else
+                        SONGMAN:DeletePlaylist(playlist:GetName())
+                        updatePlaylists()
+                        -- self - item - itemlist - playlist tab
+                        self:GetParent():GetParent():GetParent():playcommand("UpdatePlaylistsTab")
+                    end
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-                    TOOLTIP:SetText("Delete Playlist")
+                    TOOLTIP:SetText("Delete Playlist\n(Triggers a Save!)")
                     TOOLTIP:Show()
                     self:diffusealpha(buttonHoverAlpha)
                 end,
@@ -563,7 +573,7 @@ local function playlistList()
                     end
                 },
                 UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
-                    Name = "DeletePlaylist",
+                    Name = "DeleteChart",
                     InitCommand = function(self)
                         self:halign(0):valign(0)
                         self:x(deleteX)
