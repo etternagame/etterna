@@ -311,6 +311,7 @@ local function playlistList()
                     if playlist:GetName() == "Favorites" then
                         -- block the ability to delete the favorites playlist here too
                     else
+                        -- this will trigger a save
                         SONGMAN:DeletePlaylist(playlist:GetName())
                         updatePlaylists()
                         -- self - item - itemlist - playlist tab
@@ -449,7 +450,7 @@ local function playlistList()
                             bg:zoomx(txt:GetZoomedWidth())
     
                             -- if mouse is currently hovering
-                            if isOver(bg) then
+                            if isOver(bg) and chart:IsLoaded() then
                                 self:diffusealpha(buttonHoverAlpha)
                             else
                                 self:diffusealpha(1)
@@ -462,17 +463,17 @@ local function playlistList()
                             -- find song on click (even if filtered)
                             local w = SCREENMAN:GetTopScreen():GetChild("WheelFile")
                             if w ~= nil then
-                                local ck = ""
-                                
-                                if ck ~= nil then
-                                    w:playcommand("FindSong", {chartkey = ck})
+                                if chart:IsLoaded() then
+                                    w:playcommand("FindSong", {chartkey = chartkey})
+                                else
+                                    -- not loaded - do nothing
                                 end
                             end
                         end
                     end,
                     RolloverUpdateCommand = function(self, params)
                         if self:IsInvisible() then return end
-                        if params.update == "in" then
+                        if params.update == "in" and chart ~= nil and chart:IsLoaded() then
                             self:diffusealpha(buttonHoverAlpha)
                         else
                             self:diffusealpha(1)
@@ -518,7 +519,12 @@ local function playlistList()
                     ClickCommand = function(self, params)
                         if self:IsInvisible() then return end
                         if params.update == "OnMouseDown" then
-                            --
+                            if params.event == "DeviceButton_left mouse button" then
+                                chart:ChangeRate(0.1)
+                            else
+                                chart:ChangeRate(-0.1)
+                            end
+                            self:GetParent():GetParent():playcommand("UpdateDetailDisplay") 
                         end
                     end,
                     RolloverUpdateCommand = function(self, params)
@@ -587,7 +593,7 @@ local function playlistList()
                         else
                             if isOver(self) then
                                 self:diffusealpha(buttonHoverAlpha)
-                                TOOLTIP:SetText("Delete Chart")
+                                TOOLTIP:SetText("Delete Chart\n(Triggers a Save!)")
                                 TOOLTIP:Show()
                             else
                                 self:diffusealpha(1)
@@ -596,11 +602,15 @@ local function playlistList()
                     end,
                     MouseDownCommand = function(self, params)
                         if self:IsInvisible() then return end
-                        if playlist == nil then return end
+                        if playlist == nil or playlist:GetName() == "Favorites" then return end
+                        -- this will trigger a save
+                        playlist:DeleteChart(index)
+                        updatePlaylists()
+                        self:GetParent():GetParent():playcommand("UpdateDetailDisplay")
                     end,
                     MouseOverCommand = function(self)
                         if self:IsInvisible() then return end
-                        TOOLTIP:SetText("Delete Chart")
+                        TOOLTIP:SetText("Delete Chart\n(Triggers a Save!)")
                         TOOLTIP:Show()
                         self:diffusealpha(buttonHoverAlpha)
                     end,
@@ -623,6 +633,8 @@ local function playlistList()
                 displayListFrame = self
             end,
             UpdateDetailDisplayCommand = function(self, params)
+                -- not updating page here because we can use this command from any page
+                -- but do update max page
                 playlist = SONGMAN:GetActivePlaylist()
                 if playlist ~= nil then
                     keylist = playlist:GetChartkeys()
@@ -634,6 +646,8 @@ local function playlistList()
                     self:GetChild("PageText"):diffusealpha(0)
                 end
                 detailMaxPage = math.ceil(#chartlist / detailItemCount)
+                -- just in case max page did change ... clamp the page but dont move it otherwise
+                detailPage = clamp(detailPage, 1, detailMaxPage)
                 self:playcommand("UpdateItemList")
             end,
             UpdateItemListCommand = function(self)
