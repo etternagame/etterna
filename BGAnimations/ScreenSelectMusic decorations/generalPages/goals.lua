@@ -761,6 +761,7 @@ local function goalList()
                 end
             },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
+                Name = "DeleteGoal",
                 InitCommand = function(self)
                     self:halign(0):valign(0)
                     self:x(msdX + msdW/2)
@@ -772,6 +773,8 @@ local function goalList()
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("Delete Goal")
+                            TOOLTIP:Show()
                         else
                             self:diffusealpha(1)
                         end
@@ -795,12 +798,13 @@ local function goalList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-
+                    TOOLTIP:SetText("Delete Goal")
+                    TOOLTIP:Show()
                     self:diffusealpha(buttonHoverAlpha)
                 end,
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
-
+                    TOOLTIP:Hide()
                     self:diffusealpha(1)
                 end
             },
@@ -1128,7 +1132,8 @@ local function goalList()
             self:playcommand("UpdateText")
         end,
         UpdateGoalListCommand = function(self)
-            --
+            -- in case tooltip is stuck for some reason
+            TOOLTIP:Hide()
         end,
         
         goalChoices(),
