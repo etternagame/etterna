@@ -705,7 +705,7 @@ local function playlistList()
         local choiceDefinitions = {
             {   -- Make a new playlist or add the current chart to the opened playlist
                 Name = "newentry",
-                Type = "Exclusive",
+                Type = "Tap",
                 Display = {"New Playlist", "Add Current Chart"},
                 IndexGetter = function()
                     if inPlaylistDetails then
@@ -723,11 +723,63 @@ local function playlistList()
                     end
                     return true
                 end,
-                TapFunction = function() end,
+                TapFunction = function()
+                    if inPlaylistDetails then
+                        -- adding chart to playlist
+                        local pl = SONGMAN:GetActivePlaylist()
+                        if pl:GetName() == "Favorites" then
+                            -- no adding to favorites this way :)
+                        else
+                            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                            if steps ~= nil then
+                                -- this triggers a save
+                                pl:AddChart(steps:GetChartKey())
+                                updatePlaylists()
+                                if displayListFrame ~= nil then
+                                    displayListFrame:playcommand("UpdateDetailDisplay")
+                                end
+                            end
+                        end
+                    else
+                        -- adding new playlist
+                        local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+                        local function off()
+                            if redir then
+                                SCREENMAN:set_input_redirected(PLAYER_1, false)
+                            end
+                        end
+                        local function on()
+                            if redir then
+                                SCREENMAN:set_input_redirected(PLAYER_1, true)
+                            end
+                        end
+                        off()
+                        -- input redirects are controlled here because we want to be careful not to break any prior redirects
+                        askForInputStringWithFunction(
+                            "Enter New Playlist Name",
+                            128,
+                            false,
+                            function(answer)
+                                -- success if the answer isnt blank
+                                if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+                                    SONGMAN:NewPlaylistNoDialog(answer)
+                                else
+                                    on()
+                                end
+                            end,
+                            function() return true, "" end,
+                            function()
+                                on()
+                            end
+                        )
+                        -- this will trigger the DisplayAll Message after success (also a Profile Save)
+                        -- this triggers nothing on failure
+                    end
+                end,
             },
             {   -- Exit the page that lets you see inside a playlist
                 Name = "back",
-                Type = "Exclusive",
+                Type = "Tap",
                 Display = {"Back"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return inPlaylistDetails end,
@@ -850,10 +902,11 @@ local function playlistList()
             detailPage = 1
             self:GetChild("Choices"):playcommand("UpdateText")
 
-            local detailframe = self:GetChild("DetailPageFrame")
-            detailframe:diffusealpha(1)
-            detailframe:z(10)
-            detailframe:playcommand("UpdateDetailDisplay")
+            if displayListFrame ~= nil then
+                displayListFrame:diffusealpha(1)
+                displayListFrame:z(10)
+                displayListFrame:playcommand("UpdateDetailDisplay")
+            end
 
             local itemframe = self:GetChild("ItemListFrame")
             itemframe:diffusealpha(0)
@@ -863,14 +916,21 @@ local function playlistList()
             inPlaylistDetails = false
             self:GetChild("Choices"):playcommand("UpdateText")
 
-            local detailframe = self:GetChild("DetailPageFrame")
-            detailframe:diffusealpha(0)
-            detailframe:z(-10)
-            detailframe:playcommand("UpdateDetailDisplay")
+            if displayListFrame ~= nil then
+                displayListFrame:diffusealpha(0)
+                displayListFrame:z(-10)
+                displayListFrame:playcommand("UpdateDetailDisplay")
+            end
 
             local itemframe = self:GetChild("ItemListFrame")
             itemframe:diffusealpha(1)
             self:GetChild("PageText"):diffusealpha(1)
+        end,
+        DisplayAllMessageCommand = function(self)
+            -- this should only trigger if a new playlist was successfully made
+            -- if not ... uhhh..... ???
+            updatePlaylists()
+            self:playcommand("UpdatePlaylistsTab")
         end,
         
         tabChoices(),
