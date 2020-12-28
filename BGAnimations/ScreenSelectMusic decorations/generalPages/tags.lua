@@ -565,14 +565,8 @@ local function tagList()
                 self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
             end,
             UpdateTagListCommand = function(self)
-                local lb = (page-1) * (columns * tagsPerColumn) + 1
-                if lb > #tagNameList then
-                    lb = #tagNameList
-                end
-                local ub = page * columns * tagsPerColumn
-                if ub > #tagNameList then
-                    ub = #tagNameList
-                end
+                local lb = clamp((page-1) * (columns * tagsPerColumn) + 1, 0, #tagNameList)
+                local ub = clamp(page * columns * tagsPerColumn, 0, #tagNameList)
                 self:settextf("%d-%d/%d", lb, ub, #tagNameList)
             end
         }

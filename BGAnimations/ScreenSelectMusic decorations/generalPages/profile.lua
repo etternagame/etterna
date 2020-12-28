@@ -984,14 +984,8 @@ local function createList()
             self:maxwidth((actuals.ItemDiffRightAlignLeftGap - actuals.ItemRateRightAlignLeftGap) / pageTextSize - textzoomFudge)
         end,
         UpdateListCommand = function(self)
-            local lb = (page-1) * (itemCount) + 1
-            if lb > #scores then
-                lb = #scores
-            end
-            local ub  = page * itemCount
-            if ub > #scores then
-                ub = #scores
-            end
+            local lb = clamp((page-1) * (itemCount) + 1, 0, #scores)
+            local ub = clamp(page * itemCount, 0, #scores)
             self:settextf("%d-%d/%d", lb, ub, #scores)
         end
     }

@@ -1165,14 +1165,8 @@ local function goalList()
                 self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
             end,
             UpdateGoalListCommand = function(self)
-                local lb = (page-1) * (goalItemCount) + 1
-                if lb > #goalTable then
-                    lb = #goalTable
-                end
-                local ub = page * goalItemCount
-                if ub > #goalTable then
-                    ub = #goalTable
-                end
+                local lb = clamp((page-1) * (goalItemCount) + 1, 0, #goalTable)
+                local ub = clamp(page * goalItemCount, 0, #goalTable)
                 self:settextf("%d-%d/%d", lb, ub, #goalTable)
             end
         }

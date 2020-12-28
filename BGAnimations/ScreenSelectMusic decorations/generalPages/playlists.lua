@@ -668,14 +668,8 @@ local function playlistList()
                     self:maxwidth(actuals.Width / detailPageTextSize - textzoomFudge)
                 end,
                 UpdateItemListCommand = function(self)
-                    local lb = (detailPage-1) * (detailItemCount) + 1
-                    if lb > #chartlist then
-                        lb = #chartlist
-                    end
-                    local ub = detailPage * detailItemCount
-                    if ub > #chartlist then
-                        ub = #chartlist
-                    end
+                    local lb = clamp((detailPage-1) * (detailItemCount) + 1, 0, #chartlist)
+                    local ub = clamp(detailPage * detailItemCount, 0, #chartlist)
                     self:settextf("%d-%d/%d", lb, ub, #chartlist)
                 end
             },
@@ -962,14 +956,8 @@ local function playlistList()
                 self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
             end,
             UpdateItemListCommand = function(self)
-                local lb = (page-1) * (itemCount) + 1
-                if lb > #playlistTable then
-                    lb = #playlistTable
-                end
-                local ub = page * itemCount
-                if ub > #playlistTable then
-                    ub = #playlistTable
-                end
+                local lb = clamp((page-1) * (itemCount) + 1, 0, #playlistTable)
+                local ub = clamp(page * itemCount, 0, #playlistTable)
                 self:settextf("%d-%d/%d", lb, ub, #playlistTable)
             end
         },
