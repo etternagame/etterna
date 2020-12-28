@@ -1147,7 +1147,9 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 	if (SM == SM_BackFromNamePlaylist) {
 		Playlist pl;
 		pl.name = ScreenTextEntry::s_sLastAnswer;
-		if (pl.name != "") {
+		auto& pls = SONGMAN->GetPlaylists();
+		// require name not empty and name not a duplicate
+		if (pl.name != "" && pls.count(pl.name) == 0) {
 			SONGMAN->GetPlaylists().emplace(pl.name, pl);
 			SONGMAN->activeplaylist = pl.name;
 			MESSAGEMAN->Broadcast("DisplayAll");

@@ -1274,7 +1274,9 @@ makePlaylist(const std::string& answer)
 {
 	Playlist pl;
 	pl.name = answer;
-	if (!pl.name.empty()) {
+	auto& pls = SONGMAN->GetPlaylists();
+	// require name not empty and name not a duplicate
+	if (!pl.name.empty() && pls.count(pl.name) == 0) {
 		SONGMAN->GetPlaylists().emplace(pl.name, pl);
 		SONGMAN->activeplaylist = pl.name;
 		MESSAGEMAN->Broadcast("DisplayAll");
@@ -1544,6 +1546,30 @@ class LunaSongManager : public Luna<SongManager>
 		return 0;
 	}
 
+	static auto NewPlaylistNoDialog(T* p, lua_State* L) -> int
+	{
+		// a version of NewPlaylist but does not require text input
+		// returns a boolean of success
+		auto name = SArg(1);
+		Playlist pl;
+		pl.name = name;
+		auto& pls = p->GetPlaylists();
+		if (pl.name != "" && pls.count(pl.name) == 0) {
+			pls.emplace(pl.name, pl);
+			p->activeplaylist = pl.name;
+
+			 // message for behavior consistency, not necessary
+			MESSAGEMAN->Broadcast("DisplayAll");
+
+			lua_pushboolean(L, true);
+		}
+		else {
+			lua_pushboolean(L, false);
+		}
+		
+		return 1;
+	}
+
 	static auto GetPlaylists(T* p, lua_State* L) -> int
 	{
 		auto idx = 1;
@@ -1586,6 +1612,7 @@ class LunaSongManager : public Luna<SongManager>
 		ADD_METHOD(GetActivePlaylist);
 		ADD_METHOD(SetActivePlaylist);
 		ADD_METHOD(NewPlaylist);
+		ADD_METHOD(NewPlaylistNoDialog);
 		ADD_METHOD(GetPlaylists);
 		ADD_METHOD(DeletePlaylist);
 	}
