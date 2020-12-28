@@ -1,4 +1,5 @@
 local focused = false
+local inPlaylistDetails = false
 local t = Def.ActorFrame {
     Name = "PlaylistsPageFile",
     InitCommand = function(self)
@@ -12,6 +13,7 @@ local t = Def.ActorFrame {
                 self:smooth(0.2)
                 self:diffusealpha(1)
                 focused = true
+                inPlaylistDetails = false
                 self:playcommand("UpdatePlaylistsTab")
             else
                 self:z(-100)
@@ -20,12 +22,6 @@ local t = Def.ActorFrame {
                 focused = false
             end
         end
-    end,
-    WheelSettledMessageCommand = function(self, params)
-        if not focused then return end
-    end,
-    ChangedStepsMessageCommand = function(self, params)
-        if not focused then return end
     end
 }
 
@@ -46,6 +42,11 @@ local ratios = {
     ItemIndexWidth = 38 / 1920, -- left edge of number to uhh nothing
     IconWidth = 18 / 1920, -- for the trash thing
     IconHeight = 21 / 1080,
+
+    -- pertains to the playlist detail pages, not the playlist display
+    DetailPageLeftGap = 743 / 1920, -- left edge to left edge of text
+    DetailPageUpperGap = 52 / 1080,
+    DetailItemAllottedSpace = 440 / 1080,
 }
 
 local actuals = {
@@ -62,6 +63,9 @@ local actuals = {
     ItemIndexWidth = ratios.ItemIndexWidth * SCREEN_WIDTH,
     IconWidth = ratios.IconWidth * SCREEN_WIDTH,
     IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
+    DetailPageLeftGap = ratios.DetailPageLeftGap * SCREEN_WIDTH,
+    DetailPageUpperGap = ratios.DetailPageUpperGap * SCREEN_HEIGHT,
+    DetailItemAllottedSpace = ratios.DetailItemAllottedSpace * SCREEN_HEIGHT,
 }
 
 -- scoping magic
@@ -77,9 +81,18 @@ do
     end
 end
 
+-- playlist list sizing
 local itemLine1TextSize = 0.85
 local itemLine2TextSize = 0.75
 local pageTextSize = 0.9
+
+-- playlist detail sizing
+local itemIndexSize = 0.9
+local nameTextSize = 0.9
+local rateTextSize = 0.9
+local msdTextSize = 0.9
+local diffTextSize = 0.9
+local detailPageTextSize = 0.7
 
 -- our fontpage SUCKS so this should make things look better
 -- undo this if the fontpage doesnt SUCK
@@ -96,6 +109,7 @@ local itemListAnimationSeconds = 0.05
 local function playlistList()
     -- modifiable parameters
     local itemCount = 7
+    local detailItemCount = 15
 
     -- internal var storage
     local page = 1
@@ -103,25 +117,56 @@ local function playlistList()
     local playlistListFrame = nil
     local playlistTable = {}
 
+    local displayListFrame = nil
+    local detailPage = 1
+    local detailMaxPage = 1
+
     local function updatePlaylists()
         playlistTable = SONGMAN:GetPlaylists()
         maxPage = math.ceil(#playlistTable / itemCount)
+
+        table.sort(
+            playlistTable,
+            function(a, b)
+                -- this sorts the playlists using the typical alphabetical order we are all familiar with
+                local aname = WHEELDATA.makeSortString(a:GetName())
+                local bname = WHEELDATA.makeSortString(b:GetName())
+                return aname < bname
+            end
+        )
     end
 
     local function movePage(n)
-        if maxPage <= 1 then
-            return
-        end
+        if inPlaylistDetails then
+            if detailMaxPage <= 1 then
+                return
+            end
 
-        -- math to make pages loop both directions
-        local nn = (page + n) % (maxPage + 1)
-        if nn == 0 then
-            nn = n > 0 and 1 or maxPage
-        end
-        page = nn
+            -- math to make pages loop both directions
+            local nn = (detailPage + n) % (detailMaxPage + 1)
+            if nn == 0 then
+                nn = n > 0 and 1 or detailMaxPage
+            end
+            detailPage = nn
 
-        if playlistListFrame then
-            playlistListFrame:playcommand("UpdateItemList")
+            if displayListFrame then
+                displayListFrame:playcommand("UpdateItemList")
+            end
+        else
+            if maxPage <= 1 then
+                return
+            end
+
+            -- math to make pages loop both directions
+            local nn = (page + n) % (maxPage + 1)
+            if nn == 0 then
+                nn = n > 0 and 1 or maxPage
+            end
+            page = nn
+
+            if playlistListFrame then
+                playlistListFrame:playcommand("UpdateItemList")
+            end
         end
     end
 
@@ -131,7 +176,7 @@ local function playlistList()
 
         -- theres a lot going on here i just wanted to write down vars representing math so its a little clearer for everyone
         -- i should have done this kind of thing in more places but ...
-        local itemWidth = actuals.Width * 0.84
+        local itemWidth = actuals.Width * 0.84 -- this 0.84 is balanced with the multiplier for the page number width
         local indX = actuals.ItemIndexLeftGap
         local indW = actuals.ItemIndexWidth
         local remainingWidth = itemWidth - indW - indX
@@ -185,6 +230,9 @@ local function playlistList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if playlist == nil then return end
+                    self:diffusealpha(1)
+                    SONGMAN:SetActivePlaylist(playlist:GetName())
+                    MESSAGEMAN:Broadcast("OpenPlaylistDetails", {playlist = playlist})
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -302,6 +350,320 @@ local function playlistList()
         }
     end
 
+    -- functionally created frame for only displaying contents of a playlist
+    local function detailPageFrame()
+        -- playlists keep track of basically just chartkeys and the songs for them might not be loaded
+        -- we do our best to care about that ... kind of
+        local playlist = nil
+        local keylist = {} -- this is a list of keys
+        local chartlist = {} -- this is a list of "Chart" which isnt a Steps
+
+        local function detailItem(i)
+            local chart = nil
+            local chartkey = nil
+            local stepsloaded = false
+            local index = i
+
+            local itemWidth = actuals.Width
+            local indX = actuals.ItemIndexLeftGap
+            local indW = actuals.ItemIndexWidth
+            local remainingWidth = itemWidth - indW - indX
+            local nameX = indX + indW -- halign 0
+            local nameW = remainingWidth / 8 * 5
+            local rateX = nameX + nameW
+            local rateW = remainingWidth / 12 * 1
+            local msdX = rateX + rateW
+            local msdW = remainingWidth / 8 * 1
+            local diffX = msdX + msdW
+            local diffW = remainingWidth / 16 * 1
+            local deleteX = itemWidth - indX - diffW -- halign 0
+    
+            return Def.ActorFrame {
+                Name = "ChartItem_"..i,
+                InitCommand = function(self)
+                    self:y((actuals.DetailItemAllottedSpace / (detailItemCount)) * (i-1) + actuals.ItemListUpperGap)
+                end,
+                SetChartCommand = function(self)
+                    index = (detailPage - 1) * detailItemCount + i
+                    -- make the assumption that these lists are the same length and if one is nil the other is too
+                    chart = chartlist[index]
+                    chartkey = keylist[index]
+                    self:finishtweening()
+                    self:diffusealpha(0)
+                    if chart ~= nil then
+                        self:smooth(itemListAnimationSeconds * i)
+                        self:diffusealpha(1)
+                    end
+                end,
+    
+                LoadFont("Common Normal") .. {
+                    Name = "Index",
+                    InitCommand = function(self)
+                        self:valign(0):halign(0)
+                        self:x(indX)
+                        self:zoom(itemIndexSize)
+                        self:maxwidth((indW) / itemIndexSize - textzoomFudge)
+                    end,
+                    SetChartCommand = function(self)
+                        if chart ~= nil then
+                            self:settextf("%d.", index)
+                        end
+                    end
+                },
+                UIElements.TextButton(1, 1, "Common Normal") .. {
+                    Name = "Name",
+                    InitCommand = function(self)
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        self:x(nameX)
+                        
+                        txt:halign(0):valign(0)
+                        bg:halign(0):valign(0)
+                        -- this upwards bump fixes font related positioning
+                        -- the font has a baseline which pushes it downward by some bit
+                        -- this corrects the bg so that the hover is not wrong as a result
+                        bg:y(-3)
+    
+                        txt:zoom(nameTextSize)
+                        txt:maxwidth(nameW / nameTextSize - textzoomFudge)
+                        bg:zoomy(actuals.ItemAllottedSpace / detailItemCount)
+                    end,
+                    SetChartCommand = function(self)
+                        if chart ~= nil then
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+
+                            local name = chart:GetSongTitle()
+                            txt:settext(name)
+    
+                            bg:zoomx(txt:GetZoomedWidth())
+    
+                            -- if mouse is currently hovering
+                            if isOver(bg) then
+                                self:diffusealpha(buttonHoverAlpha)
+                            else
+                                self:diffusealpha(1)
+                            end
+                        end
+                    end,
+                    ClickCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update == "OnMouseDown" then
+                            -- find song on click (even if filtered)
+                            local w = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                            if w ~= nil then
+                                local ck = ""
+                                
+                                if ck ~= nil then
+                                    w:playcommand("FindSong", {chartkey = ck})
+                                end
+                            end
+                        end
+                    end,
+                    RolloverUpdateCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update == "in" then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+                },
+                UIElements.TextButton(1, 1, "Common Normal") .. {
+                    Name = "Rate",
+                    InitCommand = function(self)
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        self:x(msdX - textzoomFudge)
+
+                        txt:halign(1):valign(0)
+                        bg:halign(1):valign(0)
+                        -- this upwards bump fixes font related positioning
+                        -- the font has a baseline which pushes it downward by some bit
+                        -- this corrects the bg so that the hover is not wrong as a result
+                        bg:y(-3)
+
+                        txt:zoom(rateTextSize)
+                        txt:maxwidth(rateW / rateTextSize - textzoomFudge)
+                        bg:zoomy(actuals.ItemAllottedSpace / detailItemCount)
+                    end,
+                    SetChartCommand = function(self)
+                        if chart ~= nil then
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+
+                            local rate = chart:GetRate()
+                            local ratestring = string.format("%.2f", rate):gsub("%.?0+$", "") .. "x"
+                            txt:settext(ratestring)
+                            bg:zoomx(txt:GetZoomedWidth())
+
+                            -- if mouse is currently hovering
+                            if isOver(bg) then
+                                self:diffusealpha(buttonHoverAlpha)
+                            else
+                                self:diffusealpha(1)
+                            end
+                        end
+                    end,
+                    ClickCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update == "OnMouseDown" then
+                            --
+                        end
+                    end,
+                    RolloverUpdateCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update == "in" then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+                },
+                LoadFont("Common Normal") .. {
+                    Name = "MSD",
+                    InitCommand = function(self)
+                        self:halign(0):valign(0)
+                        self:x(msdX)
+                        self:zoom(msdTextSize)
+                        self:maxwidth(msdW / msdTextSize - textzoomFudge)
+                    end,
+                    SetChartCommand = function(self)
+                        if chart ~= nil then
+                            local msd = 0
+                            if chart:IsLoaded() then
+                                local steps = SONGMAN:GetStepsByChartKey(chartkey)
+                                msd = steps:GetMSD(chart:GetRate(), 1)
+                            end
+                            self:settextf("%05.2f", msd)
+                            self:diffuse(byMSD(msd))
+                        end
+                    end
+                },
+                LoadFont("Common Normal") .. {
+                    Name = "Difficulty",
+                    InitCommand = function(self)
+                        self:halign(0):valign(0)
+                        self:x(diffX)
+                        self:zoom(diffTextSize)
+                        self:maxwidth(diffW / diffTextSize - textzoomFudge)
+                    end,
+                    SetChartCommand = function(self)
+                        if chart ~= nil then
+                            local diff = nil
+                            if chart:IsLoaded() then
+                                local steps = SONGMAN:GetStepsByChartKey(chartkey)
+                                diff = steps:GetDifficulty()
+                            else
+                                diff = chart:GetDifficulty()
+                            end
+                            self:settext(getShortDifficulty(diff))
+                            self:diffuse(byDifficulty(diff))
+                        end
+                    end
+                },
+                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
+                    Name = "DeletePlaylist",
+                    InitCommand = function(self)
+                        self:halign(0):valign(0)
+                        self:x(deleteX)
+                        self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                    end,
+                    SetChartCommand = function(self)
+                        -- dont allow deleting from the Favorites playlist
+                        -- this breaks so many things
+                        if chart == nil or playlist:GetName() == "Favorites" then
+                            self:diffusealpha(0)
+                        else
+                            if isOver(self) then
+                                self:diffusealpha(buttonHoverAlpha)
+                                TOOLTIP:SetText("Delete Chart")
+                                TOOLTIP:Show()
+                            else
+                                self:diffusealpha(1)
+                            end
+                        end
+                    end,
+                    MouseDownCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if playlist == nil then return end
+                    end,
+                    MouseOverCommand = function(self)
+                        if self:IsInvisible() then return end
+                        TOOLTIP:SetText("Delete Chart")
+                        TOOLTIP:Show()
+                        self:diffusealpha(buttonHoverAlpha)
+                    end,
+                    MouseOutCommand = function(self)
+                        if self:IsInvisible() then return end
+                        TOOLTIP:Hide()
+                        self:diffusealpha(1)
+                    end
+                }
+            }
+        end
+
+        local t = Def.ActorFrame {
+            Name = "DetailPageFrame",
+            InitCommand = function(self)
+                self:y(actuals.DetailPageUpperGap)
+                self:diffusealpha(0)
+            end,
+            BeginCommand = function(self)
+                displayListFrame = self
+            end,
+            UpdateDetailDisplayCommand = function(self, params)
+                playlist = SONGMAN:GetActivePlaylist()
+                if playlist ~= nil then
+                    keylist = playlist:GetChartkeys()
+                    chartlist = playlist:GetAllSteps()
+                    self:GetChild("PageText"):diffusealpha(1)
+                else
+                    keylist = {}
+                    chartlist = {}
+                    self:GetChild("PageText"):diffusealpha(0)
+                end
+                detailMaxPage = math.ceil(#chartlist / detailItemCount)
+                self:playcommand("UpdateItemList")
+            end,
+            UpdateItemListCommand = function(self)
+                if inPlaylistDetails then
+                    self:diffusealpha(1)
+                    self:playcommand("SetChart")
+                else
+                    self:diffusealpha(0)
+                end
+            end,
+            LoadFont("Common Normal") .. {
+                Name = "PageText",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.DetailPageLeftGap)
+                    self:zoom(detailPageTextSize)
+                    -- oddly precise max width but this should fit with the original size
+                    self:maxwidth(actuals.Width / detailPageTextSize - textzoomFudge)
+                end,
+                UpdateItemListCommand = function(self)
+                    local lb = (detailPage-1) * (detailItemCount) + 1
+                    if lb > #chartlist then
+                        lb = #chartlist
+                    end
+                    local ub = detailPage * detailItemCount
+                    if ub > #chartlist then
+                        ub = #chartlist
+                    end
+                    self:settextf("%d-%d/%d", lb, ub, #chartlist)
+                end
+            },
+        }
+
+        for i = 1, detailItemCount do
+            t[#t+1] = detailItem(i)
+        end
+
+        return t
+    end
+
     local function tabChoices()
         -- keeping track of which choices are on at any moment (keys are indices, values are true/false/nil)
         local activeChoices = {}
@@ -321,7 +683,13 @@ local function playlistList()
                 Name = "newentry",
                 Type = "Exclusive",
                 Display = {"New Playlist", "Add Current Chart"},
-                IndexGetter = function() return 1 end,
+                IndexGetter = function()
+                    if inPlaylistDetails then
+                        return 2
+                    else
+                        return 1
+                    end
+                end,
                 Condition = function() return true end,
                 TapFunction = function() end,
             },
@@ -330,8 +698,10 @@ local function playlistList()
                 Type = "Exclusive",
                 Display = {"Back"},
                 IndexGetter = function() return 1 end,
-                Condition = function() return true end,
-                TapFunction = function() end,
+                Condition = function() return inPlaylistDetails end,
+                TapFunction = function()
+                    MESSAGEMAN:Broadcast("ClosePlaylistDetails")
+                end,
             },
         }
 
@@ -434,12 +804,41 @@ local function playlistList()
         end,
         UpdatePlaylistsTabCommand = function(self)
             page = 1
+            inPlaylistDetails = false
+            self:playcommand("ClosePlaylistDetails")
             self:playcommand("UpdateItemList")
             self:playcommand("UpdateText")
         end,
         UpdateItemListCommand = function(self)
             -- in case tooltip gets stuck
             TOOLTIP:Hide()
+        end,
+        OpenPlaylistDetailsMessageCommand = function(self)
+            inPlaylistDetails = true
+            detailPage = 1
+            self:GetChild("Choices"):playcommand("UpdateText")
+
+            local detailframe = self:GetChild("DetailPageFrame")
+            detailframe:diffusealpha(1)
+            detailframe:z(10)
+            detailframe:playcommand("UpdateDetailDisplay")
+
+            local itemframe = self:GetChild("ItemListFrame")
+            itemframe:diffusealpha(0)
+            self:GetChild("PageText"):diffusealpha(0)
+        end,
+        ClosePlaylistDetailsMessageCommand = function(self)
+            inPlaylistDetails = false
+            self:GetChild("Choices"):playcommand("UpdateText")
+
+            local detailframe = self:GetChild("DetailPageFrame")
+            detailframe:diffusealpha(0)
+            detailframe:z(-10)
+            detailframe:playcommand("UpdateDetailDisplay")
+
+            local itemframe = self:GetChild("ItemListFrame")
+            itemframe:diffusealpha(1)
+            self:GetChild("PageText"):diffusealpha(1)
         end,
         
         tabChoices(),
@@ -481,12 +880,18 @@ local function playlistList()
                 end
                 self:settextf("%d-%d/%d", lb, ub, #playlistTable)
             end
-        }
+        },
+        detailPageFrame()
     }
 
+    -- doing this in a weird way partly out of laziness but also necessity
+    -- want to wrap all the playlist displays into a single frame separate from the overall frame
+    -- so we can control between showing those and the detail page quickly
+    local tt = Def.ActorFrame {Name = "ItemListFrame"}
     for i = 1, itemCount do
-        t[#t+1] = playlistItem(i)
+        tt[#tt+1] = playlistItem(i)
     end
+    t[#t+1] = tt
 
     return t
 end
