@@ -665,12 +665,27 @@ local function playlistList()
                     self:x(actuals.DetailPageLeftGap)
                     self:zoom(detailPageTextSize)
                     -- oddly precise max width but this should fit with the original size
-                    self:maxwidth(actuals.Width / detailPageTextSize - textzoomFudge)
+                    self:maxwidth(actuals.Width / 3 / detailPageTextSize - textzoomFudge)
                 end,
                 UpdateItemListCommand = function(self)
                     local lb = clamp((detailPage-1) * (detailItemCount) + 1, 0, #chartlist)
                     local ub = clamp(detailPage * detailItemCount, 0, #chartlist)
                     self:settextf("%d-%d/%d", lb, ub, #chartlist)
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "PlaylistName",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.Width - actuals.DetailPageLeftGap)
+                    self:zoom(detailPageTextSize)
+                    -- oddly precise max width but this should fit with the original size
+                    self:maxwidth(actuals.Width / 3 * 2 / detailPageTextSize - textzoomFudge)
+                end,
+                UpdateItemListCommand = function(self)
+                    if playlist ~= nil then
+                        self:settext(playlist:GetName())
+                    end
                 end
             },
         }
