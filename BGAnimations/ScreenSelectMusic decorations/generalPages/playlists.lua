@@ -42,8 +42,8 @@ local ratios = {
     ItemDividerThickness = 3 / 1080, -- you know what it is (i hope) (ok its based on height so things are consistent-ish)
     ItemDividerLength = 26 / 1080,
 
-    ItemPriorityLeftGap = 11 / 1920, -- left edge of frame to left edge of number
-    ItemPriorityWidth = 38 / 1920, -- left edge of number to uhh nothing
+    ItemIndexLeftGap = 11 / 1920, -- left edge of frame to left edge of number
+    ItemIndexWidth = 38 / 1920, -- left edge of number to uhh nothing
     IconWidth = 18 / 1920, -- for the trash thing
     IconHeight = 21 / 1080,
 }
@@ -58,8 +58,8 @@ local actuals = {
     ItemLowerLineUpperGap = ratios.ItemLowerLineUpperGap * SCREEN_HEIGHT,
     ItemDividerThickness = ratios.ItemDividerThickness * SCREEN_HEIGHT,
     ItemDividerLength = ratios.ItemDividerLength * SCREEN_HEIGHT,
-    ItemPriorityLeftGap = ratios.ItemPriorityLeftGap * SCREEN_WIDTH,
-    ItemPriorityWidth = ratios.ItemPriorityWidth * SCREEN_WIDTH,
+    ItemIndexLeftGap = ratios.ItemIndexLeftGap * SCREEN_WIDTH,
+    ItemIndexWidth = ratios.ItemIndexWidth * SCREEN_WIDTH,
     IconWidth = ratios.IconWidth * SCREEN_WIDTH,
     IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
 }
@@ -103,6 +103,11 @@ local function playlistList()
     local playlistListFrame = nil
     local playlistTable = {}
 
+    local function updatePlaylists()
+        playlistTable = SONGMAN:GetPlaylists()
+        maxPage = math.ceil(#playlistTable / itemCount)
+    end
+
     local function movePage(n)
         if maxPage <= 1 then
             return
@@ -126,21 +131,14 @@ local function playlistList()
 
         -- theres a lot going on here i just wanted to write down vars representing math so its a little clearer for everyone
         -- i should have done this kind of thing in more places but ...
-        local itemWidth = actuals.Width
-        local prioX = actuals.ItemPriorityLeftGap
-        local prioW = actuals.ItemPriorityWidth
-        local remainingWidth = itemWidth - prioW - prioX
-        local diffW = remainingWidth / 60 * 13 -- keep this in line with the other divisions below (combined at around 1/1) -- 13/60
-        local diffX = prioX + prioW + diffW/2
-        local div1X = prioX + prioW + diffW
-        local rateW = remainingWidth / 60 * 13 -- above comment -- 13/60
-        local rateX = div1X + rateW/2
-        local div2X = div1X + rateW
-        local percentW = remainingWidth / 60 * 21 -- above comment -- 21/60
-        local percentX = div2X + percentW/2
-        local div3X = div2X + percentW
-        local msdW = remainingWidth / 60 * 13 - actuals.IconWidth * 2 -- above comment -- 13/60
-        local msdX = div3X + msdW/2
+        local itemWidth = actuals.Width * 0.84
+        local indX = actuals.ItemIndexLeftGap
+        local indW = actuals.ItemIndexWidth
+        local remainingWidth = itemWidth - indW - indX
+        local nameX = indX + indW -- halign 0
+        local deleteX = itemWidth - indX -- halign 1
+        local playX = deleteX - actuals.IconWidth - actuals.IconWidth/2 -- halign 1
+        local nameW = remainingWidth - (actuals.IconWidth * 2.5) - indX -- area between index and leftmost icon
 
         return Def.ActorFrame {
             Name = "PlaylistItemFrame_"..i,
@@ -159,156 +157,51 @@ local function playlistList()
                 end
             end,
         
-            UIElements.TextButton(1, 1, "Common Normal") .. {
-                Name = "Priority",
-                InitCommand = function(self)
-                    local txt = self:GetChild("Text")
-                    local bg = self:GetChild("BG")
-                    txt:halign(0):valign(0)
-                    bg:halign(0)
-
-                    self:x(prioX)
-                    txt:zoom(itemLine1TextSize)
-                    txt:maxwidth(prioW / itemLine1TextSize - textzoomFudge)
-                    txt:settext(" ")
-                    bg:zoomto(prioW, txt:GetZoomedHeight())
-                    bg:y(txt:GetZoomedHeight() / 2)
-                end,
-                UpdateTextCommand = function(self)
-                    if playlist == nil then return end
-                    local txt = self:GetChild("Text")
-                end,
-                ClickCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if playlist == nil then return end
-                end,
-                RolloverUpdateCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if params.update == "in" then
-                        self:diffusealpha(buttonHoverAlpha)
-                    else
-                        self:diffusealpha(1)
-                    end
-                end
-            },
             LoadFont("Common Normal") .. {
-                Name = "Difficulty",
-                InitCommand = function(self)
-                    self:valign(0)
-                    self:x(diffX)
-                    self:zoom(itemLine1TextSize)
-                    self:maxwidth(diffW / itemLine1TextSize - textzoomFudge)
-                end,
-                UpdateTextCommand = function(self)
-                    if playlist == nil then return end
-                end
-            },
-            Def.Quad {
-                Name = "Div1",
-                InitCommand = function(self)
-                    self:valign(0)
-                    self:x(div1X)
-                    self:y(-dividerUpwardBump)
-                    self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
-                end
-            },
-            UIElements.TextButton(1, 1, "Common Normal") .. {
-                Name = "Rate",
-                InitCommand = function(self)
-                    local txt = self:GetChild("Text")
-                    local bg = self:GetChild("BG")
-                    txt:valign(0)
-
-                    self:x(rateX)
-                    txt:zoom(itemLine1TextSize)
-                    txt:maxwidth(rateW / itemLine1TextSize - textzoomFudge)
-                    txt:settext(" ")
-                    bg:zoomto(rateW, txt:GetZoomedHeight())
-                    bg:y(txt:GetZoomedHeight() / 2)
-                end,
-                UpdateTextCommand = function(self)
-                    if playlist == nil then return end
-                    local txt = self:GetChild("Text")
-                end,
-                ClickCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if playlist == nil then return end
-                end,
-                RolloverUpdateCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if params.update == "in" then
-                        self:diffusealpha(buttonHoverAlpha)
-                    else
-                        self:diffusealpha(1)
-                    end
-                end
-            },
-            Def.Quad {
-                Name = "Div2",
-                InitCommand = function(self)
-                    self:valign(0)
-                    self:x(div2X)
-                    self:y(-dividerUpwardBump)
-                    self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
-                end
-            },
-            UIElements.TextButton(1, 1, "Common Normal") .. {
-                Name = "Percentage",
-                InitCommand = function(self)
-                    local txt = self:GetChild("Text")
-                    local bg = self:GetChild("BG")
-                    txt:valign(0)
-
-                    self:x(percentX)
-                    txt:zoom(itemLine1TextSize)
-                    txt:maxwidth(percentW / itemLine1TextSize - textzoomFudge)
-                    txt:settext(" ")
-                    bg:zoomto(percentW, txt:GetZoomedHeight())
-                    bg:y(txt:GetZoomedHeight() / 2)
-                end,
-                UpdateTextCommand = function(self)
-                    if playlist == nil then return end
-                    local txt = self:GetChild("Text")
-                end,
-                ClickCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if playlist == nil then return end
-                end,
-                RolloverUpdateCommand = function(self, params)
-                    if self:IsInvisible() then return end
-                    if params.update == "in" then
-                        self:diffusealpha(buttonHoverAlpha)
-                    else
-                        self:diffusealpha(1)
-                    end
-                end
-            },
-            Def.Quad {
-                Name = "Div3",
-                InitCommand = function(self)
-                    self:valign(0)
-                    self:x(div3X)
-                    self:y(-dividerUpwardBump)
-                    self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
-                end
-            },
-            LoadFont("Common Normal") .. {
-                Name = "MSD",
-                InitCommand = function(self)
-                    self:valign(0)
-                    self:x(msdX)
-                    self:zoom(itemLine1TextSize)
-                    -- the trashcan intrudes in this area so dont let them overlap
-                    self:maxwidth(msdW / itemLine1TextSize - textzoomFudge)
-                end,
-                UpdateTextCommand = function(self)
-                    if playlist == nil then return end
-                end
-            },
-            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
+                Name = "Index",
                 InitCommand = function(self)
                     self:halign(0):valign(0)
-                    self:x(msdX + msdW/2)
+                    self:x(indX)
+                    self:zoom(itemLine1TextSize)
+                    self:maxwidth(indW / itemLine1TextSize - textzoomFudge)
+                end,
+                UpdateTextCommand = function(self)
+                    if playlist == nil then return end
+                    self:settextf("%d.", index)
+                end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "Name",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(nameX)
+                    self:zoom(itemLine1TextSize)
+                    self:maxwidth(nameW / itemLine1TextSize - textzoomFudge)
+                end,
+                UpdateTextCommand = function(self)
+                    if playlist == nil then return end
+                    self:settext(playlist:GetName())
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if playlist == nil then return end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+
+                    self:diffusealpha(1)
+                end
+            },
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "showReplay")) .. {
+                Name = "PlayCourse",
+                InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(playX)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
                 end,
                 UpdateTextCommand = function(self)
@@ -317,6 +210,8 @@ local function playlistList()
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("Play As Course")
+                            TOOLTIP:Show()
                         else
                             self:diffusealpha(1)
                         end
@@ -328,50 +223,80 @@ local function playlistList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-
+                    TOOLTIP:SetText("Play As Course")
+                    TOOLTIP:Show()
                     self:diffusealpha(buttonHoverAlpha)
                 end,
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
-
+                    TOOLTIP:Hide()
                     self:diffusealpha(1)
                 end
             },
-            UIElements.TextToolTip(1, 1, "Common Normal") .. {
-                Name = "Name",
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "deleteGoal")) .. {
+                Name = "DeletePlaylist",
                 InitCommand = function(self)
-                    self:valign(0):halign(0)
-                    self:x(prioX + prioW/2)
-                    self:y(actuals.ItemLowerLineUpperGap)
-                    self:zoom(itemLine1TextSize)
-                    self:maxwidth((div2X - prioX - prioW/2) / itemLine1TextSize - textzoomFudge)
+                    self:halign(1):valign(0)
+                    self:x(deleteX)
+                    self:zoomto(actuals.IconWidth, actuals.IconHeight)
                 end,
-                MouseOverCommand = function(self)
-                    if self:IsInvisible() then return end
-                    self:diffusealpha(buttonHoverAlpha)
-                end,
-                MouseOutCommand = function(self)
-                    if self:IsInvisible() then return end
-                    self:diffusealpha(1)
+                UpdateTextCommand = function(self)
+                    -- dont allow deleting the Favorites playlist
+                    -- this breaks so many things
+                    if playlist == nil or playlist:GetName() == "Favorites" then
+                        self:diffusealpha(0)
+                    else
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("Delete Playlist")
+                            TOOLTIP:Show()
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
-                end,
-                UpdateTextCommand = function(self)
                     if playlist == nil then return end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    TOOLTIP:SetText("Delete Playlist")
+                    TOOLTIP:Show()
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    TOOLTIP:Hide()
+                    self:diffusealpha(1)
                 end
             },
             LoadFont("Common Normal") .. {
-                Name = "Date",
+                Name = "Count",
                 InitCommand = function(self)
-                    self:valign(0)
-                    self:x(percentX)
+                    self:valign(0):halign(0)
+                    self:x(nameX)
                     self:y(actuals.ItemLowerLineUpperGap)
-                    self:zoom(itemLine1TextSize)
-                    self:maxwidth(percentW / itemLine1TextSize - textzoomFudge)
+                    self:zoom(itemLine2TextSize)
+                    self:maxwidth((itemWidth - nameX) / 2 / itemLine2TextSize - textzoomFudge)
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
+                    self:settextf("Number of charts: %d", playlist:GetNumCharts())
+                end
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Average",
+                InitCommand = function(self)
+                    self:valign(0):halign(1)
+                    self:x(itemWidth - indX)
+                    self:y(actuals.ItemLowerLineUpperGap)
+                    self:zoom(itemLine2TextSize)
+                    self:maxwidth((itemWidth - nameX) / 2 / itemLine2TextSize - textzoomFudge)
+                end,
+                UpdateTextCommand = function(self)
+                    if playlist == nil then return end
+                    self:settextf("(Average MSD %5.2f)", playlist:GetAverageRating())
                 end
             }
         }
@@ -393,7 +318,7 @@ local function playlistList()
         --  TapFunction: A function that runs when the button is pressed
         local choiceDefinitions = {
             {   -- Make a new playlist or add the current chart to the opened playlist
-                Name = "prioritysort",
+                Name = "newentry",
                 Type = "Exclusive",
                 Display = {"New Playlist", "Add Current Chart"},
                 IndexGetter = function() return 1 end,
@@ -401,7 +326,7 @@ local function playlistList()
                 TapFunction = function() end,
             },
             {   -- Exit the page that lets you see inside a playlist
-                Name = "bacl",
+                Name = "back",
                 Type = "Exclusive",
                 Display = {"Back"},
                 IndexGetter = function() return 1 end,
@@ -503,6 +428,7 @@ local function playlistList()
         Name = "PlaylistListFrame",
         BeginCommand = function(self)
             playlistListFrame = self
+            updatePlaylists()
             self:playcommand("UpdateItemList")
             self:playcommand("UpdateText")
         end,
@@ -512,7 +438,8 @@ local function playlistList()
             self:playcommand("UpdateText")
         end,
         UpdateItemListCommand = function(self)
-            --
+            -- in case tooltip gets stuck
+            TOOLTIP:Hide()
         end,
         
         tabChoices(),
