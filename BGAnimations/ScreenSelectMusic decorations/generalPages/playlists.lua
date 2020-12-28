@@ -700,7 +700,15 @@ local function playlistList()
                         return 1
                     end
                 end,
-                Condition = function() return true end,
+                Condition = function()
+                    if inPlaylistDetails then
+                        -- dont allow adding to favorites here because of weird interactions internally
+                        if SONGMAN:GetActivePlaylist():GetName() == "Favorites" then
+                            return false
+                        end
+                    end
+                    return true
+                end,
                 TapFunction = function() end,
             },
             {   -- Exit the page that lets you see inside a playlist
