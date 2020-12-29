@@ -117,7 +117,7 @@ local screensAllowedForButtons = {
 
     },
     Downloads = {
-
+        ScreenSelectMusic = true,
     },
     Random = {
         ScreenSelectMusic = true,
@@ -585,6 +585,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Downloads"})
             end
         end,
         MouseDownCommand = function(self, params)
@@ -735,7 +736,7 @@ if selectable("Help") then
 end
 
 if selectable("Downloads") then
-    -- nothing yet
+    t[#t+1] = LoadActor("downloads.lua")
 end
 
 if selectable("Random") then
