@@ -21,7 +21,7 @@ constexpr auto FileAnnotations = "annotations";
 constexpr auto FileSourceSubstitutions = "srcsub";
 
 enum : uint32_t { VersionTimeline = 0 };
-enum : uint32_t { VersionOptions = 5 };
+enum : uint32_t { VersionOptions = 7 };
 enum : uint32_t { VersionAnnotations = 0 };
 enum : uint32_t { VersionSourceSubstitutions = 0 };
 
@@ -102,13 +102,16 @@ void UserData::LoadState( ViewData& data )
             fread( &data.drawPlots, 1, sizeof( data.drawPlots ), f );
             fread( &data.onlyContendedLocks, 1, sizeof( data.onlyContendedLocks ), f );
             fread( &data.drawEmptyLabels, 1, sizeof( data.drawEmptyLabels ), f );
+            fread( &data.drawFrameTargets, 1, sizeof( data.drawFrameTargets ), f );
             fread( &data.drawContextSwitches, 1, sizeof( data.drawContextSwitches ), f );
             fread( &data.darkenContextSwitches, 1, sizeof( data.darkenContextSwitches ), f );
             fread( &data.drawCpuData, 1, sizeof( data.drawCpuData ), f );
             fread( &data.drawCpuUsageGraph, 1, sizeof( data.drawCpuUsageGraph ), f );
             fread( &data.drawSamples, 1, sizeof( data.drawSamples ), f );
             fread( &data.dynamicColors, 1, sizeof( data.dynamicColors ), f );
+            fread( &data.forceColors, 1, sizeof( data.forceColors ), f );
             fread( &data.ghostZones, 1, sizeof( data.ghostZones ), f );
+            fread( &data.frameTarget, 1, sizeof( data.frameTarget ), f );
         }
         fclose( f );
     }
@@ -143,13 +146,16 @@ void UserData::SaveState( const ViewData& data )
         fwrite( &data.drawPlots, 1, sizeof( data.drawPlots ), f );
         fwrite( &data.onlyContendedLocks, 1, sizeof( data.onlyContendedLocks ), f );
         fwrite( &data.drawEmptyLabels, 1, sizeof( data.drawEmptyLabels ), f );
+        fwrite( &data.drawFrameTargets, 1, sizeof( data.drawFrameTargets ), f );
         fwrite( &data.drawContextSwitches, 1, sizeof( data.drawContextSwitches ), f );
         fwrite( &data.darkenContextSwitches, 1, sizeof( data.darkenContextSwitches ), f );
         fwrite( &data.drawCpuData, 1, sizeof( data.drawCpuData ), f );
         fwrite( &data.drawCpuUsageGraph, 1, sizeof( data.drawCpuUsageGraph ), f );
         fwrite( &data.drawSamples, 1, sizeof( data.drawSamples ), f );
         fwrite( &data.dynamicColors, 1, sizeof( data.dynamicColors ), f );
+        fwrite( &data.forceColors, 1, sizeof( data.forceColors ), f );
         fwrite( &data.ghostZones, 1, sizeof( data.ghostZones ), f );
+        fwrite( &data.frameTarget, 1, sizeof( data.frameTarget ), f );
         fclose( f );
     }
 }
@@ -184,9 +190,10 @@ void UserData::LoadAnnotations( std::vector<std::unique_ptr<Annotation>>& data )
                     fread( buf, 1, tsz, f );
                     ann->text.assign( buf, tsz );
                 }
-                fread( &ann->start, 1, sizeof( ann->start ), f );
-                fread( &ann->end, 1, sizeof( ann->end ), f );
+                fread( &ann->range.min, 1, sizeof( ann->range.min ), f );
+                fread( &ann->range.max, 1, sizeof( ann->range.max ), f );
                 fread( &ann->color, 1, sizeof( ann->color ), f );
+                ann->range.active = true;
 
                 data.emplace_back( std::move( ann ) );
             }
@@ -219,8 +226,8 @@ void UserData::SaveAnnotations( const std::vector<std::unique_ptr<Annotation>>& 
             {
                 fwrite( ann->text.c_str(), 1, sz, f );
             }
-            fwrite( &ann->start, 1, sizeof( ann->start ), f );
-            fwrite( &ann->end, 1, sizeof( ann->end ), f );
+            fwrite( &ann->range.min, 1, sizeof( ann->range.min ), f );
+            fwrite( &ann->range.max, 1, sizeof( ann->range.max ), f );
             fwrite( &ann->color, 1, sizeof( ann->color ), f );
         }
         fclose( f );

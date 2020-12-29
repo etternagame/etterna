@@ -10,6 +10,9 @@
 //  [X] Platform: Keyboard arrays indexed using GLFW_KEY_* codes, e.g. ImGui::IsKeyPressed(GLFW_KEY_SPACE).
 //  [X] Platform: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
+// Issues:
+//  [ ] Platform: Multi-viewport support: ParentViewportID not honored, and so io.ConfigViewportsNoDefaultParent has no effect (minor).
+
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
 // If you are new to dear imgui, read examples/README.txt and read the documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
@@ -62,6 +65,11 @@
 #define GLFW_HAS_NEW_CURSORS          (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3400) // 3.4+ GLFW_RESIZE_ALL_CURSOR, GLFW_RESIZE_NESW_CURSOR, GLFW_RESIZE_NWSE_CURSOR, GLFW_NOT_ALLOWED_CURSOR
 #else
 #define GLFW_HAS_NEW_CURSORS          (0)
+#endif
+#ifdef GLFW_MOUSE_PASSTHROUGH         // Let's be nice to people who pulled GLFW between 2019-04-16 (3.4 define) and 2020-07-17 (passthrough)
+#define GLFW_HAS_MOUSE_PASSTHROUGH    (GLFW_VERSION_MAJOR * 1000 + GLFW_VERSION_MINOR * 100 >= 3400) // 3.4+ GLFW_MOUSE_PASSTHROUGH
+#else
+#define GLFW_HAS_MOUSE_PASSTHROUGH    (0)
 #endif
 
 // Data
@@ -166,7 +174,7 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
     io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optional)
-#if GLFW_HAS_GLFW_HOVERED && defined(_WIN32)
+#if GLFW_HAS_MOUSE_PASSTHROUGH || (GLFW_HAS_WINDOW_HOVERED && defined(_WIN32))
     io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can set io.MouseHoveredViewport correctly (optional, not easy)
 #endif
     io.BackendPlatformName = "imgui_impl_glfw";
@@ -348,8 +356,12 @@ static void ImGui_ImplGlfw_UpdateMousePosAndButtons()
         // rectangles and last focused time of every viewports it knows about. It will be unaware of other windows that may be sitting between or over your windows.
         // [GLFW] FIXME: This is currently only correct on Win32. See what we do below with the WM_NCHITTEST, missing an equivalent for other systems.
         // See https://github.com/glfw/glfw/issues/1236 if you want to help in making this a GLFW feature.
-#if GLFW_HAS_GLFW_HOVERED && defined(_WIN32)
-        if (glfwGetWindowAttrib(window, GLFW_HOVERED) && !(viewport->Flags & ImGuiViewportFlags_NoInputs))
+#if GLFW_HAS_MOUSE_PASSTHROUGH || (GLFW_HAS_WINDOW_HOVERED && defined(_WIN32))
+        const bool window_no_input = (viewport->Flags & ImGuiViewportFlags_NoInputs) != 0;
+#if GLFW_HAS_MOUSE_PASSTHROUGH
+        glfwSetWindowAttrib(window, GLFW_MOUSE_PASSTHROUGH, window_no_input);
+#endif
+        if (glfwGetWindowAttrib(window, GLFW_HOVERED) && !window_no_input)
             io.MouseHoveredViewport = viewport->ID;
 #endif
     }
@@ -430,16 +442,16 @@ static void ImGui_ImplGlfw_UpdateMonitors()
         int x, y;
         glfwGetMonitorPos(glfw_monitors[n], &x, &y);
         const GLFWvidmode* vid_mode = glfwGetVideoMode(glfw_monitors[n]);
-#if GLFW_HAS_MONITOR_WORK_AREA
-        monitor.MainPos = ImVec2((float)x, (float)y);
-        monitor.MainSize = ImVec2((float)vid_mode->width, (float)vid_mode->height);
-        int w, h;
-        glfwGetMonitorWorkarea(glfw_monitors[n], &x, &y, &w, &h);
-        monitor.WorkPos = ImVec2((float)x, (float)y);;
-        monitor.WorkSize = ImVec2((float)w, (float)h);
-#else
         monitor.MainPos = monitor.WorkPos = ImVec2((float)x, (float)y);
         monitor.MainSize = monitor.WorkSize = ImVec2((float)vid_mode->width, (float)vid_mode->height);
+#if GLFW_HAS_MONITOR_WORK_AREA
+        int w, h;
+        glfwGetMonitorWorkarea(glfw_monitors[n], &x, &y, &w, &h);
+        if (w > 0 && h > 0) // Workaround a small GLFW issue reporting zero on monitor changes: https://github.com/glfw/glfw/pull/1761
+        {
+            monitor.WorkPos = ImVec2((float)x, (float)y);
+            monitor.WorkSize = ImVec2((float)w, (float)h);
+        }
 #endif
 #if GLFW_HAS_PER_MONITOR_DPI
         // Warning: the validity of monitor DPI information on Windows depends on the application DPI awareness settings, which generally needs to be set in the manifest or at runtime.
@@ -470,7 +482,7 @@ void ImGui_ImplGlfw_NewFrame()
 
     // Setup time step
     double current_time = glfwGetTime();
-    io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f/60.0f);
+    io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
     g_Time = current_time;
 
     ImGui_ImplGlfw_UpdateMousePosAndButtons();
@@ -586,7 +598,7 @@ static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
     {
         if (data->WindowOwned)
         {
-#if GLFW_HAS_GLFW_HOVERED && defined(_WIN32)
+#if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED && defined(_WIN32)
             HWND hwnd = (HWND)viewport->PlatformHandleRaw;
             ::RemovePropA(hwnd, "IMGUI_VIEWPORT");
 #endif
@@ -600,7 +612,7 @@ static void ImGui_ImplGlfw_DestroyWindow(ImGuiViewport* viewport)
 
 // We have submitted https://github.com/glfw/glfw/pull/1568 to allow GLFW to support "transparent inputs".
 // In the meanwhile we implement custom per-platform workarounds here (FIXME-VIEWPORT: Implement same work-around for Linux/OSX!)
-#if defined(_WIN32) && GLFW_HAS_GLFW_HOVERED
+#if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED && defined(_WIN32)
 static WNDPROC g_GlfwWndProc = NULL;
 static LRESULT CALLBACK WndProcNoInputs(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -634,7 +646,7 @@ static void ImGui_ImplGlfw_ShowWindow(ImGuiViewport* viewport)
     }
 
     // GLFW hack: install hook for WM_NCHITTEST message handler
-#if GLFW_HAS_GLFW_HOVERED && defined(_WIN32)
+#if !GLFW_HAS_MOUSE_PASSTHROUGH && GLFW_HAS_WINDOW_HOVERED && defined(_WIN32)
     ::SetPropA(hwnd, "IMGUI_VIEWPORT", viewport);
     if (g_GlfwWndProc == NULL)
         g_GlfwWndProc = (WNDPROC)::GetWindowLongPtr(hwnd, GWLP_WNDPROC);

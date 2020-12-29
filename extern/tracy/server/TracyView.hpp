@@ -56,6 +56,15 @@ class View
         uint64_t count;
     };
 
+    struct StatisticsCache
+    {
+        RangeSlim range;
+        size_t sourceCount;
+        size_t count;
+        int64_t total;
+        int64_t selfTotal;
+    };
+
 public:
     struct VisData
     {
@@ -75,9 +84,9 @@ public:
     using SetTitleCallback = void(*)( const char* );
     using GetWindowCallback = void*(*)();
 
-    View( ImFont* fixedWidth = nullptr, ImFont* smallFont = nullptr, ImFont* bigFont = nullptr, SetTitleCallback stcb = nullptr, GetWindowCallback gwcb = nullptr ) : View( "127.0.0.1", 8086, fixedWidth, smallFont, bigFont, stcb, gwcb ) {}
-    View( const char* addr, int port, ImFont* fixedWidth = nullptr, ImFont* smallFont = nullptr, ImFont* bigFont = nullptr, SetTitleCallback stcb = nullptr, GetWindowCallback gwcb = nullptr );
-    View( FileRead& f, ImFont* fixedWidth = nullptr, ImFont* smallFont = nullptr, ImFont* bigFont = nullptr, SetTitleCallback stcb = nullptr, GetWindowCallback gwcb = nullptr );
+    View( void(*cbMainThread)(std::function<void()>), ImFont* fixedWidth = nullptr, ImFont* smallFont = nullptr, ImFont* bigFont = nullptr, SetTitleCallback stcb = nullptr, GetWindowCallback gwcb = nullptr ) : View( cbMainThread, "127.0.0.1", 8086, fixedWidth, smallFont, bigFont, stcb, gwcb ) {}
+    View( void(*cbMainThread)(std::function<void()>), const char* addr, uint16_t port, ImFont* fixedWidth = nullptr, ImFont* smallFont = nullptr, ImFont* bigFont = nullptr, SetTitleCallback stcb = nullptr, GetWindowCallback gwcb = nullptr );
+    View( void(*cbMainThread)(std::function<void()>), FileRead& f, ImFont* fixedWidth = nullptr, ImFont* smallFont = nullptr, ImFont* bigFont = nullptr, SetTitleCallback stcb = nullptr, GetWindowCallback gwcb = nullptr );
     ~View();
 
     static bool Draw();
@@ -89,11 +98,16 @@ public:
 
     bool ReconnectRequested() const { return m_reconnectRequested; }
     std::string GetAddress() const { return m_worker.GetAddr(); }
-    int GetPort() const { return m_worker.GetPort(); }
+    uint16_t GetPort() const { return m_worker.GetPort(); }
 
     const char* SourceSubstitution( const char* srcFile ) const;
 
     void ShowSampleParents( uint64_t symAddr ) { m_sampleParents.symAddr = symAddr; m_sampleParents.sel = 0; }
+    const ViewData& GetViewData() const { return m_vd; }
+
+
+    bool m_showRanges = false;
+    Range m_statRange;
 
 private:
     enum class Namespace : uint8_t
@@ -117,6 +131,14 @@ private:
         uint64_t mem;
     };
 
+    enum class ViewMode
+    {
+        Paused,
+        LastFrames,
+        LastRange
+    };
+
+    void InitMemory();
     void InitTextEditor( ImFont* font );
 
     const char* ShortenNamespace( const char* name ) const;
@@ -127,8 +149,8 @@ private:
     void DrawNotificationArea();
     bool DrawConnection();
     void DrawFrames();
-    bool DrawZoneFramesHeader();
-    bool DrawZoneFrames( const FrameData& frames );
+    void DrawZoneFramesHeader();
+    void DrawZoneFrames( const FrameData& frames );
     void DrawZones();
     void DrawContextSwitches( const ContextSwitch* ctx, bool hover, double pxns, int64_t nspx, const ImVec2& wpos, int offset, int endOffset );
     void DrawSamples( const Vector<SampleData>& vec, bool hover, double pxns, int64_t nspx, const ImVec2& wpos, int offset );
@@ -150,11 +172,12 @@ private:
     void DrawLockHeader( uint32_t id, const LockMap& lockmap, const SourceLocation& srcloc, bool hover, ImDrawList* draw, const ImVec2& wpos, float w, float ty, float offset, uint8_t tid );
     int DrawLocks( uint64_t tid, bool hover, double pxns, const ImVec2& wpos, int offset, LockHighlight& highlight, float yMin, float yMax );
     int DrawPlots( int offset, double pxns, const ImVec2& wpos, bool hover, float yMin, float yMax );
-    void DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, bool hasPrev, const PlotItem* item, double prev, bool merged, PlotType type, PlotValueFormatting format, float PlotHeight );
+    void DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, bool hasPrev, const PlotItem* item, double prev, bool merged, PlotType type, PlotValueFormatting format, float PlotHeight, uint64_t name );
     void DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, bool hasPrev, double val, double prev, bool merged, PlotValueFormatting format, float PlotHeight );
     int DrawCpuData( int offset, double pxns, const ImVec2& wpos, bool hover, float yMin, float yMax );
     void DrawOptions();
     void DrawMessages();
+    void DrawMessageLine( const MessageData& msg, bool hasCallstack, int& idx );
     void DrawFindZone();
     void DrawStatistics();
     void DrawMemory();
@@ -170,8 +193,10 @@ private:
     void DrawSelectedAnnotation();
     void DrawAnnotationList();
     void DrawSampleParents();
+    void DrawRanges();
+    void DrawRangeEntry( Range& range, const char* label, uint32_t color, const char* popupLabel, int id );
 
-    void ListMemData( std::vector<const MemEvent*>& vec, std::function<void(const MemEvent*)> DrawAddress, const char* id = nullptr, int64_t startTime = -1 );
+    void ListMemData( std::vector<const MemEvent*>& vec, std::function<void(const MemEvent*)> DrawAddress, const char* id = nullptr, int64_t startTime = -1, uint64_t pool = 0 );
 
     unordered_flat_map<uint32_t, PathData> GetCallstackPaths( const MemData& mem, bool onlyActive ) const;
     unordered_flat_map<uint64_t, CallstackFrameTree> GetCallstackFrameTreeBottomUp( const MemData& mem ) const;
@@ -188,6 +213,7 @@ private:
     template<typename Adapter, typename V>
     void DrawGpuInfoChildren( const V& children, int64_t ztime );
 
+    void HandleRange( Range& range, int64_t timespan, const ImVec2& wpos, float w );
     void HandleZoneViewMouse( int64_t timespan, const ImVec2& wpos, float w, double& pxns );
 
     uint32_t GetThreadColor( uint64_t thread, int depth );
@@ -204,7 +230,7 @@ private:
 
     void ZoomToZone( const ZoneEvent& ev );
     void ZoomToZone( const GpuEvent& ev );
-    void ZoomToRange( int64_t start, int64_t end );
+    void ZoomToRange( int64_t start, int64_t end, bool pause = true );
     void ZoomToPrevFrame();
     void ZoomToNextFrame();
     void CenterAtTime( int64_t t );
@@ -243,7 +269,7 @@ private:
     int64_t GetZoneChildTime( const ZoneEvent& zone );
     int64_t GetZoneChildTime( const GpuEvent& zone );
     int64_t GetZoneChildTimeFast( const ZoneEvent& zone );
-    int64_t GetZoneChildTimeFastClamped( const ZoneEvent& zone, uint64_t t0, uint64_t t1 );
+    int64_t GetZoneChildTimeFastClamped( const ZoneEvent& zone, int64_t t0, int64_t t1 );
     int64_t GetZoneSelfTime( const ZoneEvent& zone );
     int64_t GetZoneSelfTime( const GpuEvent& zone );
     bool GetZoneRunningTime( const ContextSwitch* ctx, const ZoneEvent& ev, int64_t& time, uint64_t& cnt );
@@ -300,8 +326,10 @@ private:
     Worker m_worker;
     std::string m_filename;
     bool m_staticView;
-    bool m_pause;
+    ViewMode m_viewMode;
+    bool m_viewModeHeuristicTry = false;
     DecayValue<bool> m_forceConnectionPopup = false;
+    uint64_t m_totalMemory;
 
     ViewData m_vd;
 
@@ -317,7 +345,9 @@ private:
     uint64_t m_gpuInfoWindowThread;
     uint32_t m_callstackInfoWindow = 0;
     int64_t m_memoryAllocInfoWindow = -1;
+    uint64_t m_memoryAllocInfoPool = 0;
     int64_t m_memoryAllocHover = -1;
+    uint64_t m_memoryAllocHoverPool = 0;
     int m_memoryAllocHoverWait = 0;
     const FrameData* m_frames;
     uint32_t m_lockInfoWindow = InvalidId;
@@ -327,13 +357,17 @@ private:
     bool m_messagesScrollBottom;
     ImGuiTextFilter m_messageFilter;
     bool m_showMessageImages = false;
-    ImGuiTextFilter m_statisticsFilter;
     int m_visibleMessages = 0;
+    size_t m_prevMessages = 0;
+    Vector<uint32_t> m_msgList;
     bool m_disconnectIssued = false;
     DecayValue<uint64_t> m_drawThreadMigrations = 0;
     DecayValue<uint64_t> m_drawThreadHighlight = 0;
     Annotation* m_selectedAnnotation = nullptr;
     bool m_reactToCrash = false;
+
+    ImGuiTextFilter m_statisticsFilter;
+    ImGuiTextFilter m_statisticsImageFilter;
 
     Region m_highlight;
     Region m_highlightZoom;
@@ -377,6 +411,7 @@ private:
     bool m_allocTimeRelativeToZone = true;
     bool m_ctxSwitchTimeRelativeToZone = true;
     bool m_messageTimeRelativeToZone = true;
+    uint64_t m_zoneInfoMemPool = 0;
 
     ShortcutAction m_shortcut = ShortcutAction::None;
     Namespace m_namespace = Namespace::Short;
@@ -428,18 +463,29 @@ private:
     void* m_frameTexture = nullptr;
     const void* m_frameTexturePtr = nullptr;
 
+    void* m_frameTextureConn = nullptr;
+    const void* m_frameTextureConnPtr = nullptr;
+
     std::vector<std::unique_ptr<Annotation>> m_annotations;
     UserData m_userData;
 
     bool m_reconnectRequested = false;
     int m_firstFrame = 10;
+    float m_yDelta;
 
     std::vector<SourceRegex> m_sourceSubstitutions;
     bool m_sourceRegexValid = true;
 
+    RangeSlim m_setRangePopup;
+    bool m_setRangePopupOpen = false;
+
+    unordered_flat_map<int16_t, StatisticsCache> m_statCache;
+
+    void(*m_cbMainThread)(std::function<void()>);
+
     struct FindZone {
         enum : uint64_t { Unselected = std::numeric_limits<uint64_t>::max() - 1 };
-        enum class GroupBy : int { Thread, UserText, Callstack, Parent, NoGrouping };
+        enum class GroupBy : int { Thread, UserText, ZoneName, Callstack, Parent, NoGrouping };
         enum class SortBy : int { Order, Count, Time, Mtpc };
         enum class TableSortBy : int { Starttime, Runtime, Name };
 
@@ -484,8 +530,8 @@ private:
         int minBinVal = 1;
         int64_t tmin, tmax;
         bool showZoneInFrames = false;
-        bool limitRange = false;
-        int64_t rangeMin, rangeMax;
+        Range range;
+        RangeSlim rangeSlim;
 
         struct
         {
@@ -540,7 +586,7 @@ private:
         void ShowZone( int16_t srcloc, const char* name )
         {
             show = true;
-            limitRange = false;
+            range.active = false;
             Reset();
             match.emplace_back( srcloc );
             strcpy( pattern, name );
@@ -550,9 +596,9 @@ private:
         {
             assert( limitMin <= limitMax );
             show = true;
-            limitRange = true;
-            rangeMin = limitMin;
-            rangeMax = limitMax;
+            range.active = true;
+            range.min = limitMin;
+            range.max = limitMax;
             Reset();
             match.emplace_back( srcloc );
             strcpy( pattern, name );
@@ -619,6 +665,7 @@ private:
         bool show = false;
         char pattern[1024] = {};
         uint64_t ptrFind = 0;
+        uint64_t pool = 0;
         bool restrictTime = false;
         bool showAllocList = false;
         std::vector<size_t> allocList;

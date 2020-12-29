@@ -6,6 +6,8 @@
 #define TracyD3D12Context(device, queue) nullptr
 #define TracyD3D12Destroy(ctx)
 
+#define TracyD3D12NewFrame(ctx) 
+
 #define TracyD3D12NamedZone(ctx, varname, cmdList, name, active)
 #define TracyD3D12NamedZoneC(ctx, varname, cmdList, name, color, active)
 #define TracyD3D12Zone(ctx, cmdList, name)
@@ -50,8 +52,8 @@ namespace tracy
 
 		bool m_initialized = false;
 
-		ID3D12Device* m_device;
-		ID3D12CommandQueue* m_queue;
+		ID3D12Device* m_device = nullptr;
+		ID3D12CommandQueue* m_queue = nullptr;
 		uint8_t m_context;
 		Microsoft::WRL::ComPtr<ID3D12QueryHeap> m_queryHeap;
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_readbackBuffer;
@@ -64,6 +66,9 @@ namespace tracy
 		uint32_t m_activePayload = 0;
 		Microsoft::WRL::ComPtr<ID3D12Fence> m_payloadFence;
 		std::queue<D3D12QueryPayload> m_payloadQueue;
+
+		int64_t m_prevCalibration = 0;
+		int64_t m_qpcToNs = int64_t{ 1000000000 / GetFrequencyQpc() };
 
 	public:
 		D3D12QueueCtx(ID3D12Device* device, ID3D12CommandQueue* queue)
@@ -97,6 +102,9 @@ namespace tracy
 			{
 				assert(false && "Failed to get queue clock calibration.");
 			}
+
+			// Save the device cpu timestamp, not the profiler's timestamp.
+			m_prevCalibration = cpuTimestamp * m_qpcToNs;
 
 			cpuTimestamp = Profiler::GetTime();
 
@@ -150,7 +158,7 @@ namespace tracy
 			memset(&item->gpuNewContext.thread, 0, sizeof(item->gpuNewContext.thread));
 			MemWrite(&item->gpuNewContext.period, 1E+09f / static_cast<float>(timestampFrequency));
 			MemWrite(&item->gpuNewContext.context, m_context);
-			MemWrite(&item->gpuNewContext.accuracyBits, uint8_t{ 0 });
+			MemWrite(&item->gpuNewContext.flags, GpuContextCalibration);
 			MemWrite(&item->gpuNewContext.type, GpuContextType::Direct3D12);
 
 #ifdef TRACY_ON_DEMAND
@@ -233,6 +241,34 @@ namespace tracy
 			}
 
 			m_readbackBuffer->Unmap(0, nullptr);
+
+			// Recalibrate to account for drift.
+
+			uint64_t cpuTimestamp;
+			uint64_t gpuTimestamp;
+
+			if (FAILED(m_queue->GetClockCalibration(&gpuTimestamp, &cpuTimestamp)))
+			{
+				assert(false && "Failed to get queue clock calibration.");
+			}
+
+			cpuTimestamp *= m_qpcToNs;
+
+			const auto cpuDelta = cpuTimestamp - m_prevCalibration;
+			if (cpuDelta > 0)
+			{
+				m_prevCalibration = cpuTimestamp;
+				cpuTimestamp = Profiler::GetTime();
+
+				auto* item = Profiler::QueueSerial();
+				MemWrite(&item->hdr.type, QueueType::GpuCalibration);
+				MemWrite(&item->gpuCalibration.gpuTime, gpuTimestamp);
+				MemWrite(&item->gpuCalibration.cpuTime, cpuTimestamp);
+				MemWrite(&item->gpuCalibration.cpuDelta, cpuDelta);
+				MemWrite(&item->gpuCalibration.context, m_context);
+
+				Profiler::QueueSerialFinish();
+			}
 		}
 
 	private:
@@ -275,6 +311,10 @@ namespace tracy
 			m_queryId = ctx->NextQueryId();
 			cmdList->EndQuery(ctx->m_queryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, m_queryId);
 
+#if defined(TRACY_HAS_CALLSTACK) && defined(TRACY_CALLSTACK)
+			GetProfiler().SendCallstack(TRACY_CALLSTACK);
+#endif
+
 			auto* item = Profiler::QueueSerial();
 #if defined(TRACY_HAS_CALLSTACK) && defined(TRACY_CALLSTACK)
 			MemWrite(&item->hdr.type, QueueType::GpuZoneBeginCallstackSerial);
@@ -288,10 +328,6 @@ namespace tracy
 			MemWrite(&item->gpuZoneBegin.context, ctx->GetId());
 
 			Profiler::QueueSerialFinish();
-
-#if defined(TRACY_HAS_CALLSTACK) && defined(TRACY_CALLSTACK)
-			GetProfiler().SendCallstack(TRACY_CALLSTACK);
-#endif
 		}
 
 		tracy_force_inline ~D3D12ZoneScope()
@@ -339,8 +375,8 @@ using TracyD3D12Ctx = tracy::D3D12QueueCtx*;
 
 #define TracyD3D12NewFrame(ctx) ctx->NewFrame();
 
-#define TracyD3D12NamedZone(ctx, varname, cmdList, name, active) static const tracy::SourceLocationData TracyConcat(__tracy_gpu_source_location, __LINE__) { name, __FUNCTION__, __FILE__, (uint32_t)__LINE__, 0 }; tracy::D3D12ZoneScope varname{ ctx, cmdList, &TracyConcat(__tracy_gpu_source_location, __LINE__), active };
-#define TracyD3D12NamedZoneC(ctx, varname, cmdList, name, color, active) static const tracy::SourceLocationData TracyConcat(__tracy_gpu_source_location, __LINE__) { name, __FUNCTION__, __FILE__, (uint32_t)__LINE__, color }; tracy::D3D12ZoneScope varname{ ctx, cmdList, &TracyConcat(__tracy_gpu_source_location, __LINE__), active };
+#define TracyD3D12NamedZone(ctx, varname, cmdList, name, active) static constexpr tracy::SourceLocationData TracyConcat(__tracy_gpu_source_location, __LINE__) { name, __FUNCTION__, __FILE__, (uint32_t)__LINE__, 0 }; tracy::D3D12ZoneScope varname{ ctx, cmdList, &TracyConcat(__tracy_gpu_source_location, __LINE__), active };
+#define TracyD3D12NamedZoneC(ctx, varname, cmdList, name, color, active) static constexpr tracy::SourceLocationData TracyConcat(__tracy_gpu_source_location, __LINE__) { name, __FUNCTION__, __FILE__, (uint32_t)__LINE__, color }; tracy::D3D12ZoneScope varname{ ctx, cmdList, &TracyConcat(__tracy_gpu_source_location, __LINE__), active };
 #define TracyD3D12Zone(ctx, cmdList, name) TracyD3D12NamedZone(ctx, ___tracy_gpu_zone, cmdList, name, true)
 #define TracyD3D12ZoneC(ctx, cmdList, name, color) TracyD3D12NamedZoneC(ctx, ___tracy_gpu_zone, cmdList, name, color, true)
 

@@ -33,6 +33,19 @@ void operator delete( void* ptr ) noexcept
     free( ptr );
 }
 
+void* CustomAlloc( size_t count )
+{
+    auto ptr = malloc( count );
+    TracyAllocNS( ptr, count, 10, "Custom alloc" );
+    return ptr;
+}
+
+void CustomFree( void* ptr )
+{
+    TracyFreeNS( ptr, 10, "Custom alloc" );
+    free( ptr );
+}
+
 void TestFunction()
 {
     tracy::SetThreadName( "First/second thread" );
@@ -176,7 +189,6 @@ void DepthTest()
     tracy::SetThreadName( "Depth test" );
     for(;;)
     {
-        std::this_thread::sleep_for( std::chrono::milliseconds( 20 ) );
         ZoneScoped;
         const auto txt = "Fibonacci (15)";
         ZoneText( txt, strlen( txt ) );
@@ -255,6 +267,16 @@ void OnlyMemory()
 {
     tracy::SetThreadName( "Only memory" );
     new int;
+
+    void* ptrs[16];
+    for( int i=1; i<16; i++ )
+    {
+        ptrs[i] = CustomAlloc( i * 1024 );
+    }
+    for( int i=1; i<16; i++ )
+    {
+        CustomFree( ptrs[i] );
+    }
 }
 
 static TracyLockable( std::mutex, deadlockMutex1 );

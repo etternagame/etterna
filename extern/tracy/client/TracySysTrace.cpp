@@ -21,22 +21,27 @@
 #    include "../common/TracyAlloc.hpp"
 #    include "../common/TracySystem.hpp"
 #    include "TracyProfiler.hpp"
+#    include "TracyThread.hpp"
 
 namespace tracy
 {
 
-DEFINE_GUID ( /* ce1dbfb4-137e-4da6-87b0-3f59aa102cbc */
-    PerfInfoGuid,
-    0xce1dbfb4,
-    0x137e,
-    0x4da6,
-    0x87, 0xb0, 0x3f, 0x59, 0xaa, 0x10, 0x2c, 0xbc
-);
+struct __declspec(uuid("{ce1dbfb4-137e-4da6-87b0-3f59aa102cbc}")) PERFINFOGUID;
+static const auto PerfInfoGuid = __uuidof(PERFINFOGUID);
+
+struct __declspec(uuid("{802EC45A-1E99-4B83-9920-87C98277BA9D}")) DXGKRNLGUID;
+static const auto DxgKrnlGuid = __uuidof(DXGKRNLGUID);
+
 
 static TRACEHANDLE s_traceHandle;
 static TRACEHANDLE s_traceHandle2;
 static EVENT_TRACE_PROPERTIES* s_prop;
 static DWORD s_pid;
+
+static EVENT_TRACE_PROPERTIES* s_propVsync;
+static TRACEHANDLE s_traceHandleVsync;
+static TRACEHANDLE s_traceHandleVsync2;
+Thread* s_threadVsync = nullptr;
 
 struct CSwitch
 {
@@ -83,6 +88,19 @@ struct StackWalkEvent
     uint32_t stackProcess;
     uint32_t stackThread;
     uint64_t stack[192];
+};
+
+struct VSyncInfo
+{
+    void*       dxgAdapter;
+    uint32_t    vidPnTargetId;
+    uint64_t    scannedPhysicalAddress;
+    uint32_t    vidPnSourceId;
+    uint32_t    frameNumber;
+    int64_t     frameQpcTime;
+    void*       hFlipDevice;
+    uint32_t    flipType;
+    uint64_t    flipFenceId;
 };
 
 #ifdef __CYGWIN__
@@ -168,9 +186,9 @@ void WINAPI EventRecordCallback( PEVENT_RECORD record )
                     memcpy( trace, &sz, sizeof( uint64_t ) );
                     memcpy( trace+1, sw->stack, sizeof( uint64_t ) * sz );
                     TracyLfqPrepare( QueueType::CallstackSample );
-                    MemWrite( &item->callstackSample.time, sw->eventTimeStamp );
-                    MemWrite( &item->callstackSample.thread, (uint64_t)sw->stackThread );
-                    MemWrite( &item->callstackSample.ptr, (uint64_t)trace );
+                    MemWrite( &item->callstackSampleFat.time, sw->eventTimeStamp );
+                    MemWrite( &item->callstackSampleFat.thread, (uint64_t)sw->stackThread );
+                    MemWrite( &item->callstackSampleFat.ptr, (uint64_t)trace );
                     TracyLfqCommit;
                 }
             }
@@ -179,6 +197,136 @@ void WINAPI EventRecordCallback( PEVENT_RECORD record )
     default:
         break;
     }
+}
+
+static constexpr const char* VsyncName[] = {
+    "[0] Vsync",
+    "[1] Vsync",
+    "[2] Vsync",
+    "[3] Vsync",
+    "[4] Vsync",
+    "[5] Vsync",
+    "[6] Vsync",
+    "[7] Vsync",
+    "Vsync"
+};
+
+static uint32_t VsyncTarget[8] = {};
+
+void WINAPI EventRecordCallbackVsync( PEVENT_RECORD record )
+{
+#ifdef TRACY_ON_DEMAND
+    if( !GetProfiler().IsConnected() ) return;
+#endif
+
+    const auto& hdr = record->EventHeader;
+    assert( hdr.ProviderId.Data1 == 0x802EC45A );
+    assert( hdr.EventDescriptor.Id == 0x0011 );
+
+    const auto vs = (const VSyncInfo*)record->UserData;
+
+    int idx = 0;
+    do
+    {
+        if( VsyncTarget[idx] == 0 )
+        {
+            VsyncTarget[idx] = vs->vidPnTargetId;
+            break;
+        }
+        else if( VsyncTarget[idx] == vs->vidPnTargetId )
+        {
+            break;
+        }
+    }
+    while( ++idx < 8 );
+
+    TracyLfqPrepare( QueueType::FrameMarkMsg );
+    MemWrite( &item->frameMark.time, hdr.TimeStamp.QuadPart );
+    MemWrite( &item->frameMark.name, uint64_t( VsyncName[idx] ) );
+    TracyLfqCommit;
+}
+
+static void SetupVsync()
+{
+#if _WIN32_WINNT >= _WIN32_WINNT_WINBLUE
+    const auto psz = sizeof( EVENT_TRACE_PROPERTIES ) + MAX_PATH;
+    s_propVsync = (EVENT_TRACE_PROPERTIES*)tracy_malloc( psz );
+    memset( s_propVsync, 0, sizeof( EVENT_TRACE_PROPERTIES ) );
+    s_propVsync->LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
+    s_propVsync->Wnode.BufferSize = psz;
+#ifdef TRACY_TIMER_QPC
+    s_propVsync->Wnode.ClientContext = 1;
+#else
+    s_propVsync->Wnode.ClientContext = 3;
+#endif
+    s_propVsync->LoggerNameOffset = sizeof( EVENT_TRACE_PROPERTIES );
+    strcpy( ((char*)s_propVsync) + sizeof( EVENT_TRACE_PROPERTIES ), "TracyVsync" );
+
+    auto backup = tracy_malloc( psz );
+    memcpy( backup, s_propVsync, psz );
+
+    const auto controlStatus = ControlTraceA( 0, "TracyVsync", s_propVsync, EVENT_TRACE_CONTROL_STOP );
+    if( controlStatus != ERROR_SUCCESS && controlStatus != ERROR_WMI_INSTANCE_NOT_FOUND )
+    {
+        tracy_free( backup );
+        tracy_free( s_propVsync );
+        return;
+    }
+
+    memcpy( s_propVsync, backup, psz );
+    tracy_free( backup );
+
+    const auto startStatus = StartTraceA( &s_traceHandleVsync, "TracyVsync", s_propVsync );
+    if( startStatus != ERROR_SUCCESS )
+    {
+        tracy_free( s_propVsync );
+        return;
+    }
+
+    EVENT_FILTER_EVENT_ID fe = {};
+    fe.FilterIn = TRUE;
+    fe.Count = 1;
+    fe.Events[0] = 0x0011;  // VSyncDPC_Info
+
+    EVENT_FILTER_DESCRIPTOR desc = {};
+    desc.Ptr = (ULONGLONG)&fe;
+    desc.Size = sizeof( fe );
+    desc.Type = EVENT_FILTER_TYPE_EVENT_ID;
+
+    ENABLE_TRACE_PARAMETERS params = {};
+    params.Version = ENABLE_TRACE_PARAMETERS_VERSION_2;
+    params.EnableProperty = EVENT_ENABLE_PROPERTY_IGNORE_KEYWORD_0;
+    params.SourceId = s_propVsync->Wnode.Guid;
+    params.EnableFilterDesc = &desc;
+    params.FilterDescCount = 1;
+
+    uint64_t mask = 0x4000000000000001;   // Microsoft_Windows_DxgKrnl_Performance | Base
+    EnableTraceEx2( s_traceHandleVsync, &DxgKrnlGuid, EVENT_CONTROL_CODE_ENABLE_PROVIDER, TRACE_LEVEL_INFORMATION, mask, mask, 0, &params );
+
+    char loggerName[MAX_PATH];
+    strcpy( loggerName, "TracyVsync" );
+
+    EVENT_TRACE_LOGFILEA log = {};
+    log.LoggerName = loggerName;
+    log.ProcessTraceMode = PROCESS_TRACE_MODE_REAL_TIME | PROCESS_TRACE_MODE_EVENT_RECORD | PROCESS_TRACE_MODE_RAW_TIMESTAMP;
+    log.EventRecordCallback = EventRecordCallbackVsync;
+
+    s_traceHandleVsync2 = OpenTraceA( &log );
+    if( s_traceHandleVsync2 == (TRACEHANDLE)INVALID_HANDLE_VALUE )
+    {
+        CloseTrace( s_traceHandleVsync );
+        tracy_free( s_propVsync );
+        return;
+    }
+
+    s_threadVsync = (Thread*)tracy_malloc( sizeof( Thread ) );
+    new(s_threadVsync) Thread( [] (void*) {
+        ThreadExitHandler threadExitHandler;
+        SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL );
+        SetThreadName( "Tracy Vsync" );
+        ProcessTrace( &s_traceHandleVsync2, 1, nullptr, nullptr );
+    }, nullptr );
+#endif
 }
 
 bool SysTraceStart( int64_t& samplingPeriod )
@@ -220,8 +368,13 @@ bool SysTraceStart( int64_t& samplingPeriod )
     const auto psz = sizeof( EVENT_TRACE_PROPERTIES ) + sizeof( KERNEL_LOGGER_NAME );
     s_prop = (EVENT_TRACE_PROPERTIES*)tracy_malloc( psz );
     memset( s_prop, 0, sizeof( EVENT_TRACE_PROPERTIES ) );
-    ULONG flags = EVENT_TRACE_FLAG_CSWITCH | EVENT_TRACE_FLAG_DISPATCHER | EVENT_TRACE_FLAG_THREAD;
+    ULONG flags = 0;
+#ifndef TRACY_NO_CONTEXT_SWITCH
+    flags = EVENT_TRACE_FLAG_CSWITCH | EVENT_TRACE_FLAG_DISPATCHER | EVENT_TRACE_FLAG_THREAD;
+#endif
+#ifndef TRACY_NO_SAMPLING
     if( isOs64Bit ) flags |= EVENT_TRACE_FLAG_PROFILE;
+#endif
     s_prop->EnableFlags = flags;
     s_prop->LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
     s_prop->Wnode.BufferSize = psz;
@@ -233,6 +386,8 @@ bool SysTraceStart( int64_t& samplingPeriod )
 #endif
     s_prop->Wnode.Guid = SystemTraceControlGuid;
     s_prop->BufferSize = 1024;
+    s_prop->MinimumBuffers = std::thread::hardware_concurrency() * 4;
+    s_prop->MaximumBuffers = std::thread::hardware_concurrency() * 6;
     s_prop->LoggerNameOffset = sizeof( EVENT_TRACE_PROPERTIES );
     memcpy( ((char*)s_prop) + sizeof( EVENT_TRACE_PROPERTIES ), KERNEL_LOGGER_NAME, sizeof( KERNEL_LOGGER_NAME ) );
 
@@ -242,6 +397,7 @@ bool SysTraceStart( int64_t& samplingPeriod )
     const auto controlStatus = ControlTrace( 0, KERNEL_LOGGER_NAME, s_prop, EVENT_TRACE_CONTROL_STOP );
     if( controlStatus != ERROR_SUCCESS && controlStatus != ERROR_WMI_INSTANCE_NOT_FOUND )
     {
+        tracy_free( backup );
         tracy_free( s_prop );
         return false;
     }
@@ -288,17 +444,31 @@ bool SysTraceStart( int64_t& samplingPeriod )
         return false;
     }
 
+#ifndef TRACY_NO_VSYNC_CAPTURE
+    SetupVsync();
+#endif
+
     return true;
 }
 
 void SysTraceStop()
 {
+    if( s_threadVsync )
+    {
+        CloseTrace( s_traceHandleVsync2 );
+        CloseTrace( s_traceHandleVsync );
+        s_threadVsync->~Thread();
+        tracy_free( s_threadVsync );
+    }
+
     CloseTrace( s_traceHandle2 );
     CloseTrace( s_traceHandle );
 }
 
 void SysTraceWorker( void* ptr )
 {
+    ThreadExitHandler threadExitHandler;
+    SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL );
     SetThreadName( "Tracy SysTrace" );
     ProcessTrace( &s_traceHandle2, 1, 0, 0 );
     ControlTrace( 0, KERNEL_LOGGER_NAME, s_prop, EVENT_TRACE_CONTROL_STOP );
@@ -323,7 +493,7 @@ void SysTraceSendExternalName( uint64_t thread )
             auto ret = wcstombs( buf, tmp, 256 );
             if( ret != 0 )
             {
-                GetProfiler().SendString( thread, buf, QueueType::ExternalThreadName );
+                GetProfiler().SendString( thread, buf, ret, QueueType::ExternalThreadName );
                 threadSent = true;
             }
         }
@@ -351,9 +521,10 @@ void SysTraceSendExternalName( uint64_t thread )
                                 if( (uint64_t)ptr >= (uint64_t)info.lpBaseOfDll && (uint64_t)ptr <= (uint64_t)info.lpBaseOfDll + (uint64_t)info.SizeOfImage )
                                 {
                                     char buf2[1024];
-                                    if( _GetModuleBaseNameA( phnd, modules[i], buf2, 1024 ) != 0 )
+                                    const auto modlen = _GetModuleBaseNameA( phnd, modules[i], buf2, 1024 );
+                                    if( modlen != 0 )
                                     {
-                                        GetProfiler().SendString( thread, buf2, QueueType::ExternalThreadName );
+                                        GetProfiler().SendString( thread, buf2, modlen, QueueType::ExternalThreadName );
                                         threadSent = true;
                                     }
                                 }
@@ -367,7 +538,7 @@ void SysTraceSendExternalName( uint64_t thread )
         CloseHandle( hnd );
         if( !threadSent )
         {
-            GetProfiler().SendString( thread, "???", QueueType::ExternalThreadName );
+            GetProfiler().SendString( thread, "???", 3, QueueType::ExternalThreadName );
             threadSent = true;
         }
         if( pid != 0 )
@@ -381,7 +552,7 @@ void SysTraceSendExternalName( uint64_t thread )
             }
             if( pid == 4 )
             {
-                GetProfiler().SendString( thread, "System", QueueType::ExternalName );
+                GetProfiler().SendString( thread, "System", 6, QueueType::ExternalName );
                 return;
             }
             else
@@ -407,9 +578,9 @@ void SysTraceSendExternalName( uint64_t thread )
 
     if( !threadSent )
     {
-        GetProfiler().SendString( thread, "???", QueueType::ExternalThreadName );
+        GetProfiler().SendString( thread, "???", 3, QueueType::ExternalThreadName );
     }
-    GetProfiler().SendString( thread, "???", QueueType::ExternalName );
+    GetProfiler().SendString( thread, "???", 3, QueueType::ExternalName );
 }
 
 }
@@ -428,8 +599,15 @@ void SysTraceSendExternalName( uint64_t thread )
 #    include <string.h>
 #    include <unistd.h>
 #    include <atomic>
+#    include <thread>
+#    include <linux/perf_event.h>
+#    include <linux/version.h>
+#    include <sys/mman.h>
+#    include <sys/ioctl.h>
 
 #    include "TracyProfiler.hpp"
+#    include "TracyRingBuffer.hpp"
+#    include "TracyThread.hpp"
 
 #    ifdef __ANDROID__
 #      include "TracySysTracePayload.hpp"
@@ -449,6 +627,173 @@ static const char BufferSizeKb[] = "buffer_size_kb";
 static const char TracePipe[] = "trace_pipe";
 
 static std::atomic<bool> traceActive { false };
+static Thread* s_threadSampling = nullptr;
+static int s_numCpus = 0;
+
+static constexpr size_t RingBufSize = 64*1024;
+static RingBuffer<RingBufSize>* s_ring = nullptr;
+
+static int perf_event_open( struct perf_event_attr* hw_event, pid_t pid, int cpu, int group_fd, unsigned long flags )
+{
+    return syscall( __NR_perf_event_open, hw_event, pid, cpu, group_fd, flags );
+}
+
+static void SetupSampling( int64_t& samplingPeriod )
+{
+#ifndef CLOCK_MONOTONIC_RAW
+    return;
+#endif
+
+    samplingPeriod = 100*1000;
+
+    s_numCpus = (int)std::thread::hardware_concurrency();
+    s_ring = (RingBuffer<RingBufSize>*)tracy_malloc( sizeof( RingBuffer<RingBufSize> ) * s_numCpus );
+
+    perf_event_attr pe = {};
+
+    pe.type = PERF_TYPE_SOFTWARE;
+    pe.size = sizeof( perf_event_attr );
+    pe.config = PERF_COUNT_SW_CPU_CLOCK;
+
+    pe.sample_freq = 10000;
+    pe.sample_type = PERF_SAMPLE_TID | PERF_SAMPLE_TIME | PERF_SAMPLE_CALLCHAIN;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION( 4, 8, 0 )
+    pe.sample_max_stack = 127;
+#endif
+    pe.exclude_callchain_kernel = 1;
+
+    pe.disabled = 1;
+    pe.freq = 1;
+#if !defined TRACY_HW_TIMER || !( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
+    pe.use_clockid = 1;
+    pe.clockid = CLOCK_MONOTONIC_RAW;
+#endif
+
+    for( int i=0; i<s_numCpus; i++ )
+    {
+        const int fd = perf_event_open( &pe, -1, i, -1, 0 );
+        if( fd == -1 )
+        {
+            for( int j=0; j<i; j++ ) s_ring[j].~RingBuffer<RingBufSize>();
+            tracy_free( s_ring );
+            return;
+        }
+        new( s_ring+i ) RingBuffer<RingBufSize>( fd );
+    }
+
+    s_threadSampling = (Thread*)tracy_malloc( sizeof( Thread ) );
+    new(s_threadSampling) Thread( [] (void*) {
+        ThreadExitHandler threadExitHandler;
+        SetThreadName( "Tracy Sampling" );
+        sched_param sp = { 5 };
+        pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp );
+        uint32_t currentPid = (uint32_t)getpid();
+#if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
+        for( int i=0; i<s_numCpus; i++ )
+        {
+            if( !s_ring[i].CheckTscCaps() )
+            {
+                for( int j=0; j<s_numCpus; j++ ) s_ring[j].~RingBuffer<RingBufSize>();
+                tracy_free( s_ring );
+                const char* err = "Tracy Profiler: sampling is disabled due to non-native scheduler clock. Are you running under a VM?";
+                Profiler::MessageAppInfo( err, strlen( err ) );
+                return;
+            }
+        }
+#endif
+        for( int i=0; i<s_numCpus; i++ ) s_ring[i].Enable();
+        for(;;)
+        {
+            bool hadData = false;
+            for( int i=0; i<s_numCpus; i++ )
+            {
+                if( !traceActive.load( std::memory_order_relaxed ) ) break;
+                if( !s_ring[i].HasData() ) continue;
+                hadData = true;
+
+                perf_event_header hdr;
+                s_ring[i].Read( &hdr, 0, sizeof( perf_event_header ) );
+                if( hdr.type == PERF_RECORD_SAMPLE )
+                {
+                    uint32_t pid, tid;
+                    uint64_t t0;
+                    uint64_t cnt;
+
+                    auto offset = sizeof( perf_event_header );
+                    s_ring[i].Read( &pid, offset, sizeof( uint32_t ) );
+                    if( pid == currentPid )
+                    {
+                        offset += sizeof( uint32_t );
+                        s_ring[i].Read( &tid, offset, sizeof( uint32_t ) );
+                        offset += sizeof( uint32_t );
+                        s_ring[i].Read( &t0, offset, sizeof( uint64_t ) );
+                        offset += sizeof( uint64_t );
+                        s_ring[i].Read( &cnt, offset, sizeof( uint64_t ) );
+                        offset += sizeof( uint64_t );
+
+                        auto trace = (uint64_t*)tracy_malloc( ( 1 + cnt ) * sizeof( uint64_t ) );
+                        s_ring[i].Read( trace+1, offset, sizeof( uint64_t ) * cnt );
+
+                        // remove non-canonical pointers
+                        do
+                        {
+                            const auto test = (int64_t)trace[cnt];
+                            const auto m1 = test >> 63;
+                            const auto m2 = test >> 47;
+                            if( m1 == m2 ) break;
+                        }
+                        while( --cnt > 0 );
+                        for( uint64_t j=1; j<cnt; j++ )
+                        {
+                            const auto test = (int64_t)trace[j];
+                            const auto m1 = test >> 63;
+                            const auto m2 = test >> 47;
+                            if( m1 != m2 ) trace[j] = 0;
+                        }
+
+                        // skip kernel frames
+                        uint64_t j;
+                        for( j=0; j<cnt; j++ )
+                        {
+                            if( (int64_t)trace[j+1] >= 0 ) break;
+                        }
+                        if( j == cnt )
+                        {
+                            tracy_free( trace );
+                        }
+                        else
+                        {
+                            if( j > 0 )
+                            {
+                                cnt -= j;
+                                memmove( trace+1, trace+1+j, sizeof( uint64_t ) * cnt );
+                            }
+                            memcpy( trace, &cnt, sizeof( uint64_t ) );
+
+#if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
+                            t0 = s_ring[i].ConvertTimeToTsc( t0 );
+#endif
+
+                            TracyLfqPrepare( QueueType::CallstackSample );
+                            MemWrite( &item->callstackSampleFat.time, t0 );
+                            MemWrite( &item->callstackSampleFat.thread, (uint64_t)tid );
+                            MemWrite( &item->callstackSampleFat.ptr, (uint64_t)trace );
+                            TracyLfqCommit;
+                        }
+                    }
+                }
+                s_ring[i].Advance( hdr.size );
+            }
+            if( !hadData )
+            {
+                std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
+            }
+        }
+
+        for( int i=0; i<s_numCpus; i++ ) s_ring[i].~RingBuffer<RingBufSize>();
+        tracy_free( s_ring );
+    }, nullptr );
+}
 
 #ifdef __ANDROID__
 static bool TraceWrite( const char* path, size_t psz, const char* val, size_t vsz )
@@ -525,6 +870,10 @@ void SysTraceInjectPayload()
 
 bool SysTraceStart( int64_t& samplingPeriod )
 {
+#ifndef CLOCK_MONOTONIC_RAW
+    return false;
+#endif
+
     if( !TraceWrite( TracingOn, sizeof( TracingOn ), "0", 2 ) ) return false;
     if( !TraceWrite( CurrentTracer, sizeof( CurrentTracer ), "nop", 4 ) ) return false;
     TraceWrite( TraceOptions, sizeof( TraceOptions ), "norecord-cmd", 13 );
@@ -533,12 +882,12 @@ bool SysTraceStart( int64_t& samplingPeriod )
     TraceWrite( TraceOptions, sizeof( TraceOptions ), "noannotate", 11 );
 #if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
     if( !TraceWrite( TraceClock, sizeof( TraceClock ), "x86-tsc", 8 ) ) return false;
-#elif __ARM_ARCH >= 6
+#else
     if( !TraceWrite( TraceClock, sizeof( TraceClock ), "mono_raw", 9 ) ) return false;
 #endif
     if( !TraceWrite( SchedSwitch, sizeof( SchedSwitch ), "1", 2 ) ) return false;
     if( !TraceWrite( SchedWakeup, sizeof( SchedWakeup ), "1", 2 ) ) return false;
-    if( !TraceWrite( BufferSizeKb, sizeof( BufferSizeKb ), "512", 4 ) ) return false;
+    if( !TraceWrite( BufferSizeKb, sizeof( BufferSizeKb ), "4096", 5 ) ) return false;
 
 #if defined __ANDROID__ && ( defined __aarch64__ || defined __ARM_ARCH )
     SysTraceInjectPayload();
@@ -547,6 +896,8 @@ bool SysTraceStart( int64_t& samplingPeriod )
     if( !TraceWrite( TracingOn, sizeof( TracingOn ), "1", 2 ) ) return false;
     traceActive.store( true, std::memory_order_relaxed );
 
+    SetupSampling( samplingPeriod );
+
     return true;
 }
 
@@ -554,23 +905,27 @@ void SysTraceStop()
 {
     TraceWrite( TracingOn, sizeof( TracingOn ), "0", 2 );
     traceActive.store( false, std::memory_order_relaxed );
+    if( s_threadSampling )
+    {
+        s_threadSampling->~Thread();
+        tracy_free( s_threadSampling );
+    }
 }
 
-static uint64_t ReadNumber( const char*& ptr )
+static uint64_t ReadNumber( const char*& data )
 {
-    uint64_t val = 0;
+    auto ptr = data;
+    assert( *ptr >= '0' && *ptr <= '9' );
+    uint64_t val = *ptr++ - '0';
     for(;;)
     {
-        if( *ptr >= '0' && *ptr <= '9' )
-        {
-            val = val * 10 + ( *ptr - '0' );
-            ptr++;
-        }
-        else
-        {
-            return val;
-        }
+        const uint8_t v = uint8_t( *ptr - '0' );
+        if( v > 9 ) break;
+        val = val * 10 + v;
+        ptr++;
     }
+    data = ptr;
+    return val;
 }
 
 static uint8_t ReadState( char state )
@@ -674,7 +1029,7 @@ static void HandleTraceLine( const char* line )
 
 #if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
     const auto time = ReadNumber( line );
-#elif __ARM_ARCH >= 6
+#else
     const auto ts = ReadNumber( line );
     line++;      // '.'
     const auto tus = ReadNumber( line );
@@ -774,19 +1129,16 @@ static void ProcessTraceLines( int fd )
         line = buf;
         for(;;)
         {
-            auto next = line;
-            while( next < end && *next != '\n' ) next++;
-            next++;
-            if( next >= end )
+            auto next = (char*)memchr( line, '\n', end - line );
+            if( !next )
             {
                 const auto lsz = end - line;
                 memmove( buf, line, lsz );
                 line = buf + lsz;
                 break;
             }
-
             HandleTraceLine( line );
-            line = next;
+            line = ++next;
         }
         if( rd < 64*1024 )
         {
@@ -799,6 +1151,7 @@ static void ProcessTraceLines( int fd )
 
 void SysTraceWorker( void* ptr )
 {
+    ThreadExitHandler threadExitHandler;
     SetThreadName( "Tracy SysTrace" );
     int pipefd[2];
     if( pipe( pipefd ) == 0 )
@@ -812,6 +1165,8 @@ void SysTraceWorker( void* ptr )
             if( dup2( pipefd[1], STDOUT_FILENO ) >= 0 )
             {
                 close( pipefd[1] );
+                sched_param sp = { 4 };
+                pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp );
 #if defined __ANDROID__ && ( defined __aarch64__ || defined __ARM_ARCH )
                 execlp( "su", "su", "-c", "/data/tracy_systrace", (char*)nullptr );
 #endif
@@ -823,6 +1178,8 @@ void SysTraceWorker( void* ptr )
         {
             // parent
             close( pipefd[1] );
+            sched_param sp = { 5 };
+            pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp );
             ProcessTraceLines( pipefd[0] );
             close( pipefd[0] );
         }
@@ -856,14 +1213,10 @@ static void ProcessTraceLines( int fd )
         const auto end = buf + rd;
         for(;;)
         {
-            auto next = line;
-            while( next < end && *next != '\n' ) next++;
-            if( next == end ) break;
-            assert( *next == '\n' );
-            next++;
-
+            auto next = (char*)memchr( line, '\n', end - line );
+            if( !next ) break;
             HandleTraceLine( line );
-            line = next;
+            line = ++next;
         }
     }
 
@@ -872,6 +1225,7 @@ static void ProcessTraceLines( int fd )
 
 void SysTraceWorker( void* ptr )
 {
+    ThreadExitHandler threadExitHandler;
     SetThreadName( "Tracy SysTrace" );
     char tmp[256];
     memcpy( tmp, BasePath, sizeof( BasePath ) - 1 );
@@ -879,6 +1233,8 @@ void SysTraceWorker( void* ptr )
 
     int fd = open( tmp, O_RDONLY );
     if( fd < 0 ) return;
+    sched_param sp = { 5 };
+    pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp );
     ProcessTraceLines( fd );
     close( fd );
 }
@@ -900,7 +1256,7 @@ void SysTraceSendExternalName( uint64_t thread )
     }
     else
     {
-        GetProfiler().SendString( thread, "???", QueueType::ExternalThreadName );
+        GetProfiler().SendString( thread, "???", 3, QueueType::ExternalThreadName );
     }
 
     sprintf( fn, "/proc/%" PRIu64 "/status", thread );
@@ -909,7 +1265,7 @@ void SysTraceSendExternalName( uint64_t thread )
     {
         int pid = -1;
         size_t lsz = 1024;
-        auto line = (char*)malloc( lsz );
+        auto line = (char*)tracy_malloc( lsz );
         for(;;)
         {
             auto rd = getline( &line, &lsz, f );
@@ -920,7 +1276,7 @@ void SysTraceSendExternalName( uint64_t thread )
                 break;
             }
         }
-        free( line );
+        tracy_free( line );
         fclose( f );
         if( pid >= 0 )
         {
@@ -944,7 +1300,7 @@ void SysTraceSendExternalName( uint64_t thread )
             }
         }
     }
-    GetProfiler().SendString( thread, "???", QueueType::ExternalName );
+    GetProfiler().SendString( thread, "???", 3, QueueType::ExternalName );
 }
 
 }
