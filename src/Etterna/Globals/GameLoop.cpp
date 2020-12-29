@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -160,7 +160,6 @@ namespace GameLoop {
     void setUserQuit(){
         userQuit = true;
     }
-		ZoneScopedN("Frame");
 
     void setGameFocused(bool isFocused){
         if(isFocused == hasFocus)
@@ -211,6 +210,8 @@ namespace GameLoop {
     void RunGameLoop() {
 
         while (!GameLoop::hasUserQuit()) {
+			ZoneScopedN("Frame");
+
             if (!g_NewGame.empty()) {
                 DoChangeGame();
             }
@@ -218,7 +219,6 @@ namespace GameLoop {
                 DoChangeTheme();
             }
 
-		FrameMark;
             // Update
             auto now = std::chrono::steady_clock::now();
             std::chrono::duration<float> frameStart = now - g_AccurateGameplayTimer;
@@ -271,6 +271,7 @@ namespace GameLoop {
 
             // Render
             SCREENMAN->Draw();
+			FrameMark;
         }
 
     }
