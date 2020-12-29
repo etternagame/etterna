@@ -151,4 +151,10 @@ struct CompileAssertDecl
 #include <vector>
 using std::vector;
 
+#ifdef TRACY_ENABLE
+#if defined(_MSC_VER)
+#pragma comment(lib, "dbghelp.lib")
+#endif
+#endif
+
 #endif
