@@ -132,6 +132,7 @@ class OnlineScore
 	std::map<Skillset, float> SSRs;
 	float rate{ 0.0f };
 	float wife{ 0.0f };
+	int wifeversion{ 0 };
 	int maxcombo{ 0 };
 	int miss{ 0 };
 	int bad{ 0 };
@@ -194,6 +195,7 @@ class DownloadManager
 		""
 	}; // Register page from server (Or empty if non was obtained)
 	std::map<std::string, std::vector<OnlineScore>> chartLeaderboards;
+	std::set<std::string> unrankedCharts;
 	std::vector<std::string> countryCodes;
 	std::map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset

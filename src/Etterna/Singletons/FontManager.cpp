@@ -39,8 +39,7 @@ FontManager::LoadFont(const std::string& sFontOrTextureFilePath,
 	 * the same bitmap if there are equivalent but different paths
 	 * (e.g. "graphics\blah.png" and "..\stepmania\graphics\blah.png" ). */
 
-	CHECKPOINT_M(
-	  ssprintf("FontManager::LoadFont(%s).", sFontOrTextureFilePath.c_str()));
+	Locator::getLogger()->trace("FontManager::LoadFont({}).", sFontOrTextureFilePath.c_str());
 	const FontName NewName(sFontOrTextureFilePath, sChars);
 	std::map<FontName, Font*>::iterator p = g_mapPathToFont.find(NewName);
 	if (p != g_mapPathToFont.end()) {
@@ -65,7 +64,7 @@ FontManager::CopyFont(Font* pFont)
 void
 FontManager::UnloadFont(Font* fp)
 {
-	CHECKPOINT_M(ssprintf("FontManager::UnloadFont(%s).", fp->path.c_str()));
+	Locator::getLogger()->trace("FontManager::UnloadFont({}).", fp->path.c_str());
 
 	for (std::map<FontName, Font*>::iterator i = g_mapPathToFont.begin();
 		 i != g_mapPathToFont.end();

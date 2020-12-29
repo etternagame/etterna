@@ -23,8 +23,7 @@
 
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
-
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Platform/Platform.hpp"
 
 #include <chrono>
 
@@ -33,19 +32,14 @@
 #define TIMESTAMP_RESOLUTION 1000000
 
 const RageTimer RageZeroTimer(0);
-static std::chrono::microseconds g_iStartTime =
-  ArchHooks::GetChronoDurationSinceStart();
+static std::chrono::microseconds g_iStartTime = Core::Platform::Time::GetChronoDurationSinceStart();
 
-static uint64_t
-GetTime()
-{
-	return ArchHooks::GetMicrosecondsSinceStart();
+static uint64_t GetTime() {
+    return Core::Platform::Time::GetChronoDurationSinceStart().count();
 }
 
-static std::chrono::microseconds
-GetChronoTime()
-{
-	return ArchHooks::GetChronoDurationSinceStart();
+static std::chrono::microseconds GetChronoTime() {
+	return Core::Platform::Time::GetChronoDurationSinceStart();
 }
 
 float

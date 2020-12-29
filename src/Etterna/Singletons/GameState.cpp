@@ -1883,6 +1883,12 @@ class LunaGameState : public Luna<GameState>
 		LuaHelpers::CreateTableFromArray(p->timingscales, L);
 		return 1;
 	}
+	static int GetPreferredStepsType(T* p, lua_State* L)
+	{
+		auto st = p->m_PreferredStepsType;
+		LuaHelpers::Push(L, st);
+		return 1;
+	}
 
 	DEFINE_METHOD(GetEtternaVersion, GetEtternaVersion())
 	DEFINE_METHOD(IsPracticeMode, IsPracticeMode())
@@ -1975,6 +1981,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(IsPracticeMode);
 		ADD_METHOD(SetPracticeMode);
 		ADD_METHOD(GetTimingScales);
+		ADD_METHOD(GetPreferredStepsType);
 	}
 };
 

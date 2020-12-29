@@ -20,6 +20,9 @@ class GraphDisplay : public ActorFrame
 	void Load(const std::string& sMetricsGroup);
 	void Set(const StageStats& ss, const PlayerStageStats& s);
 
+	void SetWithoutStageStats(const PlayerStageStats& pss,
+							  const float fTotalStepSeconds);
+
 	// Lua
 	void PushSelf(lua_State* L) override;
 

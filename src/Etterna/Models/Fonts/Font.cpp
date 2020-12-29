@@ -818,8 +818,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 	LoadStack.push_back(sIniPath);
 
 	// The font is not already loaded. Figure out what we have.
-	CHECKPOINT_M(ssprintf(
-	  "Font::Load(\"%s\",\"%s\").", sIniPath.c_str(), m_sChars.c_str()));
+	Locator::getLogger()->trace("Font::Load(\"{}\",\"{}\").", sIniPath.c_str(), m_sChars.c_str());
 
 	path = sIniPath;
 	m_sChars = sChars;

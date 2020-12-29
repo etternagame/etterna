@@ -204,6 +204,10 @@ function scoreBoard(pn, position)
 		ChangeScoreCommand = function(self, params)
 			if params.score then
 				score = params.score
+				totalTaps = 0
+				for k, v in ipairs(judges) do
+					totalTaps = totalTaps + score:GetTapNoteScore(v)
+				end
 			end
 
 			MESSAGEMAN:Broadcast("ScoreChanged")
@@ -214,6 +218,10 @@ function scoreBoard(pn, position)
 				score = s
 			end
 			dvt = score:GetOffsetVector()
+			totalTaps = 0
+			for k, v in ipairs(judges) do
+				totalTaps = totalTaps + score:GetTapNoteScore(v)
+			end
 			MESSAGEMAN:Broadcast("ScoreChanged")
 		end
 	}
@@ -433,6 +441,10 @@ function scoreBoard(pn, position)
 					mstring = SCREENMAN:GetTopScreen():GetReplayModifiers()
 				end
 				self:settext(getModifierTranslations(mstring))
+			end,
+			ScoreChangedMessageCommand = function(self)
+				local mstring = score:GetModifiers()
+				self:settext(getModifierTranslations(mstring))
 			end
 		}
 
@@ -460,6 +472,9 @@ function scoreBoard(pn, position)
 			ForceWindowMessageCommand = function(self, params)
 				local rescoreJudges = getRescoredJudge(dvt, judge, k)
 				self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
 			end,
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
@@ -534,6 +549,9 @@ function scoreBoard(pn, position)
 				SetCommand = function(self)
 					self:settextf("(%03.2f%%)", score:GetTapNoteScore(v) / totalTaps * 100)
 				end,
+				ScoreChangedMessageCommand = function(self)
+					self:queuecommand("Set")
+				end,
 				ForceWindowMessageCommand = function(self, params)
 					local rescoredJudge
 					rescoredJudge = getRescoredJudge(dvt, params.judge, k)
@@ -552,13 +570,14 @@ function scoreBoard(pn, position)
 			}
 	end
 
-	if score:GetChordCohesion() == true then
-		t[#t + 1] =
+	t[#t + 1] =
 		LoadFont("Common Large") ..
 			{
 				InitCommand = function(self)
 					self:xy(frameX + 3, frameY + 210):zoom(0.25):halign(0)
 					self:maxwidth(capWideScale(get43size(100), 160)/0.25)
+					self:settext(translated_info["CCOn"])
+					self:visible(false)
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
@@ -567,10 +586,13 @@ function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext(translated_info["CCOn"])
+					if score:GetChordCohesion() then
+						self:visible(true)
+					else
+						self:visible(false)
+					end
 				end
 			}
-	end
 
 	--[[
 	The following section first adds the ratioText and the maRatio. Then the paRatio is added and positioned. The right
@@ -600,12 +622,14 @@ function scoreBoard(pn, position)
 			InitCommand = function(self)
 				paRatio = self
 				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
-				marvelousTaps = score:GetTapNoteScore(judges[1])
-				perfectTaps = score:GetTapNoteScore(judges[2])
-				greatTaps = score:GetTapNoteScore(judges[3])
+
 				self:playcommand("Set")
 			end,
 			SetCommand = function(self)
+				marvelousTaps = score:GetTapNoteScore(judges[1])
+				perfectTaps = score:GetTapNoteScore(judges[2])
+				greatTaps = score:GetTapNoteScore(judges[3])
+
 				-- Fill in maRatio and paRatio
 				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
 				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
@@ -641,6 +665,9 @@ function scoreBoard(pn, position)
 				perfectTaps = getRescoredJudge(dvt, judge, 2)
 				greatTaps = getRescoredJudge(dvt, judge, 3)
 				self:playcommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self:playcommand("ForceWindow")
 			end
 		}
 

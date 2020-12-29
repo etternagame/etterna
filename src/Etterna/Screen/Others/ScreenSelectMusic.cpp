@@ -1150,7 +1150,9 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 	if (SM == SM_BackFromNamePlaylist) {
 		Playlist pl;
 		pl.name = ScreenTextEntry::s_sLastAnswer;
-		if (pl.name != "") {
+		auto& pls = SONGMAN->GetPlaylists();
+		// require name not empty and name not a duplicate
+		if (pl.name != "" && pls.count(pl.name) == 0) {
 			SONGMAN->GetPlaylists().emplace(pl.name, pl);
 			SONGMAN->activeplaylist = pl.name;
 			MESSAGEMAN->Broadcast("DisplayAll");
@@ -1733,6 +1735,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		  pl.chartlist[0].rate;
 		MESSAGEMAN->Broadcast("RateChanged");
 		p->SelectCurrent(PLAYER_1);
+
+		// success
 		lua_pushboolean(L, true);
 		return 1;
 	}
@@ -1848,6 +1852,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
 
+		// success
+		lua_pushboolean(L, true);
 		return 1;
 	}
 
@@ -1941,6 +1947,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
 
+		// success
+		lua_pushboolean(L, true);
 		return 1;
 	}
 

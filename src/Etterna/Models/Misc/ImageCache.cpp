@@ -132,7 +132,7 @@ ImageCache::LoadImage(const std::string& sImageDir,
 		if (g_ImagePathToImage.find(sImagePath) != g_ImagePathToImage.end())
 			return; /* already loaded */
 
-		CHECKPOINT_M(ssprintf("ImageCache::LoadImage: %s", sCachePath.c_str()));
+		Locator::getLogger()->trace("ImageCache::LoadImage: {}", sCachePath.c_str());
 		auto pImage = RageSurfaceUtils::LoadSurface(sCachePath);
 		if (pImage == nullptr) {
 			if (tries == 0) {
@@ -386,7 +386,7 @@ ImageCache::CacheImage(const std::string& sImageDir,
 
 	const auto otImagePath = sImagePath; // Remove this when Global std::string
 										 // to std::string convert.
-	CHECKPOINT_M(otImagePath);
+	Locator::getLogger()->trace(otImagePath);
 	if (!DoesFileExist(sImagePath))
 		return;
 

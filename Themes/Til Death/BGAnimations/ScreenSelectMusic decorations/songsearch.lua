@@ -34,7 +34,7 @@ local function searchInput(event)
 		else
 			local CtrlPressed = INPUTFILTER:IsControlPressed()
 			if event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
-				searchstring = searchstring .. HOOKS:GetClipboard()
+				searchstring = searchstring .. Arch.getClipboard()
 			elseif
 			--if not nil and (not a number or (ctrl pressed and not online))
 				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and

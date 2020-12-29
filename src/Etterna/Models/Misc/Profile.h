@@ -248,7 +248,7 @@ class Profile
 	std::set<std::string> PermaMirrorCharts;
 
 	// more future goalman stuff -mina
-	void AddGoal(const std::string& ck);
+	bool AddGoal(const std::string& ck);
 	void RemoveGoal(const std::string& ck, DateTime assigned);
 	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();

@@ -315,7 +315,7 @@ ChangeToDirOfExecutable(const std::string& argv0)
 RageFileManager::RageFileManager(const std::string& argv0)
 {
 	ZoneScoped;
-	CHECKPOINT_M(argv0.c_str());
+	Locator::getLogger()->trace(argv0.c_str());
 	ChangeToDirOfExecutable(argv0);
 
 	g_Mutex = new RageEvent("RageFileManager");
@@ -338,19 +338,6 @@ RageFileManager::RageFileManager(const std::string& argv0)
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
-}
-
-void
-RageFileManager::MountInitialFilesystems()
-{
-	ZoneScoped;
-	Locator::getArchHooks()->MountInitialFilesystems(RageFileManagerUtil::sDirOfExecutable);
-}
-
-void
-RageFileManager::MountUserFilesystems()
-{
-    Locator::getArchHooks()->MountUserFilesystems(RageFileManagerUtil::sDirOfExecutable);
 }
 
 RageFileManager::~RageFileManager()
@@ -649,7 +636,7 @@ RageFileManager::Mount(const std::string& sType,
 										 sType.c_str(),
 										 sRoot.c_str(),
 										 sMountPoint.c_str());
-	CHECKPOINT_M(sPaths.c_str());
+	Locator::getLogger()->trace(sPaths.c_str());
 #if defined(DEBUG)
 	puts(sPaths);
 #endif
@@ -657,18 +644,11 @@ RageFileManager::Mount(const std::string& sType,
 	// Unmount anything that was previously mounted here.
 	Unmount(sType, sRoot, sMountPoint);
 
-	CHECKPOINT_M(ssprintf("About to make a driver with \"%s\", \"%s\"",
+	Locator::getLogger()->trace("About to make a driver with \"{}\", \"{}\"",
 						  sType.c_str(),
-						  sRoot.c_str())
-				   .c_str());
+						  sRoot.c_str());
 	RageFileDriver* pDriver = MakeFileDriver(sType, sRoot);
 	if (pDriver == nullptr) {
-		CHECKPOINT_M(
-		  ssprintf("Can't mount unknown VFS type \"%s\", root \"%s\"",
-				   sType.c_str(),
-				   sRoot.c_str())
-			.c_str());
-
 		Locator::getLogger()->warn("Can't mount unknown VFS type \"{}\", root \"{}\"",
 					  sType.c_str(),
 					  sRoot.c_str());
@@ -676,7 +656,7 @@ RageFileManager::Mount(const std::string& sType,
 		return false;
 	}
 
-	CHECKPOINT_M("Driver %s successfully made.");
+	Locator::getLogger()->trace("Driver %s successfully made.");
 
 	auto* pLoadedDriver = new LoadedDriver;
 	pLoadedDriver->m_pDriver = pDriver;

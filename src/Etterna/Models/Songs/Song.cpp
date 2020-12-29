@@ -37,6 +37,8 @@
 #include <set>
 #include <map>
 
+#include "Etterna/Singletons/ScoreManager.h"
+
 using std::vector;
 
 //-Nick12 Used for song file hashing
@@ -2415,6 +2417,20 @@ class LunaSong : public Luna<Song>
 		LuaHelpers::CreateTableFromArray(p->GetChartsMatchingFilter(), L);
 		return 1;
 	}
+	static int GetHighestGrade(T* p, lua_State* L)
+	{
+		// this shadows (and essentially doesnt even do remotely the same thing as) the MusicWheelItem best grade thing for the item grades
+		auto charts = p->GetChartsMatchingFilter();
+
+		Grade best = Grade_Invalid;
+		for (auto& c : charts) {
+			auto g = SCOREMAN->GetBestGradeFor(c->GetChartKey());
+			if (best >= g)
+				best = g;
+		}
+		LuaHelpers::Push(L, best);
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2482,6 +2498,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(PlaySampleMusicExtended);
 		ADD_METHOD(GetChartsOfCurrentGameMode);
 		ADD_METHOD(GetChartsMatchingFilter);
+		ADD_METHOD(GetHighestGrade);
 	}
 };
 

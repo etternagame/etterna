@@ -149,7 +149,7 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 		auto values = split(line, ",");
 
 		tp.emplace_back(
-		  std::pair<int, float>(stoi(values[0]), stof(values[1])));
+		  std::pair<int, float>(stoi(values[0]), stod(values[1])));
 	}
 	sort(tp.begin(),
 		 tp.end(),
@@ -353,8 +353,9 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	RageFile f;
 	if (!f.Open(path)) {
-//		LOG->UserLog(
-//		  "Song file", path, "couldn't be opened: %s", f.GetError().c_str());
+		//		LOG->UserLog(
+		//		  "Song file", path, "couldn't be opened: %s",
+		// f.GetError().c_str());
 		return false;
 	}
 

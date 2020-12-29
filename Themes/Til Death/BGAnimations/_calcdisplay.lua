@@ -1116,9 +1116,6 @@ o[#o + 1] = LoadFont("Common Normal") .. {
 local dotWidth = 0
 local function setOffsetVerts(vt, x, y, c)
 	vt[#vt + 1] = {{x - dotWidth, y + dotWidth, 0}, c}
-	vt[#vt + 1] = {{x + dotWidth, y + dotWidth, 0}, c}
-	vt[#vt + 1] = {{x + dotWidth, y - dotWidth, 0}, c}
-	vt[#vt + 1] = {{x - dotWidth, y - dotWidth, 0}, c}
 end
 
 local function topGraphLine(mod, colorToUse, hand)
@@ -1139,6 +1136,9 @@ local function topGraphLine(mod, colorToUse, hand)
                         y = y + plotHeight / 2
                         setOffsetVerts(verts, x, y, color("1,1,1"))
                     end
+                    if #verts <= 1 then
+                        verts = {}
+                    end
                     self:SetVertices(verts)
                     self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
                     return
@@ -1154,6 +1154,9 @@ local function topGraphLine(mod, colorToUse, hand)
                     setOffsetVerts(verts, x, y, colorToUse) 
                 end
 
+                if #verts <= 1 then
+                    verts = {}
+                end
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
 
@@ -1214,6 +1217,9 @@ local function topGraphLineJackStam(mod, colorToUse, hand)
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
                 
+                if #verts <= 1 then
+                    verts = {}
+                end
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else
@@ -1260,6 +1266,9 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
                 
+                if #verts <= 1 then
+                    verts = {}
+                end
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else
@@ -1309,6 +1318,9 @@ local function bottomGraphLineJack(colorToUse, hand)
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
                 
+                if #verts <= 1 then
+                    verts = {}
+                end
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else
@@ -1353,6 +1365,9 @@ local function bottomGraphLineSSR(lineNum, colorToUse)
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
                 
+                if #verts <= 1 then
+                    verts = {}
+                end
                 self:SetVertices(verts)
                 self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
             else

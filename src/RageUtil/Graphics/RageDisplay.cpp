@@ -16,6 +16,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
+#include "Etterna/Globals/GameLoop.h"
 #include <Tracy.hpp>
 
 #include <chrono>
@@ -1166,7 +1167,7 @@ RageDisplay::FrameLimitBeforeVsync()
 		}
 	}
 
-	if (!Locator::getArchHooks()->AppHasFocus())
+	if (!GameLoop::isGameFocused())
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 

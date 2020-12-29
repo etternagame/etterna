@@ -1,6 +1,9 @@
 #ifndef RAGE_FILE_MANAGER_H
 #define RAGE_FILE_MANAGER_H
 
+#include <string>
+#include <vector>
+
 /** @brief Constants for working with the RageFileManager. */
 namespace RageFileManagerUtil {
 extern std::string sInitialWorkingDirectory;
@@ -22,8 +25,6 @@ class RageFileManager
   public:
 	RageFileManager(const std::string& argv0);
 	~RageFileManager();
-	void MountInitialFilesystems();
-	void MountUserFilesystems();
 
 	void GetDirListing(const std::string& sPath,
 					   std::vector<std::string>& AddTo,

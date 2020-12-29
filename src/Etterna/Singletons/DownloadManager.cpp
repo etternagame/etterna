@@ -938,7 +938,7 @@ DownloadManager::UploadScore(HighScore* hs,
 							 function<void()> callback,
 							 bool load_from_disk)
 {
-	CHECKPOINT_M("Creating UploadScore request");
+	Locator::getLogger()->trace("Creating UploadScore request");
 	if (!LoggedIn()) {
 		Locator::getLogger()->trace(
 		  "Attempted to upload score when not logged in (scorekey: \"{}\")",
@@ -1113,7 +1113,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLResultsString(curlHandle, &(req->result));
 	curl_multi_add_handle(mHTTPHandle, req->handle);
 	HTTPRequests.push_back(req);
-	CHECKPOINT_M("Finished creating UploadScore request");
+	Locator::getLogger()->trace("Finished creating UploadScore request");
 }
 
 // this is for new/live played scores that have replaydata in memory
@@ -1640,6 +1640,15 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 
+		long response_code;
+		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
+
+		// keep track of unranked charts
+		if (response_code == 404)
+			DLMAN->unrankedCharts.emplace(chartkey);
+		else if (response_code == 200)
+			DLMAN->unrankedCharts.erase(chartkey);
+
 		if (!d.HasMember("errors") && d.HasMember("data") &&
 			d["data"].IsArray()) {
 			auto& scores = d["data"];
@@ -1657,7 +1666,10 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					StringBuffer buffer;
 					Writer<StringBuffer> writer(buffer);
 					score_obj.Accept(writer);
-					Locator::getLogger()->trace("Malformed score in chart leaderboard (chart: {}): {}", chartkey, buffer.GetString());
+					Locator::getLogger()->trace(
+					  "Malformed score in chart leaderboard (chart: {}): {}",
+					  chartkey,
+					  buffer.GetString());
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -1780,6 +1792,16 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					tmp.valid = score["valid"].GetBool();
 				else
 					tmp.valid = false;
+				if (score.HasMember("wifeVersion") &&
+					score["wifeVersion"].IsInt()) {
+					auto v = score["wifeVersion"].GetInt();
+					if (v == 3)
+						tmp.wifeversion = 3;
+					else
+						tmp.wifeversion = 2;
+				}
+				else
+					tmp.wifeversion = 2;
 
 				auto& ssrs = score["skillsets"];
 				FOREACH_ENUM(Skillset, ss)
@@ -1821,6 +1843,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				hs.SetModifiers(tmp.modifiers);
 				hs.SetChordCohesion(tmp.nocc);
 				hs.SetWifeScore(tmp.wife);
+				hs.SetWifeVersion(tmp.wifeversion);
 				hs.SetSSRNormPercent(tmp.wife);
 				hs.SetMusicRate(tmp.rate);
 				hs.SetChartKey(chartkey);
@@ -1857,11 +1880,23 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
-				lua_newtable(L);
-				for (unsigned i = 0; i < vec.size(); ++i) {
-					auto& s = vec[i];
-					s.Push(L);
-					lua_rawseti(L, -2, i + 1);
+
+				// 404: Chart not ranked
+				// 401: Invalid login token
+				if (response_code == 404 || response_code == 401) {
+					lua_pushnil(L);
+					// nil output means unranked to Lua
+				} else {
+					// expecting only 200 as the alternative
+					// 200: success
+					lua_newtable(L);
+					for (unsigned i = 0; i < vec.size(); ++i) {
+						auto& s = vec[i];
+						s.Push(L);
+						lua_rawseti(L, -2, i + 1);
+					}
+					// table size of 0 means ranked but no scores
+					// any larger table size means ranked with scores (duh)
 				}
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 1, 0, true); // 1 args, 0 results
@@ -2178,6 +2213,7 @@ DownloadManager::StartSession(
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->trace(
 			  "StartSession Error: Malformed request response: {}", req.result);
+			MESSAGEMAN->Broadcast("LoginFailed");
 			DLMAN->loggingIn = false;
 			return;
 		}
@@ -2558,6 +2594,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_setfield(L, -2, "rate");
 		lua_pushnumber(L, score.wife);
 		lua_setfield(L, -2, "wife");
+		lua_pushnumber(L, score.wifeversion);
+		lua_setfield(L, -2, "wifeversion");
 		lua_pushnumber(L, score.miss);
 		lua_setfield(L, -2, "miss");
 		lua_pushnumber(L, score.marvelous);
@@ -2693,6 +2731,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	// this will not update a leaderboard to a new state.
 	static int RequestChartLeaderBoardFromOnline(T* p, lua_State* L)
 	{
+		// an unranked chart check could be done here
+		// but just in case, don't check
+		// allow another request for those -- if it gets ranked during a session
 		string chart = SArg(1);
 		LuaReference ref;
 		auto& leaderboardScores = DLMAN->chartLeaderboards[chart];
@@ -2727,12 +2768,20 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	{
 		vector<HighScore*> filteredLeaderboardScores;
 		std::unordered_set<string> userswithscores;
-		auto& leaderboardScores = DLMAN->chartLeaderboards[SArg(1)];
+		auto ck = SArg(1);
+		auto& leaderboardScores = DLMAN->chartLeaderboards[ck];
 		string country = "";
 		if (!lua_isnoneornil(L, 2)) {
 			country = SArg(2);
 		}
 		float currentrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+		// empty chart leaderboards return empty lists
+		// unranked charts return NO lists
+		if (DLMAN->unrankedCharts.count(ck)) {
+			lua_pushnil(L);
+			return 1;
+		}
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;

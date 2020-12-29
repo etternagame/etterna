@@ -166,9 +166,7 @@ class RageTexture_Default : public RageTexture
 std::shared_ptr<RageTexture>
 RageTextureManager::LoadTextureInternal(RageTextureID ID)
 {
-	CHECKPOINT_M(
-	  ssprintf("RageTextureManager::LoadTexture(%s).", ID.filename.c_str())
-		.c_str());
+	Locator::getLogger()->trace("RageTextureManager::LoadTexture({}).", ID.filename.c_str());
 
 	AdjustTextureID(ID);
 

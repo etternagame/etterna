@@ -188,30 +188,9 @@ endif()
 
 source_group("Arch Specific\\\\Dialog" FILES ${SMDATA_ARCH_DIALOG_SRC} ${SMDATA_ARCH_DIALOG_HPP})
 
-list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks.cpp")
-list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks.h")
-
-if(NOT APPLE)
-  list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooksUtil.cpp")
-  if(WIN32)
-    list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_Win32.cpp" "ArchHooks/ArchHooks_Win32Static.cpp")
-    list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_Win32.h")
-  else()
-    list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_Unix.cpp")
-    list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_Unix.h")
-  endif()
-  
-else()
-  list(APPEND SMDATA_ARCH_HOOKS_SRC "ArchHooks/ArchHooks_MacOSX.mm")
-  list(APPEND SMDATA_ARCH_HOOKS_HPP "ArchHooks/ArchHooks_MacOSX.h")
-endif()
-
-source_group("Arch Specific\\\\Arch Hooks" FILES ${SMDATA_ARCH_HOOKS_SRC} ${SMDATA_ARCH_HOOKS_HPP})
-
 list(APPEND SMDATA_ALL_ARCH_SRC
   ${SMDATA_ARCH_SRC}
   ${SMDATA_ARCH_DIALOG_SRC}
-  ${SMDATA_ARCH_HOOKS_SRC}
   ${SMDATA_ARCH_INPUT_SRC}
   ${SMDATA_ARCH_LOADING_SRC}
   ${SMDATA_ARCH_LOWLEVEL_SRC}
@@ -221,7 +200,6 @@ list(APPEND SMDATA_ALL_ARCH_SRC
 list(APPEND SMDATA_ALL_ARCH_HPP
   ${SMDATA_ARCH_HPP}
   ${SMDATA_ARCH_DIALOG_HPP}
-  ${SMDATA_ARCH_HOOKS_HPP}
   ${SMDATA_ARCH_INPUT_HPP}
   ${SMDATA_ARCH_LOADING_HPP}
   ${SMDATA_ARCH_LOWLEVEL_HPP}

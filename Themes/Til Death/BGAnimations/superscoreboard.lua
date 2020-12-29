@@ -113,7 +113,8 @@ local o =
 	end,
 	UpdateCommand = function(self)
 		if not scoretable then
-			scoretable = {}
+			ind = 0
+			return
 		end
 		if ind == #scoretable then
 			ind = ind - numscores
@@ -263,15 +264,17 @@ local o =
 				end
 			end,
 			UpdateCommand = function(self)
-				local numberofscores = #scoretable
+				local numberofscores = scoretable ~= nil and #scoretable or 0
 				local online = DLMAN:IsLoggedIn()
 				if not GAMESTATE:GetCurrentSong() then
 					self:settext("")
-				elseif not online and #scoretable == 0 then
+				elseif not online and scoretable ~= nil and #scoretable == 0 then
 					self:settext(translated_info["LoginToView"])
 				else
-					if #scoretable == 0 then
+					if scoretable ~= nil and #scoretable == 0 then
 						self:settext(translated_info["NoScoresFound"])
+					elseif scoretable == nil then
+						self:settext("Chart is not ranked")
 					else
 						self:settext("")
 					end
@@ -281,8 +284,10 @@ local o =
 				local online = DLMAN:IsLoggedIn()
 				if not GAMESTATE:GetCurrentSong() then
 					self:settext("")
-				elseif not online and #scoretable == 0 then
+				elseif not online and scoretable ~= nil and #scoretable == 0 then
 					self:settext(translated_info["LoginToView"])
+				elseif scoretable == nil then
+					self:settext("Chart is not ranked")
 				else
 					self:settext(translated_info["NoScoresFound"])
 				end
@@ -391,7 +396,11 @@ local function makeScoreDisplay(i)
 			self:visible(false)
 		end,
 		UpdateCommand = function(self)
-			hs = scoretable[(i + ind)]
+			if scoretable ~= nil then
+				hs = scoretable[(i + ind)]
+			else
+				hs = nil
+			end
 			if hs and i <= numscores then
 				self:visible(true)
 				self:playcommand("Display")
@@ -517,6 +526,31 @@ local function makeScoreDisplay(i)
 					self:visible(true):addy(-row2yoff)
 				end
 			},
+
+			--[[ --wife version display ... not 100% reliable
+		LoadFont("Common normal") ..
+			{
+				Name = "WifeVers" .. i,
+				InitCommand = function(self)
+					if not collapsed then
+						self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.25):halign(1):valign(0.5):maxwidth(width / 2 / tzoom):diffuse(getMainColor("negative")):addy(-pdh/4)
+					end
+				end,
+				DisplayCommand = function(self)
+					if hs:GetWifeVers() ~= 3 then
+						self:settextf("W2/XML", hs:GetWifeVers())
+					else
+						self:settext("")
+					end
+				end,
+				CollapseCommand = function(self)
+					self:visible(false)
+				end,
+				ExpandCommand = function(self)
+					self:visible(true)
+				end
+			},
+			]]
 		LoadFont("Common normal") ..
 			{
 				Name = "Replay" .. i,

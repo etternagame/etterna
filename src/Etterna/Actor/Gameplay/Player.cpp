@@ -2073,9 +2073,10 @@ Player::Step(int col,
 
 	int iStepSearchRows;
 	static const auto StepSearchDistance = GetMaxStepDistanceSeconds();
-	auto skipstart = nerv[10]; // this is not robust need to come up with
-							   // something better later - Mina
 
+	// if the nerv is too small, dont optimize
+	auto skipstart = nerv.size() > 10 ? nerv[10] : iSongRow + 1;
+	
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(

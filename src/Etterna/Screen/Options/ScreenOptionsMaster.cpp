@@ -81,8 +81,7 @@ ScreenOptionsMaster::ImportOptions(int r, const PlayerNumber& vpns)
 void
 ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 {
-	CHECKPOINT_M(
-	  ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())).c_str());
+	Locator::getLogger()->trace("{}/{}", r, static_cast<int>(m_pRows.size()));
 
 	OptionRow& row = *m_pRows[r];
 	bool bRowHasFocus = false;
@@ -98,7 +97,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 		// Override ScreenOptions's calling of ExportOptions
 		m_iChangeMask = 0;
 
-		CHECKPOINT_M("Starting the export handling.");
+		Locator::getLogger()->trace("Starting the export handling.");
 
 		for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
 			ExportOptions(r, PLAYER_1);
@@ -139,7 +138,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 			SOUNDMAN->SetMixVolume();
 		}
 
-		CHECKPOINT_M("Transferring to the next screen now.");
+		Locator::getLogger()->trace("Transferring to the next screen now.");
 		this->HandleScreenMessage(SM_GoToNextScreen);
 		return;
 	}

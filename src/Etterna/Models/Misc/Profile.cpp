@@ -488,7 +488,7 @@ Profile::RemoveFromPermaMirror(const string& ck)
 
 // more future goalman stuff (perhaps this should be standardized to "add" in
 // order to match scoreman nomenclature) -mina
-void
+bool
 Profile::AddGoal(const string& ck)
 {
 	ScoreGoal goal;
@@ -499,13 +499,14 @@ Profile::AddGoal(const string& ck)
 	if (goalmap.count(ck))
 		for (auto& n : goalmap[ck].goals)
 			if (n.rate == goal.rate && n.percent == goal.percent)
-				return;
+				return false;
 
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
 	DLMAN->AddGoal(ck, goal.percent, goal.rate, goal.timeassigned);
 	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
+	return true;
 }
 
 void
@@ -616,7 +617,7 @@ Profile::SetAnyAchievedGoals(const string& ck,
 							 float& rate,
 							 const HighScore& pscore)
 {
-	CHECKPOINT_M("Scanning for any goals that may have been accomplished.");
+	Locator::getLogger()->trace("Scanning for any goals that may have been accomplished.");
 
 	if (!HasGoal(ck))
 		return;
@@ -898,6 +899,13 @@ class LunaProfile : public Luna<Profile>
 		LuaHelpers::CreateTableFromArray(p->goaltable, L);
 		return 1;
 	}
+	static int AddGoal(T* p, lua_State* L)
+	{
+		auto ck = SArg(1);
+		auto success = p->AddGoal(ck);
+		lua_pushboolean(L, success);
+		return 1;
+	}
 	static int SetFromAll(T* p, lua_State* L)
 	{
 		p->FillGoalTable();
@@ -1165,6 +1173,7 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
 		ADD_METHOD(RenameProfile);
+		ADD_METHOD(AddGoal);
 		ADD_METHOD(SetFromAll);
 		ADD_METHOD(SortByDate);
 		ADD_METHOD(SortByRate);
@@ -1213,15 +1222,31 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	}
 
 	static int SetPercent(T* p, lua_State* L)
-	{
+	{	
 		if (!p->achieved) {
 			auto newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
-
-			if (p->percent < 0.995f && newpercent > 0.995f)
-				newpercent = 0.9975f;
-			if (p->percent < 0.9990f && newpercent > 0.9997f)
-				newpercent = 0.9997f;
+			if (newpercent > 0.99f)
+			{
+				if (p->percent < 0.99700f)
+					newpercent = 0.99700f; // AAA
+				else if (p->percent < 0.99955f)
+					newpercent = 0.99955f; // AAAA
+				else if (p->percent < 0.99996f)
+					newpercent = 0.99996f; // AAAAA
+			}
+			else if (newpercent > 0.985f)
+			{
+				if (p->percent > 0.99996f)
+					newpercent = 0.99996f; // AAAAA
+				else if (p->percent > 0.99955f)
+					newpercent = 0.99955f; // AAAA
+				else if (p->percent > 0.99700f)
+					newpercent = 0.99700f; // AAA
+				else
+					newpercent = 0.99f;
+			}
+			
 
 			p->percent = newpercent;
 			p->CheckVacuity();

@@ -384,7 +384,7 @@ GameSoundManager::StartQueuedSounds()
 		if (i + 1 == aMusicsToPlay.size())
 			StartMusic(aMusicsToPlay[i]);
 		else {
-			CHECKPOINT_M(ssprintf("Removing old sound at index %d", i).c_str());
+			Locator::getLogger()->trace("Removing old sound at index {}", i);
 			/* StopPlaying() can take a while, so don't hold the lock while we
 			 * stop the sound. */
 			g_Mutex->Lock();
@@ -410,7 +410,7 @@ GameSoundManager::HandleSetPosition()
 	for (unsigned i = 0; i < vec.size(); i++) {
 		// I wonder if this can crash when sounds get deleted
 		// only one way to find out - checkpoint and see if someone crashes :)
-		CHECKPOINT_M("Setting position for sound.");
+		Locator::getLogger()->trace("Setting position for sound.");
 		vec[i].m_psound->SetPositionSeconds(vec[i].fSeconds);
 	}
 }
@@ -423,7 +423,7 @@ GameSoundManager::HandleSetParams()
 	g_ParamsToSet.clear();
 	g_Mutex->Unlock();
 	for (unsigned i = 0; i < vec.size(); i++) {
-		CHECKPOINT_M("Setting params for sound.");
+		Locator::getLogger()->trace("Setting params for sound.");
 		// vec[i].m_psound->SetParams(vec[i].p);
 		g_Playing->m_Music->SetParams(vec[i].p);
 	}
@@ -640,10 +640,6 @@ GameSoundManager::Update(float fDeltaTime)
 	const float fAdjust = GetFrameTimingAdjustment(fDeltaTime);
 	if (!g_Playing->m_Music->IsPlaying()) {
 		/* There's no song playing.  Fake it. */
-		CHECKPOINT_M(ssprintf("%f, delta %f",
-							  GAMESTATE->m_Position.m_fMusicSeconds,
-							  fDeltaTime)
-					   .c_str());
 		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
 										fDeltaTime *
 										  g_Playing->m_Music->GetPlaybackRate(),

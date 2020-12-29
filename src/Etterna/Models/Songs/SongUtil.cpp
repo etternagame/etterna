@@ -1201,9 +1201,20 @@ IsStepsPlayable(lua_State* L)
 	return 1;
 }
 
+int
+SongTitleComparator(lua_State* L)
+{
+	auto* p1 = Luna<Song>::check(L, 1, true);
+	auto* p2 = Luna<Song>::check(L, 2, true);
+	const auto b = CompareSongPointersByTitle(p1, p2);
+	LuaHelpers::Push(L, b);
+	return 1;
+}
+
 const luaL_Reg SongUtilTable[] = { LIST_METHOD(GetPlayableSteps),
 								   LIST_METHOD(IsStepsTypePlayable),
 								   LIST_METHOD(IsStepsPlayable),
+								   LIST_METHOD(SongTitleComparator),
 								   { nullptr, nullptr } };
 }
 

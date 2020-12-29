@@ -140,10 +140,9 @@ RageWorkerThread::WorkerMain()
 		if (iRequest != REQ_NONE) {
 			/* Handle the request. */
 			if (iRequest != REQ_SHUTDOWN) {
-				CHECKPOINT_M(ssprintf("HandleRequest(%i)", iRequest).c_str());
+				Locator::getLogger()->trace("HandleRequest({})", iRequest);
 				HandleRequest(iRequest);
-				CHECKPOINT_M(
-				  ssprintf("HandleRequest(%i) done", iRequest).c_str());
+				Locator::getLogger()->trace("HandleRequest({}) done", iRequest);
 			}
 
 			/* Lock the mutex, to keep DoRequest where it is (if it's still
@@ -167,8 +166,7 @@ RageWorkerThread::WorkerMain()
 				 */
 				m_bTimedOut = false;
 			} else {
-				CHECKPOINT_M(
-				  ssprintf("HandleRequest(%i) OK", iRequest).c_str());
+				Locator::getLogger()->trace("HandleRequest({}) OK", iRequest);
 
 				m_bRequestFinished = true;
 
