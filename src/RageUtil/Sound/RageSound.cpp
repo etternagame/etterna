@@ -40,6 +40,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <Tracy.hpp>
 
 #define samplerate() m_pSource->GetSampleRate()
 
@@ -583,6 +584,7 @@ int
 RageSound::GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 										   bool* bApproximate) const
 {
+	ZoneScoped;
 	if (m_HardwareToStreamMap.IsEmpty() || m_StreamToSourceMap.IsEmpty())
 		return 0;
 
@@ -608,6 +610,7 @@ RageSound::GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 float
 RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp) const
 {
+	ZoneScoped;
 	/* Get our current hardware position. */
 	auto iCurrentHardwareFrame = SOUNDMAN->GetPosition(pTimestamp);
 

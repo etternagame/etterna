@@ -115,6 +115,7 @@ RageSoundManager::Pause(RageSoundBase* pSound, bool bPause)
 int64_t
 RageSoundManager::GetPosition(RageTimer* pTimer) const
 {
+	ZoneScoped;
 	if (m_pDriver == nullptr)
 		return 0;
 	return m_pDriver->GetHardwareFrame(pTimer);

@@ -815,6 +815,7 @@ Actor::CalcPercentThroughTween()
 void
 Actor::UpdateTweening(float fDeltaTime)
 {
+	ZoneScoped;
 	if (fDeltaTime < 0.0 && !m_Tweens.empty()) {
 		m_Tweens[0]->info.m_fTimeLeftInTween -= fDeltaTime;
 		CalcPercentThroughTween();
@@ -873,6 +874,7 @@ void
 Actor::Update(float fDeltaTime)
 {
 	ZoneScoped;
+	ZoneName(this->GetName().c_str(), 12);
 
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
@@ -895,6 +897,7 @@ generic_global_timer_update(float new_time,
 void
 Actor::UpdateInternal(float delta_time)
 {
+	ZoneScoped;
 	switch (m_EffectClock) {
 		case CLOCK_TIMER:
 			m_fSecsIntoEffect += delta_time;

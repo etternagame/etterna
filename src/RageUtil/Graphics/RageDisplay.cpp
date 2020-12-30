@@ -1251,6 +1251,7 @@ RageDisplay::FrameLimitAfterVsync(int iFPS)
 void
 RageDisplay::SetPresentTime(std::chrono::nanoseconds presentTime)
 {
+	ZoneScoped;
 	g_LastFramePresentTime = presentTime;
 }
 

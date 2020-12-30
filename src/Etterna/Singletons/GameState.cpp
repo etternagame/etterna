@@ -763,6 +763,7 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 							  const TimingData& timing,
 							  const RageTimer& timestamp)
 {
+	ZoneScoped;
 	/* It's not uncommon to get a lot of duplicated positions from the sound
 	 * driver, like so: 13.120953,13.130975,13.130975,13.130975,13.140998,...
 	 * This causes visual stuttering of the arrows. To compensate, keep a

@@ -527,6 +527,7 @@ GameSoundManager::~GameSoundManager()
 float
 GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
 {
+	ZoneScoped;
 	/*
 	 * We get one update per frame, and we're updated early, almost immediately
 	 * after vsync, near the beginning of the game loop.  However, it's very

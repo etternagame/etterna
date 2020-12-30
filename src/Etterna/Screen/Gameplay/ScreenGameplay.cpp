@@ -736,6 +736,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 void
 ScreenGameplay::PlayTicks()
 {
+	ZoneScoped;
 	/* TODO: Allow all players to have ticks. Not as simple as it looks.
 	 * If a loop takes place, it could make one player's ticks come later
 	 * than intended. Any help here would be appreciated. -Wolfman2000 */
@@ -773,6 +774,7 @@ ScreenGameplay::PlayAnnouncer(const std::string& type,
 void
 ScreenGameplay::UpdateSongPosition(float fDeltaTime)
 {
+	ZoneScoped;
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
@@ -1127,6 +1129,7 @@ ScreenGameplay::FailFadeRemovePlayer(PlayerInfo* pi)
 void
 ScreenGameplay::SendCrossedMessages()
 {
+	ZoneScoped;
 	// hmmm...
 	if (GAMESTATE->m_pCurSong == nullptr) {
 		return;
