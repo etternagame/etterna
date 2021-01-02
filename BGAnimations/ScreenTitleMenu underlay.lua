@@ -163,12 +163,13 @@ t[#t+1] = Def.ActorFrame {
             end
         },
         LoadFont("Menu Normal") .. {
-            Name = "ThemeVersion",
+            Name = "ThemeVersionAndCredits",
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:xy(versionNumberLeftGap, themeVersionUpperGap)
+                self:maxwidth((gradientwidth - versionNumberLeftGap - logoFrameLeftGap - separatorthickness) / versionTextSizeSmall)
                 self:zoom(versionTextSizeSmall)
-                self:settext("("..getThemeName().." v"..getThemeVersion().."@"..getThemeDate()..")")
+                self:settext("("..getThemeName().." v"..getThemeVersion().."@"..getThemeDate().." by "..getThemeAuthor()..")")
             end
         }
     }
