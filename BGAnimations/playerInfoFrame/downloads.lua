@@ -154,6 +154,7 @@ local function downloadsList()
     local listAllottedSpace = actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap - actuals.TopLipHeight
     local inBundles = false
     local downloaderframe = nil
+    local searchstring = ""
 
     -- fallback behavior: this is a PackList
     -- it has internal sorting properties we will use to our advantage
@@ -720,6 +721,51 @@ local function downloadsList()
                 self:playcommand("UpdateVisibilityByDownloadStatus")
             end)
             self:SetUpdateFunctionInterval(0.25) -- slow down updates to quarter second
+
+            local snm = SCREENMAN:GetTopScreen():GetName()
+            local anm = self:GetName()
+            -- init the input context but start it out false
+            CONTEXTMAN:RegisterToContextSet(snm, "Downloads", anm)
+            CONTEXTMAN:ToggleContextSet(snm, "Downloads", false)
+
+            SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                -- if context is set to Downloads, passthrough unless not holding ctrl and a number
+                -- pressing a number alone should lead to the general tab
+                if CONTEXTMAN:CheckContextSet(snm, "Downloads") then
+                    if inBundles then return end
+                    if event.type ~= "InputEventType_Release" then
+                        local btn = event.DeviceInput.button
+                        if btn == "DeviceButton_escape" then
+                            -- shortcut to exit back to general
+                            MESSAGEMAN:Broadcast("GeneralTabSet")
+                        else
+                            local del = btn == "DeviceButton_delete"
+                            local bs = btn == "DeviceButton_backspace"
+                            local char = inputToCharacter(event)
+                            
+                            -- require that ctrl is pressed for number entry
+                            if char ~= nil and tonumber(char) and not INPUTFILTER:IsControlPressed() then
+                                return
+                            end
+
+                            if bs then
+                                searchstring = searchstring:sub(1, -2)
+                            elseif del then
+                                searchstring = ""
+                            else
+                                if char == nil then return end
+                                searchstring = searchstring .. char
+                            end
+                            self:playcommand("UpdateSearch")
+                            self:playcommand("UpdateItemList")
+                        end
+                    end
+                end
+            
+            end)
+        end,
+        UpdateSearchCommand = function(self)
+            pl:FilterAndSearch(searchstring, 0, 0, 0, 0)
         end,
         UpdateItemListCommand = function(self)
             TOOLTIP:Hide()
@@ -766,7 +812,10 @@ local function downloadsList()
                     self:halign(0)
                     self:x(actuals.SearchTextLeftGap)
                     self:zoom(searchTextSize)
-                    self:settext("this is input text")
+                    self:maxwidth((actuals.SearchBGWidth - actuals.SearchTextLeftGap*1.5) / searchTextSize - textZoomFudge)
+                end,
+                UpdateSearchCommand = function(self)
+                    self:settext(searchstring)
                 end,
             }
         },
