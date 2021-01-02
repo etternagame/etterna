@@ -449,7 +449,7 @@ t[#t+1] = Def.ActorFrame {
             end
 
             -- allowing ctrl+n to go back to general tabs
-            if ctxBypasses then                
+            if ctxBypasses then
                 if event.char and tonumber(event.char) and INPUTFILTER:IsControlPressed() then
                     local n = tonumber(event.char)
                     if n == 0 then n = 10 end
