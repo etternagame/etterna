@@ -6,13 +6,17 @@ local ratios = {
 
     IndexColumnLeftGap = 30 /1920, -- left edge to right edge (right align)
     NameColumnLeftGap = 45 / 1920, -- left edge to left edge (left align)
-    MSDColumnLeftGap = 445 / 1920, -- left edge to center of text (center align)
-    SizeHeaderLeftGap = 542 / 1920, -- left edge to left edge (left align)
-    SizeColumnLeftGap = 612 / 1920, -- left edge to right edge (right align)
-    MainDLLeftGap = 642 / 1920, -- left edge to left edge
-    MirrorDLLeftGap = 684 / 1920, -- left edge to left edge
+    MSDColumnLeftGap = 495 / 1920, -- left edge to center of text (center align)
+    SizeHeaderLeftGap = 592 / 1920, -- left edge to left edge (left align)
+    SizeColumnLeftGap = 662 / 1920, -- left edge to right edge (right align)
+    MainDLLeftGap = 692 / 1920, -- left edge to left edge
+    MirrorDLLeftGap = 734 / 1920, -- left edge to left edge
     DLIconSize = 29 / 1080, -- it is a square
     -- placement of the DL Text is left align on MainDLLeftGap with width MirrorDLLeftGap - MainDLLeftGap + DLIconSize
+    HeaderLineUpperGap = 13 / 1080, -- from bottom of top lip to top of header text
+    ItemListUpperGap = 55 / 1080, -- from bottom of top lip to top of topmost item in the list
+    -- ItemListAllottedSpace is instead just some fraction of the Height related to the height of the bundle area
+    MSDWidth = 80 / 1920, -- approximated max normal width of the MSD since it is center aligned and boundaries need to be made
 
     SearchBGLeftGap = 292 / 1920, -- left edge to left edge
     SearchBGWidth = 456 / 1920,
@@ -35,6 +39,9 @@ local actuals = {
     MainDLLeftGap = ratios.MainDLLeftGap * SCREEN_WIDTH,
     MirrorDLLeftGap = ratios.MirrorDLLeftGap * SCREEN_WIDTH,
     DLIconSize = ratios.DLIconSize * SCREEN_HEIGHT,
+    HeaderLineUpperGap = ratios.HeaderLineUpperGap * SCREEN_HEIGHT,
+    ItemListUpperGap = ratios.ItemListUpperGap * SCREEN_HEIGHT,
+    MSDWidth = ratios.MSDWidth * SCREEN_WIDTH,
     SearchBGLeftGap = ratios.SearchBGLeftGap * SCREEN_WIDTH,
     SearchBGWidth = ratios.SearchBGWidth * SCREEN_WIDTH,
     SearchBGHeight = ratios.SearchBGHeight * SCREEN_HEIGHT,
@@ -80,7 +87,19 @@ local t = Def.ActorFrame {
     end
 }
 
-local textSize = 1
+local titleTextSize = 1
+local indexTextSize = 1
+local nameTextSize = 1
+local msdTextSize = 1
+local sizeTextSize = 1
+local cancelTextSize = 1
+
+local indexHeaderSize = 1
+local nameHeaderSize = 1
+local msdHeaderSize = 1
+local sizeHeaderSize = 1
+local searchTextSize = 1
+
 local textZoomFudge = 5
 local buttonHoverAlpha = 0.6
 local buttonEnabledAlphaMultiplier = 0.8 -- this is multiplied to the current alpha (including the hover alpha) if "clicked"
@@ -110,24 +129,32 @@ t[#t+1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
         self:halign(0)
         self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
-        self:zoom(textSize)
-        self:maxwidth(actuals.Width / textSize - textZoomFudge)
+        self:zoom(titleTextSize)
+        self:maxwidth(actuals.Width / titleTextSize - textZoomFudge)
         self:settext("Pack Downloader")
     end
 }
 
 -- produces all the fun stuff in the pack downloader
 local function downloadsList()
-    local itemCount = 20
+    local itemCount = 16
+    local listAllottedSpace = (actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap) / 3 * 2
+    local bundlesAllottedSpace = (actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap) / 3
 
     local function listItem(i)
         return Def.ActorFrame {
             InitCommand = function(self)
+                self:y(actuals.TopLipHeight + actuals.ItemListUpperGap + listAllottedSpace / itemCount * (i-1))
             end,
 
             LoadFont("Common Normal") .. {
                 Name = "Index",
                 InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.IndexColumnLeftGap)
+                    self:zoom(indexTextSize)
+                    self:maxwidth(actuals.IndexColumnLeftGap / indexTextSize - textZoomFudge)
+                    self:settext("100")
                 end,
                 SetPackCommand = function(self)
                 end,
@@ -135,6 +162,11 @@ local function downloadsList()
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "Name",
                 InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:x(actuals.NameColumnLeftGap)
+                    self:zoom(nameTextSize)
+                    self:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
+                    self:settext("FREE SHIPPING AND HANDLING FOR FREE (free)")
                 end,
                 SetPackCommand = function(self)
                 end,
@@ -142,6 +174,11 @@ local function downloadsList()
             LoadFont("Common Normal") .. {
                 Name = "AverageMSD",
                 InitCommand = function(self)
+                    self:valign(0)
+                    self:x(actuals.MSDColumnLeftGap)
+                    self:zoom(msdTextSize)
+                    self:maxwidth(actuals.MSDWidth / msdTextSize - textZoomFudge)
+                    self:settext("19.99")
                 end,
                 SetPackCommand = function(self)
                 end,
@@ -149,6 +186,11 @@ local function downloadsList()
             LoadFont("Common Normal") .. {
                 Name = "Size",
                 InitCommand = function(self)
+                    self:halign(1):valign(0)
+                    self:x(actuals.SizeColumnLeftGap)
+                    self:zoom(sizeTextSize)
+                    self:maxwidth((actuals.SizeColumnLeftGap - actuals.MSDColumnLeftGap - actuals.MSDWidth / 2) / sizeTextSize - textZoomFudge)
+                    self:settext("666MB")
                 end,
                 SetPackCommand = function(self)
                 end,
@@ -158,6 +200,9 @@ local function downloadsList()
                 InitCommand = function(self)
                     -- white: not installed, can queue
                     -- installed: green
+                    self:halign(0):valign(0)
+                    self:x(actuals.MainDLLeftGap)
+                    self:zoomto(actuals.DLIconSize, actuals.DLIconSize)
                 end,
             },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdlicon")) .. {
@@ -165,6 +210,9 @@ local function downloadsList()
                 InitCommand = function(self)
                     -- white: not installed, can queue
                     -- installed: green
+                    self:halign(0):valign(0)
+                    self:x(actuals.MirrorDLLeftGap)
+                    self:zoomto(actuals.DLIconSize, actuals.DLIconSize)
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -172,7 +220,17 @@ local function downloadsList()
                 InitCommand = function(self)
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
+                    local width = actuals.MirrorDLLeftGap - actuals.MainDLLeftGap + actuals.DLIconSize
+                    txt:halign(0):valign(0)
+                    bg:halign(0):valign(0)
 
+                    self:x(actuals.MainDLLeftGap)
+                    txt:settext(" ")
+                    bg:zoomto(width, txt:GetZoomedHeight())
+                    txt:maxwidth(width / cancelTextSize - textZoomFudge)
+
+                    txt:settext("Cancel")
+                    self:diffusealpha(0)
                     -- if clicked, cancels download or removes from queue
                     -- otherwise:
                     -- is invisible if not queued or in progress
@@ -190,6 +248,7 @@ local function downloadsList()
     -- click the same bundle to unfilter
     -- one bundle at a time only or none at all
     local function bundleDisplay()
+        local bundlespacetopY = actuals.TopLipHeight + actuals.ItemListUpperGap + listAllottedSpace
 
         -- these are the defined bundle types
         -- note that each bundle has an expanded version
@@ -212,16 +271,22 @@ local function downloadsList()
 
             -- nesty nesty function scary
             -- (its an ActorFrame that holds text and a bg)
-            local function bundleButton(i)
-                local isExpandedBundle = i == 2
+            local function bundleButton(j)
+                local isExpandedBundle = j == 2
                 local isClicked = false
 
                 -- just because i can, add another function to get the children for the frame
                 local function getkids(self) return self:GetChild("Text"), self:GetChild("BG") end
                 return UIElements.TextButton(1, 1, "Common Normal") .. {
-                    Name = "BundleButtonPairSub_"..i,
+                    Name = "BundleButtonPairSub_"..j,
                     InitCommand = function(self)
                         local txt, bg = getkids(self)
+                        self:x(actuals.Width / 2 * (j-1) + actuals.Width / 4)
+
+                        bg:zoomto(actuals.Width / 5, bundlesAllottedSpace / #bundleTypes / 2 )
+                        local ex = isExpandedBundle and " EX" or ""
+                        txt:settext(bundleType .. ex)
+                        bg:diffusealpha(0.2)
                     end,
                     UpdateHoverCommand = function(self)
                         local txt, bg = getkids(self)
@@ -256,6 +321,7 @@ local function downloadsList()
             return Def.ActorFrame {
                 Name = "BundleButtonPair_"..i,
                 InitCommand = function(self)
+                    self:y(bundlesAllottedSpace / #bundleTypes * (i-1) + (bundlesAllottedSpace / #bundleTypes / 2))
                 end,
 
                 bundleButton(1),
@@ -265,7 +331,10 @@ local function downloadsList()
 
 
         local t = Def.ActorFrame {
-
+            Name = "BundleSectionFrame",
+            InitCommand = function(self)
+                self:y(bundlespacetopY)
+            end,
         }
 
         for i = 1, #bundleTypes do
@@ -283,43 +352,86 @@ local function downloadsList()
         Def.ActorFrame {
             Name = "PackSearchFrame",
             InitCommand = function(self)
+                self:xy(actuals.SearchBGLeftGap, actuals.TopLipHeight / 2)
             end,
 
-            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "sliderbar")) .. {
+            UIElements.SpriteButton(1, 1, THEME:GetPathG("", "searchBar")) .. {
                 Name = "PackSearchBG",
                 InitCommand = function(self)
+                    self:halign(0)
+                    self:zoomto(actuals.SearchBGWidth, actuals.SearchBGHeight)
+                    self:diffusealpha(0.4)
                 end
             },
             Def.Sprite {
                 Name = "PackSearchIcon",
                 Texture = THEME:GetPathG("", "search"),
                 InitCommand = function(self)
+                    self:halign(0)
+                    self:x(actuals.SearchIconLeftGap)
+                    self:zoomto(actuals.SearchIconSize, actuals.SearchIconSize)
                 end
             },
             LoadFont("Common Normal") .. {
                 Name = "PackSearchText",
                 InitCommand = function(self)
+                    self:halign(0)
+                    self:x(actuals.SearchTextLeftGap)
+                    self:zoom(searchTextSize)
+                    self:settext("this is input text")
                 end,
             }
         },
         LoadFont("Common Normal") .. {
             Name = "IndexHeader",
             InitCommand = function(self)
+                self:halign(1):valign(0)
+                self:xy(actuals.IndexColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
+                self:zoom(indexHeaderSize)
+                self:maxwidth(actuals.IndexColumnLeftGap / indexHeaderSize - textZoomFudge)
+                self:settext("#")
             end,
         },
         UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "NameHeader",
             InitCommand = function(self)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
+                local width = actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2
+                self:xy(actuals.NameColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
+                
+                txt:halign(0):valign(0)
+                txt:zoom(nameHeaderSize)
+                txt:maxwidth(width / nameHeaderSize - textZoomFudge)
+                txt:settext("Name")
             end,
         },
         UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "AverageHeader",
             InitCommand = function(self)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
+                local width = actuals.MSDWidth
+                self:xy(actuals.MSDColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
+                
+                txt:valign(0)
+                txt:zoom(msdHeaderSize)
+                txt:maxwidth(width / msdHeaderSize - textZoomFudge)
+                txt:settext("Avg")
             end,
         },
         UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "Size Header",
             InitCommand = function(self)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
+                local width = actuals.SizeColumnLeftGap - actuals.MSDColumnLeftGap - actuals.MSDWidth / 2
+                self:xy(actuals.SizeHeaderLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
+                
+                txt:valign(0)
+                txt:zoom(sizeHeaderSize)
+                txt:maxwidth(width / sizeHeaderSize - textZoomFudge)
+                txt:settext("Size")
             end,
         }
     }
