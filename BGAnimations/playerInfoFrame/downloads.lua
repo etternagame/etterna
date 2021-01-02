@@ -863,6 +863,12 @@ local function downloadsList()
                 txt:settext("Name")
                 bg:zoomto(math.max(width/2, txt:GetZoomedWidth()), txt:GetZoomedHeight())
             end,
+            ClickCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update ~= "OnMouseDown" then return end
+                pl:SortByName()
+                self:GetParent():playcommand("UpdateItemList")
+            end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "in" then
@@ -887,6 +893,12 @@ local function downloadsList()
                 txt:settext("Avg")
                 bg:zoomto(width, txt:GetZoomedHeight())
             end,
+            ClickCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update ~= "OnMouseDown" then return end
+                pl:SortByDiff()
+                self:GetParent():playcommand("UpdateItemList")
+            end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "in" then
@@ -910,6 +922,12 @@ local function downloadsList()
                 txt:maxwidth(width / sizeHeaderSize - textZoomFudge)
                 txt:settext("Size")
                 bg:zoomto(width, txt:GetZoomedHeight())
+            end,
+            ClickCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update ~= "OnMouseDown" then return end
+                pl:SortBySize()
+                self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
