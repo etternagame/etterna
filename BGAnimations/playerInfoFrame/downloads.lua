@@ -625,6 +625,7 @@ local function downloadsList()
 
                     self:x(actuals.MainDLLeftGap)
                     txt:settext(" ")
+                    txt:zoom(cancelTextSize)
                     bg:zoomto(width, txt:GetZoomedHeight())
                     txt:maxwidth(width / cancelTextSize - textZoomFudge)
 
