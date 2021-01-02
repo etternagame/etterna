@@ -627,7 +627,7 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("Invoke")
         end
     },
-    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "search")) .. {
+    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "searchIcon")) .. {
         Name = "Search",
         InitCommand = function(self)
             self:halign(1):valign(0)
