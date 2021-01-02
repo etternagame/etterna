@@ -79,6 +79,11 @@ local t = Def.ActorFrame {
             self:queuecommand("FinishFocusing")
             self:smooth(animationSeconds)
             self:x(visibleframeX)
+        else
+            self:finishtweening()
+            self:smooth(animationSeconds)
+            self:x(SCREEN_WIDTH)
+            focused = false
         end
     end,
     FinishFocusingCommand = function(self)
