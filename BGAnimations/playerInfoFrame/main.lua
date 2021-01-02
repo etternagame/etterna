@@ -53,6 +53,9 @@ local ratios = {
     IconDownloadsWidth = 51 / 1920,
     IconDownloadsHeight = 36 / 1080,
     IconDownloadsRightGap = 278 / 1920,
+    IconDownloadsProgressBar1UpperGap = 51 / 1080, -- top of icon to top of bar
+    IconDownloadsProgressBarHeight = 9 / 1080,
+    IconDownloadsProgressBarWidth = 88 / 1920,
     IconRandomWidth = 41 / 1920,
     IconRandomHeight = 36 / 1080,
     IconRandomRightGap = 367 / 1920,
@@ -79,10 +82,8 @@ local actuals = {
     RightTextTopGap3 = ratios.RightTextTopGap3 * SCREEN_HEIGHT,
     VisualizerLeftGap = ratios.VisualizerLeftGap * SCREEN_WIDTH,
     VisualizerWidth = ratios.VisualizerWidth * SCREEN_WIDTH,
-
     RatingEdgeToVisualizerBuffer = ratios.RatingEdgeToVisualizerBuffer * SCREEN_WIDTH,
     RatingSideBuffer = ratios.RatingSideBuffer * SCREEN_WIDTH,
-
     IconUpperGap = ratios.IconUpperGap * SCREEN_HEIGHT,
     IconExitWidth = ratios.IconExitWidth * SCREEN_WIDTH,
     IconExitHeight = ratios.IconExitHeight * SCREEN_HEIGHT,
@@ -96,6 +97,9 @@ local actuals = {
     IconDownloadsWidth = ratios.IconDownloadsWidth * SCREEN_WIDTH,
     IconDownloadsHeight = ratios.IconDownloadsHeight * SCREEN_HEIGHT,
     IconDownloadsRightGap = ratios.IconDownloadsRightGap * SCREEN_WIDTH,
+    IconDownloadsProgressBar1UpperGap = ratios.IconDownloadsProgressBar1UpperGap * SCREEN_HEIGHT,
+    IconDownloadsProgressBarHeight = ratios.IconDownloadsProgressBarHeight * SCREEN_HEIGHT,
+    IconDownloadsProgressBarWidth = ratios.IconDownloadsProgressBarWidth * SCREEN_WIDTH,
     IconRandomWidth = ratios.IconRandomWidth * SCREEN_WIDTH,
     IconRandomHeight = ratios.IconRandomHeight * SCREEN_HEIGHT,
     IconRandomRightGap = ratios.IconRandomRightGap * SCREEN_WIDTH,
@@ -153,6 +157,11 @@ local strparrows = shortenIfOver1Mil(parrows)
 local ptime = profile:GetTotalSessionSeconds()
 local username = ""
 local redir = false -- tell whether or not redirected input is on for the login prompt stuff
+
+local downloadsProgress1BGAlpha = 0.4
+local downloadsProgress1Alpha = 1
+local downloadsProgress2BGAlpha = 0.4
+local downloadsProgress2Alpha = 1
 
 -- this does not include the exit button
 -- from left to right starting at 1, the user may press a number while holding to control to activate them
@@ -583,12 +592,10 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("Invoke")
         end
     },
-    UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdownloads")) .. {
+    Def.ActorFrame {
         Name = "Downloads",
         InitCommand = function(self)
-            self:halign(1):valign(0)
             self:x(-actuals.IconDownloadsRightGap)
-            self:zoomto(actuals.IconDownloadsWidth, actuals.IconDownloadsHeight)
             self:diffusealpha(disabledButtonAlpha)
         end,
         OnCommand = function(self)
@@ -596,29 +603,83 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         end,
-        MouseOverCommand = function(self)
-            if selectable(self:GetName()) then
-                self:diffusealpha(hoverAlpha)
-            end
-        end,
-        MouseOutCommand = function(self)
-            if selectable(self:GetName()) then
-                self:diffusealpha(1)
-            end
-        end,
-        InvokeCommand = function(self)
-            if selectable(self:GetName()) then
-                -- if clicking or otherwise invoking this twice, just toggle back to generalBox
-                if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "Downloads") then
-                    MESSAGEMAN:Broadcast("GeneralTabSet")
-                else
-                    MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Downloads"})
+
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdownloads")) .. {
+            Name = "Downloads",
+            InitCommand = function(self)
+                self:halign(1):valign(0)
+                self:zoomto(actuals.IconDownloadsWidth, actuals.IconDownloadsHeight)
+            end,
+            MouseOverCommand = function(self)
+                if selectable(self:GetName()) then
+                    self:diffusealpha(hoverAlpha)
                 end
+            end,
+            MouseOutCommand = function(self)
+                if selectable(self:GetName()) then
+                    self:diffusealpha(1)
+                end
+            end,
+            InvokeCommand = function(self)
+                if selectable(self:GetName()) then
+                    -- if clicking or otherwise invoking this twice, just toggle back to generalBox
+                    if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "Downloads") then
+                        MESSAGEMAN:Broadcast("GeneralTabSet")
+                    else
+                        MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Downloads"})
+                    end
+                end
+            end,
+            MouseDownCommand = function(self, params)
+                self:playcommand("Invoke")
             end
-        end,
-        MouseDownCommand = function(self, params)
-            self:playcommand("Invoke")
-        end
+        },
+        Def.Quad {
+            Name = "Progress1BG",
+            InitCommand = function(self)
+                self:valign(0)
+                self:x(-actuals.IconDownloadsWidth/2)
+                self:y(actuals.IconDownloadsProgressBar1UpperGap)
+                self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
+                self:diffusealpha(0)
+            end,
+            DLProgressAndQueueUpdateMessageCommand = function(self)
+                local dls = DLMAN:GetDownloads()
+                if #dls > 0 then
+                    self:diffusealpha(downloadsProgress1BGAlpha)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
+            AllDownloadsCompletedMessageCommand = function(self)
+                self:diffusealpha(0)
+            end
+        },
+        Def.Quad {
+            Name = "Progress1Progress",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:x(-actuals.IconDownloadsWidth/2 - actuals.IconDownloadsProgressBarWidth/2)
+                self:y(actuals.IconDownloadsProgressBar1UpperGap)
+                self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
+                self:diffusealpha(0)
+            end,
+            DLProgressAndQueueUpdateMessageCommand = function(self)
+                local dls = DLMAN:GetDownloads()
+                if #dls > 0 then
+                    self:diffusealpha(downloadsProgress1Alpha)
+                    local progress = dls[1]:GetKBDownloaded()
+                    local size = dls[1]:GetTotalKB()
+                    local perc = progress / size
+                    self:zoomx(actuals.IconDownloadsProgressBarWidth * perc)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
+            AllDownloadsCompletedMessageCommand = function(self)
+                self:diffusealpha(0)
+            end
+        }
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "random")) .. {
         Name = "Random",
