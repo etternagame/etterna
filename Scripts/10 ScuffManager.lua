@@ -6,6 +6,7 @@ SCUFF = {}
 
 SCUFF.generaltab = 1
 
+SCUFF.generaltabcount = 6 -- this gets reset by the general box anyways
 SCUFF.generaltabindex = 1
 SCUFF.scoretabindex = 2
 SCUFF.profiletabindex = 3

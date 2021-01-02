@@ -341,15 +341,14 @@ local function upperSection()
                             changeFocus(-1)
                         elseif btn == "DeviceButton_escape" then
                             -- shortcut to escape out of search without searching
-                            -- (alternatively ... just press a number)
                             MESSAGEMAN:Broadcast("GeneralTabSet")
                         else
                             local del = btn == "DeviceButton_delete"
                             local bs = btn == "DeviceButton_backspace"
                             local char = inputToCharacter(event)
 
-                            -- require that ctrl is pressed for number entry
-                            if char ~= nil and tonumber(char) and not INPUTFILTER:IsControlPressed() then
+                            -- if ctrl is pressed with a number, let the general tab input handler deal with this
+                            if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
                                 return
                             end
 

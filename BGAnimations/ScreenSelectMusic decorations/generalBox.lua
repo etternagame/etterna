@@ -39,6 +39,7 @@ local choiceNames = {
     "Playlists",
     "Tags",
 }
+SCUFF.generaltabcount = #choiceNames
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
@@ -111,8 +112,7 @@ local function createChoices()
             -- enable the possibility to press the keyboard to switch tabs
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 -- if locked out, dont allow
-                -- allow Main1 and Search context (pressing numbers in search escapes search)
-                if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not CONTEXTMAN:CheckContextSet(snm, "Search") then return end
+                if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                 if event.type == "InputEventType_FirstPress" then
                     -- must be a number and control not held down
                     if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then

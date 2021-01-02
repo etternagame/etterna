@@ -435,35 +435,58 @@ t[#t+1] = Def.ActorFrame {
 
         -- enable the possibility to press the keyboard to switch tabs
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
-            -- if locked out, dont allow
-            if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
-            if event.type == "InputEventType_FirstPress" then
-                -- must be a number with control held down
+            if event.type ~= "InputEventType_FirstPress" then return end
+            -- this list of contexts are meant to be contexts of the PlayerInfo Frame
+            -- full numeric input is allowed on these tabs and you must hold CTRL+Number to get out of them
+            -- the same way you would get into them
+            local contextsToCtrlOutOf = {
+                "Search",
+                "Downloads",
+            }
+            local ctxBypasses = false
+            for _, ctx in ipairs(contextsToCtrlOutOf) do
+                if CONTEXTMAN:CheckContextSet(snm, ctx) then ctxBypasses = true break end
+            end
+
+            -- allowing ctrl+n to go back to general tabs
+            if ctxBypasses then                
                 if event.char and tonumber(event.char) and INPUTFILTER:IsControlPressed() then
                     local n = tonumber(event.char)
                     if n == 0 then n = 10 end
-                    if n >= 1 and n <= iconCountForKeyboardInput then
-                        local childToInvoke = nil
-                        if n == 1 then
-                            childToInvoke = self:GetChild("Search")
-                        elseif n == 2 then
-                            childToInvoke = self:GetChild("Random")
-                        elseif n == 3 then
-                            childToInvoke = self:GetChild("Downloads")
-                        elseif n == 4 then
-                            childToInvoke = self:GetChild("Help")
-                        elseif n == 5 then
-                            childToInvoke = self:GetChild("Settings")
-                        end
-                        if childToInvoke ~= nil then
-                            childToInvoke:playcommand("Invoke")
-                        end
+                    if n >= 1 and n <= SCUFF.generaltabcount then
+                        MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
                     end
-                elseif event.DeviceInput.button == "DeviceButton_F1" then
-                    -- im making a single exception that F1 alone invokes Search
-                    -- for convenience purposes
-                    self:GetChild("Search"):playcommand("Invoke")
                 end
+                return
+            end
+
+            -- if locked out, dont allow
+            if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
+            -- must be a number with control held down
+            if event.char and tonumber(event.char) and INPUTFILTER:IsControlPressed() then
+                local n = tonumber(event.char)
+                if n == 0 then n = 10 end
+                if n >= 1 and n <= iconCountForKeyboardInput then
+                    local childToInvoke = nil
+                    if n == 1 then
+                        childToInvoke = self:GetChild("Search")
+                    elseif n == 2 then
+                        childToInvoke = self:GetChild("Random")
+                    elseif n == 3 then
+                        childToInvoke = self:GetChild("Downloads")
+                    elseif n == 4 then
+                        childToInvoke = self:GetChild("Help")
+                    elseif n == 5 then
+                        childToInvoke = self:GetChild("Settings")
+                    end
+                    if childToInvoke ~= nil then
+                        childToInvoke:playcommand("Invoke")
+                    end
+                end
+            elseif event.DeviceInput.button == "DeviceButton_F1" then
+                -- im making a single exception that F1 alone invokes Search
+                -- for convenience purposes
+                self:GetChild("Search"):playcommand("Invoke")
             end
         end)
     end,

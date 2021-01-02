@@ -743,8 +743,8 @@ local function downloadsList()
                             local bs = btn == "DeviceButton_backspace"
                             local char = inputToCharacter(event)
                             
-                            -- require that ctrl is pressed for number entry
-                            if char ~= nil and tonumber(char) and not INPUTFILTER:IsControlPressed() then
+                            -- if ctrl is pressed with a number, let the general tab input handler deal with this
+                            if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
                                 return
                             end
 
