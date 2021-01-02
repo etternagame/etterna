@@ -735,6 +735,7 @@ local function downloadsList()
                     if inBundles then return end
                     if event.type ~= "InputEventType_Release" then
                         local btn = event.DeviceInput.button
+                        local gbtn = event.button
                         if btn == "DeviceButton_escape" then
                             -- shortcut to exit back to general
                             MESSAGEMAN:Broadcast("GeneralTabSet")
@@ -742,6 +743,8 @@ local function downloadsList()
                             local del = btn == "DeviceButton_delete"
                             local bs = btn == "DeviceButton_backspace"
                             local char = inputToCharacter(event)
+                            local up = gbtn == "MenuUp" or gbtn == "Up"
+                            local down = gbtn == "MenuDown" or gbtn == "Down"
                             
                             -- if ctrl is pressed with a number, let the general tab input handler deal with this
                             if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
@@ -752,6 +755,12 @@ local function downloadsList()
                                 searchstring = searchstring:sub(1, -2)
                             elseif del then
                                 searchstring = ""
+                            elseif up then
+                                -- up move the page up
+                                movePage(-1)
+                            elseif down then
+                                -- down move the page down
+                                movePage(1)
                             else
                                 if char == nil then return end
                                 searchstring = searchstring .. char
@@ -794,7 +803,7 @@ local function downloadsList()
                 InitCommand = function(self)
                     self:halign(0)
                     self:zoomto(actuals.SearchBGWidth, actuals.SearchBGHeight)
-                    self:diffusealpha(0.4)
+                    self:diffusealpha(0.35)
                 end
             },
             Def.Sprite {
