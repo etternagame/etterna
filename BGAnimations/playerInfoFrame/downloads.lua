@@ -99,6 +99,7 @@ local nameHeaderSize = 1
 local msdHeaderSize = 1
 local sizeHeaderSize = 1
 local searchTextSize = 1
+local choiceTextSize = 1
 
 local textZoomFudge = 5
 local buttonHoverAlpha = 0.6
@@ -137,9 +138,159 @@ t[#t+1] = LoadFont("Common Normal") .. {
 
 -- produces all the fun stuff in the pack downloader
 local function downloadsList()
-    local itemCount = 16
-    local listAllottedSpace = (actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap) / 3 * 2
-    local bundlesAllottedSpace = (actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap) / 3
+    local itemCount = 25
+    local listAllottedSpace = actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap - actuals.TopLipHeight
+    local inBundles = false
+
+    -- these are the defined bundle types
+    -- note that each bundle has an expanded version
+    local bundleTypes = {
+        "Novice",
+        "Beginner",
+        "Intermediate",
+        "Advanced",
+        "Expert",
+    }
+
+    local function tabChoices()
+        -- keeping track of which choices are on at any moment (keys are indices, values are true/false/nil)
+        local activeChoices = {}
+
+        -- identify each choice using this table
+        --  Name: The name of the choice (NOT SHOWN TO THE USER)
+        --  Type: Toggle/Exclusive/Tap
+        --      Toggle - This choice can be clicked multiple times to scroll through choices
+        --      Exclusive - This choice is one out of a set of Exclusive choices. Only one Exclusive choice can be picked at once
+        --      Tap - This choice can only be pressed (if visible by Condition) and will only run TapFunction at that time
+        --  Display: The string the user sees. One option for each choice must be given if it is a Toggle choice
+        --  Condition: A function that returns true or false. Determines if the choice should be visible or not
+        --  IndexGetter: A function that returns an index for its status, according to the Displays set
+        --  TapFunction: A function that runs when the button is pressed
+        local choiceDefinitions = {
+            {   -- Enter or Exit from Bundle Select
+                Name = "bundleselect",
+                Type = "Tap",
+                Display = {"Bundle Select", "Back"},
+                IndexGetter = function()
+                    if inBundles then
+                        return 2
+                    else
+                        return 1
+                    end
+                end,
+                Condition = function() return true end,
+                TapFunction = function()
+
+                end,
+            },
+            {   -- Cancel all current downloads
+                Name = "cancelall",
+                Type = "Tap",
+                Display = {"Cancel All Downloads"},
+                IndexGetter = function() return 1 end,
+                Condition = function() return true end,
+                TapFunction = function()
+                end,
+            },
+        }
+
+        local function createChoice(i)
+            local definition = choiceDefinitions[i]
+            local displayIndex = 1
+
+            return UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "ChoiceButton_" ..i,
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+
+                    -- this position is the center of the text
+                    -- divides the space into slots for the choices then places them half way into them
+                    -- should work for any count of choices
+                    -- and the maxwidth will make sure they stay nonoverlapping
+                    self:x((actuals.Width / #choiceDefinitions) * (i-1) + (actuals.Width / #choiceDefinitions / 2))
+                    txt:zoom(choiceTextSize)
+                    txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textZoomFudge)
+                    bg:zoomto(actuals.Width / #choiceDefinitions, actuals.TopLipHeight)
+                    self:playcommand("UpdateText")
+                end,
+                UpdateTextCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    -- update index
+                    displayIndex = definition.IndexGetter()
+
+                    -- update visibility by condition
+                    if definition.Condition() then
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    else
+                        self:diffusealpha(0)
+                    end
+
+                    if activeChoices[i] then
+                        txt:strokecolor(buttonActiveStrokeColor)
+                    else
+                        txt:strokecolor(color("0,0,0,0"))
+                    end
+
+                    -- update display
+                    txt:settext(definition.Display[displayIndex])
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        -- exclusive choices cause activechoices to be forced to this one
+                        if definition.Type == "Exclusive" then
+                            activeChoices = {[i]=true}
+                        else
+                            -- uhh i didnt implement any other type that would ... be used for.. this
+                        end
+
+                        -- run the tap function
+                        if definition.TapFunction ~= nil then
+                            definition.TapFunction()
+                        end
+                        self:GetParent():GetParent():playcommand("UpdateItemList")
+                        self:GetParent():playcommand("UpdateText")
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                end
+            }
+        end
+
+        local t = Def.ActorFrame {
+            Name = "Choices",
+            InitCommand = function(self)
+                self:y(actuals.Height - actuals.TopLipHeight / 2)
+            end,
+            Def.Quad {
+                Name = "BG",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoomto(actuals.Width, actuals.TopLipHeight)
+                    self:diffuse(color("#111111"))
+                    self:diffusealpha(0.6)
+                end
+            }
+        }
+
+        for i = 1, #choiceDefinitions do
+            t[#t+1] = createChoice(i)
+        end
+
+        return t
+    end
 
     local function listItem(i)
         return Def.ActorFrame {
@@ -243,107 +394,6 @@ local function downloadsList()
         }
     end
 
-    -- produces the bundle display
-    -- click a bundle to filter the pack list to just the packs in the bundle
-    -- click the same bundle to unfilter
-    -- one bundle at a time only or none at all
-    local function bundleDisplay()
-        local bundlespacetopY = actuals.TopLipHeight + actuals.ItemListUpperGap + listAllottedSpace
-
-        -- these are the defined bundle types
-        -- note that each bundle has an expanded version
-        -- this means 5 elements makes 10 buttons (5 rows, 2 columns)
-        local bundleTypes = {
-            "Novice",
-            "Beginner",
-            "Intermediate",
-            "Advanced",
-            "Expert",
-        }
-
-        -- a reduction of code duplication means an increase in blinding complexity
-        -- im all for that
-        -- this function makes a pair of buttons within an ActorFrame once per bundle
-        -- im thinking about this 5 minutes later and this is going to multiply the number of actors in this by like 5
-        --  too late already started
-        local function makeBundlePair(i)
-            local bundleType = bundleTypes[i]
-
-            -- nesty nesty function scary
-            -- (its an ActorFrame that holds text and a bg)
-            local function bundleButton(j)
-                local isExpandedBundle = j == 2
-                local isClicked = false
-
-                -- just because i can, add another function to get the children for the frame
-                local function getkids(self) return self:GetChild("Text"), self:GetChild("BG") end
-                return UIElements.TextButton(1, 1, "Common Normal") .. {
-                    Name = "BundleButtonPairSub_"..j,
-                    InitCommand = function(self)
-                        local txt, bg = getkids(self)
-                        self:x(actuals.Width / 2 * (j-1) + actuals.Width / 4)
-
-                        bg:zoomto(actuals.Width / 5, bundlesAllottedSpace / #bundleTypes / 2 )
-                        local ex = isExpandedBundle and " EX" or ""
-                        txt:settext(bundleType .. ex)
-                        bg:diffusealpha(0.2)
-                    end,
-                    UpdateHoverCommand = function(self)
-                        local txt, bg = getkids(self)
-                        if isOver(bg) then
-                            self:diffusealpha(buttonHoverAlpha * (isClicked and buttonEnabledAlphaMultiplier or 1))
-                        else
-                            self:diffusealpha(1)
-                        end
-                    end,
-                    SetBundleCommand = function(self)
-                        local txt, bg = getkids(self)
-
-                        -- update alpha in case hovering or not
-                        -- assumption: all bundle buttons will be clickable thus able to be hovered
-                        self:playcommand("UpdateHover")
-                    end,
-                    RolloverUpdateCommand = function(self, params)
-                        self:playcommand("UpdateHover")
-                    end,
-                    MouseDownCommand = function(self, params)
-                        if params.event == "DeviceButton_left mouse button" then
-                            if isClicked then
-                                -- unfilter packs
-                            else
-                                -- filter packs
-                            end
-                        end
-                    end,
-                }
-            end
-
-            return Def.ActorFrame {
-                Name = "BundleButtonPair_"..i,
-                InitCommand = function(self)
-                    self:y(bundlesAllottedSpace / #bundleTypes * (i-1) + (bundlesAllottedSpace / #bundleTypes / 2))
-                end,
-
-                bundleButton(1),
-                bundleButton(2),
-            }
-        end
-
-
-        local t = Def.ActorFrame {
-            Name = "BundleSectionFrame",
-            InitCommand = function(self)
-                self:y(bundlespacetopY)
-            end,
-        }
-
-        for i = 1, #bundleTypes do
-            t[#t+1] = makeBundlePair(i)
-        end
-
-        return t
-    end
-
     local t = Def.ActorFrame {
         Name = "DownloaderInternalFrame",
         InitCommand = function(self)
@@ -365,7 +415,7 @@ local function downloadsList()
             },
             Def.Sprite {
                 Name = "PackSearchIcon",
-                Texture = THEME:GetPathG("", "search"),
+                Texture = THEME:GetPathG("", "searchIcon"),
                 InitCommand = function(self)
                     self:halign(0)
                     self:x(actuals.SearchIconLeftGap)
@@ -440,7 +490,7 @@ local function downloadsList()
         t[#t+1] = listItem(i)
     end
 
-    t[#t+1] = bundleDisplay()
+    t[#t+1] = tabChoices()
 
     return t
 end
