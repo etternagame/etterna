@@ -11,7 +11,7 @@ local ratios = {
     SizeColumnLeftGap = 662 / 1920, -- left edge to right edge (right align)
     MainDLLeftGap = 692 / 1920, -- left edge to left edge
     MirrorDLLeftGap = 734 / 1920, -- left edge to left edge
-    DLIconSize = 29 / 1080, -- it is a square
+    DLIconSize = 20 / 1080, -- it is a square
     -- placement of the DL Text is left align on MainDLLeftGap with width MirrorDLLeftGap - MainDLLeftGap + DLIconSize
     HeaderLineUpperGap = 13 / 1080, -- from bottom of top lip to top of header text
     ItemListUpperGap = 55 / 1080, -- from bottom of top lip to top of topmost item in the list
@@ -109,6 +109,9 @@ local pageAnimationSeconds = 0.01
 local buttonHoverAlpha = 0.6
 local buttonEnabledAlphaMultiplier = 0.8 -- this is multiplied to the current alpha (including the hover alpha) if "clicked"
 
+local installedColor = color("0,1,0,1")
+local notInstalledColor = color("1,1,1,1")
+
 t[#t+1] = Def.Quad {
     Name = "DownloadsBGQuad",
     InitCommand = function(self)
@@ -140,6 +143,11 @@ t[#t+1] = LoadFont("Common Normal") .. {
     end
 }
 
+local function toolTipOn(msg)
+    TOOLTIP:SetText(msg)
+    TOOLTIP:Show()
+end
+
 -- produces all the fun stuff in the pack downloader
 local function downloadsList()
     local itemCount = 25
@@ -151,6 +159,10 @@ local function downloadsList()
     -- it has internal sorting properties we will use to our advantage
     local pl = PackList:new()
     local packlisting = pl:GetPackTable()
+    local downloadingPacks = DLMAN:GetDownloadingPacks()
+    local queuedPacks = DLMAN:GetQueuedPacks()
+    local downloadingPacksByName = {}
+    local queuedPacksByName = {}
 
     -- these are the defined bundle types
     -- note that each bundle has an expanded version
@@ -212,6 +224,7 @@ local function downloadsList()
                 Condition = function() return true end,
                 TapFunction = function()
                     inBundles = not inBundles
+                    page = 1
                 end,
             },
             {   -- Cancel all current downloads
@@ -221,6 +234,18 @@ local function downloadsList()
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
+                    local count = 0
+                    for _, p in ipairs(DLMAN:GetQueuedPacks()) do
+                        local s = p:RemoveFromQueue()
+                        if s then count = count + 1 end
+                    end
+                    for _, p in ipairs(DLMAN:GetDownloadingPacks()) do
+                        p:GetDownload():Stop()
+                        count = count + 1
+                    end
+                    if count > 0 then
+                        ms.ok("Stopped All Downloads: "..count.." Downloads")
+                    end
                 end,
             },
         }
@@ -441,6 +466,76 @@ local function downloadsList()
                     self:x(actuals.MainDLLeftGap)
                     self:zoomto(actuals.DLIconSize, actuals.DLIconSize)
                 end,
+                SetPackCommand = function(self)
+                    if pack ~= nil then
+                        self:playcommand("UpdateVisibilityByDownloadStatus")
+                    elseif bundle ~= nil then
+                        self:diffuse(notInstalledColor)
+                        self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
+                        if isOver(self) then toolTipOn("Download Bundle") end
+                    else
+                        self:diffusealpha(0)
+                    end
+                end,
+                UpdateVisibilityByDownloadStatusCommand = function(self)
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if SONGMAN:DoesSongGroupExist(name) then
+                            -- the pack is already installed
+                            self:diffuse(installedColor)
+                            self:diffusealpha(1)
+                            if isOver(self) then toolTipOn("Already Installed") end
+                        elseif downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil then
+                            -- the pack is downloading or queued
+                            self:diffusealpha(0)
+                        else
+                            self:diffuse(notInstalledColor)
+                            self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
+                            if isOver(self) then toolTipOn("Download Pack") end
+                        end
+                    end
+                end,
+                MouseDownCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil or SONGMAN:DoesSongGroupExist(name) then
+                            return
+                        end
+                        pack:DownloadAndInstall(false)
+                    elseif bundle ~= nil then
+                        local expanded = i % 2 == 0 and " Expanded" or ""
+                        local name = bundleTypes[index]:lower()..(i%2==0 and "-expanded" or "")
+                        DLMAN:DownloadCoreBundle(name)
+                        inBundles = false
+                        page = 1
+                    end
+                    self:GetParent():GetParent():playcommand("UpdateItemList")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if downloadingPacksByName[name] ~= nil then
+                            toolTipOn("Currently Downloading")
+                        elseif queuedPacksByName[name] ~= nil then
+                            toolTipOn("Queued")
+                        elseif SONGMAN:DoesSongGroupExist(name) then
+                            toolTipOn("Already Installed")
+                        else
+                            toolTipOn("Download Pack")
+                            self:diffusealpha(buttonHoverAlpha)
+                        end
+                    elseif bundle ~= nil then
+                        toolTipOn("Download Bundle")
+                        self:diffusealpha(buttonHoverAlpha)
+                    end
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                    TOOLTIP:Hide()
+                end,
             },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdlicon")) .. {
                 Name = "MirrorDL",
@@ -450,6 +545,63 @@ local function downloadsList()
                     self:halign(0):valign(0)
                     self:x(actuals.MirrorDLLeftGap)
                     self:zoomto(actuals.DLIconSize, actuals.DLIconSize)
+                end,
+                SetPackCommand = function(self)
+                    if pack ~= nil then
+                        self:playcommand("UpdateVisibilityByDownloadStatus")
+                    else
+                        self:diffusealpha(0)
+                    end
+                end,
+                UpdateVisibilityByDownloadStatusCommand = function(self)
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if SONGMAN:DoesSongGroupExist(name) then
+                            -- the pack is already installed
+                            self:diffuse(installedColor)
+                            self:diffusealpha(1)
+                            if isOver(self) then toolTipOn("Already Installed") end
+                        elseif downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil then
+                            -- the pack is downloading or queued
+                            self:diffusealpha(0)
+                        else
+                            self:diffuse(notInstalledColor)
+                            self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
+                            if isOver(self) then toolTipOn("Download Pack (Mirror)") end
+                        end
+                    end
+                end,
+                MouseDownCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil or SONGMAN:DoesSongGroupExist(name) then
+                            return
+                        end
+                        pack:DownloadAndInstall(true)
+                        self:GetParent():GetParent():playcommand("UpdateItemList")
+                    end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if downloadingPacksByName[name] ~= nil then
+                            toolTipOn("Currently Downloading")
+                        elseif queuedPacksByName[name] ~= nil then
+                            toolTipOn("Queued")
+                        elseif SONGMAN:DoesSongGroupExist(name) then
+                            toolTipOn("Already Installed")
+                        else
+                            toolTipOn("Download Pack (Mirror)")
+                            self:diffusealpha(buttonHoverAlpha)
+                        end
+                    end
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                    TOOLTIP:Hide()
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -466,7 +618,7 @@ local function downloadsList()
                     bg:zoomto(width, txt:GetZoomedHeight())
                     txt:maxwidth(width / cancelTextSize - textZoomFudge)
 
-                    txt:settext("Cancel")
+                    txt:settext(" ")
                     self:diffusealpha(0)
                     -- if clicked, cancels download or removes from queue
                     -- otherwise:
@@ -475,7 +627,68 @@ local function downloadsList()
                     -- says "Cancel" if downloading
                     -- invisible if fully installed
                 end,
-
+                SetPackCommand = function(self)
+                    if pack ~= nil then
+                        self:playcommand("UpdateVisibilityByDownloadStatus")
+                    else
+                        self:diffusealpha(0)
+                        -- button layer management
+                        self:z(-5)
+                    end
+                end,
+                UpdateVisibilityByDownloadStatusCommand = function(self)
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        -- z movement is for button layer management
+                        -- lower z has less priority, is "on bottom"
+                        if SONGMAN:DoesSongGroupExist(name) then
+                            -- the pack is already installed
+                            self:diffusealpha(0)
+                            self:z(-5)
+                        elseif downloadingPacksByName[name] ~= nil then
+                            -- the pack is downloading
+                            self:diffusealpha(isOver(self:GetChild("BG")) and buttonHoverAlpha or 1)
+                            if isOver(self) then TOOLTIP:Hide() end
+                            self:GetChild("Text"):settext("Cancel")
+                            self:z(5)
+                        elseif queuedPacksByName[name] ~= nil then
+                            -- the pack is queued
+                            self:diffusealpha(isOver(self:GetChild("BG")) and buttonHoverAlpha or 1)
+                            if isOver(self) then TOOLTIP:Hide() end
+                            self:GetChild("Text"):settext("Queued")
+                            self:z(5)
+                        else
+                            self:diffusealpha(0)
+                            self:z(-5)
+                        end
+                    end
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update ~= "OnMouseDown" then return end
+                    if pack ~= nil then
+                        local name = pack:GetName()
+                        if queuedPacksByName[name] then
+                            pack:RemoveFromQueue()
+                        elseif downloadingPacksByName[name] then
+                            downloadingPacksByName[name]:Stop()
+                        else
+                            return
+                        end
+                        self:GetParent():GetParent():playcommand("UpdateItemList")
+                    elseif bundle ~= nil then
+                        return
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                        TOOLTIP:Hide()
+                    else
+                        self:diffusealpha(1)
+                    end
+                end,
             }
         }
     end
@@ -489,8 +702,27 @@ local function downloadsList()
             pl:FilterAndSearch("", 0, 0, 0, 0)
             downloaderframe = self
             self:playcommand("UpdateItemList")
+
+            -- this function will update the downloading pack and queued pack lists
+            -- pack downloads are sequential but can potentially become concurrent, so the downloading is a table of length 1
+            self:SetUpdateFunction(function(self)
+                if not focused then return end -- dont update if cant see
+                downloadingPacks = DLMAN:GetDownloadingPacks()
+                queuedPacks = DLMAN:GetQueuedPacks()
+                downloadingPacksByName = {}
+                queuedPacksByName = {}
+                for _, pack in ipairs(queuedPacks) do
+                    queuedPacksByName[pack:GetName()] = true
+                end
+                for _, pack in ipairs(downloadingPacks) do
+                    downloadingPacksByName[pack:GetName()] = pack:GetDownload()
+                end
+                self:playcommand("UpdateVisibilityByDownloadStatus")
+            end)
+            self:SetUpdateFunctionInterval(0.25) -- slow down updates to quarter second
         end,
         UpdateItemListCommand = function(self)
+            TOOLTIP:Hide()
             if not inBundles then
                 packlisting = pl:GetPackTable()
                 maxPage = math.ceil(#packlisting / itemCount)
@@ -557,10 +789,20 @@ local function downloadsList()
                 self:xy(actuals.NameColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
                 
                 txt:halign(0):valign(0)
+                bg:halign(0):valign(0)
                 txt:zoom(nameHeaderSize)
                 txt:maxwidth(width / nameHeaderSize - textZoomFudge)
                 txt:settext("Name")
+                bg:zoomto(math.max(width/2, txt:GetZoomedWidth()), txt:GetZoomedHeight())
             end,
+            RolloverUpdateCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "in" then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end
         },
         UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "AverageHeader",
@@ -571,10 +813,20 @@ local function downloadsList()
                 self:xy(actuals.MSDColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
                 
                 txt:valign(0)
+                bg:valign(0)
                 txt:zoom(msdHeaderSize)
                 txt:maxwidth(width / msdHeaderSize - textZoomFudge)
                 txt:settext("Avg")
+                bg:zoomto(width, txt:GetZoomedHeight())
             end,
+            RolloverUpdateCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "in" then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end
         },
         UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "Size Header",
@@ -585,10 +837,20 @@ local function downloadsList()
                 self:xy(actuals.SizeHeaderLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
                 
                 txt:valign(0)
+                bg:valign(0)
                 txt:zoom(sizeHeaderSize)
                 txt:maxwidth(width / sizeHeaderSize - textZoomFudge)
                 txt:settext("Size")
+                bg:zoomto(width, txt:GetZoomedHeight())
             end,
+            RolloverUpdateCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "in" then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end
         },
         Def.Quad {
             Name = "MouseWheelRegion",
