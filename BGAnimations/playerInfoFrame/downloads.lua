@@ -4,7 +4,7 @@ local ratios = {
     TopLipHeight = 44 / 1080,
     EdgePadding = 13 / 1920, -- distance from left and right edges for everything
 
-    IndexColumnLeftGap = 30 /1920, -- left edge to right edge (right align)
+    IndexColumnLeftGap = 38 /1920, -- left edge to right edge (right align)
     NameColumnLeftGap = 45 / 1920, -- left edge to left edge (left align)
     MSDColumnLeftGap = 495 / 1920, -- left edge to center of text (center align)
     SizeHeaderLeftGap = 592 / 1920, -- left edge to left edge (left align)
@@ -24,6 +24,7 @@ local ratios = {
     SearchIconLeftGap = 6 / 1920, -- from left edge of search bg to left edge of icon
     SearchIconSize = 23 / 1080, -- it is a square
     SearchTextLeftGap = 40 / 1920, -- left edge of bg to left edge of text
+    PageTextRightGap = 33 / 1920, -- right of frame, right of text
 }
 
 local actuals = {
@@ -48,6 +49,7 @@ local actuals = {
     SearchIconLeftGap = ratios.SearchIconLeftGap * SCREEN_WIDTH,
     SearchIconSize = ratios.SearchIconSize * SCREEN_HEIGHT,
     SearchTextLeftGap = ratios.SearchTextLeftGap * SCREEN_WIDTH,
+    PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
 }
 
 local visibleframeX = SCREEN_WIDTH - actuals.Width
@@ -87,12 +89,12 @@ local t = Def.ActorFrame {
     end
 }
 
-local titleTextSize = 1
-local indexTextSize = 1
-local nameTextSize = 1
-local msdTextSize = 1
-local sizeTextSize = 1
-local cancelTextSize = 1
+local titleTextSize = 0.8
+local indexTextSize = 0.8
+local nameTextSize = 0.8
+local msdTextSize = 0.8
+local sizeTextSize = 0.8
+local cancelTextSize = 0.8
 
 local indexHeaderSize = 1
 local nameHeaderSize = 1
@@ -101,7 +103,9 @@ local sizeHeaderSize = 1
 local searchTextSize = 1
 local choiceTextSize = 1
 
+local pageTextSize = 0.5
 local textZoomFudge = 5
+local pageAnimationSeconds = 0.01
 local buttonHoverAlpha = 0.6
 local buttonEnabledAlphaMultiplier = 0.8 -- this is multiplied to the current alpha (including the hover alpha) if "clicked"
 
@@ -141,6 +145,12 @@ local function downloadsList()
     local itemCount = 25
     local listAllottedSpace = actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap - actuals.TopLipHeight
     local inBundles = false
+    local downloaderframe = nil
+
+    -- fallback behavior: this is a PackList
+    -- it has internal sorting properties we will use to our advantage
+    local pl = PackList:new()
+    local packlisting = pl:GetPackTable()
 
     -- these are the defined bundle types
     -- note that each bundle has an expanded version
@@ -151,6 +161,27 @@ local function downloadsList()
         "Advanced",
         "Expert",
     }
+
+    local page = 1
+    local maxPage = 1
+
+    local function movePage(n)
+        if not inBundles then
+            if maxPage <= 1 then
+                return
+            end
+
+            -- math to make pages loop both directions
+            local nn = (page + n) % (maxPage + 1)
+            if nn == 0 then
+                nn = n > 0 and 1 or maxPage
+            end
+            page = nn
+            if downloaderframe ~= nil then
+                downloaderframe:playcommand("UpdateItemList")
+            end
+        end
+    end
 
     local function tabChoices()
         -- keeping track of which choices are on at any moment (keys are indices, values are true/false/nil)
@@ -180,7 +211,7 @@ local function downloadsList()
                 end,
                 Condition = function() return true end,
                 TapFunction = function()
-
+                    inBundles = not inBundles
                 end,
             },
             {   -- Cancel all current downloads
@@ -292,22 +323,56 @@ local function downloadsList()
         return t
     end
 
+    -- for the pack list
     local function listItem(i)
+        local index = i
+        local pack = nil
+        local bundle = nil
+
         return Def.ActorFrame {
             InitCommand = function(self)
                 self:y(actuals.TopLipHeight + actuals.ItemListUpperGap + listAllottedSpace / itemCount * (i-1))
+            end,
+            SetPackCommand = function(self)
+                self:finishtweening()
+                self:diffusealpha(0)
+                self:smooth(pageAnimationSeconds * i)
+                pack = nil
+                bundle = nil
+                -- mixing bundle behavior with packs
+                -- ASSUMPTION: bundles arent going to take up more than 1 page
+                if inBundles then
+                    if i <= #bundleTypes * 2 then
+                        index = math.ceil(i/2) -- 1 = 1, 2 = 1, 3 = 2, 4 = 2 ...
+                        -- this index points to bundleTypes index
+                        -- if i % 2 == 0 then it is an expanded bundle
+                        self:diffusealpha(1)
+                        bundle = DLMAN:GetCoreBundle(bundleTypes[index]:lower()..(i%2==0 and "-expanded" or ""))
+                    end
+                else
+                    index = (page-1) * itemCount + i
+                    pack = packlisting[index]
+                    if pack ~= nil then
+                        self:diffusealpha(1)
+                    end
+                end 
             end,
 
             LoadFont("Common Normal") .. {
                 Name = "Index",
                 InitCommand = function(self)
-                    self:halign(1):valign(0)
-                    self:x(actuals.IndexColumnLeftGap)
+                    self:valign(0)
+                    self:x(actuals.IndexColumnLeftGap / 2)
                     self:zoom(indexTextSize)
-                    self:maxwidth(actuals.IndexColumnLeftGap / indexTextSize - textZoomFudge)
-                    self:settext("100")
+                    -- without this random 2, the index touches the left edge of the frame and it feels really weird
+                    self:maxwidth(actuals.IndexColumnLeftGap / indexTextSize - 2)
                 end,
                 SetPackCommand = function(self)
+                    if pack ~= nil then
+                        self:settext(index)
+                    elseif bundle ~= nil then
+                        self:settext(i)
+                    end
                 end,
             },
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
@@ -317,9 +382,14 @@ local function downloadsList()
                     self:x(actuals.NameColumnLeftGap)
                     self:zoom(nameTextSize)
                     self:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
-                    self:settext("FREE SHIPPING AND HANDLING FOR FREE (free)")
                 end,
                 SetPackCommand = function(self)
+                    if pack ~= nil then
+                        self:settext(pack:GetName())
+                    elseif bundle ~= nil then
+                        local expanded = i % 2 == 0 and " Expanded" or ""
+                        self:settext(bundleTypes[index] .. expanded)
+                    end
                 end,
             },
             LoadFont("Common Normal") .. {
@@ -329,9 +399,17 @@ local function downloadsList()
                     self:x(actuals.MSDColumnLeftGap)
                     self:zoom(msdTextSize)
                     self:maxwidth(actuals.MSDWidth / msdTextSize - textZoomFudge)
-                    self:settext("19.99")
                 end,
                 SetPackCommand = function(self)
+                    if pack ~= nil then
+                        local msd = pack:GetAvgDifficulty()
+                        self:settextf("%0.2f", msd)
+                        self:diffuse(byMSD(msd))
+                    elseif bundle ~= nil then
+                        local msd = bundle.AveragePackDifficulty
+                        self:settextf("%0.2f", msd)
+                        self:diffuse(byMSD(msd))
+                    end
                 end,
             },
             LoadFont("Common Normal") .. {
@@ -341,9 +419,17 @@ local function downloadsList()
                     self:x(actuals.SizeColumnLeftGap)
                     self:zoom(sizeTextSize)
                     self:maxwidth((actuals.SizeColumnLeftGap - actuals.MSDColumnLeftGap - actuals.MSDWidth / 2) / sizeTextSize - textZoomFudge)
-                    self:settext("666MB")
                 end,
                 SetPackCommand = function(self)
+                    if pack ~= nil then
+                        local sz = pack:GetSize() / 1024 / 1024
+                        self:settextf("%iMB", sz)
+                        self:diffuse(byFileSize(sz))
+                    elseif bundle ~= nil then
+                        local sz = bundle.TotalSize
+                        self:settextf("%iMB", sz)
+                        self:diffuse(byFileSize(sz))
+                    end
                 end,
             },
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "packdlicon")) .. {
@@ -398,11 +484,31 @@ local function downloadsList()
         Name = "DownloaderInternalFrame",
         InitCommand = function(self)
         end,
+        BeginCommand = function(self)
+            -- make sure we arent filtering anything out on first load
+            pl:FilterAndSearch("", 0, 0, 0, 0)
+            downloaderframe = self
+            self:playcommand("UpdateItemList")
+        end,
+        UpdateItemListCommand = function(self)
+            if not inBundles then
+                packlisting = pl:GetPackTable()
+                maxPage = math.ceil(#packlisting / itemCount)
+            end
+            self:playcommand("SetPack")
+        end,
 
         Def.ActorFrame {
             Name = "PackSearchFrame",
             InitCommand = function(self)
                 self:xy(actuals.SearchBGLeftGap, actuals.TopLipHeight / 2)
+            end,
+            UpdateItemListCommand = function(self)
+                if inBundles then
+                    self:diffusealpha(0)
+                else
+                    self:diffusealpha(1)
+                end
             end,
 
             UIElements.SpriteButton(1, 1, THEME:GetPathG("", "searchBar")) .. {
@@ -435,8 +541,8 @@ local function downloadsList()
         LoadFont("Common Normal") .. {
             Name = "IndexHeader",
             InitCommand = function(self)
-                self:halign(1):valign(0)
-                self:xy(actuals.IndexColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
+                self:valign(0)
+                self:xy(actuals.IndexColumnLeftGap / 2, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
                 self:zoom(indexHeaderSize)
                 self:maxwidth(actuals.IndexColumnLeftGap / indexHeaderSize - textZoomFudge)
                 self:settext("#")
@@ -483,7 +589,42 @@ local function downloadsList()
                 txt:maxwidth(width / sizeHeaderSize - textZoomFudge)
                 txt:settext("Size")
             end,
-        }
+        },
+        Def.Quad {
+            Name = "MouseWheelRegion",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:diffusealpha(0)
+                self:zoomto(actuals.Width, actuals.Height)
+            end,
+            MouseScrollMessageCommand = function(self, params)
+                if isOver(self) and focused then
+                    if params.direction == "Up" then
+                        movePage(-1)
+                    else
+                        movePage(1)
+                    end
+                end
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "PageText",
+            InitCommand = function(self)
+                self:halign(1):valign(0)
+                self:xy(actuals.Width - actuals.PageTextRightGap, actuals.TopLipHeight + actuals.HeaderLineUpperGap)
+                self:zoom(pageTextSize)
+                self:maxwidth((actuals.Width - actuals.SizeColumnLeftGap) / pageTextSize - textZoomFudge)
+            end,
+            UpdateItemListCommand = function(self)
+                if inBundles then
+                    self:settext("")
+                else
+                    local lb = clamp((page-1) * (itemCount) + 1, 0, #packlisting)
+                    local ub = clamp(page * itemCount, 0, #packlisting)
+                    self:settextf("%d-%d/%d", lb, ub, #packlisting)
+                end
+            end
+        },
     }
     
     for i = 1, itemCount do
