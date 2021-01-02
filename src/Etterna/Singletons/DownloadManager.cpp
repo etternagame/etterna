@@ -635,7 +635,14 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
+			{
+				if (dl.second == nullptr) {
+					Locator::getLogger()->warn("Pack download was null? URL: {}", dl.first);
+					continue;
+				}
 				dl.second->Update(fDeltaSeconds);
+			}
+		
 			break;
 	}
 
@@ -2937,8 +2944,18 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int GetDownload(T* p, lua_State* L)
 	{
-		if (p->downloading)
-			DLMAN->downloads[p->url]->PushSelf(L);
+		if (p->downloading) {
+			// using GetDownload on a download started by a Mirror isn't keyed by the Mirror url
+			// have to check both
+			auto u = p->url;
+			auto m = p->mirror;
+			if (DLMAN->downloads.count(u))
+				DLMAN->downloads[u]->PushSelf(L);
+			else if (DLMAN->downloads.count(m))
+				DLMAN->downloads[m]->PushSelf(L);
+			else
+				lua_pushnil(L); // this shouldnt happen
+		}
 		else
 			lua_pushnil(L);
 		return 1;
