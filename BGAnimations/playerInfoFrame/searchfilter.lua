@@ -37,16 +37,19 @@ local t = Def.ActorFrame {
         -- lets ... just .... assume it always goes in the same place ... and the playerInfoFrame is the same size always
         self:x(SCREEN_WIDTH)
         self:y(visibleframeY)
+        self:diffusealpha(0)
     end,
     GeneralTabSetMessageCommand = function(self, params)
         -- if we ever get this message we need to hide the frame and just exit.
         focused = false
         self:finishtweening()
         self:smooth(animationSeconds)
+        self:diffusealpha(0)
         self:x(SCREEN_WIDTH)
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self, params)
         if params.tab and params.tab == "Search" then
+            self:diffusealpha(1)
             self:finishtweening()
             self:sleep(0.01)
             self:queuecommand("FinishFocusing")
@@ -55,6 +58,7 @@ local t = Def.ActorFrame {
         else
             self:finishtweening()
             self:smooth(animationSeconds)
+            self:diffusealpha(0)
             self:x(SCREEN_WIDTH)
             focused = false
         end
