@@ -124,4 +124,16 @@ namespace Core::Platform {
         Locator::getLogger()->warn("Core::Platform::isOtherInstanceRunning not implemented");
         return false;
     }
+
+    bool boostPriority()
+    {
+        Locator::getLogger()->warn("Core::Platform::boostPriority not implemented");
+		return true;
+    }
+
+	bool unboostPriority()
+    {
+        Locator::getLogger()->warn("Core::Platform::unboostPriority not implemented");
+		return true;
+    }
 }

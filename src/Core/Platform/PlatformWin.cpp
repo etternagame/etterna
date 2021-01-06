@@ -343,4 +343,14 @@ namespace Core::Platform {
         return true; // Return true because the window exists
     }
 
+	bool boostPriority()
+    {
+		return SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS) != 0;
+    }
+
+	bool unboostPriority()
+    {
+		return SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS) != 0;
+    }
+
 }

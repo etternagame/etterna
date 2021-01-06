@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 #include "GameLoop.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
@@ -18,6 +18,8 @@
 
 #include <chrono>
 #include <mutex>
+
+#include "Core/Platform/Platform.hpp"
 
 // Static Variables
 //// On the next update, change themes, and load sNewScreen.
@@ -62,6 +64,13 @@ static void CheckFocus() {
 		return;
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
+
+	// Maintain the Application priority at Above-Normal
+	// This helps to mitigate game stutter caused by CPU scheduling between frames
+	if (hasFocus)
+		Core::Platform::boostPriority();
+	else
+		Core::Platform::unboostPriority();
 }
 
 // Anonymous Namespace
@@ -206,7 +215,8 @@ namespace GameLoop {
     }
 
     void RunGameLoop() {
-
+		Core::Platform::boostPriority();
+    	
         while (!GameLoop::hasUserQuit()) {
             if (!g_NewGame.empty()) {
                 DoChangeGame();
@@ -269,6 +279,7 @@ namespace GameLoop {
             SCREENMAN->Draw();
         }
 
+    	Core::Platform::unboostPriority();
     }
 
 }
