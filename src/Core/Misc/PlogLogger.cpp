@@ -40,8 +40,8 @@ public:
 
         // Log Format -> [YYYY-MM-DD HH:MM:SS][Severity]: Message
         plog::util::nostringstream ss;
-        ss << fmt::format(FMT_STRING("[{:%F %T}]"), time).c_str(); // Time
-        ss << fmt::format(FMT_STRING("[{:<4}]"), plog::severityToString(record.getSeverity())).c_str(); // Severity
+        ss << fmt::format("[{:%F %T}]", time).c_str(); // Time
+        ss << fmt::format("[{:<4}]", plog::severityToString(record.getSeverity())).c_str(); // Severity
 		ss << ": " << record.getMessage() << "\n"; // Message
         return ss.str();
     }
