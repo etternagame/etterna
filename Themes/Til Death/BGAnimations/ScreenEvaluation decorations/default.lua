@@ -717,7 +717,7 @@ function scoreBoard(pn, position)
 
 	local function hahahahahaha(score)
 		local tracks = score:GetTrackVector()
-		local devianceTable = score:GetOffsetVector()
+		local devianceTable = score:GetOffsetVector() or {}
 
 		local cbl = 0
 		local cbr = 0

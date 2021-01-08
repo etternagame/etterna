@@ -175,10 +175,14 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			LeftClickMessageCommand = function(self)
 				if isOver(self) then
-					newindex = getHighScoreIndex(hsTable, hsTable[index])
-					self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
-					self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
-					self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
+					local score = hsTable[index]
+					if score ~= nil then
+						if not score:HasReplayData() then return end
+						newindex = getHighScoreIndex(hsTable, hsTable[index])
+						self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
+						self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
+						self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
+					end
 				end
 			end
 		},
