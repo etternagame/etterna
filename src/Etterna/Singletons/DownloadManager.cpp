@@ -1289,7 +1289,9 @@ DownloadManager::EndSession()
 	sessionUser = sessionPass = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
-	MESSAGEMAN->Broadcast("LogOut");
+	// This is called on a shutdown, after MessageManager is gone
+	if (MESSAGEMAN != nullptr)
+		MESSAGEMAN->Broadcast("LogOut");
 }
 
 std::vector<std::string>
