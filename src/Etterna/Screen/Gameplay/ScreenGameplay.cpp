@@ -1696,7 +1696,12 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		}
 	} else if (SM == SM_DoNextScreen) {
 		SongFinished();
-		this->StageFinished(false);
+
+		// Don't save here for Playlists
+		// SM_NotesEnded handles all saving for that case (always saves at end of song)
+		if (!GAMESTATE->IsPlaylistCourse())
+			this->StageFinished(false);
+
 		const auto syncing =
 		  !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
 		auto replaying = false;
