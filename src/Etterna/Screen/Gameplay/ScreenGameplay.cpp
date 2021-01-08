@@ -46,6 +46,8 @@
 
 #include <algorithm>
 
+#include "Core/Platform/Platform.hpp"
+
 #define SONG_POSITION_METER_WIDTH                                              \
 	THEME->GetMetricF(m_sName, "SongPositionMeterWidth")
 
@@ -536,6 +538,9 @@ ScreenGameplay::LoadNextSong()
 	// never allow input to remain redirected during gameplay unless an lua
 	// script forces it when loaded below -mina
 	SCREENMAN->set_input_redirected(m_vPlayerInfo.m_pn, false);
+
+	// Time begins now (so each individual song can be counted)
+	m_initTimer.Touch();
 
 	GAMESTATE->ResetMusicStatistics();
 
@@ -1456,6 +1461,10 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	if (STATSMAN->m_CurStageStats.Failed()) {
 		GAMESTATE->m_iPlayerStageTokens = 0;
 	}
+
+	// How long did this Gameplay session last?
+	auto tDiff = m_initTimer.GetDeltaTime();
+	STATSMAN->m_CurStageStats.m_player.m_fPlayedSeconds = tDiff;
 
 	// Properly set the LivePlay bool
 	STATSMAN->m_CurStageStats.m_bLivePlay = true;

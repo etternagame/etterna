@@ -139,6 +139,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	Background* m_pSongBackground;
 	Foreground* m_pSongForeground;
+	RageTimer m_initTimer;
 
 	/** @brief Used between songs in a course to show the next song. */
 	Transition m_NextSong;

@@ -566,9 +566,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetJudgeScale(pss.GetTimingScale());
 	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
 	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
-
-	auto played_seconds = 1.F;
-	hs.SetPlayedSeconds(played_seconds);
+	hs.SetPlayedSeconds(pss.m_fPlayedSeconds);
 
 	std::vector<std::string> asModifiers;
 	{
