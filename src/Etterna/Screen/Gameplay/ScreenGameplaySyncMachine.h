@@ -16,6 +16,7 @@ class ScreenGameplaySyncMachine : public ScreenGameplayNormal
 
 	void HandleScreenMessage(const ScreenMessage& SM) override;
 	void ResetAndRestartCurrentSong();
+	void RestartGameplay() override;
 
   protected:
 	bool UseSongBackgroundAndForeground() const override { return false; }

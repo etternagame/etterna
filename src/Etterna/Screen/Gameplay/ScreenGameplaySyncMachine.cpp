@@ -129,6 +129,15 @@ ScreenGameplaySyncMachine::ResetAndRestartCurrentSong()
 	AdjustSync::ResetAutosync();
 }
 
+void
+ScreenGameplaySyncMachine::RestartGameplay()
+{
+	// Override normal RestartGameplay to just do this thing
+	// because otherwise some weird continuity issues arise
+	// and we crash
+	ResetAndRestartCurrentSong();
+}
+
 static LocalizedString OLD_OFFSET("ScreenGameplaySyncMachine", "Old offset");
 static LocalizedString NEW_OFFSET("ScreenGameplaySyncMachine", "New offset");
 static LocalizedString COLLECTING_SAMPLE("ScreenGameplaySyncMachine",
