@@ -48,7 +48,7 @@ class EventImpl_Win32 : public EventImpl
 	EventImpl_Win32(MutexImpl_Win32* pParent);
 	~EventImpl_Win32();
 
-	bool Wait(RageTimer* pTimeout);
+	bool Wait(float timeout);
 	void Signal();
 	void Broadcast();
 	bool WaitTimeoutSupported() const { return true; }

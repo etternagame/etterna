@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <chrono>
+#include <cmath>
 
 #ifdef __unix__
 #include "archutils/Unix/RunningUnderValgrind.h"
@@ -324,9 +325,9 @@ EventImpl_Pthreads::~EventImpl_Pthreads()
 
 #if defined(HAVE_PTHREAD_COND_TIMEDWAIT)
 bool
-EventImpl_Pthreads::Wait(RageTimer* pTimeout)
+EventImpl_Pthreads::Wait(float timeout)
 {
-	if (pTimeout == NULL) {
+	if (timeout <= 0.F) {
 		pthread_cond_wait(&m_Cond, &m_pParent->mutex);
 		return true;
 	}
@@ -340,9 +341,10 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		 * the same clock as RageTimer and can use it directly. If the
 		 * clock is CLOCK_REALTIME, that's the default anyway. */
 
-		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(pTimeout->c_dur);
-		auto sec = std::chrono::duration_cast<std::chrono::seconds>(pTimeout->c_dur);
-		nsec -= sec;
+		int isec;
+		float fnsec = modf(timeout, &isec);
+		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(fnsec);
+		auto sec = std::chrono::duration_cast<std::chrono::seconds>(static_cast<float>(isec));
 		abstime.tv_sec = sec.count();
 		abstime.tv_nsec = nsec.count();
 	} else {
@@ -351,7 +353,7 @@ EventImpl_Pthreads::Wait(RageTimer* pTimeout)
 		gettimeofday(&tv, NULL);
 		
 		RageTimer timeofday(tv.tv_sec, tv.tv_usec);
-		float fSecondsInFuture = -pTimeout->Ago();
+		float fSecondsInFuture = -timeout;
 		timeofday += fSecondsInFuture;
 
 		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(timeofday.c_dur);
@@ -371,7 +373,7 @@ EventImpl_Pthreads::WaitTimeoutSupported() const
 }
 #else
 bool
-EventImpl_Pthreads::Wait(RageTimer* pTimeout)
+EventImpl_Pthreads::Wait(float timeout)
 {
 	pthread_cond_wait(&m_Cond, &m_pParent->mutex);
 	return true;

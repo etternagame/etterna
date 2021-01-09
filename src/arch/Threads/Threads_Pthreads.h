@@ -51,7 +51,7 @@ class EventImpl_Pthreads : public EventImpl
 	EventImpl_Pthreads(MutexImpl_Pthreads* pParent);
 	~EventImpl_Pthreads();
 
-	bool Wait(RageTimer* pTimeout);
+	bool Wait(float timeout);
 	void Signal();
 	void Broadcast();
 	bool WaitTimeoutSupported() const;

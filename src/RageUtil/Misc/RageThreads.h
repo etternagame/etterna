@@ -317,7 +317,7 @@ class RageEvent : public RageMutex
 	 * archs support it. If false is returned, the wait timed out (and the mutex
 	 * is locked, as if the event had been signalled).
 	 */
-	auto Wait(RageTimer* pTimeout = nullptr) -> bool;
+	auto Wait(float timeout = 0.F) -> bool;
 	void Signal();
 	void Broadcast();
 	[[nodiscard]] auto WaitTimeoutSupported() const -> bool;
