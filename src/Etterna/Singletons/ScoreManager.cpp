@@ -1093,6 +1093,11 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 	FOREACH_CONST_Child(node, p)
 	{
 		p->GetAttrValue("Key", sk);
+
+		// Fill in stuff for the highscores
+		scores[sk].SetChartKey(ck);
+		scores[sk].SetScoreKey(sk);
+		scores[sk].SetMusicRate(rate);
 		scores[sk].LoadFromEttNode(p);
 
 		// Set any pb
@@ -1106,11 +1111,6 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		}
 
 		HandleNoCCPB(scores[sk]);
-
-		// Fill in stuff for the highscores
-		scores[sk].SetChartKey(ck);
-		scores[sk].SetScoreKey(sk);
-		scores[sk].SetMusicRate(rate);
 
 		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
 		if (scores[sk].GetWifeGrade() != Grade_Failed) {
