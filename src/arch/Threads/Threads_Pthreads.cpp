@@ -341,7 +341,11 @@ EventImpl_Pthreads::Wait(float timeout)
 		 * the same clock as RageTimer and can use it directly. If the
 		 * clock is CLOCK_REALTIME, that's the default anyway. */
 
+#ifdef __APPLE__
+		float isec;
+#else
 		int isec;
+#endif
 		float fnsec = modf(timeout, &isec);
 		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(fnsec);
 		auto sec = std::chrono::duration_cast<std::chrono::seconds>(static_cast<float>(isec));
