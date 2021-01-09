@@ -346,11 +346,11 @@ EventImpl_Pthreads::Wait(float timeout)
 #else
 		int isec;
 #endif
-		float fnsec = modf(timeout, &isec);
-		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(fnsec);
-		auto sec = std::chrono::duration_cast<std::chrono::seconds>(static_cast<float>(isec));
-		abstime.tv_sec = sec.count();
-		abstime.tv_nsec = nsec.count();
+		auto fnsec = modf(timeout, &isec);
+		long nsec = static_cast<long>(fnsec * 1000000000.0);
+		time_t sec = static_cast<time_t>(isec);
+		abstime.tv_sec = sec;
+		abstime.tv_nsec = nsec;
 	} else {
 		// The RageTimer clock is different than the wait clock; convert it.
 		timeval tv;
