@@ -623,13 +623,13 @@ function scoreBoard(pn, position)
 				paRatio = self
 				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
 
-				self:playcommand("Set")
-			end,
-			SetCommand = function(self)
 				marvelousTaps = score:GetTapNoteScore(judges[1])
 				perfectTaps = score:GetTapNoteScore(judges[2])
 				greatTaps = score:GetTapNoteScore(judges[3])
-
+				self:playcommand("Set")
+			end,
+			SetCommand = function(self)
+				
 				-- Fill in maRatio and paRatio
 				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
 				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
