@@ -273,7 +273,44 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 			uploaded.emplace_back(server.c_str());
 		}
 	}
-	pNode->GetChildValue("PlayedSeconds", played_seconds);
+	
+	// Attempt to recover SurviveSeconds or otherwise try to
+	// load a correct number here
+	auto psSuccess = pNode->GetChildValue("PlayedSeconds", played_seconds);
+	if (!psSuccess || played_seconds <= 1.F) {
+		played_seconds = 0.F;
+		
+		// Attempt to use the chart length for PlayedSeconds
+		// Only if the grade is a fail
+		auto* steps = SONGMAN->GetStepsByChartkey(ChartKey);
+		float sLength = 0.F;
+		if (steps != nullptr) {
+			// division by zero guard
+			auto r = 1.F;
+			if (fMusicRate > 0.F)
+				r = fMusicRate;
+			
+			sLength = steps->GetLengthSeconds(r);
+		}
+		float survSeconds = 0.F;
+		auto ssSuccess = pNode->GetChildValue("SurviveSeconds", survSeconds);
+		if (grade == Grade_Failed && survSeconds > 0.F && ssSuccess) {
+			// fail: didnt finish chart
+			// go ahead and use SurviveSeconds if present
+			played_seconds = survSeconds;
+		} else if (sLength > 0.F) {
+			// chart was loaded
+			played_seconds = sLength;
+		} else {
+			// chart wasnt loaded
+			played_seconds = survSeconds;
+		}
+		// the end result if SurviveSeconds is not present and the chart is not loaded
+		// is simply that played_seconds is 0. there is no recovery.
+		// (setting it to 0 grants potential to fix it later)
+	}
+
+	
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
 	if (pNode->GetChildValue("Modifiers", s)) {
 		sModifiers = s;
