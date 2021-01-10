@@ -2972,6 +2972,11 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushstring(L, p->url.c_str());
 		return 1;
 	}
+	static int GetMirror(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->mirror.c_str());
+		return 1;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -2984,6 +2989,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetDownload);
 		ADD_METHOD(GetID);
 		ADD_METHOD(GetURL);
+		ADD_METHOD(GetMirror);
 	}
 };
 
