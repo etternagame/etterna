@@ -565,6 +565,12 @@ local function downloadsList()
                 end,
                 UpdateVisibilityByDownloadStatusCommand = function(self)
                     if pack ~= nil then
+                        -- hide mirror DL if literally the same link
+                        if pack:GetURL() == pack:GetMirror() then
+                            self:diffusealpha(0)
+                            return
+                        end
+
                         local name = pack:GetName()
                         if SONGMAN:DoesSongGroupExist(name) then
                             -- the pack is already installed
