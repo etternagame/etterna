@@ -1673,12 +1673,22 @@ Song::GetChartsMatchingFilter() const
 }
 
 float
-Song::HighestMSDOfSkillset(Skillset skill, float rate) const
+Song::HighestMSDOfSkillset(Skillset skill,
+						   float rate,
+						   bool filtered_charts_only) const
 {
 	CLAMP(rate, 0.7f, 2.f);
 	auto highest = 0.f;
 
-	const auto charts = GetChartsMatchingFilter();
+	/* If we only want to match filtered charts (i.e. we are sorting
+	 * pre-filtered songs in the music wheel), we can use the pre-filtered
+	 * charts. If we are calling this function from the filter matching function
+	 * itself, we want to look at all charts from the current game mode,
+	 * otherwise we'll stack overflow.
+	 */
+
+	const auto charts = filtered_charts_only ? GetChartsMatchingFilter()
+											 : GetChartsOfCurrentGameMode();
 
 	for (auto* chart : charts) {
 		const auto current = chart->GetMSD(rate, skill);
@@ -1697,7 +1707,7 @@ Song::IsSkillsetHighestOfChart(Steps* chart, Skillset skill, float rate) const
 bool
 Song::IsChartHighestDifficulty(Steps* chart, Skillset skill, float rate) const
 {
-	float highest = HighestMSDOfSkillset(skill, rate);
+	float highest = HighestMSDOfSkillset(skill, rate, false);
 	return (fabs(chart->GetMSD(rate, skill) - highest) <= 0.1F);
 }
 
@@ -2419,7 +2429,8 @@ class LunaSong : public Luna<Song>
 	}
 	static int GetHighestGrade(T* p, lua_State* L)
 	{
-		// this shadows (and essentially doesnt even do remotely the same thing as) the MusicWheelItem best grade thing for the item grades
+		// this shadows (and essentially doesnt even do remotely the same thing
+		// as) the MusicWheelItem best grade thing for the item grades
 		auto charts = p->GetChartsMatchingFilter();
 
 		Grade best = Grade_Invalid;
