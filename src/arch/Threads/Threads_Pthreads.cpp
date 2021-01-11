@@ -357,7 +357,7 @@ EventImpl_Pthreads::Wait(float timeout)
 		gettimeofday(&tv, NULL);
 		
 		RageTimer timeofday(tv.tv_sec, tv.tv_usec);
-		float fSecondsInFuture = -timeout;
+		float fSecondsInFuture = timeout;
 		timeofday += fSecondsInFuture;
 
 		auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(timeofday.c_dur);
