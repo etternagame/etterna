@@ -293,14 +293,15 @@ SongUtil::DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps)
 				RemoveInitialWhitespace(sSMNoteData2))
 				continue;
 
-			Locator::getLogger()->trace("Removed {} duplicate steps in song \"{}\" with "
-					   "description \"{}\", step author \"{}\", and meter "
-					   "\"{}\"",
-					   (void*)s2,
-					   pSong->GetSongDir().c_str(),
-					   s1->GetDescription().c_str(),
-					   s1->GetCredit().c_str(),
-					   s1->GetMeter());
+			Locator::getLogger()->trace(
+			  "Removed {} duplicate steps in song \"{}\" with "
+			  "description \"{}\", step author \"{}\", and meter "
+			  "\"{}\"",
+			  (void*)s2,
+			  pSong->GetSongDir().c_str(),
+			  s1->GetDescription().c_str(),
+			  s1->GetCredit().c_str(),
+			  s1->GetMeter());
 
 			pSong->DeleteSteps(s2, false);
 
@@ -388,9 +389,9 @@ CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 {
 	// Prefer transliterations to full titles
 	const auto msd1 = pSong1->HighestMSDOfSkillset(
-	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate, true);
 	const auto msd2 = pSong2->HighestMSDOfSkillset(
-	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate, true);
 
 	if (msd1 < msd2)
 		return true;
