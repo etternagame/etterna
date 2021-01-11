@@ -11,7 +11,7 @@
 
 class NoteData;
 /** @brief An Actor that renders NoteData. */
-class NoteField final : public ActorFrame
+class NoteField : public ActorFrame
 {
   public:
 	NoteField();
