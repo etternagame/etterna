@@ -87,9 +87,10 @@ namespace Core::Platform {
             Locator::getLogger()->warn("Could not open folder. Note a folder. Path: \"{}\"", path.string());
             return false;
         }
-        int res = system(fmt::format("open {}", path.string()).c_str());
-        if(res != 0){
-            Locator::getLogger()->warn("Unable to open folder. \"open\" command return code: {}. URL: {}", res, path.string());
+		NSURL* directory = [NSURL fileURLWithPath:@(path.c_str())];
+		bool succeeded = [[NSWorkspace sharedWorkspace]openURL:directory];
+		if(!succeeded){
+            Locator::getLogger()->warn("Unable to open folder: {}", path.string());
             return false;
         }
         return true;
