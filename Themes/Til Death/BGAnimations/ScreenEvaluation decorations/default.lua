@@ -155,7 +155,22 @@ function scoreBoard(pn, position)
 	if not score then 
 		score = SCOREMAN:GetTempReplayScore()
 	end
-	dvt = score:GetOffsetVector()
+	
+	local dvtTmp = score:GetOffsetVector()
+	local tvt = score:GetTapNoteTypeVector()
+	-- if available, filter out non taps from the deviation list
+	-- (hitting mines directly without filtering would make them appear here)
+	if tvt ~= nil and #tvt > 0 then
+		dvt = {}
+		for i, d in ipairs(dvtTmp) do
+			local ty = tvt[i]
+			if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+				dvt[#dvt+1] = d
+			end
+		end
+	else
+		dvt = dvtTmp
+	end
 
 	totalTaps = 0
 	for k, v in ipairs(judges) do
@@ -217,7 +232,21 @@ function scoreBoard(pn, position)
 			if s then
 				score = s
 			end
-			dvt = score:GetOffsetVector()
+			local dvtTmp = score:GetOffsetVector()
+			local tvt = score:GetTapNoteTypeVector()
+			-- if available, filter out non taps from the deviation list
+			-- (hitting mines directly without filtering would make them appear here)
+			if tvt ~= nil and #tvt > 0 then
+				dvt = {}
+				for i, d in ipairs(dvtTmp) do
+					local ty = tvt[i]
+					if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+						dvt[#dvt+1] = d
+					end
+				end
+			else
+				dvt = dvtTmp
+			end
 			totalTaps = 0
 			for k, v in ipairs(judges) do
 				totalTaps = totalTaps + score:GetTapNoteScore(v)
