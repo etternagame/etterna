@@ -122,7 +122,6 @@ GameState::GameState()
 	}
 
 	m_Environment = new LuaTable;
-	m_bIsChartPreviewActive = false;
 
 	sExpandedSectionName = "";
 
