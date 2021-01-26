@@ -287,7 +287,7 @@ function scoreBoard(pn, position)
 			SetCommand = function(self)
 				local rate = SCREENMAN:GetTopScreen():GetReplayRate()
 				if not rate then rate = getCurRateValue() end
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(rate, 1)
+				local meter = GAMESTATE:GetCurrentSteps():GetMSD(rate, 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
 			end
@@ -320,7 +320,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+				local steps = GAMESTATE:GetCurrentSteps()
 				local diff = getDifficulty(steps:GetDifficulty())
 				self:settext(getShortDifficulty(diff))
 				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
@@ -753,7 +753,7 @@ function scoreBoard(pn, position)
 		local cbm = 0
 		local tst = ms.JudgeScalers
 		local tso = tst[judge]
-		local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 
+		local ncol = GAMESTATE:GetCurrentSteps():GetNumColumns() - 1 
 		local middleCol = ncol/2
 	
 		for i = 1, #devianceTable do
@@ -809,7 +809,7 @@ function scoreBoard(pn, position)
 	-- basic per-hand stats to be expanded on later
 	local tst = ms.JudgeScalers
 	local tso = tst[judge]
-	local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 -- cpp indexing -mina
+	local ncol = GAMESTATE:GetCurrentSteps():GetNumColumns() - 1 -- cpp indexing -mina
 	local middleCol = ncol/2
 
 	if devianceTable then
@@ -962,7 +962,7 @@ end
 detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
 local state =
 	"MSD: " ..
-	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
+	string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
 			string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100) ..
 				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))

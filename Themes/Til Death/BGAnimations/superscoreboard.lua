@@ -100,7 +100,7 @@ local o =
 	end,
 	GetFilteredLeaderboardCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
-			scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey(), currentCountry)
+			scoretable = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey(), currentCountry)
 			ind = 0
 			self:playcommand("Update")
 		end
@@ -566,7 +566,7 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					if GAMESTATE:GetCurrentSteps(PLAYER_1) then
+					if GAMESTATE:GetCurrentSteps() then
 						if hs:HasReplayData() then
 							self:settext(translated_info["Watch"])
 						else

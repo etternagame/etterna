@@ -342,7 +342,7 @@ t[#t + 1] =
 	MintyFreshCommand = function(self)
 		if song then
 			ptags = tags:get_data().playerTags
-			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			steps = GAMESTATE:GetCurrentSteps()
 			chartKey = steps:GetChartKey()
 			ctags = {}
 			for k, v in pairs(ptags) do

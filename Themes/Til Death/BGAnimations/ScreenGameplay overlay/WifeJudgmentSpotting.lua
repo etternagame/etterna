@@ -193,7 +193,7 @@ local t =
 		end
 		-- truncated to 128 characters(discord hard limit)
 		detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1))
+		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1))
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
@@ -1297,7 +1297,7 @@ mc = Def.ActorFrame {
 		self:x(200)
 		self:y(200)
 
-		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+		local steps = GAMESTATE:GetCurrentSteps()
 		local loot = steps:GetNPSPerMeasure(1)
 						
 		local peak = 0

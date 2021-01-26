@@ -366,7 +366,7 @@ end
 -- responsible for updating all relevant values and then triggering the display message(s)
 local function updateCoolStuff()
     song = GAMESTATE:GetCurrentSong()
-    steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+    steps = GAMESTATE:GetCurrentSteps()
     if song then
         -- account for rate separately
         -- double the output because intervals are half seconds

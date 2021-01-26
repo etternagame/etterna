@@ -46,10 +46,9 @@ local function getPlayerBPM(pn)
 	return bpm
 end
 
-local function getMaxDisplayBPM(pn)
-	local pn = GAMESTATE:GetMasterPlayerNumber()
+local function getMaxDisplayBPM()
 	local song = GAMESTATE:GetCurrentSong()
-	local steps = GAMESTATE:GetCurrentSteps(pn)
+	local steps = GAMESTATE:GetCurrentSteps()
 	if steps:GetDisplayBPMType() ~= "DisplayBPM_Random" then
 		return steps:GetDisplayBpms()[2]
 	else
@@ -64,7 +63,7 @@ local function getSpeed(pn)
 	elseif po:CMod() ~= nil then
 		return po:CMod()
 	elseif po:MMod() ~= nil then
-		return po:MMod() * (getPlayerBPM(pn) / getMaxDisplayBPM(pn))
+		return po:MMod() * (getPlayerBPM(pn) / getMaxDisplayBPM())
 	else
 		return getPlayerBPM(pn)
 	end

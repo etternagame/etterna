@@ -107,7 +107,7 @@ local t = Def.ActorFrame {
 		YReverseOffsetPixels = 100,
 
 		InitCommand = function(self)
-			local s = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			local s = GAMESTATE:GetCurrentSteps()
 			if s ~= nil then
 				self:LoadNoteData(s)
 			end

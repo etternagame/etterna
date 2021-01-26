@@ -55,8 +55,8 @@ local sd =
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if leaderboardEnabled and GAMESTATE:GetCurrentSteps(PLAYER_1) then
-			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+		if leaderboardEnabled and GAMESTATE:GetCurrentSteps() then
+			local chartkey = GAMESTATE:GetCurrentSteps():GetChartKey()
 			if SCREENMAN:GetTopScreen():GetMusicWheel():IsSettled() then
 				DLMAN:RequestChartLeaderBoardFromOnline(
 					chartkey,

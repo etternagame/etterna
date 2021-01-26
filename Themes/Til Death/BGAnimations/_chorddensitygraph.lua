@@ -48,7 +48,7 @@ local function getColorForDensity(density, ncol)
 end
 
 local function updateGraphMultiVertex(parent, realgraph)
-	local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	local steps = GAMESTATE:GetCurrentSteps()
 	if steps then
 		local ncol = steps:GetNumColumns()
 		local rate = math.max(1, getCurRateValue())

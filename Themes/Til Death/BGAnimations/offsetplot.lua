@@ -29,7 +29,7 @@ local ctt = {}
 local ntt = {}
 local wuab = {}
 local finalSecond = GAMESTATE:GetCurrentSteps():GetLastSecond()
-local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
+local td = GAMESTATE:GetCurrentSteps():GetTimingData()
 local oddColumns = false
 local middleColumn = 1.5 -- middle column for 4k but accounting for trackvector indexing at 0
 

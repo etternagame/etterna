@@ -1492,7 +1492,6 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetCurrentSteps(T* p, lua_State* L)
 	{
-		PlayerNumber pn = PLAYER_1;
 		Steps* pSteps = p->m_pCurSteps;
 		if (pSteps) {
 			pSteps->PushSelf(L);

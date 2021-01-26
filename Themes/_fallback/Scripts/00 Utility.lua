@@ -287,7 +287,7 @@ function getBPMChangeCount(bpmChanges)
 	return count
 end
 --- Returns a string of the form "(KeyCount)K" like "4K"
--- Uses GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
+-- Uses GAMESTATE:GetCurrentSteps():GetStepsType()
 -- @treturn string keymode
 function getCurrentKeyMode()
 	local keys = {
@@ -306,7 +306,7 @@ function getCurrentKeyMode()
 		StepsType_Bm_Double5 = "12K",
 		StepsType_Bm_Double7 = "16K",
 	}
-	local stepstype = GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
+	local stepstype = GAMESTATE:GetCurrentSteps():GetStepsType()
 	return keys[stepstype]
 end
 

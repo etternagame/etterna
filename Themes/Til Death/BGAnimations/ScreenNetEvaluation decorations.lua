@@ -167,7 +167,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				local meter = GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
 			end
@@ -200,7 +200,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+				local steps = GAMESTATE:GetCurrentSteps()
 				local diff = getDifficulty(steps:GetDifficulty())
 				self:settext(getShortDifficulty(diff))
 				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
@@ -551,7 +551,7 @@ local detail =
 detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
 local state =
 	"MSD: " ..
-	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
+	string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
 			string.format("%05.2f%%", notShit.floor(pssP1:GetWifeScore() * 10000) / 100) ..
 				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
