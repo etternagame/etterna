@@ -59,7 +59,6 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 		noteFieldHeight = yReverse - yStandard;
 	}
 
-	m_pPlayerState = GAMESTATE->m_pPlayerState;
 	if (m_pPlayerState == nullptr) {
 		LuaHelpers::ReportScriptError(
 		  "PlayerState was somehow null when creating NoteFieldPreview. Report "
@@ -87,6 +86,7 @@ void
 NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 {
 	// avoid leaking NoteData all over the place
+	// (this should be comparing pointers, not data)
 	// something that passes this check was previously loaded via:
 	// - LoadNoteData
 	// and was not:
@@ -94,6 +94,9 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 	// - the empty dummy NoteData
 	if (m_pNoteData != p_dummyNoteData && m_pNoteData != pNoteData)
 		delete m_pNoteData;
+	// if the current and incoming NoteData pointers are the same, why load?
+	else if (m_pNoteData == pNoteData)
+		return;
 
 	const auto* style =
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
@@ -171,8 +174,10 @@ NoteFieldPreview::NoteFieldPreview()
 	auto* nd = new NoteData;
 	nd->Init();
 	nd->SetNumTracks(4);
-	
 	p_dummyNoteData = nd;
+
+	// This is not guaranteed to be non-null!
+	m_pPlayerState = GAMESTATE->m_pPlayerState;
 }
 
 NoteFieldPreview::~NoteFieldPreview()
