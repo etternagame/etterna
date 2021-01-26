@@ -334,22 +334,12 @@ local function rankingLabel(i)
 				if rankingSkillset > 1 and ButtonActive(self) then
 					if not showOnline then
 						if ths then
-							local srate = ths:GetMusicRate()
-							if whee:SelectSong(thssong) then
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
-							end
+							whee:SelectSong(thssong)
 						end
 					elseif onlineScore and onlineScore.chartkey then
 						local song = SONGMAN:GetSongByChartKey(onlineScore.chartkey)
 						if song then
-							local srate = onlineScore.rate
-							if whee:SelectSong(song) then
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
-							end
+							whee:SelectSong(song)
 						end
 					end
 				end
@@ -549,12 +539,7 @@ local function recentLabel(i)
 			MouseLeftClickMessageCommand = function(self)
 				if recentactive and ButtonActive(self) then
 					if ths then
-						local srate = ths:GetMusicRate()
-						if whee:SelectSong(thssong) then
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
-						end
+						whee:SelectSong(thssong)
 					end
 				end
 			end,
