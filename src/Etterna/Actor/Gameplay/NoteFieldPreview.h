@@ -11,6 +11,7 @@ class NoteFieldPreview : public NoteField
 	void LoadFromNode(const XNode* pNode) override;
 	void LoadNoteData(NoteData* pNoteData);
 	void LoadNoteData(Steps* pSteps);
+	void LoadDummyNoteData();
 	void UpdateDrawDistance(int aftertargetspixels, int beforetargetspixels);
 	NoteFieldPreview();
 	~NoteFieldPreview();
@@ -19,6 +20,7 @@ class NoteFieldPreview : public NoteField
 
   private:
 	NoteData* p_dummyNoteData;
+	bool loadedNoteDataAtLeastOnce = false;
 };
 
 #endif

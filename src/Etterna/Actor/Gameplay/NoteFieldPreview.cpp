@@ -5,6 +5,7 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
+#include "Etterna/Models/StepsAndStyles/Style.h"
 
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -47,21 +48,56 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 		return;
 	}
 
-	if (GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber) == nullptr) {
+	const auto* style = GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	if (style == nullptr) {
 		LuaHelpers::ReportScriptError("GetCurrentStyle was null when creating "
 									  "NoteFieldPreview. Report to developers.");
 		return;
 	}
 
+	// This causes crashing if mismatched upon NoteField render
+	// (only happens when not loading into a 4k compatible Game)
+	if (p_dummyNoteData->GetNumTracks() != style->m_iColsPerPlayer)
+		p_dummyNoteData->SetNumTracks(style->m_iColsPerPlayer);
+	
 	Init(m_pPlayerState, noteFieldHeight);
-	Load(p_dummyNoteData,
-		 m_iDrawDistanceAfterTargetsPixels,
-		 m_iDrawDistanceBeforeTargetsPixels);
+	LoadDummyNoteData();
 }
 
 void
 NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 {
+	// avoid leaking NoteData all over the place
+	// something that passes this check was previously loaded via:
+	// - LoadNoteData
+	// and was not:
+	// - already what we have loaded
+	// - the empty dummy NoteData
+	if (m_pNoteData != p_dummyNoteData && m_pNoteData != pNoteData)
+		delete m_pNoteData;
+
+	const auto* style =
+	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	if (pNoteData->GetNumTracks() != style->m_iColsPerPlayer) {
+		// this typically cannot happen
+		Locator::getLogger()->warn(
+		  "NoteFieldPreview issue: NoteData Tracks {} - Style Columns {}",
+		  pNoteData->GetNumTracks(),
+		  style->m_iColsPerPlayer);
+	}
+
+	// Running NoteSkin Recache will solve issues related to changing style as an end-all
+	// This can't be run on init: there will be no loaded ReceptorArrowRow displays (null)
+	if (loadedNoteDataAtLeastOnce &&
+		m_pCurDisplay->m_ReceptorArrowRow.GetRendererCount() !=
+		  pNoteData->GetNumTracks()) {
+		for (auto& d : m_NoteDisplays) {
+			UncacheNoteSkin(d.first);
+		}
+		CacheAllUsedNoteSkins();
+	} else
+		loadedNoteDataAtLeastOnce = true;
+	
 	Load(pNoteData,
 		 m_iDrawDistanceAfterTargetsPixels,
 		 m_iDrawDistanceBeforeTargetsPixels);
@@ -72,7 +108,25 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps)
 {
 	auto* nd = new NoteData;
 	*nd = pSteps->GetNoteData();
+
+	// If the style must change to adapt to this new NoteData, do so
+	const auto* style =
+	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	if (pSteps == GAMESTATE->m_pCurSteps && style != nullptr &&
+		nd->GetNumTracks() != style->m_iColsPerPlayer)
+		GAMESTATE->SetCompatibleStylesForPlayers();
 	LoadNoteData(nd);
+}
+
+void
+NoteFieldPreview::LoadDummyNoteData()
+{
+	const auto* style =
+	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	if (style != nullptr &&
+		p_dummyNoteData->GetNumTracks() != style->m_iColsPerPlayer)
+		p_dummyNoteData->SetNumTracks(style->m_iColsPerPlayer);
+	LoadNoteData(p_dummyNoteData);
 }
 
 void
@@ -125,11 +179,17 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 		p->LoadNoteData(s);
 		COMMON_RETURN_SELF;
 	}
+	static int LoadDummyNoteData(T* p, lua_State* L)
+	{
+		p->LoadDummyNoteData();
+		COMMON_RETURN_SELF;
+	}
 	
 	LunaNoteFieldPreview()
 	{
 		ADD_METHOD(UpdateDrawDistance);
 		ADD_METHOD(LoadNoteData);
+		ADD_METHOD(LoadDummyNoteData);
 	}
 };
 
