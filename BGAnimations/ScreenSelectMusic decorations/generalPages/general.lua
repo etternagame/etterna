@@ -31,7 +31,7 @@ local t = Def.ActorFrame {
         -- update displayscore
         -- it sets to nil properly by itself
         displayScore = GetDisplayScore()
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps()})
     end,
     ChangedStepsMessageCommand = function(self, params)
         displayScore = GetDisplayScore()
@@ -359,7 +359,7 @@ local function createTagDisplays()
             end
         end,
         ReassignedTagsMessageCommand = function(self)
-            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
+            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps()})
         end
     }
     for i = 1, 4 do

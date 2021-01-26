@@ -13,7 +13,7 @@ local t = Def.ActorFrame {
         self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end,
     CurrentRateChangedMessageCommand = function(self)
-        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps(PLAYER_1)})
+        self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps()})
     end,
     ChangedStepsMessageCommand = function(self, params)
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})

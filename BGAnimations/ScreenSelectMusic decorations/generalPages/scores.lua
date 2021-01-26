@@ -279,7 +279,7 @@ local function createList()
             page = 1
 
             -- no steps, no scores.
-            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local steps = GAMESTATE:GetCurrentSteps()
             if steps == nil then
                 scores = {}
                 if isLocal then localrtTable = nil end
@@ -323,7 +323,7 @@ local function createList()
                                 steps:GetChartKey(),
                                 function(leaderboard)
                                     -- disallow replacing the leaderboard if the request doesnt match the current steps
-                                    local s = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                                    local s = GAMESTATE:GetCurrentSteps()
                                     if s and s:GetChartKey() == kee then
                                         fetchingScores[kee] = false
                                         self:queuecommand("UpdateScores")
@@ -581,12 +581,12 @@ local function createList()
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    local sng = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                    local sng = GAMESTATE:GetCurrentSteps()
                     DLMAN:RequestOnlineScoreReplayData(
                         score,
                         function()
                             local scr = SCREENMAN:GetTopScreen()
-                            local sng2 = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                            local sng2 = GAMESTATE:GetCurrentSteps()
                             if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
                                 local success = SCREENMAN:GetTopScreen():PlayReplay(score)
                                 if success then
@@ -942,7 +942,7 @@ local function createList()
                 if self:IsInvisible() then return end
                 if localscore ~= nil and localscore:HasReplayData() then
                     DLMAN:SendReplayDataForOldScore(localscore:GetScoreKey())
-                    local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                    local steps = GAMESTATE:GetCurrentSteps()
                     ms.ok(string.format("Uploading Score (chart %s key %s)", steps:GetChartKey(), localscore:GetScoreKey()))
                 end
             end
@@ -1152,7 +1152,7 @@ local function createList()
             end,
             UpdateListCommand = function(self, params)
                 if localscore == nil then return end
-                local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                local steps = GAMESTATE:GetCurrentSteps()
                 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                 if steps ~= nil then
                     if localscore:HasReplayData() then
@@ -1247,7 +1247,7 @@ local function createList()
         UpdateListCommand = function(self)
             self:finishtweening()
             self:smooth(scoreListAnimationSeconds)
-            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local steps = GAMESTATE:GetCurrentSteps()
             
             if isLocal then
                 if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then

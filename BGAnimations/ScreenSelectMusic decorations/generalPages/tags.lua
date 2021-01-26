@@ -161,7 +161,7 @@ local function tagList()
 
                     if tagListMode == "Assign" then
                         -- color if assigned on this chart
-                        local chart = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                        local chart = GAMESTATE:GetCurrentSteps()
                         if chart ~= nil then
                             local ck = chart:GetChartKey()
                             if storedTags[tag][ck] then
@@ -188,7 +188,7 @@ local function tagList()
 
                     if tagListMode == "Assign" then
                         -- you cant assign a tag to nothing
-                        local chart = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                        local chart = GAMESTATE:GetCurrentSteps()
                         if chart ~= nil then
                             local ck = chart:GetChartKey()
                             if storedTags[tag][ck] then

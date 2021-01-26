@@ -982,7 +982,7 @@ local function goalList()
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
-                    local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                    local steps = GAMESTATE:GetCurrentSteps()
                     if steps ~= nil then
                         local ck = steps:GetChartKey()
                         local success = profile:AddGoal(ck)

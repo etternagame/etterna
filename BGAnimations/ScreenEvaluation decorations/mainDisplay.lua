@@ -987,8 +987,8 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.LipHeight / 2)
             self:halign(0)
             self:zoom(titleTextSize)
-            if GAMESTATE:GetCurrentSteps(PLAYER_1) ~= nil then
-                local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()))
+            if GAMESTATE:GetCurrentSteps() ~= nil then
+                local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps():GetStepsType()))
                 self:settextf("%s Results", st)
             else
                 self:settext("Results")

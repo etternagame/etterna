@@ -231,7 +231,7 @@ local function scoreList()
                     scores = scoresByRate[getRate(mostRecentScore)] or {mostRecentScore}
                 end
             else
-                local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                local steps = GAMESTATE:GetCurrentSteps()
                 -- operate with dlman scores
                 -- ... everything here is determined by internal bools set by the toggle buttons
                 scores = DLMAN:GetChartLeaderBoard(steps:GetChartKey(), dlmanScoreboardCountryFilter)
@@ -587,7 +587,7 @@ local function scoreList()
         UpdateListCommand = function(self)
             self:finishtweening()
             self:smooth(scoreListAnimationSeconds)
-            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+            local steps = GAMESTATE:GetCurrentSteps()
             
             if isLocal then
                 if scores ~= nil and #scores == 0 then

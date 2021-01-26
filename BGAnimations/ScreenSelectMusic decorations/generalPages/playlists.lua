@@ -739,7 +739,7 @@ local function playlistList()
                         if pl:GetName() == "Favorites" then
                             -- no adding to favorites this way :)
                         else
-                            local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+                            local steps = GAMESTATE:GetCurrentSteps()
                             if steps ~= nil then
                                 -- this triggers a save
                                 pl:AddChart(steps:GetChartKey())

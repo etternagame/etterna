@@ -153,7 +153,7 @@ function getClearTypeFromScore(score, ret)
 		return getClearTypeItem(13, ret)
 	end
 	song = GAMESTATE:GetCurrentSong()
-	steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	steps = GAMESTATE:GetCurrentSteps()
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 	if score ~= nil and song ~= nil and steps ~= nil then
 		playCount = profile:GetSongNumTimesPlayed(song)
