@@ -16,6 +16,12 @@ class GhostArrowRow : public ActorFrame
 
 	void Load(const PlayerState* pPlayerState, float fYReverseOffset);
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
+	int GetRendererCount() const
+	{
+		if (m_renderers != nullptr)
+			return m_renderers->size();
+		return 0;
+	}
 
 	void DidTapNote(int iCol, TapNoteScore tns, bool bBright);
 	void DidHoldNote(int iCol, HoldNoteScore hns, bool bBright);

@@ -19,6 +19,12 @@ class ReceptorArrowRow : public ActorFrame
 
 	void Load(const PlayerState* pPlayerState, float fYReverseOffset);
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
+	int GetRendererCount() const
+	{
+		if (m_renderers != nullptr)
+			return m_renderers->size();
+		return 0;
+	}
 
 	void Step(int iCol, TapNoteScore score);
 	void SetPressed(int iCol);
