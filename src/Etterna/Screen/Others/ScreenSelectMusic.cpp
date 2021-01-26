@@ -188,8 +188,6 @@ ScreenSelectMusic::Init()
 	m_soundOptionsChange.Load(THEME->GetPathS(m_sName, "options"));
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
-	// Chart Preview.
-	m_pPreviewNoteField = nullptr;
 	// Replay Data Manager Reset.
 	PlayerAI::ResetScoreData();
 
@@ -288,14 +286,10 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 	// we need something similar to the previewmusic delay except for charts, so
 	// heavy duty chart specific operations can be delayed when scrolling (chord
 	// density graph, possibly chart leaderboards, etc) -mina
-
-	// in theory the notedata load for chartpreviews could go here however a
-	// delay might make it weird when swapping between difficulties to compare
-	// sections for which you would want instantaneous action -mina
 	if (delayedchartupdatewaiting) {
 		if (g_ScreenStartedLoadingAt
 			  .Ago() > // not sure if i need the "moving fast" check -mina
-			SAMPLE_MUSIC_DELAY_INIT) // todo: decoupled this mina
+			SAMPLE_MUSIC_DELAY_INIT)
 		{
 			MESSAGEMAN->Broadcast("DelayedChartUpdate");
 			delayedchartupdatewaiting = false;
@@ -354,8 +348,8 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		// The way music playing works does not cause stutter, but
 		// will cause inconsistent music playing experience and an overall
 		// negative feel.
-		// But if chart preview is active, force it to be synced
-		PlayParams.bAccurateSync = GAMESTATE->m_bIsChartPreviewActive || bForceAccurate;
+		// But if chart preview is active, it should probably be synced
+		PlayParams.bAccurateSync = bForceAccurate;
 
 		GameSoundManager::PlayMusicParams FallbackMusic;
 		FallbackMusic.sFile = m_sLoopMusicPath;
@@ -1325,12 +1319,8 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 			GAMESTATE->SetCompatibleStyle(pSteps->m_StepsType, pn);
 
 		if (pSteps) {
-			if (m_pPreviewNoteField != nullptr) {
-				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
-											  *(pSteps->GetTimingData()));
-				pSteps->GetNoteData(m_PreviewNoteData);
-				m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
-			}
+			GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
+										  *pSteps->GetTimingData());
 			delayedchartupdatewaiting = true;
 		}
 	}
@@ -1381,15 +1371,13 @@ ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong == nullptr) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
-		if (m_pPreviewNoteField) {
-			m_pPreviewNoteField->SetVisible(false);
-			// if previewnotefield is active and we are moving out of a pack
-			// into the pack list (that's what this block of code is for
-			// handling) manually call songmans cleanup function (compresses all
-			// steps); we could optimize by only compressing the pack but this
-			// is pretty fast anyway -mina
+		if (b_PreviewNoteFieldIsActive)
+		// if previewnotefield we are moving out of a pack
+		// into the pack list (that's what this block of code is for
+		// handling) manually call songmans cleanup function (compresses all
+		// steps); we could optimize by only compressing the pack but this
+		// is pretty fast anyway -mina
 			SONGMAN->Cleanup();
-		}
 	} else {
 		GAMESTATE->m_pPreferredSong = pSong;
 	}

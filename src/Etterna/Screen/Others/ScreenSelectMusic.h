@@ -66,9 +66,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false);
 
-	NoteData m_PreviewNoteData;
-	NoteField* m_pPreviewNoteField;
-
 	void ChangeSteps(PlayerNumber pn, int dir);
 	// Lua
 	void PushSelf(lua_State* L) override;
