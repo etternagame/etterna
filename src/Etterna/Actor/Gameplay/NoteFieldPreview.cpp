@@ -11,6 +11,7 @@
 #include "Etterna/Singletons/ThemeManager.h"
 
 #include <cmath>
+#include <limits>
 
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
@@ -34,18 +35,29 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 		m_iDrawDistanceBeforeTargetsPixels =
 		  THEME->GetMetricI("Player", "DrawDistanceBeforeTargetsPixels");
 	else
-		m_iDrawDistanceBeforeTargetsPixels = std::clamp(iDrawBefore, 0, INT_MAX);
+		m_iDrawDistanceBeforeTargetsPixels =
+		  std::clamp(iDrawBefore, 0, std::numeric_limits<int>::max());
 	if (!afsuccess)
 		m_iDrawDistanceAfterTargetsPixels =
 		  THEME->GetMetricI("Player", "DrawDistanceAfterTargetsPixels");
 	else
-		m_iDrawDistanceAfterTargetsPixels = std::clamp(iDrawAfter, INT_MIN, 0);
+		m_iDrawDistanceAfterTargetsPixels =
+		  std::clamp(iDrawAfter, std::numeric_limits<int>::min(), 0);
 
-	// for NoteField height
-	// 100 is a kind of typical number
-	const float yReverse = THEME->GetMetricF("Player", "ReceptorArrowsYReverse");
-	const float yStandard = THEME->GetMetricF("Player", "ReceptorArrowsYStandard");
-	const float noteFieldHeight = yReverse - yStandard;
+	float reversePixels, noteFieldHeight;
+	const auto reverseSuccess = pNode->GetAttrValue("YReverseOffsetPixels", reversePixels);
+	if (reverseSuccess)
+		noteFieldHeight =
+		  std::clamp(reversePixels, 0.F, std::numeric_limits<float>::max());
+	else {
+		// for NoteField height
+		// 100 is a kind of typical number
+		const float yReverse =
+		  THEME->GetMetricF("Player", "ReceptorArrowsYReverse");
+		const float yStandard =
+		  THEME->GetMetricF("Player", "ReceptorArrowsYStandard");
+		noteFieldHeight = yReverse - yStandard;
+	}
 
 	m_pPlayerState = GAMESTATE->m_pPlayerState;
 	if (m_pPlayerState == nullptr) {
