@@ -20,12 +20,6 @@ REGISTER_ACTOR_CLASS(NoteFieldPreview);
 void
 NoteFieldPreview::LoadFromNode(const XNode* pNode)
 {
-	ActorFrame::LoadFromNode(pNode);
-
-	// fall back to this basic name if no name is set on init
-	if (m_sName.empty())
-		SetName("NoteFieldPreview");
-
 	int iDrawBefore, iDrawAfter;
 	const auto b4success = pNode->GetAttrValue("DrawDistanceBeforeTargetsPixels",
 						iDrawBefore);
@@ -74,6 +68,12 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 									  "NoteFieldPreview. Report to developers.");
 		return;
 	}
+
+	ActorFrame::LoadFromNode(pNode);
+
+	// fall back to this basic name if no name is set on init
+	if (m_sName.empty())
+		SetName("NoteFieldPreview");
 
 	// This causes crashing if mismatched upon NoteField render
 	// (only happens when not loading into a 4k compatible Game)
