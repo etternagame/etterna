@@ -6,9 +6,11 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+#include "Etterna/Screen/Others/Screen.h"
 
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/ScreenManager.h"
 
 #include <cmath>
 #include <limits>
@@ -178,6 +180,12 @@ NoteFieldPreview::NoteFieldPreview()
 
 	// This is not guaranteed to be non-null!
 	m_pPlayerState = GAMESTATE->m_pPlayerState;
+
+	// There's a few rare conditions that are necessary to use this
+	// Primarily for ScreenSelectMusic
+	auto* scrn = SCREENMAN->GetTopScreen();
+	if (scrn != nullptr)
+		scrn->b_PreviewNoteFieldIsActive = true;
 }
 
 NoteFieldPreview::~NoteFieldPreview()
