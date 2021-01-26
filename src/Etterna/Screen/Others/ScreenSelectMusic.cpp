@@ -2008,12 +2008,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		lua_pushboolean(L, GAMESTATE->GetPaused());
 		return 1;
 	}
-	static int dootforkfive(T* p, lua_State* L)
-	{
-		auto* king = Luna<ActorFrame>::check(L, 1);
-		king->AddChild(p->m_pPreviewNoteField);
-		COMMON_RETURN_SELF;
-	}
 	static int ChangeSteps(T* p, lua_State* L)
 	{
 		p->ChangeSteps(PLAYER_1, IArg(1));
@@ -2048,7 +2042,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(GetPreviewNoteFieldMusicPosition);
 		ADD_METHOD(PausePreviewNoteField);
 		ADD_METHOD(IsPreviewNoteFieldPaused);
-		ADD_METHOD(dootforkfive);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
 	}

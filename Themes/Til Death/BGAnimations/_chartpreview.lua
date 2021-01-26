@@ -1,5 +1,4 @@
 -- all the preview stuff should be var'd and used consistently -mina
-local noteField = false
 local prevZoom = 0.65
 local musicratio = 1
 
@@ -21,8 +20,12 @@ local translated_info = {
 
 local function UpdatePreviewPos(self)
 	if not self:IsVisible() then return end
-	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or 
-	noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+	local scrnm = SCREENMAN:GetTopScreen():GetName()
+	local allowedScreens = {
+		ScreenSelectMusic = true,
+		ScreenNetSelectMusic = true,
+	}
+	if allowedScreens[scrnm] == true then
 		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
 		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 		self:queuecommand("Highlight")
@@ -35,18 +38,6 @@ local function UpdatePreviewPos(self)
 end
 
 local memehamstermax
-local function setUpPreviewNoteField() 
-	yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
-    if yeet == nil then 
-      return 
-	end 
-	yeet:zoom(prevZoom):draworder(90)
-	SCREENMAN:GetTopScreen():dootforkfive(memehamstermax)
-	yeet = memehamstermax:GetChild("NoteField")
-	yeet:x(wodth/2)
-	memehamstermax:SortByDrawOrder()
-	MESSAGEMAN:Broadcast("NoteFieldVisible") 
-end
 local function gpx(actor)
 	return actor:GetParent():GetX()
 end
@@ -96,11 +87,10 @@ local t = Def.ActorFrame {
 		end
 	end,
     SetupNoteFieldCommand=function(self)
-        setUpPreviewNoteField()
-        noteField = true
+		self:playcommand("NoteFieldVisible")
 	end,
 	hELPidontDNOKNOWMessageCommand=function(self)
-		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
+		--SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
 		self:SetUpdateFunction(nil)
 	end,
 	ChartPreviewOffMessageCommand=function(self)
@@ -126,6 +116,30 @@ local t = Def.ActorFrame {
 			end
 		end
 	end,
+
+	Def.NoteFieldPreview {
+		Name = "NoteField",
+		DrawDistanceBeforeTargetsPixels = 800,
+		DrawDistanceAfterTargetsPixels = 0,
+		YReverseOffsetPixels = 100,
+
+		BeginCommand = function(self)
+			local s = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			self:LoadNoteData(s)
+			self:zoom(prevZoom):draworder(90)
+			self:x(wodth/2)
+			self:GetParent():SortByDrawOrder()
+		end,
+		CurrentStepsChangedMessageCommand = function(self, params)
+			local steps = params.ptr
+			if steps ~= nil then
+				self:LoadNoteData(steps)
+			else
+				self:LoadDummyNoteData()
+			end
+		end
+	},
+
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
