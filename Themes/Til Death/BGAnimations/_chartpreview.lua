@@ -2,7 +2,6 @@
 local prevZoom = 0.65
 local musicratio = 1
 
--- hurrrrr nps quadzapalooza -mina
 local wodth = capWideScale(280, 300)
 local hidth = 40
 local yeet
@@ -38,9 +37,6 @@ local function UpdatePreviewPos(self)
 end
 
 local memehamstermax
-local function gpx(actor)
-	return actor:GetParent():GetX()
-end
 local function updateCalcInfoDisplays(actor)
 	if not calcinfo:GetVisible() then
 		return
@@ -88,10 +84,6 @@ local t = Def.ActorFrame {
 	end,
     SetupNoteFieldCommand=function(self)
 		self:playcommand("NoteFieldVisible")
-	end,
-	hELPidontDNOKNOWMessageCommand=function(self)
-		--SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
-		self:SetUpdateFunction(nil)
 	end,
 	ChartPreviewOffMessageCommand=function(self)
 		self:SetUpdateFunction(nil)

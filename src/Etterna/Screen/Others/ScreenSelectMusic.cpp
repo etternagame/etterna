@@ -1249,11 +1249,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 	if (m_SelectionState == SelectionState_Finalized) {
 		DLMAN->UpdateDLSpeed(true);
 
-		if (GAMESTATE->m_bIsChartPreviewActive) {
-			MESSAGEMAN->Broadcast("hELPidontDNOKNOW");
-		} // we dont know who owns the notefield preview so we broadcast to get
-		  // the owner to submit itself for deletion -mina
-
 		if (!m_bStepsChosen) {
 			m_bStepsChosen = true;
 			// Don't play start sound. We play it again below on finalized
