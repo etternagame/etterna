@@ -24,35 +24,28 @@ local function UpdatePreviewPos(self)
 		ScreenSelectMusic = true,
 		ScreenNetSelectMusic = true,
 	}
+
 	if allowedScreens[scrnm] == true then
-		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+		local pos = SCREENMAN:GetTopScreen():GetSampleMusicPosition() / musicratio
 		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 		self:queuecommand("Highlight")
 
 		-- calcdisplay position indicator (not the best place to put this but it works)
-		local calcgraphpos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+		local calcgraphpos = SCREENMAN:GetTopScreen():GetSampleMusicPosition() / musicratio
 		local badorp = self:GetChild("notChordDensityGraph"):GetChild("GraphPos")
 		badorp:zoomto(math.min(calcgraphpos * capWideScale(300,450) / capWideScale(280,300), capWideScale(300,450)), hidth * 3):halign(0)
 	end
 end
 
-local memehamstermax
 local function updateCalcInfoDisplays(actor)
-	if not calcinfo:GetVisible() then
-		return
-	end
+	if not calcinfo:GetVisible() then return end
 	mx = INPUTFILTER:GetMouseX()
 	px = actor:GetParent():GetX()
 	sl1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	--sl2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	--st2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
-	--st2:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
 	sl1:visible(true)
-	--sl2:visible(true)
 	st1:visible(true)
-	--st2:visible(true)
 end
 
 local t = Def.ActorFrame {
@@ -62,11 +55,9 @@ local t = Def.ActorFrame {
         self:SetUpdateFunction(UpdatePreviewPos)
 		calcinfo = self:GetChild("notChordDensityGraph"):visible(false):draworder(1000) -- actor for calcinfo
 		cd = self:GetChild("ChordDensityGraph"):visible(false):draworder(1000)
-		memehamstermax = self
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		self:GetChild("pausetext"):settext("")
-
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
@@ -78,7 +69,7 @@ local t = Def.ActorFrame {
 		-- the Score and Profile tabs have right click functionality
 		-- so ignore right clicks if on those
 		if tab ~= 2 and tab ~= 4 then
-			SCREENMAN:GetTopScreen():PausePreviewNoteField()
+			SCREENMAN:GetTopScreen():PauseSampleMusic()
 			self:GetChild("pausetext"):playcommand("Set")
 		end
 	end,
@@ -115,9 +106,13 @@ local t = Def.ActorFrame {
 		DrawDistanceAfterTargetsPixels = 0,
 		YReverseOffsetPixels = 100,
 
-		BeginCommand = function(self)
+		InitCommand = function(self)
 			local s = GAMESTATE:GetCurrentSteps(PLAYER_1)
-			self:LoadNoteData(s)
+			if s ~= nil then
+				self:LoadNoteData(s)
+			end
+		end,
+		BeginCommand = function(self)
 			self:zoom(prevZoom):draworder(90)
 			self:x(wodth/2)
 			self:GetParent():SortByDrawOrder()
@@ -156,7 +151,7 @@ local t = Def.ActorFrame {
 			self:playcommand("Set")
 		end,
 		SetCommand = function(self)
-			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
+			if SCREENMAN:GetTopScreen():IsSampleMusicPaused() then 
 				self:settext(translated_info["Paused"])
 			else 
 				self:settext("")
@@ -183,8 +178,6 @@ local t = Def.ActorFrame {
 				self:GetParent():GetChild("Seek"):visible(false)
 				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):visible(false)
 				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):visible(false)
-				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):visible(false)
-				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):visible(false)
 			end
 		end
 	},
@@ -214,7 +207,7 @@ t[#t + 1] = Def.Quad {
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+			SCREENMAN:GetTopScreen():SetSampleMusicPosition( self:GetX() * musicratio )
 		end
 	end
 }

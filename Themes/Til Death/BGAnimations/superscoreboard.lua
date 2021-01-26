@@ -217,7 +217,6 @@ local o =
 				self:GetParent():GetParent():playcommand("Collapse")
 			elseif isOver(self) then
 				self:GetParent():GetParent():playcommand("Expand")
-				SCREENMAN:GetTopScreen():PausePreviewNoteField()
 			end
 		end
 	},
