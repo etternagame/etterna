@@ -10,6 +10,8 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <cmath>
+
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
 void
@@ -21,24 +23,29 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 	if (m_sName.empty())
 		SetName("NoteFieldPreview");
 
-	auto b4success = pNode->GetAttrValue("DrawDistanceBeforeTargetsPixels",
-						m_iDrawDistanceBeforeTargetsPixels);
-	auto afsuccess = pNode->GetAttrValue("DrawDistanceAfterTargetsPixels",
-						m_iDrawDistanceAfterTargetsPixels);
+	int iDrawBefore, iDrawAfter;
+	const auto b4success = pNode->GetAttrValue("DrawDistanceBeforeTargetsPixels",
+						iDrawBefore);
+	const auto afsuccess = pNode->GetAttrValue("DrawDistanceAfterTargetsPixels",
+						iDrawAfter);
 
-	// fall back to gameplay defaults for draw distance
+	// fall back to gameplay metrics for draw distance
 	if (!b4success)
 		m_iDrawDistanceBeforeTargetsPixels =
 		  THEME->GetMetricI("Player", "DrawDistanceBeforeTargetsPixels");
+	else
+		m_iDrawDistanceBeforeTargetsPixels = std::clamp(iDrawBefore, 0, INT_MAX);
 	if (!afsuccess)
 		m_iDrawDistanceAfterTargetsPixels =
 		  THEME->GetMetricI("Player", "DrawDistanceAfterTargetsPixels");
+	else
+		m_iDrawDistanceAfterTargetsPixels = std::clamp(iDrawAfter, INT_MIN, 0);
 
 	// for NoteField height
 	// 100 is a kind of typical number
-	float yReverse = THEME->GetMetricF("Player", "ReceptorArrowsYReverse");
-	float yStandard = THEME->GetMetricF("Player", "ReceptorArrowsYStandard");
-	float noteFieldHeight = yReverse - yStandard;
+	const float yReverse = THEME->GetMetricF("Player", "ReceptorArrowsYReverse");
+	const float yStandard = THEME->GetMetricF("Player", "ReceptorArrowsYStandard");
+	const float noteFieldHeight = yReverse - yStandard;
 
 	m_pPlayerState = GAMESTATE->m_pPlayerState;
 	if (m_pPlayerState == nullptr) {
@@ -133,10 +140,12 @@ void
 NoteFieldPreview::UpdateDrawDistance(int aftertargetspixels, int beforetargetspixels)
 {
 	// These numbers must remain outside of certain bounds
+	// negative only
 	if (aftertargetspixels > 0)
-		aftertargetspixels = -1;
+		aftertargetspixels = 0;
+	// positive only
 	if (beforetargetspixels < 0)
-		beforetargetspixels = 1;
+		beforetargetspixels = 0;
 	
 	m_iDrawDistanceBeforeTargetsPixels = beforetargetspixels;
 	m_iDrawDistanceAfterTargetsPixels = aftertargetspixels;
