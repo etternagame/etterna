@@ -303,7 +303,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 }
 
 void
-ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate)
+ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate, bool bExtended)
 {
 	if (g_bSampleMusicWaiting || bForcePlay) {
 		if (g_ScreenStartedLoadingAt.Ago() < SAMPLE_MUSIC_DELAY_INIT)
@@ -330,13 +330,22 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 			}
 			m_pSampleMusicTimingData = &pSong->m_SongTiming;
 			m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
-			m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
+			if (bExtended) {
+				m_fSampleLengthSeconds =
+				  pSong->GetLastSecond() - m_fSampleStartSeconds + 2.F;
+				if (m_fSampleLengthSeconds < 3.F) {
+					m_fSampleStartSeconds = 5.F;
+					m_fSampleLengthSeconds = pSong->GetLastSecond() + 2.F;
+				}
+			}
+			else
+				m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
 		}
 
 		GameSoundManager::PlayMusicParams PlayParams;
 		PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
 		PlayParams.pTiming = m_pSampleMusicTimingData;
-		PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS;
+		PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS || bExtended;
 		PlayParams.fStartSecond = m_fSampleStartSeconds;
 		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
@@ -1917,7 +1926,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	}
 	static int PlayCurrentSongSampleMusic(T* p, lua_State* L)
 	{
-		p->PlayCurrentSongSampleMusic(true, BArg(1));
+		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
 	LunaScreenSelectMusic()

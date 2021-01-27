@@ -41,8 +41,9 @@ local translated_info = {
 
 -- to reduce repetitive code for setting preview music position with booleans
 local function playMusicForPreview(song)
-	song:PlaySampleMusicExtended()
-	MESSAGEMAN:Broadcast("PreviewMusicStarted")
+	SOUND:StopMusic()
+	SCREENMAN:GetTopScreen():PlayCurrentSongSampleMusic(true, true)
+	MESSAGEMAN:Broadcast("PreviewMusicStarted") -- this is lying tbh
 
 	restartedMusic = true
 

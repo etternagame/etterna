@@ -64,7 +64,8 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void SetSampleMusicPosition(float);
 	void PauseSampleMusic();
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
-									bool bForceAccurate = false);
+									bool bForceAccurate = false,
+									bool bExtended = false);
 
 	void ChangeSteps(PlayerNumber pn, int dir);
 	// Lua
