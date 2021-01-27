@@ -62,7 +62,7 @@ Wheel.mt = {
         if top.PlayCurrentSongSampleMusic then
             if GAMESTATE:GetCurrentSong() ~= nil then
                 -- currentItem should be a song
-                top:PlayCurrentSongSampleMusic(false)
+                top:PlayCurrentSongSampleMusic(false, false)
             end
         end
     end,
