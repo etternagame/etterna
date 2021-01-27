@@ -18,6 +18,7 @@ local hackysack = false
 local dontRemakeTheNotefield = false
 local songChanged = false
 local songChanged2 = false
+local songChanged3 = false
 local previewVisible = false
 local onlyChangedSteps = false
 local shouldPlayMusic = false
@@ -80,6 +81,13 @@ local function toggleNoteField()
 	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
 	local nf = mcbootlarder:GetChild("NoteField")
 	if song and not noteField then -- first time setup
+		-- do not allow preview to open for the first time while changing songs
+		-- dont know why this has to happen only for this situation
+		-- oh well
+		if songChanged3 then
+			return false
+		end
+
 		noteField = true
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
 		mcbootlarder:playcommand("SetupNoteField")
@@ -87,8 +95,6 @@ local function toggleNoteField()
 		mcbootlarder:diffusealpha(1)
 
 		nf:y(prevY * 1.5)
-		nf:diffusealpha(1)
-		nf:visible(true)
 		if usingreverse then
 			nf:y(prevY * 1.5 + prevrevY)
 		end
@@ -168,10 +174,17 @@ local t =
 		-- check to see if the song actually really changed
 		-- >:(
 		if noteField and GAMESTATE:GetCurrentSong() ~= song then
+			-- always true if switching songs and preview has ever been opened
 			songChanged2 = true
 			restartedMusic = false
+			songChanged3 = false
+		elseif not noteField and GAMESTATE:GetCurrentSong() ~= song then
+			-- really only possible if switching songs and preview hasnt been opened yet
+			songChanged2 = false
+			songChanged3 = true
 		else
 			songChanged2 = false
+			songChanged3 = false
 		end
 
 		-- an awkwardly named bool describing the fact that we just changed songs
@@ -182,7 +195,6 @@ local t =
 		
 		-- if switching songs, we want the notedata to disappear temporarily
 		if noteField and songChanged2 and previewVisible then
-			mcbootlarder:GetChild("NoteField"):finishtweening()
 			mcbootlarder:GetChild("NoteField"):diffusealpha(0)
 		end
 	end,
@@ -210,6 +222,7 @@ local t =
 		hackysack = false
 		tryingToStart = false
 		songChanged = false
+		songChanged3 = false
 		onlyChangedSteps = true
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
@@ -280,7 +293,6 @@ local t =
 			self:queuecommand("MintyFresh")
 			prevtab = newtab
 			if getTabIndex() == 0 and noteField then
-				mcbootlarder:GetChild("NoteField"):finishtweening()
 				mcbootlarder:GetChild("NoteField"):diffusealpha(1)
 				lockbools = true
 			elseif getTabIndex() ~= 0 and noteField then
