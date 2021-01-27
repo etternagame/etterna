@@ -150,6 +150,12 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 	Load(pNoteData,
 		 m_iDrawDistanceAfterTargetsPixels,
 		 m_iDrawDistanceBeforeTargetsPixels);
+	
+	// Let everything know the NoteField loaded new NoteData
+	// also pass the name of this Actor if we happen to have multiple (why would you)
+	Message m("LoadedNewPreviewNoteData");
+	m.SetParam("NoteField", m_sName);
+	MESSAGEMAN->Broadcast(m);
 }
 
 void
