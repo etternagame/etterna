@@ -9,6 +9,8 @@ class NoteFieldPreview : public NoteField
 {
   public:
 	void LoadFromNode(const XNode* pNode) override;
+	void Update(float fDeltaTime) override;
+	void DrawPrimitives() override;
 	void LoadNoteData(NoteData* pNoteData);
 	void LoadNoteData(Steps* pSteps);
 	void LoadDummyNoteData();

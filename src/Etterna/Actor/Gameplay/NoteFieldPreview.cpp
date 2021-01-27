@@ -17,6 +17,24 @@
 
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
+const Style*
+attemptToEnsureStyle(const PlayerState* ps)
+{
+	// without PlayerState, 
+	if (ps == nullptr)
+		return nullptr;
+	
+	const auto* out = GAMESTATE->GetCurrentStyle(ps->m_PlayerNumber);
+	if (out == nullptr) {
+		GAMESTATE->SetCompatibleStylesForPlayers();
+		const auto* out2 = GAMESTATE->GetCurrentStyle(ps->m_PlayerNumber);
+		// this may be null or not
+		return out2;
+	}
+	// if this is returned, it isn't null
+	return out;
+}
+
 void
 NoteFieldPreview::LoadFromNode(const XNode* pNode)
 {
@@ -62,7 +80,7 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 		return;
 	}
 
-	const auto* style = GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	const auto* style = attemptToEnsureStyle(m_pPlayerState);
 	if (style == nullptr) {
 		LuaHelpers::ReportScriptError("GetCurrentStyle was null when creating "
 									  "NoteFieldPreview. Report to developers.");
@@ -84,10 +102,12 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 
 	// If NoteData was loaded in InitCommand, this isn't necessary
 	// It would be null if not loaded in InitCommand
-	if (m_pNoteData == nullptr)
+	if (m_pNoteData == nullptr) {
 		Load(p_dummyNoteData,
 			 m_iDrawDistanceAfterTargetsPixels,
 			 m_iDrawDistanceBeforeTargetsPixels);
+		loadedNoteDataAtLeastOnce = true;
+	}
 }
 
 void
@@ -106,8 +126,7 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 	else if (m_pNoteData == pNoteData)
 		return;
 
-	const auto* style =
-	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	const auto* style = attemptToEnsureStyle(m_pPlayerState);
 	if (pNoteData->GetNumTracks() != style->m_iColsPerPlayer) {
 		// this typically cannot happen
 		Locator::getLogger()->warn(
@@ -140,8 +159,7 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps)
 	*nd = pSteps->GetNoteData();
 
 	// If the style must change to adapt to this new NoteData, do so
-	const auto* style =
-	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	const auto* style = attemptToEnsureStyle(m_pPlayerState);
 	if (pSteps == GAMESTATE->m_pCurSteps && style != nullptr &&
 		nd->GetNumTracks() != style->m_iColsPerPlayer)
 		GAMESTATE->SetCompatibleStylesForPlayers();
@@ -151,8 +169,7 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps)
 void
 NoteFieldPreview::LoadDummyNoteData()
 {
-	const auto* style =
-	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	const auto* style = attemptToEnsureStyle(m_pPlayerState);
 	if (style != nullptr &&
 		p_dummyNoteData->GetNumTracks() != style->m_iColsPerPlayer)
 		p_dummyNoteData->SetNumTracks(style->m_iColsPerPlayer);
@@ -199,6 +216,22 @@ NoteFieldPreview::~NoteFieldPreview()
 	delete p_dummyNoteData;
 }
 
+void
+NoteFieldPreview::Update(float fDeltaTime)
+{
+	if (!this->GetVisible() || !GAMESTATE->m_pCurSong ||
+		m_pCurDisplay == nullptr)
+		return;
+	NoteField::Update(fDeltaTime);
+}
+
+void
+NoteFieldPreview::DrawPrimitives()
+{
+	if (m_pCurDisplay == nullptr)
+		return;
+	NoteField::DrawPrimitives();
+}
 
 class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 {
