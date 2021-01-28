@@ -113,17 +113,8 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 void
 NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 {
-	// avoid leaking NoteData all over the place
-	// (this should be comparing pointers, not data)
-	// something that passes this check was previously loaded via:
-	// - LoadNoteData
-	// and was not:
-	// - already what we have loaded
-	// - the empty dummy NoteData
-	if (m_pNoteData != p_dummyNoteData && m_pNoteData != pNoteData)
-		delete m_pNoteData;
 	// if the current and incoming NoteData pointers are the same, why load?
-	else if (m_pNoteData == pNoteData)
+	if (m_pNoteData == pNoteData)
 		return;
 
 	const auto* style = attemptToEnsureStyle(m_pPlayerState);
