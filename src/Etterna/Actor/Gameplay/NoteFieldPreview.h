@@ -15,6 +15,7 @@ class NoteFieldPreview : public NoteField
 	void LoadNoteData(Steps* pSteps);
 	void LoadDummyNoteData();
 	void UpdateDrawDistance(int aftertargetspixels, int beforetargetspixels);
+	void ensure_note_displays_have_skin() override;
 	NoteFieldPreview();
 	~NoteFieldPreview();
 	[[nodiscard]] auto Copy() const -> NoteFieldPreview* override;

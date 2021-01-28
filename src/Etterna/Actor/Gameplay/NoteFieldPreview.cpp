@@ -15,6 +15,8 @@
 #include <cmath>
 #include <limits>
 
+#include "Etterna/Models/Misc/CommonMetrics.h"
+
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
 const Style*
@@ -191,6 +193,51 @@ NoteFieldPreview::UpdateDrawDistance(int aftertargetspixels, int beforetargetspi
 	
 	m_iDrawDistanceBeforeTargetsPixels = beforetargetspixels;
 	m_iDrawDistanceAfterTargetsPixels = aftertargetspixels;
+}
+
+void
+NoteFieldPreview::ensure_note_displays_have_skin()
+{
+	// slight adjustments to prevent accidentally changing the NoteDisplay
+
+	bool skipDisplayChange = false;
+	// Guarantee a display is loaded if the selected Noteskin seems (doubly)
+	// empty if this does get entered, the visible Noteskin changes if not
+	// already changing
+	auto sNoteSkinLower =
+	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
+	if (sNoteSkinLower.empty()) {
+		sNoteSkinLower = make_lower(
+		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin);
+
+		if (sNoteSkinLower.empty()) {
+			sNoteSkinLower = make_lower(CommonMetrics::DEFAULT_NOTESKIN_NAME);
+		}
+
+		CacheNoteSkin(sNoteSkinLower);
+		
+		// if we already have a display loaded with the "correct" number of
+		// columns, don't change needlessly
+		if (m_pDisplays != nullptr &&
+			m_NoteDisplays[sNoteSkinLower]
+				->m_ReceptorArrowRow.GetReceptorCount() ==
+			  m_pDisplays->m_ReceptorArrowRow.GetReceptorCount())
+			skipDisplayChange = true;
+	}
+
+	sNoteSkinLower = make_lower(sNoteSkinLower);
+	auto it = m_NoteDisplays.find(sNoteSkinLower);
+	if (it == m_NoteDisplays.end()) {
+		CacheAllUsedNoteSkins();
+		it = m_NoteDisplays.find(sNoteSkinLower);
+		ASSERT_M(
+		  it != m_NoteDisplays.end(),
+		  ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
+				   sNoteSkinLower.c_str()));
+	}
+	
+	if (!skipDisplayChange)
+		m_pDisplays = it->second;
 }
 
 NoteFieldPreview::NoteFieldPreview()

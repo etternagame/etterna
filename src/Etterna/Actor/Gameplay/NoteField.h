@@ -29,7 +29,7 @@ class NoteField : public ActorFrame
 			  int iDrawDistanceBeforeTargetsPixels);
 	void Unload();
 
-	void ensure_note_displays_have_skin();
+	virtual void ensure_note_displays_have_skin();
 	void InitColumnRenderers();
 
 	void HandleMessage(const Message& msg) override;

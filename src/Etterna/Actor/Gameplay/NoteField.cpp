@@ -254,7 +254,7 @@ NoteField::ensure_note_displays_have_skin()
 		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin);
 
 		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = CommonMetrics::DEFAULT_NOTESKIN_NAME;
+			sNoteSkinLower = make_lower(CommonMetrics::DEFAULT_NOTESKIN_NAME);
 		}
 		
 		CacheNoteSkin(sNoteSkinLower);
