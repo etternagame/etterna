@@ -169,6 +169,11 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps)
 	if (pSteps == GAMESTATE->m_pCurSteps && style != nullptr &&
 		nd->GetNumTracks() != style->m_iColsPerPlayer)
 		GAMESTATE->SetCompatibleStylesForPlayers();
+	
+	if (nd != p_NoteDataFromSteps && p_NoteDataFromSteps != nullptr)
+		delete p_NoteDataFromSteps;
+	p_NoteDataFromSteps = nd;
+	
 	LoadNoteData(nd);
 }
 
@@ -206,6 +211,7 @@ NoteFieldPreview::NoteFieldPreview()
 	nd->Init();
 	nd->SetNumTracks(4);
 	p_dummyNoteData = nd;
+	p_NoteDataFromSteps = nullptr;
 
 	// This is not guaranteed to be non-null!
 	m_pPlayerState = GAMESTATE->m_pPlayerState;
@@ -220,6 +226,7 @@ NoteFieldPreview::NoteFieldPreview()
 NoteFieldPreview::~NoteFieldPreview()
 {
 	delete p_dummyNoteData;
+	delete p_NoteDataFromSteps;
 }
 
 void

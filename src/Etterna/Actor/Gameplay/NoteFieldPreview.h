@@ -22,6 +22,7 @@ class NoteFieldPreview : public NoteField
 
   private:
 	NoteData* p_dummyNoteData;
+	NoteData* p_NoteDataFromSteps;
 	bool loadedNoteDataAtLeastOnce = false;
 };
 
