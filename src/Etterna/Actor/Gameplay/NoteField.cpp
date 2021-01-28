@@ -278,25 +278,6 @@ NoteField::ensure_note_displays_have_skin()
 				   sNoteSkinLower.c_str()));
 	}
 	memset(m_pDisplays, 0, sizeof(m_pDisplays));
-	sNoteSkinLower =
-	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
-
-	// XXX: Re-setup sNoteSkinLower. Unsure if inserting the skin again is
-	// needed.
-	if (sNoteSkinLower.empty()) {
-		sNoteSkinLower =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
-
-		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = "default";
-		}
-		m_NoteDisplays.insert(
-		  std::pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
-	}
-
-	sNoteSkinLower = make_lower(sNoteSkinLower);
-	it = m_NoteDisplays.find(sNoteSkinLower);
-	ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
 	m_pDisplays[PLAYER_1] = it->second;
 }
 
