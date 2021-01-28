@@ -18,6 +18,8 @@
 
 #include <algorithm>
 
+#include "Etterna/Models/Misc/CommonMetrics.h"
+
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
 				   float& firstBeat,
@@ -246,12 +248,13 @@ NoteField::ensure_note_displays_have_skin()
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
 
 	// Guarantee a display is loaded if the selected Noteskin seems (doubly) empty
+	// if this does get entered, the visible Noteskin changes if not already changing
 	if (sNoteSkinLower.empty()) {
 		sNoteSkinLower = make_lower(
 		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin);
 
 		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = "default";
+			sNoteSkinLower = CommonMetrics::DEFAULT_NOTESKIN_NAME;
 		}
 		
 		CacheNoteSkin(sNoteSkinLower);
