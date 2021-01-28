@@ -106,12 +106,6 @@ local t = Def.ActorFrame {
 		DrawDistanceAfterTargetsPixels = 0,
 		YReverseOffsetPixels = 100,
 
-		InitCommand = function(self)
-			local s = GAMESTATE:GetCurrentSteps()
-			if s ~= nil then
-				self:LoadNoteData(s)
-			end
-		end,
 		BeginCommand = function(self)
 			self:zoom(prevZoom):draworder(90)
 			self:x(wodth/2)
