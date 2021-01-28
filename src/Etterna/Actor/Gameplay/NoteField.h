@@ -135,7 +135,12 @@ class NoteField : public ActorFrame
 	/* All loaded note displays, mapped by their name. */
 	std::map<std::string, NoteDisplayCols*> m_NoteDisplays;
 	NoteDisplayCols* m_pCurDisplay;
-	NoteDisplayCols* m_pDisplays[NUM_PlayerNumber];
+	// leaving this here in case we want to vectorize this in the future
+	// the purpose is to have a display for each player
+	// this pointer does not get deleted
+	// why: it points to a member of m_NoteDisplays which is managed
+	// (same for m_pCurDisplay)
+	NoteDisplayCols* m_pDisplays;
 
 	// decorations, mostly used in MODE_EDIT
 	AutoActor m_sprBoard;

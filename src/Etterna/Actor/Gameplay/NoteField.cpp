@@ -94,7 +94,7 @@ NoteField::Unload()
 		delete m_NoteDisplay.second;
 	m_NoteDisplays.clear();
 	m_pCurDisplay = nullptr;
-	memset(m_pDisplays, 0, sizeof(m_pDisplays));
+	m_pDisplays = nullptr;
 }
 
 void
@@ -174,15 +174,8 @@ NoteField::CacheAllUsedNoteSkins()
 	auto it = m_NoteDisplays.find(sCurrentNoteSkinLower);
 	ASSERT_M(it != m_NoteDisplays.end(), sCurrentNoteSkinLower);
 	m_pCurDisplay = it->second;
-	memset(m_pDisplays, 0, sizeof(m_pDisplays));
-
-	auto sNoteSkinLower =
-	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
-	NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
-	sNoteSkinLower = make_lower(sNoteSkinLower);
-	it = m_NoteDisplays.find(sNoteSkinLower);
-	ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
-	m_pDisplays[PLAYER_1] = it->second;
+	
+	m_pDisplays = it->second;
 
 	// I don't think this is needed?
 	// It's done in Load -- Nick12
@@ -277,8 +270,7 @@ NoteField::ensure_note_displays_have_skin()
 		  ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
 				   sNoteSkinLower.c_str()));
 	}
-	memset(m_pDisplays, 0, sizeof(m_pDisplays));
-	m_pDisplays[PLAYER_1] = it->second;
+	m_pDisplays = it->second;
 }
 
 void
@@ -294,7 +286,7 @@ NoteField::InitColumnRenderers()
 		->m_iColsPerPlayer);
 	for (size_t ncr = 0; ncr < m_ColumnRenderers.size(); ++ncr) {
 		m_ColumnRenderers[ncr].m_displays[PLAYER_1] =
-		  &(m_pDisplays[PLAYER_1]->display[ncr]);
+		  &(m_pDisplays->display[ncr]);
 		m_ColumnRenderers[ncr].m_displays[PLAYER_INVALID] =
 		  &(m_pCurDisplay->display[ncr]);
 		m_ColumnRenderers[ncr].m_column = ncr;
