@@ -100,7 +100,7 @@ extern NoteSkinManager*
 class LockNoteSkin
 {
   public:
-	LockNoteSkin(const std::string& sNoteSkin, PlayerNumber /*pn*/)
+	LockNoteSkin(const std::string& sNoteSkin)
 	{
 		NOTESKIN->SetCurrentNoteSkin(sNoteSkin);
 	}

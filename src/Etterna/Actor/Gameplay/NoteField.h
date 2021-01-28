@@ -72,7 +72,7 @@ class NoteField : public ActorFrame
 	std::vector<NoteColumnRenderer> m_ColumnRenderers;
 
   protected:
-	void CacheNoteSkin(const std::string& sNoteSkin, PlayerNumber pn);
+	void CacheNoteSkin(const std::string& sNoteSkin);
 	void UncacheNoteSkin(const std::string& sNoteSkin);
 
 	void DrawBoard(int iDrawDistanceAfterTargetsPixels,

@@ -98,12 +98,12 @@ NoteField::Unload()
 }
 
 void
-NoteField::CacheNoteSkin(const std::string& sNoteSkin_, PlayerNumber pn)
+NoteField::CacheNoteSkin(const std::string& sNoteSkin_)
 {
 	if (m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end())
 		return;
 
-	LockNoteSkin l(sNoteSkin_, pn);
+	LockNoteSkin l(sNoteSkin_);
 
 	if (PREFSMAN->m_verbose_log > 1)
 		Locator::getLogger()->trace("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
@@ -149,7 +149,7 @@ NoteField::CacheAllUsedNoteSkins()
 	}
 
 	for (auto& i : asSkinsLower) {
-		CacheNoteSkin(i, m_pPlayerState->m_PlayerNumber);
+		CacheNoteSkin(i);
 	}
 
 	/* If we're changing note skins in the editor, we can have old note skins
@@ -245,19 +245,16 @@ NoteField::ensure_note_displays_have_skin()
 	auto sNoteSkinLower =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
 
-	/* XXX: Combination of good idea and bad idea to ensure courses load
-	 * regardless of noteskin content. This may take a while to fix. */
-	auto* badIdea = m_pCurDisplay;
-
+	// Guarantee a display is loaded if the selected Noteskin seems (doubly) empty
 	if (sNoteSkinLower.empty()) {
-		sNoteSkinLower =
-		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+		sNoteSkinLower = make_lower(
+		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin);
 
 		if (sNoteSkinLower.empty()) {
 			sNoteSkinLower = "default";
 		}
-		m_NoteDisplays.insert(
-		  std::pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+		
+		CacheNoteSkin(sNoteSkinLower);
 	}
 
 	sNoteSkinLower = make_lower(sNoteSkinLower);
