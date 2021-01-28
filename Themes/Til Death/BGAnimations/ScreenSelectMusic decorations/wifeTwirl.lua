@@ -15,10 +15,8 @@ local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local hackysack = false
-local dontRemakeTheNotefield = false
 local songChanged = false
 local songChanged2 = false
-local songChanged3 = false
 local previewVisible = false
 local onlyChangedSteps = false
 local shouldPlayMusic = false
@@ -78,16 +76,8 @@ local function setPreviewPartsState(state)
 end
 
 local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
 	local nf = mcbootlarder:GetChild("NoteField")
 	if song and not noteField then -- first time setup
-		-- do not allow preview to open for the first time while changing songs
-		-- dont know why this has to happen only for this situation
-		-- oh well
-		if songChanged3 then
-			return false
-		end
-
 		noteField = true
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
 		mcbootlarder:playcommand("SetupNoteField")
@@ -177,14 +167,8 @@ local t =
 			-- always true if switching songs and preview has ever been opened
 			songChanged2 = true
 			restartedMusic = false
-			songChanged3 = false
-		elseif not noteField and GAMESTATE:GetCurrentSong() ~= song then
-			-- really only possible if switching songs and preview hasnt been opened yet
-			songChanged2 = false
-			songChanged3 = true
 		else
 			songChanged2 = false
-			songChanged3 = false
 		end
 
 		-- an awkwardly named bool describing the fact that we just changed songs
@@ -195,6 +179,7 @@ local t =
 		
 		-- if switching songs, we want the notedata to disappear temporarily
 		if noteField and songChanged2 and previewVisible then
+			mcbootlarder:GetChild("NoteField"):finishtweening()
 			mcbootlarder:GetChild("NoteField"):diffusealpha(0)
 		end
 	end,
@@ -222,7 +207,6 @@ local t =
 		hackysack = false
 		tryingToStart = false
 		songChanged = false
-		songChanged3 = false
 		onlyChangedSteps = true
 	end,
 	PlayingSampleMusicMessageCommand = function(self)
