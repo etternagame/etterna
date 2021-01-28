@@ -16,12 +16,23 @@ class GhostArrowRow : public ActorFrame
 
 	void Load(const PlayerState* pPlayerState, float fYReverseOffset);
 	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
-	int GetRendererCount() const
+	[[nodiscard]] int GetRendererCount() const
 	{
 		if (m_renderers != nullptr)
 			return m_renderers->size();
 		return 0;
 	}
+
+	// alias
+	[[nodiscard]] int GetGhostCount() const { return GetReceptorCount(); }
+	[[nodiscard]] int GetReceptorCount() const
+	{
+		return m_Ghost.size();
+	}
+
+	// Initialization happens before Loading
+	[[nodiscard]] bool isInitialized() const { return GetGhostCount() > 0; }
+	[[nodiscard]] bool isLoaded() const { return GetRendererCount() > 0; }
 
 	void DidTapNote(int iCol, TapNoteScore tns, bool bBright);
 	void DidHoldNote(int iCol, HoldNoteScore hns, bool bBright);
