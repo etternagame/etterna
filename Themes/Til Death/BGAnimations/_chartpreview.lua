@@ -81,6 +81,7 @@ local t = Def.ActorFrame {
 	end,
 	ChartPreviewOnMessageCommand=function(self)
 		self:SetUpdateFunction(UpdatePreviewPos)
+		self:GetChild("NoteField"):playcommand("LoadNoteData", {steps = GAMESTATE:GetCurrentSteps()})
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
 		self:visible(true)
@@ -113,6 +114,13 @@ local t = Def.ActorFrame {
 		end,
 		CurrentStepsChangedMessageCommand = function(self, params)
 			local steps = params.ptr
+			-- only load new notedata if the preview is visible
+			if self:GetParent():GetVisible() then
+				self:playcommand("LoadNoteData", {steps = steps})
+			end
+		end,
+		LoadNoteDataCommand = function(self, params)
+			local steps = params.steps
 			if steps ~= nil then
 				self:LoadNoteData(steps)
 			else
