@@ -785,7 +785,7 @@ t[#t+1] = Def.ActorFrame {
             if params ~= nil and params.button ~= nil then
                 if params.button == "DeviceButton_right mouse button" then
                     if isOver(self) then
-                        SCREENMAN:GetTopScreen():PausePreviewNoteField()
+                        SCREENMAN:GetTopScreen():PauseSampleMusic()
                     end
                 end
             end
