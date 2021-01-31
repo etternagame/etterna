@@ -88,9 +88,27 @@ actuals.DividerThickness = actuals.DividerThickness or 0
 local rightHalfXBegin = actuals.VerticalDividerLeftGap + actuals.DividerThickness
 local notefieldXCenter = rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2
 local expectedGeneralReceptorHeight = 64 -- this number varies slightly but typically receptors are "64x64"
-local notefieldZoom = 0.5
-local notefieldYOffset = actuals.DensityGraphHeight + expectedGeneralReceptorHeight * notefieldZoom
+local notefieldZoomBaseline = 0.8 -- zoom for 4key width
+local notefieldWidthBaseline = 256 -- 4key width
+local notefieldYOffset = actuals.DensityGraphHeight + expectedGeneralReceptorHeight / 1080 * SCREEN_HEIGHT * notefieldZoomBaseline
 local notefieldReverseAdd = actuals.NoteFieldHeight - notefieldYOffset
+local notefieldLengthPixels = 300 -- this isnt a perfect number but it fits for our use and i dont know how to calculate it
+local notefieldAllowBeyondReceptorPixels = 0 -- this shouldnt be changed
+
+local function getSizeForStyle()
+    local style = GAMESTATE:GetCurrentStyle()
+    if style == nil then return notefieldZoomBaseline, notefieldLengthPixels / notefieldZoomBaseline end
+
+    local stylewidth = style:GetWidth()
+    -- the assumption is that a width of notefieldWidthBaseline uses a zoom of notefieldZoomBaseline
+    --  and notefieldLengthPixels is 300 for that baseline zoom
+    -- find a zoom and pixel length that fits using math
+    local pdiff = stylewidth / notefieldWidthBaseline
+    local newzoom = notefieldZoomBaseline / pdiff
+    local newlength = notefieldLengthPixels / newzoom
+
+    return newzoom, newlength
+end
 
 t[#t+1] = UIElements.QuadButton(1, 1) .. {
     Name = "BG",
@@ -112,13 +130,13 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
 
 t[#t+1] = Def.NoteFieldPreview {
     Name = "NoteField",
-    DrawDistanceBeforeTargetsPixels = 600,
-    DrawDistanceAfterTargetsPixels = 0,
+    DrawDistanceBeforeTargetsPixels = notefieldLengthPixels / notefieldZoomBaseline,
+    DrawDistanceAfterTargetsPixels = notefieldAllowBeyondReceptorPixels, -- notes disappear at the receptor
     YReverseOffsetPixels = -expectedGeneralReceptorHeight,
 
     InitCommand = function(self)
         self:x(notefieldXCenter)
-        self:zoom(notefieldZoom):draworder(90)
+        self:zoom(notefieldZoomBaseline):draworder(90)
         self:playcommand("UpdateReverseNoteFieldPosition")
     end,
     BeginCommand = function(self)
@@ -143,6 +161,9 @@ t[#t+1] = Def.NoteFieldPreview {
         else
             self:LoadDummyNoteData()
         end
+        local z, l = getSizeForStyle()
+        self:zoom(z)
+        self:UpdateDrawDistance(notefieldAllowBeyondReceptorPixels, l)
     end
 }
 
