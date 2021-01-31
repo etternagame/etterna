@@ -17,9 +17,6 @@ local t = Def.ActorFrame {
         self:playcommand("UpdateSizing", {sizing = sizing})
         self:finishtweening()
     end,
-    GeneralTabSetMessageCommand = function(self, params)
-        
-    end,
     CurrentRateChangedMessageCommand = function(self)
         self:playcommand("LoadDensityGraph", {steps = stepsinuse})
     end,
@@ -46,12 +43,15 @@ local t = Def.ActorFrame {
         local bg = self:GetChild("BG")
         local seek = self:GetChild("SeekBar")
         self:SetUpdateFunction(function(self)
+            if self:IsInvisible() then return end
+
             local top = SCREENMAN:GetTopScreen()
             local song = GAMESTATE:GetCurrentSong()
+            local musicpositionratio = 1
             if stepsinuse ~= nil and top ~= nil and top.GetSampleMusicPosition and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
-                local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
+                musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
                 local pos = top:GetSampleMusicPosition() / musicpositionratio
                 bar:zoomx(clamp(pos, 0, sizing.Width))
             else
@@ -63,8 +63,25 @@ local t = Def.ActorFrame {
                 local lx, ly = bg:GetLocalMousePos(mx, my, 0)
                 seek:diffusealpha(1)
                 seek:x(lx)
+
+                if stepsinuse ~= nil then
+                    local perc = lx / bg:GetZoomedWidth()
+                    local dist = perc * stepsinuse:GetLengthSeconds()
+                    local postext = SecondsToHHMMSS(dist)
+                    TOOLTIP:SetText(postext)
+                    TOOLTIP:Show()
+                    tipOn = true
+                end
+
             else
                 seek:diffusealpha(0)
+
+                -- have to micromanage the state of the tooltip here
+                -- turning it off over and over will override any other use of the tooltip
+                if tipOn then
+                    tipOn = false
+                    TOOLTIP:Hide()
+                end
             end
         end)
     end
