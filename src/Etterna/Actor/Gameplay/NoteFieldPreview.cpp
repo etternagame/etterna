@@ -100,7 +100,7 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 	if (p_dummyNoteData->GetNumTracks() != style->m_iColsPerPlayer)
 		p_dummyNoteData->SetNumTracks(style->m_iColsPerPlayer);
 	
-	Init(m_pPlayerState, noteFieldHeight);
+	Init(m_pPlayerState, noteFieldHeight, false);
 
 	// If NoteData was loaded in InitCommand, this isn't necessary
 	// It would be null if not loaded in InitCommand
