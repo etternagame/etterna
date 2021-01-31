@@ -734,10 +734,10 @@ function MusicWheel:new(params)
                 w:rebuildFrames()
                 MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
                 w:move(0)
-                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
-                w.settled = true
                 w:updateGlobalsFromCurrentItem()
                 w:updateMusicFromCurrentItem()
+                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                w.settled = true
             end
         elseif params.song ~= nil then
             local charts = WHEELDATA:GetChartsMatchingFilter(params.song)
@@ -750,10 +750,10 @@ function MusicWheel:new(params)
                     MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                     w:rebuildFrames()
                     MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
-                    MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
-                    w.settled = true
                     w:updateGlobalsFromCurrentItem()
                     w:updateMusicFromCurrentItem()
+                    MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                    w.settled = true
                 end
             end
         end
@@ -768,10 +768,10 @@ function MusicWheel:new(params)
                 MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
                 w:rebuildFrames()
                 MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
-                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
-                w.settled = true
                 w:updateGlobalsFromCurrentItem()
                 w:updateMusicFromCurrentItem()
+                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                w.settled = true
             else
                 -- in this case there was something wrong with the input
                 -- usually it always is "successful" but gives an index of 1 if nothing is actually found
@@ -800,10 +800,10 @@ function MusicWheel:new(params)
         MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
         w:rebuildFrames()
         MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
-        MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
-        w.settled = true
         w:updateGlobalsFromCurrentItem()
         w:updateMusicFromCurrentItem()
+        MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+        w.settled = true
     end
 
     return w
