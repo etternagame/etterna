@@ -13,3 +13,8 @@ SCUFF.profiletabindex = 3
 SCUFF.goalstabindex = 4
 SCUFF.playliststabindex = 5
 SCUFF.tagstabindex = 6
+
+SCUFF.preview = {
+    active = false,
+    resetmusic = false,
+}

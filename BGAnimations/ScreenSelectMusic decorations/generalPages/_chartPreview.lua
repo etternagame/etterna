@@ -1,13 +1,54 @@
+local lastusedsong = nil
 local t = Def.ActorFrame {
     Name = "ChartPreviewFile",
+    InitCommand = function(self)
+        -- hide chart preview to start
+        SCUFF.preview.active = false
+        self:diffusealpha(0)
+    end,
     WheelSettledMessageCommand = function(self, params)
         -- should trigger if wheel stops moving
-       self:playcommand("LoadNoteData", {song = params.song, steps = params.steps})
+        self:playcommand("LoadNoteData", {song = params.song, steps = params.steps})
+        lastusedsong = params.song
+
+       SCUFF.preview.resetmusic = false
+       if lastusedsong ~= nil and SCUFF.preview.active then
+            local top = SCREENMAN:GetTopScreen()
+            if top.PlayCurrentSongSampleMusic then
+                -- reset music, force start, force full length
+                SCUFF.preview.resetmusic = true
+                SOUND:StopMusic()
+                top:PlayCurrentSongSampleMusic(true, true)
+            end
+       end
     end,
     ChangedStepsMessageCommand = function(self, params)
         -- should trigger only if switching steps, not when switching songs
         self:playcommand("LoadNoteData", {song = GAMESTATE:GetCurrentSong(), steps = params.steps})
+        lastusedsong = GAMESTATE:GetCurrentSong()
     end,
+    ToggleChartPreviewCommand = function(self, params)
+        if params ~= nil and params.active ~= nil then
+            SCUFF.preview.active = params.active
+        end
+
+        if SCUFF.preview.active then
+            -- chart preview turning on
+            if not SCUFF.preview.resetmusic and lastusedsong ~= nil then
+                local top = SCREENMAN:GetTopScreen()
+                if top.PlayCurrentSongSampleMusic then
+                    -- reset music, force start, force full length
+                    SCUFF.preview.resetmusic = true
+                    SOUND:StopMusic()
+                    top:PlayCurrentSongSampleMusic(true, true)
+                end
+            end
+            self:diffusealpha(1)
+        else
+            -- chart preview turning off
+            self:diffusealpha(0)
+        end
+    end
 }
 
 local ratios = {

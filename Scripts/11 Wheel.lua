@@ -61,6 +61,10 @@ Wheel.mt = {
         -- only for ScreenSelectMusic
         if top.PlayCurrentSongSampleMusic then
             if GAMESTATE:GetCurrentSong() ~= nil then
+                -- chart preview active? dont play music
+                -- chart preview handles music on its own
+                if SCUFF.preview.active then return end
+
                 -- currentItem should be a song
                 top:PlayCurrentSongSampleMusic(false, false)
             end
