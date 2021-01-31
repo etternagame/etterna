@@ -124,7 +124,7 @@ local function createChoices()
                             MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
                             self:GetParent():hurrytweening(0.5):playcommand("UpdateSelectedIndex")
                         end
-                    elseif event.DeviceInput.button == "DeviceButton_space" and focused and SCUFF.generaltab == 1 then
+                    elseif event.DeviceInput.button == "DeviceButton_space" and focused and SCUFF.generaltab == SCUFF.generaltabindex then
                         -- toggle chart preview if the general tab is the current tab visible
                         SCUFF.preview.active = not SCUFF.preview.active
                         -- this should propagate off to the right places
