@@ -47,10 +47,11 @@ local t = Def.ActorFrame {
         local seek = self:GetChild("SeekBar")
         self:SetUpdateFunction(function(self)
             local top = SCREENMAN:GetTopScreen()
-            if stepsinuse ~= nil and top ~= nil and top.GetSampleMusicPosition then
+            local song = GAMESTATE:GetCurrentSong()
+            if stepsinuse ~= nil and top ~= nil and top.GetSampleMusicPosition and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
-                local musicpositionratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / r + length) / sizing.Width * r
+                local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
                 local pos = top:GetSampleMusicPosition() / musicpositionratio
                 bar:zoomx(clamp(pos, 0, sizing.Width))
             else
@@ -128,7 +129,12 @@ local function updateGraphMultiVertex(parent, self, steps)
 		end
 		
 		self:SetVertices(verts)
-		self:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
+        self:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
+    else
+        -- reset everything if theres nothing to show
+        self:SetVertices({})
+        self:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
+        parent:GetChild("NPSText"):settext("")
 	end
 end
 
@@ -154,11 +160,11 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
         local lx = params.MouseX - self:GetParent():GetX()
         local top = SCREENMAN:GetTopScreen()
         if params.event == "DeviceButton_left mouse button" then
-            if top.SetSampleMusicPosition and stepsinuse then
+            local song = GAMESTATE:GetCurrentSong()
+            if top.SetSampleMusicPosition and stepsinuse and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
-                local musicpositionratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / r + length) / sizing.Width * r
-                ms.ok(lx .. " " .. musicpositionratio)
+                local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
                 top:SetSampleMusicPosition(lx * musicpositionratio)
             end
         else

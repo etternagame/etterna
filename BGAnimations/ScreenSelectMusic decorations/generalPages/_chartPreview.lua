@@ -1,15 +1,8 @@
 local t = Def.ActorFrame {
     Name = "ChartPreviewFile",
-    InitCommand = function(self)
-        -- hide all general box tabs on startup
-        self:diffusealpha(1)
-    end,
     WheelSettledMessageCommand = function(self, params)
         -- should trigger if wheel stops moving
        self:playcommand("LoadNoteData", {song = params.song, steps = params.steps})
-    end,
-    GeneralTabSetMessageCommand = function(self, params)
-        
     end,
     ChangedStepsMessageCommand = function(self, params)
         -- should trigger only if switching steps, not when switching songs
@@ -56,6 +49,7 @@ local notefieldXCenter = rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2
 local expectedGeneralReceptorHeight = 64 -- this number varies slightly but typically receptors are "64x64"
 local notefieldZoom = 0.5
 local notefieldYOffset = actuals.DensityGraphHeight + expectedGeneralReceptorHeight * notefieldZoom
+local notefieldReverseAdd = actuals.NoteFieldHeight - notefieldYOffset
 
 t[#t+1] = UIElements.QuadButton(1, 1) .. {
     Name = "BG",
@@ -82,8 +76,24 @@ t[#t+1] = Def.NoteFieldPreview {
     YReverseOffsetPixels = -expectedGeneralReceptorHeight,
 
     InitCommand = function(self)
-        self:xy(notefieldXCenter, notefieldYOffset)
+        self:x(notefieldXCenter)
         self:zoom(notefieldZoom):draworder(90)
+        self:playcommand("UpdateReverseNoteFieldPosition")
+    end,
+    BeginCommand = function(self)
+        -- we need to redo the draw order for the notefield and graph
+        -- the notefield ends up being on top of everything in the actorframe otherwise
+        self:draworder(1)
+        self:GetParent():GetChild("ChordDensityGraphFile"):draworder(2)
+        self:GetParent():SortByDrawOrder()
+    end,
+    UpdateReverseNoteFieldPositionCommand = function(self)
+        local rev = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+        if rev then
+            self:y(notefieldYOffset + notefieldReverseAdd)
+        else
+            self:y(notefieldYOffset)
+        end
     end,
     LoadNoteDataCommand = function(self, params)
         local steps = params.steps
