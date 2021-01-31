@@ -183,9 +183,14 @@ t[#t+1] = Def.ActorFrame {
             --      rightframe owns generalbox - owns general owns chart preview
             -- this should work based on the actor tree that exists
             -- if it fails, probably nothing was there to receive the message or the tree is bad
-            if SCUFF.generaltab == SCUFF.generaltabindex and focused then
+            if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
                 SCUFF.preview.active = not SCUFF.preview.active
                 self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
+            elseif params.event == "DeviceButton_right mouse button" then
+                local top = SCREENMAN:GetTopScreen()
+                if top.PauseSampleMusic then
+                    top:PauseSampleMusic()
+                end
             end
         end,
         MouseOverCommand = function(self)
