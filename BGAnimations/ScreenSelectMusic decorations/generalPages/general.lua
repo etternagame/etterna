@@ -1,4 +1,3 @@
-local currentTags = {"","","",""}
 local displayScore
 local t = Def.ActorFrame {
     Name = "GeneralPageFile",
@@ -316,6 +315,7 @@ end
 
 -- only accounting for room for 4 tags
 local function createTagDisplays()
+    local currentTags = {"","","",""}
     local function createTagDisplay(i)
         local xPos = i < 3 and actuals.LeftTextColumn1LabelsMargin or actuals.LeftTextColumn2Margin
         return LoadFont("Common Normal") .. {
@@ -362,7 +362,7 @@ local function createTagDisplays()
             self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), steps = GAMESTATE:GetCurrentSteps()})
         end
     }
-    for i = 1, 4 do
+    for i = 1, #currentTags do
         t[#t+1] = createTagDisplay(i)
     end
     return t
