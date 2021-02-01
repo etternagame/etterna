@@ -122,6 +122,14 @@ local defaultConfig = {
 	}
 }
 
+function getDefaultGameplaySize(obj)
+	return defaultGameplaySizes[obj]
+end
+
+function getDefaultGameplayCoordinate(obj)
+	return defaultGameplayCoordinates[obj]
+end
+
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
 local tmp2 = playerConfig.load
 playerConfig.load = function(self, slot)
