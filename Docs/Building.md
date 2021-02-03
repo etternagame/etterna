@@ -49,6 +49,7 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
   - Arch: `pacman -S openssl`
   - macOS: `brew install openssl`
   - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1g.exe)
+- [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
 
 ### Linux Dependencies
 
@@ -90,14 +91,20 @@ mkdir build && cd build
 
 Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
-To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable.
+To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable. If depot_tools is left uninstalled or misconfigured, you may be able to run `cmake` but the game will not compile. To get around this, build without Crashpad: Specify `-DWITH_CRASHPAD=OFF` in the `cmake` command.
 
+- `SSL_DIRECTORY`: The root directory of your OpenSSL install. It may be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 - `GENERATOR`: The generator you are choosing to use. Supported generators are listed below.
 - `ARCHITECTURE`: The target architecture. Currently we support `Win32` and `x64`. This parameter is only necessary if using a Visual Studio generator. `x64` will automatically be selected if the variable is left empty.
-- `SSL_DIRECTORY`: The root directory of your OpenSSL install. It may be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 
 ```bash
-cmake -G "GENERATOR" -A "ARCHITECTURE" -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" ..
+cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -G "GENERATOR" -A "ARCHITECTURE"  ..
+```
+
+Or to build without Crashpad:
+
+```bash
+cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -DWITH_CRASHPAD=OFF -G "GENERATOR" -A "ARCHITECTURE"  ..
 ```
 
 We actively support the following CMake generators
@@ -112,6 +119,10 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
 - Windows: CMake writes files to find the version of OpenSSL linked above. If that version is installed, it should not be necessary to specify this variable (unless you have OpenSSL installed in a non-standard location, in which case, you should set OPENSSL_ROOT_DIR to that location)
 
+Users building without Crashpad may choose to add the `-DWITH_CRASHPAD=OFF` option at the beginning of the command.
+
+Users of Linux not intending to do any code diving or development may choose to add the `-DCMAKE_BUILD_TYPE=Release` option at the beginning of the command to optimize the game. The default target is `Debug`.
+
 #### Sample CMake Commands
 
 ```bash
@@ -122,6 +133,8 @@ cmake -G "Visual Studio 16 2019" -A x64 ..                                      
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Makefiles
+cmake -DWITH_CRASHPAD=OFF -G "Visual Studio 16 2019" -A x64 ..                      # Without Crashpad - 64bit Windows
+cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..                                      # Release Configuration - Linux Ninja
 ```
 
 ##### macOS Xcode Generation Note
