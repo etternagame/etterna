@@ -121,20 +121,23 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 
 Users building without Crashpad may choose to add the `-DWITH_CRASHPAD=OFF` option at the beginning of the command.
 
-Users of Linux not intending to do any code diving or development may choose to add the `-DCMAKE_BUILD_TYPE=Release` option at the beginning of the command to optimize the game. The default target is `Debug`.
+Users of Linux be aware that the game builds on the `Debug` target by default. Here are better alternatives:
+- `-DCMAKE_BUILD_TYPE=Release` - Builds Release binary with no symbols, normal optimization.
+- `-DCMAKE_BUILD_TYPE=RelWithDebInfo` - Builds Release binary with symbols, useful for debugging if any issues arise, almost same as Release otherwise.
 
 #### Sample CMake Commands
 
 ```bash
-cmake -G "Ninja" ..                                                                 # Linux Ninja
-cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
-cmake -G "Visual Studio 16 2019" -A Win32 ..                                        # 32bit Windows
-cmake -G "Visual Studio 16 2019" -A x64 ..                                          # 64bit Windows
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Makefiles
-cmake -DWITH_CRASHPAD=OFF -G "Visual Studio 16 2019" -A x64 ..                      # Without Crashpad - 64bit Windows
-cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..                                      # Release Configuration - Linux Ninja
+cmake -G "Ninja" ..                                                             # Linux Ninja
+cmake -G "Unix Makefiles" ..                                                    # Linux Makefiles
+cmake -G "Visual Studio 16 2019" -A Win32 ..                                    # 32bit Windows
+cmake -G "Visual Studio 16 2019" -A x64 ..                                      # 64bit Windows
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                 # macOS Xcode
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                 # macOS Ninja
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..        # macOS Makefiles
+cmake -DWITH_CRASHPAD=OFF -G "Visual Studio 16 2019" -A x64 ..                  # Without Crashpad - 64bit Windows
+cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..                                  # Release Configuration - Linux Ninja
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G "Ninja" ..                           # Release + Debug Symbols - Linux Ninja
 ```
 
 ##### macOS Xcode Generation Note
