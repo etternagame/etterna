@@ -115,7 +115,7 @@ local screensAllowedForButtons = {
         All = true,
     },
     Settings = {
-
+        ScreenSelectMusic = true,
     },
     Help = {
 
@@ -555,6 +555,12 @@ t[#t+1] = Def.ActorFrame {
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                -- if clicking or otherwise invoking this twice, just toggle back to generalBox
+                if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "Settings") then
+                    MESSAGEMAN:Broadcast("GeneralTabSet")
+                else
+                    MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
+                end
             end
         end,
         MouseDownCommand = function(self, params)
@@ -789,7 +795,7 @@ if selectable("Exit") then
 end
 
 if selectable("Settings") then
-    -- nothing yet
+    t[#t+1] = LoadActor("settings.lua")
 end
 
 if selectable("Help") then
