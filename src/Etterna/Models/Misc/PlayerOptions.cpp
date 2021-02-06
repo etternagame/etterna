@@ -1269,6 +1269,10 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_fDark);
 	SAVE(m_fBlind);
 	SAVE(m_fCover);
+	SAVE(m_LifeType);
+	SAVE(m_DrainType);
+	SAVE(m_BatteryLives);
+	SAVE(m_FailType);
 #undef SAVE
 	return po_prefs.GetString();
 }
@@ -1290,6 +1294,7 @@ PlayerOptions::ResetPrefs(ResetPrefsType type)
 	CPY(m_LifeType);
 	CPY(m_DrainType);
 	CPY(m_BatteryLives);
+	CPY(m_FailType);
 	CPY(m_MinTNSToHideNotes);
 
 	CPY(m_fPerspectiveTilt);
