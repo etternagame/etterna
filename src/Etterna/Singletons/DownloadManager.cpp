@@ -2647,7 +2647,11 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
-		DLMAN->DownloadCoreBundle(SArg(1));
+		bool bMirror = false;
+		if (!lua_isnoneornil(L, 2)) {
+			bMirror = BArg(2);
+		}
+		DLMAN->DownloadCoreBundle(SArg(1), bMirror);
 		return 0;
 	}
 	static int GetToken(T* p, lua_State* L)
