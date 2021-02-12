@@ -42,6 +42,7 @@ local t = Def.ActorFrame {
         local bar = self:GetChild("Progress")
         local bg = self:GetChild("BG")
         local seek = self:GetChild("SeekBar")
+        local tipOn = false
         self:SetUpdateFunction(function(self)
             if self:IsInvisible() then return end
 
