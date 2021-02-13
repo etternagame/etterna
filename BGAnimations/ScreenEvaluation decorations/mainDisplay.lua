@@ -1,5 +1,5 @@
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
-local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 -- keep track of the current displayed score so we can refer back to it
 local chosenScore
 local mostRecentScore = SCOREMAN:GetMostRecentScore()

@@ -147,7 +147,7 @@ t[#t+1] = Def.NoteFieldPreview {
         self:GetParent():SortByDrawOrder()
     end,
     UpdateReverseNoteFieldPositionCommand = function(self)
-        local rev = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+        local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
         if rev then
             self:y(notefieldYOffset + notefieldReverseAdd)
         else

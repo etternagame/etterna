@@ -82,7 +82,7 @@ function UpdateInternal3(self, Player)
 	local scroller = frame:GetChild("Scroller")
 	local smallframe = frame:GetChild("SmallFrame")
 
-	if GAMESTATE:IsHumanPlayer(Player) then
+	if GAMESTATE:IsHumanPlayer() then
 		frame:visible(true)
 			smallframe:visible(true)
 			scroller:visible(true)
