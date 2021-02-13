@@ -55,6 +55,8 @@ class RageTextureManager
 		pCopy); // returns a ref to the same texture, not a deep copy
 	bool IsTextureRegistered(RageTextureID ID) const;
 	void RegisterTexture(RageTextureID ID, std::shared_ptr<RageTexture> p);
+	void RegisterHandout(std::shared_ptr<RageTexture> pt);
+	std::shared_ptr<RageTexture> FindHandout(RageTexture* pt);
 	void VolatileTexture(const RageTextureID& ID);
 	void UnloadTexture(std::shared_ptr<RageTexture> t);
 	void ReloadAll();
