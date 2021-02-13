@@ -78,7 +78,7 @@ local function GraphDisplay(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:diffusealpha(0.7)
 				self:GetChild("Line"):diffusealpha(0)
 				self:zoom(0.8)
@@ -87,7 +87,7 @@ local function GraphDisplay(pn)
 			RecalculateGraphsMessageCommand = function(self, params)
 				-- called by the end of a codemessagecommand somewhere else
 				if not tso[params.judge] then return end
-				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1), tso[params.judge], nil)
+				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), tso[params.judge], nil)
 				if not success then return end
 				self:playcommand("Begin")
 				MESSAGEMAN:Broadcast("SetComboGraph")
@@ -106,7 +106,7 @@ local function ComboGraph(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:zoom(0.8)
 				self:xy(-22, -2)
 			end,

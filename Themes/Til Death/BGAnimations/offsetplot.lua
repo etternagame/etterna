@@ -108,7 +108,7 @@ local o =
 			if allowHovering then
 				self:SetUpdateFunction(HighlightUpdaterThing)
 			end
-			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 			dvt = pss:GetOffsetVector()
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset

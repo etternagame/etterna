@@ -277,7 +277,7 @@ local function npsDisplay(pn)
 end
 
 local function PLife(pn)
-	return STATSMAN:GetCurStageStats():GetPlayerStageStats(pn):GetCurrentLife() or 0
+	return STATSMAN:GetCurStageStats():GetPlayerStageStats():GetCurrentLife() or 0
 end
 
 local function npsGraph(pn)

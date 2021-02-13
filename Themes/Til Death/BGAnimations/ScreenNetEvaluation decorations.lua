@@ -54,7 +54,7 @@ t[#t + 1] =
 	}
 
 local function GraphDisplay(pn)
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 
 	local t =
 		Def.ActorFrame {
@@ -64,7 +64,7 @@ local function GraphDisplay(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:diffusealpha(0.7)
 				self:GetChild("Line"):diffusealpha(0)
 				self:zoom(0.8)
@@ -84,7 +84,7 @@ local function ComboGraph(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:zoom(0.8)
 				self:xy(-22, -2)
 			end
@@ -104,7 +104,7 @@ local judges = {
 }
 
 
-local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 
 local frameX = 20
 local frameY = 140
@@ -112,7 +112,7 @@ local frameWidth = SCREEN_CENTER_X - 120
 
 function scoreBoard(pn, position)
 	local judge = GetTimingDifficulty()
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 	local score = SCOREMAN:GetMostRecentScore()
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()

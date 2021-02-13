@@ -6,7 +6,7 @@ local spacing = 34
 
 local song = STATSMAN:GetCurStageStats():GetPlayedSongs()[1]
 
-local steps = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPlayedSteps()[1]
+local steps = STATSMAN:GetCurStageStats():GetPlayerStageStats():GetPlayedSteps()[1]
 local origTable = getScoresByKey(player)
 local score = SCOREMAN:GetMostRecentScore()
 local rtTable = getRateTable(origTable) or {}
