@@ -1422,7 +1422,6 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetPlayerState(T* p, lua_State* L)
 	{
-		PlayerNumber pn = PLAYER_1;
 		p->m_pPlayerState->PushSelf(L);
 		return 1;
 	}

@@ -91,7 +91,7 @@ local t = Def.ActorFrame {
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
 	end,
 	OptionsScreenClosedMessageCommand = function(self)
-		local rev = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+		local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 		if self:GetChild("NoteField") ~= nil then
 			if not rev then
 				self:GetChild("NoteField"):y(yPos * 1.5)

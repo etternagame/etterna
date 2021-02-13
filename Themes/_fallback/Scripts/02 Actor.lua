@@ -157,7 +157,7 @@ function Actor:hide_if(b)
 end
 
 function Actor:player(p)
-	self:visible(GAMESTATE:IsHumanPlayer(p))
+	self:visible(GAMESTATE:IsHumanPlayer())
 	return self
 end
 

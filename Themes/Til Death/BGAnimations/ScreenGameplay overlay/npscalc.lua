@@ -5,11 +5,11 @@ local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 --still kept this here because idk man
 local enabled = {
 	NPSDisplay = {
-		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and
+		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled() and
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSDisplay
 	},
 	NPSGraph = {
-		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled(PLAYER_1) and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph
+		PlayerNumber_P1 = GAMESTATE:IsPlayerEnabled() and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph
 	}
 }
 

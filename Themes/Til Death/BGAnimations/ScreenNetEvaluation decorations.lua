@@ -274,7 +274,7 @@ function scoreBoard(pn, position)
 				self:settext(SCREENMAN:GetTopScreen():GetOptions() or "")
 			end,
 			SetCommand = function(self)
-				self:settext(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current"))
+				self:settext(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current"))
 			end
 		}
 
@@ -528,7 +528,7 @@ function scoreBoard(pn, position)
 	return t
 end
 
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+if GAMESTATE:IsPlayerEnabled() then
 	t[#t + 1] = scoreBoard(PLAYER_1, 0)
 	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay(PLAYER_1))
 	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph(PLAYER_1))

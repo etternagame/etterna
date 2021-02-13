@@ -10,7 +10,7 @@ local infoOnScreen = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
-local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+local usingreverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
@@ -146,7 +146,7 @@ local t =
 		-- This will disable mirror when switching songs if OneShotMirror is enabled or if permamirror is flagged on the chart (it is enabled if so in screengameplayunderlay/default)
 		if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).OneShotMirror or profile:IsCurrentChartPermamirror() then
 			local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
-			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
+			local playeroptions = GAMESTATE:GetPlayerState():GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
 		end
 		-- if not on General and we started the noteField and we changed tabs then changed songs

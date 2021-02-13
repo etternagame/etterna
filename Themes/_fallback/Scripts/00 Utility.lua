@@ -189,7 +189,7 @@ function getNoteFieldScale(pn_old_deprecated)
 		return 0
 	end
 	local pn = PLAYER_1
-	local po = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+	local po = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
 	local val, as = po:Mini()
 	local zoom = 1
 	zoom = 1 - (val * 0.5)

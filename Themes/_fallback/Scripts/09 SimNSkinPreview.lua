@@ -91,7 +91,7 @@ function LoadNSkinPreview(Noteskin, Button, Element)
 				Def.ActorFrame {
 				Name = "N" .. i,
 				InitCommand = function(self)
-					if n ~= GAMESTATE:GetPlayerState(Player):GetPlayerOptions("ModsLevel_Preferred"):NoteSkin() then
+					if n ~= GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred"):NoteSkin() then
 						self:visible(false)
 					end
 					if Element == "Tap Note" then

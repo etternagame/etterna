@@ -464,7 +464,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local mstring = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")
+				local mstring = GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
 				if not ss:GetLivePlay() then
 					mstring = SCREENMAN:GetTopScreen():GetReplayModifiers()
@@ -936,7 +936,7 @@ end
 	return t
 end
 
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+if GAMESTATE:IsPlayerEnabled() then
 	t[#t + 1] = scoreBoard(PLAYER_1, 0)
 	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay(PLAYER_1))
 	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph(PLAYER_1))

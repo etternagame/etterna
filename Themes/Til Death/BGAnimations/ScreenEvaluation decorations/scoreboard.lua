@@ -139,7 +139,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				):diffusealpha(1):diffuserightedge(color("#33333333"))
 			end,
 			BeginCommand = function(self)
-				self:visible(GAMESTATE:IsHumanPlayer(pn))
+				self:visible(GAMESTATE:IsHumanPlayer())
 			end
 		},
 		--Highlight quad for the current score
@@ -151,10 +151,10 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			HahaThisCodeINeedHelpCommand = function(self, params)
 				local equis = params.doot == index
-				self:visible(GAMESTATE:IsHumanPlayer(pn) and equis)
+				self:visible(GAMESTATE:IsHumanPlayer() and equis)
 			end,
 			BeginCommand = function(self)
-				self:visible(GAMESTATE:IsHumanPlayer(pn) and equals)
+				self:visible(GAMESTATE:IsHumanPlayer() and equals)
 				
 				-- it was once asked if anything had been hacked so hard as some thing that had been hacked really hard.. but yes.. this is
 				-- hackered... even hardered.... force the offset plot to update if the index in the scoreboard list matches the currently
@@ -193,7 +193,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			BeginCommand = function(self)
 				if hsTable[index] == nil then return end
-				self:visible(GAMESTATE:IsHumanPlayer(pn)):diffuse(
+				self:visible(GAMESTATE:IsHumanPlayer()):diffuse(
 					getClearTypeFromScore(pn, hsTable[index], 2))
 			end
 		},
