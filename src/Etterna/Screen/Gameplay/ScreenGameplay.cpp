@@ -1029,8 +1029,14 @@ ScreenGameplay::Update(float fDeltaTime)
 					fSecondsToStartTransitioningOut += BEGIN_FAILED_DELAY;
 				}
 
+				// fire NoteEnded a bit after the last note.
+				// this is to deal with possibly missing the last note
+				//  that would ruin an FC
+				//  otherwise this fires before the last note is judged
+				//   granting a fake FC (or more)
+				//  (HACK?)
 				if (GAMESTATE->m_Position.m_fMusicSeconds >=
-					  fSecondsToStartTransitioningOut &&
+					  fSecondsToStartTransitioningOut + m_vPlayerInfo.m_pPlayer->GetMaxStepDistanceSeconds() &&
 					!m_NextSong.IsTransitioning()) {
 					this->PostScreenMessage(SM_NotesEnded, 0);
 				}
