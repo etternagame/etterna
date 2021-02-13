@@ -48,7 +48,7 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
   - Fedora: `dnf install openssl-devel`
   - Arch: `pacman -S openssl`
   - macOS: `brew install openssl`
-  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1g.exe)
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1i.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1i.exe)
 - [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
 
 ### Linux Dependencies
@@ -62,8 +62,8 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 ### Windows Dependencies
 
 - [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Any modern version of Visual Studio should be compatible _(The earliest version we theoretically support is `Visual Studio 9 2008`, though we have only tested on `Visual Studio 15 2017` and after)_
-- [DirectX Runtimes](https://www.microsoft.com/en-us/download/details.aspx?id=8109) (June 2010)
-- [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812)
+- [DirectX Runtimes](https://web.archive.org/web/20180112171750/http://www.microsoft.com/en-us/download/confirmation.aspx?id=8109) (June 2010)
+- [DirectX SDK](https://web.archive.org/web/20180113160705if_/https://www.microsoft.com/en-us/download/confirmation.aspx?id=6812)
 - [Microsoft Visual C++ Redistributables](http://www.microsoft.com/en-us/download/details.aspx?id=48145) - Both 32bit and 64bit
 - [Windows 10 Development Kit](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 
