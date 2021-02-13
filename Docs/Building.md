@@ -140,6 +140,10 @@ cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..                                  
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G "Ninja" ..                           # Release + Debug Symbols - Linux Ninja
 ```
 
+##### Arch Linux Generation Note
+
+This project by default uses statically linked OpenSSL libraries to build, Arch Linux's package manager uses dynamically linked libraries for OpenSSL. To allow dynamically linked OpenSSL libraries comment out the line at CMakeLists.txt:58
+
 ##### macOS Xcode Generation Note
 
 When generating a project for Xcode, you may see errors stating `No CMAKE_{C,CXX}_COMPILER could be found.` Ensure that you have the Xcode command line tools installed. The command line tools can be installed with `xcodeselect --install`. You may also have to run `xcode-select --reset` to ensure the correct command line tools are apart of the system path.
