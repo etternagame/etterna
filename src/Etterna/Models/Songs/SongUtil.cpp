@@ -71,7 +71,7 @@ SongUtil::GetSteps(const Song* pSong,
 			for (auto currate = FILTERMAN->MaxFilterRate;
 				 currate > FILTERMAN->MinFilterRate - .01f;
 				 currate -= 0.1f) {
-				if (pSong->ChartMatchesFilter(pSteps, currate + 0.001f)) {
+				if (pSong->ChartMatchesFilter(pSteps, currate)) {
 					success = true;
 					break;
 				}

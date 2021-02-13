@@ -13,8 +13,19 @@ class FilterManager
 
 	PlayerState* m_pPlayerState;
 
-	float SSFilterLowerBounds[NUM_Skillset + 1];
-	float SSFilterUpperBounds[NUM_Skillset + 1];
+	float SSFilterLowerBounds[NUM_Skillset + 2] = { 0 }; // Zero-initialize
+	float SSFilterUpperBounds[NUM_Skillset + 2] = { 0 }; // Zero-initialize
+	/* Skill_Overall,
+	 * Skill_Stream,
+	 * Skill_Jumpstream,
+	 * Skill_Handstream,
+	 * Skill_Stamina,
+	 * Skill_JackSpeed,
+	 * Skill_Chordjack,
+	 * Skill_Technical,
+	 * Length, //REQUIRED in non-exclusive filter if set
+	 * Clear % //REQUIRED in non-exclusive filter if set
+	 */
 	float MaxFilterRate = 1.F;
 	float MinFilterRate = 1.F;
 	bool ExclusiveFilter = false; // if true the filter system will only match
