@@ -63,8 +63,11 @@ target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)      
 ## Package Includes
 ### OpenSSL is not used directly by our program, but we have to use OpenSSL first
 ### in order to statically link. Once find_package is run once, it's results are cached
-set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
+if (WIN32)
+    set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
+endif()
 set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "" FORCE)
+
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 target_link_libraries(Etterna PRIVATE Threads::Threads)
