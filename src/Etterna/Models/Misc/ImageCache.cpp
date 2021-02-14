@@ -354,7 +354,8 @@ ImageCache::LoadCachedImage(const std::string& sImageDir,
 	// LOG->Trace( "Loading image texture %s; src %ix%i; image %ix%i",
 	//	    ID.filename.c_str(), iSourceWidth, iSourceHeight, pImage->w,
 	// pImage->h );
-	std::shared_ptr<RageTexture> pTexture = std::make_shared<ImageTexture>(ID, pImage, iSourceWidth, iSourceHeight);
+	RageTexture* pTexture =
+	  new ImageTexture(ID, pImage, iSourceWidth, iSourceHeight);
 
 	ID.Policy = RageTextureID::TEX_VOLATILE;
 	TEXTUREMAN->RegisterTexture(ID, pTexture);

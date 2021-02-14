@@ -46,10 +46,10 @@ class Sprite : public Actor
 	static auto SongBannerTexture(RageTextureID ID) -> RageTextureID;
 
 	virtual void Load(const RageTextureID& ID);
-	void SetTexture(std::shared_ptr<RageTexture> pTexture);
+	void SetTexture(RageTexture* pTexture);
 
 	void UnloadTexture();
-	[[nodiscard]] auto GetTexture() const -> std::shared_ptr<RageTexture>
+	[[nodiscard]] auto GetTexture() const -> RageTexture*
 	{
 		return m_pTexture;
 	};
@@ -118,7 +118,7 @@ class Sprite : public Actor
 
 	void DrawTexture(const TweenState* state);
 
-	std::shared_ptr<RageTexture> m_pTexture;
+	RageTexture* m_pTexture;
 
 	std::vector<State> m_States;
 	int m_iCurState;

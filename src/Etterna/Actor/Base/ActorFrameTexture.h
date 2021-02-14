@@ -25,7 +25,7 @@ class ActorFrameTexture : public ActorFrame
 	 * @brief Retrieve the texture name.
 	 * @return the texture name. */
 	[[nodiscard]] std::string GetTextureName() const { return m_sTextureName; }
-	[[nodiscard]] std::shared_ptr<RageTextureRenderTarget> GetTexture() const
+	[[nodiscard]] RageTextureRenderTarget* GetTexture() const
 	{
 		return m_pRenderTarget;
 	}
@@ -43,7 +43,7 @@ class ActorFrameTexture : public ActorFrame
 	void PushSelf(lua_State* L) override;
 
   private:
-	std::shared_ptr<RageTextureRenderTarget> m_pRenderTarget;
+	RageTextureRenderTarget* m_pRenderTarget;
 
 	bool m_bDepthBuffer;
 	bool m_bAlphaBuffer;

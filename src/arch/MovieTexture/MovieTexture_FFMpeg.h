@@ -34,7 +34,7 @@ class MovieTexture_FFMpeg : public MovieTexture_Generic
 class RageMovieTextureDriver_FFMpeg : public RageMovieTextureDriver
 {
   public:
-	virtual std::shared_ptr<RageMovieTexture> Create(const RageTextureID& ID,
+	virtual RageMovieTexture* Create(const RageTextureID& ID,
 									 std::string& sError);
 	static RageSurface* AVCodecCreateCompatibleSurface(
 	  int iTextureWidth,

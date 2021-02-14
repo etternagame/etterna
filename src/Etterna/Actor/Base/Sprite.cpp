@@ -321,7 +321,7 @@ Sprite::EnableAnimation(bool bEnable)
 }
 
 void
-Sprite::SetTexture(std::shared_ptr<RageTexture> pTexture)
+Sprite::SetTexture(RageTexture* pTexture)
 {
 	ASSERT(pTexture != nullptr);
 
@@ -351,8 +351,8 @@ Sprite::LoadFromTexture(const RageTextureID& ID)
 {
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
-	std::shared_ptr<RageTexture> pTexture;
-	if ((m_pTexture != nullptr) && m_pTexture->GetID() == ID)
+	RageTexture* pTexture = nullptr;
+	if (m_pTexture != nullptr && m_pTexture->GetID() == ID)
 		pTexture = m_pTexture;
 	else
 		pTexture = TEXTUREMAN->LoadTexture(ID);
@@ -1367,23 +1367,14 @@ class LunaSprite : public Luna<Sprite>
 	static int SetTexture(T* p, lua_State* L)
 	{
 		auto* pTexture = Luna<RageTexture>::check(L, 1);
-		// the assumption here is that SetTexture only gets textures from
-		//  Lua that are obtained via GetTexture
-		// if that is possible to circumvent, this is a potential issue
-		//  (it probably wont crash but this function will do nothing instead)
-		std::shared_ptr<RageTexture> rt = TEXTUREMAN->FindHandout(pTexture);
-		if (rt != nullptr) {
-			// this shouldnt be necessary but apparently it is
-			rt->m_iRefCount++;
-			p->SetTexture(rt);
-		}
+		pTexture = TEXTUREMAN->CopyTexture(pTexture);
+		p->SetTexture(pTexture);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = p->GetTexture();
+		auto* pTexture = p->GetTexture();
 		if (pTexture != nullptr) {
-			TEXTUREMAN->RegisterHandout(pTexture);
 			pTexture->PushSelf(L);
 		}
 		else

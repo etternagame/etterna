@@ -67,7 +67,7 @@ ActorFrameTexture::Create()
 	param.bFloat = m_bFloat;
 	param.iWidth = static_cast<int>(m_size.x + 0.5f);
 	param.iHeight = static_cast<int>(m_size.y + 0.5f);
-	m_pRenderTarget = std::make_shared<RageTextureRenderTarget>(id, param);
+	m_pRenderTarget = new RageTextureRenderTarget(id, param);
 	m_pRenderTarget->m_bWasUsed = true;
 
 	/* This passes ownership of m_pRenderTarget to TEXTUREMAN, but we retain
@@ -127,7 +127,7 @@ class LunaActorFrameTexture : public Luna<ActorFrameTexture>
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		RageTexture* pTexture = p->GetTexture().get();
+		RageTexture* pTexture = p->GetTexture();
 		if (pTexture == nullptr) {
 			lua_pushnil(L);
 		} else {

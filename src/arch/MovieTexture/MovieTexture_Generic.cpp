@@ -102,6 +102,11 @@ MovieTexture_Generic::DestroyTexture()
 		DISPLAY->DeleteTexture(m_uTexHandle);
 		m_uTexHandle = 0;
 	}
+
+	delete m_pRenderTarget;
+	m_pRenderTarget = NULL;
+	delete m_pTextureIntermediate;
+	m_pTextureIntermediate = NULL;
 }
 
 class RageMovieTexture_Generic_Intermediate : public RageTexture
@@ -267,7 +272,7 @@ MovieTexture_Generic::CreateTexture()
 	}
 
 	if (fmt != PixelFormatYCbCr_Invalid) {
-		m_pTextureIntermediate.reset();
+		SAFE_DELETE(m_pTextureIntermediate);
 		m_pSprite->UnloadTexture();
 
 		/* Create the render target.  This will receive the final, converted
@@ -278,13 +283,14 @@ MovieTexture_Generic::CreateTexture()
 
 		RageTextureID TargetID(GetID());
 		TargetID.filename += " target";
-		m_pRenderTarget = std::make_shared<RageTextureRenderTarget>(TargetID, param);
+		m_pRenderTarget = new RageTextureRenderTarget(TargetID, param);
 
 		/* Create the intermediate texture.  This receives the YUV image. */
 		RageTextureID IntermedID(GetID());
 		IntermedID.filename += " intermediate";
 
-		m_pTextureIntermediate = std::make_shared<RageMovieTexture_Generic_Intermediate>(IntermedID,
+		m_pTextureIntermediate =
+		  new RageMovieTexture_Generic_Intermediate(IntermedID,
 													m_pDecoder->GetWidth(),
 													m_pDecoder->GetHeight(),
 													m_pSurface->w,

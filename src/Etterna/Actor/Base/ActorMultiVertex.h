@@ -96,11 +96,8 @@ class ActorMultiVertex : public Actor
 	void StopTweening() override;
 	void FinishTweening() override;
 
-	void SetTexture(std::shared_ptr<RageTexture> Texture);
-	[[nodiscard]] std::shared_ptr<RageTexture> GetTexture() const
-	{
-		return _Texture;
-	};
+	void SetTexture(RageTexture* Texture);
+	[[nodiscard]] RageTexture* GetTexture() const { return _Texture; };
 	void LoadFromTexture(const RageTextureID& ID);
 
 	void UnloadTexture();
@@ -213,7 +210,7 @@ class ActorMultiVertex : public Actor
 	void PushSelf(lua_State* L) override;
 
   private:
-	std::shared_ptr<RageTexture> _Texture;
+	RageTexture* _Texture;
 
 	vector<RageSpriteVertex> _Vertices;
 	vector<AMV_TweenState> AMV_Tweens;
