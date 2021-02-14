@@ -18,6 +18,7 @@ for i = 1, #ms.SkillSets + 2 do
 	SSQuery[0][i] = "0"
 	SSQuery[1][i] = "0"
 end
+local numbersafterthedecimal = 0
 
 local function FilterInput(event)
 	if event.type ~= "InputEventType_Release" and ActiveSS > 0 and active then
@@ -55,10 +56,12 @@ local function FilterInput(event)
 			local num = 0
 			if ActiveSS == #ms.SkillSets+2 then
 				local q = SSQuery[activebound][ActiveSS]
+				numbersafterthedecimal = 0
 				if #q > 2 then
+					numbersafterthedecimal = #q-2
 					local n = tonumber(q) / (10 ^ (#q-2))
-					n = notShit.floor(n, 3)
-					num = tonumber(n)
+					n = notShit.round(n, numbersafterthedecimal)
+					num = n
 				else
 					num = tonumber(q)
 				end
@@ -451,8 +454,18 @@ local function CreateFilterInputBox(i)
 					)
 				end,
 				SetCommand = function(self)
-					local fval = notShit.floor(FILTERMAN:GetSSFilter(i, 0), 3) -- lower bounds
-					self:settext(fval)
+					local fval = notShit.round(FILTERMAN:GetSSFilter(i, 0), numbersafterthedecimal) -- lower bounds
+					local fmtstr = ""
+					if i == #ms.SkillSets+2 then
+						if numbersafterthedecimal > 0 then
+							fmtstr = "%5."..numbersafterthedecimal.."f"
+						else
+							fmtstr = "%02d."
+						end
+					else
+						fmtstr = "%d"
+					end
+					self:settextf(fmtstr, fval)
 					if fval <= 0 and ActiveSS ~= i then
 						self:diffuse(color("#666666"))
 					elseif activebound == 0 then
@@ -507,8 +520,18 @@ local function CreateFilterInputBox(i)
 					)
 				end,
 				SetCommand = function(self)
-					local fval = notShit.round(FILTERMAN:GetSSFilter(i, 1), 3) -- upper bounds
-					self:settext(fval)
+					local fval = notShit.round(FILTERMAN:GetSSFilter(i, 1), numbersafterthedecimal) -- upper bounds
+					local fmtstr = "%5."
+					if i == #ms.SkillSets+2 then
+						if numbersafterthedecimal > 0 then
+							fmtstr = "%5."..numbersafterthedecimal.."f"
+						else
+							fmtstr = "%02d."
+						end
+					else
+						fmtstr = "%d"
+					end
+					self:settextf(fmtstr, fval)
 					if fval <= 0 and ActiveSS ~= i then
 						self:diffuse(color("#666666"))
 					elseif activebound == 1 then
@@ -541,6 +564,7 @@ f[#f + 1] =
 				SSQuery[0][i] = "0"
 				SSQuery[1][i] = "0"
 			end
+			numbersafterthedecimal = 0
 			activebound = 0
 			ActiveSS = 0
 			MESSAGEMAN:Broadcast("UpdateFilter")
