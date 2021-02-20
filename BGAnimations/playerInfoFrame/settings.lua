@@ -240,6 +240,26 @@ local function rightFrame()
     -- mapping option categories to lists of options
     -- LIMITATIONS: A category cannot have more sub options than the max number of lines minus the number of categories.
     --  example: 25 lines? 2 categories? up to 23 options per category.
+    -- OPTION DEFINITION EXAMPLE: 
+    --[[
+        {
+            Name = "option name" -- display name for the option
+            Type = "" -- determines how to generate the actor to display the choices
+            Choices = {  -- table of option choice definitions -- each entry is another table, see below
+                {
+                    Name = "choice1" -- display name for the choice
+                    ChosenFunction = function() end -- what happens when choice is PICKED (not hovered)
+                },
+                {
+                    Name = "choice2"
+                    ...
+                },
+                ...
+            },
+            ChoiceIndexGetter = function() end -- a function to run to get the choice index
+            ChoiceGenerator = function() end -- an OPTIONAL function responsible for generating the choices table if too long to write out
+        }
+    ]]
     local optionDefs = {
         -----
         -- PLAYER OPTIONS
@@ -247,6 +267,9 @@ local function rightFrame()
             {
                 Name = "Scroll Type",
                 Type = "",
+                Choices = {
+
+                }
             },
             {
                 Name = "Scroll Direction",
@@ -516,6 +539,14 @@ local function rightFrame()
             },
         },
     }
+    -- check for choice generators on any option definitions and execute them
+    for categoryName, categoryDefinition in pairs(optionDefs) do
+        for i, optionDef in ipairs(categoryDefinition) do
+            if optionDef.Choices == nil and optionDef.ChoiceGenerator ~= nil then
+                optionDefs[categoryName][i].Choices = optionDef.ChoiceGenerator()
+            end
+        end
+    end
 
     local function createOptionPageChoices()
         local selectedIndex = 1
