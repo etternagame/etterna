@@ -4,6 +4,26 @@ local ratios = {
     Height = 971 / 1080,
     TopLipHeight = 44 / 1080,
     BottomLipHeight = 99 / 1080,
+
+    EdgePadding = 12 / 1920, -- distance from edges for text and items
+    
+    --
+    -- right options
+    OptionTextWidth = 275 / 1920, -- left edge of text to edge of area for text
+    OptionTextListTopGap = 21 / 1080, -- bottom of right top lip to top of text
+    OptionTextBuffer = 7 / 1920, -- distance from end of width to beginning of selection frame
+    OptionSelectionFrameWidth = 250 / 1920, -- allowed area for option selection
+
+    -- for this area, this is the allowed height for all options including sub options
+    -- when an option opens, it may only show as many sub options as there are lines after subtracting the amount of option categories
+    -- so 1 category with 24 sub options has 25 lines
+    -- 2 categories can then only have up to 23 sub options each to make 25 lines
+    -- etc
+    OptionAllottedHeight = 672 / 1080, -- from top of top option to bottom of bottom option
+    NoteskinDisplayWidth = 240 / 1920, -- width of the text but lets fit the arrows within this
+    NoteskinDisplayRightGap = 17 / 1920, -- distance from right edge of frame to right edge of display
+    NoteskinDisplayReceptorTopGap = 29 / 1080, -- bottom of text to top of receptors
+    NoteskinDisplayTopGap = 21 / 1080, -- bottom of right top lip to top of text
 }
 
 local actuals = {
@@ -12,11 +32,31 @@ local actuals = {
     Height = ratios.Height * SCREEN_HEIGHT,
     TopLipHeight = ratios.TopLipHeight * SCREEN_HEIGHT,
     BottomLipHeight = ratios.BottomLipHeight * SCREEN_HEIGHT,
+    EdgePadding = ratios.EdgePadding * SCREEN_WIDTH,
+    OptionTextWidth = ratios.OptionTextWidth * SCREEN_WIDTH,
+    OptionTextListTopGap = ratios.OptionTextListTopGap * SCREEN_HEIGHT,
+    OptionTextBuffer = ratios.OptionTextBuffer * SCREEN_WIDTH,
+    OptionSelectionFrameWidth = ratios.OptionSelectionFrameWidth * SCREEN_WIDTH,
+    OptionAllottedHeight = ratios.OptionAllottedHeight * SCREEN_HEIGHT,
+    NoteskinDisplayWidth = ratios.NoteskinDisplayWidth * SCREEN_WIDTH,
+    NoteskinDisplayRightGap = ratios.NoteskinDisplayRightGap * SCREEN_WIDTH,
+    NoteskinDisplayReceptorTopGap = ratios.NoteskinDisplayReceptorTopGap * SCREEN_HEIGHT,
+    NoteskinDisplayTopGap = ratios.NoteskinDisplayTopGap * SCREEN_HEIGHT,
 }
 
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
 local animationSeconds = 0.1
 local focused = false
+
+local titleTextSize = 0.8
+local explanationTextSize = 0.8
+local textZoomFudge = 5
+
+local choiceTextSize = 0.8
+local buttonHoverAlpha = 0.6
+local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
+
+local maxExplanationTextLines = 2
 
 local t = Def.ActorFrame {
     Name = "SettingsFile",
@@ -80,6 +120,16 @@ local function leftFrame()
                 self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
             end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "HeaderText",
+            InitCommand = function(self)
+                self:halign(0)
+                self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
+                self:zoom(titleTextSize)
+                self:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) / titleTextSize - textZoomFudge)
+                self:settext("Customize {x}")
+            end
         }
     }
 
@@ -124,9 +174,427 @@ local function rightFrame()
                 self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
             end,
+        },
+        LoadFont("Common Normal") .. {
+            Name = "HeaderText",
+            InitCommand = function(self)
+                self:halign(0)
+                self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
+                self:zoom(titleTextSize)
+                self:maxwidth((actuals.RightWidth - actuals.EdgePadding*2) / titleTextSize - textZoomFudge)
+                self:settext("Options")
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "ExplanationText",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.EdgePadding, actuals.Height - actuals.BottomLipHeight + actuals.EdgePadding)
+                self:zoom(explanationTextSize)
+                --self:maxwidth((actuals.RightWidth - actuals.EdgePadding*2) / explanationTextSize - textZoomFudge)
+                self:wrapwidthpixels((actuals.RightWidth - actuals.EdgePadding * 2) / explanationTextSize)
+                self:maxheight((actuals.BottomLipHeight - actuals.EdgePadding * 2) / explanationTextSize)
+                self:settext("Explanations about optoins go here and im writing a long sentence so that the demonstration of automatic line breaks is completed.")
+            end
         }
     }
 
+    -- the names and order of the option pages
+    -- these values must correspond to the keys of optionPageCategoryLists
+    local pageNames = {
+        "Player",
+        "Graphics",
+        "Sound",
+        "Input",
+        "Profiles",
+    }
+
+    -- mappings of option page names to lists of categories
+    -- the keys in this table are option pages
+    -- the values are tables -- the categories of each page in that order
+    -- each category corresponds to a key in optionDefs
+    -- the options of each category are in the order of the value tables in optionDefs
+    local optionPageCategoryLists = {
+        Player = {
+            "Essential Options",
+            "Appearance Options",
+            "Invalidating Options",
+        },
+        Graphics = {
+            "Global Options",
+            "Appearance Options",
+        },
+        Sound = {
+            "Sound Options",
+        },
+        Input = {
+            "Input Options",
+        },
+        Profiles = {
+            "Profile Options",
+        },
+    }
+
+    -- the mother of all tables.
+    -- this is each option definition for every single option present in the right frame
+    -- mapping option categories to lists of options
+    -- LIMITATIONS: A category cannot have more sub options than the max number of lines minus the number of categories.
+    --  example: 25 lines? 2 categories? up to 23 options per category.
+    local optionDefs = {
+        -----
+        -- PLAYER OPTIONS
+        ["Essential Options"] = {
+            {
+                Name = "Scroll Type",
+                Type = "",
+            },
+            {
+                Name = "Scroll Direction",
+                Type = "",
+            },
+            {
+                Name = "Scroll Speed",
+                Type = "",
+            },
+            {
+                Name = "Noteskin",
+                Type = "",
+            },
+            {
+                Name = "Receptor Size",
+                Type = "",
+            },
+            {
+                Name = "Judge Difficulty",
+                Type = "",
+            },
+            {
+                Name = "Global Offset",
+                Type = "",
+            },
+            {
+                Name = "Visual Delay",
+                Type = "",
+            },
+            {
+                Name = "Game Mode",
+                Type = "",
+            },
+            {
+                Name = "Fail Type",
+                Type = "",
+            },
+            {
+                Name = "Customize Playfield",
+                Type = "",
+            },
+            {
+                Name = "Customize Keybinds",
+                Type = "",
+            },
+        },
+        ["Appearance Options"] = {
+            {
+                Name = "Appearance",
+                Type = "",
+            },
+            {
+                Name = "Perspective",
+                Type = "",
+            },
+            {
+                Name = "Turn",
+                Type = "",
+            },
+            {
+                Name = "Hidenote Judgment",
+                Type = "",
+            },
+            {
+                Name = "Default Centered NoteField",
+                Type = "",
+            },
+            {
+                Name = "NoteField BG Opacity",
+                Type = "",
+            },
+            {
+                Name = "Background Brightness",
+                Type = "",
+            },
+            {
+                Name = "Background Type",
+                Type = "",
+            },
+            {
+                Name = "Replay Mod Emulation",
+                Type = "",
+            },
+        },
+        ["Invalidating Options"] = {
+            {
+                Name = "Mines",
+                Type = "",
+            },
+            {
+                Name = "more",
+                Type = "",
+            },
+        },
+        --
+        -----
+        -- GRAPHICS OPTIONS
+        ["Global Options"] = {
+            {
+                Name = "Language",
+                Type = "",
+            },
+            {
+                Name = "Display Mode",
+                Type = "",
+            },
+            {
+                Name = "Aspect Ratio",
+                Type = "",
+            },
+            {
+                Name = "Display Resolution",
+                Type = "",
+            },
+            {
+                Name = "Refresh Rate",
+                Type = "",
+            },
+            {
+                Name = "Fullscreen Type",
+                Type = "",
+            },
+            {
+                Name = "Display Color",
+                Type = "",
+            },
+            {
+                Name = "Force High Resolution Textures",
+                Type = "",
+            },
+            {
+                Name = "Texture Resolution",
+                Type = "",
+            },
+            {
+                Name = "Texture Color",
+                Type = "",
+            },
+            {
+                Name = "Movie Color",
+                Type = "",
+            },
+            {
+                Name = "VSync",
+                Type = "",
+            },
+            {
+                Name = "Instant Search",
+                Type = "",
+            },
+            {
+                Name = "Fast Note Rendering",
+                Type = "",
+            },
+            {
+                Name = "Show Stats",
+                Type = "",
+            },
+        },
+        ["Appearance Options"] = {
+            {
+                Name = "Theme",
+                Type = "",
+            },
+            {
+                Name = "Music Wheel Position",
+                Type = "",
+            },
+            {
+                Name = "Show Backgrounds",
+                Type = "",
+            },
+            {
+                Name = "Toasties",
+                Type = "",
+            },
+            {
+                Name = "Music Visualizer",
+                Type = "",
+            },
+            {
+                Name = "Mid Grades",
+                Type = "",
+            },
+            {
+                Name = "SSRNorm Sort",
+                Type = "",
+            },
+            {
+                Name = "Show Lyrics",
+                Type = "",
+            },
+            {
+                Name = "Transliteration",
+                Type = "",
+            },
+            {
+                Name = "Tip Type",
+                Type = "",
+            },
+            {
+                Name = "Set BG Fit Mode",
+                Type = "",
+            },
+            {
+                Name = "Color Config",
+                Type = "",
+            },
+            {
+                Name = "Overscan Correction",
+                Type = "",
+            },
+        },
+        --
+        -----
+        -- SOUND OPTIONS
+        ["Sound Options"] = {
+            {
+                Name = "Volume",
+                Type = "",
+            },
+            {
+                Name = "Menu Sounds",
+                Type = "",
+            },
+            {
+                Name = "Mine Sounds",
+                Type = "",
+            },
+            {
+                Name = "Pitch on Rates",
+                Type = "",
+            },
+            {
+                Name = "Calibrate Audio Sync",
+                Type = "",
+            },
+        },
+        --
+        -----
+        -- INPUT OPTIONS
+        ["Input Options"] = {
+            {
+                Name = "everthin in advance input optns",
+                Type = "",
+            },
+            {
+                Name = "Customize Keybinds",
+                Type = "",
+            },
+            {
+                Name = "Test Input",
+                Type = "",
+            },
+        },
+        --
+        -----
+        -- PROFILE OPTIONS
+        ["Profile Options"] = {
+            {
+                Name = "Create Profile",
+                Type = "",
+            },
+            {
+                Name = "Rename Profile",
+                Type = "",
+            },
+        },
+    }
+
+    local function createOptionPageChoices()
+        local selectedIndex = 1
+    
+        local function createChoice(i)
+            return UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "ButtonTab_"..pageNames[i],
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+    
+                    -- this position is the center of the text
+                    -- divides the space into slots for the choices then places them half way into them
+                    -- should work for any count of choices
+                    -- and the maxwidth will make sure they stay nonoverlapping
+                    self:x((actuals.RightWidth / #pageNames) * (i-1) + (actuals.RightWidth / #pageNames / 2))
+                    txt:zoom(choiceTextSize)
+                    txt:maxwidth(actuals.RightWidth / #pageNames / choiceTextSize - textZoomFudge)
+                    txt:settext(pageNames[i])
+                    bg:zoomto(actuals.RightWidth / #pageNames, actuals.TopLipHeight)
+                end,
+                UpdateSelectedIndexCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    if selectedIndex == i then
+                        txt:strokecolor(buttonActiveStrokeColor)
+                    else
+                        txt:strokecolor(color("0,0,0,0"))
+                    end
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        selectedIndex = i
+                        MESSAGEMAN:Broadcast("GeneralTabSet", {tab = i})
+                        self:GetParent():playcommand("UpdateSelectedIndex")
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                end
+            }
+        end
+        local t = Def.ActorFrame {
+            Name = "Choices",
+            InitCommand = function(self)
+                self:y(actuals.TopLipHeight * 1.5)
+                self:playcommand("UpdateSelectedIndex")
+            end,
+            BeginCommand = function(self)
+                local snm = SCREENMAN:GetTopScreen():GetName()
+                local anm = self:GetName()
+
+                CONTEXTMAN:RegisterToContextSet(snm, "Settings", anm)
+                CONTEXTMAN:ToggleContextSet(snm, "Settings", false)
+    
+                -- enable the possibility to press the keyboard to switch tabs
+                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                    -- if locked out, dont allow
+                    if not CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
+                    if event.type == "InputEventType_FirstPress" then
+                        -- nothing
+                        -- will use arrows to place cursor
+                        -- dummy complex probably not going to be in this spot
+                    end
+                end)
+            end
+        }
+        for i = 1, #pageNames do
+            t[#t+1] = createChoice(i)
+        end
+        return t
+    end
+
+    t[#t+1] = createOptionPageChoices()
 
     return t
 end
