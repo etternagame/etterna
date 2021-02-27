@@ -1066,9 +1066,14 @@ class LunaSteps : public Luna<Steps>
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
 			for (auto i = 0; i < static_cast<int>(vals.size()); i++) {
-				std::vector<float> stuff{ vals[i].first,
-										  vals[i].second,
-										  stam_vals[i] };
+				auto v1 = vals[i].first;
+				auto v2 = vals[i].second;
+				auto v3 = 0.F;
+				// this is required because stam_vals is not guaranteed the same size
+				// also due to a calc bug
+				if (i < stam_vals.size())
+					v3 = stam_vals[i];
+				std::vector<float> stuff{ v1, v2, v3 };
 				LuaHelpers::CreateTableFromArray(stuff, L);
 				lua_rawseti(L, -2, i + 1);
 			}
