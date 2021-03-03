@@ -246,7 +246,7 @@ local tChoices2 = {
 	"99.955%", -- AAAA
 	"99.97%", -- AAAA.
 	"99.98%", -- AAAA:
-	"99.996%", -- AAAAA
+	"99.9935%", -- AAAAA
 	"100%" -- impossible
 }
 for _,v in ipairs(tChoices2) do

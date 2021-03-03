@@ -93,7 +93,7 @@ StringToGrade(const std::string& sGrade)
 Grade
 GetGradeFromPercent(float pc)
 {
-	if (pc >= 0.99996F) {
+	if (pc >= 0.999935F) {
 		return Grade_Tier01;
 	}
 	if (PREFSMAN->m_bUseMidGrades && pc >= 0.9998F) {

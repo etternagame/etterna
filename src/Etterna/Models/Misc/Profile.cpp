@@ -1230,13 +1230,13 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 					newpercent = 0.99700f; // AAA
 				else if (p->percent < 0.99955f)
 					newpercent = 0.99955f; // AAAA
-				else if (p->percent < 0.99996f)
-					newpercent = 0.99996f; // AAAAA
+				else if (p->percent < 0.999935f)
+					newpercent = 0.999935f; // AAAAA
 			}
 			else if (newpercent > 0.985f)
 			{
-				if (p->percent > 0.99996f)
-					newpercent = 0.99996f; // AAAAA
+				if (p->percent > 0.999935f)
+					newpercent = 0.999935f; // AAAAA
 				else if (p->percent > 0.99955f)
 					newpercent = 0.99955f; // AAAA
 				else if (p->percent > 0.99700f)
