@@ -199,6 +199,98 @@ local function rightFrame()
         }
     }
 
+    -- -----
+    -- Utility functions for options not necessarily needed for global use in /Scripts (could easily be put there instead though)
+    
+    -- set any mod as part of PlayerOptions at all levels in one easy function
+    local function setPlayerOptionsModValueAllLevels(funcname, ...)
+        -- you give a funcname like MMod, XMod, CMod and it just works
+        local poptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
+        local stoptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Stage")
+        local soptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Song")
+        local coptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Current")
+        poptions[funcname](poptions, ...)
+        stoptions[funcname](stoptions, ...)
+        soptions[funcname](soptions, ...)
+        coptions[funcname](coptions, ...)
+    end
+    -- set any mod as part of SongOptions at all levels in one easy function
+    local function setSongOptionsModValueAllLevels(funcname, ...)
+        -- you give a funcname like MusicRate and it just works
+        local poptions = GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred")
+        local stoptions = GAMESTATE:GetSongOptionsObject("ModsLevel_Stage")
+        local soptions = GAMESTATE:GetSongOptionsObject("ModsLevel_Song")
+        local coptions = GAMESTATE:GetSongOptionsObject("ModsLevel_Current")
+        poptions[funcname](poptions, ...)
+        stoptions[funcname](stoptions, ...)
+        soptions[funcname](soptions, ...)
+        coptions[funcname](coptions, ...)
+    end
+    -- alias for getting "current" PlayerOptions
+    local function getPlayerOptions()
+        return GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
+    end
+    -- alias for getting "current" SongOptions
+    local function getSongOptions()
+        return GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred")
+    end
+
+    --- for Speed Mods -- this has been adapted from the fallback script which does speed and mode at once
+    local function getSpeedModeFromPlayerOptions()
+        local poptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
+        if poptions:MaxScrollBPM() > 0 then
+            return "M"
+        elseif poptions:TimeSpacing() > 0 then
+            return "C"
+        else
+            return "X"
+        end
+    end
+    local function getSpeedValueFromPlayerOptions()
+        local poptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
+        if poptions:MaxScrollBPM() > 0 then
+            return math.round(poptions:MaxScrollBPM())
+        elseif poptions:TimeSpacing() > 0 then
+            return math.round(poptions:ScrollBPM())
+        else
+            return math.round(poptions:ScrollSpeed() * 100)
+        end
+    end
+
+    --
+    -- -----
+
+    -- -----
+    -- Extra data for cross-option interaction
+    --
+    local optionData = {
+        speedMod = {
+            speed = GetSpeedValueFromPlayerOptions(),
+            mode = GetSpeedModeFromPlayerOptions(),
+        }
+    }
+    --
+    -- -----
+
+    -- -----
+    -- Extra utility functions that require optionData to be initialized first
+    local function setSpeedValueFromOptionData()
+        local mode = optionData.speedMod.mode
+        local speed = optionData.speedMod.speed
+        if mode == "X" then
+            -- the way we store stuff, xmod must divide by 100
+            -- theres no quirk to it, thats just because we store the number as an int (not necessarily an int but yeah)
+            -- so 0.01x XMod would be a CMod of 1 -- this makes even more sense if you just think about it
+            setPlayerOptionsModValueAllLevels("XMod", speed/100)
+        elseif mode == "C" then
+            setPlayerOptionsModValueAllLevels("CMod", speed)
+        elseif mode == "M" then
+            setPlayerOptionsModValueAllLevels("MMod", speed)
+        end
+    end
+    --
+    -- -----
+
     -- the names and order of the option pages
     -- these values must correspond to the keys of optionPageCategoryLists
     local pageNames = {
@@ -245,7 +337,8 @@ local function rightFrame()
         {
             Name = "option name" -- display name for the option
             Type = "" -- determines how to generate the actor to display the choices
-            Choices = {  -- table of option choice definitions -- each entry is another table, see below
+            AssociatedOption = "other option name" -- runs the index getter for this option when a choice is selected
+            Choices = { -- option choice definitions -- each entry is another table -- if no choices are defined, visible choice comes from ChoiceIndexGetter
                 {
                     Name = "choice1" -- display name for the choice
                     ChosenFunction = function() end -- what happens when choice is PICKED (not hovered)
@@ -256,8 +349,19 @@ local function rightFrame()
                 },
                 ...
             },
-            ChoiceIndexGetter = function() end -- a function to run to get the choice index
-            ChoiceGenerator = function() end -- an OPTIONAL function responsible for generating the choices table if too long to write out
+            Directions = {
+                -- table of direction functions -- these define what happens for each pressed direction button
+                -- most options have only Left and Right
+                -- if these functions are undefined and required by the option type, a default function moves the index of the choice rotationally
+                -- some option types may allow for more directions or direction multipliers
+                -- if Toggle is defined, this function is used for all direction presses
+                Left = function() end,
+                Right = function() end,
+                Toggle = function() end, --- OPTIONAL -- WILL REPLACE ALL DIRECTION FUNCTIONALITY IF PRESENT
+                ...
+            },
+            ChoiceIndexGetter = function() end -- a function to run to get the choice index or text
+            ChoiceGenerator = function() end -- an OPTIONAL function for generating the choices table if too long to write out (return a table)
         }
     ]]
     local optionDefs = {
@@ -267,53 +371,248 @@ local function rightFrame()
             {
                 Name = "Scroll Type",
                 Type = "",
+                AssociatedOption = "Scroll Speed",
                 Choices = {
-
-                }
-            },
-            {
-                Name = "Scroll Direction",
-                Type = "",
+                    {
+                        Name = "XMod",
+                    },
+                    {
+                        Name = "CMod",
+                    },
+                    {
+                        Name = "MMod",
+                    },
+                },
+                Directions = {
+                    Left = function()
+                        -- traverse list left, set the speed mod again
+                        -- order:
+                        -- XMOD - CMOD - MMOD
+                        local mode = optionData.speedMod.mode
+                        if mode == "C" then
+                            mode = "X"
+                        elseif mode == "M" then
+                            mode = "C"
+                        elseif mode == "X" then
+                            mode = "M"
+                        end
+                        optionData.speedMod.mode = mode
+                        setSpeedValueFromOptionData()
+                    end,
+                    Right = function()
+                        -- traverse list right, set the speed mod again
+                        -- order:
+                        -- XMOD - CMOD - MMOD
+                        local mode = optionData.speedMod.mode
+                        if mode == "C" then
+                            mode = "M"
+                        elseif mode == "M" then
+                            mode = "X"
+                        elseif mode == "X" then
+                            mode = "C"
+                        end
+                        optionData.speedMod.mode = mode
+                        setSpeedValueFromOptionData()
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local mode = optionData.speedMod.mode
+                    if mode == "X" then return 1
+                    elseif mode == "C" then return 2
+                    elseif mode == "M" then return 3 end
+                end,
             },
             {
                 Name = "Scroll Speed",
                 Type = "",
+                Directions = {
+                    Left = function(multiplier)
+                        local increment = -1
+                        if multiplier then increment = -50 end
+                        optionData.speedMod.speed = optionData.speedMod.speed + increment
+                        setSpeedValueFromOptionData()
+                    end,
+                    Right = function(multiplier)
+                        local increment = 1
+                        if multiplier then increment = 50 end
+                        optionData.speedMod.speed = optionData.speedMod.speed + increment
+                        setSpeedValueFromOptionData()
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local mode = optionData.speedMod.mode
+                    local speed = optionData.speedMod.speed
+                    if mode == "X" then
+                        return mode .. notShit.round((speed/100), 2)
+                    else
+                        return mode .. speed
+                    end
+                end,
+            },
+            {
+                Name = "Scroll Direction",
+                Type = "",
+                Choices = {
+                    {
+                        Name = "Upscroll",
+                    },
+                    {
+                        Name = "Downscroll",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if getPlayerOptions():UsingReverse() then
+                            -- 1 is 100% reverse which means on
+                            setPlayerOptionsModValueAllLevels("Reverse", 1)
+                        else
+                            -- 0 is 0% reverse which means off
+                            setPlayerOptionsModValueAllLevels("Reverse", 0)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if getPlayerOptions:UsingReverse() then
+                        return 2
+                    else
+                        return 1
+                    end
+                end,
             },
             {
                 Name = "Noteskin",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    -- ??
+                end,
             },
             {
                 Name = "Receptor Size",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 1, 200 do
+                        o[#o+1] = {
+                            Name = tostring(i) .. "%",
+                            ChosenFunction = function()
+                                -- set mini?
+                            end,
+                        }
+                    end
+                    return o
+                end,
             },
             {
                 Name = "Judge Difficulty",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 4, 8 do
+                        o[#o+1] = {
+                            Name = tostring(i),
+                            ChosenFunction = function()
+                                -- set judge
+                            end,
+                        }
+                    end
+                    o[#o+1] = {
+                        Name = "Justice",
+                        ChosenFunction = function()
+                            -- sets j9
+                        end,
+                    }
+                    return o
+                end,
             },
             {
                 Name = "Global Offset",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = -100, 100 do
+                        local r = i * .01
+                        o[#o+1] = {
+                            Name = tostring(r),
+                            ChosenFunction = function()
+                                -- set global offset to r
+                            end,
+                        }
+                    end
+                    return o
+                end,
             },
             {
                 Name = "Visual Delay",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = -100, 100 do
+                        local r = i * .01
+                        o[#o+1] = {
+                            Name = tostring(r),
+                            ChosenFunction = function()
+                                -- set visual delay to r
+                            end,
+                        }
+                    end
+                    return o
+                end,
             },
             {
                 Name = "Game Mode",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    local o = {}
+                    -- get a list of game modes that are playable
+                    return o
+                end,
             },
             {
                 Name = "Fail Type",
                 Type = "",
+                ChoiceIndexGetter = function()
+                end,
+                ChoiceGenerator = function()
+                    -- get the list of fail types
+                end,
             },
             {
                 Name = "Customize Playfield",
                 Type = "",
+                ChoiceIndexGetter = function() return 1 end,
+                Choices = {
+                    {
+                        Name = "Customize Playfield",
+                        ChosenFunction = function()
+                            -- activate customize gameplay screen
+                        end,
+                    }
+                }
             },
             {
                 Name = "Customize Keybinds",
                 Type = "",
+                ChoiceIndexGetter = function() return 1 end,
+                Choices = {
+                    {
+                        Name = "Customize Keybinds",
+                        ChosenFunction = function()
+                            -- activate keybind screen
+                        end,
+                    }
+                }
             },
         },
         ["Appearance Options"] = {
