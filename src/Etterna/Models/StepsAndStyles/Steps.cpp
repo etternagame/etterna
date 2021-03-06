@@ -378,18 +378,24 @@ Steps::IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool
 auto
 Steps::GetMSD(float rate, Skillset ss) const -> float
 {
-	if (rate > 2.F) // just extrapolate from 2x+
+	if (rate > 2.F) // extrapolate from 2x+
 	{
 		const auto pDiff = diffByRate[13][ss];
 		return pDiff + pDiff * ((rate - 2.F) * .5F);
 	}
+	if (rate < .7F) { // extrapolate from .7x- steeper
+		const auto pDiff = diffByRate[0][ss];
+		return std::max(pDiff - pDiff * ((.7F - rate)), 0.F);
+	}
 
+	// return whole rates by the cached value
 	const auto idx = static_cast<int>(rate * 10) - 7;
 	const auto prop = fmod(rate * 10.F, 1.F);
 	if (prop == 0 && rate <= 2.F) {
 		return diffByRate[idx][ss];
 	}
 
+	// linear interpolate half rates using surrounding cached values
 	const auto pDiffL = diffByRate[idx][ss];
 	const auto pDiffH = diffByRate[idx + 1][ss];
 	return lerp(prop, pDiffL, pDiffH);
@@ -920,7 +926,7 @@ class LunaSteps : public Luna<Steps>
 
 	static auto GetMSD(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = FArg(1);
 		const auto index = static_cast<Skillset>(IArg(2) - 1);
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;

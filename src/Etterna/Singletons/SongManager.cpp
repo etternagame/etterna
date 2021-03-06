@@ -602,7 +602,6 @@ Playlist::GetAverageRating() -> float
 	for (auto& n : chartlist) {
 		if (n.loaded) {
 			auto rate = n.rate;
-			CLAMP(rate, 0.7F, 3.F);
 			o += n.stepsptr->GetMSD(rate, 0);
 			++numloaded;
 		}

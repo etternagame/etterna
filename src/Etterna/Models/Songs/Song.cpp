@@ -1677,7 +1677,6 @@ Song::HighestMSDOfSkillset(Skillset skill,
 						   float rate,
 						   bool filtered_charts_only) const
 {
-	CLAMP(rate, 0.7f, 2.f);
 	auto highest = 0.f;
 
 	/* If we only want to match filtered charts (i.e. we are sorting
