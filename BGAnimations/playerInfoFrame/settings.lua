@@ -267,6 +267,9 @@ local function rightFrame()
         speedMod = {
             speed = GetSpeedValueFromPlayerOptions(),
             mode = GetSpeedModeFromPlayerOptions(),
+        },
+        noteSkins = {
+            names = NOTESKIN:GetNoteSkinNames(),
         }
     }
     --
@@ -483,9 +486,37 @@ local function rightFrame()
                 Name = "Noteskin",
                 Type = "",
                 ChoiceIndexGetter = function()
+                    local currentSkinName = getPlayerOptions():NoteSkin()
+                    for i, name in ipairs(optionData.noteSkins.names) do
+                        if name == currentSkinName then
+                            return i
+                        end
+                    end
+                    -- if function gets this far, look for the default skin
+                    currentSkinName = THEME:GetMetric("Common", "DefaultNoteSkinName")
+                    for i, name in ipairs(optionData.noteSkins.names) do
+                        if name == currentSkinName then
+                            return i
+                        end
+                    end
+                    -- if function gets this far, cant find anything so just return the first skin
+                    return 1
                 end,
                 ChoiceGenerator = function()
-                    -- ??
+                    local o = {}
+                    local skinNames = NOTESKIN:GetNoteSkinNames()
+                    for i, name in ipairs(skinNames) do
+                        o[#o+1] = {
+                            Name = name,
+                        }
+                    end
+                    table.sort(
+                        o,
+                        function(a, b)
+                            return a.Name:lower() < b.Name:lower()
+                        end)
+
+                    return o
                 end,
             },
             {
