@@ -257,20 +257,78 @@ local function rightFrame()
         end
     end
 
+    -- for convenience to generate a choice table for a float interface setting
+    local function floatSettingChoice(visibleName, funcName, enabledValue, offValue)
+        return {
+            Name = visibleName,
+            CheckFunction = function()
+                return getPlayerOptions()[funcName] ~= offValue
+            end,
+            OnFunction = function()
+                setPlayerOptionsModValueAllLevels(funcName, enabledValue)
+            end,
+            OffFunction = function()
+                setPlayerOptionsModValueAllLevels(funcName, offValue)
+            end,
+        }
+    end
+
+    -- for convenience to generate a choice table for a boolean interface setting
+    local function booleanSettingChoice(visibleName, funcName)
+        return {
+            Name = visibleName,
+            CheckFunction = function()
+                return getPlayerOptions()[funcName] == true
+            end,
+            OnFunction = function()
+                setPlayerOptionsModValueAllLevels(funcName, true)
+            end,
+            OffFunction = function()
+                setPlayerOptionsModValueAllLevels(funcName, false)
+            end,
+        }
+    end
+
+    -- for convenience to generate a direction table for a setting which goes in either direction and wraps via PREFSMAN
+    -- if the max value is reached, the min value is the next one
+    local function preferenceIncrementDecrementDirections(preferenceName, minValue, maxValue, increment)
+        return {
+            Left = function()
+                local x = clamp(PREFSMAN:GetPreference(preferenceName), minValue, maxValue)
+                x = x - increment
+                if x < minValue then x = maxValue end
+                PREFSMAN:SetPreference(preferenceName, notShit.round(x, 3))
+            end,
+            Right = function()
+                local x = clamp(PREFSMAN:GetPreference(preferenceName), minValue, maxValue)
+                x = x + increment
+                if x > maxValue then x = minValue end
+                PREFSMAN:SetPreference(preferenceName, notShit.round(x, 3))
+            end,
+        }
+    end
+
     --
     -- -----
 
     -- -----
-    -- Extra data for cross-option interaction
+    -- Extra data for option temporary storage or cross option interaction
     --
+    local playerConfigData = playerConfig:get_data()
     local optionData = {
         speedMod = {
-            speed = GetSpeedValueFromPlayerOptions(),
-            mode = GetSpeedModeFromPlayerOptions(),
+            speed = getSpeedValueFromPlayerOptions(),
+            mode = getSpeedModeFromPlayerOptions(),
         },
         noteSkins = {
             names = NOTESKIN:GetNoteSkinNames(),
-        }
+        },
+        receptorSize = playerConfigData.ReceptorSize,
+        gameMode = {
+            modes = GAMEMAN:GetEnabledGames(),
+            current = GAMESTATE:GetCurrentGame():GetName(),
+        },
+        screenFilter = playerConfigData.ScreenFilter,
     }
     --
     -- -----
@@ -363,8 +421,9 @@ local function rightFrame()
                 Toggle = function() end, --- OPTIONAL -- WILL REPLACE ALL DIRECTION FUNCTIONALITY IF PRESENT
                 ...
             },
-            ChoiceIndexGetter = function() end -- a function to run to get the choice index or text
+            ChoiceIndexGetter = function() end -- a function to run to get the choice index or text, or return a table for multi selection options
             ChoiceGenerator = function() end -- an OPTIONAL function for generating the choices table if too long to write out (return a table)
+            Explanation = "" -- an explanation that appears at the bottom of the screen
         }
     ]]
     local optionDefs = {
@@ -508,6 +567,9 @@ local function rightFrame()
                     for i, name in ipairs(skinNames) do
                         o[#o+1] = {
                             Name = name,
+                            ChosenFunction = function()
+                                setPlayerOptionsModValueAllLevels("NoteSkin", name)
+                            end,
                         }
                     end
                     table.sort(
@@ -522,25 +584,29 @@ local function rightFrame()
             {
                 Name = "Receptor Size",
                 Type = "",
+                Directions = {
+                    Left = function()
+                        local sz = optionData.receptorSize
+                        sz = sz - 1
+                        if sz < -200 then sz = 200 end
+                        optionData.receptorSize = sz
+                    end,
+                    Right = function()
+                        local sz = optionData.receptorSize
+                        sz = sz + 1
+                        if sz > 200 then sz = -200 end
+                        optionData.receptorSize = sz
+                    end,
+                },
                 ChoiceIndexGetter = function()
-                end,
-                ChoiceGenerator = function()
-                    local o = {}
-                    for i = 1, 200 do
-                        o[#o+1] = {
-                            Name = tostring(i) .. "%",
-                            ChosenFunction = function()
-                                -- set mini?
-                            end,
-                        }
-                    end
-                    return o
+                    return optionData.receptorSize
                 end,
             },
             {
                 Name = "Judge Difficulty",
                 Type = "",
                 ChoiceIndexGetter = function()
+                    return GetTimingDifficulty()
                 end,
                 ChoiceGenerator = function()
                     local o = {}
@@ -549,6 +615,7 @@ local function rightFrame()
                             Name = tostring(i),
                             ChosenFunction = function()
                                 -- set judge
+                                SetTimingDifficulty(i)
                             end,
                         }
                     end
@@ -556,6 +623,7 @@ local function rightFrame()
                         Name = "Justice",
                         ChosenFunction = function()
                             -- sets j9
+                            SetTimingDifficulty(9)
                         end,
                     }
                     return o
@@ -564,49 +632,36 @@ local function rightFrame()
             {
                 Name = "Global Offset",
                 Type = "",
+                Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -2, 2, 0.001),
                 ChoiceIndexGetter = function()
-                end,
-                ChoiceGenerator = function()
-                    local o = {}
-                    for i = -100, 100 do
-                        local r = i * .01
-                        o[#o+1] = {
-                            Name = tostring(r),
-                            ChosenFunction = function()
-                                -- set global offset to r
-                            end,
-                        }
-                    end
-                    return o
+                    return PREFSMAN:GetPreference("GlobalOffsetSeconds")
                 end,
             },
             {
                 Name = "Visual Delay",
                 Type = "",
+                Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -2, 2, 0.001),
                 ChoiceIndexGetter = function()
-                end,
-                ChoiceGenerator = function()
-                    local o = {}
-                    for i = -100, 100 do
-                        local r = i * .01
-                        o[#o+1] = {
-                            Name = tostring(r),
-                            ChosenFunction = function()
-                                -- set visual delay to r
-                            end,
-                        }
-                    end
-                    return o
+                    return PREFSMAN:GetPreference("VisualDelaySeconds")
                 end,
             },
             {
                 Name = "Game Mode",
                 Type = "",
                 ChoiceIndexGetter = function()
+                    return strCapitalize(optionData.gameMode.current)
                 end,
                 ChoiceGenerator = function()
                     local o = {}
-                    -- get a list of game modes that are playable
+                    for i, name in ipairs(optionData.gameMode.modes) do
+                        o[#o+1] = {
+                            Name = strCapitalize(name),
+                            ChosenFunction = function()
+                                --GAMEMAN:SetGame(name)
+                                optionData.gameMode.current = name
+                            end,
+                        }
+                    end
                     return o
                 end,
             },
@@ -614,15 +669,31 @@ local function rightFrame()
                 Name = "Fail Type",
                 Type = "",
                 ChoiceIndexGetter = function()
+                    local failtypes = FailType
+                    local failtype = getPlayerOptions():FailSetting()
+                    for i, name in ipairs(failtypes) do
+                        if name == failtype then return i end
+                    end
+                    return 1
                 end,
                 ChoiceGenerator = function()
                     -- get the list of fail types
+                    local failtypes = FailType
+                    local o = {}
+                    for i, name in ipairs(failtypes) do
+                        o[#o+1] = {
+                            Name = THEME:GetString("OptionNames", name:gsub("FailType_", "")),
+                            ChosenFunction = function()
+                                setPlayerOptionsModValueAllLevels("FailSetting", name)
+                            end,
+                        }
+                    end
+                    return o
                 end,
             },
             {
                 Name = "Customize Playfield",
                 Type = "",
-                ChoiceIndexGetter = function() return 1 end,
                 Choices = {
                     {
                         Name = "Customize Playfield",
@@ -635,7 +706,6 @@ local function rightFrame()
             {
                 Name = "Customize Keybinds",
                 Type = "",
-                ChoiceIndexGetter = function() return 1 end,
                 Choices = {
                     {
                         Name = "Customize Keybinds",
@@ -650,49 +720,416 @@ local function rightFrame()
             {
                 Name = "Appearance",
                 Type = "",
+                Choices = {
+                    -- multiple choices allowed
+                    floatSettingChoice("Hidden", "Hidden", 1, 0),
+                    floatSettingChoice("HiddenOffset", "HiddenOffset", 1, 0),
+                    floatSettingChoice("Sudden", "Sudden", 1, 0),
+                    floatSettingChoice("SuddenOffset", "SuddenOffset", 1, 0),
+                    floatSettingChoice("Stealth", "Stealth", 1, 0),
+                    floatSettingChoice("Blink", "Blink", 1, 0)
+                },
             },
             {
                 Name = "Perspective",
                 Type = "",
+                Choices = {
+                    -- the numbers in these defs are like the percentages you would put in metrics instead
+                    -- 1 is 100%
+                    -- Overhead does not use percentages.
+                    -- adding an additional parameter to these functions does do something (approach rate) but is functionally useless
+                    -- you are free to try these untested options for possible weird results:
+                    -- floatSettingChoice("Skew", "Skew", high, low)
+                    -- floatSettingChoice("Tilt", "Tilt", high, low)
+                    {
+                        Name = "Overhead",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("Overhead", true)
+                        end,
+                    },
+                    {
+                        Name = "Incoming",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("Incoming", 1)
+                        end,
+                    },
+                    {
+                        Name = "Space",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("Space", 1)
+                        end,
+                    },
+                    {
+                        Name = "Hallway",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("Hallway", 1)
+                        end,
+                    },
+                    {
+                        Name = "Distant",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("Distant", 1)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    -- we unfortunately choose to hardcode these options and not allow an additional custom one
+                    -- but the above choice definitions allow customizing the specific Perspective to whatever extent you want
+                    if po:Overhead() then return 1
+                    elseif po:Incoming() ~= nil then return 2
+                    elseif po:Space() ~= nil then return 3
+                    elseif po:Hallway() ~= nil then return 4
+                    elseif po:Distant() ~= nil then return 5
+                    end
+                    return 1 -- 1 should be Overhead ....
+                end,
             },
             {
-                Name = "Turn",
+                Name = "Mirror",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    }
+                },
+                Directions = {
+                    Toggle = function()
+                        local po = getPlayerOptions()
+                        if po:Mirror() then
+                            setPlayerOptionsModValueAllLevels("Mirror", false)
+                        else
+                            setPlayerOptionsModValueAllLevels("Mirror", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if getPlayerOptions():Mirror() then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
+            },
+            {
+                Name = "Hide Player UI",
+                Type = "",
+                Choices = {
+                    floatSettingChoice("Hide Receptors", "Dark", 1, 0),
+                    floatSettingChoice("Hide Judgment & Combo", "Blind", 1, 0),
+                },
             },
             {
                 Name = "Hidenote Judgment",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Miss",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_Miss")
+                        end,
+                    },
+                    {
+                        Name = "Bad",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W5")
+                        end,
+                    },
+                    {
+                        Name = "Good",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W4")
+                        end,
+                    },
+                    {
+                        Name = "Great",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W3")
+                        end,
+                    },
+                    {
+                        Name = "Perfect",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W2")
+                        end,
+                    },
+                    {
+                        Name = "Marvelous",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W1")
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local opt = PREFSMAN:GetPreference("MinTNSToHideNotes")
+                    if opt == "TNS_Miss" then return 1
+                    elseif opt == "TNS_W5" then return 2
+                    elseif opt == "TNS_W4" then return 3
+                    elseif opt == "TNS_W3" then return 4
+                    elseif opt == "TNS_W2" then return 5
+                    elseif opt == "TNS_W1" then return 6
+                    else
+                        return 4 -- this is the default option so default to this
+                    end
+                end,
             },
             {
                 Name = "Default Centered NoteField",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Yes",
+                    },
+                    {
+                        Name = "No",
+                    }
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("Center1Player") then
+                            PREFSMAN:SetPreference("Center1Player", false)
+                        else
+                            PREFSMAN:SetPreference("Center1Player", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if PREFSMAN:GetPreference("Center1Player") then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
             },
             {
                 Name = "NoteField BG Opacity",
                 Type = "",
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 0, 10 do
+                        o[#o+1] = {
+                            Name = i.."%",
+                            ChosenFunction = function()
+                                optionData.screenFilter = notShit.round(i / 10, 1)
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local v = notShit.round(optionData.screenFilter, 1)
+                    local ind = notShit.round(v * 10, 0) + 1
+                    if ind > 0 and ind < 11 then -- this 11 should match the number of choices above
+                        return ind
+                    else
+                        if ind <= 0 then
+                            return 1
+                        else
+                            return 11
+                        end
+                    end
+                end,
             },
             {
                 Name = "Background Brightness",
                 Type = "",
-            },
-            {
-                Name = "Background Type",
-                Type = "",
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 0, 10 do
+                        o[#o+1] = {
+                            Name = i.."%",
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("BGBrightness", notShit.round(i / 10, 1))
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"))
+                    local ind = notShit.round(v * 10, 0) + 1
+                    if ind > 0 and ind < 11 then -- this 11 should match the nubmer of choices above
+                        return ind
+                    else
+                        if ind <= 0 then
+                            return 1
+                        else
+                            return 11
+                        end
+                    end
+                end,
             },
             {
                 Name = "Replay Mod Emulation",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    }
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("ReplaysUseScoreMods") then
+                            PREFSMAN:SetPreference("ReplaysUseScoreMods", false)
+                        else
+                            PREFSMAN:SetPreference("ReplaysUseScoreMods", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if PREFSMAN:GetPreference("ReplaysUseScoreMods") then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
             },
+            {
+                Name = "Extra Scroll Mods",
+                Type = "",
+                Choices = {
+                    floatSettingChoice("Split", "Split", 1, 0),
+                    floatSettingChoice("Alternate", "Alternate", 1, 0),
+                    floatSettingChoice("Cross", "Cross", 1, 0),
+                    floatSettingChoice("Centered", "Centered", 1, 0),
+                },
+            },
+            {
+                Name = "Fun Effects",
+                Type = "",
+                Choices = {
+                    floatSettingChoice("Drunk", "Drunk", 1, 0),
+                    floatSettingChoice("Confusion", "Confusion", 1, 0),
+                    floatSettingChoice("Tiny", "Tiny", 1, 0),
+                    floatSettingChoice("Flip", "Flip", 1, 0),
+                    floatSettingChoice("Invert", "Invert", 1, 0),
+                    floatSettingChoice("Tornado", "Tornado", 1, 0),
+                    floatSettingChoice("Tipsy", "Tipsy", 1, 0),
+                    floatSettingChoice("Bumpy", "Bumpy", 1, 0),
+                    floatSettingChoice("Beat", "Beat", 1, 0),
+                    -- X-Mode is dead because it relies on player 2!! -- floatSettingChoice("X-Mode"),
+                    floatSettingChoice("Twirl", "Twirl", 1, 0),
+                    floatSettingChoice("Roll", "Roll", 1, 0),
+                },
+            },
+            {
+                Name = "Acceleration",
+                Type = "",
+                Choices = {
+                    floatSettingChoice("Boost", "Boost", 1, 0),
+                    floatSettingChoice("Brake", "Brake", 1, 0),
+                    floatSettingChoice("Wave", "Wave", 1, 0),
+                    floatSettingChoice("Expand", "Expand", 1, 0),
+                    floatSettingChoice("Boomerang", "Boomerang", 1, 0),
+                },
+            }
         },
         ["Invalidating Options"] = {
             {
                 Name = "Mines",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("NoMines", false)
+                            setPlayerOptionsModValueAllLevels("Mines", false)
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("NoMines", true)
+                            setPlayerOptionsModValueAllLevels("Mines", false)
+                        end,
+                    },
+                    {
+                        Name = "Additive",
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("NoMines", false)
+                            setPlayerOptionsModValueAllLevels("Mines", true)
+                        end,
+                    }
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    if po:Mines() then
+                        -- additive mines, invalidating
+                        return 3
+                    elseif po:NoMines() then
+                        -- nomines, invalidating
+                        return 2
+                    else
+                        -- regular mines, not invalidating
+                        return 1
+                    end
+                end,
             },
             {
-                Name = "more",
+                Name = "Turn",
                 Type = "",
+                Choices = {
+                    booleanSettingChoice("Backwards", "Backwards"),
+                    booleanSettingChoice("Left", "Left"),
+                    booleanSettingChoice("Right", "Right"),
+                    booleanSettingChoice("Shuffle", "Shuffle"),
+                    booleanSettingChoice("Soft Shuffle", "SoftShuffle"),
+                    booleanSettingChoice("Super Shuffle", "SuperShuffle"),
+                }
             },
+            {
+                Name = "Pattern Transform",
+                Type = "",
+                Choices = {
+                    booleanSettingChoice("Echo", "Echo"),
+                    booleanSettingChoice("Stomp", "Stomp"),
+                    booleanSettingChoice("Jack JS", "JackJS"),
+                    booleanSettingChoice("Anchor JS", "AnchorJS"),
+                    booleanSettingChoice("IcyWorld", "IcyWorld"),
+                },
+            },
+            {
+                Name = "Hold Transform",
+                Type = "",
+                Choices = {
+                    booleanSettingChoice("Planted", "Planted"),
+                    booleanSettingChoice("Floored", "Floored"),
+                    booleanSettingChoice("Twister", "Twister"),
+                    booleanSettingChoice("Holds To Rolls", "HoldRolls"),
+                },
+            },
+            {
+                Name = "Remove",
+                Type = "",
+                Choices = {
+                    booleanSettingChoice("No Holds", "NoHolds"),
+                    booleanSettingChoice("No Rolls", "NoRolls"),
+                    booleanSettingChoice("No Jumps", "NoJumps"),
+                    booleanSettingChoice("No Hands", "NoHands"),
+                    booleanSettingChoice("No Lifts", "NoLifts"),
+                    booleanSettingChoice("No Fakes", "NoFakes"),
+                    booleanSettingChoice("No Quads", "NoQuads"),
+                    booleanSettingChoice("No Stretch", "NoStretch"),
+                    booleanSettingChoice("Little", "Little"),
+                },
+            },
+            {
+                Name = "Insert",
+                Type = "",
+                Choices = {
+                    booleanSettingChoice("Wide", "Wide"),
+                    booleanSettingChoice("Big", "Big"),
+                    booleanSettingChoice("Quick", "Quick"),
+                    booleanSettingChoice("BMR-ize", "BMRize"),
+                    booleanSettingChoice("Skippy", "Skippy"),
+                },
+            }
         },
         --
         -----
