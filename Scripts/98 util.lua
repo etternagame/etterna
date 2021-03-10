@@ -76,6 +76,10 @@ function strtrim(str)
     end
 end
 
+function strCapitalize(str)
+    return str:gsub("(%l)(%w*)", function(a,b) return string.upper(a)..b end)
+end
+
 -- convert a shortened date string into month day year
 function expandDateString(given)
     if given == nil then
