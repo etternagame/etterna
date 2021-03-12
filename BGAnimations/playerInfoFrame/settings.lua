@@ -308,6 +308,15 @@ local function rightFrame()
         }
     end
 
+    local function basicNamedPreferenceChoice(preferenceName, displayName, chosenValue)
+        return {
+            Name = displayName,
+            ChosenFunction = function()
+                PREFSMAN:SetPreference(preferenceName, chosenValue)
+            end,
+        }
+    end
+
     --
     -- -----
 
@@ -315,6 +324,8 @@ local function rightFrame()
     -- Extra data for option temporary storage or cross option interaction
     --
     local playerConfigData = playerConfig:get_data()
+    local themeConfigData = themeConfig:get_data()
+    local displaySpecs = GetDisplaySpecs()
     local optionData = {
         speedMod = {
             speed = getSpeedValueFromPlayerOptions(),
@@ -329,6 +340,16 @@ local function rightFrame()
             current = GAMESTATE:GetCurrentGame():GetName(),
         },
         screenFilter = playerConfigData.ScreenFilter,
+        language = {
+            list = THEME:GetLanguages(),
+            current = THEME:GetCurLanguage(),
+        },
+        instantSearch = themeConfigData.global.InstantSearch,
+        display = {
+            dRatios = GetDisplayAspectRatios(displaySpecs),
+            wRatios = GetWindowAspectRatios(),
+            loadedAspectRatio = PREFSMAN:GetPreference("DisplayAspectRatio")
+        },
     }
     --
     -- -----
@@ -398,7 +419,7 @@ local function rightFrame()
         {
             Name = "option name" -- display name for the option
             Type = "" -- determines how to generate the actor to display the choices
-            AssociatedOption = "other option name" -- runs the index getter for this option when a choice is selected
+            AssociatedOptions = {"other option name"} -- runs the index getter for these options when a choice is selected
             Choices = { -- option choice definitions -- each entry is another table -- if no choices are defined, visible choice comes from ChoiceIndexGetter
                 {
                     Name = "choice1" -- display name for the choice
@@ -433,7 +454,9 @@ local function rightFrame()
             {
                 Name = "Scroll Type",
                 Type = "",
-                AssociatedOption = "Scroll Speed",
+                AssociatedOptions = {
+                    "Scroll Speed",
+                },
                 Choices = {
                     {
                         Name = "XMod",
@@ -739,8 +762,8 @@ local function rightFrame()
                     -- Overhead does not use percentages.
                     -- adding an additional parameter to these functions does do something (approach rate) but is functionally useless
                     -- you are free to try these untested options for possible weird results:
-                    -- floatSettingChoice("Skew", "Skew", high, low)
-                    -- floatSettingChoice("Tilt", "Tilt", high, low)
+                    -- setPlayerOptionsModValueAllLevels("Skew", x)
+                    -- setPlayerOptionsModValueAllLevels("Tilt", x)
                     {
                         Name = "Overhead",
                         ChosenFunction = function()
@@ -1138,62 +1161,411 @@ local function rightFrame()
             {
                 Name = "Language",
                 Type = "",
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i, l in ipairs(optionData.language.list) do
+                        o[#o+1] = {
+                            Name = l,
+                            ChosenFunction = function()
+                                optionData.language.current = l
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    for i, l in ipairs(optionData.language.list) do
+                        if l == optionData.language.current then return i end
+                    end
+                    return 1
+                end,
             },
             {
                 Name = "Display Mode",
                 Type = "",
+                AssociatedOptions = {
+                    "Aspect Ratio",
+                    "Display Resolution",
+                    "Refresh Rate",
+                },
+                -- the idea behind Display Mode is to also allow selecting a Display to show the game
+                -- it is written into the lua side of the c++ options conf but unused everywhere as far as i know except maybe in linux
+                -- so here lets just hardcode windowed/fullscreen until that feature becomes a certain reality
+                -- and lets just all borderless here so that the options are simplified just a bit
+                Choices = {
+                    {
+                        Name = "Windowed",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("Windowed", true)
+                            PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", false)
+                        end,
+                    },
+                    {
+                        Name = "Fullscreen",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("Windowed", false)
+                            PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", false)
+                        end,
+                    },
+                    {
+                        -- funny thing about this preference is that it doesnt force fullscreen
+                        -- so you have to pick the right resolution for it to work
+                        Name = "Borderless",
+                        ChosenFunction = function()
+                            PREFSMAN:SetPreference("Windowed", false)
+                            PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", true)
+                        end,
+                    }
+
+                },
+                ChoiceIndexGetter = function()
+                    if PREFSMAN:GetPreference("FullscreenIsBorderlessWindow") then
+                        return 3
+                    elseif PREFSMAN:GetPreference("Windowed") then
+                        return 1
+                    else
+                        -- fullscreen exclusive
+                        return 2
+                    end
+                end,
             },
             {
                 Name = "Aspect Ratio",
                 Type = "",
+                AssociatedOptions = {
+                    "Display Resolution"
+                },
+                ChoiceGenerator = function()
+                    local o = {}
+                    local isWindowed = PREFSMAN:GetPreference("Windowed")
+                    local curDisplayId = PREFSMAN:GetPreference("DisplayId")
+                    local ratios = isWindowed and optionData.display.wRatios or (optionData.display.dRatios[curDisplayId] or optionData.display.dRatios[displaySpecs[1]:GetId()])
+                    -- this is some super obscure function we have that sorts table keys and then runs a function over its pairs
+                    -- im basically copying the code here from fallback scripts DisplaySpecs
+                    foreach_ordered(ratios, function(_, ratio)
+                        -- ratio is a fraction, d is denominator and n is numerator
+                        local v = ratio.n / ratio.d
+                        o[#o+1] = {
+                            Name = ratio.n .. ":" .. ratio.d,
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("DisplayAspectRatio", v)
+                                optionData.display.loadedAspectRatio = v
+                            end,
+                        }
+                    end)
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local closestdiff = 100
+                    local closestindex = 1
+                    local isWindowed = PREFSMAN:GetPreference("Windowed")
+                    local curDisplayId = PREFSMAN:GetPreference("DisplayId")
+                    local ratios = isWindowed and optionData.display.wRatios or (optionData.display.dRatios[curDisplayId] or optionData.display.dRatios[displaySpecs[1]:GetId()])
+                    foreach_ordered(ratios, function(i, ratio)
+                        local v = ratio.n / ratio.d
+                        local diff = math.abs(v - optionData.display.loadedAspectRatio)
+                        if diff < closestdiff then
+                            closestdiff = diff
+                            closestindex = i
+                        end
+                    end)
+                    return closestindex
+                end,
             },
             {
                 Name = "Display Resolution",
                 Type = "",
+                AssociatedOptions = {
+                    "Refresh Rate",
+                },
+                ChoiceGenerator = function()
+                    local isWindowed = PREFSMAN:GetPreference("Windowed")
+                    local curDisplay = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
+                    local curRatio = optionData.display.loadedAspectRatio ~= 0 and optionData.display.loadedAspectRatio or PREFSMAN:GetPreference("DisplayAspectRatio")
+                    local resolutions = isWindowed and GetFeasibleWindowSizesForRatio(displaySpecs, curRatio) or GetDisplayResolutionsForRatio(curDisplay, curRatio)
+                    local w = PREFSMAN:GetPreference("DisplayWidth")
+            		local h = PREFSMAN:GetPreference("DisplayHeight")
+                    local o = {}
+                    for _, resRect in ipairs(resolutions) do
+                        -- resRect is a rectangle and contains a width w and a height h
+                        local dist = math.sqrt((resRect.w - w)^2 + (resRect.h - h)^2)
+                        o[#o+1] = {
+                            Name = resRect.w .. "x" .. resRect.h,
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("DisplayWidth", resRect.w)
+                                PREFSMAN:SetPreference("DisplayHeight", resRect.h)
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local isWindowed = PREFSMAN:GetPreference("Windowed")
+                    local curDisplay = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
+                    local curRatio = optionData.display.loadedAspectRatio ~= 0 and optionData.display.loadedAspectRatio or PREFSMAN:GetPreference("DisplayAspectRatio")
+                    local resolutions = isWindowed and GetFeasibleWindowSizesForRatio(displaySpecs, curRatio) or GetDisplayResolutionsForRatio(curDisplay, curRatio)
+                    local closestindex = 1
+                    local mindist = -1
+                    local w = PREFSMAN:GetPreference("DisplayWidth")
+            		local h = PREFSMAN:GetPreference("DisplayHeight")
+                    for i, resRect in ipairs(resolutions) do
+                        -- resRect is a rectangle and contains a width w and a height h
+                        local dist = math.sqrt((resRect.w - w)^2 + (resRect.h - h)^2)
+                        if mindist == -1 or dist < mindist then
+                            mindist = dist
+                            closestindex = i
+                        end
+                    end
+                    return closestindex
+                end,
             },
             {
                 Name = "Refresh Rate",
                 Type = "",
+                ChoiceGenerator = function()
+                    local isWindowed = PREFSMAN:GetPreference("Windowed")
+                    local d = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
+                    local w = PREFSMAN:GetPreference("DisplayWidth")
+                    local h = PREFSMAN:GetPreference("DisplayHeight")
+                    local rates = isWindowed and {} or GetDisplayRatesForResolution(d, w, h)
+                    local o = {
+                        {
+                            Name = "Default",
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("RefreshRate", REFRESH_DEFAULT)
+                            end,
+                        },
+                    }
+                    for _, rate in ipairs(rates) do
+                        o[#o+1] = {
+                            Name = math.round(rate),
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("RefreshRate", math.round(rate))
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local isWindowed = PREFSMAN:GetPreference("Windowed")
+                    local d = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
+                    local w = PREFSMAN:GetPreference("DisplayWidth")
+                    local h = PREFSMAN:GetPreference("DisplayHeight")
+                    local rates = isWindowed and {} or GetDisplayRatesForResolution(d, w, h)
+                    local o = {
+                        {
+                            Name = "Default",
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("RefreshRate", REFRESH_DEFAULT)
+                            end,
+                        },
+                    }
+                    for _, rate in ipairs(rates) do
+                        o[#o+1] = {
+                            Name = math.round(rate),
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("RefreshRate", math.round(rate))
+                            end,
+                        }
+                    end
+                end,
             },
             {
-                Name = "Fullscreen Type",
+                Name = "Display Color Depth",
                 Type = "",
-            },
-            {
-                Name = "Display Color",
-                Type = "",
+                Choices = {
+                    basicNamedPreferenceChoice("DisplayColorDepth", "16bit", 16),
+                    basicNamedPreferenceChoice("DisplayColorDepth", "32bit", 32),
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("DisplayColorDepth")
+                    if v == 16 then return 1
+                    elseif v == 32 then return 2
+                    end
+                    return 1
+                end,
             },
             {
                 Name = "Force High Resolution Textures",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Yes",
+                    },
+                    {
+                        Name = "No",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("HighResolutionTextures") then
+                            PREFSMAN:SetPreference("HighResolutionTextures", false)
+                        else
+                            PREFSMAN:SetPreference("HighResolutionTextures", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if PREFSMAN:GetPreference("HighResolutionTextures") then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
             },
             {
                 Name = "Texture Resolution",
                 Type = "",
+                Choices = {
+                    basicNamedPreferenceChoice("MaxTextureResolution", "256", 256),
+                    basicNamedPreferenceChoice("MaxTextureResolution", "512", 512),
+                    basicNamedPreferenceChoice("MaxTextureResolution", "1024", 1024),
+                    basicNamedPreferenceChoice("MaxTextureResolution", "2048", 2048),
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("MaxTextureResolution")
+                    if v == 256 then return 1
+                    elseif v == 512 then return 2
+                    elseif v == 1024 then return 3
+                    elseif v == 2048 then return 4
+                    end
+                    return 1
+                end,
             },
             {
-                Name = "Texture Color",
+                Name = "Texture Color Depth",
                 Type = "",
+                Choices = {
+                    basicNamedPreferenceChoice("TextureColorDepth", "16bit", 16),
+                    basicNamedPreferenceChoice("TextureColorDepth", "32bit", 32),
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("TextureColorDepth")
+                    if v == 16 then return 1
+                    elseif v == 32 then return 2
+                    end
+                    return 1
+                end,
             },
             {
-                Name = "Movie Color",
+                Name = "Movie Color Depth",
                 Type = "",
+                Choices = {
+                    basicNamedPreferenceChoice("MovieColorDepth", "16bit", 16),
+                    basicNamedPreferenceChoice("MovieColorDepth", "32bit", 32),
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("MovieColorDepth")
+                    if v == 16 then return 1
+                    elseif v == 32 then return 2
+                    end
+                    return 1
+                end,
             },
             {
                 Name = "VSync",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("Vsync") then
+                            PREFSMAN:SetPreference("Vsync", false)
+                        else
+                            PREFSMAN:SetPreference("Vsync", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if PREFSMAN:GetPreference("Vsync") then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
             },
             {
                 Name = "Instant Search",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if optionData.instantSearch then
+                            optionData.instantSearch = false
+                        else
+                            optionData.instantSearch = true
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if optionData.instantSearch then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
             },
             {
                 Name = "Fast Note Rendering",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("FastNoteRendering") then
+                            PREFSMAN:SetPreference("FastNoteRendering", false)
+                        else
+                            PREFSMAN:SetPreference("FastNoteRendering", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if PREFSMAN:GetPreference("FastNoteRendering") then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
             },
             {
                 Name = "Show Stats",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("ShowStats") then
+                            PREFSMAN:SetPreference("ShowStats", false)
+                        else
+                            PREFSMAN:SetPreference("ShowStats", true)
+                        end
+                    end,
+                }
             },
         },
         ["Appearance Options"] = {
@@ -1281,10 +1653,6 @@ local function rightFrame()
         ["Input Options"] = {
             {
                 Name = "everthin in advance input optns",
-                Type = "",
-            },
-            {
-                Name = "Customize Keybinds",
                 Type = "",
             },
             {
