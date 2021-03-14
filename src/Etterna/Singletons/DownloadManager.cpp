@@ -1977,8 +1977,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
-			(d.HasMember("errors") && d["errors"].HasMember("status") &&
-			 d["errors"]["status"].GetInt() == 404) ||
+			(d.HasMember("errors") && d["errors"].IsArray() &&
+			 d["errors"][0].HasMember("status") &&
+			 d["errors"][0]["status"].GetInt() == 404) ||
 			!d.HasMember("data") || !d["data"].IsArray()) {
 			LOG->Trace(
 			  ("Malformed top25 scores request response: " + req.result)
