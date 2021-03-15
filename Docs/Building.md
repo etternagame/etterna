@@ -55,6 +55,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 - Debian: `apt install libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
 - Fedora: `dnf install libssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
+- Arch: `pacman -S openssl libx11 libxrandr curl glu mesa libpulse libogg alsa-lib jack`
 
 ### Windows Dependencies
 
@@ -108,6 +109,7 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 
 - macOS: `/usr/local/opt/openssl` or otherwise depending on your setup (if you're using HomeBrew, MacPorts or installed in from source)
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
+- > **Note for Arch Linux Users:** CMake has trouble finding `libssl` and `libcrypto` by defeault.  Specifying them with `-DOPENSSL_SSL_LIBRARY=/usr/lib/libssl.so.1.1` and `-DOPENSSL_CRYPTO_LIBRARY=/usr/lib/libcrypto.so.1.1` seems to fix the issue.
 - Windows: CMake writes files to find the version of OpenSSL linked above. If that version is installed, it should not be necessary to specify this variable (unless you have OpenSSL installed in a non-standard location, in which case, you should set OPENSSL_ROOT_DIR to that location)
 
 #### Sample CMake Commands
@@ -154,6 +156,7 @@ To install ninja, use one of the following commands
 
 - Debian: `apt install ninja-build`
 - Fedora: `dnf install ninja-build`
+- Arch: `pacman -S ninja`
 - macOS: `brew install ninja`
 
 To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
