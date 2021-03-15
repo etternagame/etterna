@@ -120,6 +120,14 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 Calc& calc,
 							 const float& offset = 0.F) -> bool
 {
+	// an inf rowtime means 0 bpm or some other odd gimmick that may break things
+	// skip this file
+	// nan/inf can occur before the end of the file
+	// but the way these are generated, the last should be the largest
+	// therefore if any are inf, this is inf
+	if (std::isinf(ni.back().rowTime) || std::isnan(ni.back().rowTime))
+		return true;
+	
 	/* add 1 to convert index to size, we're just using this to guess due to
 	 * potential float precision differences, the actual numitv will be set at
 	 * the end */
