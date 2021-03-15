@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <stdio.h>
 
 
 // Translation Unit Specific Functions
@@ -122,8 +123,17 @@ namespace Core::Platform {
 	}
 
     bool isOtherInstanceRunning(int argc, char** argv){
-        Locator::getLogger()->warn("Core::Platform::isOtherInstanceRunning not implemented");
-        return false;
+		FILE* fd = popen("pgrep Etterna", "r");
+		char buf[128]; //Random value. No-one is going to have a PID size > 128
+		bool found_other_process = false;
+		if(fgets(buf, sizeof(buf), fd)!=nullptr){
+			//Quick and dirty way to check "Is there another process open?"
+			//If pgrep has any output, there is another process open right now.
+			// (Pgrep excludes the calling process from its output by default)
+			found_other_process = true;
+		}
+		pclose(fd);
+		return found_other_process;
     }
 
     bool boostPriority()
