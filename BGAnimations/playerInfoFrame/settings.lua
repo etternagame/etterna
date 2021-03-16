@@ -1701,9 +1701,9 @@ local function rightFrame()
                     local o = {}
                     for _, fit in ipairs(BackgroundFitMode) do
                         o[#o+1] = {
-                            Name = THEME:GetString("ScreenSetBGFit", ToEnumShortString(mode)),
+                            Name = THEME:GetString("ScreenSetBGFit", ToEnumShortString(fit)),
                             ChosenFunction = function()
-                                PREFSMAN:SetPreference("BackgroundFitMode", ToEnumShortString(mode))
+                                PREFSMAN:SetPreference("BackgroundFitMode", ToEnumShortString(fit))
                             end,
                         }
                     end
