@@ -2,7 +2,7 @@
 -- userdata DisplaySpecs we get from c++
 local cachedSpecs = nil
 
-local function GetDisplaySpecs()
+function GetDisplaySpecs()
 	if cachedSpecs == nil then
 		local specs = DISPLAY:GetDisplaySpecs()
 		t = {
