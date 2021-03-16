@@ -317,6 +317,20 @@ local function rightFrame()
         }
     end
 
+    local function initDisplayResolutions()
+        local resolutions = {}
+        local displaySpecs = GetDisplaySpecs()
+        for _, spec in ipairs(displaySpecs) do
+            for __, mode in ipairs(spec:GetSupportedModes()) do
+                resolutions[#resolutions+1] = {
+                    w = mode:GetWidth(),
+                    h = mode:GetHeight(),
+                }
+            end
+        end
+        return resolutions
+    end
+
     --
     -- -----
 
@@ -346,8 +360,38 @@ local function rightFrame()
         },
         instantSearch = themeConfigData.global.InstantSearch,
         display = {
+            ratios = { -- hardcoded aspect ratio list
+                {n = 3, d = 4},
+                {n = 1, d = 1},
+                {n = 5, d = 4},
+                {n = 4, d = 3},
+                {n = 16, d = 10},
+                {n = 16, d = 9},
+                {n = 8, d = 3},
+                {n = 21, d = 9}
+            },
+            refreshRates = { -- hardcoded refresh rate list (i dont know what im doing)
+                -- if you put floats here it is your fault if something breaks but go nuts if you want
+                --REFRESH_DEFAULT, -- skip this, it is hardcoded as the first value
+                59,
+                60,
+                70,
+                72,
+                75,
+                80,
+                85,
+                90,
+                100,
+                120,
+                144,
+                150,
+                240,
+            },
+            -- displayspec generated "compatible" ratios
             dRatios = GetDisplayAspectRatios(displaySpecs),
             wRatios = GetWindowAspectRatios(),
+            -- displayspec generated "compatible" resolutions
+            resolutions = initDisplayResolutions(),
             loadedAspectRatio = PREFSMAN:GetPreference("DisplayAspectRatio")
         },
     }
@@ -1183,11 +1227,6 @@ local function rightFrame()
             {
                 Name = "Display Mode",
                 Type = "",
-                AssociatedOptions = {
-                    "Aspect Ratio",
-                    "Display Resolution",
-                    "Refresh Rate",
-                },
                 -- the idea behind Display Mode is to also allow selecting a Display to show the game
                 -- it is written into the lua side of the c++ options conf but unused everywhere as far as i know except maybe in linux
                 -- so here lets just hardcode windowed/fullscreen until that feature becomes a certain reality
@@ -1232,85 +1271,64 @@ local function rightFrame()
             {
                 Name = "Aspect Ratio",
                 Type = "",
-                AssociatedOptions = {
-                    "Display Resolution"
-                },
                 ChoiceGenerator = function()
                     local o = {}
-                    local isWindowed = PREFSMAN:GetPreference("Windowed")
-                    local curDisplayId = PREFSMAN:GetPreference("DisplayId")
-                    local ratios = isWindowed and optionData.display.wRatios or (optionData.display.dRatios[curDisplayId] or optionData.display.dRatios[displaySpecs[1]:GetId()])
-                    -- this is some super obscure function we have that sorts table keys and then runs a function over its pairs
-                    -- im basically copying the code here from fallback scripts DisplaySpecs
-                    foreach_ordered(ratios, function(_, ratio)
+                    for _, ratio in ipairs(optionData.display.ratios) do
                         -- ratio is a fraction, d is denominator and n is numerator
                         local v = ratio.n / ratio.d
                         o[#o+1] = {
                             Name = ratio.n .. ":" .. ratio.d,
                             ChosenFunction = function()
                                 PREFSMAN:SetPreference("DisplayAspectRatio", v)
-                                optionData.display.loadedAspectRatio = v
-                            end,
-                        }
-                    end)
-                    return o
-                end,
-                ChoiceIndexGetter = function()
-                    local closestdiff = 100
-                    local closestindex = 1
-                    local isWindowed = PREFSMAN:GetPreference("Windowed")
-                    local curDisplayId = PREFSMAN:GetPreference("DisplayId")
-                    local ratios = isWindowed and optionData.display.wRatios or (optionData.display.dRatios[curDisplayId] or optionData.display.dRatios[displaySpecs[1]:GetId()])
-                    foreach_ordered(ratios, function(i, ratio)
-                        local v = ratio.n / ratio.d
-                        local diff = math.abs(v - optionData.display.loadedAspectRatio)
-                        if diff < closestdiff then
-                            closestdiff = diff
-                            closestindex = i
-                        end
-                    end)
-                    return closestindex
-                end,
-            },
-            {
-                Name = "Display Resolution",
-                Type = "",
-                AssociatedOptions = {
-                    "Refresh Rate",
-                },
-                ChoiceGenerator = function()
-                    local isWindowed = PREFSMAN:GetPreference("Windowed")
-                    local curDisplay = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
-                    local curRatio = optionData.display.loadedAspectRatio ~= 0 and optionData.display.loadedAspectRatio or PREFSMAN:GetPreference("DisplayAspectRatio")
-                    local resolutions = isWindowed and GetFeasibleWindowSizesForRatio(displaySpecs, curRatio) or GetDisplayResolutionsForRatio(curDisplay, curRatio)
-                    local w = PREFSMAN:GetPreference("DisplayWidth")
-            		local h = PREFSMAN:GetPreference("DisplayHeight")
-                    local o = {}
-                    for _, resRect in ipairs(resolutions) do
-                        -- resRect is a rectangle and contains a width w and a height h
-                        local dist = math.sqrt((resRect.w - w)^2 + (resRect.h - h)^2)
-                        o[#o+1] = {
-                            Name = resRect.w .. "x" .. resRect.h,
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("DisplayWidth", resRect.w)
-                                PREFSMAN:SetPreference("DisplayHeight", resRect.h)
                             end,
                         }
                     end
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local isWindowed = PREFSMAN:GetPreference("Windowed")
-                    local curDisplay = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
-                    local curRatio = optionData.display.loadedAspectRatio ~= 0 and optionData.display.loadedAspectRatio or PREFSMAN:GetPreference("DisplayAspectRatio")
-                    local resolutions = isWindowed and GetFeasibleWindowSizesForRatio(displaySpecs, curRatio) or GetDisplayResolutionsForRatio(curDisplay, curRatio)
+                    local closestdiff = 100
+                    local closestindex = 1
+                    local curRatio = PREFSMAN:GetPreference("DisplayAspectRatio")
+                    for i, ratio in ipairs(optionData.display.ratios) do
+                        -- ratio is a fraction, d is denominator and n is numerator
+                        local v = ratio.n / ratio.d
+                        local diff = math.abs(v - curRatio)
+                        if diff < closestdiff then
+                            closestdiff = diff
+                            closestindex = i
+                        end
+                    end
+                    return closestindex
+                end,
+            },
+            {
+                Name = "Display Resolution",
+                Type = "",
+                ChoiceGenerator = function()
+                    local o = {}
+
+                    -- i trust we didnt generate any duplicates but ....
+                    -- ....... hope not
+                    for _, resolution in ipairs(optionData.display.resolutions) do
+                        -- resolution is a rectangle and contains a width w and a height h
+                        o[#o+1] = {
+                            Name = resolution.w .. "x" .. resolution.h,
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("DisplayWidth", resolution.w)
+                                PREFSMAN:SetPreference("DisplayHeight", resolution.h)
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
                     local closestindex = 1
                     local mindist = -1
                     local w = PREFSMAN:GetPreference("DisplayWidth")
             		local h = PREFSMAN:GetPreference("DisplayHeight")
-                    for i, resRect in ipairs(resolutions) do
-                        -- resRect is a rectangle and contains a width w and a height h
-                        local dist = math.sqrt((resRect.w - w)^2 + (resRect.h - h)^2)
+                    for i, resolution in ipairs(optionData.display.resolutions) do
+                        -- resolution is a rectangle and contains a width w and a height h
+                        local dist = math.sqrt((resolution.w - w)^2 + (resolution.h - h)^2)
                         if mindist == -1 or dist < mindist then
                             mindist = dist
                             closestindex = i
@@ -1323,51 +1341,36 @@ local function rightFrame()
                 Name = "Refresh Rate",
                 Type = "",
                 ChoiceGenerator = function()
-                    local isWindowed = PREFSMAN:GetPreference("Windowed")
-                    local d = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
-                    local w = PREFSMAN:GetPreference("DisplayWidth")
-                    local h = PREFSMAN:GetPreference("DisplayHeight")
-                    local rates = isWindowed and {} or GetDisplayRatesForResolution(d, w, h)
                     local o = {
                         {
                             Name = "Default",
                             ChosenFunction = function()
                                 PREFSMAN:SetPreference("RefreshRate", REFRESH_DEFAULT)
                             end,
-                        },
+                        }
                     }
-                    for _, rate in ipairs(rates) do
+                    for _, rate in ipairs(optionData.display.refreshRates) do
                         o[#o+1] = {
-                            Name = math.round(rate),
+                            Name = tostring(rate),
                             ChosenFunction = function()
-                                PREFSMAN:SetPreference("RefreshRate", math.round(rate))
+                                PREFSMAN:SetPreference("RefreshRate", rate)
                             end,
                         }
                     end
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local isWindowed = PREFSMAN:GetPreference("Windowed")
-                    local d = displaySpecs:ById(PREFSMAN:GetPreference("DisplayId"))
-                    local w = PREFSMAN:GetPreference("DisplayWidth")
-                    local h = PREFSMAN:GetPreference("DisplayHeight")
-                    local rates = isWindowed and {} or GetDisplayRatesForResolution(d, w, h)
-                    local o = {
-                        {
-                            Name = "Default",
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("RefreshRate", REFRESH_DEFAULT)
-                            end,
-                        },
-                    }
-                    for _, rate in ipairs(rates) do
-                        o[#o+1] = {
-                            Name = math.round(rate),
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("RefreshRate", math.round(rate))
-                            end,
-                        }
+                    local rate = PREFSMAN:GetPreference("RefreshRate")
+                    -- first choice element is this
+                    if rate == REFRESH_DEFAULT then return 1 end
+
+                    -- add 1 to index if found
+                    for i, r in ipairs(optionData.display.refreshRates) do
+                        if rate == r then return i+1 end
                     end
+
+                    -- default
+                    return 1
                 end,
             },
             {
