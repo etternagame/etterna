@@ -337,6 +337,16 @@ local function rightFrame()
             end
         end
     end
+    -- convenience to create a Choices table for a variable number of choice names
+    local function choiceSkeleton(...)
+        local o = {}
+        for _, name in ipairs({...}) do
+            o[#o+1] = {
+                Name = name,
+            }
+        end
+        return o
+    end
 
     local function initDisplayResolutions()
         local resolutions = {}
@@ -485,7 +495,7 @@ local function rightFrame()
     -- mappings of option page names to lists of categories
     -- the keys in this table are option pages
     -- the values are tables -- the categories of each page in that order
-    -- each category corresponds to a key in optionDefs
+    -- each category corresponds to a key in optionDefs (must be unique keys -- values of these tables have to be globally unique)
     -- the options of each category are in the order of the value tables in optionDefs
     local optionPageCategoryLists = {
         Player = {
@@ -495,7 +505,7 @@ local function rightFrame()
         },
         Graphics = {
             "Global Options",
-            "Appearance Options",
+            "Theme Options",
         },
         Sound = {
             "Sound Options",
@@ -556,17 +566,7 @@ local function rightFrame()
                 AssociatedOptions = {
                     "Scroll Speed",
                 },
-                Choices = {
-                    {
-                        Name = "XMod",
-                    },
-                    {
-                        Name = "CMod",
-                    },
-                    {
-                        Name = "MMod",
-                    },
-                },
+                Choices = choiceSkeleton("XMod", "CMod", "MMod"),
                 Directions = {
                     Left = function()
                         -- traverse list left, set the speed mod again
@@ -636,14 +636,7 @@ local function rightFrame()
             {
                 Name = "Scroll Direction",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Upscroll",
-                    },
-                    {
-                        Name = "Downscroll",
-                    },
-                },
+                Choices = choiceSkeleton("Upscroll", "Downscroll"),
                 Directions = {
                     Toggle = function()
                         if getPlayerOptions():UsingReverse() then
@@ -838,6 +831,9 @@ local function rightFrame()
                 }
             },
         },
+        --
+        -----
+        -- APPEARANCE OPTIONS
         ["Appearance Options"] = {
             {
                 Name = "Appearance",
@@ -910,14 +906,7 @@ local function rightFrame()
             {
                 Name = "Mirror",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    }
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
                         local po = getPlayerOptions()
@@ -1001,14 +990,7 @@ local function rightFrame()
             {
                 Name = "Default Centered NoteField",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Yes",
-                    },
-                    {
-                        Name = "No",
-                    }
-                },
+                Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("Center1Player", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Center1Player", true),
             },
@@ -1073,14 +1055,7 @@ local function rightFrame()
             {
                 Name = "Replay Mod Emulation",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    }
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ReplaysUseScoreMods", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysUseScoreMods", true),
             },
@@ -1124,6 +1099,9 @@ local function rightFrame()
                 },
             }
         },
+        --
+        -----
+        -- INVALIDATING OPTIONS
         ["Invalidating Options"] = {
             {
                 Name = "Mines",
@@ -1227,7 +1205,7 @@ local function rightFrame()
         },
         --
         -----
-        -- GRAPHICS OPTIONS
+        -- GLOBAL GRAPHICS OPTIONS
         ["Global Options"] = {
             {
                 Name = "Language",
@@ -1257,7 +1235,7 @@ local function rightFrame()
                 -- the idea behind Display Mode is to also allow selecting a Display to show the game
                 -- it is written into the lua side of the c++ options conf but unused everywhere as far as i know except maybe in linux
                 -- so here lets just hardcode windowed/fullscreen until that feature becomes a certain reality
-                -- and lets just all borderless here so that the options are simplified just a bit
+                -- and lets add borderless here so that the options are simplified just a bit
                 Choices = {
                     {
                         Name = "Windowed",
@@ -1418,14 +1396,7 @@ local function rightFrame()
             {
                 Name = "Force High Resolution Textures",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Yes",
-                    },
-                    {
-                        Name = "No",
-                    },
-                },
+                Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("HighResolutionTextures", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("HighResolutionTextures", true),
             },
@@ -1481,61 +1452,36 @@ local function rightFrame()
             {
                 Name = "VSync",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("Vsync", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Vsync", true),
             },
             {
                 Name = "Instant Search",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirections("instantSearch", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("instantSearch", true),
             },
             {
                 Name = "Fast Note Rendering",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("FastNoteRendering", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
             },
             {
                 Name = "Show Stats",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowStats", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
             },
         },
-        ["Appearance Options"] = {
+        --
+        -----
+        -- THEME OPTIONS
+        ["Theme Options"] = {
             {
                 Name = "Theme",
                 Type = "",
@@ -1562,112 +1508,56 @@ local function rightFrame()
             {
                 Name = "Music Wheel Position",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Left",
-                    },
-                    {
-                        Name = "Right",
-                    },
-                },
+                Choices = choiceSkeleton("Left", "Right"),
                 Directions = optionDataToggleDirections("wheelPosition", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("wheelPosition", true),
             },
             {
                 Name = "Show Backgrounds",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Yes",
-                    },
-                    {
-                        Name = "No",
-                    },
-                },
+                Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirections("showBackgrounds", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("showBackgrounds", true),
             },
             {
                 Name = "Easter Eggs & Toasties",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EasterEggs", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EasterEggs", true),
             },
             {
                 Name = "Music Visualizer",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirections("showVisualizer", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("showVisualizer", true),
             },
             {
                 Name = "Mid Grades",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("UseMidGrades", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("UseMidGrades", true),
             },
             {
                 Name = "SSRNorm Sort",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
             },
             {
                 Name = "Show Lyrics",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowLyrics", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowLyrics", true),
             },
             {
                 Name = "Transliteration",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
                         if PREFSMAN:GetPreference("ShowNativeLanguage") then
@@ -1683,14 +1573,7 @@ local function rightFrame()
             {
                 Name = "Tip Type",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Tips",
-                    },
-                    {
-                        Name = "Quotes",
-                    },
-                },
+                Choices = choiceSkeleton("Tips", "Quotes"),
                 Directions = optionDataToggleDirections("tipType", 1, 2),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("tipType", 1),
             },
@@ -1747,42 +1630,21 @@ local function rightFrame()
             {
                 Name = "Menu Sounds",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("MuteActions", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", true),
             },
             {
                 Name = "Mine Sounds",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnableMineHitSound", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnableMineHitSound", true),
             },
             {
                 Name = "Pitch on Rates",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "On",
-                    },
-                    {
-                        Name = "Off",
-                    },
-                },
+                Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnablePitchRates", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnablePitchRates", true),
             },
@@ -1806,14 +1668,7 @@ local function rightFrame()
             {
                 Name = "Back Delayed",
                 Type = "",
-                Choices = {
-                    {
-                        Name = "Hold",
-                    },
-                    {
-                        Name = "Instant",
-                    },
-                },
+                Choices = choiceSkeleton("Hold", "Instant"),
                 Directions = preferenceToggleDirections("DelayedBack", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
             },
