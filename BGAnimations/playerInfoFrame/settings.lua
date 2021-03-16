@@ -316,6 +316,27 @@ local function rightFrame()
             end,
         }
     end
+    local function preferenceToggleDirections(preferenceName, trueValue, falseValue)
+        return {
+            Toggle = function()
+                if PREFSMAN:GetPreference(preferenceName) == trueValue then
+                    PREFSMAN:SetPreference(preferenceName, falseValue)
+                else
+                    PREFSMAN:SetPreference(preferenceName, trueValue)
+                end
+            end,
+        }
+    end
+    local function preferenceToggleIndexGetter(preferenceName, oneValue)
+        -- oneValue is what we expect for choice index 1 (the first one)
+        return function()
+            if PREFSMAN:GetPreference(preferenceName) == oneValue then
+                return 1
+            else
+                return 2
+            end
+        end
+    end
 
     local function initDisplayResolutions()
         local resolutions = {}
@@ -359,6 +380,10 @@ local function rightFrame()
             current = THEME:GetCurLanguage(),
         },
         instantSearch = themeConfigData.global.InstantSearch,
+        wheelPosition = themeConfigData.global.WheelPosition,
+        showBackgrounds = themeConfigData.global.ShowBackgrounds,
+        showVisualizer = themeConfigData.global.ShowVisualizer,
+        tipType = themeConfigData.global.TipType,
         display = {
             ratios = { -- hardcoded aspect ratio list
                 {n = 3, d = 4},
@@ -394,6 +419,7 @@ local function rightFrame()
             resolutions = initDisplayResolutions(),
             loadedAspectRatio = PREFSMAN:GetPreference("DisplayAspectRatio")
         },
+        pickedTheme = THEME:GetCurThemeName(),
     }
     --
     -- -----
@@ -412,6 +438,35 @@ local function rightFrame()
             setPlayerOptionsModValueAllLevels("CMod", speed)
         elseif mode == "M" then
             setPlayerOptionsModValueAllLevels("MMod", speed)
+        end
+    end
+    local function basicNamedOptionDataChoice(optionDataPropertyName, displayName, chosenValue)
+        return {
+            Name = displayName,
+            ChosenFunction = function()
+                optionData[optionDataPropertyName] = chosenValue
+            end,
+        }
+    end
+    local function optionDataToggleDirections(optionDataPropertyName, trueValue, falseValue)
+        return {
+            Toggle = function()
+                if optionData[optionDataPropertyName] == trueValue then
+                    optionData[optionDataPropertyName] = falseValue
+                else
+                    optionData[optionDataPropertyName] = trueValue
+                end
+            end,
+        }
+    end
+    local function optionDataToggleIndexGetter(optionDataPropertyName, oneValue)
+        -- oneValue is what we expect for choice index 1 (the first one)
+        return function()
+            if optionData[optionDataPropertyName] == oneValue then
+                return 1
+            else
+                return 2
+            end
         end
     end
     --
@@ -699,7 +754,7 @@ local function rightFrame()
             {
                 Name = "Global Offset",
                 Type = "",
-                Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -2, 2, 0.001),
+                Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return PREFSMAN:GetPreference("GlobalOffsetSeconds")
                 end,
@@ -707,7 +762,7 @@ local function rightFrame()
             {
                 Name = "Visual Delay",
                 Type = "",
-                Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -2, 2, 0.001),
+                Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return PREFSMAN:GetPreference("VisualDelaySeconds")
                 end,
@@ -749,7 +804,7 @@ local function rightFrame()
                     local o = {}
                     for i, name in ipairs(failtypes) do
                         o[#o+1] = {
-                            Name = THEME:GetString("OptionNames", name:gsub("FailType_", "")),
+                            Name = THEME:GetString("OptionNames", ToEnumShortString(name)),
                             ChosenFunction = function()
                                 setPlayerOptionsModValueAllLevels("FailSetting", name)
                             end,
@@ -954,22 +1009,8 @@ local function rightFrame()
                         Name = "No",
                     }
                 },
-                Directions = {
-                    Toggle = function()
-                        if PREFSMAN:GetPreference("Center1Player") then
-                            PREFSMAN:SetPreference("Center1Player", false)
-                        else
-                            PREFSMAN:SetPreference("Center1Player", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if PREFSMAN:GetPreference("Center1Player") then
-                        return 1
-                    else
-                        return 2
-                    end
-                end,
+                Directions = preferenceToggleDirections("Center1Player", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("Center1Player", true),
             },
             {
                 Name = "NoteField BG Opacity",
@@ -1040,22 +1081,8 @@ local function rightFrame()
                         Name = "Off",
                     }
                 },
-                Directions = {
-                    Toggle = function()
-                        if PREFSMAN:GetPreference("ReplaysUseScoreMods") then
-                            PREFSMAN:SetPreference("ReplaysUseScoreMods", false)
-                        else
-                            PREFSMAN:SetPreference("ReplaysUseScoreMods", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if PREFSMAN:GetPreference("ReplaysUseScoreMods") then
-                        return 1
-                    else
-                        return 2
-                    end
-                end,
+                Directions = preferenceToggleDirections("ReplaysUseScoreMods", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysUseScoreMods", true),
             },
             {
                 Name = "Extra Scroll Mods",
@@ -1399,22 +1426,8 @@ local function rightFrame()
                         Name = "No",
                     },
                 },
-                Directions = {
-                    Toggle = function()
-                        if PREFSMAN:GetPreference("HighResolutionTextures") then
-                            PREFSMAN:SetPreference("HighResolutionTextures", false)
-                        else
-                            PREFSMAN:SetPreference("HighResolutionTextures", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if PREFSMAN:GetPreference("HighResolutionTextures") then
-                        return 1
-                    else
-                        return 2
-                    end
-                end,
+                Directions = preferenceToggleDirections("HighResolutionTextures", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("HighResolutionTextures", true),
             },
             {
                 Name = "Texture Resolution",
@@ -1476,22 +1489,8 @@ local function rightFrame()
                         Name = "Off",
                     },
                 },
-                Directions = {
-                    Toggle = function()
-                        if PREFSMAN:GetPreference("Vsync") then
-                            PREFSMAN:SetPreference("Vsync", false)
-                        else
-                            PREFSMAN:SetPreference("Vsync", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if PREFSMAN:GetPreference("Vsync") then
-                        return 1
-                    else
-                        return 2
-                    end
-                end,
+                Directions = preferenceToggleDirections("Vsync", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("Vsync", true),
             },
             {
                 Name = "Instant Search",
@@ -1504,22 +1503,8 @@ local function rightFrame()
                         Name = "Off",
                     },
                 },
-                Directions = {
-                    Toggle = function()
-                        if optionData.instantSearch then
-                            optionData.instantSearch = false
-                        else
-                            optionData.instantSearch = true
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if optionData.instantSearch then
-                        return 1
-                    else
-                        return 2
-                    end
-                end,
+                Directions = optionDataToggleDirections("instantSearch", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetter("instantSearch", true),
             },
             {
                 Name = "Fast Note Rendering",
@@ -1532,22 +1517,8 @@ local function rightFrame()
                         Name = "Off",
                     },
                 },
-                Directions = {
-                    Toggle = function()
-                        if PREFSMAN:GetPreference("FastNoteRendering") then
-                            PREFSMAN:SetPreference("FastNoteRendering", false)
-                        else
-                            PREFSMAN:SetPreference("FastNoteRendering", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if PREFSMAN:GetPreference("FastNoteRendering") then
-                        return 1
-                    else
-                        return 2
-                    end
-                end,
+                Directions = preferenceToggleDirections("FastNoteRendering", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
             },
             {
                 Name = "Show Stats",
@@ -1560,69 +1531,205 @@ local function rightFrame()
                         Name = "Off",
                     },
                 },
-                Directions = {
-                    Toggle = function()
-                        if PREFSMAN:GetPreference("ShowStats") then
-                            PREFSMAN:SetPreference("ShowStats", false)
-                        else
-                            PREFSMAN:SetPreference("ShowStats", true)
-                        end
-                    end,
-                }
+                Directions = preferenceToggleDirections("ShowStats", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
             },
         },
         ["Appearance Options"] = {
             {
                 Name = "Theme",
                 Type = "",
+                ChoiceGenerator = function()
+                    local o = {}
+                    for _, name in ipairs(THEME:GetSelectableThemeNames()) do
+                        o[#o+1] = {
+                            Name = name,
+                            ChosenFunction = function()
+                                optionData.pickedTheme = name
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local cur = optionData.pickedTheme
+                    for i, name in ipairs(THEME:GetSelectableThemeNames()) do
+                        if name == cur then return i end
+                    end
+                    return 1
+                end,
             },
             {
                 Name = "Music Wheel Position",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Left",
+                    },
+                    {
+                        Name = "Right",
+                    },
+                },
+                Directions = optionDataToggleDirections("wheelPosition", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetter("wheelPosition", true),
             },
             {
                 Name = "Show Backgrounds",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Yes",
+                    },
+                    {
+                        Name = "No",
+                    },
+                },
+                Directions = optionDataToggleDirections("showBackgrounds", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetter("showBackgrounds", true),
             },
             {
-                Name = "Toasties",
+                Name = "Easter Eggs & Toasties",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("EasterEggs", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("EasterEggs", true),
             },
             {
                 Name = "Music Visualizer",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = optionDataToggleDirections("showVisualizer", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetter("showVisualizer", true),
             },
             {
                 Name = "Mid Grades",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("UseMidGrades", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("UseMidGrades", true),
             },
             {
                 Name = "SSRNorm Sort",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
             },
             {
                 Name = "Show Lyrics",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("ShowLyrics", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowLyrics", true),
             },
             {
                 Name = "Transliteration",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = {
+                    Toggle = function()
+                        if PREFSMAN:GetPreference("ShowNativeLanguage") then
+                            PREFSMAN:SetPreference("ShowNativeLanguage", false)
+                        else
+                            PREFSMAN:SetPreference("ShowNativeLanguage", true)
+                        end
+                        MESSAGEMAN:Broadcast("DisplayLanguageChanged")
+                    end,
+                },
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowNativeLanguage", true),
             },
             {
                 Name = "Tip Type",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Tips",
+                    },
+                    {
+                        Name = "Quotes",
+                    },
+                },
+                Directions = optionDataToggleDirections("tipType", 1, 2),
+                ChoiceIndexGetter = optionDataToggleIndexGetter("tipType", 1),
             },
             {
                 Name = "Set BG Fit Mode",
                 Type = "",
+                ChoiceGenerator = function()
+                    local o = {}
+                    for _, fit in ipairs(BackgroundFitMode) do
+                        o[#o+1] = {
+                            Name = THEME:GetString("ScreenSetBGFit", ToEnumShortString(mode)),
+                            ChosenFunction = function()
+                                PREFSMAN:SetPreference("BackgroundFitMode", ToEnumShortString(mode))
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local cur = PREFSMAN:GetPreference("BackgroundFitMode")
+                    for i, fit in ipairs(BackgroundFitMode) do
+                        if ToEnumShortString(fit) == cur then
+                            return i
+                        end
+                    end
+                    return 1
+                end,
             },
             {
                 Name = "Color Config",
                 Type = "",
-            },
-            {
-                Name = "Overscan Correction",
-                Type = "",
+                Choices = {
+                    {
+                        Name = "Color Config",
+                        ChosenFunction = function()
+                            -- activate color config screen
+                        end,
+                    },
+                }
             },
         },
         --
@@ -1632,22 +1739,64 @@ local function rightFrame()
             {
                 Name = "Volume",
                 Type = "",
+                Directions = preferenceIncrementDecrementDirections("SoundVolume", 0, 1, 0.01),
+                ChoiceIndexGetter = function()
+                    return PREFSMAN:GetPreference("SoundVolume") * 100
+                end,
             },
             {
                 Name = "Menu Sounds",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("MuteActions", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", true),
             },
             {
                 Name = "Mine Sounds",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("EnableMineHitSound", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("EnableMineHitSound", true),
             },
             {
                 Name = "Pitch on Rates",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "On",
+                    },
+                    {
+                        Name = "Off",
+                    },
+                },
+                Directions = preferenceToggleDirections("EnablePitchRates", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("EnablePitchRates", true),
             },
             {
                 Name = "Calibrate Audio Sync",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Calibrate Audio Sync",
+                        ChosenFunction = function()
+                            -- go to machine sync screen
+                        end,
+                    },
+                },
             },
         },
         --
@@ -1655,12 +1804,38 @@ local function rightFrame()
         -- INPUT OPTIONS
         ["Input Options"] = {
             {
-                Name = "everthin in advance input optns",
+                Name = "Back Delayed",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Hold",
+                    },
+                    {
+                        Name = "Instant",
+                    },
+                },
+                Directions = preferenceToggleDirections("DelayedBack", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
+            },
+            {
+                Name = "Input Debounce Time",
+                Type = "",
+                Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 1, 0.01),
+                ChoiceIndexGetter = function()
+                    return PREFSMAN:GetPreference("InputDebounceTime")
+                end,
             },
             {
                 Name = "Test Input",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Test Input",
+                        ChosenFunction = function()
+                            -- go to test input screen
+                        end,
+                    }
+                }
             },
         },
         --
@@ -1670,10 +1845,26 @@ local function rightFrame()
             {
                 Name = "Create Profile",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Create Profile",
+                        ChosenFunction = function()
+                            -- make a profile
+                        end,
+                    }
+                }
             },
             {
                 Name = "Rename Profile",
                 Type = "",
+                Choices = {
+                    {
+                        Name = "Rename Profile",
+                        ChosenFunction = function()
+                            -- rename a profile
+                        end,
+                    }
+                }
             },
         },
     }
