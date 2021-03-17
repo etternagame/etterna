@@ -110,6 +110,7 @@ local choiceNames = ms.SkillSets
 
 local itemCount = 15
 local scoreListAnimationSeconds = 0.03
+local textListAnimationSeconds = 0.03
 -- we can potentially display every score on the profile
 -- there isn't a good reason to do that or not to do that
 -- so let's just default to about twice as many as we are used to
@@ -128,7 +129,7 @@ local diffTextSize = 0.9
 -- overall page text sizes
 local largelineTextSize = 0.8
 local smalllineTextSize = 0.6
-local skillsetTextSize = 0.7
+local rightSmallTextSize = 0.7
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
@@ -590,93 +591,167 @@ local function createList()
         -- a list of functions which basically determine the behavior of each small text line in the overall page
         -- self refers to the text actor
         -- the amount of functions listed here determines how many small lines appear
+        -- Left refers to the stat lines constantly on the left
+        -- Right refers to the stat lines in the alt page on the right
         local smallTextFunctions = {
-            -- playcount
-            function(self)
-                local pcount = SCOREMAN:GetTotalNumberOfScores()
-                self:settextf("%d plays", pcount)
-            end,
-            -- arrow count
-            function(self)
-                local parrows = profile:GetTotalTapsAndHolds()
-                -- shorten if over 1 million since the number is kind of long
-                local nstr = shortenIfOver1Mil(parrows)
-                self:settextf("%s arrows smashed", nstr)
-            end,
-            -- songs loaded
-            function(self)
-                local count = SONGMAN:GetNumSongs()
-                self:settextf("%d songs loaded", count)
-            end,
-            -- song packs installed (and filtered)
-            function(self)
-                local packcount = SONGMAN:GetNumSongGroups()
-                local groupcount = #WHEELDATA:GetAllGroups()
-                if packcount ~= groupcount then
-                    self:settextf("%d packs loaded (%d visible)", packcount, groupcount)
-                else
-                    self:settextf("%d packs loaded", packcount)
-                end
-            end,
-            -- playtime (overall, not gameplay)
-            function(self)
-                local ptime = profile:GetTotalSessionSeconds()
-                self:settextf("%s playtime", SecondsToHHMMSS(ptime))
-            end,
-            -- current judge
-            function(self)
-                local judge = GetTimingDifficulty()
-                self:settextf("Judge: %d", judge)
-            end,
-            -- a line break
-            function(self)
-            end,
-            -- top skillset plays header
-            function(self)
-                self:settext("Top 3 Played Skillsets")
-            end,
-            -- top played skillset
-            function(self)
-                local count, name = getSkillsetPlaysByPosition(1)
-                self:settextf("  %s (%d)", name, count)
-            end,
-            -- 2nd top played skillset
-            function(self)
-                local count, name = getSkillsetPlaysByPosition(2)
-                self:settextf("  %s (%d)", name, count)
-            end,
-            -- 3rd top played skillset
-            function(self)
-                local count, name = getSkillsetPlaysByPosition(3)
-                self:settextf("  %s (%d)", name, count)
-            end,
+            Left = {
+                -- songs loaded
+                function(self)
+                    local count = SONGMAN:GetNumSongs()
+                    self:settextf("%d songs loaded", count)
+                end,
+                -- song packs installed (and filtered)
+                function(self)
+                    local packcount = SONGMAN:GetNumSongGroups()
+                    local groupcount = #WHEELDATA:GetAllGroups()
+                    if packcount ~= groupcount then
+                        self:settextf("%d packs loaded (%d visible)", packcount, groupcount)
+                    else
+                        self:settextf("%d packs loaded", packcount)
+                    end
+                end,
+                -- current judge
+                function(self)
+                    local judge = GetTimingDifficulty()
+                    self:settextf("Judge: %d", judge)
+                end,
+                -- a line break
+                function(self)
+                end,
+                -- top skillset plays header
+                function(self)
+                    self:settext("Top 3 Played Skillsets")
+                end,
+                -- top played skillset
+                function(self)
+                    local count, name = getSkillsetPlaysByPosition(1)
+                    self:settextf("  %s (%d)", name, count)
+                end,
+                -- 2nd top played skillset
+                function(self)
+                    local count, name = getSkillsetPlaysByPosition(2)
+                    self:settextf("  %s (%d)", name, count)
+                end,
+                -- 3rd top played skillset
+                function(self)
+                    local count, name = getSkillsetPlaysByPosition(3)
+                    self:settextf("  %s (%d)", name, count)
+                end,
+            },
+            Right = {
+                -- playcount
+                function(self)
+                    local pcount = SCOREMAN:GetTotalNumberOfScores()
+                    self:settextf("%d plays", pcount)
+                end,
+                -- arrow count
+                function(self)
+                    local parrows = profile:GetTotalTapsAndHolds()
+                    -- shorten if over 1 million since the number is kind of long
+                    local nstr = shortenIfOver1Mil(parrows)
+                    self:settextf("%s arrows smashed", nstr)
+                end,
+                -- playtime (overall, not gameplay)
+                function(self)
+                    local ptime = profile:GetTotalSessionSeconds()
+                    self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+                end,
+                -- empty padding
+                function(self)
+                    self:settextf("")
+                end,
+                -- AAAAA count
+                function(self)
+                    local quints = WHEELDATA:GetTotalClearsByGrade("Grade_Tier01")
+                    self:settextf("AAAAAs: %d", quints)
+                end,
+                -- AAAA count
+                function(self)
+                    local scores = WHEELDATA:GetTotalClearsByGrade("Grade_Tier02") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier03") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier04")
+                    self:settextf("AAAAs: %d", scores)
+                end,
+                -- AAA count
+                function(self)
+                    local scores = WHEELDATA:GetTotalClearsByGrade("Grade_Tier05") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier06") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier07")
+                    self:settextf("AAAs: %d", scores)
+                end,
+                -- AA count
+                function(self)
+                    local scores = WHEELDATA:GetTotalClearsByGrade("Grade_Tier08") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier09") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier10")
+                    self:settextf("AAs: %d", scores)
+                end,
+                -- lamp count
+                function(self)
+                    local lamps = WHEELDATA:GetTotalLampCount()
+                    self:settextf("Pack Lamps: %d", lamps)
+                end,
+
+                -- at the cost of your fps to make the game look better
+                -- these are here for space padding
+                -- feel free to replace or remove them at will
+                function(self)
+                    self:settextf("")
+                end,
+                function(self)
+                    self:settextf("")
+                end,
+                function(self)
+                    self:settextf("")
+                end,
+                function(self)
+                    self:settextf("")
+                end,
+                function(self)
+                    self:settextf("")
+                end,
+                function(self)
+                    self:settextf("")
+                end,
+                function(self)
+                    self:settextf("")
+                end,
+            },
         }
 
         -- these functions run immediately after init if they exist
         -- they should have access to the top screen
+        -- Left refers to the stat lines constantly on the left
+        -- Right refers to the stat lines in the alt page on the right
         local smallTextInitFunctions = {
-            -- [index] = function(self) end,
+            Left = {
+                -- [index] = function(self) end,
+            },
+            Right = {
+                -- [index] = function(self) end,
+            },
         }
 
         -- these functions run as you mouse over the text
-        -- each entry is 2 functions accepting no params, only self
+        -- each subentry is 2 functions accepting no params, only self
         -- first function is onHover (mouse on)
         -- second function is onUnHover (mouse out)
         -- invisible checks are not necessary
-        -- the index corresponds to the function index implicitly defined in the tables above
+        -- Left refers to the stat lines constantly on the left
+        -- Right refers to the stat lines in the alt page on the right
+        -- the indices of the subtable elements correspond to the function index implicitly defined in the tables above
         local smallTextHoverFunctions = {
-            -- [index] = { function(self) end, function(self) end }
-            [2] = {
-                function(self)
-                    -- for these functions i could just be changing the text itself
-                    -- but to keep it consistent with how i did the other thing
-                    -- im going to use tooltips here
-                    TOOLTIP:SetText(profile:GetTotalTapsAndHolds())
-                    TOOLTIP:Show()
-                end,
-                function(self)
-                    TOOLTIP:Hide()
-                end,
+            Left = {
+                -- [index] = { function(self) end, function(self) end }
+            },
+            Right = {
+                -- [index] = { function(self) end, function(self) end }
+                [2] = {
+                    function(self)
+                        -- for these functions i could just be changing the text itself
+                        -- but to keep it consistent with how i did the other thing
+                        -- im going to use tooltips here
+                        TOOLTIP:SetText(profile:GetTotalTapsAndHolds())
+                        TOOLTIP:Show()
+                    end,
+                    function(self)
+                        TOOLTIP:Hide()
+                    end,
+                }
             }
         }
 
@@ -684,14 +759,14 @@ local function createList()
             local cHover = nil
             local cUnHover = nil
             -- set the hover commands if they exist
-            if smallTextHoverFunctions[i] ~= nil then
+            if smallTextHoverFunctions.Left[i] ~= nil then
                 cHover = function(self, params)
                     if self:IsInvisible() then return end
-                    smallTextHoverFunctions[i][1](self)
+                    smallTextHoverFunctions.Left[i][1](self)
                 end
                 cUnHover = function(self, params)
                     if self:IsInvisible() then return end
-                    smallTextHoverFunctions[i][2](self)
+                    smallTextHoverFunctions.Left[i][2](self)
                 end
             end
 
@@ -705,30 +780,49 @@ local function createList()
                     self:settext("")
                     self:queuecommand("Startup")
                 end,
-                SetCommand = smallTextFunctions[i],
-                StartupCommand = smallTextInitFunctions[i],
+                SetCommand = smallTextFunctions.Left[i],
+                StartupCommand = smallTextInitFunctions.Left[i],
                 MouseOverCommand = cHover,
                 MouseOutCommand = cUnHover,
             }
         end
 
-        local function rightTextSmall(i)
-            local skillsetIndex = math.ceil(i/2)
-            local skillset = ms.SkillSets[skillsetIndex]
-
-            return LoadFont("Common Normal") .. {
-                Name = "RightText_"..i,
+        -- generalized function for the right column of text
+        local function rightTextSmall(i, maxIndex)
+            return UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "RightSmallText_"..i,
                 InitCommand = function(self)
+                    -- do not override this stuff probably
                     self:halign(0):valign(0)
                     self:x(actuals.RightTextLeftGap)
+                    self:y(actuals.RightSmallTextUpperGap + (actuals.RightSmallTextAllottedSpace / (maxIndex)) * (i-1))
+                    self:zoom(rightSmallTextSize)
+                    self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / rightSmallTextSize - textzoomFudge)
+                    self:settext("")
+                    self:playcommand("SubInit")
+                end,
+                SubInitCommand = function(self)
+                    -- implement this within rightTextSkillsets or rightTextStats
+                    -- it is run at init and should only be run at init (as the last thing)
+                    -- (this is different from the StartupCommand, although it is the same exact concept)
+                end,
+                SetCommand = function(self)
+                    -- implement this within rightTextSkillsets or rightTextStats
+                end,
+            }
+        end
+
+        -- right column text for skillsets
+        local function rightTextSkillsets(i, maxIndex)
+            local skillsetIndex = math.ceil(i/2)
+            local skillset = ms.SkillSets[skillsetIndex]
+            return rightTextSmall(i, maxIndex) .. {
+                Name = "RightTextSkillsets_"..i,
+                SubInitCommand = function(self)
                     -- for rating indices, give a tiny right shift
                     if i % 2 == 0 then
                         self:addx(actuals.RightTextSlightOffset)
                     end
-                    self:y(actuals.RightSmallTextUpperGap + (actuals.RightSmallTextAllottedSpace / (#ms.SkillSets * 2)) * (i-1))
-                    self:zoom(skillsetTextSize)
-                    self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / skillsetTextSize - textzoomFudge)
-                    self:settext("")
                 end,
                 SetCommand = function(self)
                     -- even indices are the ratings
@@ -752,6 +846,31 @@ local function createList()
                 UpdateLoginStatusCommand = function(self)
                     self:playcommand("Set")
                 end
+            }
+        end
+
+        -- right column text for stats
+        local function rightTextStats(i, maxIndex)
+            local cHover = nil
+            local cUnHover = nil
+            -- set the hover commands if they exist
+            if smallTextHoverFunctions.Right[i] ~= nil then
+                cHover = function(self, params)
+                    if self:IsInvisible() then return end
+                    smallTextHoverFunctions.Right[i][1](self)
+                end
+                cUnHover = function(self, params)
+                    if self:IsInvisible() then return end
+                    smallTextHoverFunctions.Right[i][2](self)
+                end
+            end
+
+            return rightTextSmall(i, maxIndex) .. {
+                Name = "RightTextStats_"..i,
+                SetCommand = smallTextFunctions.Right[i],
+                StartupCommand = smallTextInitFunctions.Right[i],
+                MouseOverCommand = cHover,
+                MouseOutCommand = cUnHover,
             }
         end
 
@@ -814,24 +933,63 @@ local function createList()
                     self:playcommand("Set")
                 end
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "PlayerRatingsTitle",
                 InitCommand = function(self)
-                    self:halign(0):valign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
                     self:xy(actuals.RightTextLeftGap, actuals.InfoUpperMargin)
-                    self:zoom(largelineTextSize)
-                    self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
-                    self:settext("")
+
+                    txt:halign(0):valign(0)
+                    bg:halign(0):valign(0)
+                    txt:zoom(largelineTextSize)
+                    txt:maxwidth((actuals.Width - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+
+                    -- this is the ultimate fudge value
+                    -- meant to be the approximate size of the text vertically but a lot smaller
+                    bg:y(-actuals.NameInfoLargeLineSpacing / 3)
+    
+                    self.ratings = true
+                    self:queuecommand("UpdateToggle")
                 end,
-                SetCommand = function(self)
-                    if DLMAN:IsLoggedIn() then
-                        self:settext("Player Ratings (Online/Offline):")
+                UpdateToggleCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+        
+                    if self.ratings then
+                        if DLMAN:IsLoggedIn() then
+                            txt:settext("Player Ratings (Online/Offline):")
+                        else
+                            txt:settext("Player Ratings:")
+                        end
                     else
-                        self:settext("Player Ratings:")
+                        txt:settext("Player Stats:")
+                    end
+        
+                    bg:zoomto(txt:GetZoomedWidth(), actuals.NameInfoLargeLineSpacing + textzoomFudge)
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        self.ratings = not self.ratings
+                        if self.ratings then
+                            self:GetParent():GetChild("RightSmallTextFrame"):playcommand("ShowRatings")
+                        else
+                            self:GetParent():GetChild("RightSmallTextFrame"):playcommand("ShowStats")
+                        end
+                        self:playcommand("UpdateToggle")
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
                     end
                 end,
                 UpdateLoginStatusCommand = function(self)
-                    self:playcommand("Set")
+                    self:playcommand("UpdateToggle")
                 end
             },
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
@@ -864,13 +1022,66 @@ local function createList()
             }
         }
 
-        for i = 1, #smallTextFunctions do
-            t[#t+1] = leftTextSmall(i)
+        local function leftSmallTextContainer()
+            -- just a container for control purposes
+            local t = Def.ActorFrame {
+                Name = "LeftSmallTextFrame",
+            }
+            for i = 1, #smallTextFunctions.Left do
+                t[#t+1] = leftTextSmall(i)
+            end
+            return t
         end
+        t[#t+1] = leftSmallTextContainer()
 
-        for i = 1, (#ms.SkillSets * 2) do
-            t[#t+1] = rightTextSmall(i)
+        local function rightSmallTextContainer()
+            local skillsetTextCount = #ms.SkillSets * 2
+            local statTextCount = #smallTextFunctions.Right
+
+            -- just a container for control purposes
+            local t = Def.ActorFrame {
+                Name = "RightSmallTextFrame",
+                BeginCommand = function(self)
+                    self:playcommand("ShowRatings")
+                end,
+                ShowRatingsCommand = function(self)
+                    for i = 1, skillsetTextCount do
+                        local c = self:GetChild("RightTextSkillsets_"..i)
+                        c:finishtweening()
+                        c:smooth(textListAnimationSeconds * i)
+                        c:diffusealpha(1)
+                    end
+                    for i = 1, statTextCount do
+                        local c = self:GetChild("RightTextStats_"..i)
+                        c:finishtweening()
+                        c:smooth(textListAnimationSeconds)
+                        c:diffusealpha(0)
+                    end
+                end,
+                ShowStatsCommand = function(self)
+                    for i = 1, skillsetTextCount do
+                        local c = self:GetChild("RightTextSkillsets_"..i)
+                        c:finishtweening()
+                        c:smooth(textListAnimationSeconds)
+                        c:diffusealpha(0)
+                    end
+                    for i = 1, statTextCount do
+                        local c = self:GetChild("RightTextStats_"..i)
+                        c:finishtweening()
+                        c:smooth(textListAnimationSeconds * i)
+                        c:diffusealpha(1)
+                    end
+                end,
+            }
+            for i = 1, skillsetTextCount do
+                t[#t+1] = rightTextSkillsets(i, skillsetTextCount)
+            end
+            for i = 1, statTextCount do
+                t[#t+1] = rightTextStats(i, statTextCount)
+            end
+            return t
         end
+        t[#t+1] = rightSmallTextContainer()
 
         return t
     end
