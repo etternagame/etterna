@@ -22,6 +22,7 @@ function WHEELDATA.Reset(self)
     self.AllSongsByFolder = {} -- multipurpose; on Group sort, is identical to AllSongsByGroup
     self.AllFolders = {} -- this can be groups or "folders" like in the Title sort, etc
     self.StatsByFolder = {} -- stats for each folder
+    self.TotalStats = {}
 
     -- filter info
     self.ActiveFilter = {
@@ -357,6 +358,7 @@ function WHEELDATA.ResetSorts(self)
     self.AllFolders = {}
     self.AllSongsByFolder = {}
     self.StatsByFolder = {}
+    self.TotalStats = {}
 end
 
 local sortmodes = {
@@ -875,13 +877,63 @@ end
 -- refresh all stats based on the filtered song list
 function WHEELDATA.RefreshStats(self)
     self.StatsByFolder = {}
+    self.TotalStats = {
+        lampCount = 0,
+        clearPerGrade = {},
+        scoreCount = 0
+    }
     for groupname, songlist in pairs(self.AllSongsByFolder) do
+        local clearStats = getClearStatsForGroup(songlist)
+        local avgDiff = getAverageDifficultyOfGroup(songlist)
+        local lamp = clearStats.lamp
+        local scoreCount = clearStats.totalScores
+        if lamp ~= nil then
+            self.TotalStats.lampCount = self.TotalStats.lampCount + 1
+        end
+        self.TotalStats.scoreCount = self.TotalStats.scoreCount + scoreCount
+        if clearStats.clearPerGrade ~= nil then
+            for grade, count in pairs(clearStats.clearPerGrade) do
+                local curcount = self.TotalStats.clearPerGrade[grade]
+                if curcount ~= nil then
+                    self.TotalStats.clearPerGrade[grade] = curcount + count
+                else
+                    self.TotalStats.clearPerGrade[grade] = 1
+                end
+            end
+        end
+
         self.StatsByFolder[groupname] = {
             count = #songlist,
-            avgDiff = getAverageDifficultyOfGroup(songlist),
-            clearStats = getClearStatsForGroup(songlist),
+            avgDiff = avgDiff,
+            clearStats = clearStats,
         }
     end
+end
+
+-- getter for the total score count overall
+-- redundant with the SCOREMAN function but can be useful
+function WHEELDATA.GetTotalScoreCount(self)
+    if self.TotalStats.scoreCount ~= nil then
+        return self.TotalStats.scoreCount
+    end
+    return 0
+end
+
+-- getter for the total clear count for each grade
+function WHEELDATA.GetTotalClearsByGrade(self, grade)
+    if self.TotalStats.clearPerGrade == nil then return 0 end
+    if self.TotalStats.clearPerGrade[grade] ~= nil then
+        return self.TotalStats.clearPerGrade[grade]
+    end
+    return 0
+end
+
+-- getter for the total lamp count
+function WHEELDATA.GetTotalLampCount(self)
+    if self.TotalStats.lampCount ~= nil then
+        return self.TotalStats.lampCount
+    end
+    return 0
 end
 
 -- getter for the folder count stat
