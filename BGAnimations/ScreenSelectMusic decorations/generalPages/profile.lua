@@ -790,7 +790,6 @@ local function createList()
         -- generalized function for the right column of text
         local function rightTextSmall(i, maxIndex)
             return UIElements.TextToolTip(1, 1, "Common Normal") .. {
-                Name = "RightSmallText_"..i,
                 InitCommand = function(self)
                     -- do not override this stuff probably
                     self:halign(0):valign(0)
