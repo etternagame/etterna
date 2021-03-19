@@ -482,6 +482,8 @@ local function rightFrame()
     --
     -- -----
 
+    local optionRowCount = 16
+
     -- the names and order of the option pages
     -- these values must correspond to the keys of optionPageCategoryLists
     local pageNames = {
@@ -523,11 +525,17 @@ local function rightFrame()
     -- mapping option categories to lists of options
     -- LIMITATIONS: A category cannot have more sub options than the max number of lines minus the number of categories.
     --  example: 25 lines? 2 categories? up to 23 options per category.
+    -- TYPE LIST:
+    --  SingleChoice            -- scrolls through choices
+    --  SingleChoiceModifier    -- scrolls through choices, shows 2 sets of arrows for each direction, allowing multiplier
+    --  MultiChoice             -- shows all options at once, selecting any amount of them
+    --  Button                  -- it's a button. you press enter on it.
+    --
     -- OPTION DEFINITION EXAMPLE: 
     --[[
         {
             Name = "option name" -- display name for the option
-            Type = "" -- determines how to generate the actor to display the choices
+            Type = "type name" -- determines how to generate the actor to display the choices
             AssociatedOptions = {"other option name"} -- runs the index getter for these options when a choice is selected
             Choices = { -- option choice definitions -- each entry is another table -- if no choices are defined, visible choice comes from ChoiceIndexGetter
                 {
@@ -562,7 +570,7 @@ local function rightFrame()
         ["Essential Options"] = {
             {
                 Name = "Scroll Type",
-                Type = "",
+                Type = "SingleChoice",
                 AssociatedOptions = {
                     "Scroll Speed",
                 },
@@ -608,7 +616,7 @@ local function rightFrame()
             },
             {
                 Name = "Scroll Speed",
-                Type = "",
+                Type = "SingleChoiceModifier",
                 Directions = {
                     Left = function(multiplier)
                         local increment = -1
@@ -635,7 +643,7 @@ local function rightFrame()
             },
             {
                 Name = "Scroll Direction",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Upscroll", "Downscroll"),
                 Directions = {
                     Toggle = function()
@@ -658,7 +666,7 @@ local function rightFrame()
             },
             {
                 Name = "Noteskin",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceIndexGetter = function()
                     local currentSkinName = getPlayerOptions():NoteSkin()
                     for i, name in ipairs(optionData.noteSkins.names) do
@@ -698,7 +706,7 @@ local function rightFrame()
             },
             {
                 Name = "Receptor Size",
-                Type = "",
+                Type = "SingleChoice",
                 Directions = {
                     Left = function()
                         local sz = optionData.receptorSize
@@ -719,7 +727,7 @@ local function rightFrame()
             },
             {
                 Name = "Judge Difficulty",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceIndexGetter = function()
                     return GetTimingDifficulty()
                 end,
@@ -746,7 +754,7 @@ local function rightFrame()
             },
             {
                 Name = "Global Offset",
-                Type = "",
+                Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return PREFSMAN:GetPreference("GlobalOffsetSeconds")
@@ -754,7 +762,7 @@ local function rightFrame()
             },
             {
                 Name = "Visual Delay",
-                Type = "",
+                Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return PREFSMAN:GetPreference("VisualDelaySeconds")
@@ -762,7 +770,7 @@ local function rightFrame()
             },
             {
                 Name = "Game Mode",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceIndexGetter = function()
                     return strCapitalize(optionData.gameMode.current)
                 end,
@@ -782,7 +790,7 @@ local function rightFrame()
             },
             {
                 Name = "Fail Type",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceIndexGetter = function()
                     local failtypes = FailType
                     local failtype = getPlayerOptions():FailSetting()
@@ -808,7 +816,7 @@ local function rightFrame()
             },
             {
                 Name = "Customize Playfield",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Customize Playfield",
@@ -820,7 +828,7 @@ local function rightFrame()
             },
             {
                 Name = "Customize Keybinds",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Customize Keybinds",
@@ -837,7 +845,7 @@ local function rightFrame()
         ["Appearance Options"] = {
             {
                 Name = "Appearance",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     -- multiple choices allowed
                     floatSettingChoice("Hidden", "Hidden", 1, 0),
@@ -850,7 +858,7 @@ local function rightFrame()
             },
             {
                 Name = "Perspective",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     -- the numbers in these defs are like the percentages you would put in metrics instead
                     -- 1 is 100%
@@ -905,7 +913,7 @@ local function rightFrame()
             },
             {
                 Name = "Mirror",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
@@ -927,7 +935,7 @@ local function rightFrame()
             },
             {
                 Name = "Hide Player UI",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     floatSettingChoice("Hide Receptors", "Dark", 1, 0),
                     floatSettingChoice("Hide Judgment & Combo", "Blind", 1, 0),
@@ -935,7 +943,7 @@ local function rightFrame()
             },
             {
                 Name = "Hidenote Judgment",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = {
                     {
                         Name = "Miss",
@@ -989,14 +997,14 @@ local function rightFrame()
             },
             {
                 Name = "Default Centered NoteField",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("Center1Player", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Center1Player", true),
             },
             {
                 Name = "NoteField BG Opacity",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do
@@ -1025,7 +1033,7 @@ local function rightFrame()
             },
             {
                 Name = "Background Brightness",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do
@@ -1054,14 +1062,14 @@ local function rightFrame()
             },
             {
                 Name = "Replay Mod Emulation",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ReplaysUseScoreMods", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysUseScoreMods", true),
             },
             {
                 Name = "Extra Scroll Mods",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     floatSettingChoice("Split", "Split", 1, 0),
                     floatSettingChoice("Alternate", "Alternate", 1, 0),
@@ -1071,7 +1079,7 @@ local function rightFrame()
             },
             {
                 Name = "Fun Effects",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     floatSettingChoice("Drunk", "Drunk", 1, 0),
                     floatSettingChoice("Confusion", "Confusion", 1, 0),
@@ -1089,7 +1097,7 @@ local function rightFrame()
             },
             {
                 Name = "Acceleration",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     floatSettingChoice("Boost", "Boost", 1, 0),
                     floatSettingChoice("Brake", "Brake", 1, 0),
@@ -1105,7 +1113,7 @@ local function rightFrame()
         ["Invalidating Options"] = {
             {
                 Name = "Mines",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = {
                     {
                         Name = "On",
@@ -1145,7 +1153,7 @@ local function rightFrame()
             },
             {
                 Name = "Turn",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     booleanSettingChoice("Backwards", "Backwards"),
                     booleanSettingChoice("Left", "Left"),
@@ -1157,7 +1165,7 @@ local function rightFrame()
             },
             {
                 Name = "Pattern Transform",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     booleanSettingChoice("Echo", "Echo"),
                     booleanSettingChoice("Stomp", "Stomp"),
@@ -1168,7 +1176,7 @@ local function rightFrame()
             },
             {
                 Name = "Hold Transform",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     booleanSettingChoice("Planted", "Planted"),
                     booleanSettingChoice("Floored", "Floored"),
@@ -1178,7 +1186,7 @@ local function rightFrame()
             },
             {
                 Name = "Remove",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     booleanSettingChoice("No Holds", "NoHolds"),
                     booleanSettingChoice("No Rolls", "NoRolls"),
@@ -1193,7 +1201,7 @@ local function rightFrame()
             },
             {
                 Name = "Insert",
-                Type = "",
+                Type = "MultiChoice",
                 Choices = {
                     booleanSettingChoice("Wide", "Wide"),
                     booleanSettingChoice("Big", "Big"),
@@ -1209,7 +1217,7 @@ local function rightFrame()
         ["Global Options"] = {
             {
                 Name = "Language",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
                     for i, l in ipairs(optionData.language.list) do
@@ -1231,7 +1239,7 @@ local function rightFrame()
             },
             {
                 Name = "Display Mode",
-                Type = "",
+                Type = "SingleChoice",
                 -- the idea behind Display Mode is to also allow selecting a Display to show the game
                 -- it is written into the lua side of the c++ options conf but unused everywhere as far as i know except maybe in linux
                 -- so here lets just hardcode windowed/fullscreen until that feature becomes a certain reality
@@ -1275,7 +1283,7 @@ local function rightFrame()
             },
             {
                 Name = "Aspect Ratio",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
                     for _, ratio in ipairs(optionData.display.ratios) do
@@ -1308,7 +1316,7 @@ local function rightFrame()
             },
             {
                 Name = "Display Resolution",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
 
@@ -1344,7 +1352,7 @@ local function rightFrame()
             },
             {
                 Name = "Refresh Rate",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {
                         {
@@ -1380,7 +1388,7 @@ local function rightFrame()
             },
             {
                 Name = "Display Color Depth",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = {
                     basicNamedPreferenceChoice("DisplayColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("DisplayColorDepth", "32bit", 32),
@@ -1395,14 +1403,14 @@ local function rightFrame()
             },
             {
                 Name = "Force High Resolution Textures",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("HighResolutionTextures", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("HighResolutionTextures", true),
             },
             {
                 Name = "Texture Resolution",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = {
                     basicNamedPreferenceChoice("MaxTextureResolution", "256", 256),
                     basicNamedPreferenceChoice("MaxTextureResolution", "512", 512),
@@ -1421,7 +1429,7 @@ local function rightFrame()
             },
             {
                 Name = "Texture Color Depth",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = {
                     basicNamedPreferenceChoice("TextureColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("TextureColorDepth", "32bit", 32),
@@ -1436,7 +1444,7 @@ local function rightFrame()
             },
             {
                 Name = "Movie Color Depth",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = {
                     basicNamedPreferenceChoice("MovieColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("MovieColorDepth", "32bit", 32),
@@ -1451,28 +1459,28 @@ local function rightFrame()
             },
             {
                 Name = "VSync",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("Vsync", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Vsync", true),
             },
             {
                 Name = "Instant Search",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirections("instantSearch", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("instantSearch", true),
             },
             {
                 Name = "Fast Note Rendering",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("FastNoteRendering", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
             },
             {
                 Name = "Show Stats",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowStats", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
@@ -1484,7 +1492,7 @@ local function rightFrame()
         ["Theme Options"] = {
             {
                 Name = "Theme",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
                     for _, name in ipairs(THEME:GetSelectableThemeNames()) do
@@ -1507,56 +1515,56 @@ local function rightFrame()
             },
             {
                 Name = "Music Wheel Position",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Left", "Right"),
                 Directions = optionDataToggleDirections("wheelPosition", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("wheelPosition", true),
             },
             {
                 Name = "Show Backgrounds",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirections("showBackgrounds", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("showBackgrounds", true),
             },
             {
                 Name = "Easter Eggs & Toasties",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EasterEggs", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EasterEggs", true),
             },
             {
                 Name = "Music Visualizer",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirections("showVisualizer", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("showVisualizer", true),
             },
             {
                 Name = "Mid Grades",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("UseMidGrades", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("UseMidGrades", true),
             },
             {
                 Name = "SSRNorm Sort",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
             },
             {
                 Name = "Show Lyrics",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowLyrics", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowLyrics", true),
             },
             {
                 Name = "Transliteration",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
@@ -1572,14 +1580,14 @@ local function rightFrame()
             },
             {
                 Name = "Tip Type",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Tips", "Quotes"),
                 Directions = optionDataToggleDirections("tipType", 1, 2),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("tipType", 1),
             },
             {
                 Name = "Set BG Fit Mode",
-                Type = "",
+                Type = "SingleChoice",
                 ChoiceGenerator = function()
                     local o = {}
                     for _, fit in ipairs(BackgroundFitMode) do
@@ -1604,7 +1612,7 @@ local function rightFrame()
             },
             {
                 Name = "Color Config",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Color Config",
@@ -1621,7 +1629,7 @@ local function rightFrame()
         ["Sound Options"] = {
             {
                 Name = "Volume",
-                Type = "",
+                Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("SoundVolume", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
                     return PREFSMAN:GetPreference("SoundVolume") * 100
@@ -1629,28 +1637,28 @@ local function rightFrame()
             },
             {
                 Name = "Menu Sounds",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("MuteActions", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", true),
             },
             {
                 Name = "Mine Sounds",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnableMineHitSound", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnableMineHitSound", true),
             },
             {
                 Name = "Pitch on Rates",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnablePitchRates", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnablePitchRates", true),
             },
             {
                 Name = "Calibrate Audio Sync",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Calibrate Audio Sync",
@@ -1667,14 +1675,14 @@ local function rightFrame()
         ["Input Options"] = {
             {
                 Name = "Back Delayed",
-                Type = "",
+                Type = "SingleChoice",
                 Choices = choiceSkeleton("Hold", "Instant"),
                 Directions = preferenceToggleDirections("DelayedBack", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
             },
             {
                 Name = "Input Debounce Time",
-                Type = "",
+                Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
                     return PREFSMAN:GetPreference("InputDebounceTime")
@@ -1682,7 +1690,7 @@ local function rightFrame()
             },
             {
                 Name = "Test Input",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Test Input",
@@ -1699,7 +1707,7 @@ local function rightFrame()
         ["Profile Options"] = {
             {
                 Name = "Create Profile",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Create Profile",
@@ -1711,7 +1719,7 @@ local function rightFrame()
             },
             {
                 Name = "Rename Profile",
-                Type = "",
+                Type = "Button",
                 Choices = {
                     {
                         Name = "Rename Profile",
@@ -1730,6 +1738,193 @@ local function rightFrame()
                 optionDefs[categoryName][i].Choices = optionDef.ChoiceGenerator()
             end
         end
+    end
+
+    -- container function/frame for all option rows
+    local function createOptionRows()
+        -- Unfortunate design choice:
+        -- For every option row, we are going to place every single possible row type.
+        -- This means there's a ton of invisible elements.
+        -- Is this worth doing? This is better than telling the C++ to let us generate and destroy arbitrary Actors at runtime
+        -- (I consider this dangerous and also too complex to implement)
+        -- So instead we "carefully" manage all pieces of an option row...
+        -- Luckily we can be intelligent about wasting space.
+        -- First, we parse all of the optionData to see which choices need what elements.
+        -- We pass that information on to the rows (we can precalculate which rows have what choices)
+        -- This way we can avoid generating Actor elements which will never be used in a row
+
+        -- table of row index keys to lists of row types
+        -- valid row types are in the giant option definition comment block
+        local rowTypes = {}
+        -- table of row index keys to counts of how many text objects to generate
+        -- this should correlate to how many choices are possible in a row on any option page
+        local rowChoiceCount = {}
+        for _, optionPage in ipairs(pageNames) do
+            for i, categoryName in ipairs(optionPageCategoryLists[optionPage]) do
+                local categoryDefinition = optionDefs[categoryName]
+                
+                -- declare certain rows are categories
+                -- (current row and the remaining rows after the set of options in this category)
+                if rowTypes[i] ~= nil then
+                    rowTypes[i]["Category"] = true
+                else
+                    rowTypes[i] = {Category = true}
+                end
+                for ii = (i+1), (#optionPageCategoryLists[optionPage]) do
+                    local categoryRowIndex = ii + #categoryDefinition
+                    if rowTypes[categoryRowIndex] ~= nil then
+                        rowTypes[categoryRowIndex]["Category"] = true
+                    else
+                        rowTypes[categoryRowIndex] = {Category = true}
+                    end
+                end
+
+                for j, optionDef in ipairs(categoryDefinition) do
+                    local rowIndex = j + i -- skip the rows for option category names
+                    
+                    -- option types for every row
+                    if rowTypes[rowIndex] ~= nil then
+                        rowTypes[rowIndex][optionDef.Type] = true
+                    else
+                        rowTypes[rowIndex] = {[optionDef.Type] = true}
+                    end
+
+                    -- option choice count for every row
+                    local rcc = rowChoiceCount[rowIndex]
+                    if rcc == nil then
+                        rowChoiceCount[rowIndex] = 0
+                        rcc = 0
+                    end
+                    local defcount = #(optionDef.Choices or {})
+                    -- the only case we should show multiple choices is for MultiChoice...
+                    if optionDef.Type ~= "MultiChoice" then defcount = 1 end
+                    if rcc < defcount then
+                        rowChoiceCount[rowIndex] = defcount
+                    end
+                end
+            end
+        end
+
+
+        local t = Def.ActorFrame {
+            Name = "OptionRowContainer",
+        }
+        local function createOptionRow(i)
+            local types = rowTypes[i]
+            -- SingleChoice             1 arrow, 1 choice
+            -- SingleChoiceModifier     2 arrow, 1 choice
+            -- MultiChoice              no arrow, N choices
+            -- Button                   no arrow, 1 choice
+            -- generate elements based on how many choices and how many directional arrows are needed
+            local arrowCount = types["SingleChoiceModifier"] and 2 or (types["SingleChoice"] and 1 or 0)
+            local choiceCount = rowChoiceCount[i] or 0
+
+            local optionDef = nil
+
+            local t = Def.ActorFrame {
+                Name = "OptionRow_"..i,
+                InitCommand = function(self)
+                    self:y((actuals.OptionAllottedHeight / #rowChoiceCount) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
+                end,
+
+                UIElements.TextButton(1, 1, "Common Normal") .. {
+                    Name = "TitleText",
+                    InitCommand = function(self)
+                        self:GetChild("Text"):settext("OPTION TITLE TEXT")
+                    end,
+                },
+            }
+
+            -- category arrow
+            if types["Category"] then
+                t[#t+1] = Def.Sprite {
+                    Name = "CategoryTriangle",
+                    Texture = THEME:GetPathG("", "_triangle"),
+                }
+            end
+
+            -- smaller double arrow
+            if arrowCount == 2 then
+                -- copy paste territory
+                t[#t+1] = Def.ActorFrame {
+                    Name = "LeftTrianglePairFrame",
+                    Def.Sprite {
+                        Name = "LeftTriangle", -- outermost triangle
+                        Texture = THEME:GetPathG("", "_triangle"),
+                    },
+                    Def.Sprite {
+                        Name = "RightTriangle", -- innermost triangle
+                        Texture = THEME:GetPathG("", "_triangle"),
+                    },
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "LeftTrianglePairButton",
+                    }
+                }
+                t[#t+1] = Def.ActorFrame {
+                    Name = "RightTrianglePairFrame",
+                    Def.Sprite {
+                        Name = "RightTriangle", -- outermost triangle
+                        Texture = THEME:GetPathG("", "_triangle"),
+                    },
+                    Def.Sprite {
+                        Name = "LeftTriangle", -- innermost triangle
+                        Texture = THEME:GetPathG("", "_triangle"),
+                    },
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "RightTrianglePairButton",
+                    }
+                }
+            end
+
+            -- single large arrow
+            if arrowCount >= 1 then
+                t[#t+1] = Def.ActorFrame {
+                    Name = "LeftBigTriangleFrame",
+                    Def.Sprite {
+                        Name = "Triangle",
+                        Texture = THEME:GetPathG("", "_triangle"),
+                    },
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "TriangleButton",
+                    }
+                }
+                t[#t+1] = Def.ActorFrame {
+                    Name = "RightBigTriangleFrame",
+                    Def.Sprite {
+                        Name = "Triangle",
+                        Texture = THEME:GetPathG("", "_triangle"),
+                    },
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "TriangleButton",
+                    }
+                }
+            end
+
+            -- choice text
+            local function createOptionRowChoices()
+                local t = Def.ActorFrame {
+                    Name = "ChoiceFrame",
+                }
+                for n = 1, choiceCount do
+                    t[#t+1] = UIElements.TextButton(1, 1, "Common Normal") .. {
+                        Name = "Choice_"..n,
+                        InitCommand = function(self)
+                            self:GetChild("Text"):settext("choice "..n)
+                            self:x(5 * n)
+                            ms.ok(n)
+                        end,
+                    }
+                end
+                return t
+            end
+            t[#t+1] = createOptionRowChoices()
+
+            return t
+        end
+        for i = 1, optionRowCount do
+            t[#t+1] = createOptionRow(i)
+        end
+        return t
     end
 
     local function createOptionPageChoices()
@@ -1809,6 +2004,7 @@ local function rightFrame()
         return t
     end
 
+    t[#t+1] = createOptionRows()
     t[#t+1] = createOptionPageChoices()
 
     return t
