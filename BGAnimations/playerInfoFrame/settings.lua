@@ -1753,6 +1753,9 @@ local function rightFrame()
         -- We pass that information on to the rows (we can precalculate which rows have what choices)
         -- This way we can avoid generating Actor elements which will never be used in a row
 
+        -- Alternative to doing the above and below:
+        -- just use ActorFrame.RemoveChild and ActorFrame.AddChildFromPath
+
         -- table of row index keys to lists of row types
         -- valid row types are in the giant option definition comment block
         local rowTypes = {}
@@ -1911,7 +1914,6 @@ local function rightFrame()
                         InitCommand = function(self)
                             self:GetChild("Text"):settext("choice "..n)
                             self:x(5 * n)
-                            ms.ok(n)
                         end,
                     }
                 end
