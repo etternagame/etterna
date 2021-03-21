@@ -13,6 +13,12 @@ local ratios = {
     OptionTextListTopGap = 21 / 1080, -- bottom of right top lip to top of text
     OptionTextBuffer = 7 / 1920, -- distance from end of width to beginning of selection frame
     OptionSelectionFrameWidth = 250 / 1920, -- allowed area for option selection
+    OptionBigTriangleHeight = 19 / 1080, -- visually the width most of the time because the triangles are usually turned
+    OptionBigTriangleWidth = 20 / 1920,
+    OptionSmallTriangleHeight = 12 / 1080,
+    OptionSmallTriangleWidth = 13 / 1920,
+    OptionSmallTriangleGap = 2 / 1920,
+    OptionChoiceDirectionGap = 7 / 1920, -- gap between direction arrow pairs and between direction arrows and choices
 
     -- for this area, this is the allowed height for all options including sub options
     -- when an option opens, it may only show as many sub options as there are lines after subtracting the amount of option categories
@@ -37,6 +43,12 @@ local actuals = {
     OptionTextListTopGap = ratios.OptionTextListTopGap * SCREEN_HEIGHT,
     OptionTextBuffer = ratios.OptionTextBuffer * SCREEN_WIDTH,
     OptionSelectionFrameWidth = ratios.OptionSelectionFrameWidth * SCREEN_WIDTH,
+    OptionBigTriangleHeight = ratios.OptionBigTriangleHeight * SCREEN_HEIGHT,
+    OptionBigTriangleWidth = ratios.OptionBigTriangleWidth * SCREEN_WIDTH,
+    OptionSmallTriangleHeight = ratios.OptionSmallTriangleHeight * SCREEN_HEIGHT,
+    OptionSmallTriangleWidth = ratios.OptionSmallTriangleWidth * SCREEN_WIDTH,
+    OptionSmallTriangleGap = ratios.OptionSmallTriangleGap * SCREEN_WIDTH,
+    OptionChoiceDirectionGap = ratios.OptionChoiceDirectionGap * SCREEN_WIDTH,
     OptionAllottedHeight = ratios.OptionAllottedHeight * SCREEN_HEIGHT,
     NoteskinDisplayWidth = ratios.NoteskinDisplayWidth * SCREEN_WIDTH,
     NoteskinDisplayRightGap = ratios.NoteskinDisplayRightGap * SCREEN_WIDTH,
@@ -55,6 +67,9 @@ local textZoomFudge = 5
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
+
+local optionTitleTextSize = 0.7
+local optionChoiceTextSize = 0.7
 
 local maxExplanationTextLines = 2
 
@@ -657,7 +672,7 @@ local function rightFrame()
                     end,
                 },
                 ChoiceIndexGetter = function()
-                    if getPlayerOptions:UsingReverse() then
+                    if getPlayerOptions():UsingReverse() then
                         return 2
                     else
                         return 1
@@ -729,7 +744,8 @@ local function rightFrame()
                 Name = "Judge Difficulty",
                 Type = "SingleChoice",
                 ChoiceIndexGetter = function()
-                    return GetTimingDifficulty()
+                    local lowestJudgeDifficulty = 4
+                    return GetTimingDifficulty() - (lowestJudgeDifficulty-1)
                 end,
                 ChoiceGenerator = function()
                     local o = {}
@@ -757,7 +773,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
-                    return PREFSMAN:GetPreference("GlobalOffsetSeconds")
+                    return notShit.round(PREFSMAN:GetPreference("GlobalOffsetSeconds"), 3)
                 end,
             },
             {
@@ -765,14 +781,19 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
-                    return PREFSMAN:GetPreference("VisualDelaySeconds")
+                    return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3)
                 end,
             },
             {
                 Name = "Game Mode",
                 Type = "SingleChoice",
                 ChoiceIndexGetter = function()
-                    return strCapitalize(optionData.gameMode.current)
+                    for i = 1, #optionData.gameMode.modes do
+                        if optionData.gameMode.modes[i] == optionData.gameMode.current then
+                            return i
+                        end
+                    end
+                    return 1
                 end,
                 ChoiceGenerator = function()
                     local o = {}
@@ -1808,9 +1829,47 @@ local function rightFrame()
             end
         end
 
+        ----- state variables, dont mess
+        -- currently selected options page - from pageNames
+        local selectedPageName = pageNames[1]
+        local selectedPageDef = optionPageCategoryLists[selectedPageName]
+        -- currently opened option category - from optionPageCategoryLists
+        local openedCategoryName = selectedPageDef[1]
+        local openedCategoryDef = optionDefs[openedCategoryName]
+        -- index of the opened option category to know the index of the first valid option row to assign option defs
+        local openedCategoryIndex = 1
 
         local t = Def.ActorFrame {
             Name = "OptionRowContainer",
+            InitCommand = function(self)
+                self:y(actuals.TopLipHeight * 2 + actuals.OptionTextListTopGap)
+                self:playcommand("OpenPage", {page = 1})
+            end,
+            OpenPageCommand = function(self, params)
+                local pageIndexToOpen = params.page
+                selectedPageName = pageNames[pageIndexToOpen]
+                selectedPageDef = optionPageCategoryLists[selectedPageName]
+                self:playcommand("OpenCategory", {categoryName = selectedPageDef[1]})
+            end,
+            OpenCategoryCommand = function(self, params)
+                local categoryNameToOpen = params.categoryName
+                openedCategoryName = categoryNameToOpen
+                openedCategoryDef = optionDefs[openedCategoryName]
+                self:playcommand("UpdateRows")
+            end,
+            UpdateRowsCommand = function(self)
+                openedCategoryIndex = 1
+                for i = 1, #selectedPageDef do
+                    if selectedPageDef[i] == openedCategoryName then
+                        openedCategoryIndex = i
+                    end
+                end
+
+                -- update all rows, redraw
+                for i = 1, optionRowCount do
+                    self:GetChild("OptionRow_"..i):playcommand("UpdateRow")
+                end
+            end,
         }
         local function createOptionRow(i)
             local types = rowTypes[i]
@@ -1823,17 +1882,133 @@ local function rightFrame()
             local choiceCount = rowChoiceCount[i] or 0
 
             local optionDef = nil
+            local categoryDef = nil
+            -- index of the choice for this option, if no choices then this is useless
+            -- this can also be a table of indices for MultiChoice
+            -- this can also just be a random number or text for some certain implementations of optionDefs as long as they conform
+            local currentChoiceSelection = 1
+
+            -- getter for all relevant children of the row
+            -- expects that self is OptionRow_i
+            local function getRowElements(self)
+                -- directional arrows
+                local leftpair = self:GetChild("LeftTrianglePairFrame")
+                local left = self:GetChild("LeftBigTriangleFrame")
+                local rightpair = self:GetChild("RightTrianglePairFrame")
+                local right = self:GetChild("RightBigTriangleFrame")
+                -- choices
+                local choices = self:GetChild("ChoiceFrame")
+                local title = self:GetChild("TitleText")
+                local categorytriangle = self:GetChild("CategoryTriangle")
+                return leftpair, left, rightpair, right, choices, title, categorytriangle
+            end
 
             local t = Def.ActorFrame {
                 Name = "OptionRow_"..i,
                 InitCommand = function(self)
+                    self:x(actuals.EdgePadding)
                     self:y((actuals.OptionAllottedHeight / #rowChoiceCount) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
                 end,
+                UpdateRowCommand = function(self)
+                    -- update row information, draw
+                    local firstOptionRowIndex = openedCategoryIndex + 1
+                    local lastOptionRowIndex = firstOptionRowIndex + #openedCategoryDef - 1
 
+                    if i >= firstOptionRowIndex and i <= lastOptionRowIndex then
+                        -- this is an option and has an optionDef
+                        local optionDefIndex = i - firstOptionRowIndex + 1
+                        categoryDef = nil
+                        optionDef = openedCategoryDef[optionDefIndex]
+                    else
+                        -- this is a category or nothing at all
+                        -- generate a "categoryDef" which is really just a summary of what to display instead
+                        local lastValidPossibleIndex = lastOptionRowIndex + (#selectedPageDef - openedCategoryIndex)
+                        if i > lastValidPossibleIndex then
+                            -- nothing.
+                            categoryDef = nil
+                        else
+                            -- this has a categoryDef
+                            local adjustedCategoryIndex = i
+                            -- subtract the huge list of optionDefs to grab the position of the category in the original list
+                            if i > lastOptionRowIndex then
+                                adjustedCategoryIndex = (i) - #openedCategoryDef
+                            end
+                            categoryDef = {
+                                Opened = (openedCategoryIndex == i) and true or false,
+                                Name = selectedPageDef[adjustedCategoryIndex]
+                            }
+                        end
+                    end
+
+                    self:playcommand("DrawRow")
+                end,
+                DrawRowCommand = function(self)
+                    -- redraw row
+                    local leftPairArrows, leftArrow, rightPairArrows, rightArrow, choiceFrame, titleText, categoryTriangle = getRowElements(self)
+
+                    if optionDef ~= nil and optionDef.ChoiceIndexGetter ~= nil then
+                        currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                    end
+
+                    -- this is done so that the redraw can be done in a particular order, left to right
+                    -- also, not all of these actors are guaranteed to exist
+                    -- and each actor may or may not rely on the previous one to be positioned in order to correctly draw
+                    -- the strict ordering is required as a result
+                    if categoryTriangle ~= nil then
+                        categoryTriangle:playcommand("DrawElement")
+                    end
+
+                    if titleText ~= nil then
+                        titleText:playcommand("DrawElement")
+                    end
+
+                    if leftPairArrows ~= nil then
+                        leftPairArrows:playcommand("DrawElement")
+                    end
+
+                    if leftArrow ~= nil then
+                        leftArrow:playcommand("DrawElement")
+                    end
+
+                    if choiceFrame ~= nil then
+                        choiceFrame:playcommand("DrawElement")
+                    end
+
+                    if rightArrow ~= nil then
+                        rightArrow:playcommand("DrawElement")
+                    end
+
+                    if rightPairArrows ~= nil then
+                        rightPairArrows:playcommand("DrawElement")
+                    end
+                end,
+
+                -- category title and option name
                 UIElements.TextButton(1, 1, "Common Normal") .. {
                     Name = "TitleText",
                     InitCommand = function(self)
-                        self:GetChild("Text"):settext("OPTION TITLE TEXT")
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        txt:halign(0)
+                        txt:zoom(optionTitleTextSize)
+                        bg:halign(0)
+                    end,
+                    DrawElementCommand = function(self)
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+
+                        if optionDef ~= nil then
+                            self:x(0)
+                            txt:settext(optionDef.Name)
+                            txt:maxwidth(actuals.OptionTextWidth / optionTitleTextSize - textZoomFudge)
+                        elseif categoryDef ~= nil then
+                            local newx = actuals.OptionBigTriangleWidth + actuals.OptionTextBuffer / 2
+                            self:x(newx)
+                            txt:settext(categoryDef.Name)
+                            txt:maxwidth((actuals.OptionTextWidth - newx) / optionTitleTextSize - textZoomFudge)
+                        else
+                            txt:settext("")
+                        end
                     end,
                 },
             }
@@ -1843,21 +2018,61 @@ local function rightFrame()
                 t[#t+1] = Def.Sprite {
                     Name = "CategoryTriangle",
                     Texture = THEME:GetPathG("", "_triangle"),
+                    InitCommand = function(self)
+                        self:x(actuals.OptionBigTriangleWidth/2)
+                        self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                    end,
+                    DrawElementCommand = function(self)
+                        if categoryDef ~= nil then
+                            if categoryDef.Opened then
+                                self:rotationz(180)
+                            else
+                                self:rotationz(90)
+                            end
+                            self:diffusealpha(1)
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end,
                 }
             end
 
-            -- smaller double arrow
+            -- smaller double arrow, left/right
             if arrowCount == 2 then
                 -- copy paste territory
                 t[#t+1] = Def.ActorFrame {
                     Name = "LeftTrianglePairFrame",
+                    DrawElementCommand = function(self)
+                        if optionDef ~= nil and optionDef.Type == "SingleChoiceModifier" then
+                            -- only visible in this case
+                            -- offset by half the triangle size due to center aligning
+                            self:x(actuals.OptionTextWidth + actuals.OptionTextBuffer + actuals.OptionSmallTriangleHeight/2)
+                            self:diffusealpha(1)
+                            self:z(1)
+                        else
+                            -- always invisible
+                            self:diffusealpha(0)
+                            self:z(-1)
+                        end
+                    end,
+
                     Def.Sprite {
                         Name = "LeftTriangle", -- outermost triangle
                         Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:rotationz(-90)
+                            self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
+                        end,
                     },
                     Def.Sprite {
                         Name = "RightTriangle", -- innermost triangle
                         Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:rotationz(-90)
+                            self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
+                            -- subtract by 25% triangle height because image is 25% invisible
+                            self:x(actuals.OptionSmallTriangleHeight + actuals.OptionSmallTriangleGap - actuals.OptionSmallTriangleHeight/4)
+                        end,
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "LeftTrianglePairButton",
@@ -1865,13 +2080,47 @@ local function rightFrame()
                 }
                 t[#t+1] = Def.ActorFrame {
                     Name = "RightTrianglePairFrame",
+                    DrawElementCommand = function(self)
+                        if optionDef ~= nil and optionDef.Type == "SingleChoiceModifier" then
+                            -- only visible in this case
+                            local optionRowChoiceFrame = self:GetParent():GetChild("ChoiceFrame")
+                            if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
+                            -- offset by the position of the choice text and the size of the big triangles
+                            -- the logic/ordering of the positioning is visible in the math
+                            -- choice xpos + width + buffer + big triangle size + buffer
+                            -- we pick choice 1 because only SingleChoice is allowed to show these arrows
+                            -- offset by half triangle size due to center aligning (edit: nvm?)
+                            -- okay actually im gonna be honest I DONT KNOW WHAT IS HAPPENING HERE
+                            -- but it completely mirrors the behavior of the other side so it works
+                            -- help
+                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight*0.9 + actuals.OptionChoiceDirectionGap)
+                            self:diffusealpha(1)
+                            self:z(1)
+                        else
+                            -- always invisible
+                            self:diffusealpha(0)
+                            self:z(-1)
+                        end
+                    end,
+
                     Def.Sprite {
                         Name = "RightTriangle", -- outermost triangle
                         Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:rotationz(90)
+                            self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
+                            -- subtract by 25% triangle height because image is 25% invisible
+                            self:x(actuals.OptionSmallTriangleHeight + actuals.OptionSmallTriangleGap - actuals.OptionSmallTriangleHeight/4)
+                        end,
                     },
                     Def.Sprite {
                         Name = "LeftTriangle", -- innermost triangle
                         Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:rotationz(90)
+                            self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
+                            self:x(0)
+                        end,
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "RightTrianglePairButton",
@@ -1879,13 +2128,39 @@ local function rightFrame()
                 }
             end
 
-            -- single large arrow
+            -- single large arrow, left/right
             if arrowCount >= 1 then
                 t[#t+1] = Def.ActorFrame {
                     Name = "LeftBigTriangleFrame",
+                    DrawElementCommand = function(self)
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier") then
+                            -- only visible for SingleChoice(Modifier)
+                            -- offset by half height due to center aligning
+                            local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer + actuals.OptionBigTriangleHeight/2
+                            if optionDef.Type == "SingleChoice" then
+                                -- SingleChoice is on the very left
+                                self:x(minXPos)
+                            else
+                                -- SingleChoiceModifier is to the right of the LeftTrianglePairFrame
+                                -- subtract by 25% triangle height twice because 25% of the image is invisible
+                                self:x(minXPos + actuals.OptionSmallTriangleHeight * 2 - actuals.OptionSmallTriangleHeight/2 + actuals.OptionSmallTriangleGap + actuals.OptionChoiceDirectionGap)
+                            end
+                            self:diffusealpha(1)
+                            self:z(1)
+                        else
+                            -- always invisible
+                            self:diffusealpha(0)
+                            self:z(-1)
+                        end
+                    end,
+
                     Def.Sprite {
                         Name = "Triangle",
                         Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:rotationz(-90)
+                            self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                        end,
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "TriangleButton",
@@ -1893,9 +2168,34 @@ local function rightFrame()
                 }
                 t[#t+1] = Def.ActorFrame {
                     Name = "RightBigTriangleFrame",
+                    DrawElementCommand = function(self)
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier") then
+                            -- only visible for SingleChoice(Modifier)
+                            local optionRowChoiceFrame = self:GetParent():GetChild("ChoiceFrame")
+                            if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
+                            -- offset by the position of the choice text and appropriate buffer
+                            -- the logic/ordering of the positioning is visible in the math
+                            -- choice xpos + width + buffer
+                            -- we pick choice 1 because only SingleChoice is allowed to show these arrows
+                            -- subtract by 25% triangle height because 25% of the image is invisible
+                            -- offset by half height due to center aligning
+                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
+                            self:diffusealpha(1)
+                            self:z(1)
+                        else
+                            -- always invisible
+                            self:diffusealpha(0)
+                            self:z(-1)
+                        end
+                    end,
+
                     Def.Sprite {
                         Name = "Triangle",
                         Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:rotationz(90)
+                            self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                        end,
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "TriangleButton",
@@ -1907,13 +2207,97 @@ local function rightFrame()
             local function createOptionRowChoices()
                 local t = Def.ActorFrame {
                     Name = "ChoiceFrame",
+                    DrawElementCommand = function(self)
+                        if optionDef ~= nil then
+                            self:diffusealpha(1)
+
+                            local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer
+                            local finalXPos = minXPos
+                            if optionDef.Type == "SingleChoice" then
+                                -- leftmost xpos + big triangle + gap
+                                -- subtract by 25% of the big triangle size because the image is actually 25% invisible
+                                finalXPos = finalXPos + actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4
+                            elseif optionDef.Type == "SingleChoiceModifier" then
+                                -- leftmost xpos + big triangle + gap + 2 small triangles + gap between 2 small triangles + last gap
+                                -- subtract by 25% of big triangle and 25% of small triangle twice because the image is 25% invisible
+                                finalXPos = finalXPos + actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4 + actuals.OptionSmallTriangleHeight * 2 - actuals.OptionSmallTriangleHeight/2 + actuals.OptionSmallTriangleGap + actuals.OptionChoiceDirectionGap
+                            end
+                            self:x(finalXPos)
+                            
+                            -- to force the choices to update left to right
+                            for i = 1, choiceCount do
+                                self:GetChild("Choice_"..i):playcommand("DrawChoice")
+                            end
+                        else
+                            -- missing optionDef means no choices possible
+                            self:diffusealpha(0)
+                        end
+                    end,
                 }
                 for n = 1, choiceCount do
                     t[#t+1] = UIElements.TextButton(1, 1, "Common Normal") .. {
                         Name = "Choice_"..n,
                         InitCommand = function(self)
-                            self:GetChild("Text"):settext("choice "..n)
-                            self:x(5 * n)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+
+                            txt:halign(0)
+                            bg:halign(0)
+                            txt:zoom(optionChoiceTextSize)
+                        end,
+                        DrawChoiceCommand = function(self)
+                            if optionDef ~= nil then
+                                if optionDef.Type == "MultiChoice" then
+                                    local choice = optionDef.Choices[n]
+                                    if choice ~= nil then
+                                        local txt = self:GetChild("Text")
+                                        local bg = self:GetChild("BG")
+
+                                        -- get the x position of this element using the position of the element to the left
+                                        -- this requires all elements be updated in order, left to right
+                                        local xPos = 0
+                                        if n > 1 then
+                                            local choiceJustToTheLeftOfThisOne = self:GetParent():GetChild("Choice_"..(n-1))
+                                            xPos = choiceJustToTheLeftOfThisOne:GetX() + choiceJustToTheLeftOfThisOne:GetChild("Text"):GetZoomedWidth() + actuals.OptionTextBuffer
+                                        end
+                                        self:x(xPos)
+                                        txt:settext(choice.Name)
+                                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.2)
+
+                                        self:diffusealpha(1)
+                                        self:z(1)
+                                    else
+                                        -- choice does not exist for this option but does for another
+                                        self:diffusealpha(0)
+                                        self:z(-1)
+                                    end
+                                elseif optionDef.Type == "Button" then
+                                    self:diffusealpha(0)
+                                    self:z(-1)
+                                else
+                                    -- for Single choice mode
+                                    if n == 1 then
+                                        local txt = self:GetChild("Text")
+                                        local bg = self:GetChild("BG")
+
+                                        -- several cases involving the ChoiceIndexGetter for single choices...
+                                        if optionDef.ChoiceIndexGetter ~= nil and optionDef.Choices == nil then
+                                            -- getter with no choices means the getter supplies the visible information
+                                            txt:settext(currentChoiceSelection)    
+                                        elseif optionDef.Choices ~= nil then
+                                            -- choices present means the getter supplies the choice index that contains the information
+                                            txt:settext(optionDef.Choices[currentChoiceSelection].Name)
+                                        else
+                                            txt:settext("invalid situation?")
+                                        end
+                                        self:diffusealpha(1)
+                                        self:z(1)
+                                    else
+                                        self:diffusealpha(0)
+                                        self:z(-1)
+                                    end
+                                end
+                            end
                         end,
                     }
                 end
