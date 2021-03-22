@@ -1536,12 +1536,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 
 		std::vector<std::string> result;
 		for (auto& s : langs) {
-			const LanguageInfo* pLI = GetLanguageInfo(s);
-			if (pLI)
-				result.push_back(
-				  THEME->GetString("NativeLanguageNames", pLI->szEnglishName));
-			else
-				result.push_back(s);
+			result.push_back(s);
 		}
 		
 		LuaHelpers::CreateTableFromArray<std::string>(result, L);
