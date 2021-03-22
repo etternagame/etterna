@@ -497,7 +497,8 @@ local function rightFrame()
     --
     -- -----
 
-    local optionRowCount = 16
+    local optionRowCount = 18
+    local maxChoicesVisibleMultiChoice = 4
 
     -- the names and order of the option pages
     -- these values must correspond to the keys of optionPageCategoryLists
@@ -1243,7 +1244,7 @@ local function rightFrame()
                     local o = {}
                     for i, l in ipairs(optionData.language.list) do
                         o[#o+1] = {
-                            Name = l,
+                            Name = l:upper(),
                             ChosenFunction = function()
                                 optionData.language.current = l
                             end,
@@ -1653,7 +1654,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("SoundVolume", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
-                    return PREFSMAN:GetPreference("SoundVolume") * 100
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0)
                 end,
             },
             {
@@ -1845,6 +1846,9 @@ local function rightFrame()
                 self:y(actuals.TopLipHeight * 2 + actuals.OptionTextListTopGap)
                 self:playcommand("OpenPage", {page = 1})
             end,
+            OptionTabSetMessageCommand = function(self, params)
+                self:playcommand("OpenPage", params)
+            end,
             OpenPageCommand = function(self, params)
                 local pageIndexToOpen = params.page
                 selectedPageName = pageNames[pageIndexToOpen]
@@ -1872,13 +1876,13 @@ local function rightFrame()
             end,
         }
         local function createOptionRow(i)
-            local types = rowTypes[i]
+            local types = rowTypes[i] or {}
             -- SingleChoice             1 arrow, 1 choice
             -- SingleChoiceModifier     2 arrow, 1 choice
-            -- MultiChoice              no arrow, N choices
+            -- MultiChoice              2 arrow, N choices
             -- Button                   no arrow, 1 choice
             -- generate elements based on how many choices and how many directional arrows are needed
-            local arrowCount = types["SingleChoiceModifier"] and 2 or (types["SingleChoice"] and 1 or 0)
+            local arrowCount = (types["SingleChoiceModifier"] or types["MultiChoice"]) and 2 or (types["SingleChoice"] and 1 or 0)
             local choiceCount = rowChoiceCount[i] or 0
 
             local optionDef = nil
@@ -1913,11 +1917,12 @@ local function rightFrame()
                     -- update row information, draw
                     local firstOptionRowIndex = openedCategoryIndex + 1
                     local lastOptionRowIndex = firstOptionRowIndex + #openedCategoryDef - 1
+                    optionDef = nil
+                    categoryDef = nil
 
                     if i >= firstOptionRowIndex and i <= lastOptionRowIndex then
                         -- this is an option and has an optionDef
                         local optionDefIndex = i - firstOptionRowIndex + 1
-                        categoryDef = nil
                         optionDef = openedCategoryDef[optionDefIndex]
                     else
                         -- this is a category or nothing at all
@@ -1925,7 +1930,6 @@ local function rightFrame()
                         local lastValidPossibleIndex = lastOptionRowIndex + (#selectedPageDef - openedCategoryIndex)
                         if i > lastValidPossibleIndex then
                             -- nothing.
-                            categoryDef = nil
                         else
                             -- this has a categoryDef
                             local adjustedCategoryIndex = i
@@ -2076,6 +2080,11 @@ local function rightFrame()
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "LeftTrianglePairButton",
+                        InitCommand = function(self)
+                            self:x(actuals.OptionSmallTriangleHeight/2)
+                            self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
+                            self:diffusealpha(0.4)
+                        end,
                     }
                 }
                 t[#t+1] = Def.ActorFrame {
@@ -2124,6 +2133,11 @@ local function rightFrame()
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "RightTrianglePairButton",
+                        InitCommand = function(self)
+                            self:x(actuals.OptionSmallTriangleHeight/2)
+                            self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
+                            self:diffusealpha(0.4)
+                        end,
                     }
                 }
             end
@@ -2133,12 +2147,12 @@ local function rightFrame()
                 t[#t+1] = Def.ActorFrame {
                     Name = "LeftBigTriangleFrame",
                     DrawElementCommand = function(self)
-                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier") then
-                            -- only visible for SingleChoice(Modifier)
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice") then
+                            -- visible for SingleChoice(Modifier) and MultiChoice
                             -- offset by half height due to center aligning
                             local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer + actuals.OptionBigTriangleHeight/2
-                            if optionDef.Type == "SingleChoice" then
-                                -- SingleChoice is on the very left
+                            if optionDef.Type == "SingleChoice" or optionDef.Type == "MultiChoice" then
+                                -- SingleChoice/MultiChoice is on the very left
                                 self:x(minXPos)
                             else
                                 -- SingleChoiceModifier is to the right of the LeftTrianglePairFrame
@@ -2164,13 +2178,17 @@ local function rightFrame()
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "TriangleButton",
+                        InitCommand = function(self)
+                            self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                            self:diffusealpha(0.4)
+                        end,
                     }
                 }
                 t[#t+1] = Def.ActorFrame {
                     Name = "RightBigTriangleFrame",
                     DrawElementCommand = function(self)
-                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier") then
-                            -- only visible for SingleChoice(Modifier)
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice") then
+                            -- visible for SingleChoice(Modifier) and MultiChoice
                             local optionRowChoiceFrame = self:GetParent():GetChild("ChoiceFrame")
                             if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
                             -- offset by the position of the choice text and appropriate buffer
@@ -2179,7 +2197,14 @@ local function rightFrame()
                             -- we pick choice 1 because only SingleChoice is allowed to show these arrows
                             -- subtract by 25% triangle height because 25% of the image is invisible
                             -- offset by half height due to center aligning
-                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
+                            if optionDef.Type == "MultiChoice" then
+                                -- offset to the right of the last visible choice (up to the 4th one)
+                                local lastChoice = optionRowChoiceFrame:GetChild("Choice_"..math.min(maxChoicesVisibleMultiChoice, #optionDef.Choices))
+                                local finalX = optionRowChoiceFrame:GetX() + lastChoice:GetX() + lastChoice:GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4
+                                self:x(finalX)
+                            else
+                                self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
+                            end
                             self:diffusealpha(1)
                             self:z(1)
                         else
@@ -2199,6 +2224,10 @@ local function rightFrame()
                     },
                     UIElements.QuadButton(1, 1) .. {
                         Name = "TriangleButton",
+                        InitCommand = function(self)
+                            self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                            self:diffusealpha(0.4)
+                        end,
                     }
                 }
             end
@@ -2213,7 +2242,7 @@ local function rightFrame()
 
                             local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer
                             local finalXPos = minXPos
-                            if optionDef.Type == "SingleChoice" then
+                            if optionDef.Type == "SingleChoice" or optionDef.Type == "MultiChoice" then
                                 -- leftmost xpos + big triangle + gap
                                 -- subtract by 25% of the big triangle size because the image is actually 25% invisible
                                 finalXPos = finalXPos + actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4
@@ -2225,7 +2254,7 @@ local function rightFrame()
                             self:x(finalXPos)
                             
                             -- to force the choices to update left to right
-                            for i = 1, choiceCount do
+                            for i = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
                                 self:GetChild("Choice_"..i):playcommand("DrawChoice")
                             end
                         else
@@ -2234,7 +2263,7 @@ local function rightFrame()
                         end
                     end,
                 }
-                for n = 1, choiceCount do
+                for n = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
                     t[#t+1] = UIElements.TextButton(1, 1, "Common Normal") .. {
                         Name = "Choice_"..n,
                         InitCommand = function(self)
@@ -2345,7 +2374,7 @@ local function rightFrame()
                     if self:IsInvisible() then return end
                     if params.update == "OnMouseDown" then
                         selectedIndex = i
-                        MESSAGEMAN:Broadcast("GeneralTabSet", {tab = i})
+                        MESSAGEMAN:Broadcast("OptionTabSet", {page = i})
                         self:GetParent():playcommand("UpdateSelectedIndex")
                     end
                 end,
