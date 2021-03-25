@@ -1912,14 +1912,31 @@ local function rightFrame()
             local optionDef = nil
             local categoryDef = nil
             local previousDef = nil -- for tracking def changes to animate things in a slightly more intelligent way
+            local previousPage = 1 -- for tracking page changes to animate things in a slightly more intelligent way
+            local rowHandle = nil -- for accessing the row frame from other points of reference (within this function) instantly
             -- index of the choice for this option, if no choices then this is useless
             -- this can also be a table of indices for MultiChoice
             -- this can also just be a random number or text for some certain implementations of optionDefs as long as they conform
             local currentChoiceSelection = 1
             
-            -- paginate choices according to 
+            -- paginate choices according to maxChoicesVisibleMultiChoice
             local choicePage = 1
             local maxChoicePage = 1
+            local function moveChoicePage(n)
+                if maxChoicePage <= 1 then
+                    return
+                end
+    
+                -- math to make pages loop both directions
+                local nn = (choicePage + n) % (maxChoicePage + 1)
+                if nn == 0 then
+                    nn = n > 0 and 1 or maxChoicePage
+                end
+                choicePage = nn
+                if rowHandle ~= nil then
+                    rowHandle:playcommand("DrawRow")
+                end
+            end
 
             -- getter for all relevant children of the row
             -- expects that self is OptionRow_i
@@ -1941,9 +1958,10 @@ local function rightFrame()
                 InitCommand = function(self)
                     self:x(actuals.EdgePadding)
                     self:y((actuals.OptionAllottedHeight / #rowChoiceCount) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
+                    rowHandle = self
                 end,
                 UpdateRowCommand = function(self)
-                    -- update row information, draw
+                    -- update row information, draw (this will reset the state of the row according to "global" conditions)
                     local firstOptionRowIndex = openedCategoryIndex + 1
                     local lastOptionRowIndex = firstOptionRowIndex + #openedCategoryDef - 1
 
@@ -1951,7 +1969,9 @@ local function rightFrame()
                     previousDef = nil
                     if optionDef ~= nil then previousDef = optionDef end
                     if categoryDef ~= nil then previousDef = categoryDef end
+                    previousPage = choicePage
 
+                    -- reset state
                     optionDef = nil
                     categoryDef = nil
                     choicePage = 1
@@ -1997,7 +2017,8 @@ local function rightFrame()
                     -- blink the row if it updated
                     self:finishtweening()
                     self:diffusealpha(0)
-                    if previousDef == nil or (optionDef ~= nil and optionDef.Name ~= previousDef.Name) or (categoryDef ~= nil and categoryDef.Name ~= previousDef.Name) then
+                    -- if def was just defined, or def just changed, or choice page just changed -- show animation
+                    if previousDef == nil or (optionDef ~= nil and optionDef.Name ~= previousDef.Name) or (categoryDef ~= nil and categoryDef.Name ~= previousDef.Name) or previousPage ~= choicePage then
                         self:smooth(optionRowAnimationSeconds)
                     end
                     self:diffusealpha(1)
@@ -2071,7 +2092,7 @@ local function rightFrame()
                     InvokeCommand = function(self)
                         -- behavior for interacting with the Option Row Title Text
                         if categoryDef ~= nil then
-                            self:GetParent():GetParent():playcommand("OpenCategory", {categoryName = categoryDef.Name})
+                            rowHandle:GetParent():playcommand("OpenCategory", {categoryName = categoryDef.Name})
                         elseif optionDef ~= nil then
                             if optionDef.Type == "Button" then
                                 -- button
@@ -2124,7 +2145,7 @@ local function rightFrame()
                     InvokeCommand = function(self)
                         -- behavior for interacting with the Option Row Title Text
                         if categoryDef ~= nil and not categoryDef.Opened then
-                            self:GetParent():GetParent():playcommand("OpenCategory", {categoryName = categoryDef.Name})
+                            rowHandle:GetParent():playcommand("OpenCategory", {categoryName = categoryDef.Name})
                         end
                     end,
                     MouseOverCommand = onHover,
@@ -2180,6 +2201,9 @@ local function rightFrame()
                             self:x(actuals.OptionSmallTriangleHeight/2)
                             self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
                         end,
+                        InvokeCommand = function(self)
+
+                        end,
                         MouseOverCommand = onHoverParent,
                         MouseOutCommand = onUnHoverParent,
                     }
@@ -2189,7 +2213,7 @@ local function rightFrame()
                     DrawElementCommand = function(self)
                         if optionDef ~= nil and optionDef.Type == "SingleChoiceModifier" then
                             -- only visible in this case
-                            local optionRowChoiceFrame = self:GetParent():GetChild("ChoiceFrame")
+                            local optionRowChoiceFrame = rowHandle:GetChild("ChoiceFrame")
                             if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
                             -- offset by the position of the choice text and the size of the big triangles
                             -- the logic/ordering of the positioning is visible in the math
@@ -2234,6 +2258,9 @@ local function rightFrame()
                             self:diffusealpha(0)
                             self:x(actuals.OptionSmallTriangleHeight/2)
                             self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
+                        end,
+                        InvokeCommand = function(self)
+                            
                         end,
                         MouseOverCommand = onHoverParent,
                         MouseOutCommand = onUnHoverParent,
@@ -2282,6 +2309,22 @@ local function rightFrame()
                             self:diffusealpha(0)
                             self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
                         end,
+                        InvokeCommand = function(self)
+                            if optionDef ~= nil then
+                                if optionDef.Type == "MultiChoice" then
+                                    -- MultiChoice pagination
+                                    moveChoicePage(-1)
+                                elseif optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" then
+                                    -- SingleChoice selection mover
+                                end
+                            end
+                        end,
+                        MouseDownCommand = function(self, params)
+                            if self:GetParent():IsInvisible() then return end
+                            if optionDef ~= nil then
+                                self:playcommand("Invoke")
+                            end
+                        end,
                         MouseOverCommand = onHoverParent,
                         MouseOutCommand = onUnHoverParent,
                     }
@@ -2291,7 +2334,7 @@ local function rightFrame()
                     DrawElementCommand = function(self)
                         if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1)) then
                             -- visible for SingleChoice(Modifier) and MultiChoice
-                            local optionRowChoiceFrame = self:GetParent():GetChild("ChoiceFrame")
+                            local optionRowChoiceFrame = rowHandle:GetChild("ChoiceFrame")
                             if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
                             -- offset by the position of the choice text and appropriate buffer
                             -- the logic/ordering of the positioning is visible in the math
@@ -2301,7 +2344,13 @@ local function rightFrame()
                             -- offset by half height due to center aligning
                             if optionDef.Type == "MultiChoice" then
                                 -- offset to the right of the last visible choice (up to the 4th one)
-                                local lastChoice = optionRowChoiceFrame:GetChild("Choice_"..math.min(maxChoicesVisibleMultiChoice, #optionDef.Choices))
+                                local lastChoiceIndex = math.min(maxChoicesVisibleMultiChoice, #optionDef.Choices) -- last choice if not on first or last page
+                                if choicePage > 1 and choicePage >= maxChoicePage then
+                                    -- last if on last (first) page
+                                    lastChoiceIndex = #optionDef.Choices % maxChoicesVisibleMultiChoice
+                                    if lastChoiceIndex == 0 then lastChoiceIndex = maxChoicesVisibleMultiChoice end
+                                end
+                                local lastChoice = optionRowChoiceFrame:GetChild("Choice_"..lastChoiceIndex)
                                 local finalX = optionRowChoiceFrame:GetX() + lastChoice:GetX() + lastChoice:GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4
                                 self:x(finalX)
                             else
@@ -2329,6 +2378,22 @@ local function rightFrame()
                         InitCommand = function(self)
                             self:diffusealpha(0)
                             self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                        end,
+                        InvokeCommand = function(self)
+                            if optionDef ~= nil then
+                                if optionDef.Type == "MultiChoice" then
+                                    -- MultiChoice pagination
+                                    moveChoicePage(1)
+                                elseif optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" then
+                                    -- SingleChoice selection mover
+                                end
+                            end
+                        end,
+                        MouseDownCommand = function(self, params)
+                            if self:GetParent():IsInvisible() then return end
+                            if optionDef ~= nil then
+                                self:playcommand("Invoke")
+                            end
                         end,
                         MouseOverCommand = onHoverParent,
                         MouseOutCommand = onUnHoverParent,
@@ -2386,7 +2451,7 @@ local function rightFrame()
                             if optionDef ~= nil then
                                 if optionDef.Type == "MultiChoice" then
                                     -- for Multi choice mode
-                                    local choice = optionDef.Choices[n * choicePage]
+                                    local choice = optionDef.Choices[n + (choicePage-1) * maxChoicesVisibleMultiChoice]
                                     if choice ~= nil then
                                         local txt = self:GetChild("Text")
                                         local bg = self:GetChild("BG")
@@ -2438,6 +2503,9 @@ local function rightFrame()
                                     end
                                 end
                             end
+                        end,
+                        InvokeCommand = function(self)
+                            
                         end,
                         RolloverUpdateCommand = function(self, params)
                             if self:IsInvisible() then return end
