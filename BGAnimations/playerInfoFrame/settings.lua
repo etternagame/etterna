@@ -1925,6 +1925,26 @@ local function rightFrame()
             local previousPage = 1 -- for tracking page changes to animate things in a slightly more intelligent way
             local rowHandle = nil -- for accessing the row frame from other points of reference (within this function) instantly
 
+            -- convenience to hit the AssociatedOptions optionDef stuff (primarily for speed mods but can be used for whatever)
+            -- hyper inefficient function (dont care) (yes i do)
+            local function updateAssociatedElements(thisDef)
+                if thisDef ~= nil and thisDef.AssociatedOptions ~= nil then
+                    -- for each option
+                    for _, optionName in ipairs(thisDef.AssociatedOptions) do
+                        -- for each possible row to match
+                        for rowIndex = 1, optionRowCount do
+                            local row = rowHandle:GetParent():GetChild("OptionRow_"..rowIndex)
+                            if row ~= nil then
+                                if row.defInUse ~= nil and row.defInUse.Name == optionName then
+                                    row:playcommand("DrawRow")
+                                    return
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
             -- convenience
             local function redrawChoiceRelatedElements()
                 local rightpair = rowHandle:GetChild("RightTrianglePairFrame")
@@ -1947,6 +1967,7 @@ local function rightFrame()
                 if rightpair ~= nil then
                     rightpair:playcommand("DrawElement")
                 end
+                updateAssociatedElements(optionDef)
             end
 
             -- index of the choice for this option, if no choices then this is useless
@@ -2025,6 +2046,7 @@ local function rightFrame()
                     -- reset state
                     optionDef = nil
                     categoryDef = nil
+                    self.defInUse = nil
                     choicePage = 1
                     maxChoicePage = 1
 
@@ -2035,6 +2057,7 @@ local function rightFrame()
                         if optionDef.Choices ~= nil then
                             maxChoicePage = math.ceil(#optionDef.Choices / maxChoicesVisibleMultiChoice)
                         end
+                        self.defInUse = optionDef
                     else
                         -- this is a category or nothing at all
                         -- maybe generate a "categoryDef" which is really just a summary of what to display instead
@@ -2052,6 +2075,7 @@ local function rightFrame()
                                 Opened = (openedCategoryIndex == i) and true or false,
                                 Name = selectedPageDef[adjustedCategoryIndex]
                             }
+                            self.defInUse = categoryDef
                         end
                     end
 
