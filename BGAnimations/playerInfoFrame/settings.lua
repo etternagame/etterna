@@ -70,6 +70,10 @@ local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
+-- basically our font is bad and not on the baseline or equivalent to what a BitMapText:isOver says it is, so this is a modifier to the invisible text button size
+-- could also be moved even further for whatever accessibility concerns
+local textButtonHeightFudgeScalarMultiplier = 1.6
+local optionRowAnimationSeconds = 0.15
 
 local maxExplanationTextLines = 2
 
@@ -1840,6 +1844,25 @@ local function rightFrame()
         -- index of the opened option category to know the index of the first valid option row to assign option defs
         local openedCategoryIndex = 1
 
+        -- putting these functions here to save on space below, less copy pasting, etc
+        local function onHover(self)
+            if self:IsInvisible() then return end
+            self:diffusealpha(buttonHoverAlpha)
+        end
+        local function onUnHover(self)
+            if self:IsInvisible() then return end
+            self:diffusealpha(1)
+        end
+        local function onHoverParent(self)
+            if self:GetParent():IsInvisible() then return end
+            self:GetParent():diffusealpha(buttonHoverAlpha)
+        end
+        local function onUnHoverParent(self)
+            if self:GetParent():IsInvisible() then return end
+            self:GetParent():diffusealpha(1)
+        end
+        --
+
         local t = Def.ActorFrame {
             Name = "OptionRowContainer",
             InitCommand = function(self)
@@ -1871,7 +1894,8 @@ local function rightFrame()
 
                 -- update all rows, redraw
                 for i = 1, optionRowCount do
-                    self:GetChild("OptionRow_"..i):playcommand("UpdateRow")
+                    local row = self:GetChild("OptionRow_"..i)
+                    row:playcommand("UpdateRow")
                 end
             end,
         }
@@ -1887,10 +1911,15 @@ local function rightFrame()
 
             local optionDef = nil
             local categoryDef = nil
+            local previousDef = nil -- for tracking def changes to animate things in a slightly more intelligent way
             -- index of the choice for this option, if no choices then this is useless
             -- this can also be a table of indices for MultiChoice
             -- this can also just be a random number or text for some certain implementations of optionDefs as long as they conform
             local currentChoiceSelection = 1
+            
+            -- paginate choices according to 
+            local choicePage = 1
+            local maxChoicePage = 1
 
             -- getter for all relevant children of the row
             -- expects that self is OptionRow_i
@@ -1917,16 +1946,27 @@ local function rightFrame()
                     -- update row information, draw
                     local firstOptionRowIndex = openedCategoryIndex + 1
                     local lastOptionRowIndex = firstOptionRowIndex + #openedCategoryDef - 1
+
+                    -- track previous definition
+                    previousDef = nil
+                    if optionDef ~= nil then previousDef = optionDef end
+                    if categoryDef ~= nil then previousDef = categoryDef end
+
                     optionDef = nil
                     categoryDef = nil
+                    choicePage = 1
+                    maxChoicePage = 1
 
                     if i >= firstOptionRowIndex and i <= lastOptionRowIndex then
                         -- this is an option and has an optionDef
                         local optionDefIndex = i - firstOptionRowIndex + 1
                         optionDef = openedCategoryDef[optionDefIndex]
+                        if optionDef.Choices ~= nil then
+                            maxChoicePage = math.ceil(#optionDef.Choices / maxChoicesVisibleMultiChoice)
+                        end
                     else
                         -- this is a category or nothing at all
-                        -- generate a "categoryDef" which is really just a summary of what to display instead
+                        -- maybe generate a "categoryDef" which is really just a summary of what to display instead
                         local lastValidPossibleIndex = lastOptionRowIndex + (#selectedPageDef - openedCategoryIndex)
                         if i > lastValidPossibleIndex then
                             -- nothing.
@@ -1953,6 +1993,14 @@ local function rightFrame()
                     if optionDef ~= nil and optionDef.ChoiceIndexGetter ~= nil then
                         currentChoiceSelection = optionDef.ChoiceIndexGetter()
                     end
+
+                    -- blink the row if it updated
+                    self:finishtweening()
+                    self:diffusealpha(0)
+                    if previousDef == nil or (optionDef ~= nil and optionDef.Name ~= previousDef.Name) or (categoryDef ~= nil and categoryDef.Name ~= previousDef.Name) then
+                        self:smooth(optionRowAnimationSeconds)
+                    end
+                    self:diffusealpha(1)
 
                     -- this is done so that the redraw can be done in a particular order, left to right
                     -- also, not all of these actors are guaranteed to exist
@@ -1995,7 +2043,12 @@ local function rightFrame()
                         local bg = self:GetChild("BG")
                         txt:halign(0)
                         txt:zoom(optionTitleTextSize)
+                        txt:settext(" ")
+
                         bg:halign(0)
+                        -- fudge movement due to font misalign
+                        bg:y(1)
+                        bg:zoomto(0, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end,
                     DrawElementCommand = function(self)
                         local txt = self:GetChild("Text")
@@ -2013,15 +2066,43 @@ local function rightFrame()
                         else
                             txt:settext("")
                         end
+                        bg:zoomx(txt:GetZoomedWidth())
+                    end,
+                    InvokeCommand = function(self)
+                        -- behavior for interacting with the Option Row Title Text
+                        if categoryDef ~= nil then
+                            self:GetParent():GetParent():playcommand("OpenCategory", {categoryName = categoryDef.Name})
+                        elseif optionDef ~= nil then
+                            if optionDef.Type == "Button" then
+                                -- button
+                            else
+                                -- ?
+                            end
+                        end
+                    end,
+                    RolloverUpdateCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update == "in" then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end,
+                    ClickCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update == "OnMouseDown" then
+                            if optionDef ~= nil or categoryDef ~= nil then
+                                self:playcommand("Invoke")
+                            end
+                        end
                     end,
                 },
             }
 
             -- category arrow
             if types["Category"] then
-                t[#t+1] = Def.Sprite {
+                t[#t+1] = UIElements.SpriteButton(1, 1, THEME:GetPathG("", "_triangle")) .. {
                     Name = "CategoryTriangle",
-                    Texture = THEME:GetPathG("", "_triangle"),
                     InitCommand = function(self)
                         self:x(actuals.OptionBigTriangleWidth/2)
                         self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
@@ -2034,9 +2115,23 @@ local function rightFrame()
                                 self:rotationz(90)
                             end
                             self:diffusealpha(1)
+                            self:z(1)
                         else
                             self:diffusealpha(0)
+                            self:z(-1)
                         end
+                    end,
+                    InvokeCommand = function(self)
+                        -- behavior for interacting with the Option Row Title Text
+                        if categoryDef ~= nil and not categoryDef.Opened then
+                            self:GetParent():GetParent():playcommand("OpenCategory", {categoryName = categoryDef.Name})
+                        end
+                    end,
+                    MouseOverCommand = onHover,
+                    MouseOutCommand = onUnHover,
+                    MouseDownCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        self:playcommand("Invoke")
                     end,
                 }
             end
@@ -2081,10 +2176,12 @@ local function rightFrame()
                     UIElements.QuadButton(1, 1) .. {
                         Name = "LeftTrianglePairButton",
                         InitCommand = function(self)
+                            self:diffusealpha(0)
                             self:x(actuals.OptionSmallTriangleHeight/2)
                             self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
-                            self:diffusealpha(0.4)
                         end,
+                        MouseOverCommand = onHoverParent,
+                        MouseOutCommand = onUnHoverParent,
                     }
                 }
                 t[#t+1] = Def.ActorFrame {
@@ -2134,10 +2231,12 @@ local function rightFrame()
                     UIElements.QuadButton(1, 1) .. {
                         Name = "RightTrianglePairButton",
                         InitCommand = function(self)
+                            self:diffusealpha(0)
                             self:x(actuals.OptionSmallTriangleHeight/2)
                             self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
-                            self:diffusealpha(0.4)
                         end,
+                        MouseOverCommand = onHoverParent,
+                        MouseOutCommand = onUnHoverParent,
                     }
                 }
             end
@@ -2147,8 +2246,9 @@ local function rightFrame()
                 t[#t+1] = Def.ActorFrame {
                     Name = "LeftBigTriangleFrame",
                     DrawElementCommand = function(self)
-                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice") then
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1)) then
                             -- visible for SingleChoice(Modifier) and MultiChoice
+                            -- only visible on MultiChoice if we need to paginate the choices
                             -- offset by half height due to center aligning
                             local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer + actuals.OptionBigTriangleHeight/2
                             if optionDef.Type == "SingleChoice" or optionDef.Type == "MultiChoice" then
@@ -2179,15 +2279,17 @@ local function rightFrame()
                     UIElements.QuadButton(1, 1) .. {
                         Name = "TriangleButton",
                         InitCommand = function(self)
+                            self:diffusealpha(0)
                             self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
-                            self:diffusealpha(0.4)
                         end,
+                        MouseOverCommand = onHoverParent,
+                        MouseOutCommand = onUnHoverParent,
                     }
                 }
                 t[#t+1] = Def.ActorFrame {
                     Name = "RightBigTriangleFrame",
                     DrawElementCommand = function(self)
-                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice") then
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1)) then
                             -- visible for SingleChoice(Modifier) and MultiChoice
                             local optionRowChoiceFrame = self:GetParent():GetChild("ChoiceFrame")
                             if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
@@ -2225,9 +2327,11 @@ local function rightFrame()
                     UIElements.QuadButton(1, 1) .. {
                         Name = "TriangleButton",
                         InitCommand = function(self)
+                            self:diffusealpha(0)
                             self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
-                            self:diffusealpha(0.4)
                         end,
+                        MouseOverCommand = onHoverParent,
+                        MouseOutCommand = onUnHoverParent,
                     }
                 }
             end
@@ -2242,7 +2346,7 @@ local function rightFrame()
 
                             local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer
                             local finalXPos = minXPos
-                            if optionDef.Type == "SingleChoice" or optionDef.Type == "MultiChoice" then
+                            if optionDef.Type == "SingleChoice" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1) then
                                 -- leftmost xpos + big triangle + gap
                                 -- subtract by 25% of the big triangle size because the image is actually 25% invisible
                                 finalXPos = finalXPos + actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4
@@ -2269,15 +2373,20 @@ local function rightFrame()
                         InitCommand = function(self)
                             local txt = self:GetChild("Text")
                             local bg = self:GetChild("BG")
-
                             txt:halign(0)
-                            bg:halign(0)
                             txt:zoom(optionChoiceTextSize)
+                            txt:settext(" ")
+    
+                            bg:halign(0)
+                            -- fudge movement due to font misalign
+                            bg:y(1)
+                            bg:zoomto(0, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         end,
                         DrawChoiceCommand = function(self)
                             if optionDef ~= nil then
                                 if optionDef.Type == "MultiChoice" then
-                                    local choice = optionDef.Choices[n]
+                                    -- for Multi choice mode
+                                    local choice = optionDef.Choices[n * choicePage]
                                     if choice ~= nil then
                                         local txt = self:GetChild("Text")
                                         local bg = self:GetChild("BG")
@@ -2291,7 +2400,7 @@ local function rightFrame()
                                         end
                                         self:x(xPos)
                                         txt:settext(choice.Name)
-                                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.2)
+                                        bg:zoomx(txt:GetZoomedWidth())
 
                                         self:diffusealpha(1)
                                         self:z(1)
@@ -2301,10 +2410,11 @@ local function rightFrame()
                                         self:z(-1)
                                     end
                                 elseif optionDef.Type == "Button" then
+                                    -- Button is just one choice but lets use the option title as the choice (hide all choices)
                                     self:diffusealpha(0)
                                     self:z(-1)
                                 else
-                                    -- for Single choice mode
+                                    -- for Single choice mode only show first choice
                                     if n == 1 then
                                         local txt = self:GetChild("Text")
                                         local bg = self:GetChild("BG")
@@ -2317,8 +2427,9 @@ local function rightFrame()
                                             -- choices present means the getter supplies the choice index that contains the information
                                             txt:settext(optionDef.Choices[currentChoiceSelection].Name)
                                         else
-                                            txt:settext("invalid situation?")
+                                            txt:settext("INVALID CONTACT DEVELOPER")
                                         end
+                                        bg:zoomx(txt:GetZoomedWidth())
                                         self:diffusealpha(1)
                                         self:z(1)
                                     else
@@ -2326,6 +2437,14 @@ local function rightFrame()
                                         self:z(-1)
                                     end
                                 end
+                            end
+                        end,
+                        RolloverUpdateCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            if params.update == "in" then
+                                self:diffusealpha(buttonHoverAlpha)
+                            else
+                                self:diffusealpha(1)
                             end
                         end,
                     }
