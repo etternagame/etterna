@@ -642,12 +642,14 @@ local function rightFrame()
                         local increment = -1
                         if multiplier then increment = -50 end
                         optionData.speedMod.speed = optionData.speedMod.speed + increment
+                        if optionData.speedMod.speed <= 0 then optionData.speedMod.speed = 1 end
                         setSpeedValueFromOptionData()
                     end,
                     Right = function(multiplier)
                         local increment = 1
                         if multiplier then increment = 50 end
                         optionData.speedMod.speed = optionData.speedMod.speed + increment
+                        if optionData.speedMod.speed <= 0 then optionData.speedMod.speed = 1 end
                         setSpeedValueFromOptionData()
                     end,
                 },
@@ -667,7 +669,7 @@ local function rightFrame()
                 Choices = choiceSkeleton("Upscroll", "Downscroll"),
                 Directions = {
                     Toggle = function()
-                        if getPlayerOptions():UsingReverse() then
+                        if not getPlayerOptions():UsingReverse() then
                             -- 1 is 100% reverse which means on
                             setPlayerOptionsModValueAllLevels("Reverse", 1)
                         else
@@ -778,7 +780,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("GlobalOffsetSeconds"), 3)
+                    return notShit.round(PREFSMAN:GetPreference("GlobalOffsetSeconds"), 3) .. "s"
                 end,
             },
             {
@@ -786,7 +788,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3)
+                    return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
                 end,
             },
             {
@@ -1035,7 +1037,7 @@ local function rightFrame()
                     local o = {}
                     for i = 0, 10 do
                         o[#o+1] = {
-                            Name = i.."%",
+                            Name = notShit.round(i*10,0).."%",
                             ChosenFunction = function()
                                 optionData.screenFilter = notShit.round(i / 10, 1)
                             end,
@@ -1064,7 +1066,7 @@ local function rightFrame()
                     local o = {}
                     for i = 0, 10 do
                         o[#o+1] = {
-                            Name = i.."%",
+                            Name = notShit.round(i*10,0).."%",
                             ChosenFunction = function()
                                 PREFSMAN:SetPreference("BGBrightness", notShit.round(i / 10, 1))
                             end,
@@ -1914,10 +1916,47 @@ local function rightFrame()
             local previousDef = nil -- for tracking def changes to animate things in a slightly more intelligent way
             local previousPage = 1 -- for tracking page changes to animate things in a slightly more intelligent way
             local rowHandle = nil -- for accessing the row frame from other points of reference (within this function) instantly
+
+            -- convenience
+            local function redrawChoiceRelatedElements()
+                local rightpair = rowHandle:GetChild("RightTrianglePairFrame")
+                local right = rowHandle:GetChild("RightBigTriangleFrame")
+                local choices = rowHandle:GetChild("ChoiceFrame")
+                if choices ~= nil then
+                    choices:finishtweening()
+                    choices:diffusealpha(0)
+                    choices:smooth(optionRowAnimationSeconds)
+                    choices:diffusealpha(1)
+                    choices:playcommand("DrawElement")
+                end
+                if right ~= nil then
+                    right:playcommand("DrawElement")
+                end
+                if rightpair ~= nil then
+                    rightpair:playcommand("DrawElement")
+                end
+            end
+
             -- index of the choice for this option, if no choices then this is useless
             -- this can also be a table of indices for MultiChoice
             -- this can also just be a random number or text for some certain implementations of optionDefs as long as they conform
             local currentChoiceSelection = 1
+            -- move SingleChoice selection index (assuming a list of choices is present -- if not, another methodology is used)
+            local function moveChoiceSelection(n)
+                if optionDef == nil then return end
+
+                -- make selection loop both directions
+                local nn = currentChoiceSelection + n
+                if nn <= 0 then
+                    nn = n > 0 and 1 or #optionDef.Choices
+                elseif nn > #optionDef.Choices then
+                    nn = 1
+                end
+                currentChoiceSelection = nn
+                if rowHandle ~= nil then
+                    redrawChoiceRelatedElements()
+                end
+            end
             
             -- paginate choices according to maxChoicesVisibleMultiChoice
             local choicePage = 1
@@ -1934,7 +1973,7 @@ local function rightFrame()
                 end
                 choicePage = nn
                 if rowHandle ~= nil then
-                    rowHandle:playcommand("DrawRow")
+                    redrawChoiceRelatedElements()
                 end
             end
 
@@ -2202,7 +2241,40 @@ local function rightFrame()
                             self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
                         end,
                         InvokeCommand = function(self)
+                            if optionDef ~= nil then
+                                if optionDef.Type == "SingleChoiceModifier" then
+                                    -- SingleChoiceModifier selection mover
+                                    if optionDef.Directions ~= nil and optionDef.Directions.Toggle ~= nil then
+                                        -- Toggle SingleChoice (multiplier)
+                                        optionDef.Directions.Toggle(true)
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    elseif optionDef.Directions ~= nil and optionDef.Directions.Left ~= nil then
+                                        -- Move Left (multiplier)
+                                        optionDef.Directions.Left(true)
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    end
 
+                                    if optionDef.Choices ~= nil then
+                                        moveChoiceSelection(-2)
+                                    else
+                                        ms.ok("ERROR REPORT TO DEVELOPER")
+                                    end
+                                end
+                            end
+                        end,
+                        MouseDownCommand = function(self, params)
+                            if self:GetParent():IsInvisible() then return end
+                            if optionDef ~= nil then
+                                self:playcommand("Invoke")
+                            end
                         end,
                         MouseOverCommand = onHoverParent,
                         MouseOutCommand = onUnHoverParent,
@@ -2260,7 +2332,40 @@ local function rightFrame()
                             self:zoomto(actuals.OptionSmallTriangleHeight * 2 + actuals.OptionSmallTriangleGap, actuals.OptionBigTriangleWidth)
                         end,
                         InvokeCommand = function(self)
-                            
+                            if optionDef ~= nil then
+                                if optionDef.Type == "SingleChoiceModifier" then
+                                    -- SingleChoiceModifier selection mover
+                                    if optionDef.Directions ~= nil and optionDef.Directions.Toggle ~= nil then
+                                        -- Toggle SingleChoice (multiplier)
+                                        optionDef.Directions.Toggle(true)
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    elseif optionDef.Directions ~= nil and optionDef.Directions.Right ~= nil then
+                                        -- Move Right (multiplier)
+                                        optionDef.Directions.Right(true)
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    end
+
+                                    if optionDef.Choices ~= nil then
+                                        moveChoiceSelection(2)
+                                    else
+                                        ms.ok("ERROR REPORT TO DEVELOPER")
+                                    end
+                                end
+                            end
+                        end,
+                        MouseDownCommand = function(self, params)
+                            if self:GetParent():IsInvisible() then return end
+                            if optionDef ~= nil then
+                                self:playcommand("Invoke")
+                            end
                         end,
                         MouseOverCommand = onHoverParent,
                         MouseOutCommand = onUnHoverParent,
@@ -2316,6 +2421,29 @@ local function rightFrame()
                                     moveChoicePage(-1)
                                 elseif optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" then
                                     -- SingleChoice selection mover
+                                    if optionDef.Directions ~= nil and optionDef.Directions.Toggle ~= nil then
+                                        -- Toggle SingleChoices
+                                        optionDef.Directions.Toggle()
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    elseif optionDef.Directions ~= nil and optionDef.Directions.Left ~= nil then
+                                        -- Move Left (no multiplier)
+                                        optionDef.Directions.Left(false)
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    end
+
+                                    if optionDef.Choices ~= nil then
+                                        moveChoiceSelection(-1)
+                                    else
+                                        ms.ok("ERROR REPORT TO DEVELOPER")
+                                    end
                                 end
                             end
                         end,
@@ -2386,6 +2514,29 @@ local function rightFrame()
                                     moveChoicePage(1)
                                 elseif optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" then
                                     -- SingleChoice selection mover
+                                    if optionDef.Directions ~= nil and optionDef.Directions.Toggle ~= nil then
+                                        -- Toggle SingleChoices
+                                        optionDef.Directions.Toggle()
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    elseif optionDef.Directions ~= nil and optionDef.Directions.Right ~= nil then
+                                        -- Move Right (no multiplier)
+                                        optionDef.Directions.Right(false)
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        redrawChoiceRelatedElements()
+                                        return
+                                    end
+
+                                    if optionDef.Choices ~= nil then
+                                        moveChoiceSelection(1)
+                                    else
+                                        ms.ok("ERROR REPORT TO DEVELOPER")
+                                    end
                                 end
                             end
                         end,
