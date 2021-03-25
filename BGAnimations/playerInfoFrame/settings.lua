@@ -74,6 +74,7 @@ local optionChoiceTextSize = 0.7
 -- could also be moved even further for whatever accessibility concerns
 local textButtonHeightFudgeScalarMultiplier = 1.6
 local optionRowAnimationSeconds = 0.15
+local optionRowQuickAnimationSeconds = 0.07
 
 local maxExplanationTextLines = 2
 
@@ -314,13 +315,13 @@ local function rightFrame()
         return {
             Left = function()
                 local x = clamp(PREFSMAN:GetPreference(preferenceName), minValue, maxValue)
-                x = x - increment
+                x = notShit.round(x - increment, 3)
                 if x < minValue then x = maxValue end
                 PREFSMAN:SetPreference(preferenceName, notShit.round(x, 3))
             end,
             Right = function()
                 local x = clamp(PREFSMAN:GetPreference(preferenceName), minValue, maxValue)
-                x = x + increment
+                x = notShit.round(x + increment, 3)
                 if x > maxValue then x = minValue end
                 PREFSMAN:SetPreference(preferenceName, notShit.round(x, 3))
             end,
@@ -372,10 +373,17 @@ local function rightFrame()
         local displaySpecs = GetDisplaySpecs()
         for _, spec in ipairs(displaySpecs) do
             for __, mode in ipairs(spec:GetSupportedModes()) do
-                resolutions[#resolutions+1] = {
-                    w = mode:GetWidth(),
-                    h = mode:GetHeight(),
-                }
+                -- linear search? sure
+                local add = true
+                for ___, res in ipairs(resolutions) do
+                    if res.w == mode:GetWidth() and res.h == mode:GetHeight() then add = false break end
+                end
+                if add then
+                    resolutions[#resolutions+1] = {
+                        w = mode:GetWidth(),
+                        h = mode:GetHeight(),
+                    }
+                end
             end
         end
         return resolutions
@@ -501,7 +509,7 @@ local function rightFrame()
     --
     -- -----
 
-    local optionRowCount = 18
+    local optionRowCount = 17
     local maxChoicesVisibleMultiChoice = 4
 
     -- the names and order of the option pages
@@ -744,7 +752,7 @@ local function rightFrame()
                     end,
                 },
                 ChoiceIndexGetter = function()
-                    return optionData.receptorSize
+                    return optionData.receptorSize .. "%"
                 end,
             },
             {
@@ -1158,7 +1166,7 @@ local function rightFrame()
                         end,
                     },
                     {
-                        Name = "Additive",
+                        Name = "Extra Mines",
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("NoMines", false)
                             setPlayerOptionsModValueAllLevels("Mines", true)
@@ -1660,7 +1668,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("SoundVolume", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0)
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0) .. "%"
                 end,
             },
             {
@@ -1668,7 +1676,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("MuteActions", true, false),
-                ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", true),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", false),
             },
             {
                 Name = "Mine Sounds",
@@ -1713,7 +1721,7 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
-                    return PREFSMAN:GetPreference("InputDebounceTime")
+                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 2)
                 end,
             },
             {
@@ -1925,7 +1933,11 @@ local function rightFrame()
                 if choices ~= nil then
                     choices:finishtweening()
                     choices:diffusealpha(0)
-                    choices:smooth(optionRowAnimationSeconds)
+                    -- only animate the redraw for non single choices
+                    -- the choice item shouldnt move so this isnt so weird
+                    if optionDef ~= nil and optionDef.Type ~= "SingleChoice" and optionDef.Type ~= "SingleChoiceModifier" then
+                        choices:smooth(optionRowQuickAnimationSeconds)
+                    end
                     choices:diffusealpha(1)
                     choices:playcommand("DrawElement")
                 end
@@ -2157,6 +2169,27 @@ local function rightFrame()
                         end
                     end,
                 },
+                Def.Quad {
+                    Name = "MouseWheelRegion",
+                    InitCommand = function(self)
+                        self:halign(0)
+                        self:diffusealpha(0)
+                        self:zoomto(500, actuals.OptionAllottedHeight / optionRowCount)
+                    end,
+                    MouseScrollMessageCommand = function(self, params)
+                        if isOver(self) and focused and (optionDef ~= nil or categoryDef ~= nil) then
+                            if optionDef ~= nil then
+                                if optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice" then
+                                    if params.direction == "Up" then
+                                        rowHandle:GetChild("RightBigTriangleFrame"):playcommand("Invoke")
+                                    else
+                                        rowHandle:GetChild("LeftBigTriangleFrame"):playcommand("Invoke")
+                                    end
+                                end
+                            end
+                        end
+                    end
+                }
             }
 
             -- category arrow
@@ -2671,7 +2704,7 @@ local function rightFrame()
                 return t
             end
             t[#t+1] = createOptionRowChoices()
-
+            
             return t
         end
         for i = 1, optionRowCount do
