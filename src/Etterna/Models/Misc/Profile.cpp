@@ -464,6 +464,7 @@ Profile::AddStepTotals(int iTotalTapsAndHolds,
 					   int iTotalLifts)
 {
 	m_iTotalTapsAndHolds += iTotalTapsAndHolds;
+	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalJumps += iTotalJumps;
 	m_iTotalHolds += iTotalHolds;
 	m_iTotalRolls += iTotalRolls;
