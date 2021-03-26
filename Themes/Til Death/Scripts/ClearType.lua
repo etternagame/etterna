@@ -115,33 +115,35 @@ local function clearTypes(grade, playCount, perfcount, greatcount, misscount, re
 	playcount = playcount or 0
 	misscount = misscount or 0
 	clearlevel = 13 -- no play
+	greatOrWorseCount = greatcount + misscount
+	perfOrWorseCount = perfcount + greatOrWorseCount
 
 	if grade == 0 then
 		if playcount == 0 then
-			clearlevel = 13
+			clearlevel = 13 -- no play
 		end
 	else
-		if grade == "Grade_Failed" then -- failed
-			clearlevel = 11
-		elseif perfcount < 10 and perfcount > 1 then -- SDP
-			clearlevel = 3
-		elseif greatcount < 10 and greatcount > 1 then -- SDG
-			clearlevel = 6
-		elseif perfcount == 1 and greatcount + misscount == 0 then -- whiteflag
-			clearlevel = 2
-		elseif greatcount == 1 and misscount == 0 then -- blackflag
-			clearlevel = 5
-		elseif perfcount + greatcount + misscount == 0 then -- MFC
-			clearlevel = 1
-		elseif greatcount + misscount == 0 then -- PFC
-			clearlevel = 4
-		elseif misscount == 0 then -- FC
-			clearlevel = 7
+		if grade == "Grade_Failed" then
+			clearlevel = 11 -- failed
+		elseif perfOrWorseCount < 10 and perfOrWorseCount > 1 then
+			clearlevel = 3 -- SDP
+		elseif greatOrWorseCount < 10 and greatOrWorseCount > 1 then
+			clearlevel = 6 -- SDG
+		elseif perfcount == 1 and greatOrWorseCount == 0 then
+			clearlevel = 2 -- whiteflag
+		elseif greatcount == 1 and misscount == 0 then
+			clearlevel = 5 -- blackflag
+		elseif perfOrWorseCount == 0 then
+			clearlevel = 1 -- MFC
+		elseif greatOrWorseCount == 0 then
+			clearlevel = 4 -- PFC
+		elseif misscount == 0 then
+			clearlevel = 7 -- FC
 		else
 			if misscount == 1 then
 				clearlevel = 8 -- missflag
 			elseif misscount < 10 and misscount > 0 then
-				clearlevel = 9
+				clearlevel = 9 -- SDCB
 			else
 				clearlevel = 10 -- Clear
 			end
