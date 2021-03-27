@@ -25,12 +25,12 @@
 #  include <mach/mach_time.h>
 #endif
 
-#if defined _WIN32 || defined __CYGWIN__ || ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 ) || ( defined TARGET_OS_IOS && TARGET_OS_IOS == 1 )
+#if !defined TRACY_TIMER_FALLBACK && ( defined _WIN32 || defined __CYGWIN__ || ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 ) || ( defined TARGET_OS_IOS && TARGET_OS_IOS == 1 ) )
 #  define TRACY_HW_TIMER
 #endif
 
 #if !defined TRACY_HW_TIMER
-  #include <chrono>
+#  include <chrono>
 #endif
 
 #ifndef TracyConcat
@@ -144,7 +144,7 @@ public:
 #  elif defined __x86_64__ || defined _M_X64
         uint64_t rax, rdx;
         asm volatile ( "rdtsc" : "=a" (rax), "=d" (rdx) );
-        return ( rdx << 32 ) + rax;
+        return (int64_t)(( rdx << 32 ) + rax);
 #  else
 #    error "TRACY_HW_TIMER detection logic needs fixing"
 #  endif
@@ -168,6 +168,14 @@ public:
     {
         auto& p = GetProfiler();
         p.m_serialLock.lock();
+        return p.m_serialQueue.prepare_next();
+    }
+
+    static tracy_force_inline QueueItem* QueueSerialCallstack( void* ptr )
+    {
+        auto& p = GetProfiler();
+        p.m_serialLock.lock();
+        p.SendCallstackSerial( ptr );
         return p.m_serialQueue.prepare_next();
     }
 
@@ -283,7 +291,11 @@ public:
 #ifdef TRACY_ON_DEMAND
         if( !GetProfiler().IsConnected() ) return;
 #endif
-        if( callstack != 0 ) tracy::GetProfiler().SendCallstack( callstack );
+        if( callstack != 0 )
+        {
+            InitRPMallocThread();
+            tracy::GetProfiler().SendCallstack( callstack );
+        }
 
         TracyLfqPrepare( callstack == 0 ? QueueType::Message : QueueType::MessageCallstack );
         auto ptr = (char*)tracy_malloc( size );
@@ -299,7 +311,11 @@ public:
 #ifdef TRACY_ON_DEMAND
         if( !GetProfiler().IsConnected() ) return;
 #endif
-        if( callstack != 0 ) tracy::GetProfiler().SendCallstack( callstack );
+        if( callstack != 0 )
+        {
+            InitRPMallocThread();
+            tracy::GetProfiler().SendCallstack( callstack );
+        }
 
         TracyLfqPrepare( callstack == 0 ? QueueType::MessageLiteral : QueueType::MessageLiteralCallstack );
         MemWrite( &item->messageLiteral.time, GetTime() );
@@ -313,7 +329,11 @@ public:
 #ifdef TRACY_ON_DEMAND
         if( !GetProfiler().IsConnected() ) return;
 #endif
-        if( callstack != 0 ) tracy::GetProfiler().SendCallstack( callstack );
+        if( callstack != 0 )
+        {
+            InitRPMallocThread();
+            tracy::GetProfiler().SendCallstack( callstack );
+        }
 
         TracyLfqPrepare( callstack == 0 ? QueueType::MessageColor : QueueType::MessageColorCallstack );
         auto ptr = (char*)tracy_malloc( size );
@@ -332,7 +352,11 @@ public:
 #ifdef TRACY_ON_DEMAND
         if( !GetProfiler().IsConnected() ) return;
 #endif
-        if( callstack != 0 ) tracy::GetProfiler().SendCallstack( callstack );
+        if( callstack != 0 )
+        {
+            InitRPMallocThread();
+            tracy::GetProfiler().SendCallstack( callstack );
+        }
 
         TracyLfqPrepare( callstack == 0 ? QueueType::MessageLiteralColor : QueueType::MessageLiteralColorCallstack );
         MemWrite( &item->messageColorLiteral.time, GetTime() );
@@ -401,7 +425,7 @@ public:
         auto callstack = Callstack( depth );
 
         profiler.m_serialLock.lock();
-        SendCallstackMemory( callstack );
+        SendCallstackSerial( callstack );
         SendMemAlloc( QueueType::MemAllocCallstack, thread, ptr, size );
         profiler.m_serialLock.unlock();
 #else
@@ -423,7 +447,7 @@ public:
         auto callstack = Callstack( depth );
 
         profiler.m_serialLock.lock();
-        SendCallstackMemory( callstack );
+        SendCallstackSerial( callstack );
         SendMemFree( QueueType::MemFreeCallstack, thread, ptr );
         profiler.m_serialLock.unlock();
 #else
@@ -473,7 +497,7 @@ public:
         auto callstack = Callstack( depth );
 
         profiler.m_serialLock.lock();
-        SendCallstackMemory( callstack );
+        SendCallstackSerial( callstack );
         SendMemName( name );
         SendMemAlloc( QueueType::MemAllocCallstackNamed, thread, ptr, size );
         profiler.m_serialLock.unlock();
@@ -496,7 +520,7 @@ public:
         auto callstack = Callstack( depth );
 
         profiler.m_serialLock.lock();
-        SendCallstackMemory( callstack );
+        SendCallstackSerial( callstack );
         SendMemName( name );
         SendMemFree( QueueType::MemFreeCallstackNamed, thread, ptr );
         profiler.m_serialLock.unlock();
@@ -639,7 +663,7 @@ private:
     {
         assert( len <= TargetFrameSize );
         bool ret = true;
-        if( m_bufferOffset - m_bufferStart + len > TargetFrameSize )
+        if( m_bufferOffset - m_bufferStart + (int)len > TargetFrameSize )
         {
             ret = CommitData();
         }
@@ -667,16 +691,17 @@ private:
     void HandleParameter( uint64_t payload );
     void HandleSymbolQuery( uint64_t symbol );
     void HandleSymbolCodeQuery( uint64_t symbol, uint32_t size );
+    void HandleSourceCodeQuery();
 
     void CalibrateTimer();
     void CalibrateDelay();
     void ReportTopology();
 
-    static tracy_force_inline void SendCallstackMemory( void* ptr )
+    static tracy_force_inline void SendCallstackSerial( void* ptr )
     {
 #ifdef TRACY_HAS_CALLSTACK
         auto item = GetProfiler().m_serialQueue.prepare_next();
-        MemWrite( &item->hdr.type, QueueType::CallstackMemory );
+        MemWrite( &item->hdr.type, QueueType::CallstackSerial );
         MemWrite( &item->callstackFat.ptr, (uint64_t)ptr );
         GetProfiler().m_serialQueue.commit_next();
 #endif
@@ -735,7 +760,7 @@ private:
     uint64_t m_delay;
     std::atomic<int64_t> m_timeBegin;
     uint64_t m_mainThread;
-    uint64_t m_epoch;
+    uint64_t m_epoch, m_exectime;
     std::atomic<bool> m_shutdown;
     std::atomic<bool> m_shutdownManual;
     std::atomic<bool> m_shutdownFinished;
@@ -784,6 +809,9 @@ private:
 #endif
 
     ParameterCallback m_paramCallback;
+
+    char* m_queryData;
+    char* m_queryDataPtr;
 };
 
 }
