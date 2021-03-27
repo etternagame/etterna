@@ -158,6 +158,8 @@ local function leftFrame()
 end
 
 local function rightFrame()
+    -- to reach the explanation text from anywhere without all the noise
+    local explanationHandle = nil
 
     local t = Def.ActorFrame {
         Name = "RightFrame",
@@ -214,7 +216,8 @@ local function rightFrame()
                 --self:maxwidth((actuals.RightWidth - actuals.EdgePadding*2) / explanationTextSize - textZoomFudge)
                 self:wrapwidthpixels((actuals.RightWidth - actuals.EdgePadding * 2) / explanationTextSize)
                 self:maxheight((actuals.BottomLipHeight - actuals.EdgePadding * 2) / explanationTextSize)
-                self:settext("Explanations about optoins go here and im writing a long sentence so that the demonstration of automatic line breaks is completed.")
+                self:settext(" ")
+                explanationHandle = self
             end
         }
     }
@@ -599,6 +602,7 @@ local function rightFrame()
             {
                 Name = "Scroll Type",
                 Type = "SingleChoice",
+                Explanation = "XMod - BPM multiplier based scrolling. CMod - Constant scrolling. MMod - BPM based with a max speed.",
                 AssociatedOptions = {
                     "Scroll Speed",
                 },
@@ -645,6 +649,7 @@ local function rightFrame()
             {
                 Name = "Scroll Speed",
                 Type = "SingleChoiceModifier",
+                Explanation = "Change scroll speed value/modifier in increments of 1 or 50.",
                 Directions = {
                     Left = function(multiplier)
                         local increment = -1
@@ -674,6 +679,7 @@ local function rightFrame()
             {
                 Name = "Scroll Direction",
                 Type = "SingleChoice",
+                Explanation = "Direction of note scrolling: normal or down.",
                 Choices = choiceSkeleton("Upscroll", "Downscroll"),
                 Directions = {
                     Toggle = function()
@@ -697,6 +703,7 @@ local function rightFrame()
             {
                 Name = "Noteskin",
                 Type = "SingleChoice",
+                Explanation = "Skin of the notes.",
                 ChoiceIndexGetter = function()
                     local currentSkinName = getPlayerOptions():NoteSkin()
                     for i, name in ipairs(optionData.noteSkins.names) do
@@ -737,6 +744,7 @@ local function rightFrame()
             {
                 Name = "Receptor Size",
                 Type = "SingleChoice",
+                Explanation = "Size of receptors and notes. 50% Receptor Size may be called 100% Mini.",
                 Directions = {
                     Left = function()
                         local sz = optionData.receptorSize
@@ -758,6 +766,7 @@ local function rightFrame()
             {
                 Name = "Judge Difficulty",
                 Type = "SingleChoice",
+                Explanation = "Timing Window Difficulty. Higher is harder. All scores are converted to Judge 4 later.",
                 ChoiceIndexGetter = function()
                     local lowestJudgeDifficulty = 4
                     return GetTimingDifficulty() - (lowestJudgeDifficulty-1)
@@ -786,6 +795,7 @@ local function rightFrame()
             {
                 Name = "Global Offset",
                 Type = "SingleChoice",
+                Explanation = "Global Audio Offset in seconds. Negative numbers are early.",
                 Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("GlobalOffsetSeconds"), 3) .. "s"
@@ -794,6 +804,7 @@ local function rightFrame()
             {
                 Name = "Visual Delay",
                 Type = "SingleChoice",
+                Explanation = "Visual Note Delay in seconds. May be referred to as Judge Offset. Negative numbers are early.",
                 Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
@@ -802,6 +813,7 @@ local function rightFrame()
             {
                 Name = "Game Mode",
                 Type = "SingleChoice",
+                Explanation = "Dance - 3k/4k/8k | Solo - 6k | Pump - 5k/6k/10k | Beat - 5k+1/7k+1/10k+2/14k+2 | Kb7 - 7k | Popn - 5k/9k",
                 ChoiceIndexGetter = function()
                     for i = 1, #optionData.gameMode.modes do
                         if optionData.gameMode.modes[i] == optionData.gameMode.current then
@@ -827,6 +839,7 @@ local function rightFrame()
             {
                 Name = "Fail Type",
                 Type = "SingleChoice",
+                Explanation = "Toggle failure in Gameplay. Setting Fail Off invalidates scores if a fail would have actually occurred.",
                 ChoiceIndexGetter = function()
                     local failtypes = FailType
                     local failtype = getPlayerOptions():FailSetting()
@@ -853,6 +866,7 @@ local function rightFrame()
             {
                 Name = "Customize Playfield",
                 Type = "Button",
+                Explanation = "Customize Gameplay elements.",
                 Choices = {
                     {
                         Name = "Customize Playfield",
@@ -865,6 +879,7 @@ local function rightFrame()
             {
                 Name = "Customize Keybinds",
                 Type = "Button",
+                Explanation = "Customize Keybinds.",
                 Choices = {
                     {
                         Name = "Customize Keybinds",
@@ -882,6 +897,7 @@ local function rightFrame()
             {
                 Name = "Appearance",
                 Type = "MultiChoice",
+                Explanation = "Hidden - Notes disappear before receptor. Sudden - Notes appear later than usual. Stealth - Invisible notes. Blink - Notes flash.",
                 Choices = {
                     -- multiple choices allowed
                     floatSettingChoice("Hidden", "Hidden", 1, 0),
@@ -895,6 +911,7 @@ local function rightFrame()
             {
                 Name = "Perspective",
                 Type = "MultiChoice",
+                Explanation = "Controls tilt/skew of the Notefield.",
                 Choices = {
                     -- the numbers in these defs are like the percentages you would put in metrics instead
                     -- 1 is 100%
@@ -950,6 +967,7 @@ local function rightFrame()
             {
                 Name = "Mirror",
                 Type = "SingleChoice",
+                Explanation = "Horizontally flip Notedata.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
@@ -972,6 +990,7 @@ local function rightFrame()
             {
                 Name = "Hide Player UI",
                 Type = "MultiChoice",
+                Explanation = "Hide certain sets of elements from the Gameplay UI.",
                 Choices = {
                     floatSettingChoice("Hide Receptors", "Dark", 1, 0),
                     floatSettingChoice("Hide Judgment & Combo", "Blind", 1, 0),
@@ -980,6 +999,7 @@ local function rightFrame()
             {
                 Name = "Hidenote Judgment",
                 Type = "SingleChoice",
+                Explanation = "Notes must be hit with this judgment or better to disappear.",
                 Choices = {
                     {
                         Name = "Miss",
@@ -1034,6 +1054,7 @@ local function rightFrame()
             {
                 Name = "Default Centered NoteField",
                 Type = "SingleChoice",
+                Explanation = "Horizontally center the Notefield in Gameplay (Legacy Shortcut).",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("Center1Player", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Center1Player", true),
@@ -1041,6 +1062,7 @@ local function rightFrame()
             {
                 Name = "NoteField BG Opacity",
                 Type = "SingleChoice",
+                Explanation = "Set the opacity of the board behind the Notefield in Gameplay.",
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do
@@ -1070,6 +1092,7 @@ local function rightFrame()
             {
                 Name = "Background Brightness",
                 Type = "SingleChoice",
+                Explanation = "Set the brightness of the background in Gameplay. 0% will disable background loading.",
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do
@@ -1099,6 +1122,7 @@ local function rightFrame()
             {
                 Name = "Replay Mod Emulation",
                 Type = "SingleChoice",
+                Explanation = "Toggle temporarily using compatible mods that replays used when watching them.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ReplaysUseScoreMods", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysUseScoreMods", true),
@@ -1106,6 +1130,7 @@ local function rightFrame()
             {
                 Name = "Extra Scroll Mods",
                 Type = "MultiChoice",
+                Explanation = "Change scroll direction in more interesting ways.",
                 Choices = {
                     floatSettingChoice("Split", "Split", 1, 0),
                     floatSettingChoice("Alternate", "Alternate", 1, 0),
@@ -1116,6 +1141,7 @@ local function rightFrame()
             {
                 Name = "Fun Effects",
                 Type = "MultiChoice",
+                Explanation = "Visual scroll mods that are not for practical use.",
                 Choices = {
                     floatSettingChoice("Drunk", "Drunk", 1, 0),
                     floatSettingChoice("Confusion", "Confusion", 1, 0),
@@ -1134,6 +1160,7 @@ local function rightFrame()
             {
                 Name = "Acceleration",
                 Type = "MultiChoice",
+                Explanation = "Scroll speed mods usually not for practical use.",
                 Choices = {
                     floatSettingChoice("Boost", "Boost", 1, 0),
                     floatSettingChoice("Brake", "Brake", 1, 0),
@@ -1150,6 +1177,7 @@ local function rightFrame()
             {
                 Name = "Mines",
                 Type = "SingleChoice",
+                Explanation = "Toggle Mines. Extra Mines will replace entire rows of notes with mines.",
                 Choices = {
                     {
                         Name = "On",
@@ -1190,6 +1218,7 @@ local function rightFrame()
             {
                 Name = "Turn",
                 Type = "MultiChoice",
+                Explanation = "Modify Notedata by either shifting all notes or randomizing them.",
                 Choices = {
                     booleanSettingChoice("Backwards", "Backwards"),
                     booleanSettingChoice("Left", "Left"),
@@ -1202,6 +1231,7 @@ local function rightFrame()
             {
                 Name = "Pattern Transform",
                 Type = "MultiChoice",
+                Explanation = "Modify Notedata by inserting extra notes to create certain patterns.",
                 Choices = {
                     booleanSettingChoice("Echo", "Echo"),
                     booleanSettingChoice("Stomp", "Stomp"),
@@ -1213,6 +1243,7 @@ local function rightFrame()
             {
                 Name = "Hold Transform",
                 Type = "MultiChoice",
+                Explanation = "Modify holds in Notedata.",
                 Choices = {
                     booleanSettingChoice("Planted", "Planted"),
                     booleanSettingChoice("Floored", "Floored"),
@@ -1223,6 +1254,7 @@ local function rightFrame()
             {
                 Name = "Remove",
                 Type = "MultiChoice",
+                Explanation = "Remove certain notes, patterns, or types of notes.",
                 Choices = {
                     booleanSettingChoice("No Holds", "NoHolds"),
                     booleanSettingChoice("No Rolls", "NoRolls"),
@@ -1238,6 +1270,7 @@ local function rightFrame()
             {
                 Name = "Insert",
                 Type = "MultiChoice",
+                Explanation = "Modify Notedata by inserting extra notes to provide a certain feeling.",
                 Choices = {
                     booleanSettingChoice("Wide", "Wide"),
                     booleanSettingChoice("Big", "Big"),
@@ -1254,6 +1287,7 @@ local function rightFrame()
             {
                 Name = "Language",
                 Type = "SingleChoice",
+                Explanation = "Modify the game language.",
                 ChoiceGenerator = function()
                     local o = {}
                     for i, l in ipairs(optionData.language.list) do
@@ -1276,6 +1310,7 @@ local function rightFrame()
             {
                 Name = "Display Mode",
                 Type = "SingleChoice",
+                Explanation = "Change the game display mode. Borderless requires that you select your native fullscreen resolution.",
                 -- the idea behind Display Mode is to also allow selecting a Display to show the game
                 -- it is written into the lua side of the c++ options conf but unused everywhere as far as i know except maybe in linux
                 -- so here lets just hardcode windowed/fullscreen until that feature becomes a certain reality
@@ -1320,6 +1355,7 @@ local function rightFrame()
             {
                 Name = "Aspect Ratio",
                 Type = "SingleChoice",
+                Explanation = "Change the game aspect ratio.",
                 ChoiceGenerator = function()
                     local o = {}
                     for _, ratio in ipairs(optionData.display.ratios) do
@@ -1353,6 +1389,7 @@ local function rightFrame()
             {
                 Name = "Display Resolution",
                 Type = "SingleChoice",
+                Explanation = "Change the game display resolution.",
                 ChoiceGenerator = function()
                     local o = {}
 
@@ -1389,6 +1426,7 @@ local function rightFrame()
             {
                 Name = "Refresh Rate",
                 Type = "SingleChoice",
+                Explanation = "Change the game refresh rate. Set to default in most cases or if any issue occurs.",
                 ChoiceGenerator = function()
                     local o = {
                         {
@@ -1425,6 +1463,7 @@ local function rightFrame()
             {
                 Name = "Display Color Depth",
                 Type = "SingleChoice",
+                Explanation = "Change the color depth of the game according to your display. Usually not worth changing.",
                 Choices = {
                     basicNamedPreferenceChoice("DisplayColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("DisplayColorDepth", "32bit", 32),
@@ -1440,6 +1479,7 @@ local function rightFrame()
             {
                 Name = "Force High Resolution Textures",
                 Type = "SingleChoice",
+                Explanation = "Force high resolution textures. Turning this off disables the (doubleres) image tag.",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("HighResolutionTextures", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("HighResolutionTextures", true),
@@ -1447,6 +1487,7 @@ local function rightFrame()
             {
                 Name = "Texture Resolution",
                 Type = "SingleChoice",
+                Explanation = "Modify general texture resolution. Lower number will lower quality but may increase FPS.",
                 Choices = {
                     basicNamedPreferenceChoice("MaxTextureResolution", "256", 256),
                     basicNamedPreferenceChoice("MaxTextureResolution", "512", 512),
@@ -1466,6 +1507,7 @@ local function rightFrame()
             {
                 Name = "Texture Color Depth",
                 Type = "SingleChoice",
+                Explanation = "Change the color depth of the textures in the game. Usually not worth changing.",
                 Choices = {
                     basicNamedPreferenceChoice("TextureColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("TextureColorDepth", "32bit", 32),
@@ -1481,6 +1523,7 @@ local function rightFrame()
             {
                 Name = "Movie Color Depth",
                 Type = "SingleChoice",
+                Explanation = "Change the color depth of the movie textures in the game. Usually not worth changing.",
                 Choices = {
                     basicNamedPreferenceChoice("MovieColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("MovieColorDepth", "32bit", 32),
@@ -1496,6 +1539,7 @@ local function rightFrame()
             {
                 Name = "VSync",
                 Type = "SingleChoice",
+                Explanation = "Restrict the game refresh rate and FPS to the refresh rate you have set.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("Vsync", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Vsync", true),
@@ -1503,6 +1547,7 @@ local function rightFrame()
             {
                 Name = "Instant Search",
                 Type = "SingleChoice",
+                Explanation = "Song search behavior - turning this on will instantly update the song wheel as you type in song search.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirections("instantSearch", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("instantSearch", true),
@@ -1510,6 +1555,7 @@ local function rightFrame()
             {
                 Name = "Fast Note Rendering",
                 Type = "SingleChoice",
+                Explanation = "Optimize gameplay note rendering. Disable snap based noteskin features (not snaps themselves). Major boost to FPS.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("FastNoteRendering", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
@@ -1517,6 +1563,7 @@ local function rightFrame()
             {
                 Name = "Show Stats",
                 Type = "SingleChoice",
+                Explanation = "Show FPS display on screen.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowStats", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
@@ -1529,6 +1576,7 @@ local function rightFrame()
             {
                 Name = "Theme",
                 Type = "SingleChoice",
+                Explanation = "Change the overall skin of the game.",
                 ChoiceGenerator = function()
                     local o = {}
                     for _, name in ipairs(THEME:GetSelectableThemeNames()) do
@@ -1552,6 +1600,7 @@ local function rightFrame()
             {
                 Name = "Music Wheel Position",
                 Type = "SingleChoice",
+                Explanation = "Set the side of the screen for the music wheel.",
                 Choices = choiceSkeleton("Left", "Right"),
                 Directions = optionDataToggleDirections("wheelPosition", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("wheelPosition", true),
@@ -1559,6 +1608,7 @@ local function rightFrame()
             {
                 Name = "Show Backgrounds",
                 Type = "SingleChoice",
+                Explanation = "Toggle showing backgrounds everywhere.",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirections("showBackgrounds", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("showBackgrounds", true),
@@ -1566,6 +1616,7 @@ local function rightFrame()
             {
                 Name = "Easter Eggs & Toasties",
                 Type = "SingleChoice",
+                Explanation = "Toggle showing secret jokes and toasties.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EasterEggs", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EasterEggs", true),
@@ -1573,6 +1624,7 @@ local function rightFrame()
             {
                 Name = "Music Visualizer",
                 Type = "SingleChoice",
+                Explanation = "Toggle showing the visualizer in the song select screen.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirections("showVisualizer", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("showVisualizer", true),
@@ -1580,6 +1632,7 @@ local function rightFrame()
             {
                 Name = "Mid Grades",
                 Type = "SingleChoice",
+                Explanation = "Toggle showing the grades in between the major grades. Requires game restart.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("UseMidGrades", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("UseMidGrades", true),
@@ -1587,6 +1640,7 @@ local function rightFrame()
             {
                 Name = "SSRNorm Sort",
                 Type = "SingleChoice",
+                Explanation = "Toggle automatically sorting by and defaulting to the SSRNorm globally. The SSRNorm is the Judge 4 value of a highscore. Requires game restart.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
@@ -1594,6 +1648,7 @@ local function rightFrame()
             {
                 Name = "Show Lyrics",
                 Type = "SingleChoice",
+                Explanation = "Toggle showing lyrics for songs which contain compatible .lrc files.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowLyrics", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowLyrics", true),
@@ -1601,6 +1656,7 @@ local function rightFrame()
             {
                 Name = "Transliteration",
                 Type = "SingleChoice",
+                Explanation = "Toggle showing author-defined translations on song metadata fields.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
@@ -1617,6 +1673,7 @@ local function rightFrame()
             {
                 Name = "Tip Type",
                 Type = "SingleChoice",
+                Explanation = "Change the quips shown at the bottom of the evaluation screen.",
                 Choices = choiceSkeleton("Tips", "Quotes"),
                 Directions = optionDataToggleDirections("tipType", 1, 2),
                 ChoiceIndexGetter = optionDataToggleIndexGetter("tipType", 1),
@@ -1624,6 +1681,7 @@ local function rightFrame()
             {
                 Name = "Set BG Fit Mode",
                 Type = "SingleChoice",
+                Explanation = "Change the cropping strategy of background images.",
                 ChoiceGenerator = function()
                     local o = {}
                     for _, fit in ipairs(BackgroundFitMode) do
@@ -1649,6 +1707,7 @@ local function rightFrame()
             {
                 Name = "Color Config",
                 Type = "Button",
+                Explanation = "Modify the colors of this theme.",
                 Choices = {
                     {
                         Name = "Color Config",
@@ -1666,6 +1725,7 @@ local function rightFrame()
             {
                 Name = "Volume",
                 Type = "SingleChoice",
+                Explanation = "All sound volume.",
                 Directions = preferenceIncrementDecrementDirections("SoundVolume", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0) .. "%"
@@ -1674,6 +1734,7 @@ local function rightFrame()
             {
                 Name = "Menu Sounds",
                 Type = "SingleChoice",
+                Explanation = "Toggle sounds on menu items.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("MuteActions", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", false),
@@ -1681,6 +1742,7 @@ local function rightFrame()
             {
                 Name = "Mine Sounds",
                 Type = "SingleChoice",
+                Explanation = "Toggle sounds for mine explosions.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnableMineHitSound", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnableMineHitSound", true),
@@ -1688,6 +1750,7 @@ local function rightFrame()
             {
                 Name = "Pitch on Rates",
                 Type = "SingleChoice",
+                Explanation = "Toggle pitch changes for songs when using rates.",
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnablePitchRates", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnablePitchRates", true),
@@ -1695,6 +1758,7 @@ local function rightFrame()
             {
                 Name = "Calibrate Audio Sync",
                 Type = "Button",
+                Explanation = "Calibrate the audio sync for the entire game.",
                 Choices = {
                     {
                         Name = "Calibrate Audio Sync",
@@ -1712,6 +1776,7 @@ local function rightFrame()
             {
                 Name = "Back Delayed",
                 Type = "SingleChoice",
+                Explanation = "Modify the behavior of the back button in gameplay.",
                 Choices = choiceSkeleton("Hold", "Instant"),
                 Directions = preferenceToggleDirections("DelayedBack", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
@@ -1719,14 +1784,16 @@ local function rightFrame()
             {
                 Name = "Input Debounce Time",
                 Type = "SingleChoice",
+                Explanation = "Set the amount of time required between each repeated input.",
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 1, 0.01),
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 2)
+                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 2) .. "s"
                 end,
             },
             {
                 Name = "Test Input",
                 Type = "Button",
+                Explanation = "Enter a screen to test all input devices.",
                 Choices = {
                     {
                         Name = "Test Input",
@@ -1744,6 +1811,7 @@ local function rightFrame()
             {
                 Name = "Create Profile",
                 Type = "Button",
+                Explanation = "Create a new profile.",
                 Choices = {
                     {
                         Name = "Create Profile",
@@ -1756,6 +1824,7 @@ local function rightFrame()
             {
                 Name = "Rename Profile",
                 Type = "Button",
+                Explanation = "Rename an existing profile.",
                 Choices = {
                     {
                         Name = "Rename Profile",
@@ -1854,10 +1923,23 @@ local function rightFrame()
         -- index of the opened option category to know the index of the first valid option row to assign option defs
         local openedCategoryIndex = 1
 
+        local function updateExplainText(self)
+            if self.defInUse ~= nil and self.defInUse.Explanation ~= nil then
+                if explanationHandle ~= nil then
+                    explanationHandle:settext(self.defInUse.Explanation)
+                else
+                    explanationHandle:settext("")
+                end
+            else
+                explanationHandle:settext("")
+            end
+        end
+
         -- putting these functions here to save on space below, less copy pasting, etc
         local function onHover(self)
             if self:IsInvisible() then return end
             self:diffusealpha(buttonHoverAlpha)
+            updateExplainText(self:GetParent())
         end
         local function onUnHover(self)
             if self:IsInvisible() then return end
@@ -1866,6 +1948,7 @@ local function rightFrame()
         local function onHoverParent(self)
             if self:GetParent():IsInvisible() then return end
             self:GetParent():diffusealpha(buttonHoverAlpha)
+            updateExplainText(self:GetParent():GetParent())
         end
         local function onUnHoverParent(self)
             if self:GetParent():IsInvisible() then return end
@@ -2180,6 +2263,7 @@ local function rightFrame()
                         if self:IsInvisible() then return end
                         if params.update == "in" then
                             self:diffusealpha(buttonHoverAlpha)
+                            updateExplainText(self:GetParent())
                         else
                             self:diffusealpha(1)
                         end
@@ -2193,7 +2277,7 @@ local function rightFrame()
                         end
                     end,
                 },
-                Def.Quad {
+                UIElements.QuadButton(0, 1) .. {
                     Name = "MouseWheelRegion",
                     InitCommand = function(self)
                         self:halign(0)
@@ -2212,7 +2296,11 @@ local function rightFrame()
                                 end
                             end
                         end
-                    end
+                    end,
+                    MouseOverCommand = function(self)
+                        if not focused or optionDef == nil then return end
+                        updateExplainText(self:GetParent())
+                    end,
                 }
             }
 
@@ -2674,6 +2762,7 @@ local function rightFrame()
                                         self:x(xPos)
                                         txt:settext(choice.Name)
                                         bg:zoomx(txt:GetZoomedWidth())
+                                        bg:diffusealpha(0.1)
 
                                         self:diffusealpha(1)
                                         self:z(1)
@@ -2703,6 +2792,7 @@ local function rightFrame()
                                             txt:settext("INVALID CONTACT DEVELOPER")
                                         end
                                         bg:zoomx(txt:GetZoomedWidth())
+                                        bg:diffusealpha(0)
                                         self:diffusealpha(1)
                                         self:z(1)
                                     else
@@ -2719,6 +2809,7 @@ local function rightFrame()
                             if self:IsInvisible() then return end
                             if params.update == "in" then
                                 self:diffusealpha(buttonHoverAlpha)
+                                updateExplainText(self:GetParent():GetParent())
                             else
                                 self:diffusealpha(1)
                             end
