@@ -474,7 +474,7 @@ bool ListenSocket::Listen( uint16_t port, int backlog )
 
     struct addrinfo* res = nullptr;
 
-#ifndef TRACY_ONLY_IPV4
+#if !defined TRACY_ONLY_IPV4 && !defined TRACY_ONLY_LOCALHOST
     const char* onlyIPv4 = getenv( "TRACY_ONLY_IPV4" );
     if( !onlyIPv4 || onlyIPv4[0] != '1' )
     {
@@ -603,6 +603,7 @@ bool UdpBroadcast::Open( const char* addr, uint16_t port )
     if( !ptr ) return false;
 
     m_sock = sock;
+    inet_pton( AF_INET, addr, &m_addr );
     return true;
 }
 
@@ -623,7 +624,7 @@ int UdpBroadcast::Send( uint16_t port, const void* data, int len )
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons( port );
-    addr.sin_addr.s_addr = INADDR_BROADCAST;
+    addr.sin_addr.s_addr = m_addr;
     return sendto( m_sock, (const char*)data, len, MSG_NOSIGNAL, (sockaddr*)&addr, sizeof( addr ) );
 }
 

@@ -10,6 +10,7 @@
 
 #include <cctype>
 #include <chrono>
+#include <math.h>
 #include <string.h>
 
 #ifdef __MINGW32__
@@ -18,7 +19,7 @@
 #include <inttypes.h>
 #include <sys/stat.h>
 
-#include <capstone/capstone.h>
+#include <capstone.h>
 
 #include "../common/TracyProtocol.hpp"
 #include "../common/TracySystem.hpp"
@@ -274,12 +275,14 @@ Worker::Worker( const char* addr, uint16_t port )
     m_threadNet = std::thread( [this] { SetThreadName( "Tracy Network" ); Network(); } );
 }
 
-Worker::Worker( const std::string& program, const std::vector<ImportEventTimeline>& timeline, const std::vector<ImportEventMessages>& messages, const std::vector<ImportEventPlots>& plots )
+Worker::Worker( const char* name, const char* program, const std::vector<ImportEventTimeline>& timeline, const std::vector<ImportEventMessages>& messages, const std::vector<ImportEventPlots>& plots, const std::unordered_map<uint64_t, std::string>& threadNames )
     : m_hasData( true )
     , m_delay( 0 )
     , m_resolution( 0 )
+    , m_captureName( name )
     , m_captureProgram( program )
     , m_captureTime( 0 )
+    , m_executableTime( 0 )
     , m_pid( 0 )
     , m_samplingPeriod( 0 )
     , m_stream( nullptr )
@@ -427,9 +430,19 @@ Worker::Worker( const std::string& program, const std::vector<ImportEventTimelin
 
     for( auto& t : m_threadMap )
     {
-        char buf[64];
-        sprintf( buf, "%" PRIu64, t.first );
-        AddThreadString( t.first, buf, strlen( buf ) );
+        auto name = threadNames.find(t.first);
+        if (name != threadNames.end())
+        {
+            char buf[128];
+            int len = snprintf(buf, sizeof(buf), "(%" PRIu64 ") %s", t.first, name->second.c_str());
+            AddThreadString(t.first, buf, len);
+        }
+        else
+        {
+            char buf[64];
+            sprintf( buf, "%" PRIu64, t.first );
+            AddThreadString( t.first, buf, strlen( buf ) );
+        }
     }
 
     m_data.framesBase = m_data.frames.Retrieve( 0, [this] ( uint64_t name ) {
@@ -511,6 +524,8 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
         char tmp[1024];
         f.Read( tmp, sz );
         m_captureName = std::string( tmp, tmp+sz );
+        if (m_captureName.empty())
+            m_captureName = f.GetFilename();
     }
     {
         f.Read( sz );
@@ -519,6 +534,14 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
         f.Read( tmp, sz );
         m_captureProgram = std::string( tmp, tmp+sz );
         f.Read( m_captureTime );
+    }
+    if( fileVer >= FileVersion( 0, 7, 6 ) )
+    {
+        f.Read( m_executableTime );
+    }
+    else
+    {
+        m_executableTime = 0;
     }
     {
         f.Read( sz );
@@ -821,12 +844,24 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
         f.Skip( sz * ( sizeof( uint64_t ) + sizeof( MessageData::time ) + sizeof( MessageData::ref ) + sizeof( MessageData::color ) + sizeof( MessageData::callstack ) ) );
     }
 
-    if( fileVer >= FileVersion( 0, 6, 3 ) )
+    if( fileVer >= FileVersion( 0, 7, 5 ) )
     {
         f.Read( sz );
         assert( sz != 0 );
         m_data.zoneExtra.reserve_exact( sz, m_slab );
         f.Read( m_data.zoneExtra.data(), sz * sizeof( ZoneExtra ) );
+    }
+    else if( fileVer >= FileVersion( 0, 6, 3 ) )
+    {
+        f.Read( sz );
+        assert( sz != 0 );
+        m_data.zoneExtra.reserve_exact( sz, m_slab );
+        for( uint64_t i=0; i<sz; i++ )
+        {
+            auto* zoneExtra = &m_data.zoneExtra[i];
+            f.Read3( zoneExtra->callstack, zoneExtra->text, zoneExtra->name );
+            zoneExtra->color = 0;
+        }
     }
     else
     {
@@ -930,7 +965,13 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
     for( uint64_t i=0; i<sz; i++ )
     {
         auto ctx = m_slab.AllocInit<GpuCtxData>();
-        if( fileVer >= FileVersion( 0, 7, 1 ) )
+        if( fileVer >= FileVersion( 0, 7, 6 ) )
+        {
+            uint8_t calibration;
+            f.Read6( ctx->thread, calibration, ctx->count, ctx->period, ctx->type, ctx->name );
+            ctx->hasCalibration = calibration;
+        }
+        else if( fileVer >= FileVersion( 0, 7, 1 ) )
         {
             uint8_t calibration;
             f.Read5( ctx->thread, calibration, ctx->count, ctx->period, ctx->type );
@@ -2673,6 +2714,7 @@ void Worker::Exec()
         m_onDemand = welcome.onDemand;
         m_captureProgram = welcome.programName;
         m_captureTime = welcome.epoch;
+        m_executableTime = welcome.exectime;
         m_ignoreMemFreeFaults = welcome.onDemand || welcome.isApple;
         m_data.cpuArch = (CpuArchitecture)welcome.cpuArch;
         m_codeTransfer = welcome.codeTransfer;
@@ -2818,7 +2860,8 @@ void Worker::Exec()
                 m_data.plots.IsPending() || m_pendingCallstackId != 0 || m_pendingExternalNames != 0 ||
                 m_pendingCallstackSubframes != 0 || m_pendingFrameImageData.image != nullptr || !m_pendingSymbols.empty() ||
                 !m_pendingSymbolCode.empty() || m_pendingCodeInformation != 0 || !m_serverQueryQueue.empty() ||
-                m_pendingSourceLocationPayload != 0 || m_pendingSingleString.ptr != nullptr || m_pendingSecondString.ptr != nullptr )
+                m_pendingSourceLocationPayload != 0 || m_pendingSingleString.ptr != nullptr || m_pendingSecondString.ptr != nullptr ||
+                !m_sourceCodeQuery.empty() )
             {
                 continue;
             }
@@ -2951,9 +2994,13 @@ void Worker::DispatchFailure( const QueueItem& ev, const char*& ptr )
     {
         ptr += sizeof( QueueHeader ) + sizeof( QueueStringTransfer );
         if( ev.hdr.type == QueueType::FrameImageData ||
-            ev.hdr.type == QueueType::SymbolCode )
+            ev.hdr.type == QueueType::SymbolCode ||
+            ev.hdr.type == QueueType::SourceCode )
         {
-            if( ev.hdr.type == QueueType::SymbolCode ) m_serverQuerySpaceLeft++;
+            if( ev.hdr.type == QueueType::SymbolCode || ev.hdr.type == QueueType::SourceCode )
+            {
+                m_serverQuerySpaceLeft++;
+            }
             uint32_t sz;
             memcpy( &sz, ptr, sizeof( sz ) );
             ptr += sizeof( sz ) + sz;
@@ -3020,7 +3067,8 @@ void Worker::DispatchFailure( const QueueItem& ev, const char*& ptr )
                 break;
             case QueueType::SymbolInformation:
             case QueueType::CodeInformation:
-            case QueueType::ParamPingback:
+            case QueueType::AckServerQueryNoop:
+            case QueueType::AckSourceCodeNotAvailable:
                 m_serverQuerySpaceLeft++;
                 break;
             default:
@@ -3050,13 +3098,53 @@ void Worker::QueryTerminate()
     m_sock.Send( &query, ServerQueryPacketSize );
 }
 
+void Worker::QuerySourceFile( const char* fn )
+{
+    QueryDataTransfer( fn, strlen( fn ) + 1 );
+    Query( ServerQuerySourceCode, 0 );
+}
+
+void Worker::QueryDataTransfer( const void* ptr, size_t size )
+{
+    Query( ServerQueryDataTransfer, size );
+    auto data = (const char*)ptr;
+    while( size > 0 )
+    {
+        uint64_t d8;
+        uint32_t d4;
+        if( size >= 12 )
+        {
+            memcpy( &d8, data, 8 );
+            memcpy( &d4, data+8, 4 );
+            data += 12;
+            size -= 12;
+        }
+        else if( size > 8 )
+        {
+            memcpy( &d8, data, 8 );
+            memset( &d4, 0, 4 );
+            memcpy( &d4, data+8, size-8 );
+            size = 0;
+        }
+        else
+        {
+            memset( &d8, 0, 8 );
+            memset( &d4, 0, 4 );
+            memcpy( &d8, data, size );
+            size = 0;
+        }
+        Query( ServerQueryDataTransferPart, d8, d4 );
+    }
+}
+
 bool Worker::DispatchProcess( const QueueItem& ev, const char*& ptr )
 {
     if( ev.hdr.idx >= (int)QueueType::StringData )
     {
         ptr += sizeof( QueueHeader ) + sizeof( QueueStringTransfer );
         if( ev.hdr.type == QueueType::FrameImageData ||
-            ev.hdr.type == QueueType::SymbolCode )
+            ev.hdr.type == QueueType::SymbolCode ||
+            ev.hdr.type == QueueType::SourceCode )
         {
             uint32_t sz;
             memcpy( &sz, ptr, sizeof( sz ) );
@@ -3068,6 +3156,10 @@ bool Worker::DispatchProcess( const QueueItem& ev, const char*& ptr )
                 break;
             case QueueType::SymbolCode:
                 AddSymbolCode( ev.stringTransfer.ptr, ptr, sz );
+                m_serverQuerySpaceLeft++;
+                break;
+            case QueueType::SourceCode:
+                AddSourceCode( ptr, sz );
                 m_serverQuerySpaceLeft++;
                 break;
             default:
@@ -3657,6 +3749,18 @@ void Worker::AddSymbolCode( uint64_t ptr, const char* data, size_t sz )
     cs_close( &handle );
 }
 
+
+void Worker::AddSourceCode( const char* data, size_t sz )
+{
+    assert( !m_sourceCodeQuery.empty() );
+    auto file = m_sourceCodeQuery.front();
+    m_sourceCodeQuery.erase( m_sourceCodeQuery.begin() );
+    if( m_data.sourceFileCache.find( file ) != m_data.sourceFileCache.end() ) return;
+    auto src = (char*)m_slab.AllocBig( sz );
+    memcpy( src, data, sz );
+    m_data.sourceFileCache.emplace( file, MemoryBlock{ src, uint32_t( sz ) } );
+}
+
 CallstackFrameId Worker::PackPointer( uint64_t ptr ) const
 {
     assert( ( ( ptr & 0x3000000000000000 ) << 2 ) == ( ptr & 0xC000000000000000 ) );
@@ -4115,6 +4219,9 @@ bool Worker::Process( const QueueItem& ev )
     case QueueType::ZoneName:
         ProcessZoneName();
         break;
+    case QueueType::ZoneColor:
+        ProcessZoneColor( ev.zoneColor );
+        break;
     case QueueType::ZoneValue:
         ProcessZoneValue( ev.zoneValue );
         break;
@@ -4190,6 +4297,12 @@ bool Worker::Process( const QueueItem& ev )
     case QueueType::GpuZoneBeginCallstack:
         ProcessGpuZoneBeginCallstack( ev.gpuZoneBegin, false );
         break;
+    case QueueType::GpuZoneBeginAllocSrcLoc:
+        ProcessGpuZoneBeginAllocSrcLoc( ev.gpuZoneBeginLean, false );
+        break;
+    case QueueType::GpuZoneBeginAllocSrcLocCallstack:
+        ProcessGpuZoneBeginAllocSrcLocCallstack( ev.gpuZoneBeginLean, false );
+        break;
     case QueueType::GpuZoneEnd:
         ProcessGpuZoneEnd( ev.gpuZoneEnd, false );
         break;
@@ -4199,6 +4312,12 @@ bool Worker::Process( const QueueItem& ev )
     case QueueType::GpuZoneBeginCallstackSerial:
         ProcessGpuZoneBeginCallstack( ev.gpuZoneBegin, true );
         break;
+    case QueueType::GpuZoneBeginAllocSrcLocSerial:
+        ProcessGpuZoneBeginAllocSrcLoc( ev.gpuZoneBeginLean, true );
+        break;
+    case QueueType::GpuZoneBeginAllocSrcLocCallstackSerial:
+        ProcessGpuZoneBeginAllocSrcLocCallstack( ev.gpuZoneBeginLean, true );
+        break;
     case QueueType::GpuZoneEndSerial:
         ProcessGpuZoneEnd( ev.gpuZoneEnd, true );
         break;
@@ -4207,6 +4326,9 @@ bool Worker::Process( const QueueItem& ev )
         break;
     case QueueType::GpuCalibration:
         ProcessGpuCalibration( ev.gpuCalibration );
+        break;
+    case QueueType::GpuContextName:
+        ProcessGpuContextName( ev.gpuContextName );
         break;
     case QueueType::MemAlloc:
         ProcessMemAlloc( ev.memAlloc );
@@ -4232,8 +4354,8 @@ bool Worker::Process( const QueueItem& ev )
     case QueueType::MemFreeCallstackNamed:
         ProcessMemFreeCallstackNamed( ev.memFree );
         break;
-    case QueueType::CallstackMemory:
-        ProcessCallstackMemory();
+    case QueueType::CallstackSerial:
+        ProcessCallstackSerial();
         break;
     case QueueType::Callstack:
     case QueueType::CallstackAlloc:
@@ -4283,7 +4405,12 @@ bool Worker::Process( const QueueItem& ev )
     case QueueType::ParamSetup:
         ProcessParamSetup( ev.paramSetup );
         break;
-    case QueueType::ParamPingback:
+    case QueueType::AckServerQueryNoop:
+        m_serverQuerySpaceLeft++;
+        break;
+    case QueueType::AckSourceCodeNotAvailable:
+        assert( !m_sourceCodeQuery.empty() );
+        m_sourceCodeQuery.erase( m_sourceCodeQuery.begin() );
         m_serverQuerySpaceLeft++;
         break;
     case QueueType::CpuTopology:
@@ -4326,6 +4453,24 @@ void Worker::ProcessZoneBeginImpl( ZoneEvent* zone, const QueueZoneBegin& ev )
     NewZone( zone, m_threadCtx );
 }
 
+void Worker::ProcessZoneBeginAllocSrcLocImpl( ZoneEvent* zone, const QueueZoneBeginLean& ev )
+{
+    assert( m_pendingSourceLocationPayload != 0 );
+
+    const auto refTime = m_refTimeThread + ev.time;
+    m_refTimeThread = refTime;
+    const auto start = TscTime( refTime - m_data.baseTime );
+    zone->SetStartSrcLoc( start, m_pendingSourceLocationPayload );
+    zone->SetEnd( -1 );
+    zone->SetChild( -1 );
+
+    if( m_data.lastTime < start ) m_data.lastTime = start;
+
+    NewZone( zone, m_threadCtx );
+
+    m_pendingSourceLocationPayload = 0;
+}
+
 ZoneEvent* Worker::AllocZoneEvent()
 {
     ZoneEvent* ret;
@@ -4360,24 +4505,6 @@ void Worker::ProcessZoneBeginCallstack( const QueueZoneBegin& ev )
     auto& extra = RequestZoneExtra( *zone );
     extra.callstack.SetVal( it->second );
     it->second = 0;
-}
-
-void Worker::ProcessZoneBeginAllocSrcLocImpl( ZoneEvent* zone, const QueueZoneBeginLean& ev )
-{
-    assert( m_pendingSourceLocationPayload != 0 );
-
-    const auto refTime = m_refTimeThread + ev.time;
-    m_refTimeThread = refTime;
-    const auto start = TscTime( refTime - m_data.baseTime );
-    zone->SetStartSrcLoc( start, m_pendingSourceLocationPayload );
-    zone->SetEnd( -1 );
-    zone->SetChild( -1 );
-
-    if( m_data.lastTime < start ) m_data.lastTime = start;
-
-    NewZone( zone, m_threadCtx );
-
-    m_pendingSourceLocationPayload = 0;
 }
 
 void Worker::ProcessZoneBeginAllocSrcLoc( const QueueZoneBeginLean& ev )
@@ -4505,6 +4632,12 @@ void Worker::ZoneTextFailure( uint64_t thread )
     m_failureData.thread = thread;
 }
 
+void Worker::ZoneColorFailure( uint64_t thread )
+{
+    m_failure = Failure::ZoneColor;
+    m_failureData.thread = thread;
+}
+
 void Worker::ZoneNameFailure( uint64_t thread )
 {
     m_failure = Failure::ZoneName;
@@ -4515,7 +4648,7 @@ void Worker::MemFreeFailure( uint64_t thread )
 {
     m_failure = Failure::MemFree;
     m_failureData.thread = thread;
-    m_failureData.callstack = m_memNextCallstack;
+    m_failureData.callstack = m_serialNextCallstack;
 }
 
 void Worker::FrameEndFailure()
@@ -4737,6 +4870,23 @@ void Worker::ProcessZoneName()
     extra.name = StringIdx( GetSingleStringIdx() );
 }
 
+void Worker::ProcessZoneColor( const QueueZoneColor& ev )
+{
+    auto td = RetrieveThread( m_threadCtx );
+    if( !td || td->stack.empty() || td->nextZoneId != td->zoneIdStack.back() )
+    {
+        ZoneColorFailure( m_threadCtx );
+        return;
+    }
+
+    td->nextZoneId = 0;
+    auto& stack = td->stack;
+    auto zone = stack.back();
+    auto& extra = RequestZoneExtra( *zone );
+    const uint32_t color = ( ev.b << 16 ) | ( ev.g << 8 ) | ev.r;
+    extra.color = color;
+}
+
 void Worker::ProcessZoneValue( const QueueZoneValue& ev )
 {
     char tmp[32];
@@ -4942,6 +5092,18 @@ void Worker::ProcessLockName( const QueueLockName& ev )
 
 void Worker::ProcessPlotData( const QueuePlotData& ev )
 {
+    switch( ev.type )
+    {
+    case PlotDataType::Double:
+        if( !isfinite( ev.data.d ) ) return;
+        break;
+    case PlotDataType::Float:
+        if( !isfinite( ev.data.f ) ) return;
+        break;
+    default:
+        break;
+    }
+
     PlotData* plot = m_data.plots.Retrieve( ev.name, [this] ( uint64_t name ) {
         auto plot = m_slab.AllocInit<PlotData>();
         plot->name = name;
@@ -5122,12 +5284,25 @@ void Worker::ProcessGpuNewContext( const QueueGpuNewContext& ev )
 
 void Worker::ProcessGpuZoneBeginImpl( GpuEvent* zone, const QueueGpuZoneBegin& ev, bool serial )
 {
+    CheckSourceLocation( ev.srcloc );
+    zone->SetSrcLoc( ShrinkSourceLocation( ev.srcloc ) );
+    ProcessGpuZoneBeginImplCommon( zone, ev, serial );
+}
+
+void Worker::ProcessGpuZoneBeginAllocSrcLocImpl( GpuEvent* zone, const QueueGpuZoneBeginLean& ev, bool serial )
+{
+    assert( m_pendingSourceLocationPayload != 0 );
+    zone->SetSrcLoc( m_pendingSourceLocationPayload );
+    ProcessGpuZoneBeginImplCommon( zone, ev, serial );
+    m_pendingSourceLocationPayload = 0;
+}
+
+void Worker::ProcessGpuZoneBeginImplCommon( GpuEvent* zone, const QueueGpuZoneBeginLean& ev, bool serial )
+{
     m_data.gpuCnt++;
 
-    auto ctx = m_gpuCtxMap[ev.context];
+    auto ctx = m_gpuCtxMap[ev.context].get();
     assert( ctx );
-
-    CheckSourceLocation( ev.srcloc );
 
     int64_t cpuTime;
     if( serial )
@@ -5145,7 +5320,6 @@ void Worker::ProcessGpuZoneBeginImpl( GpuEvent* zone, const QueueGpuZoneBegin& e
     zone->SetCpuEnd( -1 );
     zone->SetGpuStart( -1 );
     zone->SetGpuEnd( -1 );
-    zone->SetSrcLoc( ShrinkSourceLocation( ev.srcloc ) );
     zone->callstack.SetVal( 0 );
     zone->SetChild( -1 );
 
@@ -5201,10 +5375,44 @@ void Worker::ProcessGpuZoneBeginCallstack( const QueueGpuZoneBegin& ev, bool ser
 {
     auto zone = m_slab.Alloc<GpuEvent>();
     ProcessGpuZoneBeginImpl( zone, ev, serial );
-    auto it = m_nextCallstack.find( m_threadCtx );
-    assert( it != m_nextCallstack.end() );
-    zone->callstack.SetVal( it->second );
-    it->second = 0;
+    if( serial )
+    {
+        assert( m_serialNextCallstack != 0 );
+        zone->callstack.SetVal( m_serialNextCallstack );
+        m_serialNextCallstack = 0;
+    }
+    else
+    {
+        auto it = m_nextCallstack.find( m_threadCtx );
+        assert( it != m_nextCallstack.end() );
+        zone->callstack.SetVal( it->second );
+        it->second = 0;
+    }
+}
+
+void Worker::ProcessGpuZoneBeginAllocSrcLoc( const QueueGpuZoneBeginLean& ev, bool serial )
+{
+    auto zone = m_slab.Alloc<GpuEvent>();
+    ProcessGpuZoneBeginAllocSrcLocImpl( zone, ev, serial );
+}
+
+void Worker::ProcessGpuZoneBeginAllocSrcLocCallstack( const QueueGpuZoneBeginLean& ev, bool serial )
+{
+    auto zone = m_slab.Alloc<GpuEvent>();
+    ProcessGpuZoneBeginAllocSrcLocImpl( zone, ev, serial );
+    if( serial )
+    {
+        assert( m_serialNextCallstack != 0 );
+        zone->callstack.SetVal( m_serialNextCallstack );
+        m_serialNextCallstack = 0;
+    }
+    else
+    {
+        auto it = m_nextCallstack.find( m_threadCtx );
+        assert( it != m_nextCallstack.end() );
+        zone->callstack.SetVal( it->second );
+        it->second = 0;
+    }
 }
 
 void Worker::ProcessGpuZoneEnd( const QueueGpuZoneEnd& ev, bool serial )
@@ -5314,6 +5522,14 @@ void Worker::ProcessGpuCalibration( const QueueGpuCalibration& ev )
     ctx->calibrationMod = double( cpuDelta ) / gpuDelta;
     ctx->calibratedGpuTime = gpuTime;
     ctx->calibratedCpuTime = TscTime( ev.cpuTime - m_data.baseTime );
+}
+
+void Worker::ProcessGpuContextName( const QueueGpuContextName& ev )
+{
+    auto ctx = m_gpuCtxMap[ev.context];
+    assert( ctx );
+    const auto idx = GetSingleStringIdx();
+    ctx->name = StringIdx( idx );
 }
 
 MemEvent* Worker::ProcessMemAllocImpl( uint64_t memname, MemData& memdata, const QueueMemAlloc& ev )
@@ -5434,9 +5650,9 @@ void Worker::ProcessMemAllocCallstack( const QueueMemAlloc& ev )
 {
     auto mem = ProcessMemAlloc( ev );
     assert( mem );
-    assert( m_memNextCallstack != 0 );
-    mem->SetCsAlloc( m_memNextCallstack );
-    m_memNextCallstack = 0;
+    assert( m_serialNextCallstack != 0 );
+    mem->SetCsAlloc( m_serialNextCallstack );
+    m_serialNextCallstack = 0;
 }
 
 void Worker::ProcessMemAllocCallstackNamed( const QueueMemAlloc& ev )
@@ -5453,17 +5669,17 @@ void Worker::ProcessMemAllocCallstackNamed( const QueueMemAlloc& ev )
     }
     auto mem = ProcessMemAllocImpl( memname, *it->second, ev );
     assert( mem );
-    assert( m_memNextCallstack != 0 );
-    mem->SetCsAlloc( m_memNextCallstack );
-    m_memNextCallstack = 0;
+    assert( m_serialNextCallstack != 0 );
+    mem->SetCsAlloc( m_serialNextCallstack );
+    m_serialNextCallstack = 0;
 }
 
 void Worker::ProcessMemFreeCallstack( const QueueMemFree& ev )
 {
     auto mem = ProcessMemFree( ev );
-    assert( m_memNextCallstack != 0 );
-    if( mem ) mem->csFree.SetVal( m_memNextCallstack );
-    m_memNextCallstack = 0;
+    assert( m_serialNextCallstack != 0 );
+    if( mem ) mem->csFree.SetVal( m_serialNextCallstack );
+    m_serialNextCallstack = 0;
 }
 
 void Worker::ProcessMemFreeCallstackNamed( const QueueMemFree& ev )
@@ -5479,16 +5695,16 @@ void Worker::ProcessMemFreeCallstackNamed( const QueueMemFree& ev )
         it->second->name = memname;
     }
     auto mem = ProcessMemFreeImpl( memname, *it->second, ev );
-    assert( m_memNextCallstack != 0 );
-    if( mem ) mem->csFree.SetVal( m_memNextCallstack );
-    m_memNextCallstack = 0;
+    assert( m_serialNextCallstack != 0 );
+    if( mem ) mem->csFree.SetVal( m_serialNextCallstack );
+    m_serialNextCallstack = 0;
 }
 
-void Worker::ProcessCallstackMemory()
+void Worker::ProcessCallstackSerial()
 {
     assert( m_pendingCallstackId != 0 );
-    assert( m_memNextCallstack == 0 );
-    m_memNextCallstack = m_pendingCallstackId;
+    assert( m_serialNextCallstack == 0 );
+    m_serialNextCallstack = m_pendingCallstackId;
     m_pendingCallstackId = 0;
 }
 
@@ -6652,6 +6868,7 @@ void Worker::Write( FileWrite& f )
     f.Write( m_captureProgram.c_str(), sz );
 
     f.Write( &m_captureTime, sizeof( m_captureTime ) );
+    f.Write( &m_executableTime, sizeof( m_executableTime ) );
 
     sz = m_hostInfo.size();
     f.Write( &sz, sizeof( sz ) );
@@ -6887,6 +7104,7 @@ void Worker::Write( FileWrite& f )
         f.Write( &ctx->count, sizeof( ctx->count ) );
         f.Write( &ctx->period, sizeof( ctx->period ) );
         f.Write( &ctx->type, sizeof( ctx->type ) );
+        f.Write( &ctx->name, sizeof( ctx->name ) );
         sz = ctx->threadData.size();
         f.Write( &sz, sizeof( sz ) );
         for( auto& td : ctx->threadData )
@@ -7208,6 +7426,7 @@ static const char* s_failureReasons[] = {
     "Invalid order of zone begin and end events.",
     "Zone is ended twice.",
     "Zone text transfer destination doesn't match active zone.",
+    "Zone color transfer destination doesn't match active zone.",
     "Zone name transfer destination doesn't match active zone.",
     "Memory free event without a matching allocation.",
     "Discontinuous frame begin/end mismatch.",
@@ -7265,20 +7484,24 @@ void Worker::CacheSource( const StringRef& str )
     assert( m_checkedFileStrings.find( str ) == m_checkedFileStrings.end() );
     m_checkedFileStrings.emplace( str );
     auto file = GetString( str );
-    if( SourceFileValid( file, GetCaptureTime() ) )
+    // Possible duplication of pointer and index strings
+    if( m_data.sourceFileCache.find( file ) != m_data.sourceFileCache.end() ) return;
+    const auto execTime = GetExecutableTime();
+    if( SourceFileValid( file, execTime != 0 ? execTime : GetCaptureTime() ) )
     {
-        // Possible duplication of pointer and index strings
-        if( m_data.sourceFileCache.find( file ) == m_data.sourceFileCache.end() )
-        {
-            FILE* f = fopen( file, "rb" );
-            fseek( f, 0, SEEK_END );
-            const auto sz = ftell( f );
-            fseek( f, 0, SEEK_SET );
-            auto src = (char*)m_slab.AllocBig( sz );
-            fread( src, 1, sz, f );
-            fclose( f );
-            m_data.sourceFileCache.emplace( file, MemoryBlock{ src, uint32_t( sz ) } );
-        }
+        FILE* f = fopen( file, "rb" );
+        fseek( f, 0, SEEK_END );
+        const auto sz = ftell( f );
+        fseek( f, 0, SEEK_SET );
+        auto src = (char*)m_slab.AllocBig( sz );
+        fread( src, 1, sz, f );
+        fclose( f );
+        m_data.sourceFileCache.emplace( file, MemoryBlock{ src, uint32_t( sz ) } );
+    }
+    else if( execTime != 0 )
+    {
+        m_sourceCodeQuery.emplace_back( file );
+        QuerySourceFile( file );
     }
 }
 
