@@ -290,6 +290,16 @@ NoteSkinManager::ValidateNoteSkinName(std::string& name)
 	}
 }
 
+std::string
+NoteSkinManager::GetFirstWorkingNoteSkin()
+{
+	vector<std::string> all_names;
+	GetAllNoteSkinNamesForGame(GAMESTATE->m_pCurGame, all_names);
+	if (all_names.size() > 0)
+		return all_names[0];
+	return "";
+}
+
 void
 NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
 											vector<std::string>& AddTo)

@@ -31,6 +31,8 @@ class NoteSkinManager
 
 	void ValidateNoteSkinName(std::string& name);
 
+	auto GetFirstWorkingNoteSkin() -> std::string;
+
 	void SetCurrentNoteSkin(const std::string& sNoteSkin)
 	{
 		m_sCurrentNoteSkin = sNoteSkin;

@@ -16,6 +16,7 @@
 #include <limits>
 
 #include "Etterna/Models/Misc/CommonMetrics.h"
+#include "Etterna/Singletons/NoteSkinManager.h"
 
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
@@ -213,6 +214,10 @@ NoteFieldPreview::ensure_note_displays_have_skin()
 		if (sNoteSkinLower.empty()) {
 			sNoteSkinLower = make_lower(CommonMetrics::DEFAULT_NOTESKIN_NAME);
 		}
+
+		// force this to work whether you like it or not
+		if (!NOTESKIN->DoesNoteSkinExist(sNoteSkinLower))
+			sNoteSkinLower = make_lower(NOTESKIN->GetFirstWorkingNoteSkin());
 
 		CacheNoteSkin(sNoteSkinLower);
 		
