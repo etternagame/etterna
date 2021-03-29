@@ -16,6 +16,8 @@
 #include <numeric>
 #include <algorithm>
 
+#include "GameManager.h"
+
 using std::lock_guard;
 using std::mutex;
 
@@ -566,8 +568,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 										musicrate,
 										ssrpercent,
 										per_thread_calc.get());
-				} else if (steps->m_StepsType == StepsType_dance_solo) {
-					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
+				} else if (steps->m_StepsType != StepsType_dance_single) {
+					int columnCount =
+					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
 				}
 
 				auto ssrVals = dakine;

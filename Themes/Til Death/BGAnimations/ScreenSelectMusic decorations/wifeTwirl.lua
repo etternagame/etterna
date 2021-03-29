@@ -370,14 +370,9 @@ t[#t + 1] =
 			MintyFreshCommand = function(self)
 				if song then
                     local stype = steps:GetStepsType()
-					if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
-						local meter = steps:GetMSD(getCurRateValue(), 1)
-						self:settextf("%05.2f", meter)
-						self:diffuse(byMSD(meter))
-					else
-						self:settextf("%5.2f", steps:GetMeter()) -- fallthrough to pre-defined meters for non 4k charts -mina
-						self:diffuse(byDifficulty(steps:GetDifficulty()))
-					end
+					local meter = steps:GetMSD(getCurRateValue(), 1)
+					self:settextf("%05.2f", meter)
+					self:diffuse(byMSD(meter))
 				else
 					self:settext("")
 				end

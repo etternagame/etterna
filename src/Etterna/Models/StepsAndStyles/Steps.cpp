@@ -425,8 +425,10 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	const auto& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	if (m_StepsType == StepsType_dance_solo) {
-		diffByRate = SoloCalc(cereal);
+	if (m_StepsType != StepsType_dance_single) {
+		int columnCount =
+		  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
+		diffByRate = SoloCalc(cereal, columnCount);
 	} else if (m_StepsType == StepsType_dance_single) {
 		if (calc == nullptr) {
 			// reloading at music select
@@ -945,8 +947,10 @@ class LunaSteps : public Luna<Steps>
 		}
 		std::vector<float> d;
 
-		if (p->m_StepsType == StepsType_dance_solo) {
-			d = SoloCalc(ni, rate, goal);
+		if (p->m_StepsType != StepsType_dance_single) {
+			int columnCount =
+			  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
+			d = SoloCalc(ni, columnCount, rate, goal);
 		} else {
 			d = MinaSDCalc(ni, rate, goal, SONGMAN->calc.get());
 		}
