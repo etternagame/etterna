@@ -32,19 +32,13 @@ local function makeABar(vertices, x, y, barWidth, barHeight, prettycolor)
 	vertices[#vertices + 1] = {{x,y,0},prettycolor}
 end
 
-local function getColorForDensity(density, ncol)
-	if density == 1 then
-		return color(".75,.75,.75") -- nps color
-	elseif density == ncol then
-		return color(".1,.1,.1")	-- biggest chord color
-	elseif density == 2 then
-		return color(".5,.5,.5") -- jumps color
-	elseif density == 3 then
-		return color(".25,.25,.25") -- hands color
-	--else
-		--local c =  lerp(density / (ncol +1 ), .1, .75) 	-- im sure we can programmatically handle n columns but im too lazy 
-		--return color(c..","..c..","..c..","..c)			-- to make this look nice atm -mina
-	end
+local function getColorForDensity(density, nColumns)
+    -- Generically (generally? intelligently? i dont know) set a range
+	-- The value var describes the level of density.
+    -- Beginning at lowVal for 0, to highVal for nColumns.
+    local interval = 1 / nColumns
+	local value = 1 - density * interval
+	return color(tostring(value)..","..tostring(value)..","..tostring(value))
 end
 
 local function updateGraphMultiVertex(parent, realgraph)
