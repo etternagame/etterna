@@ -79,6 +79,10 @@ local optionChoiceTextSize = 0.7
 local textButtonHeightFudgeScalarMultiplier = 1.6
 local optionRowAnimationSeconds = 0.15
 local optionRowQuickAnimationSeconds = 0.07
+-- theoretically this is how long it takes for text to write out when queued by the explanation text
+-- but because the game isnt perfect this isnt true at all
+-- (but changing this number does make a difference)
+local explanationTextWriteAnimationSeconds = 0.2
 
 local maxExplanationTextLines = 2
 
@@ -222,7 +226,32 @@ local function rightFrame()
                 self:maxheight((actuals.BottomLipHeight - actuals.EdgePadding * 2) / explanationTextSize)
                 self:settext(" ")
                 explanationHandle = self
-            end
+            end,
+            SetExplanationCommand = function(self, params)
+                if params and params.text and #params.text > 0 then
+                    -- here we go ...
+                    -- editors note 5 minutes later: i cant believe this works
+                    -- this begins the explainloop below which will slowly write out the desired text
+                    -- it fires a finishtweening when new text is queued here in case we are in the middle of looping
+                    self.txt = params.text
+                    self.pos = 0
+                    self:finishtweening()
+                    self:settext("")
+                    self:queuecommand("_explainloop")
+                else
+                    self.txt = ""
+                    self:settext("")
+                end
+            end,
+            _explainloopCommand = function(self)
+                self.pos = self.pos + 1
+                local subtxt = self.txt:sub(1, self.pos)
+                self:settext(subtxt)
+                self:sleep(explanationTextWriteAnimationSeconds / #self.txt)
+                if self.pos < #self.txt then
+                    self:queuecommand("_explainloop")
+                end
+            end,
         }
     }
 
@@ -288,14 +317,13 @@ local function rightFrame()
     local function floatSettingChoice(visibleName, funcName, enabledValue, offValue)
         return {
             Name = visibleName,
-            CheckFunction = function()
-                return getPlayerOptions()[funcName] ~= offValue
-            end,
-            OnFunction = function()
-                setPlayerOptionsModValueAllLevels(funcName, enabledValue)
-            end,
-            OffFunction = function()
-                setPlayerOptionsModValueAllLevels(funcName, offValue)
+            ChosenFunction = function()
+                local po = getPlayerOptions()
+                if po[funcName](po) ~= offValue then
+                    setPlayerOptionsModValueAllLevels(funcName, offValue)
+                else
+                    setPlayerOptionsModValueAllLevels(funcName, enabledValue)
+                end
             end,
         }
     end
@@ -304,14 +332,13 @@ local function rightFrame()
     local function booleanSettingChoice(visibleName, funcName)
         return {
             Name = visibleName,
-            CheckFunction = function()
-                return getPlayerOptions()[funcName] == true
-            end,
-            OnFunction = function()
-                setPlayerOptionsModValueAllLevels(funcName, true)
-            end,
-            OffFunction = function()
-                setPlayerOptionsModValueAllLevels(funcName, false)
+            ChosenFunction = function()
+                local po = getPlayerOptions()
+                if po[funcName](po) == true then
+                    setPlayerOptionsModValueAllLevels(funcName, false)
+                else
+                    setPlayerOptionsModValueAllLevels(funcName, true)
+                end
             end,
         }
     end
@@ -911,6 +938,17 @@ local function rightFrame()
                     floatSettingChoice("Stealth", "Stealth", 1, 0),
                     floatSettingChoice("Blink", "Blink", 1, 0)
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Hidden() ~= 0 then o[1] = true end
+                    if po:HiddenOffset() ~= 0 then o[2] = true end
+                    if po:Sudden() ~= 0 then o[3] = true end
+                    if po:SuddenOffset() ~= 0 then o[4] = true end
+                    if po:Stealth() ~= 0 then o[4] = true end
+                    if po:Blink() ~= 0 then o[5] = true end
+                    return o
+                end,
             },
             {
                 Name = "Perspective",
@@ -2027,12 +2065,14 @@ local function rightFrame()
         local function updateExplainText(self)
             if self.defInUse ~= nil and self.defInUse.Explanation ~= nil then
                 if explanationHandle ~= nil then
-                    explanationHandle:settext(self.defInUse.Explanation)
+                    if explanationHandle.txt ~= self.defInUse.Explanation then
+                        explanationHandle:playcommand("SetExplanation", {text = self.defInUse.Explanation})
+                    end
                 else
-                    explanationHandle:settext("")
+                    explanationHandle:playcommand("SetExplanation", {text = ""})
                 end
             else
-                explanationHandle:settext("")
+                explanationHandle:playcommand("SetExplanation", {text = ""})
             end
         end
 
@@ -2956,8 +2996,61 @@ local function rightFrame()
                                 end
                             end
                         end,
-                        InvokeCommand = function(self)
-                            
+                        InvokeCommand = function(self, params)
+                            if optionDef ~= nil then
+                                if optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" then
+                                    -- SingleChoice left clicks will move the option forward
+                                    -- SingleChoice right clicks will move the option backward
+                                    if params and params.direction then
+                                        local fwd = params.direction == "forward"
+                                        local bwd = params.direction == "backward"
+
+                                        -- SingleChoice selection mover
+                                        if optionDef.Directions ~= nil and optionDef.Directions.Toggle ~= nil then
+                                            -- Toggle SingleChoices
+                                            optionDef.Directions.Toggle()
+                                            if optionDef.ChoiceIndexGetter ~= nil then
+                                                currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                            end
+                                            redrawChoiceRelatedElements()
+                                            return
+                                        elseif fwd and optionDef.Directions ~= nil and optionDef.Directions.Right ~= nil then
+                                            -- Move Right (no multiplier)
+                                            optionDef.Directions.Right(false)
+                                            if optionDef.ChoiceIndexGetter ~= nil then
+                                                currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                            end
+                                            redrawChoiceRelatedElements()
+                                            return
+                                        elseif bwd and optionDef.Directions ~= nil and optionDef.Directions.Left ~= nil then
+                                            -- Move Left (no multiplier)
+                                            optionDef.Directions.Left(false)
+                                            if optionDef.ChoiceIndexGetter ~= nil then
+                                                currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                            end
+                                            redrawChoiceRelatedElements()
+                                            return
+                                        end
+
+                                        if optionDef.Choices ~= nil then
+                                            moveChoiceSelection(1 * (fwd and 1 or -1))
+                                        else
+                                            ms.ok("ERROR REPORT TO DEVELOPER")
+                                        end
+                                    end
+                                elseif optionDef.Type == "MultiChoice" then
+                                    -- multichoice clicks will toggle the option
+                                    local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                    local choice = optionDef.Choices[choiceIndex]
+                                    if choice ~= nil then
+                                        choice.ChosenFunction()
+                                        if optionDef.ChoiceIndexGetter ~= nil then
+                                            currentChoiceSelection = optionDef.ChoiceIndexGetter()
+                                        end
+                                        self:playcommand("DrawChoice")
+                                    end
+                                end
+                            end
                         end,
                         RolloverUpdateCommand = function(self, params)
                             if self:IsInvisible() then return end
@@ -2966,6 +3059,15 @@ local function rightFrame()
                                 updateExplainText(self:GetParent():GetParent())
                             else
                                 self:diffusealpha(1)
+                            end
+                        end,
+                        ClickCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            if params.update == "OnMouseDown" then
+                                if optionDef ~= nil then
+                                    local direction = params.event == "DeviceButton_left mouse button" and "forward" or "backward"
+                                    self:playcommand("Invoke", {direction = direction})
+                                end
                             end
                         end,
                     }
