@@ -19,6 +19,7 @@ local ratios = {
     OptionSmallTriangleWidth = 13 / 1920,
     OptionSmallTriangleGap = 2 / 1920,
     OptionChoiceDirectionGap = 7 / 1920, -- gap between direction arrow pairs and between direction arrows and choices
+    OptionChoiceAllottedWidth = 450 / 1920, -- width between the arrows for MultiChoices basically (or really long SingleChoices)
 
     -- for this area, this is the allowed height for all options including sub options
     -- when an option opens, it may only show as many sub options as there are lines after subtracting the amount of option categories
@@ -49,6 +50,7 @@ local actuals = {
     OptionSmallTriangleWidth = ratios.OptionSmallTriangleWidth * SCREEN_WIDTH,
     OptionSmallTriangleGap = ratios.OptionSmallTriangleGap * SCREEN_WIDTH,
     OptionChoiceDirectionGap = ratios.OptionChoiceDirectionGap * SCREEN_WIDTH,
+    OptionChoiceAllottedWidth = ratios.OptionChoiceAllottedWidth * SCREEN_WIDTH,
     OptionAllottedHeight = ratios.OptionAllottedHeight * SCREEN_HEIGHT,
     NoteskinDisplayWidth = ratios.NoteskinDisplayWidth * SCREEN_WIDTH,
     NoteskinDisplayRightGap = ratios.NoteskinDisplayRightGap * SCREEN_WIDTH,
@@ -679,7 +681,7 @@ local function rightFrame()
             {
                 Name = "Scroll Direction",
                 Type = "SingleChoice",
-                Explanation = "Direction of note scrolling: normal or down.",
+                Explanation = "Direction of note scrolling: up or down.",
                 Choices = choiceSkeleton("Upscroll", "Downscroll"),
                 Directions = {
                     Toggle = function()
@@ -955,13 +957,13 @@ local function rightFrame()
                     local po = getPlayerOptions()
                     -- we unfortunately choose to hardcode these options and not allow an additional custom one
                     -- but the above choice definitions allow customizing the specific Perspective to whatever extent you want
-                    if po:Overhead() then return 1
-                    elseif po:Incoming() ~= nil then return 2
-                    elseif po:Space() ~= nil then return 3
-                    elseif po:Hallway() ~= nil then return 4
-                    elseif po:Distant() ~= nil then return 5
-                    end
-                    return 1 -- 1 should be Overhead ....
+                    local o = {}
+                    if po:Overhead() then o[1] = true end
+                    if po:Incoming() ~= nil then o[2] = true end
+                    if po:Space() ~= nil then o[3] = true end
+                    if po:Hallway() ~= nil then o[4] = true end
+                    if po:Distant() ~= nil then o[5] = true end
+                    return o
                 end,
             },
             {
@@ -995,6 +997,13 @@ local function rightFrame()
                     floatSettingChoice("Hide Receptors", "Dark", 1, 0),
                     floatSettingChoice("Hide Judgment & Combo", "Blind", 1, 0),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Dark() then o[1] = true end
+                    if po:Blind() then o[2] = true end
+                    return o
+                end,
             },
             {
                 Name = "Hidenote Judgment",
@@ -1137,6 +1146,15 @@ local function rightFrame()
                     floatSettingChoice("Cross", "Cross", 1, 0),
                     floatSettingChoice("Centered", "Centered", 1, 0),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Split() then o[1] = true end
+                    if po:Alternate() then o[2] = true end
+                    if po:Cross() then o[3] = true end
+                    if po:Centered() then o[4] = true end
+                    return o
+                end,
             },
             {
                 Name = "Fun Effects",
@@ -1156,6 +1174,22 @@ local function rightFrame()
                     floatSettingChoice("Twirl", "Twirl", 1, 0),
                     floatSettingChoice("Roll", "Roll", 1, 0),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Drunk() then o[1] = true end
+                    if po:Confusion() then o[2] = true end
+                    if po:Tiny() then o[3] = true end
+                    if po:Flip() then o[4] = true end
+                    if po:Invert() then o[5] = true end
+                    if po:Tornado() then o[6] = true end
+                    if po:Tipsy() then o[7] = true end
+                    if po:Bumpy() then o[8] = true end
+                    if po:Beat() then o[9] = true end
+                    if po:Twirl() then o[10] = true end
+                    if po:Roll() then o[11] = true end
+                    return o
+                end,
             },
             {
                 Name = "Acceleration",
@@ -1168,6 +1202,16 @@ local function rightFrame()
                     floatSettingChoice("Expand", "Expand", 1, 0),
                     floatSettingChoice("Boomerang", "Boomerang", 1, 0),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Boost() then o[1] = true end
+                    if po:Brake() then o[2] = true end
+                    if po:Wave() then o[3] = true end
+                    if po:Expand() then o[4] = true end
+                    if po:Boomerang() then o[5] = true end
+                    return o
+                end,
             }
         },
         --
@@ -1226,7 +1270,18 @@ local function rightFrame()
                     booleanSettingChoice("Shuffle", "Shuffle"),
                     booleanSettingChoice("Soft Shuffle", "SoftShuffle"),
                     booleanSettingChoice("Super Shuffle", "SuperShuffle"),
-                }
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Backwards() then o[1] = true end
+                    if po:Left() then o[2] = true end
+                    if po:Right() then o[3] = true end
+                    if po:Shuffle() then o[4] = true end
+                    if po:SoftShuffle() then o[5] = true end
+                    if po:SuperShuffle() then o[6] = true end
+                    return o
+                end,
             },
             {
                 Name = "Pattern Transform",
@@ -1239,6 +1294,16 @@ local function rightFrame()
                     booleanSettingChoice("Anchor JS", "AnchorJS"),
                     booleanSettingChoice("IcyWorld", "IcyWorld"),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local  o = {}
+                    if po:Echo() then o[1] = true end
+                    if po:Stomp() then o[2] = true end
+                    if po:JackJS() then o[3] = true end
+                    if po:AnchorJS() then o[4] = true end
+                    if po:IcyWorld() then o[5] = true end
+                    return o
+                end,
             },
             {
                 Name = "Hold Transform",
@@ -1250,6 +1315,15 @@ local function rightFrame()
                     booleanSettingChoice("Twister", "Twister"),
                     booleanSettingChoice("Holds To Rolls", "HoldRolls"),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Planted() then o[1] = true end
+                    if po:Floored() then o[2] = true end
+                    if po:Twister() then o[3] = true end
+                    if po:HoldRolls() then o[4] = true end
+                    return o
+                end,
             },
             {
                 Name = "Remove",
@@ -1266,6 +1340,20 @@ local function rightFrame()
                     booleanSettingChoice("No Stretch", "NoStretch"),
                     booleanSettingChoice("Little", "Little"),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:NoHolds() then o[1] = true end
+                    if po:NoRolls() then o[2] = true end
+                    if po:NoJumps() then o[3] = true end
+                    if po:NoHands() then o[4] = true end
+                    if po:NoLifts() then o[5] = true end
+                    if po:NoFakes() then o[6] = true end
+                    if po:NoQuads() then o[7] = true end
+                    if po:NoStretch() then o[8] = true end
+                    if po:Little() then o[9] = true end
+                    return o
+                end,
             },
             {
                 Name = "Insert",
@@ -1278,6 +1366,16 @@ local function rightFrame()
                     booleanSettingChoice("BMR-ize", "BMRize"),
                     booleanSettingChoice("Skippy", "Skippy"),
                 },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local o = {}
+                    if po:Wide() then o[1] = true end
+                    if po:Big() then o[2] = true end
+                    if po:Quick() then o[3] = true end
+                    if po:BMRize() then o[4] = true end
+                    if po:Skippy() then o[5] = true end
+                    return o
+                end,
             }
         },
         --
@@ -2707,21 +2805,42 @@ local function rightFrame()
 
                             local minXPos = actuals.OptionTextWidth + actuals.OptionTextBuffer
                             local finalXPos = minXPos
+                            -- triangle width buffer thing .... the distance from minX to ... the choices ... across the one big triangle ...
+                            local triangleWidthBufferThing = actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4
                             if optionDef.Type == "SingleChoice" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1) then
                                 -- leftmost xpos + big triangle + gap
                                 -- subtract by 25% of the big triangle size because the image is actually 25% invisible
-                                finalXPos = finalXPos + actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4
+                                finalXPos = finalXPos + triangleWidthBufferThing
                             elseif optionDef.Type == "SingleChoiceModifier" then
                                 -- leftmost xpos + big triangle + gap + 2 small triangles + gap between 2 small triangles + last gap
                                 -- subtract by 25% of big triangle and 25% of small triangle twice because the image is 25% invisible
-                                finalXPos = finalXPos + actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4 + actuals.OptionSmallTriangleHeight * 2 - actuals.OptionSmallTriangleHeight/2 + actuals.OptionSmallTriangleGap + actuals.OptionChoiceDirectionGap
+                                finalXPos = finalXPos + triangleWidthBufferThing + actuals.OptionSmallTriangleHeight * 2 - actuals.OptionSmallTriangleHeight/2 + actuals.OptionSmallTriangleGap + actuals.OptionChoiceDirectionGap
                             end
                             self:x(finalXPos)
                             
                             -- to force the choices to update left to right
+                            -- update the text of all of them first to see what the width would be
+                            local lastFilledChoiceIndex = 1
                             for i = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
-                                self:GetChild("Choice_"..i):playcommand("DrawChoice")
+                                local child = self:GetChild("Choice_"..i)
+                                child:playcommand("SetChoiceText")
+                                if #child:GetChild("Text"):GetText() > 0 then
+                                    lastFilledChoiceIndex = i
+                                end
                             end
+                            
+                            -- so basically this bad line of math evenly splits the given area including the buffer zones in between
+                            -- it also takes into account whether or not we have the triangles on the edges (so if missing, take up more room to equal in width)
+                            -- (it doesnt produce a great result and all this garbage is for nothing if you think about it)
+                            -- (leaving it here anyways in case this method of setting text and then drawing can be used)
+                            local allowedWidth = (actuals.OptionChoiceAllottedWidth - (lastFilledChoiceIndex-1) * actuals.OptionTextBuffer) / lastFilledChoiceIndex + (maxChoicePage <= 1 and triangleWidthBufferThing or 0) 
+                            for i = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
+                                local child = self:GetChild("Choice_"..i)
+                                child:GetChild("Text"):maxwidth(allowedWidth / choiceTextSize)
+                                child:playcommand("DrawChoice")
+                            end
+
+
                         else
                             -- missing optionDef means no choices possible
                             self:diffusealpha(0)
@@ -2743,11 +2862,48 @@ local function rightFrame()
                             bg:y(1)
                             bg:zoomto(0, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         end,
+                        SetChoiceTextCommand = function(self)
+                            -- THIS DOES NOT DO BUTTON WORK
+                            -- RUN IN CONJUNCTION WITH DRAWCHOICE
+                            local txt = self:GetChild("Text")
+                            txt:maxwidth(actuals.OptionChoiceAllottedWidth / choiceTextSize)
+                            if optionDef ~= nil then
+                                if optionDef.Type == "MultiChoice" then
+                                    local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                    local choice = optionDef.Choices[choiceIndex]
+                                    if choice ~= nil then
+                                        txt:settext(choice.Name)
+                                    else
+                                        txt:settext("")
+                                    end
+                                elseif optionDef.Type == "Button" then
+                                    txt:settext("")
+                                else
+                                    if n == 1 then
+                                        -- several cases involving the ChoiceIndexGetter for single choices...
+                                        if optionDef.ChoiceIndexGetter ~= nil and optionDef.Choices == nil then
+                                            -- getter with no choices means the getter supplies the visible information
+                                            txt:settext(currentChoiceSelection)    
+                                        elseif optionDef.Choices ~= nil then
+                                            -- choices present means the getter supplies the choice index that contains the information
+                                            txt:settext(optionDef.Choices[currentChoiceSelection].Name)
+                                        else
+                                            txt:settext("INVALID CONTACT DEVELOPER")
+                                        end
+                                    else
+                                        txt:settext("")
+                                    end
+                                end
+                            else
+                                txt:settext("")
+                            end
+                        end,
                         DrawChoiceCommand = function(self)
                             if optionDef ~= nil then
                                 if optionDef.Type == "MultiChoice" then
                                     -- for Multi choice mode
-                                    local choice = optionDef.Choices[n + (choicePage-1) * maxChoicesVisibleMultiChoice]
+                                    local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                    local choice = optionDef.Choices[choiceIndex]
                                     if choice ~= nil then
                                         local txt = self:GetChild("Text")
                                         local bg = self:GetChild("BG")
@@ -2760,7 +2916,6 @@ local function rightFrame()
                                             xPos = choiceJustToTheLeftOfThisOne:GetX() + choiceJustToTheLeftOfThisOne:GetChild("Text"):GetZoomedWidth() + actuals.OptionTextBuffer
                                         end
                                         self:x(xPos)
-                                        txt:settext(choice.Name)
                                         bg:zoomx(txt:GetZoomedWidth())
                                         bg:diffusealpha(0.1)
 
@@ -2768,11 +2923,13 @@ local function rightFrame()
                                         self:z(1)
                                     else
                                         -- choice does not exist for this option but does for another
+                                        self:x(0)
                                         self:diffusealpha(0)
                                         self:z(-1)
                                     end
                                 elseif optionDef.Type == "Button" then
                                     -- Button is just one choice but lets use the option title as the choice (hide all choices)
+                                    self:x(0)
                                     self:diffusealpha(0)
                                     self:z(-1)
                                 else
@@ -2780,22 +2937,14 @@ local function rightFrame()
                                     if n == 1 then
                                         local txt = self:GetChild("Text")
                                         local bg = self:GetChild("BG")
-
-                                        -- several cases involving the ChoiceIndexGetter for single choices...
-                                        if optionDef.ChoiceIndexGetter ~= nil and optionDef.Choices == nil then
-                                            -- getter with no choices means the getter supplies the visible information
-                                            txt:settext(currentChoiceSelection)    
-                                        elseif optionDef.Choices ~= nil then
-                                            -- choices present means the getter supplies the choice index that contains the information
-                                            txt:settext(optionDef.Choices[currentChoiceSelection].Name)
-                                        else
-                                            txt:settext("INVALID CONTACT DEVELOPER")
-                                        end
+                                        
                                         bg:zoomx(txt:GetZoomedWidth())
                                         bg:diffusealpha(0)
+                                        self:x(0) -- for consistency but makes no difference
                                         self:diffusealpha(1)
                                         self:z(1)
                                     else
+                                        self:x(0)
                                         self:diffusealpha(0)
                                         self:z(-1)
                                     end
