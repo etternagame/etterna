@@ -20,6 +20,7 @@ local ratios = {
     OptionSmallTriangleGap = 2 / 1920,
     OptionChoiceDirectionGap = 7 / 1920, -- gap between direction arrow pairs and between direction arrows and choices
     OptionChoiceAllottedWidth = 450 / 1920, -- width between the arrows for MultiChoices basically (or really long SingleChoices)
+    OptionChoiceUnderlineThickness = 2 / 1080,
 
     -- for this area, this is the allowed height for all options including sub options
     -- when an option opens, it may only show as many sub options as there are lines after subtracting the amount of option categories
@@ -51,6 +52,7 @@ local actuals = {
     OptionSmallTriangleGap = ratios.OptionSmallTriangleGap * SCREEN_WIDTH,
     OptionChoiceDirectionGap = ratios.OptionChoiceDirectionGap * SCREEN_WIDTH,
     OptionChoiceAllottedWidth = ratios.OptionChoiceAllottedWidth * SCREEN_WIDTH,
+    OptionChoiceUnderlineThickness = ratios.OptionChoiceUnderlineThickness * SCREEN_HEIGHT,
     OptionAllottedHeight = ratios.OptionAllottedHeight * SCREEN_HEIGHT,
     NoteskinDisplayWidth = ratios.NoteskinDisplayWidth * SCREEN_WIDTH,
     NoteskinDisplayRightGap = ratios.NoteskinDisplayRightGap * SCREEN_WIDTH,
@@ -912,7 +914,7 @@ local function rightFrame()
             },
             {
                 Name = "Perspective",
-                Type = "MultiChoice",
+                Type = "SingleChoice",
                 Explanation = "Controls tilt/skew of the Notefield.",
                 Choices = {
                     -- the numbers in these defs are like the percentages you would put in metrics instead
@@ -958,11 +960,12 @@ local function rightFrame()
                     -- we unfortunately choose to hardcode these options and not allow an additional custom one
                     -- but the above choice definitions allow customizing the specific Perspective to whatever extent you want
                     local o = {}
-                    if po:Overhead() then o[1] = true end
-                    if po:Incoming() ~= nil then o[2] = true end
-                    if po:Space() ~= nil then o[3] = true end
-                    if po:Hallway() ~= nil then o[4] = true end
-                    if po:Distant() ~= nil then o[5] = true end
+                    if po:Overhead() then return 1
+                    elseif po:Incoming() ~= nil then return 2
+                    elseif po:Space() ~= nil then return 3
+                    elseif po:Hallway() ~= nil then return 4
+                    elseif po:Distant() ~= nil then return 5
+                    end
                     return o
                 end,
             },
@@ -1000,8 +1003,8 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
                     local o = {}
-                    if po:Dark() then o[1] = true end
-                    if po:Blind() then o[2] = true end
+                    if po:Dark() ~= 0 then o[1] = true end
+                    if po:Blind() ~= 0 then o[2] = true end
                     return o
                 end,
             },
@@ -1149,10 +1152,10 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
                     local o = {}
-                    if po:Split() then o[1] = true end
-                    if po:Alternate() then o[2] = true end
-                    if po:Cross() then o[3] = true end
-                    if po:Centered() then o[4] = true end
+                    if po:Split() ~= 0 then o[1] = true end
+                    if po:Alternate() ~= 0 then o[2] = true end
+                    if po:Cross() ~= 0 then o[3] = true end
+                    if po:Centered() ~= 0 then o[4] = true end
                     return o
                 end,
             },
@@ -1177,17 +1180,17 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
                     local o = {}
-                    if po:Drunk() then o[1] = true end
-                    if po:Confusion() then o[2] = true end
-                    if po:Tiny() then o[3] = true end
-                    if po:Flip() then o[4] = true end
-                    if po:Invert() then o[5] = true end
-                    if po:Tornado() then o[6] = true end
-                    if po:Tipsy() then o[7] = true end
-                    if po:Bumpy() then o[8] = true end
-                    if po:Beat() then o[9] = true end
-                    if po:Twirl() then o[10] = true end
-                    if po:Roll() then o[11] = true end
+                    if po:Drunk() ~= 0 then o[1] = true end
+                    if po:Confusion() ~= 0 then o[2] = true end
+                    if po:Tiny() ~= 0 then o[3] = true end
+                    if po:Flip() ~= 0 then o[4] = true end
+                    if po:Invert() ~= 0 then o[5] = true end
+                    if po:Tornado() ~= 0 then o[6] = true end
+                    if po:Tipsy() ~= 0 then o[7] = true end
+                    if po:Bumpy() ~= 0 then o[8] = true end
+                    if po:Beat() ~= 0 then o[9] = true end
+                    if po:Twirl() ~= 0 then o[10] = true end
+                    if po:Roll() ~= 0 then o[11] = true end
                     return o
                 end,
             },
@@ -1205,11 +1208,11 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
                     local o = {}
-                    if po:Boost() then o[1] = true end
-                    if po:Brake() then o[2] = true end
-                    if po:Wave() then o[3] = true end
-                    if po:Expand() then o[4] = true end
-                    if po:Boomerang() then o[5] = true end
+                    if po:Boost() ~= 0 then o[1] = true end
+                    if po:Brake() ~= 0 then o[2] = true end
+                    if po:Wave() ~= 0 then o[3] = true end
+                    if po:Expand() ~= 0 then o[4] = true end
+                    if po:Boomerang() ~= 0 then o[5] = true end
                     return o
                 end,
             }
@@ -2848,7 +2851,9 @@ local function rightFrame()
                     end,
                 }
                 for n = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
-                    t[#t+1] = UIElements.TextButton(1, 1, "Common Normal") .. {
+                    -- each of these tt's are ActorFrames named Choice_n
+                    -- they have 3 children, Text, BG, Underline
+                    local tt = UIElements.TextButton(1, 1, "Common Normal") .. {
                         Name = "Choice_"..n,
                         InitCommand = function(self)
                             local txt = self:GetChild("Text")
@@ -2964,6 +2969,36 @@ local function rightFrame()
                             end
                         end,
                     }
+                    tt[#tt+1] = Def.Quad {
+                        Name = "Underline",
+                        InitCommand = function(self)
+                            self:halign(0):valign(0)
+                            self:zoomto(0,actuals.OptionChoiceUnderlineThickness)
+                            self:diffusealpha(0)
+                        end,
+                        DrawChoiceCommand = function(self)
+                            -- assumption: this Actor is later in the command execution order than the rest of the frame
+                            -- that should let it use the attributes after they are set
+                            if optionDef == nil or optionDef.Type ~= "MultiChoice" then
+                                self:diffusealpha(0)
+                            else
+                                -- optionDef present and is MultiChoice
+                                -- determine if this choice is selected
+                                local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                local isSelected = currentChoiceSelection[choiceIndex]
+                                if isSelected == true then
+                                    local bg = self:GetParent():GetChild("BG")
+                                    local text = self:GetParent():GetChild("Text")
+                                    self:diffusealpha(1)
+                                    self:y(bg:GetZoomedHeight()/2 + bg:GetY())
+                                    self:zoomx(bg:GetZoomedWidth())
+                                else
+                                    self:diffusealpha(0)
+                                end
+                            end
+                        end,
+                    }
+                    t[#t+1] = tt
                 end
                 return t
             end
