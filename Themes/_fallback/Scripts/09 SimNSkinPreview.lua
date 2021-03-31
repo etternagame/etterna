@@ -100,6 +100,7 @@ function LoadNSkinPreview(Noteskin, Button, Element)
 						if TexY > 0 then
 							for _, i in pairs(SimChild(self, "Sprite")) do
 								local ani = i:GetNumStates()
+								local maxframes = i:GetTexture():GetNumFrames()
 								local Skip = 1
 								local TexY2 = (TexY * 64)
 								local StateF = {}
@@ -109,7 +110,9 @@ function LoadNSkinPreview(Noteskin, Button, Element)
 								end
 								for timer = 1, TexY2, Skip do
 									for frame = (ani * timer) - ani, (ani * timer) - 1 do
-										StateF[#StateF + 1] = {Frame = frame, Delay = 4 / ((TexY * 64) * ani)}
+										if frame < maxframes then
+											StateF[#StateF + 1] = {Frame = frame, Delay = 4 / ((TexY * 64) * ani)}
+										end
 									end
 								end
 								i:SetStateProperties(StateF)
