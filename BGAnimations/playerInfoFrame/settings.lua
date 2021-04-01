@@ -103,16 +103,21 @@ local t = Def.ActorFrame {
             --
             -- movement is delegated to the left and right halves
             -- right half immediately comes out
-            -- left half comes out when selecting "Customize Playfield" or "Customize Keybinds"
+            -- left half comes out when selecting "Customize Playfield" or "Customize Keybinds" or some appropriate choice
             --
             self:diffusealpha(1)
             self:finishtweening()
             self:sleep(0.01)
             self:queuecommand("FinishFocusing")
+            self:playcommand("ShowRight")
+            self:playcommand("HideLeft")
+            MESSAGEMAN:Broadcast("ShowWheel")
         else
             self:finishtweening()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
+            self:playcommand("HideLeft")
+            self:playcommand("HideRight")
             focused = false
         end
     end,
@@ -120,15 +125,39 @@ local t = Def.ActorFrame {
         focused = true
         CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Settings")
     end,
+    ShowSettingsAltMessageCommand = function(self, params)
+        if params and params.name then
+            self:playcommand("ShowLeft")
+        else
+            self:playcommand("HideLeft")
+        end
+    end,
 }
 
 
 local function leftFrame()
+    local offscreenX = -actuals.LeftWidth
+    local onscreenX = 0
 
     local t = Def.ActorFrame {
         Name = "LeftFrame",
         InitCommand = function(self)
-            self:x(0) -- yea
+            self:x(offscreenX)
+            self:diffusealpha(0)
+        end,
+        HideLeftCommand = function(self)
+            -- move off screen left and go invisible
+            self:finishtweening()
+            self:smooth(animationSeconds)
+            self:diffusealpha(0)
+            self:x(offscreenX)
+        end,
+        ShowLeftCommand = function(self)
+            -- move on screen from left and go visible
+            self:finishtweening()
+            self:smooth(animationSeconds)
+            self:diffusealpha(1)
+            self:x(onscreenX)
         end,
 
         Def.Quad {
@@ -168,11 +197,28 @@ end
 local function rightFrame()
     -- to reach the explanation text from anywhere without all the noise
     local explanationHandle = nil
+    local offscreenX = SCREEN_WIDTH
+    local onscreenX = SCREEN_WIDTH - actuals.RightWidth
 
     local t = Def.ActorFrame {
         Name = "RightFrame",
         InitCommand = function(self)
-            self:x(SCREEN_WIDTH - actuals.RightWidth)
+            self:x(offscreenX)
+            self:diffusealpha(0)
+        end,
+        HideRightCommand = function(self)
+            -- move off screen right and go invisible
+            self:finishtweening()
+            self:smooth(animationSeconds)
+            self:diffusealpha(0)
+            self:x(offscreenX)
+        end,
+        ShowRightCommand = function(self)
+            -- move on screen from right and go visible
+            self:finishtweening()
+            self:smooth(animationSeconds)
+            self:diffusealpha(1)
+            self:x(onscreenX)
         end,
 
         Def.Quad {
@@ -903,6 +949,7 @@ local function rightFrame()
                         Name = "Customize Playfield",
                         ChosenFunction = function()
                             -- activate customize gameplay screen
+                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Customize Playfield"})
                         end,
                     }
                 }
@@ -916,6 +963,7 @@ local function rightFrame()
                         Name = "Customize Keybinds",
                         ChosenFunction = function()
                             -- activate keybind screen
+                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Customize Keybinds"})
                         end,
                     }
                 }
@@ -2395,6 +2443,9 @@ local function rightFrame()
                         elseif optionDef ~= nil then
                             if optionDef.Type == "Button" then
                                 -- button
+                                if optionDef.Choices and #optionDef.Choices >= 1 then
+                                    optionDef.Choices[1].ChosenFunction()
+                                end
                             else
                                 -- ?
                             end

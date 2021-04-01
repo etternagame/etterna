@@ -1,5 +1,3 @@
-local t = Def.ActorFrame {Name = "WheelFile"}
-
  -- 11 visible items (top is a group header)
  -- an unfortunate amount of code is reliant on the fact that there are 11 items
  -- but thankfully everything works fine if you change it
@@ -228,6 +226,38 @@ end
 accThisSession = calcAverageWifePercentThisSession()
 calculateGraphBounds()
 -----
+
+-- wheel horizontal movement animation speed
+local animationSeconds = 0.1
+local wheelVisibleX = 0
+local wheelHiddenX = -actuals.Width
+local visible = true
+local t = Def.ActorFrame {
+    Name = "WheelFile",
+    HideWheelMessageCommand = function(self)
+        if not visible then return end
+        visible = false
+        self:finishtweening()
+        self:smooth(animationSeconds)
+        self:diffusealpha(0)
+        self:x(wheelHiddenX)
+    end,
+    ShowWheelMessageCommand = function(self)
+        if visible then return end
+        visible = true
+        self:finishtweening()
+        self:smooth(animationSeconds)
+        self:diffusealpha(1)
+        self:x(wheelVisibleX)
+    end,
+    ShowSettingsAltMessageCommand = function(self, params)
+        if params and params.name then
+            self:playcommand("HideWheel")
+        else
+            self:playcommand("ShowWheel")
+        end
+    end,
+}
 
 
 -- functionally create each item base because they are identical (BG and divider)
