@@ -2258,6 +2258,9 @@ local function rightFrame()
                     nn = 1
                 end
                 currentChoiceSelection = nn
+                if optionDef.Choices ~= nil and optionDef.Choices[currentChoiceSelection] ~= nil then
+                    optionDef.Choices[currentChoiceSelection].ChosenFunction()
+                end
                 if rowHandle ~= nil then
                     redrawChoiceRelatedElements()
                 end
