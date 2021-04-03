@@ -297,3 +297,12 @@ function inputToCharacter(event)
     end
     return nil
 end
+
+-- alias for getting "current" (preferred) PlayerOptions
+function getPlayerOptions()
+    return GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
+end
+-- alias for getting "current" (preferred) SongOptions
+function getSongOptions()
+    return GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred")
+end
