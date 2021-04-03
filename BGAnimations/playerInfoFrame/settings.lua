@@ -63,6 +63,7 @@ local actuals = {
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
 local animationSeconds = 0.1
 local focused = false
+local lefthidden = false
 
 local titleTextSize = 0.8
 local explanationTextSize = 0.8
@@ -113,11 +114,13 @@ local t = Def.ActorFrame {
             self:playcommand("HideLeft")
             MESSAGEMAN:Broadcast("ShowWheel")
         else
+
             self:finishtweening()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
             self:playcommand("HideLeft")
             self:playcommand("HideRight")
+            MESSAGEMAN:Broadcast("ShowWheel")
             focused = false
         end
     end,
@@ -127,7 +130,7 @@ local t = Def.ActorFrame {
     end,
     ShowSettingsAltMessageCommand = function(self, params)
         if params and params.name then
-            self:playcommand("ShowLeft")
+            self:playcommand("ShowLeft", params)
         else
             self:playcommand("HideLeft")
         end
@@ -151,13 +154,15 @@ local function leftFrame()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
             self:x(offscreenX)
+            lefthidden = true
         end,
-        ShowLeftCommand = function(self)
+        ShowLeftCommand = function(self, params)
             -- move on screen from left and go visible
             self:finishtweening()
             self:smooth(animationSeconds)
             self:diffusealpha(1)
             self:x(onscreenX)
+            lefthidden = false
         end,
 
         Def.Quad {
@@ -185,11 +190,192 @@ local function leftFrame()
                 self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
                 self:zoom(titleTextSize)
                 self:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) / titleTextSize - textZoomFudge)
-                self:settext("Customize {x}")
-            end
+                self:settext("")
+            end,
+            ShowLeftCommand = function(self, params)
+                if params and params.name then
+                    self:settext(params.name)
+                end
+            end,
+
         }
     }
 
+    local function createNoteskinPage()
+        local t = Def.ActorFrame { 
+            Name = "NoteSkinPageContainer",
+            ShowLeftCommand = function(self, params)
+                if params and params.name == "Noteskin" then
+                    self:diffusealpha(1)
+                else
+                    self:diffusealpha(1)
+                end
+            end,
+            HideLeftCommand = function(self)
+                self:diffusealpha(0)
+            end,
+        }
+
+        -- yeah these numbers are bogus (but are in fact based on the 4key numbers so they arent all that bad)
+        local columnwidth = 64
+        local secondrowYoffset = 64
+        local noteskinzoom = 1
+
+        local function findNoteskinIndex(skin)
+            local nsnames = NOTESKIN:GetNoteSkinNames()
+            for i, name in ipairs(nsnames) do
+                if name:lower() == skin:lower() then
+                    return i
+                end
+            end
+            return 1
+        end
+
+        local tt = Def.ActorFrame {
+            Name = "SkinContainer",
+            InitCommand = function(self)
+                self:x(actuals.LeftWidth/2)
+                self:playcommand("SetY")
+                self:finishtweening()
+            end,
+            SetYCommand = function(self)
+                self:finishtweening()
+                self:smooth(animationSeconds)
+                if getPlayerOptions():UsingReverse() then
+                    self:y(actuals.Height / 4 * 3)
+                else
+                    self:y(actuals.Height / 4)
+                end
+            end,
+            UpdateReverseMessageCommand = function(self)
+                self:playcommand("SetY")
+            end,
+            OnCommand = function(self)
+                local ind = findNoteskinIndex(getPlayerOptions():NoteSkin())
+                self:playcommand("SetSkinVisibility", {index = ind})
+            end,
+            UpdateVisibleSkinMessageCommand = function(self, params)
+                local ind = findNoteskinIndex((params or {}).name or "")
+                self:playcommand("SetSkinVisibility", {index = ind})
+            end,
+        }
+        -- works almost exactly like the legacy PlayerOptions preview
+        -- at this point in time we cannot load every Game's noteskin like I would like to
+        local NSDirTable = GivenGameToFullNSkinElements(GAMESTATE:GetCurrentGame():GetName())
+        for i, dir in ipairs(NSDirTable) do
+            -- so the elements are centered
+            -- add half a column width because elements are center aligned
+            local leftoffset = -columnwidth * #NSDirTable / 2 + columnwidth / 2
+
+            -- load taps
+            tt[#tt+1] = Def.ActorFrame {
+                InitCommand = function(self)
+                    self:x(leftoffset + columnwidth * (i-1))
+                    self:zoom(noteskinzoom)
+                end,
+                SetYCommand = function(self)
+                    self:finishtweening()
+                    self:smooth(animationSeconds)
+                    if getPlayerOptions():UsingReverse() then
+                        self:y(-secondrowYoffset)
+                    else
+                        self:y(0)
+                    end
+                end,
+                Def.ActorFrame {
+                    LoadNSkinPreview("Get", dir, "Tap Note", false) .. {
+                        OnCommand = function(self)
+                            for i = 1, #NOTESKIN:GetNoteSkinNames() do
+                                local c = self:GetChild("N"..i)
+                                c:visible(true)
+                            end
+                        end,
+                        SetSkinVisibilityCommand = function(self, params)
+                            if params and params.index then
+                                local ind = params.index
+                                for i = 1, #NOTESKIN:GetNoteSkinNames() do
+                                    local c = self:GetChild("N"..i)
+                                    if i == ind then
+                                        c:diffusealpha(1)
+                                    else
+                                        c:diffusealpha(0)
+                                    end
+                                end
+                            end
+                        end,
+                    }
+                },
+            }
+            -- load receptors
+            tt[#tt+1] = Def.ActorFrame {
+                InitCommand = function(self)
+                    self:x(leftoffset + columnwidth * (i-1))
+                    self:zoom(noteskinzoom)
+                end,
+                SetYCommand = function(self)
+                    self:finishtweening()
+                    self:smooth(animationSeconds)
+                    if getPlayerOptions():UsingReverse() then
+                        self:y(0)
+                    else
+                        self:y(-secondrowYoffset)
+                    end
+                end,
+                Def.ActorFrame {
+                    LoadNSkinPreview("Get", dir, "Receptor", false) .. {
+                        OnCommand = function(self)
+                            for i = 1, #NOTESKIN:GetNoteSkinNames() do
+                                local c = self:GetChild("N"..i)
+                                c:visible(true)
+                            end
+                        end,
+                        SetSkinVisibilityCommand = function(self, params)
+                            if params and params.index then
+                                local ind = params.index
+                                for i = 1, #NOTESKIN:GetNoteSkinNames() do
+                                    local c = self:GetChild("N"..i)
+                                    if i == ind then
+                                        c:diffusealpha(1)
+                                    else
+                                        c:diffusealpha(0)
+                                    end
+                                end
+                            end
+                        end,
+                    }
+                },
+            }
+        end
+        t[#t+1] = tt
+
+        return t
+    end
+
+    local function createKeybindsPage()
+        local t = Def.ActorFrame { 
+            Name = "KeybindsPageContainer",
+        }
+        return t
+    end
+
+    local function createPreviewPage()
+        local t = Def.ActorFrame {
+            Name = "PreviewPageContainer",
+        }
+        return t
+    end
+
+    local function createColorConfigPage()
+        local t = Def.ActorFrame {
+            Name = "ColorConfigPageContainer",
+        }
+        return t
+    end
+
+    t[#t+1] = createNoteskinPage()
+    t[#t+1] = createKeybindsPage()
+    t[#t+1] = createPreviewPage()
+    t[#t+1] = createColorConfigPage()
 
     return t
 end
@@ -327,14 +513,6 @@ local function rightFrame()
         stoptions[funcname](stoptions, ...)
         soptions[funcname](soptions, ...)
         coptions[funcname](coptions, ...)
-    end
-    -- alias for getting "current" PlayerOptions
-    local function getPlayerOptions()
-        return GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
-    end
-    -- alias for getting "current" SongOptions
-    local function getSongOptions()
-        return GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred")
     end
 
     --- for Speed Mods -- this has been adapted from the fallback script which does speed and mode at once
@@ -767,6 +945,7 @@ local function rightFrame()
                             -- 0 is 0% reverse which means off
                             setPlayerOptionsModValueAllLevels("Reverse", 0)
                         end
+                        MESSAGEMAN:Broadcast("UpdateReverse")
                     end,
                 },
                 ChoiceIndexGetter = function()
@@ -806,6 +985,7 @@ local function rightFrame()
                             Name = name,
                             ChosenFunction = function()
                                 setPlayerOptionsModValueAllLevels("NoteSkin", name)
+                                MESSAGEMAN:Broadcast("UpdateVisibleSkin", {name = name})
                             end,
                         }
                     end
@@ -826,13 +1006,13 @@ local function rightFrame()
                     Left = function()
                         local sz = optionData.receptorSize
                         sz = sz - 1
-                        if sz < -200 then sz = 200 end
+                        if sz < 1 then sz = 200 end
                         optionData.receptorSize = sz
                     end,
                     Right = function()
                         local sz = optionData.receptorSize
                         sz = sz + 1
-                        if sz > 200 then sz = -200 end
+                        if sz > 200 then sz = 1 end
                         optionData.receptorSize = sz
                     end,
                 },
