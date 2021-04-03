@@ -100,17 +100,21 @@ end
 -- @tparam string Noteskin Noteskin name. If "Get" then it does the currently selected noteskin, and updates itself when it changes. Defaults to "Get"
 -- @tparam string Button Ex: "Up". Defaults to "Down"
 -- @tparam string Element Defaults to "Tap Note"
+-- @tparam boolean Whether or not to add the input callback which controls the visibility of this
 -- @treturn ActorFrame containing the noteskin preview
-function LoadNSkinPreview(Noteskin, Button, Element)
+function LoadNSkinPreview(Noteskin, Button, Element, UseInputCallback)
 	local Player = PLAYER_1
 	Noteskin = Noteskin or "Get"
 	Button = Button or "Tap Note"
 	Element = Element or "Down"
+	UseInputCallback = UseInputCallback or true
 	if Noteskin == "Get" then
 		local t =
 			Def.ActorFrame {
 			OnCommand = function(self)
-				SCREENMAN:GetTopScreen():AddInputCallback(NSkinPreviewChange(self, Player))
+				if UseInputCallback then
+					SCREENMAN:GetTopScreen():AddInputCallback(NSkinPreviewChange(self, Player))
+				end
 			end
 		}
 		for i, n in pairs(NOTESKIN:GetNoteSkinNames()) do
