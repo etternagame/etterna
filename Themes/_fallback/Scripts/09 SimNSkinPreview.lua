@@ -107,7 +107,7 @@ function LoadNSkinPreview(Noteskin, Button, Element, UseInputCallback)
 	Noteskin = Noteskin or "Get"
 	Button = Button or "Tap Note"
 	Element = Element or "Down"
-	UseInputCallback = UseInputCallback or true
+	if UseInputCallback == nil then UseInputCallback = true end
 	if Noteskin == "Get" then
 		local t =
 			Def.ActorFrame {
