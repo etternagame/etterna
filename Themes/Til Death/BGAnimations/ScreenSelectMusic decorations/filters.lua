@@ -553,7 +553,7 @@ end
 f[#f + 1] =
 	Def.Quad {
 	InitCommand = function(self)
-		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
+		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
 			0
 		)
 	end,
@@ -579,7 +579,7 @@ f[#f + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY):halign(0.5):zoom(0.35)
+			self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):halign(0.5):zoom(0.35)
 			self:settext(THEME:GetString("TabFilter", "Reset"))
 		end
 	}
