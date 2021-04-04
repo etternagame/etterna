@@ -35,7 +35,7 @@ local function searchInput(event)
 				searchstring = searchstring .. Arch.getClipboard()
 			elseif
 			--if not nil and (not a number or (ctrl pressed and not online))
-				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and
+				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w%[%]%{%}%`%\\]') and
 					(not tonumber(event.char) or CtrlPressed)
 			 then
 				searchstring = searchstring .. event.char
