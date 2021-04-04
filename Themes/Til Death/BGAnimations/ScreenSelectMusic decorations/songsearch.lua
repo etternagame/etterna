@@ -29,8 +29,6 @@ local function searchInput(event)
 			searchstring = searchstring:sub(1, -2) -- remove the last element of the string
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			searchstring = ""
-		elseif event.DeviceInput.button == "DeviceButton_=" then
-			searchstring = searchstring .. "="
 		else
 			local CtrlPressed = INPUTFILTER:IsControlPressed()
 			if event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
