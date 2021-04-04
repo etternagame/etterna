@@ -288,11 +288,7 @@ function inputToCharacter(event)
     local shift = INPUTFILTER:IsShiftPressed()
     if btn == "DeviceButton_space" then
         return " "
-    elseif btn == "DeviceButton_=" and not shift then
-        return "="
-    elseif btn == "DeviceButton_=" and shift then
-        return "+"
-    elseif char and char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') then
+    elseif char and char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w%[%]%{%}%`%\\]') then
         return char
     end
     return nil
