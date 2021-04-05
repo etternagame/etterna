@@ -42,7 +42,7 @@ jobs:
         run: brew install cmake nasm ninja
 
       - name: Generate CMake
-        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -G Ninja ..
+        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
       - name: Build Project
         run: cd build && ninja
@@ -78,8 +78,13 @@ jobs:
           repository: nico-abram/dxsdk
           path: dxsdk
 
+      - name: Update Environment Variables
+        run: |
+          echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.0
+        uses: microsoft/setup-msbuild@v1.0.2
+
 
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'Win32' }}
@@ -90,7 +95,7 @@ jobs:
         run: choco install ninja nsis openssl -y
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
+        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
