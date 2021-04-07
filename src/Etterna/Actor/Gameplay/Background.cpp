@@ -538,7 +538,9 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 	m_pSong = pSong;
 	m_StaticBackgroundDef.m_sFile1 = SONG_BACKGROUND_FILE;
 
-	if (PREFSMAN->m_fBGBrightness == 0.0f)
+	// do not load any background if it will never change and is 0 brightness
+	// this allows something like lua to load or modify in the background layer
+	if (PREFSMAN->m_fBGBrightness == 0.f && !m_pSong->HasBGChanges())
 		return;
 
 	// Choose a bunch of backgrounds that we'll use for the random file marker
