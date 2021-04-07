@@ -14,7 +14,6 @@
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -45,7 +44,6 @@ static ThemeMetric<bool> RAND_BG_ENDS_AT_LAST_BEAT("Background",
 												   "RandomBGEndsAtLastBeat");
 
 static Preference<bool> g_bShowDanger("ShowDanger", false);
-static Preference<float> g_fBGBrightness("BGBrightness", 0.2f);
 static Preference<RandomBackgroundMode> g_RandomBackgroundMode(
   "RandomBackgroundMode",
   BGMODE_OFF);
@@ -540,7 +538,7 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 	m_pSong = pSong;
 	m_StaticBackgroundDef.m_sFile1 = SONG_BACKGROUND_FILE;
 
-	if (g_fBGBrightness == 0.0f)
+	if (PREFSMAN->m_fBGBrightness == 0.0f)
 		return;
 
 	// Choose a bunch of backgrounds that we'll use for the random file marker
@@ -871,7 +869,7 @@ BackgroundImpl::Update(float fDeltaTime)
 void
 BackgroundImpl::DrawPrimitives()
 {
-	if (g_fBGBrightness == 0.0f)
+	if (PREFSMAN->m_fBGBrightness == 0.0f)
 		return;
 
 	{
@@ -951,7 +949,7 @@ BrightnessOverlay::SetActualBrightness()
 	auto fRightBrightness =
 	  1 - GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
 
-	const float fBaseBGBrightness = g_fBGBrightness;
+	const float fBaseBGBrightness = PREFSMAN->m_fBGBrightness;
 
 	// Revision:  Themes that implement a training mode should handle the
 	// brightness for it.  The engine should not force the brightness for
