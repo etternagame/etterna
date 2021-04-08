@@ -279,7 +279,7 @@ local function leftFrame()
                     if getPlayerOptions():UsingReverse() then
                         self:y(-secondrowYoffset)
                     else
-                        self:y(0)
+                        self:y(secondrowYoffset)
                     end
                 end,
                 Def.ActorFrame {
@@ -311,15 +311,6 @@ local function leftFrame()
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
                     self:zoom(noteskinzoom)
-                end,
-                SetYCommand = function(self)
-                    self:finishtweening()
-                    self:smooth(animationSeconds)
-                    if getPlayerOptions():UsingReverse() then
-                        self:y(0)
-                    else
-                        self:y(-secondrowYoffset)
-                    end
                 end,
                 Def.ActorFrame {
                     LoadNSkinPreview("Get", dir, "Receptor", false) .. {
