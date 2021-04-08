@@ -218,8 +218,13 @@ local function leftFrame()
 
         -- yeah these numbers are bogus (but are in fact based on the 4key numbers so they arent all that bad)
         local columnwidth = 64
+        local noteskinwidthbaseline = 256
         local secondrowYoffset = 64
-        local noteskinzoom = 1
+        local noteskinbasezoom = 1.5 -- pick a zoom that fits 4key in 16:9 aspect ratio
+        local NSDirTable = GivenGameToFullNSkinElements(GAMESTATE:GetCurrentGame():GetName())
+        -- calculation: find a zoom that fits for the current chosen column count the same way 4key on 16:9 does
+        local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
+        local noteskinzoom = noteskinbasezoom / (#NSDirTable * columnwidth / noteskinwidthbaseline) / aspectRatioProportion
 
         local function findNoteskinIndex(skin)
             local nsnames = NOTESKIN:GetNoteSkinNames()
@@ -235,6 +240,7 @@ local function leftFrame()
             Name = "SkinContainer",
             InitCommand = function(self)
                 self:x(actuals.LeftWidth/2)
+                self:zoom(noteskinzoom)
                 self:playcommand("SetY")
                 self:finishtweening()
             end,
@@ -261,7 +267,6 @@ local function leftFrame()
         }
         -- works almost exactly like the legacy PlayerOptions preview
         -- at this point in time we cannot load every Game's noteskin like I would like to
-        local NSDirTable = GivenGameToFullNSkinElements(GAMESTATE:GetCurrentGame():GetName())
         for i, dir in ipairs(NSDirTable) do
             -- so the elements are centered
             -- add half a column width because elements are center aligned
@@ -271,7 +276,6 @@ local function leftFrame()
             tt[#tt+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
-                    self:zoom(noteskinzoom)
                 end,
                 SetYCommand = function(self)
                     self:finishtweening()
@@ -310,7 +314,6 @@ local function leftFrame()
             tt[#tt+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
-                    self:zoom(noteskinzoom)
                 end,
                 Def.ActorFrame {
                     LoadNSkinPreview("Get", dir, "Receptor", false) .. {

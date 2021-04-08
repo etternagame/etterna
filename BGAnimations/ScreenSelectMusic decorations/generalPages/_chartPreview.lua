@@ -88,6 +88,7 @@ actuals.DividerThickness = actuals.DividerThickness or 0
 local rightHalfXBegin = actuals.VerticalDividerLeftGap + actuals.DividerThickness
 local notefieldXCenter = rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2
 local expectedGeneralReceptorHeight = 64 -- this number varies slightly but typically receptors are "64x64"
+local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT) -- this was designed for 16:9 so compensate
 local notefieldZoomBaseline = 0.8 -- zoom for 4key width
 local notefieldWidthBaseline = 256 -- 4key width
 local notefieldYOffset = actuals.DensityGraphHeight + expectedGeneralReceptorHeight / 1080 * SCREEN_HEIGHT * notefieldZoomBaseline
@@ -104,7 +105,7 @@ local function getSizeForStyle()
     --  and notefieldLengthPixels is 300 for that baseline zoom
     -- find a zoom and pixel length that fits using math
     local pdiff = stylewidth / notefieldWidthBaseline
-    local newzoom = notefieldZoomBaseline / pdiff
+    local newzoom = notefieldZoomBaseline / pdiff / aspectRatioProportion
     local newlength = notefieldLengthPixels / newzoom
 
     return newzoom, newlength
