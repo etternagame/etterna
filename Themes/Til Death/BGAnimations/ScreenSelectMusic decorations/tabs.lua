@@ -14,6 +14,13 @@ local function input(event)
 			 then
 				if event.DeviceInput.button == "DeviceButton_0" then
 					local tind = getTabIndex()
+					-- if on the search tab dont let them press 0 if currently holding shift...
+					-- prevents attempting to enter ')' causing page change
+					-- (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK)
+					if tind == 3 and (INPUTFILTER:IsBeingPressed("left shift") or INPUTFILTER:IsBeingPressed("right shift")) then
+						return false
+					end
+
 					setTabIndex(9)
 					MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 9})
 				else
