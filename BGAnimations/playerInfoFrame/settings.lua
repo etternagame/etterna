@@ -345,6 +345,16 @@ local function leftFrame()
     local function createKeybindsPage()
         local t = Def.ActorFrame { 
             Name = "KeybindsPageContainer",
+            ShowLeftCommand = function(self, params)
+                if params and params.name == "Keybinds" then
+                    self:diffusealpha(1)
+                else
+                    self:diffusealpha(1)
+                end
+            end,
+            HideLeftCommand = function(self)
+                self:diffusealpha(0)
+            end,
         }
         return t
     end
@@ -352,6 +362,16 @@ local function leftFrame()
     local function createPreviewPage()
         local t = Def.ActorFrame {
             Name = "PreviewPageContainer",
+            ShowLeftCommand = function(self, params)
+                if params and params.name == "Preview" then
+                    self:diffusealpha(1)
+                else
+                    self:diffusealpha(1)
+                end
+            end,
+            HideLeftCommand = function(self)
+                self:diffusealpha(0)
+            end,
         }
         return t
     end
@@ -359,6 +379,16 @@ local function leftFrame()
     local function createColorConfigPage()
         local t = Def.ActorFrame {
             Name = "ColorConfigPageContainer",
+            ShowLeftCommand = function(self, params)
+                if params and params.name == "ColorConfig" then
+                    self:diffusealpha(1)
+                else
+                    self:diffusealpha(1)
+                end
+            end,
+            HideLeftCommand = function(self)
+                self:diffusealpha(0)
+            end,
         }
         return t
     end
