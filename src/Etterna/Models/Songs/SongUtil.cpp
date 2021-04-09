@@ -435,7 +435,7 @@ static bool
 CompareSongPointersByLength(const Song* a, const Song* b)
 {
 	auto len_a = 0.F;
-	for (const auto& s : a->GetAllSteps()) {
+	for (const auto& s : a->GetChartsMatchingFilter()) {
 		const auto& len = s->GetLengthSeconds();
 		// if we hit the current preferred difficulty just force use the value
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
@@ -448,7 +448,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 
 	// OH NO COPY PASTE WHAT EVER WILL WE DO MAYBE USE A 10 LINE MACRO????
 	auto len_b = 0.F;
-	for (const auto& s : b->GetAllSteps()) {
+	for (const auto& s : b->GetChartsMatchingFilter()) {
 		const auto& len = s->GetLengthSeconds();
 
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
@@ -703,9 +703,9 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			auto len_a = 0.F;
 			// should probably be an actual util function because copy pasted
 			// from length sort above
-			for (const auto& s : pSong->GetAllSteps()) {
-				const auto& len = s->GetTimingData()->GetElapsedTimeFromBeat(
-				  pSong->GetLastBeat());
+
+			for (const auto& s : pSong->GetChartsMatchingFilter()) {
+				const auto& len = s->GetLengthSeconds();
 
 				if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
 					len_a = len;
