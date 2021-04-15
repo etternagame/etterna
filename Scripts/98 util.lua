@@ -302,3 +302,21 @@ end
 function getSongOptions()
     return GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred")
 end
+
+-- safely get a very deep child of an ActorFrame
+-- just in case something in between doesnt exist
+-- the names should be in the order you would chain the GetChild usages
+-- GetChild("Top"):GetChild("childchild"):GetChild("greatgrandchild") ...
+-- if something doesnt exist, return nil
+function ActorFrame.safeGetChild(self, ...)
+    local names = {...}
+    local final = self
+    for i, name in ipairs(names) do
+        if final ~= nil and final.GetChild ~= nil then
+            final = final:GetChild(name)
+        else
+            return final
+        end
+    end
+    return final
+end
