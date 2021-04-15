@@ -18,6 +18,8 @@ class NoteFieldPreview : public NoteField
 	void ensure_note_displays_have_skin() override;
 	NoteFieldPreview();
 	~NoteFieldPreview();
+	void SetPoseNoteField(bool b) { poseNoteField = b; }
+	
 	[[nodiscard]] auto Copy() const -> NoteFieldPreview* override;
 	void PushSelf(lua_State* L) override;
 
@@ -25,6 +27,9 @@ class NoteFieldPreview : public NoteField
 	NoteData* p_dummyNoteData;
 	NoteData* p_NoteDataFromSteps;
 	bool loadedNoteDataAtLeastOnce = false;
+	bool poseNoteField = false;
+	float ReceptorArrowsYReverse = 0.F;
+	float ReceptorArrowsYStandard = 0.F;
 };
 
 #endif

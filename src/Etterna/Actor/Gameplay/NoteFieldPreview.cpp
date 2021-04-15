@@ -7,16 +7,16 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Screen/Others/Screen.h"
-
+#include "Player.h"
+#include "Etterna/Models/Misc/CommonMetrics.h"
+#include "Etterna/Singletons/NoteSkinManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 
 #include <cmath>
 #include <limits>
-
-#include "Etterna/Models/Misc/CommonMetrics.h"
-#include "Etterna/Singletons/NoteSkinManager.h"
+#include <RageUtil/Graphics/RageDisplay.h>
 
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
@@ -61,6 +61,11 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 		m_iDrawDistanceAfterTargetsPixels =
 		  std::clamp(iDrawAfter, std::numeric_limits<int>::min(), 0);
 
+	ReceptorArrowsYReverse =
+	  THEME->GetMetricF("Player", "ReceptorArrowsYReverse");
+	ReceptorArrowsYStandard =
+	  THEME->GetMetricF("Player", "ReceptorArrowsYStandard");
+	
 	float reversePixels, noteFieldHeight;
 	const auto reverseSuccess = pNode->GetAttrValue("YReverseOffsetPixels", reversePixels);
 	if (reverseSuccess)
@@ -69,11 +74,7 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 	else {
 		// for NoteField height
 		// 100 is a kind of typical number
-		const float yReverse =
-		  THEME->GetMetricF("Player", "ReceptorArrowsYReverse");
-		const float yStandard =
-		  THEME->GetMetricF("Player", "ReceptorArrowsYStandard");
-		noteFieldHeight = yReverse - yStandard;
+		noteFieldHeight = ReceptorArrowsYReverse - ReceptorArrowsYStandard;
 	}
 
 	if (m_pPlayerState == nullptr) {
@@ -286,7 +287,58 @@ NoteFieldPreview::DrawPrimitives()
 {
 	if (m_pCurDisplay == nullptr)
 		return;
+	
+	const auto original_y = GetY();
+	// Use the same logic of the PlayerNoteFieldPositioner here
+	// This will make the NoteField adapt to the PlayerState PlayerOptions
+	// Specifically, the Perspective options.
+	// If false, no more updates. Have to fix it yourself.
+	if (poseNoteField) {
+		if (m_pPlayerState != nullptr) {
+			const auto& curr_options =
+			  m_pPlayerState->m_PlayerOptions.GetCurrent();
+			const auto reverse =
+			  curr_options.GetReversePercentForColumn(0) > 0.5F;
+			const auto tilt = curr_options.m_fPerspectiveTilt;
+			const auto mini =
+			  curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
+			const auto reverse_mult = (reverse ? -1 : 1);
+			const auto tilt_degrees =
+			  SCALE(tilt, -1.F, +1.F, +30, -30) * reverse_mult;
+
+			const auto x = GetX();
+			const auto skew = curr_options.m_fSkew;
+			const auto center_y =
+			  original_y +
+			  (ReceptorArrowsYReverse + ReceptorArrowsYStandard) / 2;
+
+			// emulate Player::PushPlayerMatrix
+			Player::PushPlayerMatrix(x, skew, center_y);
+			
+			if (tilt > 0) {
+				SetY(original_y + SCALE(tilt, 0.F, 1.F, 0.F, -45.F) * reverse_mult);
+				SetZoom(SCALE(mini, 0.F, 1.F, 1.F, 0.5F) *
+						SCALE(tilt, 0.F, 1.F, 1.F, 0.9F));
+			}
+			else {
+				SetY(original_y + SCALE(tilt, 0.F, -1.F, 0.F, -20.F) * reverse_mult);
+				SetZoom(SCALE(mini, 0.F, 1.F, 1.F, 0.5F) *
+						SCALE(tilt, 0.F, -1.F, 1.F, 0.9F));
+			}
+			SetRotationX(tilt_degrees);
+		}
+	}
+	
 	NoteField::DrawPrimitives();
+
+	// clean up the emulation of PlayerNoteFieldPositioner
+	// this happens in its destructor
+	if (poseNoteField) {
+		if (m_pPlayerState != nullptr) {
+			SetY(original_y);
+			Player::PopPlayerMatrix();
+		}
+	}
 }
 
 class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
@@ -313,12 +365,19 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 		p->LoadDummyNoteData();
 		COMMON_RETURN_SELF;
 	}
+	static int SetFollowPlayerOptions(T* p, lua_State* L)
+	{
+		auto b = BArg(1);
+		p->SetPoseNoteField(b);
+		COMMON_RETURN_SELF;
+	}
 	
 	LunaNoteFieldPreview()
 	{
 		ADD_METHOD(UpdateDrawDistance);
 		ADD_METHOD(LoadNoteData);
 		ADD_METHOD(LoadDummyNoteData);
+		ADD_METHOD(SetFollowPlayerOptions);
 	}
 };
 
