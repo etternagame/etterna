@@ -208,7 +208,7 @@ local function leftFrame()
                 if params and params.name == "Noteskin" then
                     self:diffusealpha(1)
                 else
-                    self:diffusealpha(1)
+                    self:diffusealpha(0)
                 end
             end,
             HideLeftCommand = function(self)
@@ -352,7 +352,7 @@ local function leftFrame()
                 if params and params.name == "Keybinds" then
                     self:diffusealpha(1)
                 else
-                    self:diffusealpha(1)
+                    self:diffusealpha(0)
                 end
             end,
             HideLeftCommand = function(self)
@@ -363,6 +363,7 @@ local function leftFrame()
     end
 
     local function createPreviewPage()
+        local previewNotefieldActor = nil
         local t = Def.ActorFrame {
             Name = "PreviewPageContainer",
             ShowLeftCommand = function(self, params)
@@ -375,6 +376,31 @@ local function leftFrame()
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
             end,
+            
+            -- the preview notefield
+            -- ActorProxy-ing the existing preview notefield which is hidden somewhere else
+            Def.ActorProxy {
+                Name = "PreviewNoteFieldProxy",
+                InitCommand = function(self)
+                end,
+                BeginCommand = function(self)
+                    previewNotefieldActor = SCREENMAN:GetTopScreen():safeGetChild("RightFrame", "GeneralBoxFile", "Container", "GeneralPageFile", "ChartPreviewFile", "NoteField")
+                    if previewNotefieldActor == nil then return end
+                    -- offset the position of this proxy by the distance the preview notefield is moved
+                    -- this single move should put it at 0 x in our surrounding ActorFrame
+                    -- then add the amount that centers it (0 x in the notefield is also center so it should work out)
+                    -- (the same applies to the y value -- and the amount added is about 1/4 down)
+                    self:y(-previewNotefieldActor:GetY() + actuals.Height / 4)
+                    self:x(-previewNotefieldActor:GetX() + actuals.LeftWidth / 2)
+                    self:SetTarget(previewNotefieldActor)
+                    -- set the PreviewNotefield to follow tilt/skew PlayerOptions
+                    -- update ArrowEffects here so that any PlayerOptions that utilize them will update
+                    previewNotefieldActor:SetFollowPlayerOptions(true)
+                    previewNotefieldActor:SetUpdateFunction(function(self)
+                        ArrowEffects.Update()
+                    end)
+                end,
+            }
         }
         return t
     end
@@ -386,7 +412,7 @@ local function leftFrame()
                 if params and params.name == "ColorConfig" then
                     self:diffusealpha(1)
                 else
-                    self:diffusealpha(1)
+                    self:diffusealpha(0)
                 end
             end,
             HideLeftCommand = function(self)
