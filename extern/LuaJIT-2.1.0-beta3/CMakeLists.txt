@@ -1,3 +1,6 @@
+# Originally based on the (Now archived/unmantained) LuaDist luajit cmake file
+# Now modified based on https://github.com/WohlSoft/LuaJIT
+
 # Copyright (C) 2007-2013 LuaDist.
 # Copyright (c) 2017 George White.
 # Created by Peter Drahoš
@@ -41,6 +44,7 @@ set(LUA_IDSIZE 60 CACHE STRING "gives the maximum size for the description of th
 set(LUA_PROMPT "> " CACHE STRING "Is the default prompt used by stand-alone Lua.")
 set(LUA_PROMPT2 ">> " CACHE STRING "Is the default continuation prompt used by stand-alone Lua.")
 set(LUA_MAXINPUT 512 CACHE STRING "Is the maximum length for an input line in the stand-alone interpreter.")
+set(LUAJIT_NO_UNWIND OFF CACHE BOOL "Disable the UNWIND")
 
 # Version
 set(MAJVER 2)
@@ -90,7 +94,7 @@ set(LUA_CPATH_DEFAULT "./?${LUA_MODULE_SUFFIX};${LUA_DIR}${LUA_CDIR}/?${LUA_MODU
 
 if(WIN32 AND NOT CYGWIN)
   # Windows systems
-  add_definitions(-DLUAJIT_OS=LUAJIT_OS_WINDOWS)
+  #add_definitions(-DLUAJIT_OS=LUAJIT_OS_WINDOWS)
   option(LUA_BUILD_WLUA "Build wluajit interpreter for no-console applications." ON)
   set(LJVM_MODE peobj)
   # Paths (Double escapes needed)
@@ -123,6 +127,33 @@ if(LUA_USE_DLOPEN)
   list(APPEND LIBS dl)
 endif()
 
+set(LJ_DEFINITIONS "")
+if(NOT LUAJIT_NO_UNWIND AND NOT IOS)
+  set(LJ_DEFINITIONS ${LJ_DEFINITIONS} -DLUAJIT_UNWIND_EXTERNAL)
+  set(TARGET_ARCH ${TARGET_ARCH} -DLUAJIT_UNWIND_EXTERNAL)
+endif()
+
+set(TARGET_OS_FLAGS "")
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_LINUX)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_WINDOWS)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_OSX -D TARGET_OS_IPHONE=1)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_OSX)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_LINUX)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Haiku")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_POSIX)
+elseif ("${CMAKE_SYSTEM_NAME}" MATCHES "(Open|Free|Net)BSD")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_BSD)
+else()
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -D LUAJIT_OS=LUAJIT_OS_OTHER)
+endif()
+set(LJ_DEFINITIONS ${LJ_DEFINITIONS} ${TARGET_OS_FLAGS})
+
+
 ## SOURCES
 
 set(LJLIB_C
@@ -139,6 +170,7 @@ set(LJLIB_C
   ${LUAJIT_SOURCE_DIR}/src/lib_jit.c
   ${LUAJIT_SOURCE_DIR}/src/lib_ffi.c
   ${LUAJIT_SOURCE_DIR}/src/lib_package.c
+  ${LUAJIT_SOURCE_DIR}/src/lib_buffer.c
 )
 
 ## GENERATE VM
@@ -155,6 +187,12 @@ set(DASM_T ${LUAJIT_SOURCE_DIR}/src/host/buildvm_arch.h)
 set(DASM_FLAGS -D FPU -D HFABI)
 set(DASM_ARCH x86)
 
+# 32bit vs 64bit
+if(CMAKE_SIZEOF_VOID_P EQUAL 8 OR "${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64")
+  list(APPEND DASM_FLAGS -D P64)
+  set(DASM_ARCH x64)
+endif()
+
 # All ARM hosts (iOS, Android, Raspberry Pi etc.)
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(arm|ARM).*")
   set(DASM_ARCH arm)
@@ -165,11 +203,6 @@ endif()
 # Windows is ... special
 if(WIN32)
   list(APPEND DASM_FLAGS -D WIN)
-endif()
-
-# 32bit vs 64bit
-if(CMAKE_SIZEOF_VOID_P EQUAL 8 OR "${CMAKE_GENERATOR_PLATFORM}" STREQUAL "x64")
-  list(APPEND DASM_FLAGS -D P64)
 endif()
 
 if(NOT LUAJIT_DISABLE_JIT)
@@ -348,6 +381,9 @@ set(LJCORE_C
   ${LUAJIT_SOURCE_DIR}/src/lj_vmevent.c
   ${LUAJIT_SOURCE_DIR}/src/lj_vmevent.h
   ${LUAJIT_SOURCE_DIR}/src/lj_vmmath.c
+  ${LUAJIT_SOURCE_DIR}/src/lj_prng.c
+  ${LUAJIT_SOURCE_DIR}/src/lj_serialize.c
+  ${LUAJIT_SOURCE_DIR}/src/lj_serialize.h
   ${LJLIB_C}
 )
 
@@ -357,8 +393,10 @@ target_include_directories(lua
 	PUBLIC "${LUAJIT_SOURCE_DIR}/src")
 target_link_libraries(lua ${LIBS})
 set_target_properties(lua PROPERTIES LINKER_LANGUAGE C)
+target_compile_definitions(lua PRIVATE ${LJ_DEFINITIONS})
 
 #add_executable(luajit ${LUAJIT_SOURCE_DIR}/src/luajit.c)
 add_library(luajit STATIC ${LUAJIT_SOURCE_DIR}/src/luajit.c)
 set_target_properties(luajit PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(luajit lua)
+target_compile_definitions(luajit PRIVATE ${LJ_DEFINITIONS})
