@@ -190,7 +190,7 @@ local function beginLoginProcess(self)
     -- input redirects are controlled here because we want to be careful not to break any prior redirects
     askForInputStringWithFunction(
         "Enter Username",
-        64,
+        255,
         false,
         function(answer)
             username = answer
@@ -228,7 +228,7 @@ local function loginStep2()
     local password = ""
     askForInputStringWithFunction(
         "Enter Password",
-        128,
+        255,
         true,
         function(answer)
             password = answer
