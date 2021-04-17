@@ -70,8 +70,8 @@ local function loginToggler()
 			pass = answer
 			DLMAN:Login(user, pass)
 		end
-		easyInputStringWithFunction(translated_info["Password"]..":", 50, true, password)
-		easyInputStringWithFunction(translated_info["Username"]..":", 50, false, username)
+		easyInputStringWithFunction(translated_info["Password"]..":", 255, true, password)
+		easyInputStringWithFunction(translated_info["Username"]..":", 255, false, username)
 	else
 		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
 		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
