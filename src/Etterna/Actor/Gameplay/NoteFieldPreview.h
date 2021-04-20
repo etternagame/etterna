@@ -12,7 +12,7 @@ class NoteFieldPreview : public NoteField
 	void Update(float fDeltaTime) override;
 	void DrawPrimitives() override;
 	void LoadNoteData(NoteData* pNoteData);
-	void LoadNoteData(Steps* pSteps);
+	void LoadNoteData(Steps* pSteps, bool bTransform = false);
 	void LoadDummyNoteData();
 	void UpdateDrawDistance(int aftertargetspixels, int beforetargetspixels);
 	void ensure_note_displays_have_skin() override;

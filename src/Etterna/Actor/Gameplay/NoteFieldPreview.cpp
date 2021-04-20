@@ -18,6 +18,8 @@
 #include <limits>
 #include <RageUtil/Graphics/RageDisplay.h>
 
+#include "Etterna/Models/NoteData/NoteDataUtil.h"
+
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
 const Style*
@@ -154,7 +156,7 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 }
 
 void
-NoteFieldPreview::LoadNoteData(Steps* pSteps)
+NoteFieldPreview::LoadNoteData(Steps* pSteps, bool bTransform)
 {
 	auto* nd = new NoteData;
 	*nd = pSteps->GetNoteData();
@@ -164,6 +166,17 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps)
 	if (pSteps == GAMESTATE->m_pCurSteps && style != nullptr &&
 		nd->GetNumTracks() != style->m_iColsPerPlayer)
 		GAMESTATE->SetCompatibleStylesForPlayers();
+
+	// Transform NoteData incoming (this being only here is because only lua uses it)
+	// (for now)
+	if (nd != nullptr && bTransform) {
+		auto* td = pSteps->GetTimingData();
+		NoteDataUtil::TransformNoteData(
+		  *nd,
+		  *td,
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent(),
+		  pSteps->m_StepsType);
+	}
 	
 	if (nd != p_NoteDataFromSteps && p_NoteDataFromSteps != nullptr)
 		delete p_NoteDataFromSteps;
@@ -357,7 +370,11 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 	static int LoadNoteData(T* p, lua_State* L)
 	{
 		auto* s = Luna<Steps>::check(L, 1);
-		p->LoadNoteData(s);
+		auto transform = false;
+		if (!lua_isnoneornil(L, 2)) {
+			transform = BArg(2);
+		}
+		p->LoadNoteData(s, transform);
 		COMMON_RETURN_SELF;
 	}
 	static int LoadDummyNoteData(T* p, lua_State* L)
