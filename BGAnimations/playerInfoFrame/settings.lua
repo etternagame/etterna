@@ -2373,6 +2373,25 @@ local function rightFrame()
             if self:GetParent():IsInvisible() then return end
             self:GetParent():diffusealpha(1)
         end
+        local function broadcastOptionUpdate(optionDef, choiceIndex)
+            if type(choiceIndex) == "number" then
+                if optionDef.Choices ~= nil and optionDef.Choices[choiceIndex] ~= nil then
+                    -- a normal SingleChoice or SingleChoiceModifier
+                    MESSAGEMAN:Broadcast("OptionUpdated", {name = optionDef.Name, choiceName = optionDef.Choices[choiceIndex].Name})
+                else
+                    -- a non-indexed option being updated directly
+                    MESSAGEMAN:Broadcast("OptionUpdated", {name = optionDef.Name, choiceName = choiceIndex})
+                end
+            elseif type(choiceIndex) == "string" then
+                -- a non-indexed option being updated directly
+                MESSAGEMAN:Broadcast("OptionUpdated", {name = optionDef.Name, choiceName = choiceIndex})
+            elseif type(choiceIndex) == "table" then
+                -- in this case it is a MultiChoice being selected
+                if choiceIndex.Name ~= nil then
+                    MESSAGEMAN:Broadcast("OptionUpdated", {name = optionDef.Name, choiceName = choiceIndex.Name})
+                end
+            end
+        end
         --
 
         local t = Def.ActorFrame {
@@ -2490,6 +2509,7 @@ local function rightFrame()
                 currentChoiceSelection = nn
                 if optionDef.Choices ~= nil and optionDef.Choices[currentChoiceSelection] ~= nil then
                     optionDef.Choices[currentChoiceSelection].ChosenFunction()
+                    broadcastOptionUpdate(optionDef, currentChoiceSelection)
                 end
                 if rowHandle ~= nil then
                     redrawChoiceRelatedElements()
@@ -2678,6 +2698,7 @@ local function rightFrame()
                                 -- button
                                 if optionDef.Choices and #optionDef.Choices >= 1 then
                                     optionDef.Choices[1].ChosenFunction()
+                                    broadcastOptionUpdate(optionDef, 1)
                                 end
                             else
                                 -- ?
@@ -2820,6 +2841,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     elseif optionDef.Directions ~= nil and optionDef.Directions.Left ~= nil then
@@ -2828,6 +2850,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     end
@@ -2911,6 +2934,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     elseif optionDef.Directions ~= nil and optionDef.Directions.Right ~= nil then
@@ -2919,6 +2943,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     end
@@ -2997,6 +3022,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     elseif optionDef.Directions ~= nil and optionDef.Directions.Left ~= nil then
@@ -3005,6 +3031,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     end
@@ -3090,6 +3117,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     elseif optionDef.Directions ~= nil and optionDef.Directions.Right ~= nil then
@@ -3098,6 +3126,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                         redrawChoiceRelatedElements()
                                         return
                                     end
@@ -3296,6 +3325,7 @@ local function rightFrame()
                                             if optionDef.ChoiceIndexGetter ~= nil then
                                                 currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                             end
+                                            broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                             redrawChoiceRelatedElements()
                                             return
                                         elseif fwd and optionDef.Directions ~= nil and optionDef.Directions.Right ~= nil then
@@ -3304,6 +3334,7 @@ local function rightFrame()
                                             if optionDef.ChoiceIndexGetter ~= nil then
                                                 currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                             end
+                                            broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                             redrawChoiceRelatedElements()
                                             return
                                         elseif bwd and optionDef.Directions ~= nil and optionDef.Directions.Left ~= nil then
@@ -3312,6 +3343,7 @@ local function rightFrame()
                                             if optionDef.ChoiceIndexGetter ~= nil then
                                                 currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                             end
+                                            broadcastOptionUpdate(optionDef, currentChoiceSelection)
                                             redrawChoiceRelatedElements()
                                             return
                                         end
@@ -3331,6 +3363,7 @@ local function rightFrame()
                                         if optionDef.ChoiceIndexGetter ~= nil then
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
+                                        broadcastOptionUpdate(optionDef, choice)
                                         self:playcommand("DrawChoice")
                                     end
                                 end
