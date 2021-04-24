@@ -65,6 +65,7 @@ struct HighScoreImpl
 	std::string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore]{};
+	int iTapNoteScoresNormalized[NUM_TapNoteScore]{};
 	int tnsnorm[NUM_TapNoteScore]{};
 	int iHoldNoteScores[NUM_HoldNoteScore]{};
 	int hnsnorm[NUM_HoldNoteScore]{};
@@ -221,6 +222,13 @@ HighScoreImpl::CreateEttNode() const -> XNode*
 		pTapNoteScores->AppendChild(TapNoteScoreToString(tns),
 									iTapNoteScores[tns]);
 	}
+	auto* pTapNoteScoresNormalized = pNode->AppendChild("TNSNormalized");
+	FOREACH_ENUM(TapNoteScore, tns)
+	if (tns != TNS_None && tns != TNS_CheckpointMiss &&
+		tns != TNS_CheckpointHit) {
+		pTapNoteScoresNormalized->AppendChild(TapNoteScoreToString(tns),
+											  iTapNoteScoresNormalized[tns]);
+	}
 
 	auto* pHoldNoteScores = pNode->AppendChild("HoldNoteScores");
 	FOREACH_ENUM(HoldNoteScore, hns)
@@ -330,6 +338,13 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		FOREACH_ENUM(TapNoteScore, tns)
 		pTapNoteScores->GetChildValue(TapNoteScoreToString(tns),
 									  iTapNoteScores[tns]);
+	}
+
+	const auto* pTapNoteScoresNormalized = pNode->GetChild("TNSNormalized");
+	if (pTapNoteScoresNormalized != nullptr) {
+		FOREACH_ENUM(TapNoteScore, tns)
+		pTapNoteScoresNormalized->GetChildValue(TapNoteScoreToString(tns),
+												iTapNoteScoresNormalized[tns]);
 	}
 
 	const auto* pHoldNoteScores = pNode->GetChild("HoldNoteScores");
@@ -706,6 +721,22 @@ HighScore::IsEmpty() const -> bool
 }
 
 auto
+HighScore::IsEmptyNormalized() const -> bool
+{
+	if (m_Impl->iTapNoteScoresNormalized[TNS_W1] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_W2] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_W3] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_W4] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_W5] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_Miss] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_HitMine] != 0 ||
+		m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] != 0) {
+		return false;
+	}
+	return true;
+}
+
+auto
 HighScore::GetName() const -> const std::string&
 {
 	return m_Impl->sName;
@@ -883,6 +914,11 @@ auto
 HighScore::GetTapNoteScore(TapNoteScore tns) const -> int
 {
 	return m_Impl->iTapNoteScores[tns];
+}
+auto
+HighScore::GetTNSNormalized(TapNoteScore tns) const -> int
+{
+	return m_Impl->iTapNoteScoresNormalized[tns];
 }
 auto
 HighScore::GetHoldNoteScore(HoldNoteScore hns) const -> int
@@ -1453,6 +1489,99 @@ HighScore::GetRescoreJudgeVector(int x) -> std::vector<int>
 }
 
 auto
+HighScore::NormalizeJudgments() -> bool
+{
+	// exit early successfully if normalized judgments already loaded
+	if (!IsEmptyNormalized())
+		return true;
+
+	// Normalizing to J4, a J4 score needs no normalizing
+	if (m_Impl->fJudgeScale == 1.F) {
+		FOREACH_ENUM(TapNoteScore, tns)
+		m_Impl->iTapNoteScoresNormalized[tns] = m_Impl->iTapNoteScores[tns];
+		return true;
+	}
+	// otherwise ....
+
+	
+	// exit early if no replay data to convert
+	// this will work if replay doesn't physically exist
+	// that case occurs if coming via FillInHighScore with PSS data
+	// replaydata loading "fails" if size isnt more than 4
+	// we don't really want that to happen
+	// this is because replays dont save for the same reason
+	if (!LoadReplayData() && m_Impl->vOffsetVector.size() == 0) {
+		return false;
+	}
+
+	// need to actually normalize here using replay data
+	// mine hits and misses are technically not correct ...
+	m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] =
+	  m_Impl->iTapNoteScores[TNS_AvoidMine];
+	m_Impl->iTapNoteScoresNormalized[TNS_HitMine] =
+	  m_Impl->iTapNoteScores[TNS_HitMine];
+
+	// New replays, check for only certain types
+	if (m_Impl->ReplayType == 2) {
+		for (size_t i = 0; i < m_Impl->vOffsetVector.size(); i++) {
+			// assumption of equal size, no crashy
+			auto& type = m_Impl->vTapNoteTypeVector[i];
+			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
+				type == TapNoteType_Lift) {
+				const auto x = abs(m_Impl->vOffsetVector[i] * 1000.F);
+				if (x <= 22.5F) {
+					m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
+				} else if (x <= 45.F) {
+					m_Impl->iTapNoteScoresNormalized[TNS_W2]++;
+				} else if (x <= 90.F) {
+					m_Impl->iTapNoteScoresNormalized[TNS_W3]++;
+				} else if (x <= 135.F) {
+					m_Impl->iTapNoteScoresNormalized[TNS_W4]++;
+				} else if (x <= 180.F) {
+					m_Impl->iTapNoteScoresNormalized[TNS_W5]++;
+				} else {
+					// should anything outside the window be treated as a boo?
+					// misses should show up as 1000ms
+					m_Impl->iTapNoteScoresNormalized[TNS_Miss]++;
+				}
+			}
+		}
+	}
+	else {
+		// or just blindly convert, nobody cares too much about old replays...
+		for (auto& n : m_Impl->vOffsetVector) {
+			const auto x = abs(n * 1000.F);
+			if (x <= 22.5F) {
+				m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
+			} else if (x <= 45.F) {
+				m_Impl->iTapNoteScoresNormalized[TNS_W2]++;
+			} else if (x <= 90.F) {
+				m_Impl->iTapNoteScoresNormalized[TNS_W3]++;
+			} else if (x <= 135.F) {
+				m_Impl->iTapNoteScoresNormalized[TNS_W4]++;
+			} else if (x <= 180.F) {
+				m_Impl->iTapNoteScoresNormalized[TNS_W5]++;
+			} else {
+				// should anything outside the window be treated as a boo?
+				// misses should show up as 1000ms
+				m_Impl->iTapNoteScoresNormalized[TNS_Miss]++;
+			}
+		}
+	}
+
+	// extreme edge cases: misses dont show up in replays (not confirmed)
+	// so if this happens, add them in
+	if (m_Impl->iTapNoteScoresNormalized[TNS_Miss] < m_Impl->iTapNoteScores[TNS_Miss]) {
+		m_Impl->iTapNoteScoresNormalized[TNS_Miss] +=
+		  m_Impl->iTapNoteScores[TNS_Miss];
+		Locator::getLogger()->warn(
+		  "While converting score key {} a Miss mismatch was found.", GetScoreKey());
+	}
+	
+	return true;
+}
+
+auto
 HighScore::GetWifeGrade() const -> Grade
 {
 	return m_Impl->GetWifeGrade();
@@ -1574,6 +1703,11 @@ class LunaHighScore : public Luna<HighScore>
 	static auto GetTapNoteScore(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetTapNoteScore(Enum::Check<TapNoteScore>(L, 1)));
+		return 1;
+	}
+	static auto GetTNSNormalized(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetTNSNormalized(Enum::Check<TapNoteScore>(L, 1)));
 		return 1;
 	}
 	static auto GetHoldNoteScore(T* p, lua_State* L) -> int
@@ -1781,6 +1915,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(IsFillInMarker);
 		ADD_METHOD(GetModifiers);
 		ADD_METHOD(GetTapNoteScore);
+		ADD_METHOD(GetTNSNormalized);
 		ADD_METHOD(GetHoldNoteScore);
 		ADD_METHOD(GetRadarValues);
 		ADD_METHOD(GetRadarPossible);

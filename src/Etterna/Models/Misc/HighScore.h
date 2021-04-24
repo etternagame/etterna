@@ -38,6 +38,7 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	[[nodiscard]] auto IsEmpty() const -> bool;
+	[[nodiscard]] auto IsEmptyNormalized() const -> bool;
 	[[nodiscard]] auto GetWifeGrade() const -> Grade;
 	auto ConvertDpToWife() -> float;
 	[[nodiscard]] auto GetPercentDP() const -> float;
@@ -81,6 +82,7 @@ struct HighScore
 	[[nodiscard]] auto GetCountryCode() const -> const std::string&;
 	[[nodiscard]] auto GetProductID() const -> int;
 	[[nodiscard]] auto GetTapNoteScore(TapNoteScore tns) const -> int;
+	[[nodiscard]] auto GetTNSNormalized(TapNoteScore tns) const -> int;
 	[[nodiscard]] auto GetHoldNoteScore(HoldNoteScore hns) const -> int;
 	[[nodiscard]] auto GetRadarValues() const -> const RadarValues&;
 	[[nodiscard]] auto GetLifeRemainingSeconds() const -> float;
@@ -177,6 +179,7 @@ struct HighScore
 	  -> const std::string&;
 	void SetWifeVersion(int i);
 	auto GetRescoreJudgeVector(int x) -> std::vector<int>;
+	auto NormalizeJudgments() -> bool;
 	// laazy
 	std::string scoreid;
 	int userid = -1;

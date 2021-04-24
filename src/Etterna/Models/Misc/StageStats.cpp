@@ -668,6 +668,21 @@ FillInHighScore(const PlayerStageStats& pss,
 		}
 	}
 
+	// Normalize Judgments to J4 (regardless of wifepercent)
+	// If it fails, reset the replay data from pss and try one more time
+	if (!hs.NormalizeJudgments()) {
+		hs.SetOffsetVector(pss.GetOffsetVector());
+		hs.SetNoteRowVector(pss.GetNoteRowVector());
+		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+		// potentially empty, that's fine
+		hs.SetTrackVector(pss.GetTrackVector());
+
+		if (!hs.NormalizeJudgments())
+			Locator::getLogger()->warn(
+			  "Failed to normalize judgments for HighScore Key {}",
+			  hs.GetScoreKey());
+	}
+
 	hs.GenerateValidationKeys();
 
 	if (!pss.InputData.empty()) {
