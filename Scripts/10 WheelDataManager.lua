@@ -613,6 +613,7 @@ local sortmodeImplementations = {
             -- sort groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders,
                 function(a,b)
+                    -- folders are sorted by cleartype value instead of alphabetical
                     local aa = getClearTypeIndexFromValue(a)
                     local bb = getClearTypeIndexFromValue(b)
                     return aa < bb
@@ -856,11 +857,14 @@ local function getClearStatsForGroup(group)
         local foundgrade = nil -- highest grade of at least rate 1.0
         local foundgradeUnder1 = nil -- highest grade under 1.0
         local highestrateclear = 0 -- highest rate for this song where player obtained C or better
+        local useswarps = false
         for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
+            useswarps = chart:GetTimingData():HasWarps()
 
             -- scorestack is nil if no scores on the chart
-            if scorestack ~= nil then
+            -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
+            if scorestack ~= nil and not useswarps then
                 -- the scores are in lists for each rate
                 -- find the highest
                 for ___, l in pairs(scorestack) do
@@ -898,37 +902,40 @@ local function getClearStatsForGroup(group)
             end
         end
 
-        -- no passing (C+) scores found on an entire song means no lamp is possible
-        if foundgrade == nil then
-            if foundgradeUnder1 == nil then
-                maxlamp = nil
-                failed = true
-            else
-                if not failed then
-                    maxlamp = "Grade_Tier20"
-                end
-                -- count the number of Cleared songs (doesnt matter what grade)
-                if out.clearPerGrade["Grade_Tier20"] ~= nil then
-                    out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
-                else
-                    out.clearPerGrade["Grade_Tier20"] = 1
-                end
-            end
-        else
-            -- check if we found a new lowest common max grade
-            if not failed then
-                if highestrateclear < 1 then
-                    maxlamp = "Grade_Tier20"
+        -- skip stat intake for negbpm files for now
+        if not useswarps then
+            -- no passing (C+) scores found on an entire song means no lamp is possible
+            if foundgrade == nil then
+                if foundgradeUnder1 == nil then
+                    maxlamp = nil
                     failed = true
-                elseif compareGrades(maxlamp, foundgrade) then
-                    maxlamp = foundgrade
+                else
+                    if not failed then
+                        maxlamp = "Grade_Tier20"
+                    end
+                    -- count the number of Cleared songs (doesnt matter what grade)
+                    if out.clearPerGrade["Grade_Tier20"] ~= nil then
+                        out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
+                    else
+                        out.clearPerGrade["Grade_Tier20"] = 1
+                    end
                 end
-            end
-            -- count the number of songs per grade (1 song may be assigned 1 grade)
-            if out.clearPerGrade[foundgrade] ~= nil then
-                out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
             else
-                out.clearPerGrade[foundgrade] = 1
+                -- check if we found a new lowest common max grade
+                if not failed then
+                    if highestrateclear < 1 then
+                        maxlamp = "Grade_Tier20"
+                        failed = true
+                    elseif compareGrades(maxlamp, foundgrade) then
+                        maxlamp = foundgrade
+                    end
+                end
+                -- count the number of songs per grade (1 song may be assigned 1 grade)
+                if out.clearPerGrade[foundgrade] ~= nil then
+                    out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
+                else
+                    out.clearPerGrade[foundgrade] = 1
+                end
             end
         end
     end
