@@ -38,6 +38,16 @@ local typetable = {
 	[14] = "-",
 }
 
+-- for a reverse mapping of the above 2 tables
+local reversetypes = {}
+for i, ct in ipairs(typetable) do
+	reversetypes[ct] = i
+end
+local reversestypes = {}
+for i, ct in ipairs(stypetable) do
+	reversestypes[ct] = i
+end
+
 local typecolors = {
 	-- colors corresponding to cleartype
 	[1] = color(colorConfig:get_data().clearType["MFC"]),
@@ -74,16 +84,24 @@ local typetranslations = {
 }
 
 -- Methods for other uses (manually setting colors/text, etc.)
-local function getClearTypeText(index)
+function getClearTypeText(index)
 	return typetranslations[index]
 end
 
-local function getShortClearTypeText(index)
+function getShortClearTypeText(index)
 	return stypetable[index]
 end
 
-local function getClearTypeColor(index)
+function getClearTypeColor(index)
 	return typecolors[index]
+end
+
+function getClearTypeIndexFromValue(value)
+	local c = reversetypes[value]
+	if c == nil then
+		c = reversestypes[value]
+	end
+	return c
 end
 
 local function getClearTypeItem(clearlevel, ret)
@@ -152,8 +170,8 @@ function getClearTypeFromScore(score, ret)
 	if score == nil then
 		return getClearTypeItem(13, ret)
 	end
-	song = GAMESTATE:GetCurrentSong()
-	steps = GAMESTATE:GetCurrentSteps()
+	song = SONGMAN:GetSongByChartKey(score:GetChartKey())
+	steps = SONGMAN:GetStepsByChartKey(score:GetChartKey())
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 	if score ~= nil and song ~= nil and steps ~= nil then
 		playCount = profile:GetSongNumTimesPlayed(song)
@@ -163,6 +181,11 @@ function getClearTypeFromScore(score, ret)
 		misscount =
 			score:GetTapNoteScore("TapNoteScore_Miss") + score:GetTapNoteScore("TapNoteScore_W5") +
 			score:GetTapNoteScore("TapNoteScore_W4")
+		local totaltapcount = perfcount + greatcount + misscount + score:GetTapNoteScore("TapNoteScore_W1")
+		-- if the chart has no notes, you never played it even if you did
+		-- or if the score has no notes, same
+		-- this is useless information
+		if steps:GetRelevantRadars()[1] == 0 or totaltapcount == 0 then return 13 end
 	end
 
 

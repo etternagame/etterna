@@ -414,6 +414,30 @@ local function getAuthorSortFoldernameForSong(song)
     return author
 end
 
+-- this function sits here for scoping reasons
+-- gets the best cleartype of a song, for all charts in the song, matching the active filter
+local function getBestCleartypeForSong(song)
+    local cleartype = 13 -- "No Play"
+    for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
+        local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
+        -- scorestack is nil if no scores on the chart
+        if scorestack ~= nil then
+            -- the scores are in lists for each rate
+            -- find the highest
+            for ___, l in pairs(scorestack) do
+                local scoresatrate = l:GetScores()
+                for ____, s in ipairs(scoresatrate) do
+                    local ct = getClearTypeFromScore(s, 99)
+                    if ct < cleartype then
+                        cleartype = ct
+                    end
+                end
+            end
+        end
+    end
+    return getClearTypeText(cleartype)
+end
+
 -- functions responsible for actually sorting things according to the sortmodes table
 -- each member is a table of functions
 -- the first function modifies WHEELDATA by sorting its items
@@ -569,6 +593,45 @@ local sortmodeImplementations = {
             return ""
         end,
     },
+
+    {   -- Cleartype sort -- alphabetical order, by sortmode, folders are cleartypes
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getBestCleartypeForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+            -- sort groups and then songlists in groups
+            table.sort(WHEELDATA.AllFolders,
+                function(a,b)
+                    local aa = getClearTypeIndexFromValue(a)
+                    local bb = getClearTypeIndexFromValue(b)
+                    return aa < bb
+                end
+            )
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getBestCleartypeForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    }
 }
 
 -- get the value and string value of the current sort
