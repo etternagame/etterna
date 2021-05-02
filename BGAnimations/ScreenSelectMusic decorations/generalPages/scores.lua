@@ -1043,7 +1043,7 @@ local function createList()
 					end
 					if not judge then judge = 4 end
 					if judge < 4 then judge = 4 end
-                    local js = judge ~= 9 and judge or "ustice"
+                    local js = judge ~= 9 and judge or "Justice"
                     local perc = string.format("%5.2f%%", notShit.floor(wife, 2))
                     self:ClearAttributes()
                     self:settextf("%s | %s (%s | Judge %s)", ssrstr, perc, wv, js)
