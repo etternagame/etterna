@@ -910,7 +910,6 @@ t[#t+1] = Def.ActorFrame {
             self:GetChild("Line"):diffusealpha(0)
         end,
         SetCommand = function(self, params)
-            local ss = screen:GetStageStats()
             if params.song ~= nil then
                 self:SetWithoutStageStats(pss, params.song:GetStepsSeconds() / params.score:GetMusicRate())
             end
