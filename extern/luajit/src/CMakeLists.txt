@@ -503,7 +503,7 @@ add_dependencies(libluajit
   buildvm
   lj_gen_headers
   lj_gen_folddef)
-target_include_directories(libluajit PRIVATE
+target_include_directories(libluajit PUBLIC
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR})
 if (BUILD_SHARED_LIBS)
