@@ -96,7 +96,7 @@ local t =
 		if getTabIndex() == 9 then
 			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
-			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			steps = GAMESTATE:GetCurrentSteps()
 			onTab = true
 			MESSAGEMAN:Broadcast("RefreshTags")
 		else

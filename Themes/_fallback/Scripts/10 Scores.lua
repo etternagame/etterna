@@ -121,8 +121,8 @@ end
 function getMaxNotes(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		steps = GAMESTATE:GetCurrentSteps(pn)
+	if GAMESTATE:IsPlayerEnabled() then
+		steps = GAMESTATE:GetCurrentSteps()
 		if steps ~= nil then
 			if GAMESTATE:GetCurrentGame():CountNotesSeparately() then
 				return steps:GetRadarValues(pn):GetValue("RadarCategory_Notes") or 0
@@ -137,8 +137,8 @@ end
 function getMaxHolds(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		steps = GAMESTATE:GetCurrentSteps(pn)
+	if GAMESTATE:IsPlayerEnabled() then
+		steps = GAMESTATE:GetCurrentSteps()
 		if steps ~= nil then
 			return (steps:GetRadarValues(pn):GetValue("RadarCategory_Holds") +
 				steps:GetRadarValues(pn):GetValue("RadarCategory_Rolls")) or 0
@@ -374,9 +374,9 @@ function getScoresByKey(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local profile
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
+	if GAMESTATE:IsPlayerEnabled() then
 		profile = GetPlayerOrMachineProfile(pn)
-		steps = GAMESTATE:GetCurrentSteps(pn)
+		steps = GAMESTATE:GetCurrentSteps()
 		if profile ~= nil and steps ~= nil and song ~= nil then
 			return SCOREMAN:GetScoresByKey(steps:GetChartKey())
 		end

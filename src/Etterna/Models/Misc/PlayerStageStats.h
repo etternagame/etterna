@@ -219,6 +219,7 @@ class PlayerStageStats
 	void UnloadReplayData(); // i don't really trust the deconstructors here,
 							 // also prefer flexibility in this -mina
 	HighScore m_HighScore;
+	float m_fPlayedSeconds{};
 
 	// Lua
 	void PushSelf(lua_State* L);

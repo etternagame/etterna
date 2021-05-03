@@ -620,7 +620,7 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 	// Toasty combo
 	if (scoreOfLastTap >= m_toasty_min_tns) {
 		m_cur_toasty_combo += iNumTapsInRow;
-		if (m_cur_toasty_combo > m_next_toasty_at) {
+		if (m_cur_toasty_combo >= m_next_toasty_at) {
 			++m_cur_toasty_level;
 			// Broadcast the message before posting the screen message so that
 			// the transition layer can catch the message to know the level and

@@ -55,7 +55,7 @@ class EventImpl
 {
   public:
 	virtual ~EventImpl() = default;
-	virtual bool Wait(RageTimer* pTimeout) = 0;
+	virtual bool Wait(float timeout) = 0;
 	virtual void Signal() = 0;
 	virtual void Broadcast() = 0;
 	virtual bool WaitTimeoutSupported() const = 0;

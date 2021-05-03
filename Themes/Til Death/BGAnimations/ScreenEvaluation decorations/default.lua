@@ -78,7 +78,7 @@ local function GraphDisplay(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:diffusealpha(0.7)
 				self:GetChild("Line"):diffusealpha(0)
 				self:zoom(0.8)
@@ -87,7 +87,7 @@ local function GraphDisplay(pn)
 			RecalculateGraphsMessageCommand = function(self, params)
 				-- called by the end of a codemessagecommand somewhere else
 				if not tso[params.judge] then return end
-				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(PLAYER_1), tso[params.judge], nil)
+				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), tso[params.judge], nil)
 				if not success then return end
 				self:playcommand("Begin")
 				MESSAGEMAN:Broadcast("SetComboGraph")
@@ -106,7 +106,7 @@ local function ComboGraph(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:zoom(0.8)
 				self:xy(-22, -2)
 			end,
@@ -155,7 +155,22 @@ function scoreBoard(pn, position)
 	if not score then 
 		score = SCOREMAN:GetTempReplayScore()
 	end
-	dvt = score:GetOffsetVector()
+	
+	local dvtTmp = score:GetOffsetVector()
+	local tvt = score:GetTapNoteTypeVector()
+	-- if available, filter out non taps from the deviation list
+	-- (hitting mines directly without filtering would make them appear here)
+	if tvt ~= nil and #tvt > 0 then
+		dvt = {}
+		for i, d in ipairs(dvtTmp) do
+			local ty = tvt[i]
+			if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+				dvt[#dvt+1] = d
+			end
+		end
+	else
+		dvt = dvtTmp
+	end
 
 	totalTaps = 0
 	for k, v in ipairs(judges) do
@@ -217,7 +232,21 @@ function scoreBoard(pn, position)
 			if s then
 				score = s
 			end
-			dvt = score:GetOffsetVector()
+			local dvtTmp = score:GetOffsetVector()
+			local tvt = score:GetTapNoteTypeVector()
+			-- if available, filter out non taps from the deviation list
+			-- (hitting mines directly without filtering would make them appear here)
+			if tvt ~= nil and #tvt > 0 then
+				dvt = {}
+				for i, d in ipairs(dvtTmp) do
+					local ty = tvt[i]
+					if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+						dvt[#dvt+1] = d
+					end
+				end
+			else
+				dvt = dvtTmp
+			end
 			totalTaps = 0
 			for k, v in ipairs(judges) do
 				totalTaps = totalTaps + score:GetTapNoteScore(v)
@@ -258,7 +287,7 @@ function scoreBoard(pn, position)
 			SetCommand = function(self)
 				local rate = SCREENMAN:GetTopScreen():GetReplayRate()
 				if not rate then rate = getCurRateValue() end
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(rate, 1)
+				local meter = GAMESTATE:GetCurrentSteps():GetMSD(rate, 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
 			end
@@ -291,7 +320,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+				local steps = GAMESTATE:GetCurrentSteps()
 				local diff = getDifficulty(steps:GetDifficulty())
 				self:settext(getShortDifficulty(diff))
 				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
@@ -435,7 +464,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local mstring = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")
+				local mstring = GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
 				if not ss:GetLivePlay() then
 					mstring = SCREENMAN:GetTopScreen():GetReplayModifiers()
@@ -623,13 +652,13 @@ function scoreBoard(pn, position)
 				paRatio = self
 				self:xy(frameWidth + frameX, frameY + 210):zoom(0.25):halign(1):diffuse(byJudgment(judges[2]))
 
-				self:playcommand("Set")
-			end,
-			SetCommand = function(self)
 				marvelousTaps = score:GetTapNoteScore(judges[1])
 				perfectTaps = score:GetTapNoteScore(judges[2])
 				greatTaps = score:GetTapNoteScore(judges[3])
-
+				self:playcommand("Set")
+			end,
+			SetCommand = function(self)
+				
 				-- Fill in maRatio and paRatio
 				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
 				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
@@ -717,14 +746,14 @@ function scoreBoard(pn, position)
 
 	local function hahahahahaha(score)
 		local tracks = score:GetTrackVector()
-		local devianceTable = score:GetOffsetVector()
+		local devianceTable = score:GetOffsetVector() or {}
 
 		local cbl = 0
 		local cbr = 0
 		local cbm = 0
 		local tst = ms.JudgeScalers
 		local tso = tst[judge]
-		local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 
+		local ncol = GAMESTATE:GetCurrentSteps():GetNumColumns() - 1 
 		local middleCol = ncol/2
 	
 		for i = 1, #devianceTable do
@@ -780,7 +809,7 @@ function scoreBoard(pn, position)
 	-- basic per-hand stats to be expanded on later
 	local tst = ms.JudgeScalers
 	local tso = tst[judge]
-	local ncol = GAMESTATE:GetCurrentSteps(PLAYER_1):GetNumColumns() - 1 -- cpp indexing -mina
+	local ncol = GAMESTATE:GetCurrentSteps():GetNumColumns() - 1 -- cpp indexing -mina
 	local middleCol = ncol/2
 
 	if devianceTable then
@@ -907,7 +936,7 @@ end
 	return t
 end
 
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+if GAMESTATE:IsPlayerEnabled() then
 	t[#t + 1] = scoreBoard(PLAYER_1, 0)
 	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay(PLAYER_1))
 	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph(PLAYER_1))
@@ -933,7 +962,7 @@ end
 detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
 local state =
 	"MSD: " ..
-	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
+	string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
 			string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100) ..
 				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))

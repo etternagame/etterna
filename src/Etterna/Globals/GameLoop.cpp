@@ -20,10 +20,14 @@
 #include <mutex>
 
 #include <Tracy.hpp>
-static bool toggleWindowed, hasFocus, focusChanged;
-static std::mutex archMutex;
-//// On the next update, change themes, and load sNewScreen.
+
+#include "Core/Platform/Platform.hpp"
+
 // Static Variables
+//// On the next update, change themes, and load sNewScreen.
+static std::mutex archMutex;
+static bool toggleWindowed, focusChanged;
+static bool hasFocus = true;
 
 static bool userQuit = false;
 static std::string g_NewTheme;
@@ -64,6 +68,13 @@ static void CheckFocus() {
 		return;
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
+
+	// Maintain the Application priority at Above-Normal
+	// This helps to mitigate game stutter caused by CPU scheduling between frames
+	if (hasFocus)
+		Core::Platform::boostPriority();
+	else
+		Core::Platform::unboostPriority();
 }
 
 // Anonymous Namespace
@@ -208,7 +219,8 @@ namespace GameLoop {
     }
 
     void RunGameLoop() {
-
+		Core::Platform::boostPriority();
+    	
         while (!GameLoop::hasUserQuit()) {
 			ZoneScopedN("Frame");
 
@@ -274,6 +286,7 @@ namespace GameLoop {
 			FrameMark;
         }
 
+    	Core::Platform::unboostPriority();
     }
 
 }

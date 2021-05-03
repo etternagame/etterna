@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <stdio.h>
 
 
 // Translation Unit Specific Functions
@@ -87,9 +88,10 @@ namespace Core::Platform {
             Locator::getLogger()->warn("Could not open folder. Note a folder. Path: \"{}\"", path.string());
             return false;
         }
-        int res = system(fmt::format("open {}", path.string()).c_str());
-        if(res != 0){
-            Locator::getLogger()->warn("Unable to open folder. \"open\" command return code: {}. URL: {}", res, path.string());
+		NSURL* directory = [NSURL fileURLWithPath:@(path.c_str())];
+		bool succeeded = [[NSWorkspace sharedWorkspace]openURL:directory];
+		if(!succeeded){
+            Locator::getLogger()->warn("Unable to open folder: {}", path.string());
             return false;
         }
         return true;
@@ -121,7 +123,28 @@ namespace Core::Platform {
 	}
 
     bool isOtherInstanceRunning(int argc, char** argv){
-        Locator::getLogger()->warn("Core::Platform::isOtherInstanceRunning not implemented");
-        return false;
+		FILE* fd = popen("pgrep Etterna", "r");
+		char buf[128]; //Random value. No-one is going to have a PID size > 128
+		bool found_other_process = false;
+		if(fgets(buf, sizeof(buf), fd)!=nullptr){
+			//Quick and dirty way to check "Is there another process open?"
+			//If pgrep has any output, there is another process open right now.
+			// (Pgrep excludes the calling process from its output by default)
+			found_other_process = true;
+		}
+		pclose(fd);
+		return found_other_process;
+    }
+
+    bool boostPriority()
+    {
+        Locator::getLogger()->warn("Core::Platform::boostPriority not implemented");
+		return true;
+    }
+
+	bool unboostPriority()
+    {
+        Locator::getLogger()->warn("Core::Platform::unboostPriority not implemented");
+		return true;
     }
 }

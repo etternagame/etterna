@@ -76,7 +76,7 @@ local function laneHighlight()
 			InitCommand = function(self)
 				self:zoomto((arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
 				
-				local reverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
+				local reverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 				local receptor = reverse and THEME:GetMetric("Player", "ReceptorArrowsYStandard") or THEME:GetMetric("Player", "ReceptorArrowsYReverse")
 
 				self:diffusealpha(alpha)

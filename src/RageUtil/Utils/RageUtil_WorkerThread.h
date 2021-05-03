@@ -1,4 +1,4 @@
-﻿/* RageWorkerThread - a worker thread for operations that are allowed to time
+/* RageWorkerThread - a worker thread for operations that are allowed to time
  * out. */
 
 #ifndef RAGE_UTIL_WORKER_THREAD_H
@@ -17,7 +17,7 @@ class RageWorkerThread
 	 * a per-request timeout; you have 10 seconds to do your work, at which
 	 * point all requests time out until SetTimeout is called again. */
 	void SetTimeout(float fSeconds);
-	bool TimeoutEnabled() const { return !m_Timeout.IsZero(); }
+	bool TimeoutEnabled() const { return m_Timeout > 0.F; }
 
 	/* Return true if the last operation has timed out and has not yet
 	 * recovered. */
@@ -52,7 +52,7 @@ class RageWorkerThread
 	void SetHeartbeat(float fSeconds)
 	{
 		m_fHeartbeat = fSeconds;
-		m_NextHeartbeat.Touch();
+		m_NextHeartbeat = 0.F;
 	}
 	virtual void DoHeartbeat() {}
 
@@ -75,10 +75,10 @@ class RageWorkerThread
 	int m_iRequest;
 	bool m_bRequestFinished;
 	bool m_bTimedOut;
-	RageTimer m_Timeout;
+	float m_Timeout;
 
 	float m_fHeartbeat;
-	RageTimer m_NextHeartbeat;
+	float m_NextHeartbeat;
 	RageEvent m_HeartbeatEvent;
 };
 

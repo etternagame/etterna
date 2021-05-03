@@ -1824,6 +1824,16 @@ class LunaGameManager : public Luna<GameManager>
 		GameLoop::ChangeGame(game_name, theme);
 		return 0;
 	}
+	static int GetGameFromString(T* p, lua_State* L)
+	{
+		std::string game = SArg(1);
+		const auto* g = p->StringToGame(game);
+		if (g == nullptr)
+			luaL_error(L, "GetGameFromString: Invalid Game: %s", game.c_str());
+		else
+			const_cast<Game*>(g)->PushSelf(L);
+		return 1;
+	}
 
 	LunaGameManager()
 	{
@@ -1833,6 +1843,7 @@ class LunaGameManager : public Luna<GameManager>
 		ADD_METHOD(GetStylesForGame);
 		ADD_METHOD(GetEnabledGames);
 		ADD_METHOD(SetGame);
+		ADD_METHOD(GetGameFromString);
 	};
 };
 

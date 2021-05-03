@@ -566,9 +566,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetJudgeScale(pss.GetTimingScale());
 	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
 	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
-
-	auto played_seconds = 1.F;
-	hs.SetPlayedSeconds(played_seconds);
+	hs.SetPlayedSeconds(pss.m_fPlayedSeconds);
 
 	std::vector<std::string> asModifiers;
 	{
@@ -621,8 +619,15 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetTrackVector(pss.GetTrackVector());
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
-		hs.SetReplayType(
-		  2); // flag this before rescore so it knows we're LEGGIT
+		// flag this before rescore so it knows we're LEGGIT
+		hs.SetReplayType(2);
+		if (hs.GetTapNoteTypeVector().size() < hs.GetNoteRowVector().size() ||
+			hs.GetTrackVector().size() < hs.GetNoteRowVector().size()) {
+			// what happened here is most likely that the replay type is not 2
+			// (missing column data, missing type data)
+			// it's a replay made before 0.60
+			hs.SetReplayType(1);
+		}
 
 		// ok this is a little jank but there's a few things going on here,
 		// first we can't trust that scores getting here are necessarily either
@@ -661,6 +666,21 @@ FillInHighScore(const PlayerStageStats& pss,
 			FOREACH_ENUM(Skillset, ss)
 			hs.SetSkillsetSSR(ss, 0.F);
 		}
+	}
+
+	// Normalize Judgments to J4 (regardless of wifepercent)
+	// If it fails, reset the replay data from pss and try one more time
+	if (!hs.NormalizeJudgments()) {
+		hs.SetOffsetVector(pss.GetOffsetVector());
+		hs.SetNoteRowVector(pss.GetNoteRowVector());
+		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+		// potentially empty, that's fine
+		hs.SetTrackVector(pss.GetTrackVector());
+
+		if (!hs.NormalizeJudgments())
+			Locator::getLogger()->warn(
+			  "Failed to normalize judgments for HighScore Key {}",
+			  hs.GetScoreKey());
 	}
 
 	hs.GenerateValidationKeys();

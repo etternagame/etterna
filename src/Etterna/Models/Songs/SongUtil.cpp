@@ -71,7 +71,7 @@ SongUtil::GetSteps(const Song* pSong,
 			for (auto currate = FILTERMAN->MaxFilterRate;
 				 currate > FILTERMAN->MinFilterRate - .01f;
 				 currate -= 0.1f) {
-				if (pSong->ChartMatchesFilter(pSteps, currate + 0.001f)) {
+				if (pSong->ChartMatchesFilter(pSteps, currate)) {
 					success = true;
 					break;
 				}
@@ -293,14 +293,15 @@ SongUtil::DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps)
 				RemoveInitialWhitespace(sSMNoteData2))
 				continue;
 
-			Locator::getLogger()->trace("Removed {} duplicate steps in song \"{}\" with "
-					   "description \"{}\", step author \"{}\", and meter "
-					   "\"{}\"",
-					   (void*)s2,
-					   pSong->GetSongDir().c_str(),
-					   s1->GetDescription().c_str(),
-					   s1->GetCredit().c_str(),
-					   s1->GetMeter());
+			Locator::getLogger()->trace(
+			  "Removed {} duplicate steps in song \"{}\" with "
+			  "description \"{}\", step author \"{}\", and meter "
+			  "\"{}\"",
+			  (void*)s2,
+			  pSong->GetSongDir().c_str(),
+			  s1->GetDescription().c_str(),
+			  s1->GetCredit().c_str(),
+			  s1->GetMeter());
 
 			pSong->DeleteSteps(s2, false);
 
@@ -388,9 +389,9 @@ CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 {
 	// Prefer transliterations to full titles
 	const auto msd1 = pSong1->HighestMSDOfSkillset(
-	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate, true);
 	const auto msd2 = pSong2->HighestMSDOfSkillset(
-	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate);
+	  ss, GAMESTATE->m_SongOptions.Get(ModsLevel_Current).m_fMusicRate, true);
 
 	if (msd1 < msd2)
 		return true;
@@ -434,7 +435,7 @@ static bool
 CompareSongPointersByLength(const Song* a, const Song* b)
 {
 	auto len_a = 0.F;
-	for (const auto& s : a->GetAllSteps()) {
+	for (const auto& s : a->GetChartsMatchingFilter()) {
 		const auto& len = s->GetLengthSeconds();
 		// if we hit the current preferred difficulty just force use the value
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
@@ -447,7 +448,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 
 	// OH NO COPY PASTE WHAT EVER WILL WE DO MAYBE USE A 10 LINE MACRO????
 	auto len_b = 0.F;
-	for (const auto& s : b->GetAllSteps()) {
+	for (const auto& s : b->GetChartsMatchingFilter()) {
 		const auto& len = s->GetLengthSeconds();
 
 		if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
@@ -702,9 +703,9 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			auto len_a = 0.F;
 			// should probably be an actual util function because copy pasted
 			// from length sort above
-			for (const auto& s : pSong->GetAllSteps()) {
-				const auto& len = s->GetTimingData()->GetElapsedTimeFromBeat(
-				  pSong->GetLastBeat());
+
+			for (const auto& s : pSong->GetChartsMatchingFilter()) {
+				const auto& len = s->GetLengthSeconds();
 
 				if (s->GetDifficulty() == GAMESTATE->m_PreferredDifficulty) {
 					len_a = len;

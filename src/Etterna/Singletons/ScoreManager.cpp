@@ -24,6 +24,8 @@
 #include <numeric>
 #include <algorithm>
 
+#include "GameManager.h"
+
 using std::lock_guard;
 using std::mutex;
 
@@ -540,6 +542,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				auto* td = steps->GetTimingData();
 				NoteData nd;
 
+				// try to normalize judgments
+				// this function handles skip logic if not necessary
+				hs->NormalizeJudgments();
+
 				auto remarried = false;
 				{
 					ZoneNamedN(PerThread, "RecalcWife", true);
@@ -590,8 +596,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 										musicrate,
 										ssrpercent,
 										per_thread_calc.get());
-				} else if (steps->m_StepsType == StepsType_dance_solo) {
-					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
+				} else if (steps->m_StepsType != StepsType_dance_single) {
+					int columnCount =
+					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
 				}
 
 				auto ssrVals = dakine;
@@ -1122,6 +1130,11 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 	FOREACH_CONST_Child(node, p)
 	{
 		p->GetAttrValue("Key", sk);
+
+		// Fill in stuff for the highscores
+		scores[sk].SetChartKey(ck);
+		scores[sk].SetScoreKey(sk);
+		scores[sk].SetMusicRate(rate);
 		scores[sk].LoadFromEttNode(p);
 
 		// Set any pb
@@ -1135,11 +1148,6 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		}
 
 		HandleNoCCPB(scores[sk]);
-
-		// Fill in stuff for the highscores
-		scores[sk].SetChartKey(ck);
-		scores[sk].SetScoreKey(sk);
-		scores[sk].SetMusicRate(rate);
 
 		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
 		if (scores[sk].GetWifeGrade() != Grade_Failed) {
@@ -1170,6 +1178,13 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		const auto getremarried =
 		  scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
+		// check to see if a file does not have normalized judgments
+		// this will pile up but only for cases of large amounts of scores
+		// missing replay data
+		const auto notnormalized =
+		  scores[sk].IsEmptyNormalized() &&
+		  (scores[sk].HasReplayData() || scores[sk].GetJudgeScale() == 1.F);
+
 		/* technically we don't need to have charts loaded to rescore to
 		 * wife3, however trying to do this might be quite a bit of work (it
 		 * would require making a new lambda loop) and while it would be
@@ -1177,7 +1192,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)) {
+		if ((oldcalc || getremarried || notnormalized) && SONGMAN->IsChartLoaded(ck)) {
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 		}
 	}

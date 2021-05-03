@@ -147,7 +147,7 @@ t[#t + 1] =
 			self:xy(frameX + frameWidth - offsetX, frameY + offsetY + 10):zoom(0.5):halign(1)
 		end,
 		SetCommand = function(self)
-			local steps = GAMESTATE:GetCurrentSteps(pn)
+			local steps = GAMESTATE:GetCurrentSteps()
 			if steps ~= nil and update then
 				local diff = getDifficulty(steps:GetDifficulty())
 				local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_", " ")
@@ -171,7 +171,7 @@ t[#t + 1] =
 			self:xy(frameX + frameWidth - offsetX, frameY + offsetY + 23):zoom(0.4):halign(1)
 		end,
 		SetCommand = function(self)
-			local steps = GAMESTATE:GetCurrentSteps(pn)
+			local steps = GAMESTATE:GetCurrentSteps()
 			local song = GAMESTATE:GetCurrentSong()
 			local notecount = 0
 			local length = 1
@@ -376,7 +376,7 @@ for k, v in ipairs(radarValues) do
 			end,
 			SetCommand = function(self)
 				local song = GAMESTATE:GetCurrentSong()
-				local steps = GAMESTATE:GetCurrentSteps(pn)
+				local steps = GAMESTATE:GetCurrentSteps()
 				local count = 0
 				if song ~= nil and steps ~= nil and update then
 					count = steps:GetRadarValues(pn):GetValue(v[1])
@@ -460,7 +460,7 @@ t[#t + 1] =
 		SetCommand = function(self)
 			if update then
 				local pn = GAMESTATE:GetEnabledPlayers()[1]
-				local step = GAMESTATE:GetCurrentSteps(pn)
+				local step = GAMESTATE:GetCurrentSteps()
 				if song ~= nil then
 					self:diffuse(color("#FFFFFF"))
 					self:settext(SHA1FileHex(step:GetFilename()))
@@ -512,7 +512,7 @@ t[#t + 1] =
 		SetCommand = function(self)
 			if update then
 				local pn = GAMESTATE:GetEnabledPlayers()[1]
-				local step = GAMESTATE:GetCurrentSteps(pn)
+				local step = GAMESTATE:GetCurrentSteps()
 				if song ~= nil then
 					self:diffuse(color("#FFFFFF"))
 					self:settext(MD5FileHex(step:GetFilename()))

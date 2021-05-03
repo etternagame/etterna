@@ -58,7 +58,7 @@ PlogLogger::PlogLogger() {
     if(!ghc::filesystem::exists(logDirectory))
         ghc::filesystem::create_directory(logDirectory);
 
-    auto logFilePath = logDirectory / fmt::format("{}.log", timeString);
+    auto logFilePath = logDirectory / fmt::format(FMT_STRING("{}.log"), timeString);
 
     // File Appender
     static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};

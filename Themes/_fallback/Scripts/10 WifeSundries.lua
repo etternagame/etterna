@@ -344,7 +344,7 @@ function getCurRateValue()
 end
 
 function getCurKey()
-	return GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+	return GAMESTATE:GetCurrentSteps():GetChartKey()
 end
 
 -- returns a string of keys for a table
@@ -371,7 +371,7 @@ function formLink(x, y)
 end
 
 function GetPlayableTime()
-	local step = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	local step = GAMESTATE:GetCurrentSteps()
 	return step:GetLengthSeconds()
 end
 

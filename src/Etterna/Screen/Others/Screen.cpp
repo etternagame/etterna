@@ -609,6 +609,11 @@ class LunaScreen : public Luna<Screen>
 		}
 		return 0;
 	}
+	static int IsPreviewNoteFieldActive(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->b_PreviewNoteFieldIsActive);
+		return 1;
+	}
 
 	LunaScreen()
 	{
@@ -624,6 +629,7 @@ class LunaScreen : public Luna<Screen>
 		ADD_METHOD(GetScreenType);
 		ADD_METHOD(AddInputCallback);
 		ADD_METHOD(RemoveInputCallback);
+		ADD_METHOD(IsPreviewNoteFieldActive);
 	}
 };
 

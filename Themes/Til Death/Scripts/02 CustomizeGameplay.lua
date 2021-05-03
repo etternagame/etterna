@@ -6,7 +6,7 @@ MovableValues = {}
 
 local function loadValuesTable()
 	allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
-	usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+	usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 	MovableValues.JudgeX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeX
 	MovableValues.JudgeY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeY
 	MovableValues.JudgeZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].JudgeZoom
@@ -914,6 +914,85 @@ function MovableInput(event)
 				button = "DeviceButton_up"
 			end
 			Movable.pressed = true	-- we need to do this or the mouse input facsimile will toggle on when moving x, and off when moving y
+		end
+
+		if button == "DeviceButton_backspace" then
+			event.defaultreset = true
+		else
+			event.defaultreset = false
+		end
+
+		-- reset to default
+		if event.defaultreset then
+			Movable.pressed = true
+			if current ~= nil and current.condition and notReleased and current.external == nil then
+				local sizevals = {
+					Height = true,
+					Width = true,
+					Zoom = true,
+					Spacing = true,
+				}
+				local posvals = {
+					X = true,
+					Y = true,
+				}
+				local keys = {
+					"DeviceButton_left", -- right redundant
+					"DeviceButton_up", -- down redundant
+				}
+				-- run update functions for "all keys"
+				for _, b in ipairs(keys) do
+					local curKey = current[b]
+					if curKey ~= nil then
+						local keyProperty = curKey.property
+						local prop = current.name .. string.gsub(keyProperty, "Add", "")
+						local newVal = 0
+						if posvals[keyProperty] then
+							newVal = getDefaultGameplayCoordinate(prop)
+						elseif sizevals[keyProperty] then
+							newVal = getDefaultGameplaySize(prop)
+						end
+						local diff = newVal - MovableValues[prop]
+						MovableValues[prop] = newVal
+						if curKey.arbitraryFunction then
+							if curKey.arbitraryInc then
+								-- this definitely breaks for something probably maybe
+								-- this is just for visuals anyways
+								-- pressing the default button and restarting gameplay fixes it
+								curKey.arbitraryFunction(diff)
+							else
+								curKey.arbitraryFunction(newVal)
+							end
+						elseif current.children then
+							for _, attribute in ipairs(current.children) do
+								propsFunctions[keyProperty](current.element[attribute], newVal)
+							end
+						elseif current.elementList then
+							for _, elem in ipairs(current.element) do
+								propsFunctions[keyProperty](elem, newVal)
+							end
+						elseif keyProperty == "AddX" or keyProperty == "AddY" then
+							if keyProperty == "AddY" then
+								diff = -diff -- sigh
+							end
+							propsFunctions[keyProperty](current.element, diff)
+						else
+							propsFunctions[keyProperty](current.element, newVal)
+						end
+			
+						if not current.noBorder then
+							local border = Movable[Movable.current]["Border"]
+							if keyProperty == "Height" or keyProperty == "Width" or keyProperty == "Zoom" then
+								border:playcommand("Change" .. keyProperty, {val = newVal} )
+							end
+						end
+						updatetext(Movable.current)
+						playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = MovableValues[prop]
+						playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					end
+				end
+				return false
+			end
 		end
 		
 		if Movable.pressed and current[button] and current.condition and notReleased and current.external == nil then

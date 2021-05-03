@@ -1,9 +1,7 @@
 -- all the preview stuff should be var'd and used consistently -mina
-local noteField = false
 local prevZoom = 0.65
 local musicratio = 1
 
--- hurrrrr nps quadzapalooza -mina
 local wodth = capWideScale(280, 300)
 local hidth = 40
 local yeet
@@ -21,51 +19,33 @@ local translated_info = {
 
 local function UpdatePreviewPos(self)
 	if not self:IsVisible() then return end
-	if noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" or 
-	noteField and yeet and SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-		local pos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+	local scrnm = SCREENMAN:GetTopScreen():GetName()
+	local allowedScreens = {
+		ScreenSelectMusic = true,
+		ScreenNetSelectMusic = true,
+	}
+
+	if allowedScreens[scrnm] == true then
+		local pos = SCREENMAN:GetTopScreen():GetSampleMusicPosition() / musicratio
 		self:GetChild("Pos"):zoomto(math.min(pos,wodth), hidth)
 		self:queuecommand("Highlight")
 
 		-- calcdisplay position indicator (not the best place to put this but it works)
-		local calcgraphpos = SCREENMAN:GetTopScreen():GetPreviewNoteFieldMusicPosition() / musicratio
+		local calcgraphpos = SCREENMAN:GetTopScreen():GetSampleMusicPosition() / musicratio
 		local badorp = self:GetChild("notChordDensityGraph"):GetChild("GraphPos")
 		badorp:zoomto(math.min(calcgraphpos * capWideScale(300,450) / capWideScale(280,300), capWideScale(300,450)), hidth * 3):halign(0)
 	end
 end
 
-local memehamstermax
-local function setUpPreviewNoteField() 
-	yeet = SCREENMAN:GetTopScreen():CreatePreviewNoteField()
-    if yeet == nil then 
-      return 
-	end 
-	yeet:zoom(prevZoom):draworder(90)
-	SCREENMAN:GetTopScreen():dootforkfive(memehamstermax)
-	yeet = memehamstermax:GetChild("NoteField")
-	yeet:x(wodth/2)
-	memehamstermax:SortByDrawOrder()
-	MESSAGEMAN:Broadcast("NoteFieldVisible") 
-end
-local function gpx(actor)
-	return actor:GetParent():GetX()
-end
 local function updateCalcInfoDisplays(actor)
-	if not calcinfo:GetVisible() then
-		return
-	end
+	if not calcinfo:GetVisible() then return end
 	mx = INPUTFILTER:GetMouseX()
 	px = actor:GetParent():GetX()
 	sl1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	--sl2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	--st2 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
-	--st2:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
 	sl1:visible(true)
-	--sl2:visible(true)
 	st1:visible(true)
-	--st2:visible(true)
 end
 
 local t = Def.ActorFrame {
@@ -75,11 +55,9 @@ local t = Def.ActorFrame {
         self:SetUpdateFunction(UpdatePreviewPos)
 		calcinfo = self:GetChild("notChordDensityGraph"):visible(false):draworder(1000) -- actor for calcinfo
 		cd = self:GetChild("ChordDensityGraph"):visible(false):draworder(1000)
-		memehamstermax = self
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		self:GetChild("pausetext"):settext("")
-
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
@@ -91,23 +69,19 @@ local t = Def.ActorFrame {
 		-- the Score and Profile tabs have right click functionality
 		-- so ignore right clicks if on those
 		if tab ~= 2 and tab ~= 4 then
-			SCREENMAN:GetTopScreen():PausePreviewNoteField()
+			SCREENMAN:GetTopScreen():PauseSampleMusic()
 			self:GetChild("pausetext"):playcommand("Set")
 		end
 	end,
     SetupNoteFieldCommand=function(self)
-        setUpPreviewNoteField()
-        noteField = true
-	end,
-	hELPidontDNOKNOWMessageCommand=function(self)
-		SCREENMAN:GetTopScreen():DeletePreviewNoteField(self)
-		self:SetUpdateFunction(nil)
+		self:playcommand("NoteFieldVisible")
 	end,
 	ChartPreviewOffMessageCommand=function(self)
 		self:SetUpdateFunction(nil)
 	end,
 	ChartPreviewOnMessageCommand=function(self)
 		self:SetUpdateFunction(UpdatePreviewPos)
+		self:GetChild("NoteField"):playcommand("LoadNoteData", {steps = GAMESTATE:GetCurrentSteps()})
 	end,
 	NoteFieldVisibleMessageCommand = function(self)
 		self:visible(true)
@@ -117,7 +91,7 @@ local t = Def.ActorFrame {
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
 	end,
 	OptionsScreenClosedMessageCommand = function(self)
-		local rev = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+		local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 		if self:GetChild("NoteField") ~= nil then
 			if not rev then
 				self:GetChild("NoteField"):y(yPos * 1.5)
@@ -126,6 +100,35 @@ local t = Def.ActorFrame {
 			end
 		end
 	end,
+
+	Def.NoteFieldPreview {
+		Name = "NoteField",
+		DrawDistanceBeforeTargetsPixels = 800,
+		DrawDistanceAfterTargetsPixels = 0,
+		YReverseOffsetPixels = 100,
+
+		BeginCommand = function(self)
+			self:zoom(prevZoom):draworder(90)
+			self:x(wodth/2)
+			self:GetParent():SortByDrawOrder()
+		end,
+		CurrentStepsChangedMessageCommand = function(self, params)
+			local steps = params.ptr
+			-- only load new notedata if the preview is visible
+			if self:GetParent():GetVisible() then
+				self:playcommand("LoadNoteData", {steps = steps})
+			end
+		end,
+		LoadNoteDataCommand = function(self, params)
+			local steps = params.steps
+			if steps ~= nil then
+				self:LoadNoteData(steps)
+			else
+				self:LoadDummyNoteData()
+			end
+		end
+	},
+
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
@@ -150,7 +153,7 @@ local t = Def.ActorFrame {
 			self:playcommand("Set")
 		end,
 		SetCommand = function(self)
-			if SCREENMAN:GetTopScreen():IsPreviewNoteFieldPaused() then 
+			if SCREENMAN:GetTopScreen():IsSampleMusicPaused() then 
 				self:settext(translated_info["Paused"])
 			else 
 				self:settext("")
@@ -177,8 +180,6 @@ local t = Def.ActorFrame {
 				self:GetParent():GetChild("Seek"):visible(false)
 				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):visible(false)
 				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):visible(false)
-				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext2"):visible(false)
-				--self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek2"):visible(false)
 			end
 		end
 	},
@@ -208,7 +209,7 @@ t[#t + 1] = Def.Quad {
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) then
-			SCREENMAN:GetTopScreen():SetPreviewNoteFieldMusicPosition(	self:GetX() * musicratio  )
+			SCREENMAN:GetTopScreen():SetSampleMusicPosition( self:GetX() * musicratio )
 		end
 	end
 }

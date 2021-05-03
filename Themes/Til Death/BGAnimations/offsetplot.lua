@@ -29,7 +29,7 @@ local ctt = {}
 local ntt = {}
 local wuab = {}
 local finalSecond = GAMESTATE:GetCurrentSteps():GetLastSecond()
-local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
+local td = GAMESTATE:GetCurrentSteps():GetTimingData()
 local oddColumns = false
 local middleColumn = 1.5 -- middle column for 4k but accounting for trackvector indexing at 0
 
@@ -108,7 +108,7 @@ local o =
 			if allowHovering then
 				self:SetUpdateFunction(HighlightUpdaterThing)
 			end
-			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 			dvt = pss:GetOffsetVector()
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset

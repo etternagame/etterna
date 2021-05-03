@@ -90,7 +90,7 @@ local function updateLeaderBoardForCurrentChart()
 	local top = SCREENMAN:GetTopScreen()
 	if top:GetName() == "ScreenSelectMusic" or top:GetName() == "ScreenNetSelectMusic" then
 		if top:GetMusicWheel():IsSettled() and ((getTabIndex() == 2 and nestedTab == 2) or collapsed) then
-			local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			local steps = GAMESTATE:GetCurrentSteps()
 			if steps then
 				local leaderboardAttempt = DLMAN:GetChartLeaderboard(steps:GetChartKey())
 				if leaderboardAttempt ~= nil and #leaderboardAttempt > 0 then
@@ -190,8 +190,8 @@ local ret =
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if GAMESTATE:GetCurrentSteps(PLAYER_1) then
-			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+		if GAMESTATE:GetCurrentSteps() then
+			local chartkey = GAMESTATE:GetCurrentSteps():GetChartKey()
 			if leaderboardEnabled then
 			DLMAN:RequestChartLeaderBoardFromOnline(
 				chartkey,
@@ -434,7 +434,7 @@ local l =
 				if score:GetWifeScore() == 0 then
 					self:settext("")
 				else
-					local ss = GAMESTATE:GetCurrentSteps(PLAYER_1):GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
+					local ss = GAMESTATE:GetCurrentSteps():GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
 					if ss ~= "" then
 						self:settext(THEME:GetString("Skillsets", ss))
 					else

@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include "Etterna/Models/Misc/AdjustSync.h"
+
 REGISTER_SCREEN_CLASS(ScreenGameplayPractice);
 
 void
@@ -99,6 +101,8 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 				BeginBackingOutFromGameplay();
 				return true;
 			}
+
+			AdjustSync::ResetOriginalSyncData();
 
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
 

@@ -14,10 +14,11 @@ local frameHeight = 350
 local offsetX = 10
 local offsetY = 20
 local activebound = 0
-for i = 1, #ms.SkillSets + 1 do
+for i = 1, #ms.SkillSets + 2 do
 	SSQuery[0][i] = "0"
 	SSQuery[1][i] = "0"
 end
+local numbersafterthedecimal = 0
 
 local function FilterInput(event)
 	if event.type ~= "InputEventType_Release" and ActiveSS > 0 and active then
@@ -41,7 +42,7 @@ local function FilterInput(event)
 						SSQuery[activebound][ActiveSS] = ""
 					end
 					SSQuery[activebound][ActiveSS] = SSQuery[activebound][ActiveSS] .. numbershers[i]
-					if (ActiveSS < #ms.SkillSets + 1 and #SSQuery[activebound][ActiveSS] > 2) or #SSQuery[activebound][ActiveSS] > 3 then
+					if (ActiveSS < #ms.SkillSets + 1 and #SSQuery[activebound][ActiveSS] > 2) or (ActiveSS < #ms.SkillSets + 2 and #SSQuery[activebound][ActiveSS] > 3) or #SSQuery[activebound][ActiveSS] > 5 then
 						SSQuery[activebound][ActiveSS] = numbershers[i]
 					end
 				end
@@ -52,7 +53,22 @@ local function FilterInput(event)
 			SSQuery[activebound][ActiveSS] = "0"
 		end
 		if shouldUpdate then
-			FILTERMAN:SetSSFilter(tonumber(SSQuery[activebound][ActiveSS]), ActiveSS, activebound)
+			local num = 0
+			if ActiveSS == #ms.SkillSets+2 then
+				local q = SSQuery[activebound][ActiveSS]
+				numbersafterthedecimal = 0
+				if #q > 2 then
+					numbersafterthedecimal = #q-2
+					local n = tonumber(q) / (10 ^ (#q-2))
+					n = notShit.round(n, numbersafterthedecimal)
+					num = n
+				else
+					num = tonumber(q)
+				end
+			else
+				num = tonumber(SSQuery[activebound][ActiveSS])
+			end
+			FILTERMAN:SetSSFilter(num, ActiveSS, activebound)
 			whee:SongSearch("") -- stupid workaround?
 			MESSAGEMAN:Broadcast("UpdateFilter")
 		end
@@ -68,6 +84,7 @@ local translated_info = {
 	Matches = THEME:GetString("TabFilter", "Matches"),
 	CommonPackFilter = THEME:GetString("TabFilter", "CommonPackFilter"),
 	Length = THEME:GetString("TabFilter", "Length"),
+	BestPercent = "Best %",
 	AND = THEME:GetString("TabFilter", "AND"),
 	OR = THEME:GetString("TabFilter", "OR"),
 	ExplainStartInput = THEME:GetString("TabFilter", "ExplainStartInput"),
@@ -78,7 +95,7 @@ local translated_info = {
 	ExplainHighestDifficulty = THEME:GetString("TabFilter", "ExplainHighestDifficulty"),
 	MaxRate = THEME:GetString("TabFilter", "MaxRate"),
 	Title = THEME:GetString("TabFilter", "Title"),
-	MinRate = THEME:GetString("TabFilter", "MinRate")
+	MinRate = THEME:GetString("TabFilter", "MinRate"),
 }
 
 local f =
@@ -131,42 +148,42 @@ local f =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX, frameY):zoom(0.3):halign(0)
+				self:xy(frameX, frameY -17):zoom(0.3):halign(0)
 				self:settext(translated_info["ExplainStartInput"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX, frameY + 20):zoom(0.3):halign(0)
+				self:xy(frameX, frameY + 20 -17):zoom(0.3):halign(0)
 				self:settext(translated_info["ExplainCancelInput"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX, frameY + 40):zoom(0.3):halign(0)
+				self:xy(frameX, frameY + 40 -17):zoom(0.3):halign(0)
 				self:settext(translated_info["ExplainGrey"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX, frameY + 60):zoom(0.3):halign(0)
+				self:xy(frameX, frameY + 60 -17):zoom(0.3):halign(0)
 				self:settext(translated_info["ExplainBounds"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX, frameY + 80):zoom(0.3):halign(0)
+				self:xy(frameX, frameY + 80 -17):zoom(0.3):halign(0)
 				self:settext(translated_info["ExplainHighest"])
 			end
 		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX, frameY + 100):zoom(0.3):halign(0)
+				self:xy(frameX, frameY + 100 -17):zoom(0.3):halign(0)
 				self:settext(translated_info["ExplainHighestDifficulty"])
 			end
 		},
@@ -384,19 +401,22 @@ local f =
 local function CreateFilterInputBox(i)
 	local t =
 		Def.ActorFrame {
+			InitCommand = function(self)
+				self:y(-17)
+			end,
 		LoadFont("Common Large") ..
 			{
 				InitCommand = function(self)
 					self:addx(10):addy(175 + (i - 1) * spacingY):halign(0):zoom(textzoom)
 				end,
 				SetCommand = function(self)
-					self:settext(i == (#ms.SkillSets + 1) and translated_info["Length"] or ms.SkillSetsTranslated[i])
+					self:settext(i == (#ms.SkillSets + 1) and translated_info["Length"] or (i == (#ms.SkillSets + 2) and translated_info["BestPercent"] or ms.SkillSetsTranslated[i]))
 				end
 			},
 		Def.Quad {
 			InitCommand = function(self)
-				self:addx(i == (#ms.SkillSets + 1) and 159 or 150):addy(175 + (i - 1) * spacingY):zoomto(
-					i == (#ms.SkillSets + 1) and 27 or 18,
+				self:addx(i == (#ms.SkillSets + 1) and 159 or (i == (#ms.SkillSets + 2) and 159 or 150)):addy(175 + (i - 1) * spacingY):zoomto(
+					i == (#ms.SkillSets + 1) and 27 or (i == (#ms.SkillSets + 2) and 27 or 18),
 					18
 				):halign(1)
 			end,
@@ -429,13 +449,23 @@ local function CreateFilterInputBox(i)
 		LoadFont("Common Large") ..
 			{
 				InitCommand = function(self)
-					self:addx(i == (#ms.SkillSets + 1) and 159 or 150):addy(175 + (i - 1) * spacingY):halign(1):maxwidth(60):zoom(
+					self:addx(i == (#ms.SkillSets + 1) and 159 or (i == (#ms.SkillSets + 2) and 159 or 150)):addy(175 + (i - 1) * spacingY):halign(1):maxwidth(60):zoom(
 						textzoom
 					)
 				end,
 				SetCommand = function(self)
-					local fval = FILTERMAN:GetSSFilter(i, 0) -- lower bounds
-					self:settext(fval)
+					local fval = notShit.round(FILTERMAN:GetSSFilter(i, 0), numbersafterthedecimal) -- lower bounds
+					local fmtstr = ""
+					if i == #ms.SkillSets+2 then
+						if numbersafterthedecimal > 0 then
+							fmtstr = "%5."..numbersafterthedecimal.."f"
+						else
+							fmtstr = "%02d."
+						end
+					else
+						fmtstr = "%d"
+					end
+					self:settextf(fmtstr, fval)
 					if fval <= 0 and ActiveSS ~= i then
 						self:diffuse(color("#666666"))
 					elseif activebound == 0 then
@@ -451,8 +481,8 @@ local function CreateFilterInputBox(i)
 			},
 		Def.Quad {
 			InitCommand = function(self)
-				self:addx(i == (#ms.SkillSets + 1) and 193 or 175):addy(175 + (i - 1) * spacingY):zoomto(
-					i == (#ms.SkillSets + 1) and 27 or 18,
+				self:addx(i == (#ms.SkillSets + 1) and 193 or (i == (#ms.SkillSets + 2) and 193 or 175)):addy(175 + (i - 1) * spacingY):zoomto(
+					i == (#ms.SkillSets + 1) and 27 or (i == (#ms.SkillSets + 2) and 27 or 18),
 					18
 				):halign(1)
 			end,
@@ -485,13 +515,23 @@ local function CreateFilterInputBox(i)
 		LoadFont("Common Large") ..
 			{
 				InitCommand = function(self)
-					self:addx(i == (#ms.SkillSets + 1) and 193 or 175):addy(175 + (i - 1) * spacingY):halign(1):maxwidth(60):zoom(
+					self:addx(i == (#ms.SkillSets + 1) and 193 or (i == (#ms.SkillSets + 2) and 193 or 175)):addy(175 + (i - 1) * spacingY):halign(1):maxwidth(60):zoom(
 						textzoom
 					)
 				end,
 				SetCommand = function(self)
-					local fval = FILTERMAN:GetSSFilter(i, 1) -- upper bounds
-					self:settext(fval)
+					local fval = notShit.round(FILTERMAN:GetSSFilter(i, 1), numbersafterthedecimal) -- upper bounds
+					local fmtstr = "%5."
+					if i == #ms.SkillSets+2 then
+						if numbersafterthedecimal > 0 then
+							fmtstr = "%5."..numbersafterthedecimal.."f"
+						else
+							fmtstr = "%02d."
+						end
+					else
+						fmtstr = "%d"
+					end
+					self:settextf(fmtstr, fval)
 					if fval <= 0 and ActiveSS ~= i then
 						self:diffuse(color("#666666"))
 					elseif activebound == 1 then
@@ -513,17 +553,18 @@ end
 f[#f + 1] =
 	Def.Quad {
 	InitCommand = function(self)
-		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
+		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
 			0
 		)
 	end,
 	MouseLeftClickMessageCommand = function(self)
 		if isOver(self) and active then
 			FILTERMAN:ResetAllFilters()
-			for i = 1, #ms.SkillSets do
+			for i = 1, #ms.SkillSets + 2 do
 				SSQuery[0][i] = "0"
 				SSQuery[1][i] = "0"
 			end
+			numbersafterthedecimal = 0
 			activebound = 0
 			ActiveSS = 0
 			MESSAGEMAN:Broadcast("UpdateFilter")
@@ -538,12 +579,12 @@ f[#f + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY):halign(0.5):zoom(0.35)
+			self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):halign(0.5):zoom(0.35)
 			self:settext(THEME:GetString("TabFilter", "Reset"))
 		end
 	}
 
-for i = 1, (#ms.SkillSets + 1) do
+for i = 1, (#ms.SkillSets + 2) do
 	f[#f + 1] = CreateFilterInputBox(i)
 end
 return f

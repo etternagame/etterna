@@ -922,6 +922,52 @@ RageFileManager::ResolvePath(const std::string& path)
 	return resolvedPath;
 }
 
+std::string
+RageFileManager::ResolveSongFolder(const std::string& path, bool additionalSongs)
+{
+	std::string tmpPath = path;
+	NormalizePath(tmpPath);
+
+	std::string resolvedPath = tmpPath;
+
+	vector<LoadedDriver*> apDriverList;
+	ReferenceAllDrivers(apDriverList);
+
+	for (auto pDriver : apDriverList) {
+		const std::string driverPath = pDriver->GetPath(tmpPath);
+
+		if (driverPath.empty() || pDriver->m_sRoot.empty())
+			continue;
+
+		if (pDriver->m_sType != "dir" && pDriver->m_sType != "dirro")
+			continue;
+
+		// skip the root game folder if song is located in AdditionalSongs
+		if (additionalSongs && pDriver->m_sMountPoint == "/")
+			continue;
+		
+		int iMountPointLen = pDriver->m_sMountPoint.length();
+		if (tmpPath.substr(0, iMountPointLen) != pDriver->m_sMountPoint)
+			continue;
+
+		resolvedPath =
+		  pDriver->m_sRoot + "/" + std::string(tmpPath.substr(iMountPointLen));
+		break;
+	}
+
+	UnreferenceAllDrivers(apDriverList);
+
+	NormalizePath(resolvedPath);
+
+	// on windows, remove the beginning / to give an absolute path
+#ifdef _WIN32
+	if (resolvedPath.length() > 0)
+		resolvedPath.erase(0, 1);
+#endif
+	
+	return resolvedPath;
+}
+
 static bool
 SortBySecond(const std::pair<int, int>& a, const std::pair<int, int>& b)
 {

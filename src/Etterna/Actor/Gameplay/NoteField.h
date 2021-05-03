@@ -11,7 +11,7 @@
 
 class NoteData;
 /** @brief An Actor that renders NoteData. */
-class NoteField final : public ActorFrame
+class NoteField : public ActorFrame
 {
   public:
 	NoteField();
@@ -29,7 +29,7 @@ class NoteField final : public ActorFrame
 			  int iDrawDistanceBeforeTargetsPixels);
 	void Unload();
 
-	void ensure_note_displays_have_skin();
+	virtual void ensure_note_displays_have_skin();
 	void InitColumnRenderers();
 
 	void HandleMessage(const Message& msg) override;
@@ -72,7 +72,7 @@ class NoteField final : public ActorFrame
 	std::vector<NoteColumnRenderer> m_ColumnRenderers;
 
   protected:
-	void CacheNoteSkin(const std::string& sNoteSkin, PlayerNumber pn);
+	void CacheNoteSkin(const std::string& sNoteSkin);
 	void UncacheNoteSkin(const std::string& sNoteSkin);
 
 	void DrawBoard(int iDrawDistanceAfterTargetsPixels,
@@ -135,7 +135,12 @@ class NoteField final : public ActorFrame
 	/* All loaded note displays, mapped by their name. */
 	std::map<std::string, NoteDisplayCols*> m_NoteDisplays;
 	NoteDisplayCols* m_pCurDisplay;
-	NoteDisplayCols* m_pDisplays[NUM_PlayerNumber];
+	// leaving this here in case we want to vectorize this in the future
+	// the purpose is to have a display for each player
+	// this pointer does not get deleted
+	// why: it points to a member of m_NoteDisplays which is managed
+	// (same for m_pCurDisplay)
+	NoteDisplayCols* m_pDisplays;
 
 	// decorations, mostly used in MODE_EDIT
 	AutoActor m_sprBoard;

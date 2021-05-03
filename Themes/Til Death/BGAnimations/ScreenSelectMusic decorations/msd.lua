@@ -44,7 +44,7 @@ local t =
 			self:queuecommand("On")
 			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
-			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			steps = GAMESTATE:GetCurrentSteps()
 
 			--Find max MSD value, store MSD values in meter[]
 			-- I plan to have c++ store the highest msd value as a separate variable to aid in the filter process so this won't be needed afterwards - mina
@@ -194,7 +194,7 @@ t[#t + 1] =
 			self:xy(frameX + offsetX, frameY + offsetY + 50):zoom(0.5):halign(0)
 		end,
 		SetCommand = function(self)
-			steps = GAMESTATE:GetCurrentSteps(pn)
+			steps = GAMESTATE:GetCurrentSteps()
 			if steps ~= nil then
 				local diff = getDifficulty(steps:GetDifficulty())
 				local stype = ToEnumShortString(steps:GetStepsType()):gsub("%_", " ")
@@ -215,7 +215,7 @@ t[#t + 1] =
 			self:xy(frameX + offsetX, frameY + 60):zoom(0.4):halign(0)
 		end,
 		SetCommand = function(self)
-			steps = GAMESTATE:GetCurrentSteps(pn)
+			steps = GAMESTATE:GetCurrentSteps()
 			--local song = GAMESTATE:GetCurrentSong()
 			local notecount = 0
 			local length = 1

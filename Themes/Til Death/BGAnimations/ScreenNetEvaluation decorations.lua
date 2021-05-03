@@ -54,7 +54,7 @@ t[#t + 1] =
 	}
 
 local function GraphDisplay(pn)
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 
 	local t =
 		Def.ActorFrame {
@@ -64,7 +64,7 @@ local function GraphDisplay(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:diffusealpha(0.7)
 				self:GetChild("Line"):diffusealpha(0)
 				self:zoom(0.8)
@@ -84,7 +84,7 @@ local function ComboGraph(pn)
 			end,
 			BeginCommand = function(self)
 				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats(pn))
+				self:Set(ss, ss:GetPlayerStageStats())
 				self:zoom(0.8)
 				self:xy(-22, -2)
 			end
@@ -104,7 +104,7 @@ local judges = {
 }
 
 
-local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+local pssP1 = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 
 local frameX = 20
 local frameY = 140
@@ -112,7 +112,7 @@ local frameWidth = SCREEN_CENTER_X - 120
 
 function scoreBoard(pn, position)
 	local judge = GetTimingDifficulty()
-	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 	local score = SCOREMAN:GetMostRecentScore()
 	local dvt = pss:GetOffsetVector()
 	local totalTaps = pss:GetTotalTaps()
@@ -167,7 +167,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				local meter = GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
 			end
@@ -200,7 +200,7 @@ function scoreBoard(pn, position)
 				self:queuecommand("Set")
 			end,
 			SetCommand = function(self)
-				local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+				local steps = GAMESTATE:GetCurrentSteps()
 				local diff = getDifficulty(steps:GetDifficulty())
 				self:settext(getShortDifficulty(diff))
 				self:diffuse(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())))
@@ -274,7 +274,7 @@ function scoreBoard(pn, position)
 				self:settext(SCREENMAN:GetTopScreen():GetOptions() or "")
 			end,
 			SetCommand = function(self)
-				self:settext(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current"))
+				self:settext(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current"))
 			end
 		}
 
@@ -528,7 +528,7 @@ function scoreBoard(pn, position)
 	return t
 end
 
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+if GAMESTATE:IsPlayerEnabled() then
 	t[#t + 1] = scoreBoard(PLAYER_1, 0)
 	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay(PLAYER_1))
 	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph(PLAYER_1))
@@ -551,7 +551,7 @@ local detail =
 detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
 local state =
 	"MSD: " ..
-	string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)) ..
+	string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)) ..
 		" - " ..
 			string.format("%05.2f%%", notShit.floor(pssP1:GetWifeScore() * 10000) / 100) ..
 				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))

@@ -35,9 +35,11 @@ bool Core::Crash::initCrashpad() {
 #ifdef _WIN32
     base::FilePath handler(handlerPath.generic_wstring());
     base::FilePath dataDir(dataPath.generic_wstring());
+	const bool startHandlerFromBGThread = true;
 #else
     base::FilePath handler(handlerPath);
     base::FilePath dataDir(dataPath);
+	const bool startHandlerFromBGThread = false; // not available, assert crash if true
 #endif
 
     auto database = crashpad::CrashReportDatabase::Initialize(dataDir);
@@ -52,7 +54,7 @@ bool Core::Crash::initCrashpad() {
         {}, // crash report metadata
         {}, // any additional handler arguments
         true, // auto-restart if handler dies
-        true // start handler from background thread (currently windows only)
+        startHandlerFromBGThread // start handler from background thread (windows only)
     );
     return status;
 }

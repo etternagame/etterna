@@ -286,8 +286,9 @@ MusicWheel::SelectSongOrCourse() -> bool
 		}
 	}
 
-	Locator::getLogger()->trace("MusicWheel::MusicWheel() - No selectable songs or courses "
-			   "found in WheelData");
+	Locator::getLogger()->trace(
+	  "MusicWheel::MusicWheel() - No selectable songs or courses "
+	  "found in WheelData");
 	return false;
 }
 
@@ -693,7 +694,8 @@ void
 MusicWheel::FilterByAndAgainstStepKeys(vector<Song*>& inv)
 {
 	vector<Song*> tmp;
-	const std::function<bool(Song*, vector<string>&)> check = [this](Song* x, vector<string>& hl) {
+	const std::function<bool(Song*, vector<string>&)> check =
+	  [this](Song* x, vector<string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;
@@ -754,7 +756,7 @@ MusicWheel::FilterBySkillsets(vector<Song*>& inv)
 			 currate -= 0.1F) { /* Iterate over all possible rates.
 								 * The .01f delta is because floating points
 								 * don't like exact equivalency*/
-			if (song->MatchesFilter(currate + 0.001F)) {
+			if (song->MatchesFilter(currate)) {
 				addsong = true;
 				break; // We don't need to keep checking rates
 			}
@@ -1074,7 +1076,7 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 
 		if (PREFSMAN->m_verbose_log > 0) {
 			Locator::getLogger()->trace("MusicWheel sorting took: {}",
-					   RageTimer::GetTimeSinceStart());
+										RageTimer::GetTimeSinceStart());
 		}
 	}
 }
@@ -1576,11 +1578,14 @@ MusicWheel::JumpToPrevGroup() -> std::string
 		// in case it wasn't found above:
 		for (auto i = static_cast<int>(m_CurWheelItemData.size() - 1U); i > 0;
 			 --i) {
-			Locator::getLogger()->trace("JumpToPrevGroup iteration 2 | i = {}", i);
+			Locator::getLogger()->trace("JumpToPrevGroup iteration 2 | i = {}",
+										i);
 			if (m_CurWheelItemData[i]->m_Type == WheelItemDataType_Section) {
 				m_iSelection = i;
-				Locator::getLogger()->trace("finding it in #2 | i = {} | text = {}",
-						   i, m_CurWheelItemData[i]->m_sText.c_str());
+				Locator::getLogger()->trace(
+				  "finding it in #2 | i = {} | text = {}",
+				  i,
+				  m_CurWheelItemData[i]->m_sText.c_str());
 				return m_CurWheelItemData[i]->m_sText;
 			}
 		}
@@ -1776,7 +1781,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		p->SetHashList(newHashList);
-		
+
 		std::vector<string> newOutHashList;
 		p->SetOutHashList(newOutHashList);
 

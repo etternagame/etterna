@@ -154,6 +154,21 @@ namespace Core::Platform {
      */
     bool setConsoleEnabled(bool enable);
 
+	/*
+	 * Raise the Application priority to mitigate some between-frame stuttering.
+	 * This should be done outside of initial Song load - That could cause slowdowns.
+	 * For Windows, this is ABOVE_NORMAL_PRIORITY_CLASS (0x00008000)
+	 * @return True if successful.
+	 */
+	bool boostPriority();
+
+	/*
+	 * Lower the Application priority back to default.
+	 * For Windows, this is NORMAL_PRIORITY_CLASS (0x00000020)
+	 * @return True if successful.
+	 */
+	bool unboostPriority();
+
     namespace Time {
 
         /**

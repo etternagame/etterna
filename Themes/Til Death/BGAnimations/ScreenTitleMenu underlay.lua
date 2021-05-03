@@ -155,7 +155,7 @@ for i = 1, choiceCount do
 				SCREENMAN:GetTopScreen():playcommand("MadeChoicePlayer_1")
 				SCREENMAN:GetTopScreen():playcommand("Choose")
 				if choices[i] == "Multi" or choices[i] == "GameStart" then
-					GAMESTATE:JoinPlayer(PLAYER_1)
+					GAMESTATE:JoinPlayer()
 				end
 				GAMESTATE:ApplyGameCommand(THEME:GetMetric("ScreenTitleMenu", "Choice" .. choices[i]))
 			end

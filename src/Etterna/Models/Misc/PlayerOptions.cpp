@@ -1269,6 +1269,10 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_fDark);
 	SAVE(m_fBlind);
 	SAVE(m_fCover);
+	SAVE(m_LifeType);
+	SAVE(m_DrainType);
+	SAVE(m_BatteryLives);
+	SAVE(m_FailType);
 #undef SAVE
 	return po_prefs.GetString();
 }
@@ -1290,6 +1294,7 @@ PlayerOptions::ResetPrefs(ResetPrefsType type)
 	CPY(m_LifeType);
 	CPY(m_DrainType);
 	CPY(m_BatteryLives);
+	CPY(m_FailType);
 	CPY(m_MinTNSToHideNotes);
 
 	CPY(m_fPerspectiveTilt);
@@ -1706,6 +1711,12 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		return 1;
 	}
 
+	static int FromString(T* p, lua_State* L)
+	{
+		p->FromString(SArg(1));
+		COMMON_RETURN_SELF;
+	}
+
 	LunaPlayerOptions()
 	{
 		ADD_METHOD(IsEasierForSongAndSteps);
@@ -1817,6 +1828,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(GetStepAttacks);
 		ADD_METHOD(ContainsTransformOrTurn);
 		ADD_METHOD(GetInvalidatingMods);
+
+		ADD_METHOD(FromString);
 	}
 };
 

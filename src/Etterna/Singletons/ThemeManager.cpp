@@ -1527,6 +1527,21 @@ class LunaThemeManager : public Luna<ThemeManager>
 	}
 
 	DEFINE_METHOD(GetCurrentThemeDirectory, GetCurThemeDir());
+	static int GetLanguages(T* p, lua_State* L)
+	{
+		// effectively the same as the method in ScreenOptionsMasterPrefs
+		std::vector<std::string> langs;
+		p->GetLanguages(langs);
+		SortStringArray(langs);
+
+		std::vector<std::string> result;
+		for (auto& s : langs) {
+			result.push_back(s);
+		}
+		
+		LuaHelpers::CreateTableFromArray<std::string>(result, L);
+		return 1;
+	}
 	DEFINE_METHOD(GetCurLanguage, GetCurLanguage());
 	static int GetThemeDisplayName(T* p, lua_State* L)
 	{
@@ -1606,6 +1621,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 		ADD_METHOD(GetSelectableThemeNames);
 		ADD_METHOD(GetNumSelectableThemes);
 		ADD_METHOD(GetCurrentThemeDirectory);
+		ADD_METHOD(GetLanguages);
 		ADD_METHOD(GetCurLanguage);
 		ADD_METHOD(GetThemeDisplayName);
 		ADD_METHOD(GetRealThemeDisplayName);

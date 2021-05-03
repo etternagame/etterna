@@ -397,7 +397,9 @@ struct TheGreatBazoinkazoinkInTheSky
 					// don't like having this here
 					any_ms = ms_from(row_time, last_row_time);
 
-					assert(any_ms > 0.F);
+					// To catch division by 0, not preventing significant issues as-is
+					//	So disabled assert for now
+					// assert(any_ms > 0.F);
 
 					ct = determine_col_type(row_notes, ids);
 

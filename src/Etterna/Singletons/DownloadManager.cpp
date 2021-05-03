@@ -650,7 +650,14 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		default: /* action */
 			curl_multi_perform(mPackHandle, &downloadingPacks);
 			for (auto& dl : downloads)
+			{
+				if (dl.second == nullptr) {
+					Locator::getLogger()->warn("Pack download was null? URL: {}", dl.first);
+					continue;
+				}
 				dl.second->Update(fDeltaSeconds);
+			}
+		
 			break;
 	}
 
@@ -1299,7 +1306,9 @@ DownloadManager::EndSession()
 	sessionUser = sessionPass = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
-	MESSAGEMAN->Broadcast("LogOut");
+	// This is called on a shutdown, after MessageManager is gone
+	if (MESSAGEMAN != nullptr)
+		MESSAGEMAN->Broadcast("LogOut");
 }
 
 std::vector<std::string>
@@ -2045,8 +2054,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
-			(d.HasMember("errors") && d["errors"].HasMember("status") &&
-			 d["errors"]["status"].GetInt() == 404) ||
+			(d.HasMember("errors") && d["errors"].IsArray() &&
+			 d["errors"][0].HasMember("status") &&
+			 d["errors"][0]["status"].GetInt() == 404) ||
 			!d.HasMember("data") || !d["data"].IsArray()) {
 			Locator::getLogger()->trace(
 			  "Malformed top25 scores request response: {}", req.result);
@@ -2679,7 +2689,11 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
-		DLMAN->DownloadCoreBundle(SArg(1));
+		bool bMirror = false;
+		if (!lua_isnoneornil(L, 2)) {
+			bMirror = BArg(2);
+		}
+		DLMAN->DownloadCoreBundle(SArg(1), bMirror);
 		return 0;
 	}
 	static int GetToken(T* p, lua_State* L)
@@ -2978,8 +2992,18 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int GetDownload(T* p, lua_State* L)
 	{
-		if (p->downloading)
-			DLMAN->downloads[p->url]->PushSelf(L);
+		if (p->downloading) {
+			// using GetDownload on a download started by a Mirror isn't keyed by the Mirror url
+			// have to check both
+			auto u = p->url;
+			auto m = p->mirror;
+			if (DLMAN->downloads.count(u))
+				DLMAN->downloads[u]->PushSelf(L);
+			else if (DLMAN->downloads.count(m))
+				DLMAN->downloads[m]->PushSelf(L);
+			else
+				lua_pushnil(L); // this shouldnt happen
+		}
 		else
 			lua_pushnil(L);
 		return 1;
@@ -2994,6 +3018,11 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushstring(L, p->url.c_str());
 		return 1;
 	}
+	static int GetMirror(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->mirror.c_str());
+		return 1;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -3006,6 +3035,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetDownload);
 		ADD_METHOD(GetID);
 		ADD_METHOD(GetURL);
+		ADD_METHOD(GetMirror);
 	}
 };
 

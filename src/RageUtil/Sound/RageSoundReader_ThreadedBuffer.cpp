@@ -247,10 +247,7 @@ RageSoundReader_ThreadedBuffer::BufferingThread()
 			  static_cast<float>(g_iReadBlockSizeFrames) / m_iSampleRate;
 
 		if (m_Event.WaitTimeoutSupported()) {
-			RageTimer time;
-			time.Touch();
-			time += fTimeToSleep;
-			m_Event.Wait(&time);
+			m_Event.Wait(fTimeToSleep);
 		} else {
 			m_Event.Unlock();
 			usleep(lrintf(fTimeToSleep * 1000000));

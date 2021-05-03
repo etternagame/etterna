@@ -124,7 +124,6 @@ GameState::GameState()
 	}
 
 	m_Environment = new LuaTable;
-	m_bIsChartPreviewActive = false;
 
 	sExpandedSectionName = "";
 
@@ -1428,7 +1427,6 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetPlayerState(T* p, lua_State* L)
 	{
-		PlayerNumber pn = PLAYER_1;
 		p->m_pPlayerState->PushSelf(L);
 		return 1;
 	}
@@ -1497,7 +1495,6 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetCurrentSteps(T* p, lua_State* L)
 	{
-		PlayerNumber pn = PLAYER_1;
 		Steps* pSteps = p->m_pCurSteps;
 		if (pSteps) {
 			pSteps->PushSelf(L);

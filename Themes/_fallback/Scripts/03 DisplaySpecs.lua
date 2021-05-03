@@ -2,7 +2,7 @@
 -- userdata DisplaySpecs we get from c++
 local cachedSpecs = nil
 
-local function GetDisplaySpecs()
+function GetDisplaySpecs()
 	if cachedSpecs == nil then
 		local specs = DISPLAY:GetDisplaySpecs()
 		t = {
@@ -107,7 +107,7 @@ local winFracs = {
 local RATIO_EPSILON = .044
 
 
-local function GetWindowAspectRatios()
+function GetWindowAspectRatios()
 	local ratios = {}
 	for i, f in ipairs(winFracs) do
 		ratios[math.round(f.n/f.d, 3)] = f
@@ -117,7 +117,7 @@ local function GetWindowAspectRatios()
 end
 
 -- build a map from DisplayId to supported aspect ratios
-local function GetDisplayAspectRatios(specs)
+function GetDisplayAspectRatios(specs)
 	local ratios = {}
 	local recognized = GetWindowAspectRatios()
 	for _, d in ipairs(specs) do
@@ -301,7 +301,7 @@ local function GenerateFeasibleWindowSizesForRatio(specs, r)
 	return rsizes
 end
 
-local function GetFeasibleWindowSizesForRatio(specs, r)
+function GetFeasibleWindowSizesForRatio(specs, r)
 	-- First, try to see if we have a sufficiently large set of
 	-- resolutions to pick from in the list(s) of supported modes for the display(s)
 	-- (since those resolutions tend to be "natural" looking), otherwise just generate
@@ -331,7 +331,7 @@ local function GetFeasibleWindowSizesForRatio(specs, r)
 end
 
 
-local function GetDisplayResolutionsForRatio(d, r)
+function GetDisplayResolutionsForRatio(d, r)
 	local sizes = {}
 	for _, m in ipairs(d:GetSupportedModes()) do
 		local w = m:GetWidth()

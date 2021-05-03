@@ -84,7 +84,7 @@ local buttondiffuse = 0
 local whee
 local profile
 
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+if GAMESTATE:IsPlayerEnabled() then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 end
 
@@ -334,22 +334,12 @@ local function rankingLabel(i)
 				if rankingSkillset > 1 and ButtonActive(self) then
 					if not showOnline then
 						if ths then
-							local srate = ths:GetMusicRate()
-							if whee:SelectSong(thssong) then
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
-							end
+							whee:SelectSong(thssong)
 						end
 					elseif onlineScore and onlineScore.chartkey then
 						local song = SONGMAN:GetSongByChartKey(onlineScore.chartkey)
 						if song then
-							local srate = onlineScore.rate
-							if whee:SelectSong(song) then
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
-							end
+							whee:SelectSong(song)
 						end
 					end
 				end
@@ -549,12 +539,7 @@ local function recentLabel(i)
 			MouseLeftClickMessageCommand = function(self)
 				if recentactive and ButtonActive(self) then
 					if ths then
-						local srate = ths:GetMusicRate()
-						if whee:SelectSong(thssong) then
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(srate)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(srate)
-						end
+						whee:SelectSong(thssong)
 					end
 				end
 			end,
@@ -875,45 +860,6 @@ end
 
 for i = 2, #ms.SkillSets do
 	r[#r + 1] = littlebits(i)
-end
-
--- these maybe should be generalized and placed into scripts -mina
-function easyInputStringWithParams(question, maxLength, isPassword, f, params)
-	SCREENMAN:AddNewScreenToTop("ScreenTextEntry")
-	local settings = {
-		Question = question,
-		MaxInputLength = maxLength,
-		Password = isPassword,
-		OnOK = function(answer)
-			f(answer, params)
-		end
-	}
-	SCREENMAN:GetTopScreen():Load(settings)
-end
-
-function easyInputStringWithFunction(question, maxLength, isPassword, f)
-	easyInputStringWithParams(
-		question,
-		maxLength,
-		isPassword,
-		function(answer, params)
-			f(answer)
-		end,
-		{}
-	)
-end
-
---Tables are passed by reference right? So the value is tablewithvalue to pass it by ref
-function easyInputString(question, maxLength, isPassword, tablewithvalue)
-	easyInputStringWithParams(
-		question,
-		maxLength,
-		isPassword,
-		function(answer, params)
-			tablewithvalue.inputString = answer
-		end,
-		{}
-	)
 end
 
 local user

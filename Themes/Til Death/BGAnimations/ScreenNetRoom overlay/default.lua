@@ -3,7 +3,7 @@ local function input(event)
 	local top = SCREENMAN:GetTopScreen()
 	if event.DeviceInput.button == "DeviceButton_left mouse button" then
 		if event.type == "InputEventType_Release" then
-			if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+			if GAMESTATE:IsPlayerEnabled() then
 				if isOver(top:GetChild("Overlay"):GetChild("PlayerAvatar"):GetChild("Avatar" .. PLAYER_1):GetChild("Image")) then
 					SCREENMAN:SetNewScreen("ScreenAssetSettings")
 				end

@@ -63,7 +63,7 @@ local buttondiffuse = 0
 local whee
 local profile
 
-if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+if GAMESTATE:IsPlayerEnabled() then
 	profile = GetPlayerOrMachineProfile(PLAYER_1)
 end
 

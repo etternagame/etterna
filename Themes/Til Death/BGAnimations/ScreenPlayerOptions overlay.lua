@@ -39,7 +39,7 @@ t[#t + 1] =
 		self:queuecommand("Set")
 	end,
 	SetCommand = function(self)
-		if GAMESTATE:IsPlayerEnabled(PLAYER_1) then
+		if GAMESTATE:IsPlayerEnabled() then
 			profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
 			if profileP1 ~= nil then
 				profileNameP1 = profileP1:GetDisplayName()

@@ -159,6 +159,7 @@ class PrefsManager
 	Preference<bool> m_bMenuTimer;
 
 	Preference<float> m_fLifeDifficultyScale;
+	Preference<float> m_fBGBrightness;
 
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;

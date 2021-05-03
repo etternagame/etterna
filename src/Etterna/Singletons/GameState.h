@@ -311,7 +311,6 @@ class GameState
 	bool m_bIsUsingStepTiming{ true };
 	BroadcastOnChange<std::string> m_sEditLocalProfileID;
 	auto GetEditLocalProfile() -> Profile*;
-	bool m_bIsChartPreviewActive;
 
 	// Current mode of Gameplay
 	BroadcastOnChange<GameplayMode> m_gameplayMode;

@@ -18,6 +18,8 @@
 
 #include <algorithm>
 
+#include "Etterna/Models/Misc/CommonMetrics.h"
+
 void
 FindDisplayedBeats(const PlayerState* pPlayerState,
 				   float& firstBeat,
@@ -94,16 +96,16 @@ NoteField::Unload()
 		delete m_NoteDisplay.second;
 	m_NoteDisplays.clear();
 	m_pCurDisplay = nullptr;
-	memset(m_pDisplays, 0, sizeof(m_pDisplays));
+	m_pDisplays = nullptr;
 }
 
 void
-NoteField::CacheNoteSkin(const std::string& sNoteSkin_, PlayerNumber pn)
+NoteField::CacheNoteSkin(const std::string& sNoteSkin_)
 {
 	if (m_NoteDisplays.find(sNoteSkin_) != m_NoteDisplays.end())
 		return;
 
-	LockNoteSkin l(sNoteSkin_, pn);
+	LockNoteSkin l(sNoteSkin_);
 
 	if (PREFSMAN->m_verbose_log > 1)
 		Locator::getLogger()->trace("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
@@ -149,7 +151,7 @@ NoteField::CacheAllUsedNoteSkins()
 	}
 
 	for (auto& i : asSkinsLower) {
-		CacheNoteSkin(i, m_pPlayerState->m_PlayerNumber);
+		CacheNoteSkin(i);
 	}
 
 	/* If we're changing note skins in the editor, we can have old note skins
@@ -174,15 +176,8 @@ NoteField::CacheAllUsedNoteSkins()
 	auto it = m_NoteDisplays.find(sCurrentNoteSkinLower);
 	ASSERT_M(it != m_NoteDisplays.end(), sCurrentNoteSkinLower);
 	m_pCurDisplay = it->second;
-	memset(m_pDisplays, 0, sizeof(m_pDisplays));
-
-	auto sNoteSkinLower =
-	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
-	NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
-	sNoteSkinLower = make_lower(sNoteSkinLower);
-	it = m_NoteDisplays.find(sNoteSkinLower);
-	ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
-	m_pDisplays[PLAYER_1] = it->second;
+	
+	m_pDisplays = it->second;
 
 	// I don't think this is needed?
 	// It's done in Load -- Nick12
@@ -252,19 +247,21 @@ NoteField::ensure_note_displays_have_skin()
 	auto sNoteSkinLower =
 	  m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
 
-	/* XXX: Combination of good idea and bad idea to ensure courses load
-	 * regardless of noteskin content. This may take a while to fix. */
-	auto* badIdea = m_pCurDisplay;
-
+	// Guarantee a display is loaded if the selected Noteskin seems (doubly) empty
+	// if this does get entered, the visible Noteskin changes if not already changing
 	if (sNoteSkinLower.empty()) {
-		sNoteSkinLower =
-		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
+		sNoteSkinLower = make_lower(
+		  m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin);
 
 		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = "default";
+			sNoteSkinLower = make_lower(CommonMetrics::DEFAULT_NOTESKIN_NAME);
 		}
-		m_NoteDisplays.insert(
-		  std::pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
+
+		// force this to work whether you like it or not
+		if (!NOTESKIN->DoesNoteSkinExist(sNoteSkinLower))
+			sNoteSkinLower = make_lower(NOTESKIN->GetFirstWorkingNoteSkin());
+		
+		CacheNoteSkin(sNoteSkinLower);
 	}
 
 	sNoteSkinLower = make_lower(sNoteSkinLower);
@@ -277,27 +274,7 @@ NoteField::ensure_note_displays_have_skin()
 		  ssprintf("iterator != m_NoteDisplays.end() [sNoteSkinLower = %s]",
 				   sNoteSkinLower.c_str()));
 	}
-	memset(m_pDisplays, 0, sizeof(m_pDisplays));
-	sNoteSkinLower =
-	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
-
-	// XXX: Re-setup sNoteSkinLower. Unsure if inserting the skin again is
-	// needed.
-	if (sNoteSkinLower.empty()) {
-		sNoteSkinLower =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
-
-		if (sNoteSkinLower.empty()) {
-			sNoteSkinLower = "default";
-		}
-		m_NoteDisplays.insert(
-		  std::pair<std::string, NoteDisplayCols*>(sNoteSkinLower, badIdea));
-	}
-
-	sNoteSkinLower = make_lower(sNoteSkinLower);
-	it = m_NoteDisplays.find(sNoteSkinLower);
-	ASSERT_M(it != m_NoteDisplays.end(), sNoteSkinLower);
-	m_pDisplays[PLAYER_1] = it->second;
+	m_pDisplays = it->second;
 }
 
 void
@@ -313,7 +290,7 @@ NoteField::InitColumnRenderers()
 		->m_iColsPerPlayer);
 	for (size_t ncr = 0; ncr < m_ColumnRenderers.size(); ++ncr) {
 		m_ColumnRenderers[ncr].m_displays[PLAYER_1] =
-		  &(m_pDisplays[PLAYER_1]->display[ncr]);
+		  &(m_pDisplays->display[ncr]);
 		m_ColumnRenderers[ncr].m_displays[PLAYER_INVALID] =
 		  &(m_pCurDisplay->display[ncr]);
 		m_ColumnRenderers[ncr].m_column = ncr;

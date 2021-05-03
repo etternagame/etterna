@@ -617,7 +617,6 @@ Playlist::GetAverageRating() -> float
 	for (auto& n : chartlist) {
 		if (n.loaded) {
 			auto rate = n.rate;
-			CLAMP(rate, 0.7F, 3.F);
 			o += n.stepsptr->GetMSD(rate, 0);
 			++numloaded;
 		}
@@ -780,11 +779,12 @@ SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 
 	// Look for a group banner in this group folder
 	std::vector<std::string> arrayGroupBanners;
-
+	std::vector<std::string> exts;
+	ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
+	ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
+	
 	FILEMAN->GetDirListingWithMultipleExtensions(
-	  sDir + sGroupDirName + "/",
-	  ActorUtil::GetTypeExtensionList(FT_Bitmap),
-	  arrayGroupBanners);
+	  sDir + sGroupDirName + "/", exts, arrayGroupBanners);
 
 	std::string sBannerPath;
 	if (!arrayGroupBanners.empty()) {
@@ -792,9 +792,7 @@ SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 	} else {
 		// Look for a group banner in the parent folder
 		FILEMAN->GetDirListingWithMultipleExtensions(
-		  sDir + sGroupDirName,
-		  ActorUtil::GetTypeExtensionList(FT_Bitmap),
-		  arrayGroupBanners);
+		  sDir + sGroupDirName, exts, arrayGroupBanners);
 		if (!arrayGroupBanners.empty()) {
 			sBannerPath = sDir + arrayGroupBanners[0];
 		}

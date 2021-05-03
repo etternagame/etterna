@@ -706,6 +706,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		// OHTrill,
 		VOHTrill,
 		RanMan,
+		FlamJam,
 		// Roll,
 		// WideRangeAnchor,
 	  },
@@ -722,6 +723,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		VOHTrill,
 		// Roll
 		// RanMan,
+		FlamJam,
 	  },
 
 	  // stam, nothing, don't handle here
@@ -737,6 +739,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		// CJOHJump // SQRTD BELOW
 		VOHTrill,
 		WideRangeAnchor,
+	  	FlamJam, // you may say, why? why not?
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -954,7 +957,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 442;
+int mina_calc_version = 444;
 auto
 GetCalcVersion() -> int
 {

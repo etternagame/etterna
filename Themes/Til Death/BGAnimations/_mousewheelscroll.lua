@@ -38,7 +38,7 @@ local function scrollInput(event)
 	local mouseX = INPUTFILTER:GetMouseX()
 	local mouseY = INPUTFILTER:GetMouseY()
 	
-	if mouseX > capWideScale(370, 500) and mouseX < SCREEN_WIDTH - 32 then
+	if mouseX > SCREEN_WIDTH-(capWideScale(get43size(350),350)) and mouseX < SCREEN_WIDTH - 32 then
 		if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_FirstPress" then
 			local n = 0
 			local m = 1

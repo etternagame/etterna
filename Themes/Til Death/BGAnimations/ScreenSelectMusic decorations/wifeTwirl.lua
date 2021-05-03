@@ -10,16 +10,14 @@ local infoOnScreen = false
 local heyiwasusingthat = false
 local mcbootlarder
 local prevX = capWideScale(get43size(98), 98)
-local usingreverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+local usingreverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
 local prevrevY = 208
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local hackysack = false
-local dontRemakeTheNotefield = false
 local songChanged = false
 local songChanged2 = false
 local previewVisible = false
-local justChangedStyles = false
 local onlyChangedSteps = false
 local shouldPlayMusic = false
 local prevtab = 0
@@ -42,8 +40,9 @@ local translated_info = {
 
 -- to reduce repetitive code for setting preview music position with booleans
 local function playMusicForPreview(song)
-	song:PlaySampleMusicExtended()
-	MESSAGEMAN:Broadcast("PreviewMusicStarted")
+	SOUND:StopMusic()
+	SCREENMAN:GetTopScreen():PlayCurrentSongSampleMusic(true, true)
+	MESSAGEMAN:Broadcast("PreviewMusicStarted") -- this is lying tbh
 
 	restartedMusic = true
 
@@ -77,19 +76,19 @@ local function setPreviewPartsState(state)
 end
 
 local function toggleNoteField()
-	if dontRemakeTheNotefield then dontRemakeTheNotefield = false return false end
+	local nf = mcbootlarder:GetChild("NoteField")
 	if song and not noteField then -- first time setup
 		noteField = true
-		justChangedStyles = false
 		MESSAGEMAN:Broadcast("ChartPreviewOn") -- for banner reaction... lazy -mina
 		mcbootlarder:playcommand("SetupNoteField")
 		mcbootlarder:xy(prevX, prevY)
-		mcbootlarder:GetChild("NoteField"):y(prevY * 1.5)
 		mcbootlarder:diffusealpha(1)
-		mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+
+		nf:y(prevY * 1.5)
 		if usingreverse then
-			mcbootlarder:GetChild("NoteField"):y(prevY * 1.5 + prevrevY)
+			nf:y(prevY * 1.5 + prevrevY)
 		end
+
 		if not songChanged then
 			playMusicForPreview(song)
 			tryingToStart = true
@@ -103,10 +102,10 @@ local function toggleNoteField()
 	end
 
 	if song then
-		mcbootlarder:GetChild("NoteField"):diffusealpha(1)
+		nf:diffusealpha(1)
 		if mcbootlarder:IsVisible() then
 			mcbootlarder:visible(false)
-			mcbootlarder:GetChild("NoteField"):visible(false)
+			nf:visible(false)
 			MESSAGEMAN:Broadcast("ChartPreviewOff")
 			toggleCalcInfo(false)
 			previewVisible = false
@@ -115,7 +114,7 @@ local function toggleNoteField()
 			return false
 		else
 			mcbootlarder:visible(true)
-			mcbootlarder:GetChild("NoteField"):visible(true)
+			nf:visible(true)
 			if boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone or songChanged or songChanged2 then
 				if not restartedMusic then
 					playMusicForPreview(song)
@@ -147,7 +146,7 @@ local t =
 		-- This will disable mirror when switching songs if OneShotMirror is enabled or if permamirror is flagged on the chart (it is enabled if so in screengameplayunderlay/default)
 		if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).OneShotMirror or profile:IsCurrentChartPermamirror() then
 			local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
-			local playeroptions = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptions(modslevel)
+			local playeroptions = GAMESTATE:GetPlayerState():GetPlayerOptions(modslevel)
 			playeroptions:Mirror(false)
 		end
 		-- if not on General and we started the noteField and we changed tabs then changed songs
@@ -165,6 +164,7 @@ local t =
 		-- check to see if the song actually really changed
 		-- >:(
 		if noteField and GAMESTATE:GetCurrentSong() ~= song then
+			-- always true if switching songs and preview has ever been opened
 			songChanged2 = true
 			restartedMusic = false
 		else
@@ -198,14 +198,13 @@ local t =
 		-- should play the music if we switched to a song from a pack tab
 		-- also applies for if we just toggled the notefield or changed screen tabs
 		shouldPlayMusic = shouldPlayMusic or hackysack
-		-- should play the music if we already should and we either jumped song or we didnt change the style/song
-		shouldPlayMusic = shouldPlayMusic and ((not justChangedStyles and not onlyChangedSteps) or unexpectedlyChangedSong) and not tryingToStart
+		-- should play the music if we already should and we either jumped song or we didnt change the song
+		shouldPlayMusic = shouldPlayMusic and (not onlyChangedSteps or unexpectedlyChangedSong) and not tryingToStart
 
 		-- at this point the music will or will not play ....
 
 		boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 		hackysack = false
-		justChangedStyles = false
 		tryingToStart = false
 		songChanged = false
 		onlyChangedSteps = true
@@ -233,7 +232,6 @@ local t =
 		-- if the song changed
 		if song ~= bong then
 			if not lockbools then
-				justChangedStyles = false
 				onlyChangedSteps = false
 			end
 			if not song and previewVisible and not lockbools then
@@ -279,13 +277,11 @@ local t =
 			self:queuecommand("MintyFresh")
 			prevtab = newtab
 			if getTabIndex() == 0 and noteField then
-				mcbootlarder:GetChild("NoteField"):finishtweening()
 				mcbootlarder:GetChild("NoteField"):diffusealpha(1)
 				lockbools = true
 			elseif getTabIndex() ~= 0 and noteField then
 				hackysack = mcbootlarder:IsVisible()
 				onlyChangedSteps = false
-				justChangedStyles = false
 				boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 				lockbools = true
 			end
@@ -343,7 +339,7 @@ t[#t + 1] =
 	MintyFreshCommand = function(self)
 		if song then
 			ptags = tags:get_data().playerTags
-			steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+			steps = GAMESTATE:GetCurrentSteps()
 			chartKey = steps:GetChartKey()
 			ctags = {}
 			for k, v in pairs(ptags) do
@@ -374,14 +370,9 @@ t[#t + 1] =
 			MintyFreshCommand = function(self)
 				if song then
                     local stype = steps:GetStepsType()
-					if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
-						local meter = steps:GetMSD(getCurRateValue(), 1)
-						self:settextf("%05.2f", meter)
-						self:diffuse(byMSD(meter))
-					else
-						self:settextf("%5.2f", steps:GetMeter()) -- fallthrough to pre-defined meters for non 4k charts -mina
-						self:diffuse(byDifficulty(steps:GetDifficulty()))
-					end
+					local meter = steps:GetMSD(getCurRateValue(), 1)
+					self:settextf("%05.2f", meter)
+					self:diffuse(byMSD(meter))
 				else
 					self:settext("")
 				end
@@ -993,7 +984,6 @@ t[#t + 1] =
 
 --Chart Preview Button
 local yesiwantnotefield = false
-local oldstyle
 local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 		if event.DeviceInput.button == "DeviceButton_space" then
@@ -1053,21 +1043,6 @@ t[#t + 1] = Def.ActorFrame {
 					end
 				end
 			end
-		end,
-		CurrentStyleChangedMessageCommand = function(self) -- need to regenerate the notefield when changing styles or crashman appears -mina
-			if noteField and oldstyle ~= GAMESTATE:GetCurrentStyle() then
-				if not mcbootlarder:IsVisible() then
-					dontRemakeTheNotefield = true
-				else
-					dontRemakeTheNotefield = false
-				end
-				SCREENMAN:GetTopScreen():DeletePreviewNoteField(mcbootlarder)
-				noteField = false
-				justChangedStyles = true
-				song = GAMESTATE:GetCurrentSong()
-				toggleNoteField()
-			end
-			oldstyle = GAMESTATE:GetCurrentStyle()
 		end,
 		ChartPreviewOnMessageCommand = function(self)
 			readyButton:Disable()
