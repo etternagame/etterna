@@ -12,6 +12,7 @@
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
+#include "PlayerStageStats.h"
 
 #include <algorithm>
 #include <fstream>
@@ -20,11 +21,29 @@
 
 #include "Etterna/Singletons/ScoreManager.h"
 
-const std::string BASIC_REPLAY_DIR =
-  "Save/Replays/"; // contains only tap offset data for rescoring/plots -mina
-const std::string FULL_REPLAY_DIR =
-  "Save/ReplaysV2/"; // contains freeze drops and mine hits as well as tap
-					 // offsets; fully "rewatchable" -mina
+// why does this have to be complicated
+#ifdef _WIN32
+#include "zlib.h"
+#if defined(_MSC_VER)
+#if defined(BINARY_ZDL)
+#pragma comment(lib, "zdll.lib")
+#endif
+#endif
+#elif defined(__APPLE__)
+#include "zlib.h"
+#else
+#include <zlib.h>
+#endif
+
+// contains only tap offset data for rescoring/plots -mina
+const std::string BASIC_REPLAY_DIR = "Save/Replays/";
+
+// contains freeze drops and mine hits as well as tap
+// offsets; fully "rewatchable" -mina
+const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
+
+// contains input data files corresponding to replays
+const std::string INPUT_DATA_DIR = "Save/InputData/";
 
 struct HighScoreImpl
 {
@@ -49,6 +68,7 @@ struct HighScoreImpl
 	bool bNoChordCohesion;
 	bool bEtternaValid;
 	std::vector<std::string> uploaded;
+	std::vector<InputDataEvent> InputData;
 	std::vector<float> vOffsetVector;
 	std::vector<int> vNoteRowVector;
 	std::vector<int> vTrackVector;
@@ -86,6 +106,7 @@ struct HighScoreImpl
 	void ResetSkillsets();
 
 	auto WriteReplayData() -> bool;
+	auto WriteInputData() -> bool;
 	int ReplayType; // 0 = no loaded replay, 1 = basic, 2 = full; currently
 					// unused but here for when we need it (not to be confused
 					// with hasreplay()) -mina
@@ -107,11 +128,13 @@ HighScoreImpl::UnloadReplayData()
 	vOffsetVector.clear();
 	vTrackVector.clear();
 	vTapNoteTypeVector.clear();
+	InputData.clear();
 
 	vNoteRowVector.shrink_to_fit();
 	vOffsetVector.shrink_to_fit();
 	vTrackVector.shrink_to_fit();
 	vTapNoteTypeVector.shrink_to_fit();
+	InputData.shrink_to_fit();
 
 	ReplayType = 0;
 }
@@ -157,6 +180,7 @@ HighScoreImpl::HighScoreImpl()
 	vOffsetVector.clear();
 	vNoteRowVector.clear();
 	vRescoreJudgeVector.clear();
+	InputData.clear();
 	played_seconds = 0.F;
 	iMaxCombo = 0;
 	sModifiers = "";
@@ -436,32 +460,210 @@ HighScoreImpl::WriteReplayData() -> bool
 	return true;
 }
 
+unsigned long
+fsize(char* path)
+{
+	FILE *pfile = fopen(path, "rb");
+	fseek(pfile, 0, SEEK_END);
+	unsigned long sz = ftell(pfile);
+	fclose(pfile);
+	return sz;
+}
+
 auto
-HighScore::WriteInputData(const std::vector<float>& oop) -> bool
+HighScoreImpl::WriteInputData() -> bool
 {
 	std::string append;
-	std::string profiledir;
 
-	const auto path = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	std::ofstream fileStream(path, std::ios::binary);
+	// These two lines should probably be somewhere else
+	if (!FILEMAN->IsADirectory(INPUT_DATA_DIR)) {
+		FILEMAN->CreateDir(INPUT_DATA_DIR);
+	}
+
+	const auto path = INPUT_DATA_DIR + ScoreKey;
+	const auto path_z = path + "z";
+	if (InputData.empty()) {
+		Locator::getLogger()->warn(
+		  "Attempted to write input data for {} but there was nothing to write",
+		  path.c_str());
+	}
+
 	// check file
-
-	ASSERT(!oop.empty());
-
+	std::ofstream fileStream(path, std::ios::binary);
 	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to create replay file at {}", path.c_str());
+		Locator::getLogger()->warn("Failed to create input data file at {}", path.c_str());
 		return false;
 	}
 
-	const unsigned int idx = oop.size() - 1;
-	// loop for writing both vectors side by side
-	for (unsigned int i = 0; i <= idx; i++) {
-		append = std::to_string(oop[i]) + "\n";
-		fileStream.write(append.c_str(), append.size());
+	// for writing human readable text
+	try {
+		const unsigned int idx = InputData.size() - 1;
+		for (unsigned int i = 0; i <= idx; i++) {
+			append = std::to_string(InputData[i].column) + " " +
+					 (InputData[i].is_press ? "1" : "0") + " " +
+					 std::to_string(InputData[i].songPositionSeconds) + "\n";
+			fileStream.write(append.c_str(), append.size());
+		}
+		fileStream.close();
+
+		FILE* infile =
+		  fopen(path.c_str(), "rb");
+		gzFile outfile = gzopen(path_z.c_str(), "wb");
+		if (!infile || !outfile) {
+			Locator::getLogger()->warn("Failed to compress new input data.");
+			return false;
+		}
+
+		char buf[128];
+		int num_read = 0;
+		unsigned long total_read = 0;
+		while ((num_read = fread(buf, 1, sizeof(buf), infile)) > 0) {
+			total_read += num_read;
+			gzwrite(outfile, buf, num_read);
+		}
+		fclose(infile);
+		gzclose(outfile);
+
+		Locator::getLogger()->trace("Created compressed input data file at {}",
+									path_z.c_str());
+
+		if (FILEMAN->Remove(path))
+			Locator::getLogger()->trace("Deleted uncompressed input data");
+		else
+			Locator::getLogger()->warn(
+			  "Failed to delete uncompressed input data");
+		return true;
 	}
-	fileStream.close();
-	Locator::getLogger()->trace("Created replay file at {}", path.c_str());
-	return true;
+	catch (std::runtime_error& e) {
+		Locator::getLogger()->warn(
+		  "Failed to write input data at {} due to runtime exception: {}",
+		  path.c_str(),
+		  e.what());
+		fileStream.close();
+		return false;
+	}
+	
+
+	// for writing binary output for "compression"
+	// write vector size, then dump vector data
+	/*
+	try {
+		size_t size = InputData.size();
+		fileStream.write(reinterpret_cast<char*>(&size), sizeof size);
+		fileStream.write(reinterpret_cast<char*>(&InputData[0]),
+						 size * sizeof InputDataEvent);
+		fileStream.close();
+		Locator::getLogger()->trace("Created input data file at {}",
+									path.c_str());
+		return true;
+	} catch (std::runtime_error& e) {
+		Locator::getLogger()->warn(
+		  "Failed to write input data at {} due to runtime exception: {}",
+		  path.c_str(),
+		  e.what());
+		fileStream.close();
+		return false;
+	}
+	*/
+}
+
+auto
+HighScore::LoadInputData() -> bool
+{
+	if (m_Impl->InputData.size() > 0)
+		return true;
+
+	auto path = INPUT_DATA_DIR + m_Impl->ScoreKey;
+	auto path_z = path + "z";
+	std::vector<InputDataEvent> readInputs;
+
+	/*
+	std::ifstream inputStream(path, std::ios::binary);
+	if (!inputStream) {
+		Locator::getLogger()->trace("Failed to load input data at {}",
+									path.c_str());
+		return false;
+	}
+	*/
+	
+	// read vector size, then read vector data
+	/*
+	try {
+		size_t size;
+		inputStream.read(reinterpret_cast<char*>(&size), sizeof size);
+		m_Impl->InputData.resize(size);
+		inputStream.read(reinterpret_cast<char*>(&m_Impl->InputData[0]),
+						 size * sizeof InputDataEvent);
+		inputStream.close();
+		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
+		return true;
+	}
+	*/
+	// human readable compression read-in
+	try {
+		gzFile infile = gzopen(path_z.c_str(), "rb");
+		// hope nothing already exists here
+		FILE* outfile = fopen(path.c_str(), "wb");
+		if (!infile || !outfile) {
+			Locator::getLogger()->warn("Failed to read input data at {}",
+									   path_z.c_str());
+			return false;
+		}
+
+		char buf[128];
+		int num_read = 0;
+		while ((num_read = gzread(infile, buf, sizeof(buf))) > 0) {
+			fwrite(buf, 1, num_read, outfile);
+		}
+		gzclose(infile);
+		fclose(outfile);
+
+		std::ifstream inputStream(path, std::ios::binary);
+		if (!inputStream) {
+			Locator::getLogger()->trace("Failed to load input data at {}",
+										path.c_str());
+			return false;
+		}
+
+		std::string line, buffer;
+		std::vector<std::string> tokens;
+		while (getline(inputStream, line)) {
+			InputDataEvent ev;
+			std::stringstream ss(line);
+			// split line into tokens
+			while (ss >> buffer) {
+				tokens.emplace_back(buffer);
+			}
+
+			if (tokens.size() != 3) {
+				Locator::getLogger()->warn("Bad input data detected: {}",
+										   GetScoreKey().c_str());
+				ASSERT(tokens.size() == 3);
+			}
+
+			ev.column = std::stoi(tokens[0]);
+			ev.is_press = std::stoi(tokens[1]);
+			ev.songPositionSeconds = std::stof(tokens[2]);
+			m_Impl->InputData.push_back(ev);
+			
+			tokens.clear();
+		}
+
+		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
+		
+		if (FILEMAN->Remove(path))
+			Locator::getLogger()->trace("Deleted uncompressed input data");
+		else
+			Locator::getLogger()->warn(
+			  "Failed to delete uncompressed input data");
+	}
+	catch (std::runtime_error& e) {
+		Locator::getLogger()->warn(
+		  "Failed to read input data at {} due to runtime exception: {}",
+		  path.c_str(),
+		  e.what());
+		return false;
+	}
 }
 
 // should just get rid of impl -mina
@@ -845,6 +1047,11 @@ HighScore::GetCopyOfSetOnlineReplayTimestampVector() const -> std::vector<float>
 	return m_Impl->vOnlineReplayTimestampVector;
 }
 auto
+HighScore::GetInputDataVector() const -> const std::vector<InputDataEvent>&
+{
+	return m_Impl->InputData;
+}
+auto
 HighScore::GetOffsetVector() const -> const std::vector<float>&
 {
 	return m_Impl->vOffsetVector;
@@ -1044,6 +1251,11 @@ HighScore::AddUploadedServer(const std::string& s)
 		m_Impl->uploaded.end()) {
 		m_Impl->uploaded.emplace_back(s);
 	}
+}
+void
+HighScore::SetInputDataVector(const std::vector<InputDataEvent>& v)
+{
+	m_Impl->InputData = v;
 }
 void
 HighScore::SetOffsetVector(const std::vector<float>& v)
@@ -1592,6 +1804,12 @@ HighScore::WriteReplayData() -> bool
 {
 	// return DBProfile::WriteReplayData(this);
 	return m_Impl->WriteReplayData();
+}
+
+auto
+HighScore::WriteInputData() -> bool
+{
+	return m_Impl->WriteInputData();
 }
 
 // TO BE REMOVED SOON

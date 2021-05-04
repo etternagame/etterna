@@ -472,10 +472,6 @@ PlayerReplay::Step(int col,
 
 	// LOG->Trace(ssprintf("col %d\n\trow %d", col, row));
 
-	// idk if this is the correct value for input logs but we'll use them to
-	// test -mina ok this is 100% not the place to do this
-	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
-
 	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 	if (GAMESTATE->m_pCurSteps)

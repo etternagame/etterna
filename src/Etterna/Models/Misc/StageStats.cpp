@@ -668,6 +668,9 @@ FillInHighScore(const PlayerStageStats& pss,
 		}
 	}
 
+	// Input data.
+	hs.SetInputDataVector(pss.GetInputDataVector());
+
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time
 	if (!hs.NormalizeJudgments()) {
@@ -685,9 +688,6 @@ FillInHighScore(const PlayerStageStats& pss,
 
 	hs.GenerateValidationKeys();
 
-	if (!pss.InputData.empty()) {
-		hs.WriteInputData(pss.InputData);
-	}
 	return hs;
 }
 
@@ -790,6 +790,9 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	if (m_player.m_fWifeScore > 0.F) {
 		const auto writesuccess = hs.WriteReplayData();
 	}
+
+	// input data
+	//hs.WriteInputData();
 
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,

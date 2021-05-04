@@ -1966,9 +1966,8 @@ Player::Step(int col,
 	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
 	const auto fTimeSinceStep = stepAgo;
 
-	// idk if this is the correct value for input logs but we'll use them to
-	// test -mina ok this is 100% not the place to do this
-	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
+	// input data
+	//m_pPlayerStageStats->InputData.emplace_back(!bRelease, col, fPositionSeconds);
 
 	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 

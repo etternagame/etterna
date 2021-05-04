@@ -45,6 +45,7 @@ class PlayerStageStats
 	[[nodiscard]] auto GetCurWifeScore() const -> float;
 	[[nodiscard]] auto GetMaxWifeScore() const -> float;
 	[[nodiscard]] auto GetTimingScale() const -> float;
+	[[nodiscard]] auto GetInputDataVector() const -> vector<InputDataEvent>;
 	[[nodiscard]] auto GetOffsetVector() const -> vector<float>;
 	[[nodiscard]] auto GetNoteRowVector() const -> vector<int>;
 	[[nodiscard]] auto GetTrackVector() const -> vector<int>;
@@ -90,7 +91,7 @@ class PlayerStageStats
 	vector<int> m_vNoteRowVector;
 	vector<TapNoteType> m_vTapNoteTypeVector;
 	vector<int> m_vTrackVector;
-	vector<float> InputData;
+	vector<InputDataEvent> InputData;
 	int m_iTapNoteScores[NUM_TapNoteScore]{};
 	int m_iHoldNoteScores[NUM_HoldNoteScore]{};
 	/** @brief The Player's current combo. */

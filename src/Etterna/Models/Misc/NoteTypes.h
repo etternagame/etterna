@@ -261,6 +261,27 @@ struct TapReplayResult
 	}
 };
 
+struct InputDataEvent
+{
+	bool is_press;
+	int column;
+	float songPositionSeconds;
+
+	InputDataEvent()
+	{
+		is_press = false;
+		column = -1;
+		songPositionSeconds = 0.F;
+	}
+
+	InputDataEvent(bool press, int col, float songPos)
+	{
+		is_press = press;
+		column = col;
+		songPositionSeconds = songPos;
+	}
+};
+
 extern TapNote TAP_EMPTY;				   // '0'
 extern TapNote TAP_ORIGINAL_TAP;		   // '1'
 extern TapNote TAP_ORIGINAL_HOLD_HEAD;	   // '2'
