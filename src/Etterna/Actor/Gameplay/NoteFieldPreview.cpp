@@ -16,7 +16,7 @@
 
 #include <cmath>
 #include <limits>
-#include <RageUtil/Graphics/RageDisplay.h>
+#include <RageUtil/Graphics/Display/RageDisplay.h>
 
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
