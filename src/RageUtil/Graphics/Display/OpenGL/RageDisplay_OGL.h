@@ -8,6 +8,10 @@
 #include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/Graphics/Display/Texture/RageTextureRenderTarget.h"
 #include "RageUtil/Graphics/Display/OpenGL/ShaderGL.hpp"
+#include "Core/Platform/Window/GLFWWindowBackend.hpp"
+#include "Core/Platform/Window/IWindowBackend.hpp"
+
+using namespace Core::Platform::Window;
 
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
@@ -113,6 +117,9 @@ class RageDisplay_Legacy : public RageDisplay
 	void SendCurrentMatrices();
 
   private:
+    // Window reference
+    std::unique_ptr<IWindowBackend> window;
+
     // Shader references
     ShaderGL shaderTextureMatrix;
     ShaderGL shaderBUnPreMultiply;

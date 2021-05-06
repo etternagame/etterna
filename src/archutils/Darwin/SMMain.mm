@@ -124,7 +124,7 @@ float MACMouseY()
 - (void) applicationDidFinishLaunching:(NSNotification *)note
 {
     m_bApplicationLaunched = YES;
-    [NSThread detachNewThreadSelector:@selector(startGame:) toTarget:self withObject:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{ [self startGame:(self)]; });
     
     // Register ourselves as a URL handler.
     [
