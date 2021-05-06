@@ -514,7 +514,8 @@ RageDisplay_Legacy::RageDisplay_Legacy()
 }
 
 RageDisplay_Legacy::~RageDisplay_Legacy() {
-    window.reset();
+    IWindowBackend* release = window.release();
+    delete release;
 }
 
 void RageDisplay_Legacy::Init(const VideoModeParams& p)  {

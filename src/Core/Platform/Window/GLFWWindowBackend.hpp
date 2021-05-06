@@ -10,7 +10,7 @@ namespace Core::Platform::Window {
 class GLFWWindowBackend : public IWindowBackend {
 public:
     GLFWWindowBackend(std::string_view title, const Dimensions &size);
-    ~GLFWWindowBackend();
+    ~GLFWWindowBackend() override;
 
     // Inherited Functions
     void create() override;

@@ -19,7 +19,7 @@ class IWindowBackend {
 public:
     // De/Constructor
     IWindowBackend(std::string_view title, const Dimensions &size);
-    ~IWindowBackend() = default;
+    virtual ~IWindowBackend() = default;
 
     // Virtual Functions
     virtual void create() = 0;
