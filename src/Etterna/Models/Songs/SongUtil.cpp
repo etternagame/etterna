@@ -737,6 +737,8 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 		}
 		case SORT_MODE_MENU:
 			return std::string();
+		case SORT_Ungrouped:
+			return "";
 		default:
 			FAIL_M(ssprintf("Invalid SortOrder: %i", so));
 	}

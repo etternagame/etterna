@@ -853,6 +853,8 @@ MusicWheel::BuildWheelItemDatas(
 					  GAMESTATE->m_sPreferredSongGroup == GROUP_ALL;
 				}
 				break;
+			case SORT_Ungrouped:
+				[[fallthrough]];
 			case SORT_TITLE:
 				SongUtil::SortSongPointerArrayByTitle(arraySongs);
 				break;
@@ -1749,7 +1751,7 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		p->ReloadSongList(true, SArg(1));
 		return 1;
 	}
-	static auto ReloadSongList(T* p, lua_State * /*L*/) -> int
+	static auto ReloadSongList(T* p, lua_State* /*L*/) -> int
 	{
 		p->ReloadSongList(false, "");
 		return 1;
