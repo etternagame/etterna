@@ -1,6 +1,8 @@
 #ifndef STEP_MANIA_H
 #define STEP_MANIA_H
 
+#include <string>
+
 struct Game;
 class RageTimer;
 class VideoModeParams;
