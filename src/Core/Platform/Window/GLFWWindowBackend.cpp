@@ -23,6 +23,9 @@ namespace Core::Platform::Window {
                 static_cast<int>(size.width),static_cast<int>(size.height),
                 title.data(),nullptr, nullptr);
 
+        // Reset hints after creating window (incase anything was set)
+        glfwDefaultWindowHints();
+
         // Tell the GLFWwindow to store a pointer to this GLFWWindowBackend object
         glfwSetWindowUserPointer(this->windowHandle, this);
 
@@ -70,6 +73,21 @@ namespace Core::Platform::Window {
     /** @return True if the close flag is set for the window, otherwise false. */
     bool GLFWWindowBackend::exited() {
         return static_cast<bool>(glfwWindowShouldClose(this->windowHandle));
+    }
+
+    /**
+     * Send GLFW hints prior to window creation.
+     * glfwWindowHints are reset after a window is created.
+     * @param hint GLFW Constant hint to set
+     * @param value GLFW constant hint value
+     */
+    void GLFWWindowBackend::setWindowHint(int hint, int value) {
+        glfwWindowHint(hint, value);
+    }
+
+    /** @return A reference to the backend GLFWwindow object */
+    GLFWwindow* GLFWWindowBackend::getWindow() {
+        return windowHandle;
     }
 
 }
