@@ -1,4 +1,5 @@
 list(APPEND GLOBAL_FILES_SRC
+	"Main.cpp"
 	"SoloCalc.cpp"
 	"GameLoop.cpp"
 	"global.cpp"
@@ -15,8 +16,5 @@ list(APPEND GLOBAL_FILES_HPP
 	"rngthing.h"
 	"StepMania.h") # TODO: Refactor into separate main project.
 
-if(NOT APPLE)
-	list(APPEND GLOBAL_FILES_SRC "Main.cpp")
-endif()
 
 target_sources(Etterna PUBLIC ${GLOBAL_FILES_SRC} ${GLOBAL_FILES_HPP})
