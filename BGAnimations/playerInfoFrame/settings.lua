@@ -403,7 +403,7 @@ local function leftFrame()
                         local newindex = ButtonIndexToCurGameColumn(i)
                         local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], 0, 0)
                         if buttonmapped then
-                            self:settext(buttonmapped)
+                            self:settext(buttonmapped:gsub("Key ", ""))
                         else
                             self:settext("none")
                         end
