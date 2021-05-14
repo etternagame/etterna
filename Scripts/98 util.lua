@@ -320,3 +320,39 @@ function ActorFrame.safeGetChild(self, ...)
     end
     return final
 end
+
+-- so basically the key config stuff isnt straightforward
+-- this table maps sequential confusing columns to actual ingame columns
+-- better yet the ordering doesnt come from what you see in key config, its even more random
+-- any missing elements are assumed to just be the same number rather than error
+-- the function below facilitates its use
+local indexToProperGameColumn = {
+    dance = {
+        [2] = 4,
+        [4] = 2,
+    },
+    pump = {
+        [1] = 4,
+        [2] = 1,
+        [4] = 2,
+    },
+    kb7 = {
+    },
+    beat = {
+    },
+    popn = {
+    },
+    solo = {
+        [2] = 5,
+        [3] = 4,
+        [4] = 3,
+        [5] = 6,
+        [6] = 2,
+    },
+}
+function ButtonIndexToCurGameColumn(i)
+    local g = GAMESTATE:GetCurrentGame():GetName()
+    if indexToProperGameColumn[g] == nil then return i end
+    if indexToProperGameColumn[g][i] == nil then return i end
+    return indexToProperGameColumn[g][i]
+end

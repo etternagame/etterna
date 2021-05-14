@@ -201,11 +201,26 @@ local function leftFrame()
         }
     }
 
+    -- the noteskin page function as noteskin preview and keybindings
     local function createNoteskinPage()
+        -- page state vars
+        -- if true, show keybinds under notes (upscroll) or above notes (downscroll)
+        local showKeybinds = false
+
+        -- list of GameButtons we can map
+        -- remember to pass calling indices through to ButtonIndexToCurGameColumn(x)
+        local gameButtonsToMap = INPUTMAPPER:GetGameButtonsToMap()
+
+
         local t = Def.ActorFrame { 
             Name = "NoteSkinPageContainer",
             ShowLeftCommand = function(self, params)
-                if params and params.name == "Noteskin" then
+                if params and (params.name == "Noteskin" or params.name == "Customize Keybinds") then
+                    if params.name == "Customize Keybinds" then
+                        showKeybinds = true
+                    else
+                        showKeybinds = false
+                    end
                     self:diffusealpha(1)
                 else
                     self:diffusealpha(0)
@@ -222,6 +237,9 @@ local function leftFrame()
         local secondrowYoffset = 64
         local noteskinbasezoom = 1.5 -- pick a zoom that fits 4key in 16:9 aspect ratio
         local NSDirTable = GivenGameToFullNSkinElements(GAMESTATE:GetCurrentGame():GetName())
+        local keybindBGSizeMultiplier = 0.97 -- this is multiplied with columnwidth
+        local keybindBG2SizeMultiplier = 0.97 -- this is multiplied with columnwidth and keybindBGSizeMultiplier
+        local keybindingTextZoom = 1
         -- calculation: find a zoom that fits for the current chosen column count the same way 4key on 16:9 does
         local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
         local noteskinzoom = noteskinbasezoom / (#NSDirTable * columnwidth / noteskinwidthbaseline) / aspectRatioProportion
@@ -339,29 +357,69 @@ local function leftFrame()
                     }
                 },
             }
+            -- load keybinding display
+            tt[#tt+1] = Def.ActorFrame {
+                Name = "KeybindingFrame",
+                InitCommand = function(self)
+                    self:x(leftoffset + columnwidth * (i-1))
+                end,
+                ShowLeftCommand = function(self)
+                    if showKeybinds then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+                end,
+                SetYCommand = function(self)
+                    self:finishtweening()
+                    self:smooth(animationSeconds)
+                    if getPlayerOptions():UsingReverse() then
+                        self:y(-secondrowYoffset * 2)
+                    else
+                        self:y(secondrowYoffset * 2)
+                    end
+                end,
+                Def.Quad {
+                    Name = "KeybindBGBG",
+                    InitCommand = function(self)
+                        -- font color
+                        self:diffuse(color("#FFFFFF"))
+                        self:diffusealpha(0.6)
+                        self:zoomto(columnwidth * keybindBGSizeMultiplier, columnwidth * keybindBGSizeMultiplier)
+                    end,
+                },
+                Def.Quad {
+                    Name = "KeybindBG",
+                    InitCommand = function(self)
+                        -- generally bg color
+                        self:diffuse(color("#111111"))
+                        self:diffusealpha(0.6)
+                        self:zoomto(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier, columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier)
+                    end,
+                },
+                LoadFont("Common Large") .. {
+                    Name = "KeybindText",
+                    InitCommand = function(self)
+                        local newindex = ButtonIndexToCurGameColumn(i)
+                        local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], 0, 0)
+                        if buttonmapped then
+                            self:settext(buttonmapped)
+                        else
+                            self:settext("none")
+                        end
+                        self:zoom(keybindingTextZoom)
+                        self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextZoom)
+                        self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextZoom)
+                    end,
+                }
+            }
         end
         t[#t+1] = tt
 
         return t
     end
 
-    local function createKeybindsPage()
-        local t = Def.ActorFrame { 
-            Name = "KeybindsPageContainer",
-            ShowLeftCommand = function(self, params)
-                if params and params.name == "Keybinds" then
-                    self:diffusealpha(1)
-                else
-                    self:diffusealpha(0)
-                end
-            end,
-            HideLeftCommand = function(self)
-                self:diffusealpha(0)
-            end,
-        }
-        return t
-    end
-
+    -- this code is incredibly bad imo
     local function createPreviewPage()
         -- yeah these numbers are bogus (but are in fact based on the 4key numbers so they arent all that bad)
         local columnwidth = 64
@@ -398,7 +456,7 @@ local function leftFrame()
                 local pnf = self:GetChild("NoteField")
                 self:SetUpdateFunction(function(self)
                     -- but dont update if not visible because then the real chart preview can go stupid
-                    if not self:IsInvisible() then
+                    if not self:IsInvisible() and focused then
                         ArrowEffects.Update()
                         -- setup reverse positioning
                         local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
@@ -414,7 +472,7 @@ local function leftFrame()
                 if params and params.name == "Preview" then
                     self:diffusealpha(1)
                 else
-                    self:diffusealpha(1)
+                    self:diffusealpha(0)
                 end
             end,
             HideLeftCommand = function(self)
@@ -481,7 +539,6 @@ local function leftFrame()
     end
 
     t[#t+1] = createNoteskinPage()
-    t[#t+1] = createKeybindsPage()
     t[#t+1] = createPreviewPage()
     t[#t+1] = createColorConfigPage()
 
