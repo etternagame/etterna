@@ -35,12 +35,24 @@ InputMapper* INPUTMAPPER =
 
 InputMapper::InputMapper()
 {
+	// Register with Lua.
+	{
+		auto L = LUA->Get();
+		lua_pushstring(L, "INPUTMAPPER");
+		this->PushSelf(L);
+		lua_settable(L, LUA_GLOBALSINDEX);
+		LUA->Release(L);
+	}
+	
 	g_JoinControllers = PLAYER_INVALID;
 	m_pInputScheme = nullptr;
 }
 
 InputMapper::~InputMapper()
 {
+	// Unregister with Lua.
+	LUA->UnsetGlobal("SONGMAN");
+	
 	SaveMappingsToDisk();
 	g_tempDItoGI.clear();
 }
@@ -1449,3 +1461,87 @@ InputMappings::ClearFromInputMap(const GameInput& GameI, int iSlotIndex)
 
 	return true;
 }
+
+#include "Etterna/Models/Lua/LuaBinding.h"
+
+class LunaInputMapper : public Luna<InputMapper>
+{
+public:
+	static int SetInputMap(T* p, lua_State* L)
+	{
+		std::string deviceInputString = SArg(1);
+		std::string buttonBeingMapped = SArg(2);
+		int playerSlot = IArg(3);
+		
+		GameController gc = static_cast<GameController>(playerSlot);
+		GameButton gb =
+		  StringToGameButton(p->GetInputScheme(), buttonBeingMapped);
+		GameInput gameI(gc, gb);
+		DeviceInput deviceI;
+		deviceI.FromString(deviceInputString);
+		
+		p->SetInputMap(deviceI, gameI, playerSlot);
+		return 0;
+	}
+	static int GetGameButtonsToMap(T* p, lua_State* L)
+	{
+		// includes only the GAMEPLAY buttons
+		// no menu buttons
+		// I sure hope nobody changes the GameManager defs and InputMapper enum defs...
+		std::vector<std::string> keys;
+		for (GameButton gb = GAME_BUTTON_CUSTOM_01; gb < INPUTMAPPER->GetInputScheme()->m_iButtonsPerController; enum_add<GameButton>(gb, +1)) {
+			keys.push_back(GameButtonToString(INPUTMAPPER->GetInputScheme(), gb));
+		}
+		LuaHelpers::CreateTableFromArray<std::string>(keys, L);
+		return 1;
+	}
+	static int GetMenuButtonsToMap(T* p, lua_State* L)
+	{
+		// includes only the MENU buttons
+		// no gameplay buttons
+		// I sure hope nobody changes the InputMapper enum defs...
+		std::vector<std::string> keys;
+		for (GameButton gb = GAME_BUTTON_START;
+			 gb < GAME_BUTTON_RESTART;
+			 enum_add<GameButton>(gb, +1)) {
+			keys.push_back(
+			  GameButtonToString(INPUTMAPPER->GetInputScheme(), gb));
+		}
+		LuaHelpers::CreateTableFromArray<std::string>(keys, L);
+		return 1;
+	}
+	static int GetButtonMapping(T* p, lua_State* L)
+	{
+		// returns either null or the name of the button mapped
+		// for the left controller, column 2 (3rd col) is the default column
+		// 
+		std::string possiblyMappedGameButton = SArg(1);
+		int playerSlot = IArg(2);
+		CLAMP(playerSlot, 0, 1);
+		int bindingColumn = IArg(3);
+		CLAMP(bindingColumn, 0, 4);
+
+		GameController gc = static_cast<GameController>(playerSlot);
+		GameButton gb =
+		  StringToGameButton(p->GetInputScheme(), possiblyMappedGameButton);
+		GameInput gameI(gc, gb);
+		DeviceInput deviceI;
+		
+		if (p->GameToDevice(gameI, bindingColumn, deviceI))
+			lua_pushstring(L, INPUTMAN->GetDeviceSpecificInputString(deviceI).c_str());
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+	
+	
+	LunaInputMapper()
+	{
+		ADD_METHOD(SetInputMap);
+		ADD_METHOD(GetGameButtonsToMap);
+		ADD_METHOD(GetMenuButtonsToMap);
+		ADD_METHOD(GetButtonMapping);
+	}
+};
+
+LUA_REGISTER_CLASS(InputMapper)

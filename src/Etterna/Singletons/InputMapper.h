@@ -214,6 +214,7 @@ class InputMapper
   public:
 	InputMapper();
 	~InputMapper();
+	void PushSelf(lua_State* L);
 
 	void SetInputScheme(const InputScheme* pInputScheme);
 	[[nodiscard]] auto GetInputScheme() const -> const InputScheme*;
