@@ -259,20 +259,7 @@ local function leftFrame()
             InitCommand = function(self)
                 self:x(actuals.LeftWidth/2)
                 self:zoom(noteskinzoom)
-                self:playcommand("SetY")
-                self:finishtweening()
-            end,
-            SetYCommand = function(self)
-                self:finishtweening()
-                self:smooth(animationSeconds)
-                if getPlayerOptions():UsingReverse() then
-                    self:y(actuals.Height / 4 * 3)
-                else
-                    self:y(actuals.Height / 4)
-                end
-            end,
-            UpdateReverseMessageCommand = function(self)
-                self:playcommand("SetY")
+                self:y(actuals.Height / 4)
             end,
             OnCommand = function(self)
                 local ind = findNoteskinIndex(getPlayerOptions():NoteSkin())
@@ -294,15 +281,7 @@ local function leftFrame()
             tt[#tt+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
-                end,
-                SetYCommand = function(self)
-                    self:finishtweening()
-                    self:smooth(animationSeconds)
-                    if getPlayerOptions():UsingReverse() then
-                        self:y(-secondrowYoffset)
-                    else
-                        self:y(secondrowYoffset)
-                    end
+                    self:y(secondrowYoffset)
                 end,
                 Def.ActorFrame {
                     LoadNSkinPreview("Get", dir, "Tap Note", false) .. {
@@ -362,21 +341,13 @@ local function leftFrame()
                 Name = "KeybindingFrame",
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
+                    self:y(secondrowYoffset * 2)
                 end,
                 ShowLeftCommand = function(self)
                     if showKeybinds then
                         self:diffusealpha(1)
                     else
                         self:diffusealpha(0)
-                    end
-                end,
-                SetYCommand = function(self)
-                    self:finishtweening()
-                    self:smooth(animationSeconds)
-                    if getPlayerOptions():UsingReverse() then
-                        self:y(-secondrowYoffset * 2)
-                    else
-                        self:y(secondrowYoffset * 2)
                     end
                 end,
                 Def.Quad {
