@@ -3586,11 +3586,31 @@ local function rightFrame()
                 -- enable the possibility to press the keyboard to switch tabs
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- if locked out, dont allow
+                    -- pressing a number with ctrl should lead to the general tab stuff
+                    -- otherwise, typing numbers will put you into that settings context and reposition the cursor
                     if not CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
                     if event.type == "InputEventType_FirstPress" then
-                        -- nothing
-                        -- will use arrows to place cursor
-                        -- dummy complex probably not going to be in this spot
+                        local char = inputToCharacter(event)
+                        local num = nil
+
+                        -- if ctrl is pressed with a number, let the general tab input handler deal with it
+                        if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
+                            return
+                        end
+
+                        if tonumber(char) then
+                            num = tonumber(char)
+                        end
+
+                        -- cope with number presses to change option pages
+                        if num ~= nil then
+                            if num == 0 then num = 10 end
+                            if num == selectedIndex then return end
+                            if num < 1 or num > #pageNames then return end
+                            selectedIndex = num
+                            MESSAGEMAN:Broadcast("OptionTabSet", {page = num})
+                            self:playcommand("UpdateSelectedIndex")
+                        end
                     end
                 end)
             end
