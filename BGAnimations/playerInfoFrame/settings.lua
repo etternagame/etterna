@@ -2355,6 +2355,17 @@ local function rightFrame()
         end
     end
 
+    -- internal tracker for where the cursor can be and has been within a row
+    -- the index of each entry is simply the row number on the right side of the screen
+    -- for a context switch to the left, those are managed by each respective panel separately
+    -- format: (each entry)
+    --[[{
+            NumChoices = x, -- number of choices, simply. 0 means this is a button to press. 1 is a SingleChoice. N is MultiChoice
+            HighlightedChoice = x, -- position of the highlighted choice. 1 for Single/Button. N for MultiChoice. Account for the pagination.
+        } ]]
+    local availableCursorPositions = {}
+    local rightPaneCursorPosition = 1 -- current index of the above table
+
     -- container function/frame for all option rows
     local function createOptionRows()
         -- Unfortunate design choice:
@@ -2425,10 +2436,10 @@ local function rightFrame()
 
         ----- state variables, dont mess
         -- currently selected options page - from pageNames
-        local selectedPageName = pageNames[1]
+        local selectedPageName = pageNames[1] -- default to first
         local selectedPageDef = optionPageCategoryLists[selectedPageName]
         -- currently opened option category - from optionPageCategoryLists
-        local openedCategoryName = selectedPageDef[1]
+        local openedCategoryName = selectedPageDef[1] -- default to first
         local openedCategoryDef = optionDefs[openedCategoryName]
         -- index of the opened option category to know the index of the first valid option row to assign option defs
         local openedCategoryIndex = 1
