@@ -746,7 +746,8 @@ local function downloadsList()
 
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 -- if context is set to Downloads, passthrough unless not holding ctrl and a number
-                -- pressing a number alone should lead to the general tab
+                -- pressing a number with ctrl should lead to the general tab
+                -- otherwise, typing numbers is allowed
                 if CONTEXTMAN:CheckContextSet(snm, "Downloads") then
                     if inBundles then return end
                     if event.type ~= "InputEventType_Release" then
