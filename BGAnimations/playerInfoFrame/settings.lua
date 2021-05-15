@@ -1,3 +1,4 @@
+-- every time i look at this file my desire to continue modifying it gets worse
 local ratios = {
     RightWidth = 782 / 1920,
     LeftWidth = 783 / 1920,
@@ -350,13 +351,19 @@ local function leftFrame()
                         self:diffusealpha(0)
                     end
                 end,
-                Def.Quad {
+                UIElements.QuadButton(1, 1) .. {
                     Name = "KeybindBGBG",
                     InitCommand = function(self)
                         -- font color
                         self:diffuse(color("#FFFFFF"))
                         self:diffusealpha(0.6)
                         self:zoomto(columnwidth * keybindBGSizeMultiplier, columnwidth * keybindBGSizeMultiplier)
+                    end,
+                    MouseOverCommand = function(self)
+                        self:diffusealpha(0.6 * buttonHoverAlpha)
+                    end,
+                    MouseOutCommand = function(self)
+                        self:diffusealpha(0.6)
                     end,
                 },
                 Def.Quad {
