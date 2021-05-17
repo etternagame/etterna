@@ -383,7 +383,10 @@ t[#t+1] = Def.Quad {
         self:xy(actuals.VerticalDividerLeftGap, actuals.VerticalDividerUpperGap)
         self:zoomto(actuals.DividerThickness, actuals.VerticalDividerHeight)
         self:halign(0):valign(0)
-    end
+    end,
+    ToggleChartPreviewCommand = function(self)
+        self:visible(not SCUFF.preview.active)
+    end,
 }
 
 t[#t+1] = Def.RollingNumbers {
