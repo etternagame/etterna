@@ -1673,7 +1673,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		StartPlayingSong(MIN_SECONDS_TO_STEP_NEXT_SONG, 0);
 	} else if (SM == SM_PlayToasty) {
 		if (PREFSMAN->m_bEasterEggs) {
-			if (m_Toasty.IsWaiting()) {
+			if (m_Toasty.IsWaiting() || PREFSMAN->m_AllowMultipleToasties) {
 				m_Toasty.Reset();
 				m_Toasty.StartTransitioning();
 			}

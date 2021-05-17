@@ -189,6 +189,7 @@ class PrefsManager
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_AllowMultipleToasties;
 	Preference<bool> m_bUseMidGrades;
 
 	// Number of seconds it takes for a button on the controller to release
