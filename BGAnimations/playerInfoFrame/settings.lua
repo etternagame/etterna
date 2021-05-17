@@ -2361,7 +2361,8 @@ local function rightFrame()
     -- format: (each entry)
     --[[{
             NumChoices = x, -- number of choices, simply. 0 means this is a button to press. 1 is a SingleChoice. N is MultiChoice
-            HighlightedChoice = x, -- position of the highlighted choice. 1 for Single/Button. N for MultiChoice. Account for the pagination.
+            HighlightedChoice = x, -- position of the highlighted choice. 1 for Single/Button. N for MultiChoice. Account for the pagination (in other visual representations, not here).
+            LinkedItem = x, -- either a category name or an optionDef
         } ]]
     local availableCursorPositions = {}
     local rightPaneCursorPosition = 1 -- current index of the above table
@@ -2443,6 +2444,64 @@ local function rightFrame()
         local openedCategoryDef = optionDefs[openedCategoryName]
         -- index of the opened option category to know the index of the first valid option row to assign option defs
         local openedCategoryIndex = 1
+
+        -- fills out availableCursorPositions based on current conditions of the above variables
+        local function generateCursorPositionMap()
+            availableCursorPositions = {}
+            rightPaneCursorPosition = 1
+
+            -- theres a list of categories on the page (selectedPageDef)
+            -- theres a category that is opened on this page (openedCategoryDef)
+            -- add each category up to and including the opened category to the list
+            -- then add each option to the list
+            -- then add the rest of the categories to the list
+            -- (this is the same as how we display the options below somewhere)
+            -- we assume openedCategoryIndex is correct at all times
+            -- also assume you cannot close an opened Category except by opening a different category or page
+
+            -- add each category up to and including the opened category
+            for i = 1, openedCategoryIndex do
+                availableCursorPositions[#availableCursorPositions+1] = {
+                    NumChoices = 0,
+                    HighlightedChoice = 1,
+                    LinkedItem = selectedPageDef[i],
+                }
+            end
+
+            -- put the cursor on the first option after the opened category
+            rightPaneCursorPosition = openedCategoryIndex+1
+
+            -- add each option in the category
+            for i = 1, #openedCategoryDef do
+                local def = openedCategoryDef[i]
+                local nchoices = 0
+                if def.Type == "Button" then
+                    nchoices = 0
+                elseif def.Type == "SingleChoice" or def.Type == "SingleChoiceModifier" then
+                    -- naturally we would let people hover and press the second set of buttons in SingleChoiceModifier but i would rather force that to be a ctrl+direction instead
+                    -- that seems a little more fluid than moving to the directional button and pressing it
+                    nchoices = 1
+                elseif def.Type == "MultiChoice" then
+                    nchoices = #(def.Choices or {})
+                end
+                availableCursorPositions[#availableCursorPositions+1] = {
+                    NumChoices = nchoices,
+                    HighlightedChoice = 1,
+                    LinkedItem = def,
+                }
+            end
+
+            -- add each category remaining after the last option
+            for i = openedCategoryIndex+1, #selectedPageDef do
+                availableCursorPositions[#availableCursorPositions+1] = {
+                    NumChoices = 0,
+                    HighlightedChoices = 1,
+                    LinkedItem = selectedPageDef[i],
+                }
+            end
+
+            -- and if things turn out broken at this point it isnt my fault
+        end
 
         local function updateExplainText(self)
             if self.defInUse ~= nil and self.defInUse.Explanation ~= nil then
