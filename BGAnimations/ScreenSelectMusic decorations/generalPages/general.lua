@@ -401,16 +401,9 @@ t[#t+1] = Def.RollingNumbers {
     end,
     SetCommand = function(self, params)
         if params.steps then
-            local stype = params.steps:GetStepsType()
-            if stype == "StepsType_Dance_Single" or stype == "StepsType_Dance_Solo" then
-                local meter = params.steps:GetMSD(getCurRateValue(), 1)
-                self:targetnumber(meter)
-                self:diffuse(byMSD(meter))
-            else
-                -- use manual diff for non dance/solo
-                self:targetnumber(params.steps:GetMeter())
-                self:diffuse(byMSD(params.steps:GetMeter()))
-            end
+            local meter = params.steps:GetMSD(getCurRateValue(), 1)
+            self:targetnumber(meter)
+            self:diffuse(byMSD(meter))
         else
             self:targetnumber(0)
             self:diffuse(color("1,1,1,1"))
