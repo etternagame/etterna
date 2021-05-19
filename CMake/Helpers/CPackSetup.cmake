@@ -6,7 +6,11 @@ set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/CPack/license_instal
 set(CPACK_COMPONENT_ETTERNA_REQUIRED TRUE)  # Require Etterna component to be installed
 
 # Custom Variables
+if(APPLE)
+set(INSTALL_DIR ".Etterna/Etterna")
+else()
 set(INSTALL_DIR "Etterna")
+endif()
 
 # Windows Specific CPack
 if(WIN32)
@@ -43,9 +47,11 @@ if(WIN32)
 elseif(APPLE)
     # CPack Packaging
     set(CPACK_GENERATOR DragNDrop)
-    set(CPACK_DMG_VOLUME_NAME Etterna)
-
-    install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
+    #Force the user to run the installer
+    set(CPACK_DMG_DISABLE_APPLICATIONS_SYMLINK ON)
+    set(CPACK_DMG_VOLUME_NAME EtternaInstaller)
+    install(DIRECTORY EtternaInstaller.app  COMPONENT Etterna DESTINATION "." USE_SOURCE_PERMISSIONS)
+    install(TARGETS Etterna COMPONENT Etterna DESTINATION ${INSTALL_DIR})
     install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler COMPONENT Etterna DESTINATION ${INSTALL_DIR})
 endif()
 
