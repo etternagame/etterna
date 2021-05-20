@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 #include <stdio.h>
+#import <dlfcn.h>
 
 
 // Translation Unit Specific Functions
@@ -20,10 +21,37 @@ static std::string getSysctlName(const char* name) {
     return buffer;
 }
 
+// Apple API Translocation variables
+void (*mySecTranslocateIsTranslocatedURL)(CFURLRef path, bool *isTranslocated, CFErrorRef* __nullable error);
+CFURLRef __nullable (*mySecTranslocateCreateOriginalPathForURL)(CFURLRef translocatedPath, CFErrorRef * __nullable error);
+
 namespace Core::Platform {
 
     void init(){
-        Locator::getLogger()->info("macOS has not platform specific initialization");
+        // Load Apple private security API
+        void *handle = dlopen("/System/Library/Frameworks/Security.framework/Security", RTLD_LAZY);
+        mySecTranslocateIsTranslocatedURL = reinterpret_cast<void (*)(CFURLRef, bool *, CFErrorRef *)>(dlsym(handle, "SecTranslocateIsTranslocatedURL"));
+        mySecTranslocateCreateOriginalPathForURL = reinterpret_cast<CFURLRef __nullable (*)(CFURLRef, CFErrorRef * __nullable)>(dlsym(handle, "SecTranslocateCreateOriginalPathForURL"));
+
+        // Check if we are translocated
+        bool isTranslocated = false;
+        mySecTranslocateIsTranslocatedURL((__bridge CFURLRef)[NSURL fileURLWithPath:[[NSBundle mainBundle] bundlePath]], &isTranslocated, nullptr);
+
+        if(isTranslocated) {
+            Locator::getLogger()->info("App is translocated! Removing com.apple.quarantine extended attribute");
+
+            // Get original app location
+            auto untranslocatedURL = (NSURL *)mySecTranslocateCreateOriginalPathForURL(static_cast<CFURLRef>(NSBundle.mainBundle.bundleURL), nullptr);
+
+            // Remove quarantine flag
+            std::system(fmt::format("xattr -rd com.apple.quarantine {}", untranslocatedURL.path.UTF8String).c_str());
+
+            // Reopen ignoring other instances
+            std::system(fmt::format("open -n -a {}", untranslocatedURL.path.UTF8String).c_str());
+
+            // Close this instance
+            std::exit(0);
+        }
     }
 
     std::string getSystem(){
