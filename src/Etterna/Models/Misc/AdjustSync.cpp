@@ -59,10 +59,30 @@ AdjustSync::IsSyncDataChanged()
 	if (GAMESTATE->IsPlaylistCourse())
 		return false;
 
-	vector<std::string> vs;
-	AdjustSync::GetSyncChangeTextGlobal(vs);
-	AdjustSync::GetSyncChangeTextSong(vs);
-	return !vs.empty();
+	bool syncing = false;
+
+	// global offset
+	auto fOld = Quantize(AdjustSync::s_fGlobalOffsetSecondsOriginal, 0.001f);
+	auto fNew = Quantize(PREFSMAN->m_fGlobalOffsetSeconds, 0.001f);
+	auto fDelta = fNew - fOld;
+	syncing |= fabsf(fDelta) > 0.0001f;
+
+	// song offset
+	if (GAMESTATE->m_pCurSong != nullptr) {
+		auto& original = s_vpTimingDataOriginal[0];
+		auto& testing = GAMESTATE->m_pCurSong->m_SongTiming;
+
+		// the files should match. typically this is the case but sometimes that
+		// just isnt true and we really dont want to let it happen
+		if (original.m_sFile == testing.m_sFile) {
+			auto fOld = Quantize(original.m_fBeat0OffsetInSeconds, 0.001f);
+			auto fNew = Quantize(testing.m_fBeat0OffsetInSeconds, 0.001f);
+			auto fDelta = fNew - fOld;
+			syncing |= fabsf(fDelta) > 0.0001f;
+		}
+	}
+
+	return syncing;
 }
 
 void

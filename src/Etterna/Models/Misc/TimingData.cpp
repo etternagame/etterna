@@ -9,6 +9,8 @@
 #include <cfloat>
 #include <algorithm>
 
+#include "AdjustSync.h"
+
 static void
 EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur);
 static const int INVALID_INDEX = -1;
@@ -1290,8 +1292,7 @@ TimingData::WhereUAtBro(float beat)
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 				 PREFSMAN->m_fGlobalOffsetSeconds;
@@ -1307,8 +1308,7 @@ TimingData::WhereUAtBro(float beat) const
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 				 PREFSMAN->m_fGlobalOffsetSeconds;
@@ -1324,8 +1324,7 @@ TimingData::WhereUAtBro(int row)
 
 	if (ValidSequentialAssumption &&
 		static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 				 PREFSMAN->m_fGlobalOffsetSeconds;
@@ -1341,8 +1340,7 @@ TimingData::WhereUAtBroNoOffset(float beat)
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
@@ -1356,8 +1354,7 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
