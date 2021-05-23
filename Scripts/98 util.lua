@@ -22,11 +22,35 @@ function getLargestChildWidth(actorFrame)
 end
 
 -- recursively print the names of all children of this actorframe
+-- kind of does it in a tree-like fashion
 function nameAllChildren(actorFrame)
     local s = actorFrame:GetName()
+    local function finddepth(self)
+        local i = 0
+        local p = self
+        while p ~= nil do
+            p = p:GetParent()
+            i = i+1
+        end
+        return i
+    end
+    local function spaces(i)
+        local o = ""
+        for s = 1, i do
+            o = o .. " "
+        end
+        return o
+    end
     actorFrame:RunCommandsRecursively(
         function(self)
-            s = s .. "\n" .. self:GetName()
+            local buffer = finddepth(self)
+            local space = spaces(buffer)
+
+            if self:GetName() == nil or self:GetName() == "" then
+                s = s .. "\n" .. space .. "[no name]"
+            else
+                s = s .. "\n" .. space .. self:GetName()
+            end
         end
     )
     ms.ok(s)
