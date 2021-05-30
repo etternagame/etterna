@@ -562,10 +562,19 @@ void RageDisplay_Legacy::setupGLShaders() {
 	// Bind attributes.
 	if (g_bTextureMatrixShader) {
 		FlushGLErrors();
+
+#if __APPLE__
 		g_iAttribTextureMatrixScale = glGetAttribLocationARB(reinterpret_cast<GLhandleARB>(g_bTextureMatrixShader), "TextureMatrixScale");
+#else
+        g_iAttribTextureMatrixScale = glGetAttribLocationARB(g_bTextureMatrixShader, "TextureMatrixScale");
+#endif
 		if (g_iAttribTextureMatrixScale == -1) {
 			Locator::getLogger()->trace(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
+#if __APPLE__
 			glDeleteObjectARB(reinterpret_cast<GLhandleARB>(g_bTextureMatrixShader));
+#else
+			glDeleteObjectARB(g_bTextureMatrixShader);
+#endif
 			g_bTextureMatrixShader = 0;
 		} else {
 			AssertNoGLError();
@@ -577,7 +586,11 @@ void RageDisplay_Legacy::setupGLShaders() {
 			if (iError == GL_INVALID_OPERATION) {
 				Locator::getLogger()->trace("Scaling shader failed: glVertexAttrib2fARB "
 						   "returned GL_INVALID_OPERATION");
+#if __APPLE__
 				glDeleteObjectARB(reinterpret_cast<GLhandleARB>(g_bTextureMatrixShader));
+#else
+				glDeleteObjectARB(g_bTextureMatrixShader);
+#endif
 				g_bTextureMatrixShader = 0;
 			} else {
 				ASSERT_M(iError == GL_NO_ERROR, GLToString(iError));
@@ -2137,7 +2150,11 @@ void RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const {
 			  g_iAttribTextureMatrixScale, 2, GL_FLOAT, false, 0, nullptr);
 			DebugAssertNoGLError();
 
-			glUseProgramObjectARB(reinterpret_cast<GLhandleARB>(g_bTextureMatrixShader));
+#if __APPLE__
+            glUseProgramObjectARB(reinterpret_cast<GLhandleARB>(g_bTextureMatrixShader));
+#else
+			glUseProgramObjectARB(g_bTextureMatrixShader);
+#endif
 			DebugAssertNoGLError();
 		} else {
 			// Kill the texture translation.
