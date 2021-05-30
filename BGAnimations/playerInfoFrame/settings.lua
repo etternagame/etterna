@@ -1,4 +1,5 @@
 -- every time i look at this file my desire to continue modifying it gets worse
+-- at least it isnt totally spaghetti code yet
 local ratios = {
     RightWidth = 782 / 1920,
     LeftWidth = 783 / 1920,
@@ -205,7 +206,7 @@ local function leftFrame()
     -- the noteskin page function as noteskin preview and keybindings
     local function createNoteskinPage()
         -- page state vars
-        -- if true, show keybinds under notes (upscroll) or above notes (downscroll)
+        -- if true, show keybinds under notes
         local showKeybinds = false
 
         -- list of GameButtons we can map
@@ -1486,7 +1487,7 @@ local function rightFrame()
                 Explanation = "Set the opacity of the board behind the Notefield in Gameplay.",
                 ChoiceGenerator = function()
                     local o = {}
-                    for i = 0, 10 do
+                    for i = 0, 10 do -- 11 choices
                         o[#o+1] = {
                             Name = notShit.round(i*10,0).."%",
                             ChosenFunction = function()
@@ -1516,7 +1517,7 @@ local function rightFrame()
                 Explanation = "Set the brightness of the background in Gameplay. 0% will disable background loading.",
                 ChoiceGenerator = function()
                     local o = {}
-                    for i = 0, 10 do
+                    for i = 0, 10 do -- 11 choices
                         o[#o+1] = {
                             Name = notShit.round(i*10,0).."%",
                             ChosenFunction = function()
@@ -1708,7 +1709,7 @@ local function rightFrame()
                 },
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
-                    local  o = {}
+                    local o = {}
                     if po:Echo() then o[1] = true end
                     if po:Stomp() then o[2] = true end
                     if po:JackJS() then o[3] = true end
@@ -2444,6 +2445,7 @@ local function rightFrame()
         local openedCategoryDef = optionDefs[openedCategoryName]
         -- index of the opened option category to know the index of the first valid option row to assign option defs
         local openedCategoryIndex = 1
+        local optionRowContainer = nil
 
         -- fills out availableCursorPositions based on current conditions of the above variables
         local function generateCursorPositionMap()
@@ -2461,10 +2463,15 @@ local function rightFrame()
 
             -- add each category up to and including the opened category
             for i = 1, openedCategoryIndex do
+                local opened = false
+                if i == openedCategoryIndex then opened = true end
                 availableCursorPositions[#availableCursorPositions+1] = {
                     NumChoices = 0,
                     HighlightedChoice = 1,
-                    LinkedItem = selectedPageDef[i],
+                    LinkedItem = {
+                        Opened = opened,
+                        Name = selectedPageDef[i],
+                    },
                 }
             end
 
@@ -2495,12 +2502,262 @@ local function rightFrame()
             for i = openedCategoryIndex+1, #selectedPageDef do
                 availableCursorPositions[#availableCursorPositions+1] = {
                     NumChoices = 0,
-                    HighlightedChoices = 1,
-                    LinkedItem = selectedPageDef[i],
+                    HighlightedChoice = 1,
+                    LinkedItem = {
+                        Opened = false,
+                        Name = selectedPageDef[i],
+                    }
                 }
             end
 
             -- and if things turn out broken at this point it isnt my fault
+        end
+
+        -- find the ActorFrame for an OptionRow by an Option Name
+        local function getRowForCursorByName(name)
+            if optionRowContainer == nil then return nil end
+
+            for i, row in ipairs(optionRowContainer:GetChildren()) do
+                if row.defInUse ~= nil and row.defInUse.Name == name then
+                    return row
+                end
+            end
+            return nil
+        end
+
+        -- find the (cursor) index of an OptionRow by an Option Name
+        local function getRowIndexByName(name)
+            if availableCursorPositions == nil then return nil end
+
+            for i, cursorRowDef in ipairs(availableCursorPositions) do
+                if cursorRowDef.LinkedItem ~= nil and cursorRowDef.LinkedItem.Name == name then
+                    return i
+                end
+            end
+            return 1
+        end
+
+        -- find the ActorFrame for the OptionRow that is currently hovered by the cursor
+        local function getRowForCursorByCurrentPosition()
+            -- correct error or just do index wrap around
+            if rightPaneCursorPosition > #availableCursorPositions then rightPaneCursorPosition = 1 end
+            if rightPaneCursorPosition < 1 then rightPaneCursorPosition = #availableCursorPositions end
+
+            return optionRowContainer:GetChild("OptionRow_"..rightPaneCursorPosition)
+        end
+
+        local function getActorForCursorToHoverByCurrentConditions()
+            local optionRowFrame = getRowForCursorByCurrentPosition()
+            if optionRowFrame == nil then ms.ok("BAD CURSOR REPORT TO DEVELOPER") return end
+            local optionRowDef = optionRowFrame.defInUse
+            if optionRowDef == nil then ms.ok("BAD CURSOR ROWDEF REPORT TO DEVELOPER") return end
+
+            -- place the cursor to highlight this item (usually ActorFrame containing BitmapText as child "Text")
+            local actorToHover = nil
+
+            -- based on the type, place the cursor in specific positions (the positions are memorized in availableCursorPositions too)
+            if optionRowDef.Type == nil then
+                -- optionDefs without Type should always be Category defs
+                -- simply hover the title in this case
+                -- pressing enter would open the category unless it is already opened
+                actorToHover = optionRowFrame:GetChild("TitleText")
+            else
+                -- these are Option defs, not Categories
+                if optionRowDef.Type == "Button" then
+                    -- Button hovers the title text
+                    -- pressing enter on it is a single action
+                    actorToHover = optionRowFrame:GetChild("TitleText")
+                elseif optionRowDef.Type == "SingleChoice" or optionRowDef.Type == "SingleChoiceModifier" then
+                    -- SingleChoice[Modifier] hovers the single visible choice
+                    -- pressing enter does nothing, only left and right function
+                    actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_1")
+                elseif optionRowDef.Type == "MultiChoice" then
+                    -- MultiChoice hovers one of the visible choices
+                    -- the visible choice is dependent on the value of availableCursorPositions[i].HighlightedChoice
+                    -- account here, rather than in stored data, for pagination of the choices
+                    -- otherwise a dead choice is picked and we look dumb
+                    local cursorPosDef = availableCursorPositions[rightPaneCursorPosition]
+                    local pagesize = math.min(maxChoicesVisibleMultiChoice, cursorPosDef.NumChoices)
+                    if pagesize > cursorPosDef.HighlightedChoice then
+                        -- if the cursor is on the first page no special math required
+                        actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_"..cursorPosDef.HighlightedChoice)
+                    else
+                        -- if the cursor is not on the first page check to see where it lands
+                        -- (i already spent 5 minutes thinking on the math for this and i got bored so what follows is the best you get)
+                        local choiceIndex = cursorPosDef.HighlightedChoice % pagesize
+                        if choiceIndex == 0 then choiceIndex = pagesize end -- really intuitive, right?
+                        actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_"..choiceIndex)
+                    end
+                else
+                    ms.ok("BAD CURSOR ROWDEF TYPE REPORT TO DEVELOPER")
+                    return nil
+                end
+            end
+            return actorToHover
+        end
+
+        -- place the cursor based on the current conditions of rightPaneCursorPosition and availableCursorPositions
+        local function setCursorPositionByCurrentConditions()
+            local optionRowFrame = getRowForCursorByCurrentPosition()
+            if optionRowFrame == nil then ms.ok("BAD CURSOR REPORT TO DEVELOPER") return end
+            local optionRowDef = optionRowFrame.defInUse
+            if optionRowDef == nil then ms.ok("BAD CURSOR ROWDEF REPORT TO DEVELOPER") return end
+            local actorToHover = getActorForCursorToHoverByCurrentConditions()            
+
+            if actorToHover == nil then
+                ms.ok("BAD CURSOR PLACEMENT LOGIC OR DEF REPORT TO DEVELOPER")
+                return
+            end
+
+            -- at the time of writing all actorToHover should be an ActorFrame with a child "Text"
+            -- this is a TextButton
+            local txt = actorToHover:GetChild("Text")
+            local cursorActor = optionRowContainer:GetChild("OptionCursor")
+            local xp = txt:GetTrueX() - optionRowContainer:GetTrueX()
+
+            -- these positions should be relative to optionRowContainer so it should work out fine
+            cursorActor:finishtweening()
+            cursorActor:smooth(animationSeconds)
+            cursorActor:xy(xp, optionRowFrame:GetY() + actorToHover:GetY() + txt:GetY())
+            cursorActor:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.5)
+
+        end
+
+        -- function for pressing enter wherever the cursor is
+        local function invokeCurrentCursorPosition()
+            local actorToHover = getActorForCursorToHoverByCurrentConditions()
+            local cursorPosDef = availableCursorPositions[rightPaneCursorPosition]
+
+            if actorToHover == nil or cursorPosDef == nil or cursorPosDef.LinkedItem == nil then return end
+            local linkdef = cursorPosDef.LinkedItem
+            
+            if linkdef.Opened == true then
+                -- this means it is an opened category
+                -- do nothing.
+            elseif (linkdef.Opened ~= nil and linkdef.Opened == false) or linkdef.Type == "Button" then
+                -- this means it is a closed category or it is a Button
+                -- invoke on the text
+                actorToHover:playcommand("Invoke")
+            elseif linkdef.Type == "SingleChoice" or linkdef.Type == "SingleChoiceModifier" then
+                -- this means it is a SingleChoice or SingleChoiceModifier
+                -- do nothing.
+            elseif linkdef.Type == "MultiChoice" then
+                -- this means it is a MultiChoice
+                -- invoke on the hovered Choice
+                actorToHover:playcommand("Invoke")
+            else
+                -- ????
+            end
+        end
+
+        -- function to set the cursor VERTICAL position
+        local function setCursorPos(n)
+            -- do nothing if not moving cursor
+            if rightPaneCursorPosition == n then return end
+            rightPaneCursorPosition = n
+
+            -- update visible cursor
+            setCursorPositionByCurrentConditions()
+        end
+
+        -- move the cursor position by a distance if needed
+        local function changeCursorPos(n)
+            local newpos = rightPaneCursorPosition + n
+            -- not worth doing math to figure out if you moved 5 down from the last slide to put you on the 4th option from the top ......
+            if newpos > #availableCursorPositions then newpos = 1 end
+            if newpos < 1 then newpos = #availableCursorPositions end
+            setCursorPos(newpos)
+        end
+
+        -- move the cursor left or right (IM OUT OF FUNCTION NAMES AND DIDNT PLAN TO MAKE THIS ONE UNTIL RIGHT NOW DONT KNOW WHAT I WAS THINKING NOT SORRY)
+        local function cursorLateralMovement(n, useMultiplier)
+            local currentCursorRowDef = availableCursorPositions[rightPaneCursorPosition]
+            if currentCursorRowDef == nil then return end
+            local currentCursorRowOptionDef = currentCursorRowDef.LinkedItem
+
+            if currentCursorRowOptionDef == nil or currentCursorRowOptionDef.Type == nil or currentCursorRowOptionDef.Type == "Button" then
+                -- Buttons and Categories dont have lateral movement actions
+                return
+            elseif currentCursorRowOptionDef.Type == "SingleChoice" then
+                -- moving a SingleChoice left or right actually invokes it (same as clicking the arrows)
+                local optionRowFrame = getRowForCursorByCurrentPosition()
+                local invoker = nil
+                if n > 0 then
+                    -- run invoke on the right single arrow
+                    invoker = optionRowFrame:GetChild("RightBigTriangleFrame")
+                else
+                    -- run invoke on the left single arrow
+                    invoker = optionRowFrame:GetChild("LeftBigTriangleFrame")
+                end
+                if invoker == nil then ms.ok("TRIED TO MOVE OPTION WITHOUT ARROWS. HOW? CONTACT DEVELOPER") return end
+                invoker:playcommand("Invoke")
+            elseif currentCursorRowOptionDef.Type == "SingleChoiceModifier" then
+                -- moving a SingleChoiceModifier left or right actually invokes it (same as clicking the arrows)
+                local optionRowFrame = getRowForCursorByCurrentPosition()
+                local invoker = nil
+                if useMultiplier then
+                    if n > 0 then
+                        -- run invoke on the right double arrow
+                        invoker = optionRowFrame:GetChild("RightTrianglePairFrame")
+                    else
+                        -- run invoke on the left double arrow
+                        invoker = optionRowFrame:GetChild("LeftTrianglePairFrame")
+                    end
+                else
+                    if n > 0 then
+                        -- run invoke on the right single arrow
+                        invoker = optionRowFrame:GetChild("RightBigTriangleFrame")
+                    else
+                        -- run invoke on the left single arrow
+                        invoker = optionRowFrame:GetChild("LeftBigTriangleFrame")
+                    end
+                end
+                if invoker == nil then ms.ok("TRIED TO MOVE OPTION WITHOUT ARROWS. HOW? CONTACT DEVELOPER") return end
+                invoker:playcommand("Invoke")
+            elseif currentCursorRowOptionDef.Type == "MultiChoice" then
+                -- moving a MultiChoice does not invoke it, only moves the cursor. Enter would invoke on a Choice instead
+                local newpos = currentCursorRowDef.HighlightedChoice + n
+                -- wrap around
+                if newpos > currentCursorRowDef.NumChoices then newpos = 1 end
+                if newpos < 1 then newpos = currentCursorRowDef.NumChoices end
+                currentCursorRowDef.HighlightedChoice = newpos
+
+                -- heres the weird thing:
+                -- if we move the cursor here so that it ends up on another page, we need to redraw the stuff
+                -- so do a big brain and invoke the appropriate big triangle if that scenario arises
+                local optionRowFrame = getRowForCursorByCurrentPosition()
+                local validLower = 1 + (optionRowFrame.choicePage-1) * maxChoicesVisibleMultiChoice
+                local validUpper = optionRowFrame.choicePage * maxChoicesVisibleMultiChoice
+                if validUpper > #currentCursorRowOptionDef.Choices then validUpper = #currentCursorRowOptionDef.Choices end -- if last page missing elements
+                if newpos < validLower or newpos > validUpper then
+                    -- changed page, find it
+                    local newpage = math.ceil(newpos / math.min(#currentCursorRowOptionDef.Choices, maxChoicesVisibleMultiChoice))
+                    optionRowFrame:playcommand("SetChoicePage", {page = newpage})
+                else
+                    -- didnt change page probably
+                end
+            else
+                -- impossible?
+                return
+            end
+
+            -- update visible cursor
+            setCursorPositionByCurrentConditions()
+        end
+
+        -- shortcuts for changeCursorPos
+        local function cursorUp(n)
+            changeCursorPos(-n)
+        end
+        local function cursorDown(n)
+            changeCursorPos(n)
+        end
+        -- shortcuts for cursorLateralMovement
+        local function cursorLeft(n)
+            cursorLateralMovement(-n)
+        end
+        local function cursorRight(n)
+            cursorLateralMovement(n)
         end
 
         local function updateExplainText(self)
@@ -2561,7 +2818,47 @@ local function rightFrame()
             Name = "OptionRowContainer",
             InitCommand = function(self)
                 self:y(actuals.TopLipHeight * 2 + actuals.OptionTextListTopGap)
+                optionRowContainer = self
                 self:playcommand("OpenPage", {page = 1})
+            end,
+            BeginCommand = function(self)
+                local snm = SCREENMAN:GetTopScreen():GetName()
+                local anm = self:GetName()
+
+                CONTEXTMAN:RegisterToContextSet(snm, "Settings", anm)
+                CONTEXTMAN:ToggleContextSet(snm, "Settings", false)
+    
+                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                    -- if locked out, dont allow
+                    if not CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
+                    if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
+                        local gameButton = event.button
+                        local key = event.DeviceInput.button
+                        local up = gameButton == "Up" or gameButton == "MenuUp"
+                        local down = gameButton == "Down" or gameButton == "MenuDown"
+                        local right = gameButton == "MenuRight" or gameButton == "Right"
+                        local left = gameButton == "MenuLeft" or gameButton == "Left"
+                        local enter = gameButton == "Start"
+
+                        if up then
+                            cursorUp(1)
+                        elseif down then
+                            cursorDown(1)
+                        elseif left then
+                            cursorLeft(1)
+                        elseif right then
+                            cursorRight(1)
+                        elseif enter then
+                            invokeCurrentCursorPosition()
+                        else
+                            -- nothing happens
+                            return
+                        end
+                    end
+                end)
+
+                generateCursorPositionMap()
+                setCursorPositionByCurrentConditions()
             end,
             OptionTabSetMessageCommand = function(self, params)
                 self:playcommand("OpenPage", params)
@@ -2591,7 +2888,22 @@ local function rightFrame()
                     local row = self:GetChild("OptionRow_"..i)
                     row:playcommand("UpdateRow")
                 end
+
+                -- redrawing the rows means need to update the mapping of cursor positions
+                -- this resets the cursor position also
+                -- must take place after UpdateRow because cursor position is reliant on the row choice positions
+                generateCursorPositionMap()
+                setCursorPositionByCurrentConditions()
             end,
+
+            Def.Quad {
+                Name = "OptionCursor",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoomto(100,100)
+                    self:diffusealpha(0.6)
+                end,
+            }
         }
         local function createOptionRow(i)
             local types = rowTypes[i] or {}
@@ -2607,7 +2919,10 @@ local function rightFrame()
             local categoryDef = nil
             local previousDef = nil -- for tracking def changes to animate things in a slightly more intelligent way
             local previousPage = 1 -- for tracking page changes to animate things in a slightly more intelligent way
-            local rowHandle = nil -- for accessing the row frame from other points of reference (within this function) instantly
+            local rowHandle = {} -- for accessing the row frame from other points of reference (within this function) instantly
+            -- MultiChoice pagination
+            rowHandle.choicePage = 1
+            rowHandle.maxChoicePage = 1
 
             -- convenience to hit the AssociatedOptions optionDef stuff (primarily for speed mods but can be used for whatever)
             -- hyper inefficient function (dont care) (yes i do)
@@ -2621,7 +2936,13 @@ local function rightFrame()
                             if row ~= nil then
                                 if row.defInUse ~= nil and row.defInUse.Name == optionName then
                                     row:playcommand("DrawRow")
-                                    return
+
+                                    -- update cursor sizing and stuff
+                                    -- (i know without testing it that this will break if the associated element is a MultiChoice. please dont do that thanks)
+                                    local cursorRow = getRowForCursorByCurrentPosition()
+                                    if cursorRow ~= nil and cursorRow:GetName() == row:GetName() then
+                                        setCursorPositionByCurrentConditions()
+                                    end
                                 end
                             end
                         end
@@ -2652,6 +2973,35 @@ local function rightFrame()
                     rightpair:playcommand("DrawElement")
                 end
                 updateAssociatedElements(optionDef)
+
+                -- if the cursor is on this row, update it because the width may have changed or something
+                -- and for a multichoice if the cursor was in some position and we changed page, move it to a sane position
+                local cursorRow = getRowForCursorByCurrentPosition()
+                if cursorRow == nil then return end
+                if cursorRow:GetName() == rowHandle:GetName() then
+                    -- at this point we can assume rightPaneCursorPosition is the current cursor position
+                    if optionDef.Type == "MultiChoice" then
+                        local choicesPerPage = math.min(choiceCount, maxChoicesVisibleMultiChoice)
+                        local cursorChoicePos = availableCursorPositions[rightPaneCursorPosition].HighlightedChoice
+                        -- only have to take action if there is more than 1 page implied
+                        if choicesPerPage < #optionDef.Choices then
+                            local validLower = 1 + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
+                            local validUpper = rowHandle.choicePage * maxChoicesVisibleMultiChoice
+                            if validUpper > #optionDef.Choices then validUpper = #optionDef.Choices end -- if last page missing elements
+                            if cursorChoicePos < validLower then
+                                -- highlight is too high, move to the last one
+                                availableCursorPositions[rightPaneCursorPosition].HighlightedChoice = validLower
+                            elseif cursorChoicePos > validUpper then
+                                -- highlight is too low, move to first one
+                                availableCursorPositions[rightPaneCursorPosition].HighlightedChoice = validUpper
+                            else
+                                -- probably dont have to do anything? its in valid range...
+                            end
+                        end
+                    end
+
+                    setCursorPositionByCurrentConditions()
+                end
             end
 
             -- index of the choice for this option, if no choices then this is useless
@@ -2680,19 +3030,17 @@ local function rightFrame()
             end
             
             -- paginate choices according to maxChoicesVisibleMultiChoice
-            local choicePage = 1
-            local maxChoicePage = 1
             local function moveChoicePage(n)
-                if maxChoicePage <= 1 then
+                if rowHandle.maxChoicePage <= 1 then
                     return
                 end
     
                 -- math to make pages loop both directions
-                local nn = (choicePage + n) % (maxChoicePage + 1)
+                local nn = (rowHandle.choicePage + n) % (rowHandle.maxChoicePage + 1)
                 if nn == 0 then
-                    nn = n > 0 and 1 or maxChoicePage
+                    nn = n > 0 and 1 or rowHandle.maxChoicePage
                 end
-                choicePage = nn
+                rowHandle.choicePage = nn
                 if rowHandle ~= nil then
                     redrawChoiceRelatedElements()
                 end
@@ -2720,6 +3068,11 @@ local function rightFrame()
                     self:y((actuals.OptionAllottedHeight / #rowChoiceCount) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
                     rowHandle = self
                 end,
+                SetChoicePageCommand = function(self, params)
+                    local newpage = clamp(params.page, 1, rowHandle.maxChoicePage)
+                    rowHandle.choicePage = newpage
+                    redrawChoiceRelatedElements()
+                end,
                 UpdateRowCommand = function(self)
                     -- update row information, draw (this will reset the state of the row according to "global" conditions)
                     local firstOptionRowIndex = openedCategoryIndex + 1
@@ -2729,21 +3082,21 @@ local function rightFrame()
                     previousDef = nil
                     if optionDef ~= nil then previousDef = optionDef end
                     if categoryDef ~= nil then previousDef = categoryDef end
-                    previousPage = choicePage
+                    previousPage = rowHandle.choicePage
 
                     -- reset state
                     optionDef = nil
                     categoryDef = nil
                     self.defInUse = nil
-                    choicePage = 1
-                    maxChoicePage = 1
+                    rowHandle.choicePage = 1
+                    rowHandle.maxChoicePage = 1
 
                     if i >= firstOptionRowIndex and i <= lastOptionRowIndex then
                         -- this is an option and has an optionDef
                         local optionDefIndex = i - firstOptionRowIndex + 1
                         optionDef = openedCategoryDef[optionDefIndex]
                         if optionDef.Choices ~= nil then
-                            maxChoicePage = math.ceil(#optionDef.Choices / maxChoicesVisibleMultiChoice)
+                            rowHandle.maxChoicePage = math.ceil(#optionDef.Choices / maxChoicesVisibleMultiChoice)
                         end
                         self.defInUse = optionDef
                     else
@@ -2781,7 +3134,7 @@ local function rightFrame()
                     self:finishtweening()
                     self:diffusealpha(0)
                     -- if def was just defined, or def just changed, or choice page just changed -- show animation
-                    if previousDef == nil or (optionDef ~= nil and optionDef.Name ~= previousDef.Name) or (categoryDef ~= nil and categoryDef.Name ~= previousDef.Name) or previousPage ~= choicePage then
+                    if previousDef == nil or (optionDef ~= nil and optionDef.Name ~= previousDef.Name) or (categoryDef ~= nil and categoryDef.Name ~= previousDef.Name) or previousPage ~= rowHandle.choicePage then
                         self:smooth(optionRowAnimationSeconds)
                     end
                     self:diffusealpha(1)
@@ -3136,7 +3489,7 @@ local function rightFrame()
                 t[#t+1] = Def.ActorFrame {
                     Name = "LeftBigTriangleFrame",
                     DrawElementCommand = function(self)
-                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1)) then
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and rowHandle.maxChoicePage > 1)) then
                             -- visible for SingleChoice(Modifier) and MultiChoice
                             -- only visible on MultiChoice if we need to paginate the choices
                             -- offset by half height due to center aligning
@@ -3220,7 +3573,7 @@ local function rightFrame()
                 t[#t+1] = Def.ActorFrame {
                     Name = "RightBigTriangleFrame",
                     DrawElementCommand = function(self)
-                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1)) then
+                        if optionDef ~= nil and (optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or (optionDef.Type == "MultiChoice" and rowHandle.maxChoicePage > 1)) then
                             -- visible for SingleChoice(Modifier) and MultiChoice
                             local optionRowChoiceFrame = rowHandle:GetChild("ChoiceFrame")
                             if choiceCount < 1 then self:diffusealpha(0):z(-1) return end
@@ -3233,7 +3586,7 @@ local function rightFrame()
                             if optionDef.Type == "MultiChoice" then
                                 -- offset to the right of the last visible choice (up to the 4th one)
                                 local lastChoiceIndex = math.min(maxChoicesVisibleMultiChoice, #optionDef.Choices) -- last choice if not on first or last page
-                                if choicePage > 1 and choicePage >= maxChoicePage then
+                                if rowHandle.choicePage > 1 and rowHandle.choicePage >= rowHandle.maxChoicePage then
                                     -- last if on last (first) page
                                     lastChoiceIndex = #optionDef.Choices % maxChoicesVisibleMultiChoice
                                     if lastChoiceIndex == 0 then lastChoiceIndex = maxChoicesVisibleMultiChoice end
@@ -3326,7 +3679,7 @@ local function rightFrame()
                             local finalXPos = minXPos
                             -- triangle width buffer thing .... the distance from minX to ... the choices ... across the one big triangle ...
                             local triangleWidthBufferThing = actuals.OptionBigTriangleHeight + actuals.OptionChoiceDirectionGap - actuals.OptionBigTriangleHeight/4
-                            if optionDef.Type == "SingleChoice" or (optionDef.Type == "MultiChoice" and maxChoicePage > 1) then
+                            if optionDef.Type == "SingleChoice" or (optionDef.Type == "MultiChoice" and rowHandle.maxChoicePage > 1) then
                                 -- leftmost xpos + big triangle + gap
                                 -- subtract by 25% of the big triangle size because the image is actually 25% invisible
                                 finalXPos = finalXPos + triangleWidthBufferThing
@@ -3352,7 +3705,7 @@ local function rightFrame()
                             -- it also takes into account whether or not we have the triangles on the edges (so if missing, take up more room to equal in width)
                             -- (it doesnt produce a great result and all this garbage is for nothing if you think about it)
                             -- (leaving it here anyways in case this method of setting text and then drawing can be used)
-                            local allowedWidth = (actuals.OptionChoiceAllottedWidth - (lastFilledChoiceIndex-1) * actuals.OptionTextBuffer) / lastFilledChoiceIndex + (maxChoicePage <= 1 and triangleWidthBufferThing or 0) 
+                            local allowedWidth = (actuals.OptionChoiceAllottedWidth - (lastFilledChoiceIndex-1) * actuals.OptionTextBuffer) / lastFilledChoiceIndex + (rowHandle.maxChoicePage <= 1 and triangleWidthBufferThing or 0) 
                             for i = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
                                 local child = self:GetChild("Choice_"..i)
                                 child:GetChild("Text"):maxwidth(allowedWidth / choiceTextSize)
@@ -3390,7 +3743,7 @@ local function rightFrame()
                             txt:maxwidth(actuals.OptionChoiceAllottedWidth / choiceTextSize)
                             if optionDef ~= nil then
                                 if optionDef.Type == "MultiChoice" then
-                                    local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                    local choiceIndex = n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
                                     local choice = optionDef.Choices[choiceIndex]
                                     if choice ~= nil then
                                         txt:settext(choice.Name)
@@ -3423,7 +3776,7 @@ local function rightFrame()
                             if optionDef ~= nil then
                                 if optionDef.Type == "MultiChoice" then
                                     -- for Multi choice mode
-                                    local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                    local choiceIndex = n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
                                     local choice = optionDef.Choices[choiceIndex]
                                     if choice ~= nil then
                                         local txt = self:GetChild("Text")
@@ -3519,7 +3872,7 @@ local function rightFrame()
                                     end
                                 elseif optionDef.Type == "MultiChoice" then
                                     -- multichoice clicks will toggle the option
-                                    local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                    local choiceIndex = n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
                                     local choice = optionDef.Choices[choiceIndex]
                                     if choice ~= nil then
                                         choice.ChosenFunction()
@@ -3566,7 +3919,7 @@ local function rightFrame()
                             else
                                 -- optionDef present and is MultiChoice
                                 -- determine if this choice is selected
-                                local choiceIndex = n + (choicePage-1) * maxChoicesVisibleMultiChoice
+                                local choiceIndex = n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
                                 local isSelected = currentChoiceSelection[choiceIndex]
                                 if isSelected == true then
                                     local bg = self:GetParent():GetChild("BG")
