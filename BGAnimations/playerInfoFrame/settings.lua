@@ -2436,6 +2436,21 @@ local function rightFrame()
             end
         end
 
+        -- updates the explanation text.
+        local function updateExplainText(self)
+            if self.defInUse ~= nil and self.defInUse.Explanation ~= nil then
+                if explanationHandle ~= nil then
+                    if explanationHandle.txt ~= self.defInUse.Explanation then
+                        explanationHandle:playcommand("SetExplanation", {text = self.defInUse.Explanation})
+                    end
+                else
+                    explanationHandle:playcommand("SetExplanation", {text = ""})
+                end
+            else
+                explanationHandle:playcommand("SetExplanation", {text = ""})
+            end
+        end
+
         ----- state variables, dont mess
         -- currently selected options page - from pageNames
         local selectedPageName = pageNames[1] -- default to first
@@ -2656,6 +2671,9 @@ local function rightFrame()
             if rightPaneCursorPosition == n then return end
             rightPaneCursorPosition = n
 
+            local rowframe = getRowForCursorByCurrentPosition()
+            updateExplainText(rowframe)
+
             -- update visible cursor
             setCursorPositionByCurrentConditions()
         end
@@ -2771,23 +2789,10 @@ local function rightFrame()
             end
 
             rightPaneCursorPosition = n
+            local rowframe = getRowForCursorByCurrentPosition()
+            updateExplainText(rowframe)
             availableCursorPositions[n].HighlightedChoice = choice
             setCursorPositionByCurrentConditions()
-        end
-
-        -- updates the explanation text.
-        local function updateExplainText(self)
-            if self.defInUse ~= nil and self.defInUse.Explanation ~= nil then
-                if explanationHandle ~= nil then
-                    if explanationHandle.txt ~= self.defInUse.Explanation then
-                        explanationHandle:playcommand("SetExplanation", {text = self.defInUse.Explanation})
-                    end
-                else
-                    explanationHandle:playcommand("SetExplanation", {text = ""})
-                end
-            else
-                explanationHandle:playcommand("SetExplanation", {text = ""})
-            end
         end
 
         -- putting these functions here to save on space below, less copy pasting, etc
@@ -2886,6 +2891,7 @@ local function rightFrame()
                 -- initial cursor load
                 generateCursorPositionMap()
                 setCursorPositionByCurrentConditions()
+                updateExplainText(getRowForCursorByCurrentPosition())
             end,
             OptionTabSetMessageCommand = function(self, params)
                 self:playcommand("OpenPage", params)
@@ -2921,6 +2927,7 @@ local function rightFrame()
                 -- must take place after UpdateRow because cursor position is reliant on the row choice positions
                 generateCursorPositionMap()
                 setCursorPositionByCurrentConditions()
+                updateExplainText(getRowForCursorByCurrentPosition())
             end,
 
             Def.Quad {
