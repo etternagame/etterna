@@ -2753,13 +2753,29 @@ local function rightFrame()
             changeCursorPos(n)
         end
         -- shortcuts for cursorLateralMovement
-        local function cursorLeft(n)
-            cursorLateralMovement(-n)
+        local function cursorLeft(n, useMultiplier)
+            cursorLateralMovement(-n, useMultiplier)
         end
-        local function cursorRight(n)
-            cursorLateralMovement(n)
+        local function cursorRight(n, useMultiplier)
+            cursorLateralMovement(n, useMultiplier)
         end
 
+        -- function specifically for mouse hovering moving the cursor to run logic found in the above functions and more
+        local function setCursorVerticalHorizontalPos(rowFrame, choice)
+            local n = getRowIndexByName(rowFrame.defInUse.Name)
+            if choice == nil then choice = availableCursorPositions[n].HighlightedChoice end
+
+            -- dont needlessly update
+            if rightPaneCursorPosition == n and availableCursorPositions[n].HighlightedChoice == choice then
+                return
+            end
+
+            rightPaneCursorPosition = n
+            availableCursorPositions[n].HighlightedChoice = choice
+            setCursorPositionByCurrentConditions()
+        end
+
+        -- updates the explanation text.
         local function updateExplainText(self)
             if self.defInUse ~= nil and self.defInUse.Explanation ~= nil then
                 if explanationHandle ~= nil then
@@ -2778,7 +2794,11 @@ local function rightFrame()
         local function onHover(self)
             if self:IsInvisible() then return end
             self:diffusealpha(buttonHoverAlpha)
-            updateExplainText(self:GetParent())
+            local rowframe = self:GetParent()
+            updateExplainText(rowframe)
+
+            -- only the category triangle uses this which means the choice is 1
+            setCursorVerticalHorizontalPos(rowframe, 1)
         end
         local function onUnHover(self)
             if self:IsInvisible() then return end
@@ -2787,7 +2807,11 @@ local function rightFrame()
         local function onHoverParent(self)
             if self:GetParent():IsInvisible() then return end
             self:GetParent():diffusealpha(buttonHoverAlpha)
-            updateExplainText(self:GetParent():GetParent())
+            local rowframe = self:GetParent():GetParent()
+            updateExplainText(rowframe)
+
+            -- only triangles use this which means use the choice that is already set
+            setCursorVerticalHorizontalPos(rowframe, nil)
         end
         local function onUnHoverParent(self)
             if self:GetParent():IsInvisible() then return end
@@ -2825,6 +2849,7 @@ local function rightFrame()
                 local snm = SCREENMAN:GetTopScreen():GetName()
                 local anm = self:GetName()
 
+                -- cursor input management
                 CONTEXTMAN:RegisterToContextSet(snm, "Settings", anm)
                 CONTEXTMAN:ToggleContextSet(snm, "Settings", false)
     
@@ -2839,15 +2864,16 @@ local function rightFrame()
                         local right = gameButton == "MenuRight" or gameButton == "Right"
                         local left = gameButton == "MenuLeft" or gameButton == "Left"
                         local enter = gameButton == "Start"
+                        local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
 
                         if up then
                             cursorUp(1)
                         elseif down then
                             cursorDown(1)
                         elseif left then
-                            cursorLeft(1)
+                            cursorLeft(1, ctrl)
                         elseif right then
-                            cursorRight(1)
+                            cursorRight(1, ctrl)
                         elseif enter then
                             invokeCurrentCursorPosition()
                         else
@@ -2857,6 +2883,7 @@ local function rightFrame()
                     end
                 end)
 
+                -- initial cursor load
                 generateCursorPositionMap()
                 setCursorPositionByCurrentConditions()
             end,
@@ -3225,7 +3252,8 @@ local function rightFrame()
                         if self:IsInvisible() then return end
                         if params.update == "in" then
                             self:diffusealpha(buttonHoverAlpha)
-                            updateExplainText(self:GetParent())
+                            updateExplainText(rowHandle)
+                            setCursorVerticalHorizontalPos(rowHandle, nil)
                         else
                             self:diffusealpha(1)
                         end
@@ -3261,7 +3289,11 @@ local function rightFrame()
                     end,
                     MouseOverCommand = function(self)
                         if not focused or optionDef == nil then return end
-                        updateExplainText(self:GetParent())
+                        updateExplainText(rowHandle)
+                        -- uncomment to update cursor position when hovering the invisible area
+                        -- seems like an annoying and buggy looking behavior
+                        -- although it is correct, it is just weird
+                        --setCursorVerticalHorizontalPos(rowHandle, nil)
                     end,
                 }
             }
@@ -3889,7 +3921,12 @@ local function rightFrame()
                             if self:IsInvisible() then return end
                             if params.update == "in" then
                                 self:diffusealpha(buttonHoverAlpha)
-                                updateExplainText(self:GetParent():GetParent())
+                                updateExplainText(rowHandle)
+                                if optionDef.Type == "MultiChoice" then
+                                    setCursorVerticalHorizontalPos(rowHandle, n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice)
+                                else
+                                    setCursorVerticalHorizontalPos(rowHandle, 1)
+                                end
                             else
                                 self:diffusealpha(1)
                             end
