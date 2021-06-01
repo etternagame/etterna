@@ -2275,6 +2275,8 @@ local function rightFrame()
                         Name = "Calibrate Audio Sync",
                         ChosenFunction = function()
                             -- go to machine sync screen
+                            SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
+                            SCREENMAN:SetNewScreen("ScreenGameplaySyncMachine")
                         end,
                     },
                 },

@@ -18,3 +18,8 @@ SCUFF.preview = {
     active = false,
     resetmusic = false,
 }
+
+-- for controlling what happens after GameplaySyncMachine
+-- change this before entering ScreenGameplaySyncMachine
+SCUFF.screenAfterSyncMachine = "ScreenOptionsInputSub"
+SCUFF.screenAfterSyncMachine_iter = 0
