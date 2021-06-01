@@ -78,6 +78,7 @@ end
 actuals.LowerLipHeight = actuals.LowerLipHeight or 0
 actuals.Height = actuals.Height or 0
 -- the ratio is the percentage of the area we will use, so multiply it by the raw (actual) given area
+-- when placing, take into account each other (notefield is placed below the density graph)
 actuals.DensityGraphHeight = ratios.DensityGraphHeight * (actuals.Height - actuals.LowerLipHeight)
 actuals.NoteFieldHeight = ratios.NoteFieldHeight * (actuals.Height - actuals.LowerLipHeight)
 
@@ -87,6 +88,7 @@ actuals.VerticalDividerLeftGap = actuals.VerticalDividerLeftGap or 0
 actuals.DividerThickness = actuals.DividerThickness or 0
 local rightHalfXBegin = actuals.VerticalDividerLeftGap + actuals.DividerThickness
 local notefieldXCenter = rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2
+local notefieldYCenter = actuals.DensityGraphHeight + actuals.NoteFieldHeight / 2
 local expectedGeneralReceptorHeight = 64 -- this number varies slightly but typically receptors are "64x64"
 local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT) -- this was designed for 16:9 so compensate
 local notefieldZoomBaseline = 0.8 -- zoom for 4key width
@@ -133,12 +135,11 @@ t[#t+1] = Def.NoteFieldPreview {
     Name = "NoteField",
     DrawDistanceBeforeTargetsPixels = notefieldLengthPixels / notefieldZoomBaseline,
     DrawDistanceAfterTargetsPixels = notefieldAllowBeyondReceptorPixels, -- notes disappear at the receptor
-    YReverseOffsetPixels = -expectedGeneralReceptorHeight,
 
     InitCommand = function(self)
         self:x(notefieldXCenter)
+        self:y(notefieldYCenter)
         self:zoom(notefieldZoomBaseline):draworder(90)
-        self:playcommand("UpdateReverseNoteFieldPosition")
     end,
     BeginCommand = function(self)
         -- we need to redo the draw order for the notefield and graph
@@ -146,14 +147,6 @@ t[#t+1] = Def.NoteFieldPreview {
         self:draworder(1)
         self:GetParent():GetChild("ChordDensityGraphFile"):draworder(2)
         self:GetParent():SortByDrawOrder()
-    end,
-    UpdateReverseNoteFieldPositionCommand = function(self)
-        local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-        if rev then
-            self:y(notefieldYOffset + notefieldReverseAdd)
-        else
-            self:y(notefieldYOffset)
-        end
     end,
     LoadNoteDataCommand = function(self, params)
         local steps = params.steps
@@ -164,6 +157,10 @@ t[#t+1] = Def.NoteFieldPreview {
         end
         local z, l = getSizeForStyle()
         self:zoom(z)
+        -- when changing zoom of the notefield, the receptors change position just like the length needs to
+        -- so need to move the notefield up or down to compensate for the change in zoom
+        local compensation = -(actuals.NoteFieldHeight) * (notefieldZoomBaseline-z)/2
+        self:y(notefieldYCenter + compensation)
         self:UpdateDrawDistance(notefieldAllowBeyondReceptorPixels, l)
     end
 }
