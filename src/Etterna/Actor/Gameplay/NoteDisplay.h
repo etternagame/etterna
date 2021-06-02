@@ -255,6 +255,7 @@ class NoteDisplay
 
 	[[nodiscard]] auto DrawHoldHeadForTapsOnSameRow() const -> bool;
 	[[nodiscard]] auto DrawRollHeadForTapsOnSameRow() const -> bool;
+	float m_fYReverseOffsetPixels;
 
   private:
 	void SetActiveFrame(float fNoteBeat,
@@ -348,7 +349,6 @@ class NoteDisplay
 	NoteColorSprite m_HoldBody[NUM_HoldType][NUM_ActiveType];
 	NoteColorSprite m_HoldBottomCap[NUM_HoldType][NUM_ActiveType];
 	NoteColorActor m_HoldTail[NUM_HoldType][NUM_ActiveType];
-	float m_fYReverseOffsetPixels;
 };
 
 // So, this is a bit screwy, and it's partly because routine forces rendering

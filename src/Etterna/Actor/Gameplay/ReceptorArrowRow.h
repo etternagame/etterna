@@ -42,10 +42,10 @@ class ReceptorArrowRow : public ActorFrame
 	{
 		m_fFadeToFailPercent = fFadeToFailPercent;
 	}
+	float m_fYReverseOffsetPixels;
 
   protected:
 	const PlayerState* m_pPlayerState;
-	float m_fYReverseOffsetPixels;
 	float m_fFadeToFailPercent;
 
 	std::vector<NoteColumnRenderer> const* m_renderers;

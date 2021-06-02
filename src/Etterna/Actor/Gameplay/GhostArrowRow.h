@@ -37,9 +37,9 @@ class GhostArrowRow : public ActorFrame
 	void DidTapNote(int iCol, TapNoteScore tns, bool bBright);
 	void DidHoldNote(int iCol, HoldNoteScore hns, bool bBright);
 	void SetHoldShowing(int iCol, const TapNote& tn);
+	float m_fYReverseOffsetPixels = 0.F;
 
   protected:
-	float m_fYReverseOffsetPixels = 0.F;
 	const PlayerState* m_pPlayerState{};
 
 	vector<NoteColumnRenderer> const* m_renderers{};

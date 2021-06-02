@@ -117,6 +117,33 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 }
 
 void
+NoteFieldPreview::UpdateYReversePixels(float YReverseOffsetPixels)
+{
+	// requires a style to be set
+	if (attemptToEnsureStyle(m_pPlayerState) == nullptr)
+		return;
+	
+	m_fYReverseOffsetPixels = YReverseOffsetPixels;
+	m_FieldRenderArgs.reverse_offset_pixels = YReverseOffsetPixels;
+	for (auto& ndisplay : m_NoteDisplays) {
+		if (ndisplay.second == nullptr)
+			continue;
+		
+		for (auto c = 0;
+			 c < GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
+				   ->m_iColsPerPlayer;
+			 c++)
+				ndisplay.second->display[c].m_fYReverseOffsetPixels =
+				  YReverseOffsetPixels;
+		
+		ndisplay.second->m_ReceptorArrowRow.m_fYReverseOffsetPixels =
+		  YReverseOffsetPixels;
+		ndisplay.second->m_GhostArrowRow.m_fYReverseOffsetPixels =
+		  YReverseOffsetPixels;
+	}
+}
+
+void
 NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 {
 	// if the current and incoming NoteData pointers are the same, why load?
@@ -313,11 +340,17 @@ NoteFieldPreview::DrawPrimitives()
 			const auto reverse =
 			  curr_options.GetReversePercentForColumn(0) > 0.5F;
 			const auto tilt = curr_options.m_fPerspectiveTilt;
-			const auto mini =
-			  curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
 			const auto reverse_mult = (reverse ? -1 : 1);
 			const auto tilt_degrees =
 			  SCALE(tilt, -1.F, +1.F, +30, -30) * reverse_mult;
+
+			// for mini (HACK HACK HACK)
+			// zooming notefield freely is not possible if mini is taken from PO
+			// allow setting a constant mini separate from all PO
+			// (ideal solution: set a preview specific PlayerOptions)
+			auto mini = curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
+			if (usingConstantMini)
+				mini = constantMini;
 
 			const auto x = GetX();
 			const auto skew = curr_options.m_fSkew;
@@ -367,6 +400,14 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 		
 		COMMON_RETURN_SELF;	
 	}
+	static int UpdateYReversePixels(T* p, lua_State* L)
+	{
+		auto i = FArg(1);
+
+		p->UpdateYReversePixels(i);
+		
+		COMMON_RETURN_SELF;
+	}
 	static int LoadNoteData(T* p, lua_State* L)
 	{
 		auto* s = Luna<Steps>::check(L, 1);
@@ -388,13 +429,27 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 		p->SetPoseNoteField(b);
 		COMMON_RETURN_SELF;
 	}
+	static int SetConstantMini(T* p, lua_State* L)
+	{
+		auto f = FArg(1);
+		p->SetConstantMini(f);
+		COMMON_RETURN_SELF;
+	}
+	static int ResetConstantMini(T* p, lua_State* L)
+	{
+		p->ResetConstantMini();
+		COMMON_RETURN_SELF;
+	}
 	
 	LunaNoteFieldPreview()
 	{
 		ADD_METHOD(UpdateDrawDistance);
+		ADD_METHOD(UpdateYReversePixels);
 		ADD_METHOD(LoadNoteData);
 		ADD_METHOD(LoadDummyNoteData);
 		ADD_METHOD(SetFollowPlayerOptions);
+		ADD_METHOD(SetConstantMini);
+		ADD_METHOD(ResetConstantMini);
 	}
 };
 
