@@ -380,3 +380,8 @@ function ButtonIndexToCurGameColumn(i)
     if indexToProperGameColumn[g][i] == nil then return i end
     return indexToProperGameColumn[g][i]
 end
+
+-- convert a receptor size to a mini because this math is really annoying to memorize
+function ReceptorSizeToMini(percent)
+    return 2 - percent / 0.5
+end
