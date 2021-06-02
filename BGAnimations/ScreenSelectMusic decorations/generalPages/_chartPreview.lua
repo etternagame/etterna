@@ -97,6 +97,7 @@ local notefieldYOffset = actuals.DensityGraphHeight + expectedGeneralReceptorHei
 local notefieldReverseAdd = actuals.NoteFieldHeight - notefieldYOffset
 local notefieldLengthPixels = 300 -- this isnt a perfect number but it fits for our use and i dont know how to calculate it
 local notefieldAllowBeyondReceptorPixels = 0 -- this shouldnt be changed
+local notefieldYReversePixelsBase = 288 -- this is what it is in gameplay, but it needs to change if we mess with mini/zoom
 
 local function getSizeForStyle()
     local style = GAMESTATE:GetCurrentStyle()
@@ -109,8 +110,11 @@ local function getSizeForStyle()
     local pdiff = stylewidth / notefieldWidthBaseline
     local newzoom = notefieldZoomBaseline / pdiff / aspectRatioProportion
     local newlength = notefieldLengthPixels / newzoom
+    -- taking new calculated reverse pixel offset and making it smaller by a bit
+    local newreverse = notefieldYReversePixelsBase / newzoom
+    local newreversediff = notefieldYReversePixelsBase - (notefieldYReversePixelsBase - newreverse) / 3
 
-    return newzoom, newlength
+    return newzoom, newlength, newreversediff
 end
 
 t[#t+1] = UIElements.QuadButton(1, 1) .. {
@@ -137,9 +141,14 @@ t[#t+1] = Def.NoteFieldPreview {
     DrawDistanceAfterTargetsPixels = notefieldAllowBeyondReceptorPixels, -- notes disappear at the receptor
 
     InitCommand = function(self)
-        self:x(notefieldXCenter)
+        self:x(rightHalfXBegin + 25)
         self:y(notefieldYCenter)
         self:zoom(notefieldZoomBaseline):draworder(90)
+        -- make mods work
+        self:SetFollowPlayerOptions(true)
+        self:SetUpdateFunction(function(self)
+            ArrowEffects.Update()
+        end)
     end,
     BeginCommand = function(self)
         -- we need to redo the draw order for the notefield and graph
@@ -155,14 +164,33 @@ t[#t+1] = Def.NoteFieldPreview {
         else
             self:LoadDummyNoteData()
         end
-        local z, l = getSizeForStyle()
+        local z, l, r = getSizeForStyle()
         self:zoom(z)
+        self:SetConstantMini(ReceptorSizeToMini(z))
         -- when changing zoom of the notefield, the receptors change position just like the length needs to
         -- so need to move the notefield up or down to compensate for the change in zoom
         local compensation = -(actuals.NoteFieldHeight) * (notefieldZoomBaseline-z)/2
-        self:y(notefieldYCenter + compensation)
+        self:y(notefieldYCenter - 40 + compensation)
         self:UpdateDrawDistance(notefieldAllowBeyondReceptorPixels, l)
-    end
+        self:UpdateYReversePixels(r)
+    end,
+    OptionUpdatedMessageCommand = function(self, params)
+        if params ~= nil then
+            -- listen for the notedata modifying mods being toggled and apply their changes immediately
+            local options = {
+                Mirror = true,
+                Turn = true,
+                ["Pattern Transform"] = true,
+                ["Hold Transform"] = true,
+                Remove = true,
+                Insert = true,
+                Mines = true
+            }
+            if options[params.name] ~= nil then
+                self:playcommand("LoadNoteData", {steps = GAMESTATE:GetCurrentSteps()})
+            end
+        end
+    end,
 }
 
 t[#t+1] = LoadActorWithParams("../../chordDensityGraph.lua", {sizing = {
