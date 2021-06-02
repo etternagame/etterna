@@ -113,7 +113,6 @@ ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage& SM)
 
 	if (SM == SM_GoToPrevScreen || SM == SM_GoToNextScreen) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
-		GAMESTATE->SetCurrentStyle(nullptr, PLAYER_INVALID);
 		GAMESTATE->m_pCurSong.Set(nullptr);
 	}
 }
