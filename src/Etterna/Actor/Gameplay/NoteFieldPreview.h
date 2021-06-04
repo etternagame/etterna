@@ -11,7 +11,9 @@ class NoteFieldPreview : public NoteField
 	void LoadFromNode(const XNode* pNode) override;
 	void Update(float fDeltaTime) override;
 	void DrawPrimitives() override;
+	// THIS DOESNT TRANSFORM NOTEDATA!!! DO IT YOURSELF!!!!	
 	void LoadNoteData(NoteData* pNoteData);
+	// This transforms NoteData to style and will follow PlayerOptions if wanted
 	void LoadNoteData(Steps* pSteps, bool bTransform = false);
 	void LoadDummyNoteData();
 	void UpdateDrawDistance(int aftertargetspixels, int beforetargetspixels);

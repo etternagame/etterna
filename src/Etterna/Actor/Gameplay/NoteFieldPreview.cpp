@@ -194,6 +194,14 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps, bool bTransform)
 		nd->GetNumTracks() != style->m_iColsPerPlayer)
 		GAMESTATE->SetCompatibleStylesForPlayers();
 
+	// This says it transforms the NoteData but really all it does:
+	// Map NoteData to the Style it is for (usually for beat or something?)
+	if (nd != nullptr && style != nullptr) {
+		NoteData ndo;
+		style->GetTransformedNoteDataForStyle(PLAYER_1, *nd, ndo);
+		*nd = ndo;
+	}
+
 	// Transform NoteData incoming (this being only here is because only lua uses it)
 	// (for now)
 	if (nd != nullptr && bTransform) {
