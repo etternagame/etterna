@@ -206,6 +206,10 @@ namespace GameLoop {
         g_fUpdateRate = fUpdateRate;
     }
 
+	float GetUpdateRate() {
+		return g_fUpdateRate;
+    }
+
     void ChangeTheme(const std::string& sNewTheme) {
         g_NewTheme = sNewTheme;
     }
