@@ -398,54 +398,12 @@ local function leftFrame()
         return t
     end
 
-    -- this code is incredibly bad imo
     local function createPreviewPage()
-        -- yeah these numbers are bogus (but are in fact based on the 4key numbers so they arent all that bad)
-        local columnwidth = 64
-        local notefieldWidthBaseline = 256
-        local secondrowYoffset = 64
-        local notefieldZoomBaseline = 1.5 -- pick a zoom that fits 4key in 16:9 aspect ratio
-        -- calculation: find a zoom that fits for the current chosen column count the same way 4key on 16:9 does
-        local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
-        local notefieldLengthPixels = 800
-        local noteskinzoom = notefieldZoomBaseline / (4 * columnwidth / notefieldWidthBaseline) / aspectRatioProportion
-        local notefieldReverseAdd = actuals.Height / 2
-        local notefieldAllowBeyondReceptorPixels = 0
-        local notefieldYOffset = secondrowYoffset / 1080 * SCREEN_HEIGHT * notefieldZoomBaseline
-
-        local function getSizeForStyle()
-            local style = GAMESTATE:GetCurrentStyle()
-            if style == nil then return notefieldZoomBaseline, notefieldLengthPixels / notefieldZoomBaseline end
-
-            local stylewidth = style:GetWidth()
-            -- the assumption is that a width of notefieldWidthBaseline uses a zoom of notefieldZoomBaseline
-            --  and notefieldLengthPixels is 300 for that baseline zoom
-            -- find a zoom and pixel length that fits using math
-            local pdiff = stylewidth / notefieldWidthBaseline
-            local newzoom = notefieldZoomBaseline / pdiff / aspectRatioProportion
-            local newlength = notefieldLengthPixels / newzoom
-
-            return newzoom, newlength
-        end
 
         local t = Def.ActorFrame {
             Name = "PreviewPageContainer",
             InitCommand = function(self)
-                -- to update the arroweffects for the notefield
-                local pnf = self:GetChild("NoteField")
-                self:SetUpdateFunction(function(self)
-                    -- but dont update if not visible because then the real chart preview can go stupid
-                    if not self:IsInvisible() and focused then
-                        ArrowEffects.Update()
-                        -- setup reverse positioning
-                        local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-                        if rev then
-                            pnf:y(actuals.Height / 4.5 + notefieldReverseAdd)
-                        else
-                            pnf:y(actuals.Height / 4.5 + notefieldYOffset)
-                        end
-                    end
-                end)
+
             end,
             ShowLeftCommand = function(self, params)
                 if params and params.name == "Preview" then
@@ -458,42 +416,30 @@ local function leftFrame()
                 self:diffusealpha(0)
             end,
             
-            -- the preview notefield
-            -- this was an ActorProxy but I give up and double the screen loading time (sorry)
-            Def.NoteFieldPreview {
+            -- the preview notefield (but not really)
+            Def.ActorProxy {
                 Name = "NoteField",
                 InitCommand = function(self)
-                    -- centered horizontally
-                    -- y position is taken care of by the update function
+                    -- centered horizontally and vertically
                     self:x(actuals.LeftWidth / 2)
-                    -- set the PreviewNotefield to follow tilt/skew PlayerOptions
-                    self:SetFollowPlayerOptions(true)
+                    self:y(actuals.Height / 4)
                 end,
-                WheelSettledMessageCommand = function(self, params)
-                    self:playcommand("LoadNoteData", params)
-                end,
-                OptionUpdatedMessageCommand = function(self, params)
-                    if params ~= nil then
-                        -- listen for the notedata modifying mods being toggled and apply their changes immediately
-                        local options = {Mirror = true, Turn = true, ["Pattern Transform"] = true, ["Hold Transform"] = true, Remove = true, Insert = true, Mines = true}
-                        if options[params.name] ~= nil then
-                            self:playcommand("LoadNoteData", {steps = GAMESTATE:GetCurrentSteps()})
-                        end
-                    end
-                end,
-                LoadNoteDataCommand = function(self, params)
-                    -- load notedata at every possible moment even if not visible?
-                    -- yeah
-                    local steps = params.steps
-                    if steps ~= nil then
-                        -- true here tells transforms to apply
-                        self:LoadNoteData(steps, true)
+                BeginCommand = function(self)
+                    -- take the long road to find the actual chart preview actor
+                    local realnotefieldpreview = SCREENMAN:GetTopScreen():safeGetChild(
+                        "RightFrame",
+                        "GeneralBoxFile",
+                        "Container",
+                        "GeneralPageFile",
+                        "ChartPreviewFile",
+                        "NoteField"
+                    )
+                    if realnotefieldpreview ~= nil then
+                        self:SetTarget(realnotefieldpreview)
+                        self:addx(-realnotefieldpreview:GetX())
                     else
-                        self:LoadDummyNoteData()
+                        print("It appears that chart preview is not where it should be ....")
                     end
-                    local z, l = getSizeForStyle()
-                    self:zoom(z)
-                    self:UpdateDrawDistance(notefieldAllowBeyondReceptorPixels, l)
                 end,
             }
         }
