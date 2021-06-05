@@ -141,7 +141,7 @@ t[#t+1] = Def.NoteFieldPreview {
     DrawDistanceAfterTargetsPixels = notefieldAllowBeyondReceptorPixels, -- notes disappear at the receptor
 
     InitCommand = function(self)
-        self:x(rightHalfXBegin + 25)
+        self:x(rightHalfXBegin + 15)
         self:y(notefieldYCenter)
         self:zoom(notefieldZoomBaseline):draworder(90)
         -- make mods work
