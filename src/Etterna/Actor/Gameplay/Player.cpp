@@ -37,6 +37,7 @@
 #include "HoldJudgment.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Etterna/Globals/GameLoop.h"
 
 #include <algorithm>
 using std::max;
@@ -1131,6 +1132,15 @@ Player::UpdateHoldNotes(int iSongRow,
 	LOG->Trace("[Player::UpdateHoldNotes] begins");
 	LOG->Trace( ssprintf("song row %i, deltaTime = %f",iSongRow,fDeltaTime) );
 	*/
+
+	// dont let gameloop updaterate changes break hold note life.
+	// in fact, make it harsh to halt abusers:
+	// instant kill holds if the update rate is 0
+	auto rate = GameLoop::GetUpdateRate();
+	if (rate > 0)
+		fDeltaTime /= rate;
+	else
+		fDeltaTime = 9999;
 
 	const auto iStartRow = vTN[0].iRow;
 	auto iMaxEndRow = INT_MIN;
