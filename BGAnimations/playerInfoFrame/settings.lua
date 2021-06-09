@@ -1,5 +1,6 @@
 -- every time i look at this file my desire to continue modifying it gets worse
 -- at least it isnt totally spaghetti code yet
+-- hmm
 local ratios = {
     RightWidth = 782 / 1920,
     LeftWidth = 783 / 1920,
@@ -89,6 +90,11 @@ local explanationTextWriteAnimationSeconds = 0.2
 
 local maxExplanationTextLines = 2
 
+-- lost patience
+local showingNoteskins = false
+local showingPreview = false
+local showingColor = false
+
 local t = Def.ActorFrame {
     Name = "SettingsFile",
     InitCommand = function(self)
@@ -135,6 +141,18 @@ local t = Def.ActorFrame {
             self:playcommand("ShowLeft", params)
         else
             self:playcommand("HideLeft")
+        end
+    end,
+    OptionCursorUpdatedMessageCommand = function(self, params)
+        if params and params.name then
+            -- will only work when hovering certain options
+            -- list the names of the options below
+            local optionsThatWillOpenTheLeftSideWhenHovered = {
+                Noteskin = true,
+            }
+            if optionsThatWillOpenTheLeftSideWhenHovered[params.name] ~= nil then
+                self:playcommand("ShowLeft", params)
+            end
         end
     end,
 }
@@ -224,12 +242,14 @@ local function leftFrame()
                         showKeybinds = false
                     end
                     self:diffusealpha(1)
+                    showingNoteskins = true
                 else
-                    self:diffusealpha(0)
+                    self:playcommand("HideLeft")
                 end
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                showingNoteskins = false
             end,
         }
 
@@ -404,14 +424,17 @@ local function leftFrame()
         local t = Def.ActorFrame {
             Name = "PreviewPageContainer",
             ShowLeftCommand = function(self, params)
-                if params and params.name == "Preview" then
+                -- dont open the preview if left is already opened and it is being used
+                if params and params.name == "Preview" and not showingNoteskins and not showingColor then
                     self:diffusealpha(1)
+                    showingPreview = true
                 else
-                    self:diffusealpha(0)
+                    self:playcommand("HideLeft")
                 end
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                showingPreview = false
             end,
             
             -- the preview notefield (but not really)
@@ -450,12 +473,14 @@ local function leftFrame()
             ShowLeftCommand = function(self, params)
                 if params and params.name == "ColorConfig" then
                     self:diffusealpha(1)
+                    showingColor = true
                 else
-                    self:diffusealpha(0)
+                    self:playcommand("HideLeft")
                 end
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                showingColor = false
             end,
         }
         return t
@@ -1216,8 +1241,8 @@ local function rightFrame()
                     {
                         Name = "Customize Playfield",
                         ChosenFunction = function()
-                            -- activate customize gameplay screen
-                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Customize Playfield"})
+                            -- activate customize gameplay
+                            -- go into gameplay
                         end,
                     }
                 }
