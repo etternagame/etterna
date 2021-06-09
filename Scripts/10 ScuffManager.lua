@@ -28,7 +28,7 @@ SCUFF.preview = {
 SCUFF.screenAfterSyncMachine = "ScreenOptionsInputSub"
 SCUFF.screenAfterSyncMachine_iter = 0
 
--- interaction between wheel and settings
+-- interaction between settings and ???
 SCUFF.optionsThatWillOpenTheLeftSideWhenHovered = {
     Noteskin = true,
 }
