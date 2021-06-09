@@ -1166,18 +1166,17 @@ local function createList()
                         local tracks = localscore:GetTrackVector()
                         local types = localscore:GetTapNoteTypeVector()
                         local noterows = localscore:GetNoteRowVector()
-                        local timing = {}
+                        local holds = localscore:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
-                        for i, row in ipairs(noterows) do
-                            timing[i] = timingdata:GetElapsedTimeFromNoteRow(row)
-                        end
                         local lastSecond = steps:GetLastSecond()
     
                         self:playcommand("LoadOffsets", {
                             offsetVector = offsets,
                             trackVector = tracks,
-                            timingVector = timing,
+                            timingData = timingdata,
+                            noteRowVector = noterows,
                             typeVector = types,
+                            holdVector = holds,
                             maxTime = lastSecond,
                             judgeSetting = judgeSetting,
                             columns = steps:GetNumColumns(),
@@ -1188,8 +1187,10 @@ local function createList()
                         self:playcommand("LoadOffsets", {
                             offsetVector = {},
                             trackVector = {},
-                            timingVector = {},
+                            timingData = nil,
+                            noteRowVector = {},
                             typeVector = {},
+                            holdVector = {},
                             maxTime = 1,
                             judgeSetting = 4,
                             columns = steps:GetNumColumns(),

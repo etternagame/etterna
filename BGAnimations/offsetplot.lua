@@ -37,6 +37,8 @@ local dotLineLowerBound = 0.7
 local mineXSize = 3
 local mineXThickness = 1
 local mineColor = color("1,0,0,1")
+local rollColor = color("1,0,1,1")
+local holdColor = color("0,1,0,1")
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -72,6 +74,28 @@ local function getMineColor(column)
         -- not highlighting this column
         local c = {}
         for i,v in ipairs(mineColor) do
+            c[i] = v
+        end
+        c[4] = unHighlightedAlpha
+        return c
+    end
+end
+
+local function getHoldColor(column, type)
+    local color = color("#FFFFFF")
+    if type == "TapNoteSubType_Roll" then
+        color = rollColor
+    elseif type == "TapNoteSubType_Hold" then
+        color = holdColor
+    end
+
+    -- cant highlight or currently set to highlight this column
+    if columnIsHighlighted(column) then
+        return color
+    else
+        -- not highlighting this column
+        local c = {}
+        for i,v in ipairs(color) do
             c[i] = v
         end
         c[4] = unHighlightedAlpha
@@ -155,6 +179,19 @@ local function placeMineVertices(vertList, x, y, color)
     vertList[#vertList + 1] = {{x - mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
     vertList[#vertList + 1] = {{x + mineXSize - mineXThickness / 2, y - mineXSize, 0}, color}
     vertList[#vertList + 1] = {{x - mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
+end
+
+-- 2 pairs of 4 coordinates to draw a ^
+local function placeNoodleVertices(vertList, x, y, color)
+    vertList[#vertList + 1] = {{x - mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXThickness/2, y - mineXThickness, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXThickness/2, y - mineXThickness, 0}, color}
+
+    vertList[#vertList + 1] = {{x + mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXThickness/2, y - mineXThickness, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXThickness/2, y - mineXThickness, 0}, color}
 end
 
 local t = Def.ActorFrame {
@@ -404,7 +441,9 @@ t[#t+1] = LoadFont("Common Normal") .. {
 local lastOffsets = {}
 local lastTracks = {}
 local lastTiming = {}
+local lastTimingData = nil
 local lastTypes = {}
+local lastHolds = {}
 local lastMaxTime = 0
 local lastColumns = nil
 
@@ -423,8 +462,14 @@ t[#t+1] = Def.ActorMultiVertex {
 
         lastOffsets = params.offsetVector
         lastTracks = params.trackVector
-        lastTiming = params.timingVector
+        lastTimingData = params.timingData
         lastTypes = params.typeVector
+        lastHolds = params.holdVector
+        lastTiming = {}
+        for i, row in ipairs(params.noteRowVector) do
+            lastTiming[i] = lastTimingData:GetElapsedTimeFromNoteRow(row)
+        end
+
         lastMaxTime = params.maxTime
         lastColumns = params.columns
         if not params.rejudged then
@@ -441,6 +486,7 @@ t[#t+1] = Def.ActorMultiVertex {
         local tracks = lastTracks
         local timing = lastTiming
         local types = lastTypes
+        local holds = lastHolds
         local maxTime = lastMaxTime
         self:GetParent():playcommand("UpdateText")
 
@@ -454,6 +500,7 @@ t[#t+1] = Def.ActorMultiVertex {
         -- for clarity on ultra dense scores
         dotLineLength = clamp(scale(#offsets, 1000, 5000, dotLineUpperBound, dotLineLowerBound), dotLineLowerBound, dotLineUpperBound)
 
+        -- taps and mines
         for i, offset in ipairs(offsets) do
             local x = fitX(timing[i], maxTime)
             local y = fitY(offset, maxOffset)
@@ -477,8 +524,21 @@ t[#t+1] = Def.ActorMultiVertex {
                 local mineColor = getMineColor(column)
                 placeMineVertices(vertices, x, fitY(-maxOffset, maxOffset), mineColor)
             end
-
         end
+
+        -- holds and rolls
+        if holds ~= nil and #holds > 0 then
+            for i, h in ipairs(holds) do
+                local row = h.row
+                local holdtype = h.TapNoteSubType
+                local column = h.track + 1
+                local holdColor = getHoldColor(column, holdtype)
+                local rowtime = lastTimingData:GetElapsedTimeFromNoteRow(row) 
+                local x = fitX(rowtime, maxTime)
+                placeNoodleVertices(vertices, x, fitY(-maxOffset, maxOffset), holdColor)
+            end
+        end
+
         -- animation breaks if we start from nothing
         if self:GetNumVertices() ~= 0 then
             self:finishtweening()

@@ -1167,18 +1167,17 @@ t[#t+1] = Def.ActorFrame {
                     local tracks = params.score:GetTrackVector()
                     local types = params.score:GetTapNoteTypeVector()
                     local noterows = params.score:GetNoteRowVector()
-                    local timing = {}
+                    local holds = params.score:GetHoldNoteVector()
                     local timingdata = params.steps:GetTimingData()
-                    for i, row in ipairs(noterows) do
-                        timing[i] = timingdata:GetElapsedTimeFromNoteRow(row)
-                    end
                     local lastSecond = params.steps:GetLastSecond()
 
                     self:playcommand("LoadOffsets", {
                         offsetVector = offsets,
                         trackVector = tracks,
-                        timingVector = timing,
+                        timingData = timingdata,
+                        noteRowVector = noterows,
                         typeVector = types,
+                        holdVector = holds,
                         maxTime = lastSecond,
                         judgeSetting = params.judgeSetting,
                         columns = params.steps:GetNumColumns(),
