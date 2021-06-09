@@ -150,11 +150,13 @@ local t = Def.ActorFrame {
         if params and params.name then
             -- will only work when hovering certain options
             if SCUFF.optionsThatWillOpenTheLeftSideWhenHovered[params.name] ~= nil then
-                self:playcommand("ShowLeft", params)
+                MESSAGEMAN:Broadcast("ShowSettingsAlt", params)
             else
                 -- if moving off of the noteskin tab (without keybinds)
                 if SCUFF.showingNoteskins and not SCUFF.showingKeybinds then
                     self:playcommand("HideLeft")
+                    -- HACK HACK HACK HACK HACK
+                    MESSAGEMAN:Broadcast("ShowSettingsAlt", nil)
                 end
             end
         end
