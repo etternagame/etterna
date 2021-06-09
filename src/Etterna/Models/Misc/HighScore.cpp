@@ -2066,6 +2066,36 @@ class LunaHighScore : public Luna<HighScore>
 		}
 		return 1;
 	}
+
+	static auto GetHoldNoteVector(T* p, lua_State* L) -> int
+	{
+		auto v = p->GetHoldReplayDataVector();
+		const auto loaded = !v.empty();
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded) {
+				v = p->GetHoldReplayDataVector();
+			}
+			// make containing table
+			lua_newtable(L);
+			for (size_t i = 0; i < v.size(); i++) {
+				// make table for each item
+				lua_createtable(L, 0, 3);
+
+				lua_pushnumber(L, v[i].row);
+				lua_setfield(L, -2, "row");
+				lua_pushnumber(L, v[i].track);
+				lua_setfield(L, -2, "track");
+				LuaHelpers::Push<TapNoteSubType>(L, v[i].subType);
+				lua_setfield(L, -2, "TapNoteSubType");
+
+				lua_rawseti(L, -2, i + 1);
+			}
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
+	
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
 		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
@@ -2147,6 +2177,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetNoteRowVector);
 		ADD_METHOD(GetTrackVector);
 		ADD_METHOD(GetTapNoteTypeVector);
+		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetReplayType);
 		ADD_METHOD(GetJudgmentString);
