@@ -185,9 +185,11 @@ function getClearTypeFromScore(score, ret)
 		-- if the chart has no notes, you never played it even if you did
 		-- or if the score has no notes, same
 		-- this is useless information
-		if steps:GetRelevantRadars()[1] == 0 or totaltapcount == 0 then return 13 end
+		if steps:GetRelevantRadars()[1] == 0 or totaltapcount == 0 then
+			getClearTypeItem(13, ret)
+		end
 	end
 
 
-	return clearTypes(grade, playCount, perfcount, greatcount, misscount, ret) or typetable[12]
+	return clearTypes(grade, playCount, perfcount, greatcount, misscount, ret) or getClearTypeItem(12, ret)
 end
