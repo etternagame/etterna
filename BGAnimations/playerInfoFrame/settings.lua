@@ -91,10 +91,12 @@ local explanationTextWriteAnimationSeconds = 0.2
 local maxExplanationTextLines = 2
 
 -- lost patience
-local showingNoteskins = false
-local showingPreview = false
-local showingColor = false
-local showKeybinds = false
+-- undertaking this was a massive mistake
+-- hope you people like it
+SCUFF.showingNoteskins = false
+SCUFF.showingPreview = false
+SCUFF.showingColor = false
+SCUFF.showingKeybinds = false
 
 local t = Def.ActorFrame {
     Name = "SettingsFile",
@@ -147,15 +149,11 @@ local t = Def.ActorFrame {
     OptionCursorUpdatedMessageCommand = function(self, params)
         if params and params.name then
             -- will only work when hovering certain options
-            -- list the names of the options below
-            local optionsThatWillOpenTheLeftSideWhenHovered = {
-                Noteskin = true,
-            }
-            if optionsThatWillOpenTheLeftSideWhenHovered[params.name] ~= nil then
+            if SCUFF.optionsThatWillOpenTheLeftSideWhenHovered[params.name] ~= nil then
                 self:playcommand("ShowLeft", params)
             else
                 -- if moving off of the noteskin tab (without keybinds)
-                if showingNoteskins and not showKeybinds then
+                if SCUFF.showingNoteskins and not SCUFF.showingKeybinds then
                     self:playcommand("HideLeft")
                 end
             end
@@ -239,20 +237,20 @@ local function leftFrame()
             ShowLeftCommand = function(self, params)
                 if params and (params.name == "Noteskin" or params.name == "Customize Keybinds") then
                     if params.name == "Customize Keybinds" then
-                        showKeybinds = true
+                        SCUFF.showingKeybinds = true
                     else
-                        showKeybinds = false
+                        SCUFF.showingKeybinds = false
                     end
                     self:diffusealpha(1)
-                    showingNoteskins = true
+                    SCUFF.showingNoteskins = true
                 else
                     self:playcommand("HideLeft")
                 end
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
-                showingNoteskins = false
-                showKeybinds = false
+                SCUFF.showingNoteskins = false
+                SCUFF.showingKeybinds = false
             end,
         }
 
@@ -369,7 +367,7 @@ local function leftFrame()
                     self:y(secondrowYoffset * 2)
                 end,
                 ShowLeftCommand = function(self)
-                    if showKeybinds then
+                    if SCUFF.showingKeybinds then
                         self:diffusealpha(1)
                     else
                         self:diffusealpha(0)
@@ -428,16 +426,16 @@ local function leftFrame()
             Name = "PreviewPageContainer",
             ShowLeftCommand = function(self, params)
                 -- dont open the preview if left is already opened and it is being used
-                if params and params.name == "Preview" and not showingNoteskins and not showingColor then
+                if params and params.name == "Preview" and not SCUFF.showingNoteskins and not SCUFF.showingColor then
                     self:diffusealpha(1)
-                    showingPreview = true
+                    SCUFF.showingPreview = true
                 else
                     self:playcommand("HideLeft")
                 end
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
-                showingPreview = false
+                SCUFF.showingPreview = false
             end,
             
             -- the preview notefield (but not really)
@@ -476,14 +474,14 @@ local function leftFrame()
             ShowLeftCommand = function(self, params)
                 if params and params.name == "ColorConfig" then
                     self:diffusealpha(1)
-                    showingColor = true
+                    SCUFF.showingColor = true
                 else
                     self:playcommand("HideLeft")
                 end
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
-                showingColor = false
+                SCUFF.showingColor = false
             end,
         }
         return t

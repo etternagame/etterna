@@ -1,6 +1,10 @@
 -- this is like a singleton
 -- i have no regrets making this
 -- its just for global state dependent stuff that i didnt want to write into the game c++ or for some other reason related to being lazy
+-- like imagine wanting different files to interact with each other but not wanting to message broadcast and manage 1000 booleans in those files
+-- this is all of those bools but in one place instead
+-- ok now that i wrote out that explanation that sounds really bad
+-- who asked you anyways
 
 SCUFF = {}
 
@@ -23,3 +27,12 @@ SCUFF.preview = {
 -- change this before entering ScreenGameplaySyncMachine
 SCUFF.screenAfterSyncMachine = "ScreenOptionsInputSub"
 SCUFF.screenAfterSyncMachine_iter = 0
+
+-- interaction between wheel and settings
+SCUFF.optionsThatWillOpenTheLeftSideWhenHovered = {
+    Noteskin = true,
+}
+SCUFF.showingNoteskins = false
+SCUFF.showingPreview = false
+SCUFF.showingColor = false
+SCUFF.showingKeybinds = false
