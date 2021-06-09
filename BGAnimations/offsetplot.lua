@@ -38,7 +38,7 @@ local mineXSize = 3
 local mineXThickness = 1
 local mineColor = color("1,0,0,1")
 local rollColor = color("1,0,1,1")
-local holdColor = color("0,1,0,1")
+local holdColor = color("1,0,0,1")
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -183,15 +183,10 @@ end
 
 -- 2 pairs of 4 coordinates to draw a ^
 local function placeNoodleVertices(vertList, x, y, color)
-    vertList[#vertList + 1] = {{x - mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
-    vertList[#vertList + 1] = {{x + mineXThickness/2, y - mineXThickness, 0}, color}
-    vertList[#vertList + 1] = {{x - mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
-    vertList[#vertList + 1] = {{x - mineXThickness/2, y - mineXThickness, 0}, color}
-
-    vertList[#vertList + 1] = {{x + mineXSize + mineXThickness / 2, y + mineXSize, 0}, color}
-    vertList[#vertList + 1] = {{x + mineXThickness/2, y - mineXThickness, 0}, color}
-    vertList[#vertList + 1] = {{x + mineXSize - mineXThickness / 2, y + mineXSize, 0}, color}
-    vertList[#vertList + 1] = {{x - mineXThickness/2, y - mineXThickness, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXThickness / 2, y, 0}, color}
+    vertList[#vertList + 1] = {{x + mineXThickness / 2, y + mineXSize, 0}, color}
+    vertList[#vertList + 1] = {{x - mineXThickness / 2, y, 0}, color}
 end
 
 local t = Def.ActorFrame {
@@ -527,6 +522,7 @@ t[#t+1] = Def.ActorMultiVertex {
         end
 
         -- holds and rolls
+        --[[
         if holds ~= nil and #holds > 0 then
             for i, h in ipairs(holds) do
                 local row = h.row
@@ -538,6 +534,7 @@ t[#t+1] = Def.ActorMultiVertex {
                 placeNoodleVertices(vertices, x, fitY(-maxOffset, maxOffset), holdColor)
             end
         end
+        ]]
 
         -- animation breaks if we start from nothing
         if self:GetNumVertices() ~= 0 then
