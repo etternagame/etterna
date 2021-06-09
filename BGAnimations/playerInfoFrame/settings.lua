@@ -94,6 +94,7 @@ local maxExplanationTextLines = 2
 local showingNoteskins = false
 local showingPreview = false
 local showingColor = false
+local showKeybinds = false
 
 local t = Def.ActorFrame {
     Name = "SettingsFile",
@@ -152,6 +153,11 @@ local t = Def.ActorFrame {
             }
             if optionsThatWillOpenTheLeftSideWhenHovered[params.name] ~= nil then
                 self:playcommand("ShowLeft", params)
+            else
+                -- if moving off of the noteskin tab (without keybinds)
+                if showingNoteskins and not showKeybinds then
+                    self:playcommand("HideLeft")
+                end
             end
         end
     end,
@@ -223,10 +229,6 @@ local function leftFrame()
 
     -- the noteskin page function as noteskin preview and keybindings
     local function createNoteskinPage()
-        -- page state vars
-        -- if true, show keybinds under notes
-        local showKeybinds = false
-
         -- list of GameButtons we can map
         -- remember to pass calling indices through to ButtonIndexToCurGameColumn(x)
         local gameButtonsToMap = INPUTMAPPER:GetGameButtonsToMap()
@@ -250,6 +252,7 @@ local function leftFrame()
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
                 showingNoteskins = false
+                showKeybinds = false
             end,
         }
 
