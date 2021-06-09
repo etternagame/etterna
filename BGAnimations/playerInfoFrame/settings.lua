@@ -398,13 +398,11 @@ local function leftFrame()
         return t
     end
 
+    -- the notefield preview, an optional showcase of what mods are doing
+    -- literally a copy of chart preview -- an ActorProxy
     local function createPreviewPage()
-
         local t = Def.ActorFrame {
             Name = "PreviewPageContainer",
-            InitCommand = function(self)
-
-            end,
             ShowLeftCommand = function(self, params)
                 if params and params.name == "Preview" then
                     self:diffusealpha(1)
@@ -2577,6 +2575,7 @@ local function rightFrame()
             local txt = actorToHover:GetChild("Text")
             local cursorActor = optionRowContainer:GetChild("OptionCursor")
             local xp = txt:GetTrueX() - optionRowContainer:GetTrueX()
+            local beforeYPos = cursorActor:GetY()
 
             -- these positions should be relative to optionRowContainer so it should work out fine
             cursorActor:finishtweening()
@@ -2584,6 +2583,9 @@ local function rightFrame()
             cursorActor:xy(xp, optionRowFrame:GetY() + actorToHover:GetY() + txt:GetY())
             cursorActor:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.5)
 
+            -- tell the game that we moved the option cursor to this row
+            -- dont care if it didnt move
+            MESSAGEMAN:Broadcast("OptionCursorUpdated", {name = optionRowDef.Name, choiceName = txt:GetText()})
         end
 
         -- function for pressing enter wherever the cursor is
