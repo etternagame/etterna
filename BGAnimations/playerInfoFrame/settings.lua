@@ -3755,7 +3755,8 @@ local function rightFrame()
                         end,
                         SetChoiceTextCommand = function(self)
                             -- THIS DOES NOT DO BUTTON WORK
-                            -- RUN IN CONJUNCTION WITH DRAWCHOICE
+                            -- RUN COMMANDS IN THIS ORDER: SetChoiceText -> ??? -> DrawChoice
+                            -- That will properly update the text and choices and everything "nicely"
                             local txt = self:GetChild("Text")
                             txt:maxwidth(actuals.OptionChoiceAllottedWidth / choiceTextSize)
                             if optionDef ~= nil then
