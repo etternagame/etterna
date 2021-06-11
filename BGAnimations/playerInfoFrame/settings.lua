@@ -2758,6 +2758,7 @@ local function rightFrame()
 
         -- function specifically for mouse hovering moving the cursor to run logic found in the above functions and more
         local function setCursorVerticalHorizontalPos(rowFrame, choice)
+            if rowFrame == nil or rowFrame.defInUse == nil then return end -- apparently these can be nil? DONT KNOW HOW THATS PROBABLY REALLY BAD
             local n = getRowIndexByName(rowFrame.defInUse.Name)
             if choice == nil then choice = availableCursorPositions[n].HighlightedChoice end
 
@@ -3961,7 +3962,6 @@ local function rightFrame()
                 return t
             end
             t[#t+1] = createOptionRowChoices()
-            
             return t
         end
         for i = 1, optionRowCount do
