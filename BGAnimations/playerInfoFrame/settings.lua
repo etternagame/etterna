@@ -607,16 +607,18 @@ local function rightFrame()
             InitCommand = function(self)
                 local txt = self:GetChild("Text")
                 local bg = self:GetChild("BG")
+                txt:halign(0)
                 txt:zoom(previewButtonTextSize)
                 txt:maxwidth(actuals.RightWidth / 2 / previewButtonTextSize - textZoomFudge)
                 txt:settext("Toggle Chart Preview")
 
                 -- fudge movement due to font misalign
+                bg:halign(0)
                 bg:y(1)
-                bg:zoomto(txt:GetZoomedWidth() * 1.1, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 bg:diffusealpha(0.2)
 
-                self:xy(actuals.RightWidth / 4 * 3, actuals.Height - actuals.BottomLipHeight - actuals.BottomLipHeight/4)
+                self:xy(actuals.EdgePadding, actuals.Height - actuals.BottomLipHeight - actuals.BottomLipHeight/4)
             end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -915,8 +917,8 @@ local function rightFrame()
     --
     -- -----
 
-    local optionRowCount = 17
-    local maxChoicesVisibleMultiChoice = 4
+    local optionRowCount = 17 -- weird behavior if you mess with this and have too many options in a category
+    local maxChoicesVisibleMultiChoice = 4 -- max number of choices visible in a MultiChoice OptionRow
 
     -- the names and order of the option pages
     -- these values must correspond to the keys of optionPageCategoryLists
@@ -3110,7 +3112,8 @@ local function rightFrame()
                 Name = "OptionRow_"..i,
                 InitCommand = function(self)
                     self:x(actuals.EdgePadding)
-                    self:y((actuals.OptionAllottedHeight / #rowChoiceCount) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
+                    -- why the -1.5? to squish the options just a tiny bit and allow room for chart preview toggle
+                    self:y((actuals.OptionAllottedHeight / #rowChoiceCount-1.5) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
                     rowHandle = self
                 end,
                 SetChoicePageCommand = function(self, params)
