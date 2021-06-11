@@ -2897,6 +2897,7 @@ local function rightFrame()
                         local left = gameButton == "MenuLeft" or gameButton == "Left"
                         local enter = gameButton == "Start"
                         local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+                        local previewbutton = key == "DeviceButton_space"
 
                         if up then
                             cursorUp(1)
@@ -2908,6 +2909,14 @@ local function rightFrame()
                             cursorRight(1, ctrl)
                         elseif enter then
                             invokeCurrentCursorPosition()
+                        elseif previewbutton then
+                            -- allow turning off chart preview if on
+                            -- allow turning it on if not in a position where doing so is impossible
+                            if SCUFF.showingPreview then
+                                MESSAGEMAN:Broadcast("ShowSettingsAlt")
+                            elseif not SCUFF.showingPreview and not SCUFF.showingKeybinds and not SCUFF.showingNoteskins and not SCUFF.showingColor then
+                                MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Preview"})
+                            end
                         else
                             -- nothing happens
                             return
