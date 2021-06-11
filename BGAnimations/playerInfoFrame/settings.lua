@@ -75,6 +75,7 @@ local textZoomFudge = 5
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
+local previewButtonTextSize = 0.8
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
@@ -598,6 +599,37 @@ local function rightFrame()
                 self:sleep(explanationTextWriteAnimationSeconds / #self.txt)
                 if self.pos < #self.txt then
                     self:queuecommand("_explainloop")
+                end
+            end,
+        },
+        UIElements.TextButton(1, 1, "Common Normal") .. {
+            Name = "PreviewToggle",
+            InitCommand = function(self)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
+                txt:zoom(previewButtonTextSize)
+                txt:maxwidth(actuals.RightWidth / 2 / previewButtonTextSize - textZoomFudge)
+                txt:settext("Toggle Chart Preview")
+
+                -- fudge movement due to font misalign
+                bg:y(1)
+                bg:zoomto(txt:GetZoomedWidth() * 1.1, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                bg:diffusealpha(0.2)
+
+                self:xy(actuals.RightWidth / 4 * 3, actuals.Height - actuals.BottomLipHeight - actuals.BottomLipHeight/4)
+            end,
+            RolloverUpdateCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "in" then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end,
+            ClickCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "OnMouseDown" then
+                    MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Preview"})
                 end
             end,
         }
