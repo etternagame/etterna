@@ -74,6 +74,7 @@ local textZoomFudge = 5
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
+local previewOpenedAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local previewButtonTextSize = 0.8
 
@@ -432,6 +433,7 @@ local function leftFrame()
                 if params and params.name == "Preview" and not SCUFF.showingNoteskins and not SCUFF.showingColor then
                     self:diffusealpha(1)
                     SCUFF.showingPreview = true
+                    MESSAGEMAN:Broadcast("PreviewPageOpenStatusChanged", {opened = true})
                 else
                     self:playcommand("HideLeft")
                 end
@@ -439,6 +441,7 @@ local function leftFrame()
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
                 SCUFF.showingPreview = false
+                MESSAGEMAN:Broadcast("PreviewPageOpenStatusChanged", {opened = false})
             end,
             
             -- the preview notefield (but not really)
@@ -619,14 +622,25 @@ local function rightFrame()
                 bg:diffusealpha(0.2)
 
                 self:xy(actuals.EdgePadding, actuals.Height - actuals.BottomLipHeight - actuals.BottomLipHeight/4)
+                -- is this being lazy or being big brained? ive stored functions and variables within an actor instance
+                self.opened = false
+                self.alphaDeterminingFunction = function(self)
+                    local alphamultiplier = self.opened and previewOpenedAlpha or 1
+                    local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                    local finalalpha = 1 * hovermultiplier * alphamultiplier
+                    self:diffusealpha(finalalpha)
+                end
+            end,
+            PreviewPageOpenStatusChangedMessageCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params and params.opened ~= nil then
+                    self.opened = params.opened
+                    self:alphaDeterminingFunction()
+                end
             end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
-                if params.update == "in" then
-                    self:diffusealpha(buttonHoverAlpha)
-                else
-                    self:diffusealpha(1)
-                end
+                self:alphaDeterminingFunction()
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
