@@ -2903,6 +2903,7 @@ local function rightFrame()
                         local enter = gameButton == "Start"
                         local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
                         local previewbutton = key == "DeviceButton_space"
+                        local back = key == "DeviceButton_escape"
 
                         if up then
                             cursorUp(1)
@@ -2922,6 +2923,9 @@ local function rightFrame()
                             elseif not SCUFF.showingPreview and not SCUFF.showingKeybinds and not SCUFF.showingNoteskins and not SCUFF.showingColor then
                                 MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Preview"})
                             end
+                        elseif back then
+                            -- shortcut to exit back to general
+                            MESSAGEMAN:Broadcast("GeneralTabSet")
                         else
                             -- nothing happens
                             return
