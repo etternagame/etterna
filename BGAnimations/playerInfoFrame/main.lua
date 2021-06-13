@@ -129,6 +129,9 @@ local screensAllowedForButtons = {
     Search = {
         ScreenSelectMusic = true,
     },
+    AssetSettings = {
+        ScreenSelectMusic = true,
+    },
 }
 
 -- find out if a button from the above list is selectable based on the current screen
@@ -260,7 +263,7 @@ t[#t+1] = Def.Quad {
     end
 }
 
-t[#t+1] = Def.Sprite {
+t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     Name = "Avatar",
     InitCommand = function(self)
         self:halign(0):valign(0)
@@ -268,6 +271,29 @@ t[#t+1] = Def.Sprite {
     BeginCommand = function(self)
         self:Load(getAvatarPath(PLAYER_1))
         self:zoomto(actuals.AvatarWidth, actuals.AvatarWidth)
+    end,
+    MouseOverCommand = function(self)
+        if selectable("AssetSettings") then
+            self:diffusealpha(hoverAlpha)
+        end
+    end,
+    MouseOutCommand = function(self)
+        if selectable("AssetSettings") then
+            self:diffusealpha(1)
+        end
+    end,
+    InvokeCommand = function(self)
+        if selectable("AssetSettings") then
+            -- if clicking or otherwise invoking this twice, just toggle back to generalBox
+            if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "AssetSettings") then
+                MESSAGEMAN:Broadcast("GeneralTabSet")
+            else
+                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings"})
+            end
+        end
+    end,
+    MouseDownCommand = function(self, params)
+        self:playcommand("Invoke")
     end
 }
 
@@ -458,6 +484,7 @@ t[#t+1] = Def.ActorFrame {
                 "Search",
                 "Downloads",
                 "Settings",
+                "AssetSettings",
             }
             local ctxBypasses = false
             for _, ctx in ipairs(contextsToCtrlOutOf) do
@@ -819,6 +846,10 @@ end
 
 if selectable("Search") then
     t[#t+1] = LoadActor("searchfilter.lua")
+end
+
+if selectable("AssetSettings") then
+    t[#t+1] = LoadActor("assetsettings.lua")
 end
 
 return t
