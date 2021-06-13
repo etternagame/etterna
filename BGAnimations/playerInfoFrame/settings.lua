@@ -111,6 +111,12 @@ local t = Def.ActorFrame {
     GeneralTabSetMessageCommand = function(self, params)
         -- if we ever get this message we need to hide the frame and just exit.
         focused = false
+        self:finishtweening()
+        self:smooth(animationSeconds)
+        self:diffusealpha(0)
+        self:playcommand("HideLeft")
+        self:playcommand("HideRight")
+        MESSAGEMAN:Broadcast("ShowWheel")
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self, params)
         if params.tab and params.tab == "Settings" then
@@ -127,7 +133,6 @@ local t = Def.ActorFrame {
             self:playcommand("HideLeft")
             MESSAGEMAN:Broadcast("ShowWheel")
         else
-
             self:finishtweening()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
