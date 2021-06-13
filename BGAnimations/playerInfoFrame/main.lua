@@ -287,6 +287,12 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
         end
         self:zoomto(actuals.ConnectionLogoSize, actuals.ConnectionLogoSize)
     end,
+    MouseOverCommand = function(self)
+        self:diffusealpha(hoverAlpha)
+    end,
+    MouseOutCommand = function(self)
+        self:diffusealpha(1)
+    end,
     MouseDownCommand = function(self, params)
         if params.event == "DeviceButton_left mouse button" then
             if DLMAN:IsLoggedIn() then
