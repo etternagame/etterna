@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageTypes.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include <algorithm>
 
@@ -78,13 +79,42 @@ RageColor::NormalizeColorString(const std::string& sColor)
 	return c.ToString();
 }
 
-void
-lerp_rage_color(RageColor& out, RageColor const& a, RageColor const& b, float t)
+RageColor
+RageColor::Lerp(RageColor const& a, RageColor const& b, float t)
 {
-	out.b = lerp(t, a.b, b.b);
-	out.g = lerp(t, a.g, b.g);
-	out.r = lerp(t, a.r, b.r);
-	out.a = lerp(t, a.a, b.a);
+	return RageColor(
+		lerp(t, a.r, b.r),
+		lerp(t, a.g, b.g),
+		lerp(t, a.b, b.b),
+		lerp(t, a.a, b.a)
+	);
+}
+
+RageColor
+RageColor::FromHue(float hue)
+{
+	hue = std::remainder(hue, 360);
+
+	auto red = RageColor(1, 0, 0, 0);
+	auto yellow = RageColor(1, 1, 0, 0);
+	auto green = RageColor(0, 1, 0, 0);
+	auto cyan = RageColor(0, 1, 1, 0);
+	auto blue = RageColor(0, 0, 1, 0);
+	auto magenta = RageColor(1, 0, 1, 0);
+
+	if (hue < 60) {
+		return RageColor::Lerp(red, yellow, hue / 60);
+	} else if (hue < 120) {
+		return RageColor::Lerp(yellow, green, (hue - 60) / 60);
+	} else if (hue < 180) {
+		return RageColor::Lerp(green, cyan, (hue - 120) / 60);
+	} else if (hue < 240) {
+		return RageColor::Lerp(cyan, blue, (hue - 180) / 60);
+	} else if (hue < 300) {
+		return RageColor::Lerp(blue, magenta, (hue - 240) / 60);
+	} else {
+		return RageColor::Lerp(magenta, red, (hue - 300) / 60);
+	}
 }
 
 void
@@ -220,11 +250,10 @@ LuaFunc_lerp_color(lua_State* L)
 	// Args:  percent, color, color
 	// Returns:  color
 	const auto percent = FArg(1);
-	RageColor a, b, c;
+	RageColor a, b;
 	a.FromStack(L, 2);
 	b.FromStack(L, 3);
-	lerp_rage_color(c, a, b, percent);
-	c.PushTable(L);
+	RageColor::Lerp(a, b, percent).PushTable(L);
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(lerp_color);

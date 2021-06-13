@@ -347,6 +347,11 @@ struct RageColor
 	{
 	}
 
+	// Input should be in range 0-360
+	static RageColor FromHue(float hue);
+
+	static RageColor Lerp(RageColor const& a, RageColor const& b, float t);
+
 	// casting
 	operator float*() { return &r; };
 	operator const float*() const { return &r; };
