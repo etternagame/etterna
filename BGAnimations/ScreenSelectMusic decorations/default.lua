@@ -1,5 +1,7 @@
 local t = Def.ActorFrame {}
 
+-- tracking the right frame - the box containing song info and the general tabs
+-- this is not the right frame which pops up from off screen, that is the PlayerInfoFrame
 local rightFrameVisible = true
 
 t[#t+1] = LoadActor("wheel")
