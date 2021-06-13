@@ -451,6 +451,7 @@ t[#t+1] = Def.ActorFrame {
             local contextsToCtrlOutOf = {
                 "Search",
                 "Downloads",
+                "Settings",
             }
             local ctxBypasses = false
             for _, ctx in ipairs(contextsToCtrlOutOf) do
