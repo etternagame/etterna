@@ -507,11 +507,12 @@ local function goalList()
         local div3X = div2X + percentW
         local msdW = remainingWidth / 60 * 13 - actuals.IconWidth * 2 -- above comment -- 13/60
         local msdX = div3X + msdW/2
+        local itemHeight = (actuals.ItemAllottedSpace / (goalItemCount - 1))
 
         return Def.ActorFrame {
             Name = "GoalItemFrame_"..i,
             InitCommand = function(self)
-                self:y((actuals.ItemAllottedSpace / (goalItemCount - 1)) * (i-1) + actuals.ItemListUpperGap + actuals.UpperLipHeight)
+                self:y(itemHeight * (i-1) + actuals.ItemListUpperGap + actuals.UpperLipHeight)
             end,
             UpdateGoalListCommand = function(self)
                 index = (page - 1) * goalItemCount + i
@@ -527,6 +528,16 @@ local function goalList()
                 end
             end,
         
+            Def.Quad {
+                Name = "BG",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:valign(0)
+                    self:zoomto(itemWidth, itemHeight * 0.95)
+                    self:y(-itemHeight/8)
+                    self:diffusealpha(0.1)
+                end,
+            },
             UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "Priority",
                 InitCommand = function(self)
