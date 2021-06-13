@@ -34,7 +34,7 @@ local ratios = {
     LipSeparatorThickness = 2 / 1080,
     
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
-    PageNumberUpperGap = 525 / 1080, -- bottom of upper lip to top of text
+    PageNumberUpperGap = 48 / 1080, -- bottom of upper lip to top of text
 
     ItemListUpperGap = 35 / 1080, -- bottom of upper lip to top of topmost item
     ItemAllottedSpace = 405 / 1080, -- top of topmost item to top of bottommost item
@@ -79,7 +79,7 @@ end
 
 local goalLine1TextSize = 0.85
 local goalLine2TextSize = 0.75
-local pageTextSize = 0.9
+local pageTextSize = 0.7
 
 -- our fontpage SUCKS so this should make things look better
 -- undo this if the fontpage doesnt SUCK

@@ -52,7 +52,7 @@ local ratios = {
     ItemUpperSpacing = 68 / 1080, -- top of frame to top of text, to push all the items down
 
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
-    PageTextUpperGap = 525 / 1080, -- top of frame, top of text
+    PageTextUpperGap = 48 / 1080, -- top of frame, top of text
 
     ItemWidth = 776 / 1920, -- this should just be frame width
     ItemHeight = 45 / 1080, -- rough approximation of height (top of text to somewhere down below)
@@ -208,7 +208,7 @@ local nameTextSize = 0.9
 local judgmentTextSize = 0.6
 local wifePercentTextSize = 0.92
 local dateTextSize = 0.6
-local pageTextSize = 0.9
+local pageTextSize = 0.7
 local loadingTextSize = 0.9
 local textzoomFudge = 5
 

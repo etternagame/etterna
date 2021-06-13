@@ -27,7 +27,8 @@ local ratios = {
     LipSeparatorThickness = 2 / 1080,
 
     MainIndicatorLeftGap = 12 / 1920, -- left edge to left edge of text, this is the online/local thing
-    MainIndicatorUpperGap = 52 / 1080,
+    MainIndicatorUpperGap = 48 / 1080,
+    PageTextRightGap = 33 / 1920, -- right of frame, right of text
     ItemIndexMargin = 29 / 1920, -- left edge to center of the indices
     ItemSSRRightAlignLeftGap = 129 / 1920, -- left edge to right edge of SSR
     ItemSSRWidth = 70 / 1920, -- rough estimation
@@ -64,6 +65,7 @@ local actuals = {
     LipSeparatorThickness = ratios.LipSeparatorThickness * SCREEN_HEIGHT,
     MainIndicatorLeftGap = ratios.MainIndicatorLeftGap * SCREEN_WIDTH,
     MainIndicatorUpperGap = ratios.MainIndicatorUpperGap * SCREEN_HEIGHT,
+    PageTextRightGap = ratios.PageTextRightGap * SCREEN_WIDTH,
     ItemIndexMargin = ratios.ItemIndexMargin * SCREEN_WIDTH,
     ItemSSRRightAlignLeftGap = ratios.ItemSSRRightAlignLeftGap * SCREEN_WIDTH,
     ItemSSRWidth = ratios.ItemSSRWidth * SCREEN_WIDTH,
@@ -1189,9 +1191,10 @@ local function createList()
         Name = "PageText",
         InitCommand = function(self)
             self:halign(1):valign(0)
-            self:xy(actuals.ItemDiffRightAlignLeftGap, actuals.MainIndicatorUpperGap)
+            self:xy(actuals.Width - actuals.PageTextRightGap, actuals.MainIndicatorUpperGap)
             self:zoom(pageTextSize)
-            self:maxwidth((actuals.ItemDiffRightAlignLeftGap - actuals.ItemRateRightAlignLeftGap) / pageTextSize - textzoomFudge)
+            -- oddly precise max width but this should fit with the original size
+            self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
         end,
         UpdateListCommand = function(self)
             local lb = clamp((page-1) * (itemCount) + 1, 0, #scores)

@@ -37,7 +37,7 @@ local ratios = {
     LipSeparatorThickness = 2 / 1080,
     
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
-    PageNumberUpperGap = 525 / 1080, -- bottom of upper lip to top of text
+    PageNumberUpperGap = 48 / 1080, -- bottom of upper lip to top of text
 
     ItemListUpperGap = 35 / 1080, -- bottom of upper lip to top of topmost item
     ItemAllottedSpace = 435 / 1080, -- top of topmost item to top of bottommost item
@@ -69,7 +69,7 @@ do
 end
 
 local tagTextSize = 1.2
-local pageTextSize = 0.9
+local pageTextSize = 0.7
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
