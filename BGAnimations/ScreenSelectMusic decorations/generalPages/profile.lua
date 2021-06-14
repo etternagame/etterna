@@ -888,6 +888,9 @@ local function createList()
                     self:halign(0):valign(0)
                     self:xy(actuals.AvatarLeftGap, actuals.InfoUpperMargin)
                 end,
+                AvatarChangedMessageCommand = function(self)
+                    self:playcommand("Set")
+                end,
                 SetCommand = function(self)
                     self:Load(getAvatarPath(PLAYER_1))
                     self:zoomto(actuals.AvatarSize, actuals.AvatarSize)

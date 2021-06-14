@@ -269,6 +269,12 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
         self:halign(0):valign(0)
     end,
     BeginCommand = function(self)
+        self:playcommand("Set")
+    end,
+    AvatarChangedMessageCommand = function(self)
+        self:playcommand("Set")
+    end,
+    SetCommand = function(self)
         self:Load(getAvatarPath(PLAYER_1))
         self:zoomto(actuals.AvatarWidth, actuals.AvatarWidth)
     end,

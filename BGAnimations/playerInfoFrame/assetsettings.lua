@@ -1,7 +1,5 @@
 -- a large amount of this file is copy pasted and adapted from til death and spawncamping-wallhack
 -- things are cleaned up a bit to try to match the format of the rest of this theme
--- but i did this so late in making this theme so...
--- this is garbage
 local ratios = {
     Width = 782 / 1920,
     Height = 971 / 1080,
@@ -72,9 +70,7 @@ local assetPathTextSize = 0.7
 
 local pageTextSize = 0.7
 local textZoomFudge = 5
-local pageAnimationSeconds = 0.01
 local buttonHoverAlpha = 0.6
-local buttonEnabledAlphaMultiplier = 0.8 -- this is multiplied to the current alpha (including the hover alpha) if "clicked"
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
 t[#t+1] = Def.Quad {
