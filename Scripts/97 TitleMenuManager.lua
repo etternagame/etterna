@@ -5,6 +5,7 @@
 
 TITLE = {
     scrollerFocused = true, -- focused on the main choices
+    nextScreen = "ScreenTitleMenu"
 }
 
 function TITLE.GetFocus(self)
@@ -24,7 +25,13 @@ function TITLE.HandleFinalGameStart(self)
     self.scrollerFocused = true
     GAMESTATE:LoadProfiles(false)
 
-    SCREENMAN:SetNewScreen("ScreenSelectMusic")
+    local top = SCREENMAN:GetTopScreen()
+    TITLE.nextScreen = "ScreenSelectMusic"
+    top:PostScreenMessage("SM_BeginFadingOut", 0)
+end
+
+function TITLE.NextFromTitle()
+    return TITLE.nextScreen
 end
 
 function TITLE.GameStartOnTheScroller(pn)
