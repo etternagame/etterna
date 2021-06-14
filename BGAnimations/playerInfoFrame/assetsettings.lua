@@ -1,6 +1,7 @@
 -- a large amount of this file is copy pasted and adapted from til death and spawncamping-wallhack
 -- things are cleaned up a bit to try to match the format of the rest of this theme
 -- but i did this so late in making this theme so...
+-- this is garbage
 local ratios = {
     Width = 782 / 1920,
     Height = 971 / 1080,
@@ -67,8 +68,9 @@ local t = Def.ActorFrame {
 
 local titleTextSize = 0.8
 local choiceTextSize = 1
+local assetPathTextSize = 0.7
 
-local pageTextSize = 0.5
+local pageTextSize = 0.7
 local textZoomFudge = 5
 local pageAnimationSeconds = 0.01
 local buttonHoverAlpha = 0.6
@@ -455,10 +457,57 @@ local function assetList()
                 self:zoom(pageTextSize)
                 self:maxwidth((actuals.Width - actuals.PageTextRightGap) / pageTextSize - textZoomFudge)
             end,
-            UpdateItemListCommand = function(self)
-                -- local lb = clamp((page-1) * (itemCount) + 1, 0, #packlisting)
-                -- local ub = clamp(page * itemCount, 0, #packlisting)
-                -- self:settextf("%d-%d/%d", lb, ub, #packlisting)
+            UpdatingAssetsMessageCommand = function(self, params)
+                local lb = clamp((curPage-1) * (maxColumns*maxRows) + 1, 0, #assetTable)
+                local ub = clamp(curPage * maxColumns * maxRows, 0, #assetTable)
+                self:settextf("%d-%d/%d", lb, ub, #assetTable)
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "CurrentPath",
+            InitCommand = function(self)
+                self:zoom(assetPathTextSize)
+                self:halign(0)
+                self:xy(actuals.EdgePadding, actuals.TopLipHeight + actuals.PageTextUpperGap)
+                self:maxwidth((actuals.Width - actuals.EdgePadding) / assetPathTextSize - textZoomFudge)
+            end,
+            SetCommand = function(self)
+                local type = assetTable[getIndex()]
+                local out = ""
+                if type ~= nil then
+                    out = type:gsub("^%l", string.upper)
+                end
+                self:settextf("Hovered: %s", out)
+            end,
+            CursorMovedMessageCommand = function(self)
+                self:queuecommand("Set")
+            end,
+            UpdateFinishedMessageCommand = function(self)
+                self:queuecommand("Set")
+            end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "SelectedPath",
+            InitCommand = function(self)
+                self:zoom(assetPathTextSize)
+                self:halign(0)
+                -- extremely scuffed y position
+                self:xy(actuals.EdgePadding, actuals.TopLipHeight + actuals.PageTextUpperGap + actuals.PageTextUpperGap/2)
+                self:maxwidth((actuals.Width - actuals.EdgePadding) / assetPathTextSize - textZoomFudge)
+            end,
+            SetCommand = function(self)
+                local type = assetTable[selectedIndex]
+                local out = ""
+                if type ~= nil then
+                    out = type:gsub("^%l", string.upper)
+                end
+                self:settextf("Selected: %s", out)
+            end,
+            PickChangedMessageCommand = function(self)
+                self:queuecommand("Set")
+            end,
+            UpdateFinishedMessageCommand = function(self)
+                self:queuecommand("Set")
             end
         },
     }
@@ -590,20 +639,9 @@ local function assetList()
                     self:playcommand("Deselect")
                 end
             end,
-            MouseLeftClickMessageCommand = function(self)
-                if isOver(self) and assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
-                    if lastClickedIndex == i then
-                        confirmPick()
-                    end
-                    local prev = curIndex
-                    lastClickedIndex = i
-                    curIndex = i
-                    MESSAGEMAN:Broadcast("CursorMoved",{index = i, prevIndex = prev})
-                end
-            end
         }
         
-        t[#t+1] = Def.Sprite {
+        t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
             Name = "Image",
             LoadAssetCommand = function(self)
                 local assets = findAssetsForPath(name)
@@ -633,7 +671,28 @@ local function assetList()
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
                 end
-            end
+            end,
+            MouseDownCommand = function(self)
+                if assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
+                    if lastClickedIndex == i then
+                        confirmPick()
+                    end
+                    local prev = curIndex
+                    lastClickedIndex = i
+                    curIndex = i
+                    MESSAGEMAN:Broadcast("CursorMoved",{index = i, prevIndex = prev})
+                end
+            end,
+            MouseOverCommand = function(self)
+                if not self:IsInvisible() then
+                    self:diffusealpha(buttonHoverAlpha)
+                end
+            end,
+            MouseOutCommand = function(self)
+                if not self:IsInvisible() then
+                    self:diffusealpha(1)
+                end
+            end,
         }
         
         t[#t+1] = Def.Sound {
