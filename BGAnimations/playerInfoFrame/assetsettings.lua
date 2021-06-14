@@ -272,6 +272,21 @@ local function assetList()
         co = coroutine.create(updateImages)
     end
 
+    -- compatibility function to cope with copy pasta and lack of care
+    -- make sure this roughly follows the assetTypes list constructed above
+    local function groupSet(groupname)
+        local groupnameorder = {
+            toasty = 1,
+            avatar = 2,
+            judgment = 3,
+        }
+        if groupnameorder[groupname] == nil then return end
+        local cur = curType
+        local goal = groupnameorder[groupname]
+        local movementamount = goal - cur
+        loadAssetType(cur + movementamount)
+    end
+
     -- Get cursor index
     local function getIndex()
         local out = ((curPage-1) * maxColumns * maxRows) + curIndex
