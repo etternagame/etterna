@@ -140,7 +140,7 @@ local function assetList()
     local frameHeight = actuals.Height - actuals.TopLipHeight*2
     local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT) -- this was designed for 16:9 so compensate
     local squareWidth = 50 / aspectRatioProportion -- adjust for aspect ratio
-    local judgmentWidth = 125 / aspectRatioProportion -- same
+    local judgmentWidth = 75 / aspectRatioProportion -- same
     local assetWidth = squareWidth
     local assetHeight = 50 / aspectRatioProportion -- same
     local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
