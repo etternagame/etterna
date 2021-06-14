@@ -264,8 +264,8 @@ local function assetList()
 
     -- move and load asset type forward/backward
     local function loadAssetType(n)
-        if n < 1 then n = 1 end
-        if n > #assetTypes then n = #assetTypes end
+        if n < 1 then n = #assetTypes end
+        if n > #assetTypes then n = 1 end
         lastClickedIndex = 0
         curPage = 1
         curType = n
