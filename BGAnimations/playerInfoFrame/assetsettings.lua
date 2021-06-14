@@ -112,19 +112,210 @@ local function assetList()
     local maxPage = 1
     local settingsframe = nil
 
-    local function movePage(n)
-        if maxPage <= 1 then
-            return
+    local curType = 1
+    local assetTypes = {}
+    for k,v in pairs(assetFolders) do
+        assetTypes[curType] = k
+        curType = curType + 1
+    end
+    curType = 2
+
+    local maxPage = 1
+    local curPage = 1
+    local maxRows = 5
+    local maxColumns = 5
+    local curIndex = 1
+    local selectedIndex = 0
+    local GUID = profile:GetGUID()
+    local curPath = ""
+    local lastClickedIndex = 0
+
+    local assetTable = {}
+
+    local frameWidth = SCREEN_WIDTH - 20
+    local frameHeight = SCREEN_HEIGHT - 40
+    local squareWidth = 50
+    local judgmentWidth = 125
+    local assetWidth = squareWidth
+    local assetHeight = 50
+    local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
+    local assetYSpacing = (frameHeight - 20) / (maxRows + 1)
+
+    local co -- for async loading images
+
+    local function findIndexForCurPage()
+        local type = assetTypes[curType]
+        for i = 1+((curPage-1)*maxColumns*maxRows), 1+((curPage)*maxColumns*maxRows) do
+            if assetTable[i] == nil then return nil end
+            if assetFolders[type] .. assetTable[i] == curPath then
+                return i
+            end
+        end
+    end
+
+    local function findPickedIndexForCurPage()
+        local type = assetTypes[curType]
+        for i = 1, #assetTable do
+            if assetTable[i] == nil then return nil end
+            if assetFolders[type] .. assetTable[i] == selectedPath then
+                return i
+            end
+        end
+    end
+
+    local function isImage(filename)
+        local extensions = {".png", ".jpg", "jpeg"} -- lazy list
+        local ext = string.sub(filename, #filename-3)
+        for i=1, #extensions do
+            if extensions[i] == ext then return true end
+        end
+        return false
+    end
+
+    local function isAudio(filename)
+        local extensions = {".wav", ".mp3", ".ogg", ".mp4"} -- lazy to check and put in names
+        local ext = string.sub(filename, #filename-3)
+        for i=1, #extensions do
+            if extensions[i] == ext then return true end
+        end
+        return false
+    end
+
+    local function getImagePath(path, assets) -- expecting a table of asset paths where fallbacks are default
+        for i=1, #assets do
+            if isImage(assets[i]) then
+                return path .. "/" .. assets[i]
+            end
+        end
+        return assetsFolder .. assetFolders[assetTypes[curType]] .. getDefaultAssetByType(assetType[curType]) .. "/default.png"
+    end
+    local function getSoundPath(path, assets) -- expecting a table of asset paths where fallbacks are default
+        for i=1, #assets do
+            if isAudio(assets[i]) then
+                return path .. "/" .. assets[i]
+            end
+        end
+        return assetsFolder .. assetFolders[assetTypes[curType]] .. getDefaultAssetByType(assetTypes[curType]) .. "/default.ogg"
+    end
+
+    local function containsDirsOnly(dirlisting)
+        if #dirlisting == 0 then return true end
+        for i=1, #dirlisting do
+            if isImage(dirlisting[i]) or isAudio(dirlisting[i]) then
+                return false
+            end
+        end
+        return true
+    end
+
+    local function loadAssetTable() -- load asset table for current type
+        local type = assetTypes[curType]
+        curPath = getAssetByType(type, GUID)
+        selectedPath = getAssetByType(type, GUID)
+        local dirlisting = FILEMAN:GetDirListing(assetFolders[type])
+        if containsDirsOnly(dirlisting) then
+            assetTable = dirlisting
+        else
+            assetTable = filter(isImage, dirlisting)
+        end
+        maxPage = math.max(1, math.ceil(#assetTable/(maxColumns * maxRows)))
+        local ind = findIndexForCurPage()
+        local pickind = findPickedIndexForCurPage()
+        if pickind ~= nil then selectedIndex = pickind end
+        if ind ~= nil then curIndex = ind end
+    end
+
+    local function confirmPick() -- select the asset in the current index for use ingame
+        if curIndex == 0 then return end
+        local type = assetTypes[curType]
+        local name = assetTable[lastClickedIndex+((curPage-1)*maxColumns*maxRows)]
+        if name == nil then return end
+        local path = assetFolders[type] .. name
+        curPath = path
+        selectedPath = path
+        selectedIndex = curIndex
+
+        setAssetsByType(type, GUID, path)
+
+        MESSAGEMAN:Broadcast("PickChanged")
+        if type == "avatar" then
+            MESSAGEMAN:Broadcast("AvatarChanged")
+        end
+    end
+
+    local function updateImages() -- Update all image actors (sprites)
+        loadAssetTable()
+        MESSAGEMAN:Broadcast("UpdatingAssets", {name = assetTypes[curType]})
+        for i=1, math.min(maxRows * maxColumns, #assetTable) do
+            MESSAGEMAN:Broadcast("UpdateAsset", {index = i})
+            coroutine.yield()
+        end
+        MESSAGEMAN:Broadcast("UpdateFinished")
+    end
+
+    local function loadAssetType(n) -- move and load asset type forward/backward
+        if n < 1 then n = 1 end
+        if n > #assetTypes then n = #assetTypes end
+        lastClickedIndex = 0
+        curPage = 1
+        curType = n
+        co = coroutine.create(updateImages)
+    end
+
+    local function getIndex() -- Get cursor index
+        local out = ((curPage-1) * maxColumns * maxRows) + curIndex
+        return out
+    end
+
+    local function getSelectedIndex() -- Get cursor index
+        local out = ((curPage-1) * maxColumns * maxRows) + selectedIndex
+        return out
+    end
+
+    local function movePage(n) -- Move n pages forward/backward
+        local nextPage = curPage + n
+        if nextPage > maxPage then
+            nextPage = maxPage
+        elseif nextPage < 1 then
+            nextPage = 1
         end
 
-        -- math to make pages loop both directions
-        local nn = (page + n) % (maxPage + 1)
-        if nn == 0 then
-            nn = n > 0 and 1 or maxPage
+        -- This loads all images again if we actually move to a new page.
+        if nextPage ~= curPage then
+            curIndex = n < 0 and math.min(#assetTable, maxRows * maxColumns) or 1
+            lastClickedIndex = 0
+            curPage = nextPage
+            MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
+            co = coroutine.create(updateImages)
         end
-        page = nn
-        if settingsframe ~= nil then
-            settingsframe:playcommand("UpdateItemList")
+    end
+
+    local function moveCursor(x, y) -- move the cursor
+        local move = x + y * maxColumns
+        local nextPage = curPage
+        local oldIndex = curIndex
+
+        if curPage > 1 and curIndex == 1 and move < 0 then
+            curIndex = math.min(#assetTable, maxRows * maxColumns)
+            nextPage = curPage - 1
+        elseif curPage < maxPage and curIndex == maxRows * maxColumns and move > 0 then
+            curIndex = 1
+            nextPage = curPage + 1
+        else
+            curIndex = curIndex + move
+            if curIndex < 1 then
+                curIndex = 1
+            elseif curIndex > math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1))) then
+                curIndex = math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1)))
+            end
+        end
+        lastClickedIndex = curIndex
+        if curPage == nextPage then
+            MESSAGEMAN:Broadcast("CursorMoved",{index = curIndex, prevIndex = oldIndex})
+        else
+            curPage = nextPage
+            MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
+            co = coroutine.create(updateImages)
         end
     end
 
@@ -141,6 +332,17 @@ local function assetList()
             -- init the input context but start it out false
             CONTEXTMAN:RegisterToContextSet(snm, "AssetSettings", anm)
             CONTEXTMAN:ToggleContextSet(snm, "AssetSettings", false)
+
+            -- update function for coroutines
+            -- this is totally unnecessary but not really but yeah really
+            -- the coroutines are responsible for "parallel processing" functions or whatever
+            -- but the reality is thats literally a lie because lua is forced to be single threaded here
+            co = coroutine.create(updateImages)
+            self:SetUpdateFunction(function(self, delta)
+                if coroutine.status(co) ~= "dead" then
+                    coroutine.resume(co)
+                end
+            end)
 
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 -- if context is set to AssetSettings, passthrough unless not holding ctrl and a number
