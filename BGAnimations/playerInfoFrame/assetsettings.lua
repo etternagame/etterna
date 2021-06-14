@@ -66,6 +66,7 @@ local t = Def.ActorFrame {
 }
 
 local titleTextSize = 0.8
+local choiceTextSize = 1
 
 local pageTextSize = 0.5
 local textZoomFudge = 5
@@ -125,6 +126,7 @@ local function assetList()
     local maxColumns = 5
     local curIndex = 1
     local selectedIndex = 0
+    local profile = PROFILEMAN:GetProfile(PLAYER_1)
     local GUID = profile:GetGUID()
     local curPath = ""
     local lastClickedIndex = 0
@@ -210,6 +212,8 @@ local function assetList()
     --
     -------------------
 
+    -------------------
+    -- these are also utility
     -- load asset table for current type
     local function loadAssetTable()
         local type = assetTypes[curType]
@@ -785,6 +789,9 @@ local function assetList()
             t[#t+1] = createChoice(i)
         end
         return t
+    end
+    for i = 1, maxRows * maxColumns do
+        t[#t+1] = assetBox(i)
     end
     t[#t+1] = tabChoices()
     return t
