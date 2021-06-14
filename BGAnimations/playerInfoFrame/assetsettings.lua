@@ -75,6 +75,7 @@ local textZoomFudge = 5
 local pageAnimationSeconds = 0.01
 local buttonHoverAlpha = 0.6
 local buttonEnabledAlphaMultiplier = 0.8 -- this is multiplied to the current alpha (including the hover alpha) if "clicked"
+local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
 t[#t+1] = Def.Quad {
     Name = "AssetSettingsBGQuad",
@@ -119,7 +120,7 @@ local function assetList()
         assetTypes[curType] = k
         curType = curType + 1
     end
-    curType = 2 -- start on Avatar
+    curType = 2 -- start on Avatar page
 
     -- state
     local maxPage = 1
@@ -146,7 +147,7 @@ local function assetList()
     local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
     local assetYSpacing = (frameHeight - 20 / aspectRatioProportion) / (maxRows + 1) -- same
 
-    local co = nil-- for async loading images
+    local co = nil -- for async loading images
 
     -------------------
     -- utility functions
@@ -718,7 +719,8 @@ local function assetList()
     end
 
 
-
+    -- this is a copy paste adaptation from the downloads.lua choices
+    -- its good and bad for this application for a few reasons, but whatever works is good enough
     local function tabChoices()
         -- keeping track of which choices are on at any moment (keys are indices, values are true/false/nil)
         local activeChoices = {}
@@ -735,8 +737,8 @@ local function assetList()
         --  TapFunction: A function that runs when the button is pressed
         local choiceDefinitions = {
             {   -- Set to Toasty Select Page
-                Name = "toastyselect",
-                Type = "Tap",
+                Name = "toasty",
+                Type = "Exclusive",
                 Display = {"Toasty"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
@@ -746,8 +748,8 @@ local function assetList()
                 end,
             },
             {   -- Set to Avatar Select Page
-                Name = "avatarselect",
-                Type = "Tap",
+                Name = "avatar",
+                Type = "Exclusive",
                 Display = {"Avatar"},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
@@ -757,15 +759,15 @@ local function assetList()
                 end,
             },
             {   -- Set to Judgment Select Page
-            Name = "judgmentselect",
-            Type = "Tap",
-            Display = {"Judgment"},
-            IndexGetter = function() return 1 end,
-            Condition = function() return true end,
-            TapFunction = function()
-                groupSet("judgment")
-                page = 1
-            end,
+                Name = "judgment",
+                Type = "Exclusive",
+                Display = {"Judgment"},
+                IndexGetter = function() return 1 end,
+                Condition = function() return true end,
+                TapFunction = function()
+                    groupSet("judgment")
+                    page = 1
+                end,
             },
         }
 
@@ -787,6 +789,14 @@ local function assetList()
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textZoomFudge)
                     bg:zoomto(actuals.Width / #choiceDefinitions, actuals.TopLipHeight)
+                    self:playcommand("UpdateText")
+                end,
+                UpdatingAssetsMessageCommand = function(self, params)
+                    if params.name == definition.Name then
+                        activeChoices[i] = true
+                    else
+                        activeChoices[i] = false
+                    end
                     self:playcommand("UpdateText")
                 end,
                 UpdateTextCommand = function(self)
