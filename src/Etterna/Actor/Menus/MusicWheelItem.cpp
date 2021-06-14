@@ -1,4 +1,5 @@
 #include "Etterna/Globals/global.h"
+#include "Etterna/Actor/Menus/MusicWheel.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
@@ -176,6 +177,8 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	std::string sDisplayName, sTranslitName;
 	MusicWheelItemType type = MusicWheelItemType_Invalid;
 
+	auto wheel = dynamic_cast<const MusicWheel*>(GetParent());
+
 	switch (pWID->m_Type) {
 		DEFAULT_FAIL(pWID->m_Type);
 		case WheelItemDataType_Song:
@@ -198,7 +201,8 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 			}
 
 			int num_played_songs = 0;
-			for (auto song : SONGMAN->GetSongs(pWID->m_sText)) {
+
+			for (auto song : wheel->allSongsByGroupFiltered.at(pWID->m_sText)) {
 				bool song_has_scores = false;
 				for (auto chart : song->GetChartsOfCurrentGameMode()) {
 					if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
