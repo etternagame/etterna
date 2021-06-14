@@ -1,3 +1,6 @@
+-- a large amount of this file is copy pasted and adapted from til death and spawncamping-wallhack
+-- things are cleaned up a bit to try to match the format of the rest of this theme
+-- but i did this so late in making this theme so...
 local ratios = {
     Width = 782 / 1920,
     Height = 971 / 1080,
@@ -108,12 +111,12 @@ end
 
 -- produces all the fun stuff in the asset settings
 local function assetList()
-    local page = 1
-    local maxPage = 1
     local settingsframe = nil
 
     local curType = 1
     local assetTypes = {}
+    -- assetFolders? yes, this is a global made available by something in theme scripts.
+    -- dont mess with it
     for k,v in pairs(assetFolders) do
         assetTypes[curType] = k
         curType = curType + 1
@@ -132,14 +135,15 @@ local function assetList()
 
     local assetTable = {}
 
-    local frameWidth = SCREEN_WIDTH - 20
-    local frameHeight = SCREEN_HEIGHT - 40
-    local squareWidth = 50
-    local judgmentWidth = 125
+    local frameWidth = actuals.Width - actuals.EdgePadding*2
+    local frameHeight = actuals.Height - actuals.TopLipHeight*2
+    local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT) -- this was designed for 16:9 so compensate
+    local squareWidth = 50 / aspectRatioProportion -- adjust for aspect ratio
+    local judgmentWidth = 125 / aspectRatioProportion -- same
     local assetWidth = squareWidth
-    local assetHeight = 50
+    local assetHeight = 50 / aspectRatioProportion -- same
     local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
-    local assetYSpacing = (frameHeight - 20) / (maxRows + 1)
+    local assetYSpacing = (frameHeight - 20 / aspectRatioProportion) / (maxRows + 1) -- same
 
     local co -- for async loading images
 
