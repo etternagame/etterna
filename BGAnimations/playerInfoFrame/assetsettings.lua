@@ -104,11 +104,6 @@ t[#t+1] = LoadFont("Common Normal") .. {
     end
 }
 
-local function toolTipOn(msg)
-    TOOLTIP:SetText(msg)
-    TOOLTIP:Show()
-end
-
 -- produces all the fun stuff in the asset settings
 local function assetList()
     local settingsframe = nil
@@ -121,8 +116,9 @@ local function assetList()
         assetTypes[curType] = k
         curType = curType + 1
     end
-    curType = 2
+    curType = 2 -- start on Avatar
 
+    -- state
     local maxPage = 1
     local curPage = 1
     local maxRows = 5
@@ -135,6 +131,7 @@ local function assetList()
 
     local assetTable = {}
 
+    -- sizing
     local frameWidth = actuals.Width - actuals.EdgePadding*2
     local frameHeight = actuals.Height - actuals.TopLipHeight*2
     local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT) -- this was designed for 16:9 so compensate
@@ -145,8 +142,11 @@ local function assetList()
     local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
     local assetYSpacing = (frameHeight - 20 / aspectRatioProportion) / (maxRows + 1) -- same
 
-    local co -- for async loading images
+    local co = nil-- for async loading images
 
+    -------------------
+    -- utility functions
+    -- self explanatory
     local function findIndexForCurPage()
         local type = assetTypes[curType]
         for i = 1+((curPage-1)*maxColumns*maxRows), 1+((curPage)*maxColumns*maxRows) do
@@ -156,7 +156,6 @@ local function assetList()
             end
         end
     end
-
     local function findPickedIndexForCurPage()
         local type = assetTypes[curType]
         for i = 1, #assetTable do
@@ -166,7 +165,6 @@ local function assetList()
             end
         end
     end
-
     local function isImage(filename)
         local extensions = {".png", ".jpg", "jpeg"} -- lazy list
         local ext = string.sub(filename, #filename-3)
@@ -175,7 +173,6 @@ local function assetList()
         end
         return false
     end
-
     local function isAudio(filename)
         local extensions = {".wav", ".mp3", ".ogg", ".mp4"} -- lazy to check and put in names
         local ext = string.sub(filename, #filename-3)
@@ -184,7 +181,6 @@ local function assetList()
         end
         return false
     end
-
     local function getImagePath(path, assets) -- expecting a table of asset paths where fallbacks are default
         for i=1, #assets do
             if isImage(assets[i]) then
@@ -201,7 +197,6 @@ local function assetList()
         end
         return assetsFolder .. assetFolders[assetTypes[curType]] .. getDefaultAssetByType(assetTypes[curType]) .. "/default.ogg"
     end
-
     local function containsDirsOnly(dirlisting)
         if #dirlisting == 0 then return true end
         for i=1, #dirlisting do
@@ -211,8 +206,12 @@ local function assetList()
         end
         return true
     end
+    --
+    --
+    -------------------
 
-    local function loadAssetTable() -- load asset table for current type
+    -- load asset table for current type
+    local function loadAssetTable()
         local type = assetTypes[curType]
         curPath = getAssetByType(type, GUID)
         selectedPath = getAssetByType(type, GUID)
@@ -229,7 +228,8 @@ local function assetList()
         if ind ~= nil then curIndex = ind end
     end
 
-    local function confirmPick() -- select the asset in the current index for use ingame
+    -- select the asset in the current index for use ingame
+    local function confirmPick()
         if curIndex == 0 then return end
         local type = assetTypes[curType]
         local name = assetTable[lastClickedIndex+((curPage-1)*maxColumns*maxRows)]
@@ -247,7 +247,8 @@ local function assetList()
         end
     end
 
-    local function updateImages() -- Update all image actors (sprites)
+    -- Update all image actors (sprites)
+    local function updateImages()
         loadAssetTable()
         MESSAGEMAN:Broadcast("UpdatingAssets", {name = assetTypes[curType]})
         for i=1, math.min(maxRows * maxColumns, #assetTable) do
@@ -257,7 +258,8 @@ local function assetList()
         MESSAGEMAN:Broadcast("UpdateFinished")
     end
 
-    local function loadAssetType(n) -- move and load asset type forward/backward
+    -- move and load asset type forward/backward
+    local function loadAssetType(n)
         if n < 1 then n = 1 end
         if n > #assetTypes then n = #assetTypes end
         lastClickedIndex = 0
@@ -266,17 +268,20 @@ local function assetList()
         co = coroutine.create(updateImages)
     end
 
-    local function getIndex() -- Get cursor index
+    -- Get cursor index
+    local function getIndex()
         local out = ((curPage-1) * maxColumns * maxRows) + curIndex
         return out
     end
 
-    local function getSelectedIndex() -- Get cursor index
+    -- Get cursor index
+    local function getSelectedIndex()
         local out = ((curPage-1) * maxColumns * maxRows) + selectedIndex
         return out
     end
 
-    local function movePage(n) -- Move n pages forward/backward
+    -- Move n pages forward/backward
+    local function movePage(n)
         local nextPage = curPage + n
         if nextPage > maxPage then
             nextPage = maxPage
@@ -294,7 +299,8 @@ local function assetList()
         end
     end
 
-    local function moveCursor(x, y) -- move the cursor
+    -- move the cursor
+    local function moveCursor(x, y)
         local move = x + y * maxColumns
         local nextPage = curPage
         local oldIndex = curIndex
