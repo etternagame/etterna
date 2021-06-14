@@ -2,6 +2,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "MusicWheelItem.h"
 #include "RageUtil/Misc/RageTypes.h"
@@ -189,6 +190,13 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 			RefreshGrades();
 			break;
 		case WheelItemDataType_Section: {
+			sDisplayName = SONGMAN->ShortenGroupName(pWID->m_sText);
+			if (GAMESTATE->sExpandedSectionName == pWID->m_sText) {
+				type = MusicWheelItemType_SectionExpanded;
+			} else {
+				type = MusicWheelItemType_SectionCollapsed;
+			}
+
 			int num_played_songs = 0;
 			for (auto song : SONGMAN->GetSongs(pWID->m_sText)) {
 				bool song_has_scores = false;
@@ -203,24 +211,22 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				}
 			}
 
-			sDisplayName = SONGMAN->ShortenGroupName(pWID->m_sText);
+			if (PREFSMAN->m_bPackProgressInWheel) {
+				RageColor color;
+				if (num_played_songs == pWID->m_iSectionCount) {
+					color = RageColor(1, 1, 1, 0);
+				} else {
+					auto hue = (float) num_played_songs / pWID->m_iSectionCount * 100 - 5;
+					// Mix color with white, else the color would be too vibrant
+					color = RageColor::Lerp(RageColor(1, 1, 1, 0), RageColor::FromHue(hue), 0.5);
+				}
 
-			if (GAMESTATE->sExpandedSectionName == pWID->m_sText)
-				type = MusicWheelItemType_SectionExpanded;
-			else
-				type = MusicWheelItemType_SectionCollapsed;
-
-			RageColor color;
-			if (num_played_songs == pWID->m_iSectionCount) {
-				color = RageColor(1, 1, 1, 0);
+				m_pTextSectionCount->SetText(ssprintf("%d/%d", num_played_songs, pWID->m_iSectionCount));
+				m_pTextSectionCount->SetDiffuseColor(color);
 			} else {
-				auto hue = (float) num_played_songs / pWID->m_iSectionCount * 100 - 5;
-				// Mix color with white, else the color would be too vibrant
-				color = RageColor::Lerp(RageColor(1, 1, 1, 0), RageColor::FromHue(hue), 0.5);
+				m_pTextSectionCount->SetText(ssprintf("%d", pWID->m_iSectionCount));
 			}
 
-			m_pTextSectionCount->SetText(ssprintf("%d/%d", num_played_songs, pWID->m_iSectionCount));
-			m_pTextSectionCount->SetDiffuseColor(color);
 			m_pTextSectionCount->SetVisible(true);
 		} break;
 		case WheelItemDataType_Sort:
