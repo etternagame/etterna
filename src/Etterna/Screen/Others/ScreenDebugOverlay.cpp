@@ -1554,6 +1554,7 @@ class DebugLineKeyConfig : public IDebugLine
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->PopAllScreens();
+		SCREENMAN->set_input_redirected(PLAYER_1, false);
 		GAMESTATE->Reset();
 		SCREENMAN->SetNewScreen("ScreenMapControllers");
 	}
