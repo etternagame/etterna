@@ -1880,8 +1880,9 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// go
 		Locator::getLogger()->trace("Viewing evaluation screen for score key {}",
 				   score->GetScoreKey().c_str());
-		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
-
+		p->SetNextScreenName("ScreenEvaluationNormal");
+		p->StartTransitioningScreen(SM_BeginFadingOut);
+		
 		// set rate back to what it was before
 		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
