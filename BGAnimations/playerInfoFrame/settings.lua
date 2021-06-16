@@ -257,6 +257,7 @@ local function leftFrame()
                     if params.name == "Customize Keybinds" then
                         SCUFF.showingKeybinds = true
                         setUpKeyBindings()
+                        CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Keybindings")
                     else
                         SCUFF.showingKeybinds = false
                     end
@@ -303,7 +304,7 @@ local function leftFrame()
                         elseif not currentlyBinding and back then
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
-                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {name = "Settings"})
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
                         elseif currentlyBinding and back then
                             -- cancel the binding process
 
