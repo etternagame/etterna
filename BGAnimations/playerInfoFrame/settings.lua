@@ -247,7 +247,7 @@ local function leftFrame()
         -- this goes out to all cheaters and losers
         -- if you want to use double bindings dont touch this settings menu
         local function setUpKeyBindings()
-            RemoveDoubleBindings()
+            INPUTBINDING:RemoveDoubleBindings()
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
         end
 
