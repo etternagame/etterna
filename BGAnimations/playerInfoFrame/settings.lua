@@ -239,7 +239,17 @@ local function leftFrame()
         -- list of GameButtons we can map
         -- remember to pass calling indices through to ButtonIndexToCurGameColumn(x)
         local gameButtonsToMap = INPUTMAPPER:GetGameButtonsToMap()
+        local defaultKeybindColumn = 2
+        local currentController = 0
+        local currentlyBinding = false
 
+        -- function to remove all double+ binding and leave only defaults
+        -- this goes out to all cheaters and losers
+        -- if you want to use double bindings dont touch this settings menu
+        local function setUpKeyBindings()
+            RemoveDoubleBindings()
+            MESSAGEMAN:Broadcast("UpdatedBoundKeys")
+        end
 
         local t = Def.ActorFrame { 
             Name = "NoteSkinPageContainer",
@@ -247,6 +257,7 @@ local function leftFrame()
                 if params and (params.name == "Noteskin" or params.name == "Customize Keybinds") then
                     if params.name == "Customize Keybinds" then
                         SCUFF.showingKeybinds = true
+                        setUpKeyBindings()
                     else
                         SCUFF.showingKeybinds = false
                     end
@@ -260,6 +271,54 @@ local function leftFrame()
                 self:diffusealpha(0)
                 SCUFF.showingNoteskins = false
                 SCUFF.showingKeybinds = false
+            end,
+            BeginCommand = function(self)
+                local snm = SCREENMAN:GetTopScreen():GetName()
+                local anm = self:GetName()
+
+                -- cursor input management for keybindings
+                -- noteskin display is not relevant for this, just contains it for reasons
+                CONTEXTMAN:RegisterToContextSet(snm, "Keybindings", anm)
+                CONTEXTMAN:ToggleContextSet(snm, "Keybindings", false)
+    
+                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                    -- if locked out, dont allow
+                    if not CONTEXTMAN:CheckContextSet(snm, "Keybindings") then return end
+                    if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
+                        local gameButton = event.button
+                        local key = event.DeviceInput.button
+                        local up = gameButton == "Up" or gameButton == "MenuUp"
+                        local down = gameButton == "Down" or gameButton == "MenuDown"
+                        local right = gameButton == "MenuRight" or gameButton == "Right"
+                        local left = gameButton == "MenuLeft" or gameButton == "Left"
+                        local enter = gameButton == "Start"
+                        local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+                        local back = key == "DeviceButton_escape"
+
+                        if not currentlyBinding and (up or left) then
+                            selectKeybind(-1)
+                        elseif not currentlyBinding and (down or right) then
+                            selectKeybind(1)
+                        elseif not currentlyBinding and enter then
+                            startBinding()
+                        elseif not currentlyBinding and back then
+                            -- shortcut to exit back to settings
+                            -- press twice to exit back to general
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {name = "Settings"})
+                        elseif currentlyBinding and back then
+                            -- cancel the binding process
+
+
+                        elseif currentlyBinding then
+                            -- pressed a button that could potentially be bindable and we should bind it
+
+
+                        else
+                            -- nothing happens
+                            return
+                        end
+                    end
+                end)
             end,
         }
 
@@ -409,16 +468,21 @@ local function leftFrame()
                 LoadFont("Common Large") .. {
                     Name = "KeybindText",
                     InitCommand = function(self)
+                        self:zoom(keybindingTextZoom)
+                        self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextZoom)
+                        self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextZoom)
+                    end,
+                    UpdatedBoundKeysMessageCommand = function(self)
+                        self:playcommand("Set")
+                    end,
+                    SetCommand = function(self)
                         local newindex = ButtonIndexToCurGameColumn(i)
-                        local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], 0, 0)
+                        local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], currentController, 0)
                         if buttonmapped then
                             self:settext(buttonmapped:gsub("Key ", ""))
                         else
                             self:settext("none")
                         end
-                        self:zoom(keybindingTextZoom)
-                        self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextZoom)
-                        self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextZoom)
                     end,
                 }
             }

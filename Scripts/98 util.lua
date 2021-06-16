@@ -386,17 +386,22 @@ function ReceptorSizeToMini(percent)
     return 2 - percent / 0.5
 end
 
--- literally removes every key binding for gameplay or menu
--- player 1 and player 2
-function RemoveAllKeyBindings(isMenu)
-    local maxColumn = 4 -- the 5th column
-    local maxPlayer = 1 -- the right player/controller
+function GetButtonsToMap(isMenu)
     local bt = {}
     if isMenu then
         bt = INPUTMAPPER:GetMenuButtonsToMap()
     else
         bt = INPUTMAPPER:GetGameButtonsToMap()
     end
+    return bt
+end
+
+-- literally removes every key binding for gameplay or menu
+-- player 1 and player 2
+function RemoveAllKeyBindings(isMenu)
+    local maxColumn = 4 -- the 5th column
+    local maxPlayer = 1 -- the right player/controller
+    local bt = GetButtonsToMap(isMenu)
     for i = 1, #bt do
         local ni = ButtonIndexToCurGameColumn(i)
         for player = 0, maxPlayer do
@@ -405,4 +410,49 @@ function RemoveAllKeyBindings(isMenu)
             end
         end
     end
+end
+
+-- does the above except ignores the default column
+-- does not set any new defaults, blanks stay blank
+-- (default should be column 2, the 3rd column)
+function RemoveDoubleBindings(isMenu)
+    local defaultcol = 2
+    local maxPlayer = 1
+    local bt = GetButtonsToMap(isMenu)
+    local alreadymapped = {}
+    for i = 1, #bt do
+        local ni = ButtonIndexToCurGameColumn(i)
+        for player = 0, maxPlayer do
+            local b = INPUTMAPPER:GetButtonMapping(bt[ni], player, defaultcol)
+            if b == nil then
+                b = "nil"
+            end
+            alreadymapped[#alreadymapped+1] = b
+        end
+    end
+    RemoveAllKeyBindings(isMenu)
+    local ind = 1
+    for i = 1, #bt do
+        local ni = ButtonIndexToCurGameColumn(i)
+        for player = 0, maxPlayer do
+            local b = alreadymapped[ind]
+            if b == "nil" then b = "" end
+            INPUTMAPPER:SetInputMap(b, bt[ni], defaultcol, player)
+        end
+    end
+end
+
+-- return whether or not this set of key bindings is missing the defaults
+-- useful only for this theme where the default column is required to be used
+function IsAnyDefaultBindingMissing(isMenu)
+    local defaultcol = 2
+    local bt = GetButtonsToMap(isMenu)
+    for i = 1, #bt do
+        local newindex = ButtonIndexToCurGameColumn(i)
+        for p = 0, 1 do
+            local buttonmapped = INPUTMAPPER:GetButtonMapping(bt[newindex], p, defaultcol)
+            if buttonmapped == nil then return false end -- bad
+        end
+    end
+    return true -- okay
 end
