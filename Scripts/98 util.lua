@@ -385,3 +385,24 @@ end
 function ReceptorSizeToMini(percent)
     return 2 - percent / 0.5
 end
+
+-- literally removes every key binding for gameplay or menu
+-- player 1 and player 2
+function RemoveAllKeyBindings(isMenu)
+    local maxColumn = 4 -- the 5th column
+    local maxPlayer = 1 -- the right player/controller
+    local bt = {}
+    if isMenu then
+        bt = INPUTMAPPER:GetMenuButtonsToMap()
+    else
+        bt = INPUTMAPPER:GetGameButtonsToMap()
+    end
+    for i = 1, #bt do
+        local ni = ButtonIndexToCurGameColumn(i)
+        for player = 0, maxPlayer do
+            for bindingColumn = 0, maxColumn do
+                INPUTMAPPER:SetInputMap("", bt[ni], bindingColumn, player)
+            end
+        end
+    end
+end
