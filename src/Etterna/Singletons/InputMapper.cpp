@@ -1469,9 +1469,14 @@ class LunaInputMapper : public Luna<InputMapper>
 public:
 	static int SetInputMap(T* p, lua_State* L)
 	{
+		// ex: "Key_z"
 		std::string deviceInputString = SArg(1);
+		// ex: "Left"
 		std::string buttonBeingMapped = SArg(2);
-		int playerSlot = IArg(3);
+		// 0-4. 2 is the "default" column and we have 2 extras somehow
+		int inputSlot = IArg(3);
+		// 0 is the left main controller, 1 is the other for doubles
+		int playerSlot = IArg(4);
 		
 		GameController gc = static_cast<GameController>(playerSlot);
 		GameButton gb =
@@ -1480,7 +1485,7 @@ public:
 		DeviceInput deviceI;
 		deviceI.FromString(deviceInputString);
 		
-		p->SetInputMap(deviceI, gameI, playerSlot);
+		p->SetInputMap(deviceI, gameI, inputSlot);
 		return 0;
 	}
 	static int GetGameButtonsToMap(T* p, lua_State* L)
