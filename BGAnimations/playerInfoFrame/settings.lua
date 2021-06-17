@@ -163,7 +163,8 @@ local t = Def.ActorFrame {
                 if SCUFF.showingNoteskins and not SCUFF.showingKeybinds then
                     self:playcommand("HideLeft")
                     -- HACK HACK HACK HACK HACK
-                    MESSAGEMAN:Broadcast("ShowSettingsAlt", nil)
+                    MESSAGEMAN:Broadcast("ShowSettingsAlt")
+                    CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Settings")
                 end
             end
         end
@@ -691,11 +692,12 @@ local function rightFrame()
                 bg:diffusealpha(0.2)
 
                 self:xy(actuals.EdgePadding, actuals.Height - actuals.BottomLipHeight - actuals.BottomLipHeight/4)
-                -- is this being lazy or being big brained? ive stored functions and variables within an actor instance
-                self.opened = false
+                -- is this being lazy or being big brained? ive stored a function within an actor instance
                 self.alphaDeterminingFunction = function(self)
-                    local alphamultiplier = self.opened and previewOpenedAlpha or 1
-                    local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                    local isOpened = SCUFF.showingPreview
+                    local canBeToggled = SCUFF.showingPreview or (not SCUFF.showingColor and not SCUFF.showingKeybinds and not SCUFF.showingNoteskins)
+                    local alphamultiplier = (isOpened and canBeToggled) and previewOpenedAlpha or 1
+                    local hovermultiplier = (isOver(bg) and canBeToggled) and buttonHoverAlpha or 1
                     local finalalpha = 1 * hovermultiplier * alphamultiplier
                     self:diffusealpha(finalalpha)
                 end
@@ -703,7 +705,6 @@ local function rightFrame()
             PreviewPageOpenStatusChangedMessageCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params and params.opened ~= nil then
-                    self.opened = params.opened
                     self:alphaDeterminingFunction()
                 end
             end,
@@ -714,7 +715,11 @@ local function rightFrame()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "OnMouseDown" then
-                    MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Preview"})
+                    if not SCUFF.showingColor and not SCUFF.showingKeybinds and not SCUFF.showingNoteskins and not SCUFF.showingPreview then
+                        MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Preview"})
+                    elseif SCUFF.showingPreview then
+                        MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
+                    end
                 end
             end,
         }
@@ -2983,7 +2988,7 @@ local function rightFrame()
                             -- allow turning off chart preview if on
                             -- allow turning it on if not in a position where doing so is impossible
                             if SCUFF.showingPreview then
-                                MESSAGEMAN:Broadcast("ShowSettingsAlt")
+                                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
                             elseif not SCUFF.showingPreview and not SCUFF.showingKeybinds and not SCUFF.showingNoteskins and not SCUFF.showingColor then
                                 MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Preview"})
                             end
