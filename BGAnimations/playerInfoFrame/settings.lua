@@ -242,6 +242,8 @@ local function leftFrame()
         local gameButtonsToMap = INPUTMAPPER:GetGameButtonsToMap()
         local currentController = 0
         local currentlyBinding = false
+        local currentKey = ""
+        local cursorIndex = 1
 
         -- function to remove all double+ binding and leave only defaults
         -- this goes out to all cheaters and losers
@@ -249,6 +251,46 @@ local function leftFrame()
         local function setUpKeyBindings()
             INPUTBINDING:RemoveDoubleBindings()
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
+        end
+
+        -- just moves the cursor, for keyboard compatibility only
+        local function selectKeybind(direction)
+            local n = cursorIndex + direction
+            if n > #gameButtonsToMap then n = 1 end
+            if n < 1 then n = #gameButtonsToMap end
+
+            cursorIndex = n
+            MESSAGEMAN:Broadcast("UpdatedBoundKeys")
+        end
+
+        -- select this specific key to begin binding, lock input
+        local function startBinding(buttonName)
+            currentKey = buttonName
+            currentlyBinding = true
+        end
+
+        -- for the currentKey, use this InputEventPlus to bind the pressed key to the button
+        local function bindCurrentKey(event)
+            if event == nil or event.DeviceInput == nil then return end -- ??
+            local dev = event.DeviceInput.device
+            if dev == nil then return end -- ???
+            local key = event.DeviceInput.button
+            if key == nil then return end -- ????
+            local spldev = strsplit(dev, "_")
+            if spldev == nil or #spldev ~= 2 then return end -- ?????
+            local splkey = strsplit(key, "_")
+            if splkey == nil or #splkey ~= 2 then return end -- ??????
+            local pizzaHut = spldev[2]
+            local tacoBell = splkey[2]
+            local combinationPizzaHutAndTacoBell = (pizzaHut .. "_" .. tacoBell):lower()
+            -- not gonna bother finding a better way to do all that
+            if currentKey == nil or #currentKey == 0 then return end -- ???????
+
+            -- bind it
+            INPUTMAPPER:SetInputMap(combinationPizzaHutAndTacoBell, currentKey, INPUTBINDING.defaultColumn, currentController)
+            -- check to see if the button bound
+            local result = INPUTMAPPER:GetButtonMapping(currentKey, currentController, INPUTBINDING.defaultColumn)
+            return result ~= nil
         end
 
         local t = Def.ActorFrame { 
@@ -298,22 +340,25 @@ local function leftFrame()
 
                         if not currentlyBinding and (up or left) then
                             selectKeybind(-1)
+                            self:playcommand("Set")
                         elseif not currentlyBinding and (down or right) then
                             selectKeybind(1)
+                            self:playcommand("Set")
                         elseif not currentlyBinding and enter then
-                            startBinding()
+                            startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(cursorIndex)])
                         elseif not currentlyBinding and back then
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
                             MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
                         elseif currentlyBinding and back then
                             -- cancel the binding process
-
-
+                            -- update highlights
+                            currentlyBinding = false
+                            self:playcommand("Set")
                         elseif currentlyBinding then
                             -- pressed a button that could potentially be bindable and we should bind it
-
-
+                            bindCurrentKey(event)
+                            self:playcommand("Set")
                         else
                             -- nothing happens
                             return
@@ -447,14 +492,33 @@ local function leftFrame()
                     InitCommand = function(self)
                         -- font color
                         self:diffuse(color("#FFFFFF"))
-                        self:diffusealpha(0.6)
                         self:zoomto(columnwidth * keybindBGSizeMultiplier, columnwidth * keybindBGSizeMultiplier)
+                        self:playcommand("Set")
+                    end,
+                    SetAlphaCommand = function(self)
+                        if isOver(self) or cursorIndex == i then
+                            self:diffusealpha(0.6 * buttonHoverAlpha)
+                        else
+                            self:diffusealpha(0.6)
+                        end
+                    end,
+                    SetCommand = function(self)
+                        self:playcommand("SetAlpha")
+                    end,
+                    UpdatedBoundKeysMessageCommand = function(self)
+                        self:playcommand("SetAlpha")
                     end,
                     MouseOverCommand = function(self)
-                        self:diffusealpha(0.6 * buttonHoverAlpha)
+                        self:playcommand("SetAlpha")
                     end,
                     MouseOutCommand = function(self)
-                        self:diffusealpha(0.6)
+                        self:playcommand("SetAlpha")
+                    end,
+                    MouseDownCommand = function(self)
+                        if not currentlyBinding then
+                            local dist = i - cursorIndex
+                            selectKeybind(dist)
+                        end
                     end,
                 },
                 Def.Quad {
