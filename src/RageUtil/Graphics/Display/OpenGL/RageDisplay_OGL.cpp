@@ -14,6 +14,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/GameLoop.h"
 #include "FrameBufferRenderTargetGL.hpp"
+#include "archutils/Win32/GraphicsWindow.h"
 #include <glad/glad.h>
 
 
@@ -523,6 +524,7 @@ void RageDisplay_Legacy::Init(const VideoModeParams& p)  {
     window = std::make_unique<GLFWWindowBackend>("Etterna", Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
     window->setWindowFocusGainCallback([]{ GameLoop::setGameFocused(true); });
     window->setWindowFocusLostCallback([]{ GameLoop::setGameFocused(false); });
+	window->setWindowCloseCallback([]{ GameLoop::setUserQuit(); });
     window->create();
     gladLoadGL();
 
