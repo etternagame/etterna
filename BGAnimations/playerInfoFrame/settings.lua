@@ -254,6 +254,7 @@ local function leftFrame()
             -- "mouse" (all mouse input)
             -- "cz" (the letter z)
             -- "left" (the left arrow on the keyboard)
+            mouse = true,
         }
 
         -- function to remove all double+ binding and leave only defaults
