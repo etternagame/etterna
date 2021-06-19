@@ -23,6 +23,7 @@ micromanaging functions available later if needed
 
 -- reset all info to defaults
 function CONTEXTMAN.Reset(self)
+    print("CONTEXTMAN Reset")
     -- a screen name to a context set
     -- each context set contains a list of strings (usually actor names but can be anything)
     -- each context has an 'enabled' field which tells if it is on or not
@@ -49,6 +50,7 @@ end
 -- dont know why you would want to do the reverse of the above function
 -- but here it is anyways
 function CONTEXTMAN.UnRegisterContext(self, screen, group)
+    print("CONTEXTMAN UnRegister - "..screen.." - "..group)
     if self.ScreenToContext[screen] ~= nil then
         self.ScreenToContext[screen][group] = nil
     end
@@ -56,6 +58,7 @@ end
 
 -- reset a context set
 function CONTEXTMAN.ClearContextSet(self, screen, group)
+    print("CONTEXTMAN ClearContextSet - "..screen.." - "..group)
     if self.ScreenToContext[screen] == nil then
         self.ScreenToContext[screen] = {}
     end
@@ -87,6 +90,7 @@ end
 
 -- set a single context group as enabled
 function CONTEXTMAN.SetFocusedContextSet(self, screen, group)
+    print("CONTEXTMAN Focus Switch - "..screen.." - "..group)
     self:RegisterContext(screen, group)
     for _, g in pairs(self.ScreenToContext[screen]) do
         g.enabled = false
