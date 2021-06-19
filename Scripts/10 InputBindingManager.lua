@@ -57,7 +57,7 @@ end
 -- literally removes every key binding for gameplay or menu
 -- player 1 and player 2
 function INPUTBINDING.RemoveAllKeyBindings(self, isMenu)
-    print("INPUTBINDING RemoveAllKeyBindings - "..tostring(isMenu))
+    print("INPUTBINDING RemoveAllKeyBindings - isMenu "..tostring(isMenu))
     local bt = GetButtonsToMap(isMenu)
     for i = 1, #bt do
         local ni = ButtonIndexToCurGameColumn(i)
@@ -73,7 +73,7 @@ end
 -- does not set any new defaults, blanks stay blank
 -- (default should be column 2, the 3rd column)
 function INPUTBINDING.RemoveDoubleBindings(self, isMenu)
-    print("INPUTBINDING RemoveDoubleBindings - "..tostring(isMenu))
+    print("INPUTBINDING RemoveDoubleBindings - isMenu "..tostring(isMenu))
     local bt = GetButtonsToMap(isMenu)
     local alreadymapped = {}
     for i = 1, #bt do
