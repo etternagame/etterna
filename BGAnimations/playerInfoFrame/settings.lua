@@ -592,6 +592,7 @@ local function leftFrame()
                             if not currentlyBinding then
                                 local dist = trueIndex - cursorIndex
                                 selectKeybind(dist)
+                                startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(i)], controller)
                             end
                         end,
                     },
