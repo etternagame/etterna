@@ -79,6 +79,8 @@ local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local previewButtonTextSize = 0.8
 
 local keyinstructionsTextSize = 0.7
+local bindingChoicesTextSize = 0.7
+local currentlybindingTextSize = 0.7
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
@@ -280,6 +282,11 @@ local function leftFrame()
             currentKey = buttonName
             currentController = controller
             currentlyBinding = true
+            MESSAGEMAN:Broadcast("StartedBinding", {key = currentKey, controller = controller})
+        end
+        local function stopBinding()
+            currentlyBinding = false
+            MESSAGEMAN:Broadcast("StoppedBinding")
         end
 
         -- for the currentKey, use this InputEventPlus to bind the pressed key to the button
@@ -351,6 +358,7 @@ local function leftFrame()
                         local enter = gameButton == "Start"
                         local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
                         local back = key == "DeviceButton_escape"
+                        local rightclick = key == "Devicebutton_mouse right button"
 
                         if not currentlyBinding and (up or left) then
                             selectKeybind(-1)
@@ -366,16 +374,16 @@ local function leftFrame()
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
                             MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
-                        elseif currentlyBinding and back then
+                        elseif currentlyBinding and (back or rightclick) then
                             -- cancel the binding process
                             -- update highlights
-                            currentlyBinding = false
+                            stopBinding()
                             self:playcommand("Set")
                         elseif currentlyBinding then
                             -- pressed a button that could potentially be bindable and we should bind it
                             local result = bindCurrentKey(event)
                             if result then
-                                currentlyBinding = false
+                                stopBinding()
                             else
                                 ms.ok(currentKey)
                                 ms.ok(currentController)
@@ -646,6 +654,11 @@ local function leftFrame()
         t[#t+1] = tt
 
         -- more elements to keybinding screen
+        -- many numbers which follow are fudged hard
+        -- this function creates a menu binding element for only player 1
+        local function menuBinding(key)
+            return Def.ActorFrame {}
+        end
         t[#t+1] = Def.ActorFrame {
             Name = "KeybindingTextElements",
             ShowLeftCommand = function(self)
@@ -661,8 +674,21 @@ local function leftFrame()
                 InitCommand = function(self)
                     self:valign(1)
                     self:xy(actuals.LeftWidth/2, actuals.Height/2)
-                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
-                    self:settext("currently binding %s")
+                    self:maxwidth(actuals.LeftWidth / currentlybindingTextSize)
+                    self:settext("Currently Binding:")
+                end,
+                SetCommand = function(self)
+                    if currentlyBinding then
+                        self:settextf("Currently Binding: %s (Controller %s)", currentKey, currentController)
+                    else
+                        self:settext("Currently Binding: ")
+                    end
+                end,
+                StartedBindingMessageCommand = function(self)
+                    self:playcommand("Set")
+                end,
+                StoppedBindingMessageCommand = function(self)
+                    self:playcommand("Set")
                 end,
             },
             LoadFont("Common Normal") .. {
@@ -670,8 +696,10 @@ local function leftFrame()
                 InitCommand = function(self)
                     self:valign(0)
                     self:xy(actuals.LeftWidth/2, actuals.TopLipHeight * 1.2)
-                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
-                    self:settext("how to bind")
+                    self:zoom(keyinstructionsTextSize)
+                    self:wrapwidthpixels(actuals.LeftWidth - 10)
+                    self:maxheight((actuals.Height / 4 - actuals.TopLipHeight * 1.5) / keyinstructionsTextSize)
+                    self:settext("Select a button to rebind with mouse or keyboard. Press Escape or Right Click to cancel binding.")
                 end,
             },
             LoadFont("Common Normal") .. {
@@ -680,7 +708,7 @@ local function leftFrame()
                     self:valign(0)
                     self:halign(0)
                     self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4)
-                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
+                    self:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
                     self:settext("Bind All")
                 end,
             },
@@ -689,11 +717,12 @@ local function leftFrame()
                 InitCommand = function(self)
                     self:valign(0)
                     self:halign(0)
-                    self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 30 * keyinstructionsTextSize)
-                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
-                    self:settext("View Advanced Keybindings")
+                    self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 30 * bindingChoicesTextSize)
+                    self:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
+                    self:settext("View Other Keybindings")
                 end,
             },
+            menuBinding(""),
 
         }
 
