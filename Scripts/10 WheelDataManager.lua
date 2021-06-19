@@ -365,6 +365,8 @@ local sortmodes = {
     "Group", -- group by pack, all "alphabetical order"
     "Title", -- group by title letter
     "Author", -- group by chartist
+    "Favorite", -- show only Favorites
+    "Cleartype", -- group by best cleartype on charts
 }
 local function sortToString(val)
     return sortmodes[val]
