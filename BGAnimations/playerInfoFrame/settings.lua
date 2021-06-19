@@ -249,23 +249,24 @@ local function leftFrame()
         -- this goes out to all cheaters and losers
         -- if you want to use double bindings dont touch this settings menu
         local function setUpKeyBindings()
-            INPUTBINDING:RemoveDoubleBindings()
+            INPUTBINDING:RemoveDoubleBindings(false)
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
         end
 
         -- just moves the cursor, for keyboard compatibility only
         local function selectKeybind(direction)
             local n = cursorIndex + direction
-            if n > #gameButtonsToMap then n = 1 end
-            if n < 1 then n = #gameButtonsToMap end
+            if n > #gameButtonsToMap*2 then n = 1 end
+            if n < 1 then n = #gameButtonsToMap*2 end
 
             cursorIndex = n
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
         end
 
         -- select this specific key to begin binding, lock input
-        local function startBinding(buttonName)
+        local function startBinding(buttonName, controller)
             currentKey = buttonName
+            currentController = controller
             currentlyBinding = true
         end
 
@@ -345,7 +346,9 @@ local function leftFrame()
                             selectKeybind(1)
                             self:playcommand("Set")
                         elseif not currentlyBinding and enter then
-                            startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(cursorIndex)])
+                            local controller = cursorIndex > #gameButtonsToMap and 1 or 0
+                            local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
+                            startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)], controller)
                         elseif not currentlyBinding and back then
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
@@ -357,7 +360,14 @@ local function leftFrame()
                             self:playcommand("Set")
                         elseif currentlyBinding then
                             -- pressed a button that could potentially be bindable and we should bind it
-                            bindCurrentKey(event)
+                            local result = bindCurrentKey(event)
+                            if result then
+                                currentlyBinding = false
+                            else
+                                ms.ok(currentKey)
+                                ms.ok(currentController)
+                                ms.ok("There was some error in attempting to bind the key... Report to developers")
+                            end
                             self:playcommand("Set")
                         else
                             -- nothing happens
@@ -381,6 +391,7 @@ local function leftFrame()
         local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
         local noteskinzoom = noteskinbasezoom / (#NSDirTable * columnwidth / noteskinwidthbaseline) / aspectRatioProportion
 
+        -- finds noteskin index
         local function findNoteskinIndex(skin)
             local nsnames = NOTESKIN:GetNoteSkinNames()
             for i, name in ipairs(nsnames) do
@@ -394,7 +405,7 @@ local function leftFrame()
         local tt = Def.ActorFrame {
             Name = "SkinContainer",
             InitCommand = function(self)
-                self:x(actuals.LeftWidth/2)
+                self:x(actuals.LeftWidth / 2)
                 self:zoom(noteskinzoom)
                 self:y(actuals.Height / 4)
             end,
@@ -406,6 +417,15 @@ local function leftFrame()
                 local ind = findNoteskinIndex((params or {}).name or "")
                 self:playcommand("SetSkinVisibility", {index = ind})
             end,
+            ShowLeftCommand = function(self)
+                if SCUFF.showingKeybinds then
+                    self:x(actuals.LeftWidth / 3)
+                    self:zoom(noteskinzoom / 2)
+                else
+                    self:x(actuals.LeftWidth / 2)
+                    self:zoom(noteskinzoom)
+                end
+            end,
         }
         -- works almost exactly like the legacy PlayerOptions preview
         -- at this point in time we cannot load every Game's noteskin like I would like to
@@ -413,12 +433,15 @@ local function leftFrame()
             -- so the elements are centered
             -- add half a column width because elements are center aligned
             local leftoffset = -columnwidth * #NSDirTable / 2 + columnwidth / 2
+            local tapForThisIteration = nil
+            local receptorForThisIteration = nil
 
             -- load taps
             tt[#tt+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
                     self:y(secondrowYoffset)
+                    tapForThisIteration = self
                 end,
                 Def.ActorFrame {
                     LoadNSkinPreview("Get", dir, "Tap Note", false) .. {
@@ -431,6 +454,9 @@ local function leftFrame()
                         SetSkinVisibilityCommand = function(self, params)
                             if params and params.index then
                                 local ind = params.index
+                                -- noteskin displays are actually many sprites in one spot
+                                -- for the chosen noteskin, display only the one we want
+                                -- have to search the list to find it
                                 for i = 1, #NOTESKIN:GetNoteSkinNames() do
                                     local c = self:GetChild("N"..i)
                                     if i == ind then
@@ -448,6 +474,7 @@ local function leftFrame()
             tt[#tt+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     self:x(leftoffset + columnwidth * (i-1))
+                    receptorForThisIteration = self
                 end,
                 Def.ActorFrame {
                     LoadNSkinPreview("Get", dir, "Receptor", false) .. {
@@ -460,6 +487,9 @@ local function leftFrame()
                         SetSkinVisibilityCommand = function(self, params)
                             if params and params.index then
                                 local ind = params.index
+                                -- noteskin displays are actually many sprites in one spot
+                                -- for the chosen noteskin, display only the one we want
+                                -- have to search the list to find it
                                 for i = 1, #NOTESKIN:GetNoteSkinNames() do
                                     local c = self:GetChild("N"..i)
                                     if i == ind then
@@ -473,12 +503,15 @@ local function leftFrame()
                     }
                 },
             }
-            -- load keybinding display
-            tt[#tt+1] = Def.ActorFrame {
-                Name = "KeybindingFrame",
+            -- load shadow taps (doubles modes)
+            tt[#tt+1] = Def.ActorProxy {
                 InitCommand = function(self)
-                    self:x(leftoffset + columnwidth * (i-1))
-                    self:y(secondrowYoffset * 2)
+                    -- ActorProxy offsets only have to be relative to the original
+                    -- set x to the same as the highest offset
+                    self:x(columnwidth * (#NSDirTable))
+                end,
+                BeginCommand = function(self)
+                    self:SetTarget(tapForThisIteration)
                 end,
                 ShowLeftCommand = function(self)
                     if SCUFF.showingKeybinds then
@@ -487,70 +520,114 @@ local function leftFrame()
                         self:diffusealpha(0)
                     end
                 end,
-                UIElements.QuadButton(1, 1) .. {
-                    Name = "KeybindBGBG",
-                    InitCommand = function(self)
-                        -- font color
-                        self:diffuse(color("#FFFFFF"))
-                        self:zoomto(columnwidth * keybindBGSizeMultiplier, columnwidth * keybindBGSizeMultiplier)
-                        self:playcommand("Set")
-                    end,
-                    SetAlphaCommand = function(self)
-                        if isOver(self) or cursorIndex == i then
-                            self:diffusealpha(0.6 * buttonHoverAlpha)
-                        else
-                            self:diffusealpha(0.6)
-                        end
-                    end,
-                    SetCommand = function(self)
-                        self:playcommand("SetAlpha")
-                    end,
-                    UpdatedBoundKeysMessageCommand = function(self)
-                        self:playcommand("SetAlpha")
-                    end,
-                    MouseOverCommand = function(self)
-                        self:playcommand("SetAlpha")
-                    end,
-                    MouseOutCommand = function(self)
-                        self:playcommand("SetAlpha")
-                    end,
-                    MouseDownCommand = function(self)
-                        if not currentlyBinding then
-                            local dist = i - cursorIndex
-                            selectKeybind(dist)
-                        end
-                    end,
-                },
-                Def.Quad {
-                    Name = "KeybindBG",
-                    InitCommand = function(self)
-                        -- generally bg color
-                        self:diffuse(color("#111111"))
-                        self:diffusealpha(0.6)
-                        self:zoomto(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier, columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier)
-                    end,
-                },
-                LoadFont("Common Large") .. {
-                    Name = "KeybindText",
-                    InitCommand = function(self)
-                        self:zoom(keybindingTextZoom)
-                        self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextZoom)
-                        self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextZoom)
-                    end,
-                    UpdatedBoundKeysMessageCommand = function(self)
-                        self:playcommand("Set")
-                    end,
-                    SetCommand = function(self)
-                        local newindex = ButtonIndexToCurGameColumn(i)
-                        local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], currentController, INPUTBINDING.defaultColumn)
-                        if buttonmapped then
-                            self:settext(buttonmapped:gsub("Key ", ""))
-                        else
-                            self:settext("none")
-                        end
-                    end,
-                }
             }
+            -- load shadow receptors (doubles modes)
+            tt[#tt+1] = Def.ActorProxy {
+                InitCommand = function(self)
+                    -- ActorProxy offsets only have to be relative to the original
+                    -- set x to the same as the highest offset
+                    self:x(columnwidth * (#NSDirTable))
+                end,
+                BeginCommand = function(self)
+                    self:SetTarget(receptorForThisIteration)
+                end,
+                ShowLeftCommand = function(self)
+                    if SCUFF.showingKeybinds then
+                        self:diffusealpha(1)
+                    else
+                        self:diffusealpha(0)
+                    end
+                end,
+            }
+            -- load keybinding display
+            -- this is put into a function to prevent a lot of copy pasting and unmaintainability
+            local function keybindingDisplay(i, isDoublesSide)
+                -- the doubles side starting index is #NSDirTable+1
+                local trueIndex = i + (isDoublesSide and #NSDirTable or 0)
+                local controller = isDoublesSide and 1 or 0
+                return Def.ActorFrame {
+                    Name = "KeybindingFrame",
+                    InitCommand = function(self)
+                        self:x(leftoffset + columnwidth * (i-1))
+                        if isDoublesSide then
+                            self:addx(columnwidth * #NSDirTable)
+                        end
+                        self:y(secondrowYoffset * 2)
+                    end,
+                    ShowLeftCommand = function(self)
+                        if SCUFF.showingKeybinds then
+                            self:diffusealpha(1)
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end,
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "KeybindBGBG",
+                        InitCommand = function(self)
+                            -- font color
+                            self:diffuse(color("#FFFFFF"))
+                            self:zoomto(columnwidth * keybindBGSizeMultiplier, columnwidth * keybindBGSizeMultiplier)
+                            self:playcommand("Set")
+                        end,
+                        SetAlphaCommand = function(self)
+                            if isOver(self) or cursorIndex == trueIndex then
+                                self:diffusealpha(0.6 * buttonHoverAlpha)
+                            else
+                                self:diffusealpha(0.6)
+                            end
+                        end,
+                        SetCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        UpdatedBoundKeysMessageCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        MouseOverCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        MouseOutCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        MouseDownCommand = function(self)
+                            if not currentlyBinding then
+                                local dist = trueIndex - cursorIndex
+                                selectKeybind(dist)
+                            end
+                        end,
+                    },
+                    Def.Quad {
+                        Name = "KeybindBG",
+                        InitCommand = function(self)
+                            -- generally bg color
+                            self:diffuse(color("#111111"))
+                            self:diffusealpha(0.6)
+                            self:zoomto(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier, columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier)
+                        end,
+                    },
+                    LoadFont("Common Large") .. {
+                        Name = "KeybindText",
+                        InitCommand = function(self)
+                            self:zoom(keybindingTextZoom)
+                            self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextZoom)
+                            self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextZoom)
+                        end,
+                        UpdatedBoundKeysMessageCommand = function(self)
+                            self:playcommand("Set")
+                        end,
+                        SetCommand = function(self)
+                            local newindex = ButtonIndexToCurGameColumn(i)
+                            local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], controller, INPUTBINDING.defaultColumn)
+                            if buttonmapped then
+                                self:settext(buttonmapped:gsub("Key ", ""))
+                            else
+                                self:settext("none")
+                            end
+                        end,
+                    }
+                }
+            end
+            tt[#tt+1] = keybindingDisplay(i, false)
+            tt[#tt+1] = keybindingDisplay(i, true)
         end
         t[#t+1] = tt
 
