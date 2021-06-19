@@ -1,5 +1,10 @@
 #include "GLFWWindowBackend.hpp"
 
+#if defined(_WIN32)
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include "archutils/Win32/GraphicsWindow.h"
+#endif
 #include <GLFW/glfw3.h>
 
 namespace Core::Platform::Window {
@@ -22,6 +27,10 @@ namespace Core::Platform::Window {
         this->windowHandle = glfwCreateWindow(
                 static_cast<int>(size.width),static_cast<int>(size.height),
                 title.data(),nullptr, nullptr);
+
+#ifdef _WIN32
+		GraphicsWindow::SetHwnd(glfwGetWin32Window(this->windowHandle));
+#endif
 
         // Reset hints after creating window (incase anything was set)
         glfwDefaultWindowHints();

@@ -14,7 +14,9 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/GameLoop.h"
 #include "FrameBufferRenderTargetGL.hpp"
+#ifdef _WIN32
 #include "archutils/Win32/GraphicsWindow.h"
+#endif
 #include <glad/glad.h>
 
 
@@ -527,6 +529,10 @@ void RageDisplay_Legacy::Init(const VideoModeParams& p)  {
 	window->setWindowCloseCallback([]{ GameLoop::setUserQuit(); });
     window->create();
     gladLoadGL();
+
+#ifdef _WIN32
+	GraphicsWindow::Initialize(false);
+#endif
 
 	// Log driver details
     Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
@@ -1597,6 +1603,9 @@ void RageDisplay_Legacy::EndFrame() {
 	glFlush();
 
 //	g_pWind->Update();
+#ifdef _WIN32
+	GraphicsWindow::Update();
+#endif
 	window->update();
 
 	const auto afterPresent = std::chrono::steady_clock::now();
