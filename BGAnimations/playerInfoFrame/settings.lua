@@ -78,6 +78,8 @@ local previewOpenedAlpha = 0.6
 local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local previewButtonTextSize = 0.8
 
+local keyinstructionsTextSize = 0.7
+
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
 -- basically our font is bad and not on the baseline or equivalent to what a BitMapText:isOver says it is, so this is a modifier to the invisible text button size
@@ -295,7 +297,7 @@ local function leftFrame()
             local combinationPizzaHutAndTacoBell = (pizzaHut .. "_" .. tacoBell):lower()
             -- not gonna bother finding a better way to do all that
             if currentKey == nil or #currentKey == 0 then return end -- ???????
-            if bannedKeys[tacoBell:lower()] or bannedKeys[pizzaHut:lower()] or bannedKeys[combinationPizzaHutAndTacoBell] then return end -- ????????
+            if bannedKeys[tacoBell:lower()] or bannedKeys[pizzaHut:lower()] or bannedKeys[combinationPizzaHutAndTacoBell] then return true end -- ????????
 
             -- bind it
             INPUTMAPPER:SetInputMap(combinationPizzaHutAndTacoBell, currentKey, INPUTBINDING.defaultColumn, currentController)
@@ -641,6 +643,58 @@ local function leftFrame()
             tt[#tt+1] = keybindingDisplay(i, true)
         end
         t[#t+1] = tt
+
+        -- more elements to keybinding screen
+        t[#t+1] = Def.ActorFrame {
+            Name = "KeybindingTextElements",
+            ShowLeftCommand = function(self)
+                if SCUFF.showingKeybinds then
+                    self:diffusealpha(1)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
+            
+            LoadFont("Common Normal") .. {
+                Name = "CurrentlyBinding",
+                InitCommand = function(self)
+                    self:valign(1)
+                    self:xy(actuals.LeftWidth/2, actuals.Height/2)
+                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
+                    self:settext("currently binding %s")
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "Instructions",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:xy(actuals.LeftWidth/2, actuals.TopLipHeight * 1.2)
+                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
+                    self:settext("how to bind")
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "StartBindingAll",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:halign(0)
+                    self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4)
+                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
+                    self:settext("Bind All")
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "ToggleAdvancedKeybindings",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:halign(0)
+                    self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 30 * keyinstructionsTextSize)
+                    self:maxwidth(actuals.LeftWidth / keyinstructionsTextSize)
+                    self:settext("View Advanced Keybindings")
+                end,
+            },
+
+        }
 
         return t
     end
