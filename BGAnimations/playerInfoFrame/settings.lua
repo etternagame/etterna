@@ -245,6 +245,15 @@ local function leftFrame()
         local currentKey = ""
         local cursorIndex = 1
 
+        -- entries into this list are not allowed to be bound
+        local bannedKeys = {
+            -- valid entries:
+            -- "key" (all keyboard input)
+            -- "mouse" (all mouse input)
+            -- "cz" (the letter z)
+            -- "left" (the left arrow on the keyboard)
+        }
+
         -- function to remove all double+ binding and leave only defaults
         -- this goes out to all cheaters and losers
         -- if you want to use double bindings dont touch this settings menu
@@ -286,6 +295,7 @@ local function leftFrame()
             local combinationPizzaHutAndTacoBell = (pizzaHut .. "_" .. tacoBell):lower()
             -- not gonna bother finding a better way to do all that
             if currentKey == nil or #currentKey == 0 then return end -- ???????
+            if bannedKeys[tacoBell:lower()] or bannedKeys[pizzaHut:lower()] or bannedKeys[combinationPizzaHutAndTacoBell] then return end -- ????????
 
             -- bind it
             INPUTMAPPER:SetInputMap(combinationPizzaHutAndTacoBell, currentKey, INPUTBINDING.defaultColumn, currentController)
