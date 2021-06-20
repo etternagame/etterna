@@ -300,12 +300,18 @@ local function leftFrame()
             if spldev == nil or #spldev ~= 2 then return end -- ?????
             local splkey = strsplit(key, "_")
             if splkey == nil or #splkey ~= 2 then return end -- ??????
-            local pizzaHut = spldev[2]
-            local tacoBell = splkey[2]
-            local combinationPizzaHutAndTacoBell = (pizzaHut .. "_" .. tacoBell):lower()
+            local pizzaHut = spldev[2]:lower()
+            local tacoBell = splkey[2]:lower()
+            -- numpad buttons and F keys are case sensitive
+            if tacoBell:sub(1,2) == "kp" then
+                tacoBell = tacoBell:gsub("kp", "KP")
+            elseif tacoBell:sub(1,1) == "f" and tonumber(tacoBell:sub(2,2)) ~= nil then
+                tacoBell = tacoBell:gsub("f", "F")
+            end
+            local combinationPizzaHutAndTacoBell = (pizzaHut .. "_" .. tacoBell)
             -- not gonna bother finding a better way to do all that
             if currentKey == nil or #currentKey == 0 then return end -- ???????
-            if bannedKeys[tacoBell:lower()] or bannedKeys[pizzaHut:lower()] or bannedKeys[combinationPizzaHutAndTacoBell] then return true end -- ????????
+            if bannedKeys[tacoBell] or bannedKeys[pizzaHut] or bannedKeys[combinationPizzaHutAndTacoBell] then return true end -- ????????
 
             -- bind it
             INPUTMAPPER:SetInputMap(combinationPizzaHutAndTacoBell, currentKey, INPUTBINDING.defaultColumn, currentController)
@@ -699,7 +705,7 @@ local function leftFrame()
                     self:zoom(keyinstructionsTextSize)
                     self:wrapwidthpixels(actuals.LeftWidth - 10)
                     self:maxheight((actuals.Height / 4 - actuals.TopLipHeight * 1.5) / keyinstructionsTextSize)
-                    self:settext("Select a button to rebind with mouse or keyboard. Press Escape or Right Click to cancel binding.")
+                    self:settext("Select a button to rebind with mouse or keyboard.\nPress Escape or click to cancel binding.")
                 end,
             },
             LoadFont("Common Normal") .. {
