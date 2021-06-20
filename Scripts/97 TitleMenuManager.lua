@@ -5,7 +5,8 @@
 
 TITLE = {
     scrollerFocused = true, -- focused on the main choices
-    nextScreen = "ScreenTitleMenu"
+    nextScreen = "ScreenTitleMenu",
+    triggeredFadeOut = false,
 }
 
 function TITLE.GetFocus(self)
@@ -22,6 +23,8 @@ function TITLE.ChangeFocus(self)
 end
 
 function TITLE.HandleFinalGameStart(self)
+    if self.triggeredFadeOut then return end
+    self.triggeredFadeOut = true
     self.scrollerFocused = true
     GAMESTATE:LoadProfiles(false)
 

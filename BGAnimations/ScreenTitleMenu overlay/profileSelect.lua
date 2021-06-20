@@ -77,6 +77,9 @@ local offlineTextSize = 0.6
 
 local textzoomFudge = 5
 
+-- reset fadeout state
+TITLE.triggeredFadeOut = false
+
 -- if there are no profiles, make a new one
 if #profileIDs == 0 then
     local new = PROFILEMAN:CreateDefaultProfile()
@@ -181,7 +184,11 @@ local function generateItems()
         end
 
         PROFILEMAN:SetProfileIDToUse(profileIDs[selectionIndex])
-        SCREENMAN:GetTopScreen():PlaySelectSound()
+        -- the sound should not play an additional time if we never allowed the profiles to be selected in the first place
+        -- this function is used to force immediate selection of the first profile when only 1 profile is present
+        if #profileIDs > 1 then
+            SCREENMAN:GetTopScreen():PlaySelectSound()
+        end
         TITLE:HandleFinalGameStart()
     end
 
