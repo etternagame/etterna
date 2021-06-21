@@ -320,7 +320,7 @@ local function leftFrame()
             return result ~= nil
         end
 
-        local t = Def.ActorFrame { 
+        local t = Def.ActorFrame {
             Name = "NoteSkinPageContainer",
             ShowLeftCommand = function(self, params)
                 if params and (params.name == "Noteskin" or params.name == "Customize Keybinds") then
@@ -2560,6 +2560,20 @@ local function rightFrame()
                         Name = "Color Config",
                         ChosenFunction = function()
                             -- activate color config screen
+                        end,
+                    },
+                }
+            },
+            {
+                Name = "Asset Settings",
+                Type = "Button",
+                Explanation = "Set your avatar, judgments, and toasty.",
+                Choices = {
+                    {
+                        Name = "Asset Settings",
+                        ChosenFunction = function()
+                            -- activate asset settings screen
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings"})
                         end,
                     },
                 }
