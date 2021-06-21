@@ -2573,7 +2573,7 @@ local function rightFrame()
                         Name = "Asset Settings",
                         ChosenFunction = function()
                             -- activate asset settings screen
-                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings"})
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "Settings"})
                         end,
                     },
                 }

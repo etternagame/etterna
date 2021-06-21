@@ -22,6 +22,7 @@ local visibleframeX = SCREEN_WIDTH - actuals.Width
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
 local animationSeconds = 0.1
 local focused = false
+local prevScreen = ""
 
 local t = Def.ActorFrame {
     Name = "AssetSettingsFile",
@@ -42,6 +43,9 @@ local t = Def.ActorFrame {
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self, params)
         if params.tab and params.tab == "AssetSettings" then
+            -- allow exiting out of this screen in a specific ... direction
+            prevScreen = params.prevScreen or ""
+
             self:diffusealpha(1)
             self:finishtweening()
             self:sleep(0.01)
@@ -383,7 +387,12 @@ local function assetList()
                         local gbtn = event.button
                         if btn == "DeviceButton_escape" then
                             -- shortcut to exit back to general
-                            MESSAGEMAN:Broadcast("GeneralTabSet")
+                            -- or back to settings screen
+                            if prevScreen == "Settings" then
+                                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
+                            else
+                                MESSAGEMAN:Broadcast("GeneralTabSet")
+                            end
                         else
                             local del = btn == "DeviceButton_delete"
                             local bs = btn == "DeviceButton_backspace"

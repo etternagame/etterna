@@ -294,7 +294,7 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
             if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "AssetSettings") then
                 MESSAGEMAN:Broadcast("GeneralTabSet")
             else
-                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings"})
+                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "General"})
             end
         end
     end,
