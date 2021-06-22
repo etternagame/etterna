@@ -1507,7 +1507,7 @@ public:
 		// I sure hope nobody changes the InputMapper enum defs...
 		std::vector<std::string> keys;
 		for (GameButton gb = GAME_BUTTON_START;
-			 gb < GAME_BUTTON_RESTART;
+			 gb <= GAME_BUTTON_RESTART;
 			 enum_add<GameButton>(gb, +1)) {
 			keys.push_back(
 			  GameButtonToString(INPUTMAPPER->GetInputScheme(), gb));
