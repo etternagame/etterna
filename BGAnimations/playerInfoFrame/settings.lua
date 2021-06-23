@@ -79,8 +79,9 @@ local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local previewButtonTextSize = 0.8
 
 local keyinstructionsTextSize = 0.7
-local bindingChoicesTextSize = 0.7
+local bindingChoicesTextSize = 0.75
 local currentlybindingTextSize = 0.7
+local menuBindingTextSize = 0.7
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
@@ -244,6 +245,17 @@ local function leftFrame()
         -- list of GameButtons we can map
         -- remember to pass calling indices through to ButtonIndexToCurGameColumn(x)
         local gameButtonsToMap = INPUTMAPPER:GetGameButtonsToMap()
+        -- list of MenuButtons we can map
+        -- could be grabbed by INPUTMAPPER:GetMenuButtonsToMap() but want to be really specific
+        local menuButtonsToMap = {
+            "Coin",
+            "EffectUp",
+            "EffectDown",
+            "RestartGameplay"
+        }
+        local inMenuPage = false
+        local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
+        local menuBoxSize = 48 * aspectRatioProportion -- hard coded. do not care (add 20 more menu buttons then i will care)
         local currentController = 0
         local currentlyBinding = false
         local currentKey = ""
@@ -256,7 +268,10 @@ local function leftFrame()
             -- "mouse" (all mouse input)
             -- "cz" (the letter z)
             -- "left" (the left arrow on the keyboard)
+            -- "kp 2" (2 on the numpad)
             mouse = true,
+            enter = true,
+            escape = true,
         }
 
         -- function to remove all double+ binding and leave only defaults
@@ -264,17 +279,42 @@ local function leftFrame()
         -- if you want to use double bindings dont touch this settings menu
         local function setUpKeyBindings()
             INPUTBINDING:RemoveDoubleBindings(false)
+            
+            -- kill your precious menu double bindings (not gonna lie couldnt think of a better way to guarantee what you see is what is bound)
+            -- will only mess with the left side bindings (controller 0)
+            for _, b in ipairs(menuButtonsToMap) do
+                local tmp = INPUTMAPPER:GetButtonMapping(b, 0, INPUTBINDING.defaultColumn)
+                if tmp == nil then tmp = "nil" end
+                for col = 0, INPUTBINDING.maxColumn do
+                    INPUTMAPPER:SetInputMap("", b, col, 0)
+                end
+                INPUTMAPPER:SetInputMap(tmp, b, INPUTBINDING.defaultColumn, 0)
+            end
+
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
         end
 
         -- just moves the cursor, for keyboard compatibility only
         local function selectKeybind(direction)
             local n = cursorIndex + direction
-            if n > #gameButtonsToMap*2 then n = 1 end
-            if n < 1 then n = #gameButtonsToMap*2 end
+            local maxindex = not inMenuPage and #gameButtonsToMap*2 or #menuButtonsToMap
+            if n > maxindex then n = 1 end
+            if n < 1 then n = maxindex end
 
             cursorIndex = n
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
+        end
+
+        -- switch page between menu buttons and game buttons
+        local function switchBindingPage()
+            inMenuPage = not inMenuPage
+            currentKey = ""
+            currentlyBinding = false
+            currentController = 0
+            cursorIndex = 1
+
+            MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
+            MESSAGEMAN:Broadcast("BindingPageSet")
         end
 
         -- select this specific key to begin binding, lock input
@@ -373,9 +413,12 @@ local function leftFrame()
                             selectKeybind(1)
                             self:playcommand("Set")
                         elseif not currentlyBinding and enter then
-                            local controller = cursorIndex > #gameButtonsToMap and 1 or 0
+                            -- i overcomplicated logic here just for you, reader. you are welcome
+                            -- (consider menu bindings, use either the gamebutton table or the menubutton table)
+                            local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
                             local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
-                            startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)], controller)
+                            local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+                            startBinding(buttonbinding, controller)
                         elseif not currentlyBinding and back then
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
@@ -413,9 +456,8 @@ local function leftFrame()
         local NSDirTable = GivenGameToFullNSkinElements(GAMESTATE:GetCurrentGame():GetName())
         local keybindBGSizeMultiplier = 0.97 -- this is multiplied with columnwidth
         local keybindBG2SizeMultiplier = 0.97 -- this is multiplied with columnwidth and keybindBGSizeMultiplier
-        local keybindingTextZoom = 1
+        local keybindingTextSize = 1 -- text size inside the key button thing
         -- calculation: find a zoom that fits for the current chosen column count the same way 4key on 16:9 does
-        local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
         local noteskinzoom = noteskinbasezoom / (#NSDirTable * columnwidth / noteskinwidthbaseline) / aspectRatioProportion
 
         -- finds noteskin index
@@ -444,10 +486,18 @@ local function leftFrame()
                 local ind = findNoteskinIndex((params or {}).name or "")
                 self:playcommand("SetSkinVisibility", {index = ind})
             end,
+            BindingPageSetMessageCommand = function(self)
+                if inMenuPage then
+                    self:diffusealpha(0)
+                else
+                    self:diffusealpha(1)
+                end
+            end,
             ShowLeftCommand = function(self)
                 if SCUFF.showingKeybinds then
                     self:x(actuals.LeftWidth / 3)
                     self:zoom(noteskinzoom / 2)
+                    self:playcommand("BindingPageSet")
                 else
                     self:x(actuals.LeftWidth / 2)
                     self:zoom(noteskinzoom)
@@ -455,6 +505,7 @@ local function leftFrame()
             end,
         }
         -- works almost exactly like the legacy PlayerOptions preview
+        -- except has some secret things attached
         -- at this point in time we cannot load every Game's noteskin like I would like to
         for i, dir in ipairs(NSDirTable) do
             -- so the elements are centered
@@ -616,7 +667,8 @@ local function leftFrame()
                             self:playcommand("SetAlpha")
                         end,
                         MouseDownCommand = function(self)
-                            if not currentlyBinding then
+                            if self:IsInvisible() then return end
+                            if not currentlyBinding and not inMenuPage then
                                 local dist = trueIndex - cursorIndex
                                 selectKeybind(dist)
                                 startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(i)], controller)
@@ -635,9 +687,9 @@ local function leftFrame()
                     LoadFont("Common Large") .. {
                         Name = "KeybindText",
                         InitCommand = function(self)
-                            self:zoom(keybindingTextZoom)
-                            self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextZoom)
-                            self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextZoom)
+                            self:zoom(keybindingTextSize)
+                            self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextSize)
+                            self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextSize)
                         end,
                         UpdatedBoundKeysMessageCommand = function(self)
                             self:playcommand("Set")
@@ -662,11 +714,90 @@ local function leftFrame()
         -- more elements to keybinding screen
         -- many numbers which follow are fudged hard
         -- this function creates a menu binding element for only player 1
-        local function menuBinding(key)
-            return Def.ActorFrame {}
+        local function menuBinding(i, key)
+            return Def.ActorFrame {
+                Name = "KeybindingFrame",
+                    InitCommand = function(self)
+                        self:x(actuals.LeftWidth / 8)
+                        self:y(menuBoxSize * (i-1))
+                    end,
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "KeybindBGBG",
+                        InitCommand = function(self)
+                            -- font color
+                            self:diffuse(color("#FFFFFF"))
+                            self:zoomto(menuBoxSize * keybindBGSizeMultiplier, menuBoxSize * keybindBGSizeMultiplier)
+                            self:playcommand("Set")
+                        end,
+                        SetAlphaCommand = function(self)
+                            if isOver(self) or cursorIndex == i then
+                                self:diffusealpha(0.6 * buttonHoverAlpha)
+                            else
+                                self:diffusealpha(0.6)
+                            end
+                        end,
+                        SetCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        UpdatedBoundKeysMessageCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        MouseOverCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        MouseOutCommand = function(self)
+                            self:playcommand("SetAlpha")
+                        end,
+                        MouseDownCommand = function(self)
+                            if not currentlyBinding then
+                                local dist = i - cursorIndex
+                                selectKeybind(dist)
+                                startBinding(key, 0)
+                            end
+                        end,
+                    },
+                    Def.Quad {
+                        Name = "KeybindBG",
+                        InitCommand = function(self)
+                            -- generally bg color
+                            self:diffuse(color("#111111"))
+                            self:diffusealpha(0.6)
+                            self:zoomto(menuBoxSize * keybindBGSizeMultiplier * keybindBG2SizeMultiplier, menuBoxSize * keybindBGSizeMultiplier * keybindBG2SizeMultiplier)
+                        end,
+                    },
+                    LoadFont("Common Large") .. {
+                        Name = "KeybindText",
+                        InitCommand = function(self)
+                            self:zoom(keybindingTextSize)
+                            self:maxwidth(menuBoxSize * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextSize)
+                            self:maxheight(menuBoxSize * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextSize)
+                        end,
+                        UpdatedBoundKeysMessageCommand = function(self)
+                            self:playcommand("Set")
+                        end,
+                        SetCommand = function(self)
+                            local buttonmapped = INPUTMAPPER:GetButtonMapping(key, 0, INPUTBINDING.defaultColumn)
+                            if buttonmapped then
+                                self:settext(buttonmapped:gsub("Key ", ""))
+                            else
+                                self:settext("none")
+                            end
+                        end,
+                    },
+                    LoadFont("Common Normal") .. {
+                        Name = "KeybindButtonText",
+                        InitCommand = function(self)
+                            self:x(menuBoxSize / 2 + 5)
+                            self:halign(0)
+                            self:zoom(menuBindingTextSize)
+                            self:maxwidth((actuals.LeftWidth - menuBoxSize * 3 - actuals.LeftWidth/8) / menuBindingTextSize)
+                            self:settext(key:gsub("_", " "))
+                        end,
+                    }
+            }
         end
         t[#t+1] = Def.ActorFrame {
-            Name = "KeybindingTextElements",
+            Name = "ExtraKeybindingElementsFrame",
             ShowLeftCommand = function(self)
                 if SCUFF.showingKeybinds then
                     self:diffusealpha(1)
@@ -679,13 +810,21 @@ local function leftFrame()
                 Name = "CurrentlyBinding",
                 InitCommand = function(self)
                     self:valign(1)
-                    self:xy(actuals.LeftWidth/2, actuals.Height/2)
+                    self:x(actuals.LeftWidth/2)
                     self:maxwidth(actuals.LeftWidth / currentlybindingTextSize)
-                    self:settext("Currently Binding:")
+                    self:playcommand("Set")
                 end,
                 SetCommand = function(self)
-                    if currentlyBinding then
+                    if inMenuPage then
+                        self:y(actuals.Height / 1.5)
+                    else
+                        self:y(actuals.Height / 2)
+                    end
+
+                    if currentlyBinding and not inMenuPage then
                         self:settextf("Currently Binding: %s (Controller %s)", currentKey, currentController)
+                    elseif currentlyBinding and inMenuPage then
+                        self:settextf("Currently Binding: %s", currentKey)
                     else
                         self:settext("Currently Binding: ")
                     end
@@ -694,6 +833,9 @@ local function leftFrame()
                     self:playcommand("Set")
                 end,
                 StoppedBindingMessageCommand = function(self)
+                    self:playcommand("Set")
+                end,
+                BindingPageSetMessageCommand = function(self)
                     self:playcommand("Set")
                 end,
             },
@@ -708,29 +850,88 @@ local function leftFrame()
                     self:settext("Select a button to rebind with mouse or keyboard.\nPress Escape or click to cancel binding.")
                 end,
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "StartBindingAll",
                 InitCommand = function(self)
-                    self:valign(0)
-                    self:halign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0)
+                    bg:halign(0)
                     self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4)
-                    self:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
-                    self:settext("Bind All")
+                    txt:zoom(bindingChoicesTextSize)
+                    txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
+                    txt:settext("Start Binding All")
+                    bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                    bg:diffusealpha(0.2)
                 end,
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "ToggleAdvancedKeybindings",
                 InitCommand = function(self)
-                    self:valign(0)
-                    self:halign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0)
+                    bg:halign(0)
                     self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 30 * bindingChoicesTextSize)
-                    self:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
-                    self:settext("View Other Keybindings")
+                    txt:zoom(bindingChoicesTextSize)
+                    txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
+                    bg:diffusealpha(0.2)
+                    self:playcommand("BindingPageSet")
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+                end,
+                BindingPageSetMessageCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    if inMenuPage then
+                        txt:settext("View Gameplay Keybindings")
+                    else
+                        txt:settext("View Menu Keybindings")
+                    end
+                    bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        switchBindingPage()
+                    end
                 end,
             },
-            menuBinding(""),
-
         }
+
+        -- to collect all the menu bindings
+        local function mbf()
+            local t = Def.ActorFrame {
+                Name = "MenuBindingFrame",
+                InitCommand = function(self)
+                    self:y(actuals.Height / 4)
+                    self:playcommand("BindingPageSet")
+                end,
+                BindingPageSetMessageCommand = function(self)
+                    if inMenuPage then
+                        self:diffusealpha(1)
+                        self:z(1)
+                    else
+                        self:diffusealpha(0)
+                        self:z(-1)
+                    end
+                end,
+            }
+            for i, b in ipairs(menuButtonsToMap) do
+                t[#t+1] = menuBinding(i, b)
+            end
+            return t
+        end
+        t[#t+1] = mbf()
 
         return t
     end
