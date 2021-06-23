@@ -66,7 +66,9 @@ class MusicWheel : public WheelBase
 	bool packlistFiltering{ false };
 
 	vector<Song*> allSongsFiltered;
-	std::map<std::string, vector<Song*>> allSongsByGroupFiltered;
+	// all songs by sort order by group also filtered
+	std::vector<std::map<std::string, std::vector<Song*>>>
+	  allSongsByGroupFiltered{ NUM_SortOrder };
 	auto SelectSongOrCourse() -> bool;
 	void SelectSongAfterSearch();
 

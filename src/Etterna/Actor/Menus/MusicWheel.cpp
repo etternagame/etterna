@@ -947,7 +947,7 @@ MusicWheel::BuildWheelItemDatas(
 		}
 
 		allSongsFiltered = arraySongs;
-		allSongsByGroupFiltered.clear();
+		allSongsByGroupFiltered[so].clear();
 
 		// make WheelItemDatas with sections
 
@@ -996,6 +996,13 @@ MusicWheel::BuildWheelItemDatas(
 										 sLastSection,
 										 SONGMAN->GetSongColor(pSong),
 										 0));
+				if (allSongsByGroupFiltered.at(so).count(sLastSection) != 0u) {
+					allSongsByGroupFiltered.at(so)[sLastSection].emplace_back(pSong);
+				} else {
+					vector<Song*> v;
+					v.emplace_back(pSong);
+					allSongsByGroupFiltered.at(so)[sLastSection] = v;
+				}
 			}
 		} else {
 
@@ -1040,12 +1047,12 @@ MusicWheel::BuildWheelItemDatas(
 												 gname,
 												 SONGMAN->GetSongColor(s),
 												 0));
-						if (allSongsByGroupFiltered.count(gname) != 0u) {
-							allSongsByGroupFiltered[gname].emplace_back(s);
+						if (allSongsByGroupFiltered.at(so).count(gname) != 0u) {
+							allSongsByGroupFiltered.at(so)[gname].emplace_back(s);
 						} else {
 							vector<Song*> v;
 							v.emplace_back(s);
-							allSongsByGroupFiltered[gname] = v;
+							allSongsByGroupFiltered.at(so)[gname] = v;
 						}
 					}
 				}
@@ -1839,14 +1846,14 @@ class LunaMusicWheel : public Luna<MusicWheel>
 		lua_newtable(L);
 		const auto* group = SArg(1);
 
-		if (p->allSongsByGroupFiltered.count(group) == 0) {
+		if (p->allSongsByGroupFiltered.at(GAMESTATE->m_SortOrder).count(group) == 0) {
 			return 1;
 		}
 
 		for (auto i = 0;
-			 i < static_cast<int>(p->allSongsByGroupFiltered[group].size());
+			 i < static_cast<int>(p->allSongsByGroupFiltered.at(GAMESTATE->m_SortOrder)[group].size());
 			 ++i) {
-			p->allSongsByGroupFiltered[group][i]->PushSelf(L);
+			p->allSongsByGroupFiltered.at(GAMESTATE->m_SortOrder)[group][i]->PushSelf(L);
 			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
