@@ -200,22 +200,18 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				type = MusicWheelItemType_SectionCollapsed;
 			}
 
-			int num_played_songs = 0;
+			if (PREFSMAN->m_bPackProgressInWheel) {
+				int num_played_songs = 0;
 
-			for (auto song : wheel->allSongsByGroupFiltered.at(pWID->m_sText)) {
-				bool song_has_scores = false;
-				for (auto chart : song->GetChartsOfCurrentGameMode()) {
-					if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
-						song_has_scores = true;
-						break;
+				for (auto song : wheel->allSongsByGroupFiltered.at(pWID->m_sText)) {
+					for (auto chart : song->GetChartsOfCurrentGameMode()) {
+						if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
+							num_played_songs++;
+							break;
+						}
 					}
 				}
-				if (song_has_scores) {
-					num_played_songs++;
-				}
-			}
 
-			if (PREFSMAN->m_bPackProgressInWheel) {
 				RageColor color;
 				if (num_played_songs == pWID->m_iSectionCount) {
 					color = RageColor(1, 1, 1, 0);
