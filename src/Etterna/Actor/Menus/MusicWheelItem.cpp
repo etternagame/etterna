@@ -12,6 +12,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include <cstdio>
 
 static const char* MusicWheelItemTypeNames[] = {
 	"Song", "SectionExpanded", "SectionCollapsed", "Roulette", "Sort",
@@ -200,10 +201,11 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				type = MusicWheelItemType_SectionCollapsed;
 			}
 
-			if (PREFSMAN->m_bPackProgressInWheel) {
+			auto songs_in_group = wheel->allSongsByGroupFiltered.find(pWID->m_sText);
+			if (PREFSMAN->m_bPackProgressInWheel && songs_in_group != wheel->allSongsByGroupFiltered.end()) {
 				int num_played_songs = 0;
 
-				for (auto song : wheel->allSongsByGroupFiltered.at(pWID->m_sText)) {
+				for (auto song : songs_in_group->second) {
 					for (auto chart : song->GetChartsOfCurrentGameMode()) {
 						if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
 							num_played_songs++;
@@ -225,6 +227,7 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				m_pTextSectionCount->SetDiffuseColor(color);
 			} else {
 				m_pTextSectionCount->SetText(ssprintf("%d", pWID->m_iSectionCount));
+				// m_pTextSectionCount->SetDiffuseColor(???);
 			}
 
 			m_pTextSectionCount->SetVisible(true);
