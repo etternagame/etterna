@@ -385,6 +385,9 @@ local function leftFrame()
                         setUpKeyBindings()
                         CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Keybindings")
                     else
+                        if SCUFF.showingKeybinds then
+                            INPUTMAPPER:SaveMappingsToDisk()
+                        end
                         SCUFF.showingKeybinds = false
                     end
                     self:diffusealpha(1)
@@ -395,6 +398,10 @@ local function leftFrame()
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                -- save when exiting
+                if SCUFF.showingKeybinds then
+                    INPUTMAPPER:SaveMappingsToDisk()
+                end
                 SCUFF.showingNoteskins = false
                 SCUFF.showingKeybinds = false
             end,
