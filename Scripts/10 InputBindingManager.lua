@@ -92,7 +92,6 @@ function INPUTBINDING.RemoveDoubleBindings(self, isMenu)
         local ni = ButtonIndexToCurGameColumn(i)
         for player = 0, self.maxPlayer do
             local b = alreadymapped[ind]
-            if b == "nil" then b = "" else b = b:gsub(" ", "_"):lower() end
             INPUTMAPPER:SetInputMap(b, bt[ni], self.defaultColumn, player)
             ind = ind + 1
         end

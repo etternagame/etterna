@@ -810,7 +810,7 @@ local function leftFrame()
                         end,
                         SetCommand = function(self)
                             local newindex = ButtonIndexToCurGameColumn(i)
-                            local buttonmapped = INPUTMAPPER:GetButtonMapping(gameButtonsToMap[newindex], controller, INPUTBINDING.defaultColumn)
+                            local buttonmapped = INPUTMAPPER:GetButtonMappingString(gameButtonsToMap[newindex], controller, INPUTBINDING.defaultColumn)
                             if buttonmapped then
                                 self:settext(buttonmapped:gsub("Key ", ""))
                             else
@@ -890,7 +890,7 @@ local function leftFrame()
                             self:playcommand("Set")
                         end,
                         SetCommand = function(self)
-                            local buttonmapped = INPUTMAPPER:GetButtonMapping(key, 0, INPUTBINDING.defaultColumn)
+                            local buttonmapped = INPUTMAPPER:GetButtonMappingString(key, 0, INPUTBINDING.defaultColumn)
                             if buttonmapped then
                                 self:settext(buttonmapped:gsub("Key ", ""))
                             else
