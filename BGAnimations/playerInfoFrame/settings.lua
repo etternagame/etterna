@@ -9,7 +9,7 @@ local ratios = {
     BottomLipHeight = 99 / 1080,
 
     EdgePadding = 12 / 1920, -- distance from edges for text and items
-    
+
     --
     -- right options
     OptionTextWidth = 275 / 1920, -- left edge of text to edge of area for text
@@ -320,7 +320,7 @@ local function leftFrame()
             return result ~= nil
         end
 
-        local t = Def.ActorFrame { 
+        local t = Def.ActorFrame {
             Name = "NoteSkinPageContainer",
             ShowLeftCommand = function(self, params)
                 if params and (params.name == "Noteskin" or params.name == "Customize Keybinds") then
@@ -350,7 +350,7 @@ local function leftFrame()
                 -- noteskin display is not relevant for this, just contains it for reasons
                 CONTEXTMAN:RegisterToContextSet(snm, "Keybindings", anm)
                 CONTEXTMAN:ToggleContextSet(snm, "Keybindings", false)
-    
+
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- if locked out, dont allow
                     if not CONTEXTMAN:CheckContextSet(snm, "Keybindings") then return end
@@ -674,7 +674,7 @@ local function leftFrame()
                     self:diffusealpha(0)
                 end
             end,
-            
+
             LoadFont("Common Normal") .. {
                 Name = "CurrentlyBinding",
                 InitCommand = function(self)
@@ -755,7 +755,7 @@ local function leftFrame()
                 SCUFF.showingPreview = false
                 MESSAGEMAN:Broadcast("PreviewPageOpenStatusChanged", {opened = false})
             end,
-            
+
             -- the preview notefield (but not really)
             Def.ActorProxy {
                 Name = "NoteField",
@@ -969,7 +969,7 @@ local function rightFrame()
 
     -- -----
     -- Utility functions for options not necessarily needed for global use in /Scripts (could easily be put there instead though)
-    
+
     -- set any mod as part of PlayerOptions at all levels in one easy function
     local function setPlayerOptionsModValueAllLevels(funcname, ...)
         -- you give a funcname like MMod, XMod, CMod and it just works
@@ -1297,7 +1297,7 @@ local function rightFrame()
     --  MultiChoice             -- shows all options at once, selecting any amount of them
     --  Button                  -- it's a button. you press enter on it.
     --
-    -- OPTION DEFINITION EXAMPLE: 
+    -- OPTION DEFINITION EXAMPLE:
     --[[
         {
             Name = "option name" -- display name for the option
@@ -2731,7 +2731,7 @@ local function rightFrame()
         for _, optionPage in ipairs(pageNames) do
             for i, categoryName in ipairs(optionPageCategoryLists[optionPage]) do
                 local categoryDefinition = optionDefs[categoryName]
-                
+
                 -- declare certain rows are categories
                 -- (current row and the remaining rows after the set of options in this category)
                 if rowTypes[i] ~= nil then
@@ -2750,7 +2750,7 @@ local function rightFrame()
 
                 for j, optionDef in ipairs(categoryDefinition) do
                     local rowIndex = j + i -- skip the rows for option category names
-                    
+
                     -- option types for every row
                     if rowTypes[rowIndex] ~= nil then
                         rowTypes[rowIndex][optionDef.Type] = true
@@ -2955,7 +2955,7 @@ local function rightFrame()
             if optionRowFrame == nil then ms.ok("BAD CURSOR REPORT TO DEVELOPER") return end
             local optionRowDef = optionRowFrame.defInUse
             if optionRowDef == nil then ms.ok("BAD CURSOR ROWDEF REPORT TO DEVELOPER") return end
-            local actorToHover = getActorForCursorToHoverByCurrentConditions()            
+            local actorToHover = getActorForCursorToHoverByCurrentConditions()
 
             if actorToHover == nil then
                 ms.ok("BAD CURSOR PLACEMENT LOGIC OR DEF REPORT TO DEVELOPER")
@@ -2987,7 +2987,7 @@ local function rightFrame()
 
             if actorToHover == nil or cursorPosDef == nil or cursorPosDef.LinkedItem == nil then return end
             local linkdef = cursorPosDef.LinkedItem
-            
+
             if linkdef.Opened == true then
                 -- this means it is an opened category
                 -- do nothing.
@@ -3200,7 +3200,7 @@ local function rightFrame()
                 -- cursor input management
                 CONTEXTMAN:RegisterToContextSet(snm, "Settings", anm)
                 CONTEXTMAN:ToggleContextSet(snm, "Settings", false)
-    
+
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- if locked out, dont allow
                     if not CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
@@ -3418,13 +3418,13 @@ local function rightFrame()
                     redrawChoiceRelatedElements()
                 end
             end
-            
+
             -- paginate choices according to maxChoicesVisibleMultiChoice
             local function moveChoicePage(n)
                 if rowHandle.maxChoicePage <= 1 then
                     return
                 end
-    
+
                 -- math to make pages loop both directions
                 local nn = (rowHandle.choicePage + n) % (rowHandle.maxChoicePage + 1)
                 if nn == 0 then
@@ -4085,7 +4085,7 @@ local function rightFrame()
                                 finalXPos = finalXPos + triangleWidthBufferThing + actuals.OptionSmallTriangleHeight * 2 - actuals.OptionSmallTriangleHeight/2 + actuals.OptionSmallTriangleGap + actuals.OptionChoiceDirectionGap
                             end
                             self:x(finalXPos)
-                            
+
                             -- to force the choices to update left to right
                             -- update the text of all of them first to see what the width would be
                             local lastFilledChoiceIndex = 1
@@ -4096,12 +4096,12 @@ local function rightFrame()
                                     lastFilledChoiceIndex = i
                                 end
                             end
-                            
+
                             -- so basically this bad line of math evenly splits the given area including the buffer zones in between
                             -- it also takes into account whether or not we have the triangles on the edges (so if missing, take up more room to equal in width)
                             -- (it doesnt produce a great result and all this garbage is for nothing if you think about it)
                             -- (leaving it here anyways in case this method of setting text and then drawing can be used)
-                            local allowedWidth = (actuals.OptionChoiceAllottedWidth - (lastFilledChoiceIndex-1) * actuals.OptionTextBuffer) / lastFilledChoiceIndex + (rowHandle.maxChoicePage <= 1 and triangleWidthBufferThing or 0) 
+                            local allowedWidth = (actuals.OptionChoiceAllottedWidth - (lastFilledChoiceIndex-1) * actuals.OptionTextBuffer) / lastFilledChoiceIndex + (rowHandle.maxChoicePage <= 1 and triangleWidthBufferThing or 0)
                             for i = 1, math.min(choiceCount, maxChoicesVisibleMultiChoice) do
                                 local child = self:GetChild("Choice_"..i)
                                 child:GetChild("Text"):maxwidth(allowedWidth / choiceTextSize)
@@ -4126,7 +4126,7 @@ local function rightFrame()
                             txt:halign(0)
                             txt:zoom(optionChoiceTextSize)
                             txt:settext(" ")
-    
+
                             bg:halign(0)
                             -- fudge movement due to font misalign
                             bg:y(1)
@@ -4154,7 +4154,7 @@ local function rightFrame()
                                         -- several cases involving the ChoiceIndexGetter for single choices...
                                         if optionDef.ChoiceIndexGetter ~= nil and optionDef.Choices == nil then
                                             -- getter with no choices means the getter supplies the visible information
-                                            txt:settext(currentChoiceSelection)    
+                                            txt:settext(currentChoiceSelection)
                                         elseif optionDef.Choices ~= nil then
                                             -- choices present means the getter supplies the choice index that contains the information
                                             txt:settext(optionDef.Choices[currentChoiceSelection].Name)
@@ -4208,7 +4208,7 @@ local function rightFrame()
                                     if n == 1 then
                                         local txt = self:GetChild("Text")
                                         local bg = self:GetChild("BG")
-                                        
+
                                         bg:zoomx(txt:GetZoomedWidth())
                                         bg:diffusealpha(0)
                                         self:x(0) -- for consistency but makes no difference
@@ -4350,14 +4350,14 @@ local function rightFrame()
 
     local function createOptionPageChoices()
         local selectedIndex = 1
-    
+
         local function createChoice(i)
             return UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "ButtonTab_"..pageNames[i],
                 InitCommand = function(self)
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
-    
+
                     -- this position is the center of the text
                     -- divides the space into slots for the choices then places them half way into them
                     -- should work for any count of choices
@@ -4406,7 +4406,7 @@ local function rightFrame()
 
                 CONTEXTMAN:RegisterToContextSet(snm, "Settings", anm)
                 CONTEXTMAN:ToggleContextSet(snm, "Settings", false)
-    
+
                 -- enable the possibility to press the keyboard to switch tabs
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- if locked out, dont allow

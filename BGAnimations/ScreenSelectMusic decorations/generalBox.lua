@@ -102,6 +102,7 @@ local function createChoices()
         InitCommand = function(self)
             self:y(actuals.Height - actuals.LowerLipHeight / 2)
             self:playcommand("UpdateSelectedIndex")
+            self:draworder(3)
         end,
         BeginCommand = function(self)
             local snm = SCREENMAN:GetTopScreen():GetName()
@@ -169,6 +170,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoomto(actuals.Width, actuals.LowerLipHeight)
             self:diffuse(color("#111111"))
             self:diffusealpha(0.6)
+            self:draworder(3)
         end
     },
     createChoices(),

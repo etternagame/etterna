@@ -122,7 +122,7 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:xy(rightHalfXBegin, actuals.DensityGraphHeight)
-        self:zoomto(actuals.Width - rightHalfXBegin, actuals.NoteFieldHeight)
+        self:zoomto(actuals.Width - rightHalfXBegin, actuals.NoteFieldHeight + actuals.LowerLipHeight)
         self:diffuse(color("#000000"))
     end,
     MouseDownCommand = function(self, params)
@@ -143,7 +143,7 @@ t[#t+1] = Def.NoteFieldPreview {
     InitCommand = function(self)
         self:x(rightHalfXBegin + 15)
         self:y(notefieldYCenter)
-        self:zoom(notefieldZoomBaseline):draworder(90)
+        self:zoom(notefieldZoomBaseline)
         -- make mods work
         self:SetFollowPlayerOptions(true)
         self:SetUpdateFunction(function(self)
@@ -210,6 +210,17 @@ t[#t+1] = LoadActorWithParams("../../chordDensityGraph.lua", {sizing = {
             self:playcommand("LoadDensityGraph", {steps = steps, song = params.song})
         end
     end
+}
+
+t[#t+1] = UIElements.QuadButton(1, 1) .. {
+    Name = "ChoicesCover",
+    InitCommand = function(self)
+        self:halign(0):valign(0)
+        self:xy(rightHalfXBegin, actuals.DensityGraphHeight + actuals.NoteFieldHeight)
+        self:zoomto(actuals.Width - rightHalfXBegin, actuals.LowerLipHeight)
+        self:diffuse(color("#000000"))
+        self:draworder(2):visible(0)
+    end,
 }
 
 return t
