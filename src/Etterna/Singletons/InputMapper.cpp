@@ -1530,7 +1530,29 @@ public:
 		DeviceInput deviceI;
 		
 		if (p->GameToDevice(gameI, bindingColumn, deviceI))
-			lua_pushstring(L, INPUTMAN->GetDeviceSpecificInputString(deviceI).c_str());
+			lua_pushstring(L, deviceI.ToString().c_str());
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+	static int GetButtonMappingString(T* p, lua_State* L)
+	{
+		// similar to GetButtonMapping except gets the string a user can read
+		std::string possiblyMappedGameButton = SArg(1);
+		int playerSlot = IArg(2);
+		CLAMP(playerSlot, 0, 1);
+		int bindingColumn = IArg(3);
+		CLAMP(bindingColumn, 0, 4);
+
+		GameController gc = static_cast<GameController>(playerSlot);
+		GameButton gb =
+		  StringToGameButton(p->GetInputScheme(), possiblyMappedGameButton);
+		GameInput gameI(gc, gb);
+		DeviceInput deviceI;
+
+		if (p->GameToDevice(gameI, bindingColumn, deviceI))
+			lua_pushstring(
+			  L, INPUTMAN->GetDeviceSpecificInputString(deviceI).c_str());
 		else
 			lua_pushnil(L);
 		return 1;
@@ -1553,6 +1575,7 @@ public:
 		ADD_METHOD(GetGameButtonsToMap);
 		ADD_METHOD(GetMenuButtonsToMap);
 		ADD_METHOD(GetButtonMapping);
+		ADD_METHOD(GetButtonMappingString);
 		ADD_METHOD(SaveMappingsToDisk);
 		ADD_METHOD(ReadMappingsFromDisk);
 	}
