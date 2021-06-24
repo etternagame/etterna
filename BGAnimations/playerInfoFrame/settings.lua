@@ -261,6 +261,7 @@ local function leftFrame()
         local currentKey = ""
         local cursorIndex = 1
         local automaticallyBindingEverything = false -- when true, move forward until we bound the last allowed index
+        local optionActive = 0 -- 0 = nothing, 1 = bind all, 2 = swap pages (to keep track of vertical hover position)
 
         -- entries into this list are not allowed to be bound
         local bannedKeys = {
@@ -315,6 +316,7 @@ local function leftFrame()
             currentController = 0
             cursorIndex = 1
             automaticallyBindingEverything = false
+            optionActive = 0
 
             MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
             MESSAGEMAN:Broadcast("BindingPageSet")
@@ -335,6 +337,7 @@ local function leftFrame()
         local function startBindingEverything()
             cursorIndex = 1
             automaticallyBindingEverything = true
+            optionActive = 0
             local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
             local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
             local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
@@ -420,19 +423,95 @@ local function leftFrame()
                         local rightclick = key == "DeviceButton_right mouse button"
                         local leftclick = key == "DeviceButton_left mouse button"
 
-                        if not currentlyBinding and (up or left) then
-                            selectKeybind(-1)
+                        if not currentlyBinding and left then
+                            -- functionality to attempt to make vertical choice movement very slightly more intuitive
+                            -- this probably just confuses the user
+                            -- dont care
+                            if inMenuPage and optionActive == 0 and cursorIndex == 1 then
+                                optionActive = 2
+                                cursorIndex = 0
+                            elseif inMenuPage and optionActive == 2 then
+                                optionActive = 1
+                            else
+                                optionActive = 0
+                                selectKeybind(-1)
+                            end
                             self:playcommand("Set")
-                        elseif not currentlyBinding and (down or right) then
-                            selectKeybind(1)
+                        elseif not currentlyBinding and right then
+                            if inMenuPage and optionActive == 0 and cursorIndex == #menuButtonsToMap then
+                                optionActive = 1
+                                cursorIndex = 0
+                            elseif inMenuPage and optionActive == 1 then
+                                optionActive = 2
+                            else
+                                optionActive = 0
+                                selectKeybind(1)
+                            end
+                            self:playcommand("Set")
+                        elseif not currentlyBinding and (up or down) then
+                            -- functionality to let movement go into the extra vertical choices
+                            -- because we orient the menu page vertically it makes menu logic that much more cancer
+                            if optionActive == 1 then -- hovered "bind all"
+                                if up then
+                                    optionActive = 0
+                                    cursorIndex = inMenuPage and #menuButtonsToMap or 1
+                                else
+                                    optionActive = 2
+                                end
+                            elseif optionActive == 2 then -- hovered "swap page"
+                                if up then
+                                    optionActive = 1
+                                else
+                                    optionActive = 0
+                                    cursorIndex = 1
+                                end
+                            elseif optionActive <= 0 then -- not hovered on anything
+                                if inMenuPage then
+                                    if up and cursorIndex == 1 then
+                                        optionActive = 2
+                                        cursorIndex = 0
+                                    elseif down and cursorIndex == #menuButtonsToMap then
+                                        optionActive = 1
+                                        cursorIndex = 0
+                                    elseif down then
+                                        selectKeybind(1)
+                                    elseif up then
+                                        selectKeybind(-1)
+                                    end
+                                else
+                                    cursorIndex = 0
+                                    if up then
+                                        optionActive = 2
+                                    else
+                                        optionActive = 1
+                                    end
+                                end
+                            end
                             self:playcommand("Set")
                         elseif not currentlyBinding and enter then
-                            -- i overcomplicated logic here just for you, reader. you are welcome
-                            -- (consider menu bindings, use either the gamebutton table or the menubutton table)
-                            local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
-                            local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
-                            local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
-                            startBinding(buttonbinding, controller)
+                            if cursorIndex <= 0 then
+                                -- logic for pressing enter on the vertical choices
+                                -- this is really hacked
+                                if optionActive == 1 then
+                                    -- bind all start
+                                    startBindingEverything()
+                                    self:playcommand("Set")
+                                elseif optionActive == 2 then
+                                    -- swap page button
+                                    switchBindingPage()
+                                    optionActive = 2
+                                    cursorIndex = 0
+                                    MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
+                                    self:playcommand("Set")
+                                end
+                            else
+                                -- i overcomplicated logic here just for you, reader. you are welcome
+                                -- (consider menu bindings, use either the gamebutton table or the menubutton table)
+                                local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
+                                local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
+                                local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+                                startBinding(buttonbinding, controller)
+                            end
                         elseif not currentlyBinding and back then
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
@@ -892,24 +971,26 @@ local function leftFrame()
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     bg:diffusealpha(0.2)
                     self.alphaDeterminingFunction = function(self)
+                        local multiplier = optionActive == 1 and buttonHoverAlpha or 1
                         if isOver(bg) then
-                            self:diffusealpha(buttonHoverAlpha)
+                            self:diffusealpha(buttonHoverAlpha * multiplier)
                         else
-                            self:diffusealpha(1)
+                            self:diffusealpha(1 * multiplier)
                         end
                     end
+                end,
+                SetCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
                 RolloverUpdateCommand = function(self, params)
                     if self:IsInvisible() then return end
                     self:alphaDeterminingFunction()
                 end,
-                InvokeCommand = function(self)
-                    startBindingEverything()
-                end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if params.update == "OnMouseDown" then
-                        self:playcommand("Invoke")
+                        startBindingEverything()
                     end
                 end,
             },
@@ -926,10 +1007,11 @@ local function leftFrame()
                     bg:diffusealpha(0.2)
                     self:playcommand("BindingPageSet")
                     self.alphaDeterminingFunction = function(self)
+                        local multiplier = optionActive == 2 and buttonHoverAlpha or 1
                         if isOver(bg) then
-                            self:diffusealpha(buttonHoverAlpha)
+                            self:diffusealpha(buttonHoverAlpha * multiplier)
                         else
-                            self:diffusealpha(1)
+                            self:diffusealpha(1 * multiplier)
                         end
                     end
                 end,
@@ -942,6 +1024,10 @@ local function leftFrame()
                         txt:settext("View Menu Keybindings")
                     end
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                end,
+                SetCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
                 RolloverUpdateCommand = function(self, params)
                     if self:IsInvisible() then return end
