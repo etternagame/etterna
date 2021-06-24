@@ -260,6 +260,7 @@ local function leftFrame()
         local currentlyBinding = false
         local currentKey = ""
         local cursorIndex = 1
+        local automaticallyBindingEverything = false -- when true, move forward until we bound the last allowed index
 
         -- entries into this list are not allowed to be bound
         local bannedKeys = {
@@ -279,6 +280,7 @@ local function leftFrame()
         -- if you want to use double bindings dont touch this settings menu
         local function setUpKeyBindings()
             INPUTBINDING:RemoveDoubleBindings(false)
+            automaticallyBindingEverything = false
             
             -- kill your precious menu double bindings (not gonna lie couldnt think of a better way to guarantee what you see is what is bound)
             -- will only mess with the left side bindings (controller 0)
@@ -312,6 +314,7 @@ local function leftFrame()
             currentlyBinding = false
             currentController = 0
             cursorIndex = 1
+            automaticallyBindingEverything = false
 
             MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
             MESSAGEMAN:Broadcast("BindingPageSet")
@@ -326,7 +329,17 @@ local function leftFrame()
         end
         local function stopBinding()
             currentlyBinding = false
+            automaticallyBindingEverything = false
             MESSAGEMAN:Broadcast("StoppedBinding")
+        end
+        local function startBindingEverything()
+            cursorIndex = 1
+            automaticallyBindingEverything = true
+            local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
+            local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
+            local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+            MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
+            startBinding(buttonbinding, controller)
         end
 
         -- for the currentKey, use this InputEventPlus to bind the pressed key to the button
@@ -404,7 +417,8 @@ local function leftFrame()
                         local enter = gameButton == "Start"
                         local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
                         local back = key == "DeviceButton_escape"
-                        local rightclick = key == "Devicebutton_mouse right button"
+                        local rightclick = key == "DeviceButton_right mouse button"
+                        local leftclick = key == "DeviceButton_left mouse button"
 
                         if not currentlyBinding and (up or left) then
                             selectKeybind(-1)
@@ -423,7 +437,7 @@ local function leftFrame()
                             -- shortcut to exit back to settings
                             -- press twice to exit back to general
                             MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
-                        elseif currentlyBinding and (back or rightclick) then
+                        elseif currentlyBinding and (back or rightclick or leftclick) then
                             -- cancel the binding process
                             -- update highlights
                             stopBinding()
@@ -432,7 +446,21 @@ local function leftFrame()
                             -- pressed a button that could potentially be bindable and we should bind it
                             local result = bindCurrentKey(event)
                             if result then
-                                stopBinding()
+                                if automaticallyBindingEverything then
+                                    local cursorbefore = cursorIndex
+                                    selectKeybind(1)
+                                    -- if the cursor moved backwards, we finished binding everything
+                                    if cursorIndex < cursorbefore then
+                                        stopBinding()
+                                    else
+                                        local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
+                                        local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
+                                        local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+                                        startBinding(buttonbinding, controller)
+                                    end
+                                else
+                                    stopBinding()
+                                end
                             else
                                 ms.ok(currentKey)
                                 ms.ok(currentController)
@@ -863,6 +891,26 @@ local function leftFrame()
                     txt:settext("Start Binding All")
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     bg:diffusealpha(0.2)
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                InvokeCommand = function(self)
+                    startBindingEverything()
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        self:playcommand("Invoke")
+                    end
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
