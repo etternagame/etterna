@@ -91,11 +91,6 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 void
 InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 {
-	// Clear default mappings.  Default mappings are in the third slot.
-	FOREACH_ENUM(GameController, i)
-	FOREACH_ENUM(GameButton, j)
-	ClearFromInputMap(GameInput(i, j), 2);
-
 	vector<AutoMappingEntry> aMaps;
 	aMaps.reserve(32);
 
@@ -116,13 +111,16 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 		GameInput GameI(m->m_bSecondController ? GameController_2
 											   : GameController_1,
 						m->m_gb);
-		if (!IsMapped(DeviceI)) // if this key isn't already being used by
-								// another user-made mapping
+		// dont remap a button that is already being used
+		if (!IsMapped(DeviceI))
 		{
 			if (!GameI.IsValid())
 				ClearFromInputMap(DeviceI);
-			else
-				SetInputMap(DeviceI, GameI, 2);
+			else {
+				// dont remap a default column binding
+				if (!m_mappings.m_GItoDI[GameI.controller][GameI.button][2].IsValid())
+					SetInputMap(DeviceI, GameI, 2);
+			}
 		}
 	}
 }
@@ -740,8 +738,8 @@ InputMapper::GetInputScheme() const
 	return m_pInputScheme;
 }
 
-const std::string DEVICE_INPUT_SEPARATOR =
-  ":"; // this isn't used in any key names
+// this isn't used in any key names
+const std::string DEVICE_INPUT_SEPARATOR = ":";
 
 void
 InputMapper::ReadMappingsFromDisk()
@@ -1308,7 +1306,7 @@ InputMappings::Unmap(InputDevice id)
 	{
 		FOREACH_ENUM(GameButton, j)
 		{
-			for (int k = 0; k < NUM_USER_GAME_TO_DEVICE_SLOTS; k++) {
+			for (int k = 0; k < NUM_GAME_TO_DEVICE_SLOTS; k++) {
 				DeviceInput& di = m_GItoDI[i][j][k];
 				if (di.device == id)
 					di.MakeInvalid();
@@ -1394,10 +1392,9 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 			std::string sNameString = GameI.ToString(pInputScheme);
 
 			vector<std::string> asValues;
-			asValues.reserve(NUM_USER_GAME_TO_DEVICE_SLOTS);
-			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS;
-				 ++slot) // don't save data from the last (keyboard automap)
-						 // slot
+			asValues.reserve(NUM_GAME_TO_DEVICE_SLOTS);
+			for (int slot = 0; slot < NUM_GAME_TO_DEVICE_SLOTS;
+				 ++slot)
 				asValues.push_back(m_GItoDI[i][j][slot].ToString());
 
 			while (!asValues.empty() && asValues.back().empty())
@@ -1538,6 +1535,16 @@ public:
 			lua_pushnil(L);
 		return 1;
 	}
+	static int SaveMappingsToDisk(T* p, lua_State* L)
+	{
+		p->SaveMappingsToDisk();
+		return 0;
+	}
+	static int ReadMappingsFromDisk(T* p, lua_State* L)
+	{
+		p->ReadMappingsFromDisk();
+		return 0;
+	}
 	
 	
 	LunaInputMapper()
@@ -1546,6 +1553,8 @@ public:
 		ADD_METHOD(GetGameButtonsToMap);
 		ADD_METHOD(GetMenuButtonsToMap);
 		ADD_METHOD(GetButtonMapping);
+		ADD_METHOD(SaveMappingsToDisk);
+		ADD_METHOD(ReadMappingsFromDisk);
 	}
 };
 

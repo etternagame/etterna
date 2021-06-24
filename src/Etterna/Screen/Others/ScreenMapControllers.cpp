@@ -22,8 +22,8 @@ static LocalizedString SAVE_PROMPT("ScreenMapControllers", "SavePrompt");
 
 static const float g_fSecondsToWaitForInput = 0.05f;
 
-// reserve the 3rd slot for hard-coded keys
-static const int NUM_CHANGABLE_SLOTS = NUM_SHOWN_GAME_TO_DEVICE_SLOTS - 1;
+// two keys are allowed to be bound by the player
+static const int NUM_CHANGABLE_SLOTS = NUM_USER_GAME_TO_DEVICE_SLOTS;
 
 REGISTER_SCREEN_CLASS(ScreenMapControllers);
 
