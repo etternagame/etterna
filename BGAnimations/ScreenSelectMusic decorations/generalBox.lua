@@ -101,6 +101,7 @@ local function createChoices()
         Name = "Choices",
         InitCommand = function(self)
             self:y(actuals.Height - actuals.LowerLipHeight / 2)
+            self:z(201)
             self:playcommand("UpdateSelectedIndex")
             self:draworder(3)
         end,
