@@ -35,6 +35,10 @@ local ratios = {
     NoteskinDisplayRightGap = 17 / 1920, -- distance from right edge of frame to right edge of display
     NoteskinDisplayReceptorTopGap = 29 / 1080, -- bottom of text to top of receptors
     NoteskinDisplayTopGap = 21 / 1080, -- bottom of right top lip to top of text
+
+    -- the smaller of these values is used to pick how big the color box is and how tall the sliders are
+    ColorBoxHeight = 339 / 1080,
+    ColorBoxWidth = 339 / 1920,
 }
 
 local actuals = {
@@ -61,6 +65,8 @@ local actuals = {
     NoteskinDisplayRightGap = ratios.NoteskinDisplayRightGap * SCREEN_WIDTH,
     NoteskinDisplayReceptorTopGap = ratios.NoteskinDisplayReceptorTopGap * SCREEN_HEIGHT,
     NoteskinDisplayTopGap = ratios.NoteskinDisplayTopGap * SCREEN_HEIGHT,
+    ColorBoxHeight = ratios.ColorBoxHeight * SCREEN_HEIGHT,
+    ColorBoxWidth = ratios.ColorBoxWidth * SCREEN_WIDTH,
 }
 
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
@@ -82,6 +88,7 @@ local keyinstructionsTextSize = 0.7
 local bindingChoicesTextSize = 0.75
 local currentlybindingTextSize = 0.7
 local menuBindingTextSize = 0.7
+local colorConfigTextSize = 0.75
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
@@ -1128,11 +1135,19 @@ local function leftFrame()
         return t
     end
 
+    -- includes color modifying and preset picking
     local function createColorConfigPage()
+        local saturationOverlay = nil
+        local boxSize = math.min(actuals.ColorBoxHeight, actuals.ColorBoxWidth)
+        local sliderWidth = boxSize / 10
+        local textLineSeparation = boxSize / 8 -- basically the y position of the bottom of each line
+        local widthOfTheRightSide = actuals.LeftWidth - (boxSize + actuals.EdgePadding * 2 + sliderWidth) - actuals.EdgePadding * 2
+        local halfWayInTheMiddleOfTheRightSide = actuals.LeftWidth - widthOfTheRightSide/2
+
         local t = Def.ActorFrame {
             Name = "ColorConfigPageContainer",
             ShowLeftCommand = function(self, params)
-                if params and params.name == "ColorConfig" then
+                if params and params.name == "Color Config" then
                     self:diffusealpha(1)
                     SCUFF.showingColor = true
                 else
@@ -1143,7 +1158,157 @@ local function leftFrame()
                 self:diffusealpha(0)
                 SCUFF.showingColor = false
             end,
+
+            Def.ActorFrame {
+                Name = "TopColorStuff",
+                InitCommand = function(self)
+                    self:xy(actuals.EdgePadding, actuals.TopLipHeight * 2)
+                end,
+                Def.Sprite {
+                    Name = "HSVImage",
+                    Texture = THEME:GetPathG("", "color_hsv"),
+                    InitCommand = function(self)
+                        self:halign(0):valign(0)
+                        self:zoomto(boxSize, boxSize)
+                    end,
+                },
+                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "color_sat_overlay")) .. {
+                    Name = "SaturationOverlay",
+                    InitCommand = function(self)
+                        saturationOverlay = self
+                        self:halign(0):valign(0)
+                        self:zoomto(boxSize, boxSize)
+                    end,
+                },
+                Def.ActorFrame {
+                    Name = "SaturationSliderFrame",
+                    InitCommand = function(self)
+                        self:x(boxSize + actuals.EdgePadding)
+                    end,
+                    UIElements.QuadButton(1, 1) .. {
+                        Name = "SaturationSlider",
+                        InitCommand = function(self)
+                            self:halign(0):valign(0)
+                            self:zoomto(sliderWidth, boxSize)
+                            self:diffuse(color("#666666FF"))
+                        end,
+                    },
+                    Def.Sprite {
+                        Name = "SaturationPointer",
+                        Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:x(sliderWidth + sliderWidth / 5)
+                            self:zoomto(sliderWidth / 2, sliderWidth / 2)
+                            self:rotationz(-90)
+                        end,
+                    }
+                },
+                Def.Sprite {
+                    Name = "ColorPickPosition",
+                    Texture = THEME:GetPathG("", "_thick circle"),
+                    InitCommand = function(self)
+                        self:zoom(0.2)
+                    end,
+                },
+                Def.ActorFrame {
+                    Name = "TopRightSide",
+                    InitCommand = function(self)
+                        self:x(boxSize + actuals.EdgePadding * 2 + sliderWidth)
+                        -- fudge for font reasons
+                        self:y(-2)
+                    end,
+                    LoadFont("Common Normal") .. {
+                        Name = "CurrentPreset",
+                        InitCommand = function(self)
+                            self:halign(0):valign(1)
+                            self:y(textLineSeparation * 1)
+                            self:zoom(colorConfigTextSize)
+                            self:settext("PresetName1")
+                        end,
+                    },
+                    LoadFont("Common Normal") .. {
+                        Name = "CurrentElement",
+                        InitCommand = function(self)
+                            self:halign(0):valign(1)
+                            self:y(textLineSeparation * 2)
+                            self:zoom(colorConfigTextSize)
+                            self:settext("Current element: %s")
+                        end,
+                    },
+                    LoadFont("Common Normal") .. {
+                        Name = "CurrentColorTitle",
+                        InitCommand = function(self)
+                            self:valign(1)
+                            self:xy(widthOfTheRightSide / 2, textLineSeparation * 3)
+                            self:zoom(colorConfigTextSize)
+                            self:settext("Current color")
+                        end
+                    },
+                    LoadFont("Common Normal") .. {
+                        Name = "CurrentColorInputText",
+                        InitCommand = function(self)
+                            self:valign(1)
+                            self:xy(widthOfTheRightSide / 2, textLineSeparation * 4)
+                            self:zoom(colorConfigTextSize)
+                            self:settext("#123ABC")
+                        end,
+                    },
+                    UIElements.TextButton(1, 1, "Common Normal") .. {
+                        Name = "UndoButton",
+                        InitCommand = function(self)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+                            txt:halign(0):valign(1)
+                            bg:halign(0):valign(1)
+                            txt:zoom(colorConfigTextSize)
+                            txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
+                            self:y(textLineSeparation * 5)
+                            txt:settext("Undo")
+                        end,
+                    },
+                    UIElements.TextButton(1, 1, "Common Normal") .. {
+                        Name = "ResetToDefaultButton",
+                        InitCommand = function(self)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+                            txt:halign(1):valign(1)
+                            bg:halign(1):valign(1)
+                            txt:zoom(colorConfigTextSize)
+                            txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
+                            self:x(widthOfTheRightSide)
+                            self:y(textLineSeparation * 5)
+                            txt:settext("Default")
+                        end,
+                    },
+                    UIElements.TextButton(1, 1, "Common Normal") .. {
+                        Name = "SavePreset",
+                        InitCommand = function(self)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+                            txt:halign(0):valign(1)
+                            bg:halign(0):valign(1)
+                            self:y(textLineSeparation * 7)
+                            txt:zoom(colorConfigTextSize)
+                            txt:settext("Save config as...?")
+                        end,
+                    },
+                    UIElements.TextButton(1, 1, "Common Normal") .. {
+                        Name = "LoadPreset",
+                        InitCommand = function(self)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+                            txt:halign(0):valign(1)
+                            bg:halign(0):valign(1)
+                            self:y(textLineSeparation * 8)
+                            txt:zoom(colorConfigTextSize)
+                            txt:settext("Load config")
+                        end,
+                    },
+                }
+            }
         }
+
+
         return t
     end
 
@@ -2902,6 +3067,7 @@ local function rightFrame()
                         Name = "Color Config",
                         ChosenFunction = function()
                             -- activate color config screen
+                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Color Config"})
                         end,
                     },
                 }
