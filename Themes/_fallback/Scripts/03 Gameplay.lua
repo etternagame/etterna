@@ -292,8 +292,11 @@ local CodeDetectorCodes = {
 		solo = "",
 		pump = ""
 	},
-	CloseCurrentFolder = {
+	CloseCurrentFolder1 = {
 		default = "MenuUp-MenuDown"
+	},
+	CloseCurrentFolder2 = {
+		default = "Up-Down"
 	},
 	-- sorts
 	NextSort1 = {

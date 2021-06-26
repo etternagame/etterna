@@ -38,7 +38,8 @@ const char* CodeNames[] = {
 	"SaveScreenshot1",
 	"SaveScreenshot2",
 	"CancelAllPlayerOptions",
-	"CloseCurrentFolder",
+	"CloseCurrentFolder1",
+	"CloseCurrentFolder2",
 };
 XToString(Code);
 
@@ -68,7 +69,8 @@ CodeDetector::RefreshCacheItems(std::string sClass)
 bool
 CodeDetector::EnteredCloseFolder(GameController controller)
 {
-	return EnteredCode(controller, CODE_CLOSE_CURRENT_FOLDER);
+	return EnteredCode(controller, CODE_CLOSE_CURRENT_FOLDER1) ||
+		   EnteredCode(controller, CODE_CLOSE_CURRENT_FOLDER2);
 }
 
 bool
