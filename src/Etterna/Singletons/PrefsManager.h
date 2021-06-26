@@ -220,7 +220,6 @@ class PrefsManager
 	Preference<bool> m_bAllowUnacceleratedRenderer;
 	Preference<bool> m_bThreadedInput;
 	Preference<bool> m_bThreadedMovieDecode;
-	Preference<std::string> m_sTestInitialScreen;
 	Preference<bool> m_MuteActions;
 	Preference<int> ThreadsToUse;
 

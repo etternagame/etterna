@@ -78,13 +78,6 @@ ScreenSelectMusic::Init()
 {
 	GAMESTATE->m_bPlayingMulti = false;
 	g_ScreenStartedLoadingAt.Touch();
-	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
-		GAMESTATE->SetCurrentStyle(
-		  GAMEMAN->GameAndStringToStyle(GAMEMAN->GetDefaultGame(), "versus"),
-		  PLAYER_INVALID);
-		GAMESTATE->JoinPlayer(PLAYER_1);
-		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
-	}
 	if (GamePreferences::m_AutoPlay == PC_REPLAY)
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY)

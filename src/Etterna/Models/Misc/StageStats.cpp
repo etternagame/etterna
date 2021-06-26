@@ -695,12 +695,8 @@ void
 StageStats::FinalizeScores(bool /*bSummary*/)
 {
 	Locator::getLogger()->trace("Finalizing Score");
-	SCOREMAN->camefromreplay =
-	  false; // if we're viewing an online replay this gets set to true -mina
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty()) {
-		m_player.m_iPersonalHighScoreIndex = 0;
-		m_player.m_iMachineHighScoreIndex = 0;
-	}
+	// if we're viewing an online replay this gets set to true -mina
+	SCOREMAN->camefromreplay = false;
 
 	// don't save scores if the player chose not to
 	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore) {

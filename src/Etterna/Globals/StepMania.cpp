@@ -352,10 +352,6 @@ ThemeMetric<std::string> INITIAL_SCREEN("Common", "InitialScreen");
 std::string
 StepMania::GetInitialScreen()
 {
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty() &&
-		SCREENMAN->IsScreenNameValid(PREFSMAN->m_sTestInitialScreen)) {
-		return PREFSMAN->m_sTestInitialScreen;
-	}
 	std::string screen_name = INITIAL_SCREEN.GetValue();
 	if (!SCREENMAN->IsScreenNameValid(screen_name)) {
 		screen_name = "ScreenInitialScreenIsInvalid";
