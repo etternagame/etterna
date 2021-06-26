@@ -411,7 +411,6 @@ ScreenModsCommand=setupmusicstagemods
 PreviousSongButton="MenuLeft"
 NextSongButton="MenuRight"
 UseOptionsList=false
-TwoPartSelection=false
 TwoPartConfirmsOnly=false
 UsePlayerSelectMenu=false
 StepsDisplayP1X=
