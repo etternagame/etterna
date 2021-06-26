@@ -250,7 +250,6 @@ local function leftFrame()
     -- the noteskin page function as noteskin preview and keybindings
     local function createNoteskinPage()
         -- list of GameButtons we can map
-        -- remember to pass calling indices through to ButtonIndexToCurGameColumn(x)
         local gameButtonsToMap = INPUTMAPPER:GetGameButtonsToMap()
         -- list of MenuButtons we can map
         -- could be grabbed by INPUTMAPPER:GetMenuButtonsToMap() but want to be really specific
@@ -347,7 +346,7 @@ local function leftFrame()
             optionActive = 0
             local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
             local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
-            local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+            local buttonbinding = not inMenuPage and gameButtonsToMap[buttonindex] or menuButtonsToMap[buttonindex]
             MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
             startBinding(buttonbinding, controller)
         end
@@ -523,7 +522,7 @@ local function leftFrame()
                                 -- (consider menu bindings, use either the gamebutton table or the menubutton table)
                                 local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
                                 local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
-                                local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+                                local buttonbinding = not inMenuPage and gameButtonsToMap[buttonindex] or menuButtonsToMap[buttonindex]
                                 startBinding(buttonbinding, controller)
                             end
                         elseif not currentlyBinding and back then
@@ -548,7 +547,7 @@ local function leftFrame()
                                     else
                                         local controller = ((not inMenuPage and cursorIndex > #gameButtonsToMap) and 1 or 0)
                                         local buttonindex = controller == 0 and cursorIndex or cursorIndex - #gameButtonsToMap
-                                        local buttonbinding = not inMenuPage and gameButtonsToMap[ButtonIndexToCurGameColumn(buttonindex)] or menuButtonsToMap[buttonindex]
+                                        local buttonbinding = not inMenuPage and gameButtonsToMap[buttonindex] or menuButtonsToMap[buttonindex]
                                         startBinding(buttonbinding, controller)
                                     end
                                 else
@@ -792,7 +791,7 @@ local function leftFrame()
                             if not currentlyBinding and not inMenuPage then
                                 local dist = trueIndex - cursorIndex
                                 selectKeybind(dist)
-                                startBinding(gameButtonsToMap[ButtonIndexToCurGameColumn(i)], controller)
+                                startBinding(gameButtonsToMap[i], controller)
                             end
                         end,
                     },
@@ -816,8 +815,7 @@ local function leftFrame()
                             self:playcommand("Set")
                         end,
                         SetCommand = function(self)
-                            local newindex = ButtonIndexToCurGameColumn(i)
-                            local buttonmapped = INPUTMAPPER:GetButtonMappingString(gameButtonsToMap[newindex], controller, INPUTBINDING.defaultColumn)
+                            local buttonmapped = INPUTMAPPER:GetButtonMappingString(gameButtonsToMap[i], controller, INPUTBINDING.defaultColumn)
                             if buttonmapped then
                                 self:settext(buttonmapped:gsub("Key ", ""))
                             else
