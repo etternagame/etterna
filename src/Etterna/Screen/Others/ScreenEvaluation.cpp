@@ -120,6 +120,30 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 	if (IsTransitioning())
 		return false;
 
+	// restart gameplay should work
+	// but only if not online and not in a replay
+	if (input.DeviceI.device == DEVICE_KEYBOARD &&
+		input.MenuI == GAME_BUTTON_RESTART) {
+		if (input.type != IET_FIRST_PRESS)
+			return false;
+
+		// this was probably a replay, dont allow
+		if (!m_pStageStats->m_bLivePlay)
+			return false;
+
+		// not in netplay
+		if (m_sName.find("Net") != std::string::npos)
+			return false;
+
+		// technically this is correct
+		GAMESTATE->m_bRestartedGameplay = false;
+		PlayerAI::ResetScoreData();
+
+		// go
+		SetPrevScreenName("ScreenStageInformation");
+		HandleScreenMessage(SM_GoToPrevScreen);
+	}
+			
 	if (input.GameI.IsValid()) {
 		if (CodeDetector::EnteredCode(input.GameI.controller,
 									  CODE_SAVE_SCREENSHOT1) ||
