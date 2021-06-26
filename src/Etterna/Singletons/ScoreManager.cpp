@@ -1439,4 +1439,6 @@ class LunaScoreManager : public Luna<ScoreManager>
 	}
 };
 
+// put this here because didnt want to include lua in MinaCalc
+LuaFunction(GetCalcVersion, GetCalcVersion())
 LUA_REGISTER_CLASS(ScoreManager)

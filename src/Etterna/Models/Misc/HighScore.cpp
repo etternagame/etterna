@@ -2134,6 +2134,11 @@ class LunaHighScore : public Luna<HighScore>
 		lua_pushnumber(L, vers);
 		return 1;
 	}
+	static auto GetSSRCalcVersion(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetSSRCalcVersion());
+		return 1;
+	}
 
 	DEFINE_METHOD(GetGrade, GetGrade())
 	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
@@ -2187,6 +2192,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetScoreKey);
 		ADD_METHOD(GetAvatar);
 		ADD_METHOD(GetWifeVers);
+		ADD_METHOD(GetSSRCalcVersion);
 	}
 };
 
