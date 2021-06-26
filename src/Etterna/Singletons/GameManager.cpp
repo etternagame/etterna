@@ -113,9 +113,9 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings(
   AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
   AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
   AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
-  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
-  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UP, false),
   AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
   AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
@@ -136,12 +136,12 @@ static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
   AutoMappingEntry(0, KEY_RIGHT, GAME_BUTTON_MENURIGHT, false),
   AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
   AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
-  AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
-  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
-  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UPRIGHT, false),
-  AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_UPLEFT, false),
-  AutoMappingEntry(0, KEY_Cc, DANCE_BUTTON_DOWN, false),
-  AutoMappingEntry(0, KEY_Cm, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_Cz, SOLO_BUTTON_LEFT, false),
+  AutoMappingEntry(0, KEY_PERIOD, SOLO_BUTTON_RIGHT, false),
+  AutoMappingEntry(0, KEY_COMMA, SOLO_BUTTON_UPRIGHT, false),
+  AutoMappingEntry(0, KEY_Cx, SOLO_BUTTON_UPLEFT, false),
+  AutoMappingEntry(0, KEY_Cc, SOLO_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_Cm, SOLO_BUTTON_UP, false),
   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
   AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
@@ -149,12 +149,12 @@ static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
   AutoMappingEntry(0, KEY_KP_ASTERISK, GAME_BUTTON_MENURIGHT, true),
   AutoMappingEntry(0, KEY_KP_HYPHEN, GAME_BUTTON_MENUUP, true),
   AutoMappingEntry(0, KEY_KP_PLUS, GAME_BUTTON_MENUDOWN, true),
-  AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
-  AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
-  AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
-  AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true),
-  AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
-  AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
+  AutoMappingEntry(0, KEY_KP_C4, SOLO_BUTTON_LEFT, true),
+  AutoMappingEntry(0, KEY_KP_C6, SOLO_BUTTON_RIGHT, true),
+  AutoMappingEntry(0, KEY_KP_C8, SOLO_BUTTON_UP, true),
+  AutoMappingEntry(0, KEY_KP_C2, SOLO_BUTTON_DOWN, true),
+  AutoMappingEntry(0, KEY_KP_C7, SOLO_BUTTON_UPLEFT, true),
+  AutoMappingEntry(0, KEY_KP_C9, SOLO_BUTTON_UPRIGHT, true));
 
 // xxx: get this from the theme? (see others)
 // the problem with getting it from the noteskin is that this is meant to be
@@ -191,7 +191,7 @@ static const Style g_Style_Dance_Single = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 0, 3, 2, 1, Style::END_MAPPING },
+	  { 0, 1, 2, 3, Style::END_MAPPING },
 	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -225,8 +225,8 @@ static const Style g_Style_Dance_Double = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 0, 3, 2, 1, Style::END_MAPPING },
-	  { 4, 7, 6, 5, Style::END_MAPPING } },
+	  { 0, 1, 2, 3, Style::END_MAPPING },
+	  { 4, 5, 6, 7, Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -261,7 +261,7 @@ static const Style g_Style_Solo_Single = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 0, 5, 3, 2, 1, 4, Style::END_MAPPING },
+	  { 0, 1, 2, 3, 4, 5, Style::END_MAPPING },
 	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -293,7 +293,7 @@ static const Style g_Style_Dance_ThreePanel = {
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  // 4 3 5
-	  { 0, 2, Style::NO_MAPPING, 1, 0, 2, Style::END_MAPPING },
+	  { 0, 1, Style::NO_MAPPING, 2, Style::END_MAPPING },
 	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -319,9 +319,9 @@ static const Game g_Game_Dance = {
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
-		{ "Right", GAME_BUTTON_RIGHT },
-		{ "Up", GAME_BUTTON_UP },
 		{ "Down", GAME_BUTTON_DOWN },
+		{ "Up", GAME_BUTTON_UP },
+		{ "Right", GAME_BUTTON_RIGHT },
 	  },
 	  &g_AutoKeyMappings_Dance },
 	{
@@ -353,11 +353,11 @@ static const Game g_Game_Solo = {
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
-		{ "Right", GAME_BUTTON_RIGHT },
-		{ "Up", GAME_BUTTON_UP },
-		{ "Down", GAME_BUTTON_DOWN },
 		{ "UpLeft", GameButton_Invalid },
+		{ "Down", GAME_BUTTON_DOWN },
+		{ "Up", GAME_BUTTON_UP },
 		{ "UpRight", GameButton_Invalid },
+		{ "Right", GAME_BUTTON_RIGHT }
 	  },
 	  &g_AutoKeyMappings_Solo },
 	{
@@ -379,11 +379,11 @@ static const AutoMappings g_AutoKeyMappings_Pump =
   AutoMappings("",
 			   "",
 			   "",
-			   AutoMappingEntry(0, KEY_Cq, PUMP_BUTTON_UPLEFT, false),
-			   AutoMappingEntry(0, KEY_Ce, PUMP_BUTTON_UPRIGHT, false),
-			   AutoMappingEntry(0, KEY_Cs, PUMP_BUTTON_CENTER, false),
+			   AutoMappingEntry(0, KEY_Cx, PUMP_BUTTON_UPLEFT, false),
+			   AutoMappingEntry(0, KEY_COMMA, PUMP_BUTTON_UPRIGHT, false),
+			   AutoMappingEntry(0, KEY_SPACE, PUMP_BUTTON_CENTER, false),
 			   AutoMappingEntry(0, KEY_Cz, PUMP_BUTTON_DOWNLEFT, false),
-			   AutoMappingEntry(0, KEY_Cc, PUMP_BUTTON_DOWNRIGHT, false),
+			   AutoMappingEntry(0, KEY_PERIOD, PUMP_BUTTON_DOWNRIGHT, false),
 			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
 			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
 
@@ -420,14 +420,14 @@ static const Style g_Style_Pump_Single = {
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
+	  { 0, 1, 2, 3, 4, Style::END_MAPPING },
 	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
-	  2,
-	  1,
-	  3,
 	  0,
+	  1,
+	  2,
+	  3,
 	  4 },
 	false, // m_bLockDifficulties
 };
@@ -454,14 +454,14 @@ static const Style g_Style_Pump_HalfDouble = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { Style::NO_MAPPING, 1, 0, Style::NO_MAPPING, 2, Style::END_MAPPING },
-	  { 4, Style::NO_MAPPING, 5, 3, Style::NO_MAPPING, Style::END_MAPPING } },
+	  { Style::NO_MAPPING, Style::NO_MAPPING, 0, 1, 2, Style::END_MAPPING },
+	  { 3, 4, 5, Style::NO_MAPPING, Style::NO_MAPPING, Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
+	  0,
+	  1,
 	  2,
 	  3,
-	  1,
 	  4,
-	  0,
 	  5 },
 
 	false, // m_bLockDifficulties
@@ -494,19 +494,19 @@ static const Style g_Style_Pump_Double = {
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
-	  { 6, 8, 7, 5, 9, Style::END_MAPPING },
+	  { 0, 1, 2, 3, 4, Style::END_MAPPING },
+	  { 5, 6, 7, 8, 9, Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
-	  2,
-	  1,
-	  3,
 	  0,
+	  1,
+	  2,
+	  3,
 	  4,
-	  2 + 5,
-	  1 + 5,
-	  3 + 5,
 	  0 + 5,
+	  1 + 5,
+	  2 + 5,
+	  3 + 5,
 	  4 + 5 },
 
 	false, // m_bLockDifficulties
@@ -528,10 +528,10 @@ static const Game g_Game_Pump = {
 	  NUM_PUMP_BUTTONS,	  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
-		{ "UpLeft", GAME_BUTTON_UP },
-		{ "UpRight", GAME_BUTTON_DOWN },
-		{ "Center", GAME_BUTTON_START },
 		{ "DownLeft", GAME_BUTTON_LEFT },
+		{ "UpLeft", GAME_BUTTON_DOWN },
+		{ "Center", GameButton_Invalid },
+		{ "UpRight", GAME_BUTTON_UP },
 		{ "DownRight", GAME_BUTTON_RIGHT },
 	  },
 	  &g_AutoKeyMappings_Pump },

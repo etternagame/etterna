@@ -73,30 +73,24 @@ StringToGameButton(const InputScheme* pInputs, const std::string& s)
 #define GAME_BUTTON_NEXT GAME_BUTTON_CUSTOM_01
 
 // dance
-/** @brief Set up the left arrow for dance mode. */
 #define DANCE_BUTTON_LEFT GAME_BUTTON_CUSTOM_01
-/** @brief Set up the right arrow for dance mode. */
-#define DANCE_BUTTON_RIGHT GAME_BUTTON_CUSTOM_02
-/** @brief Set up the up arrow for dance mode. */
+#define DANCE_BUTTON_RIGHT GAME_BUTTON_CUSTOM_04
 #define DANCE_BUTTON_UP GAME_BUTTON_CUSTOM_03
-/** @brief Set up the down arrow for dance mode. */
-#define DANCE_BUTTON_DOWN GAME_BUTTON_CUSTOM_04
-/** @brief Set up the upleft arrow for solo mode (dance-solo). */
-#define DANCE_BUTTON_UPLEFT GAME_BUTTON_CUSTOM_05
-/** @brief Set up the upright arrow for solo mode (dance-solo). */
-#define DANCE_BUTTON_UPRIGHT GAME_BUTTON_CUSTOM_06
+#define DANCE_BUTTON_DOWN GAME_BUTTON_CUSTOM_02
 #define NUM_DANCE_BUTTONS GAME_BUTTON_CUSTOM_05
+// solo
+#define SOLO_BUTTON_LEFT GAME_BUTTON_CUSTOM_01
+#define SOLO_BUTTON_RIGHT GAME_BUTTON_CUSTOM_06
+#define SOLO_BUTTON_UP GAME_BUTTON_CUSTOM_04
+#define SOLO_BUTTON_DOWN GAME_BUTTON_CUSTOM_03
+#define SOLO_BUTTON_UPLEFT GAME_BUTTON_CUSTOM_02
+#define SOLO_BUTTON_UPRIGHT GAME_BUTTON_CUSTOM_05
 #define NUM_SOLO_BUTTONS GAME_BUTTON_CUSTOM_07
 // pump
-/** @brief Set up the upleft arrow for pump mode. */
-#define PUMP_BUTTON_UPLEFT GAME_BUTTON_CUSTOM_01
-/** @brief Set up the upright arrow for pump mode. */
-#define PUMP_BUTTON_UPRIGHT GAME_BUTTON_CUSTOM_02
-/** @brief Set up the center arrow for pump mode. */
+#define PUMP_BUTTON_UPLEFT GAME_BUTTON_CUSTOM_02
+#define PUMP_BUTTON_UPRIGHT GAME_BUTTON_CUSTOM_04
 #define PUMP_BUTTON_CENTER GAME_BUTTON_CUSTOM_03
-/** @brief Set up the downleft arrow for pump mode. */
-#define PUMP_BUTTON_DOWNLEFT GAME_BUTTON_CUSTOM_04
-/** @brief Set up the downright arrow for pump mode. */
+#define PUMP_BUTTON_DOWNLEFT GAME_BUTTON_CUSTOM_01
 #define PUMP_BUTTON_DOWNRIGHT GAME_BUTTON_CUSTOM_05
 #define NUM_PUMP_BUTTONS GAME_BUTTON_CUSTOM_06
 // kb7
