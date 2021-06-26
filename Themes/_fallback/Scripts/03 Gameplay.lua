@@ -192,15 +192,6 @@ function ComboMaintain()
 	return Maintain[CurGameName()] or "TapNoteScore_W3"
 end
 
-function ComboPerRow()
-	sGame = CurGameName()
-	if sGame == "pump" then
-		return true
-	else
-		return false
-	end
-end
-
 function EvalUsesCheckpointsWithJudgments()
 	return (CurGameName() == "pump") and true or false
 end

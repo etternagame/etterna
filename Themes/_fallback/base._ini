@@ -22,7 +22,6 @@ PercentScoreDecimalPlaces=2
 NoScoreName="STEP"
 
 [Gameplay]
-ComboIsPerRow=false
 MinScoreToContinueCombo="TapNoteScore_W3"
 MinScoreToMaintainCombo="TapNoteScore_W3"
 
