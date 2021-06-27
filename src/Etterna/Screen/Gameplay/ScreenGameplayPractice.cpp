@@ -103,8 +103,9 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			}
 
 			AdjustSync::ResetOriginalSyncData();
-
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
+			if (!m_vPlayerInfo.m_NoteData.IsEmpty())
+				m_vPlayerInfo.GetPlayerState()->ResetCacheInfo();
 
 			float fSecondsToStartFadingOutMusic;
 			float fSecondsToStartTransitioningOut;
