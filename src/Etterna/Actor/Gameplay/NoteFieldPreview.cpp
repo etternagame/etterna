@@ -170,6 +170,10 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 		CacheAllUsedNoteSkins();
 	} else
 		loadedNoteDataAtLeastOnce = true;
+
+	// Generate some cache data structure.
+	if (pNoteData != p_dummyNoteData && pNoteData != nullptr && !pNoteData->IsEmpty())
+		m_pPlayerState->ResetCacheInfo(/**pNoteData*/);
 	
 	Load(pNoteData,
 		 m_iDrawDistanceAfterTargetsPixels,

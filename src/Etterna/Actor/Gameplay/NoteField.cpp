@@ -185,7 +185,7 @@ NoteField::CacheAllUsedNoteSkins()
 }
 
 void
-NoteField::Init(const PlayerState* pPlayerState,
+NoteField::Init(PlayerState* pPlayerState,
 				float fYReverseOffsetPixels,
 				bool use_states_zoom)
 {

@@ -525,46 +525,6 @@ Player::NeedsHoldJudging(const TapNote& tn) -> bool
 	}
 }
 
-static void
-GenerateCacheDataStructure(PlayerState* pPlayerState, const NoteData& notes)
-{
-
-	pPlayerState->m_CacheDisplayedBeat.clear();
-
-	const auto vScrolls =
-	  pPlayerState->GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
-
-	auto displayedBeat = 0.0F;
-	auto lastRealBeat = 0.0F;
-	auto lastRatio = 1.0F;
-	for (auto vScroll : vScrolls) {
-		auto* const seg = ToScroll(vScroll);
-		displayedBeat += (seg->GetBeat() - lastRealBeat) * lastRatio;
-		lastRealBeat = seg->GetBeat();
-		lastRatio = seg->GetRatio();
-		CacheDisplayedBeat c = { seg->GetBeat(),
-								 displayedBeat,
-								 seg->GetRatio() };
-		pPlayerState->m_CacheDisplayedBeat.push_back(c);
-	}
-
-	pPlayerState->m_CacheNoteStat.clear();
-
-	auto it = notes.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW, true);
-	auto count = 0;
-	auto lastCount = 0;
-	for (; !it.IsAtEnd(); ++it) {
-		for (auto t = 0; t < notes.GetNumTracks(); t++) {
-			if (notes.GetTapNote(t, it.Row()) != TAP_EMPTY) {
-				count++;
-			}
-		}
-		CacheNoteStat c = { NoteRowToBeat(it.Row()), lastCount, count };
-		lastCount = count;
-		pPlayerState->m_CacheNoteStat.push_back(c);
-	}
-}
-
 void
 Player::Load()
 {
@@ -657,7 +617,7 @@ Player::Load()
 		->m_StepsType);
 
 	// Generate some cache data structure.
-	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
+	m_pPlayerState->ResetCacheInfo(/*m_NoteData*/);
 
 	const int iDrawDistanceAfterTargetsPixels =
 	  DRAW_DISTANCE_AFTER_TARGET_PIXELS;
