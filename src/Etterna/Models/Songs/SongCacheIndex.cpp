@@ -126,10 +126,12 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const StopSegment* segment = ToStop(seg);
-				stops.append(ssprintf("%.6f=%.6f",
+				stops.append(ssprintf("%.6f=%.6f,",
 									  NoteRowToBeat(segment->GetRow()),
 									  segment->GetPause()));
 			}
+			stops = stops.substr(0, stops.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, stops);
 	}
@@ -139,10 +141,12 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const DelaySegment* segment = ToDelay(seg);
-				delays.append(ssprintf("%.6f=%.6f",
+				delays.append(ssprintf("%.6f=%.6f,",
 									   NoteRowToBeat(segment->GetRow()),
 									   segment->GetPause()));
 			}
+			delays = delays.substr(0, delays.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, delays);
 	}
@@ -152,10 +156,12 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const WarpSegment* segment = ToWarp(seg);
-				warps.append(ssprintf("%.6f=%.6f",
+				warps.append(ssprintf("%.6f=%.6f,",
 									  NoteRowToBeat(segment->GetRow()),
 									  segment->GetLength()));
 			}
+			warps = warps.substr(0, warps.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, warps);
 	}
@@ -165,11 +171,14 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TimeSignatureSegment* segment = ToTimeSignature(seg);
-				timesigs.append(ssprintf("%.6f=%d=%d",
+				timesigs.append(ssprintf("%.6f=%d=%d,",
 										 NoteRowToBeat(segment->GetRow()),
 										 segment->GetNum(),
 										 segment->GetDen()));
 			}
+			timesigs =
+			  timesigs.substr(0, timesigs.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, timesigs);
 	}
@@ -179,10 +188,12 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TickcountSegment* segment = ToTickcount(seg);
-				ticks.append(ssprintf("%.6f=%d",
+				ticks.append(ssprintf("%.6f=%d,",
 									  NoteRowToBeat(segment->GetRow()),
 									  segment->GetTicks()));
 			}
+			ticks = ticks.substr(0, ticks.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, ticks);
 	}
@@ -193,16 +204,18 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 			for (auto&& seg : segs) {
 				const ComboSegment* segment = ToCombo(seg);
 				if (segment->GetCombo() == segment->GetMissCombo()) {
-					combos.append(ssprintf("%.6f=%d",
+					combos.append(ssprintf("%.6f=%d,",
 										   NoteRowToBeat(segment->GetRow()),
 										   segment->GetCombo()));
 				} else {
-					combos.append(ssprintf("%.6f=%d=%d",
+					combos.append(ssprintf("%.6f=%d=%d,",
 										   NoteRowToBeat(segment->GetRow()),
 										   segment->GetCombo(),
 										   segment->GetMissCombo()));
 				}
 			}
+			combos = combos.substr(0, combos.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, combos);
 	}
@@ -212,12 +225,14 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const SpeedSegment* segment = ToSpeed(seg);
-				speeds.append(ssprintf("%.6f=%.6f=%.6f=%hd",
+				speeds.append(ssprintf("%.6f=%.6f=%.6f=%hd,",
 									   NoteRowToBeat(segment->GetRow()),
 									   segment->GetRatio(),
 									   segment->GetDelay(),
 									   segment->GetUnit()));
 			}
+			speeds = speeds.substr(0, speeds.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, speeds);
 	}
@@ -227,10 +242,13 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ScrollSegment* segment = ToScroll(seg);
-				scrolls.append(ssprintf("%.6f=%.6f",
+				scrolls.append(ssprintf("%.6f=%.6f,",
 										NoteRowToBeat(segment->GetRow()),
 										segment->GetRatio()));
 			}
+			scrolls =
+			  scrolls.substr(0, scrolls.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, scrolls);
 	}
@@ -241,11 +259,13 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 			for (auto&& seg : segs) {
 				const LabelSegment* segment = ToLabel(seg);
 				if (!segment->GetLabel().empty()) {
-					labels.append(ssprintf("%.6f=%s",
+					labels.append(ssprintf("%.6f=%s,",
 										   NoteRowToBeat(segment->GetRow()),
 										   segment->GetLabel().c_str()));
 				}
 			}
+			labels = labels.substr(0, labels.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, labels);
 	}
