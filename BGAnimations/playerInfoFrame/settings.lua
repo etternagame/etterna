@@ -89,6 +89,7 @@ local bindingChoicesTextSize = 0.75
 local currentlybindingTextSize = 0.7
 local menuBindingTextSize = 0.7
 local colorConfigTextSize = 0.75
+local colorConfigChoiceTextSize = 0.75
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
@@ -101,6 +102,8 @@ local optionRowQuickAnimationSeconds = 0.07
 -- but because the game isnt perfect this isnt true at all
 -- (but changing this number does make a difference)
 local explanationTextWriteAnimationSeconds = 0.2
+-- color config list animation time
+local itemListAnimationSeconds = 0.1
 
 local maxExplanationTextLines = 2
 
@@ -1146,6 +1149,22 @@ local function leftFrame()
         local widthOfTheRightSide = actuals.LeftWidth - (boxSize + actuals.EdgePadding * 2 + sliderWidth) - actuals.EdgePadding * 2
         local halfWayInTheMiddleOfTheRightSide = actuals.LeftWidth - widthOfTheRightSide/2
 
+        local colorConfigItemCount = 10
+        local page = 1
+        local maxPage = 1
+
+        -- stores the data for items to display
+        -- should be a list of strings
+        local displayItemDatas = {}
+
+        -- determines the current state of color config selection
+        -- valid options:
+        --  category - currently selecting a color config element category
+        --  element - currently selecting an element in a selected category
+        --  preset - currently selecting a color config preset
+        local selectionstate = "category"
+        local selectedcategory = ""
+
         local t = Def.ActorFrame {
             Name = "ColorConfigPageContainer",
             ShowLeftCommand = function(self, params)
@@ -1293,7 +1312,7 @@ local function leftFrame()
                             bg:halign(0):valign(1)
                             self:y(textLineSeparation * 7)
                             txt:zoom(colorConfigTextSize)
-                            txt:settext("Save config as...?")
+                            txt:settext("Save config preset")
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1305,14 +1324,83 @@ local function leftFrame()
                             bg:halign(0):valign(1)
                             self:y(textLineSeparation * 8)
                             txt:zoom(colorConfigTextSize)
-                            txt:settext("Load config")
+                            txt:settext("Load config preset")
                         end,
                     },
-                }
-            }
+                },
+            },
         }
 
+        local function colorConfigChoices()
+            local frameY = actuals.TopLipHeight*2 + boxSize + actuals.EdgePadding
+            local remainingYSpace = actuals.Height - frameY - actuals.EdgePadding
 
+            local t = Def.ActorFrame {
+                Name = "ColorConfigItemChoiceFrame",
+                InitCommand = function(self)
+                    self:xy(actuals.EdgePadding, frameY)
+                end,
+            }
+
+            local function colorConfigChoice(i)
+                local index = i
+                local itemWidth = actuals.LeftWidth - actuals.EdgePadding*2
+                local itemData = nil
+
+                return UIElements.TextButton(1, 1, "Common Normal") .. {
+                    Name = "ColorConfigItemChoice",
+                    InitCommand = function(self)
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        -- position the item half way into the nth position like how we do horizontal choice positioning
+                        -- then dont vertically align anything so it Just Works
+                        self:y((remainingYSpace / colorConfigItemCount) * (i-1) + (remainingYSpace / colorConfigItemCount / 2))
+                        txt:halign(0)
+                        bg:halign(0)
+                        txt:zoom(colorConfigChoiceTextSize)
+                        txt:maxwidth(itemWidth / colorConfigChoiceTextSize - textZoomFudge)
+
+                        self.alphaDeterminingFunction = function(self)
+                            local hovermultiplier = isOver(self) and buttonHoverAlpha or 1
+                            local visiblemultiplier = itemData == nil and 0 or 1
+                            self:diffusealpha(1 * hovermultiplier * visiblemultiplier)
+                        end
+                    end,
+                    UpdateColorConfigDisplayCommand = function(self)
+                        index = (page - 1) * colorConfigItemCount + i
+                        itemData = displayItemDatas[index]
+                        self:finishtweening()
+                        self:diffusealpha(0)
+                        if itemData ~= nil then
+                            self:playcommand("UpdateText")
+                            self:smooth(itemListAnimationSeconds * i)
+                            self:alphaDeterminingFunction()
+                        end
+                    end,
+                    UpdateTextCommand = function(self)
+                        self:settext("afasfsa")
+                    end,
+                    MouseDownCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        self:alphaDeterminingFunction()
+
+                    end,
+                    MouseOverCommand = function(self)
+                        if self:IsInvisible() then return end
+                        self:alphaDeterminingFunction()
+                    end,
+                    MouseOutCommand = function(self)
+                        if self:IsInvisible() then return end
+                        self:alphaDeterminingFunction()
+                    end
+                }
+            end
+            for i = 1, colorConfigItemCount do
+                t[#t+1] = colorConfigChoice(i)
+            end
+            return t
+        end
+        t[#t+1] = colorConfigChoices()
         return t
     end
 
