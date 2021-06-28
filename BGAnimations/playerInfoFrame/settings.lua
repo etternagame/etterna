@@ -397,6 +397,7 @@ local function leftFrame()
                         SCUFF.showingKeybinds = false
                     end
                     self:diffusealpha(1)
+                    self:z(1)
                     SCUFF.showingNoteskins = true
                 else
                     self:playcommand("HideLeft")
@@ -404,6 +405,7 @@ local function leftFrame()
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                self:z(-1)
                 -- save when exiting
                 if SCUFF.showingKeybinds then
                     INPUTMAPPER:SaveMappingsToDisk()
@@ -1091,6 +1093,7 @@ local function leftFrame()
                 -- dont open the preview if left is already opened and it is being used
                 if params and params.name == "Preview" and not SCUFF.showingNoteskins and not SCUFF.showingColor then
                     self:diffusealpha(1)
+                    self:z(1)
                     SCUFF.showingPreview = true
                     MESSAGEMAN:Broadcast("PreviewPageOpenStatusChanged", {opened = true})
                 else
@@ -1099,6 +1102,7 @@ local function leftFrame()
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                self:z(-1)
                 SCUFF.showingPreview = false
                 MESSAGEMAN:Broadcast("PreviewPageOpenStatusChanged", {opened = false})
             end,
@@ -1147,6 +1151,7 @@ local function leftFrame()
             ShowLeftCommand = function(self, params)
                 if params and params.name == "Color Config" then
                     self:diffusealpha(1)
+                    self:z(1)
                     SCUFF.showingColor = true
                 else
                     self:playcommand("HideLeft")
@@ -1154,6 +1159,7 @@ local function leftFrame()
             end,
             HideLeftCommand = function(self)
                 self:diffusealpha(0)
+                self:z(-1)
                 SCUFF.showingColor = false
             end,
 
