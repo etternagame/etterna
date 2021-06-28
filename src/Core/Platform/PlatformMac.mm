@@ -22,6 +22,13 @@ static std::string getSysctlName(const char* name) {
 }
 
 // Apple API Translocation variables
+// Apple introduced app translocation in macOS Sierra v10.12, which prevents apps from accessing files outside
+// their own .app directory (via a relative reference). This is a problem for Etterna since all files are accessed with
+// relative references to where the .app directory is located. Apple moves the app to a secure location, then
+// attempts to run the program. Etterna fails right away as it requires those local files. The code in init()
+// will load Apple's private security API, load the functions, and call on them to untranslocate by removing
+// the quarantine restriction on the original binary location. Apple will not accept the app into their app store
+// unless this code is removed.
 void (*mySecTranslocateIsTranslocatedURL)(CFURLRef path, bool *isTranslocated, CFErrorRef* __nullable error);
 CFURLRef __nullable (*mySecTranslocateCreateOriginalPathForURL)(CFURLRef translocatedPath, CFErrorRef * __nullable error);
 
