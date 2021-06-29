@@ -1149,7 +1149,8 @@ local function leftFrame()
         local widthOfTheRightSide = actuals.LeftWidth - (boxSize + actuals.EdgePadding * 2 + sliderWidth) - actuals.EdgePadding * 2
         local halfWayInTheMiddleOfTheRightSide = actuals.LeftWidth - widthOfTheRightSide/2
 
-        local colorConfigItemCount = 10
+        -- probably make this an odd number for the ocd kids because this includes a top item which does not ever change
+        local colorConfigItemCount = 13
         local page = 1
         local maxPage = 1
 
@@ -1246,7 +1247,8 @@ local function leftFrame()
                             self:halign(0):valign(1)
                             self:y(textLineSeparation * 1)
                             self:zoom(colorConfigTextSize)
-                            self:settext("PresetName1")
+                            self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
+                            self:settext("Current preset: PresetName1")
                         end,
                     },
                     LoadFont("Common Normal") .. {
@@ -1255,24 +1257,27 @@ local function leftFrame()
                             self:halign(0):valign(1)
                             self:y(textLineSeparation * 2)
                             self:zoom(colorConfigTextSize)
-                            self:settext("Current element: %s")
+                            self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
+                            self:settext("Current element: werwerewrwerwerwerwe")
                         end,
                     },
                     LoadFont("Common Normal") .. {
                         Name = "CurrentColorTitle",
                         InitCommand = function(self)
-                            self:valign(1)
-                            self:xy(widthOfTheRightSide / 2, textLineSeparation * 3)
+                            self:halign(0):valign(1)
+                            self:y(textLineSeparation * 3)
                             self:zoom(colorConfigTextSize)
+                            self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("Current color")
                         end
                     },
                     LoadFont("Common Normal") .. {
                         Name = "CurrentColorInputText",
                         InitCommand = function(self)
-                            self:valign(1)
-                            self:xy(widthOfTheRightSide / 2, textLineSeparation * 4)
+                            self:halign(1):valign(1)
+                            self:xy(widthOfTheRightSide, textLineSeparation * 3)
                             self:zoom(colorConfigTextSize)
+                            self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("#123ABC")
                         end,
                     },
@@ -1312,6 +1317,7 @@ local function leftFrame()
                             bg:halign(0):valign(1)
                             self:y(textLineSeparation * 7)
                             txt:zoom(colorConfigTextSize)
+                            txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             txt:settext("Save config preset")
                         end,
                     },
@@ -1324,6 +1330,7 @@ local function leftFrame()
                             bg:halign(0):valign(1)
                             self:y(textLineSeparation * 8)
                             txt:zoom(colorConfigTextSize)
+                            txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             txt:settext("Load config preset")
                         end,
                     },
@@ -1340,6 +1347,17 @@ local function leftFrame()
                 InitCommand = function(self)
                     self:xy(actuals.EdgePadding, frameY)
                 end,
+
+                LoadFont("Common Normal") .. {
+                    Name = "ColorConfigTopItemChoice",
+                    InitCommand = function(self)
+                        self:halign(0)
+                        self:zoom(colorConfigChoiceTextSize)
+                        self:maxwidth(actuals.LeftWidth - actuals.EdgePadding*2 / colorConfigTextSize - textZoomFudge)
+                        self:y(remainingYSpace / colorConfigItemCount / 2)
+                        self:settext("Browsing category")
+                    end,
+                }
             }
 
             local function colorConfigChoice(i)
@@ -1354,11 +1372,12 @@ local function leftFrame()
                         local bg = self:GetChild("BG")
                         -- position the item half way into the nth position like how we do horizontal choice positioning
                         -- then dont vertically align anything so it Just Works
-                        self:y((remainingYSpace / colorConfigItemCount) * (i-1) + (remainingYSpace / colorConfigItemCount / 2))
+                        self:y((remainingYSpace / colorConfigItemCount) * i + (remainingYSpace / colorConfigItemCount / 2))
                         txt:halign(0)
                         bg:halign(0)
                         txt:zoom(colorConfigChoiceTextSize)
                         txt:maxwidth(itemWidth / colorConfigChoiceTextSize - textZoomFudge)
+                        txt:settext("Entry")
 
                         self.alphaDeterminingFunction = function(self)
                             local hovermultiplier = isOver(self) and buttonHoverAlpha or 1
@@ -1395,7 +1414,7 @@ local function leftFrame()
                     end
                 }
             end
-            for i = 1, colorConfigItemCount do
+            for i = 1, colorConfigItemCount-1 do
                 t[#t+1] = colorConfigChoice(i)
             end
             return t
