@@ -1163,8 +1163,51 @@ local function leftFrame()
         --  category - currently selecting a color config element category
         --  element - currently selecting an element in a selected category
         --  preset - currently selecting a color config preset
+        --  editing - currently editing an element color
         local selectionstate = "category"
         local selectedcategory = ""
+        local selectedpreset = ""
+        local selectedelement = ""
+
+        -- handle switching states and stuff
+        local function switchSelectionState(cat)
+            if cat == nil then cat = "" end
+            cat = cat:lower()
+            if cat == "category" then
+                -- populate with all the categories
+                displayItemDats = getColorConfigCategories()
+                selectedcategory = ""
+                selectedelement = ""
+            elseif cat == "element" then
+                displayItemDatas = getColorConfigElementsForCategory(selectedcategory)
+                selectedelement = ""
+            elseif cat == "preset" then
+                displayItemDatas = {}
+            elseif cat == "editing" then
+            else
+                return
+            end
+        end
+
+        local function selectCategory(category)
+            -- selecting a category brings you to element selection state
+            selectedcategory = category
+            switchSelectionState("element")
+        end
+        local function selectElement(element)
+            -- selecting an element begins editing of the element color
+            selectedelement = element
+            switchSelectionState("editing")
+        end
+        local function selectPreset(preset)
+            -- selecting a preset brings you to category select
+            selectedpreset = preset
+            switchSelectionState("category")
+        end
+        local function looking4preset()
+            -- looking at the list of presets to load
+            switchSelectionState("preset")
+        end
 
         local t = Def.ActorFrame {
             Name = "ColorConfigPageContainer",

@@ -128,6 +128,26 @@ local defaultConfig = {
 colorConfig = create_setting("colorConfig", "colorConfig.lua", defaultConfig, -1)
 --colorConfig:load()
 
+-- return category names overall
+function getColorConfigCategories()
+	local o = {}
+	for c, _ in pairs(defaultConfig) do
+		o[#o+1] = c
+	end
+	table.sort(o, function(a,b) return a:lower()<b:lower() end)
+	return o
+end
+
+-- return element names for a category
+function getColorConfigElementsForCategory(cat)
+	local o = {}
+	for e, _ in pairs(defaultConfig[cat]) do
+		o[#o+1] = e
+	end
+	table.sort(o, function(a,b) return a:lower()<b:lower() end)
+	return o
+end
+
 --keys to current table. Assumes a depth of 2.
 local curColor = {"", ""}
 
