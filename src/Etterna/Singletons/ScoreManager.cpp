@@ -572,7 +572,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 										musicrate,
 										ssrpercent,
 										per_thread_calc.get());
-				} else if (steps->m_StepsType != StepsType_dance_single) {
+				} else {
 					int columnCount =
 					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
 					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
@@ -708,9 +708,8 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 				auto ck = hs->GetChartKey();
 				auto* steps = SONGMAN->GetStepsByChartkey(ck);
 
-				// check for unloaded steps, only allow 4k
-				if (steps == nullptr ||
-					steps->m_StepsType != StepsType_dance_single) {
+				// check for unloaded steps
+				if (steps == nullptr) {
 					continue;
 				}
 
@@ -739,6 +738,11 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 										musicrate,
 										ssrpercent,
 										per_thread_calc.get());
+				} else {
+					int columnCount =
+					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+					dakine = SoloCalc(
+					  serializednd, columnCount, musicrate, ssrpercent);
 				}
 
 				auto ssrVals = dakine;

@@ -355,11 +355,6 @@ Steps::Decompress()
 auto
 Steps::IsRecalcValid() -> bool
 {
-	if (m_StepsType != StepsType_dance_single &&
-		m_StepsType != StepsType_dance_solo) {
-		return false;
-	}
-
 	if (m_CachedRadarValues[RadarCategory_Notes] < 200 &&
 		m_CachedRadarValues[RadarCategory_Notes] != 4) {
 		return false;
