@@ -94,9 +94,9 @@ OptionsCursor::StopTweening()
 }
 
 void
-OptionsCursor::BeginTweening(float fSecs)
+OptionsCursor::BeginTweening(float fSecs, TweenType tt)
 {
-	ActorFrame::BeginTweening(fSecs);
+	ActorFrame::BeginTweening(fSecs, tt);
 
 	m_sprMiddle->BeginTweening(fSecs);
 	m_sprLeft->BeginTweening(fSecs);
