@@ -16,6 +16,7 @@ local AvatarY = SCREEN_HEIGHT - 50
 local playerRating = 0
 local uploadbarwidth = 100
 local uploadbarheight = 10
+local redir = SCREENMAN:get_input_redirected(PLAYER_1)
 
 local setnewdisplayname = function(answer)
 	if answer ~= "" then
@@ -51,6 +52,7 @@ local translated_info = {
 	LoggedInAs = THEME:GetString("GeneralInfo", "LoggedInAs.."),
 	LoginFailed = THEME:GetString("GeneralInfo", "LoginFailed"),
 	LoginSuccess = THEME:GetString("GeneralInfo", "LoginSuccess"),
+	LoginCanceled = THEME:GetString("GeneralInfo", "LoginCanceled"),
 	Password = THEME:GetString("GeneralInfo","Password"),
 	Username = THEME:GetString("GeneralInfo","Username"),
 	Plays = THEME:GetString("GeneralInfo", "ProfilePlays"),
@@ -61,25 +63,79 @@ local translated_info = {
 	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded")
 }
 
-local function loginToggler()
-	if not DLMAN:IsLoggedIn() then
-		username = function(answer)
-			user = answer
+-- handle logging in
+local function loginStep1(self)
+	local function off()
+		if redir then
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
 		end
-		password = function(answer)
-			pass = answer
-			DLMAN:Login(user, pass)
-		end
-		easyInputStringWithFunction(translated_info["Password"]..":", 255, true, password)
-		easyInputStringWithFunction(translated_info["Username"]..":", 255, false, username)
-	else
-		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-		playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
-		playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-		playerConfig:save(pn_to_profile_slot(PLAYER_1))
-		DLMAN:Logout()
 	end
+	local function on()
+		if redir then
+			SCREENMAN:set_input_redirected(PLAYER_1, true)
+		end
+	end
+	off()
+
+	username = ""
+
+	-- this sets up 2 text entry windows to pull your username and pass
+	-- if you press escape or just enter nothing, you are forced out
+	-- input redirects are controlled here because we want to be careful not to break any prior redirects
+	easyInputStringOKCancel(
+		translated_info["Username"]..":", 255, false,
+		function(answer)
+			username = answer
+			-- moving on to step 2 if the answer isnt blank
+			if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+				self:sleep(0.04):queuecommand("LoginStep2")
+			else
+				ms.ok(translated_info["LoginCanceled"])
+				on()
+			end
+		end,
+		function()
+			ms.ok(translated_info["LoginCanceled"])
+			on()
+		end
+	)
 end
+
+-- do not use this function outside of first calling loginStep1
+local function loginStep2()
+	local function off()
+		if redir then
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
+		end
+	end
+	local function on()
+		if redir then
+			SCREENMAN:set_input_redirected(PLAYER_1, true)
+		end
+	end
+	-- try to keep the scope of password here
+	-- if we open up the scope, if a lua error happens on this screen
+	-- the password may show up in the error message
+	local password = ""
+	easyInputStringOKCancel(
+		translated_info["Password"]..":", 255, true,
+		function(answer)
+			password = answer
+			-- log in if not blank
+			if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+				DLMAN:Login(username, password)
+			else
+				ms.ok(translated_info["LoginCanceled"])
+			end
+			on()
+		end,
+		function()
+			ms.ok(translated_info["LoginCanceled"])
+			on()
+		end
+	)
+end
+
 
 t[#t + 1] =
 	Def.Actor {
@@ -129,7 +185,7 @@ t[#t + 1] =
 			self:zoomto(50, 50)
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+			if isOver(self) and not redir then
 				local top = SCREENMAN:GetTopScreen()
 				SCREENMAN:SetNewScreen("ScreenAssetSettings")
 			end
@@ -153,7 +209,7 @@ t[#t + 1] =
 				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+				if isOver(self) and not redir then
 					easyInputStringWithFunction(translated_info["NameChange"], 64, false, setnewdisplayname)
 				end
 			end,
@@ -268,12 +324,23 @@ t[#t + 1] =
 			ms.ok(translated_info["LoginSuccess"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-				loginToggler()
+			if isOver(self) and not redir then
+				if DLMAN:IsLoggedIn() then
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
+					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					playerConfig:save(pn_to_profile_slot(PLAYER_1))
+					DLMAN:Logout()
+				else
+					loginStep1(self)
+				end
 			end
 		end,
 		LoginHotkeyPressedMessageCommand = function(self)
-			loginToggler()
+			loginStep1(self)
+		end,
+		LoginStep2Command = function(self)
+			loginStep2()
 		end
 	},
 	LoadFont("Common Normal") ..
@@ -344,7 +411,6 @@ t[#t + 1] =
 		Name = "refreshbutton",
 			InitCommand = function(self)
 				self:xy(SCREEN_WIDTH - 5, AvatarY + 20):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
-				
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -384,7 +450,7 @@ t[#t + 1] =
 			self:diffuse(color("#111111")):diffusealpha(0):halign(0)
 		end,
 		UploadProgressMessageCommand = function(self, params)
-			self:diffusealpha(1)	
+			self:diffusealpha(1)
 			if params.percent == 1 then
 				self:diffusealpha(0)
 			end
@@ -405,7 +471,7 @@ t[#t + 1] =
 		end
 		},
 		-- super required explanatory text
-	LoadFont("Common Normal") .. 
+	LoadFont("Common Normal") ..
 		{
 	    InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 27):halign(0):valign(0)
