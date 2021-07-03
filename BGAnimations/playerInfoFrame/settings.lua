@@ -1156,7 +1156,8 @@ local function leftFrame()
 
         -- stores the data for items to display
         -- should be a list of strings
-        local displayItemDatas = {}
+        -- starting it off with categories because categories is the starting state
+        local displayItemDatas = getColorConfigCategories()
 
         -- determines the current state of color config selection
         -- valid options:
@@ -1166,7 +1167,7 @@ local function leftFrame()
         --  editing - currently editing an element color
         local selectionstate = "category"
         local selectedcategory = ""
-        local selectedpreset = ""
+        local selectedpreset = getColorPreset()
         local selectedelement = ""
 
         -- handle switching states and stuff
@@ -1175,7 +1176,7 @@ local function leftFrame()
             cat = cat:lower()
             if cat == "category" then
                 -- populate with all the categories
-                displayItemDats = getColorConfigCategories()
+                displayItemDatas = getColorConfigCategories()
                 selectedcategory = ""
                 selectedelement = ""
             elseif cat == "element" then
@@ -1194,6 +1195,8 @@ local function leftFrame()
             else
                 return
             end
+            selectionstate = cat
+            MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
         end
 
         local function selectCategory(category)
@@ -1208,12 +1211,27 @@ local function leftFrame()
         end
         local function selectPreset(preset)
             -- selecting a preset brings you to category select
+            -- it also loads the preset globally
             selectedpreset = preset
             switchSelectionState("category")
         end
         local function looking4preset()
             -- looking at the list of presets to load
             switchSelectionState("preset")
+        end
+
+        local function goUpOneLayer()
+            if selectionstate == "category" then
+                switchSelectionState("preset")
+            elseif selectionstate == "element" then
+                switchSelectionState("category")
+            elseif selectionstate == "preset" then
+                -- impossible
+            elseif selectionstate == "editing" then
+                switchSelectionState("category")
+            else
+                return
+            end
         end
 
         local t = Def.ActorFrame {
@@ -1231,6 +1249,11 @@ local function leftFrame()
                 self:diffusealpha(0)
                 self:z(-1)
                 SCUFF.showingColor = false
+            end,
+            BeginCommand = function(self)
+                -- HACK
+                -- RAN OUT OF DEVELOPMENT PATIENCE
+                MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
             end,
 
             Def.ActorFrame {
@@ -1340,8 +1363,23 @@ local function leftFrame()
                             bg:halign(0):valign(1)
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
-                            self:y(textLineSeparation * 5)
+                            self:y(textLineSeparation * 5.5)
                             txt:settext("Undo")
+                            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                            self.alphaDeterminingFunction = function(self)
+                                local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                                self:diffusealpha(1 * hovermultiplier)
+                            end
+                        end,
+                        RolloverUpdateCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            if params.update == "OnMouseDown" then
+                                self:alphaDeterminingFunction()
+                            end
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1354,8 +1392,23 @@ local function leftFrame()
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
                             self:x(widthOfTheRightSide)
-                            self:y(textLineSeparation * 5)
-                            txt:settext("Default")
+                            self:y(textLineSeparation * 5.5)
+                            txt:settext("Reset to Default")
+                            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                            self.alphaDeterminingFunction = function(self)
+                                local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                                self:diffusealpha(1 * hovermultiplier)
+                            end
+                        end,
+                        RolloverUpdateCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            if params.update == "OnMouseDown" then
+                                self:alphaDeterminingFunction()
+                            end
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1365,23 +1418,25 @@ local function leftFrame()
                             local bg = self:GetChild("BG")
                             txt:halign(0):valign(1)
                             bg:halign(0):valign(1)
-                            self:y(textLineSeparation * 7)
-                            txt:zoom(colorConfigTextSize)
-                            txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            txt:settext("Save config preset")
-                        end,
-                    },
-                    UIElements.TextButton(1, 1, "Common Normal") .. {
-                        Name = "LoadPreset",
-                        InitCommand = function(self)
-                            local txt = self:GetChild("Text")
-                            local bg = self:GetChild("BG")
-                            txt:halign(0):valign(1)
-                            bg:halign(0):valign(1)
                             self:y(textLineSeparation * 8)
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            txt:settext("Load config preset")
+                            txt:settext("New Color Config Preset")
+                            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                            self.alphaDeterminingFunction = function(self)
+                                local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                                self:diffusealpha(1 * hovermultiplier)
+                            end
+                        end,
+                        RolloverUpdateCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            if params.update == "OnMouseDown" then
+                                self:alphaDeterminingFunction()
+                            end
                         end,
                     },
                 },
@@ -1403,16 +1458,96 @@ local function leftFrame()
                     InitCommand = function(self)
                         self:halign(0)
                         self:zoom(colorConfigChoiceTextSize)
-                        self:maxwidth(actuals.LeftWidth - actuals.EdgePadding*2 / colorConfigTextSize - textZoomFudge)
+                        self:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) * 0.7 / colorConfigTextSize - textZoomFudge)
                         self:y(remainingYSpace / colorConfigItemCount / 2)
-                        self:settext("Browsing category")
+                        self:settext(" ")
+                    end,
+                    UpdateColorConfigDisplayCommand = function(self)
+                        if selectionstate == "category" then
+                            self:settext("Browsing Color Categories")
+                        elseif selectionstate == "preset" then
+                            self:settext("Browsing Color Config Presets")
+                        elseif selectionstate == "element" then
+                            self:settext("Browsing Elements in '"..selectedcategory.."'")
+                        elseif selectionstate == "editing" then
+                            self:settext("Browsing Elements in '"..selectedcategory.."' (editing)")
+                        end
+                    end,
+                    ColorConfigSelectionStateChangedMessageCommand = function(self)
+                        self:playcommand("UpdateColorConfigDisplay")
+                    end,
+                },
+                LoadFont("Common Normal") .. {
+                    Name = "PageNumber",
+                    InitCommand = function(self)
+                        self:halign(1)
+                        self:zoom(colorConfigChoiceTextSize)
+                        self:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) * 0.2 / colorConfigTextSize - textZoomFudge)
+                        self:x(actuals.LeftWidth - actuals.EdgePadding*2)
+                        self:y(remainingYSpace - remainingYSpace / colorConfigItemCount / 2)
+                        self:settext(" ")
+                    end,
+                    UpdateColorConfigDisplayCommand = function(self)
+                        local lb = clamp((page-1) * (colorConfigItemCount-1) + 1, 0, #displayItemDatas)
+                        local ub = clamp(page * colorConfigItemCount-1, 0, #displayItemDatas)
+                        self:settextf("%d-%d/%d", lb, ub, #displayItemDatas)
+                    end,
+                    ColorConfigSelectionStateChangedMessageCommand = function(self)
+                        self:playcommand("UpdateColorConfigDisplay")
+                    end,
+                },
+                UIElements.TextButton(1, 1, "Common Normal") .. {
+                    Name = "BackButton",
+                    InitCommand = function(self)
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        txt:halign(1)
+                        bg:halign(1)
+                        txt:zoom(colorConfigChoiceTextSize)
+                        txt:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) * 0.3 / colorConfigTextSize - textZoomFudge)
+                        self:x(actuals.LeftWidth - actuals.EdgePadding*2)
+                        self:y(remainingYSpace / colorConfigItemCount / 2)
+                        txt:settext(" ")
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                        self.alphaDeterminingFunction = function(self)
+                            local statemultiplier = selectionstate ~= "preset" and 1 or 0
+                            local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                            self:diffusealpha(1 * statemultiplier * hovermultiplier)
+                        end
+                    end,
+                    UpdateColorConfigDisplayCommand = function(self)
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        if selectionstate == "category" then
+                            txt:settext("Back to Presets")
+                        elseif selectionstate == "preset" then
+                            txt:settext(" ")
+                        elseif selectionstate == "element" then
+                            txt:settext("Back to Categories")
+                        elseif selectionstate == "editing" then
+                            txt:settext("Back to Categories")
+                        end
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                        self:alphaDeterminingFunction()
+                    end,
+                    ColorConfigSelectionStateChangedMessageCommand = function(self)
+                        self:playcommand("UpdateColorConfigDisplay")
+                    end,
+                    RolloverUpdateCommand = function(self, params)
+                        self:alphaDeterminingFunction()
+                    end,
+                    ClickCommand = function(self, params)
+                        if params.update == "OnMouseDown" then
+                            goUpOneLayer()
+                            self:alphaDeterminingFunction()
+                        end
                     end,
                 }
             }
 
             local function colorConfigChoice(i)
                 local index = i
-                local itemWidth = actuals.LeftWidth - actuals.EdgePadding*2
+                local itemWidth = (actuals.LeftWidth - actuals.EdgePadding*2) * 0.8
                 local itemData = nil
 
                 return UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1427,10 +1562,10 @@ local function leftFrame()
                         bg:halign(0)
                         txt:zoom(colorConfigChoiceTextSize)
                         txt:maxwidth(itemWidth / colorConfigChoiceTextSize - textZoomFudge)
-                        txt:settext("Entry")
-
+                        txt:settext(" ")
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         self.alphaDeterminingFunction = function(self)
-                            local hovermultiplier = isOver(self) and buttonHoverAlpha or 1
+                            local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                             local visiblemultiplier = itemData == nil and 0 or 1
                             self:diffusealpha(1 * hovermultiplier * visiblemultiplier)
                         end
@@ -1447,21 +1582,35 @@ local function leftFrame()
                         end
                     end,
                     UpdateTextCommand = function(self)
-                        self:settext("afasfsa")
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        local txtstr = itemData or ""
+                        txt:settextf("%d.  %s", index, txtstr)
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end,
-                    MouseDownCommand = function(self, params)
+                    ColorConfigSelectionStateChangedMessageCommand = function(self)
+                        self:playcommand("UpdateColorConfigDisplay")
+                    end,
+                    RolloverUpdateCommand = function(self, params)
                         if self:IsInvisible() then return end
                         self:alphaDeterminingFunction()
-
                     end,
-                    MouseOverCommand = function(self)
+                    ClickCommand = function(self, params)
                         if self:IsInvisible() then return end
-                        self:alphaDeterminingFunction()
+                        if params.update == "OnMouseDown" then
+                            if selectionstate == "preset" then
+                                -- clicked a preset, switching to category
+                                selectPreset(itemData)
+                            elseif selectionstate == "category" then
+                                -- clicked a category, switching to element
+                                selectCategory(itemData)
+                            elseif selectionstate == "element" or selectionstate == "editing" then
+                                -- clicked an element, switching to edit mode
+                                selectElement(itemData)
+                            end
+                            self:alphaDeterminingFunction()
+                        end
                     end,
-                    MouseOutCommand = function(self)
-                        if self:IsInvisible() then return end
-                        self:alphaDeterminingFunction()
-                    end
                 }
             end
             for i = 1, colorConfigItemCount-1 do
