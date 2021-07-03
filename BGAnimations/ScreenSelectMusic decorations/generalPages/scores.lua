@@ -465,7 +465,7 @@ local function createList()
                     if score ~= nil then
                         local ssr = score:GetSkillsetSSR("Overall")
                         self:settextf("%05.2f", ssr)
-                        self:diffuse(byMSD(ssr))
+                        self:diffuse(colorByMSD(ssr))
                     end
                 end
             },
@@ -545,7 +545,7 @@ local function createList()
                         local wifeStr = string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
                         local grade = GetGradeFromPercent(score:GetWifeScore())
                         self:settext(wifeStr)
-                        self:diffuse(getGradeColor(grade))
+                        self:diffuse(colorByGrade(grade))
                     end
                 end
             },
@@ -889,7 +889,7 @@ local function createList()
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local grade = THEME:GetString("Grade", ToEnumShortString(localscore:GetWifeGrade()))
-                    self:diffuse(getGradeColor(localscore:GetWifeGrade()))
+                    self:diffuse(colorByGrade(localscore:GetWifeGrade()))
                     self:settext(grade)
                 end
             end
@@ -1033,9 +1033,9 @@ local function createList()
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local ssrstr = string.format("%5.2f", localscore:GetSkillsetSSR("Overall"))
-                    local ssrcolr = byMSD(localscore:GetSkillsetSSR("Overall"))
+                    local ssrcolr = colorByMSD(localscore:GetSkillsetSSR("Overall"))
                     local wife = localscore:GetWifeScore() * 100
-                    local wifecolr = byGrade(localscore:GetWifeGrade())
+                    local wifecolr = colorByGrade(localscore:GetWifeGrade())
                     local wv = "Wife "..localscore:GetWifeVers()
                     local judge = 4
 					if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then

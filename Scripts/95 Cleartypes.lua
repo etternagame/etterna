@@ -50,20 +50,20 @@ end
 
 local typecolors = {
 	-- colors corresponding to cleartype
-	[1] = color(colorConfig:get_data().clearType["MFC"]),
-	[2] = color(colorConfig:get_data().clearType["WF"]),
-	[3] = color(colorConfig:get_data().clearType["SDP"]),
-	[4] = color(colorConfig:get_data().clearType["PFC"]),
-	[5] = color(colorConfig:get_data().clearType["BF"]),
-	[6] = color(colorConfig:get_data().clearType["SDG"]),
-	[7] = color(colorConfig:get_data().clearType["FC"]),
-	[8] = color(colorConfig:get_data().clearType["MF"]),
-	[9] = color(colorConfig:get_data().clearType["SDCB"]),
-	[10] = color(colorConfig:get_data().clearType["Clear"]),
-	[11] = color(colorConfig:get_data().clearType["Failed"]),
-	[12] = color(colorConfig:get_data().clearType["Invalid"]),
-	[13] = color(colorConfig:get_data().clearType["NoPlay"]),
-	[14] = color(colorConfig:get_data().clearType["None"]),
+	[1] = colorByClearType("MFC"),
+	[2] = colorByClearType("WF"),
+	[3] = colorByClearType("SDP"),
+	[4] = colorByClearType("PFC"),
+	[5] = colorByClearType("BF"),
+	[6] = colorByClearType("SDG"),
+	[7] = colorByClearType("FC"),
+	[8] = colorByClearType("MF"),
+	[9] = colorByClearType("SDCB"),
+	[10] = colorByClearType("Clear"),
+	[11] = colorByClearType("Failed"),
+	[12] = colorByClearType("Invalid"),
+	[13] = colorByClearType("NoPlay"),
+	[14] = colorByClearType("None"),
 }
 
 local typetranslations = {

@@ -280,7 +280,7 @@ local function createMSDLines()
                                 avg = clamp(avg, 0, notes)
                             end
                             self:targetnumber(avg)
-                            self:diffuse(byNPS(avg))
+                            self:diffuse(colorByNPS(avg))
                         else
                             -- failsafe
                             self:targetnumber(0)
@@ -291,7 +291,7 @@ local function createMSDLines()
                             if params.steps then
                                 local val = params.steps:GetMSD(getCurRateValue(), i)
                                 self:targetnumber(val)
-                                self:diffuse(byMSD(val))
+                                self:diffuse(colorByMSD(val))
                             else
                                 -- failsafe
                                 self:targetnumber(0)
@@ -403,7 +403,7 @@ t[#t+1] = Def.RollingNumbers {
         if params.steps then
             local meter = params.steps:GetMSD(getCurRateValue(), 1)
             self:targetnumber(meter)
-            self:diffuse(byMSD(meter))
+            self:diffuse(colorByMSD(meter))
         else
             self:targetnumber(0)
             self:diffuse(color("1,1,1,1"))
@@ -428,7 +428,7 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self, params)
             if displayScore then
                 self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
-                self:diffuse(byGrade(displayScore:GetWifeGrade()))
+                self:diffuse(colorByGrade(displayScore:GetWifeGrade()))
             else
                 self:settext("")
             end

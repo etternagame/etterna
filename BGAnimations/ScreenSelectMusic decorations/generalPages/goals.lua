@@ -244,7 +244,7 @@ local function sortGoalsByRate(goaltable, dategetter, ascending)
         end
     )
 end
-local function sortGoalsByMSD(goaltable, dategetter, ascending)
+local function sortGoalscolorByMSD(goaltable, dategetter, ascending)
     if ascending == nil then ascending = true end
     table.sort(
         goaltable,
@@ -475,7 +475,7 @@ local function goalList()
         elseif sortMode == "Rate" then
             sortGoalsByRate(goalTable, dategetter, sortAscending)
         elseif sortMode == "MSD" then
-            sortGoalsByMSD(goalTable, dategetter, sortAscending)
+            sortGoalscolorByMSD(goalTable, dategetter, sortAscending)
         elseif sortMode == "Name" then
             sortGoalsByName(goalTable, dategetter, sortAscending)
         elseif sortMode == "Date" then
@@ -595,7 +595,7 @@ local function goalList()
 
                     if goalSteps ~= nil then
                         self:settextf("%s", getShortDifficulty(goalSteps:GetDifficulty()))
-                        self:diffuse(byDifficulty(goalSteps:GetDifficulty()))
+                        self:diffuse(colorByDifficulty(goalSteps:GetDifficulty()))
                     else
                         self:settext("")
                     end
@@ -764,7 +764,7 @@ local function goalList()
                     if goalSteps ~= nil then
                         local msd = goalSteps:GetMSD(goal:GetRate(), 1)
                         self:settextf("%5.1f", msd)
-                        self:diffuse(byMSD(msd))
+                        self:diffuse(colorByMSD(msd))
                     else
                         self:settext("??")
                         self:diffuse(color("1,1,1,1"))

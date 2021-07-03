@@ -373,7 +373,7 @@ local function createList()
                             ssr = score.ssr
                         end
                         self:settextf("%05.2f", ssr)
-                        self:diffuse(byMSD(ssr))
+                        self:diffuse(colorByMSD(ssr))
                     end
                 end
             },
@@ -515,10 +515,10 @@ local function createList()
                     if score ~= nil then
                         if isLocal then
                             self:settextf("%5.2f%%", score:GetWifeScore() * 100)
-                            self:diffuse(byGrade(score:GetWifeGrade()))
+                            self:diffuse(colorByGrade(score:GetWifeGrade()))
                         else
                             self:settextf("%5.2f%%", score.wife * 100)
-                            self:diffuse(byGrade(score.grade))
+                            self:diffuse(colorByGrade(score.grade))
                         end
                     end
                 end
@@ -537,14 +537,14 @@ local function createList()
                             local steps = SONGMAN:GetStepsByChartKey(score:GetChartKey())
                             if steps then
                                 self:settext(getShortDifficulty(steps:GetDifficulty()))
-                                self:diffuse(byDifficulty(steps:GetDifficulty()))
+                                self:diffuse(colorByDifficulty(steps:GetDifficulty()))
                             else
                                 self:settext("")
                             end
                         else
                             local diff = score.difficulty
                             self:settext(getShortDifficulty(diff))
-                            self:diffuse(byDifficulty(diff))
+                            self:diffuse(colorByDifficulty(diff))
                         end
                     end
                 end
@@ -834,11 +834,11 @@ local function createList()
                             local orating = DLMAN:GetSkillsetRating(skillset)
                             local rank = DLMAN:GetSkillsetRank(skillset)
                             self:settextf("%5.2f (#%d) / %5.2f", orating, rank, lrating)
-                            self:diffuse(byMSD(orating))
+                            self:diffuse(colorByMSD(orating))
                         else
                             local rating = profile:GetPlayerSkillsetRating(skillset)
                             self:settextf("%5.2f", rating)
-                            self:diffuse(byMSD(rating))
+                            self:diffuse(colorByMSD(rating))
                         end
                     else
                         self:settextf("%s:", skillset)

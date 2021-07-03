@@ -415,7 +415,7 @@ local function scoreList()
                     if score ~= nil then
                         local gra = THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
                         self:settext(gra)
-                        self:diffuse(getGradeColor(score:GetWifeGrade()))
+                        self:diffuse(colorByGrade(score:GetWifeGrade()))
                     end
                 end
             },
@@ -456,12 +456,12 @@ local function scoreList()
                         self:ClearAttributes()
                         self:settextf("%s | %s - %s - %s - %s - %s - %s", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr)
                         -- could have probably used a loop to do this
-                        self:AddAttribute(#string.format("%s | ", wifeStr), {Length = #jgMaStr, Zoom = wifeJudgmentsSize, Diffuse = byJudgment("TapNoteScore_W1")})
-                        self:AddAttribute(#string.format("%s | %s - ", wifeStr, jgMaStr), {Length = #jgPStr, Zoom = wifeJudgmentsSize, Diffuse = byJudgment("TapNoteScore_W2")})
-                        self:AddAttribute(#string.format("%s | %s - %s - ", wifeStr, jgMaStr, jgPStr), {Length = #jgGrStr, Zoom = wifeJudgmentsSize, Diffuse = byJudgment("TapNoteScore_W3")})
-                        self:AddAttribute(#string.format("%s | %s - %s - %s - ", wifeStr, jgMaStr, jgPStr, jgGrStr), {Length = #jgGoStr, Zoom = wifeJudgmentsSize, Diffuse = byJudgment("TapNoteScore_W4")})
-                        self:AddAttribute(#string.format("%s | %s - %s - %s - %s - ", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr), {Length = #jgBStr, Zoom = wifeJudgmentsSize, Diffuse = byJudgment("TapNoteScore_W5")})
-                        self:AddAttribute(#string.format("%s | %s - %s - %s - %s - %s - ", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr), {Length = #jgMiStr, Zoom = wifeJudgmentsSize, Diffuse = byJudgment("TapNoteScore_Miss")})
+                        self:AddAttribute(#string.format("%s | ", wifeStr), {Length = #jgMaStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_W1")})
+                        self:AddAttribute(#string.format("%s | %s - ", wifeStr, jgMaStr), {Length = #jgPStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_W2")})
+                        self:AddAttribute(#string.format("%s | %s - %s - ", wifeStr, jgMaStr, jgPStr), {Length = #jgGrStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_W3")})
+                        self:AddAttribute(#string.format("%s | %s - %s - %s - ", wifeStr, jgMaStr, jgPStr, jgGrStr), {Length = #jgGoStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_W4")})
+                        self:AddAttribute(#string.format("%s | %s - %s - %s - %s - ", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr), {Length = #jgBStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_W5")})
+                        self:AddAttribute(#string.format("%s | %s - %s - %s - %s - %s - ", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr), {Length = #jgMiStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_Miss")})
                     end
                 end
             },
@@ -482,7 +482,7 @@ local function scoreList()
                         local ssrStr = string.format("%05.2f", ssr)
                         self:ClearAttributes()
                         self:settextf("%s | %s", ssrStr, dstr)
-                        self:AddAttribute(0, {Length = #ssrStr, Zoom = dateSSRSize, Diffuse = byMSD(ssr)})
+                        self:AddAttribute(0, {Length = #ssrStr, Zoom = dateSSRSize, Diffuse = colorByMSD(ssr)})
                     end
                 end
             },

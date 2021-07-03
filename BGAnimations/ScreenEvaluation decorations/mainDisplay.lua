@@ -791,7 +791,7 @@ local function wifePercentDisplay()
                 end
                 local pg = notShit.floor(percent, decimals)
                 local grade = GetGradeFromPercent(pg / 100)
-                self:diffuse(getGradeColor(grade))
+                self:diffuse(colorByGrade(grade))
                 self:playcommand("UpdateParameters", {decimals = decimals, infostr = ws, value = percent})
                 self:playcommand("UpdateText")
             else
@@ -1096,7 +1096,7 @@ t[#t+1] = Def.ActorFrame {
 
                     local gra = THEME:GetString("Grade", ToEnumShortString(grade))
                     self:settext(gra)
-                    self:diffuse(getGradeColor(grade))
+                    self:diffuse(colorByGrade(grade))
                 else
                     self:settext("")
                 end
@@ -1126,13 +1126,13 @@ t[#t+1] = Def.ActorFrame {
                     local msd = params.steps:GetMSD(params.score:GetMusicRate(), 1)
                     local msdstr = string.format("%5.2f", msd)
                     local diff = getShortDifficulty(getDifficulty(params.steps:GetDifficulty()))
-                    local diffcolor = getDifficultyColor(GetCustomDifficulty(params.steps:GetStepsType(), params.steps:GetDifficulty()))
+                    local diffcolor = colorByDifficulty(GetCustomDifficulty(params.steps:GetStepsType(), params.steps:GetDifficulty()))
                     local ssr = params.score:GetSkillsetSSR("Overall")
                     local ssrstr = string.format("%5.2f", ssr)
                     self:settextf("%s  ~  %s %s", msdstr, ssrstr, diff)
                     self:ClearAttributes()
-                    self:AddAttribute(0, {Length = #msdstr, Zoom = scoreInfoTextSize, Diffuse = byMSD(msd)})
-                    self:AddAttribute(#msdstr + #"  ~  ", {Length = #ssrstr, Zoom = scoreInfoTextSize, Diffuse = byMSD(tonumber(ssrstr))})
+                    self:AddAttribute(0, {Length = #msdstr, Zoom = scoreInfoTextSize, Diffuse = colorByMSD(msd)})
+                    self:AddAttribute(#msdstr + #"  ~  ", {Length = #ssrstr, Zoom = scoreInfoTextSize, Diffuse = colorByMSD(tonumber(ssrstr))})
                     self:AddAttribute(#msdstr + #"  ~  " + #ssrstr, {Length = -1, Zoom = scoreInfoTextSize, Diffuse = diffcolor})
                 else
                     self:settext("")

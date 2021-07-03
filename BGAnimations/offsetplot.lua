@@ -317,7 +317,7 @@ t[#t+1] = Def.Quad {
     Name = "CenterLine",
     InitCommand = function(self)
         self:halign(0)
-        self:diffuse(byJudgment("TapNoteScore_W1"))
+        self:diffuse(colorByJudgment("TapNoteScore_W1"))
         self:diffusealpha(lineAlpha)
         self:playcommand("UpdateSizing")
         self:finishtweening()
@@ -335,7 +335,7 @@ for i, j in ipairs(barJudgments) do
         Name = j.."_Late",
         InitCommand = function(self)
             self:halign(0)
-            self:diffuse(byJudgment(j))
+            self:diffuse(colorByJudgment(j))
             self:diffusealpha(lineAlpha)
             self:playcommand("UpdateSizing")
             self:finishtweening()
@@ -352,7 +352,7 @@ for i, j in ipairs(barJudgments) do
         Name = j.."_Early",
         InitCommand = function(self)
             self:halign(0)
-            self:diffuse(byJudgment(j))
+            self:diffuse(colorByJudgment(j))
             self:diffusealpha(lineAlpha)
             self:playcommand("UpdateSizing")
             self:finishtweening()
@@ -509,7 +509,7 @@ t[#t+1] = Def.ActorMultiVertex {
 
             if types[i] ~= "TapNoteType_Mine" then
                 -- handle highlighting logic
-                local dotColor = offsetToJudgeColor(offset, timingScale)
+                local dotColor = colorByTapOffset(offset, timingScale)
                 if not columnIsHighlighted(column) then
                     dotColor[4] = unHighlightedAlpha
                 end

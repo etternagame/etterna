@@ -335,7 +335,7 @@ t[#t+1] = Def.ActorFrame {
             if params.steps then
                 local len = GetPlayableTime()
                 self:settext(SecondsToMMSS(len))
-                self:diffuse(byMusicLength(len))
+                self:diffuse(colorByMusicLength(len))
             else
                 self:settext("--:--")
                 self:diffuse(color("1,1,1,1"))

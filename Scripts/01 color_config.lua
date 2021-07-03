@@ -1,10 +1,5 @@
+local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 local defaultConfig = {
-	title = {
-		BG_Left = "#161515",
-		BG_Right = "#222222",
-		Line_Left = "#b87cf0",
-		Line_Right = "#59307f"
-	},
 	main = {
 		highlight = "#614080",
 		frames = "#000111",
@@ -54,26 +49,6 @@ local defaultConfig = {
 		Freestyle = "#666666",
 		Nightmare = "#666666"
 	},
-	difficultyVivid = {
-		Difficulty_Beginner = "#0099ff", -- light blue
-		Difficulty_Easy = "#00ff00", -- green
-		Difficulty_Medium = "#ffff00", -- yellow
-		Difficulty_Hard = "#ff0000", -- red
-		Difficulty_Challenge = "#cc66ff", -- light blue
-		Difficulty_Edit = "#666666", -- gray
-		Beginner = "#0099ff", -- light blue
-		Easy = "#00ff00", -- green
-		Medium = "#ffff00", -- yellow
-		Hard = "#ff0000", -- red
-		Challenge = "#cc66ff", -- Purple
-		Edit = "#666666", -- gray
-		Difficulty_Crazy = "#cc66ff",
-		Difficulty_Freestyle = "#666666",
-		Difficulty_Nightmare = "#666666",
-		Crazy = "#cc66ff",
-		Freestyle = "#666666",
-		Nightmare = "#666666"
-	},
 	grades = {
 		Grade_Tier01 = "#ffffff", -- AAAAA
 		Grade_Tier02 = "#66ccff", -- AAAA:
@@ -91,7 +66,7 @@ local defaultConfig = {
 		Grade_Tier14 = "#5b78bb", -- B
 		Grade_Tier15 = "#c97bff", -- C
 		Grade_Tier16 = "#8c6239", -- D
-		Grade_Tier17 = "#000000",
+		Grade_Tier17 = "#000000", -- :mystery:
 		Grade_Failed = "#cdcdcd", -- F
 		Grade_None = "#666666" -- no play
 	},
@@ -125,8 +100,121 @@ local defaultConfig = {
 	}
 }
 
-colorConfig = create_setting("colorConfig", "colorConfig.lua", defaultConfig, -1)
---colorConfig:load()
+local presetfolder = "Save" .. settings_prefix .. "color_presets/"
+local defaultpresetname = "default"
+local defaultpresetpath = presetfolder .. defaultpresetname .. ".lua"
+
+local defaultGlobalConfig = {
+	currentPreset = defaultpresetname,
+}
+
+function getDefaultColor(category, element)
+	if defaultConfig[category] ~= nil then
+		if defaultConfig[category][element] ~= nil then
+			return color(defaultConfig[category][element])
+		else
+			print("Element "..element.." does not exist in the default color config.")
+			return color("1,1,1,1")
+		end
+	else
+		print("Category "..category.." does not exist in the default color config.")
+		return color("1,1,1,1")
+	end
+end
+
+-- the global color config table
+-- serious big boy coding style would dictate that i put meta tables and stuff in this 
+-- 	and a bunch of stuff would be private and whatever but nah im not doing that
+-- all the loaded presets will be present here at once
+-- hope you dont load 5gb of presets (this would be a feat tbh. someone try this)
+COLORS = {}
+
+-- contains info about color config preset and any other color config global settings
+colorConfig = create_setting("colorConfig", "colorConfig.lua", defaultGlobalConfig, -1)
+
+local function load_conf_file(fname)
+	local file = RageFileUtil.CreateRageFile()
+	local ret = {}
+	if file:Open(fname, 1) then
+		local data = loadstring(file:Read())
+		setfenv(data, {})
+		local success, data_ret = pcall(data)
+		if success then
+			ret = data_ret
+		end
+		file:Close()
+	end
+	file:destroy()
+	return ret
+end
+
+local function writePreset(name)
+	local presetData = COLORS.presets[name]
+	local fname = presetfolder .. name .. ".lua"
+	local f = RageFileUtil.CreateRageFile()
+	if not f:Open(fname, 2) then
+		print("Could not open '" .. fname .. "' to write.")
+	else
+		local o = "return " .. lua_table_to_string(presetData)
+		f:Write(o)
+		f:Close()
+		f:destroy()
+	end
+end
+
+local function writeDefaultPreset()
+	local file_handle = RageFileUtil.CreateRageFile()
+	local fname = defaultpresetpath
+	if not file_handle:Open(fname, 2) then
+		print("Could not open '" .. fname .. "' to write.")
+	else
+		local output = "return " .. lua_table_to_string(defaultConfig)
+		file_handle:Write(output)
+		file_handle:Close()
+		file_handle:destroy()
+	end
+end
+
+-- works like the process of loading any config but loads it from a directory of configs instead
+function COLORS.loadColorConfigPresets(self)
+	print("Loading color config presets")
+	-- put the default in
+	if not FILEMAN:DoesFileExist(defaultpresetpath) then
+		writeDefaultPreset()
+	end
+
+	-- check the preset folder for more presets
+	local tmp = FILEMAN:GetDirListing(presetfolder)
+	local confignames = {}
+	for _, name in ipairs(tmp) do
+		if ActorUtil.GetFileType(presetfolder .. name) == "FileType_Lua" then
+			confignames[#confignames+1] = name:gsub(".lua", "")
+		end
+	end
+
+	if #confignames == 0 then
+		print("No color config presets present even after writing the default one!!!")
+		return
+	end
+
+	local count = 0
+	-- load all the presets
+	self.presets = {}
+	for _, name in ipairs(confignames) do
+		count = count + 1
+		print(" adding color preset "..name)
+		local pname = presetfolder .. name
+		local from_file = load_conf_file(pname)
+		if type(from_file) == "table" then
+			force_table_elements_to_match_type(from_file, defaultConfig, -1)
+			self.presets[name] = from_file
+		else
+			self.presets[name] = DeepCopy(defaultConfig)
+		end
+	end
+	print("Loaded "..count.." color config presets.")
+end
+COLORS:loadColorConfigPresets()
 
 -- return category names overall
 function getColorConfigCategories()
@@ -148,139 +236,129 @@ function getColorConfigElementsForCategory(cat)
 	return o
 end
 
---keys to current table. Assumes a depth of 2.
-local curColor = {"", ""}
-
-function getTableKeys()
-	return curColor
+-- return preset names
+function getColorConfigPresets()
+	-- we will load all presets for this action just in case
+	COLORS:loadColorConfigPresets()
+	local o = {}
+	for p, _ in pairs(COLORS.presets) do
+		o[#o+1] = p
+	end
+	return o
 end
 
-function setTableKeys(table)
-	curColor = table
+-- return the current set color preset
+function getColorPreset()
+	if colorConfig ~= nil then
+		return colorConfig:get_data().currentPreset
+	else
+		return nil
+	end
 end
 
-function getDefaultColorForCurColor()
-	return defaultConfig[curColor[1]][curColor[2]]
+function changeCurrentColorPreset(preset)
+	if colorConfig == nil then print("Color config does not exist???") return end
+	colorConfig:get_data().currentPreset = preset
+	colorConfig:set_dirty()
+	colorConfig:save()
+
+	COLORS:loadColorPreset(preset)
 end
 
-function getMainColor(type)
-	return color(colorConfig:get_data().main[type])
+function COLORS.saveColorPreset(self, preset) writePreset(preset) end
+function saveColorPreset(preset) COLORS:saveColorPreset(preset) end
+
+-- main color access function
+-- uses the currently selected preset in COLORS
+function COLORS.getColor(self, category, element)
+	local preset = getColorPreset()
+	if preset ~= nil then
+		local presetconfig = self.presets[preset]
+		if presetconfig ~= nil then
+			local catdef = presetconfig[category]
+			if catdef ~= nil then
+				local result = catdef[element]
+				if result ~= nil then
+					return color(result)
+				else
+					print("The element "..element.." was not in category "..category.." in the color preset "..preset..". Loaded default in its place.")
+					return getDefaultColor(category, element)
+				end
+			else
+				print("The category "..category.." was not in the color preset "..preset..". Loaded default in its place.")
+				return getDefaultColor(category, element)
+			end
+		else
+			print("The color preset "..preset.." was not loaded. Loaded the default preset in its place.")
+			return getDefaultColor(category, element)
+		end
+	else
+		print("Current color preset is empty. Malformed colorConfig.lua? Loaded default color instead.")
+		return getDefaultColor(category, element)
+	end
 end
 
-function getLeaderboardColor(type)
-	return color(colorConfig:get_data().leaderboard[type])
+function COLORS.getMainColor(self, element)
+	return self:getColor("main", element)
 end
 
-function getLaneCoverColor(type)
-	return color(colorConfig:get_data().laneCover[type])
+function COLORS.getLeaderboardColor(self, element)
+	return self:getColor("leaderboard", element)
 end
 
-function getGradeColor(grade)
-	return color(colorConfig:get_data().grades[grade]) or color(colorConfig:get_data().grades["Grade_None"])
+function COLORS.getLaneCoverColor(self, element)
+	return self:getColor("laneCover", element)
 end
 
-function getDifficultyColor(diff)
-	return color(colorConfig:get_data().difficulty[diff]) or color("#ffffff")
+function COLORS.getComboColor(self, element)
+	return self:getColor("combo", element)
 end
 
-function getVividDifficultyColor(diff)
-	return color(colorConfig:get_data().difficultyVivid[diff]) or color("#ffffff")
+function COLORS.colorByClearType(self, type)
+	return self:getColor("clearType", type)
 end
 
-function getTitleColor(type)
-	return color(colorConfig:get_data().title[type])
+function COLORS.colorByJudgment(self, judge)
+	return self:getColor("judgment", judge)
 end
 
-function getComboColor(type)
-	return color(colorConfig:get_data().combo[type])
+function COLORS.colorByDifficulty(self, diff)
+	return self:getColor("difficulty", diff)
 end
 
-function byClearType(type)
-	return color(colorConfig:get_data().clearType[type])
+function COLORS.colorByGrade(self, grade)
+	return self:getColor("grades", grade)
 end
 
 -- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina
-function offsetToJudgeColor(offset, scale)
+function COLORS.colorByTapOffset(self, offset, scale)
 	local offset = math.abs(offset / 1000)
 	if not scale then
 		scale = PREFSMAN:GetPreference("TimingWindowScale")
 	end
 	if offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW1") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W1"])
+		return self:colorByJudgment("TapNoteScore_W1")
 	elseif offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW2") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W2"])
+		return self:colorByJudgment("TapNoteScore_W2")
 	elseif offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW3") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
+		return self:colorByJudgment("TapNoteScore_W3")
 	elseif offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW4") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
+		return self:colorByJudgment("TapNoteScore_W4")
 	elseif offset <= math.max(scale * PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
+		return self:colorByJudgment("TapNoteScore_W5")
 	else
-		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
+		return self:colorByJudgment("TapNoteScore_Miss")
 	end
 end
 
--- 30% hardcoded, should var but lazy atm -mina
-function offsetToJudgeColorAlpha(offset, scale)
-	local offset = math.abs(offset / 1000)
-	if not scale then
-		scale = PREFSMAN:GetPreference("TimingWindowScale")
-	end
-	if offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW1") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W1"] .. "48")
-	elseif offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW2") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W2"] .. "48")
-	elseif offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW3") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W3"] .. "48")
-	elseif offset <= scale * PREFSMAN:GetPreference("TimingWindowSecondsW4") then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W4"] .. "48")
-	elseif offset <= math.max(scale * PREFSMAN:GetPreference("TimingWindowSecondsW5"), 0.180) then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W5"] .. "48")
-	else
-		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"] .. "48")
-	end
-end
-
--- 30% hardcoded, should var but lazy atm -mina
-function customOffsetToJudgeColor(offset, windows)
-	local offset = math.abs(offset)
-	if offset <= windows.marv then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W1"] .. "48")
-	elseif offset <= windows.perf then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W2"] .. "48")
-	elseif offset <= windows.great then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W3"] .. "48")
-	elseif offset <= windows.good then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W4"] .. "48")
-	elseif offset <= math.max(windows.boo, 0.180) then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W5"] .. "48")
-	else
-		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"] .. "48")
-	end
-end
-
-function byJudgment(judge)
-	return color(colorConfig:get_data().judgment[judge])
-end
-
-function byDifficulty(diff)
-	return color(colorConfig:get_data().difficulty[diff])
-end
-
--- i guess if i'm going to use this naming convention it might as well be complete and standardized which means redundancy -mina
-function byGrade(grade)
-	return color(colorConfig:get_data().grades[grade]) or color(colorConfig:get_data().grades["Grade_None"])
-end
-
--- Colorized stuff
-function byMSD(x)
+function colorByMSD(x)
 	if x then
 		return HSV(math.max(95 - (x / 40) * 150, -50), 0.9, 0.9)
 	end
 	return HSV(0, 0.9, 0.9)
 end
 
-function byMusicLength(x)
+function colorByMusicLength(x)
 	if x then
 		x = math.min(x, 600)
 		return HSV(math.max(95 - (x / 900) * 150, -50), 0.9, 0.9)
@@ -288,7 +366,7 @@ function byMusicLength(x)
 	return HSV(0, 0.9, 0.9)
 end
 
-function byFileSize(x)
+function colorByFileSize(x)
 	if x then
 		x = math.min(x, 600)
 		return HSV(math.max(95 - (x / 1025) * 150, -50), 0.9, 0.9)
@@ -296,7 +374,7 @@ function byFileSize(x)
 	return HSV(0, 0.9, 0.9)
 end
 
-function byNPS(x)
+function colorByNPS(x)
 	return color("#ffffff")
 	-- if we want to make a gradient
 	--[[
@@ -308,17 +386,19 @@ function byNPS(x)
 	]]
 end
 
--- yes i know i shouldnt hardcode this -mina
-function bySkillRange(x)
-	if x <= 10 then
-		return color("#66ccff")
-	elseif x <= 15 then
-		return color("#099948")
-	elseif x <= 21 then
-		return color("#ddaa00")
-	elseif x <= 25 then
-		return color("#ff6666")
-	else
-		return color("#c97bff")
-	end
-end
+-- aliases for smooth brains
+function COLORS.getColorConfigElementsForCategory(self, cat) return getColorConfigElementsForCategory(cat) end
+function COLORS.getColorConfigCategories(self) return getColorConfigCategories() end
+function COLORS.colorByMSD(self, x) return colorByMSD(x) end
+function COLORS.colorByMusicLength(self, x) return colorByMusicLength(x) end
+function COLORS.colorByFileSize(self, x) return colorByFileSize(x) end
+function COLORS.colorByNPS(self, x) return colorByNPS(x) end
+function getMainColor(ele) return COLORS:getMainColor(ele) end
+function getLeaderboardColor(ele) return COLORS:getLeaderboardColor(ele) end
+function getLaneCoverColor(ele) return COLORS:getLaneCoverColor(ele) end
+function getComboColor(ele) return COLORS:getComboColor(ele) end
+function colorByClearType(x) return COLORS:colorByClearType(x) end
+function colorByJudgment(x) return COLORS:colorByJudgment(x) end
+function colorByDifficulty(x) return COLORS:colorByDifficulty(x) end
+function colorByGrade(x) return COLORS:colorByGrade(x) end
+function colorByTapOffset(x, ts) return COLORS:colorByTapOffset(x, ts) end

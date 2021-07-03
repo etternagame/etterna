@@ -64,7 +64,7 @@ local function makeJudgment(i)
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(sizing.JudgmentBarLength, sizing.JudgmentBarHeight)
-                self:diffuse(byJudgment(jdg))
+                self:diffuse(colorByJudgment(jdg))
                 self:diffusealpha(0.5)
             end
         },
@@ -73,7 +73,7 @@ local function makeJudgment(i)
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(0, sizing.JudgmentBarHeight)
-                self:diffuse(byJudgment(jdg))
+                self:diffuse(colorByJudgment(jdg))
                 self:diffusealpha(0.5)
             end,
             SetCommand = function(self, params)

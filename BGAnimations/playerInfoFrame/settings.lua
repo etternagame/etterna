@@ -1179,11 +1179,18 @@ local function leftFrame()
                 selectedcategory = ""
                 selectedelement = ""
             elseif cat == "element" then
+                -- populate with all elements in the selected category
                 displayItemDatas = getColorConfigElementsForCategory(selectedcategory)
                 selectedelement = ""
             elseif cat == "preset" then
-                displayItemDatas = {}
+                -- populate with all available presets
+                displayItemDatas = getColorConfigPresets()
+                selectedpreset = ""
+                selectedcategory = ""
+                selectedelement = ""
             elseif cat == "editing" then
+                -- dont change listing, but change state to allow color editing
+
             else
                 return
             end

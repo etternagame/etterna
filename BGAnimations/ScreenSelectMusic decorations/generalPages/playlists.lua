@@ -552,7 +552,7 @@ local function playlistList()
                                 msd = steps:GetMSD(chart:GetRate(), 1)
                             end
                             self:settextf("%05.2f", msd)
-                            self:diffuse(byMSD(msd))
+                            self:diffuse(colorByMSD(msd))
                         end
                     end
                 },
@@ -574,7 +574,7 @@ local function playlistList()
                                 diff = chart:GetDifficulty()
                             end
                             self:settext(getShortDifficulty(diff))
-                            self:diffuse(byDifficulty(diff))
+                            self:diffuse(colorByDifficulty(diff))
                         end
                     end
                 },

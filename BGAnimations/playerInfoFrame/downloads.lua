@@ -439,11 +439,11 @@ local function downloadsList()
                     if pack ~= nil then
                         local msd = pack:GetAvgDifficulty()
                         self:settextf("%0.2f", msd)
-                        self:diffuse(byMSD(msd))
+                        self:diffuse(colorByMSD(msd))
                     elseif bundle ~= nil then
                         local msd = bundle.AveragePackDifficulty
                         self:settextf("%0.2f", msd)
-                        self:diffuse(byMSD(msd))
+                        self:diffuse(colorByMSD(msd))
                     end
                 end,
             },
@@ -459,11 +459,11 @@ local function downloadsList()
                     if pack ~= nil then
                         local sz = pack:GetSize() / 1024 / 1024
                         self:settextf("%iMB", sz)
-                        self:diffuse(byFileSize(sz))
+                        self:diffuse(colorByFileSize(sz))
                     elseif bundle ~= nil then
                         local sz = bundle.TotalSize
                         self:settextf("%iMB", sz)
-                        self:diffuse(byFileSize(sz))
+                        self:diffuse(colorByFileSize(sz))
                     end
                 end,
             },

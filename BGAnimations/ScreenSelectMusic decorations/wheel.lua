@@ -405,7 +405,7 @@ local function songActorBuilder()
             SetGradeCommand = function(self, params)
                 if params.grade and params.grade ~= "Grade_Invalid" then
                     self:settext(THEME:GetString("Grade", params.grade:sub(#"Grade_T")))
-                    self:diffuse(byGrade(params.grade))
+                    self:diffuse(colorByGrade(params.grade))
                 else
                     self:settext("")
                 end
@@ -471,14 +471,6 @@ local function scoreStatsFrame()
         Grade_Tier20 = {"Grade_Tier20"},
     }
 
-    local function getGradeColor(grade)
-        if grade == "Grade_Tier20" then
-            return byClearType("Clear")
-        else
-            return byGrade(grade)
-        end
-    end
-
     -- determines the size of the outline quad
     local framelength = actuals.ItemDividerLength * (3/4)
     local frameheight = 11 / 1080 * SCREEN_HEIGHT
@@ -496,9 +488,9 @@ local function scoreStatsFrame()
                 self:halign(0)
                 self:zoomto(0, barheight)
                 if grade ~= "Grade_Tier20" then
-                    self:diffuse(byGrade(grade))
+                    self:diffuse(colorByGrade(grade))
                 else
-                    self:diffuse(byClearType("Clear"))
+                    self:diffuse(colorByClearType("Clear"))
                 end
             end,
         }
@@ -630,11 +622,11 @@ local function groupActorBuilder()
                 if self.lamp ~= nil then
                     if self.lamp ~= "Grade_Tier20" then
                         lstr = THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
-                        self:diffuse(byGrade(self.lamp))
+                        self:diffuse(colorByGrade(self.lamp))
                     else
                         lstr = "Clear"
                         -- color for a clear
-                        self:diffuse(byClearType("Clear"))
+                        self:diffuse(colorByClearType("Clear"))
                     end
                 end
                 self:settext(lstr)

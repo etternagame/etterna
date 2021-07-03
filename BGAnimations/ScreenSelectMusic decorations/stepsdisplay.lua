@@ -189,7 +189,7 @@ local function stepsRows(i)
 			end,
 			SetStepsRowsCommand = function(self)
 				local diff = steps:GetDifficulty()
-				self:diffuse(getDifficultyColor(diff))
+				self:diffuse(colorByDifficulty(diff))
 				self:diffusealpha(1)
 			end,
 			MouseDownCommand = function(self, params)
