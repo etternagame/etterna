@@ -724,6 +724,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		// Roll
 		// RanMan,
 		FlamJam,
+	  	HSDensity,
 	  },
 
 	  // stam, nothing, don't handle here
@@ -957,7 +958,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 444;
+int mina_calc_version = 445;
 auto
 GetCalcVersion() -> int
 {

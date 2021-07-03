@@ -16,6 +16,7 @@
 #include "Agnostic/HA_PatternMods/HS.h"
 #include "Agnostic/HA_PatternMods/CJ.h"
 #include "Agnostic/HA_PatternMods/CJDensity.h"
+#include "Agnostic/HA_PatternMods/HSDensity.h"
 #include "Agnostic/HA_PatternMods/FlamJam.h"
 #include "Agnostic/HA_PatternMods/TheThingFinder.h"
 
@@ -86,6 +87,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	HSMod _hs;
 	CJMod _cj;
 	CJDensityMod _cjd;
+	HSDensityMod _hsd;
 	OHJumpModGuyThing _ohj;
 	CJOHJumpMod _cjohj;
 	RollMod _roll;
@@ -174,6 +176,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		PatternMods::set_agnostic(_hs._pmod, _hs(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cjd._pmod, _cjd(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hsd._pmod, _hsd(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
 		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
@@ -544,6 +547,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _hs._params, _hs.name);
 		load_params_for_mod(&params, _cj._params, _cj.name);
 		load_params_for_mod(&params, _cjd._params, _cjd.name);
+		load_params_for_mod(&params, _hsd._params, _hsd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
@@ -570,6 +574,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
 		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
+		calcparams->AppendChild(make_mod_param_node(_hsd._params, _hsd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(
 		  make_mod_param_node(_cjohj._params, _cjohj.name));

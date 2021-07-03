@@ -277,6 +277,7 @@ local debugGroups = {
         HS = true,
         StamMod = true,
         OHJumpMod = true,
+        HSDensity = true,
 	},
     {   -- Group 4
         CJ = true,
@@ -865,6 +866,7 @@ local modnames = {
     --"cjs",
     --"cjj",
     "cjd",
+    "hsd",
     "ohj",
     --"ohjbp",
     --"ohjpc",
@@ -923,6 +925,7 @@ local modColors = {
 	--color("0,1,1"),			-- cyan			= chordjack stream
 	--color("1,0,0"),			-- red			= chordjack jack
 	color("1,1,0"),			-- yellow		= cjdensity
+    color("1,1,0"),
     color("1,0.4,0"),       -- orange2		= ohjump
 	--color("1,1,1"),			-- ohjbp
 	--color("1,1,1"),			-- ohjpc
