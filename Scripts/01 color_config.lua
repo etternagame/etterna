@@ -66,7 +66,6 @@ local defaultConfig = {
 		Grade_Tier14 = "#5b78bb", -- B
 		Grade_Tier15 = "#c97bff", -- C
 		Grade_Tier16 = "#8c6239", -- D
-		Grade_Tier17 = "#000000", -- :mystery:
 		Grade_Failed = "#cdcdcd", -- F
 		Grade_None = "#666666" -- no play
 	},
