@@ -1321,6 +1321,22 @@ local function leftFrame()
         end
         ------===
 
+        -- just revert the color back to the saved color
+        local function undoChanges()
+            aboutToSave = false
+            currentColor = savedColor
+            hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
+            applyHSV()
+        end
+        -- revert current color to original default color, do not save
+        local function resetToDefault()
+            if selectedcategory == "" or selectedelement == "" then return end
+            aboutToSave = false
+            currentColor = getDefaultColor(selectedcategory, selectedelement)
+            hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
+            applyHSV()
+        end
+
         -- handle switching states and stuff
         local function switchSelectionState(cat)
             if cat == nil then cat = "" end
@@ -1689,6 +1705,7 @@ local function leftFrame()
                         ClickCommand = function(self, params)
                             if self:IsInvisible() then return end
                             if params.update == "OnMouseDown" then
+                                undoChanges()
                                 self:alphaDeterminingFunction()
                             end
                         end,
@@ -1718,6 +1735,7 @@ local function leftFrame()
                         ClickCommand = function(self, params)
                             if self:IsInvisible() then return end
                             if params.update == "OnMouseDown" then
+                                resetToDefault()
                                 self:alphaDeterminingFunction()
                             end
                         end,
