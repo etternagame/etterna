@@ -1342,7 +1342,11 @@ local function leftFrame()
                 selectedelement = ""
             elseif cat == "editing" then
                 -- dont change listing, but change state to allow color editing
-
+                currentColor = COLORS:getColor(selectedcategory, selectedelement)
+                savedColor = currentColor
+                hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
+                aboutToSave = false
+                applyHSV()
             else
                 return
             end
@@ -1551,6 +1555,9 @@ local function leftFrame()
                         SetCommand = function(self)
                             self:settextf("Current preset: %s", selectedpreset)
                         end,
+                        ColorConfigSelectionStateChangedMessageCommand = function(self)
+                            self:playcommand("Set")
+                        end,
                     },
                     LoadFont("Common Normal") .. {
                         Name = "CurrentElement",
@@ -1563,6 +1570,9 @@ local function leftFrame()
                         end,
                         SetCommand = function(self)
                             self:settextf("Current element: %s", selectedelement)
+                        end,
+                        ColorConfigSelectionStateChangedMessageCommand = function(self)
+                            self:playcommand("Set")
                         end,
                     },
                     LoadFont("Common Normal") .. {
@@ -1592,6 +1602,7 @@ local function leftFrame()
                                 self:settext(hexEntryString)
                                 self:GetParent():GetChild("CurrentColorCursorPosition"):playcommand("UpdateCursorDisplay")
                                 self:GetParent():GetParent():GetChild("CurrentColorPreview"):playcommand("UpdateColorDisplay")
+                                self:GetParent():GetParent():GetChild("SaveChangesButton"):playcommand("Set")
                             end,
                             UpdateStringDisplayMessageCommand = function(self)
                                 self:playcommand("Set")
@@ -1648,6 +1659,9 @@ local function leftFrame()
                             self:diffuse(savedColor)
                         end,
                         UpdateColorDisplayCommand = function(self)
+                            self:playcommand("Set")
+                        end,
+                        ColorConfigSelectionStateChangedMessageCommand = function(self)
                             self:playcommand("Set")
                         end,
                     },
