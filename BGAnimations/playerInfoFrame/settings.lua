@@ -1,6 +1,7 @@
 -- every time i look at this file my desire to continue modifying it gets worse
 -- at least it isnt totally spaghetti code yet
 -- hmm
+-- this absolute behemoth of a file ...
 local ratios = {
     RightWidth = 782 / 1920,
     LeftWidth = 783 / 1920,
@@ -1156,14 +1157,14 @@ local function leftFrame()
 
         -- probably make this an odd number for the ocd kids because this includes a top item which does not ever change
         local colorConfigItemCount = 13
-        local page = 1
-        local maxPage = 1
         local aboutToSave = false
 
         -- stores the data for items to display
         -- should be a list of strings
         -- starting it off with categories because categories is the starting state
         local displayItemDatas = getColorConfigCategories()
+        local page = 1
+        local maxPage = math.ceil(#displayItemDatas / (colorConfigItemCount-1))
 
         -- selected and saved element colors and HSV info (defaulted to white)
         local currentColor = color("1,1,1,1")
@@ -1182,11 +1183,28 @@ local function leftFrame()
         local selectedelement = ""
         local hexEntryString = ""
 
-        -- just in case
+        -- switch this variable (here, not at runtime) to display and allow editing alpha
         local showAlpha = false
         local hexStringMaxLengthWithAlpha = 9
         local hexStringMaxLengthWithoutAlpha = 7
         local hexStringMaxLength = showAlpha and hexStringMaxLengthWithAlpha or hexStringMaxLengthWithoutAlpha
+
+        local function movePage(n)
+            if maxPage <= 1 then
+                return
+            end
+            -- the tooltip gets stuck on if it is visible and page changes
+            TOOLTIP:Hide()
+    
+            -- math to make pages loop both directions
+            local nn = (page + n) % (maxPage + 1)
+            if nn == 0 then
+                nn = n > 0 and 1 or maxPage
+            end
+            page = nn
+    
+            MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+        end
         
         -- apply the HSV+A vars to the current state of the config
         -- updates the elements which display the information about the color
@@ -1328,6 +1346,8 @@ local function leftFrame()
             else
                 return
             end
+            maxPage = math.ceil(#displayItemDatas / (colorConfigItemCount-1))
+            page = 1
             selectionstate = cat
             MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
         end
@@ -1810,6 +1830,23 @@ local function leftFrame()
                         self:playcommand("UpdateColorConfigDisplay")
                     end,
                 },
+                Def.Quad {
+                    Name = "MouseWheelRegion",
+                    InitCommand = function(self)
+                        self:halign(0):valign(0)
+                        self:zoomto(actuals.LeftWidth - actuals.EdgePadding*2, remainingYSpace)
+                        self:diffusealpha(0)
+                    end,
+                    MouseScrollMessageCommand = function(self, params)
+                        if isOver(self) and SCUFF.showingColor then
+                            if params.direction == "Up" then
+                                movePage(-1)
+                            else
+                                movePage(1)
+                            end
+                        end
+                    end,
+                },
                 UIElements.TextButton(1, 1, "Common Normal") .. {
                     Name = "BackButton",
                     InitCommand = function(self)
@@ -1885,7 +1922,7 @@ local function leftFrame()
                         end
                     end,
                     UpdateColorConfigDisplayCommand = function(self)
-                        index = (page - 1) * colorConfigItemCount + i
+                        index = (page - 1) * (colorConfigItemCount-1) + i
                         itemData = displayItemDatas[index]
                         self:finishtweening()
                         self:diffusealpha(0)
