@@ -402,3 +402,43 @@ function colorByJudgment(x) return COLORS:colorByJudgment(x) end
 function colorByDifficulty(x) return COLORS:colorByDifficulty(x) end
 function colorByGrade(x) return COLORS:colorByGrade(x) end
 function colorByTapOffset(x, ts) return COLORS:colorByTapOffset(x, ts) end
+
+---=======- UTIL
+-- convert a given color = {r,g,b,a} to the 4 HSV+alpha values
+function colorToHSVNums(color)
+	local r = color[1]
+	local g = color[2]
+	local b = color[3]
+	local cmax = math.max(r, g, b)
+	local cmin = math.min(r, g, b)
+	local dc = cmax - cmin -- delta c
+	local h = 0
+	if dc == 0 then
+		h = 0
+	elseif cmax == r then
+		h = 60 * (((g-b)/dc) % 6)
+	elseif cmax == g then
+		h = 60 * (((b-r)/dc) + 2)
+	elseif cmax == b then
+		h = 60 * (((r-g)/dc) + 4)
+	end
+	local s = (cmax == 0 and 0 or dc / cmax)
+	local v = cmax
+
+	local alpha = (color[4] and color[4] or 1)
+
+	return h, 1-s, 1-v, alpha
+end
+
+-- convert a given color = {r,g,b,a} to the 4 hex bytes RRGGBBAA
+function colorToRGBNums(c)
+	local r = c[1]
+	local g = c[2]
+	local b = c[3]
+	local a = HasAlpha(c)
+	local rX = scale(r, 0, 1, 0, 255)
+	local gX = scale(g, 0, 1, 0, 255)
+	local bX = scale(b, 0, 1, 0, 255)
+	local aX = scale(a, 0, 1, 0, 255)
+	return rX, gX, bX, aX
+end

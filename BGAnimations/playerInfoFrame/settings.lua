@@ -1165,11 +1165,10 @@ local function leftFrame()
         -- starting it off with categories because categories is the starting state
         local displayItemDatas = getColorConfigCategories()
 
-        -- output data for function colorToHSV
-        -- translates to a color later on (default white)
-        local hueNum, satNum, valNum, alphaNum = 0, 0, 0, 1
-        -- selected element's color (default white)
+        -- selected and saved element colors and HSV info (defaulted to white)
         local currentColor = color("1,1,1,1")
+        local savedColor = currentColor
+        local hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
 
         -- determines the current state of color config selection
         -- valid options:
@@ -1188,45 +1187,6 @@ local function leftFrame()
         local hexStringMaxLengthWithAlpha = 9
         local hexStringMaxLengthWithoutAlpha = 7
         local hexStringMaxLength = showAlpha and hexStringMaxLengthWithAlpha or hexStringMaxLengthWithoutAlpha
-
-        -- convert a given color = {r,g,b,a} to the 4 HSV+alpha values
-        local function colorToHSV(color)
-            local r = color[1]
-            local g = color[2]
-            local b = color[3]
-            local cmax = math.max(r, g, b)
-            local cmin = math.min(r, g, b)
-            local dc = cmax - cmin -- delta c
-            local h = 0
-            if dc == 0 then
-                h = 0
-            elseif cmax == r then
-                h = 60 * (((g-b)/dc) % 6)
-            elseif cmax == g then
-                h = 60 * (((b-r)/dc) + 2)
-            elseif cmax == b then
-                h = 60 * (((r-g)/dc) + 4)
-            end
-            local s = (cmax == 0 and 0 or dc / cmax)
-            local v = cmax
-        
-            local alpha = (color[4] and color[4] or 1)
-        
-            return h, 1-s, 1-v, alpha
-        end
-
-        -- convert a given color = {r,g,b,a} to the 4 hex bytes RRGGBBAA
-        local function colorToRGBNums(c)
-            local r = c[1]
-            local g = c[2]
-            local b = c[3]
-            local a = HasAlpha(c)
-            local rX = scale(r, 0, 1, 0, 255)
-            local gX = scale(g, 0, 1, 0, 255)
-            local bX = scale(b, 0, 1, 0, 255)
-            local aX = scale(a, 0, 1, 0, 255)
-            return rX, gX, bX, aX
-        end
         
         -- apply the HSV+A vars to the current state of the config
         -- updates the elements which display the information about the color
@@ -1314,7 +1274,7 @@ local function leftFrame()
             else
                 return
             end
-            hueNum, satNum, valNum, alphaNum = colorToHSV(finalcolor)
+            hueNum, satNum, valNum, alphaNum = colorToHSVNums(finalcolor)
             aboutToSave = true
             applyHSV()
         end
@@ -1424,8 +1384,8 @@ local function leftFrame()
                 SCUFF.showingColor = false
             end,
             BeginCommand = function(self)
-                -- HACK
-                -- RAN OUT OF DEVELOPMENT PATIENCE
+                -- hack to set up all default values
+                applyHSV()
                 MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
             end,
 
@@ -1568,7 +1528,7 @@ local function leftFrame()
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("Current preset:")
                         end,
-                        ColorConfigInfoSetCommand = function(self)
+                        SetCommand = function(self)
                             self:settextf("Current preset: %s", selectedpreset)
                         end,
                     },
@@ -1581,7 +1541,7 @@ local function leftFrame()
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("Current element:")
                         end,
-                        ColorConfigInfoSetCommand = function(self)
+                        SetCommand = function(self)
                             self:settextf("Current element: %s", selectedelement)
                         end,
                     },
@@ -1608,12 +1568,16 @@ local function leftFrame()
                                 self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
                                 self:settext("#")
                             end,
-                            UpdateStringDisplayMessageCommand = function(self)
+                            SetCommand = function(self)
                                 self:settext(hexEntryString)
                                 self:GetParent():GetChild("CurrentColorCursorPosition"):playcommand("UpdateCursorDisplay")
+                                self:GetParent():GetParent():GetChild("CurrentColorPreview"):playcommand("UpdateColorDisplay")
+                            end,
+                            UpdateStringDisplayMessageCommand = function(self)
+                                self:playcommand("Set")
                             end,
                             ClickedNewColorMessageCommand = function(self)
-                                self:playcommand("UpdateStringDisplay")
+                                self:playcommand("Set")
                             end,
                         },
                         Def.Quad {
@@ -1639,6 +1603,34 @@ local function leftFrame()
                             end
                         },
                     },
+                    Def.Quad {
+                        Name = "CurrentColorPreview",
+                        InitCommand = function(self)
+                            self:halign(0)
+                            self:y(textLineSeparation * 4)
+                            self:zoomto(widthOfTheRightSide / 2 - actuals.EdgePadding/2, textLineSeparation)
+                        end,
+                        SetCommand = function(self)
+                            self:diffuse(currentColor)
+                        end,
+                        UpdateColorDisplayCommand = function(self)
+                            self:playcommand("Set")
+                        end,
+                    },
+                    Def.Quad {
+                        Name = "SavedColorPreview",
+                        InitCommand = function(self)
+                            self:halign(1)
+                            self:xy(widthOfTheRightSide, textLineSeparation * 4)
+                            self:zoomto(widthOfTheRightSide / 2 - actuals.EdgePadding/2, textLineSeparation)
+                        end,
+                        SetCommand = function(self)
+                            self:diffuse(savedColor)
+                        end,
+                        UpdateColorDisplayCommand = function(self)
+                            self:playcommand("Set")
+                        end,
+                    },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
                         Name = "UndoButton",
                         InitCommand = function(self)
@@ -1648,7 +1640,7 @@ local function leftFrame()
                             bg:halign(0):valign(1)
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
-                            self:y(textLineSeparation * 5.5)
+                            self:y(textLineSeparation * 6)
                             txt:settext("Undo")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
@@ -1677,13 +1669,50 @@ local function leftFrame()
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
                             self:x(widthOfTheRightSide)
-                            self:y(textLineSeparation * 5.5)
+                            self:y(textLineSeparation * 6)
                             txt:settext("Reset to Default")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 self:diffusealpha(1 * hovermultiplier)
                             end
+                        end,
+                        RolloverUpdateCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickCommand = function(self, params)
+                            if self:IsInvisible() then return end
+                            if params.update == "OnMouseDown" then
+                                self:alphaDeterminingFunction()
+                            end
+                        end,
+                    },
+                    UIElements.TextButton(1, 1, "Common Normal") .. {
+                        Name = "SaveChangesButton",
+                        InitCommand = function(self)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+                            txt:halign(0):valign(1)
+                            bg:halign(0):valign(1)
+                            txt:zoom(colorConfigTextSize)
+                            txt:maxwidth(widthOfTheRightSide / colorConfigTextSize)
+                            self:y(textLineSeparation * 7)
+                            self:playcommand("Set")
+                            self.alphaDeterminingFunction = function(self)
+                                local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                                self:diffusealpha(1 * hovermultiplier)
+                            end
+                        end,
+                        SetCommand = function(self)
+                            local txt = self:GetChild("Text")
+                            local bg = self:GetChild("BG")
+                            if aboutToSave then
+                                txt:settext("Save Changes (Not Saved!)")
+                            else
+                                txt:settext("Save Changes")
+                            end
+                            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         end,
                         RolloverUpdateCommand = function(self, params)
                             if self:IsInvisible() then return end
