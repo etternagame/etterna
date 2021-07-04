@@ -1141,8 +1141,13 @@ local function leftFrame()
     end
 
     -- includes color modifying and preset picking
+    -- while the code may work it contains incredibly bad practice
     local function createColorConfigPage()
         local saturationOverlay = nil
+        local colorPickPosition = nil
+        local saturationSliderPos = nil
+        local alphaSliderPos = nil
+        local textCursorPos = nil
         local boxSize = math.min(actuals.ColorBoxHeight, actuals.ColorBoxWidth)
         local sliderWidth = boxSize / 10
         local textLineSeparation = boxSize / 8 -- basically the y position of the bottom of each line
@@ -1153,11 +1158,18 @@ local function leftFrame()
         local colorConfigItemCount = 13
         local page = 1
         local maxPage = 1
+        local aboutToSave = false
 
         -- stores the data for items to display
         -- should be a list of strings
         -- starting it off with categories because categories is the starting state
         local displayItemDatas = getColorConfigCategories()
+
+        -- output data for function colorToHSV
+        -- translates to a color later on (default white)
+        local hueNum, satNum, valNum, alphaNum = 0, 0, 0, 1
+        -- selected element's color (default white)
+        local currentColor = color("1,1,1,1")
 
         -- determines the current state of color config selection
         -- valid options:
@@ -1169,6 +1181,167 @@ local function leftFrame()
         local selectedcategory = ""
         local selectedpreset = getColorPreset()
         local selectedelement = ""
+        local hexEntryString = ""
+
+        -- just in case
+        local showAlpha = false
+        local hexStringMaxLengthWithAlpha = 9
+        local hexStringMaxLengthWithoutAlpha = 7
+        local hexStringMaxLength = showAlpha and hexStringMaxLengthWithAlpha or hexStringMaxLengthWithoutAlpha
+
+        -- convert a given color = {r,g,b,a} to the 4 HSV+alpha values
+        local function colorToHSV(color)
+            local r = color[1]
+            local g = color[2]
+            local b = color[3]
+            local cmax = math.max(r, g, b)
+            local cmin = math.min(r, g, b)
+            local dc = cmax - cmin -- delta c
+            local h = 0
+            if dc == 0 then
+                h = 0
+            elseif cmax == r then
+                h = 60 * (((g-b)/dc) % 6)
+            elseif cmax == g then
+                h = 60 * (((b-r)/dc) + 2)
+            elseif cmax == b then
+                h = 60 * (((r-g)/dc) + 4)
+            end
+            local s = (cmax == 0 and 0 or dc / cmax)
+            local v = cmax
+        
+            local alpha = (color[4] and color[4] or 1)
+        
+            return h, 1-s, 1-v, alpha
+        end
+
+        -- convert a given color = {r,g,b,a} to the 4 hex bytes RRGGBBAA
+        local function colorToRGBNums(c)
+            local r = c[1]
+            local g = c[2]
+            local b = c[3]
+            local a = HasAlpha(c)
+            local rX = scale(r, 0, 1, 0, 255)
+            local gX = scale(g, 0, 1, 0, 255)
+            local bX = scale(b, 0, 1, 0, 255)
+            local aX = scale(a, 0, 1, 0, 255)
+            return rX, gX, bX, aX
+        end
+        
+        -- apply the HSV+A vars to the current state of the config
+        -- updates the elements which display the information about the color
+        local function applyHSV()
+            local newColor = HSV(hueNum, 1 - satNum, 1 - valNum)
+            newColor[4] = alphaNum
+            currentColor = newColor
+        
+            -- the color information Actors may not be present for various reasons
+            if colorPickPosition ~= nil then
+                colorPickPosition:xy(boxSize * hueNum/360, boxSize * valNum)
+            end
+            if saturationOverlay ~= nil then
+                saturationOverlay:diffusealpha(satNum)
+            end
+            if saturationSliderPos ~= nil then
+                saturationSliderPos:y(boxSize * satNum)
+            end
+            if alphaSliderPos ~= nil then
+                alphaSliderPos:y(boxSize * (1-alphaNum))
+            end
+        
+            textCursorPos = hexStringMaxLength
+            hexEntryString = "#" .. ColorToHex(currentColor)
+            hexEntryString = hexEntryString:sub(1,hexStringMaxLength)
+        
+            MESSAGEMAN:Broadcast("ClickedNewColor")
+        end
+        local function updateSaturation(percent)
+            if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
+            satNum = percent
+            applyHSV()
+        end
+        local function updateAlpha(percent)
+            if percent < 0 then percent = 0 elseif percent > 1 then percent = 1 end
+            alphaNum = 1 - percent
+            applyHSV()
+        end
+        local function updateColor(percentX, percentY)
+            if percentY < 0 then percentY = 0 elseif percentY > 1 then percentY = 1 end
+            if percentX < 0 then percentX = 0 elseif percentX > 1 then percentX = 1 end
+            hueNum = 360 * percentX
+            valNum = percentY
+            applyHSV()
+        end
+
+        -- handling keyboard inputs for hex characters only - str:match("[%x]")
+        local function handleHexEntry(character)
+            character = character:upper()
+            if #hexEntryString <= hexStringMaxLength then -- #23 45 67 89 format
+                if #hexEntryString == hexStringMaxLength and textCursorPos == hexStringMaxLength then
+                    hexEntryString = hexEntryString:sub(1,-2) .. character
+                else
+                    if textCursorPos == #hexEntryString + 1 then
+                        hexEntryString = hexEntryString .. character
+                    else
+                        local left = hexEntryString:sub(1,textCursorPos-1)
+                        local right = hexEntryString:sub(textCursorPos+1)
+                        hexEntryString = left .. character .. right
+                    end
+                    textCursorPos = textCursorPos + 1
+                end
+            end
+            if textCursorPos > hexStringMaxLength then textCursorPos = hexStringMaxLength end
+            aboutToSave = false
+            MESSAGEMAN:Broadcast("UpdateStringDisplay")
+        end
+
+        -- preparing to save via pressing Enter
+        local function handleTextUpdate()
+            local hxl = #hexEntryString - 1
+            local finalcolor = color("1,1,1,1")
+            if hxl == 3 or hxl == 4 or hxl == 5 then -- color 3/4/5 hex
+                finalcolor[1] = tonumber("0x"..hexEntryString:sub(2,2)) / 15
+                finalcolor[2] = tonumber("0x"..hexEntryString:sub(3,3)) / 15
+                finalcolor[3] = tonumber("0x"..hexEntryString:sub(4,4)) / 15
+                if hxl == 4 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,5)) / 15 end
+                if hxl == 5 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,6)) / 255 end
+            elseif hxl == 6 or hxl == 7 or hxl == 8 then -- color 6/7/8 hex 
+                finalcolor[1] = tonumber("0x"..hexEntryString:sub(2,3)) / 255
+                finalcolor[2] = tonumber("0x"..hexEntryString:sub(4,5)) / 255
+                finalcolor[3] = tonumber("0x"..hexEntryString:sub(6,7)) / 255
+                if hxl == 7 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(7,7)) / 15 end
+                if hxl == 8 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(8,9)) / 255 end
+            else
+                return
+            end
+            hueNum, satNum, valNum, alphaNum = colorToHSV(finalcolor)
+            aboutToSave = true
+            applyHSV()
+        end
+
+        ------=== magical text cursor functions (fun fact utf-16 probably breaks this hard copy pasters beware)
+        -- find the x position for a char in text relative to text left edge
+        local function getXPositionInText(self, index)
+            local tlChar1 = self:getGlyphRect(1) -- top left vertex of first char in text
+            local tlCharIndex = self:getGlyphRect(index) -- top left of char at text
+            -- the [1] index is the x coordinate of the vertex
+            local theX = tlCharIndex[1] - tlChar1[1]
+            return theX * self:GetZoom()
+        end
+        local function getWidthOfChar(self, index)
+            local tl, bl, tr, br = self:getGlyphRect(index) -- topleft/bottomleft/topright/bottomright coord tables
+            local glyphWidth = tr[1] - bl[1]
+            return glyphWidth * self:GetZoom() * 0.95 -- slightly smaller than needed because it was too big
+        end
+        local function cursorCanMove(speed)
+            local maxTextSize = (#hexEntryString == hexStringMaxLength and hexStringMaxLength or #hexEntryString + 1)
+            local tmpCursor = textCursorPos + speed
+            if tmpCursor > maxTextSize or tmpCursor < 2 then
+                return 0
+            end
+            return speed
+        end
+        ------===
 
         -- handle switching states and stuff
         local function switchSelectionState(cat)
@@ -1269,12 +1442,28 @@ local function leftFrame()
                         self:zoomto(boxSize, boxSize)
                     end,
                 },
-                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "color_sat_overlay")) .. {
+                UIElements.SpriteButton(1, 0, THEME:GetPathG("", "color_sat_overlay")) .. {
                     Name = "SaturationOverlay",
                     InitCommand = function(self)
                         saturationOverlay = self
                         self:halign(0):valign(0)
                         self:zoomto(boxSize, boxSize)
+                        self:diffusealpha(satNum)
+                    end,
+                    InvokeCommand = function(self, params)
+                        if not focused or not SCUFF.showingColor then return end
+                        -- normally local x and y is provided but something looks broken and im not fixing it
+                        -- (has to do with button roots and nonsense)
+                        local relX, relY = self:GetLocalMousePos(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY(), 0)
+                        aboutToSave = true
+                        updateColor(relX / boxSize, relY / boxSize)
+                    end,
+                    -- did not add hover functions because we want to be color correct
+                    MouseDownCommand = function(self, params)
+                        self:playcommand("Invoke", params)
+                    end,
+                    MouseDragCommand = function(self, params)
+                        self:playcommand("Invoke", params)
                     end,
                 },
                 Def.ActorFrame {
@@ -1282,12 +1471,26 @@ local function leftFrame()
                     InitCommand = function(self)
                         self:x(boxSize + actuals.EdgePadding)
                     end,
-                    UIElements.QuadButton(1, 1) .. {
+                    UIElements.QuadButton(1, 0) .. {
                         Name = "SaturationSlider",
                         InitCommand = function(self)
                             self:halign(0):valign(0)
                             self:zoomto(sliderWidth, boxSize)
                             self:diffuse(color("#666666FF"))
+                        end,
+                        InvokeCommand = function(self, params)
+                            if not focused or not SCUFF.showingColor then return end
+                            -- normally local x and y is provided but something looks broken and im not fixing it
+                            -- (has to do with button roots and nonsense)
+                            local relX, relY = self:GetLocalMousePos(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY(), 0)
+                            aboutToSave = true
+                            updateSaturation(relY / boxSize)
+                        end,
+                        MouseDownCommand = function(self, params)
+                            self:playcommand("Invoke", params)
+                        end,
+                        MouseDragCommand = function(self, params)
+                            self:playcommand("Invoke", params)
                         end,
                     },
                     Def.Sprite {
@@ -1297,14 +1500,57 @@ local function leftFrame()
                             self:x(sliderWidth + sliderWidth / 5)
                             self:zoomto(sliderWidth / 2, sliderWidth / 2)
                             self:rotationz(-90)
+                            saturationSliderPos = self
                         end,
                     }
                 },
+                --[[-- We will not be including alpha control. Alpha is overridden by the Actors.
+                    -- I'm nice enough to provide it here (didnt test)
+                Def.ActorFrame {
+                    Name = "AlphaSliderFrame",
+                    InitCommand = function(self)
+                        self:x(boxSize + actuals.EdgePadding * 2 + sliderWidth)
+                    end,
+                    UIElements.QuadButton(1, 0) .. {
+                        Name = "AlphaSlider",
+                        InitCommand = function(self)
+                            self:halign(0):valign(0)
+                            self:zoomto(sliderWidth, boxSize)
+                            self:diffuse(color("#666666FF"))
+                        end,
+                        InvokeCommand = function(self, params)
+                            if not focused or not SCUFF.showingColor then return end
+                            -- normally local x and y is provided but something looks broken and im not fixing it
+                            -- (has to do with button roots and nonsense)
+                            local relX, relY = self:GetLocalMousePos(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY(), 0)
+                            aboutToSave = true
+                            updateAlpha(relY / boxSize)
+                        end,
+                        MouseDownCommand = function(self, params)
+                            self:playcommand("Invoke", params)
+                        end,
+                        MouseDragCommand = function(self, params)
+                            self:playcommand("Invoke", params)
+                        end,
+                    },
+                    Def.Sprite {
+                        Name = "AlphaPointer",
+                        Texture = THEME:GetPathG("", "_triangle"),
+                        InitCommand = function(self)
+                            self:x(sliderWidth + sliderWidth / 5)
+                            self:zoomto(sliderWidth / 2, sliderWidth / 2)
+                            self:rotationz(-90)
+                            alphaSliderPos = self
+                        end,
+                    }
+                },
+                ]]
                 Def.Sprite {
                     Name = "ColorPickPosition",
                     Texture = THEME:GetPathG("", "_thick circle"),
                     InitCommand = function(self)
                         self:zoom(0.2)
+                        colorPickPosition = self
                     end,
                 },
                 Def.ActorFrame {
@@ -1321,7 +1567,10 @@ local function leftFrame()
                             self:y(textLineSeparation * 1)
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            self:settext("Current preset: PresetName1")
+                            self:settext("Current preset:")
+                        end,
+                        ColorConfigInfoSetCommand = function(self)
+                            self:settextf("Current preset: %s", selectedpreset)
                         end,
                     },
                     LoadFont("Common Normal") .. {
@@ -1331,7 +1580,10 @@ local function leftFrame()
                             self:y(textLineSeparation * 2)
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            self:settext("Current element: werwerewrwerwerwerwe")
+                            self:settext("Current element:")
+                        end,
+                        ColorConfigInfoSetCommand = function(self)
+                            self:settextf("Current element: %s", selectedelement)
                         end,
                     },
                     LoadFont("Common Normal") .. {
@@ -1344,15 +1596,49 @@ local function leftFrame()
                             self:settext("Current color")
                         end
                     },
-                    LoadFont("Common Normal") .. {
-                        Name = "CurrentColorInputText",
+                    Def.ActorFrame {
+                        Name = "CurrentColorInputTextContainer",
                         InitCommand = function(self)
-                            self:halign(1):valign(1)
                             self:xy(widthOfTheRightSide, textLineSeparation * 3)
-                            self:zoom(colorConfigTextSize)
-                            self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
-                            self:settext("#123ABC")
                         end,
+                        LoadFont("Common Normal") .. {
+                            Name = "CurrentColorInputText",
+                            InitCommand = function(self)
+                                self:halign(1):valign(1)
+                                self:zoom(colorConfigTextSize)
+                                self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
+                                self:settext("#")
+                            end,
+                            UpdateStringDisplayMessageCommand = function(self)
+                                self:settext(hexEntryString)
+                                self:GetParent():GetChild("CurrentColorCursorPosition"):playcommand("UpdateCursorDisplay")
+                            end,
+                            ClickedNewColorMessageCommand = function(self)
+                                self:playcommand("UpdateStringDisplay")
+                            end,
+                        },
+                        Def.Quad {
+                            Name = "CurrentColorCursorPosition",
+                            InitCommand = function(self)
+                                self:halign(0):valign(0)
+                                self:zoomto(0,0)
+                                self:y(3)
+                            end,
+                            UpdateCursorDisplayCommand = function(self)
+                                local pos = 11
+                                local txt = self:GetParent():GetChild("CurrentColorInputText")
+                                if textCursorPos ~= #hexEntryString + 1 then -- if the cursor is under an actual char
+                                    local glyphWidth = getWidthOfChar(txt, textCursorPos) - 1
+                                    self:zoomto(glyphWidth, 2)
+                                    pos = getXPositionInText(txt, textCursorPos)
+                                else
+                                    pos = getXPositionInText(txt, textCursorPos-1) + getWidthOfChar(txt, textCursorPos-1)
+                                end
+                                self:finishtweening()
+                                self:linear(0.05)
+                                self:x(-txt:GetZoomedWidth() + pos)
+                            end
+                        },
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
                         Name = "UndoButton",
