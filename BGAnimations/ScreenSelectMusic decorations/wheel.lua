@@ -795,7 +795,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.45)
         end,
         MouseScrollMessageCommand = function(self, params)
-            if isOver(self) then
+            if isOver(self) and visible then
                 if params.direction == "Up" then
                     self:GetParent():GetChild("Wheel"):playcommand("Move", {direction = -1})
                 else
@@ -804,7 +804,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end,
         MouseClickPressMessageCommand = function(self, params)
-            if params ~= nil and params.button ~= nil then
+            if params ~= nil and params.button ~= nil and visible then
                 if params.button == "DeviceButton_right mouse button" then
                     if isOver(self) then
                         SCREENMAN:GetTopScreen():PauseSampleMusic()
