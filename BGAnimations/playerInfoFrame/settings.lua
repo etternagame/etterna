@@ -1471,12 +1471,11 @@ local function leftFrame()
                     InitCommand = function(self)
                         self:x(boxSize + actuals.EdgePadding)
                     end,
-                    UIElements.QuadButton(1, 0) .. {
+                    UIElements.SpriteButton(1, 0, THEME:GetPathG("", "color_sat_gradient")) .. {
                         Name = "SaturationSlider",
                         InitCommand = function(self)
                             self:halign(0):valign(0)
                             self:zoomto(sliderWidth, boxSize)
-                            self:diffuse(color("#666666FF"))
                         end,
                         InvokeCommand = function(self, params)
                             if not focused or not SCUFF.showingColor then return end
