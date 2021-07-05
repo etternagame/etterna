@@ -9,10 +9,11 @@ local noteField = false
 local infoOnScreen = false
 local heyiwasusingthat = false
 local mcbootlarder
+local pOptions = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions()
+local usingreverse = pOptions:UsingReverse()
 local prevX = capWideScale(get43size(98), 98)
-local usingreverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 local prevY = 55
-local prevrevY = 208
+local prevrevY = 79
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local hackysack = false
 local songChanged = false
@@ -92,9 +93,16 @@ local function toggleNoteField()
 		mcbootlarder:xy(prevX, prevY)
 		mcbootlarder:diffusealpha(1)
 
-		nf:y(prevY * 1.5)
-		if usingreverse then
-			nf:y(prevY * 1.5 + prevrevY)
+		local usingscrollmod = false
+		if pOptions:Split() ~= 0 or pOptions:Alternate() ~= 0 or pOptions:Cross() ~= 0 or pOptions:Centered() ~= 0 then
+			usingscrollmod = true
+		end
+
+		nf:y(prevY * 2.85)
+		if usingscrollmod then
+			nf:y(prevY * 3.55)
+		elseif usingreverse then
+			nf:y(prevY * 2.85 + prevrevY)
 		end
 
 		if not songChanged then
@@ -387,7 +395,7 @@ t[#t + 1] =
 		end,
 		MintyFreshCommand = function(self)
 			if song then
-                local stype = steps:GetStepsType()
+				local stype = steps:GetStepsType()
 				local meter = steps:GetMSD(getCurRateValue(), 1)
 				self:settextf("%05.2f", meter)
 				self:diffuse(byMSD(meter))
