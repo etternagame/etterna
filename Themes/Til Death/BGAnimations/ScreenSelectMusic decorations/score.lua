@@ -43,7 +43,7 @@ local judges = {
 
 local translated_info = {
 	MaxCombo = THEME:GetString("TabScore", "MaxCombo"),
-	MissCount = THEME:GetString("TabScore", "MissCount"),
+	ComboBreaks = THEME:GetString("TabScore", "ComboBreaks"),
 	DateAchieved = THEME:GetString("TabScore", "DateAchieved"),
 	Mods = THEME:GetString("TabScore", "Mods"),
 	Rate = THEME:GetString("TabScore", "Rate"), -- used in conjunction with Showing
@@ -466,16 +466,16 @@ local l =
 		},
 	LoadFont("Common Normal") ..
 		{
-			Name = "MissCount",
+			Name = "ComboBreaks",
 			InitCommand = function(self)
-				self:y(73):zoom(0.4):halign(0):settextf("%s:", translated_info["MissCount"])
+				self:y(73):zoom(0.4):halign(0):settextf("%s:", translated_info["ComboBreaks"])
 			end,
 			DisplayCommand = function(self)
-				local missCount = getScoreMissCount(score)
-				if missCount ~= nil then
-					self:settextf("%s: %s", translated_info["MissCount"], missCount)
+				local comboBreaks = getScoreComboBreaks(score)
+				if comboBreaks ~= nil then
+					self:settextf("%s: %s", translated_info["ComboBreaks"], comboBreaks)
 				else
-					self:settextf("%s: -", translated_info["MissCount"])
+					self:settextf("%s: -", translated_info["ComboBreaks"])
 				end
 			end
 		},
