@@ -1781,19 +1781,26 @@ local function leftFrame()
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
-                                self:diffusealpha(1 * hovermultiplier)
+                                local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
+                                self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
                             end
                         end,
                         RolloverUpdateCommand = function(self, params)
-                            if self:IsInvisible() then return end
+                            if self:IsInvisible() or selectionstate ~= "editing" then return end
                             self:alphaDeterminingFunction()
                         end,
                         ClickCommand = function(self, params)
-                            if self:IsInvisible() then return end
+                            if self:IsInvisible() or selectionstate ~= "editing" then return end
                             if params.update == "OnMouseDown" then
                                 undoChanges()
                                 self:alphaDeterminingFunction()
                             end
+                        end,
+                        ColorConfigSelectionStateChangedMessageCommand = function(self)
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickedNewColorMessageCommand = function(self)
+                            self:alphaDeterminingFunction()
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1812,19 +1819,26 @@ local function leftFrame()
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
-                                self:diffusealpha(1 * hovermultiplier)
+                                local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
+                                self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
                             end
                         end,
                         RolloverUpdateCommand = function(self, params)
-                            if self:IsInvisible() then return end
+                            if self:IsInvisible() or selectionstate ~= "editing" then return end
                             self:alphaDeterminingFunction()
                         end,
                         ClickCommand = function(self, params)
-                            if self:IsInvisible() then return end
+                            if self:IsInvisible() or selectionstate ~= "editing" then return end
                             if params.update == "OnMouseDown" then
                                 resetToDefault()
                                 self:alphaDeterminingFunction()
                             end
+                        end,
+                        ColorConfigSelectionStateChangedMessageCommand = function(self)
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickedNewColorMessageCommand = function(self)
+                            self:alphaDeterminingFunction()
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1841,7 +1855,8 @@ local function leftFrame()
                             self:playcommand("Set")
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
-                                self:diffusealpha(1 * hovermultiplier)
+                                local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
+                                self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
                             end
                         end,
                         SetCommand = function(self)
@@ -1855,15 +1870,21 @@ local function leftFrame()
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         end,
                         RolloverUpdateCommand = function(self, params)
-                            if self:IsInvisible() then return end
+                            if self:IsInvisible() or selectionstate ~= "editing" then return end
                             self:alphaDeterminingFunction()
                         end,
                         ClickCommand = function(self, params)
-                            if self:IsInvisible() then return end
+                            if self:IsInvisible() or selectionstate ~= "editing" then return end
                             if params.update == "OnMouseDown" then
                                 saveColor()
                                 self:alphaDeterminingFunction()
                             end
+                        end,
+                        ColorConfigSelectionStateChangedMessageCommand = function(self)
+                            self:alphaDeterminingFunction()
+                        end,
+                        ClickedNewColorMessageCommand = function(self)
+                            self:alphaDeterminingFunction()
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
