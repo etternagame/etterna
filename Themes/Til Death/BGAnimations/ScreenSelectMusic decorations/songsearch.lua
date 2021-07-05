@@ -52,13 +52,12 @@ local function searchInput(event)
 end
 
 local translated_info = {
-	Header = THEME:GetString("TabSearch", "HeaderMessage"),
 	Active = THEME:GetString("TabSearch", "Active"),
 	Complete = THEME:GetString("TabSearch", "Complete"),
 	ExplainStart = THEME:GetString("TabSearch", "ExplainStart"),
 	ExplainBack = THEME:GetString("TabSearch", "ExplainBack"),
 	ExplainDel = THEME:GetString("TabSearch", "ExplainDelete"),
-	ExplainLimit = THEME:GetString("TabSearch", "ExplainLimitation")
+	ExplainLimit = THEME:GetString("TabSearch", "ExplainLimitation"),
 }
 
 local t =
@@ -71,7 +70,6 @@ local t =
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 3 then
-			ms.ok(translated_info["Header"])
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
 			active = true
@@ -91,7 +89,7 @@ local t =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 250 - capWideScale(get43size(120), 30), frameY - 90):zoom(0.7):halign(0.5):maxwidth(470)
+				self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 90):zoom(0.7):halign(0.5):maxwidth(470)
 			end,
 			SetCommand = function(self)
 				if active then
@@ -109,7 +107,8 @@ local t =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 250 - capWideScale(get43size(120), 30), frameY - 50):zoom(0.7):halign(0.5):maxwidth(470)
+				self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 50):zoom(0.7)
+				self:halign(0.5):maxwidth(capWideScale(500,650))
 			end,
 			SetCommand = function(self)
 				self:settext(searchstring)
@@ -142,10 +141,10 @@ local t =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
+				self:xy(frameX + 20, frameY + 40):zoom(0.5):halign(0)
 				self:settext(translated_info["ExplainLimit"])
 			end
-		}
+		},
 }
 
 return t
