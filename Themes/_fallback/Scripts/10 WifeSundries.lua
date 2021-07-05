@@ -326,17 +326,21 @@ function getRateString(x)
 	return string.format("%.2f", x):gsub("%.?0+$", "") .. "x"
 end
 
-function getCurRateDisplayString()
-	return getRateDisplayString(getCurRateString())
+function getCurRateDisplayString(ignoremusicstr)
+	return getRateDisplayString(getCurRateString(),ignoremusicstr)
 end
 
-function getRateDisplayString(x)
+function getRateDisplayString(x,ignoremusicstr)
 	if x == "1x" then
 		x = "1.0x"
 	elseif x == "2x" then
 		x = "2.0x"
 	end
-	return x .. musicstr
+	if ignoremusicstr then
+		return x
+	else
+		return x .. musicstr
+	end
 end
 
 function getCurRateValue()
