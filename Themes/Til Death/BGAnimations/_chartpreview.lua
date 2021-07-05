@@ -130,11 +130,12 @@ local t = Def.ActorFrame {
 			self:zoomto(48 * cols, SCREEN_HEIGHT)
 		end
 	},
-	LoadFont("Common Normal") .. {
+	LoadFont("Common Large") .. {
 		Name = "pausetext",
 		InitCommand = function(self)
-			self:xy(wodth/2, SCREEN_HEIGHT/2)
+			self:xy(wodth/2, SCREEN_HEIGHT/2):draworder(900):zoom(0.5)
 			self:settext(""):diffuse(color("0.8,0,0"))
+			self:shadowlength(1):shadowcolor(0,0,0,1)
 		end,
 		NoteFieldVisibleMessageCommand = function(self)
 			self:settext("")
