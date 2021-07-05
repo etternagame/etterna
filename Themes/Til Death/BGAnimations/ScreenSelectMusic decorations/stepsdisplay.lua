@@ -1,5 +1,5 @@
 local itsOn = false
-local stepsdisplayx = SCREEN_WIDTH * 0.56 - capWideScale(50, 56)
+local stepsdisplayx = SCREEN_WIDTH * 0.56 - 54
 local thesteps
 
 local rowwidth = 60
