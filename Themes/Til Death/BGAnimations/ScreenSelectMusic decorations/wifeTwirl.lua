@@ -63,6 +63,14 @@ local function toggleCalcInfo(state)
 	end
 end
 
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.8)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 -- to reduce repetitive code for setting preview visibility with booleans
 local function setPreviewPartsState(state)
 	if state == nil then return end
@@ -176,7 +184,7 @@ local t =
 		-- it is immediately turned off when toggling notefield
 		changingSongs = true
 		tryingToStart = false
-		
+
 		-- if switching songs, we want the notedata to disappear temporarily
 		if noteField and songChanged2 and previewVisible then
 			mcbootlarder:GetChild("NoteField"):finishtweening()
@@ -297,19 +305,19 @@ local t =
 	end,
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(110, 94):halign(0):valign(0):diffuse(color("#333333A6"))
+			self:xy(frameX, frameY - 76):zoomto(110, 94):halign(0):valign(0):diffuse(.15,.15,.15,.6)
 		end
 	},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(8, 144):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.5)
+			self:xy(frameX, frameY + 18):zoomto(frameWidth + 4, 50):halign(0):valign(0):diffuse(.15,.15,.15,.6)
 		end
 	},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY + 18):zoomto(frameWidth + 4, 50):halign(0):valign(0):diffuse(color("#333333A6"))
+			self:xy(frameX, frameY - 76):zoomto(8, 144):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
 		end
-	}
+	},
 }
 
 -- Music Rate Display
@@ -317,12 +325,16 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(18, SCREEN_BOTTOM - 225):visible(true):halign(0):zoom(0.4):maxwidth(
+			self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
 				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
 			)
 		end,
 		MintyFreshCommand = function(self)
-			self:settext(getCurRateDisplayString())
+			if song then
+				self:settext(getCurRateDisplayString())
+			else
+				self:settext("")
+			end
 		end,
 		CodeMessageCommand = function(self, params)
 			local rate = getCurRateValue()
@@ -354,6 +366,12 @@ t[#t + 1] =
 t[#t + 1] =
 	Def.ActorFrame {
 	Name = "RateDependentStuff", -- msd/display score/bpm/songlength -mina
+	InitCommand = function(self)
+		self:SetUpdateFunction( function(self)
+			self:queuecommand("Highlight")
+		end)
+		self:SetUpdateFunctionInterval(0.025)
+	end,
 	MintyFreshCommand = function()
 		score = GetDisplayScore()
 	end,
@@ -362,107 +380,107 @@ t[#t + 1] =
 		self:queuecommand("MortyFarts") --songs stuff
 	end,
 	LoadFont("Common Large") ..
-		{
-			Name = "MSD",
-			InitCommand = function(self)
-				self:xy(frameX + 58, frameY - 62):halign(0.5):zoom(0.6):maxwidth(110 / 0.6)
-			end,
-			MintyFreshCommand = function(self)
-				if song then
-                    local stype = steps:GetStepsType()
-					local meter = steps:GetMSD(getCurRateValue(), 1)
-					self:settextf("%05.2f", meter)
-					self:diffuse(byMSD(meter))
-				else
-					self:settext("")
-				end
+	{
+		Name = "MSD",
+		InitCommand = function(self)
+			self:xy(frameX + 58, frameY - 62):halign(0.5):zoom(0.6):maxwidth(110 / 0.6)
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+                local stype = steps:GetStepsType()
+				local meter = steps:GetMSD(getCurRateValue(), 1)
+				self:settextf("%05.2f", meter)
+				self:diffuse(byMSD(meter))
+			else
+				self:settext("")
 			end
-		},
+		end
+	},
 	-- skillset suff (these 3 can prolly be wrapped)
 	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 120, frameY - 60):halign(0):zoom(0.6, maxwidth, 125)
-			end,
-			MintyFreshCommand = function(self)
-				if song then
-					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
-					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
-					self:settext(out)
-				else
-					self:settext("")
-				end
-			end,
-			ChartPreviewOnMessageCommand = function(self)
-				self:visible(false)
-			end,
-			ChartPreviewOffMessageCommand = function(self)
-				self:visible(true)
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 120, frameY - 60):halign(0):zoom(0.6, maxwidth, 125)
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+				local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
+				local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+				self:settext(out)
+			else
+				self:settext("")
 			end
-		},
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			self:visible(true)
+		end
+	},
 	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 120, frameY - 30):halign(0):zoom(0.6, maxwidth, 125)
-			end,
-			MintyFreshCommand = function(self)
-				if song then
-					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2)
-					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
-					self:settext(out)
-				else
-					self:settext("")
-				end
-			end,
-			ChartPreviewOnMessageCommand = function(self)
-				self:visible(false)
-			end,
-			ChartPreviewOffMessageCommand = function(self)
-				self:visible(true)
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 120, frameY - 30):halign(0):zoom(0.6, maxwidth, 125)
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+				local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2)
+				local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+				self:settext(out)
+			else
+				self:settext("")
 			end
-		},
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			self:visible(true)
+		end
+	},
 	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 120, frameY):halign(0):zoom(0.6, maxwidth, 125)
-			end,
-			MintyFreshCommand = function(self)
-				if song then
-					local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3)
-					local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
-					self:settext(out)
-				else
-					self:settext("")
-				end
-			end,
-			ChartPreviewOnMessageCommand = function(self)
-				self:visible(false)
-			end,
-			ChartPreviewOffMessageCommand = function(self)
-				self:visible(true)
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 120, frameY):halign(0):zoom(0.6, maxwidth, 125)
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+				local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3)
+				local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+				self:settext(out)
+			else
+				self:settext("")
 			end
-		},
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			self:visible(true)
+		end
+	},
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
 	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 55, frameY + 50):zoom(0.6):halign(0.5):maxwidth(125):valign(1)
-			end,
-			MintyFreshCommand = function(self)
-				if song and score then
-					self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
-					self:diffuse(getGradeColor(score:GetWifeGrade()))
-				else
-					self:settext("")
-				end
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 58, frameY + 48):zoom(0.6):halign(0.5):maxwidth(150):valign(1)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
+				self:diffuse(getGradeColor(score:GetWifeGrade()))
+			else
+				self:settext("")
 			end
-		},
+		end
+	},
 	-- Mirror PB Indicator
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 37, frameY + 58):zoom(0.5):halign(1)
+			self:xy(frameX + 37, frameY + 57):zoom(0.5):halign(1)
 		end,
 		MintyFreshCommand = function(self)
 			if song and score then
@@ -478,120 +496,142 @@ t[#t + 1] =
 	},
 	-- Rate for the displayed score
 	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 55, frameY + 58):zoom(0.5):halign(0.5)
-			end,
-			MintyFreshCommand = function(self)
-				if song and score then
-					local rate = notShit.round(score:GetMusicRate(), 3)
-					local notCurRate = notShit.round(getCurRateValue(), 3) ~= rate
-					local rate = string.format("%.2f", rate)
-					if rate:sub(#rate, #rate) == "0" then
-						rate = rate:sub(0, #rate - 1)
-					end
-					rate = rate .. "x"
-					if notCurRate then
-						self:settext("(" .. rate .. ")")
-					else
-						self:settext(rate)
-					end
-				else
-					self:settext("")
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 58, frameY + 57):zoom(0.5):halign(0.5)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				local rate = notShit.round(score:GetMusicRate(), 3)
+				local notCurRate = notShit.round(getCurRateValue(), 3) ~= rate
+				local rate = string.format("%.2f", rate)
+				if rate:sub(#rate, #rate) == "0" then
+					rate = rate:sub(0, #rate - 1)
 				end
-			end
-		},
-		-- wife 2/3 indicator
-		LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 70, frameY + 58):zoom(0.5):halign(0):maxwidth(140)
-			end,
-			MintyFreshCommand = function(self)
-				if song and score then
-					local wv = score:GetWifeVers()
-					local ws = " W" .. wv
-					self:settext(ws):diffuse(byGrade(score:GetWifeGrade()))
+				rate = rate .. "x"
+				if notCurRate then
+					self:settext("(" .. rate .. ")")
 				else
-					self:settext("")
+					self:settext(rate)
 				end
+			else
+				self:settext("")
 			end
-		},
+		end
+	},
+	-- wife 2/3 indicator
+	LoadFont("Common Normal") ..
+	{
+		InitCommand = function(self)
+			self:xy(frameX + 76, frameY + 57):zoom(0.5):halign(0):maxwidth(140)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				local wv = score:GetWifeVers()
+				local ws = " W" .. wv
+				self:settext(ws):diffuse(byGrade(score:GetWifeGrade()))
+			else
+				self:settext("")
+			end
+		end
+	},
 	-- goal for current rate if there is one stuff
 	LoadFont("Common Normal") ..
-		{
-			Name = "Goalll",
-			InitCommand = function(self)
-				self:xy(frameX + 135, frameY + 33):zoom(0.6):halign(0.5):valign(0)
-			end,
-			MintyFreshCommand = function(self)
-				if song and steps then
-					local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-					if goal then
-						local perc = notShit.round(goal:GetPercent() * 100000) / 1000
-						if (perc < 99.8) then
-							self:settextf("%s\n%.2f%%", translated_info["GoalTarget"], perc)
-						else
-							self:settextf("%s\n%.3f%%", translated_info["GoalTarget"], perc)
-						end
+	{
+		Name = "Goalll",
+		InitCommand = function(self)
+			self:xy(capWideScale(frameX + 140,frameX + 154), frameY + 27):zoom(0.6):halign(0.5):valign(0)
+			self:diffuse(getMainColor("positive"))
+		end,
+		MintyFreshCommand = function(self)
+			if song and steps then
+				local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+				if goal then
+					local perc = notShit.round(goal:GetPercent() * 100000) / 1000
+					if (perc < 99.8) then
+						self:settextf("%s\n%.2f%%", translated_info["GoalTarget"], perc)
 					else
-						self:settext("")
+						self:settextf("%s\n%.3f%%", translated_info["GoalTarget"], perc)
 					end
 				else
 					self:settext("")
 				end
+			else
+				self:settext("")
 			end
-		},
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if song and steps then
+				local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+				if sg and isOver(self) and update then
+					sg:SetPercent(sg:GetPercent() + 0.01)
+					self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+				end
+			end
+		end,
+		MouseRightClickMessageCommand = function(self)
+			if song and steps then
+				local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+				if sg and isOver(self) and update then
+					sg:SetPercent(sg:GetPercent() - 0.01)
+					self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+				end
+			end
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+	},
 	-- Date score achieved on
 	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 185, frameY + 59):zoom(0.4):halign(0)
-			end,
-			MintyFreshCommand = function(self)
-				if song and score then
-					self:settext(score:GetDate())
-				else
-					self:settext("")
-				end
+	{
+		InitCommand = function(self)
+			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 59):zoom(0.4):halign(0)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				self:settext(score:GetDate())
+			else
+				self:settext("")
 			end
-		},
+		end
+	},
 	-- MaxCombo
 	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 185, frameY + 49):zoom(0.4):halign(0)
-			end,
-			MintyFreshCommand = function(self)
-				if song and score then
-					self:settextf("%s: %d", translated_info["MaxCombo"], score:GetMaxCombo())
-				else
-					self:settext("")
-				end
+	{
+		InitCommand = function(self)
+			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 45):zoom(0.4):halign(0)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				self:settextf("%s: %d", translated_info["MaxCombo"], score:GetMaxCombo())
+			else
+				self:settext("")
 			end
-		},
+		end
+	},
 	LoadFont("Common Normal") ..
-		{
-			Name = "ClearType",
-			InitCommand = function(self)
-				self:xy(frameX + 185, frameY + 35):zoom(0.6):halign(0)
-			end,
-			MintyFreshCommand = function(self)
-				if song and score then
-					self:visible(true)
-					self:settext(getClearTypeFromScore(PLAYER_1, score, 0))
-					self:diffuse(getClearTypeFromScore(PLAYER_1, score, 2))
-				else
-					self:visible(false)
-				end
+	{
+		Name = "ClearType",
+		InitCommand = function(self)
+			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 30):zoom(0.6):halign(0)
+		end,
+		MintyFreshCommand = function(self)
+			if song and score then
+				self:visible(true)
+				self:settext(getClearTypeFromScore(PLAYER_1, score, 0))
+				self:diffuse(getClearTypeFromScore(PLAYER_1, score, 2))
+			else
+				self:visible(false)
 			end
-		},
+		end
+	},
 	-- **song stuff that scales with rate**
 	Def.BPMDisplay {
 		File = THEME:GetPathF("BPMDisplay", "bpm"),
 		Name = "BPMDisplay",
 		InitCommand = function(self)
-			self:xy(capWideScale(get43size(384), 384) + 62, SCREEN_BOTTOM - 100):halign(1):zoom(0.50)
+			self:xy(capWideScale(get43size(384), 400) + 62, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50):maxwidth(50)
 		end,
 		MortyFartsCommand = function(self)
 			if song then
@@ -603,62 +643,61 @@ t[#t + 1] =
 		end
 	},
 	LoadFont("Common Large") ..
+	{
+		Name = "PlayableDuration",
+		InitCommand = function(self)
+			self:xy((capWideScale(get43size(384), 400)) + 62, SCREEN_BOTTOM - 91.5):visible(true):halign(1):zoom(
+				capWideScale(get43size(0.6), 0.6)
+			):maxwidth(capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45))
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+				local playabletime = GetPlayableTime()
+				self:settext(SecondsToMMSS(playabletime))
+				self:diffuse(byMusicLength(playabletime))
+			else
+				self:settext("")
+			end
+		end
+	}
+}
+
+-- "Radar values", noteinfo that isn't rate dependent -mina
+local function radarPairs(i)
+	local o = Def.ActorFrame {
+		LoadFont("Common Normal") ..
 		{
-			Name = "PlayableDuration",
 			InitCommand = function(self)
-				self:xy((capWideScale(get43size(384), 384)) + 62, SCREEN_BOTTOM - 85):visible(true):halign(1):zoom(
-					capWideScale(get43size(0.6), 0.6)
-				):maxwidth(capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45))
+				self:xy(frameX + 13, frameY - 52 + 13 * i):zoom(0.5):halign(0):maxwidth(120)
 			end,
 			MintyFreshCommand = function(self)
 				if song then
-					local playabletime = GetPlayableTime()
-					self:settext(SecondsToMMSS(playabletime))
-					self:diffuse(byMusicLength(playabletime))
+					self:settext(ms.RelevantRadarsShort[i])
+				else
+					self:settext("")
+				end
+			end
+		},
+		LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 105, frameY + -52 + 13 * i):zoom(0.5):halign(1):maxwidth(60)
+			end,
+			CurrentStepsChangedMessageCommand = function(self, steps)
+				if steps.ptr then
+					self:settext(steps.ptr:GetRelevantRadars()[i])
 				else
 					self:settext("")
 				end
 			end
 		}
-}
-
--- "Radar values", noteinfo that isn't rate dependent -mina
-local function radarPairs(i)
-	local o =
-		Def.ActorFrame {
-		LoadFont("Common Normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameX + 13, frameY - 52 + 13 * i):zoom(0.5):halign(0):maxwidth(120)
-				end,
-				MintyFreshCommand = function(self)
-					if song then
-						self:settext(ms.RelevantRadarsShort[i])
-					else
-						self:settext("")
-					end
-				end
-			},
-		LoadFont("Common Normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(frameX + 105, frameY + -52 + 13 * i):zoom(0.5):halign(1):maxwidth(60)
-				end,
-				CurrentStepsChangedMessageCommand = function(self, steps)
-					if steps.ptr then
-						self:settext(steps.ptr:GetRelevantRadars()[i])
-					else
-						self:settext("")
-					end
-				end
-			}
 	}
 	return o
 end
 
 local r =
 	Def.ActorFrame {
-	Name = "RadarValues"
+		Name = "RadarValues"
 }
 
 -- Create the radar values
@@ -668,12 +707,11 @@ end
 
 -- putting neg bpm warning here i guess
 r[#r + 1] =
-	LoadFont("Common Normal") ..
+	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 120, SCREEN_BOTTOM - 225):visible(true)
-			self:zoom(0.7)
-			self:halign(0)
+			self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
+			self:diffuse(getMainColor("negative"))
 		end,
 		MintyFreshCommand = function(self)
 			if song and steps:GetTimingData():HasWarps() then
@@ -687,11 +725,13 @@ r[#r + 1] =
 t[#t + 1] = r
 
 -- song only stuff that doesnt change with rate
+
+-- bpm
 t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(capWideScale(get43size(384), 384) + 41, SCREEN_BOTTOM - 100):halign(1):zoom(0.50)
+			self:xy(capWideScale(get43size(379), 395) + 41, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50)
 		end,
 		MortyFartsCommand = function(self)
 			if song then
@@ -703,8 +743,7 @@ t[#t + 1] =
 	}
 
 -- cdtitle
-t[#t + 1] =
-	Def.Sprite {
+t[#t + 1] = Def.Sprite {
 	InitCommand = function(self)
 		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255)):halign(0.5):valign(1)
 	end,
@@ -754,8 +793,7 @@ t[#t + 1] =
 	end
 }
 
-t[#t + 1] =
-	Def.Sprite {
+t[#t + 1] = Def.Sprite {
 	Name = "Banner",
 	InitCommand = function(self)
 		self:x(10):y(61):halign(0):valign(0)
@@ -867,8 +905,7 @@ end
 t[#t + 1] = forceStart
 t[#t + 1] = readyButton
 
-t[#t + 1] =
-	Def.Quad {
+t[#t + 1] = Def.Quad {
 	-- Little hack to only show forceStart and ready in netselect
 	BeginCommand = function()
 		if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
@@ -876,27 +913,6 @@ t[#t + 1] =
 			forceStart:Disable()
 		end
 	end,
-	InitCommand = function(self)
-		self:xy(frameX + 135, frameY + 45):zoomto(50, 40):diffusealpha(0)
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if song and steps then
-			local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-			if sg and isOver(self) and update then
-				sg:SetPercent(sg:GetPercent() + 0.01)
-				self:GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
-			end
-		end
-	end,
-	MouseRightClickMessageCommand = function(self)
-		if song and steps then
-			local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-			if sg and isOver(self) and update then
-				sg:SetPercent(sg:GetPercent() - 0.01)
-				self:GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
-			end
-		end
-	end
 }
 
 -- t[#t+1] = LoadFont("Common Large") .. {
@@ -949,6 +965,12 @@ t[#t + 1] =
 			else
 				self:settext("")
 			end
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			self:visible(false)
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			self:visible(true)
 		end
 	}
 
@@ -1013,60 +1035,64 @@ t[#t + 1] = Def.ActorFrame {
 		self:SetUpdateFunction( function(self)
 			self:queuecommand("Highlight")
 		end)
-		self:SetUpdateFunctionInterval(0.05)
+		self:SetUpdateFunctionInterval(0.025)
 	end,
 
 	LoadFont("Common Normal") ..
 	{
-		Name = "PreviewViewer",
-		BeginCommand = function(self)
-			mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
-			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
-			SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
-			self:xy(20, 235)
-			self:zoom(0.5)
-			self:halign(0)
-			self:settext(translated_info["TogglePreview"])
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and (song or noteField) then
-				toggleNoteField()
-			end
-		end,
-		MouseRightClickMessageCommand = function(self)
-			if isOver(self) and (song or noteField) then
-				if mcbootlarder:IsVisible() then
-					toggleCalcInfo(not infoOnScreen)
-				else
-					if toggleNoteField() then
-						toggleCalcInfo(true)
-					end
+	Name = "PreviewViewer",
+	BeginCommand = function(self)
+		mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
+		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
+		SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
+		self:xy(20, 235):zoom(0.5):halign(0)
+		self:diffuse(getMainColor("positive"))
+	end,
+	MouseLeftClickMessageCommand = function(self)
+		if isOver(self) and (song or noteField) then
+			toggleNoteField()
+		end
+	end,
+	MouseRightClickMessageCommand = function(self)
+		if isOver(self) and (song or noteField) then
+			if mcbootlarder:IsVisible() then
+				toggleCalcInfo(not infoOnScreen)
+			else
+				if toggleNoteField() then
+					toggleCalcInfo(true)
 				end
 			end
-		end,
-		ChartPreviewOnMessageCommand = function(self)
-			readyButton:Disable()
-			forceStart:Disable()
-		end,
-		ChartPreviewOffMessageCommand = function(self)
-			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				readyButton:Enable()
-				forceStart:Enable()
-			end
-		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
-		end,
+		end
+	end,
+	ChartPreviewOnMessageCommand = function(self)
+		readyButton:Disable()
+		forceStart:Disable()
+	end,
+	ChartPreviewOffMessageCommand = function(self)
+		if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+			readyButton:Enable()
+			forceStart:Enable()
+		end
+	end,
+	HighlightCommand=function(self)
+		highlightIfOver(self)
+	end,
+	MintyFreshCommand = function(self)
+		if song then
+			self:settext(translated_info["TogglePreview"])
+		else
+			self:settext("")
+		end
+	end,
 	},
 
 	LoadFont("Common Normal") ..
 	{
 		Name = "PlayerOptionsButton",
 		BeginCommand = function(self)
-			self:xy(20, 218)
-			self:zoom(0.5)
-			self:halign(0)
+			self:xy(20, 218):halign(0):zoom(0.5)
 			self:settext(translated_info["PlayerOptions"])
+			self:diffuse(getMainColor("positive"))
 		end,
 		HighlightCommand=function(self)
 			highlightIfOver(self)
@@ -1098,10 +1124,8 @@ t[#t + 1] =
 	{
 		Name = "MusicWheelSortButton",
 		BeginCommand = function(self)
-			self:xy(20, 201)
-			self:zoom(0.5)
-			self:halign(0)
-			self:settext(translated_info["OpenSort"])
+			self:xy(20, 201):zoom(0.5):halign(0):settext(translated_info["OpenSort"])
+			self:diffuse(getMainColor("positive"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
