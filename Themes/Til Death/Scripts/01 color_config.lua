@@ -8,6 +8,7 @@ local defaultConfig = {
 	main = {
 		highlight = "#614080",
 		frames = "#000111",
+		tabs = "#2E2E2E99",
 		enabled = "#4CBB17",
 		disabled = "#666666",
 		negative = "#FF9999",
