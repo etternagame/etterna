@@ -17,10 +17,11 @@
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-// reasonable limit to chart amount. if someone consistently crashes when
-// scrolling on a chart that has 25 diffs, THIS IS WHY
-// (this is a hardcoded value to optimize stepstype hover or something) -poco
-#define MAX_METERS 24
+
+// initial allocation for number of difficulties to load in the display
+// should be a reasonable number that covers most cases, but the code
+// will handle cases where the number needs to be larger
+#define LINES_INITIAL_ALLOCATION 12
 
 REGISTER_ACTOR_CLASS(StepsDisplayList);
 
@@ -49,7 +50,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	CAPITALIZE_DIFFICULTY_NAMES.Load(m_sName, "CapitalizeDifficultyNames");
 	MOVE_COMMAND.Load(m_sName, "MoveCommand");
 
-	m_Lines.resize(MAX_METERS);
+	m_Lines.resize(LINES_INITIAL_ALLOCATION);
 	m_CurSong = nullptr;
 
 	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
@@ -203,8 +204,8 @@ StepsDisplayList::UpdatePositions()
 void
 StepsDisplayList::PositionItems()
 {
-	for (int i = 0; i < MAX_METERS; ++i) {
-		const bool bUnused = (i >= static_cast<int>(m_Rows.size()));
+	for (auto i = 0; i < m_Lines.size(); ++i) {
+		const bool bUnused = i >= static_cast<int>(m_Rows.size());
 		m_Lines[i].m_Meter.SetVisible(!bUnused);
 	}
 
@@ -225,7 +226,7 @@ StepsDisplayList::PositionItems()
 		m_Lines[m].m_Meter.SetY(row.m_fY);
 	}
 
-	for (int m = 0; m < MAX_METERS; ++m) {
+	for (auto m = 0; m < m_Lines.size(); ++m) {
 		bool bHidden = true;
 		if (m_bShown && m < static_cast<int>(m_Rows.size()))
 			bHidden = m_Rows[m].m_bHidden;
@@ -258,6 +259,20 @@ StepsDisplayList::SetFromGameState()
 		const vector<Difficulty>& difficulties =
 		  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 		m_Rows.resize(difficulties.size());
+
+		// m_Lines needs to be resized to allow the number of rows used
+		if (m_Rows.size() > m_Lines.size()) {
+			auto startingIndex = m_Lines.size();
+			m_Lines.resize(m_Rows.size());
+
+			for (auto j = startingIndex; j < m_Lines.size(); j++) {
+				auto m_Line = m_Lines[j];
+				m_Line.m_Meter.SetName("Row");
+				m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
+				this->AddChild(&m_Line.m_Meter);
+			}
+		}
+		
 		FOREACH_CONST(Difficulty, difficulties, d)
 		{
 			m_Rows[i].m_dc = *d;
@@ -272,6 +287,20 @@ StepsDisplayList::SetFromGameState()
 		// Should match the sort in ScreenSelectMusic::AfterMusicChange.
 
 		m_Rows.resize(vpSteps.size());
+
+		// m_Lines needs to be resized to allow the number of rows used
+		if (m_Rows.size() > m_Lines.size()) {
+			auto startingIndex = m_Lines.size();
+			m_Lines.resize(m_Rows.size());
+
+			for (auto j = startingIndex; j < m_Lines.size(); j++) {
+				auto m_Line = m_Lines[j];
+				m_Line.m_Meter.SetName("Row");
+				m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
+				this->AddChild(&m_Line.m_Meter);
+			}
+		}
+
 		FOREACH_CONST(Steps*, vpSteps, s)
 		{
 			// LOG->Trace(ssprintf("setting steps for row %i",i));
@@ -281,14 +310,14 @@ StepsDisplayList::SetFromGameState()
 		}
 	}
 
-	while (i < MAX_METERS)
-		m_Lines[i++].m_Meter.Unset();
+	for (auto& m_Line : m_Lines)
+		m_Line.m_Meter.Unset();
 
 	UpdatePositions();
 	PositionItems();
 
-	for (int m = 0; m < MAX_METERS; ++m)
-		m_Lines[m].m_Meter.FinishTweening();
+	for (auto& m_Line : m_Lines)
+		m_Line.m_Meter.FinishTweening();
 }
 
 void
@@ -307,8 +336,8 @@ StepsDisplayList::TweenOnScreen()
 {
 	ON_COMMAND(m_Cursors);
 
-	for (int m = 0; m < MAX_METERS; ++m)
-		ON_COMMAND(m_Lines[m].m_Meter);
+	for (auto& m_Line : m_Lines)
+		ON_COMMAND(m_Line.m_Meter);
 
 	m_bShown = true;
 	for (unsigned m = 0; m < m_Rows.size(); ++m) {
