@@ -1336,6 +1336,14 @@ local function leftFrame()
             hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
             applyHSV()
         end
+        -- revert color state to blank
+        local function resetToBlank()
+            aboutToSave = false -- this shouldnt be used when color is editable
+            currentColor = color("1,1,1,1")
+            savedColor = currentColor
+            hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
+            applyHSV()
+        end
 
         -- handle switching states and stuff
         local function switchSelectionState(cat)
@@ -1405,6 +1413,69 @@ local function leftFrame()
             else
                 return
             end
+        end
+
+        -- typing window for making a new preset
+        local function newPresetDialogue()
+            local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+            local function off()
+                if redir then
+                    SCREENMAN:set_input_redirected(PLAYER_1, false)
+                end
+            end
+            local function on()
+                if redir then
+                    SCREENMAN:set_input_redirected(PLAYER_1, true)
+                end
+            end
+            off()
+        
+            local function f(answer)
+                -- success:
+                -- blank color info, jump to preset select page
+                resetToBlank()
+                if COLORS:loadColorPreset(answer:lower()) then
+                    selectPreset(answer:lower())
+                else
+                    looking4preset()
+                end
+                on()
+            end
+            local question = "NEW COLOR CONFIG PRESET\nPlease enter a new preset name."
+            askForInputStringWithFunction(
+                question,
+                128,
+                false,
+                f,
+                function(answer)
+                    local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
+                    local presets = getColorConfigPresets()
+                    -- no dupes
+                    for _, n in ipairs(presets) do
+                        if n:lower() == answer:lower() then
+                            result = false
+                            break
+                        end
+                    end
+                    -- so far we can attempt to make the color config entry
+                    if result then
+                        result = COLORS:newColorPreset(answer:lower())
+                        if not result then
+                            SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nThere was an issue creating the new color config preset. You may try again.\nTo exit, press Esc.")
+                            return false, "Response invalid."
+                        else
+                            return true, "Response invalid." -- the 2nd param doesnt matter here
+                        end
+                    else
+                        SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use illegal characters.\nTo exit, press Esc.")
+                        return false, "Response invalid."
+                    end
+                end,
+                function()
+                    -- upon exit, do nothing
+                    on()
+                end
+            )
         end
 
         local t = Def.ActorFrame {
@@ -1691,6 +1762,7 @@ local function leftFrame()
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
                             self:y(textLineSeparation * 6)
+                            bg:y(1)
                             txt:settext("Undo")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
@@ -1721,6 +1793,7 @@ local function leftFrame()
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
                             self:x(widthOfTheRightSide)
                             self:y(textLineSeparation * 6)
+                            bg:y(1)
                             txt:settext("Reset to Default")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
@@ -1750,6 +1823,7 @@ local function leftFrame()
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / colorConfigTextSize)
                             self:y(textLineSeparation * 7)
+                            bg:y(1)
                             self:playcommand("Set")
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
@@ -1778,13 +1852,14 @@ local function leftFrame()
                         end,
                     },
                     UIElements.TextButton(1, 1, "Common Normal") .. {
-                        Name = "SavePreset",
+                        Name = "NewPreset",
                         InitCommand = function(self)
                             local txt = self:GetChild("Text")
                             local bg = self:GetChild("BG")
                             txt:halign(0):valign(1)
                             bg:halign(0):valign(1)
                             self:y(textLineSeparation * 8)
+                            bg:y(1)
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             txt:settext("New Color Config Preset")
@@ -1801,6 +1876,7 @@ local function leftFrame()
                         ClickCommand = function(self, params)
                             if self:IsInvisible() then return end
                             if params.update == "OnMouseDown" then
+                                newPresetDialogue()
                                 self:alphaDeterminingFunction()
                             end
                         end,

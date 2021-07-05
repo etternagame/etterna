@@ -153,11 +153,28 @@ local function writePreset(name)
 	local f = RageFileUtil.CreateRageFile()
 	if not f:Open(fname, 2) then
 		print("Could not open '" .. fname .. "' to write.")
+		return false
 	else
 		local o = "return " .. lua_table_to_string(presetData)
 		f:Write(o)
 		f:Close()
 		f:destroy()
+		return true
+	end
+end
+
+local function writeNamedDefaultPreset(name)
+	local fname = presetfolder .. name .. ".lua"
+	local f = RageFileUtil.CreateRageFile()
+	if not f:Open(fname, 2) then
+		print("Could not open '" .. fname .. "' to write.")
+		return false
+	else
+		local o = "return " .. lua_table_to_string(defaultConfig)
+		f:Write(o)
+		f:Close()
+		f:destroy()
+		return true
 	end
 end
 
@@ -166,17 +183,21 @@ local function writeDefaultPreset()
 	local fname = defaultpresetpath
 	if not file_handle:Open(fname, 2) then
 		print("Could not open '" .. fname .. "' to write.")
+		return false
 	else
 		local output = "return " .. lua_table_to_string(defaultConfig)
 		file_handle:Write(output)
 		file_handle:Close()
 		file_handle:destroy()
+		return true
 	end
 end
 
 -- works like the process of loading any config but loads it from a directory of configs instead
 function COLORS.loadColorConfigPresets(self)
 	print("Loading color config presets")
+	FILEMAN:FlushDirCache(presetfolder) -- the dir cache resets every 30 seconds. we need to be faster
+
 	-- put the default in
 	if not FILEMAN:DoesFileExist(defaultpresetpath) then
 		writeDefaultPreset()
@@ -213,7 +234,6 @@ function COLORS.loadColorConfigPresets(self)
 	end
 	print("Loaded "..count.." color config presets.")
 end
-COLORS:loadColorConfigPresets()
 
 -- return category names overall
 function getColorConfigCategories()
@@ -255,6 +275,24 @@ function getColorPreset()
 	end
 end
 
+function COLORS.loadColorPreset(self, preset)
+	if self.presets[preset] == nil then
+		self:loadColorConfigPresets()
+	end
+	if self.presets[preset] == nil then
+		local pname = presetfolder .. preset
+		local from_file = load_conf_file(pname)
+		if type(from_file) == "table" then
+			force_table_elements_to_match_type(from_file, defaultConfig, -1)
+			self.presets[preset] = from_file
+		else
+			self.presets[preset] = DeepCopy(defaultConfig)
+		end
+	end
+	return true
+end
+function loadColorPreset(preset) return COLORS:loadColorPreset(preset) end
+
 function changeCurrentColorPreset(preset)
 	if colorConfig == nil then print("Color config does not exist???") return end
 	colorConfig:get_data().currentPreset = preset
@@ -264,8 +302,10 @@ function changeCurrentColorPreset(preset)
 	COLORS:loadColorPreset(preset)
 end
 
-function COLORS.saveColorPreset(self, preset) writePreset(preset) end
-function saveColorPreset(preset) COLORS:saveColorPreset(preset) end
+function COLORS.saveColorPreset(self, preset) return writePreset(preset) end
+function saveColorPreset(preset) return COLORS:saveColorPreset(preset) end
+function COLORS.newColorPreset(self, name) return writeNamedDefaultPreset(name) end
+function newColorPreset(name) return COLORS:newColorPreset(name) end
 
 -- main color access function
 -- uses the currently selected preset in COLORS
@@ -441,3 +481,6 @@ function colorToRGBNums(c)
 	local aX = scale(a, 0, 1, 0, 255)
 	return rX, gX, bX, aX
 end
+
+-- run this stuff at init/load
+COLORS:loadColorConfigPresets()
