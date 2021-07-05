@@ -58,9 +58,9 @@ local translated_info = {
 	ShowReplay = THEME:GetString("TabScore", "ShowReplay"),
 	ShowEval = THEME:GetString("TabScore", "ShowEval"),
 	UploadReplay = THEME:GetString("TabScore", "UploadReplay"),
-	UploadAllScore=THEME:GetString("TabScore", "UploadAllScore"),
+	UploadAllScoreChart=THEME:GetString("TabScore", "UploadAllScoreChart"),
 	UploadAllScorePack=THEME:GetString("TabScore", "UploadAllScorePack"),
-	UploadEveryReplay=THEME:GetString("TabScore", "UploadEveryReplay"),
+	UploadAllScore=THEME:GetString("TabScore", "UploadAllScore"),
 	UploadingReplay = THEME:GetString("TabScore", "UploadingReplay"),
 	UploadingScore = THEME:GetString("TabScore", "UploadingScore"),
 	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn")
@@ -353,7 +353,7 @@ local t =
 	Def.Quad {
 		Name = "FrameDisplay",
 		InitCommand = function(self)
-			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end,
 		CollapseCommand = function(self)
 			self:visible(false)
@@ -463,7 +463,8 @@ local l =
 		{
 			Name = "Mods",
 			InitCommand = function(self)
-				self:y(63):zoom(0.4):halign(0):settextf("%s:", translated_info["Mods"]):settext("")
+				self:y(63):zoom(0.4):halign(0):maxwidth(capWideScale(690,1000))
+				self:settextf("%s:", translated_info["Mods"]):settext("")
 			end,
 			DisplayCommand = function(self)
 				self:settextf("%s: %s", translated_info["Mods"], getModifierTranslations(score:GetModifiers()))
@@ -713,7 +714,7 @@ l[#l + 1] =
 l[#l + 1] =
 	Def.ActorFrame {
 		InitCommand = function(self)
-			if not IsUsingWideScreen() then
+			if not IsUsingWideScreen() then --offset it a bit if not using widescreen
 				self:x(6):y(37):zoom(0.9)
 			end
 		end,
@@ -805,7 +806,7 @@ l[#l + 1] =
 			self:diffuse(getMainColor("positive"))
 		end,
 		DisplayCommand = function(self)
-			self:settext(translated_info["UploadAllScore"])
+			self:settext(translated_info["UploadAllScoreChart"])
 		end,
 		HighlightCommand = function(self)
 			highlightIfOver(self)
@@ -853,7 +854,7 @@ l[#l + 1] =
 			self:diffuse(getMainColor("positive"))
 		end,
 		DisplayCommand = function(self)
-			self:settext(translated_info["UploadEveryReplay"])
+			self:settext(translated_info["UploadAllScore"])
 		end,
 		HighlightCommand = function(self)
 			highlightIfOver(self)
@@ -907,7 +908,7 @@ function nestedTabButton(i)
 				end,
 				HighlightCommand = function(self)
 					if isOver(self) and nestedTab ~= i then
-						self:diffusealpha(0.75)
+						self:diffusealpha(0.8)
 					elseif nestedTab == i then
 						self:diffusealpha(1)
 					else

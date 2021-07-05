@@ -203,7 +203,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		Name = "StepsAndMeter",
 		InitCommand = function(self)
-			self:xy(frameX + offsetX, frameY + offsetY + 44):zoom(0.5):halign(0)
+			self:xy(frameX + offsetX, frameY + offsetY + 44):zoom(0.5):halign(0):maxwidth(350)
 		end,
 		SetCommand = function(self)
 			steps = GAMESTATE:GetCurrentSteps()
@@ -226,7 +226,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		Name = "NPS",
 		InitCommand = function(self)
-			self:xy(frameX + offsetX + 165, frameY + offsetY + 44):zoom(0.45):halign(0)
+			self:xy(frameX + offsetX + 175, frameY + offsetY + 44):zoom(0.45):halign(0)
 		end,
 		SetCommand = function(self)
 			steps = GAMESTATE:GetCurrentSteps()
