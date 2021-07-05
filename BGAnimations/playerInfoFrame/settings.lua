@@ -1364,16 +1364,19 @@ local function leftFrame()
                 displayItemDatas = getColorConfigCategories()
                 selectedcategory = ""
                 selectedelement = ""
+                resetToBlank()
             elseif cat == "element" then
                 -- populate with all elements in the selected category
                 displayItemDatas = getColorConfigElementsForCategory(selectedcategory)
                 selectedelement = ""
+                resetToBlank()
             elseif cat == "preset" then
                 -- populate with all available presets
                 displayItemDatas = getColorConfigPresets()
                 selectedpreset = ""
                 selectedcategory = ""
                 selectedelement = ""
+                resetToBlank()
             elseif cat == "editing" then
                 -- dont change listing, but change state to allow color editing
                 currentColor = COLORS:getColor(selectedcategory, selectedelement)
