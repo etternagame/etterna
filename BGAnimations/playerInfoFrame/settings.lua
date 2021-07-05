@@ -1536,7 +1536,7 @@ local function leftFrame()
                         self:diffusealpha(satNum)
                     end,
                     InvokeCommand = function(self, params)
-                        if not focused or not SCUFF.showingColor then return end
+                        if not focused or not SCUFF.showingColor or selectionstate ~= "editing" then return end
                         -- normally local x and y is provided but something looks broken and im not fixing it
                         -- (has to do with button roots and nonsense)
                         local relX, relY = self:GetLocalMousePos(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY(), 0)
@@ -1563,7 +1563,7 @@ local function leftFrame()
                             self:zoomto(sliderWidth, boxSize)
                         end,
                         InvokeCommand = function(self, params)
-                            if not focused or not SCUFF.showingColor then return end
+                            if not focused or not SCUFF.showingColor or selectionstate ~= "editing" then return end
                             -- normally local x and y is provided but something looks broken and im not fixing it
                             -- (has to do with button roots and nonsense)
                             local relX, relY = self:GetLocalMousePos(INPUTFILTER:GetMouseX(), INPUTFILTER:GetMouseY(), 0)
