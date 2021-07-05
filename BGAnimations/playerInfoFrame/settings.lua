@@ -1581,7 +1581,7 @@ local function leftFrame()
                         Name = "SaturationPointer",
                         Texture = THEME:GetPathG("", "_triangle"),
                         InitCommand = function(self)
-                            self:x(sliderWidth + sliderWidth / 5)
+                            self:x(sliderWidth + sliderWidth / 5 - 1)
                             self:zoomto(sliderWidth / 2, sliderWidth / 2)
                             self:rotationz(-90)
                             saturationSliderPos = self
@@ -1621,7 +1621,7 @@ local function leftFrame()
                         Name = "AlphaPointer",
                         Texture = THEME:GetPathG("", "_triangle"),
                         InitCommand = function(self)
-                            self:x(sliderWidth + sliderWidth / 5)
+                            self:x(sliderWidth + sliderWidth / 5 - 1)
                             self:zoomto(sliderWidth / 2, sliderWidth / 2)
                             self:rotationz(-90)
                             alphaSliderPos = self
