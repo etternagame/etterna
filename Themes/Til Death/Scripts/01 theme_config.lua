@@ -13,6 +13,7 @@ local defaultConfig = {
 		ProgressBar = 1, -- 0 = bottom, 1 = top
 		ShowVisualizer = true,
 		InstantSearch = true, -- true = search per press, false = search on enter button
+		IgnoreTabInput = 1, -- 1 = dont ignore, 2 = ignore only in search, 3 = always
 	},
 	NPSDisplay = {
 		DynamicWindow = false,

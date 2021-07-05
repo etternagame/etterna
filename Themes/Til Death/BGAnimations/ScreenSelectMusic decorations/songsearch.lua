@@ -1,10 +1,11 @@
 local searchstring = ""
 local frameX = 10
-local frameY = 180 + capWideScale(get43size(120), 120)
+local frameY = 300
 local active = false
 local whee
 local lastsearchstring = ""
 local instantSearch = themeConfig:get_data().global.InstantSearch
+local IgnoreTabInput = themeConfig:get_data().global.IgnoreTabInput
 
 local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active == true then
@@ -36,7 +37,7 @@ local function searchInput(event)
 			elseif
 			--if not nil and (not a number or (ctrl pressed and not online))
 				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w%[%]%{%}%`%\\]') and
-					(not tonumber(event.char) or CtrlPressed)
+					(not tonumber(event.char) or CtrlPressed or IgnoreTabInput > 1)
 			 then
 				searchstring = searchstring .. event.char
 			end
@@ -58,6 +59,7 @@ local translated_info = {
 	ExplainBack = THEME:GetString("TabSearch", "ExplainBack"),
 	ExplainDel = THEME:GetString("TabSearch", "ExplainDelete"),
 	ExplainLimit = THEME:GetString("TabSearch", "ExplainLimitation"),
+	ExplainNumInput = THEME:GetString("TabSearch", "ExplainNumInput")
 }
 
 local t =
@@ -141,10 +143,17 @@ local t =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 20, frameY + 40):zoom(0.5):halign(0)
+				self:xy(frameX + 20, frameY + 50):zoom(0.5):halign(0)
 				self:settext(translated_info["ExplainLimit"])
 			end
 		},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 20, frameY + 70):zoom(0.5):align(0,0)
+				self:settext(translated_info["ExplainNumInput"])
+			end
+		}
 }
 
 return t

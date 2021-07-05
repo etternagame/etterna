@@ -2,6 +2,17 @@ local active = true
 local numericinputactive = false
 local whee
 
+local function IgnoreTabInputs()
+	local IgnoreTabInput = themeConfig:get_data().global.IgnoreTabInput
+	if IgnoreTabInput == 3 then
+		return true
+	elseif IgnoreTabInput == 2 and getTabIndex() == 3 then
+		return true
+	else
+		return false
+	end
+end
+
 local tabNames = {"General", "MSD", "Scores", "Search", "Profile", "Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
 
 local function input(event)
@@ -21,12 +32,14 @@ local function input(event)
 						return false
 					end
 
-					setTabIndex(9)
-					MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 9})
+					if not IgnoreTabInputs() then
+						setTabIndex(9)
+						MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 9})
+					end
 				else
 					for i = 1, #tabNames do
 						local numpad = event.DeviceInput.button == "DeviceButton_KP "..event.char	-- explicitly ignore numpad inputs for tab swapping (doesn't care about numlock) -mina
-						if not numpad and event.char and tonumber(event.char) and tonumber(event.char) == i then
+						if not numpad and event.char and tonumber(event.char) and tonumber(event.char) == i and not IgnoreTabInputs() then
 							local tind = getTabIndex()
 							setTabIndex(i - 1)
 							MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = i-1})
