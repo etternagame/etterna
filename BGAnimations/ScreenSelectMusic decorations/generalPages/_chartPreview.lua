@@ -160,7 +160,7 @@ t[#t+1] = Def.NoteFieldPreview {
     LoadNoteDataCommand = function(self, params)
         local steps = params.steps
         if steps ~= nil then
-            self:LoadNoteData(steps)
+            self:LoadNoteData(steps, true)
         else
             self:LoadDummyNoteData()
         end
