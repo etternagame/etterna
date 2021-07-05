@@ -222,8 +222,7 @@ function COLORS.loadColorConfigPresets(self)
 	self.presets = {}
 	for _, name in ipairs(confignames) do
 		count = count + 1
-		print(" adding color preset "..name)
-		local pname = presetfolder .. name
+		local pname = presetfolder .. name .. ".lua"
 		local from_file = load_conf_file(pname)
 		if type(from_file) == "table" then
 			force_table_elements_to_match_type(from_file, defaultConfig, -1)
@@ -280,7 +279,7 @@ function COLORS.loadColorPreset(self, preset)
 		self:loadColorConfigPresets()
 	end
 	if self.presets[preset] == nil then
-		local pname = presetfolder .. preset
+		local pname = presetfolder .. preset .. ".lua"
 		local from_file = load_conf_file(pname)
 		if type(from_file) == "table" then
 			force_table_elements_to_match_type(from_file, defaultConfig, -1)
@@ -301,6 +300,11 @@ function changeCurrentColorPreset(preset)
 
 	COLORS:loadColorPreset(preset)
 end
+
+function COLORS.saveColor(self, category, element, rawColor)
+	self.presets[getColorPreset()][category][element] = rawColor
+end
+function saveColor(category, element, rawColor) COLORS:saveColor(category, element, rawColor) end
 
 function COLORS.saveColorPreset(self, preset) return writePreset(preset) end
 function saveColorPreset(preset) return COLORS:saveColorPreset(preset) end

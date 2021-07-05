@@ -1344,6 +1344,16 @@ local function leftFrame()
             hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
             applyHSV()
         end
+        -- save changes
+        local function saveColor()
+            if selectedpreset == "" or selectedcategory == "" or selectedelement == "" then return end
+            aboutToSave = false
+            savedColor = currentColor
+            COLORS:saveColor(selectedcategory, selectedelement, hexEntryString)
+            COLORS:saveColorPreset(selectedpreset)
+            applyHSV()
+            MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+        end
 
         -- handle switching states and stuff
         local function switchSelectionState(cat)
@@ -1394,6 +1404,7 @@ local function leftFrame()
             -- selecting a preset brings you to category select
             -- it also loads the preset globally
             selectedpreset = preset
+            changeCurrentColorPreset(preset)
             switchSelectionState("category")
         end
         local function looking4preset()
@@ -1847,6 +1858,7 @@ local function leftFrame()
                         ClickCommand = function(self, params)
                             if self:IsInvisible() then return end
                             if params.update == "OnMouseDown" then
+                                saveColor()
                                 self:alphaDeterminingFunction()
                             end
                         end,
