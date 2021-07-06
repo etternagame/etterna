@@ -45,6 +45,8 @@ return Def.ActorFrame {
 			self:halign(0)
 			self:zoom(choiceTextZoom)
 			self:settext(THEME:GetString(screen:GetName(), gc:GetText()))
+			self:diffuse(COLORS:getTitleColor("PrimaryText"))
+			self:diffusealpha(1)
 		end
 	},
 	UIElements.QuadButton(1, 1) .. {

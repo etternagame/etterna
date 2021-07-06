@@ -65,7 +65,6 @@ local focused = false
 
 -- how many items to put on screen -- will fit for any screen height
 local numItems = #profileIDs > 1 and math.floor(SCREEN_HEIGHT / (actuals.ItemHeight + actuals.ItemGap)) or 1
-local itemBGColor = color("0,0,0,1")
 
 local nameTextSize = 0.75
 local playcountTextSize = 0.5
@@ -86,6 +85,10 @@ if #profileIDs == 0 then
     profileIDs = PROFILEMAN:GetLocalProfileIDs()
     renameNewProfile = true
 end
+
+local primaryTextColor = COLORS:getTitleColor("PrimaryText")
+local secondaryTextColor = COLORS:getTitleColor("SecondaryText")
+local itemBGColor = COLORS:getTitleColor("ProfileBackground")
 
 -- convenience to control the delete profile dialogue logic and input redir scope
 local function deleteProfileDialogue(id)
@@ -363,6 +366,8 @@ local function generateItems()
                         -- this maxwidth probably wont cause issues
                         -- .... but if it does.....
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.NameLeftGap) / nameTextSize - textzoomFudge)
+                        self:diffuse(primaryTextColor)
+                        self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
                         if profile then
@@ -381,6 +386,8 @@ local function generateItems()
                         self:valign(0):halign(0)
                         self:zoom(playcountTextSize)
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.InfoLeftGap) / playcountTextSize - textzoomFudge)
+                        self:diffuse(secondaryTextColor)
+                        self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
                         if profile then
@@ -397,6 +404,8 @@ local function generateItems()
                         self:valign(0):halign(0)
                         self:zoom(arrowsTextSize)
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.InfoLeftGap) / arrowsTextSize - textzoomFudge)
+                        self:diffuse(secondaryTextColor)
+                        self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
                         if profile then
@@ -413,6 +422,8 @@ local function generateItems()
                         self:valign(0):halign(0)
                         self:zoom(playTimeTextSize)
                         self:maxwidth((actuals.RatingLeftGap - actuals.AvatarWidth - actuals.InfoLeftGap) / playTimeTextSize - textzoomFudge)
+                        self:diffuse(secondaryTextColor)
+                        self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
                         if profile then
@@ -436,6 +447,8 @@ local function generateItems()
                         self:zoom(playerRatingsTextSize)
                         self:maxwidth((actuals.Width - actuals.RatingLeftGap) / playerRatingsTextSize - textzoomFudge)
                         self:settext("Player Ratings:")
+                        self:diffuse(primaryTextColor)
+                        self:diffusealpha(1)
                     end
                 },
                 --[[-- online ratings for individual profiles have no direct api
@@ -446,6 +459,8 @@ local function generateItems()
                         self:valign(0):halign(0)
                         self:zoom(onlineTextSize)
                         self:maxwidth((actuals.Width - actuals.RatingLeftGap) / onlineTextSize - textzoomFudge)
+                        self:diffuse(primaryTextColor)
+                        self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
                         self:settext("Online - 00.00")
@@ -458,6 +473,8 @@ local function generateItems()
                         self:valign(0):halign(0)
                         self:zoom(offlineTextSize)
                         self:maxwidth((actuals.Width - actuals.RatingLeftGap) / offlineTextSize - textzoomFudge)
+                        self:diffuse(primaryTextColor)
+                        self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
                         if profile then

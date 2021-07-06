@@ -5,7 +5,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self:diffuse(color("#333333"))
+        self:diffuse(COLORS:getTitleColor("UnderlayBackground"))
+        self:diffusealpha(1)
     end
 }
 
@@ -116,6 +117,8 @@ t[#t+1] = Def.ActorFrame {
             self:x(separatorxpos)
             local ang = math.atan((gradientwidth - separatorxpos) / separatorlength)
             self:rotationz(-math.deg(ang))
+            self:diffuse(COLORS:getTitleColor("Separator"))
+            self:diffusealpha(1)
         end
     },
 
@@ -141,6 +144,8 @@ t[#t+1] = Def.ActorFrame {
                 self:zoom(nameTextSize)
                 self:maxwidth((separatorxpos - (logoNameLeftGap + logoW) - logoNameLeftGap) / nameTextSize)
                 self:settext("ETTERNA")
+                self:diffuse(COLORS:getTitleColor("PrimaryText"))
+                self:diffusealpha(1)
             end
         },
         LoadFont("Menu Normal") .. {
@@ -151,6 +156,8 @@ t[#t+1] = Def.ActorFrame {
                 self:zoom(themenameTextSize)
                 self:maxwidth((separatorxpos - (logoNameLeftGap + logoW) - logoThemeNameLeftGap) / themenameTextSize)
                 self:settext(getThemeName())
+                self:diffuse(COLORS:getTitleColor("PrimaryText"))
+                self:diffusealpha(1)
             end
         },
         LoadFont("Menu Normal") .. {
@@ -160,6 +167,8 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(versionNumberLeftGap, versionNumberUpperGap)
                 self:zoom(versionTextSize)
                 self:settext("V "..GAMESTATE:GetEtternaVersion())
+                self:diffuse(COLORS:getTitleColor("PrimaryText"))
+                self:diffusealpha(1)
             end
         },
         LoadFont("Menu Normal") .. {
@@ -170,6 +179,8 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth((gradientwidth - versionNumberLeftGap - logoFrameLeftGap - separatorthickness) / versionTextSizeSmall)
                 self:zoom(versionTextSizeSmall)
                 self:settext("("..getThemeName().." v"..getThemeVersion().."@"..getThemeDate().." by "..getThemeAuthor()..")")
+                self:diffuse(COLORS:getTitleColor("SecondaryText"))
+                self:diffusealpha(1)
             end
         }
     }
