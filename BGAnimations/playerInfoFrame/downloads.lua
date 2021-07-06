@@ -559,6 +559,10 @@ local function downloadsList()
                 SetPackCommand = function(self)
                     if pack ~= nil then
                         self:playcommand("UpdateVisibilityByDownloadStatus")
+                    elseif bundle ~= nil then
+                        self:diffuse(notInstalledColor)
+                        self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
+                        if isOver(self) then toolTipOn("Download Bundle (Mirror)") end
                     else
                         self:diffusealpha(0)
                     end
@@ -593,6 +597,12 @@ local function downloadsList()
                         local name = pack:GetName()
                         if downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil or SONGMAN:DoesSongGroupExist(name) then
                             return
+                        elseif bundle ~= nil then
+                            local expanded = i % 2 == 0 and " Expanded" or ""
+                            local name = bundleTypes[index]:lower()..(i%2==0 and "-expanded" or "")
+                            DLMAN:DownloadCoreBundle(name, true)
+                            inBundles = false
+                            page = 1
                         end
                         pack:DownloadAndInstall(true)
                         self:GetParent():GetParent():playcommand("UpdateItemList")
@@ -612,6 +622,9 @@ local function downloadsList()
                             toolTipOn("Download Pack (Mirror)")
                             self:diffusealpha(buttonHoverAlpha)
                         end
+                    elseif bundle ~= nil then
+                        toolTipOn("Download Bundle (Mirror)")
+                        self:diffusealpha(buttonHoverAlpha)
                     end
                 end,
                 MouseOutCommand = function(self)
