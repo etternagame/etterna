@@ -1494,11 +1494,49 @@ local function leftFrame()
 
         local t = Def.ActorFrame {
             Name = "ColorConfigPageContainer",
+            BeginCommand = function(self)
+                local snm = SCREENMAN:GetTopScreen():GetName()
+                local anm = self:GetName()
+
+                -- cursor input management for color config
+                -- noteskin display is not relevant for this, just contains it for reasons
+                CONTEXTMAN:RegisterToContextSet(snm, "ColorConfig", anm)
+                CONTEXTMAN:ToggleContextSet(snm, "ColorConfig", false)
+
+                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                    -- if locked out, dont allow
+                    if not CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
+                    if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
+                        local gameButton = event.button
+                        local key = event.DeviceInput.button
+                        local up = gameButton == "Up" or gameButton == "MenuUp"
+                        local down = gameButton == "Down" or gameButton == "MenuDown"
+                        local right = gameButton == "MenuRight" or gameButton == "Right"
+                        local left = gameButton == "MenuLeft" or gameButton == "Left"
+                        local enter = gameButton == "Start"
+                        local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+                        local back = key == "DeviceButton_escape"
+                        local rightclick = key == "DeviceButton_right mouse button"
+                        local leftclick = key == "DeviceButton_left mouse button"
+
+                        
+                        if back then
+                            -- shortcut to exit back to settings
+                            -- press twice to exit back to general
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
+                        else
+                            -- nothing happens
+                            return
+                        end
+                    end
+                end)
+            end,
             ShowLeftCommand = function(self, params)
                 if params and params.name == "Color Config" then
                     self:diffusealpha(1)
                     self:z(1)
                     SCUFF.showingColor = true
+                    CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Keybindings")
                 else
                     self:playcommand("HideLeft")
                 end
