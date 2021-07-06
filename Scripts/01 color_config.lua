@@ -1,17 +1,73 @@
 local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 local defaultConfig = {
 	main = {
-		highlight = "#614080",
-		frames = "#000111",
-		enabled = "#4CBB17",
-		disabled = "#666666",
-		negative = "#FF9999",
-		positive = "#9654FD"
+		Highlight = "#614080",
+		Frames = "#000111",
+		Enabled = "#4cbb17",
+		Disabled = "#666666",
+		Negative = "#ff9999",
+		Positive = "#9654fd",
+		PrimaryBackground = "#000000",
+		SecondaryBackground = "#000000",
+		PrimaryText = "#ffffff",
+		SecondaryText = "#ffffff",
+		IconColor = "#ffffff",
+		Visualizer = "#ffffff",
+		SeparationDivider = "#ffffff",
 	},
 	leaderboard = {
-		background = "#111111CC",
-		border = "#000111",
-		text = "#9654FD"
+		Background = "#111111cc",
+		Border = "#000111",
+		Text = "#9654fd"
+	},
+	musicWheel = {
+		HeaderBackground = "#111111",
+		FolderBackground = "#111111",
+		SongBackground = "#111111",
+		ItemDivider = "#999999",
+		GraphLine = "#ffffff",
+		Favorite = "#ffff00",
+		Permamirror = "#1111bb",
+	},
+	generalBox = {
+		RequiredTag = "#8888ff",
+		AssignedTag = "#ff8888",
+		FilteredTag = "#88ff88",
+		GoalBackground = "#ffffff",
+	},
+	chartPreview = {
+		Background = "#ffffff",
+		GraphBackground = "#ffffff",
+		GraphNPSLine = "#666699",
+		GraphNPSText = "#666699",
+		GraphSeekBar = "#666699",
+		GraphLowestDensityBar = "#ffffff",
+		GraphHighestDensityBar = "#000000",
+	},
+	downloader = {
+		ProgressBarFill = "#ffffff",
+		ProgressBarBackground = "#ffffff",
+		InstalledIcon = "#00ff00",
+	},
+	options = {
+		Cursor = "#ffffff",
+	},
+	assetSettings = {
+		HoveredItem = "#ffffff",
+		SavedItem = "#999999",	
+	},
+	offsetPlot = {
+		background = "#000000",
+		mineHit = "#ff0000",
+		holdDrop = "#ff0000",
+		rollDrop = "#ff00ff",
+	},
+	title = {
+		PrimaryText = "#ffffff",
+		SecondaryText = "#ffffff",
+		ProfileBackground = "#000000",
+		Separator = "#ffffff",
+		UnderlayBackground = "#333333",
 	},
 	clearType = {
 		MFC = "#66ccff",
@@ -70,7 +126,6 @@ local defaultConfig = {
 		Grade_None = "#666666" -- no play
 	},
 	judgment = {
-		-- Colors of each Judgment types
 		TapNoteScore_W1 = "#99ccff",
 		TapNoteScore_W2 = "#f2cb30",
 		TapNoteScore_W3 = "#14cc8f",
@@ -80,22 +135,17 @@ local defaultConfig = {
 		HoldNoteScore_Held = "#f2cb30",
 		HoldNoteScore_LetGo = "#cc2929"
 	},
-	songLength = {
-		normal = "#FFFFFF", -- normal
-		long = "#ff9a00", --orange
-		marathon = "#da5757" -- red
-	},
 	combo = {
-		Marv_FullCombo = "#00aeef",
-		Perf_FullCombo = "#fff568",
+		MarvFullCombo = "#00aeef",
+		PerfFullCombo = "#fff568",
 		FullCombo = "#a4ff00",
 		RegularCombo = "#ffffff",
 		ComboLabel = "#00aeef"
 	},
 	laneCover = {
-		cover = "#333333",
-		bpmText = "#4CBB17",
-		heightText = "#FFFFFF"
+		Cover = "#333333",
+		BPMText = "#4CBB17",
+		HeightText = "#FFFFFF"
 	}
 }
 
