@@ -1221,7 +1221,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	}
 
 	static int SetPercent(T* p, lua_State* L)
-	{	
+	{
 		if (!p->achieved) {
 			auto newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
@@ -1245,7 +1245,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 				else
 					newpercent = 0.99f;
 			}
-			
+
 
 			p->percent = newpercent;
 			p->CheckVacuity();
@@ -1258,7 +1258,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	{
 		if (!p->achieved) {
 			auto newpriority = IArg(1);
-			CLAMP(newpriority, 0, 100);
+			CLAMP(newpriority, 1, 100);
 			p->priority = newpriority;
 			p->UploadIfNotVacuous();
 		}
