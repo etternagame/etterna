@@ -18,12 +18,13 @@ local defaultConfig = {
 	leaderboard = {
 		Background = "#111111cc",
 		Border = "#000111",
-		Text = "#9654fd"
+		Text = "#9654fd",
 	},
 	musicWheel = {
 		HeaderBackground = "#111111",
 		FolderBackground = "#111111",
 		SongBackground = "#111111",
+		TitleGlow = "#999999",
 		ItemDivider = "#999999",
 		GraphLine = "#ffffff",
 		Favorite = "#ffff00",
@@ -69,6 +70,18 @@ local defaultConfig = {
 		Separator = "#ffffff",
 		UnderlayBackground = "#333333",
 	},
+	combo = {
+		MarvFullCombo = "#00aeef",
+		PerfFullCombo = "#fff568",
+		FullCombo = "#a4ff00",
+		RegularCombo = "#ffffff",
+		ComboLabel = "#00aeef",
+	},
+	laneCover = {
+		Cover = "#333333",
+		BPMText = "#4CBB17",
+		HeightText = "#FFFFFF",
+	},
 	clearType = {
 		MFC = "#66ccff",
 		WF = "#dddddd",
@@ -83,7 +96,7 @@ local defaultConfig = {
 		Failed = "#e61e25",
 		Invalid = "#e61e25",
 		NoPlay = "#666666",
-		None = "#666666"
+		None = "#666666",
 	},
 	difficulty = {
 		Difficulty_Beginner = "#66ccff", -- light blue
@@ -103,7 +116,7 @@ local defaultConfig = {
 		Difficulty_Nightmare = "#666666",
 		Crazy = "#cc66ff",
 		Freestyle = "#666666",
-		Nightmare = "#666666"
+		Nightmare = "#666666",
 	},
 	grades = {
 		Grade_Tier01 = "#ffffff", -- AAAAA
@@ -133,20 +146,8 @@ local defaultConfig = {
 		TapNoteScore_W5 = "#ff1ab3",
 		TapNoteScore_Miss = "#cc2929",
 		HoldNoteScore_Held = "#f2cb30",
-		HoldNoteScore_LetGo = "#cc2929"
+		HoldNoteScore_LetGo = "#cc2929",
 	},
-	combo = {
-		MarvFullCombo = "#00aeef",
-		PerfFullCombo = "#fff568",
-		FullCombo = "#a4ff00",
-		RegularCombo = "#ffffff",
-		ComboLabel = "#00aeef"
-	},
-	laneCover = {
-		Cover = "#333333",
-		BPMText = "#4CBB17",
-		HeightText = "#FFFFFF"
-	}
 }
 
 local presetfolder = "Save" .. settings_prefix .. "color_presets/"
@@ -349,10 +350,12 @@ function changeCurrentColorPreset(preset)
 	colorConfig:save()
 
 	COLORS:loadColorPreset(preset)
+	MESSAGEMAN:Broadcast("ColorConfigUpdated")
 end
 
 function COLORS.saveColor(self, category, element, rawColor)
 	self.presets[getColorPreset()][category][element] = rawColor
+	MESSAGEMAN:Broadcast("ColorConfigUpdated")
 end
 function saveColor(category, element, rawColor) COLORS:saveColor(category, element, rawColor) end
 
@@ -410,6 +413,16 @@ end
 function COLORS.colorByClearType(self, type)
 	return self:getColor("clearType", type)
 end
+
+function COLORS.getTitleColor(self, element)
+	return self:getColor("title", element)
+end
+function getTitleColor(element) return COLORS:getTitleColor(element) end
+
+function COLORS.getWheelColor(self, element)
+	return self:getColor("musicWheel", element)
+end
+function getWheelColor(element) return COLORS:getWheelColor(element) end
 
 function COLORS.colorByJudgment(self, judge)
 	return self:getColor("judgment", judge)
@@ -534,6 +547,16 @@ function colorToRGBNums(c)
 	local bX = scale(b, 0, 1, 0, 255)
 	local aX = scale(a, 0, 1, 0, 255)
 	return rX, gX, bX, aX
+end
+
+-- provide the listener just to save a little bit of copy pasting
+-- attach this to ColorConfigUpdatedMessageCommand
+function getColorConfigUpdaterFunction(category, element)
+	return function(self)
+		local alphab4 = self:GetDiffuseAlpha()
+		self:diffuse(COLORS:getColor(category, element))
+		self:diffusealpha(alphab4)
+	end
 end
 
 -- run this stuff at init/load
