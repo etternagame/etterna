@@ -1671,6 +1671,7 @@ local function leftFrame()
                 -- hack to set up all default values
                 applyHSV()
                 MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+                MESSAGEMAN:Broadcast("UpdateColorConfigChoiceCursorDisplay")
             end,
 
             Def.ActorFrame {
