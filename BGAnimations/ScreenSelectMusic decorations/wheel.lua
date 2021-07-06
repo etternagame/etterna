@@ -91,7 +91,15 @@ local wheelHeaderTextSize = 1.2
 local wheelHeaderMTextSize = 0.6
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
 
-local favoriteColor = color("1,1,0")
+local favoriteColor = COLORS:getWheelColor("Favorite")
+local permamirrorColor = COLORS:getWheelColor("Permamirror")
+local headerBGColor = COLORS:getWheelColor("HeaderBackground")
+local folderBGColor = COLORS:getWheelColor("FolderBackground")
+local songBGColor = COLORS:getWheelColor("SongBackground")
+local graphLineColor = COLORS:getWheelColor("GraphLine")
+local dividerColor = COLORS:getWheelColor("ItemDivider")
+local primaryTextColor = COLORS:getMainColor("PrimaryText")
+local secondaryTextColor = COLORS:getMainColor("SecondaryText")
 
 -----
 -- header related things
@@ -217,7 +225,7 @@ local function generateRecentWifeScoreGraph()
         local w = s:GetWifeScore() * 100
         local x = graphXPos(i, graphWidth)
         local y = graphYPos(w, actuals.HeaderHeight / 8 * 6)
-        createVertices(v, x, y, color("1,1,1,1"))
+        createVertices(v, x, y, graphLineColor)
     end
 
     return v
@@ -269,9 +277,8 @@ local function wheelItemBase()
             Name = "ItemBG",
             InitCommand = function(self)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
-                self:diffuse(color("#111111"))
-                self:diffusealpha(0.6)
-            end
+                -- coloring is somehow handled by the song/group stuff
+            end,
         },
         Def.Quad { 
             Name = "Divider",
@@ -279,8 +286,10 @@ local function wheelItemBase()
                 self:halign(0):valign(0)
                 self:zoomto(actuals.ItemDividerLength, actuals.ItemDividerThickness)
                 self:xy(actuals.Width / 2 - actuals.ItemDividerLength, -actuals.ItemHeight/2)
-                self:diffuse(color("0.6,0.6,0.6,1"))
-            end
+                self:diffuse(dividerColor)
+                self:diffusealpha(1)
+            end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("musicWheel", "ItemDivider"),
         },
     }
 end
@@ -353,15 +362,23 @@ local function songActorBuilder()
             InitCommand = function(self)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
-                self:strokecolor(color("0.6,0.6,0.6,0.75"))
+                self:strokecolor(Brightness(primaryTextColor, 0.65))
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
                 self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemTitleTextSize)
+                self:diffuse(primaryTextColor)
+                self:diffusealpha(1)
+                -- hack to color the ItemBG later
+                local itembg = self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG")
+                itembg:diffuse(songBGColor)
+                itembg:diffusealpha(1)
+                itembg:addcommand("ColorConfigUpdatedMessage", getColorConfigUpdaterFunction("musicWheel", "SongBackground"))
             end,
             BeginCommand = function(self)
                 self:GetParent().Title = self
-            end
+            end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "PrimaryText"),
         },
         LoadFont("Common Normal") .. {
             Name = "SubTitle",
@@ -372,10 +389,13 @@ local function songActorBuilder()
                 self:halign(0)
                 self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemSubTitleTextSize)
+                self:diffuse(secondaryTextColor)
+                self:diffusealpha(1)
             end,
             BeginCommand = function(self)
                 self:GetParent().SubTitle = self
-            end
+            end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "SecondaryText"),
         },
         LoadFont("Common Normal") .. {
             Name = "Artist",
@@ -386,10 +406,13 @@ local function songActorBuilder()
                 self:halign(0)
                 self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemArtistTextSize)
+                self:diffuse(secondaryTextColor)
+                self:diffusealpha(1)
             end,
             BeginCommand = function(self)
                 self:GetParent().Artist = self
-            end
+            end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "SecondaryText"),
         },
         LoadFont("Common Normal") .. {
             Name = "Grade",
@@ -438,7 +461,8 @@ local function songActorBuilder()
             end,
             BeginCommand = function(self)
                 self:GetParent().Favorited = self
-            end
+            end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("musicWheel", "Favorite"),
         }
     }
 end
@@ -492,7 +516,9 @@ local function scoreStatsFrame()
                 else
                     self:diffuse(colorByClearType("Clear"))
                 end
+                self:diffusealpha(1)
             end,
+            ColorConfigUpdatedMessageCommand = grade ~= "Grade_Tier20" and getColorConfigUpdaterFunction("grades", grade) or getColorConfigUpdaterFunction("clearType", "Clear"),
         }
     end
 
@@ -569,12 +595,18 @@ local function groupActorBuilder()
                 self:zoom(wheelItemGroupTextSize)
                 self:halign(0)
                 self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+                self:diffuse(primaryTextColor)
+                self:diffusealpha(1)
                 -- we make the background of groups fully opaque to distinguish them from songs
-                self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG"):diffusealpha(1)
+                local itembg = self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG")
+                itembg:diffuse(folderBGColor)
+                itembg:diffusealpha(1)
+                itembg:addcommand("ColorConfigUpdatedMessage", getColorConfigUpdaterFunction("musicWheel", "FolderBackground"))
             end,
             BeginCommand = function(self)
                 self:GetParent().Title = self
-            end
+            end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "PrimaryText"),
         },
         LoadFont("Common Normal") .. {
             Name = "GroupInfo",
@@ -584,12 +616,15 @@ local function groupActorBuilder()
                 self:zoom(wheelItemGroupInfoTextSize)
                 self:halign(0)
                 self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
+                self:diffuse(secondaryTextColor)
+                self:diffusealpha(1)
                 self.avg = 0
                 self.count = 0
             end,
             BeginCommand = function(self)
                 self:GetParent().GroupInfo = self
             end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "SecondaryText"),
             SetInfoCommand = function(self, params)
                 self.count = params.count
                 self.avg = params.avg
@@ -902,9 +937,10 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(actuals.Width, actuals.HeaderHeight)
-            self:diffuse(color("#111111"))
+            self:diffuse(headerBGColor)
             self:diffusealpha(0.6)
         end,
+        ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("musicWheel", "HeaderBackground"),
         MouseDownCommand = function(self, params)
             if not visible then return end
             if params.event == "DeviceButton_left mouse button" then
@@ -965,7 +1001,10 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderText1UpperGap)
                 self:zoom(wheelHeaderTextSize)
                 self:maxwidth((actuals.Width - actuals.HeaderTextLeftGap * 2 - actuals.HeaderBannerWidth) / wheelHeaderTextSize)
+                self:diffuse(primaryTextColor)
+                self:diffusealpha(1)
             end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "PrimaryText"),
             SetCommand = function(self)
                 self:settext(openedGroup)
             end
@@ -977,7 +1016,10 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(actuals.HeaderBannerWidth + actuals.HeaderTextLeftGap, actuals.HeaderText2UpperGap)
                 self:zoom(wheelHeaderTextSize)
                 self:maxwidth((actuals.Width - actuals.HeaderTextLeftGap * 2 - actuals.HeaderBannerWidth) / wheelHeaderTextSize)
+                self:diffuse(secondaryTextColor)
+                self:diffusealpha(1)
             end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "SecondaryText"),
             SetCommand = function(self)
                 local files = WHEELDATA:GetFolderCount(openedGroup)
                 local avg = WHEELDATA:GetFolderAverageDifficulty(openedGroup)[1]
@@ -1015,7 +1057,10 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(actuals.HeaderMTextLeftGap, actuals.HeaderMText1UpperGap)
                 self:zoom(wheelHeaderMTextSize)
                 self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
+                self:diffuse(primaryTextColor)
+                self:diffusealpha(1)
             end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "PrimaryText"),
             SetCommand = function(self)
                 local sesstime = GAMESTATE:GetSessionTime()
                 self:settextf("Session Time: %s", SecondsToHHMMSS(sesstime))
@@ -1028,7 +1073,10 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(actuals.HeaderMTextLeftGap, actuals.HeaderMText2UpperGap)
                 self:zoom(wheelHeaderMTextSize)
                 self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
+                self:diffuse(primaryTextColor)
+                self:diffusealpha(1)
             end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "PrimaryText"),
             SetCommand = function(self)
                 self:settextf("Session Plays: %d", playsThisSession)
             end
@@ -1040,7 +1088,10 @@ t[#t+1] = Def.ActorFrame {
                 self:xy(actuals.HeaderMTextLeftGap, actuals.HeaderMText3UpperGap)
                 self:zoom(wheelHeaderMTextSize)
                 self:maxwidth((actuals.BannerWidth - actuals.HeaderMTextLeftGap) / wheelHeaderMTextSize)
+                self:diffuse(primaryTextColor)
+                self:diffusealpha(1)
             end,
+            ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "PrimaryText"),
             SetCommand = function(self)
                 self:settextf("Average Accuracy: %5.2f%%", accThisSession)
             end
@@ -1063,7 +1114,10 @@ t[#t+1] = Def.ActorFrame {
                     self:x(actuals.HeaderMTextLeftGap)
                     self:y(actuals.HeaderHeight / 8)
                     self:zoomto(actuals.ItemDividerThickness, actuals.HeaderHeight / 8 * 6)
+                    self:diffuse(graphLineColor)
+                    self:diffusealpha(1)
                 end,
+                ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("musicWheel", "GraphLine"),
             },
             Def.Quad {
                 Name = "XAxisLine",
@@ -1072,7 +1126,10 @@ t[#t+1] = Def.ActorFrame {
                     self:x(actuals.HeaderMTextLeftGap)
                     self:y(actuals.HeaderHeight - actuals.HeaderHeight / 8)
                     self:zoomto(graphWidth, actuals.ItemDividerThickness)
+                    self:diffuse(graphLineColor)
+                    self:diffusealpha(1)
                 end,
+                ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("musicWheel", "GraphLine"),
             },
             LoadFont("Common Normal") .. {
                 Name = "YMax",
@@ -1083,7 +1140,10 @@ t[#t+1] = Def.ActorFrame {
                     self:rotationz(-45)
                     self:zoom(graphBoundTextSize)
                     self:settextf("%d%%", notShit.round(graphUpperBound))
+                    self:diffuse(secondaryTextColor)
+                    self:diffusealpha(1)
                 end,
+                ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "SecondaryText"),
             },
             LoadFont("Common Normal") .. {
                 Name = "YMin",
@@ -1094,7 +1154,10 @@ t[#t+1] = Def.ActorFrame {
                     self:rotationz(-45)
                     self:zoom(graphBoundTextSize)
                     self:settextf("%d%%", notShit.round(graphLowerBound))
+                    self:diffuse(secondaryTextColor)
+                    self:diffusealpha(1)
                 end,
+                ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("main", "SecondaryText"),
             },
 
             Def.ActorMultiVertex {
@@ -1110,7 +1173,8 @@ t[#t+1] = Def.ActorFrame {
                         self:SetVertices({})
                         self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = 0}
                     end
-                end
+                end,
+                ColorConfigUpdatedMessageCommand = getColorConfigUpdaterFunction("musicWheel", "GraphLine"),
             }
         }
     }
