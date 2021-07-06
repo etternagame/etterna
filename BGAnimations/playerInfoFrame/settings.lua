@@ -1331,7 +1331,7 @@ local function leftFrame()
         -- revert current color to original default color, do not save
         local function resetToDefault()
             if selectedcategory == "" or selectedelement == "" then return end
-            aboutToSave = false
+            aboutToSave = true
             currentColor = getDefaultColor(selectedcategory, selectedelement)
             hueNum, satNum, valNum, alphaNum = colorToHSVNums(currentColor)
             applyHSV()
