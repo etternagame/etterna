@@ -2042,10 +2042,12 @@ local function leftFrame()
 
             local function colorConfigChoice(i)
                 local index = i
-                local itemWidth = (actuals.LeftWidth - actuals.EdgePadding*2) * 0.8
+                -- leaving 0.2 here for the page number
+                local itemWidth = (actuals.LeftWidth - actuals.EdgePadding*2) * 0.6
+                local itemColorPreviewWith = (actuals.LeftWidth - actuals.EdgePadding*2) * 0.2
                 local itemData = nil
 
-                return UIElements.TextButton(1, 1, "Common Normal") .. {
+                local t = UIElements.TextButton(1, 1, "Common Normal") .. {
                     Name = "ColorConfigItemChoice",
                     InitCommand = function(self)
                         local txt = self:GetChild("Text")
@@ -2070,6 +2072,7 @@ local function leftFrame()
                         itemData = displayItemDatas[index]
                         self:finishtweening()
                         self:diffusealpha(0)
+                        self:GetChild("ElementPreview"):playcommand("UpdateElementPreview")
                         if itemData ~= nil then
                             self:playcommand("UpdateText")
                             self:smooth(itemListAnimationSeconds * i)
@@ -2105,8 +2108,26 @@ local function leftFrame()
                             end
                             self:alphaDeterminingFunction()
                         end
+                    end
+                }
+                t[#t+1] = Def.Quad {
+                    Name = "ElementPreview",
+                    InitCommand = function(self)
+                        self:halign(0)
+                        self:x(itemWidth)
+                        self:zoomto(itemColorPreviewWith, remainingYSpace / colorConfigItemCount * 0.6)
+                    end,
+                    UpdateElementPreviewCommand = function(self)
+                        if itemData == nil or itemData == "" or (selectionstate ~= "editing" and selectionstate ~= "element") then
+                            self:visible(false)
+                            return
+                        else
+                            self:visible(true)
+                            self:diffuse(COLORS:getColor(selectedcategory, itemData))
+                        end
                     end,
                 }
+                return t
             end
             for i = 1, colorConfigItemCount-1 do
                 t[#t+1] = colorConfigChoice(i)
