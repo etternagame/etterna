@@ -1157,6 +1157,9 @@ local function leftFrame()
 
         -- probably make this an odd number for the ocd kids because this includes a top item which does not ever change
         local colorConfigItemCount = 13
+        -- lost track of what this means dont care
+        -- basically if this is true and you press enter you save
+        -- and if not and you press enter, the change is applied then you have to hit enter again
         local aboutToSave = false
 
         -- stores the data for items to display
@@ -1292,8 +1295,14 @@ local function leftFrame()
             else
                 return
             end
+            local bh, bs, bv, ba = hueNum, satNum, valNum, alphaNum
             hueNum, satNum, valNum, alphaNum = colorToHSVNums(finalcolor)
-            aboutToSave = true
+            -- check to see if the color changed
+            if bh ~= hueNum or bs ~= satNum or valNum ~= bv or alphaNum ~= ba then
+                aboutToSave = true
+            else
+                aboutToSave = false
+            end
             applyHSV()
         end
 
@@ -1494,43 +1503,6 @@ local function leftFrame()
 
         local t = Def.ActorFrame {
             Name = "ColorConfigPageContainer",
-            BeginCommand = function(self)
-                local snm = SCREENMAN:GetTopScreen():GetName()
-                local anm = self:GetName()
-
-                -- cursor input management for color config
-                -- noteskin display is not relevant for this, just contains it for reasons
-                CONTEXTMAN:RegisterToContextSet(snm, "ColorConfig", anm)
-                CONTEXTMAN:ToggleContextSet(snm, "ColorConfig", false)
-
-                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
-                    -- if locked out, dont allow
-                    if not CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
-                    if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
-                        local gameButton = event.button
-                        local key = event.DeviceInput.button
-                        local up = gameButton == "Up" or gameButton == "MenuUp"
-                        local down = gameButton == "Down" or gameButton == "MenuDown"
-                        local right = gameButton == "MenuRight" or gameButton == "Right"
-                        local left = gameButton == "MenuLeft" or gameButton == "Left"
-                        local enter = gameButton == "Start"
-                        local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
-                        local back = key == "DeviceButton_escape"
-                        local rightclick = key == "DeviceButton_right mouse button"
-                        local leftclick = key == "DeviceButton_left mouse button"
-
-                        
-                        if back then
-                            -- shortcut to exit back to settings
-                            -- press twice to exit back to general
-                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
-                        else
-                            -- nothing happens
-                            return
-                        end
-                    end
-                end)
-            end,
             ShowLeftCommand = function(self, params)
                 if params and params.name == "Color Config" then
                     self:diffusealpha(1)
@@ -1547,6 +1519,104 @@ local function leftFrame()
                 SCUFF.showingColor = false
             end,
             BeginCommand = function(self)
+                local snm = SCREENMAN:GetTopScreen():GetName()
+                local anm = self:GetName()
+
+                -- cursor input management for color config
+                -- noteskin display is not relevant for this, just contains it for reasons
+                CONTEXTMAN:RegisterToContextSet(snm, "ColorConfig", anm)
+                CONTEXTMAN:ToggleContextSet(snm, "ColorConfig", false)
+                SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                    -- if locked out, dont allow
+                    if not CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
+                    if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
+                        local gameButton = event.button
+                        local key = event.DeviceInput.button
+                        local up = gameButton == "Up" or gameButton == "MenuUp"
+                        local down = gameButton == "Down" or gameButton == "MenuDown"
+                        local right = gameButton == "MenuRight" or gameButton == "Right"
+                        local left = gameButton == "MenuLeft" or gameButton == "Left"
+                        local enter = gameButton == "Start"
+                        local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+                        local alt = INPUTFILTER:IsBeingPressed("right alt") or INPUTFILTER:IsBeingPressed("left alt")
+                        local back = key == "DeviceButton_escape"
+                        local delete = key == "DeviceButton_delete"
+                        local backspace = key == "DeviceButton_backspace"
+                        local rightclick = key == "DeviceButton_right mouse button"
+                        local leftclick = key == "DeviceButton_left mouse button"
+
+                        if back then
+                            if selectionstate == "editing" then
+                                -- pressing back while editing moves back to element seletion
+                                switchSelectionState("element")
+                            else
+                                -- shortcut to exit back to settings
+                                -- press twice to exit back to general
+                                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
+                            end
+                        elseif selectionstate == "editing" then
+                            -- editing a color, typing only on the color
+                            local letter = event.char
+
+                            if letter and letter:match('[%x]') then
+                                -- match all hex for inputting color
+                                handleHexEntry(letter)
+                            elseif delete then
+                                -- pressed delete
+                                if ctrl then
+                                    -- holding ctrl, "pressed reset to default"
+                                    resetToDefault()
+                                elseif alt then
+                                    -- holding alt, "pressed undo"
+                                    undoChanges()
+                                else
+                                    hexEntryString = "#"
+                                    textCursorPos = 2
+                                    aboutToSave = false
+                                end
+                                MESSAGEMAN:Broadcast("UpdateStringDisplay")
+                            elseif backspace then
+                                if #hexEntryString > 1 then
+                                    if textCursorPos - 1 == #hexEntryString then
+                                        hexEntryString = hexEntryString:sub(1, -2)
+                                    else
+                                        local left = hexEntryString:sub(1, textCursorPos - 1)
+                                        local right = hexEntryString:sub(textCursorPos + 1)
+                                        hexEntryString = left .. "0" .. right
+                                    end
+                                    textCursorPos = textCursorPos + cursorCanMove(-1)
+                                    aboutToSave = false
+                                    MESSAGEMAN:Broadcast("UpdateStringDisplay")
+                                end
+                            elseif left then
+                                local before = textCursorPos
+                                textCursorPos = textCursorPos + cursorCanMove(-1)
+                                if before ~= textCursorPos then
+                                    MESSAGEMAN:Broadcast("UpdateStringDisplay")
+                                end
+                            elseif right then
+                                local before = textCursorPos
+                                textCursorPos = textCursorPos + cursorCanMove(1)
+                                if before ~= textCursorPos then
+                                    MESSAGEMAN:Broadcast("UpdateStringDisplay")
+                                end
+                            elseif enter then
+                                if aboutToSave then
+                                    saveColor()
+                                else
+                                    handleTextUpdate()
+                                end
+                            end
+                        elseif selectionstate ~= "editing" then
+                            -- all cursor movement
+
+                        else
+                            -- nothing happens
+                            return
+                        end
+                    end
+                end)
+
                 -- hack to set up all default values
                 applyHSV()
                 MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
