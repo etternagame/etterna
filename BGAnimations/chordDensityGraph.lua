@@ -11,6 +11,8 @@ if sizing == nil then sizing = {} end
 -- the bg is placed relative to top left: 0,0 alignment
 -- the bars are placed relative to bottom left: 1 valign 0 halign
 local stepsinuse = nil
+local lowDensityColor = COLORS:getColor("chartPreview", "GraphLowestDensityBar")
+local highDensityColor = COLORS:getColor("chartPreview", "GraphHighestDensityBar")
 local t = Def.ActorFrame {
     Name = "ChordDensityGraphFile",
     InitCommand = function(self)
@@ -93,8 +95,8 @@ local function getColorForDensity(density, nColumns)
 	-- The value var describes the level of density.
     -- Beginning at lowVal for 0, to highVal for nColumns.
     local interval = 1 / nColumns
-	local value = 1 - density * interval
-	return color(tostring(value)..","..tostring(value)..","..tostring(value))
+	local value = density * interval
+    return lerp_color(value, lowDensityColor, highDensityColor)
 end
 
 local function makeABar(vertices, x, y, barWidth, barHeight, thecolor)
