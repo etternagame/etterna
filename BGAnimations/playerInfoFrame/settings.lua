@@ -1536,7 +1536,7 @@ local function leftFrame()
                     self:diffusealpha(1)
                     self:z(1)
                     SCUFF.showingColor = true
-                    CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Keybindings")
+                    CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "ColorConfig")
                 else
                     self:playcommand("HideLeft")
                 end
