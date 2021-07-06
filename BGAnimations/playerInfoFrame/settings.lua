@@ -1168,6 +1168,7 @@ local function leftFrame()
         local displayItemDatas = getColorConfigCategories()
         local page = 1
         local maxPage = math.ceil(#displayItemDatas / (colorConfigItemCount-1))
+        local cursorPosition = 1
 
         -- selected and saved element colors and HSV info (defaulted to white)
         local currentColor = color("1,1,1,1")
@@ -1192,21 +1193,52 @@ local function leftFrame()
         local hexStringMaxLengthWithoutAlpha = 7
         local hexStringMaxLength = showAlpha and hexStringMaxLengthWithAlpha or hexStringMaxLengthWithoutAlpha
 
+        -- move choice pages
         local function movePage(n)
             if maxPage <= 1 then
                 return
             end
             -- the tooltip gets stuck on if it is visible and page changes
             TOOLTIP:Hide()
-    
             -- math to make pages loop both directions
             local nn = (page + n) % (maxPage + 1)
             if nn == 0 then
                 nn = n > 0 and 1 or maxPage
             end
             page = nn
-    
             MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+        end
+        -- move choice selection cursor and also maybe move pages
+        local function moveChoiceCursor(n)
+            -- math to make pages loop both directions
+            local newpos = cursorPosition + n
+            if newpos > #displayItemDatas then
+                newpos = 1
+                cursorPosition = newpos
+                if page ~= 1 then
+                    page = 1
+                    MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+                end
+            elseif newpos < 1 then
+                newpos = #displayItemDatas
+                cursorPosition = newpos
+                if maxPage ~= page then
+                    page = maxPage
+                    MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+                end
+            else
+                cursorPosition = newpos
+                local lb = clamp((page-1) * (colorConfigItemCount-1) + 1, 0, #displayItemDatas)
+                local ub = clamp(page * colorConfigItemCount-1, 0, #displayItemDatas)
+                if cursorPosition < lb then
+                    page = page - 1
+                    MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+                elseif cursorPosition > ub then
+                    page = page + 1
+                    MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+                end
+            end
+            MESSAGEMAN:Broadcast("UpdateColorConfigChoiceCursorDisplay")
         end
         
         -- apply the HSV+A vars to the current state of the config
@@ -1398,6 +1430,7 @@ local function leftFrame()
             end
             maxPage = math.ceil(#displayItemDatas / (colorConfigItemCount-1))
             page = 1
+            cursorPosition = 1
             selectionstate = cat
             MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
         end
@@ -1609,7 +1642,25 @@ local function leftFrame()
                             end
                         elseif selectionstate ~= "editing" then
                             -- all cursor movement
-
+                            if left or up then
+                                moveChoiceCursor(-1)
+                            elseif right or down then
+                                moveChoiceCursor(1)
+                            elseif enter then
+                                local itemData = displayItemDatas[cursorPosition]
+                                if selectionstate == "preset" then
+                                    -- clicked a preset, switching to category
+                                    selectPreset(itemData)
+                                elseif selectionstate == "category" then
+                                    -- clicked a category, switching to element
+                                    selectCategory(itemData)
+                                elseif selectionstate == "element" then
+                                    -- clicked an element, switching to edit mode
+                                    selectElement(itemData)
+                                end
+                            elseif backspace then
+                                goUpOneLayer()
+                            end
                         else
                             -- nothing happens
                             return
@@ -2181,6 +2232,7 @@ local function leftFrame()
                         self:finishtweening()
                         self:diffusealpha(0)
                         self:GetChild("ElementPreview"):playcommand("UpdateElementPreview")
+                        self:playcommand("UpdateCursorDisplay")
                         if itemData ~= nil then
                             self:playcommand("UpdateText")
                             self:smooth(itemListAnimationSeconds * i)
@@ -2193,6 +2245,18 @@ local function leftFrame()
                         local txtstr = itemData or ""
                         txt:settextf("%d.  %s", index, txtstr)
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                    end,
+                    UpdateColorConfigChoiceCursorDisplayMessageCommand = function(self)
+                        local bg = self:GetChild("BG")
+                        if itemData ~= nil then
+                            if cursorPosition == index then
+                                bg:diffusealpha(0.2)
+                            else
+                                bg:diffusealpha(0)
+                            end
+                        else
+                            bg:diffusealpha(0)
+                        end
                     end,
                     ColorConfigSelectionStateChangedMessageCommand = function(self)
                         self:playcommand("UpdateColorConfigDisplay")
