@@ -730,6 +730,7 @@ t[#t+1] = Def.ActorFrame {
                         self:zoomto(actuals.Width, actuals.ItemHeight)
                     end,
                     MouseDownCommand = function(self, params)
+                        if not visible then return end
                         if params.event == "DeviceButton_left mouse button" then
                             local index = self:GetParent().index
                             -- subtract 1 here BASED ON numWheelItems
@@ -841,6 +842,7 @@ t[#t+1] = Def.ActorFrame {
                 self:zoomto(actuals.ScrollBarWidth * 2.5, actuals.ScrollBarHeight)
             end,
             MouseDownCommand = function(self, params)
+                if not visible then return end
                 if params.event == "DeviceButton_left mouse button" then
                     local max = self:GetZoomedHeight()
                     local dist = params.MouseY
@@ -904,6 +906,7 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(0.6)
         end,
         MouseDownCommand = function(self, params)
+            if not visible then return end
             if params.event == "DeviceButton_left mouse button" then
                 if not self:GetParent():GetChild("GroupPage"):IsInvisible() then
                     -- left clicking the group header gives a random song in the group
