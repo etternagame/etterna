@@ -1565,6 +1565,7 @@ local function leftFrame()
                     if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
                         local gameButton = event.button
                         local key = event.DeviceInput.button
+                        local letter = event.char
                         local up = gameButton == "Up" or gameButton == "MenuUp"
                         local down = gameButton == "Down" or gameButton == "MenuDown"
                         local right = gameButton == "MenuRight" or gameButton == "Right"
@@ -1589,8 +1590,6 @@ local function leftFrame()
                             end
                         elseif selectionstate == "editing" then
                             -- editing a color, typing only on the color
-                            local letter = event.char
-
                             if letter and letter:match('[%x]') then
                                 -- match all hex for inputting color
                                 handleHexEntry(letter)
@@ -1659,7 +1658,11 @@ local function leftFrame()
                                     selectElement(itemData)
                                 end
                             elseif backspace then
+                                -- go up one layer
                                 goUpOneLayer()
+                            elseif key and key == "DeviceButton_n" and ctrl then
+                                -- ctrl-n makes a new preset
+                                newPresetDialogue()
                             end
                         else
                             -- nothing happens
