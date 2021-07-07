@@ -24,7 +24,7 @@ local function genericHighlight(self, highlight, base, clickaction)
 	self:SetUpdateFunctionInterval(0.025)
 	if clickaction then
 		self:RunCommandsOnChildren(
-			function(self) 
+			function(self)
 				self:addcommand("LeftClickMessage", clickaction)
 			end
 		)
@@ -48,31 +48,29 @@ function GetLocalProfiles()
 		local ProfileCard =
 			Def.ActorFrame {
 				Name = p,
-				InitCommand = function(self) 
+				InitCommand = function(self)
 					genericHighlight(self, 0.75, 1, selectprofile)
 				end,
 			LoadFont("Common Large") ..
 				{
 					Text = string.format("%s: %.2f", profile:GetDisplayName(), profile:GetPlayerRating()),
 					InitCommand = function(self)
-						self:xy(34 / 2, -10):zoom(0.4):ztest(true, maxwidth, (200 - 34 - 4) / 0.4)	
+						self:xy(38 / 2, -12):zoom(0.4):ztest(true):maxwidth((260 - 40 - 4) / 0.4)
 					end
 				},
 			LoadFont("Common Normal") ..
 				{
 					InitCommand = function(self)
-						self:xy(34 / 2, 8):zoom(0.5):vertspacing(-8):ztest(true):maxwidth((200 - 34 - 4) / 0.5)
+						self:xy(38 / 2, 8):zoom(0.5):vertspacing(-8):ztest(true):maxwidth((260 - 40 - 4 - 60) / 0.5)
 					end,
 					BeginCommand = function(self)
 						local numSongsPlayed = profile:GetNumTotalSongsPlayed()
-						local s = numSongsPlayed == 1 and translated_info["SongPlayed"] or translated_info["SongsPlayed"]
-						-- todo: localize
-						self:settext(numSongsPlayed .. " " .. s)
+						self:settextf("%i %s", numSongsPlayed, translated_info["SongPlayed"])
 					end
 				},
 			Def.Sprite {
 				InitCommand = function(self)
-					self:visible(true):halign(0):xy(-98, -2):ztest(true)
+					self:visible(true):halign(0):xy(-127, -3):ztest(true)
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("ModifyAvatar")
@@ -80,7 +78,7 @@ function GetLocalProfiles()
 				ModifyAvatarCommand = function(self)
 					self:finishtweening()
 					self:Load(getAssetPathFromProfileID("avatar", profileID))
-					self:zoomto(30, 30)
+					self:zoomto(36, 36)
 				end
 			}
 		}
@@ -95,7 +93,7 @@ function LoadCard(cColor)
 		Def.ActorFrame {
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(200 + 4, 230 + 4)
+				self:zoomto(260 + 4, 230 + 4)
 			end,
 			OnCommand = function(self)
 				self:diffuse(color("1,1,1,1"))
@@ -103,7 +101,7 @@ function LoadCard(cColor)
 		},
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(200, 230)
+				self:zoomto(260, 230)
 			end,
 			OnCommand = function(self)
 				self:diffusealpha(0.5):diffuse(cColor)
@@ -146,7 +144,7 @@ function LoadPlayerStuff(Player)
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(200, 40 + 2)
+				self:zoomto(260, 40 + 2)
 			end,
 			OnCommand = function(self)
 				self:diffusealpha(0.3)
@@ -176,9 +174,10 @@ function LoadPlayerStuff(Player)
 	t[#t + 1] =
 		LoadFont("Common Normal") ..
 		{
+			--is there a reason we dont use this just for showing the "no profile" text??
 			Name = "SelectedProfileText",
 			InitCommand = function(self)
-				self:y(160):maxwidth(SCREEN_WIDTH * 0.9)
+				self:y(160):maxwidth(SCREEN_WIDTH * 0.9):visible(0)
 			end
 		}
 
@@ -200,7 +199,7 @@ function UpdateInternal3(self, Player)
 			joinframe:visible(false)
 			smallframe:visible(true)
 			bigframe:visible(true)
-			seltext:visible(true)
+			seltext:visible(false)--
 			scroller:visible(true)
 			local ind = SCREENMAN:GetTopScreen():GetProfileIndex(Player)
 			if ind > 0 then
@@ -215,7 +214,7 @@ function UpdateInternal3(self, Player)
 					smallframe:visible(false)
 					bigframe:visible(false)
 					scroller:visible(false)
-					seltext:settext(translated_info["NoProfile"])
+					seltext:visible(true):settext(translated_info["NoProfile"])
 				end
 			end
 	else
@@ -286,13 +285,13 @@ t[#t + 1] =
 		Def.ActorFrame {
 			Name = "P1Frame",
 			InitCommand = function(self)
-				self:x(SCREEN_CENTER_X):y(SCREEN_CENTER_Y)
+				self:Center()
 			end,
 			OnCommand = function(self)
-				self:zoom(0):bounceend(0.35):zoom(1)
+				self:zoom(0):bounceend(0.25):zoom(1)
 			end,
 			OffCommand = function(self)
-				self:bouncebegin(0.35):zoom(0)
+				self:bouncebegin(0.25):zoom(0)
 			end,
 			PlayerJoinedMessageCommand = function(self, param)
 				if param.Player == PLAYER_1 then
