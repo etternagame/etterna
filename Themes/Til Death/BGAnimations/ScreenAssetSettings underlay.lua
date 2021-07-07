@@ -298,7 +298,7 @@ local function assetBox(i)
 		Name = tostring(i),
 		InitCommand = function(self)
 			self:x((((i-1) % maxColumns)+1)*assetXSpacing)
-			self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+30)
+			self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+25)
 			self:diffusealpha(0)
 		end,
 		PageMovedMessageCommand = function(self)
@@ -342,11 +342,11 @@ local function assetBox(i)
 						self:GetChild("Border"):diffuse(getMainColor("positive")):diffusealpha(0)
 					end
 
-					self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+30)
+					self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+25)
 					self:finishtweening()
 					self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
 					self:diffusealpha(1)
-					self:y((math.floor((i-1)/maxColumns)+1)*assetYSpacing+30)
+					self:y((math.floor((i-1)/maxColumns)+1)*assetYSpacing+25)
 
 				end
 			end
@@ -558,8 +558,8 @@ local function mainContainer()
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
 			self:halign(0)
-			self:xy(-fontSpacing, frameHeight/2 - 16)
-			self:maxwidth((frameWidth / 2 - fontSpacing)/smallFontScale)
+			self:xy(capWideScale(30,-15), frameHeight / 2 - 16)
+			self:maxwidth((frameWidth / 2 - fontSpacing - capWideScale(25,0)) / smallFontScale)
 		end,
 		SetCommand = function(self)
 			local type = assetTable[getIndex()]
@@ -582,8 +582,8 @@ local function mainContainer()
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
 			self:halign(0)
-			self:xy(-fontSpacing, frameHeight/2 - 36)
-			self:maxwidth((frameWidth / 2 - fontSpacing)/smallFontScale)
+			self:xy(capWideScale(30,-15), frameHeight / 2 - 36)
+			self:maxwidth((frameWidth / 2 - fontSpacing - capWideScale(25,0)) / smallFontScale)
 		end,
 		SetCommand = function(self)
 			local type = assetTable[selectedIndex]
