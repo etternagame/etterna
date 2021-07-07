@@ -41,7 +41,10 @@ end
 
 local function highlightIfOver(self)
 	if isOver(self) then
-		self:diffusealpha(0.6)
+		local topname = SCREENMAN:GetTopScreen():GetName()
+		if topname ~= "ScreenEvaluationNormal" and topname ~= "ScreenNetEvaluation" then
+			self:diffusealpha(0.6)
+		end
 	else
 		self:diffusealpha(1)
 	end
