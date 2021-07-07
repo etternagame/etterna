@@ -168,7 +168,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0)
+			self:xy(frameX + 5, frameY + offsetY - 11.5):zoom(0.65):halign(0)
 			self:settext(translated_info["Title"])
 			self:diffuse(Saturation(getMainColor("positive"), 0.1))
 		end
@@ -489,7 +489,7 @@ r[#r + 1] =
 		},
 	Def.Quad {
 		InitCommand = function(self)
-			self:addx(377):addy(3):zoomto(250, 21):halign(1):diffuse(color("#666666"))
+			self:addx(129):addy(3):zoomto(capWideScale(210,250), 21):halign(0):diffuse(color("#666666"))
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and onTab then
@@ -515,7 +515,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:addx(133):addy(1):halign(0):maxwidth(600):zoom(fontScale - 0.05)
+				self:addx(133):addy(2):halign(0):maxwidth(600):zoom(fontScale - 0.05)
 			end,
 			BORPBORPNORFNORFcCommand = function(self)
 				self:settext(curInput)
@@ -640,7 +640,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["Next"])
+				self:x(capWideScale(270,300)):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["Next"])
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) and currenttagpage < numtagpages then
@@ -652,7 +652,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(175):halign(0.5):zoom(0.3)
+				self:x(capWideScale(160,175)):halign(0.5):zoom(0.3)
 				self:aux(1)
 			end,
 			BORPBORPNORFNORFcCommand = function(self)

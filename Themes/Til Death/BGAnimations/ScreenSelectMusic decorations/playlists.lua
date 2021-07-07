@@ -128,7 +128,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameX + 5, frameY + offsetY - 9):zoom(0.6):halign(0)
+			self:xy(frameX + 5, frameY + offsetY - 11):zoom(0.65):halign(0)
 			self:diffuse(Saturation(getMainColor("positive"), 0.1))
 			self:settext(translated_info["Title"])
 		end
@@ -137,7 +137,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 	{
 		InitCommand = function(self)
-			self:xy(frameWidth, frameY + offsetY - 9):zoom(0.6):halign(1)
+			self:xy(frameWidth, frameY + offsetY - 11):zoom(0.65):halign(1)
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
 			self:settext(translated_info["ExplainAdd"])
@@ -513,7 +513,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:x(capWideScale(280,300)):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
 				self:settext(translated_info["Next"])
 			end,
 			DisplayAllMessageCommand = function(self)
@@ -778,7 +778,7 @@ r[#r + 1] =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+				self:x(capWideScale(280,300)):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
 				self:settext(translated_info["Next"])
 			end,
 			DisplaySinglePlaylistMessageCommand = function(self)

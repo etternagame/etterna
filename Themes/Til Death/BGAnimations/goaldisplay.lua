@@ -166,9 +166,6 @@ local o =
 				self:xy(c1x, headeroff):zoom(tzoom):halign(0.5):settext(translated_info["RateLong"])
 				self:diffuse(getMainColor("positive"))
 			end,
-			UpdateCommand = function(self)
-				self:settext(translated_info["RateShort"])
-			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
 			end,
@@ -205,7 +202,7 @@ local o =
 				self:xy(width / 2, headeroff):zoom(tzoom):halign(0.5)
 			end,
 			UpdateCommand = function(self)
-				self:settextf("%i-%i", ind + 1, ind + numgoals)
+				self:settextf("%i-%i (%i)", ind + 1, ind + numgoals, #goaltable)
 			end
 		},
 	LoadFont("Common normal") ..
