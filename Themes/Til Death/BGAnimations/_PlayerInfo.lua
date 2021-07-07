@@ -28,10 +28,12 @@ end
 
 local function highlight(self)
 	self:GetChild("refreshbutton"):queuecommand("Highlight")
+	self:GetChild("Name"):queuecommand("Highlight")
 end
 
 local function highlight2(self)
 	self:GetChild("refreshbutton"):queuecommand("Highlight")
+	self:GetChild("Name"):queuecommand("Highlight")
 	self:GetChild("loginlogout"):queuecommand("Highlight")
 end
 
@@ -137,6 +139,7 @@ local function loginStep2()
 end
 
 
+
 t[#t + 1] =
 	Def.Actor {
 	BeginCommand = function(self)
@@ -195,7 +198,7 @@ t[#t + 1] =
 		{
 			Name = "Name",
 			InitCommand = function(self)
-				self:xy(AvatarX + 53, AvatarY + 7):maxwidth(400):halign(0):zoom(0.6):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(350,410)):halign(0):zoom(0.55):diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
 				self:settextf("%s: %5.2f", profileName, playerRating)
@@ -215,13 +218,16 @@ t[#t + 1] =
 			end,
 			ProfileRenamedMessageCommand = function(self, params)
 				self:settextf("%s: %5.2f", params.doot, playerRating)
+			end,
+			HighlightCommand=function(self)
+				highlightIfOver(self)
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			Name = "loginlogout",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 29):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -258,7 +264,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 25):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 14.5):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -280,7 +286,10 @@ t[#t + 1] =
 				end
 			end,
 			LoginMessageCommand = function(self) --this seems a little clunky -mina
-				if not DLMAN:IsLoggedIn() then return end
+				if not DLMAN:IsLoggedIn() then
+					self:halign(0.5)
+					return
+				end
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settextf(
 						"%s %s (%5.2f: #%i) \n",
@@ -290,6 +299,7 @@ t[#t + 1] =
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
 					)
 					self:GetParent():SetUpdateFunction(highlight2)
+					if not IsUsingWideScreen() then self:halign(0.3) end
 				else
 					self:settextf(
 						"%s %s (%5.2f: #%i)",
@@ -342,11 +352,12 @@ t[#t + 1] =
 		LoginStep2Command = function(self)
 			loginStep2()
 		end
+
 	},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(AvatarX + 53, AvatarY + 20):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -358,19 +369,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(AvatarX + 53, AvatarY + 30):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settextf("%s %s", noteCount, translated_info["TapsHit"])
-			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(AvatarX + 53, AvatarY + 40):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 31.5):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -383,7 +382,19 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X - 125, AvatarY + 40):halign(0.5):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 42):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self)
+				self:settextf("%s %s", noteCount, translated_info["TapsHit"])
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -398,7 +409,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 5, AvatarY + 10):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_WIDTH - 3, AvatarY + 8):halign(1):zoom(0.42):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -410,7 +421,8 @@ t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		Name = "refreshbutton",
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 5, AvatarY + 20):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_WIDTH - 3, AvatarY + 19):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -430,7 +442,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 5, AvatarY + 30):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")

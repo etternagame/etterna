@@ -5,7 +5,7 @@ t[#t + 1] =
 	{
 		Name = "currentTime",
 		InitCommand = function(self)
-			self:xy(SCREEN_WIDTH - 5, SCREEN_BOTTOM - 5):halign(1):valign(1):zoom(0.45)
+			self:xy(SCREEN_WIDTH - 3, SCREEN_BOTTOM - 3.5):halign(1):valign(1):zoom(0.45)
 		end
 	}
 
