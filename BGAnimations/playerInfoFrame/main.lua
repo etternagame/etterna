@@ -565,7 +565,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         MouseDownCommand = function(self, params)
             if params.event == "DeviceButton_left mouse button" then
-                SCREENMAN:set_input_redirected(PLAEYR_1, false)
+                SCREENMAN:set_input_redirected(PLAYER_1, false)
                 SCREENMAN:GetTopScreen():Cancel()
             end
         end
