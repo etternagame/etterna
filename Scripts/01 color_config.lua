@@ -549,14 +549,17 @@ function colorToRGBNums(c)
 	return rX, gX, bX, aX
 end
 
--- provide the listener just to save a little bit of copy pasting
--- attach this to ColorConfigUpdatedMessageCommand
-function getColorConfigUpdaterFunction(category, element)
-	return function(self)
+-- use this function and provide any actor to be colored automatically
+-- immediately updates the color and also listens for future updates
+-- make sure not to overwrite ColorConfigUpdateMessage[Command]
+function registerActorToColorConfigElement(self, category, element)
+	local cmd = function(self)
 		local alphab4 = self:GetDiffuseAlpha()
 		self:diffuse(COLORS:getColor(category, element))
 		self:diffusealpha(alphab4)
 	end
+	cmd(self)
+	self:addcommand("ColorConfigUpdatedMessage", cmd)
 end
 
 -- run this stuff at init/load
