@@ -258,8 +258,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.Height)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.8)
+        registerActorToColorConfigElement(self, "main", "PrimaryBackground")
     end
 }
 
@@ -353,6 +353,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(leftTextBigSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextBigSize - textzoomFudge)
             self:playcommand("Set")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
@@ -371,6 +372,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
             self:settextf("%d plays", pcount)
+            registerActorToColorConfigElement(self, "main", "SecondaryText")
         end
     },
     UIElements.TextToolTip(1, 1, "Common Normal") .. {
@@ -381,6 +383,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
             self:settextf("%s arrows smashed", strparrows)
+            registerActorToColorConfigElement(self, "main", "SecondaryText")
         end,
         MouseOverCommand = function(self)
             if self:IsInvisible() then return end
@@ -400,6 +403,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
             self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+            registerActorToColorConfigElement(self, "main", "SecondaryText")
         end
     }
 }
@@ -423,6 +427,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(rightTextSize)
             self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
             self:playcommand("Set")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
@@ -440,6 +445,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(rightTextSize)
             self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
             self:playcommand("Set")
+            registerActorToColorConfigElement(self, "main", "SecondaryText")
         end,
         SetCommand = function(self)
             local offlinerating = profile:GetPlayerRating()
@@ -458,6 +464,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(rightTextSize)
             self:maxwidth((actuals.VisualizerLeftGap - actuals.RightTextLeftGap - actuals.AvatarWidth) / rightTextSize + textzoomBudge)
             self:playcommand("Set")
+            registerActorToColorConfigElement(self, "main", "SecondaryText")
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
@@ -547,6 +554,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.IconExitRightGap)
             self:zoomto(actuals.IconExitWidth, actuals.IconExitHeight)
             self:diffusealpha(disabledButtonAlpha)
+            registerActorToColorConfigElement(self, "main", "IconColor")
         end,
         OnCommand = function(self)
             if selectable(self:GetName()) then
@@ -577,6 +585,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.IconSettingsRightGap)
             self:zoomto(actuals.IconSettingsWidth, actuals.IconSettingsHeight)
             self:diffusealpha(disabledButtonAlpha)
+            registerActorToColorConfigElement(self, "main", "IconColor")
         end,
         OnCommand = function(self)
             if selectable(self:GetName()) then
@@ -614,6 +623,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.IconHelpRightGap)
             self:zoomto(actuals.IconHelpWidth, actuals.IconHelpHeight)
             self:diffusealpha(disabledButtonAlpha)
+            registerActorToColorConfigElement(self, "main", "IconColor")
         end,
         OnCommand = function(self)
             if selectable(self:GetName()) then
@@ -655,6 +665,7 @@ t[#t+1] = Def.ActorFrame {
             InitCommand = function(self)
                 self:halign(1):valign(0)
                 self:zoomto(actuals.IconDownloadsWidth, actuals.IconDownloadsHeight)
+                registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             MouseOverCommand = function(self)
                 if selectable(self:GetName()) then
@@ -688,6 +699,7 @@ t[#t+1] = Def.ActorFrame {
                 self:y(actuals.IconDownloadsProgressBar1UpperGap)
                 self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
                 self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "downloader", "ProgressBarBackground")
             end,
             DLProgressAndQueueUpdateMessageCommand = function(self)
                 local dls = DLMAN:GetDownloads()
@@ -709,6 +721,7 @@ t[#t+1] = Def.ActorFrame {
                 self:y(actuals.IconDownloadsProgressBar1UpperGap)
                 self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
                 self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "downloader", "ProgressBarFill")
             end,
             DLProgressAndQueueUpdateMessageCommand = function(self)
                 local dls = DLMAN:GetDownloads()
@@ -734,6 +747,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.IconRandomRightGap)
             self:zoomto(actuals.IconRandomWidth, actuals.IconRandomHeight)
             self:diffusealpha(disabledButtonAlpha)
+            registerActorToColorConfigElement(self, "main", "IconColor")
         end,
         OnCommand = function(self)
             if selectable(self:GetName()) then
@@ -769,6 +783,7 @@ t[#t+1] = Def.ActorFrame {
             self:x(-actuals.IconSearchRightGap)
             self:zoomto(actuals.IconSearchWidth, actuals.IconSearchHeight)
             self:diffusealpha(disabledButtonAlpha)
+            registerActorToColorConfigElement(self, "main", "IconColor")
         end,
         OnCommand = function(self)
             if selectable(self:GetName()) then
@@ -822,6 +837,7 @@ if visEnabled then
             x = x + longestWidth + actuals.RatingEdgeToVisualizerBuffer
             local newVisualizerWidth = actuals.VisualizerWidth + (actuals.VisualizerLeftGap - x)
             self:x(x)
+            registerActorToColorConfigElement(self, "main", "Visualizer")
             self:playcommand("ResetWidth", {width = newVisualizerWidth})
         end
     }
