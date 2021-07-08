@@ -118,16 +118,13 @@ local pageAnimationSeconds = 0.01
 local buttonHoverAlpha = 0.6
 local buttonEnabledAlphaMultiplier = 0.8 -- this is multiplied to the current alpha (including the hover alpha) if "clicked"
 
-local installedColor = color("0,1,0,1")
-local notInstalledColor = color("1,1,1,1")
-
 t[#t+1] = Def.Quad {
     Name = "DownloadsBGQuad",
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.Height)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "PrimaryBackground")
     end
 }
 
@@ -136,8 +133,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.TopLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -149,6 +146,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:zoom(titleTextSize)
         self:maxwidth(actuals.Width / titleTextSize - textZoomFudge)
         self:settext("Pack Downloader")
+        registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }
 
@@ -277,6 +275,7 @@ local function downloadsList()
                     self:x((actuals.Width / #choiceDefinitions) * (i-1) + (actuals.Width / #choiceDefinitions / 2))
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textZoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceDefinitions, actuals.TopLipHeight)
                     self:playcommand("UpdateText")
                 end,
@@ -298,7 +297,7 @@ local function downloadsList()
                     end
 
                     if activeChoices[i] then
-                        txt:strokecolor(buttonActiveStrokeColor)
+                        txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.8))
                     else
                         txt:strokecolor(color("0,0,0,0"))
                     end
@@ -345,8 +344,8 @@ local function downloadsList()
                 InitCommand = function(self)
                     self:halign(0)
                     self:zoomto(actuals.Width, actuals.TopLipHeight)
-                    self:diffuse(color("#111111"))
                     self:diffusealpha(0.6)
+                    registerActorToColorConfigElement(self, "main", "SecondaryBackground")
                 end
             }
         }
@@ -401,6 +400,7 @@ local function downloadsList()
                     self:zoom(indexTextSize)
                     -- without this random 2, the index touches the left edge of the frame and it feels really weird
                     self:maxwidth(actuals.IndexColumnLeftGap / indexTextSize - 2)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
@@ -417,6 +417,7 @@ local function downloadsList()
                     self:x(actuals.NameColumnLeftGap)
                     self:zoom(nameTextSize)
                     self:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
@@ -476,11 +477,14 @@ local function downloadsList()
                     self:x(actuals.MainDLLeftGap)
                     self:zoomto(actuals.DLIconSize, actuals.DLIconSize)
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetPack")
+                end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
                         self:playcommand("UpdateVisibilityByDownloadStatus")
                     elseif bundle ~= nil then
-                        self:diffuse(notInstalledColor)
+                        self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                         self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
                         if isOver(self) then toolTipOn("Download Bundle") end
                     else
@@ -492,14 +496,14 @@ local function downloadsList()
                         local name = pack:GetName()
                         if SONGMAN:DoesSongGroupExist(name) then
                             -- the pack is already installed
-                            self:diffuse(installedColor)
+                            self:diffuse(COLORS:getDownloaderColor("InstalledIcon"))
                             self:diffusealpha(1)
                             if isOver(self) then toolTipOn("Already Installed") end
                         elseif downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil then
                             -- the pack is downloading or queued
                             self:diffusealpha(0)
                         else
-                            self:diffuse(notInstalledColor)
+                            self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                             self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
                             if isOver(self) then toolTipOn("Download Pack") end
                         end
@@ -556,11 +560,14 @@ local function downloadsList()
                     self:x(actuals.MirrorDLLeftGap)
                     self:zoomto(actuals.DLIconSize, actuals.DLIconSize)
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetPack")
+                end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
                         self:playcommand("UpdateVisibilityByDownloadStatus")
                     elseif bundle ~= nil then
-                        self:diffuse(notInstalledColor)
+                        self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                         self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
                         if isOver(self) then toolTipOn("Download Bundle (Mirror)") end
                     else
@@ -578,14 +585,14 @@ local function downloadsList()
                         local name = pack:GetName()
                         if SONGMAN:DoesSongGroupExist(name) then
                             -- the pack is already installed
-                            self:diffuse(installedColor)
+                            self:diffuse(COLORS:getDownloaderColor("InstalledIcon"))
                             self:diffusealpha(1)
                             if isOver(self) then toolTipOn("Already Installed") end
                         elseif downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil then
                             -- the pack is downloading or queued
                             self:diffusealpha(0)
                         else
-                            self:diffuse(notInstalledColor)
+                            self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                             self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
                             if isOver(self) then toolTipOn("Download Pack (Mirror)") end
                         end
@@ -656,6 +663,7 @@ local function downloadsList()
                     -- says "Queued" if in queue
                     -- says "Cancel" if downloading
                     -- invisible if fully installed
+                    registerActorToColorConfigElement(txt, "main", "SecondaryText")
                 end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
@@ -843,6 +851,7 @@ local function downloadsList()
                     self:halign(0)
                     self:x(actuals.SearchIconLeftGap)
                     self:zoomto(actuals.SearchIconSize, actuals.SearchIconSize)
+                    registerActorToColorConfigElement(self, "main", "IconColor")
                 end
             },
             LoadFont("Common Normal") .. {
@@ -852,6 +861,7 @@ local function downloadsList()
                     self:x(actuals.SearchTextLeftGap)
                     self:zoom(searchTextSize)
                     self:maxwidth((actuals.SearchBGWidth - actuals.SearchTextLeftGap*1.5) / searchTextSize - textZoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateSearchCommand = function(self)
                     self:settext(searchstring)
@@ -866,6 +876,7 @@ local function downloadsList()
                 self:zoom(indexHeaderSize)
                 self:maxwidth(actuals.IndexColumnLeftGap / indexHeaderSize - textZoomFudge)
                 self:settext("#")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
         },
         UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -882,6 +893,7 @@ local function downloadsList()
                 txt:maxwidth(width / nameHeaderSize - textZoomFudge)
                 txt:settext("Name")
                 bg:zoomto(math.max(width/2, txt:GetZoomedWidth()), txt:GetZoomedHeight())
+                registerActorToColorConfigElement(txt, "main", "PrimaryText")
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -912,6 +924,7 @@ local function downloadsList()
                 txt:maxwidth(width / msdHeaderSize - textZoomFudge)
                 txt:settext("Avg")
                 bg:zoomto(width, txt:GetZoomedHeight())
+                registerActorToColorConfigElement(txt, "main", "PrimaryText")
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -942,6 +955,7 @@ local function downloadsList()
                 txt:maxwidth(width / sizeHeaderSize - textZoomFudge)
                 txt:settext("Size")
                 bg:zoomto(width, txt:GetZoomedHeight())
+                registerActorToColorConfigElement(txt, "main", "PrimaryText")
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
@@ -982,6 +996,7 @@ local function downloadsList()
                 self:xy(actuals.Width - actuals.PageTextRightGap, actuals.TopLipHeight + actuals.HeaderLineUpperGap)
                 self:zoom(pageTextSize)
                 self:maxwidth((actuals.Width - actuals.SizeColumnLeftGap) / pageTextSize - textZoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateItemListCommand = function(self)
                 if inBundles then
