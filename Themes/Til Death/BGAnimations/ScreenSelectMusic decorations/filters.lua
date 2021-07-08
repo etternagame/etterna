@@ -125,9 +125,39 @@ local translated_info = {
 
 local f =
 	Def.ActorFrame {
-	InitCommand = function(self)
-		self:xy(frameX, frameY):halign(0)
+	BeginCommand = function(self)
+		self:halign(0):visible(false)
 		self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
+		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+		SCREENMAN:GetTopScreen():AddInputCallback(FilterInput)
+		self:queuecommand("Set")
+	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, frameY):diffusealpha(0)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(frameX, frameY):diffusealpha(1)
+	end,
+	SetCommand = function(self)
+		self:finishtweening()
+		if getTabIndex() == 5 then
+			self:visible(true)
+			self:queuecommand("On")
+			active = true
+		else
+			MESSAGEMAN:Broadcast("NumericInputEnded")
+			self:queuecommand("Off")
+			active = false
+		end
+	end,
+	TabChangedMessageCommand = function(self)
+		self:queuecommand("Set")
+	end,
+	MouseRightClickMessageCommand = function(self)
+		ActiveSS = 0
+		MESSAGEMAN:Broadcast("NumericInputEnded")
+		MESSAGEMAN:Broadcast("UpdateFilter")
+		SCREENMAN:set_input_redirected(PLAYER_1, false)
 	end,
 	Def.Quad {
 		InitCommand = function(self)
@@ -146,32 +176,6 @@ local f =
 				self:diffuse(Saturation(getMainColor("positive"), 0.1))
 			end
 		},
-	OnCommand = function(self)
-		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
-		SCREENMAN:GetTopScreen():AddInputCallback(FilterInput)
-		self:visible(false)
-	end,
-	SetCommand = function(self)
-		self:finishtweening()
-		if getTabIndex() == 5 then
-			self:visible(true)
-			active = true
-		else
-			MESSAGEMAN:Broadcast("NumericInputEnded")
-			self:visible(false)
-			self:queuecommand("Off")
-			active = false
-		end
-	end,
-	TabChangedMessageCommand = function(self)
-		self:queuecommand("Set")
-	end,
-	MouseRightClickMessageCommand = function(self)
-		ActiveSS = 0
-		MESSAGEMAN:Broadcast("NumericInputEnded")
-		MESSAGEMAN:Broadcast("UpdateFilter")
-		SCREENMAN:set_input_redirected(PLAYER_1, false)
-	end,
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
