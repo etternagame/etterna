@@ -2,6 +2,7 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
 local enabledJudgment = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgmentText
+local JTEnabled = JudgementTweensEnabled()
 
 local JudgeCmds = {
 	TapNoteScore_W1 = THEME:GetMetric("Judgment", "JudgmentW1Command"),
@@ -73,7 +74,9 @@ local t =
 		self:playcommand("Reset")
 		c.Judgment:visible(true)
 		c.Judgment:setstate(iFrame)
-		JudgeCmds[param.TapNoteScore](c.Judgment)
+		if JTEnabled then
+			JudgeCmds[param.TapNoteScore](c.Judgment)
+		end
 	end,
 	MovableBorder(0, 0, 1, MovableValues.JudgeX, MovableValues.JudgeY)
 }

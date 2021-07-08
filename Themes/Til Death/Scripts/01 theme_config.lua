@@ -14,6 +14,7 @@ local defaultConfig = {
 		ShowVisualizer = true,
 		InstantSearch = true, -- true = search per press, false = search on enter button
 		IgnoreTabInput = 1, -- 1 = dont ignore, 2 = ignore only in search, 3 = always
+		JudgmentTween = false,
 	},
 	NPSDisplay = {
 		DynamicWindow = false,
@@ -34,3 +35,7 @@ local defaultConfig = {
 
 themeConfig = create_setting("themeConfig", "themeConfig.lua", defaultConfig, -1)
 themeConfig:load()
+
+function JudgementTweensEnabled()
+	return themeConfig:get_data().global.JudgmentTween
+end
