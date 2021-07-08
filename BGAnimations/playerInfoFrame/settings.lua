@@ -1281,7 +1281,8 @@ local function leftFrame()
         local function updateColor(percentX, percentY)
             if percentY < 0 then percentY = 0 elseif percentY > 1 then percentY = 1 end
             if percentX < 0 then percentX = 0 elseif percentX > 1 then percentX = 1 end
-            hueNum = 360 * percentX
+            -- not 360 because 360 makes it produce FF00FF instead of FF0000
+            hueNum = 359.99 * percentX
             valNum = percentY
             applyHSV()
         end
