@@ -550,13 +550,19 @@ function colorToRGBNums(c)
 end
 
 -- use this function and provide any actor to be colored automatically
+-- allows providing a stroke brightness optionally
 -- immediately updates the color and also listens for future updates
 -- make sure not to overwrite ColorConfigUpdateMessage[Command]
-function registerActorToColorConfigElement(self, category, element)
+function registerActorToColorConfigElement(self, category, element, stroke)
+	if stroke == nil then stroke = 0 end
 	local cmd = function(self)
 		local alphab4 = self:GetDiffuseAlpha()
-		self:diffuse(COLORS:getColor(category, element))
+		local clr = COLORS:getColor(category, element)
+		self:diffuse(clr)
 		self:diffusealpha(alphab4)
+		if self.strokecolor and stroke ~= 0 then
+			self:strokecolor(Brightness(clr, stroke))
+		end
 	end
 	cmd(self)
 	self:addcommand("ColorConfigUpdatedMessage", cmd)
