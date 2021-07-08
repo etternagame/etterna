@@ -304,7 +304,11 @@ t[#t + 1] =
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
 					)
 					self:GetParent():SetUpdateFunction(highlight2)
-					if not IsUsingWideScreen() then self:halign(0.3) end
+					if not IsUsingWideScreen() then
+						self:halign(0):x(SCREEN_CENTER_X - (self:GetParent():GetChild("loginlogout"):GetWidth() / 2) * 0.45 )
+					else
+						self:halign(0.5):x(SCREEN_CENTER_X)
+					end
 				else
 					self:settextf(
 						"%s %s (%5.2f: #%i)",
