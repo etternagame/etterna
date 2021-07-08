@@ -122,6 +122,12 @@ local t =
 		SCREENMAN:GetTopScreen():AddInputCallback(newTagInput)
 		self:queuecommand("BORPBORPNORFNORFc"):visible(false)
 	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+	end,
 	MouseRightClickMessageCommand = function(self)
 		if onTab then
 			hasFocus = false
@@ -134,12 +140,13 @@ local t =
 	BORPBORPNORFNORFcCommand = function(self)
 		if getTabIndex() == 9 then
 			self:visible(true)
+			self:queuecommand("On")
 			song = GAMESTATE:GetCurrentSong()
 			steps = GAMESTATE:GetCurrentSteps()
 			onTab = true
 			MESSAGEMAN:Broadcast("RefreshTags")
 		else
-			self:visible(false)
+			self:queuecommand("Off")
 			onTab = false
 		end
 	end,
