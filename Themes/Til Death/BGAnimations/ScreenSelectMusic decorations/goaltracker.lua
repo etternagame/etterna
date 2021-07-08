@@ -1,11 +1,11 @@
 local t =
 	Def.ActorFrame {
 	BeginCommand = function(self)
-		self:queuecommand("Set")
+		self:visible(false):queuecommand("Set")
 		self:GetChild("GoalDisplay"):xy(10, 60)
 	end,
 	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:bouncebegin(0.2):xy(-500, SCREEN_TOP - 10):diffusealpha(0)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(SCREEN_LEFT, SCREEN_TOP - 10):diffusealpha(1)
@@ -17,7 +17,6 @@ local t =
 			self:visible(true)
 		else
 			self:queuecommand("Off")
-			self:visible(false)
 		end
 	end,
 	TabChangedMessageCommand = function(self)
