@@ -15,6 +15,7 @@ local defaultConfig = {
 		InstantSearch = true, -- true = search per press, false = search on enter button
 		IgnoreTabInput = 1, -- 1 = dont ignore, 2 = ignore only in search, 3 = always
 		JudgmentTween = false,
+		CenteredCombo = false,
 	},
 	NPSDisplay = {
 		DynamicWindow = false,
@@ -38,4 +39,7 @@ themeConfig:load()
 
 function JudgementTweensEnabled()
 	return themeConfig:get_data().global.JudgmentTween
+end
+function CenteredComboEnabled()
+	return themeConfig:get_data().global.CenteredCombo
 end
