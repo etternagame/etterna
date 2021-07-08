@@ -49,6 +49,7 @@ local defaultConfig = {
 		ProgressBarFill = "#ffffff",
 		ProgressBarBackground = "#ffffff",
 		InstalledIcon = "#00ff00",
+		NotInstalledIcon = "#ffffff",
 	},
 	options = {
 		Cursor = "#ffffff",
@@ -424,6 +425,11 @@ function COLORS.getWheelColor(self, element)
 end
 function getWheelColor(element) return COLORS:getWheelColor(element) end
 
+function COLORS.getDownloaderColor(self, element)
+	return self:getColor("downloader", element)
+end
+function getDownloaderColor(element) return COLORS:getDownloaderColor(element) end
+
 function COLORS.colorByJudgment(self, judge)
 	return self:getColor("judgment", judge)
 end
@@ -553,6 +559,9 @@ end
 -- allows providing a stroke brightness optionally
 -- immediately updates the color and also listens for future updates
 -- make sure not to overwrite ColorConfigUpdateMessage[Command]
+-- however, this function will not be useful for complex items which
+--	require coloring different ways based on conditions
+--	for those situations, do not use this function but instead utilize the command
 function registerActorToColorConfigElement(self, category, element, stroke)
 	if stroke == nil then stroke = 0 end
 	local cmd = function(self)
