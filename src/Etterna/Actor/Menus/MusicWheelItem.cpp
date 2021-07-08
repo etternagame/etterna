@@ -201,8 +201,9 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				type = MusicWheelItemType_SectionCollapsed;
 			}
 
-			auto songs_in_group = wheel->allSongsByGroupFiltered.find(pWID->m_sText);
-			if (PREFSMAN->m_bPackProgressInWheel && songs_in_group != wheel->allSongsByGroupFiltered.end()) {
+			auto all_songs_by_group = wheel->allSongsByGroupFiltered.at(GAMESTATE->m_SortOrder);
+			auto songs_in_group = all_songs_by_group.find(pWID->m_sText);
+			if (PREFSMAN->m_bPackProgressInWheel && songs_in_group != all_songs_by_group.end()) {
 				int num_played_songs = 0;
 
 				for (auto song : songs_in_group->second) {
