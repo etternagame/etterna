@@ -64,22 +64,29 @@ local translated_info = {
 
 local t =
 	Def.ActorFrame {
-	OnCommand = function(self)
+	BeginCommand = function(self)
+		self:visible(false)
+		self:queuecommand("Set")
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(searchInput)
-		self:visible(false)
+	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 3 then
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
+			self:queuecommand("On")
 			active = true
 			whee:Move(0)
 			SCREENMAN:set_input_redirected(PLAYER_1, true)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
 		else
-			self:visible(false)
 			self:queuecommand("Off")
 			active = false
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
@@ -97,9 +104,11 @@ local t =
 				if active then
 					self:settextf("%s:", translated_info["Active"])
 					self:diffuse(getGradeColor("Grade_Tier10"))
+				elseif not active and searchstring ~= "" then
+					self:settext(translated_info["Complete"])
+					self:diffuse(getGradeColor("Grade_Tier04"))
 				else
-					self:settextf("%s:", translated_info["Complete"])
-					self:diffuse(byJudgment("TapNoteScore_Miss"))
+					self:settext("")
 				end
 			end,
 			UpdateStringMessageCommand = function(self)
