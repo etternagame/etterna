@@ -91,15 +91,8 @@ local wheelHeaderTextSize = 1.2
 local wheelHeaderMTextSize = 0.6
 local textzoomfudge = 5 -- used in maxwidth to allow for gaps when squishing text
 
-local favoriteColor = COLORS:getWheelColor("Favorite")
-local permamirrorColor = COLORS:getWheelColor("Permamirror")
-local headerBGColor = COLORS:getWheelColor("HeaderBackground")
-local folderBGColor = COLORS:getWheelColor("FolderBackground")
-local songBGColor = COLORS:getWheelColor("SongBackground")
 local graphLineColor = COLORS:getWheelColor("GraphLine")
-local dividerColor = COLORS:getWheelColor("ItemDivider")
 local primaryTextColor = COLORS:getMainColor("PrimaryText")
-local secondaryTextColor = COLORS:getMainColor("SecondaryText")
 
 -----
 -- header related things
@@ -363,13 +356,12 @@ local function songActorBuilder()
             InitCommand = function(self)
                 self:x(actuals.Width / 2 - actuals.ItemDividerLength)
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
-                self:strokecolor(Brightness(primaryTextColor, 0.65))
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
                 self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemTitleTextSize)
                 self:diffusealpha(1)
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "main", "PrimaryText", 0.65)
                 -- hack to color the ItemBG later
                 local itembg = self:GetParent():GetChild("WheelItemBase"):GetChild("ItemBG")
                 itembg:diffusealpha(0.6)
