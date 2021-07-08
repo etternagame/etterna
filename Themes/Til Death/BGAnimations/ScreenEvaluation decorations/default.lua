@@ -278,7 +278,7 @@ function scoreBoard(pn, position)
 		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX - 5, frameY + 32):zoom(0.5):halign(0):valign(0):maxwidth(200)
+				self:xy(frameX + 3, frameY + 32):zoom(0.5):halign(0):valign(0):maxwidth(200)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
