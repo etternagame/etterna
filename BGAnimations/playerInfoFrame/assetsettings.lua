@@ -75,15 +75,14 @@ local assetPathTextSize = 0.7
 local pageTextSize = 0.7
 local textZoomFudge = 5
 local buttonHoverAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 
 t[#t+1] = Def.Quad {
     Name = "AssetSettingsBGQuad",
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.Height)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "PrimaryBackground")
     end
 }
 
@@ -92,8 +91,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.TopLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -105,6 +104,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:zoom(titleTextSize)
         self:maxwidth(actuals.Width / titleTextSize - textZoomFudge)
         self:settext("Asset Settings")
+        registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }
 
@@ -462,6 +462,7 @@ local function assetList()
                 self:xy(actuals.Width - actuals.PageTextRightGap, actuals.TopLipHeight + actuals.PageTextUpperGap)
                 self:zoom(pageTextSize)
                 self:maxwidth((actuals.Width - actuals.PageTextRightGap) / pageTextSize - textZoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdatingAssetsMessageCommand = function(self, params)
                 local lb = clamp((curPage-1) * (maxColumns*maxRows) + 1, 0, #assetTable)
@@ -476,6 +477,7 @@ local function assetList()
                 self:halign(0)
                 self:xy(actuals.EdgePadding, actuals.TopLipHeight + actuals.PageTextUpperGap)
                 self:maxwidth((actuals.Width - actuals.EdgePadding) / assetPathTextSize - textZoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self)
                 local type = assetTable[getIndex()]
@@ -500,6 +502,7 @@ local function assetList()
                 -- extremely scuffed y position
                 self:xy(actuals.EdgePadding, actuals.TopLipHeight + actuals.PageTextUpperGap + actuals.PageTextUpperGap/2)
                 self:maxwidth((actuals.Width - actuals.EdgePadding) / assetPathTextSize - textZoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self)
                 local type = assetTable[selectedIndex]
@@ -592,7 +595,8 @@ local function assetList()
             Name = "SelectedAssetIndicator",
             InitCommand = function(self)
                 self:zoomto(assetWidth+14, assetHeight+14)
-                self:diffuse(color("#AAAAAA")):diffusealpha(0)
+                self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "assetSettings", "SavedItem")
             end,
             SetCommand = function(self)
                 self:zoomto(assetWidth+14, assetHeight+14)
@@ -617,17 +621,18 @@ local function assetList()
             Name = "Border",
             InitCommand = function(self)
                 self:zoomto(assetWidth+4, assetHeight+4)
-                self:diffuse(getMainColor("positive")):diffusealpha(0.8)
+                self:diffusealpha(0.8)
+                registerActorToColorConfigElement(self, "assetSettings", "HoveredItem")
             end,
             SelectCommand = function(self)
                 self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                 self:zoomto(assetWidth+12, assetHeight+12)
-                self:diffuse(getMainColor("highlight")):diffusealpha(0.8)
+                self:diffusealpha(0.8)
             end,
             DeselectCommand = function(self)
                 self:smooth(0.2)
                 self:zoomto(assetWidth+4, assetHeight+4)
-                self:diffuse(getMainColor("positive")):diffusealpha(0)
+                self:diffusealpha(0)
             end,
             CursorMovedMessageCommand = function(self, params)
                 self:finishtweening()
@@ -793,6 +798,7 @@ local function assetList()
                     self:x((actuals.Width / #choiceDefinitions) * (i-1) + (actuals.Width / #choiceDefinitions / 2))
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textZoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceDefinitions, actuals.TopLipHeight)
                     self:playcommand("UpdateText")
                 end,
@@ -822,7 +828,7 @@ local function assetList()
                     end
 
                     if activeChoices[i] then
-                        txt:strokecolor(buttonActiveStrokeColor)
+                        txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.8))
                     else
                         txt:strokecolor(color("0,0,0,0"))
                     end
@@ -869,8 +875,8 @@ local function assetList()
                 InitCommand = function(self)
                     self:halign(0)
                     self:zoomto(actuals.Width, actuals.TopLipHeight)
-                    self:diffuse(color("#111111"))
                     self:diffusealpha(0.6)
+                    registerActorToColorConfigElement(self, "main", "SecondaryBackground")
                 end
             }
         }
