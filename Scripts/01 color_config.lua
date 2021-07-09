@@ -8,12 +8,12 @@ local defaultConfig = {
 		Negative = "#ff9999",
 		Positive = "#9654fd",
 		PrimaryBackground = "#111111",
-		SecondaryBackground = "#111111",
+		SecondaryBackground = "#111111", -- darker version of PrimaryBackground
 		PrimaryText = "#ffffff",
-		SecondaryText = "#ffffff",
+		SecondaryText = "#ffffff", -- probably shouldnt be far from PrimaryText
 		IconColor = "#ffffff",
 		Visualizer = "#ffffff",
-		SeparationDivider = "#ffffff", -- also some accents like slider markers
+		SeparationDivider = "#ffffff", -- also some accents like slider markers and text cursors
 	},
 	leaderboard = {
 		Background = "#111111cc",
@@ -54,6 +54,9 @@ local defaultConfig = {
 	},
 	options = {
 		Cursor = "#ffffff",
+		Arrows = "#ffffff",
+		KeybindButtonEdge = "#ffffff", -- the bg bg, white edges
+		KeybindButtonBackground = "#111111", -- the bg
 	},
 	assetSettings = {
 		HoveredItem = "#ffffff",

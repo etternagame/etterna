@@ -82,7 +82,6 @@ local textZoomFudge = 5
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
 local previewOpenedAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local previewButtonTextSize = 0.8
 
 local keyinstructionsTextSize = 0.7
@@ -220,8 +219,8 @@ local function leftFrame()
             InitCommand = function(self)
                 self:valign(0):halign(0)
                 self:zoomto(actuals.LeftWidth, actuals.Height)
-                self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
+                registerActorToColorConfigElement(self, "main", "PrimaryBackground")
             end
         },
         Def.Quad {
@@ -229,8 +228,8 @@ local function leftFrame()
             InitCommand = function(self)
                 self:valign(0):halign(0)
                 self:zoomto(actuals.LeftWidth, actuals.TopLipHeight)
-                self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
+                registerActorToColorConfigElement(self, "main", "SecondaryBackground")
             end
         },
         LoadFont("Common Normal") .. {
@@ -241,6 +240,7 @@ local function leftFrame()
                 self:zoom(titleTextSize)
                 self:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) / titleTextSize - textZoomFudge)
                 self:settext("")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             ShowLeftCommand = function(self, params)
                 if params and params.name then
@@ -769,9 +769,9 @@ local function leftFrame()
                         Name = "KeybindBGBG",
                         InitCommand = function(self)
                             -- font color
-                            self:diffuse(color("#FFFFFF"))
                             self:zoomto(columnwidth * keybindBGSizeMultiplier, columnwidth * keybindBGSizeMultiplier)
                             self:playcommand("Set")
+                            registerActorToColorConfigElement(self, "options", "KeybindButtonEdge")
                         end,
                         SetAlphaCommand = function(self)
                             if isOver(self) or cursorIndex == trueIndex then
@@ -805,9 +805,9 @@ local function leftFrame()
                         Name = "KeybindBG",
                         InitCommand = function(self)
                             -- generally bg color
-                            self:diffuse(color("#111111"))
                             self:diffusealpha(0.6)
                             self:zoomto(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier, columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier)
+                            registerActorToColorConfigElement(self, "options", "KeybindButtonBackground")
                         end,
                     },
                     LoadFont("Common Large") .. {
@@ -816,6 +816,7 @@ local function leftFrame()
                             self:zoom(keybindingTextSize)
                             self:maxwidth(columnwidth * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextSize)
                             self:maxheight(columnwidth * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextSize)
+                            registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                         UpdatedBoundKeysMessageCommand = function(self)
                             self:playcommand("Set")
@@ -850,9 +851,9 @@ local function leftFrame()
                         Name = "KeybindBGBG",
                         InitCommand = function(self)
                             -- font color
-                            self:diffuse(color("#FFFFFF"))
                             self:zoomto(menuBoxSize * keybindBGSizeMultiplier, menuBoxSize * keybindBGSizeMultiplier)
                             self:playcommand("Set")
+                            registerActorToColorConfigElement(self, "options", "KeybindButtonEdge")
                         end,
                         SetAlphaCommand = function(self)
                             if isOver(self) or cursorIndex == i then
@@ -885,9 +886,9 @@ local function leftFrame()
                         Name = "KeybindBG",
                         InitCommand = function(self)
                             -- generally bg color
-                            self:diffuse(color("#111111"))
                             self:diffusealpha(0.6)
                             self:zoomto(menuBoxSize * keybindBGSizeMultiplier * keybindBG2SizeMultiplier, menuBoxSize * keybindBGSizeMultiplier * keybindBG2SizeMultiplier)
+                            registerActorToColorConfigElement(self, "options", "KeybindButtonBackground")
                         end,
                     },
                     LoadFont("Common Large") .. {
@@ -896,6 +897,7 @@ local function leftFrame()
                             self:zoom(keybindingTextSize)
                             self:maxwidth(menuBoxSize * keybindBGSizeMultiplier * keybindBGSizeMultiplier / keybindingTextSize)
                             self:maxheight(menuBoxSize * keybindBGSizeMultiplier * keybindBG2SizeMultiplier / keybindingTextSize)
+                            registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                         UpdatedBoundKeysMessageCommand = function(self)
                             self:playcommand("Set")
@@ -917,6 +919,7 @@ local function leftFrame()
                             self:zoom(menuBindingTextSize)
                             self:maxwidth((actuals.LeftWidth - menuBoxSize * 3 - actuals.LeftWidth/8) / menuBindingTextSize)
                             self:settext(key:gsub("_", " "))
+                            registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                     }
             }
@@ -938,6 +941,7 @@ local function leftFrame()
                     self:x(actuals.LeftWidth/2)
                     self:maxwidth(actuals.LeftWidth / currentlybindingTextSize)
                     self:playcommand("Set")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self)
                     if inMenuPage then
@@ -973,6 +977,7 @@ local function leftFrame()
                     self:wrapwidthpixels(actuals.LeftWidth - 10)
                     self:maxheight((actuals.Height / 4 - actuals.TopLipHeight * 1.5) / keyinstructionsTextSize)
                     self:settext("Select a button to rebind with mouse or keyboard.\nPress Escape or click to cancel binding.")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -986,6 +991,7 @@ local function leftFrame()
                     txt:zoom(bindingChoicesTextSize)
                     txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
                     txt:settext("Start Binding All")
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     bg:diffusealpha(0.2)
                     self.alphaDeterminingFunction = function(self)
@@ -1022,6 +1028,7 @@ local function leftFrame()
                     self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 30 * bindingChoicesTextSize)
                     txt:zoom(bindingChoicesTextSize)
                     txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:diffusealpha(0.2)
                     self:playcommand("BindingPageSet")
                     self.alphaDeterminingFunction = function(self)
@@ -1142,7 +1149,7 @@ local function leftFrame()
     end
 
     -- includes color modifying and preset picking
-    -- while the code may work it contains incredibly bad practice
+    -- while the code may work it contains incredibly bad practice (for one, dont spam messageman broadcasts)
     local function createColorConfigPage()
         local saturationOverlay = nil
         local colorPickPosition = nil
@@ -1816,6 +1823,7 @@ local function leftFrame()
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("Current preset:")
+                            registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                         SetCommand = function(self)
                             self:settextf("Current preset: %s", selectedpreset)
@@ -1832,6 +1840,7 @@ local function leftFrame()
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("Current element:")
+                            registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                         SetCommand = function(self)
                             self:settextf("Current element: %s", selectedelement)
@@ -1848,6 +1857,7 @@ local function leftFrame()
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
                             self:settext("Current color")
+                            registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end
                     },
                     Def.ActorFrame {
@@ -1862,6 +1872,7 @@ local function leftFrame()
                                 self:zoom(colorConfigTextSize)
                                 self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
                                 self:settext("#")
+                                -- colored white always ?
                             end,
                             SetCommand = function(self)
                                 self:settext(hexEntryString)
@@ -1882,6 +1893,7 @@ local function leftFrame()
                                 self:halign(0):valign(0)
                                 self:zoomto(0,0)
                                 self:y(3)
+                                registerActorToColorConfigElement(self, "main", "SeparationDivider")
                             end,
                             UpdateCursorDisplayCommand = function(self)
                                 local pos = 11
@@ -1942,6 +1954,7 @@ local function leftFrame()
                             self:y(textLineSeparation * 6)
                             bg:y(1)
                             txt:settext("Undo")
+                            registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
@@ -1980,6 +1993,7 @@ local function leftFrame()
                             self:y(textLineSeparation * 6)
                             bg:y(1)
                             txt:settext("Reset to Default")
+                            registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
@@ -2017,6 +2031,7 @@ local function leftFrame()
                             self:y(textLineSeparation * 7)
                             bg:y(1)
                             self:playcommand("Set")
+                            registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
@@ -2063,6 +2078,7 @@ local function leftFrame()
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
                             txt:settext("New Color Config Preset")
+                            registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
@@ -2103,6 +2119,7 @@ local function leftFrame()
                         self:maxwidth((actuals.LeftWidth - actuals.EdgePadding*2) * 0.7 / colorConfigTextSize - textZoomFudge)
                         self:y(remainingYSpace / colorConfigItemCount / 2)
                         self:settext(" ")
+                        registerActorToColorConfigElement(self, "main", "PrimaryText")
                     end,
                     UpdateColorConfigDisplayCommand = function(self)
                         if selectionstate == "category" then
@@ -2128,6 +2145,7 @@ local function leftFrame()
                         self:x(actuals.LeftWidth - actuals.EdgePadding*2)
                         self:y(remainingYSpace - remainingYSpace / colorConfigItemCount / 2)
                         self:settext(" ")
+                        registerActorToColorConfigElement(self, "main", "PrimaryText")
                     end,
                     UpdateColorConfigDisplayCommand = function(self)
                         local lb = clamp((page-1) * (colorConfigItemCount-1) + 1, 0, #displayItemDatas)
@@ -2167,6 +2185,7 @@ local function leftFrame()
                         self:x(actuals.LeftWidth - actuals.EdgePadding*2)
                         self:y(remainingYSpace / colorConfigItemCount / 2)
                         txt:settext(" ")
+                        registerActorToColorConfigElement(txt, "main", "PrimaryText")
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         self.alphaDeterminingFunction = function(self)
                             local statemultiplier = selectionstate ~= "preset" and 1 or 0
@@ -2224,6 +2243,8 @@ local function leftFrame()
                         txt:zoom(colorConfigChoiceTextSize)
                         txt:maxwidth(itemWidth / colorConfigChoiceTextSize - textZoomFudge)
                         txt:settext(" ")
+                        registerActorToColorConfigElement(txt, "main", "SecondaryText")
+                        registerActorToColorConfigElement(bg, "options", "Cursor")
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         self.alphaDeterminingFunction = function(self)
                             local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
@@ -2354,8 +2375,8 @@ local function rightFrame()
             InitCommand = function(self)
                 self:valign(0):halign(0)
                 self:zoomto(actuals.RightWidth, actuals.Height)
-                self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
+                registerActorToColorConfigElement(self, "main", "PrimaryBackground")
             end,
         },
         Def.Quad {
@@ -2364,8 +2385,8 @@ local function rightFrame()
                 -- height is double normal top lip
                 self:valign(0):halign(0)
                 self:zoomto(actuals.RightWidth, actuals.TopLipHeight * 2)
-                self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
+                registerActorToColorConfigElement(self, "main", "SecondaryBackground")
             end,
         },
         Def.Quad {
@@ -2375,8 +2396,8 @@ local function rightFrame()
                 self:valign(1):halign(0)
                 self:y(actuals.Height)
                 self:zoomto(actuals.RightWidth, actuals.BottomLipHeight)
-                self:diffuse(color("#111111"))
                 self:diffusealpha(0.6)
+                registerActorToColorConfigElement(self, "main", "SecondaryBackground")
             end,
         },
         LoadFont("Common Normal") .. {
@@ -2387,6 +2408,7 @@ local function rightFrame()
                 self:zoom(titleTextSize)
                 self:maxwidth((actuals.RightWidth - actuals.EdgePadding*2) / titleTextSize - textZoomFudge)
                 self:settext("Options")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         },
         LoadFont("Common Normal") .. {
@@ -2399,6 +2421,7 @@ local function rightFrame()
                 self:wrapwidthpixels((actuals.RightWidth - actuals.EdgePadding * 2) / explanationTextSize)
                 self:maxheight((actuals.BottomLipHeight - actuals.EdgePadding * 2) / explanationTextSize)
                 self:settext(" ")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
                 explanationHandle = self
             end,
             SetExplanationCommand = function(self, params)
@@ -2436,12 +2459,14 @@ local function rightFrame()
                 txt:zoom(previewButtonTextSize)
                 txt:maxwidth(actuals.RightWidth / 2 / previewButtonTextSize - textZoomFudge)
                 txt:settext("Toggle Chart Preview")
+                registerActorToColorConfigElement(txt, "main", "SecondaryText")
 
                 -- fudge movement due to font misalign
                 bg:halign(0)
                 bg:y(1)
                 bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 bg:diffusealpha(0.2)
+                registerActorToColorConfigElement(bg, "options", "Cursor")
 
                 self:xy(actuals.EdgePadding, actuals.Height - actuals.BottomLipHeight - actuals.BottomLipHeight/4)
                 -- is this being lazy or being big brained? ive stored a function within an actor instance
@@ -4817,6 +4842,7 @@ local function rightFrame()
                     self:halign(0)
                     self:zoomto(100,100)
                     self:diffusealpha(0.6)
+                    registerActorToColorConfigElement(self, "options", "Cursor")
                 end,
             }
         }
@@ -5097,6 +5123,7 @@ local function rightFrame()
                         txt:halign(0)
                         txt:zoom(optionTitleTextSize)
                         txt:settext(" ")
+                        registerActorToColorConfigElement(txt, "main", "PrimaryText")
 
                         bg:halign(0)
                         -- fudge movement due to font misalign
@@ -5194,6 +5221,7 @@ local function rightFrame()
                     InitCommand = function(self)
                         self:x(actuals.OptionBigTriangleWidth/2)
                         self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                        registerActorToColorConfigElement(self, "options", "Arrows")
                     end,
                     DrawElementCommand = function(self)
                         if categoryDef ~= nil then
@@ -5249,6 +5277,7 @@ local function rightFrame()
                         InitCommand = function(self)
                             self:rotationz(-90)
                             self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
+                            registerActorToColorConfigElement(self, "options", "Arrows")
                         end,
                     },
                     Def.Sprite {
@@ -5259,6 +5288,7 @@ local function rightFrame()
                             self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
                             -- subtract by 25% triangle height because image is 25% invisible
                             self:x(actuals.OptionSmallTriangleHeight + actuals.OptionSmallTriangleGap - actuals.OptionSmallTriangleHeight/4)
+                            registerActorToColorConfigElement(self, "options", "Arrows")
                         end,
                     },
                     UIElements.QuadButton(1, 1) .. {
@@ -5343,6 +5373,7 @@ local function rightFrame()
                             self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
                             -- subtract by 25% triangle height because image is 25% invisible
                             self:x(actuals.OptionSmallTriangleHeight + actuals.OptionSmallTriangleGap - actuals.OptionSmallTriangleHeight/4)
+                            registerActorToColorConfigElement(self, "options", "Arrows")
                         end,
                     },
                     Def.Sprite {
@@ -5352,6 +5383,7 @@ local function rightFrame()
                             self:rotationz(90)
                             self:zoomto(actuals.OptionSmallTriangleWidth, actuals.OptionSmallTriangleHeight)
                             self:x(0)
+                            registerActorToColorConfigElement(self, "options", "Arrows")
                         end,
                     },
                     UIElements.QuadButton(1, 1) .. {
@@ -5438,6 +5470,7 @@ local function rightFrame()
                         InitCommand = function(self)
                             self:rotationz(-90)
                             self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                            registerActorToColorConfigElement(self, "options", "Arrows")
                         end,
                     },
                     UIElements.QuadButton(1, 1) .. {
@@ -5533,6 +5566,7 @@ local function rightFrame()
                         InitCommand = function(self)
                             self:rotationz(90)
                             self:zoomto(actuals.OptionBigTriangleWidth, actuals.OptionBigTriangleHeight)
+                            registerActorToColorConfigElement(self, "options", "Arrows")
                         end,
                     },
                     UIElements.QuadButton(1, 1) .. {
@@ -5651,6 +5685,7 @@ local function rightFrame()
                             txt:halign(0)
                             txt:zoom(optionChoiceTextSize)
                             txt:settext(" ")
+                            registerActorToColorConfigElement(txt, "main", "SecondaryText")
 
                             bg:halign(0)
                             -- fudge movement due to font misalign
@@ -5837,6 +5872,7 @@ local function rightFrame()
                             self:halign(0):valign(0)
                             self:zoomto(0,actuals.OptionChoiceUnderlineThickness)
                             self:diffusealpha(0)
+                            registerActorToColorConfigElement(self, "main", "SeparationDivider")
                         end,
                         DrawChoiceCommand = function(self)
                             -- assumption: this Actor is later in the command execution order than the rest of the frame
@@ -5891,12 +5927,19 @@ local function rightFrame()
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.RightWidth / #pageNames / choiceTextSize - textZoomFudge)
                     txt:settext(pageNames[i])
+                    self:playcommand("ColorConfigUpdated")
                     bg:zoomto(actuals.RightWidth / #pageNames, actuals.TopLipHeight)
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    txt:diffuse(COLORS:getMainColor("PrimaryText"))
+                    txt:diffusealpha(1)
+                    self:playcommand("UpdateSelectedIndex")
                 end,
                 UpdateSelectedIndexCommand = function(self)
                     local txt = self:GetChild("Text")
                     if selectedIndex == i then
-                        txt:strokecolor(buttonActiveStrokeColor)
+                        txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.75))
                     else
                         txt:strokecolor(color("0,0,0,0"))
                     end
