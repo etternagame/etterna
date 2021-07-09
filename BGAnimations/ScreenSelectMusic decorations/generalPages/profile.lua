@@ -135,7 +135,6 @@ local rightSmallTextSize = 0.7
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 -- movement on the Z axis to fix button related issues
 -- this value doesnt change anything as long as it is smaller than 1
@@ -164,6 +163,7 @@ local function createChoices()
                 txt:zoom(choiceTextSize)
                 txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                 txt:settext(choiceNames[i])
+                registerActorToColorConfigElement(txt, "main", "PrimaryText")
                 bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
             end,
             UpdateSelectedIndexCommand = function(self, params)
@@ -172,7 +172,7 @@ local function createChoices()
                     selectedIndex = params.index
                 end
                 if selectedIndex == i then
-                    txt:strokecolor(buttonActiveStrokeColor)
+                    txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.75))
                 else
                     txt:strokecolor(color("0,0,0,0"))
                 end
@@ -345,6 +345,7 @@ local function createList()
                     self:x(actuals.ItemIndexMargin)
                     self:zoom(itemIndexSize)
                     self:maxwidth((actuals.ItemSSRRightAlignLeftGap - actuals.ItemSSRWidth) / itemIndexSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -393,6 +394,7 @@ local function createList()
 
                     txt:zoom(nameTextSize)
                     txt:maxwidth(actuals.ItemSongNameWidth / nameTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomy(actuals.ItemAllottedSpace / itemCount)
                 end,
                 SetScoreCommand = function(self)
@@ -465,6 +467,7 @@ local function createList()
                     self:zoom(dateTextSize)
                     self:maxwidth(actuals.ItemSongNameWidth / 3 / dateTextSize - textzoomFudge)
                     self:settext("")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -489,6 +492,7 @@ local function createList()
                     self:x(actuals.ItemRateRightAlignLeftGap)
                     self:zoom(rateTextSize)
                     self:maxwidth(actuals.ItemRateWidth / rateTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -511,6 +515,9 @@ local function createList()
                     self:zoom(percentTextSize)
                     self:maxwidth(actuals.ItemPercentWidth / percentTextSize - textzoomFudge)
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetScore")
+                end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         if isLocal then
@@ -530,6 +537,9 @@ local function createList()
                     self:x(actuals.ItemDiffRightAlignLeftGap)
                     self:zoom(diffTextSize)
                     self:maxwidth(actuals.ItemDiffWidth / diffTextSize - textzoomFudge)
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetScore")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -780,6 +790,7 @@ local function createList()
                     self:zoom(smalllineTextSize)
                     self:maxwidth((actuals.RightTextLeftGap - actuals.AvatarLeftGap - actuals.AvatarSize - actuals.NameInfoLeftMargin) / smalllineTextSize - textzoomFudge)
                     self:settext("")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                     self:queuecommand("Startup")
                 end,
                 SetCommand = smallTextFunctions.Left[i],
@@ -800,6 +811,7 @@ local function createList()
                     self:zoom(rightSmallTextSize)
                     self:maxwidth((actuals.Width - actuals.RightTextLeftGap) / rightSmallTextSize - textzoomFudge)
                     self:settext("")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                     self:playcommand("SubInit")
                 end,
                 SubInitCommand = function(self)
@@ -904,6 +916,7 @@ local function createList()
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.RightTextLeftGap - actuals.AvatarLeftGap - actuals.AvatarSize - actuals.NameInfoLeftMargin) / largelineTextSize - textzoomFudge)
                     self:settext("")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self)
                     if DLMAN:IsLoggedIn() then
@@ -925,6 +938,7 @@ local function createList()
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.RightTextLeftGap - actuals.AvatarLeftGap - actuals.AvatarSize - actuals.NameInfoLeftMargin) / largelineTextSize - textzoomFudge)
                     self:settext("")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self)
                     if DLMAN:IsLoggedIn() then
@@ -948,6 +962,7 @@ local function createList()
                     bg:halign(0):valign(0)
                     txt:zoom(largelineTextSize)
                     txt:maxwidth((actuals.Width - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
 
                     -- this is the ultimate fudge value
                     -- meant to be the approximate size of the text vertically but a lot smaller
@@ -1005,6 +1020,7 @@ local function createList()
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
                     self:settext("View Recent Scores")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -1126,6 +1142,7 @@ local function createList()
             txt:zoom(indicatorTextSize)
             txt:maxwidth((actuals.ItemSongNameWidth + actuals.ItemSongNameLeftGap) / indicatorTextSize - textzoomFudge)
             txt:settext("")
+            registerActorToColorConfigElement(txt, "main", "PrimaryText")
             bg:halign(0)
             -- really really bad approximation in conjunction with the zoomto height below
             -- there must be a better way (dont suggest txt:GetZoomedHeight())
@@ -1198,6 +1215,7 @@ local function createList()
             self:zoom(pageTextSize)
             -- oddly precise max width but this should fit with the original size
             self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         UpdateListCommand = function(self)
             local lb = clamp((page-1) * (itemCount) + 1, 0, #scores)
@@ -1214,8 +1232,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -1224,7 +1242,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0)
         self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
-        self:diffuse(color(".4,.4,.4,.7"))
+        self:diffusealpha(0.3)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
