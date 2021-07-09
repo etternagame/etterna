@@ -73,13 +73,8 @@ local pageTextSize = 0.7
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 
-local defaultTagColor = color("1,1,1,1")
-local tagAssignedColor = color("1,.5,.5,1")
-local tagExcludedColor = color(".5,1,.5,1")
-local tagRequiredColor = color(".5,.5,1,1")
 local tagListAnimationSeconds = 0.03
 
 local function tagList()
@@ -147,6 +142,9 @@ local function tagList()
                 bg:zoomto(allowedWidth, actuals.UpperLipHeight)
                 bg:y(txt:GetZoomedHeight() / 2)
             end,
+            ColorConfigUpdatedMessageCommand = function(self)
+                self:playcommand("UpdateTagList")
+            end,
             UpdateTagListCommand = function(self)
                 local txt = self:GetChild("Text")
                 index = (page-1) * columns * tagsPerColumn + i
@@ -155,8 +153,7 @@ local function tagList()
                 self:diffusealpha(0)
                 if tag ~= nil and tag ~= "" then
                     self:smooth(tagListAnimationSeconds * i)
-                    self:diffusealpha(1)
-                    self:diffuse(defaultTagColor)
+                    self:diffuse(COLORS:getMainColor("PrimaryText"))
                     txt:settext(tag)
 
                     if tagListMode == "Assign" then
@@ -165,20 +162,21 @@ local function tagList()
                         if chart ~= nil then
                             local ck = chart:GetChartKey()
                             if storedTags[tag][ck] then
-                                self:diffuse(tagAssignedColor)
+                                self:diffuse(COLORS:getColor("generalBox", "AssignedTag"))
                             end
                         end
                     elseif tagListMode == "Require" then
                         -- color if required
                         if requiredTags[tag] then
-                            self:diffuse(tagRequiredColor)
+                            self:diffuse(COLORS:getColor("generalBox", "RequiredTag"))
                         end
                     elseif tagListMode == "Exclude" then
                         -- color if excluded
                         if excludedTags[tag] then
-                            self:diffuse(tagExcludedColor)
+                            self:diffuse(COLORS:getColor("generalBox", "FilteredTag"))
                         end
                     end
+                    self:diffusealpha(1)
                 end
             end,
             ClickCommand = function(self, params)
@@ -398,6 +396,7 @@ local function tagList()
                     self:x((actuals.Width / #choiceDefinitions) * (i-1) + (actuals.Width / #choiceDefinitions / 2))
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceDefinitions, actuals.UpperLipHeight)
                     self:playcommand("UpdateText")
                 end,
@@ -419,7 +418,7 @@ local function tagList()
                     end
 
                     if activeChoices[i] then
-                        txt:strokecolor(buttonActiveStrokeColor)
+                        txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.75))
                     else
                         txt:strokecolor(color("0,0,0,0"))
                     end
@@ -563,6 +562,7 @@ local function tagList()
                 self:xy(actuals.Width - actuals.PageTextRightGap, actuals.PageNumberUpperGap)
                 self:zoom(pageTextSize)
                 self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateTagListCommand = function(self)
                 local lb = clamp((page-1) * (columns * tagsPerColumn) + 1, 0, #tagNameList)
@@ -584,8 +584,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -594,7 +594,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0)
         self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
-        self:diffuse(color(".4,.4,.4,.7"))
+        self:diffusealpha(0.3)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
